@@ -214,7 +214,7 @@
         // Explicitly set advanced
         fields.push({name: 'advanced', value: 'true'});
 
-        window.location.href = window.location.pathname + '?' + $.param(fields);
+        window.location.href = "#{application_type_path(@application_type.id)}" + '?' + $.param(fields);
         return false;
       });
     });
