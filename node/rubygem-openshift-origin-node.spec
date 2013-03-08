@@ -16,7 +16,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version:       1.5.14
+Version: 1.6.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -222,6 +222,21 @@ fi
 sed -i -e '/pam_cgroup/d' /etc/pam.d/sshd
 
 %changelog
+* Thu Mar 07 2013 Adam Miller <admiller@redhat.com> 1.6.1-1
+- bump_minor_versions for sprint 25 (admiller@redhat.com)
+
+* Thu Mar 07 2013 Adam Miller <admiller@redhat.com> 1.5.15-1
+- Merge pull request #1578 from ironcladlou/endpoint_ex_handling
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 919161: Fix Python 3.3 Endpoint entry (ironcladlou@gmail.com)
+- Bug 918888 - Had the wrong exit status. (rmillner@redhat.com)
+- Merge pull request #1575 from pmorie/dev/uu
+  (dmcphers+openshiftbot@redhat.com)
+- Fix destroyed gear check in UnixUser#destroy (pmorie@gmail.com)
+- Merge pull request #1570 from rmillner/post_stage
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 901866 - Put training wheels on the rm command. (rmillner@redhat.com)
+
 * Wed Mar 06 2013 Adam Miller <admiller@redhat.com> 1.5.14-1
 - BZ873896 - [ORIGIN] 000001_openshift_origin_node.conf not included in
   gemspec, but is in tar.gz (calfonso@redhat.com)

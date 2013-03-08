@@ -1,6 +1,6 @@
 Summary:       Openshift PAM module
 Name:          pam_openshift
-Version:       1.3.4
+Version: 1.4.1
 Release:       1%{?dist}
 Group:         System Environment/Base
 License:       GPLv2
@@ -42,6 +42,9 @@ install -D -m 755 oo-namespace-init %{buildroot}/%{_sbindir}/oo-namespace-init
 %attr(0755,root,root) %{_sbindir}/oo-namespace-init
 
 %changelog
+* Thu Mar 07 2013 Adam Miller <admiller@redhat.com> 1.4.1-1
+- bump_minor_versions for sprint 25 (admiller@redhat.com)
+
 * Tue Mar 05 2013 Adam Miller <admiller@redhat.com> 1.3.4-1
 - pam_openshift build requires gcc (mlamouri@redhat.com)
 

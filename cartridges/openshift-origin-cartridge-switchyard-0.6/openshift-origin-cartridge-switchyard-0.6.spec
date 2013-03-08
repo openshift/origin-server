@@ -8,7 +8,7 @@
 
 Summary:       Embedded SwitchYard modules for JBoss
 Name:          openshift-origin-cartridge-switchyard-0.6
-Version:       1.4.3
+Version: 1.5.1
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -66,6 +66,9 @@ alternatives --set switchyard-0.6 /usr/share/switchyard
 
 
 %changelog
+* Thu Mar 07 2013 Adam Miller <admiller@redhat.com> 1.5.1-1
+- bump_minor_versions for sprint 25 (admiller@redhat.com)
+
 * Tue Feb 19 2013 Adam Miller <admiller@redhat.com> 1.4.3-1
 - Fixes for ruby193 (john@ibiblio.org)
 - Bug 903530 Set version to framework version (dmcphers@redhat.com)

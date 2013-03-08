@@ -223,7 +223,7 @@ if usage_data.count > 0
     puts 
   end
 
-  puts "Note: The cost displayed is based on the usage duration and the usage rate." \
+  puts "Note: The cost displayed is based on the usage duration and the usage rate. " \
   "It does not take into account any unbilled usage such as the 3 free gears on the MegaShift plan."
   puts 
 else
