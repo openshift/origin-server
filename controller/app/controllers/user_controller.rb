@@ -18,10 +18,10 @@ class UserController < BaseController
       if force
         @cloud_user.force_delete
       else
-        return render_error(:unprocessable_entity, "User '#{@login}' has valid domains. Either delete domains and retry the operation or use 'force' option.", 139, "DELETE_USER") if @cloud_user.domains.count > 0
+        return render_error(:unprocessable_entity, "User '#{@cloud_user.login}' has valid domains. Either delete domains and retry the operation or use 'force' option.", 139, "DELETE_USER") if @cloud_user.domains.count > 0
         @cloud_user.delete
       end
-      render_success(:no_content, nil, nil, "DELETE_USER", "User #{@login} deleted.", true)
+      render_success(:no_content, nil, nil, "DELETE_USER", "User #{@cloud_user.login} deleted.", true)
     rescue Exception => e
       return render_exception(e, "DELETE_USER")
     end
