@@ -59,9 +59,23 @@ module Console
         except = Array(html_options.delete(:except))
         # Skip the base here because we will add it later if desired
         except << :base
-        args = (@object.errors.keys - except)
+        desired_keys = args.present? ? args : (@object.errors.keys - except)
 
-        full_errors = args.inject([]) do |array, method|
+        # Loop through all of the aliased attributes and merge them
+        unless (aliases = html_options.delete(:alias)).nil?
+          aliases.each do |master,_alias|
+            if @object.errors.include?(_alias)
+              @object.errors[master] |= @object.errors.delete(_alias)
+            end
+          end
+        end
+
+        # Make sure the merged attributes are a flat array
+        @object.errors.keys.each do |key|
+          @object.errors.set(key, @object.errors[key].flatten.compact.uniq)
+        end
+
+        full_errors = desired_keys.inject([]) do |array, method|
           attribute = localized_string(method, method.to_sym, :label) || humanized_attribute_name(method)
           @object.errors[method.to_sym].each do |error|
             if error.present?
@@ -70,12 +84,13 @@ module Console
             end
           end
           array
-          #errors = Array(@object.errors[method.to_sym]).to_sentence
-          #errors.present? ? array << [attribute, errors].join(" ") : array ||= []
         end
-        full_errors << @object.errors[:base] unless html_options.delete(:not) == :base
+
+        full_errors << @object.errors[:base] unless html_options.delete(:not) == :base or args.present?
         full_errors.flatten!
         full_errors.compact!
+        full_errors.uniq!
+
         return nil if full_errors.blank?
         #html_options[:class] ||= "errors"
         template.content_tag(:ul, html_options) do
