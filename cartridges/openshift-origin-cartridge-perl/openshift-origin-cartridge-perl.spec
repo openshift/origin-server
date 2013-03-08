@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/openshift/cartridges/v2/perl
 
 Name: openshift-origin-cartridge-perl
-Version: 0.1.0
+Version: 0.1.1
 Release: 1%{?dist}
 Summary: Perl cartridge
 Group: Development/Languages
@@ -66,5 +66,8 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Fri Mar 08 2013 Mike McGrath <mmcgrath@redhat.com> 0.1.1-1
+- new package built with tito
+
 * Wed Feb 20 2013 Mike McGrath <mmcgrath@redhat.com> - 0.1.0-1
 - Initial SPEC created
