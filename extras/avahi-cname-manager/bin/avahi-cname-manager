@@ -1,0 +1,190 @@
+#!/usr/bin/env ruby
+require 'rubygems'
+require 'dbus'
+require 'sinatra'
+require 'parseconfig'
+
+##
+# Main class for maintaining CNAME entries on avahi
+class Avahi
+  DBUS_NAME='org.freedesktop.Avahi'
+  DBUS_PATH_SERVER='/'
+  DBUS_INTERFACE_SERVER='org.freedesktop.Avahi.Server'
+  IF_UNSPEC = -1
+  PROTO_UNSPEC = -1
+  CLASS_IN = 0x01
+  TYPE_CNAME = 0x05
+  TYPE_A = 0x01
+  TTL = 60
+  
+  ##
+  # Class initializer. Creates a DBUS connection to Avahi service.
+  def initialize
+    @bus = DBus::SystemBus.instance
+    @avahi = @bus.service(DBUS_NAME)
+    @server = @avahi.object(DBUS_PATH_SERVER)
+    @server.default_iface = DBUS_INTERFACE_SERVER
+    @server.introspect
+
+    @group = @avahi.object(@server.EntryGroupNew()[0])
+    @group.default_iface = 'org.freedesktop.Avahi.EntryGroup'
+    @group.introspect
+  end
+  
+  ##
+  # Remove an existing CNAME alias
+  #
+  # @param cname String CNAME to remove
+  # @return status Integer HTTP codes 200, 400, 404
+  # @return message String Detailed message of success or error
+  def remove_alias(cname)
+    if  cname.nil? || cname.empty? || 
+        (not cname.match(/[a-z]+(.[a-z]+)?.local/))
+      return 400, "Invlaid CNAME '#{cname}'"
+      return 400, "Invalid CNAME"
+    end
+    
+    STDERR.write("Removing alias #{cname}\n")
+    aliases = load_config()
+    if aliases.keys.include?(cname)
+      aliases.delete(cname)
+      save_config(aliases)
+      reload_aliases()
+      return 200, "OK"
+    else
+      STDERR.write("...not found\n")
+      return 404, "CNAME entry not found"
+    end
+  end
+  
+  ##
+  # Remove all CNAME aliases and reloads them from the db file
+  def reload_aliases
+    aliases = load_config()    
+    STDERR.write("Clearing all aliases for reload\n")
+    @group.Reset()
+    if aliases.keys.length > 0
+      aliases.each do |cname, fqdn|
+        rdata = create_rr(fqdn.strip)
+        @group.AddRecord(IF_UNSPEC, PROTO_UNSPEC, 0, cname.strip, CLASS_IN, TYPE_CNAME, TTL, rdata)
+      end
+      @group.Commit()
+    end
+    STDERR.write("...succesful\n")    
+  end
+  
+  ##
+  # Add a new CNAME alias
+  #
+  # @param cname String CNAME to add
+  # @param fqdn String FQDN that CNAME should point to
+  # @return status Integer HTTP codes 200, 400, 404
+  # @return message String Detailed message of success or error
+  def add_alias(cname, fqdn)
+    if  cname.nil? || cname.empty? || 
+        (not cname.match(/[a-z]+(.[a-z]+)?.local/))
+      return 400, "Invlaid CNAME '#{cname}'"
+      return 400, "Invalid CNAME"
+    end
+        
+    if fqdn.nil? || fqdn.empty? || 
+        (not fqdn.match(/[a-z]+(.[a-z]+)?.local/))
+        return 400, "Invlaid FQDN '#{fqdn}'"
+        return 400, "Invalid FQDN"
+    end
+    
+    STDERR.write("Adding alias #{cname} -> #{fqdn}\n")
+    aliases = load_config()
+    unless aliases.keys.include?(cname)
+      aliases[cname]=fqdn
+      save_config(aliases)
+      rdata = create_rr(fqdn.strip)
+      @group.AddRecord(IF_UNSPEC, PROTO_UNSPEC, 0, cname.strip, CLASS_IN, TYPE_CNAME, TTL, rdata)
+      @group.Commit()
+      STDERR.write("...succesful\n")
+      return 200, "OK"
+    else
+      STDERR.write("...duplicate\n")
+      return 400, "CNAME entry already exists for #{cname}"
+    end
+  end
+
+  ##
+  # Create a RR entry for a given FQDN.
+  # Eg output. foo.local => [3,'f','o','o',5,'l','o','c','a','l',0]
+  #
+  # @param fqdn String The FQDN to create an RR entry for
+  # @return Array<Char> RR entry
+  def create_rr(fqdn)
+    out = []
+    fqdn.split('.').each do |part|
+      continue if part.empty?
+      out << part.length
+      out += part.split(//)
+    end
+    out << 0
+    out
+  end
+  
+  ##
+  # Loads db file and returns a Hash of CNAME=>FQDN mappings
+  # @return Hash
+  def load_config
+    aliases = {}
+    File.open("/var/lib/avahi-cname-manager/aliases") do |file|
+      file.readlines.each do |alias_entry|
+        cname, fqdn = alias_entry.split("=")
+        aliases[cname.strip]=fqdn.strip
+      end  
+    end
+    aliases
+  end
+  
+  # Daves db file
+  # @param aliases Hash Hash of CNAME=>FQDN mappings
+  def save_config(aliases)
+    File.open("/var/lib/avahi-cname-manager/aliases", "w+") do |file|
+      aliases.each do |k,v|
+        file.write("#{k}=#{v}\n")
+      end
+    end
+  end
+end
+
+$avahi = Avahi.new
+$config = ParseConfig.new("/etc/avahi/cname-manager.conf")
+$auth_key_name = $config["KEY_NAME"]
+$auth_key_value = $config["KEY_VALUE"]
+set :environment, :production
+set :port, 8053
+enable :logging, :lock, :dump_errors
+disable :sessions, :raise_errors
+$avahi.reload_aliases
+
+error do
+  halt 404, ""
+end
+
+not_found do
+  halt 404, ""
+end
+
+post '/add_alias' do
+  if params[:key_name] != $auth_key_name || params[:key_value] != $auth_key_value
+    halt 401, "Access denied"
+  end
+  status, message = $avahi.add_alias(params[:cname], params[:fqdn])
+  if status != 200
+    halt status, message
+  end
+end 
+
+post '/remove_alias' do
+  if params[:key_name] != $auth_key_name || params[:key_value] != $auth_key_value
+    halt 401, "Access denied"
+  end
+  status, message = $avahi.remove_alias(params[:cname])
+  if status != 200
+    halt status, message
+  end
+end 

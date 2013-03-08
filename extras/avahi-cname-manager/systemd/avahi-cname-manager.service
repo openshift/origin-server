@@ -1,0 +1,15 @@
+[Unit]
+Description=Avahi CNAME alias manager
+After=syslog.target
+After=network.target
+
+[Service]
+Type=simple
+User=avahi-cname
+Group=avahi-cname
+ExecStart=/usr/bin/avahi-cname-manager
+
+TimeoutSec=300
+
+[Install]
+WantedBy=multi-user.target
