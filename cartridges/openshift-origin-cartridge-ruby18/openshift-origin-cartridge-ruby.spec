@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/openshift/cartridges/v2/ruby18
 
 Name: openshift-origin-cartridge-ruby
-Version: 0.1.18
+Version: 0.1.19
 Release: 1%{?dist}
 Summary: Ruby cartridge
 Group: Development/Languages
@@ -86,5 +86,8 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Fri Mar 08 2013 Mike McGrath <mmcgrath@redhat.com> 0.1.19-1
+- 
+
 * Mon Feb 25 2013 Mike McGrath <mmcgrath@redhat.com> - 0.1.18-1
 - Initial SPEC created
