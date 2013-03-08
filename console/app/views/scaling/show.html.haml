@@ -17,7 +17,7 @@
                             :method => :put,
                             :url => application_scaling_cartridge_path(@application.id, cartridge.name) do |f|
 
-          = f.semantic_errors :scales_from, :scales_to
+          = f.semantic_errors :except => [:scales_to, :scales_from]
 
           - if cartridge.tags.include?(:web_framework)
             %p
@@ -43,6 +43,10 @@
             = f.commit_button :label => 'Save', :button_html => {:class => 'btn btn-small'}
             = f.loading
 
+            -# Scaling errors are currently reported to base, but if they get reported here, this will work
+            - if [cartridge.errors[:scales_from], cartridge.errors[:scales_to]].flatten.compact.present?
+              .control-group.control-group-important.error.help-block
+                = f.semantic_errors :scales_from, :scales_to, :class => [:unstyled, :errors, 'help-block']
 
         - if cartridge.tags.include?(:web_framework)
 

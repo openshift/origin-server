@@ -1,12 +1,12 @@
 = semantic_form_for domain, :url => domain_path, :simple => true do |f|
-  = f.semantic_errors :name
+  = f.semantic_errors :alias => {:name => :id}, :except => :name
   .control-group.control-group-important{:class => domain.errors[:name].present? || domain.errors[:namespace].present? ? 'error' : '', :id => "domain_name_group", :data => domain.errors[:name].present? || domain.errors[:namespace].present? ? {:"server-error" => 'server-error'} : {}}
     .controls.first
       .input-prepend.input-append.wrap
         %span.add-on> http://applicationname&ndash;
         = f.text_field :name, :autofocus => true, :placeholder => 'Namespace', :class => 'domain_name'
         %span.add-on>= ".#{RestApi.application_domain_suffix}"
-      .help-block Your namespace must be letters or numbers with no spaces or symbols.
+      = f.semantic_errors :name, :alias => {:name => :id}, :class => [:unstyled, :errors, 'help-block']
   = f.buttons do
     = link_to "Cancel", account_path, :class => 'btn'
     = f.commit_button :label => domain.persisted? ? 'Save' : 'Create'
