@@ -366,6 +366,11 @@ figure {
     padding-top: 0;
 }
 
+a.skip-navigation {
+  position: absolute;
+  top: -1000px;
+}
+
 a.console-link {
     margin-right: 20px;
     position: relative;
