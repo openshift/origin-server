@@ -68,7 +68,7 @@ class FrontendHttpServerModelTest < Test::Unit::TestCase
     @test_ssl_path = "#{@http_conf_dir}/#{@container_uuid}_#{@namespace}_#{@test_alias}"
 
     @test_ssl_key_passphrase = "test passphrase"
-    @test_ssl_cert = "SSL Cert"
+    @test_ssl_cert = "SSL Cert\n-----END\n"
     @test_ssl_key = "SSL Key"
     @test_ssl_key_decrypted = "SSL Key Decrypted"
 
