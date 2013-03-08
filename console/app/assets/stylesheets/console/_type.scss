@@ -51,9 +51,6 @@ h2 {
   font-size: $baseFontSize * 1.62;
   line-height: $baseLineHeight * 1.75;
   margin-bottom: $baseLineHeight - 8;
-  + p {
-    margin-top: -$baseLineHeight + 8;
-  }
 }
 h3 {
   font-size: $baseFontSize * 1.38;
