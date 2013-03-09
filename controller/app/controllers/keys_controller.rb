@@ -16,6 +16,13 @@ class KeysController < BaseController
   def show
     id = params[:id]
     begin
+      # if the id has a dot, rails breaks up the actual intended id into :id and :format 
+      unless params[:format].nil? or params[:format].empty? or["xml", "json", "yml", "yaml", "xhtml"].include? params[:format] 
+        id += "." + params[:format]
+        # set the default format
+        request.format = "json"
+      end
+
       key = @cloud_user.ssh_keys.find_by(name: id)
       return render_success(:ok, "key", RestKey.new(key, get_url, nolinks), "SHOW_KEY", "Found SSH key '#{id}'")
     rescue Mongoid::Errors::DocumentNotFound
