@@ -667,8 +667,16 @@ module OpenShift
 
       begin
         priv_key_clean = OpenSSL::PKey.read(priv_key, passphrase)
-        ssl_cert_clean = OpenSSL::X509::Certificate.new(ssl_cert)
-      rescue AttributeError
+        ssl_cert_clean = []
+        ssl_cert_unit = ""
+        ssl_cert.each_line do |cert_line|
+          ssl_cert_unit += cert_line
+          if cert_line.start_with?('-----END')
+            ssl_cert_clean << OpenSSL::X509::Certificate.new(ssl_cert_unit)
+            ssl_cert_unit = ""
+          end
+        end
+      rescue ArgumentError
         raise FrontendHttpServerException.new("Invalid Private Key or Passphrase",
                                               @container_uuid, @container_name,
                                               @namespace)
@@ -682,7 +690,13 @@ module OpenShift
                                               @namespace)
       end
 
-      if not ssl_cert_clean.check_private_key(priv_key_clean)
+      if ssl_cert_clean.empty?
+        raise FrontendHttpServerException.new("Could not parse certificates",
+                                              @container_uuid, @container_name,
+                                              @namespace)
+      end
+
+      if not ssl_cert_clean[0].check_private_key(priv_key_clean)
         raise FrontendHttpServerException.new("Key/cert mismatch",
                                               @container_uuid, @container_name,
                                               @namespace)
@@ -701,9 +715,8 @@ module OpenShift
       ssl_cert_file_path = File.join(alias_conf_dir_path, server_alias_clean + ".crt")
       priv_key_file_path = File.join(alias_conf_dir_path, server_alias_clean + ".key")
       FileUtils.mkdir_p(alias_conf_dir_path)
-      File.open(ssl_cert_file_path, 'w') { |f| f.write(ssl_cert_clean.to_pem) }
+      File.open(ssl_cert_file_path, 'w') { |f| f.write(ssl_cert_clean.map { |c| c.to_pem}.join) }
       File.open(priv_key_file_path, 'w') { |f| f.write(priv_key_clean.to_pem) }
-
 
       #
       # Create configuration for the alias
