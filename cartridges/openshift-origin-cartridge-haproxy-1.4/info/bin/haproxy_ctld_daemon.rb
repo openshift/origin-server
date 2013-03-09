@@ -2,7 +2,7 @@
 
 require 'rubygems'
 require 'daemons'
-require 'openshift-origin-node'
+#require 'openshift-origin-node'
 
 cartridge_type = "haproxy-1.4"
 
@@ -17,6 +17,6 @@ options = {
     :multiple => false,
     
 }
-config = OpenShift::Config.instance
+#config = OpenShift::Config.instance
 
-Daemons.run("#{config.get("CARTRIDGE_BASE_PATH")}/haproxy-1.4/info/bin/haproxy_ctld.rb", options)
+Daemons.run('/usr/libexec/openshift/cartridges/haproxy-1.4/info/bin/haproxy_ctld.rb', options)
