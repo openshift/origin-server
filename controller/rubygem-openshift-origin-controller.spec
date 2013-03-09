@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version:       1.5.14
+Version:       1.5.15
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -78,6 +78,9 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Fri Mar 08 2013 Adam Miller <admiller@redhat.com> 1.5.15-1
+- Missed the ssh keyname handling in the show method (abhgupta@redhat.com)
+
 * Wed Mar 06 2013 Adam Miller <admiller@redhat.com> 1.5.14-1
 - Merge pull request #1566 from lnader/master (dmcphers@redhat.com)
 - be sure you dont cache an empty list (dmcphers@redhat.com)
