@@ -106,7 +106,7 @@ sed -i "s#export \s*PATH=#export PATH=$CART_INFO_DIR/bin/:#" $APP_HOME/.env/PATH
 #
 # Start the server
 #
-start_app
+#start_app
 
 #
 # Setup environment variables
