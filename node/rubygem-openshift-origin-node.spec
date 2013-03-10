@@ -122,6 +122,7 @@ mv %{buildroot}%{gem_instdir}/misc/lib/setup_pam_fs_limits.sh %{buildroot}/usr/l
 #move the shell binaries into proper location
 mv %{buildroot}%{gem_instdir}/misc/bin/* %{buildroot}/usr/bin/
 mv %{buildroot}%{gem_instdir}/misc/sbin/* %{buildroot}/usr/sbin/
+ln -sf /usr/sbin/oo-admin-ctl-cgroups %{buildroot}/usr/bin/oo-admin-ctl-cgroups
 
 # Create run dir for openshift "services"
 %if 0%{?fedora} >= 15
