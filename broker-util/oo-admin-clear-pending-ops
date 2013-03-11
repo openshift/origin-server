@@ -60,6 +60,7 @@ require "/var/www/openshift/broker/config/environment"
 $count = 0
 def clean_app(a)
   $count += 1
+  delete_app = false
   a.pending_op_groups.each { |op| 
     if op.created_at < $t 
       puts
@@ -70,6 +71,7 @@ def clean_app(a)
           op.execute 
           a.unreserve_gears(op.num_gears_removed)
           success = true
+          delete_app = true if op.op_type == :delete_app
         rescue Exception => e
           print "Execution failed. Rolling back.."
           begin
@@ -87,13 +89,18 @@ def clean_app(a)
       end
     end
   } 
-  a.save
-  a.pending_op_groups.each { |op| 
-    if op.created_at < $t 
-      puts
-      puts "Failed to clear op for app (#{a.uuid}) - #{op.inspect} "
+  if not delete_app
+    a.save
+    a.pending_op_groups.each { |op| 
+      if op.created_at < $t 
+        puts
+        puts "Failed to clear op for app (#{a.uuid}) - #{op.inspect} "
+      end
+    } 
+    if (a.group_instances.nil? or a.group_instances.empty?) and (a.component_instances.nil? or a.component_instances.empty?)
+      a.delete
     end
-  } 
+  end
 end
 
 $domain_count = 0
