@@ -123,6 +123,8 @@ fi
 %attr(0750,-,-) %{_var}/log/openshift/console/httpd
 %attr(0644,-,-) %ghost %{_var}/log/openshift/console/production.log
 %attr(0644,-,-) %ghost %{_var}/log/openshift/console/development.log
+%attr(0644,-,-) %ghost %{_var}/log/openshift/console/httpd/error_log
+%attr(0644,-,-) %ghost %{_var}/log/openshift/console/httpd/access_log
 %attr(0750,-,-) %{consoledir}/script
 %attr(0750,-,-) %{consoledir}/tmp
 %attr(0750,-,-) %{consoledir}/tmp/cache
@@ -158,6 +160,13 @@ fi
 /sbin/chkconfig --add openshift-console || :
 /sbin/service openshift-console condrestart || :
 %endif
+
+#selinux updated
+/sbin/semanage -i - <<_EOF
+fcontext -a -t httpd_log_t '%{_var}/log/openshift/console(/.*)?'
+fcontext -a -t httpd_log_t '%{_var}/log/openshift/console/httpd(/.*)?'
+_EOF
+/sbin/restorecon -R %{_var}/log/openshift/console
 
 /sbin/fixfiles -R %{?scl:%scl_prefix}rubygem-passenger restore
 /sbin/fixfiles -R %{?scl:%scl_prefix}mod_passenger restore
