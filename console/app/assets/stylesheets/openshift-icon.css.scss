@@ -1,12 +1,12 @@
 @font-face {
 	font-family: 'openshift-icon';
-	src:font-url('openshift-icon.eot');
-	src:font-url('openshift-icon.eot?#iefix') format('embedded-opentype'),
-		font-url('openshift-icon.woff') format('woff'),
-		font-url('openshift-icon.ttf') format('truetype'),
-		font-url('openshift-icon.svg#openshift-icon') format('svg');
+	src:url('openshift-icon.eot');
+	src:url('openshift-icon.eot?#iefix') format('embedded-opentype'),
+		url('openshift-icon.woff') format('woff'),
+		url('openshift-icon.ttf') format('truetype'),
+		url('openshift-icon.svg#openshift-icon') format('svg');
 	font-weight: normal;
-	font-style: normal; 
+	font-style: normal;
 }
 
 /* Use the following CSS code if you want to use data attributes for inserting your icons */
@@ -15,6 +15,8 @@
 	content: attr(data-icon);
 	speak: none;
 	font-weight: normal;
+	font-variant: normal;
+	text-transform: none;
 	line-height: 1;
 	-webkit-font-smoothing: antialiased;
 }
@@ -25,7 +27,7 @@ Instead of a list of all class selectors,
 you can use the generic selector below, but it's slower:
 [class*="icon-"]:before {
 */
-.icon-lock:before, .icon-unlock:before, .icon-outgoing-link:before, .icon-arrow-sm-right:before, .icon-arrow-sm-left:before, .icon-arrow-sm-down:before, .icon-arrow-sm-up:before, .icon-arrow-lg-right:before, .icon-data-store-part1:before, .icon-data-store-part2:before, .icon-non-scalable-part1:before, .icon-non-scalable-part2:before, .icon-scalable-part1:before, .icon-scalable-part2:before, .icon-gear-lg:before, .icon-gear-lg-sans-circle:before, .icon-gear-number-circle:before, .icon-gear-sm:before, .icon-gear-sm-sans-circle:before, .icon-web-stack-lg:before, .icon-restart:before, .icon-cartridge-part1:before, .icon-cartridge-part2:before, .icon-ci-arrows:before, .icon-ci-x:before, .icon-ci-check:before, .icon-ci-disabled:before, .icon-management-part2:before, .icon-management-part1:before, .icon-quickstart:before, .icon-start:before, .icon-stop:before, .icon-calendar:before, .icon-warning-sign:before, .icon-question-sign:before, .icon-search:before, .icon-twitter:before, .icon-facebook:before, .icon-google-plus:before, .icon-info-sign:before, .icon-bubbles:before, .icon-stackoverflow:before, .icon-code:before, .icon-github:before, .icon-angle-down:before, .icon-angle-up:before, .icon-angle-right:before, .icon-angle-left:before, .icon-plus:before, .icon-minus:before, .icon-system-signal-lg:before, .icon-system-lg:before {
+.icon-lock:before, .icon-unlock:before, .icon-outgoing-link:before, .icon-arrow-sm-right:before, .icon-arrow-sm-left:before, .icon-arrow-sm-down:before, .icon-arrow-sm-up:before, .icon-arrow-lg-right:before, .icon-data-store-part1:before, .icon-data-store-part2:before, .icon-non-scalable-part1:before, .icon-non-scalable-part2:before, .icon-scalable-part1:before, .icon-scalable-part2:before, .icon-gear-lg:before, .icon-gear-lg-sans-circle:before, .icon-gear-number-circle:before, .icon-gear-sm:before, .icon-gear-sm-sans-circle:before, .icon-web-stack-lg:before, .icon-restart:before, .icon-cartridge-part1:before, .icon-cartridge-part2:before, .icon-ci-arrows:before, .icon-ci-x:before, .icon-ci-check:before, .icon-ci-disabled:before, .icon-management-part2:before, .icon-management-part1:before, .icon-quickstart:before, .icon-start:before, .icon-stop:before, .icon-calendar:before, .icon-warning-sign:before, .icon-question-sign:before, .icon-search:before, .icon-twitter:before, .icon-facebook:before, .icon-google-plus:before, .icon-info-sign:before, .icon-bubbles:before, .icon-stackoverflow:before, .icon-code:before, .icon-github:before, .icon-angle-down:before, .icon-angle-up:before, .icon-angle-right:before, .icon-angle-left:before, .icon-plus:before, .icon-minus:before, .icon-system-signal-lg:before, .icon-system-lg:before, .icon-pencil:before, .icon-remove-circle:before, .icon-ban-circle:before, .icon-ok:before, .icon-remove:before, .icon-check:before, .icon-check-empty:before, .icon-download-alt:before, .icon-cloud:before, .icon-cogs:before, .icon-star-empty:before, .icon-bolt:before, .icon-time:before, .icon-busy:before, .icon-list-ol:before {
 	font-family: 'openshift-icon';
 	speak: none;
 	font-style: normal;
@@ -191,4 +193,49 @@ you can use the generic selector below, but it's slower:
 }
 .icon-system-lg:before {
 	content: "\e033";
+}
+.icon-pencil:before {
+	content: "\ee18";
+}
+.icon-remove-circle:before {
+	content: "\ee19";
+}
+.icon-ban-circle:before {
+	content: "\ee20";
+}
+.icon-ok:before {
+	content: "\ee21";
+}
+.icon-remove:before {
+	content: "\ee22";
+}
+.icon-check:before {
+	content: "\ee23";
+}
+.icon-check-empty:before {
+	content: "\ee24";
+}
+.icon-download-alt:before {
+	content: "\ee25";
+}
+.icon-cloud:before {
+	content: "\ee26";
+}
+.icon-cogs:before {
+	content: "\ee27";
+}
+.icon-star-empty:before {
+	content: "\ee28";
+}
+.icon-bolt:before {
+	content: "\ee29";
+}
+.icon-time:before {
+	content: "\ee30";
+}
+.icon-busy:before {
+	content: "\ee31";
+}
+.icon-list-ol:before {
+	content: "\ee32";
 }

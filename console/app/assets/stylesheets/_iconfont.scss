@@ -18,10 +18,12 @@
 .font-icon-link {
   color: inherit !important;
 }
+
 .gear-number { 
   color: white;
   position: absolute;
 }
+
 .gear-number.gear-lg {
   left: 67%;
   top: 51%;
@@ -64,5 +66,15 @@ h5[class*="icon-"]:before {
   margin-left: 6px;
 }
 
+h1, h2, h3 {
+  .font-icon-block {
+    margin-right: .3em;
+  }
+}
+h4, h5, h6 {
+  .font-icon-block {
+    margin-right: .15em;
+  }
+}
 
  

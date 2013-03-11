@@ -241,6 +241,11 @@ figure {
   margin-top: 25px;
 }
 
+.sidebar {
+  border-top: 1px dotted $grayMedium;
+  padding-top: $baseLineHeight; 	
+}
+
 @media (max-width: 767px) {
   .section-console {
     background: #010101;
