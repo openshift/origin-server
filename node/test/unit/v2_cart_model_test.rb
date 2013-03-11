@@ -17,7 +17,9 @@
 #
 # Test the OpenShift application_container model
 #
-module OpenShift; end
+module OpenShift
+  ;
+end
 
 require 'test_helper'
 require 'openshift-origin-node/model/v2_cart_model'
@@ -37,7 +39,7 @@ class V2CartModelTest < Test::Unit::TestCase
 
     OpenShift::Utils::Sdk.stubs(:new_sdk_app?).returns(true)
 
-    script_dir = File.expand_path(File.dirname(__FILE__))
+    script_dir     = File.expand_path(File.dirname(__FILE__))
     cart_base_path = File.join(script_dir, '..', '..', '..', 'cartridges')
 
     raise "Couldn't find cart base path at #{cart_base_path}" unless File.exists?(cart_base_path)
@@ -48,21 +50,23 @@ class V2CartModelTest < Test::Unit::TestCase
 
     # Set up the container
     @gear_uuid = "501"
-    @user_uid = "501"
-    @app_name = 'UnixUserTestCase'
+    @user_uid  = "501"
+    @app_name  = 'UnixUserTestCase'
     @gear_name = @app_name
     @namespace = 'jwh201204301647'
-    @gear_ip = "127.0.0.1"
+    @gear_ip   = "127.0.0.1"
 
     @user = mock()
     @user.stubs(:uuid).returns(@user_uuid)
     @user.stubs(:uid).returns(@user_uid)
-    
+
     @model = OpenShift::V2CartridgeModel.new(@config, @user)
 
     @mock_manifest = %q{#
         Name: mock
         Namespace: MOCK
+        Cartridge-Version: 1.0
+        Cartridge-Vendor: Unit Test
         Display-Name: Mock
         Description: "A mock cartridge for development use only."
         Version: 0.1
@@ -86,8 +90,10 @@ class V2CartModelTest < Test::Unit::TestCase
         - "EXAMPLE_IP2:EXAMPLE_PORT5(9091)"
     }
 
-    @mock_cartridge = OpenShift::Runtime::Cartridge.new(YAML.load(@mock_manifest))
-    @model.stubs(:get_cartridge).with("mock").returns(@mock_cartridge)
+    manifest = "/tmp/manifest-#{Process.pid}"
+    IO.write(manifest, @mock_manifest, 0)
+    @mock_cartridge = OpenShift::Runtime::Cartridge.new(manifest)
+    @model.stubs(:get_cartridge).with('mock').returns(@mock_cartridge)
   end
 
   def test_get_cartridge_valid_manifest
@@ -115,7 +121,7 @@ class V2CartModelTest < Test::Unit::TestCase
 
     @user.expects(:homedir).returns('/foo')
     YAML.stubs(:load_file).with('/foo/mock/metadata/manifest.yml').raises(ArgumentError.new('bla'))
-    
+
     assert_raise(RuntimeError, 'Failed to load cart manifest from /foo/mock/metadata/manifest.yml for cart mock in gear : bla') do
       local_model.get_cartridge("mock")
     end
@@ -123,15 +129,15 @@ class V2CartModelTest < Test::Unit::TestCase
 
 
   def test_get_system_cartridge_path
-    scenarios = { 
-      'mock' => '/path/v2/mock',
-      'mock-0.0' => '/path/v2/mock-0.0',
-      'mock-plugin' => '/path/v2/mock-plugin',
-      'mock-plugin-0.0' => '/path/v2/mock-plugin-0.0',
-      'mock-' => '/path/v2/mock-',
-      'mock--' => '/path/v2/mock--',
-      'mock--0.0' => '/path/v2/mock--0.0',
-      'mock-0.0-' => '/path/v2/mock-0.0-'
+    scenarios = {
+        'mock'            => '/path/v2/mock',
+        'mock-0.0'        => '/path/v2/mock-0.0',
+        'mock-plugin'     => '/path/v2/mock-plugin',
+        'mock-plugin-0.0' => '/path/v2/mock-plugin-0.0',
+        'mock-'           => '/path/v2/mock-',
+        'mock--'          => '/path/v2/mock--',
+        'mock--0.0'       => '/path/v2/mock--0.0',
+        'mock-0.0-'       => '/path/v2/mock-0.0-'
     }
 
     @config.stubs(:get).with("CARTRIDGE_BASE_PATH").returns('/path')
