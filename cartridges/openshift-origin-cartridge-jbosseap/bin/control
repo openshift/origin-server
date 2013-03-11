@@ -5,6 +5,16 @@ JBOSSEAP_PID_FILE=${OPENSHIFT_HOMEDIR}/app-root/runtime/jbosseap.pid
 
 cartridge_type="jbosseap"
 
+# Checks for the presence of the user-specified hot_deploy marker in the app
+# repo. Returns 0 if the marker is present, otherwise 1.
+function hot_deploy_marker_is_present {
+  if [ -f "${OPENSHIFT_REPO_DIR}/.openshift/markers/hot_deploy" ]; then
+    return 0
+  else
+    return 1
+  fi
+}
+
 # Check if the jbossas process is running
 function isrunning() {
     
@@ -168,15 +178,18 @@ function start() {
 function stop() {
     echo "Stopping $cartridge_type cart"
     
-	if [ -f "$JBOSSEAP_PID_FILE" ]; then
-        source pre_stop_${cartridge_type}
-        pid=$(cat $JBOSSEAP_PID_FILE);
-        echo "Sending SIGTERM to jboss:$pid ..." 1>&2
-        killtree $pid
-        source post_stop_${cartridge_type}
-    else 
-        echo "Failed to locate JBOSS PID File" 1>&2
-    fi
+    if isrunning
+    then
+		if [ -f "$JBOSSEAP_PID_FILE" ]; then
+	        source ${OPENSHIFT_REPO_DIR}/.openshift/action_hooks/pre_stop_${cartridge_type}
+	        pid=$(cat $JBOSSEAP_PID_FILE);
+	        echo "Sending SIGTERM to jboss:$pid ..." 1>&2
+	        killtree $pid
+	        source ${OPENSHIFT_REPO_DIR}/.openshift/action_hooks/post_stop_${cartridge_type}
+	    else 
+	        echo "Failed to locate JBOSS PID File" 1>&2
+	    fi
+	fi
 }
 
 function restart() {

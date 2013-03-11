@@ -86,6 +86,10 @@ add_broker_auth_key
 admin_password=$(generate_password)
 system_builder_password=$(generate_password)
 
+echo "export JENKINS_USERNAME=admin" > $OPENSHIFT_JENKINS_DIR/env/JENKINS_USERNAME
+echo "export JENKINS_PASSWORD=$admin_password" > $OPENSHIFT_JENKINS_DIR/env/JENKINS_PASSWORD
+
+
 cp -ad "${OPENSHIFT_JENKINS_DIR}/configuration/"* "${OPENSHIFT_DATA_DIR}"
 openshift_server=`echo "${BROKER_HOST}" | sed -e "s/\/*$//" `
 sed -i "s,OPENSHIFT_SERVER,$openshift_server,g" "${OPENSHIFT_DATA_DIR}/config.xml"
