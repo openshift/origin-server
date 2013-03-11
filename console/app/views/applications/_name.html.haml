@@ -3,7 +3,7 @@
 
   = form.text_field :name, 
     :value => "#{application.name}", 
-    :autofocus => true, 
+    :autofocus => (params[:focus].blank?),
     :size => nil, 
     :placeholder => 'Application name', 
     :class => "application_name span3 #{'error' if application.errors.include? :name}"
