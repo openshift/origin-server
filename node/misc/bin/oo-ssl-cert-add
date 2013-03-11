@@ -57,7 +57,7 @@ opts = GetoptLong.new(
     ["--with-container-uuid", "-c", GetoptLong::REQUIRED_ARGUMENT],
     ["--with-namespace",            GetoptLong::REQUIRED_ARGUMENT],
     ["--with-container-name",       GetoptLong::REQUIRED_ARGUMENT],
-    ["--with-passphrase",           GetoptLong::OPTIONAL_ARGUMENT],
+    ["--with-passphrase",           GetoptLong::REQUIRED_ARGUMENT],
     ["--dry-run",             "-n", GetoptLong::NO_ARGUMENT],
     ["--porcelain",           "-q", GetoptLong::NO_ARGUMENT],
     ["--debug",               "-d", GetoptLong::NO_ARGUMENT],
@@ -82,7 +82,7 @@ namespace      = args['--with-namespace']
 ssl_cert      = args['--with-ssl-cert']
 priv_key      = args['--with-priv-key']
 server_alias  = args['--with-alias-name']
-passphrase    = args['--passphrase']
+passphrase    = args['--with-passphrase']
 
 $dry_run = true if args['--dry-run']
 $oo_debug = true if args['--debug']

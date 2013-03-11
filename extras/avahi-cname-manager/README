@@ -1,0 +1,1 @@
+Avahi-CNAME-manager demon provides a simple Sinatra based REST API to add and remove CNAME entries for the Avahi MDNS service.

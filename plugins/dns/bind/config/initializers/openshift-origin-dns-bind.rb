@@ -1,5 +1,10 @@
 require 'openshift-origin-common'
 
+# Add DNS plugin configuration information to the Rails::application.config
+# object
+#
+# @see OpenShift::BindPlugin
+#
 Broker::Application.configure do
   conf_file = File.join(OpenShift::Config::PLUGINS_DIR, File.basename(__FILE__, '.rb') + '.conf')
   if Rails.env.development?

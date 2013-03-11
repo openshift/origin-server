@@ -1,0 +1,14 @@
+#MDNS management server IP
+MDNS_SERVER=127.0.0.1
+
+#MDNS management server port
+MDNS_PORT=8053
+
+#MDNS management server key name
+MDNS_KEYNAME=openshift.local
+
+#MDNS management server key value
+MDNS_KEYVALUE=
+
+#MDNS management server zone
+MDNS_ZONE=openshift.local

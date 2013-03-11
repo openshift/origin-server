@@ -101,14 +101,14 @@ class ScalingControllerTest < ActionController::TestCase
   test 'rejects unlimited scales_from' do
     put :update, {:cartridge => {:scales_from => -1, :scales_to => 2}}.merge(scalable_app_params)
     assert_response :success
-    assert_select 'ul.alert-error > li', "Invalid scales_from factor -1 provided"
+    assert_select 'ul.errors.help-block > li', "Invalid scales_from factor -1 provided"
   end
 
   test 'rejects out of range scales_from' do
     if scalable_cartridge.supported_scales_from > 0
       put :update, {:cartridge => {:scales_from => 0, :scales_to => 2}}.merge(scalable_app_params)
       assert_response :success
-      assert_select 'ul.alert-error > li', "Invalid scales_from factor 0 provided"
+      assert_select 'ul.errors.help-block > li', "Invalid scales_from factor 0 provided"
     else
       fail 'Test case needs to be updated, a cart can be scaled to 0 now'
     end
@@ -118,7 +118,7 @@ class ScalingControllerTest < ActionController::TestCase
     put :update, {:cartridge => {:scales_from => 2, :scales_to => -2}}.merge(scalable_app_params)
     assert_response :success
     # scaling_controller flips the values so scales_from < scales_to so the error shows up with scales from
-    assert_select 'ul.alert-error > li', "Invalid scales_from factor -2 provided"
+    assert_select 'ul.errors.help-block > li', "Invalid scales_from factor -2 provided"
   end
 
   [true, false].each do |mock|

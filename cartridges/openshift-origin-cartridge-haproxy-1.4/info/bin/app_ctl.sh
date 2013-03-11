@@ -176,7 +176,8 @@ function reload() {
 }
 
 function cond_reload() {
-    if isrunning; then
+    _state=`get_app_state`
+    if isrunning || [ "$_state" = "started" ]; then
         echo "`date`: Conditionally reloading HAProxy service " 1>&2
         _reload_service
         _start_haproxy_ctld_daemon

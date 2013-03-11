@@ -4,7 +4,7 @@
 = flashes
 
 = semantic_form_for @authorization, :html => {:class => 'form'} do |f|
-  = f.semantic_errors :except => :scope
+  = f.semantic_errors :except => :note
   = f.inputs do
 
     .control-group{:class => @authorization.errors[:scope].present? ? 'error' : ''}
@@ -14,10 +14,14 @@
         - unmatched_scopes = @authorization.scopes - @simple_scopes.map{ |s| s[:id] }
         = hidden_field_tag field, ''
         %table.table
+          %thead
+            %tr
+              %th{:scope => 'col'} Scope
+              %th{:scope => 'col'} Description
           %tbody
             - @simple_scopes.each do |scope|
               %tr
-                %td
+                %td{:scope => 'row'}
                   %label.checkbox
                     = check_box_tag field, scope[:id], @authorization.scopes.include?(scope[:id]), :id => sanitize_to_id("#{field}#{scope[:id]}")
                     = scope[:name]
