@@ -20,7 +20,10 @@ cp -r ${OPENSHIFT_JBOSSEAP_DIR}/versions/${version}/standalone/configuration/* $
 cp -r ${OPENSHIFT_JBOSSEAP_DIR}/versions/${version}/metadata/* ${OPENSHIFT_JBOSSEAP_DIR}/metadata
 cp -r ${OPENSHIFT_JBOSSEAP_DIR}/versions/${version}/template/* ${OPENSHIFT_JBOSSEAP_DIR}/template
 cp -r ${OPENSHIFT_JBOSSEAP_DIR}/versions/${version}/template/.openshift ${OPENSHIFT_JBOSSEAP_DIR}/template
+cp ${OPENSHIFT_JBOSSEAP_DIR}/standalone/configuration/standalone.xml ${OPENSHIFT_JBOSSEAP_DIR}/template/.openshift/config
 cp ${OPENSHIFT_JBOSSEAP_DIR}/versions/${version}/bin/* ${OPENSHIFT_JBOSSEAP_DIR}/bin
+
+sed -i "s/{APP_NAME}/${OPENSHIFT_APP_NAME}/g" ${OPENSHIFT_JBOSSEAP_DIR}/template/pom.xml
 
 JBOSS_HOME=/etc/alternatives/jbosseap-$version
 
