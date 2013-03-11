@@ -7,27 +7,11 @@
 source /etc/init.d/functions 2> /dev/null
 
 # Import Environment Variables
-if [ -f ~/.env/CARTRIDGE_VERSION_2 ]
-then
-  for f in /etc/openshift/env/*
-  do
-    [ -f "$f" ]  &&  . "$f"
-  done
-fi
-
-# exists for all cartridge formats
-for f in ~/.env/*
+for f in /etc/openshift/env/* ~/.env/* ~/*/env/*
 do
     [ -f "$f" ]  &&  . "$f"
 done
 
-if [ -f ~/.env/CARTRIDGE_VERSION_2 ]
-then
-  for f in ~/cartridges/*/env/*
-  do
-    [ -f "$f" ]  &&  . "$f"
-  done
-fi
 
 function welcome {
     cat 1>&2 <<EOF
