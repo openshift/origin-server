@@ -1,10 +1,10 @@
 @font-face {
 	font-family: 'openshift-icon';
-	src:url('openshift-icon.eot');
-	src:url('openshift-icon.eot?#iefix') format('embedded-opentype'),
-		url('openshift-icon.woff') format('woff'),
-		url('openshift-icon.ttf') format('truetype'),
-		url('openshift-icon.svg#openshift-icon') format('svg');
+	src:font-url('openshift-icon.eot');
+	src:font-url('openshift-icon.eot?#iefix') format('embedded-opentype'),
+		font-url('openshift-icon.woff') format('woff'),
+		font-url('openshift-icon.ttf') format('truetype'),
+		font-url('openshift-icon.svg#openshift-icon') format('svg');
 	font-weight: normal;
 	font-style: normal;
 }
