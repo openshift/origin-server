@@ -1,0 +1,5 @@
+#
+# Standard Rakefile for packages with no ruby markup
+#
+# Adjust path for package depth as needed
+require '../tasks/build_tasks'

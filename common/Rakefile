@@ -1,8 +1,5 @@
-require 'rubygems'
-require 'rake'
 require 'rake/clean'
 require 'rake/testtask'
-require "bundler/gem_tasks"
 
 desc "Print environment to run from checkout - eval $( rake local_env | tail -n +1 )"
 task :local_env do
@@ -22,3 +19,10 @@ desc "Generate RDoc"
 task :doc do
   sh "rdoc ."
 end
+
+# include standard build and doc tasks
+require "../tasks/yard_tasks"
+require "../tasks/build_tasks"
+
+YARD_SOURCEROOT = File.dirname(__FILE__)
+YARD_SOURCES = ['lib']

@@ -2,9 +2,20 @@
 # Add your own tasks in files placed in lib/tasks ending in .rake,
 # for example lib/tasks/capistrano.rake, and they will automatically be available to Rake.
 
-require File.expand_path('../config/application', __FILE__)
+if defined? Rails then
+  # if running the application
+  require File.expand_path('../config/application', __FILE__)
 
-OpenshiftConsole::Application.load_tasks
-namespace :console do
-  Console::Engine.load_tasks
+  OpenshiftConsole::Application.load_tasks
+  namespace :console do
+    Console::Engine.load_tasks
+  end
+
+else
+  # if building the application
+  require "../tasks/yard_tasks"
+  require "../tasks/build_tasks"
+
+  YARD_SOURCEROOT = File.dirname(__FILE__)
+  YARD_SOURCES = ['app', 'config', 'lib']
 end

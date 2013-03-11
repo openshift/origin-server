@@ -1,5 +1,16 @@
-require "bundler/gem_tasks"
-require 'rake'
+#
+# Standard tasks
+#
+require "../../../tasks/yard_tasks"
+require "../../../tasks/build_tasks"
+
+# Define these to allow generation of comprehensive yard docs
+YARD_SOURCEROOT = File.dirname(__FILE__)
+YARD_SOURCES = ['lib']
+
+#
+# Custom Rspec test task
+#
 require 'rake/testtask'
 require 'rspec/core/rake_task'
 
@@ -10,12 +21,6 @@ RSpec::Core::RakeTask.new(:spec) do |t|
   t.ruby_opts = "-I spec/lib -I ../../../common/lib -I ../../../controller/lib -I lib"
 end
 
-require "../../../tasks/yard_tasks"
-require "../../../tasks/build_tasks"
-
-# Define these to allow generation of comprehensive yard docs
-YARD_SOURCEROOT = File.dirname(__FILE__)
-YARD_SOURCES = ['lib']
 
 
 

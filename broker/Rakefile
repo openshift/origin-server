@@ -1,7 +1,21 @@
 # Add your own tasks in files placed in lib/tasks ending in .rake,
 # for example lib/tasks/capistrano.rake, and they will automatically be available to Rake.
 
-require File.expand_path('../config/application', __FILE__)
-require 'rake'
+if defined? Rails then
+  #
+  # When running the broker application...
+  #
 
-Broker::Application.load_tasks
+  require File.expand_path('config/application', File.dirname(__FILE__))
+
+  require 'rake'
+
+  Broker::Application.load_tasks
+else
+  # include standard build/doc tasks
+  require "../tasks/yard_tasks"
+  require "../tasks/build_tasks"
+
+  YARD_SOURCEROOT = File.dirname(__FILE__)
+  YARD_SOURCES = ['app', 'config', 'lib']
+end
