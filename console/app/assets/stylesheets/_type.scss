@@ -29,7 +29,7 @@ h1, h2, h3, h4, h5, h6 {
   margin: 0;
   font-family: $headerFontFamily;
   font-weight: normal;
-  color: $consoleHeaderColor;
+  color: #000;
   text-rendering: optimizelegibility; // Fix the character spacing for headings
   small {
     font-weight: normal;
