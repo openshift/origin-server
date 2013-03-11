@@ -1,4 +1,4 @@
-/var/log/node-web-proxy/*.log {
+/var/log/node-web-proxy/*log {
     daily
     missingok
     notifempty
@@ -8,5 +8,7 @@
     size 20M
     rotate 5
     sharedscripts
+    postrotate
+        /sbin/service openshift-node-web-proxy reload > /dev/null 2>/dev/null || true
+    endscript
 }
-
