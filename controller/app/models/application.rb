@@ -633,7 +633,7 @@ class Application
   end
 
   def show_port
-    #todo
+    #TODO
     raise "noimpl"
   end
 
@@ -1870,7 +1870,7 @@ class Application
 
   # Returns the configure order specified in the application descriptor or processes the configure
   # orders for each component and returns the final order (topological sort).
-  # @note This is calculates seperately from start/stop order as this function is usually used to
+  # @note This is calculates separately from start/stop order as this function is usually used to
   #   compute the {PendingAppOps} while start/stop order applies to already configured components.
   #
   # == Parameters:
