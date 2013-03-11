@@ -134,9 +134,7 @@ class ActiveSupport::TestCase
     unless @@once.include? symbol
       @@once << symbol
       exit_block = yield block
-      at_exit do
-        exit_block.call if exit_block
-      end
+      at_exit{ exit_block.call } if exit_block.respond_to? :call
     end
   end
 
