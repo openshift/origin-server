@@ -7,7 +7,7 @@
 %global frameworkdir %{_libexecdir}/openshift/cartridges/v2/ruby
 
 Name: openshift-origin-cartridge-ruby
-Version: 0.1.1
+Version: 0.1.2
 Release: 1%{?dist}
 Summary: Ruby cartridge
 Group: Development/Languages
@@ -154,6 +154,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Mon Mar 11 2013 Mike McGrath <mmcgrath@redhat.com> 0.1.2-1
+- 
+
 * Fri Mar 08 2013 Mike McGrath <mmcgrath@redhat.com> 0.1.1-1
 - new package built with tito
 
