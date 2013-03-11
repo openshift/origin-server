@@ -421,7 +421,7 @@ When /^I send a DELETE request to "([^\"]*)"$/ do |path|
   begin
     @response = @request.execute()
   rescue => e
-  @response = e.response
+    @response = e.response
   end
 end
 
@@ -605,7 +605,7 @@ end
 
 def sub_random(value)
   if value and value.include? "<random>"
-    value = value.sub("<random>", @random.to_s)
+    value = value.gsub("<random>", @random.to_s)
   end
   return value
 end

@@ -3,8 +3,8 @@ module OpenShift
     module ApiBehavior
       extend ActiveSupport::Concern
 
-      API_VERSION = 1.3
-      SUPPORTED_API_VERSIONS = [1.0, 1.1, 1.2, 1.3]
+      API_VERSION = 1.4
+      SUPPORTED_API_VERSIONS = [1.0, 1.1, 1.2, 1.3, 1.4]
 
       protected
         attr :requested_api_version
@@ -14,6 +14,7 @@ module OpenShift
         end
 
         def check_version
+
           version = catch(:version) do
             (request.accept || "").split(',').each do |mime_type|
               values = mime_type.split(';').map(&:strip)
@@ -23,8 +24,12 @@ module OpenShift
               end
             end
             nil
-          end.presence || API_VERSION
-
+          end.presence 
+          if version.nil?
+            version = API_VERSION
+            #FIXME  this is a hack that should be removed by April
+            version = 1.3 if request.headers['User-Agent'].present? and request.headers['User-Agent'].start_with? "rhc"
+          end
           if SUPPORTED_API_VERSIONS.include? version
             @requested_api_version = version
           else

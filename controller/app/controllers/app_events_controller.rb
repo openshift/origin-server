@@ -73,7 +73,12 @@ class AppEventsController < BaseController
           msg = "Application #{id} has added alias"
           # msg += ": #{r.resultIO.string.chomp}" if !r.resultIO.string.empty?
         when "remove-alias"
-          r = application.remove_alias(server_alias)
+          begin
+            a = application.aliases.find_by(fqdn: server_alias)
+            r = application.remove_alias(server_alias)
+          rescue Mongoid::Errors::DocumentNotFound => ex
+             #do noting as was the convention in API version <= 1.3
+          end
           msg = "Application #{id} has removed alias"
           # msg += ": #{r.resultIO.string.chomp}" if !r.resultIO.string.empty?
         when "scale-up"

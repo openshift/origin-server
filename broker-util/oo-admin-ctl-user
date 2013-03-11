@@ -40,6 +40,8 @@ Options:
     Add / Remove the capability to manage sub accounts
   --allowplanupgrade (true|false)
     Add / Remove the capability to upgrade your plan.
+  --allowprivatecertificates (true|false)
+    Add / Remove the capability to add private certificates
   --addgearsize <gearsize>
     Add gearsize to the capability for this login user
   --removegearsize <gearsize>
@@ -129,6 +131,25 @@ def allow_sub_accounts(user, allow)
 
     print "Setting subaccounts capability to #{allow} for user #{user.login}... "
     user_capabilities['subaccounts'] = allow
+    user.set_capabilities(user_capabilities)
+    if user.save
+        puts "Done."
+    else
+        puts "An error occurred modifying the user capabilities."
+        exit 6
+    end
+end
+
+def allow_private_certificates(user, allow)
+    # user.capabilities_will_change!
+    user_capabilities = user.get_capabilities
+    if user_capabilities['private_certificates'] == allow
+        puts "User already has allow private_certificates set to #{allow}"
+        return
+    end
+
+    print "Setting private_certificates capability to #{allow} for user #{user.login}... "
+    user_capabilities['private_certificates'] = allow
     user.set_capabilities(user_capabilities)
     if user.save
         puts "Done."
@@ -296,6 +317,7 @@ opts = GetoptLong.new(
     ["--addsubaccount",    GetoptLong::REQUIRED_ARGUMENT],
     ["--removesubaccount", GetoptLong::REQUIRED_ARGUMENT],
     ["--allowsubaccounts", GetoptLong::REQUIRED_ARGUMENT],
+    ["--allowprivatecertificates", GetoptLong::REQUIRED_ARGUMENT],
     ["--allowplanupgrade", GetoptLong::REQUIRED_ARGUMENT],
     ["--addgearsize",      GetoptLong::REQUIRED_ARGUMENT],
     ["--removegearsize",   GetoptLong::REQUIRED_ARGUMENT],
@@ -312,6 +334,7 @@ end
 
 login = args["--login"]
 allowsubaccounts = args["--allowsubaccounts"].to_b if args["--allowsubaccounts"]
+allowprivatecertificates = args["--allowprivatecertificates"].to_b if args["--allowprivatecertificates"]
 inheritgearsizes = args["--inheritgearsizes"].to_b if args["--inheritgearsizes"]
 
 if args["--setmaxgears"]
@@ -388,6 +411,12 @@ unless args["--allowplanupgrade"].nil?
   allow_plan_upgrade(user, args["--allowplanupgrade"].to_b)
 end
 
+unless allowprivatecertificates.nil?
+    puts allowprivatecertificates
+    allow_private_certificates(user, allowprivatecertificates)
+    changed_user = true
+end
+
 unless account_to_add.nil?
     add_sub_account(user, account_to_add)
 end
@@ -432,6 +461,7 @@ puts "max storage per gear: #{user_capabilities['max_storage_per_gear'] || 0}"
 puts "plan upgrade enabled: #{user_capabilities['plan_upgrade_enabled']}"
 puts "          gear sizes: #{user_capabilities['gear_sizes'].join(', ')}" if user_capabilities.has_key?('gear_sizes')
 puts "sub accounts allowed: #{user_capabilities['subaccounts']}" if user_capabilities.has_key?('subaccounts')
+puts "private certificates allowed: #{user_capabilities['private_certificates']}" if user_capabilities.has_key?('private_certificates')
 puts "  inherit gear sizes: #{user_capabilities['inherit_on_subaccounts'].include?('gear_sizes')}" if user_capabilities.has_key?('inherit_on_subaccounts')
 puts 
 if args["--listsubaccounts"] and (not subaccount_list.nil?) and (not subaccount_list.empty?)
