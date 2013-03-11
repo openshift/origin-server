@@ -423,7 +423,7 @@ class RestApiTest < ActiveSupport::TestCase
       mock.get '/broker/rest/user.json', json_header, nil, 404
     end
     begin
-      User.find :one, :as => @user 
+      User.find :one, :as => @user
       flunk "Expected to raise RestApi::ResourceNotFound"
     rescue RestApi::ResourceNotFound => e
       assert_equal User, e.model
@@ -438,7 +438,7 @@ class RestApiTest < ActiveSupport::TestCase
       mock.get '/broker/rest/domains/foo.json', json_header, nil, 404
     end
     begin
-      Domain.find 'foo', :as => @user 
+      Domain.find 'foo', :as => @user
       flunk "Expected to raise RestApi::ResourceNotFound"
     rescue RestApi::ResourceNotFound => e
       assert_equal Domain, e.model
@@ -657,7 +657,7 @@ class RestApiTest < ActiveSupport::TestCase
     end
     app = Domain.find(:one, :as => @user).applications.first
     assert_nil app.git_url
-    
+
     options = app.prefix_options.dup
     assert !options.empty?
 
@@ -979,6 +979,19 @@ class RestApiTest < ActiveSupport::TestCase
     assert_equal '1', d.id_was
     assert d.save
     assert_equal '2', d.id
+  end
+
+  def test_cartridge_usage_rates_default
+    type = CartridgeType.new :name => 'nodejs-0.6', :display_name => 'Node.js', :website => 'test'
+
+    assert_empty type.usage_rates
+  end
+
+  def test_cartridge_usage_rates
+    rates = ['usd' => 0.04, 'duration' => 'hour']
+    type = CartridgeType.new :name => 'nodejs-0.6', :display_name => 'Node.js', :website => 'test', :usage_rates => rates
+
+    assert_equal rates, type.usage_rates
   end
 
   def test_cartridge_type_init
@@ -1535,7 +1548,7 @@ class RestApiTest < ActiveSupport::TestCase
   end
 
   #
-  # Prime the cartridge type cache so lookups are valid.  Call after 
+  # Prime the cartridge type cache so lookups are valid.  Call after
   # HttpMock.respond_to or use respond_to(false).
   #
   def mock_types(extra=[])
