@@ -69,11 +69,13 @@ h5[class*="icon-"]:before {
 h1, h2, h3 {
   .font-icon-block {
     margin-right: .3em;
+    bottom: 5px;
   }
 }
 h4, h5, h6 {
   .font-icon-block {
     margin-right: .15em;
+    bottom: 3px;
   }
 }
 
