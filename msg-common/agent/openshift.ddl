@@ -194,6 +194,48 @@ action "has_uid_or_gid", :description => "Returns whether this system has alread
            :display_as => "Exit Code"
 end
 
+action 'cartridge_repository', :description => 'perform given operation on a cartridge repository' do
+  display :always
+
+  input :action,
+        :prompt      => 'Action',
+        :description => 'Operation to perform on cartridge repository',
+        :type        => :list,
+        :list        => %w(install list erase),
+        :optional    => false
+
+  input :path,
+        :prompt      => 'Cartridge Source',
+        :description => 'Full path to cartridge source',
+        :type        => :string,
+        :validation  => '^/.*$',
+        :optional    => true,
+        :maxlength   => 2056
+
+  input :name,
+        :prompt      => 'Cartridge Name',
+        :description => 'Cartridge Name to Remove',
+        :type        => :string,
+        :validation  => '^[A-Za-z\d]+$',
+        :optional    => true,
+        :maxlength   => 64
+
+  input :version,
+        :prompt      => 'Software Version',
+        :description => 'Version for Software packaged by cartridge',
+        :type        => :string,
+        :validation  => '^\d+[\\.\d]*$',
+        :optional    => true,
+        :maxlength   => 64
+
+  input :cartridge_version,
+        :prompt      => 'Cartridge Version',
+        :description => 'Cartridge Version number',
+        :type        => :string,
+        :validation  => '^\d+[\\.\d]*$',
+        :optional    => true,
+        :maxlength   => 64
+end
 
 action "echo", :description => "echo's a string back" do
     display :always
