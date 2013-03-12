@@ -66,6 +66,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Tue Mar 12 2013 Adam Miller <admiller@redhat.com> 0.1.1-1
+- Fixing tag on master
+
 * Fri Mar 08 2013 Mike McGrath <mmcgrath@redhat.com> 0.1.1-1
 - new package built with tito
 
