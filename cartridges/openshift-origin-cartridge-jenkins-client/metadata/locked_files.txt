@@ -1,5 +1,5 @@
 jenkins/
 jenkins/configuration/
 jenkins/metadata/
-jenkins/bin/*
+jenkins/env/
 jenkins/template/

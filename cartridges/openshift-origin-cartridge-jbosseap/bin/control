@@ -59,6 +59,9 @@ function ishttpup() {
 }
 
 function build() {
+	# sync repo - this will eventually move to the Node
+    git archive --format=tar HEAD | (cd ${OPENSHIFT_REPO_DIR} && tar --warning=no-timestamp -xf -)
+    
 	CONFIG_DIR="${OPENSHIFT_JBOSSEAP_DIR}/standalone/configuration"
 	OPENSHIFT_MAVEN_MIRROR="${CONFIG_DIR}/settings.base.xml"
 	if `echo $OPENSHIFT_GEAR_DNS | egrep -qe "\.rhcloud\.com"`
@@ -144,6 +147,10 @@ function build() {
     	fi
 	fi
 
+}
+
+function deploy() {
+	echo "Deploying $cartridge_type cart"
 }
 
 function start() {
@@ -244,6 +251,7 @@ function threaddump() {
 
 case "$1" in
   build)		build ;;
+  deploy)	    deploy ;;
   start)     	start ;;
   stop)      	stop ;;
   restart)   	restart ;;
