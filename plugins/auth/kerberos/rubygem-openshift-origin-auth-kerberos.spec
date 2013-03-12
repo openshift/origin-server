@@ -9,7 +9,7 @@
 
 Summary:       OpenShift plugin for kerberos auth service
 Name:          rubygem-%{gem_name}
-Version:       1.5.0
+Version:       1.5.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -87,6 +87,33 @@ cp conf/openshift-origin-auth-kerberos.conf.example %{buildroot}/etc/openshift/p
 %doc %{gem_docdir}
 
 %changelog
+* Tue Mar 12 2013 Troy Dawson <tdawson@redhat.com> 1.5.1-1
+- Implement authorization support in the broker (ccoleman@redhat.com)
+- fix rubygem sources (tdawson@redhat.com)
+- stop passing extra app object (dmcphers@redhat.com)
+- Fixes for ruby193 (john@ibiblio.org)
+- Merge pull request #1289 from
+  smarterclayton/isolate_api_behavior_from_base_controller
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #1288 from smarterclayton/improve_action_logging
+  (dmcphers+openshiftbot@redhat.com)
+- Merge branch 'improve_action_logging' into
+  isolate_api_behavior_from_base_controller (ccoleman@redhat.com)
+- Merge remote-tracking branch 'origin/master' into improve_action_logging
+  (ccoleman@redhat.com)
+- change %%define to %%global (tdawson@redhat.com)
+- remove BuildRoot: (tdawson@redhat.com)
+- make Source line uniform among all spec files (tdawson@redhat.com)
+- Remove legacy login() method on authservice (ccoleman@redhat.com)
+- All controllers should inherit the standard filters, except where they are
+  bypassed (ccoleman@redhat.com)
+- Do not use a global variable to initialize a RestReply - use a controller
+  helper method. (ccoleman@redhat.com)
+- Move ActionLog to a controller mixin, make core user_action_log independent
+  of controller so it can be used in models Make user logging stateful to the
+  thread Remove unnecessary duplicate log statement in domains controller
+  Remove @request_id (ccoleman@redhat.com)
+
 * Tue Mar 12 2013 Troy Dawson <tdawson@redhat.com> 1.5.0-1
 - Update to version 1.5.0
 
