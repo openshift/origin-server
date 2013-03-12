@@ -6,7 +6,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin broker
 Name:          openshift-origin-broker-util
-Version:       1.5.12
+Version:       1.5.13
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -81,6 +81,9 @@ cp kickstart/openshift-origin-remix.ks %{buildroot}/usr/share/openshift/kickstar
 %{_mandir}/man8/oo-stats.8.gz
 
 %changelog
+* Tue Mar 12 2013 Adam Miller <admiller@redhat.com> 1.5.13-1
+- fix bug919379 (rchopra@redhat.com)
+
 * Thu Mar 07 2013 Adam Miller <admiller@redhat.com> 1.5.12-1
 - Fix for bug 919190 - adding a space in the info text (abhgupta@redhat.com)
 - Adding man page for oo-admin-ctl-script (abhgupta@redhat.com)
