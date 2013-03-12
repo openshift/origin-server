@@ -85,7 +85,9 @@ class HAProxyUtils
         if repaired
             @@log.info("GEAR_INFO - validate: Configuration was modified, reloading haproxy")
             ENV["CARTRIDGE_TYPE"] = "haproxy-1.4"
-            exec "app_ctl.sh reload"
+            fork do
+              exec "app_ctl.sh reload"
+            end
         end
     end
 end
