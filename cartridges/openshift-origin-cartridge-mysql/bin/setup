@@ -1,0 +1,84 @@
+#!/bin/bash -e
+
+# Mock cartridge for testing and verifying node platform code. This is
+# not an example of how to write a well-formed cartridge.
+
+source env/*
+
+# The following functions are ripped from v1 abstract util
+
+function client_result {
+    echo "CLIENT_RESULT: $1"
+}
+
+function set_app_info {
+    echo "APP_INFO: $1"
+}
+
+function cart_props {
+    echo "CART_PROPERTIES: $@"
+}
+
+function generate_password {
+    head -n 50 /dev/urandom|tr -dc "a-np-zA-NP-Z1-9-_"|fold -w 12 | grep -v '^-' | head -n1
+}
+
+function generate_username {
+    if [ "$1" ]
+    then
+        username="$1"
+    else
+        username="admin"
+    fi
+
+    remain=$(( 12 - ${#username} ))
+    if [ "$remain" -ge 1 ]
+    then
+        rnstr=$(head -n 50 /dev/urandom|tr -dc "a-np-zA-NP-Z1-9"|fold -w $remain | head -n1)
+        username="${username}${rnstr}"
+    fi
+    echo $username
+}
+
+function error {
+    echo "$1" 1>&2
+    exit "$2"
+}
+
+# TODO: configure httpd if the app is standalone
+
+# Generate username, password, and db name and create env variables
+# TODO: move username/password into manifest?
+username=$(generate_username)
+password=$(generate_password)
+
+echo "export OPENSHIFT_MYSQL_DB_USERNAME='$username'" > env/OPENSHIFT_MYSQL_DB_USERNAME
+echo "export OPENSHIFT_MYSQL_DB_PASSWORD='$password'" > env/OPENSHIFT_MYSQL_DB_PASSWORD
+echo "export OPENSHIFT_MYSQL_DB_URL='mysql://$username:$password@$OPENSHIFT_MYSQL_DB_HOST:$OPENSHIFT_MYSQL_DB_PORT/'" > env/OPENSHIFT_MYSQL_DB_URL
+
+mysql_install_db --defaults-file=conf/mysql_stub_config --basedir=. --datadir=./data > /dev/null 2>&1
+
+if [[ $? -ne 0]]; then
+  error 'Failed to create mysqldb', 119
+fi
+
+dbname=$OPENSHIFT_APP_NAME
+
+echo "drop database test;
+create database \`${dbname}\` DEFAULT CHARACTER SET utf8 DEFAULT COLLATE utf8_general_ci;" | mysql -u root -S "${MYSQL_DIR}/socket/mysql.sock" > /dev/null || error 'Failed to create database', 188
+
+echo "                                  
+delete from user;
+grant all on *.* to '$username'@'$OPENSHIFT_MYSQL_DB_HOST' identified by '$password' with grant option;
+grant all on *.* to '$username'@'localhost' identified by '$password' with grant option;
+flush privileges;" | mysql -u root -S "socket/mysql.sock" mysql > /dev/null || error "Failed to setup initial root user" 187
+
+# client_result (scalable app concerns?)
+cart_props 'connection_url=mysql://$OPENSHIFT_MYSQL_DB_HOST:$OPENSHIFT_MYSQL_DB_PORT/'
+cart_props "username=$username"
+cart_props "password=$password"
+cart_props "database_name=$dbname"
+
+set_app_info "Connection URL: mysql://$OPENSHIFT_MYSQL_DB_HOST:$OPENSHIFT_MYSQL_DB_PORT"
+
+exit 0

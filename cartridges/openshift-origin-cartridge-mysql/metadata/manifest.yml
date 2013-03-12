@@ -1,0 +1,45 @@
+Name: mysql
+Cartridge-Short-Name: MYSQL
+Architecture: noarch
+Display-Name: MySQL Database 5.1
+Description: "MySQL is a multi-user, multi-threaded SQL database server."
+Version: 5.1
+Versions: [5.1]
+License: ASL 2.0
+Vendor: Oracle
+Categories:
+  - service
+  - database
+  - embedded
+Website: http://www.mysql.com
+Help-Topics:
+  - "Building with MySQL" : http://docs.redhat.com/docs/en-US/OpenShift/2.0/html/User_Guide/sect-User_Guide-Working_With_Database_Cartridges.html
+Cart-Data:
+  - Key: "username"
+    Type: cart_data
+    Description: "Root user on mysql database"
+  - Key: "password"
+    Type: cart_data
+    Description: "Password for root user on mysql database"
+  - Key: database_name
+    Type: cart_data
+    Description: "MySQL DB name"
+  - Key: connection_url
+    Type: cart_data
+    Description: "MySQL DB connection URL"
+Suggests:
+  - phpmyadmin-3.4
+Provides:
+  - mysql-5.1
+  - mysql 
+  - mysql-singleton-master
+Conflicts:
+  - postgresql-8.4
+Publishes:
+  publish-db-connection-info:
+    Type: "NET_TCP:db:connection-info"
+Scaling:
+  Min: 1
+  Max: 1
+Endpoints:
+  - "DB_HOST:DB_PORT(3306):DB_PROXY_PORT"
