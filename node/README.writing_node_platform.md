@@ -156,7 +156,7 @@ about how lower-level operations are orchestrated / invoked.
  * `OPENSHIFT_REPO_DIR`       the directory where the developer's application is archived to, and run from
  * `OPENSHIFT_TMP_DIR`        the directory where a cartridge may store temporary data
   * Default: /tmp
- * `OPENSHIFT_{Cartridge-Short-Name}_DIR`  `Cartridge-Short-Name` from manifest points to cartridge root directory
+ * `OPENSHIFT_{CartridgeShortName}_DIR`  `CartridgeShortName` from manifest points to cartridge root directory
 * Install default gear httpd conf
 * Bounce node httpd
 
