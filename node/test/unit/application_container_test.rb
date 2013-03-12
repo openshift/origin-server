@@ -72,8 +72,6 @@ class ApplicationContainerTest < Test::Unit::TestCase
     @mock_manifest = %q{#
         Name: mock
         Namespace: MOCK
-        Cartridge-Version: 1.0
-        Cartridge-Vendor: Unit Test
         Display-Name: Mock
         Description: "A mock cartridge for development use only."
         Version: 0.1
@@ -97,9 +95,7 @@ class ApplicationContainerTest < Test::Unit::TestCase
         - "EXAMPLE_IP2:EXAMPLE_PORT5(9091)"
     }
 
-    manifest = "/tmp/manifest-#{Process.pid}"
-    IO.write(manifest, @mock_manifest, 0)
-    @mock_cartridge = OpenShift::Runtime::Cartridge.new(manifest)
+    @mock_cartridge = OpenShift::Runtime::Cartridge.new(YAML.load(@mock_manifest))
     @container.cartridge_model.stubs(:get_cartridge).with("mock").returns(@mock_cartridge)
   end
 
