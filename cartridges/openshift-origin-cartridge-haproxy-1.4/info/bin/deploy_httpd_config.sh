@@ -90,3 +90,6 @@ EOF
 
 cp $HAPROXY_DIR/conf/haproxy.cfg.template $HAPROXY_DIR/conf/haproxy.cfg
 chown $uuid $HAPROXY_DIR/conf/haproxy.cfg
+touch $HAPROXY_DIR/conf/haproxy.cfg.lock
+chown $uuid $HAPROXY_DIR/conf/haproxy.cfg.lock
+

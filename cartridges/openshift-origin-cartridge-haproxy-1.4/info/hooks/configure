@@ -84,6 +84,7 @@ mkdir -p conf conf.d logs run sessions
 ln -sf /usr/lib64/httpd/modules modules
 ln -sf /etc/httpd/conf/magic conf/magic
 touch conf/gear-registry.db
+touch conf/gear-registry.db.lock
 popd > /dev/null
 
 #
@@ -97,7 +98,7 @@ echo "export OPENSHIFT_HAPROXY_STATUS_IP='$IP2'" > "$APP_HOME/.env/OPENSHIFT_HAP
 $CART_INFO_DIR/bin/deploy_httpd_config.sh $application $uuid $IP
 
 mkdir -p $APP_HOME/.openshift
-chown ${uuid} $APP_HOME/.openshift $HAPROXY_DIR/run/ $HAPROXY_DIR/logs/ $HAPROXY_DIR/sessions $HAPROXY_DIR/conf/gear-registry.db
+chown ${uuid} $APP_HOME/.openshift $HAPROXY_DIR/run/ $HAPROXY_DIR/logs/ $HAPROXY_DIR/sessions $HAPROXY_DIR/conf/gear-registry.db $HAPROXY_DIR/conf/gear-registry.db.lock
 observe_setup_cart_instance_dir
 
 # Alter PATH so that the haproxy app_ctl.sh script is called.

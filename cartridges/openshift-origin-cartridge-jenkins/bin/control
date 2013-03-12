@@ -19,6 +19,10 @@ function build() {
 	echo "Building $cartridge_type cart"
 }
 
+function deploy() {
+	echo "Deploying $cartridge_type cart"
+}
+
 function start() {
  	echo "Starting $cartridge_type cart"
  	
@@ -118,6 +122,7 @@ function threaddump() {
 
 case "$1" in
   build)		build ;;
+  deploy)		deploy ;;
   start)     	start ;;
   stop)      	stop ;;
   restart)   	restart ;;
