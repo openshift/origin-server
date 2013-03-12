@@ -14,7 +14,7 @@
 
 Summary:       The OpenShift Management Console
 Name:          openshift-origin-console
-Version:       1.5.16
+Version:       1.5.17
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -172,6 +172,42 @@ _EOF
 /sbin/fixfiles -R %{?scl:%scl_prefix}mod_passenger restore
 /sbin/restorecon -R -v /var/run
 %changelog
+* Tue Mar 12 2013 Troy Dawson <tdawson@redhat.com> 1.5.17-1
+- Fixing console log file SELinux context and permissions (kraman@gmail.com)
+- Merge pull request #1456 from rclsilver/master
+  (dmcphers+openshiftbot@redhat.com)
+- BZ913376 - The favicon cannot be displayed (calfonso@redhat.com)
+- BZ896363 - 'the User Guide' link should redirect to an existing url
+  (calfonso@redhat.com)
+- Merge pull request #1535 from brenton/gemfile_lock_fixes
+  (dmcphers+openshiftbot@redhat.com)
+- Gemfile.lock ownership fixes (bleanhar@redhat.com)
+- Bug 916495 - Community still points incorrectly to some incorrect URLs
+  (ccoleman@redhat.com)
+- Configuration file 'console.conf' was placed in the wrong location:
+  httpd/conf instead of httpd (thomas@betrancourt.net)
+- Add the PassengerRuby parameter to avoid an error while searching libruby
+  1.9.3 (thomas@betrancourt.net)
+- Set logs location in /var/log/openshift/console/httpd as the broker httpd
+  (thomas@betrancourt.net)
+- The community URL is not available for some operations - use the default
+  config if that is true (ccoleman@redhat.com)
+- Switch from VirtualHosts to mod_rewrite based routing to support high
+  density. (rmillner@redhat.com)
+- Apply changes from comments. Fix diffs from brenton/origin-server.
+  (john@ibiblio.org)
+- Fixes for ruby193 (john@ibiblio.org)
+- move logs to a more standard location (admiller@redhat.com)
+- change %%define to %%global (tdawson@redhat.com)
+- Fixing init-quota to allow for tabs in fstab file Added entries in abstract
+  for php-5.4, perl-5.16 Updated python-2.6,php-5.3,perl-5.10 cart so that it
+  wont build on F18 Fixed mongo broker auth Relaxed version requirements for
+  acegi-security and commons-codec when generating hashed password for jenkins
+  Added Apache 2.4 configs for console on F18 Added httpd 2.4 specific restart
+  helper (kraman@gmail.com)
+- remove BuildRoot: (tdawson@redhat.com)
+- Fix FireSass support in origin (ccoleman@redhat.com)
+
 * Tue Mar 12 2013 Troy Dawson <tdawson@redhat.com> 1.5.16-1
 - Update to version 1.5.16
 
