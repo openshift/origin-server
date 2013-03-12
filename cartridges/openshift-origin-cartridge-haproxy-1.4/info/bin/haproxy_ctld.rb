@@ -85,9 +85,12 @@ class HAProxyUtils
         if repaired
             @@log.info("GEAR_INFO - validate: Configuration was modified, reloading haproxy")
             ENV["CARTRIDGE_TYPE"] = "haproxy-1.4"
-            fork do
+            cpid = fork do
               exec "app_ctl.sh reload"
             end
+            Process.waitpid cpid
+            # Expect restart to terminate this process during the wait.
+            # But reap zombies if not.
         end
     end
 end
