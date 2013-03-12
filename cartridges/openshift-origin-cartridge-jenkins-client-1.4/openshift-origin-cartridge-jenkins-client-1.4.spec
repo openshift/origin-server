@@ -26,7 +26,6 @@ Requires:      java-1.7.0-openjdk
 Requires:      %{?scl:%scl_prefix}rubygems
 Requires:      %{?scl:%scl_prefix}rubygem-json
 BuildArch:     noarch
-Obsoletes:     cartridge-jenkins-client-1.4
 
 %description
 Provides embedded jenkins client support

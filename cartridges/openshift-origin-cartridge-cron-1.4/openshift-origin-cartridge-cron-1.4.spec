@@ -14,7 +14,6 @@ Requires:      rubygem(openshift-origin-node)
 Requires:      cronie
 Requires:      crontabs
 BuildArch:     noarch
-Obsoletes:     cartridge-cron-1.4
 
 %description
 Provides OpenShift cron cartridge support

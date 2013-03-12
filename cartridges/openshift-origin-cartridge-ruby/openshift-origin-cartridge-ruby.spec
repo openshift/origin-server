@@ -113,10 +113,6 @@ Requires:      js
 Requires:      ImageMagick-devel
 Requires:      ruby-RMagick
 BuildRequires: git
-BuildArch:     noarch
-Obsoletes:     cartridge-ruby-1.9
-
-
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
 BuildArch: noarch
 

@@ -64,7 +64,6 @@ BuildRequires: systemd-units
 %endif
 BuildArch:     noarch
 Provides:      openshift-broker
-Obsoletes:     stickshift-broker
 
 %description
 This contains the broker 'controlling' components of OpenShift Origin.

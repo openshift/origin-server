@@ -13,7 +13,6 @@ Requires:      rubygem(openshift-origin-node)
 Requires:      httpd
 BuildRequires: git
 BuildArch:     noarch
-Obsoletes:     cartridge-diy-0.1
 
 %description
 Provides diy support to OpenShift

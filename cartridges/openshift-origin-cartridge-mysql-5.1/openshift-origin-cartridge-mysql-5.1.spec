@@ -14,7 +14,6 @@ Requires:      mysql-server
 Requires:      mysql-devel
 BuildRequires: git
 BuildArch:     noarch
-Obsoletes:     cartridge-mysql-5.1
 
 %description
 Provides mysql cartridge support to OpenShift

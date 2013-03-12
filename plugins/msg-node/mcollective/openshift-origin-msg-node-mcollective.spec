@@ -27,7 +27,6 @@ Requires:      %{?scl:%scl_prefix}facter
 %endif
 Requires:      openshift-origin-msg-common
 BuildArch:     noarch
-Obsoletes:     openshift-mcollective-agent
 
 %description
 mcollective communication plugin

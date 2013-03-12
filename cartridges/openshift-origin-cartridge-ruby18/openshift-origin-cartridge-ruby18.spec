@@ -44,11 +44,6 @@ Requires:      ruby-nokogiri
 Requires:      rubygem-nokogiri
 %endif
 BuildRequires: git
-BuildArch:     noarch
-Obsoletes:     cartridge-ruby-1.8
-Obsoletes:     openshift-origin-cartridge-ruby-1.1
-
-
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
 BuildArch: noarch
 

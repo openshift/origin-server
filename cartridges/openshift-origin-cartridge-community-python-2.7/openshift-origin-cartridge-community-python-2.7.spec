@@ -13,7 +13,6 @@ Requires:      rubygem(openshift-origin-node)
 Requires:      httpd
 BuildRequires: git
 BuildArch:     noarch
-Obsoletes:     cartridge-community-python-2.7
 
 %description
 Provides support for using a community python 2.7 cartridge on OpenShift

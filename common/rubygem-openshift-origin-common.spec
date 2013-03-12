@@ -36,7 +36,6 @@ BuildRequires: %{?scl:%scl_prefix}rubygems-devel
 BuildRequires: %{?scl:%scl_prefix}rubygem-yard
 BuildArch:     noarch
 Provides:      rubygem(%{gem_name}) = %version
-Obsoletes: 	   rubygem-stickshift-common
 
 %package doc
 Summary:        Cloud Development Common Library Documentation
