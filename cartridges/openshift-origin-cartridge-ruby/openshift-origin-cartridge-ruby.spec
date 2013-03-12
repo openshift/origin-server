@@ -154,6 +154,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Tue Mar 12 2013 Adam Miller <admiller@redhat.com> 0.1.2-1
+- Fixing tags on master
+
 * Mon Mar 11 2013 Mike McGrath <mmcgrath@redhat.com> 0.1.2-1
 - 
 
