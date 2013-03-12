@@ -14,7 +14,7 @@
 
 Summary:       The OpenShift Management Console
 Name:          openshift-origin-console
-Version:       0.4.2
+Version:       1.5.16
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -172,6 +172,9 @@ _EOF
 /sbin/fixfiles -R %{?scl:%scl_prefix}mod_passenger restore
 /sbin/restorecon -R -v /var/run
 %changelog
+* Tue Mar 12 2013 Troy Dawson <tdawson@redhat.com> 1.5.16-1
+- Update to version 1.5.16
+
 * Thu Jan 31 2013 Adam Miller <admiller@redhat.com> 0.4.2-1
 - finishing touches of move from openshift-console to openshift-origin-console
   (tdawson@redhat.com)
