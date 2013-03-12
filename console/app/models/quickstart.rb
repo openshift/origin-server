@@ -11,8 +11,6 @@ class Quickstart < RestApi::Base
     integer :priority
   end
 
-  self.proxy = nil
-
   Disabled = Class.new(StandardError)
   SearchDisabled = Class.new(StandardError)
 
