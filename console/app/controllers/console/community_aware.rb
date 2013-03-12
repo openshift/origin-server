@@ -16,10 +16,7 @@ module Console
       end
 
       def community_base_url(path, opts=nil)
-        base = Console.config.community_url || "#{request.scheme}://#{request.host}:8118/"
-        base << '/' unless base.end_with? '/'
-
-        "#{base}#{path}#{opts && opts[:anchor] ? "##{opts[:anchor]}" : ""}"
+        "#{Console.config.community_url || "#{request.scheme}://#{request.host}:8118/"}#{path}#{opts && opts[:anchor] ? "##{opts[:anchor]}" : ""}"
       end
   end
 end
