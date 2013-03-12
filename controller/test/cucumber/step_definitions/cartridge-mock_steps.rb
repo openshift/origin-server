@@ -2,6 +2,16 @@ Given /^a v2 default node$/ do
   assert_file_exists '/var/lib/openshift/.settings/v2_cartridge_format'
 end
 
+Then /^the ([^ ]+) cartridge instance directory will( not)? exist$/ do |cartridge_name, negate|
+  cartridge_dir = File.join($home_root, @gear.uuid, cartridge_name)
+
+  if negate
+    assert_directory_not_exists cartridge_dir
+  else
+    assert_directory_exists cartridge_dir
+  end
+end
+
 Then /^the ([^ ]+) ([^ ]+) marker will( not)? exist$/ do |cartridge_name, marker, negate|
   state_dir = ".#{cartridge_name.sub('-', '_')}_cartridge_state"
 
