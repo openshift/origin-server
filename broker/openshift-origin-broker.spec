@@ -16,7 +16,7 @@
 
 Summary:       OpenShift Origin broker components
 Name:          openshift-origin-broker
-Version:       1.5.0
+Version:       1.5.1
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -219,6 +219,60 @@ chcon -R -t httpd_var_run_t %{brokerdir}/httpd/run
 /sbin/restorecon -R -v /var/run
 
 %changelog
+* Tue Mar 12 2013 Troy Dawson <tdawson@redhat.com> 1.5.1-1
+- Bug 911322 (lnader@redhat.com)
+- Merge pull request #1535 from brenton/gemfile_lock_fixes
+  (dmcphers+openshiftbot@redhat.com)
+- Skip Usage capture for sub-account users (rpenta@redhat.com)
+- Merge pull request #1512 from rajatchopra/master (dmcphers@redhat.com)
+- Merge pull request #1536 from
+  smarterclayton/bug_916559_existing_broker_keys_broken (dmcphers@redhat.com)
+- Merge pull request #1532 from smarterclayton/bug_916132_fix_prodrb_for_broker
+  (dmcphers@redhat.com)
+- force stop - fix bug#915587 (rchopra@redhat.com)
+- Bug 916559 - Existing broker keys broken after stage upgrade
+  (ccoleman@redhat.com)
+- Gemfile.lock ownership fixes (bleanhar@redhat.com)
+- Bug 916132 - Fix production.rb for scope loading (ccoleman@redhat.com)
+- adding coverage (dmcphers@redhat.com)
+- add coverage for domain observer being called (dmcphers@redhat.com)
+- Merge pull request #1441 from pravisankar/dev/ravi/us3409
+  (dmcphers+openshiftbot@redhat.com)
+- reverted US2448 (lnader@redhat.com)
+- Added index on 'login' for usage_record and usage mongoid models Added
+  separate usage audit log, /var/log/openshift/broker/usage.log instead of
+  syslog. Moved user action log from /var/log/openshift/user_action.log to
+  /var/log/openshift/broker/user_action.log Added Distributed lock used in oo-
+  admin-ctl-usage script Added Billing Service interface Added oo-admin-ctl-
+  usage script to list and sync usage records to billing vendor Added oo-admin-
+  ctl-usage to broker-util spec file Fixed distributed lock test Add billing
+  service to origin-controller Some more bug fixes (rpenta@redhat.com)
+- ignore errors in teardown (lnader@redhat.com)
+- Added certificate_added_at to alias (lnader@redhat.com)
+- Added validation for SSL certificate and private key (lnader@redhat.com)
+- Added unit tests for alias and domain (lnader@redhat.com)
+- US2448 (lnader@redhat.com)
+- Bug 914639 (dmcphers@redhat.com)
+- Bug 914639 (dmcphers@redhat.com)
+- Implement authorization support in the broker (ccoleman@redhat.com)
+- Revert to original RAILS_LOG_PATH behavior (ccoleman@redhat.com)
+- Bug 913816 - Fix log tailer to pick up the correct config
+  (ccoleman@redhat.com)
+- Bug 914639 (dmcphers@redhat.com)
+- Removing references to cgconfig/all (kraman@gmail.com)
+- Move the broker-only configuration below node in priority.
+  (rmillner@redhat.com)
+- fix rake test:sanity (rchopra@redhat.com)
+- Switch from VirtualHosts to mod_rewrite based routing to support high
+  density. (rmillner@redhat.com)
+- broker unit testcases (rchopra@redhat.com)
+- Fixes to get builds and tests running on RHEL: (kraman@gmail.com)
+- Apply changes from comments. Fix diffs from brenton/origin-server.
+  (john@ibiblio.org)
+- Fix dependency on openshift rubygem (john@ibiblio.org)
+- Fixes for ruby193 (john@ibiblio.org)
+- Broker and broker-util spec files (john@ibiblio.org)
+
 * Tue Mar 12 2013 Troy Dawson <tdawson@redhat.com> 1.5.0-1
 - Update to version 1.5.0
 
