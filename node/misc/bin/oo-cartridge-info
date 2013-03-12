@@ -56,6 +56,11 @@ end
 $oo_debug = true if args['--debug']
 $porcelain = args['--porcelain'] ? true : false
 
+if ARGV[0].nil?
+  $stderr.write(usage())
+  exit(1)
+end
+
 cart_name = ARGV.shift
 cart_found = false
 
