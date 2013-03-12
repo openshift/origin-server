@@ -5,7 +5,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin broker and node
 Name:          openshift-origin-util
-Version:       1.5.0
+Version:       1.5.1
 Release:       1%{?dist}
 License:       ASL 2.0
 URL:           http://openshift.redhat.com
@@ -36,6 +36,10 @@ chmod 0755 %{buildroot}%{_bindir}/*
 
 
 %changelog
+* Tue Mar 12 2013 Troy Dawson <tdawson@redhat.com> 1.5.1-1
+- <oo-diagnostics> add selinux enforcing check; fix small bug in cache test
+  (lmeyer@redhat.com)
+
 * Tue Mar 12 2013 Troy Dawson <tdawson@redhat.com> 1.5.0-1
 - Update to version 1.5.0
 
