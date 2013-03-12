@@ -16,7 +16,7 @@
 
 Summary:       OpenShift Origin broker components
 Name:          openshift-origin-broker
-Version:       1.4.1
+Version:       1.5.0
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -219,6 +219,9 @@ chcon -R -t httpd_var_run_t %{brokerdir}/httpd/run
 /sbin/restorecon -R -v /var/run
 
 %changelog
+* Tue Mar 12 2013 Troy Dawson <tdawson@redhat.com> 1.5.0-1
+- Update to version 1.5.0
+
 * Fri Feb 15 2013 Troy Dawson <tdawson@redhat.com> 1.4.1-1
 - Bump up version (tdawson@redhat.com)
 - Added missing create for broker httpd logs dir. Updated owner of broker and
