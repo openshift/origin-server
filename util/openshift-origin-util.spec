@@ -5,8 +5,8 @@
 
 Summary:       Utility scripts for the OpenShift Origin broker and node
 Name:          openshift-origin-util
-Version:       1.4.1
-Release:       2%{?dist}
+Version:       1.5.0
+Release:       1%{?dist}
 License:       ASL 2.0
 URL:           http://openshift.redhat.com
 Source0:       http://mirror.openshift.com/pub/openshift-origin/source/%{name}/%{name}-%{version}.tar.gz
@@ -36,6 +36,9 @@ chmod 0755 %{buildroot}%{_bindir}/*
 
 
 %changelog
+* Tue Mar 12 2013 Troy Dawson <tdawson@redhat.com> 1.5.0-1
+- Update to version 1.5.0
+
 * Mon Feb 25 2013 Adam Miller <admiller@redhat.com> 1.4.1-2
 - bump Release for fixed build target rebuild (admiller@redhat.com)
 - <oo-diagnostics> fix bug in District methods, redirect httpd broken version
