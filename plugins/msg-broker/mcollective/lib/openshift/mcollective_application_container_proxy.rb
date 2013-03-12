@@ -3087,11 +3087,11 @@ module OpenShift
       # * Why doesn't this just override a method from the superclass?
       # * uses rpc_exec
       #
-      def self.get_all_gears_impl
+      def self.get_all_gears_impl(opts)
         gear_map = {}
         sender_map = {}
         rpc_exec('openshift', nil, true) do |client|
-          client.get_all_gears() do |response|
+          client.get_all_gears(opts) do |response|
             if response[:body][:statuscode] == 0
               sub_gear_map = response[:body][:data][:output]
               sender = response[:senderid]
