@@ -28,7 +28,7 @@
         = @authorization.note || "<no description>"
         = link_to "Edit", edit_authorization_path(@authorization), :class => 'btn btn-mini'
       %p
-        Created on #{@authorization.created_at.to_s(:pretty_date)}, expires in #{distance_of_time_in_words(@authorization.expires_at, Time.now)}
+        Created on #{@authorization.created_at.to_s(:pretty_time)}, expires in #{distance_of_time_in_words(@authorization.expires_at, Time.now)}
         = link_to "Delete", authorization_path(@authorization), :title => 'Revoke this authorization token permanently', :class => 'btn btn-danger btn-mini', :method => :delete, :confirm => 'Are you sure you want to revoke this authorization?'
 
 %section
