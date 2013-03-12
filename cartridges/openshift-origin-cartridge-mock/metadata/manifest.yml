@@ -1,7 +1,5 @@
 Name: mock
 Namespace: MOCK
-Cartridge-Version: 1.0
-Cartridge-Vendor: Red Hat
 Display-Name: Mock Cartridge
 Description: "A mock cartridge for development use only."
 Version: 0.1

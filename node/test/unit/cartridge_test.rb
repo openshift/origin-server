@@ -15,44 +15,41 @@
 # limitations under the License.
 #++
 #
-# Test the OpenShift application_container modelr
+# Test the OpenShift application_container model
 #
 module OpenShift; end
 
 require 'test_helper'
 require 'openshift-origin-node/model/cartridge'
-require 'yaml'
 require 'test/unit'
 require 'mocha'
 
 class CartridgeTest < Test::Unit::TestCase
   def test_parse_valid_endpoints
-    manifest = YAML.load(%q{#
-      Endpoints:
-      - "EXAMPLE_IP1:EXAMPLE_PORT1(8080):EXAMPLE_PUBLIC_PORT1"
-      - "EXAMPLE_IP1:EXAMPLE_PORT2(8081):EXAMPLE_PUBLIC_PORT2"
-      - "EXAMPLE_IP1:EXAMPLE_PORT3(8082):EXAMPLE_PUBLIC_PORT3"
-      - "EXAMPLE_IP2:EXAMPLE_PORT4(9090):EXAMPLE_PUBLIC_PORT4"
-      - "EXAMPLE_IP2:EXAMPLE_PORT5(9091)"
-    })
+    endpoint_strings = [ 
+      "EXAMPLE_IP1:EXAMPLE_PORT1(8080):EXAMPLE_PUBLIC_PORT1",
+      "EXAMPLE_IP1:EXAMPLE_PORT2(8081):EXAMPLE_PUBLIC_PORT2",
+      "EXAMPLE_IP1:EXAMPLE_PORT3(8082):EXAMPLE_PUBLIC_PORT3",
+      "EXAMPLE_IP2:EXAMPLE_PORT4(9090):EXAMPLE_PUBLIC_PORT4",
+      "EXAMPLE_IP2:EXAMPLE_PORT5(9091)"
+    ]
 
-    endpoints = OpenShift::Runtime::Cartridge::Endpoint.parse("EXAMPLE", manifest)
+    endpoints = OpenShift::Runtime::Cartridge::Endpoint.parse_endpoints("EXAMPLE", endpoint_strings)
 
     assert_equal 5, endpoints.length
   end
 
   def test_parse_invalid_endpoints
-    manifest = YAML.load(%q{#
-      Endpoints:
-      - { name: 'Unit Test'}
-      - ~
-      - [1, 2]
-      - "1"
-      - "EXAMPLE_IP2:EXAMPLE_PORT4(9090):EXAMPLE_PUBLIC_PORT4"
-    })
+    endpoint_strings = [
+      {},
+      nil,
+      [],
+      "1",
+      "EXAMPLE_IP2:EXAMPLE_PORT4(9090):EXAMPLE_PUBLIC_PORT4"
+    ]
 
     assert_raise(RuntimeError) do
-      OpenShift::Runtime::Cartridge::Endpoint.parse("EXAMPLE", manifest)
+      endpoints = OpenShift::Runtime::Cartridge::Endpoint.parse_endpoints("EXAMPLE", endpoint_strings)
     end
   end
 end
