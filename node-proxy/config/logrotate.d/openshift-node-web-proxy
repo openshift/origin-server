@@ -9,6 +9,6 @@
     rotate 5
     sharedscripts
     postrotate
-        /sbin/service openshift-node-web-proxy reload > /dev/null 2>/dev/null || true
+        /sbin/service openshift-node-web-proxy restart > /dev/null 2>/dev/null || true
     endscript
 }
