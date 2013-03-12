@@ -1,0 +1,12 @@
+Public, static content goes here.  Users can create rewrite rules to link to
+content in the static dir.  For example, django commonly uses /media/
+directories for static content.  For example in a .htaccess file in a
+wsgi/.htaccess location, developers could put:
+
+RewriteEngine On
+RewriteRule ^application/media/(.+)$ /static/media/$1 [L]
+
+Then copy the media/* content to yourapp/wsgi/static/media/ and it should
+just work.
+
+Note: The ^application/ part of the URI match is required.
