@@ -1,5 +1,4 @@
-jbosseap/
 jbosseap/metadata/
-jbosseap/env/
-jbosseap/standalone/
+jbosseap/versions/
+jbosseap/bin/*
 jbosseap/template/
