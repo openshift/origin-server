@@ -1260,6 +1260,18 @@ class RestApiTest < ActiveSupport::TestCase
     assert_equal 2, ApplicationType.tagged('cartridge').length, "The special tag 'cartridge' did not return all cartridges"
   end
 
+  def test_application_types_usage_rates
+    assert ApplicationType.new(:display_name => 'test_app', :usage_rates => [{:usd => 0.01, :duration => 'hour'}]).usage_rates?
+  end
+
+  def test_application_types_usage_rates_empty
+    assert_false ApplicationType.new(:display_name => 'test_app2', :usage_rates => []).usage_rates?
+  end
+
+  def test_application_types_usage_rates_nil
+    assert_false ApplicationType.new.usage_rates?
+  end
+
   def test_application_job_url
     a = Application.new :build_job_url => "https://test/test"
     assert_equal 'https://test/test', a.build_job_url
