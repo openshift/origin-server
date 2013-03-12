@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version:       1.5.15
+Version:       1.5.16
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -78,6 +78,10 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Tue Mar 12 2013 Adam Miller <admiller@redhat.com> 1.5.16-1
+- fix for bug 920045 - connector args should have gear uuid
+  (rchopra@redhat.com)
+
 * Fri Mar 08 2013 Adam Miller <admiller@redhat.com> 1.5.15-1
 - Missed the ssh keyname handling in the show method (abhgupta@redhat.com)
 
