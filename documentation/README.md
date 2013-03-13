@@ -33,6 +33,10 @@ OpenShift Origin sources are arranged into 5 repositories:
           * [DNS plugin interface]()
           * [Authentication plugin interface]()
   + [Node](node/index.html): Documentation for Models, libraries used on the Node
+* Building and installing OpenShift Origin
+  + [Building OpenShift Origin RPMs](file.building_source.html)
+  + [Installing and configuring OpenShift Origin using puppet](file.install_origin_using_puppet.html)
+  + [Vargant setup](file.install_origin_using_vagrant.html)
 * Supplimental Documentation
   + [Control Groups in OpenShift](file.cgroups.html)
   + [How nodes act on behalf of the user](file.how_nodes_act_on_behalf_of_users.html)
@@ -41,6 +45,7 @@ OpenShift Origin sources are arranged into 5 repositories:
   + [Guidelines for supplimental documentation](file.doc_guidelines.html)
 
 ##Discussion Forums
+
 * [OpenShift Origin Developers Google Plus group](https://plus.google.com/communities/114361859072744017486) 
 * [Mailing Lists](http://lists.openshift.redhat.com/)
 	+ [For Developers](http://lists.openshift.redhat.com/openshiftmm/listinfo/dev)
@@ -49,4 +54,5 @@ OpenShift Origin sources are arranged into 5 repositories:
 * Use [#openshift-dev on the irc.freenode.net IRC server](http://webchat.freenode.net/?randomnick=1&channels=openshift-dev&uio=d4) for discussion around development of OpenShift and the open source components.
 
 ##Trademarks
+
 These are some of the projects that are used to create Red Hat's OpenShift Platform-as-a-Service (PaaS). Red Hat and OpenShift are trademarks of Red Hat, Inc., registered in the United States and other countries. Red Hat's offering of the code for downloading, use, modification, or distribution is not a grant of a trademark license to OpenShift or any other Red Hat trademark.
