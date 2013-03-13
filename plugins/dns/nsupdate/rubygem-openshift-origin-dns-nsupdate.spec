@@ -9,7 +9,7 @@
 
 Summary:       OpenShift plugin for DNS update service using nsupdate
 Name:          rubygem-%{gem_name}
-Version:       0.0.3
+Version:       1.5.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -82,6 +82,15 @@ cp %{buildroot}/%{gem_dir}/gems/%{gem_name}-%{version}/conf/openshift-origin-dns
 
 
 %changelog
+* Tue Mar 12 2013 Troy Dawson <tdawson@redhat.com> 1.5.1-1
+- Add yard documentation markup to DNS plugins (mlamouri@redhat.com)
+- fix rubygem sources (tdawson@redhat.com)
+- Fixes for ruby193 (john@ibiblio.org)
+- change %%define to %%global (tdawson@redhat.com)
+
+* Tue Mar 12 2013 Troy Dawson <tdawson@redhat.com> 1.5.0-1
+- Update to version 1.5.0
+
 * Wed Feb 06 2013 Adam Miller <admiller@redhat.com> 0.0.3-1
 - remove BuildRoot: (tdawson@redhat.com)
 - make Source line uniform among all spec files (tdawson@redhat.com)

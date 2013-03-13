@@ -1,0 +1,41 @@
+#!/bin/bash -e
+
+HTTPD_CFG_FILE=$OPENSHIFT_PYTHON_DIR/etc/conf/httpd_nolog.conf
+
+function start() {
+    echo "Starting PYTHON cart"
+    /usr/sbin/httpd -C "Include $OPENSHIFT_PYTHON_DIR/etc/conf.d/*.conf" -f $HTTPD_CFG_FILE -k start
+}
+
+function stop() {
+    echo "Stopping PYTHON cart"
+    /usr/sbin/httpd -C "Include $OPENSHIFT_PYTHON_DIR/etc/conf.d/*.conf" -f $HTTPD_CFG_FILE -k stop
+}
+
+function restart() {
+   echo "Restarting PYTHON cart"
+    /usr/sbin/httpd -C "Include $OPENSHIFT_PYTHON_DIR/etc/conf.d/*.conf" -f $HTTPD_CFG_FILE -k restart
+}
+
+function status() {
+   echo "PYTHON cart status"
+}
+
+function reload() {
+    echo "Reloading PYTHON cart"
+    restart
+}
+
+function tidy() {
+    echo "Tidying PYTHON cart"
+}
+
+case "$1" in
+  start)     start ;;
+  stop)      stop ;;
+  restart)   restart ;;
+  status)    status ;;
+  reload)    reload ;;
+  tidy)      tidy ;;
+  *)         exit 0
+esac

@@ -112,6 +112,9 @@ single_instance do
       end
     end
 
+    # Wait up to 1 minute for Apache to finish reloading.
+    systemu "/usr/bin/curl -m 60 -k https://127.0.0.1/"
+
     reqset.each do |fpath|
       File.open(fpath,'w') { |f|
         f.write( { "RC"=> rc,

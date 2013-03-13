@@ -94,6 +94,16 @@ Given /^a(n additional)? new ([^ ]+) type application$/ do | additional, cart_na
   end
 end
 
+Given /^a new cli-created ([^ ]+) type application$/ do |cart_name|
+  record_measure("Runtime Benchmark: Creating cartridge #{cart_name} with CLI tools") do
+    @account = OpenShift::TestAccount.new
+    @app = @account.create_app
+    @gear = @app.create_gear(true)
+    @cart = @gear.add_cartridge(cart_name)
+    @cart.configure(true)
+  end
+end
+
 # Invokes destroy on the current application.
 When /^I destroy the application$/ do
   record_measure("Runtime Benchmark: Destroying cartridge #{@cart.name}") do
@@ -129,7 +139,6 @@ When /^I remove the ([^ ]+) cartridge from the application$/ do | cart_name |
     embedded_cart.deconfigure
   end
 end
-
 
 # Verifies the existence of the httpd proxy
 Then /^the http proxy ?([^ ]+)? will( not)? exist$/ do | path, negate |

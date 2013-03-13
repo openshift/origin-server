@@ -1,0 +1,41 @@
+#!/bin/bash -e
+
+HTTPD_CFG_FILE=$OPENSHIFT_PERL_DIR/etc/conf/httpd_nolog.conf
+
+function start() {
+    echo "Starting Perl cart"
+    /usr/sbin/httpd -C "Include $OPENSHIFT_PERL_DIR/etc/conf.d/*.conf" -f $HTTPD_CFG_FILE -k start
+}
+
+function stop() {
+    echo "Stopping Perl cart"
+    /usr/sbin/httpd -C "Include $OPENSHIFT_PERL_DIR/etc/conf.d/*.conf" -f $HTTPD_CFG_FILE -k stop
+}
+
+function restart() {
+   echo "Restarting Perl cart"
+    /usr/sbin/httpd -C "Include $OPENSHIFT_PERL_DIR/etc/conf.d/*.conf" -f $HTTPD_CFG_FILE -k restart
+}
+
+function status() {
+   echo "Perl cart status"
+}
+
+function reload() {
+    echo "Reloading Perl cart"
+    restart
+}
+
+function tidy() {
+    echo "Tidying Perl cart"
+}
+
+case "$1" in
+  start)     start ;;
+  stop)      stop ;;
+  restart)   restart ;;
+  status)    status ;;
+  reload)    reload ;;
+  tidy)      tidy ;;
+  *)         exit 0
+esac

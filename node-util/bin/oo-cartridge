@@ -32,7 +32,8 @@ def usage
        -n|--with-cartridge-name     name       Unique identifier for the cartridge
        -n|--with-cartridge-version  version    cartridge version to install
        -p|--with-software-version   version    packaged software version to install (default: latest)
-       -u|--with-template-url                  override cartridge's default application
+       -u|--with-template-url                  override default application template
+       -v|--verbose                            show output from cartridge setup
        -d|--debug                              enable additional output
        -h|--help                               Print this message
 USAGE
@@ -48,8 +49,9 @@ opts = GetoptLong.new(
     ['--action', '-a', GetoptLong::REQUIRED_ARGUMENT],
     ['--with-container-uuid', '-c', GetoptLong::REQUIRED_ARGUMENT],
     ['--with-cartridge-name', '-n', GetoptLong::REQUIRED_ARGUMENT],
-    ['--with-software-version', '-p', GetoptLong::REQUIRED_ARGUMENT],
+    # ['--with-software-version', '-p', GetoptLong::REQUIRED_ARGUMENT],
     ['--with-template-url', '-u', GetoptLong::REQUIRED_ARGUMENT],
+    ['--verbose', '-v', GetoptLong::NO_ARGUMENT],
     ['--debug', '-d', GetoptLong::NO_ARGUMENT],
     ['--help', '-h', GetoptLong::NO_ARGUMENT],
 )
@@ -57,9 +59,10 @@ opts = GetoptLong.new(
 action            = nil
 uuid              = nil
 cartridge_name    = nil
-cartridge_version = nil
+# cartridge_version = nil
 software_version  = nil
 template_url      = nil
+verbose           = nil
 
 opts.each do |opt, arg|
   case opt
@@ -71,14 +74,16 @@ opts.each do |opt, arg|
       action = arg
     when '--with-cartridge-name'
       cartridge_name = arg
-    when '--with-cartridge-version'
-      raise NotImplementedError.new('--with-cartridge-version')
+    # when '--with-cartridge-version'
+    #   raise NotImplementedError.new('--with-cartridge-version')
     when '--with-software-version'
       software_version = arg
     when '--with-template-url'
       template_url = arg
     when '--debug'
-      $DEBUG = true
+      $OO_CART_DEBUG = true
+    when '--verbose'
+      verbose = true
   end
 end
 
@@ -91,11 +96,16 @@ begin
   # TODO; Will need to be refactored when broker gives separate pieces
   c = cartridge_name.to_s
   c << "-#{software_version}" if software_version
+  output = ''
 
-  container = OpenShift::ApplicationContainer.new(uuid, uuid)
+  passwd = Etc.getpwnam(uuid)
+  env = OpenShift::Utils::Environ.for_gear(passwd.dir)
+  app_name = env['OPENSHIFT_APP_NAME']
+
+  container = OpenShift::ApplicationContainer.new(uuid, uuid, nil, app_name)
   case action
     when 'add'
-      container.configure(c, template_url)
+      output = container.configure(c, template_url)
     when 'delete'
       container.deconfigure(c)
     else
@@ -103,18 +113,26 @@ begin
       raise NotImplementedError.new(action)
   end
 rescue OpenShift::Utils::ShellExecutionException => e
+  $stderr.puts "Cartridge #{action} failed"
   $stderr.puts "#{e.message}: rc(#{e.rc}"
 
-  if $DEBUG
+  if $OO_CART_DEBUG
     $stderr.puts "stdout ==>\n#{e.stdout}\nstderr ==>\n#{e.stderr}"
     $stderr.puts e.backtrace.join("\n")
   end
 
   exit -1
 rescue Exception => e
+  $stderr.puts "Cartridge #{action} failed"
   $stderr.puts e.message
-  $stderr.puts e.backtrace.join("\n") if $DEBUG
+  $stderr.puts e.backtrace.join("\n") if $OO_CART_DEBUG
   exit -1
 else
+  puts "Cartridge #{action} succeeded"
+  
+  if verbose && action == 'add'
+    puts "Setup output:\n-----------------------------\n#{output}"
+  end
+
   exit 0
 end

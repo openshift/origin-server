@@ -1,0 +1,6 @@
+python/conf/
+python/metadata/
+python/env/
+python/virtenv/
+python/etc/
+python/template/
