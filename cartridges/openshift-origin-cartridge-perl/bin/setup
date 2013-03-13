@@ -4,7 +4,7 @@ set -x
 
 PATH=/bin:/usr/bin:$PATH
 
-version=2.10
+version=5.10
 ls -lZa $OPENSHIFT_HOMEDIR/perl
 id
 
