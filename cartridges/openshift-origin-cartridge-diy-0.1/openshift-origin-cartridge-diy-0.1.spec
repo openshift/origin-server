@@ -2,7 +2,7 @@
 
 Summary:       Provides diy support
 Name:          openshift-origin-cartridge-diy-0.1
-Version: 1.6.1
+Version:       1.6.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -71,9 +71,9 @@ ln -s %{cartridgedir}/../abstract/info/bin/sync_gears.sh %{buildroot}%{cartridge
 %doc COPYRIGHT LICENSE
 %dir %{cartridgedir}
 %dir %{cartridgedir}/info
-%attr(0755,-,-) %{cartridgedir}/info/hooks
+%dir %attr(0755,-,-) %{cartridgedir}/info/hooks
 %attr(0750,-,-) %{cartridgedir}/info/hooks/*
-%attr(0755,-,-) %{cartridgedir}/info/hooks/tidy
+%dir %attr(0755,-,-) %{cartridgedir}/info/hooks/tidy
 %attr(0750,-,-) %{cartridgedir}/info/connection-hooks/
 %attr(0750,-,-) %{cartridgedir}/info/data/
 %attr(0750,-,-) %{cartridgedir}/info/build/
