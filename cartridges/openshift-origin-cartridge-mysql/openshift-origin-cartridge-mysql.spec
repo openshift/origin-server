@@ -3,7 +3,7 @@
 
 Summary:       Provides embedded mysql support
 Name:          openshift-origin-cartridge-mysql
-Version: 0.0.1
+Version: 0.0.2
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -54,6 +54,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Wed Mar 13 2013 Paul Morie <pmorie@gmail.com> 0.0.2-1
+- WIP: mysql v2 (pmorie@gmail.com)
+
 * Wed Mar 13 2013 Paul Morie <pmorie@gmail.com> 0.0.1-1
 - new package built with tito
 
