@@ -14,7 +14,6 @@ Requires:      openshift-origin-cartridge-mongodb-2.2
 Requires:      pymongo
 Requires:      mms-agent
 BuildArch:     noarch
-Obsoletes:     cartridge-10gen-mms-agent-0.1
 
 %description
 Provides 10gen MMS agent cartridge support

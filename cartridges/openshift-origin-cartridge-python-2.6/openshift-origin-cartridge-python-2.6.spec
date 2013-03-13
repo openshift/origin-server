@@ -32,7 +32,6 @@ Requires:      gcc-gfortran
 Requires:      freetype-devel
 BuildRequires: git
 BuildArch:     noarch
-Obsoletes:     cartridge-python-2.6
 
 %description
 Provides wsgi support to OpenShift

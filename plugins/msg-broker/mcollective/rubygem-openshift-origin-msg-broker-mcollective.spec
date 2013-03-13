@@ -34,8 +34,6 @@ BuildRequires: %{?scl:%scl_prefix}ruby
 BuildRequires: %{?scl:%scl_prefix}rubygems
 BuildRequires: %{?scl:%scl_prefix}rubygems-devel
 BuildArch:     noarch
-Obsoletes:     rubygem-gearchanger-mcollective-plugin
-Obsoletes:     rubygem-gearchanger-m-collective-plugin
 
 %description
 OpenShift plugin for mcollective based node/gear manager

@@ -16,7 +16,6 @@ Requires:      jenkins
 Requires:      jenkins-plugin-openshift
 BuildRequires: git
 BuildArch:     noarch
-Obsoletes:     cartridge-jenkins-1.4
 
 %description
 Provides jenkins cartridge to openshift nodes

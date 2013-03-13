@@ -40,7 +40,6 @@ Requires:      php-pecl-imagick
 Requires:      php-pecl-xdebug
 BuildRequires: git
 BuildArch:     noarch
-Obsoletes:     cartridge-php-5.3
 
 %description
 Provides php support to OpenShift

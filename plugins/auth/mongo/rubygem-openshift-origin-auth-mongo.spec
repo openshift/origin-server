@@ -36,7 +36,6 @@ BuildRequires: %{?scl:%scl_prefix}rubygems
 BuildRequires: %{?scl:%scl_prefix}rubygems-devel
 BuildArch:     noarch
 Provides:      rubygem(%{gem_name}) = %version
-Obsoletes:     rubygem-swingshift-mongo-plugin
 
 %description
 Provides a mongo auth service based plugin

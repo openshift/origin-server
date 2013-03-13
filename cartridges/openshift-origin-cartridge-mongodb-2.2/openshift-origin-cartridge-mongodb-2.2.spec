@@ -17,8 +17,6 @@ Requires:      mongodb
 BuildRequires: git
 BuildArch:     noarch
 Obsoletes:     openshift-origin-cartridge-mongodb-2.0
-Obsoletes:     cartridge-mongodb-2.0
-Obsoletes:     cartridge-mongodb-2.2
 
 %description
 Provides rhc mongodb cartridge support

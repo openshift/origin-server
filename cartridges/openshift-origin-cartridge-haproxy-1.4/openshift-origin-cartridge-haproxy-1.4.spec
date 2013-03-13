@@ -19,7 +19,6 @@ Requires:      %{?scl:%scl_prefix}rubygem-daemons
 Requires:      %{?scl:%scl_prefix}rubygem-rest-client
 BuildRequires: git
 BuildArch:     noarch
-Obsoletes:     cartridge-haproxy-1.4
 
 %description
 Provides haproxy balancer support to OpenShift

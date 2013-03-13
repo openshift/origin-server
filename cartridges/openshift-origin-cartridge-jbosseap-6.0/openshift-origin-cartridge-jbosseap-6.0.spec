@@ -37,7 +37,6 @@ BuildRequires: git
 BuildRequires: java-devel >= 1:1.6.0
 BuildRequires: jpackage-utils
 BuildArch:     noarch
-Obsoletes:     cartridge-jbosseap-6.0
 
 %description
 Provides JBossEAP6.0 support to OpenShift

@@ -27,7 +27,6 @@ BuildRequires: git
 BuildRequires: java-devel >= 1:1.6.0
 BuildRequires: jpackage-utils
 BuildArch:     noarch
-Obsoletes:     cartridge-jbossas-7
 
 %description
 Provides JBossAS7 support to OpenShift

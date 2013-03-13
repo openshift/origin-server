@@ -26,9 +26,6 @@ Requires:      perl-IO-Socket-SSL
 Requires:      gdbm-devel
 Requires:      httpd < 2.4
 BuildRequires: git
-BuildArch:     noarch
-Obsoletes:     cartridge-perl-5.10
-
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
 BuildArch: noarch
 
