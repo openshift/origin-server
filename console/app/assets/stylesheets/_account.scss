@@ -281,3 +281,21 @@ body.simple {
     max-width: 240px;
   }
 }
+
+.graph-horizontal {
+  td { white-space: nowrap; }
+  td.graph-data { width: 100%; }
+
+  .graph-element { display: inline-block; border: 1px solid rgba(255,255,255,.1); }
+  .graph-element + .graph-element { border-left-width: 0px; }
+
+  // Default colors alternate light and dark
+  .graph-element { background: rgba(255,255,255,.5); }
+  .graph-element:nth-of-type(2n) { background: rgba(255,255,255,.3); }
+
+  // Color based on the client_coa_code of the usage type
+  .graph-element.type-1 { background: green; }
+  .graph-element.type-2 { background: blue; }
+  .graph-element.type-3 { background: orange; }
+  .graph-element.type-4 { background: purple; }
+}
