@@ -5,19 +5,28 @@ require 'json'
 require 'zlib'
 require 'base64'
 require 'openshift-origin-node'
+require 'openshift-origin-node/model/cartridge_repository'
 require 'shellwords'
 require 'facter'
 
 module MCollective
   module Agent
     class Openshift<RPC::Agent
-      metadata    :name        => "OpenShift Agent",
-                  :description => "Agent to manage OpenShift services",
-                  :author      => "Mike McGrath",
-                  :license     => "ASL 2.0",
-                  :version     => "0.1",
-                  :url         => "http://www.openshift.com",
-                  :timeout     => 240
+      metadata :name        => "OpenShift Agent",
+               :description => "Agent to manage OpenShift services",
+               :author      => "Mike McGrath",
+               :license     => "ASL 2.0",
+               :version     => "0.1",
+               :url         => "http://www.openshift.com",
+               :timeout     => 240
+
+      activate_when do
+        @cartridge_repository = ::OpenShift::CartridgeRepository.instance
+        count = @cartridge_repository.load
+        Log.instance.info(
+            "#{count} cartridge(s) installed in #{@cartridge_repository.path}")
+        true
+      end
 
       def echo_action
         validate :msg, String
@@ -25,7 +34,7 @@ module MCollective
       end
 
       def cleanpwd(arg)
-        arg.gsub(/(passwo?r?d\s*[:=]+\s*)\S+/i, '\\1[HIDDEN]').gsub(/(usern?a?m?e?\s*[:=]+\s*)\S+/i,'\\1[HIDDEN]')
+        arg.gsub(/(passwo?r?d\s*[:=]+\s*)\S+/i, '\\1[HIDDEN]').gsub(/(usern?a?m?e?\s*[:=]+\s*)\S+/i, '\\1[HIDDEN]')
       end
 
       # Handles all incoming messages. Validates the input, executes the action, and constructs
@@ -37,18 +46,18 @@ module MCollective
         validate :cartridge, :shellsafe
         validate :action, /\A(app-create|app-destroy|env-var-add|env-var-remove|broker-auth-key-add|broker-auth-key-remove|authorized-ssh-key-add|authorized-ssh-key-remove|ssl-cert-add|ssl-cert-remove|configure|deconfigure|update-namespace|tidy|deploy-httpd-proxy|remove-httpd-proxy|restart-httpd-proxy|move|pre-move|post-move|info|post-install|post-remove|pre-install|reload|restart|start|status|stop|force-stop|add-alias|remove-alias|threaddump|cartridge-list|expose-port|frontend-backup|frontend-restore|frontend-create|frontend-destroy|frontend-update-name|frontend-update-namespace|frontend-connect|frontend-disconnect|frontend-connections|frontend-idle|frontend-unidle|frontend-check-idle|frontend-sts|frontend-no-sts|frontend-get-sts|aliases|ssl-cert-add|ssl-cert-remove|ssl-certs|frontend-to-hash|system-messages|connector-execute|get-quota|set-quota)\Z/
         validate :action, :shellsafe
-        cartridge = request[:cartridge]
-        action = request[:action]
-        args = request[:args] ||= {}
+        cartridge                  = request[:cartridge]
+        action                     = request[:action]
+        args                       = request[:args] ||= {}
         pid, stdin, stdout, stderr = nil, nil, nil, nil
-        rc = nil
-        output = ""
+        rc                         = nil
+        output                     = ""
 
         # Do the action execution
-        exitcode, output = execute_action(action, args)
+        exitcode, output           = execute_action(action, args)
 
         reply[:exitcode] = exitcode
-        reply[:output] = output
+        reply[:output]   = output
 
         if exitcode == 0
           Log.instance.info("cartridge_do_action reply (#{exitcode}):\n------\n#{cleanpwd(output)}\n------)")
@@ -65,11 +74,11 @@ module MCollective
         action_method = "oo_#{action.gsub('-', '_')}"
 
         exitcode = 0
-        output = ""
+        output   = ""
 
         if not self.respond_to?(action_method)
           exitcode = 127
-          output = "Unsupported action: #{action}/#{action_method}"
+          output   = "Unsupported action: #{action}/#{action_method}"
         else
           Log.instance.info("Executing action [#{action}] using method #{action_method} with args [#{args}]")
           begin
@@ -78,7 +87,7 @@ module MCollective
             Log.instance.error("Unhandled action execution exception for action [#{action}]: #{e.message}")
             Log.instance.error(e.backtrace)
             exitcode = 127
-            output = "An internal exception occured processing action #{action}"
+            output   = "An internal exception occured processing action #{action}"
           end
           Log.instance.info("Finished executing action [#{action}] (#{exitcode})")
         end
@@ -103,17 +112,17 @@ module MCollective
           job = parallel_job[:job]
 
           cartridge = job[:cartridge]
-          action = job[:action]
-          args = job[:args]
+          action    = job[:action]
+          args      = job[:args]
 
           exitcode, output = execute_action(action, args)
 
           parallel_job[:result_exit_code] = exitcode
-          parallel_job[:result_stdout] = output
+          parallel_job[:result_stdout]    = output
         end
 
         Log.instance.info("execute_parallel_action call - #{joblist}")
-        reply[:output] = joblist
+        reply[:output]   = joblist
         reply[:exitcode] = 0
       end
 
@@ -123,18 +132,18 @@ module MCollective
       #
       # Use this to get a new ApplicationContainer instance in all cases.
       def get_app_container_from_args(args)
-        app_uuid     = args['--with-app-uuid'].to_s       if args['--with-app-uuid']
-        app_name     = args['--with-app-name'].to_s       if args['--with-app-name']
-        gear_uuid    = args['--with-container-uuid'].to_s if args['--with-container-uuid']
-        gear_name    = args['--with-container-name'].to_s if args['--with-container-name']
-        namespace    = args['--with-namespace'].to_s      if args['--with-namespace']
+        app_uuid = args['--with-app-uuid'].to_s if args['--with-app-uuid']
+        app_name = args['--with-app-name'].to_s if args['--with-app-name']
+        gear_uuid = args['--with-container-uuid'].to_s if args['--with-container-uuid']
+        gear_name = args['--with-container-name'].to_s if args['--with-container-name']
+        namespace = args['--with-namespace'].to_s if args['--with-namespace']
         quota_blocks = args['--with-quota-blocks']
         quota_files  = args['--with-quota-files']
         uid          = args['--with-uid']
 
         quota_blocks = nil if quota_blocks && quota_blocks.to_s.empty?
-        quota_files  = nil if quota_files && quota_files.to_s.empty?
-        uid          = nil if uid && uid.to_s.empty?
+        quota_files = nil if quota_files && quota_files.to_s.empty?
+        uid = nil if uid && uid.to_s.empty?
 
         OpenShift::ApplicationContainer.new(app_uuid, gear_uuid, uid, app_name, gear_name,
                                             namespace, quota_blocks, quota_files, Log.instance)
@@ -160,9 +169,9 @@ module MCollective
 
       def oo_app_destroy(args)
         skip_hooks = args['--skip-hooks'] ? args['--skip-hooks'] : false
-        output = ""
+        output     = ""
         begin
-          container = get_app_container_from_args(args)
+          container    = get_app_container_from_args(args)
           out, err, rc = container.destroy(skip_hooks)
         rescue Exception => e
           Log.instance.info e.message
@@ -176,9 +185,9 @@ module MCollective
       end
 
       def oo_authorized_ssh_key_add(args)
-        ssh_key = args['--with-ssh-key']
+        ssh_key  = args['--with-ssh-key']
         key_type = args['--with-ssh-key-type']
-        comment = args['--with-ssh-key-comment']
+        comment  = args['--with-ssh-key-comment']
 
         begin
           container = get_app_container_from_args(args)
@@ -209,7 +218,7 @@ module MCollective
       end
 
       def oo_broker_auth_key_add(args)
-        iv = args['--with-iv']
+        iv    = args['--with-iv']
         token = args['--with-token']
 
         begin
@@ -238,7 +247,7 @@ module MCollective
       end
 
       def oo_env_var_add(args)
-        key = args['--with-key']
+        key   = args['--with-key']
         value = args['--with-value']
 
         begin
@@ -286,12 +295,12 @@ module MCollective
 
       def oo_app_state_show(args)
         container_uuid = args['--with-container-uuid'].to_s if args['--with-container-uuid']
-        app_uuid       = args['--with-app-uuid'].to_s       if args['--with-app-uuid']
+        app_uuid = args['--with-app-uuid'].to_s if args['--with-app-uuid']
 
         output = ""
         begin
           container = get_app_container_from_args(args)
-          output = container.state.value
+          output    = container.state.value
         rescue Exception => e
           Log.instance.info e.message
           Log.instance.info e.backtrace
@@ -317,7 +326,7 @@ module MCollective
       end
 
       def oo_set_quota(args)
-        uuid   = args['--uuid'].to_s if args['--uuid']
+        uuid = args['--uuid'].to_s if args['--uuid']
         blocks = args['--blocks']
         inodes = args['--inodes']
 
@@ -335,7 +344,7 @@ module MCollective
 
       def oo_force_stop(args)
         container_uuid = args['--with-container-uuid'].to_s if args['--with-container-uuid']
-        app_uuid       = args['--with-app-uuid'].to_s       if args['--with-app-uuid']
+        app_uuid = args['--with-app-uuid'].to_s if args['--with-app-uuid']
 
         begin
           container = get_app_container_from_args(args)
@@ -378,7 +387,7 @@ module MCollective
       def with_frontend_from_args(args)
         container_uuid = args['--with-container-uuid'].to_s if args['--with-container-uuid']
         container_name = args['--with-container-name'].to_s if args['--with-container-name']
-        namespace      = args['--with-namespace'].to_s      if args['--with-namespace']
+        namespace = args['--with-namespace'].to_s if args['--with-namespace']
 
         with_frontend_rescue_pattern do |o|
           frontend = OpenShift::FrontendHttpServer.new(container_uuid, container_name, namespace)
@@ -510,17 +519,17 @@ module MCollective
       end
 
       def oo_ssl_cert_add(args)
-        ssl_cert      = args['--with-ssl-cert']
-        priv_key      = args['--with-priv-key']
-        server_alias  = args['--with-alias-name']
-        passprase     = args['--with-passphrase']
+        ssl_cert     = args['--with-ssl-cert']
+        priv_key     = args['--with-priv-key']
+        server_alias = args['--with-alias-name']
+        passprase    = args['--with-passphrase']
         with_frontend_from_args(args) do |f, o|
           f.add_ssl_cert(ssl_cert, priv_key, server_alias, passphrase)
         end
       end
 
       def oo_ssl_cert_remove(args)
-        server_alias  = args['--with-alias-name']
+        server_alias = args['--with-alias-name']
         with_frontend_from_args(args) do |f, o|
           f.remove_ssl_cert(server_alias)
         end
@@ -549,10 +558,10 @@ module MCollective
 
       # Does an implicit instantiation of the FrontendHttpServer class.
       def oo_frontend_restore(args)
-        backup         = args['--with-backup']
+        backup = args['--with-backup']
 
         with_frontend_rescue_pattern do |o|
-          OpenShift::FrontendHttpServer.json_create({ 'data' => JSON.parse(backup) })
+          OpenShift::FrontendHttpServer.json_create({'data' => JSON.parse(backup)})
         end
       end
 
@@ -600,14 +609,14 @@ module MCollective
       end
 
       def oo_connector_execute(args)
-        cart_name = args['--cart-name']
-        hook_name = args['--hook-name']
+        cart_name  = args['--cart-name']
+        hook_name  = args['--hook-name']
         input_args = args['--input-args']
 
         output = ""
         begin
           container = get_app_container_from_args(args)
-          output = container.connector_execute(cart_name, hook_name, input_args)
+          output    = container.connector_execute(cart_name, hook_name, input_args)
         rescue Exception => e
           Log.instance.info e.message
           Log.instance.info e.backtrace
@@ -619,13 +628,13 @@ module MCollective
 
       def oo_update_namespace(args)
         cart_name = args['--cart-name']
-        old_ns = args['--with-old-namespace']
-        new_ns = args['--with-new-namespace']
+        old_ns    = args['--with-old-namespace']
+        new_ns    = args['--with-new-namespace']
 
         output = ""
         begin
           container = get_app_container_from_args(args)
-          output = container.update_namespace(cart_name, old_ns, new_ns)
+          output    = container.update_namespace(cart_name, old_ns, new_ns)
         rescue Exception => e
           Log.instance.info e.message
           Log.instance.info e.backtrace
@@ -636,13 +645,13 @@ module MCollective
       end
 
       def oo_configure(args)
-        cart_name = args['--cart-name']
+        cart_name        = args['--cart-name']
         template_git_url = args['--with-template-git-url']
 
         output = ""
         begin
           container = get_app_container_from_args(args)
-          output = container.configure(cart_name, template_git_url)
+          output    = container.configure(cart_name, template_git_url)
         rescue Exception => e
           Log.instance.info e.message
           Log.instance.info e.backtrace
@@ -658,7 +667,7 @@ module MCollective
         output = ""
         begin
           container = get_app_container_from_args(args)
-          output = container.deconfigure(cart_name)
+          output    = container.deconfigure(cart_name)
         rescue Exception => e
           Log.instance.info e.message
           Log.instance.info e.backtrace
@@ -715,12 +724,12 @@ module MCollective
 
       def oo_move(args)
         cart_name = args['--cart-name']
-        idle = args['--idle']
+        idle      = args['--idle']
 
         output = ""
         begin
           container = get_app_container_from_args(args)
-          output = container.move(cart_name, idle)
+          output    = container.move(cart_name, idle)
         rescue Exception => e
           Log.instance.info e.message
           Log.instance.info e.backtrace
@@ -736,7 +745,7 @@ module MCollective
         output = ""
         begin
           container = get_app_container_from_args(args)
-          output = container.pre_move(cart_name)
+          output    = container.pre_move(cart_name)
         rescue Exception => e
           Log.instance.info e.message
           Log.instance.info e.backtrace
@@ -752,7 +761,7 @@ module MCollective
         output = ""
         begin
           container = get_app_container_from_args(args)
-          output = container.post_move(cart_name)
+          output    = container.post_move(cart_name)
         rescue Exception => e
           Log.instance.info e.message
           Log.instance.info e.backtrace
@@ -843,7 +852,7 @@ module MCollective
         output = ""
         begin
           container = get_app_container_from_args(args)
-          output = container.status(cart_name)
+          output    = container.status(cart_name)
         rescue Exception => e
           Log.instance.info e.message
           Log.instance.info e.backtrace
@@ -859,7 +868,7 @@ module MCollective
         output = ""
         begin
           container = get_app_container_from_args(args)
-          output = container.threaddump(cart_name)
+          output    = container.threaddump(cart_name)
         rescue Exception => e
           Log.instance.info e.message
           Log.instance.info e.backtrace
@@ -875,7 +884,7 @@ module MCollective
       def set_district_action
         Log.instance.info("set_district call / action: #{request.action}, agent=#{request.agent}, data=#{request.data.pretty_inspect}")
         validate :uuid, /^[a-zA-Z0-9]+$/
-        uuid   = request[:uuid].to_s if request[:uuid]
+        uuid = request[:uuid].to_s if request[:uuid]
         active = request[:active]
 
         begin
@@ -893,10 +902,10 @@ module MCollective
             setcode { active }
           end
 
-          reply[:output] = "created/updated district #{uuid} with active = #{active}"
+          reply[:output]   = "created/updated district #{uuid} with active = #{active}"
           reply[:exitcode] = 0
         rescue Exception => e
-          reply[:output] = e.message
+          reply[:output]   = e.message
           reply[:exitcode] = 255
           reply.fail! "set_district failed #{reply[:exitcode]}.  Output #{reply[:output]}"
         end
@@ -910,7 +919,7 @@ module MCollective
       def has_app_action
         validate :uuid, /^[a-zA-Z0-9]+$/
         validate :application, /^[a-zA-Z0-9]+$/
-        uuid     = request[:uuid].to_s if request[:uuid]
+        uuid = request[:uuid].to_s if request[:uuid]
         app_name = request[:application]
         if File.exist?("/var/lib/openshift/#{uuid}/#{app_name}")
           reply[:output] = true
@@ -926,7 +935,7 @@ module MCollective
       def has_embedded_app_action
         validate :uuid, /^[a-zA-Z0-9]+$/
         validate :embedded_type, /^.+$/
-        uuid          = request[:uuid].to_s if request[:uuid]
+        uuid = request[:uuid].to_s if request[:uuid]
         embedded_type = request[:embedded_type]
         if File.exist?("/var/lib/openshift/#{uuid}/#{embedded_type}")
           reply[:output] = true
@@ -941,11 +950,11 @@ module MCollective
       #
       def has_uid_or_gid_action
         validate :uid, /^[0-9]+$/
-        uid = request[:uid].to_i
+        uid  = request[:uid].to_i
 
         # FIXME: Etc.getpwuid() and Etc.getgrgid() would be much faster
-        uids = IO.readlines("/etc/passwd").map{ |line| line.split(":")[2].to_i }
-        gids = IO.readlines("/etc/group").map{ |line| line.split(":")[2].to_i }
+        uids = IO.readlines("/etc/passwd").map { |line| line.split(":")[2].to_i }
+        gids = IO.readlines("/etc/group").map { |line| line.split(":")[2].to_i }
 
         if uids.include?(uid) || gids.include?(uid)
           reply[:output] = true
@@ -961,14 +970,14 @@ module MCollective
       def get_all_gears_action
         gear_map = {}
 
-        uid_map = {}
-        uids = IO.readlines("/etc/passwd").map{ |line|
-          uid = line.split(":")[2]
-          username = line.split(":")[0]
+        uid_map          = {}
+        uids             = IO.readlines("/etc/passwd").map { |line|
+          uid               = line.split(":")[2]
+          username          = line.split(":")[0]
           uid_map[username] = uid
         }
-        dir = "/var/lib/openshift/"
-        filelist = Dir.foreach(dir) { |file|
+        dir              = "/var/lib/openshift/"
+        filelist         = Dir.foreach(dir) { |file|
           if File.directory?(dir+file) and not File.symlink?(dir+file) and not file[0]=='.'
             if uid_map.has_key?(file)
               if request[:with_broker_key_auth]
@@ -979,7 +988,7 @@ module MCollective
             end
           end
         }
-        reply[:output] = gear_map
+        reply[:output]   = gear_map
         reply[:exitcode] = 0
       end
 
@@ -987,20 +996,50 @@ module MCollective
       # Get all gears
       #
       def get_all_active_gears_action
-        active_gears = {}
-        dir = "/var/lib/openshift/"
-        filelist = Dir.foreach(dir) { |file|
+        active_gears     = {}
+        dir              = "/var/lib/openshift/"
+        filelist         = Dir.foreach(dir) { |file|
           if File.directory?(dir+file) and not File.symlink?(dir+file) and not file[0]=='.'
             state_file = File.join(dir, file, 'app-root', 'runtime', '.state')
             if File.exist?(state_file)
-              state = File.read(state_file).chomp
+              state  = File.read(state_file).chomp
               active = !('idle' == state || 'stopped' == state)
               active_gears[file] = nil if active
             end
           end
         }
-        reply[:output] = active_gears
+        reply[:output]   = active_gears
         reply[:exitcode] = 0
+      end
+
+      ## Perform operation on CartridgeRepository
+      def cartridge_repository_action
+        Log.instance.info("action: #{request.action}_action, agent=#{request.agent}, data=#{request.data.pretty_inspect}")
+        action            = request[:action]
+        path              = request[:path]
+        name              = request[:name]
+        version           = request[:version]
+        cartridge_version = request[:cartridge_version]
+
+        reply[:output] = "#{action}: succeeded"
+        begin
+          case action
+            when 'install'
+              ::OpenShift::CartridgeRepository.instance.install(path)
+            when 'erase'
+              ::OpenShift::CartridgeRepository.instance.erase(name, version, cartridge_version)
+            when 'list'
+              reply[:output] = ::OpenShift::CartridgeRepository.instance.to_s
+            else
+              reply.fail(
+                  "#{action}: is not implemented. openshift.ddl may be out of date.",
+                  2)
+              return
+          end
+        rescue Exception => e
+          Log.instance.info("cartridge_repository_action(#{action}): failed #{e.message}\n#{e.backtrace}")
+          reply.fail!("#{action}: failed #{e.message}", 4)
+        end
       end
     end
   end
