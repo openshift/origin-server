@@ -489,6 +489,20 @@ module CommandHelper
     $logger.debug("Found = #{found} instances of #{regex}")
     found
   end
+
+  def oo_admin_broker_auth_find_gears
+    command = "oo-admin-broker-auth --find-gears"
+    $logger.debug("oo-admin-broker-auth: executing #{command}")
+
+    stdin, stdout, stderr = Open3.popen3(command)
+
+    stdin.close
+
+    outstrings = stdout.readlines
+    errstrings = stderr.readlines
+
+    return outstrings.map {|l| l.chomp}
+  end
 end
 
 World(CommandHelper)

@@ -37,13 +37,14 @@ Given /^a new client created (.+) application$/ do |type|
   raise "Could not create application #{@app.create_app_code}" unless @app.create_app_code == 0
 end
 
-When /^(\d+) (.+) applications are created$/ do |app_count, type|
+When /^(\d+)( scalable)? (.+) applications are created$/ do |app_count, scalable, type|
   # Create our domain and apps
   @apps = app_count.to_i.times.collect do
     app = TestApp.create_unique(type)
     register_user(app.login, app.password) if $registration_required
     if rhc_create_domain(app)
-      rhc_create_app(app)
+      opts = scalable ? "-s" : ""
+      rhc_create_app(app, true, opts)
       app.update_jenkins_info if type.start_with?("jenkins")
     end
     raise "Could not create domain: #{app.create_domain_code}"  unless app.create_domain_code == 0

@@ -971,6 +971,10 @@ module MCollective
         filelist = Dir.foreach(dir) { |file|
           if File.directory?(dir+file) and not File.symlink?(dir+file) and not file[0]=='.'
             if uid_map.has_key?(file)
+              if request[:with_broker_key_auth]
+                next unless File.exists?(File.join(dir, file, ".auth/token"))
+              end
+
               gear_map[file] = uid_map[file]
             end
           end

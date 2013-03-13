@@ -20,6 +20,8 @@ Requires:      bind-utils
 Requires:      rng-tools
 # For oo-setup-broker
 Requires:      openssl
+# For oo-admin-broker-auth
+Requires:      mcollective-client
 %if 0%{?fedora} >= 17
 BuildRequires: %{?scl:%scl_prefix}rubygems-devel
 %else
@@ -55,6 +57,7 @@ cp kickstart/openshift-origin-remix.ks %{buildroot}/usr/share/openshift/kickstar
 %attr(0750,-,-) %{_sbindir}/oo-admin-ctl-usage
 %attr(0750,-,-) %{_sbindir}/oo-admin-ctl-user
 %attr(0750,-,-) %{_sbindir}/oo-admin-move
+%attr(0750,-,-) %{_sbindir}/oo-admin-broker-auth
 %attr(0750,-,-) %{_sbindir}/oo-admin-usage
 %attr(0750,-,-) %{_sbindir}/oo-register-dns
 %attr(0750,-,-) %{_sbindir}/oo-setup-bind
@@ -72,6 +75,7 @@ cp kickstart/openshift-origin-remix.ks %{buildroot}/usr/share/openshift/kickstar
 %{_mandir}/man8/oo-admin-ctl-usage.8.gz
 %{_mandir}/man8/oo-admin-ctl-user.8.gz
 %{_mandir}/man8/oo-admin-move.8.gz
+%{_mandir}/man8/oo-admin-broker-auth.8.gz
 %{_mandir}/man8/oo-admin-usage.8.gz
 %{_mandir}/man8/oo-register-dns.8.gz
 %{_mandir}/man8/oo-setup-bind.8.gz

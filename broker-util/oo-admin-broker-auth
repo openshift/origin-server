@@ -1,0 +1,221 @@
+#!/usr/bin/env oo-ruby
+
+#--
+# Copyright 2012 Red Hat, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#++
+
+require 'rubygems'
+require 'getoptlong'
+
+def usage
+  puts <<USAGE
+== Synopsis
+
+oo-admin-broker-auth: Recreate the authentication tokens for gears.
+
+To rekey all tokens in parallel use --rekey-all or pipe the UUIDs in on STDIN.  An individual Gear can be rekeyed with the --rekey flag.
+
+== Usage
+
+oo-admin-broker-auth OPTIONS
+
+Options:
+--rekey-all
+    Rekey all Gears using Broker authentication tokens
+--rekey [uuid]
+-t|--timeout [integer]
+    How long to wait for MCollective Node discovery
+-v|--verbose
+    Show debugging information
+--find-gears
+    Print out gears with using Broker key authentication
+--dryrun
+    Show what would be done.  Useful for finding discrepancies in Nodes reported by the Broker datastore and the message bus
+-h|--help
+    Show Usage info
+USAGE
+  exit 255
+end
+
+opts = GetoptLong.new(
+    ["--rekey-all",        GetoptLong::NO_ARGUMENT],
+    ["--rekey",            "-r", GetoptLong::REQUIRED_ARGUMENT],
+    ["--timeout",          "-t", GetoptLong::REQUIRED_ARGUMENT],
+    ["--verbose",          "-v", GetoptLong::NO_ARGUMENT],
+    ["--find-gears",       GetoptLong::NO_ARGUMENT],
+    ["--dryrun",           GetoptLong::NO_ARGUMENT],
+    ["--help",             "-h", GetoptLong::NO_ARGUMENT]
+)
+
+args = {}
+begin
+  opts.each{ |k,v| args[k]=v }
+rescue GetoptLong::Error => e
+  usage
+end
+
+# Check this _before_ loading the rails env
+if args["--help"] || (STDIN.tty? && args.empty?)
+  usage
+end
+
+if args['--timeout']
+  unless args['--timeout'] =~ /^[0-9]+$/
+     puts "ERROR: 'timeout' must be a positive integer"
+     exit 1
+  end
+end
+args['--timeout'] ||= 20
+
+$:.unshift('/var/www/openshift/broker')
+require 'config/environment'
+Rails.configuration.msg_broker[:rpc_options][:disctimeout] = args['--timeout'].to_i
+
+class OOAdminRekeyBrokerAuth
+  attr_reader :failure_count
+
+  def initialize(options)
+    @verbose = options["--verbose"]
+    @timeout = options["--timeout"] || 20
+    @dryrun = options["--dryrun"]
+    @find_gears = options["--find-gears"]
+    @handle = RemoteJob.create_parallel_job
+    @failure_count = 0
+  end
+
+  def all_gears_uuids_with_broker_keys
+    # We want --find-gears to be silent to allow for easy piping
+    print "\nQuerying the Broker message bus for Gears with authentication tokens... " unless @find_gears
+    gear_results = OpenShift::ApplicationContainerProxy.get_all_gears(:with_broker_key_auth => true)
+    gear_uuids = gear_results[0].keys
+    @mc_nodes = gear_results[1].keys
+    puts "Done. #{gear_uuids.size} token(s) found on #{@mc_nodes.size} Node(s)." unless @find_gears
+
+    return gear_uuids
+  end
+
+  def node_found?(gear, uuid)
+    return true if @mc_nodes.nil?
+
+    unless @mc_nodes.include?(gear.server_identity)
+      @failure_count += 1
+      $stderr.puts "\nERROR: #{uuid} was unsuccessfully rekeyed."
+      $stderr.puts "ERROR: Node #{gear.server_identity} was not found on the Broker message bus. " +
+                   "This could mean the Node was renamed but the Broker datastore was not updated."
+      return false
+    else
+      return true
+    end
+  end
+
+  def update_list_of_nodes_seen(gear)
+    return if @mongo_nodes.nil?
+
+    @mongo_nodes.delete(gear.server_identity)
+  end
+
+  def warn_about_offline_nodes
+    return if @mongo_nodes.nil?
+    # If there are mongo_nodes left that means 1 of 2 scenarios:
+    # 1) A node was offline
+    # 2) A node did not have any gears using broker key auth
+    #
+    # #2 isn't an issue.  We want to protect against #1 though.
+    unless @mongo_nodes.empty?
+      # mongo_nodes represents all the nodes where gears actually live.  In theory
+      # it should always be a subset of the nodes known to MCollective.
+      missing_nodes = @mongo_nodes - @mc_nodes
+      unless missing_nodes.empty?
+        @failure_count += 1
+        $stderr.puts "\nERROR: While updating broker keys the following hosts hosts were not " +
+                     "found and may contain gears with authentication tokens:\n"
+
+        missing_nodes.each {|n| $stderr.puts n}
+      end
+    end
+  end
+
+  def execute_jobs_and_report
+    puts "\nINFO: Ctrl-C to interrupt and print completed jobs" if @verbose
+    RemoteJob.execute_parallel_jobs(@handle)
+    puts "\nRESULTS:" unless @handle.empty?
+    @handle.each_pair do |node, results|
+      results.each do |result|
+        if result[:result_exit_code] == 0
+          puts "#{result[:gear]} on #{node} was successfully rekeyed."
+        else
+          @failure_count += 1
+          puts "ERROR: #{result[:gear]} on #{node} failed."
+          puts "STDERR: #{result[:job][:result_stderr]}"
+          puts "STDOUT: #{result[:job][:result_stdout]}"
+        end
+      end
+    end
+
+    puts "\nFor detailed output see the Broker message bus logfile."
+  end
+
+  def find_mongo_and_mc_nodes
+    print "Finding all OpenShift Nodes with gears in the Broker datastore... "
+    @mongo_nodes = Application.all.distinct("group_instances.gears.server_identity")
+    puts "Done. #{@mongo_nodes.size} Node(s) found."
+    @mongo_nodes.each {|n| puts "Found: #{n} in Broker datastore."} if @verbose
+  end
+
+  def create_broker_keys(uuids)
+    uuids.each do |uuid|
+      app, gear = Application.find_by_gear_uuid(uuid)
+      next unless node_found?(gear, uuid)
+
+      unless @dryrun
+        iv, token = OpenShift::Auth::BrokerKey.new.generate_broker_key(app)
+        job = gear.get_broker_auth_key_add_job(iv, token)
+        RemoteJob.add_parallel_job(@handle, "", gear, job)
+      end
+
+      update_list_of_nodes_seen(gear)
+    end
+
+    warn_about_offline_nodes
+    execute_jobs_and_report unless @dryrun
+  end
+
+  def rekey_all
+    find_mongo_and_mc_nodes
+    gear_uuids = all_gears_uuids_with_broker_keys
+    create_broker_keys(gear_uuids)
+  end
+end
+
+app = OOAdminRekeyBrokerAuth.new(args)
+
+if args['--find-gears']
+  gear_uuids = app.all_gears_uuids_with_broker_keys
+  puts gear_uuids
+elsif args['--rekey-all']
+  app.rekey_all
+elsif args['--rekey']
+  app.create_broker_keys(args['--rekey'])
+else
+  uuids = []
+
+  while uuids << gets.split
+    uuids.flatten!
+  end rescue nil
+
+  app.create_broker_keys(uuids)
+end
+
+exit app.failure_count
