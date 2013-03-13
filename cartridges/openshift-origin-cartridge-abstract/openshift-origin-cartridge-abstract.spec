@@ -7,7 +7,7 @@
 
 Summary:       OpenShift common cartridge components
 Name:          openshift-origin-cartridge-abstract
-Version: 1.6.1
+Version:       1.6.1
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -54,9 +54,9 @@ openshift jboss cartridges.
 
 %install
 mkdir -p %{buildroot}%{cartdir}
-cp -rv abstract %{buildroot}%{cartdir}/
-cp -rv abstract-httpd %{buildroot}%{cartdir}/
-cp -rv abstract-jboss %{buildroot}%{cartdir}/
+cp -rv -p abstract %{buildroot}%{cartdir}/
+cp -rv -p abstract-httpd %{buildroot}%{cartdir}/
+cp -rv -p abstract-jboss %{buildroot}%{cartdir}/
 
 # Remove bundled library
 rm -f %{buildroot}%{cartdir}/abstract-jboss/info/data/mysql.tar
@@ -71,7 +71,7 @@ rm -f %{buildroot}%{cartdir}/abstract-jboss/info/data/mysql.tar
 %attr(0755,-,-) %{_libexecdir}/openshift/cartridges/abstract-httpd/info/bin/
 %dir %attr(0755,root,root) %{_libexecdir}/openshift/cartridges/abstract/
 %dir %attr(0755,root,root) %{_libexecdir}/openshift/cartridges/abstract/info/
-%attr(0755,-,-) %{_libexecdir}/openshift/cartridges/abstract/info/hooks
+%dir %attr(0755,-,-) %{_libexecdir}/openshift/cartridges/abstract/info/hooks
 %attr(0750,-,-) %{_libexecdir}/openshift/cartridges/abstract/info/hooks/*
 # tidy is now a cartridge hook and should be accessible to gear users
 %attr(0755,-,-) %{_libexecdir}/openshift/cartridges/abstract/info/hooks/tidy
