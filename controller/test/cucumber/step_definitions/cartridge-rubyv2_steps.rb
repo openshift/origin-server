@@ -10,7 +10,7 @@ Then /^the ([^ ]+) ([^ ]+) marker will( not)? exist$/ do |cartridge_name, marker
   end
 end
 
-Then /^the ruby(18)? cartridge private endpoints will be exposed$/ do
+Then /^the ruby(18)? cartridge private endpoints will be exposed$/ do |version|
   app_env_var_will_exist('RUBY_IP')
   app_env_var_will_exist('RUBY_PORT')
 end
