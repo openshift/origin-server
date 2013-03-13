@@ -12,7 +12,11 @@ Group:         Network/Daemons
 License:       ASL 2.0
 URL:           http://openshift.redhat.com
 Source0:       http://mirror.openshift.com/pub/openshift-origin/source/%{name}/%{name}-%{version}.tar.gz
+%if 0%{?fedora} >= 19
+Requires:      ruby(release)
+%else
 Requires:      %{?scl:%scl_prefix}ruby(abi) >= %{rubyabi}
+%endif
 Requires:      openshift-origin-broker
 # For oo-register-dns
 Requires:      bind-utils
