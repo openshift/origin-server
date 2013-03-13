@@ -1,6 +1,7 @@
 @runtime
 Feature: Cartridge Runtime Standard Checks (Perl)
 
+  #@runtime_other2
   @runtime2
   Scenario Outline: Perl cartridge checks
     Given a new <perl_version> application, verify it using httpd

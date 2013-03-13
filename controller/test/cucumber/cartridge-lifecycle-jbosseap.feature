@@ -1,5 +1,6 @@
 @runtime_extended
 @runtime_extended2
+@runtime_extended_other2
 @rhel-only
 @jboss
 Feature: Cartridge Lifecycle JBossEAP Verification Tests

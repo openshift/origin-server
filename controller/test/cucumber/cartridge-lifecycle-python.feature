@@ -1,5 +1,6 @@
 @runtime_extended
 @runtime_extended1
+@runtime_extended_other1
 @rhel-only
 Feature: Cartridge Lifecycle Python Verification Tests
   Scenario: Application Creation

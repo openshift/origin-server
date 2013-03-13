@@ -3,6 +3,7 @@
 @jboss
 Feature: Cartridge Runtime Extended Checks (JBoss)
 
+  #@runtime_extended_other2
   @runtime_extended2
   Scenario Outline: Hot deployment tests
     Given a new <type> type application
