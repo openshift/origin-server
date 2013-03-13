@@ -24,6 +24,7 @@ end
 require 'test_helper'
 require 'openshift-origin-node/model/v2_cart_model'
 require 'openshift-origin-node/model/cartridge'
+require 'openshift-origin-node/model/cartridge_repository'
 require 'openshift-origin-node/utils/environ'
 require 'openshift-origin-common'
 require 'test/unit'
@@ -131,8 +132,8 @@ class V2CartModelTest < Test::Unit::TestCase
 
     manifest = "/tmp/manifest-#{Process.pid}"
     IO.write(manifest, @mock_manifest, 0)
-    @mock_cartridge = OpenShift::Runtime::Cartridge.new(manifest)
-    @model.stubs(:get_cartridge).with('mock').returns(@mock_cartridge)
+    @mock_cartridge = OpenShift::Runtime::Cartridge.new(manifest, '/tmp')
+    @model.stubs(:get_cartridge).with('mock-0.1').returns(@mock_cartridge)
   end
 
   def test_get_cartridge_valid_manifest
@@ -141,14 +142,15 @@ class V2CartModelTest < Test::Unit::TestCase
     @user.expects(:homedir).returns('/foo')
 
     YAML.stubs(:load_file).with('/foo/mock/metadata/manifest.yml').returns(YAML.load(@mock_manifest))
-    cart = local_model.get_cartridge("mock")
+    Dir.stubs(:glob).returns(['/foo/mock/metadata/manifest.yml'])
+    cart = local_model.get_cartridge("mock-0.1")
 
     assert_equal "mock", cart.name
     assert_equal "MOCK", cart.short_name
     assert_equal 5, cart.endpoints.length
 
     # Exercise caching
-    cart = local_model.get_cartridge("mock")
+    cart = local_model.get_cartridge("mock-0.1")
 
     assert_equal "mock", cart.name
     assert_equal "MOCK", cart.short_name
@@ -162,28 +164,29 @@ class V2CartModelTest < Test::Unit::TestCase
     YAML.stubs(:load_file).with('/foo/mock/metadata/manifest.yml').raises(ArgumentError.new('bla'))
 
     assert_raise(RuntimeError, 'Failed to load cart manifest from /foo/mock/metadata/manifest.yml for cart mock in gear : bla') do
-      local_model.get_cartridge("mock")
+      local_model.get_cartridge("mock-0.1")
     end
   end
 
 
-  def test_get_system_cartridge_path
+  def test_get_system_cartridge
+    OpenShift::CartridgeRepository.
+        any_instance.
+        expects(:select).
+        with(any_of('mock', 'mock-plugin'), anything).
+        returns(@mock_cartridge)
+
     scenarios = {
-        'mock'            => '/path/v2/mock',
-        'mock-0.0'        => '/path/v2/mock-0.0',
-        'mock-plugin'     => '/path/v2/mock-plugin',
-        'mock-plugin-0.0' => '/path/v2/mock-plugin-0.0',
-        'mock-'           => '/path/v2/mock-',
-        'mock--'          => '/path/v2/mock--',
-        'mock--0.0'       => '/path/v2/mock--0.0',
-        'mock-0.0-'       => '/path/v2/mock-0.0-'
+        'mock-1.0' => '/tmp/UnitTest-mock/1.0',
     }
 
-    @config.stubs(:get).with("CARTRIDGE_BASE_PATH").returns('/path')
-
     scenarios.each do |cart_name, expected_path|
-      res = @model.get_system_cartridge_path(cart_name)
-      assert_equal expected_path, res
+      c = @model.get_system_cartridge(cart_name)
+      assert_equal expected_path, c.repository_path
+    end
+
+    assert_raise(RuntimeError) do
+      @model.get_system_cartridge("bozo")
     end
   end
 
@@ -204,7 +207,7 @@ class V2CartModelTest < Test::Unit::TestCase
     @user.expects(:add_env_var).with("OPENSHIFT_MOCK_EXAMPLE_PORT4", 9090)
     @user.expects(:add_env_var).with("OPENSHIFT_MOCK_EXAMPLE_PORT5", 9091)
 
-    @model.create_private_endpoints("mock")
+    @model.create_private_endpoints(@mock_cartridge)
   end
 
   def test_private_endpoint_delete
@@ -219,7 +222,7 @@ class V2CartModelTest < Test::Unit::TestCase
     @user.expects(:remove_env_var).with("OPENSHIFT_MOCK_EXAMPLE_IP2")
     @user.expects(:remove_env_var).with("OPENSHIFT_MOCK_EXAMPLE_PORT5")
 
-    @model.delete_private_endpoints("mock")
+    @model.delete_private_endpoints(@mock_cartridge)
   end
 
   # Verifies that an IP can be allocated for a simple port binding request

@@ -1,3 +1,4 @@
+#!/usr/bin/env oo-ruby
 #--
 # Copyright 2013 Red Hat, Inc.
 #
@@ -13,118 +14,284 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #++
+#
+# Test the OpenShift application_container model
+#
+module OpenShift
+  ;
+end
 
-require_relative '../../lib/openshift-origin-node/model/v2_cart_model'
-require_relative '../../lib/openshift-origin-node/model/cartridge'
-require_relative '../../lib/openshift-origin-node/utils/shell_exec'
-
-require 'pathname'
-require 'ostruct'
+require 'test_helper'
+require 'openshift-origin-node/model/v2_cart_model'
+require 'openshift-origin-node/model/cartridge'
+require 'openshift-origin-node/model/cartridge_repository'
+require 'openshift-origin-node/utils/environ'
+require 'openshift-origin-common'
 require 'test/unit'
+require 'fileutils'
 require 'mocha'
 
-module OpenShift
-  class V2CartridgeModelFuncTest < Test::Unit::TestCase
-    MockUser = Struct.new(:gid, :uid, :homedir) do
-      def get_mcs_label(uid)
-        's0:c0,c1000'
-      end
+class V2CartModelTest < Test::Unit::TestCase
+
+  def setup
+    # Set up the config
+    @config = mock('OpenShift::Config')
+    @config.stubs(:get).with("GEAR_BASE_DIR").returns("/tmp")
+
+    OpenShift::Utils::Sdk.stubs(:new_sdk_app?).returns(true)
+
+    script_dir     = File.expand_path(File.dirname(__FILE__))
+    cart_base_path = File.join(script_dir, '..', '..', '..', 'cartridges')
+
+    raise "Couldn't find cart base path at #{cart_base_path}" unless File.exists?(cart_base_path)
+
+    @config.stubs(:get).with("CARTRIDGE_BASE_PATH").returns(cart_base_path)
+
+    OpenShift::Config.stubs(:new).returns(@config)
+
+    # Set up the container
+    @gear_uuid = "501"
+    @user_uid  = "501"
+    @app_name  = 'UnixUserTestCase'
+    @gear_name = @app_name
+    @namespace = 'jwh201204301647'
+    @gear_ip   = "127.0.0.1"
+
+    @user = mock()
+    @user.stubs(:uuid).returns(@user_uuid)
+    @user.stubs(:uid).returns(@user_uid)
+
+    @model = OpenShift::V2CartridgeModel.new(@config, @user)
+
+    @mock_manifest = %q{#
+        Name: mock
+        Namespace: MOCK
+        Cartridge-Version: 1.0
+        Cartridge-Vendor: Unit Test
+        Display-Name: Mock
+        Description: "A mock cartridge for development use only."
+        Version: 0.1
+        License: "None"
+        Vendor: Red Hat
+        Categories:
+        - service
+        Provides:
+        - mock
+        Scaling:
+        Min: 1
+        Max: -1
+        Group-Overrides:
+        - components:
+        - mock
+        Endpoints:
+        - "EXAMPLE_IP1:EXAMPLE_PORT1(8080):EXAMPLE_PUBLIC_PORT1"
+        - "EXAMPLE_IP1:EXAMPLE_PORT2(8081):EXAMPLE_PUBLIC_PORT2"
+        - "EXAMPLE_IP1:EXAMPLE_PORT3(8082):EXAMPLE_PUBLIC_PORT3"
+        - "EXAMPLE_IP2:EXAMPLE_PORT4(9090):EXAMPLE_PUBLIC_PORT4"
+        - "EXAMPLE_IP2:EXAMPLE_PORT5(9091)"
+    }
+
+    manifest = "/tmp/manifest-#{Process.pid}"
+    IO.write(manifest, @mock_manifest, 0)
+    @mock_cartridge = OpenShift::Runtime::Cartridge.new(manifest, '/tmp')
+    @model.stubs(:get_cartridge).with('mock-0.1').returns(@mock_cartridge)
+  end
+
+  def test_get_cartridge_valid_manifest
+    local_model = OpenShift::V2CartridgeModel.new(@config, @user)
+
+    @user.expects(:homedir).returns('/foo')
+
+    YAML.stubs(:load_file).with('/foo/mock/metadata/manifest.yml').returns(YAML.load(@mock_manifest))
+    Dir.stubs(:glob).returns(['/foo/mock/metadata/manifest.yml'])
+    cart = local_model.get_cartridge("mock-0.1")
+
+    assert_equal "mock", cart.name
+    assert_equal "MOCK", cart.namespace
+    assert_equal 5, cart.endpoints.length
+
+    # Exercise caching
+    cart = local_model.get_cartridge("mock-0.1")
+
+    assert_equal "mock", cart.name
+    assert_equal "MOCK", cart.namespace
+    assert_equal 5, cart.endpoints.length
+  end
+
+  def test_get_cartridge_error_loading
+    local_model = OpenShift::V2CartridgeModel.new(@config, @user)
+
+    @user.expects(:homedir).returns('/foo')
+    YAML.stubs(:load_file).with('/foo/mock/metadata/manifest.yml').raises(ArgumentError.new('bla'))
+
+    assert_raise(RuntimeError, 'Failed to load cart manifest from /foo/mock/metadata/manifest.yml for cart mock in gear : bla') do
+      local_model.get_cartridge("mock-0.1")
     end
-    # Called before every test method runs. Can be used
-    # to set up fixture information.
-    def setup
-      @uuid    = `uuidgen -r |sed -e s/-//g`.chomp
-      @homedir = "/tmp/tests/#@uuid"
-      FileUtils.mkpath(File.join(@homedir, 'mock', 'metadata'))
-      FileUtils.mkpath(File.join(@homedir, 'mock', 'env'))
+  end
 
-      @files = [File.join(@homedir, 'mock/a'), File.join(@homedir, '.mocking_bird')]
-      @dirs  = [File.join(@homedir, 'mock/b/')]
 
-      user   = MockUser.new(1000, 1000, @homedir.to_s)
-      @model = V2CartridgeModel.new(nil, user)
+  def test_get_system_cartridge
+    OpenShift::CartridgeRepository.
+        any_instance.
+        expects(:select).
+        with('mock', '1.0').
+        returns(@mock_cartridge)
+
+    Dir.stubs(:glob).returns(['/foo/mock/metadata/manifest.yml'])
+
+    scenarios = {
+        'mock-1.0'        => '/tmp/UnitTest-mock/1.0',
+    }
+
+    scenarios.each do |cart_name, expected_path|
+      c = @model.get_system_cartridge(cart_name)
+      assert_equal expected_path, c.repository_path
     end
 
-    def teardown
-      FileUtils.rm_rf(@homedir)
-    end
+    @config.stubs(:get).with("CARTRIDGE_BASE_PATH").returns('/path')
+    scenarios = {
+        'mock'            => '/path/v2/mock',
+        'mock-0.0'        => '/path/v2/mock-0.0',
+        'mock-plugin'     => '/path/v2/mock-plugin',
+        'mock-plugin-0.0' => '/path/v2/mock-plugin-0.0',
+        'mock-'           => '/path/v2/mock-',
+        'mock--'          => '/path/v2/mock--',
+        'mock--0.0'       => '/path/v2/mock--0.0',
+        'mock-0.0-'       => '/path/v2/mock-0.0-'
+    }
+  end
 
-    def test_environment_variable
-      cartridge_home = File.join(@homedir, 'mock-0.0')
+  def test_private_endpoint_create
+    ip1 = "127.0.250.1"
+    ip2 = "127.0.250.2"
 
-      manifest            = OpenStruct.new
-      manifest.short_name = 'MOCK'
-      @model.write_environment_variable(manifest,
-                                  File.join(cartridge_home, 'env'),
-                                  dir: cartridge_home)
+    @model.expects(:find_open_ip).with(8080).returns(ip1)
+    @model.expects(:find_open_ip).with(9090).returns(ip2)
 
-      expected = File.join(cartridge_home, 'env', 'OPENSHIFT_MOCK_DIR')
-      assert File.file?(expected), "#{expected} is missing"
+    @model.expects(:address_bound?).returns(false).times(5)
 
-      path = File.read(File.join(cartridge_home, 'env', 'OPENSHIFT_MOCK_DIR'))
-      assert cartridge_home, path
-    end
+    @user.expects(:add_env_var).with("OPENSHIFT_MOCK_EXAMPLE_IP1", ip1)
+    @user.expects(:add_env_var).with("OPENSHIFT_MOCK_EXAMPLE_PORT1", 8080)
+    @user.expects(:add_env_var).with("OPENSHIFT_MOCK_EXAMPLE_PORT2", 8081)
+    @user.expects(:add_env_var).with("OPENSHIFT_MOCK_EXAMPLE_PORT3", 8082)
+    @user.expects(:add_env_var).with("OPENSHIFT_MOCK_EXAMPLE_IP2", ip2)
+    @user.expects(:add_env_var).with("OPENSHIFT_MOCK_EXAMPLE_PORT4", 9090)
+    @user.expects(:add_env_var).with("OPENSHIFT_MOCK_EXAMPLE_PORT5", 9091)
 
+    @model.create_private_endpoints(@mock_cartridge)
+  end
 
-    def test_do_unlock_gear
-      @model.do_unlock(@files + @dirs)
+  def test_private_endpoint_delete
+    @user.expects(:remove_env_var).with("OPENSHIFT_MOCK_EXAMPLE_IP1")
+    @user.expects(:remove_env_var).with("OPENSHIFT_MOCK_EXAMPLE_PORT1")
+    @user.expects(:remove_env_var).with("OPENSHIFT_MOCK_EXAMPLE_IP1")
+    @user.expects(:remove_env_var).with("OPENSHIFT_MOCK_EXAMPLE_PORT2")
+    @user.expects(:remove_env_var).with("OPENSHIFT_MOCK_EXAMPLE_IP1")
+    @user.expects(:remove_env_var).with("OPENSHIFT_MOCK_EXAMPLE_PORT3")
+    @user.expects(:remove_env_var).with("OPENSHIFT_MOCK_EXAMPLE_IP2")
+    @user.expects(:remove_env_var).with("OPENSHIFT_MOCK_EXAMPLE_PORT4")
+    @user.expects(:remove_env_var).with("OPENSHIFT_MOCK_EXAMPLE_IP2")
+    @user.expects(:remove_env_var).with("OPENSHIFT_MOCK_EXAMPLE_PORT5")
 
-      @files.each do |f|
-        assert File.file?(f), "Unlock failed to create file #{f}"
-      end
+    @model.delete_private_endpoints(@mock_cartridge)
+  end
 
-      @dirs.each do |d|
-        assert File.directory?(d), "Unlock failed to create directory #{d}"
-      end
-    end
+  # Verifies that an IP can be allocated for a simple port binding request
+  # where no other IPs are allocated to any carts in a gear.
+  def test_find_open_ip_success
+    @model.expects(:get_allocated_private_ips).returns([])
+    @model.expects(:address_bound?).returns(false)
 
-    def test_do_lock_gear
-      @files.each do |f|
-        FileUtils.touch(f)
-      end
-      @dirs.each do |d|
-        FileUtils.mkpath(d)
-      end
+    assert_equal @model.find_open_ip(8080), "127.0.250.129"
+  end
 
-      @model.do_lock(@files + @dirs)
+  # Ensures that a previously allocated IP within the gear won't be recycled
+  # when a new allocation request is made.
+  def test_find_open_ip_already_allocated
+    @model.expects(:get_allocated_private_ips).returns(["127.0.250.129"])
 
-      @files.each do |f|
-        assert File.file?(f), "Lock deleted file #{f}"
-      end
+    @model.expects(:address_bound?).returns(false)
 
-      @dirs.each do |d|
-        assert File.directory?(d), "Lock deleted directory #{d}"
-      end
-    end
+    assert_equal @model.find_open_ip(8080), "127.0.250.130"
+  end
 
-    def test_lock_files
-      Dir.chdir(@homedir) do
-        File.open('mock/metadata/locked_files.txt', 'w') do |f|
-          f.write("\nmock/c\nmock/d/\n")
-        end
-        assert File.exists? File.join(@homedir, 'mock', 'metadata', 'locked_files.txt')
+  # Verifies that nil is returned from find_open_ip when all requested ports are
+  # already bound on all possible IPs.
+  def test_find_open_ip_all_previously_bound
+    @model.expects(:get_allocated_private_ips).returns([])
 
-        files = @model.lock_files('mock')
+    # Simulate an lsof call indicating the IP/port is already bound
+    @model.expects(:address_bound?).returns(true).at_least_once
 
-        expected = [File.join(@homedir, 'mock/c'), File.join(@homedir, 'mock/d/')]
-        assert_equal(expected, files)
-      end
-    end
+    assert_nil @model.find_open_ip(8080)
+  end
 
-    def test_unlock_gear
-      Dir.chdir(@homedir) do
-        File.open('mock/metadata/locked_files.txt', 'w') do |f|
-          f.write("\nmock/c\nmock/d/\n")
-        end
-        assert File.exists? File.join(@homedir, 'mock', 'metadata', 'locked_files.txt')
+  # Verifies that nil is returned from find_open_ip when all possible IPs
+  # are already allocated to other endpoints.
+  def test_find_open_ip_all_previously_allocated
+    # Stub out a mock allocated IP array which will always tell the caller
+    # that their input is included in the array. This simulates the case where
+    # any IP the caller wants appears to be already allocated by other endpoints.
+    allocated_array = mock()
+    allocated_array.expects(:include?).returns(true).at_least_once
 
-        @model.unlock_gear('mock') do |actual|
-          assert_equal 'mock', actual
-        end
-      end
+    @model.expects(:get_allocated_private_ips).returns(allocated_array)
 
-      assert File.file?(File.join(@homedir, 'mock', 'c')), 'Unlock gear failed to create file'
-      assert File.directory?(File.join(@homedir, 'mock', 'd')), 'Unlock gear failed to create directory'
+    # Simulate an lsof call indicating the IP/port is available
+    @model.expects(:address_bound?).never
+
+    assert_nil @model.find_open_ip(8080)
+  end
+
+  # Flow control for destroy success - cartridge_teardown called for each method
+  # and unix user destroyed.
+  def test_destroy_success
+    @model.expects(:process_cartridges).multiple_yields(%w(/var/lib/openshift/0001000100010001/cartridge1),
+                                                        %w(/var/lib/openshift/0001000100010001/cartridge2))
+    @model.expects(:cartridge_teardown).with('cartridge1').returns("")
+    @model.expects(:cartridge_teardown).with('cartridge2').returns("")
+    @user.expects(:destroy)
+
+    @model.destroy
+  end
+
+  # Flow control for destroy when teardown raises an error.
+  # Verifies that all teardown hooks are called, even if one raises an error,
+  # and that unix user is still destroyed.
+  def test_destroy_teardown_raises
+    @model.expects(:process_cartridges).multiple_yields(%w(/var/lib/openshift/0001000100010001/cartridge1),
+                                                        %w(/var/lib/openshift/0001000100010001/cartridge2))
+    @model.expects(:cartridge_teardown).with('cartridge1').raises(OpenShift::Utils::ShellExecutionException.new('error'))
+    @model.expects(:cartridge_teardown).with('cartridge2').returns("")
+    @user.expects(:destroy)
+
+    @model.destroy
+  end
+
+  # Flow control for unlock_gear success - block is yielded to
+  # with cartridge name, do_unlock_gear and do_lock_gear bound the call.
+  def test_unlock_gear_success
+    @model.expects(:lock_files).with('mock-0.1').returns(%w(file1 file2 file3))
+    @model.expects(:do_unlock).with(%w(file1 file2 file3))
+    @model.expects(:do_lock).with(%w(file1 file2 file3))
+
+    params = []
+    @model.unlock_gear('mock-0.1') { |cart_name| params << cart_name }
+
+    assert_equal 1, params.size
+    assert_equal 'mock-0.1', params[0]
+  end
+
+  # Flow control for unlock gear failure - do_lock_gear is called
+  # even when the block raises and exception.  Exception bubbles
+  # out to caller.
+  def test_unlock_gear_block_raises
+    @model.expects(:lock_files).with('mock-0.1').returns(%w(file1 file2 file3))
+    @model.expects(:do_unlock).with(%w(file1 file2 file3))
+    @model.expects(:do_lock).with(%w(file1 file2 file3))
+
+    assert_raise OpenShift::Utils::ShellExecutionException do
+      @model.unlock_gear('mock-0.1') { raise OpenShift::Utils::ShellExecutionException.new('error') }
     end
   end
 end
