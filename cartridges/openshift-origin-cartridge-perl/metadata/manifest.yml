@@ -1,8 +1,8 @@
-Name: perl-2.10
+Name: perl-5.10
 Namespace: PERL
-Display-Name: Perl 2.10
+Display-Name: Perl 5.10
 Description: "Perl is a general-purpose server-side scripting language originally designed for Web development to produce dynamic Web pages. Popular development frameworks include: CakePerl, Zend, Symfony, and Code Igniter."
-Version: 2.10
+Version: 5.10
 License: "GPL v2"
 License-Url: http://dev.perl.org/licenses/
 Vendor: perl.org
@@ -42,9 +42,9 @@ Cart-Data:
     Type: environment
     Description: "Unique ID which identified the gear. This value changes between gears."
 Provides:
-  - perl-2.10
+  - perl-5.10
   - "perl"
-  - "perl(version) = 2.10"
+  - "perl(version) = 5.10"
 Publishes:
   publish-http-url:
     Type: "NET_TCP:httpd-proxy-info"
@@ -71,7 +71,7 @@ Scaling:
   Max: -1
 Group-Overrides:
   - components:
-    - perl-2.10
+    - perl-5.10
     - web_proxy
 
 Endpoints:
