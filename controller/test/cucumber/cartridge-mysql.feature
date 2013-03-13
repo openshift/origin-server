@@ -1,3 +1,4 @@
+#@runtime_other4
 @runtime
 @runtime4
 Feature: MySQL Application Sub-Cartridge

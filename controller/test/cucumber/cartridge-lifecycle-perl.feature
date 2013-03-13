@@ -1,5 +1,6 @@
 @runtime_extended
 @runtime_extended3
+@runtime_extended_other3
 Feature: Cartridge Lifecycle Perl Verification Tests
   Scenario Outline: Application Creation
     Given the libra client tools

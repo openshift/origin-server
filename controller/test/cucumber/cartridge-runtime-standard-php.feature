@@ -1,6 +1,7 @@
 @runtime
 Feature: Cartridge Runtime Standard Checks (PHP)
 
+  #@runtime_other2
   @runtime2
   Scenario Outline: PHP cartridge checks
     Given a new <php_version> application, verify it using httpd
