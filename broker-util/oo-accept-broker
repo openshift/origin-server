@@ -147,6 +147,35 @@ EOF`
     done
 }
 
+function check_missing_and_insecure_secrets() {
+    BROKER_CONF="/etc/openshift/broker.conf"
+    CONSOLE_CONF="/etc/openshift/console.conf"
+
+    AUTH_SALT=`fetch_config ${BROKER_CONF} AUTH_SALT`
+    if [ $AUTH_SALT == "ClWqe5zKtEW4CJEMyjzQ" ]
+    then
+      fail "Default AUTH_SALT detected in ${BROKER_CONF}! Change the the value and use oo-admin-broker-auth to regenerate authentication tokens. (Hint: use 'openssl rand -base64 64' to generate a unique salt)"
+    fi
+}
+
+# This is another way to parse the config settings.  You could argue that it's
+# less accurate than loading the Rails application but it's better than plain
+# grep and it's way more readable/flexible than the bash array stuff.  I plan
+# to replace that soon.
+#
+# TODO: It would be trivial to add all the configuration assertions in the ruby
+# code and check them all at once.  This would be much faster than loading the
+# rails apps multiple times.
+function fetch_config() {
+    ruby -rubygems -- <<EOF
+      require 'openshift-origin-common'
+      conf = OpenShift::Config.new('$1')
+      puts conf.get('$2')
+EOF
+}
+
+
+
 #
 # Get a set of values from the Rails application.
 # Yes, this is inefficient, but the point is to not depend on the system
@@ -835,6 +864,7 @@ STATUS=0
 
 probe_version
 
+check_missing_and_insecure_secrets
 check_packages $PACKAGES
 check_ruby_requirements $OSO_RUBY_LIBS
 load_application_values
