@@ -54,7 +54,7 @@ Cart-Data:
     Description: "Admin user on jenkins server"
   - Key: "password"
     Type: cart_data
-    Description: "Admin user's passowrd on jenkins server"
+    Description: "Admin user's password on jenkins server"
 Provides:
   - jenkins-1.4
   - "jenkins"
