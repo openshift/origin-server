@@ -71,7 +71,7 @@ class ApplicationContainerTest < Test::Unit::TestCase
 
     @mock_manifest = %q{#
         Name: mock
-        Namespace: MOCK
+        Cartridge-Short-Name: MOCK
         Cartridge-Version: 1.0
         Cartridge-Vendor: Unit Test
         Display-Name: Mock
@@ -90,11 +90,46 @@ class ApplicationContainerTest < Test::Unit::TestCase
         - components:
         - mock
         Endpoints:
-        - "EXAMPLE_IP1:EXAMPLE_PORT1(8080):EXAMPLE_PUBLIC_PORT1"
-        - "EXAMPLE_IP1:EXAMPLE_PORT2(8081):EXAMPLE_PUBLIC_PORT2"
-        - "EXAMPLE_IP1:EXAMPLE_PORT3(8082):EXAMPLE_PUBLIC_PORT3"
-        - "EXAMPLE_IP2:EXAMPLE_PORT4(9090):EXAMPLE_PUBLIC_PORT4"
-        - "EXAMPLE_IP2:EXAMPLE_PORT5(9091)"
+          - Private-IP-Name:   EXAMPLE_IP1
+            Private-Port-Name: EXAMPLE_PORT1
+            Private-Port:      8080
+            Public-Port-Name:  EXAMPLE_PUBLIC_PORT1
+            Mappings:
+              - Frontend:      "/front1a"
+                Backend:       "/back1a"
+                Options:       { websocket: true, tohttps: true }
+              - Frontend:      "/front1b"
+                Backend:       "/back1b"
+                Options:       { noproxy: true }
+          
+          - Private-IP-Name:   EXAMPLE_IP1
+            Private-Port-Name: EXAMPLE_PORT2
+            Private-Port:      8081
+            Public-Port-Name:  EXAMPLE_PUBLIC_PORT2
+            Mappings:
+              - Frontend:      "/front2"
+                Backend:       "/back2"
+                Options:       { file: true }
+          
+          - Private-IP-Name:   EXAMPLE_IP1
+            Private-Port-Name: EXAMPLE_PORT3
+            Private-Port:      8082
+            Public-Port-Name:  EXAMPLE_PUBLIC_PORT3
+            Mappings:
+              - Frontend:      "/front3"
+                Backend:       "/back3"
+          
+          - Private-IP-Name:   EXAMPLE_IP2
+            Private-Port-Name: EXAMPLE_PORT4
+            Private-Port:      9090
+            Public-Port-Name:  EXAMPLE_PUBLIC_PORT4
+            Mappings:
+              - Frontend:      "/front4"
+                Backend:       "/back4"
+  
+          - Private-IP-Name:   EXAMPLE_IP2
+            Private-Port-Name: EXAMPLE_PORT5
+            Private-Port:      9091
     }
 
     manifest = "/tmp/manifest-#{Process.pid}"

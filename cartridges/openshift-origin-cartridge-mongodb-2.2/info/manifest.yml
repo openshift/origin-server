@@ -1,5 +1,5 @@
 Name: mongodb-2.2
-Namespace: MONGODB
+Cartridge-Short-Name: MONGODB
 Display-Name: MongoDB NoSQL Database 2.2
 Description: "MongoDB is a scalable, high-performance, open source NoSQL database."
 Version: 2.2
@@ -46,4 +46,7 @@ Scaling:
   Min: 1
   Max: 1
 Endpoints:
-  - "DB_HOST:DB_PORT(27017):DB_PROXY_PORT"
+  - Private-IP-Name:   DB_HOST
+    Private-Port-Name: DB_PORT
+    Private-Port:      27017
+    Public-Port-Name:  DB_PROXY_PORT

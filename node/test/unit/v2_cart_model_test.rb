@@ -57,14 +57,18 @@ class V2CartModelTest < Test::Unit::TestCase
     @gear_ip   = "127.0.0.1"
 
     @user = mock()
-    @user.stubs(:uuid).returns(@user_uuid)
+    @user.stubs(:uuid).returns(@gear_uuid)
     @user.stubs(:uid).returns(@user_uid)
+    @user.stubs(:container_uuid).returns(@user_uuid)
+    @user.stubs(:container_name).returns(@gear_name)
+    @user.stubs(:namespace).returns(@namespace)
+    @user.stubs(:homedir).returns("/tmp")
 
     @model = OpenShift::V2CartridgeModel.new(@config, @user)
 
     @mock_manifest = %q{#
         Name: mock
-        Namespace: MOCK
+        Cartridge-Short-Name: MOCK
         Cartridge-Version: 1.0
         Cartridge-Vendor: Unit Test
         Display-Name: Mock
@@ -83,11 +87,46 @@ class V2CartModelTest < Test::Unit::TestCase
         - components:
         - mock
         Endpoints:
-        - "EXAMPLE_IP1:EXAMPLE_PORT1(8080):EXAMPLE_PUBLIC_PORT1"
-        - "EXAMPLE_IP1:EXAMPLE_PORT2(8081):EXAMPLE_PUBLIC_PORT2"
-        - "EXAMPLE_IP1:EXAMPLE_PORT3(8082):EXAMPLE_PUBLIC_PORT3"
-        - "EXAMPLE_IP2:EXAMPLE_PORT4(9090):EXAMPLE_PUBLIC_PORT4"
-        - "EXAMPLE_IP2:EXAMPLE_PORT5(9091)"
+          - Private-IP-Name:   EXAMPLE_IP1
+            Private-Port-Name: EXAMPLE_PORT1
+            Private-Port:      8080
+            Public-Port-Name:  EXAMPLE_PUBLIC_PORT1
+            Mappings:
+              - Frontend:      "/front1a"
+                Backend:       "/back1a"
+                Options:       { websocket: true, tohttps: true }
+              - Frontend:      "/front1b"
+                Backend:       "/back1b"
+                Options:       { noproxy: true }
+          
+          - Private-IP-Name:   EXAMPLE_IP1
+            Private-Port-Name: EXAMPLE_PORT2
+            Private-Port:      8081
+            Public-Port-Name:  EXAMPLE_PUBLIC_PORT2
+            Mappings:
+              - Frontend:      "/front2"
+                Backend:       "/back2"
+                Options:       { file: true }
+          
+          - Private-IP-Name:   EXAMPLE_IP1
+            Private-Port-Name: EXAMPLE_PORT3
+            Private-Port:      8082
+            Public-Port-Name:  EXAMPLE_PUBLIC_PORT3
+            Mappings:
+              - Frontend:      "/front3"
+                Backend:       "/back3"
+          
+          - Private-IP-Name:   EXAMPLE_IP2
+            Private-Port-Name: EXAMPLE_PORT4
+            Private-Port:      9090
+            Public-Port-Name:  EXAMPLE_PUBLIC_PORT4
+            Mappings:
+              - Frontend:      "/front4"
+                Backend:       "/back4"
+  
+          - Private-IP-Name:   EXAMPLE_IP2
+            Private-Port-Name: EXAMPLE_PORT5
+            Private-Port:      9091
     }
 
     manifest = "/tmp/manifest-#{Process.pid}"
@@ -105,14 +144,14 @@ class V2CartModelTest < Test::Unit::TestCase
     cart = local_model.get_cartridge("mock")
 
     assert_equal "mock", cart.name
-    assert_equal "MOCK", cart.namespace
+    assert_equal "MOCK", cart.short_name
     assert_equal 5, cart.endpoints.length
 
     # Exercise caching
     cart = local_model.get_cartridge("mock")
 
     assert_equal "mock", cart.name
-    assert_equal "MOCK", cart.namespace
+    assert_equal "MOCK", cart.short_name
     assert_equal 5, cart.endpoints.length
   end
 
@@ -280,5 +319,23 @@ class V2CartModelTest < Test::Unit::TestCase
     assert_raise OpenShift::Utils::ShellExecutionException do
       @model.unlock_gear('mock-0.1') { raise OpenShift::Utils::ShellExecutionException.new('error') }
     end
+  end
+
+  def test_frontend_connect_success
+    OpenShift::Utils::Environ.stubs(:for_gear).returns({
+        "OPENSHIFT_MOCK_EXAMPLE_IP1" => "127.0.0.1",
+        "OPENSHIFT_MOCK_EXAMPLE_IP2" => "127.0.0.2"
+    })
+
+    frontend = mock('OpenShift::FrontendHttpServer')
+    OpenShift::FrontendHttpServer.stubs(:new).returns(frontend)
+
+    frontend.expects(:connect).with("/front1a", "127.0.0.1:8080/back1a", { "websocket" => true, "tohttps" => true })
+    frontend.expects(:connect).with("/front1b", "127.0.0.1:8080/back1b", { "noproxy" => true })
+    frontend.expects(:connect).with("/front2", "127.0.0.1:8081/back2", { "file" => true })
+    frontend.expects(:connect).with("/front3", "127.0.0.1:8082/back3", {})
+    frontend.expects(:connect).with("/front4", "127.0.0.2:9090/back4", {})
+    
+    @model.connect_frontend(@mock_cartridge.name)
   end
 end

@@ -105,9 +105,9 @@ module OpenShift
     #   CartridgeRepository.instance.load("/var/lib/openshift/.cartridge_repository")  #=> 24
     def load(directory = nil)
       @semaphore.synchronize do
-        find_manifests(directory || @path) do |path|
-          c = insert(OpenShift::Runtime::Cartridge.new(path))
-          logger.debug { "Loaded cartridge (#{c.name}, #{c.version}, #{c.cartridge_version}) from #{path}" }
+        find_manifests(directory || @path) do |manifest_path|
+          c = insert(OpenShift::Runtime::Cartridge.new(manifest_path, @path))
+          logger.debug { "Loaded cartridge (#{c.name}, #{c.version}, #{c.cartridge_version}) from #{manifest_path}" }
         end
       end
 
