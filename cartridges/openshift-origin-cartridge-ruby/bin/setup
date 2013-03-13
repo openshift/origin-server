@@ -43,10 +43,17 @@ id
 >>>>>>> Added setup parsing
 
 # Copy the version specific files to ruby directory
+<<<<<<< HEAD
 for dir in etc metadata template; do
 	mkdir -p $OPENSHIFT_RUBY_DIR/$dir
 	cp -r $OPENSHIFT_RUBY_DIR/versions/$version/$dir/* $OPENSHIFT_RUBY_DIR/$dir 
 done
+=======
+OPENSHIFT_RUBY_DIR="$OPENSHIFT_HOMEDIR/ruby"
+cp -Lr $OPENSHIFT_RUBY_DIR/versions/$version/etc/* $OPENSHIFT_RUBY_DIR/etc
+cp -Lr $OPENSHIFT_RUBY_DIR/versions/$version/metadata/* $OPENSHIFT_RUBY_DIR/metadata
+cp -Lr $OPENSHIFT_RUBY_DIR/versions/$version/template/* $OPENSHIFT_RUBY_DIR/template
+>>>>>>> Force follow reference
 
 # Create additional directories required by RUBY and httpd
 ln -s /usr/lib64/httpd/modules $OPENSHIFT_RUBY_DIR
