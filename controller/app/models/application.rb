@@ -741,7 +741,7 @@ class Application
       raise OpenShift::UserException.new("Alias '#{server_alias}' does not exist for '#{self.name}'", 173) 
     end
     Application.run_in_application_lock(self) do
-      if al1as.has_private_certificate
+      if al1as.has_private_ssl_certificate
          op_group = PendingAppOpGroup.new(op_type: :remove_ssl_cert, args: {"fqdn" => al1as.fqdn}, user_agent: self.user_agent)
          self.pending_op_groups.push op_group
       end
@@ -765,7 +765,7 @@ class Application
     end
     Application.run_in_application_lock(self) do
       #remove old certificate
-      if old_alias.has_private_certificate
+      if old_alias.has_private_ssl_certificate
          op_group = PendingAppOpGroup.new(op_type: :remove_ssl_cert, args: {"fqdn" => fqdn}, user_agent: self.user_agent)
          self.pending_op_groups.push op_group
       end

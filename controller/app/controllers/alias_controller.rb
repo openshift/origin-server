@@ -69,8 +69,8 @@ class AliasController < BaseController
     private_key = params[:private_key]
     pass_phrase = params[:pass_phrase]
     
-    if ssl_certificate and (@cloud_user.capabilities["private_certificates"].nil? or @cloud_user.capabilities["private_certificates"] != true)
-      return render_error(:forbidden, "User is not authorized to add private certificates", 175, "ADD_ALIAS")
+    if ssl_certificate and (@cloud_user.capabilities["private_ssl_certificates"].nil? or @cloud_user.capabilities["private_ssl_certificates"] != true)
+      return render_error(:forbidden, "User is not authorized to add private SSL certificates", 175, "ADD_ALIAS")
     end
     
     begin
@@ -111,8 +111,8 @@ class AliasController < BaseController
     private_key = params[:private_key]
     pass_phrase = params[:pass_phrase]
     
-    if ssl_certificate and (@cloud_user.capabilities["private_certificates"].nil? or @cloud_user.capabilities["private_certificates"] != true)
-      return render_error(:forbidden, "User is not authorized to add private certificates", 175, "ADD_ALIAS")
+    if ssl_certificate and (@cloud_user.capabilities["private_ssl_certificates"].nil? or @cloud_user.capabilities["private_ssl_certificates"] != true)
+      return render_error(:forbidden, "User is not authorized to add private SSL certificates", 175, "ADD_ALIAS")
     end
 
     begin

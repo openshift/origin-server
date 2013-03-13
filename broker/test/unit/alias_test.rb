@@ -5,7 +5,7 @@ class AliasTest < ActiveSupport::TestCase
     @random = rand(1000000000)
     @login = "user#{@random}"
     @user = CloudUser.new(login: @login)
-    @user.capabilities["private_certificates"]
+    @user.capabilities["private_ssl_certificates"]
     @user.save
     Lock.create_lock(@user)
     stubber
@@ -36,15 +36,15 @@ class AliasTest < ActiveSupport::TestCase
     
     as = @app.aliases.find_by(fqdn: server_alias)
     assert_equal(server_alias, as.fqdn)
-    assert_equal(false, as.has_private_certificate)
+    assert_equal(false, as.has_private_ssl_certificate)
     h = as.to_hash
     assert_equal(server_alias, h["fqdn"])
-    assert_equal(false, h["has_private_certificate"])
+    assert_equal(false, h["has_private_ssl_certificate"])
   
     @app.update_alias(server_alias, @ssl_certificate, @private_key, @pass_phrase)
     as = @app.aliases.find_by(fqdn: server_alias)
     assert_equal(server_alias, as.fqdn)
-    assert_equal(true, as.has_private_certificate)
+    assert_equal(true, as.has_private_ssl_certificate)
     
     @app.remove_alias(server_alias)
     assert(@app.aliases.length == 0)
@@ -57,12 +57,12 @@ class AliasTest < ActiveSupport::TestCase
     
     as = @app.aliases.find_by(fqdn: server_alias)
     assert_equal(server_alias, as.fqdn)
-    assert_equal(true, as.has_private_certificate)
+    assert_equal(true, as.has_private_ssl_certificate)
     
     @app.update_alias(server_alias)
     as = @app.aliases.find_by(fqdn: server_alias)
     assert_equal(server_alias, as.fqdn)
-    assert_equal(false, as.has_private_certificate)
+    assert_equal(false, as.has_private_ssl_certificate)
     
     @app.remove_alias(server_alias)
     assert(@app.aliases.length == 0)
@@ -155,12 +155,12 @@ class AliasTest < ActiveSupport::TestCase
     @app.add_alias(server_alias)
     #verify that there no cert
     as = @app.aliases.find_by(fqdn: server_alias)
-    assert_equal(false, as.has_private_certificate)
+    assert_equal(false, as.has_private_ssl_certificate)
     #fail an update of certificate
     assert_raise(Exception){ @app.update_alias(server_alias, @ssl_certificate, @private_key, @pass_phrase)}
     #verify that it was rolled back
     as = @app.aliases.find_by(fqdn: server_alias)
-    assert_equal(false, as.has_private_certificate)
+    assert_equal(false, as.has_private_ssl_certificate)
     
   test "update alias with no cert rollback" do
     server_alias = "as#{@random}"
@@ -170,12 +170,12 @@ class AliasTest < ActiveSupport::TestCase
     @app.add_alias(server_alias, @ssl_certificate, @private_key, @pass_phrase)
     #verify that is has certificate
     as = @app.aliases.find_by(fqdn: server_alias)
-    assert_equal(true, as.has_private_certificate)
+    assert_equal(true, as.has_private_ssl_certificate)
     #fail to remove certificate
     assert_raise(Exception){ @app.update_alias(server_alias)}
     #verify that it cannot be rolled back
     as = @app.aliases.find_by(fqdn: server_alias)
-    assert_equal(false, as.has_private_certificate)
+    assert_equal(false, as.has_private_ssl_certificate)
   end
   
   test "remove alias rollback" do
@@ -183,14 +183,14 @@ class AliasTest < ActiveSupport::TestCase
     @app.add_alias(server_alias, @ssl_certificate, @private_key, @pass_phrase)
     #verify that is has certificate
     as = @app.aliases.find_by(fqdn: server_alias)
-    assert_equal(true, as.has_private_certificate)
+    assert_equal(true, as.has_private_ssl_certificate)
     #verify that alias is partially rolled back if remove_ssl_cert fails
     @container.stubs(:remove_ssl_cert).returns(ResultIO.new(1))
     #verify that remove certificate failed
     assert_raise(Exception){ @app.remove_alias(server_alias)}
     #verify that the alias exists but the removal of certificate cannot be rolled back
     as = @app.aliases.find_by(fqdn: server_alias)
-    assert_equal(true, as.has_private_certificate)
+    assert_equal(true, as.has_private_ssl_certificate)
   end
   
 =end

@@ -252,13 +252,13 @@ class PendingAppOpGroup
           when :add_ssl_cert
             result_io.append gear.add_ssl_cert(op.args["ssl_certificate"], op.args["private_key"], op.args["fqdn"], op.args["pass_phrase"])
             a = self.application.aliases.find_by(fqdn: op.args["fqdn"])
-            a.has_private_certificate = true
+            a.has_private_ssl_certificate = true
             a.certificate_added_at = Time.now
             self.application.save
           when :remove_ssl_cert
             result_io.append gear.remove_ssl_cert(op.args["fqdn"])
             a = self.application.aliases.find_by(fqdn: op.args["fqdn"])
-            a.has_private_certificate = false
+            a.has_private_ssl_certificate = false
             a.certificate_added_at = nil
             self.application.save
           end
