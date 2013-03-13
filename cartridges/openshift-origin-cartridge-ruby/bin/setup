@@ -1,39 +1,16 @@
 #!/bin/bash -e
 set -x
 
+OPENSHIFT_RUBY_DIR="$OPENSHIFT_HOMEDIR/ruby"
+
+# Parse arguments
+source "${OPENSHIFT_RUBY_DIR}/lib/util"
+parse_args $@
+
 # Set default version
 version=1.9
 <<<<<<< HEAD
 =======
-
-while :
-do
-    case $1 in
-        -h | --help | -\?)
-            echo "usage: $0 [--version[=]<value>]"
-            exit 0
-            ;;
-        -v | --version)
-            version=$2     # You might want to check if you really got VERSION
-            shift 2
-            ;;
-        --version=*)
-            version=${1#*=}        # Delete everything up till "="
-            shift
-            ;;
-        --) # End of all options
-            shift
-            break
-            ;;
-        -*)
-            echo "WARN: Unknown option... Exiting: $1" >&2
-            exit 1
-            ;;
-        *)  # no more options. Stop while loop
-            break
-            ;;
-    esac
-done
 
 # Don't set -u until after the above arg parsing is complete
 set -u
@@ -44,12 +21,15 @@ id
 
 # Copy the version specific files to ruby directory
 <<<<<<< HEAD
+<<<<<<< HEAD
 for dir in etc metadata template; do
 	mkdir -p $OPENSHIFT_RUBY_DIR/$dir
 	cp -r $OPENSHIFT_RUBY_DIR/versions/$version/$dir/* $OPENSHIFT_RUBY_DIR/$dir 
 done
 =======
 OPENSHIFT_RUBY_DIR="$OPENSHIFT_HOMEDIR/ruby"
+=======
+>>>>>>> moving argument parsing to util
 cp -Lr $OPENSHIFT_RUBY_DIR/versions/$version/etc/* $OPENSHIFT_RUBY_DIR/etc
 cp -Lr $OPENSHIFT_RUBY_DIR/versions/$version/metadata/* $OPENSHIFT_RUBY_DIR/metadata
 cp -Lr $OPENSHIFT_RUBY_DIR/versions/$version/template/* $OPENSHIFT_RUBY_DIR/template
