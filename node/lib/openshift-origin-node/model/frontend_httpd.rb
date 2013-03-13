@@ -176,16 +176,18 @@ module OpenShift
       NodeJSDBRoutes.open(NodeJSDBRoutes::WRCREAT)   { |d| d.delete_if { |k, v| (k == @fqdn) or (v["alias"] == @fqdn) } }
 
       # Clean up SSL certs and legacy node configuration
-      paths = Dir.glob(File.join(@basedir, "#{container_uuid}_*"))
-      FileUtils.rm_rf(paths)
-      paths.each do |p|
-         if p =~ /\.conf$/
-           begin
-             reload_httpd
-           rescue
-           end
-           break
-         end
+      ApacheDBAliases.open(ApacheDBAliases::WRCREAT) do
+        paths = Dir.glob(File.join(@basedir, "#{container_uuid}_*"))
+        FileUtils.rm_rf(paths)
+        paths.each do |p|
+          if p =~ /\.conf$/
+            begin
+              reload_httpd
+            rescue
+            end
+            break
+          end
+        end
       end
 
     end
@@ -657,14 +659,6 @@ module OpenShift
     def add_ssl_cert(ssl_cert, priv_key, server_alias, passphrase='')
       server_alias_clean = clean_server_name(server_alias)
 
-      ApacheDBAliases.open(ApacheDBAliases::WRCREAT) do |d|
-        if not (d.has_key? server_alias_clean)
-          raise FrontendHttpServerException.new("Specified alias #{server_alias_clean} does not exist for the app",
-                                                @container_uuid, @container_name,
-                                                @namespace)
-        end
-      end
-
       begin
         priv_key_clean = OpenSSL::PKey.read(priv_key, passphrase)
         ssl_cert_clean = []
@@ -714,9 +708,6 @@ module OpenShift
       alias_conf_dir_path = File.join(@basedir, alias_token)
       ssl_cert_file_path = File.join(alias_conf_dir_path, server_alias_clean + ".crt")
       priv_key_file_path = File.join(alias_conf_dir_path, server_alias_clean + ".key")
-      FileUtils.mkdir_p(alias_conf_dir_path)
-      File.open(ssl_cert_file_path, 'w') { |f| f.write(ssl_cert_clean.map { |c| c.to_pem}.join) }
-      File.open(priv_key_file_path, 'w') { |f| f.write(priv_key_clean.to_pem) }
 
       #
       # Create configuration for the alias
@@ -751,11 +742,24 @@ module OpenShift
 </VirtualHost>
       ALIAS_CONF_ENTRY
 
-      alias_conf_file_path = File.join(@basedir, "#{alias_token}.conf")
-      File.open(alias_conf_file_path, 'w') { |f| f.write(alias_conf_contents) }
+      # Finally, commit the changes
+      ApacheDBAliases.open(ApacheDBAliases::WRCREAT) do |d|
+        if not (d.has_key? server_alias_clean)
+          raise FrontendHttpServerException.new("Specified alias #{server_alias_clean} does not exist for the app",
+                                                @container_uuid, @container_name,
+                                                @namespace)
+        end
 
-      # Reload httpd to pick up the new configuration
-      reload_httpd
+        FileUtils.mkdir_p(alias_conf_dir_path)
+        File.open(ssl_cert_file_path, 'w') { |f| f.write(ssl_cert_clean.map { |c| c.to_pem}.join) }
+        File.open(priv_key_file_path, 'w') { |f| f.write(priv_key_clean.to_pem) }
+
+        alias_conf_file_path = File.join(@basedir, "#{alias_token}.conf")
+        File.open(alias_conf_file_path, 'w') { |f| f.write(alias_conf_contents) }
+
+        # Reload httpd to pick up the new configuration
+        reload_httpd
+      end
     end
 
     # Public: Removes ssl certificate/private key associated with an alias
@@ -771,12 +775,14 @@ module OpenShift
       alias_conf_file_path = File.join(@basedir, "#{alias_token}.conf")
 
       if File.exists?(alias_conf_file_path) or File.exists?(alias_conf_dir_path)
+        ApacheDBAliases.open(ApacheDBAliases::WRCREAT) do
 
-        FileUtils.rm_rf(alias_conf_file_path)
-        FileUtils.rm_rf(alias_conf_dir_path)
+          FileUtils.rm_rf(alias_conf_file_path)
+          FileUtils.rm_rf(alias_conf_dir_path)
 
-        # Reload httpd to pick up the configuration changes
-        reload_httpd
+          # Reload httpd to pick up the configuration changes
+          reload_httpd
+        end
       end
     end
 
