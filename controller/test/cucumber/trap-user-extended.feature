@@ -1,5 +1,5 @@
+#@runtime_extended_other2
 @runtime_extended2
-@runtime_extended3
 Feature: Trap User Shell
   Scenario Outline: Use ctl_all to start and stop a simple application
     Given a new <type> type application

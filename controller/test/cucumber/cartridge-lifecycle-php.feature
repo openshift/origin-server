@@ -1,5 +1,6 @@
 @runtime
 @runtime4
+@runtime_other4
 @not-enterprise
 Feature: Cartridge Lifecycle PHP Verification Tests
   Scenario Outline: Application Creation

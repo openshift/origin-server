@@ -1,6 +1,7 @@
 @runtime
 Feature: Cartridge Runtime Extended Checks (Database)
 
+  #@runtime_extended_other2
   @runtime_extended2
   Scenario Outline: Embed and then remove database cartridges
     Given a new <app_type> type application
@@ -37,6 +38,7 @@ Feature: Cartridge Runtime Extended Checks (Database)
       | ruby-1.8  | mongodb-2.2     | mongod    | mongodb     |
 
 
+  #@runtime_extended_other2
   @runtime_extended2
   Scenario Outline: Embed and then remove database cartridges
     Given a new <app_type> type application
@@ -65,6 +67,7 @@ Feature: Cartridge Runtime Extended Checks (Database)
       | app_type  | db_cart_type    | db_proc   | db_name     |
       | php-5.3   | postgresql-8.4  | postgres  | postgresql  |
 
+  #@runtime_extended_other2
   @runtime_extended2
   Scenario Outline: Embed all databases into one cartridges
     Given a new <php_version> type application
