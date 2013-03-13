@@ -180,7 +180,7 @@ module OpenShift
 
         output << do_control('start', cartridge_name)
       end
-
+      
       connect_frontend(cartridge_name)
 
       logger.info "configure output: #{output}"

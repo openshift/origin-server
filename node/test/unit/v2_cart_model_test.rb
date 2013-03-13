@@ -339,6 +339,6 @@ class V2CartModelTest < Test::Unit::TestCase
     frontend.expects(:connect).with("/front3", "127.0.0.1:8082/back3", {})
     frontend.expects(:connect).with("/front4", "127.0.0.2:9090/back4", {})
     
-    @model.connect_frontend(@mock_cartridge.name)
+    @model.connect_frontend('mock-0.1')
   end
 end

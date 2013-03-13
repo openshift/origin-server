@@ -65,7 +65,7 @@ class V2CartModelTest < Test::Unit::TestCase
 
     @mock_manifest = %q{#
         Name: mock
-        Namespace: MOCK
+        Cartridge-Short-Name: MOCK
         Cartridge-Version: 1.0
         Cartridge-Vendor: Unit Test
         Display-Name: Mock
@@ -84,11 +84,29 @@ class V2CartModelTest < Test::Unit::TestCase
         - components:
         - mock
         Endpoints:
-        - "EXAMPLE_IP1:EXAMPLE_PORT1(8080):EXAMPLE_PUBLIC_PORT1"
-        - "EXAMPLE_IP1:EXAMPLE_PORT2(8081):EXAMPLE_PUBLIC_PORT2"
-        - "EXAMPLE_IP1:EXAMPLE_PORT3(8082):EXAMPLE_PUBLIC_PORT3"
-        - "EXAMPLE_IP2:EXAMPLE_PORT4(9090):EXAMPLE_PUBLIC_PORT4"
-        - "EXAMPLE_IP2:EXAMPLE_PORT5(9091)"
+          - Private-IP-Name:   EXAMPLE_IP1
+            Private-Port-Name: EXAMPLE_PORT1
+            Private-Port:      8080
+            Public-Port-Name:  EXAMPLE_PUBLIC_PORT1
+          
+          - Private-IP-Name:   EXAMPLE_IP1
+            Private-Port-Name: EXAMPLE_PORT2
+            Private-Port:      8081
+            Public-Port-Name:  EXAMPLE_PUBLIC_PORT2
+          
+          - Private-IP-Name:   EXAMPLE_IP1
+            Private-Port-Name: EXAMPLE_PORT3
+            Private-Port:      8082
+            Public-Port-Name:  EXAMPLE_PUBLIC_PORT3
+          
+          - Private-IP-Name:   EXAMPLE_IP2
+            Private-Port-Name: EXAMPLE_PORT4
+            Private-Port:      9090
+            Public-Port-Name:  EXAMPLE_PUBLIC_PORT4
+
+          - Private-IP-Name:   EXAMPLE_IP2
+            Private-Port-Name: EXAMPLE_PORT5
+            Private-Port:      9091
     }
 
     manifest = "/tmp/manifest-#{Process.pid}"
@@ -107,14 +125,14 @@ class V2CartModelTest < Test::Unit::TestCase
     cart = local_model.get_cartridge("mock-0.1")
 
     assert_equal "mock", cart.name
-    assert_equal "MOCK", cart.namespace
+    assert_equal "MOCK", cart.short_name
     assert_equal 5, cart.endpoints.length
 
     # Exercise caching
     cart = local_model.get_cartridge("mock-0.1")
 
     assert_equal "mock", cart.name
-    assert_equal "MOCK", cart.namespace
+    assert_equal "MOCK", cart.short_name
     assert_equal 5, cart.endpoints.length
   end
 
@@ -128,7 +146,6 @@ class V2CartModelTest < Test::Unit::TestCase
       local_model.get_cartridge("mock-0.1")
     end
   end
-
 
   def test_get_system_cartridge
     OpenShift::CartridgeRepository.
