@@ -119,13 +119,13 @@ module OpenShift
                   :version
 
       # :call-seq:
-      #   Cartridge.new(path) -> Cartridge
+      #   Cartridge.new(manifest_path) -> Cartridge
       #
       # Cartridge is a wrapper class for cartridge manifests
       #
       #   Cartridge.new('/var/lib/openshift/.cartridge_repository/php/1.0/metadata/manifest.yml') -> Cartridge
-      def initialize(path)
-        manifest = YAML.load_file(path)
+      def initialize(manifest_path, repository_base_path='')
+        manifest = YAML.load_file(manifest_path)
 
         @cartridge_vendor  = manifest['Cartridge-Vendor']
         @cartridge_version = manifest['Cartridge-Version'] && manifest['Cartridge-Version'].to_s
@@ -149,8 +149,7 @@ module OpenShift
         if @cartridge_vendor && @name
           @directory = "#{@cartridge_vendor.gsub(/\s+/, '')}-#{@name}"
 
-          @repository_path = PathUtils.join(
-              CartridgeRepository.instance.path, @directory, @cartridge_version)
+          @repository_path = PathUtils.join(repository_base_path, @directory, @cartridge_version)
         end
 
         @endpoints = Endpoint.parse(@short_name, manifest)
