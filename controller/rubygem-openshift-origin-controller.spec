@@ -30,7 +30,6 @@ BuildRequires: %{?scl:%scl_prefix}rubygems
 BuildRequires: %{?scl:%scl_prefix}rubygems-devel
 BuildArch:     noarch
 Provides:      rubygem(%{gem_name}) = %version
-Obsoletes: 	   rubygem-stickshift-controller
 
 %description
 This contains the Cloud Development Controller packaged as a rubygem.

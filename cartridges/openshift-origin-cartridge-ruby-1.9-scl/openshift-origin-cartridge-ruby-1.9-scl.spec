@@ -115,7 +115,6 @@ Requires:      ImageMagick-devel
 Requires:      ruby-RMagick
 BuildRequires: git
 BuildArch:     noarch
-Obsoletes:     cartridge-ruby-1.9
 
 %description
 Provides ruby support to OpenShift

@@ -14,7 +14,6 @@ Requires:      rubygem(openshift-origin-node)
 Requires:      phpMyAdmin
 Requires:      httpd < 2.4
 BuildArch:     noarch
-Obsoletes:     cartridge-phpmyadmin-3.4
 
 %description
 Provides rhc phpMyAdmin cartridge support

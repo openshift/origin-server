@@ -32,7 +32,6 @@ Requires:      rsync
 # abstract/info/lib/network
 Requires:      lsof
 BuildArch:     noarch
-Obsoletes:     stickshift-abstract
 
 %description
 This contains the common function used while building cartridges.

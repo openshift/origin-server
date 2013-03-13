@@ -21,7 +21,6 @@ Requires:      systemd-units
 BuildRequires: systemd-units
 %endif
 BuildArch:     noarch
-Obsoletes:     stickshift-port-proxy
 
 %description
 OpenShift script to configure HAProxy to do port forwarding

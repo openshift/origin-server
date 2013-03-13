@@ -44,8 +44,6 @@ Requires:      rubygem-nokogiri
 %endif
 BuildRequires: git
 BuildArch:     noarch
-Obsoletes:     cartridge-ruby-1.8
-Obsoletes:     openshift-origin-cartridge-ruby-1.1
 
 %description
 Provides ruby support to OpenShift

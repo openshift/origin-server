@@ -26,7 +26,6 @@ Requires:      gdbm-devel
 Requires:      httpd < 2.4
 BuildRequires: git
 BuildArch:     noarch
-Obsoletes:     cartridge-perl-5.10
 
 %description
 Provides rhc perl cartridge support

@@ -31,9 +31,6 @@ Requires:      numpy-f2py
 Requires:      gcc-gfortran
 Requires:      freetype-devel
 BuildRequires: git
-BuildArch:     noarch
-Obsoletes:     cartridge-python-2.6
-
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
 BuildArch: noarch
 

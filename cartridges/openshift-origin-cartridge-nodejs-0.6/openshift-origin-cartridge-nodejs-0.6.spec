@@ -21,7 +21,6 @@ Requires:      nodejs-pg
 Requires:      nodejs-supervisor
 BuildRequires: git
 BuildArch:     noarch
-Obsoletes:     cartridge-nodejs-0.6
 
 %description
 Provides Node.js support to OpenShift
