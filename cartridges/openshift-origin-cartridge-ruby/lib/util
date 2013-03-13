@@ -3,12 +3,13 @@
 
 function wait_for_stop {
         pid=$1
-    for i in {1..60}
+    for i in {1..300}
     do
         if `ps --pid $pid > /dev/null 2>&1`
         then
-            echo "Waiting for stop to finish"
-            sleep .5
+            # only print every second
+            [ $((100 % 10)) -eq 0 ] && echo "Waiting for stop to finish"
+            sleep .1
         else
             break
         fi
