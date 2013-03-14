@@ -3,15 +3,11 @@ Feature: Cartridge Runtime Standard Checks (PHP)
 
   #@runtime_other2
   @runtime2
+  @rhel-only
   Scenario Outline: PHP cartridge checks
-    Given a new <php_version> application, verify it using httpd
+    Given a new php-5.3 application, verify it using httpd
     
-    @rhel-only
-    Scenarios: RHEL scenarios
-      | php_version |
-      | php-5.3     |
-      
-    @fedora-only
-    Scenarios: Fedora 18 scenarios
-      | php_version |
-      | php-5.4     |
+  @runtime2
+  @fedora-only
+  Scenario Outline: PHP cartridge checks
+    Given a new php-5.4 application, verify it using httpd
