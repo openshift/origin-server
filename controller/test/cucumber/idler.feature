@@ -1,21 +1,18 @@
 @singleton
 Feature: Explicit idle/restore checks
 
-  Scenario Outline: Idle one application
-    Given a new <type> type application
-    Then a <proc_name> process will be running
-    And I record the active capacity
-
-    When I oo-idle the application
-    Then a <proc_name> process will not be running
-    And the active capacity has been reduced
+  Scenario Outline: Idle one application (Common)
+    Given a new <type> application with <proc_name> process, verify that it can be idled
 
     Scenarios:
       | type         | proc_name |
       | nodejs-0.6   | node      |
       | ruby-1.9     | httpd     |
 
-    @rhel-only
+  @rhel-only
+  Scenario Outline: Idle one application (RHEL/CentOS)
+    Given a new <type> application with <proc_name> process, verify that it can be idled
+
     Scenarios:
       | type         | proc_name |
       | perl-5.10    | httpd     |
@@ -26,32 +23,25 @@ Feature: Explicit idle/restore checks
       | php-5.3      | httpd     |
       | python-2.6   | httpd     |
       
-    @fedora-only
+  @fedora-only
+  Scenario Outline: Idle one application (Fedora)
+    Given a new <type> application with <proc_name> process, verify that it can be idled    
+      
     Scenarios:
       | type         | proc_name |
       | perl-5.16    | httpd     |
       | php-5.4      | httpd     |
 
-  Scenario Outline: Restore one application
-    Given a new <type> type application
-    Then a <proc_name> process will be running
-    And I record the active capacity
-
-    When I oo-idle the application
-    Then a <proc_name> process will not be running
-    And the active capacity has been reduced
-    And I record the active capacity after idling
-
-    When I oo-restore the application
-    Then a <proc_name> process will be running
-    And the active capacity has been increased
-
+  Scenario Outline: Restore one application (Common)
+    Given a new <type> application with <proc_name> process, verify that it can be restored after idling
     Scenarios:
       | type         | proc_name |
       | nodejs-0.6   | node      |
       | ruby-1.9     | httpd     |
 
-    @rhel-only
+  @rhel-only
+  Scenario Outline: Restore one application (RHEL/CentOS)
+    Given a new <type> application with <proc_name> process, verify that it can be restored after idling
     Scenarios:
       | type         | proc_name |
       | perl-5.10    | httpd     |
@@ -61,33 +51,25 @@ Feature: Explicit idle/restore checks
       | ruby-1.8     | httpd     |
       | php-5.3      | httpd     |
       | python-2.6   | httpd     |
-      
-    @fedora-only
+
+  @fedora-only    
+  Scenario Outline: Restore one application (Fedora)
+    Given a new <type> application with <proc_name> process, verify that it can be restored after idling    
     Scenarios:
       | type         | proc_name |
       | perl-5.16    | httpd     |
       | php-5.4      | httpd     |
-
-  Scenario Outline: Auto-restore one application
-    Given a new <type> type application
-    Then a <proc_name> process will be running
-    And I record the active capacity
-
-    When I oo-idle the application
-    Then a <proc_name> process will not be running
-    And the active capacity has been reduced
-    And I record the active capacity after idling
-
-    When I run the health-check for the <type> cartridge
-    Then a <proc_name> process will be running
-    And the active capacity has been increased
-
+      
+  Scenario Outline: Auto-restore one application (Common)
+    Given a new <type> application with <proc_name> process, verify that it can be auto-restored after idling
     Scenarios:
       | type         | proc_name |
       | nodejs-0.6   | node      |
       | ruby-1.9     | httpd     |
 
-    @rhel-only
+  @rhel-only
+  Scenario Outline: Auto-restore one application (RHEL/CentOS)
+    Given a new <type> application with <proc_name> process, verify that it can be auto-restored after idling
     Scenarios:
       | type         | proc_name |
       | perl-5.10    | httpd     |
@@ -97,8 +79,10 @@ Feature: Explicit idle/restore checks
       | ruby-1.8     | httpd     |
       | php-5.3      | httpd     |
       | python-2.6   | httpd     |
-      
-    @fedora-only
+
+  @fedora-only    
+  Scenario Outline: Auto-restore one application (Fedora)
+    Given a new <type> application with <proc_name> process, verify that it can be auto-restored after idling    
     Scenarios:
       | type         | proc_name |
       | perl-5.16    | httpd     |

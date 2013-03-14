@@ -3,91 +3,41 @@ Feature: Cartridge Runtime Extended Checks (Database)
 
   #@runtime_extended_other2
   @runtime_extended2
-  Scenario Outline: Embed and then remove database cartridges
-    Given a new <app_type> type application
-    
-    When I embed a <db_cart_type> cartridge into the application
-    Then a <db_proc> process will be running
-    And the embedded <db_cart_type> cartridge directory will exist
-    And the <db_name> configuration file will exist
-    And the <db_name> database will exist
-    And the <db_name> admin user will have access
-    And the embedded <db_cart_type> cartridge control script will not exist
-    
-    When I remove the <db_cart_type> cartridge from the application
-    Then a <db_proc> process will not be running
-    And the <db_name> database will not exist
-    And the <db_name> configuration file will not exist
-    And the embedded <db_cart_type> cartridge directory will not exist
-
+  Scenario Outline: Embed and then remove database cartridges (Common)
+    Given a <app_type> application, add and remove <db_cart_type> database and use <db_proc> proc and <db_name> name to verify
     Scenarios: Embed/Unembed database cartridge scenarios - origin
       | app_type  | db_cart_type    | db_proc   | db_name     |
       | ruby-1.9  | mongodb-2.2     | mongod    | mongodb     |
 
-    @fedora-only
+  @runtime_extended2
+  @fedora-only
+  Scenario Outline: Embed and then remove database cartridges (Fedora)
+    Given a <app_type> application, add and remove <db_cart_type> database and use <db_proc> proc and <db_name> name to verify
     Scenarios: Embed/Unembed database cartridge scenarios
       | app_type  | db_cart_type    | db_proc   | db_name     |
       | php-5.4   | mysql-5.1       | mysqld    | mysql       |
       | php-5.4   | mongodb-2.2     | mongod    | mongodb     |
+      | php-5.4   | postgresql-9.2  | postgres  | postgresql  |      
 
-    @rhel-only
+  @runtime_extended2
+  @rhel-only
+  Scenario Outline: Embed and then remove database cartridges (Fedora)
+    Given a <app_type> application, add and remove <db_cart_type> database and use <db_proc> proc and <db_name> name to verify
     Scenarios: Embed/Unembed database cartridge scenarios
       | app_type  | db_cart_type    | db_proc   | db_name     |
       | php-5.3   | mysql-5.1       | mysqld    | mysql       |
       | php-5.3   | mongodb-2.2     | mongod    | mongodb     |
       | ruby-1.8  | mongodb-2.2     | mongod    | mongodb     |
-
-
-  #@runtime_extended_other2
-  @runtime_extended2
-  Scenario Outline: Embed and then remove database cartridges
-    Given a new <app_type> type application
-    
-    When I embed a <db_cart_type> cartridge into the application
-    Then a <db_proc> process will be running
-    And the embedded <db_cart_type> cartridge directory will exist
-    And the <db_name> configuration file will exist
-    And the <db_name> database will exist
-    And the embedded <db_cart_type> cartridge control script will not exist
-    
-    When I remove the <db_cart_type> cartridge from the application
-    Then a <db_proc> process will not be running
-    And the <db_name> database will not exist
-    And the embedded <db_cart_type> cartridge control script will not exist
-    And the <db_name> configuration file will not exist
-    And the embedded <db_cart_type> cartridge directory will not exist
-
-    @fedora-only
-    Scenarios: Embed/Unembed database cartridge scenarios - origin
-      | app_type  | db_cart_type    | db_proc   | db_name     |
-      | php-5.4   | postgresql-9.2  | postgres  | postgresql  |
-
-    @rhel-only
-    Scenarios: Embed/Unembed database cartridge scenarios
-      | app_type  | db_cart_type    | db_proc   | db_name     |
-      | php-5.3   | postgresql-8.4  | postgres  | postgresql  |
+      | php-5.3   | postgresql-8.4  | postgres  | postgresql  |      
 
   #@runtime_extended_other2
   @runtime_extended2
-  Scenario Outline: Embed all databases into one cartridges
-    Given a new <php_version> type application
-    When I embed a mysql-5.1 cartridge into the application
-    And I embed a <postgres_cart> cartridge into the application
-    And I embed a mongodb-2.2 cartridge into the application
-    Then a mysqld process will be running
-    And the embedded mysql-5.1 cartridge directory will exist
-    And a postgres process will be running
-    And the embedded <postgres_cart> cartridge directory will exist
-    And a mongod process will be running
-    And the embedded mongodb-2.2 cartridge directory will exist
+  @rhel-only
+  Scenario Outline: Embed all databases into one cartridges (RHEL/CentOS)
+    Given a php-5.3 application, embed mysql-5.1, postgresql-8.4, mongodb-2.2
 
-    @fedora-only
-    Scenarios: database cartridge scenarios - origin
-      | postgres_cart  | php_version |
-      | postgresql-9.2 | php-5.4     |
-
-    @rhel-only
-    Scenarios: database cartridge scenarios
-      | postgres_cart  | php_version |
-      | postgresql-8.4 | php-5.3     |
-
+  #@runtime_extended_other2
+  @runtime_extended2
+  @Fedora-only
+  Scenario Outline: Embed all databases into one cartridges (Fedora)
+    Given a php-5.4 application, embed mysql-5.1, postgresql-9.2, mongodb-2.2

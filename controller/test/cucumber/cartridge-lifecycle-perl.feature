@@ -2,64 +2,36 @@
 @runtime_extended3
 @runtime_extended_other3
 Feature: Cartridge Lifecycle Perl Verification Tests
-  Scenario Outline: Application Creation
-    Given the libra client tools
-    And an accepted node
-    When 1 <perl_version> applications are created
-    Then the applications should be accessible
-
-    @rhel-only
-    Scenarios: RHEL scenarios
-      | perl_version |
-      | perl-5.10    |
+  @rhel-only
+  Scenario: Application Creation (RHEL/CentOS)
+    Given a new perl-5.10 application, verify its availability
+  
+  @rhel-only
+  Scenario: Application Modification (RHEL/CentOS)
+    Given an existing perl-5.10 application, verify code updates
+  
+  @rhel-only
+  Scenario: Application Restarting  (RHEL/CentOS)
+    Given an existing perl-5.10 application, verify it can be restarted
     
-    @fedora-only
-    Scenarios: Fedora 18 scenarios
-      | perl_version |
-      | perl-5.16    |
-
-  Scenario Outline: Application Modification
-    Given an existing <perl_version> application
-    When the application is changed
-    Then it should be updated successfully
-    And the application should be accessible
-
-    @rhel-only
-    Scenarios: RHEL scenarios
-      | perl_version |
-      | perl-5.10    |
+  @rhel-only
+  Scenario: Application Destroying  (RHEL/CentOS)
+    Given an existing perl-5.10 application, verify it can be destroyed  
     
-    @fedora-only
-    Scenarios: Fedora 18 scenarios
-      | perl_version |
-      | perl-5.16    |
-
-  Scenario Outline: Application Restarting
-    Given an existing <perl_version> application
-    When the application is restarted
-    Then the application should be accessible
-
-    @rhel-only
-    Scenarios: RHEL scenarios
-      | perl_version |
-      | perl-5.10    |
+#######
     
-    @fedora-only
-    Scenarios: Fedora 18 scenarios
-      | perl_version |
-      | perl-5.16    |
+  @fedora-only
+  Scenario: Application Creation (RHEL/CentOS)
+    Given a new perl-5.16 application, verify its availability
 
-  Scenario Outline: Application Destroying
-    Given an existing <perl_version> application
-    When the application is destroyed
-    Then the application should not be accessible
-
-    @rhel-only
-    Scenarios: RHEL scenarios
-      | perl_version |
-      | perl-5.10    |
+  @fedora-only
+  Scenario: Application Modification (RHEL/CentOS)
+    Given an existing perl-5.16 application, verify code updates
     
-    @fedora-only
-    Scenarios: Fedora 18 scenarios
-      | perl_version |
-      | perl-5.16    |
+  @fedora-only
+  Scenario: Application Restarting  (RHEL/CentOS)
+    Given an existing perl-5.16 application, verify it can be restarted
+  
+  @fedora-only
+  Scenario: Application Destroying  (RHEL/CentOS)
+    Given an existing perl-5.16 application, verify it can be destroyed
