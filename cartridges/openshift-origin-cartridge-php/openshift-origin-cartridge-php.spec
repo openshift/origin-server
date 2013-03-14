@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/openshift/cartridges/v2/php-5.3
 
 Name: openshift-origin-cartridge-php
-Version: 0.1.0
+Version: 0.1.1
 Release: 1%{?dist}
 Summary: Php cartridge
 Group: Development/Languages
@@ -72,5 +72,8 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Wed Mar 13 2013 Mrunal Patel <mrunalp@gmail.com> 0.1.1-1
+- new package built with tito
+
 * Wed Feb 13 2013 Mrunal Patel
 - new package built with tito
