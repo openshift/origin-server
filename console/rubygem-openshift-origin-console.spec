@@ -9,7 +9,7 @@
 
 Summary:       OpenShift Origin Management Console
 Name:          rubygem-%{gem_name}
-Version: 1.6.1
+Version: 1.6.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -134,6 +134,62 @@ cp -a ./%{gem_dir}/* %{buildroot}%{gem_dir}/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Thu Mar 14 2013 Adam Miller <admiller@redhat.com> 1.6.2-1
+- Merge pull request #1636 from tdawson/tdawson/fix-f19-builds
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #1590 from jtharris/features/US2627
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #1634 from smarterclayton/add_pry_console
+  (dmcphers+openshiftbot@redhat.com)
+- Make packages build/install on F19+ (tdawson@redhat.com)
+- Add Pry as a console option - use 'PRY=1 rails c' (ccoleman@redhat.com)
+- Merge branch 'master' of github.com:openshift/origin-server into misc-dev
+  (sgoodwin@redhat.com)
+- adding empty mixin account_background in
+  console/app/assets/stylesheets/console/_mixins.scss (sgoodwin@redhat.com)
+- COMMUNITY_URL must end with '/' (jharris@redhat.com)
+- No default proxy setting for quickstarts. (jharris@redhat.com)
+- moved from li to console for inclusion in origin.css (sgoodwin@redhat.com)
+- usage_rates? unit tests (jharris@redhat.com)
+- Default to empty array for usage_rates (jharris@redhat.com)
+- include .wrap rule which was lost previously (sgoodwin@redhat.com)
+- heading color rules needed again since _type is shared (sgoodwin@redhat.com)
+- Revert to one _type partial for site and console Regen updated icon-font
+  files (sgoodwin@redhat.com)
+- Bug 918339 - Remove unnecessary lambda and conditionalize at_exit
+  registration. (hripps@redhat.com)
+- need font-url instead of url (sgoodwin@redhat.com)
+- add license that missing (sgoodwin@redhat.com)
+- Additional icons included to font (sgoodwin@redhat.com)
+- Merge branch 'master' of github.com:openshift/origin-server into misc-dev
+  (sgoodwin@redhat.com)
+- Put focus on advanced field when shown (jliggitt@redhat.com)
+- Merge pull request #1589 from liggitt/bug/919520
+  (dmcphers+openshiftbot@redhat.com)
+- Fixing alert heading color. (jharris@redhat.com)
+- Pulling out app/cart titles and notifications. (jharris@redhat.com)
+- Merge pull request #1544 from fotioslindiakos/BZ909060
+  (dmcphers+openshiftbot@redhat.com)
+- remove heading style b/c it was overriding .alert-header rule
+  (sgoodwin@redhat.com)
+- remove adjacent h2 + p rule and will handle one offs independently
+  (sgoodwin@redhat.com)
+- Fix Bug 919520 Changing application creation page to advanced view with
+  errors shown returns to main applications page (jliggitt@redhat.com)
+- Merge pull request #1580 from liggitt/aria_landmarks
+  (dmcphers+openshiftbot@redhat.com)
+- Merge branch 'master' of github.com:openshift/origin-server into misc-dev
+  (sgoodwin@redhat.com)
+- Bug 909060 - Corrected forms to use proper semantic_errors
+  https://bugzilla.redhat.com/show_bug.cgi?id=909060 (fotios@redhat.com)
+- Merge branch 'master' of github.com:openshift/origin-server into misc-dev
+  (sgoodwin@redhat.com)
+- Move to separate _type partials for console and site for better control of
+  headers and typography  - fine tune for console Modify add cartidge heading
+  to fix small spacing issue Add _account to origin.css (sgoodwin@redhat.com)
+- Scope table cell and row headers, add role=main landmarks, add 'Skip to
+  content' links (jliggitt@redhat.com)
+
 * Thu Mar 07 2013 Adam Miller <admiller@redhat.com> 1.6.1-1
 - bump_minor_versions for sprint 25 (admiller@redhat.com)
 
