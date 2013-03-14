@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/openshift/cartridges/v2/php-5.3
 
 Name: openshift-origin-cartridge-php
-Version: 0.1.1
+Version: 0.1.2
 Release: 1%{?dist}
 Summary: Php cartridge
 Group: Development/Languages
@@ -72,6 +72,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Thu Mar 14 2013 Adam Miller <admiller@redhat.com> 0.1.2-1
+- PHP cart manifest fixup and other cleanup. (mrunalp@gmail.com)
+
 * Thu Mar 14 2013 Adam Miller <admiller@redhat.com> 0.1.1-1
 - Fixing tito tags on master
 
