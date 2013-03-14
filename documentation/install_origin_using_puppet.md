@@ -13,6 +13,8 @@ The OpenShift Origin RPMs can be available from:
     Note: For OpenShift Origin broker/nodes to be configured properly you will need the host to be
     configured with a DNS resolvable hostname and static IP Address.
 
+## Installing Puppet
+
 You will also need to install the latest puppet and facter RPMS from [PuppetLabs](https://puppetlabs.com/).
 Create the following on each host:
 
@@ -28,9 +30,32 @@ Contents:
     gpgcheck=1
     enabled=1
 
+Run the following to install puppet and facter
+
+    yum install -y puppet facter
+
+Install the openshift puppet module:
+
+    puppet module install openshift/openshift_origin
+
+## Generating BIND TSIG Key
+
+Install the BIND package
+
+    yum install -y bind
+
+Generate the TSIG Key
+
+    #Using example.com as the cloud domain
+    /usr/sbin/dnssec-keygen -a HMAC-MD5 -b 512 -n USER -r /dev/urandom -K /var/named example.com
+    cat /var/named/Kexample.com.+157+33874.key  | awk '{print $8}'
+
+The TSIG key should look like `CNk+wjszKi9da9nL/1gkMY7H+GuUng==`. We will use this in the following steps.
+
 ## Configuring an all-in-one host
 
 In this configuration, the host will run the broker, node, active mq, mongodb and bind servers.
+
 
 Create a file `configure_origin.pp` with the following contents:
 
@@ -64,6 +89,12 @@ Create a file `configure_origin.pp` with the following contents:
       
       #Use the nsupdate broker plugin to register application
       broker_dns_plugin          => 'nsupdate',
+      
+      #If installing from a local build, specify the path for Origin RPMs
+      #install_repo               => 'file:///root/origin-rpms',
+      
+      #If using BIND, let the broker know what TSIG key to use
+      named_tsig_priv_key         => '<tsig key>'
     }
 
 Execute the puppet script:
@@ -114,6 +145,12 @@ Create a file `configure_origin.pp` with the following contents:
       
       #Use the nsupdate broker plugin to register application
       broker_dns_plugin          => 'nsupdate',
+      
+      #If installing from a local build, specify the path for Origin RPMs
+      #install_repo               => 'file:///root/origin-rpms',
+      
+      #If using BIND, let the broker know what TSIG key to use
+      named_tsig_priv_key         => '<tsig key>'
     }
 
 Execute the puppet script:
@@ -166,6 +203,9 @@ Create a file `configure_origin.pp` with the following contents:
       
       #Use the nsupdate broker plugin to register application
       broker_dns_plugin          => 'nsupdate',
+      
+      #If installing from a local build, specify the path for Origin RPMs
+      #install_repo               => 'file:///root/origin-rpms',
     }
 
 Execute the puppet script:
