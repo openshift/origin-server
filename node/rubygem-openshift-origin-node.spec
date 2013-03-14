@@ -16,7 +16,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.6.1
+Version: 1.6.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -227,6 +227,38 @@ fi
 sed -i -e '/pam_cgroup/d' /etc/pam.d/sshd
 
 %changelog
+* Thu Mar 14 2013 Adam Miller <admiller@redhat.com> 1.6.2-1
+- Refactor Endpoints to support frontend mapping (ironcladlou@gmail.com)
+- Remove Cartridge->CartridgeRepository dependency for path setup
+  (ironcladlou@gmail.com)
+- Make packages build/install on F19+ (tdawson@redhat.com)
+- Merge pull request #1625 from tdawson/tdawson/remove-obsoletes
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #1629 from jwhonce/wip/cartridge_repository
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 920880 - Only allow httpd-singular to return when Apache is fully back up
+  and protect the SSL cert operations with the Alias lock.
+  (rmillner@redhat.com)
+- WIP Cartridge Refactor - Cartridge Repository (jhonce@redhat.com)
+- Revert "Merge pull request #1622 from jwhonce/wip/cartridge_repository"
+  (dmcphers@redhat.com)
+- remove old obsoletes (tdawson@redhat.com)
+- WIP Cartridge Refactor - Cartridge Repository (jhonce@redhat.com)
+- Merge pull request #1613 from mrunalp/bugs/920365
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #1614 from jwhonce/wip/rhcsh
+  (dmcphers+openshiftbot@redhat.com)
+- WIP Cartridge Refactor - Refactor building rhcsh environment
+  (jhonce@redhat.com)
+- Bug 920365: Fix oo-create-endpoints to call the correct method.
+  (mrunalp@gmail.com)
+- Bug 876746 - oo-cartridge-info errors when no parameters are passed
+  (calfonso@redhat.com)
+- WIP Cartridge Refactor - Cartridge Repository (jhonce@redhat.com)
+- And fix the unit test. (rmillner@redhat.com)
+- Fix FrontendHttpServer class validation of chained certificates.
+  (rmillner@redhat.com)
+
 * Thu Mar 07 2013 Adam Miller <admiller@redhat.com> 1.6.1-1
 - bump_minor_versions for sprint 25 (admiller@redhat.com)
 
