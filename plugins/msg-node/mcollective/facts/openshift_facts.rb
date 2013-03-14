@@ -3,7 +3,7 @@ require 'parseconfig'
 
 def get_node_config_value(key, default)
   config_file = ParseConfig.new('/etc/openshift/node.conf')
-  val = config_file.get_value(key)
+  val = config_file[key]
   return default if val.nil?
   val.gsub!(/\\:/,":") if not val.nil?
   val.gsub!(/[ \t]*#[^\n]*/,"") if not val.nil?
@@ -19,8 +19,8 @@ district_active = false
 district_conf = '/var/lib/openshift/.settings/district.info'
 if File.exists?(district_conf)
   config_file = ParseConfig.new(district_conf)
-  district_uuid = config_file.get_value('uuid') ? config_file.get_value('uuid') : 'NONE'
-  district_active = config_file.get_value('active') ? config_file.get_value('active') == "true" : false
+  district_uuid = config_file['uuid'] ? config_file['uuid'] : 'NONE'
+  district_active = config_file['active'] ? config_file['active'] == "true" : false
 end
 Facter.add(:district_uuid) { setcode { district_uuid } }
 Facter.add(:district_active) { setcode { district_active } }
@@ -42,12 +42,12 @@ max_active_apps = nil
 max_active_gears = nil
 if File.exists?('/etc/openshift/resource_limits.conf')
   config_file = ParseConfig.new('/etc/openshift/resource_limits.conf')
-  node_profile = config_file.get_value('node_profile') || 'small'
-  quota_blocks = config_file.get_value('quota_blocks') || '1048576'
-  quota_files = config_file.get_value('quota_files') || '40000'
+  node_profile = config_file['node_profile'] || 'small'
+  quota_blocks = config_file['quota_blocks'] || '1048576'
+  quota_files = config_file['quota_files'] || '40000'
   # use max_{active_,}gears if set in resource limits, or fall back to old "apps" names
-  max_active_gears = config_file.get_value('max_active_gears') ||
-    config_file.get_value('max_active_apps') || '0'
+  max_active_gears = config_file['max_active_gears'] ||
+    config_file['max_active_apps'] || '0'
 end
 
 Facter.add(:node_profile) { setcode { node_profile } }
