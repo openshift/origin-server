@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Common
 Name:          rubygem-%{gem_name}
-Version: 1.5.1
+Version: 1.5.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -95,6 +95,13 @@ cp -a ./%{gem_dir}/* %{buildroot}%{gem_dir}/
 %doc %{gem_docdir}
 
 %changelog
+* Thu Mar 14 2013 Adam Miller <admiller@redhat.com> 1.5.2-1
+- Merge pull request #1643 from kraman/update_parseconfig (dmcphers@redhat.com)
+- Replacing get_value() with config['param'] style calls for new version of
+  parseconfig gem. (kraman@gmail.com)
+- Make packages build/install on F19+ (tdawson@redhat.com)
+- remove old obsoletes (tdawson@redhat.com)
+
 * Thu Mar 07 2013 Adam Miller <admiller@redhat.com> 1.5.1-1
 - bump_minor_versions for sprint 25 (admiller@redhat.com)
 
