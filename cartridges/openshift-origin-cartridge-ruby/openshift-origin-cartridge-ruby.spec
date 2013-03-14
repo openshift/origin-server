@@ -7,7 +7,7 @@
 %global frameworkdir %{_libexecdir}/openshift/cartridges/v2/ruby
 
 Name:          openshift-origin-cartridge-ruby
-Version:       0.1.2
+Version:       0.1.3
 Release:       1%{?dist}
 Summary:       Ruby cartridge
 Group:         Development/Languages
@@ -150,6 +150,11 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Thu Mar 14 2013 Adam Miller <admiller@redhat.com> 0.1.3-1
+- Refactor Endpoints to support frontend mapping (ironcladlou@gmail.com)
+- Make packages build/install on F19+ (tdawson@redhat.com)
+- remove old obsoletes (tdawson@redhat.com)
+
 * Tue Mar 12 2013 Adam Miller <admiller@redhat.com> 0.1.2-1
 - Fixing tags on master
 
