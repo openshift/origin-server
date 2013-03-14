@@ -11,7 +11,8 @@
   - if not inactive and cartridge_type.tags.include? :experimental
     %span.label.pull-right Experimental
 
-  %h3= cartridge_type.display_name
+  %h3
+    = render :partial => 'cartridge_types/cartridge_type_title', :locals => { :type => cartridge_type }
 
   - if extra_info
     %ul.unstyled.meta

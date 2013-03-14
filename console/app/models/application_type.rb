@@ -26,6 +26,7 @@ class ApplicationType
   attr_accessor :scalable
   alias_method :scalable?, :scalable
   attr_accessor :source
+  attr_accessor :usage_rates
 
   attr_accessible :initial_git_url, :cartridges, :initial_git_branch, :scalable
   alias_attribute :categories, :tags
@@ -51,6 +52,10 @@ class ApplicationType
 
   def cartridges=(cartridges)
     @cartridges = Array(cartridges)
+  end
+
+  def usage_rates?
+    !(usage_rates.nil? || usage_rates.empty?)
   end
 
   def cartridge_specs
@@ -211,7 +216,7 @@ class ApplicationType
 
       def from_cartridge_type(type)
         attrs = {:id => "cart!#{type.name}", :source => :cartridge}
-        [:display_name, :tags, :description, :website, :version, :license, :license_url, :help_topics, :priority, :scalable].each do |m|
+        [:display_name, :tags, :description, :website, :version, :license, :license_url, :help_topics, :priority, :scalable, :usage_rates].each do |m|
           attrs[m] = type.send(m)
         end
         attrs[:cartridges] = [type.name]

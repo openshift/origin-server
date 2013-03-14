@@ -122,6 +122,9 @@ module Console
         freeze_api(api_config_from(config), file)
 
         self.community_url = config[:COMMUNITY_URL]
+        if self.community_url && !self.community_url.end_with?('/')
+          raise InvalidConfiguration, "COMMUNITY_URL must end in '/'"
+        end
 
         case config[:CONSOLE_SECURITY]
         when 'basic'
