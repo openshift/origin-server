@@ -1,5 +1,5 @@
 - content_for :title, "Edit Authorization"
-- breadcrumb_for_account 'Edit Authorization'
+- breadcrumb_for_account_settings 'Edit Authorization'
 %h1 Authorization Token
 = flashes
 
@@ -26,6 +26,6 @@
       = f.input :note, :as => :text, :label => 'Change the description of this authorization token', :input_html => {:class => 'span6', :rows => 2}
 
   = f.buttons do
-    = link_to "Cancel", account_path, :class => 'btn'
+    = link_to "Cancel", account_settings_redirect, :class => 'btn'
     = f.commit_button :label => 'Save', :button_html => {:title => 'Update this authorization token'}
     = f.loading
