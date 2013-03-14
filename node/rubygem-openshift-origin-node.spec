@@ -16,7 +16,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.6.2
+Version:       1.6.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -42,18 +42,18 @@ Requires:      libcgroup
 %else
 Requires:      libcgroup-tools
 %endif
-%if 0%{?fedora} >= 18
-Requires:      httpd-tools
-BuildRequires: httpd-tools
-%endif
 Requires:      libcgroup-pam
 Requires:      pam_openshift
 Requires:      quota
-
+%if 0%{?fedora} >= 18
+Requires:      httpd-tools
+BuildRequires: httpd-tools
+%else
+BuildRequires: httpd
+%endif
 %if 0%{?fedora}%{?rhel} <= 6
 BuildRequires: %{?scl:%scl_prefix}build
 BuildRequires: scl-utils-build
-BuildRequires: httpd
 %endif
 %if 0%{?fedora} >= 19
 BuildRequires: ruby(release)
@@ -160,46 +160,8 @@ cp %{buildroot}%{gem_instdir}/misc/init/openshift-cgroups %{buildroot}/etc/rc.d/
 
 # Don't install or package what's left in the misc directory
 rm -rf %{buildroot}%{gem_instdir}/misc
-
-%files
-%doc LICENSE COPYRIGHT
-%doc %{gem_docdir}
-%{gem_instdir}
-%{gem_cache}
-%{gem_spec}
-%attr(0750,-,-) /usr/sbin/*
-%attr(0755,-,-) /usr/bin/*
-/etc/openshift
-/usr/libexec/openshift/lib/setup_pam_fs_limits.sh
-/usr/libexec/openshift/lib/teardown_pam_fs_limits.sh
-%config(noreplace) /etc/openshift/node.conf
-%attr(0750,-,-) /etc/httpd/conf.d/openshift
-%config(noreplace) /etc/httpd/conf.d/000001_openshift_origin_node.conf
-%config(noreplace) /etc/httpd/conf.d/000001_openshift_origin_node_servername.conf
-%config(noreplace) /etc/httpd/conf.d/openshift_route.include
-%attr(0755,-,-) %{appdir}
-%attr(0750,root,apache) %{appdir}/.httpd.d
-%attr(0640,root,apache) %config(noreplace) %{appdir}/.httpd.d/routes.json
-%attr(0640,root,apache) %config(noreplace) %{appdir}/.httpd.d/nodes.txt
-%attr(0640,root,apache) %config(noreplace) %{appdir}/.httpd.d/aliases.txt
-%attr(0640,root,apache) %config(noreplace) %{appdir}/.httpd.d/idler.txt
-%attr(0640,root,apache) %config(noreplace) %{appdir}/.httpd.d/sts.txt
-%attr(0750,root,apache) %config(noreplace) %{appdir}/.httpd.d/nodes.db
-%attr(0750,root,apache) %config(noreplace) %{appdir}/.httpd.d/aliases.db
-%attr(0750,root,apache) %config(noreplace) %{appdir}/.httpd.d/idler.db
-%attr(0750,root,apache) %config(noreplace) %{appdir}/.httpd.d/sts.db
-
-#%if 0%{?fedora}%{?rhel} <= 6
-%attr(0755,-,-)	/etc/rc.d/init.d/openshift-cgroups
-#%else
-#%attr(0750,-,-) /etc/systemd/system
-#%endif
-
-%if 0%{?fedora} >= 15
-/etc/tmpfiles.d/openshift-run.conf
-%endif
-# upstart files
-%attr(0755,-,-) %{_var}/run/openshift
+rm -rf %{buildroot}%{gem_instdir}/.yardoc
+chmod 755 %{buildroot}%{gem_instdir}/test/unit/*.rb
 
 %post
 echo "/usr/bin/oo-trap-user" >> /etc/shells
@@ -221,10 +183,53 @@ if ! [ -f /etc/openshift/resource_limits.conf ]; then
   cp -f /etc/openshift/resource_limits.template /etc/openshift/resource_limits.conf
 fi
 
-
 %preun
-# disable cgroups on sshd logins
-sed -i -e '/pam_cgroup/d' /etc/pam.d/sshd
+# Check to make sure we uninstalling instead of updating
+if [ "$1" -eq 0 ] ; then
+  # disable cgroups on sshd logins
+  sed -i -e '/pam_cgroup/d' /etc/pam.d/sshd
+fi
+
+%files
+%doc LICENSE COPYRIGHT
+%doc %{gem_docdir}
+%{gem_instdir}
+%{gem_cache}
+%{gem_spec}
+%attr(0750,-,-) /usr/sbin/*
+%attr(0755,-,-) /usr/bin/*
+/usr/libexec/openshift/lib/setup_pam_fs_limits.sh
+/usr/libexec/openshift/lib/teardown_pam_fs_limits.sh
+%dir /etc/openshift
+%config(noreplace) /etc/openshift/node.conf
+%config /etc/openshift/resource_limits.template
+%attr(0750,-,-) /etc/httpd/conf.d/openshift
+%config(noreplace) /etc/httpd/conf.d/000001_openshift_origin_node.conf
+%config(noreplace) /etc/httpd/conf.d/000001_openshift_origin_node_servername.conf
+%config(noreplace) /etc/httpd/conf.d/openshift_route.include
+%dir %attr(0755,-,-) %{appdir}
+%dir %attr(0750,root,apache) %{appdir}/.httpd.d
+%attr(0640,root,apache) %config(noreplace) %{appdir}/.httpd.d/routes.json
+%attr(0640,root,apache) %config(noreplace) %{appdir}/.httpd.d/nodes.txt
+%attr(0640,root,apache) %config(noreplace) %{appdir}/.httpd.d/aliases.txt
+%attr(0640,root,apache) %config(noreplace) %{appdir}/.httpd.d/idler.txt
+%attr(0640,root,apache) %config(noreplace) %{appdir}/.httpd.d/sts.txt
+%attr(0750,root,apache) %config(noreplace) %{appdir}/.httpd.d/nodes.db
+%attr(0750,root,apache) %config(noreplace) %{appdir}/.httpd.d/aliases.db
+%attr(0750,root,apache) %config(noreplace) %{appdir}/.httpd.d/idler.db
+%attr(0750,root,apache) %config(noreplace) %{appdir}/.httpd.d/sts.db
+
+#%if 0%{?fedora}%{?rhel} <= 6
+%attr(0755,-,-)	/etc/rc.d/init.d/openshift-cgroups
+#%else
+#%attr(0750,-,-) /etc/systemd/system
+#%endif
+
+%if 0%{?fedora} >= 15
+/etc/tmpfiles.d/openshift-run.conf
+%endif
+# upstart files
+%attr(0755,-,-) %{_var}/run/openshift
 
 %changelog
 * Thu Mar 14 2013 Adam Miller <admiller@redhat.com> 1.6.2-1
