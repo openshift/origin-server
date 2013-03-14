@@ -1,5 +1,5 @@
 Name: nodejs-0.6
-Namespace: NODEJS
+Cartridge-Short-Name: NODEJS
 Display-Name: Node.js 0.6
 Description: "Node.js is a platform built on Chrome's JavaScript runtime for easily building fast, scalable network applications. Node.js is perfect for data-intensive real-time applications that run across distributed devices."
 Version: 0.6
@@ -80,4 +80,7 @@ Group-Overrides:
     - nodejs-0.6
     - web_proxy
 Endpoints:
-  - "IP:PORT(8080):PROXY_PORT"
+  - Private-IP-Name:   IP
+    Private-Port-Name: PORT
+    Private-Port:      8080
+    Public-Port-Name:  PROXY_PORT

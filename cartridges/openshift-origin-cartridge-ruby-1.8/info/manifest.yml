@@ -1,5 +1,5 @@
 Name: ruby-1.8
-Namespace: RUBY
+Cartridge-Short-Name: RUBY
 Display-Name: Ruby 1.8
 Description: "Ruby is a dynamic, reflective, general-purpose object-oriented programming language. We recommend using Ruby 1.9 for new applications."
 Version: 1.8
@@ -68,4 +68,7 @@ Group-Overrides:
     - ruby-1.8
     - web_proxy
 Endpoints:
-  - "IP:PORT(8080):PROXY_PORT"
+  - Private-IP-Name:   IP
+    Private-Port-Name: PORT
+    Private-Port:      8080
+    Public-Port-Name:  PROXY_PORT

@@ -1,5 +1,5 @@
 Name: jbosseap-6.0
-Namespace: JBOSSEAP
+Cartridge-Short-Name: JBOSSEAP
 Display-Name: JBoss Enterprise Application Platform 6.0
 Description: "Market-leading open source enterprise platform for next-generation, highly transactional enterprise Java applications. Build and deploy enterprise Java in the cloud."
 Version: 6.0
@@ -85,8 +85,23 @@ Subscribes:
   set_jboss_remoting:
     Type: "NET_TCP:jbosseap-remoting-info"
 Endpoints:
-  - "IP:PORT(8080):PROXY_PORT"
-  - "IP:CLUSTER_PORT(7600):CLUSTER_PROXY_PORT"
-  - "IP:MESSAGING_PORT(5445):MESSAGING_PROXY_PORT"
-  - "IP:MESSAGING_THROUGHPUT_PORT(5455):MESSAGING_THROUGHPUT_PROXY_PORT"
-  - "IP:REMOTING_PORT(4447):REMOTING_PROXY_PORT"
+  - Private-IP-Name:   IP
+    Private-Port-Name: PORT
+    Private-Port:      8080
+    Public-Port-Name:  PROXY_PORT
+  - Private-IP-Name:   IP
+    Private-Port-Name: CLUSTER_PORT
+    Private-Port:      7600
+    Public-Port-Name:  CLUSTER_PROXY_PORT
+  - Private-IP-Name:   IP
+    Private-Port-Name: MESSAGING_PORT
+    Private-Port:      5445
+    Public-Port-Name:  MESSAGING_PROXY_PORT
+  - Private-IP-Name:   IP
+    Private-Port-Name: MESSAGING_THROUGHPUT_PORT
+    Private-Port:      5455
+    Public-Port-Name:  MESSAGING_THROUGHPUT_PROXY_PORT
+  - Private-IP-Name:   IP
+    Private-Port-Name: REMOTING_PORT
+    Private-Port:      4447
+    Public-Port-Name:  REMOTING_PROXY_PORT

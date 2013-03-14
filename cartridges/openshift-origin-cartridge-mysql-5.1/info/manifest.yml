@@ -1,5 +1,5 @@
 Name: mysql-5.1
-Namespace: MYSQL
+Cartridge-Short-Name: MYSQL
 Version: 5.1
 Architecture: noarch
 Display-Name: MySQL Database 5.1
@@ -41,4 +41,7 @@ Scaling:
   Min: 1
   Max: 1
 Endpoints:
-  - "DB_HOST:DB_PORT(3306):DB_PROXY_PORT"
+  - Private-IP-Name:   DB_HOST
+    Private-Port-Name: DB_PORT
+    Private-Port:      3306
+    Public-Port-Name:  DB_PROXY_PORT

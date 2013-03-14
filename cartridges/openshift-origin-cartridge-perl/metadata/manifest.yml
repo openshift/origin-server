@@ -1,5 +1,5 @@
 Name: perl-5.10
-Namespace: PERL
+Cartridge-Short-Name: PERL
 Display-Name: Perl 5.10
 Description: "Perl is a general-purpose server-side scripting language originally designed for Web development to produce dynamic Web pages. Popular development frameworks include: CakePerl, Zend, Symfony, and Code Igniter."
 Version: 5.10
@@ -73,6 +73,8 @@ Group-Overrides:
   - components:
     - perl-5.10
     - web_proxy
-
 Endpoints:
-  - "IP:PORT(8080):PROXY_PORT"
+  - Private-IP-Name:   IP
+    Private-Port-Name: PORT
+    Private-Port:      8080
+    Public-Port-Name:  PROXY_PORT

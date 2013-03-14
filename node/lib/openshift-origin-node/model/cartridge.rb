@@ -59,9 +59,11 @@ module OpenShift
       #
       # Class to support Manifest +Endpoint+ elements
       class Endpoint
-        @@ENDPOINT_PATTERN = /([A-Z_0-9]+):([A-Z_0-9]+)\((\d+)\):?([A-Z_0-9]+)?/
+        attr_accessor :private_ip_name, :private_port_name, :private_port, :public_port_name, :mappings
 
-        attr_accessor :private_ip_name, :private_port_name, :private_port, :public_port_name
+        class Mapping
+          attr_accessor :frontend, :backend, :options
+        end
 
         # :call-seq:
         #   Endpoint.parse(short_name, manifest) -> [Endpoint]
@@ -70,40 +72,50 @@ module OpenShift
         #
         #   Endpoint.parse('PHP', manifest)  #=> [Endpoint]
         def self.parse(short_name, manifest)
-          #FIXME: refactor for new Manifest Endpoint entries
           return [] unless manifest['Endpoints']
 
           tag       = short_name.upcase
           errors    = []
           endpoints = manifest['Endpoints'].each_with_object([]) do |entry, memo|
-            unless entry.is_a? String
-              errors << "Non-String endpoint entry: #{entry}"
+            unless entry.is_a? Hash
+              errors << "Non-Hash endpoint entry: #{entry}"
               next
             end
 
-            @@ENDPOINT_PATTERN.match(entry) do |m|
-              begin
-                private_ip_name     = m[1]
-                private_port_name   = m[2]
-                private_port_number = m[3].to_i
-                public_port_name    = m[4]
+            # TODO: validation
+            begin
+              endpoint = Endpoint.new
+              endpoint.private_ip_name = build_name(tag, entry['Private-IP-Name'])
+              endpoint.private_port_name = build_name(tag, entry['Private-Port-Name'])
+              endpoint.private_port = entry['Private-Port'].to_i
+              endpoint.public_port_name = build_name(tag, entry['Public-Port-Name'])
 
-                endpoint                   = Endpoint.new
-                endpoint.private_ip_name   = "OPENSHIFT_#{tag}_#{private_ip_name}"
-                endpoint.private_port_name = "OPENSHIFT_#{tag}_#{private_port_name}"
-                endpoint.private_port      = private_port_number
-                endpoint.public_port_name  = public_port_name ? "OPENSHIFT_#{tag}_#{public_port_name}" : nil
-                endpoint.public_port_name  = public_port_name ? "OPENSHIFT_#{tag}_#{public_port_name}" : nil
+              if entry['Mappings'].respond_to?(:each)
+                endpoint.mappings = entry['Mappings'].each_with_object([]) do |mapping_entry, mapping_memo|
+                  mapping = Endpoint::Mapping.new
+                  mapping.frontend = mapping_entry['Frontend']
+                  mapping.backend = mapping_entry['Backend']
+                  mapping.options = mapping_entry['Options']
 
-                memo << endpoint
-              rescue Exception => e
-                errors << "Couldn't parse endpoint entry '#{entry}': #{e.message}"
+                  mapping_memo << mapping
+                end
+              else
+                endpoint.mappings = []
               end
+            
+              memo << endpoint
+            rescue Exception => e
+              errors << "Couldn't parse endpoint entry '#{entry}': #{e.message}"
             end
           end
+
           raise "Couldn't parse endpoints: #{errors.join("\n")}" if errors.length > 0
 
           endpoints
+        end
+
+        def self.build_name(tag, name)
+          name ? "OPENSHIFT_#{tag}_#{name}" : nil
         end
       end
 
@@ -113,44 +125,43 @@ module OpenShift
                   :endpoints,
                   :manifest,
                   :name,
-                  :namespace,
                   :repository_path,
                   :short_name,
                   :version
 
       # :call-seq:
-      #   Cartridge.new(path) -> Cartridge
+      #   Cartridge.new(manifest_path) -> Cartridge
       #
       # Cartridge is a wrapper class for cartridge manifests
       #
       #   Cartridge.new('/var/lib/openshift/.cartridge_repository/php/1.0/metadata/manifest.yml') -> Cartridge
-      def initialize(path)
-        manifest = YAML.load_file(path)
+      def initialize(manifest_path, repository_base_path='')
+        manifest = YAML.load_file(manifest_path)
 
         @cartridge_vendor  = manifest['Cartridge-Vendor']
         @cartridge_version = manifest['Cartridge-Version'] && manifest['Cartridge-Version'].to_s
         @manifest          = manifest
         @name              = manifest['Name']
-        @namespace         = manifest['Namespace'] || manifest['Cartridge-Short-Name']
-        @short_name        = manifest['Cartridge-Short-Name'] || manifest['Namespace']
+        @short_name        = manifest['Cartridge-Short-Name']
         @version           = manifest['Version'] && manifest['Version'].to_s
 
         #FIXME: reinstate code after manifests are updated
         #raise MissingElementError.new(nil, 'Cartridge-Vendor') unless @cartridge_vendor
         #raise InvalidElementError.new(nil, 'Cartridge-Vendor') if @cartridge_vendor.include?('-')
         #raise MissingElementError.new(nil, 'Cartridge-Version') unless @cartridge_version
-        #raise MissingElementError.new(nil, 'Cartridge-Short-Name') unless @short_name
-        #raise InvalidElementError.new(nil, 'Cartridge-Short-Name') if @short_name.include?('-')
-        #raise MissingElementError.new(nil, 'Name') unless @name
+        raise MissingElementError.new(nil, 'Cartridge-Short-Name') unless @short_name
+        raise InvalidElementError.new(nil, 'Cartridge-Short-Name') if @short_name.include?('-')
+        raise MissingElementError.new(nil, 'Name') unless @name
         #raise InvalidElementError.new(nil, 'Name') if @name.include?('-')
         raise MissingElementError.new(nil, 'Version') unless @version
         raise InvalidElementError.new(nil, 'Versions') if @manifest['Versions'] && !@manifest['Versions'].kind_of?(Array)
 
+        @short_name.upcase!
+
         if @cartridge_vendor && @name
           @directory = "#{@cartridge_vendor.gsub(/\s+/, '')}-#{@name}"
 
-          @repository_path = PathUtils.join(
-              CartridgeRepository.instance.path, @directory, @cartridge_version)
+          @repository_path = PathUtils.join(repository_base_path, @directory, @cartridge_version)
         end
 
         @endpoints = Endpoint.parse(@short_name, manifest)
