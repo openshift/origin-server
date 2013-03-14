@@ -23,7 +23,7 @@ Requires:      jbossas-modules-eap
 Requires:      jbossas-product-eap
 Requires:      jbossas-standalone
 Requires:      jbossas-welcome-content-eap
-Requires:      jboss-eap6-modules >= %{jbossver}
+Requires:      jboss-eap6-modules
 Requires:      jboss-eap6-index
 Requires:      lsof
 Requires:      java-1.7.0-openjdk
