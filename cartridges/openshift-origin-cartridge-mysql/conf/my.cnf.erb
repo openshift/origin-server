@@ -1,5 +1,5 @@
 [mysqld]
-datadir=<%= ENV['OPENSHIFT_HOMEDIR'] %>/mysql/data/
+datadir=<%= ENV['OPENSHIFT_MYSQL_DIR'] %>/data/
 socket=<%= ENV['OPENSHIFT_MYSQL_DB_SOCKET'] %>
 bind-address=<%= ENV['OPENSHIFT_MYSQL_DB_HOST'] %>
 # Disabling symbolic-links is recommended to prevent assorted security risks

@@ -327,7 +327,6 @@ When /^I (fail to )?embed a ([^ ]+) cartridge into the application$/ do | negate
   end
 end
 
-
 # Un-embeds a cartridge from the current application's gear by 
 # invoking deconfigure on the named cartridge.
 When /^I remove the ([^ ]+) cartridge from the application$/ do | cart_name |

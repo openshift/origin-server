@@ -1,10 +1,13 @@
 Name: mysql
+Namespace: MYSQL
 Cartridge-Short-Name: MYSQL
 Architecture: noarch
 Display-Name: MySQL Database 5.1
 Description: "MySQL is a multi-user, multi-threaded SQL database server."
-Version: 5.1
+Version: '5.1'
 Versions: [5.1]
+Cartridge-Version: 0.2.0
+Cartridge-Vendor: redhat
 License: ASL 2.0
 Vendor: Oracle
 Categories:
@@ -42,4 +45,7 @@ Scaling:
   Min: 1
   Max: 1
 Endpoints:
-  - "DB_HOST:DB_PORT(3306):DB_PROXY_PORT"
+  - Private-IP-Name:   DB_HOST
+    Private-Port-Name: DB_PORT
+    Private-Port:      3306
+    Public-Port-Name:  DB_PROXY_PORT
