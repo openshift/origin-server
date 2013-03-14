@@ -185,7 +185,8 @@ fi
 populate_repo_dir
 
 # Copy the example WAR to the deployments directories
-cp ${JBOSS_CARTRIDGE_ROOT}/info/data/ROOT.war $APP_REPO_DIR/deployments
+# cp ${JBOSS_CARTRIDGE_ROOT}/info/data/ROOT.war $APP_REPO_DIR/deployments
+jar cvf $APP_REPO_DIR/deployments/ROOT.war ${JBOSS_CARTRIDGE_ROOT}/template/*
 
 chmod +x "$APP_JBOSS_BIN_DIR/standalone.sh" || error "Failed to chmod new application scripts" 122
 secure_app_dir

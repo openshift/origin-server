@@ -34,7 +34,6 @@ Requires:      maven3
 Requires:      maven
 %endif
 BuildRequires: git
-BuildRequires: java-devel >= 1:1.6.0
 BuildRequires: jpackage-utils
 BuildArch:     noarch
 
@@ -47,10 +46,6 @@ Provides JBossEAP6.0 support to OpenShift
 
 
 %build
-mkdir -p info/data
-pushd template/src/main/webapp > /dev/null
-/usr/bin/jar -cvf ../../../../info/data/ROOT.war -C . .
-popd
 
 
 %install
