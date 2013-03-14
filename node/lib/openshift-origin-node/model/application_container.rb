@@ -380,7 +380,7 @@ module OpenShift
     # deploy application
     def deploy(cart_name)
       @state.value = OpenShift::State::DEPLOYING
-      @cartridge_model.do_control("deploy", cart_name)
+      @cartridge_model.deploy(cart_name)
     end
 
     # restart gear as supported by cartridges

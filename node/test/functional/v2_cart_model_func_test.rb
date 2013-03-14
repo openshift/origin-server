@@ -161,7 +161,7 @@ class V2CartModelTest < Test::Unit::TestCase
     }
 
     scenarios.each do |cart_name, expected_path|
-      c = @model.get_system_cartridge(cart_name)
+      c = @model.get_cartridge_from_repository(cart_name)
       assert_equal expected_path, c.repository_path
     end
 

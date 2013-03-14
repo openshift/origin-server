@@ -109,6 +109,10 @@ module OpenShift
       do_control('deploy-httpd-proxy', cart_name)
     end
 
+    def deploy(cart_name)
+      @cartridge_model.do_control("deploy", cart_name)
+    end
+
     def remove_httpd_proxy(cart_name)
       do_control('remove-httpd-proxy', cart_name)
     end

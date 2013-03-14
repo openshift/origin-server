@@ -10,12 +10,7 @@ case "$1" in
     version="$2"
 esac
 
-cartridge_instance_dir=mock-plugin
-
-if [[ -n "$version" ]]; then
-  cartridge_instance_dir="$cartridge_instance_dir-$version"
-fi
-
+cartridge_instance_dir=RedHat-mock-plugin
 source $cartridge_instance_dir/mock-plugin.conf
 
 rm -rf $MOCK_STATE/
