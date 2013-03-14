@@ -147,6 +147,35 @@ EOF`
     done
 }
 
+function check_missing_and_insecure_secrets() {
+    BROKER_CONF="/etc/openshift/broker.conf"
+    CONSOLE_CONF="/etc/openshift/console.conf"
+
+    AUTH_SALT=`fetch_config ${BROKER_CONF} AUTH_SALT`
+    if [ $AUTH_SALT == "ClWqe5zKtEW4CJEMyjzQ" ]
+    then
+      fail "Default AUTH_SALT detected in ${BROKER_CONF}! Change the the value and use oo-admin-broker-auth to regenerate authentication tokens. (Hint: use 'openssl rand -base64 64' to generate a unique salt)"
+    fi
+}
+
+# This is another way to parse the config settings.  You could argue that it's
+# less accurate than loading the Rails application but it's better than plain
+# grep and it's way more readable/flexible than the bash array stuff.  I plan
+# to replace that soon.
+#
+# TODO: It would be trivial to add all the configuration assertions in the ruby
+# code and check them all at once.  This would be much faster than loading the
+# rails apps multiple times.
+function fetch_config() {
+    pushd /var/www/openshift/broker > /dev/null
+    bundle exec "ruby -rubygems --" <<EOF
+      require 'openshift-origin-common'
+      conf = OpenShift::Config.new('$1')
+      puts conf.get('$2')
+EOF
+    popd > /dev/null
+}
+
 #
 # Get a set of values from the Rails application.
 # Yes, this is inefficient, but the point is to not depend on the system
@@ -213,22 +242,20 @@ function run_ruby_rails_command() {
   fi
   if which ruby 2>/dev/null >/dev/null
   then
-      ruby -I ${OSO_BROKER_ROOT} -r rubygems -- <<EOF 2>&1
-        require 'bundler'
-        require 'rails'
+      pushd /var/www/openshift/broker > /dev/null
+      bundle exec "ruby -I ${OSO_BROKER_ROOT} -r rubygems --" <<EOF 2>&1
         begin
-          require 'openshift-origin-controller'
-          require 'config/application'
-          #require 'config/initializers/broker'
+          require 'config/environment'
           require 'config/environments/$OSO_ENVIRONMENT'
         rescue Bundler::GemNotFound => gem_error
           puts "Error loading libs or gems: #{gem_error}"
           exit 1
         end
-	Broker::Application.initialize!
         $1
 EOF
-      return $?
+      RETVAL=$?
+      popd > /dev/null
+      return $RETVAL
   else
       fail ruby is not installed or not executable
       exit $STATUS
@@ -328,10 +355,10 @@ function check_services() {
     done
 }
 
-function check_selinux_modules() {
+function check_selinux_enforcing() {
   verbose "checking that selinux modules are loaded"
   # if not enforcing, just say so
-  notice "SELinux is " `getenforce`
+  notice "SELinux is" `getenforce`
   if [ `getenforce 2>/dev/null` != "Enforcing" ]
   then
     return
@@ -343,19 +370,6 @@ function check_selinux_modules() {
     fail "semodule binary not present (from policycoreutils RPM)"
     return
   fi
-
-  SELINUX_MODULES='rubygem_passenger openshift-origin-broker'
-  for MODNAME in $SELINUX_MODULES
-  do
-    MODSPEC=$($SEMODULE -l | grep $MODNAME)
-    if [ -n "$MODSPEC" ]
-    then
-      MODVERS=$(echo $MODSPEC | awk '{print $2;}')
-      verbose "SELinux module $MODNAME is version $MODVERS"
-    else
-      fail "SELinux module $MODNAME is not loaded"
-    fi
-  done
 }
 
 
@@ -436,8 +450,8 @@ function check_datastore_mongo() {
 
     # get the service hostname, port, username, password
 	APP_VALUE_MAP=(
-		["DS_HOST"]="Rails.application.config.datastore[:host_port].flatten[0]"
-		["DS_PORT"]="Rails.application.config.datastore[:host_port].flatten[1]"
+		["DS_HOST"]="Rails.application.config.datastore[:host_port].splith(':')[0]"
+		["DS_PORT"]="Rails.application.config.datastore[:host_port].splith(':')[1]"
 		["DS_USER"]="Rails.application.config.datastore[:user]"
 		["DS_PASS"]="Rails.application.config.datastore[:password]"
 		["DS_NAME"]="Rails.application.config.datastore[:db]"
@@ -522,8 +536,8 @@ function check_auth_mongo() {
 
     # get the service hostname, port, username, password
 	APP_VALUE_MAP=(
-		["DS_HOST"]="Rails.application.config.auth[:mongo_host_port].flatten[0]"
-		["DS_PORT"]="Rails.application.config.auth[:mongo_host_port].flatten[1]"
+		["DS_HOST"]="Rails.application.config.auth[:mongo_host_port].split(':')[0]"
+		["DS_PORT"]="Rails.application.config.auth[:mongo_host_port].split(':')[1]"
 		["DS_USER"]="Rails.application.config.auth[:mongo_user]"
 		["DS_PASS"]="Rails.application.config.auth[:mongo_password]"
 		["DS_NAME"]="Rails.application.config.auth[:mongo_db]"
@@ -652,7 +666,7 @@ function check_authentication() {
             ;;
 
 	*)
-	    fail unknown auth class: $AUTH_PLUGIN
+	    notice unknown auth class: $AUTH_PLUGIN
 	    ;;
     esac
     unset AUTH_PLUGIN
@@ -753,8 +767,13 @@ function check_dynamic_dns() {
 	    check_dns_bind
 	    ;;
 
+	'OpenShift::NsupdatePlugin')
+	    verbose dynamic dns plugin = $NAME_PLUGIN
+	    check_dns_bind
+	    ;;
+
 	*)
-	    fail unknown dns class: $NAME_PLUGIN
+	    notice unknown dns class: $NAME_PLUGIN
 	    ;;
     esac
     unset NAME_PLUGIN
@@ -780,7 +799,7 @@ function check_messaging() {
 	    ;;
 
 	*)
-	    fail unknown messaging class: $MSG_PLUGIN
+	    notice unknown messaging class: $MSG_PLUGIN
 	    ;;
     esac
     unset MSG_PLUGIN
@@ -835,14 +854,15 @@ STATUS=0
 
 probe_version
 
+check_missing_and_insecure_secrets
 check_packages $PACKAGES
 check_ruby_requirements $OSO_RUBY_LIBS
-load_application_values
-#check_selinux_modules
+check_selinux_enforcing
 #check_selinux_booleans
 check_firewall
 check_services
 
+load_application_values
 check_authentication
 check_dynamic_dns
 check_messaging
