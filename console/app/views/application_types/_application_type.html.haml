@@ -1,6 +1,7 @@
 - type = application_type
 = div_for type, :class => 'tile tile-click label-tags' do
-  %h3= link_to type.display_name, application_type_path(type)
+  %h3
+    = render :partial => 'application_type_link', :locals => {:type => type}
 
   = show_description type.description
 
