@@ -1,6 +1,6 @@
 %global cartridgedir %{_libexecdir}/openshift/cartridges/jbosseap-6.0
-%global jbossver 6.0.0.GA
-%global oldjbossver 6.0.0.Beta2
+%global jbossver 6.0.1.GA
+%global oldjbossver 6.0.0.GA
 
 Summary:       Provides JBossEAP6.0 support
 Name:          openshift-origin-cartridge-jbosseap-6.0
@@ -22,7 +22,7 @@ Requires:      jbossas-modules-eap
 Requires:      jbossas-product-eap
 Requires:      jbossas-standalone
 Requires:      jbossas-welcome-content-eap
-Requires:      jboss-eap6-modules >= %{jbossver}
+Requires:      jboss-eap6-modules
 Requires:      jboss-eap6-index
 Requires:      lsof
 Requires:      java-1.7.0-openjdk
