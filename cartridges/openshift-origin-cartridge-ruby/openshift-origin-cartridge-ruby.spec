@@ -6,14 +6,14 @@
 %global cartridgedir %{_libexecdir}/openshift/cartridges/v2/ruby
 %global frameworkdir %{_libexecdir}/openshift/cartridges/v2/ruby
 
-Name: openshift-origin-cartridge-ruby
-Version: 0.1.2
-Release: 1%{?dist}
-Summary: Ruby cartridge
-Group: Development/Languages
-License: ASL 2.0
-URL: https://openshift.redhat.com
-Source0: http://mirror.openshift.com/pub/origin-server/source/%{name}/%{name}-%{version}.tar.gz
+Name:          openshift-origin-cartridge-ruby
+Version:       0.1.2
+Release:       1%{?dist}
+Summary:       Ruby cartridge
+Group:         Development/Languages
+License:       ASL 2.0
+URL:           https://openshift.redhat.com
+Source0:       http://mirror.openshift.com/pub/origin-server/source/%{name}/%{name}-%{version}.tar.gz
 Requires:      openshift-origin-cartridge-abstract
 Requires:      sqlite-devel
 Requires:      libev
@@ -113,8 +113,8 @@ Requires:      js
 Requires:      ImageMagick-devel
 Requires:      ruby-RMagick
 BuildRequires: git
-BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
-BuildArch: noarch
+BuildRoot:     %{_tmppath}/%{name}-%{version}-%{release}-root
+BuildArch:     noarch
 
 %description
 Ruby cartridge for openshift.
