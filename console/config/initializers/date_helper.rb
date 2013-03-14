@@ -6,7 +6,7 @@ Time::DATE_FORMATS.merge!({
     time.strftime("%B #{ActiveSupport::Inflector.ordinalize(time.day)}, %Y")
   end,
   :credit_card => lambda do |time| 
-    time.strftime("%B %Y")
+    time.strftime("%m/%Y")
   end,
   :pretty_time => lambda do |time| 
     time.strftime("%A, %b #{ActiveSupport::Inflector.ordinalize(time.day)}")
