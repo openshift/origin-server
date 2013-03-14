@@ -1,0 +1,16 @@
+#!/bin/bash
+# Utility functions for use in the cartridge scripts.
+
+function wait_for_stop {
+        pid=$1
+    for i in {1..60}
+    do
+        if `ps --pid $pid > /dev/null 2>&1`
+        then
+            echo "Waiting for stop to finish"
+            sleep .5
+        else
+            break
+        fi
+    done
+}
