@@ -14,14 +14,13 @@
 %section
   %form.form-search.form-search-block{:id => 'form-search-create-apps', :method => 'get'}
     %input.search-query{:type => 'text', :name => 'search', :placeholder => 'Search by keyword or tag', :value => @search}    
-    -#%input.search-query{:type => 'text', :name => 'search', :placeholder => 'Search by keyword or tag', :value => @search}
-    %button.search.font-icon.font-icon-size-16{:type => 'submit', "aria-hidden" => "true", "data-icon" => "\uee03"}
+    %button.search.font-icon{:type => 'submit', "aria-hidden" => "true", "data-icon" => "\uee03"} 
       
   - if @browse_tags.present?
     %span.dropdown
       %a.btn.dropdown-toggle{:href => '#', :data => {:toggle => 'dropdown'}}
         Browse by tag...
-        %span.caret
+        %span.font-icon{"aria-hidden" => "true", "data-icon" => "\uee12"}
       %ul.dropdown-menu#tag-filter
         - @browse_tags.each do |(name, tag)|
           - if name
