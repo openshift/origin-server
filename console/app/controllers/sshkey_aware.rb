@@ -7,7 +7,7 @@ module SshkeyAware
 
   def sshkey_uploaded?
     @has_keys = false
-    if session[:has_sshkey]
+    if !session[:has_sshkey].nil?
       logger.debug "  User has cached keys"
       @has_keys = session[:has_sshkey]
     else
