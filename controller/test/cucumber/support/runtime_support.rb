@@ -365,8 +365,8 @@ module OpenShift
     end
 
     class DatabaseCartListener
-      def supports?(cart_name) 
-        ['mysql-5.1', 'mongodb-2.2', 'postgresql-8.4'].include?(cart_name)
+      def supports?(cart_name)
+        cart_name =~ /^(mysql|mongodb|postgresql)-[0-9\.]+/
       end
 
       class DbConnection
