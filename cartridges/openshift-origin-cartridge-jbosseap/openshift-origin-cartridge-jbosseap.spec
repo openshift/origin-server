@@ -5,7 +5,7 @@
 
 Summary:       Provides JBossEAP6.0 support
 Name:          openshift-origin-cartridge-jbosseap
-Version:       2.0.0
+Version:       2.0.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -23,7 +23,7 @@ Requires:      jbossas-modules-eap
 Requires:      jbossas-product-eap
 Requires:      jbossas-standalone
 Requires:      jbossas-welcome-content-eap
-Requires:      jboss-eap6-modules >= %{jbossver}
+Requires:      jboss-eap6-modules
 Requires:      jboss-eap6-index
 Requires:      lsof
 Requires:      java-1.7.0-openjdk
@@ -90,7 +90,6 @@ cp -p %{cartridgedir}/info/configuration/postgresql_module.xml /etc/alternatives
 %dir %{cartridgedir}/env
 %dir %{cartridgedir}/metadata
 %dir %{cartridgedir}/versions
-%attr(0755,-,-) %{cartridgedir}/standalone/bin
 %attr(0755,-,-) %{frameworkdir}
 %{cartridgedir}/metadata/manifest.yml
 %doc %{cartridgedir}/README.md
@@ -100,6 +99,10 @@ cp -p %{cartridgedir}/info/configuration/postgresql_module.xml /etc/alternatives
 
 
 %changelog
-* Wed Feb 27 2013 William DeCoste <wdecoste@redhat.com> 2.0.0
-- initial
+* Thu Mar 14 2013 Adam Miller <admiller@redhat.com> 2.0.1-1
+- Fixing tito tags on master
+
+* Wed Mar 13 2013 Bill DeCoste <bdecoste@gmail.com> 2.0.1-1
+- new package built with tito
+
 

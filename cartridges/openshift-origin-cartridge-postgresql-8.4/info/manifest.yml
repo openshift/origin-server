@@ -1,5 +1,5 @@
 Name: postgresql-8.4
-Namespace: POSTGRESQL
+Cartridge-Short-Name: POSTGRESQL
 Version: 8.4
 Architecture: noarch
 Display-Name: PostgreSQL Database 8.4
@@ -38,4 +38,7 @@ Scaling:
   Min: 1
   Max: 1
 Endpoints:
-  - "DB_HOST:DB_PORT(5432):DB_PROXY_PORT"
+  - Private-IP-Name:   DB_HOST
+    Private-Port-Name: DB_PORT
+    Private-Port:      5432
+    Public-Port-Name:  DB_PROXY_PORT

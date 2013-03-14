@@ -1,5 +1,5 @@
 Name: jenkins
-Namespace: JENKINS
+Cartridge-Short-Name: JENKINS
 Display-Name: Jenkins Server
 Description: "Jenkins is a continuous integration (CI) build server that is deeply integrated into OpenShift. See the Jenkins info page for more."
 Version: 1.4
@@ -61,4 +61,7 @@ Provides:
   - "jenkins(version) = 1.4"
 Publishes:
 Endpoints:
-  - "IP:PORT(8080):PROXY_PORT"
+  - Private-IP-Name:   IP
+    Private-Port-Name: PORT
+    Private-Port:      8080
+    Public-Port-Name:  PROXY_PORT
