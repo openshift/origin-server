@@ -113,7 +113,7 @@ class CartridgeRepositoryTest < Test::Unit::TestCase
   MANIFESTS = [
       %q{#
         Name: CRTest
-        Namespace: CRTEST
+        Cartridge-Short-Name: CRTEST
         Version: 0.1
         Versions: [0.1]
         Cartridge-Version: 1.0
@@ -122,7 +122,7 @@ class CartridgeRepositoryTest < Test::Unit::TestCase
       },
       %q{#
         Name: CRTest
-        Namespace: CRTEST
+        Cartridge-Short-Name: CRTEST
         Version: 0.2
         Versions: [0.1, 0.2]
         Cartridge-Version: 1.1
@@ -131,7 +131,7 @@ class CartridgeRepositoryTest < Test::Unit::TestCase
       },
       %q{#
         Name: CRTest
-        Namespace: CRTEST
+        Cartridge-Short-Name: CRTEST
         Version: 0.3
         Versions: [0.1, 0.2, 0.3]
         Cartridge-Version: 1.2

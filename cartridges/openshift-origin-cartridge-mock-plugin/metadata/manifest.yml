@@ -1,5 +1,5 @@
 Name: mock-plugin
-Namespace: MOCK_PLUGIN
+Cartridge-Short-Name: MOCK_PLUGIN
 Display-Name: Mock Plugin Cartridge
 Description: "A mock plugin cartridge for development use only."
 Version: 0.1
@@ -16,4 +16,7 @@ Group-Overrides:
   - components:
     - mock-plugin
 Endpoints:
-  - "EXAMPLE_IP1:EXAMPLE_PORT1(8080):EXAMPLE_PUBLIC_PORT1"
+  - Private-IP-Name:   EXAMPLE_IP1
+    Private-Port-Name: EXAMPLE_PORT1
+    Private-Port:      8080
+    Public-Port-Name:  EXAMPLE_PUBLIC_PORT1
