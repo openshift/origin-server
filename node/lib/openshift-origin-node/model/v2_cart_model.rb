@@ -146,9 +146,12 @@ module OpenShift
             process_erb_templates(cartridge_name)
           end
         end
+
+        output << do_control('start', cartridge_name)
       end
 
-      output << do_control('start', cartridge_name)
+      connect_frontend(cartridge_name)
+
       logger.info "configure output: #{output}"
       output
     end
@@ -568,6 +571,25 @@ module OpenShift
       end
 
       allocated_ips
+    end
+
+    def connect_frontend(cartridge_name)
+      frontend = OpenShift::FrontendHttpServer.new(@user.uuid, @user.container_name, @user.namespace)
+      gear_env = Utils::Environ.for_gear(@user.homedir)
+      cart     = get_cartridge(cartridge_name)
+
+      # TODO: exception handling
+      cart.endpoints.each do |endpoint|
+        endpoint.mappings.each do |mapping|
+          private_ip = gear_env[endpoint.private_ip_name]
+          backend_uri = "#{private_ip}:#{endpoint.private_port}#{mapping.backend}"
+          options = mapping.options ||= {}
+          
+          logger.info("Connecting frontend mapping for #{cart.name} in gear #{@user.uuid}: "\
+                      "#{mapping.frontend} => #{backend_uri} with options: #{mapping.options}")
+          frontend.connect(mapping.frontend, backend_uri, options)
+        end
+      end
     end
 
     # Run code block against each cartridge in gear

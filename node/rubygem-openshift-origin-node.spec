@@ -16,14 +16,17 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.6.1
+Version:       1.6.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
 URL:           http://openshift.redhat.com
 Source0:       http://mirror.openshift.com/pub/openshift-origin/source/%{name}/rubygem-%{gem_name}-%{version}.tar.gz
-Requires:      %{?scl:%scl_prefix}ruby(abi) = %{rubyabi}
-Requires:      %{?scl:%scl_prefix}ruby
+%if 0%{?fedora} >= 19
+Requires:      ruby(release)
+%else
+Requires:      %{?scl:%scl_prefix}ruby(abi) >= %{rubyabi}
+%endif
 Requires:      %{?scl:%scl_prefix}rubygems
 Requires:      %{?scl:%scl_prefix}rubygem(json)
 Requires:      %{?scl:%scl_prefix}rubygem(parseconfig)
@@ -39,21 +42,24 @@ Requires:      libcgroup
 %else
 Requires:      libcgroup-tools
 %endif
-%if 0%{?fedora} >= 18
-Requires:      httpd-tools
-BuildRequires: httpd-tools
-%endif
 Requires:      libcgroup-pam
 Requires:      pam_openshift
 Requires:      quota
-
+%if 0%{?fedora} >= 18
+Requires:      httpd-tools
+BuildRequires: httpd-tools
+%else
+BuildRequires: httpd
+%endif
 %if 0%{?fedora}%{?rhel} <= 6
 BuildRequires: %{?scl:%scl_prefix}build
 BuildRequires: scl-utils-build
-BuildRequires: httpd
 %endif
-BuildRequires: %{?scl:%scl_prefix}ruby(abi) = %{rubyabi}
-BuildRequires: %{?scl:%scl_prefix}ruby 
+%if 0%{?fedora} >= 19
+BuildRequires: ruby(release)
+%else
+BuildRequires: %{?scl:%scl_prefix}ruby(abi) >= %{rubyabi}
+%endif
 BuildRequires: %{?scl:%scl_prefix}rubygems
 BuildRequires: %{?scl:%scl_prefix}rubygems-devel
 BuildArch:     noarch
@@ -154,6 +160,35 @@ cp %{buildroot}%{gem_instdir}/misc/init/openshift-cgroups %{buildroot}/etc/rc.d/
 
 # Don't install or package what's left in the misc directory
 rm -rf %{buildroot}%{gem_instdir}/misc
+rm -rf %{buildroot}%{gem_instdir}/.yardoc
+chmod 755 %{buildroot}%{gem_instdir}/test/unit/*.rb
+
+%post
+echo "/usr/bin/oo-trap-user" >> /etc/shells
+
+# Enable cgroups on ssh logins
+if [ -f /etc/pam.d/sshd ] ; then
+   if ! grep pam_cgroup.so /etc/pam.d/sshd > /dev/null ; then
+     echo "session    optional     pam_cgroup.so" >> /etc/pam.d/sshd
+   else
+     logger -t rpm-post "pam_cgroup.so is already enabled for sshd"
+   fi
+else
+   logger -t rpm-post "cannot add pam_cgroup.so to /etc/pamd./sshd: file not found"
+fi
+
+# copying this file in the post hook so that this file can be replaced by rhc-node
+# copy this file only if it doesn't already exist
+if ! [ -f /etc/openshift/resource_limits.conf ]; then
+  cp -f /etc/openshift/resource_limits.template /etc/openshift/resource_limits.conf
+fi
+
+%preun
+# Check to make sure we uninstalling instead of updating
+if [ "$1" -eq 0 ] ; then
+  # disable cgroups on sshd logins
+  sed -i -e '/pam_cgroup/d' /etc/pam.d/sshd
+fi
 
 %files
 %doc LICENSE COPYRIGHT
@@ -163,16 +198,17 @@ rm -rf %{buildroot}%{gem_instdir}/misc
 %{gem_spec}
 %attr(0750,-,-) /usr/sbin/*
 %attr(0755,-,-) /usr/bin/*
-/etc/openshift
 /usr/libexec/openshift/lib/setup_pam_fs_limits.sh
 /usr/libexec/openshift/lib/teardown_pam_fs_limits.sh
+%dir /etc/openshift
 %config(noreplace) /etc/openshift/node.conf
+%config /etc/openshift/resource_limits.template
 %attr(0750,-,-) /etc/httpd/conf.d/openshift
 %config(noreplace) /etc/httpd/conf.d/000001_openshift_origin_node.conf
 %config(noreplace) /etc/httpd/conf.d/000001_openshift_origin_node_servername.conf
 %config(noreplace) /etc/httpd/conf.d/openshift_route.include
-%attr(0755,-,-) %{appdir}
-%attr(0750,root,apache) %{appdir}/.httpd.d
+%dir %attr(0755,-,-) %{appdir}
+%dir %attr(0750,root,apache) %{appdir}/.httpd.d
 %attr(0640,root,apache) %config(noreplace) %{appdir}/.httpd.d/routes.json
 %attr(0640,root,apache) %config(noreplace) %{appdir}/.httpd.d/nodes.txt
 %attr(0640,root,apache) %config(noreplace) %{appdir}/.httpd.d/aliases.txt
@@ -195,32 +231,42 @@ rm -rf %{buildroot}%{gem_instdir}/misc
 # upstart files
 %attr(0755,-,-) %{_var}/run/openshift
 
-%post
-echo "/usr/bin/oo-trap-user" >> /etc/shells
-
-# Enable cgroups on ssh logins
-if [ -f /etc/pam.d/sshd ] ; then
-   if ! grep pam_cgroup.so /etc/pam.d/sshd > /dev/null ; then
-     echo "session    optional     pam_cgroup.so" >> /etc/pam.d/sshd
-   else
-     logger -t rpm-post "pam_cgroup.so is already enabled for sshd"
-   fi
-else
-   logger -t rpm-post "cannot add pam_cgroup.so to /etc/pamd./sshd: file not found"
-fi
-
-# copying this file in the post hook so that this file can be replaced by rhc-node
-# copy this file only if it doesn't already exist
-if ! [ -f /etc/openshift/resource_limits.conf ]; then
-  cp -f /etc/openshift/resource_limits.template /etc/openshift/resource_limits.conf
-fi
-
-
-%preun
-# disable cgroups on sshd logins
-sed -i -e '/pam_cgroup/d' /etc/pam.d/sshd
-
 %changelog
+* Thu Mar 14 2013 Adam Miller <admiller@redhat.com> 1.6.3-1
+- merge with latest pulls (tdawson@redhat.com)
+
+* Thu Mar 14 2013 Adam Miller <admiller@redhat.com> 1.6.2-1
+- Refactor Endpoints to support frontend mapping (ironcladlou@gmail.com)
+- Remove Cartridge->CartridgeRepository dependency for path setup
+  (ironcladlou@gmail.com)
+- Make packages build/install on F19+ (tdawson@redhat.com)
+- Merge pull request #1625 from tdawson/tdawson/remove-obsoletes
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #1629 from jwhonce/wip/cartridge_repository
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 920880 - Only allow httpd-singular to return when Apache is fully back up
+  and protect the SSL cert operations with the Alias lock.
+  (rmillner@redhat.com)
+- WIP Cartridge Refactor - Cartridge Repository (jhonce@redhat.com)
+- Revert "Merge pull request #1622 from jwhonce/wip/cartridge_repository"
+  (dmcphers@redhat.com)
+- remove old obsoletes (tdawson@redhat.com)
+- WIP Cartridge Refactor - Cartridge Repository (jhonce@redhat.com)
+- Merge pull request #1613 from mrunalp/bugs/920365
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #1614 from jwhonce/wip/rhcsh
+  (dmcphers+openshiftbot@redhat.com)
+- WIP Cartridge Refactor - Refactor building rhcsh environment
+  (jhonce@redhat.com)
+- Bug 920365: Fix oo-create-endpoints to call the correct method.
+  (mrunalp@gmail.com)
+- Bug 876746 - oo-cartridge-info errors when no parameters are passed
+  (calfonso@redhat.com)
+- WIP Cartridge Refactor - Cartridge Repository (jhonce@redhat.com)
+- And fix the unit test. (rmillner@redhat.com)
+- Fix FrontendHttpServer class validation of chained certificates.
+  (rmillner@redhat.com)
+
 * Thu Mar 07 2013 Adam Miller <admiller@redhat.com> 1.6.1-1
 - bump_minor_versions for sprint 25 (admiller@redhat.com)
 

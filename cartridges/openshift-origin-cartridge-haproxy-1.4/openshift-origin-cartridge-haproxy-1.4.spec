@@ -7,7 +7,7 @@
 
 Summary:       Provides embedded haproxy-1.4 support
 Name:          openshift-origin-cartridge-haproxy-1.4
-Version: 1.6.1
+Version: 1.6.2
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -84,6 +84,20 @@ ln -s %{cartridgedir}/../../abstract/info/hooks/system-messages %{buildroot}%{ca
 
 
 %changelog
+* Thu Mar 14 2013 Adam Miller <admiller@redhat.com> 1.6.2-1
+- Refactor Endpoints to support frontend mapping (ironcladlou@gmail.com)
+- Merge pull request #1625 from tdawson/tdawson/remove-obsoletes
+  (dmcphers+openshiftbot@redhat.com)
+- Have haproxy_ctld wait for app_ctl to either kill it or reap the zombie.
+  (rmillner@redhat.com)
+- Moved the call of exec "app_ctl.sh reload" into a forked child process
+  because the call to reload was killing haproxy_ctld and not able to restart
+  it. (andy.goldstein@redhat.com)
+- remove old obsoletes (tdawson@redhat.com)
+- Merge pull request #1620 from bdecoste/master (dmcphers@redhat.com)
+- Bug 920745 (bdecoste@gmail.com)
+- Speed up haproxy interaction (dmcphers@redhat.com)
+
 * Thu Mar 07 2013 Adam Miller <admiller@redhat.com> 1.6.1-1
 - bump_minor_versions for sprint 25 (admiller@redhat.com)
 

@@ -1,9 +1,23 @@
 class GearGroupsController < BaseController
 
+  # This is the regex for group instances ID
+  # We need to ensure backward compatibility for fetches
+  GROUP_INSTANCE_ID_COMPATIBILITY_REGEX = /\A[A-Za-z0-9]+\z/
+
   # GET /domains/[domain_id]/applications/[application_id]/gear_groups
   def index
     domain_id = params[:domain_id]
     app_id = params[:application_id]
+
+    # validate the domain name using regex to avoid a mongo call, if it is malformed
+    if domain_id !~ Domain::DOMAIN_NAME_COMPATIBILITY_REGEX
+      return render_error(:not_found, "Domain #{domain_id} not found", 127, "LIST_GEAR_GROUPS")
+    end
+
+    # validate the application name using regex to avoid a mongo call, if it is malformed
+    if app_id !~ Application::APP_NAME_COMPATIBILITY_REGEX
+      return render_error(:not_found, "Application '#{app_id}' not found for domain '#{domain_id}'", 101, "LIST_GEAR_GROUPS")
+    end
 
     begin
       domain = Domain.find_by(owner: @cloud_user, canonical_namespace: domain_id.downcase)
@@ -30,6 +44,23 @@ class GearGroupsController < BaseController
     domain_id = params[:domain_id]
     app_id = params[:application_id]
     gear_group_id = params[:id]
+
+    # validate the domain name using regex to avoid a mongo call, if it is malformed
+    if domain_id !~ Domain::DOMAIN_NAME_COMPATIBILITY_REGEX
+      return render_error(:not_found, "Domain #{domain_id} not found", 127, "SHOW_GEAR_GROUP")
+    end
+
+    # validate the application name using regex to avoid a mongo call, if it is malformed
+    if app_id !~ Application::APP_NAME_COMPATIBILITY_REGEX
+      return render_error(:not_found, "Application '#{app_id}' not found for domain '#{domain_id}'", 101, "SHOW_GEAR_GROUP")
+    end
+
+    gear_group_id = get_actual_id(gear_group_id, params[:format])
+
+    # validate the gear group ID using regex to avoid a mongo call, if it is malformed
+    if gear_group_id !~ GROUP_INSTANCE_ID_COMPATIBILITY_REGEX
+      return render_error(:not_found, "Gear group '#{gear_group_id}' not found for application #{app_id} on domain '#{domain_id}'", 101, "SHOW_GEAR_GROUP")
+    end
 
     begin
       domain = Domain.find_by(owner: @cloud_user, canonical_namespace: domain_id.downcase)

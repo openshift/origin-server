@@ -2,7 +2,7 @@ source 'http://rubygems.org'
 
 gem 'rails', '~> 3.2.8'
 gem 'json'
-gem 'parseconfig', '0.5.2'
+gem 'parseconfig'
 gem 'xml-simple'
 gem 'rack'
 gem 'regin'

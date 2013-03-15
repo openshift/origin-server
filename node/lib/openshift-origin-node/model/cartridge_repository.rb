@@ -105,9 +105,9 @@ module OpenShift
     #   CartridgeRepository.instance.load("/var/lib/openshift/.cartridge_repository")  #=> 24
     def load(directory = nil)
       @semaphore.synchronize do
-        find_manifests(directory || @path) do |path|
-          c = insert(OpenShift::Runtime::Cartridge.new(path))
-          logger.debug { "Loaded cartridge (#{c.name}, #{c.version}, #{c.cartridge_version}) from #{path}" }
+        find_manifests(directory || @path) do |manifest_path|
+          c = insert(OpenShift::Runtime::Cartridge.new(manifest_path, @path))
+          logger.debug { "Loaded cartridge (#{c.name}, #{c.version}, #{c.cartridge_version}) from #{manifest_path}" }
         end
       end
 
@@ -160,12 +160,12 @@ module OpenShift
       raise ArgumentError.new("Illegal path to cartridge source: '#{directory}'") unless directory && File.directory?(directory)
       raise ArgumentError.new("Source cannot be: '#{@path}'") if directory == @path
 
-      path = PathUtils.join(directory, 'metadata', 'manifest.yml')
-      raise ArgumentError.new("Cartridge manifest.yml missing: '#{path}'") unless File.file?(path)
+      manifest_path = PathUtils.join(directory, 'metadata', 'manifest.yml')
+      raise ArgumentError.new("Cartridge manifest.yml missing: '#{manifest_path}'") unless File.file?(manifest_path)
 
       entry = nil
       @semaphore.synchronize do
-        entry = insert(OpenShift::Runtime::Cartridge.new(path))
+        entry = insert(OpenShift::Runtime::Cartridge.new(manifest_path, @path))
         FileUtils.mkpath(entry.repository_path)
         Utils.oo_spawn("/bin/cp -ad #{directory}/* #{entry.repository_path}",
                        expected_exitstatus: 0)

@@ -192,13 +192,7 @@ module OpenShift
       $logger.info("Adding alias #{alias_name} to gear #{@uuid} of application #{@app.name}")
       
       frontend = OpenShift::FrontendHttpServer.new(@uuid, @app.name, @app.account.domain)
-      out, err, rc = frontend.add_alias(alias_name)
-
-      outbuf = "Stdout: #{out}, Stderr: #{err}"
-      if rc != 0
-        $logger.error(outbuf)
-        raise Exception.new(outbuf)
-      end
+      frontend.add_alias(alias_name)
     end
 
     # Removes an alias from the gear
@@ -207,13 +201,7 @@ module OpenShift
       $logger.info("Adding alias #{alias_name} to gear #{@uuid} of application #{@app.name}")
 
       frontend = OpenShift::FrontendHttpServer.new(@uuid, @app.name, @app.account.domain)
-      out, err, rc = frontend.remove_alias(alias_name)
-
-      outbuf = "Stdout: #{out}, Stderr: #{err}"
-      if rc != 0
-        $logger.error(outbuf)
-        raise Exception.new(outbuf)
-      end
+      frontend.remove_alias(alias_name)
     end
 
     # List FrontendHttpServer proxy for the gear
@@ -377,8 +365,8 @@ module OpenShift
     end
 
     class DatabaseCartListener
-      def supports?(cart_name) 
-        ['mysql-5.1', 'mongodb-2.2', 'postgresql-8.4'].include?(cart_name)
+      def supports?(cart_name)
+        cart_name =~ /^(mysql|mongodb|postgresql)-[0-9\.]+/
       end
 
       class DbConnection

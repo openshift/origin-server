@@ -67,6 +67,206 @@ Given /^a new ([^ ]+) application, verify start, stop, restart using ([^ ]+)$/ d
   }
 end
 
+Given /^a new ([^ ]+) application, verify its availability$/ do |cart_name|
+  steps %{
+    Given the libra client tools
+    And an accepted node
+    When 1 #{cart_name} applications are created
+    Then the applications should be accessible
+    Then the applications should be accessible via node-web-proxy
+  }
+end
+
+Given /^an existing ([^ ]+) application, verify application aliases$/ do |cart_name|
+  steps %{
+    Given an existing #{cart_name} application
+    When the application is aliased
+    Then the application should respond to the alias
+  }
+end
+
+Given /^a new ([^ ]+) application, verify application alias setup on the node$/ do |cart_name|
+  steps %{
+    Given a new #{cart_name} type application
+    And I add an alias to the application
+    Then the php application will be aliased
+    And the php file permissions are correct
+    When I remove an alias from the application
+    Then the php application will not be aliased 
+    When I destroy the application
+    Then the http proxy will not exist
+  }
+end
+
+Given /^an existing ([^ ]+) application, verify submodules$/ do |cart_name|
+  steps %{
+    Given an existing #{cart_name} application
+    When the submodule is added
+    Then the submodule should be deployed successfully
+    And the application should be accessible
+  }
+end
+
+Given /^an existing ([^ ]+) application, verify code updates$/ do |cart_name|
+  steps %{
+    Given an existing #{cart_name} application
+    When the application is changed
+    Then it should be updated successfully
+    And the application should be accessible
+  }
+end
+
+Given /^an existing ([^ ]+) application, verify it can be stopped$/ do |cart_name|
+  steps %{
+    Given an existing #{cart_name} application
+    When the application is stopped
+    Then the application should not be accessible
+  }
+end
+
+Given /^an existing ([^ ]+) application, verify it can be started$/ do |cart_name|
+  steps %{
+    Given an existing #{cart_name} application
+    When the application is started
+    Then the application should be accessible
+  }
+end
+
+Given /^an existing ([^ ]+) application, verify it can be restarted$/ do |cart_name|
+  steps %{
+    Given an existing #{cart_name} application
+    When the application is restarted
+    Then the application should be accessible
+  }
+end
+
+Given /^an existing ([^ ]+) application, verify it can be tidied$/ do |cart_name|
+  steps %{
+    Given an existing #{cart_name} application
+    When I tidy the application
+    Then the application should be accessible
+  }
+end
+
+Given /^an existing ([^ ]+) application, verify it can be snapshotted and restored$/ do |cart_name|
+  steps %{
+    Given an existing #{cart_name} application    
+    When I snapshot the application
+    Then the application should be accessible
+    When I restore the application
+    Then the application should be accessible
+  }
+end
+
+Given /^an existing ([^ ]+) application, verify its namespace can be changed$/ do |cart_name|
+  steps %{
+    Given an existing #{cart_name} application
+    When the application namespace is updated
+    Then the application should be accessible
+  }
+end
+
+Given /^an existing ([^ ]+) application, verify it can be destroyed$/ do |cart_name|
+  steps %{
+    Given an existing #{cart_name} application
+    When the application is destroyed
+    Then the application should not be accessible
+    Then the application should not be accessible via node-web-proxy
+  }
+end
+
+Given /^a new ([^ ]+) application, verify rhcsh$/ do |cart_name|
+  steps %{
+    Given a new #{cart_name} type application
+    And the application is made publicly accessible
+
+    Then I can run "ls / > /dev/null" with exit code: 0
+    And I can run "this_should_fail" with exit code: 127
+    And I can run "true" with exit code: 0
+    And I can run "java -version" with exit code: 0
+    And I can run "scp" with exit code: 1
+  }
+end
+
+Given /^a new ([^ ]+) application, verify tail logs$/ do |cart_name|
+  steps %{
+    Given a new #{cart_name} type application
+    And the application is made publicly accessible
+    Then a tail process will not be running
+
+    When I tail the logs via ssh
+    Then a tail process will be running
+
+    When I stop tailing the logs
+    Then a tail process will not be running
+  }
+end
+
+Given /^a new ([^ ]+) application, obtain disk quota information via SSH$/ do |cart_name|
+  steps %{
+    Given a new #{cart_name} type application
+    And the application is made publicly accessible
+    Then I can obtain disk quota information via SSH
+  }
+end
+
+Given /^a new ([^ ]+) application, use ctl_all to start and stop it, and verify it using ([^ ]+)$/ do |cart_name, proc_name|
+  steps %{
+    Given a new #{cart_name} type application
+    And the application is made publicly accessible
+
+    When I stop the application using ctl_all via rhcsh
+    Then a #{proc_name} process will not be running
+
+    When I start the application using ctl_all via rhcsh
+    Then a #{proc_name} process will be running
+  }
+end
+
+Given /^a new ([^ ]+) application, with ([^ ]+) and ([^ ]+), verify that they are running using ([^ ]+) and ([^ ]+)$/ do |cart_name, db_type, management_app, proc_name, db_proc_name|
+  steps %{
+    Given a new #{cart_name} type application
+    And I embed a #{db_type} cartridge into the application
+    And I embed a #{management_app} cartridge into the application
+    And the application is made publicly accessible
+
+    When I stop the application using ctl_all via rhcsh
+    Then a #{proc_name} process for #{cart_name} will not be running
+    And a #{db_proc_name} process will not be running 
+    And a httpd process for #{management_app} will not be running
+
+    When I start the application using ctl_all via rhcsh
+    Then a #{proc_name} process for #{cart_name} will be running
+    And a #{db_proc_name} process will be running
+    And a httpd process for #{management_app} will be running
+  }
+end
+
+Given /^a new ([^ ]+) application, verify using socket file to connect to database$/ do |cart_name|
+  steps %{  
+    Given a new #{cart_name} type application
+    And I embed a mysql-5.1 cartridge into the application
+    And the application is made publicly accessible
+  
+    When I select from the mysql database using the socket file
+    Then the select result from the mysql database should be valid
+  }
+end
+
+Given /^a new ([^ ]+) application, verify when hot deploy is( not)? enabled, it does( not)? change pid of ([^ ]+) proc$/ do |cart_name, hot_deply_not_enabled, pid_not_changed, proc_name|
+  steps %{
+    Given a new #{cart_name} type application
+    And the application is made publicly accessible
+    And hot deployment is#{hot_deply_not_enabled} enabled for the application
+    And the application cartridge PIDs are tracked
+    When an update is pushed to the application repo
+    Then a #{proc_name} process will be running
+    And the tracked application cartridge PIDs should#{pid_not_changed} be changed
+    When I destroy the application
+    Then a #{proc_name} process will not be running
+  }
+end
+
 # Creates a new account, application, gear, and cartridge in one shot.
 # The cartridge is then configured. After running this step, subsequent
 # steps will have access to three pieces of state:

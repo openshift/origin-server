@@ -162,7 +162,7 @@ fi
 %endif
 
 #selinux updated
-/sbin/semanage -i - <<_EOF
+/usr/sbin/semanage -i - <<_EOF
 fcontext -a -t httpd_log_t '%{_var}/log/openshift/console(/.*)?'
 fcontext -a -t httpd_log_t '%{_var}/log/openshift/console/httpd(/.*)?'
 _EOF

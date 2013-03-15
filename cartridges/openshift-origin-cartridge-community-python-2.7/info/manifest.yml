@@ -1,5 +1,5 @@
 Name: python-2.7
-Namespace: PYTHON
+Cartridge-Short-Name: PYTHON
 Display-Name: Python 2.7 Community Cartridge
 Description: "Community supported Python 2.7 cartridge. See the community site for examples of bringing your cartridge to OpenShift. Python is a general-purpose, high-level programming language whose design philosophy emphasizes code readability. Popular development frameworks include: Django, Bottle, Pylons, Zope and TurboGears."
 Version: 2.7
@@ -99,4 +99,7 @@ Group-Overrides:
     - python-2.7
     - web_proxy
 Endpoints:
-  - "IP:PORT(8080):PROXY_PORT"
+  - Private-IP-Name:   IP
+    Private-Port-Name: PORT
+    Private-Port:      8080
+    Public-Port-Name:  PROXY_PORT

@@ -1,11 +1,13 @@
 Name: jbosseap
-Namespace: JBOSSEAP
+Cartridge-Short-Name: JBOSSEAP
 Display-Name: JBoss Enterprise Application Platform
 Description: "Market-leading open source enterprise platform for next-generation, highly transactional enterprise Java applications. Build and deploy enterprise Java in the cloud."
 Version: 6.0.1
 License: LGPL
 License-Url: http://www.gnu.org/copyleft/lesser.txt
 Vendor: Red Hat
+Cartridge-Version: 0.0.1
+Cartridge-Vendor: redhat
 Categories:
   - service
   - web_framework

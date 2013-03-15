@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/openshift/cartridges/v2/perl
 
 Name: openshift-origin-cartridge-perl
-Version: 0.1.1
+Version: 0.1.2
 Release: 1%{?dist}
 Summary: Perl cartridge
 Group: Development/Languages
@@ -63,6 +63,11 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Thu Mar 14 2013 Adam Miller <admiller@redhat.com> 0.1.2-1
+- Refactor Endpoints to support frontend mapping (ironcladlou@gmail.com)
+- Fix perl version to 5.10 (dmcphers@redhat.com)
+- remove old obsoletes (tdawson@redhat.com)
+
 * Tue Mar 12 2013 Adam Miller <admiller@redhat.com> 0.1.1-1
 - Fixing tag on master
 

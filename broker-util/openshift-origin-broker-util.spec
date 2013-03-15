@@ -6,13 +6,17 @@
 
 Summary:       Utility scripts for the OpenShift Origin broker
 Name:          openshift-origin-broker-util
-Version: 1.6.1
+Version: 1.6.2
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
 URL:           http://openshift.redhat.com
 Source0:       http://mirror.openshift.com/pub/openshift-origin/source/%{name}/%{name}-%{version}.tar.gz
+%if 0%{?fedora} >= 19
+Requires:      ruby(release)
+%else
 Requires:      %{?scl:%scl_prefix}ruby(abi) >= %{rubyabi}
+%endif
 Requires:      openshift-origin-broker
 # For oo-register-dns
 Requires:      bind-utils
@@ -85,6 +89,16 @@ cp kickstart/openshift-origin-remix.ks %{buildroot}/usr/share/openshift/kickstar
 %{_mandir}/man8/oo-stats.8.gz
 
 %changelog
+* Thu Mar 14 2013 Adam Miller <admiller@redhat.com> 1.6.2-1
+- Merge pull request #1637 from brenton/BZ921257 (dmcphers@redhat.com)
+- Lots of oo-accept-broker fixes (bleanhar@redhat.com)
+- Make packages build/install on F19+ (tdawson@redhat.com)
+- Bug 921257 - Warn users to change the default AUTH_SALT (bleanhar@redhat.com)
+- Merge pull request #1607 from brenton/oo-admin-broker-auth
+  (dmcphers+openshiftbot@redhat.com)
+- Adding oo-admin-broker-auth (bleanhar@redhat.com)
+- fix bug919379 (rchopra@redhat.com)
+
 * Thu Mar 07 2013 Adam Miller <admiller@redhat.com> 1.6.1-1
 - bump_minor_versions for sprint 25 (admiller@redhat.com)
 

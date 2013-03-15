@@ -8,6 +8,14 @@ require 'rest-client'
 
 include AppHelper
 
+Given /^a ([^ ]+) application, verify that you cannot add jenkins client without server being available$/ do |cart_name|
+  steps %Q{
+    Given a new #{cart_name} type application
+    When I fail to embed a jenkins-client-1.4 cartridge into the application
+    Then the embedded jenkins-client-1.4 cartridge directory will not exist
+  }
+end
+
 When /^I configure a hello_world diy application with jenkins enabled$/ do
     @app = TestApp.create_unique('diy-0.1', 'diy')
     run "echo -e \"Host #{@app.hostname}\n\tStrictHostKeyChecking no\n\" >> ~/.ssh/config"

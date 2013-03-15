@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/openshift/cartridges/v2/mock
 
 Name: openshift-origin-cartridge-mock
-Version: 0.1.1
+Version: 0.1.2
 Release: 1%{?dist}
 Summary: Mock cartridge for V2 Cartridge SDK
 Group: Development/Languages
@@ -58,6 +58,16 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Thu Mar 14 2013 Adam Miller <admiller@redhat.com> 0.1.2-1
+- Refactor Endpoints to support frontend mapping (ironcladlou@gmail.com)
+- WIP Cartridge Refactor - Cartridge Repository (jhonce@redhat.com)
+- Revert "Merge pull request #1622 from jwhonce/wip/cartridge_repository"
+  (dmcphers@redhat.com)
+- WIP Cartridge Refactor - Cartridge Repository (jhonce@redhat.com)
+- Revert "Merge pull request #1604 from jwhonce/wip/cartridge_repository"
+  (dmcphers@redhat.com)
+- WIP Cartridge Refactor - Cartridge Repository (jhonce@redhat.com)
+
 * Thu Mar 07 2013 Adam Miller <admiller@redhat.com> 0.1.1-1
 - bump_minor_versions for sprint 25 (admiller@redhat.com)
 

@@ -1,7 +1,3 @@
-TODO:
-
-- [ ] Gear log design. Read access.
-
 # How To Write An OpenShift Origin Cartridge 2.0
 
 OpenShift cartridges provide the necessary command and control for
@@ -99,7 +95,7 @@ Cartridge-Version: 1.0.1
 Cartridge-Versions: [1.0.1]
 Cartridge-Vendor: Red Hat
 Display-Name: PHP 5.3
-Description: "PHP is a general-purpose server-side scripting language...
+Description: "PHP is a general-purpose server-side scripting language..."
 Version: 5.3
 Versions: [5.3]
 License: "The PHP License, version 3.0"
@@ -151,7 +147,14 @@ Group-Overrides:
     - php-5.3
     - web_proxy
 Endpoints:
-  - "IP:PORT(8080):PROXY_PORT"
+  - Private-IP-Name:   IP1
+    Private-Port-Name: HTTP_PORT
+    Private-Port:      8080
+    Public-Port-Name:  PROXY_HTTP_PORT
+    Mappings:
+      - Frontend:      "/front"
+        Backend:       "/back"
+        Options:       { websocket: true }
 ```
 
 ### Cartridge-Short-Name Element
@@ -358,13 +361,25 @@ variable names to describe:
   * (Optional) Publicly proxied ports which expose gear-local ports for use by the
     application's users or across application gears
 
+In addition to IP and port definitions, Endpoints are where frontend httpd mappings
+for your cartridge are declared to route traffic from the outside world to your
+cartridge's services.
+
 These declarations represent "Endpoints," and are defined in the cartridge
-`manifest.yml` in the `Endpoints` section using the following syntax:
+`manifest.yml` in the `Endpoints` section using the following format:
 
 ```
 Endpoints:
-  - "<name of IP variable>:<name of port variable>(<port>)[:<name of public port variable>]"
-  - ...
+  - Private-IP-Name:   <name of IP variable>
+    Private-Port-Name: <name of port variable>
+    Private-Port:      <port number>
+    Public-Port-Name:  <name of public port variable>
+    Mappings:
+      - Frontend:      "<frontend path>"
+        Backend:       "<backend path>"
+        Options:       { ... }
+      - <...>
+  - <...>
 ```
 
 During cartridge installation within a gear, IP addresses will be automatically
@@ -380,12 +395,32 @@ names of these variables are prefixed with OpenShift namespacing information in 
 follow the format:
 
 ```
-OPENSHIFT_{Cartridge-Short-Name}_{name of IP variable} => <assigned internal IP>
-OPENSHIFT_{Cartridge-Short-Name}_{name of port variable} => <endpoint specified port>
+OPENSHIFT_{Cartridge-Short-Name}_{name of IP variable}          => <assigned internal IP>
+OPENSHIFT_{Cartridge-Short-Name}_{name of port variable}        => <endpoint specified port>
 OPENSHIFT_{Cartridge-Short-Name}_{name of public port variable} => <assigned external port>
 ```
 
-`Cartridge-Short-Name` is the `Cartridge-Short-Name` element from the cartridge manifest file. See above.
+`Cartridge-Short-Name` is the `Cartridge-Short-Name` element from the cartridge manifest 
+file. See above.
+
+If an endpoint specifies a `Mappings` section, each mapping entry will be used
+to create a frontend httpd  route to your cartridge using the provided options.
+The `Frontend` key represents a frontend path element  to be connected to a
+backend URI specified by the `Backend` key. The optional `Options` hash for a
+mapping allows the route to be configured in a variety of ways:
+
+```
+Options:
+  websocket      Enable web sockets on a particular path
+  gone           Mark the path as gone (uri is ignored)
+  forbidden      Mark the path as forbidden (uri is ignored)
+  noproxy        Mark the path as not proxied (uri is ignored)
+  redirect       Use redirection to uri instead of proxy (uri must be a path)
+  file           Ignore request and load file path contained in uri (must be path)
+  tohttps        Redirect request to https and use the path contained in the uri (must be path)
+```
+
+While more than one option is allowed, the above options conflict with each other.
 
 ### Endpoint Example
 
@@ -398,9 +433,28 @@ Cartridge-Short-Name: CUSTOMCART
 ...
 
 Endpoints:
-  - "HTTP_IP:WEB_PORT(8080):WEB_PROXY_PORT"
-  - "HTTP_IP:ADMIN_PORT(9000):ADMIN_PROXY_PORT"
-  - "INTERNAL_SERVICE_IP:INTERNAL_SERVICE_PORT(5544)"
+  - Private-IP-Name:   HTTP_IP
+    Private-Port-Name: WEB_PORT
+    Private-Port:      8080
+    Public-Port-Name:  WEB_PROXY_PORT
+    Mappings:
+      - Frontend:      "/web_front"
+        Backend:       "/web_back"
+      - Frontend:      "/socket_front"
+        Backend:       "/socket_back"
+        Options:       { "websocket": true }
+
+  - Private-IP-Name:   HTTP_IP
+    Private-Port-Name: ADMIN_PORT
+    Private-Port:      9000
+    Public-Port-Name:  ADMIN_PROXY_PORT
+    Mappings:
+      - Frontend:      "/admin_front"
+      - Backend:       "/admin_back"
+
+  - Private-IP-Name:   INTERNAL_SERVICE_IP
+    Private-Port-Name: 5544
+    Public-Port-Name:  INTERNAL_SERVICE_PORT
 ```
 
 The following environment variables will be generated:
@@ -423,6 +477,14 @@ In the above example, the public proxy port mappings are as follows:
 ```
 <assigned external IP>:<assigned public port 1> => OPENSHIFT_CUSTOMCART_HTTP_IP:OPENSHIFT_CUSTOMCART_WEB_PORT
 <assigned external IP>:<assigned public port 2> => OPENSHIFT_CUSTOMCART_HTTP_IP:OPENSHIFT_CUSTOMCART_ADMIN_PORT
+```
+
+And finally, the following frontend httpd routes will be created:
+
+```
+http://<app dns>/web_front    => http://OPENSHIFT_CUSTOMCART_HTTP_IP:8080/web_back
+http://<app dns>/socket_front => http://OPENSHIFT_CUSTOMCART_HTTP_IP:8080/socket_back
+http://<app dns>/admin_front  => http://OPENSHIFT_CUSTOMCART_HTTP_IP:9000/admin_back
 ```
 
 

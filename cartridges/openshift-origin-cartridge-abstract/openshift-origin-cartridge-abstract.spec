@@ -7,7 +7,7 @@
 
 Summary:       OpenShift common cartridge components
 Name:          openshift-origin-cartridge-abstract
-Version:       1.6.1
+Version:       1.6.2
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -57,9 +57,6 @@ cp -rv -p abstract %{buildroot}%{cartdir}/
 cp -rv -p abstract-httpd %{buildroot}%{cartdir}/
 cp -rv -p abstract-jboss %{buildroot}%{cartdir}/
 
-# Remove bundled library
-rm -f %{buildroot}%{cartdir}/abstract-jboss/info/data/mysql.tar
-
 %files
 %doc COPYRIGHT LICENSE
 %dir %{_libexecdir}/openshift/
@@ -87,10 +84,15 @@ rm -f %{buildroot}%{cartdir}/abstract-jboss/info/data/mysql.tar
 %attr(0750,-,-) %{_libexecdir}/openshift/cartridges/abstract-jboss/info/hooks/
 %attr(0755,-,-) %{_libexecdir}/openshift/cartridges/abstract-jboss/info/bin/
 %attr(0750,-,-) %{_libexecdir}/openshift/cartridges/abstract-jboss/info/connection-hooks/
-%attr(0750,-,-) %{_libexecdir}/openshift/cartridges/abstract-jboss/info/data/
 %doc %{_libexecdir}/openshift/cartridges/abstract-jboss/README.md
 
 %changelog
+* Thu Mar 14 2013 Adam Miller <admiller@redhat.com> 1.6.2-1
+- Merge pull request #1625 from tdawson/tdawson/remove-obsoletes
+  (dmcphers+openshiftbot@redhat.com)
+- minor cleanup of some cartridge spec files (tdawson@redhat.com)
+- remove old obsoletes (tdawson@redhat.com)
+
 * Thu Mar 07 2013 Adam Miller <admiller@redhat.com> 1.6.1-1
 - bump_minor_versions for sprint 25 (admiller@redhat.com)
 

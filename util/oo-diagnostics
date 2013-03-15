@@ -1018,7 +1018,7 @@ class OODiag
     end
     if @is_node
       fail_without += %w{httpd network sshd openshift-port-proxy openshift-gears mcollective
-                        cgconfig cgred openshift-cgroups }
+                        cgconfig cgred openshift-cgroups crond }
       fail_without += %w{openshift-node-web-proxy } unless @project_is[:enterprise]
 
       warn_without += %w{ntpd oddjobd messagebus}

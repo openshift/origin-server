@@ -10,7 +10,7 @@ $hostname = "localhost"
 begin
   if File.exists?("/etc/openshift/node.conf")
     config = ParseConfig.new("/etc/openshift/node.conf")
-    val = config.get_value("PUBLIC_HOSTNAME").gsub!(/[ \t]*#[^\n]*/,"")
+    val = config["PUBLIC_HOSTNAME"].gsub!(/[ \t]*#[^\n]*/,"")
     val = val[1..-2] if val.start_with? "\""
     $hostname = val
   end
@@ -29,6 +29,273 @@ After do |scenario|
   (@undo_config || []).each do |(main, secondary, value)|
     Rails.configuration[main.to_sym][secondary.to_sym] = value
   end
+end
+
+Given /^a new user, verify typical REST interactios with a ([^ ]+) application over ([^ ]+) format$/ do |cart_name, format|
+  steps %{
+    Given a new user
+    And I accept "#{format}"
+    When I send a POST request to "/user/keys" with the following:"name=api&type=ssh-rsa&content=XYZ123567"
+    Then the response should be "201"
+    And the response should be a "key" with attributes "name=api&type=ssh-rsa&content=XYZ123567"
+    When I send a GET request to "/user/keys/api"
+    Then the response should be "200"
+    And the response should be a "key" with attributes "name=api&type=ssh-rsa&content=XYZ123567"
+    When I send a POST request to "/domains" with the following:"id=api<random>"
+    Then the response should be "201"
+    When I send a POST request to "/domains/api<random>/applications" with the following:"name=app&cartridge=#{cart_name}"
+    Then the response should be "201"
+    And the response should be a "application" with attributes "name=app&framework=#{cart_name}"
+    When I send a GET request to "/domains/api<random>/applications/app"
+    Then the response should be "200"
+    And the response should be a "application" with attributes "name=app&framework=#{cart_name}"
+    When I send a GET request to "/domains/api<random>/applications"
+    Then the response should be "200"
+    When I send a POST request to "/domains/api<random>/applications/app/events" with the following:"event=stop"
+    Then the response should be "200"
+    When I send a POST request to "/domains/api<random>/applications/app/events" with the following:"event=start"
+    Then the response should be "200"
+    When I send a POST request to "/domains/api<random>/applications/app/events" with the following:"event=start"
+    Then the response should be "200"
+    When I send a POST request to "/domains/api<random>/applications/app/events" with the following:"event=force-stop"
+    Then the response should be "200"
+    When I send a POST request to "/domains/api<random>/applications/app/events" with the following:"event=add-alias&alias=app-api<random>.foobar.com"
+    Then the response should be "200"
+    When I send a POST request to "/domains/api<random>/applications/app/events" with the following:"event=remove-alias&alias=app-api<random>.foobar.com"
+    Then the response should be "200"
+    When I send a POST request to "/domains/api<random>/applications/app/cartridges" with the following:"cartridge=mysql-5.1"
+    Then the response should be "201"
+    When I send a GET request to "/domains/api<random>/applications/app/descriptor"
+    Then the response descriptor should have "#{cart_name},mysql-5.1" as dependencies
+    When I send a POST request to "/domains/api<random>/applications/app/cartridges/mysql-5.1/events" with the following:"event=stop"
+    Then the response should be "200"
+    When I send a POST request to "/domains/api<random>/applications/app/cartridges/mysql-5.1/events" with the following:"event=start"
+    Then the response should be "200"
+    When I send a POST request to "/domains/api<random>/applications/app/cartridges/mysql-5.1/events" with the following:"event=restart"
+    Then the response should be "200"
+    When I send a DELETE request to "/domains/api<random>/applications/app/cartridges/mysql-5.1"
+    Then the response should be "200"
+    When I send a PUT request to "/domains/api<random>" with the following:"id=apiX<random>"
+    Then the response should be "200"
+    And the response should be a "domain" with attributes "id=apiX<random>"
+    When I send a DELETE request to "/domains/apiX<random>/applications/app"
+    Then the response should be "204"
+    When I send a GET request to "/domains/apiX<random>/applications/app"
+    Then the response should be "404"
+    When I send a DELETE request to "/domains/apiX<random>"
+    Then the response should be "204"
+    When I send a DELETE request to "/user/keys/api"
+    Then the response should be "204"
+  }
+end
+
+Given /^a new user, create a ([^ ]+) application using ([^ ]+) format and verify application state on gear$/ do |cart_name, format|
+  steps %{
+    Given a new user
+    And I accept "#{format}"
+    When I send a POST request to "/domains" with the following:"id=api<random>"
+    Then the response should be "201"
+    When I send a POST request to "/domains/api<random>/applications" with the following:"name=app&cartridge=#{cart_name}"
+    Then the response should be "201"
+    
+    When I send a GET request to "/domains/api<random>/applications/app/gear_groups"
+    Then the response should be a "gear-group/gears/gear" with attributes "state=started"
+    
+    When I send a POST request to "/domains/api<random>/applications/app/events" with the following:"event=stop"
+    Then the response should be "200"
+    When I send a GET request to "/domains/api<random>/applications/app/gear_groups"
+    Then the response should be a "gear-group/gears/gear" with attributes "state=stopped"
+    
+    When I send a POST request to "/domains/api<random>/applications/app/events" with the following:"event=start"
+    Then the response should be "200"
+    When I send a GET request to "/domains/api<random>/applications/app/gear_groups"
+    Then the response should be a "gear-group/gears/gear" with attributes "state=started"
+    
+    When I send a POST request to "/domains/api<random>/applications/app/events" with the following:"event=restart"
+    Then the response should be "200"
+    When I send a GET request to "/domains/api<random>/applications/app/gear_groups"
+    Then the response should be a "gear-group/gears/gear" with attributes "state=started"
+    
+    When I send a DELETE request to "/domains/api<random>/applications/app"
+    Then the response should be "204"
+  }
+end
+
+Given /^a new user, create a ([^ ]+) application using ([^ ]+) format and verify application list API$/ do |cart_name, format|
+  steps %{
+    Given a new user
+    And I accept "#{format}"
+    When I send a POST request to "/domains" with the following:"id=api<random>"
+    Then the response should be "201"
+    When I send a POST request to "/domains/api<random>/applications" with the following:"name=app&cartridge=#{cart_name}"
+    Then the response should be "201"
+    When I send a GET request to "/domains/api<random>/applications"
+    Then the response should be "200"
+    When I send a DELETE request to "/domains/api<random>/applications/app"
+    Then the response should be "204"
+  }
+end
+
+Given /^a new user, create a ([^ ]+) application using ([^ ]+) format and verify application creation API$/ do |cart_name, format|
+  steps %{
+    Given a new user
+    And I accept "#{format}"
+    When I send a POST request to "/domains" with the following:"id=api<random>"
+    Then the response should be "201"
+    When I send a POST request to "/domains/api<random>/applications" with the following:"name=app&cartridge=#{cart_name}"
+    Then the response should be "201"
+    And the response should be a "application" with attributes "name=app&framework=#{cart_name}"
+    When I send a DELETE request to "/domains/api<random>/applications/app"
+    Then the response should be "204"
+  }
+end
+
+Given /^a new user, create a ([^ ]+) application with ([^ ]+) using ([^ ]+) format and verify application creation API$/ do |cart_name, add_cart_name, format|
+  steps %{
+    Given a new user
+    And I accept "#{format}"
+    When I send a POST request to "/domains" with the following:"id=api<random>"
+    Then the response should be "201"
+    When I send a POST request to "/domains/api<random>/applications" with the following:"name=app&cartridges=#{cart_name}&cartridges=mysql-5.1&cartridges=#{add_cart_name}&initial_git_url=https://github.com/openshift/wordpress-example"
+    Then the response should be "201"
+    And the response should be a "application" with attributes "name=app&framework=#{cart_name}"
+    When I send a DELETE request to "/domains/api<random>/applications/app"
+    Then the response should be "204"
+  }
+end
+
+Given /^a new user, create an invalid application with php-([^ ]+), ruby-1.9, mysql-5.1, phpmyadmin-([^ ]+) using ([^ ]+) format and verify application creation API$/ do |php_version, phpmyadmin_version, format|
+  steps %{
+    Given a new user
+    And I accept "#{format}"
+    When I send a POST request to "/domains" with the following:"id=api<random>"
+    Then the response should be "201"
+    When I send a POST request to "/domains/api<random>/applications" with the following:"name=app&cartridges=mysql-5.1&cartridges=phpmyadmin-#{phpmyadmin_version}"
+    Then the response should be "422"
+    When I send a POST request to "/domains/api<random>/applications" with the following:"name=app&cartridges=php-#{php_version}&cartridges=ruby-1.9"
+    Then the response should be "422"
+  }
+end
+
+Given /^a new user, create a php-([^ ]+) application using ([^ ]+) format with blank, missing, too long and invalid name and verify application creation API$/ do |php_version, format|
+  steps %{
+    Given a new user
+    And I accept "#{format}"
+    When I send a POST request to "/domains" with the following:"id=api<random>"
+    Then the response should be "201"
+    When I send a POST request to "/domains/api<random>/applications" with the following:"name=&cartridge=php-#{php_version}"
+    Then the response should be "422"
+    And the error message should have "field=name&severity=error&exit_code=105"
+    When I send a POST request to "/domains/api<random>/applications" with the following:"cartridge=php-#{php_version}"
+    Then the response should be "422"
+    And the error message should have "field=name&severity=error&exit_code=105"
+    When I send a POST request to "/domains/api<random>/applications" with the following:"name=app?one&cartridge=php-#{php_version}"
+    Then the response should be "422"
+    And the error message should have "field=name&severity=error&exit_code=105"
+    When I send a POST request to "/domains/api<random>/applications" with the following:"name=appone1234567890123456789012345678901234567890&cartridge=php-#{php_version}"
+    Then the response should be "422"
+    And the error message should have "field=name&severity=error&exit_code=105"
+  }
+end
+
+Given /^a new user, create a php-([^ ]+) application using ([^ ]+) format verify retrieving application details$/ do |php_version, format|
+  steps %{
+    Given a new user
+    And I accept "#{format}"
+    When I send a POST request to "/domains" with the following:"id=api<random>"
+    Then the response should be "201"
+    When I send a POST request to "/domains/api<random>/applications" with the following:"name=app&cartridge=php-#{php_version}"
+    Then the response should be "201"
+    When I send a GET request to "/domains/api<random>/applications/app"
+    Then the response should be "200"
+    And the response should be a "application" with attributes "name=app&framework=php-#{php_version}"
+    When I send a DELETE request to "/domains/api<random>/applications/app"
+    Then the response should be "204"
+  }
+end
+
+Given /^a new user, create a php-([^ ]+) application using ([^ ]+) format verify application ([^ ]+) API$/ do |php_version, format, event|
+  steps %{
+    Given a new user
+    And I accept "#{format}"
+    When I send a POST request to "/domains" with the following:"id=api<random>"
+    Then the response should be "201"
+    When I send a POST request to "/domains/api<random>/applications" with the following:"name=app&cartridge=php-#{php_version}"
+    Then the response should be "201"
+    When I send a POST request to "/domains/api<random>/applications/app/events" with the following:"event=#{event}"
+    Then the response should be "200"
+    When I send a DELETE request to "/domains/api<random>/applications/app"
+    Then the response should be "204"
+  }
+end
+
+Given /^a new user, create a php-([^ ]+) application using ([^ ]+) format verify adding and removing application aliases$/ do |php_version, format|
+  steps %{
+    Given a new user
+    And I accept "#{format}"
+    When I send a POST request to "/domains" with the following:"id=api<random>"
+    Then the response should be "201"
+    When I send a POST request to "/domains/api<random>/applications" with the following:"name=app&cartridge=php-#{php_version}"
+    Then the response should be "201"
+    When I send a POST request to "/domains/api<random>/applications/app/events" with the following:"event=add-alias"
+    Then the response should be "422"
+    When I send a POST request to "/domains/api<random>/applications/app/events" with the following:"event=add-alias&alias=app-api.foobar.com"
+    Then the response should be "200"
+    When I send a POST request to "/domains/api<random>/applications/app/events" with the following:"event=remove-alias&alias=app-api.foobar.com"
+    Then the response should be "200"
+    When I send a POST request to "/domains/api<random>/applications/app/events" with the following:"event=add-alias&alias=app-@#$api.foobar.com"
+    Then the response should be "422"
+    When I send a DELETE request to "/domains/api<random>/applications/app"
+    Then the response should be "204"
+  }
+end
+
+Given /^a new user, create a php-([^ ]+) application using ([^ ]+) format verify application deletion$/ do |php_version, format|
+  steps %{
+    Given a new user
+    And I accept "#{format}"
+    When I send a POST request to "/domains" with the following:"id=api<random>"
+    Then the response should be "201"
+    When I send a POST request to "/domains/api<random>/applications" with the following:"name=app&cartridge=php-#{php_version}"
+    Then the response should be "201"
+    When I send a DELETE request to "/domains/api<random>/applications/app"
+    Then the response should be "204"
+    When I send a GET request to "/domains/api<random>/applications/app"
+    Then the response should be "404"
+  }
+end
+
+Given /^a new user, create a php-([^ ]+) application using ([^ ]+) format verify that duplicate application creation fails$/ do |php_version, format|
+  steps %{
+    Given a new user
+    And I accept "#{format}"
+    When I send a POST request to "/domains" with the following:"id=api<random>"
+    Then the response should be "201"
+    When I send a POST request to "/domains/api<random>/applications" with the following:"name=app&cartridge=php-#{php_version}"
+    Then the response should be "201"
+    When I send a POST request to "/domains/api<random>/applications" with the following:"name=app&cartridge=php-#{php_version}"
+    Then the response should be "422"
+    And the error message should have "field=name&severity=error&exit_code=100"
+    When I send a DELETE request to "/domains/api<random>/applications/app"
+    Then the response should be "204"
+  }
+end
+
+Given /^a new user, create a php-([^ ]+) application using ([^ ]+) format verify the application descriptor API$/ do |php_version, format|
+  steps %{
+    Given a new user
+    And I accept "#{format}"
+    When I send a POST request to "/domains" with the following:"id=api<random>"
+    Then the response should be "201"
+    When I send a POST request to "/domains/api<random>/applications" with the following:"name=app&cartridge=php-#{php_version}"
+    Then the response should be "201"
+    When I send a POST request to "/domains/api<random>/applications/app/cartridges" with the following:"cartridge=mysql-5.1"
+    Then the response should be "201"
+    When I send a GET request to "/domains/api<random>/applications/app/descriptor"
+    Then the response descriptor should have "php-#{php_version},mysql-5.1" as dependencies
+    When I send a DELETE request to "/domains/api<random>/applications/app"
+    Then the response should be "204"
+  }
 end
 
 Given /^a new user$/ do

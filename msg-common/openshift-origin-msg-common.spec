@@ -8,7 +8,7 @@
 
 Summary:       Common dependencies of the msg components for OpenShift server and node
 Name:          openshift-origin-msg-common
-Version: 1.4.1
+Version: 1.4.2
 Release:       1%{?dist}
 License:       ASL 2.0
 URL:           http://openshift.redhat.com
@@ -37,6 +37,15 @@ chmod 644 %{buildroot}%{mco_root}validator/*
 %{mco_root}validator/*
 
 %changelog
+* Thu Mar 14 2013 Adam Miller <admiller@redhat.com> 1.4.2-1
+- WIP Cartridge Refactor - Cartridge Repository (jhonce@redhat.com)
+- Revert "Merge pull request #1622 from jwhonce/wip/cartridge_repository"
+  (dmcphers@redhat.com)
+- WIP Cartridge Refactor - Cartridge Repository (jhonce@redhat.com)
+- Revert "Merge pull request #1604 from jwhonce/wip/cartridge_repository"
+  (dmcphers@redhat.com)
+- WIP Cartridge Refactor - Cartridge Repository (jhonce@redhat.com)
+
 * Thu Mar 07 2013 Adam Miller <admiller@redhat.com> 1.4.1-1
 - bump_minor_versions for sprint 25 (admiller@redhat.com)
 

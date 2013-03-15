@@ -1,11 +1,13 @@
 Name: ruby-1.9
-Namespace: RUBY
+Cartridge-Short-Name: RUBY
 Display-Name: Ruby 1.9
 Description: "Ruby is a general-purpose server-side scripting language originally designed for Web development to produce dynamic Web pages. Popular development frameworks include: CakeRuby, Zend, Symfony, and Code Igniter."
 Version: 1.9
 License: "Ruby BSDL"
 License-Url: http://www.ruby-lang.org/en/about/license.txt
 Vendor: ruby.org
+Cartridge-Version: 0.0.1
+Cartridge-Vendor: redhat
 Categories:
   - service
   - ruby
@@ -73,6 +75,8 @@ Group-Overrides:
   - components:
     - ruby-1.9
     - web_proxy
-
 Endpoints:
-  - "IP:PORT(8080):PROXY_PORT"
+  - Private-IP-Name:   IP
+    Private-Port-Name: PORT
+    Private-Port:      8080
+    Public-Port-Name:  PROXY_PORT

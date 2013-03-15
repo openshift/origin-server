@@ -15,7 +15,7 @@
 }
 .alert,
 .alert-heading {
-  color: $warningText;
+  color: $warningText !important;
 }
 
 .alert a, .alert a:hover, alert a:active {
@@ -43,7 +43,7 @@
 }
 .alert-success,
 .alert-success .alert-heading {
-  color: $successText;
+  color: $successText !important;
 }
 .alert-danger,
 .alert-error {
@@ -54,7 +54,7 @@
 .alert-error,
 .alert-danger .alert-heading,
 .alert-error .alert-heading {
-  color: $errorText;
+  color: $errorText !important;
 }
 .alert-info {
   background-color: $infoBackground;
@@ -68,7 +68,7 @@
 }
 .alert-info,
 .alert-info .alert-heading {
-  color: $infoText;
+  color: $infoText !important;
 }
 
 

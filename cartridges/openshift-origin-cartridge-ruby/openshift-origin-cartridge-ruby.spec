@@ -6,14 +6,14 @@
 %global cartridgedir %{_libexecdir}/openshift/cartridges/v2/ruby
 %global frameworkdir %{_libexecdir}/openshift/cartridges/v2/ruby
 
-Name: openshift-origin-cartridge-ruby
-Version: 0.1.2
-Release: 1%{?dist}
-Summary: Ruby cartridge
-Group: Development/Languages
-License: ASL 2.0
-URL: https://openshift.redhat.com
-Source0: http://mirror.openshift.com/pub/origin-server/source/%{name}/%{name}-%{version}.tar.gz
+Name:          openshift-origin-cartridge-ruby
+Version:       0.1.3
+Release:       1%{?dist}
+Summary:       Ruby cartridge
+Group:         Development/Languages
+License:       ASL 2.0
+URL:           https://openshift.redhat.com
+Source0:       http://mirror.openshift.com/pub/origin-server/source/%{name}/%{name}-%{version}.tar.gz
 Requires:      openshift-origin-cartridge-abstract
 Requires:      sqlite-devel
 Requires:      libev
@@ -113,8 +113,8 @@ Requires:      js
 Requires:      ImageMagick-devel
 Requires:      ruby-RMagick
 BuildRequires: git
-BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
-BuildArch: noarch
+BuildRoot:     %{_tmppath}/%{name}-%{version}-%{release}-root
+BuildArch:     noarch
 
 %description
 Ruby cartridge for openshift.
@@ -150,6 +150,11 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Thu Mar 14 2013 Adam Miller <admiller@redhat.com> 0.1.3-1
+- Refactor Endpoints to support frontend mapping (ironcladlou@gmail.com)
+- Make packages build/install on F19+ (tdawson@redhat.com)
+- remove old obsoletes (tdawson@redhat.com)
+
 * Tue Mar 12 2013 Adam Miller <admiller@redhat.com> 0.1.2-1
 - Fixing tags on master
 

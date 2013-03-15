@@ -21,6 +21,7 @@ class CartridgeType < RestApi::Base
   attr_accessor :conflicts, :requires
   attr_accessor :help_topics
   attr_accessor :priority
+  attr_accessor :usage_rates
 
   has_many :properties, :class_name => 'rest_api/base/attribute_hash'
   has_many :usage_rate, :class_name => 'rest_api/base/attribute_hash'
@@ -79,6 +80,10 @@ class CartridgeType < RestApi::Base
     @priority || 0
   end
 
+  def usage_rates
+    @usage_rates || []
+  end
+
   def scalable
     self.attributes['supported_scales_to'] != self.attributes['supported_scales_from']
   end
@@ -104,8 +109,8 @@ class CartridgeType < RestApi::Base
   def self.matches(s, opts=nil)
     every = all(opts)
     s.split('|').map{ |s| s.gsub('*','') }.map do |s|
-      Array(every.find{ |t| t.name == s } || every.select do |t| 
-        t.name.include?(s) 
+      Array(every.find{ |t| t.name == s } || every.select do |t|
+        t.name.include?(s)
       end)
     end.flatten.uniq
   end

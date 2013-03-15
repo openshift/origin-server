@@ -9,14 +9,17 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.6.1
+Version: 1.6.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
 URL:           http://openshift.redhat.com
 Source0:       http://mirror.openshift.com/pub/openshift-origin/source/%{name}/rubygem-%{gem_name}-%{version}.tar.gz
-Requires:      %{?scl:%scl_prefix}ruby(abi) = %{rubyabi}
-Requires:      %{?scl:%scl_prefix}ruby
+%if 0%{?fedora} >= 19
+Requires:      ruby(release)
+%else
+Requires:      %{?scl:%scl_prefix}ruby(abi) >= %{rubyabi}
+%endif
 Requires:      %{?scl:%scl_prefix}rubygems
 Requires:      %{?scl:%scl_prefix}rubygem(state_machine)
 Requires:      rubygem(openshift-origin-common)
@@ -24,8 +27,11 @@ Requires:      rubygem(openshift-origin-common)
 BuildRequires: %{?scl:%scl_prefix}build
 BuildRequires: scl-utils-build
 %endif
-BuildRequires: %{?scl:%scl_prefix}ruby(abi) = %{rubyabi}
-BuildRequires: %{?scl:%scl_prefix}ruby 
+%if 0%{?fedora} >= 19
+BuildRequires: ruby(release)
+%else
+BuildRequires: %{?scl:%scl_prefix}ruby(abi) >= %{rubyabi}
+%endif
 BuildRequires: %{?scl:%scl_prefix}rubygems
 BuildRequires: %{?scl:%scl_prefix}rubygems-devel
 BuildArch:     noarch
@@ -77,6 +83,50 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Thu Mar 14 2013 Adam Miller <admiller@redhat.com> 1.6.2-1
+- Merge pull request #1644 from ironcladlou/dev/v2carts/endpoint-refactor
+  (dmcphers@redhat.com)
+- Merge pull request #1643 from kraman/update_parseconfig (dmcphers@redhat.com)
+- Merge pull request #1641 from rmillner/test_case_fixes (dmcphers@redhat.com)
+- Refactor Endpoints to support frontend mapping (ironcladlou@gmail.com)
+- Replacing get_value() with config['param'] style calls for new version of
+  parseconfig gem. (kraman@gmail.com)
+- The add_alias and remove_alias functions now raise on error instead of
+  returning like a shell call. (rmillner@redhat.com)
+- Modify cucumber test cases so that the retry login in origin-dev-tools does
+  not run Fedora tests on RHEL. The core of the issue is that cucumber ignores
+  tags when line number is specified. (kraman@gmail.com)
+- Make packages build/install on F19+ (tdawson@redhat.com)
+- Merge pull request #1625 from tdawson/tdawson/remove-obsoletes
+  (dmcphers+openshiftbot@redhat.com)
+- adding runtime_other tests (dmcphers@redhat.com)
+- Merge pull request #1607 from brenton/oo-admin-broker-auth
+  (dmcphers+openshiftbot@redhat.com)
+- remove old obsoletes (tdawson@redhat.com)
+- Merge pull request #1619 from pmorie/dev/oo_cartridge
+  (dmcphers+openshiftbot@redhat.com)
+- Fixes and tests for oo-cartridge (pmorie@gmail.com)
+- Merge pull request #1552 from mmcgrath-openshift/cartridge_prep
+  (dmcphers+openshiftbot@redhat.com)
+- fix for bug 920045 - connector args should have gear uuid
+  (rchopra@redhat.com)
+- Adding oo-admin-broker-auth (bleanhar@redhat.com)
+- Adding the ability to fetch all gears with broker auth tokens
+  (bleanhar@redhat.com)
+- Fixing typos (dmcphers@redhat.com)
+- Merge pull request #1586 from danmcp/master (dmcphers@redhat.com)
+- Merge pull request #1593 from abhgupta/abhgupta-dev (dmcphers@redhat.com)
+- Merge pull request #1582 from markllama/docs/dns_plugins
+  (dmcphers+openshiftbot@redhat.com)
+- Missed the ssh keyname handling in the show method (abhgupta@redhat.com)
+- Speed up haproxy interaction (dmcphers@redhat.com)
+- Merge branch 'openshift-master' into cartridge_prep (mmcgrath@redhat.com)
+- Fix for bug 911994   Making sure that the correct user login is recorded in
+  logs and response messages (abhgupta@redhat.com)
+- Add yard documentation markup to DNS plugins (mlamouri@redhat.com)
+- Merge branch 'openshift-master' into cartridge_prep (mmcgrath@redhat.com)
+- Added new cartridges (mmcgrath@redhat.com)
+
 * Thu Mar 07 2013 Adam Miller <admiller@redhat.com> 1.6.1-1
 - bump_minor_versions for sprint 25 (admiller@redhat.com)
 

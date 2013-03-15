@@ -33,7 +33,7 @@ module OpenShift
     end
 
     def get(name, default=nil)
-      val = @conf.get_value(name)
+      val = @conf[name]
       val = default.to_s if (val.nil? and !default.nil?)
       val.gsub!(/\\:/,":") if not val.nil?
       val.gsub!(/[ \t]*#[^\n]*/,"") if not val.nil?

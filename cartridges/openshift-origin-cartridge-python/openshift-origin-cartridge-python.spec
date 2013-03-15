@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/openshift/cartridges/v2/python
 
 Name: openshift-origin-cartridge-python
-Version: 0.1.1
+Version: 0.1.2
 Release: 1%{?dist}
 Summary: Python cartridge
 Group: Development/Languages
@@ -68,6 +68,10 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Thu Mar 14 2013 Adam Miller <admiller@redhat.com> 0.1.2-1
+- Refactor Endpoints to support frontend mapping (ironcladlou@gmail.com)
+- remove old obsoletes (tdawson@redhat.com)
+
 * Tue Mar 12 2013 Adam Miller <admiller@redhat.com> 0.1.1-1
 - Fixing tags on master 
 
