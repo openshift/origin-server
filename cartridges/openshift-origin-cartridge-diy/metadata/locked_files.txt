@@ -1,0 +1,4 @@
+diy/
+diy/configuration
+diy/metadata
+diy/template
