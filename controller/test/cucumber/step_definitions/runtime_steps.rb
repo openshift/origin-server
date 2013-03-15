@@ -739,3 +739,95 @@ Then /^the web console for the ([^ ]+)\-([\d\.]+) cartridge at ([^ ]+) is( not)?
     assert_equal "200", res, msg
   end
 end
+
+#####################
+# V2-focused steps
+#####################
+
+def app_env_var_will_exist(var_name, prefix = true)
+  if prefix
+    var_name = "OPENSHIFT_#{var_name}"
+  end
+
+  var_file_path = File.join($home_root, @gear.uuid, '.env', var_name)
+
+  assert_file_exists var_file_path
+end
+
+def app_env_var_will_not_exist(var_name, prefix = true)
+  if prefix
+    var_name = "OPENSHIFT_#{var_name}"
+  end
+
+  var_file_path = File.join($home_root, @gear.uuid, '.env', var_name)
+
+  assert_file_not_exists var_file_path
+end
+
+
+def cart_env_var_will_exist(cart_name, var_name, negate = false)
+  var_name = "OPENSHIFT_#{var_name}"
+
+  cartridge = @gear.container.cartridge_model.get_cartridge(cart_name)
+
+  var_file_path = File.join($home_root, @gear.uuid, cartridge.directory, 'env', var_name)
+
+  if negate
+    assert_file_not_exists var_file_path
+  else
+    assert_file_exists var_file_path
+    assert((File.stat(var_file_path).size > 0), "#{var_file_path} is empty")
+  end
+end
+
+Given /^a v2 default node$/ do
+  assert_file_exists '/var/lib/openshift/.settings/v2_cartridge_format'
+end
+
+Then /^the ([^ ]+) cartridge instance directory will( not)? exist$/ do |cartridge_name, negate|
+  cartridge = @gear.container.cartridge_model.get_cartridge(cart_name)
+
+  cartridge_dir = File.join($home_root, @gear.uuid, cartridge.directory)
+
+  if negate
+    assert_directory_not_exists cartridge_dir
+  else
+    assert_directory_exists cartridge_dir
+  end
+end
+
+Then /^the ([^ ]+) ([^ ]+) env entry will( not)? exist$/ do |cartridge_name, variable, negate|
+  cart_env_var_will_exist(cartridge_name, variable, negate)
+end
+
+Then /^the platform-created default environment variables will exist$/ do
+  app_env_var_will_exist('APP_DNS')
+  app_env_var_will_exist('APP_NAME')
+  app_env_var_will_exist('APP_UUID')
+  app_env_var_will_exist('DATA_DIR')
+  app_env_var_will_exist('REPO_DIR')
+  app_env_var_will_exist('GEAR_DNS')
+  app_env_var_will_exist('GEAR_NAME')
+  app_env_var_will_exist('GEAR_UUID')
+  app_env_var_will_exist('TMP_DIR')
+  app_env_var_will_exist('HOMEDIR')
+  app_env_var_will_exist('HISTFILE', false)
+  app_env_var_will_exist('PATH', false)
+end
+
+Then /^the ([^ ]+) cartridge private endpoints will be (exposed|concealed)$/ do |cart_name, action|
+  cartridge = @gear.container.cartridge_model.get_cartridge(cart_name)
+
+  cartridge.endpoints.each do |endpoint|
+    $logger.info("Validating private endpoint #{endpoint.private_ip_name}:#{endpoint.private_port_name} "\
+                 "for cartridge #{cart_name}")
+    case action
+    when 'exposed'
+      app_env_var_will_exist(endpoint.private_ip_name, false)
+      app_env_var_will_exist(endpoint.private_port_name, false)
+    when 'concealed'
+      app_env_var_will_not_exist(endpoint.private_ip_name, false)
+      app_env_var_will_not_exist(endpoint.private_port_name, false)
+    end
+  end
+end
