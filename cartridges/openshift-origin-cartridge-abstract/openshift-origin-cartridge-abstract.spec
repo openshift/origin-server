@@ -84,7 +84,6 @@ cp -rv -p abstract-jboss %{buildroot}%{cartdir}/
 %attr(0750,-,-) %{_libexecdir}/openshift/cartridges/abstract-jboss/info/hooks/
 %attr(0755,-,-) %{_libexecdir}/openshift/cartridges/abstract-jboss/info/bin/
 %attr(0750,-,-) %{_libexecdir}/openshift/cartridges/abstract-jboss/info/connection-hooks/
-%attr(0750,-,-) %{_libexecdir}/openshift/cartridges/abstract-jboss/info/data/
 %doc %{_libexecdir}/openshift/cartridges/abstract-jboss/README.md
 
 %changelog

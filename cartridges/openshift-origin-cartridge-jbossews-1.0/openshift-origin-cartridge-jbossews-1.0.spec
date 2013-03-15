@@ -104,7 +104,6 @@ alternatives --set jbossews-1.0 /usr/share/tomcat6
 %attr(0755,-,-) %{cartridgedir}/info/hooks
 %attr(0750,-,-) %{cartridgedir}/info/hooks/*
 %attr(0755,-,-) %{cartridgedir}/info/hooks/tidy
-%attr(0640,-,-) %{cartridgedir}/info/data/
 %attr(0755,-,-) %{cartridgedir}/info/bin/
 %attr(0755,-,-) %{cartridgedir}/info/connection-hooks/
 %{cartridgedir}/template/
