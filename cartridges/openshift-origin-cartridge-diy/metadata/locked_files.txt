@@ -1,4 +1,4 @@
-diy/
-diy/configuration
-diy/metadata
-diy/template
+diy-0.1/
+diy-0.1/configuration/
+diy-0.1/metadata/
+diy-0.1/template/

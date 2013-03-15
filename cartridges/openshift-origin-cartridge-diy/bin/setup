@@ -13,6 +13,7 @@ echo "export OPENSHIFT_DIY_DIR='$OPENSHIFT_DIY_DIR'" > "$OPENSHIFT_DIY_DIR/env/O
 id
 
 # Copy the version specific files into diy directory
+shopt -s dotglob
 cp -r $OPENSHIFT_DIY_DIR/versions/$version/configuration/* $OPENSHIFT_DIY_DIR/configuration
 cp -r $OPENSHIFT_DIY_DIR/versions/$version/template/* $OPENSHIFT_DIY_DIR/template
 
