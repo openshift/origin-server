@@ -55,8 +55,6 @@ class EmbCartController < BaseController
     if application_id !~ Application::APP_NAME_COMPATIBILITY_REGEX
       return render_error(:not_found, "Application '#{application_id}' not found for domain '#{domain_id}'", 101, "SHOW_APP_CARTRIDGE")
     end
-
-    id = get_actual_id(id, params[:format])
     
     # validate the cartridge name using regex to avoid a mongo call, if it is malformed
     if id !~ CART_NAME_COMPATIBILITY_REGEX
@@ -208,8 +206,6 @@ class EmbCartController < BaseController
     if id !~ Application::APP_NAME_COMPATIBILITY_REGEX
       return render_error(:not_found, "Application '#{id}' not found for domain '#{domain_id}'", 101, "REMOVE_CARTRIDGE")
     end
-
-    cartridge = get_actual_id(cartridge, params[:format])
     
     # validate the cartridge name using regex to avoid a mongo call, if it is malformed
     if cartridge !~ CART_NAME_COMPATIBILITY_REGEX
@@ -280,8 +276,6 @@ class EmbCartController < BaseController
     if application_id !~ Application::APP_NAME_COMPATIBILITY_REGEX
       return render_error(:not_found, "Application '#{application_id}' not found for domain '#{domain_id}'", 101, "PATCH_APP_CARTRIDGE")
     end
-
-    id = get_actual_id(id, params[:format])
     
     # validate the cartridge name using regex to avoid a mongo call, if it is malformed
     if id !~ CART_NAME_COMPATIBILITY_REGEX

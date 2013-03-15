@@ -55,17 +55,6 @@ module OpenShift
         rescue => e
           render_exception(e)
         end
-
-        def get_actual_id(id, format)
-          # if the id has a dot, rails breaks up the actual intended id into :id and :format 
-          unless format.nil? or format.empty? or ["xml", "json", "yml", "yaml", "xhtml"].include? format 
-            id += "." + format
-            # set the default format
-            format = "json"
-            request.format = format
-          end
-          return id
-        end
           
         def get_bool(param_value)
           return false unless param_value

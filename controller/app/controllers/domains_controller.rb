@@ -30,8 +30,6 @@ class DomainsController < BaseController
     id = params[:id]
     Rails.logger.debug "Getting domain #{id}"
 
-    id = get_actual_id(id, params[:format])
-
     # validate the domain name using regex to avoid a mongo call, if it is malformed
     if id !~ Domain::DOMAIN_NAME_COMPATIBILITY_REGEX
       return render_error(:not_found, "Domain #{id} not found.", 127, "SHOW_DOMAIN")
@@ -103,8 +101,6 @@ class DomainsController < BaseController
     
     return render_error(:unprocessable_entity, "Namespace is required and cannot be blank.",
                         106, "UPDATE_DOMAIN", "id") if !new_namespace or new_namespace.empty?
-    
-    id = get_actual_id(id, params[:format])
 
     # validate the domain name using regex to avoid a mongo call, if it is malformed
     if id !~ Domain::DOMAIN_NAME_COMPATIBILITY_REGEX
@@ -156,9 +152,7 @@ class DomainsController < BaseController
   def destroy
     id = params[:id]
     force = get_bool(params[:force])
-
-    id = get_actual_id(id, params[:format])
-
+    
     # validate the domain name using regex to avoid a mongo call, if it is malformed
     if id !~ Domain::DOMAIN_NAME_COMPATIBILITY_REGEX
       return render_error(:not_found, "Domain #{id} not found", 127, "DELETE_DOMAIN")

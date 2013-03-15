@@ -707,7 +707,8 @@ class Application
         (server_alias =~ /#{Rails.configuration.openshift[:domain_suffix]}$/) or
         (server_alias.length > 255 ) or
         (server_alias.length == 0 ) or
-        (server_alias =~ /^\d+\.\d+\.\d+\.\d+$/)
+        (server_alias =~ /^\d+\.\d+\.\d+\.\d+$/) or
+        (server_alias =~ /\A[\S]+(\.(json|xml|yml|yaml|html|xhtml))\z/)
       raise OpenShift::UserException.new("Invalid Server Alias '#{server_alias}' specified", 105)
     end
     validate_certificate(ssl_certificate, private_key, pass_phrase)
