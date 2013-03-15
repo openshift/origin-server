@@ -40,6 +40,11 @@ class Application
   APP_NAME_MAX_LENGTH = 32
   MAX_SCALE = -1
 
+  # This is the current regex for validations for new applications
+  APP_NAME_REGEX = /\A[A-Za-z0-9]+\z/
+  # This is the regex that ensures backward compatibility for fetches
+  APP_NAME_COMPATIBILITY_REGEX = APP_NAME_REGEX
+
   field :name, type: String
   field :canonical_name, type: String
   field :uuid, type: String, default: ""
@@ -69,7 +74,7 @@ class Application
 
   validates :name,
     presence: {message: "Application name is required and cannot be blank."},
-    format:   {with: /\A[A-Za-z0-9]+\z/, message: "Invalid application name. Name must only contain alphanumeric characters."},
+    format:   {with: APP_NAME_REGEX, message: "Invalid application name. Name must only contain alphanumeric characters."},
     length:   {maximum: APP_NAME_MAX_LENGTH, minimum: 1, message: "Application name must be a minimum of 1 and maximum of #{APP_NAME_MAX_LENGTH} characters."},
     blacklisted: {message: "Application name is not allowed.  Please choose another."}
   validate :extended_validator

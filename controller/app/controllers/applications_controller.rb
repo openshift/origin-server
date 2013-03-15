@@ -14,6 +14,12 @@ class ApplicationsController < BaseController
   # @return [RestReply<Array<RestApplication>>] List of applications within the domain
   def index
     domain_id = params[:domain_id]
+
+    # validate the domain name using regex to avoid a mongo call, if it is malformed
+    if domain_id !~ Domain::DOMAIN_NAME_COMPATIBILITY_REGEX
+      return render_error(:not_found, "Domain '#{domain_id}' not found", 127, "LIST_APPLICATIONS")
+    end
+
     begin
       domain = Domain.find_by(owner: @cloud_user, canonical_namespace: domain_id.downcase)
       @domain_name = domain.namespace
@@ -38,6 +44,18 @@ class ApplicationsController < BaseController
     domain_id = params[:domain_id]
     id = params[:id]
     
+    # validate the domain name using regex to avoid a mongo call, if it is malformed
+    if domain_id !~ Domain::DOMAIN_NAME_COMPATIBILITY_REGEX
+      return render_error(:not_found, "Domain '#{domain_id}' not found", 127, "SHOW_APPLICATION")
+    end
+
+    id = get_actual_id(id, params[:format])
+
+    # validate the application name using regex to avoid a mongo call, if it is malformed
+    if id !~ Application::APP_NAME_COMPATIBILITY_REGEX
+      return render_error(:not_found, "Application '#{id}' not found", 101, "SHOW_APPLICATION")
+    end
+
     begin
       domain = Domain.find_by(owner: @cloud_user, canonical_namespace: domain_id.downcase)
       @domain_name = domain.namespace
@@ -78,6 +96,11 @@ class ApplicationsController < BaseController
     init_git_url = params[:initial_git_url]
     default_gear_size = params[:gear_profile]
     default_gear_size.downcase! if default_gear_size
+
+    # validate the domain name using regex to avoid a mongo call, if it is malformed
+    if domain_id !~ Domain::DOMAIN_NAME_COMPATIBILITY_REGEX
+      return render_error(:not_found, "Domain '#{domain_id}' not found", 127, "ADD_APPLICATION")
+    end
 
     begin
       # Use strong consistency to avoid race condition creating domain and app in succession
@@ -166,6 +189,18 @@ class ApplicationsController < BaseController
     domain_id = params[:domain_id]
     id = params[:id]    
     
+    # validate the domain name using regex to avoid a mongo call, if it is malformed
+    if domain_id !~ Domain::DOMAIN_NAME_COMPATIBILITY_REGEX
+      return render_error(:not_found, "Domain '#{domain_id}' not found", 127, "DELETE_APPLICATION")
+    end
+
+    id = get_actual_id(id, params[:format])
+
+    # validate the application name using regex to avoid a mongo call, if it is malformed
+    if id !~ Application::APP_NAME_COMPATIBILITY_REGEX
+      return render_error(:not_found, "Application '#{id}' not found", 101,"DELETE_APPLICATION")
+    end
+
     begin
       domain = Domain.find_by(owner: @cloud_user, canonical_namespace: domain_id.downcase)
       @domain_name = domain.namespace
@@ -179,7 +214,7 @@ class ApplicationsController < BaseController
       @application_name = application.name
       @application_uuid = application.uuid
     rescue Mongoid::Errors::DocumentNotFound
-      return render_error(:not_found, "Application #{id} not found.", 101,"DELETE_APPLICATION")
+      return render_error(:not_found, "Application #{id} not found", 101,"DELETE_APPLICATION")
     end
     
     # create tasks to delete gear groups

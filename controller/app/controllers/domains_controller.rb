@@ -29,6 +29,14 @@ class DomainsController < BaseController
   def show
     id = params[:id]
     Rails.logger.debug "Getting domain #{id}"
+
+    id = get_actual_id(id, params[:format])
+
+    # validate the domain name using regex to avoid a mongo call, if it is malformed
+    if id !~ Domain::DOMAIN_NAME_COMPATIBILITY_REGEX
+      return render_error(:not_found, "Domain #{id} not found.", 127, "SHOW_DOMAIN")
+    end
+
     begin
       domain = Domain.find_by(owner: @cloud_user, canonical_namespace: id.downcase)
       @domain_name = domain.namespace
@@ -54,19 +62,19 @@ class DomainsController < BaseController
     return render_error(:unprocessable_entity, "Namespace is required and cannot be blank.",
                         106, "ADD_DOMAIN", "id") if !namespace or namespace.empty?
 
+    domain = Domain.new(namespace: namespace, owner: @cloud_user)
+    if not domain.valid?
+      Rails.logger.error "Domain is not valid"
+      messages = get_error_messages(domain, {"namespace" => "id"})
+      return render_error(:unprocessable_entity, nil, nil, "ADD_DOMAIN", nil, nil, messages)
+    end
+
     if Domain.where(canonical_namespace: namespace.downcase).count > 0
       return render_error(:unprocessable_entity, "Namespace '#{namespace}' is already in use. Please choose another.", 103, "ADD_DOMAIN", "id")
     end
 
     if Domain.where(owner: @cloud_user).count > 0
       return render_error(:conflict, "There is already a namespace associated with this user", 103, "ADD_DOMAIN", "id")
-    end
-
-    domain = Domain.new(namespace: namespace, owner: @cloud_user)
-    if not domain.valid?
-      Rails.logger.error "Domain is not valid"
-      messages = get_error_messages(domain, {"namespace" => "id"})
-      return render_error(:unprocessable_entity, nil, nil, "ADD_DOMAIN", nil, nil, messages)
     end
 
     @domain_name = domain.namespace
@@ -81,7 +89,7 @@ class DomainsController < BaseController
 
   # Create a new domain for the user
   # 
-  # URL: /domains/:id
+  # URL: /domains/:existing_id
   #
   # Action: PUT
   #
@@ -96,6 +104,13 @@ class DomainsController < BaseController
     return render_error(:unprocessable_entity, "Namespace is required and cannot be blank.",
                         106, "UPDATE_DOMAIN", "id") if !new_namespace or new_namespace.empty?
     
+    id = get_actual_id(id, params[:format])
+
+    # validate the domain name using regex to avoid a mongo call, if it is malformed
+    if id !~ Domain::DOMAIN_NAME_COMPATIBILITY_REGEX
+      return render_error(:not_found, "Domain #{id} not found", 127, "UPDATE_DOMAIN")
+    end
+
     begin
       domain = Domain.find_by(owner: @cloud_user, canonical_namespace: id.downcase)
       existing_namespace = domain.namespace
@@ -142,10 +157,17 @@ class DomainsController < BaseController
     id = params[:id]
     force = get_bool(params[:force])
 
+    id = get_actual_id(id, params[:format])
+
+    # validate the domain name using regex to avoid a mongo call, if it is malformed
+    if id !~ Domain::DOMAIN_NAME_COMPATIBILITY_REGEX
+      return render_error(:not_found, "Domain #{id} not found", 127, "DELETE_DOMAIN")
+    end
+
     begin
       domain = Domain.find_by(owner: @cloud_user, canonical_namespace: id.downcase)
     rescue Mongoid::Errors::DocumentNotFound
-      return render_error(:not_found, "Domain #{id} not found", 127,"DELETE_DOMAIN")
+      return render_error(:not_found, "Domain #{id} not found", 127, "DELETE_DOMAIN")
     end
 
     if force
