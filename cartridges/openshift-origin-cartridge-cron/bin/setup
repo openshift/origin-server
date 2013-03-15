@@ -1,0 +1,21 @@
+#!/bin/bash -e
+set -u
+set -x
+
+PATH=/bin:/usr/bin:$PATH
+
+version=1.4
+OPENSHIFT_CRON_DIR="$OPENSHIFT_HOMEDIR/redhat-cron"
+ls -lZa
+echo "export OPENSHIFT_CRON_VERSION='$version'" > "$OPENSHIFT_CRON_DIR/env/OPENSHIFT_CRON_VERSION"
+echo "export OPENSHIFT_CRON_DIR='$OPENSHIFT_CRON_DIR'" > "$OPENSHIFT_CRON_DIR/env/OPENSHIFT_CRON_DIR"
+id
+
+# Copy the version specific files into diy directory
+cp -r $OPENSHIFT_CRON_DIR/versions/$version/configuration/* $OPENSHIFT_CRON_DIR/configuration
+cp -r $OPENSHIFT_CRON_DIR/versions/$version/template/* $OPENSHIFT_CRON_DIR/template
+ln -s ../app-root/repo/.openshift/cron $OPENSHIFT_CRON_DIR/configuration/jobs
+cmod +x "$CRON_INSTANCE_DIR/bin/"*.sh || error "Failed to chmod new application scripts" 122
+
+# Create additional directories required by the diy cartridge
+mkdir $OPENSHIFT_CRON_DIR/{logs,etc,data,pid,run}
