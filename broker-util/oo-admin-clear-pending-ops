@@ -106,9 +106,11 @@ end
 $domain_count = 0
 def clean_domain(d)
   $domain_count += 1
+  d.pending_ops.delete_if { |op| op.nil? or op.created_at.nil? or op.op_type.nil?}
+  d.pending_ops.each { |op| op.state = :init if op.state==:queued and op.created_at < $t }
+  d.save
   d.run_jobs rescue nil
   d.with(consistency: :strong).reload
-  d.pending_ops.delete_if { |op| op.nil? }
   d.pending_ops.each { |op|
     if op.created_at < $t 
       puts
@@ -126,9 +128,11 @@ end
 $user_count = 0
 def clean_user(u)
   $user_count += 1
+  u.pending_ops.delete_if { |op| op.nil? or op.created_at.nil? or op.op_type.nil?}
+  u.pending_ops.each { |op| op.state = :init if op.state==:queued and op.created_at < $t }
+  u.save
   u.run_jobs rescue nil
   u.with(consistency: :strong).reload
-  u.pending_ops.delete_if { |op| op.nil? }
   u.pending_ops.each { |op|
     if op.created_at < $t 
       puts
