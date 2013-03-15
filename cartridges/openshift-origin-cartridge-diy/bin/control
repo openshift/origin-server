@@ -1,0 +1,46 @@
+#!/bin/bash -e
+
+function start() {
+    echo "Starting DIY cart"
+    source $OPENSHIFT_DIY_DIR/versions/$OPENSHIFT_DIY_VERSION/template/.openshift/action_hooks/start
+}
+
+function stop() {
+    echo "Stopping DIY cart"
+    source $OPENSHIFT_DIY_DIR/versions/$OPENSHIFT_DIY_VERSION/template/.openshift/action_hooks/stop
+}
+
+function restart() {
+    echo "Restarting DIY cart"
+    source $OPENSHIFT_DIY_DIR/versions/$OPENSHIFT_DIY_VERSION/template/.openshift/action_hooks/stop
+    source $OPENSHIFT_DIY_DIR/versions/$OPENSHIFT_DIY_VERSION/template/.openshift/action_hooks/start
+}
+
+function status() {
+   if output=$(curl http://$OPENSHIFT_DIY_IP:$OPENSHIFT_DIY_PORT 2>&1 )
+   then
+      echo "Application is running"
+      echo $output
+   else
+      echo "Application is either stopped or inaccessible"
+   fi
+}
+
+function reload() {
+    echo "Reloading DIY cart"
+    restart
+}
+
+function tidy() {
+    echo "Tidying DIY cart"
+}
+
+case "$1" in
+  start)     start ;;
+  stop)      stop ;;
+  restart)   restart ;;
+  status)    status ;;
+  reload)    reload ;;
+  tidy)      tidy ;;
+  *)         exit 0
+esac
