@@ -6,7 +6,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin broker
 Name:          openshift-origin-broker-util
-Version:       1.5.13
+Version:       1.5.14
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -81,6 +81,10 @@ cp kickstart/openshift-origin-remix.ks %{buildroot}/usr/share/openshift/kickstar
 %{_mandir}/man8/oo-stats.8.gz
 
 %changelog
+* Fri Mar 15 2013 Dan McPherson <dmcphers@redhat.com> 1.5.14-1
+- improve clear-pending-ops to handle new failures as shown in prod
+  (rchopra@redhat.com)
+
 * Tue Mar 12 2013 Adam Miller <admiller@redhat.com> 1.5.13-1
 - fix bug919379 (rchopra@redhat.com)
 
