@@ -28,7 +28,6 @@
           │   │   └── web.xml
           │   ├── control
           │   ├── data
-          │   │   └── mysql.tar
           │   ├── hooks
           │   │   ├── conceal-port
           │   │   ├── configure

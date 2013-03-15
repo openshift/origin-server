@@ -23,7 +23,6 @@ Requires:      maven3
 Requires:      maven
 %endif
 BuildRequires: git
-BuildRequires: java-devel >= 1:1.6.0
 BuildRequires: jpackage-utils
 BuildArch:     noarch
 
@@ -36,10 +35,6 @@ Provides JBossEWS1.0 support to OpenShift
 
 
 %build
-mkdir -p info/data
-pushd template/src/main/webapp > /dev/null
-/usr/bin/jar -cvf ../../../../info/data/ROOT.war -C . .
-popd
 
 
 %install
@@ -109,7 +104,6 @@ alternatives --set jbossews-1.0 /usr/share/tomcat6
 %attr(0755,-,-) %{cartridgedir}/info/hooks
 %attr(0750,-,-) %{cartridgedir}/info/hooks/*
 %attr(0755,-,-) %{cartridgedir}/info/hooks/tidy
-%attr(0640,-,-) %{cartridgedir}/info/data/
 %attr(0755,-,-) %{cartridgedir}/info/bin/
 %attr(0755,-,-) %{cartridgedir}/info/connection-hooks/
 %{cartridgedir}/template/

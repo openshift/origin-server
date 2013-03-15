@@ -21,7 +21,6 @@ The jboss cartridges require the openshift-origin-cartridge-abstract-jboss packa
               │   ├── set_jboss_cluster
               │   └── set_jboss_remoting
               ├── data
-              │   └── mysql.tar
               └── hooks
                   ├── conceal-port
                   ├── configure

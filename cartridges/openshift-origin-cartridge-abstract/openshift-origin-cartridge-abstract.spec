@@ -57,9 +57,6 @@ cp -rv -p abstract %{buildroot}%{cartdir}/
 cp -rv -p abstract-httpd %{buildroot}%{cartdir}/
 cp -rv -p abstract-jboss %{buildroot}%{cartdir}/
 
-# Remove bundled library
-rm -f %{buildroot}%{cartdir}/abstract-jboss/info/data/mysql.tar
-
 %files
 %doc COPYRIGHT LICENSE
 %dir %{_libexecdir}/openshift/
@@ -87,7 +84,6 @@ rm -f %{buildroot}%{cartdir}/abstract-jboss/info/data/mysql.tar
 %attr(0750,-,-) %{_libexecdir}/openshift/cartridges/abstract-jboss/info/hooks/
 %attr(0755,-,-) %{_libexecdir}/openshift/cartridges/abstract-jboss/info/bin/
 %attr(0750,-,-) %{_libexecdir}/openshift/cartridges/abstract-jboss/info/connection-hooks/
-%attr(0750,-,-) %{_libexecdir}/openshift/cartridges/abstract-jboss/info/data/
 %doc %{_libexecdir}/openshift/cartridges/abstract-jboss/README.md
 
 %changelog

@@ -14,8 +14,6 @@ With that, you:
 1. Setup a kerberos ticket using kinit <your-login-name>
 2. cd jboss-as7/RHEL-6_1-LIBRA
 3. Obtain the jboss-as7 distribution contents to use and place a .tgz archive into the RHEL-6_1-LIBRA directory.
-3a. Make sure the archive includes the mysql jdbc driver module contents from the cartridge info/data/mysql.tar archive:
-(ironmaiden:jbossas-7) > tar -tf info/data/mysql.tar 
 modules/com/mysql/jdbc/main/mysql-connector-java-5.1.16-bin.jar.index
 modules/com/mysql/jdbc/main/module.xml
 modules/com/mysql/jdbc/main/mysql-connector-java-5.1.16-bin.jar
