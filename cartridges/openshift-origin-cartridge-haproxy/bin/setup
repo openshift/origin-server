@@ -1,0 +1,37 @@
+#!/bin/bash -e
+set -x
+source /usr/lib/openshift/node/util
+
+set -u
+version=1.4
+
+function generate_ssh_keys {
+
+    /bin/mkdir -p $OPENSHIFT_HAPROXY_DIR/.ssh/
+    /bin/rm -f $OPENSHIFT_HAPROXY_DIR/.ssh/haproxy_id_rsa $OPENSHIFT_HAPROXY_DIR/.ssh/haproxy_id_rsa.pub
+    /usr/bin/ssh-keygen -N '' -f $OPENSHIFT_HAPROXY_DIR/.ssh/haproxy_id_rsa > /dev/null
+
+    touch "$OPENSHIFT_HAPROXY_DIR/.ssh/known_hosts"
+    touch "$OPENSHIFT_HAPROXY_DIR/.ssh/config"
+    #/bin/chown root.$OPENSHIFT_GEAR_UUID -R "$OPENSHIFT_HAPROXY_DIR/.ssh/"
+    chmod 0750 "$OPENSHIFT_HAPROXY_DIR/.ssh/"
+    chmod 0640 "$OPENSHIFT_HAPROXY_DIR/.ssh/haproxy_id_rsa" "$OPENSHIFT_HAPROXY_DIR/.ssh/haproxy_id_rsa.pub"
+    chmod 0660 "$OPENSHIFT_HAPROXY_DIR/.ssh/config" "$OPENSHIFT_HAPROXY_DIR/.ssh/known_hosts"
+}
+
+echo "export OPENSHIFT_HAPROXY_VERSION='$version'" > "$OPENSHIFT_HAPROXY_DIR/env/OPENSHIFT_HAPROXY_VERSION"
+
+mkdir -p $OPENSHIFT_HAPROXY_DIR/{conf,conf.d,logs,run,sessions}
+touch ${OPENSHIFT_HAPROXY_DIR}/conf/gear-registry.db
+touch ${OPENSHIFT_HAPROXY_DIR}/conf/gear-registry.db.lock
+
+cp ${OPENSHIFT_HAPROXY_DIR}/versions/$version/configuration/* $OPENSHIFT_HAPROXY_DIR/conf/
+
+chown ${OPENSHIFT_GEAR_UUID} $OPENSHIFT_HAPROXY_DIR/run/ $OPENSHIFT_HAPROXY_DIR/logs/ $OPENSHIFT_HAPROXY_DIR/sessions $OPENSHIFT_HAPROXY_DIR/conf/gear-registry.db $OPENSHIFT_HAPROXY_DIR/conf/gear-registry.db.lock
+
+cp $OPENSHIFT_HAPROXY_DIR/versions/shared/scripts/* $OPENSHIFT_HAPROXY_DIR/bin/
+
+generate_ssh_keys
+public_key=$(cat $OPENSHIFT_HAPROXY_DIR/.ssh/haproxy_id_rsa.pub | awk '{print $2}')
+add_app_ssh_key haproxy $public_key
+add_broker_auth_key
