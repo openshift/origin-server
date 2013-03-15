@@ -6,6 +6,8 @@ Version: 1.9
 License: "Ruby BSDL"
 License-Url: http://www.ruby-lang.org/en/about/license.txt
 Vendor: ruby.org
+Cartridge-Version: 0.0.1
+Cartridge-Vendor: redhat
 Categories:
   - service
   - ruby
