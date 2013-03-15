@@ -24,7 +24,6 @@ Requires:      maven3
 Requires:      maven
 %endif
 BuildRequires: git
-BuildRequires: java-devel >= 1:1.6.0
 BuildRequires: jpackage-utils
 BuildArch:     noarch
 
@@ -37,11 +36,6 @@ Provides JBossAS7 support to OpenShift
 
 
 %build
-mkdir -p info/data
-pushd template/src/main/webapp > /dev/null
-/usr/bin/jar -cvf ../../../../info/data/ROOT.war -C . .
-popd
-
 
 %install
 mkdir -p %{buildroot}%{cartridgedir}
@@ -83,8 +77,6 @@ ln -s %{cartridgedir}/../abstract-jboss/info/connection-hooks/publish_jboss_clus
 ln -s %{cartridgedir}/../abstract-jboss/info/connection-hooks/publish_jboss_remoting %{buildroot}%{cartridgedir}/info/connection-hooks/publish_jboss_remoting
 ln -s %{cartridgedir}/../abstract-jboss/info/connection-hooks/set_jboss_cluster %{buildroot}%{cartridgedir}/info/connection-hooks/set_jboss_cluster
 ln -s %{cartridgedir}/../abstract-jboss/info/connection-hooks/set_jboss_remoting %{buildroot}%{cartridgedir}/info/connection-hooks/set_jboss_remoting
-
-ln -s %{cartridgedir}/../abstract-jboss/info/data/mysql.tar %{buildroot}%{cartridgedir}/info/data/mysql.tar
 
 ln -s %{cartridgedir}/../abstract-jboss/info/hooks/deconfigure %{buildroot}%{cartridgedir}/info/hooks/deconfigure
 ln -s %{cartridgedir}/../abstract-jboss/info/hooks/threaddump %{buildroot}%{cartridgedir}/info/hooks/threaddump
@@ -130,7 +122,6 @@ cp -p %{cartridgedir}/info/configuration/postgresql_module.xml /etc/alternatives
 %attr(0755,-,-) %{cartridgedir}/info/hooks
 %attr(0750,-,-) %{cartridgedir}/info/hooks/*
 %attr(0755,-,-) %{cartridgedir}/info/hooks/tidy
-%attr(0640,-,-) %{cartridgedir}/info/data/
 %attr(0755,-,-) %{cartridgedir}/info/bin/
 %attr(0755,-,-) %{cartridgedir}/info/connection-hooks/
 %{cartridgedir}/template/

@@ -35,7 +35,6 @@ Requires:      maven3
 Requires:      maven
 %endif
 BuildRequires: git
-BuildRequires: java-devel >= 1:1.6.0
 BuildRequires: jpackage-utils
 BuildArch:     noarch
 
