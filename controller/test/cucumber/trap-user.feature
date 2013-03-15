@@ -27,6 +27,6 @@ Feature: Trap User Shell
   Scenario: Access Quota (RHEL/CentOS)
     Given a new php-5.3 application, obtain disk quota information via SSH
     
-  @fedora-only
-  Scenario: Access Quota (Fedora)
-    Given a new php-5.4 application, obtain disk quota information via SSH
+#  @fedora-only
+#  Scenario: Access Quota (Fedora)
+#    Given a new php-5.4 application, obtain disk quota information via SSH
