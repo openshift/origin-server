@@ -14,19 +14,18 @@ class KeysController < BaseController
 
   #GET /user/keys/<id>
   def show
-    id = params[:id]
-    begin
-      # if the id has a dot, rails breaks up the actual intended id into :id and :format 
-      unless params[:format].nil? or params[:format].empty? or["xml", "json", "yml", "yaml", "xhtml"].include? params[:format] 
-        id += "." + params[:format]
-        # set the default format
-        request.format = "json"
-      end
+    id = get_actual_id(params[:id], params[:format])
 
+    # validate the key name using regex to avoid a mongo call, if it is malformed
+    if id !~ SshKey::KEY_NAME_COMPATIBILITY_REGEX
+      return render_error(:not_found, "SSH key '#{id}' not found", 118, "SHOW_KEY")
+    end
+
+    begin
       key = @cloud_user.ssh_keys.find_by(name: id)
       return render_success(:ok, "key", RestKey.new(key, get_url, nolinks), "SHOW_KEY", "Found SSH key '#{id}'")
     rescue Mongoid::Errors::DocumentNotFound
-      render_error(:not_found, "SSH key '#{id}' not found", 118, "SHOW_KEY")
+      return render_error(:not_found, "SSH key '#{id}' not found", 118, "SHOW_KEY")
     end
   end
 
@@ -37,6 +36,13 @@ class KeysController < BaseController
     type = params[:type]
     
     Rails.logger.debug "Creating key name:#{name} type:#{type} for user #{@cloud_user.login}"
+    
+    # key should should not end with a format, else URLs in response links will fail
+    # blocking additional formats in case we decide to support them in the future
+    match = /\A[\S]+(\.(json|xml|yml|yaml|html|xhtml))\z/.match(name)
+    unless match.nil? or match.length != 3
+      return render_error(:unprocessable_entity, "SSH key name '#{name}' cannot end with #{match[1]}", nil, "ADD_KEY")
+    end
 
     key = UserSshKey.new(name: name, type: type, content: content)
     if key.invalid?
@@ -69,12 +75,7 @@ class KeysController < BaseController
     content = params[:content]
     type = params[:type]
     
-    # if the id has a dot, rails breaks up the actual intended id into :id and :format
-    unless params[:format].nil? or params[:format].empty? or["xml", "json", "yml", "yaml", "xhtml"].include? params[:format] 
-      id += "." + params[:format]
-      # set the default format
-      request.format = "json" 
-    end
+    id = get_actual_id(id, params[:format])
      
     Rails.logger.debug "Updating key name:#{id} type:#{type} for user #{@cloud_user.login}"
     key = UserSshKey.new(name: id, type: type, content: content)
@@ -83,12 +84,9 @@ class KeysController < BaseController
       return render_error(:unprocessable_entity, nil, nil, "UPDATE_KEY", nil, nil, messages)
     end
 
-    if @cloud_user.ssh_keys.where(name: id).count == 0
-      log_action("UPDATE_KEY", false, "SSH key #{id} not found")
-      @reply = new_rest_reply(:not_found)
-      @reply.messages.push(Message.new(:error, "SSH key not found", 118))
-      respond_with @reply, :status => @reply.status
-      return
+    # validate the key name using regex to avoid a mongo call, if it is malformed
+    if id !~ SshKey::KEY_NAME_COMPATIBILITY_REGEX or @cloud_user.ssh_keys.where(name: id).count == 0
+      return render_error(:not_found, "SSH key '#{id}' not found", 118, "UPDATE_KEY")
     end
 
     begin
@@ -115,14 +113,10 @@ class KeysController < BaseController
   def destroy
     id = params[:id]
     
-    # if the id has a dot, rails breaks up the actual intended id into :id and :format 
-    unless params[:format].nil? or params[:format].empty? or["xml", "json", "yml", "yaml", "xhtml"].include? params[:format] 
-      id += "." + params[:format]
-      # set the default format
-      request.format = "json"
-    end
+    id = get_actual_id(id, params[:format])
      
-    if @cloud_user.ssh_keys.where(name: id).count == 0
+    # validate the key name using regex to avoid a mongo call, if it is malformed
+    if id !~ SshKey::KEY_NAME_COMPATIBILITY_REGEX or @cloud_user.ssh_keys.where(name: id).count == 0
       return render_error(:not_found, "SSH key '#{id}' not found", 118, "DELETE_KEY")
     end
 

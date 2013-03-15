@@ -20,6 +20,11 @@
 class Domain
   NAMESPACE_MAX_LENGTH = 16 unless defined? NAMESPACE_MAX_LENGTH
   NAMESPACE_MIN_LENGTH = 1 unless defined? NAMESPACE_MIN_LENGTH
+
+  # This is the current regex for validations for new domains 
+  DOMAIN_NAME_REGEX = /\A[A-Za-z0-9]+\z/
+  # This is the regex that ensures backward compatibility for fetches
+  DOMAIN_NAME_COMPATIBILITY_REGEX = DOMAIN_NAME_REGEX
   
   include Mongoid::Document
   include Mongoid::Timestamps
@@ -41,7 +46,7 @@ class Domain
   
   validates :namespace,
     presence: {message: "Namespace is required and cannot be blank."},
-    format:   {with: /\A[A-Za-z0-9]+\z/, message: "Invalid namespace. Namespace must only contain alphanumeric characters."},
+    format:   {with: DOMAIN_NAME_REGEX, message: "Invalid namespace. Namespace must only contain alphanumeric characters."},
     length:   {maximum: NAMESPACE_MAX_LENGTH, minimum: NAMESPACE_MIN_LENGTH, message: "Must be a minimum of #{NAMESPACE_MIN_LENGTH} and maximum of #{NAMESPACE_MAX_LENGTH} characters."},
     blacklisted: {message: "Namespace is not allowed.  Please choose another."}
   def self.validation_map

@@ -8,6 +8,11 @@
 class SshKey
   include Mongoid::Document
   
+  # This is the current regex for validations for new ssh keys 
+  KEY_NAME_REGEX = /\A[\w\.\-@+]+\z/
+  # This is the regex that ensures backward compatibility for fetches
+  KEY_NAME_COMPATIBILITY_REGEX = KEY_NAME_REGEX
+  
   KEY_NAME_MAX_LENGTH = 256 unless defined? KEY_NAME_MAX_LENGTH
   KEY_NAME_MIN_LENGTH = 1 unless defined? KEY_NAME_MIN_LENGTH
   VALID_SSH_KEY_TYPES = ['ssh-rsa', 'ssh-dss', 'ecdsa-sha2-nistp256-cert-v01@openssh.com', 'ecdsa-sha2-nistp384-cert-v01@openssh.com',
@@ -20,7 +25,7 @@ class SshKey
   
   validates :name, 
     presence: {message: "Key name is required and cannot be blank."},
-    format:   {with: /\A[\w\.\-@+]+\z/, message: "Invalid key name. Name can only contain alphanumeric characters, underscores, dashes, dots, as well as @ and + symbols."},
+    format:   {with: KEY_NAME_REGEX, message: "Invalid key name. Name can only contain alphanumeric characters, underscores, dashes, dots, as well as @ and + symbols."},
     length:   {maximum: KEY_NAME_MAX_LENGTH, minimum: KEY_NAME_MIN_LENGTH, message: "Must be a minimum of #{KEY_NAME_MIN_LENGTH} and maximum of #{KEY_NAME_MAX_LENGTH} characters."}
   
   validates :type, 
