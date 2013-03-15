@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/openshift/cartridges/v2/diy-0.1
 
 Name: openshift-origin-cartridge-diy
-Version: 0.1.1
+Version: 0.1.2
 Release: 1%{?dist}
 Summary: Php cartridge
 Group: Development/Languages
@@ -52,6 +52,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Fri Mar 15 2013 Troy Dawson <tdawson@redhat.com> 0.1.2-1
+- new package built with tito
+
 * Thu Mar 14 2013 Chris Alfonso <chris@@hoflabs.com> 0.1.1-1
 - new package built with tito
 
