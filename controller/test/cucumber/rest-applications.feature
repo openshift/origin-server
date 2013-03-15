@@ -43,7 +43,7 @@ Feature: applications
 
   @rhel-only  
   Scenario Outline: Create application with multiple cartridges (RHEL/CentOS)
-    Given a new user, create a php-<php_version> application with <phpmyadmin_version> using <format> format and verify application creation API
+    Given a new user, create a php-<php_version> application with phpmyadmin-<phpmyadmin_version> using <format> format and verify application creation API
     
     Scenarios: RHEL scenarios
       | format | php_version | phpmyadmin_version |
@@ -52,7 +52,7 @@ Feature: applications
       
   @fedora-only  
   Scenario Outline: Create application with multiple cartridges (Fedora)
-    Given a new user, create a php-<php_version> application with <phpmyadmin_version> using <format> format and verify application creation API
+    Given a new user, create a php-<php_version> application with phpmyadmin-<phpmyadmin_version> using <format> format and verify application creation API
     
     Scenarios: Fedora 18 scenarios
     | format | php_version | phpmyadmin_version |
