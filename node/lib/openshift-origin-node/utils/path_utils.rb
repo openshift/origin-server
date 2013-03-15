@@ -52,10 +52,12 @@ module PathUtils
 
   module_function :oo_chown_R
 
-  # File.join(string, ...)  ->  path
+  # PathUtils.join(string, ...)  ->  path
   #
   # Returns a new string formed by joining the strings using
   # <code>File::SEPARATOR</code>.
+  #
+  # Differs from +File.join+ in as much as Pathname is used to sanitize and canonize the path.
   #
   #    PathUtils.join("usr", "mail", "gumby")   #=> "usr/mail/gumby"
   def join(string, *smth)

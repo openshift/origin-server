@@ -2,7 +2,10 @@
 
 PATH=/bin/:/usr/bin:$PATH
 
-source /usr/libexec/openshift/cartridges/v2/mock/mock.conf
+#source /usr/libexec/openshift/cartridges/v2/mock/mock.conf
+
+cartridge_instance_dir=RedHat-mock
+source $cartridge_instance_dir/mock.conf
 
 case "$1" in
   start)     touch $MOCK_STATE/control_start ;;
