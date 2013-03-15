@@ -225,18 +225,18 @@ end
 
 Given /^a new ([^ ]+) application, with ([^ ]+) and ([^ ]+), verify that they are running using ([^ ]+) and ([^ ]+)$/ do |cart_name, db_type, management_app, proc_name, db_proc_name|
   steps %{
-    Given a new #{type} type application
+    Given a new #{cart_name} type application
     And I embed a #{db_type} cartridge into the application
     And I embed a #{management_app} cartridge into the application
     And the application is made publicly accessible
 
     When I stop the application using ctl_all via rhcsh
-    Then a #{proc_name} process for #{type} will not be running
+    Then a #{proc_name} process for #{cart_name} will not be running
     And a #{db_proc_name} process will not be running 
     And a httpd process for #{management_app} will not be running
 
     When I start the application using ctl_all via rhcsh
-    Then a #{proc_name} process for #{type} will be running
+    Then a #{proc_name} process for #{cart_name} will be running
     And a #{db_proc_name} process will be running
     And a httpd process for #{management_app} will be running
   }
