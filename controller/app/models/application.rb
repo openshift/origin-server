@@ -61,6 +61,7 @@ class Application
   field :default_gear_size, type: String
   field :scalable, type: Boolean, default: false
   field :init_git_url, type: String, default: ""
+  field :analytics, type: Hash, default: {}
   embeds_many :connections, class_name: ConnectionInstance.name
   embeds_many :component_instances, class_name: ComponentInstance.name
   embeds_many :group_instances, class_name: GroupInstance.name
@@ -98,6 +99,7 @@ class Application
     default_gear_size =  Rails.application.config.openshift[:default_gear_size] if default_gear_size.nil?
     app = Application.new(domain: domain, name: application_name, default_gear_size: default_gear_size, scalable: scalable, app_ssh_keys: [], pending_op_groups: [], init_git_url: init_git_url)
     app.user_agent = user_agent
+    app.analytics['user_agent'] = user_agent
     features << "web_proxy" if scalable
     if app.valid?
       begin
@@ -145,6 +147,7 @@ class Application
     self.uuid = self._id.to_s if self.uuid=="" or self.uuid.nil?
     self.app_ssh_keys = []
     self.pending_op_groups = []
+    self.analytics = {} if self.analytics.nil?
     self.save
   end
 
