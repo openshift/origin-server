@@ -33,8 +33,9 @@ def usage
 Options:
 -v|--verbose
     Print information about each check being performed
--l|--level [0,1]
+-l|--level [0, 1, 2]
     Level '0' is default, with level '1' extra checks are performed such as integrity of consumed_gears count
+    Level '2' additionally performs checks for application data integrity in mongo and checks for unused and unreserved gear UIDs 
 -h|--help
     Show Usage info
 USAGE
@@ -79,21 +80,27 @@ no_error = true
 summary = []
 
 datastore_hash = {}
+user_hash = {}
+domain_hash = {}
+node_uid_hash = {}
+district_hash = {}
+
 puts "Started at: #{Time.now}"
 start_time = (Time.now.to_f * 1000).to_i
 query = {"group_instances.gears.0" => {"$exists" => true}}
 selection = {:fields => ["name",
-                       "created_at",
-                       "domain_id",
-                       "group_instances.gears.uuid",
-                       "group_instances.gears.uid",
-                       "group_instances.gears.server_identity",
-                       "group_instances._id"], :timeout => false}
+                        "created_at",
+                        "domain_id",
+                        "group_instances.gears.uuid",
+                        "group_instances.gears.uid",
+                        "group_instances.gears.server_identity",
+                        "group_instances._id",
+                        "component_instances._id",
+                        "component_instances.group_instance_id"], 
+             :timeout => false}
 ret = []
 
-user_hash = {}
-domain_hash = {}
-if level==1
+if level >= 1
   OpenShift::DataStore.find(:cloud_users, {}, {:fields => ["consumed_gears", "login"], :timeout => false}) do |user|
     user_hash[user["_id"]] = {"consumed_gears" => user["consumed_gears"],
                               "domains" => {},
@@ -115,15 +122,53 @@ if level==1
   } 
 end
 
+if level >= 2 and Rails.configuration.msg_broker[:districts][:enabled]
+  OpenShift::DataStore.find(:districts, {}, {:timeout => false}) do |district|
+    district_hash[district["_id"]] = [ district["name"], district["max_capacity"], district["server_identities"], district["available_uids"] ] 
+  end
+end
+
 OpenShift::DataStore.find(:applications, query, selection) do |app|
     gear_count = 0
     owner_id = nil
     login = nil
     creation_time = app['created_at']
     domain_id = app['domain_id']
-    if level==1
+    if level >= 1
       owner_id = domain_hash[domain_id]
       login = user_hash[owner_id]["login"]
+      
+      if level >= 2
+        # check for component instances without corresponding group instances
+        app["component_instances"].each do |ci|
+          found = false
+          app["group_instances"].each do |gi|
+            if ci["group_instance_id"] == gi["_id"]
+              found = true
+              break
+            end
+          end
+          unless found
+            summary << "Application #{app["name"]} with Id #{app['_id']} has missing group instance with Id #{ci["group_instance_id"]}"
+            no_error = false
+          end
+        end
+
+        # check for group instances without any components in it
+        app["group_instances"].each do |gi|
+          found = false
+          app["component_instances"].each do |ci|
+            if gi["_id"] == ci["group_instance_id"]
+              found = true
+              break
+            end
+          end
+          unless found
+            summary << "Application #{app["name"]} with Id #{app['_id']} has no components for group instance with Id #{gi["_id"]}"
+            no_error = false
+          end
+        end
+      end
     end
     if app['group_instances']
       app['group_instances'].each { |gi|
@@ -131,13 +176,19 @@ OpenShift::DataStore.find(:applications, query, selection) do |app|
           gi['gears'].each { |gear|
             gear_count += 1
             datastore_hash[gear['uuid'].to_s] = [login, creation_time, gear['uid'], gear['server_identity'], app["uuid"] ]
+            
+            if level >= 2 and Rails.configuration.msg_broker[:districts][:enabled]
+              # record all used uid values for each node to match later with the district
+              node_uid_hash[gear['server_identity']] = [] unless node_uid_hash.has_key?(gear['server_identity'])
+              node_uid_hash[gear['server_identity']] << gear['uid']
+            end
           }
         else
           puts "ERROR: Group instance '#{gi['_id']}' for application: '#{app['name']}/#{app['uuid']}' doesn't have any gears"
           no_error = false
         end
       }
-      user_hash[owner_id]["domains"][domain_id] += gear_count if level==1
+      user_hash[owner_id]["domains"][domain_id] += gear_count if level >= 1
     else
       puts "ERROR: Application: '#{app['name']}/#{app['uuid']}' doesn't have any group instances"
       no_error = false
@@ -148,7 +199,7 @@ total_time = (Time.now.to_f * 1000).to_i - start_time
 puts "Time to fetch mongo data: #{total_time.to_f/1000}s"
 puts "Total gears found in mongo: #{datastore_hash.length}"
 
-if level==1
+if level >= 1
   user_hash.each do |owner_id, owner_hash|
     total_gears = 0
     owner_hash["domains"].each { |dom_id, domain_gear_count| total_gears += domain_gear_count }
@@ -232,7 +283,82 @@ node_hash.each { |gear_uuid, gear_info|
   end
 }
 
-puts no_error ? "Success" : "Check failed.\n #{summary.join("\n")}"
+
+if level >= 2
+  # store the creation threshold time for queries
+  creation_threshold_time = Time.now.to_i - 600
+
+  # check for applications without any group instances in the database
+  query = {"group_instances.0" => {"$exists" => false}, "created_at" => {"$lt" => creation_threshold_time}}
+  selection = {:fields => ["name", "uuid"], :timeout => false}
+  OpenShift::DataStore.find(:applications, query, selection) do |app|
+    summary << "Application #{app['name']} with uuid #{app['uuid']} does not have any group instances."
+    no_error = false
+  end
+
+  # check for applications without any gears in the database
+  query = {"group_instances.gears.0" => {"$exists" => false}, "created_at" => {"$lt" => creation_threshold_time}}
+  selection = {:fields => ["name", "uuid", "group_instances._id"], :timeout => false}
+  OpenShift::DataStore.find(:applications, query, selection) do |app|
+    summary << "Application #{app['name']} with uuid #{app['uuid']} does not have any gears within group instance #{app['group_instances']['_id']}."
+    no_error = false
+  end
+
+  # check for users with nil or empty or missing login in the database
+  query = {"$or" => [{"login" => {"$type" => 10}}, {"login" => ""}, {"login" => {"$exists" => false}}]}
+  selection = {:fields => ["_id", "uuid"], :timeout => false}
+  OpenShift::DataStore.find(:cloud_users, query, selection) do |user|
+    summary << "User with Id #{user['_id']} has a null, empty, or missing login."
+    no_error = false
+  end
+
+
+  if Rails.configuration.msg_broker[:districts][:enabled]
+    # check for any unreserved uid in the district
+    # these are uids that gears are using but are still present in the district's available_uids 
+    node_uid_hash.each do |server_identity, uid_list|
+      district_info = nil
+      district_hash.each do |id, info|
+        if district_info[2].include?(server_identity)
+          district_info = info
+          break
+        end
+      end
+    
+      unless district_info.nil?
+        unreserved_uids = uid_list & district_info[3]
+        unreserved_uids.each do |unreserved_uid|
+          summary << "UID #{unreserved_uid} is available in #{district_info[0]} but used by a gear on node #{server_identity}."
+          no_error = false
+        end
+      end
+    end
+  
+    # check for any unused uid in the district
+    # these are uids that are reserved in the district, but no gear is using 
+    district_used_uids = []
+    district_hash.each do |district_id, district_info|
+      # collect gear uids from all nodes with server identities within this district
+      district_info[2].each do |server_identity|
+        district_used_uids << node_uid_hash[server_identity]
+      end
+    
+      first_uuid = Rails.configuration.msg_broker[:districts][:first_uid]
+      district_all_uids = []
+      district_all_uids.fill(0, district_info[max_capacity]) {|i| first_uuid + i}
+      district_unused_uids = district_all_uids - district_info[3] - district_used_uids 
+    
+      district_unused_uids.each do |unused_uid|
+        summary << "UID #{unused_uid} is reserved but is not being used on any node within district #{district_info[0]}."
+        no_error = false
+      end
+    end
+  end
+end
+
+
+
+puts no_error ? "Success" : "Check failed.\n#{summary.join("\n")}"
 if $false_positive_check_cnt >= FALSE_POSITIVE_CHECK_LIMIT
   puts "WARNING: Only checked the first #{FALSE_POSITIVE_CHECK_LIMIT} errors for false positives."
 end
