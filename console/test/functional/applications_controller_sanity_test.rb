@@ -17,6 +17,7 @@ class ApplicationsControllerSanityTest < ActionController::TestCase
 
     assert app = assigns(:application)
     assert app.errors.empty?, app.errors.to_hash.inspect
+    assert app.persisted?
     assert domain = assigns(:domain)
     assert_redirected_to get_started_application_path(app, :wizard => true)
 
