@@ -1,0 +1,74 @@
+#!/bin/bash -e
+
+function _are_cronjobs_enabled() {
+   [ -f $OPENSHIFT_CRON_DIR/run/jobs.enabled ]  &&  return 0
+   return 1
+
+}  #  End of function  _are_cronjobs_enabled.
+
+function start() {
+    echo "Starting CRON cart"
+    if _are_cronjobs_enabled; then
+        echo "cron scheduling service is already enabled" 1>&2
+    else
+        touch "$OPENSHIFT_CRON_DIR/run/jobs.enabled"
+    fi
+}
+
+function stop() {
+    echo "Stopping CRON cart"
+    if _are_cronjobs_enabled; then
+        rm -f $OPENSHIFT_CRON_DIR/run/jobs.enabled
+    else
+        echo "cron scheduling service is already disabled" 1>&2
+    fi
+}
+
+function restart() {
+    echo "Restarting CRON cart"
+    stop
+    start
+}
+
+function status() {
+  if [ -d "$OPENSHIFT_REPO_DIR/.openshift/cron" ]; then
+      njobs=0
+      for freq in `cat $OPENSHIFT_CRON_DIR/configuration/frequencies`; do
+         if [ -d "$OPENSHIFT_REPO_DIR/.openshift/cron/$freq" ]; then
+            jobcnt=$(ls $OPENSHIFT_REPO_DIR/.openshift/cron/$freq | wc -l)
+            njobs=$((njobs + jobcnt))
+         fi
+      done
+      if test 0 -ge ${njobs:-0}; then
+         echo "Application has no scheduled jobs" 1>&2
+      fi
+   else
+      echo "Application has no scheduled jobs" 1>&2
+      echo "   - Missing .openshift/cron/ directory." 1>&2
+   fi
+
+   if _are_cronjobs_enabled; then
+      echo "cron scheduling service is enabled" 1>&2
+   else
+      echo "cron scheduling service is disabled" 1>&2
+   fi
+}
+
+function reload() {
+    echo "Reloading CRON cart"
+    restart
+}
+
+function tidy() {
+    echo "Tidying CRON cart"
+}
+
+case "$1" in
+  start)     start ;;
+  stop)      stop ;;
+  restart)   restart ;;
+  status)    status ;;
+  reload)    reload ;;
+  tidy)      tidy ;;
+  *)         exit 0
+esac
