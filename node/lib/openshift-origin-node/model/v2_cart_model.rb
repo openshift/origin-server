@@ -79,7 +79,6 @@ module OpenShift
 
           @cartridges[cart_name] = get_cartridge_from_directory(File.basename(cart_dir.first))
         rescue Exception => e
-          logger.error(e.backtrace.join("\n"))
           raise "Failed to load cart manifest from #{cart_dir} for cart #{cart_name} in gear #{@user.uuid}: #{e.message}"
         end
       end
@@ -90,10 +89,11 @@ module OpenShift
     # Load cartridge's local manifest from cartridge directory name
     def get_cartridge_from_directory(directory)
       unless @cartridges.has_key? directory
-        manifest_path = PathUtils.join(@user.homedir, directory, 'metadata', 'manifest.yml')
+        cartridge_path = PathUtils.join(@user.homedir, directory)
+        manifest_path = PathUtils.join(cartridge_path, 'metadata', 'manifest.yml')
         raise "Cartridge manifest not found: #{manifest_path}" unless File.exist?(manifest_path)
 
-        @cartridges[directory] = OpenShift::Runtime::Cartridge.new(manifest_path)
+        @cartridges[directory] = OpenShift::Runtime::Cartridge.new(manifest_path, @user.homedir)
       end
       @cartridges[directory]
     end

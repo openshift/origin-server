@@ -23,20 +23,24 @@ end
 
 require 'test_helper'
 require 'openshift-origin-node/model/v2_cart_model'
+require 'openshift-origin-node/model/unix_user'
 require 'openshift-origin-node/model/cartridge'
 require 'openshift-origin-node/model/cartridge_repository'
 require 'openshift-origin-node/utils/environ'
 require 'openshift-origin-common'
+require 'ostruct'
 require 'test/unit'
 require 'fileutils'
 require 'mocha'
 
 class V2CartModelTest < Test::Unit::TestCase
 
+  GEAR_BASE_DIR = '/var/lib/openshift'
+
   def setup
     # Set up the config
     @config = mock('OpenShift::Config')
-    @config.stubs(:get).with("GEAR_BASE_DIR").returns("/tmp")
+    @config.stubs(:get).with("GEAR_BASE_DIR").returns(GEAR_BASE_DIR)
 
     OpenShift::Utils::Sdk.stubs(:new_sdk_app?).returns(true)
 
@@ -56,14 +60,18 @@ class V2CartModelTest < Test::Unit::TestCase
     @gear_name = @app_name
     @namespace = 'jwh201204301647'
     @gear_ip   = "127.0.0.1"
+    @homedir   = "#{GEAR_BASE_DIR}/#{@gear_uuid}"
 
-    @user = mock()
-    @user.stubs(:uuid).returns(@gear_uuid)
-    @user.stubs(:uid).returns(@user_uid)
-    @user.stubs(:container_uuid).returns(@user_uuid)
-    @user.stubs(:container_name).returns(@gear_name)
-    @user.stubs(:namespace).returns(@namespace)
-    @user.stubs(:homedir).returns("/tmp")
+
+    @user = OpenStruct.new(
+        uuid:           @gear_uuid,
+        uid:            @user_uid,
+        container_uuid: @user_uuid,
+        container_name: @gear_name,
+        namespace:      @namespace,
+        homedir:        "#{GEAR_BASE_DIR}/#{@gear_uuid}"
+
+    )
 
     @model = OpenShift::V2CartridgeModel.new(@config, @user)
 
@@ -136,13 +144,19 @@ class V2CartModelTest < Test::Unit::TestCase
     @model.stubs(:get_cartridge).with('mock-0.1').returns(@mock_cartridge)
   end
 
+  def teardown
+    @user.unstub(:homedir)
+  end
+
   def test_get_cartridge_valid_manifest
     local_model = OpenShift::V2CartridgeModel.new(@config, @user)
 
-    @user.expects(:homedir).returns('/foo')
+    manifest_path = "#{@homedir}/UnitTest-mock/metadata/manifest.yml"
+    YAML.stubs(:load_file).with(manifest_path).returns(YAML.load(@mock_manifest))
+    Dir.stubs(:glob).returns(["#{@homedir}/UnitTest-mock"])
+    File.stubs(:exist?).with(manifest_path).returns(true)
 
-    YAML.stubs(:load_file).with('/foo/mock/metadata/manifest.yml').returns(YAML.load(@mock_manifest))
-    Dir.stubs(:glob).returns(['/foo/mock/metadata/manifest.yml'])
+
     cart = local_model.get_cartridge("mock-0.1")
 
     assert_equal "mock", cart.name
@@ -160,10 +174,9 @@ class V2CartModelTest < Test::Unit::TestCase
   def test_get_cartridge_error_loading
     local_model = OpenShift::V2CartridgeModel.new(@config, @user)
 
-    @user.expects(:homedir).returns('/foo')
-    YAML.stubs(:load_file).with('/foo/mock/metadata/manifest.yml').raises(ArgumentError.new('bla'))
+    YAML.stubs(:load_file).with("#{@homedir}/RedHat-mock/metadata/manifest.yml").raises(ArgumentError.new('bla'))
 
-    assert_raise(RuntimeError, 'Failed to load cart manifest from /foo/mock/metadata/manifest.yml for cart mock in gear : bla') do
+    assert_raise(RuntimeError, "Failed to load cart manifest from #{@homedir}/RedHat-mock/metadata/manifest.yml for cart mock in gear : bla") do
       local_model.get_cartridge("mock-0.1")
     end
   end
@@ -177,7 +190,7 @@ class V2CartModelTest < Test::Unit::TestCase
         returns(@mock_cartridge)
 
     scenarios = {
-        'mock-1.0' => '/tmp/UnitTest-mock/1.0',
+        'mock-1.0' => "/tmp/UnitTest-mock/1.0",
     }
 
     scenarios.each do |cart_name, expected_path|
@@ -338,7 +351,7 @@ class V2CartModelTest < Test::Unit::TestCase
     frontend.expects(:connect).with("/front2", "127.0.0.1:8081/back2", { "file" => true })
     frontend.expects(:connect).with("/front3", "127.0.0.1:8082/back3", {})
     frontend.expects(:connect).with("/front4", "127.0.0.2:9090/back4", {})
-    
+
     @model.connect_frontend(@mock_cartridge)
   end
 end
