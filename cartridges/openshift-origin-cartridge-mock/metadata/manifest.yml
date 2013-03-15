@@ -7,6 +7,8 @@ Description: "A mock cartridge for development use only."
 Version: 0.1
 License: "None"
 Vendor: Red Hat
+Cartridge-Version: 0.0.1
+Cartridge-Vendor: redhat
 Categories:
   - service
   - web_framework

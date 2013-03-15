@@ -6,6 +6,8 @@ Version: 2.6
 License: "The Python License, version 2.7.3"
 License-Url: http://docs.python.org/2/license.html
 Vendor: python.org
+Cartridge-Version: 0.0.1
+Cartridge-Vendor: redhat
 Categories:
   - service
   - python

@@ -4,6 +4,8 @@ Display-Name: Jenkins Server
 Description: "Jenkins is a continuous integration (CI) build server that is deeply integrated into OpenShift. See the Jenkins info page for more."
 Version: 1.4
 License: ASL 2.0
+Cartridge-Version: 0.0.1
+Cartridge-Vendor: redhat
 Categories:
   - web_framework
   - instant_app
