@@ -78,8 +78,6 @@ ln -s %{cartridgedir}/../abstract-jboss/info/connection-hooks/publish_jboss_remo
 ln -s %{cartridgedir}/../abstract-jboss/info/connection-hooks/set_jboss_cluster %{buildroot}%{cartridgedir}/info/connection-hooks/set_jboss_cluster
 ln -s %{cartridgedir}/../abstract-jboss/info/connection-hooks/set_jboss_remoting %{buildroot}%{cartridgedir}/info/connection-hooks/set_jboss_remoting
 
-ln -s %{cartridgedir}/../abstract-jboss/info/data/mysql.tar %{buildroot}%{cartridgedir}/info/data/mysql.tar
-
 ln -s %{cartridgedir}/../abstract-jboss/info/hooks/deconfigure %{buildroot}%{cartridgedir}/info/hooks/deconfigure
 ln -s %{cartridgedir}/../abstract-jboss/info/hooks/threaddump %{buildroot}%{cartridgedir}/info/hooks/threaddump
 

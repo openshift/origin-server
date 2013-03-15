@@ -57,9 +57,6 @@ cp -rv -p abstract %{buildroot}%{cartdir}/
 cp -rv -p abstract-httpd %{buildroot}%{cartdir}/
 cp -rv -p abstract-jboss %{buildroot}%{cartdir}/
 
-# Remove bundled library
-rm -f %{buildroot}%{cartdir}/abstract-jboss/info/data/mysql.tar
-
 %files
 %doc COPYRIGHT LICENSE
 %dir %{_libexecdir}/openshift/
