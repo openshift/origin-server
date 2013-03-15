@@ -8,6 +8,7 @@ echo "export OPENSHIFT_PHP_VERSION='$version'" > "$OPENSHIFT_HOMEDIR/php-$versio
 echo "export OPENSHIFT_PHP_DIR='$OPENSHIFT_PHP_DIR'" > "$OPENSHIFT_HOMEDIR/php-$version/env/OPENSHIFT_PHP_DIR"
 
 # Copy the version specific files upto php directory
+shopt -s dotglob
 cp -r $OPENSHIFT_PHP_DIR/versions/$version/configuration/* $OPENSHIFT_PHP_DIR/configuration
 cp -r $OPENSHIFT_PHP_DIR/versions/$version/metadata/* $OPENSHIFT_PHP_DIR/metadata
 cp -r $OPENSHIFT_PHP_DIR/versions/$version/template/* $OPENSHIFT_PHP_DIR/template
