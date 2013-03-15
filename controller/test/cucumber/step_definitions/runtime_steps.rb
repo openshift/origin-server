@@ -332,7 +332,7 @@ end
 # invoking deconfigure on the named cartridge.
 When /^I remove the ([^ ]+) cartridge from the application$/ do | cart_name |
   record_measure("Runtime Benchmark: Deconfigure #{cart_name} cartridge in cartridge #{@cart.name}") do
-    raise "No embedded cart named #{cart_name} associated with gear #{gear.uuid}" unless @gear.carts.has_key?(cart_name)
+    raise "No embedded cart named #{cart_name} associated with gear #{@gear.uuid}" unless @gear.carts.has_key?(cart_name)
 
     embedded_cart = @gear.carts[cart_name]
 
@@ -785,7 +785,7 @@ Given /^a v2 default node$/ do
 end
 
 Then /^the ([^ ]+) cartridge instance directory will( not)? exist$/ do |cartridge_name, negate|
-  cartridge = @gear.container.cartridge_model.get_cartridge(cart_name)
+  cartridge = @gear.container.cartridge_model.get_cartridge(cartridge_name)
 
   cartridge_dir = File.join($home_root, @gear.uuid, cartridge.directory)
 
