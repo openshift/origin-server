@@ -158,7 +158,7 @@ module OpenShift
 
         @short_name.upcase!
 
-        if @cartridge_vendor && @name
+        if @cartridge_vendor && @name && @cartridge_version
           @directory = "#{@cartridge_vendor.gsub(/\s+/, '')}-#{@name}"
 
           @repository_path = PathUtils.join(repository_base_path, @directory, @cartridge_version)
