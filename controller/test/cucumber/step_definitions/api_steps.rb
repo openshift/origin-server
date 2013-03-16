@@ -59,10 +59,10 @@ Given /^a new user, verify typical REST interactios with a ([^ ]+) application o
     Then the response should be "200"
     When I send a POST request to "/domains/api<random>/applications/app/events" with the following:"event=force-stop"
     Then the response should be "200"
-    When I send a POST request to "/domains/api<random>/applications/app/events" with the following:"event=add-alias&alias=app-api<random>.foobar.com"
-    Then the response should be "200"
-    When I send a POST request to "/domains/api<random>/applications/app/events" with the following:"event=remove-alias&alias=app-api<random>.foobar.com"
-    Then the response should be "200"
+    When I send a POST request to "/domains/api<random>/applications/app/aliases" with the following:"id=app-api<random>.foobar.com"
+    Then the response should be "201"
+    When I send a DELETE request to "/domains/api<random>/applications/app/aliases/app-api<random>.foobar.com"
+    Then the response should be "204"
     When I send a POST request to "/domains/api<random>/applications/app/cartridges" with the following:"cartridge=mysql-5.1"
     Then the response should be "201"
     When I send a GET request to "/domains/api<random>/applications/app/descriptor"
@@ -421,7 +421,7 @@ When /^I send a DELETE request to "([^\"]*)"$/ do |path|
   begin
     @response = @request.execute()
   rescue => e
-  @response = e.response
+    @response = e.response
   end
 end
 
@@ -605,7 +605,7 @@ end
 
 def sub_random(value)
   if value and value.include? "<random>"
-    value = value.sub("<random>", @random.to_s)
+    value = value.gsub("<random>", @random.to_s)
   end
   return value
 end

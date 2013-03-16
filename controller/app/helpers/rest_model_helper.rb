@@ -1,10 +1,12 @@
 module RestModelHelper
   def get_rest_application(application, domain, include_cartridges, applications=nil)
-    app = if requested_api_version == 1.0
-        RestApplication10.new(application, domain, get_url, nolinks, applications)
-      else
-        RestApplication.new(application, domain, get_url, nolinks, applications)
-      end
+    if requested_api_version == 1.0
+        app = RestApplication10.new(application, domain, get_url, nolinks, applications)
+    elsif requested_api_version <= 1.3
+        app = RestApplication13.new(application, domain, get_url, nolinks, applications)
+    else
+        app = RestApplication.new(application, domain, get_url, nolinks, applications)
+    end
     if include_cartridges
       app.cartridges = get_application_rest_cartridges(application, domain)
     end
@@ -47,5 +49,9 @@ module RestModelHelper
     else
       RestEmbeddedCartridge.new(cart, comp, application, domain, component_instance, colocated_instances, scale, get_url, messages, nolinks)
     end
+  end
+  
+  def get_rest_alias(application, domain, al1as)
+     RestAlias.new(application, domain, al1as, get_url, nolinks)
   end
 end

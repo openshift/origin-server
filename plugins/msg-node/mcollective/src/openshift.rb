@@ -87,7 +87,7 @@ module MCollective
             Log.instance.error("Unhandled action execution exception for action [#{action}]: #{e.message}")
             Log.instance.error(e.backtrace)
             exitcode = 127
-            output   = "An internal exception occured processing action #{action}"
+            output   = "An internal exception occured processing action #{action}: #{e.message}"
           end
           Log.instance.info("Finished executing action [#{action}] (#{exitcode})")
         end
@@ -522,7 +522,8 @@ module MCollective
         ssl_cert     = args['--with-ssl-cert']
         priv_key     = args['--with-priv-key']
         server_alias = args['--with-alias-name']
-        passprase    = args['--with-passphrase']
+        passphrase   = args['--with-passphrase']
+
         with_frontend_from_args(args) do |f, o|
           f.add_ssl_cert(ssl_cert, priv_key, server_alias, passphrase)
         end

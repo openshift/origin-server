@@ -55,8 +55,6 @@ class GearGroupsController < BaseController
       return render_error(:not_found, "Application '#{app_id}' not found for domain '#{domain_id}'", 101, "SHOW_GEAR_GROUP")
     end
 
-    gear_group_id = get_actual_id(gear_group_id, params[:format])
-
     # validate the gear group ID using regex to avoid a mongo call, if it is malformed
     if gear_group_id !~ GROUP_INSTANCE_ID_COMPATIBILITY_REGEX
       return render_error(:not_found, "Gear group '#{gear_group_id}' not found for application #{app_id} on domain '#{domain_id}'", 101, "SHOW_GEAR_GROUP")
