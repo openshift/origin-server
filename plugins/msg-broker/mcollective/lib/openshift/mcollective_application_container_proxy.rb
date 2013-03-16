@@ -2475,7 +2475,7 @@ module OpenShift
           result = rpc_client.custom_request('cartridge_do', mc_args, @id, {'identity' => @id})
           Rails.logger.debug "DEBUG: #{result.inspect} (Request ID: #{Thread.current[:user_action_log_uuid]})" if log_debug_output
         rescue => e
-          Rails.logger.error("Error processing custom_request for action #{action}")
+          Rails.logger.error("Error processing custom_request for action #{action}: #{e.message}")
           Rails.logger.error(e.backtrace)
         ensure
           rpc_client.disconnect

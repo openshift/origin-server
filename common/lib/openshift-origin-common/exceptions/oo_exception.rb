@@ -28,7 +28,15 @@ module OpenShift
     end
   end
 
-  class UserException < OpenShift::OOException; end
+  class UserException < OpenShift::OOException
+    attr_accessor :field
+    def initialize(msg=nil, code=nil, resultIO=nil, field=nil)
+      super(msg)
+      @code = code
+      @resultIO = resultIO
+      @field = field
+    end
+  end
   class UserKeyException < OpenShift::OOException; end
   class AuthServiceException < OpenShift::OOException; end
   class UserValidationException < OpenShift::OOException; end

@@ -49,8 +49,6 @@ class ApplicationsController < BaseController
       return render_error(:not_found, "Domain '#{domain_id}' not found", 127, "SHOW_APPLICATION")
     end
 
-    id = get_actual_id(id, params[:format])
-
     # validate the application name using regex to avoid a mongo call, if it is malformed
     if id !~ Application::APP_NAME_COMPATIBILITY_REGEX
       return render_error(:not_found, "Application '#{id}' not found", 101, "SHOW_APPLICATION")
@@ -193,8 +191,6 @@ class ApplicationsController < BaseController
     if domain_id !~ Domain::DOMAIN_NAME_COMPATIBILITY_REGEX
       return render_error(:not_found, "Domain '#{domain_id}' not found", 127, "DELETE_APPLICATION")
     end
-
-    id = get_actual_id(id, params[:format])
 
     # validate the application name using regex to avoid a mongo call, if it is malformed
     if id !~ Application::APP_NAME_COMPATIBILITY_REGEX

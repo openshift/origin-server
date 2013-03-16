@@ -54,7 +54,6 @@ class Application
 
   belongs_to :domain
   field :user_ids, type: Array, default: []
-  field :aliases, type: Array, default: []
   field :component_start_order, type: Array, default: []
   field :component_stop_order, type: Array, default: []
   field :component_configure_order, type: Array, default: []
@@ -66,6 +65,7 @@ class Application
   embeds_many :component_instances, class_name: ComponentInstance.name
   embeds_many :group_instances, class_name: GroupInstance.name
   embeds_many :app_ssh_keys, class_name: ApplicationSshKey.name
+  embeds_many :aliases, class_name: Alias.name
   
   index({'group_instances.gears.uuid' => 1}, {:unique => true, :sparse => true})
   index({'domain_id' => 1})
@@ -687,13 +687,16 @@ class Application
   # == Parameters:
   # fqdn::
   #   Fully qualified domain name of the alias to associate with this application
+  # ssl_certificate:: SSL certificate to add
+  # private_key::Private key for the SSL certificate
+  # pass_phrase::Optional passphrase for the private key
   #
   # == Returns:
   # {PendingAppOps} object which tracks the progress of the operation.
   #
   # == Raises:
   # OpenShift::UserException if the alias is already been associated with an application.
-  def add_alias(fqdn)
+  def add_alias(fqdn, ssl_certificate=nil, private_key=nil, pass_phrase="")
     # Server aliases validate as DNS host names in accordance with RFC
     # 1123 and RFC 952.  Additionally, OpenShift does not allow an
     # Alias to be an IP address or a host in the service domain.
@@ -704,15 +707,20 @@ class Application
         (server_alias =~ /#{Rails.configuration.openshift[:domain_suffix]}$/) or
         (server_alias.length > 255 ) or
         (server_alias.length == 0 ) or
-        (server_alias =~ /^\d+\.\d+\.\d+\.\d+$/)
+        (server_alias =~ /^\d+\.\d+\.\d+\.\d+$/) or
+        (server_alias =~ /\A[\S]+(\.(json|xml|yml|yaml|html|xhtml))\z/)
       raise OpenShift::UserException.new("Invalid Server Alias '#{server_alias}' specified", 105)
     end
+    validate_certificate(ssl_certificate, private_key, pass_phrase)
     
     Application.run_in_application_lock(self) do
-      raise OpenShift::UserException.new("Alias #{server_alias} is already registered", 140) if Application.where(aliases: server_alias).count > 0
-      aliases.push(server_alias)
+      raise OpenShift::UserException.new("Alias #{server_alias} is already registered", 140) if Application.where("aliases.fqdn" => server_alias).count > 0
       op_group = PendingAppOpGroup.new(op_type: :add_alias, args: {"fqdn" => server_alias}, user_agent: self.user_agent)
       self.pending_op_groups.push op_group
+      if ssl_certificate and !ssl_certificate.empty?
+        op_group = PendingAppOpGroup.new(op_type: :add_ssl_cert, args: {"fqdn" => server_alias, "ssl_certificate" => ssl_certificate, "private_key" => private_key, "pass_phrase" => pass_phrase}, user_agent: self.user_agent)
+        self.pending_op_groups.push op_group
+      end
       result_io = ResultIO.new
       self.run_jobs(result_io)
       result_io
@@ -727,15 +735,47 @@ class Application
   #
   # == Returns:
   # {PendingAppOps} object which tracks the progress of the operation.
-  def remove_alias(fqdn)
-    fqdn = fqdn.downcase
-    
+  def remove_alias(server_alias)
+    begin
+      al1as = aliases.find_by(fqdn: server_alias)
+    rescue Mongoid::Errors::DocumentNotFound
+      raise OpenShift::UserException.new("Alias '#{server_alias}' does not exist for '#{self.name}'", 173) 
+    end
     Application.run_in_application_lock(self) do
-      raise OpenShift::UserException.new("Alias '#{fqdn}' does not exist for '#{self.name}'") unless aliases.include? fqdn
-      
-      aliases.delete(fqdn)
-      op_group = PendingAppOpGroup.new(op_type: :remove_alias, args: {"fqdn" => fqdn}, user_agent: self.user_agent)
+      if al1as.has_private_ssl_certificate
+         op_group = PendingAppOpGroup.new(op_type: :remove_ssl_cert, args: {"fqdn" => al1as.fqdn}, user_agent: self.user_agent)
+         self.pending_op_groups.push op_group
+      end
+      op_group = PendingAppOpGroup.new(op_type: :remove_alias, args: {"fqdn" => al1as.fqdn}, user_agent: self.user_agent)
       self.pending_op_groups.push op_group
+      result_io = ResultIO.new
+      self.run_jobs(result_io)
+      result_io
+    end
+  end
+  
+  def update_alias(fqdn, ssl_certificate=nil, private_key=nil, pass_phrase="")
+    
+    validate_certificate(ssl_certificate, private_key, pass_phrase)
+    
+    fqdn = fqdn.downcase
+    begin
+      old_alias = aliases.find_by(fqdn: fqdn)
+    rescue Mongoid::Errors::DocumentNotFound
+      raise OpenShift::UserException.new("Alias '#{fqdn}' does not exist for '#{self.name}'", 173) 
+    end
+    Application.run_in_application_lock(self) do
+      #remove old certificate
+      if old_alias.has_private_ssl_certificate
+         op_group = PendingAppOpGroup.new(op_type: :remove_ssl_cert, args: {"fqdn" => fqdn}, user_agent: self.user_agent)
+         self.pending_op_groups.push op_group
+      end
+      #add new certificate
+      if ssl_certificate and !ssl_certificate.empty?
+        op_group = PendingAppOpGroup.new(op_type: :add_ssl_cert, args: {"fqdn" => fqdn, "ssl_certificate" => ssl_certificate, "private_key" => private_key, "pass_phrase" => pass_phrase}, user_agent: self.user_agent)
+        self.pending_op_groups.push op_group
+      end
+      
       result_io = ResultIO.new
       self.run_jobs(result_io)
       result_io
@@ -959,6 +999,23 @@ class Application
               if group_instance.gears.where(app_dns: true).count > 0
                 gear = group_instance.gears.find_by(app_dns: true)
                 op_group.pending_ops.push PendingAppOp.new(op_type: :remove_alias, args: {"group_instance_id" => group_instance.id.to_s, "gear_id" => gear.id.to_s, "fqdn" => op_group.args["fqdn"]} )
+                break
+              end
+            end
+          when :add_ssl_cert
+            self.group_instances.each do |group_instance|
+              if group_instance.gears.where(app_dns: true).count > 0
+                gear = group_instance.gears.find_by(app_dns: true)
+                op_group.pending_ops.push PendingAppOp.new(op_type: :add_ssl_cert, args: {"group_instance_id" => group_instance.id.to_s, "gear_id" => gear.id.to_s, 
+                  "fqdn" => op_group.args["fqdn"], "ssl_certificate" => op_group.args["ssl_certificate"], "private_key" => op_group.args["private_key"], "pass_phrase" => op_group.args["pass_phrase"] } )
+                break
+              end
+            end
+          when :remove_ssl_cert
+            self.group_instances.each do |group_instance|
+              if group_instance.gears.where(app_dns: true).count > 0
+                gear = group_instance.gears.find_by(app_dns: true)
+                op_group.pending_ops.push PendingAppOp.new(op_type: :remove_ssl_cert, args: {"group_instance_id" => group_instance.id.to_s, "gear_id" => gear.id.to_s, "fqdn" => op_group.args["fqdn"]} )
                 break
               end
             end
@@ -2086,4 +2143,31 @@ class Application
     end
     web_cart
   end  
+  
+  def validate_certificate(ssl_certificate, private_key, pass_phrase)
+    if ssl_certificate and !ssl_certificate.empty?
+      raise OpenShift::UserException.new("Privte key is required", 172, nil, "private_key") if private_key.nil? 
+      #validate certificate
+      begin
+        ssl_cert_clean = OpenSSL::X509::Certificate.new(ssl_certificate.strip)
+      rescue Exception => e
+        raise OpenShift::UserException.new("Invalid certificate: #{e.message}", 174, nil, "ssl_certificate")
+      end
+      #validate private key
+      begin
+        pass_phrase = '' if pass_phrase.nil?
+        priv_key_clean = OpenSSL::PKey.read(private_key.strip, pass_phrase.strip)
+      rescue Exception => e
+        raise OpenShift::UserException.new("Invalid private key or pass phrase: #{e.message}", 172, nil, "private_key")
+      end
+      if not ssl_cert_clean.check_private_key(priv_key_clean)
+        raise OpenShift::UserException.new("Key/cert mismatch", 172, nil, "private_key")
+      end
+
+      if not [OpenSSL::PKey::RSA, OpenSSL::PKey::DSA].include?(priv_key_clean.class)
+        raise OpenShift::UserException.new("Key must be RSA or DSA for Apache mod_ssl",172, nil, "private_key")
+      end
+    end
+  end
+  
 end
