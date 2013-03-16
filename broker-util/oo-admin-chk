@@ -139,32 +139,24 @@ OpenShift::DataStore.find(:applications, query, selection) do |app|
       login = user_hash[owner_id]["login"]
       
       if level >= 2
-        # check for component instances without corresponding group instances
+        # check for component instances without corresponding group instances and vice-versa
+        gi_hash = {}
+        app["group_instances"].each do |gi|
+          gi_hash[gi["_id"]] = false
+        end
+
         app["component_instances"].each do |ci|
-          found = false
-          app["group_instances"].each do |gi|
-            if ci["group_instance_id"] == gi["_id"]
-              found = true
-              break
-            end
-          end
-          unless found
+          if gi_hash.has_key? ci["group_instance_id"]
+            gi_hash[ci["group_instance_id"]] = true
+          else
             summary << "Application #{app["name"]} with Id #{app['_id']} has missing group instance with Id #{ci["group_instance_id"]}"
             no_error = false
           end
         end
-
-        # check for group instances without any components in it
-        app["group_instances"].each do |gi|
-          found = false
-          app["component_instances"].each do |ci|
-            if gi["_id"] == ci["group_instance_id"]
-              found = true
-              break
-            end
-          end
-          unless found
-            summary << "Application #{app["name"]} with Id #{app['_id']} has no components for group instance with Id #{gi["_id"]}"
+        
+        gi_hash.each do |gi_id, present|
+          unless present
+            summary << "Application #{app["name"]} with Id #{app['_id']} has no components for group instance with Id #{gi_id}"
             no_error = false
           end
         end
@@ -283,7 +275,6 @@ node_hash.each { |gear_uuid, gear_info|
   end
 }
 
-
 if level >= 2
   # store the creation threshold time for queries
   creation_threshold_time = Time.now.to_i - 600
@@ -296,12 +287,16 @@ if level >= 2
     no_error = false
   end
 
-  # check for applications without any gears in the database
-  query = {"group_instances.gears.0" => {"$exists" => false}, "created_at" => {"$lt" => creation_threshold_time}}
+  # check for applications without any gears in the group instance
+  query = {"group_instances" : {"$elemMatch" : { "gears" : {"$size" : 0}}}, "created_at" => {"$lt" => creation_threshold_time}}
   selection = {:fields => ["name", "uuid", "group_instances._id"], :timeout => false}
   OpenShift::DataStore.find(:applications, query, selection) do |app|
-    summary << "Application #{app['name']} with uuid #{app['uuid']} does not have any gears within group instance #{app['group_instances']['_id']}."
-    no_error = false
+    app['group_instances'].each |gi|
+      if (not gi.has_key?("gears")) or gi['gears'].length == 0 
+        summary << "Application #{app['name']} with uuid #{app['uuid']} does not have any gears within group instance #{gi['_id']}."
+        no_error = false
+      end
+    end
   end
 
   # check for users with nil or empty or missing login in the database
@@ -311,7 +306,6 @@ if level >= 2
     summary << "User with Id #{user['_id']} has a null, empty, or missing login."
     no_error = false
   end
-
 
   if Rails.configuration.msg_broker[:districts][:enabled]
     # check for any unreserved uid in the district
@@ -345,7 +339,7 @@ if level >= 2
     
       first_uuid = Rails.configuration.msg_broker[:districts][:first_uid]
       district_all_uids = []
-      district_all_uids.fill(0, district_info[max_capacity]) {|i| first_uuid + i}
+      district_all_uids.fill(0, district_info[1]) {|i| first_uuid + i}
       district_unused_uids = district_all_uids - district_info[3] - district_used_uids 
     
       district_unused_uids.each do |unused_uid|
@@ -355,8 +349,6 @@ if level >= 2
     end
   end
 end
-
-
 
 puts no_error ? "Success" : "Check failed.\n#{summary.join("\n")}"
 if $false_positive_check_cnt >= FALSE_POSITIVE_CHECK_LIMIT
