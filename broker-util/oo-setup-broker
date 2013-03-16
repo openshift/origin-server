@@ -412,7 +412,7 @@ run "/usr/sbin/lokkit -p 53:tcp"
 run "/usr/sbin/lokkit -p 53:udp"
 
 $log.info "Updating broker hostname in apache"
-find_and_replace( "/etc/httpd/conf.d/000000_openshift_origin_broker_proxy.conf", /  ServerName.*$/, "  ServerName broker.#{node_domain}" )
+find_and_replace( "/etc/httpd/conf.d/000002_openshift_origin_broker_proxy.conf", /  ServerName.*$/, "  ServerName broker.#{node_domain}" )
 
 $log.info "Updating system wide OpenShift CLI configuration to use local broker"
 File.open("/etc/openshift/express.conf", "w") do |f|
