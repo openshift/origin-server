@@ -1,2 +1,2 @@
 by "Matej Lazar"
-shared package ceylon.demo.net;
+package ceylon.demo.net;
