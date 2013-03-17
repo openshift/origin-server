@@ -4,10 +4,6 @@ require 'test/unit/assertions'
 
 include Test::Unit::Assertions
 
-def get_mcs_level(uid)
-  `/usr/bin/oo-get-mcs-level #{uid}`
-end
-
 # NOTE: Assumes the test context is the basic steps provided
 # by runtime_steps.rb
 Then /^the php application will( not)? be aliased$/ do | negate |
