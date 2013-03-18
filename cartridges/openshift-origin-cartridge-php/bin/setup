@@ -3,9 +3,9 @@ set -u
 set -x
 
 version=5.3
-OPENSHIFT_PHP_DIR="$OPENSHIFT_HOMEDIR/php-$version"
-echo "export OPENSHIFT_PHP_VERSION='$version'" > "$OPENSHIFT_HOMEDIR/php-$version/env/OPENSHIFT_PHP_VERSION"
-echo "export OPENSHIFT_PHP_DIR='$OPENSHIFT_PHP_DIR'" > "$OPENSHIFT_HOMEDIR/php-$version/env/OPENSHIFT_PHP_DIR"
+OPENSHIFT_PHP_DIR="$OPENSHIFT_HOMEDIR/redhat-php"
+echo "export OPENSHIFT_PHP_VERSION='$version'" > "$OPENSHIFT_PHP_DIR/env/OPENSHIFT_PHP_VERSION"
+echo "export OPENSHIFT_PHP_DIR='$OPENSHIFT_PHP_DIR'" > "$OPENSHIFT_PHP_DIR/env/OPENSHIFT_PHP_DIR"
 
 # Copy the version specific files upto php directory
 shopt -s dotglob
