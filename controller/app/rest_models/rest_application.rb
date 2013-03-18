@@ -89,7 +89,10 @@ class RestApplication < OpenShift::Model
     self.name = app.name
     self.creation_time = app.created_at
     self.uuid = app.uuid
-    self.aliases = app.aliases
+    self.aliases = []
+    app.aliases.each do |a|
+      self.aliases << RestAlias.new(app, domain, a, url, true)
+    end
     self.gear_count = app.num_gears
     self.domain_id = domain.namespace
 
@@ -166,14 +169,6 @@ class RestApplication < OpenShift::Model
         "FORCE_STOP" => Link.new("Force stop application", "POST", URI::join(url, "domains/#{@domain_id}/applications/#{@name}/events"), [
           Param.new("event", "string", "event", "force-stop")
         ]),
-        "ADD_ALIAS" => Link.new("Add application alias", "POST", URI::join(url, "domains/#{@domain_id}/applications/#{@name}/events"), [
-          Param.new("event", "string", "event", "add-alias"),
-          Param.new("alias", "string", "The server alias for the application")
-        ]),
-        "REMOVE_ALIAS" => Link.new("Remove application alias", "POST", URI::join(url, "domains/#{@domain_id}/applications/#{@name}/events"), [
-          Param.new("event", "string", "event", "remove-alias"),
-          Param.new("alias", "string", "The application alias to be removed", @aliases)
-        ]),
         "SCALE_UP" => Link.new("Scale up application", "POST", URI::join(url, "domains/#{@domain_id}/applications/#{@name}/events"), [
           Param.new("event", "string", "event", "scale-up")
         ]),
@@ -200,7 +195,13 @@ class RestApplication < OpenShift::Model
           ]
         ),
         "LIST_CARTRIDGES" => Link.new("List embedded cartridges", "GET", URI::join(url, "domains/#{@domain_id}/applications/#{@name}/cartridges")),
-        "DNS_RESOLVABLE" => Link.new("Resolve DNS", "GET", URI::join(url, "domains/#{@domain_id}/applications/#{@name}/dns_resolvable"))
+        "DNS_RESOLVABLE" => Link.new("Resolve DNS", "GET", URI::join(url, "domains/#{@domain_id}/applications/#{@name}/dns_resolvable")),
+        "ADD_ALIAS" => Link.new("Create new alias", "POST", URI::join(url, "domains/#{@domain_id}/applications/#{@name}/aliases"), 
+          [Param.new("id", "string", "Alias for application")], 
+          [OptionalParam.new("ssl_certificate", "string", "Content of SSL Certificate"), 
+            OptionalParam.new("private_key", "string", "Private key for the certifcate.  Required if adding a certificate"), 
+            OptionalParam.new("pass_phrase", "string", "Optional passphrase for the private key")]),
+        "LIST_ALIASES" => Link.new("List applications", "GET", URI::join(url, "domains/#{@domain_id}/applications/#{@name}/aliases")),
       }
     end
   end

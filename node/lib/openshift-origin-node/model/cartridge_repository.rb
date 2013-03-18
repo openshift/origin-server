@@ -80,11 +80,22 @@ module OpenShift
     attr_reader :path
 
     def initialize # :nodoc:
-      @index = Hash.new { |h, k| h[k] = Hash.new(&h.default_proc) }
       @semaphore = Mutex.new
       @path      = CARTRIDGE_REPO_DIR
 
       FileUtils.mkpath(@path) unless File.exist? @path
+      clear
+      load @path
+    end
+
+    # :call-seq:
+    #   CartridgeRepository.instance.clear -> nil
+    #
+    # Clear all entries from the memory index. Nothing is removed from the disk.
+    #
+    #   CartridgeRepository.instance.clear #=> nil
+    def clear
+      @index = Hash.new { |h, k| h[k] = Hash.new(&h.default_proc) }
     end
 
     # :call-seq:
@@ -138,7 +149,7 @@ module OpenShift
     #   CartridgeRepository.instance['php', '3.5', '0.1']         #=> Cartridge
     #   CartridgeRepository.instance['php', '3.5']                #=> Cartridge
     #   CartridgeRepository.instance['php']                       #=> Cartridge
-    #
+                    #
     def select(cartridge_name, version = nil, cartridge_version = nil)
       unless exist?(cartridge_name, cartridge_version, version)
         raise KeyError.new("key not found: (#{cartridge_name}, #{version}, #{cartridge_version})")
@@ -147,7 +158,7 @@ module OpenShift
       @index[cartridge_name][version][cartridge_version]
     end
 
-    alias [] select  # :nodoc:
+    alias [] select # :nodoc:
 
     # :call-seq:
     #   CartridgeRepository.instance.install(directory) -> Cartridge
@@ -251,7 +262,7 @@ module OpenShift
     # Insert cartridge into index
     #
     #   CartridgeRepository.instance.instance(cartridge) -> Cartridge
-    def insert(cartridge)   # :nodoc:
+    def insert(cartridge) # :nodoc:
       cartridge.versions.each do |version|
         @index[cartridge.name][version][cartridge.cartridge_version] = cartridge
         @index[cartridge.name][version][nil]                         = cartridge

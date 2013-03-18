@@ -23,19 +23,24 @@ end
 
 require 'test_helper'
 require 'openshift-origin-node/model/v2_cart_model'
+require 'openshift-origin-node/model/unix_user'
 require 'openshift-origin-node/model/cartridge'
+require 'openshift-origin-node/model/cartridge_repository'
 require 'openshift-origin-node/utils/environ'
 require 'openshift-origin-common'
+require 'ostruct'
 require 'test/unit'
 require 'fileutils'
 require 'mocha'
 
 class V2CartModelTest < Test::Unit::TestCase
 
+  GEAR_BASE_DIR = '/var/lib/openshift'
+
   def setup
     # Set up the config
     @config = mock('OpenShift::Config')
-    @config.stubs(:get).with("GEAR_BASE_DIR").returns("/tmp")
+    @config.stubs(:get).with("GEAR_BASE_DIR").returns(GEAR_BASE_DIR)
 
     OpenShift::Utils::Sdk.stubs(:new_sdk_app?).returns(true)
 
@@ -55,14 +60,18 @@ class V2CartModelTest < Test::Unit::TestCase
     @gear_name = @app_name
     @namespace = 'jwh201204301647'
     @gear_ip   = "127.0.0.1"
+    @homedir   = "#{GEAR_BASE_DIR}/#{@gear_uuid}"
 
-    @user = mock()
-    @user.stubs(:uuid).returns(@gear_uuid)
-    @user.stubs(:uid).returns(@user_uid)
-    @user.stubs(:container_uuid).returns(@user_uuid)
-    @user.stubs(:container_name).returns(@gear_name)
-    @user.stubs(:namespace).returns(@namespace)
-    @user.stubs(:homedir).returns("/tmp")
+
+    @user = OpenStruct.new(
+        uuid:           @gear_uuid,
+        uid:            @user_uid,
+        container_uuid: @user_uuid,
+        container_name: @gear_name,
+        namespace:      @namespace,
+        homedir:        "#{GEAR_BASE_DIR}/#{@gear_uuid}"
+
+    )
 
     @model = OpenShift::V2CartridgeModel.new(@config, @user)
 
@@ -131,24 +140,31 @@ class V2CartModelTest < Test::Unit::TestCase
 
     manifest = "/tmp/manifest-#{Process.pid}"
     IO.write(manifest, @mock_manifest, 0)
-    @mock_cartridge = OpenShift::Runtime::Cartridge.new(manifest)
-    @model.stubs(:get_cartridge).with('mock').returns(@mock_cartridge)
+    @mock_cartridge = OpenShift::Runtime::Cartridge.new(manifest, '/tmp')
+    @model.stubs(:get_cartridge).with('mock-0.1').returns(@mock_cartridge)
+  end
+
+  def teardown
+    @user.unstub(:homedir)
   end
 
   def test_get_cartridge_valid_manifest
     local_model = OpenShift::V2CartridgeModel.new(@config, @user)
 
-    @user.expects(:homedir).returns('/foo')
+    manifest_path = "#{@homedir}/UnitTest-mock/metadata/manifest.yml"
+    YAML.stubs(:load_file).with(manifest_path).returns(YAML.load(@mock_manifest))
+    Dir.stubs(:glob).returns(["#{@homedir}/UnitTest-mock"])
+    File.stubs(:exist?).with(manifest_path).returns(true)
 
-    YAML.stubs(:load_file).with('/foo/mock/metadata/manifest.yml').returns(YAML.load(@mock_manifest))
-    cart = local_model.get_cartridge("mock")
+
+    cart = local_model.get_cartridge("mock-0.1")
 
     assert_equal "mock", cart.name
     assert_equal "MOCK", cart.short_name
     assert_equal 5, cart.endpoints.length
 
     # Exercise caching
-    cart = local_model.get_cartridge("mock")
+    cart = local_model.get_cartridge("mock-0.1")
 
     assert_equal "mock", cart.name
     assert_equal "MOCK", cart.short_name
@@ -158,32 +174,32 @@ class V2CartModelTest < Test::Unit::TestCase
   def test_get_cartridge_error_loading
     local_model = OpenShift::V2CartridgeModel.new(@config, @user)
 
-    @user.expects(:homedir).returns('/foo')
-    YAML.stubs(:load_file).with('/foo/mock/metadata/manifest.yml').raises(ArgumentError.new('bla'))
+    YAML.stubs(:load_file).with("#{@homedir}/RedHat-mock/metadata/manifest.yml").raises(ArgumentError.new('bla'))
 
-    assert_raise(RuntimeError, 'Failed to load cart manifest from /foo/mock/metadata/manifest.yml for cart mock in gear : bla') do
-      local_model.get_cartridge("mock")
+    assert_raise(RuntimeError, "Failed to load cart manifest from #{@homedir}/RedHat-mock/metadata/manifest.yml for cart mock in gear : bla") do
+      local_model.get_cartridge("mock-0.1")
     end
   end
 
 
-  def test_get_system_cartridge_path
+  def test_get_system_cartridge
+    OpenShift::CartridgeRepository.
+        any_instance.
+        expects(:select).
+        with(any_of('mock', 'mock-plugin'), anything).
+        returns(@mock_cartridge)
+
     scenarios = {
-        'mock'            => '/path/v2/mock',
-        'mock-0.0'        => '/path/v2/mock-0.0',
-        'mock-plugin'     => '/path/v2/mock-plugin',
-        'mock-plugin-0.0' => '/path/v2/mock-plugin-0.0',
-        'mock-'           => '/path/v2/mock-',
-        'mock--'          => '/path/v2/mock--',
-        'mock--0.0'       => '/path/v2/mock--0.0',
-        'mock-0.0-'       => '/path/v2/mock-0.0-'
+        'mock-1.0' => "/tmp/UnitTest-mock/1.0",
     }
 
-    @config.stubs(:get).with("CARTRIDGE_BASE_PATH").returns('/path')
-
     scenarios.each do |cart_name, expected_path|
-      res = @model.get_system_cartridge_path(cart_name)
-      assert_equal expected_path, res
+      c = @model.get_cartridge_from_repository(cart_name)
+      assert_equal expected_path, c.repository_path
+    end
+
+    assert_raise(RuntimeError) do
+      @model.get_cartridge_from_repository("bozo")
     end
   end
 
@@ -204,7 +220,7 @@ class V2CartModelTest < Test::Unit::TestCase
     @user.expects(:add_env_var).with("OPENSHIFT_MOCK_EXAMPLE_PORT4", 9090)
     @user.expects(:add_env_var).with("OPENSHIFT_MOCK_EXAMPLE_PORT5", 9091)
 
-    @model.create_private_endpoints("mock")
+    @model.create_private_endpoints(@mock_cartridge)
   end
 
   def test_private_endpoint_delete
@@ -219,7 +235,7 @@ class V2CartModelTest < Test::Unit::TestCase
     @user.expects(:remove_env_var).with("OPENSHIFT_MOCK_EXAMPLE_IP2")
     @user.expects(:remove_env_var).with("OPENSHIFT_MOCK_EXAMPLE_PORT5")
 
-    @model.delete_private_endpoints("mock")
+    @model.delete_private_endpoints(@mock_cartridge)
   end
 
   # Verifies that an IP can be allocated for a simple port binding request
@@ -335,7 +351,7 @@ class V2CartModelTest < Test::Unit::TestCase
     frontend.expects(:connect).with("/front2", "127.0.0.1:8081/back2", { "file" => true })
     frontend.expects(:connect).with("/front3", "127.0.0.1:8082/back3", {})
     frontend.expects(:connect).with("/front4", "127.0.0.2:9090/back4", {})
-    
-    @model.connect_frontend(@mock_cartridge.name)
+
+    @model.connect_frontend(@mock_cartridge)
   end
 end
