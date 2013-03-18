@@ -15,7 +15,20 @@ class ProjectFilter < SimpleCov::Filter
     return true
   end
 end
+
 SimpleCov.add_filter ProjectFilter.new(nil)
+
+class StringFilter < SimpleCov::Filter
+  # Returns true when the given source file's filename matches the
+  # string configured when initializing this Filter with StringFilter.new('somestring)
+  def matches?(source_file)
+    (source_file.filename =~ /#{filter_argument}/)
+  end
+end
+
+SimpleCov.add_filter StringFilter.new("openshift-origin-billing")
+SimpleCov.add_filter StringFilter.new("openshift-origin-dns")
+SimpleCov.add_filter StringFilter.new("openshift-origin-auth")
 
 SimpleCov.start 'rails' do
   coverage_dir 'test/coverage/'

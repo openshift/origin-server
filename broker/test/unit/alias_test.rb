@@ -1,3 +1,4 @@
+ENV["TEST_NAME"] = "unit_alias_test"
 require 'test_helper'
 
 class AliasTest < ActiveSupport::TestCase
@@ -5,7 +6,6 @@ class AliasTest < ActiveSupport::TestCase
     @random = rand(1000000000)
     @login = "user#{@random}"
     @user = CloudUser.new(login: @login)
-    @user.capabilities["private_ssl_certificates"]
     @user.save
     Lock.create_lock(@user)
     stubber

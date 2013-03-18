@@ -229,7 +229,8 @@ class EmbCartController < BaseController
 
     begin
       comp = application.component_instances.find_by(cartridge_name: cartridge)
-      feature = application.get_feature(comp.cartridge_name, comp.component_name)     
+      feature = application.get_feature(comp.cartridge_name, comp.component_name)  
+      return render_error(:not_found, "Cartridge '#{cartridge}' not found for application '#{application.name}'", 101, "REMOVE_CARTRIDGE") if feature.nil?   
       application.remove_features([feature])
 
       app = if requested_api_version == 1.0
@@ -237,8 +238,8 @@ class EmbCartController < BaseController
         else
           RestApplication.new(application, domain, get_url, nolinks)
         end
-
-      render_success(:ok, "application", app, "REMOVE_CARTRIDGE", "Removed #{cartridge} from application #{id}", true)
+      render_success(:no_content, nil, nil, "REMOVE_CARTRIDGE", "Removed #{cartridge} from application #{id}", true)
+      #render_success(:ok, "application", app, "REMOVE_CARTRIDGE", "Removed #{cartridge} from application #{id}", true)
     rescue OpenShift::LockUnavailableException => e
       return render_error(:service_unavailable, "Application is currently busy performing another operation. Please try again in a minute.", e.code, "REMOVE_CARTRIDGE")
     rescue OpenShift::UserException => e
@@ -263,8 +264,8 @@ class EmbCartController < BaseController
 
     begin
       additional_storage = Integer(additional_storage) if additional_storage
-    rescue
-      return render_error(:unprocessable_entity, "Invalid storage value provided.", 165, "PATCH_APP_CARTRIDGE", "additional_storage")
+    rescue Exception => e
+      return render_error(:unprocessable_entity, "Invalid storage value provided: #{e.message}", 165, "PATCH_APP_CARTRIDGE", "additional_storage")
     end
 
     # validate the domain name using regex to avoid a mongo call, if it is malformed
