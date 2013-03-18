@@ -123,6 +123,8 @@ class ApplicationRepositoryFuncTest < Test::Unit::TestCase
 
     assert_equal expected_path, repo.path
     assert_application_repository(repo)
+    assert repo.exist?, "Application Repository (#{repo.path}) not found"
+    assert repo.exists?, "Application Repository (#{repo.path}) not found"
   end
 
   def pull_directory
@@ -146,6 +148,11 @@ class ApplicationRepositoryFuncTest < Test::Unit::TestCase
 
     assert_equal expected_path, repo.path
     assert_application_repository(repo)
+
+    runtime_repo = "#{@user.homedir}/app-root/runtime/repo"
+    FileUtils.mkpath(runtime_repo)
+    repo.deploy_repository
+    assert_path_exist File.join(runtime_repo, 'perl', 'health_check.pl')
   end
 
   def create_template

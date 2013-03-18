@@ -18,6 +18,8 @@ require_relative '../../lib/openshift-origin-node/model/cartridge_repository'
 require 'test/unit'
 require 'mocha'
 
+SimpleCov.command_name 'func_test'
+
 class Object
   class << self
     def with_constants(constants, &block)

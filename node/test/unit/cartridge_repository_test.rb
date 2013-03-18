@@ -20,6 +20,8 @@ require 'mocha'
 require 'yaml'
 require 'pp'
 
+SimpleCov.command_name 'unit_test'
+
 class CartridgeRepositoryTest < Test::Unit::TestCase
   def setup
     @path = '/var/lib/openshift/.cartridge_repository'
