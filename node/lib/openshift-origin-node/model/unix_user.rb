@@ -45,6 +45,8 @@ module OpenShift
 
     DEFAULT_SKEL_DIR = File.join(OpenShift::Config::CONF_DIR,"skel")
 
+    @@LOCK_SSH_KEY_MUTEX = Mutex.new
+
     def initialize(application_uuid, container_uuid, user_uid=nil,
         app_name=nil, container_name=nil, namespace=nil, quota_blocks=nil, quota_files=nil, debug=false)
       @config = OpenShift::Config.new
@@ -236,6 +238,21 @@ Dir(after)    #{@uuid}/#{@uid} => #{list_home_dir(@homedir)}
       end
     end
 
+    # Private: Serialize modifications into authorized keys file
+    def lock_ssh_key
+      @@LOCK_SSH_KEY_MUTEX.synchronize do
+        File.open("/var/lock/OpenShift.UnixUser.SSH_KEY.lock", File::RDWR|File::CREAT, 0o0600) do | lock |
+          lock.fcntl(Fcntl::F_SETFD, Fcntl::FD_CLOEXEC)
+          lock.flock(File::LOCK_EX)
+          begin
+            yield
+          ensure
+            lock.flock(File::LOCK_UN)
+          end
+        end
+      end
+    end
+
     # Public: Append an SSH key to a users authorized_keys file
     #
     # key - The String value of the ssh key.
@@ -251,21 +268,22 @@ Dir(after)    #{@uuid}/#{@uid} => #{list_home_dir(@homedir)}
     #
     # Returns nil on Success or raises on Failure
     def add_ssh_key(key, key_type=nil, comment=nil)
-      comment = "" unless comment
-      self.class.notify_observers(:before_add_ssh_key, self, key)
+      lock_ssh_key do
+        comment = "" unless comment
+        self.class.notify_observers(:before_add_ssh_key, self, key)
 
-      authorized_keys_file = File.join(@homedir, ".ssh", "authorized_keys")
-      keys = read_ssh_keys authorized_keys_file
-      key_type    = "ssh-rsa" if key_type.to_s.strip.length == 0
-      cloud_name  = "OPENSHIFT"
-      ssh_comment = "#{cloud_name}-#{@uuid}-#{comment}"
-      shell       = @config.get("GEAR_SHELL") || "/bin/bash"
-      cmd_entry   = "command=\"#{shell}\",no-X11-forwarding #{key_type} #{key} #{ssh_comment}"
+        authorized_keys_file = File.join(@homedir, ".ssh", "authorized_keys")
+        keys = read_ssh_keys authorized_keys_file
+        key_type    = "ssh-rsa" if key_type.to_s.strip.length == 0
+        cloud_name  = "OPENSHIFT"
+        ssh_comment = "#{cloud_name}-#{@uuid}-#{comment}"
+        shell       = @config.get("GEAR_SHELL") || "/bin/bash"
+        cmd_entry   = "command=\"#{shell}\",no-X11-forwarding #{key_type} #{key} #{ssh_comment}"
 
-      keys[ssh_comment] = cmd_entry
-      write_ssh_keys authorized_keys_file, keys
-
-      self.class.notify_observers(:after_add_ssh_key, self, key)
+        keys[ssh_comment] = cmd_entry
+        write_ssh_keys authorized_keys_file, keys
+        self.class.notify_observers(:after_add_ssh_key, self, key)
+      end
     end
 
     # Public: Remove an SSH key from a users authorized_keys file.
@@ -281,20 +299,22 @@ Dir(after)    #{@uuid}/#{@uid} => #{list_home_dir(@homedir)}
     #
     # Returns nil on Success or raises on Failure
     def remove_ssh_key(key, comment=nil)
-      self.class.notify_observers(:before_remove_ssh_key, self, key)
+      lock_ssh_key do
+        self.class.notify_observers(:before_remove_ssh_key, self, key)
 
-      authorized_keys_file = File.join(@homedir, ".ssh", "authorized_keys")
-      keys = read_ssh_keys authorized_keys_file
+        authorized_keys_file = File.join(@homedir, ".ssh", "authorized_keys")
+        keys = read_ssh_keys authorized_keys_file
 
-      if comment
-        keys.delete_if{ |k, v| v.include?(key) && v.include?(comment)}
-      else
-        keys.delete_if{ |k, v| v.include?(key)}
+        if comment
+          keys.delete_if{ |k, v| v.include?(key) && v.include?(comment)}
+        else
+          keys.delete_if{ |k, v| v.include?(key)}
+        end
+
+        write_ssh_keys authorized_keys_file, keys
+
+        self.class.notify_observers(:after_remove_ssh_key, self, key)
       end
-
-      write_ssh_keys authorized_keys_file, keys
-
-      self.class.notify_observers(:after_remove_ssh_key, self, key)
     end
 
     # Public: Add an environment variable to a given gear.
