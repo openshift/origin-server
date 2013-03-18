@@ -80,7 +80,8 @@ function start_app() {
             src_user_hook pre_start_ceylon
             set_app_state started
 
-			JAVA_OPTS="-Dhttpd.bind.host=${OPENSHIFT_INTERNAL_IP}"
+			JAVA_OPTS="-Dserver.bind.host=${OPENSHIFT_INTERNAL_IP}"
+			JAVA_OPTS="$JAVA_OPTS -Dserver.files.location=${OPENSHIFT_REPO_DIR}/web-content/"
 
 			JAVA_OPTS="$JAVA_OPTS -Dceylon.cache.repo=${CEYLON_USER_REPO}/cache"
 			JAVA_OPTS="$JAVA_OPTS -Dcom.redhat.ceylon.common.tool.terminal.width=9999" #do not wrap output

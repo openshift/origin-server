@@ -4,8 +4,9 @@ import ceylon.net.http.server { Server, createServer, AsynchronousEndpoint, star
 doc "Run the module `ceylon.demo.net`."
 by "Matej Lazar"
 
-String prop_httpd_bind_port = "httpd.bind.port";
-String prop_httpd_bind_host = "httpd.bind.host";
+String prop_server_bind_port = "server.bind.port";
+String prop_server_bind_host = "server.bind.host";
+String prop_server_files_lcation = "server.files.location";
 
 shared void run() {
     
@@ -13,10 +14,12 @@ shared void run() {
     
     Server server = createServer {};
     
-    server.addEndpoint(AsynchronousEndpoint {
-        service => serveStaticFile("/home/matej/temp/1__ulpload-test/");
-        path = startsWith("/file");
-    });
+    if (exists files = process.propertyValue(prop_server_files_lcation)) {
+        server.addEndpoint(AsynchronousEndpoint {
+            service => serveStaticFile(files);
+            path = startsWith("/file");
+        });
+    }
     
     server.addEndpoint(Endpoint {
         service => Web().service;
@@ -35,14 +38,14 @@ shared void run() {
     );
 
     variable Integer port = 8080;
-    if (exists portStr = process.propertyValue(prop_httpd_bind_port)) {
+    if (exists portStr = process.propertyValue(prop_server_bind_port)) {
         if (exists p = parseInteger(portStr)) {
             port = p;
         }
     }
 
     variable String host = "127.0.0.1";
-    if (exists h = process.propertyValue(prop_httpd_bind_host)) {
+    if (exists h = process.propertyValue(prop_server_bind_host)) {
         host = h;
     }
     
