@@ -74,7 +74,7 @@ class CartridgeRepositoryTest < Test::Unit::TestCase
     cr = OpenShift::CartridgeRepository.instance
     cr.clear
     cr.load(@path)
-    assert_equal 3, cr.inject(0) { |a, c| a += 1}
+    assert_equal 1, cr.inject(0) { |a, c| a += 1}
   end
 
   def test_three_manifest
