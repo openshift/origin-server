@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Common
 Name:          rubygem-%{gem_name}
-Version: 1.5.2
+Version: 1.5.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -95,6 +95,9 @@ cp -a ./%{gem_dir}/* %{buildroot}%{gem_dir}/
 %doc %{gem_docdir}
 
 %changelog
+* Mon Mar 18 2013 Adam Miller <admiller@redhat.com> 1.5.3-1
+- Add SNI upload support to API (lnader@redhat.com)
+
 * Thu Mar 14 2013 Adam Miller <admiller@redhat.com> 1.5.2-1
 - Merge pull request #1643 from kraman/update_parseconfig (dmcphers@redhat.com)
 - Replacing get_value() with config['param'] style calls for new version of
