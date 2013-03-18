@@ -189,12 +189,15 @@ class OOAdminRekeyBrokerAuth
       next unless node_found?(gear, uuid)
 
       unless @dryrun
-        iv, token = OpenShift::Auth::BrokerKey.new.generate_broker_key(app)
-        job = gear.get_broker_auth_key_add_job(iv, token)
-        RemoteJob.add_parallel_job(@handle, "", gear, job)
+        begin
+          iv, token = OpenShift::Auth::BrokerKey.new.generate_broker_key(app)
+          job = gear.get_broker_auth_key_add_job(iv, token)
+          RemoteJob.add_parallel_job(@handle, "", gear, job)
+          update_list_of_nodes_seen(gear)
+        rescue
+          $stderr.puts "ERROR: Unable to rekey #{uuid}"
+        end
       end
-
-      update_list_of_nodes_seen(gear)
     end
 
     warn_about_offline_nodes
@@ -216,7 +219,7 @@ if args['--find-gears']
 elsif args['--rekey-all']
   app.rekey_all
 elsif args['--rekey']
-  app.create_broker_keys(args['--rekey'])
+  app.create_broker_keys([args['--rekey']])
 else
   uuids = []
 
