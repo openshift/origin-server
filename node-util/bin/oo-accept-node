@@ -240,6 +240,18 @@ def check_selinux()
     }
 
     do_fail("invalid selinux labels in OPENSHIFT_DIR $GEAR_BASE_DIR") unless %x[restorecon -n -v #{$GEAR_BASE_DIR}] =~ //
+
+    # This will likely only detect the effects of a full relabel but it's
+    # better than nothing.  My unscientific tests shows that checking 100 gears
+    # only added about 1.5 seconds execution time.
+    Dir.glob(File.join($GEAR_BASE_DIR, "*/app-root"))[0,99].each do |dir|
+      out = %x[ls --scontext #{dir}]
+      mcs = /.+:.+:.+:.+:c\d+,c\d+? /.match(out)
+      if mcs.nil?
+        do_fail("invalid MCS labels on #{dir}. run oo-restorecon to restore OpenShift SELinux categories")
+        break
+      end
+    end
 end
 
 def check_packages
