@@ -34,7 +34,8 @@ Options:
 -v|--verbose
     Print information about each check being performed
 -l|--level [0, 1, 2]
-    Level '0' is default, with level '1' extra checks are performed such as integrity of consumed_gears count
+    Level '0' is default, and checks to see if any gears are present in mongo but don't exist on the nodes and vice-versa.
+    Level '1' performs extra checks such as integrity of consumed_gears count
     Level '2' additionally performs checks for application data integrity in mongo and checks for unused and unreserved gear UIDs 
 -h|--help
     Show Usage info
@@ -288,10 +289,10 @@ if level >= 2
   end
 
   # check for applications without any gears in the group instance
-  query = {"group_instances" : {"$elemMatch" : { "gears" : {"$size" : 0}}}, "created_at" => {"$lt" => creation_threshold_time}}
+  query = {"group_instances" => {"$elemMatch" => { "gears" => {"$size" => 0}}}, "created_at" => {"$lt" => creation_threshold_time}}
   selection = {:fields => ["name", "uuid", "group_instances._id"], :timeout => false}
   OpenShift::DataStore.find(:applications, query, selection) do |app|
-    app['group_instances'].each |gi|
+    app['group_instances'].each do |gi|
       if (not gi.has_key?("gears")) or gi['gears'].length == 0 
         summary << "Application #{app['name']} with uuid #{app['uuid']} does not have any gears within group instance #{gi['_id']}."
         no_error = false
