@@ -45,6 +45,8 @@ module OpenShift
 
     DEFAULT_SKEL_DIR = File.join(OpenShift::Config::CONF_DIR,"skel")
 
+    @@MODIFY_SSH_KEY_MUTEX = Mutex.new
+
     def initialize(application_uuid, container_uuid, user_uid=nil,
         app_name=nil, container_name=nil, namespace=nil, quota_blocks=nil, quota_files=nil, debug=false)
       @config = OpenShift::Config.new
@@ -254,16 +256,15 @@ Dir(after)    #{@uuid}/#{@uid} => #{list_home_dir(@homedir)}
       comment = "" unless comment
       self.class.notify_observers(:before_add_ssh_key, self, key)
 
-      authorized_keys_file = File.join(@homedir, ".ssh", "authorized_keys")
-      keys = read_ssh_keys authorized_keys_file
       key_type    = "ssh-rsa" if key_type.to_s.strip.length == 0
       cloud_name  = "OPENSHIFT"
       ssh_comment = "#{cloud_name}-#{@uuid}-#{comment}"
       shell       = @config.get("GEAR_SHELL") || "/bin/bash"
       cmd_entry   = "command=\"#{shell}\",no-X11-forwarding #{key_type} #{key} #{ssh_comment}"
 
-      keys[ssh_comment] = cmd_entry
-      write_ssh_keys authorized_keys_file, keys
+      modify_ssh_keys do |keys|
+        keys[ssh_comment] = cmd_entry
+      end
 
       self.class.notify_observers(:after_add_ssh_key, self, key)
     end
@@ -283,16 +284,13 @@ Dir(after)    #{@uuid}/#{@uid} => #{list_home_dir(@homedir)}
     def remove_ssh_key(key, comment=nil)
       self.class.notify_observers(:before_remove_ssh_key, self, key)
 
-      authorized_keys_file = File.join(@homedir, ".ssh", "authorized_keys")
-      keys = read_ssh_keys authorized_keys_file
-
-      if comment
-        keys.delete_if{ |k, v| v.include?(key) && v.include?(comment)}
-      else
-        keys.delete_if{ |k, v| v.include?(key)}
+      modify_ssh_keys do |keys|
+        if comment
+          keys.delete_if{ |k, v| v.include?(key) && v.include?(comment)}
+        else
+          keys.delete_if{ |k, v| v.include?(key)}
+        end
       end
-
-      write_ssh_keys authorized_keys_file, keys
 
       self.class.notify_observers(:after_remove_ssh_key, self, key)
     end
@@ -648,36 +646,43 @@ Dir(after)    #{@uuid}/#{@uid} => #{list_home_dir(@homedir)}
       end
     end
 
-    # private: Write ssh authorized_keys file
+    # private: Modify ssh authorized_keys file
     #
-    # @param  [String] authorized_keys_file ssh authorized_keys path
-    # @param  [Hash]   keys authorized keys with the comment field as the key
+    # @yields [Hash] authorized keys with the comment field as the key which will save if modified.
     # @return [Hash] authorized keys with the comment field as the key
-    def write_ssh_keys(authorized_keys_file, keys)
-      File.open(authorized_keys_file,
-                File::WRONLY|File::TRUNC|File::CREAT,
-                0o0440) do |file|
-        file.write(keys.values.join("\n"))
-        file.write("\n")
-      end
-      PathUtils.oo_chown_R('root', @uuid, authorized_keys_file)
-      shellCmd("restorecon #{authorized_keys_file}")
+    def modify_ssh_keys
+      authorized_keys_file = File.join(@homedir, ".ssh", "authorized_keys")
+      keys = Hash.new
 
-      keys
-    end
+      @@MODIFY_SSH_KEY_MUTEX.synchronize do
+        File.open("/var/lock/oo-modify-ssh-keys", File::RDWR|File::CREAT, 0o0600) do | lock |
+          lock.fcntl(Fcntl::F_SETFD, Fcntl::FD_CLOEXEC)
+          lock.flock(File::LOCK_EX)
+          begin
+            File.open(authorized_keys_file, File::RDWR|File::CREAT, 0o0440) do |file|
+              file.each_line do |line|
+                options, key_type, key, comment = line.split
+                keys[comment] = line.chomp
+              end
 
-    # private: Read ssh authorized_keys file
-    #
-    # @param  [String] authorized_keys_file ssh authorized_keys path
-    # @return [Hash] authorized keys with the comment field as the key
-    def read_ssh_keys(authorized_keys_file)
-      keys = {}
-      if File.exists? authorized_keys_file
-        File.open(authorized_keys_file, File::RDONLY).each_line do | line |
-          options, key_type, key, comment = line.split
-          keys[comment] = line.chomp
+              if block_given?
+                old_keys = keys.clone
+
+                yield keys
+
+                if old_keys != keys
+                  file.seek(0, IO::SEEK_SET)
+                  file.write(keys.values.join("\n")+"\n")
+                  file.truncate(file.tell)
+                end
+              end
+            end
+            PathUtils.oo_chown_R('root', @uuid, authorized_keys_file)
+            shellCmd("restorecon #{authorized_keys_file}")
+          ensure
+            lock.flock(File::LOCK_UN)
+          end
         end
-        PathUtils.oo_chown_R('root', @uuid, authorized_keys_file)
       end
       keys
     end
