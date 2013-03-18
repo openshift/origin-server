@@ -1,5 +1,5 @@
-%global cartridgedir %{_libexecdir}/openshift/cartridges/v2/php-5.3
-%global frameworkdir %{_libexecdir}/openshift/cartridges/v2/php-5.3
+%global cartridgedir %{_libexecdir}/openshift/cartridges/v2/php
+%global frameworkdir %{_libexecdir}/openshift/cartridges/v2/php
 
 Name: openshift-origin-cartridge-php
 Version: 0.1.3
