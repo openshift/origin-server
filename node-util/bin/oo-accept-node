@@ -285,7 +285,7 @@ def check_cgroup_config
     verbose("checking cgroups configuration")
 
     if ENV['ENABLE_CGROUPS'] = "0"
-      eputs "WARNING: check_cgroup_config - cgroups are disabled in node.conf"
+      verbose "check_cgroup_config - cgroups are disabled in node.conf"
       return
     end
 
