@@ -3,7 +3,8 @@
 # Application CRUD REST API
 class ApplicationsController < BaseController
   include RestModelHelper
-
+  before_filter :get_domain
+  before_filter :get_application, :only => [:show, :destroy, :update]
   ##
   # List all applications
   # 
@@ -13,24 +14,10 @@ class ApplicationsController < BaseController
   # Action: GET
   # @return [RestReply<Array<RestApplication>>] List of applications within the domain
   def index
-    domain_id = params[:domain_id]
-
-    # validate the domain name using regex to avoid a mongo call, if it is malformed
-    if domain_id !~ Domain::DOMAIN_NAME_COMPATIBILITY_REGEX
-      return render_error(:not_found, "Domain '#{domain_id}' not found", 127, "LIST_APPLICATIONS")
-    end
-
-    begin
-      domain = Domain.with(consistency: :eventual).find_by(owner: @cloud_user, canonical_namespace: domain_id.downcase)
-      @domain_name = domain.namespace
-    rescue Mongoid::Errors::DocumentNotFound
-      return render_error(:not_found, "Domain '#{domain_id}' not found", 127, "LIST_APPLICATIONS")
-    end
-
     include_cartridges = (params[:include] == "cartridges")
-    apps = domain.applications
-    rest_apps = apps.map! { |application| get_rest_application(application, domain, include_cartridges, apps) }
-    render_success(:ok, "applications", rest_apps, "LIST_APPLICATIONS", "Found #{rest_apps.length} applications for domain '#{domain_id}'")
+    apps = @domain.applications
+    rest_apps = apps.map! { |application| get_rest_application(application, include_cartridges, apps) }
+    render_success(:ok, "applications", rest_apps, "Found #{rest_apps.length} applications for domain '#{@domain.namespace}'")
   end
   
   ##
@@ -41,36 +28,8 @@ class ApplicationsController < BaseController
   # Action: GET
   # @return [RestReply<RestApplication>] Application object
   def show
-    domain_id = params[:domain_id]
-    id = params[:id]
-    
-    # validate the domain name using regex to avoid a mongo call, if it is malformed
-    if domain_id !~ Domain::DOMAIN_NAME_COMPATIBILITY_REGEX
-      return render_error(:not_found, "Domain '#{domain_id}' not found", 127, "SHOW_APPLICATION")
-    end
-
-    # validate the application name using regex to avoid a mongo call, if it is malformed
-    if id !~ Application::APP_NAME_COMPATIBILITY_REGEX
-      return render_error(:not_found, "Application '#{id}' not found", 101, "SHOW_APPLICATION")
-    end
-
-    begin
-      domain = Domain.with(consistency: :eventual).find_by(owner: @cloud_user, canonical_namespace: domain_id.downcase)
-      @domain_name = domain.namespace
-    rescue Mongoid::Errors::DocumentNotFound
-      return render_error(:not_found, "Domain '#{domain_id}' not found", 127, "SHOW_APPLICATION")
-    end
-    
-    begin
-      application = Application.with(consistency: :eventual).find_by(domain: domain, canonical_name: id.downcase)
-      include_cartridges = (params[:include] == "cartridges")
-      
-      @application_name = application.name
-      @application_uuid = application.uuid
-      render_success(:ok, "application", get_rest_application(application, domain, include_cartridges), "SHOW_APPLICATION", "Application '#{id}' found")
-    rescue Mongoid::Errors::DocumentNotFound
-      return render_error(:not_found, "Application '#{id}' not found", 101, "SHOW_APPLICATION")
-    end
+    include_cartridges = (params[:include] == "cartridges")
+    render_success(:ok, "application", get_rest_application(@application, include_cartridges), "Application '#{@application.name}' found")
   end
   
   ##
@@ -87,47 +46,33 @@ class ApplicationsController < BaseController
   #
   # @return [RestReply<RestApplication>] Application object
   def create
-    domain_id = params[:domain_id]
-    app_name = params[:name]
+    app_name = params[:name].downcase if params[:name]
     features = Array(params[:cartridges] || params[:cartridge]).map{ |c| c.is_a?(Hash) ? c[:name] : c }
     init_git_url = params[:initial_git_url]
     default_gear_size = params[:gear_profile]
     default_gear_size.downcase! if default_gear_size
 
-    # validate the domain name using regex to avoid a mongo call, if it is malformed
-    if domain_id !~ Domain::DOMAIN_NAME_COMPATIBILITY_REGEX
-      return render_error(:not_found, "Domain '#{domain_id}' not found", 127, "ADD_APPLICATION")
-    end
-
-    begin
-      # Use strong consistency to avoid race condition creating domain and app in succession
-      domain = Domain.with(consistency: :strong).find_by(owner: @cloud_user, canonical_namespace: domain_id.downcase)
-      @domain_name = domain.namespace
-    rescue Mongoid::Errors::DocumentNotFound
-      return render_error(:not_found, "Domain '#{domain_id}' not found", 127,"ADD_APPLICATION")
-    end
-
     return render_error(:unprocessable_entity, "Application name is required and cannot be blank",
-                        105, "ADD_APPLICATION", "name") if !app_name or app_name.empty?
+                        105, "name") if !app_name or app_name.empty?
 
-    valid_sizes = OpenShift::ApplicationContainerProxy.valid_gear_sizes(domain.owner)
+    valid_sizes = OpenShift::ApplicationContainerProxy.valid_gear_sizes(@domain.owner)
     return render_error(:unprocessable_entity, "Invalid size: #{default_gear_size}. Acceptable values are #{valid_sizes.join(",")}",
-                        134, "ADD_APPLICATION", "gear_profile") if default_gear_size and !valid_sizes.include?(default_gear_size)
+                        134, "gear_profile") if default_gear_size and !valid_sizes.include?(default_gear_size)
 
-    if Application.where(domain: domain, canonical_name: app_name.downcase).count > 0
-      return render_error(:unprocessable_entity, "The supplied application name '#{app_name}' already exists", 100, "ADD_APPLICATION", "name")
+    if Application.where(domain: @domain, canonical_name: app_name.downcase).count > 0
+      return render_error(:unprocessable_entity, "The supplied application name '#{app_name}' already exists", 100, "name")
     end
 
     Rails.logger.debug "Checking to see if user limit for number of apps has been reached"
     return render_error(:unprocessable_entity, "#{@cloud_user.login} has already reached the gear limit of #{@cloud_user.max_gears}",
-                        104, "ADD_APPLICATION") if (@cloud_user.consumed_gears >= @cloud_user.max_gears)
+                        104) if (@cloud_user.consumed_gears >= @cloud_user.max_gears)
 
     return render_error(:unprocessable_entity, "You must specify a cartridge. Valid values are (#{carts.join(', ')})",
-                            109, "ADD_APPLICATION", "cartridge") if features.nil?
+                            109, "cartridge") if features.nil?
 
     begin
       framework_carts = CartridgeCache.cartridge_names("web_framework")
-      return render_error(:unprocessable_entity, "You must specify a cartridge. Valid values are (#{framework_carts.join(', ')})", 109, "ADD_APPLICATION", "cartridge") if features.nil?
+      return render_error(:unprocessable_entity, "You must specify a cartridge. Valid values are (#{framework_carts.join(', ')})", 109, "cartridge") if features.nil?
       framework_cartridges = []
       other_cartridges = []
       features.each do |cart|
@@ -136,36 +81,36 @@ class ApplicationsController < BaseController
       end
       if framework_carts.empty?
         return render_error(:unprocessable_entity, "Unable to determine list of available cartridges.  If the problem persists please contact Red Hat support",
-                          109, "ADD_APPLICATION", "cartridge")
+                          109, "cartridge")
       elsif framework_cartridges.empty?
         return render_error(:unprocessable_entity, "Each application must contain one web cartridge.  None of the specified cartridges #{features.to_sentence} is a web cartridge. Please include one of the following cartridges: #{framework_carts.to_sentence}.",
-                          109, "ADD_APPLICATION", "cartridge")
+                          109, "cartridge")
       elsif framework_cartridges.length > 1
         return render_error(:unprocessable_entity, "Each application must contain only one web cartridge.  Please include a single web cartridge from this list: #{framework_carts.to_sentence}.",
-                          109, "ADD_APPLICATION", "cartridge")
+                          109, "cartridge")
       end
       app_creation_result = ResultIO.new
       scalable = get_bool(params[:scale])
-      application = Application.create_app(app_name, features, domain, default_gear_size, scalable, app_creation_result, [], init_git_url, request.headers['User-Agent'])
+      application = Application.create_app(app_name, features, @domain, default_gear_size, scalable, app_creation_result, [], init_git_url, request.headers['User-Agent'])
 
       @application_name = application.name
       @application_uuid = application.uuid
     rescue OpenShift::UnfulfilledRequirementException => e
-      return render_error(:unprocessable_entity, "Unable to create application for #{e.feature}", 109, "ADD_APPLICATION", "cartridge")
+      return render_error(:unprocessable_entity, "Unable to create application for #{e.feature}", 109, "cartridge")
     rescue OpenShift::ApplicationValidationException => e
       messages = get_error_messages(e.app)
-      return render_error(:unprocessable_entity, nil, nil, "ADD_APPLICATION", nil, nil, messages)
+      return render_error(:unprocessable_entity, nil, nil, nil, nil, messages)
     rescue OpenShift::UserException => e
-      return render_error(:unprocessable_entity, e.message, 109, "ADD_APPLICATION", "cartridge")
+      return render_error(:unprocessable_entity, e.message, 109, "cartridge")
     rescue Exception => e
-      return render_exception(e, "ADD_APPLICATION")
+      return render_exception(e, "ADD_APPLICATION")  
     end
     application.user_agent= request.headers['User-Agent']
     
     current_ip = application.group_instances.first.gears.first.get_public_ip_address rescue nil
     include_cartridges = (params[:include] == "cartridges")
     
-    app = get_rest_application(application, domain, include_cartridges)
+    app = get_rest_application(application, include_cartridges)
     reply = new_rest_reply(:created, "application", app)
   
     messages = []
@@ -174,7 +119,7 @@ class ApplicationsController < BaseController
     messages.push(Message.new(:info, "#{current_ip}", 0, "current_ip")) unless !current_ip or current_ip.empty?
 
     messages.push(Message.new(:info, app_creation_result.resultIO.string, 0, :result)) if app_creation_result
-    render_success(:created, "application", app, "ADD_APPLICATION", log_msg, nil, nil, messages)
+    render_success(:created, "application", app, log_msg, nil, nil, messages)
   end
   
   ##
@@ -184,42 +129,17 @@ class ApplicationsController < BaseController
   #
   # Action: DELETE
   def destroy
-    domain_id = params[:domain_id]
-    id = params[:id]    
-    
-    # validate the domain name using regex to avoid a mongo call, if it is malformed
-    if domain_id !~ Domain::DOMAIN_NAME_COMPATIBILITY_REGEX
-      return render_error(:not_found, "Domain '#{domain_id}' not found", 127, "DELETE_APPLICATION")
-    end
-
-    # validate the application name using regex to avoid a mongo call, if it is malformed
-    if id !~ Application::APP_NAME_COMPATIBILITY_REGEX
-      return render_error(:not_found, "Application '#{id}' not found", 101,"DELETE_APPLICATION")
-    end
-
+    id = params[:id].downcase if params[:id] 
     begin
-      domain = Domain.find_by(owner: @cloud_user, canonical_namespace: domain_id.downcase)
-      @domain_name = domain.namespace
-      log_action("DELETE_APPLICATION", true, "Found domain #{domain_id}")
-    rescue Mongoid::Errors::DocumentNotFound
-      return render_error(:not_found, "Domain #{domain_id} not found", 127, "DELETE_APPLICATION")
-    end
-    
-    begin
-      application = Application.find_by(domain: domain, canonical_name: id.downcase)
-      @application_name = application.name
-      @application_uuid = application.uuid
-    rescue Mongoid::Errors::DocumentNotFound
-      return render_error(:not_found, "Application #{id} not found", 101,"DELETE_APPLICATION")
-    end
-    
-    # create tasks to delete gear groups
-    begin
-      application.destroy_app
+      @application.destroy_app
     rescue OpenShift::LockUnavailableException => e
-      return render_error(:service_unavailable, "Application is currently busy performing another operation. Please try again in a minute.", e.code, "DELETE_APPLICATION")
+      return render_error(:service_unavailable, "Application is currently busy performing another operation. Please try again in a minute.", e.code)
     end
     
-    render_success(:no_content, nil, nil, "DELETE_APPLICATION", "Application #{id} is deleted.", true) 
+    render_success(:no_content, nil, nil, "Application #{id} is deleted.", true) 
+  end
+  
+  def set_log_tag
+    @log_tag = get_log_tag_prepend + "APPLICATION"
   end
 end

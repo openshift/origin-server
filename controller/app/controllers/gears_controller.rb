@@ -3,12 +3,16 @@ class GearsController < BaseController
   def show
     url = request.url
     new_url = url[0..url.rindex("/")] << "gear_groups"
-    render_error(:moved_permanently, "Please use this URL instead #{new_url}", 112, "LIST_GEARS")
+    render_error(:moved_permanently, "Please use this URL instead #{new_url}", 112)
   end
 
   def index
     url = request.url
     new_url = url[0..url.rindex("/")] << "gear_groups"
-    render_error(:moved_permanently, "Please use this URL instead #{new_url}", 112, "LIST_GEARS")
+    render_error(:moved_permanently, "Please use this URL instead #{new_url}", 112)
+  end
+  
+  def set_log_tag
+    @log_tag = get_log_tag_prepend + "GEAR"
   end
 end

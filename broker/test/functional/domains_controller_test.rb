@@ -43,7 +43,7 @@ class DomiansControllerTest < ActionController::TestCase
   end
   
   
-  test "no domain id" do
+  test "no or non-existent domain id" do
     post :create, {}
     assert_response :unprocessable_entity
     get :show, {}
@@ -52,6 +52,14 @@ class DomiansControllerTest < ActionController::TestCase
     put :update , {"id" => new_namespace}
     assert_response :not_found
     delete :destroy , {}
+    assert_response :not_found
+    
+    get :show, {"id" => "bogus"}
+    assert_response :not_found
+    new_namespace = "xns#{@random}"
+    put :update , {"existing_id" => "bogus", "id" => new_namespace}
+    assert_response :not_found
+    delete :destroy , {"id" => "bogus"}
     assert_response :not_found
   end
   

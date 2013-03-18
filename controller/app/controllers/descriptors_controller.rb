@@ -2,6 +2,7 @@
 # Application descriptor API
 # @api REST
 class DescriptorsController < BaseController
+  before_filter :get_domain, :get_application
   ##
   # Retrieve application descriptor
   # 
@@ -25,23 +26,10 @@ class DescriptorsController < BaseController
   #   ```
   # @return [RestReply<YAML>] Application Descriptor in YAML format
   def show
-    domain_id = params[:domain_id].downcase if params[:domain_id]
-    application_id = params[:application_id].downcase if params[:application_id]
-
-    begin
-      domain = Domain.find_by(owner: @cloud_user, canonical_namespace: domain_id)
-      @domain_name = domain.namespace
-    rescue Mongoid::Errors::DocumentNotFound
-      return render_error(:not_found, "Domain #{domain_id} not found", 127, "SHOW_DESCRIPTOR")
-    end
-
-    begin
-      application = Application.find_by(domain: domain, canonical_name: application_id)
-      @application_name = application.name
-      @application_uuid = application.uuid
-    rescue Mongoid::Errors::DocumentNotFound      
-      return render_error(:not_found, "Application '#{application_id}' not found", 101, "SHOW_DESCRIPTOR")
-    end
-    render_success(:ok, "descriptor", application.to_descriptor.to_yaml, "SHOW_DESCRIPTOR", "Show descriptor for application '#{application_id}' for domain '#{domain_id}'")
+    render_success(:ok, "descriptor", @application.to_descriptor.to_yaml, "Show descriptor for application '#{@application.name}' for domain '#{@domain.namespace}'")
+  end
+  
+  def set_log_tag
+    @log_tag = get_log_tag_prepend + "DESCRIPTOR"
   end
 end

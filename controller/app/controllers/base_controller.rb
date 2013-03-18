@@ -9,5 +9,6 @@ class BaseController < ActionController::Base
                 :check_outage,
                 :check_nolinks,
                 :check_version,
-                :authenticate_user!
+                :authenticate_user!,
+                :set_log_tag
 end
