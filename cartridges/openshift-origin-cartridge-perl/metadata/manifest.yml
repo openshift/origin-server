@@ -1,4 +1,4 @@
-Name: perl-5.10
+Name: perl
 Cartridge-Short-Name: PERL
 Display-Name: Perl 5.10
 Description: "Perl is a general-purpose server-side scripting language originally designed for Web development to produce dynamic Web pages. Popular development frameworks include: CakePerl, Zend, Symfony, and Code Igniter."
