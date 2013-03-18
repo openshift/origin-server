@@ -97,9 +97,10 @@ if [ ! -d $git_url ]; then
     resolve_application_dependencies $uuid $application &
 else
     #
-    # Start the server
+    # Build application & Start the server
     #
-    start_app
+    run_as_user "${CARTRIDGE_BASE_PATH}/${cartridge_type}/info/bin/build.sh" || error "Failed to build ${cartridge_type} application." 123
+    run_as_user "${CARTRIDGE_BASE_PATH}/${cartridge_type}/info/bin/app_ctl.sh start" || error "Failed to start ${application}" 121
 fi
 
 #
@@ -108,5 +109,7 @@ fi
 export CART_INFO_DIR
 $CARTRIDGE_BASE_PATH/abstract/info/bin/deploy_httpd_proxy.sh $application $namespace $uuid $IP
 
+#TODO remove source, should be already sourced
+source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/apache
 restart_httpd_graceful
 enable_cgroups
