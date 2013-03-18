@@ -109,7 +109,4 @@ fi
 export CART_INFO_DIR
 $CARTRIDGE_BASE_PATH/abstract/info/bin/deploy_httpd_proxy.sh $application $namespace $uuid $IP
 
-#TODO remove source, should be already sourced
-source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/apache
-restart_httpd_graceful
 enable_cgroups
