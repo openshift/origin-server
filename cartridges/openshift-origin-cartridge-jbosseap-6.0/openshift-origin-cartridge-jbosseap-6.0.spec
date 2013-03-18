@@ -4,7 +4,7 @@
 
 Summary:       Provides JBossEAP6.0 support
 Name:          openshift-origin-cartridge-jbosseap-6.0
-Version: 1.6.2
+Version: 1.6.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -143,6 +143,14 @@ cp -p %{cartridgedir}/info/configuration/postgresql_module.xml /etc/alternatives
 
 
 %changelog
+* Mon Mar 18 2013 Adam Miller <admiller@redhat.com> 1.6.3-1
+- remove java-devel BuildRequires, move ROOT.war jar to configure
+  (bdecoste@gmail.com)
+- remove java-devel BuildRequires, move ROOT.war jar to configure
+  (bdecoste@gmail.com)
+- remove java-devel BuildRequires, move ROOT.war jar to configure
+  (bdecoste@gmail.com)
+
 * Thu Mar 14 2013 Adam Miller <admiller@redhat.com> 1.6.2-1
 - fix eap spec file versions (bdecoste@gmail.com)
 - Refactor Endpoints to support frontend mapping (ironcladlou@gmail.com)
