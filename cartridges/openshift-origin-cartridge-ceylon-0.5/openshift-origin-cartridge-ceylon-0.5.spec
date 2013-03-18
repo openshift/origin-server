@@ -2,7 +2,7 @@
 
 Summary:   Provides ceylon-0.5 support
 Name:      openshift-origin-cartridge-ceylon-0.5
-Version:   1.0.20
+Version:   1.0.21
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -95,6 +95,9 @@ rm -rf %{buildroot}
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Mon Mar 18 2013 Matej Lazar <matejonnet@gmail.com> 1.0.21-1
+- Static files location. (matejonnet@gmail.com)
+
 * Mon Mar 18 2013 Matej Lazar <matejonnet@gmail.com> 1.0.20-1
 - Remove missing function. (matejonnet@gmail.com)
 - Build in cofigure hook. (matejonnet@gmail.com)
