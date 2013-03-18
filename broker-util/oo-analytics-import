@@ -1,0 +1,28 @@
+#!/bin/bash
+
+set -e
+
+dump=$1
+if [ "$dump" == "" ]; then
+  echo "Input file required."
+  echo "Usage :"
+  echo "  $0 <input file>"
+  exit 1
+fi
+
+echo "Extracting analytics from $dump"
+cp $dump /tmp/
+cd /tmp/
+tar xvzf $dump >& /dev/null
+if [ ! -d "/tmp/tmp/analytics" ]; then
+  echo "Invalid input dump"
+fi
+
+mongoimport --file /tmp/tmp/analytics/analytics.apps.json --db analytics --collection applications --upsert
+mongoimport --file /tmp/tmp/analytics/analytics.domains.json --db analytics --collection domains --upsert
+mongoimport --file /tmp/tmp/analytics/analytics.users.json --db analytics --collection cloud_users --upsert
+
+rm -rf /tmp/tmp/analytics
+
+echo
+echo "Import complete!"
