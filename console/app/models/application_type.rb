@@ -126,112 +126,110 @@ class ApplicationType
 
   cache_find_method :every
 
-  class << self
-    def all(*arguments)
-      find(:all, *arguments)
-    end
-
-    def search(query, opts={})
-      find(:all, {:search => query}.merge(opts))
-    end
-
-    def tagged(tag, opts={})
-      find(:all, {:tag => tag}.merge(opts))
-    end
-
-    def find(*arguments)
-      option = arguments.shift
-      case option
-      when String
-        find_single(option, *arguments)
-      when :all
-        find_every(*arguments)
-      when Symbol
-        find_every(*arguments).select { |t| t.tags.include? option }
-      else
-        raise "Unsupported scope"
-      end
-    end
-
-    def matching_cartridges(cartridge_specs)
-      valid, invalid = {}, []
-      Array(cartridge_specs).uniq.each do |c|
-        if (matches = CartridgeType.cached.matches(c)).present?
-          valid[c] = matches
-        else
-          invalid << c
-        end
-      end
-      [valid, invalid]
-    end
-
-    def custom(attrs={})
-      attrs = {} if attrs.nil? || attrs.is_a?(String)
-      attrs[:scalable] = true unless attrs.has_key?(:scalable)
-      new(:id => 'custom', :display_name => 'From Scratch').assign_attributes(attrs)
-    end
-
-    protected
-      def find_single(id, *arguments)
-        case (match = /^([^!]+)!(.+)/.match(id) || [])[1]
-        when 'quickstart'; from_quickstart(Quickstart.find match[2])
-        when 'cart'; from_cartridge_type(CartridgeType.cached.find match[2])
-        else raise NotFound.new(id)
-        end
-        #find_every(*arguments).find{ |t| t.id == id } or raise NotFound, id
-      end
-
-      def find_every(opts={})
-        source = opts[:source].nil? ? nil : Array(opts[:source])
-
-        types = []
-        case
-        when opts[:search]
-          query = opts[:search].downcase
-          types.concat CartridgeType.cached.standalone
-          types.keep_if &LOCAL_SEARCH.curry[query]
-          types.concat Quickstart.search(query)
-        when opts[:tag]
-          tag = opts[:tag].to_sym rescue (return [])
-          types.concat CartridgeType.cached.standalone
-          if tag != :cartridge
-            types.keep_if &TAG_FILTER.curry[[tag]]
-            types.concat Quickstart.search(tag.to_s)
-          end
-        else
-          types.concat CartridgeType.cached.standalone
-          types.concat Quickstart.cached.promoted
-        end
-        raise "nil types" unless types
-
-        types.select do |t|
-          not (t.tags.include?(:blacklist) or (Rails.env.production? and t.tags.include?(:in_development)))
-        end.map do |t|
-          case t
-          when CartridgeType; from_cartridge_type(t)
-          when Quickstart; from_quickstart(t)
-          end
-        end
-      end
-
-      def from_cartridge_type(type)
-        attrs = {:id => "cart!#{type.name}", :source => :cartridge}
-        [:display_name, :tags, :description, :website, :version, :license, :license_url, :help_topics, :priority, :scalable, :usage_rates].each do |m|
-          attrs[m] = type.send(m)
-        end
-        attrs[:cartridges] = [type.name]
-
-        new(attrs, type.persisted?)
-      end
-      def from_quickstart(type)
-        attrs = { :id => "quickstart!#{type.id}", :source => :quickstart }
-        [:display_name, :tags, :description, :website, :initial_git_url, :initial_git_branch, :cartridges_spec, :priority, :scalable, :learn_more_url].each do |m|
-          attrs[m] = type.send(m)
-        end
-
-        new(attrs, type.persisted?)
-      end
+  def self.all(*arguments)
+    find(:all, *arguments)
   end
+
+  def self.search(query, opts={})
+    find(:all, {:search => query}.merge(opts))
+  end
+
+  def self.tagged(tag, opts={})
+    find(:all, {:tag => tag}.merge(opts))
+  end
+
+  def self.find(*arguments)
+    option = arguments.shift
+    case option
+    when String
+      find_single(option, *arguments)
+    when :all
+      find_every(*arguments)
+    when Symbol
+      find_every(*arguments).select { |t| t.tags.include? option }
+    else
+      raise "Unsupported scope"
+    end
+  end
+
+  def self.matching_cartridges(cartridge_specs)
+    valid, invalid = {}, []
+    Array(cartridge_specs).uniq.each do |c|
+      if (matches = CartridgeType.cached.matches(c)).present?
+        valid[c] = matches
+      else
+        invalid << c
+      end
+    end
+    [valid, invalid]
+  end
+
+  def self.custom(attrs={})
+    attrs = {} if attrs.nil? || attrs.is_a?(String)
+    attrs[:scalable] = true unless attrs.has_key?(:scalable)
+    new(:id => 'custom', :display_name => 'From Scratch').assign_attributes(attrs)
+  end
+
+  protected
+    def self.find_single(id, *arguments)
+      case (match = /^([^!]+)!(.+)/.match(id) || [])[1]
+      when 'quickstart'; from_quickstart(Quickstart.find match[2])
+      when 'cart'; from_cartridge_type(CartridgeType.cached.find match[2])
+      else raise NotFound.new(id)
+      end
+      #find_every(*arguments).find{ |t| t.id == id } or raise NotFound, id
+    end
+
+    def self.find_every(opts={})
+      source = opts[:source].nil? ? nil : Array(opts[:source])
+
+      types = []
+      case
+      when opts[:search]
+        query = opts[:search].downcase
+        types.concat CartridgeType.cached.standalone
+        types.keep_if &LOCAL_SEARCH.curry[query]
+        types.concat Quickstart.search(query)
+      when opts[:tag]
+        tag = opts[:tag].to_sym rescue (return [])
+        types.concat CartridgeType.cached.standalone
+        if tag != :cartridge
+          types.keep_if &TAG_FILTER.curry[[tag]]
+          types.concat Quickstart.search(tag.to_s)
+        end
+      else
+        types.concat CartridgeType.cached.standalone
+        types.concat Quickstart.cached.promoted
+      end
+      raise "nil types" unless types
+
+      types.select do |t|
+        not (t.tags.include?(:blacklist) or (Rails.env.production? and t.tags.include?(:in_development)))
+      end.map do |t|
+        case t
+        when CartridgeType; from_cartridge_type(t)
+        when Quickstart; from_quickstart(t)
+        end
+      end
+    end
+
+    def self.from_cartridge_type(type)
+      attrs = {:id => "cart!#{type.name}", :source => :cartridge}
+      [:display_name, :tags, :description, :website, :version, :license, :license_url, :help_topics, :priority, :scalable, :usage_rates].each do |m|
+        attrs[m] = type.send(m)
+      end
+      attrs[:cartridges] = [type.name]
+
+      new(attrs, type.persisted?)
+    end
+    def self.from_quickstart(type)
+      attrs = { :id => "quickstart!#{type.id}", :source => :quickstart }
+      [:display_name, :tags, :description, :website, :initial_git_url, :initial_git_branch, :cartridges_spec, :priority, :scalable, :learn_more_url].each do |m|
+        attrs[m] = type.send(m)
+      end
+
+      new(attrs, type.persisted?)
+    end
 
   protected
     LOCAL_SEARCH = lambda do |query, t|

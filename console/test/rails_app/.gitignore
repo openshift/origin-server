@@ -10,3 +10,4 @@ test/reports/
 public/assets
 public/404.html
 public/500.html
+test/coverage/
