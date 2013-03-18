@@ -227,7 +227,6 @@ module RestApi
 
       attributes.each do |key, value|
         if !known.include? key.to_s and !calculated.include? key and self.class.method_defined?("#{key}=")
-          binding.pry if key == :cartridges
           send("#{key}=", value)
         else
           self.attributes[key.to_s] =
