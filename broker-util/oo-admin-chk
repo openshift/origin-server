@@ -288,10 +288,10 @@ if level >= 2
   end
 
   # check for applications without any gears in the group instance
-  query = {"group_instances" : {"$elemMatch" : { "gears" : {"$size" : 0}}}, "created_at" => {"$lt" => creation_threshold_time}}
+  query = {"group_instances" => {"$elemMatch" => { "gears" => {"$size" => 0}}}, "created_at" => {"$lt" => creation_threshold_time}}
   selection = {:fields => ["name", "uuid", "group_instances._id"], :timeout => false}
   OpenShift::DataStore.find(:applications, query, selection) do |app|
-    app['group_instances'].each |gi|
+    app['group_instances'].each do |gi|
       if (not gi.has_key?("gears")) or gi['gears'].length == 0 
         summary << "Application #{app['name']} with uuid #{app['uuid']} does not have any gears within group instance #{gi['_id']}."
         no_error = false
