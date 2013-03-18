@@ -2,7 +2,7 @@
 
 Summary:       Provides jenkins-1.4 support
 Name:          openshift-origin-cartridge-jenkins
-Version: 1.6.2
+Version: 1.6.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -60,4 +60,7 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Mon Mar 18 2013 Dan McPherson <dmcphers@redhat.com> 1.6.3-1
+- new package built with tito
+
 
