@@ -1,3 +1,4 @@
+ENV["TEST_NAME"] = "functional_cartridges_controller_test"
 require 'test_helper'
 require 'openshift-origin-controller'
 require 'mocha'
