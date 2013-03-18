@@ -1,5 +1,6 @@
 import ceylon.net.http.server.endpoints { serveStaticFile }
-import ceylon.net.http.server { Server, createServer, AsynchronousEndpoint, startsWith, Request, Response, Endpoint }
+import ceylon.net.http.server { Server, createServer, AsynchronousEndpoint, startsWith, Endpoint, isRoot}
+import ceylon.demo.net.todo { demo }
 
 doc "Run the module `ceylon.demo.net`."
 by "Matej Lazar"
@@ -16,27 +17,24 @@ shared void run() {
     
     if (exists files = process.propertyValue(prop_server_files_lcation)) {
         server.addEndpoint(AsynchronousEndpoint {
+            path = startsWith("/css") or startsWith("/img") or startsWith("/js");
             service => serveStaticFile(files);
-            path = startsWith("/file");
         });
+
+        server.addEndpoint(AsynchronousEndpoint {
+            path = isRoot();
+            service => serveStaticFile("``files``/index.html");
+        });
+        print("Serving static files from ``files``.");
+    } else {
+        print("To serve static files define VM argument server.files.location.");
     }
     
     server.addEndpoint(Endpoint {
-        service => Web().service;
-        path = startsWith("/post");
+        path = startsWith("/todo");
+        service => demo;
     });
     
-    void asyncInvocation(Request request, Response response, Callable<Anything, []> complete) {
-        Web().service(request, response);
-        complete();
-    }
-             
-    server.addEndpoint(AsynchronousEndpoint {
-            path = startsWith("/async");
-            service => asyncInvocation;
-        }
-    );
-
     variable Integer port = 8080;
     if (exists portStr = process.propertyValue(prop_server_bind_port)) {
         if (exists p = parseInteger(portStr)) {
@@ -51,4 +49,3 @@ shared void run() {
     
     server.start(port, host);
 }
-

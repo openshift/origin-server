@@ -1,0 +1,23 @@
+.container {
+	width: 500px;
+}
+
+.taskDone {
+	margin-left: 15px;
+	text-decoration: line-through;
+}
+.taskNotDone {
+	margin-left: 15px;
+}
+
+h1 {
+   margin-top: 20px;
+	font-weight: bold;
+	color: rgba(255, 255, 255, 0.3);
+	/* color: rgba(146, 195, 126, 1); */
+	text-shadow: -1px -1px rgba(0, 0, 0, 0.2);
+}
+
+.icon-remove {
+	cursor: pointer;
+}

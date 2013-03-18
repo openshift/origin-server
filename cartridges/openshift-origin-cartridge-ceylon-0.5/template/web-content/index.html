@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<!-- saved from url=(0036)http://capedwarf-mlazar.rhcloud.com/ -->
+<html lang="en">
+  <head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title>Welcome to Ceylon</title>
+  <style>
+html {
+	background: #f3f3f3;
+	background-image: url(http://static.jboss.org/theme/images/bgs/bg.png);
+	background-repeat:repeat-x;
+}
+body {
+	background: white;
+	color: #555555;
+	font-family:"Lucida Sans", "Lucida Sans Unicode", "Lucida Grande", Verdana, Arial, Helvetica, sans-serif;
+	width: 60em;
+	margin: 0 auto;
+	box-shadow: 3px 3px 3px #CCC;
+}
+.container {
+	padding: 3em;
+}
+a {
+	color: #369;
+}
+h1 {
+	color:#88201B;
+	font-weight:normal;
+}
+h2 {
+	margin: 2em 0 .5em;
+	border-bottom: 1px solid #999;
+	font-weight:normal;
+}
+pre {
+	background: #F4F3F3;
+	padding: 1em 0 0;
+	-webkit-border-radius: 1em;
+	-moz-border-radius: 1em;
+	border-radius: 1em;
+	color: SlateGrey;
+}
+ul {
+	margin: 0;
+	padding: 0;
+}
+li {
+	list-style-type: none;
+	padding: .5em 0;
+}
+.brand-image {
+}
+</style>
+  </head>
+  <body>
+<img class="brand-image" alt="Ceylon lang" src="/img/header.jpg">
+<div class="container">
+<h1> Welcome to Ceylon on RedHat's OpenShift cloud </h1>
+<p> Write your own Ceylon application and replace this sample. </p>
+<p> In order to commit to your new project, go to your projects git repo directory. </p>
+<p> For example, if you named your application myfirstapp,
+    you would find dynamic contents of this app located under myfirstapp/sources and static files under myfirstapp/web-content. You can edit that and push your
+    changes from the myfirstapp directory by running: </p>
+    <pre>
+    git commit -a -m 'Some commit message'
+    git push
+    </pre>
+<p> Then reload this page. </p>
+
+<p> OpenShift is configured to execute toplevel method "run" in a "ceylon.demo.net" module. You can change module name in "ceylon.properties" file located in "myfirstapp/.openshift/config/".</p>
+
+<p> When you push Ceylon sources, they are compiled by OpenShif, if you want to upload pre compiled modules, you can place them in "myfirstapp/.openshift/modules/" folder.</p>
+
+<h2>Sample Application</h2>
+<p> The page you are currently readying is static, take a look at dynamic example <a href="todo">In Session ToDo List</a>.</p>
+
+<p></p>
+<h2> What's next? </h2>
+    <p> Why not visit us at <a href="http://ceylon-lang.org/">http://ceylon-lang.org/ </p>
+</div>
+</body>
+</html>
