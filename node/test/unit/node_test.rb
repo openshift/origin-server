@@ -32,21 +32,20 @@ class NodeTest < Test::Unit::TestCase
         multiple_yields(["#{@path}/RedHat-CRTest/1.0/metadata/manifest.yml"])
   end
 
-  # Called after every test method runs. Can be used to tear
-  # down fixture information.
-
   def teardown
     # Do nothing
   end
 
-  # Fake test
   def test_get_cartridge_list
+    OpenShift::CartridgeRepository.instance.clear
+    OpenShift::CartridgeRepository.instance.load
+
     OpenShift::Utils::Sdk.stubs(:node_default_model).returns(:v2)
 
     buffer = OpenShift::Node.get_cartridge_list
     refute_nil buffer
 
-    assert_equal buffer, %Q(Cartridges:\n\tCRTest-0.1\n\tCRTest-0.2\n\tCRTest-0.3\n)
+    assert_equal %Q(Cartridges:\n\tCRTest-0.1\n\tCRTest-0.2\n\tCRTest-0.3\n), buffer
   end
 
   MANIFESTS = [
