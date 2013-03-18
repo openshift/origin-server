@@ -244,7 +244,7 @@ def check_selinux()
     # This will likely only detect the effects of a full relabel but it's
     # better than nothing.  My unscientific tests shows that checking 100 gears
     # only added about 1.5 seconds execution time.
-    Dir.glob("/var/lib/openshift/*/app-root")[0,99].each do |dir|
+    Dir.glob(File.join($GEAR_BASE_DIR, "*/app-root"))[0,99].each do |dir|
       out = %x[ls --scontext #{dir}]
       mcs = /.+:.+:.+:.+:c\d+,c\d+? /.match(out)
       if mcs.nil?

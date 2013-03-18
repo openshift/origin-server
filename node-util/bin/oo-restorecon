@@ -6,8 +6,11 @@
 # MCS should be s0:c$UID-499  so UID500 has a mcs of s0:c1
 
 require 'etc'
+require 'rubygems'
+require 'openshift-origin-common'
 
-home_dirs = Dir.glob("/var/lib/openshift/*")
+node_conf = OpenShift::Config.new('/etc/openshift/node.conf')
+home_dirs = Dir.glob(File.join(node_conf.get("GEAR_BASE_DIR"), "*"))
 
 debug=1
 
