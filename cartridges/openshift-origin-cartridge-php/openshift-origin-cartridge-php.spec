@@ -50,7 +50,7 @@ PHP cartridge for openshift.
 %install
 rm -rf %{buildroot}
 mkdir -p %{buildroot}%{cartridgedir}
-mkdir -p %{buildroot}/%{_sysconfdir}/openshift/cartridges
+mkdir -p %{buildroot}/%{_sysconfdir}/openshift/cartridges/v2
 cp -r * %{buildroot}%{cartridgedir}/
 
 
