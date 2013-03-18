@@ -1,6 +1,6 @@
 Summary:       Utility scripts for the OpenShift Origin broker
 Name:          openshift-origin-node-util
-Version: 1.6.2
+Version: 1.6.3
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -110,6 +110,10 @@ mv services/openshift-gears.service %{buildroot}/etc/systemd/system/openshift-ge
 /sbin/restorecon /usr/sbin/oo-restorer* || :
 
 %changelog
+* Mon Mar 18 2013 Adam Miller <admiller@redhat.com> 1.6.3-1
+- WIP Cartridge Refactor - Introduce oo-admin-cartridge command
+  (jhonce@redhat.com)
+
 * Thu Mar 14 2013 Adam Miller <admiller@redhat.com> 1.6.2-1
 - Bug 920880 - Only allow httpd-singular to return when Apache is fully back up
   and protect the SSL cert operations with the Alias lock.
