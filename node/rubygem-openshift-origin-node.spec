@@ -16,7 +16,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version:       1.6.3
+Version:       1.6.4
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -232,6 +232,19 @@ fi
 %attr(0755,-,-) %{_var}/run/openshift
 
 %changelog
+* Mon Mar 18 2013 Adam Miller <admiller@redhat.com> 1.6.4-1
+- Add SNI upload support to API (lnader@redhat.com)
+- WIP Cartridge Refactor - Fix v2_cart_model_test (jhonce@redhat.com)
+- WIP Cartridge Refactor - Mock plugin installed from CartridgeRepository
+  (jhonce@redhat.com)
+- WIP Cartridge Refactor - Refactor V2CartridgeModel to use CartridgeRepository
+  (jhonce@redhat.com)
+- WIP Cartridge Refactor - Introduce oo-admin-cartridge command
+  (jhonce@redhat.com)
+- WIP Cartridge Refactor - Refactor V2CartridgeModel to use CartridgeRepository
+  (jhonce@redhat.com)
+- Update Endpoint documentation (ironcladlou@gmail.com)
+
 * Thu Mar 14 2013 Adam Miller <admiller@redhat.com> 1.6.3-1
 - merge with latest pulls (tdawson@redhat.com)
 
