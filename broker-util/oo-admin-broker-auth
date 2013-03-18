@@ -196,6 +196,7 @@ class OOAdminRekeyBrokerAuth
           update_list_of_nodes_seen(gear)
         rescue
           $stderr.puts "ERROR: Unable to rekey #{uuid}"
+          @failure_count += 1
         end
       end
     end
