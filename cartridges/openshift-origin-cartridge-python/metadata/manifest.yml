@@ -1,4 +1,4 @@
-Name: python-2.6
+Name: python
 Cartridge-Short-Name: PYTHON
 Display-Name: Python 2.6
 Description: "Python is a general-purpose server-side scripting language originally designed for Web development to produce dynamic Web pages. Popular development frameworks include: CakePython, Zend, Symfony, and Code Igniter."
