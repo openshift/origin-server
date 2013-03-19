@@ -222,9 +222,9 @@ module OpenShift
     #
     # The generic gear-level cleanup flow is:
     # * Stop the gear
-    # * Git cleanup
     # * Gear temp dir cleanup
     # * Cartridge tidy hook executions
+    # * Git cleanup
     # * Start the gear
     #
     # Raises an Exception if an internal error occurs, and ignores
@@ -244,10 +244,14 @@ module OpenShift
       # Perform the gear- and cart- level tidy actions.  At this point, the gear has
       # been stopped; we'll attempt to start the gear no matter what tidy operations fail.
       begin
-        gear_level_tidy(gear_repo_dir, gear_tmp_dir)
+        # clear out the tmp dir
+        gear_level_tidy_tmp(gear_tmp_dir)
 
         # Delegate to cartridge model to perform cart-level tidy operations for all installed carts.
         @cartridge_model.tidy
+
+        # git gc - do this last to maximize room  for git to write changes
+        gear_level_tidy_git(gear_repo_dir)
       rescue Exception => e
         logger.warn("An unknown exception occured during tidy for gear #{@uuid}: #{e.message}\n#{e.backtrace}")
       ensure
@@ -290,7 +294,15 @@ module OpenShift
       end
     end
 
-    def gear_level_tidy(gear_repo_dir, gear_tmp_dir)
+    def gear_level_tidy_tmp(gear_tmp_dir)
+      # Temp dir cleanup
+      tidy_action do
+        FileUtils.rm_rf(Dir.glob(File.join(gear_tmp_dir, "*")))
+        logger.debug("Cleaned gear temp dir at #{gear_tmp_dir}")
+      end
+    end
+
+    def gear_level_tidy_git(gear_repo_dir)
       # Git pruning
       tidy_action do
         OpenShift::Utils::ShellExec.run_as(@user.uid, @user.gid, "git prune", gear_repo_dir, false, 0)
@@ -301,12 +313,6 @@ module OpenShift
       tidy_action do
         OpenShift::Utils::ShellExec.run_as(@user.uid, @user.gid, "git gc --aggressive", gear_repo_dir, false, 0)
         logger.debug("Executed git gc for repo #{gear_repo_dir}")
-      end
-
-      # Temp dir cleanup
-      tidy_action do
-        FileUtils.rm_rf(Dir.glob(File.join(gear_tmp_dir, "*")))
-        logger.debug("Cleaned gear temp dir at #{gear_tmp_dir}")
       end
     end
 
