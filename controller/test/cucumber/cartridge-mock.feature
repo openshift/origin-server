@@ -8,11 +8,13 @@ Feature: V2 SDK Mock Cartridge
     And the platform-created default environment variables will exist
     And the mock-0.1 cartridge private endpoints will be exposed
     And the mock setup_called marker will exist
-    And the mock setup_version marker will not exist
+    And the mock setup_version marker will exist
     And the mock setup_failure marker will not exist
-    And the mock-0.1 MOCK_VERSION env entry will not exist
+    And the mock-0.1 MOCK_VERSION env entry will exist
     And the mock-0.1 MOCK_EXAMPLE env entry will exist
     And the mock-0.1 MOCK_SERVICE_URL env entry will exist
+    And the "app-root/runtime/repo/.openshift/README.md" content does exist for mock-0.1
+
 
     When I start the application
     Then the mock control_start marker will exist
@@ -52,8 +54,8 @@ Feature: V2 SDK Mock Cartridge
     And the platform-created default environment variables will exist
     And the mock-0.1 cartridge private endpoints will be exposed
     And the mock setup_called marker will exist
-    And the mock setup_version marker will not exist
-    And the mock-0.1 MOCK_VERSION env entry will not exist
+    And the mock setup_version marker will exist
+    And the mock-0.1 MOCK_VERSION env entry will exist
     And the mock setup_failure marker will not exist
     And the mock-0.1 MOCK_EXAMPLE env entry will exist
     And the mock-0.1 MOCK_SERVICE_URL env entry will exist
@@ -102,7 +104,7 @@ Feature: V2 SDK Mock Cartridge
     When I embed a mock-plugin-0.1 cartridge into the application
     Then the mock-plugin-0.1 cartridge private endpoints will be exposed
     And the mock-plugin setup_called marker will exist
-    And the mock-plugin setup_version marker will not exist
+    And the mock-plugin setup_version marker will exist
     And the mock-plugin setup_failure marker will not exist
     And the mock-plugin-0.1 MOCK_PLUGIN_EXAMPLE env entry will exist
     And the mock-plugin-0.1 MOCK_PLUGIN_SERVICE_URL env entry will exist
