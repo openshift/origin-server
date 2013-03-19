@@ -57,8 +57,27 @@ class CartridgeRepositoryTest < Test::Unit::TestCase
     assert_equal 'RedHat-CRTest', e.directory
   end
 
-  def test_three_manifest
+  def test_each
+    YAML.stubs(:load_file).
+        returns(YAML.load(MANIFESTS[0])).
+        then.returns(YAML.load(MANIFESTS[1])).
+        then.returns(YAML.load(MANIFESTS[2]))
 
+    OpenShift::CartridgeRepository.
+        any_instance.
+        stubs(:find_manifests).
+        with(@path).
+        multiple_yields(["#{@path}/RedHat-CRTest/1.0/metadata/manifest.yml"],
+                        ["#{@path}/RedHat-CRTest/1.1/metadata/manifest.yml"],
+                        ["#{@path}/RedHat-CRTest/1.2/metadata/manifest.yml"],)
+
+    cr = OpenShift::CartridgeRepository.instance
+    cr.clear
+    cr.load(@path)
+    assert_equal 1, cr.inject(0) { |a, c| a += 1}
+  end
+
+  def test_three_manifest
     YAML.stubs(:load_file).
         returns(YAML.load(MANIFESTS[0])).
         then.returns(YAML.load(MANIFESTS[1])).
