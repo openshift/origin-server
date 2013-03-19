@@ -1,1 +1,1 @@
-RedHat-mock/env/
+redhat-mock/env/

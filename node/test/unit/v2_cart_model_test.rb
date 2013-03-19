@@ -151,9 +151,9 @@ class V2CartModelTest < Test::Unit::TestCase
   def test_get_cartridge_valid_manifest
     local_model = OpenShift::V2CartridgeModel.new(@config, @user)
 
-    manifest_path = "#{@homedir}/UnitTest-mock/metadata/manifest.yml"
+    manifest_path = "#{@homedir}/unittest-mock/metadata/manifest.yml"
     YAML.stubs(:load_file).with(manifest_path).returns(YAML.load(@mock_manifest))
-    Dir.stubs(:glob).returns(["#{@homedir}/UnitTest-mock"])
+    Dir.stubs(:glob).returns(["#{@homedir}/unittest-mock"])
     File.stubs(:exist?).with(manifest_path).returns(true)
 
 
@@ -174,9 +174,9 @@ class V2CartModelTest < Test::Unit::TestCase
   def test_get_cartridge_error_loading
     local_model = OpenShift::V2CartridgeModel.new(@config, @user)
 
-    YAML.stubs(:load_file).with("#{@homedir}/RedHat-mock/metadata/manifest.yml").raises(ArgumentError.new('bla'))
+    YAML.stubs(:load_file).with("#{@homedir}/redhat-CRTest/metadata/manifest.yml").raises(ArgumentError.new('bla'))
 
-    assert_raise(RuntimeError, "Failed to load cart manifest from #{@homedir}/RedHat-mock/metadata/manifest.yml for cart mock in gear : bla") do
+    assert_raise(RuntimeError, "Failed to load cart manifest from #{@homedir}/redhat-CRTest/metadata/manifest.yml for cart mock in gear : bla") do
       local_model.get_cartridge("mock-0.1")
     end
   end
@@ -190,7 +190,7 @@ class V2CartModelTest < Test::Unit::TestCase
         returns(@mock_cartridge)
 
     scenarios = {
-        'mock-1.0' => "/tmp/UnitTest-mock/1.0",
+        'mock-1.0' => "/tmp/unittest-mock/1.0",
     }
 
     scenarios.each do |cart_name, expected_path|

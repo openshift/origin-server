@@ -86,10 +86,10 @@ class CartridgeRepositoryFunctionalTest < Test::Unit::TestCase
       cr = OpenShift::CartridgeRepository.instance
       cr.install(@source_dir)
 
-      manifest_path = @repo_dir + '/RedHat-CRFTest/1.2/metadata/manifest.yml'
+      manifest_path = @repo_dir + '/redhat-CRFTest/1.2/metadata/manifest.yml'
       assert(File.file?(manifest_path), "Manifest missing: #{manifest_path}")
 
-      bin_path = @repo_dir + '/RedHat-CRFTest/1.2/bin'
+      bin_path = @repo_dir + '/redhat-CRFTest/1.2/bin'
       assert(File.directory?(bin_path), "Directory missing: #{bin_path}")
 
       # Will raise exception if missing...
@@ -106,7 +106,7 @@ class CartridgeRepositoryFunctionalTest < Test::Unit::TestCase
         cr.select('CRFTest')
       end
 
-      bin_path = @repo_dir + '/RedHat-CRFTest/1.2'
+      bin_path = @repo_dir + '/redhat-CRFTest/1.2'
       assert(!File.directory?(bin_path), "Directory not deleted: #{bin_path}")
     end
   end
