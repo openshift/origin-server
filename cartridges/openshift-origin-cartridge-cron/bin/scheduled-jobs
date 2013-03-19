@@ -1,0 +1,102 @@
+#!/bin/bash
+
+source "/etc/openshift/node.conf"
+
+# Constants.
+SERVICE_NAME=cron
+CART_INSTALL_DIR=$CARTRIDGE_BASE_PATH
+DOP=5  # Degree of Parallelism.
+
+function usage() {
+   freqs=$(cat $OPENSHIFT_CRON_DIR/configuration/frequencies | tr '\n' '|')
+   echo "Usage: $0 {run | run-user <uid>} <${freqs%?}>"
+}
+
+function log_message() {
+   msg=${1-""}
+   [ -z "$msg" ]  &&  return 0
+   logger -i -s "run-scheduled-openshift-origin-user-jobs" -p user.info "`date`: $msg"
+}
+
+function openshift_origin_users() {
+    grep ":${GEAR_GECOS}:" /etc/passwd | cut -d: -f1 | tr '\n' ' '
+}
+
+function openshift_origin_cron_users() {
+    cron_users=()
+    for u in `openshift_origin_users`; do
+       if [ -z "${cron_users[*]}" ]; then
+          cron_users=("$u")
+       elif [ -d $OPENSHIFT_CRON_DIR ]; then
+          cron_users=("${cron_users[@]}" "$u")
+       fi
+    done
+    echo "${cron_users[@]}" | tr '\n' ' '
+}
+
+function run_all_scheduled_jobs() {
+   freq=${1:-""}
+   if [ -z "$freq" ]; then
+      usage
+      exit 1
+   fi
+
+   {
+      log_message ":START: $freq run of all scheduled jobs"
+      openshift_origin_cron_users | xargs -d' ' -I{} -n 1 -P $DOP $0 run-user {} $freq
+      log_message ":END: $freq run of all scheduled jobs"
+   } &> /dev/null
+}
+
+function setuppam() {
+   uuid=$1
+   if [ ! -f "/etc/security/limits.d/84-${uuid}.conf" ]; then
+     /usr/libexec/openshift/lib/setup_pam_fs_limits.sh $uuid
+   fi
+}
+
+function run_user_scheduled_jobs() {
+   uuid=${1:-""}
+   freq=${2:-""}
+   if [[ -z "$uuid" || -z "$freq" ]]; then
+      usage
+      exit 22
+   fi
+
+   # Ensure cron jobs are enabled, there's a jobs dir and there's some jobs
+   # to run.
+   [ ! -f $OPENSHIFT_CRON_DIR/run/jobs.enabled ]  &&  return 0
+   [ ! -d "$OPENSHIFT_CRON_DIR/jobs/$freq" ]  &&  return 0
+   njobs=$(ls "$OPENSHIFT_CRON_DIR/jobs/$freq" | wc -l)
+   [ 0 -ge ${njobs:-0} ]  &&  return 0
+
+   # Ensure scripts are executable
+   chmod +x -R "$OPENSHIFT_CRON_DIR/jobs/$freq/"
+
+   setup_user_vars
+   setuppam "$uuid"
+
+   cmd="$OPENSHIFT_CRON_DIR/bin/cron_runjobs.sh $freq"
+
+   # Ensure cron's embedded in the app.
+   if [ -f "$OPENSHIFT_CRON_DIR/bin/cron_runjobs.sh" ]; then
+      daemon_as_user $cmd
+   fi
+}
+
+
+
+#
+# main():
+#
+source /etc/init.d/functions
+source "${CART_INSTALL_DIR}/abstract/info/lib/util"
+
+# Check whether to run all or a specific user's jobs.
+case "$1" in 
+    run)       run_all_scheduled_jobs  "$2"       ;;
+    run-user)  run_user_scheduled_jobs "$2" "$3"  ;;
+    *)         usage ; exit 1                     ;;
+esac
+
+exit 0
