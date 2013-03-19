@@ -1,3 +1,4 @@
+.jenkins_password
 redhat-jenkins/
 redhat-jenkins/metadata/
 redhat-jenkins/configuration/

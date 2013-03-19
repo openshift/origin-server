@@ -1,4 +1,5 @@
 #!/bin/bash -e
+set -x
 
 PATH=/bin:/usr/bin:$PATH
 
@@ -14,9 +15,7 @@ mkdir -p ${OPENSHIFT_JENKINS_CLIENT_DIR}/{bin,logs,data}
 
 # Copy the version specific files up to jbosseap directory
 cp -r ${OPENSHIFT_JENKINS_CLIENT_DIR}/versions/${version}/configuration/* ${OPENSHIFT_JENKINS_CLIENT_DIR}/configuration
-cp -r ${OPENSHIFT_JENKINS_CLIENT_DIR}/versions/${version}/metadata/* ${OPENSHIFT_JENKINS_CLIENT_DIR}/metadata
-cp -r ${OPENSHIFT_JENKINS_CLIENT_DIR}/versions/${version}/template/* ${OPENSHIFT_JENKINS_CLIENT_DIR}/template
-cp -r ${OPENSHIFT_JENKINS_CLIENT_DIR}/versions/${version}/template/.openshift ${OPENSHIFT_JENKINS_CLIENT_DIR}/template
+#cp -r ${OPENSHIFT_JENKINS_CLIENT_DIR}/versions/${version}/metadata/* ${OPENSHIFT_JENKINS_CLIENT_DIR}/metadata
 
 
 

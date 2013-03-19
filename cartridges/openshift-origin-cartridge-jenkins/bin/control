@@ -42,7 +42,7 @@ function start() {
         JENKINS_CMD="${JENKINS_CMD} -Xdebug -Xrunjdwp:server=y,transport=dt_socket,address=${OPENSHIFT_JENKINS_IP}:7600,suspend=n"
     fi
 
-    JENKINS_CMD="${JENKINS_CMD} -DJENKINS_HOME=$OPENSHIFT_DATA_DIR/ \
+    JENKINS_CMD="${JENKINS_CMD} -DJENKINS_HOME=$OPENSHIFT_DATA_DIR \
         -Dhudson.slaves.NodeProvisioner.recurrencePeriod=500 \
         -Dhudson.slaves.NodeProvisioner.initialDelay=100 \
         -Dhudson.slaves.NodeProvisioner.MARGIN=100 \
@@ -51,7 +51,7 @@ function start() {
         -jar /usr/lib/jenkins/jenkins.war \
         --ajp13Port=-1 \
         --controlPort=-1 \
-        --logfile=$OPENSHIFT_HOMEDIR/jenkins/logs/jenkins.log \
+        --logfile=$OPENSHIFT_HOMEDIR/redhat-jenkins/logs/jenkins.log \
         --daemon \
         --httpPort=8080 \
         --debug=5 \
@@ -59,13 +59,13 @@ function start() {
         --handlerCountMaxIdle=20 \
         --httpListenAddress=$OPENSHIFT_JENKINS_IP"
 
-    $JENKINS_CMD &    
+    $JENKINS_CMD &
 }
 
 function stop() {
  	echo "Stopping $cartridge_type cart"
  	
- 	pid=$(cat $JBOSSEAP_PID_FILE);
+ 	pid=$(cat $JENKINS_PID_FILE);
  	
  	kill -TERM $pid > /dev/null 2>&1
 }
@@ -106,7 +106,7 @@ function tidy() {
 }
 
 function threaddump() {
-	echo "Thread dump for $cartridge_type cart"
+	  echo "Thread dump for $cartridge_type cart"
 	
     if ! isrunning; then
         echo "Application is stopped"
@@ -116,7 +116,7 @@ function threaddump() {
         java_pid=`ps h --ppid $pid -o '%p'`
         kill -3 $java_pid
     else 
-        echo "Failed to locate JBOSS PID File"
+        echo "Failed to locate JENKINS PID File"
     fi
 }
 
@@ -129,7 +129,7 @@ case "$1" in
   status)    	status ;;
   reload)    	reload ;;
   tidy)      	tidy ;;
-  threaddump)   threaddump ;;
+  threaddump) threaddump ;;
   *)         	exit 0
 esac
 
