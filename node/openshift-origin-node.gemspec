@@ -26,5 +26,5 @@ Gem::Specification.new do |s|
 
   s.add_development_dependency('rspec', "1.1.12")
   s.add_development_dependency('mocha', "0.9.8")
-  s.add_development_dependency('rake', '>= 0.8.7', '<= 0.9.2.2')
+  s.add_development_dependency('rake', '>= 0.8.7', '<= 0.9.6')
 end
