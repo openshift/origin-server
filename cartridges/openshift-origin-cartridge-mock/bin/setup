@@ -3,14 +3,12 @@
 # Mock cartridge for testing and verifying node platform code. This is
 # not an example of how to write a well-formed cartridge.
 
-source ~/.env/*
-
 case "$1" in
   -v|--version)
     version="$2"
 esac
 
-cartridge_instance_dir=RedHat-mock
+cartridge_instance_dir=$OPENSHIFT_MOCK_DIR
 source $cartridge_instance_dir/mock.conf
 
 rm -rf $MOCK_STATE/

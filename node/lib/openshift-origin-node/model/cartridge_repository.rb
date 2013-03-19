@@ -72,6 +72,7 @@ module OpenShift
   class CartridgeRepository
     include Singleton
     include NodeLogger
+    include Enumerable
 
     #FIXME: move to node.conf
     CARTRIDGE_REPO_DIR = '/var/lib/openshift/.cartridge_repository'
@@ -272,7 +273,27 @@ module OpenShift
       cartridge
     end
 
-    ## TODO: Add to_json method to dump unique cartridges from index
+    # :call-seq:
+    #   CartridgeRepository.instance.each -> Cartridge
+    #
+    # Process each unique cartridge
+    #
+    #   CartridgeRepository.instance.each {|c| puts c.name}
+    def each
+      cartridges = []
+      # @index.values returned nothing...
+      @index.each_pair do |_, sw_hash|
+        sw_hash.each_pair do |sw_ver, cart_hash|
+          next unless sw_ver
+          cart_hash.each_pair do |cart_ver, cartridge|
+            next unless cart_ver
+            cartridges.push cartridge
+          end
+        end
+      end
+
+      cartridges.uniq.each {|c| yield c}
+    end
 
     ## print out all indexed cartridges in a table
     def to_s
