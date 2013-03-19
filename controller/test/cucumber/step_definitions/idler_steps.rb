@@ -13,16 +13,16 @@ end
 Given /^a new ([^ ]+) application with ([^ ]+) process, verify that it can be restored after idling$/ do |cart_name, proc_name|
   steps %{
     Given a new #{cart_name} type application
-    Then a #{process} process will be running
+    Then a #{proc_name} process will be running
     And I record the active capacity
 
     When I oo-idle the application
-    Then a #{process} process will not be running
+    Then a #{proc_name} process will not be running
     And the active capacity has been reduced
     And I record the active capacity after idling
 
     When I oo-restore the application
-    Then a #{process} process will be running
+    Then a #{proc_name} process will be running
     And the active capacity has been increased
   }
 end
