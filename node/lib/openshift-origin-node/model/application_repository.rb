@@ -38,9 +38,10 @@ module OpenShift
       @path = File.join(@user.homedir, 'git', "#{@user.app_name}.git")
     end
 
-    def exists?
+    def exist?
       File.directory?(@path)
     end
+    alias exists? exist?
 
     ##
     # +populate_from_cartridge+ uses the provided +cartridge_name+ to install a template application
