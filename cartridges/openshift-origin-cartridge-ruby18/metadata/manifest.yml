@@ -2,7 +2,7 @@ Name: ruby-1.8
 Cartridge-Short-Name: RUBY
 Display-Name: Ruby 1.8
 Description: "Ruby is a dynamic, reflective, general-purpose object-oriented programming language. Popular development frameworks include Ruby on Rails and Sinatra."
-Version: 1.8
+Version: '1.8'
 License: "Ruby BSDL"
 License-Url: http://www.ruby-lang.org/en/about/license.txt
 Vendor: ruby.org

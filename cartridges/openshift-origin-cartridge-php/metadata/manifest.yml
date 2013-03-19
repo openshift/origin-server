@@ -2,7 +2,7 @@ Name: php
 Cartridge-Short-Name: PHP
 Display-Name: PHP 5.3
 Description: "PHP is a general-purpose server-side scripting language originally designed for Web development to produce dynamic Web pages. Popular development frameworks include: CakePHP, Zend, Symfony, and Code Igniter."
-Version: 5.3
+Version: '5.3'
 License: "The PHP License, version 3.0"
 License-Url: http://www.php.net/license/3_0.txt
 Vendor: php.net
