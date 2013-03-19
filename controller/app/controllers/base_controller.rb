@@ -6,6 +6,7 @@ class BaseController < ActionController::Base
   include OpenShift::Controller::ApiBehavior
 
   before_filter :set_locale,
+                :check_outage,
                 :check_nolinks,
                 :check_version,
                 :authenticate_user!
