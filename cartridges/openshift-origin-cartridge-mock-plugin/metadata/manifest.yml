@@ -2,7 +2,7 @@ Name: mock-plugin
 Cartridge-Short-Name: MOCK_PLUGIN
 Display-Name: Mock Plugin Cartridge
 Description: "A mock plugin cartridge for development use only."
-Version: 0.1
+Version: '0.1'
 License: "None"
 Vendor: Red Hat
 Cartridge-Version: 0.0.1
