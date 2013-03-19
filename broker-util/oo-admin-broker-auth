@@ -166,7 +166,7 @@ class OOAdminRekeyBrokerAuth
           puts "#{result[:gear]} on #{node} was successfully rekeyed."
         else
           @failure_count += 1
-          puts "ERROR: #{result[:gear]} on #{node} failed."
+          puts "ERROR: #{result[:gear]} on #{node} was unsuccessfully rekeyed."
           puts "STDERR: #{result[:job][:result_stderr]}" if @verbose
           puts "STDOUT: #{result[:job][:result_stdout]}" if @verbose
         end
@@ -206,7 +206,6 @@ class OOAdminRekeyBrokerAuth
   end
 
   def rekey_all
-    find_mongo_nodes
     gear_uuids = all_gears_uuids_with_broker_keys
     create_broker_keys(gear_uuids)
   end
