@@ -1,0 +1,32 @@
+#!/usr/bin/oo-ruby
+
+# Utiltity to export the mongo database into json documents containing analytics data for applications
+outfile = nil
+if ARGV.include? "--outfile"
+  index = ARGV.index("--outfile")
+  outfile = ARGV[index+1]
+end
+
+if outfile.nil? 
+  puts "Usage :"
+  puts "  #{__FILE__} --outfile <filename>" 
+  exit 1
+end
+
+
+require '/var/www/openshift/broker/config/environment'
+
+u = Rails.application.config.datastore[:user]
+p = Rails.application.config.datastore[:password]
+hp = Rails.application.config.datastore[:host_port]
+db = Rails.application.config.datastore[:db]
+
+`mkdir -p /tmp/analytics`
+`mongoexport --username #{u} --password #{p} --host #{hp} --db #{db} --collection applications --out /tmp/analytics/analytics.apps.json --fields uuid,analytics,init_git_url,created_at,domain_id`
+`mongoexport --username #{u} --password #{p} --host #{hp} --db #{db} --collection domains --out /tmp/analytics/analytics.domains.json --fields _id,uuid,owner_id`
+`mongoexport --username #{u} --password #{p} --host #{hp} --db #{db} --collection cloud_users --out /tmp/analytics/analytics.users.json --fields _id,uuid`
+`tar cvzf #{outfile} /tmp/analytics >& /dev/null`
+`rm -rf /tmp/analytics`
+
+puts 
+puts "Export complete to '#{outfile}.'"
