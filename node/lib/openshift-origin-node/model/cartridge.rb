@@ -127,7 +127,8 @@ module OpenShift
                   :name,
                   :repository_path,
                   :short_name,
-                  :version
+                  :version,
+                  :categories
 
       # :call-seq:
       #   Cartridge.new(manifest_path) -> Cartridge
@@ -144,6 +145,8 @@ module OpenShift
         @name              = manifest['Name']
         @short_name        = manifest['Cartridge-Short-Name']
         @version           = manifest['Version'] && manifest['Version'].to_s
+        @categories        = manifest['Categories'] || []
+        @is_framework      = @categories.include?('web_framework')
 
         #FIXME: reinstate code after manifests are updated
         #raise MissingElementError.new(nil, 'Cartridge-Vendor') unless @cartridge_vendor
@@ -178,6 +181,10 @@ module OpenShift
       # those Endpoints which have a public_port_name specified.
       def public_endpoints
         @endpoints.select { |e| e.public_port_name }
+      end
+
+      def framework?
+        @is_framework
       end
 
       def to_s

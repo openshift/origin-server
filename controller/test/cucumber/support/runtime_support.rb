@@ -68,7 +68,7 @@ module OpenShift
   # UUID for the application is automatically generated upon init.
   class TestApplication
     attr_reader :name, :uuid, :account, :gears
-    attr_accessor :hot_deploy_enabled
+    attr_accessor :hot_deploy_enabled, :git_repo
 
     def initialize(account)
       @name = gen_unique_app_name

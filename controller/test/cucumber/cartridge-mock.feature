@@ -27,13 +27,15 @@ Feature: V2 SDK Mock Cartridge
     Then the mock control_restart marker will exist
 
     When the application is made publicly accessible 
+    And the application is prepared for git pushes
     And the mock control_start marker is removed
     And the mock control_stop marker is removed
-    And an update is pushed to the application repo
+    And a simple update is pushed to the application repo
     Then the mock control_stop marker will exist
     And the mock control_build marker will exist
     And the mock control_deploy marker will exist
     And the mock control_start marker will exist
+    And the application repo has been updated
 
     When I call tidy on the application
     Then the mock control_tidy marker will exist
