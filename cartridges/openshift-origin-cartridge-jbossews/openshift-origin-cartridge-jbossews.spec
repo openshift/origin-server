@@ -79,3 +79,6 @@ alternatives --set jbossews-2.0 /usr/share/tomcat7
 
 
 %changelog
+* Tue Mar 19 2013 Dan Mace <ironcladlou@gmail.com> 0.1.0-1
+- new package built with tito
+
