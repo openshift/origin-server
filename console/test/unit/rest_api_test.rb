@@ -365,10 +365,24 @@ class RestApiTest < ActiveSupport::TestCase
     self.site = "http://localhost"
   end
 
-  def test_create_safe_reflected_name
+  def test_dont_reflect_code
     base = ReflectedTest.new
     r = base.send("find_or_create_resource_for", 'mysql-5.1')
-    assert_equal 'RestApiTest::ReflectedTest::Mysql51', r.name, r.pretty_inspect
+    assert_nil r
+  end
+
+  def test_load_ignores_classes
+    args = {:foo => 1, :bar => 2, :arr => [], :arr2 => [{:a => 1}], :arr3 => [1], :obj => {:b => 1}}
+    o = RestApi::Base.new(args)
+    assert_equal 1, o.foo
+    assert_equal 2, o.bar
+    assert_same args[:arr], o.arr
+    #assert_not_same args[:arr], o.arr # HashWithIndifferentAccess dup's all arrays and hashes, not ideal
+    assert_same args[:arr2], o.arr2
+    assert_same args[:arr3], o.arr3
+    assert o.arr2[0].is_a? Hash
+    assert_same args[:arr2][0], o.arr2[0]
+    assert_same args[:obj], o.obj
   end
 
   def test_create_cookie

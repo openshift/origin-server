@@ -71,7 +71,7 @@ module ActiveResource
 
       private
         def derive_class_name
-          return (options[:class_name] ? options[:class_name].to_s : name.to_s).classify
+          options[:class_name] ? options[:class_name].to_s : name.to_s.classify
         end
     end
   end
