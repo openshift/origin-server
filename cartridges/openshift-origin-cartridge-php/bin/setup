@@ -7,7 +7,7 @@ OPENSHIFT_PHP_DIR="$OPENSHIFT_HOMEDIR/redhat-php"
 echo "export OPENSHIFT_PHP_VERSION='$version'" > "$OPENSHIFT_PHP_DIR/env/OPENSHIFT_PHP_VERSION"
 echo "export OPENSHIFT_PHP_DIR='$OPENSHIFT_PHP_DIR'" > "$OPENSHIFT_PHP_DIR/env/OPENSHIFT_PHP_DIR"
 
-# Copy the version specific files upto php directory
+# Copy the version specific files up to php directory
 shopt -s dotglob
 cp -r $OPENSHIFT_PHP_DIR/versions/$version/configuration/* $OPENSHIFT_PHP_DIR/configuration
 cp -r $OPENSHIFT_PHP_DIR/versions/$version/metadata/* $OPENSHIFT_PHP_DIR/metadata
