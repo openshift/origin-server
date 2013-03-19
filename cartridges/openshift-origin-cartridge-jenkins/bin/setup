@@ -1,5 +1,4 @@
 #!/bin/bash -e
-set -u
 set -x
 
 function obfuscate_password {
@@ -31,7 +30,7 @@ function generate_ssh_keys {
     chmod 0750 "${OPENSHIFT_DATA_DIR}/.ssh/"
     chmod 0640 "${OPENSHIFT_DATA_DIR}/.ssh/jenkins_id_rsa"
     chmod 0640 "${OPENSHIFT_DATA_DIR}/.ssh/jenkins_id_rsa.pub"
-    observe_setup_var_lib_dir "${OPENSHIFT_DATA_DIR}/.ssh/"
+    #observe_setup_var_lib_dir "${OPENSHIFT_DATA_DIR}/.ssh/"
 }
 
 function add_broker_auth_key {
@@ -52,14 +51,14 @@ BROKER_HOST=localhost
 cartridge_type="jenkins"
 
 version=1.4
-OPENSHIFT_JENKINS_DIR="${OPENSHIFT_HOMEDIR}$cartridge_type"
+OPENSHIFT_JENKINS_DIR="${OPENSHIFT_HOMEDIR}redhat-$cartridge_type"
 echo "export OPENSHIFT_JENKINS_VERSION='$version'" > "$OPENSHIFT_JENKINS_DIR/env/OPENSHIFT_JENKINS_VERSION"
 echo "export OPENSHIFT_JENKINS_DIR='$OPENSHIFT_JENKINS_DIR'" > "$OPENSHIFT_JENKINS_DIR/env/OPENSHIFT_JENKINS_DIR"
 
 # Create additional directories required by JENKINS
 mkdir -p ${OPENSHIFT_JENKINS_DIR}/{bin,template,configuration,logs,data}
 
-# Copy the version specific files up to jbosseap directory
+# Copy the version specific files up to jenkins directory
 cp -r ${OPENSHIFT_JENKINS_DIR}/versions/${version}/configuration/* ${OPENSHIFT_JENKINS_DIR}/configuration
 cp -r ${OPENSHIFT_JENKINS_DIR}/versions/${version}/metadata/* ${OPENSHIFT_JENKINS_DIR}/metadata
 cp -r ${OPENSHIFT_JENKINS_DIR}/versions/${version}/template/* ${OPENSHIFT_JENKINS_DIR}/template

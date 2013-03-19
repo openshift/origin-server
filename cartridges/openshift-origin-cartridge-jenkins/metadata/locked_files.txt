@@ -1,5 +1,5 @@
-jenkins/
-jenkins/configuration/
-jenkins/metadata/
-jenkins/bin/*
-jenkins/template/
+redhat-jenkins/
+redhat-jenkins/metadata/
+redhat-jenkins/configuration/
+redhat-jenkins/env/
+redhat-jenkins/template/
