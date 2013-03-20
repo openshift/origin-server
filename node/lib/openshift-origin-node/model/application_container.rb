@@ -239,7 +239,7 @@ module OpenShift
       gear_repo_dir = File.join(gear_dir, 'git', "#{app_name}.git")
       gear_tmp_dir  = File.join(gear_dir, '.tmp')
 
-      stop_gear(gear_dir)
+      stop_gear
 
       # Perform the gear- and cart- level tidy actions.  At this point, the gear has
       # been stopped; we'll attempt to start the gear no matter what tidy operations fail.
@@ -255,43 +255,20 @@ module OpenShift
       rescue Exception => e
         logger.warn("An unknown exception occured during tidy for gear #{@uuid}: #{e.message}\n#{e.backtrace}")
       ensure
-        start_gear(gear_dir)
+        start_gear
       end
 
       logger.debug("Completed tidy for gear #{@uuid}")
     end
 
-    def stop_gear(gear_dir)
-      # TODO: remove shell command
-      begin
-        # Stop the gear. If this fails, consider the tidy a failure.
-        out, err, rc = OpenShift::Utils::ShellExec.shellCmd("/usr/sbin/oo-admin-ctl-gears stopgear #{@user.uuid}", gear_dir, false, 0)
-        logger.debug("Stopped gear #{@uuid}. Output:\n#{out}")
-      rescue OpenShift::Utils::ShellExecutionException => e
-        logger.error(%Q{
-          Couldn't stop gear #{@uuid} for tidy: #{e.message}
-          --- stdout ---\n#{e.stdout}
-          --- stderr ---\n#{e.stderr}
-                     })
-        raise "Tidy failed on gear #{@uuid}; the gear couldn't be stopped successfully"
-      end
+    def stop_gear
+      @state.value = OpenShift::State::STOPPED
+      @cartridge_model.do_control_gear('stop')
     end
 
-    def start_gear(gear_dir)
-      # TODO: remove shell command
-      begin
-        # Start the gear, and if that fails raise an exception, as the app is now
-        # in a bad state.
-        out, err, rc = OpenShift::Utils::ShellExec.shellCmd("/usr/sbin/oo-admin-ctl-gears startgear #{@user.uuid}", gear_dir)
-        logger.debug("Started gear #{@uuid}. Output:\n#{out}")
-      rescue OpenShift::Utils::ShellExecutionException => e
-        logger.error(%Q{
-          Failed to restart gear #{@uuid} following tidy: #{e.message}
-          --- stdout ---\n#{e.stdout}
-          --- stderr ---\n#{e.stderr}
-                     })
-        raise "Tidy of gear #{@uuid} failed, and the gear was not successfuly restarted"
-      end
+    def start_gear
+      @state.value = OpenShift::State::STARTED
+      @cartridge_model.do_control_gear('start')
     end
 
     def gear_level_tidy_tmp(gear_tmp_dir)
@@ -378,15 +355,23 @@ module OpenShift
     end
 
     # build application
-    def build(cart_name)
+    def build
       @state.value = OpenShift::State::BUILDING
-      @cartridge_model.do_control("build", cart_name)
+      framework_cart = @cartridge_model.get_framework_cartridge
+
+      raise "No framework cartridge found on gear #{@uuid}" unless framework_cart
+
+      @cartridge_model.build(framework_cart)
     end
 
     # deploy application
-    def deploy(cart_name)
+    def deploy
       @state.value = OpenShift::State::DEPLOYING
-      @cartridge_model.deploy(cart_name)
+      framework_cart = @cartridge_model.get_framework_cartridge
+
+      raise "No framework cartridge found on gear #{@uuid}" unless framework_cart
+
+      @cartridge_model.deploy(framework_cart)
     end
 
     # restart gear as supported by cartridges
