@@ -784,6 +784,17 @@ Given /^a v2 default node$/ do
   assert_file_exists '/var/lib/openshift/.settings/v2_cartridge_format'
 end
 
+Then /^the "(.*)" content does( not)? exist(s)? for ([^ ]+)$/ do |path, negate, _, cartridge_name|
+  cartridge = @gear.container.cartridge_model.get_cartridge(cartridge_name)
+  entry = File.join($home_root, @gear.uuid, path)
+
+  if negate
+    assert_file_not_exists entry
+  else
+    assert_file_exists entry
+  end
+end
+
 Then /^the ([^ ]+) cartridge instance directory will( not)? exist$/ do |cartridge_name, negate|
   cartridge = @gear.container.cartridge_model.get_cartridge(cartridge_name)
 

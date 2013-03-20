@@ -165,6 +165,7 @@ module OpenShift
     def configure(cartridge_name, template_git_url = nil)
       output = ''
 
+      _, software_version = map_cartridge_name(cartridge_name)
       cartridge = get_cartridge_from_repository(cartridge_name)
       OpenShift::Utils::Sdk.mark_new_sdk_app(@user.homedir)
       OpenShift::Utils::Cgroups::with_cgroups_disabled(@user.uuid) do
@@ -173,7 +174,7 @@ module OpenShift
 
         Dir.chdir(@user.homedir) do
           unlock_gear(cartridge) do |c|
-            output << cartridge_setup(c)
+            output << cartridge_setup(c, software_version)
             populate_gear_repo(c.directory, template_git_url)
 
             process_erb_templates(c.directory)
@@ -400,14 +401,14 @@ module OpenShift
       render_erbs(env, File.join(@user.homedir, cartridge_name, '**'))
     end
 
-    #  cartridge_setup(cartridge) -> buffer
+    #  cartridge_setup(cartridge, software_version) -> buffer
     #
     #  Returns the results from calling the cartridge's setup script.
     #  Includes <code>--version</code> if provided.
     #  Raises exception if script fails
     #
     #   stdout = cartridge_setup(cartridge_obj)
-    def cartridge_setup(cartridge)
+    def cartridge_setup(cartridge, software_version)
       logger.info "Running setup for #{@user.uuid}/#{cartridge.directory}"
 
       gear_env = Utils::Environ.load('/etc/openshift/env',
@@ -421,7 +422,7 @@ module OpenShift
       cartridge_env = gear_env.merge(Utils::Environ.load(cartridge_env_home))
 
       setup = File.join(cartridge_home, 'bin', 'setup')
-
+      setup << " --version #{software_version}"
       out, _, _ = Utils.oo_spawn(setup,
                                  env:                 cartridge_env,
                                  unsetenv_others:     true,

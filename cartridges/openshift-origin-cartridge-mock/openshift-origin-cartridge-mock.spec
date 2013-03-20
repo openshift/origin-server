@@ -27,7 +27,7 @@ test platform functionality.
 
 %install
 rm -rf %{buildroot}
-mkdir -p %{buildroot}%{cartridgedir}
+mkdir -p %{buildroot}%{cartridgedir}/.openshift
 mkdir -p %{buildroot}/%{_sysconfdir}/openshift/cartridges/v2
 cp -r * %{buildroot}%{cartridgedir}/
 ln -s %{cartridgedir}/conf/ %{buildroot}/%{_sysconfdir}/openshift/cartridges/v2/%{name}
@@ -48,6 +48,7 @@ rm -rf %{buildroot}
 %dir %{cartridgedir}/metadata
 %dir %{cartridgedir}/usr
 %dir %{cartridgedir}/template
+%dir %{cartridgedir}/.openshift
 %config(noreplace) %{cartridgedir}/conf/
 %attr(0755,-,-) %{cartridgedir}/bin/
 %attr(0755,-,-) %{frameworkdir}
