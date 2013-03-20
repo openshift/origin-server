@@ -326,8 +326,11 @@ module OpenShift
     def create_cartridge_directory(cartridge)
       logger.info("Creating cartridge directory #{@user.uuid}/#{cartridge.directory}")
 
-      entries = Dir.glob(cartridge.repository_path + '/*')
-      entries.delete_if { |e| e.end_with?('/usr') }
+      entries = Dir.glob(cartridge.repository_path + '/*', File::FNM_DOTMATCH)
+      entries.delete_if do |e|
+        basename = File.basename(e)
+        %w(usr . ..).include?(basename)
+      end
 
       target = File.join(@user.homedir, cartridge.directory)
       FileUtils.mkpath target
