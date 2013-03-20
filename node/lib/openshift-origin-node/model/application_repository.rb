@@ -187,19 +187,34 @@ git archive --format=tar HEAD | (cd <%= @user_homedir %>/app-root/runtime/repo &
   auto = 100
 }
 
+    LOGGER_SETUP = %Q{\
+module OpenShift
+  module NodeLogger
+    def self.logger
+       unless @logger
+          @logger = Logger.new(STDOUT)
+       end
+       @logger
+    end
+
+    def self.trace_logger
+       unless @trace_logger
+         @trace_logger = Logger.new(STDOUT)
+         @trace_logger.level = Logger::Severity::ERROR
+       end
+       @trace_logger
+    end
+  end
+end
+}
+
     PRE_RECEIVE  = %Q{\
 #!/bin/env oo-ruby
 require 'rubygems'
 require 'openshift-origin-node/model/application_container'
 require 'openshift-origin-node/utils/node_logger'
 
-module OpenShift
-  module NodeLogger
-    def self.build_logger(profile)
-      Logger.new(STDOUT)
-    end
-  end
-end
+<%= LOGGER_SETUP %>
 
 @container = OpenShift::ApplicationContainer.new(
                             "<%= @user.application_uuid %>",
@@ -220,13 +235,7 @@ require 'rubygems'
 require 'openshift-origin-node/model/application_container'
 require 'openshift-origin-node/utils/node_logger'
 
-module OpenShift
-  module NodeLogger
-    def self.build_logger(profile)
-      Logger.new(STDOUT)
-    end
-  end
-end
+<%= LOGGER_SETUP %>
 
 @container = OpenShift::ApplicationContainer.new(
                             "<%= @user.application_uuid %>",
@@ -237,8 +246,10 @@ end
                             "<%= @user.namespace %>")
 
 begin
-  @container.build
-  @container.deploy
+  builder_output = @container.build
+  puts builder_output
+  deploy_output = @container.deploy
+  puts deploy_output
 ensure
   @container.start_gear
 end
