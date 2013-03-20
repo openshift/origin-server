@@ -183,7 +183,7 @@ class ApplicationContainerTest < Test::Unit::TestCase
     OpenShift::Utils::Environ.stubs(:for_gear).returns(
         {'OPENSHIFT_HOMEDIR' => '/foo', 'OPENSHIFT_APP_NAME' => 'app_name' })
 
-    @container.stubs(:stop_gear).with('/foo')
+    @container.stubs(:stop_gear)
     @container.stubs(:gear_level_tidy).with('/foo/git/app_name.git', '/foo/.tmp')
     @container.cartridge_model.expects(:tidy)
     @container.stubs(:start_gear)
@@ -197,7 +197,7 @@ class ApplicationContainerTest < Test::Unit::TestCase
     OpenShift::Utils::Environ.stubs(:for_gear).returns(
         {'OPENSHIFT_HOMEDIR' => '/foo', 'OPENSHIFT_APP_NAME' => 'app_name' })
 
-    @container.stubs(:stop_gear).with('/foo').raises(Exception.new)
+    @container.stubs(:stop_gear).raises(Exception.new)
     @container.stubs(:gear_level_tidy).with('/foo/git/app_name.git', '/foo/.tmp').never
     @container.cartridge_model.expects(:tidy).never
     @container.stubs(:start_gear).never
@@ -211,7 +211,7 @@ class ApplicationContainerTest < Test::Unit::TestCase
     OpenShift::Utils::Environ.stubs(:for_gear).returns(
         {'OPENSHIFT_HOMEDIR' => '/foo', 'OPENSHIFT_APP_NAME' => 'app_name'})
 
-    @container.expects(:stop_gear).with('/foo')
+    @container.expects(:stop_gear)
     @container.expects(:gear_level_tidy).with('/foo/git/app_name.git', '/foo/.tmp').raises(Exception.new)
     @container.expects(:start_gear)
 

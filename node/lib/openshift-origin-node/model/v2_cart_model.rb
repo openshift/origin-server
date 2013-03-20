@@ -92,6 +92,15 @@ module OpenShift
       @cartridges[cart_name]
     end
 
+    def get_framework_cartridge
+      process_cartridges do |cartridge_dir|
+        cartridge = get_cartridge_from_directory(File.basename(cartridge_dir))
+        return cartridge if cartridge.framework?
+      end
+
+      nil
+    end
+
     # Load cartridge's local manifest from cartridge directory name
     def get_cartridge_from_directory(directory)
       unless @cartridges.has_key? directory
@@ -644,13 +653,26 @@ module OpenShift
       end
     end
 
-    def deploy(cart_name)
+    def deploy(cartridge)
       ApplicationRepository.new(@user).deploy_repository
-      @cartridge_model.do_control("deploy", cart_name)
+      do_control("deploy", cartridge)
     end
 
-    def do_control(action, cartridge_name)
-      do_control_with_directory(action, cartridge_directory(cartridge_name))
+    def do_control(action, cartridge)
+      case cartridge
+      when String
+        cartridge_dir = cartridge_directory(cartridge)
+      when OpenShift::Runtime::Cartridge
+        cartridge_dir = cartridge.directory
+      else
+        raise "Unsupported cartridge argument type: #{cartridge.class}"
+      end
+
+      do_control_with_directory(action, cartridge_dir)
+    end
+
+    def do_control_gear(action)
+      do_control_with_directory(action)
     end
 
     # :call-seq:
