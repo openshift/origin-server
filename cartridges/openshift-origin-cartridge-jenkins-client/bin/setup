@@ -1,12 +1,29 @@
 #!/bin/bash -e
 set -x
 
-PATH=/bin:/usr/bin:$PATH
+#TODO Using the existing util for now
+source "/etc/openshift/node.conf"
+source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 
 cartridge_type="jenkins-client"
 
 version=1.4
 OPENSHIFT_JENKINS_CLIENT_DIR="${OPENSHIFT_HOMEDIR}redhat-$cartridge_type"
+
+if ! [ -n "$JENKINS_URL" ]
+then
+    client_error "Jenkins server does not exist!  Please create with rhc app create -t jenkins-1.4"
+    exit 151
+fi
+if [ -n "$OPENSHIFT_CI_TYPE" ]
+then
+    client_error "Jenkins client already embedded in $OPENSHIFT_APP_NAME"
+    exit 152
+fi
+
+JENKINS_DNS_NAME=${JENKINS_URL:8} #remove https://
+
+
 echo "export OPENSHIFT_JENKINS_CLIENT_VERSION='$version'" > "$OPENSHIFT_JENKINS_CLIENT_DIR/env/OPENSHIFT_JENKINS_CLIENT_VERSION"
 echo "export OPENSHIFT_JENKINS_CLIENT_DIR='$OPENSHIFT_JENKINS_CLIENT_DIR'" > "$OPENSHIFT_JENKINS_CLIENT_DIR/env/OPENSHIFT_JENKINS_CLIENT_DIR"
 
@@ -16,6 +33,75 @@ mkdir -p ${OPENSHIFT_JENKINS_CLIENT_DIR}/{bin,logs,data}
 # Copy the version specific files up to jbosseap directory
 cp -r ${OPENSHIFT_JENKINS_CLIENT_DIR}/versions/${version}/configuration/* ${OPENSHIFT_JENKINS_CLIENT_DIR}/configuration
 #cp -r ${OPENSHIFT_JENKINS_CLIENT_DIR}/versions/${version}/metadata/* ${OPENSHIFT_JENKINS_CLIENT_DIR}/metadata
+
+
+set +e
+for i in {0..50}; do
+  /usr/bin/wget --no-check-certificate -q https://${JENKINS_USERNAME}:${JENKINS_PASSWORD}@${JENKINS_DNS_NAME}jnlpJars/jenkins-cli.jar -O "$OPENSHIFT_JENKINS_CLIENT_DIR/jenkins-cli.jar"
+  exit_status=$?
+  if [ $exit_status -eq 0 ]; then
+    break
+  fi
+  sleep 1
+done
+set -e
+
+if [ $exit_status -ne 0 ]; then
+   client_error "Error contacting Jenkins server."
+   client_error "Could not download ${JENKINS_URL}jnlpJars/jenkins-cli.jar"
+   exit 157
+fi
+
+echo $JENKINS_PASSWORD > "$OPENSHIFT_JENKINS_CLIENT_DIR/.password"
+
+
+#TODO Need another way to get this
+#framework_carts=($(get_installed_framework_carts))
+#primary_framework_cart=${framework_carts[0]}
+
+# Maybe allow cartridges to create their own jenkins job
+if [ -f "${CARTRIDGE_BASE_PATH}/${primary_framework_cart}/info/configuration/jenkins_job_template.xml" ]
+then
+    JOB_XML="${CARTRIDGE_BASE_PATH}/${primary_framework_cart}/info/configuration/jenkins_job_template.xml"
+else
+    JOB_XML="$OPENSHIFT_JENKINS_CLIENT_DIR/configuration/jenkins_job_template.xml"
+fi
+
+JOB_NAME=${OPENSHIFT_APP_NAME}-build
+
+if out=$(${OPENSHIFT_JENKINS_CLIENT_DIR}/bin/jenkins_create_job "${namespace}" "${CLOUD_DOMAIN}" "$JOB_XML" 2>&1)
+then
+    # Embedding success
+    client_result ""
+else
+    if enable_out=$(run_as_user "${OPENSHIFT_JENKINS_CLIENT_DIR}/bin/jenkins_job_action enable" 2>&1)
+    then
+        client_result ""
+        client_result "Associated with job '${JOB_NAME}' in Jenkins server."
+        bldr_url="${JENKINS_DNS_NAME}computer/${OPENSHIFT_APP_NAME}bldr/"
+        status_code=`curl -s -w %{http_code} --output /dev/null --insecure https://${JENKINS_USERNAME}:${JENKINS_PASSWORD}@$bldr_url`
+        if [ "$status_code" == "200" ]
+        then
+            client_result "In addition we found an existing builder which you might also want"
+            client_result "to delete: http://${bldr_url}"
+        fi
+        client_result ""
+    else
+        # An error occurred enabling existing job
+        client_error ""
+        client_error "Could not add job '${JOB_NAME}' in Jenkins server:"
+        client_error "   $out"
+        client_error "You'll need to correct this error before attempting to embed the Jenkins client again."
+        exit 1
+    fi
+fi
+client_result "Job URL: ${JENKINS_URL}job/${JOB_NAME}/"
+client_result ""
+client_result "Jenkins client 1.4 has been added to: $OPENSHIFT_APP_NAME"
+
+cart_props "job_url=${JENKINS_URL}job/${JOB_NAME}/"
+
+set_app_info "Job URL: ${JENKINS_URL}job/${JOB_NAME}/"
 
 
 
