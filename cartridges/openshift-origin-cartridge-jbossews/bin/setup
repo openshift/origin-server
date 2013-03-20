@@ -2,30 +2,24 @@
 set -e
 set -x
 
-CART_NAME=jbossews-2.0
-CART_DIR=$OPENSHIFT_HOMEDIR/${CART_NAME}
-JBOSS_INSTANCE_DIR=${CART_DIR}/${CART_NAME}
+SYSTEM_JBOSSEWS_DIR=/etc/alternatives/jbossews-2.0
 
-mkdir -p ${CART_DIR}/run
-mkdir -p ${OPENSHIFT_HOMEDIR}/{.m2,.java}
-mkdir -p ${JBOSS_INSTANCE_DIR}/{tmp,conf,logs,bin}
+mkdir ${OPENSHIFT_JBOSSEWS_DIR}/{run,tmp,conf,logs}
+mkdir ${OPENSHIFT_HOMEDIR}/.m2
 
 # Link the system Tomcat binaries to the cart Tomcat instance directory
-ln -s /etc/alternatives/${CART_NAME}/bin/bootstrap.jar ${JBOSS_INSTANCE_DIR}/bin/bootstrap.jar
-ln -s /etc/alternatives/${CART_NAME}/bin/commons-daemon.jar ${JBOSS_INSTANCE_DIR}/bin/commons-daemon.jar
-ln -s /etc/alternatives/${CART_NAME}/bin/tomcat-juli.jar ${JBOSS_INSTANCE_DIR}/bin/tomcat-juli.jar
-ln -s /etc/alternatives/${CART_NAME}/lib ${JBOSS_INSTANCE_DIR}/lib
+ln -s ${SYSTEM_JBOSSEWS_DIR}/bin/bootstrap.jar ${OPENSHIFT_JBOSSEWS_DIR}/bin/bootstrap.jar
+ln -s ${SYSTEM_JBOSSEWS_DIR}/bin/commons-daemon.jar ${OPENSHIFT_JBOSSEWS_DIR}/bin/commons-daemon.jar
+ln -s ${SYSTEM_JBOSSEWS_DIR}/bin/tomcat-juli.jar ${OPENSHIFT_JBOSSEWS_DIR}/bin/tomcat-juli.jar
+ln -s ${SYSTEM_JBOSSEWS_DIR}/lib ${OPENSHIFT_JBOSSEWS_DIR}/lib
 
 # Link the user-controlled configurations to the Tomcat conf directory
-ln -s ${OPENSHIFT_REPO_DIR}/.openshift/config/server.xml ${JBOSS_INSTANCE_DIR}/conf
-ln -s ${OPENSHIFT_REPO_DIR}/.openshift/config/web.xml ${JBOSS_INSTANCE_DIR}/conf
-ln -s ${OPENSHIFT_REPO_DIR}/.openshift/config/context.xml ${JBOSS_INSTANCE_DIR}/conf
-ln -s ${OPENSHIFT_REPO_DIR}/.openshift/config/tomcat-users.xml ${JBOSS_INSTANCE_DIR}/conf
-ln -s ${OPENSHIFT_REPO_DIR}/.openshift/config/catalina.properties ${JBOSS_INSTANCE_DIR}/conf
-ln -s ${OPENSHIFT_REPO_DIR}/.openshift/config/logging.properties ${JBOSS_INSTANCE_DIR}/conf
+ln -s ${OPENSHIFT_REPO_DIR}/.openshift/config/server.xml ${OPENSHIFT_JBOSSEWS_DIR}/conf
+ln -s ${OPENSHIFT_REPO_DIR}/.openshift/config/web.xml ${OPENSHIFT_JBOSSEWS_DIR}/conf
+ln -s ${OPENSHIFT_REPO_DIR}/.openshift/config/context.xml ${OPENSHIFT_JBOSSEWS_DIR}/conf
+ln -s ${OPENSHIFT_REPO_DIR}/.openshift/config/tomcat-users.xml ${OPENSHIFT_JBOSSEWS_DIR}/conf
+ln -s ${OPENSHIFT_REPO_DIR}/.openshift/config/catalina.properties ${OPENSHIFT_JBOSSEWS_DIR}/conf
+ln -s ${OPENSHIFT_REPO_DIR}/.openshift/config/logging.properties ${OPENSHIFT_JBOSSEWS_DIR}/conf
 
 # Create a link from the repo/webapps directory to the Tomcat webapps directory
-ln -s ${OPENSHIFT_REPO_DIR}/webapps ${JBOSS_INSTANCE_DIR}/webapps
-
-# Create a link from the log directory to ${APP_DIR}/logs for rhc app tail
-ln -s ${JBOSS_INSTANCE_DIR}/logs ${CART_DIR}/logs
+ln -s ${OPENSHIFT_REPO_DIR}/webapps ${OPENSHIFT_JBOSSEWS_DIR}/webapps
