@@ -1,6 +1,5 @@
 #!/bin/bash
 set -e
-set -x
 
 if ! [ $# -eq 1 ]
 then
@@ -8,11 +7,7 @@ then
     exit 1
 fi
 
-CART_NAME=jbossews-2.0
-CART_DIR=$OPENSHIFT_HOMEDIR/${CART_NAME}
-JBOSS_INSTANCE_DIR=${CART_DIR}/${CART_NAME}
-
-JBOSS_PID_FILE="$CART_DIR/run/jboss.pid"
+JBOSS_PID_FILE="${OPENSHIFT_JBOSSEWS_DIR}/run/jboss.pid"
 
 # Kill the process given by $1 and its children
 killtree() {
@@ -60,11 +55,11 @@ function start_app() {
         echo "Application is already running" 1>&2
     else
         # Start
-        export CATALINA_HOME=$JBOSS_INSTANCE_DIR
-        export CATALINA_BASE=$JBOSS_INSTANCE_DIR
-        export CATALINA_TMPDIR=${JBOSS_INSTANCE_DIR}/tmp
+        export CATALINA_HOME=$OPENSHIFT_JBOSSEWS_DIR
+        export CATALINA_BASE=$OPENSHIFT_JBOSSEWS_DIR
+        export CATALINA_TMPDIR=${OPENSHIFT_JBOSSEWS_DIR}/tmp
         
-        ${CART_DIR}/bin/tomcat7 start > ${CART_DIR}/logs/${CART_NAME}.log 2>&1 &
+        ${OPENSHIFT_JBOSSEWS_DIR}/bin/tomcat7 start > ${OPENSHIFT_JBOSSEWS_DIR}/logs/jbossews-2.0.log 2>&1 &
         PROCESS_ID=$!
         
         echo $PROCESS_ID > $JBOSS_PID_FILE
@@ -101,8 +96,8 @@ function threaddump() {
 }
 
 function tidy {
-    rm -rf ${CART_DIR}/logs/* ${CART_DIR}/logs/.[^.]*
-    rm -rf ${JBOSS_INSTANCE_DIR}/tmp/* ${JBOSS_INSTANCE_DIR}/tmp/.[^.]*
+    rm -rf ${OPENSHIFT_JBOSSEWS_DIR}/logs/* ${OPENSHIFT_JBOSSEWS_DIR}/logs/.[^.]*
+    rm -rf ${OPENSHIFT_JBOSSEWS_DIR}/tmp/* ${OPENSHIFT_JBOSSEWS_DIR}/tmp/.[^.]*
 }
 
 case "$1" in
@@ -133,9 +128,17 @@ case "$1" in
             exit 0
         fi
 
-        echo tailing "$CART_DIR/logs/catalina.out"
+        echo tailing "$OPENSHIFT_JBOSSEWS_DIR/logs/catalina.out"
         echo "------ Tail of JBoss catalina.out ------"
-        tail "$CART_DIR/logs/catalina.out"
+        tail "$OPENSHIFT_JBOSSEWS_DIR/logs/catalina.out"
+        exit 0
+    ;;
+    build)
+        ${OPENSHIFT_JBOSSEWS_DIR}/bin/build
+        exit 0
+    ;;
+    deploy)
+        ${OPENSHIFT_JBOSSEWS_DIR}/bin/deploy
         exit 0
     ;;
 esac

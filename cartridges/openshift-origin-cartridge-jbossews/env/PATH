@@ -1,1 +1,1 @@
-export PATH="$JAVA_HOME/bin:$M2_HOME/bin"
+export PATH="/bin:/usr/bin:$JAVA_HOME/bin:$M2_HOME/bin"
