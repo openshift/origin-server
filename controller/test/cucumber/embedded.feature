@@ -8,7 +8,7 @@ Feature: Embedded Cartridge Verification Tests
 
     Scenarios: RHEL scenarios
       | php_version | phpmyadmin_version |
-      | php-5.3     | phpmyadmin-3.4     |
+      |     5.3     |            3.4     |
 
   @fedora-only
   Scenario Outline: Embedded Usage (Fedora)
@@ -16,4 +16,4 @@ Feature: Embedded Cartridge Verification Tests
   
     Scenarios: Fedora 18 scenarios
       | php_version | phpmyadmin_version |
-      | php-5.4     | phpmyadmin-3.5     |
+      |     5.4     |            3.5     |
