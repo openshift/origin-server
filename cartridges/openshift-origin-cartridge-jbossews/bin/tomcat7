@@ -1,5 +1,8 @@
 #!/bin/bash
-set -x
+
+source ${OPENSHIFT_JBOSSEWS_DIR}/bin/util
+
+export_java_home
 
 max_memory_bytes=`oo-cgroup-read memory.limit_in_bytes`
 max_threads=`ulimit -u`
@@ -36,7 +39,8 @@ memory_options="-Xmx${max_heap}m -XX:MaxPermSize=${max_permgen}m -XX:+Aggressive
 if [ -z $JAVA_OPTS ]; then
    JAVA_OPTS="$memory_options -Djava.util.logging.config.file=$CATALINA_BASE/conf/logging.properties -Djava.util.logging.manager=org.apache.juli.ClassLoaderLogManager -Djava.net.preferIPv4Stack=true -Dfile.encoding=UTF-8 -Djava.net.preferIPv4Stack=true"                                                                                                                                    
 
-   if [ -f "${OPENSHIFT_REPO_DIR}/.openshift/markers/enable_jpda" ]; then
+   if marker_present "enable_jpda"; then
+      echo "enable_jpda marker found; enabling debugging on ${OPENSHIFT_JBOSSEWS_IP}:${OPENSHIFT_JBOSSEWS_JPDA_PORT}"
    	  JAVA_OPTS="$JAVA_OPTS -Xdebug -Xrunjdwp:transport=dt_socket,address=${OPENSHIFT_JBOSSEWS_IP}:${OPENSHIFT_JBOSSEWS_JPDA_PORT},server=y,suspend=n"
    fi
 
@@ -45,13 +49,6 @@ if [ -z $JAVA_OPTS ]; then
    JAVA_OPTS="$JAVA_OPTS \
                 -DOPENSHIFT_JBOSSEWS_IP=${OPENSHIFT_JBOSSEWS_IP} \
                 -DOPENSHIFT_JBOSSEWS_HTTP_PORT=${OPENSHIFT_JBOSSEWS_HTTP_PORT}"
-fi
-
-if [ -e $OPENSHIFT_REPO_DIR/.openshift/markers/java7 ];
-then
-  JAVA_HOME=/etc/alternatives/java_sdk_1.7.0
-else
-  JAVA_HOME=/etc/alternatives/java_sdk_1.6.0
 fi
 
 JAVACMD=$JAVA_HOME/bin/java

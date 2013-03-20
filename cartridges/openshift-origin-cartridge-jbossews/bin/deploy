@@ -1,0 +1,13 @@
+#!/bin/bash
+set -e
+set -x
+
+tmp=${OPENSHIFT_JBOSSEWS_DIR}/tmp
+if [ -d $tmp ]; then
+  for d in $tmp/*; do
+      if [ -d $d ]; then
+          echo "Emptying tmp dir: $d"
+          rm -rf $d/* $d/.[^.]*
+      fi
+  done
+fi
