@@ -107,8 +107,6 @@ class OOAdminRekeyBrokerAuth
     @mc_nodes = gear_results[1].keys
     puts "Done. #{gear_uuids.size} token(s) found on #{@mc_nodes.size} Node(s)." unless @quiet
 
-    warn_about_offline_nodes
-
     return gear_uuids
   end
 
@@ -215,6 +213,7 @@ app = OOAdminRekeyBrokerAuth.new(args)
 
 if args['--find-gears']
   gear_uuids = app.all_gears_uuids_with_broker_keys
+  app.warn_about_offline_nodes
   puts gear_uuids
 elsif args['--rekey-all']
   app.rekey_all
