@@ -17,11 +17,9 @@ function generate_ssh_keys {
     mkdir -p ${OPENSHIFT_DATA_DIR}/.ssh/
     ssh-keygen -N '' -f ${OPENSHIFT_DATA_DIR}/.ssh/jenkins_id_rsa > /dev/null
 
-    chown ${OPENSHIFT_APP_UUID}.${OPENSHIFT_APP_UUID} -R "${OPENSHIFT_DATA_DIR}/.ssh/"
     chmod 0750 "${OPENSHIFT_DATA_DIR}/.ssh/"
     chmod 0640 "${OPENSHIFT_DATA_DIR}/.ssh/jenkins_id_rsa"
     chmod 0640 "${OPENSHIFT_DATA_DIR}/.ssh/jenkins_id_rsa.pub"
-    #observe_setup_var_lib_dir "${OPENSHIFT_DATA_DIR}/.ssh/"
 }
 
 PATH=/bin:/usr/bin:$PATH

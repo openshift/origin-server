@@ -1,0 +1,30 @@
+source "/etc/openshift/node.conf"
+source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
+
+cartridge_type="jenkins-client"
+
+version=1.4
+OPENSHIFT_JENKINS_CLIENT_DIR="${OPENSHIFT_HOMEDIR}redhat-$cartridge_type"
+
+if [ -n "$JENKINS_URL" ]
+then
+  #
+  # Disable job
+  #
+  if out=$(run_as_user "${OPENSHIFT_JENKINS_CLIENT_DIR}/bin/jenkins_job_action disable" 2>&1)
+  then
+      # Existing job was disabled
+      client_result ""
+      client_result "The corresponding job '${OPENSHIFT_GEAR_NAME}-build' in Jenkins has been disabled."
+      client_result "You can re-enable or delete as desired."
+  else
+      # An error occurred disabling existing job
+      client_result ""
+      client_result "Could not disable job '${OPENSHIFT_GEAR_NAME}-build' in Jenkins server:"
+      client_result "   $out"
+      client_result "Continuing anyway."
+  fi
+  client_result "Job URL: ${JENKINS_URL}job/${OPENSHIFT_GEAR_NAME}-build/"
+  client_result ""
+fi
+client_result "Jenkins client 1.4 has been removed from: $OPENSHIFT_GEAR_NAME"
