@@ -1,4 +1,7 @@
-## API Documentation Guidelines
+# @markup markdown
+# @title API Documentation Guidelines
+
+# API Documentation Guidelines
 
 OpenShift Origin uses [Yard](http://yardoc.org) to generate documentation for all Ruby code.
 The Yard docs include a [Getting started guide](http://rubydoc.info/docs/yard/file/docs/GettingStarted.md)

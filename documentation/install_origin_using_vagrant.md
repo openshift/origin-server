@@ -1,5 +1,7 @@
-Installing OpenShiInstalling OpenShift Origin using Vagrant
-===========================================================
+# @markup markdown
+# @title Installing OpenShift Origin using Vagrant
+
+# Installing OpenShift Origin using Vagrant
 
 This document describes how to create a private PaaS service for local development of OpenShift Origin. We will be building the PaaS using source OpenShift Origin nightly RPMs Vagrant, and Puppet.
 

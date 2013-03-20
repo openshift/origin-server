@@ -1,5 +1,7 @@
-Installing OpenShift Origin Manually
-====================================
+# @markup markdown
+# @title Installing OpenShift Origin Manually
+
+# Installing OpenShift Origin Manually
 
 This document describes how to create a private PaaS service using OpenShift. It makes a number of simplifying assumptions about the environment of the service. In particular, we will assume that the underlying platform is Fedora 18 with Ruby 1.9. You may have to adjust the configuration for a different environment.
 
