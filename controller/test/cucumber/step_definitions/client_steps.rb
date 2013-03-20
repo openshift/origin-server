@@ -9,7 +9,7 @@ Given /^the libra client tools, create a new php-([^ ]+) application, verify add
     When 1 php-#{php_version} applications are created
     Then the applications should be accessible
 
-    Given an existing #{php_version} application without an embedded cartridge
+    Given an existing php-#{php_version} application without an embedded cartridge
     When the embedded mysql-5.1 cartridge is added
     And the embedded phpmyadmin-#{phpmyadmin_version} cartridge is added
     Then the application should be accessible
