@@ -38,7 +38,7 @@ mkdir -p ${OPENSHIFT_JENKINS_DIR}/{bin,template,configuration,logs,data}
 
 # Copy the version specific files up to jenkins directory
 cp -r ${OPENSHIFT_JENKINS_DIR}/versions/${version}/configuration/* ${OPENSHIFT_JENKINS_DIR}/configuration
-cp -r ${OPENSHIFT_JENKINS_DIR}/versions/${version}/metadata/* ${OPENSHIFT_JENKINS_DIR}/metadata
+#cp -r ${OPENSHIFT_JENKINS_DIR}/versions/${version}/metadata/* ${OPENSHIFT_JENKINS_DIR}/metadata
 cp -r ${OPENSHIFT_JENKINS_DIR}/versions/${version}/template/* ${OPENSHIFT_JENKINS_DIR}/template
 cp -r ${OPENSHIFT_JENKINS_DIR}/versions/${version}/template/.openshift ${OPENSHIFT_JENKINS_DIR}/template
 

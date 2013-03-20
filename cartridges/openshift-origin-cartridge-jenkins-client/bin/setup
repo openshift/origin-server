@@ -58,18 +58,28 @@ echo $JENKINS_PASSWORD > "$OPENSHIFT_JENKINS_CLIENT_DIR/.password"
 #TODO Need another way to get this
 #framework_carts=($(get_installed_framework_carts))
 #primary_framework_cart=${framework_carts[0]}
+primary_framework_cart=diy-0.1
 
 # Maybe allow cartridges to create their own jenkins job
-if [ -f "${CARTRIDGE_BASE_PATH}/${primary_framework_cart}/info/configuration/jenkins_job_template.xml" ]
+if [ -f "${CARTRIDGE_BASE_PATH}/${primary_framework_cart}/info/configuration/jenkins_shell_command" ]
 then
-    JOB_XML="${CARTRIDGE_BASE_PATH}/${primary_framework_cart}/info/configuration/jenkins_job_template.xml"
+    SHELL_COMMAND="${CARTRIDGE_BASE_PATH}/${primary_framework_cart}/info/configuration/jenkins_shell_command"
 else
-    JOB_XML="$OPENSHIFT_JENKINS_CLIENT_DIR/configuration/jenkins_job_template.xml"
+    SHELL_COMMAND="$OPENSHIFT_JENKINS_CLIENT_DIR/configuration/jenkins_shell_command"
 fi
+
+if [ -f "${CARTRIDGE_BASE_PATH}/${primary_framework_cart}/info/configuration/jenkins_artifacts_regex" ]
+then
+    ARTIFACTS_REGEX="${CARTRIDGE_BASE_PATH}/${primary_framework_cart}/info/configuration/jenkins_artifacts_regex"
+else
+    ARTIFACTS_REGEX="$OPENSHIFT_JENKINS_CLIENT_DIR/configuration/jenkins_artifacts_regex"
+fi
+
+JOB_XML="$OPENSHIFT_JENKINS_CLIENT_DIR/configuration/jenkins_job_template.xml"
 
 JOB_NAME=${OPENSHIFT_APP_NAME}-build
 
-if out=$(${OPENSHIFT_JENKINS_CLIENT_DIR}/bin/jenkins_create_job "${namespace}" "${CLOUD_DOMAIN}" "$JOB_XML" 2>&1)
+if out=$(${OPENSHIFT_JENKINS_CLIENT_DIR}/bin/jenkins_create_job "${namespace}" "${CLOUD_DOMAIN}" "$primary_framework_cart" "$JOB_XML" "$SHELL_COMMAND" "$ARTIFACTS_REGEX" 2>&1)
 then
     # Embedding success
     client_result ""
