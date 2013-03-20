@@ -112,7 +112,7 @@ module OpenShift
             write_stderr.close
 
             out, err, status = read_results(pid, read_stdout, read_stderr, options)
-            NodeLogger.logger.debug { "Shell command '#{command}' ran. rc=#{status.exitstatus}" }
+            NodeLogger.logger.debug { "Shell command '#{command}' ran. rc=#{status.exitstatus} out=#{out}" }
 
             if (!options[:expected_exitstatus].nil?) && (status.exitstatus != options[:expected_exitstatus])
               raise OpenShift::Utils::ShellExecutionException.new(

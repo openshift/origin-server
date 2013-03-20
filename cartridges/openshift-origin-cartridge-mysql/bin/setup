@@ -1,0 +1,81 @@
+#!/bin/bash -e
+
+# Mock cartridge for testing and verifying node platform code. This is
+# not an example of how to write a well-formed cartridge.
+
+source $OPENSHIFT_HOMEDIR/redhat-mysql/env/*
+
+# The following functions are ripped from v1 abstract util
+
+function client_result {
+    echo "CLIENT_RESULT: $1"
+}
+
+function set_app_info {
+    echo "APP_INFO: $1"
+}
+
+function cart_props {
+    echo "CART_PROPERTIES: $@"
+}
+
+function generate_password {
+    head -n 50 /dev/urandom|tr -dc "a-np-zA-NP-Z1-9-_"|fold -w 12 | grep -v '^-' | head -n1
+}
+
+function generate_username {
+    if [ "$1" ]
+    then
+        username="$1"
+    else
+        username="admin"
+    fi
+
+    remain=$(( 12 - ${#username} ))
+    if [ "$remain" -ge 1 ]
+    then
+        rnstr=$(head -n 50 /dev/urandom|tr -dc "a-np-zA-NP-Z1-9"|fold -w $remain | head -n1)
+        username="${username}${rnstr}"
+    fi
+    echo $username
+}
+
+function error {
+    echo "$1" 1>&2
+    exit "$2"
+}
+
+function drop_setup_marker {
+    touch $OPENSHIFT_TMP_DIR/.setup_invocation_marker
+}
+
+mkdir $OPENSHIFT_MYSQL_DIR/{log,pid,socket,data,run}
+
+# TODO: configure httpd if the app is standalone
+
+# Generate username, password, and db name and create env variables
+echo 'Generating username and password'
+
+username=$(generate_username)
+password=$(generate_password)
+
+echo "export OPENSHIFT_MYSQL_DB_USERNAME='$username'" > $OPENSHIFT_MYSQL_DIR/env/OPENSHIFT_MYSQL_DB_USERNAME
+echo "export OPENSHIFT_MYSQL_DB_PASSWORD='$password'" > $OPENSHIFT_MYSQL_DIR/env/OPENSHIFT_MYSQL_DB_PASSWORD
+echo "export OPENSHIFT_MYSQL_DB_URL='mysql://$username:$password@$OPENSHIFT_MYSQL_DB_HOST:$OPENSHIFT_MYSQL_DB_PORT/'" > $OPENSHIFT_MYSQL_DIR/env/OPENSHIFT_MYSQL_DB_URL
+
+echo 'Installing mysqld'
+
+# Must be invoked with absolute path to avoid a mysql bug involving my_print_defaults
+/usr/bin/mysql_install_db --datadir=$OPENSHIFT_MYSQL_DIR/data || error 'Failed to create mysqldb', 119
+
+drop_setup_marker
+
+# client_result (scalable app concerns?)
+cart_props 'connection_url=mysql://$OPENSHIFT_MYSQL_DB_HOST:$OPENSHIFT_MYSQL_DB_PORT/'
+cart_props "username=$username"
+cart_props "password=$password"
+cart_props "database_name=$dbname"
+
+set_app_info "Connection URL: mysql://$OPENSHIFT_MYSQL_DB_HOST:$OPENSHIFT_MYSQL_DB_PORT"
+
+exit 0
