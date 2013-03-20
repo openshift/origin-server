@@ -1,4 +1,5 @@
-jbosseap/metadata/
-jbosseap/versions/
-jbosseap/bin/*
-jbosseap/template/
+redhat-jbosseap/
+redhat-jbosseap/metadata/
+redhat-jbosseap/configuration/
+redhat-jbosseap/env/
+redhat-jbosseap/template/
