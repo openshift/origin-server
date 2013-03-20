@@ -2,7 +2,7 @@
 
 Summary:   Provides ceylon-0.5 support
 Name:      openshift-origin-cartridge-ceylon-0.5
-Version:   1.0.21
+Version:   1.0.22
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -95,6 +95,72 @@ rm -rf %{buildroot}
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Wed Mar 20 2013 Matej Lazar <matejonnet@gmail.com> 1.0.22-1
+- Removed modules preset in Herd. (matejonnet@gmail.com)
+- Welcome page & sample app. (matejonnet@gmail.com)
+- Automatic commit of package [openshift-origin-cartridge-ceylon-0.5] release
+  [1.0.21-1]. (matejonnet@gmail.com)
+- Static files location. (matejonnet@gmail.com)
+- Automatic commit of package [openshift-origin-cartridge-ceylon-0.5] release
+  [1.0.20-1]. (matejonnet@gmail.com)
+- Remove missing function. (matejonnet@gmail.com)
+- Build in cofigure hook. (matejonnet@gmail.com)
+- Automatic commit of package [openshift-origin-cartridge-ceylon-0.5] release
+  [1.0.19-1]. (matejonnet@gmail.com)
+- Remove SDK modules. (matejonnet@gmail.com)
+- Automatic commit of package [openshift-origin-cartridge-ceylon-0.5] release
+  [1.0.18-1]. (matejonnet@gmail.com)
+- Demo app update. (matejonnet@gmail.com)
+- Automatic commit of package [openshift-origin-cartridge-ceylon-0.5] release
+  [1.0.17-1]. (matejonnet@gmail.com)
+- User hooks. (matejonnet@gmail.com)
+- Automatic commit of package [openshift-origin-cartridge-ceylon-0.5] release
+  [1.0.16-1]. (matejonnet@gmail.com)
+- Remove idx from modules. (matejonnet@gmail.com)
+- Automatic commit of package [openshift-origin-cartridge-ceylon-0.5] release
+  [1.0.15-1]. (matejonnet@gmail.com)
+- Inclue ceylon sdk. (matejonnet@gmail.com)
+- Automatic commit of package [openshift-origin-cartridge-ceylon-0.5] release
+  [1.0.14-1]. (matejonnet@gmail.com)
+- jenkins build (matejonnet@gmail.com)
+- Automatic commit of package [openshift-origin-cartridge-ceylon-0.5] release
+  [1.0.13-1]. (matejonnet@gmail.com)
+- Jenkins template. (matejonnet@gmail.com)
+- Start, Stop, ReStart fixed. (matejonnet@gmail.com)
+- Automatic commit of package [openshift-origin-cartridge-ceylon-0.5] release
+  [1.0.12-1]. (matejonnet@gmail.com)
+- Update start stop. (matejonnet@gmail.com)
+- Update start stop. (matejonnet@gmail.com)
+- Automatic commit of package [openshift-origin-cartridge-ceylon-0.5] release
+  [1.0.11-1]. (matejonnet@gmail.com)
+- Update paths. (matejonnet@gmail.com)
+- Automatic commit of package [openshift-origin-cartridge-ceylon-0.5] release
+  [1.0.10-1]. (matejonnet@gmail.com)
+- Template fix. (matejonnet@gmail.com)
+- Automatic commit of package [openshift-origin-cartridge-ceylon-0.5] release
+  [1.0.9-1]. (matejonnet@gmail.com)
+- Lounch app. (matejonnet@gmail.com)
+- Automatic commit of package [openshift-origin-cartridge-ceylon-0.5] release
+  [1.0.8-1]. (matejonnet@gmail.com)
+- Cartridge scripts update. (matejonnet@gmail.com)
+- Automatic commit of package [openshift-origin-cartridge-ceylon-0.5] release
+  [1.0.7-1]. (matejonnet@gmail.com)
+- remove php (matejonnet@gmail.com)
+- Automatic commit of package [openshift-origin-cartridge-ceylon-0.5] release
+  [1.0.6-1]. (matejonnet@gmail.com)
+- Automatic commit of package [openshift-origin-cartridge-ceylon-0.5] release
+  [1.0.5-1]. (matejonnet@gmail.com)
+- Automatic commit of package [openshift-origin-cartridge-ceylon-0.5] release
+  [1.0.4-1]. (matejonnet@gmail.com)
+- Description update. (matejonnet@gmail.com)
+- Automatic commit of package [openshift-origin-cartridge-ceylon-0.5] release
+  [1.0.3-1]. (matejonnet@gmail.com)
+- Automatic commit of package [openshift-origin-cartridge-ceylon-0.5] release
+  [1.0.2-1]. (matejonnet@gmail.com)
+- Automatic commit of package [openshift-origin-cartridge-ceylon-0.5] release
+  [1.0.1-1]. (matej@broker.example.com)
+- Ceylon cartridge. (root@broker.example.com)
+
 * Mon Mar 18 2013 Matej Lazar <matejonnet@gmail.com> 1.0.21-1
 - Static files location. (matejonnet@gmail.com)
 
