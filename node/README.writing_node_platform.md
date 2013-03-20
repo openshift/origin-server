@@ -15,9 +15,9 @@ This is the structure to which gears are expected to conform when written
 to disk. 
 
     .../`uuid`/cartridges/
-    +- `cartridge name`-`cartridge version`
+    +- `cartridge vendor`-`cartridge name`
     |   +-... (See README.writing_cartridges.md for cartridge details.)
-    +- `cartridge name`-`cartridge version`
+    +- `cartridge vendor`-`cartridge name`
     |   +- see above...
     +- app-root
     |  +- data
