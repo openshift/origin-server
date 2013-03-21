@@ -192,15 +192,16 @@ module OpenShift
   module NodeLogger
     def self.logger
        unless @logger
-          @logger = Logger.new(STDOUT)
+          @logger = Logger.new(File.open(File::NULL, "w"))
+          @logger.level = Logger::Severity::FATAL
        end
        @logger
     end
 
     def self.trace_logger
        unless @trace_logger
-         @trace_logger = Logger.new(STDOUT)
-         @trace_logger.level = Logger::Severity::ERROR
+         @trace_logger = Logger.new(File.open(File::NULL, "w"))
+         @trace_logger.level = Logger::Severity::FATAL
        end
        @trace_logger
     end
@@ -224,6 +225,7 @@ require 'openshift-origin-node/utils/node_logger'
                             "<%= @user.container_name %>",
                             "<%= @user.namespace %>")
 
+puts "Stopping application..."
 @container.stop_gear
 }
 
@@ -246,12 +248,19 @@ require 'openshift-origin-node/utils/node_logger'
                             "<%= @user.namespace %>")
 
 begin
+  puts "Building application..."
   builder_output = @container.build
+  puts "Build output:"
   puts builder_output
+
+  puts "Deploying application..."
   deploy_output = @container.deploy
+  puts "Deploy output:"
   puts deploy_output
 ensure
+  puts "Starting application..."
   @container.start_gear
+  puts "Build complete."
 end
 }
   end
