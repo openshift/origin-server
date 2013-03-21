@@ -31,7 +31,9 @@ class PendingUserOps
   # Array of {Domain}s
   def pending_domains
     pending_domain_ids = on_domain_ids - completed_domain_ids
-    pending_domain_ids.map{ |did| Domain.find(did) }
+    plist = pending_domain_ids.map{ |did| Domain.with(consistency: :strong).find(did) rescue nil }
+    plist.delete_if { |dom| dom.nil? }
+    plist
   end
   
   # Returns true if all domains have been processed
