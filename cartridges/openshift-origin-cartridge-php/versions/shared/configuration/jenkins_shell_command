@@ -1,0 +1,27 @@
+source /usr/libexec/openshift/cartridges/abstract/info/lib/jenkins_util
+
+alias rsync="rsync --delete-after -az -e '$GIT_SSH'"
+
+# Sync libs - Faster builds
+rsync UPSTREAM_SSH:~/php/phplib/ ~/php/phplib/
+
+# Build/update libs and run user pre_build and build
+~/php/bin/ci_build
+
+# Run tests here
+
+# Deploy new build
+
+# Stop app
+jenkins_stop_app UPSTREAM_SSH
+
+# Push content back to application
+rsync ~/php/phplib/ UPSTREAM_SSH:~/php/phplib/
+rsync ~/$WORKSPACE/ UPSTREAM_SSH:~/php/repo/
+
+# Configure / start app
+$GIT_SSH UPSTREAM_SSH ~/php/bin/deploy
+
+jenkins_start_app UPSTREAM_SSH
+
+$GIT_SSH UPSTREAM_SSH ~/php/bin/post_deploy
