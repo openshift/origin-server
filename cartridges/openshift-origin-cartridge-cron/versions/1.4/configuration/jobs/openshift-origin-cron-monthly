@@ -1,0 +1,3 @@
+#!/bin/bash
+
+$OPENSHIFT_CRON_DIR/bin/scheduled-jobs run monthly

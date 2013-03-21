@@ -1,0 +1,5 @@
+#!/bin/bash
+
+MAILTO=""
+
+$OPENSHIFT_CRON_DIR/bin/scheduled-jobs run minutely &> /dev/null

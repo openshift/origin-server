@@ -1,22 +1,25 @@
-%global cartridgedir %{_libexecdir}/openshift/cartridges/v2/diy
-%global frameworkdir %{_libexecdir}/openshift/cartridges/v2/diy
+%global cartridgedir %{_libexecdir}/openshift/cartridges/v2/cron
+%global frameworkdir %{_libexecdir}/openshift/cartridges/v2/cron
 
-Name: openshift-origin-cartridge-diy
-Version: 0.1.4
+Name: openshift-origin-cartridge-cron
+Version: 1.4.0
 Release: 1%{?dist}
-Summary: Php cartridge
+Summary: Embedded cron support for OpenShift
 Group: Development/Languages
 License: ASL 2.0
 URL: https://openshift.redhat.com
 Source0: http://mirror.openshift.com/pub/origin-server/source/%{name}/%{name}-%{version}.tar.gz
 Requires:      openshift-origin-cartridge-abstract
 Requires:      rubygem(openshift-origin-node)
+Requires:      cronie
+Requires:      crontabs
 
+BuildArch:     noarch
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
 BuildArch: noarch
 
 %description
-PHP cartridge for openshift.
+Cron cartridge for openshift.
 
 
 %prep
@@ -32,6 +35,13 @@ cp -r * %{buildroot}%{cartridgedir}/
 ln -s %{cartridgedir}/conf/ %{buildroot}/%{_sysconfdir}/openshift/cartridges/v2/%{name}
 ln -s %{cartridgedir} %{buildroot}/%{frameworkdir}
 
+
+%post
+%if 0%{?fedora} >= 16 || 0%{?rhel} >= 7
+  systemctl restart  crond.service || :
+%else
+  service crond restart || :
+%endif
 
 %clean
 rm -rf %{buildroot}
@@ -54,15 +64,3 @@ rm -rf %{buildroot}
 
 
 %changelog
-* Mon Mar 18 2013 Adam Miller <admiller@redhat.com> 0.1.4-1
-- Fixing DIY cart git repo creation (chris@@hoflabs.com)
-
-* Fri Mar 15 2013 Dan McPherson <dmcphers@redhat.com> 0.1.3-1
-- new package built with tito
-
-* Fri Mar 15 2013 Troy Dawson <tdawson@redhat.com> 0.1.2-1
-- new package built with tito
-
-* Thu Mar 14 2013 Chris Alfonso <calfonso@redhat.com> 0.1.1-1
-- new package built with tito
-
