@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/openshift/cartridges/v2/mock
 
 Name: openshift-origin-cartridge-mock
-Version: 0.1.3
+Version: 0.1.4
 Release: 1%{?dist}
 Summary: Mock cartridge for V2 Cartridge SDK
 Group: Development/Languages
@@ -59,6 +59,15 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Thu Mar 21 2013 Adam Miller <admiller@redhat.com> 0.1.4-1
+- WIP Cartridge Refactor -- restore --version to setup calls
+  (jhonce@redhat.com)
+- Change V2 manifest Version elements to strings (pmorie@gmail.com)
+- WIP Cartridge Refactor - Mung cartridge-vendor omit spaces and downcase
+  (jhonce@redhat.com)
+- Merge pull request #1683 from jwhonce/wip/mock_updated (dmcphers@redhat.com)
+- V2 cucumber test refactor (ironcladlou@gmail.com)
+
 * Mon Mar 18 2013 Adam Miller <admiller@redhat.com> 0.1.3-1
 - WIP Cartridge Refactor - Mock plugin installed from CartridgeRepository
   (jhonce@redhat.com)
