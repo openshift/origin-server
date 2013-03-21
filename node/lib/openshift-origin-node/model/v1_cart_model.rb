@@ -24,21 +24,12 @@ module OpenShift
       end
     end
 
-    def do_control_gear(action)
-      case action
-      when 'start'
-        start_gear
-      when 'stop'
-        stop_gear
-      end
-    end
-
-    def stop_gear
+    def stop_gear(options={})
       out, err, rc = OpenShift::Utils::ShellExec.shellCmd("/usr/sbin/oo-admin-ctl-gears stopgear #{@user.uuid}", @user.homedir, false, 0)
       logger.debug("Stopped gear #{@user.uuid}. Output:\n#{out}")
     end
 
-    def start_gear
+    def start_gear(options={})
       out, err, rc = OpenShift::Utils::ShellExec.shellCmd("/usr/sbin/oo-admin-ctl-gears startgear #{@user.uuid}", @user.homedir)
       logger.debug("Started gear #{@user.uuid}. Output:\n#{out}")
     end
