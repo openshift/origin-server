@@ -372,6 +372,39 @@ Then /^the application git repo will( not)? exist$/ do | negate |
   end
 end
 
+When /^a git submodule is added$/ do
+  Dir.chdir(@app.git_repo) do
+    # Add a submodule created in devenv and link the index file
+    run("git submodule add /root/submodule_test_repo")
+    run(%q(echo "Submodule Cucumber Tests" >submodule_test.marker))
+    run("git add submodule_test.marker")
+    run("git commit -a -m 'Test submodule change'")
+    run("git push 2>&1")
+  end
+end
+
+# Verifies the existence of a the runtime archive from the git repo
+# associated with the current application.
+Then /^a submodule will( not)? exist$/ do |negate|
+  modules = "#{$home_root}/#{@gear.uuid}/app-root/runtime/repo/.gitmodules"
+
+  # TODO - need to check permissions and SELinux labels
+
+  $logger.info("Checking for #{negate} application repo at #{modules}")
+  if negate
+    assert_file_not_exists modules
+  else
+    assert_file_exists modules
+  end
+
+  unless negate
+    index = "#{$home_root}/#{@gear.uuid}/app-root/runtime/repo/submode_test_repo/index"
+    assert_file_exists index
+
+    marker = "#{$home_root}/#{@gear.uuid}/app-root/runtime/repo/submodule_test.marker"
+    assert_file_exists marker
+  end
+end
 
 # Verifies the existence of an exported source tree associated with
 # the current application.
@@ -614,6 +647,7 @@ end
 When /^the application is prepared for git pushes$/ do
   @app.git_repo = "#{$temp}/#{@account.name}-#{@app.name}-clone"
   run "git clone ssh://#{@gear.uuid}@#{@app.name}-#{@account.domain}.#{$cloud_domain}/~/git/#{@app.name}.git #{@app.git_repo}"
+  assert File.exist?(@app.git_repo), "Failed to clone #{@gear.uuid} to #{@app.git_repo}"
 end
 
 

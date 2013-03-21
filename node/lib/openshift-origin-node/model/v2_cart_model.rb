@@ -428,15 +428,26 @@ module OpenShift
       logger.info("Deleted cartridge directory for #{@user.uuid}/#{cartridge.directory}")
     end
 
-    def populate_gear_repo(cartridge_name, template_git_url = nil)
-      logger.info "Creating gear repo for #{@user.uuid}/#{cartridge_name} from `#{template_git_url}`"
+    # :call-seq:
+    #   model.populate_gear_repo(cartridge name) => nil
+    #   model.populate_gear_repo(cartridge name, application git template url) -> nil
+    #
+    # Populate the gear git repository with a sample application
+    #
+    #   model.populate_gear_repo('ruby-1.9')
+    #   model.populate_gear_repo('ruby-1.9', 'http://rails-example.example.com')
+    def populate_gear_repo(cartridge_name, template_url = nil)
+      logger.info "Creating gear repo for #{@user.uuid}/#{cartridge_name} from `#{template_url}`"
+
       repo = ApplicationRepository.new(@user)
-      if template_git_url.nil?
+      if template_url.nil?
         repo.populate_from_cartridge(cartridge_name)
         repo.deploy_repository
       else
-        raise NotImplementedError.new('populating repo from URL unsupported')
+        repo.populate_from_url(cartridge_name, template_url)
       end
+
+      repo.deploy
       logger.info "Created gear repo for  #{@user.uuid}/#{cartridge_name}"
     end
 
