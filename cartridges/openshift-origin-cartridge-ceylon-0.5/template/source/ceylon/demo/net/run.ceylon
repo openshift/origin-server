@@ -9,6 +9,7 @@ String prop_server_bind_port = "server.bind.port";
 String prop_server_bind_host = "server.bind.host";
 String prop_server_files_lcation = "server.files.location";
 
+
 shared void run() {
     
     print("Vm version: " + process.vmVersion);
@@ -20,10 +21,10 @@ shared void run() {
             path = startsWith("/css") or startsWith("/img") or startsWith("/js");
             service => serveStaticFile(files);
         });
-
-        server.addEndpoint(AsynchronousEndpoint {
+        
+        server.addEndpoint(Endpoint {
             path = isRoot();
-            service => serveStaticFile("``files``/index.html");
+            service => welcomePage("``files``/index.html");
         });
         print("Serving static files from ``files``.");
     } else {
