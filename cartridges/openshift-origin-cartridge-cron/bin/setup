@@ -5,11 +5,7 @@ set -x
 PATH=/bin:/usr/bin:$PATH
 
 version=1.4
-OPENSHIFT_CRON_DIR="${OPENSHIFT_HOMEDIR}redhat-cron"
-ls -lZa
 echo "export OPENSHIFT_CRON_VERSION='$version'" > "$OPENSHIFT_CRON_DIR/env/OPENSHIFT_CRON_VERSION"
-echo "export OPENSHIFT_CRON_DIR='$OPENSHIFT_CRON_DIR'" > "$OPENSHIFT_CRON_DIR/env/OPENSHIFT_CRON_DIR"
-id
 
 # Copy the version specific files into diy directory
 shopt -s dotglob

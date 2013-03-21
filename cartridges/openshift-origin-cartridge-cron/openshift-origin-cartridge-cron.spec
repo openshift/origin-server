@@ -31,10 +31,21 @@ Cron cartridge for openshift.
 rm -rf %{buildroot}
 mkdir -p %{buildroot}%{cartridgedir}
 mkdir -p %{buildroot}/%{_sysconfdir}/openshift/cartridges/v2
+mkdir -p %{buildroot}/%{_sysconfdir}/cron.d
+mkdir -p %{buildroot}/%{_sysconfdir}/cron.minutely
+mkdir -p %{buildroot}/%{_sysconfdir}/cron.hourly
+mkdir -p %{buildroot}/%{_sysconfdir}/cron.daily
+mkdir -p %{buildroot}/%{_sysconfdir}/cron.weekly
+mkdir -p %{buildroot}/%{_sysconfdir}/cron.monthly
+cp -p versions/1.4/configuration/jobs/1minutely %{buildroot}/%{_sysconfdir}/cron.d
 cp -r * %{buildroot}%{cartridgedir}/
 ln -s %{cartridgedir}/conf/ %{buildroot}/%{_sysconfdir}/openshift/cartridges/v2/%{name}
 ln -s %{cartridgedir} %{buildroot}/%{frameworkdir}
-
+ln -s %{cartridgedir}/versions/1.4/configuration/jobs/openshift-origin-cron-minutely %{buildroot}/%{_sysconfdir}/cron.minutely/
+ln -s %{cartridgedir}/versions/1.4/configuration/jobs/openshift-origin-cron-hourly %{buildroot}/%{_sysconfdir}/cron.hourly/
+ln -s %{cartridgedir}/versions/1.4/configuration/jobs/openshift-origin-cron-daily %{buildroot}/%{_sysconfdir}/cron.daily/
+ln -s %{cartridgedir}/versions/1.4/configuration/jobs/openshift-origin-cron-weekly %{buildroot}/%{_sysconfdir}/cron.weekly/
+ln -s %{cartridgedir}/versions/1.4/configuration/jobs/openshift-origin-cron-monthly %{buildroot}/%{_sysconfdir}/cron.monthly/
 
 %post
 %if 0%{?fedora} >= 16 || 0%{?rhel} >= 7
@@ -55,7 +66,15 @@ rm -rf %{buildroot}
 %dir %{cartridgedir}/metadata
 %dir %{cartridgedir}/versions
 %attr(0755,-,-) %{cartridgedir}/bin/
+%attr(0755,-,-) %{cartridgedir}/versions/1.4/configuration/jobs/
 %attr(0755,-,-) %{frameworkdir}
+%dir %{_sysconfdir}/cron.minutely
+%config(noreplace) %attr(0644,-,-) %{_sysconfdir}/cron.d/1minutely
+%attr(0755,-,-) %{_sysconfdir}/cron.minutely/openshift-origin-cron-minutely
+%attr(0755,-,-) %{_sysconfdir}/cron.hourly/openshift-origin-cron-hourly
+%attr(0755,-,-) %{_sysconfdir}/cron.daily/openshift-origin-cron-daily
+%attr(0755,-,-) %{_sysconfdir}/cron.weekly/openshift-origin-cron-weekly
+%attr(0755,-,-) %{_sysconfdir}/cron.monthly/openshift-origin-cron-monthly
 %{_sysconfdir}/openshift/cartridges/v2/%{name}
 %{cartridgedir}/metadata/manifest.yml
 %doc %{cartridgedir}/README.md

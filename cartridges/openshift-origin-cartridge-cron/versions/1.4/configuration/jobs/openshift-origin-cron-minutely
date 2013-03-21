@@ -2,4 +2,4 @@
 
 MAILTO=""
 
-$OPENSHIFT_CRON_DIR/bin/scheduled-jobs run minutely &> /dev/null
+/usr/libexec/openshift/cartridges/v2/cron/bin/scheduled-jobs run minutely &> /dev/null

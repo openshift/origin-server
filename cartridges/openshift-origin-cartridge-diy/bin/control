@@ -2,18 +2,18 @@
 
 function start() {
     echo "Starting DIY cart"
-    source $OPENSHIFT_DIY_DIR/template/.openshift/action_hooks/start
+    source $OPENSHIFT_REPO_DIR/.openshift/action_hooks/start
 }
 
 function stop() {
     echo "Stopping DIY cart"
-    source $OPENSHIFT_DIY_DIR/template/.openshift/action_hooks/stop
+    source $OPENSHIFT_REPO_DIR/.openshift/action_hooks/stop
 }
 
 function restart() {
     echo "Restarting DIY cart"
-    source $OPENSHIFT_DIY_DIR/template/.openshift/action_hooks/stop
-    source $OPENSHIFT_DIY_DIR/template/.openshift/action_hooks/start
+    source $OPENSHIFT_REPO_DIR/.openshift/action_hooks/stop
+    source $OPENSHIFT_REPO_DIR/.openshift/action_hooks/start
 }
 
 function status() {

@@ -1,4 +1,5 @@
 #!/bin/bash -e
+source "/usr/lib/openshift/node/util"
 
 function _are_cronjobs_enabled() {
    [ -f $OPENSHIFT_CRON_DIR/run/jobs.enabled ]  &&  return 0
@@ -6,11 +7,25 @@ function _are_cronjobs_enabled() {
 
 }  #  End of function  _are_cronjobs_enabled.
 
+function _reload_cron_service() {
+   :  #  Do nothing.
+}  #  End of function  _reload_cron_service.
+
+function _status_cron_service() {
+    if output=$(run_as_user "$CTL_SCRIPT status" 2>&1)
+    then
+        client_result "$output"
+    else
+        client_result "Cron is either stopped or inaccessible"
+    fi
+}  #  End of function  _status_cron_service.
+
 function start() {
     echo "Starting CRON cart"
     if _are_cronjobs_enabled; then
         echo "cron scheduling service is already enabled" 1>&2
     else
+        rm -f "$OPENSHIFT_CRON_DIR/run/stop_lock"
         touch "$OPENSHIFT_CRON_DIR/run/jobs.enabled"
     fi
 }
@@ -18,6 +33,7 @@ function start() {
 function stop() {
     echo "Stopping CRON cart"
     if _are_cronjobs_enabled; then
+        touch "$OPENSHIFT_CRON_DIR/run/stop_lock"
         rm -f $OPENSHIFT_CRON_DIR/run/jobs.enabled
     else
         echo "cron scheduling service is already disabled" 1>&2

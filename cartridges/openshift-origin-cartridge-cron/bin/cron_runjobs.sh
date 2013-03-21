@@ -1,8 +1,13 @@
 #!/bin/bash
+CART_VERSION=0.0.1
+CART_DIRNAME=redhat-cron
+CART_INSTALL_DIR=/var/lib/openshift/.cartridge_repository/$CART_DIRNAME/$CART_VERSION
+CART_CONF_DIR=${CART_INSTALL_DIR}/versions/1.4/configuration
 
-source "/etc/openshift/node.conf"
-
-# Constants.
+for f in ~/.env/* ~/*/env/*
+do
+      [ -f "$f" ]  &&  . "$f"
+done
 
 function log_message() {
    msg=${1-""}
@@ -10,26 +15,15 @@ function log_message() {
    logger -i -s "user-cron-jobs" -p user.info "`date`: $msg"
 }
 
-#
-# main():
-#
-
-# Import Environment Variables
-for f in ~/.env/*; do
-    . $f
-done
-
-
 # Ensure arguments.
 if ! [ $# -eq 1 ]; then
-    freqs=$(cat $OPENSHIFT_CRON_DIR/configuration/frequencies | tr '\n' '|')
+    freqs=$(cat $CART_CONF_DIR/frequencies | tr '\n' '|')
     echo "Usage: $0 <${freqs%?}>"
     exit 22
 fi
 
 freq=$1
-
-source "$OPENSHIFT_CRON_DIR/configuration/limits"
+source "$CART_CONF_DIR/limits"
 
 # First up check if the cron jobs are enabled.
 if [ ! -f $OPENSHIFT_CRON_DIR/run/jobs.enabled ]; then
@@ -55,8 +49,8 @@ if [ -d "$SCRIPTS_DIR" ]; then
          exit 1
       fi
 
-      if [ -f "$OPENSHIFT_CRON_DIR/log/cron.$freq.log" ]; then
-         mv -f "$OPENSHIFT_CRON_DIR/log/cron.$freq.log" "$OPENSHIFT_CRON_DIR/log/cron.$freq.log.1"
+      if [ -f "$OPENSHIFT_CRON_DIR/logs/cron.$freq.log" ]; then
+         mv -f "$OPENSHIFT_CRON_DIR/logs/cron.$freq.log" "$OPENSHIFT_CRON_DIR/logs/cron.$freq.log.1"
       fi
 
       separator=$(seq -s_ 75 | tr -d '[:digit:]')
@@ -77,9 +71,9 @@ if [ -d "$SCRIPTS_DIR" ]; then
          echo $separator
          echo "`date`: END $freq cron run - status=$status"
          echo $separator
-      } >> $OPENSHIFT_CRON_DIR/log/cron.$freq.log 2>&1
+      } >> $OPENSHIFT_CRON_DIR/logs/cron.$freq.log 2>&1
 
-   ) 9>~/app-root/runtime/.cron.$freq.lock
+   ) 9>${OPENSHIFT_HOMEDIR}app-root/runtime/.cron.$freq.lock
 fi
 
 log_message ":END: $freq cron run for openshift user '$OPENSHIFT_GEAR_UUID'"
