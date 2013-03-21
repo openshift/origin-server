@@ -146,7 +146,7 @@ module OpenShift
         @short_name        = manifest['Cartridge-Short-Name']
         @version           = manifest['Version'] && manifest['Version'].to_s
         @categories        = manifest['Categories'] || []
-        @is_framework      = @categories.include?('web_framework')
+        @is_primary        = @categories.include?('web_framework')
 
         #FIXME: reinstate code after manifests are updated
         #raise MissingElementError.new(nil, 'Cartridge-Vendor') unless @cartridge_vendor
@@ -183,8 +183,8 @@ module OpenShift
         @endpoints.select { |e| e.public_port_name }
       end
 
-      def framework?
-        @is_framework
+      def primary?
+        @is_primary
       end
 
       def self.build_ident(vendor, software, software_version, cartridge_version)

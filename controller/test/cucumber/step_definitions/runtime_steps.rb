@@ -662,7 +662,8 @@ When /^a simple update is pushed to the application repo$/ do
       run "echo $RANDOM >> cucumber_update_test"
       run "git add ."
       run "git commit -m 'Test change'"
-      run "git push"
+      push_output = `git push`
+      $logger.info("Push output:\n#{push_output}")
     end
   end
 end
