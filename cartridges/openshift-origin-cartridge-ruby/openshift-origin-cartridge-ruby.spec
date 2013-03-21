@@ -7,7 +7,7 @@
 %global frameworkdir %{_libexecdir}/openshift/cartridges/v2/ruby
 
 Name:          openshift-origin-cartridge-ruby
-Version:       0.1.4
+Version:       0.1.5
 Release:       1%{?dist}
 Summary:       Ruby cartridge
 Group:         Development/Languages
@@ -150,6 +150,14 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Thu Mar 21 2013 Adam Miller <admiller@redhat.com> 0.1.5-1
+- No need to set OPENSHIFT_RUBY_DIR in setup. (asari.ruby@gmail.com)
+- Remove debug outputs (asari.ruby@gmail.com)
+- Use a better defined ENV variable. (asari.ruby@gmail.com)
+- Enough to get a Ruby 1.9 app bootable. (asari.ruby@gmail.com)
+- Change V2 manifest Version elements to strings (pmorie@gmail.com)
+- Fix cart names to exclude versions. (mrunalp@gmail.com)
+
 * Mon Mar 18 2013 Adam Miller <admiller@redhat.com> 0.1.4-1
 - add cart vendor and version (dmcphers@redhat.com)
 
