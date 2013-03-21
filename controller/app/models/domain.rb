@@ -226,9 +226,10 @@ class Domain
       while self.pending_ops.where(state: "init").count > 0
         op = self.pending_ops.where(state: "init").first
         
-        # get the op based on _id so that a reload does not replace it with another one based on position
-        op = self.pending_ops.find_by(_id: op._id)
-        
+        # store the op._id to load it later after a reload
+        # this is required to prevent a reload from replacing it with another one based on position
+        op_id = op._id
+
         # try to do an update on the pending_op state and continue ONLY if successful
         op_index = self.pending_ops.index(op) 
         retval = Domain.with(consistency: :strong).where({ "_id" => self._id, "pending_ops.#{op_index}._id" => op._id, "pending_ops.#{op_index}.state" => "init" }).update({"$set" => { "pending_ops.#{op_index}.state" => "queued" }})
@@ -277,9 +278,9 @@ class Domain
 
         # reloading the op reloads the domain and then incorrectly reloads (potentially)
         # the op based on its position within the pending_ops list
-        # hence, reloading the domain, and then fetching the op using the _id
+        # hence, reloading the domain, and then fetching the op using the op_id stored earlier
         self.with(consistency: :strong).reload
-        op = self.pending_ops.find_by(_id: op._id)
+        op = self.pending_ops.find_by(_id: op_id)
         
         op.close_op
         op.delete if op.completed?
