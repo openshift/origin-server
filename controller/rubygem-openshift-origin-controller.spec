@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.6.3
+Version: 1.6.4
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -83,6 +83,45 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Thu Mar 21 2013 Adam Miller <admiller@redhat.com> 1.6.4-1
+- Merge pull request #1743 from jwhonce/wip/cartridge_ident
+  (dmcphers+openshiftbot@redhat.com)
+- Additional fixes to read from the primary (abhgupta@redhat.com)
+- Fixing force deletion of domain to correctly read apps from primary
+  (abhgupta@redhat.com)
+- WIP Cartridge Refactor - Add new environment variables (jhonce@redhat.com)
+- Merge pull request #1727 from kraman/embeeded_feature_fix
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #1714 from pmorie/dev/v2_mysql (admiller@redhat.com)
+- Fix embedded.feature runtime extended test (kraman@gmail.com)
+- Jenkins client WIP (dmcphers@redhat.com)
+- Cart V2 build implementation WIP (ironcladlou@gmail.com)
+- Merge pull request #1717 from jwhonce/wip/setup_version
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #1702 from kraman/f18_fixes
+  (dmcphers+openshiftbot@redhat.com)
+- WIP Cartridge Refactor -- restore --version to setup calls
+  (jhonce@redhat.com)
+- WIP: v2 mysql (pmorie@gmail.com)
+- US436: Add plan_state field to cloud_user mongoid model (rpenta@redhat.com)
+- Merge pull request #1696 from pravisankar/dev/ravi/us506
+  (dmcphers+openshiftbot@redhat.com)
+- Updating rest-client and rake gem versions to match F18 (kraman@gmail.com)
+- US506 : Broker rails flag to enable/disable broker in maintenance mode
+  (rpenta@redhat.com)
+- Merge pull request #1692 from rajatchopra/master
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #1695 from jwhonce/wip/coverage
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #1685 from abhgupta/bug921301
+  (dmcphers+openshiftbot@redhat.com)
+- WIP Cartridge Refactor - Work on tests and coverage (jhonce@redhat.com)
+- Merge pull request #1683 from jwhonce/wip/mock_updated (dmcphers@redhat.com)
+- Fix for bug 921301 Reading the domain from the primary (abhgupta@redhat.com)
+- analytics data export/import (rchopra@redhat.com)
+- WIP Cartridge Refactor - cucumber test refactor (jhonce@redhat.com)
+- V2 cucumber test refactor (ironcladlou@gmail.com)
+
 * Mon Mar 18 2013 Adam Miller <admiller@redhat.com> 1.6.3-1
 - Adding permission related support for cartridge-php tests (kraman@gmail.com)
 - Disable cartridge-php.feature on Fedora due to hard coded assumptions about
