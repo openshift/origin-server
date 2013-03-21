@@ -6,8 +6,6 @@ PATH=/bin:/usr/bin:$PATH
 
 version=1.9
 
-OPENSHIFT_RUBY_DIR="$OPENSHIFT_HOMEDIR/redhat-ruby"
-
 # Copy the version specific files to ruby directory
 for dir in etc metadata template; do
 	mkdir -p $OPENSHIFT_RUBY_DIR/$dir
