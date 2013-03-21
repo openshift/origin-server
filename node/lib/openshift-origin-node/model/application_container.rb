@@ -20,6 +20,7 @@ require 'openshift-origin-node/model/unix_user'
 require 'openshift-origin-node/model/v1_cart_model'
 require 'openshift-origin-node/model/v2_cart_model'
 require 'openshift-origin-node/model/cartridge'
+require 'openshift-origin-node/model/default_builder'
 require 'openshift-origin-node/utils/shell_exec'
 require 'openshift-origin-node/utils/application_state'
 require 'openshift-origin-node/utils/environ'
@@ -360,31 +361,38 @@ module OpenShift
       @cartridge_model.do_control("stop", cart_name)
     end
 
-    ##
-    # Returns true if the application is using a CI system, otherwise
-    # false. A CI system is assumed to be in use if the gear environment
-    # contains the +OPENSHIFT_CI_TYPE+ key (regardless of the value).
-    def ci_enabled?
-      env = Utils::Environ::for_gear(@user.homedir)
-      env.has_key?("OPENSHIFT_CI_TYPE")
+    def pre_receive
+      builder_cartridge = @cartridge_model.builder_cartridge
+
+      if builder_cartridge
+        @cartridge_model.do_control('pre-receive', builder_cartridge)
+      else
+        DefaultBuilder.new(self).pre_receive
+      end
+    end
+
+    def post_receive
+      builder_cartridge = @cartridge_model.builder_cartridge
+
+      if builder_cartridge
+        @cartridge_model.do_control('post-receive', builder_cartridge)
+      else
+        DefaultBuilder.new(self).post_receive
+      end
     end
 
     ##
     # Implements the following build process:
     #
     #   1. Set the application state to +BUILDING+
-    #   2. Redeploy the application Git repository unless +ci_enabled+
-    #   3. Run the cartridge +pre-build+ control action
-    #   4. Run the +pre-build+ user action hook
-    #   5. Run the cartridge +build+ control action
-    #   6. Run the +build+ user action hook
+    #   2. Run the cartridge +pre-build+ control action
+    #   3. Run the +pre-build+ user action hook
+    #   4. Run the cartridge +build+ control action
+    #   5. Run the +build+ user action hook
     #
     # Returns the combined output of all actions as a +String+.
     def build
       @state.value = OpenShift::State::BUILDING
-
-      # Don't re-deploy the repository if a CI system is enabled
-      ApplicationRepository.new(@user).deploy_repository unless ci_enabled?
 
       buffer = ''
       buffer << @cartridge_model.do_control('pre-build',

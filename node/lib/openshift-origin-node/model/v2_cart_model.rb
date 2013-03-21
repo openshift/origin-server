@@ -82,6 +82,12 @@ module OpenShift
       raise "No primary cartridge found on gear #{@user.uuid}"
     end
 
+    ##
+    # Detects and returns a builder +Cartridge+ in the gear if present, otherwise +nil+.
+    def builder_cartridge
+      # TODO: find and return it
+    end
+
     # FIXME: Once Broker/Node protocol updated to provided necessary information this hack must go away
     def map_cartridge_name(cartridge_name)
       results = cartridge_name.scan(/([a-zA-Z\d-]+)-([\d\.]+)/).first
