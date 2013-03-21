@@ -14,7 +14,7 @@
       <builderSize>small</builderSize>
     </hudson.plugins.openshift.OpenShiftBuilderSizeJobProperty>
     <hudson.plugins.openshift.OpenShiftBuilderTypeJobProperty>
-      <builderType>diy-0.1</builderType>
+      <builderType>BUILDER_TYPE</builderType>
     </hudson.plugins.openshift.OpenShiftBuilderTypeJobProperty>
     <hudson.plugins.openshift.OpenShiftBuilderTimeoutJobProperty>
       <builderTimeout>300000</builderTimeout>
@@ -62,14 +62,13 @@
   <builders>
     <hudson.tasks.Shell>
       <command>
-echo "This command has no default configuration.  Please log in to your jenkins instance to configure this job"
-find *
+SHELL_COMMAND
       </command>
     </hudson.tasks.Shell>
   </builders>
   <publishers>
     <hudson.tasks.ArtifactArchiver>
-      <artifacts>*</artifacts>
+      <artifacts>ARTIFACTS</artifacts>
       <latestOnly>false</latestOnly>
     </hudson.tasks.ArtifactArchiver>
   </publishers>

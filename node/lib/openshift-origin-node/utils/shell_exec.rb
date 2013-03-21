@@ -88,10 +88,15 @@ module OpenShift
             # lazy init otherwise we end up with a cyclic require...
             require 'openshift-origin-node/model/unix_user'
 
-            opts[:in] = '/dev/null'
-            context   = %Q{unconfined_u:system_r:openshift_t:#{UnixUser.get_mcs_label(options[:uid])}}
-            name      = Etc.getpwuid(options[:uid]).name
-            command   = %Q{/sbin/runuser -m -s /bin/sh #{name} -c "exec /usr/bin/runcon '#{context}' /bin/sh -c \\"#{command}\\""}
+            current_context  = %Q{unconfined_u:system_r:openshift_t:#{UnixUser.get_mcs_label(Process.uid)}}
+            target_context   = %Q{unconfined_u:system_r:openshift_t:#{UnixUser.get_mcs_label(options[:uid])}}
+            
+            # Only switch contexts if necessary
+            if (current_context != target_context) || (Process.uid != options[:uid])
+              target_name = Etc.getpwuid(options[:uid]).name
+              opts[:in]   = '/dev/null'
+              command     = %Q{/sbin/runuser -m -s /bin/sh #{target_name} -c "exec /usr/bin/runcon '#{target_context}' /bin/sh -c \\"#{command}\\""}
+            end
           end
 
           NodeLogger.trace_logger.debug { "oo_spawn running #{command}" }
@@ -107,7 +112,7 @@ module OpenShift
             write_stderr.close
 
             out, err, status = read_results(pid, read_stdout, read_stderr, options)
-            NodeLogger.logger.debug { "Shell command '#{command}' ran. rc=#{status.exitstatus}" }
+            NodeLogger.logger.debug { "Shell command '#{command}' ran. rc=#{status.exitstatus} out=#{out}" }
 
             if (!options[:expected_exitstatus].nil?) && (status.exitstatus != options[:expected_exitstatus])
               raise OpenShift::Utils::ShellExecutionException.new(

@@ -92,24 +92,25 @@ module OpenShift
       @cartridges[cart_name]
     end
 
+    def get_framework_cartridge
+      process_cartridges do |cartridge_dir|
+        cartridge = get_cartridge_from_directory(File.basename(cartridge_dir))
+        return cartridge if cartridge.framework?
+      end
+
+      nil
+    end
+
     # Load cartridge's local manifest from cartridge directory name
     def get_cartridge_from_directory(directory)
       unless @cartridges.has_key? directory
         cartridge_path = PathUtils.join(@user.homedir, directory)
-        manifest_path = PathUtils.join(cartridge_path, 'metadata', 'manifest.yml')
+        manifest_path  = PathUtils.join(cartridge_path, 'metadata', 'manifest.yml')
         raise "Cartridge manifest not found: #{manifest_path}" unless File.exist?(manifest_path)
 
         @cartridges[directory] = OpenShift::Runtime::Cartridge.new(manifest_path, @user.homedir)
       end
       @cartridges[directory]
-    end
-
-
-    # Retrieve the latest version of the cartridge for the given software version
-    #
-    def get_cartridge_from_repository(cart_name)
-      name, version = map_cartridge_name(cart_name)
-      CartridgeRepository.instance.select(name, version)
     end
 
     # destroy() -> nil
@@ -165,11 +166,12 @@ module OpenShift
     def configure(cartridge_name, template_git_url = nil)
       output = ''
 
-      _, software_version = map_cartridge_name(cartridge_name)
-      cartridge = get_cartridge_from_repository(cartridge_name)
+      name, software_version = map_cartridge_name(cartridge_name)
+      cartridge           = CartridgeRepository.instance.select(name, software_version)
+
       OpenShift::Utils::Sdk.mark_new_sdk_app(@user.homedir)
       OpenShift::Utils::Cgroups::with_cgroups_disabled(@user.uuid) do
-        create_cartridge_directory(cartridge)
+        create_cartridge_directory(cartridge, software_version)
         create_private_endpoints(cartridge)
 
         Dir.chdir(@user.homedir) do
@@ -179,6 +181,7 @@ module OpenShift
 
             process_erb_templates(c.directory)
           end
+
         end
 
         output << do_control_with_directory('start', cartridge.directory)
@@ -324,7 +327,7 @@ module OpenShift
     # Create the cartridges home directory
     #
     #   v2_cart_model.create_cartridge_directory('php-5.3')
-    def create_cartridge_directory(cartridge)
+    def create_cartridge_directory(cartridge, software_version)
       logger.info("Creating cartridge directory #{@user.uuid}/#{cartridge.directory}")
 
       entries = Dir.glob(cartridge.repository_path + '/*', File::FNM_DOTMATCH)
@@ -338,12 +341,30 @@ module OpenShift
       Utils.oo_spawn("/bin/cp -ad #{entries.join(' ')} #{target}",
                      expected_exitstatus: 0)
 
-      write_environment_variable(cartridge, File.join(target, 'env'), dir: target)
+
+      write_environment_variable(cartridge, File.join(target, 'env'),
+                                 dir:   target,
+                                 ident: Runtime::Cartridge.build_ident(cartridge.cartridge_vendor,
+                                                                       cartridge.name,
+                                                                       software_version,
+                                                                       cartridge.cartridge_version))
 
       usr_path = File.join(cartridge.repository_path, 'usr')
       FileUtils.symlink(usr_path, File.join(target, 'usr')) if File.exist? usr_path
 
       mcs_label = @user.get_mcs_label(@user.uid)
+
+      if cartridge.framework?
+        @user.add_env_var('PRIMARY_CARTRIDGE_DIR', target + File::SEPARATOR, true)
+
+        env_path = PathUtils.join(@user.homedir, '.env')
+        Utils.oo_spawn(
+            "chown -R root:#{@user.gid} #{env_path};
+             chcon -R unconfined_u:object_r:openshift_var_lib_t:#{mcs_label} #{env_path}",
+            expected_exitstatus: 0
+        )
+      end
+
       Utils.oo_spawn(
           "chown -R #{@user.uid}:#{@user.gid} #{target};
            chcon -R unconfined_u:object_r:openshift_var_lib_t:#{mcs_label} #{target}",
@@ -366,7 +387,7 @@ module OpenShift
 
       hash.first.each_pair do |k, v|
         name = "OPENSHIFT_#{cartridge.short_name.upcase}_#{k.to_s.upcase}"
-        File.open(PathUtils.join(path, name), 'w', 0660) do |f|
+        File.open(PathUtils.join(path, name), 'w', 0666) do |f|
           f.write(%Q(export #{name}='#{v}'))
         end
       end
@@ -645,13 +666,30 @@ module OpenShift
       end
     end
 
-    def deploy(cart_name)
+    def build(cartridge)
       ApplicationRepository.new(@user).deploy_repository
-      @cartridge_model.do_control("deploy", cart_name)
+      do_control("build", cartridge)
     end
 
-    def do_control(action, cartridge_name)
-      do_control_with_directory(action, cartridge_directory(cartridge_name))
+    def deploy(cartridge)
+      do_control("deploy", cartridge)
+    end
+
+    def do_control(action, cartridge)
+      case cartridge
+        when String
+          cartridge_dir = cartridge_directory(cartridge)
+        when OpenShift::Runtime::Cartridge
+          cartridge_dir = cartridge.directory
+        else
+          raise "Unsupported cartridge argument type: #{cartridge.class}"
+      end
+
+      do_control_with_directory(action, cartridge_dir)
+    end
+
+    def do_control_gear(action)
+      do_control_with_directory(action)
     end
 
     # :call-seq:
@@ -661,7 +699,7 @@ module OpenShift
     # Call action on cartridge +control+ script. Run all pre/post hooks if found.
     # If no +cartridge directory+ is provided loop over all cartridges in gear.
     def do_control_with_directory(action, cartridge_dir=nil)
-      logger.debug { "#{@user.uuid} #{action} against '#{cartridge_dir}'"}
+      logger.debug { "#{@user.uuid} #{action} against '#{cartridge_dir}'" }
       buffer       = ''
       gear_env     = Utils::Environ.load('/etc/openshift/env', File.join(@user.homedir, '.env'))
       action_hooks = File.join(@user.homedir, %w{app-root runtime repo .openshift action_hooks})
@@ -683,8 +721,11 @@ module OpenShift
       process_cartridges(cartridge_dir) { |path|
         cartridge_env = gear_env.merge(Utils::Environ.load(File.join(path, 'env')))
 
+        ident                            = cartridge_env.keys.grep(/^OPENSHIFT_.*_IDENT/)
+        _, software, software_version, _ = Runtime::Cartridge.parse_ident(cartridge_env[ident.first])
+        hooks                            = cartridge_hooks(action_hooks, action, software, software_version)
+
         control = File.join(path, 'bin', 'control')
-        hooks   = cartridge_hooks(action, path, action_hooks)
 
         command = ['set -e']
         command << hooks[:pre] unless hooks[:pre].empty?
@@ -719,13 +760,12 @@ module OpenShift
       buffer
     end
 
-    def cartridge_hooks(action, path, action_hooks)
+    def cartridge_hooks(action_hooks, action, name, version)
       hooks = {pre: [], post: []}
 
-      cartridge = get_cartridge_from_directory(File.basename(path))
       hooks.keys do |key|
         new_hook = PathUtils.join(action_hooks, "#{key}_#{action}_#{cartridge.directory}")
-        old_hook = PathUtils.join(action_hooks, "#{key}_#{action}_#{cartridge.name}-#{cartridge.version}")
+        old_hook = PathUtils.join(action_hooks, "#{key}_#{action}_#{name}-#{version}")
 
         hooks[key] << "source #{new_hook}" if File.exist? new_hook
         hooks[key] << "source #{old_hook}" if File.exist? old_hook

@@ -23,8 +23,8 @@ db = Rails.application.config.datastore[:db]
 
 `mkdir -p /tmp/analytics`
 `mongoexport --username #{u} --password #{p} --host #{hp} --db #{db} --collection applications --out /tmp/analytics/analytics.apps.json --fields uuid,analytics,init_git_url,created_at,domain_id`
-`mongoexport --username #{u} --password #{p} --host #{hp} --db #{db} --collection domains --out /tmp/analytics/analytics.domains.json --fields _id,uuid,owner_id`
-`mongoexport --username #{u} --password #{p} --host #{hp} --db #{db} --collection cloud_users --out /tmp/analytics/analytics.users.json --fields _id,uuid`
+`mongoexport --username #{u} --password #{p} --host #{hp} --db #{db} --collection domains --out /tmp/analytics/analytics.domains.json --fields _id,owner_id`
+`mongoexport --username #{u} --password #{p} --host #{hp} --db #{db} --collection cloud_users --out /tmp/analytics/analytics.users.json --fields _id`
 `tar cvzf #{outfile} /tmp/analytics >& /dev/null`
 `rm -rf /tmp/analytics`
 

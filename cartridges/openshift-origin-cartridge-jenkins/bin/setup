@@ -17,11 +17,9 @@ function generate_ssh_keys {
     mkdir -p ${OPENSHIFT_DATA_DIR}/.ssh/
     ssh-keygen -N '' -f ${OPENSHIFT_DATA_DIR}/.ssh/jenkins_id_rsa > /dev/null
 
-    chown ${OPENSHIFT_APP_UUID}.${OPENSHIFT_APP_UUID} -R "${OPENSHIFT_DATA_DIR}/.ssh/"
     chmod 0750 "${OPENSHIFT_DATA_DIR}/.ssh/"
     chmod 0640 "${OPENSHIFT_DATA_DIR}/.ssh/jenkins_id_rsa"
     chmod 0640 "${OPENSHIFT_DATA_DIR}/.ssh/jenkins_id_rsa.pub"
-    #observe_setup_var_lib_dir "${OPENSHIFT_DATA_DIR}/.ssh/"
 }
 
 PATH=/bin:/usr/bin:$PATH
@@ -38,7 +36,7 @@ mkdir -p ${OPENSHIFT_JENKINS_DIR}/{bin,template,configuration,logs,data}
 
 # Copy the version specific files up to jenkins directory
 cp -r ${OPENSHIFT_JENKINS_DIR}/versions/${version}/configuration/* ${OPENSHIFT_JENKINS_DIR}/configuration
-cp -r ${OPENSHIFT_JENKINS_DIR}/versions/${version}/metadata/* ${OPENSHIFT_JENKINS_DIR}/metadata
+#cp -r ${OPENSHIFT_JENKINS_DIR}/versions/${version}/metadata/* ${OPENSHIFT_JENKINS_DIR}/metadata
 cp -r ${OPENSHIFT_JENKINS_DIR}/versions/${version}/template/* ${OPENSHIFT_JENKINS_DIR}/template
 cp -r ${OPENSHIFT_JENKINS_DIR}/versions/${version}/template/.openshift ${OPENSHIFT_JENKINS_DIR}/template
 

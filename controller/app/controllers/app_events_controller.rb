@@ -8,7 +8,7 @@ class AppEventsController < BaseController
   # URL: /domains/:domain_id/applications/:application_id/events
   #
   # Action: POST
-  # @param [String] event Appliction event to create. Supported types include
+  # @param [String] event Application event to create. Supported types include
   #   * start: Start all application cartridges
   #   * stop: Stop all application cartridges
   #   * force-stop: For all application cartridges to stop

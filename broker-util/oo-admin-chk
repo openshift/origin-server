@@ -64,14 +64,40 @@ require "/var/www/openshift/broker/config/environment"
 Rails.configuration.analytics[:enabled] = false
 Rails.configuration.msg_broker[:rpc_options][:disctimeout] = 20
 
-def datastore_has_gear?(gear_uuid, app_uuid=nil)
+def datastore_has_gear?(gear_uuid, app_uuid=nil, false_positive_response=true)
   $false_positive_check_cnt += 1
   if $false_positive_check_cnt < FALSE_POSITIVE_CHECK_LIMIT
-    query = { "group_instances.gears.uuid" => gear_uuid }
-    query['uuid'] = app_uuid if app_uuid
+    # specifying the app_uuid first, if present
+    # this makes better use of the indexes and performance is better 
+    if app_uuid
+      query = { "uuid" => app_uuid }
+    else
+      query = {}
+    end
+    query['group_instances.gears.uuid'] = gear_uuid
     return Application.where(query).exists?
   else
-    return true
+    return false_positive_response
+  end
+end
+
+def datastore_has_gear_uid?(gear_uid, false_positive_response=true)
+  $false_positive_check_cnt += 1
+  if $false_positive_check_cnt < FALSE_POSITIVE_CHECK_LIMIT
+    query = { "group_instances.gears.uid" => gear_uid }
+    return Application.where(query).exists?
+  else
+    return false_positive_response
+  end
+end
+
+def district_has_available_uid?(district_id, gear_uid, false_positive_response=true)
+  $false_positive_check_cnt += 1
+  if $false_positive_check_cnt < FALSE_POSITIVE_CHECK_LIMIT
+    query = { "_id" => district_id.to_s, "available_uids" => gear_uid }
+    return District.where(query).exists?
+  else
+    return false_positive_response
   end
 end
 
@@ -83,7 +109,7 @@ summary = []
 datastore_hash = {}
 user_hash = {}
 domain_hash = {}
-node_uid_hash = {}
+gear_uid_hash = {}
 district_hash = {}
 
 puts "Started at: #{Time.now}"
@@ -146,46 +172,40 @@ OpenShift::DataStore.find(:applications, query, selection) do |app|
           gi_hash[gi["_id"]] = false
         end
 
-        app["component_instances"].each do |ci|
-          if gi_hash.has_key? ci["group_instance_id"]
-            gi_hash[ci["group_instance_id"]] = true
-          else
-            summary << "Application #{app["name"]} with Id #{app['_id']} has missing group instance with Id #{ci["group_instance_id"]}"
-            no_error = false
+        if app['component_instances']
+          app['component_instances'].each do |ci|
+            if ci['group_instance_id'] and gi_hash.has_key? ci['group_instance_id']
+              gi_hash[ci['group_instance_id']] = true
+            else
+              summary << "Application '#{app['name']}' with Id '#{app['_id']}' has missing group instance for component instance '#{ci['_id']}'."
+              no_error = false
+            end
           end
-        end
-        
-        gi_hash.each do |gi_id, present|
-          unless present
-            summary << "Application #{app["name"]} with Id #{app['_id']} has no components for group instance with Id #{gi_id}"
-            no_error = false
+          gi_hash.each do |gi_id, present|
+            unless present
+              summary << "Application '#{app['name']}' with Id '#{app['_id']}' has no components for group instance with Id '#{gi_id}'"
+              no_error = false
+            end
           end
+        else
+          summary << "Application '#{app['name']}' with Id '#{app['_id']}' doesn't have any component instances"
+          no_error = false
         end
       end
     end
-    if app['group_instances']
-      app['group_instances'].each { |gi|
-        if gi['gears']
-          gi['gears'].each { |gear|
-            gear_count += 1
-            datastore_hash[gear['uuid'].to_s] = [login, creation_time, gear['uid'], gear['server_identity'], app["uuid"] ]
-            
-            if level >= 2 and Rails.configuration.msg_broker[:districts][:enabled]
-              # record all used uid values for each node to match later with the district
-              node_uid_hash[gear['server_identity']] = [] unless node_uid_hash.has_key?(gear['server_identity'])
-              node_uid_hash[gear['server_identity']] << gear['uid']
-            end
-          }
-        else
-          puts "ERROR: Group instance '#{gi['_id']}' for application: '#{app['name']}/#{app['uuid']}' doesn't have any gears"
-          no_error = false
+    app['group_instances'].each do |gi|
+      gi['gears'].each do |gear|
+        gear_count += 1
+        datastore_hash[gear['uuid'].to_s] = [login, creation_time, gear['uid'], gear['server_identity'], app["uuid"] ]
+        
+        if level >= 2 and Rails.configuration.msg_broker[:districts][:enabled]
+          # record all used uid values for each node to match later with the district
+          gear_uid_hash[gear['server_identity']] = [] unless gear_uid_hash.has_key?(gear['server_identity'])
+          gear_uid_hash[gear['server_identity']] << gear['uid'].to_i
         end
-      }
-      user_hash[owner_id]["domains"][domain_id] += gear_count if level >= 1
-    else
-      puts "ERROR: Application: '#{app['name']}/#{app['uuid']}' doesn't have any group instances"
-      no_error = false
+      end
     end
+    user_hash[owner_id]["domains"][domain_id] += gear_count if level >= 1
 end
 
 total_time = (Time.now.to_f * 1000).to_i - start_time
@@ -215,6 +235,9 @@ puts "Time to get all gears from nodes: #{total_time.to_f/1000}s"
 puts "Total gears found on the nodes: #{node_hash.length}"
 puts "Total nodes that responded : #{sender_hash.length}"
 
+# store the current time for comparisons
+current_time = Time.now
+
 # now check
 puts "Checking application gears on corresponding nodes:" if verbose
 datastore_hash.each { |gear_uuid, gear_info|
@@ -223,10 +246,10 @@ datastore_hash.each { |gear_uuid, gear_info|
   server_identity = gear_info[3]
   app_uuid = gear_info[4]
   print "#{gear_uuid} : #{gear_uuid.class}...\t" if verbose
-  if (Time.now - creation_time) > 600
+  if (current_time - creation_time) > 600
     if not node_hash.has_key? gear_uuid
       if sender_hash.has_key? server_identity
-        if datastore_has_gear?(gear_uuid, app_uuid)
+        if datastore_has_gear?(gear_uuid, app_uuid, false)
           no_error = false
           puts "FAIL" if verbose
           summary << "Gear #{gear_uuid} does not exist on any node"
@@ -252,7 +275,7 @@ node_hash.each { |gear_uuid, gear_info|
   print "#{gear_uuid}...\t" if verbose
   datastore_gear_info = datastore_hash[gear_uuid]
   if !datastore_gear_info
-    if !datastore_has_gear?(gear_uuid)
+    if !datastore_has_gear?(gear_uuid, nil, true)
       no_error = false
       puts "FAIL" if verbose
       summary << "Gear #{gear_uuid} exists on node #{gear_info[0]} (uid: #{gear_info[1]}) but does not exist in mongo database"
@@ -277,65 +300,85 @@ node_hash.each { |gear_uuid, gear_info|
 }
 
 if level >= 2
-  # store the creation threshold time for queries
-  creation_threshold_time = Time.now.to_i - 600
-
   # check for applications without any group instances in the database
-  query = {"group_instances.0" => {"$exists" => false}, "created_at" => {"$lt" => creation_threshold_time}}
-  selection = {:fields => ["name", "uuid"], :timeout => false}
+  puts "Checking for application without any group instances in the database:" if verbose
+  query = {"group_instances.0" => {"$exists" => false}}
+  selection = {:fields => ["name", "created_at"], :timeout => false}
   OpenShift::DataStore.find(:applications, query, selection) do |app|
-    summary << "Application #{app['name']} with uuid #{app['uuid']} does not have any group instances."
-    no_error = false
+    print "Application #{app['name']}/#{app['_id']}...\t" if verbose
+    if (current_time - app['created_at']) > 600
+      puts "FAIL" if verbose
+      no_error = false
+      summary << "Application '#{app['name']}' with Id '#{app['_id']}' does not have any group instances"
+    elsif verbose
+      puts "OK"
+    end
   end
 
   # check for applications without any gears in the group instance
-  query = {"group_instances" => {"$elemMatch" => { "gears" => {"$size" => 0}}}, "created_at" => {"$lt" => creation_threshold_time}}
-  selection = {:fields => ["name", "uuid", "group_instances._id"], :timeout => false}
+  puts "Checking for application without any gears in the group instances in the database:" if verbose
+  query = {"group_instances" => {"$elemMatch" => { "gears" => {"$size" => 0}}}}
+  selection = {:fields => ["name", "group_instances._id", "group_instances.gears._id", "created_at"], :timeout => false}
   OpenShift::DataStore.find(:applications, query, selection) do |app|
-    app['group_instances'].each do |gi|
-      if (not gi.has_key?("gears")) or gi['gears'].length == 0 
-        summary << "Application #{app['name']} with uuid #{app['uuid']} does not have any gears within group instance #{gi['_id']}."
-        no_error = false
+    print "Application #{app['name']}/#{app['_id']}...\t" if verbose
+    if (current_time - app['created_at']) > 600
+      app['group_instances'].each do |gi|
+        if (not gi.has_key?("gears")) or gi['gears'].length == 0 
+          no_error = false
+          puts "FAIL" if verbose
+          summary << "Application '#{app['name']}' with Id '#{app['_id']}' does not have any gears within group instance '#{gi['_id']}'"
+        end
       end
+    elsif verbose
+      puts "OK"
     end
   end
 
   # check for users with nil or empty or missing login in the database
+  puts "Checking for users with nil or empty or missing login in the database:" if verbose
   query = {"$or" => [{"login" => {"$type" => 10}}, {"login" => ""}, {"login" => {"$exists" => false}}]}
-  selection = {:fields => ["_id", "uuid"], :timeout => false}
+  selection = {:fields => ["_id"], :timeout => false}
   OpenShift::DataStore.find(:cloud_users, query, selection) do |user|
-    summary << "User with Id #{user['_id']} has a null, empty, or missing login."
     no_error = false
+    summary << "User with Id #{user['_id']} has a null, empty, or missing login."
   end
 
   if Rails.configuration.msg_broker[:districts][:enabled]
     # check for any unreserved uid in the district
-    # these are uids that gears are using but are still present in the district's available_uids 
-    node_uid_hash.each do |server_identity, uid_list|
-      district_info = nil
-      district_hash.each do |id, info|
+    # these are uids that gears are using but are still present in the district's available_uids
+    puts "Checking for unreserved UIDs in the district:" if verbose
+    gear_uid_hash.each do |server_identity, uid_list|
+      district_hash.each do |district_id, district_info|
         if district_info[2].include?(server_identity)
-          district_info = info
+          unreserved_uids = uid_list & district_info[3]
+          unreserved_uids.each do |unreserved_uid|
+            # re-checking unreserved UID in the database
+            print "Re-checking UID #{unreserved_uid} in district #{district_info[0]} in the database...\t" if verbose
+            if not datastore_has_gear_uid?(unreserved_uid, false)
+              # the UID is no longer being used by any gear
+              puts "OK" if verbose
+            elsif not district_has_available_uid?(district_id, unreserved_uid, false)
+              # the UID is available in the district
+              puts "OK" if verbose
+            else
+              no_error = false
+              puts "FAIL" if verbose
+              summary << "UID '#{unreserved_uid}' is available in district '#{district_info[0]}' but used by a gear on node '#{server_identity}'"
+            end
+          end
           break
-        end
-      end
-    
-      unless district_info.nil?
-        unreserved_uids = uid_list & district_info[3]
-        unreserved_uids.each do |unreserved_uid|
-          summary << "UID #{unreserved_uid} is available in #{district_info[0]} but used by a gear on node #{server_identity}."
-          no_error = false
         end
       end
     end
   
     # check for any unused uid in the district
-    # these are uids that are reserved in the district, but no gear is using 
+    # these are uids that are reserved in the district, but no gear is using
+    puts "Checking for unused UIDs in the district:" if verbose 
     district_used_uids = []
     district_hash.each do |district_id, district_info|
       # collect gear uids from all nodes with server identities within this district
       district_info[2].each do |server_identity|
-        district_used_uids << node_uid_hash[server_identity]
+        district_used_uids |= gear_uid_hash[server_identity]
       end
     
       first_uuid = Rails.configuration.msg_broker[:districts][:first_uid]
@@ -344,8 +387,19 @@ if level >= 2
       district_unused_uids = district_all_uids - district_info[3] - district_used_uids 
     
       district_unused_uids.each do |unused_uid|
-        summary << "UID #{unused_uid} is reserved but is not being used on any node within district #{district_info[0]}."
-        no_error = false
+        # re-checking unused UID in the database
+        print "Re-checking UID #{unused_uid} in district #{district_info[0]} in the database...\t" if verbose
+        if datastore_has_gear_uid?(unused_uid, true)
+          # found a gear that uses this UID  
+          puts "OK" if verbose
+        elsif district_has_available_uid?(district_id, unused_uid, true)
+          # the UID is no longer available in the district
+          puts "OK" if verbose
+        else
+          no_error = false
+          puts "FAIL" if verbose
+          summary << "UID '#{unused_uid}' is reserved in district '#{district_info[0]}' but not used by any gear"
+        end
       end
     end
   end

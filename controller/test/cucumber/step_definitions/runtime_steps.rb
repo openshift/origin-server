@@ -327,7 +327,6 @@ When /^I (fail to )?embed a ([^ ]+) cartridge into the application$/ do | negate
   end
 end
 
-
 # Un-embeds a cartridge from the current application's gear by 
 # invoking deconfigure on the named cartridge.
 When /^I remove the ([^ ]+) cartridge from the application$/ do | cart_name |
@@ -610,6 +609,11 @@ When /^the application is made publicly accessible$/ do
   run "echo -e \"Host #{@app.name}-#{@account.domain}.dev.rhcloud.com\n\tStrictHostKeyChecking no\n\" >> ~/.ssh/config"
 end
 
+When /^the application is prepared for git pushes$/ do
+  @app.git_repo = "#{$temp}/#{@account.name}-#{@app.name}-clone"
+  run "git clone ssh://#{@gear.uuid}@#{@app.name}-#{@account.domain}.dev.rhcloud.com/~/git/#{@app.name}.git #{@app.git_repo}"
+end
+
 
 # Captures the current cartridge PID hash for the test application and
 # makes it accessible to other steps via @current_cart_pids.
@@ -627,16 +631,14 @@ When /^hot deployment is( not)? enabled for the application$/ do |negate|
 end
 
 
-# Performs a trivial update to the test application source by appending
-# some random stuff to a dummy file. The change is then committed and 
-# pushed to the app's Git repo.
+# Expands the "simple update" step and adds hot deployment stuff for legacy carts.
 When /^an update (is|has been) pushed to the application repo$/ do |junk|
   record_measure("Runtime Benchmark: Updating #{$temp}/#{@account.name}-#{@app.name} source") do
-    tmp_git_root = "#{$temp}/#{@account.name}-#{@app.name}-clone"
+    steps %{
+    When the application is prepared for git pushes
+    }
 
-    run "git clone ssh://#{@gear.uuid}@#{@app.name}-#{@account.domain}.dev.rhcloud.com/~/git/#{@app.name}.git #{tmp_git_root}"
-
-    marker_file = File.join(tmp_git_root, '.openshift', 'markers', 'hot_deploy')
+    marker_file = File.join(@app.git_repo, '.openshift', 'markers', 'hot_deploy')
 
     if @app.hot_deploy_enabled
       FileUtils.touch(marker_file)
@@ -644,7 +646,18 @@ When /^an update (is|has been) pushed to the application repo$/ do |junk|
       FileUtils.rm_f(marker_file)
     end
 
-    Dir.chdir(tmp_git_root) do
+    steps %{
+    When a simple update is pushed to the application repo
+    }
+  end
+end
+
+# Performs a trivial update to the test application source by appending
+# some random stuff to a dummy file. The change is then committed and 
+# pushed to the app's Git repo.
+When /^a simple update is pushed to the application repo$/ do
+  record_measure("Runtime Benchmark: Pushing random change to app repo at #{@app.git_repo}") do
+    Dir.chdir(@app.git_repo) do
       # Make a change to the app repo
       run "echo $RANDOM >> cucumber_update_test"
       run "git add ."
@@ -672,7 +685,7 @@ end
 
 # Asserts the 'cucumber_update_test' file exists after an update
 Then /^the application repo has been updated$/ do
-  assert_file_exist File.join($home_root,
+  assert_file_exists File.join($home_root,
                               @gear.uuid,
                               'app-root',
                               'runtime',

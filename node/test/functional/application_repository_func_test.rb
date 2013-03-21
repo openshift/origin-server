@@ -20,14 +20,21 @@ require 'test/unit'
 require 'mocha'
 
 class ApplicationRepositoryFuncTest < Test::Unit::TestCase
-  User = Struct.new(:homedir, :uid, :app_name)
+  User = Struct.new(:homedir, :uid, :app_name, :application_uuid, :container_uuid, :container_name, :namespace)
 
   def setup
     @uuid           = `uuidgen -r |sed -e s/-//g`.chomp
     @uid            = 1001
     @homedir        = "/tmp/tests/#@uuid"
     @cartridge_name = 'mock-0.0'
-    @user           = User.new("/tmp/tests/#@uuid", @uid, 'mocking')
+    @user           = User.new(
+                        "/tmp/tests/#@uuid", 
+                        @uid, 
+                        'mocking',
+                        @uuid,
+                        @uuid,
+                        @uuid,
+                        'mynamespace')
 
     # polyinstantiation makes creating the homedir a pain...
     FileUtils.rm_r @homedir if File.exist?(@homedir)
