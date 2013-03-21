@@ -31,7 +31,12 @@ optparse = OptionParser.new { |opts|
     opts.on('-v','--verbose', 'Print verbose statements') { |verbose|
         $OPTIONS[:verbose] = verbose
     }
-}
+
+    $OPTIONS[:timeout] = 60
+    opts.on('-t n','--timeout n', OptionParser::DecimalInteger, 'length of timeout') { |timeout|
+      $OPTIONS[:timeout] = timeout
+    }
+  }
 optparse.parse!
 
 def verbose(msg)
@@ -230,7 +235,7 @@ def check_selinux()
         do_fail("selinux is not enabled")
     else
         verbose("checking selinux #{policy_name} policy")
-        do_fail("selinux #{policy_name} policy is not loaded") unless %x[/usr/bin/timeout -s9 10 /usr/sbin/semodule -l] =~ /#{policy_name}[\d\.\W]+$/
+        do_fail("selinux #{policy_name} policy is not loaded") unless %x[/usr/bin/timeout -s9 #{$OPTIONS[:timeout]} /usr/sbin/semodule -l] =~ /#{policy_name}[\d\.\W]+$/
     end
     verbose("checking selinux booleans")
     $SEBOOL_LIST.split.each { |bool|
