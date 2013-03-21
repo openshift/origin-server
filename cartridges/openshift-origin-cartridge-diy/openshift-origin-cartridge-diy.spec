@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/openshift/cartridges/v2/diy-0.1
 
 Name: openshift-origin-cartridge-diy
-Version: 0.1.4
+Version: 0.1.5
 Release: 1%{?dist}
 Summary: Php cartridge
 Group: Development/Languages
@@ -52,6 +52,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Thu Mar 21 2013 Adam Miller <admiller@redhat.com> 0.1.5-1
+- Change V2 manifest Version elements to strings (pmorie@gmail.com)
+
 * Mon Mar 18 2013 Adam Miller <admiller@redhat.com> 0.1.4-1
 - Fixing DIY cart git repo creation (chris@@hoflabs.com)
 
