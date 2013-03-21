@@ -16,7 +16,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version:       1.6.4
+Version:       1.6.5
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -232,6 +232,46 @@ fi
 %attr(0755,-,-) %{_var}/run/openshift
 
 %changelog
+* Thu Mar 21 2013 Adam Miller <admiller@redhat.com> 1.6.5-1
+- Merge pull request #1743 from jwhonce/wip/cartridge_ident
+  (dmcphers+openshiftbot@redhat.com)
+- WIP Cartridge Refactor - Add new environment variables (jhonce@redhat.com)
+- Merge pull request #1740 from ironcladlou/dev/v2carts/build-system
+  (dmcphers+openshiftbot@redhat.com)
+- WIP Cartridge Refactor - Add new environment variables (jhonce@redhat.com)
+- Merge pull request #1739 from rmillner/lock_ssh (dmcphers@redhat.com)
+- Improve build output to client (ironcladlou@gmail.com)
+- Protect ssh key edits with a mutex and lock file. (rmillner@redhat.com)
+- Fix mixed case if inferring FQDN from gear information. (rmillner@redhat.com)
+- Improve logging/client output during build (ironcladlou@gmail.com)
+- Merge pull request #1714 from pmorie/dev/v2_mysql (admiller@redhat.com)
+- Cart V2 build implementation WIP (ironcladlou@gmail.com)
+- Merge pull request #1717 from jwhonce/wip/setup_version
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #1704 from sosiouxme/bz919619
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #1706 from jwhonce/wip/setup_dot_files
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #1719 from jwhonce/wip/documentation (dmcphers@redhat.com)
+- WIP Cartridge Refactor - update documentation (jhonce@redhat.com)
+- WIP Cartridge Refactor -- restore --version to setup calls
+  (jhonce@redhat.com)
+- WIP: v2 mysql (pmorie@gmail.com)
+- <ApplicationContainer> bug 919619 move git gc later in tidy process.
+  (lmeyer@redhat.com)
+- WIP Cartridge Refactor - glob dot files from CartridgeRepository
+  (jhonce@redhat.com)
+- Updating rest-client and rake gem versions to match F18 (kraman@gmail.com)
+- Merge pull request #1695 from jwhonce/wip/coverage
+  (dmcphers+openshiftbot@redhat.com)
+- WIP Cartridge Refactor - Work on tests and coverage (jhonce@redhat.com)
+- WIP Cartridge Refactor - Mung cartridge-vendor omit spaces and downcase
+  (jhonce@redhat.com)
+- Merge pull request #1683 from jwhonce/wip/mock_updated (dmcphers@redhat.com)
+- WIP Cartridge Refactor - missed commit (jhonce@redhat.com)
+- WIP Cartridge Refactor - Fix node_test.rb (jhonce@redhat.com)
+- WIP Cartridge Refactor - cucumber test refactor (jhonce@redhat.com)
+
 * Mon Mar 18 2013 Adam Miller <admiller@redhat.com> 1.6.4-1
 - Add SNI upload support to API (lnader@redhat.com)
 - WIP Cartridge Refactor - Fix v2_cart_model_test (jhonce@redhat.com)
