@@ -663,8 +663,10 @@ Dir(after)    #{@uuid}/#{@uid} => #{list_home_dir(@homedir)}
           begin
             File.open(authorized_keys_file, File::RDWR|File::CREAT, 0o0440) do |file|
               file.each_line do |line|
-                options, key_type, key, comment = line.split
-                keys[comment] = line.chomp
+                begin
+                  keys[line.split[-1].chomp] = line.chomp
+                rescue
+                end
               end
 
               if block_given?
