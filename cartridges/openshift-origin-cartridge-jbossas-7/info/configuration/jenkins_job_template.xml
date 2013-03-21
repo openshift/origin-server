@@ -86,7 +86,7 @@ mvn --global-settings $OPENSHIFT_MAVEN_MIRROR clean package -Popenshift -DskipTe
 jenkins_stop_app UPSTREAM_SSH
 
 # Push content back to application
-jenkins_sync_jboss UPSTREAM_SSH
+jenkins_sync_jboss UPSTREAM_SSH 
 
 # Configure / start app
 $GIT_SSH UPSTREAM_SSH deploy.sh
