@@ -70,5 +70,7 @@ class UnixUserModelFunctionalTest < Test::Unit::TestCase
     assert_directory?("/tmp/homedir/.tmp")
     assert_directory?("/tmp/homedir/.env")
     assert_directory?("/tmp/homedir/.sandbox")
+    assert File.exist?("/tmp/homedir/.env/OPENSHIFT_NAMESPACE")
+
   end
 end

@@ -187,6 +187,17 @@ module OpenShift
         @is_framework
       end
 
+      def self.build_ident(vendor, software, software_version, cartridge_version)
+        vendor = vendor.gsub(/\s+/, '').downcase
+        "#{vendor}:#{software}:#{software_version}:#{cartridge_version}"
+      end
+
+      def self.parse_ident(ident)
+        ident = ident.split(':')
+        raise ArgumentError.new("#{ident} is not a legal cartridge identifier") if 4 != ident.size
+        ident
+      end
+
       def to_s
         instance_variables.each_with_object('<Cartridge: ') do |v, a|
           a << "#{v}: #{instance_variable_get(v)} "

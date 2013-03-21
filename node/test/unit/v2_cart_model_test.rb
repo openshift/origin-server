@@ -181,28 +181,6 @@ class V2CartModelTest < Test::Unit::TestCase
     end
   end
 
-
-  def test_get_system_cartridge
-    OpenShift::CartridgeRepository.
-        any_instance.
-        expects(:select).
-        with(any_of('mock', 'mock-plugin'), anything).
-        returns(@mock_cartridge)
-
-    scenarios = {
-        'mock-1.0' => "/tmp/unittest-mock/1.0",
-    }
-
-    scenarios.each do |cart_name, expected_path|
-      c = @model.get_cartridge_from_repository(cart_name)
-      assert_equal expected_path, c.repository_path
-    end
-
-    assert_raise(RuntimeError) do
-      @model.get_cartridge_from_repository("bozo")
-    end
-  end
-
   def test_private_endpoint_create
     ip1 = "127.0.250.1"
     ip2 = "127.0.250.2"
