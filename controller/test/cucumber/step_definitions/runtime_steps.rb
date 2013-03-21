@@ -781,6 +781,14 @@ end
 
 
 def cart_env_var_will_exist(cart_name, var_name, negate = false)
+  cart_env_var_common cart_name, var_name, nil, negate
+end
+
+def cart_env_var_will_equal(cart_name, var_name, expected)
+  cart_env_var_common cart_name, var_name, expected, false
+end
+
+def cart_env_var_common(cart_name, var_name, expected = nil, negate = false)
   var_name = "OPENSHIFT_#{var_name}"
 
   cartridge = @gear.container.cartridge_model.get_cartridge(cart_name)
@@ -792,6 +800,10 @@ def cart_env_var_will_exist(cart_name, var_name, negate = false)
   else
     assert_file_exists var_file_path
     assert((File.stat(var_file_path).size > 0), "#{var_file_path} is empty")
+    if expected
+      file_content = File.read(var_file_path).chomp
+      assert_match /#{var_name}='#{expected}'/, file_content
+    end
   end
 end
 
@@ -839,6 +851,10 @@ end
 
 Then /^the ([^ ]+) ([^ ]+) env entry will( not)? exist$/ do |cartridge_name, variable, negate|
   cart_env_var_will_exist(cartridge_name, variable, negate)
+end
+
+Then /^the ([^ ]+) ([^ ]+) env entry will equal '([^\']+)'$/ do |cartridge_name, variable, expected|
+  cart_env_var_will_equal cartridge_name, variable, expected
 end
 
 Then /^the platform-created default environment variables will exist$/ do

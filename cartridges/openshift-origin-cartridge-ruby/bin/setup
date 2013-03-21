@@ -18,7 +18,10 @@ for dir in etc metadata template; do
     cp -Lr $OPENSHIFT_RUBY_DIR/versions/$version/$dir/* $OPENSHIFT_RUBY_DIR/$dir 
 done
 
+cat > $OPENSHIFT_RUBY_DIR/env/OPENSHIFT_RUBY_VERSION <<EOF
+export OPENSHIFT_RUBY_VERSION='$version'
+EOF
+
 # Create additional directories required by RUBY and httpd
 ln -s /usr/lib64/httpd/modules $OPENSHIFT_RUBY_DIR
 ln -s /etc/httpd/conf/magic $OPENSHIFT_RUBY_DIR/etc/magic
-
