@@ -5,7 +5,7 @@
 
 Summary:       Provides JBossEAP6.0 support
 Name:          openshift-origin-cartridge-jbosseap
-Version:       2.0.2
+Version:       2.0.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -79,7 +79,7 @@ alternatives --set jbosseap-6.0 /usr/share/jbossas
 # the postgresql module is added to jboss eap 6.0.* upstream.
 mkdir -p /etc/alternatives/jbosseap-6.0/modules/org/postgresql/jdbc/main
 ln -fs /usr/share/java/postgresql-jdbc3.jar /etc/alternatives/jbosseap-6.0/modules/org/postgresql/jdbc/main
-cp -p %{cartridgedir}/info/configuration/postgresql_module.xml /etc/alternatives/jbosseap-6.0/modules/org/postgresql/jdbc/main/module.xml
+cp -p %{cartridgedir}/versions/6.0/modules/postgresql_module.xml /etc/alternatives/jbosseap-6.0/modules/org/postgresql/jdbc/main/module.xml
 
 
 %files
@@ -98,6 +98,15 @@ cp -p %{cartridgedir}/info/configuration/postgresql_module.xml /etc/alternatives
 
 
 %changelog
+* Mon Mar 18 2013 Adam Miller <admiller@redhat.com> 2.0.3-1
+- Merge pull request #1655 from bdecoste/master
+  (dmcphers+openshiftbot@redhat.com)
+- remove java-devel BuildRequires, move ROOT.war jar to configure
+  (bdecoste@gmail.com)
+- remove java-devel BuildRequires, move ROOT.war jar to configure
+  (bdecoste@gmail.com)
+- add cart vendor and version (dmcphers@redhat.com)
+
 * Thu Mar 14 2013 Adam Miller <admiller@redhat.com> 2.0.2-1
 - fix eap spec file versions (bdecoste@gmail.com)
 - Merge pull request #1644 from ironcladlou/dev/v2carts/endpoint-refactor

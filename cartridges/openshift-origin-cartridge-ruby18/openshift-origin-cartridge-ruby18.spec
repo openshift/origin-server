@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/openshift/cartridges/v2/ruby18
 
 Name: openshift-origin-cartridge-ruby18
-Version: 0.1.20
+Version: 0.1.21
 Release: 1%{?dist}
 Summary: Ruby cartridge
 Group: Development/Languages
@@ -81,6 +81,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Mon Mar 18 2013 Adam Miller <admiller@redhat.com> 0.1.21-1
+- add cart vendor and version (dmcphers@redhat.com)
+
 * Thu Mar 14 2013 Adam Miller <admiller@redhat.com> 0.1.20-1
 - Refactor Endpoints to support frontend mapping (ironcladlou@gmail.com)
 - remove old obsoletes (tdawson@redhat.com)

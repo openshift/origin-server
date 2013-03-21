@@ -6,7 +6,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin broker
 Name:          openshift-origin-broker-util
-Version: 1.6.2
+Version: 1.6.3
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -63,6 +63,8 @@ cp kickstart/openshift-origin-remix.ks %{buildroot}/usr/share/openshift/kickstar
 %attr(0750,-,-) %{_sbindir}/oo-admin-move
 %attr(0750,-,-) %{_sbindir}/oo-admin-broker-auth
 %attr(0750,-,-) %{_sbindir}/oo-admin-usage
+%attr(0750,-,-) %{_sbindir}/oo-analytics-export
+%attr(0750,-,-) %{_sbindir}/oo-analytics-import
 %attr(0750,-,-) %{_sbindir}/oo-register-dns
 %attr(0750,-,-) %{_sbindir}/oo-setup-bind
 %attr(0750,-,-) %{_sbindir}/oo-setup-broker
@@ -89,6 +91,24 @@ cp kickstart/openshift-origin-remix.ks %{buildroot}/usr/share/openshift/kickstar
 %{_mandir}/man8/oo-stats.8.gz
 
 %changelog
+* Mon Mar 18 2013 Adam Miller <admiller@redhat.com> 1.6.3-1
+- Reporting errors for gears that aren't found (bleanhar@redhat.com)
+- Bug 922678 - Fixing oo-admin-broker-auth's --rekey option
+  (bleanhar@redhat.com)
+- Bug 922677 - Warning if --find-gears can't locate all nodes
+  (bleanhar@redhat.com)
+- Merge pull request #1633 from lnader/revert_pull_request_1486
+  (dmcphers+openshiftbot@redhat.com)
+- Changed private_certificate to private_ssl_certificate (lnader@redhat.com)
+- Add SNI upload support to API (lnader@redhat.com)
+- Improving efficiency of checks and fixing empty gear check Additional fixes
+  for oo-admin-chk (abhgupta@redhat.com)
+- Merge pull request #1660 from rajatchopra/master
+  (dmcphers+openshiftbot@redhat.com)
+- improve clear-pending-ops to handle new failures as shown in prod
+  (rchopra@redhat.com)
+- Adding additional checks to oo-admin-chk script (abhgupta@redhat.com)
+
 * Thu Mar 14 2013 Adam Miller <admiller@redhat.com> 1.6.2-1
 - Merge pull request #1637 from brenton/BZ921257 (dmcphers@redhat.com)
 - Lots of oo-accept-broker fixes (bleanhar@redhat.com)

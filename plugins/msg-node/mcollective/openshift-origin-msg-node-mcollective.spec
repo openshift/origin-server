@@ -10,7 +10,7 @@
 
 Summary:       M-Collective agent file for openshift-origin-msg-node-mcollective
 Name:          openshift-origin-msg-node-mcollective
-Version: 1.6.2
+Version: 1.6.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -54,6 +54,9 @@ cp -p facts/update_yaml.rb %{buildroot}/usr/libexec/mcollective/
 %attr(0700,-,-) %config(noreplace) /etc/cron.minutely/openshift-facts
 
 %changelog
+* Mon Mar 18 2013 Adam Miller <admiller@redhat.com> 1.6.3-1
+- Add SNI upload support to API (lnader@redhat.com)
+
 * Thu Mar 14 2013 Adam Miller <admiller@redhat.com> 1.6.2-1
 - Replacing get_value() with config['param'] style calls for new version of
   parseconfig gem. (kraman@gmail.com)

@@ -47,10 +47,10 @@ result=`run_as_user "$CARTRIDGE_BASE_PATH/ruby-1.9/info/bin/threaddump.sh $1 $3"
 
 if [ "$result" = "" ]; then
     DATE=`date -u '+%Y%m%d'`
-    ZONE=`date +%Z`
     client_result "Success"
     client_result ""
-    client_result "The thread dump file will be available via: rhc tail ${application} -f ${cartridge_type}/logs/error_log-$DATE-000000-$ZONE -o '-n 250'"
+    # note bz 923405/921537 for why log file name is not more specific
+    client_result "The thread dump file will be available via: rhc tail ${application} -f ${cartridge_type}/logs/error_log-$DATE-* -o '-n 250'"
 else
     client_result " $result"
 fi

@@ -80,8 +80,8 @@ mkdir -p %{buildroot}%{webproxymoduledir}/bin
 install -D -m 644 bin/*  %{buildroot}%{webproxymoduledir}/bin
 
 mkdir -p %{buildroot}%{_var}/log/node-web-proxy
-if [ ! -f %{buildroot}%{_var}/log/node-web-proxy/supervisor_log ]; then
-   /bin/touch %{buildroot}%{_var}/log/node-web-proxy/supervisor_log
+if [ ! -f %{buildroot}%{_var}/log/node-web-proxy/supervisor.log ]; then
+   /bin/touch %{buildroot}%{_var}/log/node-web-proxy/supervisor.log
 fi
 
 
@@ -116,7 +116,7 @@ fi
 %attr(0755,-,-) %{_bindir}/node-find-proxy-route-files
 %attr(0640,-,-) %{_sysconfdir}/openshift/web-proxy-config.json
 %attr(0644,-,-) %{_sysconfdir}/logrotate.d/openshift-node-web-proxy
-%ghost %attr(0660,root,root) %{_var}/log/node-web-proxy/supervisor_log
+%ghost %attr(0660,root,root) %{_var}/log/node-web-proxy/supervisor.log
 %dir %attr(0700,apache,apache) %{_var}/log/node-web-proxy
 %dir %attr(0755,-,-) %{webproxymoduledir}
 %{webproxymoduledir}

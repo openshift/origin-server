@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.6.2
+Version: 1.6.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -83,6 +83,37 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Mon Mar 18 2013 Adam Miller <admiller@redhat.com> 1.6.3-1
+- Adding permission related support for cartridge-php tests (kraman@gmail.com)
+- Disable cartridge-php.feature on Fedora due to hard coded assumptions about
+  RHEL paths (kraman@gmail.com)
+- Removing hack for separating id from format in keys controller
+  (abhgupta@redhat.com)
+- Adding back the get_mcs_level function for the php cartridge tests
+  (kraman@gmail.com)
+- Merge pull request #1633 from lnader/revert_pull_request_1486
+  (dmcphers+openshiftbot@redhat.com)
+- Fixing fedora tests for php and mongodb (kraman@gmail.com)
+- Merge pull request #1663 from smarterclayton/cache_enable_origin
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 920801 (lnader@redhat.com)
+- Fixed merge conflict (lnader@redhat.com)
+- Changed private_certificate to private_ssl_certificate (lnader@redhat.com)
+- Add SNI upload support to API (lnader@redhat.com)
+- save analytics in application (rchopra@redhat.com)
+- Support cache config (ccoleman@redhat.com)
+- Merge pull request #1653 from calfonso/master
+  (dmcphers+openshiftbot@redhat.com)
+- Fix typo in runtime cuke test stepdefs (ironcladlou@gmail.com)
+- Disable check for quota over ssh on Fedora (kraman@gmail.com)
+- Fix for bug 918966 Removing constraints from routes and adding regex checks
+  in controllers (abhgupta@redhat.com)
+- Merge pull request #1651 from rmillner/build_failures
+  (dmcphers+openshiftbot@redhat.com)
+- DIY Cartridge 2.0 (chris@@hoflabs.com)
+- RHEL and Fedora have different versions of the cartridge.
+  (rmillner@redhat.com)
+
 * Thu Mar 14 2013 Adam Miller <admiller@redhat.com> 1.6.2-1
 - Merge pull request #1644 from ironcladlou/dev/v2carts/endpoint-refactor
   (dmcphers@redhat.com)

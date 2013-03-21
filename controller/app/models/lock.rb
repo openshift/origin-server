@@ -79,7 +79,16 @@ class Lock
   # True if the lock was successful.
   def self.lock_application(application, timeout=600)
     begin
-      user_id = application.domain.owner_id
+      # application.domain can be nil if the application is being created immediately after domain creation
+      # If the domain is being read from the secondary, it may not be present
+      # If domain is nil, try to load the domain from the primary
+      # Note: If there is a way to load the domain relationship from the primary, we should do that 
+      if application.domain.nil?
+        user_id = Domain.with(consistency: :strong).find_by(_id: application.domain_id).owner_id
+      else
+        user_id = application.domain.owner_id
+      end
+      
       app_id = application._id.to_s
       now = Time.now.to_i
       query = { :user_id => user_id, "$or" => [{"app_ids.#{app_id}" => {"$exists" => false}}, {"app_ids.#{app_id}" => {"$lt" => now}}] }
@@ -102,7 +111,16 @@ class Lock
   # True if the unlock was successful.
   def self.unlock_application(application)
     begin
-      user_id = application.domain.owner_id
+      # application.domain can be nil if the application is being created immediately after domain creation
+      # If the domain is being read from the secondary, it may not be present
+      # If domain is nil, try to load the domain from the primary
+      # Note: If there is a way to load the domain relationship from the primary, we should do that 
+      if application.domain.nil?
+        user_id = Domain.with(consistency: :strong).find_by(_id: application.domain_id).owner_id
+      else
+        user_id = application.domain.owner_id
+      end
+
       app_id = application._id.to_s
       query = {:user_id => user_id, :locked => false, "app_ids.#{app_id}" => { "$exists" => true }}
       updates = {"$unset"=> {"app_ids.#{app_id}" => ""}}

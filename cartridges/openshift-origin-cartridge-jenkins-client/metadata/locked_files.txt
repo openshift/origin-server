@@ -1,5 +1,5 @@
-jenkins/
-jenkins/configuration/
-jenkins/metadata/
-jenkins/env/
-jenkins/template/
+redhat-jenkins-client/
+redhat-jenkins-client/.password
+redhat-jenkins-client/metadata/
+redhat-jenkins-client/configuration/
+redhat-jenkins-client/env/

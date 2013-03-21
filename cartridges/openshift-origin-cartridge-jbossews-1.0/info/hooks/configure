@@ -174,7 +174,9 @@ populate_repo_dir
 
 # Copy the example WAR to the webapps directories
 #cp ${JBOSS_CARTRIDGE_ROOT}/info/data/ROOT.war $APP_REPO_DIR/webapps
-jar cvf $APP_REPO_DIR/webapps/ROOT.war ${JBOSS_CARTRIDGE_ROOT}/template/*
+pushd ${JBOSS_CARTRIDGE_ROOT}/template/src/main/webapp
+jar cvf $APP_REPO_DIR/webapps/ROOT.war ./*
+popd
 
 secure_app_dir
 secure_cart_instance_dir

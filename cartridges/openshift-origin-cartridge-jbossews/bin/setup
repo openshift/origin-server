@@ -1,0 +1,25 @@
+#!/bin/bash
+set -e
+set -x
+
+SYSTEM_JBOSSEWS_DIR=/etc/alternatives/jbossews-2.0
+
+mkdir ${OPENSHIFT_JBOSSEWS_DIR}/{run,tmp,conf,logs}
+mkdir ${OPENSHIFT_HOMEDIR}/.m2
+
+# Link the system Tomcat binaries to the cart Tomcat instance directory
+ln -s ${SYSTEM_JBOSSEWS_DIR}/bin/bootstrap.jar ${OPENSHIFT_JBOSSEWS_DIR}/bin/bootstrap.jar
+ln -s ${SYSTEM_JBOSSEWS_DIR}/bin/commons-daemon.jar ${OPENSHIFT_JBOSSEWS_DIR}/bin/commons-daemon.jar
+ln -s ${SYSTEM_JBOSSEWS_DIR}/bin/tomcat-juli.jar ${OPENSHIFT_JBOSSEWS_DIR}/bin/tomcat-juli.jar
+ln -s ${SYSTEM_JBOSSEWS_DIR}/lib ${OPENSHIFT_JBOSSEWS_DIR}/lib
+
+# Link the user-controlled configurations to the Tomcat conf directory
+ln -s ${OPENSHIFT_REPO_DIR}/.openshift/config/server.xml ${OPENSHIFT_JBOSSEWS_DIR}/conf
+ln -s ${OPENSHIFT_REPO_DIR}/.openshift/config/web.xml ${OPENSHIFT_JBOSSEWS_DIR}/conf
+ln -s ${OPENSHIFT_REPO_DIR}/.openshift/config/context.xml ${OPENSHIFT_JBOSSEWS_DIR}/conf
+ln -s ${OPENSHIFT_REPO_DIR}/.openshift/config/tomcat-users.xml ${OPENSHIFT_JBOSSEWS_DIR}/conf
+ln -s ${OPENSHIFT_REPO_DIR}/.openshift/config/catalina.properties ${OPENSHIFT_JBOSSEWS_DIR}/conf
+ln -s ${OPENSHIFT_REPO_DIR}/.openshift/config/logging.properties ${OPENSHIFT_JBOSSEWS_DIR}/conf
+
+# Create a link from the repo/webapps directory to the Tomcat webapps directory
+ln -s ${OPENSHIFT_REPO_DIR}/webapps ${OPENSHIFT_JBOSSEWS_DIR}/webapps

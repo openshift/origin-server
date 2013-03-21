@@ -1,8 +1,8 @@
-%global cartridgedir %{_libexecdir}/openshift/cartridges/v2/php-5.3
-%global frameworkdir %{_libexecdir}/openshift/cartridges/v2/php-5.3
+%global cartridgedir %{_libexecdir}/openshift/cartridges/v2/php
+%global frameworkdir %{_libexecdir}/openshift/cartridges/v2/php
 
 Name: openshift-origin-cartridge-php
-Version: 0.1.2
+Version: 0.1.3
 Release: 1%{?dist}
 Summary: Php cartridge
 Group: Development/Languages
@@ -50,7 +50,7 @@ PHP cartridge for openshift.
 %install
 rm -rf %{buildroot}
 mkdir -p %{buildroot}%{cartridgedir}
-mkdir -p %{buildroot}/%{_sysconfdir}/openshift/cartridges
+mkdir -p %{buildroot}/%{_sysconfdir}/openshift/cartridges/v2
 cp -r * %{buildroot}%{cartridgedir}/
 
 
@@ -72,6 +72,10 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Mon Mar 18 2013 Adam Miller <admiller@redhat.com> 0.1.3-1
+- Fix issue in copying over template. (mrunalp@gmail.com)
+- add cart vendor and version (dmcphers@redhat.com)
+
 * Thu Mar 14 2013 Adam Miller <admiller@redhat.com> 0.1.2-1
 - PHP cart manifest fixup and other cleanup. (mrunalp@gmail.com)
 

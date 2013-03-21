@@ -1,0 +1,106 @@
+#!/bin/bash
+
+source ${OPENSHIFT_JBOSSEWS_DIR}/bin/util
+
+export_java_home
+
+max_memory_bytes=`oo-cgroup-read memory.limit_in_bytes`
+max_threads=`ulimit -u`
+
+if ! [[ "$max_memory_bytes" =~ ^[0-9]+$ ]] ; then
+        max_memory_bytes=536870912
+fi
+
+if ! [[ "$max_threads" =~ ^[0-9]+$ ]] ; then
+        max_threads=1024
+fi
+
+if [ -z $JVM_HEAP_RATIO ]; then
+	JVM_HEAP_RATIO=0.5
+fi
+if [ -z $JVM_PERMGEN_RATIO ]; then
+	JVM_PERMGEN_RATIO=0.2
+fi
+
+max_memory_mb=`expr $max_memory_bytes / 1048576`
+max_heap=$( echo "$max_memory_mb * $JVM_HEAP_RATIO" | bc | awk '{print int($1+0.5)}')
+max_permgen=$( echo "$max_memory_mb * $JVM_PERMGEN_RATIO" | bc | awk '{print int($1+0.5)}')
+
+if [ $max_permgen -gt 256 ]
+then
+	max_permgen=256
+fi
+
+memory_options="-Xmx${max_heap}m -XX:MaxPermSize=${max_permgen}m -XX:+AggressiveOpts" 
+
+#
+# Specify options to pass to the Java VM.
+#
+if [ -z $JAVA_OPTS ]; then
+   JAVA_OPTS="$memory_options -Djava.util.logging.config.file=$CATALINA_BASE/conf/logging.properties -Djava.util.logging.manager=org.apache.juli.ClassLoaderLogManager -Djava.net.preferIPv4Stack=true -Dfile.encoding=UTF-8 -Djava.net.preferIPv4Stack=true"                                                                                                                                    
+
+   if marker_present "enable_jpda"; then
+      echo "enable_jpda marker found; enabling debugging on ${OPENSHIFT_JBOSSEWS_IP}:${OPENSHIFT_JBOSSEWS_JPDA_PORT}"
+   	  JAVA_OPTS="$JAVA_OPTS -Xdebug -Xrunjdwp:transport=dt_socket,address=${OPENSHIFT_JBOSSEWS_IP}:${OPENSHIFT_JBOSSEWS_JPDA_PORT},server=y,suspend=n"
+   fi
+
+   # Make OpenShift-specific environment variables available to the
+   # JVM and thus the Tomcat server.xml configuration.
+   JAVA_OPTS="$JAVA_OPTS \
+                -DOPENSHIFT_JBOSSEWS_IP=${OPENSHIFT_JBOSSEWS_IP} \
+                -DOPENSHIFT_JBOSSEWS_HTTP_PORT=${OPENSHIFT_JBOSSEWS_HTTP_PORT}"
+fi
+
+JAVACMD=$JAVA_HOME/bin/java
+
+# CLASSPATH munging
+if [ -n "$JSSE_HOME" ]; then
+  CLASSPATH="${CLASSPATH}:$(build-classpath jcert jnet jsse 2>/dev/null)"
+fi
+CLASSPATH="${CLASSPATH}:${CATALINA_HOME}/bin/bootstrap.jar"
+CLASSPATH="${CLASSPATH}:${CATALINA_HOME}/bin/commons-logging-tomcat-juli.jar"
+CLASSPATH="${CLASSPATH}:${CATALINA_HOME}/bin/tomcat-juli.jar"
+CLASSPATH="${CLASSPATH}:$(build-classpath commons-daemon 2>/dev/null)"
+
+if [ "$1" = "start" ]; then
+  ${JAVACMD} $JAVA_OPTS $LOGGING_CONFIG $CATALINA_OPTS \
+    -classpath "$CLASSPATH" \
+    -Dcatalina.base="$CATALINA_BASE" \
+    -Dcatalina.home="$CATALINA_HOME" \
+    -Djava.endorsed.dirs="$JAVA_ENDORSED_DIRS" \
+    -Djava.io.tmpdir="$CATALINA_TMPDIR" \
+    org.apache.catalina.startup.Bootstrap start \
+    >> ${CATALINA_BASE}/logs/catalina.out 2>&1 
+    if [ ! -z "$CATALINA_PID" ]; then
+      echo $! > $CATALINA_PID
+    fi
+elif [ "$1" = "start-security" ]; then
+  ${JAVACMD} $JAVA_OPTS $LOGGING_CONFIG $CATALINA_OPTS \
+    -classpath "$CLASSPATH" \
+    -Dcatalina.base="$CATALINA_BASE" \
+    -Dcatalina.home="$CATALINA_HOME" \
+    -Djava.endorsed.dirs="$JAVA_ENDORSED_DIRS" \
+    -Djava.io.tmpdir="$CATALINA_TMPDIR" \
+    -Djava.security.manager \
+    -Djava.security.policy=="${CATALINA_BASE}/conf/catalina.policy" \
+    org.apache.catalina.startup.Bootstrap start \
+    >> ${CATALINA_BASE}/logs/catalina.out 2>&1 
+    if [ ! -z "$CATALINA_PID" ]; then
+      echo $! > $CATALINA_PID
+    fi
+elif [ "$1" = "stop" ]; then
+  ${JAVACMD} $JAVA_OPTS $LOGGING_CONFIG \
+    -classpath "$CLASSPATH" \
+    -Dcatalina.base="$CATALINA_BASE" \
+    -Dcatalina.home="$CATALINA_HOME" \
+    -Djava.endorsed.dirs="$JAVA_ENDORSED_DIRS" \
+    -Djava.io.tmpdir="$CATALINA_TMPDIR" \
+    org.apache.catalina.startup.Bootstrap stop \
+    >> ${CATALINA_BASE}/logs/catalina.out 2>&1
+elif [ "$1" = "version" ]; then
+  ${JAVACMD} -classpath ${CATALINA_HOME}/lib/catalina.jar \
+    org.apache.catalina.util.ServerInfo
+else
+  echo "Usage: $0 {start|start-security|stop|version}"
+  exit 1
+fi

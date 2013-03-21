@@ -113,7 +113,7 @@ module OpenShift
     def initialize(container_uuid, container_name=nil, namespace=nil)
       @config = OpenShift::Config.new
 
-      @cloud_domain = @config.get("CLOUD_DOMAIN")
+      @cloud_domain = clean_server_name(@config.get("CLOUD_DOMAIN"))
 
       @basedir = @config.get("OPENSHIFT_HTTP_CONF_DIR")
 
@@ -127,11 +127,9 @@ module OpenShift
       if (@container_name.to_s == "") or (@namespace.to_s == "")
         begin
           env = Utils::Environ.for_gear(File.join(@config.get("GEAR_BASE_DIR"), @container_uuid))
-
+          @fqdn = clean_server_name(env['OPENSHIFT_GEAR_DNS'])
           @container_name = env['OPENSHIFT_GEAR_NAME']
-          @fqdn = env['OPENSHIFT_GEAR_DNS']
-
-          @namespace = @fqdn.sub(/\.#{@cloud_domain}$/,"").sub(/^#{@container_name}\-/,"")
+          @namespace = env['OPENSHIFT_GEAR_DNS'].sub(/\..*$/,"").sub(/^.*\-/,"")
         rescue
         end
       end

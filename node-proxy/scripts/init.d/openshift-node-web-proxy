@@ -25,7 +25,7 @@ prog="web-proxy"
 lockfile="/var/lock/subsys/node-web-proxy"
 pidfile="/var/run/openshift-node-web-proxy-supervisor.pid"
 childpidfile="/var/run/openshift-node-web-proxy.pid"
-logfile="/var/log/node-web-proxy/supervisor_log"
+logfile="/var/log/node-web-proxy/supervisor.log"
 
 start() {
     echo -n $"Starting node-web-proxy: "

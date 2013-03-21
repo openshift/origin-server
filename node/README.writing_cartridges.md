@@ -20,13 +20,15 @@ OpenShift. You may have additional directories or files as required to meet
 the needs of the software you are packaging and the application developers
 using your cartridge.
 
-    `cartridge name`-`cartridge version`
+    `vendor name`-`cartridge name`
      +- bin                        (required)
      |  +- setup                   (required)
      |  +- teardown                (optional)
      |  +- control                 (required)
      |- hooks                      (optional)
      |  +- set-db-connection-info  (discretionary)
+     |  +- snapshot                (discretionary)
+     |  +- restore                 (discretionary)
      +- versions                   (discretionary)
      |  +- `software version`
      |  |  +- bin
@@ -66,7 +68,7 @@ Items marked:
 
 To support multiple software versions within one cartridge,
 you may create symlinks between the bin/control and the setup
-versions/{cartridge version}/bin/control file. Or, you may choose
+versions/{software version}/bin/control file. Or, you may choose
 to use the bin/control file as a shim to call the correct versioned
 control file.
 
@@ -91,12 +93,12 @@ An example `manifest.yml` file:
 ```yaml
 Name: PHP
 Cartridge-Short-Name: PHP
-Cartridge-Version: 1.0.1
+Cartridge-Version: '1.0.1'
 Cartridge-Versions: [1.0.1]
 Cartridge-Vendor: Red Hat
 Display-Name: PHP 5.3
 Description: "PHP is a general-purpose server-side scripting language..."
-Version: 5.3
+Version: '5.3'
 Versions: [5.3]
 License: "The PHP License, version 3.0"
 License-Url: http://www.php.net/license/3_0.txt
@@ -177,7 +179,8 @@ The value follows the format:
     <number>[.<number>[.<number>[...]]]
 
 When you publish new versions of your cartridge to OpenShift, this number will be used to determine what
-is necessary to upgrade the application developer's application.
+is necessary to upgrade the application developer's application. YAML will assume number.number is a float
+be sure to enclose it in quotes so it is read as a string.
 
 ### Cartridge-Versions Element
 
@@ -205,11 +208,12 @@ otherwise use your company name.
 
 The `Version` element is the default or only version of the software packaged by this cartridge.
 
-    Version: 5.3
+    Version: '5.3'
 
 ### Versions Element
 
 `Versions` is the list of the versions of the software packaged by this cartridge.
+
     Versions: [5.3]
 
 ### Endpoints Element
@@ -400,7 +404,7 @@ OPENSHIFT_{Cartridge-Short-Name}_{name of port variable}        => <endpoint spe
 OPENSHIFT_{Cartridge-Short-Name}_{name of public port variable} => <assigned external port>
 ```
 
-`Cartridge-Short-Name` is the `Cartridge-Short-Name` element from the cartridge manifest 
+`Cartridge-Short-Name` is the `Cartridge-Short-Name` element from the cartridge manifest
 file. See above.
 
 If an endpoint specifies a `Mappings` section, each mapping entry will be used
@@ -552,11 +556,11 @@ is fatal to your cartridge.
 
 ##### Synopsis
 
-`setup [--version=<version>]`
+`setup [--version <version>]`
 
 ##### Options
 
-* `--version=<version>`: Selects which version of cartridge to install. If no version is provided,
+* `--version <version>`: Selects which version of cartridge to install. If no version is provided,
 the version denoted by the `Version` element from `manifest.yml` will be installed.
 
 ##### Description
@@ -825,6 +829,10 @@ haproxy-\*/run/stats
 app-root/runtime/.state
 app-root/data/.bash_history
 ```
+
+If you have provided a `snapshot` or `restore` hook, those will be called during
+their respective workflows. This allows you to do things such as dumping databases to a flat
+file for inclusion in the backup.
 
 ## Sample `conf.d/openshift.conf.erb`
 

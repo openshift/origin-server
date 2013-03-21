@@ -16,8 +16,8 @@
 require 'rubygems'
 require 'erb'
 require 'openshift-origin-common'
-require_relative '../../openshift-origin-node/utils/shell_exec'
-require_relative '../../openshift-origin-node/model/unix_user'
+require 'openshift-origin-node/utils/shell_exec'
+require 'openshift-origin-node/model/unix_user'
 
 module OpenShift
 
@@ -38,9 +38,10 @@ module OpenShift
       @path = File.join(@user.homedir, 'git', "#{@user.app_name}.git")
     end
 
-    def exists?
+    def exist?
       File.directory?(@path)
     end
+    alias exists? exist?
 
     ##
     # +populate_from_cartridge+ uses the provided +cartridge_name+ to install a template application
@@ -186,46 +187,81 @@ git archive --format=tar HEAD | (cd <%= @user_homedir %>/app-root/runtime/repo &
   auto = 100
 }
 
-    LOAD_ENV = %Q{\
-# Import Environment Variables
-for f in /etc/openshift/env/* ~/.env/* ~/*/env/*
-do
-  [ -f $f ] && . $f
-done
+    LOGGER_SETUP = %Q{\
+module OpenShift
+  module NodeLogger
+    def self.logger
+       unless @logger
+          @logger = Logger.new(File.open(File::NULL, "w"))
+          @logger.level = Logger::Severity::FATAL
+       end
+       @logger
+    end
+
+    def self.trace_logger
+       unless @trace_logger
+         @trace_logger = Logger.new(File.open(File::NULL, "w"))
+         @trace_logger.level = Logger::Severity::FATAL
+       end
+       @trace_logger
+    end
+  end
+end
 }
 
     PRE_RECEIVE  = %Q{\
-#!/bin/bash
+#!/bin/env oo-ruby
+require 'rubygems'
+require 'openshift-origin-node/model/application_container'
+require 'openshift-origin-node/utils/node_logger'
 
-<%= LOAD_ENV %>
+<%= LOGGER_SETUP %>
 
-for cartridge in $(ls -d $OPENSHIFT_HOMEDIR/* | grep -E -v 'app-root|git')
-do
-  $cartridge/bin/control stop
-done
+@container = OpenShift::ApplicationContainer.new(
+                            "<%= @user.application_uuid %>",
+                            "<%= @user.container_uuid %>",
+                            "<%= @user.uid %>",
+                            "<%= @user.app_name %>",
+                            "<%= @user.container_name %>",
+                            "<%= @user.namespace %>")
 
+puts "Stopping application..."
+@container.stop_gear
 }
 
     # FIXME: Broker host should not be defined here, rather nuture script should look it up
     # currently broker_host is tagged at the end of all the build scripts. Kinda like an egg race!
     POST_RECEIVE = %Q{\
-#!/bin/bash
+#!/bin/env oo-ruby
+require 'rubygems'
+require 'openshift-origin-node/model/application_container'
+require 'openshift-origin-node/utils/node_logger'
 
-<%= LOAD_ENV %>
+<%= LOGGER_SETUP %>
 
-$OPENSHIFT_HOMEDIR/<%= @cartridge_name %>/bin/control build
+@container = OpenShift::ApplicationContainer.new(
+                            "<%= @user.application_uuid %>",
+                            "<%= @user.container_uuid %>",
+                            "<%= @user.uid %>",
+                            "<%= @user.app_name %>",
+                            "<%= @user.container_name %>",
+                            "<%= @user.namespace %>")
 
-if [ $? -eq 0 ]; then
-  $OPENSHIFT_HOMEDIR/<%= @cartridge_name %>/bin/control deploy
-else
-  echo "Skipping deployment; build failed with exit status $?"
-fi
+begin
+  puts "Building application..."
+  builder_output = @container.build
+  puts "Build output:"
+  puts builder_output
 
-for cartridge in $(ls -d $OPENSHIFT_HOMEDIR/* | grep -E -v 'app-root|git')
-do
-  $cartridge/bin/control start
-done
-
+  puts "Deploying application..."
+  deploy_output = @container.deploy
+  puts "Deploy output:"
+  puts deploy_output
+ensure
+  puts "Starting application..."
+  @container.start_gear
+  puts "Build complete."
+end
 }
   end
 end

@@ -1,6 +1,9 @@
 #!/bin/bash -e
-set -u
 set -x
+
+#TODO Getting a number of functions from the existing util
+source "/etc/openshift/node.conf"
+source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 
 function obfuscate_password {
     password="$1"
@@ -10,58 +13,30 @@ function obfuscate_password {
     java -classpath "${acegi_security_path}:${commons_codec_path}:${OPENSHIFT_JENKINS_DIR}/configuration/password-encoder.jar" com.redhat.openshift.PasswordEncoder $password
 }
 
-function observe_setup_var_lib_dir {
-	uid=$(id -u "${OPENSHIFT_APP_UUID}")
-	mcs_level=`oo-get-mcs-level $uid`
-	
-    if [ -e "$1" ]
-    then
-        PATH=$PATH:/usr/sbin:/sbin restorecon -R $1
-        chcon -l $mcs_level -R $1
-    else
-        warning "The dir does not exist: $1"
-    fi
-}
-
 function generate_ssh_keys {
     mkdir -p ${OPENSHIFT_DATA_DIR}/.ssh/
     ssh-keygen -N '' -f ${OPENSHIFT_DATA_DIR}/.ssh/jenkins_id_rsa > /dev/null
 
-    chown ${OPENSHIFT_APP_UUID}.${OPENSHIFT_APP_UUID} -R "${OPENSHIFT_DATA_DIR}/.ssh/"
     chmod 0750 "${OPENSHIFT_DATA_DIR}/.ssh/"
     chmod 0640 "${OPENSHIFT_DATA_DIR}/.ssh/jenkins_id_rsa"
     chmod 0640 "${OPENSHIFT_DATA_DIR}/.ssh/jenkins_id_rsa.pub"
-    observe_setup_var_lib_dir "${OPENSHIFT_DATA_DIR}/.ssh/"
-}
-
-function add_broker_auth_key {
-    echo "BROKER_AUTH_KEY_ADD: "
-}
-
-function add_ssh_key {
-    echo "SSH_KEY_ADD: $1"
-}
-
-function generate_password {
-    head -n 50 /dev/urandom|tr -dc "a-np-zA-NP-Z1-9-_"|fold -w 12 | grep -v '^-' | head -n1
 }
 
 PATH=/bin:/usr/bin:$PATH
-BROKER_HOST=localhost
 
 cartridge_type="jenkins"
 
 version=1.4
-OPENSHIFT_JENKINS_DIR="${OPENSHIFT_HOMEDIR}$cartridge_type"
+OPENSHIFT_JENKINS_DIR="${OPENSHIFT_HOMEDIR}redhat-$cartridge_type"
 echo "export OPENSHIFT_JENKINS_VERSION='$version'" > "$OPENSHIFT_JENKINS_DIR/env/OPENSHIFT_JENKINS_VERSION"
 echo "export OPENSHIFT_JENKINS_DIR='$OPENSHIFT_JENKINS_DIR'" > "$OPENSHIFT_JENKINS_DIR/env/OPENSHIFT_JENKINS_DIR"
 
 # Create additional directories required by JENKINS
 mkdir -p ${OPENSHIFT_JENKINS_DIR}/{bin,template,configuration,logs,data}
 
-# Copy the version specific files up to jbosseap directory
+# Copy the version specific files up to jenkins directory
 cp -r ${OPENSHIFT_JENKINS_DIR}/versions/${version}/configuration/* ${OPENSHIFT_JENKINS_DIR}/configuration
-cp -r ${OPENSHIFT_JENKINS_DIR}/versions/${version}/metadata/* ${OPENSHIFT_JENKINS_DIR}/metadata
+#cp -r ${OPENSHIFT_JENKINS_DIR}/versions/${version}/metadata/* ${OPENSHIFT_JENKINS_DIR}/metadata
 cp -r ${OPENSHIFT_JENKINS_DIR}/versions/${version}/template/* ${OPENSHIFT_JENKINS_DIR}/template
 cp -r ${OPENSHIFT_JENKINS_DIR}/versions/${version}/template/.openshift ${OPENSHIFT_JENKINS_DIR}/template
 
@@ -89,7 +64,6 @@ system_builder_password=$(generate_password)
 echo "export JENKINS_USERNAME=admin" > $OPENSHIFT_JENKINS_DIR/env/JENKINS_USERNAME
 echo "export JENKINS_PASSWORD=$admin_password" > $OPENSHIFT_JENKINS_DIR/env/JENKINS_PASSWORD
 
-
 cp -ad "${OPENSHIFT_JENKINS_DIR}/configuration/"* "${OPENSHIFT_DATA_DIR}"
 openshift_server=`echo "${BROKER_HOST}" | sed -e "s/\/*$//" `
 sed -i "s,OPENSHIFT_SERVER,$openshift_server,g" "${OPENSHIFT_DATA_DIR}/config.xml"
@@ -98,10 +72,23 @@ admin_password_hash=`obfuscate_password $admin_password`
 sed -i "s,PASSWORD,$admin_password_hash,g" "${OPENSHIFT_DATA_DIR}/users/admin/config.xml"
 system_builder_password_hash=`obfuscate_password $system_builder_password`
 sed -i "s,PASSWORD,$system_builder_password_hash,g" "${OPENSHIFT_DATA_DIR}/users/system_builder/config.xml"
-echo $system_builder_password > ${OPENSHIFT_JENKINS_DIR}/.jenkins_password
+echo $system_builder_password > ${OPENSHIFT_HOMEDIR}/.jenkins_password
 
-export JENKINS_USERNAME=system_builder
-export JENKINS_PASSWORD=$system_builder_password
+client_result ""
+client_result "Jenkins created successfully.  Please make note of these credentials:"
+client_result ""
+client_result "   User: admin"
+client_result "   Password: $admin_password"
+client_result ""
+client_result "Note:  You can change your password at: https://${OPENSHIFT_GEAR_DNS}/me/configure"
+client_result ""
+
+cart_props "username=system_builder"
+cart_props "password=$system_builder_password"
+
+add_env_var "JENKINS_URL=https://${OPENSHIFT_GEAR_DNS}/"
+add_env_var "JENKINS_USERNAME=system_builder"
+add_env_var "JENKINS_PASSWORD=$system_builder_password"
 
 
 

@@ -100,6 +100,7 @@ class Application
     app = Application.new(domain: domain, name: application_name, default_gear_size: default_gear_size, scalable: scalable, app_ssh_keys: [], pending_op_groups: [], init_git_url: init_git_url)
     app.user_agent = user_agent
     app.analytics['user_agent'] = user_agent
+    app.save
     features << "web_proxy" if scalable
     if app.valid?
       begin

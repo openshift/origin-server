@@ -20,6 +20,8 @@ require 'mocha'
 require 'yaml'
 require 'pp'
 
+SimpleCov.command_name 'unit_test'
+
 class CartridgeRepositoryTest < Test::Unit::TestCase
   def setup
     @path = '/var/lib/openshift/.cartridge_repository'
@@ -33,7 +35,7 @@ class CartridgeRepositoryTest < Test::Unit::TestCase
         any_instance.
         stubs(:find_manifests).
         with(@path).
-        yields("#{@path}/RedHat-CRTEST/1.0/metadata/manifest.yml")
+        yields("#{@path}/redhat-CRTEST/1.0/metadata/manifest.yml")
 
     cr = OpenShift::CartridgeRepository.instance
     cr.clear
@@ -43,7 +45,7 @@ class CartridgeRepositoryTest < Test::Unit::TestCase
     e = cr.select('CRTest', '0.1', '1.0')
     refute_nil e
     assert_equal '0.1', e.version
-    assert_equal "#{@path}/RedHat-CRTest/1.0", e.repository_path
+    assert_equal "#{@path}/redhat-CRTest/1.0", e.repository_path
     assert_equal 'RedHat', e.cartridge_vendor
 
     e = cr.select('CRTest', '0.1')
@@ -54,11 +56,10 @@ class CartridgeRepositoryTest < Test::Unit::TestCase
     refute_nil e
     assert_equal '0.1', e.version
 
-    assert_equal 'RedHat-CRTest', e.directory
+    assert_equal 'redhat-CRTest', e.directory
   end
 
-  def test_three_manifest
-
+  def test_each
     YAML.stubs(:load_file).
         returns(YAML.load(MANIFESTS[0])).
         then.returns(YAML.load(MANIFESTS[1])).
@@ -71,6 +72,26 @@ class CartridgeRepositoryTest < Test::Unit::TestCase
         multiple_yields(["#{@path}/RedHat-CRTest/1.0/metadata/manifest.yml"],
                         ["#{@path}/RedHat-CRTest/1.1/metadata/manifest.yml"],
                         ["#{@path}/RedHat-CRTest/1.2/metadata/manifest.yml"],)
+
+    cr = OpenShift::CartridgeRepository.instance
+    cr.clear
+    cr.load(@path)
+    assert_equal 1, cr.inject(0) { |a, c| a += 1}
+  end
+
+  def test_three_manifest
+    YAML.stubs(:load_file).
+        returns(YAML.load(MANIFESTS[0])).
+        then.returns(YAML.load(MANIFESTS[1])).
+        then.returns(YAML.load(MANIFESTS[2]))
+
+    OpenShift::CartridgeRepository.
+        any_instance.
+        stubs(:find_manifests).
+        with(@path).
+        multiple_yields(["#{@path}/redhat-CRTest/1.0/metadata/manifest.yml"],
+                        ["#{@path}/redhat-CRTest/1.1/metadata/manifest.yml"],
+                        ["#{@path}/redhat-CRTest/1.2/metadata/manifest.yml"],)
 
     cr = OpenShift::CartridgeRepository.instance
     cr.clear
@@ -109,9 +130,9 @@ class CartridgeRepositoryTest < Test::Unit::TestCase
         any_instance.
         stubs(:find_manifests).
         with(@path).
-        multiple_yields(["#{@path}/RedHat-CRTest/1.0/metadata/manifest.yml"],
-                        ["#{@path}/tests/RedHat-CRTest/1.1/metadata/manifest.yml"],
-                        ["#{@path}/tests/RedHat-CRTest/1.2/metadata/manifest.yml"],)
+        multiple_yields(["#{@path}/redhat-CRTest/1.0/metadata/manifest.yml"],
+                        ["#{@path}/tests/redhat-CRTest/1.1/metadata/manifest.yml"],
+                        ["#{@path}/tests/redhat-CRTest/1.2/metadata/manifest.yml"],)
 
     cr = OpenShift::CartridgeRepository.instance
     cr.clear

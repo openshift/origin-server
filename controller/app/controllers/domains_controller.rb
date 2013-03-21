@@ -165,20 +165,21 @@ class DomainsController < BaseController
     end
 
     if force
-      apps = domain.with(consistency: :strong).applications
+      apps = Application.with(consistency: :strong).where(domain_id: domain._id)
       while apps.count > 0
         apps.each do |app|
           app.destroy_app
         end
-        domain.with(consistency: :strong).reload
-        apps = domain.with(consistency: :strong).applications
+        apps = Application.with(consistency: :strong).where(domain_id: domain._id)
       end
-    elsif not domain.with(consistency: :strong).applications.empty?
+    elsif Application.with(consistency: :strong).where(domain_id: domain._id).count > 0
       return render_error(:bad_request, "Domain contains applications. Delete applications first or set force to true.", 128, "DELETE_DOMAIN")
     end
 
     @domain_name = domain.namespace
     begin
+      # reload the domain so that MongoId does not see any applications
+      domain.with(consistency: :strong).reload
       domain.delete
       render_success(:no_content, nil, nil, "DELETE_DOMAIN", "Domain #{id} deleted.", true)
     rescue Exception => e

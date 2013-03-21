@@ -327,12 +327,11 @@ When /^I (fail to )?embed a ([^ ]+) cartridge into the application$/ do | negate
   end
 end
 
-
 # Un-embeds a cartridge from the current application's gear by 
 # invoking deconfigure on the named cartridge.
 When /^I remove the ([^ ]+) cartridge from the application$/ do | cart_name |
   record_measure("Runtime Benchmark: Deconfigure #{cart_name} cartridge in cartridge #{@cart.name}") do
-    raise "No embedded cart named #{cart_name} associated with gear #{gear.uuid}" unless @gear.carts.has_key?(cart_name)
+    raise "No embedded cart named #{cart_name} associated with gear #{@gear.uuid}" unless @gear.carts.has_key?(cart_name)
 
     embedded_cart = @gear.carts[cart_name]
 
@@ -610,6 +609,11 @@ When /^the application is made publicly accessible$/ do
   run "echo -e \"Host #{@app.name}-#{@account.domain}.dev.rhcloud.com\n\tStrictHostKeyChecking no\n\" >> ~/.ssh/config"
 end
 
+When /^the application is prepared for git pushes$/ do
+  @app.git_repo = "#{$temp}/#{@account.name}-#{@app.name}-clone"
+  run "git clone ssh://#{@gear.uuid}@#{@app.name}-#{@account.domain}.dev.rhcloud.com/~/git/#{@app.name}.git #{@app.git_repo}"
+end
+
 
 # Captures the current cartridge PID hash for the test application and
 # makes it accessible to other steps via @current_cart_pids.
@@ -627,16 +631,14 @@ When /^hot deployment is( not)? enabled for the application$/ do |negate|
 end
 
 
-# Performs a trivial update to the test application source by appending
-# some random stuff to a dummy file. The change is then committed and 
-# pushed to the app's Git repo.
+# Expands the "simple update" step and adds hot deployment stuff for legacy carts.
 When /^an update (is|has been) pushed to the application repo$/ do |junk|
   record_measure("Runtime Benchmark: Updating #{$temp}/#{@account.name}-#{@app.name} source") do
-    tmp_git_root = "#{$temp}/#{@account.name}-#{@app.name}-clone"
+    steps %{
+    When the application is prepared for git pushes
+    }
 
-    run "git clone ssh://#{@gear.uuid}@#{@app.name}-#{@account.domain}.dev.rhcloud.com/~/git/#{@app.name}.git #{tmp_git_root}"
-
-    marker_file = File.join(tmp_git_root, '.openshift', 'markers', 'hot_deploy')
+    marker_file = File.join(@app.git_repo, '.openshift', 'markers', 'hot_deploy')
 
     if @app.hot_deploy_enabled
       FileUtils.touch(marker_file)
@@ -644,7 +646,18 @@ When /^an update (is|has been) pushed to the application repo$/ do |junk|
       FileUtils.rm_f(marker_file)
     end
 
-    Dir.chdir(tmp_git_root) do
+    steps %{
+    When a simple update is pushed to the application repo
+    }
+  end
+end
+
+# Performs a trivial update to the test application source by appending
+# some random stuff to a dummy file. The change is then committed and 
+# pushed to the app's Git repo.
+When /^a simple update is pushed to the application repo$/ do
+  record_measure("Runtime Benchmark: Pushing random change to app repo at #{@app.git_repo}") do
+    Dir.chdir(@app.git_repo) do
       # Make a change to the app repo
       run "echo $RANDOM >> cucumber_update_test"
       run "git add ."
@@ -672,7 +685,7 @@ end
 
 # Asserts the 'cucumber_update_test' file exists after an update
 Then /^the application repo has been updated$/ do
-  assert_file_exist File.join($home_root,
+  assert_file_exists File.join($home_root,
                               @gear.uuid,
                               'app-root',
                               'runtime',
@@ -737,5 +750,108 @@ Then /^the web console for the ([^ ]+)\-([\d\.]+) cartridge at ([^ ]+) is( not)?
     assert_equal "503", res, msg
   else
     assert_equal "200", res, msg
+  end
+end
+
+#####################
+# V2-focused steps
+#####################
+
+def app_env_var_will_exist(var_name, prefix = true)
+  if prefix
+    var_name = "OPENSHIFT_#{var_name}"
+  end
+
+  var_file_path = File.join($home_root, @gear.uuid, '.env', var_name)
+
+  assert_file_exists var_file_path
+end
+
+def app_env_var_will_not_exist(var_name, prefix = true)
+  if prefix
+    var_name = "OPENSHIFT_#{var_name}"
+  end
+
+  var_file_path = File.join($home_root, @gear.uuid, '.env', var_name)
+
+  assert_file_not_exists var_file_path
+end
+
+
+def cart_env_var_will_exist(cart_name, var_name, negate = false)
+  var_name = "OPENSHIFT_#{var_name}"
+
+  cartridge = @gear.container.cartridge_model.get_cartridge(cart_name)
+
+  var_file_path = File.join($home_root, @gear.uuid, cartridge.directory, 'env', var_name)
+
+  if negate
+    assert_file_not_exists var_file_path
+  else
+    assert_file_exists var_file_path
+    assert((File.stat(var_file_path).size > 0), "#{var_file_path} is empty")
+  end
+end
+
+Given /^a v2 default node$/ do
+  assert_file_exists '/var/lib/openshift/.settings/v2_cartridge_format'
+end
+
+Then /^the "(.*)" content does( not)? exist(s)? for ([^ ]+)$/ do |path, negate, _, cartridge_name|
+  cartridge = @gear.container.cartridge_model.get_cartridge(cartridge_name)
+  entry = File.join($home_root, @gear.uuid, path)
+
+  if negate
+    assert_file_not_exists entry
+  else
+    assert_file_exists entry
+  end
+end
+
+Then /^the ([^ ]+) cartridge instance directory will( not)? exist$/ do |cartridge_name, negate|
+  cartridge = @gear.container.cartridge_model.get_cartridge(cartridge_name)
+
+  cartridge_dir = File.join($home_root, @gear.uuid, cartridge.directory)
+
+  if negate
+    assert_directory_not_exists cartridge_dir
+  else
+    assert_directory_exists cartridge_dir
+  end
+end
+
+Then /^the ([^ ]+) ([^ ]+) env entry will( not)? exist$/ do |cartridge_name, variable, negate|
+  cart_env_var_will_exist(cartridge_name, variable, negate)
+end
+
+Then /^the platform-created default environment variables will exist$/ do
+  app_env_var_will_exist('APP_DNS')
+  app_env_var_will_exist('APP_NAME')
+  app_env_var_will_exist('APP_UUID')
+  app_env_var_will_exist('DATA_DIR')
+  app_env_var_will_exist('REPO_DIR')
+  app_env_var_will_exist('GEAR_DNS')
+  app_env_var_will_exist('GEAR_NAME')
+  app_env_var_will_exist('GEAR_UUID')
+  app_env_var_will_exist('TMP_DIR')
+  app_env_var_will_exist('HOMEDIR')
+  app_env_var_will_exist('HISTFILE', false)
+  app_env_var_will_exist('PATH', false)
+end
+
+Then /^the ([^ ]+) cartridge private endpoints will be (exposed|concealed)$/ do |cart_name, action|
+  cartridge = @gear.container.cartridge_model.get_cartridge(cart_name)
+
+  cartridge.endpoints.each do |endpoint|
+    $logger.info("Validating private endpoint #{endpoint.private_ip_name}:#{endpoint.private_port_name} "\
+                 "for cartridge #{cart_name}")
+    case action
+    when 'exposed'
+      app_env_var_will_exist(endpoint.private_ip_name, false)
+      app_env_var_will_exist(endpoint.private_port_name, false)
+    when 'concealed'
+      app_env_var_will_not_exist(endpoint.private_ip_name, false)
+      app_env_var_will_not_exist(endpoint.private_port_name, false)
+    end
   end
 end

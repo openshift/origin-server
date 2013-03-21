@@ -2,7 +2,7 @@
 
 PATH=/bin/:/usr/bin:$PATH
 
-cartridge_instance_dir=RedHat-mock-plugin
+cartridge_instance_dir=redhat-mock-plugin
 source $cartridge_instance_dir/mock-plugin.conf
 
 case "$1" in

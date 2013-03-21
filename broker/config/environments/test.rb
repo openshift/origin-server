@@ -60,6 +60,11 @@ Broker::Application.configure do
     :log_filepath => conf.get("USER_ACTION_LOG_FILE", "/var/log/openshift/broker/user_action.log")
   }
 
+  config.maintenance = {
+    :enabled => conf.get_bool("ENABLE_MAINTENANCE_MODE", "false"),
+    :outage_msg_filepath => conf.get("MAINTENANCE_NOTIFICATION_FILE", "/etc/openshift/outage_notification.txt")
+  }
+
   config.openshift = {
     :domain_suffix => conf.get("CLOUD_DOMAIN", "example.com"),
     :default_max_gears => (conf.get("DEFAULT_MAX_GEARS", "100")).to_i,

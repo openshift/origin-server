@@ -38,6 +38,17 @@ module OpenShift
           end
         end
 
+        def check_outage
+          if Rails.configuration.maintenance[:enabled]
+            message = Rails.cache.fetch("outage_msg", :expires_in => 5.minutes) do
+              File.read(Rails.configuration.maintenance[:outage_msg_filepath]) rescue nil
+            end
+            reply = new_rest_reply(:service_unavailable)
+            reply.messages.push(Message.new(:info, message)) if message
+            respond_with reply
+          end
+        end
+
         def get_url
           @rest_url ||= "#{rest_url}/"
         end

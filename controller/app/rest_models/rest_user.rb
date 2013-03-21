@@ -15,6 +15,7 @@
 #       </gear-sizes>
 #     </capabilities>
 #     <plan-id nil="true"/>
+#     <plan-state nil="true"/>
 #     <usage-account-id nil="true"/>
 #     <links>
 #     ...
@@ -32,13 +33,15 @@
 #   @return [Hash] Map of user capabilities
 # @!attribute [r] plan_id
 #   @return [String] Plan ID
+# @!attribute [r] plan_state
+#   @return [String] Plan State
 # @!attribute [r] usage_account_id
 #   @return [String] Account ID
 class RestUser < OpenShift::Model
-  attr_accessor :id, :login, :consumed_gears, :capabilities, :plan_id, :usage_account_id, :links, :max_gears, :created_at
+  attr_accessor :id, :login, :consumed_gears, :capabilities, :plan_id, :plan_state, :usage_account_id, :links, :max_gears, :created_at
 
   def initialize(cloud_user, url, nolinks=false)
-    [:id, :login, :consumed_gears, :plan_id, :usage_account_id, :created_at].each{ |sym| self.send("#{sym}=", cloud_user.send(sym)) }
+    [:id, :login, :consumed_gears, :plan_id, :plan_state, :usage_account_id, :created_at].each{ |sym| self.send("#{sym}=", cloud_user.send(sym)) }
 
     self.capabilities = cloud_user.get_capabilities
     self.max_gears = capabilities["max_gears"]

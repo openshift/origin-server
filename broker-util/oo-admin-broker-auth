@@ -39,6 +39,8 @@ Options:
     How long to wait for MCollective Node discovery
 -v|--verbose
     Show debugging information
+-q|--quiet
+    Show as little output as possible
 --find-gears
     Print out gears with using Broker key authentication
 --dryrun
@@ -54,6 +56,7 @@ opts = GetoptLong.new(
     ["--rekey",            "-r", GetoptLong::REQUIRED_ARGUMENT],
     ["--timeout",          "-t", GetoptLong::REQUIRED_ARGUMENT],
     ["--verbose",          "-v", GetoptLong::NO_ARGUMENT],
+    ["--quiet",            "-q", GetoptLong::NO_ARGUMENT],
     ["--find-gears",       GetoptLong::NO_ARGUMENT],
     ["--dryrun",           GetoptLong::NO_ARGUMENT],
     ["--help",             "-h", GetoptLong::NO_ARGUMENT]
@@ -88,20 +91,21 @@ class OOAdminRekeyBrokerAuth
 
   def initialize(options)
     @verbose = options["--verbose"]
+    @quiet = options["--quiet"]
     @timeout = options["--timeout"] || 20
     @dryrun = options["--dryrun"]
-    @find_gears = options["--find-gears"]
     @handle = RemoteJob.create_parallel_job
     @failure_count = 0
   end
 
   def all_gears_uuids_with_broker_keys
-    # We want --find-gears to be silent to allow for easy piping
-    print "\nQuerying the Broker message bus for Gears with authentication tokens... " unless @find_gears
+    find_mongo_nodes
+
+    print "\nQuerying the Broker message bus for Gears with authentication tokens... " unless @quiet
     gear_results = OpenShift::ApplicationContainerProxy.get_all_gears(:with_broker_key_auth => true)
     gear_uuids = gear_results[0].keys
     @mc_nodes = gear_results[1].keys
-    puts "Done. #{gear_uuids.size} token(s) found on #{@mc_nodes.size} Node(s)." unless @find_gears
+    puts "Done. #{gear_uuids.size} token(s) found on #{@mc_nodes.size} Node(s)." unless @quiet
 
     return gear_uuids
   end
@@ -143,6 +147,7 @@ class OOAdminRekeyBrokerAuth
                      "found and may contain gears with authentication tokens:\n"
 
         missing_nodes.each {|n| $stderr.puts n}
+        $stderr.puts
       end
     end
   end
@@ -150,27 +155,29 @@ class OOAdminRekeyBrokerAuth
   def execute_jobs_and_report
     puts "\nINFO: Ctrl-C to interrupt and print completed jobs" if @verbose
     RemoteJob.execute_parallel_jobs(@handle)
-    puts "\nRESULTS:" unless @handle.empty?
+    unless @handle.empty?
+      puts "\nRESULTS:" unless @quiet
+    end
     @handle.each_pair do |node, results|
       results.each do |result|
         if result[:result_exit_code] == 0
           puts "#{result[:gear]} on #{node} was successfully rekeyed."
         else
           @failure_count += 1
-          puts "ERROR: #{result[:gear]} on #{node} failed."
-          puts "STDERR: #{result[:job][:result_stderr]}"
-          puts "STDOUT: #{result[:job][:result_stdout]}"
+          puts "ERROR: #{result[:gear]} on #{node} was unsuccessfully rekeyed."
+          puts "STDERR: #{result[:job][:result_stderr]}" if @verbose
+          puts "STDOUT: #{result[:job][:result_stdout]}" if @verbose
         end
       end
     end
 
-    puts "\nFor detailed output see the Broker message bus logfile."
+    puts "\nFor detailed output see the Broker message bus logfile." unless @quiet
   end
 
-  def find_mongo_and_mc_nodes
-    print "Finding all OpenShift Nodes with gears in the Broker datastore... "
+  def find_mongo_nodes
+    print "Finding all OpenShift Nodes with gears in the Broker datastore... " unless @quiet
     @mongo_nodes = Application.all.distinct("group_instances.gears.server_identity")
-    puts "Done. #{@mongo_nodes.size} Node(s) found."
+    puts "Done. #{@mongo_nodes.size} Node(s) found." unless @quiet
     @mongo_nodes.each {|n| puts "Found: #{n} in Broker datastore."} if @verbose
   end
 
@@ -180,12 +187,16 @@ class OOAdminRekeyBrokerAuth
       next unless node_found?(gear, uuid)
 
       unless @dryrun
-        iv, token = OpenShift::Auth::BrokerKey.new.generate_broker_key(app)
-        job = gear.get_broker_auth_key_add_job(iv, token)
-        RemoteJob.add_parallel_job(@handle, "", gear, job)
+        begin
+          iv, token = OpenShift::Auth::BrokerKey.new.generate_broker_key(app)
+          job = gear.get_broker_auth_key_add_job(iv, token)
+          RemoteJob.add_parallel_job(@handle, "", gear, job)
+          update_list_of_nodes_seen(gear)
+        rescue
+          $stderr.puts "ERROR: Unable to rekey #{uuid}"
+          @failure_count += 1
+        end
       end
-
-      update_list_of_nodes_seen(gear)
     end
 
     warn_about_offline_nodes
@@ -193,7 +204,6 @@ class OOAdminRekeyBrokerAuth
   end
 
   def rekey_all
-    find_mongo_and_mc_nodes
     gear_uuids = all_gears_uuids_with_broker_keys
     create_broker_keys(gear_uuids)
   end
@@ -203,11 +213,12 @@ app = OOAdminRekeyBrokerAuth.new(args)
 
 if args['--find-gears']
   gear_uuids = app.all_gears_uuids_with_broker_keys
+  app.warn_about_offline_nodes
   puts gear_uuids
 elsif args['--rekey-all']
   app.rekey_all
 elsif args['--rekey']
-  app.create_broker_keys(args['--rekey'])
+  app.create_broker_keys([args['--rekey']])
 else
   uuids = []
 

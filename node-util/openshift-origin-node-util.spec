@@ -1,6 +1,6 @@
 Summary:       Utility scripts for the OpenShift Origin broker
 Name:          openshift-origin-node-util
-Version: 1.6.2
+Version: 1.6.3
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -24,9 +24,10 @@ run on a node instance.
 
 %install
 mkdir -p %{buildroot}%{_sbindir}
+mkdir -p %{buildroot}%{_bindir}
 
 cp bin/oo-* %{buildroot}%{_sbindir}/
-cp bin/rhc-* %{buildroot}%{_sbindir}/
+cp bin/rhc-* %{buildroot}%{_bindir}/
 
 %if 0%{?fedora} >= 18
   mv %{buildroot}%{_sbindir}/oo-httpd-singular.apache-2.4 %{buildroot}%{_sbindir}/oo-httpd-singular
@@ -68,14 +69,16 @@ mv services/openshift-gears.service %{buildroot}/etc/systemd/system/openshift-ge
 %attr(0750,-,-) %{_sbindir}/oo-last-access
 %attr(0750,-,-) %{_sbindir}/oo-list-stale
 %attr(0750,-,-) %{_sbindir}/oo-list-access
+%attr(0750,-,-) %{_sbindir}/oo-restorecon
 %attr(0750,-,-) %{_sbindir}/oo-restorer
 %attr(0750,-,apache) %{_sbindir}/oo-restorer-wrapper.sh
 %attr(0750,-,-) %{_sbindir}/oo-setup-node
-%attr(0755,-,-) %{_sbindir}/rhc-list-ports
+%attr(0755,-,-) %{_bindir}/rhc-list-ports
 %attr(0755,-,-) %{_sbindir}/oo-httpd-singular
 %attr(0750,-,-) %{_sbindir}/oo-su
 %attr(0750,-,-) %{_sbindir}/oo-cartridge
 %attr(0750,-,-) %{_sbindir}/oo-admin-cartridge
+%attr(0750,-,-) %{_sbindir}/oo-cart-version
 
 %doc LICENSE
 %doc README-Idler.md
@@ -89,6 +92,7 @@ mv services/openshift-gears.service %{buildroot}/etc/systemd/system/openshift-ge
 %{_mandir}/man8/oo-last-access.8.gz
 %{_mandir}/man8/oo-list-stale.8.gz
 %{_mandir}/man8/oo-list-access.8.gz
+%{_mandir}/man8/oo-restorecon.8.gz
 %{_mandir}/man8/oo-restorer.8.gz
 %{_mandir}/man8/oo-restorer-wrapper.sh.8.gz
 %{_mandir}/man8/oo-setup-node.8.gz
@@ -110,6 +114,10 @@ mv services/openshift-gears.service %{buildroot}/etc/systemd/system/openshift-ge
 /sbin/restorecon /usr/sbin/oo-restorer* || :
 
 %changelog
+* Mon Mar 18 2013 Adam Miller <admiller@redhat.com> 1.6.3-1
+- WIP Cartridge Refactor - Introduce oo-admin-cartridge command
+  (jhonce@redhat.com)
+
 * Thu Mar 14 2013 Adam Miller <admiller@redhat.com> 1.6.2-1
 - Bug 920880 - Only allow httpd-singular to return when Apache is fully back up
   and protect the SSL cert operations with the Alias lock.

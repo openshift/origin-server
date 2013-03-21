@@ -9,7 +9,7 @@
 
 Summary:       OpenShift Origin Management Console
 Name:          rubygem-%{gem_name}
-Version: 1.6.2
+Version: 1.6.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -134,6 +134,17 @@ cp -a ./%{gem_dir}/* %{buildroot}%{gem_dir}/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Mon Mar 18 2013 Adam Miller <admiller@redhat.com> 1.6.3-1
+- Pry console won't start in console app (ccoleman@redhat.com)
+- Merge pull request #1668 from smarterclayton/wrong_quickstart_default
+  (dmcphers+openshiftbot@redhat.com)
+- Site should not default to community URL for quickstarts if not specified
+  (ccoleman@redhat.com)
+- Support cache config (ccoleman@redhat.com)
+- Merge pull request #1650 from sg00dwin/various-work
+  (dmcphers+openshiftbot@redhat.com)
+- Replace search and caret with icon-font (sgoodwin@redhat.com)
+
 * Thu Mar 14 2013 Adam Miller <admiller@redhat.com> 1.6.2-1
 - Merge pull request #1636 from tdawson/tdawson/fix-f19-builds
   (dmcphers+openshiftbot@redhat.com)

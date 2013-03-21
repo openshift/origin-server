@@ -4,7 +4,7 @@
 
 Summary:       Provides JBossEWS2.0 support
 Name:          openshift-origin-cartridge-jbossews-2.0
-Version: 1.3.2
+Version: 1.3.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -117,6 +117,15 @@ alternatives --set jbossews-2.0 /usr/share/tomcat7
 
 
 %changelog
+* Mon Mar 18 2013 Adam Miller <admiller@redhat.com> 1.3.3-1
+- Bug 922650: Fix default ROOT.war for JBoss carts (ironcladlou@gmail.com)
+- remove java-devel BuildRequires, move ROOT.war jar to configure
+  (bdecoste@gmail.com)
+- remove java-devel BuildRequires, move ROOT.war jar to configure
+  (bdecoste@gmail.com)
+- remove java-devel BuildRequires, move ROOT.war jar to configure
+  (bdecoste@gmail.com)
+
 * Thu Mar 14 2013 Adam Miller <admiller@redhat.com> 1.3.2-1
 - Refactor Endpoints to support frontend mapping (ironcladlou@gmail.com)
 

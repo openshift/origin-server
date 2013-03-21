@@ -1,0 +1,132 @@
+#!/bin/bash -e
+
+PATH=/bin/:/usr/bin:$PATH
+
+source $OPENSHIFT_MYSQL_DIR/env/*
+
+function is_running {
+  pidfile=$OPENSHIFT_MYSQL_DIR/pid/mysql.pid
+
+  if [ -f $pidfile ]; then
+    mysql_pid=`cat $pidfile 2> /dev/null`
+    myid=`id -u`
+
+    if `ps --pid $mysql_pid > /dev/null 2>&1` || `pgrep -x mysqld_safe -u $myid > /dev/null 2>&1`
+    then
+      return 0
+    fi
+  fi
+
+  return 1
+}
+
+# TODO: account for standalone scenario
+# TODO: source user hooks?
+# Start mysqld and block until it comes up.
+function start {
+  if ! is_running; then
+    /usr/bin/mysqld_safe --defaults-file=$OPENSHIFT_MYSQL_DIR/conf/my.cnf > /dev/null 2>&1 &    
+    wait_for_mysqld_availability
+  else
+    echo "MySQL already running" 1>&2
+  fi
+}
+
+function wait_for_mysqld_availability {
+  pidfile=$OPENSHIFT_MYSQL_DIR/pid/mysql.pid
+
+  if [ -n "$OPENSHIFT_MYSQL_DB_USERNAME" ]; then
+    i=0
+    sleep 1
+    while (( ! touch_mysqld ) || [ ! -f $pidfile ]) && [ $i -lt 30 ]
+    do
+      sleep 1
+      i=$(($i + 1))
+    done
+  fi
+}
+
+function touch_mysqld {
+  echo ";" | mysql -h $OPENSHIFT_MYSQL_DB_HOST -P $OPENSHIFT_MYSQL_DB_PORT -u $OPENSHIFT_MYSQL_DB_USERNAME --password="$OPENSHIFT_MYSQL_DB_PASSWORD" > /dev/null 2>&1
+}
+
+function stop {
+  pidfile=$OPENSHIFT_MYSQL_DIR/pid/mysql.pid
+
+  if [ -f $pidfile ]; then
+    pid=$( /bin/cat $pidfile )
+    /bin/kill $pid
+    ret=$?
+    if [ $ret -eq 0 ]; then
+      TIMEOUT="$STOPTIMEOUT"
+      while [ $TIMEOUT -gt 0 ] && [ -f "$pidfile" ]; do
+        /bin/kill -0 "$pid" >/dev/null 2>&1 || break
+        sleep 1
+        let TIMEOUT=${TIMEOUT}-1
+      done
+    fi
+  else
+    if `pgrep -x mysqld_safe > /dev/null 2>&1`; then
+      echo "Warning: MySQL process exists without a pid file.  Use force-stop to kill." 1>&2
+    else
+        echo "MySQL already stopped" 1>&2
+    fi
+  fi
+}
+
+function status {
+  if is_running; then
+    echo "MySQL is running" 1>&2
+  else
+    echo "MySQL is stopped" 1>&2
+  fi
+
+  exit 0
+}
+
+function handle_setup_marker {
+  setup_marker_file=$OPENSHIFT_TMP_DIR/.setup_invocation_marker
+
+  if [ -f $setup_marker_file ]; then
+    prepare_database
+    rm -f $setup_marker_file   
+  fi
+}
+
+function error {
+    echo "$1" 1>&2
+    exit "$2"
+}
+
+function prepare_database {
+  dbname=$OPENSHIFT_APP_NAME
+  socket_file=$OPENSHIFT_MYSQL_DB_SOCKET
+
+  echo 'Setup marker detected, reconfiguring mysqld'
+
+  echo "drop database test;
+  create database \`${dbname}\` DEFAULT CHARACTER SET utf8 DEFAULT COLLATE utf8_general_ci;" | mysql -u root -S "$socket_file" > /dev/null || error 'Failed to create database', 188
+
+  echo "                                  
+  delete from user;
+  grant all on *.* to '$username'@'$OPENSHIFT_MYSQL_DB_HOST' identified by '$password' with grant option;
+  grant all on *.* to '$username'@'localhost' identified by '$password' with grant option;
+  flush privileges;" | mysql -u root -S "$socket_file" mysql > /dev/null || error "Failed to setup initial root user" 187
+}
+
+case "$1" in
+  start)
+    start
+    handle_setup_marker
+  ;;
+  stop)
+    stop
+  ;;
+  status)
+    status
+  ;;
+  restart)
+    stop
+    start
+  ;;
+esac

@@ -1,0 +1,59 @@
+#!/bin/bash
+set -e
+set -x
+
+source ${OPENSHIFT_JBOSSEWS_DIR}/bin/util
+
+export_java_home
+
+OPENSHIFT_MAVEN_MIRROR="${OPENSHIFT_REPO_DIR}/.openshift/config/settings.base.xml"
+if `echo $OPENSHIFT_GEAR_DNS | egrep -qe "\.rhcloud\.com"`; then 
+  OPENSHIFT_MAVEN_MIRROR="${OPENSHIFT_REPO_DIR}/.openshift/config/settings.rhcloud.xml"
+fi
+
+if [ ! -f ${OPENSHIFT_REPO_DIR}pom.xml ]; then
+  echo "Skipping Maven build due to absence of pom.xml"
+  exit 0
+fi
+
+if marker_present "skip_maven_build"; then
+  echo "skip_maven_build marker found; build will be skipped"
+  exit 0
+fi
+
+if marker_present "force_clean_build"; then
+  echo "force_clean_build marker found; removing Maven dependencies."
+  rm -rf ${OPENSHIFT_HOMEDIR}.m2/* ${OPENSHIFT_HOMEDIR}.m2/.[^.]*
+fi
+
+# Calculate build heap size
+max_memory_bytes=`oo-cgroup-read memory.limit_in_bytes`
+max_memory_mb=`expr $max_memory_bytes / 1048576`
+MAVEN_JVM_HEAP_RATIO=0.75
+max_heap=$( echo "$max_memory_mb * $MAVEN_JVM_HEAP_RATIO" | bc | awk '{print int($1+0.5)}')
+OPENSHIFT_MAVEN_XMX="-Xmx${max_heap}m"
+
+export MAVEN_OPTS="$OPENSHIFT_MAVEN_XMX"
+
+pushd ${OPENSHIFT_REPO_DIR} > /dev/null
+
+if [ -z "$MAVEN_OPTS" ]; then
+  export MAVEN_OPTS="$OPENSHIFT_MAVEN_XMX"
+fi
+
+export MAVEN_ARGS="clean package -Popenshift -DskipTests"
+
+if [ -n "$OPENSHIFT_MAVEN_MIRROR" ]; then
+    echo "Using Maven mirror $OPENSHIFT_MAVEN_MIRROR"
+    mvn --global-settings $OPENSHIFT_MAVEN_MIRROR --version
+    MVN_CMD="mvn --global-settings $OPENSHIFT_MAVEN_MIRROR $MAVEN_ARGS"
+else
+    mvn --version
+    MVN_CMD="mvn $MAVEN_ARGS"
+fi
+
+echo "Found pom.xml... attempting to build with '$MVN_CMD'"
+
+$MVN_CMD
+
+popd > /dev/null

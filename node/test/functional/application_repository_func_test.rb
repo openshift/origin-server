@@ -20,14 +20,21 @@ require 'test/unit'
 require 'mocha'
 
 class ApplicationRepositoryFuncTest < Test::Unit::TestCase
-  User = Struct.new(:homedir, :uid, :app_name)
+  User = Struct.new(:homedir, :uid, :app_name, :application_uuid, :container_uuid, :container_name, :namespace)
 
   def setup
     @uuid           = `uuidgen -r |sed -e s/-//g`.chomp
     @uid            = 1001
     @homedir        = "/tmp/tests/#@uuid"
     @cartridge_name = 'mock-0.0'
-    @user           = User.new("/tmp/tests/#@uuid", @uid, 'mocking')
+    @user           = User.new(
+                        "/tmp/tests/#@uuid", 
+                        @uid, 
+                        'mocking',
+                        @uuid,
+                        @uuid,
+                        @uuid,
+                        'mynamespace')
 
     # polyinstantiation makes creating the homedir a pain...
     FileUtils.rm_r @homedir if File.exist?(@homedir)
@@ -123,6 +130,8 @@ class ApplicationRepositoryFuncTest < Test::Unit::TestCase
 
     assert_equal expected_path, repo.path
     assert_application_repository(repo)
+    assert repo.exist?, "Application Repository (#{repo.path}) not found"
+    assert repo.exists?, "Application Repository (#{repo.path}) not found"
   end
 
   def pull_directory
@@ -146,6 +155,11 @@ class ApplicationRepositoryFuncTest < Test::Unit::TestCase
 
     assert_equal expected_path, repo.path
     assert_application_repository(repo)
+
+    runtime_repo = "#{@user.homedir}/app-root/runtime/repo"
+    FileUtils.mkpath(runtime_repo)
+    repo.deploy_repository
+    assert_path_exist File.join(runtime_repo, 'perl', 'health_check.pl')
   end
 
   def create_template

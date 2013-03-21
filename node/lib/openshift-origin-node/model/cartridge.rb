@@ -127,7 +127,8 @@ module OpenShift
                   :name,
                   :repository_path,
                   :short_name,
-                  :version
+                  :version,
+                  :categories
 
       # :call-seq:
       #   Cartridge.new(manifest_path) -> Cartridge
@@ -144,6 +145,8 @@ module OpenShift
         @name              = manifest['Name']
         @short_name        = manifest['Cartridge-Short-Name']
         @version           = manifest['Version'] && manifest['Version'].to_s
+        @categories        = manifest['Categories'] || []
+        @is_framework      = @categories.include?('web_framework')
 
         #FIXME: reinstate code after manifests are updated
         #raise MissingElementError.new(nil, 'Cartridge-Vendor') unless @cartridge_vendor
@@ -159,7 +162,7 @@ module OpenShift
         @short_name.upcase!
 
         if @cartridge_vendor && @name && @cartridge_version
-          @directory = "#{@cartridge_vendor.gsub(/\s+/, '')}-#{@name}"
+          @directory = "#{@cartridge_vendor.gsub(/\s+/, '').downcase}-#{@name}"
 
           @repository_path = PathUtils.join(repository_base_path, @directory, @cartridge_version)
         end
@@ -178,6 +181,21 @@ module OpenShift
       # those Endpoints which have a public_port_name specified.
       def public_endpoints
         @endpoints.select { |e| e.public_port_name }
+      end
+
+      def framework?
+        @is_framework
+      end
+
+      def self.build_ident(vendor, software, software_version, cartridge_version)
+        vendor = vendor.gsub(/\s+/, '').downcase
+        "#{vendor}:#{software}:#{software_version}:#{cartridge_version}"
+      end
+
+      def self.parse_ident(ident)
+        ident = ident.split(':')
+        raise ArgumentError.new("#{ident} is not a legal cartridge identifier") if 4 != ident.size
+        ident
       end
 
       def to_s

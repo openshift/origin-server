@@ -1,0 +1,47 @@
+[mysqld]
+datadir=<%= ENV['OPENSHIFT_MYSQL_DIR'] %>/data/
+socket=<%= ENV['OPENSHIFT_MYSQL_DB_SOCKET'] %>
+bind-address=<%= ENV['OPENSHIFT_MYSQL_DB_HOST'] %>
+# Disabling symbolic-links is recommended to prevent assorted security risks
+symbolic-links=0
+key_buffer_size = 16K
+max_allowed_packet = 200M
+table_open_cache = 4
+sort_buffer_size = 64K
+read_buffer_size = 256K
+read_rnd_buffer_size = 256K
+net_buffer_length = 2K
+thread_stack = 256K
+
+
+#INNODB
+# You can set .._buffer_pool_size up to 50 - 80 %
+# of RAM but beware of setting memory usage too high
+innodb_buffer_pool_size = 16M
+innodb_additional_mem_pool_size = 2M
+# Set .._log_file_size to 25 % of buffer pool size
+innodb_log_file_size = 5M
+innodb_log_buffer_size = 8M
+innodb_flush_log_at_trx_commit = 1
+innodb_lock_wait_timeout = 50
+
+[mysqld_safe]
+log-error=<%= ENV['OPENSHIFT_MYSQL_DB_LOG_DIR'] %>/mysql_error.log
+pid-file=<%= ENV['OPENSHIFT_MYSQL_DIR'] %>/pid/mysql.pid
+
+[mysqldump]
+quick
+max_allowed_packet = 16M
+
+[mysql]
+no-auto-rehash
+# Remove the next comment character if you are not familiar with SQL
+#safe-updates
+
+[myisamchk]
+key_buffer_size = 8M
+sort_buffer_size = 8M
+
+[mysqlhotcopy]
+interactive-timeout
+

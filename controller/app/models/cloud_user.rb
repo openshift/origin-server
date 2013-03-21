@@ -28,6 +28,7 @@ class CloudUser
   field :capabilities, type: Hash, default: ->{ default_capabilities }
   field :parent_user_id, type: Moped::BSON::ObjectId
   field :plan_id, type: String
+  field :plan_state, type: String
   field :pending_plan_id, type: String
   field :pending_plan_uptime, type: Time
   field :usage_account_id, type: String

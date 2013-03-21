@@ -101,7 +101,7 @@ class ApplicationContainerTest < Test::Unit::TestCase
               - Frontend:      "/front1b"
                 Backend:       "/back1b"
                 Options:       { noproxy: true }
-          
+
           - Private-IP-Name:   EXAMPLE_IP1
             Private-Port-Name: EXAMPLE_PORT2
             Private-Port:      8081
@@ -110,7 +110,7 @@ class ApplicationContainerTest < Test::Unit::TestCase
               - Frontend:      "/front2"
                 Backend:       "/back2"
                 Options:       { file: true }
-          
+
           - Private-IP-Name:   EXAMPLE_IP1
             Private-Port-Name: EXAMPLE_PORT3
             Private-Port:      8082
@@ -118,7 +118,7 @@ class ApplicationContainerTest < Test::Unit::TestCase
             Mappings:
               - Frontend:      "/front3"
                 Backend:       "/back3"
-          
+
           - Private-IP-Name:   EXAMPLE_IP2
             Private-Port-Name: EXAMPLE_PORT4
             Private-Port:      9090
@@ -126,7 +126,7 @@ class ApplicationContainerTest < Test::Unit::TestCase
             Mappings:
               - Frontend:      "/front4"
                 Backend:       "/back4"
-  
+
           - Private-IP-Name:   EXAMPLE_IP2
             Private-Port-Name: EXAMPLE_PORT5
             Private-Port:      9091
@@ -153,7 +153,7 @@ class ApplicationContainerTest < Test::Unit::TestCase
     proxy.expects(:add).with(@user_uid, "127.0.0.2", 9090).returns(@ports_begin+3)
 
     @container.user.expects(:add_env_var).returns(nil).times(4)
-    
+
     @container.create_public_endpoints(@mock_cartridge.name)
   end
 
@@ -183,9 +183,10 @@ class ApplicationContainerTest < Test::Unit::TestCase
     OpenShift::Utils::Environ.stubs(:for_gear).returns(
         {'OPENSHIFT_HOMEDIR' => '/foo', 'OPENSHIFT_APP_NAME' => 'app_name' })
 
-    @container.stubs(:stop_gear).with('/foo')
-    @container.stubs(:gear_level_tidy).with('/foo/git/app_name.git', '/foo/.tmp')
+    @container.stubs(:stop_gear)
+    @container.stubs(:gear_level_tidy_tmp).with('/foo/.tmp')
     @container.cartridge_model.expects(:tidy)
+    @container.stubs(:gear_level_tidy_git).with('/foo/git/app_name.git')
     @container.stubs(:start_gear)
 
     @container.stubs(:cartridge_model).returns(mock())
@@ -197,9 +198,10 @@ class ApplicationContainerTest < Test::Unit::TestCase
     OpenShift::Utils::Environ.stubs(:for_gear).returns(
         {'OPENSHIFT_HOMEDIR' => '/foo', 'OPENSHIFT_APP_NAME' => 'app_name' })
 
-    @container.stubs(:stop_gear).with('/foo').raises(Exception.new)
-    @container.stubs(:gear_level_tidy).with('/foo/git/app_name.git', '/foo/.tmp').never
+    @container.stubs(:stop_gear).raises(Exception.new)
+    @container.stubs(:gear_level_tidy_tmp).with('/foo/.tmp')
     @container.cartridge_model.expects(:tidy).never
+    @container.stubs(:gear_level_tidy_git).with('/foo/git/app_name.git')
     @container.stubs(:start_gear).never
 
     assert_raise Exception do
@@ -211,8 +213,8 @@ class ApplicationContainerTest < Test::Unit::TestCase
     OpenShift::Utils::Environ.stubs(:for_gear).returns(
         {'OPENSHIFT_HOMEDIR' => '/foo', 'OPENSHIFT_APP_NAME' => 'app_name'})
 
-    @container.expects(:stop_gear).with('/foo')
-    @container.expects(:gear_level_tidy).with('/foo/git/app_name.git', '/foo/.tmp').raises(Exception.new)
+    @container.expects(:stop_gear)
+    @container.expects(:gear_level_tidy_tmp).with('/foo/.tmp').raises(Exception.new)
     @container.expects(:start_gear)
 
     @container.tidy
