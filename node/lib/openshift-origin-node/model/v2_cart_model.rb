@@ -693,6 +693,29 @@ module OpenShift
     end
 
     # :call-seq:
+    #    V2CartridgeModel.new(...).connector_execute(cartridge_name, connector, args)
+    #
+    def connector_execute(cart_name, connector, args)
+      env = Utils::Environ.for_gear(@user.homedir)
+
+      cartridge = get_cartridge(cart_name)
+      connector = PathUtils.join(@user.homedir, cartridge.directory, 'hooks', connector)
+      return 0, '' unless File.executable?(connector)
+
+      command = connector << " " << args
+      out, err, rc = Utils.oo_spawn(command,
+                                    env:             env,
+                                    unsetenv_others: true,
+                                    chdir:           @user.homedir,
+                                    uid:             @user.uid)
+      if 0 == rc
+        return 0, out
+      else
+        return rc, out + err
+      end
+    end
+
+    # :call-seq:
     #   V2CartridgeModel.new(...).do_control_with_directory(action, cartridge directory)  -> output
     #   V2CartridgeModel.new(...).do_control_with_directory(action)                       -> output
     #
