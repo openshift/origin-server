@@ -30,10 +30,6 @@ class PendingDomainOps
   has_and_belongs_to_many :completed_apps, class_name: Application.name, inverse_of: nil
   field :on_completion_method, type: Symbol
   
-  def parent_op
-    self.domain.owner.pending_ops.find(self.parent_op_id) unless parent_op_id.nil?
-  end
-  
   def pending_apps
     pending_apps = on_apps - completed_apps
     pending_apps
@@ -44,8 +40,12 @@ class PendingDomainOps
   end
   
   def close_op
-    if completed? 
-      parent_op.child_completed(domain) unless parent_op.nil?
+    if completed?
+      if not parent_op_id.nil?
+        user = CloudUser.with(consistency: :strong).find_by(owner_id: self.domain.owner_id)
+        parent_op = user.pending_ops.find_by(_id: self.parent_op_id)
+        parent_op.child_completed(self.domain)
+      end
       domain.send(on_completion_method, self) unless on_completion_method.nil?
     end
   end
