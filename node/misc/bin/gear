@@ -1,0 +1,222 @@
+#!/usr/bin/env oo-ruby
+#--
+# Copyright 2013 Red Hat, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#++
+
+require 'pp'
+require 'rubygems'
+require 'commander/import'
+require 'openshift-origin-node/model/application_container'
+require 'openshift-origin-node/utils/node_logger'
+
+name="#{__FILE__}"
+
+program :name, "OpenShift Gear Control"
+program :version, "1.0.0"
+program :description, "An assortment gear utilities"
+
+module OpenShift
+  module NodeLogger
+    def self.logger
+       unless @logger
+          @logger = Logger.new(STDOUT)
+       end
+       @logger
+    end
+
+    def self.trace_logger
+       unless @trace_logger
+         @trace_logger = Logger.new(STDOUT)
+         @trace_logger.level = Logger::Severity::ERROR
+       end
+       @trace_logger
+    end
+  end
+end
+
+def gear_cartridge_names
+  cartridge_names = []
+  @container.cartridge_model.each_cartridge do |c|
+    cartridge_names << "#{c.name}-#{c.version}"
+  end
+  cartridge_names
+end
+
+def build
+  puts "Building application..."
+  builder_output = @container.build
+  puts "Build output:"
+  puts builder_output
+end
+
+def deploy
+  puts "Deploying application..."
+  deploy_output = @container.deploy
+  puts "Deploy output:"
+  puts deploy_output
+end
+
+def start(cart=nil)
+  if cart
+    @container.start(cart)
+  else
+    puts "Starting gear..."
+    FileUtils.remove @stop_lock if File.exists? @stop_lock
+    @container.start_gear
+  end
+end
+
+def stop(cart=nil)
+  if cart
+    @container.stop(cart)
+  else
+    puts "Stopping gear..."
+    FileUtils.touch @stop_lock
+    @container.stop_gear
+  end
+end
+
+@container = OpenShift::ApplicationContainer.new(ENV['OPENSHIFT_APP_UUID'], ENV['OPENSHIFT_GEAR_UUID'], Etc.getpwuid.uid, ENV['OPENSHIFT_APP_NAME'], ENV['OPENSHIFT_GEAR_NAME'], ENV['OPENSHIFT_NAMESPACE'])
+@stop_lock = PathUtils.join(ENV['OPENSHIFT_HOMEDIR'], %w{app-root runtime .stop_lock})
+
+command :prereceive do |c|
+  c.syntax = "#{name} prereceive"
+
+  c.description = "Run the git prereceive steps"
+  c.action do |args, options|
+    unless ENV['OPENSHIFT_CI_TYPE']
+      stop
+    end
+  end
+end
+
+command :postreceive do |c|
+  c.syntax = "#{name} postreceive"
+
+  c.description = "Run the git postreceive steps"
+  c.action do |args, options|
+    begin
+      build
+      deploy
+    ensure
+      start
+    end
+    puts "Build complete."
+  end
+end
+
+command :cideploy do |c|
+  c.syntax = "#{name} cideploy"
+
+  c.description = "Run the cideploy steps"
+  c.action do |args, options|
+    stop
+    deploy
+  end
+end
+
+command :deploy do |c|
+  c.syntax = "#{name} deploy"
+
+  c.description = "Run the deploy steps"
+  c.action do |args, options|
+    deploy
+  end
+end
+
+command :start do |c|
+  c.syntax = "#{name} start"
+  
+  c.option "--cart CART", "The cart to start"
+
+  c.description = "Start the gear/cart"
+  c.action do |args, options|
+    start(options.cart)
+  end
+end
+
+command :stop do |c|
+  c.syntax = "#{name} stop"
+  
+  c.option "--cart CART", "The cart to stop"
+
+  c.description = "Stop the gear/cart"
+  c.action do |args, options|
+    stop(options.cart)
+  end
+end
+
+command :restart do |c|
+  c.syntax = "#{name} restart"
+  
+  c.option "--cart CART", "The cart to restart"
+
+  c.description = "Restart the gear"
+  c.action do |args, options|
+    options.cart ||= choose("Cart to restart?", *gear_cartridge_names)
+    @container.restart(options.cart)
+  end
+end
+
+command :reload do |c|
+  c.syntax = "#{name} reload"
+  
+  c.option "--cart CART", "The cart to reload"
+
+  c.description = "Reload the gear"
+  c.action do |args, options|
+    options.cart ||= choose("Cart to reload?", *gear_cartridge_names)
+    @container.reload(options.cart)
+  end
+end
+
+command :status do |c|
+  c.syntax = "#{name} status"
+  
+  c.option "--cart CART", "The cart to get the status for"
+
+  c.description = "Get the status for a cart"
+  c.action do |args, options|
+    options.cart ||= choose("Cart to get the status for?", *gear_cartridge_names)
+    puts @container.status(options.cart)
+  end
+end
+
+command :restore do |c|
+  c.syntax = "#{name} restore"
+  
+  c.option "--cart CART", "The cart to restore"
+
+  c.description = "Restore a cart"
+  c.action do |args, options|
+    options.cart ||= choose("Cart to restore?", *gear_cartridge_names)
+    @container.restore(options.cart)
+  end
+end
+
+command :snapshot do |c|
+  c.syntax = "#{name} snapshot"
+  
+  c.option "--cart CART", "The cart to snapshot"
+
+  c.description = "Snapshot a cart"
+  c.action do |args, options|
+    options.cart ||= choose("Cart to snapshot?", *gear_cartridge_names)
+    @container.snapshot(options.cart)
+  end
+end
+
+
+default_command :status

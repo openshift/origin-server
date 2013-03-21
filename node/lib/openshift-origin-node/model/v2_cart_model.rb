@@ -26,7 +26,7 @@ require 'openshift-origin-node/utils/environ'
 require 'openshift-origin-node/utils/path_utils'
 
 module OpenShift
-  # TODO use this expections when oo_spawn fails...
+  # TODO use this exception when oo_spawn fails...
   class FileLockError < Exception
     attr_reader :filename
 
