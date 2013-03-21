@@ -66,9 +66,12 @@ function jenkins_sync_jboss {
   UPSTREAM_SSH=$1
 
   jenkins_rsync ~/.m2/ $UPSTREAM_SSH:~/.m2/
+  
+  cd ~
+  jboss_version=`find . -maxdepth 1 -type d -name "jboss*"`
 
   jenkins_rsync --exclude='*.deployed' --exclude='*.deploying' --exclude='*.isundeploying' \
-    ~/$WORKSPACE/deployments/. $UPSTREAM_SSH:~/app-root/repo/deployments/
+    ~/$WORKSPACE/deployments/. $UPSTREAM_SSH:~/$jboss_version/$jboss_version/standalone/deployments/
 
   jenkins_rsync ~/$WORKSPACE/.openshift/ $UPSTREAM_SSH:~/app-root/repo/.openshift/
 }

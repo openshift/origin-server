@@ -12,7 +12,7 @@ echo "export OPENSHIFT_JBOSSEAP_VERSION='$version'" > "$OPENSHIFT_JBOSSEAP_DIR/e
 echo "export OPENSHIFT_JBOSSEAP_DIR='$OPENSHIFT_JBOSSEAP_DIR'" > "$OPENSHIFT_JBOSSEAP_DIR/env/OPENSHIFT_JBOSSEAP_DIR"
 
 # Create additional directories required by JBOSSEAP
-mkdir -p ${OPENSHIFT_HOMEDIR}/{.m2,.java}
+mkdir -p ${OPENSHIFT_HOMEDIR}/.m2
 mkdir -p ${OPENSHIFT_JBOSSEAP_DIR}/{bin,template,standalone/tmp,standalone/deployments,standalone/configuration,standalone/log,standalone/data}
 
 # Copy the version specific files up to jbosseap directory
