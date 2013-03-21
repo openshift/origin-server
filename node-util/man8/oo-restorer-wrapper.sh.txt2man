@@ -9,7 +9,7 @@ DESCRIPTION
 
 OPTIONS
    uuid   
-    The UUID of the gear who's application needs idling.
+    The UUID of the gear whose application needs idling.
 
 EXAMPLE
 
