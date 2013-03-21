@@ -16,7 +16,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version:       1.5.18
+Version:       1.5.19
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -223,6 +223,9 @@ fi
 sed -i -e '/pam_cgroup/d' /etc/pam.d/sshd
 
 %changelog
+* Thu Mar 21 2013 Adam Miller <admiller@redhat.com> 1.5.19-1
+- Fix mixed case if inferring FQDN from gear information. (rmillner@redhat.com)
+
 * Tue Mar 12 2013 Adam Miller <admiller@redhat.com> 1.5.18-1
 - Bug 920365: Fix oo-create-endpoints to call the correct method.
   (mrunalp@gmail.com)
