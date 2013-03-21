@@ -457,6 +457,8 @@ Dir(after)    #{@uuid}/#{@uid} => #{list_home_dir(@homedir)}
       geardir = File.join(homedir, @container_name, "/")
       gearappdir = File.join(homedir, "app-root", "/")
 
+      add_env_var("NAMESPACE", @namespace, true)
+
       add_env_var("APP_DNS",
                   "#{@app_name}-#{@namespace}.#{@config.get("CLOUD_DOMAIN")}",
                   true)

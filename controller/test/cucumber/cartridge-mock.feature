@@ -61,6 +61,7 @@ Feature: V2 SDK Mock Cartridge
     And the mock setup_failure marker will not exist
     And the mock-0.1 MOCK_EXAMPLE env entry will exist
     And the mock-0.1 MOCK_SERVICE_URL env entry will exist
+    And the mock-0.1 MOCK_IDENT env entry will exist
 
     When I start the application
     Then the mock control_start marker will exist
