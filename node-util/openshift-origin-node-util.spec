@@ -1,6 +1,6 @@
 Summary:       Utility scripts for the OpenShift Origin broker
 Name:          openshift-origin-node-util
-Version: 1.6.3
+Version: 1.6.4
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -114,6 +114,18 @@ mv services/openshift-gears.service %{buildroot}/etc/systemd/system/openshift-ge
 /sbin/restorecon /usr/sbin/oo-restorer* || :
 
 %changelog
+* Thu Mar 21 2013 Adam Miller <admiller@redhat.com> 1.6.4-1
+- Bug 923561 - Make help match usage Bug 923559 - Make help match usage
+  (jhonce@redhat.com)
+- Fix bug 918823 (pmorie@gmail.com)
+- Merge pull request #1682 from pmorie/dev/toggle
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #1681 from brenton/oo-restorecon (dmcphers@redhat.com)
+- Reading in GEAR_BASE_DIR for oo-restorecon / oo-accept-node
+  (bleanhar@redhat.com)
+- Add cartridge version toggler (pmorie@gmail.com)
+- Adding a tool to restore the OpenShift MCS (bleanhar@redhat.com)
+
 * Mon Mar 18 2013 Adam Miller <admiller@redhat.com> 1.6.3-1
 - WIP Cartridge Refactor - Introduce oo-admin-cartridge command
   (jhonce@redhat.com)
