@@ -1,14 +1,14 @@
 LoadModule perl_module modules/mod_perl.so
 DirectoryIndex index.pl
 
-ServerRoot "<%= ENV['OPENSHIFT_HOMEDIR'] %>/perl"
+ServerRoot "<%= ENV['OPENSHIFT_PERL_DIR'] %>"
 DocumentRoot "<%= ENV['OPENSHIFT_REPO_DIR'] %>/perl"
 Listen <%= ENV['OPENSHIFT_PERL_IP'] %>:<%= ENV['OPENSHIFT_PERL_PORT'] %>
 User <%= ENV['OPENSHIFT_GEAR_UUID'] %>
 Group <%= ENV['OPENSHIFT_GEAR_UUID'] %>
 
-ErrorLog "|/usr/sbin/rotatelogs <%= ENV['OPENSHIFT_HOMEDIR'] %>/perl/logs/error_log-%Y%m%d-%H%M%S-%Z 86400"
-CustomLog "|/usr/sbin/rotatelogs <%= ENV['OPENSHIFT_HOMEDIR'] %>/perl/logs/access_log-%Y%m%d-%H%M%S-%Z 86400" combined
+ErrorLog "|/usr/sbin/rotatelogs <%= ENV['OPENSHIFT_PERL_DIR'] %>/logs/error_log-%Y%m%d-%H%M%S-%Z 86400"
+CustomLog "|/usr/sbin/rotatelogs <%= ENV['OPENSHIFT_PERL_DIR'] %>/logs/access_log-%Y%m%d-%H%M%S-%Z 86400" combined
 
 <Directory <%= ENV['OPENSHIFT_REPO_DIR'] %>/perl/>
     AddHandler perl-script .pl
