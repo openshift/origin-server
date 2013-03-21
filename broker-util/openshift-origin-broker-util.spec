@@ -6,7 +6,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin broker
 Name:          openshift-origin-broker-util
-Version: 1.6.3
+Version: 1.6.4
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -91,6 +91,29 @@ cp kickstart/openshift-origin-remix.ks %{buildroot}/usr/share/openshift/kickstar
 %{_mandir}/man8/oo-stats.8.gz
 
 %changelog
+* Thu Mar 21 2013 Adam Miller <admiller@redhat.com> 1.6.4-1
+- fix BZ923579 - no uuid for user/domain (rchopra@redhat.com)
+- Fix for bug 923176  - Handling missing or empty component_instances  -
+  Handling false positives for UID checks for districts (abhgupta@redhat.com)
+- Merge pull request #1708 from brenton/BZ923070
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #1707 from rajatchopra/master
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 923070 - Removing duplicate warning from oo-admin-broker-auth
+  (bleanhar@redhat.com)
+- fix for bug918947, remove gear called on non-existent gear of an app
+  (rchopra@redhat.com)
+- Bug 923070 - removing duplicate mongo call in oo-admin-broker-auth
+  (bleanhar@redhat.com)
+- Merge pull request #1692 from rajatchopra/master
+  (dmcphers+openshiftbot@redhat.com)
+- spec file fixed for analytics utilities (rchopra@redhat.com)
+- analytics data export/import (rchopra@redhat.com)
+- Merge pull request #1679 from abhgupta/abhgupta-dev
+  (dmcphers+openshiftbot@redhat.com)
+- Modifying the man page and usage details for oo-admin-chk
+  (abhgupta@redhat.com)
+
 * Mon Mar 18 2013 Adam Miller <admiller@redhat.com> 1.6.3-1
 - Reporting errors for gears that aren't found (bleanhar@redhat.com)
 - Bug 922678 - Fixing oo-admin-broker-auth's --rekey option
