@@ -81,34 +81,31 @@ class Avahi
   # @return status Integer HTTP codes 200, 400, 404
   # @return message String Detailed message of success or error
   def add_alias(cname, fqdn)
-    if  cname.nil? || cname.empty? || 
+    if  cname.nil? || cname.empty? ||
         (not cname.match(/[a-z]+(.[a-z]+)?.local/))
       return 400, "Invlaid CNAME '#{cname}'"
       return 400, "Invalid CNAME"
     end
-        
-    if fqdn.nil? || fqdn.empty? || 
+
+    if fqdn.nil? || fqdn.empty? ||
         (not fqdn.match(/[a-z]+(.[a-z]+)?.local/))
         return 400, "Invlaid FQDN '#{fqdn}'"
         return 400, "Invalid FQDN"
     end
-    
+
     STDERR.write("Adding alias #{cname} -> #{fqdn}\n")
     aliases = load_config()
     unless aliases.keys.include?(cname)
       aliases[cname]=fqdn
       save_config(aliases)
-      rdata = create_rr(fqdn.strip)
-      @group.AddRecord(IF_UNSPEC, PROTO_UNSPEC, 0, cname.strip, CLASS_IN, TYPE_CNAME, TTL, rdata)
-      @group.Commit()
-      STDERR.write("...succesful\n")
+      reload_aliases()
       return 200, "OK"
     else
       STDERR.write("...duplicate\n")
       return 400, "CNAME entry already exists for #{cname}"
     end
   end
-
+  
   ##
   # Create a RR entry for a given FQDN.
   # Eg output. foo.local => [3,'f','o','o',5,'l','o','c','a','l',0]
