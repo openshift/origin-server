@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version:       1.5.16
+Version:       1.5.17
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -78,6 +78,9 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Thu Mar 21 2013 Adam Miller <admiller@redhat.com> 1.5.17-1
+- dont crash user_op on missing domains (rchopra@redhat.com)
+
 * Tue Mar 12 2013 Adam Miller <admiller@redhat.com> 1.5.16-1
 - fix for bug 920045 - connector args should have gear uuid
   (rchopra@redhat.com)
