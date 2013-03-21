@@ -20,6 +20,9 @@ Cart-Data:
 Group-Overrides:
   - components:
     - mock
+Publishes:
+  publish-db-connection-info:
+    Type: "NET_TCP:db:connection-info"
 Endpoints:
   - Private-IP-Name:   EXAMPLE_IP1
     Private-Port-Name: EXAMPLE_PORT1
