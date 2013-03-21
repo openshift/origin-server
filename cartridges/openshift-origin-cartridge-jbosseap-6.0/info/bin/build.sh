@@ -90,7 +90,10 @@ then
             mvn $MAVEN_ARGS
         fi
         
-        cp -rf "${OPENSHIFT_REPO_DIR}"/deployments/* "${OPENSHIFT_HOMEDIR}"/jbosseap-6.0/jbosseap-6.0/standalone/deployments
+        if [ ! -h ${OPENSHIFT_REPO_DIR}"/deployments && ! -h ${OPENSHIFT_HOMEDIR}"/jbosseap-6.0/jbosseap-6.0/standalone/deployments ]
+        then
+        	cp -rf "${OPENSHIFT_REPO_DIR}"/deployments/* "${OPENSHIFT_HOMEDIR}"/jbosseap-6.0/jbosseap-6.0/standalone/deployments
+        fi
         
         popd > /dev/null
     fi
