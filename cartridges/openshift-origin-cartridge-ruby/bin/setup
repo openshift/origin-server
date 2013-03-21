@@ -5,14 +5,12 @@ set -x
 PATH=/bin:/usr/bin:$PATH
 
 version=1.9
-ls -lZa $OPENSHIFT_HOMEDIR/ruby
-id
 
 # Copy the version specific files to ruby directory
-OPENSHIFT_RUBY_DIR="$OPENSHIFT_HOMEDIR/ruby"
-cp -r $OPENSHIFT_RUBY_DIR/versions/$version/etc/* $OPENSHIFT_RUBY_DIR/etc
-cp -r $OPENSHIFT_RUBY_DIR/versions/$version/metadata/* $OPENSHIFT_RUBY_DIR/metadata
-cp -r $OPENSHIFT_RUBY_DIR/versions/$version/template/* $OPENSHIFT_RUBY_DIR/template
+for dir in etc metadata template; do
+	mkdir -p $OPENSHIFT_RUBY_DIR/$dir
+	cp -r $OPENSHIFT_RUBY_DIR/versions/$version/$dir/* $OPENSHIFT_RUBY_DIR/$dir 
+done
 
 # Create additional directories required by RUBY and httpd
 ln -s /usr/lib64/httpd/modules $OPENSHIFT_RUBY_DIR
