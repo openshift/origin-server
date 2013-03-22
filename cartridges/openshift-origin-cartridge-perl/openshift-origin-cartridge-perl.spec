@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/openshift/cartridges/v2/perl
 
 Name: openshift-origin-cartridge-perl
-Version: 0.1.4
+Version: 0.1.5
 Release: 1%{?dist}
 Summary: Perl cartridge
 Group: Development/Languages
@@ -63,6 +63,11 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Fri Mar 22 2013 Adam Miller <admiller@redhat.com> 0.1.5-1
+- Merge pull request #1755 from mrunalp/dev/perl_rhc_app_create_fixes
+  (dmcphers@redhat.com)
+- Fixes to get rhc app create working for perl. (mrunalp@gmail.com)
+
 * Thu Mar 21 2013 Adam Miller <admiller@redhat.com> 0.1.4-1
 - Change V2 manifest Version elements to strings (pmorie@gmail.com)
 - Fix cart names to exclude versions. (mrunalp@gmail.com)
