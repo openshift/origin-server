@@ -54,40 +54,6 @@ def gear_cartridge_names
   cartridge_names
 end
 
-def build
-  puts "Building application..."
-  builder_output = @container.build
-  puts "Build output:"
-  puts builder_output
-end
-
-def deploy
-  puts "Deploying application..."
-  deploy_output = @container.deploy
-  puts "Deploy output:"
-  puts deploy_output
-end
-
-def start(cart=nil)
-  if cart
-    @container.start(cart)
-  else
-    puts "Starting gear..."
-    FileUtils.remove @stop_lock if File.exists? @stop_lock
-    @container.start_gear
-  end
-end
-
-def stop(cart=nil)
-  if cart
-    @container.stop(cart)
-  else
-    puts "Stopping gear..."
-    FileUtils.touch @stop_lock
-    @container.stop_gear
-  end
-end
-
 @container = OpenShift::ApplicationContainer.new(ENV['OPENSHIFT_APP_UUID'], ENV['OPENSHIFT_GEAR_UUID'], Etc.getpwuid.uid, ENV['OPENSHIFT_APP_NAME'], ENV['OPENSHIFT_GEAR_NAME'], ENV['OPENSHIFT_NAMESPACE'])
 @stop_lock = PathUtils.join(ENV['OPENSHIFT_HOMEDIR'], %w{app-root runtime .stop_lock})
 
@@ -97,7 +63,7 @@ command :prereceive do |c|
   c.description = "Run the git prereceive steps"
   c.action do |args, options|
     unless ENV['OPENSHIFT_CI_TYPE']
-      stop
+      @container.pre_receive
     end
   end
 end
@@ -107,13 +73,7 @@ command :postreceive do |c|
 
   c.description = "Run the git postreceive steps"
   c.action do |args, options|
-    begin
-      build
-      deploy
-    ensure
-      start
-    end
-    puts "Build complete."
+    @container.post_receive
   end
 end
 
@@ -122,8 +82,7 @@ command :cideploy do |c|
 
   c.description = "Run the cideploy steps"
   c.action do |args, options|
-    stop
-    deploy
+    @container.ci_deploy
   end
 end
 
@@ -143,7 +102,13 @@ command :start do |c|
 
   c.description = "Start the gear/cart"
   c.action do |args, options|
-    start(options.cart)
+    if options.cart
+      @container.start(options.cart)
+    else
+      puts "Starting gear..."
+      FileUtils.remove @stop_lock if File.exists? @stop_lock
+      @container.start_gear
+    end
   end
 end
 
@@ -154,7 +119,13 @@ command :stop do |c|
 
   c.description = "Stop the gear/cart"
   c.action do |args, options|
-    stop(options.cart)
+    if options.cart
+      @container.stop(options.cart)
+    else
+      puts "Stopping gear..."
+      FileUtils.touch @stop_lock
+      @container.stop_gear
+    end
   end
 end
 

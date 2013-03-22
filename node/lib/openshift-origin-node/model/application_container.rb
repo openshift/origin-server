@@ -380,6 +380,16 @@ module OpenShift
         DefaultBuilder.new(self).post_receive
       end
     end
+    
+    def ci_deploy
+      start_gear(secondary_only: true)
+
+      deploy
+
+      start_gear(primary_only: true)
+
+      post_deploy
+    end
 
     ##
     # Implements the following build process:

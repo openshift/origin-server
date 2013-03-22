@@ -873,7 +873,7 @@ module OpenShift
       buffer = ''
       each_cartridge do |cartridge|
         next if options[:primary_only] and not cartridge.primary?
-        next if options[:secondary_only] and cartridge.primary
+        next if options[:secondary_only] and cartridge.primary?
 
         buffer << do_control('start', cartridge)
       end
