@@ -3,6 +3,10 @@
 require 'rubygems'
 require 'json'
 require 'pp'
+require 'erb'
+require 'fileutils'
+require 'openshift-origin-node/model/cartridge'
+require 'openshift-origin-node/utils/path_utils'
 
 STDOUT.sync = true
 STDERR.sync = true
@@ -13,23 +17,25 @@ STDERR.sync = true
 @job_url = "/job/#{@job_name}"
 @app_name = ENV['OPENSHIFT_APP_NAME']
 @uuid = ENV['OPENSHIFT_GEAR_UUID']
-@namespace = ARGV[0]
-@openshift_origin_domain = ARGV[1]
-@builder_type = ARGV[2]
-@job_xml = ARGV[3]
-file = File.open(ARGV[4], "rb")
+@namespace = ENV['OPENSHIFT_NAMESPACE']
+@openshift_domain = ARGV[0]
+@job_erb = "#{ENV['OPENSHIFT_JENKINS_CLIENT_DIR']}/configuration/jenkins_job_template.xml.erb"
+file = File.open(ARGV[1], "rb")
 @shell_command = file.read
-file = File.open(ARGV[5], "rb")
+file = File.open(ARGV[2], "rb")
 @artifacts = file.read
+primary_cart_manifest = "#{ENV['OPENSHIFT_PRIMARY_CARTRIDGE_DIR']}/metadata/manifest.yml"
+primary_cart = OpenShift::Runtime::Cartridge.new(primary_cart_manifest)
+@builder_type = "#{primary_cart.name}-#{primary_cart.version}"
 
 def create_job
-  status_code = `/bin/sed -e "s,UPSTREAM_REPO_URL,ssh://#{@uuid}@#{@app_name}-#{@namespace}.#{@openshift_origin_domain}/~/git/#{@app_name}.git/,g" \
-         -e "s,UPSTREAM_SSH,#{@uuid}@#{@app_name}-#{@namespace}.#{@openshift_origin_domain},g" \
-         -e "s,JOB_NAME,#{@job_name},g" \
-         -e "s,BUILDER_TYPE,#{@builder_type},g" \
-         -e "s,UPSTREAM_APP_NAME,#{@app_type},g" \
-         -e "s,SHELL_COMMAND,#{@shell_command},g" \
-         -e "s,ARTIFACTS,#{@artifacts},g" #{@job_xml} | curl -s -w %{http_code} --output /dev/null -X POST -H "Content-Type: application/xml" -H "Expect: " --data-binary @- --insecure https://${JENKINS_USERNAME}:${JENKINS_PASSWORD}@#{@hostname}/createItem?name=#{@job_name}`
+  erb = ERB.new(File.open(@job_erb, "rb").read)
+  job_template_xml = "#{ENV['OPENSHIFT_JENKINS_CLIENT_DIR']}/configuration/jenkins_job_template.xml"
+  File.open(job_template_xml, 'w') {|f| f.write(erb.result(binding)) }
+  FileUtils.rm @job_erb
+
+status_code = `/bin/sed -e "s,UPSTREAM_SSH,#{@uuid}@#{@app_name}-#{@namespace}.#{@openshift_domain},g" #{job_template_xml} \
+  | curl -s  -X POST -H "Content-Type: application/xml" -H "Expect: " --data-binary @- --insecure https://${JENKINS_USERNAME}:${JENKINS_PASSWORD}@#{@hostname}/createItem?name=#{@job_name}`
 
   puts "create_job status: #{status_code}"
   if not File.exists? File.join(@data_dir, 'jobs', @app_name, 'config.xml')

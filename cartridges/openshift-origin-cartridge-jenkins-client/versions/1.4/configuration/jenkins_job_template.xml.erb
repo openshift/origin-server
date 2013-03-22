@@ -14,7 +14,7 @@
       <builderSize>small</builderSize>
     </hudson.plugins.openshift.OpenShiftBuilderSizeJobProperty>
     <hudson.plugins.openshift.OpenShiftBuilderTypeJobProperty>
-      <builderType>BUILDER_TYPE</builderType>
+      <builderType><%= @builder_type %></builderType>
     </hudson.plugins.openshift.OpenShiftBuilderTypeJobProperty>
     <hudson.plugins.openshift.OpenShiftBuilderTimeoutJobProperty>
       <builderTimeout>300000</builderTimeout>
@@ -26,7 +26,7 @@
       <hudson.plugins.git.UserRemoteConfig>
         <name></name>
         <refspec></refspec>
-        <url>UPSTREAM_REPO_URL</url>
+        <url><%= "ssh://#{@uuid}@#{@app_name}-#{@namespace}.#{@openshift_domain}/~/git/#{@app_name}.git" %></url>
       </hudson.plugins.git.UserRemoteConfig>
     </userRemoteConfigs>
     <branches>
@@ -52,7 +52,7 @@
     <skipTag>false</skipTag>
     <scmName></scmName>
   </scm>
-  <assignedNode>JOB_NAME</assignedNode>
+  <assignedNode><%= @job_name %></assignedNode>
   <canRoam>false</canRoam>
   <disabled>false</disabled>
   <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
@@ -62,13 +62,13 @@
   <builders>
     <hudson.tasks.Shell>
       <command>
-SHELL_COMMAND
+<%= @shell_command %>
       </command>
     </hudson.tasks.Shell>
   </builders>
   <publishers>
     <hudson.tasks.ArtifactArchiver>
-      <artifacts>ARTIFACTS</artifacts>
+      <artifacts><%= @artifacts %></artifacts>
       <latestOnly>false</latestOnly>
     </hudson.tasks.ArtifactArchiver>
   </publishers>

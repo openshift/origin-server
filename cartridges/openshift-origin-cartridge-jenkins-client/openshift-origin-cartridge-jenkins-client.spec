@@ -13,9 +13,7 @@ Group:         Network/Daemons
 License:       ASL 2.0
 URL:           https://openshift.redhat.com
 Source0:       http://mirror.openshift.com/pub/openshift-origin/source/%{name}/%{name}-%{version}.tar.gz
-Requires:      openshift-origin-cartridge-abstract
 Requires:      rubygem(openshift-origin-node)
-Requires:      mysql-devel
 Requires:      wget
 %if 0%{?fedora}%{?rhel} <= 6
 Requires:      java-1.6.0-openjdk
