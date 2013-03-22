@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/openshift/cartridges/v2/php
 
 Name: openshift-origin-cartridge-php
-Version: 0.1.4
+Version: 0.1.5
 Release: 1%{?dist}
 Summary: Php cartridge
 Group: Development/Languages
@@ -72,6 +72,10 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Fri Mar 22 2013 Adam Miller <admiller@redhat.com> 0.1.5-1
+- adding openshift node util (dmcphers@redhat.com)
+- implementing builder_cartridge based on cart categories (dmcphers@redhat.com)
+
 * Thu Mar 21 2013 Adam Miller <admiller@redhat.com> 0.1.4-1
 - Merge pull request #1741 from mrunalp/dev/php_build_wip
   (dmcphers+openshiftbot@redhat.com)
