@@ -1,0 +1,10 @@
+Markers
+===========
+
+Adding marker files to this directory will have the following effects:
+
+disable_auto_scaling - Will prevent scalable applications from scaling up 
+                       or down according to application load.
+
+enable_jpda - Will enable the JPDA socket based transport on the java virtual
+              machine running Ceylon. This enables you to remotely debug code.

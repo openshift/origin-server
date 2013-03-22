@@ -1,37 +1,35 @@
-%if 0%{?fedora}%{?rhel} <= 6
-    %global scl ruby193
-    %global scl_prefix ruby193-
-%endif
+%define cartdir %{_libexecdir}/openshift/cartridges
 
-%global cartdir %{_libexecdir}/openshift/cartridges
+Summary:   OpenShift common cartridge components
+Name:      openshift-origin-cartridge-abstract
+Version:   1.1.1
+Release:   1%{?dist}
+Group:     Network/Daemons
+License:   ASL 2.0
+URL:       http://openshift.redhat.com
+Source0:   http://mirror.openshift.com/pub/origin-server/source/%{name}/%{name}-%{version}.tar.gz
+BuildArch: noarch
 
-Summary:       OpenShift common cartridge components
-Name:          openshift-origin-cartridge-abstract
-Version:       1.6.3
-Release:       1%{?dist}
-Group:         Network/Daemons
-License:       ASL 2.0
-URL:           http://openshift.redhat.com
-Source0:       http://mirror.openshift.com/pub/openshift-origin/source/%{name}/%{name}-%{version}.tar.gz
-Requires:      facter
-Requires:      git
-Requires:      make
-Requires:      mod_ssl
+Requires:  facter
+Requires:  git
+Requires:  make
+Requires:  mod_ssl
 # abstract/info/connection-hooks/publish-http-url
-Requires:      python
+Requires:  python
 # abstract/info/bin/jenkins_build
-Requires:      %{?scl:%scl_prefix}ruby
-Requires:      %{?scl:%scl_prefix}rubygems
-Requires:      %{?scl:%scl_prefix}rubygem(json)
+Requires:  ruby
+Requires:  rubygems
+Requires:  rubygem(json)
 # abstract/info/bin/open_ports.sh
-Requires:      socat
+Requires:  socat
 # abstract/info/bin/nurture_app_push.sh
-Requires:      curl
+Requires:  curl
 # abstract/info/bin/sync_gears.sh
-Requires:      rsync
+Requires:  rsync
 # abstract/info/lib/network
-Requires:      lsof
-BuildArch:     noarch
+Requires:  lsof
+
+Obsoletes: stickshift-abstract
 
 %description
 This contains the common function used while building cartridges.
@@ -52,10 +50,14 @@ openshift jboss cartridges.
 %build
 
 %install
+rm -rf %{buildroot}
 mkdir -p %{buildroot}%{cartdir}
-cp -rv -p abstract %{buildroot}%{cartdir}/
-cp -rv -p abstract-httpd %{buildroot}%{cartdir}/
-cp -rv -p abstract-jboss %{buildroot}%{cartdir}/
+cp -rv abstract %{buildroot}%{cartdir}/
+cp -rv abstract-httpd %{buildroot}%{cartdir}/
+cp -rv abstract-jboss %{buildroot}%{cartdir}/
+
+# Remove bundled library
+rm -f %{buildroot}%{cartdir}/abstract-jboss/info/data/mysql.tar
 
 %files
 %doc COPYRIGHT LICENSE
@@ -67,15 +69,10 @@ cp -rv -p abstract-jboss %{buildroot}%{cartdir}/
 %attr(0755,-,-) %{_libexecdir}/openshift/cartridges/abstract-httpd/info/bin/
 %dir %attr(0755,root,root) %{_libexecdir}/openshift/cartridges/abstract/
 %dir %attr(0755,root,root) %{_libexecdir}/openshift/cartridges/abstract/info/
-%dir %attr(0755,-,-) %{_libexecdir}/openshift/cartridges/abstract/info/hooks
-%attr(0750,-,-) %{_libexecdir}/openshift/cartridges/abstract/info/hooks/*
-# tidy is now a cartridge hook and should be accessible to gear users
-%attr(0755,-,-) %{_libexecdir}/openshift/cartridges/abstract/info/hooks/tidy
+%attr(0750,-,-) %{_libexecdir}/openshift/cartridges/abstract/info/hooks/
 %attr(0755,-,-) %{_libexecdir}/openshift/cartridges/abstract/info/bin/
 %attr(0755,-,-) %{_libexecdir}/openshift/cartridges/abstract/info/lib/
 %attr(0750,-,-) %{_libexecdir}/openshift/cartridges/abstract/info/connection-hooks/
-%dir %attr(0755,-,-) %{_libexecdir}/openshift/cartridges/abstract/info/configuration/
-%attr(0644,-,-) %{_libexecdir}/openshift/cartridges/abstract/info/configuration/health.html
 
 %files jboss
 %doc COPYRIGHT LICENSE
@@ -84,220 +81,9 @@ cp -rv -p abstract-jboss %{buildroot}%{cartdir}/
 %attr(0750,-,-) %{_libexecdir}/openshift/cartridges/abstract-jboss/info/hooks/
 %attr(0755,-,-) %{_libexecdir}/openshift/cartridges/abstract-jboss/info/bin/
 %attr(0750,-,-) %{_libexecdir}/openshift/cartridges/abstract-jboss/info/connection-hooks/
-%doc %{_libexecdir}/openshift/cartridges/abstract-jboss/README.md
+%attr(0750,-,-) %{_libexecdir}/openshift/cartridges/abstract-jboss/info/data/
 
 %changelog
-* Mon Mar 18 2013 Adam Miller <admiller@redhat.com> 1.6.3-1
-- Bug 922650: Fix default ROOT.war for JBoss carts (ironcladlou@gmail.com)
-- remove java-devel BuildRequires, move ROOT.war jar to configure
-  (bdecoste@gmail.com)
-- remove java-devel BuildRequires, move ROOT.war jar to configure
-  (bdecoste@gmail.com)
-- remove java-devel BuildRequires, move ROOT.war jar to configure
-  (bdecoste@gmail.com)
-
-* Thu Mar 14 2013 Adam Miller <admiller@redhat.com> 1.6.2-1
-- Merge pull request #1625 from tdawson/tdawson/remove-obsoletes
-  (dmcphers+openshiftbot@redhat.com)
-- minor cleanup of some cartridge spec files (tdawson@redhat.com)
-- remove old obsoletes (tdawson@redhat.com)
-
-* Thu Mar 07 2013 Adam Miller <admiller@redhat.com> 1.6.1-1
-- bump_minor_versions for sprint 25 (admiller@redhat.com)
-
-* Wed Mar 06 2013 Adam Miller <admiller@redhat.com> 1.5.9-1
-- Merge pull request #1557 from bdecoste/master
-  (dmcphers+openshiftbot@redhat.com)
-- Enable management console (bdecoste@gmail.com)
-
-* Tue Mar 05 2013 Adam Miller <admiller@redhat.com> 1.5.8-1
-- JBoss cartridge documentation for OSE 1.1 (calfonso@redhat.com)
-
-* Fri Mar 01 2013 Adam Miller <admiller@redhat.com> 1.5.7-1
-- BZ916791: Fix invalid args passed to ps. (mrunalp@gmail.com)
-- Merge pull request #1503 from rmillner/US3143
-  (dmcphers+openshiftbot@redhat.com)
-- Was using the wrong call. (rmillner@redhat.com)
-- Bug 916829 - add health url. (rmillner@redhat.com)
-
-* Thu Feb 28 2013 Adam Miller <admiller@redhat.com> 1.5.6-1
-- Merge pull request #1474 from bdecoste/master (dmcphers@redhat.com)
-- Bug 913217 (bdecoste@gmail.com)
-
-* Wed Feb 27 2013 Adam Miller <admiller@redhat.com> 1.5.5-1
-- Merge pull request #1454 from bdecoste/master
-  (dmcphers+openshiftbot@redhat.com)
-- Bug 895507 (bdecoste@gmail.com)
-
-* Mon Feb 25 2013 Adam Miller <admiller@redhat.com> 1.5.4-2
-- bump Release for fixed build target rebuild (admiller@redhat.com)
-
-* Mon Feb 25 2013 Adam Miller <admiller@redhat.com> 1.5.4-1
-- Bug 913288 - Numeric login effected additional commands (jhonce@redhat.com)
-
-* Tue Feb 19 2013 Adam Miller <admiller@redhat.com> 1.5.3-1
-- Audit of remaining front-end Apache touch points. (rmillner@redhat.com)
-- Switch from VirtualHosts to mod_rewrite based routing to support high
-  density. (rmillner@redhat.com)
-- Bug 906740 - Update error message (jhonce@redhat.com)
-- Fixes for ruby193 (john@ibiblio.org)
-- remove community pod (dmcphers@redhat.com)
-- remove use of filesystem cgroup countrol (mlamouri@redhat.com)
-
-* Fri Feb 08 2013 Adam Miller <admiller@redhat.com> 1.5.2-1
-- change %%define to %%global (tdawson@redhat.com)
-
-* Thu Feb 07 2013 Adam Miller <admiller@redhat.com> 1.5.1-1
-- Merge pull request #1334 from kraman/f18_fixes
-  (dmcphers+openshiftbot@redhat.com)
-- Reading hostname from node.conf file instead of relying on localhost
-  Splitting test features into common, rhel only and fedora only sections
-  (kraman@gmail.com)
-- bump_minor_versions for sprint 24 (admiller@redhat.com)
-- Fixing init-quota to allow for tabs in fstab file Added entries in abstract
-  for php-5.4, perl-5.16 Updated python-2.6,php-5.3,perl-5.10 cart so that it
-  wont build on F18 Fixed mongo broker auth Relaxed version requirements for
-  acegi-security and commons-codec when generating hashed password for jenkins
-  Added Apache 2.4 configs for console on F18 Added httpd 2.4 specific restart
-  helper (kraman@gmail.com)
-
-* Wed Feb 06 2013 Adam Miller <admiller@redhat.com> 1.4.4-1
-- remove BuildRoot: (tdawson@redhat.com)
-- make Source line uniform among all spec files (tdawson@redhat.com)
-
-* Thu Jan 31 2013 Adam Miller <admiller@redhat.com> 1.4.3-1
-- Add openshift-origin-cartridge-community-python-3.3 cartridge.
-  (smitram@gmail.com)
-- Add openshift-origin-cartridge-community-python-2.7 cartridge.
-  (smitram@gmail.com)
-
-* Tue Jan 29 2013 Adam Miller <admiller@redhat.com> 1.4.2-1
-- Add file:// to the allowed git protocols and add the community-pod to the
-  list of 'frameworks'!! (ramr@redhat.com)
-- fix references to rhc app cartridge (dmcphers@redhat.com)
-
-* Wed Jan 23 2013 Adam Miller <admiller@redhat.com> 1.4.1-1
-- bump_minor_versions for sprint 23 (admiller@redhat.com)
-
-* Wed Jan 23 2013 Adam Miller <admiller@redhat.com> 1.3.7-1
-- Merge pull request #1195 from rmillner/BZ896364
-  (dmcphers+openshiftbot@redhat.com)
-- Bug 896364 - Minor cleanup. (rmillner@redhat.com)
-
-* Tue Jan 22 2013 Adam Miller <admiller@redhat.com> 1.3.6-1
-- BZ 896364: Check git urls for allowed types and emit useful error messages.
-  (rmillner@redhat.com)
-- Fix typos in rhc instructions displayed to client (ironcladlou@gmail.com)
-
-* Fri Jan 18 2013 Dan McPherson <dmcphers@redhat.com> 1.3.5-1
-- Merge pull request #1163 from ironcladlou/endpoint-refactor
-  (dmcphers@redhat.com)
-- Replace expose/show/conceal-port hooks with Endpoints (ironcladlou@gmail.com)
-
-* Thu Jan 17 2013 Adam Miller <admiller@redhat.com> 1.3.4-1
-- Merge pull request #1158 from rmillner/BZ837489
-  (dmcphers+openshiftbot@redhat.com)
-- BZ 837489: Scramble the username due to mysql security bug.
-  (rmillner@redhat.com)
-- Fix for Bug 895878 (jhonce@redhat.com)
-
-* Thu Jan 10 2013 Adam Miller <admiller@redhat.com> 1.3.3-1
-- Merge pull request #1128 from ramr/master (dmcphers+openshiftbot@redhat.com)
-- Merge pull request #1110 from Miciah/silence-pushd-and-popd
-  (dmcphers+openshiftbot@redhat.com)
-- Add missing routes.json configuration for jboss* app types + minor cleanup.
-  (ramr@redhat.com)
-- Fix BZ891831 (pmorie@gmail.com)
-- Consistently silence pushd and popd in hooks (miciah.masters@gmail.com)
-- Update node web proxy config when updating namespace. (mpatel@redhat.com)
-- Merge pull request #1083 from bdecoste/master (openshift+bot@redhat.com)
-- re-enabed ews2 (bdecoste@gmail.com)
-
-* Tue Dec 18 2012 Adam Miller <admiller@redhat.com> 1.3.2-1
-- - oo-setup-broker fixes:   - Open dns ports for access to DNS server from
-  outside the VM   - Turn on SELinux booleans only if they are off (Speeds up
-  re-install)   - Added console SELinux booleans - oo-setup-node fixes:   -
-  Setup mcollective to use broker IPs - Updates abstract cartridges to set
-  proper order for php-5.4 and postgres-9.1 cartridges - Updated broker to add
-  fedora 17 cartridges - Fixed facts cron job (kraman@gmail.com)
-
-* Wed Dec 12 2012 Adam Miller <admiller@redhat.com> 1.3.1-1
-- bump_minor_versions for sprint 22 (admiller@redhat.com)
-
-* Tue Dec 11 2012 Adam Miller <admiller@redhat.com> 1.2.8-1
-- Merge pull request #1029 from bdecoste/master (openshift+bot@redhat.com)
-- removed ews2.0 and sy xslt (bdecoste@gmail.com)
-- ews2 and bugs (bdecoste@gmail.com)
-
-* Fri Dec 07 2012 Adam Miller <admiller@redhat.com> 1.2.7-1
-- Merge pull request #1035 from abhgupta/abhgupta-dev
-  (openshift+bot@redhat.com)
-- fix for bugs 883554 and 883752 (abhgupta@redhat.com)
-
-* Fri Dec 07 2012 Adam Miller <admiller@redhat.com> 1.2.6-1
-- Fix for Bug 880013 (jhonce@redhat.com)
-
-* Thu Dec 06 2012 Adam Miller <admiller@redhat.com> 1.2.5-1
-- Merge pull request #1023 from ramr/dev/websockets (openshift+bot@redhat.com)
-- Node web sockets and http(s) proxy support with spec file and package.
-  (ramr@redhat.com)
-
-* Wed Dec 05 2012 Adam Miller <admiller@redhat.com> 1.2.4-1
-- Make tidy hook accessible to gear users (ironcladlou@gmail.com)
-
-* Tue Dec 04 2012 Adam Miller <admiller@redhat.com> 1.2.3-1
-- Refactor tidy into the node library (ironcladlou@gmail.com)
-- Move add/remove alias to the node API. (rmillner@redhat.com)
-
-* Thu Nov 29 2012 Adam Miller <admiller@redhat.com> 1.2.2-1
-- Fix state transitions during build cycle (ironcladlou@gmail.com)
-- Merge pull request #985 from ironcladlou/US2770 (openshift+bot@redhat.com)
-- Merge pull request #984 from jwhonce/dev/rm_phpmoadmin
-  (openshift+bot@redhat.com)
-- Merge pull request #983 from jwhonce/dev/rm_post-install
-  (openshift+bot@redhat.com)
-- Remove unused phpmoadmin cartridge (jhonce@redhat.com)
-- Merge pull request #982 from bdecoste/master (openshift+bot@redhat.com)
-- [cartridges-new] Re-implement scripts (part 1) (jhonce@redhat.com)
-- BZ880429 (bdecoste@gmail.com)
-- Move force-stop into the the node library (ironcladlou@gmail.com)
-- US2770: [cartridges-new] Re-implement scripts (part 1) (jhonce@redhat.com)
-- Merge pull request #973 from bdecoste/master (openshift+bot@redhat.com)
-- use /bin/env (dmcphers@redhat.com)
-- Changing same uid move to rsync (dmcphers@redhat.com)
-- ews2 (bdecoste@gmail.com)
-- add oo-ruby (dmcphers@redhat.com)
-
-* Sat Nov 17 2012 Adam Miller <admiller@redhat.com> 1.2.1-1
-- bump_minor_versions for sprint 21 (admiller@redhat.com)
-
-* Fri Nov 16 2012 Adam Miller <admiller@redhat.com> 1.1.6-1
-- Merge pull request #926 from jwhonce/dev/bz877172 (dmcphers@redhat.com)
-- Merge pull request #924 from rmillner/BZ876640 (dmcphers@redhat.com)
-- Merge pull request #925 from ironcladlou/scl-refactor (dmcphers@redhat.com)
-- Fix for Bug 877172 (jhonce@redhat.com)
-- BZ 876640: Warn if no git repo. (rmillner@redhat.com)
-- Only use scl if it's available (ironcladlou@gmail.com)
-
-* Thu Nov 15 2012 Adam Miller <admiller@redhat.com> 1.1.5-1
-- BZ 876640:Test if the target exists and report error. (rmillner@redhat.com)
-
-* Wed Nov 14 2012 Adam Miller <admiller@redhat.com> 1.1.4-1
-- Use standard PATH util in jboss carts (ironcladlou@gmail.com)
-- WIP Ruby 1.9 runtime fixes (ironcladlou@gmail.com)
-- Finish moving the stale disable to Origin. (rmillner@redhat.com)
-
-* Mon Nov 12 2012 Adam Miller <admiller@redhat.com> 1.1.3-1
-- Fix for Bug 874445 (jhonce@redhat.com)
-
-* Thu Nov 08 2012 Adam Miller <admiller@redhat.com> 1.1.2-1
-- Increase the table sizes to cover 15000 nodes in dev and prod.
-  (rmillner@redhat.com)
-- Cleanup spec for Fedora standards (tdawson@redhat.com)
-- Unnecessary to run as system_u and causes test failures.
-  (rmillner@redhat.com)
-- BZ 872008: Use complete context def. (rmillner@redhat.com)
-
 * Thu Nov 01 2012 Adam Miller <admiller@redhat.com> 1.1.1-1
 - bump_minor_versions for sprint 20 (admiller@redhat.com)
 

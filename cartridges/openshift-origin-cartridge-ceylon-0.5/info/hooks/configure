@@ -1,0 +1,112 @@
+#!/bin/bash
+
+# Creates a ceylon instance
+
+# Exit on any errors
+set -e
+
+function print_help {
+    echo "Usage: $0 app-name namespace uuid git-url"
+
+    echo "$0 $@" | logger -p local0.notice -t openshift_origin_ceylon_configure
+    exit 1
+}
+
+while getopts 'd' OPTION
+do
+    case $OPTION in
+        d) set -x
+        ;;
+        ?) print_help
+        ;;
+    esac
+done
+
+[ $# -eq 4 -o $# -eq 3 ] || print_help
+
+cartridge_type="ceylon-0.5"
+source "/etc/openshift/node.conf"
+source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
+
+setup_configure "$1" $2 $3 $4
+disable_cgroups
+
+check_cartridge_dir_doesnt_exist
+
+# Repo
+if [ ! -d $git_url ]; then
+	clone_external_git_repo $application $user_id $group_id $uuid $git_url
+else
+	clone_git_repo $application $user_id $group_id $uuid "ceylon 0.5"
+fi
+
+#
+# Create the core of the application
+#
+create_cartridge_instance_dir "$cartridge_type"
+CEYLONCART_INSTANCE_DIR=$(get_cartridge_instance_dir "$cartridge_type")
+pushd "$CEYLONCART_INSTANCE_DIR" > /dev/null
+create_standard_app_dirs
+popd > /dev/null
+
+#
+# Find an open localhost IP
+#
+IP=`find_open_ip $uid $uuid`
+
+populate_repo_dir
+
+secure_app_dir
+
+secure_cart_instance_dir
+
+observe_setup_app_and_git_dirs
+
+observe_setup_cart_instance_dir
+
+#
+# Create environment variables
+#
+create_standard_cart_env_vars
+create_standard_env_uservars
+create_standard_network_env_vars $IP
+create_cart_network_env_vars $IP
+create_standard_repo_dir_env_var
+create_standard_path_env_var
+
+CEYLON_HOME=/usr/lib/ceylon/0.5
+CEYLON_USER_REPO=$APP_HOME/app-root/data/ceylon/repo
+mkdir -p ${CEYLON_USER_REPO}
+chown -R $user_id.$group_id ${CEYLON_USER_REPO}
+
+CART_DIR=$APP_HOME/$cartridge_type
+APP_LOG_DIR=${CART_DIR}/log
+mkdir -p ${APP_LOG_DIR}
+chown -R $user_id.$group_id ${APP_LOG_DIR}
+
+echo "export CEYLON_HOME=$CEYLON_HOME" > $APP_HOME/.env/CEYLON_HOME
+echo "export CEYLON_USER_REPO=$CEYLON_USER_REPO" > $APP_HOME/.env/CEYLON_USER_REPO
+
+observe_setup_env_uservars_dir
+
+
+if [ ! -d $git_url ]; then
+    #
+    # Resolve app dependencies for template
+    #
+    resolve_application_dependencies $uuid $application &
+else
+    #
+    # Build application & Start the server
+    #
+    run_as_user "${CARTRIDGE_BASE_PATH}/${cartridge_type}/info/bin/build.sh" || error "Failed to build ${cartridge_type} application." 123
+    run_as_user "${CARTRIDGE_BASE_PATH}/${cartridge_type}/info/bin/app_ctl.sh start" || error "Failed to start ${application}" 121
+fi
+
+#
+# Create virtualhost definition for apache
+#
+export CART_INFO_DIR
+$CARTRIDGE_BASE_PATH/abstract/info/bin/deploy_httpd_proxy.sh $application $namespace $uuid $IP
+
+enable_cgroups

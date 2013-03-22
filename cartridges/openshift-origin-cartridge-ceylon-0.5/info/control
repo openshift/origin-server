@@ -1,0 +1,16 @@
+Name: ceylon-0.5
+Version: 0.5
+Architecture: i686/x86_64
+Provides: ceylon
+Depends:
+Conflicts:
+Type: Cartridge
+Role: misc
+Vendor: ceylon-lang.org
+DisplayName: Ceylon 0.5
+Description: 
+Ceylon is a language for writing large programs in teams.
+Ceylon has a powerful static type system that prevents many bugs
+while letting you express more, more easily: 
+union types, intersection types, higher order functions, mixin inheritance,
+and enumerated types.
