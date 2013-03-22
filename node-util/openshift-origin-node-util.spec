@@ -1,6 +1,6 @@
 Summary:       Utility scripts for the OpenShift Origin broker
 Name:          openshift-origin-node-util
-Version: 1.6.4
+Version: 1.6.5
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -114,6 +114,12 @@ mv services/openshift-gears.service %{buildroot}/etc/systemd/system/openshift-ge
 /sbin/restorecon /usr/sbin/oo-restorer* || :
 
 %changelog
+* Fri Mar 22 2013 Adam Miller <admiller@redhat.com> 1.6.5-1
+- Fix all incorrect occurrences of 'who's'. (asari.ruby@gmail.com)
+- Merge pull request #1745 from jwhonce/bug/923832
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 923832 - Add timeout option to oo-accept-node (jhonce@redhat.com)
+
 * Thu Mar 21 2013 Adam Miller <admiller@redhat.com> 1.6.4-1
 - Bug 923561 - Make help match usage Bug 923559 - Make help match usage
   (jhonce@redhat.com)
