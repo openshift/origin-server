@@ -42,7 +42,7 @@ class PendingDomainOps
   def close_op
     if completed?
       if not parent_op_id.nil?
-        user = CloudUser.with(consistency: :strong).find_by(owner_id: self.domain.owner_id)
+        user = CloudUser.with(consistency: :strong).find_by(_id: self.domain.owner_id)
         parent_op = user.pending_ops.find_by(_id: self.parent_op_id)
         parent_op.child_completed(self.domain)
       end
