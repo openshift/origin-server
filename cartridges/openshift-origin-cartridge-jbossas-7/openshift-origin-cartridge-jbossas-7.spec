@@ -4,7 +4,7 @@
 
 Summary:       Provides JBossAS7 support
 Name:          openshift-origin-cartridge-jbossas-7
-Version: 1.6.3
+Version: 1.6.4
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -136,6 +136,10 @@ cp -p %{cartridgedir}/info/configuration/postgresql_module.xml /etc/alternatives
 %config %{cartridgedir}/info/bin/standalone.conf
 
 %changelog
+* Fri Mar 22 2013 Adam Miller <admiller@redhat.com> 1.6.4-1
+- Bug 920375 (bdecoste@gmail.com)
+- Bug 920375 (bdecoste@gmail.com)
+
 * Mon Mar 18 2013 Adam Miller <admiller@redhat.com> 1.6.3-1
 - remove java-devel BuildRequires, move ROOT.war jar to configure
   (bdecoste@gmail.com)
