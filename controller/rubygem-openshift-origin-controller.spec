@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.6.4
+Version: 1.6.5
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -83,6 +83,21 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Fri Mar 22 2013 Adam Miller <admiller@redhat.com> 1.6.5-1
+- The larger tests do not conflict with Online and needed to be available to
+  runtime-extended. (rmillner@redhat.com)
+- Fix for bug 924479 (abhgupta@redhat.com)
+- Using relationships for on_domains and completed_domains
+  (abhgupta@redhat.com)
+- Fixing mongo query to pass correct parameters (abhgupta@redhat.com)
+- Storing the pending_op id to retrieve it after a reload (abhgupta@redhat.com)
+- Merge pull request #1746 from rajatchopra/master
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #1749 from ironcladlou/dev/v2carts/build-system
+  (dmcphers@redhat.com)
+- Reimplement the v2 build process (ironcladlou@gmail.com)
+- dont crash user_op on missing domains (rchopra@redhat.com)
+
 * Thu Mar 21 2013 Adam Miller <admiller@redhat.com> 1.6.4-1
 - Merge pull request #1743 from jwhonce/wip/cartridge_ident
   (dmcphers+openshiftbot@redhat.com)
