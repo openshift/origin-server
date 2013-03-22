@@ -7,7 +7,7 @@
 
 Summary:       OpenShift common cartridge components
 Name:          openshift-origin-cartridge-abstract
-Version:       1.6.3
+Version:       1.6.4
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -87,6 +87,9 @@ cp -rv -p abstract-jboss %{buildroot}%{cartdir}/
 %doc %{_libexecdir}/openshift/cartridges/abstract-jboss/README.md
 
 %changelog
+* Fri Mar 22 2013 Adam Miller <admiller@redhat.com> 1.6.4-1
+- Bug 920375 (bdecoste@gmail.com)
+
 * Mon Mar 18 2013 Adam Miller <admiller@redhat.com> 1.6.3-1
 - Bug 922650: Fix default ROOT.war for JBoss carts (ironcladlou@gmail.com)
 - remove java-devel BuildRequires, move ROOT.war jar to configure
