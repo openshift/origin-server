@@ -3,30 +3,40 @@
 = app_wizard_steps_create 0, :active => true
 = flashes
 
-%section
-  %p.larger
-    Choose a web programming cartridge or kick the tires with a
-    quickstart. After you create the application 
-    you can add <strong>cartridges</strong> to enable additional 
-    capabilities like databases, metrics, and continuous build 
-    support with Jenkins.
+%section.row
+  .span6
+    %p.larger
+      Choose a web programming cartridge or kick the tires with a
+      quickstart. After you create the application 
+      you can add <strong>cartridges</strong> to enable additional 
+      capabilities like databases, metrics, and continuous build 
+      support with Jenkins.
 
-%section
-  %form.form-search.form-search-block{:id => 'form-search-create-apps', :method => 'get'}
-    %input.search-query{:type => 'text', :name => 'search', :placeholder => 'Search by keyword or tag', :value => @search}    
-    %button.search.font-icon{:type => 'submit', "aria-hidden" => "true", "data-icon" => "\uee03"} 
-      
-  - if @browse_tags.present?
-    %span.dropdown
-      %a.btn.dropdown-toggle{:href => '#', :data => {:toggle => 'dropdown'}}
-        Browse by tag...
-        %span.font-icon{"aria-hidden" => "true", "data-icon" => "\uee12"}
-      %ul.dropdown-menu#tag-filter
-        - @browse_tags.each do |(name, tag)|
-          - if name
-            %li= link_to name, application_types_path(:tag => tag)
-          - else
-            %hr
+    %form.form-search.form-search-block{:id => 'form-search-create-apps', :method => 'get'}
+      %input.search-query{:type => 'text', :name => 'search', :placeholder => 'Search by keyword or tag', :value => @search}    
+      %button.search.font-icon{:type => 'submit', "aria-hidden" => "true", "data-icon" => "\uee03"} 
+        
+    - if @browse_tags.present?
+      %span.dropdown
+        %a.btn.dropdown-toggle{:href => '#', :data => {:toggle => 'dropdown'}}
+          Browse by tag...
+          %span.font-icon{"aria-hidden" => "true", "data-icon" => "\uee12"}
+        %ul.dropdown-menu#tag-filter
+          - @browse_tags.each do |(name, tag)|
+            - if name
+              %li= link_to name, application_types_path(:tag => tag)
+            - else
+              %hr
+  .span6
+    %dl.font-icon-legend
+      %dt
+        %span.font-icon{"aria-hidden" => "true", "data-icon" => "\ue021"}
+        Cartridge
+      %dd Technology specific component
+      %dt
+        %span.font-icon{"aria-hidden" => "true", "data-icon" => "\ue029"}
+        Quickstart
+      %dd Preconfigured foundation bundle
 
 %section
   - if @type_groups.length == 1
