@@ -42,6 +42,7 @@ rm -rf %{buildroot}
 %defattr(-,root,root,-)
 %dir %{cartridgedir}
 %dir %{cartridgedir}/bin
+%dir %{cartridgedir}/hooks
 %dir %{cartridgedir}/conf
 %dir %{cartridgedir}/conf.d
 %dir %{cartridgedir}/env
@@ -51,6 +52,7 @@ rm -rf %{buildroot}
 %dir %{cartridgedir}/.openshift
 %config(noreplace) %{cartridgedir}/conf/
 %attr(0755,-,-) %{cartridgedir}/bin/
+%attr(0755,-,-) %{cartridgedir}/hooks/
 %attr(0755,-,-) %{frameworkdir}
 %{_sysconfdir}/openshift/cartridges/v2/%{name}
 %{cartridgedir}/metadata/manifest.yml
