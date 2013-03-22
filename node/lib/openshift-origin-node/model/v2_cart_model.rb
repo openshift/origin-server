@@ -85,7 +85,14 @@ module OpenShift
     ##
     # Detects and returns a builder +Cartridge+ in the gear if present, otherwise +nil+.
     def builder_cartridge
-      # TODO: find and return it
+      builder_cart = nil
+      each_cartridge do |c|
+        if c.categories.include? 'ci_builder'
+          builder_cart = c
+          break
+        end
+      end
+      builder_cart
     end
 
     # FIXME: Once Broker/Node protocol updated to provided necessary information this hack must go away
