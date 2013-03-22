@@ -16,7 +16,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version:       1.6.5
+Version:       1.6.6
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -236,6 +236,32 @@ fi
 %attr(0755,-,-) %{_var}/run/openshift
 
 %changelog
+* Fri Mar 22 2013 Adam Miller <admiller@redhat.com> 1.6.6-1
+- Merge pull request #1766 from ironcladlou/dev/v2carts/documentation
+  (dmcphers@redhat.com)
+- Documentation updates (ironcladlou@gmail.com)
+- adding openshift node util (dmcphers@redhat.com)
+- More v2 jenkins-client progress (ironcladlou@gmail.com)
+- implementing builder_cartridge based on cart categories (dmcphers@redhat.com)
+- gearctl -> gear and using dmace's default builder (dmcphers@redhat.com)
+- More builds WIP (ironcladlou@gmail.com)
+- add gearctl (dmcphers@redhat.com)
+- Merge pull request #1758 from jwhonce/wip/clean_cartridge_repo
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #1757 from ironcladlou/wip/connectors
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #1754 from rmillner/better_key_parsing
+  (dmcphers@redhat.com)
+- WIP Cartridge Refactor - clean cartridge repository on re-install
+  (jhonce@redhat.com)
+- WIP Cartridge Refactor - Add support for connection hooks (jhonce@redhat.com)
+- Merge pull request #1749 from ironcladlou/dev/v2carts/build-system
+  (dmcphers@redhat.com)
+- More resiliant to arbitrary spaces elsewhere in the line.
+  (rmillner@redhat.com)
+- Fix all incorrect occurrences of 'who's'. (asari.ruby@gmail.com)
+- Reimplement the v2 build process (ironcladlou@gmail.com)
+
 * Thu Mar 21 2013 Adam Miller <admiller@redhat.com> 1.6.5-1
 - Merge pull request #1743 from jwhonce/wip/cartridge_ident
   (dmcphers+openshiftbot@redhat.com)
