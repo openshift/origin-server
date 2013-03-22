@@ -8,7 +8,7 @@
 
 Summary:       Embedded SwitchYard modules for JBoss
 Name:          openshift-origin-cartridge-switchyard-0.6
-Version: 1.5.2
+Version: 1.5.3
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -66,6 +66,9 @@ alternatives --set switchyard-0.6 /usr/share/switchyard
 
 
 %changelog
+* Fri Mar 22 2013 Adam Miller <admiller@redhat.com> 1.5.3-1
+- Bug 921902 (bdecoste@gmail.com)
+
 * Thu Mar 14 2013 Adam Miller <admiller@redhat.com> 1.5.2-1
 - Refactor Endpoints to support frontend mapping (ironcladlou@gmail.com)
 
