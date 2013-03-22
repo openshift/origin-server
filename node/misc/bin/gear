@@ -62,9 +62,7 @@ command :prereceive do |c|
 
   c.description = "Run the git prereceive steps"
   c.action do |args, options|
-    unless ENV['OPENSHIFT_CI_TYPE']
-      @container.pre_receive
-    end
+    @container.pre_receive
   end
 end
 
@@ -134,8 +132,10 @@ command :restart do |c|
   
   c.option "--cart CART", "The cart to restart"
 
-  c.description = "Restart the gear"
+  c.description = "Restart a cart"
   c.action do |args, options|
+    # TODO: Should we be able to restart the gear via stop_gear / start_gear calls
+    # in addition to individual cart restarts?
     options.cart ||= choose("Cart to restart?", *gear_cartridge_names)
     @container.restart(options.cart)
   end
@@ -146,7 +146,7 @@ command :reload do |c|
   
   c.option "--cart CART", "The cart to reload"
 
-  c.description = "Reload the gear"
+  c.description = "Reload a cart"
   c.action do |args, options|
     options.cart ||= choose("Cart to reload?", *gear_cartridge_names)
     @container.reload(options.cart)
@@ -172,6 +172,7 @@ command :restore do |c|
 
   c.description = "Restore a cart"
   c.action do |args, options|
+    # TODO: Is this a gear level operation?
     options.cart ||= choose("Cart to restore?", *gear_cartridge_names)
     @container.restore(options.cart)
   end
@@ -184,6 +185,7 @@ command :snapshot do |c|
 
   c.description = "Snapshot a cart"
   c.action do |args, options|
+    # TODO: Is this a gear level operation?
     options.cart ||= choose("Cart to snapshot?", *gear_cartridge_names)
     @container.snapshot(options.cart)
   end

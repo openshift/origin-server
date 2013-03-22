@@ -121,8 +121,11 @@ mv %{buildroot}%{gem_instdir}/conf/* %{buildroot}/etc/openshift
 
 #move pam limit binaries to proper location
 mkdir -p %{buildroot}/usr/libexec/openshift/lib
-mv %{buildroot}%{gem_instdir}/misc/lib/teardown_pam_fs_limits.sh %{buildroot}/usr/libexec/openshift/lib
-mv %{buildroot}%{gem_instdir}/misc/lib/setup_pam_fs_limits.sh %{buildroot}/usr/libexec/openshift/lib
+mv %{buildroot}%{gem_instdir}/misc/libexec/lib/teardown_pam_fs_limits.sh %{buildroot}/usr/libexec/openshift/lib
+mv %{buildroot}%{gem_instdir}/misc/libexec/lib/setup_pam_fs_limits.sh %{buildroot}/usr/libexec/openshift/lib
+
+mkdir -p %{buildroot}/usr/lib/openshift/node
+mv %{buildroot}%{gem_instdir}/misc/usr/lib/* %{buildroot}/usr/lib/openshift/node
 
 #move the shell binaries into proper location
 mv %{buildroot}%{gem_instdir}/misc/bin/* %{buildroot}/usr/bin/
@@ -200,6 +203,7 @@ fi
 %attr(0755,-,-) /usr/bin/*
 /usr/libexec/openshift/lib/setup_pam_fs_limits.sh
 /usr/libexec/openshift/lib/teardown_pam_fs_limits.sh
+%attr(0644,-,-) /usr/lib/openshift/node/*
 %dir /etc/openshift
 %config(noreplace) /etc/openshift/node.conf
 %config /etc/openshift/resource_limits.template

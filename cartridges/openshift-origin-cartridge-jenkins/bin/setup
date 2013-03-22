@@ -1,9 +1,7 @@
 #!/bin/bash -e
 set -x
 
-#TODO Getting a number of functions from the existing util
-source "/etc/openshift/node.conf"
-source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
+source /usr/lib/openshift/node/util
 
 function obfuscate_password {
     password="$1"
@@ -28,8 +26,6 @@ cartridge_type="jenkins"
 
 version=1.4
 OPENSHIFT_JENKINS_DIR="${OPENSHIFT_HOMEDIR}redhat-$cartridge_type"
-echo "export OPENSHIFT_JENKINS_VERSION='$version'" > "$OPENSHIFT_JENKINS_DIR/env/OPENSHIFT_JENKINS_VERSION"
-echo "export OPENSHIFT_JENKINS_DIR='$OPENSHIFT_JENKINS_DIR'" > "$OPENSHIFT_JENKINS_DIR/env/OPENSHIFT_JENKINS_DIR"
 
 # Create additional directories required by JENKINS
 mkdir -p ${OPENSHIFT_JENKINS_DIR}/{bin,template,configuration,logs,data}

@@ -1,34 +1,21 @@
 #!/bin/bash -e
 set -x
 
-#TODO Using the existing util for now
-source "/etc/openshift/node.conf"
-source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
-
-cartridge_type="jenkins-client"
+source /usr/lib/openshift/node/util
 
 version=1.4
-OPENSHIFT_JENKINS_CLIENT_DIR="${OPENSHIFT_HOMEDIR}redhat-$cartridge_type"
 
 if ! [ -n "$JENKINS_URL" ]
 then
     client_error "Jenkins server does not exist!  Please create with rhc app create -t jenkins-1.4"
     exit 151
 fi
-if [ -n "$OPENSHIFT_CI_TYPE" ]
-then
-    client_error "Jenkins client already embedded in $OPENSHIFT_APP_NAME"
-    exit 152
-fi
 
 JENKINS_DNS_NAME=${JENKINS_URL:8} #remove https://
 
 
-echo "export OPENSHIFT_JENKINS_CLIENT_VERSION='$version'" > "$OPENSHIFT_JENKINS_CLIENT_DIR/env/OPENSHIFT_JENKINS_CLIENT_VERSION"
-echo "export OPENSHIFT_JENKINS_CLIENT_DIR='$OPENSHIFT_JENKINS_CLIENT_DIR'" > "$OPENSHIFT_JENKINS_CLIENT_DIR/env/OPENSHIFT_JENKINS_CLIENT_DIR"
-
 # Create additional directories required by JENKINS
-mkdir -p ${OPENSHIFT_JENKINS_CLIENT_DIR}/{bin,logs,data}
+mkdir -p ${OPENSHIFT_JENKINS_CLIENT_DIR}/{logs,data}
 
 # Copy the version specific files up to jbosseap directory
 cp -r ${OPENSHIFT_JENKINS_CLIENT_DIR}/versions/${version}/configuration/* ${OPENSHIFT_JENKINS_CLIENT_DIR}/configuration
@@ -84,7 +71,7 @@ then
     # Embedding success
     client_result ""
 else
-    if enable_out=$(run_as_user "${OPENSHIFT_JENKINS_CLIENT_DIR}/bin/jenkins_job_action enable" 2>&1)
+    if enable_out=$(${OPENSHIFT_JENKINS_CLIENT_DIR}/bin/jenkins_job_action enable 2>&1)
     then
         client_result ""
         client_result "Associated with job '${JOB_NAME}' in Jenkins server."
