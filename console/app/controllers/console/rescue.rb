@@ -16,14 +16,13 @@ module Console
         end
 
         alternatives = begin
-            case e.model
-            when Application
+            if Application == e.model
               @domain.applications.map do |app|
                 ["Application #{app.name}", application_path(app)]
               end.tap do |links|
                 links << ['Create a new application', new_application_path] if links.empty?
               end if @domain rescue nil
-            when ApplicationType
+            elsif ApplicationType == e.model
               [['See other application types', application_types_path]]
             end
           end if e.respond_to? :model
