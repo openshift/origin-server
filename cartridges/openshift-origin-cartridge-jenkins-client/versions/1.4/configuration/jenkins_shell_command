@@ -1,17 +1,1 @@
-alias rsync="rsync --delete-after -az -e '$GIT_SSH'"
-
-# Build/update libs and run user pre_build and build
-gear build
-
-# Run tests here
-
-# Deploy new build
-
-# Stop app
-$GIT_SSH UPSTREAM_SSH 'gear stop'
-
-# Push content back to application
-rsync ~/$WORKSPACE/ UPSTREAM_SSH:~/app-root/repo/
-
-# Configure / start app
-$GIT_SSH UPSTREAM_SSH 'gear cideploy'
+# Build goes here

@@ -29,7 +29,7 @@ module OpenShift
     end
 
     def post_receive
-      ApplicationRepository.new(@user).deploy_repository
+      ApplicationRepository.new(@container.user).deploy_repository
 
       @container.build
 

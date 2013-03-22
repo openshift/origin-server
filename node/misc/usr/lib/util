@@ -1,0 +1,107 @@
+#!/bin/bash
+[ ! -z "$OO_NODE_UTIL" ] && return 0
+OO_NODE_UTIL=true
+source /etc/openshift/node.conf
+
+function error {
+    echo "$1" 1>&2
+    exit "$2"
+}
+
+function warning {
+    echo "$1" 1>&2
+    #echo "$2"
+}
+
+function client_result {
+    echo "CLIENT_RESULT: $1"
+}
+
+function client_message {
+    echo "CLIENT_MESSAGE: $1"
+}
+
+function client_error {
+    echo "CLIENT_ERROR: $1"
+}
+
+function client_internal_error {
+    echo "CLIENT_INTERNAL_ERROR: $1"
+}
+
+function client_debug {
+    echo "CLIENT_DEBUG: $1"
+}
+
+function set_app_info {
+    echo "APP_INFO: $1"
+}
+
+function send_attr {
+    echo "ATTR: $1"
+}
+
+function add_ssh_key {
+    echo "SSH_KEY_ADD: $1"
+}
+
+function add_app_ssh_key {
+    echo "APP_SSH_KEY_ADD: $1 $2"
+}
+
+function remove_ssh_key {
+    echo "SSH_KEY_REMOVE: "
+}
+
+function remove_app_ssh_key {
+    echo "APP_SSH_KEY_REMOVE: $1"
+}
+
+function add_env_var {
+    echo "ENV_VAR_ADD: $1"
+}
+
+function remove_env_var {
+    echo "ENV_VAR_REMOVE: $1"
+}
+
+function app_remove_env_var {
+    echo "APP_ENV_VAR_REMOVE: $1"
+}
+
+function add_broker_auth_key {
+    echo "BROKER_AUTH_KEY_ADD: "
+}
+
+function remove_broker_auth_key {
+    echo "BROKER_AUTH_KEY_REMOVE: "
+}
+
+function cart_data {
+    echo "CART_DATA: $@"
+}
+
+function cart_props {
+    echo "CART_PROPERTIES: $@"
+}
+
+function generate_password {
+    head -n 50 /dev/urandom|tr -dc "a-np-zA-NP-Z1-9-_"|fold -w 12 | grep -v '^-' | head -n1
+}
+
+function generate_username {
+    if [ "$1" ]
+    then
+        username="$1"
+    else
+        username="admin"
+    fi
+
+    remain=$(( 12 - ${#username} ))
+    if [ "$remain" -ge 1 ]
+    then
+        rnstr=$(head -n 50 /dev/urandom|tr -dc "a-np-zA-NP-Z1-9"|fold -w $remain | head -n1)
+        username="${username}${rnstr}"
+    fi
+    echo $username
+}
