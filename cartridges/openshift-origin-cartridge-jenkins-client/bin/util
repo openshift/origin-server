@@ -1,0 +1,17 @@
+#!/bin/bash
+
+function client_error {
+  echo $1
+}
+
+function client_result {
+  echo $1
+}
+
+function cart_props {
+  echo $1
+}
+
+function set_app_info {
+  echo $1
+}
