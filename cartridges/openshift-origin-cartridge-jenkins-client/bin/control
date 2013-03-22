@@ -1,6 +1,37 @@
 #!/bin/bash -e
 
+function pre_receive() {
+  return 0
+}
+
+function post_receive() {
+  echo "Executing Jenkins build."
+  echo
+  echo "You can track your build at ${JENKINS_URL}job/${OPENSHIFT_APP_NAME}-build"
+  echo
+  if ${OPENSHIFT_JENKINS_CLIENT_DIR}/bin/jenkins_build ${OPENSHIFT_APP_NAME}-build
+  then
+      echo "New build has been deployed."
+  else
+      echo "!!!!!!!!"
+      echo "Deployment Halted!"
+      echo "If the build failed before the deploy step, your previous"
+      echo "build is still running.  Otherwise, your application may be"
+      echo "partially deployed or inaccessible."
+      echo "Fix the build and try again."
+      echo "!!!!!!!!"
+      exit 1
+  fi
+}
+
+cartridge_type="jenkins-client"
+
+version=1.4
+OPENSHIFT_JENKINS_CLIENT_DIR="${OPENSHIFT_HOMEDIR}redhat-$cartridge_type"
+
 case "$1" in
-  *)         	exit 0
+  pre-receive)  pre_receive ;;
+  post-receive) post_receive ;;
+  *)         	  exit 0
 esac
 

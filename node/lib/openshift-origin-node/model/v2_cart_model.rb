@@ -26,7 +26,7 @@ require 'openshift-origin-node/utils/environ'
 require 'openshift-origin-node/utils/path_utils'
 
 module OpenShift
-  # TODO use this expections when oo_spawn fails...
+  # TODO use this exception when oo_spawn fails...
   class FileLockError < Exception
     attr_reader :filename
 
@@ -80,6 +80,19 @@ module OpenShift
       end
 
       raise "No primary cartridge found on gear #{@user.uuid}"
+    end
+
+    ##
+    # Detects and returns a builder +Cartridge+ in the gear if present, otherwise +nil+.
+    def builder_cartridge
+      builder_cart = nil
+      each_cartridge do |c|
+        if c.categories.include? 'ci_builder'
+          builder_cart = c
+          break
+        end
+      end
+      builder_cart
     end
 
     # FIXME: Once Broker/Node protocol updated to provided necessary information this hack must go away
@@ -867,7 +880,7 @@ module OpenShift
       buffer = ''
       each_cartridge do |cartridge|
         next if options[:primary_only] and not cartridge.primary?
-        next if options[:secondary_only] and cartridge.primary
+        next if options[:secondary_only] and cartridge.primary?
 
         buffer << do_control('start', cartridge)
       end
