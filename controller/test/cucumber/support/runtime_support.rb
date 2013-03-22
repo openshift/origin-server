@@ -306,9 +306,10 @@ module OpenShift
       begin
         yield
       rescue Utils::ShellExecutionException => e
-        $logger.error("Caught ShellExecutionException (#{e.rc}): #{e.message}; output: #{e.stdout} #{e.stderr}")
+        $logger.error("Caught ShellExecutionException (#{e.rc}): #{e.message}; output: #{e.stdout} #{e.stderr}\n#{e.backtrace}")
         raise
-      rescue Exception => e
+      rescue => e
+        $logger.error("Caught an Exception, #{e.message}\n#{e.backtrace}")
         raise
       end
     end

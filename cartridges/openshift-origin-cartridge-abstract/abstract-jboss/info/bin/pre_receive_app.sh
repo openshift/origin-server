@@ -22,7 +22,7 @@ if [ -z $OPENSHIFT_SKIP_GIT_HOOKS ]
 then
     if [ -z "$OPENSHIFT_CI_TYPE" ] || [ -z "$JENKINS_URL" ]
     then
-        touch $OPENSHIFT_HOMEDIR$OPENSHIFT_APP_NAME/repo/deployments/*.*ar
+        #touch $OPENSHIFT_HOMEDIR$OPENSHIFT_APP_NAME/repo/deployments/*.*ar
         pre_stop_app
     fi
 fi

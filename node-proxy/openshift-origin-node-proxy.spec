@@ -7,7 +7,7 @@
 
 Summary:       Routing proxy for OpenShift Origin Node
 Name:          openshift-origin-node-proxy
-Version: 0.7.2
+Version: 0.7.3
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -125,6 +125,10 @@ fi
 %doc README
 
 %changelog
+* Thu Mar 21 2013 Adam Miller <admiller@redhat.com> 0.7.3-1
+- bug 922922 - change supervisor_log to supervisor.log for log rotation.
+  (rmillner@redhat.com)
+
 * Thu Mar 14 2013 Adam Miller <admiller@redhat.com> 0.7.2-1
 - Origin RHEL & Fedora build fixes. (rmillner@redhat.com)
 - use restart instead of reload. (blentz@redhat.com)

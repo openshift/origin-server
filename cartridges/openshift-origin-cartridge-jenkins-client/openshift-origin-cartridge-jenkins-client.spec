@@ -7,7 +7,7 @@
 
 Summary:       Embedded jenkins client support for OpenShift 
 Name:          openshift-origin-cartridge-jenkins-client
-Version: 1.5.4
+Version: 1.5.5
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -65,6 +65,18 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Thu Mar 21 2013 Adam Miller <admiller@redhat.com> 1.5.5-1
+- adding jenkins teardown (dmcphers@redhat.com)
+- Jenkins client WIP (dmcphers@redhat.com)
+- Merge pull request #1709 from bdecoste/master
+  (dmcphers+openshiftbot@redhat.com)
+- jenkins client WIP (dmcphers@redhat.com)
+- more jenkins WIP (dmcphers@redhat.com)
+- jenkins WIP (dmcphers@redhat.com)
+- v2 cart cleanup (bdecoste@gmail.com)
+- add jenkins cart (dmcphers@redhat.com)
+- Change V2 manifest Version elements to strings (pmorie@gmail.com)
+
 * Mon Mar 18 2013 Dan McPherson <dmcphers@redhat.com> 1.5.4-1
 - new package built with tito
 

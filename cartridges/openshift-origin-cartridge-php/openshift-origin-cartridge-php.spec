@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/openshift/cartridges/v2/php
 
 Name: openshift-origin-cartridge-php
-Version: 0.1.3
+Version: 0.1.4
 Release: 1%{?dist}
 Summary: Php cartridge
 Group: Development/Languages
@@ -72,6 +72,20 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Thu Mar 21 2013 Adam Miller <admiller@redhat.com> 0.1.4-1
+- Merge pull request #1741 from mrunalp/dev/php_build_wip
+  (dmcphers+openshiftbot@redhat.com)
+- adding jenkins teardown (dmcphers@redhat.com)
+- PHP build wip. (mrunalp@gmail.com)
+- Merge pull request #1718 from mrunalp/bugs/php_cleanup
+  (dmcphers+openshiftbot@redhat.com)
+- Cleanup setup script and remove unused file. (mrunalp@gmail.com)
+- jenkins WIP (dmcphers@redhat.com)
+- Change V2 manifest Version elements to strings (pmorie@gmail.com)
+- Merge pull request #1690 from danmcp/master (dmcphers@redhat.com)
+- Getting jenkins building (dmcphers@redhat.com)
+- Fix php cart to work with cart repo changes. (mrunalp@gmail.com)
+
 * Mon Mar 18 2013 Adam Miller <admiller@redhat.com> 0.1.3-1
 - Fix issue in copying over template. (mrunalp@gmail.com)
 - add cart vendor and version (dmcphers@redhat.com)

@@ -20,6 +20,7 @@ require 'openshift-origin-node/model/unix_user'
 require 'openshift-origin-node/model/v1_cart_model'
 require 'openshift-origin-node/model/v2_cart_model'
 require 'openshift-origin-node/model/cartridge'
+require 'openshift-origin-node/model/default_builder'
 require 'openshift-origin-node/utils/shell_exec'
 require 'openshift-origin-node/utils/application_state'
 require 'openshift-origin-node/utils/environ'
@@ -261,14 +262,20 @@ module OpenShift
       logger.debug("Completed tidy for gear #{@uuid}")
     end
 
-    def stop_gear
+    ##
+    # Sets the application state to +STOPPED+ and stops the gear. Gear stop implementation
+    # is model specific, but +options+ is provided to the implementation.
+    def stop_gear(options={})
       @state.value = OpenShift::State::STOPPED
-      @cartridge_model.do_control_gear('stop')
+      @cartridge_model.stop_gear(options)
     end
 
-    def start_gear
+    ##
+    # Sets the application state to +STARTED+ and starts the gear. Gear state implementation
+    # is model specific, but +options+ is provided to the implementation.
+    def start_gear(options={})
       @state.value = OpenShift::State::STARTED
-      @cartridge_model.do_control_gear('start')
+      @cartridge_model.start_gear(options)
     end
 
     def gear_level_tidy_tmp(gear_tmp_dir)
@@ -354,24 +361,89 @@ module OpenShift
       @cartridge_model.do_control("stop", cart_name)
     end
 
-    # build application
-    def build
-      @state.value = OpenShift::State::BUILDING
-      framework_cart = @cartridge_model.get_framework_cartridge
+    def pre_receive
+      builder_cartridge = @cartridge_model.builder_cartridge
 
-      raise "No framework cartridge found on gear #{@uuid}" unless framework_cart
-
-      @cartridge_model.build(framework_cart)
+      if builder_cartridge
+        @cartridge_model.do_control('pre-receive', builder_cartridge)
+      else
+        DefaultBuilder.new(self).pre_receive
+      end
     end
 
-    # deploy application
+    def post_receive
+      builder_cartridge = @cartridge_model.builder_cartridge
+
+      if builder_cartridge
+        @cartridge_model.do_control('post-receive', builder_cartridge)
+      else
+        DefaultBuilder.new(self).post_receive
+      end
+    end
+    
+    def ci_deploy
+      start_gear(secondary_only: true)
+
+      deploy
+
+      start_gear(primary_only: true)
+
+      post_deploy
+    end
+
+    ##
+    # Implements the following build process:
+    #
+    #   1. Set the application state to +BUILDING+
+    #   2. Run the cartridge +pre-build+ control action
+    #   3. Run the +pre-build+ user action hook
+    #   4. Run the cartridge +build+ control action
+    #   5. Run the +build+ user action hook
+    #
+    # Returns the combined output of all actions as a +String+.
+    def build
+      @state.value = OpenShift::State::BUILDING
+
+      buffer = ''
+      buffer << @cartridge_model.do_control('pre-build',
+                                  @cartridge_model.primary_cartridge,
+                                  pre_action_hooks_enabled: false,
+                                  prefix_action_hooks: false)
+
+      buffer << @cartridge_model.do_control('build',
+                                  @cartridge_model.primary_cartridge,
+                                  pre_action_hooks_enabled: false,
+                                  prefix_action_hooks: false)
+
+      buffer
+    end
+
+    ##
+    # Implements the following deploy process:
+    #
+    #   1. Set the application state to +DEPLOYING+
+    #   2. Run the cartridge +deploy+ control action
+    #   3. Run the +deploy+ user action hook
+    #
+    # Returns the combined output of all actions as a +String+.
     def deploy
       @state.value = OpenShift::State::DEPLOYING
-      framework_cart = @cartridge_model.get_framework_cartridge
+      @cartridge_model.do_control('deploy',
+                                  @cartridge_model.primary_cartridge,
+                                  pre_action_hooks_enabled: false,
+                                  prefix_action_hooks: false)
+    end
 
-      raise "No framework cartridge found on gear #{@uuid}" unless framework_cart
-
-      @cartridge_model.deploy(framework_cart)
+    ##
+    # Implements the following post-deploy process:
+    #
+    #   1. Run the cartridge +post-deploy+ action
+    #   2. Run the +post-deploy+ user action hook
+    def post_deploy
+      @cartridge_model.do_control('post-deploy',
+                                  @cartridge_model.primary_cartridge,
+                                  pre_action_hooks_enabled: false,
+                                  prefix_action_hooks: false)
     end
 
     # restart gear as supported by cartridges

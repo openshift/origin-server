@@ -2,7 +2,7 @@
 
 Summary:       Provides jenkins-1.4 support
 Name:          openshift-origin-cartridge-jenkins
-Version: 1.6.4
+Version: 1.6.5
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -60,6 +60,17 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Thu Mar 21 2013 Adam Miller <admiller@redhat.com> 1.6.5-1
+- adding jenkins teardown (dmcphers@redhat.com)
+- Jenkins client WIP (dmcphers@redhat.com)
+- Merge pull request #1709 from bdecoste/master
+  (dmcphers+openshiftbot@redhat.com)
+- more jenkins WIP (dmcphers@redhat.com)
+- jenkins WIP (dmcphers@redhat.com)
+- v2 cart cleanup (bdecoste@gmail.com)
+- add jenkins cart (dmcphers@redhat.com)
+- Change V2 manifest Version elements to strings (pmorie@gmail.com)
+
 * Mon Mar 18 2013 Dan McPherson <dmcphers@redhat.com> 1.6.4-1
 - new package built with tito
 

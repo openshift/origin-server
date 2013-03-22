@@ -26,7 +26,7 @@ require 'openshift-origin-node/utils/environ'
 require 'openshift-origin-node/utils/path_utils'
 
 module OpenShift
-  # TODO use this expections when oo_spawn fails...
+  # TODO use this exception when oo_spawn fails...
   class FileLockError < Exception
     attr_reader :filename
 
@@ -61,6 +61,40 @@ module OpenShift
       @cartridges = {}
     end
 
+    ##
+    # Yields a +Cartridge+ instance for each cartridge in the gear.
+    def each_cartridge
+      process_cartridges do |cartridge_dir|
+        cartridge = get_cartridge_from_directory(File.basename(cartridge_dir))
+        yield cartridge
+      end
+    end
+
+    ##
+    # Returns the +Cartridge+ in the gear whose +primary+ flag is set to true,
+    #
+    # Raises an exception if no such cartridge is present.
+    def primary_cartridge
+      each_cartridge do |cartridge|
+        return cartridge if cartridge.primary?
+      end
+
+      raise "No primary cartridge found on gear #{@user.uuid}"
+    end
+
+    ##
+    # Detects and returns a builder +Cartridge+ in the gear if present, otherwise +nil+.
+    def builder_cartridge
+      builder_cart = nil
+      each_cartridge do |c|
+        if c.categories.include? 'ci_builder'
+          builder_cart = c
+          break
+        end
+      end
+      builder_cart
+    end
+
     # FIXME: Once Broker/Node protocol updated to provided necessary information this hack must go away
     def map_cartridge_name(cartridge_name)
       results = cartridge_name.scan(/([a-zA-Z\d-]+)-([\d\.]+)/).first
@@ -92,14 +126,7 @@ module OpenShift
       @cartridges[cart_name]
     end
 
-    def get_framework_cartridge
-      process_cartridges do |cartridge_dir|
-        cartridge = get_cartridge_from_directory(File.basename(cartridge_dir))
-        return cartridge if cartridge.framework?
-      end
-
-      nil
-    end
+    
 
     # Load cartridge's local manifest from cartridge directory name
     def get_cartridge_from_directory(directory)
@@ -184,7 +211,7 @@ module OpenShift
 
         end
 
-        output << do_control_with_directory('start', cartridge.directory)
+        output << do_control_with_directory('start', cartridge_dir: cartridge.directory)
       end
 
       connect_frontend(cartridge)
@@ -202,7 +229,7 @@ module OpenShift
       cartridge = get_cartridge(cartridge_name)
       delete_private_endpoints(cartridge)
       OpenShift::Utils::Cgroups::with_cgroups_disabled(@user.uuid) do
-        do_control_with_directory('stop', cartridge.directory)
+        do_control_with_directory('stop', cartridge_dir: cartridge.directory)
         unlock_gear(cartridge) { |c| cartridge_teardown(c.directory) }
         delete_cartridge_directory(cartridge)
       end
@@ -354,7 +381,7 @@ module OpenShift
 
       mcs_label = @user.get_mcs_label(@user.uid)
 
-      if cartridge.framework?
+      if cartridge.primary?
         @user.add_env_var('PRIMARY_CARTRIDGE_DIR', target + File::SEPARATOR, true)
 
         env_path = PathUtils.join(@user.homedir, '.env')
@@ -675,7 +702,7 @@ module OpenShift
       do_control("deploy", cartridge)
     end
 
-    def do_control(action, cartridge)
+    def do_control(action, cartridge, options={})
       case cartridge
         when String
           cartridge_dir = cartridge_directory(cartridge)
@@ -685,37 +712,60 @@ module OpenShift
           raise "Unsupported cartridge argument type: #{cartridge.class}"
       end
 
-      do_control_with_directory(action, cartridge_dir)
-    end
+      options[:cartridge_dir] = cartridge_dir
 
-    def do_control_gear(action)
-      do_control_with_directory(action)
+      do_control_with_directory(action, options)
     end
 
     # :call-seq:
-    #   V2CartridgeModel.new(...).do_control_with_directory(action, cartridge directory)  -> output
-    #   V2CartridgeModel.new(...).do_control_with_directory(action)                       -> output
+    #    V2CartridgeModel.new(...).connector_execute(cartridge_name, connector, args)
+    #
+    def connector_execute(cart_name, connector, args)
+      env = Utils::Environ.for_gear(@user.homedir)
+
+      cartridge = get_cartridge(cart_name)
+      connector = PathUtils.join(@user.homedir, cartridge.directory, 'hooks', connector)
+      return 0, '' unless File.executable?(connector)
+
+      command = connector << " " << args
+      out, err, rc = Utils.oo_spawn(command,
+                                    env:             env,
+                                    unsetenv_others: true,
+                                    chdir:           @user.homedir,
+                                    uid:             @user.uid)
+      if 0 == rc
+        return 0, out
+      else
+        return rc, out + err
+      end
+    end
+
+    # :call-seq:
+    #   V2CartridgeModel.new(...).do_control_with_directory(action, options)  -> output
+    #   V2CartridgeModel.new(...).do_control_with_directory(action)           -> output
     #
     # Call action on cartridge +control+ script. Run all pre/post hooks if found.
-    # If no +cartridge directory+ is provided loop over all cartridges in gear.
-    def do_control_with_directory(action, cartridge_dir=nil)
+    #
+    # +options+: hash
+    #   :cartridge_dir => path             : process all cartridges (if +nil+) or the provided cartridge
+    #   :pre_action_hooks_enabled => true  : whether to process repo action hooks before +action+
+    #   :post_action_hooks_enabled => true : whether to process repo action hooks after +action+
+    #   :prefix_action_hooks => true       : if +true+, action hook names are automatically prefixed with
+    #                                        'pre' and 'post' depending on their execution order.
+    def do_control_with_directory(action, options={})
+      cartridge_dir             = options[:cartridge_dir]
+      pre_action_hooks_enabled  = options[:pre_action_hooks_enabled] || true
+      post_action_hooks_enabled = options[:post_action_hooks_enabled] || true
+      prefix_action_hooks       = options[:prefix_action_hooks] || true
+
       logger.debug { "#{@user.uuid} #{action} against '#{cartridge_dir}'" }
       buffer       = ''
       gear_env     = Utils::Environ.load('/etc/openshift/env', File.join(@user.homedir, '.env'))
       action_hooks = File.join(@user.homedir, %w{app-root runtime repo .openshift action_hooks})
 
-      pre_action = File.join(action_hooks, "pre_#{action}")
-      if File.executable?(pre_action)
-        out, err, rc = Utils.oo_spawn(pre_action,
-                                      env:             gear_env,
-                                      unsetenv_others: true,
-                                      chdir:           @user.homedir,
-                                      uid:             @user.uid)
-        buffer << out
-        raise Utils::ShellExecutionException.new(
-                  "Failed to execute: '#{pre_action}' for #{@user.uuid} application #{@user.app_name}",
-                  rc, buffer, err
-              ) if rc != 0
+      if pre_action_hooks_enabled
+        pre_action_hook = prefix_action_hooks ? "pre_#{action}" : action
+        buffer << do_action_hook(pre_action_hook, gear_env)
       end
 
       process_cartridges(cartridge_dir) { |path|
@@ -744,20 +794,41 @@ module OpenShift
               ) if rc != 0
       }
 
-      post_action = File.join(action_hooks, "post_#{action}")
-      if File.executable?(post_action)
-        out, err, rc = Utils.oo_spawn(post_action,
-                                      env:             gear_env,
+      if post_action_hooks_enabled
+        post_action_hook = prefix_action_hooks ? "post_#{action}" : action
+        buffer << do_action_hook(post_action_hook, gear_env)
+      end
+      
+      buffer
+    end
+
+    ##
+    # Executes the named +action+ from the user repo +action_hooks+ directory and returns the
+    # stdout of the execution, or raises a +ShellExecutionException+ if the action returns a
+    # non-zero return code.
+    #
+    # If +env+ is not specified, the environment from +Environment.for_gear+ will be used for
+    # the execution.
+    def do_action_hook(action, env=nil)
+      env = env ||= Utils::Environ.for_gear(@user.homedir)
+
+      action_hooks_dir = File.join(@user.homedir, %w{app-root runtime repo .openshift action_hooks})
+      action_hook = File.join(action_hooks_dir, action)
+      out = ''
+
+      if File.executable?(action_hook)
+        out, err, rc = Utils.oo_spawn(action_hook,
+                                      env:             env,
                                       unsetenv_others: true,
                                       chdir:           @user.homedir,
                                       uid:             @user.uid)
-        buffer << out
         raise Utils::ShellExecutionException.new(
-                  "Failed to execute: '#{post_action}' for #{@user.uuid} application #{@user.app_name}",
+                  "Failed to execute action hook '#{action}' for #{@user.uuid} application #{@user.app_name}",
                   rc, buffer, err
               ) if rc != 0
       end
-      buffer
+
+      out
     end
 
     def cartridge_hooks(action_hooks, action, name, version)
@@ -771,6 +842,50 @@ module OpenShift
         hooks[key] << "source #{old_hook}" if File.exist? old_hook
       end
       hooks
+    end
+
+    ##
+    # Shuts down the gear by running the cartridge +stop+ control action for each cartridge 
+    # in the gear.
+    #
+    # Returns the combined output of all +stop+ action executions as a +String+.
+    def stop_gear(options={})
+      buffer = ''
+      each_cartridge do |cartridge|
+        buffer << do_control('stop', cartridge)
+      end
+
+      buffer
+    end
+
+    ##
+    # Starts up the gear by running the cartridge +start+ control action for each 
+    # cartridge in the gear.
+    #
+    # By default, all cartridges in the gear are started. The selection of cartridges
+    # to be started is configurable via +options+.
+    #
+    # # +options+: hash
+    #   :primary_only   => [boolean]  : If +true+, only the primary cartridge will be started.
+    #                                   Mutually exclusive with +secondary_only+.
+    #   :secondary_only => [boolean]  : If +true+, all cartridges except the primary cartridge
+    #                                   will be started. Mutually exclusive with +primary_only+.
+    #
+    # Returns the combined output of all +start+ action executions as a +String+.
+    def start_gear(options={})
+      if options[:primary_only] && options[:secondary_only]
+        raise "The primary_only and secondary_only options are mutually exclusive"
+      end
+
+      buffer = ''
+      each_cartridge do |cartridge|
+        next if options[:primary_only] and not cartridge.primary?
+        next if options[:secondary_only] and cartridge.primary?
+
+        buffer << do_control('start', cartridge)
+      end
+
+      buffer
     end
   end
 end

@@ -149,7 +149,8 @@ class RestEmbeddedCartridge < OpenShift::Model
         property["name"] = data_def["Key"]
         property["type"] = data_def["Type"]
         property["description"] = data_def["Description"]
-        property["value"] = prop_values[data_def["Key"]] unless prop_values.nil? or prop_values[data_def["Key"]].nil?
+        # checking for prop_values.empty? handles the case when prop_values is an empty array
+        property["value"] = prop_values[data_def["Key"]] unless prop_values.nil? or prop_values.empty? or prop_values[data_def["Key"]].nil?
         self.properties << property
       end
 

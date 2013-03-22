@@ -12,6 +12,6 @@ done
 
 post_start_app $1
 
-rm -f $OPENSHIFT_HOMEDIR$OPENSHIFT_APP_NAME/repo/deployments/*.*ar.undeployed
-rm -f $OPENSHIFT_HOMEDIR$OPENSHIFT_APP_NAME/repo/deployments/*.*ar.failed
+#rm -f $OPENSHIFT_HOMEDIR$OPENSHIFT_APP_NAME/repo/deployments/*.*ar.undeployed
+#rm -f $OPENSHIFT_HOMEDIR$OPENSHIFT_APP_NAME/repo/deployments/*.*ar.failed
 

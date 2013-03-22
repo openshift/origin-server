@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/openshift/cartridges/v2/ruby18
 
 Name: openshift-origin-cartridge-ruby18
-Version: 0.1.21
+Version: 0.1.22
 Release: 1%{?dist}
 Summary: Ruby cartridge
 Group: Development/Languages
@@ -81,6 +81,10 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Thu Mar 21 2013 Adam Miller <admiller@redhat.com> 0.1.22-1
+- Change V2 manifest Version elements to strings (pmorie@gmail.com)
+- Fix Ruby's description (asari.ruby@gmail.com)
+
 * Mon Mar 18 2013 Adam Miller <admiller@redhat.com> 0.1.21-1
 - add cart vendor and version (dmcphers@redhat.com)
 

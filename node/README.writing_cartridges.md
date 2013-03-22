@@ -764,7 +764,7 @@ Your environment variables should be prefixed with
 `OPENSHIFT_{cartridge short name}_` to prevent overwriting other cartridge
 variables in the packaged software's process environment space.
 
-By convention, an environment variable who's value is a directory should have a
+By convention, an environment variable whose value is a directory should have a
 name that ends in `_DIR` and the value should have a trailing slash.
 The software you are packaging may have environment variable requirements of it's own,
 for example: `JENKINS_URL`.

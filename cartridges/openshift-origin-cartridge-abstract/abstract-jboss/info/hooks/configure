@@ -166,7 +166,8 @@ fi
 
 # Create a link from the repo/deployments directory to the standalone/deployments content
 mkdir -p "$APP_REPO_DIR"/deployments
-ln -s "$APP_REPO_DIR"/deployments "$APP_JBOSS"/standalone/deployments
+mkdir -p "$APP_JBOSS"/standalone/deployments
+# ln -s "$APP_REPO_DIR"/deployments "$APP_JBOSS"/standalone/deployments
 
 # Create a link from the standalone/log directory to ${APP_DIR}/logs for rhc app tail
 ln -s ${jboss_version}/standalone/log "$JBOSS_INSTANCE_DIR"/logs
@@ -188,6 +189,7 @@ populate_repo_dir
 #cp ${JBOSS_CARTRIDGE_ROOT}/info/data/ROOT.war $APP_REPO_DIR/deployments
 pushd ${JBOSS_CARTRIDGE_ROOT}/template/src/main/webapp
 jar cvf $APP_REPO_DIR/deployments/ROOT.war ./*
+cp $APP_REPO_DIR/deployments/ROOT.war "$APP_JBOSS"/standalone/deployments
 popd
 
 chmod +x "$APP_JBOSS_BIN_DIR/standalone.sh" || error "Failed to chmod new application scripts" 122

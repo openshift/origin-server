@@ -79,7 +79,7 @@ generation.
 
   dnssec-keygen -a HMAC-MD5 -b 512 -n USER example.com.
 
-This will produce two files who's names look something like this:
+This will produce two files whose names look something like this:
 
   Kexample.com.+157+30572.key
   Kexample.com.+157+30572.private
