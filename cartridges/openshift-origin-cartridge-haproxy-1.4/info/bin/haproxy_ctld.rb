@@ -337,6 +337,20 @@ USAGE
     exit 255
 end
 
+def help_marker
+  unless File.exists?(File.join(ENV['OPENSHIFT_REPO_DIR'], '.openshift', 'markers', 'disable_auto_scaling'))
+    puts <<HELPTEXT
+NOTICE: Automatic scaling may still take affect.
+
+To disable automatic scaling, create the disable_auto_scaling marker
+in your git checkout.  Refer to .openshift/markers/README in your git
+checkout for more information.
+
+HELPTEXT
+  end
+end
+
+
 begin
     opts = GetoptLong.new(
         ["--up", "-u", GetoptLong::NO_ARGUMENT],
@@ -364,9 +378,11 @@ begin
   ha=Haproxy.new("#{HAPROXY_RUN_DIR}/stats")
   if opt['up']
     ha.add_gear(true)
+    help_marker
     exit 0
   elsif opt['down']
     ha.remove_gear(true)
+    help_marker
     exit 0
   end
 rescue Haproxy::ShouldRetry => e
