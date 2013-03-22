@@ -659,10 +659,8 @@ The `control` script allows OpenShift or user to control the state of the cartri
 
 The list of operations your cartridge may be called to perform:
 
-   * `build` is called when building the developers application and by default
-     from the git respository post-receive hook. The application is built in `app-root/runtime/repo`.
-   * `deploy` is called to activate the developer's application in `app-root/runtime/repo` usually
-     after a successful `build`
+   * `pre-build`, `build`, `deploy`, and `post-deploy` are called at various
+     points during the build lifecycle, described in the [OpenShift Builds](#openshift-builds) section.
    * `start` start the software your cartridge controls
    * `stop` stop the software your cartridge controls
    * `status` return an 0 exit status if your cartridge code is running.
@@ -893,5 +891,69 @@ added to an application that has PHP installed.
 The PHP hook could choose to write out the connection variables in the environment so that
 application could use the variables to be able to connect to the MySQL server.
 
+## OpenShift Builds
 
-  
+When changes are pushed to an application's Git repository, OpenShift will build
+and deploy the application using the updated changes from the repository. The
+specific build lifecycle which manages the build process changes depending on
+the presence of a builder cartridge within the application.
+
+### Default Build Lifecycle
+
+When no builder cartridge has been added to the application, changes pushed to
+the application Git repository result in the execution of the default build
+lifecycle. The default lifecycle consists of a `build` and `deploy` phase, each
+of which aggregates several steps.
+
+In this lifecycle, OpenShift manages the start and stop of the application, as
+well as moving the newly committed code into `$OPENSHIFT_REPO_DIR`. All other
+specific behaviors are defined by the primary cartridge as well as any user
+action hooks present.
+
+Note: User action hooks are assumed to reside in
+`$OPENSHIFT_REPO_DIR/.openshift/action_hooks`.
+
+During the `build` phase:
+
+1. The application is stopped
+1. The newly committed application source code is copied to `$OPENSHIFT_REPO_DIR`
+   **Note**: This step is the only time the application source code is copied by 
+   OpenShift during this lifecycle.
+1. The primary cartridge `pre-build` control action is executed (if present)
+1. The `pre-build` user action hook is executed (if present)
+1. The primary cartridge `build` control action is executed
+1. The `build` user action hook is executed
+
+Next, during the `deploy` phase:
+
+1. All secondary cartridges in the application are started
+1. The primary cartridge `deploy` control action is executed
+1. The `deploy` user action hook is executed (if present)
+1. The primary cartridge is started (the application is now fully started)
+1. The primary cartridge `post-deploy` control action is executed
+1. The `post-deploy` user action hook is executed (if present)
+
+At this point, the application has been fully built and restarted.
+
+### Builder Cartridge Lifecycle
+
+If a builder cartridge is present in the application, changes pushed to the
+application Git repository will execute using an alternate build lifecycle which
+hands over operations to the builder cartridge. In this lifecycle, OpenShift
+provides no specific behavior for the build beyond giving the builder cartridge
+the opportunity to perform work. The sequence of events follows:
+
+During the Git `pre-receive` hook:
+
+1. The builder cartridge `pre-receive` control action is executed
+
+During the Git `post-receive` hook:
+
+1. The builder cartridge `post-receive` control action is executed
+
+### Builder Tips
+
+Any build implementation should take care to avoid duplicating source or copying
+artifacts any more than necessary. The space a cartridge's build implementation
+consumes during the build cycle is the application developer's, and so cartridge
+authors should take care to be as conservative as possible.
