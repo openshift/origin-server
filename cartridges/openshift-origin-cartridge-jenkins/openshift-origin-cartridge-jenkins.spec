@@ -2,7 +2,7 @@
 
 Summary:       Provides jenkins-1.4 support
 Name:          openshift-origin-cartridge-jenkins
-Version: 1.6.5
+Version: 1.6.6
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -60,6 +60,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Fri Mar 22 2013 Adam Miller <admiller@redhat.com> 1.6.6-1
+- adding openshift node util (dmcphers@redhat.com)
+
 * Thu Mar 21 2013 Adam Miller <admiller@redhat.com> 1.6.5-1
 - adding jenkins teardown (dmcphers@redhat.com)
 - Jenkins client WIP (dmcphers@redhat.com)
