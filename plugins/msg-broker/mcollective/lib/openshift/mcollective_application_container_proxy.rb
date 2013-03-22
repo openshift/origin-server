@@ -2105,8 +2105,8 @@ module OpenShift
       # * OpenShift::NodeException
       #
       # NOTES:
-      # * rpc_client comes from MCollective::RPC
       # * connects, makes a request, closes connection.
+      # * uses MCollective::RPC::Client
       # * THIS IS THE MEAT!
       #
       def self.rpc_exec(agent, servers=nil, force_rediscovery=false, options=rpc_options)
@@ -2118,7 +2118,7 @@ module OpenShift
         end
 
         # Setup the rpc client
-        rpc_client = rpcclient(agent, :options => options)
+        rpc_client = MCollectiveApplicationContainerProxy.get_rpc_client(agent, options)
 
         if !servers.empty?
           Rails.logger.debug("DEBUG: rpc_exec: Filtering rpc_exec to servers #{servers.pretty_inspect}")
@@ -2159,13 +2159,14 @@ module OpenShift
       # * ResultIO?
       # 
       # NOTES:
-      # * uses rpc_exec_direct
+      # * uses MCollective::RPC::Client
       # * uses ApplicationContainerProxy @id
       #
       def set_district(uuid, active)
         mc_args = { :uuid => uuid,
                     :active => active}
-        rpc_client = rpc_exec_direct('openshift')
+        options = MCollectiveApplicationContainerProxy.rpc_options
+        rpc_client = MCollectiveApplicationContainerProxy.get_rpc_client('openshift', options)
         result = nil
         begin
           Rails.logger.debug "DEBUG: rpc_client.custom_request('set_district', #{mc_args.inspect}, #{@id}, {'identity' => #{@id}})"
@@ -2454,9 +2455,9 @@ module OpenShift
       # * 
       #
       # NOTES:
-      # * calls rpc_exec_direct
       # * "cartridge_do" is a catch-all agent message handler
       # * the real switches are the cartridge and action arguments
+      # * uses MCollective::RPC::Client
       #
       def execute_direct(cartridge, action, args, log_debug_output=true)
         if not args.has_key?('--cart-name')
@@ -2468,7 +2469,8 @@ module OpenShift
                     :args => args }
 
         start_time = Time.now
-        rpc_client = rpc_exec_direct('openshift')
+        options = MCollectiveApplicationContainerProxy.rpc_options
+        rpc_client = MCollectiveApplicationContainerProxy.get_rpc_client('openshift', options)
         result = nil
         begin
           Rails.logger.debug "DEBUG: rpc_client.custom_request('cartridge_do', #{mc_args.inspect}, #{@id}, {'identity' => #{@id}}) (Request ID: #{Thread.current[:user_action_log_uuid]})"
@@ -2904,11 +2906,11 @@ module OpenShift
           end
         end
 
-        options = rpc_options
+        options = MCollectiveApplicationContainerProxy.rpc_options
         options[:filter]['fact'] = options[:filter]['fact'] + additional_filters
         options[:mcollective_limit_targets] = "1"
 
-        rpc_client = rpcclient('rpcutil', :options => options)
+        rpc_client = MCollectiveApplicationContainerProxy.get_rpc_client('rpcutil', options)
         begin
           rpc_client.get_fact(:fact => 'public_hostname') do |response|
             raise OpenShift::NodeException.new("No nodes found.  If the problem persists please contact Red Hat support.", 140) unless Integer(response[:body][:statuscode]) == 0
@@ -2999,7 +3001,7 @@ module OpenShift
 
       def self.rpc_get_fact(fact, servers=nil, force_rediscovery=false, additional_filters=nil, custom_rpc_opts=nil)
         result = nil
-        options = custom_rpc_opts ? custom_rpc_opts : rpc_options
+        options = custom_rpc_opts ? custom_rpc_opts : MCollectiveApplicationContainerProxy.rpc_options
         options[:filter]['fact'] = options[:filter]['fact'] + additional_filters if additional_filters
 
         Rails.logger.debug("DEBUG: rpc_get_fact: fact=#{fact}")
@@ -3037,7 +3039,7 @@ module OpenShift
       def rpc_get_fact_direct(fact)
           options = MCollectiveApplicationContainerProxy.rpc_options
     
-          rpc_client = rpcclient("rpcutil", :options => options)
+          rpc_client = MCollectiveApplicationContainerProxy.get_rpc_client('rpcutil', options)
           begin
             result = rpc_client.custom_request('get_fact', {:fact => fact}, @id, {'identity' => @id})[0]
             if (result && defined? result.results && result.results.has_key?(:data))
@@ -3053,25 +3055,33 @@ module OpenShift
       end
     
       #
-      # Execute direct rpc call directly against a node
-      # If more then one node exists, just pick one
+      # Get mcollective rpc client. For errors, convert generic exception
+      # to NodeException.
       #
       # INPUTS:
       # * agent: String (??)
+      # * options: Hash
       # 
       # RETURNS:
       # * MCollective::RPC::Client
       #
+      # RAISES:
+      # * OpenShift::NodeException
+      #
       # NOTES
       # * Uses MCollective::RPC::Client
       #
-      def rpc_exec_direct(agent)
-          options = MCollectiveApplicationContainerProxy.rpc_options
-          rpc_client = rpcclient(agent, :options => options)
-          Rails.logger.debug("DEBUG: rpc_exec_direct: rpc_client=#{rpc_client}")
-          rpc_client
+      def self.get_rpc_client(agent, options)
+          flags = { :options => options, :exit_on_failure => false }
+
+          begin
+            rpc_client = rpcclient(agent, flags)
+          rescue Exception => e
+            raise OpenShift::NodeException.new(e)
       end
 
+          return rpc_client
+      end
 
       #
       # Retrieve all gear IDs from all nodes (implementation)
@@ -3156,7 +3166,7 @@ module OpenShift
           start_time = Time.new
           begin
             options = MCollectiveApplicationContainerProxy.rpc_options
-            rpc_client = rpcclient('openshift', :options => options)
+            rpc_client = MCollectiveApplicationContainerProxy.get_rpc_client('openshift', options)
             mc_args = handle.clone
             identities = handle.keys
             rpc_client.custom_request('execute_parallel', mc_args, identities, {'identity' => identities}).each { |mcoll_reply|
