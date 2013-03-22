@@ -18,6 +18,7 @@
   #new_application.form-horizontal .form-actions { padding-left: 140px; }
   #new_application.collapse-help .help-block { white-space: nowrap; opacity: 0.5; margin-top: 0; }
   #new_application.collapse-help .help-block:hover { opacity: 1; cursor: pointer; }
+  h3 .font-icon {margin-left: 25px}
   @media (max-width: 767px) {
     #new_application.form-horizontal .control-label { margin-left: 0; }
     #new_application.form-horizontal .controls { margin-left: 0; }
@@ -25,6 +26,9 @@
     #new_application.form-horizontal .alert { max-width: inherit; }
     #new_application.form-horizontal .controls > h3 { display: inline-block; margin-top: 0; }
     #new_application.form-horizontal .form-actions { padding-left: 10px; }
+  }
+  @media (max-width:480px) {
+    h3 .font-icon {margin-left: 10px}
   }
 
 - advanced_path = application_type_path(@application_type.id, @application_type.to_params.merge(:advanced => true))
@@ -52,6 +56,7 @@
       .controls.first
         %h3
           = render :partial => 'application_types/application_type_title', :locals => { :type => @application_type}
+          %span.font-icon.font-icon-size-16.font-icon-grey{"aria-hidden" => "true", "data-icon" => "\ue021", "title" => "Cartridge"}
 
       .controls
         - if @application_type.persisted?
