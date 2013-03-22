@@ -38,3 +38,10 @@ desc "Generate RDoc"
 task :doc do
   sh "rdoc ."
 end
+
+require "../tasks/yard_tasks"
+require "../tasks/build_tasks"
+
+YARD_SOURCEROOT = File.dirname(__FILE__)
+# Define these to allow generation of comprehensive yard docs
+YARD_SOURCES = ['lib']  

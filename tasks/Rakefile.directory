@@ -1,0 +1,5 @@
+#
+# Standard Rakefile for a directory with children
+#
+# Adjust the path as needed for depth
+require "../tasks/dir_tasks"

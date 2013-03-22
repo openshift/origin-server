@@ -12,3 +12,6 @@
 .*.swp
 .sass-cache
 .rvmrc
+.yardoc
+doc
+pkg

@@ -2,6 +2,9 @@ require 'test_helper'
 
 class AccountControllerTest < ActionController::TestCase
   def setup
+
+    initialize_database
+
     @auth_service = OpenShift::MongoAuthService.new 
     @auth_service.register_user("admin","admin")
     @request.env["HTTP_AUTHORIZATION"] = "Basic " + Base64.encode64('admin:admin')

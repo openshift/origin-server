@@ -19,3 +19,10 @@ Rake::RDocTask.new do |rd|
   rd.rdoc_dir = "doc"
   rd.rdoc_files.include("README.rdoc", "lib/**/*.rb")
 end
+
+require "../../../tasks/build_tasks"
+require "../../../tasks/yard_tasks"
+
+# Define these to allow generation of comprehensive yard docs
+YARD_SOURCEROOT = File.dirname(__FILE__)
+YARD_SOURCES = ['lib']
