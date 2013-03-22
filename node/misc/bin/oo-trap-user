@@ -135,14 +135,14 @@ if __name__ == '__main__':
         allargs = ['-c', str]
     if basecmd in ('snapshot',):
         # This gets called with "snapshot"
-        allargs = ['snapshot.sh']
+        allargs = ['oo-snapshot']
     if basecmd in ('restore',):
         # This gets called with "restore <INCLUDE_GIT>"
         include_git = False
         if len(allargs) > 1 and allargs[1] == 'INCLUDE_GIT':
             include_git = True
 
-        allargs = ['restore.sh']
+        allargs = ['oo-restore']
         if include_git:
             allargs.append('INCLUDE_GIT')
     elif basecmd in ('rhcsh',):
