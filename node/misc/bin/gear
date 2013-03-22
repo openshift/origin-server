@@ -132,7 +132,7 @@ command :restart do |c|
   
   c.option "--cart CART", "The cart to restart"
 
-  c.description = "Restart the gear"
+  c.description = "Restart a cart"
   c.action do |args, options|
     # TODO: Should we be able to restart the gear via stop_gear / start_gear calls
     # in addition to individual cart restarts?
@@ -146,7 +146,7 @@ command :reload do |c|
   
   c.option "--cart CART", "The cart to reload"
 
-  c.description = "Reload the gear"
+  c.description = "Reload a cart"
   c.action do |args, options|
     options.cart ||= choose("Cart to reload?", *gear_cartridge_names)
     @container.reload(options.cart)

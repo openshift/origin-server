@@ -1,20 +1,14 @@
 #!/bin/bash -e
 set -x
 
-source $OPENSHIFT_JENKINS_CLIENT_DIR/bin/util
+source /usr/lib/openshift/node/util
+
+version=1.4
 
 if ! [ -n "$JENKINS_URL" ]
 then
     client_error "Jenkins server does not exist!  Please create with rhc app create -t jenkins-1.4"
     exit 151
-fi
-
-# TODO: Should this be enforced in the platform or broker (e.g., only allow the installation
-# of a single ci_builder cartridge?)
-if [ -n "$OPENSHIFT_CI_TYPE" ]
-then
-    client_error "Jenkins client already embedded in $OPENSHIFT_APP_NAME"
-    exit 152
 fi
 
 JENKINS_DNS_NAME=${JENKINS_URL:8} #remove https://
@@ -77,7 +71,7 @@ then
     # Embedding success
     client_result ""
 else
-    if enable_out=$(run_as_user "${OPENSHIFT_JENKINS_CLIENT_DIR}/bin/jenkins_job_action enable" 2>&1)
+    if enable_out=$(${OPENSHIFT_JENKINS_CLIENT_DIR}/bin/jenkins_job_action enable 2>&1)
     then
         client_result ""
         client_result "Associated with job '${JOB_NAME}' in Jenkins server."

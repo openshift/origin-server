@@ -1,12 +1,12 @@
 #!/bin/bash
-source $OPENSHIFT_JENKINS_CLIENT_DIR/bin/util
+source /usr/lib/openshift/node/util
 
 if [ -n "$JENKINS_URL" ]
 then
   #
   # Disable job
   #
-  if out=$(run_as_user "${OPENSHIFT_JENKINS_CLIENT_DIR}/bin/jenkins_job_action disable" 2>&1)
+  if out=$(${OPENSHIFT_JENKINS_CLIENT_DIR}/bin/jenkins_job_action disable 2>&1)
   then
       # Existing job was disabled
       client_result ""

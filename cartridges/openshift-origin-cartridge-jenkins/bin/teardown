@@ -1,5 +1,5 @@
-source "/etc/openshift/node.conf"
-source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
+#!/bin/bash
+source /usr/lib/openshift/node/util
 
 remove_ssh_key
 

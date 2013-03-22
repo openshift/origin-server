@@ -187,81 +187,14 @@ git archive --format=tar HEAD | (cd <%= @user_homedir %>/app-root/runtime/repo &
   auto = 100
 }
 
-    LOGGER_SETUP = %Q{\
-module OpenShift
-  module NodeLogger
-    def self.logger
-       unless @logger
-          @logger = Logger.new(File.open(File::NULL, "w"))
-          @logger.level = Logger::Severity::FATAL
-       end
-       @logger
-    end
-
-    def self.trace_logger
-       unless @trace_logger
-         @trace_logger = Logger.new(File.open(File::NULL, "w"))
-         @trace_logger.level = Logger::Severity::FATAL
-       end
-       @trace_logger
-    end
-  end
-end
-}
-
     PRE_RECEIVE  = %Q{\
-#!/bin/env oo-ruby
-require 'rubygems'
-require 'openshift-origin-node/model/application_container'
-require 'openshift-origin-node/utils/node_logger'
-
-<%= LOGGER_SETUP %>
-
-@container = OpenShift::ApplicationContainer.new(
-                            "<%= @user.application_uuid %>",
-                            "<%= @user.container_uuid %>",
-                            "<%= @user.uid %>",
-                            "<%= @user.app_name %>",
-                            "<%= @user.container_name %>",
-                            "<%= @user.namespace %>")
-
-puts "Stopping application..."
-@container.stop_gear
+gear prereceive
 }
 
-    # FIXME: Broker host should not be defined here, rather nuture script should look it up
+    # FIXME: Broker host should not be defined here, rather nurture script should look it up
     # currently broker_host is tagged at the end of all the build scripts. Kinda like an egg race!
     POST_RECEIVE = %Q{\
-#!/bin/env oo-ruby
-require 'rubygems'
-require 'openshift-origin-node/model/application_container'
-require 'openshift-origin-node/utils/node_logger'
-
-<%= LOGGER_SETUP %>
-
-@container = OpenShift::ApplicationContainer.new(
-                            "<%= @user.application_uuid %>",
-                            "<%= @user.container_uuid %>",
-                            "<%= @user.uid %>",
-                            "<%= @user.app_name %>",
-                            "<%= @user.container_name %>",
-                            "<%= @user.namespace %>")
-
-begin
-  puts "Building application..."
-  builder_output = @container.build
-  puts "Build output:"
-  puts builder_output
-
-  puts "Deploying application..."
-  deploy_output = @container.deploy
-  puts "Deploy output:"
-  puts deploy_output
-ensure
-  puts "Starting application..."
-  @container.start_gear
-  puts "Build complete."
-end
+gear postreceive
 }
   end
 end
