@@ -672,15 +672,14 @@ The list of operations your cartridge may be called to perform:
      An exit status of `69` signals OpenShift that your cartridge or packaged software does not support this
      operation.
    * `tidy` all unused resources should be released. It is at your discretion to
-      determine what should be done. Be frugal, on some systems resources may be
-      very limited. Some possible behaviors:
-```
-    rm .../logs/log.[0-9]
-    mvn clean
-```
-     OpenShift has the following default behaviors:
-        * the git repository will be garbage collected
-        * all files will be removed from the /tmp directory
+     determine what should be done. Be frugal, on some systems resources may be
+     very limited. Some possible behaviors: 
+      * `rm $OPENSHIFT_CART_DIR/logs/log.[0-9]`
+      * `cd $OPENSHIFT_REPO_DIR ; mvn clean`
+     
+    OpenShift has the following default behaviors:
+      * the Git repository will be garbage collected
+      * all files will be removed from the `/tmp` directory
 
 Lock context: `locked`
 
