@@ -378,7 +378,7 @@ if level >= 2
     district_hash.each do |district_id, district_info|
       # collect gear uids from all nodes with server identities within this district
       district_info[2].each do |server_identity|
-        district_used_uids |= gear_uid_hash[server_identity]
+        district_used_uids |= (gear_uid_hash[server_identity] || [])
       end
     
       first_uuid = Rails.configuration.msg_broker[:districts][:first_uid]
