@@ -30,9 +30,35 @@ killtree() {
     for _child in $(ps -o pid --no-headers --ppid ${_pid}); do
         killtree ${_child}
     done
-    echo kill -TERM ${_pid}
-    kill -TERM ${_pid}
+
+    local should_be_gone_pid=$(ps -o pid -p ${_pid} --no-headers)
+    if [ -z $should_be_gone_pid ]; then
+        return
+    else
+        kill -TERM ${_pid}
+    fi
+
+    local count=0
+    while [ ${count} -lt 15 ]
+    do
+        local should_be_gone_pid=$(ps -o pid -p ${_pid} --no-headers)
+        if [ -z $should_be_gone_pid ]; then
+                return
+        else
+                sleep 2
+                let count=${count}+1
+        fi
+    done
+
+    local should_be_gone_pid=$(ps -o pid -p ${_pid} --no-headers)
+    if [ ! -z $should_be_gone_pid ]
+    then
+        kill -9 ${_pid}
+    fi
 }
+
+
+
 # Check if the jbossas process is running
 isrunning() {
     # Check for running app
