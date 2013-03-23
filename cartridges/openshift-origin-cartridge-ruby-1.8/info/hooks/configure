@@ -110,3 +110,11 @@ export CART_INFO_DIR
 $CARTRIDGE_BASE_PATH/abstract/info/bin/deploy_httpd_proxy.sh $application $namespace $uuid $IP
 
 enable_cgroups
+
+## Set up '--no-rdoc --no-ri' as default
+gemrc=$APP_HOME/.gemrc
+test -f $gemrc || cat << EOF > $gemrc
+--- 
+gem: --no-rdoc --no-ri
+EOF
+chown $user_id:$group_id $gemrc
