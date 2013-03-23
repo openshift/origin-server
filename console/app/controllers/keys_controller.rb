@@ -1,4 +1,5 @@
 class KeysController < ConsoleController
+
   def new
     @first = true if params[:first]
     @key = Key.new
@@ -10,7 +11,7 @@ class KeysController < ConsoleController
     @key.as = current_user
 
     if @key.save
-      redirect_to (@first ? :back : account_path), :flash => {:success => 'Your public key has been created'} rescue redirect_to account_path
+      redirect_to (@first ? :back : account_settings_redirect), :flash => {:success => 'Your public key has been created'} rescue redirect_to account_path
     else
       Rails.logger.debug @key.errors.inspect
       render :new
@@ -38,6 +39,11 @@ class KeysController < ConsoleController
   def destroy
     @key = Key.find params[:id], :as => current_user
     @key.destroy
-    redirect_to account_path
+    redirect_to account_settings_redirect
   end
+
+  protected
+    def active_tab
+      :account
+    end
 end

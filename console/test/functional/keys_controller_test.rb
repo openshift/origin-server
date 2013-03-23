@@ -23,7 +23,7 @@ class KeysControllerTest < ActionController::TestCase
 
     assert key = assigns(:key)
     assert key.errors.empty?, key.errors.inspect
-    assert_redirected_to account_path
+    assert_redirected_to account_settings_redirect
     #since this is only key the user has then it cannot be deleted (because of the old client tools)
     #assert key.destroy
   end
@@ -87,13 +87,13 @@ class KeysControllerTest < ActionController::TestCase
   test "should destroy key" do
     (key = Key.new(get_post_form.merge(:as => @user))).save!
     delete :destroy, :id => key.id
-    assert_redirected_to account_path
+    assert_redirected_to account_settings_redirect
   end
 
   test "should destroy default key" do
     (key = Key.new(get_post_form.merge(:name => 'default', :as => @user))).save!
     delete :destroy, :id => key.id
-    assert_redirected_to account_path
+    assert_redirected_to account_settings_redirect
   end
 
   test "should assign errors on empty name" do
@@ -152,7 +152,7 @@ class KeysControllerTest < ActionController::TestCase
 
     assert key = assigns(:key)
     assert key.errors.empty?, key.errors.inspect
-    assert_redirected_to account_path
+    assert_redirected_to account_settings_redirect
     assert_nil session[:key]
   end
 

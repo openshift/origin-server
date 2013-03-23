@@ -41,6 +41,14 @@ class GenerateConsoleViewTask < Rake::TaskLib
         include Console::SecuredHelper
         include Console::CommunityHelper
         include Console::ConsoleHelper
+
+        def active_tab
+          nil
+        end
+
+        def account_settings_redirect
+          account_path
+        end
       end
     end
 

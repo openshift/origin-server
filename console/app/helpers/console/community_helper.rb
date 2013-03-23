@@ -32,6 +32,10 @@ module Console::CommunityHelper
     'http://stackoverflow.com/questions/tagged/openshift/'
   end
 
+  def stack_overflow_link
+    link_to "StackOverflow", stack_overflow_url
+  end
+
   def client_tools_url
     openshift_github_project_url 'rhc'
   end

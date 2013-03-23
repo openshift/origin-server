@@ -12,7 +12,7 @@ class AuthorizationsController < ConsoleController
     scope_definitions
 
     if @authorization.save
-      redirect_to edit_authorization_path(@authorization), :flash => {:success => "Authorization created"}
+      redirect_to authorization_path(@authorization)
     else
       render :new
     end
@@ -34,7 +34,7 @@ class AuthorizationsController < ConsoleController
     scope_definitions
 
     if @authorization.save
-      redirect_to account_path, :flash => {:success => 'Authorization updated'}
+      redirect_to authorization_path(@authorization), :flash => {:success => 'Authorization updated'}
     else
       render :new
     end
@@ -43,12 +43,12 @@ class AuthorizationsController < ConsoleController
   def destroy
     @authorization = Authorization.find params[:id], :as => current_user
     @authorization.destroy
-    redirect_to account_path, :flash => {:success => 'The authorization has been revoked'}
+    redirect_to account_settings_redirect, :flash => {:success => 'The authorization has been revoked'}
   end
 
   def destroy_all
     @authorization = Authorization.destroy_all :as => current_user
-    redirect_to account_path, :flash => {:success => 'All authorizations revoked'}
+    redirect_to account_settings_redirect, :flash => {:success => 'All authorizations revoked'}
   end
 
   protected
@@ -58,5 +58,9 @@ class AuthorizationsController < ConsoleController
           @parameter_scopes, s = @scope_definitions.partition{ |s| s[:parameterized] }
           s
         end
+    end
+
+    def active_tab
+      :account
     end
 end

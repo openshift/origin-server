@@ -24,7 +24,7 @@ module Console::LayoutHelper
 
   def navigation_tab(name, options={})
     action = options[:action]
-    active = (name.to_s == controller_name) && (action.nil? || action.to_s == controller.action_name)
+    active = active_tab == name || (name.to_s == controller_name) && (action.nil? || action.to_s == controller.action_name)
     content_tag(
       :li,
       link_to(
@@ -218,6 +218,13 @@ module Console::LayoutHelper
   def breadcrumb_for_account(*args)
     breadcrumbs_for_each [
       link_to('My Account', :account, :action => :show),
+    ] + args
+  end
+
+  def breadcrumb_for_account_settings(*args)
+    breadcrumbs_for_each [
+      link_to('My Account', :account, :action => :show),
+      link_to('Settings', :account, :action => :settings),
     ] + args
   end
 
