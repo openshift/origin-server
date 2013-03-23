@@ -149,7 +149,7 @@ Then /^a namespace should get deleted$/ do
     Timeout::timeout(maxttl + 20) do
       while true
         Dnsruby::PacketSender.clear_caches
-        ret = res.query("#{@account['namespace']}.dev.rhcloud.com", Dnsruby::Types.TXT)
+        ret = res.query("#{@account['namespace']}.#{$cloud_domain}", Dnsruby::Types.TXT)
         if ret.answer.length >= 1
           if ret.answer[0].ttl > maxttl
             retryin = maxttl
