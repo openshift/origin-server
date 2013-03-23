@@ -105,3 +105,15 @@ function generate_username {
     fi
     echo $username
 }
+
+function log_message() {
+   msg=${1-""}
+   [ -z "$msg" ]  &&  return 0
+   logger -i -s "run-scheduled-openshift-origin-user-jobs" -p user.info "`date`: $msg"
+}
+
+function openshift_origin_users() {
+    grep ":${GEAR_GECOS}:" /etc/passwd | cut -d: -f1 | tr '\n' ' '
+}
+
+

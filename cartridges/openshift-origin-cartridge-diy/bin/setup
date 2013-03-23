@@ -5,12 +5,7 @@ set -x
 PATH=/bin:/usr/bin:$PATH
 
 version=0.1
-cartridge_type="diy"
-OPENSHIFT_DIY_DIR="$OPENSHIFT_HOMEDIR$cartridge_type-$version"
-ls -lZa
 echo "export OPENSHIFT_DIY_VERSION='$version'" > "$OPENSHIFT_DIY_DIR/env/OPENSHIFT_DIY_VERSION"
-echo "export OPENSHIFT_DIY_DIR='$OPENSHIFT_DIY_DIR'" > "$OPENSHIFT_DIY_DIR/env/OPENSHIFT_DIY_DIR"
-id
 
 # Copy the version specific files into diy directory
 shopt -s dotglob
