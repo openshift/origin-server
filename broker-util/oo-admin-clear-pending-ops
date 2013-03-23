@@ -61,6 +61,7 @@ $count = 0
 def clean_app(a)
   $count += 1
   delete_app = false
+  dlist = []
   a.pending_op_groups.each { |op| 
     if op.created_at < $t 
       puts
@@ -85,10 +86,11 @@ def clean_app(a)
             puts " failed again!"
           end
         end
-        op.delete if success
+        dlist << op if success
       end
     end
   } 
+  dlist.each { |op| op.delete }
   if not delete_app
     a.save
     a.pending_op_groups.each { |op| 
@@ -106,20 +108,19 @@ end
 $domain_count = 0
 def clean_domain(d)
   $domain_count += 1
-  d.pending_ops.delete_if { |op| op.nil? or op.created_at.nil? or op.op_type.nil?}
+  dlist = d.pending_ops.select { |op| op.created_at.nil? or op.op_type.nil? }
+  dlist.each { |op| op.delete }
+  d.pending_ops.delete_if { |op| op.nil? }
   d.pending_ops.each { |op| op.state = :init if op.state==:queued and op.created_at < $t }
   d.save
   d.run_jobs rescue nil
   d.with(consistency: :strong).reload
+  dlist = d.pending_ops.select { |op| op.created_at < $t and op.completed? }
+  dlist.each { |op| op.delete }
   d.pending_ops.each { |op|
-    if op.created_at < $t 
-      puts
-      if op.completed?
-        puts "Clearing op for domain (#{d.namespace}) - #{op.inspect} "
-        op.delete 
-      else
-        puts "Failed to clear op for domain (#{d.namespace}) - #{op.inspect} "
-      end
+    if op.created_at < $t and not op.completed?
+      puts "Failed to clear op for domain (#{d.namespace}) - #{op.inspect} "
+      op.state = :queued if op.state == :init
     end
   }
   d.save
@@ -128,20 +129,20 @@ end
 $user_count = 0
 def clean_user(u)
   $user_count += 1
-  u.pending_ops.delete_if { |op| op.nil? or op.created_at.nil? or op.op_type.nil?}
+  dlist = u.pending_ops.select { |op| op.created_at.nil? or op.op_type.nil? or op.pending_domains.empty? }
+  dlist.each { |op| op.delete }
+  u.pending_ops.delete_if { |op| op.nil? }
   u.pending_ops.each { |op| op.state = :init if op.state==:queued and op.created_at < $t }
   u.save
   u.run_jobs rescue nil
   u.with(consistency: :strong).reload
+  dlist = u.pending_ops.select { |op| op.created_at < $t and op.completed? }
+  dlist.each { |op| puts "Clearing op for user (#{u.login}) - #{op.inspect} " and op.delete }
   u.pending_ops.each { |op|
-    if op.created_at < $t 
-      puts
-      if op.completed?
-        puts "Clearing op for user (#{u.login}) - #{op.inspect} "
-        op.delete 
-      else
-        puts "Failed to clear op for user (#{u.login}) - #{op.inspect} "
-      end
+    if op.created_at < $t and not op.completed?
+      puts "Failed to clear op for user (#{u.login}) - #{op.inspect} "
+      # putting back to queued state if it is in init state
+      op.state = :queued if op.state == :init
     end
   }
   u.save
