@@ -8,7 +8,6 @@ Group:         Development/Languages
 License:       ASL 2.0
 URL:           http://openshift.redhat.com
 Source0:       http://mirror.openshift.com/pub/openshift-origin/source/%{name}/%{name}-%{version}.tar.gz
-Requires:      openshift-origin-cartridge-abstract
 Requires:      rubygem(openshift-origin-node)
 #https://issues.jenkins-ci.org/browse/JENKINS-15047
 Requires:      java >= 1.6

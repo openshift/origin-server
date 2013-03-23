@@ -21,6 +21,8 @@ mkdir -p ${OPENSHIFT_JENKINS_CLIENT_DIR}/{logs,data}
 cp -r ${OPENSHIFT_JENKINS_CLIENT_DIR}/versions/${version}/configuration/* ${OPENSHIFT_JENKINS_CLIENT_DIR}/configuration
 #cp -r ${OPENSHIFT_JENKINS_CLIENT_DIR}/versions/${version}/metadata/* ${OPENSHIFT_JENKINS_CLIENT_DIR}/metadata
 
+erb ${OPENSHIFT_JENKINS_CLIENT_DIR}/configuration/jenkins_job_template.xml.erb > ${OPENSHIFT_JENKINS_CLIENT_DIR}/configuration/jenkins_job_template.xml
+
 
 set +e
 for i in {0..50}; do
@@ -41,32 +43,24 @@ fi
 
 echo $JENKINS_PASSWORD > "$OPENSHIFT_JENKINS_CLIENT_DIR/.password"
 
-
-#TODO Need another way to get this
-#framework_carts=($(get_installed_framework_carts))
-#primary_framework_cart=${framework_carts[0]}
-primary_framework_cart=diy-0.1
-
 # Maybe allow cartridges to create their own jenkins job
-if [ -f "${CARTRIDGE_BASE_PATH}/${primary_framework_cart}/info/configuration/jenkins_shell_command" ]
+if [ -f "${OPENSHIFT_PRIMARY_CARTRIDGE_DIR}/configuration/jenkins_shell_command" ]
 then
-    SHELL_COMMAND="${CARTRIDGE_BASE_PATH}/${primary_framework_cart}/info/configuration/jenkins_shell_command"
+    SHELL_COMMAND="${OPENSHIFT_PRIMARY_CARTRIDGE_DIR}/configuration/jenkins_shell_command"
 else
     SHELL_COMMAND="$OPENSHIFT_JENKINS_CLIENT_DIR/configuration/jenkins_shell_command"
 fi
 
-if [ -f "${CARTRIDGE_BASE_PATH}/${primary_framework_cart}/info/configuration/jenkins_artifacts_regex" ]
+if [ -f "${OPENSHIFT_PRIMARY_CARTRIDGE_DIR}/configuration/jenkins_artifacts_glob" ]
 then
-    ARTIFACTS_REGEX="${CARTRIDGE_BASE_PATH}/${primary_framework_cart}/info/configuration/jenkins_artifacts_regex"
+    ARTIFACTS_GLOB="${OPENSHIFT_PRIMARY_CARTRIDGE_DIR}/configuration/jenkins_artifacts_glob"
 else
-    ARTIFACTS_REGEX="$OPENSHIFT_JENKINS_CLIENT_DIR/configuration/jenkins_artifacts_regex"
+    ARTIFACTS_GLOB="$OPENSHIFT_JENKINS_CLIENT_DIR/configuration/jenkins_artifacts_glob"
 fi
-
-JOB_XML="$OPENSHIFT_JENKINS_CLIENT_DIR/configuration/jenkins_job_template.xml"
 
 JOB_NAME=${OPENSHIFT_APP_NAME}-build
 
-if out=$(${OPENSHIFT_JENKINS_CLIENT_DIR}/bin/jenkins_create_job "${namespace}" "${CLOUD_DOMAIN}" "$primary_framework_cart" "$JOB_XML" "$SHELL_COMMAND" "$ARTIFACTS_REGEX" 2>&1)
+if out=$(${OPENSHIFT_JENKINS_CLIENT_DIR}/bin/jenkins_create_job "${CLOUD_DOMAIN}" "$SHELL_COMMAND" "$ARTIFACTS_GLOB" 2>&1)
 then
     # Embedding success
     client_result ""
