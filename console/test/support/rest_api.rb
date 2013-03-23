@@ -188,6 +188,6 @@ class ActiveSupport::TestCase
   end
 
   def anonymous_json_header(is_post=false, nolinks=true)
-    {(is_post ? 'Content-Type' : 'Accept') => "application/json#{nolinks ? ';nolinks' : ''};version=1.3", 'User-Agent' => Console.config.api[:user_agent]}
+    {(is_post ? 'Content-Type' : 'Accept') => "application/json#{nolinks ? ';nolinks' : ''};version=1.4", 'User-Agent' => Console.config.api[:user_agent]}
   end
 end

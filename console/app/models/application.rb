@@ -69,6 +69,21 @@ class Application < RestApi::Base
     true
   end
 
+  def aliases
+    Alias.find :all, child_options
+  end
+  def find_alias(id)
+    Alias.find id, child_options
+  end
+  def remove_alias(alias_name)
+    begin
+      response = post(:events, nil, {:event => 'remove-alias', :alias => alias_name}.to_json)
+      response.is_a? Net::HTTPOK
+    rescue
+      false
+    end
+  end
+
   def web_url
     app_url
   end

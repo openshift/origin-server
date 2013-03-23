@@ -270,4 +270,8 @@ module Console::HelpHelper
   def resource_request_url
     community_base_url 'page/resource-request-form'
   end
+
+  def alias_docs_url
+    community_base_url 'blogs/custom-url-names-for-your-paas-applications-host-forwarding-and-cnames-the-openshift-way'
+  end
 end

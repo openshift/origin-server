@@ -1,0 +1,76 @@
+= semantic_form_for @alias, :url => application_aliases_path(@application), :html => {:method => :post, :class => 'form-horizontal', :multipart => true} do |f|
+
+  %p
+    Aliases allow you to use your own domain names for your apps on OpenShift. To set up your own domain name for 
+    %strong= application.name
+  %ol
+    %li Set up the CNAME record with your DNS provider
+    %li Tell us about your alias using the form on this page
+
+  = f.semantic_errors
+
+  = f.inputs do
+    = f.input :id, :label => 'Domain name', :required => true, :input_html => {:placeholder => 'example.com'}, :hint => 'Enter your custom domain name. e.g. example.com or www.example.com'
+
+    .well
+
+      %h2 SSL Certificate
+
+      - if !@custom_certificates_supported
+        .alert.alert-warning
+          Your plan doesn't allow custom SSL certificates.
+          = link_to 'View your plan →', account_plans_path
+
+      - if @alias.has_private_certificate?
+        .alert.alert-warning
+          = @alias.certificate_added_at
+          This alias already has a certificate. You can 
+          = link_to 'delete the current certificate', '#', { 'data-html' => 'true', 'data-placement' => 'bottom', :class => 'delete-certificate', :title => 'Delete SSL Certificate'}
+          or override it uploading a new one.
+          .popover-delete-certificate.hide
+            = semantic_form_for @alias, :url => application_aliases_path(@application), :html => {:method => :put, :class => 'form'} do |f|
+              %p If you delete this certificate, your users will not be able to browse your site securely.
+              %p
+                Are you sure you wish to delete the certificate?
+              %input{:type => :hidden, :name => :id, :value => @alias.id}
+              = f.buttons do
+                = link_to 'Cancel', @referer || application_path(@application), :class => 'btn cancel-delete-certificate'
+                = f.commit_button :label => "Delete", :button_html => {:class => 'btn btn-danger'}
+                = f.loading
+
+      .file.optional.control-group
+        %label.control-label{:for => 'certificate_file'} SSL Certificate
+        .controls
+          = f.file_field :certificate_file, :id => 'certificate_file', :disabled => !@custom_certificates_supported 
+          %p.help-block Upload an SSL certificate for your domain if you want your users to be able to browser your app securely. Accepted files are X509 certificates in .crt format.
+
+      .string.optional.control-group
+        %label.control-label{:for => 'certificate_private_key_file'} 
+          Certificate private key
+        .controls
+          = f.file_field :certificate_private_key_file, :id => 'certificate_private_key_file', :disabled => !@custom_certificates_supported 
+          %p.help-block Private key required if adding a certificate.
+
+      .string.optional.control-group
+        %label.control-label{:for => 'certificate_pass_phrase'} 
+          Certificate pass phrase
+        .controls
+          = f.text_field :certificate_pass_phrase, :id => 'certificate_pass_phrase', :disabled => !@custom_certificates_supported 
+          %p.help-block Optional pass phrase for the certificate private key.
+
+  = f.buttons do
+    = link_to "Cancel", application_path(@application), :class => 'btn'
+    = f.commit_button :label => 'Save'
+    = f.loading
+
+- content_for :javascripts do
+  :javascript
+    $('.delete-certificate').popover({
+      content: function() { return $(this).next('.popover-delete-certificate').html(); }
+    }).click(function() { return false; });
+
+    $('.cancel-delete-certificate').live('click', function() { 
+      $(this).closest('.popover').prev('.delete-certificate').popover('hide');
+      return false; 
+    });
+

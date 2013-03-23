@@ -1,0 +1,20 @@
+- breadcrumb_for_application @application, 'Delete Alias'
+
+%h1= 'Delete Alias'
+=flashes
+
+= semantic_form_for @application, :url => application_aliases_path(@application), :html => {:method => :delete, :class => 'form'} do |f|
+
+  %p If you delete this alias, your app will not be accessible from this URL. Deleting this alias will also delete the certificate.
+
+  %p Are you sure you wish to delete this alias?
+
+  %div.select.optional.control-group
+    .controls
+      = select_tag(:alias, options_for_select(@application.aliases, @alias))
+
+  = f.semantic_errors
+  = f.buttons do
+    = link_to 'Cancel', @referer || application_path(@application), :class => 'btn'
+    = f.commit_button :label => "Delete Alias", :button_html => {:class => 'btn btn-danger'}
+    = f.loading
