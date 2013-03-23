@@ -5,11 +5,8 @@ set -x
 PATH=/bin:/usr/bin:$PATH
 
 version=2.6
-ls -lZa $OPENSHIFT_HOMEDIR/python
-id
 
 # Copy the version specific files to python directory
-OPENSHIFT_PYTHON_DIR="$OPENSHIFT_HOMEDIR/python"
 cp -r $OPENSHIFT_PYTHON_DIR/versions/$version/etc/* $OPENSHIFT_PYTHON_DIR/etc
 cp -r $OPENSHIFT_PYTHON_DIR/versions/$version/metadata/* $OPENSHIFT_PYTHON_DIR/metadata
 cp -r $OPENSHIFT_PYTHON_DIR/versions/$version/template/* $OPENSHIFT_PYTHON_DIR/template

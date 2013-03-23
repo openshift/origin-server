@@ -1,6 +1,6 @@
-python/conf/
-python/metadata/
-python/env/
-python/virtenv/
-python/etc/
-python/template/
+redhat-python/conf/
+redhat-python/metadata/
+redhat-python/env/
+redhat-python/virtenv/
+redhat-python/etc/
+redhat-python/template/
