@@ -2149,7 +2149,7 @@ class Application
   
   def validate_certificate(ssl_certificate, private_key, pass_phrase)
     if ssl_certificate and !ssl_certificate.empty?
-      raise OpenShift::UserException.new("Privte key is required", 172, nil, "private_key") if private_key.nil? 
+      raise OpenShift::UserException.new("Private key is required", 172, nil, "private_key") if private_key.nil? 
       #validate certificate
       begin
         ssl_cert_clean = OpenSSL::X509::Certificate.new(ssl_certificate.strip)
@@ -2164,7 +2164,7 @@ class Application
         raise OpenShift::UserException.new("Invalid private key or pass phrase: #{e.message}", 172, nil, "private_key")
       end
       if not ssl_cert_clean.check_private_key(priv_key_clean)
-        raise OpenShift::UserException.new("Key/cert mismatch", 172, nil, "private_key")
+        raise OpenShift::UserException.new("Private key/certificate mismatch", 172, nil, "private_key")
       end
 
       if not [OpenSSL::PKey::RSA, OpenSSL::PKey::DSA].include?(priv_key_clean.class)

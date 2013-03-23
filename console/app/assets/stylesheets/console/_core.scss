@@ -602,6 +602,11 @@ $cartridgeBorderWidth: 10px;
 #app-unique-info h5 {
   border-bottom: 1px solid #222222;
   }
+#aliases {
+  a {
+    font-size: $baseFontSize;
+  }
+}
 
 .section-console h6 {
   color: #9a9b9c;

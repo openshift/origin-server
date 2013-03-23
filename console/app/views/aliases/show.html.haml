@@ -1,0 +1,134 @@
+- breadcrumb_for_application @application, "Alias '#{@alias.name}'"
+- content_for :page_title, "Alias '#{@alias.name}'"
+
+%h1= "Alias '#{@alias.name}'"
+=flashes
+
+%section
+  %p
+    To successfully use this alias, you must have an active 
+    = link_to('CNAME record with your DNS provider', alias_docs_url) << '.'
+    The alias is
+    %strong= @alias.name
+    and the destination app is 
+    %strong= URI::parse(@application.web_url).host
+
+  %p
+    .row
+      .span9
+        .form-horizontal
+          %fieldset.inputs
+            .control-group
+              %label.control-label Domain Name
+              .controls
+                %h3= "#{@alias.name} → #{URI::parse(@application.web_url).host}"
+                %p.help-block If you need to change the domain name, please delete the alias and create a new one.
+      .span3
+        .popover-delete-alias.hide
+          = semantic_form_for @application, :url => application_alias_path(@application, @alias), :html => {:method => :delete, :class => 'form'} do |f|
+            %p If you delete this alias, your app will not be accessible from this URL. Deleting this alias will also delete the certificate.
+            %p
+              Are you sure you wish to delete the alias
+              %strong= @alias.name
+              ?
+            = f.buttons do
+              = link_to 'Cancel', @referer || application_path(@application), :class => 'btn cancel-delete-alias'
+              = f.commit_button :label => "Delete", :button_html => {:class => 'btn btn-danger'}
+              = f.loading
+        = link_to 'Delete Alias', application_alias_delete_path(@application, @alias) << "?id=#{@alias.name}", { 'data-html' => 'true', 'data-placement' => 'bottom', :class => 'btn btn-danger delete-alias', :title => 'Delete Alias'}
+
+  - if @alias.has_private_ssl_certificate?
+    %p
+      .row
+        .span9
+          .form-horizontal
+            %fieldset.inputs
+              .control-group
+                %label.control-label SSL Certificate
+                .controls
+                  %h3= 'added ' << @alias.certificate_added_at.strftime("%a, %B #{@alias.certificate_added_at.day.ordinalize} %Y").downcase
+                  %p.help-block Date and time the existing certificate was added to this alias.
+        .span3
+          .popover-delete-certificate.hide
+            = semantic_form_for @alias, :url => application_alias_path(@application, @alias), :html => {:method => :put, :class => 'form'} do |f|
+              %p If you delete this certificate, your users will not be able to browse your site securely.
+              %p
+                Are you sure you wish to delete the certificate?
+              = f.buttons do
+                = link_to 'Cancel', @referer || application_path(@application), :class => 'btn cancel-delete-certificate'
+                = f.commit_button :label => "Delete", :button_html => {:class => 'btn btn-danger'}
+                = f.loading
+          = link_to 'Delete Certificate', application_alias_delete_path(@application, @alias) << "?id=#{@alias.name}", { 'data-html' => 'true', 'data-placement' => 'bottom', :class => 'btn btn-danger delete-certificate', :title => 'Delete Certificate'}
+
+  .well
+
+    %h2 SSL Certificate
+
+    - if !@private_ssl_certificates_supported
+      .alert.alert-warning
+        Your account does not allow custom SSL certificates.
+        = link_to 'View your account →', account_path
+
+    = semantic_form_for @alias, :url => application_alias_path(@application, @alias), :html => {:method => :put, :class => 'form-horizontal', :multipart => true} do |f|
+
+      - if @alias.has_private_ssl_certificate?
+        %p
+          Your alias already have a SSL Certificate attached. Uploading a new certificate will override the existing one.
+      - else
+        %p
+          Optionally upload a SSL certificate for your custom domain alias to allow secure HTTPS communication with your app.
+
+      .file.optional.control-group
+        %label.control-label{:for => 'certificate_file'} 
+          SSL Certificate
+          %abbr{:title => 'required'} *
+        .controls
+          = f.file_field :certificate_file, :id => 'certificate_file', :disabled => !@private_ssl_certificates_supported 
+          %p.help-block Certificate files must be Base64 PEM-encoded and tipically have a .crt or .pem extension. You may combine multiple certificates and certificate chains in a single file, but the RSA or DSA private key must always be provided in a separate file.
+
+      .file.optional.control-group
+        %label.control-label{:for => 'certificate_chain_file'} 
+          SSL Certificate Chain
+        .controls
+          = f.file_field :certificate_chain_file, :id => 'certificate_chain_file', :disabled => !@private_ssl_certificates_supported 
+          %p.help-block  Optionally you can provide a certificate chain in a separate PEM-encoded file.
+
+      .file.optional.control-group
+        %label.control-label{:for => 'certificate_private_key_file'} 
+          Certificate Private Key
+          %abbr{:title => 'required'} *
+        .controls
+          = f.file_field :certificate_private_key_file, :id => 'certificate_private_key_file', :disabled => !@private_ssl_certificates_supported 
+          %p.help-block RSA or DSA private key file for the root certificate in PEM-encoded format.
+
+      .string.optional.control-group
+        %label.control-label{:for => 'certificate_pass_phrase'} 
+          Private Key Pass Phrase
+        .controls
+          = f.text_field :certificate_pass_phrase, :id => 'certificate_pass_phrase', :disabled => !@private_ssl_certificates_supported 
+          %p.help-block Pass phrase for the certificate private key, required if the provided private key is encrypted.
+
+      = f.buttons do
+        = link_to "Cancel", application_path(@application), :class => 'btn'
+        = f.commit_button :label => 'Save'
+        = f.loading
+
+- content_for :javascripts do
+  :javascript
+
+    $('.delete-alias').popover({
+      content: function() { return $(this).prev('.popover-delete-alias').html(); }
+    }).click(function() { return false; });
+    $('.cancel-delete-alias').live('click', function() { 
+      $(this).closest('.popover').prev('.delete-alias').popover('hide');
+      return false; 
+    });
+
+    $('.delete-certificate').popover({
+      content: function() { return $(this).prev('.popover-delete-certificate').html(); }
+    }).click(function() { return false; });
+    $('.cancel-delete-certificate').live('click', function() { 
+      $(this).closest('.popover').prev('.delete-certificate').popover('hide');
+      return false; 
+    });
+
