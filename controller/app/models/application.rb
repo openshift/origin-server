@@ -107,7 +107,9 @@ class Application
         add_feature_result = app.add_features(features, group_overrides, init_git_url)
         result_io.append add_feature_result
       rescue Exception => e
-        app.delete
+        if (app.group_instances.nil? or app.group_instances.empty?) and (app.component_instances.nil? or app.component_instances.empty?)
+          app.delete
+        end
         raise e
       end
       app
