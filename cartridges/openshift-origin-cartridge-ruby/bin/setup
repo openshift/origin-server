@@ -1,15 +1,22 @@
 #!/bin/bash -e
-set -u
 set -x
 
-PATH=/bin:/usr/bin:$PATH
-
+# Set default version
 version=1.9
+
+OPENSHIFT_RUBY_DIR="$OPENSHIFT_HOMEDIR/redhat-ruby"
+
+# Parse arguments
+source "${OPENSHIFT_RUBY_DIR}/lib/util"
+parse_args $@
+
+# Don't set -u until after the above arg parsing is complete
+set -u
 
 # Copy the version specific files to ruby directory
 for dir in etc metadata template; do
-	mkdir -p $OPENSHIFT_RUBY_DIR/$dir
-	cp -r $OPENSHIFT_RUBY_DIR/versions/$version/$dir/* $OPENSHIFT_RUBY_DIR/$dir 
+    mkdir -p $OPENSHIFT_RUBY_DIR/$dir
+    cp -Lr $OPENSHIFT_RUBY_DIR/versions/$version/$dir/* $OPENSHIFT_RUBY_DIR/$dir 
 done
 
 # Create additional directories required by RUBY and httpd
