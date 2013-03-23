@@ -1,4 +1,7 @@
-diy-0.1/
-diy-0.1/configuration/
-diy-0.1/metadata/
-diy-0.1/template/
+redhat-diy/
+redhat-diy/configuration/
+redhat-diy/metadata/
+redhat-diy/template/
+redhat-diy/env/
+redhat-diy/tmp/
+redhat-diy/conf/
