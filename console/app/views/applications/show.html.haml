@@ -87,7 +87,7 @@
 
                 - else
                   %p
-                    You must #{link_to "add an SSH public key to your account", account_path}
+                    You must #{link_to "add an SSH public key to your account", new_key_path}
                     before you can upload code or remotely access your application.
 
               - if cartridge.scales? || cartridge.buildable?

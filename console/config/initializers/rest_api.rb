@@ -4,7 +4,7 @@ require 'rest_api/railties/controller_runtime'
 
 RestApi::LogSubscriber.attach_to :active_resource
 
-unless Rails.env.production?
+if Rails.env.development?
   begin
     info = RestApi.info
     Rails.logger.info "Connected to #{info.url} with version #{info.version}"

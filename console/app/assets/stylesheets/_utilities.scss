@@ -1,9 +1,9 @@
 
 .clear-both { clear: both; }
 
-.left { text-align: left; }
-.center { text-align: center; }
-.right { text-align: right; }
+.left { text-align: left !important; }
+.center { text-align: center !important; }
+.right { text-align: right !important; }
 
 .invisible {
   border: 0; clip: rect(0 0 0 0); height: 1px; margin: -1px; overflow: hidden; padding: 0; position: absolute; width: 1px;
