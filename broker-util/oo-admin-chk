@@ -151,7 +151,9 @@ end
 
 if level >= 2 and Rails.configuration.msg_broker[:districts][:enabled]
   OpenShift::DataStore.find(:districts, {}, {:timeout => false}) do |district|
-    district_hash[district["_id"]] = [ district["name"], district["max_capacity"], district["server_identities"], district["available_uids"] ] 
+    si_list =  district["server_identities"].map {|si| si["name"]}
+    si_list.delete_if {|si| si.nil?}
+    district_hash[district["_id"]] = [ district["name"], district["max_capacity"], si_list, district["available_uids"] ] 
   end
 end
 
@@ -380,7 +382,7 @@ if level >= 2
       district_info[2].each do |server_identity|
         district_used_uids |= (gear_uid_hash[server_identity] || [])
       end
-    
+   
       first_uuid = Rails.configuration.msg_broker[:districts][:first_uid]
       district_all_uids = []
       district_all_uids.fill(0, district_info[1]) {|i| first_uuid + i}
