@@ -1,13 +1,13 @@
 LoadModule wsgi_module     modules/mod_wsgi.so
 
-ServerRoot "<%= ENV['OPENSHIFT_HOMEDIR'] %>/python"
+ServerRoot "<%= ENV['OPENSHIFT_PYTHON_DIR'] %>"
 DocumentRoot "<%= ENV['OPENSHIFT_REPO_DIR'] %>/wsgi"
 Listen <%= ENV['OPENSHIFT_PYTHON_IP'] %>:<%= ENV['OPENSHIFT_PYTHON_PORT'] %>
 User <%= ENV['OPENSHIFT_GEAR_UUID'] %>
 Group <%= ENV['OPENSHIFT_GEAR_UUID'] %>
 
-ErrorLog "|/usr/sbin/rotatelogs <%= ENV['OPENSHIFT_HOMEDIR'] %>/python/logs/error_log-%Y%m%d-%H%M%S-%Z 86400"
-CustomLog "|/usr/sbin/rotatelogs <%= ENV['OPENSHIFT_HOMEDIR'] %>/python/logs/access_log-%Y%m%d-%H%M%S-%Z 86400" combined
+ErrorLog "|/usr/sbin/rotatelogs <%= ENV['OPENSHIFT_PYTHON_LOG_DIR'] %>/error_log-%Y%m%d-%H%M%S-%Z 86400"
+CustomLog "|/usr/sbin/rotatelogs <%= ENV['OPENSHIFT_PYTHON_LOG_DIR'] %>/access_log-%Y%m%d-%H%M%S-%Z 86400" combined
 
 <Directory <%= ENV['OPENSHIFT_REPO_DIR'] %>/wsgi>
   AllowOverride all
@@ -20,5 +20,5 @@ Alias /static "<%= ENV['OPENSHIFT_REPO_DIR'] %>wsgi/static/"
 WSGIPassAuthorization On
 
 WSGIProcessGroup <%= ENV['OPENSHIFT_GEAR_UUID'] %>
-WSGIDaemonProcess <%= ENV['OPENSHIFT_GEAR_UUID'] %> user=<%= ENV['OPENSHIFT_GEAR_UUID'] %> group=<%= ENV['OPENSHIFT_GEAR_UUID'] %> processes=2 threads=25 python-path="<%= ENV['OPENSHIFT_REPO_DIR'] %>/libs:<%= ENV['OPENSHIFT_REPO_DIR'] %>/wsgi:<%= ENV['OPENSHIFT_HOMEDIR'] %>/python/virtenv/lib/python/"
+WSGIDaemonProcess <%= ENV['OPENSHIFT_GEAR_UUID'] %> user=<%= ENV['OPENSHIFT_GEAR_UUID'] %> group=<%= ENV['OPENSHIFT_GEAR_UUID'] %> processes=2 threads=25 python-path="<%= ENV['OPENSHIFT_REPO_DIR'] %>/libs:<%= ENV['OPENSHIFT_REPO_DIR'] %>/wsgi:<%= ENV['OPENSHIFT_PYTHON_DIR'] %>/virtenv/lib/python/"
 
