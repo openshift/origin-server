@@ -33,6 +33,8 @@ Requires:      %{?scl:%scl_prefix}rubygem(parseconfig)
 Requires:      %{?scl:%scl_prefix}rubygem(mocha)
 Requires:      %{?scl:%scl_prefix}rubygem(rspec)
 Requires:      rubygem(openshift-origin-common)
+# non-scl open4 required for oo-cgroup-read bug 924556 until selinux fix for bug 912215 is available
+Requires:      rubygem(open4)
 Requires:      python
 Requires:      libselinux-python
 Requires:      mercurial
