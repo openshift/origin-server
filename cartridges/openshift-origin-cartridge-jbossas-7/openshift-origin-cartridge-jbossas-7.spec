@@ -12,15 +12,17 @@ URL:           http://openshift.redhat.com
 Source0:       http://mirror.openshift.com/pub/openshift-origin/source/%{name}/%{name}-%{version}.tar.gz
 Requires:      openshift-origin-cartridge-abstract-jboss
 Requires:      rubygem(openshift-origin-node)
-Requires:      jboss-as7 >= %{jbossver}
-Requires:      jboss-as7-modules >= %{jbossver}
 Requires:      lsof
 Requires:      java-1.7.0-openjdk
 Requires:      java-1.7.0-openjdk-devel
 %if 0%{?rhel}
+Requires:      jboss-as7 >= %{jbossver}
+Requires:      jboss-as7-modules >= %{jbossver}
 Requires:      maven3
 %endif
 %if 0%{?fedora}
+Requires:      jboss-as
+Requires:      bc
 Requires:      maven
 %endif
 BuildRequires: git
