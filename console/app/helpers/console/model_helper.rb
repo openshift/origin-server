@@ -96,6 +96,10 @@ module Console::ModelHelper
     end
   end
 
+  def usage_rate_indicator
+    content_tag :span, "$", :class => "label label-premium", :title => 'May include additional usage fees at certain levels, see plan for details.'
+  end
+
   def in_groups_by_tag(ary, tags)
     groups = {}
     other = ary.reject do |t|

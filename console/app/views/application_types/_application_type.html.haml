@@ -4,7 +4,7 @@
     = link_to type.display_name, application_type_path(type)
 
     - if type.usage_rates?
-      %span.label.label-premium{:title => 'Premium'}> $
+      = usage_rate_indicator
 
   .font-icon-block  
     - if type.cartridge?

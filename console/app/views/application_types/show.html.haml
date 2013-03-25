@@ -58,7 +58,7 @@
           #{@application_type.display_name} #{@application_type.source.to_s.humanize}
 
           - if @application_type.usage_rates?
-            %span.label.label-premium{:title => 'Premium'}> $
+            = usage_rate_indicator
 
           - if @application_type.cartridge?
             %span.font-icon.font-icon-size-16.font-icon-grey{"aria-hidden" => "true", "data-icon" => "\ue021", "title" => "Cartridge"}
