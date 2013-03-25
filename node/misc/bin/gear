@@ -75,6 +75,15 @@ command :postreceive do |c|
   end
 end
 
+command :build do |c|
+  c.syntax = "#{name} build"
+
+  c.description = "Run the build steps"
+  c.action do |args, options|
+    @container.build
+  end
+end
+
 command :cideploy do |c|
   c.syntax = "#{name} cideploy"
 
