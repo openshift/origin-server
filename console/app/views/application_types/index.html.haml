@@ -3,29 +3,43 @@
 = app_wizard_steps_create 0
 = flashes
 
-%section
-  %p.larger
-    Choose a web programming cartridge or kick the tires with a
-    quickstart. After you create the application 
-    you can add <strong>cartridges</strong> to enable additional 
-    capabilities like databases, metrics, and continuous build 
-    support with Jenkins.
+%section.row
+  .span6
+    %p.larger
+      Choose a web programming cartridge or kick the tires with a
+      quickstart. After you create the application 
+      you can add <strong>cartridges</strong> to enable additional 
+      capabilities like databases, metrics, and continuous build 
+      support with Jenkins.
+  
+    %form.form-search.form-search-block{:id => 'form-search-create-apps', :method => 'get'}
+      %input.search-query{:type => 'text', :name => 'search', :placeholder => 'Search by keyword or tag'}
+      %button.search.font-icon{:type => 'submit', "aria-hidden" => "true", "data-icon" => "\uee03"}
+    - if @browse_tags.present?
+      %span.dropdown
+        %a.btn.dropdown-toggle{:href => '#', :data => {:toggle => 'dropdown'}}
+          Browse by tag...
+          %span.font-icon{"aria-hidden" => "true", "data-icon" => "\uee12"}
+        %ul.dropdown-menu#tag-filter
+          - @browse_tags.each do |(name, tag)|
+            - if name
+              %li= link_to name, application_types_path(:tag => tag)
+            - else
+              %hr
+  .span6
+    %dl.font-icon-legend
+      %dt
+        %span.font-icon{"aria-hidden" => "true", "data-icon" => "\ue021"}
+        Cartridge
+      %dd 
+        A managed runtime that receives security updates and upgrades automatically.
+      %dt
+        %span.font-icon{"aria-hidden" => "true", "data-icon" => "\ue029"}
+        QuickStart
+      %dd 
+        An quick way to try out a new technology with code and libraries preconfigured. You are 
+        responsible for updating core libraries for security updates.
 
-%section
-  %form.form-search.form-search-block{:id => 'form-search-create-apps', :method => 'get'}
-    %input.search-query{:type => 'text', :name => 'search', :placeholder => 'Search by keyword or tag'}
-    %button.search.font-icon{:type => 'submit', "aria-hidden" => "true", "data-icon" => "\uee03"}
-  - if @browse_tags.present?
-    %span.dropdown
-      %a.btn.dropdown-toggle{:href => '#', :data => {:toggle => 'dropdown'}}
-        Browse by tag...
-        %span.font-icon{"aria-hidden" => "true", "data-icon" => "\uee12"}
-      %ul.dropdown-menu#tag-filter
-        - @browse_tags.each do |(name, tag)|
-          - if name
-            %li= link_to name, application_types_path(:tag => tag)
-          - else
-            %hr
 
 - if @featured_types.present?
   %section
@@ -69,9 +83,7 @@
   %section
     %p
       Can't find what you're looking for?  Try searching for a specific quickstart or filtering by tag.
-      Not all quickstarts are displayed on the first page.
-      -# , or 
-        browse the entire list in our #{link_to "community Quickstart section", community_quickstarts_url}.
+      Or, browse the entire list in our #{link_to "QuickStart gallery", community_quickstarts_url}.
 
 - content_for :javascripts do
   :javascript

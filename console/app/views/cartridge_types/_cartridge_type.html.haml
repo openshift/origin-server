@@ -12,7 +12,9 @@
     %span.label.pull-right Experimental
 
   %h3
-    = render :partial => 'cartridge_types/cartridge_type_title', :locals => { :type => cartridge_type }
+    = cartridge_type.display_name
+    - if cartridge_type.usage_rates?
+      = usage_rate_indicator
 
   - if extra_info
     %ul.unstyled.meta
