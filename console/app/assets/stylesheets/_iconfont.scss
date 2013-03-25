@@ -4,11 +4,13 @@
   .font-icon:nth-child(n+2) {
     position: absolute;
     left: 0;
+    top: 0;
   }
 }
 
 .font-icon {
   display: inline-block;
+  top: 0;
   &.font-icon-inline  {
     position: relative;
   }
