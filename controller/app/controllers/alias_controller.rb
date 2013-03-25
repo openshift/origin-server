@@ -130,12 +130,6 @@ class AliasController < BaseController
       return render_error(:not_found, "Application '#{application_id}' not found for domain '#{domain_id}'", 101, "UPDATE_ALIAS")
     end
     
-    begin
-      al1as = application.aliases.find_by(fqdn: server_alias)
-    rescue Mongoid::Errors::DocumentNotFound
-      return render_error(:not_found, "Alias #{} not found for application '#{application_id}'", 173, "UPDATE_ALIAS")
-    end
-    
     begin 
       reply = application.update_alias(server_alias, ssl_certificate, private_key, pass_phrase)
       al1as = application.aliases.find_by(fqdn: server_alias)
@@ -173,7 +167,6 @@ class AliasController < BaseController
     end
        
     begin
-      app_alias = application.aliases.find_by(fqdn: server_alias)
       application.remove_alias(server_alias)
     rescue Mongoid::Errors::DocumentNotFound
       return render_error(:not_found, "Alias #{server_alias} not found for application #{application_id}", 173, "DELETE_ALIAS")
