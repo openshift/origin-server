@@ -368,7 +368,6 @@ module OpenShift
       Utils.oo_spawn("/bin/cp -ad #{entries.join(' ')} #{target}",
                      expected_exitstatus: 0)
 
-
       write_environment_variable(cartridge, File.join(target, 'env'),
                                  dir:   target,
                                  ident: Runtime::Cartridge.build_ident(cartridge.cartridge_vendor,
@@ -381,16 +380,15 @@ module OpenShift
 
       mcs_label = @user.get_mcs_label(@user.uid)
 
-      if cartridge.primary?
-        @user.add_env_var('PRIMARY_CARTRIDGE_DIR', target + File::SEPARATOR, true)
+      @user.add_env_var("NAMESPACE", @user.namespace, true)
+      @user.add_env_var('PRIMARY_CARTRIDGE_DIR', target + File::SEPARATOR, true) if cartridge.primary?
 
-        env_path = PathUtils.join(@user.homedir, '.env')
-        Utils.oo_spawn(
-            "chown -R root:#{@user.gid} #{env_path};
-             chcon -R unconfined_u:object_r:openshift_var_lib_t:#{mcs_label} #{env_path}",
-            expected_exitstatus: 0
-        )
-      end
+      env_path = PathUtils.join(@user.homedir, '.env')
+      Utils.oo_spawn(
+          "chown -R root:#{@user.gid} #{env_path};
+           chcon -R unconfined_u:object_r:openshift_var_lib_t:#{mcs_label} #{env_path}",
+          expected_exitstatus: 0
+      )
 
       Utils.oo_spawn(
           "chown -R #{@user.uid}:#{@user.gid} #{target};
