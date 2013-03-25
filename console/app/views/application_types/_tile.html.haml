@@ -1,9 +1,15 @@
 = div_for type, :class => "tile tile-click tile-compact label-tags application_type_#{type.source}", :title => type.description do
   %h3
-    = render :partial => 'application_type_link', :locals => {:type => type}
-    
-  .font-icon-block  
-    %span.font-icon{"aria-hidden" => "true", "data-icon" => "\ue021", "title" => "Cartridge"}
+    = link_to type.display_name, application_type_path(type)
+
+    - if type.usage_rates?
+      %span.label.label-premium{:title => 'Premium'}> $
+
+  .font-icon-block
+    - if type.cartridge?
+      %span.font-icon{"aria-hidden" => "true", "data-icon" => "\ue021", "title" => "Cartridge"}
+    - elsif type.quickstart?
+      %span.font-icon{"aria-hidden" => "true", "data-icon" => "\ue029", "title" => "QuickStart"}
 
   = application_type_tags(type.tags - excluded_tags)
 

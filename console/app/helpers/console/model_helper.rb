@@ -92,7 +92,7 @@ module Console::ModelHelper
 
   def cannot_scale_title(type, capabilities)
     unless can_scale_application_type(type, capabilities)
-      "This application shares resources and can't be scaled."
+      "This application shares filesystem resources and can't be scaled."
     end
   end
 
