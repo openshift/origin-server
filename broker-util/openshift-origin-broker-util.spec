@@ -6,7 +6,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin broker
 Name:          openshift-origin-broker-util
-Version: 1.6.4
+Version: 1.6.5
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -91,6 +91,13 @@ cp kickstart/openshift-origin-remix.ks %{buildroot}/usr/share/openshift/kickstar
 %{_mandir}/man8/oo-stats.8.gz
 
 %changelog
+* Mon Mar 25 2013 Adam Miller <admiller@redhat.com> 1.6.5-1
+- Fix for the underlying issue behind bug 924651 (abhgupta@redhat.com)
+- Merge pull request #1768 from rajatchopra/master (dmcphers@redhat.com)
+- handle broken ops, and reset state of ops that failed to clear
+  (rchopra@redhat.com)
+- Fix for bug 924651 (abhgupta@redhat.com)
+
 * Thu Mar 21 2013 Adam Miller <admiller@redhat.com> 1.6.4-1
 - fix BZ923579 - no uuid for user/domain (rchopra@redhat.com)
 - Fix for bug 923176  - Handling missing or empty component_instances  -
