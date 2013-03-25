@@ -15,9 +15,9 @@ Requires:      rubygem(openshift-origin-node)
 Requires:      lsof
 Requires:      java-1.7.0-openjdk
 Requires:      java-1.7.0-openjdk-devel
+Requires:      jboss-as7-modules >= %{jbossver}
 %if 0%{?rhel}
 Requires:      jboss-as7 >= %{jbossver}
-Requires:      jboss-as7-modules >= %{jbossver}
 Requires:      maven3
 %endif
 %if 0%{?fedora}
