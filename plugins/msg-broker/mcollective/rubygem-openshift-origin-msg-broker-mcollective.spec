@@ -9,7 +9,7 @@
 
 Summary:       OpenShift plugin for mcollective service
 Name:          rubygem-%{gem_name}
-Version: 1.6.4
+Version: 1.6.5
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -81,6 +81,12 @@ cp %{buildroot}/%{gem_dir}/gems/%{gem_name}-%{version}/conf/openshift-origin-msg
 %attr(0644,-,-) %ghost /etc/mcollective/client.cfg
 
 %changelog
+* Mon Mar 25 2013 Adam Miller <admiller@redhat.com> 1.6.5-1
+- Merge pull request #1505 from jreuning/bug-916809
+  (dmcphers+openshiftbot@redhat.com)
+- Prevent exit() call from mcollective on rpc_client connect error, throw
+  appropriate exception (john@ibiblio.org)
+
 * Thu Mar 21 2013 Adam Miller <admiller@redhat.com> 1.6.4-1
 - Updating rest-client and rake gem versions to match F18 (kraman@gmail.com)
 
