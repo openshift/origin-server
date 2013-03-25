@@ -722,20 +722,28 @@ module OpenShift
       env = Utils::Environ.for_gear(@user.homedir)
 
       cartridge = get_cartridge(cart_name)
-      connector = PathUtils.join(@user.homedir, cartridge.directory, 'hooks', connector)
-      return 0, '' unless File.executable?(connector)
+      script    = PathUtils.join(@user.homedir, cartridge.directory, 'hooks', connector)
 
-      command = connector << " " << args
+      unless File.executable?(script)
+        msg = "ERROR: action '#{connector}' not found."
+        raise Utils::ShellExecutionException.new(msg, 127, msg)
+      end
+
+      command      = script << " " << args
       out, err, rc = Utils.oo_spawn(command,
                                     env:             env,
                                     unsetenv_others: true,
                                     chdir:           @user.homedir,
+                                    timeout:         60,
                                     uid:             @user.uid)
       if 0 == rc
-        return 0, out
-      else
-        return rc, out + err
+        logger.info("(#{rc})\n------\n#{cleanpwd(out)}\n------)")
+        return out
       end
+
+      logger.info("ERROR: (#{rc})\n------\n#{cleanpwd(out)}\n------)")
+      raise OpenShift::Utils::ShellExecutionException.new(
+                "Control action '#{connector}' returned an error. rc=#{rc}\n#{out}", rc, out, err)
     end
 
     # :call-seq:
@@ -884,6 +892,10 @@ module OpenShift
       end
 
       buffer
+    end
+
+    def cleanpwd(arg)
+      arg.gsub(/(passwo?r?d\s*[:=]+\s*)\S+/i, '\\1[HIDDEN]').gsub(/(usern?a?m?e?\s*[:=]+\s*)\S+/i,'\\1[HIDDEN]')
     end
   end
 end
