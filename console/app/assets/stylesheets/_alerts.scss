@@ -24,7 +24,7 @@
   }
 .alert.alert-error a, .alert.alert-error a:hover, .alert.alert-error a:active,
 .alert.alert-danger a, .alert.alert-danger a:hover, .alert.alert-danger a:active {
-  color:#fff;
+  color:$errorText;
 }
 
 // Adjust close link position
