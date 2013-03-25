@@ -55,14 +55,14 @@ class UnixUserModelFunctionalTest < Test::Unit::TestCase
   def test_initialize
     FileUtils.rm_rf("/tmp/homedir", :verbose => @verbose) if File.directory?("/tmp/homedir")
     o = OpenShift::UnixUser.new(@gear_uuid, @gear_uuid, @user_uid, @app_name,
-                                 @gear_name, @namespace,
-                                 nil, nil, @verbose)
+                                @gear_name, @namespace,
+                                nil, nil, @verbose)
     assert_not_nil o
 
     o.initialize_homedir("/tmp/", "/tmp/homedir/", "cartridges/openshift-origin-cartridge-abstract/")
     assert_directory?("/tmp/homedir")
-    assert ! File.symlink?("/tmp/homedir/data"), 'found deprecated data symlink'
-    assert ! File.directory?("/tmp/homedir/app"), 'found deprecated app directory'
+    assert !File.symlink?("/tmp/homedir/data"), 'found deprecated data symlink'
+    assert !File.directory?("/tmp/homedir/app"), 'found deprecated app directory'
     assert_directory?("/tmp/homedir/app-root")
     assert_directory?("/tmp/homedir/app-root/runtime/")
     assert File.exist?("/tmp/homedir/app-root/runtime/.state"), '.state file missing'
@@ -70,7 +70,8 @@ class UnixUserModelFunctionalTest < Test::Unit::TestCase
     assert_directory?("/tmp/homedir/.tmp")
     assert_directory?("/tmp/homedir/.env")
     assert_directory?("/tmp/homedir/.sandbox")
-    assert File.exist?("/tmp/homedir/.env/OPENSHIFT_NAMESPACE")
+    assert !File.exist?("/tmp/homedir/.env/OPENSHIFT_NAMESPACE"),
+           'OPENSHIFT_NAMESPACE should be created in V2CartridgeModel'
 
   end
 end
