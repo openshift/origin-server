@@ -1,3 +1,2 @@
 <?php
-print 1;
-?>
+echo '1';
