@@ -1,7 +1,6 @@
 #!/bin/bash
 [ ! -z "$OO_NODE_UTIL" ] && return 0
 OO_NODE_UTIL=true
-source /etc/openshift/node.conf
 
 function error {
     echo "$1" 1>&2
@@ -116,4 +115,30 @@ function openshift_origin_users() {
     grep ":${GEAR_GECOS}:" /etc/passwd | cut -d: -f1 | tr '\n' ' '
 }
 
+function get_app_state {
+  get_cartridge_state `openshift_state_dir`
+}
+
+function get_cartridge_state {
+  _state_file="$1/.state"
+  if [ -f "$_state_file" ]; then
+    cat "$_state_file"
+  else
+    echo unknown
+  fi
+}
+
+function wait_for_stop {
+    pid=$1
+    for i in {1..60}
+    do
+        if `ps --pid $pid > /dev/null 2>&1`
+        then
+            echo "Waiting for stop to finish"
+            sleep .5
+        else
+            break
+        fi
+    done
+}
 

@@ -103,7 +103,7 @@ module OpenShift
                      chdir:               template,
                      expected_exitstatus: 0)
       begin
-        # trying to clone as the user proved to be painful as git managed to "loose" the selinux context
+        # trying to clone as the user proved to be painful as git managed to "lose" the selinux context
         Utils.oo_spawn(ERB.new(GIT_LOCAL_CLONE).result(binding),
                        chdir:               git_path,
                        expected_exitstatus: 0)
