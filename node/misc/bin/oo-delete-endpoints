@@ -68,7 +68,7 @@ end
 
 begin
   container = OpenShift::ApplicationContainer.new(app_uuid, container_uuid)
-  container.delete_endpoints(cart_name)
+  container.delete_public_endpoints(cart_name)
 rescue Exception => e
   $stderr.puts(e.message)
   $stderr.puts(e.backtrace)
