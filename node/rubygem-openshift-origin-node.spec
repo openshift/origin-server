@@ -16,7 +16,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version:       1.6.7
+Version:       1.6.8
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -240,6 +240,26 @@ fi
 %attr(0755,-,-) %{_var}/run/openshift
 
 %changelog
+* Tue Mar 26 2013 Adam Miller <admiller@redhat.com> 1.6.8-1
+- error handling in gear script (dmcphers@redhat.com)
+- Getting jenkins working (dmcphers@redhat.com)
+- Merge pull request #1797 from rmillner/BZ924110
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #1795 from jwhonce/wip/streaming
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #1787 from ironcladlou/oo-delete-endpoints-fix
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 924110 - ssl certs need to update with namespace updates.
+  (rmillner@redhat.com)
+- WIP Cartridge Refactor - Add missing slash (jhonce@redhat.com)
+- WIP Cartridge Refactor - Stream stdin/stdout/stderr from oo_spawn
+  (jhonce@redhat.com)
+- Merge pull request #1784 from jwhonce/wip/v2_cart_model
+  (dmcphers+openshiftbot@redhat.com)
+- Fix public endpoint delete call typo (ironcladlou@gmail.com)
+- WIP Cartridge Refactor - Move OPENSHIFT_NAMESPACE to v2 code path
+  (jhonce@redhat.com)
+
 * Mon Mar 25 2013 Adam Miller <admiller@redhat.com> 1.6.7-1
 - <oo-cgroup-read> bug 924556 pull in native rubygem-open4 (lmeyer@redhat.com)
 - Merge pull request #1769 from calfonso/master (dmcphers@redhat.com)
