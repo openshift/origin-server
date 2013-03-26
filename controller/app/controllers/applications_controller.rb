@@ -90,7 +90,6 @@ class ApplicationsController < BaseController
     domain_id = params[:domain_id]
     app_name = params[:name]
     features = Array(params[:cartridges] || params[:cartridge]).map{ |c| c.is_a?(Hash) ? c[:name] : c }
-    scalable = get_bool(params[:scale])
     init_git_url = params[:initial_git_url]
     default_gear_size = params[:gear_profile]
     default_gear_size.downcase! if default_gear_size
@@ -146,6 +145,7 @@ class ApplicationsController < BaseController
                           109, "ADD_APPLICATION", "cartridge")
       end
       app_creation_result = ResultIO.new
+      scalable = get_bool(params[:scale])
       application = Application.create_app(app_name, features, domain, default_gear_size, scalable, app_creation_result, [], init_git_url, request.headers['User-Agent'])
 
       @application_name = application.name
