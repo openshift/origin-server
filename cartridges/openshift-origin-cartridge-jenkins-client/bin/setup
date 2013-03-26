@@ -60,7 +60,7 @@ fi
 
 JOB_NAME=${OPENSHIFT_APP_NAME}-build
 
-if out=$(${OPENSHIFT_JENKINS_CLIENT_DIR}/bin/jenkins_create_job "${CLOUD_DOMAIN}" "$SHELL_COMMAND" "$ARTIFACTS_GLOB" 2>&1)
+if out=$(${OPENSHIFT_JENKINS_CLIENT_DIR}/bin/jenkins_create_job "${OPENSHIFT_CLOUD_DOMAIN}" "$SHELL_COMMAND" "$ARTIFACTS_GLOB" 2>&1)
 then
     # Embedding success
     client_result ""

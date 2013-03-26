@@ -9,12 +9,19 @@ done
 source "/etc/openshift/node.conf"
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 
+CART_NAME=$(get_cartridge_name_from_path)
+
+if [ ! -h ${OPENSHIFT_REPO_DIR}/deployments ] && [ ! -h ${OPENSHIFT_HOMEDIR}/${CART_NAME}/${CART_NAME}/standalone/deployments ]
+then
+  echo "copying" >> /log/log
+  cp -rf ${OPENSHIFT_REPO_DIR}/deployments/* ${OPENSHIFT_HOMEDIR}/${CART_NAME}/${CART_NAME}/standalone/deployments
+fi
+
 if hot_deploy_marker_is_present; then
   echo "Skipping DB startup and JBoss temp dir cleanup due to presence of hot_deploy marker"
 else
   start_dbs
 
-  CART_NAME=$(get_cartridge_name_from_path)
   CART_NS=$(get_cartridge_namespace_from_path)
   CART_DIR=$(get_env_var_dynamic "OPENSHIFT_${CART_NS}_CART_DIR")
   JBOSS_DIR=${CART_DIR}/${CART_NAME}

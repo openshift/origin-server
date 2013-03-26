@@ -119,6 +119,7 @@ done
 
 # Move the gem configs to the standard filesystem location
 mkdir -p %{buildroot}/etc/openshift
+rm -rf %{buildroot}%{gem_instdir}/conf/plugins.d/README
 mv %{buildroot}%{gem_instdir}/conf/* %{buildroot}/etc/openshift
 
 #move pam limit binaries to proper location
@@ -208,6 +209,7 @@ fi
 %attr(0644,-,-) /usr/lib/openshift/node/*
 %dir /etc/openshift
 %config(noreplace) /etc/openshift/node.conf
+%config(noreplace) /etc/openshift/env/*
 %config /etc/openshift/resource_limits.template
 %attr(0750,-,-) /etc/httpd/conf.d/openshift
 %config(noreplace) /etc/httpd/conf.d/000001_openshift_origin_node.conf

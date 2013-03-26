@@ -1,0 +1,1 @@
+export OPENSHIFT_BROKER_HOST='localhost'

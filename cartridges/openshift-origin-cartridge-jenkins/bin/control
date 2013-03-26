@@ -1,6 +1,6 @@
 #!/bin/bash -e
 
-JENKINS_PID_FILE=${OPENSHIFT_HOMEDIR}/app-root/runtime/jenkins.pid
+source /usr/lib/openshift/node/util
 
 cartridge_type="jenkins"
 
@@ -25,57 +25,60 @@ function deploy() {
 
 function start() {
  	echo "Starting $cartridge_type cart"
- 	
-    if isrunning
-    then
-        echo "Application is already running!" 1>&2
-        exit 0
-    fi
- 	
- 	JENKINS_CMD="/etc/alternatives/jre/bin/java \
-        -Xmx168m \
-        -XX:MaxPermSize=100m \
-        -Dcom.sun.akuma.Daemon=daemonized \
-        -Djava.awt.headless=true"
 
-    if [ -f "${OPENSHIFT_REPO_DIR}/.openshift/markers/enable_debugging" ]; then
-        JENKINS_CMD="${JENKINS_CMD} -Xdebug -Xrunjdwp:server=y,transport=dt_socket,address=${OPENSHIFT_JENKINS_IP}:7600,suspend=n"
-    fi
+  if isrunning
+  then
+    echo "Application is already running!" 1>&2
+    exit 0
+  fi
+  JENKINS_CMD="/etc/alternatives/jre/bin/java \
+      -Xmx168m \
+      -XX:MaxPermSize=100m \
+      -Dcom.sun.akuma.Daemon=daemonized \
+      -Djava.awt.headless=true"
 
-    JENKINS_CMD="${JENKINS_CMD} -DJENKINS_HOME=$OPENSHIFT_DATA_DIR \
-        -Dhudson.slaves.NodeProvisioner.recurrencePeriod=500 \
-        -Dhudson.slaves.NodeProvisioner.initialDelay=100 \
-        -Dhudson.slaves.NodeProvisioner.MARGIN=100 \
-        -Dhudson.model.UpdateCenter.never=true \
-        -Dhudson.DNSMultiCast.disabled=true \
-        -jar /usr/lib/jenkins/jenkins.war \
-        --ajp13Port=-1 \
-        --controlPort=-1 \
-        --logfile=$OPENSHIFT_HOMEDIR/redhat-jenkins/logs/jenkins.log \
-        --daemon \
-        --httpPort=8080 \
-        --debug=5 \
-        --handlerCountMax=45 \
-        --handlerCountMaxIdle=20 \
-        --httpListenAddress=$OPENSHIFT_JENKINS_IP"
+  if [ -f "${OPENSHIFT_REPO_DIR}/.openshift/markers/enable_debugging" ]; then
+      JENKINS_CMD="${JENKINS_CMD} -Xdebug -Xrunjdwp:server=y,transport=dt_socket,address=${OPENSHIFT_JENKINS_IP}:7600,suspend=n"
+  fi
 
-    $JENKINS_CMD &
+  JENKINS_CMD="${JENKINS_CMD} -DJENKINS_HOME=$OPENSHIFT_DATA_DIR \
+      -Dhudson.slaves.NodeProvisioner.recurrencePeriod=500 \
+      -Dhudson.slaves.NodeProvisioner.initialDelay=100 \
+      -Dhudson.slaves.NodeProvisioner.MARGIN=100 \
+      -Dhudson.model.UpdateCenter.never=true \
+      -Dhudson.DNSMultiCast.disabled=true \
+      -jar /usr/lib/jenkins/jenkins.war \
+      --ajp13Port=-1 \
+      --controlPort=-1 \
+      --logfile=$OPENSHIFT_HOMEDIR/redhat-jenkins/logs/jenkins.log \
+      --daemon \
+      --httpPort=8080 \
+      --debug=5 \
+      --handlerCountMax=45 \
+      --handlerCountMaxIdle=20 \
+      --httpListenAddress=$OPENSHIFT_JENKINS_IP"
+
+  $JENKINS_CMD &
 }
 
 function stop() {
  	echo "Stopping $cartridge_type cart"
  	
- 	pid=$(cat $JENKINS_PID_FILE);
- 	
- 	kill -TERM $pid > /dev/null 2>&1
+  if isrunning
+  then
+    kill -TERM $pid > /dev/null 2>&1
+    wait_for_stop $pid
+  else
+    echo "Application is already stopped!" 1>&2
+    exit 0
+  fi
 }
 
 function restart() {
-    echo "Restarting $cartridge_type cart"
-   
-  	stop
-  	
-  	start
+  echo "Restarting $cartridge_type cart"
+
+  stop
+  start
 }
 
 function status() {
@@ -99,24 +102,21 @@ function tidy() {
                            for (a in ENVIRON)
                            if (a ~ /LOG_DIR$/)
                            print ENVIRON[a] }'`
-	do
-    	client_message "Emptying log dir: ${logdir}"
-    	rm -rf ${logdir}* ${logdir}.[^.]*
-	done
+	  do
+    	  client_message "Emptying log dir: ${logdir}"
+    	  rm -rf ${logdir}* ${logdir}.[^.]*
+	  done
 }
 
 function threaddump() {
 	  echo "Thread dump for $cartridge_type cart"
-	
+
     if ! isrunning; then
         echo "Application is stopped"
         exit 1
-    elif [ -f "$JENKINS_PID_FILE" ]; then
-        pid=$(cat $JENKINS_PID_FILE);
+    else
         java_pid=`ps h --ppid $pid -o '%p'`
         kill -3 $java_pid
-    else 
-        echo "Failed to locate JENKINS PID File"
     fi
 }
 
