@@ -92,8 +92,12 @@ module Console::ModelHelper
 
   def cannot_scale_title(type, capabilities)
     unless can_scale_application_type(type, capabilities)
-      "This application shares resources and can't be scaled."
+      "This application shares filesystem resources and can't be scaled."
     end
+  end
+
+  def usage_rate_indicator
+    content_tag :span, "$", :class => "label label-premium", :title => 'May include additional usage fees at certain levels, see plan for details.'
   end
 
   def in_groups_by_tag(ary, tags)

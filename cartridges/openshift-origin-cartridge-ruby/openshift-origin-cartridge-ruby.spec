@@ -7,7 +7,7 @@
 %global frameworkdir %{_libexecdir}/openshift/cartridges/v2/ruby
 
 Name:          openshift-origin-cartridge-ruby
-Version:       0.1.5
+Version:       0.1.6
 Release:       1%{?dist}
 Summary:       Ruby cartridge
 Group:         Development/Languages
@@ -150,6 +150,16 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Mon Mar 25 2013 Adam Miller <admiller@redhat.com> 0.1.6-1
+- corrected some 1.8/1.9 issues, cucumber tests now work (mmcgrath@redhat.com)
+- fixed for vendor-ruby bits (mmcgrath@redhat.com)
+- removing 18 reference (mmcgrath@redhat.com)
+- moving argument parsing to util (mmcgrath@redhat.com)
+- Force follow reference (mmcgrath@redhat.com)
+- Adding actual 1.8 and 1.9 support (mmcgrath@redhat.com)
+- make sleep more efficient (mmcgrath@redhat.com)
+- Added setup parsing (mmcgrath@redhat.com)
+
 * Thu Mar 21 2013 Adam Miller <admiller@redhat.com> 0.1.5-1
 - No need to set OPENSHIFT_RUBY_DIR in setup. (asari.ruby@gmail.com)
 - Remove debug outputs (asari.ruby@gmail.com)

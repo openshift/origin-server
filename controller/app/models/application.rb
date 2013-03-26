@@ -649,7 +649,8 @@ class Application
   end
 
   def remove_gear(gear_uuid)
-    raise OpenShift::UserException.new("Application #{self.name} is not scalable") if !self.scalable or gear_uuid.nil?
+    raise OpenShift::UserException.new("Application #{self.name} is not scalable") if !self.scalable
+    raise OpenShift::UserException.new("Gear for removal not specified") if gear_uuid.nil?
     Application.run_in_application_lock(self) do
       self.pending_op_groups.push PendingAppOpGroup.new(op_type: :remove_gear, args: {"gear_id" => gear_uuid}, user_agent: self.user_agent)
       result_io = ResultIO.new
@@ -984,7 +985,7 @@ class Application
             self.delete
           when :remove_gear
             ops = calculate_remove_gear_ops(op_group.args)
-            op_group.pending_ops.push(*ops)
+            try_reserve_gears(0, 1, op_group, ops)
           when :scale_by
             #need rollback
             ops, add_gear_count, rm_gear_count = calculate_scale_by(op_group.args["group_instance_id"], op_group.args["scale_by"])
@@ -1099,11 +1100,11 @@ class Application
 
   def calculate_remove_gear_ops(args, prereqs={})
     gear_id = args["gear_id"]
-    group_instance = self.group_instances.find { |gi| gi.gears.find { |g| g._id.to_s==gear_id.to_s } }
+    group_instance = (self.group_instances.select { |gi| (gi.gears.select { |g| g._id.to_s == gear_id.to_s }).length > 0 }).first
     return [] if group_instance.nil?
-    ops=calculate_gear_destroy_ops(group_instance._id.to_s, [gear_uuid], group_instance.addtl_fs_gb)
-    last_op = ops.last
-    ops.push PendingAppOp.new(op_type: :execute_connections, prereq: last_op)
+    ops = calculate_gear_destroy_ops(group_instance._id.to_s, [gear_id], group_instance.addtl_fs_gb)
+    all_ops_ids = ops.map{ |op| op._id.to_s }
+    ops.push PendingAppOp.new(op_type: :execute_connections, prereq: all_ops_ids)
     ops
   end
 

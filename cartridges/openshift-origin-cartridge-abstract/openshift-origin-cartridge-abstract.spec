@@ -7,7 +7,7 @@
 
 Summary:       OpenShift common cartridge components
 Name:          openshift-origin-cartridge-abstract
-Version:       1.6.4
+Version:       1.6.5
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -87,6 +87,9 @@ cp -rv -p abstract-jboss %{buildroot}%{cartdir}/
 %doc %{_libexecdir}/openshift/cartridges/abstract-jboss/README.md
 
 %changelog
+* Mon Mar 25 2013 Adam Miller <admiller@redhat.com> 1.6.5-1
+- Bug 923369 (bdecoste@gmail.com)
+
 * Fri Mar 22 2013 Adam Miller <admiller@redhat.com> 1.6.4-1
 - Bug 920375 (bdecoste@gmail.com)
 

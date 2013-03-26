@@ -895,28 +895,46 @@ function observe_setup_var_lib_file {
 
 function run_as_user {
     _uuid=${uuid:-$OPENSHIFT_GEAR_UUID}
-    if [ "`whoami`" = "$_uuid" ]; then
+    (
+        if [ -d "$APP_HOME" ]
+        then
+            cd "$APP_HOME"
+        fi
+        if [ "`whoami`" = "$_uuid" ]; then
         #  Run confined as user - temporary bandaid to fix issues with
         #  ss-connector-execute - connection hooks are run unconfined.
-        if [ "$(runcon | cut -f 3 -d ':')" != "openshift_t" ]; then
-            runcon -r system_r -t openshift_t -l $mcs_level $@
+            if [ "$(runcon | cut -f 3 -d ':')" != "openshift_t" ]; then
+                runcon -r system_r -t openshift_t -l $mcs_level $@
+            else
+                eval "$1"
+            fi
         else
-            eval "$1"
+            PATH=$PATH:/usr/sbin:/sbin runuser --shell /bin/sh "$_uuid" -c "runcon -r system_r -t openshift_t -l $mcs_level $1"
         fi
-    else
-        PATH=$PATH:/usr/sbin:/sbin runuser --shell /bin/sh "$_uuid" -c "runcon -r system_r -t openshift_t -l $mcs_level $1"
-    fi
+    )
 }
 
 
 function super_run_as_user {
-    /bin/su -s /bin/sh "$uuid" -c "runcon -r system_r -t openshift_t -l $mcs_level $1"
+    (
+        if [ -d "$APP_HOME" ]
+        then
+            cd "$APP_HOME"
+        fi
+        /bin/su -s /bin/sh "$uuid" -c "runcon -r system_r -t openshift_t -l $mcs_level $1"
+    )
 }
 
 
 
 function daemon_as_user {
-    daemon --user="$uuid" runcon -r system_r -t openshift_t -l $mcs_level "$@"
+    (
+        if [ -d "$APP_HOME" ]
+        then
+            cd "$APP_HOME"
+        fi
+        daemon --user="$uuid" runcon -r system_r -t openshift_t -l $mcs_level "$@"
+    )
 }
 
 function validate_run_as_user {

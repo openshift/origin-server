@@ -16,7 +16,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version:       1.6.6
+Version:       1.6.7
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -238,6 +238,12 @@ fi
 %attr(0755,-,-) %{_var}/run/openshift
 
 %changelog
+* Mon Mar 25 2013 Adam Miller <admiller@redhat.com> 1.6.7-1
+- <oo-cgroup-read> bug 924556 pull in native rubygem-open4 (lmeyer@redhat.com)
+- Merge pull request #1769 from calfonso/master (dmcphers@redhat.com)
+- Clean up bin/control documentation (ironcladlou@gmail.com)
+- Cron and DIY v2 cartridge fixes (calfonso@redhat.com)
+
 * Fri Mar 22 2013 Adam Miller <admiller@redhat.com> 1.6.6-1
 - Merge pull request #1766 from ironcladlou/dev/v2carts/documentation
   (dmcphers@redhat.com)

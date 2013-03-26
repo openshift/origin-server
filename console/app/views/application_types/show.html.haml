@@ -18,6 +18,7 @@
   #new_application.form-horizontal .form-actions { padding-left: 140px; }
   #new_application.collapse-help .help-block { white-space: nowrap; opacity: 0.5; margin-top: 0; }
   #new_application.collapse-help .help-block:hover { opacity: 1; cursor: pointer; }
+  h3 .font-icon {margin-left: 25px}
   @media (max-width: 767px) {
     #new_application.form-horizontal .control-label { margin-left: 0; }
     #new_application.form-horizontal .controls { margin-left: 0; }
@@ -25,6 +26,9 @@
     #new_application.form-horizontal .alert { max-width: inherit; }
     #new_application.form-horizontal .controls > h3 { display: inline-block; margin-top: 0; }
     #new_application.form-horizontal .form-actions { padding-left: 10px; }
+  }
+  @media (max-width:480px) {
+    h3 .font-icon {margin-left: 10px}
   }
 
 - advanced_path = application_type_path(@application_type.id, @application_type.to_params.merge(:advanced => true))
@@ -51,16 +55,38 @@
       %h3.control-label Based On
       .controls.first
         %h3
-          = render :partial => 'application_types/application_type_title', :locals => { :type => @application_type}
+          #{@application_type.display_name} #{@application_type.source.to_s.humanize}
+
+          - if @application_type.usage_rates?
+            = usage_rate_indicator
+
+          - if @application_type.cartridge?
+            %span.font-icon.font-icon-size-16.font-icon-grey{"aria-hidden" => "true", "data-icon" => "\ue021", "title" => "Cartridge"}
+          - elsif @application_type.quickstart?
+            %span.font-icon.font-icon-size-16.font-icon-grey{"aria-hidden" => "true", "data-icon" => "\ue029", "title" => "QuickStart"}
 
       .controls
         - if @application_type.persisted?
           = show_description(@application_type.description, :class => 'help-block')
 
-          - if @application_type.website
-            %p.help-block= link_to @application_type.website, @application_type.website
           - if @application_type.learn_more_url
             %p.help-block= link_to "Learn more", @application_type.learn_more_url
+          - elsif @application_type.website
+            %p.help-block= link_to @application_type.website, @application_type.website
+
+          %p.help-block
+            - case @application_type.support_type
+            - when :openshift
+              %span.label-support.label-support-openshift{:title => 'Updated and maintained by the OpenShift team'} OpenShift maintained
+            - when :partner
+              %span.label-support.label-support-openshift{:title => 'Updated and maintained by a partner'} Partner created
+            - else
+              %span.label-support.label-support-community.text-warning{:title => 'Created by a community member and not maintained by OpenShift'} Community created
+
+            - unless @application_type.automatic_updates?
+              %span.text-warning{:title => 'When you create a QuickStart or a community cartridge, you are copying code from another repository. You are responsible for applying security fixes and updates.'}
+                =" / Does not receive automatic security updates"
+
 
           %p.help-block.label-tags= application_type_tags(@application_type.tags)
 

@@ -9,7 +9,7 @@
 
 Summary:       OpenShift Origin Management Console
 Name:          rubygem-%{gem_name}
-Version: 1.6.4
+Version: 1.6.5
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -134,6 +134,52 @@ cp -a ./%{gem_dir}/* %{buildroot}%{gem_dir}/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Mon Mar 25 2013 Adam Miller <admiller@redhat.com> 1.6.5-1
+- Review comments - missed search page, needed to reintroduce link to
+  quickstart page (ccoleman@redhat.com)
+- Clean up premium cart indicators (ccoleman@redhat.com)
+- Add provider data to the UI that is exposed by the server
+  (ccoleman@redhat.com)
+- Add icon to app config page (sgoodwin@redhat.com)
+- Addition of icon denotion for cartridge or quickstart on application creation
+  step (sgoodwin@redhat.com)
+- add usage rules for alert headings w/ icons (sgoodwin@redhat.com)
+- Merge pull request #1762 from fabianofranz/dev/ffranz/ssl
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #1763 from smarterclayton/aria_dashboard
+  (dmcphers+openshiftbot@redhat.com)
+- Web console now using api v. 1.4 (ffranz@redhat.com)
+- Card #239: Added support to alias creation and deletion and SSL certificate
+  upload to the web console (ffranz@redhat.com)
+- Fix test failures (ccoleman@redhat.com)
+- Merge remote-tracking branch 'origin/master' into aria_dashboard
+  (ccoleman@redhat.com)
+- Merge branch 'aria_dashboard' of github.com:smarterclayton/origin-server into
+  aria_dashboard (ccoleman@redhat.com)
+- Reformat resource_not_found checking (jliggitt@redhat.com)
+- Don't assume exceptions have a model (jliggitt@redhat.com)
+- Add billing_date_no_year (jliggitt@redhat.com)
+- Tweak graph line height, style table captions (jliggitt@redhat.com)
+- Remove extraneous pry (ccoleman@redhat.com)
+- Merge remote-tracking branch 'origin/master' into aria_dashboard
+  (ccoleman@redhat.com)
+- Update tests (ccoleman@redhat.com)
+- Support cache config (ccoleman@redhat.com)
+- Merge remote-tracking branch 'origin/master' into aria_dashboard
+  (ccoleman@redhat.com)
+- Fixing test cases (ccoleman@redhat.com)
+- Support redirection back to the settings page (ccoleman@redhat.com)
+- Use credit card format closer to card value (ccoleman@redhat.com)
+- Cache that the user has no keys (ccoleman@redhat.com)
+- Creating an authorization should take the user to the show page for the token
+  (ccoleman@redhat.com)
+- Merge remote-tracking branch 'origin/master' into aria_dashboard
+  (ccoleman@redhat.com)
+- Merge with master, _account moved to origin-server (ccoleman@redhat.com)
+- Add a stack overflow link helper (ccoleman@redhat.com)
+- Updated date helpers (ccoleman@redhat.com)
+- Initial work (ccoleman@redhat.com)
+
 * Thu Mar 21 2013 Adam Miller <admiller@redhat.com> 1.6.4-1
 - Merge pull request #1678 from smarterclayton/minor_object_cleanup
   (dmcphers+openshiftbot@redhat.com)

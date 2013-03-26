@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.6.5
+Version: 1.6.6
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -83,6 +83,22 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Mon Mar 25 2013 Adam Miller <admiller@redhat.com> 1.6.6-1
+- Merge pull request #1762 from fabianofranz/dev/ffranz/ssl
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #1775 from mmcgrath-openshift/ruby-combined
+  (dmcphers@redhat.com)
+- Merge pull request #1773 from rajatchopra/bz919379
+  (dmcphers+openshiftbot@redhat.com)
+- corrected some 1.8/1.9 issues, cucumber tests now work (mmcgrath@redhat.com)
+- do not delete app unless its really empty (rchopra@redhat.com)
+- fixed for vendor-ruby bits (mmcgrath@redhat.com)
+- removing steps (mmcgrath@redhat.com)
+- correcting to work with both versions of ruby (mmcgrath@redhat.com)
+- Changing regex (mmcgrath@redhat.com)
+- Card #239: Added support to alias creation and deletion and SSL certificate
+  upload to the web console (ffranz@redhat.com)
+
 * Fri Mar 22 2013 Adam Miller <admiller@redhat.com> 1.6.5-1
 - The larger tests do not conflict with Online and needed to be available to
   runtime-extended. (rmillner@redhat.com)

@@ -18,12 +18,13 @@
   color: $warningText !important;
 }
 
-.alert a, .alert a:hover, alert a:active {
+.alert a:link, .alert a:visited, .alert a:hover, alert a:active {
   text-decoration:underline;
+  color: $linkColorBlue;
   }
-.alert-error a, .alert-error a:hover, alert-error a:active,
-.alert-danger a, .alert-danger a:hover, alert-danger a:active {
-  color:#fff;
+.alert.alert-error a, .alert.alert-error a:hover, .alert.alert-error a:active,
+.alert.alert-danger a, .alert.alert-danger a:hover, .alert.alert-danger a:active {
+  color:$errorText;
 }
 
 // Adjust close link position

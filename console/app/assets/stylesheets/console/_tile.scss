@@ -1,5 +1,5 @@
 .tile {
-  padding: 15px 25px; 
+  padding: 15px 35px 15px 25px; 
   margin-bottom: 20px; 
   background-color: #222;
   color: #b0b0b0;
@@ -58,6 +58,7 @@
   h3 {
     display: inline-block;
     margin-right: 10px;
+    margin-bottom: 0;
   }
   a.label {
     display: inline-block;
@@ -81,7 +82,10 @@
 
     &:hover  {
       background: #000;
-
+      
+      .font-icon-block {
+        opacity: 1;
+      }
       .tile-target {
         color: #f0f0f0;
       }
@@ -89,8 +93,7 @@
         background-position: 0 -30px;
       }
     }
-
-    i.tile-arrow {
+    /*i.tile-arrow {
       background-position: 0 0;
       position: absolute;
       overflow: hidden;
@@ -100,6 +103,14 @@
       right: 5px;
       top: 19px;
       width: 25px;
+    }*/
+    .font-icon-block {
+      position: absolute;
+      right: 25px;
+      top: 20px;
+      font-size: 16px; 
+      color: #777;
+      opacity: .3;
     }
   }
 }
@@ -120,3 +131,5 @@
     }
   }
 }
+
+
