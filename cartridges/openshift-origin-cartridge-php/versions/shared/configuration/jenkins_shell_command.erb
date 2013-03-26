@@ -1,7 +1,9 @@
 alias rsync="rsync --delete-after -azO -e '$GIT_SSH'"
 
+upstream_ssh="<%= ENV['OPENSHIFT_GEAR_UUID'] %>@<%= ENV['OPENSHIFT_APP_NAME'] %>-${OPENSHIFT_NAMESPACE}.<%= ENV['OPENSHIFT_CLOUD_DOMAIN'] %>"
+
 # Sync libs - Faster builds
-rsync UPSTREAM_SSH:~/redhat-php/phplib/ ~/redhat-php/phplib/
+rsync $upstream_ssh:~/redhat-php/phplib/ ~/redhat-php/phplib/
 
 # Build/update libs and run user pre_build and build
 gear build
@@ -11,11 +13,11 @@ gear build
 # Deploy new build
 
 # Stop app
-$GIT_SSH UPSTREAM_SSH 'gear stop'
+$GIT_SSH $upstream_ssh 'gear stop'
 
 # Push content back to application
-rsync ~/redhat-php/phplib/ UPSTREAM_SSH:~/redhat-php/phplib/
-rsync ~/$WORKSPACE/ UPSTREAM_SSH:~/app-root/repo/
+rsync ~/redhat-php/phplib/ $upstream_ssh:~/redhat-php/phplib/
+rsync ~/$WORKSPACE/ $upstream_ssh:~/app-root/repo/
 
 # Configure / start app
-$GIT_SSH UPSTREAM_SSH 'gear cideploy'
+$GIT_SSH $upstream_ssh 'gear cideploy'
