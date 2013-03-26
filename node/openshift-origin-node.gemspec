@@ -1,5 +1,5 @@
 # OS independent path locations
-conf_dir = File.join("conf", "*")
+conf_dir = File.join(File.join("conf", "**"), "*")
 httpd_dir = File.join(File.join("httpd", "**"), "*")
 lib_dir  = File.join(File.join("lib", "**"), "*")
 misc_dir  = File.join(File.join("misc", "**"), "*")

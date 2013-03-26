@@ -1,7 +1,7 @@
-alias rsync="rsync --delete-after -az -e '$GIT_SSH'"
+alias rsync="rsync --delete-after -azO -e '$GIT_SSH'"
 
 # Sync libs - Faster builds
-rsync UPSTREAM_SSH:~/php/phplib/ ~/php/phplib/
+rsync UPSTREAM_SSH:~/redhat-php/phplib/ ~/redhat-php/phplib/
 
 # Build/update libs and run user pre_build and build
 gear build
@@ -14,7 +14,7 @@ gear build
 $GIT_SSH UPSTREAM_SSH 'gear stop'
 
 # Push content back to application
-rsync ~/php/phplib/ UPSTREAM_SSH:~/php/phplib/
+rsync ~/redhat-php/phplib/ UPSTREAM_SSH:~/redhat-php/phplib/
 rsync ~/$WORKSPACE/ UPSTREAM_SSH:~/app-root/repo/
 
 # Configure / start app

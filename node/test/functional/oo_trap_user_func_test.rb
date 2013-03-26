@@ -46,7 +46,7 @@ module OpenShift
     def test_unknown
       ENV['SSH_ORIGINAL_COMMAND'] = 'unknown'
       Kernel.stubs(:exec).with(
-          {},
+          {'OPENSHIFT_CLOUD_DOMAIN' => 'dev.rhcloud.com', 'OPENSHIFT_BROKER_HOST' => 'localhost'},
           "/bin/bash", "-c", "unknown"
       ).returns(0)
       OpenShift::Application::TrapUser.new.apply
@@ -55,7 +55,7 @@ module OpenShift
     def test_rhcsh
       # env["PS1"] = "rhcsh> "
       Kernel.stubs(:exec).with(
-          {"PS1" => "rhcsh> "},
+          {'OPENSHIFT_CLOUD_DOMAIN' => 'dev.rhcloud.com', 'OPENSHIFT_BROKER_HOST' => 'localhost', "PS1" => "rhcsh> "},
           "/bin/bash", "--init-file", "/usr/bin/rhcsh", "-i"
       ).returns(0)
 
@@ -66,7 +66,7 @@ module OpenShift
     def test_rhcsh_argvs
       # env["PS1"] = "rhcsh> "
       Kernel.stubs(:exec).with(
-          {"PS1" => "rhcsh> "},
+          {'OPENSHIFT_CLOUD_DOMAIN' => 'dev.rhcloud.com', 'OPENSHIFT_BROKER_HOST' => 'localhost', "PS1" => "rhcsh> "},
           "/bin/bash", "--init-file", "/usr/bin/rhcsh", "-c", "ls", "/tmp"
       ).returns(0)
 
@@ -76,7 +76,7 @@ module OpenShift
 
     def test_ctl_all
       Kernel.stubs(:exec).with(
-          {},
+          {'OPENSHIFT_CLOUD_DOMAIN' => 'dev.rhcloud.com', 'OPENSHIFT_BROKER_HOST' => 'localhost'},
           "/bin/bash", "-c", ". /usr/bin/rhcsh > /dev/null ; ctl_all start app001"
       ).returns(0)
 
@@ -86,7 +86,7 @@ module OpenShift
 
     def test_snapshot
       Kernel.stubs(:exec).with(
-          {},
+          {'OPENSHIFT_CLOUD_DOMAIN' => 'dev.rhcloud.com', 'OPENSHIFT_BROKER_HOST' => 'localhost'},
           "/bin/bash", "snapshot.sh"
       ).returns(0)
 
@@ -96,7 +96,7 @@ module OpenShift
 
     def test_restore
       Kernel.stubs(:exec).with(
-          {},
+          {'OPENSHIFT_CLOUD_DOMAIN' => 'dev.rhcloud.com', 'OPENSHIFT_BROKER_HOST' => 'localhost'},
           "/bin/bash", "restore.sh"
       ).returns(0)
 
@@ -106,7 +106,7 @@ module OpenShift
 
     def test_restore_include_git
       Kernel.stubs(:exec).with(
-          {},
+          {'OPENSHIFT_CLOUD_DOMAIN' => 'dev.rhcloud.com', 'OPENSHIFT_BROKER_HOST' => 'localhost'},
           "/bin/bash", "restore.sh", "INCLUDE_GIT"
       ).returns(0)
 
@@ -116,7 +116,7 @@ module OpenShift
 
     def test_cd
       Kernel.stubs(:exec).with(
-          {},
+          {'OPENSHIFT_CLOUD_DOMAIN' => 'dev.rhcloud.com', 'OPENSHIFT_BROKER_HOST' => 'localhost'},
           "/bin/bash", "-c", "cd", "/tmp"
       ).returns(0)
 
@@ -128,7 +128,7 @@ module OpenShift
       `echo Hello, World > #@logs_dir/mock.log`
       tail_opts = Base64.encode64("-n 100")
       Kernel.stubs(:exec).with(
-          {},
+          {'OPENSHIFT_CLOUD_DOMAIN' => 'dev.rhcloud.com', 'OPENSHIFT_BROKER_HOST' => 'localhost'},
           "/usr/bin/tail", "-f", "-n", "100", "app-root/logs/mock.log"
       ).returns(0)
 
@@ -142,7 +142,7 @@ module OpenShift
       `echo Hello, World > #@logs_dir/mock.log`
       tail_opts = Base64.encode64("-n 100 -f")
       Kernel.stubs(:exec).with(
-          {},
+          {'OPENSHIFT_CLOUD_DOMAIN' => 'dev.rhcloud.com', 'OPENSHIFT_BROKER_HOST' => 'localhost'},
           "/usr/bin/tail", "-n", "100", "-f", "app-root/logs/mock.log"
       ).returns(0)
 
@@ -165,7 +165,7 @@ module OpenShift
       ENV['HOME']  = home_dir
       begin
         Kernel.stubs(:exec).with(
-            {},
+            {'OPENSHIFT_CLOUD_DOMAIN' => 'dev.rhcloud.com', 'OPENSHIFT_BROKER_HOST' => 'localhost'},
             "/usr/bin/git-receive-pack", '~/git'
         ).returns(0)
 
@@ -179,7 +179,7 @@ module OpenShift
 
     def test_quota
       Kernel.stubs(:exec).with(
-          {},
+          {'OPENSHIFT_CLOUD_DOMAIN' => 'dev.rhcloud.com', 'OPENSHIFT_BROKER_HOST' => 'localhost'},
           "/usr/bin/quota"
       ).returns(0)
 

@@ -50,7 +50,6 @@ module OpenShift
             next if file.end_with? '.erb'
             next unless File.file? file
 
-            contents = nil
             File.open(file) do |input|
               begin
                 contents = input.read.chomp
@@ -59,11 +58,11 @@ module OpenShift
                 index    = contents.index('=')
                 contents = contents[(index + 1)..-1]
                 contents.gsub!(/\A["']|["']\Z/, '')
+                env[File.basename(file)] = contents
               rescue Exception => e
                 NodeLogger.logger.info { "Failed to process: #{file} [#{input}]: #{e.message}" }
               end
             end
-            env[File.basename(file)] = contents
           end
         end
       end
