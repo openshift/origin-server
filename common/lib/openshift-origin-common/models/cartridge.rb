@@ -86,7 +86,7 @@ module OpenShift
     end
    
     def is_premium?
-      return categories.include?('premium')
+      return usage_rates.present?
     end
 
     def usage_rates
