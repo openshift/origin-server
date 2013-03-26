@@ -9,7 +9,7 @@
 
 Summary:       OpenShift Origin Management Console
 Name:          rubygem-%{gem_name}
-Version: 1.6.5
+Version: 1.6.6
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -134,6 +134,15 @@ cp -a ./%{gem_dir}/* %{buildroot}%{gem_dir}/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Tue Mar 26 2013 Adam Miller <admiller@redhat.com> 1.6.6-1
+- Merge pull request #1785 from sg00dwin/0325dev
+  (dmcphers+openshiftbot@redhat.com)
+- switch to existing variable (sgoodwin@redhat.com)
+- Bug 921453 fix - webkit rendering of multi gylph icons needs top:0
+  (sgoodwin@redhat.com)
+- Make console alert link color $linkColorBlue since it's on a lighter
+  background, with exception for alert-error. (sgoodwin@redhat.com)
+
 * Mon Mar 25 2013 Adam Miller <admiller@redhat.com> 1.6.5-1
 - Review comments - missed search page, needed to reintroduce link to
   quickstart page (ccoleman@redhat.com)
