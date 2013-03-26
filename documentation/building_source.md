@@ -1,5 +1,8 @@
-Building OpenShift Origin RPMS from source
-==========================================
+# @markup markdown
+# @title Building OpenShift Origin RPMS from source
+
+# Building OpenShift Origin RPMS from source
+
 
 This guide will walk you through retrieving the OpenShift Origin source from GitHub and build local copies of the Origin RPMS.
 
