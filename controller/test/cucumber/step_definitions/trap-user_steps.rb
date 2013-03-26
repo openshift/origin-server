@@ -2,7 +2,7 @@ require 'pty'
 require 'digest/md5'
 
 def ssh_command(command) 
-  "ssh 2>/dev/null -o BatchMode=yes -o StrictHostKeyChecking=no -tt #{@gear.uuid}@#{@app.name}-#{@account.domain}.dev.rhcloud.com " + command
+  "ssh 2>/dev/null -o BatchMode=yes -o StrictHostKeyChecking=no -tt #{@gear.uuid}@#{@app.name}-#{@account.domain}.#{$cloud_domain} " + command
 end
 
 Then /^I can run "([^\"]*)" with exit code: (\d+)$/ do |cmd, code|
