@@ -57,12 +57,37 @@ end
 @container = OpenShift::ApplicationContainer.new(ENV['OPENSHIFT_APP_UUID'], ENV['OPENSHIFT_GEAR_UUID'], Etc.getpwuid.uid, ENV['OPENSHIFT_APP_NAME'], ENV['OPENSHIFT_GEAR_NAME'], ENV['OPENSHIFT_NAMESPACE'])
 @stop_lock = PathUtils.join(ENV['OPENSHIFT_HOMEDIR'], %w{app-root runtime .stop_lock})
 
+def do_command
+  begin
+    yield
+  rescue SystemExit, Interrupt
+    puts
+    exit 1
+  rescue OpenShift::Utils::ShellExecutionException => e
+    $stderr.puts "#{e.message}: rc(#{e.rc})"
+
+    if 
+      $stderr.puts "stdout: #{e.stdout}\nstderr#{e.stderr}"
+      $stderr.puts e.backtrace.join("\n")
+    end
+
+    exit -1
+  rescue Exception => e
+    $stderr.puts e.message
+    exit -1
+  else
+    exit 0
+  end
+end
+
 command :prereceive do |c|
   c.syntax = "#{name} prereceive"
 
   c.description = "Run the git prereceive steps"
   c.action do |args, options|
-    @container.pre_receive
+    do_command do
+      @container.pre_receive
+    end
   end
 end
 
@@ -71,7 +96,9 @@ command :postreceive do |c|
 
   c.description = "Run the git postreceive steps"
   c.action do |args, options|
-    @container.post_receive
+    do_command do
+      @container.post_receive
+    end
   end
 end
 
@@ -80,7 +107,9 @@ command :build do |c|
 
   c.description = "Run the build steps"
   c.action do |args, options|
-    @container.build
+    do_command do
+      @container.build
+    end
   end
 end
 
@@ -89,7 +118,9 @@ command :cideploy do |c|
 
   c.description = "Run the cideploy steps"
   c.action do |args, options|
-    @container.ci_deploy
+    do_command do
+      @container.ci_deploy
+    end
   end
 end
 
@@ -98,7 +129,9 @@ command :deploy do |c|
 
   c.description = "Run the deploy steps"
   c.action do |args, options|
-    deploy
+    do_command do
+      deploy
+    end
   end
 end
 
@@ -109,12 +142,14 @@ command :start do |c|
 
   c.description = "Start the gear/cart"
   c.action do |args, options|
-    if options.cart
-      @container.start(options.cart)
-    else
-      puts "Starting gear..."
-      FileUtils.remove @stop_lock if File.exists? @stop_lock
-      @container.start_gear
+    do_command do
+      if options.cart
+        @container.start(options.cart)
+      else
+        puts "Starting gear..."
+        FileUtils.remove @stop_lock if File.exists? @stop_lock
+        @container.start_gear
+      end
     end
   end
 end
@@ -126,12 +161,14 @@ command :stop do |c|
 
   c.description = "Stop the gear/cart"
   c.action do |args, options|
-    if options.cart
-      @container.stop(options.cart)
-    else
-      puts "Stopping gear..."
-      FileUtils.touch @stop_lock
-      @container.stop_gear
+    do_command do
+      if options.cart
+        @container.stop(options.cart)
+      else
+        puts "Stopping gear..."
+        FileUtils.touch @stop_lock
+        @container.stop_gear
+      end
     end
   end
 end
@@ -145,8 +182,10 @@ command :restart do |c|
   c.action do |args, options|
     # TODO: Should we be able to restart the gear via stop_gear / start_gear calls
     # in addition to individual cart restarts?
-    options.cart ||= choose("Cart to restart?", *gear_cartridge_names)
-    @container.restart(options.cart)
+    do_command do
+      options.cart ||= choose("Cart to restart?", *gear_cartridge_names)
+      @container.restart(options.cart)
+    end
   end
 end
 
@@ -157,8 +196,10 @@ command :reload do |c|
 
   c.description = "Reload a cart"
   c.action do |args, options|
-    options.cart ||= choose("Cart to reload?", *gear_cartridge_names)
-    @container.reload(options.cart)
+    do_command do
+      options.cart ||= choose("Cart to reload?", *gear_cartridge_names)
+      @container.reload(options.cart)
+    end
   end
 end
 
@@ -182,8 +223,10 @@ command :restore do |c|
   c.description = "Restore a cart"
   c.action do |args, options|
     # TODO: Is this a gear level operation?
-    options.cart ||= choose("Cart to restore?", *gear_cartridge_names)
-    @container.restore(options.cart)
+    do_command do
+      options.cart ||= choose("Cart to restore?", *gear_cartridge_names)
+      @container.restore(options.cart)
+    end
   end
 end
 
@@ -195,8 +238,10 @@ command :snapshot do |c|
   c.description = "Snapshot a cart"
   c.action do |args, options|
     # TODO: Is this a gear level operation?
-    options.cart ||= choose("Cart to snapshot?", *gear_cartridge_names)
-    @container.snapshot(options.cart)
+    do_command do
+      options.cart ||= choose("Cart to snapshot?", *gear_cartridge_names)
+      @container.snapshot(options.cart)
+    end
   end
 end
 
