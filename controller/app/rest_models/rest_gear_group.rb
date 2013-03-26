@@ -76,6 +76,13 @@ class RestGearGroup < OpenShift::Model
     
     self.cartridges   = group_instance.all_component_instances.map { |component_instance| 
       cart = CartridgeCache.find_cartridge(component_instance.cartridge_name)
+      
+      # Handling the case when component_properties is an empty array
+      # This can happen if the mongo document is copied and pasted back and saved using a UI tool
+      if component_instance.component_properties.nil? or component_instance.component_properties.is_a? Array
+        component_instance.component_properties = {}
+      end
+       
       component_instance.component_properties.merge({
         :name => cart.name, 
         :display_name => cart.display_name,

@@ -147,12 +147,28 @@ begin
       puts "Gear uuid is required to remove-gear"
       exit 1
     end
-    group_instance = app.group_instances.find { |gi| gi.gears.find { |g| g._id.to_s==gear_uuid or g.uuid==gear_uuid } }
-    if group_instance.nil?
+
+    group_instance = nil
+    gear_id = nil
+    found = false
+
+    app.group_instances.each do |gi|
+      gi.gears.each do |g|
+        if g._id.to_s == gear_uuid or g.uuid == gear_uuid
+          group_instance = gi
+          gear_id = g._id.to_s
+          found = true
+          break
+        end
+      end
+      break if found
+    end
+
+    unless found
       puts "Gear #{gear_uuid} not found in #{app.name}"
       exit 1
     end
-    app.remove_gear(gear_uuid)
+    app.remove_gear(gear_id)
   else
     puts "Command must be one of: #{CTL_APP_COMMANDS}"
     usage
