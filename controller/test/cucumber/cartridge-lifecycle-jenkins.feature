@@ -13,11 +13,6 @@ Feature: Cartridge Lifecycle Jenkins Verification Tests
     When the application is restarted
     Then the application should be accessible
 
-  Scenario: Application Change Namespace
-    Given an existing jenkins-1.4 application
-    When the application namespace is updated
-    Then the application should be accessible
-
   Scenario: Application Destroying
     Given an existing jenkins-1.4 application
     And the application should be accessible
