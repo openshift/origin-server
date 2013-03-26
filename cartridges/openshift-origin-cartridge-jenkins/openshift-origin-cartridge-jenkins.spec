@@ -2,7 +2,7 @@
 
 Summary:       Provides jenkins-1.4 support
 Name:          openshift-origin-cartridge-jenkins
-Version: 1.6.7
+Version: 1.6.8
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -59,6 +59,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Tue Mar 26 2013 Adam Miller <admiller@redhat.com> 1.6.8-1
+- Getting jenkins working (dmcphers@redhat.com)
+
 * Mon Mar 25 2013 Adam Miller <admiller@redhat.com> 1.6.7-1
 - using erbs (dmcphers@redhat.com)
 
