@@ -792,11 +792,12 @@ class Application
   #
   # == Returns:
   # {PendingAppOps} object which tracks the progress of the operation.
-  def remove_alias(server_alias)
+  def remove_alias(fqdn)
+    fqdn = fqdn.downcase if fqdn
     begin
-      al1as = aliases.find_by(fqdn: server_alias)
+      al1as = aliases.find_by(fqdn: fqdn)
     rescue Mongoid::Errors::DocumentNotFound
-      raise OpenShift::UserException.new("Alias '#{server_alias}' does not exist for '#{self.name}'", 173) 
+      raise OpenShift::UserException.new("Alias '#{fqdn}' does not exist for '#{self.name}'", 173) 
     end
     Application.run_in_application_lock(self) do
       if al1as.has_private_ssl_certificate
@@ -815,7 +816,7 @@ class Application
     
     validate_certificate(ssl_certificate, private_key, pass_phrase)
     
-    fqdn = fqdn.downcase
+    fqdn = fqdn.downcase if fqdn
     begin
       old_alias = aliases.find_by(fqdn: fqdn)
     rescue Mongoid::Errors::DocumentNotFound
