@@ -37,6 +37,10 @@ Feature: V2 SDK Mock Cartridge
     And the mock control_build marker will exist
     And the mock control_deploy marker will exist
     And the mock control_start marker will exist
+    And the mock action_hook_pre_build marker will exist
+    And the mock action_hook_build marker will exist
+    And the mock action_hook_deploy marker will exist
+    And the mock action_hook_post_deploy marker will exist
     And the application repo has been updated
 
     When I call tidy on the application

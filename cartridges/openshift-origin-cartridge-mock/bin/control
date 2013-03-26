@@ -6,15 +6,17 @@ cartridge_instance_dir=$OPENSHIFT_MOCK_DIR
 source $cartridge_instance_dir/mock.conf
 
 case "$1" in
-  start)     touch $MOCK_STATE/control_start ;;
-  stop)      touch $MOCK_STATE/control_stop ;;
-  restart)   touch $MOCK_STATE/control_restart ;;
-  status)    touch $MOCK_STATE/control_status ;;
-  reload)    touch $MOCK_STATE/control_reload ;;
-  tidy)      touch $MOCK_STATE/control_tidy ;;
-  build)     touch $MOCK_STATE/control_build;;
-  deploy)    touch $MOCK_STATE/control_deploy;;
-  *)         exit 0
+  start)       touch $MOCK_STATE/control_start ;;
+  stop)        touch $MOCK_STATE/control_stop ;;
+  restart)     touch $MOCK_STATE/control_restart ;;
+  status)      touch $MOCK_STATE/control_status ;;
+  reload)      touch $MOCK_STATE/control_reload ;;
+  tidy)        touch $MOCK_STATE/control_tidy ;;
+  pre-build)   touch $MOCK_STATE/control_pre_build ;;
+  build)       touch $MOCK_STATE/control_build ;;
+  deploy)      touch $MOCK_STATE/control_deploy ;;
+  post-deploy) touch $MOCK_STATE/control_post_deploy ;;
+  *)           exit 0
 esac
 
 exit 0
