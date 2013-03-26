@@ -183,5 +183,57 @@ module OpenShift
       assert_empty err
       assert_equal "#{ENV['HOME']}xx\n", out
     end
+
+    def test_streaming_stdout
+      msg = %q(Hello, World)
+      StringIO.open("w") { |fd|
+        out, err, rc = Utils.oo_spawn("echo -n #{msg}",
+                                      out:                 fd,
+                                      expected_exitstatus: 0)
+        assert_equal msg, out.string
+        assert_equal 0, err.size
+        assert_equal 0, rc
+      }
+    end
+
+    def test_streaming_stderr
+      msg = %q(Goodbye, Cruel World)
+      StringIO.open("w") { |fd|
+        out, err, rc = Utils.oo_spawn("echo -n #{msg} 1>&2",
+                                      err:                 fd,
+                                      expected_exitstatus: 0)
+        assert_equal 0, out.size
+        assert_equal msg, err.string
+        assert_equal 0, rc
+      }
+    end
+
+    def test_streaming_stdin
+      msg = %q(Hello, World)
+
+      # StringIO is insufficient for stdin according to Kernel.spawn...
+      IO.write("/tmp/#{Process.pid}", msg, 0)
+      File.open("/tmp/#{Process.pid}", "r") { |stdin|
+        StringIO.open("w") { |stdout|
+          out, err, rc = Utils.oo_spawn("cat",
+                                        in:                  stdin,
+                                        out:                 stdout,
+                                        expected_exitstatus: 0)
+          assert_equal msg, out.string
+          assert_equal 0, err.size
+          assert_equal 0, rc
+        }
+      }
+    end
+
+    def test_streaming
+      out, err, rc = Utils.oo_spawn("ls /tmp",
+                                    in:                  STDIN,
+                                    out:                 STDOUT,
+                                    err:                 STDERR,
+                                    timeout:             1,
+                                    expected_exitstatus: 0)
+      assert true, "not sure what to test other than we didn't blow up"
+    end
   end
 end

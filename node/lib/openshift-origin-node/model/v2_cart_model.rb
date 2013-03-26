@@ -369,7 +369,7 @@ module OpenShift
                      expected_exitstatus: 0)
 
       write_environment_variable(cartridge, File.join(target, 'env'),
-                                 dir:   target,
+                                 dir:   target + File::SEPARATOR,
                                  ident: Runtime::Cartridge.build_ident(cartridge.cartridge_vendor,
                                                                        cartridge.name,
                                                                        software_version,
