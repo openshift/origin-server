@@ -168,8 +168,6 @@ class AliasController < BaseController
        
     begin
       application.remove_alias(server_alias)
-    rescue Mongoid::Errors::DocumentNotFound
-      return render_error(:not_found, "Alias #{server_alias} not found for application #{application_id}", 173, "DELETE_ALIAS")
     rescue OpenShift::UserException => e
       return render_error(:unprocessable_entity, e.message, e.code, "DELETE_ALIAS", e.field)
     rescue Exception => e
