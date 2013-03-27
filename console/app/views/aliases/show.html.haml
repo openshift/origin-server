@@ -91,7 +91,7 @@
           SSL Certificate Chain
         .controls
           = f.file_field :certificate_chain_file, :id => 'certificate_chain_file', :disabled => !@private_ssl_certificates_supported 
-          %p.help-block  Optionally you can provide a certificate chain in a separate PEM-encoded file.
+          %p.help-block  Optionally you can provide a certificate chain/bundle in a separate PEM-encoded file.
 
       .file.optional.control-group
         %label.control-label{:for => 'certificate_private_key_file'} 

@@ -603,7 +603,7 @@ $cartridgeBorderWidth: 10px;
   border-bottom: 1px solid #222222;
   }
 #aliases {
-  a {
+  a, span {
     font-size: $baseFontSize;
   }
 }
