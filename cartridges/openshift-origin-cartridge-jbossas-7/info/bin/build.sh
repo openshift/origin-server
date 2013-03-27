@@ -91,6 +91,12 @@ then
         fi
         
         popd > /dev/null
+        
+        CART_NAME=jbossas-7
+        if [ ! -h ${OPENSHIFT_REPO_DIR}/deployments ] && [ ! -h ${OPENSHIFT_HOMEDIR}/${CART_NAME}/${CART_NAME}/standalone/deployments ]
+		then
+  			cp -rf ${OPENSHIFT_REPO_DIR}/deployments/* ${OPENSHIFT_HOMEDIR}/${CART_NAME}/${CART_NAME}/standalone/deployments
+		fi
     fi
 else
     export OPENSHIFT_MAVEN_MIRROR

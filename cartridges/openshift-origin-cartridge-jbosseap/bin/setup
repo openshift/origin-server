@@ -31,8 +31,9 @@ cd $OPENSHIFT_JBOSSEAP_DIR
 ln -s ${JBOSS_HOME}/jboss-modules.jar
 ln -s ${JBOSS_HOME}/modules
 
-cd $OPENSHIFT_JBOSSEAP_DIR/template/src/main/webapp
-jar cvf $OPENSHIFT_JBOSSEAP_DIR/standalone/deployments/ROOT.war *
+pushd $OPENSHIFT_JBOSSEAP_DIR/template/src/main/webapp
+jar cvf $OPENSHIFT_JBOSSEAP_DIR/standalone/deployments/ROOT.war ./*
+popd
 
 if [ -e ${OPENSHIFT_REPO_DIR}/.openshift/markers/java7 ];
 then

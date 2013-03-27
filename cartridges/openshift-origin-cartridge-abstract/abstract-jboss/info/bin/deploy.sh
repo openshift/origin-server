@@ -13,7 +13,6 @@ CART_NAME=$(get_cartridge_name_from_path)
 
 if [ ! -h ${OPENSHIFT_REPO_DIR}/deployments ] && [ ! -h ${OPENSHIFT_HOMEDIR}/${CART_NAME}/${CART_NAME}/standalone/deployments ]
 then
-  echo "copying" >> /log/log
   cp -rf ${OPENSHIFT_REPO_DIR}/deployments/* ${OPENSHIFT_HOMEDIR}/${CART_NAME}/${CART_NAME}/standalone/deployments
 fi
 
