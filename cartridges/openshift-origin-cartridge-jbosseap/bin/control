@@ -271,12 +271,12 @@ function threaddump() {
     fi
 }
 
-function pre-build() {
-
+function prebuild() {
+	echo "prebuild"
 }
 
-function post-deploy() {
-
+function postdeploy() {
+	echo "postdeploy"
 }
 
 case "$1" in
@@ -289,8 +289,8 @@ case "$1" in
   reload)    	reload ;;
   tidy)      	tidy ;;
   threaddump)   threaddump ;;
-  pre-build)    pre-build ;;
-  post-deploy)  post-deploy ;;
+  pre-build)    prebuild ;;
+  post-deploy)  postdeploy ;;
   *)         	exit 0
 esac
 
