@@ -229,10 +229,6 @@ module Console::HelpHelper
     community_base_url 'policy/security'
   end
 
-  def tax_exempt_help_status
-    community_base_url 'policy/tax-exemptions'
-  end
-
   def create_quickstart_url
     community_base_url 'node/add/quickstart'
   end

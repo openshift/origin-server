@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.6.6
+Version: 1.6.7
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -83,6 +83,17 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Tue Mar 26 2013 Adam Miller <admiller@redhat.com> 1.6.7-1
+- Fix for bug 920016   Handling exception thrown by get_bool util method
+  (abhgupta@redhat.com)
+- Fix for bug 924479   Handling the case when component_properties is an empty
+  array instead of a Hash   This can happen if the mongo document is copied and
+  pasted back and saved using a UI tool (abhgupta@redhat.com)
+- Fixing validations for updating scaling parameters for cartridges
+  (abhgupta@redhat.com)
+- Fix for bug 927154 Fixing multiple issues in remove-gear command of admin
+  script (abhgupta@redhat.com)
+
 * Mon Mar 25 2013 Adam Miller <admiller@redhat.com> 1.6.6-1
 - Merge pull request #1762 from fabianofranz/dev/ffranz/ssl
   (dmcphers+openshiftbot@redhat.com)

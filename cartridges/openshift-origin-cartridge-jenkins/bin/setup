@@ -61,7 +61,7 @@ echo "export JENKINS_USERNAME=admin" > $OPENSHIFT_JENKINS_DIR/env/JENKINS_USERNA
 echo "export JENKINS_PASSWORD=$admin_password" > $OPENSHIFT_JENKINS_DIR/env/JENKINS_PASSWORD
 
 cp -ad "${OPENSHIFT_JENKINS_DIR}/configuration/"* "${OPENSHIFT_DATA_DIR}"
-openshift_server=`echo "${BROKER_HOST}" | sed -e "s/\/*$//" `
+openshift_server=`echo "${OPENSHIFT_BROKER_HOST}" | sed -e "s/\/*$//" `
 sed -i "s,OPENSHIFT_SERVER,$openshift_server,g" "${OPENSHIFT_DATA_DIR}/config.xml"
 unzip -q /usr/lib/jenkins/jenkins.war -d "${OPENSHIFT_DATA_DIR}/war/"
 admin_password_hash=`obfuscate_password $admin_password`

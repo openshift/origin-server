@@ -1,5 +1,7 @@
-Installing OpenShift Origin using Puppet
-========================================
+# @markup markdown
+# @title Installing OpenShift Origin using Puppet
+
+# Installing OpenShift Origin using Puppet
 
 This guide will walk you through configuring a basic puppet script to install OpenShift Origin from RPMs.
 

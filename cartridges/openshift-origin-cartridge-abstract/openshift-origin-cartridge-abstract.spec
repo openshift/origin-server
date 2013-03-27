@@ -7,7 +7,7 @@
 
 Summary:       OpenShift common cartridge components
 Name:          openshift-origin-cartridge-abstract
-Version:       1.6.5
+Version:       1.6.6
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -87,6 +87,15 @@ cp -rv -p abstract-jboss %{buildroot}%{cartdir}/
 %doc %{_libexecdir}/openshift/cartridges/abstract-jboss/README.md
 
 %changelog
+* Tue Mar 26 2013 Adam Miller <admiller@redhat.com> 1.6.6-1
+- Merge pull request #1800 from bdecoste/master
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 927192 (bdecoste@gmail.com)
+- Merge pull request #1786 from rmillner/BZ927346
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 927346 - Run cartridge actions with CWD as the gear home directory.
+  (rmillner@redhat.com)
+
 * Mon Mar 25 2013 Adam Miller <admiller@redhat.com> 1.6.5-1
 - Bug 923369 (bdecoste@gmail.com)
 

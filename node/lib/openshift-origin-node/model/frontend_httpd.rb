@@ -231,8 +231,8 @@ module OpenShift
       end
 
       if data.has_key?("ssl_certs")
-        data["ssl_certs"].each do |a, c, k|
-          new_obj.add_ssl_cert(a, c, k)
+        data["ssl_certs"].each do |c, k, a|
+          new_obj.add_ssl_cert(c, k, a)
         end
       end
 
@@ -258,6 +258,12 @@ module OpenShift
 
     # Public: Update identifier to the new names
     def update(container_name, namespace)
+      if (container_name == @container_name) and (namespace == @namespace)
+        return nil
+      end
+
+      saved_ssl_certs = ssl_certs
+
       new_fqdn = clean_server_name("#{container_name}-#{namespace}.#{@cloud_domain}")
 
       ApacheDBNodes.open(ApacheDBNodes::WRCREAT) do |d|
@@ -304,9 +310,19 @@ module OpenShift
         end
       end
 
+      old_namespace = @namespace
+
       @container_name = container_name
       @namespace = namespace
       @fqdn = new_fqdn
+
+      saved_ssl_certs.each do |c, k, a|
+        add_ssl_cert(c, k, a)
+        old_path = File.join(@basedir, "#{@container_uuid}_#{old_namespace}_#{a}")
+        FileUtils.rm_rf(old_path + ".conf")
+        FileUtils.rm_rf(old_path)
+        reload_httpd
+      end
     end
 
     def update_name(container_name)

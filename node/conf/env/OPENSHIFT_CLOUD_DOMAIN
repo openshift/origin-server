@@ -1,0 +1,1 @@
+export OPENSHIFT_CLOUD_DOMAIN='example.com'

@@ -34,7 +34,7 @@ def create_job
   File.open(job_template_xml, 'w') {|f| f.write(erb.result(binding)) }
   FileUtils.rm @job_erb
 
-status_code = `/bin/sed -e "s,UPSTREAM_SSH,#{@uuid}@#{@app_name}-#{@namespace}.#{@openshift_domain},g" #{job_template_xml} \
+status_code = `/bin/sed -e "s,UPSTREAM_SSH,#{@uuid}@#{@app_name}-\\${OPENSHIFT_NAMESPACE}.#{@openshift_domain},g" #{job_template_xml} \
   | curl -s  -X POST -H "Content-Type: application/xml" -H "Expect: " --data-binary @- --insecure https://${JENKINS_USERNAME}:${JENKINS_PASSWORD}@#{@hostname}/createItem?name=#{@job_name}`
 
   puts "create_job status: #{status_code}"

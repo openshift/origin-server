@@ -29,10 +29,13 @@ OpenShift Origin sources are arranged into 5 repositories:
       * [API docs](rest_api/index.html): Documentation for only the models and controllers involved in the REST API
       * [Internal models](broker_models/index.html): Documentation for only MongoID models
       * Plugins
-          * [Communication plugin interface]()
-          * [DNS plugin interface]()
-          * [Authentication plugin interface]()
+          * [Communication plugin interface](broker/file.README.comm_plugin.html)
+          * [DNS plugin interface](broker/file.README.dns_plugin.html)
+          * [Authentication plugin interface](broker/file.README.auth_plugin.html)
   + [Node](node/index.html): Documentation for Models, libraries used on the Node
+      * [Building a V1 cartridge](node/file.README.writing_v1_cartridge.html)
+      * [Building a V2 cartridge](node/file.README.writing_cartridges.html)
+      * [Design of the Node module](node/file.README.node_module_design.html)
 * Building and installing OpenShift Origin
   + [Building OpenShift Origin RPMs](file.building_source.html)
   + [Installing and configuring OpenShift Origin using puppet](file.install_origin_using_puppet.html)
