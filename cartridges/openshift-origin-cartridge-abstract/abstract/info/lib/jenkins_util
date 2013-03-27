@@ -72,6 +72,9 @@ function jenkins_sync_jboss {
 
   jenkins_rsync --exclude='*.deployed' --exclude='*.deploying' --exclude='*.isundeploying' \
     ~/$WORKSPACE/deployments/. $UPSTREAM_SSH:~/$jboss_version/$jboss_version/standalone/deployments/
+    
+  jenkins_rsync --exclude='*.deployed' --exclude='*.deploying' --exclude='*.isundeploying' \
+    ~/$WORKSPACE/deployments/. $UPSTREAM_SSH:~/app-root/repo/deployments/
 
   jenkins_rsync ~/$WORKSPACE/.openshift/ $UPSTREAM_SSH:~/app-root/repo/.openshift/
 }
