@@ -6,7 +6,7 @@
 %global frameworkdir %{_libexecdir}/openshift/cartridges/v2/haproxy
 
 Name:          openshift-origin-cartridge-haproxy
-Version:       0.1.1
+Version:       0.1.3
 Release:       1%{?dist}
 Summary:       Provides HA Proxy
 Group:         Network/Daemons
@@ -53,6 +53,12 @@ rm -rf %{buildroot}
 %doc %{cartridgedir}/README.md
 
 %changelog
+* Tue Mar 26 2013 Dan McPherson <dmcphers@redhat.com> 0.1.3-1
+- new package built with tito
+
+* Tue Mar 26 2013 Dan McPherson <dmcphers@redhat.com>
+- new package built with tito
+
 * Tue Mar 26 2013 Mrunal Patel <mrunalp@gmail.com> 0.1.1-1
 - new package built with tito
 
