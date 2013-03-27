@@ -10,13 +10,26 @@ $hostname = "localhost"
 begin
   if File.exists?("/etc/openshift/node.conf")
     config = ParseConfig.new("/etc/openshift/node.conf")
-    val = config["PUBLIC_HOSTNAME"].gsub!(/[ \t]*#[^\n]*/,"")
+    val = config["PUBLIC_HOSTNAME"].gsub(/[ \t]*#[^\n]*/,"")
     val = val[1..-2] if val.start_with? "\""
     $hostname = val
   end
 rescue
-  puts "Unable to determine hostname. Defaulting to localhost\n"
+  puts "Unable to determine hostname. Defaulting to #{$hostname}\n"
 end
+
+$cloud_domain = "example.com"
+begin
+  if File.exists?("/etc/openshift/node.conf")
+    config = ParseConfig.new("/etc/openshift/node.conf")
+    val = config["CLOUD_DOMAIN"].gsub(/[ \t]*#[^\n]*/,"")
+    val = val[1..-2] if val.start_with? "\""
+    $cloud_domain = val
+  end
+rescue
+  puts "Unable to determine cloud domain. Defaulting to #{$cloud_domain}\n"
+end
+
 
 @random = nil
 Before do

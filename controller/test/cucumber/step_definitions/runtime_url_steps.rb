@@ -17,7 +17,7 @@ Then /^the web console for the phpmyadmin\-([\d\.]+) cartridge is( not)? accessi
 end
 
 When /^I run the health\-check for the ([^ ]+) cartridge$/ do | type |
-  host = "#{@app.name}-#{@account.domain}.dev.rhcloud.com"
+  host = "#{@app.name}-#{@account.domain}.#{$cloud_domain}"
 
   if type.start_with?("perl-")
     url = "health_check.pl"
