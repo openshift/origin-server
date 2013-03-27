@@ -142,3 +142,11 @@ function wait_for_stop {
     done
 }
 
+function print_user_running_processes {
+    userid=$1
+    echo ""
+    echo "Running Processes:"
+    echo ""
+    ps -FCvx -U "${userid}"
+    echo ""
+}

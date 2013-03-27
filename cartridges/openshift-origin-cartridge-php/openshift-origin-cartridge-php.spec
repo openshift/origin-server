@@ -62,10 +62,12 @@ rm -rf %{buildroot}
 %defattr(-,root,root,-)
 %dir %{cartridgedir}
 %dir %{cartridgedir}/bin
+%dir %{cartridgedir}/hooks
 %dir %{cartridgedir}/env
 %dir %{cartridgedir}/metadata
 %dir %{cartridgedir}/versions
 %attr(0755,-,-) %{cartridgedir}/bin/
+%attr(0755,-,-) %{cartridgedir}/hooks/
 %attr(0755,-,-) %{frameworkdir}
 %{cartridgedir}/metadata/manifest.yml
 %doc %{cartridgedir}/README.md
