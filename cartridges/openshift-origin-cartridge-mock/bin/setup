@@ -8,8 +8,9 @@ case "$1" in
     version="$2"
 esac
 
-cartridge_instance_dir=$OPENSHIFT_MOCK_DIR
-source $cartridge_instance_dir/mock.conf
+PATH=/bin/:/usr/bin:$PATH
+
+source $OPENSHIFT_MOCK_DIR/mock.conf
 
 rm -rf $MOCK_STATE/
 mkdir $MOCK_STATE
@@ -24,7 +25,7 @@ function error_exit {
 if [[ -n "$version" ]]; then
   echo "Creating version marker for $version"
   echo "$version" > $MOCK_STATE/setup_version
-  echo "export OPENSHIFT_MOCK_VERSION=\'$version\'" > $cartridge_instance_dir/env/OPENSHIFT_MOCK_VERSION
+  echo "export OPENSHIFT_MOCK_VERSION=\'$version\'" > $OPENSHIFT_MOCK_DIR/env/OPENSHIFT_MOCK_VERSION
 else
   echo "Skipping version creation marker."
 fi
