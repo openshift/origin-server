@@ -24,6 +24,7 @@ require 'openshift-origin-node/utils/cgroups'
 require 'openshift-origin-node/utils/sdk'
 require 'openshift-origin-node/utils/environ'
 require 'openshift-origin-node/utils/path_utils'
+require 'openshift-origin-node/utils/application_state'
 
 module OpenShift
   # TODO use this exception when oo_spawn fails...
@@ -54,11 +55,13 @@ module OpenShift
     ERB_BINARY         = '/usr/bin/oo-ruby /opt/rh/ruby193/root/usr/bin/erb'
 
 
-    def initialize(config, user)
+    def initialize(config, user, state)
       @config     = config
       @user       = user
+      @state      = state
       @timeout    = 30
       @cartridges = {}
+      @stop_lock  = PathUtils.join(@user.homedir, 'app-root', 'runtime', '.stop_lock')
     end
 
     ##
@@ -866,7 +869,7 @@ module OpenShift
     # By default, all cartridges in the gear are started. The selection of cartridges
     # to be started is configurable via +options+.
     #
-    # # +options+: hash
+    # +options+: hash
     #   :primary_only   => [boolean]  : If +true+, only the primary cartridge will be started.
     #                                   Mutually exclusive with +secondary_only+.
     #   :secondary_only => [boolean]  : If +true+, all cartridges except the primary cartridge
@@ -891,6 +894,56 @@ module OpenShift
 
     def cleanpwd(arg)
       arg.gsub(/(passwo?r?d\s*[:=]+\s*)\S+/i, '\\1[HIDDEN]').gsub(/(usern?a?m?e?\s*[:=]+\s*)\S+/i,'\\1[HIDDEN]')
+    end
+
+    ##
+    # Starts a cartridge.
+    #
+    # Both application state and the stop lock are managed during the operation. If start
+    # of the primary cartridge is invoked and +user_initiated+ is true, the stop lock is
+    # created.
+    #
+    # +cartridge+ : A +Cartridge+ instance or +String+ name of a cartridge.
+    #
+    # Returns the output of the operation as a +String+ or raises a +ShellExecutionException+
+    # if the cartridge script fails.
+    def start_cartridge(cartridge, user_initiated=true)
+      cartridge = get_cartridge(cartridge) if cartridge.is_a?(String)
+
+      if not user_initiated and File.exists?(@stop_lock)
+        raise "Not starting cartridge #{cartridge.name} due to presence of stop lock"
+      end
+
+      FileUtils.rm_f(@stop_lock) if cartridge.primary? and user_initiated
+
+      @state.value = OpenShift::State::STARTED
+
+      do_control('start', cartridge)
+    end
+
+    ##
+    # Stops a cartridge.
+    #
+    # Both application state and the stop lock are managed during the operation. If stop
+    # of the primary cartridge is invoked and +user_initiated+ is true, the stop lock
+    # is removed.
+    #
+    # +cartridge+      : A +Cartridge+ instance or +String+ name of a cartridge.
+    #
+    # Returns the output of the operation as a +String+ or raises a +ShellExecutionException+
+    # if the cartridge script fails.
+    def stop_cartridge(cartridge, user_initiated=true)
+      cartridge = get_cartridge(cartridge) if cartridge.is_a?(String)
+
+      if not user_initiated and File.exists?(@stop_lock)
+        raise "Not stopping cartridge #{cartridge.name} due to presence of stop lock"
+      end
+
+      FileUtils.touch(@stop_lock) if cartridge.primary? and user_initiated
+
+      @state.value = OpenShift::State::STOPPED
+
+      do_control('stop', cartridge)
     end
   end
 end
