@@ -6,6 +6,7 @@
 # setups, write some more steps which are more flexible.
 
 require 'fileutils'
+require 'openshift-origin-node/utils/application_state'
 
 # These are provided to reduce duplication of code in feature files.
 #   Scenario Outlines are not used as they interfer with the devenv retry logic (whole feature is retried no example line)
@@ -859,4 +860,33 @@ Then /^the ([^ ]+) cartridge private endpoints will be (exposed|concealed)$/ do 
       app_env_var_will_not_exist(endpoint.private_port_name, false)
     end
   end
+end
+
+Then /^the application state will be ([^ ]+)$/ do |state_value|
+  state_const = OpenShift::State.const_get(state_value.upcase)
+
+  raise "Invalid state '#{state_value}' provided to step" unless state_const
+
+  assert_equal @gear.container.state.value, state_const
+end
+
+Then /^the ([^ ]+) cartridge status should be (running|stopped)$/ do |cart_name, expected_status|
+  begin
+    @gear.carts[cart_name].status
+    # If we're here, the cart status is 'running'
+    raise "Expected #{cart_name} cartridge to be stopped" if expected_status == "stopped"
+  rescue ShellExecutionException
+    # If we're here, the cart status is 'stopped'
+    raise if expected_status == "running"
+  end
+end
+
+Then /^the application stoplock should( not)? be present$/ do |negate|
+  stop_lock = File.join($home_root, @gear.uuid, 'app-root', 'runtime', '.stop_lock')
+
+  if negate
+    assert_file_not_exists stop_lock
+  else
+    assert_file_exists stop_lock
+  end 
 end
