@@ -20,22 +20,51 @@ require 'etc'
 require 'optparse'
 require 'ostruct'
 require 'openshift-origin-node/utils/shell_exec'
+require 'openshift-origin-node/model/cartridge_repository'
 
 module OpenShift
-  class AdminCartridge
+  class AdminCartridgeCartridgeRepository
+    def apply(options)
+      repository = OpenShift::CartridgeRepository.instance
+      case options.action
+        when :install
+          dirs = if options.recursive
+                   Dir[File.join(options.source, '/*')].select { |d| File.directory?(d) }
+                 else
+                   [options.source]
+                 end
+
+          dirs.each do |dir|
+            begin
+              repository.install(dir)
+            rescue OpenShift::Utils::ShellExecutionException => e
+              $stderr.puts "install failed for #{dir}: #{e.message}" if options.verbose
+              $stderr.puts e.backtrace.join("\n") if options.verbose
+            end
+          end
+        when :list
+          return repository.to_s
+        when :erase
+          repository.erase(options.name, options.version, options.cartridge_version)
+      end
+      'succeeded'
+    end
+  end
+
+  class AdminCartridgeMcollective
     def apply(options)
       buffer = ''
       case options.action
         when :install
-          if options.recursive
-            Dir[File.join(options.source, '/*')].select { |d| File.directory?(d) }.each do |dir|
-              out, _, _ = Utils::oo_spawn("mco rpc -q openshift cartridge_repository action=install path=#{dir}",
-                                          expected_exitstatus: 0)
-              buffer << out
-            end
-          else
-            buffer, _, _ = Utils::oo_spawn("mco rpc -q openshift cartridge_repository action=install path=#{options.source}",
-                                           expected_exitstatus: 0)
+          dirs = if options.recursive
+                   Dir[File.join(options.source, '/*')].select { |d| File.directory?(d) }
+                 else
+                   [options.source]
+                 end
+
+          dirs.each do |dir|
+            out, _, _ = Utils::oo_spawn("mco rpc -q openshift cartridge_repository action=install path=#{dir}")
+            buffer << out
           end
         when :list
           buffer, _, _ = Utils::oo_spawn('mco rpc -q openshift cartridge_repository action=list',
@@ -47,14 +76,15 @@ module OpenShift
                          cartridge_version="#{options.cartridge_version}"),
                                          expected_exitstatus: 0)
       end
-      buffer
+
+      buffer.squeeze!("\n")
     end
   end
 end
 
 options = OpenStruct.new(verbose: false, recursive: false)
 parser  = OptionParser.new do |opts|
-  opts.banner = 'Usage: --action ACTION [--source] [--name NAME --version VERSION --cartridge-version VERSION]'
+  opts.banner = 'Usage: --action ACTION [--recursive] [--offline] [--source directory] [--name NAME --version VERSION --cartridge-version VERSION]'
   opts.separator ''
   opts.separator 'Options:'
 
@@ -64,6 +94,10 @@ parser  = OptionParser.new do |opts|
 
   opts.on('-s', '--source path', 'Directory of the cartridge to install') do |o|
     options.source = File.expand_path(o)
+  end
+
+  opts.on('--offline', 'Install with mcollective agent not running') do |o|
+    options.offline = o
   end
 
   opts.on('-R', '--recursive', 'Source is assumed to point to a directory containing cartridge directories') do |o|
@@ -108,7 +142,12 @@ unless missing.empty?
 end
 
 begin
-  $stdout.puts OpenShift::AdminCartridge.new.apply(options)
+  output = if options.offline
+             OpenShift::AdminCartridgeCartridgeRepository.new.apply(options)
+           else
+             OpenShift::AdminCartridgeMcollective.new.apply(options)
+           end
+  $stdout.puts output
 rescue OpenShift::Utils::ShellExecutionException => e
   $stderr.puts "\nOperation failed: #{e.stdout}\n#{e.stderr}\n"
   $stderr.puts e.backtrace.join("\n") if options.verbose
