@@ -30,6 +30,8 @@ Requires:      numpy
 Requires:      numpy-f2py
 Requires:      gcc-gfortran
 Requires:      freetype-devel
+Requires:      atlas-devel
+Requires:      lapack-devel
 BuildRequires: git
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
 BuildArch: noarch
