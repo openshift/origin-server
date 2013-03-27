@@ -1,8 +1,6 @@
 #!/bin/bash
 
-source ~/.env/*
-
-source /usr/libexec/openshift/cartridges/v2/mock-plugin/mock-plugin.conf
+source $OPENSHIFT_MOCK_PLUGIN_DIR/mock-plugin.conf
 
 PATH=/bin/:/usr/bin:$PATH
 
