@@ -50,18 +50,34 @@ module OpenShift
             next if file.end_with? '.erb'
             next unless File.file? file
 
-            File.open(file) do |input|
-              begin
+            begin
+              contents = nil
+              File.open(file) do |input|
                 contents = input.read.chomp
                 next if contents.empty?
 
                 index    = contents.index('=')
-                contents = contents[(index + 1)..-1]
-                contents.gsub!(/\A["']|["']\Z/, '')
-                env[File.basename(file)] = contents
-              rescue Exception => e
-                NodeLogger.logger.info { "Failed to process: #{file} [#{input}]: #{e.message}" }
+                parsed_contents = contents[(index + 1)..-1]
+                parsed_contents.gsub!(/\A["']|["']\Z/, '')
+                env[File.basename(file)] = parsed_contents
               end
+            rescue Errno, Exception => e
+              msg = "Failed to process: #{file}"
+              unless contents.nil?
+                msg << " [#{contents}]"
+              end
+              msg << ": "
+              msg << (
+                case e.class.name
+                when /^Errno/
+                  # This catches filesystem level errors
+                  # We split the message because it contains the filename
+                  e.message.split(' - ').first
+                else
+                  e.message
+                end
+              )
+              NodeLogger.logger.info( msg )
             end
           end
         end
