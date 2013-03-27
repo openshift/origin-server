@@ -10,8 +10,7 @@ DESCRIPTION
   This is a utility to list the usage for a particular user on OpenShift Origin.
   The usage can be filtered by application name, gear uuid, as well as a timeframe.
   The usage cost displayed is based on the usage duration and the usage rate. 
-  It does not take into account any unbilled usage such as the 3 free gears for 
-  the MegaShift plan. 
+  It does not take into account any unbilled usage by the billing provider. 
 
 OPTIONS
   -h|--help  
@@ -47,9 +46,9 @@ EXAMPLE
     $ oo-admin-usage -l bob@redhat.com -s 1360790232 -e 1360793832
   
 SEE ALSO
-  oo-admin-ctl-district(8), oo-setup-broker(8), oo-admin-move(8),
-  oo-admin-chk(8), oo-accept-broker(8), oo-admin-ctl-app(8),
-  oo-admin-ctl-domain(8), oo-setup-bind(8), 
+  oo-admin-ctl-district(8), oo-admin-move(8),
+  oo-admin-chk(8), oo-accept-broker(8), 
+  oo-admin-ctl-app(8), oo-admin-ctl-domain(8),
   oo-admin-ctl-user(8), oo-register-dns(8)
  
 AUTHOR

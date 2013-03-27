@@ -108,18 +108,6 @@ function tidy() {
 	  done
 }
 
-function threaddump() {
-	  echo "Thread dump for $cartridge_type cart"
-
-    if ! isrunning; then
-        echo "Application is stopped"
-        exit 1
-    else
-        java_pid=`ps h --ppid $pid -o '%p'`
-        kill -3 $java_pid
-    fi
-}
-
 case "$1" in
   build)		build ;;
   deploy)		deploy ;;
@@ -129,7 +117,6 @@ case "$1" in
   status)    	status ;;
   reload)    	reload ;;
   tidy)      	tidy ;;
-  threaddump) threaddump ;;
   *)         	exit 0
 esac
 

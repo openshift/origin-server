@@ -1,6 +1,6 @@
+#@runtime_other4
 @runtime
 @runtime4
-@runtime_other4
 @not-enterprise
 Feature: Cartridge Lifecycle PHP Verification Tests
   @rhel-only

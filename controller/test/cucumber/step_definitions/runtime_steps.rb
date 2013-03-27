@@ -604,14 +604,14 @@ end
 # could be moved into the generic application setup step.
 When /^the application is made publicly accessible$/ do
   ssh_key = IO.read($test_pub_key).chomp.split[1]
-  run "echo \"127.0.0.1 #{@app.name}-#{@account.domain}.dev.rhcloud.com # Added by cucumber\" >> /etc/hosts"
+  run "echo \"127.0.0.1 #{@app.name}-#{@account.domain}.#{$cloud_domain} # Added by cucumber\" >> /etc/hosts"
   run "oo-authorized-ssh-key-add -a #{@gear.uuid} -c #{@gear.uuid} -s #{ssh_key} -t ssh-rsa -m default"
-  run "echo -e \"Host #{@app.name}-#{@account.domain}.dev.rhcloud.com\n\tStrictHostKeyChecking no\n\" >> ~/.ssh/config"
+  run "echo -e \"Host #{@app.name}-#{@account.domain}.#{$cloud_domain}\n\tStrictHostKeyChecking no\n\" >> ~/.ssh/config"
 end
 
 When /^the application is prepared for git pushes$/ do
   @app.git_repo = "#{$temp}/#{@account.name}-#{@app.name}-clone"
-  run "git clone ssh://#{@gear.uuid}@#{@app.name}-#{@account.domain}.dev.rhcloud.com/~/git/#{@app.name}.git #{@app.git_repo}"
+  run "git clone ssh://#{@gear.uuid}@#{@app.name}-#{@account.domain}.#{$cloud_domain}/~/git/#{@app.name}.git #{@app.git_repo}"
 end
 
 
@@ -807,6 +807,10 @@ Then /^the "(.*)" content does( not)? exist(s)? for ([^ ]+)$/ do |path, negate, 
   else
     assert_file_exists entry
   end
+end
+
+Then /^the ([^ ]+) cartridge will support threaddump/ do |cartridge_name|
+    @gear.container.threaddump(cartridge_name)
 end
 
 Then /^the ([^ ]+) cartridge instance directory will( not)? exist$/ do |cartridge_name, negate|

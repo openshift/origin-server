@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/openshift/cartridges/v2/php
 
 Name: openshift-origin-cartridge-php
-Version: 0.1.5
+Version: 0.1.6
 Release: 1%{?dist}
 Summary: Php cartridge
 Group: Development/Languages
@@ -62,16 +62,22 @@ rm -rf %{buildroot}
 %defattr(-,root,root,-)
 %dir %{cartridgedir}
 %dir %{cartridgedir}/bin
+%dir %{cartridgedir}/hooks
 %dir %{cartridgedir}/env
 %dir %{cartridgedir}/metadata
 %dir %{cartridgedir}/versions
 %attr(0755,-,-) %{cartridgedir}/bin/
+%attr(0755,-,-) %{cartridgedir}/hooks/
 %attr(0755,-,-) %{frameworkdir}
 %{cartridgedir}/metadata/manifest.yml
 %doc %{cartridgedir}/README.md
 
 
 %changelog
+* Tue Mar 26 2013 Adam Miller <admiller@redhat.com> 0.1.6-1
+- getting jenkins working (dmcphers@redhat.com)
+- Getting jenkins working (dmcphers@redhat.com)
+
 * Fri Mar 22 2013 Adam Miller <admiller@redhat.com> 0.1.5-1
 - adding openshift node util (dmcphers@redhat.com)
 - implementing builder_cartridge based on cart categories (dmcphers@redhat.com)

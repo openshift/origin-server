@@ -22,9 +22,8 @@ module MCollective
 
       activate_when do
         @cartridge_repository = ::OpenShift::CartridgeRepository.instance
-        count = @cartridge_repository.load
         Log.instance.info(
-            "#{count} cartridge(s) installed in #{@cartridge_repository.path}")
+            "#{@cartridge_repository.size} cartridge(s) installed in #{@cartridge_repository.path}")
         true
       end
 
@@ -870,9 +869,11 @@ module MCollective
         begin
           container = get_app_container_from_args(args)
           output    = container.threaddump(cart_name)
+        rescue OpenShift::Utils::ShellExecutionException => e
+          Log.instance.info "#{e.message}\n#{e.backtrace}\n#{e.stderr}"
+          return -1, "CLIENT_ERROR: action 'threaddump' failed #{e.message} #{e.stderr}"
         rescue Exception => e
-          Log.instance.info e.message
-          Log.instance.info e.backtrace
+          Log.instance.info "#{e.message}\n#{e.backtrace}"
           return -1, e.message
         else
           return 0, output

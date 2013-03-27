@@ -1,5 +1,7 @@
-Installing OpenShift Origin using Puppet
-========================================
+# @markup markdown
+# @title Installing OpenShift Origin using Puppet
+
+# Installing OpenShift Origin using Puppet
 
 This guide will walk you through configuring a basic puppet script to install OpenShift Origin from RPMs.
 
@@ -32,7 +34,7 @@ Contents:
 
 Run the following to install puppet and facter
 
-    yum install -y puppet facter
+    yum install -y puppet facter tar
 
 Install the openshift puppet module:
 
@@ -48,14 +50,28 @@ Generate the TSIG Key
 
     #Using example.com as the cloud domain
     /usr/sbin/dnssec-keygen -a HMAC-MD5 -b 512 -n USER -r /dev/urandom -K /var/named example.com
-    cat /var/named/Kexample.com.+157+33874.key  | awk '{print $8}'
+    cat /var/named/Kexample.com.*.key  | awk '{print $8}'
 
 The TSIG key should look like `CNk+wjszKi9da9nL/1gkMY7H+GuUng==`. We will use this in the following steps.
 
+## Add /etc/hosts entry (optional)
+
+If your machines hostname does not resolve to its public IP address, do the following:
+
+1. Add an entry in `/etc/hosts` mapping the machines hostname to its public IP. Eg:
+
+        127.0.0.1   localhost localhost.localdomain localhost4 localhost4.localdomain4
+        ::1         localhost localhost.localdomain localhost6 localhost6.localdomain6
+        10.211.55.3 thishost.thisdomain.com
+
+2. Update the `/etc/hostname` file. Eg:
+
+        echo "thishost.thisdomain.com" > /etc/hostname
+        hostname thishost.thisdomain.com
+  
 ## Configuring an all-in-one host
 
 In this configuration, the host will run the broker, node, active mq, mongodb and bind servers.
-
 
 Create a file `configure_origin.pp` with the following contents:
 

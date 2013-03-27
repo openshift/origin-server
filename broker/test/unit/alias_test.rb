@@ -115,7 +115,7 @@ class AliasTest < ActiveSupport::TestCase
   test "update alias with bad inputs" do
     server_alias = "as#{@random}"
     #non-existent alias
-    assert_raise(OpenShift::UserException){@app.update_alias(server_alias)}
+    assert_raise(Mongoid::Errors::DocumentNotFound){@app.update_alias(server_alias)}
     #no private key
     @app.add_alias(server_alias)
     assert_raise(OpenShift::UserException){@app.update_alias(server_alias, @ssl_certificate)}
@@ -136,7 +136,7 @@ class AliasTest < ActiveSupport::TestCase
   test "remove alias with bad inputs" do
     server_alias = "as#{@random}"
     #non-existent alias
-    assert_raise(OpenShift::UserException){@app.remove_alias(server_alias)}
+    assert_raise(Mongoid::Errors::DocumentNotFound){@app.remove_alias(server_alias)}
   end
 =begin
   test "create alias rollback" do

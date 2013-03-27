@@ -74,10 +74,9 @@ class AppEventsController < BaseController
           # msg += ": #{r.resultIO.string.chomp}" if !r.resultIO.string.empty?
         when "remove-alias"
           begin
-            a = application.aliases.find_by(fqdn: server_alias)
             r = application.remove_alias(server_alias)
-          rescue Mongoid::Errors::DocumentNotFound => ex
-             #do noting as was the convention in API version <= 1.3
+          rescue Mongoid::Errors::DocumentNotFound
+            return render_error(:not_found, "Alias #{server_alias} not found for application #{application.name}", 173, "#{event.sub('-', '_').upcase}_APPLICATION")
           end
           msg = "Application #{id} has removed alias"
           # msg += ": #{r.resultIO.string.chomp}" if !r.resultIO.string.empty?

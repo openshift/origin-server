@@ -380,7 +380,7 @@ module OpenShift
         DefaultBuilder.new(self).post_receive
       end
     end
-    
+
     def ci_deploy
       start_gear(secondary_only: true)
 
@@ -406,14 +406,14 @@ module OpenShift
 
       buffer = ''
       buffer << @cartridge_model.do_control('pre-build',
-                                  @cartridge_model.primary_cartridge,
-                                  pre_action_hooks_enabled: false,
-                                  prefix_action_hooks: false)
+                                            @cartridge_model.primary_cartridge,
+                                            pre_action_hooks_enabled: false,
+                                            prefix_action_hooks:      false)
 
       buffer << @cartridge_model.do_control('build',
-                                  @cartridge_model.primary_cartridge,
-                                  pre_action_hooks_enabled: false,
-                                  prefix_action_hooks: false)
+                                            @cartridge_model.primary_cartridge,
+                                            pre_action_hooks_enabled: false,
+                                            prefix_action_hooks:      false)
 
       buffer
     end
@@ -431,7 +431,7 @@ module OpenShift
       @cartridge_model.do_control('deploy',
                                   @cartridge_model.primary_cartridge,
                                   pre_action_hooks_enabled: false,
-                                  prefix_action_hooks: false)
+                                  prefix_action_hooks:      false)
     end
 
     ##
@@ -443,7 +443,7 @@ module OpenShift
       @cartridge_model.do_control('post-deploy',
                                   @cartridge_model.primary_cartridge,
                                   pre_action_hooks_enabled: false,
-                                  prefix_action_hooks: false)
+                                  prefix_action_hooks:      false)
     end
 
     # restart gear as supported by cartridges

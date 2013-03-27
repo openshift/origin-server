@@ -4,7 +4,7 @@
 
 Summary:       Provides JBossAS7 support
 Name:          openshift-origin-cartridge-jbossas-7
-Version: 1.6.5
+Version: 1.6.6
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -138,6 +138,11 @@ cp -p %{cartridgedir}/info/configuration/postgresql_module.xml /etc/alternatives
 %config %{cartridgedir}/info/bin/standalone.conf
 
 %changelog
+* Tue Mar 26 2013 Adam Miller <admiller@redhat.com> 1.6.6-1
+- Merge pull request #1800 from bdecoste/master
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 927192 (bdecoste@gmail.com)
+
 * Mon Mar 25 2013 Adam Miller <admiller@redhat.com> 1.6.5-1
 - updated Fedora Requires (bdecoste@gmail.com)
 - updated Fedora Requires (bdecoste@gmail.com)

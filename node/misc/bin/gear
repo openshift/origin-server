@@ -210,8 +210,10 @@ command :status do |c|
 
   c.description = "Get the status for a cart"
   c.action do |args, options|
-    options.cart ||= choose("Cart to get the status for?", *gear_cartridge_names)
-    puts @container.status(options.cart)
+    do_command do
+      options.cart ||= choose("Cart to get the status for?", *gear_cartridge_names)
+      puts @container.status(options.cart)
+    end
   end
 end
 

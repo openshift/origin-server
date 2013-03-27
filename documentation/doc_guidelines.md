@@ -1,4 +1,7 @@
-## Supplimental Documentation Guidelines
+# @markup markdown
+# @title Supplimental Documentation Guidelines
+
+# Supplimental Documentation Guidelines
 
 The files in this directory aim to provide links into the code to which is
 always the ultimate authority on how things work.  The goal is __not__ to

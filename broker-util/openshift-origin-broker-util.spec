@@ -6,7 +6,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin broker
 Name:          openshift-origin-broker-util
-Version: 1.6.5
+Version: 1.6.6
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -20,10 +20,6 @@ Requires:      %{?scl:%scl_prefix}ruby(abi) >= %{rubyabi}
 Requires:      openshift-origin-broker
 # For oo-register-dns
 Requires:      bind-utils
-# For oo-setup-bind
-Requires:      rng-tools
-# For oo-setup-broker
-Requires:      openssl
 # For oo-admin-broker-auth
 Requires:      mcollective-client
 %if 0%{?fedora} >= 17
@@ -48,8 +44,6 @@ cp oo-* %{buildroot}%{_sbindir}/
 
 mkdir -p %{buildroot}%{_mandir}/man8/
 cp man/*.8 %{buildroot}%{_mandir}/man8/
-mkdir -p %{buildroot}/usr/share/openshift/kickstarts
-cp kickstart/openshift-origin-remix.ks %{buildroot}/usr/share/openshift/kickstarts
 
 %files
 %attr(0750,-,-) %{_sbindir}/oo-admin-chk
@@ -66,12 +60,9 @@ cp kickstart/openshift-origin-remix.ks %{buildroot}/usr/share/openshift/kickstar
 %attr(0750,-,-) %{_sbindir}/oo-analytics-export
 %attr(0750,-,-) %{_sbindir}/oo-analytics-import
 %attr(0750,-,-) %{_sbindir}/oo-register-dns
-%attr(0750,-,-) %{_sbindir}/oo-setup-bind
-%attr(0750,-,-) %{_sbindir}/oo-setup-broker
 %attr(0750,-,-) %{_sbindir}/oo-accept-broker
 %attr(0750,-,-) %{_sbindir}/oo-accept-systems
 %attr(0750,-,-) %{_sbindir}/oo-stats
-/usr/share/openshift/kickstarts/openshift-origin-remix.ks
 
 %doc LICENSE
 %{_mandir}/man8/oo-admin-chk.8.gz
@@ -84,13 +75,15 @@ cp kickstart/openshift-origin-remix.ks %{buildroot}/usr/share/openshift/kickstar
 %{_mandir}/man8/oo-admin-broker-auth.8.gz
 %{_mandir}/man8/oo-admin-usage.8.gz
 %{_mandir}/man8/oo-register-dns.8.gz
-%{_mandir}/man8/oo-setup-bind.8.gz
-%{_mandir}/man8/oo-setup-broker.8.gz
 %{_mandir}/man8/oo-accept-broker.8.gz
 %{_mandir}/man8/oo-accept-systems.8.gz
 %{_mandir}/man8/oo-stats.8.gz
 
 %changelog
+* Tue Mar 26 2013 Adam Miller <admiller@redhat.com> 1.6.6-1
+- Fix for bug 927154 Fixing multiple issues in remove-gear command of admin
+  script (abhgupta@redhat.com)
+
 * Mon Mar 25 2013 Adam Miller <admiller@redhat.com> 1.6.5-1
 - Fix for the underlying issue behind bug 924651 (abhgupta@redhat.com)
 - Merge pull request #1768 from rajatchopra/master (dmcphers@redhat.com)
