@@ -809,6 +809,17 @@ Then /^the "(.*)" content does( not)? exist(s)? for ([^ ]+)$/ do |path, negate, 
   end
 end
 
+Then /^the ([^ ]+) cartridge will( not)? support threaddump/ do |cartridge_name, negate|
+  if negate
+    e = assert_raise(OpenShift::Utils::ShellExecutionError)  do
+      @gear.container.threaddump(cartridge_name)
+    end
+    assert_equal 69, e.rc
+  else
+    @gear.container.threaddump(cartridge_name)
+  end
+end
+
 Then /^the ([^ ]+) cartridge instance directory will( not)? exist$/ do |cartridge_name, negate|
   cartridge = @gear.container.cartridge_model.get_cartridge(cartridge_name)
 

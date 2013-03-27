@@ -8,5 +8,6 @@ Feature: V2 SDK PHP Cartridge
   And the platform-created default environment variables will exist
   And the php-5.3 cartridge private endpoints will be exposed
   And the php-5.3 PHP_VERSION env entry will exist
+  And the php-5.3 cartridge will not support threaddump
   When I destroy the application
   Then the application git repo will not exist
