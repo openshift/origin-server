@@ -11,7 +11,7 @@ def show_usage
 
 oo-admin-usage: List the usage data for a user. 
 Note: The usage cost displayed is based on the usage duration and the usage rate. 
-It does not take into account any unbilled usage such as the 3 free gears for the MegaShift plan. 
+It does not take into account any unbilled usage by the billing provider.
 
 == Usage
 
@@ -224,7 +224,7 @@ if usage_data.count > 0
   end
 
   puts "Note: The cost displayed is based on the usage duration and the usage rate. " \
-  "It does not take into account any unbilled usage such as the 3 free gears on the MegaShift plan."
+  "It does not take into account any unbilled usage by the billing provider."
   puts 
 else
   puts "No usage data found"
