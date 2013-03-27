@@ -16,7 +16,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version:       1.6.8
+Version:       1.6.9
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -242,6 +242,28 @@ fi
 %attr(0755,-,-) %{_var}/run/openshift
 
 %changelog
+* Wed Mar 27 2013 Adam Miller <admiller@redhat.com> 1.6.9-1
+- Merge pull request #1821 from jwhonce/wip/threaddump
+  (dmcphers+openshiftbot@redhat.com)
+- WIP Cartridge Refactor - Roll out old threaddump support (jhonce@redhat.com)
+- Merge pull request #1817 from jwhonce/wip/threaddump (dmcphers@redhat.com)
+- Merge pull request #1818 from mrunalp/dev/haproxy_wip (dmcphers@redhat.com)
+- Merge pull request #1809 from ironcladlou/dev/v2carts/build-system
+  (dmcphers+openshiftbot@redhat.com)
+- remove rpmnew env vars (dmcphers@redhat.com)
+- Merge pull request #1811 from kraman/gen_docs (dmcphers@redhat.com)
+- WIP Cartridge Refactor - Add PHP support for threaddump (jhonce@redhat.com)
+- Merge pull request #1804 from jwhonce/wip/connectors
+  (dmcphers+openshiftbot@redhat.com)
+- Update docs generation and add node/cartridge guides [WIP]
+  https://trello.com/c/yUMBZ0P9 (kraman@gmail.com)
+- HAProxy WIP. (mrunalp@gmail.com)
+- Bug 927614: Fix action hook execution during v2 control ops
+  (ironcladlou@gmail.com)
+- fixing test cases (dmcphers@redhat.com)
+- WIP Cartridge Refactor - Refactor V2 connector_execute to use V1 contract
+  (jhonce@redhat.com)
+
 * Tue Mar 26 2013 Adam Miller <admiller@redhat.com> 1.6.8-1
 - error handling in gear script (dmcphers@redhat.com)
 - Getting jenkins working (dmcphers@redhat.com)
