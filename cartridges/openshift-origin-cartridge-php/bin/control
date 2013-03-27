@@ -77,6 +77,5 @@ case "$1" in
   tidy)      tidy ;;
   build)     build ;;
   deploy)    deploy ;;
-  threaddump) exit 69;;
   *)         exit 0
 esac

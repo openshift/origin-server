@@ -216,10 +216,17 @@ The `Version` element is the default or only version of the software packaged by
 
     Versions: [5.3]
 
+### TBD Element
+
+The `TBD` element is a TBD of optional hooks supported by your cartridge.  `threaddump` is an example of
+one such hook. OpenShift will only call optional hooks if they are included in this element.
+Supported optional hooks:
+
+    threaddump
+
+
 ### Endpoints Element
 See below.
-
-*jwh: How do we want to cover the other manifest.yml features?*
 
 ## Cartridge Locking
 
@@ -669,8 +676,6 @@ The list of operations your cartridge may be called to perform:
       cartridge has packaged this may equate to a restart.
    * `restart` stop current process and start a new one for the code your cartridge packages
    * `threaddump` if applicable, your cartridge should signal the packaged software to perform a thread dump.
-     An exit status of `69` signals OpenShift that your cartridge or packaged software does not support this
-     operation.
    * `tidy` all unused resources should be released. It is at your discretion to
      determine what should be done. Be frugal, on some systems resources may be
      very limited. Some possible behaviors: 
