@@ -7,6 +7,7 @@ PATH=/bin:/usr/bin:$PATH
 version=2.6
 
 # Copy the version specific files to python directory
+shopt -s dotglob
 cp -r $OPENSHIFT_PYTHON_DIR/versions/$version/etc/* $OPENSHIFT_PYTHON_DIR/etc
 cp -r $OPENSHIFT_PYTHON_DIR/versions/$version/metadata/* $OPENSHIFT_PYTHON_DIR/metadata
 cp -r $OPENSHIFT_PYTHON_DIR/versions/$version/template/* $OPENSHIFT_PYTHON_DIR/template
