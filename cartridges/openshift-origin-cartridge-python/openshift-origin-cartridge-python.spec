@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/openshift/cartridges/v2/python
 
 Name: openshift-origin-cartridge-python
-Version: 0.1.5
+Version: 0.1.6
 Release: 1%{?dist}
 Summary: Python cartridge
 Group: Development/Languages
@@ -70,6 +70,10 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Wed Mar 27 2013 Adam Miller <admiller@redhat.com> 0.1.6-1
+- Add ATLAS devel libs to bring up a newer version of numpy.
+  (rmillner@redhat.com)
+
 * Mon Mar 25 2013 Adam Miller <admiller@redhat.com> 0.1.5-1
 - Fixes to get python cart work with rhc app create. (mrunalp@gmail.com)
 
