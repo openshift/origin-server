@@ -25,9 +25,9 @@ class Alias < RestApi::Base
   alias_attribute :certificate_pass_phrase, :pass_phrase
 
   def normalize_certificate_content!
-    self.ssl_certificate = File.open(@certificate_file.path, "rb").read if !@certificate_file.nil?
-    self.ssl_certificate << "\n" << File.open(@certificate_chain_file.path, "rb").read if !@certificate_file.nil? && !@certificate_chain_file.nil?
-    self.private_key = File.open(@certificate_private_key_file.path, "rb").read if !@certificate_private_key_file.nil?
+    self.ssl_certificate = File.read(@certificate_file.path) if !@certificate_file.nil?
+    self.ssl_certificate << "\n" << File.read(@certificate_chain_file.path) if !@certificate_file.nil? && !@certificate_chain_file.nil?
+    self.private_key = File.read(@certificate_private_key_file.path) if !@certificate_private_key_file.nil?
     @certificate_file, @certificate_chain_file, @certificate_private_key_file = nil, nil, nil
   end
 
@@ -36,7 +36,7 @@ class Alias < RestApi::Base
   end
 
   def certificate_added_at
-    Date.parse super
+    super ? Date.parse(super) : super
   end
 
   def <=>(a)

@@ -130,29 +130,24 @@ Feature: domains
      | format | 
      | JSON | 
      | XML | 
-     
+
+  @rhel-only     
   Scenario Outline: Update domain with applications
-    Given a new user
-    And I accept "<format>"
-    When I send a POST request to "/domains" with the following:"id=api<random>"
-    Then the response should be "201"
-    When I send a POST request to "/domains/api<random>/applications" with the following:"name=app&cartridge=<php_version>"
-    Then the response should be "201"
-    When I send a PUT request to "/domains/api<random>" with the following:"id=apiX<random>"
-    Then the response should be "200"
-    And the response should be a "domain" with attributes "id=apiX<random>"
-    
-    @rhel-only
+    Given a new user, verify updating a domain with an php-<php_version> application in it over <format> format  
+
     Scenarios: RHEL scenarios
       | format | php_version |
-      | JSON   | php-5.3     |
-      | XML    | php-5.3     |
-      
-    @fedora-only
+      | JSON   |     5.3     |
+      | XML    |     5.3     |
+
+  @fedora-only     
+  Scenario Outline: Update domain with applications
+    Given a new user, verify updating a domain with an php-<php_version> application in it over <format> format  
+
     Scenarios: Fedora 18 scenarios
       | format | php_version |
-      | JSON   | php-5.4     |
-      | XML    | php-5.4     |
+      | JSON   |     5.4     |
+      | XML    |     5.4     |
      
      
   Scenario Outline: Update the domain of another user
@@ -218,52 +213,41 @@ Feature: domains
      | JSON | 
      | XML |  
      
+  @rhel-only
   Scenario Outline: Delete domain with existing applications
-    Given a new user
-    And I accept "<format>"
-    When I send a POST request to "/domains" with the following:"id=api<random>"
-    Then the response should be "201"
-    When I send a POST request to "/domains/api<random>/applications" with the following:"name=app&cartridge=<php_version>"
-    Then the response should be "201"
-    When I send a DELETE request to "/domains/api<random>"
-    Then the response should be "400"
-    And the error message should have "severity=error&exit_code=128"
-    When I send a DELETE request to "/domains/api<random>/applications/app"
-    Then the response should be "204"
+    Given a new user, verify deleting a domain with an php-<php_version> application in it over <format> format  
     
-    @rhel-only
     Scenarios: RHEL scenarios
       | format | php_version |
-      | JSON   | php-5.3     |
-      | XML    | php-5.3     |
-      
-    @fedora-only
-    Scenarios: Fedora 18 scenarios
+      | JSON   |     5.3     |
+      | XML    |     5.3     |
+  
+  @fedora-only
+  Scenario Outline: Delete domain with existing applications
+    Given a new user, verify deleting a domain with an php-<php_version> application in it over <format> format      
+
+    Scenarios: Fedora scenarios
       | format | php_version |
-      | JSON   | php-5.4     |
-      | XML    | php-5.4     |
-     
-  Scenario Outline: Force Delete domain with existing applications
-    Given a new user
-    And I accept "<format>"
-    When I send a POST request to "/domains" with the following:"id=api<random>"
-    Then the response should be "201"
-    When I send a POST request to "/domains/api<random>/applications" with the following:"name=app&cartridge=<php_version>"
-    Then the response should be "201"
-    When I send a DELETE request to "/domains/api<random>?force=true"
-    Then the response should be "204"
-    
-    @rhel-only
+      | JSON   |     5.4     |
+      | XML    |     5.4     |
+      
+  @rhel-only
+  Scenario Outline: Delete domain with existing applications
+    Given a new user, verify force deleting a domain with an php-<php_version> application in it over <format> format  
+  
     Scenarios: RHEL scenarios
       | format | php_version |
-      | JSON   | php-5.3     |
-      | XML    | php-5.3     |
-      
-    @fedora-only
-    Scenarios: Fedora 18 scenarios
+      | JSON   |     5.3     |
+      | XML    |     5.3     |
+  
+  @fedora-only
+  Scenario Outline: Delete domain with existing applications
+    Given a new user, verify force deleting a domain with an php-<php_version> application in it over <format> format      
+
+    Scenarios: Fedora scenarios
       | format | php_version |
-      | JSON   | php-5.4     |
-      | XML    | php-5.4     |
+      | JSON   |     5.4     |
+      | XML    |     5.4     |      
      
   Scenario Outline: Create more than one domain
     Given a new user

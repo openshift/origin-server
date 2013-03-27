@@ -126,7 +126,7 @@
     %ul.unstyled
       - if @application.aliases.empty?
         %li 
-          No aliases set.
+          %span No aliases set.
           = link_to('Set one now', application_aliases_path(@application))
       - else
         - alias_scheme = @application.web_url.split(':').first

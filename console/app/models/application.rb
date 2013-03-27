@@ -83,6 +83,9 @@ class Application < RestApi::Base
       false
     end
   end
+  def remove_aliases
+    self.aliases.each {|a| self.remove_alias(a.id) }
+  end
 
   def web_url
     app_url

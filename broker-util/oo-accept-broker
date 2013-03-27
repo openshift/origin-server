@@ -156,6 +156,19 @@ function check_missing_and_insecure_secrets() {
     then
       fail "Default AUTH_SALT detected in ${BROKER_CONF}! Change the the value and use oo-admin-broker-auth to regenerate authentication tokens. (Hint: use 'openssl rand -base64 64' to generate a unique salt)"
     fi
+
+    BROKER_SECRET=`fetch_config ${BROKER_CONF} SESSION_SECRET`
+    if [ $BROKER_SECRET == "nil" ]
+    then
+      fail "SESSION_SECRET must be set in $BROKER_CONF (Hint: use 'openssl rand -hex 64' to generate a unique secret."
+    fi
+
+    CONSOLE_SECRET=`fetch_config ${CONSOLE_CONF} SESSION_SECRET`
+    if [ $CONSOLE_SECRET == "nil" ]
+    then
+      fail "SESSION_SECRET must be set in ${CONSOLE_CONF} (Hint: use 'openssl rand -hex 64' to generate a unique secret."
+    fi
+
 }
 
 # This is another way to parse the config settings.  You could argue that it's
