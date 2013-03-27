@@ -44,6 +44,49 @@ After do |scenario|
   end
 end
 
+Given /^a new user, verify updating a domain with an php-([^ ]+) application in it over ([^ ]+) format$/ do |php_version, format|
+  steps %{
+    Given a new user
+    And I accept "#{format}"
+    When I send a POST request to "/domains" with the following:"id=api<random>"
+    Then the response should be "201"
+    When I send a POST request to "/domains/api<random>/applications" with the following:"name=app&cartridge=php-#{php_version}"
+    Then the response should be "201"
+    When I send a PUT request to "/domains/api<random>" with the following:"id=apiX<random>"
+    Then the response should be "200"
+    And the response should be a "domain" with attributes "id=apiX<random>"
+  }
+end
+
+Given /^a new user, verify deleting a domain with an php-([^ ]+) application in it over ([^ ]+) format$/ do |php_version, format|
+  steps %{
+    Given a new user
+    And I accept "#{format}"
+    When I send a POST request to "/domains" with the following:"id=api<random>"
+    Then the response should be "201"
+    When I send a POST request to "/domains/api<random>/applications" with the following:"name=app&cartridge=php-#{php_version}"
+    Then the response should be "201"
+    When I send a DELETE request to "/domains/api<random>"
+    Then the response should be "400"
+    And the error message should have "severity=error&exit_code=128"
+    When I send a DELETE request to "/domains/api<random>/applications/app"
+    Then the response should be "204"
+  }
+end
+
+Given /^a new user, verify force deleting a domain with an php-([^ ]+) application in it over ([^ ]+) format$/ do |php_version, format|
+  steps %{
+    Given a new user
+    And I accept "#{format}"
+    When I send a POST request to "/domains" with the following:"id=api<random>"
+    Then the response should be "201"
+    When I send a POST request to "/domains/api<random>/applications" with the following:"name=app&cartridge=php-#{php_version}"
+    Then the response should be "201"
+    When I send a DELETE request to "/domains/api<random>?force=true"
+    Then the response should be "204"
+  }
+end
+
 Given /^a new user, verify typical REST interactios with a ([^ ]+) application over ([^ ]+) format$/ do |cart_name, format|
   steps %{
     Given a new user
