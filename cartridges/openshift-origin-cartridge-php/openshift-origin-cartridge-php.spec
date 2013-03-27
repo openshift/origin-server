@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/openshift/cartridges/v2/php
 
 Name: openshift-origin-cartridge-php
-Version: 0.1.6
+Version: 0.1.7
 Release: 1%{?dist}
 Summary: Php cartridge
 Group: Development/Languages
@@ -74,6 +74,18 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Wed Mar 27 2013 Adam Miller <admiller@redhat.com> 0.1.7-1
+- Merge pull request #1821 from jwhonce/wip/threaddump
+  (dmcphers+openshiftbot@redhat.com)
+- WIP Cartridge Refactor - Roll out old threaddump support (jhonce@redhat.com)
+- Merge pull request #1817 from jwhonce/wip/threaddump (dmcphers@redhat.com)
+- Merge pull request #1818 from mrunalp/dev/haproxy_wip (dmcphers@redhat.com)
+- WIP Cartridge Refactor - Add PHP support for threaddump (jhonce@redhat.com)
+- Merge pull request #1801 from VojtechVitek/php5_standard
+  (dmcphers+openshiftbot@redhat.com)
+- HAProxy WIP. (mrunalp@gmail.com)
+- Fix health_check.php to conform PHP 5 standards (vvitek@redhat.com)
+
 * Tue Mar 26 2013 Adam Miller <admiller@redhat.com> 0.1.6-1
 - getting jenkins working (dmcphers@redhat.com)
 - Getting jenkins working (dmcphers@redhat.com)
