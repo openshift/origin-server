@@ -56,7 +56,7 @@ module OpenShift
       if build_model == :v1
         @cartridge_model = V1CartridgeModel.new(@config, @user)
       else
-        @cartridge_model = V2CartridgeModel.new(@config, @user)
+        @cartridge_model = V2CartridgeModel.new(@config, @user, state)
       end
       NodeLogger.logger.debug("Creating #{build_model} model for #{container_uuid}: #{__callee__}")
 

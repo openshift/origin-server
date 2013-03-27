@@ -2,14 +2,34 @@
 
 PATH=/bin/:/usr/bin:$PATH
 
-cartridge_instance_dir=$OPENSHIFT_MOCK_DIR
-source $cartridge_instance_dir/mock.conf
+source $OPENSHIFT_MOCK_DIR/mock.conf
+
+function start {
+  touch $MOCK_STATE/control_start
+  touch $MOCK_STATE/mock_process
+}
+
+function stop {
+  touch $MOCK_STATE/control_stop
+  rm -f $MOCK_STATE/mock_process
+}
+
+function restart {
+  touch $MOCK_STATE/control_restart
+  stop
+  start
+}
+
+function status {
+  touch $MOCK_STATE/control_status
+  [ -f $MOCK_STATE/mock_process ]
+}
 
 case "$1" in
-  start)       touch $MOCK_STATE/control_start ;;
-  stop)        touch $MOCK_STATE/control_stop ;;
-  restart)     touch $MOCK_STATE/control_restart ;;
-  status)      touch $MOCK_STATE/control_status ;;
+  start)       start ;;
+  stop)        stop ;;
+  restart)     restart ;;
+  status)      status ;;
   reload)      touch $MOCK_STATE/control_reload ;;
   tidy)        touch $MOCK_STATE/control_tidy ;;
   pre-build)   touch $MOCK_STATE/control_pre_build ;;

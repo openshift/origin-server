@@ -2,17 +2,42 @@
 
 PATH=/bin/:/usr/bin:$PATH
 
-cartridge_instance_dir=redhat-mock-plugin
-source $cartridge_instance_dir/mock-plugin.conf
+source $OPENSHIFT_MOCK_PLUGIN_DIR/mock-plugin.conf
+
+function start {
+  touch $MOCK_STATE/control_start
+  touch $MOCK_STATE/mock_process
+}
+
+function stop {
+  touch $MOCK_STATE/control_stop
+  rm -f $MOCK_STATE/mock_process
+}
+
+function restart {
+  touch $MOCK_STATE/control_restart
+  touch $MOCK_STATE/mock_process
+  stop
+  start
+}
+
+function status {
+  touch $MOCK_STATE/control_status
+  [ -f $MOCK_STATE/mock_process ]
+}
 
 case "$1" in
-  start)     touch $MOCK_STATE/control_start ;;
-  stop)      touch $MOCK_STATE/control_stop ;;
-  restart)   touch $MOCK_STATE/control_restart ;;
-  status)    touch $MOCK_STATE/control_status ;;
-  reload)    touch $MOCK_STATE/control_reload ;;
-  tidy)      touch $MOCK_STATE/contol_tidy ;;
-  *)         exit 0
+  start)       start ;;
+  stop)        stop ;;
+  restart)     restart ;;
+  status)      status ;;
+  reload)      touch $MOCK_STATE/control_reload ;;
+  tidy)        touch $MOCK_STATE/control_tidy ;;
+  pre-build)   touch $MOCK_STATE/control_pre_build ;;
+  build)       touch $MOCK_STATE/control_build ;;
+  deploy)      touch $MOCK_STATE/control_deploy ;;
+  post-deploy) touch $MOCK_STATE/control_post_deploy ;;
+  *)           exit 0
 esac
 
 exit 0

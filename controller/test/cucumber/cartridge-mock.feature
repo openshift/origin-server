@@ -120,3 +120,76 @@ Feature: V2 SDK Mock Cartridge
     And the mock-plugin-0.1 cartridge private endpoints will be concealed
     And the mock-plugin-0.1 cartridge instance directory will not exist
 
+  Scenario: Basic state checks for an application with an embedded cartridge
+    Given a v2 default node
+    Given a new mock-0.1 type application   
+    
+    When I embed a mock-plugin-0.1 cartridge into the application
+    Then the application state will be started
+    And the mock-0.1 cartridge status should be running
+    And the mock-plugin-0.1 cartridge status should be running
+    And the application stoplock should not be present
+
+    When I stop the application
+    Then the application state will be stopped
+    And the mock-0.1 cartridge status should be stopped
+    And the mock-plugin-0.1 cartridge status should be stopped
+    And the application stoplock should be present
+
+    When the application is made publicly accessible 
+    And the application is prepared for git pushes
+    And a simple update is pushed to the application repo
+    Then the mock control_build marker will exist
+    And the application state will be stopped
+    And the mock-0.1 cartridge status should be stopped
+    And the mock-plugin-0.1 cartridge status should be stopped
+    And the application stoplock should be present
+
+    When I start the application
+    Then the application state will be started
+    And the mock-0.1 cartridge status should be running
+    And the mock-plugin-0.1 cartridge status should be running
+    And the application stoplock should not be present
+
+    When a simple update is pushed to the application repo
+    Then the application state will be started
+    And the mock-0.1 cartridge status should be running
+    And the mock-plugin-0.1 cartridge status should be running
+    And the application stoplock should not be present
+    
+    When I stop the mock-plugin-0.1 cartridge
+    Then the application state will be started
+    And the mock-0.1 cartridge status should be running
+    And the mock-plugin-0.1 cartridge status should be stopped
+    And the application stoplock should not be present
+
+    When I start the mock-plugin-0.1 cartridge
+    Then the application state will be started
+    And the mock-0.1 cartridge status should be running
+    And the mock-plugin-0.1 cartridge status should be running
+    And the application stoplock should not be present
+
+    When I stop the mock-0.1 cartridge
+    Then the application state will be stopped
+    And the mock-0.1 cartridge status should be stopped
+    And the mock-plugin-0.1 cartridge status should be running
+    And the application stoplock should be present
+
+    When I stop the mock-plugin-0.1 cartridge
+    Then the application state will be stopped
+    And the mock-0.1 cartridge status should be stopped
+    And the mock-plugin-0.1 cartridge status should be stopped
+    And the application stoplock should be present
+
+    When I start the mock-plugin-0.1 cartridge
+    Then the application state will be stopped
+    And the mock-0.1 cartridge status should be stopped
+    And the mock-plugin-0.1 cartridge status should be running
+    And the application stoplock should be present
+
+    When I start the mock-0.1 cartridge
+    Then the application state will be started
+    And the mock-0.1 cartridge status should be running
+    And the mock-plugin-0.1 cartridge status should be running
+    And the application stoplock should not be present
+    
