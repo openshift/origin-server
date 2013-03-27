@@ -82,8 +82,6 @@ function ishttpup() {
 }
 
 function build() {
-	# sync repo - this will eventually move to the Node
-    git archive --format=tar HEAD | (cd ${OPENSHIFT_REPO_DIR} && tar --warning=no-timestamp -xf -)
     
 	CONFIG_DIR="${OPENSHIFT_JBOSSEAP_DIR}/standalone/configuration"
 	OPENSHIFT_MAVEN_MIRROR="${CONFIG_DIR}/settings.base.xml"
@@ -273,6 +271,14 @@ function threaddump() {
     fi
 }
 
+function pre-build() {
+
+}
+
+function post-deploy() {
+
+}
+
 case "$1" in
   build)		build ;;
   deploy)	    deploy ;;
@@ -283,6 +289,8 @@ case "$1" in
   reload)    	reload ;;
   tidy)      	tidy ;;
   threaddump)   threaddump ;;
+  pre-build)    pre-build ;;
+  post-deploy)  post-deploy ;;
   *)         	exit 0
 esac
 
