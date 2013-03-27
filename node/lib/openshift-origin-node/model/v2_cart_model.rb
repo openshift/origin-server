@@ -760,9 +760,9 @@ module OpenShift
     #                                        'pre' and 'post' depending on their execution order.
     def do_control_with_directory(action, options={})
       cartridge_dir             = options[:cartridge_dir]
-      pre_action_hooks_enabled  = options[:pre_action_hooks_enabled] || true
-      post_action_hooks_enabled = options[:post_action_hooks_enabled] || true
-      prefix_action_hooks       = options[:prefix_action_hooks] || true
+      pre_action_hooks_enabled  = options.has_key?(:pre_action_hooks_enabled)  ? options[:pre_action_hooks_enabled]  : true
+      post_action_hooks_enabled = options.has_key?(:post_action_hooks_enabled) ? options[:post_action_hooks_enabled] : true
+      prefix_action_hooks       = options.has_key?(:prefix_action_hooks)       ? options[:prefix_action_hooks]       : true
 
       logger.debug { "#{@user.uuid} #{action} against '#{cartridge_dir}'" }
       buffer       = ''
@@ -812,12 +812,7 @@ module OpenShift
     # Executes the named +action+ from the user repo +action_hooks+ directory and returns the
     # stdout of the execution, or raises a +ShellExecutionException+ if the action returns a
     # non-zero return code.
-    #
-    # If +env+ is not specified, the environment from +Environment.for_gear+ will be used for
-    # the execution.
-    def do_action_hook(action, env=nil)
-      env = env ||= Utils::Environ.for_gear(@user.homedir)
-
+    def do_action_hook(action, env)
       action_hooks_dir = File.join(@user.homedir, %w{app-root runtime repo .openshift action_hooks})
       action_hook = File.join(action_hooks_dir, action)
       out = ''
@@ -830,7 +825,7 @@ module OpenShift
                                       uid:             @user.uid)
         raise Utils::ShellExecutionException.new(
                   "Failed to execute action hook '#{action}' for #{@user.uuid} application #{@user.app_name}",
-                  rc, buffer, err
+                  rc, out, err
               ) if rc != 0
       end
 
