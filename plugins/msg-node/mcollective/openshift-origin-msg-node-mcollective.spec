@@ -10,7 +10,7 @@
 
 Summary:       M-Collective agent file for openshift-origin-msg-node-mcollective
 Name:          openshift-origin-msg-node-mcollective
-Version: 1.6.3
+Version: 1.6.4
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -54,6 +54,10 @@ cp -p facts/update_yaml.rb %{buildroot}/usr/libexec/mcollective/
 %attr(0700,-,-) %config(noreplace) /etc/cron.minutely/openshift-facts
 
 %changelog
+* Wed Mar 27 2013 Adam Miller <admiller@redhat.com> 1.6.4-1
+- WIP Cartridge Refactor - Roll out old threaddump support (jhonce@redhat.com)
+- WIP Cartridge Refactor - Add PHP support for threaddump (jhonce@redhat.com)
+
 * Mon Mar 18 2013 Adam Miller <admiller@redhat.com> 1.6.3-1
 - Add SNI upload support to API (lnader@redhat.com)
 
