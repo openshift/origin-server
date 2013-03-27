@@ -9,7 +9,7 @@
 
 Summary:       OpenShift Origin Management Console
 Name:          rubygem-%{gem_name}
-Version: 1.6.6
+Version: 1.6.7
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -134,6 +134,17 @@ cp -a ./%{gem_dir}/* %{buildroot}%{gem_dir}/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Wed Mar 27 2013 Adam Miller <admiller@redhat.com> 1.6.7-1
+- Minor wording and styling bug fixes, improved tests for SSL certificates
+  (ffranz@redhat.com)
+- Minor visual tweaks on the web console, alias list (ffranz@redhat.com)
+- Merge pull request #1813 from fotioslindiakos/BZ922689 (dmcphers@redhat.com)
+- Merge pull request #1812 from liggitt/invoice_styles (dmcphers@redhat.com)
+- Fix for not showing proper cartridge errors (fotios@redhat.com)
+- Add placeholder styles for usage graph types (jliggitt@redhat.com)
+- Bug 923746 - Tax exempt link should point to public page
+  (ccoleman@redhat.com)
+
 * Tue Mar 26 2013 Adam Miller <admiller@redhat.com> 1.6.6-1
 - Merge pull request #1785 from sg00dwin/0325dev
   (dmcphers+openshiftbot@redhat.com)
