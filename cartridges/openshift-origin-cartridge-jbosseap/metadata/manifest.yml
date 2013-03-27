@@ -85,9 +85,16 @@ Group-Overrides:
     - web_proxy
 Endpoints:
   - Private-IP-Name:   IP
-    Private-Port-Name: PORT
+    Private-Port-Name: HTTP_PORT
     Private-Port:      8080
-    Public-Port-Name:  PROXY_PORT
+    Public-Port-Name:  HTTP_PROXY_PORT
+    Mappings:
+      - Frontend:      ""
+        Backend:       ""
+        Options:       { "websocket": 1}
+      - Frontend:      "/health"
+        Backend:       "/$OPENSHIFT_REPO_DIR/.openshift/configuration/health.html"
+        Options:       { "file": 1}
   - Private-IP-Name:   IP
     Private-Port-Name: CLUSTER_PORT
     Private-Port:      7600
