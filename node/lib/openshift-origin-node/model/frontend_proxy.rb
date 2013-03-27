@@ -57,6 +57,13 @@ module OpenShift
       @uid_begin = (config.get("UID_BEGIN") || "500").to_i
     end
 
+    # Note, due to a mismatch between dev and prod this is
+    # intentionally not GEAR_MIN_UID and the range must
+    # wrap back around on itself.
+    def wrap_uid
+      ((65536 - @port_begin) / @ports_per_user) + @uid_begin
+    end
+
     # Returns a Range representing the valid proxy port values for the
     # given UID.
     #
@@ -64,11 +71,6 @@ module OpenShift
     # produce identical results to the abstract cartridge provided
     # range.
     def port_range(uid)
-      # Note, due to a mismatch between dev and prod this is
-      # intentionally not GEAR_MIN_UID and the range must
-      # wrap back around on itself.
-      wrap_uid = ((65536 - @port_begin)/@ports_per_user)+@uid_begin
-
       if uid >= wrap_uid
         tuid = uid - wrap_uid + @uid_begin
       else
