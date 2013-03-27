@@ -170,6 +170,8 @@ rm -rf %{buildroot}%{gem_instdir}/.yardoc
 chmod 755 %{buildroot}%{gem_instdir}/test/unit/*.rb
 
 %post
+/bin/rm -f /etc/openshift/env/*.rpmnew
+
 echo "/usr/bin/oo-trap-user" >> /etc/shells
 
 # Enable cgroups on ssh logins
