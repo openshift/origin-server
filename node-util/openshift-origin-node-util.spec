@@ -72,7 +72,6 @@ mv services/openshift-gears.service %{buildroot}/etc/systemd/system/openshift-ge
 %attr(0750,-,-) %{_sbindir}/oo-restorecon
 %attr(0750,-,-) %{_sbindir}/oo-restorer
 %attr(0750,-,apache) %{_sbindir}/oo-restorer-wrapper.sh
-%attr(0750,-,-) %{_sbindir}/oo-setup-node
 %attr(0755,-,-) %{_bindir}/rhc-list-ports
 %attr(0755,-,-) %{_sbindir}/oo-httpd-singular
 %attr(0750,-,-) %{_sbindir}/oo-su
@@ -95,7 +94,6 @@ mv services/openshift-gears.service %{buildroot}/etc/systemd/system/openshift-ge
 %{_mandir}/man8/oo-restorecon.8.gz
 %{_mandir}/man8/oo-restorer.8.gz
 %{_mandir}/man8/oo-restorer-wrapper.sh.8.gz
-%{_mandir}/man8/oo-setup-node.8.gz
 %{_mandir}/man8/rhc-list-ports.8.gz
 %{_mandir}/man8/oo-httpd-singular.8.gz
 
