@@ -794,11 +794,7 @@ class Application
   # {PendingAppOps} object which tracks the progress of the operation.
   def remove_alias(fqdn)
     fqdn = fqdn.downcase if fqdn
-    begin
-      al1as = aliases.find_by(fqdn: fqdn)
-    rescue Mongoid::Errors::DocumentNotFound
-      raise OpenShift::UserException.new("Alias '#{fqdn}' does not exist for '#{self.name}'", 173) 
-    end
+    al1as = aliases.find_by(fqdn: fqdn)
     Application.run_in_application_lock(self) do
       if al1as.has_private_ssl_certificate
          op_group = PendingAppOpGroup.new(op_type: :remove_ssl_cert, args: {"fqdn" => al1as.fqdn}, user_agent: self.user_agent)
@@ -817,11 +813,7 @@ class Application
     validate_certificate(ssl_certificate, private_key, pass_phrase)
     
     fqdn = fqdn.downcase if fqdn
-    begin
-      old_alias = aliases.find_by(fqdn: fqdn)
-    rescue Mongoid::Errors::DocumentNotFound
-      raise OpenShift::UserException.new("Alias '#{fqdn}' does not exist for '#{self.name}'", 173) 
-    end
+    old_alias = aliases.find_by(fqdn: fqdn)
     Application.run_in_application_lock(self) do
       #remove old certificate
       if old_alias.has_private_ssl_certificate
