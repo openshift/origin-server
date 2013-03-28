@@ -1627,7 +1627,8 @@ class Application
           if scale_change < 0
             remove_gears += -scale_change
             ginst = self.group_instances.find(change[:from])
-            gears = ginst.gears[(ginst.gears.length + scale_change)..-1]
+            scaled_gears = ginst.gears.select { |g| g.app_dns==false }
+            gears = scaled_gears[(scaled_gears.length + scale_change)..-1]
             remove_ids = gears.map{|g| g._id.to_s}
             ops = calculate_gear_destroy_ops(ginst._id.to_s, remove_ids, ginst.addtl_fs_gb)
             pending_ops.push(*ops)
