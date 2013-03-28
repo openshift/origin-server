@@ -7,7 +7,7 @@
 
 Summary:       Provides embedded haproxy-1.4 support
 Name:          openshift-origin-cartridge-haproxy-1.4
-Version: 1.7.0
+Version: 1.7.1
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -84,6 +84,9 @@ ln -s %{cartridgedir}/../../abstract/info/hooks/system-messages %{buildroot}%{ca
 
 
 %changelog
+* Thu Mar 28 2013 Adam Miller <admiller@redhat.com> 1.7.1-1
+- bump_minor_versions for sprint 26 (admiller@redhat.com)
+
 * Tue Mar 26 2013 Adam Miller <admiller@redhat.com> 1.6.4-1
 - Merge pull request #1793 from rmillner/BZ923611 (dmcphers@redhat.com)
 - Bug 923611 - wsgiref based python servers react poorly to the session closing
