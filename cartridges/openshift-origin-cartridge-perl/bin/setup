@@ -7,6 +7,7 @@ PATH=/bin:/usr/bin:$PATH
 version=5.10
 
 # Copy the version specific files to perl directory
+shopt -s dotglob
 cp -r $OPENSHIFT_PERL_DIR/versions/$version/etc/* $OPENSHIFT_PERL_DIR/etc
 cp -r $OPENSHIFT_PERL_DIR/versions/$version/metadata/* $OPENSHIFT_PERL_DIR/metadata
 cp -r $OPENSHIFT_PERL_DIR/versions/$version/template/* $OPENSHIFT_PERL_DIR/template
