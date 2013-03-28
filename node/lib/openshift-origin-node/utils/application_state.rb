@@ -77,10 +77,10 @@ module OpenShift
       def value
         begin
           File.open(@state_file) { |input| input.read.chomp }
-        rescue Errno, Exception => e
+        rescue => e
           msg = "Failed to get state: #{@uuid} [#{@state_file}]: "
-          case e.class.name
-          when /^Errno/
+          case e
+          when SystemCallError
             # This catches filesystem level errors
             # We split the message because it contains the filename
             msg << e.message.split(' - ').first
