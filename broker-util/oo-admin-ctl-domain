@@ -18,13 +18,15 @@ Options:
     Login with OpenShift access (required)
 -n|--namespace <Namespace>
     Namespace for application(s) (alphanumeric - max 16 chars) (required)
--c|--command (create|update|delete|info)
+-c|--command (create|update|delete|info|env_add|env_del)
 -s|--ssh_key <ssh key>
     User's SSH key
 -t|--key_type <ssh key type>
     User's SSH key type (ssh-rsa|ssh-dss|ecdsa-sha2-nistp256-cert-v01@openssh.com|ecdsa-sha2-nistp384-cert-v01@openssh.com|ecdsa-sha2-nistp521-cert-v01@openssh.com|ssh-rsa-cert-v01@openssh.com|ssh-dss-cert-v01@openssh.com|ssh-rsa-cert-v00@openssh.com|ssh-dss-cert-v00@openssh.com|ecdsa-sha2-nistp256|ecdsa-sha2-nistp384|ecdsa-sha2-nistp521)
 -k|--key_name <ssh key name>
     User's SSH key name
+-e|--env_name <env var name>
+-v|--env_value <env var value>
 -h|--help:
     Show Usage info
 USAGE
@@ -38,6 +40,8 @@ opts = GetoptLong.new(
     ["--ssh_key",          "-s", GetoptLong::REQUIRED_ARGUMENT],
     ["--key_type",         "-t", GetoptLong::REQUIRED_ARGUMENT],
     ["--key_name",         "-k", GetoptLong::REQUIRED_ARGUMENT],
+    ["--env_name",         "-e", GetoptLong::REQUIRED_ARGUMENT],
+    ["--env_value",        "-v", GetoptLong::REQUIRED_ARGUMENT],
     ["--help",             "-h", GetoptLong::NO_ARGUMENT]
 )
 
@@ -53,6 +57,8 @@ ssh_key = args["--ssh_key"]
 ssh_type = args["--key_type"]
 ssh_name = args["--key_name"]
 namespace = args["--namespace"]
+env_name = args["--env_name"]
+env_value = args["--env_value"]
 
 if login.nil? or args["--help"]
   usage
@@ -64,6 +70,60 @@ Rails.configuration.analytics[:enabled] = false
 
 reply = ResultIO.new
 case args["--command"]
+when "env_add"
+  if env_name.nil? || env_value.nil?
+    print "Please provide environment variable name and value\n"
+    exit 1
+  end
+  begin
+    user = CloudUser.find_by(login: login)
+  rescue Mongoid::Errors::DocumentNotFound
+    puts "User with login: #{login} not found"
+    exit 1
+  end
+  begin
+    domain = Domain.find_by(owner: user, namespace: namespace)
+  rescue Mongoid::Errors::DocumentNotFound
+    puts "Domain with namespace: #{namespace} not found for user #{user.login}"
+    exit 1
+  end
+
+  env = domain.env_vars.select{ |e| e["key"] == env_name }.first
+  unless env.nil?
+    puts "Environment variable with name #{env_name} already exists in the domain. Please remove it first"
+    exit 1
+  end
+
+  domain.add_env_variables([{"key" => env_name, "value" => env_value}])
+  domain.with(consistency: :strong).reload
+  domain.run_jobs
+when "env_del"
+  if env_name.nil?
+    print "Please provide environment variable name\n"
+    exit 1
+  end
+  begin
+    user = CloudUser.find_by(login: login)
+  rescue Mongoid::Errors::DocumentNotFound
+    puts "User with login: #{login} not found"
+    exit 1
+  end
+  begin
+    domain = Domain.find_by(owner: user, namespace: namespace)
+  rescue Mongoid::Errors::DocumentNotFound
+    puts "Domain with namespace: #{namespace} not found for user #{user.login}"
+    exit 1
+  end
+
+  env = domain.env_vars.select{ |e| e["key"] == env_name }.first
+  if env.nil?
+    puts "Environment variable #{env_name} not found withing domain #{namespace}"
+    exit 1
+  end
+
+  domain.remove_env_variables([{"key" => env["key"], "value" => env["value"]}])
+  domain.with(consistency: :strong).reload
+  domain.run_jobs
 when "create"
   if ssh_key.nil? || namespace.nil? || login.nil?
     print "Please provide login, ssh key and namespace to create the user\n"
