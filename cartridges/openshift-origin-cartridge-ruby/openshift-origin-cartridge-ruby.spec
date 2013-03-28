@@ -7,7 +7,7 @@
 %global frameworkdir %{_libexecdir}/openshift/cartridges/v2/ruby
 
 Name:          openshift-origin-cartridge-ruby
-Version: 0.2.0
+Version: 0.2.1
 Release:       1%{?dist}
 Summary:       Ruby cartridge
 Group:         Development/Languages
@@ -150,6 +150,10 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Thu Mar 28 2013 Adam Miller <admiller@redhat.com> 0.2.1-1
+- bump_minor_versions for sprint 26 (admiller@redhat.com)
+- BZ928282: Copy over hidden files under template. (mrunalp@gmail.com)
+
 * Mon Mar 25 2013 Adam Miller <admiller@redhat.com> 0.1.6-1
 - corrected some 1.8/1.9 issues, cucumber tests now work (mmcgrath@redhat.com)
 - fixed for vendor-ruby bits (mmcgrath@redhat.com)
