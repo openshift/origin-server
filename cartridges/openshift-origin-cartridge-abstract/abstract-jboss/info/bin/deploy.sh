@@ -13,8 +13,7 @@ CART_NAME=$(get_cartridge_name_from_path)
 
 if [ ! -h ${OPENSHIFT_REPO_DIR}/deployments ] && [ ! -h ${OPENSHIFT_HOMEDIR}/${CART_NAME}/${CART_NAME}/standalone/deployments ]
 then
-  rm -f ${OPENSHIFT_HOMEDIR}/${CART_NAME}/${CART_NAME}/standalone/deployments/*ar.failed
-  cp -rf ${OPENSHIFT_REPO_DIR}/deployments/* ${OPENSHIFT_HOMEDIR}/${CART_NAME}/${CART_NAME}/standalone/deployments
+  rsync -r --delete --force ${OPENSHIFT_REPO_DIR}/deployments ${OPENSHIFT_HOMEDIR}/${CART_NAME}/${CART_NAME}/standalone/deployments
 fi
 
 if hot_deploy_marker_is_present; then

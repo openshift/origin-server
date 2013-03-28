@@ -165,6 +165,8 @@ function build() {
             	mvn $MAVEN_ARGS
         	fi
         	popd > /dev/null
+        	
+        	CART_NAME=redhat-${cartridge_type}
     	fi
 	fi
 
@@ -172,6 +174,10 @@ function build() {
 
 function deploy() {
 	echo "Deploying $cartridge_type cart"
+	
+	CART_NAME=redhat-${cartridge_type}
+	
+	rsync -r --delete --force ${OPENSHIFT_REPO_DIR}/deployments/* ${OPENSHIFT_HOMEDIR}/${CART_NAME}/standalone/deployments
 }
 
 function start() {
