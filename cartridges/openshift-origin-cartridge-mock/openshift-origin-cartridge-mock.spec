@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/openshift/cartridges/v2/mock
 
 Name: openshift-origin-cartridge-mock
-Version: 0.2.0
+Version: 0.2.1
 Release: 1%{?dist}
 Summary: Mock cartridge for V2 Cartridge SDK
 Group: Development/Languages
@@ -61,6 +61,10 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Thu Mar 28 2013 Adam Miller <admiller@redhat.com> 0.2.1-1
+- bump_minor_versions for sprint 26 (admiller@redhat.com)
+- Improve mock/mock-plugin cartridges (ironcladlou@gmail.com)
+
 * Wed Mar 27 2013 Adam Miller <admiller@redhat.com> 0.1.6-1
 - Merge pull request #1809 from ironcladlou/dev/v2carts/build-system
   (dmcphers+openshiftbot@redhat.com)
