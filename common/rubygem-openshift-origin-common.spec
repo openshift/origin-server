@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Common
 Name:          rubygem-%{gem_name}
-Version: 1.6.0
+Version: 1.6.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -95,6 +95,9 @@ cp -a ./%{gem_dir}/* %{buildroot}%{gem_dir}/
 %doc %{gem_docdir}
 
 %changelog
+* Thu Mar 28 2013 Adam Miller <admiller@redhat.com> 1.6.1-1
+- bump_minor_versions for sprint 26 (admiller@redhat.com)
+
 * Tue Mar 26 2013 Adam Miller <admiller@redhat.com> 1.5.4-1
 - Fix bug 927893 - calculate is_premium? by checking for usage rates
   (jliggitt@redhat.com)
