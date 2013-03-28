@@ -3,7 +3,7 @@
 
 Summary:       Embedded phpMyAdmin support for express
 Name:          openshift-origin-cartridge-phpmyadmin-3.4
-Version: 1.6.2
+Version: 1.7.0
 Release:       1%{?dist}
 Group:         Applications/Internet
 License:       ASL 2.0

@@ -8,7 +8,7 @@
 
 Summary:       Provides embedded PostgreSQL support
 Name:          openshift-origin-cartridge-postgresql-8.4
-Version: 1.6.2
+Version: 1.7.0
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0

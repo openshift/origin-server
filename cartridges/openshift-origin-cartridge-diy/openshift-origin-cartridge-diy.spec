@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/openshift/cartridges/v2/diy
 
 Name: openshift-origin-cartridge-diy
-Version: 0.1.6
+Version: 0.2.0
 Release: 1%{?dist}
 Summary: Php cartridge
 Group: Development/Languages

@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/openshift/cartridges/v2/cron
 
 Name: openshift-origin-cartridge-cron
-Version: 1.4.2
+Version: 1.5.0
 Release: 1%{?dist}
 Summary: Embedded cron support for OpenShift
 Group: Development/Languages

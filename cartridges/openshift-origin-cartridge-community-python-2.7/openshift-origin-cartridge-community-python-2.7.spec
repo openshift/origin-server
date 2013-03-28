@@ -2,7 +2,7 @@
 
 Summary:       Provides support for using community Python 2.7 cartridge
 Name:          openshift-origin-cartridge-community-python-2.7
-Version: 0.3.2
+Version: 0.4.0
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
