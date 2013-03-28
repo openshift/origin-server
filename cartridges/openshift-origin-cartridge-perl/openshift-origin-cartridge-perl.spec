@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/openshift/cartridges/v2/perl
 
 Name: openshift-origin-cartridge-perl
-Version: 0.2.0
+Version: 0.2.1
 Release: 1%{?dist}
 Summary: Perl cartridge
 Group: Development/Languages
@@ -63,6 +63,10 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Thu Mar 28 2013 Adam Miller <admiller@redhat.com> 0.2.1-1
+- bump_minor_versions for sprint 26 (admiller@redhat.com)
+- BZ928282: Copy over hidden files under template. (mrunalp@gmail.com)
+
 * Fri Mar 22 2013 Adam Miller <admiller@redhat.com> 0.1.5-1
 - Merge pull request #1755 from mrunalp/dev/perl_rhc_app_create_fixes
   (dmcphers@redhat.com)
