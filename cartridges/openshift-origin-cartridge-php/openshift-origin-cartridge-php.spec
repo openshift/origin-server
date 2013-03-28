@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/openshift/cartridges/v2/php
 
 Name: openshift-origin-cartridge-php
-Version: 0.2.0
+Version: 0.2.1
 Release: 1%{?dist}
 Summary: Php cartridge
 Group: Development/Languages
@@ -74,6 +74,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Thu Mar 28 2013 Adam Miller <admiller@redhat.com> 0.2.1-1
+- bump_minor_versions for sprint 26 (admiller@redhat.com)
+
 * Wed Mar 27 2013 Adam Miller <admiller@redhat.com> 0.1.7-1
 - Merge pull request #1821 from jwhonce/wip/threaddump
   (dmcphers+openshiftbot@redhat.com)
