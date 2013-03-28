@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.6.7
+Version: 1.6.8
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -83,6 +83,32 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Wed Mar 27 2013 Adam Miller <admiller@redhat.com> 1.6.8-1
+- Fixing retry logic of rest-domains.feature tests to not run F18-only tests on
+  RHEL and vice-versa https://bugzilla.redhat.com/show_bug.cgi?id=928382
+  (kraman@gmail.com)
+- Merge pull request #1815 from lnader/master
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #1821 from jwhonce/wip/threaddump
+  (dmcphers+openshiftbot@redhat.com)
+- Corrected the incorrect fix put in for bug 915673 (lnader@redhat.com)
+- WIP Cartridge Refactor - Roll out old threaddump support (jhonce@redhat.com)
+- Merge pull request #1817 from jwhonce/wip/threaddump (dmcphers@redhat.com)
+- Merge pull request #1816 from rmillner/fix_runtime (dmcphers@redhat.com)
+- Merge pull request #1809 from ironcladlou/dev/v2carts/build-system
+  (dmcphers+openshiftbot@redhat.com)
+- Read values from node.conf for origin testing. (rmillner@redhat.com)
+- Merge pull request #1808 from lnader/master (dmcphers@redhat.com)
+- Merge pull request #1811 from kraman/gen_docs (dmcphers@redhat.com)
+- WIP Cartridge Refactor - Add PHP support for threaddump (jhonce@redhat.com)
+- don't catch Mongoid::Errors::DocumentNotFound (lnader@redhat.com)
+- Bug 915673 (lnader@redhat.com)
+- Update docs generation and add node/cartridge guides [WIP]
+  https://trello.com/c/yUMBZ0P9 (kraman@gmail.com)
+- Bug 927614: Fix action hook execution during v2 control ops
+  (ironcladlou@gmail.com)
+- fixing test cases (dmcphers@redhat.com)
+
 * Tue Mar 26 2013 Adam Miller <admiller@redhat.com> 1.6.7-1
 - Fix for bug 920016   Handling exception thrown by get_bool util method
   (abhgupta@redhat.com)

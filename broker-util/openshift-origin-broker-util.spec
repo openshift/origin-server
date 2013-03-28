@@ -6,7 +6,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin broker
 Name:          openshift-origin-broker-util
-Version: 1.6.6
+Version: 1.6.7
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -80,6 +80,21 @@ cp man/*.8 %{buildroot}%{_mandir}/man8/
 %{_mandir}/man8/oo-stats.8.gz
 
 %changelog
+* Wed Mar 27 2013 Adam Miller <admiller@redhat.com> 1.6.7-1
+- Merge pull request #1789 from brenton/master (dmcphers@redhat.com)
+- Merge pull request #1777 from kraman/remove_oo_scripts
+  (dmcphers+openshiftbot@redhat.com)
+- Removing oo-setup-* scripts as they have been replaced by puppet and ansible
+  modules. Updating puppet setup docs (kraman@gmail.com)
+- Merge remote-tracking branch 'origin/master' into update_to_new_plan_values
+  (ccoleman@redhat.com)
+- Remove references to plans from origin-server (ccoleman@redhat.com)
+- Merge remote-tracking branch 'origin/master' into update_to_new_plan_values
+  (ccoleman@redhat.com)
+- MegaShift => Silver (ccoleman@redhat.com)
+- Adding SESSION_SECRET settings to the broker and console
+  (bleanhar@redhat.com)
+
 * Tue Mar 26 2013 Adam Miller <admiller@redhat.com> 1.6.6-1
 - Fix for bug 927154 Fixing multiple issues in remove-gear command of admin
   script (abhgupta@redhat.com)

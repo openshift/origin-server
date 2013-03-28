@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/openshift/cartridges/v2/mock
 
 Name: openshift-origin-cartridge-mock
-Version: 0.1.5
+Version: 0.1.6
 Release: 1%{?dist}
 Summary: Mock cartridge for V2 Cartridge SDK
 Group: Development/Languages
@@ -61,6 +61,14 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Wed Mar 27 2013 Adam Miller <admiller@redhat.com> 0.1.6-1
+- Merge pull request #1809 from ironcladlou/dev/v2carts/build-system
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 927614: Fix action hook execution during v2 control ops
+  (ironcladlou@gmail.com)
+- WIP Cartridge Refactor - Refactor V2 connector_execute to use V1 contract
+  (jhonce@redhat.com)
+
 * Fri Mar 22 2013 Adam Miller <admiller@redhat.com> 0.1.5-1
 - WIP Cartridge Refactor - Add support for connection hooks (jhonce@redhat.com)
 
