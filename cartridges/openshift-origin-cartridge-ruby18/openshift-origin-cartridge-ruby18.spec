@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/openshift/cartridges/v2/ruby18
 
 Name: openshift-origin-cartridge-ruby18
-Version: 0.2.0
+Version: 0.2.1
 Release: 1%{?dist}
 Summary: Ruby cartridge
 Group: Development/Languages
@@ -81,6 +81,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Thu Mar 28 2013 Adam Miller <admiller@redhat.com> 0.2.1-1
+- bump_minor_versions for sprint 26 (admiller@redhat.com)
+
 * Thu Mar 21 2013 Adam Miller <admiller@redhat.com> 0.1.22-1
 - Change V2 manifest Version elements to strings (pmorie@gmail.com)
 - Fix Ruby's description (asari.ruby@gmail.com)
