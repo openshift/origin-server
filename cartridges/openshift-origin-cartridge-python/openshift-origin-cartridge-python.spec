@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/openshift/cartridges/v2/python
 
 Name: openshift-origin-cartridge-python
-Version: 0.2.0
+Version: 0.2.1
 Release: 1%{?dist}
 Summary: Python cartridge
 Group: Development/Languages
@@ -70,6 +70,15 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Thu Mar 28 2013 Adam Miller <admiller@redhat.com> 0.2.1-1
+- bump_minor_versions for sprint 26 (admiller@redhat.com)
+- Merge pull request #1834 from mrunalp/bugs/928282
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #1829 from mrunalp/bugs/928281
+  (dmcphers+openshiftbot@redhat.com)
+- BZ928282: Copy over hidden files under template. (mrunalp@gmail.com)
+- BZ928281: Fix python logs. (mrunalp@gmail.com)
+
 * Wed Mar 27 2013 Adam Miller <admiller@redhat.com> 0.1.6-1
 - Add ATLAS devel libs to bring up a newer version of numpy.
   (rmillner@redhat.com)
