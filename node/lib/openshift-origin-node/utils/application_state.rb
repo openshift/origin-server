@@ -18,6 +18,7 @@ require 'rubygems'
 require 'etc'
 require 'openshift-origin-common'
 require 'openshift-origin-node/utils/shell_exec'
+require 'openshift-origin-node/utils/node_logger'
 
 module OpenShift
 
@@ -76,7 +77,18 @@ module OpenShift
       def value
         begin
           File.open(@state_file) { |input| input.read.chomp }
-        rescue
+        rescue Errno, Exception => e
+          msg = "Failed to get state: #{@uuid} [#{@state_file}]: "
+          case e.class.name
+          when /^Errno/
+            # This catches filesystem level errors
+            # We split the message because it contains the filename
+            msg << e.message.split(' - ').first
+          else
+            msg << e.message
+          end
+          NodeLogger.logger.info( msg )
+
           State::UNKNOWN
         end
       end
