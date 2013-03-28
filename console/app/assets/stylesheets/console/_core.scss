@@ -79,6 +79,20 @@ input[type="radio"], input[type="checkbox"],input[type="image"] {
 .well {
   background-color: #242424 /*.*/;
 }
+.platform {
+  background-color: $grayMedium; /* for use with disabled input[type=file] so button text can be visible */
+  min-height: 20px;
+  padding: 19px;
+  margin: 20px 0;
+  border: 1px solid $openshiftAlmostBlack;
+  border: 1px solid rgba(0,0,0,.5);
+  @include border-radius(4px);
+  blockquote {
+    border-color: #ddd;
+    border-color: rgba(0,0,0,.15);
+  }
+}
+
 
 ol.wizard {
   margin: 0 0 15px 5px;

@@ -141,6 +141,22 @@ input[type="file"] {
   line-height: 28px;
 }
 
+input[type="file"] {
+  -webkit-box-sizing: border-box;
+  /*-webkit-appearance: none;*/
+  text-align: left;
+  min-width: 275px;
+}
+
+input[type="file"]::-webkit-file-upload-button {
+  top: 0;
+  float: right;
+  right: 0;
+  position: relative;
+  /*-webkit-appearance: none;*/
+  margin: 0 0 0 10px;
+}
+
 /*
 // Make select elements obey height by applying a border
 select {
