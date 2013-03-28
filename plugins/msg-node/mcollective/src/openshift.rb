@@ -1023,7 +1023,7 @@ module MCollective
         version           = request[:version]
         cartridge_version = request[:cartridge_version]
 
-        reply[:output] = "#{action}: succeeded"
+        reply[:output] = "#{action} succeeded for #{path}"
         begin
           case action
             when 'install'
@@ -1034,13 +1034,13 @@ module MCollective
               reply[:output] = ::OpenShift::CartridgeRepository.instance.to_s
             else
               reply.fail(
-                  "#{action}: is not implemented. openshift.ddl may be out of date.",
+                  "#{action} is not implemented. openshift.ddl may be out of date.",
                   2)
               return
           end
         rescue Exception => e
           Log.instance.info("cartridge_repository_action(#{action}): failed #{e.message}\n#{e.backtrace}")
-          reply.fail!("#{action}: failed #{e.message}", 4)
+          reply.fail!("#{action} failed for #{path} #{e.message}", 4)
         end
       end
     end
