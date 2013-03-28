@@ -10,6 +10,10 @@ module Console::HelpHelper
     user_guide_topic_url 'index.html'
   end
 
+  def newsletter_signup_url
+    community_base_url 'newsletter/signup'
+  end
+
   def ssh_keys_help_path
     community_base_url 'developers/remote-access#keys'
   end
@@ -19,9 +23,9 @@ module Console::HelpHelper
   end
 
   def add_domains_user_guide_topic_url
-    user_guide_topic_url 'sect-OpenShift-User_Guide-OpenShift_Web_Interface-Managing_Your_Namespace.html'
+    user_guide_topic_url 'sect-OpenShift-User_Guide-Working_With_Namespaces.html'
   end
-  
+
   def cartridge_list_url
     community_base_url 'developers/technologies'
   end
@@ -29,7 +33,7 @@ module Console::HelpHelper
   def get_involved_url
     community_base_url 'get-involved'
   end
-  
+
   def suggest_features_url
     community_base_url 'ideas'
   end
@@ -44,6 +48,10 @@ module Console::HelpHelper
 
   def get_involved_developers_url
     community_base_url 'developers/get-involved'
+  end
+
+  def partners_url
+    community_base_url 'partners'
   end
 
   def get_started_quickstart_url
@@ -83,9 +91,9 @@ module Console::HelpHelper
   end
 
   def events_url
-    community_base_url 'events/'
+    community_base_url 'events'
   end
-  
+
   def jenkins_help_url
     community_base_url 'jenkins'
   end
@@ -146,6 +154,10 @@ module Console::HelpHelper
     community_base_url 'developers/scaling'
   end
 
+  def storage_help_url
+    community_base_url 'faq/what-is-add-on-storage'
+  end
+
   def user_guide_url
     user_guide_topic_url 'index.html'
   end
@@ -185,8 +197,8 @@ module Console::HelpHelper
     "http://git-scm.com/"
   end
 
-  def pricing_url
-    community_base_url 'developers/pricing'
+  def pricing_url(opts = nil)
+    community_base_url 'developers/pricing', opts
   end
 
   def legal_url
@@ -217,8 +229,12 @@ module Console::HelpHelper
     community_base_url 'policy/security'
   end
 
-  def tax_exempt_help_status
-    community_base_url 'policy/tax-exemptions'
+  def create_quickstart_url
+    community_base_url 'node/add/quickstart'
+  end
+
+  def community_quickstarts_url
+    community_base_url 'quickstarts'
   end
 
   def console_help_links
@@ -238,7 +254,7 @@ module Console::HelpHelper
     [
       {:href => community_base_url('faq/how-do-i-start-a-new-forum-discussion'),
        :name => 'How do I start a new Forum discussion?'},
-      {:href => community_base_url('faq/how-do-i-install-the-rhc-client-tools-on-windows'), 
+      {:href => community_base_url('faq/how-do-i-install-the-rhc-client-tools-on-windows'),
        :name => 'How do I install the rhc client tools on Windows?'}
     ]
   end
@@ -247,8 +263,16 @@ module Console::HelpHelper
     community_base_url('')
   end
 
-  def community_url
-    community_path
+  def enterprise_evaluation_request_url
+    community_base_url 'page/openshift-enterprise-online-evaluation-request'
+  end
+
+  def resource_request_url
+    community_base_url 'page/resource-request-form'
+  end
+
+  def alias_docs_url
+    community_base_url 'blogs/custom-url-names-for-your-paas-applications-host-forwarding-and-cnames-the-openshift-way'
   end
 
   private
