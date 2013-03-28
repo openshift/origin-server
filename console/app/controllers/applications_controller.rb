@@ -70,7 +70,7 @@ class ApplicationsController < ConsoleController
   include AsyncAware
 
   # trigger synchronous module load 
-  [GearGroup] if Rails.env.development?
+  [GearGroup, Cartridge, Key, Application] if Rails.env.development?
 
   def index
     # replace domains with Applications.find :all, :as => current_user
