@@ -3,7 +3,7 @@
 
 Summary:       Embedded phpMyAdmin support for express
 Name:          openshift-origin-cartridge-phpmyadmin-3.4
-Version: 1.7.0
+Version: 1.7.1
 Release:       1%{?dist}
 Group:         Applications/Internet
 License:       ASL 2.0
@@ -56,6 +56,9 @@ cp %{cartridgedir}/info/configuration/etc/phpMyAdmin/config.inc.php %{_sysconfdi
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Thu Mar 28 2013 Adam Miller <admiller@redhat.com> 1.7.1-1
+- bump_minor_versions for sprint 26 (admiller@redhat.com)
+
 * Thu Mar 14 2013 Adam Miller <admiller@redhat.com> 1.6.2-1
 - Refactor Endpoints to support frontend mapping (ironcladlou@gmail.com)
 - remove old obsoletes (tdawson@redhat.com)
