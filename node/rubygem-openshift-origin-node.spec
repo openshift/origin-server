@@ -16,7 +16,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version:       1.6.9
+Version:       1.6.10
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -242,6 +242,10 @@ fi
 %attr(0755,-,-) %{_var}/run/openshift
 
 %changelog
+* Thu Mar 28 2013 Adam Miller <admiller@redhat.com> 1.6.10-1
+- No longer matching the comment on ssh_key_remove.  Matching all keys which
+  the actual key payload is the same instead. (rmillner@redhat.com)
+
 * Wed Mar 27 2013 Adam Miller <admiller@redhat.com> 1.6.9-1
 - Merge pull request #1821 from jwhonce/wip/threaddump
   (dmcphers+openshiftbot@redhat.com)
