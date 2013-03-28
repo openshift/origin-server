@@ -9,7 +9,7 @@
 
 Summary:       OpenShift Origin Management Console
 Name:          rubygem-%{gem_name}
-Version: 1.7.0
+Version: 1.7.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -134,6 +134,9 @@ cp -a ./%{gem_dir}/* %{buildroot}%{gem_dir}/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Thu Mar 28 2013 Adam Miller <admiller@redhat.com> 1.7.1-1
+- bump_minor_versions for sprint 26 (admiller@redhat.com)
+
 * Wed Mar 27 2013 Adam Miller <admiller@redhat.com> 1.6.7-1
 - Minor wording and styling bug fixes, improved tests for SSL certificates
   (ffranz@redhat.com)
