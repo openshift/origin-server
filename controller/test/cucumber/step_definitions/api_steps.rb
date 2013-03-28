@@ -130,7 +130,7 @@ Given /^a new user, verify typical REST interactios with a ([^ ]+) application o
     When I send a POST request to "/domains/api<random>/applications/app/cartridges/mysql-5.1/events" with the following:"event=restart"
     Then the response should be "200"
     When I send a DELETE request to "/domains/api<random>/applications/app/cartridges/mysql-5.1"
-    Then the response should be "200"
+    Then the response should be "204"
     When I send a PUT request to "/domains/api<random>" with the following:"id=apiX<random>"
     Then the response should be "200"
     And the response should be a "domain" with attributes "id=apiX<random>"
