@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.6.8
+Version: 1.6.9
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -83,6 +83,9 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Thu Mar 28 2013 Adam Miller <admiller@redhat.com> 1.6.9-1
+- scale-down should ignore haproxy gear (rchopra@redhat.com)
+
 * Wed Mar 27 2013 Adam Miller <admiller@redhat.com> 1.6.8-1
 - Fixing retry logic of rest-domains.feature tests to not run F18-only tests on
   RHEL and vice-versa https://bugzilla.redhat.com/show_bug.cgi?id=928382
