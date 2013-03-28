@@ -56,7 +56,7 @@ module OpenShift
       if build_model == :v1
         @cartridge_model = V1CartridgeModel.new(@config, @user)
       else
-        @cartridge_model = V2CartridgeModel.new(@config, @user)
+        @cartridge_model = V2CartridgeModel.new(@config, @user, @state)
       end
       NodeLogger.logger.debug("Creating #{build_model} model for #{container_uuid}: #{__callee__}")
 
@@ -240,7 +240,7 @@ module OpenShift
       gear_repo_dir = File.join(gear_dir, 'git', "#{app_name}.git")
       gear_tmp_dir  = File.join(gear_dir, '.tmp')
 
-      stop_gear
+      stop_gear(user_initiated: false)
 
       # Perform the gear- and cart- level tidy actions.  At this point, the gear has
       # been stopped; we'll attempt to start the gear no matter what tidy operations fail.
@@ -256,7 +256,7 @@ module OpenShift
       rescue Exception => e
         logger.warn("An unknown exception occured during tidy for gear #{@uuid}: #{e.message}\n#{e.backtrace}")
       ensure
-        start_gear
+        start_gear(user_initiated: false)
       end
 
       logger.debug("Completed tidy for gear #{@uuid}")
@@ -266,7 +266,6 @@ module OpenShift
     # Sets the application state to +STOPPED+ and stops the gear. Gear stop implementation
     # is model specific, but +options+ is provided to the implementation.
     def stop_gear(options={})
-      @state.value = OpenShift::State::STOPPED
       @cartridge_model.stop_gear(options)
     end
 
@@ -274,7 +273,6 @@ module OpenShift
     # Sets the application state to +STARTED+ and starts the gear. Gear state implementation
     # is model specific, but +options+ is provided to the implementation.
     def start_gear(options={})
-      @state.value = OpenShift::State::STARTED
       @cartridge_model.start_gear(options)
     end
 
@@ -346,21 +344,6 @@ module OpenShift
       @cartridge_model.post_move(cart_name)
     end
 
-    # === Cartridge control methods
-
-    # start gear
-    # Throws ShellExecutionException on failure
-    def start(cart_name)
-      @state.value = OpenShift::State::STARTED
-      @cartridge_model.do_control("start", cart_name)
-    end
-
-    # stop gear
-    def stop(cart_name)
-      @state.value = OpenShift::State::STOPPED
-      @cartridge_model.do_control("stop", cart_name)
-    end
-
     def pre_receive
       builder_cartridge = @cartridge_model.builder_cartridge
 
@@ -382,11 +365,11 @@ module OpenShift
     end
 
     def ci_deploy
-      start_gear(secondary_only: true)
+      start_gear(secondary_only: true, user_initiated: false)
 
       deploy
 
-      start_gear(primary_only: true)
+      start_gear(primary_only: true, user_initiated: false)
 
       post_deploy
     end
@@ -444,6 +427,16 @@ module OpenShift
                                   @cartridge_model.primary_cartridge,
                                   pre_action_hooks_enabled: false,
                                   prefix_action_hooks:      false)
+    end
+
+    # === Cartridge control methods
+
+    def start(cart_name)
+      @cartridge_model.start_cartridge(cart_name, true)
+    end
+
+    def stop(cart_name)
+      @cartridge_model.stop_cartridge(cart_name, true)
     end
 
     # restart gear as supported by cartridges

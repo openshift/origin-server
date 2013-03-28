@@ -24,6 +24,7 @@ require 'openshift-origin-node/utils/cgroups'
 require 'openshift-origin-node/utils/sdk'
 require 'openshift-origin-node/utils/environ'
 require 'openshift-origin-node/utils/path_utils'
+require 'openshift-origin-node/utils/application_state'
 
 module OpenShift
   # TODO use this exception when oo_spawn fails...
@@ -49,12 +50,19 @@ module OpenShift
     include NodeLogger
 
     FILENAME_BLACKLIST = %W{.ssh .sandbox .tmp .env}
+    # FIXME: need to determine path to correct erb. oo-ruby?
+    ERB_BINARY         = '/usr/bin/oo-ruby /opt/rh/ruby193/root/usr/bin/erb'
 
-    def initialize(config, user)
+    def initialize(config, user, state)
       @config     = config
       @user       = user
+      @state      = state
       @timeout    = 30
       @cartridges = {}
+    end
+
+    def stop_lock
+      File.join(@user.homedir, 'app-root', 'runtime', '.stop_lock')
     end
 
     ##
@@ -207,7 +215,7 @@ module OpenShift
 
         end
 
-        output << do_control_with_directory('start', cartridge_dir: cartridge.directory)
+        output << start_cartridge(cartridge, true)
       end
 
       connect_frontend(cartridge)
@@ -225,7 +233,7 @@ module OpenShift
       cartridge = get_cartridge(cartridge_name)
       delete_private_endpoints(cartridge)
       OpenShift::Utils::Cgroups::with_cgroups_disabled(@user.uuid) do
-        do_control_with_directory('stop', cartridge_dir: cartridge.directory)
+        stop_cartridge(cartridge, true)
         unlock_gear(cartridge) { |c| cartridge_teardown(c.directory) }
         delete_cartridge_directory(cartridge)
       end
@@ -688,15 +696,6 @@ module OpenShift
       end
     end
 
-    def build(cartridge)
-      ApplicationRepository.new(@user).deploy_repository
-      do_control("build", cartridge)
-    end
-
-    def deploy(cartridge)
-      do_control("deploy", cartridge)
-    end
-
     def do_control(action, cartridge, options={})
       case cartridge
         when String
@@ -842,15 +841,26 @@ module OpenShift
       hooks
     end
 
+    def cleanpwd(arg)
+      arg.gsub(/(passwo?r?d\s*[:=]+\s*)\S+/i, '\\1[HIDDEN]').gsub(/(usern?a?m?e?\s*[:=]+\s*)\S+/i,'\\1[HIDDEN]')
+    end
+
     ##
     # Shuts down the gear by running the cartridge +stop+ control action for each cartridge 
     # in the gear.
     #
+    # +options+: hash
+    #   :user_unitiated => [boolean]  : Indicates whether the operation was user initated.
+    #                                   Default is +true+.
+    #
     # Returns the combined output of all +stop+ action executions as a +String+.
     def stop_gear(options={})
+      options[:user_initiated] = true if not options.has_key?(:user_initiated)
+
       buffer = ''
+      
       each_cartridge do |cartridge|
-        buffer << do_control('stop', cartridge)
+        buffer << stop_cartridge(cartridge, options[:user_initiated])
       end
 
       buffer
@@ -863,11 +873,13 @@ module OpenShift
     # By default, all cartridges in the gear are started. The selection of cartridges
     # to be started is configurable via +options+.
     #
-    # # +options+: hash
+    # +options+: hash
     #   :primary_only   => [boolean]  : If +true+, only the primary cartridge will be started.
     #                                   Mutually exclusive with +secondary_only+.
     #   :secondary_only => [boolean]  : If +true+, all cartridges except the primary cartridge
     #                                   will be started. Mutually exclusive with +primary_only+.
+    #   :user_unitiated => [boolean]  : Indicates whether the operation was user initated.
+    #                                   Default is +true+.
     #
     # Returns the combined output of all +start+ action executions as a +String+.
     def start_gear(options={})
@@ -875,19 +887,83 @@ module OpenShift
         raise "The primary_only and secondary_only options are mutually exclusive"
       end
 
+      options[:user_initiated] = true if not options.has_key?(:user_initiated)
+
       buffer = ''
       each_cartridge do |cartridge|
         next if options[:primary_only] and not cartridge.primary?
         next if options[:secondary_only] and cartridge.primary?
 
-        buffer << do_control('start', cartridge)
+        buffer << start_cartridge(cartridge, options[:user_initiated])
       end
 
       buffer
     end
+    
+    ##
+    # Starts a cartridge.
+    #
+    # Both application state and the stop lock are managed during the operation. If start
+    # of the primary cartridge is invoked and +user_initiated+ is true, the stop lock is
+    # created.
+    #
+    # +cartridge+ : A +Cartridge+ instance or +String+ name of a cartridge.
+    #
+    # Returns the output of the operation as a +String+ or raises a +ShellExecutionException+
+    # if the cartridge script fails.
+    def start_cartridge(cartridge, user_initiated=true)
+      if not user_initiated and File.exists?(stop_lock)
+        return "Not starting cartridge #{cartridge.name} because the application was explicitly stopped by the user"
+      end
 
-    def cleanpwd(arg)
-      arg.gsub(/(passwo?r?d\s*[:=]+\s*)\S+/i, '\\1[HIDDEN]').gsub(/(usern?a?m?e?\s*[:=]+\s*)\S+/i,'\\1[HIDDEN]')
+      cartridge = get_cartridge(cartridge) if cartridge.is_a?(String)
+
+      if cartridge.primary?
+        FileUtils.rm_f(stop_lock) if user_initiated
+        @state.value = OpenShift::State::STARTED
+      end
+
+      do_control('start', cartridge)
+    end
+
+    ##
+    # Stops a cartridge.
+    #
+    # Both application state and the stop lock are managed during the operation. If stop
+    # of the primary cartridge is invoked and +user_initiated+ is true, the stop lock
+    # is removed.
+    #
+    # +cartridge+      : A +Cartridge+ instance or +String+ name of a cartridge.
+    #
+    # Returns the output of the operation as a +String+ or raises a +ShellExecutionException+
+    # if the cartridge script fails.
+    def stop_cartridge(cartridge, user_initiated=true)
+      if not user_initiated and File.exists?(stop_lock)
+        return "Not stopping cartridge #{cartridge.name} because the application was explicitly stopped by the user"
+      end
+
+      cartridge = get_cartridge(cartridge) if cartridge.is_a?(String)
+
+      if cartridge.primary?
+        create_stop_lock if user_initiated
+        @state.value = OpenShift::State::STOPPED
+      end
+      
+      do_control('stop', cartridge)
+    end
+
+    ##
+    # Writes the +stop_lock+ file and changes its ownership to the gear user.
+    def create_stop_lock
+      unless File.exist?(stop_lock)
+        mcs_label = @user.get_mcs_label(@user.uid)
+        File.new(stop_lock, File::CREAT|File::TRUNC|File::WRONLY, 0644).close()
+        Utils.oo_spawn(
+            "chown #{@user.uid}:#{@user.gid} #{stop_lock};
+             chcon unconfined_u:object_r:openshift_var_lib_t:#{mcs_label} #{stop_lock}",
+            expected_exitstatus: 0
+        )
+      end
     end
   end
 end
