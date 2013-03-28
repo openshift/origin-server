@@ -759,11 +759,12 @@ class Application
     # Alias to be an IP address or a host in the service domain.
     # Since DNS is case insensitive, all names are downcased for
     # indexing/compares.
-    server_alias = fqdn.downcase
+    server_alias = fqdn.downcase if fqdn
     if !(server_alias =~ /\A[0-9a-zA-Z\-\.]+\z/) or
         (server_alias =~ /#{Rails.configuration.openshift[:domain_suffix]}$/) or
         (server_alias.length > 255 ) or
         (server_alias.length == 0 ) or
+        (server_alias.nil?) or
         (server_alias =~ /^\d+\.\d+\.\d+\.\d+$/) or
         (server_alias =~ /\A[\S]+(\.(json|xml|yml|yaml|html|xhtml))\z/)
       raise OpenShift::UserException.new("Invalid Server Alias '#{server_alias}' specified", 105)

@@ -76,15 +76,17 @@ class KeysController < BaseController
     type = params[:type]
     
     Rails.logger.debug "Updating key name:#{id} type:#{type} for user #{@cloud_user.login}"
+    
+    # validate the key name using regex to avoid a mongo call, if it is malformed
+    if id !~ SshKey::KEY_NAME_COMPATIBILITY_REGEX or @cloud_user.ssh_keys.where(name: id).count == 0
+      return render_error(:not_found, "SSH key '#{id}' not found", 118, "UPDATE_KEY")
+    end
+    
+    
     key = UserSshKey.new(name: id, type: type, content: content)
     if key.invalid?
       messages = get_error_messages(key)
       return render_error(:unprocessable_entity, nil, nil, "UPDATE_KEY", nil, nil, messages)
-    end
-
-    # validate the key name using regex to avoid a mongo call, if it is malformed
-    if id !~ SshKey::KEY_NAME_COMPATIBILITY_REGEX or @cloud_user.ssh_keys.where(name: id).count == 0
-      return render_error(:not_found, "SSH key '#{id}' not found", 118, "UPDATE_KEY")
     end
 
     begin
@@ -118,7 +120,7 @@ class KeysController < BaseController
 
     begin
       @cloud_user.remove_ssh_key(id)
-       render_success(:no_content, nil, nil, "DELETE_KEY", "Deleted SSH key #{id}", true)
+      render_success(:no_content, nil, nil, "DELETE_KEY", "Deleted SSH key #{id}", true)
     rescue OpenShift::LockUnavailableException => e
       return render_error(:service_unavailable, e.message, e.code, "DELETE_KEY")
     rescue Exception => e

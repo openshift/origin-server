@@ -1,3 +1,4 @@
+ENV["TEST_NAME"] = "unit_application_test"
 require 'test_helper'
 require 'openshift-origin-controller'
 
