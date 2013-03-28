@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/openshift/cartridges/v2/cron
 
 Name: openshift-origin-cartridge-cron
-Version: 1.5.0
+Version: 1.5.1
 Release: 1%{?dist}
 Summary: Embedded cron support for OpenShift
 Group: Development/Languages
@@ -83,6 +83,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Thu Mar 28 2013 Adam Miller <admiller@redhat.com> 1.5.1-1
+- bump_minor_versions for sprint 26 (admiller@redhat.com)
+
 * Fri Mar 22 2013 Dan McPherson <dmcphers@redhat.com> 1.4.2-1
 - new package built with tito
 
