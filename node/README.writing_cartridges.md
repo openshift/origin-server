@@ -291,6 +291,7 @@ directory:
     .sandbox
     .tmp
     .env
+    .vimrc
     any not hidden directory or file
 
 You may create any hidden file or directory (one that starts with a

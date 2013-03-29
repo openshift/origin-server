@@ -447,11 +447,20 @@ function print_sed_exp_replace_env_var {
         printf "%s\n" "$sed_exp"
 }
 
+function create_vim_config {
+    cat <<EOF > "$APP_HOME/.vimrc"
+# disable viminfo, avoid error when closing vim
+set viminfo=
+EOF
+}
+
+
 function create_standard_app_dirs {
     mkdir -p run tmp ci
     [ -e repo ] || ln -s ../app-root/repo repo
     [ -e data ] || ln -s ../app-root/data data
     [ -e runtime ] || ln -s ../app-root/runtime runtime
+    create_vim_config
 }
 
 function create_cartridge_instance_dir {
