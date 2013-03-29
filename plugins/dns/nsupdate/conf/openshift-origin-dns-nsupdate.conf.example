@@ -6,11 +6,20 @@ BIND_SERVER="127.0.0.1"
 # The DNS server's port
 BIND_PORT=53
 
-# The key name for your zone
-BIND_KEYNAME="example.com"
-
-# base64-encoded key, most likely from /var/named/example.com.key.
-BIND_KEYVALUE=""
-
 # The base zone for the DNS server
 BIND_ZONE="example.com"
+
+#
+# Authentication information
+#
+# Provide either TSIG or GSS-TSIG information, but not both
+
+# TSIG authentication
+#
+BIND_KEYNAME="example.com"
+BIND_KEYVALUE="base-64 encoded DNSSEC HMAC TSIG"
+
+# GSS-TSIG (Kerberos) Authentication
+# BIND_KRB_PRINCIPAL=""
+# BIND_KRB_KEYTAB=""
+
