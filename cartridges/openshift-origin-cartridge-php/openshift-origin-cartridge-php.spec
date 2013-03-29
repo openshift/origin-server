@@ -11,9 +11,16 @@ URL: https://openshift.redhat.com
 Source0: http://mirror.openshift.com/pub/origin-server/source/%{name}/%{name}-%{version}.tar.gz
 Requires:      openshift-origin-cartridge-abstract
 Requires:      rubygem(openshift-origin-node)
+%if 0%{?fedora}%{?rhel} <= 6
 Requires:      php >= 5.3.2
 Requires:      php < 5.4
 Requires:      httpd < 2.4
+%endif
+%if 0%{?fedora} >= 18
+Requires:      php >= 5.4
+Requires:      php < 5.5
+Requires:      httpd < 2.5
+%endif
 Requires:      php
 Requires:      mod_bw
 Requires:      rubygem-builder
@@ -34,6 +41,7 @@ Requires:      php-bcmath
 Requires:      php-process
 Requires:      php-pecl-imagick
 Requires:      php-pecl-xdebug
+Requires:      openshift-origin-node-util
 
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
 BuildArch: noarch
@@ -52,11 +60,24 @@ rm -rf %{buildroot}
 mkdir -p %{buildroot}%{cartridgedir}
 mkdir -p %{buildroot}/%{_sysconfdir}/openshift/cartridges/v2
 cp -r * %{buildroot}%{cartridgedir}/
-
+%if 0%{?fedora}%{?rhel} <= 6
+mv %{buildroot}%{cartridgedir}/versions/shared/configuration/etc/conf-httpd-2.2/* %{buildroot}%{cartridgedir}/versions/shared/configuration/etc/conf/
+rm -rf %{buildroot}%{cartridgedir}/versions/5.4
+sed -i 's/PHPVERSION/5.3/g' %{buildroot}%{cartridgedir}/metadata/manifest.yml
+%endif
+%if 0%{?fedora} >= 18
+mv %{buildroot}%{cartridgedir}/versions/shared/configuration/etc/conf-httpd-2.4/* %{buildroot}%{cartridgedir}/versions/shared/configuration/etc/conf/
+rm -rf %{buildroot}%{cartridgedir}/versions/5.3
+sed -i 's/PHPVERSION/5.4/g' %{buildroot}%{cartridgedir}/metadata/manifest.yml
+sed -i 's/#DefaultRuntimeDir/DefaultRuntimeDir/g' %{buildroot}%{cartridgedir}/versions/shared/configuration/etc/conf.d/openshift.conf.erb
+%endif
+rm -rf %{buildroot}%{cartridgedir}/versions/shared/configuration/etc/conf-httpd-*
 
 %clean
 rm -rf %{buildroot}
 
+%post
+/sbin/oo-admin-cartridge --action install --offline --source /usr/libexec/openshift/cartridges/v2/php
 
 %files
 %defattr(-,root,root,-)
