@@ -1099,7 +1099,11 @@ module OpenShift
         args = build_base_gear_args(gear)
         args['--cart-name'] = cart
 
-        run_cartridge_command_ignore_components(cart, gear, "threaddump", args)
+        if framework_carts.include?(cart)
+          run_cartridge_command(cart, gear, "threaddump", args)
+        else
+          ResultIO.new
+        end 
       end
 
       #
@@ -1121,7 +1125,11 @@ module OpenShift
         args = build_base_gear_args(gear)
         args['--cart-name'] = cart
 
-        run_cartridge_command_ignore_components(cart, gear, "system-messages", args)
+        if framework_carts.include?(cart)
+          run_cartridge_command(cart, gear, "system-messages", args)
+        else
+          ResultIO.new
+        end 
       end
 
       #
