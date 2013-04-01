@@ -257,9 +257,83 @@ figure {
   margin-top: 25px;
 }
 
+
+.header-bar {
+  display: table;
+  width: 100%;
+  @include box-sizing(border-box);
+  height: 34px;
+  h3,h4,h5 {
+    display:table-cell;
+    vertical-align:middle;
+    margin: 0;
+  }
+  .header-btn {
+    display:table-cell;
+    vertical-align:middle;
+    text-align:right;
+    width: 50%;
+    background: $grayDarker;
+    .header-btn-title {
+      display: table-cell;
+      vertical-align: middle;
+      text-align: right;
+      padding-right: 20px;
+      font-family: $headerFontFamily;
+      border-right: 1px solid rgba(255, 255, 255, 0.075);
+    }
+    a {
+      color: #9A9B9C;
+      vertical-align:middle;
+      display: table;
+      height: 100%;
+      width: 100%;
+      font-size: $baseFontSize - 3;
+      text-transform: uppercase;
+      &:hover {
+        text-decoration: none;
+        color: $linkTextDarkBackground;
+        .font-icon {
+          background: $buttonBlueHover;
+          color: $grayDarker;
+          @include icon-text-shadow(rgba(255, 255, 255, 0.75));
+        }
+      }
+      .font-icon {
+        display: table-cell;
+        vertical-align: middle;
+        text-align: center;
+        font-size: 11px;
+        width: 34px;
+        border-left: 1px solid rgba(0, 0, 0, 0.3);
+      }
+    }
+  }
+}
+
+
+aside .header-bar {
+  margin-bottom: $baseLineHeight / 3;
+  height: 26px;
+  .header-btn {
+    a {
+      font-size: $baseFontSize - 3;
+      .header-btn-title {
+        padding: 0;
+        text-align: center;
+      }
+      .font-icon {
+        font-size: 9.5px;
+        width: 24px;
+      }
+    }
+  }
+}
+
+
 .sidebar {
-  border-top: 1px dotted $grayMedium;
-  padding-top: $baseLineHeight; 	
+  border-bottom: 1px dotted $grayMedium;
+  margin-bottom: $baseLineHeight; 	
 }
 
 @media (max-width: 767px) {
@@ -612,14 +686,6 @@ $cartridgeBorderWidth: 10px;
 #assistance ul,
 #app-unique-info ul {
   margin-bottom: 25px;
-  }
-#app-unique-info h5 {
-  border-bottom: 1px solid #222222;
-  }
-#aliases {
-  a, span {
-    font-size: $baseFontSize;
-  }
 }
 
 .section-console h6 {
