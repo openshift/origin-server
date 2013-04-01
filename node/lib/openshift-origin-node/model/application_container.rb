@@ -405,12 +405,21 @@ module OpenShift
     # Implements the following deploy process:
     #
     #   1. Set the application state to +DEPLOYING+
-    #   2. Run the cartridge +deploy+ control action
-    #   3. Run the +deploy+ user action hook
+    #   2. Run the web proxy cartridge +deploy+ control action
+    #   3. Run the primary cartridge +deploy+ control action
+    #   4. Run the +deploy+ user action hook
     #
     # Returns the combined output of all actions as a +String+.
     def deploy
       @state.value = OpenShift::State::DEPLOYING
+
+      web_proxy_cart = @cartridge_model.web_proxy
+      if web_proxy_cart
+        @cartridge_model.do_control('deploy',
+                                    web_proxy_cart,
+                                    pre_action_hooks_enabled: false)
+      end
+
       @cartridge_model.do_control('deploy',
                                   @cartridge_model.primary_cartridge,
                                   pre_action_hooks_enabled: false,
