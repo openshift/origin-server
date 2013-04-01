@@ -44,18 +44,18 @@ fi
 echo $JENKINS_PASSWORD > "$OPENSHIFT_JENKINS_CLIENT_DIR/.password"
 
 # Maybe allow cartridges to create their own jenkins job
-if [ -f "${OPENSHIFT_PRIMARY_CARTRIDGE_DIR}/configuration/jenkins_shell_command" ]
+if [ -f "${OPENSHIFT_PRIMARY_CARTRIDGE_DIR}/metadata/jenkins_shell_command" ]
 then
-    SHELL_COMMAND="${OPENSHIFT_PRIMARY_CARTRIDGE_DIR}/configuration/jenkins_shell_command"
+    SHELL_COMMAND="${OPENSHIFT_PRIMARY_CARTRIDGE_DIR}/metadata/jenkins_shell_command"
 else
-    SHELL_COMMAND="$OPENSHIFT_JENKINS_CLIENT_DIR/configuration/jenkins_shell_command"
+    SHELL_COMMAND="$OPENSHIFT_JENKINS_CLIENT_DIR/metadata/jenkins_shell_command"
 fi
 
-if [ -f "${OPENSHIFT_PRIMARY_CARTRIDGE_DIR}/configuration/jenkins_artifacts_glob" ]
+if [ -f "${OPENSHIFT_PRIMARY_CARTRIDGE_DIR}/metadata/jenkins_artifacts_glob" ]
 then
-    ARTIFACTS_GLOB="${OPENSHIFT_PRIMARY_CARTRIDGE_DIR}/configuration/jenkins_artifacts_glob"
+    ARTIFACTS_GLOB="${OPENSHIFT_PRIMARY_CARTRIDGE_DIR}/metadata/jenkins_artifacts_glob"
 else
-    ARTIFACTS_GLOB="$OPENSHIFT_JENKINS_CLIENT_DIR/configuration/jenkins_artifacts_glob"
+    ARTIFACTS_GLOB="$OPENSHIFT_JENKINS_CLIENT_DIR/metadata/jenkins_artifacts_glob"
 fi
 
 JOB_NAME=${OPENSHIFT_APP_NAME}-build
