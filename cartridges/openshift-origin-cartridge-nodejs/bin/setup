@@ -1,0 +1,29 @@
+#! /usr/bin/env bash -e
+
+set -x
+set -u
+set
+
+# Set default version
+version=0.6
+
+OPENSHIFT_NODEJS_DIR="$OPENSHIFT_HOMEDIR/redhat-nodejs"
+
+# Parse arguments
+source "${OPENSHIFT_NODEJS_DIR}/lib/util"
+parse_args $@
+
+# Don't set -u until after the above arg parsing is complete
+set -u
+
+# Copy the version specific files to nodejs directory
+shopt -s dotglob
+for dir in etc metadata template; do
+    mkdir -p $OPENSHIFT_NODEJS_DIR/$dir
+    cp -Lr $OPENSHIFT_NODEJS_DIR/versions/$version/$dir/* $OPENSHIFT_NODEJS_DIR/$dir 
+done
+
+# Create additional directories required by RUBY and httpd
+ln -s /usr/lib64/httpd/modules $OPENSHIFT_NODEJS_DIR
+ln -s /etc/httpd/conf/magic $OPENSHIFT_NODEJS_DIR/etc/magic
+
