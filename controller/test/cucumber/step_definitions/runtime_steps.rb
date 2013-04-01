@@ -7,6 +7,7 @@
 
 require 'fileutils'
 require 'openshift-origin-node/utils/application_state'
+require 'openshift-origin-node/utils/shell_exec'
 
 # These are provided to reduce duplication of code in feature files.
 #   Scenario Outlines are not used as they interfer with the devenv retry logic (whole feature is retried no example line)
@@ -795,6 +796,16 @@ def cart_env_var_will_exist(cart_name, var_name, negate = false)
   end
 end
 
+# Used to control the runtime state of the current application.
+When /^I (start|stop|status|restart|tidy) the newfangled application$/ do |action|
+  OpenShift::timeout(60) do
+    record_measure("Runtime Benchmark: Hook #{action} on application #{@cart.name}") do
+      @app.send(action)
+    end
+  end
+end
+
+
 Given /^a v2 default node$/ do
   assert_file_exists '/var/lib/openshift/.settings/v2_cartridge_format'
 end
@@ -875,7 +886,7 @@ Then /^the ([^ ]+) cartridge status should be (running|stopped)$/ do |cart_name,
     @gear.carts[cart_name].status
     # If we're here, the cart status is 'running'
     raise "Expected #{cart_name} cartridge to be stopped" if expected_status == "stopped"
-  rescue ShellExecutionException
+  rescue OpenShift::Utils::ShellExecutionException
     # If we're here, the cart status is 'stopped'
     raise if expected_status == "running"
   end

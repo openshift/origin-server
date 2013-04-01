@@ -55,7 +55,6 @@ def gear_cartridge_names
 end
 
 @container = OpenShift::ApplicationContainer.new(ENV['OPENSHIFT_APP_UUID'], ENV['OPENSHIFT_GEAR_UUID'], Etc.getpwuid.uid, ENV['OPENSHIFT_APP_NAME'], ENV['OPENSHIFT_GEAR_NAME'], ENV['OPENSHIFT_NAMESPACE'])
-@stop_lock = PathUtils.join(ENV['OPENSHIFT_HOMEDIR'], %w{app-root runtime .stop_lock})
 
 def do_command
   begin
@@ -147,7 +146,6 @@ command :start do |c|
         @container.start(options.cart)
       else
         puts "Starting gear..."
-        FileUtils.remove @stop_lock if File.exists? @stop_lock
         @container.start_gear
       end
     end
@@ -166,7 +164,6 @@ command :stop do |c|
         @container.stop(options.cart)
       else
         puts "Stopping gear..."
-        FileUtils.touch @stop_lock
         @container.stop_gear
       end
     end
