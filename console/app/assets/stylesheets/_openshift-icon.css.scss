@@ -40,6 +40,7 @@ you can use the generic selector below, but it's slower:
 	 left: -4px;
    margin-left: 4px;
    position: relative;
+   @include icon-text-shadow();
 }
 .icon-lock:before {
 	content: "\e000";

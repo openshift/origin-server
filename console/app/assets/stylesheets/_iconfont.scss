@@ -5,12 +5,14 @@
     position: absolute;
     left: 0;
     top: 0;
+    text-shadow: none;
   }
 }
 
 .font-icon {
   display: inline-block;
   top: 0;
+  @include icon-text-shadow();
   &.font-icon-inline  {
     position: relative;
   }
@@ -68,16 +70,9 @@ h5[class*="icon-"]:before {
   margin-left: 6px;
 }
 
-h1, h2, h3 {
+h1, h2, h3, h4, h5, h6 {
   .font-icon-block {
     margin-right: .2em;
-    bottom: 5px;
-  }
-}
-h4, h5, h6 {
-  .font-icon-block {
-    margin-right: .15em;
-    bottom: 3px;
   }
 }
 
