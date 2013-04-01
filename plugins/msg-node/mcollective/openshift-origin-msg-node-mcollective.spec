@@ -10,7 +10,7 @@
 
 Summary:       M-Collective agent file for openshift-origin-msg-node-mcollective
 Name:          openshift-origin-msg-node-mcollective
-Version: 1.7.1
+Version:       1.7.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -21,10 +21,7 @@ Requires:      %{?scl:%scl_prefix}rubygem-open4
 Requires:      %{?scl:%scl_prefix}rubygem-json
 Requires:      rubygem-openshift-origin-node
 Requires:      mcollective
-Requires:      facter
-%if 0%{?fedora}%{?rhel} <= 6
 Requires:      %{?scl:%scl_prefix}facter
-%endif
 Requires:      openshift-origin-msg-common
 BuildArch:     noarch
 
@@ -42,7 +39,7 @@ mkdir -p %{buildroot}%{vendor_ruby}facter
 mkdir -p %{buildroot}/etc/cron.minutely
 mkdir -p %{buildroot}/usr/libexec/mcollective
 
-cp src/openshift.rb %{buildroot}%{mco_agent_root}
+cp -p src/openshift.rb %{buildroot}%{mco_agent_root}
 cp -p facts/openshift_facts.rb %{buildroot}%{vendor_ruby}facter/
 cp -p facts/openshift-facts %{buildroot}/etc/cron.minutely/
 cp -p facts/update_yaml.rb %{buildroot}/usr/libexec/mcollective/
