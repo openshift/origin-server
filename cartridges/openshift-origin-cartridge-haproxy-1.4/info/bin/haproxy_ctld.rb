@@ -340,7 +340,7 @@ end
 def help_marker
   unless File.exists?(File.join(ENV['OPENSHIFT_REPO_DIR'], '.openshift', 'markers', 'disable_auto_scaling'))
     puts <<HELPTEXT
-NOTICE: Automatic scaling may still take affect.
+NOTICE: Automatic scaling may still take effect.
 
 To disable automatic scaling, create the disable_auto_scaling marker
 in your git checkout.  Refer to .openshift/markers/README in your git
