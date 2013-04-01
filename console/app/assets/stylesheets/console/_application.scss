@@ -80,6 +80,12 @@
   margin-bottom: 10px;
 }
 
+#aliases li > a {
+  @include truncate();
+  max-width: 65%;
+  display: inline-block;
+}
+
 @media (max-width: 480px) {
   .application-info {
     > .url,
