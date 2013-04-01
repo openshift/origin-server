@@ -119,3 +119,18 @@
   outline: 5px auto -webkit-focus-ring-color;
   outline-offset: -2px;
 }
+
+
+@mixin icon-text-shadow($color: rgba(0, 0, 0, 0.75)) {
+  text-shadow: 0 1px 0 $color;
+}
+
+// Requires inline-block or block
+@mixin truncate() {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.truncate {
+  @include truncate();
+}
