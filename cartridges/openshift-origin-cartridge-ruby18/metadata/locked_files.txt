@@ -1,4 +1,0 @@
-ruby18/metadata/
-ruby18/env/
-ruby18/etc/
-ruby18/template/
