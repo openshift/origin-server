@@ -1,8 +1,8 @@
 Name: php
 Cartridge-Short-Name: PHP
-Display-Name: PHP PHPVERSION
+Display-Name: PHP 5.3
 Description: "PHP is a general-purpose server-side scripting language originally designed for Web development to produce dynamic Web pages. Popular development frameworks include: CakePHP, Zend, Symfony, and Code Igniter."
-Version: 'PHPVERSION'
+Version: '5.3'
 License: "The PHP License, version 3.0"
 License-Url: http://www.php.net/license/3_0.txt
 Vendor: php.net
@@ -44,7 +44,7 @@ Cart-Data:
     Type: environment
     Description: "Unique ID which identified the gear. This value changes between gears."
 Provides:
-  - php-PHPVERSION
+  - php-5.3
   - "php"
 Publishes:
   get-php-ini:
@@ -74,7 +74,7 @@ Scaling:
   Max: -1
 Group-Overrides:
   - components:
-    - php-PHPVERSION
+    - php-5.3
     - web_proxy
 
 Endpoints:
