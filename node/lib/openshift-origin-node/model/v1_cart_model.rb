@@ -34,6 +34,14 @@ module OpenShift
       logger.debug("Started gear #{@user.uuid}. Output:\n#{out}")
     end
 
+    def start_cartridge(cartridge, user_initiated=true)
+      do_control('start', cartridge)
+    end
+
+    def stop_cartridge(cartridge, user_initiated=true)
+      do_control('stop', cartridge)
+    end
+
     def destroy(skip_hooks = false)
       hook_timeout=30
 

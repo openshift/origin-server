@@ -73,7 +73,7 @@ class V2CartModelTest < Test::Unit::TestCase
 
     )
 
-    @model = OpenShift::V2CartridgeModel.new(@config, @user)
+    @model = OpenShift::V2CartridgeModel.new(@config, @user, mock())
 
     @mock_manifest = %q{#
         Name: mock
@@ -149,7 +149,7 @@ class V2CartModelTest < Test::Unit::TestCase
   end
 
   def test_get_cartridge_valid_manifest
-    local_model = OpenShift::V2CartridgeModel.new(@config, @user)
+    local_model = OpenShift::V2CartridgeModel.new(@config, @user, mock())
 
     manifest_path = "#{@homedir}/unittest-mock/metadata/manifest.yml"
     YAML.stubs(:load_file).with(manifest_path).returns(YAML.load(@mock_manifest))
@@ -172,7 +172,7 @@ class V2CartModelTest < Test::Unit::TestCase
   end
 
   def test_get_cartridge_error_loading
-    local_model = OpenShift::V2CartridgeModel.new(@config, @user)
+    local_model = OpenShift::V2CartridgeModel.new(@config, @user, mock())
 
     YAML.stubs(:load_file).with("#{@homedir}/redhat-CRTest/metadata/manifest.yml").raises(ArgumentError.new('bla'))
 

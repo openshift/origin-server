@@ -17,6 +17,7 @@ require 'openshift-origin-node/model/unix_user'
 require 'openshift-origin-node/model/frontend_proxy'
 require 'openshift-origin-node/model/v2_cart_model'
 require 'openshift-origin-node/model/cartridge_repository'
+require 'openshift-origin-node/utils/application_state'
 require 'etc'
 require 'test/unit'
 require 'mocha'
@@ -67,7 +68,7 @@ class V2CartridgeModelFunctionalTest < Test::Unit::TestCase
 
     OpenShift::CartridgeRepository.instance.clear
     OpenShift::CartridgeRepository.instance.load
-    @model = OpenShift::V2CartridgeModel.new(@config, @user)
+    @model = OpenShift::V2CartridgeModel.new(@config, @user, OpenShift::Utils::ApplicationState.new(@uuid))
     @model.configure('mock-0.1')
   end
 

@@ -114,6 +114,26 @@ module OpenShift
       end
     end
 
+    def start
+      default_gear.container.start_gear
+    end
+
+    def stop
+      default_gear.container.stop_gear
+    end
+
+    def tidy
+      default_gear.container.tidy
+    end
+
+    def restart
+      raise NotImplementedError
+    end
+
+    def status
+      raise NotImplementedError
+    end
+
     # Collects and returns the PIDs for every cartridge associated
     # with this application as determined by the PID file in the 
     # cartridge instance run directory. The result is a Hash:
@@ -173,7 +193,12 @@ module OpenShift
       end
 
       # Create the container object for use in the event listener later
-      @container = OpenShift::ApplicationContainer.new(@app.uuid, @uuid, nil, @app.name, @app.name, @app.account.domain, nil, nil, $logger)
+      begin
+        @container = OpenShift::ApplicationContainer.new(@app.uuid, @uuid, nil, @app.name, @app.name, @app.account.domain, nil, nil, $logger)
+      rescue Exception => e
+        $logger.error("#{e.message}\n#{e.backtrace}")
+        raise
+      end
       
       unless cli
         @container.create
