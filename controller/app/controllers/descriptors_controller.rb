@@ -25,18 +25,18 @@ class DescriptorsController < BaseController
   #   ```
   # @return [RestReply<YAML>] Application Descriptor in YAML format
   def show
-    domain_id = params[:domain_id]
-    application_id = params[:application_id]
+    domain_id = params[:domain_id].downcase if params[:domain_id]
+    application_id = params[:application_id].downcase if params[:application_id]
 
     begin
-      domain = Domain.find_by(owner: @cloud_user, canonical_namespace: domain_id.downcase)
+      domain = Domain.find_by(owner: @cloud_user, canonical_namespace: domain_id)
       @domain_name = domain.namespace
     rescue Mongoid::Errors::DocumentNotFound
       return render_error(:not_found, "Domain #{domain_id} not found", 127, "SHOW_DESCRIPTOR")
     end
 
     begin
-      application = Application.find_by(domain: domain, canonical_name: application_id.downcase)
+      application = Application.find_by(domain: domain, canonical_name: application_id)
       @application_name = application.name
       @application_uuid = application.uuid
     rescue Mongoid::Errors::DocumentNotFound      
