@@ -6,7 +6,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin broker
 Name:          openshift-origin-broker-util
-Version: 1.7.1
+Version:       1.7.1
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -40,12 +40,13 @@ They must be run on a openshift broker instance.
 
 %install
 mkdir -p %{buildroot}%{_sbindir}
-cp oo-* %{buildroot}%{_sbindir}/
+cp -p oo-* %{buildroot}%{_sbindir}/
 
 mkdir -p %{buildroot}%{_mandir}/man8/
 cp man/*.8 %{buildroot}%{_mandir}/man8/
 
 %files
+%doc LICENSE
 %attr(0750,-,-) %{_sbindir}/oo-admin-chk
 %attr(0750,-,-) %{_sbindir}/oo-admin-clear-pending-ops
 %attr(0750,-,-) %{_sbindir}/oo-admin-ctl-app
@@ -64,7 +65,6 @@ cp man/*.8 %{buildroot}%{_mandir}/man8/
 %attr(0750,-,-) %{_sbindir}/oo-accept-systems
 %attr(0750,-,-) %{_sbindir}/oo-stats
 
-%doc LICENSE
 %{_mandir}/man8/oo-admin-chk.8.gz
 %{_mandir}/man8/oo-admin-ctl-app.8.gz
 %{_mandir}/man8/oo-admin-ctl-district.8.gz
