@@ -6,9 +6,9 @@
     %global mco_root /usr/libexec/mcollective/mcollective/
 %endif
 
-Summary:       Common dependencies of the msg components for OpenShift server and node
+Summary:       Common msg components for OpenShift broker and node
 Name:          openshift-origin-msg-common
-Version: 1.5.1
+Version:       1.5.1
 Release:       1%{?dist}
 License:       ASL 2.0
 URL:           http://openshift.redhat.com
@@ -17,7 +17,8 @@ Requires:      %{?scl:%scl_prefix}mcollective-common
 BuildArch:     noarch
 
 %description
-Provides the common dependencies of the msg components for OpenShift server and node
+Provides the common dependencies of the msg components
+for OpenShift broker and node
 
 %prep
 %setup -q
