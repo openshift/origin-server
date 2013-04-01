@@ -1,3 +1,4 @@
+ENV["TEST_NAME"] = "functional_sub_user_test"
 require 'test_helper'
 
 class SubUserTest < ActionDispatch::IntegrationTest

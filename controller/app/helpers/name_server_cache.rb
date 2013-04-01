@@ -24,18 +24,23 @@ class NameServerCache
   end
 
   def self.get_name_servers
-    dns = Dnsruby::DNS.new()
-    domain = Rails.application.config.openshift[:domain_suffix]
-    while domain && !domain.empty?
-      resources = dns.getresources(domain, Dnsruby::Types.NS)
-      unless resources.empty?
-        break
-      else
-        dp = domain.partition('.')
-        domain = dp[2]
+    begin
+      dns = Dnsruby::DNS.new()
+      domain = Rails.application.config.openshift[:domain_suffix]
+      while domain && !domain.empty?
+        resources = dns.getresources(domain, Dnsruby::Types.NS)
+        unless resources.empty?
+          break
+        else
+          dp = domain.partition('.')
+          domain = dp[2]
+        end
       end
+    rescue Exception => e
+      raise OpenShift::OOException.new("Error getting nameservers for domain '#{Rails.application.config.openshift[:domain_suffix]}: #{e.message}'",141)
     end
-    raise OpenShift::UserException.new("Unable to find nameservers for domain '#{Rails.application.config.openshift[:domain_suffix]}'",
+    
+    raise OpenShift::OOException.new("Unable to find nameservers for domain '#{Rails.application.config.openshift[:domain_suffix]}'",
                                        141) if resources.empty?
     @nameservers = []
     resources.each do |resource|
