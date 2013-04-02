@@ -226,5 +226,8 @@ module OpenShift
       arg.gsub(/(passwo?r?d\s*[:=]+\s*)\S+/i, '\\1[HIDDEN]').gsub(/(usern?a?m?e?\s*[:=]+\s*)\S+/i,'\\1[HIDDEN]')
     end
 
+    def snapshot
+      raise NotImplementedError.new('V1 snapshot is not implemented via ApplicationContainer')
+    end
   end
 end
