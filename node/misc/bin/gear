@@ -214,33 +214,23 @@ command :status do |c|
   end
 end
 
-command :restore do |c|
-  c.syntax = "#{name} restore"
-  
-  c.option "--cart CART", "The cart to restore"
+command :snapshot do |c|
+  c.syntax = "#{name} snapshot"
 
-  c.description = "Restore a cart"
+  c.description = "Snapshot an application"
   c.action do |args, options|
-    # TODO: Is this a gear level operation?
-    do_command do
-      options.cart ||= choose("Cart to restore?", *gear_cartridge_names)
-      @container.restore(options.cart)
-    end
+    @container.snapshot
   end
 end
 
-command :snapshot do |c|
-  c.syntax = "#{name} snapshot"
-  
-  c.option "--cart CART", "The cart to snapshot"
+command :restore do |c|
+  c.syntax = "#{name} restore"
 
-  c.description = "Snapshot a cart"
+  c.option "--restore-git-repo", "Rebuild the appliction as part of restoration"
+
+  c.description = "Restore an application"
   c.action do |args, options|
-    # TODO: Is this a gear level operation?
-    do_command do
-      options.cart ||= choose("Cart to snapshot?", *gear_cartridge_names)
-      @container.snapshot(options.cart)
-    end
+    @container.restore(options.restore_git_repo)
   end
 end
 
