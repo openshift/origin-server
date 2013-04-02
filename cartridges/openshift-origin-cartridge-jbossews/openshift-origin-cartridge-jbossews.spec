@@ -12,6 +12,7 @@ Requires:      rubygem(openshift-origin-node)
 Requires:      tomcat7
 Requires:      lsof
 Requires:      java-1.7.0-openjdk
+Requires:      java-1.7.0-openjdk-devel
 %if 0%{?rhel}
 Requires:      maven3
 %endif
@@ -19,7 +20,6 @@ Requires:      maven3
 Requires:      maven
 %endif
 BuildRequires: git
-BuildRequires: java-devel >= 1:1.6.0
 BuildRequires: jpackage-utils
 BuildArch:     noarch
 
