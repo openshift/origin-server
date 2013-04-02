@@ -86,7 +86,7 @@ function cart_props {
 }
 
 # Sets the appropriate env variable files
-# Argument:
+# Arguments:
 #  - Variable to set
 #  - Value
 #  - Target ENV directory (optional)
@@ -103,8 +103,8 @@ function set_env_var {
   else
     str="'$val'"
   fi
-  echo "export ${var}=${str}" #> $target
-  echo $target
+
+  echo "export ${var}=${str}" > $target
 }
 
 # Generate a random string from /dev/urandom
@@ -201,6 +201,32 @@ function print_user_running_processes {
     echo ""
     ps -FCvx -U "${userid}"
     echo ""
+}
+
+# Check is a process is running
+# Arguments:
+#  - Process name
+#  - Pidfile
+#  - UID to check (optional)
+function process_running {
+  local process=$1
+  local pidfile=$2
+  local uid=${3-`id -u`}
+
+  # Check the pidfile for a running process
+  {
+    if [ -f $pidfile ]; then
+      local error=$(pgrep -F $pidfile 2>&1)
+      # pgrep returns 0 with an invalid pidfile, so we need to check the output
+      [ $? ] && ! [[ "${error}" =~ 'pidfile not valid' ]] && return 0
+    fi
+  }
+
+  # Check pgrep for the process name and user id
+  {
+    $(pgrep -x ${process} -u ${uid} > /dev/null 2>&1) && return 0
+  }
+  return 1
 }
 
 function pid_is_httpd() {

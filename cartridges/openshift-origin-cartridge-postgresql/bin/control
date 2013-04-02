@@ -1,0 +1,197 @@
+#!/bin/bash -e
+
+set -x
+export | grep 'POSTGRES\|PG'
+
+PATH=/bin/:/usr/bin:$PATH
+
+source $OPENSHIFT_CARTRIDGE_SDK_BASH
+
+function _is_running {
+  # Can't use pg_ctl status here because it doesn't mean the db is done starting up
+  psql -l -h $OPENSHIFT_POSTGRESQL_DB_SOCKET_DIR -U postgres 2>&1 > /dev/null
+  return $?
+}
+
+function first_run {
+  setup_marker_file=$TMP/.postgresql_setup_invocation_marker
+
+  [ -f $setup_marker_file ]
+}
+
+function wait_for_postgres_availability {
+  for i in {1..30}; do
+    _is_running && return 0
+    sleep 1
+  done
+}
+
+function pre_start {
+  if first_run; then
+    # These conf files need to override the values in the data directory AFTER it's been extracted by setup
+    #  This needs to be done here because the ERB processing happens after setup
+    cp $OPENSHIFT_POSTGRESQL_DIR/conf/*.conf $OPENSHIFT_POSTGRESQL_DIR/data/
+    # Copy our user groups to the data dir for use in pg_hba.conf
+    find "${OPENSHIFT_POSTGRESQL_DIR}/conf/groups" -not -name "*.md" -type f -exec cp '{}' "${OPENSHIFT_POSTGRESQL_DIR}/data" \;
+    chmod 0600 $PGPASSFILE
+  fi
+}
+
+function start {
+  if ! _is_running; then
+    echo "Starting Postgres"
+    # Should be able to use '-w -t 30' here but it always fails
+    pg_ctl start -D $OPENSHIFT_POSTGRESQL_DB_PGDATA
+    wait_for_postgres_availability
+
+    if _is_running; then
+      echo "Postgres started"
+    else
+      error "Could not start Postgres" 70
+    fi
+  else
+    echo "Postgres already running"
+  fi
+  return 0
+}
+
+function post_start {
+  if first_run; then
+    echo "Preparing database for first use"
+    prepare_database
+    rm -f $setup_marker_file
+  fi
+}
+
+function stop {
+  if _is_running; then
+    pg_ctl stop -D $OPENSHIFT_POSTGRESQL_DB_PGDATA -m smart -w -t 30 ||
+      pg_ctl stop -D $OPENSHIFT_POSTGRESQL_DB_PGDATA -m fast -w -t 30 ||
+      pg_ctl stop -D $OPENSHIFT_POSTGRESQL_DB_PGDATA -m immediate -w -t 30 ||
+      pkill postgres
+    if _is_running; then
+      error "Could not stop Postgres" 70
+    else
+      truncate -s0 $OPENSHIFT_POSTGRESQL_DB_PID
+      echo "Postgres stopped"
+    fi
+  else
+    echo "Postgres already stopped"
+  fi
+  return 0
+}
+
+function status {
+  if _is_running; then
+    client_result "Postgres is running"
+  else
+    client_result "Postgres is stopped"
+  fi
+
+  exit 0
+}
+
+function prepare_database {
+  wait_for_postgres_availability
+
+  local socket=$OPENSHIFT_POSTGRESQL_DB_SOCKET_DIR
+  local user=$OPENSHIFT_POSTGRESQL_DB_USERNAME
+  local pass=$OPENSHIFT_POSTGRESQL_DB_PASSWORD
+  local db=$OPENSHIFT_APP_NAME
+
+  # Create a user based on OPENSHIFT_POSTGRESQL_DB_USERNAME
+  {
+    createuser --superuser --createdb --createrole -U postgres -h $socket $user
+  } || error "Failed to create initial root user" 187
+
+  # Create a database based on OPENSHIFT_APP_NAME
+  {
+    createdb -O $user -U postgres -h $socket $db
+  } || error "Failed to create database" 188
+
+  # Set the user's password based on OPENSHIFT_POSTGRESQL_DB_PASSWORD
+  {
+    echo "
+    ALTER USER ${user} PASSWORD '${pass}';
+    " | psql -d $db -h $socket -U postgres
+  } || error "Failed to change password for initial root user" 187
+}
+
+function pre_snapshot {
+  start
+
+  echo "$OPENSHIFT_POSTGRESQL_DB_USERNAME" > _dump_username
+  echo "$OPENSHIFT_POSTGRESQL_DB_HOST" > _dump_host
+
+  pg_dumpall -c | sed "/$rexp/d;" | gzip -v > _dump_file
+
+  if [ ! ${PIPESTATUS[0]} -eq 0 ]
+  then
+    echo 1>&2
+    echo "WARNING!  Could not dump Postgres databases!  Continuing anyway" 1>&2
+    echo 1>&2
+    /bin/rm -rf _dump_file
+  fi
+
+  stop
+}
+
+function post_snapshot {
+  true
+}
+
+function pre_restore {
+  cleanup_dump
+}
+
+function post_restore {
+  true
+}
+
+function _dump_file {
+  echo "${OPENSHIFT_DATA_DIR}/postgresql_dump_snapshot.gz"
+}
+
+function _dump_username {
+  echo "${OPENSHIFT_DATA_DIR}/postgresql_db_username"
+}
+
+function _dump_host {
+  echo "${OPENSHIFT_DATA_DIR}/postgresql_db_host"
+}
+
+function cleanup_dump {
+  rm -f _dump_file
+  rm -f _dump_host
+  rm -f _dump_username
+}
+
+case "$1" in
+  start)
+    pre_start
+    start
+    post_start
+  ;;
+  stop)
+    stop
+  ;;
+  status)
+    status
+  ;;
+  restart)
+    stop
+    start
+  ;;
+  pre-snapshot)
+    pre_snapshot
+  ;;
+  post-snapshot)
+    post_snapshot
+  ;;
+  pre-restore)
+    pre_restore
+  ;;
+  post-restore)
+    post_restore
+  ;;
+esac
