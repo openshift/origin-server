@@ -17,8 +17,8 @@ DEPRECATED
 }
 
 function _is_node_service_running() {
-    if [ -f $cartridge_dir/run/node.pid ]; then
-        node_pid=$( cat $cartridge_dir/run/node.pid 2> /dev/null )
+    if [ -f $OPENSHIFT_NODEJS_PID_DIR/node.pid ]; then
+        node_pid=$( cat $OPENSHIFT_NODEJS_PID_DIR/node.pid 2> /dev/null )
         myid=$( id -u )
         if `ps --pid $node_pid 2>&1 | grep node > /dev/null 2>&1`  ||  \
            `pgrep -x node -u $myid > /dev/null 2>&1`; then
@@ -63,7 +63,7 @@ NODE_EOF
 
 function _start_node_service() {
     _state=`get_app_state`
-    if [ -f $cartridge_dir/run/stop_lock -o idle = "$_state" ]; then
+    if [ -f $OPENSHIFT_NODEJS_PID_DIR/stop_lock -o idle = "$_state" ]; then
         echo "Application is explicitly stopped!  Use 'rhc app start -a ${OPENSHIFT_APP_NAME}' to start back up." 1>&2
         return 0
     else
@@ -124,7 +124,7 @@ function _start_node_service() {
     npid=$!
     popd > /dev/null
     if [ $ret -eq 0 ]; then
-        echo "$npid" > "$cartridge_dir/run/node.pid"
+        echo "$npid" > "$OPENSHIFT_NODEJS_PID_DIR/node.pid"
         run_user_hook post_start_${cartridge_type}
     else
         echo "Application '$OPENSHIFT_APP_NAME' failed to start - $ret" 1>&2
@@ -134,8 +134,8 @@ function _start_node_service() {
 
 
 function _stop_node_service() {
-    if [ -f $cartridge_dir/run/node.pid ]; then
-        node_pid=$( cat $cartridge_dir/run/node.pid 2> /dev/null )
+    if [ -f $OPENSHIFT_NODEJS_PID_DIR/node.pid ]; then
+        node_pid=$( cat $OPENSHIFT_NODEJS_PID_DIR/node.pid 2> /dev/null )
     fi
 
     if [ -n "$node_pid" ]; then
@@ -162,7 +162,7 @@ function _stop_node_service() {
         fi
 
         echo "`date +"$FMT"`: Stopped Node application '$OPENSHIFT_APP_NAME'" >> $logf
-        rm -f $cartridge_dir/run/node.pid
+        rm -f $OPENSHIFT_NODEJS_PID_DIR/node.pid
 
         run_user_hook post_stop_${cartridge_type}
     else
