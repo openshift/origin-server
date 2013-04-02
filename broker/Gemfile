@@ -2,6 +2,7 @@ source 'http://rubygems.org'
 
 gem 'rails', '~> 3.2.8'
 gem 'json'
+gem 'json_pure'
 gem 'parseconfig'
 gem 'xml-simple'
 gem 'rack'

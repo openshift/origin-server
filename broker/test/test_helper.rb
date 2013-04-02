@@ -5,8 +5,21 @@ require File.expand_path('../../config/environment', __FILE__)
 require 'rails/test_help'
 require 'mocha'
 
+if(File.exist?('/etc/fedora-release'))
+  PHP_VERSION = 'php-5.4'
+else
+  PHP_VERSION = 'php-5.3'
+end
+
 def gen_uuid
   %x[/usr/bin/uuidgen].gsub('-', '').strip 
+end
+
+def register_user(login, password)
+  if ENV['REGISTER_USER']
+    accnt = UserAccount.new(user: login, password: password)
+    accnt.save
+  end
 end
 
 def stubber
