@@ -50,8 +50,6 @@ module OpenShift
     include NodeLogger
 
     FILENAME_BLACKLIST = %W{.ssh .sandbox .tmp .env}
-    # FIXME: need to determine path to correct erb. oo-ruby?
-    ERB_BINARY         = '/usr/bin/oo-ruby /opt/rh/ruby193/root/usr/bin/erb'
 
     def initialize(config, user, state)
       @config     = config
@@ -492,7 +490,7 @@ module OpenShift
     def render_erbs(env, path_glob)
       Dir.glob(path_glob + '/*.erb').select { |f| File.file?(f) }.each do |file|
         begin
-          Utils.oo_spawn(%Q{#{ERB_BINARY} -S 2 -- #{file} > #{file.chomp('.erb')}},
+          Utils.oo_spawn(%Q{/usr/bin/oo-erb -S 2 -- #{file} > #{file.chomp('.erb')}},
                          env:             env,
                          unsetenv_others: true,
                          chdir:           @user.homedir,
