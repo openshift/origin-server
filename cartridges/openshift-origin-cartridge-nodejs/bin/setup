@@ -1,7 +1,6 @@
-#! /usr/bin/env bash -e
+#! /bin/bash -e
 
 set -x
-set -u
 set
 
 # Set default version
