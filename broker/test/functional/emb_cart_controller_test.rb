@@ -7,19 +7,21 @@ class EmbCartControllerTest < ActionController::TestCase
     
     @random = rand(1000000000)
     @login = "user#{@random}"
+    @password = "password"
     @user = CloudUser.new(login: @login)
     @user.capabilities["private_ssl_certificates"] = true
     @user.save
     Lock.create_lock(@user)
+    register_user(@login, @password)
     
-    @request.env['HTTP_AUTHORIZATION'] = "Basic " + Base64.encode64("#{@login}:password")
+    @request.env['HTTP_AUTHORIZATION'] = "Basic " + Base64.encode64("#{@login}:#{@password}")
     @request.env['HTTP_ACCEPT'] = "application/json"
     stubber
     @namespace = "ns#{@random}"
     @domain = Domain.new(namespace: @namespace, owner:@user)
     @domain.save
     @app_name = "app#{@random}"
-    @app = Application.create_app(@app_name, ["php-5.3"], @domain, "small")
+    @app = Application.create_app(@app_name, [PHP_VERSION], @domain, "small")
     @app.save
   end
   
@@ -82,7 +84,7 @@ class EmbCartControllerTest < ActionController::TestCase
   end
   
   test "destroy web_framework cartridge" do
-    delete :destroy , {"id" => "php-5.3", "domain_id" => @domain.namespace, "application_id" => @app.name}
+    delete :destroy , {"id" => PHP_VERSION, "domain_id" => @domain.namespace, "application_id" => @app.name}
     assert_response :unprocessable_entity
   end
   

@@ -41,6 +41,7 @@ Requires:      %{?scl:%scl_prefix}rubygem(bson_ext)
 Requires:      %{?scl:%scl_prefix}rubygem(cucumber)
 Requires:      %{?scl:%scl_prefix}rubygem(dnsruby)
 Requires:      %{?scl:%scl_prefix}rubygem(json)
+Requires:      %{?scl:%scl_prefix}rubygem(json_pure)
 Requires:      %{?scl:%scl_prefix}rubygem(minitest)
 Requires:      %{?scl:%scl_prefix}rubygem(mongo)
 # The mongoid gem doesn't exist in Fedora yet
