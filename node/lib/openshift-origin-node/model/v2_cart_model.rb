@@ -492,8 +492,7 @@ module OpenShift
     def render_erbs(env, path_glob)
       Dir.glob(path_glob + '/*.erb').select { |f| File.file?(f) }.each do |file|
         begin
-          ruby_path = ENV["PATH"].split(":").select{ |p| File.exist?("#{p}/ruby") }.first
-          Utils.oo_spawn(%Q{#{ruby_path}/erb -S 2 -- #{file} > #{file.chomp('.erb')}},
+          Utils.oo_spawn(%Q{#{ERB_BINARY} -S 2 -- #{file} > #{file.chomp('.erb')}},
                          env:             env,
                          unsetenv_others: true,
                          chdir:           @user.homedir,
