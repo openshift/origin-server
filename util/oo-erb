@@ -1,0 +1,6 @@
+#!/bin/bash
+#
+# This script allows OpenShift Origin to keep command consistancy 
+#   across SCL'ized and non-SCL'ized machines
+
+exec erb "$@"

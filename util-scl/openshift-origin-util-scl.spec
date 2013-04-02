@@ -22,6 +22,7 @@ cp oo-* %{buildroot}%{_bindir}/
 
 %files
 %attr(0755,-,-) %{_bindir}/oo-ruby
+%attr(0755,-,-) %{_bindir}/oo-erb
 %attr(0755,-,-) %{_bindir}/oo-exec-ruby
 
 
