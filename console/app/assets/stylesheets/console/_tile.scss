@@ -39,6 +39,10 @@
 
 .tile-click {
   cursor: pointer;
+  
+  h3 {
+    margin-right: 10px;
+  }
 
   &:hover {
     background-color: #151515;
