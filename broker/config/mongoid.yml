@@ -14,7 +14,7 @@ production:
       password: "<%= config[:password] %>"
       ssl: <%= config[:ssl] %>
       options:
-        consistency: :eventual
+        consistency: :strong
         safe: true
   options:
     raise_not_found_error: true
@@ -34,7 +34,7 @@ development:
       password: "<%= config[:password] %>"
       ssl: <%= config[:ssl] %>
       options:
-        consistency: :eventual
+        consistency: :strong
         safe: true
   options:
     raise_not_found_error: true
@@ -54,7 +54,7 @@ test:
       password: "<%= config[:password] %>"
       ssl: <%= config[:ssl] %>
       options:
-        consistency: :eventual
+        consistency: :strong
         safe: true
   options:
     raise_not_found_error: true
