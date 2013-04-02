@@ -70,22 +70,29 @@ class V2CartridgeModelFunctionalTest < Test::Unit::TestCase
     OpenShift::CartridgeRepository.instance.load
     @model = OpenShift::V2CartridgeModel.new(@config, @user, OpenShift::Utils::ApplicationState.new(@uuid))
     @model.configure('mock-0.1')
+    @model.configure('mock-plugin-0.1')
   end
 
   # Called after every test method runs. Can be used to tear
   # down fixture information.
-
   def teardown
     @user.destroy
   end
 
-  # Fake test
-  def test_do_connector_success
-    results = @model.connector_execute('mock-0.1', 'publish-db-connection-info', "")
+  def test_publish_db_connection_info
+    results = @model.connector_execute('mock-plugin-0.1', 'publish-db-connection-info', "")
     refute_nil results
 
     assert_match(
-        %r(OPENSHIFT_MOCK_DB_USERNAME=UT_username; OPENSHIFT_MOCK_DB_PASSWORD=UT_password; OPENSHIFT_MOCK_DB_HOST=\d+\.\d+\.\d+\.\d+; OPENSHIFT_MOCK_DB_PORT=8080; OPENSHIFT_MOCK_DB_URL=mock://\d+\.\d+\.\d+\.\d+:8080/unit_test;),
+        %r(OPENSHIFT_MOCK_PLUGIN_DB_USERNAME=UT_username; OPENSHIFT_MOCK_PLUGIN_DB_PASSWORD=UT_password; OPENSHIFT_MOCK_PLUGIN_DB_HOST=\d+\.\d+\.\d+\.\d+; OPENSHIFT_MOCK_PLUGIN_DB_PORT=8080; OPENSHIFT_MOCK_PLUGIN_DB_URL=mock://\d+\.\d+\.\d+\.\d+:8080/unit_test;),
         results)
+  end
+
+  def test_set_db_connection_info
+    @model.connector_execute('mock-0.1', 'set-db-connection-info', "test testdomain 515c7e8bdf3e460939000001 \\'75e36e529c9211e29cc622000a8c0259\\'\\=\\'OPENSHIFT_MOCK_DB_GEAR_UUID\\=75e36e529c9211e29cc622000a8c0259\\;\\;\\ '\n'\\'")
+
+    uservar_file = File.join(@user.homedir, '.env', '.uservars', 'OPENSHIFT_MOCK_DB_GEAR_UUID')
+    assert File.exists? uservar_file
+    assert_equal "export OPENSHIFT_MOCK_DB_GEAR_UUID='75e36e529c9211e29cc622000a8c0259'", IO.read(uservar_file).chomp
   end
 end
