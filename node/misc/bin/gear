@@ -31,14 +31,14 @@ module OpenShift
   module NodeLogger
     def self.logger
        unless @logger
-          @logger = Logger.new(STDOUT)
+          @logger = Logger.new(File.open(File::NULL, "w"))
        end
        @logger
     end
 
     def self.trace_logger
        unless @trace_logger
-         @trace_logger = Logger.new(STDOUT)
+         @trace_logger = Logger.new(File.open(File::NULL, "w"))
          @trace_logger.level = Logger::Severity::ERROR
        end
        @trace_logger
