@@ -2,7 +2,7 @@ Name: jbosseap
 Cartridge-Short-Name: JBOSSEAP
 Display-Name: JBoss Enterprise Application Platform
 Description: "Market-leading open source enterprise platform for next-generation, highly transactional enterprise Java applications. Build and deploy enterprise Java in the cloud."
-Version: 6.0.1
+Version: '6.0'
 License: LGPL
 License-Url: http://www.gnu.org/copyleft/lesser.txt
 Vendor: Red Hat
@@ -51,16 +51,12 @@ Cart-Data:
 Provides:
   - jbosseap-6.0
   - "jbosseap"
-  - "jbosseap(version) = 6.0.0"
+  - "jbosseap(version) = 6.0"
   - "jbosseap(version) >= 6.0"
   - "jboss-eap6.0"
-  - "jboss-eap6.0.0"
   - jbosseap-standalone
   - jboss-eap6.0-standalone
-  - jboss-eap6.0.0-standalone
 Publishes:
-  get-internal-uri:
-    Type: "NET_TCP:http"
   publish-http-url:
     Type: "NET_TCP:httpd-proxy-info"
   publish_jboss_cluster:
@@ -76,21 +72,26 @@ Subscribes:
   set-nosql-db-connection-info:
     Type: "NET_TCP:nosqldb:connection-info"
     Required: false
-  set-jdbc-info:
-    Type: "NET_TCP:jdbc"
   set_jboss_cluster:
     Type: "NET_TCP:jbosseap-cluster-info"
   set_jboss_remoting:
     Type: "NET_TCP:jbosseap-remoting-info"
 Group-Overrides:
   - components:
-    - jbosseap-6.0
+    - jbosseap
     - web_proxy
 Endpoints:
   - Private-IP-Name:   IP
-    Private-Port-Name: PORT
+    Private-Port-Name: HTTP_PORT
     Private-Port:      8080
-    Public-Port-Name:  PROXY_PORT
+    Public-Port-Name:  HTTP_PROXY_PORT
+    Mappings:
+      - Frontend:      ""
+        Backend:       ""
+        Options:       { "websocket": 1}
+      - Frontend:      "/health"
+        Backend:       "/$OPENSHIFT_REPO_DIR/.openshift/configuration/health.html"
+        Options:       { "file": 1}
   - Private-IP-Name:   IP
     Private-Port-Name: CLUSTER_PORT
     Private-Port:      7600
