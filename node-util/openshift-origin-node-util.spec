@@ -27,7 +27,11 @@ mkdir -p %{buildroot}%{_sbindir}
 mkdir -p %{buildroot}%{_bindir}
 
 cp bin/oo-* %{buildroot}%{_sbindir}/
+rm %{buildroot}%{_sbindir}/oo-snapshot
+rm %{buildroot}%{_sbindir}/oo-restore
 cp bin/rhc-* %{buildroot}%{_bindir}/
+cp bin/oo-snapshot %{buildroot}%{_bindir}/
+cp bin/oo-restore %{buildroot}%{_bindir}/
 
 %if 0%{?fedora} >= 18
   mv %{buildroot}%{_sbindir}/oo-httpd-singular.apache-2.4 %{buildroot}%{_sbindir}/oo-httpd-singular
@@ -72,12 +76,14 @@ mv services/openshift-gears.service %{buildroot}/etc/systemd/system/openshift-ge
 %attr(0750,-,-) %{_sbindir}/oo-restorecon
 %attr(0750,-,-) %{_sbindir}/oo-restorer
 %attr(0750,-,apache) %{_sbindir}/oo-restorer-wrapper.sh
-%attr(0755,-,-) %{_bindir}/rhc-list-ports
 %attr(0755,-,-) %{_sbindir}/oo-httpd-singular
 %attr(0750,-,-) %{_sbindir}/oo-su
 %attr(0750,-,-) %{_sbindir}/oo-cartridge
 %attr(0750,-,-) %{_sbindir}/oo-admin-cartridge
 %attr(0750,-,-) %{_sbindir}/oo-cart-version
+%attr(0755,-,-) %{_bindir}/rhc-list-ports
+%attr(0755,-,-) %{_bindir}/oo-snapshot
+%attr(0755,-,-) %{_bindir}/oo-restore
 
 %doc LICENSE
 %doc README-Idler.md

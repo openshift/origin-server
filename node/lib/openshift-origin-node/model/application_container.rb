@@ -449,14 +449,194 @@ module OpenShift
       @cartridge_model.do_control("reload", cart_name)
     end
 
-    # restore gear from tar ball
-    def restore(cart_name)
-      raise NotImplementedError.new("restore")
+    ##
+    # Creates a snapshot of a gear.
+    #
+    # Writes an archive (in tar.gz format) to the calling process' STDOUT.
+    # The operations invoked by this method write user-facing output to the
+    # client on STDERR.
+    def snapshot
+      stop_gear
+
+      @cartridge_model.each_cartridge do |cartridge|
+        @cartridge_model.do_control('pre-snapshot', cartridge)
+      end
+
+      exclusions = snapshot_exclusions
+      write_snapshot_archive(exclusions)
+
+      @cartridge_model.each_cartridge do |cartridge|
+        @cartridge_model.do_control('post-snapshot', cartridge)
+      end      
+
+      start_gear
     end
 
-    # write gear to tar ball
-    def snapshot(cart_name)
-      raise NotImplementedError.new("snapshot")
+    def snapshot_exclusions
+      exclusions = []
+
+      @cartridge_model.each_cartridge do |cartridge|
+        exclusions_file = File.join(cartridge.directory, 'metadata', 'snapshot_exclusions.txt')
+        next unless File.exist? exclusions_file
+
+        File.readlines(exclusions_file).each do |line|
+          line.chomp!
+
+          case 
+          when line.empty?
+            # skip blank lines
+          else
+            exclusions << line
+          end
+        end
+      end
+
+      exclusions
+    end
+
+    def write_snapshot_archive(exclusions)
+      gear_env = Utils::Environ.for_gear(@user.homedir)
+
+      exclusions = exclusions.map { |x| "--exclude=#{x}" }.join(' ')
+
+      tar_cmd = %Q{
+/bin/tar --ignore-failed-read -czf - \
+--exclude=./$OPENSHIFT_GEAR_UUID/.tmp \
+--exclude=./$OPENSHIFT_GEAR_UUID/.ssh \
+--exclude=./$OPENSHIFT_GEAR_UUID/.sandbox \
+--exclude=./$OPENSHIFT_GEAR_UUID/*/conf.d/openshift.conf \
+--exclude=./$OPENSHIFT_GEAR_UUID/*/run/httpd.pid \
+--exclude=./$OPENSHIFT_GEAR_UUID/haproxy-\*/run/stats \
+--exclude=./$OPENSHIFT_GEAR_UUID/app-root/runtime/.state \
+--exclude=./$OPENSHIFT_GEAR_UUID/app-root/data/.bash_history \
+#{exclusions} ./$OPENSHIFT_GEAR_UUID
+}
+
+      $stderr.puts 'Creating and sending tar.gz'
+
+      Utils.oo_spawn(tar_cmd, 
+                     env: gear_env,
+                     unsetenv_others: true,
+                     out: $stdout,
+                     chdir: @config.get('GEAR_BASE_DIR'),
+                     uid: @user.uid,
+                     expected_exitstatus: 0)
+    end
+
+    ##
+    # Restores a gear from an archive read from STDIN.
+    #
+    # The operation invoked by this method write output to the client on STDERR.
+    def restore(restore_git_repo)
+      gear_env = Utils::Environ.for_gear(@user.homedir)
+
+      if restore_git_repo
+        pre_receive
+      else
+        stop_gear
+      end
+
+      prepare_for_restore(restore_git_repo, gear_env)
+
+      transforms = restore_transforms
+      extract_restore_archive(transforms, restore_git_repo, gear_env)
+
+      @cartridge_model.each_cartridge do |cartridge|
+        @cartridge_model.do_control('post-restore', cartridge)
+      end
+
+      if restore_git_repo
+        post_receive
+      else
+        start_gear
+      end
+    end
+
+    def prepare_for_restore(restore_git_repo, gear_env)
+      if restore_git_repo
+        $stderr.puts "Removing old git repo: ~/git/#{@name}.git/"
+        # TODO: convert to stdlib calls
+        # FileUtils.rm_rf(File.join(@user.homedir, 'git', "#{@name}.git", '[^h]*', '*'))
+
+        Utils.oo_spawn('/bin/rm -rf $OPENSHIFT_HOMEDIR/git/${OPENSHIFT_GEAR_NAME}.git/[^h]*/*',
+                       env: gear_env,
+                       chdir: @user.homedir,
+                       uid: @user.uid,
+                       expected_exitstatus: 0)
+      end
+
+      $stderr.puts "Removing old data dir: ~/app-root/data/*"
+      # TODO: convert to stdlib calls
+      # FileUtils.rm_rf(File.join(@user.homedir, 'app-root', 'data', '*'))
+      # FileUtils.rm_rf(File.join(@user.homedir, 'app-root', 'data', '.[^.]*'))
+      # FileUtils.safe_unlink(File.join(@user.homedir, 'app-root', 'runtime', 'data'))
+      Utils.oo_spawn('/bin/rm -rf $OPENSHIFT_HOMEDIR/app-root/data/* $OPENSHIFT_HOMEDIR/app-root/data/.[^.]*; unlink $OPENSHIFT_HOMEDIR/app-root/runtime/data',
+                    env: gear_env,
+                    chdir: @user.homedir,
+                    uid: @user.uid,
+                    expected_exitstatus: 0)
+    end
+
+    def restore_transforms
+      transforms = []
+
+      @cartridge_model.each_cartridge do |cartridge|
+        transforms_file = File.join(cartridge.directory, 'metadata', 'restore_transforms.txt')
+        next unless File.exist? transforms_file
+
+        File.readlines(transforms_file).each do |line|
+          line.chomp!
+
+          case 
+          when line.empty?
+            # skip blank lines
+          else
+            transforms << line
+          end
+        end
+      end
+
+      transforms
+    end
+
+    def extract_restore_archive(transforms, restore_git_repo, gear_env)
+      includes = %w(./*/*/data)
+      excludes = %w(./*/app-root/runtime/data)
+      transforms << 's|${OPENSHIFT_GEAR_NAME}/data|app-root/data|'
+      transforms << 's|git/.*\.git|git/${OPENSHIFT_GEAR_NAME}.git|'
+
+      # TODO: use all installed cartridges, not just ones in current instance directory
+      @cartridge_model.each_cartridge do |cartridge|
+        excludes << "./*/#{cartridge.directory}/data"
+      end
+
+      if restore_git_repo
+        excludes << './*/git/*.git/hooks'
+        includes << './*/git'
+        $stderr.puts "Restoring ~/git/#{name}.git and ~/app-root/data"
+      else
+        $stderr.puts "Restoring ~/app-root/data"
+      end
+
+      includes = includes.join(' ')
+      excludes = excludes.map { |x| "--exclude=\"#{x}\"" }.join(' ')
+      transforms = transforms.map { |x| "--transform=\"#{x}\"" }.join(' ')
+
+      tar_cmd = %Q{/bin/tar --strip=2 --overwrite -xmz #{includes} #{transforms} #{excludes} 1>&2}
+
+      Utils.oo_spawn(tar_cmd, 
+                     env: gear_env,
+                     unsetenv_others: true,
+                     out: $stdout,
+                     err: $stderr,
+                     in: $stdin,
+                     chdir: @user.homedir,
+                     uid: @user.uid,
+                     expected_exitstatus: 0)
+
+      FileUtils.cd File.join(@user.homedir, 'app-root', 'runtime') do
+        FileUtils.ln_s('../data', 'data')
+      end
     end
 
     def status(cart_name)

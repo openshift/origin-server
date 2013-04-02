@@ -27,8 +27,6 @@ using your cartridge.
      |  +- control                 (required)
      |- hooks                      (optional)
      |  +- set-db-connection-info  (discretionary)
-     |  +- snapshot                (discretionary)
-     |  +- restore                 (discretionary)
      +- versions                   (discretionary)
      |  +- `software version`
      |  |  +- bin
@@ -53,7 +51,7 @@ using your cartridge.
      |  +- manifest.yml            (required)
      |  +- locked_files.txt        (optional)
      |  +- snapshot_exclusions.txt (optional)
-     |  +- snapshot_transforms.txt (optional)
+     |  +- restore_transforms.txt  (optional)
      +- conf.d                     (discretionary)
      |  +- openshift.conf.erb
      +- conf                       (discretionary)
@@ -681,6 +679,10 @@ The list of operations your cartridge may be called to perform:
      very limited. Some possible behaviors: 
       * `rm $OPENSHIFT_CART_DIR/logs/log.[0-9]`
       * `cd $OPENSHIFT_REPO_DIR ; mvn clean`
+   * `pre-snapshot` prepare the cartridge for snapshot
+   * `post-snapshot` clean up the cartridge after snapshot
+   * `pre-restore` prepare the cartridge for restore
+   * `post-restore` clean up the cartridge after being restored
      
     OpenShift has the following default behaviors:
       * the Git repository will be garbage collected
@@ -796,7 +798,7 @@ renders as `env/OPENSHIFT_MONGODB_DB_LOG_DIR`:
 Your templates will be rendered at `safe_level 2`.  [Locking Ruby in
 the Safe](http://www.ruby-doc.org/docs/ProgrammingRuby/html/taint.html).
 
-You may assume the PATH variable will be:
+You may assume the `PATH` variable will be:
      PATH=/bin:/usr/bin/
 
 when your code is executed. Any additional directories your code requires
@@ -804,37 +806,55 @@ will need to be added in your cartridge's `env` variable.
 
 ## Backing up and Restoring your cartridge
 
-OpenShift uses the tar command when backing up and restoring the gear that
+OpenShift provides a snapshot/restore feature for user applications.  This feature is meant to allow OpenShift application developers to:
+
+1. Capture the state ('snapshot') of their application and produce an archive of that state.
+1. Use a previously taken snapshot of an application to restore the application to the state in the snapshot.
+1. Use a previously taken snapshot of an application to restore a new application to the state in the snapshot.  This could be merely renaming an application, or copying an application.
+
+OpenShift uses the `tar` command when backing up and restoring the gear that
 contains your cartridge. The file `metadata/snapshot_exclusions.txt`
 contains a pattern per line of files that will not be backed up or
 restored. If you exclude files from being backed up and restored you need
 to ensure those files are not required for your cartridge's operation.
 
-The file `metadata/snapshot_transforms.txt` contains sed replace
+The file `metadata/restore_transforms.txt` contains `sed` replace
 expressions one per line and is used to transform file names during
 restore.
 
 Both files are optional and may be omitted. Empty files will be
-ignored. Patterns are from the OPENSHIFT_HOMEDIR parent directory rather
-than your cartridge's directory.  See the man page for tar the --transform
-and --exclude-from for more details.
+ignored. Patterns are from the `OPENSHIFT_HOMEDIR` directory rather
+than your cartridge's directory.  See the man page for `tar` the `--transform`
+and `--exclude-from` for more details.
 
-The following files and directories are never backed up:
+### Understanding OpenShift Behavior: Snapshot
 
-```
-.tmp
-.ssh
-.sandbox
-*/conf.d/openshift.conf
-*/run/httpd.pid
-haproxy-\*/run/stats
-app-root/runtime/.state
-app-root/data/.bash_history
-```
+OpenShift creates an archive during `snapshot` as follows:
 
-If you have provided a `snapshot` or `restore` hook, those will be called during
-their respective workflows. This allows you to do things such as dumping databases to a flat
-file for inclusion in the backup.
+1. OpenShift stops the application by invoking `gear stop`
+1. OpenShift invokes `control pre-snapshot` for each installed cartridge in the gear.  Cartridges may control their serialization in the snapshot by implementing this control action in conjunction with exclusions. (Example: cartridge authors wants to snapshot/restore to/from a database dump instead of a database file).
+1. OpenShift builds a list of exclusions by reading the `snapshot_exclusions.txt` file for each cartridge in the gear.
+1. OpenShift creates an archive in tar.gz format and writes it to STDOUT for consumption by the client tools.  The following exclusions are used in addition to the list created from cartridges:
+   1. Gear user `.tmp`, `.ssh`, `.sandbox`
+   1. Application state file (`app-root/runtime/.state`)
+   1. Bash history file (`$OPENSHIFT_DATA_DIR/.bash_history`)
+1. OpenShift invokes `control post-snapshot` for each installed cartridge in the gear.
+1. Openshift starts the application by invoking `gear start`
+
+### Understanding OpenShift Behavior: Restore
+
+Openshift restores an application from an archive as follows:
+
+1. OpenShift prepares the application for restoration:
+   1. If the archive contains a git repo, the platform invokes `gear prereceive`
+   1. Otherwise, the platform invokes `gear stop`
+1. OpenShift invokes `control pre-restore` for each installed cartridge in the gear.  This allows cartridges that control their snapshotted state to prepare their cartridges for restoration (Example: delete old database dump, if present)
+1. OpenShift builds a list of transforms to apply by reading the `restore_transforms.txt` file of each cartridge installed in the gear.
+1. OpenShift extracts the archive into the gear user's home directory, overwriting existing files, and applying the transformations obtained from cartridges.
+1. OpenShift invokes `control post-restore` for each installed cartridge in the gear.  (Example: delete new database dump that db was restored from). 
+1. OpenShift resumes the application:
+   1. If the archive contains a git repo, OpenShift invokes `gear postreceive`
+   1. Otherwise, OpenShift invokes `gear start` 
 
 ## Sample `conf.d/openshift.conf.erb`
 
