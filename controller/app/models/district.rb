@@ -31,13 +31,16 @@ class District
   
   def initialize(attrs = nil, options = nil)
     super
+
+    first_uid = Rails.configuration.msg_broker[:districts][:first_uid]
+    num_uids = Rails.configuration.msg_broker[:districts][:max_capacity]
     self.server_identities = []
-    self.uuid = self._id.to_s if self.uuid=="" or self.uuid.nil?
-    self.available_capacity = Rails.configuration.msg_broker[:districts][:max_capacity]
     self.available_uids = []
-    self.available_uids.fill(0, Rails.configuration.msg_broker[:districts][:max_capacity]) {|i| i+Rails.configuration.msg_broker[:districts][:first_uid]}
-    self.max_uid = Rails.configuration.msg_broker[:districts][:max_capacity] + Rails.configuration.msg_broker[:districts][:first_uid] - 1
-    self.max_capacity = Rails.configuration.msg_broker[:districts][:max_capacity]
+    self.uuid = self._id.to_s if self.uuid=="" or self.uuid.nil?
+    self.available_capacity = num_uids
+    self.available_uids = (first_uid...first_uid + num_uids).sort_by{rand}
+    self.max_uid = first_uid + num_uids - 1
+    self.max_capacity = num_uids
     self.externally_reserved_uids_size = 0
     self.active_server_identities_size = 0
     save!
@@ -170,43 +173,36 @@ class District
   
   def add_capacity(num_uids)
     if num_uids > 0
-      additions = []
-      additions.fill(0, num_uids) {|i| i+max_uid+1}
-      self.available_capacity += num_uids
-      self.max_uid += num_uids
-      self.max_capacity += num_uids
-      self.available_uids += additions
-      self.save!
+      # shuffle the additional UIDs and add them atomically
+      additions = (max_uid + 1..max_uid + num_uids).sort_by{rand}
+      update_result = District.where(:uuid => uuid).update({"$pushAll" => { :available_uids => additions}, "$inc" => { :available_capacity => num_uids, :max_capacity => num_uids, :max_uid => num_uids }})
+
+      if update_result.nil? or (not update_result["updatedExisting"])
+        raise OpenShift::OOException.new("Could not add capacity to district: #{uuid}")
+      end
+      
+      return self.with(consistency: :strong).reload
     else
-      raise OpenShift::OOException.new("You must supply a positive number of uids to remove")
+      raise OpenShift::OOException.new("You must supply a positive number of uids to add")
     end
   end
   
   def remove_capacity(num_uids)
     if num_uids > 0
       subtractions = []
-      subtractions.fill(0, num_uids) {|i| i+max_uid-num_uids+1}
-      pos = 0
-      found_first_pos = false
-      available_uids.each do |available_uid|
-        if !found_first_pos && available_uid == subtractions[pos]
-          found_first_pos = true
-        elsif found_first_pos
-          unless available_uid == subtractions[pos]
-            raise OpenShift::OOException.new("Uid: #{subtractions[pos]} not found in order in available_uids.  Can not continue!")
-          end
+      subtractions.fill(0, num_uids) {|i| i + max_uid - num_uids + 1}
+      
+      # check if the UIDs being removed are available
+      if (subtractions & available_uids).length == subtractions.length
+        update_result = District.where(:uuid => uuid, :available_uids => { "$all" => subtractions }).update({"$pullAll" => { "available_uids" => subtractions}, "$inc" => { :available_capacity => -num_uids, :max_capacity => -num_uids, :max_uid => -num_uids }})
+        if update_result.nil? or (not update_result["updatedExisting"])
+          raise OpenShift::OOException.new("Could not remove capacity from district: #{uuid}")
         end
-        pos += 1 if found_first_pos
-        break if pos == subtractions.length
+      else
+        raise OpenShift::OOException.new("Specified number of UIDs not found in order in available_uids.  Can not continue!")
       end
-      if !found_first_pos
-        raise OpenShift::OOException.new("Missing uid: #{subtractions[0]} in existing available_uids.  Can not continue!")
-      end
-      self.available_capacity -= num_uids
-      self.max_uid -= num_uids
-      self.max_capacity -= num_uids
-      self.available_uids -= subtractions
-      self.save!
+      
+      return self.with(consistency: :strong).reload
     else
       raise OpenShift::OOException.new("You must supply a positive number of uids to remove")
     end
