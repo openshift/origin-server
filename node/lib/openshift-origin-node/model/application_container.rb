@@ -344,34 +344,50 @@ module OpenShift
       @cartridge_model.post_move(cart_name)
     end
 
-    def pre_receive
+    def pre_receive(options={})
       builder_cartridge = @cartridge_model.builder_cartridge
 
       if builder_cartridge
-        @cartridge_model.do_control('pre-receive', builder_cartridge)
+        @cartridge_model.do_control('pre-receive',
+                                    builder_cartridge,
+                                    out: options[:out],
+                                    err: options[:err])
       else
-        DefaultBuilder.new(self).pre_receive
+        DefaultBuilder.new(self).pre_receive(out: options[:out],
+                                             err: options[:err])
       end
     end
 
-    def post_receive
+    def post_receive(options={})
       builder_cartridge = @cartridge_model.builder_cartridge
 
       if builder_cartridge
-        @cartridge_model.do_control('post-receive', builder_cartridge)
+        @cartridge_model.do_control('post-receive',
+                                    builder_cartridge,
+                                    out: options[:out],
+                                    err: options[:err])
       else
-        DefaultBuilder.new(self).post_receive
+        DefaultBuilder.new(self).post_receive(out: options[:out],
+                                              err: options[:err])
       end
     end
 
-    def ci_deploy
-      start_gear(secondary_only: true, user_initiated: false)
+    def ci_deploy(options={})
+      start_gear(secondary_only: true,
+                 user_initiated: false,
+                 out:            options[:out],
+                 err:            options[:err])
 
-      deploy
+      deploy(out: options[:out],
+             err: options[:err])
 
-      start_gear(primary_only: true, user_initiated: false)
+      start_gear(primary_only:  true,
+                user_initiated: false,
+                out:            options[:out],
+                err:            options[:err])
 
-      post_deploy
+      post_deploy(out: options[:out],
+                  err: options[:err])
     end
 
     ##
@@ -384,19 +400,23 @@ module OpenShift
     #   5. Run the +build+ user action hook
     #
     # Returns the combined output of all actions as a +String+.
-    def build
+    def build(options={})
       @state.value = OpenShift::State::BUILDING
 
       buffer = ''
       buffer << @cartridge_model.do_control('pre-build',
                                             @cartridge_model.primary_cartridge,
                                             pre_action_hooks_enabled: false,
-                                            prefix_action_hooks:      false)
+                                            prefix_action_hooks:      false,
+                                            out:                      options[:out],
+                                            err:                      options[:err])
 
       buffer << @cartridge_model.do_control('build',
                                             @cartridge_model.primary_cartridge,
                                             pre_action_hooks_enabled: false,
-                                            prefix_action_hooks:      false)
+                                            prefix_action_hooks:      false,
+                                            out:                      options[:out],
+                                            err:                      options[:err])
 
       buffer
     end
@@ -409,12 +429,14 @@ module OpenShift
     #   3. Run the +deploy+ user action hook
     #
     # Returns the combined output of all actions as a +String+.
-    def deploy
+    def deploy(options={})
       @state.value = OpenShift::State::DEPLOYING
       @cartridge_model.do_control('deploy',
                                   @cartridge_model.primary_cartridge,
                                   pre_action_hooks_enabled: false,
-                                  prefix_action_hooks:      false)
+                                  prefix_action_hooks:      false,
+                                  out:                      options[:out],
+                                  err:                      options[:err])
     end
 
     ##
@@ -422,21 +444,29 @@ module OpenShift
     #
     #   1. Run the cartridge +post-deploy+ action
     #   2. Run the +post-deploy+ user action hook
-    def post_deploy
+    def post_deploy(options={})
       @cartridge_model.do_control('post-deploy',
                                   @cartridge_model.primary_cartridge,
                                   pre_action_hooks_enabled: false,
-                                  prefix_action_hooks:      false)
+                                  prefix_action_hooks:      false,
+                                  out:                      options[:out],
+                                  err:                      options[:err])
     end
 
     # === Cartridge control methods
 
-    def start(cart_name)
-      @cartridge_model.start_cartridge(cart_name, true)
+    def start(cart_name, options={})
+      @cartridge_model.start_cartridge(cart_name,
+                                       user_initiated: true,
+                                       out:            options[:out],
+                                       err:            options[:err])
     end
 
-    def stop(cart_name)
-      @cartridge_model.stop_cartridge(cart_name, true)
+    def stop(cart_name, options={})
+      @cartridge_model.stop_cartridge(cart_name,
+                                      user_initiated: true,
+                                      out:            options[:out],
+                                      err:            options[:err])
     end
 
     # restart gear as supported by cartridges

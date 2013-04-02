@@ -213,7 +213,7 @@ module OpenShift
 
         end
 
-        output << start_cartridge(cartridge, true)
+        output << start_cartridge(cartridge, user_initiated: true)
       end
 
       connect_frontend(cartridge)
@@ -231,7 +231,7 @@ module OpenShift
       cartridge = get_cartridge(cartridge_name)
       delete_private_endpoints(cartridge)
       OpenShift::Utils::Cgroups::with_cgroups_disabled(@user.uuid) do
-        stop_cartridge(cartridge, true)
+        stop_cartridge(cartridge, user_initiated: true)
         unlock_gear(cartridge) { |c| cartridge_teardown(c.directory) }
         delete_cartridge_directory(cartridge)
       end
@@ -746,11 +746,15 @@ module OpenShift
     # Call action on cartridge +control+ script. Run all pre/post hooks if found.
     #
     # +options+: hash
-    #   :cartridge_dir => path             : process all cartridges (if +nil+) or the provided cartridge
-    #   :pre_action_hooks_enabled => true  : whether to process repo action hooks before +action+
-    #   :post_action_hooks_enabled => true : whether to process repo action hooks after +action+
-    #   :prefix_action_hooks => true       : if +true+, action hook names are automatically prefixed with
+    #   :cartridge_dir => path             : Process all cartridges (if +nil+) or the provided cartridge
+    #   :pre_action_hooks_enabled => true  : Whether to process repo action hooks before +action+
+    #   :post_action_hooks_enabled => true : Whether to process repo action hooks after +action+
+    #   :prefix_action_hooks => true       : If +true+, action hook names are automatically prefixed with
     #                                        'pre' and 'post' depending on their execution order.
+    #   :out                               : An +IO+ object to which control script STDOUT should be directed. If
+    #                                        +nil+ (the default), output is logged.
+    #   :err                               : An +IO+ object to which control script STDERR should be directed. If
+    #                                        +nil+ (the default), output is logged.
     def do_control_with_directory(action, options={})
       cartridge_dir             = options[:cartridge_dir]
       pre_action_hooks_enabled  = options.has_key?(:pre_action_hooks_enabled)  ? options[:pre_action_hooks_enabled]  : true
@@ -764,7 +768,8 @@ module OpenShift
 
       if pre_action_hooks_enabled
         pre_action_hook = prefix_action_hooks ? "pre_#{action}" : action
-        buffer << do_action_hook(pre_action_hook, gear_env)
+        hook_buffer = do_action_hook(pre_action_hook, gear_env, options)
+        buffer << hook_buffer if hook_buffer.is_a?(String)
       end
 
       process_cartridges(cartridge_dir) { |path|
@@ -785,8 +790,11 @@ module OpenShift
                                       env:             cartridge_env,
                                       unsetenv_others: true,
                                       chdir:           @user.homedir,
-                                      uid:             @user.uid)
-        buffer << out
+                                      uid:             @user.uid,
+                                      out:             options[:out],
+                                      err:             options[:err])
+        
+        buffer << out if out.is_a?(String)
 
         raise Utils::ShellExecutionException.new(
                   "Failed to execute: 'control #{action}' for #{path}", rc, buffer, err
@@ -795,7 +803,8 @@ module OpenShift
 
       if post_action_hooks_enabled
         post_action_hook = prefix_action_hooks ? "post_#{action}" : action
-        buffer << do_action_hook(post_action_hook, gear_env)
+        hook_buffer = do_action_hook(post_action_hook, gear_env, options)
+        buffer << hook_buffer if hook_buffer.is_a?(String)
       end
       
       buffer
@@ -805,7 +814,7 @@ module OpenShift
     # Executes the named +action+ from the user repo +action_hooks+ directory and returns the
     # stdout of the execution, or raises a +ShellExecutionException+ if the action returns a
     # non-zero return code.
-    def do_action_hook(action, env)
+    def do_action_hook(action, env, options)
       action_hooks_dir = File.join(@user.homedir, %w{app-root runtime repo .openshift action_hooks})
       action_hook = File.join(action_hooks_dir, action)
       out = ''
@@ -815,7 +824,9 @@ module OpenShift
                                       env:             env,
                                       unsetenv_others: true,
                                       chdir:           @user.homedir,
-                                      uid:             @user.uid)
+                                      uid:             @user.uid,
+                                      out:             options[:out],
+                                      err:             options[:err])
         raise Utils::ShellExecutionException.new(
                   "Failed to execute action hook '#{action}' for #{@user.uuid} application #{@user.app_name}",
                   rc, out, err
@@ -847,8 +858,12 @@ module OpenShift
     # in the gear.
     #
     # +options+: hash
-    #   :user_unitiated => [boolean]  : Indicates whether the operation was user initated.
+    #   :user_initiated => [boolean]  : Indicates whether the operation was user initated.
     #                                   Default is +true+.
+    #   :out                          : An +IO+ object to which control script STDOUT should be directed. If
+    #                                   +nil+ (the default), output is logged.
+    #   :err                          : An +IO+ object to which control script STDERR should be directed. If
+    #                                   +nil+ (the default), output is logged.
     #
     # Returns the combined output of all +stop+ action executions as a +String+.
     def stop_gear(options={})
@@ -857,7 +872,7 @@ module OpenShift
       buffer = ''
       
       each_cartridge do |cartridge|
-        buffer << stop_cartridge(cartridge, options[:user_initiated])
+        buffer << stop_cartridge(cartridge, options)
       end
 
       buffer
@@ -875,23 +890,27 @@ module OpenShift
     #                                   Mutually exclusive with +secondary_only+.
     #   :secondary_only => [boolean]  : If +true+, all cartridges except the primary cartridge
     #                                   will be started. Mutually exclusive with +primary_only+.
-    #   :user_unitiated => [boolean]  : Indicates whether the operation was user initated.
+    #   :user_initiated => [boolean]  : Indicates whether the operation was user initated.
     #                                   Default is +true+.
+    #   :out                          : An +IO+ object to which control script STDOUT should be directed. If
+    #                                   +nil+ (the default), output is logged.
+    #   :err                          : An +IO+ object to which control script STDERR should be directed. If
+    #                                   +nil+ (the default), output is logged.
     #
     # Returns the combined output of all +start+ action executions as a +String+.
     def start_gear(options={})
+      options[:user_initiated] = true if not options.has_key?(:user_initiated)
+
       if options[:primary_only] && options[:secondary_only]
         raise "The primary_only and secondary_only options are mutually exclusive"
       end
-
-      options[:user_initiated] = true if not options.has_key?(:user_initiated)
 
       buffer = ''
       each_cartridge do |cartridge|
         next if options[:primary_only] and not cartridge.primary?
         next if options[:secondary_only] and cartridge.primary?
 
-        buffer << start_cartridge(cartridge, options[:user_initiated])
+        buffer << start_cartridge(cartridge, options)
       end
 
       buffer
@@ -905,22 +924,31 @@ module OpenShift
     # created.
     #
     # +cartridge+ : A +Cartridge+ instance or +String+ name of a cartridge.
+    # +options+   : hash
+    #   :user_initiated => [boolean]  : Indicates whether the operation was user initated.
+    #                                   Default is +true+.
+    #   :out                          : An +IO+ object to which control script STDOUT should be directed. If
+    #                                   +nil+ (the default), output is logged.
+    #   :err                          : An +IO+ object to which control script STDERR should be directed. If
+    #                                   +nil+ (the default), output is logged.
     #
     # Returns the output of the operation as a +String+ or raises a +ShellExecutionException+
     # if the cartridge script fails.
-    def start_cartridge(cartridge, user_initiated=true)
-      if not user_initiated and File.exists?(stop_lock)
+    def start_cartridge(cartridge, options={})
+      options[:user_initiated] = true if not options.has_key?(:user_initiated)
+
+      if not options[:user_initiated] and File.exists?(stop_lock)
         return "Not starting cartridge #{cartridge.name} because the application was explicitly stopped by the user"
       end
 
       cartridge = get_cartridge(cartridge) if cartridge.is_a?(String)
 
       if cartridge.primary?
-        FileUtils.rm_f(stop_lock) if user_initiated
+        FileUtils.rm_f(stop_lock) if options[:user_initiated]
         @state.value = OpenShift::State::STARTED
       end
 
-      do_control('start', cartridge)
+      do_control('start', cartridge, options)
     end
 
     ##
@@ -930,23 +958,32 @@ module OpenShift
     # of the primary cartridge is invoked and +user_initiated+ is true, the stop lock
     # is removed.
     #
-    # +cartridge+      : A +Cartridge+ instance or +String+ name of a cartridge.
+    # +cartridge+ : A +Cartridge+ instance or +String+ name of a cartridge.
+    # +options+   : hash
+    #   :user_initiated => [boolean]  : Indicates whether the operation was user initated.
+    #                                   Default is +true+.
+    #   :out                          : An +IO+ object to which control script STDOUT should be directed. If
+    #                                   +nil+ (the default), output is logged.
+    #   :err                          : An +IO+ object to which control script STDERR should be directed. If
+    #                                   +nil+ (the default), output is logged.
     #
     # Returns the output of the operation as a +String+ or raises a +ShellExecutionException+
     # if the cartridge script fails.
-    def stop_cartridge(cartridge, user_initiated=true)
-      if not user_initiated and File.exists?(stop_lock)
+    def stop_cartridge(cartridge, options={})
+      options[:user_initiated] = true if not options.has_key?(:user_initiated)
+
+      if not options[:user_initiated] and File.exists?(stop_lock)
         return "Not stopping cartridge #{cartridge.name} because the application was explicitly stopped by the user"
       end
 
       cartridge = get_cartridge(cartridge) if cartridge.is_a?(String)
 
       if cartridge.primary?
-        create_stop_lock if user_initiated
+        create_stop_lock if options[:user_initiated]
         @state.value = OpenShift::State::STOPPED
       end
       
-      do_control('stop', cartridge)
+      do_control('stop', cartridge, options)
     end
 
     ##
