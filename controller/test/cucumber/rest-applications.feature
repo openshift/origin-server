@@ -317,7 +317,7 @@ Feature: applications
     When I send a GET request to "/domains/api<random>/applications/app/descriptor"
     Then the response descriptor should have "diy-0.1,mysql-5.1" as dependencies
     When I send a DELETE request to "/domains/api<random>/applications/app/cartridges/mysql-5.1"
-    Then the response should be "200"
+    Then the response should be "204"
     When I send a GET request to "/domains/api<random>/applications/app/descriptor"
     Then the response descriptor should have "diy-0.1" as dependencies
     When I send a DELETE request to "/domains/api<random>/applications/app"
