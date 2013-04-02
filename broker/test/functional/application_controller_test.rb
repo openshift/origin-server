@@ -7,12 +7,14 @@ class ApplicationControllerTest < ActionController::TestCase
         
     @random = rand(1000000000)
     @login = "user#{@random}"
+    @password = "password"
     @user = CloudUser.new(login: @login)
     @user.capabilities["private_ssl_certificates"] = true
     @user.save
     Lock.create_lock(@user)
+    register_user(@login, @password)
     
-    @request.env['HTTP_AUTHORIZATION'] = "Basic " + Base64.encode64("#{@login}:password")
+    @request.env['HTTP_AUTHORIZATION'] = "Basic " + Base64.encode64("#{@login}:#{@password}")
     @request.env['HTTP_ACCEPT'] = "application/json"
     stubber
     @namespace = "ns#{@random}"
@@ -29,7 +31,7 @@ class ApplicationControllerTest < ActionController::TestCase
   
   test "app create show list and destory" do
     @app_name = "app#{@random}"
-    post :create, {"name" => @app_name, "cartridge" => "php-5.3", "domain_id" => @domain.namespace}
+    post :create, {"name" => @app_name, "cartridge" => PHP_VERSION, "domain_id" => @domain.namespace}
     assert_response :created
     get :show, {"id" => @app_name, "domain_id" => @domain.namespace}
     assert_response :success
@@ -66,7 +68,7 @@ class ApplicationControllerTest < ActionController::TestCase
     assert_response :unprocessable_entity
     post :create, {"name" => @app_name, "cartridges" => "mysql-5.1", "domain_id" => @domain.namespace}
     assert_response :unprocessable_entity
-    post :create, {"name" => @app_name, "cartridges" => ["php-5.3", "zend-5.6"], "domain_id" => @domain.namespace}
+    post :create, {"name" => @app_name, "cartridges" => [PHP_VERSION, "zend-5.6"], "domain_id" => @domain.namespace}
     assert_response :unprocessable_entity
   end
 end

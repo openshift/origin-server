@@ -8,11 +8,13 @@ class EmbCartEventsControllerTest < ActionController::TestCase
     @random = rand(1000000000)
     @login = "user#{@random}"
     @user = CloudUser.new(login: @login)
+    @password = "password"
     @user.capabilities["private_ssl_certificates"] = true
     @user.save
     Lock.create_lock(@user)
+    register_user(@login, @password)    
     
-    @request.env['HTTP_AUTHORIZATION'] = "Basic " + Base64.encode64("#{@login}:password")
+    @request.env['HTTP_AUTHORIZATION'] = "Basic " + Base64.encode64("#{@login}:#{@password}")
     @request.env['HTTP_ACCEPT'] = "application/json"
     stubber
     @namespace = "ns#{@random}"
@@ -20,7 +22,7 @@ class EmbCartEventsControllerTest < ActionController::TestCase
     @domain.save
     @app_name = "app#{@random}"
     @cartridge_id = "mysql-5.1"
-    @app = Application.create_app(@app_name, ["php-5.3", @cartridge_id], @domain, "small")
+    @app = Application.create_app(@app_name, [PHP_VERSION, @cartridge_id], @domain, "small")
     @app.save
   end
   

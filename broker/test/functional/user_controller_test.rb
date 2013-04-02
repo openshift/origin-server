@@ -7,12 +7,14 @@ class UserControllerTest < ActionController::TestCase
     
     @random = rand(1000000000)
     @login = "user#{@random}"
+    @password = "password"
     @user = CloudUser.new(login: @login)
     @user.capabilities["private_ssl_certificates"] = true
     @user.save
     Lock.create_lock(@user)
+    register_user(@login, @password)
     
-    @request.env['HTTP_AUTHORIZATION'] = "Basic " + Base64.encode64("#{@login}:password")
+    @request.env['HTTP_AUTHORIZATION'] = "Basic " + Base64.encode64("#{@login}:#{@password}")
     @request.env['HTTP_ACCEPT'] = "application/json"
     stubber
   end

@@ -7,19 +7,21 @@ class AppEventsControllerTest < ActionController::TestCase
     
     @random = rand(1000000000)
     @login = "user#{@random}"
+    @password = "password"
     @user = CloudUser.new(login: @login)
     @user.capabilities["private_ssl_certificates"] = true
     @user.save
     Lock.create_lock(@user)
+    register_user(@login, @password)
     
-    @request.env['HTTP_AUTHORIZATION'] = "Basic " + Base64.encode64("#{@login}:password")
+    @request.env['HTTP_AUTHORIZATION'] = "Basic " + Base64.encode64("#{@login}:#{@password}")
     @request.env['HTTP_ACCEPT'] = "application/json"
     stubber
     @namespace = "ns#{@random}"
     @domain = Domain.new(namespace: @namespace, owner:@user)
     @domain.save
     @app_name = "app#{@random}"
-    @app = Application.create_app(@app_name, ["php-5.3"], @domain, "small", true)
+    @app = Application.create_app(@app_name, [PHP_VERSION], @domain, "small", true)
     @app.save
   end
   
