@@ -24,22 +24,30 @@ module OpenShift
       @container = application_container
     end
 
-    def pre_receive
-      @container.stop_gear
+    def pre_receive(options)
+      @container.stop_gear(out: options[:out],
+                           err: options[:err])
     end
 
-    def post_receive
+    def post_receive(options)
       ApplicationRepository.new(@container.user).deploy_repository
 
-      @container.build
+      @container.build(out: options[:out],
+                       err: options[:err])
 
-      @container.start_gear(secondary_only: true)
+      @container.start_gear(secondary_only: true,
+                            out:            options[:out],
+                            err:            options[:err])
 
-      @container.deploy
+      @container.deploy(out: options[:out],
+                        err: options[:err])
 
-      @container.start_gear(primary_only: true)
+      @container.start_gear(primary_only: true,
+                            out:          options[:out],
+                            err:          options[:err])
 
-      @container.post_deploy
+      @container.post_deploy(out: options[:out],
+                             err: options[:err])
     end
   end
 end

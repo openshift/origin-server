@@ -85,7 +85,7 @@ command :prereceive do |c|
   c.description = "Run the git prereceive steps"
   c.action do |args, options|
     do_command do
-      @container.pre_receive
+      @container.pre_receive(out: $stdout, err: $stderr)
     end
   end
 end
@@ -96,7 +96,7 @@ command :postreceive do |c|
   c.description = "Run the git postreceive steps"
   c.action do |args, options|
     do_command do
-      @container.post_receive
+      @container.post_receive(out: $stdout, err: $stderr)
     end
   end
 end
@@ -107,7 +107,7 @@ command :build do |c|
   c.description = "Run the build steps"
   c.action do |args, options|
     do_command do
-      @container.build
+      @container.build(out: $stdout, err: $stderr)
     end
   end
 end
@@ -118,7 +118,7 @@ command :cideploy do |c|
   c.description = "Run the cideploy steps"
   c.action do |args, options|
     do_command do
-      @container.ci_deploy
+      @container.ci_deploy(out: $stdout, err: $stderr)
     end
   end
 end
@@ -143,10 +143,10 @@ command :start do |c|
   c.action do |args, options|
     do_command do
       if options.cart
-        @container.start(options.cart)
+        @container.start(options.cart, out: $stdout, err: $stderr)
       else
         puts "Starting gear..."
-        @container.start_gear
+        @container.start_gear(out: $stdout, err: $stderr)
       end
     end
   end
@@ -161,10 +161,10 @@ command :stop do |c|
   c.action do |args, options|
     do_command do
       if options.cart
-        @container.stop(options.cart)
+        @container.stop(options.cart, out: $stdout, err: $stderr)
       else
         puts "Stopping gear..."
-        @container.stop_gear
+        @container.stop_gear(out: $stdout, err: $stderr)
       end
     end
   end

@@ -69,6 +69,14 @@ module OpenShift
     #   :timeout                   : Maximum number of seconds to wait for command to finish. default: 3600
     #   :uid                       : spawn command as given user in a SELinux context using runuser/runcon,
     #                              : stdin for the command is /dev/null
+    #   :out                       : If specified, STDOUT from the child process will be redirected to the
+    #                                provided +IO+ object.
+    #   :err                       : If specified, STDERR from the child process will be redirected to the
+    #                                provided +IO+ object.
+    #
+    # NOTE: If the +out+ or +err+ options are specified, the corresponding return value from +oo_spawn+
+    # will be the incoming/provided +IO+ objects instead of the buffered +String+ output. It's the
+    # responsibility of the caller to correctly handle the resulting data type.
     def self.oo_spawn(command, options = {})
 
       options[:env]         ||= {}

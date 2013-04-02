@@ -34,11 +34,11 @@ module OpenShift
       logger.debug("Started gear #{@user.uuid}. Output:\n#{out}")
     end
 
-    def start_cartridge(cartridge, user_initiated=true)
+    def start_cartridge(cartridge, options={})
       do_control('start', cartridge)
     end
 
-    def stop_cartridge(cartridge, user_initiated=true)
+    def stop_cartridge(cartridge, options={})
       do_control('stop', cartridge)
     end
 
