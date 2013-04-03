@@ -1,4 +1,4 @@
-@runtime_other
+@runtime_other3
 Feature: V2 SDK Perl Cartridge
 
   Scenario: Add cartridge
