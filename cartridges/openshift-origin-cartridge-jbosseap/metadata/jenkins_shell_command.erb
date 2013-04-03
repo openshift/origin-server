@@ -5,6 +5,8 @@ upstream_ssh="<%= ENV['OPENSHIFT_GEAR_UUID'] %>@<%= ENV['OPENSHIFT_APP_NAME'] %>
 # Sync any libraries
 rsync $upstream_ssh:~/.m2/ ~/.m2/
 
+rsync ~/$WORKSPACE/ ~/app-root/runtime/repo/
+
 # Build/update libs and run user pre_build and build
 gear build
 
@@ -17,7 +19,8 @@ $GIT_SSH $upstream_ssh 'gear stop'
 
 # Push content back to application
 rsync ~/.m2/ $upstream_ssh:~/.m2/
-rsync ~/$WORKSPACE/ $upstream_ssh:~/app-root/repo/
+rsync ~/app-root/runtime/repo/deployments/ $upstream_ssh:~/app-root/repo/deployments
 
 # Configure / start app
 $GIT_SSH $upstream_ssh 'gear cideploy'
+$GIT_SSH $upstream_ssh 'gear start'
