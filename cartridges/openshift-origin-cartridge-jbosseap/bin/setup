@@ -15,6 +15,8 @@ echo "export OPENSHIFT_JBOSSEAP_DIR='$OPENSHIFT_JBOSSEAP_DIR'" > "$OPENSHIFT_JBO
 mkdir -p ${OPENSHIFT_HOMEDIR}/.m2
 mkdir -p ${OPENSHIFT_JBOSSEAP_DIR}/{bin,template,standalone/tmp,standalone/deployments,standalone/configuration,standalone/log,standalone/data}
 
+ln -s ${OPENSHIFT_JBOSSEAP_DIR}/standalone/log ${OPENSHIFT_JBOSSEAP_DIR}/logs
+
 # Copy the version specific files up to jbosseap directory
 cp -r ${OPENSHIFT_JBOSSEAP_DIR}/versions/${version}/standalone/configuration/* ${OPENSHIFT_JBOSSEAP_DIR}/standalone/configuration
 cp -r ${OPENSHIFT_JBOSSEAP_DIR}/versions/${version}/metadata/* ${OPENSHIFT_JBOSSEAP_DIR}/metadata
@@ -45,6 +47,7 @@ M2_HOME=/etc/alternatives/maven-3.0
 echo "export JAVA_HOME=$JAVA_HOME" > $OPENSHIFT_JBOSSEAP_DIR/env/JAVA_HOME
 echo "export M2_HOME=$M2_HOME" > $OPENSHIFT_JBOSSEAP_DIR/env/M2_HOME
 echo "export PATH=$JAVA_HOME/bin:$M2_HOME/bin:$PATH" > $OPENSHIFT_JBOSSEAP_DIR/env/PATH
+echo "export OPENSHIFT_JBOSSEAP_LOG_DIR=${OPENSHIFT_JBOSSEAP_DIR}/logs" > $OPENSHIFT_JBOSSEAP_DIR/env/OPENSHIFT_JBOSSEAP_LOG_DIR
 
 
 
