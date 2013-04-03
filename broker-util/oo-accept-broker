@@ -407,18 +407,19 @@ function check_selinux_booleans() {
     return
   fi
 
-  # check httpd_unified
-  if getsebool httpd_unified | grep -e '--> on' >/dev/null
-  then
-    verbose SELinux boolean httpd_unified is enabled
-  else
-    fail "SELinux boolean httpd_unified is disabled -- run setsebool -P httpd_unified=on"
-  fi
+  SELINUX_BOOLEANS='httpd_unified httpd_can_network_connect httpd_can_network_relay httpd_run_stickshift'
+  for bool in $SELINUX_BOOLEANS
+  do
+    if getsebool "$bool" | grep -e '--> on' >/dev/null
+    then
+      verbose SELinux boolean "$bool" is enabled
+    else
+      fail SELinux boolean "$bool" is disabled -- run setsebool -P ${bool}=on
+    fi
+  done
 
 
   # Only needed with BIND DDNS plugin
-  # check allow_ypbind
-  # check httpd_unified
   if getsebool allow_ypbind | grep -e '--> on' >/dev/null
   then
     verbose SELinux boolean allow_ypbind is enabled
@@ -871,7 +872,7 @@ check_missing_and_insecure_secrets
 check_packages $PACKAGES
 check_ruby_requirements $OSO_RUBY_LIBS
 check_selinux_enforcing
-#check_selinux_booleans
+check_selinux_booleans
 check_firewall
 check_services
 
