@@ -3,6 +3,10 @@
   margin-bottom: 20px; 
   background-color: #222;
   color: #b0b0b0;
+  
+  h2 {
+    @include clearfix();
+  }
 
   > p {
     margin-bottom: $baseLineHeight / 1.5;
