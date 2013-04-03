@@ -13,7 +13,9 @@ CART_NAME=$(get_cartridge_name_from_path)
 
 if [ ! -h ${OPENSHIFT_REPO_DIR}/deployments ] && [ ! -h ${OPENSHIFT_HOMEDIR}/${CART_NAME}/${CART_NAME}/standalone/deployments ]
 then
-  rsync -r --delete ${OPENSHIFT_REPO_DIR}/deployments/* ${OPENSHIFT_HOMEDIR}/${CART_NAME}/${CART_NAME}/standalone/deployments
+  if [ "$(ls ${OPENSHIFT_REPO_DIR}/deployments)" ]; then
+    rsync -r --delete --exclude ".*" ${OPENSHIFT_REPO_DIR}/deployments/* ${OPENSHIFT_HOMEDIR}/${CART_NAME}/${CART_NAME}/standalone/deployments
+  fi
 fi
 
 if hot_deploy_marker_is_present; then
