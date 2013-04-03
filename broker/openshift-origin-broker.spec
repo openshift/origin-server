@@ -25,7 +25,6 @@ Source0:       http://mirror.openshift.com/pub/openshift-origin/source/%{name}/%
 Requires:      httpd
 # TODO: We need to audit these requirements.  Some of these are likely not hard
 # requirements.
-Requires:      bind
 Requires:      mod_ssl
 Requires:      %{?scl:%scl_prefix}mod_passenger
 Requires:      mongodb-server
