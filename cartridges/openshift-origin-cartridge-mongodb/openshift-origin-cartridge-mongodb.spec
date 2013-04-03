@@ -3,7 +3,7 @@
 
 Summary:       Embedded mongodb support for OpenShift
 Name:          openshift-origin-cartridge-mongodb
-Version: 1.6.3
+Version: 1.6.4
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -60,6 +60,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Tue Apr 02 2013 Dan McPherson <dmcphers@redhat.com> 1.6.4-1
+- new package built with tito
+
 * Tue Apr 02 2013 Chris Alfonso <calfonso@redhat.com> 1.6.3-1
 - new package built with tito
 
