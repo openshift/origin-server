@@ -16,6 +16,7 @@
 
 require 'rubygems'
 require 'openshift-origin-node/utils/shell_exec'
+require 'openshift-origin-node/utils/selinux'
 require 'openshift-origin-node/utils/path_utils'
 require 'openshift-origin-node/model/frontend_httpd.rb'
 require 'openshift-origin-node/utils/node_logger'
@@ -520,8 +521,8 @@ Dir(after)    #{@uuid}/#{@uid} => #{list_home_dir(@homedir)}
 
       OpenShift::FrontendHttpServer.new(@container_uuid,@container_name,@namespace).create
 
-      # Fix SELinux context
-      set_selinux_context(homedir)
+      # Fix SELinux context for cart dirs
+      Utils::SELinux.set_mcs_label_r(Utils::SELinux.get_mcs_label(@uid), Dir.glob(File.join(homedir, '*')))
 
       notify_observers(:after_initialize_homedir)
     end
@@ -694,56 +695,7 @@ Dir(after)    #{@uuid}/#{@uid} => #{list_home_dir(@homedir)}
                         chcon #{recurse} --reference=#{source} #{target}},
                      expected_exitstatus: 0)
     end
-    # Determine the MCS label for a given uid
-    #
-    # @param [Integer] The user ID
-    # @return [String] The SELinux MCS label
-    def get_mcs_label(uid)
-      UnixUser.get_mcs_label(uid)
-    end
 
-    def self.get_mcs_label(uid)
-      if (uid.to_i < 0) || (uid.to_i>523776)
-        raise ArgumentError, "Supplied UID must be between 0 and 523776."
-      end
-
-      setsize=1023
-      tier=setsize
-      ord=uid.to_i
-      while ord > tier
-        ord -= tier
-        tier -= 1
-      end
-      tier = setsize - tier
-      "s0:c#{tier},c#{ord + tier}"
-    end
-
-    # private: Set the SELinux context the gear home directory.
-    #    Note: This is specific to the home dir structure.
-    #
-    # If target is a directory, operation will be recursive.
-    #
-    # @param [Integer] The user ID
-    def set_selinux_context(target)
-      mcs_label=get_mcs_label(@uid)
-
-      recurse = '-R' if File.directory?(target)
-
-      cmd = "restorecon #{recurse} #{target}"
-      out, err, rc = shellCmd(cmd)
-      logger.error(
-                "ERROR: unable to restorecon #{target} (#{rc}): #{cmd} stdout: #{out} stderr: #{err}"
-                ) unless 0 == rc
-
-      chcon_target = File.directory?(target) ? File.join(target, "*") : target
-
-      cmd = "chcon #{recurse} -l #{mcs_label} #{chcon_target}"
-
-      out, err, rc = shellCmd(cmd)
-      logger.error(
-                "ERROR: unable to chcon #{chcon_target} (#{rc}): #{cmd} stdout: #{out} stderr: #{err}"
-                ) unless 0 == rc
-    end
 
     # Deterministically constructs an IP address for the given UID based on the given
     # host identifier (LSB of the IP). The host identifier must be a value between 1-127
@@ -770,5 +722,66 @@ Dir(after)    #{@uuid}/#{@uid} => #{list_home_dir(@homedir)}
       # Return the IP in dotted-quad notation
       "#{ip >> 24}.#{ip >> 16 & 0xFF}.#{ip >> 8 & 0xFF}.#{ip & 0xFF}"
     end
+
+    # Deterministically constructs a network and netmask for the given UID
+    #
+    # The global user IP range begins at 0x7F000000.
+    #
+    # Returns an IP network and netmask in dotted-quad notation.
+    def self.get_ip_network(uid, host_id)
+      raise "Invalid host_id specified" unless host_id && host_id.is_a?(Integer)
+      raise "Invalid UID specified" unless uid && uid.is_a?(Integer)
+
+      if uid.to_i < 0 || uid.to_i > 262143
+        raise "User uid #{@uid} is outside the working range 0-262143"
+      end
+      # Generate the network (32-bit unsigned) for the user's range
+      ip = 0x7F000000 + (uid.to_i << 7)
+
+      # Return the network/netmask in dotted-quad notation
+      [ "#{ip >> 24}.#{ip >> 16 & 0xFF}.#{ip >> 8 & 0xFF}.#{ip & 0xFF}", "255.255.255.128" ]
+    end
+
+    #
+    # Public: Return a UnixUser object loaded from the gear_uuid on the system
+    #
+    # Caveat: the quota information will not be populated.
+    #
+    def self.from_uuid(container_uuid)
+      config = OpenShift::Config.new
+      gecos = config.get("GEAR_GECOS") || "OO application container"
+      pwent = Etc.getpwnam(container_uuid)
+      if pwent.gecos != gecos
+        raise ArgumentError, "Not an OpenShift gear: #{gear_uuid}"
+      end
+      env = Utils::Environ.for_gear(pwent.dir)
+      UnixUser.new(env["OPENSHIFT_APP_UUID"], pwent.name, pwent.uid,
+                   env["OPENSHIFT_APP_NAME"], env["OPENSHIFT_GEAR_NAME"],
+                   env['OPENSHIFT_GEAR_DNS'].sub(/\..*$/,"").sub(/^.*\-/,""))
+    end
+
+    #
+    # Public: Return an enumerator which provides a UnixUser object for
+    # every OpenShift user in the system.
+    #
+    # Caveat: the quota information will not be populated.
+    #
+    def self.all_users
+      Enumerator.new do |yielder|
+        config = OpenShift::Config.new
+        gecos = config.get("GEAR_GECOS") || "OO application container"
+        # Some duplication with from_uuid; it may be expensive to keep re-parsing passwd.
+        Etc.passwd do |pwent|
+          if pwent.gecos == gecos
+            env = Utils::Environ.for_gear(pwent.dir)
+            u = UnixUser.new(env["OPENSHIFT_APP_UUID"], pwent.name, pwent.uid,
+                             env["OPENSHIFT_APP_NAME"], env["OPENSHIFT_GEAR_NAME"],
+                             env['OPENSHIFT_GEAR_DNS'].sub(/\..*$/,"").sub(/^.*\-/,""))
+            yielder.yield(u)
+          end
+        end
+      end
+    end
+
   end
 end
