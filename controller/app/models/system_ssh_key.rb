@@ -6,5 +6,6 @@
 #   @return [Domain] The domain that owns this key.
 class SystemSshKey < SshKey
   include Mongoid::Document
+  field :component_id, type: Moped::BSON::ObjectId
   embedded_in :domain, class_name: Domain.name
 end
