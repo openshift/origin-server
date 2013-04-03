@@ -84,25 +84,89 @@ function cart_props {
     echo "CART_PROPERTIES: $@"
 }
 
-function generate_password {
-    head -n 50 /dev/urandom|tr -dc "a-np-zA-NP-Z1-9-_"|fold -w 12 | grep -v '^-' | head -n1
+# Sets the appropriate env variable files
+# Argument:
+#  - Variable to set
+#  - Value
+#  - Target ENV directory (optional)
+function set_env_var {
+  local DEFAULT_TARGET="${HOME}/.env"
+
+  local var=$1
+  local val=$2
+  local target="${3-$DEFAULT_TARGET}/$var"
+  local str
+
+  if [[ "$val" =~ ^[0-9]+$ ]] ; then
+    str=$val
+  else
+    str="'$val'"
+  fi
+  echo "export ${var}=${str}" #> $target
+  echo $target
 }
 
-function generate_username {
-    if [ "$1" ]
-    then
-        username="$1"
-    else
-        username="admin"
-    fi
+# Generate a random string from /dev/urandom
+# Arguments:
+#  - Desired length (optional)
+#  - Possible character space (optional)
+#  - Patterns to omit (optional)
+function random_string {
+  local DEFAULT_SPACE="a-zA-Z0-9"
+  local DEFAULT_LEN=12
 
-    remain=$(( 12 - ${#username} ))
-    if [ "$remain" -ge 1 ]
-    then
-        rnstr=$(head -n 50 /dev/urandom|tr -dc "a-np-zA-NP-Z1-9"|fold -w $remain | head -n1)
-        username="${username}${rnstr}"
-    fi
-    echo $username
+  local len=${1-$DEFAULT_LEN}
+  local space=${2-"${DEFAULT_SPACE}"}
+
+  local rnd=$(head -n 50 /dev/urandom | tr -dc $space | fold -w $len)
+  if [ "$3" ]; then
+    rnd=$(echo "${rnd}" | grep -v "${3}")
+  fi
+  echo $(echo "${rnd}" | head -n1)
+}
+
+# Pad a string with random characters
+# Arguments:
+#  - String to pad
+#  - Desired length
+#  - Pattern to pad with (optional)
+function pad_string {
+  local str=$1
+  local len=$2
+  local pattern=$3
+
+  local remain=$(( $len - ${#str} ))
+  if [ "$remain" -ge 1 ]; then
+    local rnstr=$(random_string $remain $pattern)
+    str="${str}${rnstr}"
+  fi
+  echo $str
+}
+
+# Generate a password
+# Arguments:
+#  - Desired length (optional)
+#  - Character space (optional)
+#  - Ignore pattern (optional)
+function generate_password {
+  local DEFAULT_LEN=12
+  local DEFAULT_CHAR="a-np-zA-NP-Z1-9-_" #Dash, underscore, Alphanumeric except o,O,0
+  local DEFAULT_IGNORE="^-"
+
+  echo $(random_string ${1-$DEFAULT_LEN} ${2-$DEFAULT_CHAR} ${3-$DEFAULT_IGNORE})
+}
+
+# Generate a username and pad it to a certain length
+# Arguments:
+#  - Username (optional)
+#  - Desired length (optional)
+#  - Pad characters (optional)
+function generate_username {
+  local DEFAULT_USERNAME='admin'
+  local DEFAULT_LEN=12
+  local DEFAULT_CHAR="a-np-zA-NP-Z1-9" #Alphanumeric except o,O,0
+
+  echo $(pad_string ${1-$DEFAULT_USERNAME} ${2-$DEFAULT_LEN} ${3-$DEFAULT_CHAR})
 }
 
 function log_message() {
