@@ -1,29 +1,29 @@
-#!/bin/bash
+#!/usr/bin/env oo-ruby
+#--
+# Copyright 2012-2013 Red Hat, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#++
 
-function usage() {
-    echo "Usage: $0 [uid: 1-523776]"  >&2
-    exit 1
-}
+require 'openshift-origin-node/utils/selinux'
 
-function get_mcs_level() {
-    # UID=$1
-
-    SETSIZE=1023
-    TIER=$SETSIZE
-
-    ORD=$1
-    while [ $ORD -gt $(($TIER)) ]
-    do
-        ORD=$(($ORD - $TIER))
-        TIER=$(($TIER - 1))
-    done
-    TIER=$(($SETSIZE - $TIER))
-
-    echo s0:c$TIER,c$(($ORD + $TIER))
-}
-
-
-trap usage ERR
-test "$1" -ge 1 &>/dev/null
-test "$1" -le 523776 &>/dev/null
-get_mcs_level "$1"
+begin
+  puts OpenShift::Utils::SELinux.get_mcs_label(ARGV[0].to_i)
+rescue ArgumentError => e
+  $stderr.puts(e.message)
+  exit 1
+rescue Exception => e
+  $stderr.puts(e.message)
+  exit -1
+end
+exit 0

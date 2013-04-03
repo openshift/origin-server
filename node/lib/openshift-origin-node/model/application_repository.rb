@@ -17,6 +17,7 @@ require 'rubygems'
 require 'erb'
 require 'openshift-origin-common'
 require 'openshift-origin-node/utils/shell_exec'
+require 'openshift-origin-node/utils/selinux'
 require 'openshift-origin-node/utils/environ'
 require 'openshift-origin-node/model/unix_user'
 require 'openshift-origin-node/utils/path_utils'
@@ -162,7 +163,7 @@ module OpenShift
     # Install Git repository hooks and set permissions
     def configure
       FileUtils.chown_R(@user.uid, @user.uid, @path)
-      Utils.oo_spawn("restorecon -R #{@path}; chcon -R -l #{UnixUser.get_mcs_label(@user.uid)} #{@path}")
+      Utils.oo_spawn("restorecon -R #{@path}; chcon -R -l #{Utils::SELinux.get_mcs_label(@user.uid)} #{@path}")
 
       # application developer cannot change git hooks
       hooks = File.join(@path, 'hooks')
