@@ -62,11 +62,9 @@ module OpenShift
           file.write "#{new_state_val}\n"
         }
 
-        parent = File.dirname(@state_file)
-        OpenShift::Utils.oo_spawn(
-            "chown --reference #{parent} #@state_file;
-             chcon --reference #{parent} #@state_file"
-        )
+        PathUtils.oo_chown(@uuid, @uuid, @state_file)
+        mcs_label = Utils::SELinux.get_mcs_label(@uuid)
+        Utils::SELinux.set_mcs_label(mcs_label, @state_file)
         self
       end
 

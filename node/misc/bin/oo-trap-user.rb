@@ -20,6 +20,7 @@ require 'base64'
 require 'syslog'
 require 'openshift-origin-common/config'
 require 'openshift-origin-node/utils/environ'
+require 'openshift-origin-node/utils/selinux'
 require 'pathname'
 
 module OpenShift
@@ -186,9 +187,9 @@ module OpenShift
             canon_argv.concat(orig_argv)
         end
 
-        target_context = %x(/usr/bin/oo-get-mcs-level #{Process.uid}).chomp
-        target_context = "unconfined_u:system_r:openshift_t:#{target_context}"
-        actual_context = %x(/usr/bin/runcon).chomp
+        mcs_label = OpenShift::Utils::SELinux.get_mcs_label(Process.uid)
+        target_context = OpenShift::Utils::SELinux.context_from_defaults(mcs_label)
+        actual_context = OpenShift::Utils::SELinux.getcon
 
         if target_context != actual_context
           $stderr.puts "Invalid context: #{actual_context}, expected #{target_context}"

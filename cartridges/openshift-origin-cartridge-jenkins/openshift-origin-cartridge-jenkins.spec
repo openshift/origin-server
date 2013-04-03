@@ -13,6 +13,7 @@ Requires:      rubygem(openshift-origin-node)
 Requires:      java >= 1.6
 Requires:      jenkins
 Requires:      jenkins-plugin-openshift
+Requires:      openshift-origin-node-util
 BuildRequires: git
 BuildArch:     noarch
 

@@ -19,6 +19,7 @@ require 'openshift-origin-node/model/unix_user'
 require 'openshift-origin-node/model/application_repository'
 require 'openshift-origin-node/model/cartridge_repository'
 require 'openshift-origin-node/utils/shell_exec'
+require 'openshift-origin-node/utils/selinux'
 require 'openshift-origin-node/utils/node_logger'
 require 'openshift-origin-node/utils/cgroups'
 require 'openshift-origin-node/utils/sdk'
@@ -60,6 +61,10 @@ module OpenShift
 
     def stop_lock
       File.join(@user.homedir, 'app-root', 'runtime', '.stop_lock')
+    end
+
+    def stop_lock?
+      File.exists?(stop_lock)
     end
 
     ##
@@ -324,7 +329,7 @@ module OpenShift
     #
     #   v2_cart_model.do_unlock_gear(entries)
     def do_unlock(entries)
-      mcs_label = @user.get_mcs_label(@user.uid)
+      mcs_label = Utils::SELinux.get_mcs_label(@user.uid)
 
       entries.each do |entry|
         if entry.end_with?('/')
@@ -338,22 +343,19 @@ module OpenShift
         # ...it allows reporting on the failed command at the file level
         # ...we don't have to worry about the length of argv
         begin
-          Utils.oo_spawn(
-              "chown #{@user.uid}:#{@user.gid} #{entry};
-               chcon unconfined_u:object_r:openshift_var_lib_t:#{mcs_label} #{entry}",
-              expected_exitstatus: 0
-          )
-        rescue Utils::ShellExecutionException => e
-          raise OpenShift::FileUnlockError.new("Failed to unlock file system entry [#{entry}]: #{e.stderr}",
+          PathUtils.oo_chown(@user.uid, @user.gid, entry)
+          Utils::SELinux.set_mcs_label(mcs_label, entry)
+        rescue Exception => e
+          raise OpenShift::FileUnlockError.new("Failed to unlock file system entry [#{entry}]: #{e}",
                                                entry)
         end
       end
 
       begin
-        Utils.oo_spawn("chown #{@user.uid}:#{@user.gid} #{@user.homedir}", expected_exitstatus: 0)
-      rescue Utils::ShellExecutionException => e
+        PathUtils.oo_chown(@user.uid, @user.gid, @user.homedir)
+      rescue Exception => e
         raise OpenShift::FileUnlockError.new(
-                  "Failed to unlock gear home [#{@user.homedir}]: #{e.stderr}",
+                  "Failed to unlock gear home [#{@user.homedir}]: #{e}",
                   @user.homedir)
       end
     end
@@ -363,27 +365,25 @@ module OpenShift
     # Take the given array of file system entries and prepare them for the application developer
     #    v2_cart_model.do_lock_gear(entries)
     def do_lock(entries)
-      mcs_label = @user.get_mcs_label(@user.uid)
+      mcs_label = Utils::SELinux.get_mcs_label(@user.uid)
 
       # It is expensive doing one file at a time but...
       # ...it allows reporting on the failed command at the file level
       # ...we don't have to worry about the length of argv
       entries.each do |entry|
         begin
-          Utils.oo_spawn(
-              "chown root:#{@user.gid} #{entry};
-               chcon unconfined_u:object_r:openshift_var_lib_t:#{mcs_label} #{entry}",
-              expected_exitstatus: 0)
-        rescue Utils::ShellExecutionException => e
-          raise OpenShift::FileLockError.new("Failed to lock file system entry [#{entry}]: #{e.stderr}",
+          PathUtils.oo_chown(0, @user.gid, entry)
+          Utils::SELinux.set_mcs_label(mcs_label, entry)
+        rescue Exception => e
+          raise OpenShift::FileLockError.new("Failed to lock file system entry [#{entry}]: #{e}",
                                              entry)
         end
       end
 
       begin
-        Utils.oo_spawn("chown root:#{@user.gid} #{@user.homedir}", expected_exitstatus: 0)
-      rescue Utils::ShellExecutionException => e
-        raise OpenShift::FileLockError.new("Failed to lock gear home [#{@user.homedir}]: #{e.stderr}",
+        PathUtils.oo_chown(0, @user.gid, @user.homedir)
+      rescue Exception => e
+        raise OpenShift::FileLockError.new("Failed to lock gear home [#{@user.homedir}]: #{e}",
                                            @user.homedir)
       end
     end
@@ -417,25 +417,22 @@ module OpenShift
       usr_path = File.join(cartridge.repository_path, 'usr')
       FileUtils.symlink(usr_path, File.join(target, 'usr')) if File.exist? usr_path
 
-      mcs_label = @user.get_mcs_label(@user.uid)
+      mcs_label = Utils::SELinux.get_mcs_label(@user.uid)
 
       @user.add_env_var("NAMESPACE", @user.namespace, true)
       @user.add_env_var('PRIMARY_CARTRIDGE_DIR', target + File::SEPARATOR, true) if cartridge.primary?
 
       uservars_env = File.join(@user.homedir, '.env', '.uservars')
       FileUtils.mkpath uservars_env
-      Utils.oo_spawn(
-          "chown -R #{@user.uid}:#{@user.gid} #{uservars_env};
-           chcon -R unconfined_u:object_r:openshift_var_lib_t:#{mcs_label} #{uservars_env}",
-          expected_exitstatus: 0
-      )
 
-      Utils.oo_spawn(
-          "chown -R #{@user.uid}:#{@user.gid} #{target};
-           chcon -R unconfined_u:object_r:openshift_var_lib_t:#{mcs_label} #{target}",
-          expected_exitstatus: 0
-      )
+      PathUtils.oo_chown_R(@user.uid, @user.gid, uservars_env)
+      PathUtils.oo_chown_R(@user.uid, @user.gid, target)
+      Utils::SELinux.set_mcs_label_R(mcs_label, uservars_env, target)
+      Utils::SELinux.clear_mcs_label(Dir.glob(File.join(target, 'bin', '*')))
 
+      # BZ 950752
+      # Find out if we can have upstream set a context for /var/lib/openshift/*/*/bin/*.
+      # The following will break WHEN the inevitable restorecon is run in production.
       Utils.oo_spawn(
           "chcon system_u:object_r:bin_t:s0 #{File.join(target, 'bin', '*')}",
           expected_exitstatus: 0
@@ -987,7 +984,7 @@ module OpenShift
     def start_cartridge(type, cartridge, options={})
       options[:user_initiated] = true if not options.has_key?(:user_initiated)
 
-      if not options[:user_initiated] and File.exists?(stop_lock)
+      if not options[:user_initiated] and stop_lock?
         return "Not starting cartridge #{cartridge.name} because the application was explicitly stopped by the user"
       end
 
@@ -1022,7 +1019,7 @@ module OpenShift
     def stop_cartridge(cartridge, options={})
       options[:user_initiated] = true if not options.has_key?(:user_initiated)
 
-      if not options[:user_initiated] and File.exists?(stop_lock)
+      if not options[:user_initiated] and stop_lock?
         return "Not stopping cartridge #{cartridge.name} because the application was explicitly stopped by the user"
       end
 
@@ -1039,14 +1036,11 @@ module OpenShift
     ##
     # Writes the +stop_lock+ file and changes its ownership to the gear user.
     def create_stop_lock
-      unless File.exist?(stop_lock)
-        mcs_label = @user.get_mcs_label(@user.uid)
+      unless stop_lock?
+        mcs_label = Utils::SELinux.get_mcs_label(@user.uid)
         File.new(stop_lock, File::CREAT|File::TRUNC|File::WRONLY, 0644).close()
-        Utils.oo_spawn(
-            "chown #{@user.uid}:#{@user.gid} #{stop_lock};
-             chcon unconfined_u:object_r:openshift_var_lib_t:#{mcs_label} #{stop_lock}",
-            expected_exitstatus: 0
-        )
+        PathUtils.oo_chown(@user.uid, @user.gid, stop_lock)
+        Utils::SELinux.set_mcs_label(mcs_label, stop_lock)
       end
     end
 
@@ -1094,13 +1088,10 @@ module OpenShift
     # Change the ownership and SELinux context of the target
     # to be owned as the user using the user's MCS labels
     def make_user_owned(target)
-      mcs_label = @user.get_mcs_label(@user.uid)
+      mcs_label = Utils::SELinux.get_mcs_label(@user.uid)
 
-      Utils.oo_spawn(
-          "chown -R #{@user.uid}:#{@user.gid} #{target};
-           chcon -R unconfined_u:object_r:openshift_var_lib_t:#{mcs_label} #{target}",
-          expected_exitstatus: 0
-      )
+      PathUtils.oo_chown_R(@user.uid, @user.gid, target)
+      Utils::SELinux.set_mcs_label_R(mcs_label, target)
     end
   end
 end

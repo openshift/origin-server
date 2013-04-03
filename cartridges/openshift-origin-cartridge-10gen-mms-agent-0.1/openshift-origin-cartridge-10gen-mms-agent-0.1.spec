@@ -13,6 +13,8 @@ Requires:      openshift-origin-cartridge-abstract
 Requires:      openshift-origin-cartridge-mongodb-2.2
 Requires:      pymongo
 Requires:      mms-agent
+Requires:      rubygem(openshift-origin-node)
+Requires:      openshift-origin-node-util
 BuildArch:     noarch
 
 %description

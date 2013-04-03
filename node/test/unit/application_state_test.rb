@@ -31,6 +31,7 @@ class ApplicationStateTest < Test::Unit::TestCase
     }
 
     config    = mock('OpenShift::Config')
+    config.stubs(:get).returns(nil)
     config.stubs(:get).with('GEAR_BASE_DIR').returns('/tmp')
 
     @good_state     = "building"
@@ -69,10 +70,9 @@ class ApplicationStateTest < Test::Unit::TestCase
   end
 
   def test_set_value
-    OpenShift::Utils.expects(:oo_spawn).once().returns(0).with(all_of(
-      regexp_matches(/^chown --reference #{@state_dir} #{@state_file};/),
-      regexp_matches(/chcon --reference #{@state_dir} #{@state_file}$/)
-    ))
+    PathUtils.expects(:oo_chown).with(@uuid, @uuid, @state_file).once()
+    OpenShift::Utils::SELinux.expects(:get_mcs_label).with(@uuid).once().returns("test label")
+    OpenShift::Utils::SELinux.expects(:set_mcs_label).with("test label", @state_file).once()
     new_state(@uuid).tap { |state|
       state.value = @good_state
     }

@@ -40,6 +40,8 @@ class V2CartModelTest < Test::Unit::TestCase
   def setup
     # Set up the config
     @config = mock('OpenShift::Config')
+
+    @config.stubs(:get).returns(nil)
     @config.stubs(:get).with("GEAR_BASE_DIR").returns(GEAR_BASE_DIR)
 
     OpenShift::Utils::Sdk.stubs(:new_sdk_app?).returns(true)
@@ -54,8 +56,8 @@ class V2CartModelTest < Test::Unit::TestCase
     OpenShift::Config.stubs(:new).returns(@config)
 
     # Set up the container
-    @gear_uuid = "501"
-    @user_uid  = "501"
+    @gear_uuid = "5501"
+    @user_uid  = "5501"
     @app_name  = 'UnixUserTestCase'
     @gear_name = @app_name
     @namespace = 'jwh201204301647'
@@ -199,17 +201,17 @@ class V2CartModelTest < Test::Unit::TestCase
     @model.expects(:get_allocated_private_ips).returns([])
     @model.expects(:address_bound?).returns(false)
 
-    assert_equal @model.find_open_ip(8080), "127.0.250.129"
+    assert_equal "127.10.190.129", @model.find_open_ip(8080)
   end
 
   # Ensures that a previously allocated IP within the gear won't be recycled
   # when a new allocation request is made.
   def test_find_open_ip_already_allocated
-    @model.expects(:get_allocated_private_ips).returns(["127.0.250.129"])
+    @model.expects(:get_allocated_private_ips).returns(["127.10.190.129"])
 
     @model.expects(:address_bound?).returns(false)
 
-    assert_equal @model.find_open_ip(8080), "127.0.250.130"
+    assert_equal "127.10.190.130", @model.find_open_ip(8080)
   end
 
   # Verifies that nil is returned from find_open_ip when all requested ports are

@@ -26,7 +26,7 @@ require "openshift-origin-node/utils/shell_exec"
 module OpenShift
   class ApplicationStateFunctionalTest < Test::Unit::TestCase
     def setup
-      @uid     = 5997
+      @uid     = 5907
       @homedir = "/tmp/tests/#@uid"
       @runtime_dir = File.join(@homedir, %w{app-root runtime})
 
@@ -48,6 +48,7 @@ module OpenShift
       skip "#{__method__} requires root permissions"  if 0 != Process.uid
 
       config = mock('OpenShift::Config')
+      config.stubs(:get).returns(nil)
       config.stubs(:get).with("GEAR_BASE_DIR").returns("/tmp/tests")
       OpenShift::Config.stubs(:new).returns(config)
 
