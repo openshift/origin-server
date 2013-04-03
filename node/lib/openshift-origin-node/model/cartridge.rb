@@ -147,6 +147,7 @@ module OpenShift
         @version           = manifest['Version'] && manifest['Version'].to_s
         @categories        = manifest['Categories'] || []
         @is_primary        = @categories.include?('web_framework')
+        @is_web_proxy      = @categories.include?('web_proxy')
 
         #FIXME: reinstate code after manifests are updated
         #raise MissingElementError.new(nil, 'Cartridge-Vendor') unless @cartridge_vendor
@@ -185,6 +186,10 @@ module OpenShift
 
       def primary?
         @is_primary
+      end
+
+      def web_proxy?
+        @is_web_proxy
       end
 
       def self.build_ident(vendor, software, software_version, cartridge_version)
