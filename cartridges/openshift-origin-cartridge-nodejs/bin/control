@@ -1,8 +1,5 @@
 #!/bin/bash
 
-source "/etc/openshift/node.conf"
-source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
-
 STOPTIMEOUT=10
 FMT="%a %b %d %Y %H:%M:%S GMT%z (%Z)"
 
@@ -80,7 +77,7 @@ function _start_node_service() {
 
     src_user_hook pre_start_${cartridge_type}
 
-    envf="$cartridge_dir/conf/node.env"
+    envf="$OPENSHIFT_NODEJS_DIR/configuration/node.env"
     logf="$OPENSHIFT_NODEJS_LOG_DIR/node.log"
 
     #  Source environment if it exists.
@@ -125,7 +122,6 @@ function _start_node_service() {
     popd > /dev/null
     if [ $ret -eq 0 ]; then
         echo "$npid" > "$OPENSHIFT_NODEJS_PID_DIR/node.pid"
-        run_user_hook post_start_${cartridge_type}
     else
         echo "Application '$OPENSHIFT_APP_NAME' failed to start - $ret" 1>&2
     fi
@@ -198,9 +194,6 @@ source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 for f in ~/.env/*; do
     . $f
 done
-
-cartridge_type="nodejs-0.6"
-cartridge_dir=$OPENSHIFT_HOMEDIR/$cartridge_type
 
 translate_env_vars
 
