@@ -3,6 +3,7 @@
 PATH=/bin/:/usr/bin:$PATH
 
 source $OPENSHIFT_MYSQL_DIR/env/*
+source /usr/lib/openshift/node/util
 
 function is_running {
   pidfile=$OPENSHIFT_MYSQL_DIR/pid/mysql.pid
@@ -76,16 +77,16 @@ function stop {
 
 function status {
   if is_running; then
-    echo "MySQL is running" 1>&2
+    client_result "MySQL is running" 
   else
-    echo "MySQL is stopped" 1>&2
+    client_result "MySQL is stopped" 
   fi
 
   exit 0
 }
 
 function handle_setup_marker {
-  setup_marker_file=$OPENSHIFT_TMP_DIR/.setup_invocation_marker
+  setup_marker_file=$OPENSHIFT_TMP_DIR/.mysql_setup_invocation_marker
 
   if [ -f $setup_marker_file ]; then
     prepare_database
@@ -93,14 +94,11 @@ function handle_setup_marker {
   fi
 }
 
-function error {
-    echo "$1" 1>&2
-    exit "$2"
-}
-
 function prepare_database {
   dbname=$OPENSHIFT_APP_NAME
   socket_file=$OPENSHIFT_MYSQL_DB_SOCKET
+  username=$OPENSHIFT_MYSQL_DB_USERNAME
+  password=$OPENSHIFT_MYSQL_DB_PASSWORD
 
   echo 'Setup marker detected, reconfiguring mysqld'
 
