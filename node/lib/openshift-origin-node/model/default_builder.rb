@@ -30,7 +30,7 @@ module OpenShift
     end
 
     def post_receive(options)
-      ApplicationRepository.new(@container.user).deploy_repository
+      ApplicationRepository.new(@container.user).deploy
 
       @container.build(out: options[:out],
                        err: options[:err])
