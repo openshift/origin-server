@@ -6,9 +6,10 @@ perl/ - Externally exposed perl code goes here
 libs/ - Additional libraries
 misc/ - For not-externally exposed perl code
 deplist.txt - A list of perl modules required to run
-.openshift/action_hooks/pre_build - Script that gets run every git push before the build
-.openshift/action_hooks/build - Script that gets run every git push as part of the build process (on the CI system if available)
-.openshift/action_hooks/deploy - Script that gets run every git push after build but before the app is restarted
+.openshift/action_hooks/pre_build   - Script that gets run every git push before the build
+.openshift/action_hooks/build       - Script that gets run every git push as part of the build process
+                                      (on the CI system if available)
+.openshift/action_hooks/deploy      - Script that gets run every git push after build but before the app is restarted
 .openshift/action_hooks/post_deploy - Script that gets run every git push after the app is restarted
 
 Notes about layout
