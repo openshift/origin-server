@@ -878,42 +878,103 @@ PassengerUseGlobalQueue off
 </Directory>
 ```
 
-## Cartridge publish/subscribe mechanism
+## Cartridge Events
 
-Cartridges may need to act when some other cartridge is added/removed from an application.
-This functionality is supported using Publish/Subscribe connectors in the manifest.yml.
+Cartridges may need to act when another cartridge is added or removed from an application.
+OpenShift supports a simple publish/subscribe system which allows cartridges to communicate
+in the context of these events.
 
-Consider a simple example of a php cartridge that wants to know when mysql is added to
+The `Publishes` and `Subscribes` sections of the cartridge `manifest.yml` are used to express
+the event support for a given cartridge.
+
+### Cartridge Event Publishing
+
+Publish events are defined via the `manifest.yml` for the cartridge, in the following format:
+```
+Publishes:
+  <event name>:
+    Type: "<event type>"
+  ...
+```
+
+When a cartridge is added to an application, each entry in the `Publishes`
+section of the manifest is used to construct events dispatched to other cartridges 
+in the application. For each publish entry, OpenShift will attempt to execute a
+script named `hooks/<event name>`, e.g.:
+
+`hooks/<event name> <gear name> <namespace> <gear uuid>`
+
+All lines of output (on stdout) produced by the script will be joined by single spaces and 
+used as the input to matching subscriber scripts. All cartridges which declare a subscription 
+whose `Type` matches that of the publish event will be notified.
+
+### Cartridge Event Subscriptions
+
+Subscriptions to events published by other carts are defined via the `manifest.yml` for the
+cartridge, in the following format:
+```
+Subscribes:
+  <event name>
+    Type: "<event type>"
+  ...
+```
+
+When a cartridge publish event is fired, the subscription entries in the `Subscribes`
+section whose `Type` matches that of the publish event will be processed. For each
+matching subscription event, OpenShift will attempt to execute a script named
+`hooks/<event name>`, e.g.:
+
+`hooks/<event name> <gear name> <namespace> <gear uuid> <publish output>`
+
+The format of the `<publish output>` input to the subscription script is defined by the 
+implementation of the publisher script, and so the cartridge subscription script must have 
+an awareness of the output format of the matching publish script.
+
+### Cartridge Event Example
+
+Consider a simple example of a PHP cartridge which can react when MySQL is added to
 an application, so that it can set environment variables on the gear to be able to connect
-to the newly added mysql cartridge on a different gear.
+to the newly added MySQL cartridge on a different gear.
 
-This requires a Subscribes section in the PHP cartridge manifest.yml:
+This requires a `Subscribes` section in the PHP cartridge `manifest.yml`:
 ```
 Subscribes:
   set-mysql-connection-info:
     Type: "NET_TCP:db:mysql"
 ```
 
-And a Publishes section in the MySQL cartridge manifest.yml
+And a `Publishes` section in the MySQL cartridge `manifest.yml`:
 ```
 Publishes:
   publish-mysql-connection-info:
     Type: "NET_TCP:db:mysql"
 ```
 
-Now, to make this work, we add a hook file named set-mysql-connection-info to php
-cartridge and a hook called publish-mysql-connection-info to mysql cartridge.
+The PHP cartridge implements a script in `hooks/set-mysql-connection-info`, and the MySQL
+cartridge implements a script in `hooks/publish-mysql-connection-info`.
 
-These hook files must be created under the hooks directory in cartridge directory structure.
+These events and scripts are matched on the basis of the string value in `Type` (`"NET_TCP:db:mysql"`).
 
-These two hooks are matched up on the basis of the string value in Type i.e. "NET_TCP:db:mysql"
+The `publish-mysql-connection-info` script could output the host, port, and password to connect to
+the MySQL instance, and it will be fed as input to the `set-mysql-connection-info` script in the 
+PHP cart when MySQL is added to an application that has PHP installed.
 
-The hook publish-mysql-connection-info could output host, port, password to connect to mysql
-and it will be fed as input to the set-mysql-connection-info php hook when MySQL is
-added to an application that has PHP installed.
+For example, the following output from the `publish-mysql-connection-info` in the MySQL cartridge:
 
-The PHP hook could choose to write out the connection variables in the environment so that
-application could use the variables to be able to connect to the MySQL server.
+```
+OPENSHIFT_MYSQL_DB_USERNAME=username;
+OPENSHIFT_MYSQL_DB_PASSWORD=password;
+OPENSHIFT_MYSQL_DB_HOST=hostname;
+OPENSHIFT_MYSQL_DB_PORT=port;
+OPENSHIFT_MYSQL_DB_URL=url;
+```
+
+Would be fed as input to `hooks/publish-mysql-connection-info` in the PHP cartridge:
+
+`hooks/publish-mysql-connection-info gear_name namespace gear_uuid 'OPENSHIFT_MYSQL_DB_USERNAME=username;OPENSHIFT_MYSQL_DB_PASSWORD=password;OPENSHIFT_MYSQL_DB_HOST=hostname;OPENSHIFT_MYSQL_DB_PORT=port;OPENSHIFT_MYSQL_DB_URL=url;'`
+
+The `publish-mysql-connection-info` is responsible for being capable of parsing the final argument
+and extracting the values provided.
 
 ## OpenShift Builds
 
