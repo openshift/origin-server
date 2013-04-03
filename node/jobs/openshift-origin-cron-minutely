@@ -1,0 +1,5 @@
+#!/bin/bash
+
+MAILTO=""
+
+/usr/bin/oo-scheduled-jobs run minutely &> /dev/null
