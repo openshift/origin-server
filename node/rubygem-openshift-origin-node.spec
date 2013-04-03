@@ -127,8 +127,11 @@ mkdir -p %{buildroot}/usr/libexec/openshift/lib
 mv %{buildroot}%{gem_instdir}/misc/libexec/lib/teardown_pam_fs_limits.sh %{buildroot}/usr/libexec/openshift/lib
 mv %{buildroot}%{gem_instdir}/misc/libexec/lib/setup_pam_fs_limits.sh %{buildroot}/usr/libexec/openshift/lib
 
-mkdir -p %{buildroot}/usr/lib/openshift/node
-mv %{buildroot}%{gem_instdir}/misc/usr/lib/* %{buildroot}/usr/lib/openshift/node
+# Install the cartridge SDK files and environment variables for each
+mkdir -p %{buildroot}/usr/lib/openshift/cartridge_sdk
+mv %{buildroot}%{gem_instdir}/misc/usr/lib/cartridge_sdk/* %{buildroot}/usr/lib/openshift/cartridge_sdk
+echo 'export OPENSHIFT_CARTRIDGE_SDK_BASH="/usr/lib/openshift/cartridge_sdk/bash/sdk"' > %{buildroot}/etc/openshift/env/OPENSHIFT_CARTRIDGE_SDK_BASH
+echo 'export OPENSHIFT_CARTRIDGE_SDK_RUBY="/usr/lib/openshift/cartridge_sdk/ruby/sdk.rb"' > %{buildroot}/etc/openshift/env/OPENSHIFT_CARTRIDGE_SDK_RUBY
 
 #move the shell binaries into proper location
 mv %{buildroot}%{gem_instdir}/misc/bin/* %{buildroot}/usr/bin/
@@ -208,7 +211,11 @@ fi
 %attr(0755,-,-) /usr/bin/*
 /usr/libexec/openshift/lib/setup_pam_fs_limits.sh
 /usr/libexec/openshift/lib/teardown_pam_fs_limits.sh
-%attr(0644,-,-) /usr/lib/openshift/node/*
+%attr(0755,-,-) /usr/lib/openshift/cartridge_sdk
+%attr(0755,-,-) /usr/lib/openshift/cartridge_sdk/bash
+%attr(0744,-,-) /usr/lib/openshift/cartridge_sdk/bash/*
+%attr(0755,-,-) /usr/lib/openshift/cartridge_sdk/ruby
+%attr(0744,-,-) /usr/lib/openshift/cartridge_sdk/ruby/*
 %dir /etc/openshift
 %config(noreplace) /etc/openshift/node.conf
 %config(noreplace) /etc/openshift/env/*

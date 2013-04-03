@@ -1,7 +1,7 @@
 #!/bin/bash
 source "/etc/openshift/node.conf"
 source "/etc/rc.d/init.d/functions"
-source "/usr/lib/openshift/node/util"
+source $OPENSHIFT_CARTRIDGE_SDK_BASH
 
 # Constants.
 CART_VERSION=0.0.1

@@ -3,7 +3,7 @@
 PATH=/bin/:/usr/bin:$PATH
 
 source $OPENSHIFT_MYSQL_DIR/env/*
-source /usr/lib/openshift/node/util
+source $OPENSHIFT_CARTRIDGE_SDK_BASH
 
 function is_running {
   pidfile=$OPENSHIFT_MYSQL_DIR/pid/mysql.pid

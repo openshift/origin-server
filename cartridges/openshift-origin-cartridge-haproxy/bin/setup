@@ -1,6 +1,6 @@
 #!/bin/bash -e
 set -x
-source /usr/lib/openshift/node/util
+source $OPENSHIFT_CARTRIDGE_SDK_BASH
 
 set -u
 version=1.4
