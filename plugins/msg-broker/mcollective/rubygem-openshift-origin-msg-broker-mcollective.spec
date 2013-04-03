@@ -23,7 +23,6 @@ Requires:      %{?scl:%scl_prefix}ruby(abi) >= %{rubyabi}
 Requires:      %{?scl:%scl_prefix}rubygems
 Requires:      %{?scl:%scl_prefix}rubygem(json)
 Requires:      rubygem(openshift-origin-common)
-Requires:      mcollective
 Requires:      mcollective-client
 Requires:      selinux-policy-targeted
 Requires:      policycoreutils-python
