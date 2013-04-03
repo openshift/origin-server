@@ -189,7 +189,13 @@ class Domain
     Domain.where(_id: self.id).update_all({ "$push" => { pending_ops: pending_op.serializable_hash }, "$pushAll" => { system_ssh_keys: keys_attrs }})
   end
 
-  def remove_system_ssh_keys(ssh_keys)
+  def remove_system_ssh_keys(remove_key)
+    if remove_key.is_a? Array
+      ssh_keys = remove_key
+    else
+      ssh_keys = self.system_ssh_keys.find_by(component_id: remove_key)
+    end
+    return if ssh_keys.empty?
     keys_attrs = ssh_keys.map{|k| k.attributes.dup}
     pending_op = PendingDomainOps.new(op_type: :delete_domain_ssh_keys, arguments: {"keys_attrs" => keys_attrs}, on_apps: applications, created_at: Time.now, state: "init")
     Domain.where(_id: self.id).update_all({ "$push" => { pending_ops: pending_op.serializable_hash }, "$pullAll" => { system_ssh_keys: keys_attrs }})
@@ -212,7 +218,13 @@ class Domain
     Domain.where(_id: self.id).update_all({ "$pullAll" => { env_vars: env_vars_to_rm }}) unless env_vars_to_rm.empty?
   end
 
-  def remove_env_variables(variables)
+  def remove_env_variables(remove_key)
+    if remove_key.is_a? Array
+      variables = remove_key
+    else
+      variables = self.env_vars.select { |env| env["component_id"]==remove_key }
+    end
+    return if variables.empty?
     pending_op = PendingDomainOps.new(op_type: :remove_env_variables, arguments: {"variables" => variables}, on_apps: applications, created_at: Time.now, state: "init")
     Domain.where(_id: self.id).update_all({ "$push" => { pending_ops: pending_op.serializable_hash }, "$pullAll" => { env_vars: variables }})
   end
