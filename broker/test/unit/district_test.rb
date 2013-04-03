@@ -98,25 +98,34 @@ class DistrictTest < ActiveSupport::TestCase
     orig_available_uids_length = orig_d.available_uids.length
     orig_available_capacity = orig_d.available_capacity
     orig_max_capacity = orig_d.max_capacity
+    orig_max_uid = orig_d.max_uid
+    orig_available_uids_min = orig_d.available_uids.min
+    orig_available_uids_max = orig_d.available_uids.max
     assert(orig_d.available_uids.reduce{|prev,l| break unless l >= prev; l}, "The initial UIDs are not sorted")
     
-    orig_d.add_capacity(5)
+    additional_capacity = 50
+
+    # add capacity
+    orig_d.add_capacity(additional_capacity)
     new_d = District.find_by(uuid: orig_d.uuid)
-    assert_equal(orig_available_uids_length + 5, new_d.available_uids.length)
-    assert_equal(orig_available_capacity + 5, new_d.available_capacity)
-    assert_equal(orig_max_capacity + 5, new_d.max_capacity)
-    assert_equal(1, new_d.available_uids.min)
-    assert_equal(15, new_d.available_uids.max)
+    assert_equal(orig_available_uids_length + additional_capacity, new_d.available_uids.length)
+    assert_equal(orig_available_capacity + additional_capacity, new_d.available_capacity)
+    assert_equal(orig_max_capacity + additional_capacity, new_d.max_capacity)
+    assert_equal(orig_max_uid + additional_capacity, new_d.max_uid)
+    assert_equal(orig_available_uids_min, new_d.available_uids.min)
+    assert_equal(orig_available_uids_max + additional_capacity, new_d.available_uids.max)
     # assert that the available_uids array is not sorted
     assert_nil(new_d.available_uids.reduce{|prev,l| break unless l >= prev; l}, "The UIDs are not randomized")
     
-    new_d.remove_capacity(5)
+    # remove capacity
+    new_d.remove_capacity(additional_capacity)
     new_d = District.find_by(uuid: orig_d.uuid)
     assert_equal(orig_available_uids_length, new_d.available_uids.length)
     assert_equal(orig_available_capacity, new_d.available_capacity)
     assert_equal(orig_max_capacity, new_d.max_capacity)
-    assert_equal(1, new_d.available_uids.min)
-    assert_equal(10, new_d.available_uids.max)
+    assert_equal(orig_max_uid, new_d.max_uid)
+    assert_equal(orig_available_uids_min, new_d.available_uids.min)
+    assert_equal(orig_available_uids_max, new_d.available_uids.max)
   end
   
   test "available uids sorted" do
@@ -190,10 +199,10 @@ class DistrictTest < ActiveSupport::TestCase
     district = District.new(name: name)
     # let the initial available_uids be sorted
     # this allows to separately test if additional UIDs are randomized 
-    district.available_uids = [1,2,3,4,5,6,7,8,9,10]
-    district.max_uid = 10
-    district.available_capacity = 10
-    district.max_capacity = 10
+    district.available_uids = (1..100).to_a
+    district.max_uid = district.available_uids.max
+    district.available_capacity = district.available_uids.length
+    district.max_capacity = district.available_uids.length
     district.externally_reserved_uids_size = 0
     district.gear_size = "small"
     district.uuid = uuid
