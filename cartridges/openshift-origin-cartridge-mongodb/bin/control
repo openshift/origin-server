@@ -1,0 +1,162 @@
+#!/bin/bash -e
+
+source "/usr/lib/openshift/node/util"
+source $OPENSHIFT_MONGODB_DIR/env/*
+export STOPTIMEOUT=20
+
+if whoami | grep -q root
+then
+    echo 1>&2
+    echo "Please don't run script as root, try:" 1>&2
+    echo "runuser --shell /bin/sh $OPENSHIFT_GEAR_UUID ${OPENSHIFT_MONGODB_DIR}/bin/control" 1>&2
+    echo 2>&1
+    exit 15
+fi
+
+function isrunning() {
+    if [ -f $OPENSHIFT_MONGODB_DIR/pid/mongodb.pid ]; then
+        mongodb_pid=`cat $OPENSHIFT_MONGODB_DIR/pid/mongodb.pid 2> /dev/null`
+        myid=`id -u`
+        if `ps --pid $mongodb_pid 2>&1 | grep mongod > /dev/null 2>&1` || `pgrep -x mongod -u $myid > /dev/null 2>&1`
+        then
+            return 0
+        fi
+     fi
+     return 1
+}
+
+function _wait_for_mongod_to_startup() {
+    i=0
+    while ( (! echo "exit" | mongo $IP > /dev/null 2>&1) ||  \
+            [ ! -f ${OPENSHIFT_MONGODB_DIR}/pid/mongodb.pid ]) && [ $i -lt 20 ]; do
+        sleep 1
+        i=$(($i + 1))
+    done
+}
+
+function _repair_mongod() {
+    authopts=$1
+    if ! isrunning ; then
+        echo "Attempting to repair MongoDB ..." 1>&2
+        tmp_config="/tmp/mongodb.repair.conf"
+        grep -ve "fork\s*=\s*true" $OPENSHIFT_MONGODB_DIR/conf/mongodb.conf > $tmp_config
+        /usr/bin/mongod $authopts --nojournal --smallfiles -f $tmp_config  \
+                                  --repair
+        echo "MongoDB repair status = $?" 1>&2
+        rm -f $tmp_config
+    else
+        echo "MongoDB already running - not running repair" 1>&2
+    fi
+}
+
+function _start_mongod() {
+    authopts=${1:-"--auth"}
+    /usr/bin/mongod $authopts --nojournal --smallfiles --quiet  \
+                    -f $OPENSHIFT_MONGODB_DIR/conf/mongodb.conf run >/dev/null 2>&1 &
+    _wait_for_mongod_to_startup
+    if ! isrunning; then
+       _repair_mongod "$authopts"
+       /usr/bin/mongod $authopts --nojournal --smallfiles --quiet  \
+                       -f $OPENSHIFT_MONGODB_DIR/conf/mongodb.conf run >/dev/null 2>&1 &
+       _wait_for_mongod_to_startup
+    fi
+}
+
+function start() {
+    if ! isrunning
+    then
+        _start_mongod  "$1"
+    else
+        echo "MongoDB already running" 1>&2
+    fi
+}
+
+function stop() {
+    if [ -f $OPENSHIFT_MONGODB_DIR/pid/mongodb.pid ]; then
+        pid=$( /bin/cat $OPENSHIFT_MONGODB_DIR/pid/mongodb.pid )
+    fi
+
+    if [ -n "$pid" ]; then
+        /bin/kill $pid
+        ret=$?
+        if [ $ret -eq 0 ]; then
+            TIMEOUT="$STOPTIMEOUT"
+            while [ $TIMEOUT -gt 0 ] && [ -f "$OPENSHIFT_MONGODB_DIR/pid/mongodb.pid" ]; do
+                /bin/kill -0 "$pid" >/dev/null 2>&1 || break
+                sleep 1
+                let TIMEOUT=${TIMEOUT}-1
+            done
+        fi
+    else
+        if `pgrep -x mongod > /dev/null 2>&1`
+        then
+                echo "Warning: MongoDB process exists without a pid file.  Use force-stop to kill." 1>&2
+        else
+            echo "MongoDB already stopped" 1>&2
+        fi
+     fi
+}
+
+function handle_setup_marker {
+  setup_marker_file=$OPENSHIFT_TMP_DIR/.setup_mongodb_invocation_marker
+
+  if [ -f $setup_marker_file ]; then
+    prepare_database
+    rm -f $setup_marker_file
+  fi
+}
+
+function prepare_database {
+  echo 'Generating username and password'
+
+  password=$(generate_password)
+
+  echo "export OPENSHIFT_MONGODB_DB_USERNAME='admin'" > $OPENSHIFT_MONGODB_DIR/env/OPENSHIFT_MONGO_DB_USERNAME
+  echo "export OPENSHIFT_MONGODB_DB_PASSWORD='$password'" > $OPENSHIFT_MONGODB_DIR/env/OPENSHIFT_MONGO_DB_PASSWORD
+  echo "export OPENSHIFT_MONGODB_DB_URL='mongodb://admin:$password@$OPENSHIFT_MONGODB_DB_HOST:$OPENSHIFT_MONGODB_PORT/'" > $OPENSHIFT_MONGODB_DIR/env/OPENSHIFT_MONGODB_DB_URL
+  echo "export OPENSHIFT_MONGODB_DB_LOG_DIR='$OPENSHIFT_MONGODB_DIR/log'" > $OPENSHIFT_MONGODB_DIR/env/OPENSHIFT_MONGODB_DB_LOG_DIR
+
+  echo "use admin
+        db.addUser(\"admin\", \"${password}\")
+        db.auth(\"admin\", \"${password}\")
+        db.system.users.find()
+        use $OPENSHIFT_APP_NAME
+        db.openshift.save({application: \"$OPENSHIFT_APP_NAME\", dbhost: \"$OPENSHIFT_MONGODB_DB_HOST\" })
+        db.addUser(\"admin\", \"${password}\")
+        exit
+       "  | mongo $OPENSHIFT_MONGODB_DB_HOST
+  rm -f /tmp/.dbshell
+
+  cart_props 'connection_url=mongodb://admin:$password@$OPENSHIFT_MONGODB_DB_HOST:$OPENSHIFT_MONGODB_DB_PORT/'
+  cart_props "username=admin"
+  cart_props "password=$password"
+  cart_props "database_name=$dbname"
+
+  set_app_info "Connection URL: mongodb://admin:$password@$OPENSHIFT_MONGODB_DB_HOST:$OPENSHIFT_MONGODB_DB_PORT/"
+}
+
+case "$1" in
+    start)
+        start
+        handle_setup_marker
+    ;;
+    start-noauth)
+        start --noauth
+    ;;
+    stop)
+        stop
+    ;;
+    restart)
+        stop
+        start
+    ;;
+    status)
+        if isrunning
+        then
+            echo "MongoDB is running" 1>&2
+        else
+            echo "MongoDB is stopped" 1>&2
+        fi
+        exit 0
+    ;;
+esac
