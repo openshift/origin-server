@@ -6,8 +6,8 @@ yum install openldap*
 #stop the ldap service if it's running
 service slapd stop
 
-#import the user ldiff
-slapadd -l ldap-user-sample.ldiff
+#import the user ldif
+slapadd -l ldap-user-sample.ldif
 
 #change the ownership of /var/lib/ldap
 chown -R ldap.ldap /var/lib/ldap
