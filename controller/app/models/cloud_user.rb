@@ -260,9 +260,9 @@ class CloudUser
 
         case op.op_type
         when :add_ssh_key
-          op.pending_domains.each { |domain| domain.add_ssh_key(self._id, op.arguments, op) }
+          op.pending_domains.each { |domain| domain.add_ssh_key(self._id, UserSshKey.new.to_obj(op.arguments), op) }
         when :delete_ssh_key
-          op.pending_domains.each { |domain| domain.remove_ssh_key(self._id, op.arguments, op) }
+          op.pending_domains.each { |domain| domain.remove_ssh_key(self._id, UserSshKey.new.to_obj(op.arguments), op) }
         end
 
         # reloading the op reloads the cloud_user and then incorrectly reloads (potentially)

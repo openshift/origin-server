@@ -246,14 +246,14 @@ class Application
   ##
   # Adds the given ssh key to the application.
   # @param user_id [String] The ID of the user associated with the keys. If the user ID is nil, then the key is assumed to be a system generated key
-  # @param keys [Array<Hash>] Array of keys to add to the application. Each key entry must contain name, type and content
+  # @param keys [Array<SshKey>] Array of keys to add to the application.
   # @param parent_op [PendingDomainOps] object used to track this operation at a domain level
   # @return [ResultIO] Output from cartridges
   def add_ssh_keys(user_id, keys, parent_op)
     return if keys.empty?
-    key_attrs = get_updated_ssh_keys(user_id, keys)
+    keys_attrs = get_updated_ssh_keys(user_id, keys)
     Application.run_in_application_lock(self) do
-      op_group = PendingAppOpGroup.new(op_type: :update_configuration,  args: {"add_keys_attrs" => key_attrs}, parent_op: parent_op, user_agent: self.user_agent)
+      op_group = PendingAppOpGroup.new(op_type: :update_configuration,  args: {"add_keys_attrs" => keys_attrs}, parent_op: parent_op, user_agent: self.user_agent)
       self.pending_op_groups.push op_group
       result_io = ResultIO.new
       self.run_jobs(result_io)
@@ -265,14 +265,14 @@ class Application
   # Remove the given ssh key from the application. If multiple users share the same key, only the specified users key is removed
   # but application access will still be possible.
   # @param user_id [String] The ID of the user associated with the keys. If the user ID is nil, then the key is assumed to be a system generated key
-  # @param keys_attrs [Array<Hash>] Array of keys to remove from the application. Each key entry must contain name, type and content
+  # @param keys [Array<SshKey>] Array of keys to remove from the application.
   # @param parent_op [PendingDomainOps] object used to track this operation at a domain level
   # @return [ResultIO] Output from cartridges
-  def remove_ssh_keys(user_id, keys_attrs, parent_op=nil)
-    return if keys_attrs.empty?
-    key_attrs = get_updated_ssh_keys(user_id, keys_attrs)
+  def remove_ssh_keys(user_id, keys, parent_op=nil)
+    return if keys.empty?
+    keys_attrs = get_updated_ssh_keys(user_id, keys)
     Application.run_in_application_lock(self) do
-      op_group = PendingAppOpGroup.new(op_type: :update_configuration, args: {"remove_keys_attrs" => key_attrs}, parent_op: parent_op, user_agent: self.user_agent)
+      op_group = PendingAppOpGroup.new(op_type: :update_configuration, args: {"remove_keys_attrs" => keys_attrs}, parent_op: parent_op, user_agent: self.user_agent)
       self.pending_op_groups.push op_group
       result_io = ResultIO.new
       self.run_jobs(result_io)
@@ -391,6 +391,10 @@ class Application
       self.pending_op_groups.push PendingAppOpGroup.new(op_type: :add_features, args: {"features" => features, "group_overrides" => group_overrides, "init_git_url"=>init_git_url}, user_agent: self.user_agent)
       self.run_jobs(result_io)
     end
+    
+    # adding this feature may have caused pending_ops to be created on the domain 
+    # for adding env vars and ssh keys
+    # execute run_jobs on the domain to take care of those
     domain.with(consistency: :strong).reload
     domain.run_jobs
     result_io
@@ -436,6 +440,10 @@ class Application
       self.pending_op_groups.push PendingAppOpGroup.new(op_type: :remove_features, args: {"features" => features, "group_overrides" => group_overrides}, user_agent: self.user_agent)
       self.run_jobs(result_io)
     end
+
+    # removing this feature may have caused pending_ops to be created on the domain 
+    # for removing env vars and ssh keys
+    # execute run_jobs on the domain to take care of those
     domain.with(consistency: :strong).reload
     domain.run_jobs
     result_io
@@ -934,10 +942,11 @@ class Application
           #ignore
         end
       when "APP_SSH_KEY_ADD"
-        add_ssh_keys << ApplicationSshKey.new(name: "application-" + command_item[:args][0], type: "ssh-rsa", content: command_item[:args][1], created_at: Time.now)
+        add_ssh_keys << ApplicationSshKey.new(name: command_item[:args][0], type: "ssh-rsa", content: command_item[:args][1], created_at: Time.now)
       when "APP_SSH_KEY_REMOVE"
         begin
-          remove_ssh_keys << self.app_ssh_keys.find_by(name: "application-" + command_item[:args][0])
+          keys_attrs = get_updated_ssh_keys(nil, [ApplicationSshKey.new.to_obj({"name" => command_item[:args][0]})])
+          remove_ssh_keys << self.app_ssh_keys.find_by(name: keys_attrs[0]["name"])
         rescue Mongoid::Errors::DocumentNotFound
           #ignore
         end
@@ -958,12 +967,12 @@ class Application
     end
 
     if add_ssh_keys.length > 0
-      keys_attrs = add_ssh_keys.map{|k| k.attributes.dup}
+      keys_attrs = get_updated_ssh_keys(nil, add_ssh_keys)
       pending_op = PendingAppOpGroup.new(op_type: :update_configuration, args: {"add_keys_attrs" => keys_attrs}, user_agent: self.user_agent)
       Application.where(_id: self._id).update_all({ "$push" => { pending_op_groups: pending_op.serializable_hash }, "$pushAll" => { app_ssh_keys: keys_attrs }})
     end
     if remove_ssh_keys.length > 0
-      keys_attrs = remove_ssh_keys.map{|k| k.attributes.dup}
+      keys_attrs = get_updated_ssh_keys(nil, remove_ssh_keys)
       pending_op = PendingAppOpGroup.new(op_type: :update_configuration, args: {"remove_keys_attrs" => keys_attrs}, user_agent: self.user_agent)
       Application.where(_id: self._id).update_all({ "$push" => { pending_op_groups: pending_op.serializable_hash }, "$pullAll" => { app_ssh_keys: keys_attrs }})
     end
@@ -973,6 +982,7 @@ class Application
     end
 
     # Have to remember to run_jobs for the other apps involved at some point
+    # run_jobs is called on the domain after all processing is done from add_features and remove_features
     domain.remove_system_ssh_keys(domain_keys_to_rm) if !domain_keys_to_rm.empty?
     domain.remove_env_variables(domain_env_vars_to_rm) if !domain_env_vars_to_rm.empty?
     domain.add_system_ssh_keys(domain_keys_to_add) if !domain_keys_to_add.empty?
@@ -1272,9 +1282,9 @@ class Application
     pending_ops = []
 
     a_ssh_keys = self.app_ssh_keys.map{|k| k.attributes}
-    d_ssh_keys = get_updated_ssh_keys(nil, self.domain.system_ssh_keys.map{|k| k.attributes})
-    o_ssh_keys = get_updated_ssh_keys(self.domain.owner._id, self.domain.owner.ssh_keys.map{|k| k.attributes})
-    u_ssh_keys = CloudUser.find(self.domain.user_ids).map{|u| get_updated_ssh_keys(u._id, u.ssh_keys.map{|k| k.attributes})}.flatten
+    d_ssh_keys = get_updated_ssh_keys(nil, self.domain.system_ssh_keys)
+    o_ssh_keys = get_updated_ssh_keys(self.domain.owner._id, self.domain.owner.ssh_keys)
+    u_ssh_keys = CloudUser.find(self.domain.user_ids).map{|u| get_updated_ssh_keys(u._id, u.ssh_keys)}.flatten
     
     ssh_keys = a_ssh_keys + d_ssh_keys + o_ssh_keys + u_ssh_keys
     env_vars = self.domain.env_vars
@@ -2142,14 +2152,20 @@ class Application
     group_overrides
   end
   
-  def get_updated_ssh_keys(user_id, keys_attrs)
-    updated_keys_attrs = deep_copy(keys_attrs).map { |k|
-      if user_id.nil?
-        k["name"] = "domain-" + k["name"]
-      else
-        k["name"] = user_id.to_s + "-" + k["name"]
+  # The ssh key names are used as part of the ssh key comments on the application's gears
+  # Do not change the format of the key name, otherwise it may break key removal code on the node
+  def get_updated_ssh_keys(user_id, keys)
+    updated_keys_attrs = keys.map { |key|
+      key_attrs = deep_copy(key.attributes)
+      case key.class
+      when UserSshKey
+        key_attrs["name"] = user_id.to_s + "-" + key_attrs["name"]
+      when SystemSshKey
+        key_attrs["name"] = "domain-" + key_attrs["name"]
+      when ApplicationSshKey
+        key_attrs["name"] = "application-" + key_attrs["name"]
       end
-      k
+      key_attrs
     }
     updated_keys_attrs
   end
