@@ -35,7 +35,7 @@ class DomainTest < ActiveSupport::TestCase
     end
   end
   
-  test "create find update and delete domain" do
+  test "create find and delete domain" do
     namespace = "ns#{@random}"
     @domain = Domain.new(namespace: namespace, owner:@user)
     @domain.save
@@ -45,12 +45,6 @@ class DomainTest < ActiveSupport::TestCase
     
     domains = Domain.where(owner: @user)
     assert_equal(1, domains.length)
-    
-    new_namespace = "xns#{@random}"
-    @domain.update_namespace(new_namespace)
-    assert_raise(Mongoid::Errors::DocumentNotFound){Domain.find_by(owner: @user, canonical_namespace: namespace)}
-    @domain = Domain.find_by(owner: @user, canonical_namespace: new_namespace)
-    assert_equal(new_namespace, @domain.namespace)
     
     @domain.delete
     
@@ -132,5 +126,30 @@ class DomainTest < ActiveSupport::TestCase
     assert_equal(0, @domain.env_vars.length)
     
   end
+  
+  test "update domain" do
+    namespace = "ns#{@random}"
+    @domain = Domain.new(namespace: namespace, owner:@user)
+    @domain.save
+    
+    @app_name = "app#{@random}"
+    @app = Application.create_app(@app_name, ["php-5.3"], @domain, "small")
+    @app.save
+    
+    @domain = Domain.find_by(owner: @user, canonical_namespace: namespace)
+    
+    new_namespace = "xns#{@random}"
+    assert_raise(OpenShift::UserException){@domain.update_namespace(new_namespace)}
+    
+    @app.destroy_app
+    @domain = Domain.find_by(owner: @user, canonical_namespace: namespace)
+    @domain.update_namespace(new_namespace)
+    assert_raise(Mongoid::Errors::DocumentNotFound){Domain.find_by(owner: @user, canonical_namespace: namespace)}
+    @domain = Domain.find_by(owner: @user, canonical_namespace: new_namespace)
+    assert_equal(new_namespace, @domain.namespace)
+    
+  end
+  
+
   
 end

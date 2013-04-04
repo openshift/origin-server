@@ -83,6 +83,9 @@ class Domain
   # == Returns:
   #   The domain operation which tracks the first step of the update.
   def update_namespace(new_namespace)
+    if Application.with(consistency: :strong).where(domain_id: self._id).count > 0
+      raise OpenShift::UserException.new("Domain contains applications. Delete applications first before changing the domain namespace.", 128)
+    end
     old_ns = namespace
     self.namespace = new_namespace
     self.save
