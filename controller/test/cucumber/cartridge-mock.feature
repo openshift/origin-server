@@ -16,16 +16,16 @@ Feature: V2 SDK Mock Cartridge
     And the "app-root/runtime/repo/.openshift/README.md" content does exist for mock-0.1
 
 
-    When I start the application
+    When I start the newfangled application
     Then the mock control_start marker will exist
 
     When I status the mock-0.1 cartridge
     Then the mock control_status marker will exist
 
-    When I stop the application
+    When I stop the newfangled application
     Then the mock control_stop marker will exist
 
-    When I restart the application
+    When I restart the newfangled application
     Then the mock control_restart marker will exist
 
     When the application is made publicly accessible 
@@ -43,7 +43,7 @@ Feature: V2 SDK Mock Cartridge
     And the mock action_hook_post_deploy marker will exist
     And the application repo has been updated
 
-    When I call tidy on the application
+    When I tidy the newfangled application
     Then the mock control_tidy marker will exist
 
     When I destroy the application

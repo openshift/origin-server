@@ -127,11 +127,11 @@ module OpenShift
     end
 
     def restart
-      raise NotImplementedError
+      default_gear.container.restart(default_gear.default_cart.name)
     end
 
     def status
-      raise NotImplementedError
+      default_gear.container.status(default_gear.default_cart.name)
     end
 
     # Collects and returns the PIDs for every cartridge associated
