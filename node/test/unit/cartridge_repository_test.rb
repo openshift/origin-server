@@ -14,6 +14,7 @@
 # limitations under the License.
 #++
 
+require 'test_helper'
 require_relative '../../lib/openshift-origin-node/model/cartridge_repository'
 require 'test/unit'
 require 'mocha'
@@ -25,6 +26,7 @@ SimpleCov.command_name 'unit_test'
 class CartridgeRepositoryTest < Test::Unit::TestCase
   def setup
     @path = '/var/lib/openshift/.cartridge_repository'
+    FileUtils.stubs(:mkpath).with(@path)
   end
 
   def test_one_manifest
