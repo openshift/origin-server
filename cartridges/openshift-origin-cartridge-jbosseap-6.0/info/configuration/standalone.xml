@@ -309,6 +309,7 @@
 					</property>
 					<property name="bind_port">7600</property>
 					<property name="bind_addr">${env.OPENSHIFT_INTERNAL_IP}</property>
+					<property name="defer_client_binding">true</property>
 				</transport>
 				<protocol type="TCPPING">
 					<property name="timeout">3000</property>
