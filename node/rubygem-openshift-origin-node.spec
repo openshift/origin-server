@@ -16,7 +16,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.7.1
+Version: 1.7.19
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -47,6 +47,8 @@ Requires:      libcgroup-tools
 Requires:      libcgroup-pam
 Requires:      pam_openshift
 Requires:      quota
+Requires:      cronie
+Requires:      crontabs
 %if 0%{?fedora} >= 18
 Requires:      httpd-tools
 BuildRequires: httpd-tools
@@ -172,6 +174,23 @@ rm -rf %{buildroot}%{gem_instdir}/misc
 rm -rf %{buildroot}%{gem_instdir}/.yardoc
 chmod 755 %{buildroot}%{gem_instdir}/test/unit/*.rb
 
+# Cron configuration that enables running each gear's cron jobs
+mkdir -p %{buildroot}/etc/cron.d
+mkdir -p %{buildroot}/etc/cron.minutely
+mkdir -p %{buildroot}/etc/cron.hourly
+mkdir -p %{buildroot}/etc/cron.daily
+mkdir -p %{buildroot}/etc/cron.weekly
+mkdir -p %{buildroot}/etc/cron.monthly
+mkdir -p %{buildroot}/usr/lib/openshift/node/jobs
+
+mv %{buildroot}%{gem_instdir}/jobs/* %{buildroot}/usr/lib/openshift/node/jobs/
+ln -s /usr/lib/openshift/node/jobs/1minutely %{buildroot}/etc/cron.d/
+ln -s /usr/lib/openshift/node/jobs/openshift-origin-cron-minutely %{buildroot}/etc/cron.minutely/
+ln -s /usr/lib/openshift/node/jobs/openshift-origin-cron-hourly %{buildroot}/etc/cron.hourly/
+ln -s /usr/lib/openshift/node/jobs/openshift-origin-cron-daily %{buildroot}/etc/cron.daily/
+ln -s /usr/lib/openshift/node/jobs/openshift-origin-cron-weekly %{buildroot}/etc/cron.weekly/
+ln -s /usr/lib/openshift/node/jobs/openshift-origin-cron-monthly %{buildroot}/etc/cron.monthly/
+
 %post
 /bin/rm -f /etc/openshift/env/*.rpmnew
 
@@ -193,6 +212,13 @@ fi
 if ! [ -f /etc/openshift/resource_limits.conf ]; then
   cp -f /etc/openshift/resource_limits.template /etc/openshift/resource_limits.conf
 fi
+
+# Start the cron service so that each gear gets its cron job run, if they're enabled
+%if 0%{?fedora} >= 16 || 0%{?rhel} >= 7
+  systemctl restart  crond.service || :
+%else
+  service crond restart || :
+%endif
 
 %preun
 # Check to make sure we uninstalling instead of updating
@@ -246,9 +272,148 @@ fi
 /etc/tmpfiles.d/openshift-run.conf
 %endif
 # upstart files
-%attr(0755,-,-) %{_var}/run/openshift
+
+%dir %attr(0755,-,-) /usr/lib/openshift/node/jobs
+%config(noreplace) %attr(0644,-,-) /usr/lib/openshift/node/jobs/1minutely
+%attr(0755,-,-) /usr/lib/openshift/node/jobs/openshift-origin-cron-minutely
+%attr(0755,-,-) /usr/lib/openshift/node/jobs/openshift-origin-cron-hourly
+%attr(0755,-,-) /usr/lib/openshift/node/jobs/openshift-origin-cron-daily
+%attr(0755,-,-) /usr/lib/openshift/node/jobs/openshift-origin-cron-weekly
+%attr(0755,-,-) /usr/lib/openshift/node/jobs/openshift-origin-cron-monthly
+%dir /etc/cron.minutely
+%config(noreplace) %attr(0644,-,-) /etc/cron.d/1minutely
+%attr(0755,-,-) /etc/cron.minutely/openshift-origin-cron-minutely
+%attr(0755,-,-) /etc/cron.hourly/openshift-origin-cron-hourly
+%attr(0755,-,-) /etc/cron.daily/openshift-origin-cron-daily
+%attr(0755,-,-) /etc/cron.weekly/openshift-origin-cron-weekly
+%attr(0755,-,-) /etc/cron.monthly/openshift-origin-cron-monthly
 
 %changelog
+* Thu Apr 04 2013 Unknown name 1.7.19-1
+- fixing (root@ip-10-110-255-166.ec2.internal)
+
+* Thu Apr 04 2013 Unknown name 1.7.18-1
+- Moving root cron configuration out of cartridges and into node
+  (calfonso@redhat.com)
+- Refactor v2 cartridge SDK location and accessibility (ironcladlou@gmail.com)
+- Merge pull request #1899 from pmorie/dev/connector_docs (dmcphers@redhat.com)
+- Recover pub/sub docs (pmorie@gmail.com)
+- WIP Cartridge Refactor - support for git submodules and template url
+  (jhonce@redhat.com)
+- Merge pull request #1890 from mrunalp/dev/web_proxy_deploy
+  (dmcphers@redhat.com)
+- Merge pull request #1882 from ironcladlou/dev/v2carts/build-system
+  (dmcphers+openshiftbot@redhat.com)
+- Deploy for web proxy. (mrunalp@gmail.com)
+- adding to the sdk (dmcphers@redhat.com)
+- General client message streaming support (ironcladlou@gmail.com)
+- Fix how erb binary is resolved. Using util/util-scl packages instead of doing
+  it dynamically in code. Separating manifest into RHEL and Fedora versions
+  instead of using sed to set version. (kraman@gmail.com)
+- WIP: v2 snapshot/restore (pmorie@gmail.com)
+- Merge pull request #1872 from pmorie/dev/gear
+  (dmcphers+openshiftbot@redhat.com)
+- Suppress NodeLogger calls in the context of gear script (pmorie@gmail.com)
+- Fix v2 ERB processing (ironcladlou@gmail.com)
+- V2 cart state management implementation (ironcladlou@gmail.com)
+- Merge pull request #1837 from kraman/php_v2
+  (dmcphers+openshiftbot@redhat.com)
+- Adding Apache 2.4 and PHP 5.4 support to PHP v2 cartridge Fix Path to erb
+  executable (kraman@gmail.com)
+- Better rescue for Errno (fotios@redhat.com)
+- Added application_state tests (fotios@redhat.com)
+- Fixing environ tests (fotios@redhat.com)
+- Fixing frontend_proxy_test (fotios@redhat.com)
+
+* Wed Apr 03 2013 Unknown name 1.7.17-1
+- Automatic commit of package [rubygem-openshift-origin-node] release
+  [1.7.16-1]. (root@ip-10-114-31-128.ec2.internal)
+
+* Wed Apr 03 2013 Unknown name 1.7.16-1
+- Automatic commit of package [rubygem-openshift-origin-node] release
+  [1.7.15-1]. (root@ip-10-114-31-128.ec2.internal)
+
+* Wed Apr 03 2013 Unknown name 1.7.15-1
+- Automatic commit of package [rubygem-openshift-origin-node] release
+  [1.7.14-1]. (root@ip-10-114-31-128.ec2.internal)
+
+* Wed Apr 03 2013 Unknown name 1.7.14-1
+- Automatic commit of package [rubygem-openshift-origin-node] release
+  [1.7.13-1]. (root@ip-10-114-31-128.ec2.internal)
+
+* Wed Apr 03 2013 Unknown name 1.7.13-1
+- Automatic commit of package [rubygem-openshift-origin-node] release
+  [1.7.12-1]. (root@ip-10-114-31-128.ec2.internal)
+
+* Wed Apr 03 2013 Unknown name 1.7.12-1
+- Automatic commit of package [rubygem-openshift-origin-node] release
+  [1.7.11-1]. (root@ip-10-114-31-128.ec2.internal)
+
+* Wed Apr 03 2013 Unknown name 1.7.11-1
+- Automatic commit of package [rubygem-openshift-origin-node] release
+  [1.7.10-1]. (root@ip-10-114-31-128.ec2.internal)
+
+* Wed Apr 03 2013 Unknown name 1.7.10-1
+- Automatic commit of package [rubygem-openshift-origin-node] release
+  [1.7.9-1]. (root@ip-10-114-31-128.ec2.internal)
+
+* Wed Apr 03 2013 Unknown name 1.7.9-1
+- Automatic commit of package [rubygem-openshift-origin-node] release
+  [1.7.8-1]. (root@ip-10-114-31-128.ec2.internal)
+
+* Wed Apr 03 2013 Unknown name 1.7.8-1
+- Automatic commit of package [rubygem-openshift-origin-node] release
+  [1.7.7-1]. (root@ip-10-114-31-128.ec2.internal)
+
+* Wed Apr 03 2013 Unknown name 1.7.7-1
+- Automatic commit of package [rubygem-openshift-origin-node] release
+  [1.7.6-1]. (root@ip-10-114-31-128.ec2.internal)
+
+* Wed Apr 03 2013 Unknown name 1.7.6-1
+- Automatic commit of package [rubygem-openshift-origin-node] release
+  [1.7.5-1]. (root@ip-10-114-31-128.ec2.internal)
+
+* Wed Apr 03 2013 Unknown name 1.7.5-1
+- Automatic commit of package [rubygem-openshift-origin-node] release
+  [1.7.4-1]. (root@ip-10-114-31-128.ec2.internal)
+
+* Wed Apr 03 2013 Unknown name 1.7.4-1
+- Automatic commit of package [rubygem-openshift-origin-node] release
+  [1.7.3-1]. (root@ip-10-114-31-128.ec2.internal)
+
+* Wed Apr 03 2013 Unknown name 1.7.3-1
+- test fix (root@ip-10-114-31-128.ec2.internal)
+
+* Wed Apr 03 2013 Unknown name 1.7.2-1
+- Moving root cron configuration out of cartridges and into node
+  (calfonso@redhat.com)
+- WIP Cartridge Refactor - support for git submodules and template url
+  (jhonce@redhat.com)
+- Merge pull request #1890 from mrunalp/dev/web_proxy_deploy
+  (dmcphers@redhat.com)
+- Merge pull request #1882 from ironcladlou/dev/v2carts/build-system
+  (dmcphers+openshiftbot@redhat.com)
+- Deploy for web proxy. (mrunalp@gmail.com)
+- adding to the sdk (dmcphers@redhat.com)
+- General client message streaming support (ironcladlou@gmail.com)
+- Fix how erb binary is resolved. Using util/util-scl packages instead of doing
+  it dynamically in code. Separating manifest into RHEL and Fedora versions
+  instead of using sed to set version. (kraman@gmail.com)
+- WIP: v2 snapshot/restore (pmorie@gmail.com)
+- Merge pull request #1872 from pmorie/dev/gear
+  (dmcphers+openshiftbot@redhat.com)
+- Suppress NodeLogger calls in the context of gear script (pmorie@gmail.com)
+- Fix v2 ERB processing (ironcladlou@gmail.com)
+- V2 cart state management implementation (ironcladlou@gmail.com)
+- Merge pull request #1837 from kraman/php_v2
+  (dmcphers+openshiftbot@redhat.com)
+- Adding Apache 2.4 and PHP 5.4 support to PHP v2 cartridge Fix Path to erb
+  executable (kraman@gmail.com)
+- Better rescue for Errno (fotios@redhat.com)
+- Added application_state tests (fotios@redhat.com)
+- Fixing environ tests (fotios@redhat.com)
+- Fixing frontend_proxy_test (fotios@redhat.com)
+
 * Thu Mar 28 2013 Adam Miller <admiller@redhat.com> 1.7.1-1
 - bump_minor_versions for sprint 26 (admiller@redhat.com)
 - Merge pull request #1836 from rmillner/fix_ssh_keys

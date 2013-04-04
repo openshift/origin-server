@@ -1,8 +1,7 @@
 #!/bin/bash -e
-set -u
 set -x
 
-PATH=/bin:/usr/bin:$PATH
+source $OPENSHIFT_CARTRIDGE_SDK_BASH
 
 version=1.4
 echo "export OPENSHIFT_CRON_VERSION='$version'" > "$OPENSHIFT_CRON_DIR/env/OPENSHIFT_CRON_VERSION"
@@ -13,3 +12,16 @@ mkdir $OPENSHIFT_CRON_DIR/{configuration,logs,etc,data,pid,run}
 cp -r $OPENSHIFT_CRON_DIR/versions/$version/configuration/* $OPENSHIFT_CRON_DIR/configuration
 ln -s ../app-root/repo/.openshift/cron $OPENSHIFT_CRON_DIR/configuration/jobs
 
+frequencies=$(cat $OPENSHIFT_CRON_DIR/configuration/frequencies | tr '\n' ',')
+client_result ""
+client_result "cron-1.4 added to application $OPENSHIFT_APP_NAME"
+client_result ""
+client_result "To schedule your scripts to run on a periodic basis, add the scripts to " 
+client_result "your application's .openshift/cron/{${frequencies%?}}/"
+client_result "directories (and commit and redeploy your application)."
+client_result ""
+client_result "Example: A script .openshift/cron/hourly/crony added to your application"
+client_result "         will be executed once every hour."
+client_result "         Similarly, a script .openshift/cron/weekly/chronograph added"
+client_result "         to your application will be executed once every week."
+client_result ""

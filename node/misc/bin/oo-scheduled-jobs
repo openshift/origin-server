@@ -1,31 +1,31 @@
 #!/bin/bash
-
 source "/etc/openshift/node.conf"
+source "/etc/rc.d/init.d/functions"
+source "/usr/lib/openshift/cartridge_sdk/bash/sdk"
 
 # Constants.
-SERVICE_NAME=cron
-CART_NAME=cron
-CART_VERSION=1.4
-CART_DIRNAME=${CART_NAME}-$CART_VERSION
-CART_INSTALL_DIR=${CARTRIDGE_BASE_PATH}
-CART_INFO_DIR=$CART_INSTALL_DIR/embedded/$CART_DIRNAME/info
 DOP=5  # Degree of Parallelism.
+CART_FORMAT=`oo-cart-version -c show | cut -d\  -f5`
+
+if [ "$CART_FORMAT" == "v2" ]
+then
+   CART_DIRNAME="redhat-cron"
+else
+   CART_DIRNAME="cron-1.4"
+fi
 
 function usage() {
-   freqs=$(cat $CART_INFO_DIR/configuration/frequencies | tr '\n' '|')
-   echo "Usage: $0 {run | run-user <uid>} <${freqs%?}>"
+   echo "Usage: $0 {run | run-user <uid>} <frequency>"
 }
 
-
-function log_message() {
-   msg=${1-""}
-   [ -z "$msg" ]  &&  return 0
-   logger -i -s "run-scheduled-openshift-origin-user-jobs" -p user.info "`date`: $msg"
+function setup_user_vars {
+    uid=$(id -u "$uuid")
+    mcs_level=`oo-get-mcs-level $uid`
+    export mcs_level
 }
 
-
-function openshift_origin_users() {
-    grep ":${GEAR_GECOS}:" /etc/passwd | cut -d: -f1 | tr '\n' ' '
+function daemon_as_user {
+    daemon --user="$uuid" runcon -r system_r -t openshift_t -l $mcs_level "$@"
 }
 
 function openshift_origin_cron_users() {
@@ -70,36 +70,36 @@ function run_user_scheduled_jobs() {
       usage
       exit 22
    fi
+   export uuid
+   setup_user_vars
 
    # Ensure cron jobs are enabled, there's a jobs dir and there's some jobs
    # to run.
    USER_CRON_INSTANCE_DIR=${GEAR_BASE_DIR}/$uuid/$CART_DIRNAME
    [ ! -f $USER_CRON_INSTANCE_DIR/run/jobs.enabled ]  &&  return 0
-   [ ! -d "$USER_CRON_INSTANCE_DIR/jobs/$freq" ]  &&  return 0
-   njobs=$(ls "$USER_CRON_INSTANCE_DIR/jobs/$freq" | wc -l)
+   [ ! -d "$GEAR_BASE_DIR/$uuid/app-root/repo/.openshift/cron/$freq" ]  &&  return 0
+   njobs=$(ls "$GEAR_BASE_DIR/$uuid/app-root/repo/.openshift/cron/$freq" | wc -l)
    [ 0 -ge ${njobs:-0} ]  &&  return 0
 
    # Ensure scripts are executable
-   chmod +x -R "$USER_CRON_INSTANCE_DIR/jobs/$freq/"
+   chmod +x -R "$GEAR_BASE_DIR/$uuid/app-root/repo/.openshift/cron/$freq/"
 
-   setup_user_vars
    setuppam "$uuid"
-
-   cmd="$USER_CRON_INSTANCE_DIR/cron_runjobs.sh $freq"
+   if [ "$CART_FORMAT" == "v2" ]
+   then
+      cron_runjob="$USER_CRON_INSTANCE_DIR/bin/cron_runjobs.sh"
+   else
+      cron_runjob="$USER_CRON_INSTANCE_DIR/cron_runjobs.sh"
+   fi
+   cmd="$cron_runjob $freq"
 
    # Ensure cron's embedded in the app.
-   if [ -f "$USER_CRON_INSTANCE_DIR/cron_runjobs.sh" ]; then
+   if [ -f "$cron_runjob" ]; then
       daemon_as_user $cmd
    fi
 }
 
 
-
-#
-# main():
-#
-source /etc/init.d/functions
-source "${CART_INSTALL_DIR}/abstract/info/lib/util"
 
 # Check whether to run all or a specific user's jobs.
 case "$1" in 
