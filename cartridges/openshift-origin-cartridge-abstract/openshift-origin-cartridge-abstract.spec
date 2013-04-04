@@ -16,6 +16,7 @@ Source0:       http://mirror.openshift.com/pub/openshift-origin/source/%{name}/%
 Requires:      facter
 Requires:      git
 Requires:      make
+Requires:      tar
 Requires:      mod_ssl
 # abstract/info/connection-hooks/publish-http-url
 Requires:      python

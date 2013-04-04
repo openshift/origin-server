@@ -1,5 +1,5 @@
 #!/bin/bash -e
-source "/usr/lib/openshift/node/util"
+source $OPENSHIFT_CARTRIDGE_SDK_BASH
 
 function _are_cronjobs_enabled() {
    [ -f $OPENSHIFT_CRON_DIR/run/jobs.enabled ]  &&  return 0

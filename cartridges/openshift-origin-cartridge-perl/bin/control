@@ -1,41 +1,52 @@
 #!/bin/bash -e
+source $OPENSHIFT_CARTRIDGE_SDK_BASH
+set -u
+
+# Perl cartridge. Perl packaged with OS.
+# Perl control script.
+
 
 HTTPD_CFG_FILE=$OPENSHIFT_PERL_DIR/etc/conf/httpd_nolog.conf
+HTTPD_PID_FILE=$OPENSHIFT_PERL_DIR/run/httpd.pid
+
+# Functions called from case statement below
 
 function start() {
-    echo "Starting Perl cart"
-    /usr/sbin/httpd -C "Include $OPENSHIFT_PERL_DIR/etc/conf.d/*.conf" -f $HTTPD_CFG_FILE -k start
+  /usr/sbin/httpd -C "Include $OPENSHIFT_PERL_DIR/etc/conf.d/*.conf" -f $HTTPD_CFG_FILE -k start
 }
 
 function stop() {
-    echo "Stopping Perl cart"
-    /usr/sbin/httpd -C "Include $OPENSHIFT_PERL_DIR/etc/conf.d/*.conf" -f $HTTPD_CFG_FILE -k stop
+  /usr/sbin/httpd -C "Include $OPENSHIFT_PERL_DIR/etc/conf.d/*.conf" -f $HTTPD_CFG_FILE -k stop
 }
 
 function restart() {
-   echo "Restarting Perl cart"
-    /usr/sbin/httpd -C "Include $OPENSHIFT_PERL_DIR/etc/conf.d/*.conf" -f $HTTPD_CFG_FILE -k restart
+  /usr/sbin/httpd -C "Include $OPENSHIFT_PERL_DIR/etc/conf.d/*.conf" -f $HTTPD_CFG_FILE -k restart
 }
 
+# Is the packaged software really running?
 function status() {
-   echo "Perl cart status"
+  if ps --no-headers --pid $(< $HTTPD_PID_FILE) > /dev/null
+  then
+    client_result 'Perl is running'
+  else
+    client_result 'Perl is either stopped or inaccessible'
+  fi
 }
 
-function reload() {
-    echo "Reloading Perl cart"
-    restart
-}
-
+# Clean up any log files
 function tidy() {
-    echo "Tidying Perl cart"
+  client_message "Emptying log dir: $OPENSHIFT_PERL_LOG_DIR"
+  shopt -s dotglob
+  rm -rf $OPENSHIFT_PERL_LOG_DIR/*
 }
 
 case "$1" in
-  start)     start ;;
-  stop)      stop ;;
-  restart)   restart ;;
-  status)    status ;;
-  reload)    reload ;;
-  tidy)      tidy ;;
-  *)         exit 0
+  start) start ;;
+  stop) stop ;;
+  restart) restart ;;
+  status) status ;;
+  reload) restart ;;
+  tidy) tidy ;;
+  build) $OPENSHIFT_PERL_DIR/bin/build ;;
+  *) exit 0
 esac

@@ -4,7 +4,7 @@
 # not an example of how to write a well-formed cartridge.
 
 source $OPENSHIFT_MYSQL_DIR/env/*
-source /usr/lib/openshift/node/util
+source $OPENSHIFT_CARTRIDGE_SDK_BASH
 
 mkdir $OPENSHIFT_MYSQL_DIR/{log,pid,socket,data,run}
 
