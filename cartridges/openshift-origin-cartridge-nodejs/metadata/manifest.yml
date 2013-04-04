@@ -2,7 +2,7 @@ Name: nodejs
 Cartridge-Short-Name: NODEJS
 Display-Name: Node.js 0.6
 Description: "Node.js is a platform built on Chrome's JavaScript runtime for easily building fast, scalable network applications. Node.js is perfect for data-intensive real-time applications that run across distributed devices."
-Version: 0.6
+Version: "0.6"
 License: MIT License
 License-Url: https://raw.github.com/joyent/node/v0.6/LICENSE
 Vendor: www.nodejs.org
