@@ -270,6 +270,9 @@ class V2CartModelTest < Test::Unit::TestCase
                                                         %w(/var/lib/openshift/0001000100010001/cartridge2))
     @model.expects(:cartridge_teardown).with('cartridge1').returns("")
     @model.expects(:cartridge_teardown).with('cartridge2').returns("")
+    
+    Dir.stubs(:chdir).with(GEAR_BASE_DIR).yields
+
     @user.expects(:destroy)
 
     @model.destroy
@@ -283,6 +286,9 @@ class V2CartModelTest < Test::Unit::TestCase
                                                         %w(/var/lib/openshift/0001000100010001/cartridge2))
     @model.expects(:cartridge_teardown).with('cartridge1').raises(OpenShift::Utils::ShellExecutionException.new('error'))
     @model.expects(:cartridge_teardown).with('cartridge2').returns("")
+    
+    Dir.stubs(:chdir).with(GEAR_BASE_DIR).yields
+
     @user.expects(:destroy)
 
     @model.destroy

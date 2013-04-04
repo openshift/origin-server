@@ -13,7 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #++
-require_relative '../../lib/openshift-origin-node/model/node'
+
+require 'test_helper'
+require 'openshift-origin-node/model/node'
 require 'openshift-origin-node/model/cartridge_repository'
 require 'test/unit'
 require 'mocha'

@@ -374,17 +374,15 @@ module OpenShift
 
     def ci_deploy(options={})
       start_gear(secondary_only: true,
-                 user_initiated: false,
                  out:            options[:out],
                  err:            options[:err])
 
       deploy(out: options[:out],
              err: options[:err])
 
-      start_gear(primary_only:  true,
-                user_initiated: false,
-                out:            options[:out],
-                err:            options[:err])
+      start_gear(primary_only: true,
+                 out:          options[:out],
+                 err:          options[:err])
 
       post_deploy(out: options[:out],
                   err: options[:err])
@@ -437,7 +435,10 @@ module OpenShift
       if web_proxy_cart
         @cartridge_model.do_control('deploy',
                                     web_proxy_cart,
-                                    pre_action_hooks_enabled: false)
+                                    pre_action_hooks_enabled: false,
+                                    prefix_action_hooks:      false,
+                                    out:                      options[:out],
+                                    err:                      options[:err])
       end
 
       @cartridge_model.do_control('deploy',
