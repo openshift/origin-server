@@ -178,8 +178,10 @@ function deploy() {
 	CART_NAME=redhat-${cartridge_type}
 	
 	if [ "$(ls ${OPENSHIFT_REPO_DIR}/deployments)" ]; then
-		rsync -r --delete --exclude ".*" ${OPENSHIFT_REPO_DIR}/deployments/* ${OPENSHIFT_HOMEDIR}/${CART_NAME}/standalone/deployments
-	fi
+		rsync -r --delete --exclude ".*" ${OPENSHIFT_REPO_DIR}/deployments/ ${OPENSHIFT_HOMEDIR}/${CART_NAME}/standalone/deployments/
+	else
+        rm -rf ${OPENSHIFT_HOMEDIR}/${CART_NAME}/${CART_NAME}/standalone/deployments/*
+    fi
 }
 
 function start() {
