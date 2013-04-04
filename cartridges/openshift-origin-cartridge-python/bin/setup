@@ -16,3 +16,6 @@ cp -r $OPENSHIFT_PYTHON_DIR/versions/$version/template/* $OPENSHIFT_PYTHON_DIR/t
 ln -s /usr/lib64/httpd/modules $OPENSHIFT_PYTHON_DIR
 ln -s /etc/httpd/conf/magic $OPENSHIFT_PYTHON_DIR/etc/magic
 
+# Create the virtenv dir
+mkdir -p $OPENSHIFT_PYTHON_DIR/virtenv
+
