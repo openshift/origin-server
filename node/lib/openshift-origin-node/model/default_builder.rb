@@ -25,7 +25,8 @@ module OpenShift
     end
 
     def pre_receive(options)
-      @container.stop_gear(out: options[:out],
+      @container.stop_gear(user_initiated: true,
+                           out: options[:out],
                            err: options[:err])
     end
 
@@ -36,15 +37,17 @@ module OpenShift
                        err: options[:err])
 
       @container.start_gear(secondary_only: true,
+                            user_initiated: true,
                             out:            options[:out],
                             err:            options[:err])
 
       @container.deploy(out: options[:out],
                         err: options[:err])
 
-      @container.start_gear(primary_only: true,
-                            out:          options[:out],
-                            err:          options[:err])
+      @container.start_gear(primary_only:   true,
+                            user_initiated: true,
+                            out:            options[:out],
+                            err:            options[:err])
 
       @container.post_deploy(out: options[:out],
                              err: options[:err])
