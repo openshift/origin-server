@@ -151,10 +151,10 @@ class Domain
   #
   # == Returns:
   #  The domain operation which tracks the sshkey addition
-  def add_ssh_key(user_id, key_attr, pending_parent_op)
+  def add_ssh_key(user_id, ssh_key, pending_parent_op)
     return if pending_ops.where(parent_op_id: pending_parent_op._id).count > 0
     if((owner._id == user_id || user_ids.include?(user_id)) && self.applications.count > 0)
-      self.pending_ops.push(PendingDomainOps.new(op_type: :add_ssh_key, arguments: { "user_id" => user_id, "key_attrs" => [key_attr] }, parent_op_id: pending_parent_op._id, on_apps: self.applications, state: "init"))
+      self.pending_ops.push(PendingDomainOps.new(op_type: :add_ssh_key, arguments: { "user_id" => user_id, "key_attrs" => [ssh_key.attributes] }, parent_op_id: pending_parent_op._id, on_apps: self.applications, state: "init"))
       self.run_jobs
     else
       pending_parent_op.child_completed(self) if pending_parent_op
@@ -173,10 +173,10 @@ class Domain
   #
   # == Returns:
   #  The domain operation which tracks the sshkey removal
-  def remove_ssh_key(user_id, key_attr, pending_parent_op)
+  def remove_ssh_key(user_id, ssh_key, pending_parent_op)
     return if pending_ops.where(parent_op_id: pending_parent_op._id).count > 0    
     if(self.applications.count > 0)
-      self.pending_ops.push PendingDomainOps.new(op_type: :delete_ssh_key, arguments: { "user_id" => user_id, "key_attrs" => [key_attr] }, parent_op_id: pending_parent_op._id, on_apps: self.applications, state: "init")
+      self.pending_ops.push PendingDomainOps.new(op_type: :delete_ssh_key, arguments: { "user_id" => user_id, "key_attrs" => [ssh_key.attributes] }, parent_op_id: pending_parent_op._id, on_apps: self.applications, state: "init")
       self.run_jobs
     else
       pending_parent_op.child_completed(self) if pending_parent_op
@@ -247,7 +247,7 @@ class Domain
           rescue Mongoid::Errors::DocumentNotFound
             #ignore
           end
-          op.pending_apps.each { |app| app.add_ssh_keys(user, user.ssh_keys, op) } if user
+          op.pending_apps.each { |app| app.add_ssh_keys(user._id, user.ssh_keys, op) } if user
         when :remove_user
           user = nil
           begin
@@ -255,15 +255,19 @@ class Domain
           rescue Mongoid::Errors::DocumentNotFound
             #ignore
           end
-          op.pending_apps.each { |app| app.remove_ssh_keys(user, user.ssh_keys, op) } if user
+          op.pending_apps.each { |app| app.remove_ssh_keys(user._id, user.ssh_keys, op) } if user
         when :add_ssh_key
-          op.pending_apps.each { |app| app.add_ssh_keys(op.arguments["user_id"], op.arguments["key_attrs"], op) }
+          ssh_keys = op.arguments["key_attrs"].map{|k| UserSshKey.new.to_obj(k)}
+          op.pending_apps.each { |app| app.add_ssh_keys(op.arguments["user_id"], ssh_keys, op) }
         when :delete_ssh_key
-          op.pending_apps.each { |app| app.remove_ssh_keys(op.arguments["user_id"], op.arguments["key_attrs"], op) }
+          ssh_keys = op.arguments["key_attrs"].map{|k| UserSshKey.new.to_obj(k)}
+          op.pending_apps.each { |app| app.remove_ssh_keys(op.arguments["user_id"], ssh_keys, op) }
         when :add_domain_ssh_keys
-          op.pending_apps.each { |app| app.add_ssh_keys(nil, op.arguments["keys_attrs"], op) }
+          ssh_keys = op.arguments["keys_attrs"].map{|k| SystemSshKey.new.to_obj(k)}
+          op.pending_apps.each { |app| app.add_ssh_keys(nil, ssh_keys, op) }
         when :delete_domain_ssh_keys
-          op.pending_apps.each { |app| app.remove_ssh_keys(nil, op.arguments["keys_attrs"], op) }
+          ssh_keys = op.arguments["keys_attrs"].map{|k| SystemSshKey.new.to_obj(k)}
+          op.pending_apps.each { |app| app.remove_ssh_keys(nil, ssh_keys, op) }
         when :add_env_variables
           op.pending_apps.each { |app| app.add_env_variables(op.arguments["variables"], op) }
         when :remove_env_variables

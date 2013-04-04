@@ -56,4 +56,11 @@ class SshKey
   def self.get_valid_ssh_key_types()
     return VALID_SSH_KEY_TYPES
   end
+
+  def to_obj(args={})
+    self.name = args["name"] if args["name"]
+    self.type = args["type"] if args["type"]
+    self.content = args["content"] if args["content"]
+    self
+  end
 end
