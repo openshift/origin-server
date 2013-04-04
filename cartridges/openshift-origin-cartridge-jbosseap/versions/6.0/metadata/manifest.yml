@@ -59,10 +59,6 @@ Provides:
 Publishes:
   publish-http-url:
     Type: "NET_TCP:httpd-proxy-info"
-  publish_jboss_cluster:
-    Type: "NET_TCP:jbosseap-cluster-info"
-  publish_jboss_remoting:
-    Type: "NET_TCP:jbosseap-remoting-info"
   publish-gear-endpoint:
     Type: "NET_TCP:gear-endpoint-info"
 Subscribes:
@@ -72,10 +68,18 @@ Subscribes:
   set-nosql-db-connection-info:
     Type: "NET_TCP:nosqldb:connection-info"
     Required: false
-  set_jboss_cluster:
-    Type: "NET_TCP:jbosseap-cluster-info"
-  set_jboss_remoting:
-    Type: "NET_TCP:jbosseap-remoting-info"
+  set-mysql-connection-info:
+    Type: "NET_TCP:db:mysql"
+    Required : false
+  set-postgres-connection-info:
+    Type: "NET_TCP:db:postgres"
+    Required : false
+  set-doc-url:
+    Type: "STRING:urlpath"
+    Required : false
+Scaling:
+  Min: 1
+  Max: -1
 Group-Overrides:
   - components:
     - jbosseap
@@ -89,22 +93,3 @@ Endpoints:
       - Frontend:      ""
         Backend:       ""
         Options:       { "websocket": 1}
-      - Frontend:      "/health"
-        Backend:       "/$OPENSHIFT_REPO_DIR/.openshift/configuration/health.html"
-        Options:       { "file": 1}
-  - Private-IP-Name:   IP
-    Private-Port-Name: CLUSTER_PORT
-    Private-Port:      7600
-    Public-Port-Name:  CLUSTER_PROXY_PORT
-  - Private-IP-Name:   IP
-    Private-Port-Name: MESSAGING_PORT
-    Private-Port:      5445
-    Public-Port-Name:  MESSAGING_PROXY_PORT
-  - Private-IP-Name:   IP
-    Private-Port-Name: MESSAGING_THROUGHPUT_PORT
-    Private-Port:      5455
-    Public-Port-Name:  MESSAGING_THROUGHPUT_PROXY_PORT
-  - Private-IP-Name:   IP
-    Private-Port-Name: REMOTING_PORT
-    Private-Port:      4447
-    Public-Port-Name:  REMOTING_PROXY_PORT
