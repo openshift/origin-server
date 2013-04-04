@@ -138,8 +138,6 @@ module OpenShift
       @cartridges[cart_name]
     end
 
-    
-
     # Load cartridge's local manifest from cartridge directory name
     def get_cartridge_from_directory(directory)
       unless @cartridges.has_key? directory
@@ -399,6 +397,14 @@ module OpenShift
       Utils.oo_spawn(
           "chown -R root:#{@user.gid} #{env_path};
            chcon -R unconfined_u:object_r:openshift_var_lib_t:#{mcs_label} #{env_path}",
+          expected_exitstatus: 0
+      )
+
+      uservars_env = File.join(@user.homedir, '.env', '.uservars')
+      FileUtils.mkpath uservars_env
+      Utils.oo_spawn(
+          "chown -R #{@user.uid}:#{@user.gid} #{uservars_env};
+           chcon -R unconfined_u:object_r:openshift_var_lib_t:#{mcs_label} #{uservars_env}",
           expected_exitstatus: 0
       )
 

@@ -6,7 +6,7 @@ Version: '0.1'
 License: "None"
 Vendor: Red Hat
 Cartridge-Version: 0.0.1
-Cartridge-Vendor: Red Hat
+Cartridge-Vendor: redhat
 Categories:
   - embedded
 Provides:
@@ -17,6 +17,9 @@ Scaling:
 Group-Overrides:
   - components:
     - mock-plugin
+Publishes:
+  publish-db-connection-info:
+    Type: "NET_TCP:db:connection-info"    
 Endpoints:
   - Private-IP-Name:   EXAMPLE_IP1
     Private-Port-Name: EXAMPLE_PORT1
