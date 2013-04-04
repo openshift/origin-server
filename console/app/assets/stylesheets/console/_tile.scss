@@ -1,8 +1,12 @@
 .tile {
-  padding: 15px 35px 15px 25px; 
+  padding: 15px 25px; 
   margin-bottom: 20px; 
   background-color: #222;
   color: #b0b0b0;
+  
+  h2 {
+    @include clearfix();
+  }
 
   > p {
     margin-bottom: $baseLineHeight / 1.5;
@@ -59,6 +63,7 @@
 }
 
 .tile-compact {
+  padding-right: 35px;
   h3 {
     display: inline-block;
     margin-right: 10px;
@@ -72,8 +77,13 @@
 }
 
 .tile-dark {
+
   .tile {
     background: #131313;
+  }
+  
+  .tile-featured h3 {
+    margin-right: 20px;
   }
 
   > .tile-click {
