@@ -5,41 +5,10 @@
 # Exit on any errors
 set -e
 
-function print_help {
-    echo "Usage: $0 app-name namespace uuid"
-    echo "Start a running application"
-
-    echo "$0 $@" | logger -p local0.notice -t openshift_origin_publish_http_url
-    exit 1
-}
-
-while getopts 'd' OPTION
-do
-    case $OPTION in
-        d) set -x
-        ;;
-        ?) print_help
-        ;;
-    esac
-done
-
-
-[ $# -eq 3 ] || print_help
-
-source "/etc/openshift/node.conf"
-source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
-
-CART_NS=$(get_cartridge_namespace_from_path)
-setup_basic_hook "$@"
-
-import_env_vars
-
 # Get gear ip address.
-if ! gip=$(facter ipaddress); then
-   gip=$(python -c "import socket; print socket.gethostbyname('$(hostname)')")
-fi
+gip=$(facter ipaddress)
 
 #
 # Publish this gear's HTTP URL/endpoint.
 #
-echo "${OPENSHIFT_GEAR_DNS}|${gip}:$(get_env_var_dynamic "OPENSHIFT_${CART_NS}_PROXY_PORT")"
+echo "${OPENSHIFT_GEAR_DNS}|${gip}:${OPENSHIFT_JBOSSEAP_HTTP_PROXY_PORT}"
