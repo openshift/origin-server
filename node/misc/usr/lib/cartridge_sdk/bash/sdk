@@ -1,6 +1,6 @@
 #!/bin/bash
-[ ${OO_NODE_UTIL:-false} == true ] && return 0
-OO_NODE_UTIL=true
+[ ${OO_BASH_SDK:-false} == true ] && return 0
+OO_BASH_SDK=true
 
 function error {
     echo "$1" 1>&2
