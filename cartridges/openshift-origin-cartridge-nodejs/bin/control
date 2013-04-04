@@ -180,7 +180,7 @@ if ! [ $# -eq 1 ]; then
 fi
 
 # Source utility functions.
-source /usr/lib/openshift/node/util
+source $OPENSHIFT_CARTRIDGE_SDK_BASH
 
 # Import Environment Variables
 for f in ~/.env/*; do
