@@ -115,10 +115,6 @@ function openshift_origin_users() {
     grep ":${GEAR_GECOS}:" /etc/passwd | cut -d: -f1 | tr '\n' ' '
 }
 
-function openshift_state_dir {
-  echo "${APP_HOME:-$OPENSHIFT_HOMEDIR}/app-root/runtime"
-}
-
 function get_app_state {
   get_cartridge_state `openshift_state_dir`
 }
@@ -172,44 +168,3 @@ function ensure_valid_httpd_process() {
     [ -n "$1" ]  &&  rm -f "$1"
     killall_matching_httpds "$2"
 }
-
-# expected values: building, deploying, started, idle, new, stopped, or unknown
-function set_app_state {
-  set_cartridge_state `openshift_state_dir` $1
-}
-
-function set_cartridge_state {
-  _state=`get_cartridge_state "$1"`
-
-  if [ ! \( "idle" = "$_state" -a "stopped" = "$2" \) ]; then
-    _state_file="$1/.state"
-    rm -f "$_state_file"
-    echo "$2" > "$_state_file"
-    chown --reference="$1" "$_state_file"
-    chcon --reference="$1" "$_state_file"
-    chmod 640 "$_state_file"
-  fi
-}
-
-function setup_user_vars {
-    uid=$(id -u "$1")
-    mcs_level=`oo-get-mcs-level $uid`
-    export mcs_level
-}
-
-function validate_run_as_user {
-    setup_user_vars $OPENSHIFT_GEAR_UUID
-
-    if whoami | grep -q root || ! runcon | grep system_r:openshift_t:$mcs_level > /dev/null
-    then
-        echo 1>&2
-        echo "Current context: " `runcon` 1>&2
-        echo 1>&2
-        echo "Please run script in the correct context, try:" 1>&2
-        echo "run_as_user \"<command>\"" 1>&2
-        echo 2>&1
-        exit 15
-    fi
-}
-
-
