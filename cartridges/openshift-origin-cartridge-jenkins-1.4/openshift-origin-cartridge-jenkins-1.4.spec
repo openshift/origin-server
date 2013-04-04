@@ -26,7 +26,18 @@ Provides jenkins cartridge to openshift nodes
 
 
 %build
-
+rm -rf git_template
+cp -r template/ git_template/
+cd git_template
+git init
+git add -f .
+git config user.email "builder@example.com"
+git config user.name "Template builder"
+git commit -m 'Creating template'
+cd ..
+git clone --bare git_template git_template.git
+rm -rf git_template
+touch git_template.git/refs/heads/.gitignore
 
 %post
 service jenkins stop
@@ -36,6 +47,7 @@ chkconfig jenkins off
 %install
 mkdir -p %{buildroot}%{cartridgedir}
 mkdir -p %{buildroot}%{cartridgedir}/info/data/
+cp -r git_template.git %{buildroot}%{cartridgedir}/info/data/
 mkdir -p %{buildroot}/%{_sysconfdir}/openshift/cartridges
 cp LICENSE %{buildroot}%{cartridgedir}/
 cp COPYRIGHT %{buildroot}%{cartridgedir}/
