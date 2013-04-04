@@ -1,0 +1,12 @@
+#!/bin/bash -x
+
+source $OPENSHIFT_CARTRIDGE_SDK_BASH
+source $OPENSHIFT_MOCK_DIR/mock.conf
+
+shift
+shift
+shift
+
+touch $MOCK_STATE/set_db_connection_info_called
+
+set_uservars "$@"

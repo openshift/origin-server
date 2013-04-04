@@ -1,6 +1,5 @@
 Name: mock
 Cartridge-Short-Name: MOCK
-Cartridge-Vendor: Red Hat
 Display-Name: Mock Cartridge
 Description: "A mock cartridge for development use only."
 Version: '0.1'
@@ -20,9 +19,10 @@ Cart-Data:
 Group-Overrides:
   - components:
     - mock
-Publishes:
-  publish-db-connection-info:
+Subscribes:
+  set-db-connection-info:
     Type: "NET_TCP:db:connection-info"
+    Required: false
 Endpoints:
   - Private-IP-Name:   EXAMPLE_IP1
     Private-Port-Name: EXAMPLE_PORT1
