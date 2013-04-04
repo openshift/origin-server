@@ -115,6 +115,10 @@ class DomainsController < BaseController
       return render_error(:not_found, "Domain '#{id}' not found", 127, "UPDATE_DOMAIN")
     end
     
+    if Application.with(consistency: :strong).where(domain_id: domain._id).count > 0
+      return render_error(:unprocessable_entity, "Domain contains applications. Delete applications first before changing the domain namespace.", 128)
+    end
+    
     if Domain.where(canonical_namespace: new_namespace.downcase).count > 0
       return render_error(:unprocessable_entity, "Namespace '#{new_namespace}' is already in use. Please choose another.", 103, "UPDATE_DOMAIN", "id")
     end
@@ -173,7 +177,11 @@ class DomainsController < BaseController
         apps = Application.with(consistency: :strong).where(domain_id: domain._id)
       end
     elsif Application.with(consistency: :strong).where(domain_id: domain._id).count > 0
-      return render_error(:bad_request, "Domain contains applications. Delete applications first or set force to true.", 128, "DELETE_DOMAIN")
+      if requested_api_version <= 1.3
+        return render_error(:bad_request, "Domain contains applications. Delete applications first or set force to true.", 128, "DELETE_DOMAIN")
+      else
+        return render_error(:unprocessable_entity, "Domain contains applications. Delete applications first or set force to true.", 128, "DELETE_DOMAIN")
+      end
     end
 
     @domain_name = domain.namespace
