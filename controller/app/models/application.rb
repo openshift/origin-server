@@ -909,7 +909,7 @@ class Application
   # == Parameters:
   # result_io::
   #   {ResultIO} object with directives from cartridge hooks
-  def process_commands(result_io)
+  def process_commands(result_io, component_id)
     commands = result_io.cart_commands
     add_ssh_keys = []
     remove_ssh_keys = []
@@ -925,7 +925,7 @@ class Application
     commands.each do |command_item|
       case command_item[:command]
       when "SYSTEM_SSH_KEY_ADD"
-        domain_keys_to_add.push(SystemSshKey.new(name: self.name, type: "ssh-rsa", content: command_item[:args][0]))
+        domain_keys_to_add.push(SystemSshKey.new(name: self.name, type: "ssh-rsa", content: command_item[:args][0], component_id: component_id))
       when "SYSTEM_SSH_KEY_REMOVE"
         begin
           key = self.domain.system_ssh_keys.find_by(name: self.name)
@@ -934,7 +934,7 @@ class Application
           #ignore
         end
       when "APP_SSH_KEY_ADD"
-        add_ssh_keys << ApplicationSshKey.new(name: "application-" + command_item[:args][0], type: "ssh-rsa", content: command_item[:args][1], created_at: Time.now)
+        add_ssh_keys << ApplicationSshKey.new(name: "application-" + command_item[:args][0], type: "ssh-rsa", content: command_item[:args][1], created_at: Time.now, component_id: component_id)
       when "APP_SSH_KEY_REMOVE"
         begin
           remove_ssh_keys << self.app_ssh_keys.find_by(name: "application-" + command_item[:args][0])
@@ -944,7 +944,7 @@ class Application
       when "APP_ENV_VAR_REMOVE"
         remove_env_vars.push({"key" => command_item[:args][0]})
       when "ENV_VAR_ADD"
-        domain_env_vars_to_add.push({"key" => command_item[:args][0], "value" => command_item[:args][1]})
+        domain_env_vars_to_add.push({"key" => command_item[:args][0], "value" => command_item[:args][1], "component_id" => component_id})
       when "ENV_VAR_REMOVE"
         self.domain.env_vars.each {|env_var| domain_env_vars_to_rm << env_var if env_var["key"] == command_item[:args][0]}
       when "BROKER_KEY_ADD"
@@ -962,7 +962,7 @@ class Application
       pending_op = PendingAppOpGroup.new(op_type: :update_configuration, args: {"add_keys_attrs" => keys_attrs}, user_agent: self.user_agent)
       Application.where(_id: self._id).update_all({ "$push" => { pending_op_groups: pending_op.serializable_hash }, "$pushAll" => { app_ssh_keys: keys_attrs }})
     end
-    if remove_ssh_keys.length > 0
+    if false and remove_ssh_keys.length > 0
       keys_attrs = remove_ssh_keys.map{|k| k.attributes.dup}
       pending_op = PendingAppOpGroup.new(op_type: :update_configuration, args: {"remove_keys_attrs" => keys_attrs}, user_agent: self.user_agent)
       Application.where(_id: self._id).update_all({ "$push" => { pending_op_groups: pending_op.serializable_hash }, "$pullAll" => { app_ssh_keys: keys_attrs }})
@@ -973,8 +973,8 @@ class Application
     end
 
     # Have to remember to run_jobs for the other apps involved at some point
-    domain.remove_system_ssh_keys(domain_keys_to_rm) if !domain_keys_to_rm.empty?
-    domain.remove_env_variables(domain_env_vars_to_rm) if !domain_env_vars_to_rm.empty?
+    # domain.remove_system_ssh_keys(domain_keys_to_rm) if !domain_keys_to_rm.empty?
+    # domain.remove_env_variables(domain_env_vars_to_rm) if !domain_env_vars_to_rm.empty?
     domain.add_system_ssh_keys(domain_keys_to_add) if !domain_keys_to_add.empty?
     domain.add_env_variables(domain_env_vars_to_add) if !domain_env_vars_to_add.empty?
     nil
@@ -1257,6 +1257,15 @@ class Application
 
     delete_comp_ops = []
     comp_specs.each do |comp_spec|
+      comp_instance = self.component_instances.find_by(cartridge_name: comp_spec["cart"], component_name: comp_spec["comp"])
+      remove_ssh_keys = self.app_ssh_keys.find_by(component_id: comp_instance._id)
+      if remove_ssh_keys.length > 0
+        keys_attrs = remove_ssh_keys.map{|k| k.attributes.dup}
+        pending_op = PendingAppOpGroup.new(op_type: :update_configuration, args: {"remove_keys_attrs" => keys_attrs}, user_agent: self.user_agent)
+        Application.where(_id: self._id).update_all({ "$push" => { pending_op_groups: pending_op.serializable_hash }, "$pullAll" => { app_ssh_keys: keys_attrs }})
+      end
+      domain.remove_system_ssh_keys(comp_instance._id)
+      domain.remove_env_variables(comp_instance._id)
       delete_comp_ops.push(PendingAppOp.new(op_type: :del_component, args: {"group_instance_id"=> group_instance._id.to_s, "comp_spec" => comp_spec}, prereq: gear_destroy_op_ids))
     end
     pending_ops.push(*delete_comp_ops)
@@ -1486,6 +1495,14 @@ class Application
           end
         end
       end
+      remove_ssh_keys = self.app_ssh_keys.find_by(component_id: component_instance._id)
+      if remove_ssh_keys.length > 0
+        keys_attrs = remove_ssh_keys.map{|k| k.attributes.dup}
+        pending_op = PendingAppOpGroup.new(op_type: :update_configuration, args: {"remove_keys_attrs" => keys_attrs}, user_agent: self.user_agent)
+        Application.where(_id: self._id).update_all({ "$push" => { pending_op_groups: pending_op.serializable_hash }, "$pullAll" => { app_ssh_keys: keys_attrs }})
+      end
+      domain.remove_system_ssh_keys(component_instance._id)
+      domain.remove_env_variables(component_instance._id)
       ops.push(PendingAppOp.new(op_type: :del_component, args: {"group_instance_id"=> group_instance._id.to_s, "comp_spec" => comp_spec}, prereq: ops.map{|o| o._id.to_s}))
     end
     ops
