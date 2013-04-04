@@ -14,7 +14,9 @@
 # limitations under the License.
 #++
 
-require 'openshift-origin-node'
+require 'openshift-origin-node/utils/sdk'
+require 'openshift-origin-node/model/cartridge'
+require 'openshift-origin-node/model/cartridge_repository'
 require 'openshift-origin-common'
 require 'systemu'
 
