@@ -160,7 +160,7 @@ Given /^an existing ([^ ]+) application, verify it can be snapshotted and restor
   }
 end
 
-Given /^an existing ([^ ]+) application, verify its namespace can be changed$/ do |cart_name|
+Given /^an existing ([^ ]+) application, verify its namespace cannot be changed$/ do |cart_name|
   steps %{
     Given an existing #{cart_name} application
     When the application namespace is updated

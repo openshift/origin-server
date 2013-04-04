@@ -27,7 +27,7 @@ class DomiansControllerTest < ActionController::TestCase
     end
   end
   
-  test "domain create show list update and destory" do
+  test "domain create show list and destory" do
     namespace = "ns#{@random}"
     post :create, {"id" => namespace}
     assert_response :created
@@ -65,9 +65,30 @@ class DomiansControllerTest < ActionController::TestCase
     app.save
     
     delete :destroy , {"id" => namespace}
-    assert_response :bad_request
+    assert_response :unprocessable_entity
     
     delete :destroy , {"id" => namespace, "force" => true}
     assert_response :no_content
+  end
+  
+  test "update domain with apps" do
+    namespace = "ns#{@random}"
+    domain = Domain.new(namespace: namespace, owner:@user)
+    domain.save
+    
+    app_name = "app#{@random}"
+    app = Application.create_app(app_name, [PHP_VERSION], domain, "small")
+    app.save
+    
+    new_namespace = "xns#{@random}"
+    put :update, {"existing_id" => namespace, "id" => new_namespace}
+    assert_response :unprocessable_entity
+    
+    app.destroy_app
+    
+    put :update, {"existing_id" => namespace, "id" => new_namespace}
+    assert_response :success
+    get :show, {"id" => new_namespace}
+    assert_response :success
   end
 end
