@@ -11,8 +11,6 @@ URL:           http://openshift.redhat.com
 Source0:       http://mirror.openshift.com/pub/openshift-origin/source/%{name}/%{name}-%{version}.tar.gz
 Requires:      openshift-origin-cartridge-abstract
 Requires:      rubygem(openshift-origin-node)
-Requires:      cronie
-Requires:      crontabs
 BuildArch:     noarch
 
 %description
@@ -26,29 +24,9 @@ Provides OpenShift cron cartridge support
 %install
 mkdir -p %{buildroot}%{cartridgedir}
 mkdir -p %{buildroot}/%{_sysconfdir}/openshift/cartridges
-mkdir -p %{buildroot}/%{_sysconfdir}/cron.d
-mkdir -p %{buildroot}/%{_sysconfdir}/cron.minutely
-mkdir -p %{buildroot}/%{_sysconfdir}/cron.hourly
-mkdir -p %{buildroot}/%{_sysconfdir}/cron.daily
-mkdir -p %{buildroot}/%{_sysconfdir}/cron.weekly
-mkdir -p %{buildroot}/%{_sysconfdir}/cron.monthly
-cp -p jobs/1minutely %{buildroot}/%{_sysconfdir}/cron.d
 cp -rp info %{buildroot}%{cartridgedir}/
-cp -rp jobs %{buildroot}%{cartridgedir}/
 ln -s %{cartridgedir} %{buildroot}/%{frameworkdir}
 ln -s %{cartridgedir}/info/configuration/ %{buildroot}/%{_sysconfdir}/openshift/cartridges/%{name}
-ln -s %{cartridgedir}/jobs/openshift-origin-cron-minutely %{buildroot}/%{_sysconfdir}/cron.minutely/
-ln -s %{cartridgedir}/jobs/openshift-origin-cron-hourly %{buildroot}/%{_sysconfdir}/cron.hourly/
-ln -s %{cartridgedir}/jobs/openshift-origin-cron-daily %{buildroot}/%{_sysconfdir}/cron.daily/
-ln -s %{cartridgedir}/jobs/openshift-origin-cron-weekly %{buildroot}/%{_sysconfdir}/cron.weekly/
-ln -s %{cartridgedir}/jobs/openshift-origin-cron-monthly %{buildroot}/%{_sysconfdir}/cron.monthly/
-
-%post
-%if 0%{?fedora} >= 16 || 0%{?rhel} >= 7
-  systemctl restart  crond.service || :
-%else
-  service crond restart || :
-%endif
 
 %files
 %doc COPYRIGHT LICENSE
@@ -58,15 +36,7 @@ ln -s %{cartridgedir}/jobs/openshift-origin-cron-monthly %{buildroot}/%{_sysconf
 %attr(0750,-,-) %{cartridgedir}/info/build/
 %config(noreplace) %{cartridgedir}/info/configuration/
 %attr(0755,-,-) %{cartridgedir}/info/bin/
-%attr(0755,-,-) %{cartridgedir}/jobs/
 %attr(0755,-,-) %{frameworkdir}
-%dir %{_sysconfdir}/cron.minutely
-%config(noreplace) %attr(0644,-,-) %{_sysconfdir}/cron.d/1minutely
-%attr(0755,-,-) %{_sysconfdir}/cron.minutely/openshift-origin-cron-minutely
-%attr(0755,-,-) %{_sysconfdir}/cron.hourly/openshift-origin-cron-hourly
-%attr(0755,-,-) %{_sysconfdir}/cron.daily/openshift-origin-cron-daily
-%attr(0755,-,-) %{_sysconfdir}/cron.weekly/openshift-origin-cron-weekly
-%attr(0755,-,-) %{_sysconfdir}/cron.monthly/openshift-origin-cron-monthly
 %{_sysconfdir}/openshift/cartridges/%{name}
 %{cartridgedir}/info/changelog
 %{cartridgedir}/info/control
