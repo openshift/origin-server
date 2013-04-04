@@ -36,6 +36,7 @@
 // Focus state for keyboard and accessibility
 .btn:focus {
   @include tab-focus();
+  border-color: #010101;
 }
 
 // Active state
