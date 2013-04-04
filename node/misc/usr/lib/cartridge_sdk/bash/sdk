@@ -179,10 +179,6 @@ function openshift_origin_users() {
     grep ":${GEAR_GECOS}:" /etc/passwd | cut -d: -f1 | tr '\n' ' '
 }
 
-function openshift_state_dir {
-  echo "${APP_HOME:-$OPENSHIFT_HOMEDIR}/app-root/runtime"
-}
-
 function get_app_state {
   get_cartridge_state `openshift_state_dir`
 }

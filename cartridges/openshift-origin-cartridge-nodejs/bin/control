@@ -61,7 +61,8 @@ NODE_EOF
 
 
 function _start_node_service() {
-    _state=`get_app_state`
+    test -f $OPENSHIFT_HOME_DIR/app-root/runtime/state && \
+        _state=`cat $OPENSHIFT_HOME_DIR/app-root/runtime/state`
     if [ -f $OPENSHIFT_NODEJS_PID_DIR/stop_lock -o idle = "$_state" ]; then
         echo "Application is explicitly stopped!  Use 'rhc app start -a ${OPENSHIFT_APP_NAME}' to start back up." 1>&2
         return 0
@@ -73,11 +74,7 @@ function _start_node_service() {
         fi
     fi
 
-    set_app_state started
-
     #  Got here - it means that we need to start up Node.
-
-
     envf="$OPENSHIFT_NODEJS_DIR/configuration/node.env"
     logf="$OPENSHIFT_NODEJS_LOG_DIR/node.log"
 
@@ -93,23 +90,23 @@ function _start_node_service() {
 
     pushd "$OPENSHIFT_REPO_DIR" > /dev/null
     {
-       echo "`date +"$FMT"`: Starting application '$OPENSHIFT_APP_NAME' ..."
-       if [ ! -f "$OPENSHIFT_REPO_DIR/package.json" ]; then
-           echo "    Script       = $node_app"
-           echo "    Script Args  = $node_app_args"
-           echo "    Node Options = $node_opts"
-       fi
+        echo "`date +"$FMT"`: Starting application '$OPENSHIFT_APP_NAME' ..."
+        if [ ! -f "$OPENSHIFT_REPO_DIR/package.json" ]; then
+            echo "    Script       = $node_app"
+            echo "    Script Args  = $node_app_args"
+            echo "    Node Options = $node_opts"
+        fi
     } >> $logf
 
 
     if [ -f "$OPENSHIFT_REPO_DIR/package.json" ]; then
-         script_n_opts="$(_get_main_script_from_package_json)"
-         executor_cmdline="npm start -d"
+        script_n_opts="$(_get_main_script_from_package_json)"
+        executor_cmdline="npm start -d"
     else
-         #  Backward compatibility.
-         print_missing_package_json_warning
-         script_n_opts="$node_opts $node_app $node_app_args"
-         executor_cmdline="node $node_opts $node_app $node_app_args"
+        #  Backward compatibility.
+        print_missing_package_json_warning
+        script_n_opts="$node_opts $node_app $node_app_args"
+        executor_cmdline="node $node_opts $node_app $node_app_args"
     fi
 
     if [ -f "$OPENSHIFT_REPO_DIR/.openshift/markers/hot_deploy" ]; then
@@ -136,8 +133,6 @@ function _stop_node_service() {
     fi
 
     if [ -n "$node_pid" ]; then
-        set_app_state stopped
-
         logf="$OPENSHIFT_NODEJS_LOG_DIR/node.log"
         echo "`date +"$FMT"`: Stopping application '$OPENSHIFT_APP_NAME' ..." >> $logf
         /bin/kill $node_pid
@@ -191,8 +186,6 @@ source /usr/lib/openshift/node/util
 for f in ~/.env/*; do
     . $f
 done
-
-validate_run_as_user
 
 # Handle commands.
 case "$1" in
