@@ -53,8 +53,9 @@ class ApplicationsTest < ActionDispatch::IntegrationTest #ActiveSupport::TestCas
     app.threaddump
     app.add_alias("www.example.com")
     app.remove_alias("www.example.com")
-    @domain.update_namespace("new_namespace")
-    @domain.update_namespace(@namespace)
+    # updating the application namespace is no longer supported
+    #@domain.update_namespace("new_namespace")
+    #@domain.update_namespace(@namespace)
     app.destroy_app
   end
 
