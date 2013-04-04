@@ -36,7 +36,7 @@
   @include gradientBar($startColor, $endColor);
   @include reset-filter();
 
-  &:hover {
+  &:hover, &:focus {
     background-color: $startColor;
     color: #fff;
   }
