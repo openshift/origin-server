@@ -178,8 +178,10 @@ function deploy() {
 	CART_NAME=redhat-${cartridge_type}
 	
 	if [ "$(ls ${OPENSHIFT_REPO_DIR}/deployments)" ]; then
-		rsync -r --delete --exclude ".*" ${OPENSHIFT_REPO_DIR}/deployments/* ${OPENSHIFT_HOMEDIR}/${CART_NAME}/standalone/deployments
-	fi
+		rsync -r --delete --exclude ".*" ${OPENSHIFT_REPO_DIR}/deployments/ ${OPENSHIFT_HOMEDIR}/${CART_NAME}/standalone/deployments/
+	else
+        rm -rf ${OPENSHIFT_HOMEDIR}/${CART_NAME}/${CART_NAME}/standalone/deployments/*
+    fi
 }
 
 function start() {
@@ -217,15 +219,19 @@ function stop() {
     
     if isrunning
     then
-		if [ -f "$JBOSSEAP_PID_FILE" ]; then
-	        source ${OPENSHIFT_REPO_DIR}/.openshift/action_hooks/pre_stop_${cartridge_type}
-	        pid=$(cat $JBOSSEAP_PID_FILE);
-	        echo "Sending SIGTERM to jboss:$pid ..." 1>&2
-	        killtree $pid
-	        source ${OPENSHIFT_REPO_DIR}/.openshift/action_hooks/post_stop_${cartridge_type}
-	    else 
-	        echo "Failed to locate JBOSS PID File" 1>&2
-	    fi
+        if  hot_deploy_marker_is_present ; then
+                echo "Hot deploy enabled. Not stopping" 
+        else
+			if [ -f "$JBOSSEAP_PID_FILE" ]; then
+		        source ${OPENSHIFT_REPO_DIR}/.openshift/action_hooks/pre_stop_${cartridge_type}
+		        pid=$(cat $JBOSSEAP_PID_FILE);
+		        echo "Sending SIGTERM to jboss:$pid ..." 1>&2
+		        killtree $pid
+		        source ${OPENSHIFT_REPO_DIR}/.openshift/action_hooks/post_stop_${cartridge_type}
+		    else 
+		        echo "Failed to locate JBOSS PID File" 1>&2
+		    fi
+		fi
 	fi
 }
 
