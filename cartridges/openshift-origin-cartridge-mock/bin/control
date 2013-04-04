@@ -2,6 +2,7 @@
 
 PATH=/bin/:/usr/bin:$PATH
 
+source $OPENSHIFT_CARTRIDGE_SDK_BASH
 source $OPENSHIFT_MOCK_DIR/mock.conf
 
 function start {
@@ -21,8 +22,15 @@ function restart {
 }
 
 function status {
+  client_message "This is client status output from the mock cartridge"
   touch $MOCK_STATE/control_status
   [ -f $MOCK_STATE/mock_process ]
+}
+
+function build {
+  echo "Mock building..."
+  touch $MOCK_STATE/control_build
+  echo "Mock successfully built."
 }
 
 case "$1" in
@@ -33,7 +41,7 @@ case "$1" in
   reload)      touch $MOCK_STATE/control_reload ;;
   tidy)        touch $MOCK_STATE/control_tidy ;;
   pre-build)   touch $MOCK_STATE/control_pre_build ;;
-  build)       touch $MOCK_STATE/control_build ;;
+  build)       build ;;
   deploy)      touch $MOCK_STATE/control_deploy ;;
   post-deploy) touch $MOCK_STATE/control_post_deploy ;;
   *)           exit 0
