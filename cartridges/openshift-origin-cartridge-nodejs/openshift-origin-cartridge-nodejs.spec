@@ -3,7 +3,7 @@
 
 Summary:       Provides Node.js support
 Name:          openshift-origin-cartridge-nodejs
-Version: 1.8.0
+Version: 1.8.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -54,6 +54,9 @@ rm -rf %{buildroot}
 %doc %{cartridgedir}/README.md
 
 %changelog
+* Fri Apr 05 2013 Dan McPherson <dmcphers@redhat.com> 1.8.1-1
+- new package built with tito
+
 * Fri Apr 05 2013 Dan Mace <ironcladlou@gmail.com> 1.8.0-1
 - new package built with tito
 
