@@ -1,0 +1,48 @@
+#! /bin/bash
+
+# Set default version
+version=0.6
+
+OPENSHIFT_NODEJS_DIR="$OPENSHIFT_HOMEDIR/redhat-nodejs"
+
+# Parse arguments
+source "${OPENSHIFT_NODEJS_DIR}/lib/util"
+parse_args $@
+
+# Don't set -u until after the above arg parsing is complete
+set -u
+
+# Copy the version specific files to nodejs directory
+shopt -s dotglob
+for dir in configuration etc metadata template; do
+    mkdir -p $OPENSHIFT_NODEJS_DIR/$dir
+    cp -Lr $OPENSHIFT_NODEJS_DIR/versions/$version/$dir/* $OPENSHIFT_NODEJS_DIR/$dir 
+done
+
+###
+pushd $OPENSHIFT_NODEJS_DIR > /dev/null
+for dir in conf logs sessions run; do
+	mkdir -p $dir
+done
+popd > /dev/null
+
+## npm link
+pushd $OPENSHIFT_NODEJS_DIR > /dev/null
+	mkdir -p node_modules
+	npmgl=$OPENSHIFT_NODEJS_DIR/versions/$version/configuration/npm_global_module_list
+	module_list=$(perl -ne 'print if /^\s*[^#\s]/' "$npmgl" | tr '\n' ' ')
+	npm link $module_list >/dev/null 2>&1
+	mv node_modules $OPENSHIFT_HOMEDIR/node_modules
+popd > /dev/null
+
+# npm keeps per-user config in ~/.npmrc and cache in ~/.npm/  and
+# node-gyp (add-on build tool) uses ~/.node-gyp
+# Create files/directories, change ownership and SELinux file security context.
+touch "$OPENSHIFT_HOMEDIR"/.npmrc
+mkdir "$OPENSHIFT_HOMEDIR"/.npm
+mkdir "$OPENSHIFT_HOMEDIR"/.node-gyp
+chown $OPENSHIFT_APP_UUID.$OPENSHIFT_APP_UUID -R "$OPENSHIFT_HOMEDIR"/.npm "$OPENSHIFT_HOMEDIR"/.npmrc  \
+                            "$OPENSHIFT_HOMEDIR"/.node-gyp
+npm config set tmp /tmp
+
+exit 0
