@@ -33,9 +33,7 @@ function register_gear_endpoint() {
         flock 201
         echo "$3" >> "$HAPROXY_GEAR_REGISTRY"
         flock -u 201
-        if [ -f "$OPENSHIFT_PRIMARY_CARTRIDGE_DIR/bin/sync_gears.sh" ]; then
-            run_as_user "$OPENSHIFT_PRIMAR_CARTRIDGE_DIR/bin/sync_gears.sh $2"
-        fi
+        $OPENSHIFT_HAPROXY_DIR/bin/deploy $2
     else
         unregister_gear_endpoint "$1"
         flock 201
