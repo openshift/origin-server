@@ -54,6 +54,9 @@ rm -rf %{buildroot}
 %doc %{cartridgedir}/README.md
 
 %changelog
+* Fri Apr 05 2013 Dan Mace <ironcladlou@gmail.com> 1.8.0-1
+- new package built with tito
+
 * Thu Mar 28 2013 Adam Miller <admiller@redhat.com> 1.7.1-1
 - bump_minor_versions for sprint 26 (admiller@redhat.com)
 
