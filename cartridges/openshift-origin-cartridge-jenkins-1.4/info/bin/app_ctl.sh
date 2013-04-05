@@ -35,6 +35,31 @@ isrunning() {
     return 1
 }
 
+# Check if the server is all the way up
+function is_up() {
+    jenkins_url="http://${OPENSHIFT_INTERNAL_IP}:8080/"
+
+    let count=0
+    while [ ${count} -lt 15 ]
+    do
+        url="curl -k -X GET --user \"${JENKINS_USERNAME}:${JENKINS_PASSWORD}\" ${jenkins_url}"
+        result=`$url`
+        if [ -n $result ]; then
+                echo "Waiting ..."
+        else
+                if [[ "$result" == *"Please wait while Jenkins is getting ready to work"* ]]; then
+                        echo "Still waiting ..."
+                else
+                        return 0
+                fi
+        fi
+        let count=${count}+1
+        sleep 2
+    done
+    return 1
+}
+
+
 start_jenkins() {
     src_user_hook pre_start_${cartridge_type}
     set_app_state started
@@ -71,6 +96,11 @@ start_jenkins() {
         --httpListenAddress=$OPENSHIFT_INTERNAL_IP"
 
     $JENKINS_CMD &    
+    
+    if ! is_up; then
+        echo "Timed out waiting for Jenkins to fully start"
+        exit 1
+    fi
 
     echo $! > /dev/null
     if [ $? -eq 0 ]; then
