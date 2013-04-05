@@ -546,7 +546,10 @@ class Application
   ##
   # Returns the SSH URI for the primary application gear
   # @return [String]
-  def ssh_uri(domain=nil)
+  def ssh_uri(domain=nil, gear_uuid=nil)
+    #if gear_uuid provided
+    return "#{gear_uuid}@#{fqdn(domain)}" if gear_uuid
+    # else get the gear_uuid of head gear
     self.group_instances.each do |group_instance|
       if group_instance.gears.where(app_dns: true).count > 0
         gear = group_instance.gears.find_by(app_dns: true)
