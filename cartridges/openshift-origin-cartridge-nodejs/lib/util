@@ -1,0 +1,48 @@
+#!/bin/bash
+# Utility functions for use in the cartridge scripts.
+
+function wait_for_stop {
+        pid=$1
+    for i in {1..300}
+    do
+        if `ps --pid $pid > /dev/null 2>&1`
+        then
+            # only print every second
+            [ $((100 % 10)) -eq 0 ] && echo "Waiting for stop to finish"
+            sleep .1
+        else
+            break
+        fi
+    done
+}
+
+function parse_args {
+    while :
+    do
+        case $1 in
+            -h | --help | -\?)
+                echo "usage: $0 [--version[=]<value>]"
+                exit 0
+                ;;
+            -v | --version)
+                version=$2     # You might want to check if you really got VERSION
+                shift 2
+                ;;
+            --version=*)
+                version=${1#*=}        # Delete everything up till "="
+                shift
+                ;;
+            --) # End of all options
+                shift
+                break
+                ;;
+            -*)
+                echo "WARN: Unknown option... Exiting: $1" >&2
+                exit 1
+                ;;
+            *)  # no more options. Stop while loop
+                break
+                ;;
+        esac
+    done
+}
