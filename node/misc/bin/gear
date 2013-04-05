@@ -27,6 +27,9 @@ program :name, "OpenShift Gear Control"
 program :version, "1.0.0"
 program :description, "An assortment gear utilities"
 
+STDOUT.sync = true
+STDERR.sync = true
+
 module OpenShift
   module NodeLogger
     def self.logger
