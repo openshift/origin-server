@@ -25,6 +25,8 @@ Requires:      %{?scl:%scl_prefix}rubygem(json)
 Requires:      %{?scl:%scl_prefix}rubygem(dnsruby)
 Requires:      rubygem(openshift-origin-common)
 Requires:      bind-utils
+# GSS-API requires kinit
+Requires:      krb-workstation
 Requires:      openshift-origin-broker
 Requires:      selinux-policy-targeted
 Requires:      policycoreutils-python
