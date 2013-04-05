@@ -652,6 +652,8 @@ module MCollective
         begin
           container = get_app_container_from_args(args)
           output    = container.configure(cart_name, template_git_url)
+        rescue ::OpenShift::Utils::ShellExecutionException => e
+          return e.rc, "#{e.message}\n#{e.stdout}"
         rescue Exception => e
           Log.instance.info e.message
           Log.instance.info e.backtrace
