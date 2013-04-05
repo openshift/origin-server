@@ -80,7 +80,7 @@ rm -rf %{buildroot}%{cartridgedir}/versions/shared/configuration/etc/conf-httpd-
 rm -rf %{buildroot}
 
 %post
-/sbin/oo-admin-cartridge --action install --offline --source /usr/libexec/openshift/cartridges/v2/php
+%{_sbindir}/oo-admin-cartridge --action install --offline --source /usr/libexec/openshift/cartridges/v2/php
 
 %files
 %defattr(-,root,root,-)
