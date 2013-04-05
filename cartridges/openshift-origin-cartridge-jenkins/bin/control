@@ -15,6 +15,30 @@ function isrunning() {
     return 1
 }
 
+# Check if the server is all the way up
+function is_up() {
+    jenkins_url="http://${OPENSHIFT_JENKINS_IP}:8080/"
+
+    let count=0
+    while [ ${count} -lt 15 ]
+    do
+        url="curl -k -X GET --user \"${JENKINS_USERNAME}:${JENKINS_PASSWORD}\" ${jenkins_url}"
+        result=`$url`
+        if [ -n $result ]; then
+                echo "Waiting ..."
+        else
+                if [[ "$result" == *"Please wait while Jenkins is getting ready to work"* ]]; then
+                        echo "Still waiting ..."
+                else
+                        return 0
+                fi
+        fi
+        let count=${count}+1
+        sleep 2
+    done
+    return 1
+}
+
 function build() {
 	echo "Building $cartridge_type cart"
 }
@@ -59,6 +83,11 @@ function start() {
       --httpListenAddress=$OPENSHIFT_JENKINS_IP"
 
   $JENKINS_CMD &
+  
+  if ! is_up; then
+      echo "Timed out waiting for Jenkins to fully start"
+      exit 1
+  fi
 }
 
 function stop() {
