@@ -249,3 +249,11 @@ function set_uservars() {
         done
     done
 }
+
+function hot_deploy_marker_is_present() {
+    if [ -f "${OPENSHIFT_REPO_DIR}/.openshift/markers/hot_deploy" ]; then
+        return 0
+    else
+        return 1
+    fi
+}

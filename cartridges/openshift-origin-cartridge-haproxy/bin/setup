@@ -15,7 +15,7 @@ function generate_ssh_keys {
     touch "$OPENSHIFT_HAPROXY_DIR/.ssh/config"
     #/bin/chown root.$OPENSHIFT_GEAR_UUID -R "$OPENSHIFT_HAPROXY_DIR/.ssh/"
     chmod 0750 "$OPENSHIFT_HAPROXY_DIR/.ssh/"
-    chmod 0640 "$OPENSHIFT_HAPROXY_DIR/.ssh/haproxy_id_rsa" "$OPENSHIFT_HAPROXY_DIR/.ssh/haproxy_id_rsa.pub"
+    chmod 0600 "$OPENSHIFT_HAPROXY_DIR/.ssh/haproxy_id_rsa" "$OPENSHIFT_HAPROXY_DIR/.ssh/haproxy_id_rsa.pub"
     chmod 0660 "$OPENSHIFT_HAPROXY_DIR/.ssh/config" "$OPENSHIFT_HAPROXY_DIR/.ssh/known_hosts"
 }
 
