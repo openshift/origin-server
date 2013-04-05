@@ -3,8 +3,6 @@
 STOPTIMEOUT=10
 FMT="%a %b %d %Y %H:%M:%S GMT%z (%Z)"
 
-source $OPENSHIFT_NODEJS_DIR/env/*
-
 function print_missing_package_json_warning() {
        cat <<DEPRECATED
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -31,14 +29,7 @@ function _is_node_service_running() {
 
 
 function _status_node_service() {
-    if _is_node_service_running; then
-        app_state="running"
-    else
-        app_state="either stopped or inaccessible"
-    fi
-
-    echo "Application '$OPENSHIFT_APP_NAME' is $app_state" 1>&2
-
+    _is_node_service_running
 }  #  End of function  _status_node_service.
 
 
@@ -61,20 +52,6 @@ NODE_EOF
 
 
 function _start_node_service() {
-    test -f $OPENSHIFT_HOME_DIR/app-root/runtime/state && \
-        _state=`cat $OPENSHIFT_HOME_DIR/app-root/runtime/state`
-    if [ -f $OPENSHIFT_NODEJS_PID_DIR/stop_lock -o idle = "$_state" ]; then
-        echo "Application is explicitly stopped!  Use 'rhc app start -a ${OPENSHIFT_APP_NAME}' to start back up." 1>&2
-        return 0
-    else
-        # Check if service is running.
-        if _is_node_service_running; then
-            echo "Application '$OPENSHIFT_APP_NAME' is already running" 1>&2
-            return 0
-        fi
-    fi
-
-    #  Got here - it means that we need to start up Node.
     envf="$OPENSHIFT_NODEJS_DIR/configuration/node.env"
     logf="$OPENSHIFT_NODEJS_LOG_DIR/node.log"
 
@@ -122,6 +99,7 @@ function _start_node_service() {
         echo "$npid" > "$OPENSHIFT_NODEJS_PID_DIR/node.pid"
     else
         echo "Application '$OPENSHIFT_APP_NAME' failed to start - $ret" 1>&2
+        exit $ret
     fi
 
 }  #  End of function  _start_node_service.
@@ -181,11 +159,6 @@ fi
 
 # Source utility functions.
 source $OPENSHIFT_CARTRIDGE_SDK_BASH
-
-# Import Environment Variables
-for f in ~/.env/*; do
-    . $f
-done
 
 # Handle commands.
 case "$1" in
