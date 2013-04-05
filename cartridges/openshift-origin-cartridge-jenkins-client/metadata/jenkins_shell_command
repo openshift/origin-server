@@ -13,7 +13,7 @@ gear build
 $GIT_SSH $upstream_ssh 'gear stop'
 
 # Push content back to application
-rsync ~/$WORKSPACE/ $upstream_ssh:~/app-root/repo/
+rsync $WORKSPACE/ $upstream_ssh:~/app-root/repo/
 
 # Configure / start app
 $GIT_SSH $upstream_ssh 'gear cideploy'
