@@ -15,8 +15,16 @@ Broker::Application.configure do
   config.dns = {
     :server => conf.get("BIND_SERVER", "127.0.0.1"),
     :port => conf.get("BIND_PORT", "53").to_i,
+    :zone => conf.get("BIND_ZONE", "example.com")
+
+    # Authentication information: TSIG or GSS-TSIG (kerberos) but not both
+    #
+    # TSIG credentials
     :keyname => conf.get("BIND_KEYNAME", "example.com"),
     :keyvalue => conf.get("BIND_KEYVALUE", "base64-encoded key, most likely from /var/named/example.com.key."),
-    :zone => conf.get("BIND_ZONE", "example.com")
+
+    # GSS-TSIG (kerberos) credentials
+    :krb_principal => conf.get("BIND_KRB_PRINCIPAL", nil),
+    :krb_keytab => conf.get("BIND_KRB_KEYTAB", nil),
   }
 end

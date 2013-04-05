@@ -24,11 +24,21 @@ module OpenShift
   # and the rest of the parameters in a hash at
   #   Rails.application.config.dns
   #
-  # @example Bind plugin configuration hash
+  # @example nsupdate plugin configuration hash - HMAC-MD5 TSIG
   #   {:server => "myserver",
   #    :port => portnumber,
   #    :keyname => "TSIG key name",
   #    :keyvalue => "TSIG key string",
+  #    :zone => "zone to update",
+  #    # only when configuring with parameters
+  #    :domain_suffix => "suffix for application domain names"
+  #    }
+  #
+  # @example nsupdate plugin configuration hash - KRB5 GSS-TSIG
+  #   {:server => "myserver",
+  #    :port => portnumber,
+  #    :krb_principal => "The authentication principal",
+  #    :krb_keytab => "The authentication key",
   #    :zone => "zone to update",
   #    # only when configuring with parameters
   #    :domain_suffix => "suffix for application domain names"
@@ -42,15 +52,22 @@ module OpenShift
   #   @return [String] the TSIG key name
   # @!attribute [r] keyvalue
   #   @return [String] the TSIG key value
+  # @!attribute [r] krb_principal
+  #   @return [String] A Kerberos 5 principal
+  # @!attribute [r] krb_keytab
+  #   @return [String] the Kerberos keytab
+  #
   class NsupdatePlugin < OpenShift::DnsService
     @provider = OpenShift::NsupdatePlugin
 
-    attr_reader :server, :port, :keyname, :keyvalue
+    attr_reader :server, :port, :zone, :domain_suffix
+    attr_reader :keyname, :keyvalue
+    attr_reader :krb_principal, :krb_keytab
 
     # Establish the parameters for a connection to the DNS update service
     #
     # @param access_info [Hash] communication configuration settings
-    # @see BindPlugin BindPlugin class Examples
+    # @see NsupdatePlugin NsupdatePlugin class Examples
     def initialize(access_info = nil)
       if access_info != nil
         @domain_suffix = access_info[:domain_suffix]
@@ -65,9 +82,75 @@ module OpenShift
       @port = access_info[:port].to_i
       @keyname = access_info[:keyname]
       @keyvalue = access_info[:keyvalue]
+      @krb_principal = access_info[:krb_principal]
+      @krb_keytab = access_info[:krb_keytab]
       @zone = access_info[:zone]
     end
 
+    private
+    
+    #
+    # Generate an nsupdate add command string
+    # 
+    # @param fqdn [String] DNS record name to add
+    # @param value [String] DNS record value
+    # @return [String]
+    #   An nsupdate command sequence
+    def add_cmd(fqdn, value)
+
+      # authenticate if credentials have been given
+      if @krb_principal
+        cmd = "kinit -kt #{@krb_keytab} #{@krb_principal} && \\\n"
+        else
+        cmd = ""
+      end
+
+      # If the config gave a TSIG key, use it
+      keystring = @keyname ? "key #{@keyname} #{keyvalue}" : "gsstsig"
+
+      # compose the nsupdate add command
+      cmd += %{nsupdate <<EOF
+#{keystring}
+server #{@server} #{@port}
+update add #{fqdn} 60 CNAME #{value}
+send
+quit
+EOF
+}
+
+
+    end
+
+    #
+    # Generate an nsupdate delete command string
+    # 
+    # @param fqdn [String] DNS record name to delete
+    # @return [String]
+    #   An nsupdate command sequence
+    def del_cmd(fqdn)
+      # authenticate if credentials have been given
+      if @krb_principal
+        cmd = "kinit -kt #{@krb_keytab} #{@krb_principal} && \\\n"
+        else
+        cmd = ""
+      end
+
+      # If the config gave a TSIG key, use it
+      keystring = @keyname ? "key #{@keyname} #{keyvalue}" : "gsstsig"
+
+      # compose the nsupdate add command
+      cmd += %{nsupdate <<EOF
+#{keystring}
+server #{@server} #{@port}
+update delete #{fqdn}
+send
+quit
+EOF
+}
+    end
+    
+
+    public
     # Publish an application - create DNS record
     #
     # @param [String] app_name
@@ -82,15 +165,13 @@ module OpenShift
     def register_application(app_name, namespace, public_hostname)
       # create an A record for the application in the domain
       fqdn = "#{app_name}-#{namespace}.#{@domain_suffix}"
-      raise DNSException.new unless system %{
-nsupdate <<EOF
-key #{@keyname} #{@keyvalue}
-server #{@server} #{@port}
-update add #{fqdn} 60 CNAME #{public_hostname}
-send
-quit
-EOF
-      }
+      
+      cmd = add_command(fqdn, public_hostname)
+
+      success = system cmd
+      if not success
+        raise DnsException.new("error adding app record #{fqdn}")
+      end
     end
 
     # Unpublish an application - remove DNS record
@@ -105,17 +186,17 @@ EOF
     def deregister_application(app_name, namespace)
       # delete the CNAME record for the application in the domain
       fqdn = "#{app_name}-#{namespace}.#{@domain_suffix}"
-  
-      #raise ::OpenShift::DNSNotFoundException.new unless dns_entry_exists?(fqdn, Dnsruby::Types::CNAME)
-      raise DNSException.new unless system %{
-nsupdate <<EOF
-key #{@keyname} #{@keyvalue}
-server #{@server} #{@port}
-update delete #{fqdn} CNAME
-send
-quit
-EOF
-      }
+
+      cmd = del_command(fqdn)
+      # authenticate if credentials have been given
+      if @krb_principal
+        cmd = "kinit -kt #{@krb_keytab} #{@krb_principal} &&" + cmd
+      end
+
+      success = system cmd
+      if not success
+        raise DnsException.new("error deleting app record #{fqdn}")
+      end  
     end
 
    # Change the published location of an application - Modify DNS record
