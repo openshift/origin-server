@@ -232,3 +232,20 @@ function ensure_valid_httpd_process() {
     [ -n "$1" ]  &&  rm -f "$1"
     killall_matching_httpds "$2"
 }
+
+function set_uservars() {
+    while [ $# -gt 0 ]; do
+        arg=$1
+        shift
+        nvs=$(echo "$arg" | tr "\n" ";" | cut -f 2- -d '=' | sed "s/'\(.*\)'/\\1/")
+        echo "$nvs" | tr ";" "\n" |  while read line; do
+            [ -z "$line" ]  &&  continue
+            #  Got a name-value pair - add to userenv.
+            name=$(echo "$line" | cut -f 1 -d '=')
+            value=$(echo "$line" | cut -f 2- -d '=')
+            if [ -n "$name" ]; then
+                echo "export $name='$value'" > $OPENSHIFT_HOMEDIR/.env/.uservars/$name 
+            fi
+        done
+    done
+}
