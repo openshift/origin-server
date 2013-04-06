@@ -17,7 +17,7 @@ $GIT_SSH $upstream_ssh 'gear stop'
 
 # Push content back to application
 rsync ~/redhat-php/phplib/ $upstream_ssh:~/redhat-php/phplib/
-rsync ~/$WORKSPACE/ $upstream_ssh:~/app-root/repo/
+rsync $WORKSPACE/ $upstream_ssh:~/app-root/repo/
 
 # Configure / start app
 $GIT_SSH $upstream_ssh 'gear cideploy'
