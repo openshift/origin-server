@@ -100,6 +100,7 @@ then
   			else
     			rm -rf ${OPENSHIFT_HOMEDIR}/${CART_NAME}/${CART_NAME}/standalone/deployments/*
 		    fi
+		fi
     fi
 else
     export OPENSHIFT_MAVEN_MIRROR
