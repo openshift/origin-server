@@ -501,14 +501,14 @@ module OpenShift
       stop_gear
 
       @cartridge_model.each_cartridge do |cartridge|
-        @cartridge_model.do_control('pre-snapshot', cartridge)
+        @cartridge_model.do_control('pre-snapshot', cartridge, err: $stderr)
       end
 
       exclusions = snapshot_exclusions
       write_snapshot_archive(exclusions)
 
       @cartridge_model.each_cartridge do |cartridge|
-        @cartridge_model.do_control('post-snapshot', cartridge)
+        @cartridge_model.do_control('post-snapshot', cartridge, err: $stderr)
       end      
 
       start_gear
@@ -539,7 +539,7 @@ module OpenShift
     def write_snapshot_archive(exclusions)
       gear_env = Utils::Environ.for_gear(@user.homedir)
 
-      exclusions = exclusions.map { |x| "--exclude=#{x}" }.join(' ')
+      exclusions = exclusions.map { |x| "--exclude=./$OPENSHIFT_GEAR_UUID/#{x}" }.join(' ')
 
       tar_cmd = %Q{
 /bin/tar --ignore-failed-read -czf - \
