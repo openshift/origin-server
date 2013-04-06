@@ -68,10 +68,12 @@ alternatives --set jbossews-2.0 /usr/share/tomcat7
 %defattr(-,root,root,-)
 %dir %{cartridgedir}
 %dir %{cartridgedir}/bin
+%dir %{cartridgedir}/hooks
 %dir %{cartridgedir}/env
 %dir %{cartridgedir}/metadata
 %dir %{cartridgedir}/template
 %attr(0755,-,-) %{cartridgedir}/bin/
+%attr(0755,-,-) %{cartridgedir}/hooks/
 %attr(0755,-,-) %{cartridgedir}
 %{cartridgedir}/metadata/manifest.yml
 %doc %{cartridgedir}/README.md
