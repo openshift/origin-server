@@ -145,7 +145,12 @@ if level >= 1
       end
     end
 
-    user_hash[owner_id]["domains"][domain["_id"]] = 0 if user_hash[owner_id]
+    if user_hash[owner_id]
+      user_hash[owner_id]["domains"][domain["_id"]] = 0
+    else
+      summary << "User '#{owner_id.to_s}' for domain '#{domain['_id'].to_s}' does not exist in mongo."
+      no_error = false
+    end
   } 
 end
 
@@ -165,8 +170,17 @@ OpenShift::DataStore.find(:applications, query, selection) do |app|
     domain_id = app['domain_id']
     if level >= 1
       owner_id = domain_hash[domain_id]
-      login = user_hash[owner_id]["login"]
-      
+
+      if owner_id.nil?
+        summary << "Application '#{app['name']}' does not have a domain '#{domain_id.to_s}' in mongo."
+        no_error = false
+      elsif !user_hash[owner_id]
+        summary << "Application '#{app['name']}' for domain '#{domain_id.to_s}' does not have a user '#{owner_id.to_s}' in mongo."
+        no_error = false
+      else
+        login = user_hash[owner_id]["login"]
+      end
+            
       if level >= 2
         # check for component instances without corresponding group instances and vice-versa
         gi_hash = {}
@@ -207,7 +221,7 @@ OpenShift::DataStore.find(:applications, query, selection) do |app|
         end
       end
     end
-    user_hash[owner_id]["domains"][domain_id] += gear_count if level >= 1
+    user_hash[owner_id]["domains"][domain_id] += gear_count if level >= 1 and user_hash[owner_id]
 end
 
 total_time = (Time.now.to_f * 1000).to_i - start_time
