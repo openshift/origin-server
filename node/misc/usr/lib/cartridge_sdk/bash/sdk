@@ -13,7 +13,15 @@ function warning {
 }
 
 function client_result {
-    echo "CLIENT_RESULT: $1"
+    local output=$1
+    local IFS_BAK=$IFS
+IFS="
+"
+    for line in $output
+    do
+        echo "CLIENT_RESULT: $line"
+    done
+    IFS=$IFS_BAK
 }
 
 function client_message {

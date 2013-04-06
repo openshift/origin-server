@@ -1,0 +1,84 @@
+#!/bin/bash -e
+
+source $OPENSHIFT_CARTRIDGE_SDK_BASH
+
+cartridge_type="10gen-mms-agent"
+
+function status() {
+    if output=$(runuser --shell /bin/sh "${OPENSHIFT_GEAR_UUID}" -c "if ps -ef | grep ${OPENSHIFT_GEAR_UUID}_agent.py | grep -qv grep > /dev/null; then echo Running; else echo Stopped; fi" 2>&1)
+    then
+        client_result "$output"
+    else
+        client_result "10gen-mms-agent is either stopped or inaccessible"
+    fi
+}
+
+function start() {
+
+    if ps -ef | grep ${OPENSHIFT_GEAR_UUID}_agent.py | grep -qv grep > /dev/null 2>&1; then
+        exit 0
+    fi
+
+    #
+    # Remove the compiled versions of the settings.py file and reset the mms credentials from the file in repo
+    # This is required so that any user changes to credentials in this file can be picked up and recompiled
+    #
+    rm -f ${OPENSHIFT_10GENMMSAGENT_DIR}/mms-agent/settings.pyc ${OPENSHIFT_10GENMMSAGENT_DIR}/mms-agent/settings.pyo
+    
+    
+    if [ -f "${OPENSHIFT_REPO_DIR}/.openshift/mms/settings.py" ]
+    then
+      new_mms_key_line=`cat ${OPENSHIFT_REPO_DIR}/.openshift/mms/settings.py | grep -E "^mms_key\s*=.*"`
+      new_secret_key_line=`cat ${OPENSHIFT_REPO_DIR}/.openshift/mms/settings.py | grep -E "^secret_key\s*=.*"`
+      sed -i "s/^mms_key\s*=.*/${new_mms_key_line}/g" ${OPENSHIFT_10GENMMSAGENT_DIR}/mms-agent/settings.py
+      sed -i "s/^secret_key\s*=.*/${new_secret_key_line}/g" ${OPENSHIFT_10GENMMSAGENT_DIR}/mms-agent/settings.py
+
+      nohup python ${OPENSHIFT_10GENMMSAGENT_DIR}/mms-agent/${OPENSHIFT_GEAR_UUID}_agent.py > ${OPENSHIFT_10GENMMSAGENT_DIR}/logs/agent.log 2>&1 &
+      echo $! > ${OPENSHIFT_10GENMMSAGENT_DIR}/run/mms-agent.pid
+    else
+      echo ""
+      echo "Missing settings.py file:  ${OPENSHIFT_REPO_DIR}.openshift/mms/settings.py"
+      echo "This file is part of the agent zip file: 10gen-mms-agent-<group-name>.zip"
+      echo "The zip file is available to download from https://mms.10gen.com/ after you register with their service. "
+      echo "It contains your 10gen MMS credentials and is required for running the agent."
+      echo "You will need to add this file and then do a git commit and push before you can start the 10gen-mms-agent cartridge."
+      echo ""
+      exit 137
+    fi
+}
+
+function stop() {
+    if [ -f ${OPENSHIFT_10GENMMSAGENT_DIR}/run/mms-agent.pid ]
+    then
+        mms_agent_pid=`cat ${OPENSHIFT_10GENMMSAGENT_DIR}/run/mms-agent.pid 2> /dev/null`
+        kill -9 $mms_agent_pid > /dev/null
+        rm -f ${OPENSHIFT_10GENMMSAGENT_DIR}/run/mms-agent.pid > /dev/null
+    else
+        if ps -ef | grep ${OPENSHIFT_GEAR_UUID}_agent.py | grep -qv grep > /dev/null 2>&1; then
+            echo "Failed to stop 10gen-mms-agent as the pid file is missing!" 1>&2
+            exit 1
+        else
+            echo "The 10-gen-mms-agent is already stopped!" 1>&2
+        fi
+    fi
+}
+
+function restart() {
+    stop
+    start
+}
+
+function reload() {
+    echo "Reloading $cartridge_type cart"
+    restart
+}
+
+
+case "$1" in
+  start)      start ;;
+  stop)       stop ;;
+  restart)    restart ;;
+  status)     status ;;
+  reload)     reload ;;
+  *)          exit 0
+esac
