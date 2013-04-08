@@ -3,7 +3,7 @@
 
 Summary:       Provides Node.js support
 Name:          openshift-origin-cartridge-nodejs
-Version: 1.8.1
+Version: 1.8.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -56,6 +56,11 @@ rm -rf %{buildroot}
 %doc %{cartridgedir}/README.md
 
 %changelog
+* Mon Apr 08 2013 Adam Miller <admiller@redhat.com> 1.8.2-1
+- Merge pull request #1930 from mrunalp/dev/cart_hooks (dmcphers@redhat.com)
+- Add hooks for other carts. (mrunalp@gmail.com)
+- Fix Jenkins deploy cycle (ironcladlou@gmail.com)
+
 * Fri Apr 05 2013 Dan McPherson <dmcphers@redhat.com> 1.8.1-1
 - new package built with tito
 
