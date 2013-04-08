@@ -57,7 +57,7 @@ class LastAccessUpdater
   def read_app_data(app_uuid)
     val = read_app_property(app_uuid, 'OPENSHIFT_GEAR_DNS')
     if val
-      @all_apps_info[val] = app_uuid
+      @all_apps_info[val.downcase] = app_uuid
     end
   end
 
