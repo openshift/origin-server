@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/openshift/cartridges/v2/php
 
 Name: openshift-origin-cartridge-php
-Version: 0.2.1
+Version: 0.2.2
 Release: 1%{?dist}
 Summary: Php cartridge
 Group: Development/Languages
@@ -98,6 +98,21 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Mon Apr 08 2013 Adam Miller <admiller@redhat.com> 0.2.2-1
+- Fix Jenkins deploy cycle (ironcladlou@gmail.com)
+- Merge pull request #1907 from brenton/spec_fixes1
+  (dmcphers+openshiftbot@redhat.com)
+- cleanup (dmcphers@redhat.com)
+- Fixing path to oo-admin-cartridge (bleanhar@redhat.com)
+- Add missing links. (mrunalp@gmail.com)
+- Fix how erb binary is resolved. Using util/util-scl packages instead of doing
+  it dynamically in code. Separating manifest into RHEL and Fedora versions
+  instead of using sed to set version. (kraman@gmail.com)
+- adding all the jenkins jobs (dmcphers@redhat.com)
+- Adding jenkins templates to carts (dmcphers@redhat.com)
+- Adding Apache 2.4 and PHP 5.4 support to PHP v2 cartridge Fix Path to erb
+  executable (kraman@gmail.com)
+
 * Thu Mar 28 2013 Adam Miller <admiller@redhat.com> 0.2.1-1
 - bump_minor_versions for sprint 26 (admiller@redhat.com)
 
