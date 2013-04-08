@@ -17,29 +17,10 @@ JENKINS_DNS_NAME=${JENKINS_URL:8} #remove https://
 # Create additional directories required by JENKINS
 mkdir -p ${OPENSHIFT_JENKINS_CLIENT_DIR}/{logs,data}
 
-# Copy the version specific files up to jbosseap directory
+# Copy the version specific files up to the jenkins-client directory
 cp -r ${OPENSHIFT_JENKINS_CLIENT_DIR}/versions/${version}/configuration/* ${OPENSHIFT_JENKINS_CLIENT_DIR}/configuration
-#cp -r ${OPENSHIFT_JENKINS_CLIENT_DIR}/versions/${version}/metadata/* ${OPENSHIFT_JENKINS_CLIENT_DIR}/metadata
 
 erb ${OPENSHIFT_JENKINS_CLIENT_DIR}/configuration/jenkins_job_template.xml.erb > ${OPENSHIFT_JENKINS_CLIENT_DIR}/configuration/jenkins_job_template.xml
-
-
-set +e
-for i in {0..50}; do
-  /usr/bin/wget --no-check-certificate -q https://${JENKINS_USERNAME}:${JENKINS_PASSWORD}@${JENKINS_DNS_NAME}jnlpJars/jenkins-cli.jar -O "$OPENSHIFT_JENKINS_CLIENT_DIR/jenkins-cli.jar"
-  exit_status=$?
-  if [ $exit_status -eq 0 ]; then
-    break
-  fi
-  sleep 1
-done
-set -e
-
-if [ $exit_status -ne 0 ]; then
-   client_error "Error contacting Jenkins server."
-   client_error "Could not download ${JENKINS_URL}jnlpJars/jenkins-cli.jar"
-   exit 157
-fi
 
 echo $JENKINS_PASSWORD > "$OPENSHIFT_JENKINS_CLIENT_DIR/.password"
 
@@ -60,7 +41,9 @@ fi
 
 JOB_NAME=${OPENSHIFT_APP_NAME}-build
 
-if out=$(${OPENSHIFT_JENKINS_CLIENT_DIR}/bin/jenkins_create_job "${OPENSHIFT_CLOUD_DOMAIN}" "$SHELL_COMMAND" "$ARTIFACTS_GLOB" 2>&1)
+BUILDER_TYPE=$(primary_cartridge_name)
+
+if out=$(${OPENSHIFT_JENKINS_CLIENT_DIR}/bin/jenkins_create_job "${OPENSHIFT_CLOUD_DOMAIN}" "$BUILDER_TYPE" "$SHELL_COMMAND" "$ARTIFACTS_GLOB" 2>&1)
 then
     # Embedding success
     client_result ""

@@ -17,7 +17,8 @@ $GIT_SSH $upstream_ssh 'gear stop'
 
 # Push content back to application
 rsync ~/.m2/ $upstream_ssh:~/.m2/
-rsync $WORKSPACE/ $upstream_ssh:~/app-root/repo/
+rsync $WORKSPACE/webapps/. $upstream_ssh:'${OPENSHIFT_REPO_DIR}webapps/'
+rsync $WORKSPACE/.openshift/ $upstream_ssh:'${OPENSHIFT_REPO_DIR}.openshift/'
 
 # Configure / start app
 $GIT_SSH $upstream_ssh 'gear cideploy'
