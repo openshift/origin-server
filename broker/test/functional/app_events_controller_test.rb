@@ -49,7 +49,7 @@ class AppEventsControllerTest < ActionController::TestCase
     post :create, {"event" => "reload", "domain_id" => @domain.namespace, "application_id" => @app.name}
     assert_response :success
     post :create, {"event" => "thread-dump", "domain_id" => @domain.namespace, "application_id" => @app.name}
-    assert_response :success
+    assert_response :unprocessable_entity
     post :create, {"event" => "tidy", "domain_id" => @domain.namespace, "application_id" => @app.name}
     assert_response :success
     as = "as#{@random}"
@@ -75,8 +75,17 @@ class AppEventsControllerTest < ActionController::TestCase
     assert_response :not_found
   end
   
-    test "wrong event type" do
+  test "wrong event type" do
     post :create, {"event" => "bogus", "domain_id" => @domain.namespace, "application_id" => @app.name}
     assert_response :unprocessable_entity
+  end
+  
+  test "thread-dump on a cartridge with threaddump hook" do
+    #create an app with threaddump hook i.e. ruby-1.8 or jbossews-2.0
+    app_name = "rubyapp#{@random}"
+    ruby_app = Application.create_app(app_name, ["ruby-1.9"], @domain, "small", true)
+    ruby_app.save
+    post :create, {"event" => "thread-dump", "domain_id" => @domain.namespace, "application_id" => ruby_app.name}
+    assert_response :success
   end
 end
