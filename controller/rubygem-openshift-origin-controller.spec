@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.7.1
+Version: 1.7.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -83,6 +83,32 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Mon Apr 08 2013 Adam Miller <admiller@redhat.com> 1.7.2-1
+- 10gen-mms-agent WIP (dmcphers@redhat.com)
+- Remove redundant steps from nodejs feature (ironcladlou@gmail.com)
+- nodejs cucumber features modelled after ruby v2 features
+  (asari.ruby@gmail.com)
+- Part 2 of Card 536 (lnader@redhat.com)
+- Part 1 of Card 536 (lnader@redhat.com)
+- Refactor v2 cartridge SDK location and accessibility (ironcladlou@gmail.com)
+- Consolidating ssh key name manipulation in one place (abhgupta@redhat.com)
+- too much had been added to runtime_other (dmcphers@redhat.com)
+- Merge pull request #1883 from calfonso/master
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #1880 from lnader/master
+  (dmcphers+openshiftbot@redhat.com)
+- Mongodb Cartridge V2 (calfonso@redhat.com)
+- Bug 947288 (lnader@redhat.com)
+- Merge pull request #1867 from abhgupta/abhgupta-dev (dmcphers@redhat.com)
+- Randomizing UIDs in available_uids list for district (abhgupta@redhat.com)
+- corrected broker extended test (lnader@redhat.com)
+- Merge pull request #1859 from ironcladlou/dev/v2carts/state-management
+  (dmcphers+openshiftbot@redhat.com)
+- V2 cart state management implementation (ironcladlou@gmail.com)
+- Corrected test to reflect changes in API (lnader@redhat.com)
+- Card 515 - Improve test coverage (lnader@redhat.com)
+- scale-down should ignore haproxy gear (rchopra@redhat.com)
+
 * Thu Mar 28 2013 Adam Miller <admiller@redhat.com> 1.7.1-1
 - bump_minor_versions for sprint 26 (admiller@redhat.com)
 - Improve mock/mock-plugin cartridges (ironcladlou@gmail.com)
