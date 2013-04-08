@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/openshift/cartridges/v2/perl
 
 Name: openshift-origin-cartridge-perl
-Version: 0.2.1
+Version: 0.2.2
 Release: 1%{?dist}
 Summary: Perl cartridge
 Group: Development/Languages
@@ -67,6 +67,15 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Mon Apr 08 2013 Adam Miller <admiller@redhat.com> 0.2.2-1
+- Merge pull request #1930 from mrunalp/dev/cart_hooks (dmcphers@redhat.com)
+- Add hooks for other carts. (mrunalp@gmail.com)
+- Fix Jenkins deploy cycle (ironcladlou@gmail.com)
+- Refactor v2 cartridge SDK location and accessibility (ironcladlou@gmail.com)
+- WIP Cartridge Refactor - Add build to V2 Perl Cartridge (jhonce@redhat.com)
+- adding all the jenkins jobs (dmcphers@redhat.com)
+- Adding jenkins templates to carts (dmcphers@redhat.com)
+
 * Thu Mar 28 2013 Adam Miller <admiller@redhat.com> 0.2.1-1
 - bump_minor_versions for sprint 26 (admiller@redhat.com)
 - BZ928282: Copy over hidden files under template. (mrunalp@gmail.com)
