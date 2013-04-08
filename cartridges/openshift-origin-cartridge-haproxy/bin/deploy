@@ -21,10 +21,10 @@ function set_default_pre_actions {
 function set_default_post_actions {
   if hot_deploy_marker_is_present; then
     echo "Application will not be restarted during gear sync due to presence of hot_deploy marker"
-    #TODO A version of cideploy that doesn't start
-    OPENSHIFT_SYNC_GEARS_POST=('gear cideploy')
+    #TODO A version of remotedeploy that doesn't start
+    OPENSHIFT_SYNC_GEARS_POST=('gear remotedeploy')
   else
-    OPENSHIFT_SYNC_GEARS_POST=('gear cideploy')
+    OPENSHIFT_SYNC_GEARS_POST=('gear remotedeploy')
   fi
 }
 

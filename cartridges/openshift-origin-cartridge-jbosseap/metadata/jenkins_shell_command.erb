@@ -21,4 +21,4 @@ rsync $WORKSPACE/deployments/ $upstream_ssh:~/app-root/repo/deployments/
 rsync $WORKSPACE/.openshift/ $upstream_ssh:~/app-root/repo/.openshift/
 
 # Configure / start app
-$GIT_SSH $upstream_ssh 'gear cideploy'
+$GIT_SSH $upstream_ssh 'gear remotedeploy'

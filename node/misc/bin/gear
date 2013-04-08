@@ -115,13 +115,13 @@ command :build do |c|
   end
 end
 
-command :cideploy do |c|
-  c.syntax = "#{name} cideploy"
+command :remotedeploy do |c|
+  c.syntax = "#{name} remotedeploy"
 
-  c.description = "Run the cideploy steps"
+  c.description = "Run the remotedeploy steps"
   c.action do |args, options|
     do_command do
-      @container.ci_deploy(out: $stdout, err: $stderr)
+      @container.remote_deploy(out: $stdout, err: $stderr)
     end
   end
 end
