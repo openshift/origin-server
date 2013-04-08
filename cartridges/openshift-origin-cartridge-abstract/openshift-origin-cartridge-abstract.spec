@@ -7,7 +7,7 @@
 
 Summary:       OpenShift common cartridge components
 Name:          openshift-origin-cartridge-abstract
-Version: 1.7.1
+Version: 1.7.2
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -88,6 +88,15 @@ cp -rv -p abstract-jboss %{buildroot}%{cartdir}/
 %doc %{_libexecdir}/openshift/cartridges/abstract-jboss/README.md
 
 %changelog
+* Mon Apr 08 2013 Adam Miller <admiller@redhat.com> 1.7.2-1
+- Merge pull request #1908 from bdecoste/master (dmcphers@redhat.com)
+- update rsync (bdecoste@gmail.com)
+- abstract requires tar but that is no longer in @base (markllama@gmail.com)
+- Bug 947016 (bdecoste@gmail.com)
+- Merge pull request #1842 from bdecoste/master (dmcphers@redhat.com)
+- rsync deployments (bdecoste@gmail.com)
+- rsync deployments (bdecoste@gmail.com)
+
 * Thu Mar 28 2013 Adam Miller <admiller@redhat.com> 1.7.1-1
 - bump_minor_versions for sprint 26 (admiller@redhat.com)
 
