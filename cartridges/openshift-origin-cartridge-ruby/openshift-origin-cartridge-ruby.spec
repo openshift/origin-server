@@ -7,7 +7,7 @@
 %global frameworkdir %{_libexecdir}/openshift/cartridges/v2/ruby
 
 Name:          openshift-origin-cartridge-ruby
-Version: 0.2.1
+Version: 0.2.2
 Release:       1%{?dist}
 Summary:       Ruby cartridge
 Group:         Development/Languages
@@ -152,6 +152,16 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Mon Apr 08 2013 Adam Miller <admiller@redhat.com> 0.2.2-1
+- Merge pull request #1930 from mrunalp/dev/cart_hooks (dmcphers@redhat.com)
+- Add hooks for other carts. (mrunalp@gmail.com)
+- Fix Jenkins deploy cycle (ironcladlou@gmail.com)
+- adding all the jenkins jobs (dmcphers@redhat.com)
+- Adding jenkins templates to carts (dmcphers@redhat.com)
+- Merge pull request #1847 from BanzaiMan/dev/hasari/bz928675
+  (dmcphers@redhat.com)
+- Update OpenShift web site URL on the Rack template. (asari.ruby@gmail.com)
+
 * Thu Mar 28 2013 Adam Miller <admiller@redhat.com> 0.2.1-1
 - bump_minor_versions for sprint 26 (admiller@redhat.com)
 - BZ928282: Copy over hidden files under template. (mrunalp@gmail.com)
