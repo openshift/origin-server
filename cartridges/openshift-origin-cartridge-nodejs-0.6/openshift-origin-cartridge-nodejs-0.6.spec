@@ -2,7 +2,7 @@
 
 Summary:       Provides Node-0.6 support
 Name:          openshift-origin-cartridge-nodejs-0.6
-Version: 1.7.1
+Version: 1.7.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -98,6 +98,13 @@ ln -s %{cartridgedir}/../abstract/info/bin/sync_gears.sh %{buildroot}%{cartridge
 
 
 %changelog
+* Mon Apr 08 2013 Adam Miller <admiller@redhat.com> 1.7.2-1
+- Revert "Update code for default server.js so no warning are displayed"
+  (dmcphers@redhat.com)
+- Merge pull request #1521 from mscherer/fix/nodejs/remove_warning_on_express
+  (dmcphers+openshiftbot@redhat.com)
+- Update code for default server.js so no warning are displayed (misc@zarb.org)
+
 * Thu Mar 28 2013 Adam Miller <admiller@redhat.com> 1.7.1-1
 - bump_minor_versions for sprint 26 (admiller@redhat.com)
 
