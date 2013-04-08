@@ -37,7 +37,7 @@ class CartridgeRepositoryFunctionalTest < Test::Unit::TestCase
         Name: CRFTest_#{@uuid}
         Cartridge-Short-Name: CRFTEST
         Version: '0.3'
-        Versions: [0.1, 0.2, 0.3]
+        Versions: ['0.1', '0.2', '0.3']
         Cartridge-Version: '1.2'
         Cartridge-Vendor: RedHat
       }

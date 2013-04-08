@@ -82,7 +82,7 @@ class V2CartModelTest < Test::Unit::TestCase
         Cartridge-Vendor: Unit Test
         Display-Name: Mock
         Description: "A mock cartridge for development use only."
-        Version: 0.1
+        Version: '0.1'
         License: "None"
         Vendor: Red Hat
         Categories:
@@ -140,35 +140,12 @@ class V2CartModelTest < Test::Unit::TestCase
 
     manifest = "/tmp/manifest-#{Process.pid}"
     IO.write(manifest, @mock_manifest, 0)
-    @mock_cartridge = OpenShift::Runtime::Cartridge.new(manifest, '/tmp')
+    @mock_cartridge = OpenShift::Runtime::Cartridge.new(manifest, nil, '/tmp')
     @model.stubs(:get_cartridge).with('mock-0.1').returns(@mock_cartridge)
   end
 
   def teardown
     @user.unstub(:homedir)
-  end
-
-  def test_get_cartridge_valid_manifest
-    local_model = OpenShift::V2CartridgeModel.new(@config, @user, mock())
-
-    manifest_path = "#{@homedir}/unittest-mock/metadata/manifest.yml"
-    YAML.stubs(:load_file).with(manifest_path).returns(YAML.load(@mock_manifest))
-    Dir.stubs(:glob).returns(["#{@homedir}/unittest-mock"])
-    File.stubs(:exist?).with(manifest_path).returns(true)
-
-
-    cart = local_model.get_cartridge("mock-0.1")
-
-    assert_equal "mock", cart.name
-    assert_equal "MOCK", cart.short_name
-    assert_equal 5, cart.endpoints.length
-
-    # Exercise caching
-    cart = local_model.get_cartridge("mock-0.1")
-
-    assert_equal "mock", cart.name
-    assert_equal "MOCK", cart.short_name
-    assert_equal 5, cart.endpoints.length
   end
 
   def test_get_cartridge_error_loading

@@ -130,7 +130,7 @@ module OpenShift
 
           @cartridges[cart_name] = get_cartridge_from_directory(cart_dir)
         rescue Exception => e
-          raise "Failed to load cart manifest from #{cart_dir} for cart #{cart_name} in gear #{@user.uuid}: #{e.message}"
+          raise "Failed to get cartridge '#{cart_name}' from #{cart_dir} in gear #{@user.uuid}: #{e.message}"
         end
       end
 
@@ -142,9 +142,14 @@ module OpenShift
       unless @cartridges.has_key? directory
         cartridge_path = PathUtils.join(@user.homedir, directory)
         manifest_path  = PathUtils.join(cartridge_path, 'metadata', 'manifest.yml')
-        raise "Cartridge manifest not found: #{manifest_path}" unless File.exist?(manifest_path)
+        ident_path     = Dir.glob(PathUtils.join(cartridge_path, 'env', "OPENSHIFT_*_IDENT")).first
 
-        @cartridges[directory] = OpenShift::Runtime::Cartridge.new(manifest_path, @user.homedir)
+        raise "Cartridge manifest not found: #{manifest_path} missing" unless File.exists?(manifest_path)
+        raise "Cartridge Ident not found: #{ident_path} missing" unless File.exists?(ident_path)
+
+        _, _, version, _ = Runtime::Cartridge.parse_ident(IO.read(ident_path))
+
+        @cartridges[directory] = OpenShift::Runtime::Cartridge.new(manifest_path, version, @user.homedir)
       end
       @cartridges[directory]
     end
@@ -203,7 +208,7 @@ module OpenShift
       output = ''
 
       name, software_version = map_cartridge_name(cartridge_name)
-      cartridge           = CartridgeRepository.instance.select(name, software_version)
+      cartridge              = CartridgeRepository.instance.select(name, software_version)
 
       OpenShift::Utils::Sdk.mark_new_sdk_app(@user.homedir)
       OpenShift::Utils::Cgroups::with_cgroups_disabled(@user.uuid) do
@@ -744,9 +749,9 @@ module OpenShift
     #
     def connector_execute(cart_name, connector, args)
       cartridge = get_cartridge(cart_name)
-      env = Utils::Environ.for_gear_ordered(@user.homedir, File.join(@user.homedir, cartridge.directory))
+      env       = Utils::Environ.for_gear_ordered(@user.homedir, File.join(@user.homedir, cartridge.directory))
 
-      script    = PathUtils.join(@user.homedir, cartridge.directory, 'hooks', connector)
+      script = PathUtils.join(@user.homedir, cartridge.directory, 'hooks', connector)
 
       unless File.executable?(script)
         msg = "ERROR: action '#{connector}' not found."
@@ -788,9 +793,9 @@ module OpenShift
     #                                        +nil+ (the default), output is logged.
     def do_control_with_directory(action, options={})
       cartridge_dir             = options[:cartridge_dir]
-      pre_action_hooks_enabled  = options.has_key?(:pre_action_hooks_enabled)  ? options[:pre_action_hooks_enabled]  : true
+      pre_action_hooks_enabled  = options.has_key?(:pre_action_hooks_enabled) ? options[:pre_action_hooks_enabled] : true
       post_action_hooks_enabled = options.has_key?(:post_action_hooks_enabled) ? options[:post_action_hooks_enabled] : true
-      prefix_action_hooks       = options.has_key?(:prefix_action_hooks)       ? options[:prefix_action_hooks]       : true
+      prefix_action_hooks       = options.has_key?(:prefix_action_hooks) ? options[:prefix_action_hooks] : true
 
       logger.debug { "#{@user.uuid} #{action} against '#{cartridge_dir}'" }
       buffer       = ''
@@ -799,7 +804,7 @@ module OpenShift
 
       if pre_action_hooks_enabled
         pre_action_hook = prefix_action_hooks ? "pre_#{action}" : action
-        hook_buffer = do_action_hook(pre_action_hook, gear_env, options)
+        hook_buffer     = do_action_hook(pre_action_hook, gear_env, options)
         buffer << hook_buffer if hook_buffer.is_a?(String)
       end
 
@@ -824,7 +829,7 @@ module OpenShift
                                       uid:             @user.uid,
                                       out:             options[:out],
                                       err:             options[:err])
-        
+
         buffer << out if out.is_a?(String)
 
         raise Utils::ShellExecutionException.new(
@@ -834,10 +839,10 @@ module OpenShift
 
       if post_action_hooks_enabled
         post_action_hook = prefix_action_hooks ? "post_#{action}" : action
-        hook_buffer = do_action_hook(post_action_hook, gear_env, options)
+        hook_buffer      = do_action_hook(post_action_hook, gear_env, options)
         buffer << hook_buffer if hook_buffer.is_a?(String)
       end
-      
+
       buffer
     end
 
@@ -847,8 +852,8 @@ module OpenShift
     # non-zero return code.
     def do_action_hook(action, env, options)
       action_hooks_dir = File.join(@user.homedir, %w{app-root runtime repo .openshift action_hooks})
-      action_hook = File.join(action_hooks_dir, action)
-      out = ''
+      action_hook      = File.join(action_hooks_dir, action)
+      out              = ''
 
       if File.executable?(action_hook)
         out, err, rc = Utils.oo_spawn(action_hook,
@@ -881,7 +886,7 @@ module OpenShift
     end
 
     def cleanpwd(arg)
-      arg.gsub(/(passwo?r?d\s*[:=]+\s*)\S+/i, '\\1[HIDDEN]').gsub(/(usern?a?m?e?\s*[:=]+\s*)\S+/i,'\\1[HIDDEN]')
+      arg.gsub(/(passwo?r?d\s*[:=]+\s*)\S+/i, '\\1[HIDDEN]').gsub(/(usern?a?m?e?\s*[:=]+\s*)\S+/i, '\\1[HIDDEN]')
     end
 
     ##
@@ -901,7 +906,7 @@ module OpenShift
       options[:user_initiated] = true if not options.has_key?(:user_initiated)
 
       buffer = ''
-      
+
       each_cartridge do |cartridge|
         buffer << stop_cartridge(cartridge, options)
       end
@@ -946,7 +951,7 @@ module OpenShift
 
       buffer
     end
-    
+
     ##
     # Starts a cartridge.
     #
@@ -1013,7 +1018,7 @@ module OpenShift
         create_stop_lock if options[:user_initiated]
         @state.value = OpenShift::State::STOPPED
       end
-      
+
       do_control('stop', cartridge, options)
     end
 
