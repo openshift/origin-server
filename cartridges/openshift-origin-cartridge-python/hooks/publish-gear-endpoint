@@ -13,4 +13,4 @@ fi
 #
 # Publish this gear's endpoint.
 # 
-echo "${OPENSHIFT_GEAR_UUID}@${gip}:redhat-python;$OPENSHIFT_GEAR_DNS"
+echo "${OPENSHIFT_GEAR_UUID}@${gip}:python;$OPENSHIFT_GEAR_DNS"

@@ -1,1 +1,1 @@
-redhat-mysql/*
+mysql/*

@@ -58,7 +58,7 @@ class CartridgeRepositoryTest < Test::Unit::TestCase
     refute_nil e
     assert_equal '0.1', e.version
 
-    assert_equal 'redhat-CRTest', e.directory
+    assert_equal "#{@path}/redhat-CRTest/1.0", e.repository_path
   end
 
   def test_each

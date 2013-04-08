@@ -1,3 +1,3 @@
-redhat-10gen-mms-agent/
-redhat-10gen-mms-agent/metadata/
-redhat-10gen-mms-agent/env/
+10gen-mms-agent/
+10gen-mms-agent/metadata/
+10gen-mms-agent/env/

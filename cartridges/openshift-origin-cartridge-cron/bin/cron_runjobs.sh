@@ -1,6 +1,6 @@
 #!/bin/bash
 CART_VERSION=0.0.1
-CART_DIRNAME=redhat-cron
+CART_DIRNAME=cron
 CART_INSTALL_DIR=/var/lib/openshift/.cartridge_repository/$CART_DIRNAME/$CART_VERSION
 CART_CONF_DIR=${CART_INSTALL_DIR}/versions/1.4/configuration
 

@@ -4,8 +4,6 @@ set -x
 # Set default version
 version=1.9
 
-OPENSHIFT_RUBY_DIR="$OPENSHIFT_HOMEDIR/redhat-ruby"
-
 # Parse arguments
 source "${OPENSHIFT_RUBY_DIR}/lib/util"
 parse_args $@

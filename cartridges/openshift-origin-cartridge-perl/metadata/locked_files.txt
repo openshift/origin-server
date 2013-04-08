@@ -1,4 +1,4 @@
-redhat-perl/metadata/
-redhat-perl/env/
-redhat-perl/etc/
-redhat-perl/template/
+perl/metadata/
+perl/env/
+perl/etc/
+perl/template/
