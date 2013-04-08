@@ -1,0 +1,34 @@
+#!/bin/bash
+
+set -e
+
+source $OPENSHIFT_PHPMYADMIN_DIR/env/*
+source $OPENSHIFT_CARTRIDGE_SDK_BASH
+
+# check that mysql is installed
+
+if [ ! -d $OPENSHIFT_HOMEDIR/mysql ]; then
+  client_error ""
+  client_error "MySQL must be embedded before phpMyAdmin"
+  client_error ""
+  exit 137
+fi
+
+mkdir -p $OPENSHIFT_PHPMYADMIN_DIR/{logs,run,sessions,tmp}
+ln -s /usr/lib64/httpd/modules $OPENSHIFT_PHPMYADMIN_DIR/modules
+ln -s /etc/httpd/conf/magic $OPENSHIFT_PHPMYADMIN_DIR/conf/magic
+
+. $OPENSHIFT_MYSQL_DIR/env/OPENSHIFT_MYSQL_DB_USERNAME
+. $OPENSHIFT_MYSQL_DIR/env/OPENSHIFT_MYSQL_DB_PASSWORD
+
+client_result ""
+client_result "phpMyAdmin 3.4 added.  Please make note of these MySQL credentials again:"
+client_result ""
+client_result "   Root User: $OPENSHIFT_MYSQL_DB_USERNAME"
+client_result "   Root Password: $OPENSHIFT_MYSQL_DB_PASSWORD"
+client_result ""
+client_result "URL: https://$OPENSHIFT_GEAR_DNS/phpmyadmin/"
+
+cart_props "connection_url=https://$OPENSHIFT_GEAR_DNS/phpmyadmin/"
+
+set_app_info "URL: https://$OPENSHIFT_GEAR_DNS/phpmyadmin/"

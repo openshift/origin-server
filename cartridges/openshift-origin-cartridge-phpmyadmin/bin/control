@@ -1,0 +1,37 @@
+#!/bin/bash -e
+
+PATH=/bin/:/usr/bin:$PATH
+
+source $OPENSHIFT_MYSQL_DIR/env/*
+source $OPENSHIFT_CARTRIDGE_SDK_BASH
+
+export PHP_RC="$OPENSHIFT_PHPMYADMIN_DIR/conf/php.ini"
+httpd_config=$OPENSHIFT_PHPMYADMIN_DIR/conf/httpd_nolog.conf
+httpd_pid_file=$OPENSHIFT_PHPMYADMIN_DIR/run/httpd.pid
+
+function start {
+  /usr/sbin/httpd -C "Include $OPENSHIFT_PHPMYADMIN_DIR/conf.d/*.conf" -f $httpd_config -k start
+}
+
+function stop {
+  /usr/sbin/httpd -C "Include $OPENSHIFT_PHPMYADMIN_DIR/conf.d/*.conf" -f $httpd_config -k stop
+}
+
+function restart {
+  /usr/sbin/httpd -C "Include $OPENSHIFT_PHPMYADMIN_DIR/conf.d/*.conf" -f $httpd_config -k restart
+}
+
+function status {
+  if ps --no-headers --pid $(< $httpd_pid_file) > /dev/null; then
+    client_result 'PHPMyAdmin is running'
+  else
+    client_result 'PHPMyAdmin is either stopped or inaccessible'
+  fi
+}
+
+case "$1" in
+  start) start ;;
+  stop) stop ;;
+  restart) restart ;;
+  status) status ;;
+esac
