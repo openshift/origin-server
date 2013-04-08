@@ -9,7 +9,7 @@
 
 Summary:       OpenShift Origin Management Console
 Name:          rubygem-%{gem_name}
-Version: 1.7.1
+Version: 1.7.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -134,6 +134,42 @@ cp -a ./%{gem_dir}/* %{buildroot}%{gem_dir}/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Mon Apr 08 2013 Adam Miller <admiller@redhat.com> 1.7.2-1
+- Changes to apply the correct the default input.btn:focus background color in
+  the console. (sgoodwin@redhat.com)
+- Bug 917492 - The error message overlapped with the original content in
+  scaling page of jbosseap apps on Iphone4S (sgoodwin@redhat.com)
+- Changes: (sgoodwin@redhat.com)
+- Bug 947098 fix - add margin to h3 so icon doesn't overlap at narrow
+  resolutions (sgoodwin@redhat.com)
+- Moving openshift-icon to a partial and including in common so that mixin can
+  be applied Created a mixin for text-overflow .truncate and used with aliases
+  list Created markup for header button usage of add/create function Switched
+  individual application page from using sprite images to icon font Swiched
+  application list to use right arrow icon instead of sprite Removed bottom
+  positioning of icons with h1,h2 b/c when used with truncate the
+  overflow:hidden cut the tops off. A couple of variables added for colors
+  (sgoodwin@redhat.com)
+- Merge pull request #1843 from smarterclayton/bug_928669_load_error_in_async
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #1845 from sg00dwin/0325dev
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 928669 - Async errors in development mode (ccoleman@redhat.com)
+- Merge branch 'master' of github.com:openshift/origin-server into 0325dev
+  (sgoodwin@redhat.com)
+- Merge branch 'master' of github.com:openshift/origin-server into 0325dev
+  (sgoodwin@redhat.com)
+- Merge branch 'master' of github.com:openshift/origin-server into 0325dev
+  (sgoodwin@redhat.com)
+- Fix for Bug 927208 Multiple edits needed because of the issues involved with
+  the problem of styling input[type="file"] that are also disabled. In a
+  nutshell, it's nearly impossible to present input type=file in a consistant
+  manner across browsers platforms. Further complicated by the way Firefox
+  handles those inputs when disabled - text and background-color are given
+  opacity and inherit the parent background color which caused the text to be
+  unreadable on our dark background. So created the .platform class, which is
+  inverse of well. (sgoodwin@redhat.com)
+
 * Thu Mar 28 2013 Adam Miller <admiller@redhat.com> 1.7.1-1
 - bump_minor_versions for sprint 26 (admiller@redhat.com)
 
