@@ -127,8 +127,6 @@ Feature: applications
       | XML    |     5.3     |   restart   |
       | JSON   |     5.3     | force-stop  |
       | XML    |     5.3     | force-stop  |
-      | JSON   |     5.3     | thread-dump |
-      | XML    |     5.3     | thread-dump |
 
   @fedora-only
   Scenario Outline: Start/Stop/Restart application (Fedora)
@@ -144,8 +142,6 @@ Feature: applications
       | XML    |     5.4     |   restart   |
       | JSON   |     5.4     | force-stop  |
       | XML    |     5.4     | force-stop  |
-      | JSON   |     5.4     | thread-dump |
-      | XML    |     5.4     | thread-dump |
 
   @rhel-only
   Scenario Outline: Add and remove application alias (RHEL/CentOS)
@@ -376,3 +372,21 @@ Feature: applications
       | format |
       | JSON   |
       | XML    |
+   
+  Scenario Outline: threaddump an application with threaddump action available
+    Given a new user
+    And I accept "<format>"
+    When I send a POST request to "/domains" with the following:"id=api<random>"
+    Then the response should be "201"
+    When I send a POST request to "/domains/api<random>/applications" with the following:"name=app&cartridge=ruby-1.9"
+    Then the response should be "201"
+    When I send a POST request to "/domains/api<random>/applications/app/events" with the following:"event=thread-dump"
+    Then the response should be "200"
+    When I send a DELETE request to "/domains/api<random>/applications/app"
+    Then the response should be "204"
+    
+    Scenarios: scenarios
+      | format |
+      | JSON   |
+      | XML    |
+
