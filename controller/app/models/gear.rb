@@ -121,7 +121,7 @@ class Gear
   def add_component(component, init_git_url=nil)
     result_io = get_proxy.configure_cartridge(self, component.cartridge_name, init_git_url)
     component.process_properties(result_io)
-    app.process_commands(result_io)
+    app.process_commands(result_io, component._id)
     raise OpenShift::NodeException.new("Unable to add component #{component.cartridge_name}::#{component.component_name}", result_io.exitcode, result_io) if result_io.exitcode != 0
     result_io
   end

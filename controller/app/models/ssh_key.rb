@@ -23,9 +23,9 @@ class SshKey
                          'ecdsa-sha2-nistp521-cert-v01@openssh.com', 'ssh-rsa-cert-v01@openssh.com', 'ssh-dss-cert-v01@openssh.com',
                          'ssh-rsa-cert-v00@openssh.com', 'ssh-dss-cert-v00@openssh.com', 'ecdsa-sha2-nistp256', 'ecdsa-sha2-nistp384', 'ecdsa-sha2-nistp521']
   
-  self.field :name, type: String
-  self.field :type, type: String, default: "ssh-rsa"
-  self.field :content, type: String
+  field :name, type: String
+  field :type, type: String, default: "ssh-rsa"
+  field :content, type: String
   
   validates :name, 
     presence: {message: "Key name is required and cannot be blank."},
