@@ -2,7 +2,7 @@
 
 Summary:       Provides jenkins-1.4 support
 Name:          openshift-origin-cartridge-jenkins-1.4
-Version: 1.7.1
+Version: 1.7.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -92,6 +92,10 @@ ln -s %{cartridgedir}/../abstract/info/hooks/system-messages %{buildroot}%{cartr
 
 
 %changelog
+* Mon Apr 08 2013 Adam Miller <admiller@redhat.com> 1.7.2-1
+- wait for Jenkins to come up fully (bdecoste@gmail.com)
+- Bug 947092 (bdecoste@gmail.com)
+
 * Thu Mar 28 2013 Adam Miller <admiller@redhat.com> 1.7.1-1
 - bump_minor_versions for sprint 26 (admiller@redhat.com)
 
