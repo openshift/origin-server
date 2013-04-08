@@ -27,7 +27,6 @@ require 'openshift-origin-node/utils/path_utils'
 require 'openshift-origin-node/utils/application_state'
 
 module OpenShift
-  # TODO use this exception when oo_spawn fails...
   class FileLockError < Exception
     attr_reader :filename
 
@@ -470,9 +469,11 @@ module OpenShift
     #
     # Search cartridge for any remaining <code>erb</code> files render them
     def process_erb_templates(cartridge_name)
-      logger.info "Processing ERB templates for #{cartridge_name}"
-      env = Utils::Environ.for_gear(@user.homedir)
-      render_erbs(env, File.join(@user.homedir, cartridge_name, '**'))
+      directory = File.join(@user.homedir, cartridge_name)
+      logger.info "Processing ERB templates for #{directory}/**"
+
+      env = Utils::Environ.for_gear_ordered(@user.homedir, directory)
+      render_erbs(env, File.join(directory, '**'))
     end
 
     #  cartridge_setup(cartridge, software_version) -> buffer
@@ -485,8 +486,7 @@ module OpenShift
     def cartridge_setup(cartridge, software_version)
       logger.info "Running setup for #{@user.uuid}/#{cartridge.directory}"
 
-      gear_env = Utils::Environ.load('/etc/openshift/env',
-                                     File.join(@user.homedir, '.env'))
+      gear_env = Utils::Environ.for_gear(@user.homedir)
 
       cartridge_home     = File.join(@user.homedir, cartridge.directory)
       cartridge_env_home = File.join(cartridge_home, 'env')
@@ -539,7 +539,7 @@ module OpenShift
     # stdout = cartridge_teardown('php-5.3')
     def cartridge_teardown(cartridge_name)
       cartridge_home = File.join(@user.homedir, cartridge_name)
-      env            = Utils::Environ.for_cartridge(cartridge_home)
+      env            = Utils::Environ.for_gear_ordered(@user.homedir, cartridge_home)
       teardown       = File.join(cartridge_home, 'bin', 'teardown')
 
       return "" unless File.exists? teardown
@@ -738,9 +738,9 @@ module OpenShift
     #    V2CartridgeModel.new(...).connector_execute(cartridge_name, connector, args)
     #
     def connector_execute(cart_name, connector, args)
-      env = Utils::Environ.for_gear(@user.homedir)
-
       cartridge = get_cartridge(cart_name)
+      env = Utils::Environ.for_gear_ordered(@user.homedir, File.join(@user.homedir, cartridge.directory))
+
       script    = PathUtils.join(@user.homedir, cartridge.directory, 'hooks', connector)
 
       unless File.executable?(script)
@@ -789,7 +789,7 @@ module OpenShift
 
       logger.debug { "#{@user.uuid} #{action} against '#{cartridge_dir}'" }
       buffer       = ''
-      gear_env     = Utils::Environ.load('/etc/openshift/env', File.join(@user.homedir, '.env'))
+      gear_env     = Utils::Environ.for_gear(@user.homedir)
       action_hooks = File.join(@user.homedir, %w{app-root runtime repo .openshift action_hooks})
 
       if pre_action_hooks_enabled
