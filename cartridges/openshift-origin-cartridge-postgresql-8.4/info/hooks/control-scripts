@@ -57,12 +57,6 @@ function _reload_postgres_service() {
    :  #  Do nothing.
 }  #  End of function  _reload_postgres_service.
 
-function _post_move_postgres_service() {
-   source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/apache
-   source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/network
-
-}  #  End of function  _post_move_postgres_service.
-
 function _status_postgres_service() {
     if output=$(run_as_user "$CTL_SCRIPT status" 2>&1)
     then
@@ -102,6 +96,5 @@ case "$cmd" in
    stop)      _stop_postgres_service      ;;
    restart)   _restart_postgres_service   ;;
    reload)    _reload_postgres_service    ;;
-   post-move) _post_move_postgres_service ;;
 esac
 
