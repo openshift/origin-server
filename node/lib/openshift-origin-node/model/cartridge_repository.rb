@@ -118,7 +118,7 @@ module OpenShift
     def load(directory = nil)
       @semaphore.synchronize do
         find_manifests(directory || @path) do |manifest_path|
-          c = insert(OpenShift::Runtime::Cartridge.new(manifest_path, @path))
+          c = insert(OpenShift::Runtime::Cartridge.new(manifest_path, nil, @path))
           logger.debug { "Loaded cartridge (#{c.name}, #{c.version}, #{c.cartridge_version}) from #{manifest_path}" }
         end
       end
@@ -177,7 +177,7 @@ module OpenShift
 
       entry = nil
       @semaphore.synchronize do
-        entry = insert(OpenShift::Runtime::Cartridge.new(manifest_path, @path))
+        entry = insert(OpenShift::Runtime::Cartridge.new(manifest_path, nil, @path))
 
         FileUtils.rm_r(entry.repository_path) if File.exist?(entry.repository_path)
         FileUtils.mkpath(entry.repository_path)
