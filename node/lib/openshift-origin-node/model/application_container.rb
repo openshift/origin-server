@@ -372,7 +372,7 @@ module OpenShift
       end
     end
 
-    def ci_deploy(options={})
+    def remote_deploy(options={})
       start_gear(secondary_only: true,
                  user_initiated: true,
                  out:            options[:out],

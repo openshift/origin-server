@@ -199,12 +199,12 @@ class BuildLifecycleTest < Test::Unit::TestCase
     assert_equal "post-deploy", output
   end
 
-  def test_ci_deploy_success
+  def test_remote_deploy_success
     @container.expects(:start_gear).with(secondary_only: true, user_initiated: true, out: $stdout, err: $stderr)
     @container.expects(:deploy).with(out: $stdout, err: $stderr)
     @container.expects(:start_gear).with(primary_only: true, user_initiated: true, out: $stdout, err: $stderr)
     @container.expects(:post_deploy).with(out: $stdout, err: $stderr)
 
-    @container.ci_deploy(out: $stdout, err: $stderr)
+    @container.remote_deploy(out: $stdout, err: $stderr)
   end
 end
