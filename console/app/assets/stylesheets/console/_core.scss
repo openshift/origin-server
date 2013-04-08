@@ -263,6 +263,8 @@ figure {
   width: 100%;
   @include box-sizing(border-box);
   height: 34px;
+  position: relative;
+  background: $grayDark;
   h3,h4,h5 {
     display:table-cell;
     vertical-align:middle;
@@ -272,8 +274,10 @@ figure {
     display:table-cell;
     vertical-align:middle;
     text-align:right;
+    position: absolute;
+    right: 0;
     width: 50%;
-    background: $grayDarker;
+    height: 100%;
     .header-btn-title {
       display: table-cell;
       vertical-align: middle;
@@ -304,8 +308,10 @@ figure {
         vertical-align: middle;
         text-align: center;
         font-size: 11px;
+        height: 100%;
         width: 34px;
         border-left: 1px solid rgba(0, 0, 0, 0.3);
+        background: $grayDarker;
       }
     }
   }
@@ -315,6 +321,7 @@ figure {
 aside .header-bar {
   margin-bottom: $baseLineHeight / 3;
   height: 26px;
+  background: transparent;
   .header-btn {
     a {
       font-size: $baseFontSize - 3;
@@ -388,6 +395,12 @@ aside .header-bar {
     background-color:transparent;
   }
 
+}
+
+#app-list {
+  .btn-toolbar {
+    margin-right: 10px;
+  }
 }
 
 .line-item-title {
@@ -540,7 +553,6 @@ $cartridgeBorderWidth: 10px;
 
 #app-cartridges {
   header {
-    background: #202020;
     padding-left: $gridGutterWidth;
 
     h3 {
