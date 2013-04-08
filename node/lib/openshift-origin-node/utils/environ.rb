@@ -29,6 +29,17 @@ module OpenShift
              File.join(gear_dir, '*', 'env'))
       end
 
+      # Load the combined cartridge environments for a gear
+      # @param [String] gear_dir       Home directory of the gear
+      # @param [Array[String]] dirs    Ordered List of cartridge_dirs for overrides
+      # @return [Hash<String,String>]  hash[Environment Variable] = Value
+      def self.for_gear_ordered(gear_dir, *dirs)
+        env = load("/etc/openshift/env",
+                   File.join(gear_dir, '.env'),
+                   File.join(gear_dir, '*', 'env'))
+        dirs.each_with_object(env) { |d, e| e.merge(load(File.join(d, 'env'))) }
+      end
+
       # @param [String] cartridge_dir       Home directory of the gear
       # @return [Hash<String,String>]  hash[Environment Variable] = Value
       def self.for_cartridge(cartridge_dir)
@@ -56,7 +67,7 @@ module OpenShift
                 contents = input.read.chomp
                 next if contents.empty?
 
-                index    = contents.index('=')
+                index           = contents.index('=')
                 parsed_contents = contents[(index + 1)..-1]
                 parsed_contents.gsub!(/\A["']|["']\Z/, '')
                 env[File.basename(file)] = parsed_contents
@@ -68,16 +79,16 @@ module OpenShift
               end
               msg << ": "
               msg << (
-                case e
+              case e
                 when SystemCallError
                   # This catches filesystem level errors
                   # We split the message because it contains the filename
                   e.message.split(' - ').first
                 else
                   e.message
-                end
+              end
               )
-              NodeLogger.logger.info( msg )
+              NodeLogger.logger.info(msg)
             end
           end
         end
