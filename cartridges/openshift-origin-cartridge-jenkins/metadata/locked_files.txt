@@ -1,6 +1,6 @@
 .jenkins_password
-redhat-jenkins/
-redhat-jenkins/metadata/
-redhat-jenkins/configuration/
-redhat-jenkins/env/
-redhat-jenkins/template/
+jenkins/
+jenkins/metadata/
+jenkins/configuration/
+jenkins/env/
+jenkins/template/

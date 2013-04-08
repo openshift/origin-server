@@ -25,7 +25,6 @@ PATH=/bin:/usr/bin:$PATH
 cartridge_type="jenkins"
 
 version=1.4
-OPENSHIFT_JENKINS_DIR="${OPENSHIFT_HOMEDIR}redhat-$cartridge_type"
 
 # Create additional directories required by JENKINS
 mkdir -p ${OPENSHIFT_JENKINS_DIR}/{bin,template,configuration,logs,data}

@@ -13,4 +13,4 @@ fi
 #
 # Publish this gear's endpoint.
 # 
-echo "${OPENSHIFT_GEAR_UUID}@${gip}:redhat-php;$OPENSHIFT_GEAR_DNS"
+echo "${OPENSHIFT_GEAR_UUID}@${gip}:php;$OPENSHIFT_GEAR_DNS"

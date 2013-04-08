@@ -123,7 +123,7 @@ class Gear_scale_ctl
       end
     end
 
-    haproxy_conf_dir=File.join(env['OPENSHIFT_HOMEDIR'], "redhat-haproxy", "conf")
+    haproxy_conf_dir=File.join(env['OPENSHIFT_HOMEDIR'], "haproxy", "conf")
     gear_registry_db=File.join(haproxy_conf_dir, "gear-registry.db")
     current_gear_count = `wc -l #{gear_registry_db}`
 

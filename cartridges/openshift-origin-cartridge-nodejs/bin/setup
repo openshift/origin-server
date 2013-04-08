@@ -3,8 +3,6 @@
 # Set default version
 version=0.6
 
-OPENSHIFT_NODEJS_DIR="$OPENSHIFT_HOMEDIR/redhat-nodejs"
-
 # Parse arguments
 source "${OPENSHIFT_NODEJS_DIR}/lib/util"
 parse_args $@

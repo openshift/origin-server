@@ -1,4 +1,4 @@
-redhat-jbosseap/
-redhat-jbosseap/metadata/
-redhat-jbosseap/env/
-redhat-jbosseap/template/
+jbosseap/
+jbosseap/metadata/
+jbosseap/env/
+jbosseap/template/
