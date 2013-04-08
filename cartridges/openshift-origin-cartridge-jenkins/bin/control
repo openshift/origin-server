@@ -78,7 +78,7 @@ function start() {
       -jar ${JENKINS_WAR_PATH} \
       --ajp13Port=-1 \
       --controlPort=-1 \
-      --logfile=$OPENSHIFT_HOMEDIR/redhat-jenkins/logs/jenkins.log \
+      --logfile=$OPENSHIFT_JENKINS_DIR/logs/jenkins.log \
       --daemon \
       --httpPort=8080 \
       --debug=5 \

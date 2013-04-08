@@ -166,7 +166,7 @@ function build() {
         	fi
         	popd > /dev/null
         	
-        	CART_NAME=redhat-${cartridge_type}
+        	CART_NAME=${cartridge_type}
     	fi
 	fi
 
@@ -175,7 +175,7 @@ function build() {
 function deploy() {
 	echo "Deploying $cartridge_type cart"
 	
-	CART_NAME=redhat-${cartridge_type}
+	CART_NAME=${cartridge_type}
 	
 	if [ "$(ls ${OPENSHIFT_REPO_DIR}/deployments)" ]; then
 		rsync -r --delete --exclude ".*" ${OPENSHIFT_REPO_DIR}/deployments/ ${OPENSHIFT_HOMEDIR}/${CART_NAME}/standalone/deployments/

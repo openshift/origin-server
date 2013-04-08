@@ -1,5 +1,5 @@
-redhat-python/conf/
-redhat-python/metadata/
-redhat-python/env/
-redhat-python/etc/
-redhat-python/template/
+python/conf/
+python/metadata/
+python/env/
+python/etc/
+python/template/

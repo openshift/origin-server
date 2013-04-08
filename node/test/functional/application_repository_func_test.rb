@@ -72,7 +72,7 @@ class ApplicationRepositoryFuncTest < Test::Unit::TestCase
 
     @model               = OpenShift::V2CartridgeModel.new(@config, @user, @state)
     @cartridge_name      = 'mock-0.1'
-    @cartridge_directory = 'redhat-mock'
+    @cartridge_directory = 'mock'
     @cartridge_home      = File.join(@user.homedir, @cartridge_directory)
     @model.configure(@cartridge_name)
   end

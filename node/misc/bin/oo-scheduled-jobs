@@ -9,7 +9,7 @@ CART_FORMAT=`oo-cart-version -c show | cut -d\  -f5`
 
 if [ "$CART_FORMAT" == "v2" ]
 then
-   CART_DIRNAME="redhat-cron"
+   CART_DIRNAME="cron"
 else
    CART_DIRNAME="cron-1.4"
 fi

@@ -11,4 +11,4 @@ gip=$(facter ipaddress);
 #
 # Publish this gear's endpoint.
 # 
-echo "${OPENSHIFT_GEAR_UUID}@${gip}:redhat-jbosseap;$OPENSHIFT_GEAR_DNS"
+echo "${OPENSHIFT_GEAR_UUID}@${gip}:jbosseap;$OPENSHIFT_GEAR_DNS"

@@ -116,7 +116,7 @@ module OpenShift
 
     def cartridge_directory(cart_name)
       name, _  = map_cartridge_name(cart_name)
-      cart_dir = Dir.glob(PathUtils.join(@user.homedir, "*-#{name}"))
+      cart_dir = Dir.glob(PathUtils.join(@user.homedir, "#{name}"))
       raise "Ambiguous cartridge name #{cart_name}: found #{cart_dir}:#{cart_dir.size}" if 1 < cart_dir.size
 
       File.basename(cart_dir.first)
