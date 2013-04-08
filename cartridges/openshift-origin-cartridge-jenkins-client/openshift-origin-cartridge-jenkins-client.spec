@@ -7,7 +7,7 @@
 
 Summary:       Embedded jenkins client support for OpenShift 
 Name:          openshift-origin-cartridge-jenkins-client
-Version: 1.6.1
+Version: 1.6.2
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -63,6 +63,11 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Mon Apr 08 2013 Adam Miller <admiller@redhat.com> 1.6.2-1
+- Fix Jenkins deploy cycle (ironcladlou@gmail.com)
+- Refactor v2 cartridge SDK location and accessibility (ironcladlou@gmail.com)
+- Adding jenkins templates to carts (dmcphers@redhat.com)
+
 * Thu Mar 28 2013 Adam Miller <admiller@redhat.com> 1.6.1-1
 - bump_minor_versions for sprint 26 (admiller@redhat.com)
 
