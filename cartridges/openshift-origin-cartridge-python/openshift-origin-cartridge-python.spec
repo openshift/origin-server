@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/openshift/cartridges/v2/python
 
 Name: openshift-origin-cartridge-python
-Version: 0.2.1
+Version: 0.2.2
 Release: 1%{?dist}
 Summary: Python cartridge
 Group: Development/Languages
@@ -72,6 +72,13 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Mon Apr 08 2013 Adam Miller <admiller@redhat.com> 0.2.2-1
+- Fix Jenkins deploy cycle (ironcladlou@gmail.com)
+- Python v2 fixes. (mrunalp@gmail.com)
+- adding all the jenkins jobs (dmcphers@redhat.com)
+- Adding jenkins templates to carts (dmcphers@redhat.com)
+- Add connection hooks. (mrunalp@gmail.com)
+
 * Thu Mar 28 2013 Adam Miller <admiller@redhat.com> 0.2.1-1
 - bump_minor_versions for sprint 26 (admiller@redhat.com)
 - Merge pull request #1834 from mrunalp/bugs/928282
