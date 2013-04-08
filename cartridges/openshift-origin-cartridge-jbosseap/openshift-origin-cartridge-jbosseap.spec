@@ -5,7 +5,7 @@
 
 Summary:       Provides JBossEAP6.0 support
 Name:          openshift-origin-cartridge-jbosseap
-Version: 2.1.1
+Version: 2.1.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -98,6 +98,21 @@ cp -p %{cartridgedir}/versions/6.0/modules/postgresql_module.xml /etc/alternativ
 
 
 %changelog
+* Mon Apr 08 2013 Adam Miller <admiller@redhat.com> 2.1.2-1
+- Fix Jenkins deploy cycle (ironcladlou@gmail.com)
+- Bug 883944 (bdecoste@gmail.com)
+- hot_deploy (bdecoste@gmail.com)
+- update rsync (bdecoste@gmail.com)
+- update jbosseap cart2 (bdecoste@gmail.com)
+- link log dir (bdecoste@gmail.com)
+- Bug 947016 (bdecoste@gmail.com)
+- adding all the jenkins jobs (dmcphers@redhat.com)
+- adding jenkins artifacts glob (dmcphers@redhat.com)
+- Adding jenkins templates to carts (dmcphers@redhat.com)
+- Merge pull request #1842 from bdecoste/master (dmcphers@redhat.com)
+- rsync deployments (bdecoste@gmail.com)
+- rsync deployments (bdecoste@gmail.com)
+
 * Thu Mar 28 2013 Adam Miller <admiller@redhat.com> 2.1.1-1
 - bump_minor_versions for sprint 26 (admiller@redhat.com)
 
