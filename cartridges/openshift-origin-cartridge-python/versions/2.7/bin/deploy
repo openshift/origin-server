@@ -1,0 +1,17 @@
+#!/bin/bash
+
+cartridge_type="python-2.7"
+source "/etc/openshift/node.conf"
+
+#  Import environment variables.
+source "${CARTRIDGE_BASE_PATH}/${cartridge_type}/info/bin/source_env_vars"
+
+#  Source in the utility functions.
+[ -z "$OPENSHIFT_HOMEDIR" ]  &&  source ~/.env/OPENSHIFT_HOMEDIR
+source "${OPENSHIFT_HOMEDIR}/${cartridge_type}/lib/utils"
+
+
+#  Create (or update if exists) and activate the virtualenv.
+create_virtualenv
+activate_virtualenv
+

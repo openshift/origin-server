@@ -1,0 +1,41 @@
+#!/bin/bash
+set -xe
+
+version="2.7"
+cartridge_type="python-2.7"
+
+#  Source in the utility functions.
+source "${OPENSHIFT_PYTHON_DIR}/versions/$version/lib/utils"
+
+# Copy the version specific files
+shopt -s dotglob
+cp -r $OPENSHIFT_PYTHON_DIR/versions/$version/template/* $OPENSHIFT_PYTHON_DIR/template
+
+# Download the repo bits
+cart_git_url="git://github.com/openshift/openshift-community-cartridge-python-2.7.git"
+download_dir=$OPENSHIFT_PYTHON_DIR/upstream-repo
+mkdir -p $download_dir
+git clone --no-hardlinks $cart_git_url $download_dir
+
+#  Extract the tarball files -- supports .tar, .tar.gz, .tar.gz and zip files.
+extract_package_files "${download_dir}/opt" "${OPENSHIFT_PYTHON_DIR}/opt"
+
+#  Add the python cartridge environment variables.
+egg_cache_dir="${OPENSHIFT_PYTHON_DIR}/virtenv/.python-eggs"
+echo "export PYTHON_EGG_CACHE='$egg_cache_dir'" > "$OPENSHIFT_PYTHON_DIR/env/PYTHON_EGG_CACHE"
+
+#  Create the virtualenv.
+create_virtualenv
+
+
+#  Write a file that can be sourced for setting the LD_LIBRARY_PATH and
+#  activating the virtualenv on the shell.
+cat > "${OPENSHIFT_PYTHON_DIR}/bin/activate_virtenv"  <<AVEOF
+#  Set the library path so that the python 2.7 shared library can be found.
+export LD_LIBRARY_PATH="\${OPENSHIFT_PYTHON_DIR}/usr/lib:\${LD_LIBRARY_PATH}" 
+export LIBRARY_PATH="\${OPENSHIFT_PYTHON_DIR}/usr/lib:\${LIBRARY_PATH}" 
+source \${OPENSHIFT_PYTHON_DIR}/virtenv/bin/activate
+AVEOF
+
+chmod 555 "${OPENSHIFT_PYTHON_DIR}/bin/activate_virtenv"
+
