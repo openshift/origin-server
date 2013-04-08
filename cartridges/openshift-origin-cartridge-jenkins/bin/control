@@ -22,9 +22,9 @@ function is_up() {
     let count=0
     while [ ${count} -lt 15 ]
     do
-        url="curl -k -X GET --user \"${JENKINS_USERNAME}:${JENKINS_PASSWORD}\" ${jenkins_url}"
+        url="curl -s -k -X GET --user \"${JENKINS_USERNAME}:${JENKINS_PASSWORD}\" ${jenkins_url}"
         result=`$url`
-        if [ -n $result ]; then
+        if [ -z "$result" ]; then
                 echo "Waiting ..."
         else
                 if [[ "$result" == *"Please wait while Jenkins is getting ready to work"* ]]; then
