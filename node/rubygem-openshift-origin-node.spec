@@ -16,7 +16,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.7.19
+Version: 1.7.20
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -289,6 +289,62 @@ fi
 %attr(0755,-,-) /etc/cron.monthly/openshift-origin-cron-monthly
 
 %changelog
+* Mon Apr 08 2013 Adam Miller <admiller@redhat.com> 1.7.20-1
+- Merge pull request #1941 from jwhonce/wip/v2_cart_model
+  (dmcphers+openshiftbot@redhat.com)
+- WIP Cartridge Refactor - Use gear combined env when calling hooks
+  (jhonce@redhat.com)
+- Cartridge Bash SDK cleanups (ironcladlou@gmail.com)
+- 10gen-mms-agent WIP (dmcphers@redhat.com)
+- Merge pull request #1932 from pmorie/dev/v2_mysql (dmcphers@redhat.com)
+- Add v2 mysql snapshot (pmorie@gmail.com)
+- HAProxy deploy wip. (mrunalp@gmail.com)
+- Set sync on STDOUT/STDERR in gear script (ironcladlou@gmail.com)
+- cleanup (dmcphers@redhat.com)
+- Merge pull request #1903 from fotioslindiakos/cart_utils
+  (dmcphers@redhat.com)
+- Merge pull request #1914 from pmorie/dev/mock_hooks
+  (dmcphers+openshiftbot@redhat.com)
+- Added helper function to set env vars (fotios@redhat.com)
+- Merge pull request #1912 from calfonso/master (dmcphers@redhat.com)
+- Merge pull request #1898 from jwhonce/wip/rhcsh
+  (dmcphers+openshiftbot@redhat.com)
+- Refactor mock and mock-plugin connection hooks (pmorie@gmail.com)
+- Moving root cron configuration out of cartridges and into node
+  (calfonso@redhat.com)
+- Build lifecycle fixes and tests (ironcladlou@gmail.com)
+- Fix unit/functional test isolation (ironcladlou@gmail.com)
+- Refactor v2 cartridge SDK location and accessibility (ironcladlou@gmail.com)
+- Merge pull request #1899 from pmorie/dev/connector_docs (dmcphers@redhat.com)
+- Recover pub/sub docs (pmorie@gmail.com)
+- WIP Cartridge Refactor - rhcsh support of v2 applications (jhonce@redhat.com)
+- WIP Cartridge Refactor - support for git submodules and template url
+  (jhonce@redhat.com)
+- Merge pull request #1890 from mrunalp/dev/web_proxy_deploy
+  (dmcphers@redhat.com)
+- Merge pull request #1882 from ironcladlou/dev/v2carts/build-system
+  (dmcphers+openshiftbot@redhat.com)
+- Deploy for web proxy. (mrunalp@gmail.com)
+- adding to the sdk (dmcphers@redhat.com)
+- General client message streaming support (ironcladlou@gmail.com)
+- Fix how erb binary is resolved. Using util/util-scl packages instead of doing
+  it dynamically in code. Separating manifest into RHEL and Fedora versions
+  instead of using sed to set version. (kraman@gmail.com)
+- WIP: v2 snapshot/restore (pmorie@gmail.com)
+- Merge pull request #1872 from pmorie/dev/gear
+  (dmcphers+openshiftbot@redhat.com)
+- Suppress NodeLogger calls in the context of gear script (pmorie@gmail.com)
+- Fix v2 ERB processing (ironcladlou@gmail.com)
+- V2 cart state management implementation (ironcladlou@gmail.com)
+- Merge pull request #1837 from kraman/php_v2
+  (dmcphers+openshiftbot@redhat.com)
+- Adding Apache 2.4 and PHP 5.4 support to PHP v2 cartridge Fix Path to erb
+  executable (kraman@gmail.com)
+- Better rescue for Errno (fotios@redhat.com)
+- Added application_state tests (fotios@redhat.com)
+- Fixing environ tests (fotios@redhat.com)
+- Fixing frontend_proxy_test (fotios@redhat.com)
+
 * Thu Apr 04 2013 Unknown name 1.7.19-1
 - fixing (root@ip-10-110-255-166.ec2.internal)
 
