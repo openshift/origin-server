@@ -103,3 +103,6 @@ Endpoints:
     Private-Port-Name: REMOTING_PORT
     Private-Port:      4447
     Public-Port-Name:  REMOTING_PROXY_PORT
+Additional-Control-Actions:
+    - threaddump
+
