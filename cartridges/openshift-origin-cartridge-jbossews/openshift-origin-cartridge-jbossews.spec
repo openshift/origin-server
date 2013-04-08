@@ -2,7 +2,7 @@
 
 Summary:       Provides JBossEWS2.0 support
 Name:          openshift-origin-cartridge-jbossews
-Version: 0.2.1
+Version: 0.2.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -80,6 +80,15 @@ alternatives --set jbossews-2.0 /usr/share/tomcat7
 
 
 %changelog
+* Mon Apr 08 2013 Adam Miller <admiller@redhat.com> 0.2.2-1
+- Merge pull request #1930 from mrunalp/dev/cart_hooks (dmcphers@redhat.com)
+- Add hooks for other carts. (mrunalp@gmail.com)
+- Fix Jenkins deploy cycle (ironcladlou@gmail.com)
+- Refactor v2 cartridge SDK location and accessibility (ironcladlou@gmail.com)
+- Minor EWS spec fix to avoid gcj issues (bleanhar@redhat.com)
+- adding all the jenkins jobs (dmcphers@redhat.com)
+- Adding jenkins templates to carts (dmcphers@redhat.com)
+
 * Thu Mar 28 2013 Adam Miller <admiller@redhat.com> 0.2.1-1
 - bump_minor_versions for sprint 26 (admiller@redhat.com)
 
