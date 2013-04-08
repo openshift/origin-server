@@ -6,7 +6,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin broker
 Name:          openshift-origin-broker-util
-Version:       1.7.1
+Version:       1.7.2
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -80,6 +80,16 @@ cp man/*.8 %{buildroot}%{_mandir}/man8/
 %{_mandir}/man8/oo-stats.8.gz
 
 %changelog
+* Mon Apr 08 2013 Adam Miller <admiller@redhat.com> 1.7.2-1
+- Handling case where the user is not present (abhgupta@redhat.com)
+- oo-accept-broker: fix and enable SELinux checks (miciah.masters@gmail.com)
+- Merge pull request #1669 from tdawson/tdawson/minor-spec-cleanup/2013-03-15
+  (dmcphers+openshiftbot@redhat.com)
+- Typo fixes (bleanhar@redhat.com)
+- fixing rebase (tdawson@redhat.com)
+- Adding ability to add and remove domain wide environment variables from admin
+  script (kraman@gmail.com)
+
 * Thu Mar 28 2013 Adam Miller <admiller@redhat.com> 1.7.1-1
 - bump_minor_versions for sprint 26 (admiller@redhat.com)
 
