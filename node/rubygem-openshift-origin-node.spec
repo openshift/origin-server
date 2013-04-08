@@ -252,6 +252,7 @@ fi
 %config(noreplace) /etc/httpd/conf.d/openshift_route.include
 %dir %attr(0755,-,-) %{appdir}
 %dir %attr(0750,root,apache) %{appdir}/.httpd.d
+%dir %attr(0700,root,root) %{_var}/run/openshift
 %attr(0640,root,apache) %config(noreplace) %{appdir}/.httpd.d/routes.json
 %attr(0640,root,apache) %config(noreplace) %{appdir}/.httpd.d/nodes.txt
 %attr(0640,root,apache) %config(noreplace) %{appdir}/.httpd.d/aliases.txt
