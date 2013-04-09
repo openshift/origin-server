@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Common
 Name:          rubygem-%{gem_name}
-Version: 1.6.1
+Version: 1.6.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -95,6 +95,9 @@ cp -a ./%{gem_dir}/* %{buildroot}%{gem_dir}/
 %doc %{gem_docdir}
 
 %changelog
+* Tue Apr 09 2013 Adam Miller <admiller@redhat.com> 1.6.2-1
+- Card 534 (lnader@redhat.com)
+
 * Thu Mar 28 2013 Adam Miller <admiller@redhat.com> 1.6.1-1
 - bump_minor_versions for sprint 26 (admiller@redhat.com)
 
