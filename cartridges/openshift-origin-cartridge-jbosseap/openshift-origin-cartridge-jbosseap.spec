@@ -5,7 +5,7 @@
 
 Summary:       Provides JBossEAP6.0 support
 Name:          openshift-origin-cartridge-jbosseap
-Version: 2.1.2
+Version: 2.1.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -98,6 +98,16 @@ cp -p %{cartridgedir}/versions/6.0/modules/postgresql_module.xml /etc/alternativ
 
 
 %changelog
+* Tue Apr 09 2013 Adam Miller <admiller@redhat.com> 2.1.3-1
+- Merge pull request #1962 from danmcp/master (dmcphers@redhat.com)
+- Merge pull request #1956 from mrunalp/bugs/949273 (dmcphers@redhat.com)
+- jenkins WIP (dmcphers@redhat.com)
+- Bug 949273: Fix the manifest. (mrunalp@gmail.com)
+- Rename cideploy to geardeploy. (mrunalp@gmail.com)
+- Merge pull request #1942 from ironcladlou/dev/v2carts/vendor-changes
+  (dmcphers+openshiftbot@redhat.com)
+- Remove vendor name from installed V2 cartridge path (ironcladlou@gmail.com)
+
 * Mon Apr 08 2013 Adam Miller <admiller@redhat.com> 2.1.2-1
 - Fix Jenkins deploy cycle (ironcladlou@gmail.com)
 - Bug 883944 (bdecoste@gmail.com)
