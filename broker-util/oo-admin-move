@@ -24,8 +24,8 @@ Options:
     Node profile
 -t|--timeout
     timeout
---allow_change_district
-    Allow the move to be between districts
+--change_district
+    Move to a different district other than the source district
 -h|--help
     Show Usage info
 USAGE
@@ -38,7 +38,7 @@ opts = GetoptLong.new(
     ["--target_server_identity", "-i", GetoptLong::REQUIRED_ARGUMENT],
     ["--node_profile",     "-p", GetoptLong::REQUIRED_ARGUMENT],
     ["--timeout",          "-t", GetoptLong::REQUIRED_ARGUMENT],
-    ["--allow_change_district",  GetoptLong::NO_ARGUMENT],
+    ["--change_district",  GetoptLong::NO_ARGUMENT],
     ["--help",             "-h", GetoptLong::NO_ARGUMENT]
 )
 
@@ -53,7 +53,7 @@ gear_uuid = args["--gear_uuid"]
 target_server_identity = args['--target_server_identity']
 destination_district_uuid = args['--destination_district_uuid']
 node_profile = args['--node_profile']
-allow_change_district = args['--allow_change_district'] ? true : false
+change_district = args['--change_district'] ? true : false
 timeout  = args['--timeout']
 
 if args["--help"]
@@ -107,7 +107,7 @@ puts "Gear UUID: #{gear._id}"
 destination_container = nil
 destination_container = OpenShift::ApplicationContainerProxy.instance(target_server_identity) if target_server_identity
 
-reply = gear.get_proxy.move_gear_secure(gear, destination_container, destination_district_uuid, allow_change_district, node_profile)
+reply = gear.get_proxy.move_gear_secure(gear, destination_container, destination_district_uuid, change_district, node_profile)
 
 puts "################# ADDITIONAL DEBUG OUTPUT #################\n#{reply.debugIO.string}\n" unless reply.debugIO.string.empty?
 puts "################# ADDITIONAL ERROR OUTPUT #################\n#{reply.errorIO.string}\n" unless reply.errorIO.string.empty?
