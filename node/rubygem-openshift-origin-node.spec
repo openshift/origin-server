@@ -207,12 +207,6 @@ else
    logger -t rpm-post "cannot add pam_cgroup.so to /etc/pamd./sshd: file not found"
 fi
 
-# copying this file in the post hook so that this file can be replaced by rhc-node
-# copy this file only if it doesn't already exist
-if ! [ -f /etc/openshift/resource_limits.conf ]; then
-  cp -f /etc/openshift/resource_limits.template /etc/openshift/resource_limits.conf
-fi
-
 # Start the cron service so that each gear gets its cron job run, if they're enabled
 %if 0%{?fedora} >= 16 || 0%{?rhel} >= 7
   systemctl restart  crond.service || :
@@ -245,7 +239,7 @@ fi
 %dir /etc/openshift
 %config(noreplace) /etc/openshift/node.conf
 %config(noreplace) /etc/openshift/env/*
-%config /etc/openshift/resource_limits.template
+%config(noreplace) /etc/openshift/resource_limits.conf
 %attr(0750,-,-) /etc/httpd/conf.d/openshift
 %config(noreplace) /etc/httpd/conf.d/000001_openshift_origin_node.conf
 %config(noreplace) /etc/httpd/conf.d/000001_openshift_origin_node_servername.conf
