@@ -56,20 +56,8 @@ function add_app_ssh_key {
     echo "APP_SSH_KEY_ADD: $1 $2"
 }
 
-function remove_ssh_key {
-    echo "SSH_KEY_REMOVE: "
-}
-
-function remove_app_ssh_key {
-    echo "APP_SSH_KEY_REMOVE: $1"
-}
-
 function add_env_var {
     echo "ENV_VAR_ADD: $1"
-}
-
-function remove_env_var {
-    echo "ENV_VAR_REMOVE: $1"
 }
 
 function app_remove_env_var {

@@ -29,5 +29,3 @@ source /etc/openshift/node.conf
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 
 setup_embedded_deconfigure "$1" $2 $3
-
-remove_app_ssh_key $CART_NAME
