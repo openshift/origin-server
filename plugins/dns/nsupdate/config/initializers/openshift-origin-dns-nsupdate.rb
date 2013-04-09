@@ -15,7 +15,7 @@ Broker::Application.configure do
   config.dns = {
     :server => conf.get("BIND_SERVER", "127.0.0.1"),
     :port => conf.get("BIND_PORT", "53").to_i,
-    :zone => conf.get("BIND_ZONE", "example.com")
+    :zone => conf.get("BIND_ZONE", "example.com"),
 
     # Authentication information: TSIG or GSS-TSIG (kerberos) but not both
     #
