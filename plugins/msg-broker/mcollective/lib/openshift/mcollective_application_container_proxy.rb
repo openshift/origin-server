@@ -1636,7 +1636,7 @@ module OpenShift
         source_container = gear.get_proxy
         gi_comps = gear.group_instance.all_component_instances.to_a
         start_order,stop_order = app.calculate_component_orders
-        stop_order.reverse.each { |cinst|
+        stop_order.each { |cinst|
           next if not gi_comps.include? cinst
           next if cinst.is_singleton? and (not gear.host_singletons)
           cart = cinst.cartridge_name
@@ -1680,20 +1680,20 @@ module OpenShift
       # * uses rsync_destination_container
       # * uses move_gear_destroy_old
       # 
-      def move_gear_secure(gear, destination_container, destination_district_uuid, allow_change_district, node_profile)
+      def move_gear_secure(gear, destination_container, destination_district_uuid, change_district, node_profile)
         app = gear.app
         Application.run_in_application_lock(app) do
-          move_gear(gear, destination_container, destination_district_uuid, allow_change_district, node_profile)
+          move_gear(gear, destination_container, destination_district_uuid, change_district, node_profile)
         end
       end
 
-      def move_gear(gear, destination_container, destination_district_uuid, allow_change_district, node_profile)
+      def move_gear(gear, destination_container, destination_district_uuid, change_district, node_profile)
         app = gear.app
         reply = ResultIO.new
         state_map = {}
 
         # resolve destination_container according to district
-        destination_container, destination_district_uuid, district_changed = resolve_destination(gear, destination_container, destination_district_uuid, allow_change_district)
+        destination_container, destination_district_uuid, district_changed = resolve_destination(gear, destination_container, destination_district_uuid, change_district)
 
         source_container = gear.get_proxy
         destination_node_profile = destination_container.get_node_profile
@@ -1784,8 +1784,11 @@ module OpenShift
           end
         rescue Exception => e
           begin
+            gi_comps = gear.group_instance.all_component_instances.to_a
+            start_order,stop_order = app.calculate_component_orders
             # start source
-            gi.all_component_instances.each do |cinst|
+            start_order.each do |cinst|
+              next if not gi_comps.include? cinst
               next if cinst.is_singleton? and (not gear.host_singletons)
               cart = cinst.cartridge_name
               idle, leave_stopped = state_map[cart]
@@ -1842,7 +1845,7 @@ module OpenShift
       # * gear: a Gear object
       # * destination_container: ??
       # * destination_district_uuid: String
-      # * allow_change_district: Boolean
+      # * change_district: Boolean
       #
       # RETURNS:
       # * Array: [destination_container, destination_district_uuid, keep_uuid]
@@ -1853,16 +1856,13 @@ module OpenShift
       # NOTES:
       # * uses MCollectiveApplicationContainerProxy.find_available_impl
       #
-      def resolve_destination(gear, destination_container, destination_district_uuid, allow_change_district)
+      def resolve_destination(gear, destination_container, destination_district_uuid, change_district)
         source_container = gear.get_proxy
         source_district_uuid = source_container.get_district_uuid
+  
         if destination_container.nil?
-          unless allow_change_district
-            if destination_district_uuid && destination_district_uuid != source_district_uuid
-              raise OpenShift::UserException.new("Error moving app.  Cannot change district from '#{source_district_uuid}' to '#{destination_district_uuid}' without allow_change_district flag.", 1)
-            else
-              destination_district_uuid = source_district_uuid unless source_district_uuid == 'NONE'
-            end
+          if !destination_district_uuid and !change_district
+            destination_district_uuid = source_district_uuid unless source_district_uuid == 'NONE'
           end
           destination_container = MCollectiveApplicationContainerProxy.find_available_impl(gear.group_instance.gear_size, destination_district_uuid, nil, gear.uid)
           log_debug "DEBUG: Destination container: #{destination_container.id}"
@@ -1872,9 +1872,6 @@ module OpenShift
             log_debug "DEBUG: Destination district uuid '#{destination_district_uuid}' is being ignored in favor of destination container #{destination_container.id}"
           end
           destination_district_uuid = destination_container.get_district_uuid
-          unless allow_change_district || (source_district_uuid == destination_district_uuid)
-            raise OpenShift::UserException.new("Resulting move would change districts from '#{source_district_uuid}' to '#{destination_district_uuid}'.  You can use the 'allow_change_district' option if you really want this to happen.", 1)
-          end
         end
         
         log_debug "DEBUG: Source district uuid: #{source_district_uuid}"
