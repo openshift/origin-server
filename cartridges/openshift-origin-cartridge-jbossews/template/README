@@ -1,27 +1,17 @@
 Repo layout
 =========== 
-webapps/ - location for built wars (Details below)
-src/ - Maven src structure
-pom.xml - Maven build file  
-.openshift/ - location for openshift specific files
-.openshift/config/ - location for configuration files such as standalone.xml (used to modify jboss config such as datasources) 
-.openshift/action_hooks/pre_build - Script that gets run every git push before the build (on the CI system if available)
-.openshift/action_hooks/build - Script that gets run every git push as part of the build process (on the CI system if available)
-.openshift/action_hooks/deploy - Script that gets run every git push after build but before the app is restarted
-.openshift/action_hooks/post_deploy - Script that gets run every git push after the app is restarted
-.openshift/action_hooks/pre_start_jbossews-2.0 - Script that gets run prior to starting EWS2.0
-.openshift/action_hooks/post_start_jbossews-2.0 - Script that gets run after EWS2.0 is started
-.openshift/action_hooks/pre_stop_jbossews-2.0 - Script that gets run prior to stopping EWS2.0
-.openshift/action_hooks/post_stop_jbossews-2.0 - Script that gets run after EWS2.0 is stopped
-
+webapps/           - Location for built WARs (details below)
+src/               - Maven source structure
+pom.xml            - Maven build file
+.openshift/        - Location for OpenShift specific files
+.openshift/config/ - Location for configuration files such as server.xml
 
 Notes about layout
 ==================
 Note: Every time you push, everything in your remote repo dir gets recreated
       please store long term items (like an sqlite database) in the OpenShift
       data directory, which will persist between pushes of your repo.
-      The OpenShift data directory is accessible relative to the remote repo
-      directory (../data) or via an environment variable OPENSHIFT_DATA_DIR.
+      The OpenShift data directory is accessible via an environment variable OPENSHIFT_DATA_DIR.
 
 
 Details about layout and deployment options
@@ -84,10 +74,11 @@ Environment Variables
 OpenShift provides several environment variables to reference for ease
 of use.  The following list are some common variables but far from exhaustive:
 
-    System.getenv("OPENSHIFT_APP_NAME")  - Application name
-    System.getenv("OPENSHIFT_DATA_DIR")  - For persistent storage (between pushes)
-    System.getenv("OPENSHIFT_TMP_DIR")   - Temp storage (unmodified files deleted after 10 days)
-    System.getenv("OPENSHIFT_INTERNAL_IP")  - The IP address used to bind EWS2.0
+    System.getenv("OPENSHIFT_APP_NAME")           - Application name
+    System.getenv("OPENSHIFT_DATA_DIR")           - For persistent storage (between pushes)
+    System.getenv("OPENSHIFT_TMP_DIR")            - Temp storage (unmodified files deleted after 10 days)
+    System.getenv("OPENSHIFT_JBOSSEWS_IP")        - The IP address used to bind EWS2.0
+    System.getenv("OPENSHIFT_JBOSSEWS_HTTP_PORT") - The EWS2.0 listening port
 
 When embedding a database using 'rhc cartridge add', you can reference environment
 variables for username, host and password. For example, when embedding MySQL 5.1, the 
