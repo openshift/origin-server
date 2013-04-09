@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/openshift/cartridges/v2/diy
 
 Name: openshift-origin-cartridge-diy
-Version: 0.2.1
+Version: 0.2.2
 Release: 1%{?dist}
 Summary: Php cartridge
 Group: Development/Languages
@@ -54,6 +54,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Tue Apr 09 2013 Adam Miller <admiller@redhat.com> 0.2.2-1
+- Remove vendor name from installed V2 cartridge path (ironcladlou@gmail.com)
+
 * Thu Mar 28 2013 Adam Miller <admiller@redhat.com> 0.2.1-1
 - bump_minor_versions for sprint 26 (admiller@redhat.com)
 
