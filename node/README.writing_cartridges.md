@@ -255,29 +255,32 @@ application developer while the cartridge is locked.
 
 Any non-existent files that are included in the list will be created
 before your `setup` script is called.  Any missing parent directories will be
-created as needed. The list is anchored at the gear's home directory.
+created as needed. The list is anchored at the cartridge's directory.
 An entry ending in slash is processed as a directory.  Entries ending
 in asterisk are a list of files.  Entries ending in an other character
 are considered files.  OpenShift will not attempt to change files to
 directories or vice versa, and your cartridge may fail to operate if
 files are miscatergorized and you depend on OpenShift to create them.
 
+Any lines starting with `~/` will be anchored at the gear directory rather
+than the cartridge directory.
+
 #### Lock configuration example
 
 Here is a `locked_files.txt` for a PHP cartridge:
 
-    .pearrc
-    php-5.3/bin/
-    php-5.3/conf/*
+    ~/.pearrc
+    bin/
+    conf/*
 
 In the above list:
-  * the file `.pearrc` will be created, if it does not exists, and be made editable by you.
-  * the directory `php-5.3/bin` is locked but not the files it contains. While you can add files, both you
+  * the file `~/.pearrc` will be created, if it does not exists, and be made editable by you.
+  * the directory `php/bin` is locked but not the files it contains. While you can add files, both you
     and the application developer can edit any files contained.
-  * the files in `php-5.3/conf` are locked but the directory itself is not.
+  * the files in `php/conf` are locked but the directory itself is not.
     So you or the application developer can add files, but only you can edit them.
 
-Directories like `.node-gyp` and `.npm` in nodejs are **NOT** candidates
+Directories like `~/.node-gyp` and `~/.npm` in nodejs are **NOT** candidates
 to be created in this manner as they require the application developer to have read
 and write access while the application is deploying and running. These
 directories would need to be created by the nodejs `setup` script.
@@ -285,10 +288,10 @@ directories would need to be created by the nodejs `setup` script.
 The following list is reserved by OpenShift in the the gear's home
 directory:
 
-    .ssh
-    .sandbox
-    .tmp
-    .env
+    ~/.ssh
+    ~/.sandbox
+    ~/.tmp
+    ~/.env
     any not hidden directory or file
 
 You may create any hidden file or directory (one that starts with a

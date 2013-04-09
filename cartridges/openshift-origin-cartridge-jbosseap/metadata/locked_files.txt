@@ -1,4 +1,3 @@
-jbosseap/
-jbosseap/metadata/
-jbosseap/env/
-jbosseap/template/
+metadata/
+env/
+template/

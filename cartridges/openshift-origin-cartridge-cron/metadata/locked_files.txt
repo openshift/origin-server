@@ -1,4 +1,3 @@
-cron-1.4/
-cron-1.4/configuration/
-cron-1.4/metadata/
-cron-1.4/template/
+configuration/
+metadata/
+template/

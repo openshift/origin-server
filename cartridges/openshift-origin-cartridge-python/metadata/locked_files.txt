@@ -1,5 +1,5 @@
-python/conf/
-python/metadata/
-python/env/
-python/etc/
-python/template/
+conf/
+metadata/
+env/
+etc/
+template/
