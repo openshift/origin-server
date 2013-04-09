@@ -190,7 +190,7 @@ class RestApplication < OpenShift::Model
             Param.new("name", "string", "framework-type, e.g.: mongodb-2.0", carts)
           ],[
             OptionalParam.new("colocate_with", "string", "The component to colocate with", app.component_instances.map{|c| c.cartridge_name}),
-            OptionalParam.new("scales_from", "integer", "Minumimum number of gears to run the component on."),
+            OptionalParam.new("scales_from", "integer", "Minimum number of gears to run the component on."),
             OptionalParam.new("scales_to", "integer", "Maximum number of gears to run the component on."),
             OptionalParam.new("additional_storage", "integer", "Additional GB of space to request on all gears running this component."),
           ]
@@ -200,7 +200,7 @@ class RestApplication < OpenShift::Model
         "ADD_ALIAS" => Link.new("Create new alias", "POST", URI::join(url, "domains/#{@domain_id}/applications/#{@name}/aliases"), 
           [Param.new("id", "string", "Alias for application")], 
           [OptionalParam.new("ssl_certificate", "string", "Content of SSL Certificate"), 
-            OptionalParam.new("private_key", "string", "Private key for the certifcate.  Required if adding a certificate"), 
+            OptionalParam.new("private_key", "string", "Private key for the certificate.  Required if adding a certificate"), 
             OptionalParam.new("pass_phrase", "string", "Optional passphrase for the private key")]),
         "LIST_ALIASES" => Link.new("List applications", "GET", URI::join(url, "domains/#{@domain_id}/applications/#{@name}/aliases")),
       }
