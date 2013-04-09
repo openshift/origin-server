@@ -30,6 +30,7 @@ rm -rf %{buildroot}
 mkdir -p %{buildroot}%{cartridgedir}/.openshift
 mkdir -p %{buildroot}/%{_sysconfdir}/openshift/cartridges/v2
 cp -r * %{buildroot}%{cartridgedir}/
+cp .mock_hidden.erb %{buildroot}%{cartridgedir}/
 ln -s %{cartridgedir}/conf/ %{buildroot}/%{_sysconfdir}/openshift/cartridges/v2/%{name}
 ln -s %{cartridgedir} %{buildroot}/%{frameworkdir}
 
@@ -59,6 +60,7 @@ rm -rf %{buildroot}
 %attr(0755,-,-) %{frameworkdir}
 %{_sysconfdir}/openshift/cartridges/v2/%{name}
 %{cartridgedir}/metadata/manifest.yml
+%{cartridgedir}/.mock_hidden.erb
 %doc %{cartridgedir}/README.md
 %config(noreplace) %{cartridgedir}/mock.conf
 
