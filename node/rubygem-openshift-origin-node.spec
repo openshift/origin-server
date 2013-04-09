@@ -272,7 +272,7 @@ fi
 /etc/tmpfiles.d/openshift-run.conf
 %endif
 # upstart files
-
+%attr(0755,-,-) %{_var}/run/openshift
 %dir %attr(0755,-,-) /usr/lib/openshift/node/jobs
 %config(noreplace) %attr(0644,-,-) /usr/lib/openshift/node/jobs/1minutely
 %attr(0755,-,-) /usr/lib/openshift/node/jobs/openshift-origin-cron-minutely
