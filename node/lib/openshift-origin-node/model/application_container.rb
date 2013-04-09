@@ -501,14 +501,23 @@ module OpenShift
       stop_gear
 
       @cartridge_model.each_cartridge do |cartridge|
-        @cartridge_model.do_control('pre-snapshot', cartridge, err: $stderr)
+        @cartridge_model.do_control('pre-snapshot', 
+                                    cartridge,
+                                    err: $stderr,
+                                    pre_action_hooks_enabled: false,
+                                    post_action_hooks_enabled: false,
+                                    prefix_action_hooks:      false,)
       end
 
       exclusions = snapshot_exclusions
       write_snapshot_archive(exclusions)
 
       @cartridge_model.each_cartridge do |cartridge|
-        @cartridge_model.do_control('post-snapshot', cartridge, err: $stderr)
+        @cartridge_model.do_control('post-snapshot', 
+                                    cartridge, 
+                                    err: $stderr,
+                                    pre_action_hooks_enabled: false,
+                                    post_action_hooks_enabled: false)
       end      
 
       start_gear
@@ -550,7 +559,7 @@ module OpenShift
 --exclude=./$OPENSHIFT_GEAR_UUID/*/run/httpd.pid \
 --exclude=./$OPENSHIFT_GEAR_UUID/haproxy-\*/run/stats \
 --exclude=./$OPENSHIFT_GEAR_UUID/app-root/runtime/.state \
---exclude=./$OPENSHIFT_GEAR_UUID/app-root/data/.bash_history \
+--exclude=./$OPENSHIFT_DATA_DIR/.bash_history \
 #{exclusions} ./$OPENSHIFT_GEAR_UUID
 }
 
@@ -571,11 +580,18 @@ module OpenShift
     # The operation invoked by this method write output to the client on STDERR.
     def restore(restore_git_repo)
       gear_env = Utils::Environ.for_gear(@user.homedir)
-
+      
       if restore_git_repo
-        pre_receive
+        pre_receive(err: $stderr, out: $stdout)
       else
         stop_gear
+      end
+
+      @cartridge_model.each_cartridge do |cartridge|
+        @cartridge_model.do_control('pre-restore', 
+                                    cartridge,
+                                    pre_action_hooks_enabled: false,
+                                    post_action_hooks_enabled: false)
       end
 
       prepare_for_restore(restore_git_repo, gear_env)
@@ -584,11 +600,14 @@ module OpenShift
       extract_restore_archive(transforms, restore_git_repo, gear_env)
 
       @cartridge_model.each_cartridge do |cartridge|
-        @cartridge_model.do_control('post-restore', cartridge)
+        @cartridge_model.do_control('post-restore', 
+                                     cartridge,
+                                     pre_action_hooks_enabled: false,
+                                     post_action_hooks_enabled: false)
       end
 
       if restore_git_repo
-        post_receive
+        post_receive(err: $stderr, out: $stdout)
       else
         start_gear
       end
@@ -596,27 +615,15 @@ module OpenShift
 
     def prepare_for_restore(restore_git_repo, gear_env)
       if restore_git_repo
-        $stderr.puts "Removing old git repo: ~/git/#{@name}.git/"
-        # TODO: convert to stdlib calls
-        # FileUtils.rm_rf(File.join(@user.homedir, 'git', "#{@name}.git", '[^h]*', '*'))
-
-        Utils.oo_spawn('/bin/rm -rf $OPENSHIFT_HOMEDIR/git/${OPENSHIFT_GEAR_NAME}.git/[^h]*/*',
-                       env: gear_env,
-                       chdir: @user.homedir,
-                       uid: @user.uid,
-                       expected_exitstatus: 0)
+        app_name = gear_env['OPENSHIFT_APP_NAME']
+        $stderr.puts "Removing old git repo: ~/git/#{app_name}.git/"
+        FileUtils.rm_rf(Dir.glob(File.join(@user.homedir, 'git', "#{app_name}.git", '[^h]*', '*')))
       end
 
       $stderr.puts "Removing old data dir: ~/app-root/data/*"
-      # TODO: convert to stdlib calls
-      # FileUtils.rm_rf(File.join(@user.homedir, 'app-root', 'data', '*'))
-      # FileUtils.rm_rf(File.join(@user.homedir, 'app-root', 'data', '.[^.]*'))
-      # FileUtils.safe_unlink(File.join(@user.homedir, 'app-root', 'runtime', 'data'))
-      Utils.oo_spawn('/bin/rm -rf $OPENSHIFT_HOMEDIR/app-root/data/* $OPENSHIFT_HOMEDIR/app-root/data/.[^.]*; unlink $OPENSHIFT_HOMEDIR/app-root/runtime/data',
-                    env: gear_env,
-                    chdir: @user.homedir,
-                    uid: @user.uid,
-                    expected_exitstatus: 0)
+      FileUtils.rm_rf(Dir.glob(File.join(@user.homedir, 'app-root', 'data', '*')))
+      FileUtils.rm_rf(Dir.glob(File.join(@user.homedir, 'app-root', 'data', '.[^.]*')))
+      FileUtils.safe_unlink(File.join(@user.homedir, 'app-root', 'runtime', 'data'))
     end
 
     def restore_transforms

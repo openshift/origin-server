@@ -15,7 +15,6 @@ Feature: V2 SDK Mock Cartridge
     And the mock-0.1 MOCK_SERVICE_URL env entry will exist
     And the "app-root/runtime/repo/.openshift/README.md" content does exist for mock-0.1
 
-
     When I start the newfangled application
     Then the mock control_start marker will exist
 
@@ -96,12 +95,22 @@ Feature: V2 SDK Mock Cartridge
 
   # Client tools tests
 
-  Scenario: Create and exercise application with client tools
+  Scenario: Create, snapshot, and restore application with client tools
     Given a v2 default node
     And the libra client tools
     And an accepted node
-    When 1 mock-0.1 applications are created
-    # Then the applications should be accessible # Mock needs to serve HTTP for this step to work
+    And a new client created mock-0.1 application
+
+    When I snapshot the application
+    Then the mock control_pre_snapshot marker will exist in the gear
+    And the mock control_post_snapshot marker will exist in the gear
+
+    When a new file is added and pushed to the client-created application repo
+    Then the new file will be present in the gear app-root repo
+
+    When I restore the application
+    And the mock control_post_restore marker will exist in the gear
+    And the new file will not be present in the gear app-root repo
 
   # Plugin tests
 
