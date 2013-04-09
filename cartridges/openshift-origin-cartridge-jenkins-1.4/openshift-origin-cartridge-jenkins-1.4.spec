@@ -2,7 +2,7 @@
 
 Summary:       Provides jenkins-1.4 support
 Name:          openshift-origin-cartridge-jenkins-1.4
-Version: 1.7.2
+Version: 1.7.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -92,6 +92,12 @@ ln -s %{cartridgedir}/../abstract/info/hooks/system-messages %{buildroot}%{cartr
 
 
 %changelog
+* Tue Apr 09 2013 Adam Miller <admiller@redhat.com> 1.7.3-1
+- delete all calls to remove_ssh_key, and remove_domain_env_vars
+  (rchopra@redhat.com)
+- Merge pull request #1943 from bdecoste/master (dmcphers@redhat.com)
+- Bug 947092 (bdecoste@gmail.com)
+
 * Mon Apr 08 2013 Adam Miller <admiller@redhat.com> 1.7.2-1
 - wait for Jenkins to come up fully (bdecoste@gmail.com)
 - Bug 947092 (bdecoste@gmail.com)
