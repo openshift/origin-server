@@ -4,7 +4,7 @@
 Name: openshift-origin-cartridge-diy
 Version: 0.2.2
 Release: 1%{?dist}
-Summary: Php cartridge
+Summary: DIY cartridge
 Group: Development/Languages
 License: ASL 2.0
 URL: https://openshift.redhat.com
@@ -16,7 +16,7 @@ BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
 BuildArch: noarch
 
 %description
-PHP cartridge for openshift.
+DIY cartridge for openshift.
 
 
 %prep
