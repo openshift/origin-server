@@ -2,7 +2,7 @@
 
 Summary:       Provides JBossEWS2.0 support
 Name:          openshift-origin-cartridge-jbossews
-Version: 0.2.2
+Version: 0.2.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -80,6 +80,16 @@ alternatives --set jbossews-2.0 /usr/share/tomcat7
 
 
 %changelog
+* Tue Apr 09 2013 Adam Miller <admiller@redhat.com> 0.2.3-1
+- Merge pull request #1962 from danmcp/master (dmcphers@redhat.com)
+- Merge pull request #1950 from mrunalp/dev/remotedeploy (dmcphers@redhat.com)
+- jenkins WIP (dmcphers@redhat.com)
+- Rename cideploy to geardeploy. (mrunalp@gmail.com)
+- Bug 949510: Fix reversed Java 7 marker detection (ironcladlou@gmail.com)
+- Merge pull request #1942 from ironcladlou/dev/v2carts/vendor-changes
+  (dmcphers+openshiftbot@redhat.com)
+- Remove vendor name from installed V2 cartridge path (ironcladlou@gmail.com)
+
 * Mon Apr 08 2013 Adam Miller <admiller@redhat.com> 0.2.2-1
 - Merge pull request #1930 from mrunalp/dev/cart_hooks (dmcphers@redhat.com)
 - Add hooks for other carts. (mrunalp@gmail.com)
