@@ -392,13 +392,6 @@ module OpenShift
       @user.add_env_var("NAMESPACE", @user.namespace, true)
       @user.add_env_var('PRIMARY_CARTRIDGE_DIR', target + File::SEPARATOR, true) if cartridge.primary?
 
-      env_path = PathUtils.join(@user.homedir, '.env')
-      Utils.oo_spawn(
-          "chown -R root:#{@user.gid} #{env_path};
-           chcon -R unconfined_u:object_r:openshift_var_lib_t:#{mcs_label} #{env_path}",
-          expected_exitstatus: 0
-      )
-
       uservars_env = File.join(@user.homedir, '.env', '.uservars')
       FileUtils.mkpath uservars_env
       Utils.oo_spawn(
