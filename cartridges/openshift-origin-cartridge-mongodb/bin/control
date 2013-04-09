@@ -1,5 +1,4 @@
 #!/bin/bash -e
-
 source $OPENSHIFT_CARTRIDGE_SDK_BASH
 source $OPENSHIFT_MONGODB_DIR/env/*
 export STOPTIMEOUT=20
@@ -107,15 +106,7 @@ function handle_setup_marker {
 }
 
 function prepare_database {
-  echo 'Generating username and password'
-
-  password=$(generate_password)
-
-  echo "export OPENSHIFT_MONGODB_DB_USERNAME='admin'" > $OPENSHIFT_MONGODB_DIR/env/OPENSHIFT_MONGO_DB_USERNAME
-  echo "export OPENSHIFT_MONGODB_DB_PASSWORD='$password'" > $OPENSHIFT_MONGODB_DIR/env/OPENSHIFT_MONGO_DB_PASSWORD
-  echo "export OPENSHIFT_MONGODB_DB_URL='mongodb://admin:$password@$OPENSHIFT_MONGODB_DB_HOST:$OPENSHIFT_MONGODB_PORT/'" > $OPENSHIFT_MONGODB_DIR/env/OPENSHIFT_MONGODB_DB_URL
-  echo "export OPENSHIFT_MONGODB_DB_LOG_DIR='$OPENSHIFT_MONGODB_DIR/log'" > $OPENSHIFT_MONGODB_DIR/env/OPENSHIFT_MONGODB_DB_LOG_DIR
-
+  password=$OPENSHIFT_MONGODB_DB_PASSWORD
   echo "use admin
         db.addUser(\"admin\", \"${password}\")
         db.auth(\"admin\", \"${password}\")
@@ -130,9 +121,121 @@ function prepare_database {
   cart_props 'connection_url=mongodb://admin:$password@$OPENSHIFT_MONGODB_DB_HOST:$OPENSHIFT_MONGODB_DB_PORT/'
   cart_props "username=admin"
   cart_props "password=$password"
-  cart_props "database_name=$dbname"
+  cart_props "database_name=$OPENSHIFT_APP_NAME"
 
   set_app_info "Connection URL: mongodb://admin:$password@$OPENSHIFT_MONGODB_DB_HOST:$OPENSHIFT_MONGODB_DB_PORT/"
+}
+
+function die() {
+   exitcode=${1:-0}
+   tag=${2:-"WARNING"}
+   msg=${3:-"Mongo control snapshot/restore operation failed..."}
+
+   echo 1>&2
+   echo "!$tag! $msg" 1>&2
+   echo 1>&2
+
+   exit $exitcode
+
+}  #  End of function  die.
+
+function pre_snapshot {
+   start
+   #  Work in a temporary directory (create and cd to it).
+   umask 077
+   dumpdir=$(mktemp -d /tmp/mongodumpXXXXXXXX)
+   [ $? -eq 0 ] || die 0 "ERROR" "Failed to create working directory."
+   pushd $dumpdir > /dev/null
+
+   #  Take a "dump".
+   creds="-u $OPENSHIFT_MONGODB_DB_USERNAME -p \"$OPENSHIFT_MONGODB_DB_PASSWORD\" --port $OPENSHIFT_MONGODB_DB_PORT"
+   if mongodump -h $OPENSHIFT_MONGODB_DB_HOST $creds --directoryperdb > /dev/null 2>&1; then
+      #  Dump ok - now create a gzipped tarball.
+      if tar -zcf $OPENSHIFT_DATA_DIR/mongodb_dump_snapshot.tar.gz . ; then
+         #  Created dump snapshot - restore previous dir and remove temp dir.
+         popd > /dev/null
+         /bin/rm -rf $dumpdir
+         return 0
+      else
+         err_details="- snapshot failed"
+      fi
+   else
+      err_details="- mongodump failed"
+   fi
+
+   #  Failed to dump/gzip - log error and exit.
+   popd > /dev/null
+   /bin/rm -rf $dumpdir
+   /bin/rm -f  $OPENSHIFT_DATA_DIR/mongodb_dump_snapshot.tar.gz
+   die 0 "WARNING" "Could not dump MongoDB databases ${err_details}!"
+   stop
+}
+
+function post_snapshot {
+   true
+}
+
+function pre_restore {
+   cleanup_dump
+}
+
+function cleanup_dump {
+   /bin/rm -f $OPENSHIFT_DATA_DIR/mongodb_dump_snapshot.tar.gz
+   /bin/rm -f /tmp/mongodumpXXXXXXXX
+}
+
+function print_mongo_jira_warnings() {
+   echo "
+============================================================================
+WARNING: You may have possibly encountered the mongorestore bugs related to
+         MongoDB JIRA issues 7181, 7262 and 7104. We tried working around
+         some these issues. You will need to manually workaround the
+         remaining problems prior to proceeding. For more details, see: 
+             https://jira.mongodb.org/browse/SERVER-7181
+             https://jira.mongodb.org/browse/SERVER-7262
+             https://jira.mongodb.org/browse/SERVER-7104
+============================================================================
+" 1>&2
+
+}  #  End of function  print_mongo_jira_warnings.
+
+function post_restore {
+   #  Work in a temporary directory (create and cd to it).
+   umask 077
+   dumpdir=$(mktemp -d /tmp/mongodumpXXXXXXXX)
+   [ $? -eq 0 ] || die 0 "ERROR" "Failed to create working directory."
+   pushd $dumpdir > /dev/null
+
+   #  Extract dump from the snapshot.
+   if ! tar -zxf $OPENSHIFT_DATA_DIR/mongodb_dump_snapshot.tar.gz ; then
+      popd > /dev/null
+      /bin/rm -rf $dumpdir
+      start
+      die 0 "WARNING" "Could not restore MongoDB databases - extract failed!"
+   fi
+
+   #  Restore from the "dump".
+   creds="-u $OPENSHIFT_MONGODB_DB_USERNAME         \
+          -p \"$OPENSHIFT_MONGODB_DB_PASSWORD\" "
+
+   #  FIXME: Temporarily commented out auth due to mongo issue w/ restore.
+   #        See  https://jira.mongodb.org/browse/SERVER-7262 for details.
+   [ -z "$HAVE_MONGODB_221_RC1" ]  &&  creds=""
+   if ! mongorestore -h $OPENSHIFT_MONGODB_DB_HOST              \
+                     --port $OPENSHIFT_MONGODB_DB_PORT $creds   \
+                     --directoryperdb --drop  1>&2; then
+       print_mongo_jira_warnings
+       popd > /dev/null
+       /bin/rm -rf $dumpdir
+       start
+       die 0 "WARNING" "Could not restore MongoDB databases - mongorestore failed!"
+   fi
+
+
+   #  Restore previous dir and clean up temporary dir.
+   popd > /dev/null
+   /bin/rm -rf $dumpdir
+   return 0
 }
 
 case "$1" in
@@ -158,5 +261,17 @@ case "$1" in
             echo "MongoDB is stopped" 1>&2
         fi
         exit 0
+    ;;
+    pre-snapshot)
+        pre_snapshot
+    ;;
+    post-snapshot)
+        post_snapshot
+    ;;
+    pre-restore)
+        pre_restore
+    ;;
+    post-restore)
+        post_restore
     ;;
 esac

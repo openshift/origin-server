@@ -1,5 +1,7 @@
 #!/bin/bash -e
 # The following functions are ripped from v1 abstract util
+source $OPENSHIFT_MONGODB_DIR/env/*
+source $OPENSHIFT_CARTRIDGE_SDK_BASH
 source "/etc/openshift/node.conf"
 
 function drop_setup_marker {
@@ -7,6 +9,16 @@ function drop_setup_marker {
 }
 
 mkdir $OPENSHIFT_MONGODB_DIR/{log,pid,socket,data,run}
+
+# generate password and setup env vars
+echo 'Generating username and password'
+
+password=$(generate_password)
+
+echo "export OPENSHIFT_MONGODB_DB_USERNAME='admin'" > $OPENSHIFT_MONGODB_DIR/env/OPENSHIFT_MONGODB_DB_USERNAME
+echo "export OPENSHIFT_MONGODB_DB_PASSWORD='$password'" > $OPENSHIFT_MONGODB_DIR/env/OPENSHIFT_MONGODB_DB_PASSWORD
+echo "export OPENSHIFT_MONGODB_DB_URL='mongodb://admin:$password@$OPENSHIFT_MONGODB_DB_HOST:$OPENSHIFT_MONGODB_PORT/'" > $OPENSHIFT_MONGODB_DIR/env/OPENSHIFT_MONGODB_DB_URL
+echo "export OPENSHIFT_MONGODB_DB_LOG_DIR='$OPENSHIFT_MONGODB_DIR/log'" > $OPENSHIFT_MONGODB_DIR/env/OPENSHIFT_MONGODB_DB_LOG_DIR
 
 drop_setup_marker
 
