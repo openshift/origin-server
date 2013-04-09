@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.7.2
+Version: 1.7.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -83,6 +83,23 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Tue Apr 09 2013 Adam Miller <admiller@redhat.com> 1.7.3-1
+- Merge pull request #1954 from lnader/gear-ssh-url
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #1957 from lnader/536 (dmcphers+openshiftbot@redhat.com)
+- Card 536 - Clean up in domain space (lnader@redhat.com)
+- delete all calls to remove_ssh_key, and remove_domain_env_vars
+  (rchopra@redhat.com)
+- Merge pull request #1934 from lnader/card-534 (dmcphers@redhat.com)
+- Add ssh_url to gear_groups for each gear (lnader@redhat.com)
+- Merge pull request #1921 from rajatchopra/master
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #1942 from ironcladlou/dev/v2carts/vendor-changes
+  (dmcphers+openshiftbot@redhat.com)
+- Remove vendor name from installed V2 cartridge path (ironcladlou@gmail.com)
+- Card 534 (lnader@redhat.com)
+- auto-cleanup of ssh-keys/env vars on cart remove (rchopra@redhat.com)
+
 * Mon Apr 08 2013 Adam Miller <admiller@redhat.com> 1.7.2-1
 - 10gen-mms-agent WIP (dmcphers@redhat.com)
 - Remove redundant steps from nodejs feature (ironcladlou@gmail.com)
