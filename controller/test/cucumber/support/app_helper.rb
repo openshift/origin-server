@@ -244,6 +244,17 @@ jenkins_build = #{@jenkins_build}
 
       return nil
     end
+
+    def ssh_command(command)
+      cmd = "ssh 2>/dev/null -o BatchMode=yes -o StrictHostKeyChecking=no -tt #{uid}@#{name}-#{namespace}.#{$domain} " + command
+
+      $logger.debug "Running #{cmd}"
+
+      output = `#{cmd}`
+      $logger.debug "Output: #{output}"
+
+      output.strip
+    end
   end
 end
 World(AppHelper)
