@@ -1,8 +1,3 @@
 #!/bin/bash
 source $OPENSHIFT_CARTRIDGE_SDK_BASH
 
-remove_ssh_key
-
-remove_env_var "JENKINS_URL"
-remove_env_var "JENKINS_USERNAME"
-remove_env_var "JENKINS_PASSWORD"

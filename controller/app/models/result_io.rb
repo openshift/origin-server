@@ -124,35 +124,20 @@ class ResultIO
         elsif line =~ /^APP_INFO: /
           self.appInfoIO << line['APP_INFO: '.length..-1]
         elsif self.exitcode == 0
-          if line =~ /^SSH_KEY_(ADD|REMOVE): /
-            if line =~ /^SSH_KEY_ADD: /
-              key = line['SSH_KEY_ADD: '.length..-1].chomp
-              self.cart_commands.push({:command => "SYSTEM_SSH_KEY_ADD", :args => [key]})
-            else
-              self.cart_commands.push({:command => "SYSTEM_SSH_KEY_REMOVE", :args => []})
-            end
-          elsif line =~ /^APP_SSH_KEY_(ADD|REMOVE): /
-            if line =~ /^APP_SSH_KEY_ADD: /
-              response = line['APP_SSH_KEY_ADD: '.length..-1].chomp
-              cart,key = response.split(' ')
-              cart = cart.gsub(".", "-")
-              self.cart_commands.push({:command => "APP_SSH_KEY_ADD", :args => [cart, key]})
-            else
-              cart = line['APP_SSH_KEY_REMOVE: '.length..-1].chomp
-              cart = cart.gsub(".", "-")
-              self.cart_commands.push({:command => "APP_SSH_KEY_REMOVE", :args => [cart]})
-            end
+          if line =~ /^SSH_KEY_ADD: /
+            key = line['SSH_KEY_ADD: '.length..-1].chomp
+            self.cart_commands.push({:command => "SYSTEM_SSH_KEY_ADD", :args => [key]})
+          elsif line =~ /^APP_SSH_KEY_ADD: /
+            response = line['APP_SSH_KEY_ADD: '.length..-1].chomp
+            cart,key = response.split(' ')
+            cart = cart.gsub(".", "-")
+            self.cart_commands.push({:command => "APP_SSH_KEY_ADD", :args => [cart, key]})
           elsif line =~ /^APP_ENV_VAR_REMOVE: /
             key = line['APP_ENV_VAR_REMOVE: '.length..-1].chomp
             self.cart_commands.push({:command => "APP_ENV_VAR_REMOVE", :args => [key]})
-          elsif line =~ /^ENV_VAR_(ADD|REMOVE): /
-            if line =~ /^ENV_VAR_ADD: /
-              env_var = line['ENV_VAR_ADD: '.length..-1].chomp.split('=')
-              self.cart_commands.push({:command => "ENV_VAR_ADD", :args => [env_var[0], env_var[1]]})
-            else
-              key = line['ENV_VAR_REMOVE: '.length..-1].chomp
-              self.cart_commands.push({:command => "ENV_VAR_REMOVE", :args => [key]})
-            end
+          elsif line =~ /^ENV_VAR_ADD: /
+            env_var = line['ENV_VAR_ADD: '.length..-1].chomp.split('=')
+            self.cart_commands.push({:command => "ENV_VAR_ADD", :args => [env_var[0], env_var[1]]})
           elsif line =~ /^BROKER_AUTH_KEY_(ADD|REMOVE): /
             if line =~ /^BROKER_AUTH_KEY_ADD: /
               self.cart_commands.push({:command => "BROKER_KEY_ADD", :args => []})
