@@ -3153,6 +3153,34 @@ module OpenShift
       end
 
       #
+      # Retrieve all ssh keys for all gears from all nodes (implementation)
+      #
+      # INPUTS:
+      # * none
+      # 
+      # RETURNS:
+      # * Hash [gear_sshey_map[], node_list[]]
+      #
+      # NOTES:
+      # * Should be class method on Node? (All nodes?)
+      # * Why doesn't this just override a method from the superclass?
+      # * uses rpc_exec
+      #
+      def self.get_all_gears_sshkeys_impl
+        gear_sshkey_map = {}
+        sender_list = []
+        rpc_exec('openshift', nil, true) do |client|
+          client.get_all_gears_sshkeys do |response|
+            if response[:body][:statuscode] == 0
+              gear_sshkey_map.merge! response[:body][:data][:output]
+              sender_list.push response[:senderid]
+            end
+          end
+        end
+        return [gear_sshkey_map, sender_list]
+      end
+
+      #
       # <<implementation>>
       # <<class method>>
       #

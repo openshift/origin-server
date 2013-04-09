@@ -101,6 +101,15 @@ def district_has_available_uid?(district_id, gear_uid, false_positive_response=t
   end
 end
 
+def get_user_info(user)
+  user_ssh_keys = {}
+  user["ssh_keys"].each { |k| user_ssh_keys[Digest::MD5.hexdigest(k["content"])] = k["name"] } if user["ssh_keys"]
+  return {"consumed_gears" => user["consumed_gears"],
+          "domains" => {},
+          "login" => user["login"],
+          "ssh_keys" => user_ssh_keys}
+end
+
 FALSE_POSITIVE_CHECK_LIMIT = 4000
 $false_positive_check_cnt = 0
 no_error = true
@@ -111,6 +120,7 @@ user_hash = {}
 domain_hash = {}
 gear_uid_hash = {}
 district_hash = {}
+gear_sshkey_hash = {}
 
 puts "Started at: #{Time.now}"
 start_time = (Time.now.to_f * 1000).to_i
@@ -123,30 +133,34 @@ selection = {:fields => ["name",
                         "group_instances.gears.server_identity",
                         "group_instances._id",
                         "component_instances._id",
-                        "component_instances.group_instance_id"], 
+                        "component_instances.group_instance_id",
+                        "app_ssh_keys.name", 
+                        "app_ssh_keys.content"],
              :timeout => false}
 ret = []
 
 if level >= 1
-  OpenShift::DataStore.find(:cloud_users, {}, {:fields => ["consumed_gears", "login"], :timeout => false}) do |user|
-    user_hash[user["_id"]] = {"consumed_gears" => user["consumed_gears"],
-                              "domains" => {},
-                              "login" => user["login"] } 
+  user_selection = {:fields => ["consumed_gears", "login", "ssh_keys.name", "ssh_keys.content"], 
+                    :timeout => false}
+  
+  OpenShift::DataStore.find(:cloud_users, {}, user_selection) do |user|
+    user_hash[user["_id"]] = get_user_info(user) 
   end
 
-  OpenShift::DataStore.find(:domains, {}, {:fields => ["owner_id"], :timeout => false}) { |domain|
+  OpenShift::DataStore.find(:domains, {}, {:fields => ["owner_id", "system_ssh_keys.name", "system_ssh_keys.content"], :timeout => false}) { |domain|
     owner_id = domain["owner_id"]
     domain_hash[domain["_id"]] = owner_id
+    system_ssh_keys = {}
+    domain["system_ssh_keys"].each { |k| system_ssh_keys[Digest::MD5.hexdigest(k["content"])] = k["name"] } if domain["system_ssh_keys"]
     if !user_hash[owner_id]
-      OpenShift::DataStore.find(:cloud_users, {"_id" => owner_id.to_s}, {:fields => ["consumed_gears", "login"], :timeout => false}) do |user|
-        user_hash[user["_id"]] = {"consumed_gears" => user["consumed_gears"],
-                                  "domains" => {},
-                                  "login" => user["login"] } 
+      OpenShift::DataStore.find(:cloud_users, {"_id" => owner_id.to_s}, user_selection) do |user|
+        user_hash[user["_id"]] = get_user_info(user) 
       end
     end
 
     if user_hash[owner_id]
       user_hash[owner_id]["domains"][domain["_id"]] = 0
+      user_hash[owner_id]["ssh_keys"].merge! system_ssh_keys
     else
       summary << "User '#{owner_id.to_s}' for domain '#{domain['_id'].to_s}' does not exist in mongo."
       no_error = false
@@ -168,6 +182,8 @@ OpenShift::DataStore.find(:applications, query, selection) do |app|
     login = nil
     creation_time = app['created_at']
     domain_id = app['domain_id']
+    app_ssh_keys = {}
+    app['app_ssh_keys'].each { |k| app_ssh_keys[Digest::MD5.hexdigest(k["content"])] = k["name"] } if app['app_ssh_keys']
     if level >= 1
       owner_id = domain_hash[domain_id]
 
@@ -179,6 +195,7 @@ OpenShift::DataStore.find(:applications, query, selection) do |app|
         no_error = false
       else
         login = user_hash[owner_id]["login"]
+        app_ssh_keys.merge! user_hash[owner_id]["ssh_keys"]
       end
             
       if level >= 2
@@ -212,7 +229,7 @@ OpenShift::DataStore.find(:applications, query, selection) do |app|
     app['group_instances'].each do |gi|
       gi['gears'].each do |gear|
         gear_count += 1
-        datastore_hash[gear['uuid'].to_s] = [login, creation_time, gear['uid'], gear['server_identity'], app["uuid"] ]
+        datastore_hash[gear['uuid'].to_s] = [login, creation_time, gear['uid'], gear['server_identity'], app["uuid"], app_ssh_keys ]
         
         if level >= 2 and Rails.configuration.msg_broker[:districts][:enabled]
           # record all used uid values for each node to match later with the district
@@ -245,26 +262,36 @@ if level >= 1
 end
 
 get_all_gears_start_time = (Time.now.to_f * 1000).to_i
-node_hash, sender_hash = OpenShift::ApplicationContainerProxy.get_all_gears
+node_hash, gear_sender_hash = OpenShift::ApplicationContainerProxy.get_all_gears
 total_time = (Time.now.to_f * 1000).to_i - get_all_gears_start_time
 puts "Time to get all gears from nodes: #{total_time.to_f/1000}s"
 puts "Total gears found on the nodes: #{node_hash.length}"
-puts "Total nodes that responded : #{sender_hash.length}"
+puts "Total nodes that responded : #{gear_sender_hash.length}"
+
+if level >= 2
+  get_all_sshkeys_start_time = (Time.now.to_f * 1000).to_i
+  gear_sshkey_hash, sshkeys_sender_list = OpenShift::ApplicationContainerProxy.get_all_gears_sshkeys
+  total_time = (Time.now.to_f * 1000).to_i - get_all_sshkeys_start_time
+  puts "Time to get all sshkeys for all gears from nodes: #{total_time.to_f/1000}s"
+  puts "Total gears found on the nodes: #{gear_sshkey_hash.length}"
+  puts "Total nodes that responded : #{sshkeys_sender_list.length}"
+end
 
 # store the current time for comparisons
 current_time = Time.now
 
 # now check
-puts "Checking application gears on corresponding nodes:" if verbose
+puts "Checking application gears and ssh keys on corresponding nodes:" if verbose
 datastore_hash.each { |gear_uuid, gear_info|
   login = gear_info[0]
   creation_time = gear_info[1]
   server_identity = gear_info[3]
   app_uuid = gear_info[4]
+  db_sshkeys = gear_info[5]
   print "#{gear_uuid} : #{gear_uuid.class}...\t" if verbose
   if (current_time - creation_time) > 600
     if not node_hash.has_key? gear_uuid
-      if sender_hash.has_key? server_identity
+      if gear_sender_hash.has_key? server_identity
         if datastore_has_gear?(gear_uuid, app_uuid, false)
           no_error = false
           puts "FAIL" if verbose
@@ -275,13 +302,56 @@ datastore_hash.each { |gear_uuid, gear_info|
       else
         no_error = false
         puts "FAIL" if verbose
-        summary << "The node #{server_identity} with gear #{gear_uuid} wasn't returned from mcollective"
+        summary << "The node #{server_identity} with gear #{gear_uuid} wasn't returned from mcollective for the gear list"
       end
     elsif verbose
       puts "OK"
     end
   elsif verbose
     puts "OK"
+  end
+
+  if level >= 2
+    print "Checking ssh keys for gear: #{gear_uuid}...\t" if verbose
+    if (current_time - creation_time) > 600
+      if gear_sshkey_hash.has_key? gear_uuid
+        gear_sshkeys_list = gear_sshkey_hash[gear_uuid].keys.uniq.sort
+        db_sshkeys_list = db_sshkeys.keys.uniq.sort
+        if db_sshkeys_list == gear_sshkeys_list
+          puts "OK" if verbose
+        else
+          no_error = false
+          puts "FAIL" if verbose
+          
+          # calculate the common ssh keys in mongo and on the node
+          common_sshkeys = gear_sshkeys_list & db_sshkeys_list
+
+          # get the unmatched ssh keys for the gear from the node
+          extra_gear_sshkeys = gear_sshkeys_list - common_sshkeys
+          extra_gear_sshkeys.each do |key|
+            summary << "Gear '#{gear_uuid}' has  key with comment '#{gear_sshkey_hash[gear_uuid][key]}' on the node but not in mongo."
+          end
+          
+          # get the unmatched ssh keys for the gear in mongo
+          extra_db_sshkeys = db_sshkeys_list - common_sshkeys
+          extra_db_sshkeys.each do |key|
+            summary << "Gear '#{gear_uuid}' has key with name '#{db_sshkeys[key]}' in mongo but not on the node."
+          end
+        end
+      elsif sshkeys_sender_list.include? server_identity
+        no_error = false
+        puts "FAIL" if verbose
+        summary << "The node #{server_identity} with gear #{gear_uuid} wasn't returned from mcollective for the sshkey list"
+      elsif datastore_has_gear?(gear_uuid, app_uuid, false)
+        no_error = false
+        puts "FAIL" if verbose
+        summary << "Gear #{gear_uuid} does not exist on any node"
+      elsif verbose
+        puts "OK"
+      end
+    elsif verbose
+      puts "OK"
+    end
   end
 }
 

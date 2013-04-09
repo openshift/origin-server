@@ -50,6 +50,10 @@ module OpenShift
       @proxy_provider.get_all_active_gears_impl
     end
 
+    def self.get_all_gears_sshkeys
+      @proxy_provider.get_all_gears_sshkeys_impl
+    end
+
     def self.execute_parallel_jobs(handle)
       @proxy_provider.execute_parallel_jobs_impl(handle)
     end
