@@ -248,10 +248,9 @@ Given /^a new ([^ ]+) application, verify using socket file to connect to databa
   steps %{  
     Given a new #{cart_name} type application
     And I embed a mysql-5.1 cartridge into the application
-    And the application is made publicly accessible
-  
-    When I select from the mysql database using the socket file
-    Then the select result from the mysql database should be valid
+
+    When the application is made publicly accessible
+    Then I can select from the mysql database using the socket file
   }
 end
 
@@ -808,6 +807,7 @@ end
 
 Given /^a v2 default node$/ do
   assert_file_exists '/var/lib/openshift/.settings/v2_cartridge_format'
+  $v2_node = true
 end
 
 Then /^the "(.*)" content does( not)? exist(s)? for ([^ ]+)$/ do |path, negate, _, cartridge_name|

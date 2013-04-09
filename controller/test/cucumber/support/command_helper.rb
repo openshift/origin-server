@@ -5,8 +5,12 @@ require 'open4'
 require 'benchmark'
 
 module CommandHelper
-  def getenv(uuid, var)
-    run_stdout("source /var/lib/openshift/#{uuid}/.env/#{var};echo $#{var}").chomp!
+  def getenv(uuid, var, cart=nil)
+    if $v2_node && cart
+      run_stdout("source /var/lib/openshift/#{uuid}/#{cart}/env/#{var};echo $#{var}").chomp!
+    else
+      run_stdout("source /var/lib/openshift/#{uuid}/.env/#{var};echo $#{var}").chomp!
+    end
   end
 
   def run_stdout(cmd)
@@ -265,8 +269,8 @@ module CommandHelper
 
         # Source the env var values from the gear directory
         app.mysql_hostname = getenv(app.uid, 'OPENSHIFT_MYSQL_DB_HOST')
-        app.mysql_user     = getenv(app.uid, 'OPENSHIFT_MYSQL_DB_USERNAME')
-        app.mysql_password = getenv(app.uid, 'OPENSHIFT_MYSQL_DB_PASSWORD')
+        app.mysql_user     = getenv(app.uid, 'OPENSHIFT_MYSQL_DB_USERNAME', 'mysql')
+        app.mysql_password = getenv(app.uid, 'OPENSHIFT_MYSQL_DB_PASSWORD', 'mysql')
         app.mysql_database = getenv(app.uid, 'OPENSHIFT_APP_NAME')
 
         app.mysql_hostname.should_not be_nil
