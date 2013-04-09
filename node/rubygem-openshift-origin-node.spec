@@ -16,7 +16,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.7.20
+Version: 1.7.21
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -289,6 +289,27 @@ fi
 %attr(0755,-,-) /etc/cron.monthly/openshift-origin-cron-monthly
 
 %changelog
+* Tue Apr 09 2013 Adam Miller <admiller@redhat.com> 1.7.21-1
+- Merge pull request #1952 from calfonso/master
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #1962 from danmcp/master (dmcphers@redhat.com)
+- Merge pull request #1958 from rajatchopra/master (dmcphers@redhat.com)
+- Merge pull request #1951 from jwhonce/wip/git_submodules
+  (dmcphers@redhat.com)
+- Merge pull request #1950 from mrunalp/dev/remotedeploy (dmcphers@redhat.com)
+- jenkins WIP (dmcphers@redhat.com)
+- delete all calls to remove_ssh_key, and remove_domain_env_vars
+  (rchopra@redhat.com)
+- Merge pull request #1946 from jwhonce/wip/oo_trap_user (dmcphers@redhat.com)
+- Bug 949266 - failed to initialize variable (jhonce@redhat.com)
+- Rename cideploy to geardeploy. (mrunalp@gmail.com)
+- %%{_var}/run/openshift is needed, adding it back (calfonso@redhat.com)
+- Merge pull request #1942 from ironcladlou/dev/v2carts/vendor-changes
+  (dmcphers+openshiftbot@redhat.com)
+- WIP Cartridge Refactor - Add support to oo-trap-user for V2 gear env's
+  (jhonce@redhat.com)
+- Remove vendor name from installed V2 cartridge path (ironcladlou@gmail.com)
+
 * Mon Apr 08 2013 Adam Miller <admiller@redhat.com> 1.7.20-1
 - Merge pull request #1941 from jwhonce/wip/v2_cart_model
   (dmcphers+openshiftbot@redhat.com)
