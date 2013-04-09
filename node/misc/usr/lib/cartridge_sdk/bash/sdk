@@ -240,3 +240,13 @@ function hot_deploy_marker_is_present() {
         return 1
     fi
 }
+
+
+function primary_cartridge_name() {
+  for f in ~/.env/*
+  do
+      [ -f "$f" ]  &&  . "$f"
+  done
+ 
+  cat $OPENSHIFT_PRIMARY_CARTRIDGE_DIR/env/OPENSHIFT_*_IDENT | awk -F: '{printf "%s-%s", $2, $3}'
+}
