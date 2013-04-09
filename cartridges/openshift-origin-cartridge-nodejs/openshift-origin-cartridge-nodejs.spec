@@ -3,7 +3,7 @@
 
 Summary:       Provides Node.js support
 Name:          openshift-origin-cartridge-nodejs
-Version: 1.8.2
+Version: 1.8.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -56,6 +56,14 @@ rm -rf %{buildroot}
 %doc %{cartridgedir}/README.md
 
 %changelog
+* Tue Apr 09 2013 Adam Miller <admiller@redhat.com> 1.8.3-1
+- Merge pull request #1962 from danmcp/master (dmcphers@redhat.com)
+- jenkins WIP (dmcphers@redhat.com)
+- Rename cideploy to geardeploy. (mrunalp@gmail.com)
+- Merge pull request #1942 from ironcladlou/dev/v2carts/vendor-changes
+  (dmcphers+openshiftbot@redhat.com)
+- Remove vendor name from installed V2 cartridge path (ironcladlou@gmail.com)
+
 * Mon Apr 08 2013 Adam Miller <admiller@redhat.com> 1.8.2-1
 - Merge pull request #1930 from mrunalp/dev/cart_hooks (dmcphers@redhat.com)
 - Add hooks for other carts. (mrunalp@gmail.com)
