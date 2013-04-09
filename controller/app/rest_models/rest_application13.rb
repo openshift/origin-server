@@ -123,7 +123,7 @@ class RestApplication13 < OpenShift::Model
             Param.new("name", "string", "framework-type, e.g.: mongodb-2.0", carts)
           ],[
             OptionalParam.new("colocate_with", "string", "The component to colocate with", app.component_instances.map{|c| c.cartridge_name}),
-            OptionalParam.new("scales_from", "integer", "Minumimum number of gears to run the component on."),
+            OptionalParam.new("scales_from", "integer", "Minimum number of gears to run the component on."),
             OptionalParam.new("scales_to", "integer", "Maximum number of gears to run the component on."),
             OptionalParam.new("additional_storage", "integer", "Additional GB of space to request on all gears running this component."),
           ]
