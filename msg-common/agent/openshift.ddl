@@ -78,6 +78,17 @@ action "get_all_active_gears", :description => "get all the active gears" do
            :display_as => "Exit Code"
 end
 
+action "get_all_gears_sshkeys", :description => "get all sshkeys for all gears" do
+    display :always
+    output  :output,
+            :description => "Gear ssh keys",
+            :display_as => "Output"
+
+    output :exitcode,
+           :description => "Exit code",
+           :display_as => "Exit Code"
+end
+
 action "set_district", :description => "run a cartridge action" do
     display :always
 
