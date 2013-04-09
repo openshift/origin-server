@@ -14,6 +14,10 @@ Feature: V2 SDK Mock Cartridge
     And the mock-0.1 MOCK_EXAMPLE env entry will exist
     And the mock-0.1 MOCK_SERVICE_URL env entry will exist
     And the "app-root/runtime/repo/.openshift/README.md" content does exist for mock-0.1
+    And the ".mock_gear_locked_file" content does exist for mock-0.1
+    And the "mock/mock_cart_locked_file" content does exist for mock-0.1
+    And the "app-root/data/mock_gear_data_locked_file" content does exist for mock-0.1
+    And the "invalid_locked_file" content does not exist for mock-0.1
 
     When I start the newfangled application
     Then the mock control_start marker will exist

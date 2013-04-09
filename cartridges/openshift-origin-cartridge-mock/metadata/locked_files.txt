@@ -1,1 +1,5 @@
-mock/env/
+env/
+mock_cart_locked_file
+~/.mock_gear_locked_file
+~/app-root/data/mock_gear_data_locked_file
+~/invalid_mock_locked_file
