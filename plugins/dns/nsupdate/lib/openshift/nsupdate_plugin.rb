@@ -166,7 +166,7 @@ EOF
       # create an A record for the application in the domain
       fqdn = "#{app_name}-#{namespace}.#{@domain_suffix}"
       
-      cmd = add_command(fqdn, public_hostname)
+      cmd = add_cmd(fqdn, public_hostname)
 
       success = system cmd
       if not success
