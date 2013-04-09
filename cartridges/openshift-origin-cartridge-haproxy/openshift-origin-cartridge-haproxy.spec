@@ -6,7 +6,7 @@
 %global frameworkdir %{_libexecdir}/openshift/cartridges/v2/haproxy
 
 Name:          openshift-origin-cartridge-haproxy
-Version: 0.2.2
+Version: 0.2.3
 Release:       1%{?dist}
 Summary:       Provides HA Proxy
 Group:         Network/Daemons
@@ -53,6 +53,13 @@ rm -rf %{buildroot}
 %doc %{cartridgedir}/README.md
 
 %changelog
+* Tue Apr 09 2013 Adam Miller <admiller@redhat.com> 0.2.3-1
+- Rename cideploy to geardeploy. (mrunalp@gmail.com)
+- Merge pull request #1942 from ironcladlou/dev/v2carts/vendor-changes
+  (dmcphers+openshiftbot@redhat.com)
+- Fix haproxy v2 path construction (ironcladlou@gmail.com)
+- Remove vendor name from installed V2 cartridge path (ironcladlou@gmail.com)
+
 * Mon Apr 08 2013 Adam Miller <admiller@redhat.com> 0.2.2-1
 - HAProxy deploy wip. (mrunalp@gmail.com)
 - Refactor v2 cartridge SDK location and accessibility (ironcladlou@gmail.com)
