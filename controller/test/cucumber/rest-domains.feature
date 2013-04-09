@@ -82,9 +82,9 @@ Feature: domains
     And I accept "<format>"
     When I send a POST request to "/domains" with the following:"id=api<random>"
     Then the response should be "201"
-    When I send a PUT request to "/domains/api<random>" with the following:"id=apiX<random>"
+    When I send a PUT request to "/domains/api<random>" with the following:"id=apix<random>"
     Then the response should be "200"
-    And the response should be a "domain" with attributes "id=apiX<random>"
+    And the response should be a "domain" with attributes "id=apix<random>"
     
     Scenarios:
      | format | 
@@ -122,7 +122,7 @@ Feature: domains
     And I accept "<format>"
     When I send a POST request to "/domains" with the following:"id=api<random>"
     Then the response should be "201"
-    When I send a PUT request to "/domains/apiX<random>" with the following:"id=apiY<random>"
+    When I send a PUT request to "/domains/apix<random>" with the following:"id=apiY<random>"
     Then the response should be "404"
     And the error message should have "severity=error&exit_code=127"
     
@@ -159,7 +159,7 @@ Feature: domains
 
     When I send a GET request to "/domains/api<random>"
     Then the response should be "404"
-    When I send a PUT request to "/domains/api<random>" with the following:"id=apiX<random>"
+    When I send a PUT request to "/domains/api<random>" with the following:"id=apix<random>"
     Then the response should be "404"
     And the error message should have "severity=error&exit_code=127"
     
@@ -189,7 +189,7 @@ Feature: domains
     And I accept "<format>"
     When I send a POST request to "/domains" with the following:"id=api<random>"
     Then the response should be "201"
-    When I send a DELETE request to "/domains/apiX<random>"
+    When I send a DELETE request to "/domains/apix<random>"
     Then the response should be "404"
     And the error message should have "severity=error&exit_code=127"
     
@@ -255,7 +255,7 @@ Feature: domains
     When I send a POST request to "/domains" with the following:"id=api<random>"
     Then the response should be "201"
     And the response should be a "domain" with attributes "id=api<random>"
-    When I send a POST request to "/domains" with the following:"id=apiX<random>"
+    When I send a POST request to "/domains" with the following:"id=apix<random>"
     Then the response should be "409"
     
     Scenarios:

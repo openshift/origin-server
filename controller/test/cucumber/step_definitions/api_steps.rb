@@ -37,7 +37,7 @@ Before do
 end
 
 After do |scenario|
-  #domains = ["api#{@random}", "apiX#{@random}", "apiY#{@random}", "app-api#{@random}"]
+  #domains = ["api#{@random}", "apix#{@random}", "apiY#{@random}", "app-api#{@random}"]
   @random = nil
   (@undo_config || []).each do |(main, secondary, value)|
     Rails.configuration[main.to_sym][secondary.to_sym] = value
@@ -52,14 +52,14 @@ Given /^a new user, verify updating a domain with an php-([^ ]+) application in 
     Then the response should be "201"
     When I send a POST request to "/domains/api<random>/applications" with the following:"name=app&cartridge=php-#{php_version}"
     Then the response should be "201"
-    When I send a PUT request to "/domains/api<random>" with the following:"id=apiX<random>"
+    When I send a PUT request to "/domains/api<random>" with the following:"id=apix<random>"
     Then the response should be "422"
     And the error message should have "severity=error&exit_code=128"
     When I send a DELETE request to "/domains/api<random>/applications/app"
     Then the response should be "204"
-    When I send a PUT request to "/domains/api<random>" with the following:"id=apiX<random>"
+    When I send a PUT request to "/domains/api<random>" with the following:"id=apix<random>"
     Then the response should be "200"
-    And the response should be a "domain" with attributes "id=apiX<random>"
+    And the response should be a "domain" with attributes "id=apix<random>"
   }
 end
 
@@ -136,16 +136,16 @@ Given /^a new user, verify typical REST interactios with a ([^ ]+) application o
     Then the response should be "200"
     When I send a DELETE request to "/domains/api<random>/applications/app/cartridges/mysql-5.1"
     Then the response should be "204"
-    When I send a PUT request to "/domains/api<random>" with the following:"id=apiX<random>"
+    When I send a PUT request to "/domains/api<random>" with the following:"id=apix<random>"
     Then the response should be "422"
     When I send a DELETE request to "/domains/api<random>/applications/app"
     Then the response should be "204"
-    When I send a PUT request to "/domains/api<random>" with the following:"id=apiX<random>"
+    When I send a PUT request to "/domains/api<random>" with the following:"id=apix<random>"
     Then the response should be "200"
-    And the response should be a "domain" with attributes "id=apiX<random>"
-    When I send a GET request to "/domains/apiX<random>/applications/app"
+    And the response should be a "domain" with attributes "id=apix<random>"
+    When I send a GET request to "/domains/apix<random>/applications/app"
     Then the response should be "404"
-    When I send a DELETE request to "/domains/apiX<random>"
+    When I send a DELETE request to "/domains/apix<random>"
     Then the response should be "204"
     When I send a DELETE request to "/user/keys/api"
     Then the response should be "204"
