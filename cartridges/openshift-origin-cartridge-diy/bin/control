@@ -12,7 +12,7 @@ function stop() {
 
 function restart() {
     echo "Restarting DIY cart"
-    source $OPENSHIFT_REPO_DIR/.openshift/action_hooks/stop
+    kill `ps -ef | grep testrubyserver.rb | grep -v grep | awk '{ print $2 }'` > /dev/null 2>&1
     source $OPENSHIFT_REPO_DIR/.openshift/action_hooks/start
 }
 

@@ -118,12 +118,12 @@ function prepare_database {
        "  | mongo $OPENSHIFT_MONGODB_DB_HOST
   rm -f /tmp/.dbshell
 
-  cart_props 'connection_url=mongodb://admin:$password@$OPENSHIFT_MONGODB_DB_HOST:$OPENSHIFT_MONGODB_DB_PORT/'
+  cart_props "connection_url=mongodb://admin:${password}@$OPENSHIFT_MONGODB_DB_HOST:$OPENSHIFT_MONGODB_DB_PORT/"
   cart_props "username=admin"
-  cart_props "password=$password"
+  cart_props "password=${password}"
   cart_props "database_name=$OPENSHIFT_APP_NAME"
 
-  set_app_info "Connection URL: mongodb://admin:$password@$OPENSHIFT_MONGODB_DB_HOST:$OPENSHIFT_MONGODB_DB_PORT/"
+  set_app_info "Connection URL: mongodb://admin:${password}@$OPENSHIFT_MONGODB_DB_HOST:$OPENSHIFT_MONGODB_DB_PORT/"
 }
 
 function die() {
