@@ -100,7 +100,8 @@ module OpenShift
                 "CLIENT_ERROR: Source Code repository URL type must be one of: #{SUPPORTED_PROTOCOLS.join(', ')}", 130
             ) unless supported
 
-      FileUtils.mkpath(File.join(@user.homedir, 'git'))
+      git_path = File.join(@user.homedir, 'git')
+      FileUtils.mkpath(git_path)
 
       # expose variables for ERB processing
       @application_name = @user.app_name
