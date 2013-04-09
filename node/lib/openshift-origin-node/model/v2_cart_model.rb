@@ -48,7 +48,7 @@ module OpenShift
   class V2CartridgeModel
     include NodeLogger
 
-    FILENAME_BLACKLIST = %W{.ssh .sandbox .tmp .env}
+    FILENAME_BLACKLIST = %W{~/.ssh ~/.sandbox ~/.tmp ~/.env}
 
     def initialize(config, user, state)
       @config     = config
@@ -273,17 +273,29 @@ module OpenShift
 
       File.readlines(locked_files).each_with_object([]) do |line, memo|
         line.chomp!
+        
+        # Anchor lines starting with ~ at the gear root; otherwise anchor
+        # them at the cartridge installation dir within the gear.
+        if line.start_with?('~/')
+          line_abs = File.join(@user.homedir, line[2..-1])
+        else
+          line_abs = File.join(@user.homedir, cartridge.directory, line)
+        end
+
         case
           when line.empty?
             # skip blank lines
           when line.end_with?('/*')
-            memo << Dir.glob(File.join(@user.homedir, line)).select { |f| File.file?(f) }
+            memo << Dir.glob(line_abs).select { |f| File.file?(f) }
           when FILENAME_BLACKLIST.include?(line)
             logger.info("#{cartridge.directory} attempted lock/unlock on black listed entry [#{line}]")
-          when !(line.start_with?('.') || line.start_with?(cartridge.directory) || line.start_with?('app-root'))
+          # simple guard to ensure the line doesn't try to escape the gear or
+          # write stuff into unacceptable places within the gear
+          when line.start_with?('../') ||
+               (line.start_with?('~') && !(line.start_with?('~/.') || line.start_with?('~/app-root')))
             logger.info("#{cartridge.directory} attempted lock/unlock on out-of-bounds entry [#{line}]")
           else
-            memo << File.join(@user.homedir, line)
+            memo << line_abs
         end
       end
     end

@@ -1,7 +1,6 @@
-.pearrc
-php/
-php/configuration/
-php/metadata/
-php/env/
-php/conf/
-php/template/
+~/.pearrc
+configuration/
+metadata/
+env/
+conf/
+template/

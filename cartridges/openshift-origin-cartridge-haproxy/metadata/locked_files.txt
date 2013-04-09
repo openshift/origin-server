@@ -1,3 +1,2 @@
-haproxy/
-haproxy/env/
-haproxy/.ssh/
+env/
+.ssh/
