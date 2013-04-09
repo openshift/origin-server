@@ -201,6 +201,7 @@ class Domain
       ssh_keys = remove_key
     else
       ssh_keys = self.system_ssh_keys.find_by(component_id: remove_key) rescue []
+      ssh_keys = [ssh_keys].flatten
     end
     return if ssh_keys.empty?
     keys_attrs = ssh_keys.map{|k| k.attributes.dup}
