@@ -64,6 +64,9 @@ alternatives --install /etc/alternatives/jbossews-2.0 jbossews-2.0 /usr/share/to
 alternatives --set jbossews-2.0 /usr/share/tomcat7
 
 
+%{_sbindir}/oo-admin-cartridge --action install --offline --source /usr/libexec/openshift/cartridges/v2/jbossews
+
+
 %files
 %defattr(-,root,root,-)
 %dir %{cartridgedir}
