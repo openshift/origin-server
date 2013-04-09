@@ -31,6 +31,8 @@ Provides Jenkins cartridge to OpenShift
 service jenkins stop
 chkconfig jenkins off
 
+%{_sbindir}/oo-admin-cartridge --action install --offline --source /usr/libexec/openshift/cartridges/v2/jenkins
+
 
 %install
 rm -rf %{buildroot}
