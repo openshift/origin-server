@@ -923,42 +923,23 @@ class Application
   def process_commands(result_io, component_id=nil)
     commands = result_io.cart_commands
     add_ssh_keys = []
-    remove_ssh_keys = []
 
     remove_env_vars = []
 
     domain_keys_to_add = []
-    domain_keys_to_rm = []
 
     domain_env_vars_to_add = []
-    domain_env_vars_to_rm = []
 
     commands.each do |command_item|
       case command_item[:command]
       when "SYSTEM_SSH_KEY_ADD"
         domain_keys_to_add.push(SystemSshKey.new(name: self.name, type: "ssh-rsa", content: command_item[:args][0], component_id: component_id))
-      when "SYSTEM_SSH_KEY_REMOVE"
-        begin
-          key = self.domain.system_ssh_keys.find_by(name: self.name)
-          domain_keys_to_rm.push(key)
-        rescue Mongoid::Errors::DocumentNotFound
-          #ignore
-        end
       when "APP_SSH_KEY_ADD"
         add_ssh_keys << ApplicationSshKey.new(name: command_item[:args][0], type: "ssh-rsa", content: command_item[:args][1], created_at: Time.now, component_id: component_id)
-      when "APP_SSH_KEY_REMOVE"
-        begin
-          keys_attrs = get_updated_ssh_keys(nil, [ApplicationSshKey.new.to_obj({"name" => command_item[:args][0]})])
-          remove_ssh_keys << self.app_ssh_keys.find_by(name: keys_attrs[0]["name"])
-        rescue Mongoid::Errors::DocumentNotFound
-          #ignore
-        end
       when "APP_ENV_VAR_REMOVE"
         remove_env_vars.push({"key" => command_item[:args][0]})
       when "ENV_VAR_ADD"
         domain_env_vars_to_add.push({"key" => command_item[:args][0], "value" => command_item[:args][1], "component_id" => component_id})
-      when "ENV_VAR_REMOVE"
-        self.domain.env_vars.each {|env_var| domain_env_vars_to_rm << env_var if env_var["key"] == command_item[:args][0]}
       when "BROKER_KEY_ADD"
         iv, token = OpenShift::Auth::BrokerKey.new.generate_broker_key(self)
         pending_op = PendingAppOpGroup.new(op_type: :add_broker_auth_key, args: { "iv" => iv, "token" => token }, user_agent: self.user_agent)
@@ -974,11 +955,6 @@ class Application
       pending_op = PendingAppOpGroup.new(op_type: :update_configuration, args: {"add_keys_attrs" => keys_attrs}, user_agent: self.user_agent)
       Application.where(_id: self._id).update_all({ "$push" => { pending_op_groups: pending_op.serializable_hash }, "$pushAll" => { app_ssh_keys: keys_attrs }})
     end
-    if false and remove_ssh_keys.length > 0
-      keys_attrs = get_updated_ssh_keys(nil, remove_ssh_keys)
-      pending_op = PendingAppOpGroup.new(op_type: :update_configuration, args: {"remove_keys_attrs" => keys_attrs}, user_agent: self.user_agent)
-      Application.where(_id: self._id).update_all({ "$push" => { pending_op_groups: pending_op.serializable_hash }, "$pullAll" => { app_ssh_keys: keys_attrs }})
-    end
     if remove_env_vars.length > 0
       pending_op = PendingAppOpGroup.new(op_type: :update_configuration, args: {"remove_env_vars" => remove_env_vars})
       Application.where(_id: self._id).update_all({ "$push" => { pending_op_groups: pending_op.serializable_hash }})
@@ -986,8 +962,6 @@ class Application
 
     # Have to remember to run_jobs for the other apps involved at some point
     # run_jobs is called on the domain after all processing is done from add_features and remove_features
-    # domain.remove_system_ssh_keys(domain_keys_to_rm) if !domain_keys_to_rm.empty?
-    # domain.remove_env_variables(domain_env_vars_to_rm) if !domain_env_vars_to_rm.empty?
     domain.add_system_ssh_keys(domain_keys_to_add) if !domain_keys_to_add.empty?
     domain.add_env_variables(domain_env_vars_to_add) if !domain_env_vars_to_add.empty?
     nil
