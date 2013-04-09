@@ -82,7 +82,7 @@ Scaling:
   Max: -1
 Group-Overrides:
   - components:
-    - jbosseap
+    - jbosseap-6.0
     - web_proxy
 Endpoints:
   - Private-IP-Name:   IP
