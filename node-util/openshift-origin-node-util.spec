@@ -1,6 +1,6 @@
 Summary:       Utility scripts for the OpenShift Origin broker
 Name:          openshift-origin-node-util
-Version: 1.6.6
+Version: 1.6.7
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -112,6 +112,9 @@ mv services/openshift-gears.service %{buildroot}/etc/systemd/system/openshift-ge
 /sbin/restorecon /usr/sbin/oo-restorer* || :
 
 %changelog
+* Tue Apr 09 2013 Adam Miller <admiller@redhat.com> 1.6.7-1
+- Bug 949121 - FQDNs are lowercased in Apache logs. (rmillner@redhat.com)
+
 * Wed Mar 27 2013 Adam Miller <admiller@redhat.com> 1.6.6-1
 - Removing oo-setup-* scripts as they have been replaced by puppet and ansible
   modules. Updating puppet setup docs (kraman@gmail.com)
