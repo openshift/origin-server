@@ -139,21 +139,6 @@ module OpenShift
       do_control('restart-httpd-proxy', cart_name)
     end
 
-    def move(cart_name, idle)
-      args = idle ? "#{@user.container_name} #{@user.namespace} #{@user.container_uuid} --idle"
-        : "#{@user.container_name} #{@user.namespace} #{@user.container_uuid}"
-
-      do_control('move', cart_name, args)
-    end
-
-    def pre_move(cart_name)
-      do_control('pre-move', cart_name)
-    end
-
-    def post_move(cart_name)
-      do_control('post-move', cart_name)
-    end
-
     def connector_execute(cart_name, connector, args)
       do_control(connector, cart_name, args, "connection-hooks")
     end

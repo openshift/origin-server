@@ -59,7 +59,7 @@ class DistrictTest < ActiveSupport::TestCase
       District.unreserve_uid(orig_d.uuid, 1)
       new_d = District.find_by(uuid: orig_d.uuid)
       assert_equal(1, new_d.available_uids.length)
-      assert_equal(1 , new_d.available_capacity)
+      assert_equal(1, new_d.available_capacity)
       assert(new_d.available_uids.include?(1))
     end
 
@@ -71,6 +71,33 @@ class DistrictTest < ActiveSupport::TestCase
 
     uid = District.reserve_uid(d.uuid)
     assert_nil uid
+  end
+
+  test "reserve district preferred uid" do
+    orig_d = get_district_obj
+    orig_d.save!
+    preferred_uid = 10
+    uid = District.reserve_uid(orig_d.uuid, preferred_uid)
+    assert_equal(uid, preferred_uid)
+    new_d = District.find_by(uuid: orig_d.uuid)
+    assert_equal(orig_d.available_uids.length - 1, new_d.available_uids.length)
+    assert_equal(orig_d.available_capacity - 1 , new_d.available_capacity)
+    assert(!new_d.available_uids.include?(uid))
+
+    new_d.available_uids.each do |uid| 
+      uid = District.reserve_uid(orig_d.uuid, uid)
+    end
+    uid = District.reserve_uid(orig_d.uuid)
+    assert(uid.nil?)
+    new_d = District.find_by(uuid: orig_d.uuid)
+    assert_equal(0, new_d.available_uids.length)
+    assert_equal(0, new_d.available_capacity)
+   
+    District.unreserve_uid(orig_d.uuid, preferred_uid)
+    new_d = District.find_by(uuid: orig_d.uuid)
+    assert_equal(1, new_d.available_uids.length)
+    assert_equal(1, new_d.available_capacity)
+    assert(new_d.available_uids.include?(preferred_uid))
   end
   
   test "reserve given district uid" do

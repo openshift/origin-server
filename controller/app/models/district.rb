@@ -161,10 +161,16 @@ class District
     end
   end
 
-  def self.reserve_uid(uuid)
-    obj = District.where(:uuid => uuid, :available_capacity.gt => 0).find_and_modify( {"$pop" => { "available_uids" => -1}, "$inc" => { "available_capacity" => -1 }})
-    return obj.available_uids.first if obj
-    return nil
+  def self.reserve_uid(uuid, preferred_uid=nil)
+    uid = nil
+    if preferred_uid
+      obj = District.where(:uuid => uuid, :available_capacity.gt => 0, :available_uids => preferred_uid).find_and_modify( {"$pull" => { "available_uids" => preferred_uid }, "$inc" => { "available_capacity" => -1 }})
+      uid = preferred_uid if obj
+    else
+      obj = District.where(:uuid => uuid, :available_capacity.gt => 0).find_and_modify( {"$pop" => { "available_uids" => -1}, "$inc" => { "available_capacity" => -1 }})
+      uid = obj.available_uids.first if obj
+    end
+    return uid
   end
 
   def self.unreserve_uid(uuid, uid)

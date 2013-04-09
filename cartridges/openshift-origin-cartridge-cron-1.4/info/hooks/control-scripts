@@ -52,27 +52,6 @@ function _reload_cron_service() {
    :  #  Do nothing.
 }  #  End of function  _reload_cron_service.
 
-
-function _move_cron_service() {
-   source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/apache
-   source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/network
-   
-   observe_setup_var_lib_dir "$CRON_INSTANCE_DIR"
-
-}  #  End of function  _move_cron_service.
-
-function _pre_move_cron_service() {
-   source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/apache
-   source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/network
-
-}  #  End of function  _pre_move_cron_service.
-
-function _post_move_cron_service() {
-   source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/apache
-   source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/network
-
-}  #  End of function  _post_move_cron_service.
-
 function _status_cron_service() {
     if output=$(run_as_user "$CTL_SCRIPT status" 2>&1)
     then
@@ -109,7 +88,4 @@ case "$cmd" in
    stop|disable)     _disable_cron_service    ;;
    restart|reenable) _reenable_cron_service   ;;
    reload)           _reload_cron_service     ;;
-   move)             _move_cron_service       ;;
-   pre-move)         _pre_move_cron_service   ;;
-   post-move)        _post_move_cron_service  ;;
 esac

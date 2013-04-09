@@ -332,18 +332,6 @@ module OpenShift
       @cartridge_model.restart_httpd_proxy(cart_name)
     end
 
-    def move(cart_name, idle)
-      @cartridge_model.move(cart_name, idle)
-    end
-
-    def pre_move(cart_name)
-      @cartridge_model.pre_move(cart_name)
-    end
-
-    def post_move(cart_name)
-      @cartridge_model.post_move(cart_name)
-    end
-
     def pre_receive(options={})
       builder_cartridge = @cartridge_model.builder_cartridge
 
