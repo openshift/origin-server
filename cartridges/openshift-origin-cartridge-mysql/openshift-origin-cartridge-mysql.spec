@@ -3,7 +3,7 @@
 
 Summary:       Provides embedded mysql support
 Name:          openshift-origin-cartridge-mysql
-Version: 0.1.2
+Version: 0.1.3
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -54,6 +54,11 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Tue Apr 09 2013 Adam Miller <admiller@redhat.com> 0.1.3-1
+- Merge pull request #1942 from ironcladlou/dev/v2carts/vendor-changes
+  (dmcphers+openshiftbot@redhat.com)
+- Remove vendor name from installed V2 cartridge path (ironcladlou@gmail.com)
+
 * Mon Apr 08 2013 Adam Miller <admiller@redhat.com> 0.1.2-1
 - Add v2 mysql snapshot (pmorie@gmail.com)
 - Refactor v2 cartridge SDK location and accessibility (ironcladlou@gmail.com)
