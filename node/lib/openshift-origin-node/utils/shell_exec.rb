@@ -96,10 +96,10 @@ module OpenShift
 
           if options[:uid]
             # lazy init otherwise we end up with a cyclic require...
-            require 'openshift-origin-node/model/unix_user'
+            require 'openshift-origin-node/utils/selinux'
 
-            current_context  = %Q{unconfined_u:system_r:openshift_t:#{UnixUser.get_mcs_label(Process.uid)}}
-            target_context   = %Q{unconfined_u:system_r:openshift_t:#{UnixUser.get_mcs_label(options[:uid])}}
+            current_context  = %Q{unconfined_u:system_r:openshift_t:#{SELinux.get_mcs_label(Process.uid)}}
+            target_context   = %Q{unconfined_u:system_r:openshift_t:#{SELinux.get_mcs_label(options[:uid])}}
             
             # Only switch contexts if necessary
             if (current_context != target_context) || (Process.uid != options[:uid])

@@ -676,5 +676,39 @@ module OpenShift
     def threaddump(cart_name)
       @cartridge_model.do_control("threaddump", cart_name)
     end
+
+    def stop_lock?
+      @cartridge_model.stop_lock?
+    end
+
+    #
+    # Public: Return an ApplicationContainer object loaded from the container_uuid on the system
+    #
+    # Caveat: the quota information will not be populated.
+    #
+    def self.from_uuid(container_uuid, logger=nil)
+      u = UnixUser.from_uuid(container_uuid)
+      ApplicationContainer.new(u.application_uuid, u.container_uuid, u.user_uid,
+                               u.app_name, u.container_name, u.namespace,
+                               nil, nil, logger)
+    end
+
+    #
+    # Public: Return an enumerator which provides an ApplicationContainer object
+    # for every OpenShift gear in the system.
+    #
+    # Caveat: the quota information will not be populated.
+    #
+    def self.all_containers(logger=nil)
+      Enumerator.new do |yielder|
+        UnixUser.all_users.each do |u|
+          a=ApplicationContainer.new(u.application_uuid, u.container_uuid, u.user_uid,
+                                     u.app_name, u.container_name, u.namespace,
+                                     nil, nil, logger)
+          yielder.yield(a)
+        end
+      end
+    end
+
   end
 end
