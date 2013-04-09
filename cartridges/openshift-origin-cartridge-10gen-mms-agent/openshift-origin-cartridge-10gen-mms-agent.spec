@@ -2,7 +2,7 @@
 
 Summary:       Embedded 10gen MMS agent for performance monitoring of MondoDB
 Name:          openshift-origin-cartridge-10gen-mms-agent
-Version: 1.21.4
+Version: 1.21.5
 Release:       1%{?dist}
 Group:         Applications/Internet
 License:       ASL 2.0
@@ -46,6 +46,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Tue Apr 09 2013 Adam Miller <admiller@redhat.com> 1.21.5-1
+- Bug 949817 (dmcphers@redhat.com)
+
 * Mon Apr 08 2013 Dan McPherson <dmcphers@redhat.com> 1.21.4-1
 - Remove vendor name from installed V2 cartridge path (ironcladlou@gmail.com)
 
