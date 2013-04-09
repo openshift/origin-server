@@ -3,7 +3,7 @@
 
 Summary:       Embedded mongodb support for OpenShift
 Name:          openshift-origin-cartridge-mongodb
-Version: 1.6.5
+Version: 1.6.6
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -60,6 +60,14 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Tue Apr 09 2013 Adam Miller <admiller@redhat.com> 1.6.6-1
+- Merge pull request #1952 from calfonso/master
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #1942 from ironcladlou/dev/v2carts/vendor-changes
+  (dmcphers+openshiftbot@redhat.com)
+- Adding snapshot / restore to v2 mongodb cartridge (calfonso@redhat.com)
+- Remove vendor name from installed V2 cartridge path (ironcladlou@gmail.com)
+
 * Mon Apr 08 2013 Adam Miller <admiller@redhat.com> 1.6.5-1
 - Refactor v2 cartridge SDK location and accessibility (ironcladlou@gmail.com)
 
