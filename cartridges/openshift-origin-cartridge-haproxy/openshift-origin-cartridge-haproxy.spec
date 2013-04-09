@@ -38,6 +38,9 @@ cp -r * %{buildroot}%{cartridgedir}/
 %clean
 rm -rf %{buildroot}
 
+%post
+%{_sbindir}/oo-admin-cartridge --action install --offline --source /usr/libexec/openshift/cartridges/v2/haproxy
+
 %files
 %defattr(-,root,root,-)
 %dir %{cartridgedir}

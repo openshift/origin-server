@@ -43,6 +43,9 @@ cp -r * %{buildroot}%{cartridgedir}/
 rm -rf %{buildroot}
 
 
+%post
+%{_sbindir}/oo-admin-cartridge --action install --offline --source /usr/libexec/openshift/cartridges/v2/jenkins
+
 %files
 %defattr(-,root,root,-)
 %dir %{cartridgedir}
