@@ -38,6 +38,9 @@ ln -s %{cartridgedir} %{buildroot}/%{frameworkdir}
 rm -rf %{buildroot}
 
 
+%post
+%{_sbindir}/oo-admin-cartridge --action install --offline --source /usr/libexec/openshift/cartridges/v2/mock
+
 %files
 %defattr(-,root,root,-)
 %dir %{cartridgedir}
