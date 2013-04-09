@@ -21,4 +21,4 @@ rsync ~/python/virtenv/ $upstream_ssh:~/python/virtenv/
 rsync $WORKSPACE/ $upstream_ssh:~/app-root/repo/
 
 # Configure / start app
-$GIT_SSH $upstream_ssh 'gear cideploy'
+$GIT_SSH $upstream_ssh 'gear remotedeploy'
