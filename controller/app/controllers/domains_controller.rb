@@ -27,7 +27,7 @@ class DomainsController < BaseController
   # @param [String] id The namespace of the domain
   # @return [RestReply<RestDomain>] The requested domain
   def show
-    id = params[:id]
+    id = params[:id].downcase if params[:id]
     Rails.logger.debug "Getting domain #{id}"
 
     # validate the domain name using regex to avoid a mongo call, if it is malformed
@@ -54,7 +54,7 @@ class DomainsController < BaseController
   # 
   # @return [RestReply<RestDomain>] The new domain
   def create
-    namespace = params[:id]
+    namespace = params[:id].downcase if params[:id]
     Rails.logger.debug "Creating domain with namespace #{namespace}"
 
     return render_error(:unprocessable_entity, "Namespace is required and cannot be blank.",
@@ -67,7 +67,7 @@ class DomainsController < BaseController
       return render_error(:unprocessable_entity, nil, nil, "ADD_DOMAIN", nil, nil, messages)
     end
 
-    if Domain.where(canonical_namespace: namespace.downcase).count > 0
+    if Domain.with(consistency: :strong).where(canonical_namespace: namespace).count > 0 
       return render_error(:unprocessable_entity, "Namespace '#{namespace}' is already in use. Please choose another.", 103, "ADD_DOMAIN", "id")
     end
 
@@ -78,6 +78,8 @@ class DomainsController < BaseController
     @domain_name = domain.namespace
     begin
       domain.save
+    rescue OpenShift::UserException => e
+      return render_error(:unprocessable_entity, e.message, e.code, "ADD_DOMAIN", e.field)
     rescue Exception => e
       return render_exception(e, "ADD_DOMAIN") 
     end
@@ -96,8 +98,8 @@ class DomainsController < BaseController
   # 
   # @return [RestReply<RestDomain>] The updated domain
   def update
-    id = params[:existing_id]
-    new_namespace = params[:id]
+    id = params[:existing_id].downcase if params[:existing_id]
+    new_namespace = params[:id].downcase if params[:id]
     
     return render_error(:unprocessable_entity, "Namespace is required and cannot be blank.",
                         106, "UPDATE_DOMAIN", "id") if !new_namespace or new_namespace.empty?
@@ -113,14 +115,6 @@ class DomainsController < BaseController
       @domain_name = domain.namespace
     rescue Mongoid::Errors::DocumentNotFound
       return render_error(:not_found, "Domain '#{id}' not found", 127, "UPDATE_DOMAIN")
-    end
-    
-    if Application.with(consistency: :strong).where(domain_id: domain._id).count > 0
-      return render_error(:unprocessable_entity, "Domain contains applications. Delete applications first before changing the domain namespace.", 128)
-    end
-    
-    if Domain.where(canonical_namespace: new_namespace.downcase).count > 0
-      return render_error(:unprocessable_entity, "Namespace '#{new_namespace}' is already in use. Please choose another.", 103, "UPDATE_DOMAIN", "id")
     end
 
     # set the new namespace for validation 
@@ -139,6 +133,8 @@ class DomainsController < BaseController
     begin
       domain.update_namespace(new_namespace)
       domain.save
+    rescue OpenShift::UserException => e
+      return render_error(:unprocessable_entity, e.message, e.code, "UPDATE_DOMAIN", e.field)
     rescue Exception => e
       return render_exception(e, "UPDATE_DOMAIN") 
     end
@@ -154,7 +150,7 @@ class DomainsController < BaseController
   #
   # @param [Boolean] force If true, broker will destroy all application within the domain and then destroy the domain
   def destroy
-    id = params[:id]
+    id = params[:id].downcase if params[:id]
     force = get_bool(params[:force])
     
     # validate the domain name using regex to avoid a mongo call, if it is malformed
