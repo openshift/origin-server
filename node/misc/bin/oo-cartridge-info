@@ -39,7 +39,7 @@ require 'openshift-origin-common'
 opts = GetoptLong.new(
     ["--porcelain",         "-q", GetoptLong::NO_ARGUMENT],
     ["--debug",             "-d", GetoptLong::NO_ARGUMENT],
-    ["--help",              "-?", GetoptLong::NO_ARGUMENT]
+    ["--help",              "-h", GetoptLong::NO_ARGUMENT]
 )
 
 args = {}
