@@ -28,5 +28,5 @@ Scaling:
   Max: 1
 Configure-Order:
   - mongodb
-  - 10gen-mms-agent-0.1
+  - 10gen-mms-agent
 Endpoints:
