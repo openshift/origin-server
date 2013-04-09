@@ -187,7 +187,7 @@ EOF
       # delete the CNAME record for the application in the domain
       fqdn = "#{app_name}-#{namespace}.#{@domain_suffix}"
 
-      cmd = del_command(fqdn)
+      cmd = del_cmd(fqdn)
       # authenticate if credentials have been given
       if @krb_principal
         cmd = "kinit -kt #{@krb_keytab} #{@krb_principal} &&" + cmd
