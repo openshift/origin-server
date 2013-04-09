@@ -1,7 +1,7 @@
 #!/bin/bash
 
-JAVA_JDK_16=/etc/alternatives/java_sdk_1.7.0
-JAVA_JDK_17=/etc/alternatives/java_sdk_1.6.0
+JAVA_JDK_16=/etc/alternatives/java_sdk_1.6.0
+JAVA_JDK_17=/etc/alternatives/java_sdk_1.7.0
 
 function marker_present() {
   if [ -f "${OPENSHIFT_REPO_DIR}/.openshift/markers/$1" ]; then
