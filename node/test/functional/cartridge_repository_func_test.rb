@@ -46,8 +46,8 @@ class CartridgeRepositoryFunctionalTest < Test::Unit::TestCase
   end
 
   def teardown
-    #FileUtils.rm_r(@repo_dir)
-    #FileUtils.rm_r(@source_dir)
+    FileUtils.rm_rf(@repo_dir)
+    FileUtils.rm_rf(@source_dir)
   end
 
   def test_install_remove

@@ -158,6 +158,7 @@ module OpenShift
         if @manifest.has_key?('Version-Overrides')
           vtree = @manifest['Version-Overrides'][@version]
           @manifest.merge!(vtree) if vtree
+          @manifest.delete('Version-Overrides')
         end
 
         @cartridge_vendor  = @manifest['Cartridge-Vendor']

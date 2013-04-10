@@ -33,7 +33,7 @@ class CartridgeTest < Test::Unit::TestCase
    @manifest = %q{#
         Name: mock
         Cartridge-Short-Name: MOCK
-        Cartridge-Version: 1.0
+        Cartridge-Version: '1.0'
         Cartridge-Vendor: Unit Test
         Display-Name: Mock
         Description: "A mock cartridge for development use only."
