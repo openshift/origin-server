@@ -20,8 +20,6 @@ function generate_ssh_keys {
     chmod 0640 "${OPENSHIFT_DATA_DIR}/.ssh/jenkins_id_rsa.pub"
 }
 
-PATH=/bin:/usr/bin:$PATH
-
 cartridge_type="jenkins"
 
 version=1.4
@@ -34,16 +32,6 @@ cp -r ${OPENSHIFT_JENKINS_DIR}/versions/${version}/configuration/* ${OPENSHIFT_J
 #cp -r ${OPENSHIFT_JENKINS_DIR}/versions/${version}/metadata/* ${OPENSHIFT_JENKINS_DIR}/metadata
 cp -r ${OPENSHIFT_JENKINS_DIR}/versions/${version}/template/* ${OPENSHIFT_JENKINS_DIR}/template
 cp -r ${OPENSHIFT_JENKINS_DIR}/versions/${version}/template/.openshift ${OPENSHIFT_JENKINS_DIR}/template
-
-if [ -e ${OPENSHIFT_REPO_DIR}/.openshift/markers/java7 ];
-then
-	JAVA_HOME=/etc/alternatives/java_sdk_1.7.0
-else
-	JAVA_HOME=/etc/alternatives/java_sdk_1.6.0
-fi
-
-echo "export JAVA_HOME=$JAVA_HOME" > $OPENSHIFT_JENKINS_DIR/env/JAVA_HOME
-echo "export PATH=$JAVA_HOME/bin:$PATH" > $OPENSHIFT_JENKINS_DIR/env/PATH
 
 generate_ssh_keys
 

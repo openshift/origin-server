@@ -5,7 +5,7 @@ source $OPENSHIFT_CARTRIDGE_SDK_BASH
 
 version=1.4
 
-if ! [ -n "$JENKINS_URL" ]
+if [ -z "$JENKINS_URL" ]
 then
     client_error "Jenkins server does not exist!  Please create with rhc app create -t jenkins-1.4"
     exit 151

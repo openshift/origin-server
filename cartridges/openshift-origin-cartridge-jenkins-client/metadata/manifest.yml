@@ -17,3 +17,10 @@ Provides:
   - "jenkins-client"
 Publishes:
 Subscribes:
+Group-Overrides:
+  - components:
+    - jenkins-client-1.4
+    - web_proxy    
+Scaling:
+  Min: 1
+  Max: 1

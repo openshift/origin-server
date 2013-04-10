@@ -13,31 +13,36 @@ function warning {
 }
 
 function client_result {
-    local output=$1
+    client_out "CLIENT_RESULT" "$1"
+}
+
+function client_message {
+    client_out "CLIENT_MESSAGE" "$1"
+}
+
+function client_error {
+    client_out "CLIENT_ERROR" "$1"
+}
+
+function client_internal_error {
+    client_out "CLIENT_INTERNAL_ERROR" "$1"
+}
+
+function client_debug {
+    client_out "CLIENT_DEBUG" "$1"
+}
+
+function client_out() {
+    local type=$1
+    local output=$2
     local IFS_BAK=$IFS
 IFS="
 "
     for line in $output
     do
-        echo "CLIENT_RESULT: $line"
+        echo "$type: $line"
     done
     IFS=$IFS_BAK
-}
-
-function client_message {
-    echo "CLIENT_MESSAGE: $1"
-}
-
-function client_error {
-    echo "CLIENT_ERROR: $1"
-}
-
-function client_internal_error {
-    echo "CLIENT_INTERNAL_ERROR: $1"
-}
-
-function client_debug {
-    echo "CLIENT_DEBUG: $1"
 }
 
 function set_app_info {
