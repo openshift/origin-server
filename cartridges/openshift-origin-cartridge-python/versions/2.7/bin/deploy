@@ -1,0 +1,9 @@
+#!/bin/bash
+
+cartridge_type="python-2.7"
+source "${OPENSHIFT_PYTHON_DIR}/versions/${OPENSHIFT_PYTHON_VERSION}/lib/utils"
+
+#  Create (or update if exists) and activate the virtualenv.
+create_virtualenv
+activate_virtualenv
+

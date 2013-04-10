@@ -2,20 +2,14 @@
 set -u
 set -x
 
-PATH=/bin:/usr/bin:$PATH
-
 version=2.6
 
-# Copy the version specific files to python directory
-shopt -s dotglob
-cp -r $OPENSHIFT_PYTHON_DIR/versions/$version/etc/* $OPENSHIFT_PYTHON_DIR/etc
-cp -r $OPENSHIFT_PYTHON_DIR/versions/$version/metadata/* $OPENSHIFT_PYTHON_DIR/metadata
-cp -r $OPENSHIFT_PYTHON_DIR/versions/$version/template/* $OPENSHIFT_PYTHON_DIR/template
+case "$1" in
+    -v|--version)
+      version="$2"
+esac
 
-# Create additional directories required by PYTHON and httpd
-ln -s /usr/lib64/httpd/modules $OPENSHIFT_PYTHON_DIR
-ln -s /etc/httpd/conf/magic $OPENSHIFT_PYTHON_DIR/etc/magic
+echo "export OPENSHIFT_PYTHON_VERSION='$version'" > "$OPENSHIFT_PYTHON_DIR/env/OPENSHIFT_PYTHON_VERSION"
 
-# Create the virtenv dir
-mkdir -p $OPENSHIFT_PYTHON_DIR/virtenv
-
+# Call the version specific setup script
+$OPENSHIFT_PYTHON_DIR/versions/$version/bin/setup
