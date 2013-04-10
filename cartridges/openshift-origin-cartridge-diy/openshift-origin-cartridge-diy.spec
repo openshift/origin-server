@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/openshift/cartridges/v2/diy
 
 Name: openshift-origin-cartridge-diy
-Version: 0.2.2
+Version: 0.2.3
 Release: 1%{?dist}
 Summary: DIY cartridge
 Group: Development/Languages
@@ -57,6 +57,13 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Wed Apr 10 2013 Adam Miller <admiller@redhat.com> 0.2.3-1
+- Anchor locked_files.txt entries at the cart directory (ironcladlou@gmail.com)
+- Merge pull request #1976 from calfonso/master (dmcphers@redhat.com)
+- Merge pull request #1974 from brenton/v2_post2 (dmcphers@redhat.com)
+- Bug fixes for DIY v2 cart -947010 (calfonso@redhat.com)
+- Registering/installing the cartridges in the rpm %%post (bleanhar@redhat.com)
+
 * Tue Apr 09 2013 Adam Miller <admiller@redhat.com> 0.2.2-1
 - Remove vendor name from installed V2 cartridge path (ironcladlou@gmail.com)
 
