@@ -500,8 +500,8 @@ class Application
   def update_component_limits(component_instance, scale_from, scale_to, additional_filesystem_gb)
     if additional_filesystem_gb && additional_filesystem_gb != 0
       max_storage = self.domain.owner.capabilities['max_storage_per_gear']
-      raise OpenShift::UserException.new("User is not allowed to change storage quota", 164) unless max_storage
-      raise OpenShift::UserException.new("User can not exceed max storage quota per gear: #{max_storage} GB", 166) if additional_filesystem_gb > max_storage
+      raise OpenShift::UserException.new("You are not allowed to request additional gear storage", 164) unless max_storage
+      raise OpenShift::UserException.new("You have requested more additional gear storage than you are allowed (max: #{max_storage} GB)", 166) if additional_filesystem_gb > max_storage
     end
     Application.run_in_application_lock(self) do    
       pending_op = PendingAppOpGroup.new(op_type: :update_component_limits, args: {"comp_spec" => component_instance.to_hash, "min"=>scale_from, "max"=>scale_to, "additional_filesystem_gb"=>additional_filesystem_gb}, created_at: Time.new, user_agent: self.user_agent)
