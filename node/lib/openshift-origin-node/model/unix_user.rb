@@ -314,6 +314,13 @@ Dir(after)    #{@uuid}/#{@uid} => #{list_home_dir(@homedir)}
           File::WRONLY|File::TRUNC|File::CREAT) do |file|
             file.write "export #{key}='#{value}'"
         end
+        
+      mcs_label = get_mcs_label(uid)
+      Utils.oo_spawn(
+          "chown root:#{gid} #{filename};
+           chcon unconfined_u:object_r:openshift_var_lib_t:#{mcs_label} #{filename}",
+          expected_exitstatus: 0
+      )
 
       if block_given?
         blk.call(value)
