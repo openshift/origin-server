@@ -8,7 +8,7 @@
 
 Summary:       Common msg components for OpenShift broker and node
 Name:          openshift-origin-msg-common
-Version:       1.5.2
+Version:       1.5.3
 Release:       1%{?dist}
 License:       ASL 2.0
 URL:           http://openshift.redhat.com
@@ -38,6 +38,11 @@ chmod 644 %{buildroot}%{mco_root}validator/*
 %{mco_root}validator/*
 
 %changelog
+* Wed Apr 10 2013 Adam Miller <admiller@redhat.com> 1.5.3-1
+- Delete move/pre-move/post-move hooks, these hooks are no longer needed.
+  (rpenta@redhat.com)
+- Adding checks for ssh key matches (abhgupta@redhat.com)
+
 * Mon Apr 08 2013 Adam Miller <admiller@redhat.com> 1.5.2-1
 - fixing rebase (tdawson@redhat.com)
 
