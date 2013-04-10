@@ -198,9 +198,17 @@ when "update"
 
           # reset the original namespace back for updating
           d.namespace = orig_namespace
-          d.update_namespace(namespace)
-          d.save!
-          reply.resultIO << "Successfully updated domain.\n"
+          begin
+            d.update_namespace(namespace)
+            d.save!
+            reply.resultIO << "Successfully updated domain.\n"
+          rescue OpenShift::UserException => e
+             puts "#{e.message}"
+             exit e.code
+          rescue Exception => e
+             puts "#{e.message}"
+             exit 1
+          end
         end
       end
     end
