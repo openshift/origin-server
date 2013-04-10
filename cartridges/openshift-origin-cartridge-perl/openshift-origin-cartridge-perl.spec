@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/openshift/cartridges/v2/perl
 
 Name: openshift-origin-cartridge-perl
-Version: 0.2.3
+Version: 0.2.4
 Release: 1%{?dist}
 Summary: Perl cartridge
 Group: Development/Languages
@@ -67,6 +67,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Wed Apr 10 2013 Adam Miller <admiller@redhat.com> 0.2.4-1
+- Anchor locked_files.txt entries at the cart directory (ironcladlou@gmail.com)
+
 * Tue Apr 09 2013 Adam Miller <admiller@redhat.com> 0.2.3-1
 - Merge pull request #1962 from danmcp/master (dmcphers@redhat.com)
 - jenkins WIP (dmcphers@redhat.com)
