@@ -217,14 +217,14 @@ module Console::LayoutHelper
 
   def breadcrumb_for_account(*args)
     breadcrumbs_for_each [
-      link_to('My Account', :account, :action => :show),
+      link_to('My Account', account_path),
     ] + args
   end
 
   def breadcrumb_for_account_settings(*args)
     breadcrumbs_for_each [
-      link_to('My Account', :account, :action => :show),
-      link_to('Settings', :account, :action => :settings),
+      link_to('My Account', account_path),
+      link_to('Settings', settings_account_path),
     ] + args
   end
 
