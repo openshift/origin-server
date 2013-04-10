@@ -68,7 +68,7 @@ class ApplicationControllerTest < ActionController::TestCase
     assert_response :unprocessable_entity
     post :create, {"name" => @app_name, "cartridges" => "mysql-5.1", "domain_id" => @domain.namespace}
     assert_response :unprocessable_entity
-    post :create, {"name" => @app_name, "cartridges" => [PHP_VERSION, "zend-5.6"], "domain_id" => @domain.namespace}
+    post :create, {"name" => @app_name, "cartridges" => [PHP_VERSION, "ruby-1.9"], "domain_id" => @domain.namespace}
     assert_response :unprocessable_entity
   end
 end
