@@ -66,10 +66,10 @@ function tidy() {
         rm -rf ${OPENSHIFT_RUBY_LOG_DIR}/* ${OPENSHIFT_RUBY_LOG_DIR}/.[^.]*
     fi
 
-    if [ -d ${OPENSHIFT_REPO_DIR}tmp/ ]
+    if [ -d ${OPENSHIFT_RUBY_DIR}tmp/ ]
     then
-        client_message "Emptying tmp dir: ${OPENSHIFT_REPO_DIR}tmp/"
-        rm -rf ${OPENSHIFT_REPO_DIR}tmp/* ${OPENSHIFT_REPO_DIR}tmp/.[^.]*
+        client_message "Emptying tmp dir: ${OPENSHIFT_RUBY_DIR}tmp/"
+        rm -rf ${OPENSHIFT_RUBY_DIR}tmp/* ${OPENSHIFT_RUBY_DIR}tmp/.[^.]*
     fi
 }
 
