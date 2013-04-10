@@ -1,8 +1,9 @@
 Name: python
 Cartridge-Short-Name: PYTHON
-Display-Name: Python 2.6
+Display-Name: Python
 Description: "Python is a general-purpose server-side scripting language originally designed for Web development to produce dynamic Web pages. Popular development frameworks include: CakePython, Zend, Symfony, and Code Igniter."
 Version: '2.6'
+Versions: ['2.6', '2.7']
 License: "The Python License, version 2.7.3"
 License-Url: http://docs.python.org/2/license.html
 Vendor: python.org
