@@ -3,7 +3,7 @@
 
 Summary:       Embedded 10gen MMS agent for performance monitoring of MondoDB
 Name:          openshift-origin-cartridge-10gen-mms-agent-0.1
-Version: 1.21.1
+Version: 1.21.2
 Release:       1%{?dist}
 Group:         Applications/Internet
 License:       ASL 2.0
@@ -50,6 +50,11 @@ ln -s %{cartridgedir} %{buildroot}/%{frameworkdir}
 
 
 %changelog
+* Wed Apr 10 2013 Adam Miller <admiller@redhat.com> 1.21.2-1
+- Bug 950224: Remove unnecessary Endpoints (ironcladlou@gmail.com)
+- Delete move/pre-move/post-move hooks, these hooks are no longer needed.
+  (rpenta@redhat.com)
+
 * Thu Mar 28 2013 Adam Miller <admiller@redhat.com> 1.21.1-1
 - bump_minor_versions for sprint 26 (admiller@redhat.com)
 
