@@ -156,6 +156,8 @@ Endpoints:
         Backend:       "/back"
         Options:       { websocket: true }
 ```
+Additional-Control-Actions:
+  - threaddump
 
 ### Cartridge-Short-Name Element
 
@@ -214,11 +216,11 @@ The `Version` element is the default or only version of the software packaged by
 
     Versions: [5.3]
 
-### TBD Element
+### Additional-Control-Actions Element
 
-The `TBD` element is a TBD of optional hooks supported by your cartridge.  `threaddump` is an example of
-one such hook. OpenShift will only call optional hooks if they are included in this element.
-Supported optional hooks:
+The `Additional-Control-Actions` element is a list of optional actions supported by your cartridge.  `threaddump` is an example of
+one such action. OpenShift will only call optional actions if they are included in this element.
+Supported optional actions:
 
     threaddump
 
