@@ -9,7 +9,7 @@
 
 Summary:       OpenShift plugin for mcollective service
 Name:          rubygem-%{gem_name}
-Version: 1.7.2
+Version: 1.7.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -80,6 +80,16 @@ cp %{buildroot}/%{gem_dir}/gems/%{gem_name}-%{version}/conf/openshift-origin-msg
 %attr(0644,-,-) %ghost /etc/mcollective/client.cfg
 
 %changelog
+* Wed Apr 10 2013 Adam Miller <admiller@redhat.com> 1.7.3-1
+- Change 'allow_change_district' to 'change_district' and remove warnings when
+  target server or district is specified. Fix start/stop carts order in move
+  gear. (rpenta@redhat.com)
+- Gear Move changes: Keep same uid for the gear When changing the gear from one
+  district to another. (rpenta@redhat.com)
+- Delete move/pre-move/post-move hooks, these hooks are no longer needed.
+  (rpenta@redhat.com)
+- Adding checks for ssh key matches (abhgupta@redhat.com)
+
 * Mon Apr 08 2013 Adam Miller <admiller@redhat.com> 1.7.2-1
 - broker messaging does not require mcollective server (markllama@gmail.com)
 - Bug 928752: Run threaddump/system-messages only on primary cart
