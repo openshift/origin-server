@@ -27,8 +27,3 @@ Scaling:
 Configure-Order:
   - mongodb
   - 10gen-mms-agent-0.1
-Endpoints:
-  - Private-IP-Name:   IP
-    Private-Port-Name: PORT
-    Private-Port:      8080
-    Public-Port-Name:  PROXY_PORT

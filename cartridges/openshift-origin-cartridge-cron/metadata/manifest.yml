@@ -29,8 +29,3 @@ Subscribes:
 Scaling:
   Min: 1
   Max: 1
-Endpoints:
-  - Private-IP-Name:   IP
-    Private-Port-Name: PORT
-    Private-Port:      8080
-    Public-Port-Name:  PROXY_PORT
