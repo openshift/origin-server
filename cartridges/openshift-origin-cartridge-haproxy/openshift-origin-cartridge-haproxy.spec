@@ -6,7 +6,7 @@
 %global frameworkdir %{_libexecdir}/openshift/cartridges/v2/haproxy
 
 Name:          openshift-origin-cartridge-haproxy
-Version: 0.2.3
+Version: 0.2.4
 Release:       1%{?dist}
 Summary:       Provides HA Proxy
 Group:         Network/Daemons
@@ -56,6 +56,11 @@ rm -rf %{buildroot}
 %doc %{cartridgedir}/README.md
 
 %changelog
+* Wed Apr 10 2013 Adam Miller <admiller@redhat.com> 0.2.4-1
+- Anchor locked_files.txt entries at the cart directory (ironcladlou@gmail.com)
+- Merge pull request #1974 from brenton/v2_post2 (dmcphers@redhat.com)
+- Registering/installing the cartridges in the rpm %%post (bleanhar@redhat.com)
+
 * Tue Apr 09 2013 Adam Miller <admiller@redhat.com> 0.2.3-1
 - Rename cideploy to geardeploy. (mrunalp@gmail.com)
 - Merge pull request #1942 from ironcladlou/dev/v2carts/vendor-changes
