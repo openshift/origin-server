@@ -2,7 +2,7 @@
 
 Summary:       Provides support for using community Python 2.7 cartridge
 Name:          openshift-origin-cartridge-community-python-2.7
-Version: 0.4.1
+Version: 0.4.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -77,6 +77,10 @@ ln -s %{cartridgedir}/../abstract/info/bin/sync_gears.sh %{buildroot}%{cartridge
 
 
 %changelog
+* Wed Apr 10 2013 Adam Miller <admiller@redhat.com> 0.4.2-1
+- Delete move/pre-move/post-move hooks, these hooks are no longer needed.
+  (rpenta@redhat.com)
+
 * Thu Mar 28 2013 Adam Miller <admiller@redhat.com> 0.4.1-1
 - bump_minor_versions for sprint 26 (admiller@redhat.com)
 - add Requires for F18 (bdecoste@gmail.com)
