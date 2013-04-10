@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/openshift/cartridges/v2/mock-plugin
 
 Name: openshift-origin-cartridge-mock-plugin
-Version: 0.2.3
+Version: 0.2.4
 Release: 1%{?dist}
 Summary: Mock plugin cartridge for V2 Cartridge SDK
 Group: Development/Languages
@@ -57,6 +57,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Wed Apr 10 2013 Adam Miller <admiller@redhat.com> 0.2.4-1
+- Anchor locked_files.txt entries at the cart directory (ironcladlou@gmail.com)
+
 * Tue Apr 09 2013 Adam Miller <admiller@redhat.com> 0.2.3-1
 - Merge pull request #1942 from ironcladlou/dev/v2carts/vendor-changes
   (dmcphers+openshiftbot@redhat.com)
