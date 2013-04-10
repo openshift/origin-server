@@ -79,6 +79,11 @@ class V2CartridgeModelFunctionalTest < Test::Unit::TestCase
     @user.destroy
   end
 
+  def test_hidden_erb
+    assert File.exists?(File.join(@user.homedir, 'mock', '.mock_hidden')), 'Failed to process .mock_hidden.erb'
+    refute File.exists?(File.join(@user.homedir, 'mock', '.mock_hidden.erb')), 'Failed to delete .mock_hidden.erb after processing'
+  end
+
   def test_publish_db_connection_info
     results = @model.connector_execute('mock-plugin-0.1', 'publish-db-connection-info', "")
     refute_nil results
@@ -92,7 +97,7 @@ class V2CartridgeModelFunctionalTest < Test::Unit::TestCase
     @model.connector_execute('mock-0.1', 'set-db-connection-info', "test testdomain 515c7e8bdf3e460939000001 \\'75e36e529c9211e29cc622000a8c0259\\'\\=\\'OPENSHIFT_MOCK_DB_GEAR_UUID\\=75e36e529c9211e29cc622000a8c0259\\;\\;\\ '\n'\\'")
 
     uservar_file = File.join(@user.homedir, '.env', '.uservars', 'OPENSHIFT_MOCK_DB_GEAR_UUID')
-    assert File.exists? uservar_file
+    assert File.exists?(uservar_file), "#{uservar_file} is missing"
     assert_equal "export OPENSHIFT_MOCK_DB_GEAR_UUID='75e36e529c9211e29cc622000a8c0259'", IO.read(uservar_file).chomp
   end
 end
