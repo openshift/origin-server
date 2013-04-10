@@ -9,7 +9,7 @@
 
 Summary:       OpenShift Origin Management Console
 Name:          rubygem-%{gem_name}
-Version: 1.7.3
+Version: 1.7.4
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -134,6 +134,14 @@ cp -a ./%{gem_dir}/* %{buildroot}%{gem_dir}/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Wed Apr 10 2013 Adam Miller <admiller@redhat.com> 1.7.4-1
+- Merge pull request #1992 from smarterclayton/fix_account_settings_breadcrumb
+  (dmcphers+openshiftbot@redhat.com)
+- Fix account settings breadcrumb to point to the correct URL
+  (ccoleman@redhat.com)
+- Merge pull request #1969 from liggitt/currency_display (dmcphers@redhat.com)
+- Separate currency symbol into helper method (jliggitt@redhat.com)
+
 * Tue Apr 09 2013 Adam Miller <admiller@redhat.com> 1.7.3-1
 - Merge pull request #1944 from sg00dwin/408dev (dmcphers@redhat.com)
 - Changes for: (sgoodwin@redhat.com)
