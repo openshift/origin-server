@@ -40,8 +40,14 @@ When /^a new file is added and pushed to the client-created application repo$/ d
   end
 end
 
-Then /^the new file will (not )?be present in the gear app-root repo$/ do |negate|
+Then /^the new file will (not )?be present in the (secondary )?gear app-root repo$/ do |negate, secondary|
   file = File.join($home_root, @app.uid, 'app-root', 'repo', 'cucumber_test_file')
+
+  if secondary
+    secondary_gear = @app.ssh_command("grep gear- haproxy/conf/haproxy.cfg | awk '{ print $2}' | sed 's#gear-##g'")
+
+    file = File.join($home_root, secondary_gear, 'app-root', 'repo', 'cucumber_test_file')
+  end
 
   if negate
     assert_file_not_exists file
@@ -60,4 +66,8 @@ Then /^the ([^ ]+) ([^ ]+) marker will( not)? exist in the gear$/ do |cartridge_
   else
     assert_file_exists marker_file
   end  
+end
+
+When /^the minimum scaling parameter is set to (\d+)$/ do |min|
+  rhc_ctl_scale(@app, min) 
 end

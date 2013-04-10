@@ -9,16 +9,24 @@ Cartridge-Version: 0.0.1
 Cartridge-Vendor: redhat
 Categories:
   - service
+  - mock
   - web_framework
 Provides:
-  - mock
+  - mock-0.1
+  - "mock"
 Cart-Data:
   - Key: OPENSHIFT_MOCK_EXAMPLE
     Type: environment
     Description: "An example environment variable using ERB processing"
 Group-Overrides:
   - components:
-    - mock
+    - mock-0.1
+    - web_proxy
+Publishes:
+  publish-http-url:
+    Type: "NET_TCP:httpd-proxy-info"
+  publish-gear-endpoint:
+    Type: "NET_TCP:gear-endpoint-info"
 Subscribes:
   set-db-connection-info:
     Type: "NET_TCP:db:connection-info"
@@ -29,6 +37,9 @@ Endpoints:
     Private-Port:      8080
     Public-Port-Name:  EXAMPLE_PUBLIC_PORT1
     Mappings:
+      - Frontend:      ""
+        Backend:       ""
+        Options:       { websocket: true }
       - Frontend:      "/front1a"
         Backend:       "/back1a"
   - Private-IP-Name:   EXAMPLE_IP1
@@ -42,3 +53,6 @@ Endpoints:
   - Private-IP-Name:   EXAMPLE_IP2
     Private-Port-Name: EXAMPLE_PORT4
     Private-Port:      9090
+Scaling:
+  Min: 1
+  Max: -1

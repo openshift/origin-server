@@ -27,11 +27,15 @@ Given /^an existing (.+) application( without an embedded cartridge)?$/ do |type
   @app.should_not be_nil
 end
 
-Given /^a new client created (.+) application$/ do |type|
+Given /^a new client created( scalable)? (.+) application$/ do |scalable, type|
   @app = TestApp.create_unique(type)
   register_user(@app.login, @app.password) if $registration_required
   if rhc_create_domain(@app)
-    rhc_create_app(@app)
+    if scalable
+      rhc_create_app(@app, true, '-s')
+    else
+      rhc_create_app(@app)
+    end
   end
   raise "Could not create domain: #{@app.create_domain_code}" unless @app.create_domain_code == 0
   raise "Could not create application #{@app.create_app_code}" unless @app.create_app_code == 0
