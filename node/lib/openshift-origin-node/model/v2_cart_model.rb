@@ -507,7 +507,7 @@ module OpenShift
     #
     #   v2_cart_model.render_erbs({HOMEDIR => '/home/no_place_like'}, '/var/lib/...cartridge/env')
     def render_erbs(env, path_glob)
-      Dir.glob(path_glob + '/*.erb').select { |f| File.file?(f) }.each do |file|
+      Dir.glob(path_glob + '/*.erb', File::FNM_DOTMATCH).select { |f| File.file?(f) }.each do |file|
         begin
           Utils.oo_spawn(%Q{/usr/bin/oo-erb -S 2 -- #{file} > #{file.chomp('.erb')}},
                          env:             env,

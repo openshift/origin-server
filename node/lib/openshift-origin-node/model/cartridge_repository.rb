@@ -182,7 +182,7 @@ module OpenShift
         FileUtils.rm_r(entry.repository_path) if File.exist?(entry.repository_path)
         FileUtils.mkpath(entry.repository_path)
 
-        Utils.oo_spawn("/bin/cp -ad #{directory}/* #{entry.repository_path}",
+        Utils.oo_spawn("shopt -s dotglob; /bin/cp -ad #{directory}/* #{entry.repository_path}",
                        expected_exitstatus: 0)
       end
       entry
