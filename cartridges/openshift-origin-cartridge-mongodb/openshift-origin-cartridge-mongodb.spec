@@ -3,7 +3,7 @@
 
 Summary:       Embedded mongodb support for OpenShift
 Name:          openshift-origin-cartridge-mongodb
-Version: 1.6.6
+Version: 1.6.7
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -63,6 +63,13 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Wed Apr 10 2013 Adam Miller <admiller@redhat.com> 1.6.7-1
+- Merge pull request #1976 from calfonso/master (dmcphers@redhat.com)
+- Merge pull request #1974 from brenton/v2_post2 (dmcphers@redhat.com)
+- Display the mongo password to the client when setting up the db
+  (calfonso@redhat.com)
+- Registering/installing the cartridges in the rpm %%post (bleanhar@redhat.com)
+
 * Tue Apr 09 2013 Adam Miller <admiller@redhat.com> 1.6.6-1
 - Merge pull request #1952 from calfonso/master
   (dmcphers+openshiftbot@redhat.com)
