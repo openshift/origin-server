@@ -2,7 +2,7 @@
 
 Summary:       Provides jenkins-1.4 support
 Name:          openshift-origin-cartridge-jenkins-1.4
-Version: 1.7.3
+Version: 1.7.4
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -91,6 +91,10 @@ ln -s %{cartridgedir}/../abstract/info/hooks/system-messages %{buildroot}%{cartr
 
 
 %changelog
+* Wed Apr 10 2013 Adam Miller <admiller@redhat.com> 1.7.4-1
+- Delete move/pre-move/post-move hooks, these hooks are no longer needed.
+  (rpenta@redhat.com)
+
 * Tue Apr 09 2013 Adam Miller <admiller@redhat.com> 1.7.3-1
 - delete all calls to remove_ssh_key, and remove_domain_env_vars
   (rchopra@redhat.com)
