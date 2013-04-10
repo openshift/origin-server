@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.7.3
+Version: 1.7.4
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -83,6 +83,28 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Wed Apr 10 2013 Adam Miller <admiller@redhat.com> 1.7.4-1
+- Anchor locked_files.txt entries at the cart directory (ironcladlou@gmail.com)
+- Merge pull request #1980 from abhgupta/abhgupta-dev
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #1979 from pmorie/dev/snapshot_cuke
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #1959 from pravisankar/dev/ravi/card-537
+  (dmcphers+openshiftbot@redhat.com)
+- Returning the correct http status in case of unhandled exception
+  (abhgupta@redhat.com)
+- Add core platform test for v2 snapshot/restore (pmorie@gmail.com)
+- Merge pull request #1968 from pmorie/dev/v2_mysql (dmcphers@redhat.com)
+- Gear Move changes: Keep same uid for the gear When changing the gear from one
+  district to another. (rpenta@redhat.com)
+- Merge pull request #1965 from rajatchopra/master
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #1953 from abhgupta/abhgupta-dev
+  (dmcphers+openshiftbot@redhat.com)
+- Add mysql v2 snapshot/restore tests (pmorie@gmail.com)
+- fix system_ssh_key remove case (rchopra@redhat.com)
+- Adding checks for ssh key matches (abhgupta@redhat.com)
+
 * Tue Apr 09 2013 Adam Miller <admiller@redhat.com> 1.7.3-1
 - Merge pull request #1954 from lnader/gear-ssh-url
   (dmcphers+openshiftbot@redhat.com)
