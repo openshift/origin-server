@@ -3,7 +3,7 @@
 
 Summary:       Embedded cron support for express
 Name:          openshift-origin-cartridge-cron-1.4
-Version: 1.7.2
+Version: 1.7.3
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -43,6 +43,11 @@ ln -s %{cartridgedir}/info/configuration/ %{buildroot}/%{_sysconfdir}/openshift/
 %{cartridgedir}/info/manifest.yml
 
 %changelog
+* Wed Apr 10 2013 Adam Miller <admiller@redhat.com> 1.7.3-1
+- Bug 950224: Remove unnecessary Endpoints (ironcladlou@gmail.com)
+- Delete move/pre-move/post-move hooks, these hooks are no longer needed.
+  (rpenta@redhat.com)
+
 * Mon Apr 08 2013 Adam Miller <admiller@redhat.com> 1.7.2-1
 - Moving root cron configuration out of cartridges and into node
   (calfonso@redhat.com)
