@@ -19,6 +19,7 @@ require 'openshift-origin-node/model/unix_user'
 require 'openshift-origin-node/model/application_repository'
 require 'openshift-origin-node/model/cartridge_repository'
 require 'openshift-origin-node/utils/shell_exec'
+require 'openshift-origin-node/utils/selinux'
 require 'openshift-origin-node/utils/node_logger'
 require 'openshift-origin-node/utils/cgroups'
 require 'openshift-origin-node/utils/sdk'
@@ -60,6 +61,10 @@ module OpenShift
 
     def stop_lock
       File.join(@user.homedir, 'app-root', 'runtime', '.stop_lock')
+    end
+
+    def stop_lock?
+      File.exists?(stop_lock)
     end
 
     ##
@@ -294,7 +299,7 @@ module OpenShift
     #
     #   v2_cart_model.do_unlock_gear(entries)
     def do_unlock(entries)
-      mcs_label = @user.get_mcs_label(@user.uid)
+      mcs_label = Utils::SELinux.get_mcs_label(@user.uid)
 
       entries.each do |entry|
         if entry.end_with?('/')
@@ -333,7 +338,7 @@ module OpenShift
     # Take the given array of file system entries and prepare them for the application developer
     #    v2_cart_model.do_lock_gear(entries)
     def do_lock(entries)
-      mcs_label = @user.get_mcs_label(@user.uid)
+      mcs_label = Utils::SELinux.get_mcs_label(@user.uid)
 
       # It is expensive doing one file at a time but...
       # ...it allows reporting on the failed command at the file level
@@ -387,7 +392,7 @@ module OpenShift
       usr_path = File.join(cartridge.repository_path, 'usr')
       FileUtils.symlink(usr_path, File.join(target, 'usr')) if File.exist? usr_path
 
-      mcs_label = @user.get_mcs_label(@user.uid)
+      mcs_label = Utils::SELinux.get_mcs_label(@user.uid)
 
       @user.add_env_var("NAMESPACE", @user.namespace, true)
       @user.add_env_var('PRIMARY_CARTRIDGE_DIR', target + File::SEPARATOR, true) if cartridge.primary?
@@ -956,7 +961,7 @@ module OpenShift
     def start_cartridge(cartridge, options={})
       options[:user_initiated] = true if not options.has_key?(:user_initiated)
 
-      if not options[:user_initiated] and File.exists?(stop_lock)
+      if not options[:user_initiated] and stop_lock?
         return "Not starting cartridge #{cartridge.name} because the application was explicitly stopped by the user"
       end
 
@@ -991,7 +996,7 @@ module OpenShift
     def stop_cartridge(cartridge, options={})
       options[:user_initiated] = true if not options.has_key?(:user_initiated)
 
-      if not options[:user_initiated] and File.exists?(stop_lock)
+      if not options[:user_initiated] and stop_lock?
         return "Not stopping cartridge #{cartridge.name} because the application was explicitly stopped by the user"
       end
 
@@ -1008,8 +1013,8 @@ module OpenShift
     ##
     # Writes the +stop_lock+ file and changes its ownership to the gear user.
     def create_stop_lock
-      unless File.exist?(stop_lock)
-        mcs_label = @user.get_mcs_label(@user.uid)
+      unless stop_lock?
+        mcs_label = Utils::SELinux.get_mcs_label(@user.uid)
         File.new(stop_lock, File::CREAT|File::TRUNC|File::WRONLY, 0644).close()
         Utils.oo_spawn(
             "chown #{@user.uid}:#{@user.gid} #{stop_lock};
