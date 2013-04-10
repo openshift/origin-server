@@ -78,10 +78,30 @@ function _restart_service() {
 }  #  End of function  _restart_service.
 
 
+function status() {
+   if output=$(wget -q http://$OPENSHIFT_PYTHON_IP:$OPENSHIFT_PYTHON_PORT/)
+   then
+      echo "Application is running"
+      echo $output
+   else
+      echo "Application is either stopped or inaccessible"
+   fi
+}
+
+function build() {
+   $OPENSHIFT_PYTHON_DIR/versions/$OPENSHIFT_PYTHON_VERSION/bin/build
+}
+
+function deploy() {
+   $OPENSHIFT_PYTHON_DIR/versions/$OPENSHIFT_PYTHON_VERSION/bin/deploy
+}
 
 case "$1" in
    start)                    _start_service    ;;
    graceful-stop|stop)       _stop_service     ;;
    restart|reload|graceful)  _restart_service  ;;
+   status)                   status            ;;
+   build)                    build             ;;
+   deploy)                   deploy            ;;
 esac
 

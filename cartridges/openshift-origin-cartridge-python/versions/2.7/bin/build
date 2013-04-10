@@ -1,15 +1,9 @@
 #!/bin/bash
 
 cartridge_type="python-2.7"
-source "/etc/openshift/node.conf"
-
-#  Import environment variables.
-source "${CARTRIDGE_BASE_PATH}/${cartridge_type}/info/bin/source_env_vars"
 
 #  Source in the utility functions.
-[ -z "$OPENSHIFT_HOMEDIR" ]  &&  source ~/.env/OPENSHIFT_HOMEDIR
-source "${OPENSHIFT_HOMEDIR}/${cartridge_type}/lib/utils"
-
+source "${OPENSHIFT_PYTHON_DIR}/versions/${OPENSHIFT_PYTHON_VERSION}/lib/utils"
 
 # Run when jenkins is not being used or run when inside a build.
 clean_build_marker=".openshift/markers/force_clean_build"
@@ -35,7 +29,6 @@ if [ -f "${OPENSHIFT_REPO_DIR}setup.py" ]; then
    echo " - Done processing setup.py"
    popd  > /dev/null
 fi
-
 
 #  Fix the scripts + .pth files in the virtualenv - make it relocatable.
 make_virtualenv_relocatable
