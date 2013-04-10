@@ -16,7 +16,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.7.21
+Version: 1.7.22
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -283,6 +283,27 @@ fi
 %attr(0755,-,-) /etc/cron.monthly/openshift-origin-cron-monthly
 
 %changelog
+* Wed Apr 10 2013 Adam Miller <admiller@redhat.com> 1.7.22-1
+- Anchor locked_files.txt entries at the cart directory (ironcladlou@gmail.com)
+- Merge pull request #1984 from jwhonce/wip/v2_cart_model (dmcphers@redhat.com)
+- Merge pull request #1982 from danmcp/master (dmcphers@redhat.com)
+- Merge pull request #1979 from pmorie/dev/snapshot_cuke
+  (dmcphers+openshiftbot@redhat.com)
+- WIP Cartridge Refactor - Fix for processing dot file ERB's
+  (jhonce@redhat.com)
+- jenkins WIP (dmcphers@redhat.com)
+- Merge pull request #1959 from pravisankar/dev/ravi/card-537
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #1978 from sosiouxme/bz949543 (dmcphers@redhat.com)
+- Add core platform test for v2 snapshot/restore (pmorie@gmail.com)
+- Merge pull request #1973 from dobbymoodge/BZ920477 (dmcphers@redhat.com)
+- Delete move/pre-move/post-move hooks, these hooks are no longer needed.
+  (rpenta@redhat.com)
+- node scripts Bug 920477 - replace -? short option with documented -h
+  (jolamb@redhat.com)
+- <node spec> bug 949543 use resource_limits.template directly as .conf in RPM
+  (lmeyer@redhat.com)
+
 * Tue Apr 09 2013 Adam Miller <admiller@redhat.com> 1.7.21-1
 - Merge pull request #1952 from calfonso/master
   (dmcphers+openshiftbot@redhat.com)
