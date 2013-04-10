@@ -202,3 +202,14 @@ textarea:focus {
 @media (min-width: 1200px) {
 }
 
+.social-sharing {
+  > a {
+    color: inherit;
+    margin-left: 4px;
+
+    &:hover {
+      color: $linkColorHover;
+      text-decoration: none;
+    }
+  }
+}
