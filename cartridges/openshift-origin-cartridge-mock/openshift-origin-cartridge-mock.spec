@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/openshift/cartridges/v2/mock
 
 Name: openshift-origin-cartridge-mock
-Version: 0.2.3
+Version: 0.2.4
 Release: 1%{?dist}
 Summary: Mock cartridge for V2 Cartridge SDK
 Group: Development/Languages
@@ -66,6 +66,17 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Wed Apr 10 2013 Adam Miller <admiller@redhat.com> 0.2.4-1
+- Anchor locked_files.txt entries at the cart directory (ironcladlou@gmail.com)
+- Merge pull request #1984 from jwhonce/wip/v2_cart_model (dmcphers@redhat.com)
+- Merge pull request #1979 from pmorie/dev/snapshot_cuke
+  (dmcphers+openshiftbot@redhat.com)
+- WIP Cartridge Refactor - Fix for processing dot file ERB's
+  (jhonce@redhat.com)
+- Merge pull request #1974 from brenton/v2_post2 (dmcphers@redhat.com)
+- Add core platform test for v2 snapshot/restore (pmorie@gmail.com)
+- Registering/installing the cartridges in the rpm %%post (bleanhar@redhat.com)
+
 * Tue Apr 09 2013 Adam Miller <admiller@redhat.com> 0.2.3-1
 - Merge pull request #1942 from ironcladlou/dev/v2carts/vendor-changes
   (dmcphers+openshiftbot@redhat.com)
