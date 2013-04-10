@@ -1,4 +1,4 @@
-perl/metadata/
-perl/env/
-perl/etc/
-perl/template/
+metadata/
+env/
+etc/
+template/
