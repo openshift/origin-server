@@ -15,61 +15,46 @@
 # limitations under the License.
 #++
 
-require 'rubygems'
 require 'etc'
 require 'base64'
 require 'syslog'
-require 'openshift-origin-common'
+require 'openshift-origin-common/config'
 require 'openshift-origin-node/utils/environ'
+require 'pathname'
 
 module OpenShift
   module Application
     class TrapUser
-      CGROUPS_CONTROLLERS = "cpu,cpuacct,memory,net_cls,freezer"
-      CGROUPS_PATH_PREFIX = "/openshift/"
 
       def initialize
         Syslog.open($0, Syslog::LOG_PID | Syslog::LOG_CONS, Syslog::LOG_USER) unless Syslog.opened?
 
         @commands_map = {
-            "git-receive-pack" => "/usr/bin/git-receive-pack",
-            "git-upload-pack"  => "/usr/bin/git-upload-pack",
-            "snapshot"         => "/bin/bash",
-            "restore"          => "/bin/bash",
-            "tail"             => "/usr/bin/tail",
-            "rhcsh"            => "/bin/bash",
-            "true"             => "/bin/true",
-            "java"             => "/bin/bash",
-            "scp"              => "/bin/bash",
-            "cd"               => "/bin/bash",
-            "set"              => "/bin/bash",
-            "mkdir"            => "/bin/bash",
-            "test"             => "/bin/bash",
-            "rsync"            => "/bin/bash",
-            "ctl_all"          => "/bin/bash",
-            "deploy.sh"        => "/bin/bash",
-            "rhc-list-ports"   => "/bin/bash",
-            "post_deploy.sh"   => "/bin/bash",
-            "quota"            => "/usr/bin/quota",
+            'git-receive-pack' => '/usr/bin/git-receive-pack',
+            'git-upload-pack'  => '/usr/bin/git-upload-pack',
+            'snapshot'         => '/bin/bash',
+            'restore'          => '/bin/bash',
+            'tail'             => '/usr/bin/tail',
+            'rhcsh'            => '/bin/bash',
+            'true'             => '/bin/true',
+            'java'             => '/bin/bash',
+            'scp'              => '/bin/bash',
+            'cd'               => '/bin/bash',
+            'set'              => '/bin/bash',
+            'mkdir'            => '/bin/bash',
+            'test'             => '/bin/bash',
+            'rsync'            => '/bin/bash',
+            'ctl_all'          => '/bin/bash',
+            'deploy.sh'        => '/bin/bash',
+            'rhc-list-ports'   => '/bin/bash',
+            'post_deploy.sh'   => '/bin/bash',
+            'quota'            => '/usr/bin/quota',
         }
       end
 
-      # join current process to openshift cgoups if possible
-      #
-      # cgclassify -g cpu,cpuacct,memory,net_cls,freezer:/openshift/510fe9db6b61de4618000005 30608
-      def join_cgroups
-        name          = Etc.getpwuid(Process.uid).name
-        pid           = Process.spawn("cgclassify", "-g", "#{CGROUPS_CONTROLLERS}:#{CGROUPS_PATH_PREFIX}/#{name} #{Process.pid}")
-        _, exitstatus = Process.wait2(pid)
-        Syslog.warning("user #{name}: cgroup classification failed: exitstatus = #{exitstatus}") if 0 != exitstatus
-      end
-
       def apply
-        join_cgroups
-
-        config       = OpenShift::Config.new
-        env          = OpenShift::Utils::Environ.for_gear("~")
-        command_line = ENV['SSH_ORIGINAL_COMMAND'] || "rhcsh"
+        env          = OpenShift::Utils::Environ.for_gear('~')
+        command_line = ENV['SSH_ORIGINAL_COMMAND'] || 'rhcsh'
         Syslog.info(command_line)
 
         orig_argv    = command_line.split(' ')
@@ -79,22 +64,22 @@ module OpenShift
         canon_argv    = []
         case orig_command
           # rhc snapshot...
-          when "snapshot"
-            canon_argv.push('snapshot.sh')
+          when 'snapshot'
+            canon_argv.push('oo-snapshot')
 
           # rhc restore...
-          when "restore"
-            canon_argv.push('restore.sh')
+          when 'restore'
+            canon_argv.push('oo-restore')
             canon_argv.push('INCLUDE_GIT') if orig_argv.first == 'INCLUDE_GIT'
 
           # ssh {uuid}@{...}
-          when "rhcsh"
+          when 'rhcsh'
             env['PS1'] = 'rhcsh> '
             canon_argv.concat %w(--init-file /usr/bin/rhcsh)
             if orig_argv.empty?
-              canon_argv.push("-i")
+              canon_argv.push('-i')
             else
-              canon_argv.push("-c")
+              canon_argv.push('-c')
               canon_argv.concat(orig_argv)
             end
 
@@ -123,7 +108,7 @@ module OpenShift
               args              = args_str.split()
               args.each do |arg|
                 if arg.start_with?('..') || arg.start_with?('/')
-                  print "All paths must be relative: " + arg
+                  print "All paths must be relative: #{arg}"
                   return 88
                 elsif arg == '-f' or arg == '-F' or arg.start_with?('--follow')
                   canon_argv.delete('-f')
@@ -136,13 +121,13 @@ module OpenShift
                 begin
                   # fail if '..' found in filename or starts with '/'
                   if !f[".."].nil? or f.start_with?("/")
-                    print "invalid character"
+                    print 'invalid character'
                     return 91
                   elsif File.symlink?(f)
-                    print "links not supported"
+                    print 'links not supported'
                     return 94
                   elsif File.stat(f).uid != Process::UID.eid
-                    print "not your file"
+                    print 'not your file'
                     return 87
                   else
                     files.push(f)
@@ -157,7 +142,7 @@ module OpenShift
             end
 
             if files.length == 0
-              print "Could not files any files matching glob"
+              print 'Could not files any files matching glob'
               return 32
             end
 
@@ -171,6 +156,8 @@ module OpenShift
 
             git_argv.gsub!("\\'", "")
             git_argv.gsub!("//", "/")
+
+            config   = OpenShift::Config.new
 
             # replace leading tilde (~) with user's home path
             realpath = File.expand_path(git_argv)
@@ -189,33 +176,31 @@ module OpenShift
             canon_argv.push(git_argv)
 
           when 'quota'
-            # defaults are good
+            canon_argv.push('--always-resolve')
 
           else
             # Catch all, just run the command as-is via bash.
-            canon_command = "/bin/bash"
+            canon_command = '/bin/bash'
             canon_argv.push('-c')
             canon_argv.push(orig_command)
             canon_argv.concat(orig_argv)
         end
 
-# FIXME: need libselinux-ruby for Ruby 1.9.3
-#
-# msc_level = OpenShift::UnixUser.get_mcs_label(Process::UID)
-# target_context = "unconfined_u:system_r:openshift_t:#{msc_level}"
-# actual_context = selinux.getcon() <- This is what we need
-# if target_context != actual_context
-#    runcon = '/usr/bin/runcon'
-#    $stderr.puts "Invalid context"
-#    sys.exit(40)
-# This else is left in because at the time of writing this statement
-# We have a patched pam 'openshift' module running.  Remove the exit above and it should
-# work on other platforms.
-# os.execv(runcon, [runcon, target_context, cmd] + allargs)
-# exit(1)
-# else
+        target_context = %x(/usr/bin/oo-get-mcs-level #{Process.uid}).chomp
+        target_context = "unconfined_u:system_r:openshift_t:#{target_context}"
+        actual_context = %x(/usr/bin/runcon).chomp
 
-#puts "env: #{env} #{canon_command} #{canon_argv.inspect}"
+        if target_context != actual_context
+          $stderr.puts "Invalid context: #{actual_context}, expected #{target_context}"
+          return 40
+          # This path is left in because at the time of writing this statement
+          # We have a patched ssh running.  Remove the return above and it should
+          # work on other platforms.
+          canon_argv.unshift(target_context, canon_command)
+          Kernel.exec(env, '/usr/bin/runcon', *canon_argv)
+          return 1
+        end
+
         Kernel.exec(env, canon_command, *canon_argv)
         return 1
       end
