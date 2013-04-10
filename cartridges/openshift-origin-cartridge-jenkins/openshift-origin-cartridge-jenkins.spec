@@ -2,7 +2,7 @@
 
 Summary:       Provides jenkins-1.4 support
 Name:          openshift-origin-cartridge-jenkins
-Version: 1.7.3
+Version: 1.7.4
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -60,6 +60,12 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Wed Apr 10 2013 Adam Miller <admiller@redhat.com> 1.7.4-1
+- Anchor locked_files.txt entries at the cart directory (ironcladlou@gmail.com)
+- jenkins WIP (dmcphers@redhat.com)
+- Merge pull request #1974 from brenton/v2_post2 (dmcphers@redhat.com)
+- Registering/installing the cartridges in the rpm %%post (bleanhar@redhat.com)
+
 * Tue Apr 09 2013 Adam Miller <admiller@redhat.com> 1.7.3-1
 - Merge pull request #1962 from danmcp/master (dmcphers@redhat.com)
 - jenkins WIP (dmcphers@redhat.com)
