@@ -55,6 +55,8 @@ cp -r * %{buildroot}%{cartridgedir}/
 %clean
 rm -rf %{buildroot}
 
+%post
+%{_sbindir}/oo-admin-cartridge --action install --offline --source /usr/libexec/openshift/cartridges/v2/python
 
 %files
 %defattr(-,root,root,-)
