@@ -1,7 +1,7 @@
 Name: ruby
 Cartridge-Short-Name: RUBY
 Display-Name: Ruby
-Description: "Ruby is a general-purpose server-side scripting language originally designed for Web development to produce dynamic Web pages. Popular development frameworks include: CakeRuby, Zend, Symfony, and Code Igniter."
+Description: "Ruby is a dynamic, reflective, general-purpose object-oriented programming language. Popular development frameworks include Ruby on Rails and Sinatra."
 Version: '1.9'
 Versions: ['1.9', '1.8']
 License: "Ruby BSDL"
@@ -85,3 +85,5 @@ Endpoints:
       - Frontend:      ""
         Backend:       ""
         Options:       { websocket: true }
+Additional-Control-Actions:
+    - threaddump
