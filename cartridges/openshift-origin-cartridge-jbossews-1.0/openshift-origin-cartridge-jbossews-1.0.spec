@@ -4,7 +4,7 @@
 
 Summary:       Provides JBossEWS1.0 support
 Name:          openshift-origin-cartridge-jbossews-1.0
-Version: 1.7.2
+Version: 1.7.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -117,6 +117,10 @@ alternatives --set jbossews-1.0 /usr/share/tomcat6
 
 
 %changelog
+* Wed Apr 10 2013 Adam Miller <admiller@redhat.com> 1.7.3-1
+- Delete move/pre-move/post-move hooks, these hooks are no longer needed.
+  (rpenta@redhat.com)
+
 * Tue Apr 09 2013 Adam Miller <admiller@redhat.com> 1.7.2-1
 - Card 534 (lnader@redhat.com)
 
