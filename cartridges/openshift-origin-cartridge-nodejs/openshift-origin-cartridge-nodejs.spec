@@ -3,7 +3,7 @@
 
 Summary:       Provides Node.js support
 Name:          openshift-origin-cartridge-nodejs
-Version: 1.8.3
+Version: 1.8.4
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -56,6 +56,9 @@ rm -rf %{buildroot}
 %doc %{cartridgedir}/README.md
 
 %changelog
+* Wed Apr 10 2013 Adam Miller <admiller@redhat.com> 1.8.4-1
+- Anchor locked_files.txt entries at the cart directory (ironcladlou@gmail.com)
+
 * Tue Apr 09 2013 Adam Miller <admiller@redhat.com> 1.8.3-1
 - Merge pull request #1962 from danmcp/master (dmcphers@redhat.com)
 - jenkins WIP (dmcphers@redhat.com)
