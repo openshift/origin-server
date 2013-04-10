@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/openshift/cartridges/v2/cron
 
 Name: openshift-origin-cartridge-cron
-Version: 1.5.3
+Version: 1.5.4
 Release: 1%{?dist}
 Summary: Embedded cron support for OpenShift
 Group: Development/Languages
@@ -56,6 +56,15 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Wed Apr 10 2013 Adam Miller <admiller@redhat.com> 1.5.4-1
+- Fixing cron cart issue with the locked files (calfonso@redhat.com)
+- Merge pull request #1988 from ironcladlou/dev/v2carts/locked-files-refactor
+  (dmcphers@redhat.com)
+- Bug 950224: Remove unnecessary Endpoints (ironcladlou@gmail.com)
+- Anchor locked_files.txt entries at the cart directory (ironcladlou@gmail.com)
+- Merge pull request #1974 from brenton/v2_post2 (dmcphers@redhat.com)
+- Registering/installing the cartridges in the rpm %%post (bleanhar@redhat.com)
+
 * Tue Apr 09 2013 Adam Miller <admiller@redhat.com> 1.5.3-1
 - Merge pull request #1942 from ironcladlou/dev/v2carts/vendor-changes
   (dmcphers+openshiftbot@redhat.com)
