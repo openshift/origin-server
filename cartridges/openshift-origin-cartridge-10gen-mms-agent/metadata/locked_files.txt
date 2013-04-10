@@ -1,3 +1,2 @@
-10gen-mms-agent/
-10gen-mms-agent/metadata/
-10gen-mms-agent/env/
+metadata/
+env/

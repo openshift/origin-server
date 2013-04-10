@@ -1,7 +1,6 @@
-diy/
-diy/configuration/
-diy/metadata/
-diy/template/
-diy/env/
-diy/tmp/
-diy/conf/
+configuration/
+metadata/
+template/
+env/
+tmp/
+conf/
