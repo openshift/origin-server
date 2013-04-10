@@ -1,51 +1,84 @@
 #!/bin/bash
 set -x
 
-cartridge_type="python-2.7"
+cartridge_type="python-3.3"
+distribute_setup_uri="http://python-distribute.org/distribute_setup.py"
 
 #  Setup variables.
-python27_dir=${OPENSHIFT_PYTHON_DIR}
-python27_binary=$python27_dir/opt/bin/python
-virtenv_dir=$python27_dir/virtenv
+python33_dir=${OPENSHIFT_PYTHON_DIR}
+python33_binary="$python33_dir/opt/bin/python3.3"
+pyvenv33_script="$python33_dir/opt/bin/pyvenv-3.3"
+venv_dir=$python33_dir/virtenv/venv
 
-#  Add the python2.7 shared library to the load path.
-export LD_LIBRARY_PATH="${python27_dir}/opt/lib:${LD_LIBRARY_PATH}"
+
+#  Add the python3.3 shared library to the load path.
+export LD_LIBRARY_PATH="${python33_dir}/opt/lib:${LD_LIBRARY_PATH}"
+
 
 #
-#  Utility functions to create/update, delete, activate and make relocatable
-#  the python-2.7 virtualenv. 
+#  Utility functions to install setup tools, create/update, delete, activate
+#  and make relocatable the python-3.3 virtual env.
 #
 
-function create_virtualenv() {
-   if [ -d "$virtenv_dir" ]; then
-      pushd "$virtenv_dir" > /dev/null
-   else
-      pushd . > /dev/null
-   fi
+function install_setup_tools() {
+   pushd "$venv_dir" > /dev/null
 
-   # Hack to fix symlink on rsync issue
-   /bin/rm -f lib64
-   virtualenv -p $python27_binary --system-site-packages "$virtenv_dir"
+   # Activate virtual env, dowload distribute_setup and run it.
+   source bin/activate
+   curl -L -O "$distribute_setup_uri"
+   python distribute_setup.py
+
+   # Activate virtual env so as to get access to easy_install and install pip.
+   source bin/activate
+   easy_install pip
 
    popd > /dev/null
 
-}  #  End of function  create_virtualenv. 
+   make_virtualenv_relocatable
+
+}  #  End of function  install_setup_tools.
+
+
+function create_virtualenv() {
+   run_setup_in_background=$1
+   if [ ! -d "$venv_dir" ]  ||  ! $(ls "$venv_dir" > /dev/null 2>&1); then
+      venv_opts="--system-site-packages"
+      "$python33_binary" "$pyvenv33_script" $venv_opts --clear "$venv_dir"
+   fi
+
+   setup_binaries=("$venv_dir/bin/easy_install" "$venv_dir/bin/pip")
+   if ! $(ls ${setup_binaries[@]} > /dev/null 2>&1); then
+      if [ -n "$run_setup_in_background" ]; then
+         install_setup_tools > /tmp/install.log 2>&1 &
+      else
+         install_setup_tools
+      fi
+   fi
+
+}  #  End of function  create_virtualenv.
 
 
 function delete_virtualenv() {
-   rm -rf $python27_dir/virtenv/*
+   rm -rf $python33_dir/virtenv/venv
 
-}  #  End of function  delete_virtualenv. 
+}  #  End of function  delete_virtualenv.
 
 
 function activate_virtualenv() {
-   source "$python27_dir/bin/activate_virtenv"
+   source "$python33_dir/bin/activate_virtenv"
 
-}  #  End of function  activate_virtualenv. 
+}  #  End of function  activate_virtualenv.
 
 
 function make_virtualenv_relocatable() {
-   virtualenv --relocatable $python27_dir/virtenv
+   pushd "$venv_dir" > /dev/null
+
+   vdir=$(cd "${python33_dir}/virtenv"  &&  pwd)
+   for zf in $(grep -l -r "#\!$vdir/venv/bin/" . ); do
+      sed --follow-symlinks -i "s;#\!$vdir/venv/bin/;#\!/usr/bin/env ;" "$zf"
+   done
+
+   popd > /dev/null
 
 }  #  End of function  make_virtualenv_relocatable.
 
@@ -124,8 +157,9 @@ function create_virtenv_activate_file() {
 #  Set the library path so that the python shared library can be found.
 export LD_LIBRARY_PATH="\${OPENSHIFT_PYTHON_DIR}/opt/lib:\${LD_LIBRARY_PATH}" 
 export LIBRARY_PATH="\${OPENSHIFT_PYTHON_DIR}/opt/lib:\${LIBRARY_PATH}" 
-source \${OPENSHIFT_PYTHON_DIR}/virtenv/bin/activate
+source \${OPENSHIFT_PYTHON_DIR}/virtenv/venv/bin/activate
 AVEOF
 
    chmod 555 "${OPENSHIFT_PYTHON_DIR}/bin/activate_virtenv"
 } # End of function create_virtenv_activate_file()
+
