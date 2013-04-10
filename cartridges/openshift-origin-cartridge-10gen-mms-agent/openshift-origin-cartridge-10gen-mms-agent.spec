@@ -2,7 +2,7 @@
 
 Summary:       Embedded 10gen MMS agent for performance monitoring of MondoDB
 Name:          openshift-origin-cartridge-10gen-mms-agent
-Version: 1.21.5
+Version: 1.21.6
 Release:       1%{?dist}
 Group:         Applications/Internet
 License:       ASL 2.0
@@ -49,6 +49,14 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Wed Apr 10 2013 Adam Miller <admiller@redhat.com> 1.21.6-1
+- Merge pull request #1988 from ironcladlou/dev/v2carts/locked-files-refactor
+  (dmcphers@redhat.com)
+- Bug 950224: Remove unnecessary Endpoints (ironcladlou@gmail.com)
+- Anchor locked_files.txt entries at the cart directory (ironcladlou@gmail.com)
+- Merge pull request #1974 from brenton/v2_post2 (dmcphers@redhat.com)
+- Registering/installing the cartridges in the rpm %%post (bleanhar@redhat.com)
+
 * Tue Apr 09 2013 Adam Miller <admiller@redhat.com> 1.21.5-1
 - Bug 949817 (dmcphers@redhat.com)
 
