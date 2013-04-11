@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/openshift/cartridges/v2/python
 
 Name: openshift-origin-cartridge-python
-Version: 0.2.4
+Version: 0.2.5
 Release: 1%{?dist}
 Summary: Python cartridge
 Group: Development/Languages
@@ -74,6 +74,14 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Thu Apr 11 2013 Adam Miller <admiller@redhat.com> 0.2.5-1
+- Merge pull request #2001 from brenton/misc2 (dmcphers@redhat.com)
+- Merge pull request #1994 from mrunalp/dev/py33
+  (dmcphers+openshiftbot@redhat.com)
+- Calling oo-admin-cartridge from a few more v2 cartridges
+  (bleanhar@redhat.com)
+- Add Python 3.3 support. (mrunalp@gmail.com)
+
 * Wed Apr 10 2013 Adam Miller <admiller@redhat.com> 0.2.4-1
 - Anchor locked_files.txt entries at the cart directory (ironcladlou@gmail.com)
 - Fixes for build/deploy. (mrunalp@gmail.com)
