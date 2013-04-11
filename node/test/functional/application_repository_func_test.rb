@@ -32,6 +32,8 @@ class ApplicationRepositoryFuncTest < Test::Unit::TestCase
   GEAR_BASE_DIR = '/var/lib/openshift'
 
   def setup
+    @uid = 5997
+
     @config = mock('OpenShift::Config')
     @config.stubs(:get).with("GEAR_BASE_DIR").returns(GEAR_BASE_DIR)
     @config.stubs(:get).with("GEAR_GECOS").returns('Functional Test')
@@ -43,7 +45,7 @@ class ApplicationRepositoryFuncTest < Test::Unit::TestCase
     @config.stubs(:get).with("PORT_BEGIN").returns(nil)
     @config.stubs(:get).with("PORT_END").returns(nil)
     @config.stubs(:get).with("PORTS_PER_USER").returns(5)
-    @config.stubs(:get).with("UID_BEGIN").returns(1003)
+    @config.stubs(:get).with("UID_BEGIN").returns(@uid)
     @config.stubs(:get).with("BROKER_HOST").returns('localhost')
     @config.stubs(:get).with("CARTRIDGE_BASE_PATH").returns('.')
     OpenShift::Config.stubs(:new).returns(@config)
@@ -53,12 +55,12 @@ class ApplicationRepositoryFuncTest < Test::Unit::TestCase
     @uuid = `uuidgen -r |sed -e s/-//g`.chomp
 
     begin
-      %x(userdel -f #{Etc.getpwuid(1003).name})
+      %x(userdel -f #{Etc.getpwuid(@uid).name})
     rescue ArgumentError
     end
 
     @user = OpenShift::UnixUser.new(@uuid, @uuid,
-                                    1003,
+                                    @uid,
                                     'AppRepoFuncTest',
                                     'AppRepoFuncTest',
                                     'functional-test')

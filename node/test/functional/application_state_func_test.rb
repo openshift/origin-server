@@ -26,7 +26,7 @@ require "openshift-origin-node/utils/shell_exec"
 module OpenShift
   class ApplicationStateFunctionalTest < Test::Unit::TestCase
     def setup
-      @uid     = 1002
+      @uid     = 5997
       @homedir = "/tmp/tests/#@uid"
       @runtime_dir = File.join(@homedir, %w{app-root runtime})
 

@@ -28,6 +28,8 @@ class V2CartridgeModelFunctionalTest < Test::Unit::TestCase
   # Called before every test method runs. Can be used
   # to set up fixture information.
   def setup
+    @uid = 5996
+
     @config = mock('OpenShift::Config')
     @config.stubs(:get).with("GEAR_BASE_DIR").returns(GEAR_BASE_DIR)
     @config.stubs(:get).with("GEAR_GECOS").returns('Functional Test')
@@ -39,7 +41,7 @@ class V2CartridgeModelFunctionalTest < Test::Unit::TestCase
     @config.stubs(:get).with("PORT_BEGIN").returns(nil)
     @config.stubs(:get).with("PORT_END").returns(nil)
     @config.stubs(:get).with("PORTS_PER_USER").returns(5)
-    @config.stubs(:get).with("UID_BEGIN").returns(1000)
+    @config.stubs(:get).with("UID_BEGIN").returns(@uid)
     @config.stubs(:get).with("BROKER_HOST").returns('localhost')
 
     script_dir     = File.expand_path(File.dirname(__FILE__))
@@ -54,12 +56,12 @@ class V2CartridgeModelFunctionalTest < Test::Unit::TestCase
     @uuid = %x(uuidgen -r |sed -e s/-//g).chomp
 
     begin
-      %x(userdel -f #{Etc.getpwuid(1002).name})
+      %x(userdel -f #{Etc.getpwuid(@uid).name})
     rescue ArgumentError
     end
 
     @user = OpenShift::UnixUser.new(@uuid, @uuid,
-                                    1002,
+                                    @uid,
                                     'V2CartridgeModelFunctionalTest',
                                     'V2CartridgeModelFunctionalTest',
                                     'functional-test')
