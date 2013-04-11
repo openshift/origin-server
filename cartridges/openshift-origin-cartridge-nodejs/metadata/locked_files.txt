@@ -1,0 +1,4 @@
+metadata/
+env/
+etc/
+template/
