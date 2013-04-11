@@ -20,10 +20,11 @@
               %th{:scope => 'col'} Description
           %tbody
             - @simple_scopes.each do |scope|
+              - scope_id = sanitize_to_id("#{field}#{scope[:id]}")
               %tr
                 %td{:scope => 'row'}
-                  %label.checkbox
-                    = check_box_tag field, scope[:id], @authorization.scopes.include?(scope[:id]), :id => sanitize_to_id("#{field}#{scope[:id]}")
+                  %label.checkbox{:for => scope_id}
+                    = check_box_tag field, scope[:id], @authorization.scopes.include?(scope[:id]), :id => scope_id
                     = scope[:name]
                     - if scope[:default]
                       %span.small (default)

@@ -4,6 +4,7 @@
     .controls.first
       .input-prepend.input-append.wrap
         %span.add-on> http://applicationname&ndash;
+        %label.invisible{:for => 'domain_name'} Namespace
         = f.text_field :name, :autofocus => true, :placeholder => 'Namespace', :class => 'domain_name'
         %span.add-on>= ".#{RestApi.application_domain_suffix}"
       = f.semantic_errors :name, :alias => {:name => :id}, :class => [:unstyled, :errors, 'help-block']
