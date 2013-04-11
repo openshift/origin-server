@@ -21,7 +21,7 @@ class AuthorizationsController < BaseController
     max_expires = scopes.maximum_expiration
     expires_in =
       if params[:expires_in].present?
-        expires_in = params[:expires_in].to_i
+        expires_in = Integer(params[:expires_in]) rescue -1
         (expires_in < 0 || expires_in > max_expires) ? nil : expires_in
       end || scopes.default_expiration
 
