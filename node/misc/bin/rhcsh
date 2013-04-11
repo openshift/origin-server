@@ -42,7 +42,7 @@ EOF
   if [ -f $GEAR_BASE_DIR/$OPENSHIFT_GEAR_UUID/.env/CARTRIDGE_VERSION_2 ]
   then
     cat 1>&2 <<EOF
-    Note: Your application supports version 2 catridges.
+    Note: Your application supports version 2 cartridges.
 
 EOF
   fi

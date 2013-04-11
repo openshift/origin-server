@@ -16,7 +16,7 @@
 
 require 'logger'
 require 'fileutils'
-require 'openshift-origin-common'
+require 'openshift-origin-common/config'
 
 module OpenShift
   module NodeLogger
