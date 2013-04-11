@@ -5,10 +5,8 @@ export STOPTIMEOUT=20
 
 if whoami | grep -q root
 then
-    echo 1>&2
-    echo "Please don't run script as root, try:" 1>&2
-    echo "runuser --shell /bin/sh $OPENSHIFT_GEAR_UUID ${OPENSHIFT_MONGODB_DIR}/bin/control" 1>&2
-    echo 2>&1
+    client_result "Please don't run script as root, try:"
+    client_result "runuser --shell /bin/sh $OPENSHIFT_GEAR_UUID ${OPENSHIFT_MONGODB_DIR}/bin/control"
     exit 15
 fi
 
@@ -36,15 +34,15 @@ function _wait_for_mongod_to_startup() {
 function _repair_mongod() {
     authopts=$1
     if ! isrunning ; then
-        echo "Attempting to repair MongoDB ..." 1>&2
+        client_result "Attempting to repair MongoDB ..."
         tmp_config="/tmp/mongodb.repair.conf"
         grep -ve "fork\s*=\s*true" $OPENSHIFT_MONGODB_DIR/conf/mongodb.conf > $tmp_config
         /usr/bin/mongod $authopts --nojournal --smallfiles -f $tmp_config  \
                                   --repair
-        echo "MongoDB repair status = $?" 1>&2
+        client_result "MongoDB repair status = $?"
         rm -f $tmp_config
     else
-        echo "MongoDB already running - not running repair" 1>&2
+        client_result "MongoDB already running - not running repair"
     fi
 }
 
@@ -66,7 +64,7 @@ function start() {
     then
         _start_mongod  "$1"
     else
-        echo "MongoDB already running" 1>&2
+        client_result "MongoDB already running"
     fi
 }
 
@@ -85,13 +83,14 @@ function stop() {
                 sleep 1
                 let TIMEOUT=${TIMEOUT}-1
             done
+            /bin/rm -f $OPENSHIFT_MONGODB_DIR/pid/mongodb.pid
         fi
     else
         if `pgrep -x mongod > /dev/null 2>&1`
         then
-                echo "Warning: MongoDB process exists without a pid file.  Use force-stop to kill." 1>&2
+                client_result "Warning: MongoDB process exists without a pid file.  Use force-stop to kill."
         else
-            echo "MongoDB already stopped" 1>&2
+            client_result "MongoDB already stopped"
         fi
      fi
 }
@@ -131,9 +130,7 @@ function die() {
    tag=${2:-"WARNING"}
    msg=${3:-"Mongo control snapshot/restore operation failed..."}
 
-   echo 1>&2
-   echo "!$tag! $msg" 1>&2
-   echo 1>&2
+   client_result "!$tag! $msg"
 
    exit $exitcode
 
@@ -141,6 +138,7 @@ function die() {
 
 function pre_snapshot {
    start
+   _wait_for_mongod_to_startup
    #  Work in a temporary directory (create and cd to it).
    umask 077
    dumpdir=$(mktemp -d /tmp/mongodumpXXXXXXXX)
@@ -185,7 +183,7 @@ function cleanup_dump {
 }
 
 function print_mongo_jira_warnings() {
-   echo "
+   client_result "
 ============================================================================
 WARNING: You may have possibly encountered the mongorestore bugs related to
          MongoDB JIRA issues 7181, 7262 and 7104. We tried working around
@@ -195,11 +193,11 @@ WARNING: You may have possibly encountered the mongorestore bugs related to
              https://jira.mongodb.org/browse/SERVER-7262
              https://jira.mongodb.org/browse/SERVER-7104
 ============================================================================
-" 1>&2
+"
 
 }  #  End of function  print_mongo_jira_warnings.
 
-function post_restore {
+function restore_from_mongodb_snapshot {
    #  Work in a temporary directory (create and cd to it).
    umask 077
    dumpdir=$(mktemp -d /tmp/mongodumpXXXXXXXX)
@@ -210,7 +208,6 @@ function post_restore {
    if ! tar -zxf $OPENSHIFT_DATA_DIR/mongodb_dump_snapshot.tar.gz ; then
       popd > /dev/null
       /bin/rm -rf $dumpdir
-      start
       die 0 "WARNING" "Could not restore MongoDB databases - extract failed!"
    fi
 
@@ -220,14 +217,14 @@ function post_restore {
 
    #  FIXME: Temporarily commented out auth due to mongo issue w/ restore.
    #        See  https://jira.mongodb.org/browse/SERVER-7262 for details.
-   [ -z "$HAVE_MONGODB_221_RC1" ]  &&  creds=""
+   #[ -z "$HAVE_MONGODB_221_RC1" ]  &&  creds=""
+
    if ! mongorestore -h $OPENSHIFT_MONGODB_DB_HOST              \
                      --port $OPENSHIFT_MONGODB_DB_PORT $creds   \
                      --directoryperdb --drop  1>&2; then
        print_mongo_jira_warnings
        popd > /dev/null
        /bin/rm -rf $dumpdir
-       start
        die 0 "WARNING" "Could not restore MongoDB databases - mongorestore failed!"
    fi
 
@@ -236,6 +233,17 @@ function post_restore {
    popd > /dev/null
    /bin/rm -rf $dumpdir
    return 0
+}
+
+function post_restore {
+    start
+    _wait_for_mongod_to_startup
+    if [ ! -f $OPENSHIFT_DATA_DIR/mongodb_dump_snapshot.tar.gz ]; then
+        client_result "MongoDB restore attempted but no dump was found!"
+        die 0 "ERROR" "$OPENSHIFT_DATA_DIR/mongodb_dump_snapshot.tar.gz does not exist"
+    else
+        restore_from_mongodb_snapshot
+    fi
 }
 
 case "$1" in
@@ -256,9 +264,9 @@ case "$1" in
     status)
         if isrunning
         then
-            echo "MongoDB is running" 1>&2
+            client_result "MongoDB is running"
         else
-            echo "MongoDB is stopped" 1>&2
+            client_result "MongoDB is stopped"
         fi
         exit 0
     ;;
