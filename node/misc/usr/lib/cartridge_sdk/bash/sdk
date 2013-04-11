@@ -176,10 +176,6 @@ function log_message() {
    logger -i -s "run-scheduled-openshift-origin-user-jobs" -p user.info "`date`: $msg"
 }
 
-function openshift_origin_users() {
-    grep ":${GEAR_GECOS}:" /etc/passwd | cut -d: -f1 | tr '\n' ' '
-}
-
 function wait_for_stop {
     local pid=$1
     for i in {1..60}
