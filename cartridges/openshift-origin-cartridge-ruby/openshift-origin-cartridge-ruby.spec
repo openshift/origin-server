@@ -7,7 +7,7 @@
 %global frameworkdir %{_libexecdir}/openshift/cartridges/v2/ruby
 
 Name:          openshift-origin-cartridge-ruby
-Version: 0.2.4
+Version: 0.2.5
 Release:       1%{?dist}
 Summary:       Ruby cartridge
 Group:         Development/Languages
@@ -154,6 +154,20 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Thu Apr 11 2013 Adam Miller <admiller@redhat.com> 0.2.5-1
+- Bug 950823 (asari.ruby@gmail.com)
+- Merge pull request #2001 from brenton/misc2 (dmcphers@redhat.com)
+- Merge pull request #1752 from BanzaiMan/ruby_v2_work (dmcphers@redhat.com)
+- Calling oo-admin-cartridge from a few more v2 cartridges
+  (bleanhar@redhat.com)
+- Correct the log directory to clean up during tidy in Ruby v2 cartridge
+  (asari.ruby@gmail.com)
+- Postpone implementing pre-build, post-deploy and threaddump in Ruby v2.
+  (asari.ruby@gmail.com)
+- Roll 'build' logic into 'control' script in Ruby cartridge.
+  (asari.ruby@gmail.com)
+- Ruby v2 cartridge work (asari.ruby@gmail.com)
+
 * Wed Apr 10 2013 Adam Miller <admiller@redhat.com> 0.2.4-1
 - Anchor locked_files.txt entries at the cart directory (ironcladlou@gmail.com)
 
