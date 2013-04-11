@@ -6,7 +6,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin broker
 Name:          openshift-origin-broker-util
-Version:       1.7.3
+Version:       1.7.4
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -80,6 +80,14 @@ cp man/*.8 %{buildroot}%{_mandir}/man8/
 %{_mandir}/man8/oo-stats.8.gz
 
 %changelog
+* Thu Apr 11 2013 Adam Miller <admiller@redhat.com> 1.7.4-1
+- Merge pull request #2001 from brenton/misc2 (dmcphers@redhat.com)
+- Merge pull request #1998 from pravisankar/dev/ravi/card526
+  (dmcphers@redhat.com)
+- oo-admin-broker-auth manpage fix (bleanhar@redhat.com)
+- Add 'plan_history' to CloudUser model. oo-admin-ctl-usage will also cache
+  'plan_history' and will pass to sync_usage(). (rpenta@redhat.com)
+
 * Wed Apr 10 2013 Adam Miller <admiller@redhat.com> 1.7.3-1
 - Bug 949819 (lnader@redhat.com)
 - Change 'allow_change_district' to 'change_district' and remove warnings when
