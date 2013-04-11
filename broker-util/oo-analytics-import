@@ -3,26 +3,37 @@
 set -e
 
 dump=$1
-if [ "$dump" == "" ]; then
+user=$2
+pass=$3
+
+if [ "z${dump}" == "z" ]; then
   echo "Input file required."
   echo "Usage :"
-  echo "  $0 <input file>"
+  echo "  $0 <input file> [user] [pass]"
   exit 1
 fi
 
 echo "Extracting analytics from $dump"
-cp $dump /tmp/
-cd /tmp/
+TEMP=`mktemp -d`
+cp $dump $TEMP
+cd $TEMP
 tar xvzf $dump >& /dev/null
-if [ ! -d "/tmp/tmp/analytics" ]; then
+
+if [ ! -d "${TEMP}/tmp/analytics" ]; then
   echo "Invalid input dump"
 fi
 
-mongoimport --file /tmp/tmp/analytics/analytics.apps.json --db analytics --collection applications --upsert
-mongoimport --file /tmp/tmp/analytics/analytics.domains.json --db analytics --collection domains --upsert
-mongoimport --file /tmp/tmp/analytics/analytics.users.json --db analytics --collection cloud_users --upsert
+if [ "z${user}" == "z" ] && [ "z${pass}" == "z" ]; then
+    mongoimport --file ${TEMP}/tmp/analytics/analytics.apps.json --db analytics --collection applications --upsert
+    mongoimport --file ${TEMP}/tmp/analytics/analytics.domains.json --db analytics --collection domains --upsert
+    mongoimport --file ${TEMP}/tmp/analytics/analytics.users.json --db analytics --collection cloud_users --upsert
+else
+    mongoimport -u ${user} -p ${pass} --file ${TEMP}/tmp/analytics/analytics.apps.json --db analytics --collection applications --upsert
+    mongoimport -u ${user} -p ${pass} --file ${TEMP}/tmp/analytics/analytics.domains.json --db analytics --collection domains --upsert
+    mongoimport -u ${user} -p ${pass} --file ${TEMP}/tmp/analytics/analytics.users.json --db analytics --collection cloud_users --upsert
+fi
 
-rm -rf /tmp/tmp/analytics
+rm -rf ${TEMP}
 
 echo
 echo "Import complete!"
