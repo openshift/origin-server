@@ -314,4 +314,22 @@ module Console::LayoutHelper
   def js_required(msg = "to use this page")
     flash[:noscript_warning] = ["You need JavaScript enabled",msg].join(" ").squeeze(" ").strip
   end
+
+
+  #
+  # Only use in content that will be generated to asset form, significant
+  # performance penalties will apply in production environments.
+  #
+  def asset_data_uri(path)
+    a = asset(path)
+    base64 = Base64.encode64(a.to_s).gsub(/\s+/, "")
+    "data:#{a.content_type};base64,#{Rack::Utils.escape(base64)}"
+  end 
+  #
+  # Only use in content that will be generated to asset form, significant
+  # performance penalties will apply in production environments.
+  #
+  def asset(path)
+    Rails.application.assets.find_asset(path)
+  end
 end

@@ -78,6 +78,10 @@ module Console::HelpHelper
     community_base_url 'developers/tools'
   end
 
+  def developers_get_help_url
+    community_base_url 'developers/get-help'
+  end
+
   def developers_get_started_path
     community_base_url 'developers/get-started'
   end
