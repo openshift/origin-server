@@ -2,7 +2,7 @@
 
 PATH=/bin/:/usr/bin:$PATH
 
-source $OPENSHIFT_MYSQL_DIR/env/*
+#source $OPENSHIFT_MYSQL_DIR/env/*
 source $OPENSHIFT_CARTRIDGE_SDK_BASH
 
 export PHP_RC="$OPENSHIFT_PHPMYADMIN_DIR/conf/php.ini"

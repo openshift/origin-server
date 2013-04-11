@@ -1,6 +1,6 @@
-Name: phpmyadmin-3.4
+Name: phpmyadmin
 Cartridge-Short-Name: PHPMYADMIN
-Display-Name: phpMyAdmin 3.4
+Display-Name: phpMyAdmin
 Description: "Web based MySQL admin tool. Requires the MySQL cartridge to be installed first."
 Version: 3.4
 License: ASL 2.0
@@ -38,3 +38,6 @@ Endpoints:
     Private-Port-Name: PORT
     Private-Port:      8080
     Public-Port-Name:  PROXY_PORT
+    Mappings:
+      - Frontend:      "/phpmyadmin"
+        Backend:       "/phpmyadmin"
