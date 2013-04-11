@@ -145,7 +145,19 @@ function _restart_node_service() {
 
 }  #  End of function  _restart_node_service.
 
+function tidy() {
+    if [ -d $OPENSHIFT_NODEJS_LOG_DIR ]
+    then
+        client_message "Emptying log dir: ${OPENSHIFT_NODEJS_LOG_DIR}"
+        rm -rf ${OPENSHIFT_NODEJS_LOG_DIR}/* ${OPENSHIFT_NODEJS_LOG_DIR}/.[^.]*
+    fi
 
+    if [ -d ${OPENSHIFT_NODEJS_DIR}tmp/ ]
+    then
+        client_message "Emptying tmp dir: ${OPENSHIFT_NODEJS_DIR}tmp/"
+        rm -rf ${OPENSHIFT_NODEJS_DIR}tmp/* ${OPENSHIFT_NODEJS_DIR}tmp/.[^.]*
+    fi
+}
 
 #
 #  main():
@@ -166,5 +178,6 @@ case "$1" in
     restart|graceful)    _restart_node_service  ;;
     graceful-stop|stop)  _stop_node_service     ;;
     status)              _status_node_service   ;;
+    tidy) tidy ;;
 esac
 
