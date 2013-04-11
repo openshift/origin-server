@@ -13,7 +13,8 @@
       support with Jenkins.
 
     %form.form-search.form-search-block{:id => 'form-search-create-apps', :method => 'get'}
-      %input.search-query{:type => 'text', :name => 'search', :placeholder => 'Search by keyword or tag', :value => @search}    
+      %label.invisible{:for => 'search'} Search by keyword or tag
+      %input.search-query{:type => 'text', :id => 'search', :name => 'search', :placeholder => 'Search by keyword or tag', :value => @search}    
       %button.search.font-icon{:type => 'submit', "aria-hidden" => "true", "data-icon" => "\uee03"} 
 
     - if @browse_tags.present?

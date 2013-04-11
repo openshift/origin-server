@@ -1,6 +1,7 @@
 .input-prepend.input-append
   %span.add-on http://
 
+  %label.invisible{:for => 'application_name'} Application name
   = form.text_field :name, 
     :value => "#{application.name}", 
     :autofocus => (params[:focus].blank?),
@@ -16,6 +17,7 @@
   - else
 
     %span.add-on.middle> &ndash;
+    %label.invisible{:for => 'application_domain_name'} Namespace
     = form.text_field :domain_name, 
       :value => "#{application.domain_name}", 
       :placeholder => 'Namespace', 
