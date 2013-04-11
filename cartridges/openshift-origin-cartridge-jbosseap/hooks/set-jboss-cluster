@@ -17,9 +17,5 @@ for arg in $kvargs; do
     fi
 done
 
-if [ -z "$OPENSHIFT_JBOSSEAP_TMP_CLUSTER" ]; then
-  set_uservars "OPENSHIFT_JBOSSEAP_CLUSTER=$list,$OPENSHIFT_JBOSSEAP_TMP_CLUSTER"
-else
-  set_uservars "OPENSHIFT_JBOSSEAP_TMP_CLUSTER=${list}"
-fi
+set_uservars "OPENSHIFT_JBOSSEAP_CLUSTER=OPENSHIFT_JBOSSEAP_CLUSTER=${list}"
 

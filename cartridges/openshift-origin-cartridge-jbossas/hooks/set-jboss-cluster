@@ -1,9 +1,9 @@
 #!/bin/bash
 
-# Adds a gear to the haproxy configuration.
-
 # Exit on any errors
 set -e
+
+source $OPENSHIFT_CARTRIDGE_SDK_BASH
 
 list=
 kvargs=$(echo "${@:4}" | tr -d "\n" )
@@ -17,4 +17,5 @@ for arg in $kvargs; do
     fi
 done
 
-set_uservars "OPENSHIFT_JBOSSEAP_CLUSTER_REMOTING=OPENSHIFT_JBOSSEAP_CLUSTER_REMOTING=${list}"
+set_uservars "OPENSHIFT_JBOSSAS_CLUSTER=OPENSHIFT_JBOSSAS_CLUSTER=${list}"
+
