@@ -456,7 +456,7 @@ module OpenShift
     # === Cartridge control methods
 
     def start(cart_name, options={})
-      @cartridge_model.start_cartridge(cart_name,
+      @cartridge_model.start_cartridge('start', cart_name,
                                        user_initiated: true,
                                        out:            options[:out],
                                        err:            options[:err])
@@ -470,8 +470,11 @@ module OpenShift
     end
 
     # restart gear as supported by cartridges
-    def restart(cart_name)
-      @cartridge_model.do_control("restart", cart_name)
+    def restart(cart_name, options={})
+      @cartridge_model.start_cartridge('restart', cart_name,
+                                       user_initiated: true,
+                                       out:            options[:out],
+                                       err:            options[:err])
     end
 
     # reload gear as supported by cartridges

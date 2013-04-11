@@ -184,7 +184,7 @@ command :restart do |c|
     # in addition to individual cart restarts?
     do_command do
       options.cart ||= choose("Cart to restart?", *gear_cartridge_names)
-      @container.restart(options.cart)
+      @container.restart(options.cart, out: $stdout, err: $stderr)
     end
   end
 end
