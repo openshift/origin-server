@@ -23,7 +23,7 @@ Options:
 -a|--app
     The application name to filter the usage data 
 -g|--gear
-    The gear uuid to filter the usage data 
+    The gear id to filter the usage data 
 -s|--start
     The start date (yyyy-mm-dd) to filter the usage data (defaults to start of current month)
 -e|--end
@@ -217,7 +217,7 @@ if usage_data.count > 0
     # print out the user's usage data
     puts "##{index + 1}"
     puts " Usage Type: #{usage.usage_type} (#{usage_qualifier})"
-    puts "  Gear UUID: #{usage.gear_id} (#{usage.app_name})"
+    puts "    Gear ID: #{usage.gear_id} (#{usage.app_name})"
     puts "   Duration: #{duration_str} (#{begin_time_str} - #{end_time_str})"
     puts "Cost (Est.): #{formatted_number(usage_cost)} ($#{usage_rate[:usd]}/#{usage_rate[:duration].to_s})" unless usage_rate.nil?
     puts 
