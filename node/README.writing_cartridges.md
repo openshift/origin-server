@@ -675,8 +675,8 @@ The list of operations your cartridge may be called to perform:
    * `stop` stop the software your cartridge controls
    * `status` return an 0 exit status if your cartridge code is running.
    * `reload` your cartridge and the packaged software needs to re-read their
-      configuration information. Depending on the features of the software your
-      cartridge has packaged this may equate to a restart.
+      configuration information. This operation will only be called if your cartridge is
+      running.
    * `restart` stop current process and start a new one for the code your cartridge packages
    * `threaddump` if applicable, your cartridge should signal the packaged software to perform a thread dump.
    * `tidy` all unused resources should be released. It is at your discretion to
