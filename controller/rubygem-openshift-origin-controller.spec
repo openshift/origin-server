@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.7.4
+Version: 1.7.5
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -83,6 +83,23 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Thu Apr 11 2013 Adam Miller <admiller@redhat.com> 1.7.5-1
+- Merge pull request #2009 from abhgupta/abhgupta-dev (dmcphers@redhat.com)
+- Merge pull request #2001 from brenton/misc2 (dmcphers@redhat.com)
+- Merge pull request #1998 from pravisankar/dev/ravi/card526
+  (dmcphers@redhat.com)
+- Merge pull request #1997 from
+  smarterclayton/bug_928668_better_messages_for_storage_limits
+  (dmcphers+openshiftbot@redhat.com)
+- Specifying an invalid embedded cartridge during app creation was throwing
+  internal server error (abhgupta@redhat.com)
+- Merge pull request #1752 from BanzaiMan/ruby_v2_work (dmcphers@redhat.com)
+- Labeling a few cucumber tests as @not-enterprise (bleanhar@redhat.com)
+- Ruby v2 cartridge work (asari.ruby@gmail.com)
+- Bug 928668 - Provide better gear storage messages (ccoleman@redhat.com)
+- Add 'plan_history' to CloudUser model. oo-admin-ctl-usage will also cache
+  'plan_history' and will pass to sync_usage(). (rpenta@redhat.com)
+
 * Wed Apr 10 2013 Adam Miller <admiller@redhat.com> 1.7.4-1
 - Anchor locked_files.txt entries at the cart directory (ironcladlou@gmail.com)
 - Merge pull request #1980 from abhgupta/abhgupta-dev
