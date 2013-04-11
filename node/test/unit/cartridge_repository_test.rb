@@ -149,27 +149,27 @@ class CartridgeRepositoryTest < Test::Unit::TestCase
       %q{#
         Name: CRTest
         Cartridge-Short-Name: CRTEST
-        Version: 0.1
-        Versions: [0.1]
-        Cartridge-Version: 1.0
-        Cartridge-Versions: [1.0]
+        Version: '0.1'
+        Versions: ['0.1']
+        Cartridge-Version: '1.0'
+        Cartridge-Versions: ['1.0']
         Cartridge-Vendor: RedHat
       },
       %q{#
         Name: CRTest
         Cartridge-Short-Name: CRTEST
-        Version: 0.2
-        Versions: [0.1, 0.2]
-        Cartridge-Version: 1.1
-        Cartridge-Versions: [1.0, 1.1]
+        Version: '0.2'
+        Versions: ['0.1', '0.2']
+        Cartridge-Version: '1.1'
+        Cartridge-Versions: ['1.0', '1.1']
         Cartridge-Vendor: RedHat
       },
       %q{#
         Name: CRTest
         Cartridge-Short-Name: CRTEST
-        Version: 0.3
-        Versions: [0.1, 0.2, 0.3]
-        Cartridge-Version: 1.2
+        Version: '0.3'
+        Versions: ['0.1', '0.2', '0.3']
+        Cartridge-Version: '1.2'
         Cartridge-Vendor: Red Hat
       },
   ]
