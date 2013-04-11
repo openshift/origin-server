@@ -23,7 +23,7 @@ module OpenShift
   class UtilsSpawnFunctionalTest < Test::Unit::TestCase
 
     def setup
-      @uid     = 1000
+      @uid     = 5999
       @homedir = "/tmp/tests/#@uid"
 
       # polyinstantiation makes creating the homedir a pain...

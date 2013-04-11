@@ -25,7 +25,7 @@ class PathUtilsTest < Test::Unit::TestCase
   # Called before every test method runs. Can be used
   # to set up fixture information.
   def setup
-    @uid = 1000
+    @uid = 5998
     @stat = MockStat.new(@uid, @uid)
   end
 
