@@ -90,22 +90,25 @@ end
 
 # Cache user_id->login, billing a/c# info
 def populate_user_info
-  $session[:cloud_users].find.select(login: 1, usage_account_id: 1).no_timeout.each do |user|
-    $user_info_cache[user['_id'].to_s] = { 'login' => user['login'], 'acct_no' => user['usage_account_id'] }
+  $session[:cloud_users].find.select(login: 1, usage_account_id: 1, plan_history: 1).no_timeout.each do |user|
+    $user_info_cache[user['_id'].to_s] = { 'login' => user['login'], 'acct_no' => user['usage_account_id'],
+                                           'plan_history' => user['plan_history'] }
   end
 end
 
 def set_user_info(urec)
   user_id = urec['user_id']
   unless $user_info_cache[user_id.to_s]
-    user_obj = $session[:cloud_users].find(_id: user_id).select(login: 1, usage_account_id: 1).first
+    user_obj = $session[:cloud_users].find(_id: user_id).select(login: 1, usage_account_id: 1, plan_history: 1).first
     if user_obj
-      $user_info_cache[user_id.to_s] = { 'login' => user_obj['login'], 'acct_no' => user_obj['usage_account_id'] }
+      $user_info_cache[user_id.to_s] = { 'login' => user_obj['login'], 'acct_no' => user_obj['usage_account_id'],
+                                         'plan_history' => user_obj['plan_history'] }
     end
   end
   if $user_info_cache[user_id.to_s]
     urec['login'] = $user_info_cache[user_id.to_s]['login']
     urec['acct_no'] = $user_info_cache[user_id.to_s]['acct_no']
+    urec['plan_history'] = $user_info_cache[user_id.to_s]['plan_history']
   else
     $billing_api.print_warning "Can NOT find user from cloud_users collection for user_id, '#{user_id}'"
   end
