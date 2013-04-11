@@ -154,25 +154,26 @@ module OpenShift
       @cartridges[directory]
     end
 
-    # destroy() -> nil
+    # destroy(skip_hooks = false) -> [buffer, '', 0]
     #
     # Remove all cartridges from a gear and delete the gear.  Accepts
     # and discards any parameters to comply with the signature of V1
     # require, which accepted a single argument.
     #
-    # destroy()
-    def destroy(*)
+    # destroy() => ['', '', 0]
+    def destroy(skip_hooks = false)
       logger.info('V2 destroy')
 
       buffer        = ''
-      cartridge_dir = 'N/A'
-      process_cartridges do |path|
-        begin
-          cartridge_dir = File.basename(path)
-          buffer << cartridge_teardown(cartridge_dir)
-        rescue Utils::ShellExecutionException => e
-          logger.warn("Cartridge teardown operation failed on gear #{@user.uuid} for cartridge #{cartridge_dir}: #{e.message} (rc=#{e.rc})")
-
+      unless skip_hooks
+        cartridge_dir = 'N/A'
+        process_cartridges do |path|
+          begin
+            cartridge_dir = File.basename(path)
+            buffer << cartridge_teardown(cartridge_dir)
+          rescue Utils::ShellExecutionException => e
+            logger.warn("Cartridge teardown operation failed on gear #{@user.uuid} for cartridge #{cartridge_dir}: #{e.message} (rc=#{e.rc})")
+          end
         end
       end
 
