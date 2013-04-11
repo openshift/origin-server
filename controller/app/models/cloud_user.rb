@@ -31,6 +31,7 @@ class CloudUser
   field :plan_state, type: String
   field :pending_plan_id, type: String
   field :pending_plan_uptime, type: Time
+  field :plan_history, type: Array, default: []
   field :usage_account_id, type: String
   field :consumed_gears, type: Integer, default: 0
   embeds_many :ssh_keys, class_name: UserSshKey.name
