@@ -363,9 +363,14 @@ class Application
     features.each do |feature_name|
       cart = CartridgeCache.find_cartridge(feature_name)
 
+      # Make sure this is a valid cartridge
+      if cart.nil?
+        raise OpenShift::UserException.new("Invalid cartridge '#{feature_name}' specified.", 109)  
+      end
+
       # Validate that the features support scalable if necessary
       if self.scalable && !(cart.is_plugin? || cart.is_service?)
-        raise OpenShift::UserException.new("#{feature_name} cannot be embedded in scalable app '#{name}'.", 108)  
+        raise OpenShift::UserException.new("#{feature_name} cannot be embedded in scalable app '#{name}'.", 109)  
       end
 
       # prevent a proxy from being added to a non-scalable (single-gear) application
