@@ -1,0 +1,14 @@
+#!/bin/bash
+
+# Publishes the endpoint for this gear. Output format = $uuid@$dns:$appname
+
+# Exit on any errors
+set -e
+
+# Get gear ip address.
+gip=$(facter ipaddress);
+
+#
+# Publish this gear's endpoint.
+# 
+echo "${OPENSHIFT_GEAR_UUID}@${gip}:jbossas;$OPENSHIFT_GEAR_DNS"

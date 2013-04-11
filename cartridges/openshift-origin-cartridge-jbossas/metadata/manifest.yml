@@ -1,8 +1,8 @@
-Name: jbosseap
-Cartridge-Short-Name: JBOSSEAP
-Display-Name: JBoss Enterprise Application Platform
-Description: "Market-leading open source enterprise platform for next-generation, highly transactional enterprise Java applications. Build and deploy enterprise Java in the cloud."
-Version: '6.0'
+Name: jbossas
+Cartridge-Short-Name: JBOSSAS
+Display-Name: JBoss Application Server 7.1
+Description: "The leading open source Java EE6 application server for enterprise Java applications. Popular development frameworks include Seam, CDI, Weld, and Spring."
+Version: '7.1'
 License: LGPL
 License-Url: http://www.gnu.org/copyleft/lesser.txt
 Vendor: Red Hat
@@ -14,11 +14,11 @@ Categories:
   - java
   - jboss
   - jee_full_profile
-Website: http://www.redhat.com/products/jbossenterprisemiddleware/application-platform/
+Website: http://www.jboss.org
 Help-Topics:
   "Developer Center": https://openshift.redhat.com/community/developers
 Cart-Data:
-  - Key: OPENSHIFT_JBOSSEAP_LOG_DIR
+  - Key: OPENSHIFT_JBOSSAS_LOG_DIR
     Type: environment
     Description: "Directory to store application log files."
   - Key: OPENSHIFT_TMP_DIR
@@ -49,22 +49,22 @@ Cart-Data:
     Type: environment
     Description: "Unique ID which identified the gear. This value changes between gears."
 Provides:
-  - jbosseap-6.0
-  - "jbosseap"
-  - "jbosseap(version) = 6.0"
-  - "jbosseap(version) >= 6.0"
-  - "jboss-eap6.0"
-  - jbosseap-standalone
-  - jboss-eap6.0-standalone
+  - jbossas-7.1
+  - "jbossas"
+  - "jbossas(version) = 7.1"
+  - "jbossas(version) >= 7.1"
+  - "jboss-as7.1"
+  - jbossas-standalone
+  - jboss-as7.1-standalone
 Publishes:
   publish-http-url:
     Type: "NET_TCP:httpd-proxy-info"
   publish-gear-endpoint:
     Type: "NET_TCP:gear-endpoint-info"
   publish-jboss-cluster:
-    Type: "NET_TCP:jbosseap-cluster-info"
+    Type: "NET_TCP:jbossas-cluster-info"
   publish-jboss-remoting:
-    Type: "NET_TCP:jbosseap-remoting-info"
+    Type: "NET_TCP:jbossas-remoting-info"
 Subscribes:
   set-db-connection-info:
     Type: "NET_TCP:db:connection-info"
@@ -82,15 +82,15 @@ Subscribes:
     Type: "STRING:urlpath"
     Required : false
   set-jboss-cluster:
-    Type: "NET_TCP:jbosseap-cluster-info"
+    Type: "NET_TCP:jbossas-cluster-info"
   set-jboss-remoting:
-    Type: "NET_TCP:jbosseap-remoting-info"
+    Type: "NET_TCP:jbossas-remoting-info"
 Scaling:
   Min: 1
   Max: -1
 Group-Overrides:
   - components:
-    - jbosseap-6.0
+    - jbossas-7.1
     - web_proxy
 Endpoints:
   - Private-IP-Name:   IP

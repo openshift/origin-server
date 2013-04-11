@@ -1,0 +1,4 @@
+jbossas/
+jbossas/metadata/
+jbossas/env/
+jbossas/template/

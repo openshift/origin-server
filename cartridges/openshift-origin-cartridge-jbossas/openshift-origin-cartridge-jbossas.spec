@@ -1,0 +1,102 @@
+%global cartridgedir %{_libexecdir}/openshift/cartridges/v2/jbossas
+%global frameworkdir %{_libexecdir}/openshift/cartridges/v2/jbossas
+%global jbossver 7.1.0.Final
+%global oldjbossver 7.0.2.Final
+
+Summary:       Provides JBossAS7 support
+Name:          openshift-origin-cartridge-jbossas
+Version: 	   1.0.2
+Release:       1%{?dist}
+Group:         Development/Languages
+License:       ASL 2.0
+URL:           http://openshift.redhat.com
+Source0:       http://mirror.openshift.com/pub/openshift-origin/source/%{name}/%{name}-%{version}.tar.gz
+Requires:      openshift-origin-cartridge-abstract-jboss
+Requires:      rubygem(openshift-origin-node)
+Requires:      lsof
+Requires:      java-1.7.0-openjdk
+Requires:      java-1.7.0-openjdk-devel
+Requires:      jboss-as7-modules >= %{jbossver}
+%if 0%{?rhel}
+Requires:      jboss-as7 >= %{jbossver}
+Requires:      maven3
+%endif
+%if 0%{?fedora}
+Requires:      jboss-as
+Requires:      bc
+Requires:      maven
+%endif
+BuildRequires: git
+BuildRequires: jpackage-utils
+BuildArch:     noarch
+
+%description
+Provides JBossAS support to OpenShift
+
+
+%prep
+%setup -q
+
+
+%build
+
+
+%install
+mkdir -p %{buildroot}%{cartridgedir}
+mkdir -p %{buildroot}/%{_sysconfdir}/openshift/cartridges
+cp -r * %{buildroot}%{cartridgedir}/
+
+%post
+# To modify an alternative you should:
+# - remove the previous version if it's no longer valid
+# - install the new version with an increased priority
+# - set the new version as the default to be safe
+
+%if 0%{?rhel}
+alternatives --install /etc/alternatives/maven-3.0 maven-3.0 /usr/share/java/apache-maven-3.0.3 100
+alternatives --set maven-3.0 /usr/share/java/apache-maven-3.0.3
+%endif
+
+%if 0%{?fedora}
+alternatives --remove maven-3.0 /usr/share/java/apache-maven-3.0.3
+alternatives --install /etc/alternatives/maven-3.0 maven-3.0 /usr/share/maven 102
+alternatives --set maven-3.0 /usr/share/maven
+%endif
+
+alternatives --remove jbossas-7 /usr/share/jbossas
+alternatives --install /etc/alternatives/jbossas-7 jbossas-7 /usr/share/jbossas 102
+alternatives --set jbossas-7 /usr/share/jbossas
+#
+# Temp placeholder to add a postgresql datastore -- keep this until the
+# the postgresql module is added to jboss as7.* upstream.
+mkdir -p /etc/alternatives/jbossas-7/modules/org/postgresql/jdbc/main
+ln -fs /usr/share/java/postgresql-jdbc3.jar /etc/alternatives/jbossas-7/modules/org/postgresql/jdbc/main
+cp -p %{cartridgedir}/versions/7.0/modules/postgresql_module.xml /etc/alternatives/jbossas-7/modules/org/postgresql/jdbc/main/module.xml
+
+%{_sbindir}/oo-admin-cartridge --action install --offline --source /usr/libexec/openshift/cartridges/v2/jbossas
+
+
+%files
+%defattr(-,root,root,-)
+%dir %{cartridgedir}
+%dir %{cartridgedir}/bin
+%dir %{cartridgedir}/env
+%dir %{cartridgedir}/metadata
+%dir %{cartridgedir}/versions
+%attr(0755,-,-) %{frameworkdir}
+%{cartridgedir}/metadata/manifest.yml
+%doc %{cartridgedir}/README.md
+%{cartridgedir}/README
+%doc %{cartridgedir}/COPYRIGHT
+%doc %{cartridgedir}/LICENSE
+
+
+%changelog
+* Wed Apr 10 2013 Bill DeCoste <bdecoste@gmail.com> 1.0.2-1
+- 
+
+* Wed Apr 10 2013 Bill DeCoste <bdecoste@gmail.com> 1.0.1-1
+- new package built with tito
+
+
+
