@@ -16,7 +16,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.7.22
+Version: 1.7.23
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -283,6 +283,22 @@ fi
 %attr(0755,-,-) /etc/cron.monthly/openshift-origin-cron-monthly
 
 %changelog
+* Thu Apr 11 2013 Adam Miller <admiller@redhat.com> 1.7.23-1
+- Moving openshift_origin_users out of sdk (calfonso@redhat.com)
+- Merge pull request #2010 from jwhonce/wip/v2_cart_model
+  (dmcphers+openshiftbot@redhat.com)
+- WIP Cartridge Refactor - Move range for uid in tests (jhonce@redhat.com)
+- Merge pull request #2007 from jwhonce/wip/oo_trap_user (dmcphers@redhat.com)
+- Merge pull request #2006 from jwhonce/wip/manifest_overrides
+  (dmcphers@redhat.com)
+- Merge pull request #1993 from lnader/patch-2 (dmcphers@redhat.com)
+- WIP Cartridge Refactor - Finish context checking (jhonce@redhat.com)
+- WIP Cartridge Refactor - update versions in manifest to be strings
+  (jhonce@redhat.com)
+- WIP Cartridge Refactor - Support for version overrides in manifest
+  (ironcladlou@gmail.com)
+- Update README.writing_cartridges.md (lnader@redhat.com)
+
 * Wed Apr 10 2013 Adam Miller <admiller@redhat.com> 1.7.22-1
 - Anchor locked_files.txt entries at the cart directory (ironcladlou@gmail.com)
 - Merge pull request #1984 from jwhonce/wip/v2_cart_model (dmcphers@redhat.com)
