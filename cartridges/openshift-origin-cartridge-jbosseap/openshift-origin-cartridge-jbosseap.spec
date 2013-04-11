@@ -5,7 +5,7 @@
 
 Summary:       Provides JBossEAP6.0 support
 Name:          openshift-origin-cartridge-jbosseap
-Version: 2.1.4
+Version: 2.1.5
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -100,6 +100,11 @@ cp -p %{cartridgedir}/versions/6.0/modules/postgresql_module.xml /etc/alternativ
 
 
 %changelog
+* Thu Apr 11 2013 Adam Miller <admiller@redhat.com> 2.1.5-1
+- Merge pull request #2008 from bdecoste/master (dmcphers@redhat.com)
+- as7 v2 cart and eap clustering (bdecoste@gmail.com)
+- eapv2 clustering (bdecoste@gmail.com)
+
 * Wed Apr 10 2013 Adam Miller <admiller@redhat.com> 2.1.4-1
 - Anchor locked_files.txt entries at the cart directory (ironcladlou@gmail.com)
 - Merge pull request #1974 from brenton/v2_post2 (dmcphers@redhat.com)
