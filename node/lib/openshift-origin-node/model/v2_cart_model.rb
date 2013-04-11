@@ -213,6 +213,18 @@ module OpenShift
       OpenShift::Utils::Sdk.mark_new_sdk_app(@user.homedir)
       OpenShift::Utils::Cgroups::with_cgroups_disabled(@user.uuid) do
         create_cartridge_directory(cartridge, software_version)
+        # Note: the following if statement will check the following criteria long-term:
+        # 1. Is the app scalable?
+        # 2. Is this the head gear?
+        # 3. Is this the first time the platform has generated an ssh key?
+        #
+        # In the current state of things, the following check is sufficient to test all
+        # of these criteria, and we do not have a way to explicitly check the first two
+        # criteria.  However, it should be considered a TODO to add more explicit checks.
+        if cartridge.web_proxy?
+          output << generate_ssh_key(cartridge) 
+        end
+
         create_private_endpoints(cartridge)
 
         Dir.chdir(@user.homedir) do
@@ -1034,6 +1046,59 @@ module OpenShift
             expected_exitstatus: 0
         )
       end
+    end
+
+    ##
+    # Generate an RSA ssh key
+    def generate_ssh_key(cartridge)
+      ssh_dir = File.join(@user.homedir, '.openshift_ssh')
+      known_hosts = File.join(ssh_dir, 'known_hosts')
+      ssh_config = File.join(ssh_dir, 'config')
+      ssh_key = File.join(ssh_dir, 'id_rsa')
+      ssh_public_key = ssh_key + '.pub'
+
+      FileUtils.mkdir_p(ssh_dir)
+      make_user_owned(ssh_dir)
+
+      Utils::oo_spawn("/usr/bin/ssh-keygen -N '' -f #{ssh_key}",
+                      chdir: @user.homedir,
+                      uid: @user.uid,
+                      gid: @user.gid,
+                      expected_exitstatus: 0)
+
+      FileUtils.touch(known_hosts)
+      FileUtils.touch(ssh_config)
+
+      make_user_owned(ssh_dir)
+
+      FileUtils.chmod(0750, ssh_dir)
+      FileUtils.chmod(0600, [ssh_key, ssh_public_key])
+      FileUtils.chmod(0660, [known_hosts, ssh_config])
+
+      @user.add_env_var('APP_SSH_KEY', ssh_key, true)
+      @user.add_env_var('APP_SSH_PUBLIC_KEY', ssh_public_key, true)
+
+      public_key_bytes = IO.read(ssh_public_key)
+      public_key_bytes.sub!(/^ssh-rsa /, '')
+
+      output = "APP_SSH_KEY_ADD: #{cartridge.directory} #{public_key_bytes}\n"
+      # The BROKER_AUTH_KEY_ADD token does not use any arguments.  It tells the broker
+      # to enable this gear to make REST API calls on behalf of the user who owns this gear.
+      output << "BROKER_AUTH_KEY_ADD: \n"
+      output
+    end
+
+    ##
+    # Change the ownership and SELinux context of the target
+    # to be owned as the user using the user's MCS labels
+    def make_user_owned(target)
+      mcs_label = @user.get_mcs_label(@user.uid)
+
+      Utils.oo_spawn(
+          "chown -R #{@user.uid}:#{@user.gid} #{target};
+           chcon -R unconfined_u:object_r:openshift_var_lib_t:#{mcs_label} #{target}",
+          expected_exitstatus: 0
+      )
     end
   end
 end

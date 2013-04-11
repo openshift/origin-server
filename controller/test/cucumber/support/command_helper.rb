@@ -387,6 +387,15 @@ module CommandHelper
     end
   end
 
+  def rhc_ctl_scale(app, min)
+    rhc_do('rhc_ctl_scale') do
+      time = Benchmark.realtime do
+        run("#{$rhc_script} cartridge scale -a #{app.name} -c #{app.type} --min #{min} #{default_args(app)}")
+      end
+      log_event "#{time} SCALE_APP #{app.name} #{app.login}"
+    end
+  end
+
   def rhc_setup
     run('mkdir -p ~/.openshift')
     run('rm ~/.openshift/express.conf')

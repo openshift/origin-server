@@ -1,4 +1,3 @@
 #!/bin/bash
 # SSH wrapper to specify right config and other files
-HAPROXY_DIR="$OPENSHIFT_HAPROXY_DIR"
-/usr/bin/ssh -q -o 'BatchMode=yes' -o 'StrictHostKeyChecking=no' -o "UserKnownHostsFile=$HAPROXY_DIR/.ssh/known_hosts" -F "$HAPROXY_DIR/.ssh/config" -i ${HAPROXY_DIR}/.ssh/haproxy_id_rsa $@
+/usr/bin/ssh -q -o 'BatchMode=yes' -o 'StrictHostKeyChecking=no' -o "UserKnownHostsFile=$OPENSHIFT_HOMEDIR/.openshift_ssh/known_hosts" -F "$OPENSHIFT_HOMEDIR/.openshift_ssh/config" -i ${OPENSHIFT_APP_SSH_KEY} $@
