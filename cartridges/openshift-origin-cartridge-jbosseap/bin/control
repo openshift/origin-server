@@ -195,7 +195,9 @@ function start() {
     if isrunning; then
         echo "Application is already running"
     else
-        source ${OPENSHIFT_REPO_DIR}/.openshift/action_hooks/pre_start_${cartridge_type}
+    	if [ -f ${OPENSHIFT_REPO_DIR}/.openshift/action_hooks/pre_start_${cartridge_type} ]; then
+        	source ${OPENSHIFT_REPO_DIR}/.openshift/action_hooks/pre_start_${cartridge_type}
+        fi
         
         jopts="${JAVA_OPTS}"
         [ "${ENABLE_JPDA:-0}" -eq 1 ] && jopts="-Xdebug -Xrunjdwp:transport=dt_socket,address=${OPENSHIFT_JBOSSEAP_IP}:8787,server=y,suspend=n ${JAVA_OPTS}"
@@ -209,7 +211,9 @@ function start() {
             exit 1
         fi
         
-        source ${OPENSHIFT_REPO_DIR}/.openshift/action_hooks/post_start_${cartridge_type}
+        if [ -f ${OPENSHIFT_REPO_DIR}/.openshift/action_hooks/post_start_${cartridge_type} ]; then
+        	source ${OPENSHIFT_REPO_DIR}/.openshift/action_hooks/post_start_${cartridge_type}
+        fi
     fi
 }
 
@@ -223,11 +227,17 @@ function stop() {
                 echo "Hot deploy enabled. Not stopping" 
         else
 			if [ -f "$JBOSSEAP_PID_FILE" ]; then
-		        source ${OPENSHIFT_REPO_DIR}/.openshift/action_hooks/pre_stop_${cartridge_type}
+				if [ -f ${OPENSHIFT_REPO_DIR}/.openshift/action_hooks/pre_start_${cartridge_type} ]; then
+		        	source ${OPENSHIFT_REPO_DIR}/.openshift/action_hooks/pre_start_${cartridge_type}
+		        fi
+		        
 		        pid=$(cat $JBOSSEAP_PID_FILE);
 		        echo "Sending SIGTERM to jboss:$pid ..." 1>&2
 		        killtree $pid
-		        source ${OPENSHIFT_REPO_DIR}/.openshift/action_hooks/post_stop_${cartridge_type}
+		        
+		        if [ -f ${OPENSHIFT_REPO_DIR}/.openshift/action_hooks/post_stop_${cartridge_type} ]; then
+		        	source ${OPENSHIFT_REPO_DIR}/.openshift/action_hooks/post_stop_${cartridge_type}
+		        fi
 		    else 
 		        echo "Failed to locate JBOSS PID File" 1>&2
 		    fi
