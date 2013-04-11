@@ -225,7 +225,7 @@ module OpenShift
 
         end
 
-        output << start_cartridge(cartridge, user_initiated: true)
+        output << start_cartridge('start', cartridge, user_initiated: true)
       end
 
       connect_frontend(cartridge)
@@ -938,7 +938,7 @@ module OpenShift
       options[:user_initiated] = true if not options.has_key?(:user_initiated)
 
       if options[:primary_only] && options[:secondary_only]
-        raise "The primary_only and secondary_only options are mutually exclusive"
+        raise ArgumentError.new('The primary_only and secondary_only options are mutually exclusive options')
       end
 
       buffer = ''
@@ -946,7 +946,7 @@ module OpenShift
         next if options[:primary_only] and not cartridge.primary?
         next if options[:secondary_only] and cartridge.primary?
 
-        buffer << start_cartridge(cartridge, options)
+        buffer << start_cartridge('start', cartridge, options)
       end
 
       buffer
@@ -959,6 +959,7 @@ module OpenShift
     # of the primary cartridge is invoked and +user_initiated+ is true, the stop lock is
     # created.
     #
+    # +type+      : Type of start [start, restart, reload]
     # +cartridge+ : A +Cartridge+ instance or +String+ name of a cartridge.
     # +options+   : hash
     #   :user_initiated => [boolean]  : Indicates whether the operation was user initated.
@@ -970,7 +971,7 @@ module OpenShift
     #
     # Returns the output of the operation as a +String+ or raises a +ShellExecutionException+
     # if the cartridge script fails.
-    def start_cartridge(cartridge, options={})
+    def start_cartridge(type, cartridge, options={})
       options[:user_initiated] = true if not options.has_key?(:user_initiated)
 
       if not options[:user_initiated] and File.exists?(stop_lock)
@@ -984,7 +985,7 @@ module OpenShift
         @state.value = OpenShift::State::STARTED
       end
 
-      do_control('start', cartridge, options)
+      do_control(type, cartridge, options)
     end
 
     ##
