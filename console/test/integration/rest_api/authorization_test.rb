@@ -41,6 +41,11 @@ class RestApiAuthorizationTest < ActiveSupport::TestCase
     assert a.expires_in > 0
   end
 
+  test 'expiration with a string' do
+    assert a = Authorization.create(:expires_in => 'abc', :as => @user)
+    assert a.expires_in > 0
+  end
+
   test 'reuse authorization' do
     assert a = Authorization.create(:as => @user)
     assert b = Authorization.create(:reuse => true, :as => @user)
