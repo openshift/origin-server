@@ -9,7 +9,7 @@
 
 Summary:       OpenShift Origin Management Console
 Name:          rubygem-%{gem_name}
-Version: 1.7.4
+Version: 1.7.5
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -134,6 +134,11 @@ cp -a ./%{gem_dir}/* %{buildroot}%{gem_dir}/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Thu Apr 11 2013 Adam Miller <admiller@redhat.com> 1.7.5-1
+- Merge pull request #1995 from smarterclayton/tweaks_to_quickstarts
+  (dmcphers@redhat.com)
+- Add social sharing links (ccoleman@redhat.com)
+
 * Wed Apr 10 2013 Adam Miller <admiller@redhat.com> 1.7.4-1
 - Merge pull request #1992 from smarterclayton/fix_account_settings_breadcrumb
   (dmcphers+openshiftbot@redhat.com)
