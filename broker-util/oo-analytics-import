@@ -1,28 +1,80 @@
-#!/bin/bash
+#!/usr/bin/oo-ruby
 
-set -e
+# Utiltity to import the mongo database into json documents containing analytics data for applications
+infile = nil
+if ARGV.include? "--infile"
+  index = ARGV.index("--infile")
+  infile = ARGV[index+1]
+end
 
-dump=$1
-if [ "$dump" == "" ]; then
-  echo "Input file required."
-  echo "Usage :"
-  echo "  $0 <input file>"
+if infile.nil? 
+  puts "Usage :"
+  puts "  #{__FILE__} --infile <filename>" 
   exit 1
-fi
+end
 
-echo "Extracting analytics from $dump"
-cp $dump /tmp/
-cd /tmp/
-tar xvzf $dump >& /dev/null
-if [ ! -d "/tmp/tmp/analytics" ]; then
-  echo "Invalid input dump"
-fi
 
-mongoimport --file /tmp/tmp/analytics/analytics.apps.json --db analytics --collection applications --upsert
-mongoimport --file /tmp/tmp/analytics/analytics.domains.json --db analytics --collection domains --upsert
-mongoimport --file /tmp/tmp/analytics/analytics.users.json --db analytics --collection cloud_users --upsert
+require '/var/www/openshift/broker/config/environment'
 
-rm -rf /tmp/tmp/analytics
+u = Rails.application.config.datastore[:user]
+p = Rails.application.config.datastore[:password]
+hp = Rails.application.config.datastore[:host_port]
+db = Rails.application.config.datastore[:db]
 
-echo
-echo "Import complete!"
+
+puts "Extracting analytics from '#{infile}'"
+basename = File.basename(infile)
+`cp #{infile} /tmp/; cd /tmp/; tar xvzf #{basename} >& /dev/null`
+if not File.directory?("/tmp/tmp/analytics")
+  puts "Invalid input dump"
+  exit
+end
+
+`mongoimport --file /tmp/tmp/analytics/analytics.apps.json --db analytics --collection applications --upsert`
+`mongoimport --file /tmp/tmp/analytics/analytics.domains.json --db analytics --collection domains --upsert`
+`mongoimport --file /tmp/tmp/analytics/analytics.usage.json --db analytics --collection usage --upsert`
+`mongoimport --file /tmp/tmp/analytics/analytics.users.json --db analytics --collection cloud_users --upsert`
+
+`rm -rf /tmp/tmp/analytics`
+
+def analytics_db(read_preference=:secondary, session_name='default')
+  config = Mongoid::Config.sessions[session_name]
+  hosts = config['hosts']
+  if hosts.length > 1
+    con = Mongo::ReplSetConnection.new(hosts, {:read => read_preference})
+  else
+    host_port = hosts[0].split(':')
+    con = Mongo::Connection.new(host_port[0], host_port[1].to_i)
+  end
+  adb = con.db('analytics')
+  adb
+end
+
+def mongofind(collection_name, query, selection)
+  analytics_db.collection(collection_name).find(query, selection) do |mcursor|
+    mcursor.each do |hash|
+      yield hash
+    end
+  end
+end
+# now post process
+puts
+puts "Post processing.."
+$coll = analytics_db.collection("applications")
+mongofind("applications", { }, { :fields => ["_id","component_instances","group_instances"], :timeout => false }) do |app|
+  new_gis = []
+  app["group_instances"].each { |gi|
+    new_gears = []
+    gi["gears"].each { |gear|
+      new_gears << { "_id" => gear["_id"].dup }
+    }
+    new_gis << { "gears" => new_gears }
+  }
+  new_cis = []
+  app["component_instances"].each { |ci|
+    new_cis << { "cartridge_name" => ci["cartridge_name"].dup }
+  }
+  $coll.update({"_id" => app["_id"]}, {"$set" => {"group_instances" => new_gis, "component_instances" => new_cis}} ) if app["_id"]
+end
+
+puts "Import complete!"
