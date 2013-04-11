@@ -134,6 +134,10 @@ module OpenShift
       default_gear.container.status(default_gear.default_cart.name)
     end
 
+    def reload
+      default_gear.container.reload(default_gear.default_cart.name)
+    end
+
     # Collects and returns the PIDs for every cartridge associated
     # with this application as determined by the PID file in the 
     # cartridge instance run directory. The result is a Hash:
