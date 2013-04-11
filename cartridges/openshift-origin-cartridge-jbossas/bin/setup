@@ -1,0 +1,53 @@
+#!/bin/bash -e
+set -u
+set -x
+
+PATH=/bin:/usr/bin:$PATH
+
+cartridge_type="jbossas"
+
+version=7.1
+echo "export OPENSHIFT_JBOSSAS_VERSION='$version'" > "$OPENSHIFT_JBOSSAS_DIR/env/OPENSHIFT_JBOSSAS_VERSION"
+
+# Create additional directories required by JBOSSAS
+mkdir -p ${OPENSHIFT_HOMEDIR}/.m2
+mkdir -p ${OPENSHIFT_JBOSSAS_DIR}/{bin,template,standalone/tmp,standalone/deployments,standalone/configuration,standalone/log,standalone/data}
+
+ln -s ${OPENSHIFT_JBOSSAS_DIR}/standalone/log ${OPENSHIFT_JBOSSAS_DIR}/logs
+
+# Copy the version specific files up to jbossas directory
+cp -r ${OPENSHIFT_JBOSSAS_DIR}/versions/${version}/standalone/configuration/* ${OPENSHIFT_JBOSSAS_DIR}/standalone/configuration
+cp -r ${OPENSHIFT_JBOSSAS_DIR}/versions/${version}/metadata/* ${OPENSHIFT_JBOSSAS_DIR}/metadata
+cp -r ${OPENSHIFT_JBOSSAS_DIR}/versions/${version}/template/* ${OPENSHIFT_JBOSSAS_DIR}/template
+cp -r ${OPENSHIFT_JBOSSAS_DIR}/versions/${version}/template/.openshift ${OPENSHIFT_JBOSSAS_DIR}/template
+cp ${OPENSHIFT_JBOSSAS_DIR}/standalone/configuration/standalone.xml ${OPENSHIFT_JBOSSAS_DIR}/template/.openshift/config
+cp ${OPENSHIFT_JBOSSAS_DIR}/versions/${version}/bin/* ${OPENSHIFT_JBOSSAS_DIR}/bin
+
+sed -i "s/{APP_NAME}/${OPENSHIFT_APP_NAME}/g" ${OPENSHIFT_JBOSSAS_DIR}/template/pom.xml
+
+JBOSS_HOME=/etc/alternatives/jbossas-$version
+
+cd $OPENSHIFT_JBOSSAS_DIR
+ln -s ${JBOSS_HOME}/jboss-modules.jar
+ln -s ${JBOSS_HOME}/modules
+
+pushd $OPENSHIFT_JBOSSAS_DIR/template/src/main/webapp
+jar cvf $OPENSHIFT_JBOSSAS_DIR/standalone/deployments/ROOT.war ./*
+popd
+
+if [ -e ${OPENSHIFT_REPO_DIR}/.openshift/markers/java7 ];
+then
+	JAVA_HOME=/etc/alternatives/java_sdk_1.7.0
+else
+	JAVA_HOME=/etc/alternatives/java_sdk_1.6.0
+fi
+M2_HOME=/etc/alternatives/maven-3.0
+echo "export JAVA_HOME=$JAVA_HOME" > $OPENSHIFT_JBOSSAS_DIR/env/JAVA_HOME
+echo "export M2_HOME=$M2_HOME" > $OPENSHIFT_JBOSSAS_DIR/env/M2_HOME
+echo "export PATH=$JAVA_HOME/bin:$M2_HOME/bin:$PATH" > $OPENSHIFT_JBOSSAS_DIR/env/PATH
+echo "export OPENSHIFT_JBOSSAS_LOG_DIR=${OPENSHIFT_JBOSSAS_DIR}/logs" > $OPENSHIFT_JBOSSAS_DIR/env/OPENSHIFT_JBOSSAS_LOG_DIR
+
+
+
+
+
