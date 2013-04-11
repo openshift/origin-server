@@ -75,6 +75,7 @@ function tidy() {
 
 function pre-build() {
   # to be implemented
+  true
 }
 
 function build() {
@@ -124,10 +125,12 @@ function build() {
 
 function post-deploy() {
   # to be implemented
+  true
 }
 
 function threaddump() {
   # to be determined
+  true
 }
 
 
