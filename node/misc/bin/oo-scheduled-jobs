@@ -18,6 +18,10 @@ function usage() {
    echo "Usage: $0 {run | run-user <uid>} <frequency>"
 }
 
+function openshift_origin_users() {
+    grep ":${GEAR_GECOS}:" /etc/passwd | cut -d: -f1 | tr '\n' ' '
+}
+
 function setup_user_vars {
     uid=$(id -u "$uuid")
     mcs_level=`oo-get-mcs-level $uid`
