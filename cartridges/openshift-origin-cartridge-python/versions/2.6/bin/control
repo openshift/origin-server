@@ -33,7 +33,7 @@ function reload() {
 }
 
 function tidy() {
-    echo "Tidying PYTHON cart"
+    rm -rf ${OPENSHIFT_PYTHON_LOG_DIR}/* ${OPENSHIFT_PYTHON_LOG_DIR}/.[^.]*
 }
 
 function build() {
