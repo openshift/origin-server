@@ -632,7 +632,7 @@ module OpenShift
         @user.remove_env_var(endpoint.private_port_name)
       end
 
-      logger.info "Deleted private endpoints for #{@user.uuid}#{cartridge.directory}"
+      logger.info "Deleted private endpoints for #{@user.uuid}/#{cartridge.directory}"
     end
 
     # Finds the next IP address available for binding of the given port for
