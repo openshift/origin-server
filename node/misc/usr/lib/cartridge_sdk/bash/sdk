@@ -86,25 +86,30 @@ function cart_props {
 }
 
 # Sets the appropriate env variable files
-# Argument:
+# Arguments:
 #  - Variable to set
 #  - Value
-#  - Target ENV directory (optional)
+#  - Target ENV directory
 function set_env_var {
-  local DEFAULT_TARGET="${HOME}/.env"
-
   local var=$1
   local val=$2
-  local target="${3-$DEFAULT_TARGET}/$var"
-  local str
+  local target=$3
 
-  if [[ "$val" =~ ^[0-9]+$ ]] ; then
+  [[ -z $target || -z $var || -z $val ]] && \
+    error "Must provide a variable name, value, and target directory for environment variables" 64
+  [ ! -d $target ] && \
+    error "Target directory must exist for environment variables" 64
+
+  target="${target}/${var}"
+
+  if [[ "$val" =~ ^[0-9]+$ ]]
+  then
     str=$val
   else
     str="'$val'"
   fi
-  echo "export ${var}=${str}" #> $target
-  echo $target
+
+  echo "export ${var}=${str} > $target"
 }
 
 # Generate a random string from /dev/urandom
@@ -120,9 +125,7 @@ function random_string {
   local space=${2-"${DEFAULT_SPACE}"}
 
   local rnd=$(head -n 50 /dev/urandom | tr -dc $space | fold -w $len)
-  if [ "$3" ]; then
-    rnd=$(echo "${rnd}" | grep -v "${3}")
-  fi
+  [ "$3" ] && rnd=$(echo "${rnd}" | grep -v "${3}")
   echo $(echo "${rnd}" | head -n1)
 }
 
@@ -137,7 +140,8 @@ function pad_string {
   local pattern=$3
 
   local remain=$(( $len - ${#str} ))
-  if [ "$remain" -ge 1 ]; then
+  if [ "$remain" -ge 1 ]
+  then
     local rnstr=$(random_string $remain $pattern)
     str="${str}${rnstr}"
   fi
@@ -197,6 +201,32 @@ function print_user_running_processes {
     echo ""
     ps -FCvx -U "${userid}"
     echo ""
+}
+
+# Check if a process is running
+# Arguments:
+#  - Process name
+#  - Pidfile
+#  - UID to check (optional)
+function process_running {
+  local process=$1
+  local pidfile=$2
+  local uid=${3-`id -u`}
+
+  # Check the pidfile for a running process
+  {
+    if [ -f $pidfile ]; then
+      local error=$(pgrep -F $pidfile 2>&1)
+      # pgrep returns 0 with an invalid pidfile, so we need to check the output
+      [ $? ] && ! [[ "${error}" =~ 'pidfile not valid' ]] && return 0
+    fi
+  }
+
+  # Check pgrep for the process name and user id
+  {
+    $(pgrep -x ${process} -u ${uid} > /dev/null 2>&1) && return 0
+  }
+  return 1
 }
 
 function pid_is_httpd() {
