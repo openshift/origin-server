@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/openshift/cartridges/v2/python
 
 Name: openshift-origin-cartridge-python
-Version: 0.2.5
+Version: 0.2.6
 Release: 1%{?dist}
 Summary: Python cartridge
 Group: Development/Languages
@@ -75,6 +75,12 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Fri Apr 12 2013 Adam Miller <admiller@redhat.com> 0.2.6-1
+- Merge pull request #2032 from mrunalp/bugs/927761 (dmcphers@redhat.com)
+- SELinux, ApplicationContainer and UnixUser model changes to support oo-admin-
+  ctl-gears operating on v1 and v2 cartridges. (rmillner@redhat.com)
+- Bug 927761: Add tidy for python cart all verison. (mrunalp@gmail.com)
+
 * Thu Apr 11 2013 Adam Miller <admiller@redhat.com> 0.2.5-1
 - Merge pull request #2001 from brenton/misc2 (dmcphers@redhat.com)
 - Merge pull request #1994 from mrunalp/dev/py33
