@@ -7,7 +7,7 @@
 
 Summary:       Routing proxy for OpenShift Origin Node
 Name:          openshift-origin-node-proxy
-Version: 0.8.1
+Version: 0.8.2
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -121,6 +121,10 @@ fi
 %doc README
 
 %changelog
+* Fri Apr 12 2013 Adam Miller <admiller@redhat.com> 0.8.2-1
+- We don't want the installation of the node-proxy to auto launch the service
+  (bleanhar@redhat.com)
+
 * Thu Mar 28 2013 Adam Miller <admiller@redhat.com> 0.8.1-1
 - bump_minor_versions for sprint 26 (admiller@redhat.com)
 
