@@ -7,7 +7,7 @@
 
 Summary:       OpenShift common cartridge components
 Name:          openshift-origin-cartridge-abstract
-Version: 1.7.4
+Version: 1.7.5
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -90,6 +90,10 @@ cp -rv -p abstract-jboss %{buildroot}%{cartdir}/
 %doc %{_libexecdir}/openshift/cartridges/abstract-jboss/README.md
 
 %changelog
+* Fri Apr 12 2013 Adam Miller <admiller@redhat.com> 1.7.5-1
+- SELinux, ApplicationContainer and UnixUser model changes to support oo-admin-
+  ctl-gears operating on v1 and v2 cartridges. (rmillner@redhat.com)
+
 * Wed Apr 10 2013 Adam Miller <admiller@redhat.com> 1.7.4-1
 - Delete move/pre-move/post-move hooks, these hooks are no longer needed.
   (rpenta@redhat.com)
