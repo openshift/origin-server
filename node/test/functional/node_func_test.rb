@@ -31,7 +31,12 @@ class NodeTest < Test::Unit::TestCase
     OpenShift::CartridgeRepository.
         any_instance.
         stubs(:find_manifests).
-        multiple_yields(["#{@path}/RedHat-CRTest/1.0/metadata/manifest.yml"])
+        multiple_yields(["#{@path}/redhat-CRTest/1.2/metadata/manifest.yml"])
+
+    OpenShift::CartridgeRepository.instance.clear
+    OpenShift::CartridgeRepository.instance.load
+
+    OpenShift::Utils::Sdk.stubs(:node_default_model).returns(:v2)
   end
 
   def teardown
@@ -39,25 +44,37 @@ class NodeTest < Test::Unit::TestCase
   end
 
   def test_get_cartridge_list
-    OpenShift::CartridgeRepository.instance.clear
-    OpenShift::CartridgeRepository.instance.load
-
-    OpenShift::Utils::Sdk.stubs(:node_default_model).returns(:v2)
-
-    buffer = OpenShift::Node.get_cartridge_list
+    buffer = OpenShift::Node.get_cartridge_list(true, true, true)
     refute_nil buffer
 
-    assert_equal %Q(Cartridges:\n\tCRTest-0.1\n\tCRTest-0.2\n\tCRTest-0.3\n), buffer
+    assert_equal %Q(CLIENT_RESULT: [\"---\\nName: CRTest-0.1\\nDisplay-Name: CRTest Unit Test\\nVersion: '0.1'\\nGroup-Overrides:\\n- components:\\n  - CRTest-0.1\\n  - web_proxy\\n\",\"---\\nName: CRTest-0.2\\nDisplay-Name: CRTest Unit Test\\nVersion: '0.2'\\nGroup-Overrides:\\n- components:\\n  - CRTest-0.2\\n  - web_proxy\\n\",\"---\\nName: CRTest-0.3\\nDisplay-Name: CRTest Unit Test\\nVersion: '0.3'\\nGroup-Overrides:\\n- components:\\n  - CRTest-0.2\\n  - web_proxy\\n\"]),
+                 buffer
   end
 
   MANIFESTS = [
       %q{#
         Name: CRTest
+        Display-Name: CRTest Unit Test
         Cartridge-Short-Name: CRTEST
-        Version: 0.3
-        Versions: [0.1, 0.2, 0.3]
-        Cartridge-Version: 1.2
+        Version: '0.3'
+        Versions: ['0.1', '0.2', '0.3']
+        Cartridge-Version: '1.2'
         Cartridge-Vendor: Red Hat
+        Group-Overrides:
+          - components:
+            - CRTest-0.3
+            - web_proxy
+        Version-Overrides:
+          '0.1':
+            Group-Overrides:
+              - components:
+                - CRTest-0.1
+                - web_proxy
+          '0.2':
+            Group-Overrides:
+              - components:
+                - CRTest-0.2
+                - web_proxy
       },
   ]
 end

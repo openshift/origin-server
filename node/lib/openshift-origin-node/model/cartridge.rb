@@ -129,7 +129,8 @@ module OpenShift
                   :repository_path,
                   :short_name,
                   :categories,
-                  :version
+                  :version,
+                  :source
 
       # :call-seq:
       #   Cartridge.new(manifest_path) -> Cartridge
@@ -143,7 +144,9 @@ module OpenShift
         # Validate and use the provided version, defaulting to the manifest Version key
         raise MissingElementError.new(nil, 'Version') unless @manifest['Version']
         raise InvalidElementError.new(nil, 'Versions') if @manifest['Versions'] && !@manifest['Versions'].kind_of?(Array)
-        
+
+        @source = manifest_path
+
         if version
           raise ArgumentError.new(
                     "Unsupported version #{version} from #{versions} for #{manifest_path}"
@@ -158,7 +161,6 @@ module OpenShift
         if @manifest.has_key?('Version-Overrides')
           vtree = @manifest['Version-Overrides'][@version]
           @manifest.merge!(vtree) if vtree
-          @manifest.delete('Version-Overrides')
         end
 
         @cartridge_vendor  = @manifest['Cartridge-Vendor']
