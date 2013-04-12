@@ -88,19 +88,15 @@ fi
 %post
 %if %{with_systemd}
 /bin/systemctl --system daemon-reload
-/bin/systemctl try-restart openshift-node-web-proxy.service
 %else
 /sbin/chkconfig --add openshift-node-web-proxy || :
-/sbin/service openshift-node-web-proxy restart || :
 %endif
 
 %preun
 if [ "$1" -eq "0" ]; then
 %if %{with_systemd}
    /bin/systemctl --no-reload disable openshift-node-web-proxy.service
-   /bin/systemctl stop openshift-node-web-proxy.service
 %else
-   /sbin/service openshift-node-web-proxy stop || :
    /sbin/chkconfig --del openshift-node-web-proxy || :
 %endif
 fi
