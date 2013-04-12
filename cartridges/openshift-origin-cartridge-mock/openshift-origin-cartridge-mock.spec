@@ -34,7 +34,6 @@ mkdir -p %{buildroot}/%{_sysconfdir}/openshift/cartridges/v2
 cp -r * %{buildroot}%{cartridgedir}/
 cp .mock_hidden.erb %{buildroot}%{cartridgedir}/
 ln -s %{cartridgedir}/conf/ %{buildroot}/%{_sysconfdir}/openshift/cartridges/v2/%{name}
-ln -s %{cartridgedir} %{buildroot}/%{frameworkdir}
 
 
 %clean
