@@ -9,7 +9,7 @@
 
 Summary:       OpenShift Origin Management Console
 Name:          rubygem-%{gem_name}
-Version: 1.7.5
+Version: 1.7.6
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -134,6 +134,20 @@ cp -a ./%{gem_dir}/* %{buildroot}%{gem_dir}/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Fri Apr 12 2013 Adam Miller <admiller@redhat.com> 1.7.6-1
+- Bug 951367 (ffranz@redhat.com)
+- Merge pull request #2025 from smarterclayton/origin_ui_37_error_page
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #2014 from liggitt/accessibility
+  (dmcphers+openshiftbot@redhat.com)
+- Add a few base URLs and helpers for fetching assets during static page
+  compilation (ccoleman@redhat.com)
+- Merge pull request #1996 from
+  smarterclayton/bug_950367_use_default_for_bad_expires_in
+  (dmcphers+openshiftbot@redhat.com)
+- Add form labels (jliggitt@redhat.com)
+- Bug 950367 - Handle non-integer values for expires_in (ccoleman@redhat.com)
+
 * Thu Apr 11 2013 Adam Miller <admiller@redhat.com> 1.7.5-1
 - Merge pull request #1995 from smarterclayton/tweaks_to_quickstarts
   (dmcphers@redhat.com)
