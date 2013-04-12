@@ -85,3 +85,22 @@ Endpoints:
       - Frontend:      ""
         Backend:       ""
         Options:       { websocket: true }
+Version-Overrides:
+  '2.7':
+     Provides:
+       - python-2.7
+       - "python"
+       - "python(version) = 2.7"
+     Group-Overrides:
+       - components:
+         - python-2.7
+         - web_proxy
+  '3.3':
+     Provides:
+       - python-3.3
+       - "python"
+       - "python(version) = 3.3"
+     Group-Overrides:
+       - components:
+         - python-3.3
+         - web_proxy
