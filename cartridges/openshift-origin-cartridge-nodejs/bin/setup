@@ -41,6 +41,6 @@ mkdir "$OPENSHIFT_HOMEDIR"/.npm
 mkdir "$OPENSHIFT_HOMEDIR"/.node-gyp
 chown $OPENSHIFT_APP_UUID.$OPENSHIFT_APP_UUID -R "$OPENSHIFT_HOMEDIR"/.npm "$OPENSHIFT_HOMEDIR"/.npmrc  \
                             "$OPENSHIFT_HOMEDIR"/.node-gyp
-npm config set tmp /tmp
+npm config set tmp $OPENSHIFT_TMP_DIR
 
 exit 0
