@@ -203,7 +203,7 @@ function print_user_running_processes {
     echo ""
 }
 
-# Check if a process is running
+# Check is a process is running
 # Arguments:
 #  - Process name
 #  - Pidfile
