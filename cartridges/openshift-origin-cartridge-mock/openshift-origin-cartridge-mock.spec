@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/openshift/cartridges/v2/mock
 
 Name: openshift-origin-cartridge-mock
-Version: 0.2.4
+Version: 0.2.5
 Release: 1%{?dist}
 Summary: Mock cartridge for V2 Cartridge SDK
 Group: Development/Languages
@@ -68,6 +68,16 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Fri Apr 12 2013 Adam Miller <admiller@redhat.com> 0.2.5-1
+- Fix cart-scoped action hook executions (ironcladlou@gmail.com)
+- SELinux, ApplicationContainer and UnixUser model changes to support oo-admin-
+  ctl-gears operating on v1 and v2 cartridges. (rmillner@redhat.com)
+- Merge pull request #2015 from ironcladlou/dev/v2carts/build-system
+  (dmcphers@redhat.com)
+- Generate ssh key for web proxy cartridges (pmorie@gmail.com)
+- Call cart pre-receive hook during default build lifecycle
+  (ironcladlou@gmail.com)
+
 * Wed Apr 10 2013 Adam Miller <admiller@redhat.com> 0.2.4-1
 - Anchor locked_files.txt entries at the cart directory (ironcladlou@gmail.com)
 - Merge pull request #1984 from jwhonce/wip/v2_cart_model (dmcphers@redhat.com)
