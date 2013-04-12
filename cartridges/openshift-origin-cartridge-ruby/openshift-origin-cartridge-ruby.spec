@@ -7,7 +7,7 @@
 %global frameworkdir %{_libexecdir}/openshift/cartridges/v2/ruby
 
 Name:          openshift-origin-cartridge-ruby
-Version: 0.2.5
+Version: 0.2.6
 Release:       1%{?dist}
 Summary:       Ruby cartridge
 Group:         Development/Languages
@@ -156,6 +156,10 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Fri Apr 12 2013 Adam Miller <admiller@redhat.com> 0.2.6-1
+- SELinux, ApplicationContainer and UnixUser model changes to support oo-admin-
+  ctl-gears operating on v1 and v2 cartridges. (rmillner@redhat.com)
+
 * Thu Apr 11 2013 Adam Miller <admiller@redhat.com> 0.2.5-1
 - Bug 950823 (asari.ruby@gmail.com)
 - Merge pull request #2001 from brenton/misc2 (dmcphers@redhat.com)
