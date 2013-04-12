@@ -10,10 +10,25 @@ function print_missing_package_json_warning() {
   file to your application.
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 DEPRECATED
-
 }
 
-function _is_node_service_running() {
+function print_deprecation_warning() {
+       cat <<DEPRECATED
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  The use of deplist.txt is being deprecated and will soon
+  go away. For the short term, we will continue to support
+  installing the Node modules specified in the deplist.txt
+  file. But please be aware that this will soon go away.
+
+  It is highly recommended that you use the package.json
+  file to specify dependencies on other Node modules.
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+DEPRECATED
+}
+
+function is_node_service_running() {
     if [ -f $OPENSHIFT_NODEJS_PID_DIR/node.pid ]; then
         node_pid=$( cat $OPENSHIFT_NODEJS_PID_DIR/node.pid 2> /dev/null )
         myid=$( id -u )
@@ -27,13 +42,26 @@ function _is_node_service_running() {
 
 }  #  End of function  _is_node_running.
 
+function is_node_module_installed() {
+    module_name=${1:-""}
+    if [ -n "$module_name" ]; then
+        pushd "$cartridge_dir" > /dev/null
+        if [ -d $m ] ; then
+            popd > /dev/null
+            return 0
+        fi
+        popd > /dev/null
+    fi
 
-function _status_node_service() {
-    _is_node_service_running
-}  #  End of function  _status_node_service.
+    return 1
+}
+
+function status() {
+    is_node_service_running
+}  #  End of function  status.
 
 
-function _get_main_script_from_package_json() {
+function get_main_script_from_package_json() {
     node <<NODE_EOF
 try {
   var zmain = require('$OPENSHIFT_REPO_DIR/package.json').main;
@@ -48,10 +76,10 @@ try {
 }
 NODE_EOF
 
-}  #  End of function  _get_main_script_from_package_json.
+}  #  End of function  get_main_script_from_package_json.
 
 
-function _start_node_service() {
+function start() {
     envf="$OPENSHIFT_NODEJS_DIR/configuration/node.env"
     logf="$OPENSHIFT_NODEJS_LOG_DIR/node.log"
 
@@ -77,7 +105,7 @@ function _start_node_service() {
 
 
     if [ -f "$OPENSHIFT_REPO_DIR/package.json" ]; then
-        script_n_opts="$(_get_main_script_from_package_json)"
+        script_n_opts="$(get_main_script_from_package_json)"
         executor_cmdline="npm start -d"
     else
         #  Backward compatibility.
@@ -102,10 +130,10 @@ function _start_node_service() {
         exit $ret
     fi
 
-}  #  End of function  _start_node_service.
+}  #  End of function  start.
 
 
-function _stop_node_service() {
+function stop() {
     if [ -f $OPENSHIFT_NODEJS_PID_DIR/node.pid ]; then
         node_pid=$( cat $OPENSHIFT_NODEJS_PID_DIR/node.pid 2> /dev/null )
     fi
@@ -117,7 +145,7 @@ function _stop_node_service() {
         ret=$?
         if [ $ret -eq 0 ]; then
             TIMEOUT="$STOPTIMEOUT"
-            while [ $TIMEOUT -gt 0 ]  &&  _is_node_service_running ; do
+            while [ $TIMEOUT -gt 0 ]  &&  is_node_service_running ; do
                 /bin/kill -0 "$node_pid" >/dev/null 2>&1 || break
                 sleep 1
                 let TIMEOUT=${TIMEOUT}-1
@@ -125,7 +153,7 @@ function _stop_node_service() {
         fi
 
         # Make Node go down forcefully if it is still running.
-        if _is_node_service_running ; then
+        if is_node_service_running ; then
            killall -9 node > /dev/null 2>&1  ||  :
         fi
 
@@ -136,16 +164,115 @@ function _stop_node_service() {
             echo "Warning: Application '$OPENSHIFT_APP_NAME' Node server exists without a pid file.  Use force-stop to kill." 1>&2
         fi
     fi
-}  #  End of function  _stop_node_service.
+}  #  End of function stop.
 
 
-function _restart_node_service() {
-    _stop_node_service
-    _start_node_service
+function restart() {
+    stop
+    start
 
-}  #  End of function  _restart_node_service.
+}  #  End of function  restart.
 
+function build() {
+    if [ -d "${OPENSHIFT_NODEJS_DIR}/tmp/saved.node_modules" ]; then
+        node_modules_dir="${OPENSHIFT_REPO_DIR}node_modules/"
+        for d in `ls -a ${OPENSHIFT_NODEJS_DIR}/tmp/saved.node_modules`; do
+            [ -e "${node_modules_dir}$d" ]  ||  \
+                mv "${OPENSHIFT_NODEJS_DIR}/tmp/saved.node_modules/$d" "$node_modules_dir"
+        done
+        rm -rf "${OPENSHIFT_NODEJS_DIR}/tmp/saved.node_modules"
+    fi
 
+    if [ -f "${OPENSHIFT_REPO_DIR}/.openshift/markers/force_clean_build" ]; then
+        echo ".openshift/markers/force_clean_build found!  Recreating npm modules" 1>&2
+        rm -rf "${OPENSHIFT_NODEJS_DIR}"/node_modules/*
+        rm -rf "${OPENSHIFT_HOMEDIR}"/.npm/*
+        rm -rf "${OPENSHIFT_REPO_DIR}"node_modules/*
+    fi
+
+    #  Newer versions of Node set tmp to $HOME/tmp, which is not available
+    npm config set tmp $OPENSHIFT_TMP_DIR
+
+    if [ -f "${OPENSHIFT_REPO_DIR}"/deplist.txt ]; then
+        mods=$(perl -ne 'print if /^\s*[^#\s]/' "${OPENSHIFT_REPO_DIR}"/deplist.txt)
+        [ -n "$mods" ]  &&  print_deprecation_warning
+        for m in $mods; do
+            echo "Checking npm module: $m"
+            echo
+            if is_node_module_installed "$m"; then
+                (cd "${OPENSHIFT_NODEJS_DIR}"; npm update "$m")
+            else
+                (cd "${OPENSHIFT_NODEJS_DIR}"; npm install "$m")
+            fi
+        done
+    fi
+
+    # Workaround for failure in npm install when a package in package.json
+    # points to a git commit.
+    # This issue occurs because we are running in the context of a
+    # git post receive-hook
+    unset GIT_DIR
+    unset GIT_WORK_TREE
+
+    if [ -f "${OPENSHIFT_REPO_DIR}"/package.json ]; then
+        (cd "${OPENSHIFT_REPO_DIR}"; npm install -d)
+    fi
+
+}
+
+function is_supervisor_running() {
+    #  Have a pid file, use it - otherwise return not supervisor.
+    [ -f "$OPENSHIFT_NODEJS_PID_DIR/node.pid" ]  ||  return 1
+
+    #  Have a valid pid, use it - otherwise return not supervisor.
+    nodepid=$(cat "${cartridge_dir}/run/node.pid")
+    [ -n "$nodepid" ]  ||  return 1
+
+    #  Is the pid a supervisor process.
+    if ps --no-heading -ocmd -p $nodepid |  \
+       egrep -e "^node\s*/usr/bin/supervisor(.*)" > /dev/null 2>&1; then
+       #  Yes, the app server is a supervisor process.
+       return 0
+    fi
+
+    return 1
+
+}  #  End of function  is_supervisor_running.
+
+function post-deploy() {
+    if [ -f "$OPENSHIFT_REPO_DIR/.openshift/markers/hot_deploy" ]; then
+        # Check if supervisor is already running. If not do a restart.
+        if ! is_supervisor_running ; then
+            restart
+        fi
+    fi
+}
+
+function pre-build() {
+    rm -rf ${OPENSHIFT_NODEJS_DIR}/tmp/{node_modules,saved.node_modules}
+
+    # If the node_modules/ directory exists, then "stash" it away for redeploy.
+    node_modules_dir="${OPENSHIFT_REPO_DIR}node_modules"
+    if [ -d "$node_modules_dir" ]; then
+      echo 'Saving away previously installed Node modules'
+      mv "$node_modules_dir" "${OPENSHIFT_NODEJS_DIR}/tmp/saved.node_modules"
+      mkdir -p "$node_modules_dir"
+    fi
+}
+
+function tidy() {
+    if [ -d $OPENSHIFT_NODEJS_LOG_DIR ]
+    then
+        client_message "Emptying log dir: ${OPENSHIFT_NODEJS_LOG_DIR}"
+        rm -rf ${OPENSHIFT_NODEJS_LOG_DIR}/* ${OPENSHIFT_NODEJS_LOG_DIR}/.[^.]*
+    fi
+
+    if [ -d ${OPENSHIFT_NODEJS_DIR}tmp/ ]
+    then
+        client_message "Emptying tmp dir: ${OPENSHIFT_NODEJS_DIR}tmp/"
+        rm -rf ${OPENSHIFT_NODEJS_DIR}tmp/* ${OPENSHIFT_NODEJS_DIR}tmp/.[^.]*
+    fi
+}
 
 #
 #  main():
@@ -162,9 +289,14 @@ source $OPENSHIFT_CARTRIDGE_SDK_BASH
 
 # Handle commands.
 case "$1" in
-    start)               _start_node_service    ;;
-    restart|graceful)    _restart_node_service  ;;
-    graceful-stop|stop)  _stop_node_service     ;;
-    status)              _status_node_service   ;;
+    start)               start       ;;
+    restart|graceful)    restart     ;;
+    graceful-stop|stop)  stop        ;;
+    status)              status      ;;
+    build)               build       ;;
+    pre-build)           pre-build   ;;
+    post-deploy)         post-deploy ;;
+    tidy)                tidy        ;;
+    *) exit 0;
 esac
 
