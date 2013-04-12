@@ -22,7 +22,6 @@ Requires:      %{?scl:%scl_prefix}ruby(abi) >= %{rubyabi}
 %endif
 Requires:      %{?scl:%scl_prefix}rubygems
 Requires:      %{?scl:%scl_prefix}rubygem(json)
-Requires:      %{?scl:%scl_prefix}rubygem(dnsruby)
 Requires:      rubygem(openshift-origin-common)
 Requires:      bind-utils
 # GSS-API requires kinit

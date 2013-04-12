@@ -28,7 +28,6 @@ Gem::Specification.new do |s|
 
   s.add_dependency('openshift-origin-controller')
   s.add_dependency('json')  
-  s.add_dependency('dnsruby')
   s.add_development_dependency('rake', '>= 0.8.7', '<= 0.9.6')  
   s.add_development_dependency('rspec')
   s.add_development_dependency('bundler')
