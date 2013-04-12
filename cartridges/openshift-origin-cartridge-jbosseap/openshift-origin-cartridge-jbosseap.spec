@@ -5,7 +5,7 @@
 
 Summary:       Provides JBossEAP6.0 support
 Name:          openshift-origin-cartridge-jbosseap
-Version: 2.1.5
+Version: 2.1.6
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -98,6 +98,13 @@ cp -p %{cartridgedir}/versions/6.0/modules/postgresql_module.xml /etc/alternativ
 
 
 %changelog
+* Fri Apr 12 2013 Adam Miller <admiller@redhat.com> 2.1.6-1
+- SELinux, ApplicationContainer and UnixUser model changes to support oo-admin-
+  ctl-gears operating on v1 and v2 cartridges. (rmillner@redhat.com)
+- Merge pull request #2011 from bdecoste/master (dmcphers@redhat.com)
+- be able to remove .openshift (bdecoste@gmail.com)
+- install cart from spec (bdecoste@gmail.com)
+
 * Thu Apr 11 2013 Adam Miller <admiller@redhat.com> 2.1.5-1
 - Merge pull request #2008 from bdecoste/master (dmcphers@redhat.com)
 - as7 v2 cart and eap clustering (bdecoste@gmail.com)
