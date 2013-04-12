@@ -8,7 +8,7 @@
 
 Summary:       Embedded SwitchYard modules for JBoss
 Name:          openshift-origin-cartridge-switchyard-0.6
-Version: 1.6.2
+Version: 1.6.3
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -67,6 +67,10 @@ alternatives --set switchyard-0.6 /usr/share/switchyard
 
 
 %changelog
+* Fri Apr 12 2013 Adam Miller <admiller@redhat.com> 1.6.3-1
+- SELinux, ApplicationContainer and UnixUser model changes to support oo-admin-
+  ctl-gears operating on v1 and v2 cartridges. (rmillner@redhat.com)
+
 * Wed Apr 10 2013 Adam Miller <admiller@redhat.com> 1.6.2-1
 - Delete move/pre-move/post-move hooks, these hooks are no longer needed.
   (rpenta@redhat.com)
