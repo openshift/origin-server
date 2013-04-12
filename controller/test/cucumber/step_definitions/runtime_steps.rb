@@ -808,7 +808,7 @@ def cart_env_var_common(cart_name, var_name, expected = nil, negate = false)
 end
 
 # Used to control the runtime state of the current application.
-When /^I (start|stop|status|restart|tidy) the newfangled application$/ do |action|
+When /^I (start|stop|status|restart|tidy|reload) the newfangled application$/ do |action|
   OpenShift::timeout(60) do
     record_measure("Runtime Benchmark: Hook #{action} on application #{@cart.name}") do
       @app.send(action)
