@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.7.5
+Version: 1.7.6
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -83,6 +83,22 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Fri Apr 12 2013 Adam Miller <admiller@redhat.com> 1.7.6-1
+- Fix cart-scoped action hook executions (ironcladlou@gmail.com)
+- SELinux, ApplicationContainer and UnixUser model changes to support oo-admin-
+  ctl-gears operating on v1 and v2 cartridges. (rmillner@redhat.com)
+- phpmyadmin tests (dmcphers@redhat.com)
+- Merge pull request #2015 from ironcladlou/dev/v2carts/build-system
+  (dmcphers@redhat.com)
+- Merge pull request #2016 from pmorie/dev/platform_ssh (dmcphers@redhat.com)
+- Merge pull request #1996 from
+  smarterclayton/bug_950367_use_default_for_bad_expires_in
+  (dmcphers+openshiftbot@redhat.com)
+- Generate ssh key for web proxy cartridges (pmorie@gmail.com)
+- Call cart pre-receive hook during default build lifecycle
+  (ironcladlou@gmail.com)
+- Bug 950367 - Handle non-integer values for expires_in (ccoleman@redhat.com)
+
 * Thu Apr 11 2013 Adam Miller <admiller@redhat.com> 1.7.5-1
 - Merge pull request #2009 from abhgupta/abhgupta-dev (dmcphers@redhat.com)
 - Merge pull request #2001 from brenton/misc2 (dmcphers@redhat.com)
