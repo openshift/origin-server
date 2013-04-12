@@ -2,7 +2,7 @@
 
 Summary:       phpMyAdmin support for OpenShift
 Name:          openshift-origin-cartridge-phpmyadmin
-Version: 1.7.4
+Version: 1.7.5
 Release:       1%{?dist}
 Group:         Applications/Internet
 License:       ASL 2.0
@@ -47,6 +47,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Thu Apr 11 2013 Dan McPherson <dmcphers@redhat.com> 1.7.5-1
+- 
+
 * Thu Apr 11 2013 Dan McPherson <dmcphers@redhat.com> 1.7.4-1
 - new package built with tito
 
