@@ -69,8 +69,8 @@ Subscribes:
   set-db-connection-info:
     Type: "NET_TCP:db:connection-info"
     Required: false
-  set-nosql-db-connection-info:
-    Type: "NET_TCP:nosqldb:connection-info"
+  set-mongodb-connection-info:
+    Type: "NET_TCP:mongodb:connection-info"
     Required: false
   set-mysql-connection-info:
     Type: "NET_TCP:db:mysql"
