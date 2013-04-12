@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/openshift/cartridges/v2/diy
 
 Name: openshift-origin-cartridge-diy
-Version: 0.2.3
+Version: 0.2.4
 Release: 1%{?dist}
 Summary: DIY cartridge
 Group: Development/Languages
@@ -58,6 +58,11 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Fri Apr 12 2013 Adam Miller <admiller@redhat.com> 0.2.4-1
+- Fixing stop and restart when diy is already stopped (calfonso@redhat.com)
+- SELinux, ApplicationContainer and UnixUser model changes to support oo-admin-
+  ctl-gears operating on v1 and v2 cartridges. (rmillner@redhat.com)
+
 * Wed Apr 10 2013 Adam Miller <admiller@redhat.com> 0.2.3-1
 - Anchor locked_files.txt entries at the cart directory (ironcladlou@gmail.com)
 - Merge pull request #1976 from calfonso/master (dmcphers@redhat.com)
