@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/openshift/cartridges/v2/perl
 
 Name: openshift-origin-cartridge-perl
-Version: 0.2.5
+Version: 0.2.6
 Release: 1%{?dist}
 Summary: Perl cartridge
 Group: Development/Languages
@@ -70,6 +70,10 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Fri Apr 12 2013 Adam Miller <admiller@redhat.com> 0.2.6-1
+- SELinux, ApplicationContainer and UnixUser model changes to support oo-admin-
+  ctl-gears operating on v1 and v2 cartridges. (rmillner@redhat.com)
+
 * Thu Apr 11 2013 Adam Miller <admiller@redhat.com> 0.2.5-1
 - Calling oo-admin-cartridge from a few more v2 cartridges
   (bleanhar@redhat.com)
