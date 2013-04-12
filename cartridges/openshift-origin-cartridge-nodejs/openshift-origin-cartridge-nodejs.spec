@@ -3,7 +3,7 @@
 
 Summary:       Provides Node.js support
 Name:          openshift-origin-cartridge-nodejs
-Version: 1.8.4
+Version: 1.8.5
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -57,6 +57,15 @@ rm -rf %{buildroot}
 %doc %{cartridgedir}/README.md
 
 %changelog
+* Fri Apr 12 2013 Adam Miller <admiller@redhat.com> 1.8.5-1
+- Add post_deploy hook, too. (asari.ruby@gmail.com)
+- Add .openshift to the Node.js cartridge application template, so that it may
+  be populated upon creation. (asari.ruby@gmail.com)
+- Use $OPENSHIFT_TMP_DIR where applicable. (asari.ruby@gmail.com)
+- SELinux, ApplicationContainer and UnixUser model changes to support oo-admin-
+  ctl-gears operating on v1 and v2 cartridges. (rmillner@redhat.com)
+- Further improvements on Node.js v2 cartridge. (asari.ruby@gmail.com)
+
 * Wed Apr 10 2013 Adam Miller <admiller@redhat.com> 1.8.4-1
 - Anchor locked_files.txt entries at the cart directory (ironcladlou@gmail.com)
 
