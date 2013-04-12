@@ -6,7 +6,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin broker
 Name:          openshift-origin-broker-util
-Version:       1.7.4
+Version:       1.7.5
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -80,6 +80,15 @@ cp man/*.8 %{buildroot}%{_mandir}/man8/
 %{_mandir}/man8/oo-stats.8.gz
 
 %changelog
+* Fri Apr 12 2013 Adam Miller <admiller@redhat.com> 1.7.5-1
+- Merge pull request #2018 from abhgupta/abhgupta-dev (dmcphers@redhat.com)
+- Merge pull request #2026 from rajatchopra/master (dmcphers@redhat.com)
+- fix analytics to provide more details (rchopra@redhat.com)
+- Fix for bug 950974 Handling NodeException in the script (abhgupta@redhat.com)
+- Fix for bug 951031 We are now correctly listing the acceptable argument to
+  the oo-admin-usage script as gear id instead of gear uuid
+  (abhgupta@redhat.com)
+
 * Thu Apr 11 2013 Adam Miller <admiller@redhat.com> 1.7.4-1
 - Merge pull request #2001 from brenton/misc2 (dmcphers@redhat.com)
 - Merge pull request #1998 from pravisankar/dev/ravi/card526
