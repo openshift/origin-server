@@ -126,16 +126,17 @@ puts "Started at: #{Time.now}"
 start_time = (Time.now.to_f * 1000).to_i
 query = {"group_instances.gears.0" => {"$exists" => true}}
 selection = {:fields => ["name",
-                        "created_at",
-                        "domain_id",
-                        "group_instances.gears.uuid",
-                        "group_instances.gears.uid",
-                        "group_instances.gears.server_identity",
-                        "group_instances._id",
-                        "component_instances._id",
-                        "component_instances.group_instance_id",
-                        "app_ssh_keys.name", 
-                        "app_ssh_keys.content"],
+                         "uuid",
+                         "created_at",
+                         "domain_id",
+                         "group_instances.gears.uuid",
+                         "group_instances.gears.uid",
+                         "group_instances.gears.server_identity",
+                         "group_instances._id",
+                         "component_instances._id",
+                         "component_instances.group_instance_id",
+                         "app_ssh_keys.name", 
+                         "app_ssh_keys.content"],
              :timeout => false}
 ret = []
 
