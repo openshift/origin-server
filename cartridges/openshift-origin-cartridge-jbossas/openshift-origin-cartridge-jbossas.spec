@@ -5,7 +5,7 @@
 
 Summary:       Provides JBossAS7 support
 Name:          openshift-origin-cartridge-jbossas
-Version: 	   1.0.4
+Version: 	   1.0.5
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -90,6 +90,12 @@ cp -p %{cartridgedir}/versions/7.0/modules/postgresql_module.xml /etc/alternativ
 
 
 %changelog
+* Fri Apr 12 2013 Adam Miller <admiller@redhat.com> 1.0.5-1
+- SELinux, ApplicationContainer and UnixUser model changes to support oo-admin-
+  ctl-gears operating on v1 and v2 cartridges. (rmillner@redhat.com)
+- be able to remove .openshift (bdecoste@gmail.com)
+- install cart from spec (bdecoste@gmail.com)
+
 * Thu Apr 11 2013 Dan McPherson <dmcphers@redhat.com> 1.0.4-1
 - 
 
