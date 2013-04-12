@@ -16,7 +16,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.7.23
+Version: 1.7.24
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -285,6 +285,42 @@ fi
 %attr(0755,-,-) /etc/cron.monthly/openshift-origin-cron-monthly
 
 %changelog
+* Fri Apr 12 2013 Adam Miller <admiller@redhat.com> 1.7.24-1
+- Merge pull request #2037 from ironcladlou/dev/v2cart/mock
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #2028 from brenton/misc5
+  (dmcphers+openshiftbot@redhat.com)
+- Fix cart-scoped action hook executions (ironcladlou@gmail.com)
+- Merge pull request #2029 from rmillner/TC222
+  (dmcphers+openshiftbot@redhat.com)
+- SELinux, ApplicationContainer and UnixUser model changes to support oo-admin-
+  ctl-gears operating on v1 and v2 cartridges. (rmillner@redhat.com)
+- WIP Cartridge Refactor - Process manifest overrides for Broker
+  (jhonce@redhat.com)
+- Merge pull request #2031 from jwhonce/wip/restart_reload
+  (dmcphers@redhat.com)
+- Merge pull request #2020 from danmcp/master (dmcphers@redhat.com)
+- phpmyadmin WIP (dmcphers@redhat.com)
+- WIP Cartridge Refactor - Skip reload actions on cartridge unless gear started
+  (jhonce@redhat.com)
+- WIP Cartridge Refactor - Support skip_hooks when destroying gear
+  (jhonce@redhat.com)
+- Merge pull request #2015 from ironcladlou/dev/v2carts/build-system
+  (dmcphers@redhat.com)
+- We don't want the installation of the node-proxy to auto launch the service
+  (bleanhar@redhat.com)
+- Merge pull request #2019 from jwhonce/wip/restart_reload
+  (dmcphers@redhat.com)
+- Merge pull request #2016 from pmorie/dev/platform_ssh (dmcphers@redhat.com)
+- Merge pull request #2024 from ironcladlou/dev/v2carts/documentation
+  (dmcphers@redhat.com)
+- Application author documentation (ironcladlou@gmail.com)
+- Bug 950451 - Add stop_lock support to scaled cartridge restart/reload
+  (jhonce@redhat.com)
+- Generate ssh key for web proxy cartridges (pmorie@gmail.com)
+- Call cart pre-receive hook during default build lifecycle
+  (ironcladlou@gmail.com)
+
 * Thu Apr 11 2013 Adam Miller <admiller@redhat.com> 1.7.23-1
 - Moving openshift_origin_users out of sdk (calfonso@redhat.com)
 - Merge pull request #2010 from jwhonce/wip/v2_cart_model
