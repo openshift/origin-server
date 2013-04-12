@@ -84,7 +84,7 @@
           %abbr{:title => 'required'} *
         .controls
           = f.file_field :certificate_file, :id => 'certificate_file', :disabled => !@private_ssl_certificates_supported 
-          %p.help-block Certificate files must be Base64 PEM-encoded and tipically have a .crt or .pem extension. You may combine multiple certificates and certificate chains in a single file, but the RSA or DSA private key must always be provided in a separate file.
+          %p.help-block Certificate files must be Base64 PEM-encoded and typically have a .crt or .pem extension. You may combine multiple certificates and certificate chains in a single file, but the RSA or DSA private key must always be provided in a separate file.
 
       .file.optional.control-group
         %label.control-label{:for => 'certificate_chain_file'} 
