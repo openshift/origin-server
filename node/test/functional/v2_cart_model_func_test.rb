@@ -92,7 +92,7 @@ class V2CartridgeModelFunctionalTest < Test::Unit::TestCase
     refute_nil results
 
     assert_match(
-        %r(OPENSHIFT_MOCK_PLUGIN_DB_USERNAME=UT_username; OPENSHIFT_MOCK_PLUGIN_DB_PASSWORD=UT_password; OPENSHIFT_MOCK_PLUGIN_DB_HOST=\d+\.\d+\.\d+\.\d+; OPENSHIFT_MOCK_PLUGIN_DB_PORT=8080; OPENSHIFT_MOCK_PLUGIN_DB_URL=mock://\d+\.\d+\.\d+\.\d+:8080/unit_test;),
+        %r(OPENSHIFT_MOCK_PLUGIN_DB_USERNAME=UT_username; OPENSHIFT_MOCK_PLUGIN_DB_PASSWORD=UT_password; OPENSHIFT_MOCK_PLUGIN_GEAR_UUID=.*; OPENSHIFT_MOCK_PLUGIN_DB_HOST=\d+\.\d+\.\d+\.\d+; OPENSHIFT_MOCK_PLUGIN_DB_PORT=8080; OPENSHIFT_MOCK_PLUGIN_DB_URL=mock://\d+\.\d+\.\d+\.\d+:8080/unit_test;),
         results)
   end
 
