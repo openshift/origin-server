@@ -30,7 +30,7 @@ function _start_service() {
    pushd $OPENSHIFT_REPO_DIR > /dev/null
    source "$pycart_dir/bin/activate_virtenv"
 
-   nohup python app.py > "$pycart_dir/logs/appserver.log" 2>&1 &
+   nohup python -u app.py > "$pycart_dir/logs/appserver.log" 2>&1 &
    pid=$!
    echo "$pid" > "$pycart_dir/run/appserver.pid"
 
@@ -95,6 +95,10 @@ function deploy() {
    $OPENSHIFT_PYTHON_DIR/versions/$OPENSHIFT_PYTHON_VERSION/bin/deploy
 }
 
+function tidy() {
+    rm -rf ${OPENSHIFT_PYTHON_LOG_DIR}/* ${OPENSHIFT_PYTHON_LOG_DIR}/.[^.]*
+}
+
 case "$1" in
    start)                    _start_service    ;;
    graceful-stop|stop)       _stop_service     ;;
@@ -102,5 +106,6 @@ case "$1" in
    status)                   status            ;;
    build)                    build             ;;
    deploy)                   deploy            ;;
+   tidy)                     tidy              ;;
 esac
 
