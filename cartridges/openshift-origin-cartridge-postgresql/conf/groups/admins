@@ -1,0 +1,4 @@
+# List of administrator accounts.
+# These accounts are only allowed to connect over local socket
+postgres
+admin
