@@ -1,7 +1,7 @@
 # mongodb.conf
 
 #where to log
-logpath=<%= ENV['OPENSHIFT_MONGODB_DIR'] %>/log/mongodb.log
+logpath=<%= ENV['OPENSHIFT_MONGODB_DIR'] %>log/mongodb.log
 
 # fork and run in background
 fork = true
@@ -9,9 +9,9 @@ fork = true
 bind_ip = <%= ENV['OPENSHIFT_MONGODB_DB_HOST'] %>
 #port = 27017
 
-dbpath=<%= ENV['OPENSHIFT_MONGODB_DIR'] %>/data/
+dbpath=<%= ENV['OPENSHIFT_MONGODB_DIR'] %>data/
 
-pidfilepath=<%= ENV['OPENSHIFT_MONGODB_DIR'] %>/pid/mongodb.pid
+pidfilepath=<%= ENV['OPENSHIFT_MONGODB_DIR'] %>pid/mongodb.pid
 
 # Enables periodic logging of CPU utilization and I/O wait
 cpu = false
