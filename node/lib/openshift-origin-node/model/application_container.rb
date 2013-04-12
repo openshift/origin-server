@@ -287,13 +287,13 @@ module OpenShift
     def gear_level_tidy_git(gear_repo_dir)
       # Git pruning
       tidy_action do
-        OpenShift::Utils::ShellExec.run_as(@user.uid, @user.gid, "git prune", gear_repo_dir, false, 0)
+        Utils.oo_spawn("git prune", uid: @user.uid, chdir: gear_repo_dir, expected_exitstatus: 0)
         logger.debug("Pruned git directory at #{gear_repo_dir}")
       end
 
       # Git GC
       tidy_action do
-        OpenShift::Utils::ShellExec.run_as(@user.uid, @user.gid, "git gc --aggressive", gear_repo_dir, false, 0)
+        Utils.oo_spawn("git gc --aggressive", uid: @user.uid, chdir: gear_repo_dir, expected_exitstatus: 0)
         logger.debug("Executed git gc for repo #{gear_repo_dir}")
       end
     end
@@ -693,5 +693,39 @@ module OpenShift
     def threaddump(cart_name)
       @cartridge_model.do_control("threaddump", cart_name)
     end
+
+    def stop_lock?
+      @cartridge_model.stop_lock?
+    end
+
+    #
+    # Public: Return an ApplicationContainer object loaded from the container_uuid on the system
+    #
+    # Caveat: the quota information will not be populated.
+    #
+    def self.from_uuid(container_uuid, logger=nil)
+      u = UnixUser.from_uuid(container_uuid)
+      ApplicationContainer.new(u.application_uuid, u.container_uuid, u.user_uid,
+                               u.app_name, u.container_name, u.namespace,
+                               nil, nil, logger)
+    end
+
+    #
+    # Public: Return an enumerator which provides an ApplicationContainer object
+    # for every OpenShift gear in the system.
+    #
+    # Caveat: the quota information will not be populated.
+    #
+    def self.all_containers(logger=nil)
+      Enumerator.new do |yielder|
+        UnixUser.all_users.each do |u|
+          a=ApplicationContainer.new(u.application_uuid, u.container_uuid, u.user_uid,
+                                     u.app_name, u.container_name, u.namespace,
+                                     nil, nil, logger)
+          yielder.yield(a)
+        end
+      end
+    end
+
   end
 end

@@ -22,6 +22,7 @@ class V1CartridgeModelFunctionalTest < Test::Unit::TestCase
 
   def test_get_cartridge
     @config = mock('OpenShift::Config')
+    @config.stubs(:get).returns(nil)
     @config.stubs(:get).with('CARTRIDGE_BASE_PATH').returns('/usr/libexec/openshift/cartridges')
     OpenShift::Config.stubs(:new).returns(@config)
     

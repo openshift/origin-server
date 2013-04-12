@@ -12,6 +12,8 @@ Source0: http://mirror.openshift.com/pub/origin-server/source/%{name}/%{name}-%{
 
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
 BuildArch: noarch
+Requires:      rubygem(openshift-origin-node)
+Requires:      openshift-origin-node-util
 
 %description
 Provides a mock cartridge for use in the V2 Cartridge SDK. Used to integration
