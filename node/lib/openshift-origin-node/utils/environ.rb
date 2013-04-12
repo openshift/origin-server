@@ -15,6 +15,7 @@
 #++
 
 require 'openshift-origin-node/utils/node_logger'
+require 'openshift-origin-node/utils/sdk'
 
 module OpenShift
   module Utils
@@ -24,9 +25,16 @@ module OpenShift
       # @param [String] gear_dir       Home directory of the gear
       # @return [Hash<String,String>]  hash[Environment Variable] = Value
       def self.for_gear(gear_dir)
-        load("/etc/openshift/env",
-             File.join(gear_dir, '.env'),
-             File.join(gear_dir, '*', 'env'))
+        if Sdk.new_sdk_app?(gear_dir)
+          load("/etc/openshift/env",
+               File.join(gear_dir, '.env'),
+               File.join(gear_dir, '.env', '.uservars'),
+               File.join(gear_dir, '*', 'env'))
+        else
+          load("/etc/openshift/env",
+               File.join(gear_dir, '.env'),
+               File.join(gear_dir, '*', 'env'))
+        end
       end
 
       # Load the combined cartridge environments for a gear
@@ -34,9 +42,7 @@ module OpenShift
       # @param [Array[String]] dirs    Ordered List of cartridge_dirs for overrides
       # @return [Hash<String,String>]  hash[Environment Variable] = Value
       def self.for_gear_ordered(gear_dir, *dirs)
-        env = load("/etc/openshift/env",
-                   File.join(gear_dir, '.env'),
-                   File.join(gear_dir, '*', 'env'))
+        env = for_gear(gear_dir)
         dirs.each_with_object(env) { |d, e| e.merge(load(File.join(d, 'env'))) }
       end
 
