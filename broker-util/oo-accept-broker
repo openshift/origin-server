@@ -152,19 +152,19 @@ function check_missing_and_insecure_secrets() {
     CONSOLE_CONF="/etc/openshift/console.conf"
 
     AUTH_SALT=`fetch_config ${BROKER_CONF} AUTH_SALT`
-    if [ $AUTH_SALT == "ClWqe5zKtEW4CJEMyjzQ" ]
+    if [ "$AUTH_SALT" = "ClWqe5zKtEW4CJEMyjzQ" ]
     then
       fail "Default AUTH_SALT detected in ${BROKER_CONF}! Change the the value and use oo-admin-broker-auth to regenerate authentication tokens. (Hint: use 'openssl rand -base64 64' to generate a unique salt)"
     fi
 
     BROKER_SECRET=`fetch_config ${BROKER_CONF} SESSION_SECRET`
-    if [ $BROKER_SECRET == "nil" ]
+    if [ "$BROKER_SECRET" = "nil" ]
     then
       fail "SESSION_SECRET must be set in $BROKER_CONF (Hint: use 'openssl rand -hex 64' to generate a unique secret."
     fi
 
     CONSOLE_SECRET=`fetch_config ${CONSOLE_CONF} SESSION_SECRET`
-    if [ $CONSOLE_SECRET == "nil" ]
+    if [ "$CONSOLE_SECRET" = "nil" ]
     then
       fail "SESSION_SECRET must be set in ${CONSOLE_CONF} (Hint: use 'openssl rand -hex 64' to generate a unique secret."
     fi
