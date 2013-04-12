@@ -16,6 +16,7 @@
 
 require_relative '../../misc/bin/oo-trap-user'
 require 'openshift-origin-node/utils/environ'
+require 'openshift-origin-node/utils/selinux'
 
 require 'test_helper'
 require "test/unit"
@@ -37,6 +38,9 @@ module OpenShift
       @env = Utils::Environ.for_gear(@gear_dir)
       FileUtils.mkpath(@runtime_dir)
       FileUtils.mkpath(@logs_dir)
+
+      OpenShift::Utils::SELinux.stubs(:get_mcs_label).with(0).returns('s0-s0:c0.c1023')
+      OpenShift::Utils::SELinux.stubs(:getcon).returns('unconfined_u:system_r:openshift_t:s0-s0:c0.c1023')
     end
 
     # Called after every test method runs. Can be used to tear
@@ -107,7 +111,7 @@ module OpenShift
            'OPENSHIFT_BROKER_HOST'         => @env['OPENSHIFT_BROKER_HOST'],
            'OPENSHIFT_CARTRIDGE_SDK_BASH'  => @env['OPENSHIFT_CARTRIDGE_SDK_BASH'],
            'OPENSHIFT_CARTRIDGE_SDK_RUBY'  => @env['OPENSHIFT_CARTRIDGE_SDK_RUBY']},
-          "/bin/bash", "snapshot.sh"
+          "/bin/bash", "oo-snapshot"
       ).returns(0)
 
       ENV['SSH_ORIGINAL_COMMAND'] = 'snapshot'
@@ -120,7 +124,7 @@ module OpenShift
            'OPENSHIFT_BROKER_HOST'         => @env['OPENSHIFT_BROKER_HOST'],
            'OPENSHIFT_CARTRIDGE_SDK_BASH'  => @env['OPENSHIFT_CARTRIDGE_SDK_BASH'],
            'OPENSHIFT_CARTRIDGE_SDK_RUBY'  => @env['OPENSHIFT_CARTRIDGE_SDK_RUBY']},
-          "/bin/bash", "restore.sh"
+          "/bin/bash", "oo-restore"
       ).returns(0)
 
       ENV['SSH_ORIGINAL_COMMAND'] = 'restore'
@@ -133,7 +137,7 @@ module OpenShift
            'OPENSHIFT_BROKER_HOST'         => @env['OPENSHIFT_BROKER_HOST'],
            'OPENSHIFT_CARTRIDGE_SDK_BASH'  => @env['OPENSHIFT_CARTRIDGE_SDK_BASH'],
            'OPENSHIFT_CARTRIDGE_SDK_RUBY'  => @env['OPENSHIFT_CARTRIDGE_SDK_RUBY']},
-          "/bin/bash", "restore.sh", "INCLUDE_GIT"
+          "/bin/bash", "oo-restore", "INCLUDE_GIT"
       ).returns(0)
 
       ENV['SSH_ORIGINAL_COMMAND'] = 'restore INCLUDE_GIT'
@@ -193,6 +197,7 @@ module OpenShift
       FileUtils.mkpath(git_directory)
 
       config = mock('OpenShift::Config')
+      config.stubs(:get).returns(nil)
       config.stubs(:get).with("GEAR_BASE_DIR").returns("/tmp")
       OpenShift::Config.stubs(:new).returns(config)
 
@@ -221,7 +226,7 @@ module OpenShift
            'OPENSHIFT_BROKER_HOST'         => @env['OPENSHIFT_BROKER_HOST'],
            'OPENSHIFT_CARTRIDGE_SDK_BASH'  => @env['OPENSHIFT_CARTRIDGE_SDK_BASH'],
            'OPENSHIFT_CARTRIDGE_SDK_RUBY'  => @env['OPENSHIFT_CARTRIDGE_SDK_RUBY']},
-          "/usr/bin/quota"
+          "/usr/bin/quota", "--always-resolve"
       ).returns(0)
 
       ENV['SSH_ORIGINAL_COMMAND'] = "quota"

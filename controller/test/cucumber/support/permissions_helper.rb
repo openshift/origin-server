@@ -39,7 +39,7 @@ module PermissionHelper
     $logger.debug(
       "LABEL_CHECK: #{file_path}: #{actual_context}, expected: #{target_context}"
       )
-    return true if actual_context == target_context
+    return true if actual_context.sub('system_u:','').sub('unconfined_u:','') == target_context.sub('system_u:','').sub('unconfined_u:','')
   end
   
   # Public: Check that some file matches target owner and group

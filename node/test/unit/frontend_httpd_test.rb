@@ -81,6 +81,7 @@ class FrontendHttpServerModelTest < Test::Unit::TestCase
     Syslog.stubs(:new).returns(syslog_mock)
 
     @config_mock = mock('OpenShift::Config')
+    @config_mock.stubs(:get).returns(nil)
     @config_mock.stubs(:get).with("GEAR_BASE_DIR").returns(@gear_base_dir)
     @config_mock.stubs(:get).with("OPENSHIFT_HTTP_CONF_DIR").returns(@http_conf_dir)
     @config_mock.stubs(:get).with("CLOUD_DOMAIN").returns(@cloud_domain)
@@ -443,6 +444,7 @@ class TestApacheDB < Test::Unit::TestCase
     @http_conf_dir = "/tmp/apachedb_test/.httpd.d"
     
     @config_mock = mock('OpenShift::Config')
+    @config_mock.stubs(:get).returns(nil)
     @config_mock.stubs(:get).with("GEAR_BASE_DIR").returns(@gear_base_dir)
     @config_mock.stubs(:get).with("OPENSHIFT_HTTP_CONF_DIR").returns(@http_conf_dir)
     OpenShift::Config.stubs(:new).returns(@config_mock)

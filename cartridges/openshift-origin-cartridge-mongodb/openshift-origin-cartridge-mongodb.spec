@@ -14,6 +14,8 @@ Requires:      mongodb-devel
 Requires:      libmongodb
 Requires:      mongodb
 Requires:      git
+Requires:      rubygem(openshift-origin-node)
+Requires:      openshift-origin-node-util
 BuildArch:     noarch
 
 

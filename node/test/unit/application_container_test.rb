@@ -26,6 +26,7 @@ require 'openshift-origin-node/model/application_container'
 require 'openshift-origin-node/model/v2_cart_model'
 require 'openshift-origin-node/model/unix_user'
 require 'openshift-origin-node/utils/environ'
+require 'openshift-origin-node/utils/selinux'
 require 'openshift-origin-common'
 require 'test/unit'
 require 'fileutils'
@@ -42,6 +43,7 @@ class ApplicationContainerTest < Test::Unit::TestCase
     @ports_per_user = 5
     @uid_begin      = 500
 
+    @config.stubs(:get).returns(nil)
     @config.stubs(:get).with("PORT_BEGIN").returns(@ports_begin.to_s)
     @config.stubs(:get).with("PORTS_PER_USER").returns(@ports_per_user.to_s)
     @config.stubs(:get).with("UID_BEGIN").returns(@uid_begin.to_s)
@@ -57,8 +59,8 @@ class ApplicationContainerTest < Test::Unit::TestCase
     OpenShift::Config.stubs(:new).returns(@config)
 
     # Set up the container
-    @gear_uuid = "501"
-    @user_uid  = "501"
+    @gear_uuid = "5502"
+    @user_uid  = "5502"
     @app_name  = 'UnixUserTestCase'
     @gear_name = @app_name
     @namespace = 'jwh201204301647'

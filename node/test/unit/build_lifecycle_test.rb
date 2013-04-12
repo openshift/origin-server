@@ -41,13 +41,14 @@ class BuildLifecycleTest < Test::Unit::TestCase
     # Set up the config
     @config = mock('OpenShift::Config')
 
+    @config.stubs(:get).returns(nil)
     @config.stubs(:get).with("GEAR_BASE_DIR").returns("/tmp")
 
     OpenShift::Config.stubs(:new).returns(@config)
 
     # Set up the container
-    @gear_uuid = "501"
-    @user_uid  = "501"
+    @gear_uuid = "5503"
+    @user_uid  = "5503"
     @app_name  = 'UnixUserTestCase'
     @gear_name = @app_name
     @namespace = 'jwh201204301647'

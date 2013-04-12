@@ -31,6 +31,7 @@ class V2CartridgeModelFunctionalTest < Test::Unit::TestCase
     @uid = 5996
 
     @config = mock('OpenShift::Config')
+    @config.stubs(:get).returns(nil)
     @config.stubs(:get).with("GEAR_BASE_DIR").returns(GEAR_BASE_DIR)
     @config.stubs(:get).with("GEAR_GECOS").returns('Functional Test')
     @config.stubs(:get).with("CREATE_APP_SYMLINKS").returns('0')
