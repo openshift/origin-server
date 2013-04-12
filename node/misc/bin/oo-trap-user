@@ -55,26 +55,26 @@ def _set_env_uservars(uservars_dir):
 # Read in environment variables
 #
 def read_env_vars():
-    load_vars('/etc/openshift/env/*')
-    load_vars('~/.env/*')
-    load_vars('~/*/env/*')
+    load_vars('/etc/openshift/env/')
+    load_vars('~/.env/')
+    load_vars('~/*/env/')
 
 def load_vars(dir):
-    for entry in glob.glob(os.path.expanduser(dir)):
+    for entry in glob.glob(os.path.expanduser(dir + '*')):
         env = os.path.basename(entry)
 
         if env in ['USER_VARS', 'TYPELESS_TRANSLATED_VARS']:
-           continue
-        elif os.path.isdir(entry):
-           if '.uservars' == env:
-              _set_env_uservars(entry)
-           continue
+          continue
 
         fp = open(entry, 'r')
         env_var = fp.readlines()[0].strip().split('=')[1].strip('\'"')
         fp.close()
 
         os.putenv(env, env_var)
+
+    uservars = os.path.expanduser(dir + '.uservars')
+    if os.path.isdir(uservars):
+      _set_env_uservars(uservars)
 
 
 def get_mcs_level(uid):
