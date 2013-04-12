@@ -50,6 +50,7 @@ Requires:      pam_openshift
 Requires:      quota
 Requires:      cronie
 Requires:      crontabs
+Requires:      openshift-origin-node-proxy
 %if 0%{?fedora} >= 18
 Requires:      httpd-tools
 BuildRequires: httpd-tools
