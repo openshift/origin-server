@@ -46,9 +46,12 @@ module OpenShift
         CartridgeRepository.instance.each do |cartridge|
           cartridge.versions.each do |version|
             begin
-              v1_manifest         = Marshal.load(Marshal.dump(cartridge.manifest))
-              v1_manifest['Name'] = "#{cartridge.name}-#{version}"
-              # FIXME Add overridges per version
+              cooked = Runtime::Cartridge.new(cartridge.source, version, cartridge.repository_path)
+              print "Loading #{cooked.name}-#{cooked.version}..." if oo_debug
+
+              v1_manifest            = Marshal.load(Marshal.dump(cooked.manifest))
+              v1_manifest['Name']    = "#{cooked.name}-#{cooked.version}"
+              v1_manifest['Version'] = cooked.version
               carts.push OpenShift::Cartridge.new.from_descriptor(v1_manifest)
               print "OK\n" if oo_debug
             rescue Exception => e
