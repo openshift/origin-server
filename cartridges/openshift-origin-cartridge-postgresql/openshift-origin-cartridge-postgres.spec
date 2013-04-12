@@ -8,7 +8,7 @@
 
 Summary:       Provides embedded PostgreSQL support
 Name:          openshift-origin-cartridge-postgresql
-Version:       0.0.2
+Version:       0.0.4
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -78,6 +78,12 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Fri Apr 12 2013 Fotios Lindiakos <fotios@redhat.com> 0.0.4-1
+- Fixed license and vendor (fotios@redhat.com)
+
+* Fri Apr 12 2013 Fotios Lindiakos <fotios@redhat.com>
+- Fixed license and vendor (fotios@redhat.com)
+
 * Fri Apr 12 2013 Fotios Lindiakos <fotios@redhat.com> 0.0.2-1
 - Initial v2 commit 
 
