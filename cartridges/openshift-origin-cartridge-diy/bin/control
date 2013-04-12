@@ -1,38 +1,38 @@
-#!/bin/bash -e
+#!/bin/bash
+source $OPENSHIFT_CARTRIDGE_SDK_BASH
 
 function start() {
-    echo "Starting DIY cart"
+    client_result "Starting DIY cart"
     source $OPENSHIFT_REPO_DIR/.openshift/action_hooks/start
 }
 
 function stop() {
-    echo "Stopping DIY cart"
+    client_result "Stopping DIY cart"
     source $OPENSHIFT_REPO_DIR/.openshift/action_hooks/stop
 }
 
 function restart() {
-    echo "Restarting DIY cart"
-    kill `ps -ef | grep testrubyserver.rb | grep -v grep | awk '{ print $2 }'` > /dev/null 2>&1
-    source $OPENSHIFT_REPO_DIR/.openshift/action_hooks/start
+    client_result "Restarting DIY cart"
+    stop
+    start
 }
 
 function status() {
    if output=$(curl http://$OPENSHIFT_DIY_IP:$OPENSHIFT_DIY_PORT 2>&1 )
    then
-      echo "Application is running"
-      echo $output
+      client_result "Application is running"
    else
-      echo "Application is either stopped or inaccessible"
+      client_result "Application is either stopped or inaccessible"
    fi
 }
 
 function reload() {
-    echo "Reloading DIY cart"
+    client_result "Reloading DIY cart"
     restart
 }
 
 function tidy() {
-    echo "Tidying DIY cart"
+    client_result "Tidying DIY cart"
 }
 
 case "$1" in
