@@ -21,15 +21,34 @@ Feature: V2 SDK Mock Cartridge
 
     When I start the newfangled application
     Then the mock control_start marker will exist
+    And the mock action_hook_pre_start marker will exist
+    And the mock action_hook_pre_start_mock marker will exist
+    And the mock action_hook_post_start marker will exist
+    And the mock action_hook_post_start_mock marker will exist
 
     When I status the mock-0.1 cartridge
     Then the mock control_status marker will exist
 
     When I stop the newfangled application
     Then the mock control_stop marker will exist
+    And the mock action_hook_pre_stop marker will exist
+    And the mock action_hook_pre_stop_mock marker will exist
+    And the mock action_hook_post_stop marker will exist
+    And the mock action_hook_post_stop_mock marker will exist
 
     When I restart the newfangled application
     Then the mock control_restart marker will exist
+    And the mock action_hook_pre_restart marker will exist
+    And the mock action_hook_pre_restart_mock marker will exist
+    And the mock action_hook_post_restart marker will exist
+    And the mock action_hook_post_restart_mock marker will exist
+
+    When I reload the newfangled application
+    Then the mock control_reload marker will exist
+    And the mock action_hook_pre_reload marker will exist
+    And the mock action_hook_pre_reload_mock marker will exist
+    And the mock action_hook_post_reload marker will exist
+    And the mock action_hook_post_reload_mock marker will exist
 
     When the application is made publicly accessible 
     And the application is prepared for git pushes
@@ -49,6 +68,10 @@ Feature: V2 SDK Mock Cartridge
 
     When I tidy the newfangled application
     Then the mock control_tidy marker will exist
+    And the mock action_hook_pre_tidy marker will exist
+    And the mock action_hook_pre_tidy_mock marker will exist
+    And the mock action_hook_post_tidy marker will exist
+    And the mock action_hook_post_tidy_mock marker will exist
 
     When I destroy the application
     Then the application git repo will not exist

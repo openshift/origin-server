@@ -885,8 +885,8 @@ module OpenShift
     def cartridge_hooks(action_hooks, action, name, version)
       hooks = {pre: [], post: []}
 
-      hooks.keys do |key|
-        new_hook = PathUtils.join(action_hooks, "#{key}_#{action}_#{cartridge.directory}")
+      hooks.each_key do |key|
+        new_hook = PathUtils.join(action_hooks, "#{key}_#{action}_#{name}")
         old_hook = PathUtils.join(action_hooks, "#{key}_#{action}_#{name}-#{version}")
 
         hooks[key] << "source #{new_hook}" if File.exist? new_hook
