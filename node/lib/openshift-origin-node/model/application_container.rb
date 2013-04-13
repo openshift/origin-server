@@ -27,6 +27,7 @@ require 'openshift-origin-node/utils/sdk'
 require 'openshift-origin-node/utils/node_logger'
 require 'openshift-origin-node/utils/hourglass'
 require 'openshift-origin-node/utils/cgroups'
+require 'openshift-origin-node/routing_service'
 require 'openshift-origin-common'
 require 'yaml'
 require 'active_model'
@@ -165,6 +166,13 @@ module OpenShift
     def destroy(skip_hooks=false)
       notify_observers(:before_container_destroy)
 
+      conf = OpenShift::Config.instance
+      @cartridge_model.each_cartridge do |cart|
+        env = Utils::Environ.for_gear @user.homedir
+        cart.public_endpoints.each do |endpoint|
+          RoutingService.notify_deleting_public_endpoint self, endpoint, env[endpoint.public_port_name].to_i
+        end
+      end
       # possible mismatch across cart model versions
       output, errout, retcode = @cartridge_model.destroy(skip_hooks)
 
@@ -210,6 +218,9 @@ module OpenShift
 
         @user.add_env_var(endpoint.public_port_name, public_port)
 
+        # Notify any routing providers about the newly added endpoint.
+        RoutingService.notify_adding_public_endpoint self, endpoint, public_port
+
         logger.info("Created public endpoint for cart #{cart.name} in gear #{@uuid}: "\
           "[#{endpoint.public_port_name}=#{public_port}]")
       end
@@ -239,6 +250,9 @@ module OpenShift
         public_port = proxy.find_mapped_proxy_port(@user.uid, private_ip, endpoint.private_port)
 
         public_ports << public_port unless public_port == nil
+
+        # Notify any routing providers about the soon-to-be-deleted endpoint.
+        RoutingService.notify_deleting_public_endpoint self, endpoint, public_port if public_port
       end
 
       begin
