@@ -31,12 +31,12 @@ def usage
                --with-namespace NAMESPACE
 
 == List of arguments
+  -s|--with-namespace       namespace   Namespace of the application (required)
   -a|--with-app-uuid        app_uuid    Unique application identifier (required)
+  -A|--with-app-name        name        Name of the application (required)
   -c|--with-container-uuid  gear_uuid   Unique identifier for the gear(required)
-    |--with-app-name        name        Name of the application (required)
-    |--with-namespace       namespace   Namespace of the application (required)
-    |--with-container-name  gear_name   Name of the gear
-    |--skip-hooks                       Skip running pre and post hooks for cartridge destroy
+  -C|--with-container-name  gear_name   Name of the gear (defaults to app name)
+  -H|--skip-hooks                       Skip running pre and post hooks for cartridge destroy
   -n|--dry-run                          Don't make changes, just do a dry run.
   -q|--porcelain                        TODO: what does this do?
   -d|--debug                            Enable debug mode
@@ -47,18 +47,18 @@ USAGE
 end
 
 require 'rubygems'
-require 'openshift-origin-node'
+require 'getoptlong'
 opts = GetoptLong.new(
+    ["--with-namespace",      "-s", GetoptLong::REQUIRED_ARGUMENT],
     ["--with-app-uuid",       "-a", GetoptLong::REQUIRED_ARGUMENT],
+    ["--with-app-name",       "-A", GetoptLong::REQUIRED_ARGUMENT],
     ["--with-container-uuid", "-c", GetoptLong::REQUIRED_ARGUMENT],
-    ["--with-app-name",             GetoptLong::REQUIRED_ARGUMENT],
-    ["--with-namespace",            GetoptLong::REQUIRED_ARGUMENT],
-    ["--with-container-name",       GetoptLong::OPTIONAL_ARGUMENT],
+    ["--with-container-name", "-C", GetoptLong::OPTIONAL_ARGUMENT],
     ["--dry-run",             "-n", GetoptLong::NO_ARGUMENT],
     ["--porcelain",           "-q", GetoptLong::NO_ARGUMENT],
-    ["--skip-hooks",                GetoptLong::NO_ARGUMENT],
+    ["--skip-hooks",          "-H", GetoptLong::NO_ARGUMENT],
     ["--debug",               "-d", GetoptLong::NO_ARGUMENT],
-    ["--help",                "-?", GetoptLong::NO_ARGUMENT]
+    ["--help",                "-h", GetoptLong::NO_ARGUMENT]
 )
 
 args = {}
@@ -85,6 +85,8 @@ $porcelain = args['--porcelain'] ? true : false
 unless container_uuid
   usage
 end
+
+require 'openshift-origin-node'
 
 begin
   container = OpenShift::ApplicationContainer.new(app_uuid, container_uuid, nil, app_name,
