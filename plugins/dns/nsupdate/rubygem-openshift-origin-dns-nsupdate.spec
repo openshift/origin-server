@@ -9,7 +9,7 @@
 
 Summary:       OpenShift plugin for DNS update service using nsupdate
 Name:          rubygem-%{gem_name}
-Version:       1.5.1
+Version:       1.5.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -89,6 +89,17 @@ cp %{buildroot}/%{gem_dir}/gems/%{gem_name}-%{version}/conf/openshift-origin-dns
 
 
 %changelog
+* Sat Apr 13 2013 Krishna Raman <kraman@gmail.com> 1.5.2-1
+- Fixing broker and nsupdate plugin deps (bleanhar@redhat.com)
+- The nsupdate plugin was calling a method that didn't exist (kraman@gmail.com)
+- The nsupdate plugin was calling a method that didn't exist
+  (bleanhar@redhat.com)
+- Fix typo in dns plugin initializer (kraman@gmail.com)
+- Fixing krb workstation dependency (kraman@gmail.com)
+- added krb5 features (markllama@gmail.com)
+- Updating rest-client and rake gem versions to match F18 (kraman@gmail.com)
+- Make packages build/install on F19+ (tdawson@redhat.com)
+
 * Tue Mar 12 2013 Troy Dawson <tdawson@redhat.com> 1.5.1-1
 - Add yard documentation markup to DNS plugins (mlamouri@redhat.com)
 - fix rubygem sources (tdawson@redhat.com)
