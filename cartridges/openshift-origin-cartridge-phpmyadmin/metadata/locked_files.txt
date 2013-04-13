@@ -1,5 +1,5 @@
 metadata/
-sessions/
-tmp/
 conf/
+conf.d/
+phpMyAdmin/
 env/

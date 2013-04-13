@@ -871,7 +871,7 @@ file_uploads = On
 ; Temporary directory for HTTP uploaded files (will use system default if not
 ; specified).
 ; http://www.php.net/manual/en/ini.core.php#ini.upload-tmp-dir
-upload_tmp_dir = "<%= File.join(ENV['OPENSHIFT_PHPMYADMIN_DIR'], 'tmp') %>"
+upload_tmp_dir = "<%= "#{ENV['OPENSHIFT_PHPMYADMIN_DIR']}tmp/" %>"
 
 ; Maximum allowed size for uploaded files.
 ; http://www.php.net/manual/en/ini.core.php#ini.upload-max-filesize
@@ -1267,7 +1267,7 @@ session.save_handler = files
 ; where MODE is the octal representation of the mode. Note that this
 ; does not overwrite the process's umask.
 ; http://www.php.net/manual/en/session.configuration.php#ini.session.save-path
-session.save_path = "<%= File.join(ENV['OPENSHIFT_PHPMYADMIN_DIR'], 'sessions') %>"
+session.save_path = "<%= "#{ENV['OPENSHIFT_PHPMYADMIN_DIR']}sessions/" %>"
 
 ; Whether to use cookies.
 ; http://www.php.net/manual/en/session.configuration.php#ini.session.use-cookies
