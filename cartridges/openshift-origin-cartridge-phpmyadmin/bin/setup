@@ -12,12 +12,11 @@ if [ -z "$OPENSHIFT_MYSQL_DB_USERNAME" ]; then
 fi
 
 mkdir -p $OPENSHIFT_PHPMYADMIN_DIR/{logs,run,sessions,tmp}
-ls ${OPENSHIFT_PHPMYADMIN_DIR}
 ln -s /usr/lib64/httpd/modules ${OPENSHIFT_PHPMYADMIN_DIR}modules
 ln -s /etc/httpd/conf/magic ${OPENSHIFT_PHPMYADMIN_DIR}conf/magic
 
 client_result ""
-client_result "phpMyAdmin 3.4 added.  Please make note of these MySQL credentials again:"
+client_result "phpMyAdmin added.  Please make note of these MySQL credentials again:"
 client_result ""
 client_result "   Root User: $OPENSHIFT_MYSQL_DB_USERNAME"
 client_result "   Root Password: $OPENSHIFT_MYSQL_DB_PASSWORD"

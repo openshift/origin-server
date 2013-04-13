@@ -1,24 +1,22 @@
 #!/bin/bash -e
 
-PATH=/bin/:/usr/bin:$PATH
-
-#source $OPENSHIFT_MYSQL_DIR/env/*
 source $OPENSHIFT_CARTRIDGE_SDK_BASH
 
-export PHP_RC="$OPENSHIFT_PHPMYADMIN_DIR/conf/php.ini"
-httpd_config=$OPENSHIFT_PHPMYADMIN_DIR/conf/httpd_nolog.conf
-httpd_pid_file=$OPENSHIFT_PHPMYADMIN_DIR/run/httpd.pid
+export PHPRC="${OPENSHIFT_PHPMYADMIN_DIR}conf/php.ini"
+
+httpd_config=${OPENSHIFT_PHPMYADMIN_DIR}conf/httpd_nolog.conf
+httpd_pid_file=${OPENSHIFT_PHPMYADMIN_DIR}run/httpd.pid
 
 function start {
-  /usr/sbin/httpd -C "Include $OPENSHIFT_PHPMYADMIN_DIR/conf.d/*.conf" -f $httpd_config -k start
+  /usr/sbin/httpd -C "Include ${OPENSHIFT_PHPMYADMIN_DIR}conf.d/*.conf" -f $httpd_config -k start
 }
 
 function stop {
-  /usr/sbin/httpd -C "Include $OPENSHIFT_PHPMYADMIN_DIR/conf.d/*.conf" -f $httpd_config -k stop
+  /usr/sbin/httpd -C "Include ${OPENSHIFT_PHPMYADMIN_DIR}conf.d/*.conf" -f $httpd_config -k stop
 }
 
 function restart {
-  /usr/sbin/httpd -C "Include $OPENSHIFT_PHPMYADMIN_DIR/conf.d/*.conf" -f $httpd_config -k restart
+  /usr/sbin/httpd -C "Include ${OPENSHIFT_PHPMYADMIN_DIR}conf.d/*.conf" -f $httpd_config -k restart
 }
 
 function status {
