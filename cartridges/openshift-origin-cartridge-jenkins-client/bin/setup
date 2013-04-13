@@ -3,8 +3,6 @@ set -x
 
 source $OPENSHIFT_CARTRIDGE_SDK_BASH
 
-version=1.4
-
 if [ -z "$JENKINS_URL" ]
 then
     client_error "Jenkins server does not exist!  Please create with rhc app create -t jenkins-1.4"
@@ -16,9 +14,6 @@ JENKINS_DNS_NAME=${JENKINS_URL:8} #remove https://
 
 # Create additional directories required by JENKINS
 mkdir -p ${OPENSHIFT_JENKINS_CLIENT_DIR}/{logs,data}
-
-# Copy the version specific files up to the jenkins-client directory
-cp -r ${OPENSHIFT_JENKINS_CLIENT_DIR}/versions/${version}/configuration/* ${OPENSHIFT_JENKINS_CLIENT_DIR}/configuration
 
 erb ${OPENSHIFT_JENKINS_CLIENT_DIR}/configuration/jenkins_job_template.xml.erb > ${OPENSHIFT_JENKINS_CLIENT_DIR}/configuration/jenkins_job_template.xml
 

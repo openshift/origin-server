@@ -1,9 +1,5 @@
 #!/bin/bash -e
 
-function pre_receive() {
-  return 0
-}
-
 function post_receive() {
   echo "Executing Jenkins build."
   echo
@@ -25,7 +21,6 @@ function post_receive() {
 }
 
 case "$1" in
-  pre-receive)  pre_receive ;;
   post-receive) post_receive ;;
   *)         	  exit 0
 esac

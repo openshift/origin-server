@@ -38,7 +38,6 @@ chkconfig jenkins off
 %install
 rm -rf %{buildroot}
 mkdir -p %{buildroot}%{cartridgedir}
-#mkdir -p %{buildroot}/%{_sysconfdir}/openshift/cartridges/v2
 cp -r * %{buildroot}%{cartridgedir}/
 
 
@@ -50,7 +49,6 @@ rm -rf %{buildroot}
 %defattr(-,root,root,-)
 %dir %{cartridgedir}
 %dir %{cartridgedir}/metadata
-%dir %{cartridgedir}/versions
 %attr(0755,-,-) %{cartridgedir}/bin/
 %attr(0755,-,-) %{cartridgedir}
 %{cartridgedir}/metadata/manifest.yml
