@@ -16,7 +16,7 @@
 
 Summary:       OpenShift Origin broker components
 Name:          openshift-origin-broker
-Version:       1.5.1
+Version:       1.5.2
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -216,6 +216,52 @@ chcon -R -t httpd_var_run_t %{brokerdir}/httpd/run
 /sbin/restorecon -R -v /var/run
 
 %changelog
+* Sat Apr 13 2013 Krishna Raman <kraman@gmail.com> 1.5.2-1
+- Fixing broker and nsupdate plugin deps (bleanhar@redhat.com)
+- Replace zend with ruby in broker function test as zend is not available on
+  origin. (kraman@gmail.com)
+- Gear Move changes: Keep same uid for the gear When changing the gear from one
+  district to another. (rpenta@redhat.com)
+- Card 534 (lnader@redhat.com)
+- Merge pull request #1926 from abhgupta/abhgupta-dev
+  (dmcphers+openshiftbot@redhat.com)
+- Part 2 of Card 536 (lnader@redhat.com)
+- Part 1 of Card 536 (lnader@redhat.com)
+- Ensuring district UID randmoization check does not report false negatives
+  (abhgupta@redhat.com)
+- broker does not depend on bind (markllama@gmail.com)
+- Merge pull request #1878 from kraman/bugfix
+  (dmcphers+openshiftbot@redhat.com)
+- Fixing broker functional tests:   - PHP version selection based on OS   -
+  Creating user account for functional test on Origin (kraman@gmail.com)
+- Merge pull request #1867 from abhgupta/abhgupta-dev (dmcphers@redhat.com)
+- default read should be from primary (rchopra@redhat.com)
+- Randomizing UIDs in available_uids list for district (abhgupta@redhat.com)
+- Card 515 - Improve test coverage (lnader@redhat.com)
+- Merge pull request #1789 from brenton/master (dmcphers@redhat.com)
+- updated unit test (lnader@redhat.com)
+- Read values from node.conf for origin testing. (rmillner@redhat.com)
+- Update docs generation and add node/cartridge guides [WIP]
+  https://trello.com/c/yUMBZ0P9 (kraman@gmail.com)
+- Adding SESSION_SECRET settings to the broker and console
+  (bleanhar@redhat.com)
+- Merge pull request #1702 from kraman/f18_fixes
+  (dmcphers+openshiftbot@redhat.com)
+- Updating rest-client and rake gem versions to match F18 (kraman@gmail.com)
+- US506 : Broker rails flag to enable/disable broker in maintenance mode
+  (rpenta@redhat.com)
+- Merge pull request #1633 from lnader/revert_pull_request_1486
+  (dmcphers+openshiftbot@redhat.com)
+- Changed private_certificate to private_ssl_certificate (lnader@redhat.com)
+- Add SNI upload support to API (lnader@redhat.com)
+- Support cache config (ccoleman@redhat.com)
+- Merge pull request #1637 from brenton/BZ921257 (dmcphers@redhat.com)
+- Replacing get_value() with config['param'] style calls for new version of
+  parseconfig gem. (kraman@gmail.com)
+- Removing parseconfig version (dmcphers@redhat.com)
+- Bug 921257 - Warn users to change the default AUTH_SALT (bleanhar@redhat.com)
+- remove old obsoletes (tdawson@redhat.com)
+
 * Tue Mar 12 2013 Troy Dawson <tdawson@redhat.com> 1.5.1-1
 - Bug 911322 (lnader@redhat.com)
 - Merge pull request #1535 from brenton/gemfile_lock_fixes
