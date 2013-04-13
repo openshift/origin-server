@@ -6,7 +6,7 @@
 %global frameworkdir %{_libexecdir}/openshift/cartridges/v2/haproxy
 
 Name:          openshift-origin-cartridge-haproxy
-Version: 0.2.5
+Version: 0.2.6
 Release:       1%{?dist}
 Summary:       Provides HA Proxy
 Group:         Network/Daemons
@@ -58,6 +58,9 @@ rm -rf %{buildroot}
 %doc %{cartridgedir}/README.md
 
 %changelog
+* Sat Apr 13 2013 Krishna Raman <kraman@gmail.com> 0.2.6-1
+- WIP Cartridge Refactor - Scrub manifests (jhonce@redhat.com)
+
 * Fri Apr 12 2013 Adam Miller <admiller@redhat.com> 0.2.5-1
 - SELinux, ApplicationContainer and UnixUser model changes to support oo-admin-
   ctl-gears operating on v1 and v2 cartridges. (rmillner@redhat.com)
