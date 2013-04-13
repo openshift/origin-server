@@ -1,9 +1,9 @@
 Name: mock
 Cartridge-Short-Name: MOCK
-Display-Name: Mock Cartridge
+Display-Name: Mock Cartridge 0.1
 Description: "A mock cartridge for development use only."
 Version: '0.1'
-License: "None"
+License: ASL 2.0
 Vendor: Red Hat
 Cartridge-Version: 0.0.1
 Cartridge-Vendor: redhat

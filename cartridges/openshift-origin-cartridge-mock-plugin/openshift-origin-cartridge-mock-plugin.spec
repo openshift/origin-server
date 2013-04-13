@@ -33,7 +33,6 @@ mkdir -p %{buildroot}%{cartridgedir}
 mkdir -p %{buildroot}/%{_sysconfdir}/openshift/cartridges/v2
 cp -r * %{buildroot}%{cartridgedir}/
 ln -s %{cartridgedir}/conf/ %{buildroot}/%{_sysconfdir}/openshift/cartridges/v2/%{name}
-ln -s %{cartridgedir} %{buildroot}/%{frameworkdir}
 
 
 %clean

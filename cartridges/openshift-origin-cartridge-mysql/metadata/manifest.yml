@@ -1,5 +1,4 @@
 Name: mysql
-Namespace: MYSQL
 Cartridge-Short-Name: MYSQL
 Architecture: noarch
 Display-Name: MySQL Database 5.1
@@ -8,7 +7,7 @@ Version: '5.1'
 Versions: [5.1]
 Cartridge-Version: 0.2.0
 Cartridge-Vendor: redhat
-License: ASL 2.0
+License: GPL
 Vendor: Oracle
 Categories:
   - service
