@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.7.6
+Version: 1.7.7
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -83,6 +83,11 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Sat Apr 13 2013 Krishna Raman <kraman@gmail.com> 1.7.7-1
+- WIP: scalable snapshot/restore (pmorie@gmail.com)
+- Merge pull request #2040 from pmorie/dev/mock_cuke (dmcphers@redhat.com)
+- Rename and break out platform features into discrete tests (pmorie@gmail.com)
+
 * Fri Apr 12 2013 Adam Miller <admiller@redhat.com> 1.7.6-1
 - Fix cart-scoped action hook executions (ironcladlou@gmail.com)
 - SELinux, ApplicationContainer and UnixUser model changes to support oo-admin-
