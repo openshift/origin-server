@@ -1,6 +1,6 @@
 Name: ruby
 Cartridge-Short-Name: RUBY
-Display-Name: Ruby
+Display-Name: Ruby 1.9
 Description: "Ruby is a dynamic, reflective, general-purpose object-oriented programming language. Popular development frameworks include Ruby on Rails and Sinatra."
 Version: '1.9'
 Versions: ['1.9', '1.8']
@@ -13,25 +13,6 @@ Categories:
   - service
   - ruby
   - web_framework
-Version-Overrides:
-  '1.8':
-    Provides:
-      - ruby-1.8
-      - "ruby"
-      - "ruby(version) = 1.8"
-    Group-Overrides:
-      - components:
-        - ruby-1.8
-        - web_proxy
-  '1.9':
-    Provides:
-      - ruby-1.9
-      - "ruby"
-      - "ruby(version) = 1.9"
-    Group-Overrides:
-      - components:
-        - ruby-1.9
-        - web_proxy
 Website: http://www.ruby.org
 Help-Topics:
   "Developer Center": https://openshift.redhat.com/community/developers
@@ -87,6 +68,14 @@ Subscribes:
 Scaling:
   Min: 1
   Max: -1
+Provides:
+  - ruby-1.9
+  - "ruby"
+  - "ruby(version) = 1.9"
+Group-Overrides:
+  - components:
+    - ruby-1.9
+    - web_proxy
 Endpoints:
   - Private-IP-Name:   IP
     Private-Port-Name: PORT
@@ -98,3 +87,14 @@ Endpoints:
         Options:       { websocket: true }
 Additional-Control-Actions:
     - threaddump
+Version-Overrides:
+  '1.8':
+    Display-Name: Ruby 1.8
+    Provides:
+      - ruby-1.8
+      - "ruby"
+      - "ruby(version) = 1.8"
+    Group-Overrides:
+      - components:
+        - ruby-1.8
+        - web_proxy
