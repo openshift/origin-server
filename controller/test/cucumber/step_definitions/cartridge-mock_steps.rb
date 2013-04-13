@@ -56,10 +56,15 @@ Then /^the new file will (not )?be present in the (secondary )?gear app-root rep
   end
 end
 
-Then /^the ([^ ]+) ([^ ]+) marker will( not)? exist in the gear$/ do |cartridge_name, marker, negate|
+Then /^the ([^ ]+) ([^ ]+) marker will( not)? exist in the( plugin)? gear$/ do |cartridge_name, marker, negate, plugin|
   state_dir = ".#{cartridge_name.sub('-', '_')}_cartridge_state"
 
   marker_file = File.join($home_root, @app.uid, 'app-root', 'data', state_dir, marker)
+
+  if plugin
+    plugin_gear_uuid = IO.read(File.join($home_root, @app.uid, '.env', '.uservars', 'OPENSHIFT_MOCK_PLUGIN_GEAR_UUID')).chomp
+    marker_file = File.join($home_root, plugin_gear_uuid, 'app-root', 'data', state_dir, marker)
+  end
 
   if negate
     assert_file_not_exists marker_file
