@@ -40,8 +40,8 @@ Provides:
   - "mongodb(version) = 2.2.0"
   - mongodb-basic-mode
 Publishes:
-  publish-nosql-db-connection-info:
-    Type: "NET_TCP:nosqldb:connection-info"
+  publish-mongodb-connection-info:
+    Type: "NET_TCP:mongodb:connection-info"
 Scaling:
   Min: 1
   Max: 1
