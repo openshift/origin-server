@@ -3,7 +3,7 @@
 
 Summary:       OpenShift plugin for DNS update service using Avahi
 Name:          rubygem-%{gem_name}
-Version:       0.0.1
+Version:       0.0.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -76,6 +76,10 @@ cp %{buildroot}/%{gem_dir}/gems/%{gem_name}-%{version}/conf/openshift-origin-dns
 
 
 %changelog
+* Sat Apr 13 2013 Krishna Raman <kraman@gmail.com> 0.0.2-1
+- Updating rest-client and rake gem versions to match F18 (kraman@gmail.com)
+- Make packages build/install on F19+ (tdawson@redhat.com)
+
 * Sat Mar 09 2013 Krishna Raman <kraman@gmail.com> 0.0.1-1
 - new package built with tito
 
