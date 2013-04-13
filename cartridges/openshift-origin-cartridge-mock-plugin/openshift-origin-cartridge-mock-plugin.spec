@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/openshift/cartridges/v2/mock-plugin
 
 Name: openshift-origin-cartridge-mock-plugin
-Version: 0.2.5
+Version: 0.2.6
 Release: 1%{?dist}
 Summary: Mock plugin cartridge for V2 Cartridge SDK
 Group: Development/Languages
@@ -58,6 +58,10 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Sat Apr 13 2013 Krishna Raman <kraman@gmail.com> 0.2.6-1
+- WIP: scalable snapshot/restore (pmorie@gmail.com)
+- WIP Cartridge Refactor - Scrub manifests (jhonce@redhat.com)
+
 * Fri Apr 12 2013 Adam Miller <admiller@redhat.com> 0.2.5-1
 - SELinux, ApplicationContainer and UnixUser model changes to support oo-admin-
   ctl-gears operating on v1 and v2 cartridges. (rmillner@redhat.com)
