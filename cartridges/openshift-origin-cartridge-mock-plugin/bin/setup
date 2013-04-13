@@ -1,4 +1,4 @@
-#!/bin/bash -e
+#!/bin/bash -eu
 
 # Mock cartridge for testing and verifying node platform code. This is
 # not an example of how to write a well-formed cartridge.
@@ -7,8 +7,6 @@ case "$1" in
   -v|--version)
     version="$2"
 esac
-
-PATH=/bin/:/usr/bin:$PATH
 
 source $OPENSHIFT_MOCK_PLUGIN_DIR/mock-plugin.conf
 

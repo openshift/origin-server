@@ -1,6 +1,4 @@
-#!/bin/bash -e
-
-PATH=/bin/:/usr/bin:$PATH
+#!/bin/bash -eu
 
 source $OPENSHIFT_CARTRIDGE_SDK_BASH
 source $OPENSHIFT_MOCK_DIR/mock.conf

@@ -1,6 +1,4 @@
-#!/bin/bash -e
-
-PATH=/bin/:/usr/bin:$PATH
+#!/bin/bash -eu
 
 source $OPENSHIFT_MOCK_PLUGIN_DIR/mock-plugin.conf
 

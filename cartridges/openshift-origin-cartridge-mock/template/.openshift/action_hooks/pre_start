@@ -1,7 +1,5 @@
-#!/bin/bash
-# The logic to start up your application should be put in this
-# script. The application will work only if it binds to
-PATH=/bin/:/usr/bin:$PATH
+#!/bin/bash -eu
+# Simple web server for testing
 
 MOCK_STATE=$OPENSHIFT_DATA_DIR/.mock_cartridge_state
 

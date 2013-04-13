@@ -11,7 +11,6 @@ Group:         Development/Languages
 License:       ASL 2.0
 URL:           http://openshift.redhat.com
 Source0:       http://mirror.openshift.com/pub/openshift-origin/source/%{name}/%{name}-%{version}.tar.gz
-Requires:      openshift-origin-cartridge-abstract-jboss
 Requires:      rubygem(openshift-origin-node)
 Requires:      openshift-origin-node-util
 Requires:      jbossas-appclient
@@ -86,7 +85,6 @@ cp -p %{cartridgedir}/versions/6.0/modules/postgresql_module.xml /etc/alternativ
 %defattr(-,root,root,-)
 %dir %{cartridgedir}
 %dir %{cartridgedir}/bin
-%dir %{cartridgedir}/env
 %dir %{cartridgedir}/metadata
 %dir %{cartridgedir}/versions
 %attr(0755,-,-) %{frameworkdir}
