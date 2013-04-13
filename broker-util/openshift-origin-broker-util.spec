@@ -6,7 +6,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin broker
 Name:          openshift-origin-broker-util
-Version:       1.7.5
+Version:       1.7.6
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -80,6 +80,11 @@ cp man/*.8 %{buildroot}%{_mandir}/man8/
 %{_mandir}/man8/oo-stats.8.gz
 
 %changelog
+* Sat Apr 13 2013 Krishna Raman <kraman@gmail.com> 1.7.6-1
+- Merge pull request #2042 from maxamillion/dev/maxamillion/oo-accept-cleanup
+  (dmcphers+openshiftbot@redhat.com)
+- fix '[: ==: unary operator expected' errors (admiller@redhat.com)
+
 * Fri Apr 12 2013 Adam Miller <admiller@redhat.com> 1.7.5-1
 - Merge pull request #2018 from abhgupta/abhgupta-dev (dmcphers@redhat.com)
 - Merge pull request #2026 from rajatchopra/master (dmcphers@redhat.com)
