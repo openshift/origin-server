@@ -5,7 +5,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin broker and node
 Name:          openshift-origin-util
-Version:       1.5.1
+Version:       1.5.2
 Release:       1%{?dist}
 License:       ASL 2.0
 URL:           http://openshift.redhat.com
@@ -37,6 +37,13 @@ chmod 0755 %{buildroot}%{_bindir}/*
 
 
 %changelog
+* Sat Apr 13 2013 Krishna Raman <kraman@gmail.com> 1.5.2-1
+- Fix how erb binary is resolved. Using util/util-scl packages instead of doing
+  it dynamically in code. Separating manifest into RHEL and Fedora versions
+  instead of using sed to set version. (kraman@gmail.com)
+- <oo-diagnostics> bug 916896 check for crond service on node.
+  (lmeyer@redhat.com)
+
 * Tue Mar 12 2013 Troy Dawson <tdawson@redhat.com> 1.5.1-1
 - <oo-diagnostics> add selinux enforcing check; fix small bug in cache test
   (lmeyer@redhat.com)
