@@ -1,14 +1,14 @@
 #--
 # Copyright 2013 Red Hat, Inc.
 #
-# Licensed under the Apache License, Version 2.0 (the "License");
+# Licensed under the Apache License, Version 2.0 (the 'License');
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
 #    http://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
+# distributed under the License is distributed on an 'AS IS' BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
@@ -19,9 +19,9 @@ require 'openshift-origin-node/utils/environ'
 require 'openshift-origin-node/utils/selinux'
 
 require 'test_helper'
-require "test/unit"
-require "mocha"
-require "base64"
+require 'test/unit'
+require 'mocha'
+require 'base64'
 
 module OpenShift
   class TrapUserFunctionalTest < Test::Unit::TestCase
@@ -29,48 +29,46 @@ module OpenShift
     # Called before every test method runs. Can be used
     # to set up fixture information.
     def setup
-      @uuid        = "a62d6dd9e6cd4be6841bedb5750a01fb"
-      @gear_dir    = File.join("/tmp", @uuid)
-      @runtime_dir = File.join(@gear_dir, "app-root", "runtime")
-      @logs_dir    = File.join(@gear_dir, "app-root", "logs")
+      @uuid        = 'a62d6dd9e6cd4be6841bedb5750a01fb'
+      @gear_dir    = File.join('/tmp', @uuid)
+      @runtime_dir = File.join(@gear_dir, 'app-root', 'runtime')
+      @logs_dir    = File.join(@gear_dir, 'app-root', 'logs')
 
 
-      @env = Utils::Environ.for_gear(@gear_dir)
+      @env = Utils::Environ.load('/etc/openshift/env')
       FileUtils.mkpath(@runtime_dir)
       FileUtils.mkpath(@logs_dir)
 
       OpenShift::Utils::SELinux.stubs(:get_mcs_label).with(0).returns('s0-s0:c0.c1023')
       OpenShift::Utils::SELinux.stubs(:getcon).returns('unconfined_u:system_r:openshift_t:s0-s0:c0.c1023')
+
+      ## default env from /etc/openshift/env
+      #@env = {'OPENSHIFT_CLOUD_DOMAIN'       => @env['OPENSHIFT_CLOUD_DOMAIN'],
+      #        'OPENSHIFT_BROKER_HOST'        => @env['OPENSHIFT_BROKER_HOST'],
+      #        'OPENSHIFT_CARTRIDGE_SDK_BASH' => @env['OPENSHIFT_CARTRIDGE_SDK_BASH'],
+      #        'OPENSHIFT_CARTRIDGE_SDK_RUBY' => @env['OPENSHIFT_CARTRIDGE_SDK_RUBY'],
+      #        'PATH'                         => @env['PATH'],
+      #}
     end
 
     # Called after every test method runs. Can be used to tear
     # down fixture information.
 
     def teardown
-      FileUtils.rm_rf(File.join("/tmp", @uuid))
+      FileUtils.rm_rf(File.join('/tmp', @uuid))
     end
 
     def test_unknown
       ENV['SSH_ORIGINAL_COMMAND'] = 'unknown'
-      Kernel.stubs(:exec).with(
-          {'OPENSHIFT_CLOUD_DOMAIN'        => @env['OPENSHIFT_CLOUD_DOMAIN'],
-           'OPENSHIFT_BROKER_HOST'         => @env['OPENSHIFT_BROKER_HOST'],
-           'OPENSHIFT_CARTRIDGE_SDK_BASH'  => @env['OPENSHIFT_CARTRIDGE_SDK_BASH'],
-           'OPENSHIFT_CARTRIDGE_SDK_RUBY'  => @env['OPENSHIFT_CARTRIDGE_SDK_RUBY']},
-          "/bin/bash", "-c", "unknown"
-      ).returns(0)
+
+      Kernel.stubs(:exec).with(@env, '/bin/bash', '-c', 'unknown').returns(0)
       OpenShift::Application::TrapUser.new.apply
     end
 
     def test_rhcsh
-      # env["PS1"] = "rhcsh> "
-      Kernel.stubs(:exec).with(
-          {'OPENSHIFT_CLOUD_DOMAIN'        => @env['OPENSHIFT_CLOUD_DOMAIN'],
-           'OPENSHIFT_BROKER_HOST'         => @env['OPENSHIFT_BROKER_HOST'],
-           'OPENSHIFT_CARTRIDGE_SDK_BASH'  => @env['OPENSHIFT_CARTRIDGE_SDK_BASH'],
-           'OPENSHIFT_CARTRIDGE_SDK_RUBY'  => @env['OPENSHIFT_CARTRIDGE_SDK_RUBY'],
-           "PS1"                           => "rhcsh> "},
-          "/bin/bash", "--init-file", "/usr/bin/rhcsh", "-i"
+      # env['PS1'] = 'rhcsh> '
+      Kernel.stubs(:exec).with(@env.merge({'PS1' => 'rhcsh> '}),
+                               '/bin/bash', '--init-file', '/usr/bin/rhcsh', '-i'
       ).returns(0)
 
       ENV['SSH_ORIGINAL_COMMAND'] = 'rhcsh'
@@ -78,14 +76,9 @@ module OpenShift
     end
 
     def test_rhcsh_argvs
-      # env["PS1"] = "rhcsh> "
-      Kernel.stubs(:exec).with(
-          {'OPENSHIFT_CLOUD_DOMAIN'        => @env['OPENSHIFT_CLOUD_DOMAIN'],
-           'OPENSHIFT_BROKER_HOST'         => @env['OPENSHIFT_BROKER_HOST'],
-           'OPENSHIFT_CARTRIDGE_SDK_BASH'  => @env['OPENSHIFT_CARTRIDGE_SDK_BASH'],
-           'OPENSHIFT_CARTRIDGE_SDK_RUBY'  => @env['OPENSHIFT_CARTRIDGE_SDK_RUBY'],
-           "PS1"                           => "rhcsh> "},
-          "/bin/bash", "--init-file", "/usr/bin/rhcsh", "-c", "ls", "/tmp"
+      # env['PS1'] = 'rhcsh> '
+      Kernel.stubs(:exec).with(@env.merge({'PS1' => 'rhcsh> '}),
+                               '/bin/bash', '--init-file', '/usr/bin/rhcsh', '-c', 'ls', '/tmp'
       ).returns(0)
 
       ENV['SSH_ORIGINAL_COMMAND'] = 'rhcsh ls /tmp'
@@ -93,12 +86,8 @@ module OpenShift
     end
 
     def test_ctl_all
-      Kernel.stubs(:exec).with(
-          {'OPENSHIFT_CLOUD_DOMAIN'        => @env['OPENSHIFT_CLOUD_DOMAIN'],
-           'OPENSHIFT_BROKER_HOST'         => @env['OPENSHIFT_BROKER_HOST'],
-           'OPENSHIFT_CARTRIDGE_SDK_BASH'  => @env['OPENSHIFT_CARTRIDGE_SDK_BASH'],
-           'OPENSHIFT_CARTRIDGE_SDK_RUBY'  => @env['OPENSHIFT_CARTRIDGE_SDK_RUBY']},
-          "/bin/bash", "-c", ". /usr/bin/rhcsh > /dev/null ; ctl_all start app001"
+      Kernel.stubs(:exec).with(@env,
+                               '/bin/bash', '-c', '. /usr/bin/rhcsh > /dev/null ; ctl_all start app001'
       ).returns(0)
 
       ENV['SSH_ORIGINAL_COMMAND'] = 'ctl_all start app001'
@@ -106,52 +95,28 @@ module OpenShift
     end
 
     def test_snapshot
-      Kernel.stubs(:exec).with(
-          {'OPENSHIFT_CLOUD_DOMAIN'        => @env['OPENSHIFT_CLOUD_DOMAIN'],
-           'OPENSHIFT_BROKER_HOST'         => @env['OPENSHIFT_BROKER_HOST'],
-           'OPENSHIFT_CARTRIDGE_SDK_BASH'  => @env['OPENSHIFT_CARTRIDGE_SDK_BASH'],
-           'OPENSHIFT_CARTRIDGE_SDK_RUBY'  => @env['OPENSHIFT_CARTRIDGE_SDK_RUBY']},
-          "/bin/bash", "oo-snapshot"
-      ).returns(0)
+      Kernel.stubs(:exec).with(@env, '/bin/bash', 'oo-snapshot').returns(0)
 
       ENV['SSH_ORIGINAL_COMMAND'] = 'snapshot'
       OpenShift::Application::TrapUser.new.apply
     end
 
     def test_restore
-      Kernel.stubs(:exec).with(
-          {'OPENSHIFT_CLOUD_DOMAIN'        => @env['OPENSHIFT_CLOUD_DOMAIN'],
-           'OPENSHIFT_BROKER_HOST'         => @env['OPENSHIFT_BROKER_HOST'],
-           'OPENSHIFT_CARTRIDGE_SDK_BASH'  => @env['OPENSHIFT_CARTRIDGE_SDK_BASH'],
-           'OPENSHIFT_CARTRIDGE_SDK_RUBY'  => @env['OPENSHIFT_CARTRIDGE_SDK_RUBY']},
-          "/bin/bash", "oo-restore"
-      ).returns(0)
+      Kernel.stubs(:exec).with(@env, '/bin/bash', 'oo-restore').returns(0)
 
       ENV['SSH_ORIGINAL_COMMAND'] = 'restore'
       OpenShift::Application::TrapUser.new.apply
     end
 
     def test_restore_include_git
-      Kernel.stubs(:exec).with(
-          {'OPENSHIFT_CLOUD_DOMAIN'        => @env['OPENSHIFT_CLOUD_DOMAIN'],
-           'OPENSHIFT_BROKER_HOST'         => @env['OPENSHIFT_BROKER_HOST'],
-           'OPENSHIFT_CARTRIDGE_SDK_BASH'  => @env['OPENSHIFT_CARTRIDGE_SDK_BASH'],
-           'OPENSHIFT_CARTRIDGE_SDK_RUBY'  => @env['OPENSHIFT_CARTRIDGE_SDK_RUBY']},
-          "/bin/bash", "oo-restore", "INCLUDE_GIT"
-      ).returns(0)
+      Kernel.stubs(:exec).with(@env, '/bin/bash', 'oo-restore', 'INCLUDE_GIT').returns(0)
 
       ENV['SSH_ORIGINAL_COMMAND'] = 'restore INCLUDE_GIT'
       OpenShift::Application::TrapUser.new.apply
     end
 
     def test_cd
-      Kernel.stubs(:exec).with(
-          {'OPENSHIFT_CLOUD_DOMAIN'        => @env['OPENSHIFT_CLOUD_DOMAIN'],
-           'OPENSHIFT_BROKER_HOST'         => @env['OPENSHIFT_BROKER_HOST'],
-           'OPENSHIFT_CARTRIDGE_SDK_BASH'  => @env['OPENSHIFT_CARTRIDGE_SDK_BASH'],
-           'OPENSHIFT_CARTRIDGE_SDK_RUBY'  => @env['OPENSHIFT_CARTRIDGE_SDK_RUBY']},
-          "/bin/bash", "-c", "cd", "/tmp"
-      ).returns(0)
+      Kernel.stubs(:exec).with(@env, '/bin/bash', '-c', 'cd', '/tmp').returns(0)
 
       ENV['SSH_ORIGINAL_COMMAND'] = 'cd /tmp'
       OpenShift::Application::TrapUser.new.apply
@@ -159,14 +124,8 @@ module OpenShift
 
     def test_tail
       `echo Hello, World > #@logs_dir/mock.log`
-      tail_opts = Base64.encode64("-n 100")
-      Kernel.stubs(:exec).with(
-          {'OPENSHIFT_CLOUD_DOMAIN'        => @env['OPENSHIFT_CLOUD_DOMAIN'],
-           'OPENSHIFT_BROKER_HOST'         => @env['OPENSHIFT_BROKER_HOST'],
-           'OPENSHIFT_CARTRIDGE_SDK_BASH'  => @env['OPENSHIFT_CARTRIDGE_SDK_BASH'],
-           'OPENSHIFT_CARTRIDGE_SDK_RUBY'  => @env['OPENSHIFT_CARTRIDGE_SDK_RUBY']},
-          "/usr/bin/tail", "-f", "-n", "100", "app-root/logs/mock.log"
-      ).returns(0)
+      tail_opts = Base64.encode64('-n 100')
+      Kernel.stubs(:exec).with(@env, '/usr/bin/tail', '-f', '-n', '100', 'app-root/logs/mock.log').returns(0)
 
       Dir.chdir(@gear_dir) do
         ENV['SSH_ORIGINAL_COMMAND'] = "tail --opts #{tail_opts} app-root/logs/mock.log"
@@ -176,14 +135,8 @@ module OpenShift
 
     def test_tail_with_follow
       `echo Hello, World > #@logs_dir/mock.log`
-      tail_opts = Base64.encode64("-n 100 -f")
-      Kernel.stubs(:exec).with(
-          {'OPENSHIFT_CLOUD_DOMAIN'        => @env['OPENSHIFT_CLOUD_DOMAIN'],
-           'OPENSHIFT_BROKER_HOST'         => @env['OPENSHIFT_BROKER_HOST'],
-           'OPENSHIFT_CARTRIDGE_SDK_BASH'  => @env['OPENSHIFT_CARTRIDGE_SDK_BASH'],
-           'OPENSHIFT_CARTRIDGE_SDK_RUBY'  => @env['OPENSHIFT_CARTRIDGE_SDK_RUBY']},
-          "/usr/bin/tail", "-n", "100", "-f", "app-root/logs/mock.log"
-      ).returns(0)
+      tail_opts = Base64.encode64('-n 100 -f')
+      Kernel.stubs(:exec).with(@env, '/usr/bin/tail', '-n', '100', '-f', 'app-root/logs/mock.log').returns(0)
 
       Dir.chdir(@gear_dir) do
         ENV['SSH_ORIGINAL_COMMAND'] = "tail --opts #{tail_opts} app-root/logs/mock.log"
@@ -192,27 +145,21 @@ module OpenShift
     end
 
     def test_git_receive_pack
-      home_dir      = File.join("/tmp", Process.pid.to_s)
-      git_directory = File.join(home_dir, "git")
+      home_dir      = File.join('/tmp', Process.pid.to_s)
+      git_directory = File.join(home_dir, 'git')
       FileUtils.mkpath(git_directory)
 
       config = mock('OpenShift::Config')
       config.stubs(:get).returns(nil)
-      config.stubs(:get).with("GEAR_BASE_DIR").returns("/tmp")
+      config.stubs(:get).with('GEAR_BASE_DIR').returns('/tmp')
       OpenShift::Config.stubs(:new).returns(config)
 
       old_home_dir = ENV['HOME']
       ENV['HOME']  = home_dir
       begin
-        Kernel.stubs(:exec).with(
-            {'OPENSHIFT_CLOUD_DOMAIN'      => @env['OPENSHIFT_CLOUD_DOMAIN'],
-             'OPENSHIFT_BROKER_HOST'         => @env['OPENSHIFT_BROKER_HOST'],
-             'OPENSHIFT_CARTRIDGE_SDK_BASH'  => @env['OPENSHIFT_CARTRIDGE_SDK_BASH'],
-             'OPENSHIFT_CARTRIDGE_SDK_RUBY'  => @env['OPENSHIFT_CARTRIDGE_SDK_RUBY']},
-            "/usr/bin/git-receive-pack", '~/git'
-        ).returns(0)
+        Kernel.stubs(:exec).with(@env, '/usr/bin/git-receive-pack', '~/git').returns(0)
 
-        ENV['SSH_ORIGINAL_COMMAND'] = "git-receive-pack ~/git"
+        ENV['SSH_ORIGINAL_COMMAND'] = 'git-receive-pack ~/git'
         OpenShift::Application::TrapUser.new.apply
       ensure
         FileUtils.rm_rf(home_dir)
@@ -221,15 +168,9 @@ module OpenShift
     end
 
     def test_quota
-      Kernel.stubs(:exec).with(
-          {'OPENSHIFT_CLOUD_DOMAIN'        => @env['OPENSHIFT_CLOUD_DOMAIN'],
-           'OPENSHIFT_BROKER_HOST'         => @env['OPENSHIFT_BROKER_HOST'],
-           'OPENSHIFT_CARTRIDGE_SDK_BASH'  => @env['OPENSHIFT_CARTRIDGE_SDK_BASH'],
-           'OPENSHIFT_CARTRIDGE_SDK_RUBY'  => @env['OPENSHIFT_CARTRIDGE_SDK_RUBY']},
-          "/usr/bin/quota", "--always-resolve"
-      ).returns(0)
+      Kernel.stubs(:exec).with(@env, '/usr/bin/quota', '--always-resolve').returns(0)
 
-      ENV['SSH_ORIGINAL_COMMAND'] = "quota"
+      ENV['SSH_ORIGINAL_COMMAND'] = 'quota'
       OpenShift::Application::TrapUser.new.apply
     end
   end

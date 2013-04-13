@@ -1,7 +1,4 @@
-#!/bin/bash
+#!/bin/bash -eu
 
 source $OPENSHIFT_MOCK_PLUGIN_DIR/mock-plugin.conf
-
-PATH=/bin/:/usr/bin:$PATH
-
 touch $MOCK_STATE/teardown_called

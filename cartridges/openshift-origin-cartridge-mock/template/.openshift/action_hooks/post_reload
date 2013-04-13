@@ -1,7 +1,4 @@
 #!/bin/bash -e
 
-PATH=/bin/:/usr/bin:$PATH
-
 MOCK_STATE=$OPENSHIFT_DATA_DIR/.mock_cartridge_state
-
 touch $MOCK_STATE/action_hook_post_reload

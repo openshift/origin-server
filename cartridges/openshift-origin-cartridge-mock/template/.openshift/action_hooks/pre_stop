@@ -1,10 +1,7 @@
-#!/bin/bash
-# The logic to stop your application should be put in this script.
-PATH=/bin/:/usr/bin:$PATH
+#!/bin/bash -eu
+# Simple web server for testing
 
 MOCK_STATE=$OPENSHIFT_DATA_DIR/.mock_cartridge_state
-
 touch $MOCK_STATE/action_hook_pre_stop
 
-kill `ps -ef | grep mock_server.rb | grep -v grep | awk '{ print $2 }'` > /dev/null 2>&1
-exit 0
+pkill -9 mock_server.rb ||:
