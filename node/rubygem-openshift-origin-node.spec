@@ -16,7 +16,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.7.24
+Version: 1.7.25
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -285,6 +285,17 @@ fi
 %attr(0755,-,-) /etc/cron.monthly/openshift-origin-cron-monthly
 
 %changelog
+* Sat Apr 13 2013 Krishna Raman <kraman@gmail.com> 1.7.25-1
+- WIP: scalable snapshot/restore (pmorie@gmail.com)
+- Merge pull request #2066 from sosiouxme/nodescripts20130413
+  (dmcphers+openshiftbot@redhat.com)
+- <node> fixing some minor inconsistencies in node scripts (lmeyer@redhat.com)
+- Undo comment change so postgres_v2 merges (fotios@redhat.com)
+- Fixed set_env_var (fotios@redhat.com)
+- Added helpers to sdk (fotios@redhat.com)
+- Merge pull request #2044 from jwhonce/wip/oo_trap_user (dmcphers@redhat.com)
+- Bug 951368 - V2 support broke reading .uservars (jhonce@redhat.com)
+
 * Fri Apr 12 2013 Adam Miller <admiller@redhat.com> 1.7.24-1
 - Merge pull request #2037 from ironcladlou/dev/v2cart/mock
   (dmcphers+openshiftbot@redhat.com)
