@@ -658,16 +658,16 @@ module MCollective
       def oo_expose_port(args)
         cart_name = args['--cart-name']
 
-        with_container_from_args(args) do |container|
-          container.create_public_endpoints(cart_name)
+        with_container_from_args(args) do |container, output|
+          output << container.create_public_endpoints(cart_name)
         end
       end
 
       def oo_conceal_port(args)
         cart_name = args['--cart-name']
 
-        with_container_from_args(args) do |container|
-          container.delete_public_endpoints(cart_name)
+        with_container_from_args(args) do |container, output|
+          output << container.delete_public_endpoints(cart_name)
         end
       end
 

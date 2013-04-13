@@ -1117,6 +1117,10 @@ class Application
       when "BROKER_KEY_REMOVE"
         pending_op = PendingAppOpGroup.new(op_type: :remove_broker_auth_key, args: { }, user_agent: self.user_agent)
         Application.where(_id: self._id).update_all({ "$push" => { pending_op_groups: pending_op.serializable_hash_with_timestamp } })
+      when "NOTIFY_ENDPOINT_CREATE"
+        OpenShift::RoutingService.notify_create_public_endpoint self, *command_item[:args]
+      when "NOTIFY_ENDPOINT_DELETE"
+        OpenShift::RoutingService.notify_delete_public_endpoint self, *command_item[:args]
       end
     end
 
@@ -1430,10 +1434,18 @@ class Application
     init_git_url = nil unless hosts_app_dns
 
     gear_id_prereqs = {}
+    maybe_notify_app_create_op = []
     gear_ids.each do |gear_id|
       host_singletons = (gear_id == singleton_gear_id)
       app_dns = (host_singletons && hosts_app_dns)
-      init_gear_op = PendingAppOp.new(op_type: :init_gear,   args: {"group_instance_id"=> ginst_id, "gear_id" => gear_id, "host_singletons" => host_singletons, "app_dns" => app_dns})
+
+      if app_dns
+        notify_app_create_op = PendingAppOp.new(op_type: :notify_app_create)
+        pending_ops.push(notify_app_create_op) 
+        maybe_notify_app_create_op = [notify_app_create_op]
+      end
+
+      init_gear_op = PendingAppOp.new(op_type: :init_gear,   args: {"group_instance_id"=> ginst_id, "gear_id" => gear_id, "host_singletons" => host_singletons, "app_dns" => app_dns}, prereq: maybe_notify_app_create_op)
       init_gear_op.prereq = [ginst_op_id] unless ginst_op_id.nil?
       reserve_uid_op  = PendingAppOp.new(op_type: :reserve_uid,  args: {"group_instance_id"=> ginst_id, "gear_id" => gear_id}, prereq: [init_gear_op._id.to_s])
       create_gear_op    = PendingAppOp.new(op_type: :create_gear,  args: {"group_instance_id"=> ginst_id, "gear_id" => gear_id}, prereq: [reserve_uid_op._id.to_s], retry_rollback_op: reserve_uid_op._id.to_s)
@@ -1474,7 +1486,9 @@ class Application
   def calculate_gear_destroy_ops(ginst_id, gear_ids, additional_filesystem_gb)
     pending_ops = []
     delete_gear_op = nil
+    deleting_app = false
     gear_ids.each do |gear_id|
+      deleting_app = true if self.group_instances.find(ginst_id).gears.find(gear_id).app_dns
       destroy_gear_op   = PendingAppOp.new(op_type: :destroy_gear,   args: {"group_instance_id"=> ginst_id, "gear_id" => gear_id})
       deregister_dns_op = PendingAppOp.new(op_type: :deregister_dns, args: {"group_instance_id"=> ginst_id, "gear_id" => gear_id}, prereq: [destroy_gear_op._id.to_s])
       unreserve_uid_op  = PendingAppOp.new(op_type: :unreserve_uid,  args: {"group_instance_id"=> ginst_id, "gear_id" => gear_id}, prereq: [deregister_dns_op._id.to_s])
@@ -1501,6 +1515,12 @@ class Application
           "usage_type" => UsageRecord::USAGE_TYPES[:premium_cart], "cart_name" => comp_spec["cart"]}, prereq: [delete_gear_op._id.to_s]))
       end if cartridge.is_premium?
     end
+
+    if deleting_app
+      notify_app_delete_op = PendingAppOp.new(op_type: :notify_app_delete, prereq: [pending_ops.last._id.to_s])
+      pending_ops.push(notify_app_delete_op) 
+    end
+
     pending_ops
   end
 
