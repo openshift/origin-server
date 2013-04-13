@@ -1,5 +1,4 @@
 #!/bin/bash -e
-set -x
 
 source $OPENSHIFT_CARTRIDGE_SDK_BASH
 
@@ -8,7 +7,7 @@ function obfuscate_password {
     acegi_security_path=`find ${OPENSHIFT_DATA_DIR}/war/WEB-INF/lib/ -name acegi-security-*.jar`
     commons_codec_path=`find ${OPENSHIFT_DATA_DIR}/war/WEB-INF/lib/ -name commons-codec-*.jar`
 
-    java -classpath "${acegi_security_path}:${commons_codec_path}:${OPENSHIFT_JENKINS_DIR}/configuration/password-encoder.jar" com.redhat.openshift.PasswordEncoder $password
+    java -classpath "${acegi_security_path}:${commons_codec_path}:${OPENSHIFT_JENKINS_DIR}usr/lib/password-encoder.jar" com.redhat.openshift.PasswordEncoder $password
 }
 
 function generate_ssh_keys {
@@ -25,13 +24,7 @@ cartridge_type="jenkins"
 version=1.4
 
 # Create additional directories required by JENKINS
-mkdir -p ${OPENSHIFT_JENKINS_DIR}/{bin,template,configuration,logs,data}
-
-# Copy the version specific files up to jenkins directory
-cp -r ${OPENSHIFT_JENKINS_DIR}/versions/${version}/configuration/* ${OPENSHIFT_JENKINS_DIR}/configuration
-#cp -r ${OPENSHIFT_JENKINS_DIR}/versions/${version}/metadata/* ${OPENSHIFT_JENKINS_DIR}/metadata
-cp -r ${OPENSHIFT_JENKINS_DIR}/versions/${version}/template/* ${OPENSHIFT_JENKINS_DIR}/template
-cp -r ${OPENSHIFT_JENKINS_DIR}/versions/${version}/template/.openshift ${OPENSHIFT_JENKINS_DIR}/template
+mkdir -p ${OPENSHIFT_JENKINS_DIR}/{logs,data}
 
 generate_ssh_keys
 
@@ -47,7 +40,7 @@ system_builder_password=$(generate_password)
 echo "export JENKINS_USERNAME=admin" > $OPENSHIFT_JENKINS_DIR/env/JENKINS_USERNAME
 echo "export JENKINS_PASSWORD=$admin_password" > $OPENSHIFT_JENKINS_DIR/env/JENKINS_PASSWORD
 
-cp -ad "${OPENSHIFT_JENKINS_DIR}/configuration/"* "${OPENSHIFT_DATA_DIR}"
+mv "${OPENSHIFT_JENKINS_DIR}configuration/"* "${OPENSHIFT_DATA_DIR}"
 openshift_server=`echo "${OPENSHIFT_BROKER_HOST}" | sed -e "s/\/*$//" `
 sed -i "s,OPENSHIFT_SERVER,$openshift_server,g" "${OPENSHIFT_DATA_DIR}/config.xml"
 unzip -q /usr/lib/jenkins/jenkins.war -d "${OPENSHIFT_DATA_DIR}/war/"

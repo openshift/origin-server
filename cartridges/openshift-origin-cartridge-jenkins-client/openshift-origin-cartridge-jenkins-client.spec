@@ -40,8 +40,6 @@ Provides plugin jenkins client support
 rm -rf %{buildroot}
 mkdir -p %{buildroot}%{cartridgedir}
 cp -r * %{buildroot}%{cartridgedir}/
-#mkdir -p %{buildroot}/%{_sysconfdir}/openshift/cartridges/v2
-#ln -s %{cartridgedir}/versions/1.4/configuration %{buildroot}/%{_sysconfdir}/openshift/cartridges/v2/%{name}-1.4
 
 %clean
 rm -rf %{buildroot}
@@ -54,10 +52,8 @@ rm -rf %{buildroot}
 %defattr(-,root,root,-)
 %dir %{cartridgedir}
 %dir %{cartridgedir}/metadata
-%dir %{cartridgedir}/versions
 %attr(0755,-,-) %{cartridgedir}/bin/
 %attr(0755,-,-) %{cartridgedir}
-#%{_sysconfdir}/openshift/cartridges/v2/%{name}-1.4
 %{cartridgedir}/metadata/manifest.yml
 %doc %{cartridgedir}/README.md
 %doc %{cartridgedir}/COPYRIGHT
