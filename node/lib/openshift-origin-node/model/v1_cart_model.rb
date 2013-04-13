@@ -26,7 +26,14 @@ module OpenShift
 
     def stop_lock(cartridge_name=nil)
       if cartridge_name.nil?
-        cartridge_name = primary_cartridge.name
+        # Return a cartridge in the gear; the primary if there is one.
+        each_cartridge do |cartridge|
+          cartridge_name = cartridge.name
+          break if cartridge.primary?
+        end
+      end
+      if cartridge_name.nil?
+        raise "Partial gear with no cartridges: #{@user.uuid}"
       end
       File.join(@user.homedir, cartridge_name, 'run', 'stop-lock')
     end
