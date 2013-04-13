@@ -14,7 +14,7 @@
 
 Summary:       The OpenShift Management Console
 Name:          openshift-origin-console
-Version:       1.5.17
+Version:       1.5.18
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -172,6 +172,16 @@ _EOF
 /sbin/fixfiles -R %{?scl:%scl_prefix}mod_passenger restore
 /sbin/restorecon -R -v /var/run
 %changelog
+* Sat Apr 13 2013 Krishna Raman <kraman@gmail.com> 1.5.18-1
+- Add a few base URLs and helpers for fetching assets during static page
+  compilation (ccoleman@redhat.com)
+- Merge pull request #1814 from smarterclayton/helpers_out_of_date
+  (dmcphers+openshiftbot@redhat.com)
+- Helpers in openshift-console out of date (ccoleman@redhat.com)
+- Adding SESSION_SECRET settings to the broker and console
+  (bleanhar@redhat.com)
+- Origin RHEL & Fedora build fixes. (rmillner@redhat.com)
+
 * Tue Mar 12 2013 Troy Dawson <tdawson@redhat.com> 1.5.17-1
 - Fixing console log file SELinux context and permissions (kraman@gmail.com)
 - Merge pull request #1456 from rclsilver/master
