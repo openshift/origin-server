@@ -3,7 +3,7 @@
 
 Summary:       Embedded mongodb support for OpenShift
 Name:          openshift-origin-cartridge-mongodb
-Version: 1.6.8
+Version: 1.6.9
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -64,6 +64,13 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Sat Apr 13 2013 Krishna Raman <kraman@gmail.com> 1.6.9-1
+- Merge pull request #2065 from jwhonce/wip/manifest_scrub
+  (dmcphers+openshiftbot@redhat.com)
+- WIP Cartridge Refactor - Scrub manifests (jhonce@redhat.com)
+- Adding connection hook for mongodb There are three leading params we don't
+  care about, so the hooks are using shift to discard. (calfonso@redhat.com)
+
 * Fri Apr 12 2013 Adam Miller <admiller@redhat.com> 1.6.8-1
 - Bug 951507 (ffranz@redhat.com)
 - SELinux, ApplicationContainer and UnixUser model changes to support oo-admin-
