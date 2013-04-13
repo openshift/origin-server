@@ -1,0 +1,9 @@
+#!/bin/bash -x
+
+source $OPENSHIFT_CARTRIDGE_SDK_BASH
+
+shift
+shift
+shift
+
+set_uservars "$@"

@@ -31,6 +31,9 @@ Subscribes:
   set-db-connection-info:
     Type: "NET_TCP:db:connection-info"
     Required: false
+  set-mongodb-connection-info:
+    Type: "NET_TCP:mongodb:connection-info"
+    Required: false
 Endpoints:
   - Private-IP-Name:   EXAMPLE_IP1
     Private-Port-Name: EXAMPLE_PORT1

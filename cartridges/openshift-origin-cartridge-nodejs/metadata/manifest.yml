@@ -74,17 +74,14 @@ Subscribes:
   set-db-connection-info:
     Type: "NET_TCP:db:connection-info"
     Required: false
-  set-nosql-db-connection-info:
-    Type: "NET_TCP:nosqldb:connection-info"
-    Required: false
   set-mysql-connection-info:
-    Type: "NET_TCP:db:mysql"  
+    Type: "NET_TCP:db:mysql"
     Required : false
   set-postgres-connection-info:
     Type: "NET_TCP:db:postgres"
     Required : false
-  set-mongo-connection-info:
-    Type: "NET_TCP:db:mongodb"
+  set-mongodb-connection-info:
+    Type: "NET_TCP:mongodb:connection-info"
     Required : false
 Group-Overrides:
   - components:
