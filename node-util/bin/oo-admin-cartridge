@@ -104,7 +104,7 @@ parser  = OptionParser.new do |opts|
     options.recursive = true
   end
 
-  opts.on('-l', '--list', 'List cartridges in repository') { options.list = true }
+  opts.on('-l', '--list', 'List cartridges in repository') { options.action ||= :list }
 
   opts.on('-n', '--name NAME', 'Name of cartridge to erase') do |o|
     options.name = o

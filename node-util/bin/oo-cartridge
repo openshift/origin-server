@@ -43,9 +43,7 @@ USAGE
 end
 
 require "rubygems"
-require 'openshift-origin-node'
-require 'openshift-origin-node/utils/environ'
-require "etc"
+require "getoptlong"
 
 opts = GetoptLong.new(
     ['--action', '-a', GetoptLong::REQUIRED_ARGUMENT],
@@ -86,6 +84,11 @@ unless action && uuid && cartridge_name && 0 == ARGV.length
   $stderr.puts "Invalid arguments\n"
   usage
 end
+
+# load all this after args parsed; failure is faster
+require 'openshift-origin-node'
+require 'openshift-origin-node/utils/environ'
+require "etc"
 
 begin
   # TODO; Will need to be refactored when broker gives separate pieces
