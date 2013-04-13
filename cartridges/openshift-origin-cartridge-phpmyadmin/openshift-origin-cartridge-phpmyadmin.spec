@@ -30,9 +30,6 @@ rm -rf %{buildroot}
 mkdir -p %{buildroot}%{cartridgedir}
 cp -r * %{buildroot}%{cartridgedir}/
 
-%post
-cp %{cartridgedir}/phpMyAdmin/config.inc.php %{_sysconfdir}/phpMyAdmin/config.inc.php
-
 %clean
 rm -rf %{buildroot}
 
