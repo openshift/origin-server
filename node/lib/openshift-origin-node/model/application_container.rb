@@ -29,6 +29,8 @@ require 'openshift-origin-node/utils/node_logger'
 require 'openshift-origin-common'
 require 'yaml'
 require 'active_model'
+require 'json'
+require 'rest-client'
 
 module OpenShift
   # == Application Container
@@ -36,6 +38,8 @@ module OpenShift
     include OpenShift::Utils::ShellExec
     include ActiveModel::Observing
     include NodeLogger
+
+    GEAR_TO_GEAR_SSH = "/usr/bin/ssh -q -o 'BatchMode=yes' -o 'StrictHostKeyChecking=no' -i $OPENSHIFT_APP_SSH_KEY "
 
     attr_reader :uuid, :application_uuid, :user, :state, :container_name, :cartridge_model
 
@@ -498,6 +502,19 @@ module OpenShift
     def snapshot
       stop_gear
 
+      scalable_snapshot = !!@cartridge_model.web_proxy 
+
+      if scalable_snapshot
+        begin
+          handle_scalable_snapshot
+        rescue => e
+          $stderr.puts "We were unable to snapshot this application due to communication issues with the OpenShift broker.  Please try again later."
+          $stderr.puts "#{e.message}"
+          $stderr.puts "#{e.backtrace}"
+          return false
+        end
+      end
+
       @cartridge_model.each_cartridge do |cartridge|
         @cartridge_model.do_control('pre-snapshot', 
                                     cartridge,
@@ -519,6 +536,83 @@ module OpenShift
       end      
 
       start_gear
+    end
+
+    def handle_scalable_snapshot
+      gear_env = Utils::Environ.for_gear(@user.homedir)
+
+      gear_groups = get_gear_groups(gear_env)
+
+      get_secondary_gear_groups(gear_groups).each do |type, group|
+        $stderr.puts "Saving snapshot for secondary #{type} gear"
+
+        ssh_coords = group['gears'][0]['ssh_url'].sub(/^ssh:\/\//, '')
+        Utils::oo_spawn("#{GEAR_TO_GEAR_SSH} #{ssh_coords} 'snapshot' > #{type}.tar.gz",
+                        env: gear_env,
+                        chdir: gear_env['OPENSHIFT_DATA_DIR'],
+                        uid: @user.uid,
+                        gid: @user.gid,
+                        err: $stderr,
+                        expected_exitstatus: 0)
+      end
+    end
+
+    ##
+    # Get the gear groups for the application this gear is part of.
+    # 
+    # Returns the parsed JSON for the response.
+    def get_gear_groups(gear_env)
+      broker_addr = @config.get('BROKER_HOST')
+      domain = gear_env['OPENSHIFT_NAMESPACE']
+      app_name = gear_env['OPENSHIFT_APP_NAME']
+      url = "https://#{broker_addr}/broker/rest/domains/#{domain}/applications/#{app_name}/gear_groups.json"
+
+      params = {
+        'broker_auth_key' => File.read(File.join(@config.get('GEAR_BASE_DIR'), name, '.auth', 'token')).chomp,
+        'broker_auth_iv' => File.read(File.join(@config.get('GEAR_BASE_DIR'), name, '.auth', 'iv')).chomp
+      }
+      
+      request = RestClient::Request.new(:method => :get, 
+                                        :url => url, 
+                                        :timeout => 120,
+                                        :headers => { :accept => 'application/json;version=1.0', :user_agent => 'OpenShift' },
+                                        :payload => params)
+      
+      begin
+        response = request.execute()
+
+        if 300 <= response.code 
+          raise response
+        end
+      rescue 
+        raise
+      end
+
+      begin
+        gear_groups = JSON.parse(response)
+      rescue
+        raise
+      end
+
+      gear_groups
+    end
+
+    ##
+    # Given a list of gear groups, return the secondary gear groups
+    def get_secondary_gear_groups(groups)
+      secondary_groups = {}
+
+      groups['data'].each do |group|
+        group['cartridges'].each do |cartridge|
+          cartridge['tags'].each do |tag|
+            if tag == 'database'
+              secondary_groups[cartridge['name']] = group
+            end
+          end
+        end
+      end
+
+      secondary_groups
     end
 
     def snapshot_exclusions
@@ -578,6 +672,13 @@ module OpenShift
     # The operation invoked by this method write output to the client on STDERR.
     def restore(restore_git_repo)
       gear_env = Utils::Environ.for_gear(@user.homedir)
+
+      scalable_restore = !!@cartridge_model.web_proxy 
+      gear_groups = nil
+
+      if scalable_restore
+        gear_groups = get_gear_groups(gear_env)
+      end
       
       if restore_git_repo
         pre_receive(err: $stderr, out: $stdout)
@@ -596,6 +697,10 @@ module OpenShift
 
       transforms = restore_transforms
       extract_restore_archive(transforms, restore_git_repo, gear_env)
+
+      if scalable_restore
+        handle_scalable_restore(gear_groups, gear_env)
+      end
 
       @cartridge_model.each_cartridge do |cartridge|
         @cartridge_model.do_control('post-restore', 
@@ -683,6 +788,23 @@ module OpenShift
 
       FileUtils.cd File.join(@user.homedir, 'app-root', 'runtime') do
         FileUtils.ln_s('../data', 'data')
+      end
+    end
+
+    def handle_scalable_restore(gear_groups, gear_env)
+      secondary_groups = get_secondary_gear_groups(gear_groups)
+
+      secondary_groups.each do |type, group|
+        $stderr.puts "Restoring snapshot for #{type} gear"
+
+        ssh_coords = group['gears'][0]['ssh_url'].sub(/^ssh:\/\//, '')
+        Utils::oo_spawn("cat #{type}.tar.gz | #{GEAR_TO_GEAR_SSH} #{ssh_coords} 'restore'",
+                        env: gear_env,
+                        chdir: gear_env['OPENSHIFT_DATA_DIR'],
+                        uid: @user.uid,
+                        gid: @user.gid,
+                        err: $stderr,
+                        expected_exitstatus: 0)
       end
     end
 

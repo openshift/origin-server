@@ -8,12 +8,15 @@ Vendor: Red Hat
 Cartridge-Version: 0.0.1
 Cartridge-Vendor: redhat
 Categories:
+  - service
+  - database
   - embedded
 Provides:
+  - mock-plugin-0.1
   - mock-plugin
 Scaling:
   Min: 1
-  Max: -1
+  Max: 1
 Group-Overrides:
   - components:
     - mock-plugin
