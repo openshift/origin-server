@@ -3,8 +3,6 @@
 set -x
 export | grep 'POSTGRES\|PG'
 
-PATH=/bin/:/usr/bin:$PATH
-
 source $OPENSHIFT_CARTRIDGE_SDK_BASH
 
 function _is_running {
@@ -120,17 +118,17 @@ function prepare_database {
 function pre_snapshot {
   start
 
-  echo "$OPENSHIFT_POSTGRESQL_DB_USERNAME" > _dump_username
-  echo "$OPENSHIFT_POSTGRESQL_DB_HOST" > _dump_host
+  local dump_file="${OPENSHIFT_DATA_DIR}/postgresql_dump_snapshot.gz"
+  local dump_user="${OPENSHIFT_DATA_DIR}/postgresql_db_username"
 
-  pg_dumpall -c | sed "/$rexp/d;" | gzip -v > _dump_file
+  echo "$OPENSHIFT_POSTGRESQL_DB_USERNAME" > $dump_user
+
+  pg_dumpall -h $OPENSHIFT_POSTGRESQL_DB_SOCKET_DIR -c -U postgres | gzip -9 > $dump_file
 
   if [ ! ${PIPESTATUS[0]} -eq 0 ]
   then
-    echo 1>&2
-    echo "WARNING!  Could not dump Postgres databases!  Continuing anyway" 1>&2
-    echo 1>&2
-    /bin/rm -rf _dump_file
+    warning "WARNING!  Could not dump Postgres databases!  Continuing anyway"
+    rm -f $dump_file
   fi
 
   stop
@@ -141,29 +139,49 @@ function post_snapshot {
 }
 
 function pre_restore {
-  cleanup_dump
-}
-
-function post_restore {
   true
 }
 
-function _dump_file {
-  echo "${OPENSHIFT_DATA_DIR}/postgresql_dump_snapshot.gz"
-}
+function post_restore {
+  local dump_file="${OPENSHIFT_DATA_DIR}/postgresql_dump_snapshot.gz"
+  local dump_user="${OPENSHIFT_DATA_DIR}/postgresql_db_username"
 
-function _dump_username {
-  echo "${OPENSHIFT_DATA_DIR}/postgresql_db_username"
-}
+  # TODO: Ensure the credentials are properly flushed
+  # TODO: Ensure the uids are correct in the pg_* files
+  if [ -f $dump_file ]
+  then
+    start
+    local new_user=$OPENSHIFT_POSTGRESQL_DB_USERNAME
+    # Restore the dumped file
+    zcat $dump_file | psql -U postgres -h $OPENSHIFT_POSTGRESQL_DB_SOCKET_DIR -d postgres
+    # Change the username and password if the username changed
+    if [ "$new_user" != "$dump_user" ]
+    then
+      {
+        echo "
+        ALTER USER ${dump_user} RENAME TO ${new_user};
+        ALTER USER ${new_user} PASSWORD '${pass}';
+        " | psql -d $db -h $socket -U postgres
+      } || warning "Could not change credentials"
+    fi
 
-function _dump_host {
-  echo "${OPENSHIFT_DATA_DIR}/postgresql_db_host"
+    if [ ! ${PIPESTATUS[1]} -eq 0 ]
+    then
+      warning "Error: Could not import Postgres Database!  Continuing..."
+    fi
+    cleanup_dump
+  else
+    warning "Postgres restore attempted, but no dump found"
+    warning "${dump_file} does not exist"
+  fi
 }
 
 function cleanup_dump {
-  rm -f _dump_file
-  rm -f _dump_host
-  rm -f _dump_username
+  local dump_file="${OPENSHIFT_DATA_DIR}/postgresql_dump_snapshot.gz"
+  local dump_user="${OPENSHIFT_DATA_DIR}/postgresql_db_username"
+
+  rm -f $dump_file
+  rm -f $dump_user
 }
 
 case "$1" in
