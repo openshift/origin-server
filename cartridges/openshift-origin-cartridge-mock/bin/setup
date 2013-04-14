@@ -8,8 +8,6 @@ case "$1" in
     version="$2"
 esac
 
-PATH=/bin/:/usr/bin:$PATH
-
 source $OPENSHIFT_MOCK_DIR/mock.conf
 
 rm -rf $MOCK_STATE/

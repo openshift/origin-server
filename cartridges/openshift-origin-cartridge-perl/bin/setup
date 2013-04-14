@@ -1,7 +1,5 @@
 #!/bin/bash -eu
 
-PATH=/bin:/usr/bin:$PATH
-
 version=5.10
 
 # Copy the version specific files to perl directory

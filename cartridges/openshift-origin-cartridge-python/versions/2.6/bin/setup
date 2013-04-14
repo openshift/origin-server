@@ -1,8 +1,4 @@
-#!/bin/bash -e
-set -u
-set -x
-
-PATH=/bin:/usr/bin:$PATH
+#!/bin/bash -eu
 
 version=2.6
 

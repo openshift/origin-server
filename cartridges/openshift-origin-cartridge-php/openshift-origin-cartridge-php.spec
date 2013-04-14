@@ -9,7 +9,6 @@ Group: Development/Languages
 License: ASL 2.0
 URL: https://openshift.redhat.com
 Source0: http://mirror.openshift.com/pub/origin-server/source/%{name}/%{name}-%{version}.tar.gz
-Requires:      openshift-origin-cartridge-abstract
 Requires:      rubygem(openshift-origin-node)
 %if 0%{?fedora}%{?rhel} <= 6
 Requires:      php >= 5.3.2
@@ -87,7 +86,6 @@ rm -rf %{buildroot}
 %dir %{cartridgedir}
 %dir %{cartridgedir}/bin
 %dir %{cartridgedir}/hooks
-%dir %{cartridgedir}/env
 %dir %{cartridgedir}/metadata
 %dir %{cartridgedir}/versions
 %attr(0755,-,-) %{cartridgedir}/bin/
