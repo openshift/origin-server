@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/openshift/cartridges/v2/cron
 
 Name: openshift-origin-cartridge-cron
-Version: 1.5.5
+Version: 1.5.6
 Release: 1%{?dist}
 Summary: Embedded cron support for OpenShift
 Group: Development/Languages
@@ -56,6 +56,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Sun Apr 14 2013 Krishna Raman <kraman@gmail.com> 1.5.6-1
+- WIP Cartridge Refactor - Scrub manifests (jhonce@redhat.com)
+
 * Fri Apr 12 2013 Adam Miller <admiller@redhat.com> 1.5.5-1
 - SELinux, ApplicationContainer and UnixUser model changes to support oo-admin-
   ctl-gears operating on v1 and v2 cartridges. (rmillner@redhat.com)
