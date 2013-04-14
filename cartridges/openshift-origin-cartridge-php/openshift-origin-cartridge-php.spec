@@ -68,10 +68,9 @@ rm %{buildroot}%{cartridgedir}/metadata/manifest.yml.fedora
 %if 0%{?fedora} >= 18
 mv %{buildroot}%{cartridgedir}/versions/shared/configuration/etc/conf-httpd-2.4/* %{buildroot}%{cartridgedir}/versions/shared/configuration/etc/conf/
 rm -rf %{buildroot}%{cartridgedir}/versions/5.3
-sed -i 's/PHPVERSION/5.4/g' %{buildroot}%{cartridgedir}/metadata/manifest.yml
-sed -i 's/#DefaultRuntimeDir/DefaultRuntimeDir/g' %{buildroot}%{cartridgedir}/versions/shared/configuration/etc/conf.d/openshift.conf.erb
 mv %{buildroot}%{cartridgedir}/metadata/manifest.yml.fedora %{buildroot}%{cartridgedir}/metadata/manifest.yml
 rm %{buildroot}%{cartridgedir}/metadata/manifest.yml.rhel
+sed -i 's/#DefaultRuntimeDir/DefaultRuntimeDir/g' %{buildroot}%{cartridgedir}/versions/shared/configuration/etc/conf.d/openshift.conf.erb
 %endif
 rm -rf %{buildroot}%{cartridgedir}/versions/shared/configuration/etc/conf-httpd-*
 
