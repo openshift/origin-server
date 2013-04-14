@@ -7,7 +7,7 @@
 %global frameworkdir %{_libexecdir}/openshift/cartridges/v2/ruby
 
 Name:          openshift-origin-cartridge-ruby
-Version: 0.2.6
+Version: 0.2.7
 Release:       1%{?dist}
 Summary:       Ruby cartridge
 Group:         Development/Languages
@@ -156,6 +156,23 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Sun Apr 14 2013 Krishna Raman <kraman@gmail.com> 0.2.7-1
+- Merge pull request #2065 from jwhonce/wip/manifest_scrub
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #2053 from calfonso/master
+  (dmcphers+openshiftbot@redhat.com)
+- WIP Cartridge Refactor - Scrub manifests (jhonce@redhat.com)
+- Merge pull request #2046 from BanzaiMan/dev/hasari/bz949439
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #2045 from BanzaiMan/dev/hasari/bz951389
+  (dmcphers+openshiftbot@redhat.com)
+- Adding connection hook for mongodb There are three leading params we don't
+  care about, so the hooks are using shift to discard. (calfonso@redhat.com)
+- Remove unrelated files from ruby cartridge and put ones for Ruby.
+  (asari.ruby@gmail.com)
+- Provide overrides based on Ruby version so that a Ruby-1.8 app can scale.
+  (asari.ruby@gmail.com)
+
 * Fri Apr 12 2013 Adam Miller <admiller@redhat.com> 0.2.6-1
 - SELinux, ApplicationContainer and UnixUser model changes to support oo-admin-
   ctl-gears operating on v1 and v2 cartridges. (rmillner@redhat.com)
