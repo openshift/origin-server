@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/openshift/cartridges/v2/python
 
 Name: openshift-origin-cartridge-python
-Version: 0.2.6
+Version: 0.2.7
 Release: 1%{?dist}
 Summary: Python cartridge
 Group: Development/Languages
@@ -75,6 +75,19 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Sun Apr 14 2013 Krishna Raman <kraman@gmail.com> 0.2.7-1
+- WIP Cartridge Refactor - Move PATH to /etc/openshift/env (jhonce@redhat.com)
+- Merge pull request #2065 from jwhonce/wip/manifest_scrub
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #2060 from mrunalp/bug/py_clean_template
+  (dmcphers+openshiftbot@redhat.com)
+- WIP Cartridge Refactor - Scrub manifests (jhonce@redhat.com)
+- Cleanup template action_hooks directory. (mrunalp@gmail.com)
+- Adding connection hook for mongodb There are three leading params we don't
+  care about, so the hooks are using shift to discard. (calfonso@redhat.com)
+- Merge pull request #2043 from mrunalp/dev/pyfixes (dmcphers@redhat.com)
+- Add Version Overrides for python cartridge manifest. (mrunalp@gmail.com)
+
 * Fri Apr 12 2013 Adam Miller <admiller@redhat.com> 0.2.6-1
 - Merge pull request #2032 from mrunalp/bugs/927761 (dmcphers@redhat.com)
 - SELinux, ApplicationContainer and UnixUser model changes to support oo-admin-
