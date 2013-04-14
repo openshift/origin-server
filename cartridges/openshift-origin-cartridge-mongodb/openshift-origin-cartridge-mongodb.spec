@@ -3,7 +3,7 @@
 
 Summary:       Embedded mongodb support for OpenShift
 Name:          openshift-origin-cartridge-mongodb
-Version: 1.6.9
+Version: 1.6.10
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -64,6 +64,11 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Sat Apr 13 2013 Krishna Raman <kraman@gmail.com> 1.6.10-1
+- Merge pull request #2068 from jwhonce/wip/path
+  (dmcphers+openshiftbot@redhat.com)
+- WIP Cartridge Refactor - Move PATH to /etc/openshift/env (jhonce@redhat.com)
+
 * Sat Apr 13 2013 Krishna Raman <kraman@gmail.com> 1.6.9-1
 - Merge pull request #2065 from jwhonce/wip/manifest_scrub
   (dmcphers+openshiftbot@redhat.com)
