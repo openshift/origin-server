@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/openshift/cartridges/v2/php
 
 Name: openshift-origin-cartridge-php
-Version: 0.2.4
+Version: 0.2.5
 Release: 1%{?dist}
 Summary: Php cartridge
 Group: Development/Languages
@@ -95,6 +95,15 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Sun Apr 14 2013 Krishna Raman <kraman@gmail.com> 0.2.5-1
+- Fixing F18 build of PHP v2 cartridge (kraman@gmail.com)
+- WIP Cartridge Refactor - Move PATH to /etc/openshift/env (jhonce@redhat.com)
+- Merge pull request #2053 from calfonso/master
+  (dmcphers+openshiftbot@redhat.com)
+- Adding connection hook for mongodb There are three leading params we don't
+  care about, so the hooks are using shift to discard. (calfonso@redhat.com)
+- Action hook cleanup and documentation (ironcladlou@gmail.com)
+
 * Wed Apr 10 2013 Adam Miller <admiller@redhat.com> 0.2.4-1
 - Anchor locked_files.txt entries at the cart directory (ironcladlou@gmail.com)
 - Merge pull request #1971 from mrunalp/bugs/949843 (dmcphers@redhat.com)
