@@ -181,12 +181,15 @@ module OpenShift
         context = Selinux.matchpathcon(path, mode)
         if context == -1
           context = Selinux.lgetfilecon(path)
+          if context == -1
+            raise Errno::EINVAL.new("lgetfilecon: #{path}")
+          end
         end
         context = Selinux.context_new(context[1])
         Selinux.context_range_set(context, label)
         context = Selinux.context_str(context)
         if Selinux.lsetfilecon(path, context) == -1
-          raise Errno::EINVAL.new(path)
+          raise Errno::EINVAL.new("lsetfilecon: #{context} #{path}")
         end
       end
 
