@@ -141,16 +141,24 @@ function mysql() {
 
 }  #  End of  mysql  function.
 
-
 function psql() {
-    PGDATABASE="$OPENSHIFT_APP_NAME" \
-        PGHOST="$OPENSHIFT_POSTGRESQL_DB_HOST" \
-        PGPORT="${OPENSHIFT_POSTGRESQL_DB_PORT:-5432}" \
-        PGUSER="${OPENSHIFT_POSTGRESQL_DB_USERNAME:-'admin'}" \
-        PGPASSWORD="${OPENSHIFT_POSTGRESQL_DB_PASSWORD}" \
-        /usr/bin/psql --set HISTFILE="~/app-root/data/.psql_history" "$@"
-}  #  End of psql function.
+  pghost=${PGHOST:-$OPENSHIFT_POSTGRESQL_DB_HOST}
+  pattern="^/"
+  if [[ ! $pghost =~ $pattern ]]
+  then
+    pgport=${PGPORT:-$OPENSHIFT_POSTGRESQL_DB_PORT}
+  fi
+  pguser=${PGUSER:-$OPENSHIFT_POSTGRESQL_DB_USERNAME}
+  pgpassword=${PGPASSWORD:-$OPENSHIFT_POSTGRESQL_DB_PASSWORD}
+  pgdatabase=${PGDATABASE:-$OPENSHIFT_APP_NAME}
 
+  PGHOST=$pghost \
+    PGPORT=$pgport \
+    PGUSER=$pguser \
+    PGPASSWORD=$pgpassword \
+    PGDATABASE=$pgdatabase \
+    /usr/bin/psql "$@"
+}
 
 function mongo() {
    if test $# -gt 0; then
