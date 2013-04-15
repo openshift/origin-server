@@ -331,7 +331,7 @@ is loaded into a git repository.
 ### Application Developer Action Hooks
 
 The sub-directory `.openshift/markers` may contain example files for the application developer.
-These files denote behaviour you are expected to honor in your cartridges lifecycle. Current
+These files denote behavior you are expected to honor in your cartridges lifecycle. Current
 examples from a Ruby 1.8 cartridge include:
 
     force_clean_build     Previous output from bundle install --deployment will be
@@ -349,9 +349,9 @@ of your cartridge.
 The sub-directory `.openshift/action_hooks` will contain code the application developer
 wishes run during lifecycle changes. Examples would be:
 
-    pre_start_`cartridge name`-`software version`
-    post_start_`cartridge name`-`software version`
-    pre_stop_`cartridge name`-`software version`
+    pre_start_`cartridge name`
+    post_start_`cartridge name`
+    pre_stop_`cartridge name`
     ...
 
 You can obtain a template for the `template` directory from [xxx](http;//git...yyy).
