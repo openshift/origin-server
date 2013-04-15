@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/openshift/cartridges/v2/perl
 
 Name: openshift-origin-cartridge-perl
-Version: 0.2.7
+Version: 0.2.8
 Release: 1%{?dist}
 Summary: Perl cartridge
 Group: Development/Languages
@@ -70,6 +70,11 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Mon Apr 15 2013 Adam Miller <admiller@redhat.com> 0.2.8-1
+- Bug 952041 - Add support for tidy to DIY and PHP cartridges
+  (jhonce@redhat.com)
+- V2 action hook cleanup (ironcladlou@gmail.com)
+
 * Sun Apr 14 2013 Krishna Raman <kraman@gmail.com> 0.2.7-1
 - WIP Cartridge Refactor - Move PATH to /etc/openshift/env (jhonce@redhat.com)
 - Adding connection hook for mongodb There are three leading params we don't
