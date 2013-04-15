@@ -18,6 +18,11 @@ function restart() {
     /usr/sbin/httpd -C "Include $HTTPD_CFG_DIR/*.conf" -f $HTTPD_CFG_FILE -k restart
 }
 
+function graceful() {
+    echo "Restarting PHP cart gracefully"
+    /usr/sbin/httpd -C "Include $HTTPD_CFG_DIR/*.conf" -f $HTTPD_CFG_FILE -k graceful
+}
+
 function status() {
    if output=$(curl http://$OPENSHIFT_PHP_IP:$OPENSHIFT_PHP_PORT/server-status?auto 2>&1 )
    then
@@ -30,11 +35,13 @@ function status() {
 
 function reload() {
     echo "Reloading PHP cart"
-    restart
+    /usr/sbin/httpd -C "Include $HTTPD_CFG_DIR/*.conf" -f $HTTPD_CFG_FILE -k reload
 }
 
 function tidy() {
     echo "Tidying PHP cart"
+    rm -f $OPENSHIFT_PHP_DIR/logs/*
+    graceful
 }
 
 function build() {
@@ -65,7 +72,7 @@ function build() {
 }
 
 function deploy() {
-    echo "TODO"
+    graceful
 }
 
 case "$1" in
@@ -74,6 +81,7 @@ case "$1" in
   restart)   restart ;;
   status)    status ;;
   reload)    reload ;;
+  graceful)  graceful ;;
   tidy)      tidy ;;
   build)     build ;;
   deploy)    deploy ;;
