@@ -1,3 +1,16 @@
-#!/bin/bash -e
+#!/bin/bash -ue
 
 mkdir $OPENSHIFT_POSTGRESQL_DIR/{log,pid,socket,data,run}
+
+source $OPENSHIFT_CARTRIDGE_SDK_BASH
+
+echo 'Generating username and password'
+
+# Force the username to be all lowercase and not include o,O,0
+env_dir="${OPENSHIFT_POSTGRESQL_DIR}/env"
+username=$(generate_username admin 12 'a-np-z1-9')
+password=$(generate_password)
+
+set_env_var 'OPENSHIFT_POSTGRESQL_DB_USERNAME' $username $env_dir
+set_env_var 'PGUSER' $username $env_dir
+set_env_var 'OPENSHIFT_POSTGRESQL_DB_PASSWORD' $password $env_dir

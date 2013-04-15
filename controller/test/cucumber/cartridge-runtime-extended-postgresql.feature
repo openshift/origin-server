@@ -1,15 +1,16 @@
 #@runtime_extended_other3
 @runtime_extended3
+@postgres
 Feature: Postgresql extended tests
-  
-  Scenario Outline: Use socket file to connect to database 
+
+  Scenario Outline: Use socket file to connect to database
     Given a new <php_version> type application
     And I embed a <postgres_cart> cartridge into the application
     And the application is made publicly accessible
 
-    When I select from the postgresql database using the socket file
-    Then the select result from the postgresql database should be valid
-    
+    Given I use socket to connect to the postgresql database as env with password
+    Then I should be able to query the postgresql database
+
     @rhel-only
     Scenarios: database cartridge scenarios
       | postgres_cart  | php_version |

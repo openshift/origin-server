@@ -1,14 +1,111 @@
-When /^I select from the postgresql database using the socket file$/ do
-  cmd = ssh_command("-o LogLevel=quiet \"export PGPASSWORD=\\$OPENSHIFT_POSTGRESQL_DB_PASSWORD; echo 'select 1; \\q' | /usr/bin/psql -U admin -h \\$OPENSHIFT_POSTGRESQL_DB_SOCKET -d #{@app.name} -t\"")
+include SQLHelper
 
-  $logger.debug "Running #{cmd}"
-
-  output = `#{cmd}`
-  @postgresql_query_result = output.strip
-
-  $logger.debug "Output: #{output}"
+Given /^I use the helper to connect to the postgresql database$/ do
+  @psql_env = {}
+  @psql_opts = {}
 end
 
-Then /^the select result from the postgresql database should be valid$/ do
-  @postgresql_query_result.should be == "1"
+Given /^I use (.*) to connect to the postgresql database as (\w+)(.*)?$/ do |type,user,options|
+  @psql_opts = {}
+  @psql_env = {}
+
+  case type
+  when 'socket'
+    @psql_opts['-h'] = '$OPENSHIFT_POSTGRESQL_DB_SOCKET'
+  when 'host'
+    @psql_opts['-h'] = '$OPENSHIFT_POSTGRESQL_DB_HOST'
+    @psql_opts['-p'] = '$OPENSHIFT_POSTGRESQL_DB_PORT'
+  end
+
+  @psql_opts['-U'] = case user
+               when 'env'
+                 '$OPENSHIFT_POSTGRESQL_DB_USERNAME'
+               else
+                 user
+               end
+
+  case options
+  when /with password/
+    @psql_env['PGPASSWORD'] = '$OPENSHIFT_POSTGRESQL_DB_PASSWORD'
+  when /with passfile/
+    @psql_env['PGPASSFILE'] = nil
+  end
+end
+
+When /^I should( not)? be able to query the postgresql database$/ do |negate|
+  run_psql('select 1')
+
+  if negate
+    @exitstatus.should_not eq 0
+  else
+    @exitstatus.should eq 0
+  end
+end
+
+When /^I create a test table in postgres( without dropping)?$/ do |drop|
+  sql = <<-sql
+    CREATE TABLE cuke_test (
+      id integer PRIMARY KEY,
+      msg text
+    );
+  sql
+
+  without = !!!drop
+  if without
+    drop_sql = <<-sql
+      DROP TABLE IF EXISTS cuke_test;
+    sql
+
+    sql = "#{drop_sql} #{sql}"
+  end
+
+  @query_result = run_psql(sql)
+end
+
+When /^I insert (additional )?test data into postgres$/ do |additional|
+  run_sql = <<-sql
+    INSERT INTO cuke_test VALUES (1,'initial data');
+  sql
+
+  additional_sql = <<-sql
+    INSERT INTO cuke_test VALUES (2,'additional data');
+  sql
+
+  run_sql = additional_sql if additional
+
+  @query_result = run_psql(run_sql)
+end
+
+Then /^the (additional )?test data will (not )?be present in postgres$/ do |additional, negate|
+  @query_result = run_psql('select msg from cuke_test;')
+
+  desired_state = !!!negate
+  desired_out = additional ? "additional" : "initial"
+
+  if (desired_state)
+    @query_result.should include(desired_out)
+  else
+    @query_result.should_not include(desired_out)
+  end
+end
+
+When /^I replace (.*) authentication with (.*) in the configuration file$/ do |old_auth,new_auth|
+  @app.ssh_command("sed -i s/#{old_auth}/#{new_auth}/ postgresql/data/pg_hba.conf")
+end
+
+When /^the debug data should (not )?exist in the log file$/ do |negate|
+  @app.ssh_command('egrep -r \'^ZZZZZ\' \$OPENSHIFT_POSTGRESQL_DB_LOG_DIR')
+  exit_status = $?.exitstatus
+
+  if negate
+    exit_status.should_not eq 0
+  else
+    exit_status.should eq 0
+  end
+end
+
+When /^I add debug data to the log file$/ do
+  # This can probably be made into a single command
+  file = @app.ssh_command('find \$OPENSHIFT_POSTGRESQL_DB_LOG_DIR -type f | head -n1')
+  @app.ssh_command("echo 'ZZZZZ' >> #{file}")
 end

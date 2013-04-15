@@ -222,6 +222,15 @@ module CommandHelper
     end
   end
 
+  def rhc_reload(app)
+    rhc_do('rhc_reload') do
+      time = Benchmark.realtime do
+        run("#{$rhc_script} app reload -a #{app.name} #{default_args(app)}").should == 0
+      end
+      log_event "#{time} RELOAD_APP #{app.name} #{app.login}"
+    end
+  end
+
   def rhc_create_app(app, use_hosts=true, misc_opts='')
     rhc_sshkey_upload app
 
