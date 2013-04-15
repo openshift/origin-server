@@ -3,7 +3,7 @@
 
 Summary:       Provides Node.js support
 Name:          openshift-origin-cartridge-nodejs
-Version: 1.8.6
+Version: 1.8.7
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -57,6 +57,9 @@ rm -rf %{buildroot}
 %doc %{cartridgedir}/README.md
 
 %changelog
+* Mon Apr 15 2013 Adam Miller <admiller@redhat.com> 1.8.7-1
+- V2 action hook cleanup (ironcladlou@gmail.com)
+
 * Sat Apr 13 2013 Krishna Raman <kraman@gmail.com> 1.8.6-1
 - Adding connection hook for mongodb There are three leading params we don't
   care about, so the hooks are using shift to discard. (calfonso@redhat.com)
