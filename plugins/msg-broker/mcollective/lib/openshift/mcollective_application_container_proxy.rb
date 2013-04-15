@@ -88,11 +88,11 @@ module OpenShift
       # * Uses District
       # * Calls rpc_find_available
       #
-      def self.find_available_impl(node_profile=nil, district_uuid=nil, non_ha_server_identities=nil, gear_uid=nil)
+      def self.find_available_impl(node_profile=nil, district_uuid=nil, non_ha_server_identities=nil, gear_uid=nil, ignore_servers=[])
         district = nil
-        current_server, current_capacity, preferred_district = rpc_find_available(node_profile, district_uuid, non_ha_server_identities, false, gear_uid)
+        current_server, current_capacity, preferred_district = rpc_find_available(node_profile, district_uuid, non_ha_server_identities, false, gear_uid, ignore_servers)
         if !current_server
-          current_server, current_capacity, preferred_district = rpc_find_available(node_profile, district_uuid, non_ha_server_identities, true, gear_uid)
+          current_server, current_capacity, preferred_district = rpc_find_available(node_profile, district_uuid, non_ha_server_identities, true, gear_uid, ignore_servers)
         end
         district = preferred_district if preferred_district
         raise OpenShift::NodeException.new("No nodes available.", 140) unless current_server
@@ -1864,7 +1864,8 @@ module OpenShift
           if !destination_district_uuid and !change_district
             destination_district_uuid = source_district_uuid unless source_district_uuid == 'NONE'
           end
-          destination_container = MCollectiveApplicationContainerProxy.find_available_impl(gear.group_instance.gear_size, destination_district_uuid, nil, gear.uid)
+          ignore_servers = [source_container]
+          destination_container = MCollectiveApplicationContainerProxy.find_available_impl(gear.group_instance.gear_size, destination_district_uuid, nil, gear.uid, ignore_servers)
           log_debug "DEBUG: Destination container: #{destination_container.id}"
           destination_district_uuid = destination_container.get_district_uuid
         else
@@ -2691,7 +2692,7 @@ module OpenShift
       #
       # 
       #
-      def self.rpc_find_available(node_profile=nil, district_uuid=nil, non_ha_server_identities=nil, force_rediscovery=false, gear_uid=nil)
+      def self.rpc_find_available(node_profile=nil, district_uuid=nil, non_ha_server_identities=nil, force_rediscovery=false, gear_uid=nil, ignore_servers=[])
         
         district_uuid = nil if district_uuid == 'NONE'
         
@@ -2749,6 +2750,7 @@ module OpenShift
         # Get the active % on the nodes
         rpc_opts = nil
         rpc_get_fact('active_capacity', nil, force_rediscovery, additional_filters, rpc_opts) do |server, capacity|
+          next if ignore_servers and ignore_servers.include?(server)
           found_district = false
           districts.each do |district|
             if district.server_identities_hash.has_key?(server)
