@@ -34,6 +34,8 @@ module OpenShift
       @@DEF_MLS_NUM    =        0  # 0 unless MLS in use
 
 
+      @@matchpathcon_files_mtimes = Hash.new
+
       # Return an enumerator which yields each UID -> MCS label combination.
       #
       # Provides a more efficient way to iterate through all of the
@@ -90,6 +92,24 @@ module OpenShift
       end
 
       #
+      # Private: Update the file context table
+      #
+      def self.matchpathcon_update
+        new_files_mtimes = Hash.new
+        Dir.glob(Selinux.selinux_file_context_path + '*').each do |f|
+          new_files_mtimes[f] = File.stat(f).mtime
+        end
+
+        if new_files_mtimes != @@matchpathcon_files_mtimes
+          if not @@matchpathcon_files_mtimes.empty?
+            Selinux.matchpathcon_fini
+          end
+          Selinux.matchpathcon_init(nil)
+          @@matchpathcon_files_mtimes = new_files_mtimes
+        end
+      end
+
+      #
       # Public: Set the SELinux context with provided MCS label on a
       # given set of files.
       #
@@ -104,16 +124,13 @@ module OpenShift
       # of enumerators like Find.
       #
       def self.set_mcs_label(label, *paths)
-        Selinux.matchpathcon_init(nil)
-        begin
-          paths.flatten.each do |path|
-            set_mcs_label_single(label, path)
-          end
-          if block_given?
-            yield(lambda { |passed_path| set_mcs_label_single(label, passed_path) })
-          end
-        ensure
-          Selinux.matchpathcon_fini
+        matchpathcon_update
+
+        paths.flatten.each do |path|
+          set_mcs_label_single(label, path)
+        end
+        if block_given?
+          yield(lambda { |passed_path| set_mcs_label_single(label, passed_path) })
         end
       end
 
