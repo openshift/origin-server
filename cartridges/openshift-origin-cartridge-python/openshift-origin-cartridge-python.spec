@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/openshift/cartridges/v2/python
 
 Name: openshift-origin-cartridge-python
-Version: 0.2.7
+Version: 0.2.8
 Release: 1%{?dist}
 Summary: Python cartridge
 Group: Development/Languages
@@ -75,6 +75,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Mon Apr 15 2013 Adam Miller <admiller@redhat.com> 0.2.8-1
+- V2 action hook cleanup (ironcladlou@gmail.com)
+
 * Sun Apr 14 2013 Krishna Raman <kraman@gmail.com> 0.2.7-1
 - WIP Cartridge Refactor - Move PATH to /etc/openshift/env (jhonce@redhat.com)
 - Merge pull request #2065 from jwhonce/wip/manifest_scrub
