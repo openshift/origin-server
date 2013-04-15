@@ -762,14 +762,26 @@ Dir(after)    #{@uuid}/#{@uid} => #{list_home_dir(@homedir)}
       Enumerator.new do |yielder|
         config = OpenShift::Config.new
         gecos = config.get("GEAR_GECOS") || "OO application container"
+
         # Some duplication with from_uuid; it may be expensive to keep re-parsing passwd.
+        # Etc is not reentrent.  Capture the password table in one shot.
+        pwents = []
         Etc.passwd do |pwent|
+          pwents << pwent.clone
+        end
+
+        pwents.each do |pwent|
           if pwent.gecos == gecos
-            env = Utils::Environ.for_gear(pwent.dir)
-            u = UnixUser.new(env["OPENSHIFT_APP_UUID"], pwent.name, pwent.uid,
-                             env["OPENSHIFT_APP_NAME"], env["OPENSHIFT_GEAR_NAME"],
-                             env['OPENSHIFT_GEAR_DNS'].sub(/\..*$/,"").sub(/^.*\-/,""))
-            yielder.yield(u)
+            begin
+              env = Utils::Environ.for_gear(pwent.dir)
+              u = UnixUser.new(env["OPENSHIFT_APP_UUID"], pwent.name, pwent.uid,
+                               env["OPENSHIFT_APP_NAME"], env["OPENSHIFT_GEAR_NAME"],
+                               env['OPENSHIFT_GEAR_DNS'].sub(/\..*$/,"").sub(/^.*\-/,""))
+              yielder.yield(u)
+            rescue => e
+              NodeLogger.logger.error("Failed to instantiate UnixUser for #{pwent.uid}: #{e}")
+              NodeLogger.logger.error("Backtrace: #{e.backtrace}")
+            end
           end
         end
       end

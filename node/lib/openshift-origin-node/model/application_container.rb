@@ -827,7 +827,7 @@ module OpenShift
     #
     def self.from_uuid(container_uuid, logger=nil)
       u = UnixUser.from_uuid(container_uuid)
-      ApplicationContainer.new(u.application_uuid, u.container_uuid, u.user_uid,
+      ApplicationContainer.new(u.application_uuid, u.container_uuid, u.uid,
                                u.app_name, u.container_name, u.namespace,
                                nil, nil, logger)
     end
@@ -841,10 +841,20 @@ module OpenShift
     def self.all_containers(logger=nil)
       Enumerator.new do |yielder|
         UnixUser.all_users.each do |u|
-          a=ApplicationContainer.new(u.application_uuid, u.container_uuid, u.user_uid,
-                                     u.app_name, u.container_name, u.namespace,
-                                     nil, nil, logger)
-          yielder.yield(a)
+          begin
+            a=ApplicationContainer.new(u.application_uuid, u.container_uuid, u.uid,
+                                       u.app_name, u.container_name, u.namespace,
+                                       nil, nil, logger)
+            yielder.yield(a)
+          rescue => e
+            if logger
+              logger.error("Failed to instantiate ApplicationContainer for #{u.application_uuid}: #{e}")
+              logger.error("Backtrace: #{e.backtrace}")
+            else
+              NodeLogger.logger.error("Failed to instantiate ApplicationContainer for #{u.application_uuid}: #{e}")
+              NodeLogger.logger.error("Backtrace: #{e.backtrace}")
+            end
+          end
         end
       end
     end
