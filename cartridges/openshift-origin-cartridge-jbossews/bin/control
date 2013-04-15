@@ -97,7 +97,7 @@ function threaddump() {
         kill -3 $java_pid
         client_result "Success"
         client_result ""
-        client_result "The thread dump file will be available via: rhc tail $OPENSHIFT_APP_NAME -f */logs/catalina.out -o '-n 250'"
+        client_result "The thread dump file will be available via: rhc tail $OPENSHIFT_APP_NAME -f \"*/logs/catalina.out -o '-n 250'\""
     else 
         echo "Failed to locate JBOSS PID File"
     fi
