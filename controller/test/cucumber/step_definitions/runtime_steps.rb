@@ -155,8 +155,10 @@ Given /^an existing ([^ ]+) application, verify it can be snapshotted and restor
     Given an existing #{cart_name} application    
     When I snapshot the application
     Then the application should be accessible
+    When a new file is added and pushed to the client-created application repo
     When I restore the application
     Then the application should be accessible
+    And the new file will not be present in the gear app-root repo
   }
 end
 
