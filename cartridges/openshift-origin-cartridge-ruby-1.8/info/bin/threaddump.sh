@@ -15,7 +15,7 @@ then
     exit 1
 fi
 
-PID=`ps -u $2 -o pid,command | grep -v grep | grep 'Rack:.*'$2 | awk 'BEGIN {FS=" "}{print $1}'`
+PID=$(ps -u $(id -u $2) -o pid,command | grep -v grep | grep 'Rack:.*'$2 | awk 'BEGIN {FS=" "}{print $1}')
 
 if [ "$PID" = "" ]; then
     _state_file=${OPENSHIFT_HOMEDIR}/app-root/runtime/.state
