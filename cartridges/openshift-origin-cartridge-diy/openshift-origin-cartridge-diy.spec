@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/openshift/cartridges/v2/diy
 
 Name: openshift-origin-cartridge-diy
-Version: 0.2.5
+Version: 0.2.6
 Release: 1%{?dist}
 Summary: DIY cartridge
 Group: Development/Languages
@@ -57,6 +57,11 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Mon Apr 15 2013 Adam Miller <admiller@redhat.com> 0.2.6-1
+- Bug 952041 - Add support for tidy to DIY and PHP cartridges
+  (jhonce@redhat.com)
+- V2 action hook cleanup (ironcladlou@gmail.com)
+
 * Sun Apr 14 2013 Krishna Raman <kraman@gmail.com> 0.2.5-1
 - WIP Cartridge Refactor - Move PATH to /etc/openshift/env (jhonce@redhat.com)
 - Merge pull request #2065 from jwhonce/wip/manifest_scrub
