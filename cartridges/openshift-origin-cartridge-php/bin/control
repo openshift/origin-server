@@ -1,5 +1,7 @@
 #!/bin/bash -e
 
+source $OPENSHIFT_CARTRIDGE_SDK_BASH
+
 HTTPD_CFG_FILE=$OPENSHIFT_PHP_DIR/configuration/etc/conf/httpd_nolog.conf
 HTTPD_CFG_DIR=$OPENSHIFT_PHP_DIR/configuration/etc/conf.d
 
@@ -34,7 +36,9 @@ function reload() {
 }
 
 function tidy() {
-    echo "Tidying PHP cart"
+    client_message "Emptying log dir: $OPENSHIFT_PHP_LOG_DIR"
+    shopt -s dotglob
+    rm -rf $OPENSHIFT_PHP_LOG_DIR/*
 }
 
 function build() {
