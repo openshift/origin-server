@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/openshift/cartridges/v2/php
 
 Name: openshift-origin-cartridge-php
-Version: 0.2.5
+Version: 0.2.6
 Release: 1%{?dist}
 Summary: Php cartridge
 Group: Development/Languages
@@ -95,6 +95,10 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Mon Apr 15 2013 Adam Miller <admiller@redhat.com> 0.2.6-1
+- Bug 952041 - Add support for tidy to DIY and PHP cartridges
+  (jhonce@redhat.com)
+
 * Sun Apr 14 2013 Krishna Raman <kraman@gmail.com> 0.2.5-1
 - Fixing F18 build of PHP v2 cartridge (kraman@gmail.com)
 - WIP Cartridge Refactor - Move PATH to /etc/openshift/env (jhonce@redhat.com)
