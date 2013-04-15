@@ -167,7 +167,7 @@ class V2CartModelTest < Test::Unit::TestCase
     @model.expects(:find_open_ip).with(8080).returns(ip1)
     @model.expects(:find_open_ip).with(9090).returns(ip2)
 
-    @model.expects(:address_bound?).returns(false).times(5)
+    @model.expects(:addresses_bound?).returns(false)
 
     @user.expects(:add_env_var).with("OPENSHIFT_MOCK_EXAMPLE_IP1", ip1)
     @user.expects(:add_env_var).with("OPENSHIFT_MOCK_EXAMPLE_PORT1", 8080)
@@ -178,6 +178,23 @@ class V2CartModelTest < Test::Unit::TestCase
     @user.expects(:add_env_var).with("OPENSHIFT_MOCK_EXAMPLE_PORT5", 9091)
 
     @model.create_private_endpoints(@mock_cartridge)
+  end
+
+  def test_private_endpoint_create_binding_failure
+    ip1 = "127.0.250.1"
+    ip2 = "127.0.250.2"
+
+    @model.expects(:find_open_ip).with(8080).returns(ip1)
+    @model.expects(:find_open_ip).with(9090).returns(ip2)
+
+    @user.expects(:add_env_var).times(7)
+
+    @model.expects(:addresses_bound?).returns(true)
+    @model.expects(:address_bound?).returns(true).times(5)
+
+    assert_raise(RuntimeError) do
+      @model.create_private_endpoints(@mock_cartridge)
+    end
   end
 
   def test_private_endpoint_delete
@@ -199,8 +216,7 @@ class V2CartModelTest < Test::Unit::TestCase
   # where no other IPs are allocated to any carts in a gear.
   def test_find_open_ip_success
     @model.expects(:get_allocated_private_ips).returns([])
-    @model.expects(:address_bound?).returns(false)
-
+    
     assert_equal "127.10.190.129", @model.find_open_ip(8080)
   end
 
@@ -209,20 +225,7 @@ class V2CartModelTest < Test::Unit::TestCase
   def test_find_open_ip_already_allocated
     @model.expects(:get_allocated_private_ips).returns(["127.10.190.129"])
 
-    @model.expects(:address_bound?).returns(false)
-
     assert_equal "127.10.190.130", @model.find_open_ip(8080)
-  end
-
-  # Verifies that nil is returned from find_open_ip when all requested ports are
-  # already bound on all possible IPs.
-  def test_find_open_ip_all_previously_bound
-    @model.expects(:get_allocated_private_ips).returns([])
-
-    # Simulate an lsof call indicating the IP/port is already bound
-    @model.expects(:address_bound?).returns(true).at_least_once
-
-    assert_nil @model.find_open_ip(8080)
   end
 
   # Verifies that nil is returned from find_open_ip when all possible IPs
@@ -235,9 +238,6 @@ class V2CartModelTest < Test::Unit::TestCase
     allocated_array.expects(:include?).returns(true).at_least_once
 
     @model.expects(:get_allocated_private_ips).returns(allocated_array)
-
-    # Simulate an lsof call indicating the IP/port is available
-    @model.expects(:address_bound?).never
 
     assert_nil @model.find_open_ip(8080)
   end
