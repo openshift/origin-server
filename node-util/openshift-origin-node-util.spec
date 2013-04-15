@@ -1,6 +1,6 @@
 Summary:       Utility scripts for the OpenShift Origin broker
 Name:          openshift-origin-node-util
-Version: 1.7.4
+Version: 1.7.5
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -119,6 +119,10 @@ mv services/openshift-gears.service %{buildroot}/etc/systemd/system/openshift-ge
 /sbin/restorecon /usr/sbin/oo-restorer* || :
 
 %changelog
+* Mon Apr 15 2013 Adam Miller <admiller@redhat.com> 1.7.5-1
+- Ruby admin-ctl-gears-script to more efficiently manage dependency loading.
+  (rmillner@redhat.com)
+
 * Sat Apr 13 2013 Krishna Raman <kraman@gmail.com> 1.7.4-1
 - Merge pull request #2066 from sosiouxme/nodescripts20130413
   (dmcphers+openshiftbot@redhat.com)
