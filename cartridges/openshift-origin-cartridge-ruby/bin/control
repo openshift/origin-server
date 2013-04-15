@@ -135,7 +135,7 @@ function threaddump() {
       exit
   fi
 
-  result=`${OPENSHIFT_RUBY_DIR}/bin/threaddump $OPENSHIFT_APP_NAME $OPENSHIFT_GEAR_UUID`
+  result=$(_threaddump $OPENSHIFT_GEAR_UUID)
 
   if [ "$result" = "" ]; then
       DATE=`date -u '+%Y%m%d'`
@@ -149,6 +149,34 @@ function threaddump() {
 
 }
 
+function _threaddump() {
+
+  if [ $# -ne 1 ]
+  then
+      echo "Usage: $0 UUID"
+      exit 1
+  fi
+
+  PID=$(ps -u $(id -u $1) -o pid,command | grep -v grep | grep 'Rack:.*'$1 | awk 'BEGIN {FS=" "}{print $1}')
+
+  if [ "$PID" = "" ]; then
+      _state_file=${OPENSHIFT_HOMEDIR}/app-root/runtime/.state
+      _state=unknown
+      if [ -f "$_state_file" ]; then
+          _state=`cat "$_state_file"`
+      fi
+
+      if [ -f ${OPENSHIFT_RUBY_DIR}/run/stop_lock -o stopped = "$_state" ]; then
+          echo "Application is stopped.  You must start the application and access it by its URL (http://${OPENSHIFT_GEAR_DNS}) before you can take a thread dump."
+      else
+          echo "Application is inactive. Ruby/Rack applications must be accessed by their URL (http://${OPENSHIFT_GEAR_DNS}) before you can take a thread dump."
+      fi
+  else 
+      if ! kill -s ABRT $PID; then
+        echo "Failed to signal application. Please retry after restarting application and access it by its URL (http://${OPENSHIFT_GEAR_DNS})"
+      fi
+  fi
+}
 
 case "$1" in
   start)     start ;;
