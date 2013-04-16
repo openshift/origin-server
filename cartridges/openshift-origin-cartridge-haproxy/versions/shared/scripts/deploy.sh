@@ -1,10 +1,10 @@
 #!/bin/bash
 
 # Import Environment Variables
-for f in ~/.env/*
-do
-    . $f
-done
+#for f in ~/.env/*
+#do
+#    . $f
+#done
 
 source /etc/openshift/node.conf
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util

@@ -2,7 +2,6 @@
 set -xe
 
 version=$1
-cartridge_type="python-$version"
 
 #  Source in the utility functions.
 source "${OPENSHIFT_PYTHON_DIR}/versions/$version/lib/utils"
@@ -22,7 +21,7 @@ extract_package_files "${download_dir}/opt" "${OPENSHIFT_PYTHON_DIR}/opt"
 
 #  Add the python cartridge environment variables.
 egg_cache_dir="${OPENSHIFT_PYTHON_DIR}/virtenv/.python-eggs"
-echo "export PYTHON_EGG_CACHE='$egg_cache_dir'" > "$OPENSHIFT_PYTHON_DIR/env/PYTHON_EGG_CACHE"
+echo "$egg_cache_dir" > "$OPENSHIFT_PYTHON_DIR/env/PYTHON_EGG_CACHE"
 
 #  Create the virtualenv.
 create_virtualenv

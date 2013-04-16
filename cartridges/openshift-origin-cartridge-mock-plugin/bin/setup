@@ -23,7 +23,7 @@ function error_exit {
 if [[ -n "$version" ]]; then
   echo "Creating version marker for $version"
   echo "$version" > $MOCK_STATE/setup_version
-  echo "export OPENSHIFT_MOCK_PLUGIN_VERSION=\'$version\'" > $OPENSHIFT_MOCK_PLUGIN_DIR/env/OPENSHIFT_MOCK_PLUGIN_VERSION
+  echo "$version" > $OPENSHIFT_MOCK_PLUGIN_DIR/env/OPENSHIFT_MOCK_PLUGIN_VERSION
 else
   echo "Skipping version creation marker."
 fi
