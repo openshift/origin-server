@@ -5,7 +5,7 @@
 
 Summary:       Provides JBossAS7 support
 Name:          openshift-origin-cartridge-jbossas
-Version: 	   1.0.6
+Version: 	   1.0.7
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -88,6 +88,10 @@ cp -p %{cartridgedir}/versions/7.1/modules/postgresql_module.xml /etc/alternativ
 
 
 %changelog
+* Tue Apr 16 2013 Troy Dawson <tdawson@redhat.com> 1.0.7-1
+- Setting mongodb connection hooks to use the generic nosqldb name
+  (calfonso@redhat.com)
+
 * Mon Apr 15 2013 Adam Miller <admiller@redhat.com> 1.0.6-1
 - V2 action hook cleanup (ironcladlou@gmail.com)
 - WIP Cartridge Refactor - Move PATH to /etc/openshift/env (jhonce@redhat.com)
