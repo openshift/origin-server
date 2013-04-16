@@ -16,7 +16,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.7.27
+Version: 1.7.28
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -284,6 +284,28 @@ fi
 %attr(0755,-,-) /etc/cron.monthly/openshift-origin-cron-monthly
 
 %changelog
+* Tue Apr 16 2013 Troy Dawson <tdawson@redhat.com> 1.7.28-1
+- Merge pull request #2091 from rmillner/fixselinux
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #2095 from jwhonce/bug/952408
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #2096 from pmorie/bugs/949425
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 951994 - Underlying ruby selinux library appears to be unstable.  Rewrite
+  to call the command line. (rmillner@redhat.com)
+- Fix bug 949425 949426 952096 (pmorie@gmail.com)
+- Add more information to the EINVAL errors. (rmillner@redhat.com)
+- WIP Cartridge Refactor - V2 support for reading .uservars (jhonce@redhat.com)
+- Merge pull request #2084 from pmorie/dev/trap_user
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 952408 - Node filters threaddump calls (jhonce@redhat.com)
+- Merge pull request #2077 from ironcladlou/dev/profiling (dmcphers@redhat.com)
+- Merge pull request #2005 from dvusboy/master
+  (dmcphers+openshiftbot@redhat.com)
+- Add uservars directory to Environ.for_gear (pmorie@gmail.com)
+- Optimize private endpoint creation (ironcladlou@gmail.com)
+- provision for supplementary groups (sakrishnamurthy@corp.ebay.com)
+
 * Mon Apr 15 2013 Adam Miller <admiller@redhat.com> 1.7.27-1
 - doc updates (dmcphers@redhat.com)
 - Ruby admin-ctl-gears-script to more efficiently manage dependency loading.
