@@ -5,41 +5,18 @@
 # Type should generally be openshift_var_lib_t
 # MCS should be s0:c$UID-499  so UID500 has a mcs of s0:c1
 
-require 'etc'
 require 'rubygems'
-require 'openshift-origin-common'
+require 'openshift-origin-node'
 
-node_conf = OpenShift::Config.new('/etc/openshift/node.conf')
-home_dirs = Dir.glob(File.join(node_conf.get("GEAR_BASE_DIR"), "*"))
 
 debug=1
 
-def get_mcs_level(uid)
-  setsize=1023
-  tier=setsize
-  ord=uid
-  while ord > tier
-    ord -= tier
-    tier -= 1
-  end
-  tier = setsize - tier
-  "s0:c#{tier},c#{ord + tier}"
-end
+UnixUser.all_users.each do |user|
+  mcs_label = OpenShift::Utils::SELinux.get_mcs_label(user.uid)
 
-home_dirs.each do |home_dir|
-    next if File.symlink? home_dir
-    if File.directory? home_dir
-        begin
-            username = home_dir.split('/')[-1]
-            user = Etc.getpwnam(username)
-            mcs_level = get_mcs_level(user.uid)
-            puts "restorecon -R #{home_dir}" if debug
-            puts "chcon -l #{mcs_level} -R #{home_dir}/*" if debug
-            %x[restorecon -R #{home_dir} ]
-            %x[chcon -l #{mcs_level} -R #{home_dir}/* ]
-        rescue ArgumentError
-            puts "Warning: #{home_dir} is not owned by #{user} - #{$!}"
-        end
-    end
+  # Use case not a good match for the SELinux module's file methods
+  puts "restorecon -R #{user.homedir}" if debug
+  puts "chcon -l #{mcs_label} -R #{user.homedir}/*" if debug
+  %x[restorecon -R #{user.homedir} ]
+  %x[chcon -l #{mcs_label} -R #{user.homedir}/* ]
 end
-
