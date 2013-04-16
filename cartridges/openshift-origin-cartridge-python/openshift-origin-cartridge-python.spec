@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/openshift/cartridges/v2/python
 
 Name: openshift-origin-cartridge-python
-Version: 0.2.8
+Version: 0.2.9
 Release: 1%{?dist}
 Summary: Python cartridge
 Group: Development/Languages
@@ -73,6 +73,13 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Tue Apr 16 2013 Troy Dawson <tdawson@redhat.com> 0.2.9-1
+- Merge pull request #2090 from mrunalp/dev/python_cleanup
+  (dmcphers@redhat.com)
+- Cleanup python cart. (mrunalp@gmail.com)
+- Setting mongodb connection hooks to use the generic nosqldb name
+  (calfonso@redhat.com)
+
 * Mon Apr 15 2013 Adam Miller <admiller@redhat.com> 0.2.8-1
 - V2 action hook cleanup (ironcladlou@gmail.com)
 
