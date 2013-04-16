@@ -1,6 +1,6 @@
 Summary:       Utility scripts for the OpenShift Origin broker
 Name:          openshift-origin-node-util
-Version: 1.7.5
+Version: 1.7.6
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -119,6 +119,16 @@ mv services/openshift-gears.service %{buildroot}/etc/systemd/system/openshift-ge
 /sbin/restorecon /usr/sbin/oo-restorer* || :
 
 %changelog
+* Tue Apr 16 2013 Troy Dawson <tdawson@redhat.com> 1.7.6-1
+- Merge pull request #2093 from rmillner/BZ952247
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 952247 - Check the new front-end Apache configuration for missing/deleted
+  gears. (rmillner@redhat.com)
+- Bug 950711 - Apps taking longer than 120s fail to restore; bump to 200s to
+  cover the few apps affected. (rmillner@redhat.com)
+- <oo-restore> Bug 949251 - forgot to add actual oo-restore fix
+  (jolamb@redhat.com)
+
 * Mon Apr 15 2013 Adam Miller <admiller@redhat.com> 1.7.5-1
 - Ruby admin-ctl-gears-script to more efficiently manage dependency loading.
   (rmillner@redhat.com)
