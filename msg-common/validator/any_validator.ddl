@@ -3,5 +3,5 @@ metadata    :name        => "Any",
             :author      => "Dan McPherson <dmcphers@redhat.com>",
             :license     => "ASL 2.0",
             :version     => "1.0",
-            :url         => "http://openshift.redhat.com",
+            :url         => "http://www.openshift.com",
             :timeout     => 1
