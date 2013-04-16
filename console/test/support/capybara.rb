@@ -26,11 +26,11 @@ if defined? Capybara
     if debug.nil?
       {}
     elsif debug.start_with? '/'
-      log = File.open(debug, 'a')
+      CAPYBARA_LOG = File.open(debug, 'a')
       {
         :debug => true,
-        :logger => log,
-        :phantomjs_logger => log,
+        :logger => CAPYBARA_LOG,
+        :phantomjs_logger => CAPYBARA_LOG,
       }
     else
       {
@@ -57,7 +57,15 @@ if defined? Capybara
   class ActionDispatch::IntegrationTest
     include Capybara::DSL
     def self.web_integration
-      setup{ Capybara.current_driver = Capybara.javascript_driver }
+      setup do 
+        Capybara.current_driver = Capybara.javascript_driver
+        if CAPYBARA_LOG 
+          CAPYBARA_LOG.puts
+          CAPYBARA_LOG.puts '-' * 40
+          CAPYBARA_LOG.puts "BEGIN #{"#{self.class}#{__name__}".parameterize}_#{DateTime.now.strftime("%Y%m%d%H%M%S%L")}"
+          CAPYBARA_LOG.puts
+         end
+      end
       teardown{ save_screenshot("#{ENV['TEST_SCREENSHOT_DIR']}#{"#{self.class}#{__name__}".parameterize}_#{DateTime.now.strftime("%Y%m%d%H%M%S%L")}.png") unless passed? }
     end
   end
