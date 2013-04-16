@@ -18,6 +18,8 @@ for dir in etc metadata template; do
     cp -Lr $OPENSHIFT_RUBY_DIR/versions/$version/$dir/* $OPENSHIFT_RUBY_DIR/$dir 
 done
 
+mkdir $OPENSHIFT_HOMEDIR/.gem
+
 cat > $OPENSHIFT_RUBY_DIR/env/OPENSHIFT_RUBY_VERSION <<EOF
 export OPENSHIFT_RUBY_VERSION='$version'
 EOF
