@@ -9,7 +9,7 @@
 
 Summary:       OpenShift plugin for mcollective service
 Name:          rubygem-%{gem_name}
-Version: 1.7.3
+Version: 1.7.4
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -80,6 +80,13 @@ cp %{buildroot}/%{gem_dir}/gems/%{gem_name}-%{version}/conf/openshift-origin-msg
 %attr(0644,-,-) %ghost /etc/mcollective/client.cfg
 
 %changelog
+* Tue Apr 16 2013 Troy Dawson <tdawson@redhat.com> 1.7.4-1
+- Merge pull request #2079 from pravisankar/dev/ravi/fix_move_gear
+  (dmcphers@redhat.com)
+- Fixing issue where app creation failure did not cleanup gears from node
+  (abhgupta@redhat.com)
+- Move gear within district should ignore its source server (rpenta@redhat.com)
+
 * Wed Apr 10 2013 Adam Miller <admiller@redhat.com> 1.7.3-1
 - Change 'allow_change_district' to 'change_district' and remove warnings when
   target server or district is specified. Fix start/stop carts order in move
