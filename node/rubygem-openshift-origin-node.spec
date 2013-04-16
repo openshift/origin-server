@@ -113,7 +113,7 @@ do
     %{httxt2dbm} -f DB -i "${mapf}.txt" -o "${mapf}.db"
 done
 
-for map in routes
+for map in routes geardb
 do
     mapf="%{buildroot}%{appdir}/.httpd.d/${map}"
     echo '{}' > "${mapf}.json"
@@ -248,6 +248,7 @@ fi
 %dir %attr(0755,-,-) %{appdir}
 %dir %attr(0750,root,apache) %{appdir}/.httpd.d
 %attr(0640,root,apache) %config(noreplace) %{appdir}/.httpd.d/routes.json
+%attr(0640,root,apache) %config(noreplace) %{appdir}/.httpd.d/geardb.json
 %attr(0640,root,apache) %config(noreplace) %{appdir}/.httpd.d/nodes.txt
 %attr(0640,root,apache) %config(noreplace) %{appdir}/.httpd.d/aliases.txt
 %attr(0640,root,apache) %config(noreplace) %{appdir}/.httpd.d/idler.txt
