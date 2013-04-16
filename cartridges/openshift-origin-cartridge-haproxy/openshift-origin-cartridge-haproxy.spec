@@ -6,7 +6,7 @@
 %global frameworkdir %{_libexecdir}/openshift/cartridges/v2/haproxy
 
 Name:          openshift-origin-cartridge-haproxy
-Version: 0.2.9
+Version: 0.2.10
 Release:       1%{?dist}
 Summary:       Provides HA Proxy
 Group:         Network/Daemons
@@ -58,6 +58,9 @@ rm -rf %{buildroot}
 %doc %{cartridgedir}/README.md
 
 %changelog
+* Tue Apr 16 2013 Troy Dawson <tdawson@redhat.com> 0.2.10-1
+- Fix bug 927850 (pmorie@gmail.com)
+
 * Sun Apr 14 2013 Dan McPherson <dmcphers@redhat.com> 0.2.9-1
 - 
 
