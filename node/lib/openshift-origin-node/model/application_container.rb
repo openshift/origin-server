@@ -752,7 +752,7 @@ module OpenShift
     end
 
     def extract_restore_archive(transforms, restore_git_repo, gear_env)
-      includes = %w(./*/*/data)
+      includes = %w(./*/app-root/data)
       excludes = %w(./*/app-root/runtime/data)
       transforms << 's|${OPENSHIFT_GEAR_NAME}/data|app-root/data|'
       transforms << 's|git/.*\.git|git/${OPENSHIFT_GEAR_NAME}.git|'
