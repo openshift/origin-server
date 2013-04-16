@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/openshift/cartridges/v2/perl
 
 Name: openshift-origin-cartridge-perl
-Version: 0.2.8
+Version: 0.2.9
 Release: 1%{?dist}
 Summary: Perl cartridge
 Group: Development/Languages
@@ -71,6 +71,11 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Tue Apr 16 2013 Troy Dawson <tdawson@redhat.com> 0.2.9-1
+- Bug 947356 - Add Requires gd-devel (jhonce@redhat.com)
+- Setting mongodb connection hooks to use the generic nosqldb name
+  (calfonso@redhat.com)
+
 * Mon Apr 15 2013 Adam Miller <admiller@redhat.com> 0.2.8-1
 - Bug 952041 - Add support for tidy to DIY and PHP cartridges
   (jhonce@redhat.com)
