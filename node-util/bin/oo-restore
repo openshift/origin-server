@@ -9,5 +9,5 @@ if [ -f '.env/CARTRIDGE_VERSION_2' ]; then
     gear restore
   fi
 else
-  restore.sh
+  restore.sh "$@"
 fi
