@@ -5,10 +5,6 @@ Repo layout
 tmp/ - Temporary storage
 public/ - Content (images, css, etc. available to the public)
 config.ru - This file is used by Rack-based servers to start the application.
-.openshift/action_hooks/pre_build - Script that gets run every git push before the build
-.openshift/action_hooks/build - Script that gets run every git push as part of the build process (on the CI system if available)
-.openshift/action_hooks/deploy - Script that gets run every git push after build but before the app is restarted
-.openshift/action_hooks/post_deploy - Script that gets run every git push after the app is restarted
 
 Notes about layout
 ==================
@@ -60,8 +56,7 @@ Example for MongoDB:
     ENV['OPENSHIFT_MONGODB_DB_USERNAME']  - NoSQL DB Username
     ENV['OPENSHIFT_MONGODB_DB_PASSWORD']  - NoSQL DB Password
 
-To get a full list of environment variables, simply add a line in your
-.openshift/action_hooks/build script that says "export" and push.
+To get a full list of environment variables, consult the OpenShift documentation.
 
 
 Notes about layout
@@ -82,5 +77,3 @@ downloaded dependencies as a starting point, so additional downloads will be a d
 Option 2) Git add your .bundle and vendor/bundle directories after running
 'bundle install --deployment' locally.  Be sure to exclude any gems that have native 
 code or ensure they can run on RHEL x86_64.
-
-
