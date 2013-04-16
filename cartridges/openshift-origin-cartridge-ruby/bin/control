@@ -129,10 +129,44 @@ function post-deploy() {
 }
 
 function threaddump() {
-  # to be determined
-  true
+  if [ "$OPENSHIFT_GEAR_UUID" != "$OPENSHIFT_APP_UUID" ]
+  then
+      client_error "The threaddump command is not supported on scalable applications."
+      exit
+  fi
+
+  result=$(_threaddump $OPENSHIFT_GEAR_UUID)
+
+  if [ "$result" = "" ]; then
+      DATE=`date -u '+%Y%m%d'`
+      client_result "Success"
+      client_result ""
+      # note bz 923405/921537 for why log file name is not more specific
+      client_result "The thread dump file will be available via: rhc tail ${OPENSHIFT_APP_NAME} -f \"${OPENSHIFT_RUBY_LOG_DIR}/error_log-$DATE-* -o '-n 250'\""
+  else
+      client_result " $result"
+  fi
+
 }
 
+function _threaddump() {
+
+  if [ $# -ne 1 ]
+  then
+      echo "Usage: $0 UUID"
+      exit 1
+  fi
+
+  PID=$(ps -u $(id -u $1) -o pid,command | grep -v grep | grep 'Rack:.*'$1 | awk 'BEGIN {FS=" "}{print $1}')
+
+  if [ ! "$PID" = "" ]; then
+    echo "Unable to detect application PID. Check the application's availability by accessing http://${OPENSHIFT_GEAR_DNS}"
+  else
+    if ! kill -s ABRT $PID; then
+      echo "Failed to signal application. Please retry after restarting application and access it by its URL (http://${OPENSHIFT_GEAR_DNS})"
+    fi
+  fi
+}
 
 case "$1" in
   start)     start ;;
