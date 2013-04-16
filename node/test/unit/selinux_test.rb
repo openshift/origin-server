@@ -18,13 +18,31 @@
 # Test the OpenShift selinux utilities
 #
 require 'test_helper'
-require 'selinux'
 require 'openshift-origin-node/utils/selinux'
+require 'openshift-origin-node/utils/shell_exec'
+require 'openshift-origin-node/utils/environ'
+require 'openshift-origin-node/utils/node_logger'
 require 'test/unit'
 require 'mocha'
 
 class SELinuxUtilsTest < Test::Unit::TestCase
-  # Use a precomputed static table to be sure these are correct.
+
+  def setup
+    @config_mock = mock('OpenShift::Config')
+    @config_mock.stubs(:get).returns(nil)
+    OpenShift::Config.stubs(:new).returns(@config_mock)
+  end
+
+  def teardown
+  end
+
+  def test_mcs_labels
+    labelset = OpenShift::Utils::SELinux.mcs_labels.to_a
+    assert_equal 523776, labelset.length
+    assert_equal [1, "s0:c0,c1"], labelset[0]
+    assert_equal [523776, "s0:c1022,c1023"], labelset[-1]
+  end
+
   def test_mcs_label
     scenarios = [
                  [500,    "s0:c0,c500"],
@@ -49,29 +67,60 @@ class SELinuxUtilsTest < Test::Unit::TestCase
     end
 
     def test_set_mcs_label
+      pathargs="foo bar baz"
+      label="s0:c0,c1,c2,c3,c4,c5,c6,c7,c8"
+      OpenShift::Utils::SELinux.expects(:call_selinux_cmd).with("/sbin/restorecon #{pathargs}; /usr/bin/chcon -l #{label} #{pathargs}").returns("").twice
+      assert_equal "", OpenShift::Utils::SELinux.set_mcs_label(label, "foo", "bar", "baz")
+      assert_equal "", OpenShift::Utils::SELinux.set_mcs_label(label, [ "foo", "bar", "baz" ])
     end
 
     def test_set_mcs_label_R
+      pathargs="foo bar baz"
+      label="s0:c0,c1,c2,c3,c4,c5,c6,c7,c8"
+      OpenShift::Utils::SELinux.expects(:call_selinux_cmd).with("/sbin/restorecon -R #{pathargs}; /usr/bin/chcon -R -l #{label} #{pathargs}").returns("").twice
+      assert_equal "", OpenShift::Utils::SELinux.set_mcs_label_R(label, "foo", "bar", "baz")
+      assert_equal "", OpenShift::Utils::SELinux.set_mcs_label_R(label, [ "foo", "bar", "baz" ])
     end
 
     def test_clear_mcs_label
+      pathargs="foo bar baz"
+      OpenShift::Utils::SELinux.expects(:call_selinux_cmd).with("/sbin/restorecon -F #{pathargs}").returns("").twice
+      assert_equal "", OpenShift::Utils::SELinux.clear_mcs_label("foo", "bar", "baz")
+      assert_equal "", OpenShift::Utils::SELinux.clear_mcs_label([ "foo", "bar", "baz" ])
     end
 
     def test_clear_mcs_label_R
-    end
-
-    def test_set_mcs_label_single
+      pathargs="foo bar baz"
+      OpenShift::Utils::SELinux.expects(:call_selinux_cmd).with("/sbin/restorecon -R -F #{pathargs}").returns("").twice
+      assert_equal "", OpenShift::Utils::SELinux.clear_mcs_label("foo", "bar", "baz")
+      assert_equal "", OpenShift::Utils::SELinux.clear_mcs_label([ "foo", "bar", "baz" ])
     end
 
     def test_context_from_defaults
+      assert_equal "unconfined_u:system_r:openshift_t:s0", OpenShift::Utils::SELinux.context_from_defaults()
+      assert_equal "unconfined_u:system_r:openshift_t:foo", OpenShift::Utils::SELinux.context_from_defaults("foo")
+      assert_equal "unconfined_u:system_r:bar:foo", OpenShift::Utils::SELinux.context_from_defaults("foo", "bar")
+      assert_equal "unconfined_u:baz:bar:foo", OpenShift::Utils::SELinux.context_from_defaults("foo", "bar", "baz")
+      assert_equal "boing:baz:bar:foo", OpenShift::Utils::SELinux.context_from_defaults("foo", "bar", "baz", "boing")
     end
 
     def test_getcon
-      test_context = "foo_u:bar_r:baz_t:s100:c1,c2,c3,c4"
+      File.expects(:read).with("/proc/#{$$}/attr/current").returns("boing:baz:bar:foo\n\n\n").once
+      assert_equal "boing:baz:bar:foo", OpenShift::Utils::SELinux.getcon
+    end
 
-      Selinux.expects(:getcon).returns([0, test_context])
+    def test_call_selinux_cmd_success
+      OpenShift::NodeLogger.logger.expects(:debug).never
+      OpenShift::Utils.stubs(:oo_spawn).returns(["OUT", "ERR", 0]).once
+      assert_equal "OUTERR", OpenShift::Utils::SELinux.call_selinux_cmd("foo")
+    end
 
-      assert_equal test_context OpenShift::Utils::SELinux.getcon
+    def test_call_selinux_cmd_fail
+      OpenShift::NodeLogger.logger.expects(:debug).once
+      OpenShift::Utils.stubs(:oo_spawn).raises(OpenShift::Utils::ShellExecutionException.new('error')).once
+      assert_raises RuntimeError do
+        OpenShift::Utils::SELinux.call_selinux_cmd("bar")
+      end
     end
 
   end
