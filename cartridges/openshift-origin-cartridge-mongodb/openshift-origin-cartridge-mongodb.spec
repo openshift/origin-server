@@ -58,7 +58,6 @@ rm -rf %{buildroot}
 %{_sysconfdir}/openshift/cartridges/v2/%{name}
 %{cartridgedir}/metadata/manifest.yml
 %doc %{cartridgedir}/README.md
-%doc %{cartridgedir}/README
 %doc %{cartridgedir}/COPYRIGHT
 %doc %{cartridgedir}/LICENSE
 

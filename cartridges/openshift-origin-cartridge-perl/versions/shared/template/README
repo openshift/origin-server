@@ -6,11 +6,6 @@ perl/ - Externally exposed perl code goes here
 libs/ - Additional libraries
 misc/ - For not-externally exposed perl code
 deplist.txt - A list of perl modules required to run
-.openshift/action_hooks/pre_build   - Script that gets run every git push before the build
-.openshift/action_hooks/build       - Script that gets run every git push as part of the build process
-                                      (on the CI system if available)
-.openshift/action_hooks/deploy      - Script that gets run every git push after build but before the app is restarted
-.openshift/action_hooks/post_deploy - Script that gets run every git push after the app is restarted
 
 Notes about layout
 ==================
@@ -38,8 +33,7 @@ variables for username, host and password:
     $ENV{'OPENSHIFT_MYSQL_DB_USERNAME'}  - DB Username
     $ENV{'OPENSHIFT_MYSQL_DB_PASSWORD'}  - DB Password
 
-To get a full list of environment variables, simply add a line in your
-.openshift/action_hooks/build script that says "export" and push.
+To get a full list of environment variables, consult the OpenShift documentation.
 
 
 Notes about layout
@@ -57,9 +51,3 @@ deplist.txt
 
 Adding module names to deplist.txt causes your remote OpenShift node to download
 the required modules and install them.
-
-
-Additional information
-======================
-
-Link to additional information will be here, when we have it :)

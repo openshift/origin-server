@@ -6,11 +6,6 @@ php/ - Externally exposed PHP code goes here
 libs/ - Additional libraries
 misc/ - For PHP code that should not be accessible by end users
 deplist.txt - list of pears to install
-.openshift/action_hooks/pre_build - Script that gets run every git push before the build
-.openshift/action_hooks/build - Script that gets run every git push as part of the build process (on the CI system if available)
-.openshift/action_hooks/deploy - Script that gets run every git push after build but before the app is restarted
-.openshift/action_hooks/post_deploy - Script that gets run every git push after the app is restarted
-
 
 Notes about layout
 ==================
@@ -50,8 +45,7 @@ Example for MongoDB:
     $_ENV['OPENSHIFT_MONGODB_DB_USERNAME']  - NoSQL DB Username
     $_ENV['OPENSHIFT_MONGODB_DB_PASSWORD']  - NoSQL DB Password
 
-To get a full list of environment variables, simply add a line in your
-.openshift/action_hooks/build script that says "export" and push.
+To get a full list of environment variables, consult the OpenShift documentation.
 
 
 deplist.txt
@@ -59,9 +53,3 @@ deplist.txt
 
 A list of pears to install, line by line on the server.  This will happen when
 the user git pushes.
-
-
-Additional information
-======================
-
-Link to additional information will be here, when we have it :)
