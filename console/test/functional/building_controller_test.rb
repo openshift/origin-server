@@ -1,5 +1,4 @@
 require File.expand_path('../../test_helper', __FILE__)
-require 'mocha'
 
 class BuildingControllerTest < ActionController::TestCase
 

@@ -4,7 +4,10 @@ unless defined? Rails.application
   ENV["RAILS_ENV"] = "test"
 
   require File.expand_path("../rails_app/config/environment.rb",  __FILE__)
+  require 'minitest/autorun'
   require "rails/test_help"
+  require 'webmock/minitest'
+  WebMock.allow_net_connect!
 end
 
 Rails.backtrace_cleaner.remove_silencers!
