@@ -19,12 +19,19 @@ $ ->
     errorClass:   'help-inline'
     errorElement: 'p'
     highlight: (element,errorClass,validClass) ->
-      $(find_control_group_parent(element)).addClass('error').addClass('error-client').removeClass(validClass)
+      $el = find_control_group_parent(element)
+      if el = $el.get(0)
+        el.highlighted ||= []
+        el.highlighted.unshift(element.id)
+      $el.addClass('error').addClass('error-client').removeClass(validClass)
     unhighlight: (element,errorClass,validClass) ->
-      $el = $(find_control_group_parent(element))
-      $el.removeClass('error-client')
-      if typeof($el.attr('data-server-error')) == 'undefined'
-        $el.removeClass('error')
+      $el = find_control_group_parent(element)
+      if el = $el.get(0)
+        el.highlighted = $.grep (el.highlighted || []), (i) -> i != element.id
+        if el.highlighted.length == 0
+          $el.removeClass('error-client')
+          if typeof($el.attr('data-server-error')) == 'undefined'
+            $el.removeClass('error')
 
   $("[data-unhide]").click (event) ->
     src = $(this)
