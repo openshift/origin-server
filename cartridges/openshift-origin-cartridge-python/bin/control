@@ -1,4 +1,3 @@
 #!/bin/bash -e
 
-$OPENSHIFT_PYTHON_DIR/versions/$OPENSHIFT_PYTHON_VERSION/bin/control "$@"
-exit 0
+exec $OPENSHIFT_PYTHON_DIR/versions/$OPENSHIFT_PYTHON_VERSION/bin/control "$@"
