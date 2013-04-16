@@ -67,7 +67,7 @@ fi
 # code copied from node/lib/util_ext
 runuser --shell /bin/sh "$uuid" -c "echo started >$OPENSHIFT_HOMEDIR/app-root/runtime/.state"
 
-/usr/bin/timeout -s USR1 120s /usr/sbin/oo-admin-ctl-gears startgear "${uuid}"
+/usr/bin/timeout -s USR1 200s /usr/sbin/oo-admin-ctl-gears startgear "${uuid}"
 
 # Enable proxy setup
 oo-ruby /usr/bin/oo-frontend-unidle --with-container-uuid $uuid
