@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/openshift/cartridges/v2/diy
 
 Name: openshift-origin-cartridge-diy
-Version: 0.2.6
+Version: 0.2.7
 Release: 1%{?dist}
 Summary: DIY cartridge
 Group: Development/Languages
@@ -57,6 +57,10 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Tue Apr 16 2013 Troy Dawson <tdawson@redhat.com> 0.2.7-1
+- Setting mongodb connection hooks to use the generic nosqldb name
+  (calfonso@redhat.com)
+
 * Mon Apr 15 2013 Adam Miller <admiller@redhat.com> 0.2.6-1
 - Bug 952041 - Add support for tidy to DIY and PHP cartridges
   (jhonce@redhat.com)
