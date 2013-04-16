@@ -3,7 +3,7 @@
 
 Summary:       Provides Node.js support
 Name:          openshift-origin-cartridge-nodejs
-Version: 1.8.7
+Version: 1.8.8
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -57,6 +57,10 @@ rm -rf %{buildroot}
 %doc %{cartridgedir}/README.md
 
 %changelog
+* Tue Apr 16 2013 Troy Dawson <tdawson@redhat.com> 1.8.8-1
+- Setting mongodb connection hooks to use the generic nosqldb name
+  (calfonso@redhat.com)
+
 * Mon Apr 15 2013 Adam Miller <admiller@redhat.com> 1.8.7-1
 - V2 action hook cleanup (ironcladlou@gmail.com)
 
