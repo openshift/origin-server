@@ -117,3 +117,60 @@ class ActionController::TestCase
     account_path
   end
 end
+
+class ActionDispatch::IntegrationTest
+  #
+  # Helper to reuse session cookies (and avoid login) in
+  # web sessions.
+  #
+  def with_user_session(sym, &block)
+    api_fetch(sym) do |cached|
+      if cached
+        set_user(cached[:user])
+        cached[:cookies].each do |(name,c)|
+          page.driver.remove_cookie(name)
+          page.driver.set_cookie(
+            name, 
+            c.value,
+            [:path, :expires].inject({}) do |h, sym| 
+              h[sym] = c.send(sym)
+              h
+            end
+          )
+        end
+        cached
+      else
+        yield
+        { 
+          :cookies => page.driver.cookies.map{ |name, c| [name, c.dup] },
+          :user => @user.dup
+        }
+      end
+    end
+  end
+
+  #
+  # Start a capybara session that reuses cookies
+  #
+  def with_logged_in_console_user
+    with_user_session(:logged_in_user_and_cookies) do
+      with_unique_user
+      visit_console_login
+    end
+  end
+
+  #
+  # Log the provided user into the console
+  #
+  def visit_console_login(user=@user)
+    visit login_path
+
+    assert page.has_content? "Sign in to OpenShift"
+    within "#login_form" do
+      fill_in 'Login', :with => user.login
+      fill_in 'Password', :with => user.password
+    end
+    click_button 'Sign in'
+  end
+
+end

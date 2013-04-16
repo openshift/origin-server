@@ -33,6 +33,7 @@ if defined? Capybara
         :phantomjs_logger => CAPYBARA_LOG,
       }
     else
+      CAPYBARA_LOG = STDOUT
       {
         :debug => true,
       }
@@ -59,7 +60,7 @@ if defined? Capybara
     def self.web_integration
       setup do 
         Capybara.current_driver = Capybara.javascript_driver
-        if CAPYBARA_LOG 
+        if defined? CAPYBARA_LOG 
           CAPYBARA_LOG.puts
           CAPYBARA_LOG.puts '-' * 40
           CAPYBARA_LOG.puts "BEGIN #{"#{self.class}#{__name__}".parameterize}_#{DateTime.now.strftime("%Y%m%d%H%M%S%L")}"
