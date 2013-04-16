@@ -212,7 +212,7 @@ module OpenShift
 
         output = nil
         exitcode = 0
-        if reply.length > 0
+        if reply and reply.length > 0
           mcoll_result = reply[0]
           if (mcoll_result && (defined? mcoll_result.results) && !mcoll_result.results[:data].nil?)
             output = mcoll_result.results[:data][:output]
@@ -258,7 +258,7 @@ module OpenShift
 
         output = nil
         exitcode = 0
-        if reply.length > 0
+        if reply and reply.length > 0
           mcoll_result = reply[0]
           if (mcoll_result && (defined? mcoll_result.results) && !mcoll_result.results[:data].nil?)
             output = mcoll_result.results[:data][:output]
@@ -397,12 +397,23 @@ module OpenShift
         (1..10).each do |i|                    
           args = build_base_gear_args(gear, quota_blocks, quota_files)
           mcoll_reply = execute_direct(@@C_CONTROLLER, 'app-create', args)
-          result = parse_result(mcoll_reply, gear)
-          if result.exitcode == 129 && has_uid_or_gid?(gear.uid) # Code to indicate uid already taken
-            destroy(gear, true)
-            inc_externally_reserved_uids_size
-            gear.uid = reserve_uid
-            app.save
+          
+          begin
+            result = parse_result(mcoll_reply, gear)
+          rescue OpenShift::OOException => ooex
+            # raise the exception if this is the last retry
+            raise ooex if i == 10
+            
+            result = ooex.resultIO
+            if result.exitcode == 129 && has_uid_or_gid?(gear.uid) # Code to indicate uid already taken
+              destroy(gear, true)
+              inc_externally_reserved_uids_size
+              gear.uid = reserve_uid
+              app.save
+            else
+              destroy(gear, true)
+              raise ooex
+            end
           else
             break
           end
