@@ -9,7 +9,7 @@
 
 Summary:       OpenShift Origin Management Console
 Name:          rubygem-%{gem_name}
-Version: 1.7.6
+Version: 1.7.7
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -134,6 +134,14 @@ cp -a ./%{gem_dir}/* %{buildroot}%{gem_dir}/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Tue Apr 16 2013 Troy Dawson <tdawson@redhat.com> 1.7.7-1
+- Merge pull request #2087 from smarterclayton/move_to_minitest
+  (dmcphers+openshiftbot@redhat.com)
+- Move to minitest 3.5.0, webmock 1.8.11, and mocha 0.12.10
+  (ccoleman@redhat.com)
+- Fix bug 950866 - highlight errors in grouped fields correctly
+  (jliggitt@redhat.com)
+
 * Fri Apr 12 2013 Adam Miller <admiller@redhat.com> 1.7.6-1
 - Bug 951367 (ffranz@redhat.com)
 - Merge pull request #2025 from smarterclayton/origin_ui_37_error_page
