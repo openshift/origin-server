@@ -813,7 +813,11 @@ module OpenShift
     end
 
     def threaddump(cart_name)
-      @cartridge_model.do_control("threaddump", cart_name)
+      unless State::STARTED == state.value
+        return "CLIENT_ERROR: Application is #{state.value}, must be #{State::STARTED} to allow a thread dump"
+      end
+
+      @cartridge_model.do_control('threaddump', cart_name)
     end
 
     def stop_lock?
