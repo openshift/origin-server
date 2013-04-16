@@ -127,7 +127,7 @@ module Console
 
       def error_list(errors, options = {}) #:nodoc:
         error_class = options[:error_class] || default_inline_error_class
-        template.content_tag(:p, errors.join(' ').untaint, :class => error_class)
+        template.content_tag(:p, errors.join('. ').untaint, :class => error_class)
       end
 
       def inputs(*args, &block)
