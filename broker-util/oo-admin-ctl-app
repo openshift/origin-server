@@ -155,10 +155,16 @@ begin
     app.group_instances.each do |gi|
       gi.gears.each do |g|
         if g._id.to_s == gear_uuid or g.uuid == gear_uuid
-          group_instance = gi
-          gear_id = g._id.to_s
-          found = true
-          break
+          if g.host_singletons
+            puts "Gear #{gear_uuid} hosts singleton components within its group instance. You cannot remove it."
+            puts "You can either remove the cartridge or delete the application."
+            exit 1
+          else  
+            group_instance = gi
+            gear_id = g._id.to_s
+            found = true
+            break
+          end
         end
       end
       break if found
