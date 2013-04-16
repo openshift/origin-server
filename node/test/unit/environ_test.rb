@@ -24,11 +24,13 @@ class EnvironTest < Test::Unit::TestCase
   # Called before every test method runs. Can be used
   # to set up fixture information.
   def setup
-    @uuid      = 'f5586d7e690e4a7ea71da1507d60c192'
-    @cart_name = 'mock-0.0'
-    @gear_env  = File.join('/tmp', @uuid, '.env')
-    @cart_env  = File.join('/tmp', @uuid, @cart_name, 'env')
+    @uuid         = 'f5586d7e690e4a7ea71da1507d60c192'
+    @cart_name    = 'mock-0.0'
+    @gear_env     = File.join('/tmp', @uuid, '.env')
+    @uservars_env = File.join('/tmp', @uuid, '.env', '.uservars')
+    @cart_env     = File.join('/tmp', @uuid, @cart_name, 'env')
     FileUtils.mkpath(@gear_env)
+    FileUtils.mkpath(@uservars_env)
     FileUtils.mkpath(@cart_env)
   end
 
@@ -45,6 +47,8 @@ class EnvironTest < Test::Unit::TestCase
     base = case where
            when :gear
              @gear_env
+           when :uservars
+             @uservars_env
            when :cart
              @cart_env
            end
@@ -103,14 +107,42 @@ class EnvironTest < Test::Unit::TestCase
   end
 
   # Verify can read a gear and cartridge environment variables
-  def test_two_directories
+  def test_gear_env_v2
+    OpenShift::Utils::Sdk.expects(:new_sdk_app?).returns(true)
+
     write_uuid
+    write_var(:uservars, 'OPENSHIFT_USERVAR', 'foo')
     write_var(:cart, 'OPENSHIFT_MOCK_IP', '127.0.0.666')
 
     # Ensure gear inherits cartridge variables
     OpenShift::Utils::Environ.for_gear(File.join('/tmp', @uuid)).tap do |env|
       assert_equal @uuid, env['OPENSHIFT_GEAR_UUID']
       assert_equal "127.0.0.666", env['OPENSHIFT_MOCK_IP']
+      assert_equal "foo", env['OPENSHIFT_USERVAR']
+      assert_nil env['OPENSHIFT_APP_NAME']
+    end
+
+    # Ensure cartridge inherits gear variables
+    OpenShift::Utils::Environ.for_cartridge(File.join('/tmp', @uuid, @cart_name)).tap do |env|
+      assert_equal @uuid, env['OPENSHIFT_GEAR_UUID']
+      assert_equal "127.0.0.666", env['OPENSHIFT_MOCK_IP']
+      assert_nil env['OPENSHIFT_APP_NAME']
+    end
+  end
+
+  # Verify can read a gear and cartridge environment variables
+  def test_gear_env_v1
+    OpenShift::Utils::Sdk.expects(:new_sdk_app?).returns(false)
+
+    write_uuid
+    write_var(:uservars, 'OPENSHIFT_USERVAR', 'foo', true)
+    write_var(:cart, 'OPENSHIFT_MOCK_IP', '127.0.0.666')
+
+    # Ensure gear inherits cartridge variables
+    OpenShift::Utils::Environ.for_gear(File.join('/tmp', @uuid)).tap do |env|
+      assert_equal @uuid, env['OPENSHIFT_GEAR_UUID']
+      assert_equal "127.0.0.666", env['OPENSHIFT_MOCK_IP']
+      assert_nil env['OPENSHIFT_USERVAR']
       assert_nil env['OPENSHIFT_APP_NAME']
     end
 
