@@ -23,9 +23,16 @@ module OpenShift
     PLUGINS_DIR = File.join(CONF_DIR, 'plugins.d/')
     NODE_CONF_FILE = File.join(CONF_DIR, 'node.conf')
 
+    @@conf_singleton = nil
+    @@conf_singleton_mtime = 0
+
     def initialize(conf_path=NODE_CONF_FILE)
       begin
-        @conf = ParseConfig.new(conf_path)
+        conf_mtime = File.stat(conf_path).mtime
+        if @@conf_singleton.nil? or (conf_mtime != @@conf_singleton_mtime)
+          @@conf_singleton = ParseConfig.new(conf_path)
+          @@conf_singleton_mtime = conf_mtime
+        end
       rescue Errno::EACCES => e
         puts "Could not open config file #{conf_path}: #{e.message}"
         exit 253
@@ -33,7 +40,7 @@ module OpenShift
     end
 
     def get(name, default=nil)
-      val = @conf[name]
+      val = @@conf_singleton[name]
       val = default.to_s if (val.nil? and !default.nil?)
       val.gsub!(/\\:/,":") if not val.nil?
       val.gsub!(/[ \t]*#[^\n]*/,"") if not val.nil?
