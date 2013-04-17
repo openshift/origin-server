@@ -38,6 +38,11 @@ Requires:      %{?scl:%scl_prefix}rubygem(simplecov)
 Requires:      %{?scl:%scl_prefix}rubygem(test-unit)
 Requires:      %{?scl:%scl_prefix}rubygem(uglifier)
 Requires:      %{?scl:%scl_prefix}rubygem(webmock)
+Requires:      %{?scl:%scl_prefix}rubygem(poltergeist)
+Requires:      %{?scl:%scl_prefix}rubygem(konacha)
+Requires:      %{?scl:%scl_prefix}rubygem(minitest)
+Requires:      %{?scl:%scl_prefix}rubygem(rspec-core)
+
 BuildRequires: %{?scl:%scl_prefix}build
 BuildRequires: scl-utils-build
 BuildRequires: %{?scl:%scl_prefix}rubygem(rails)
@@ -53,6 +58,11 @@ BuildRequires: %{?scl:%scl_prefix}rubygem(formtastic)
 BuildRequires: %{?scl:%scl_prefix}rubygem(net-http-persistent)
 BuildRequires: %{?scl:%scl_prefix}rubygem(haml)
 BuildRequires: %{?scl:%scl_prefix}rubygem(therubyracer)
+BuildRequires: %{?scl:%scl_prefix}rubygem(poltergeist)
+BuildRequires: %{?scl:%scl_prefix}rubygem(konacha)
+BuildRequires: %{?scl:%scl_prefix}rubygem(minitest)
+BuildRequires: %{?scl:%scl_prefix}rubygem(rspec-core)
+
 %endif
 BuildRequires: %{?scl:%scl_prefix}rubygems-devel
 %if 0%{?fedora} >= 19
@@ -134,6 +144,9 @@ cp -a ./%{gem_dir}/* %{buildroot}%{gem_dir}/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Tue Apr 16 2013 Dan McPherson <dmcphers@redhat.com> 1.7.8-1
+- Add buildrequires for new test packages (ccoleman@redhat.com)
+
 * Tue Apr 16 2013 Troy Dawson <tdawson@redhat.com> 1.7.7-1
 - Merge pull request #2087 from smarterclayton/move_to_minitest
   (dmcphers+openshiftbot@redhat.com)
