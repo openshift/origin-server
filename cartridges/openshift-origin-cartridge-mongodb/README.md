@@ -2,8 +2,8 @@
 
 The `mongodb` cartridge provides [MongoDB](http://www.mongodb.org/) on OpenShift.
 
-Environment Variables
-=====================
+## Environment Variables
+
 The `mongodb` cartridge provides several environment variables to reference for ease
 of use:
 

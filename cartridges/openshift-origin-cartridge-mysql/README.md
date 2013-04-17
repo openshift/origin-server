@@ -2,8 +2,8 @@
 
 The `mysql` cartridge provides [MySQL](http://www.mysql.com/) on OpenShift.
 
-Environment Variables
-=====================
+## Environment Variables
+
 The `mysql` cartridge provides several environment variables to reference for ease
 of use:
 
