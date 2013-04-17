@@ -7,10 +7,6 @@ wsgi/static/ - Public static content gets served here
 libs/ - Additional libraries
 data/ - For not-externally exposed wsgi code
 setup.py - Standard setup.py, specify deps here
-.openshift/action_hooks/pre_build - Script that gets run every git push before the build
-.openshift/action_hooks/build - Script that gets run every git push as part of the build process (on the CI system if available)
-.openshift/action_hooks/deploy - Script that gets run every git push after build but before the app is restarted
-.openshift/action_hooks/post_deploy - Script that gets run every git push after the app is restarted
 
 Notes about layout
 ==================
@@ -44,8 +40,7 @@ Example for MongoDB:
     os.environ['OPENSHIFT_MONGODB_DB_USERNAME']  - NoSQL DB Username
     os.environ['OPENSHIFT_MONGODB_DB_PASSWORD']  - NoSQL DB Password
 
-To get a full list of environment variables, simply add a line in your
-.openshift/action_hooks/build script that says "export" and push.
+To get a full list of environment variables, consult the OpenShift documentation.
 
 
 Notes about layout
