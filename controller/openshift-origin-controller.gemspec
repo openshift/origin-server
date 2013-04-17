@@ -27,7 +27,6 @@ Gem::Specification.new do |s|
   s.require_paths = ["lib"]
 
   s.add_dependency "activesupport", "~> 3.2.8"
-  s.add_dependency "mongo"
   s.add_dependency "openshift-origin-common"
   s.add_dependency('state_machine')
   s.add_dependency('dnsruby')
