@@ -16,7 +16,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.7.28
+Version: 1.7.29
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -284,6 +284,10 @@ fi
 %attr(0755,-,-) /etc/cron.monthly/openshift-origin-cron-monthly
 
 %changelog
+* Wed Apr 17 2013 Dan McPherson <dmcphers@redhat.com> 1.7.29-1
+- The .ssh directory was not getting the correct MCS label.
+  (rmillner@redhat.com)
+
 * Tue Apr 16 2013 Troy Dawson <tdawson@redhat.com> 1.7.28-1
 - Merge pull request #2091 from rmillner/fixselinux
   (dmcphers+openshiftbot@redhat.com)
