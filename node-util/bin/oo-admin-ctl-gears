@@ -88,6 +88,12 @@ function return_terminate() {
 
 function startgear() {
     # GEARNAME=$1
+    if ! [ -d "$GEAR_BASE_DIR/$1" ]
+    then
+        echo "ERROR: No such gear: $1"
+        return
+    fi
+
     local OUTFILE=$(mktemp /var/run/openshift/openshift_init-startgear-$1.XXXXXXXX)
     trap "return_terminate startgear $1 $OUTFILE" USR1
     log_info "Starting $1..."
@@ -127,6 +133,12 @@ function startgear() {
 
 function stopgear() {
     # GEARNAME=$1
+    if ! [ -d "$GEAR_BASE_DIR/$1" ]
+    then
+        echo "ERROR: No such gear: $1"
+        return
+    fi
+
     local OUTFILE=$(mktemp /var/run/openshift/openshift_init-stopgear-$1.XXXXXXXX)
     trap "return_terminate stopgear $1 $OUTFILE" USR1
     log_info "Stopping $1..."

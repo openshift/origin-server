@@ -123,7 +123,19 @@ module OpenShift
 
       @fqdn = nil
 
-      # Attempt to infer from the gear itself
+      # Did we save the old information?
+      if (@container_name.to_s == "") or (@namespace.to_s == "")
+        begin
+          GearDB.open(GearDB::READER) do |d|
+            @container_name = d.fetch(@container_uuid).fetch('container_name')
+            @namespace = d.fetch(@container_uuid).fetch('namespace')
+            @fqdn = d.fetch(@container_uuid).fetch('fqdn')
+          end
+        rescue
+        end
+      end
+
+      # Last ditch, attempt to infer from the gear itself
       if (@container_name.to_s == "") or (@namespace.to_s == "")
         begin
           env = Utils::Environ.for_gear(File.join(@config.get("GEAR_BASE_DIR"), @container_uuid))
@@ -155,7 +167,9 @@ module OpenShift
     #
     # Returns nil on Success or raises on Failure
     def create
-      # Reserved for future use.
+      GearDB.open(GearDB::WRCREAT) do |d|
+        d.store(@container_uuid, {'fqdn' => @fqdn,  'container_name' => @container_name, 'namespace' => @namespace})
+      end
     end
 
     # Public: Remove the frontend httpd configuration for a gear.
@@ -172,6 +186,7 @@ module OpenShift
       ApacheDBIdler.open(ApacheDBIdler::WRCREAT)     { |d| d.delete(@fqdn) }
       ApacheDBSTS.open(ApacheDBSTS::WRCREAT)         { |d| d.delete(@fqdn) }
       NodeJSDBRoutes.open(NodeJSDBRoutes::WRCREAT)   { |d| d.delete_if { |k, v| (k == @fqdn) or (v["alias"] == @fqdn) } }
+      GearDB.open(GearDB::WRCREAT)                   { |d| d.delete(@container_uuid) }
 
       # Clean up SSL certs and legacy node configuration
       ApacheDBAliases.open(ApacheDBAliases::WRCREAT) do
@@ -308,6 +323,10 @@ module OpenShift
             updates[new_fqdn] = v
           end
         end
+      end
+
+      GearDB.open(GearDB::WRCREAT) do |d|
+        d.store(@container_uuid, {'fqdn' => new_fqdn,  'container_name' => container_name, 'namespace' => namespace})
       end
 
       old_namespace = @namespace
@@ -1119,6 +1138,10 @@ module OpenShift
 
   class NodeJSDBRoutes < NodeJSDB
     self.MAPNAME = "routes"
+  end
+
+  class GearDB < ApacheDBJSON
+    self.MAPNAME = "geardb"
   end
 
   # TODO: Manage SNI Certificate and alias store
