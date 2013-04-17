@@ -9,7 +9,7 @@
 
 Summary:       OpenShift Origin Management Console
 Name:          rubygem-%{gem_name}
-Version: 1.7.8
+Version: 1.7.9
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -144,6 +144,10 @@ cp -a ./%{gem_dir}/* %{buildroot}%{gem_dir}/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Tue Apr 16 2013 Dan McPherson <dmcphers@redhat.com> 1.7.9-1
+- bump spec to avoid upstream version (dmcphers@redhat.com)
+- Add buildrequires for new test packages (ccoleman@redhat.com)
+
 * Tue Apr 16 2013 Troy Dawson <tdawson@redhat.com> 1.7.7-1
 - Merge pull request #2087 from smarterclayton/move_to_minitest
   (dmcphers+openshiftbot@redhat.com)
