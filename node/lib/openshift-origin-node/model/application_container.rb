@@ -142,6 +142,7 @@ module OpenShift
     # TODO: exception handling
     def force_stop
       @state.value = OpenShift::State::STOPPED
+      @cartridge_model.create_stop_lock
       UnixUser.kill_procs(@user.uid)
     end
 
