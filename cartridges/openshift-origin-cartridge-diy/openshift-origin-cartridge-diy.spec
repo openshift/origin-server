@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/openshift/cartridges/v2/diy
 
 Name: openshift-origin-cartridge-diy
-Version: 0.2.7
+Version: 0.3.0
 Release: 1%{?dist}
 Summary: DIY cartridge
 Group: Development/Languages

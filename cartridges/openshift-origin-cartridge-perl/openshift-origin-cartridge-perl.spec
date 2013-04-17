@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/openshift/cartridges/v2/perl
 
 Name: openshift-origin-cartridge-perl
-Version: 0.2.9
+Version: 0.3.0
 Release: 1%{?dist}
 Summary: Perl cartridge
 Group: Development/Languages
