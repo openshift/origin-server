@@ -67,7 +67,8 @@ source /usr/libexec/openshift/cartridges/abstract/info/lib/jenkins_util
 alias rsync="rsync --delete-after -az -e '$GIT_SSH'"
 
 # Sync libs - Faster builds
-rsync UPSTREAM_SSH:~/php-5.3/phplib/ ~/php-5.3/phplib/
+# (*) Commented out because of https://bugzilla.redhat.com/show_bug.cgi?id=923687
+# rsync UPSTREAM_SSH:~/php-5.3/phplib/ ~/php-5.3/phplib/
 
 # Build/update libs and run user pre_build and build
 . ci_build.sh
@@ -80,8 +81,13 @@ rsync UPSTREAM_SSH:~/php-5.3/phplib/ ~/php-5.3/phplib/
 jenkins_stop_app UPSTREAM_SSH
 
 # Push content back to application
-rsync ~/php-5.3/phplib/ UPSTREAM_SSH:~/php-5.3/phplib/
+# (*) Commented out because of https://bugzilla.redhat.com/show_bug.cgi?id=923687
+# rsync ~/php-5.3/phplib/ UPSTREAM_SSH:~/php-5.3/phplib/
 rsync ~/$WORKSPACE/ UPSTREAM_SSH:~/php-5.3/repo/
+
+# Build the application once again in the application gear
+# (*) Added because of https://bugzilla.redhat.com/show_bug.cgi?id=923687
+$GIT_SSH UPSTREAM_SSH build.sh
 
 # Configure / start app
 $GIT_SSH UPSTREAM_SSH deploy.sh
