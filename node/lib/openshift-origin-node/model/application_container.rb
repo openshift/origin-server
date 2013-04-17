@@ -690,7 +690,8 @@ module OpenShift
         @cartridge_model.do_control('pre-restore', 
                                     cartridge,
                                     pre_action_hooks_enabled: false,
-                                    post_action_hooks_enabled: false)
+                                    post_action_hooks_enabled: false,
+                                    err: $stderr)
       end
 
       prepare_for_restore(restore_git_repo, gear_env)
@@ -703,10 +704,11 @@ module OpenShift
       end
 
       @cartridge_model.each_cartridge do |cartridge|
-        @cartridge_model.do_control('post-restore', 
+        @cartridge_model.do_control('post-restore',
                                      cartridge,
                                      pre_action_hooks_enabled: false,
-                                     post_action_hooks_enabled: false)
+                                     post_action_hooks_enabled: false,
+                                     err: $stderr)
       end
 
       if restore_git_repo
