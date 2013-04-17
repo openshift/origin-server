@@ -1,6 +1,6 @@
 Summary:       Utility scripts for the OpenShift Origin broker
 Name:          openshift-origin-node-util
-Version: 1.7.6
+Version: 1.7.7
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -119,6 +119,11 @@ mv services/openshift-gears.service %{buildroot}/etc/systemd/system/openshift-ge
 /sbin/restorecon /usr/sbin/oo-restorer* || :
 
 %changelog
+* Wed Apr 17 2013 Dan McPherson <dmcphers@redhat.com> 1.7.7-1
+- Fixed path to restorecon. (rmillner@redhat.com)
+- The .ssh directory was not getting the correct MCS label.
+  (rmillner@redhat.com)
+
 * Tue Apr 16 2013 Troy Dawson <tdawson@redhat.com> 1.7.6-1
 - Merge pull request #2093 from rmillner/BZ952247
   (dmcphers+openshiftbot@redhat.com)
