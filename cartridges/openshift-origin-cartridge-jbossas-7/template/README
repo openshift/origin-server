@@ -5,14 +5,6 @@ src/ - Maven src structure
 pom.xml - Maven build file  
 .openshift/ - location for openshift specific files
 .openshift/config/ - location for configuration files such as standalone.xml (used to modify jboss config such as datasources) 
-.openshift/action_hooks/pre_build - Script that gets run every git push before the build (on the CI system if available)
-.openshift/action_hooks/build - Script that gets run every git push as part of the build process (on the CI system if available)
-.openshift/action_hooks/deploy - Script that gets run every git push after build but before the app is restarted
-.openshift/action_hooks/post_deploy - Script that gets run every git push after the app is restarted
-.openshift/action_hooks/pre_start_jbossas-7 - Script that gets run prior to starting AS7
-.openshift/action_hooks/post_start_jbossas-7 - Script that gets run after AS7 is started
-.openshift/action_hooks/pre_stop_jbossas-7 - Script that gets run prior to stopping AS7
-.openshift/action_hooks/post_stop_jbossas-7 - Script that gets run after AS7 is stopped
 .openshift/markers - directory for files used to control application behavior. See README in markers directory
 
 
@@ -116,5 +108,4 @@ following variables will be available:
     System.getenv("OPENSHIFT_MYSQL_DB_USERNAME")  - DB Username
     System.getenv("OPENSHIFT_MYSQL_DB_PASSWORD")  - DB Password
 
-To get a full list of environment variables, simply add a line in your
-.openshift/action_hooks/build script that says "export" and push.
+To get a full list of environment variables, consult the OpenShift documentation.
