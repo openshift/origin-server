@@ -16,7 +16,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.7.29
+Version: 1.7.30
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -284,6 +284,14 @@ fi
 %attr(0755,-,-) /etc/cron.monthly/openshift-origin-cron-monthly
 
 %changelog
+* Wed Apr 17 2013 Dan McPherson <dmcphers@redhat.com> 1.7.30-1
+- Merge pull request #2118 from ironcladlou/stg/bz/953112
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #2110 from jwhonce/stage
+  (dmcphers+openshiftbot@redhat.com)
+- Do not fail on gears without a primary cartridge. (rmillner@redhat.com)
+- Bug 953002 - Legal URL wrong in Welcome message (jhonce@redhat.com)
+
 * Wed Apr 17 2013 Dan McPherson <dmcphers@redhat.com> 1.7.29-1
 - The .ssh directory was not getting the correct MCS label.
   (rmillner@redhat.com)
