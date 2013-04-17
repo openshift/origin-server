@@ -60,11 +60,17 @@ module OpenShift
     #
     # Raises an exception if no such cartridge is present.
     def primary_cartridge
+      cart = nil
       each_cartridge do |cartridge|
-        return cartridge if cartridge.primary?
+        cart = cartridge
+        break if cartridge.primary?
       end
 
-      raise "No primary cartridge found on gear #{@user.uuid}"
+      if cart.nil?
+        raise "No primary cartridge found on gear #{@user.uuid}"
+      end
+
+      cart
     end
 
     def stop_gear(options={})
