@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.7.8
+Version: 1.7.9
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -83,6 +83,10 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Wed Apr 17 2013 Dan McPherson <dmcphers@redhat.com> 1.7.9-1
+- Fix for bug 953035 Including the links for aliases embedded in application
+  response if nolinks was not specified (abhgupta@redhat.com)
+
 * Tue Apr 16 2013 Troy Dawson <tdawson@redhat.com> 1.7.8-1
 - Merge pull request #2083 from pmorie/bugs/927850
   (dmcphers+openshiftbot@redhat.com)
