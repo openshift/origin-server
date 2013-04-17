@@ -17,6 +17,8 @@ RequestHeader set X-Remote-User "%{RU}e" env=RU
     AuthLDAPURL "ldap://localhost:389/ou=People,dc=my-domain,dc=com?uid?sub?(objectClass=*)"
     require valid-user
 
+    SetEnvIfNoCase Authorization Bearer passthrough
+
     # The node->broker auth is handled in the Ruby code
     BrowserMatch Openshift passthrough
     Allow from env=passthrough

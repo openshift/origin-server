@@ -14,6 +14,8 @@ RequestHeader set X-Remote-User "%{RU}e" env=RU
     AuthUserFile /etc/openshift/htpasswd
     require valid-user
 
+    SetEnvIfNoCase Authorization Bearer passthrough
+
     # The node->broker auth is handled in the Ruby code
     BrowserMatch Openshift passthrough
     Allow from env=passthrough
