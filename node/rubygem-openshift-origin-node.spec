@@ -147,9 +147,9 @@ mv %{buildroot}%{gem_instdir}/misc/etc/openshift-run.conf %{buildroot}/etc/tmpfi
 %endif
 mkdir -p %{buildroot}%{apprundir}
 
-# place an example file
-mkdir -p %{buildroot}%{_docdir}/%{name}-%{version}/
-mv %{buildroot}%{gem_instdir}/misc/doc/cgconfig.conf %{buildroot}%{_docdir}/%{name}-%{version}/cgconfig.conf
+# place an example file.  It _must_ be placed in the gem_docdir because of how
+# the %doc directive works and how we're using it in the files section.
+mv %{buildroot}%{gem_instdir}/misc/doc/cgconfig.conf %{buildroot}%{gem_docdir}/cgconfig.conf
 
 %if 0%{?fedora} >= 18
   #patch for apache 2.4
