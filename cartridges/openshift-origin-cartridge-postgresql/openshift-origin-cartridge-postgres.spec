@@ -8,7 +8,7 @@
 
 Summary:       Provides embedded PostgreSQL support
 Name:          openshift-origin-cartridge-postgresql
-Version:       0.0.8
+Version:       0.0.9
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -78,6 +78,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Wed Apr 17 2013 Dan McPherson <dmcphers@redhat.com> 0.0.9-1
+- 
+
 * Sat Apr 13 2013 Krishna Raman <kraman@gmail.com> 0.0.8-1
 - Postgres V2 snapshot/restore (fotios@redhat.com)
 
