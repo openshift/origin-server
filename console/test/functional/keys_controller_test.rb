@@ -90,6 +90,12 @@ class KeysControllerTest < ActionController::TestCase
     assert_redirected_to account_settings_redirect
   end
 
+  test "should destroy complex named key" do
+    (key = Key.new(get_post_form.merge(:name => 'foo@bar.com', :as => @user))).save!
+    delete :destroy, :id => key.id
+    assert_redirected_to account_settings_redirect
+  end
+
   test "should destroy default key" do
     (key = Key.new(get_post_form.merge(:name => 'default', :as => @user))).save!
     delete :destroy, :id => key.id
