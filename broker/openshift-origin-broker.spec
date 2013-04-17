@@ -27,7 +27,6 @@ Requires:      httpd
 # requirements.
 Requires:      mod_ssl
 Requires:      %{?scl:%scl_prefix}mod_passenger
-Requires:      mongodb-server
 %if 0%{?scl:1}
 Requires:      openshift-origin-util-scl
 %else
