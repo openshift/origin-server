@@ -634,11 +634,12 @@ function check_auth_remote_user() {
     verbose "Auth trusted header: ${APP_VALUES[RU_TRUSTED_HEADER]}"
 
     if grep -q 'BrowserMatchNoCase\s\+\^OpenShift\s\+passthrough' ${OSO_HTTPD_CONF_DIR}/*.conf \
-       && grep -q 'Allow\s\+from\s\+env=passthrough' ${OSO_HTTPD_CONF_DIR}/*.conf
+       && grep -q 'Allow\s\+from\s\+env=passthrough' ${OSO_HTTPD_CONF_DIR}/*.conf \
+       && grep -q 'SetEnvIfNoCase\s\+Authorization\s\+Bearer\s\+passthrough' ${OSO_HTTPD_CONF_DIR}/*.conf
     then
         verbose 'Auth passthrough is enabled for OpenShift services'
     else
-        fail 'Auth passthrough appears not to be enabled, which will break JBossTools and node-to-broker authentication'
+        fail 'Auth passthrough appears not to be enabled, which will break JBossTools and node-to-broker authentication and authentication tokens'
     fi
 
     UNAUTHENTICATED_APIS="api cartridges"

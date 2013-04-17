@@ -17,6 +17,8 @@ LoadModule authnz_ldap_module modules/mod_authnz_ldap.so
     AuthLDAPURL "ldap://ldap.example.com:389/ou=People,dc=my-domain,dc=com?uid?sub?(objectClass=*)"
     require valid-user
 
+    SetEnvIfNoCase Authorization Bearer passthrough
+
     # The node->broker auth is handled in the Ruby code
     BrowserMatchNoCase ^OpenShift passthrough
     Allow from env=passthrough
