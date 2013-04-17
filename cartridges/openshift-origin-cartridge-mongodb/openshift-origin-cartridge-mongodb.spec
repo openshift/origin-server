@@ -3,7 +3,7 @@
 
 Summary:       Embedded mongodb support for OpenShift
 Name:          openshift-origin-cartridge-mongodb
-Version: 1.6.11
+Version: 1.6.12
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -64,6 +64,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Wed Apr 17 2013 Dan McPherson <dmcphers@redhat.com> 1.6.12-1
+- 
+
 * Tue Apr 16 2013 Troy Dawson <tdawson@redhat.com> 1.6.11-1
 - Setting mongodb connection hooks to use the generic nosqldb name
   (calfonso@redhat.com)
