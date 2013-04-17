@@ -13,7 +13,7 @@ def usage
 #{$0} -c <command>
 
 == List of arguments
-       -c|--command     One of <show|toggle>
+       -c|--command     One of <show|toggle|v1|v2>
        -h|--help        Print this message
 USAGE
   exit 255
@@ -36,7 +36,7 @@ def toggle_version
 
   puts 'Switching node cartridge version'
 
-  if (version == :v1) 
+  if (version == :v1)
     `mkdir -p /var/lib/openshift/.settings;
      touch #{VERSION_MARKER}`
   else
@@ -47,6 +47,14 @@ def toggle_version
    service rhc-broker restart`
 
    check_version
+end
+
+def set_version(version)
+  if check_version == version
+    puts 'No change necessary'
+  else
+    toggle_version
+  end
 end
 
 opts = GetoptLong.new(
@@ -62,11 +70,17 @@ opts.each do |opt, arg|
     case arg
     when 'show'
       check_version
-      exit
     when 'toggle'
       toggle_version
-      exit
+    when 'v1'
+      set_version :v1
+    when 'v2'
+      set_version :v2
+    else
+      puts "unknown command #{arg}"
+      usage
     end
+    exit
   end
 end
 
