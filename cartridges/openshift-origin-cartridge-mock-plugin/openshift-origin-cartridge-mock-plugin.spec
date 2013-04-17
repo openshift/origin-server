@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/openshift/cartridges/v2/mock-plugin
 
 Name: openshift-origin-cartridge-mock-plugin
-Version: 0.2.7
+Version: 0.2.8
 Release: 1%{?dist}
 Summary: Mock plugin cartridge for V2 Cartridge SDK
 Group: Development/Languages
@@ -58,6 +58,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Wed Apr 17 2013 Dan McPherson <dmcphers@redhat.com> 0.2.8-1
+- 
+
 * Sat Apr 13 2013 Krishna Raman <kraman@gmail.com> 0.2.7-1
 - Merge pull request #2068 from jwhonce/wip/path
   (dmcphers+openshiftbot@redhat.com)
