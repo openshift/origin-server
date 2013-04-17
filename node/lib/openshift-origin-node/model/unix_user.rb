@@ -530,6 +530,7 @@ Dir(after)    #{@uuid}/#{@uid} => #{list_home_dir(@homedir)}
       OpenShift::FrontendHttpServer.new(@container_uuid,@container_name,@namespace).create
 
       # Fix SELinux context for cart dirs
+      Utils::SELinux.clear_mcs_label_R(homedir)
       Utils::SELinux.set_mcs_label_R(Utils::SELinux.get_mcs_label(@uid), Dir.glob(File.join(homedir, '*')))
 
       notify_observers(:after_initialize_homedir)
