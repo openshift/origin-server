@@ -1734,7 +1734,7 @@ module OpenShift
           end
           begin
             # rsync gear with destination container
-            rsync_destination_container(gear, destination_container, destination_district_uuid, quota_blocks, quota_files, gear.uid)
+            rsync_destination_container(gear, destination_container, destination_district_uuid, quota_blocks, quota_files)
 
             start_order,stop_order = app.calculate_component_orders
             gi_comps = gear.group_instance.all_component_instances.to_a
@@ -1790,7 +1790,7 @@ module OpenShift
             end
             # destroy destination
             log_debug "DEBUG: Moving failed.  Rolling back gear '#{gear.name}' in '#{app.name}' with destroy on '#{destination_container.id}'"
-            reply.append destination_container.destroy(gear, false, nil, true)
+            reply.append destination_container.destroy(gear, !district_changed, nil, true)
             raise
           end
         rescue Exception => e
@@ -1814,7 +1814,7 @@ module OpenShift
           end
         end
 
-        move_gear_destroy_old(gear, source_container, destination_container)
+        move_gear_destroy_old(gear, source_container, destination_container, district_changed)
 
         log_debug "Successfully moved gear with uuid '#{gear.uuid}' of app '#{app.name}' from '#{source_container.id}' to '#{destination_container.id}'"
         reply
@@ -1827,6 +1827,7 @@ module OpenShift
       # * gear: a Gear object
       # * source_container: ??
       # * destination_container ??
+      # * district_changed: boolean
       #
       # RETURNS:
       # * a ResultIO object
@@ -1837,12 +1838,12 @@ module OpenShift
       # NOTES:
       # * uses source_container.destroy
       # 
-      def move_gear_destroy_old(gear, source_container, destination_container)
+      def move_gear_destroy_old(gear, source_container, destination_container, district_changed)
         app = gear.app
         reply = ResultIO.new
         log_debug "DEBUG: Deconfiguring old app '#{app.name}' on #{source_container.id} after move"
         begin
-          reply.append source_container.destroy(gear, false, gear.uid, true)
+          reply.append source_container.destroy(gear, !district_changed, gear.uid, true)
         rescue Exception => e
           log_debug "DEBUG: The application '#{app.name}' with gear uuid '#{gear.uuid}' is now moved to '#{destination_container.id}' but not completely deconfigured from '#{source_container.id}'"
           raise
@@ -1905,7 +1906,6 @@ module OpenShift
       # * destination_district_uuid: String: a UUID handle
       # * quota_blocks: Integer
       # * quota_files: Integer
-      # * orig_uid: Integer
       #
       # RETURNS:
       # * ResultIO
@@ -1921,7 +1921,7 @@ module OpenShift
       # * runs all three commands in a single backtick eval
       # * writes the eval output to log_debug
       #
-      def rsync_destination_container(gear, destination_container, destination_district_uuid, quota_blocks, quota_files, orig_uid)
+      def rsync_destination_container(gear, destination_container, destination_district_uuid, quota_blocks, quota_files)
         app = gear.app
         reply = ResultIO.new
         source_container = gear.get_proxy
@@ -1930,7 +1930,7 @@ module OpenShift
 
         log_debug "DEBUG: Moving content for app '#{app.name}', gear '#{gear.name}' to #{destination_container.id}"
         rsync_keyfile = Rails.configuration.auth[:rsync_keyfile]
-        log_debug `eval \`ssh-agent\`; ssh-add #{rsync_keyfile}; ssh -o StrictHostKeyChecking=no -A root@#{source_container.get_ip_address} "rsync -aA#{(gear.uid && gear.uid == orig_uid) ? 'X' : ''} -e 'ssh -o StrictHostKeyChecking=no' /var/lib/openshift/#{gear.uuid}/ root@#{destination_container.get_ip_address}:/var/lib/openshift/#{gear.uuid}/"; ssh-agent -k`
+        log_debug `eval \`ssh-agent\`; ssh-add #{rsync_keyfile}; ssh -o StrictHostKeyChecking=no -A root@#{source_container.get_ip_address} "rsync -aAX -e 'ssh -o StrictHostKeyChecking=no' /var/lib/openshift/#{gear.uuid}/ root@#{destination_container.get_ip_address}:/var/lib/openshift/#{gear.uuid}/"; ssh-agent -k`
         if $?.exitstatus != 0
           raise OpenShift::NodeException.new("Error moving app '#{app.name}', gear '#{gear.name}' from #{source_container.id} to #{destination_container.id}", 143)
         end
