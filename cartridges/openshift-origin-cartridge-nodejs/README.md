@@ -9,7 +9,6 @@ The `nodejs` cartridge provides [Node.js](http://nodejs.org/) on OpenShift.
     package.json             npm package descriptor.
     npm_global_module_list   List of globally installed node modules (on OpenShift)
     .openshift/              Location for OpenShift specific files
-      config/                Location for configuration files such as server.xml
       action_hooks/          See the Action Hooks documentation [1]
       markers/               See the Markers section [2]
 
