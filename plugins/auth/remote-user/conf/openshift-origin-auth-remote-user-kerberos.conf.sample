@@ -12,6 +12,8 @@ LoadModule auth_kerb_module modules/mod_auth_kerb.so
     Krb5KeyTab /var/www/openshift/broker/httpd/conf.d/http.keytab
     require valid-user
 
+    SetEnvIfNoCase Authorization Bearer passthrough
+
     # The node->broker auth is handled in the Ruby code
     BrowserMatchNoCase ^OpenShift passthrough
     Allow from env=passthrough
