@@ -2,8 +2,16 @@
 
 The `postgresql` cartridge provides [PostgreSQL](http://www.postgresql.com/) on OpenShift.
 
-Environment Variables
-=====================
+## Template Repository Layout
+
+    sql/     SQL data or scripts.
+
+
+NOTE: Please leave `sql` and `data` directories but feel free to create additional
+directories if needed.
+
+## Environment Variables
+
 The `postgresql` cartridge provides several environment variables to reference for ease
 of use:
 
@@ -18,11 +26,3 @@ of use:
 
 For more information about environment variables, consult the
 [OpenShift Application Author Guide](https://github.com/openshift/origin-server/blob/master/node/README.writing_applications.md).
-
-## Template Repository Layout
-
-    sql/     SQL data or scripts.
-
-
-NOTE: Please leave `sql` and `data` directories but feel free to create additional
-directories if needed.

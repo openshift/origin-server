@@ -91,8 +91,8 @@ JBoss Application Server distribution is the location end users can place
 their deployment content (e.g. war, ear, jar, sar files) to have it 
 automatically deployed into the server runtime.
 
-Environment Variables
-=====================
+## Environment Variables
+
 The `jbosseap` cartridge provides several environment variables to reference for ease
 of use:
 
@@ -106,8 +106,8 @@ of use:
 For more information about environment variables, consult the
 [OpenShift Application Author Guide](https://github.com/openshift/origin-server/blob/master/node/README.writing_applications.md).
 
-Markers
-===========
+## Markers
+
 Adding marker files to `.openshift/markers` will have the following effects:
 
     enable_jpda          Will enable the JPDA socket based transport on the java virtual
