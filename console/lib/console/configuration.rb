@@ -161,7 +161,7 @@ module Console
         case
         when s == nil
           nil
-        when s[0] == '{', s[0] == '[', s[0] == '"'
+        when s[0] == '{', s[0] == '[', s[0] == '"', s[0] == "'"
           eval(s)
         when s[0] == ':'
           s[1..-1].to_sym
