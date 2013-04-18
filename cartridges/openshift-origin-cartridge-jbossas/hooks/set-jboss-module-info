@@ -5,4 +5,6 @@
 # Exit on any errors
 set -e
 
+source $OPENSHIFT_CARTRIDGE_SDK_BASH
+
 set_uservars "$1"
