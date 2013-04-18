@@ -85,13 +85,13 @@ function build() {
     
 	CONFIG_DIR="${OPENSHIFT_JBOSSEAP_DIR}/standalone/configuration"
 	OPENSHIFT_MAVEN_MIRROR="${CONFIG_DIR}/settings.base.xml"
-	if `echo $OPENSHIFT_GEAR_DNS | egrep -qe "\.rhcloud\.com"`
+	if $(echo $OPENSHIFT_GEAR_DNS | egrep -qe "\.rhcloud\.com")
 	then 
 	    OPENSHIFT_MAVEN_MIRROR="${CONFIG_DIR}/settings.rhcloud.xml"
 	fi
 
-	max_memory_bytes=`oo-cgroup-read memory.limit_in_bytes`
-	max_memory_mb=`expr $max_memory_bytes / 1048576`
+	max_memory_bytes=$(oo-cgroup-read memory.limit_in_bytes)
+	max_memory_mb=$(expr $max_memory_bytes / 1048576)
 
 	# If hot deploy is enabled, we need to restrict the Maven memory size to fit
 	# alongside the running application server. For now, just hard-code it to 64
@@ -175,12 +175,10 @@ function build() {
 function deploy() {
 	echo "Deploying $cartridge_type cart"
 	
-	CART_NAME=${cartridge_type}
-	
 	if [ "$(ls ${OPENSHIFT_REPO_DIR}/deployments)" ]; then
-		rsync -r --delete --exclude ".*" ${OPENSHIFT_REPO_DIR}/deployments/ ${OPENSHIFT_HOMEDIR}/${CART_NAME}/standalone/deployments/
+		rsync -r --delete --exclude ".*" ${OPENSHIFT_REPO_DIR}/deployments/ ${OPENSHIFT_HOMEDIR}/${cartridge_type}/standalone/deployments/
 	else
-        rm -rf ${OPENSHIFT_HOMEDIR}/${CART_NAME}/${CART_NAME}/standalone/deployments/*
+        rm -rf ${OPENSHIFT_HOMEDIR}/${cartridge_type}/${cartridge_type}/standalone/deployments/*
     fi
 }
 
@@ -195,9 +193,6 @@ function start() {
     if isrunning; then
         echo "Application is already running"
     else
-    	if [ -f ${OPENSHIFT_REPO_DIR}/.openshift/action_hooks/pre_start_${cartridge_type} ]; then
-        	source ${OPENSHIFT_REPO_DIR}/.openshift/action_hooks/pre_start_${cartridge_type}
-        fi
         
         jopts="${JAVA_OPTS}"
         [ "${ENABLE_JPDA:-0}" -eq 1 ] && jopts="-Xdebug -Xrunjdwp:transport=dt_socket,address=${OPENSHIFT_JBOSSEAP_IP}:8787,server=y,suspend=n ${JAVA_OPTS}"
@@ -211,9 +206,6 @@ function start() {
             exit 1
         fi
         
-        if [ -f ${OPENSHIFT_REPO_DIR}/.openshift/action_hooks/post_start_${cartridge_type} ]; then
-        	source ${OPENSHIFT_REPO_DIR}/.openshift/action_hooks/post_start_${cartridge_type}
-        fi
     fi
 }
 
@@ -227,17 +219,11 @@ function stop() {
                 echo "Hot deploy enabled. Not stopping" 
         else
 			if [ -f "$JBOSSEAP_PID_FILE" ]; then
-				if [ -f ${OPENSHIFT_REPO_DIR}/.openshift/action_hooks/pre_start_${cartridge_type} ]; then
-		        	source ${OPENSHIFT_REPO_DIR}/.openshift/action_hooks/pre_start_${cartridge_type}
-		        fi
 		        
 		        pid=$(cat $JBOSSEAP_PID_FILE);
 		        echo "Sending SIGTERM to jboss:$pid ..." 1>&2
 		        killtree $pid
 		        
-		        if [ -f ${OPENSHIFT_REPO_DIR}/.openshift/action_hooks/post_stop_${cartridge_type} ]; then
-		        	source ${OPENSHIFT_REPO_DIR}/.openshift/action_hooks/post_stop_${cartridge_type}
-		        fi
 		    else 
 		        echo "Failed to locate JBOSS PID File" 1>&2
 		    fi
@@ -270,10 +256,10 @@ function reload() {
 function tidy() {
     echo "Tidying $cartridge_type cart"
     
-    for logdir in `awk 'BEGIN {
+    for logdir in $(awk 'BEGIN {
                            for (a in ENVIRON)
                            if (a ~ /LOG_DIR$/)
-                           print ENVIRON[a] }'`
+                           print ENVIRON[a] }')
 	do
     	client_message "Emptying log dir: ${logdir}"
     	rm -rf ${logdir}* ${logdir}.[^.]*
@@ -288,7 +274,7 @@ function threaddump() {
         exit 1
     elif [ -f "$JBOSSEAP_PID_FILE" ]; then
         pid=$(cat $JBOSSEAP_PID_FILE);
-        java_pid=`ps h --ppid $pid -o '%p'`
+        java_pid=$(ps h --ppid $pid -o '%p')
         kill -3 $java_pid
         
         client_result "Success"
@@ -297,14 +283,6 @@ function threaddump() {
     else 
         echo "Failed to locate JBOSS PID File"
     fi
-}
-
-function prebuild() {
-	echo "prebuild"
-}
-
-function postdeploy() {
-	echo "postdeploy"
 }
 
 case "$1" in
@@ -317,8 +295,6 @@ case "$1" in
   reload)    	reload ;;
   tidy)      	tidy ;;
   threaddump)   threaddump ;;
-  pre-build)    prebuild ;;
-  post-deploy)  postdeploy ;;
   *)         	exit 0
 esac
 

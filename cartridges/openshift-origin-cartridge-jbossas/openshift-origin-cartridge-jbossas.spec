@@ -14,6 +14,7 @@ Source0:       http://mirror.openshift.com/pub/openshift-origin/source/%{name}/%
 Requires:      rubygem(openshift-origin-node)
 Requires:      openshift-origin-node-util
 Requires:      lsof
+Requires:      facter
 Requires:      java-1.7.0-openjdk
 Requires:      java-1.7.0-openjdk-devel
 Requires:      jboss-as7-modules >= %{jbossver}
