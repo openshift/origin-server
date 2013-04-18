@@ -294,6 +294,41 @@ def check_cgroup_config
     end
 end
 
+
+#
+# Check tc config
+#
+def check_cgroup_procs
+    verbose("checking cgroups processes")
+
+    ### Gather current procs running ###
+    all_user_procs = %x[ps -ef | egrep "^[0-9]{4}"].split("\n")
+    ps_procs = Hash.new(Array.new)
+    all_user_procs.each do |line|
+        user_procs = line.split[0,3]
+        uname = users.grep(/:#{user_procs[0]}:/)[0].split(":")[0]
+        ps_procs[uname] += [user_procs[1]]
+        ps_procs[uname].uniq!
+    end
+
+    ### Gather cgroup procs ###
+    cgroup_procs = {}
+    Dir.glob("/cgroup/all/openshift/*/cgroup.procs").each do |file|
+        uuid = file.split("/")[4]
+        lines = []
+        IO.foreach(file).each { |line| lines << line.strip }
+        cgroup_procs[uuid] = lines
+    end
+
+    ### Compare ###
+    ps_procs.each do |uuid,procs|
+        missing = procs - cgroup_procs[uuid]
+        if missing.length > 0
+            do_fail("#{uuid} has procs missing from cgroups:  #{missing.join(" ")}")
+        end
+    end
+end
+
 #
 # Check tc config
 #
@@ -475,6 +510,7 @@ if __FILE__ == $0
     check_services
     check_semaphores
     check_cgroup_config
+    check_cgroup_procs
     check_tc_config if $TC_CHECK
     check_quotas
     check_users
