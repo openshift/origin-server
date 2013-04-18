@@ -368,9 +368,21 @@ class Application
         raise OpenShift::UserException.new("Invalid cartridge '#{feature_name}' specified.", 109)  
       end
 
+      if cart.is_web_framework?
+        component_instances.each do |ci|
+          if ci.is_web_framework?
+            raise OpenShift::UserException.new("You can only have one framework cartridge in your application '#{name}'.", 109)
+          end
+        end
+      end
+
       # Validate that the features support scalable if necessary
       if self.scalable && !(cart.is_plugin? || cart.is_service?)
-        raise OpenShift::UserException.new("#{feature_name} cannot be embedded in scalable app '#{name}'.", 109)  
+        if cart.is_web_framework?
+          raise OpenShift::UserException.new("Scalable app cannot be of type '#{feature_name}'.", 109)
+        else
+          raise OpenShift::UserException.new("#{feature_name} cannot be embedded in scalable app '#{name}'.", 109)
+        end  
       end
 
       # prevent a proxy from being added to a non-scalable (single-gear) application
