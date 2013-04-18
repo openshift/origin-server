@@ -66,7 +66,13 @@ module OpenShift
       total_time
     end
 
+    def pre_sync_usage(session)
+    end
+
     def sync_usage(session, user_usage_records, sync_time)
+    end
+
+    def post_sync_usage(session)
     end
 
     # Check UsageRecord and Usage collection consistency
