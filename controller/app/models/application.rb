@@ -390,6 +390,18 @@ class Application
         raise OpenShift::UserException.new("#{feature_name} cannot be added to existing applications. It is automatically added when you create a scaling application.", 137)
       end
       
+      if self.scalable and cart.is_web_framework?
+        prof = cart.profile_for_feature(feature_name)
+        cart_scalable = false
+        prof.components.each do |component|
+           next if component.scaling.min==1 and component.scaling.max==1
+           cart_scalable = true
+        end
+        if !cart_scalable
+          raise OpenShift::UserException.new("Scalable app cannot be of type '#{feature_name}'.", 109)
+        end
+      end
+
       # Validate that this feature either does not have the domain_scope category
       # or if it does, then no other application within the domain has this feature already
       if cart.is_domain_scoped?
