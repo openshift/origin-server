@@ -4,7 +4,7 @@ class AuthorizationsController < BaseController
   # Display only non-revoked tokens (includes expired tokens).
   #
   def index
-    authorizations = Authorization.for_owner(current_user).not_expired.
+    authorizations = Authorization.with(consistency: :eventual).for_owner(current_user).not_expired.
                      order_by([:created_at, :desc]).
                      map{ |auth| RestAuthorization.new(auth, get_url, nolinks) }
     render_success(:ok, "authorizations", authorizations, "LIST_AUTHORIZATIONS", 'List authorizations', false, nil, nil, 'IP' => request.remote_ip)
@@ -44,7 +44,7 @@ class AuthorizationsController < BaseController
   end
 
   def show
-    auth = Authorization.for_owner(current_user).any_of({:token => params[:id].to_s}, {:id => params[:id].to_s}).find_by
+    auth = Authorization.with(consistency: :eventual).for_owner(current_user).any_of({:token => params[:id].to_s}, {:id => params[:id].to_s}).find_by
     render_success(:ok, "authorization", RestAuthorization.new(auth, get_url, nolinks), "SHOW_AUTHORIZATION", "Display authorization", false, nil, nil, 'TOKEN' => auth.token, 'IP' => request.remote_ip)
   rescue Mongoid::Errors::DocumentNotFound
     render_error(:not_found, "Authorization #{params[:id]} not found", 129, "SHOW_AUTHORIZATION")

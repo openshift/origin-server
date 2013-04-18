@@ -8,7 +8,7 @@ class EmbCartEventsController < BaseController
     event = params[:event].downcase if params[:event]
 
     begin
-      domain = Domain.find_by(owner: @cloud_user, canonical_namespace: domain_id)
+      domain = Domain.with(consistency: :eventual).find_by(owner: @cloud_user, canonical_namespace: domain_id)
       @domain_name = domain.namespace
     rescue Mongoid::Errors::DocumentNotFound
       return render_error(:not_found, "Domain #{domain_id} not found", 127, "CARTRIDGE_EVENT")
