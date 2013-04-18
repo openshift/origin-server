@@ -4,16 +4,17 @@ The `nodejs` cartridge provides [Node.js](http://nodejs.org/) on OpenShift.
 
 ## Template Repository Layout
 
-    node_modules/            Any Node modules packaged with the app
+    node_modules/            Any Node modules packaged with the app [1]
     deplist.txt              Deprecated.
     package.json             npm package descriptor.
     npm_global_module_list   List of globally installed node modules (on OpenShift)
     .openshift/              Location for OpenShift specific files
-      action_hooks/          See the Action Hooks documentation [1]
-      markers/               See the Markers section [2]
+      action_hooks/          See the Action Hooks documentation [2]
+      markers/               See the Markers section [3]
 
-\[1\] [Action Hooks documentation](https://github.com/openshift/origin-server/blob/master/node/README.writing_applications.md#action-hooks)
-\[2\] [Markers](#markers)
+\[1\] [`node_modules`](#node_modules-directory)
+\[2\] [Action Hooks documentation](https://github.com/openshift/origin-server/blob/master/node/README.writing_applications.md#action-hooks)
+\[3\] [Markers](#markers)
 
 ### Layout Notes
 
@@ -25,6 +26,15 @@ Note: Every time you push, everything in your remote repo dir gets recreated
       data directory, which will persist between pushes of your repo.
       The OpenShift data directory is accessible relative to the remote repo
       directory (`../data`) or via an environment variable `$OPENSHIFT_DATA_DIR`.
+
+#### `node_modules` directory
+The `node_modules` directory allows you to package any Node module on which
+your application depends along with your application.
+
+If you just wish to install module(s) from the npm registry
+([npmjs.org](https://npmjs.org/)), you
+can specify the module name(s) and versions in your application's
+`package.json` file.
 
 
 #### deplist.txt
