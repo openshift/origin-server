@@ -9,7 +9,6 @@ Group: Development/Languages
 License: ASL 2.0
 URL: https://openshift.redhat.com
 Source0: http://mirror.openshift.com/pub/origin-server/source/%{name}/%{name}-%{version}.tar.gz
-Requires:      openshift-origin-cartridge-abstract
 Requires:      rubygem(openshift-origin-node)
 Requires:      openshift-origin-node-util
 
