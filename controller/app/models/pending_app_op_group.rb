@@ -85,7 +85,7 @@ class PendingAppOpGroup
           result_io.append gear.remove_component(component_instance)
         when :create_gear
           gear = get_gear_for_rollback(op)
-          result_io.append gear.destroy_gear
+          result_io.append gear.destroy_gear(true)
           self.inc(:num_gears_rolled_back, 1)
         when :track_usage
           unless op.args["parent_user_id"]
@@ -199,7 +199,7 @@ class PendingAppOpGroup
           when :deregister_dns          
             gear.deregister_dns          
           when :destroy_gear
-            result_io.append gear.destroy_gear
+            result_io.append gear.destroy_gear(true)
           when :start_component
             result_io.append gear.start(comp_name)
           when :stop_component
