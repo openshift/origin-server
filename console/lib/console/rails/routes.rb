@@ -56,9 +56,9 @@ module ActionDispatch::Routing
       end
 
       def openshift_account_resource_routes
-        resource :domain, :only => [:new, :create, :edit, :update]
-        resources :keys, :only => [:new, :create, :destroy]
-        resources :authorizations, :except => [:index]
+        resource :domain, :id => /[^\/]+/, :only => [:new, :create, :edit, :update]
+        resources :keys, :id => /[^\/]+/, :only => [:new, :create, :destroy]
+        resources :authorizations, :id => /[^\/]+/, :except => [:index]
         match 'authorizations' => 'authorizations#destroy_all', :via => :delete
       end
   end
