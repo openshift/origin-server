@@ -43,6 +43,17 @@ module OpenShift
     end
 
     ##
+    # Writes the +stop_lock+ file and changes its ownership to the gear user.
+    def create_stop_lock
+      unless stop_lock?
+        mcs_label = Utils::SELinux.get_mcs_label(@user.uid)
+        File.new(stop_lock, File::CREAT|File::TRUNC|File::WRONLY, 0644).close()
+        PathUtils.oo_chown(@user.uid, @user.gid, stop_lock)
+        Utils::SELinux.set_mcs_label(mcs_label, stop_lock)
+      end
+    end
+
+    ##
     # Yields a +Cartridge+ instance for each cartridge in the gear.
     def each_cartridge
       Dir[PathUtils.join(@user.homedir, "*")].each do |cart_dir|
