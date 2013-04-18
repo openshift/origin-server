@@ -259,6 +259,9 @@ function threaddump() {
         pid=$(cat $JBOSSAS_PID_FILE);
         java_pid=`ps h --ppid $pid -o '%p'`
         kill -3 $java_pid
+        client_result "Success"
+        client_result ""
+        client_result "The thread dump file will be available via: rhc tail $OPENSHIFT_APP_NAME -f */logs/server.log -o '-n 250'"
     else 
         echo "Failed to locate JBOSS PID File"
     fi
