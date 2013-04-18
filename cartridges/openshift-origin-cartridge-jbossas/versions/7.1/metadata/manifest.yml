@@ -1,8 +1,8 @@
 Name: jbossas
 Cartridge-Short-Name: JBOSSAS
-Display-Name: JBoss Application Server 7.1
+Display-Name: JBoss Application Server 7
 Description: "The leading open source Java EE6 application server for enterprise Java applications. Popular development frameworks include Seam, CDI, Weld, and Spring."
-Version: '7.1'
+Version: '7'
 License: LGPL
 License-Url: http://www.gnu.org/copyleft/lesser.txt
 Vendor: Red Hat
@@ -49,13 +49,13 @@ Cart-Data:
     Type: environment
     Description: "Unique ID which identified the gear. This value changes between gears."
 Provides:
-  - jbossas-7.1
+  - jbossas-7
   - "jbossas"
   - "jbossas(version) = 7.1"
   - "jbossas(version) >= 7.1"
   - "jboss-as7.1"
   - jbossas-standalone
-  - jboss-as7.1-standalone
+  - jboss-as7-standalone
 Publishes:
   publish-http-url:
     Type: "NET_TCP:httpd-proxy-info"
@@ -92,7 +92,7 @@ Scaling:
   Max: -1
 Group-Overrides:
   - components:
-    - jbossas-7.1
+    - jbossas-7
     - web_proxy
 Endpoints:
   - Private-IP-Name:   IP
