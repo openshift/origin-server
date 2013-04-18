@@ -77,6 +77,8 @@ Subscribes:
   set-doc-url:
     Type: "STRING:urlpath"
     Required : false
+  set-jboss-module-info:
+    Type: "NET_TCP:jboss-module-info"
 Scaling:
   Min: 1
   Max: -1

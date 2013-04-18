@@ -85,6 +85,8 @@ Subscribes:
     Type: "NET_TCP:jbosseap-cluster-info"
   set-jboss-remoting:
     Type: "NET_TCP:jbosseap-remoting-info"
+  set-jboss-module-info:
+    Type: "NET_TCP:jboss-module-info"
 Scaling:
   Min: 1
   Max: -1
