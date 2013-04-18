@@ -131,7 +131,6 @@ begin
         gi.gears.each { |g| 
           g.deregister_dns rescue nil
           g.destroy_gear rescue nil 
-          g.unreserve_uid rescue nil
         } if gi.gears
       } if app.group_instances
       app.delete
