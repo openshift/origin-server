@@ -1,1 +1,1 @@
-../../shared/template/README
+../../shared/template/README.md
