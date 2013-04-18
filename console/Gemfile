@@ -15,8 +15,8 @@ group :test do
   gem 'capybara',      '~> 2.1.0', :require => false
 
   # Note:  Only for CI output
-end
   gem 'rspec-core',    '~> 2.8', :require => false
+end
 
 group :test, :development do
   gem 'konacha',       '~> 2.6.0'

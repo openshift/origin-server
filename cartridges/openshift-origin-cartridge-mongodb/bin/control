@@ -117,12 +117,12 @@ function prepare_database {
        "  | mongo $OPENSHIFT_MONGODB_DB_HOST
   rm -f /tmp/.dbshell
 
-  cart_props "connection_url=mongodb://admin:${password}@$OPENSHIFT_MONGODB_DB_HOST:$OPENSHIFT_MONGODB_DB_PORT/"
+  cart_props "connection_url=mongodb://\$OPENSHIFT_MONGODB_DB_HOST:\$OPENSHIFT_MONGODB_DB_PORT/"
   cart_props "username=admin"
   cart_props "password=${password}"
   cart_props "database_name=$OPENSHIFT_APP_NAME"
 
-  set_app_info "Connection URL: mongodb://admin:${password}@$OPENSHIFT_MONGODB_DB_HOST:$OPENSHIFT_MONGODB_DB_PORT/"
+  set_app_info "Connection URL: mongodb://\$OPENSHIFT_MONGODB_DB_HOST:\$OPENSHIFT_MONGODB_DB_PORT/"
 }
 
 function die() {
@@ -130,7 +130,7 @@ function die() {
    tag=${2:-"WARNING"}
    msg=${3:-"Mongo control snapshot/restore operation failed..."}
 
-   client_result "!$tag! $msg"
+   echo "!$tag! $msg" 1>&2
 
    exit $exitcode
 
@@ -183,7 +183,7 @@ function cleanup_dump {
 }
 
 function print_mongo_jira_warnings() {
-   client_result "
+   echo "
 ============================================================================
 WARNING: You may have possibly encountered the mongorestore bugs related to
          MongoDB JIRA issues 7181, 7262 and 7104. We tried working around
@@ -192,8 +192,9 @@ WARNING: You may have possibly encountered the mongorestore bugs related to
              https://jira.mongodb.org/browse/SERVER-7181
              https://jira.mongodb.org/browse/SERVER-7262
              https://jira.mongodb.org/browse/SERVER-7104
+             https://jira.mongodb.org/browse/SERVER-6947
 ============================================================================
-"
+" 1>&2
 
 }  #  End of function  print_mongo_jira_warnings.
 

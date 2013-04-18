@@ -20,19 +20,16 @@ details of the cartridge to the application developer.
 
 \[1\] [Action Hooks documentation](https://github.com/openshift/origin-server/blob/master/node/README.writing_applications.md#action-hooks)
 
-### Notes about layout
-
-Please leave the `static` directory in place (alter but do not delete) but feel
+Note: Please leave the `static` directory in place (alter but do not delete) but feel
 free to create additional directories if needed.
 
-Note: Every time you push, everything in your remote repo dir gets recreated.
-      Please store long term items (like an sqlite database) in the OpenShift
-      data directory, which will persist between pushes of your repo.
-      The OpenShift data directory is accessible via `$OPENSHIFT_DATA_DIR`.
+Every time you push, everything in your remote repo dir gets recreated.
+Please store long term items (like an sqlite database) in the OpenShift
+data directory, which will persist between pushes of your repo.
+The OpenShift data directory is accessible via `$OPENSHIFT_DATA_DIR`.
 
+## Environment Variables
 
-Environment Variables
-=====================
 The `diy` cartridge provides the following environment variables to reference for ease
 of use:
 

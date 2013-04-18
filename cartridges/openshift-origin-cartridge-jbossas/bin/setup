@@ -1,5 +1,7 @@
 #!/bin/bash -eu
 
+source $OPENSHIFT_CARTRIDGE_SDK_BASH
+
 cartridge_type="jbossas"
 
 version=7.1
