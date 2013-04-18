@@ -79,6 +79,28 @@ declare -A APP_VALUE_MAP=(
 		["proxy_provider"]="OpenShift::ApplicationContainerProxy.instance_variable_get('@proxy_provider')"
 	)
 
+function safe_bundle() {
+    bundle exec "$@"
+}
+
+function safe_ruby() {
+    ruby "$@"
+}
+
+USE_SCL=""
+
+if which scl 1> /dev/null 2> /dev/null && scl -l | grep -q '^ruby193$' ; then
+    USE_SCL="TRUE"
+    function safe_bundle() {
+        scl enable ruby193 "bundle exec \"$@\""
+    }
+
+    function safe_ruby() {
+        scl enable ruby193 "ruby $@"
+    }
+fi
+
+
 # ============================================================================
 #
 # Utility Functions
@@ -123,7 +145,7 @@ function probe_version() {
 
 function check_ruby_requirements() {
     verbose checking ruby requirements
-    if [ ! -x /usr/bin/ruby ]
+    if [ -z "${USE_SCL}" -a ! -x /usr/bin/ruby ]
     then
 	fail ruby is not installed or not executable
 	return
@@ -131,7 +153,7 @@ function check_ruby_requirements() {
     for OSO_RUBY_LIB in $*
     do
 	verbose checking ruby requirements for $OSO_RUBY_LIB
-        GEM_ERROR=`ruby -I ${OSO_BROKER_ROOT} -r rubygems -- <<EOF
+        GEM_ERROR=`safe_ruby -I ${OSO_BROKER_ROOT} -r rubygems -- <<EOF
             require 'bundler'
             begin
               require '$OSO_RUBY_LIB'
@@ -181,7 +203,8 @@ function check_missing_and_insecure_secrets() {
 # rails apps multiple times.
 function fetch_config() {
     pushd /var/www/openshift/broker > /dev/null
-    bundle exec "ruby -rubygems --" <<EOF
+    # bundle exec "ruby -rubygems --" <<EOF
+    safe_bundle "ruby -rubygems --" <<EOF
       require 'openshift-origin-common'
       conf = OpenShift::Config.new('$1')
       puts conf.get('$2')
@@ -213,7 +236,7 @@ function load_application_values() {
 
 	# run those statements after initializing the Rails env
 	OLD_IFS=$IFS; IFS=$'\n' # read into array one line per element
-	declare -a new_app_values=( `run_ruby_rails_command "$ruby_program"` )
+	declare -a new_app_values=( `run_ruby_rails_command "$ruby_program" | tail --lines="${#keys[@]}"` )
 	IFS=$OLD_IFS # back to normal
 	if [ $? -ne 0 ]
 	then
@@ -256,7 +279,8 @@ function run_ruby_rails_command() {
   if which ruby 2>/dev/null >/dev/null
   then
       pushd /var/www/openshift/broker > /dev/null
-      bundle exec "ruby -I ${OSO_BROKER_ROOT} -r rubygems --" <<EOF 2>&1
+      # bundle exec "ruby -I ${OSO_BROKER_ROOT} -r rubygems --" <<EOF 2>&1
+      safe_bundle "ruby -I ${OSO_BROKER_ROOT} -r rubygems --" <<EOF 2>&1
         begin
           require 'config/environment'
           require 'config/environments/$OSO_ENVIRONMENT'
