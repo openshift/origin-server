@@ -16,7 +16,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.7.30
+Version: 1.7.31
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -284,6 +284,9 @@ fi
 %attr(0755,-,-) /etc/cron.monthly/openshift-origin-cron-monthly
 
 %changelog
+* Thu Apr 18 2013 Dan McPherson <dmcphers@redhat.com> 1.7.31-1
+- Bug 953002 - Legal URL wrong in Welcome message (jhonce@redhat.com)
+
 * Wed Apr 17 2013 Dan McPherson <dmcphers@redhat.com> 1.7.30-1
 - Merge pull request #2118 from ironcladlou/stg/bz/953112
   (dmcphers+openshiftbot@redhat.com)
