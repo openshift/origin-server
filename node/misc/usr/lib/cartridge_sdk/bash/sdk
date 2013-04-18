@@ -281,3 +281,8 @@ function primary_cartridge_name() {
  
   cat $OPENSHIFT_PRIMARY_CARTRIDGE_DIR/env/OPENSHIFT_*_IDENT | awk -F: '{printf "%s-%s", $2, $3}'
 }
+
+# Returns 0 if the named marker $1 exists, otherwise 1.
+function marker_present() {
+  [ -f "${OPENSHIFT_REPO_DIR}/.openshift/markers/$1" ]
+}
