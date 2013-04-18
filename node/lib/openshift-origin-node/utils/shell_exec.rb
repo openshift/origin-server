@@ -67,8 +67,10 @@ module OpenShift
     #                              : If not set spawn() returns exitstatus from command otherwise
     #                              : raise an error if exitstatus is not expected_exitstatus
     #   :timeout                   : Maximum number of seconds to wait for command to finish. default: 3600
-    #   :uid                       : spawn command as given user in a SELinux context using runuser/runcon,
+    #   :uid                       : spawn command as given user using runuser
+    #   :selinux_context           : spawn command as given SELinux context using runcon
     #                              : stdin for the command is /dev/null
+    #   :detach                    : spawn command and detach from the process. Command will not return out/err
     #   :out                       : If specified, STDOUT from the child process will be redirected to the
     #                                provided +IO+ object.
     #   :err                       : If specified, STDERR from the child process will be redirected to the
@@ -82,6 +84,7 @@ module OpenShift
       options[:env]         ||= {}
       options[:timeout]     ||= 3600
       options[:buffer_size] ||= 32768
+      options[:detach]      ||= false
 
       opts                   = {}
       opts[:unsetenv_others] = (options[:unsetenv_others] || false)
@@ -94,17 +97,21 @@ module OpenShift
           opts[:out] = write_stdout
           opts[:err] = write_stderr
 
-          if options[:uid]
-            # lazy init otherwise we end up with a cyclic require...
-            require 'openshift-origin-node/utils/selinux'
-
+          if not options[:selinux_context].nil?
             current_context  = SELinux.getcon
-            target_context   = SELinux.context_from_defaults(SELinux.get_mcs_label(options[:uid]))
+            target_context   = options[:selinux_context] || current_context
             
             # Only switch contexts if necessary
-            if (current_context != target_context) || (Process.uid != options[:uid])
+            if (current_context != target_context)
+              command     = %Q{/usr/bin/runcon '#{target_context}' /bin/sh -c "#{command.gsub('"','\\"')}"}
+            end
+          end
+
+          if options[:uid]
+            # Only switch contexts if necessary
+            if (Process.uid != options[:uid])
               target_name = Etc.getpwuid(options[:uid]).name
-              command     = %Q{/sbin/runuser -m -s /bin/sh #{target_name} -c "exec /usr/bin/runcon '#{target_context}' /bin/sh -c \\"#{command}\\""}
+              command     = %Q{/sbin/runuser -m -s /bin/sh #{target_name} -c "exec #{command.gsub('"','\\"')}"}
             end
           end
 
@@ -114,6 +121,12 @@ module OpenShift
           unless pid
             raise OpenShift::Utils::ShellExecutionException.new(
                       "Kernel.spawn failed for command '#{command}'")
+          end
+          
+          if options[:detach] == true
+            #sleep 0.5 #wait for process to stabalize
+            Process.detach pid
+            return ['','',0]
           end
 
           begin
@@ -125,7 +138,7 @@ module OpenShift
 
             if (!options[:expected_exitstatus].nil?) && (status.exitstatus != options[:expected_exitstatus])
               raise OpenShift::Utils::ShellExecutionException.new(
-                        "Shell command '#{command}' returned an error. rc=#{status.exitstatus}",
+                        "Shell command '#{command}' returned an error. rc=#{status.exitstatus}. Env: #{options[:env].pretty_inspect}",
                         status.exitstatus, out, err)
             end
 

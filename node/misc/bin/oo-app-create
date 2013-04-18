@@ -37,6 +37,8 @@ def usage
   -C|--with-container-name  gear_name   Name of the gear (defaults to app name)
   -i|--with-uid             uid         User ID to use (will create a user with
                                             this uid in /etc/passwd)
+  -g|--with-gid             gid         Group ID to use (will create a user with
+                                            this gid in /etc/passwd)
   -b|--with-quota-blocks    blocks      Number of blocks to allow
   -f|--with-quota-files     num_files   Number of files to allow
   -n|--dry-run                          Don't make changes, just do a dry run.
@@ -57,6 +59,7 @@ opts = GetoptLong.new(
     ["--with-container-uuid", "-c", GetoptLong::REQUIRED_ARGUMENT],
     ["--with-container-name", "-C", GetoptLong::OPTIONAL_ARGUMENT],
     ["--with-uid",            "-i", GetoptLong::REQUIRED_ARGUMENT],
+    ["--with-gid",            "-g", GetoptLong::REQUIRED_ARGUMENT],
     ["--with-quota-blocks",   "-b", GetoptLong::REQUIRED_ARGUMENT],
     ["--with-quota-files",    "-f", GetoptLong::REQUIRED_ARGUMENT],
     ["--dry-run",             "-n", GetoptLong::NO_ARGUMENT],
@@ -83,6 +86,11 @@ gear_uuid = args['--with-container-uuid']
 uid = args['--with-uid']
 # make sure uid is either empty or an integer
 uid = !uid ? nil : uid.empty? ? nil : uid.to_i
+gid = args['--with-gid']
+# make sure uid is either empty or an integer
+gid = !gid ? nil : gid.empty? ? nil : gid.to_i
+#default to same as uid if not provided
+gid ||= uid
 quota_blocks = args['--with-quota-blocks']
 quota_files = args['--with-quota-files']
 app_name = args['--with-app-name']
@@ -100,7 +108,7 @@ end
 begin
   container = OpenShift::ApplicationContainer.new(app_uuid, gear_uuid, uid,
                         app_name, gear_name, namespace, quota_blocks,
-                        quota_files)
+                        quota_files, nil, gid)
   container.create
 rescue OpenShift::UserCreationException => e
   $stderr.puts(e.message)

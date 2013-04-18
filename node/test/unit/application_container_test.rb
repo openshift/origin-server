@@ -146,7 +146,7 @@ class ApplicationContainerTest < Test::Unit::TestCase
     proxy.expects(:add).with(@user_uid, "127.0.0.1", 8082).returns(@ports_begin+2)
     proxy.expects(:add).with(@user_uid, "127.0.0.2", 9090).returns(@ports_begin+3)
 
-    @container.user.expects(:add_env_var).returns(nil).times(4)
+    @container.expects(:add_env_var).returns(nil).times(4)
 
     @container.create_public_endpoints(@mock_cartridge.name)
   end
@@ -168,7 +168,7 @@ class ApplicationContainerTest < Test::Unit::TestCase
     delete_all_args = [@ports_begin, @ports_begin+1, @ports_begin+2, @ports_begin+3]
     proxy.expects(:delete_all).with(delete_all_args, true).returns(nil)
 
-    @container.user.expects(:remove_env_var).returns(nil).times(4)
+    @container.expects(:remove_env_var).returns(nil).times(4)
 
     @container.delete_public_endpoints(@mock_cartridge.name)
   end

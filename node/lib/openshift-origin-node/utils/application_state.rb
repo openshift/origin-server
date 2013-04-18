@@ -39,11 +39,12 @@ module OpenShift
 
       attr_reader :uuid
 
-      def initialize(uuid)
+      def initialize(uuid, container)
         @uuid = uuid
 
         config      = OpenShift::Config.new
         @state_file = File.join(config.get("GEAR_BASE_DIR"), uuid, "app-root", "runtime", ".state")
+        @container = container
       end
 
       # Public: Sets the application state.
@@ -62,9 +63,7 @@ module OpenShift
           file.write "#{new_state_val}\n"
         }
 
-        PathUtils.oo_chown(@uuid, @uuid, @state_file)
-        mcs_label = Utils::SELinux.get_mcs_label(@uuid)
-        Utils::SELinux.set_mcs_label(mcs_label, @state_file)
+        @container.set_rw_permission(@state_file)
         self
       end
 

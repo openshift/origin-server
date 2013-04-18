@@ -378,7 +378,7 @@ module OpenShift
 
       def configure_hook_completed(args)
         if args.key?(:output) && ! args[:output].empty?
-          homedir = args[:cart].gear.container.user.homedir
+          homedir = args[:cart].gear.container.container_dir
  
           args[:output].split(/\n/).each { |line|
             case line

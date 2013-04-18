@@ -5,12 +5,7 @@
 # Exit on any errors
 set -e
 
-# Get gear ip address.
-if ! gip=$(facter ipaddress); then
-   gip=$(python -c "import socket; print socket.gethostbyname('$(hostname)')")
-fi
-
 #
 # Publish this gear's HTTP URL/endpoint.
 #
-echo "${OPENSHIFT_GEAR_DNS}|${gip}:${OPENSHIFT_PHP_PROXY_PORT}"
+echo "${OPENSHIFT_GEAR_DNS}|${OPENSHIFT_PROXY_IP}:${OPENSHIFT_PHP_PROXY_PORT}"

@@ -81,7 +81,7 @@ module OpenShift
     include Enumerable
 
     #FIXME: move to node.conf
-    CARTRIDGE_REPO_DIR = '/var/lib/openshift/.cartridge_repository'
+    CARTRIDGE_REPO_DIR = '/var/lib/openshift_cartridge_repository'
 
     # Filesystem path to where cartridges are installed
     attr_reader :path

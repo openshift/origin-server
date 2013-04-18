@@ -52,6 +52,7 @@ module OpenShift
     def start
       p_runner do |gear|
         output_pass_fail("Starting", gear) do
+          gear.container_start unless gear.container_running?          
           gear.start_gear
         end
       end
@@ -68,6 +69,7 @@ module OpenShift
     def restart
       p_runner do |gear|
         output_pass_fail("Restarting", gear) do
+          gear.container_start unless gear.container_running?
           out = ""
           out << gear.stop_gear
           out << gear.start_gear
@@ -109,7 +111,7 @@ module OpenShift
           if not gear.stop_lock? and (gear.state.value != State::STOPPED) # TODO: "== started" instead?
             frontend = FrontendHttpServer.new(gear.uuid)
             frontend.idle
-            out = gear.stop_gear
+            out = gear.idle
             gear.state.value = State::IDLE
             out
           end
@@ -122,7 +124,7 @@ module OpenShift
         output_pass_fail("Unidling", gear) do
           out = ""
           if gear.stop_lock? and (gear.state.value == State::IDLE)
-            out = gear.start_gear
+            out = gear.unidle
           end
           frontend = FrontendHttpServer.new(gear.uuid)
           if frontend.idle?

@@ -1,6 +1,5 @@
 require 'rubygems'
 require 'open4'
-require 'openshift-origin-node/model/unix_user'
 require 'openshift-origin-node/utils/shell_exec'
 require 'openshift-origin-node/utils/node_logger'
 require 'openshift-origin-node/utils/sanitize'
@@ -10,9 +9,9 @@ module OpenShift
     include OpenShift::Utils::ShellExec
     include NodeLogger
 
-    def initialize(config, user)
-      @config = config
-      @user = user
+    def initialize(config, container)
+      @config    = config
+      @container = container
     end
 
     def get_cartridge(cart_name)
@@ -21,7 +20,7 @@ module OpenShift
         return OpenShift::Runtime::Manifest.new(manifest_path)
       rescue => e
         logger.error(e.backtrace)
-        raise "Failed to load cart manifest from #{manifest_path} for cart #{cart_name} in gear #{@user.uuid}: #{e.message}"
+        raise "Failed to load cart manifest from #{manifest_path} for cart #{cart_name} in gear #{@container.uuid}: #{e.message}"
       end
     end
 
@@ -34,9 +33,9 @@ module OpenShift
         end
       end
       if cartridge_name.nil?
-        raise "Partial gear with no cartridges: #{@user.uuid}"
+        raise "Partial gear with no cartridges: #{@container.uuid}"
       end
-      File.join(@user.homedir, cartridge_name, 'run', 'stop_lock')
+      File.join(@container.container_dir, cartridge_name, 'run', 'stop-lock')
     end
 
     def stop_lock?(cartridge_name=nil)
@@ -47,17 +46,15 @@ module OpenShift
     # Writes the +stop_lock+ file and changes its ownership to the gear user.
     def create_stop_lock
       unless stop_lock?
-        mcs_label = Utils::SELinux.get_mcs_label(@user.uid)
         File.new(stop_lock, File::CREAT|File::TRUNC|File::WRONLY, 0644).close()
-        PathUtils.oo_chown(@user.uid, @user.gid, stop_lock)
-        Utils::SELinux.set_mcs_label(mcs_label, stop_lock)
+        set_rw_permission(stop_lock)
       end
     end
 
     ##
     # Yields a +Cartridge+ instance for each cartridge in the gear.
     def each_cartridge
-      Dir[PathUtils.join(@user.homedir, "*")].each do |cart_dir|
+      Dir[PathUtils.join(@container.container_dir, "*")].each do |cart_dir|
         next if cart_dir.end_with?('app-root')
         next if cart_dir.end_with?('git')
         next if not File.directory? cart_dir
@@ -79,7 +76,7 @@ module OpenShift
       end
 
       if cart.nil?
-        raise "No primary cartridge found on gear #{@user.uuid}"
+        raise "No primary cartridge found on gear #{@container.uuid}"
       end
 
       cart
@@ -132,17 +129,17 @@ module OpenShift
 
       hooks={}
       ["pre", "post"].each do |hooktype|
-        if @user.homedir.nil? || ! File.exists?(@user.homedir)
+        if @container.container_dir.nil? || ! File.exists?(@container.container_dir)
           hooks[hooktype]=[]
         else
-          hooks[hooktype] = Dir.entries(@user.homedir).map { |cart|
+          hooks[hooktype] = Dir.entries(@container.container_dir).map { |cart|
             [ File.join(@config.get("CARTRIDGE_BASE_PATH"),cart,"info","hooks","#{hooktype}-destroy"),
               File.join(@config.get("CARTRIDGE_BASE_PATH"),"embedded",cart,"info","hooks","#{hooktype}-destroy"),
             ].select { |hook| File.exists? hook }[0]
           }.select { |hook|
             not hook.nil?
           }.map { |hook|
-            "#{hook} #{@user.container_name} #{@user.namespace} #{@user.container_uuid}"
+            "#{hook} #{@container.container_name} #{@container.namespace} #{@container.uuid}"
           }
         end
       end
@@ -156,16 +153,16 @@ module OpenShift
         end
       end
 
-      @user.destroy
-
-      unless skip_hooks
-        hooks["post"].each do | cmd |
-          out,err,rc = shellCmd(cmd, "/", true, 0, hook_timeout)
-          errout << err if not err.nil?
-          output << out if not out.nil?
-          retcode = 121 if rc != 0
-        end
-      end
+      #@user.destroy
+      #
+      #unless skip_hooks
+      #  hooks["post"].each do | cmd |
+      #    out,err,rc = shellCmd(cmd, "/", true, 0, hook_timeout)
+      #    errout << err if not err.nil?
+      #    output << out if not out.nil?
+      #    retcode = 121 if rc != 0
+      #  end
+      #end
 
       return output, errout, retcode
     end
@@ -177,29 +174,29 @@ module OpenShift
       # to cart scripts in the base cartridge directory. If such a file exists,
       # it's assumed the cart is installed on the gear.
       cart_tidy_timeout = 30
-      Dir.entries(@user.homedir).each do |gear_subdir|
+      Dir.entries(@container.container_dir).each do |gear_subdir|
         tidy_script = File.join(@config.get("CARTRIDGE_BASE_PATH"), gear_subdir, "info", "hooks", "tidy")
 
         next unless File.exists?(tidy_script)
 
         begin
           # Execute the hook in the context of the gear user
-          logger.debug("Executing cart tidy script #{tidy_script} in gear #{@user.uuid} as user #{@user.uid}:#{@user.gid}")
-          OpenShift::Utils::ShellExec.run_as(@user.uid, @user.gid, tidy_script, @user.homedir, false, 0, cart_tidy_timeout)
+          logger.debug("Executing cart tidy script #{tidy_script} in gear #{@container.uuid} as user #{@container.container_uid}:#{@container.container_gid}")
+          OpenShift::Utils::ShellExec.run_as(@container.container_uid, @container.container_gid, tidy_script, @container.container_dir, false, 0, cart_tidy_timeout)
         rescue OpenShift::Utils::ShellExecutionException => e
-          logger.warn("Cartridge tidy operation failed on gear #{@user.uuid} for cart #{gear_subdir}: #{e.message} (rc=#{e.rc})")
+          logger.warn("Cartridge tidy operation failed on gear #{@container.uuid} for cart #{gear_subdir}: #{e.message} (rc=#{e.rc})")
         end
       end
     end
 
     def update_namespace(cart_name, old_namespace, new_namespace)
-      do_control('update-namespace', cart_name, "#{@user.container_name} #{new_namespace} #{old_namespace} #{@user.container_uuid}")
+      do_control('update-namespace', cart_name, "#{@container.container_name} #{new_namespace} #{old_namespace} #{@container.uuid}")
     end
 
     def configure(cart_name, template_git_url, manifest)
       raise "Downloaded cartridges are not supported" if manifest
 
-      do_control('configure', cart_name, "#{@user.container_name} #{@user.namespace} #{@user.container_uuid} #{template_git_url}")
+      do_control('configure', cart_name, "#{@container.container_name} #{@container.namespace} #{@container.uuid} #{template_git_url}")
     end
     
     def resolve_application_dependencies(cart_name)    
@@ -235,7 +232,7 @@ module OpenShift
     end
 
     def do_control(action, cart_name, args=nil, hook_dir="hooks")
-      args = args ||= "#{@user.container_name} #{@user.namespace} #{@user.container_uuid}"
+      args = args ||= "#{@container.container_name} #{@container.namespace} #{@container.uuid}"
 
       exitcode, output = handle_cartridge_action(cart_name, action, hook_dir, args)
 

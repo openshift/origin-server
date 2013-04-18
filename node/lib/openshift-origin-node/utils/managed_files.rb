@@ -80,8 +80,8 @@ module OpenShift
     # Returns an <code>Array</code> object containing the file names the cartridge author wishes to manipulate
     #
     #   v2_cart_model.lock_files(cartridge)
-    def lock_files(cartridge)
-      locked_files = managed_files(cartridge, :locked_files, @user.homedir)
+    def lock_files(container, cartridge)
+      locked_files = managed_files(cartridge, :locked_files, container.container_dir)
 
       files = []
       locked_files.each do |line|
@@ -91,7 +91,7 @@ module OpenShift
         elsif line !~ /^(app-root\/|\.[^\/]+|#{cartridge.directory}\/)/ # Only allow files in app-root, the cart directory, or dot files/dirs (if they pass blacklist check)
           logger.info("#{cartridge.directory} attempted lock/unlock on out-of-bounds entry [#{line}]")
         else
-          abs_line = File.join(@user.homedir, line)
+          abs_line = File.join(container.container_dir, line)
           if line.end_with?('/') && !abs_line.end_with?('/')
             abs_line = "#{abs_line}/"
           end
@@ -106,8 +106,8 @@ module OpenShift
     # Returns an <code>Array</code> object containing the file names the cartridge author wishes to exclude from snapshots
     #
     #   v2_cart_model.snapshot_exclusions(cartridge)
-    def snapshot_exclusions(cartridge)
-      managed_files(cartridge, :snapshot_exclusions, @user.homedir)
+    def snapshot_exclusions(container,cartridge)
+      managed_files(cartridge, :snapshot_exclusions, container.container_dir)
     end
 
     # setup_rewritten(cartridge_object) -> Array.new(file_names)
@@ -116,7 +116,7 @@ module OpenShift
     #
     #   v2_cart_model.setup_rewritten(cartridge)
     def setup_rewritten(cartridge)
-      managed_files(cartridge, :setup_rewritten, @user.homedir)
+      managed_files(cartridge, :setup_rewritten, container.container_dir)
     end
 
     # restore_transforms(cartridge_object) -> Array.new(file_names)
@@ -124,8 +124,8 @@ module OpenShift
     # Returns an <code>Array</code> object containing the file names the cartridge author wishes to use to modify files after a restore
     #
     #   v2_cart_model.restore_transforms(cartridge)
-    def restore_transforms(cartridge)
-      managed_files(cartridge, :restore_transforms, @user.homedir)
+    def restore_transforms(container,cartridge)
+      managed_files(cartridge, :restore_transforms, container.container_dir)
     end
 
     # process_templates(cartridge_object) -> Array.new(file_names)
@@ -133,8 +133,8 @@ module OpenShift
     # Returns an <code>Array</code> object containing the file names the cartridge author wishes to process, such as ERB templates
     #
     #   v2_cart_model.process_templates(cartridge)
-    def process_templates(cartridge)
-      managed_files(cartridge, :processed_templates, @user.homedir)
+    def process_templates(container,cartridge)
+      managed_files(cartridge, :processed_templates, container.container_dir)
     end
   end
 end

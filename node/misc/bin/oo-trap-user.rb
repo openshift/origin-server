@@ -79,9 +79,9 @@ module OpenShift
             canon_command = '/bin/bash'
             canon_argv.concat %w(--init-file /usr/bin/rhcsh)
             if orig_argv.empty?
-              canon.argv.push '-i'
+              canon_argv.push '-i'
             else
-              canon.argv.push '-c'
+              canon_argv.push '-c'
               canon_argv.concat orig_argv
             end
 
@@ -185,24 +185,24 @@ module OpenShift
             canon_argv.concat(orig_argv)
         end
 
-        mcs_label      = OpenShift::Utils::SELinux.get_mcs_label(Process.uid)
-        target_context = OpenShift::Utils::SELinux.context_from_defaults(mcs_label)
-        actual_context = OpenShift::Utils::SELinux.getcon
-
-        if target_context != actual_context
-          $stderr.puts "Invalid context: #{actual_context}, expected #{target_context}"
-          return 40
-          # This path is left in because at the time of writing this statement
-          # We have a patched ssh running.  Remove the return above and it should
-          # work on other platforms.
-          canon_argv.unshift(target_context, canon_command)
-          Kernel.exec(env, '/usr/bin/runcon', *canon_argv)
-          return 1
-        end
+        #mcs_label      = OpenShift::Utils::SELinux.get_mcs_label(Process.uid)
+        #target_context = OpenShift::Utils::SELinux.context_from_defaults(mcs_label)
+        #actual_context = OpenShift::Utils::SELinux.getcon
+        #
+        #if target_context != actual_context
+        #  $stderr.puts "Invalid context: #{actual_context}, expected #{target_context}"
+        #  return 40
+        #  # This path is left in because at the time of writing this statement
+        #  # We have a patched ssh running.  Remove the return above and it should
+        #  # work on other platforms.
+        #  canon_argv.unshift(target_context, canon_command)
+        #  Kernel.exec(env, '/usr/bin/runcon', *canon_argv)
+        #  return 1
+        #end
 
         if :bash == canon_command
-          Syslog.info("#{ENV['OPENSHIFT_GEAR_UUID']}: rhcsh cooked command = /bin/bash -c #{canon_argv.join(' ')}")
-          Kernel.exec(env, '/bin/bash', '-c', canon_argv.join(' '))
+          Syslog.info("#{ENV['OPENSHIFT_GEAR_UUID']}: rhcsh cooked command = /bin/bash -x -c #{canon_argv.join(' ')}")
+          Kernel.exec(env, '/bin/bash', '-x', '-c', canon_argv.join(' '))
         else
           Syslog.info("#{ENV['OPENSHIFT_GEAR_UUID']}: rhcsh cooked command = #{canon_command}, #{canon_argv.join(',')}")
           Kernel.exec(env, canon_command, *canon_argv)

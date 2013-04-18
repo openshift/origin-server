@@ -12,15 +12,15 @@ Gem::Specification.new do |s|
   s.email = ['ccoleman@redhat.com', 'ffranz@redhat.com','dmcphers@redhat.com', 'mhicks@redhat.com', 'edirsh@redhat.com', 'fotios@redhat.com', 'johnp@redhat.com']
   s.homepage = 'https://github.com/openshift/origin-server/tree/master/console'
 
-  s.files = Dir['Gemfile', 'LICENSE', 'COPYRIGHT', 'README.md', 'Rakefile', 'app/**/*', 'config/**/*', 'lib/**/*', 'public/**/*', 'vendor/**/*', 'conf/**/*']
+  s.files = Dir['Gemfile', 'rubygem-openshift-origin-console.spec', 'openshift-origin-console.gemspec', 'LICENSE', 'COPYRIGHT', 'README.md', 'Rakefile', 'app/**/*', 'config/**/*', 'lib/**/*', 'public/**/*', 'vendor/**/*', 'conf/**/*']
   s.test_files = Dir['test/**/*']
 
   # Console gem dependencies are explicitly specific since they must
   # match gems available in Fedora.  This may be relaxed at a future 
   # date.
   s.add_dependency 'rails',               '~> 3.2.8'
-  s.add_dependency 'formtastic',          '~> 1.2.4'
+  s.add_dependency 'formtastic',          '>= 1.2.3'
   s.add_dependency 'net-http-persistent', '>= 2.7'
   s.add_dependency 'haml',                '~> 3.1.7'
-  s.add_dependency 'rdiscount',           '~> 1.6.3'
+  s.add_dependency 'rdiscount',           '>= 1.6.3'
 end

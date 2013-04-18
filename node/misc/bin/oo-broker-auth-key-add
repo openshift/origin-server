@@ -45,7 +45,6 @@ end
 
 require 'rubygems'
 require 'openshift-origin-node'
-require 'openshift-origin-node/utils/shell_exec'
 opts = GetoptLong.new(
     ["--with-app-uuid",       "-a", GetoptLong::REQUIRED_ARGUMENT],
     ["--with-container-uuid", "-c", GetoptLong::REQUIRED_ARGUMENT],
@@ -75,7 +74,7 @@ end
 
 begin
   container = OpenShift::ApplicationContainer.new(uuid, uuid)
-  container.user.add_broker_auth(iv,token)
+  container.add_broker_auth(iv,token)
 rescue Exception => e
   $stderr.puts(e.message)
   exit -1

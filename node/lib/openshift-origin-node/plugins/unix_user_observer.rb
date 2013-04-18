@@ -1,7 +1,6 @@
 require 'rubygems'
 require 'singleton'
 require 'openshift-origin-node/config'
-require 'openshift-origin-node/model/unix_user'
 require 'openshift-origin-node/utils/shell_exec'
 
 module OpenShift

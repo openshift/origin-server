@@ -63,6 +63,9 @@ module OpenShift
         elements << system_path if system_path
 
         env['PATH'] = elements.join(':')
+        env['OPENSHIFT_GEAR_USER_NAME'] = env['OPENSHIFT_GEAR_UUID']
+	gid = Etc.getpwnam(env['OPENSHIFT_GEAR_UUID']).gid
+        env['OPENSHIFT_GEAR_USER_GROUP'] = Etc.getgrgid(gid).name
         env
       end
 
