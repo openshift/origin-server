@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.7.9
+Version: 1.7.10
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -83,6 +83,11 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Thu Apr 18 2013 Dan McPherson <dmcphers@redhat.com> 1.7.10-1
+- Merge pull request #2129 from rajatchopra/stg_fix_unreserve
+  (dmcphers@redhat.com)
+- unreserve should not happen twice over (rchopra@redhat.com)
+
 * Wed Apr 17 2013 Dan McPherson <dmcphers@redhat.com> 1.7.9-1
 - Fix for bug 953035 Including the links for aliases embedded in application
   response if nolinks was not specified (abhgupta@redhat.com)
