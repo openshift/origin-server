@@ -1,5 +1,7 @@
 #!/bin/bash -e
 
+source $OPENSHIFT_CARTRIDGE_SDK_BASH
+
 JBOSSAS_BIN_DIR=${OPENSHIFT_JBOSSAS_DIR}/bin
 JBOSSAS_PID_FILE=${OPENSHIFT_HOMEDIR}/app-root/runtime/jbossas.pid
 
@@ -173,75 +175,51 @@ function build() {
 }
 
 function deploy() {
-	echo "Deploying $cartridge_type cart"
-	
-	CART_NAME=${cartridge_type}
-	
+  echo "Deploying JBoss"
+  
 	if [ "$(ls ${OPENSHIFT_REPO_DIR}/deployments)" ]; then
-		rsync -r --delete --exclude ".*" ${OPENSHIFT_REPO_DIR}/deployments/ ${OPENSHIFT_HOMEDIR}/${CART_NAME}/standalone/deployments/
+		rsync -r --delete --exclude ".*" ${OPENSHIFT_REPO_DIR}/deployments/ ${OPENSHIFT_JBOSSAS_DIR}/standalone/deployments/
 	else
-        rm -rf ${OPENSHIFT_HOMEDIR}/${CART_NAME}/${CART_NAME}/standalone/deployments/*
-    fi
+    rm -rf ${OPENSHIFT_JBOSSAS_DIR}/standalone/deployments/*
+  fi
 }
 
 function start() {
-    echo "Starting $cartridge_type cart"
+  echo "Starting $cartridge_type cart"
     
-	if [ -f "${OPENSHIFT_REPO_DIR}/.openshift/markers/enable_jpda" ]; then
-       ENABLE_JPDA=1
-    fi
+	if marker_present "nenable_jpda"; then
+    ENABLE_JPDA=1
+  fi
 
-    # Check for running app
-    if isrunning; then
-        echo "Application is already running"
-    else
-    	if [ -f ${OPENSHIFT_REPO_DIR}/.openshift/action_hooks/pre_start_${cartridge_type} ]; then
-        	source ${OPENSHIFT_REPO_DIR}/.openshift/action_hooks/pre_start_${cartridge_type}
-        fi
-        
-        jopts="${JAVA_OPTS}"
-        [ "${ENABLE_JPDA:-0}" -eq 1 ] && jopts="-Xdebug -Xrunjdwp:transport=dt_socket,address=${OPENSHIFT_JBOSSAS_IP}:8787,server=y,suspend=n ${JAVA_OPTS}"
-        JAVA_OPTS="${jopts}"
-        #${JBOSSAS_BIN_DIR}/standalone.sh > ${OPENSHIFT_TMP_DIR}/${cartridge_type}.log &
-        ${JBOSSAS_BIN_DIR}/standalone.sh > ${OPENSHIFT_TMP_DIR}/${cartridge_type}.log 2>&1 &
-        PROCESS_ID=$!
-        echo "$PROCESS_ID" > ${JBOSSAS_PID_FILE}
-        if ! ishttpup; then
-            echo "Timed out waiting for http listening port"
-            exit 1
-        fi
-        
-        if [ -f ${OPENSHIFT_REPO_DIR}/.openshift/action_hooks/post_start_${cartridge_type} ]; then
-        	source ${OPENSHIFT_REPO_DIR}/.openshift/action_hooks/post_start_${cartridge_type}
-        fi
+  # Check for running app
+  if isrunning; then
+      echo "Application is already running"
+  else    
+    jopts="${JAVA_OPTS}"
+    [ "${ENABLE_JPDA:-0}" -eq 1 ] && jopts="-Xdebug -Xrunjdwp:transport=dt_socket,address=${OPENSHIFT_JBOSSAS_IP}:8787,server=y,suspend=n ${JAVA_OPTS}"
+    JAVA_OPTS="${jopts}"
+    ${JBOSSAS_BIN_DIR}/standalone.sh > ${OPENSHIFT_TMP_DIR}/${cartridge_type}.log 2>&1 &
+    PROCESS_ID=$!
+    echo "$PROCESS_ID" > ${JBOSSAS_PID_FILE}
+    if ! ishttpup; then
+        echo "Timed out waiting for http listening port"
+        exit 1
     fi
+  fi
 }
 
 
 function stop() {
-    echo "Stopping $cartridge_type cart"
-    
-    if isrunning
-    then
-        if  hot_deploy_marker_is_present ; then
-                echo "Hot deploy enabled. Not stopping" 
-        else
-			if [ -f "$JBOSSAS_PID_FILE" ]; then
-				if [ -f ${OPENSHIFT_REPO_DIR}/.openshift/action_hooks/pre_stop_${cartridge_type} ]; then
-		        	source ${OPENSHIFT_REPO_DIR}/.openshift/action_hooks/pre_stop_${cartridge_type}
-		        fi
-		        
-		        pid=$(cat $JBOSSAS_PID_FILE);
-		        echo "Sending SIGTERM to jboss:$pid ..." 1>&2
-		        killtree $pid
-		        
-		        if [ -f ${OPENSHIFT_REPO_DIR}/.openshift/action_hooks/post_stop_${cartridge_type} ]; then
-		        	source ${OPENSHIFT_REPO_DIR}/.openshift/action_hooks/post_stop_${cartridge_type}
-		        fi
-		    else 
-		        echo "Failed to locate JBOSS PID File" 1>&2
-		    fi
-		fi
+  echo "Stopping $cartridge_type cart"
+  
+  if isrunning; then
+		if [ -f "$JBOSSAS_PID_FILE" ]; then
+			pid=$(cat $JBOSSAS_PID_FILE);
+	    echo "Sending SIGTERM to jboss:$pid ..." 1>&2
+	    killtree $pid
+	  else 
+	    echo "Failed to locate JBOSS PID File" 1>&2
+	  fi
 	fi
 }
 
@@ -268,16 +246,7 @@ function reload() {
 }
 
 function tidy() {
-    echo "Tidying $cartridge_type cart"
-    
-    for logdir in `awk 'BEGIN {
-                           for (a in ENVIRON)
-                           if (a ~ /LOG_DIR$/)
-                           print ENVIRON[a] }'`
-	do
-    	client_message "Emptying log dir: ${logdir}"
-    	rm -rf ${logdir}* ${logdir}.[^.]*
-	done
+    rm -rf ${OPENSHIFT_JBOSSAS_DIR}/logs/* ${OPENSHIFT_JBOSSAS_DIR}/logs/.[^.]*
 }
 
 function threaddump() {

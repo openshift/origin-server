@@ -197,10 +197,13 @@ module OpenShift
     #
     # tidy()
     def tidy
-      begin
-        do_control_with_directory('tidy')
-      rescue Utils::ShellExecutionException => e
-        logger.warn("Cartridge tidy operation failed on gear #{@user.uuid} for cart #{cartridge_name}: #{e.message} (rc=#{e.rc})")
+      each_cartridge do |cartridge|
+        begin
+          output = do_control('tidy', cartridge)
+        rescue Utils::ShellExecutionException => e
+          logger.warn("Tidy operation failed for cartridge #{cartridge.name} on "\
+                      "gear #{@user.uuid}: #{e.message} (rc=#{e.rc}), output=#{output}")
+        end
       end
     end
 
