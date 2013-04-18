@@ -194,7 +194,7 @@ def add_sub_account(user, subaccount_login)
         if child_user.parent_user_id == user._id
             puts "Error: Subaccount for '#{subaccount_login}' already exists under #{user.login}"
         elsif not child_user.parent_user_id.nil?
-            parent_user = CloudUser.find_by(_id: child_user.parent_user_id)
+            parent_user = CloudUser.with(consistency: :eventual).find_by(_id: child_user.parent_user_id)
             puts "Error: Subaccount for '#{subaccount_login}' already exists under #{parent_user.login}"
         else
             puts "Error: User '#{subaccount_login}' already exists"

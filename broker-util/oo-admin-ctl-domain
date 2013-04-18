@@ -76,13 +76,13 @@ when "env_add"
     exit 1
   end
   begin
-    user = CloudUser.find_by(login: login)
+    user = CloudUser.with(consistency: :eventual).find_by(login: login)
   rescue Mongoid::Errors::DocumentNotFound
     puts "User with login: #{login} not found"
     exit 1
   end
   begin
-    domain = Domain.find_by(owner: user, namespace: namespace)
+    domain = Domain.with(consistency: :eventual).find_by(owner: user, namespace: namespace)
   rescue Mongoid::Errors::DocumentNotFound
     puts "Domain with namespace: #{namespace} not found for user #{user.login}"
     exit 1
@@ -103,13 +103,13 @@ when "env_del"
     exit 1
   end
   begin
-    user = CloudUser.find_by(login: login)
+    user = CloudUser.with(consistency: :eventual).find_by(login: login)
   rescue Mongoid::Errors::DocumentNotFound
     puts "User with login: #{login} not found"
     exit 1
   end
   begin
-    domain = Domain.find_by(owner: user, namespace: namespace)
+    domain = Domain.with(consistency: :eventual).find_by(owner: user, namespace: namespace)
   rescue Mongoid::Errors::DocumentNotFound
     puts "Domain with namespace: #{namespace} not found for user #{user.login}"
     exit 1
@@ -131,14 +131,14 @@ when "create"
   end
   user = nil
   begin
-    CloudUser.find_by(login: login)
+    CloudUser.with(consistency: :eventual).find_by(login: login)
     puts "User #{login} already exists.  Please use the 'update' command to alter ssh keys or namespace."
     exit 1
   rescue Mongoid::Errors::DocumentNotFound
   end
   
   begin
-    Domain.find_by(canonical_namespace: namespace.downcase)
+    Domain.with(consistency: :eventual).find_by(canonical_namespace: namespace.downcase)
     puts "Domain #{namespace.downcase} already exists.  Please choose another."
     exit 1
   rescue Mongoid::Errors::DocumentNotFound
@@ -156,7 +156,7 @@ when "create"
 when "update"
   user = nil
   begin
-    user = CloudUser.find_by(login: login)
+    user = CloudUser.with(consistency: :eventual).find_by(login: login)
   rescue Mongoid::Errors::DocumentNotFound
   end
   unless user
@@ -182,7 +182,7 @@ when "update"
         d = user.domains.first
         unless d.canonical_namespace == namespace.downcase
           begin
-            Domain.find_by(canonical_namespace: namespace.downcase)
+            Domain.with(consistency: :eventual).find_by(canonical_namespace: namespace.downcase)
             puts "Domain #{namespace.downcase} already exists.  Please choose another."
             exit 1
           rescue Mongoid::Errors::DocumentNotFound
@@ -234,7 +234,7 @@ when "update"
 when "delete"
   user = nil
   begin
-    user = CloudUser.find_by(login: login)
+    user = CloudUser.with(consistency: :eventual).find_by(login: login)
   rescue Mongoid::Errors::DocumentNotFound
     puts "User with login '#{login}' not found"
     exit 1
@@ -267,7 +267,7 @@ when "delete"
 else
   user = nil
   begin
-    user = CloudUser.find_by(login: login)
+    user = CloudUser.with(consistency: :eventual).find_by(login: login)
   rescue Mongoid::Errors::DocumentNotFound
   end
   unless user

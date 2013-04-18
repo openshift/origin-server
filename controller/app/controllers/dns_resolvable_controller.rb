@@ -16,14 +16,14 @@ class DnsResolvableController < BaseController
     id = params[:application_id].downcase if params[:application_id]
 
     begin
-      domain = Domain.find_by(owner: @cloud_user, canonical_namespace: domain_id)
+      domain = Domain.with(consistency: :eventual).find_by(owner: @cloud_user, canonical_namespace: domain_id)
       @domain_name = domain.namespace
     rescue Mongoid::Errors::DocumentNotFound
       return render_error(:not_found, "Domain #{domain_id} not found", 127, "DNS_RESOLVABLE")
     end
 
     begin
-      application = Application.find_by(domain: domain, canonical_name: id)
+      application = Application.with(consistency: :eventual).find_by(domain: domain, canonical_name: id)
       @application_name = application.name
       @application_uuid = application.uuid
     rescue Mongoid::Errors::DocumentNotFound
