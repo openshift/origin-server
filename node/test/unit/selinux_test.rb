@@ -19,21 +19,16 @@
 #
 require 'test_helper'
 require 'openshift-origin-node/utils/selinux'
-require 'openshift-origin-node/utils/shell_exec'
-require 'openshift-origin-node/utils/environ'
 require 'openshift-origin-node/utils/node_logger'
 require 'test/unit'
 require 'mocha'
 
-class SELinuxUtilsTest < Test::Unit::TestCase
+class SELinuxUtilsMCSLabelTest < Test::Unit::TestCase
 
   def setup
     @config_mock = mock('OpenShift::Config')
     @config_mock.stubs(:get).returns(nil)
     OpenShift::Config.stubs(:new).returns(@config_mock)
-  end
-
-  def teardown
   end
 
   def test_mcs_labels
@@ -43,7 +38,7 @@ class SELinuxUtilsTest < Test::Unit::TestCase
     assert_equal [523776, "s0:c1022,c1023"], labelset[-1]
   end
 
-  def test_mcs_label
+  def test_get_mcs_label
     scenarios = [
                  [500,    "s0:c0,c500"],
                  [1023,   "s0:c0,c1023"],
@@ -65,63 +60,192 @@ class SELinuxUtilsTest < Test::Unit::TestCase
     scenarios.each do |s|
       assert_equal s[1], OpenShift::Utils::SELinux.get_mcs_label(s[0])
     end
+  end
+end
 
-    def test_set_mcs_label
-      pathargs="foo bar baz"
-      label="s0:c0,c1,c2,c3,c4,c5,c6,c7,c8"
-      OpenShift::Utils::SELinux.expects(:call_selinux_cmd).with("/sbin/restorecon #{pathargs}; /usr/bin/chcon -l #{label} #{pathargs}").returns("").twice
-      assert_equal "", OpenShift::Utils::SELinux.set_mcs_label(label, "foo", "bar", "baz")
-      assert_equal "", OpenShift::Utils::SELinux.set_mcs_label(label, [ "foo", "bar", "baz" ])
+
+class SELinuxUtilsContextTest < Test::Unit::TestCase
+
+  def test_context_from_defaults
+    assert_equal "unconfined_u:system_r:openshift_t:s0", OpenShift::Utils::SELinux.context_from_defaults()
+    assert_equal "unconfined_u:system_r:openshift_t:a", OpenShift::Utils::SELinux.context_from_defaults("a")
+    assert_equal "unconfined_u:system_r:b:a", OpenShift::Utils::SELinux.context_from_defaults("a", "b")
+    assert_equal "unconfined_u:c:b:a", OpenShift::Utils::SELinux.context_from_defaults("a", "b", "c")
+    assert_equal "d:c:b:a", OpenShift::Utils::SELinux.context_from_defaults("a", "b", "c", "d")
+  end
+
+  def test_getcon
+    con = "a:b:c:d"
+    Selinux.expects(:getcon).returns([0, con]).once
+    assert_equal con, OpenShift::Utils::SELinux.getcon
+  end
+
+end
+
+
+class SELinuxUtilsChconTest < Test::Unit::TestCase
+  
+  def test_chcon_no_context_change
+    tcontext = "a:b:c:d"
+    fcontext = tcontext
+    
+    OpenShift::Utils::SELinux.expects(:matchpathcon_update).once
+    File.expects(:lstat).with(@test_path).returns(0755).once
+    Selinux.expects(:matchpathcon).with(@test_path).returns(fcontext)
+    Selinux.expects(:lgetfilecon).with(@test_path).returns(fcontext)
+    OpenShift::NodeLogger.logger.expects(:error).never
+    Selinux.exepcts(:lsetfilecon).with(@test_path, tcontext).returns(0).never
+    
+    assert_nothing_raised do
+      OpenShift::Utils::SELinux.chcon(path)
     end
+  end
+  
+  def test_chcon_with_label
+    tlabel = "d"
+    tcontext = "a:b:c:#{tlabel}"
+    fcontext = "a:b:c:none_l"
 
-    def test_set_mcs_label_R
-      pathargs="foo bar baz"
-      label="s0:c0,c1,c2,c3,c4,c5,c6,c7,c8"
-      OpenShift::Utils::SELinux.expects(:call_selinux_cmd).with("/sbin/restorecon -R #{pathargs}; /usr/bin/chcon -R -l #{label} #{pathargs}").returns("").twice
-      assert_equal "", OpenShift::Utils::SELinux.set_mcs_label_R(label, "foo", "bar", "baz")
-      assert_equal "", OpenShift::Utils::SELinux.set_mcs_label_R(label, [ "foo", "bar", "baz" ])
+    OpenShift::Utils::SELinux.expects(:matchpathcon_update).once
+    File.expects(:lstat).with(@test_path).returns(0755).once
+    Selinux.expects(:matchpathcon).with(@test_path).returns(fcontext)
+    Selinux.expects(:lgetfilecon).with(@test_path).returns(fcontext)
+    OpenShift::NodeLogger.logger.expects(:error).never
+    Selinux.exepcts(:lsetfilecon).with(@test_path, tcontext).returns(0).once
+
+    assert_nothing_raised do
+      OpenShift::Utils::SELinux.chcon(path, tlabel)
     end
+  end
 
-    def test_clear_mcs_label
-      pathargs="foo bar baz"
-      OpenShift::Utils::SELinux.expects(:call_selinux_cmd).with("/sbin/restorecon -F #{pathargs}").returns("").twice
-      assert_equal "", OpenShift::Utils::SELinux.clear_mcs_label("foo", "bar", "baz")
-      assert_equal "", OpenShift::Utils::SELinux.clear_mcs_label([ "foo", "bar", "baz" ])
+  def test_chcon_with_full_context
+    tuser = "a"
+    trole = "b"
+    ttype = "c"
+    tlabel = "d"
+
+    tcontext = "#{tuser}:#{trole}:#{ttype}:#{tlabel}"
+    fcontext = "none_u:none_r:none_t:none_l"
+
+    OpenShift::Utils::SELinux.expects(:matchpathcon_update).once
+    File.expects(:lstat).with(@test_path).returns(0755).once
+    Selinux.expects(:matchpathcon).with(@test_path).returns(fcontext)
+    Selinux.expects(:lgetfilecon).with(@test_path).returns(fcontext)
+    OpenShift::NodeLogger.logger.expects(:error).never
+    Selinux.exepcts(:lsetfilecon).with(@test_path, tcontext).returns(0).once
+
+    assert_nothing_raised do
+      OpenShift::Utils::SELinux.chcon(path, tlabel, ttype, trole, tuser)
     end
+  end
 
-    def test_clear_mcs_label_R
-      pathargs="foo bar baz"
-      OpenShift::Utils::SELinux.expects(:call_selinux_cmd).with("/sbin/restorecon -R -F #{pathargs}").returns("").twice
-      assert_equal "", OpenShift::Utils::SELinux.clear_mcs_label("foo", "bar", "baz")
-      assert_equal "", OpenShift::Utils::SELinux.clear_mcs_label([ "foo", "bar", "baz" ])
+  def test_setmatchpathcon_update
+    Selinux.expects(:selinux_file_context_path).returns("foo").once
+    Dir.expects(:glob).with("foo*").returns(["foo", "bar"]).once
+    File.expects(:stat).with("foo").returns(0123456).once
+    File.expects(:stat).with("bar").returns(7890123).once
+    OpenShift::NodeLogger.logger.expects(:debug)
+    Selinux.expects(:matchpathcon_fini).never
+    Selinux.expects(:matchpathcon_init).with(nil).once
+
+    assert_nothing_raised do
+      OpenShift::Utils::SELinux.matchpathcon_update
     end
+  end
 
-    def test_context_from_defaults
-      assert_equal "unconfined_u:system_r:openshift_t:s0", OpenShift::Utils::SELinux.context_from_defaults()
-      assert_equal "unconfined_u:system_r:openshift_t:foo", OpenShift::Utils::SELinux.context_from_defaults("foo")
-      assert_equal "unconfined_u:system_r:bar:foo", OpenShift::Utils::SELinux.context_from_defaults("foo", "bar")
-      assert_equal "unconfined_u:baz:bar:foo", OpenShift::Utils::SELinux.context_from_defaults("foo", "bar", "baz")
-      assert_equal "boing:baz:bar:foo", OpenShift::Utils::SELinux.context_from_defaults("foo", "bar", "baz", "boing")
+end
+
+
+class SELinuxUtilsSetMCSLabelTest < Test::Unit::TestCase
+
+  def setup
+    @config_mock = mock('OpenShift::Config')
+    @config_mock.stubs(:get).returns(nil)
+    OpenShift::Config.stubs(:new).returns(@config_mock)
+
+    @test_label = "s0:c0,c1,c2,c3,c4,c5,c6,c7,c8"
+    @test_type  = "testtype_t"
+    @test_role  = "testrole_r"
+    @test_user  = "testuser_u"
+
+    @test_paths = [ "foo", "bar", "baz", '*' ]
+
+    @test_path = @test_paths[0]
+  end
+
+  def test_set_mcs_label
+    @test_paths.each do |path|
+      OpenShift::Utils::SELinux.expects(:chcon).with(path, @test_label).once
     end
-
-    def test_getcon
-      File.expects(:read).with("/proc/#{$$}/attr/current").returns("boing:baz:bar:foo\n\n\n").once
-      assert_equal "boing:baz:bar:foo", OpenShift::Utils::SELinux.getcon
+    assert_nothing_raised do
+      OpenShift::Utils::SELinux.set_mcs_label(@test_label, *@test_paths)
     end
+  end
 
-    def test_call_selinux_cmd_success
-      OpenShift::NodeLogger.logger.expects(:debug).never
-      OpenShift::Utils.stubs(:oo_spawn).returns(["OUT", "ERR", 0]).once
-      assert_equal "OUTERR", OpenShift::Utils::SELinux.call_selinux_cmd("foo")
+  def test_set_mcs_label_flatten
+    @test_paths.each do |path|
+      OpenShift::Utils::SELinux.expects(:chcon).with(path, @test_label).once
     end
-
-    def test_call_selinux_cmd_fail
-      OpenShift::NodeLogger.logger.expects(:debug).once
-      OpenShift::Utils.stubs(:oo_spawn).raises(OpenShift::Utils::ShellExecutionException.new('error')).once
-      assert_raises RuntimeError do
-        OpenShift::Utils::SELinux.call_selinux_cmd("bar")
-      end
+    assert_nothing_raised do
+      OpenShift::Utils::SELinux.set_mcs_label(@test_label, @test_paths)
     end
+  end
 
+  def test_set_mcs_label_R
+    @test_paths.each do |path|
+      Find.expects(:find).with(path).once
+      OpenShift::Utils::SELinux.expects(:chcon).with(path, @test_label).once
+    end
+    assert_nothing_raised do
+      OpenShift::Utils::SELinux.set_mcs_label(@test_label, *@test_paths)
+    end
+  end
+
+  def test_set_mcs_label_R_flatten
+    @test_paths.each do |path|
+      Find.expects(:find).with(path).once
+      OpenShift::Utils::SELinux.expects(:chcon).with(path, @test_label).once
+    end
+    assert_nothing_raised do
+      OpenShift::Utils::SELinux.set_mcs_label(@test_label, @test_paths)
+    end
+  end
+
+  def test_clear_mcs_label
+    @test_paths.each do |path|
+      OpenShift::Utils::SELinux.expects(:chcon).with(path, nil).once
+    end
+    assert_nothing_raised do
+      OpenShift::Utils::SELinux.clear_mcs_label(*@test_paths)
+    end
+  end
+
+  def test_clear_mcs_label_flatten
+    @test_paths.each do |path|
+      OpenShift::Utils::SELinux.expects(:chcon).with(path, nil).once
+    end
+    assert_nothing_raised do
+      OpenShift::Utils::SELinux.clear_mcs_label(@test_paths)
+    end
+  end
+
+  def test_clear_mcs_label_R
+    @test_paths.each do |path|
+      Find.expects(:find).with(path).once
+      OpenShift::Utils::SELinux.expects(:chcon).with(path, nil).once
+    end
+    assert_nothing_raised do
+      OpenShift::Utils::SELinux.clear_mcs_label_R(*@test_paths)
+    end
+  end
+
+  def test_clear_mcs_label_R_flatten
+    @test_paths.each do |path|
+      Find.expects(:find).with(path).once
+      OpenShift::Utils::SELinux.expects(:chcon).with(path, nil).once
+    end
+    assert_nothing_raised do
+      OpenShift::Utils::SELinux.clear_mcs_label_R(@test_paths)
+    end
   end
 end
