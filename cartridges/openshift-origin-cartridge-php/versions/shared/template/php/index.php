@@ -143,7 +143,7 @@
   </h2>
   <ul>
     <li>
-      Why not visit us at <a href="http://openshift.redhat.com">http://openshift.redhat.com</a>, or
+      Why not visit us at <a href="http://www.openshift.com">http://www.openshift.com</a>, or
     </li>
     <li>
       You could get help in the <a href="http://www.redhat.com/openshift">OpenShift forums</a>, or

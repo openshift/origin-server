@@ -8,7 +8,7 @@ Name:          openshift-origin-util
 Version:       1.5.2
 Release:       1%{?dist}
 License:       ASL 2.0
-URL:           http://openshift.redhat.com
+URL:           http://www.openshift.com
 Source0:       http://mirror.openshift.com/pub/openshift-origin/source/%{name}/%{name}-%{version}.tar.gz
 Requires:      bind-utils
 Requires:      %{?scl:%scl_prefix}ruby

@@ -11,7 +11,7 @@ Name:          openshift-origin-msg-common
 Version: 1.6.0
 Release:       1%{?dist}
 License:       ASL 2.0
-URL:           http://openshift.redhat.com
+URL:           http://www.openshift.com
 Source0:       http://mirror.openshift.com/pub/openshift-origin/source/%{name}/%{name}-%{version}.tar.gz
 Requires:      %{?scl:%scl_prefix}mcollective-common
 BuildArch:     noarch

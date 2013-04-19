@@ -11,9 +11,9 @@
   "author": {
     "name": "OpenShift",
     "email": "ramr@example.org",
-    "url":  "http://openshift.redhat.com/"
+    "url":  "http://www.openshift.com/"
   },
-  "homepage": "http://openshift.redhat.com/",
+  "homepage": "http://www.openshift.com/",
   "repository": {
     "type": "git",
     "url": "https://gitub.com/openshift/origin-server"
