@@ -43,7 +43,7 @@ module OpenShift
         NodeLogger.logger.debug("Setting for gear #{container_uuid}")
       end
 
-      # Gears is protected between threads by the global interpretor lock.
+      @readers_mutex = Mutex.new
       @readers = Hash.new
 
       @generator = nil
@@ -81,7 +81,7 @@ module OpenShift
         $stdout.puts("-----------------------------------------------")
         begin
           gear.cartridge_model.each_cartridge do |cart|
-            gear.status(cart.name)
+            $stdout.puts(gear.status(cart.name))
           end
         rescue => e
           $stderr.puts("Gear #{gear.container_name} Exception: #{e}")
@@ -124,7 +124,7 @@ module OpenShift
           end
           gear_set = [gear]
         else
-          gear_set = ApplicationContainer.all_containers
+          gear_set = ApplicationContainer.all
         end
         gear_set.each do |gear|
           begin
@@ -161,9 +161,9 @@ module OpenShift
         begin
           $stdout.write("#{message} #{gear.uuid}... ")
           if block_given?
-            yield
+            output = yield
           end
-          NodeLogger.logger.notice("#{message} #{gear.uuid}... [ OK ]")
+          NodeLogger.logger.info("#{message} #{gear.uuid}... [ OK ]")
           $stdout.write("[ #{@GREEN}OK#{@NORM} ]\n")
         rescue => e
           NodeLogger.logger.debug("Gear: #{gear.uuid} Exception #{e.inspect}")
@@ -183,7 +183,14 @@ module OpenShift
     # Private: Generate a backgrounded task
     def gen_background_task
       lambda do |&block|
-        while @readers.length > @nslots
+
+        # Wait for a free slot before continuing
+        while true
+          nchildren = 0
+          @readers_mutex.synchronize do
+            nchildren = @readers.length
+          end
+          break if nchildren < @nslots
           Thread.stop
         end
 
@@ -200,6 +207,9 @@ module OpenShift
             $stderr.reopen(writer)
             $stderr.sync
 
+            # Around 1/16 of the forked processes deadlock somewhere
+            # inside of ruby if we don't close FDs and reinitialize
+            # logging.
             ObjectSpace.each_object(IO) do |i|
               next if i.closed?
               next if [$stdin, $stdout, $stderr, writer].map { |f| f.fileno }.include?(i.fileno)
@@ -219,7 +229,9 @@ module OpenShift
         writer.close
 
         # Add to the listener list
-        @readers[reader.fileno] = {:pid => pid, :reader => reader, :buf => "" }
+        @readers_mutex.synchronize do
+          @readers[reader.fileno] = {:pid => pid, :reader => reader, :buf => "" }
+        end
 
       end
     end
@@ -243,8 +255,10 @@ module OpenShift
         fdpids = {}
         readers = []
 
-        @readers.each_pair do |k, v|
-          readers << v[:reader]
+        @readers_mutex.synchronize do
+          @readers.each_pair do |k, v|
+            readers << v[:reader]
+          end
         end
 
         writers=[]
@@ -257,17 +271,26 @@ module OpenShift
         # Process waiting pipe reads
         fds[0].uniq.each do |fd|
           begin
-            @readers[fd.fileno][:buf] << fd.read_nonblock(32768)
+            buf = fd.read_nonblock(32768)
+            @readers_mutex.synchronize do
+              @readers[fd.fileno][:buf] << buf
+            end
           rescue IO::WaitReadable
           rescue EOFError
             # If too soon, next select will return this fd again.
-            cpid, status = Process.waitpid2(@readers[fd.fileno][:pid], Process::WNOHANG)
+            pid = nil
+            @readers_mutex.synchronize do
+              pid = @readers[fd.fileno][:pid]
+            end
+            cpid, status = Process.waitpid2(pid, Process::WNOHANG)
             if not cpid.nil?
               retcode |= status.exitstatus
               fileno = fd.fileno
-              outbuf << @readers[fileno][:buf]
-              @readers[fileno][:reader].close
-              @readers.delete(fileno)
+              @readers_mutex.synchronize do
+                outbuf << @readers[fileno][:buf]
+                @readers[fileno][:reader].close
+                @readers.delete(fileno)
+              end
               NodeLogger.logger.debug("Finished: #{cpid} Status: #{status.exitstatus}")
               @generator.wakeup if @generator.alive?
             end
@@ -335,16 +358,16 @@ begin
         i.close
       end
       Process.setsid
-      NodeLogger.logger_rebuild
+      OpenShift::NodeLogger.logger_rebuild
       exitval = lock_if_good do
         OpenShift::AdminGearsControl.new.start
       end
       exit(exitval)
     end
-    NodeLogger.logger.notice("Background start initiated - process id = $cpid")
-    NodeLogger.logger.notice("Check $gearsfile for more details.")
-    $stdout.puts "Background start initiated - process id = $cpid"
-    $stdout.puts "Check $gearsfile for more details."
+    OpenShift::NodeLogger.logger.info("Background start initiated - process id = #{$cpid}")
+    OpenShift::NodeLogger.logger.info("Check #{$gearsfile} for more details.")
+    $stdout.puts "Background start initiated - process id = #{$cpid}"
+    $stdout.puts "Check #{$gearsfile} for more details."
     $stdout.puts
     $stdout.puts "Note: In the future, if you wish to start the OpenShift services in the"
     $stdout.puts "      foreground (waited), use:  service openshift-gears waited-start"

@@ -124,6 +124,7 @@ module OpenShift
         end
 
         gearlist.each do |uuid, container|
+          frontend = nil
           begin
             frontend = FrontendHttpServer.new(uuid, container['container_name'], container['namespace'])
           rescue => e

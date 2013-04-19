@@ -883,14 +883,14 @@ module OpenShift
     #
     # Caveat: the quota information will not be populated.
     #
-    def self.all_containers(logger=nil)
+    def self.all(logger=nil)
       Enumerator.new do |yielder|
-        UnixUser.all_users.each do |u|
+        UnixUser.all.each do |u|
+          a=nil
           begin
             a=ApplicationContainer.new(u.application_uuid, u.container_uuid, u.uid,
                                        u.app_name, u.container_name, u.namespace,
                                        nil, nil, logger)
-            yielder.yield(a)
           rescue => e
             if logger
               logger.error("Failed to instantiate ApplicationContainer for #{u.application_uuid}: #{e}")
@@ -899,6 +899,8 @@ module OpenShift
               NodeLogger.logger.error("Failed to instantiate ApplicationContainer for #{u.application_uuid}: #{e}")
               NodeLogger.logger.error("Backtrace: #{e.backtrace}")
             end
+          else
+            yielder.yield(a)
           end
         end
       end
