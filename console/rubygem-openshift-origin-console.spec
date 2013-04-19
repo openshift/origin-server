@@ -9,7 +9,7 @@
 
 Summary:       OpenShift Origin Management Console
 Name:          rubygem-%{gem_name}
-Version: 1.7.10
+Version: 1.7.11
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -144,6 +144,9 @@ cp -a ./%{gem_dir}/* %{buildroot}%{gem_dir}/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Fri Apr 19 2013 Dan McPherson <dmcphers@redhat.com> 1.7.11-1
+- 
+
 * Fri Apr 19 2013 Dan McPherson <dmcphers@redhat.com> 1.7.10-1
 - Bug 953177 - Keys with periods in their name cannot be deleted
   (ccoleman@redhat.com)
