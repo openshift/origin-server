@@ -47,6 +47,8 @@ This includes the configuration necessary to run the console with mod_passenger.
 %setup -q
 
 %build
+find . -name .gitignore | xargs rm
+find . -name .gitkeep | xargs rm
 
 %install
 %if %{with_systemd}
