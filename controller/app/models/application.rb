@@ -1571,7 +1571,7 @@ class Application
       app_dns_ginst = false
       comp_specs.each do |comp_spec|
         cats = CartridgeCache.find_cartridge(comp_spec["cart"]).categories
-        app_dns_ginst = true if cats.include?("web_framework") || cats.include?("web_proxy")
+        app_dns_ginst = true if ((not self.scalable) and cats.include?("web_framework")) || cats.include?("web_proxy")
       end
 
       if app_dns_ginst
