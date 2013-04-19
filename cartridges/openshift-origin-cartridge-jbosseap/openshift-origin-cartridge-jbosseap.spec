@@ -26,6 +26,7 @@ Requires:      jbossas-welcome-content-eap
 Requires:      jboss-eap6-modules
 Requires:      jboss-eap6-index
 Requires:      lsof
+Requires:      facter
 Requires:      java-1.7.0-openjdk
 Requires:      java-1.7.0-openjdk-devel
 %if 0%{?rhel}

@@ -14,6 +14,7 @@ Source0:       http://mirror.openshift.com/pub/openshift-origin/source/%{name}/%
 Requires:      rubygem(openshift-origin-node)
 Requires:      openshift-origin-node-util
 Requires:      lsof
+Requires:      facter
 Requires:      java-1.7.0-openjdk
 Requires:      java-1.7.0-openjdk-devel
 Requires:      jboss-as7-modules >= %{jbossver}
@@ -52,17 +53,22 @@ cp -r * %{buildroot}%{cartridgedir}/
 %if 0%{?rhel}
 alternatives --install /etc/alternatives/maven-3.0 maven-3.0 /usr/share/java/apache-maven-3.0.3 100
 alternatives --set maven-3.0 /usr/share/java/apache-maven-3.0.3
+
+alternatives --remove jbossas-7.1 /opt/jboss-as-7.1.0.Final
+alternatives --install /etc/alternatives/jbossas-7.1 jbossas-7.1 /opt/jboss-as-7.1.0.Final 102
+alternatives --set jbossas-7.1 /opt/jboss-as-7.1.0.Final
 %endif
 
 %if 0%{?fedora}
 alternatives --remove maven-3.0 /usr/share/java/apache-maven-3.0.3
 alternatives --install /etc/alternatives/maven-3.0 maven-3.0 /usr/share/maven 102
 alternatives --set maven-3.0 /usr/share/maven
+
+alternatives --remove jbossas-7 /usr/share/jbossas
+alternatives --install /etc/alternatives/jbossas-7 jbossas-7 /usr/share/jbossas 102
+alternatives --set jbossas-7 /usr/share/jbossas
 %endif
 
-alternatives --remove jbossas-7.1 /usr/share/jbossas
-alternatives --install /etc/alternatives/jbossas-7.1 jbossas-7.1 /usr/share/jbossas 102
-alternatives --set jbossas-7.1 /usr/share/jbossas
 #
 # Temp placeholder to add a postgresql datastore -- keep this until the
 # the postgresql module is added to jboss as7.* upstream.

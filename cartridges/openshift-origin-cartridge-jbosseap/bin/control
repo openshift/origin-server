@@ -87,13 +87,13 @@ function build() {
     
 	CONFIG_DIR="${OPENSHIFT_JBOSSEAP_DIR}/standalone/configuration"
 	OPENSHIFT_MAVEN_MIRROR="${CONFIG_DIR}/settings.base.xml"
-	if `echo $OPENSHIFT_GEAR_DNS | egrep -qe "\.rhcloud\.com"`
+	if $(echo $OPENSHIFT_GEAR_DNS | egrep -qe "\.rhcloud\.com")
 	then 
 	    OPENSHIFT_MAVEN_MIRROR="${CONFIG_DIR}/settings.rhcloud.xml"
 	fi
 
-	max_memory_bytes=`oo-cgroup-read memory.limit_in_bytes`
-	max_memory_mb=`expr $max_memory_bytes / 1048576`
+	max_memory_bytes=$(oo-cgroup-read memory.limit_in_bytes)
+	max_memory_mb=$(expr $max_memory_bytes / 1048576)
 
 	# If hot deploy is enabled, we need to restrict the Maven memory size to fit
 	# alongside the running application server. For now, just hard-code it to 64
@@ -187,23 +187,28 @@ function deploy() {
 function start() {
     echo "Starting $cartridge_type cart"
     
-	if [ -f "${OPENSHIFT_REPO_DIR}/.openshift/markers/enable_jpda" ]; then
-    ENABLE_JPDA=1
-  fi
+	if marker_present "enable_jpda"; then
+    	ENABLE_JPDA=1
+  	fi
 
-  # Check for running app
-  if isrunning; then
-    echo "Application is already running"
-  else
-    jopts="${JAVA_OPTS}"
-    [ "${ENABLE_JPDA:-0}" -eq 1 ] && jopts="-Xdebug -Xrunjdwp:transport=dt_socket,address=${OPENSHIFT_JBOSSEAP_IP}:8787,server=y,suspend=n ${JAVA_OPTS}"
-    JAVA_OPTS="${jopts}"
-    ${JBOSSEAP_BIN_DIR}/standalone.sh > ${OPENSHIFT_TMP_DIR}/${cartridge_type}.log 2>&1 &
-    PROCESS_ID=$!
-    echo "$PROCESS_ID" > ${JBOSSEAP_PID_FILE}
-    if ! ishttpup; then
-      echo "Timed out waiting for http listening port"
-      exit 1
+<<<<<<< HEAD
+    # Check for running app
+    if isrunning; then
+        echo "Application is already running"
+    else
+        
+        jopts="${JAVA_OPTS}"
+        [ "${ENABLE_JPDA:-0}" -eq 1 ] && jopts="-Xdebug -Xrunjdwp:transport=dt_socket,address=${OPENSHIFT_JBOSSEAP_IP}:8787,server=y,suspend=n ${JAVA_OPTS}"
+        JAVA_OPTS="${jopts}"
+        #${JBOSSEAP_BIN_DIR}/standalone.sh > ${OPENSHIFT_TMP_DIR}/${cartridge_type}.log &
+        ${JBOSSEAP_BIN_DIR}/standalone.sh > ${OPENSHIFT_TMP_DIR}/${cartridge_type}.log 2>&1 &
+        PROCESS_ID=$!
+        echo "$PROCESS_ID" > ${JBOSSEAP_PID_FILE}
+        if ! ishttpup; then
+            echo "Timed out waiting for http listening port"
+            exit 1
+        fi
+     
     fi
   fi
 }
@@ -257,7 +262,7 @@ function threaddump() {
         exit 1
     elif [ -f "$JBOSSEAP_PID_FILE" ]; then
         pid=$(cat $JBOSSEAP_PID_FILE);
-        java_pid=`ps h --ppid $pid -o '%p'`
+        java_pid=$(ps h --ppid $pid -o '%p')
         kill -3 $java_pid
         
         client_result "Success"
@@ -266,14 +271,6 @@ function threaddump() {
     else 
         echo "Failed to locate JBOSS PID File"
     fi
-}
-
-function prebuild() {
-	echo "prebuild"
-}
-
-function postdeploy() {
-	echo "postdeploy"
 }
 
 case "$1" in
@@ -286,8 +283,6 @@ case "$1" in
   reload)    	reload ;;
   tidy)      	tidy ;;
   threaddump)   threaddump ;;
-  pre-build)    prebuild ;;
-  post-deploy)  postdeploy ;;
   *)         	exit 0
 esac
 

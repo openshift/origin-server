@@ -1,0 +1,10 @@
+#!/bin/bash
+
+# Adds a gear to the haproxy configuration.
+
+# Exit on any errors
+set -e
+
+source $OPENSHIFT_CARTRIDGE_SDK_BASH
+
+set_uservars "$1"
