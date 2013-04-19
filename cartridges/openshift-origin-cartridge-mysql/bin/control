@@ -86,7 +86,7 @@ function status {
 }
 
 function handle_setup_marker {
-  setup_marker_file=$OPENSHIFT_TMP_DIR/.mysql_setup_invocation_marker
+  setup_marker_file=$OPENSHIFT_DATA_DIR/.mysql_setup_invocation_marker
 
   if [ -f $setup_marker_file ]; then
     prepare_database
