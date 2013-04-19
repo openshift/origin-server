@@ -21,7 +21,7 @@ class ApplicationsController < BaseController
     end
 
     begin
-      domain = Domain.find_by(owner: @cloud_user, canonical_namespace: domain_id.downcase)
+      domain = Domain.with(consistency: :eventual).find_by(owner: @cloud_user, canonical_namespace: domain_id.downcase)
       @domain_name = domain.namespace
     rescue Mongoid::Errors::DocumentNotFound
       return render_error(:not_found, "Domain '#{domain_id}' not found", 127, "LIST_APPLICATIONS")
@@ -55,14 +55,14 @@ class ApplicationsController < BaseController
     end
 
     begin
-      domain = Domain.find_by(owner: @cloud_user, canonical_namespace: domain_id.downcase)
+      domain = Domain.with(consistency: :eventual).find_by(owner: @cloud_user, canonical_namespace: domain_id.downcase)
       @domain_name = domain.namespace
     rescue Mongoid::Errors::DocumentNotFound
       return render_error(:not_found, "Domain '#{domain_id}' not found", 127, "SHOW_APPLICATION")
     end
     
     begin
-      application = Application.find_by(domain: domain, canonical_name: id.downcase)
+      application = Application.with(consistency: :eventual).find_by(domain: domain, canonical_name: id.downcase)
       include_cartridges = (params[:include] == "cartridges")
       
       @application_name = application.name
