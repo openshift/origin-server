@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.7.7
+Version: 1.8.0
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -22,6 +22,7 @@ Requires:      %{?scl:%scl_prefix}ruby(abi) >= %{rubyabi}
 %endif
 Requires:      %{?scl:%scl_prefix}rubygems
 Requires:      %{?scl:%scl_prefix}rubygem(state_machine)
+Requires:      %{?scl:%scl_prefix}rubygem(dnsruby)
 Requires:      rubygem(openshift-origin-common)
 %if 0%{?fedora}%{?rhel} <= 6
 BuildRequires: %{?scl:%scl_prefix}build
@@ -83,6 +84,15 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Tue Apr 16 2013 Troy Dawson <tdawson@redhat.com> 1.7.8-1
+- Merge pull request #2083 from pmorie/bugs/927850
+  (dmcphers+openshiftbot@redhat.com)
+- WIP Cartridge Refactor - V2 support for reading .uservars (jhonce@redhat.com)
+- <controller/test/cucumber> Bug 949251 - fix jboss* snapshot/restore tests
+  (jolamb@redhat.com)
+- <runtime_steps.rb> Bug 949251 - Add file check to V1 snapshot/restore test
+  (jolamb@redhat.com)
+
 * Sat Apr 13 2013 Krishna Raman <kraman@gmail.com> 1.7.7-1
 - WIP: scalable snapshot/restore (pmorie@gmail.com)
 - Merge pull request #2040 from pmorie/dev/mock_cuke (dmcphers@redhat.com)

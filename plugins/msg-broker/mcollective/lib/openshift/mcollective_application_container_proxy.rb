@@ -88,11 +88,11 @@ module OpenShift
       # * Uses District
       # * Calls rpc_find_available
       #
-      def self.find_available_impl(node_profile=nil, district_uuid=nil, non_ha_server_identities=nil, gear_uid=nil)
+      def self.find_available_impl(node_profile=nil, district_uuid=nil, non_ha_server_identities=nil, gear_uid=nil, ignore_servers=[])
         district = nil
-        current_server, current_capacity, preferred_district = rpc_find_available(node_profile, district_uuid, non_ha_server_identities, false, gear_uid)
+        current_server, current_capacity, preferred_district = rpc_find_available(node_profile, district_uuid, non_ha_server_identities, false, gear_uid, ignore_servers)
         if !current_server
-          current_server, current_capacity, preferred_district = rpc_find_available(node_profile, district_uuid, non_ha_server_identities, true, gear_uid)
+          current_server, current_capacity, preferred_district = rpc_find_available(node_profile, district_uuid, non_ha_server_identities, true, gear_uid, ignore_servers)
         end
         district = preferred_district if preferred_district
         raise OpenShift::NodeException.new("No nodes available.", 140) unless current_server
@@ -212,7 +212,7 @@ module OpenShift
 
         output = nil
         exitcode = 0
-        if reply.length > 0
+        if reply and reply.length > 0
           mcoll_result = reply[0]
           if (mcoll_result && (defined? mcoll_result.results) && !mcoll_result.results[:data].nil?)
             output = mcoll_result.results[:data][:output]
@@ -258,7 +258,7 @@ module OpenShift
 
         output = nil
         exitcode = 0
-        if reply.length > 0
+        if reply and reply.length > 0
           mcoll_result = reply[0]
           if (mcoll_result && (defined? mcoll_result.results) && !mcoll_result.results[:data].nil?)
             output = mcoll_result.results[:data][:output]
@@ -397,12 +397,23 @@ module OpenShift
         (1..10).each do |i|                    
           args = build_base_gear_args(gear, quota_blocks, quota_files)
           mcoll_reply = execute_direct(@@C_CONTROLLER, 'app-create', args)
-          result = parse_result(mcoll_reply, gear)
-          if result.exitcode == 129 && has_uid_or_gid?(gear.uid) # Code to indicate uid already taken
-            destroy(gear, true)
-            inc_externally_reserved_uids_size
-            gear.uid = reserve_uid
-            app.save
+          
+          begin
+            result = parse_result(mcoll_reply, gear)
+          rescue OpenShift::OOException => ooex
+            # raise the exception if this is the last retry
+            raise ooex if i == 10
+            
+            result = ooex.resultIO
+            if result.exitcode == 129 && has_uid_or_gid?(gear.uid) # Code to indicate uid already taken
+              destroy(gear, true)
+              inc_externally_reserved_uids_size
+              gear.uid = reserve_uid
+              app.save
+            else
+              destroy(gear, true)
+              raise ooex
+            end
           else
             break
           end
@@ -1723,7 +1734,7 @@ module OpenShift
           end
           begin
             # rsync gear with destination container
-            rsync_destination_container(gear, destination_container, destination_district_uuid, quota_blocks, quota_files, gear.uid)
+            rsync_destination_container(gear, destination_container, destination_district_uuid, quota_blocks, quota_files)
 
             start_order,stop_order = app.calculate_component_orders
             gi_comps = gear.group_instance.all_component_instances.to_a
@@ -1779,7 +1790,7 @@ module OpenShift
             end
             # destroy destination
             log_debug "DEBUG: Moving failed.  Rolling back gear '#{gear.name}' in '#{app.name}' with destroy on '#{destination_container.id}'"
-            reply.append destination_container.destroy(gear, false, nil, true)
+            reply.append destination_container.destroy(gear, !district_changed, nil, true)
             raise
           end
         rescue Exception => e
@@ -1803,7 +1814,7 @@ module OpenShift
           end
         end
 
-        move_gear_destroy_old(gear, source_container, destination_container)
+        move_gear_destroy_old(gear, source_container, destination_container, district_changed)
 
         log_debug "Successfully moved gear with uuid '#{gear.uuid}' of app '#{app.name}' from '#{source_container.id}' to '#{destination_container.id}'"
         reply
@@ -1816,6 +1827,7 @@ module OpenShift
       # * gear: a Gear object
       # * source_container: ??
       # * destination_container ??
+      # * district_changed: boolean
       #
       # RETURNS:
       # * a ResultIO object
@@ -1826,12 +1838,12 @@ module OpenShift
       # NOTES:
       # * uses source_container.destroy
       # 
-      def move_gear_destroy_old(gear, source_container, destination_container)
+      def move_gear_destroy_old(gear, source_container, destination_container, district_changed)
         app = gear.app
         reply = ResultIO.new
         log_debug "DEBUG: Deconfiguring old app '#{app.name}' on #{source_container.id} after move"
         begin
-          reply.append source_container.destroy(gear, false, gear.uid, true)
+          reply.append source_container.destroy(gear, !district_changed, gear.uid, true)
         rescue Exception => e
           log_debug "DEBUG: The application '#{app.name}' with gear uuid '#{gear.uuid}' is now moved to '#{destination_container.id}' but not completely deconfigured from '#{source_container.id}'"
           raise
@@ -1864,7 +1876,8 @@ module OpenShift
           if !destination_district_uuid and !change_district
             destination_district_uuid = source_district_uuid unless source_district_uuid == 'NONE'
           end
-          destination_container = MCollectiveApplicationContainerProxy.find_available_impl(gear.group_instance.gear_size, destination_district_uuid, nil, gear.uid)
+          ignore_servers = [source_container]
+          destination_container = MCollectiveApplicationContainerProxy.find_available_impl(gear.group_instance.gear_size, destination_district_uuid, nil, gear.uid, ignore_servers)
           log_debug "DEBUG: Destination container: #{destination_container.id}"
           destination_district_uuid = destination_container.get_district_uuid
         else
@@ -1893,7 +1906,6 @@ module OpenShift
       # * destination_district_uuid: String: a UUID handle
       # * quota_blocks: Integer
       # * quota_files: Integer
-      # * orig_uid: Integer
       #
       # RETURNS:
       # * ResultIO
@@ -1909,7 +1921,7 @@ module OpenShift
       # * runs all three commands in a single backtick eval
       # * writes the eval output to log_debug
       #
-      def rsync_destination_container(gear, destination_container, destination_district_uuid, quota_blocks, quota_files, orig_uid)
+      def rsync_destination_container(gear, destination_container, destination_district_uuid, quota_blocks, quota_files)
         app = gear.app
         reply = ResultIO.new
         source_container = gear.get_proxy
@@ -1918,7 +1930,7 @@ module OpenShift
 
         log_debug "DEBUG: Moving content for app '#{app.name}', gear '#{gear.name}' to #{destination_container.id}"
         rsync_keyfile = Rails.configuration.auth[:rsync_keyfile]
-        log_debug `eval \`ssh-agent\`; ssh-add #{rsync_keyfile}; ssh -o StrictHostKeyChecking=no -A root@#{source_container.get_ip_address} "rsync -aA#{(gear.uid && gear.uid == orig_uid) ? 'X' : ''} -e 'ssh -o StrictHostKeyChecking=no' /var/lib/openshift/#{gear.uuid}/ root@#{destination_container.get_ip_address}:/var/lib/openshift/#{gear.uuid}/"; ssh-agent -k`
+        log_debug `eval \`ssh-agent\`; ssh-add #{rsync_keyfile}; ssh -o StrictHostKeyChecking=no -A root@#{source_container.get_ip_address} "rsync -aAX -e 'ssh -o StrictHostKeyChecking=no' /var/lib/openshift/#{gear.uuid}/ root@#{destination_container.get_ip_address}:/var/lib/openshift/#{gear.uuid}/"; ssh-agent -k`
         if $?.exitstatus != 0
           raise OpenShift::NodeException.new("Error moving app '#{app.name}', gear '#{gear.name}' from #{source_container.id} to #{destination_container.id}", 143)
         end
@@ -2691,7 +2703,7 @@ module OpenShift
       #
       # 
       #
-      def self.rpc_find_available(node_profile=nil, district_uuid=nil, non_ha_server_identities=nil, force_rediscovery=false, gear_uid=nil)
+      def self.rpc_find_available(node_profile=nil, district_uuid=nil, non_ha_server_identities=nil, force_rediscovery=false, gear_uid=nil, ignore_servers=[])
         
         district_uuid = nil if district_uuid == 'NONE'
         
@@ -2749,6 +2761,7 @@ module OpenShift
         # Get the active % on the nodes
         rpc_opts = nil
         rpc_get_fact('active_capacity', nil, force_rediscovery, additional_filters, rpc_opts) do |server, capacity|
+          next if ignore_servers and ignore_servers.include?(server)
           found_district = false
           districts.each do |district|
             if district.server_identities_hash.has_key?(server)

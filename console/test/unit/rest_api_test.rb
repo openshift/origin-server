@@ -1265,11 +1265,11 @@ class RestApiTest < ActiveSupport::TestCase
   end
 
   def test_application_types_usage_rates_empty
-    assert_false ApplicationType.new(:display_name => 'test_app2', :usage_rates => []).usage_rates?
+    assert !ApplicationType.new(:display_name => 'test_app2', :usage_rates => []).usage_rates?
   end
 
   def test_application_types_usage_rates_nil
-    assert_false ApplicationType.new.usage_rates?
+    assert !ApplicationType.new.usage_rates?
   end
 
   def test_application_job_url

@@ -142,6 +142,7 @@ module OpenShift
     # TODO: exception handling
     def force_stop
       @state.value = OpenShift::State::STOPPED
+      @cartridge_model.create_stop_lock
       UnixUser.kill_procs(@user.uid)
     end
 
@@ -690,7 +691,8 @@ module OpenShift
         @cartridge_model.do_control('pre-restore', 
                                     cartridge,
                                     pre_action_hooks_enabled: false,
-                                    post_action_hooks_enabled: false)
+                                    post_action_hooks_enabled: false,
+                                    err: $stderr)
       end
 
       prepare_for_restore(restore_git_repo, gear_env)
@@ -703,10 +705,11 @@ module OpenShift
       end
 
       @cartridge_model.each_cartridge do |cartridge|
-        @cartridge_model.do_control('post-restore', 
+        @cartridge_model.do_control('post-restore',
                                      cartridge,
                                      pre_action_hooks_enabled: false,
-                                     post_action_hooks_enabled: false)
+                                     post_action_hooks_enabled: false,
+                                     err: $stderr)
       end
 
       if restore_git_repo
@@ -752,7 +755,7 @@ module OpenShift
     end
 
     def extract_restore_archive(transforms, restore_git_repo, gear_env)
-      includes = %w(./*/*/data)
+      includes = %w(./*/app-root/data)
       excludes = %w(./*/app-root/runtime/data)
       transforms << 's|${OPENSHIFT_GEAR_NAME}/data|app-root/data|'
       transforms << 's|git/.*\.git|git/${OPENSHIFT_GEAR_NAME}.git|'
@@ -813,7 +816,11 @@ module OpenShift
     end
 
     def threaddump(cart_name)
-      @cartridge_model.do_control("threaddump", cart_name)
+      unless State::STARTED == state.value
+        return "CLIENT_ERROR: Application is #{state.value}, must be #{State::STARTED} to allow a thread dump"
+      end
+
+      @cartridge_model.do_control('threaddump', cart_name)
     end
 
     def stop_lock?

@@ -85,7 +85,7 @@ class RestApiApplicationTest < ActiveSupport::TestCase
 
   def assert_create_app(options, message="", &block)
     app = Application.new({:name => 'test', :domain => @domain}.merge(options))
-    assert app.save, "#{description} could not be saved, #{app.errors.to_hash.inspect}"
+    assert app.save, "#{app.name} could not be saved, #{app.errors.to_hash.inspect}"
     begin
       yield app
     ensure

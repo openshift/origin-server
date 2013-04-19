@@ -96,6 +96,7 @@ module OpenShift
       gecos    = @config.get("GEAR_GECOS")     || "OO application container"
       notify_observers(:before_unix_user_create)
       basedir = @config.get("GEAR_BASE_DIR")
+      supplementary_groups = @config.get("GEAR_SUPL_GRPS")
 
       # lock to prevent race condition between create and delete of gear
       uuid_lock_file = "/var/lock/oo-create.#{@uuid}"
@@ -125,6 +126,9 @@ module OpenShift
                   -m \
                   -k #{skel_dir} \
                   #{@uuid}}
+          if supplementary_groups != ""
+            cmd << %{ -G "#{supplementary_groups}"}
+          end
           out,err,rc = shellCmd(cmd)
           raise UserCreationException.new(
                   "ERROR: unable to create user account(#{rc}): #{cmd.squeeze(" ")} stdout: #{out} stderr: #{err}"
@@ -526,6 +530,7 @@ Dir(after)    #{@uuid}/#{@uid} => #{list_home_dir(@homedir)}
       OpenShift::FrontendHttpServer.new(@container_uuid,@container_name,@namespace).create
 
       # Fix SELinux context for cart dirs
+      Utils::SELinux.clear_mcs_label_R(homedir)
       Utils::SELinux.set_mcs_label_R(Utils::SELinux.get_mcs_label(@uid), Dir.glob(File.join(homedir, '*')))
 
       notify_observers(:after_initialize_homedir)

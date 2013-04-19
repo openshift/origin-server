@@ -2,17 +2,15 @@
 %global frameworkdir %{_libexecdir}/openshift/cartridges/v2/python
 
 Name: openshift-origin-cartridge-python
-Version: 0.2.7
+Version: 0.3.0
 Release: 1%{?dist}
 Summary: Python cartridge
 Group: Development/Languages
 License: ASL 2.0
 URL: https://openshift.redhat.com
 Source0: http://mirror.openshift.com/pub/origin-server/source/%{name}/%{name}-%{version}.tar.gz
-Requires:      openshift-origin-cartridge-abstract
 Requires:      rubygem(openshift-origin-node)
 Requires:      openshift-origin-node-util
-Requires:      mod_bw
 Requires:      python
 Requires:      mod_wsgi >= 3.2
 Requires:      mod_wsgi < 3.4
@@ -75,6 +73,16 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Tue Apr 16 2013 Troy Dawson <tdawson@redhat.com> 0.2.9-1
+- Merge pull request #2090 from mrunalp/dev/python_cleanup
+  (dmcphers@redhat.com)
+- Cleanup python cart. (mrunalp@gmail.com)
+- Setting mongodb connection hooks to use the generic nosqldb name
+  (calfonso@redhat.com)
+
+* Mon Apr 15 2013 Adam Miller <admiller@redhat.com> 0.2.8-1
+- V2 action hook cleanup (ironcladlou@gmail.com)
+
 * Sun Apr 14 2013 Krishna Raman <kraman@gmail.com> 0.2.7-1
 - WIP Cartridge Refactor - Move PATH to /etc/openshift/env (jhonce@redhat.com)
 - Merge pull request #2065 from jwhonce/wip/manifest_scrub

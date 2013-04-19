@@ -6,14 +6,13 @@
 %global frameworkdir %{_libexecdir}/openshift/cartridges/v2/haproxy
 
 Name:          openshift-origin-cartridge-haproxy
-Version: 0.2.9
+Version: 0.3.0
 Release:       1%{?dist}
 Summary:       Provides HA Proxy
 Group:         Network/Daemons
 License:       ASL 2.0
 URL:           http://openshift.redhat.com
 Source0:       http://mirror.openshift.com/pub/openshift-origin/source/%{name}/%{name}-%{version}.tar.gz
-Requires:      openshift-origin-cartridge-abstract
 Requires:      rubygem(openshift-origin-node)
 Requires:      openshift-origin-node-util
 Requires:      haproxy
@@ -58,6 +57,9 @@ rm -rf %{buildroot}
 %doc %{cartridgedir}/README.md
 
 %changelog
+* Tue Apr 16 2013 Troy Dawson <tdawson@redhat.com> 0.2.10-1
+- Fix bug 927850 (pmorie@gmail.com)
+
 * Sun Apr 14 2013 Dan McPherson <dmcphers@redhat.com> 0.2.9-1
 - 
 

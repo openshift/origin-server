@@ -27,7 +27,6 @@ Requires:      httpd
 # requirements.
 Requires:      mod_ssl
 Requires:      %{?scl:%scl_prefix}mod_passenger
-Requires:      mongodb-server
 %if 0%{?scl:1}
 Requires:      openshift-origin-util-scl
 %else
@@ -37,7 +36,6 @@ Requires:      policycoreutils-python
 Requires:      rubygem(openshift-origin-controller)
 Requires:      %{?scl:%scl_prefix}mod_passenger
 Requires:      %{?scl:%scl_prefix}rubygem(bson_ext)
-Requires:      %{?scl:%scl_prefix}rubygem(cucumber)
 Requires:      %{?scl:%scl_prefix}rubygem(json)
 Requires:      %{?scl:%scl_prefix}rubygem(json_pure)
 Requires:      %{?scl:%scl_prefix}rubygem(minitest)

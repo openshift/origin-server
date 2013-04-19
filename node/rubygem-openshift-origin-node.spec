@@ -16,7 +16,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.7.26
+Version: 1.8.0
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -27,8 +27,8 @@ Requires:      ruby(release)
 %else
 Requires:      %{?scl:%scl_prefix}ruby(abi) >= %{rubyabi}
 %endif
-Requires:      %{?scl:%scl_prefix}ruby(selinux)
 Requires:      %{?scl:%scl_prefix}rubygems
+Requires:      %{?scl:%scl_prefix}rubygem(commander)
 Requires:      %{?scl:%scl_prefix}rubygem(json)
 Requires:      %{?scl:%scl_prefix}rubygem(parseconfig)
 Requires:      %{?scl:%scl_prefix}rubygem(mocha)
@@ -114,7 +114,7 @@ do
     %{httxt2dbm} -f DB -i "${mapf}.txt" -o "${mapf}.db"
 done
 
-for map in routes
+for map in routes geardb
 do
     mapf="%{buildroot}%{appdir}/.httpd.d/${map}"
     echo '{}' > "${mapf}.json"
@@ -148,9 +148,9 @@ mv %{buildroot}%{gem_instdir}/misc/etc/openshift-run.conf %{buildroot}/etc/tmpfi
 %endif
 mkdir -p %{buildroot}%{apprundir}
 
-# place an example file
-mkdir -p %{buildroot}%{_docdir}/%{name}-%{version}/
-mv %{buildroot}%{gem_instdir}/misc/doc/cgconfig.conf %{buildroot}%{_docdir}/%{name}-%{version}/cgconfig.conf
+# place an example file.  It _must_ be placed in the gem_docdir because of how
+# the %doc directive works and how we're using it in the files section.
+mv %{buildroot}%{gem_instdir}/misc/doc/cgconfig.conf %{buildroot}%{gem_docdir}/cgconfig.conf
 
 %if 0%{?fedora} >= 18
   #patch for apache 2.4
@@ -249,6 +249,7 @@ fi
 %dir %attr(0755,-,-) %{appdir}
 %dir %attr(0750,root,apache) %{appdir}/.httpd.d
 %attr(0640,root,apache) %config(noreplace) %{appdir}/.httpd.d/routes.json
+%attr(0640,root,apache) %config(noreplace) %{appdir}/.httpd.d/geardb.json
 %attr(0640,root,apache) %config(noreplace) %{appdir}/.httpd.d/nodes.txt
 %attr(0640,root,apache) %config(noreplace) %{appdir}/.httpd.d/aliases.txt
 %attr(0640,root,apache) %config(noreplace) %{appdir}/.httpd.d/idler.txt
@@ -285,6 +286,33 @@ fi
 %attr(0755,-,-) /etc/cron.monthly/openshift-origin-cron-monthly
 
 %changelog
+* Tue Apr 16 2013 Troy Dawson <tdawson@redhat.com> 1.7.28-1
+- Merge pull request #2091 from rmillner/fixselinux
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #2095 from jwhonce/bug/952408
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #2096 from pmorie/bugs/949425
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 951994 - Underlying ruby selinux library appears to be unstable.  Rewrite
+  to call the command line. (rmillner@redhat.com)
+- Fix bug 949425 949426 952096 (pmorie@gmail.com)
+- Add more information to the EINVAL errors. (rmillner@redhat.com)
+- WIP Cartridge Refactor - V2 support for reading .uservars (jhonce@redhat.com)
+- Merge pull request #2084 from pmorie/dev/trap_user
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 952408 - Node filters threaddump calls (jhonce@redhat.com)
+- Merge pull request #2077 from ironcladlou/dev/profiling (dmcphers@redhat.com)
+- Merge pull request #2005 from dvusboy/master
+  (dmcphers+openshiftbot@redhat.com)
+- Add uservars directory to Environ.for_gear (pmorie@gmail.com)
+- Optimize private endpoint creation (ironcladlou@gmail.com)
+- provision for supplementary groups (sakrishnamurthy@corp.ebay.com)
+
+* Mon Apr 15 2013 Adam Miller <admiller@redhat.com> 1.7.27-1
+- doc updates (dmcphers@redhat.com)
+- Ruby admin-ctl-gears-script to more efficiently manage dependency loading.
+  (rmillner@redhat.com)
+
 * Sat Apr 13 2013 Krishna Raman <kraman@gmail.com> 1.7.26-1
 - Merge pull request #2068 from jwhonce/wip/path
   (dmcphers+openshiftbot@redhat.com)

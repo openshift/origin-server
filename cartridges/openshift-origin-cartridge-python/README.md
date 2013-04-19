@@ -1,77 +1,51 @@
-Feel free to change or remove this file, it is informational only.
+# OpenShift Python Cartridge
 
-Repo layout
-===========
-wsgi/ - Externally exposed wsgi code goes
-wsgi/static/ - Public static content gets served here
-libs/ - Additional libraries
-data/ - For not-externally exposed wsgi code
-setup.py - Standard setup.py, specify deps here
-.openshift/action_hooks/pre_build - Script that gets run every git push before the build
-.openshift/action_hooks/build - Script that gets run every git push as part of the build process (on the CI system if available)
-.openshift/action_hooks/deploy - Script that gets run every git push after build but before the app is restarted
-.openshift/action_hooks/post_deploy - Script that gets run every git push after the app is restarted
+The `python` cartridge provides [Python](http://www.python.org/) on OpenShift.
 
-Notes about layout
-==================
+## Template Repository Layout
+
+    wsgi/                  Externally exposed wsgi code goes
+    wsgi/static/           Public static content gets served here
+    libs/                  Additional libraries
+    data/                  For not-externally exposed wsgi code
+    setup.py               Standard setup.py, specify deps here
+    .openshift/            Location for OpenShift specific files
+      action_hooks/        See the Action Hooks documentation [1]
+      markers/             See the Markers section [2]
+
+\[1\] [Action Hooks documentation](https://github.com/openshift/origin-server/blob/master/node/README.writing_applications.md#action-hooks)
+\[2\] [Markers](#markers)
+
+### Repository layout notes
+
+Please leave the `wsgi`, `libs` and `data` directories but feel free to create additional
+directories if needed.
+
 Every time you push, everything in your remote repo dir gets recreated, please
 store long term items (like an sqlite database) in the OpenShift data
 directory, which will persist between pushes of your repo.
-The OpenShift data directory is accessible relative to the remote repo
-directory (../data) or via an environment variable OPENSHIFT_DATA_DIR.
+The OpenShift data directory is accessible relative to the remote repo via an
+environment variable `OPENSHIFT_DATA_DIR`.
 
-Cartridge Layout
-================
-run/         - Various run configs (like httpd pid)
-env/         - Environment variables
-logs/        - Log data (like httpd access/error logs)
-lib/         - Various libraries
-bin/setup    - The script to setup the cartridge
-bin/build    - Default build script
-bin/teardown - Called at cartridge descruction
-bin/control  - Init script to start/stop httpd
-versions/    - Version data to support multiple python versions (copied into place
-               by setup
+### Notes about setup.py
 
-Environment Variables
-=====================
+Adding deps to the `install_requires` will cause the cartirdge to install those
+deps at git push time.
 
-OpenShift provides several environment variables to reference for ease
-of use.
+## Cartridge Layout
 
+    run/           Various run configs (like httpd pid)
+    env/           Environment variables
+    logs/          Log data (like httpd access/error logs)
+    lib/           Various libraries
+    bin/setup      The script to setup the cartridge
+    bin/build      Default build script
+    bin/teardown   Called at cartridge descruction
+    bin/control    Init script to start/stop httpd
+    versions/      Version data to support multiple python versions (copied into place
+                   by setup
 
-When embedding a database using 'rhc cartridge add', you can reference
-environment variables for username, host and password. Example for mysql:
+## Environment Variables
 
-    os.environ['OPENSHIFT_MYSQL_DB_HOST']      - DB host
-    os.environ['OPENSHIFT_MYSQL_DB_PORT']      - DB Port
-    os.environ['OPENSHIFT_MYSQL_DB_USERNAME']  - DB Username
-    os.environ['OPENSHIFT_MYSQL_DB_PASSWORD']  - DB Password
-
-When embedding a NoSQL database using 'rhc cartridge add', you can
-reference environment variables for username, host and password.
-Example for MongoDB:
-    os.environ['OPENSHIFT_MONGODB_DB_HOST']      - NoSQL DB Host
-    os.environ['OPENSHIFT_MONGODB_DB_PORT']      - NoSQL DB Port
-    os.environ['OPENSHIFT_MONGODB_DB_USERNAME']  - NoSQL DB Username
-    os.environ['OPENSHIFT_MONGODB_DB_PASSWORD']  - NoSQL DB Password
-
-To get a full list of environment variables, simply add a line in your
-.openshift/action_hooks/build script that says "export" and push.
-
-
-Notes about layout
-==================
-Please leave wsgi, libs and data directories but feel free to create additional
-directories if needed.
-
-Note: Every time you push, everything in your remote repo dir gets recreated
-please store long term items (like an sqlite database) in ../data which will
-persist between pushes of your repo.
-
-
-Notes about setup.py
-====================
-
-Adding deps to the install_requires will have the openshift server actually
-install those deps at git push time.
+For more information about environment variables, consult the
+[OpenShift Application Author Guide](https://github.com/openshift/origin-server/blob/master/node/README.writing_applications.md).

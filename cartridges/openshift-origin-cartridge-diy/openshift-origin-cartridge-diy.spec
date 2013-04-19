@@ -2,14 +2,13 @@
 %global frameworkdir %{_libexecdir}/openshift/cartridges/v2/diy
 
 Name: openshift-origin-cartridge-diy
-Version: 0.2.5
+Version: 0.3.0
 Release: 1%{?dist}
 Summary: DIY cartridge
 Group: Development/Languages
 License: ASL 2.0
 URL: https://openshift.redhat.com
 Source0: http://mirror.openshift.com/pub/origin-server/source/%{name}/%{name}-%{version}.tar.gz
-Requires:      openshift-origin-cartridge-abstract
 Requires:      rubygem(openshift-origin-node)
 Requires:      openshift-origin-node-util
 
@@ -57,6 +56,15 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Tue Apr 16 2013 Troy Dawson <tdawson@redhat.com> 0.2.7-1
+- Setting mongodb connection hooks to use the generic nosqldb name
+  (calfonso@redhat.com)
+
+* Mon Apr 15 2013 Adam Miller <admiller@redhat.com> 0.2.6-1
+- Bug 952041 - Add support for tidy to DIY and PHP cartridges
+  (jhonce@redhat.com)
+- V2 action hook cleanup (ironcladlou@gmail.com)
+
 * Sun Apr 14 2013 Krishna Raman <kraman@gmail.com> 0.2.5-1
 - WIP Cartridge Refactor - Move PATH to /etc/openshift/env (jhonce@redhat.com)
 - Merge pull request #2065 from jwhonce/wip/manifest_scrub

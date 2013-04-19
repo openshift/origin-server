@@ -7,14 +7,13 @@
 %global frameworkdir %{_libexecdir}/openshift/cartridges/v2/ruby
 
 Name:          openshift-origin-cartridge-ruby
-Version: 0.2.7
+Version: 0.3.0
 Release:       1%{?dist}
 Summary:       Ruby cartridge
 Group:         Development/Languages
 License:       ASL 2.0
 URL:           https://openshift.redhat.com
 Source0:       http://mirror.openshift.com/pub/origin-server/source/%{name}/%{name}-%{version}.tar.gz
-Requires:      openshift-origin-cartridge-abstract
 Requires:      rubygem(openshift-origin-node)
 Requires:      openshift-origin-node-util
 Requires:      sqlite-devel
@@ -156,6 +155,22 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Tue Apr 16 2013 Troy Dawson <tdawson@redhat.com> 0.2.9-1
+- Merge pull request #2071 from BanzaiMan/dev/hasari/bz952097
+  (dmcphers@redhat.com)
+- Merge pull request #2074 from BanzaiMan/ruby_v2_threaddump
+  (dmcphers+openshiftbot@redhat.com)
+- Setting mongodb connection hooks to use the generic nosqldb name
+  (calfonso@redhat.com)
+- No need to test state file in the cartridge. (asari.ruby@gmail.com)
+- Combine bin/threaddump into bin/control. (asari.ruby@gmail.com)
+- Bug 949844: Add support for threaddump command in v2 Ruby cartridge.
+  (asari.ruby@gmail.com)
+- Set up $OPENSHIFT_HOMEDIR/.gem for v2 Ruby apps (asari.ruby@gmail.com)
+
+* Mon Apr 15 2013 Adam Miller <admiller@redhat.com> 0.2.8-1
+- V2 action hook cleanup (ironcladlou@gmail.com)
+
 * Sun Apr 14 2013 Krishna Raman <kraman@gmail.com> 0.2.7-1
 - Merge pull request #2065 from jwhonce/wip/manifest_scrub
   (dmcphers+openshiftbot@redhat.com)

@@ -92,12 +92,12 @@ An example `manifest.yml` file:
 Name: PHP
 Cartridge-Short-Name: PHP
 Cartridge-Version: '1.0.1'
-Cartridge-Versions: [1.0.1]
+Cartridge-Versions: ['1.0.1']
 Cartridge-Vendor: Red Hat
 Display-Name: PHP 5.3
 Description: "PHP is a general-purpose server-side scripting language..."
 Version: '5.3'
-Versions: [5.3]
+Versions: ['5.3']
 License: "The PHP License, version 3.0"
 License-Url: http://www.php.net/license/3_0.txt
 Vendor: PHP Group
@@ -154,7 +154,6 @@ Endpoints:
     Mappings:
       - Frontend:      "/front"
         Backend:       "/back"
-        Options:       { websocket: true }
 ```
 Additional-Control-Actions:
   - threaddump
@@ -188,7 +187,7 @@ be sure to enclose it in quotes so it is read as a string.
 To be **compatible** with a previous version, the code changes you made in this version do not require
 the cartridge to be re-started or the application developer's application to be restarted.
 
-    Cartridge-Versions: [1.0.1]
+    Cartridge-Versions: ['1.0.1']
 
 By not requiring a restart, you improve the application user's experience since no downtime will
 be incurred from your changes. If the cartridge's current version is not in the list when upgraded,
@@ -214,7 +213,7 @@ The `Version` element is the default or only version of the software packaged by
 
 `Versions` is the list of the versions of the software packaged by this cartridge.
 
-    Versions: [5.3]
+    Versions: ['5.3']
 
 ### Additional-Control-Actions Element
 
@@ -331,7 +330,7 @@ is loaded into a git repository.
 ### Application Developer Action Hooks
 
 The sub-directory `.openshift/markers` may contain example files for the application developer.
-These files denote behaviour you are expected to honor in your cartridges lifecycle. Current
+These files denote behavior you are expected to honor in your cartridges lifecycle. Current
 examples from a Ruby 1.8 cartridge include:
 
     force_clean_build     Previous output from bundle install --deployment will be
@@ -349,9 +348,9 @@ of your cartridge.
 The sub-directory `.openshift/action_hooks` will contain code the application developer
 wishes run during lifecycle changes. Examples would be:
 
-    pre_start_`cartridge name`-`software version`
-    post_start_`cartridge name`-`software version`
-    pre_stop_`cartridge name`-`software version`
+    pre_start_`cartridge name`
+    post_start_`cartridge name`
+    pre_stop_`cartridge name`
     ...
 
 You can obtain a template for the `template` directory from [xxx](http;//git...yyy).
@@ -373,7 +372,8 @@ variable names to describe:
   * Any IP addresses necessary for binding
   * The gear-local ports to which the cartridge services will bind
   * (Optional) Publicly proxied ports which expose gear-local ports for use by the
-    application's users or across application gears
+    application's users or intra-gear. These endpoint ports are only created when the
+    application is scalable.
 
 In addition to IP and port definitions, Endpoints are where frontend httpd mappings
 for your cartridge are declared to route traffic from the outside world to your
@@ -525,36 +525,11 @@ A cartridge may implement the following scripts:
 ### Exit Status Codes
 
 OpenShift follows the convention that your scripts should return zero
-for success, and non-zero success. Additionally, OpenShift follows the
-conventions from sysexit.h below:
+for success, and non-zero for failure. Additionally, OpenShift supports
+special handling of the following non-zero exit codes:
 
-```
-    0. Success
-   64. Usage: The command was used incorrectly, e.g., with the wrong number of arguments, a bad flag, a bad syntax in a parameter, or whatever.
-   65. Data Error: The input data was incorrect in some way.  This should only be used for user's data and not system files.
-   66. No Input: An input file (not a system file) did not exist or was not readable.  This could also include errors like "No message" to a mailer.
-   67. No User: The user specified did not exist.  This might be used for mail addresses or remote logins.
-   68. No Host: The host specified did not exist.  This is used in mail addresses or network requests.
-   69. A service is unavailable.  This can occur if a support program or file does not exist.
-       This can also be used as a catchall message when something you wanted to do doesn't work, but you don't know why.
-   70. Software Error: An internal software error has been detected.  This should be limited to non-operating system related errors as possible.
-   71. OS Error: An operating system error has been detected.  This is intended to be used for such things as "cannot fork",
-       "cannot create pipe", or the like.  It includes things like getuid returning a user that does not exist in the passwd file.
-   72. OS File: Some system file (e.g., /etc/passwd, /etc/utmp, etc.) does not exist, cannot be opened, or has some sort of error (e.g., syntax error).
-   73. Cannot Create: A (user specified) output file cannot be created.
-   74. IO Error: An error occurred while doing I/O on some file.
-   75. Temporary Failure: Failure is something that is not really an error.  In sendmail, this means that a mailer (e.g.) could not create a connection,
-        and the request should be reattempted later.
-   76. Protocol: the remote system returned something that was "not possible" during a protocol exchange.
-   77. No Permission: You did not have sufficient permission to perform the operation.  This is not intended for file system problems,
-       which should use NOINPUT or CANTCREAT, but rather for higher level permissions.
-   78. Configuration Error: A fatal configuration problem was found, but this does not necessarily mean that
-       the problem was found while reading the configuration file.
-   80-128. reserved for OpenShift usage
-   128 + n. Where N is the signal that killed your script
-
-Copyright (c) 1987, 1993 The Regents of the University of California.  All rights reserved.
-```
+    127. TODO
+    131. TODO
 
 These exit status codes will allow OpenShift to refine it's behavior
 when returning HTTP status codes for the REST API, whether an internal
@@ -745,6 +720,9 @@ to be used for all cartridge entry points.
  * `OPENSHIFT_TMP_DIR`   the directory where your cartridge may store temporary data
  * `TMPDIR`              alias for `OPENSHIFT_TMP_DIR`
  * `TMP`                 alias for `OPENSHIFT_TMP_DIR`
+
+### System Provided Cartridge Variables (Read Only)
+  * `OPENSHIFT_{Cartridge-Short-Name}_DIR`
 
 ### Examples of Cartridge Variables  ###
 

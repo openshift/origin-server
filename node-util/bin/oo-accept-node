@@ -176,7 +176,6 @@ def load_node_conf
 
     $GEAR_BASE_DIR=ENV['GEAR_BASE_DIR']
     do_fail("GEAR_BASE_DIR does not exist or is not a directory: #{$GEAR_BASE_DIR}") unless File.exists? $GEAR_BASE_DIR
-    $GEAR_HTTPD_DIR=File.join($GEAR_BASE_DIR,"/.httpd.d")
 
     verbose("loading resource limit file #{$RESOURCE_LIMITS_FILE}")
 
@@ -295,6 +294,41 @@ def check_cgroup_config
     end
 end
 
+
+#
+# Check tc config
+#
+def check_cgroup_procs
+    verbose("checking cgroups processes")
+
+    ### Gather current procs running ###
+    all_user_procs = %x[ps -ef | egrep "^[0-9]{4}"].split("\n")
+    ps_procs = Hash.new(Array.new)
+    all_user_procs.each do |line|
+        user_procs = line.split[0,3]
+        uname = users.grep(/:#{user_procs[0]}:/)[0].split(":")[0]
+        ps_procs[uname] += [user_procs[1]]
+        ps_procs[uname].uniq!
+    end
+
+    ### Gather cgroup procs ###
+    cgroup_procs = {}
+    Dir.glob("/cgroup/all/openshift/*/cgroup.procs").each do |file|
+        uuid = file.split("/")[4]
+        lines = []
+        IO.foreach(file).each { |line| lines << line.strip }
+        cgroup_procs[uuid] = lines
+    end
+
+    ### Compare ###
+    ps_procs.each do |uuid,procs|
+        missing = procs - cgroup_procs[uuid]
+        if missing.length > 0
+            do_fail("#{uuid} has procs missing from cgroups:  #{missing.join(" ")}")
+        end
+    end
+end
+
 #
 # Check tc config
 #
@@ -390,14 +424,60 @@ def check_user_cgroups(username)
 end
 
 def check_system_httpd_configs
-    verbose("checking system httpd configs")
-    Dir.foreach($GEAR_HTTPD_DIR) { |cfile|
-        next if cfile[0,1] == "."
-        next if cfile[-5,5] != ".conf"
-        if ! $ALL_USERS.include?(cfile[0..cfile.index('_')-1])
-            do_fail("httpd config file #{cfile} doesn't have an associated user")
+  verbose("checking system httpd configs")
+  ['aliases.db', 'idler.db', 'nodes.db', 'sts.db'].each do |db|
+    begin
+      File.open(File.join(ENV['OPENSHIFT_HTTP_CONF_DIR'], db))
+    rescue => e
+      do_fail("#{e}")
+    end
+  end
+
+  httpconfs = Hash.new
+  ['aliases.txt', 'idler.txt', 'nodes.txt', 'sts.txt'].each do |db|
+    httpconfs[db]=Hash.new
+    begin
+      File.open(File.join(ENV['OPENSHIFT_HTTP_CONF_DIR'], db)) do |f|
+        f.each do |l|
+          path, dest = l.strip.split
+          if (not path.nil?) and (not dest.nil?)
+            httpconfs[db][path]=dest
+          end
         end
-    }
+      end
+    rescue => e
+      do_fail("#{e}")
+    end
+  end
+
+  httpconfs['nodes.txt'].delete_if   { |k,v|  k.split('/')[0] == '__default__' }
+  $ALL_USERS.each do |u|
+    dnsfile = File.join($GEAR_BASE_DIR, u, '.env', 'OPENSHIFT_GEAR_DNS')
+    begin
+      fqdn = File.read(dnsfile).sub(/^.*=/,'').gsub('\'','').gsub('"','').strip.downcase
+      httpconfs['nodes.txt'].delete_if   { |k,v|  k.split('/')[0] == fqdn }
+      httpconfs['aliases.txt'].delete_if { |k,v|  v == fqdn }
+      httpconfs['idler.txt'].delete(fqdn)
+      httpconfs['sts.txt'].delete(fqdn)
+    rescue
+    end
+  end
+
+  fail_dns_names = Hash.new
+  httpconfs['nodes.txt'].each   { |k, v| fail_dns_names[k.split('/')[0]]=1 }
+  httpconfs['aliases.txt'].each { |k, v| fail_dns_names[v]=1 }
+  httpconfs['idler.txt'].each   { |k, v| fail_dns_names[k]=1 }
+  httpconfs['sts.txt'].each     { |k, v| fail_dns_names[k]=1 }
+
+  fail_dns_names.each { |k, v| do_fail("http config references DNS name without a gear: '#{k}'") }
+
+  Dir.foreach(ENV['OPENSHIFT_HTTP_CONF_DIR']) { |cfile|
+    next if cfile[0,1] == "."
+    next if cfile[-5,5] != ".conf"
+    if ! $ALL_USERS.include?(cfile[0..cfile.index('_')-1])
+      do_fail("httpd config file #{cfile} doesn't have an associated user")
+    end
+  }
 end
 
 def check_app_dirs
@@ -430,6 +510,7 @@ if __FILE__ == $0
     check_services
     check_semaphores
     check_cgroup_config
+    check_cgroup_procs
     check_tc_config if $TC_CHECK
     check_quotas
     check_users

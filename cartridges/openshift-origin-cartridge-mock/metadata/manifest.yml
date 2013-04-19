@@ -31,8 +31,8 @@ Subscribes:
   set-db-connection-info:
     Type: "NET_TCP:db:connection-info"
     Required: false
-  set-mongodb-connection-info:
-    Type: "NET_TCP:mongodb:connection-info"
+  set-nosql-db-connection-info:
+    Type: "NET_TCP:nosqldb:connection-info"
     Required: false
 Endpoints:
   - Private-IP-Name:   EXAMPLE_IP1

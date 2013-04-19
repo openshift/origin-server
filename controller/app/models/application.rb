@@ -368,9 +368,21 @@ class Application
         raise OpenShift::UserException.new("Invalid cartridge '#{feature_name}' specified.", 109)  
       end
 
+      if cart.is_web_framework?
+        component_instances.each do |ci|
+          if ci.is_web_framework?
+            raise OpenShift::UserException.new("You can only have one framework cartridge in your application '#{name}'.", 109)
+          end
+        end
+      end
+
       # Validate that the features support scalable if necessary
       if self.scalable && !(cart.is_plugin? || cart.is_service?)
-        raise OpenShift::UserException.new("#{feature_name} cannot be embedded in scalable app '#{name}'.", 109)  
+        if cart.is_web_framework?
+          raise OpenShift::UserException.new("Scalable app cannot be of type '#{feature_name}'.", 109)
+        else
+          raise OpenShift::UserException.new("#{feature_name} cannot be embedded in scalable app '#{name}'.", 109)
+        end  
       end
 
       # prevent a proxy from being added to a non-scalable (single-gear) application
@@ -378,6 +390,18 @@ class Application
         raise OpenShift::UserException.new("#{feature_name} cannot be added to existing applications. It is automatically added when you create a scaling application.", 137)
       end
       
+      if self.scalable and cart.is_web_framework?
+        prof = cart.profile_for_feature(feature_name)
+        cart_scalable = false
+        prof.components.each do |component|
+           next if component.scaling.min==1 and component.scaling.max==1
+           cart_scalable = true
+        end
+        if !cart_scalable
+          raise OpenShift::UserException.new("Scalable app cannot be of type '#{feature_name}'.", 109)
+        end
+      end
+
       # Validate that this feature either does not have the domain_scope category
       # or if it does, then no other application within the domain has this feature already
       if cart.is_domain_scoped?

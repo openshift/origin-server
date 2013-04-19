@@ -2,7 +2,7 @@
 
 Summary:       Provides ruby rack support running on Phusion Passenger
 Name:          openshift-origin-cartridge-ruby-1.8
-Version: 1.7.4
+Version: 1.8.0
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -113,6 +113,10 @@ ln -s %{cartridgedir}/../abstract/info/bin/sync_gears.sh %{buildroot}%{cartridge
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Tue Apr 16 2013 Troy Dawson <tdawson@redhat.com> 1.7.5-1
+- Change corresponding to adb5092a for Ruby 1.8 cartridge
+  (asari.ruby@gmail.com)
+
 * Fri Apr 12 2013 Adam Miller <admiller@redhat.com> 1.7.4-1
 - SELinux, ApplicationContainer and UnixUser model changes to support oo-admin-
   ctl-gears operating on v1 and v2 cartridges. (rmillner@redhat.com)

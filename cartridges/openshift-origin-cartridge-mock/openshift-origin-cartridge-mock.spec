@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/openshift/cartridges/v2/mock
 
 Name: openshift-origin-cartridge-mock
-Version: 0.2.7
+Version: 0.3.0
 Release: 1%{?dist}
 Summary: Mock cartridge for V2 Cartridge SDK
 Group: Development/Languages
@@ -67,6 +67,10 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Tue Apr 16 2013 Troy Dawson <tdawson@redhat.com> 0.2.8-1
+- Setting mongodb connection hooks to use the generic nosqldb name
+  (calfonso@redhat.com)
+
 * Sat Apr 13 2013 Krishna Raman <kraman@gmail.com> 0.2.7-1
 - Merge pull request #2068 from jwhonce/wip/path
   (dmcphers+openshiftbot@redhat.com)

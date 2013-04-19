@@ -197,10 +197,13 @@ module OpenShift
     #
     # tidy()
     def tidy
-      begin
-        do_control_with_directory('tidy')
-      rescue Utils::ShellExecutionException => e
-        logger.warn("Cartridge tidy operation failed on gear #{@user.uuid} for cart #{cartridge_name}: #{e.message} (rc=#{e.rc})")
+      each_cartridge do |cartridge|
+        begin
+          output = do_control('tidy', cartridge)
+        rescue Utils::ShellExecutionException => e
+          logger.warn("Tidy operation failed for cartridge #{cartridge.name} on "\
+                      "gear #{@user.uuid}: #{e.message} (rc=#{e.rc}), output=#{output}")
+        end
       end
     end
 
@@ -607,15 +610,23 @@ module OpenShift
 
         private_ip = allocated_ips[endpoint.private_ip_name]
 
-        if address_bound?(private_ip, endpoint.private_port)
-          raise "Couldn't create private endpoint #{endpoint.private_ip_name}(#{endpoint.private_port}) "\
-            "because an existing process was bound to the IP (private_ip)"
-        end
-
         @user.add_env_var(endpoint.private_port_name, endpoint.private_port)
 
         logger.info("Created private endpoint for cart #{cartridge.name} in gear #{@user.uuid}: "\
           "[#{endpoint.private_ip_name}=#{private_ip}, #{endpoint.private_port_name}=#{endpoint.private_port}]")
+      end
+
+      # Validate all the allocations to ensure they aren't already bound. Batch up the initial check
+      # for efficiency, then do individual checks to provide better reporting before we fail.
+      address_list = cartridge.endpoints.map{|e| {ip: allocated_ips[e.private_ip_name], port: e.private_port}}
+      if addresses_bound?(address_list)
+        failures = ''
+        cartridge.endpoints.each do |endpoint|
+          if address_bound?(allocated_ips[endpoint.private_ip_name], endpoint.private_port)
+            failures << "#{endpoint.private_ip_name}(#{endpoint.private_port})=#{allocated_ips[endpoint.private_ip_name]};"
+          end
+        end
+        raise "Failed to create the following private endpoints due to existing process bindings: #{failures}" unless failures.empty?
       end
 
       logger.info "Created private endpoints for #{@user.uuid}/#{cartridge.directory}"
@@ -633,11 +644,8 @@ module OpenShift
     end
 
     # Finds the next IP address available for binding of the given port for
-    # the current gear user. The IP is assumed to be available only if:
-    #
-    #   1. The IP is not already associated with an existing endpoint defined
-    #      by any cartridge within the gear, and
-    #   2. The IP/port is not already bound to a process according to lsof.
+    # the current gear user. The IP is assumed to be available only if the IP is 
+    # not already associated with an existing endpoint defined by any cartridge within the gear.
     #
     # Returns a string IP address in dotted-quad notation if one is available
     # for the given port, or returns nil if IP is available.
@@ -653,13 +661,6 @@ module OpenShift
         # Skip the IP if it's already assigned to an endpoint
         next if allocated_ips.include?(candidate_ip)
 
-        # Check to ensure the IP/port is not currently bound to another process
-        if address_bound?(candidate_ip, port)
-          logger.debug("Candidate address #{candidate_ip}:#{port} is unallocated by the gear
-            but is already bound to another process and will be skipped")
-          next
-        end
-
         open_ip = candidate_ip
         break
       end
@@ -671,6 +672,16 @@ module OpenShift
     # according to lsof, otherwise false.
     def address_bound?(ip, port)
       _, _, rc = Utils.oo_spawn("/usr/sbin/lsof -i @#{ip}:#{port}")
+      rc == 0
+    end
+
+    def addresses_bound?(addresses)
+      command = "/usr/sbin/lsof"
+      addresses.each do |addr|
+        command << " -i @#{addr[:ip]}:#{addr[:port]}"
+      end
+
+      _, _, rc = Utils.oo_spawn(command)
       rc == 0
     end
 

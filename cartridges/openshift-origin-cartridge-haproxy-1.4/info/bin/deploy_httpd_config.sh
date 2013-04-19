@@ -83,7 +83,6 @@ listen stats $IP2:8080
 listen express $IP:8080
     cookie GEAR insert indirect nocache
     option httpchk GET /
-    http-check expect rstring .*
     balance leastconn
     server  filler $IP2:8080 backup
     server  local-gear $OPENSHIFT_INTERNAL_IP:8080 maxconn 2 check fall 2 rise 3 inter 2000 cookie local-$OPENSHIFT_GEAR_UUID

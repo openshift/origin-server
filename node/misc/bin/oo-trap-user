@@ -54,13 +54,13 @@ def _set_env_uservars(uservars_dir):
 #
 # Read in environment variables
 #
-def read_env_vars():
-    load_vars('/etc/openshift/env/')
-    load_vars('~/.env/')
-    load_vars('~/*/env/')
+def read_env_vars(config):
+    load_vars(config, '/etc/openshift/env/')
+    load_vars(config, '~/.env/')
+    load_vars(config, '~/*/env/')
 
-def load_vars(dir):
-    for entry in glob.glob(os.path.expanduser(dir + '*')):
+def load_vars(config, dir):
+    for entry in glob.glob(os.path.expanduser(os.path.join(dir, '*'))):
         env = os.path.basename(entry)
 
         if env in ['USER_VARS', 'TYPELESS_TRANSLATED_VARS']:
@@ -72,9 +72,13 @@ def load_vars(dir):
 
         os.putenv(env, env_var)
 
-    uservars = os.path.expanduser(dir + '.uservars')
+    uservars = os.path.expanduser(os.path.join(dir, '.uservars'))
     if os.path.isdir(uservars):
-      _set_env_uservars(uservars)
+      v2_marker = os.path.join(config['GEAR_BASE_DIR'], '.settings', 'v2_cartridge_format')
+      if os.path.isfile(v2_marker):
+        load_vars(config, uservars)
+      else:
+        _set_env_uservars(uservars)
 
 
 def get_mcs_level(uid):
@@ -126,8 +130,8 @@ def join_cgroup():
 if __name__ == '__main__':
     # first self-apply restrictions
     # join_cgroup()
-    read_env_vars()
     config = read_config()
+    read_env_vars(config)
 
     orig_cmd = os.environ.get('SSH_ORIGINAL_COMMAND', "rhcsh")
     syslog.syslog(orig_cmd)

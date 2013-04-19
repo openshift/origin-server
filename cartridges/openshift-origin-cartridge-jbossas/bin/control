@@ -1,5 +1,7 @@
 #!/bin/bash -e
 
+source $OPENSHIFT_CARTRIDGE_SDK_BASH
+
 JBOSSAS_BIN_DIR=${OPENSHIFT_JBOSSAS_DIR}/bin
 JBOSSAS_PID_FILE=${OPENSHIFT_HOMEDIR}/app-root/runtime/jbossas.pid
 
@@ -173,21 +175,21 @@ function build() {
 }
 
 function deploy() {
-	echo "Deploying $cartridge_type cart"
-	
+	echo "Deploying JBoss"
+  
 	if [ "$(ls ${OPENSHIFT_REPO_DIR}/deployments)" ]; then
-		rsync -r --delete --exclude ".*" ${OPENSHIFT_REPO_DIR}/deployments/ ${OPENSHIFT_HOMEDIR}/${cartridge_type}/standalone/deployments/
+		rsync -r --delete --exclude ".*" ${OPENSHIFT_REPO_DIR}/deployments/ ${OPENSHIFT_JBOSSAS_DIR}/standalone/deployments/
 	else
-        rm -rf ${OPENSHIFT_HOMEDIR}/${cartridge_type}/${cartridge_type}/standalone/deployments/*
-    fi
+		rm -rf ${OPENSHIFT_JBOSSAS_DIR}/standalone/deployments/*
+  	fi
 }
 
 function start() {
-    echo "Starting $cartridge_type cart"
+  echo "Starting $cartridge_type cart"
     
-	if [ -f "${OPENSHIFT_REPO_DIR}/.openshift/markers/enable_jpda" ]; then
-       ENABLE_JPDA=1
-    fi
+	if marker_present "enable_jpda"; then
+    	ENABLE_JPDA=1
+  	fi
 
     # Check for running app
     if isrunning; then
@@ -205,8 +207,8 @@ function start() {
             echo "Timed out waiting for http listening port"
             exit 1
         fi
-       
     fi
+  fi
 }
 
 
@@ -254,16 +256,8 @@ function reload() {
 }
 
 function tidy() {
-    echo "Tidying $cartridge_type cart"
-    
-    for logdir in $(awk 'BEGIN {
-                           for (a in ENVIRON)
-                           if (a ~ /LOG_DIR$/)
-                           print ENVIRON[a] }')
-	do
-    	client_message "Emptying log dir: ${logdir}"
-    	rm -rf ${logdir}* ${logdir}.[^.]*
-	done
+    rm -rf ${OPENSHIFT_JBOSSAS_DIR}/logs/* ${OPENSHIFT_JBOSSAS_DIR}/logs/.[^.]*
+
 }
 
 function threaddump() {
@@ -276,6 +270,9 @@ function threaddump() {
         pid=$(cat $JBOSSAS_PID_FILE);
         java_pid=$(ps h --ppid $pid -o '%p')
         kill -3 $java_pid
+        client_result "Success"
+        client_result ""
+        client_result "The thread dump file will be available via: rhc tail $OPENSHIFT_APP_NAME -f */logs/server.log -o '-n 250'"
     else 
         echo "Failed to locate JBOSS PID File"
     fi

@@ -7,7 +7,7 @@
 
 Summary:       Routing proxy for OpenShift Origin Node
 Name:          openshift-origin-node-proxy
-Version: 0.8.2
+Version: 0.9.0
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0

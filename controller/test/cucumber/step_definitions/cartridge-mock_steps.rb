@@ -63,6 +63,8 @@ Then /^the ([^ ]+) ([^ ]+) marker will( not)? exist in the( plugin)? gear$/ do |
 
   if plugin
     plugin_gear_uuid = IO.read(File.join($home_root, @app.uid, '.env', '.uservars', 'OPENSHIFT_MOCK_PLUGIN_GEAR_UUID')).chomp
+    plugin_gear_uuid.sub!(/export OPENSHIFT_MOCK_PLUGIN_GEAR_UUID=\'/, '')
+    plugin_gear_uuid.chomp!('\'')
     marker_file = File.join($home_root, plugin_gear_uuid, 'app-root', 'data', state_dir, marker)
   end
 

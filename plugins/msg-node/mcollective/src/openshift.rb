@@ -824,7 +824,7 @@ module MCollective
           output    = container.threaddump(cart_name)
         rescue OpenShift::Utils::ShellExecutionException => e
           Log.instance.info "#{e.message}\n#{e.backtrace}\n#{e.stderr}"
-          return -1, "CLIENT_ERROR: action 'threaddump' failed #{e.message} #{e.stderr}"
+          return e.rc, "CLIENT_ERROR: action 'threaddump' failed #{e.message} #{e.stderr}"
         rescue Exception => e
           Log.instance.info "#{e.message}\n#{e.backtrace}"
           return -1, e.message

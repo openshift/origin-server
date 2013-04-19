@@ -5,7 +5,7 @@
 
 Summary:       Provides JBossAS7 support
 Name:          openshift-origin-cartridge-jbossas
-Version: 	   1.0.5
+Version: 1.1.0
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -88,12 +88,23 @@ cp -p %{cartridgedir}/versions/7.1/modules/postgresql_module.xml /etc/alternativ
 %attr(0755,-,-) %{frameworkdir}
 %{cartridgedir}/metadata/manifest.yml
 %doc %{cartridgedir}/README.md
-%{cartridgedir}/README
 %doc %{cartridgedir}/COPYRIGHT
 %doc %{cartridgedir}/LICENSE
 
 
 %changelog
+* Tue Apr 16 2013 Troy Dawson <tdawson@redhat.com> 1.0.7-1
+- Setting mongodb connection hooks to use the generic nosqldb name
+  (calfonso@redhat.com)
+
+* Mon Apr 15 2013 Adam Miller <admiller@redhat.com> 1.0.6-1
+- V2 action hook cleanup (ironcladlou@gmail.com)
+- WIP Cartridge Refactor - Move PATH to /etc/openshift/env (jhonce@redhat.com)
+- Merge pull request #2056 from bdecoste/master (dmcphers@redhat.com)
+- fix version in spec (bdecoste@gmail.com)
+- Adding connection hook for mongodb There are three leading params we don't
+  care about, so the hooks are using shift to discard. (calfonso@redhat.com)
+
 * Fri Apr 12 2013 Adam Miller <admiller@redhat.com> 1.0.5-1
 - SELinux, ApplicationContainer and UnixUser model changes to support oo-admin-
   ctl-gears operating on v1 and v2 cartridges. (rmillner@redhat.com)

@@ -5,7 +5,7 @@
 
 Summary:       Provides JBossEAP6.0 support
 Name:          openshift-origin-cartridge-jbosseap
-Version: 2.1.6
+Version: 2.2.0
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -91,12 +91,28 @@ cp -p %{cartridgedir}/versions/6.0/modules/postgresql_module.xml /etc/alternativ
 %attr(0755,-,-) %{frameworkdir}
 %{cartridgedir}/metadata/manifest.yml
 %doc %{cartridgedir}/README.md
-%{cartridgedir}/README
 %doc %{cartridgedir}/COPYRIGHT
 %doc %{cartridgedir}/LICENSE
 
 
 %changelog
+* Tue Apr 16 2013 Troy Dawson <tdawson@redhat.com> 2.1.8-1
+- Merge pull request #2088 from calfonso/master (dmcphers@redhat.com)
+- Merge pull request #2076 from bdecoste/master
+  (dmcphers+openshiftbot@redhat.com)
+- Setting mongodb connection hooks to use the generic nosqldb name
+  (calfonso@redhat.com)
+- Bug 928701 (bdecoste@gmail.com)
+
+* Mon Apr 15 2013 Adam Miller <admiller@redhat.com> 2.1.7-1
+- V2 action hook cleanup (ironcladlou@gmail.com)
+- WIP Cartridge Refactor - Move PATH to /etc/openshift/env (jhonce@redhat.com)
+- Merge pull request #2065 from jwhonce/wip/manifest_scrub
+  (dmcphers+openshiftbot@redhat.com)
+- WIP Cartridge Refactor - Scrub manifests (jhonce@redhat.com)
+- Adding connection hook for mongodb There are three leading params we don't
+  care about, so the hooks are using shift to discard. (calfonso@redhat.com)
+
 * Fri Apr 12 2013 Adam Miller <admiller@redhat.com> 2.1.6-1
 - SELinux, ApplicationContainer and UnixUser model changes to support oo-admin-
   ctl-gears operating on v1 and v2 cartridges. (rmillner@redhat.com)

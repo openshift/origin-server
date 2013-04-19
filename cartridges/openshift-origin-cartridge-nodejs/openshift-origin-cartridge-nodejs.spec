@@ -3,13 +3,12 @@
 
 Summary:       Provides Node.js support
 Name:          openshift-origin-cartridge-nodejs
-Version: 1.8.6
+Version: 1.9.0
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
 URL:           http://openshift.redhat.com
 Source0:       http://mirror.openshift.com/pub/openshift-origin/source/%{name}/%{name}-%{version}.tar.gz
-Requires:      openshift-origin-cartridge-abstract
 Requires:      rubygem(openshift-origin-node)
 Requires:      openshift-origin-node-util
 Requires:      nodejs >= 0.6
@@ -57,6 +56,13 @@ rm -rf %{buildroot}
 %doc %{cartridgedir}/README.md
 
 %changelog
+* Tue Apr 16 2013 Troy Dawson <tdawson@redhat.com> 1.8.8-1
+- Setting mongodb connection hooks to use the generic nosqldb name
+  (calfonso@redhat.com)
+
+* Mon Apr 15 2013 Adam Miller <admiller@redhat.com> 1.8.7-1
+- V2 action hook cleanup (ironcladlou@gmail.com)
+
 * Sat Apr 13 2013 Krishna Raman <kraman@gmail.com> 1.8.6-1
 - Adding connection hook for mongodb There are three leading params we don't
   care about, so the hooks are using shift to discard. (calfonso@redhat.com)
