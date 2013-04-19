@@ -612,6 +612,12 @@ module OpenShift
 
         @user.add_env_var(endpoint.private_port_name, endpoint.private_port)
 
+        # Create the environment variable for WebSocket Port if it is specified
+        # in the manifest.
+        if endpoint.websocket_port_name && endpoint.websocket_port
+          @user.add_env_var(endpoint.websocket_port_name, endpoint.websocket_port)
+        end
+
         logger.info("Created private endpoint for cart #{cartridge.name} in gear #{@user.uuid}: "\
           "[#{endpoint.private_ip_name}=#{private_ip}, #{endpoint.private_port_name}=#{endpoint.private_port}]")
       end
@@ -720,6 +726,10 @@ module OpenShift
             private_ip  = gear_env[endpoint.private_ip_name]
             backend_uri = "#{private_ip}:#{endpoint.private_port}#{mapping.backend}"
             options     = mapping.options ||= {}
+
+            if endpoint.websocket_port
+                options["websocket_port"] = endpoint.websocket_port
+            end
 
             logger.info("Connecting frontend mapping for #{@user.uuid}/#{cartridge.name}: "\
                       "#{mapping.frontend} => #{backend_uri} with options: #{mapping.options}")

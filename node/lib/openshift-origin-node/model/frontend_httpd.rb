@@ -427,6 +427,12 @@ module OpenShift
         bw = 100
       end
 
+      # Use the websocket port if it is passed as an option
+      port = options["websocket_port"]
+      if port
+        uri = uri.sub(/:(\d)+/, ":" + port.to_s)
+      end
+
       routes_ent = {
         "endpoints" => [ uri ],
         "limits"    => {
