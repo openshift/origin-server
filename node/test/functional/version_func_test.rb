@@ -17,8 +17,7 @@
 #
 # Test the OpenShift VERSION string
 #
-require 'test_helper'
-require 'openshift-origin-node/version'
+require_relative '../test_helper'
 
 class VersionFunctionalTest < Test::Unit::TestCase
 

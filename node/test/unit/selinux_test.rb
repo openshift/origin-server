@@ -17,13 +17,7 @@
 #
 # Test the OpenShift selinux utilities
 #
-require 'test_helper'
-require 'openshift-origin-node/utils/selinux'
-require 'openshift-origin-node/utils/shell_exec'
-require 'openshift-origin-node/utils/environ'
-require 'openshift-origin-node/utils/node_logger'
-require 'test/unit'
-require 'mocha'
+require_relative '../test_helper'
 
 class SELinuxUtilsTest < Test::Unit::TestCase
 

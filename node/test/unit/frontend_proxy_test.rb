@@ -17,13 +17,10 @@
 #
 # Test the OpenShift frontend_proxy model
 #
-module OpenShift; end
-
-require 'test_helper'
-require 'openshift-origin-node/model/frontend_proxy'
-require 'test/unit'
+require_relative '../test_helper'
 require 'fileutils'
-require 'mocha'
+
+module OpenShift; end
 
 # Run unit test manually
 # ruby -I node/lib:common/lib node/test/unit/frontend_proxy_test.rb

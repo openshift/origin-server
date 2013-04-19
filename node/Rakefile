@@ -13,26 +13,21 @@ end
 
 desc "Unit tests"
 Rake::TestTask.new(:unit_test) do |t|
-  t.libs << File.expand_path('../lib', __FILE__)
-  t.libs << File.expand_path('../test', __FILE__)
-  t.libs << File.expand_path('../test/unit', __FILE__)
-  t.libs << File.expand_path('../../common/lib', __FILE__)
-  t.pattern = 'test/unit/**/*_test.rb'
+  t.verbose = true
+  t.pattern = 'test/unit/*_test.rb'
 end
 
 desc "Functional tests"
 Rake::TestTask.new(:func_test) do |t|
-  FileUtils.chmod_R(0777, 'test/coverage/')
-
-  t.libs << File.expand_path('../lib', __FILE__)
-  t.libs << File.expand_path('../test', __FILE__)
-  t.libs << File.expand_path('../test/unit', __FILE__)
-  t.libs << File.expand_path('../../common/lib', __FILE__)
-  t.pattern = 'test/functional/**/*func_test.rb'
+  t.verbose = true
+  t.pattern = 'test/functional/*_test.rb'
 end
 
-task :test => [:unit_test, :func_test] do
-end
+desc "All tests"
+Rake::TestTask.new(:test) do |t|
+  t.verbose = true
+  t.pattern = 'test/**/*_test.rb'
+end                                                          
 
 desc "Generate RDoc"
 task :doc do
