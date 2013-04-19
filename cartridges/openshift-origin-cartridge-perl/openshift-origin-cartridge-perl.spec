@@ -31,7 +31,7 @@ BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
 BuildArch: noarch
 
 %description
-Perl cartridge for openshift.
+Perl cartridge for openshift. (Cartridge Format V2)
 
 
 %prep

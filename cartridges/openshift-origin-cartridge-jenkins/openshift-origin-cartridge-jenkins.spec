@@ -18,7 +18,7 @@ BuildRequires: git
 BuildArch:     noarch
 
 %description
-Provides Jenkins cartridge to OpenShift
+Provides Jenkins cartridge to OpenShift. (Cartridge Format V2)
 
 
 %prep

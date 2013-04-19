@@ -39,7 +39,7 @@ BuildRequires: jpackage-utils
 BuildArch:     noarch
 
 %description
-Provides JBossEAP support to OpenShift
+Provides JBossEAP support to OpenShift. (Cartridge Format V2)
 
 
 %prep

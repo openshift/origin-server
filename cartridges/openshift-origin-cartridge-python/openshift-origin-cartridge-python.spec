@@ -36,7 +36,7 @@ BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
 BuildArch: noarch
 
 %description
-Python cartridge for openshift.
+Python cartridge for OpenShift. (Cartridge Format V2)
 
 
 %prep

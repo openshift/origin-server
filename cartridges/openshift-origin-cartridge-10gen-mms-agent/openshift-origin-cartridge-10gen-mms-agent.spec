@@ -16,7 +16,7 @@ Requires:      mms-agent
 BuildArch:     noarch
 
 %description
-Provides 10gen MMS agent cartridge support
+Provides 10gen MMS agent cartridge support. (Cartridge Format V2)
 
 
 %prep
