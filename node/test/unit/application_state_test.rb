@@ -13,11 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #++
-require 'test_helper'
-require "test/unit"
-require "mocha"
-require "fileutils"
-require "openshift-origin-node/utils/application_state"
+require_relative '../test_helper'
+require 'fileutils'
+require 'yaml'
 
 class ApplicationStateTest < Test::Unit::TestCase
 

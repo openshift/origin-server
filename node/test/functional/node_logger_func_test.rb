@@ -13,9 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #++
-require_relative '../../lib/openshift-origin-node/utils/node_logger'
-require 'test/unit'
-require 'mocha'
+require_relative '../test_helper'
 
 module OpenShift
   class LoggerTest

@@ -13,14 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #++
-require 'openshift-origin-node/model/unix_user'
-require 'openshift-origin-node/model/frontend_proxy'
-require 'openshift-origin-node/model/v2_cart_model'
-require 'openshift-origin-node/model/cartridge_repository'
-require 'openshift-origin-node/utils/application_state'
+require_relative '../test_helper'
 require 'etc'
-require 'test/unit'
-require 'mocha'
 
 class V2CartridgeModelFunctionalTest < Test::Unit::TestCase
   GEAR_BASE_DIR = '/var/lib/openshift'
@@ -82,12 +76,20 @@ class V2CartridgeModelFunctionalTest < Test::Unit::TestCase
     @user.destroy
   end
 
-  def test_hidden_erb
+  # wrapping these all up in 1 call right now to avoid unnecessary cart recreations
+  # for tests which don't require it
+  def test_model_basics
+    verify_hidden_erb
+    verify_publish_db_connection_info
+    verify_set_db_connection_info
+  end
+
+  def verify_hidden_erb
     assert File.exists?(File.join(@user.homedir, 'mock', '.mock_hidden')), 'Failed to process .mock_hidden.erb'
     refute File.exists?(File.join(@user.homedir, 'mock', '.mock_hidden.erb')), 'Failed to delete .mock_hidden.erb after processing'
   end
 
-  def test_publish_db_connection_info
+  def verify_publish_db_connection_info
     results = @model.connector_execute('mock-plugin-0.1', 'publish-db-connection-info', "")
     refute_nil results
 
@@ -96,7 +98,7 @@ class V2CartridgeModelFunctionalTest < Test::Unit::TestCase
         results)
   end
 
-  def test_set_db_connection_info
+  def verify_set_db_connection_info
     @model.connector_execute('mock-0.1', 'set-db-connection-info', "test testdomain 515c7e8bdf3e460939000001 \\'75e36e529c9211e29cc622000a8c0259\\'\\=\\'OPENSHIFT_MOCK_DB_GEAR_UUID\\=75e36e529c9211e29cc622000a8c0259\\;\\;\\ '\n'\\'")
 
     uservar_file = File.join(@user.homedir, '.env', '.uservars', 'OPENSHIFT_MOCK_DB_GEAR_UUID')

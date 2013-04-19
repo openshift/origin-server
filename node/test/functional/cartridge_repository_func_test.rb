@@ -13,13 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #++
-
-require 'test_helper'
-require 'openshift-origin-node/model/cartridge_repository'
-require 'test/unit'
-require 'mocha'
-
-SimpleCov.command_name 'func_test'
+require_relative '../test_helper'
 
 class CartridgeRepositoryFunctionalTest < Test::Unit::TestCase
 

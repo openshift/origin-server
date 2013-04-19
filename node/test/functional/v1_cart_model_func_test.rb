@@ -13,9 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #++
-
-require 'openshift-origin-node/model/v1_cart_model'
-require 'test/unit'
+require_relative '../test_helper'
 
 class V1CartridgeModelFunctionalTest < Test::Unit::TestCase
   MockUser = Struct.new(:uuid)
