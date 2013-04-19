@@ -17,7 +17,7 @@ BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
 BuildArch: noarch
 
 %description
-Cron cartridge for openshift.
+Cron cartridge for openshift. (Cartridge Format V2)
 
 
 %prep

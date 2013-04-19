@@ -17,7 +17,7 @@ BuildArch:     noarch
 
 
 %description
-Provides mysql cartridge support to OpenShift
+Provides mysql cartridge support to OpenShift. (Cartridge Format V2)
 
 
 %prep

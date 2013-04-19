@@ -40,7 +40,7 @@ BuildArch:     noarch
 
 
 %description
-Provides PostgreSQL cartridge support to OpenShift
+Provides PostgreSQL cartridge support to OpenShift. (Cartridge Format V2)
 
 
 %prep

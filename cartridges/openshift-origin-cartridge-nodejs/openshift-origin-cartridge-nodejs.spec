@@ -24,7 +24,7 @@ BuildRequires: git
 BuildArch:     noarch
 
 %description
-Provides Node.js support to OpenShift
+Provides Node.js support to OpenShift. (Cartridge Format V2)
 
 
 %prep

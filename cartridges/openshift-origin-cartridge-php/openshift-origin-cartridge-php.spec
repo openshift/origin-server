@@ -46,7 +46,7 @@ BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
 BuildArch: noarch
 
 %description
-PHP cartridge for openshift.
+PHP cartridge for openshift. (Cartridge Format V2)
 
 
 %prep
