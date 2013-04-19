@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.7.10
+Version: 1.7.11
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -83,6 +83,13 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Fri Apr 19 2013 Dan McPherson <dmcphers@redhat.com> 1.7.11-1
+- Merge pull request #2150 from rajatchopra/stg_zend
+  (dmcphers+openshiftbot@redhat.com)
+- eventual consistency is alright in some cases (rchopra@redhat.com)
+- disallow creation of scalable apps with framework carts that do not scale
+  (rchopra@redhat.com)
+
 * Thu Apr 18 2013 Dan McPherson <dmcphers@redhat.com> 1.7.10-1
 - Merge pull request #2129 from rajatchopra/stg_fix_unreserve
   (dmcphers@redhat.com)
