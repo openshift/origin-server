@@ -184,7 +184,7 @@ module OpenShift
         begin
           # Execute the hook in the context of the gear user
           logger.debug("Executing cart tidy script #{tidy_script} in gear #{@user.uuid} as user #{@user.uid}:#{@user.gid}")
-          Utils.oo_spawn(tidy_script, uid: @user.uid, chdir: @user.homedir, expected_exitstatus: 0, timeout: cart_tidy_timeout)
+          OpenShift::Utils::ShellExec.run_as(@user.uid, @user.gid, tidy_script, @user.homedir, false, 0, cart_tidy_timeout)
         rescue OpenShift::Utils::ShellExecutionException => e
           logger.warn("Cartridge tidy operation failed on gear #{@user.uuid} for cart #{gear_subdir}: #{e.message} (rc=#{e.rc})")
         end
