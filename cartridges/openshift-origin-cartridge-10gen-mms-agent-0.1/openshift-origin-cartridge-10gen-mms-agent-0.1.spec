@@ -7,7 +7,7 @@ Version: 1.22.0
 Release:       1%{?dist}
 Group:         Applications/Internet
 License:       ASL 2.0
-URL:           http://openshift.redhat.com
+URL:           http://www.openshift.com
 Source0:       http://mirror.openshift.com/pub/origin-server/source/%{name}/%{name}-%{version}.tar.gz
 Requires:      openshift-origin-cartridge-abstract
 Requires:      openshift-origin-cartridge-mongodb-2.2
