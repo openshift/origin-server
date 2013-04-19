@@ -65,3 +65,19 @@ of use:
 
 For more information about environment variables, consult the
 [OpenShift Application Author Guide](https://github.com/openshift/origin-server/blob/master/node/README.writing_applications.md).
+
+## `threaddump` command
+
+OpenShift's CLI tool, [`rhc`](https://rubygems.org/gems/rhc), has a subcommand
+`threaddump`.
+Applications created by this cartridge respond to this command by looking
+for the appropriate `Rack` process, and sending `ABRT` signal to it.
+As explained in [Passenger User Guide](http://www.modrails.com/documentation/Users%20guide%20Apache.html#debugging_frozen),
+this signal will dump the current thread backtraces but also terminates
+the processes.
+
+Note that `Rack` process may not exist if the application had just started
+and not been accessed.
+
+Note also that scaled applications are not supported by the `threaddump`
+command.
