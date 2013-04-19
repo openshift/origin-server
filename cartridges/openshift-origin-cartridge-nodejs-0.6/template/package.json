@@ -1,7 +1,7 @@
 {
-  "name": "OpenShift-Sample-App",
-  "version": "1.0.0",
-  "description": "OpenShift Sample Application",
+  "name": "OpenShift-Nodejs-Cartridge",
+  "version": "1.1.0",
+  "description": "Node.js Cartridge for OpenShift",
   "keywords": [
     "OpenShift",
     "Node.js",
@@ -10,7 +10,7 @@
   ],
   "author": {
     "name": "OpenShift",
-    "email": "ramr@example.org",
+    "email": "ryanj@redhat.com",
     "url":  "http://openshift.redhat.com/"
   },
   "homepage": "http://openshift.redhat.com/",
@@ -18,17 +18,19 @@
     "type": "git",
     "url": "https://gitub.com/openshift/origin-server"
   },
-
   "engines": {
     "node": ">= 0.6.0",
     "npm": ">= 1.0.0"
   },
-
   "dependencies": {
+    "express": "*"
   },
   "devDependencies": {},
   "bundleDependencies": [],
 
   "private": true,
+  "scripts": {
+    "start": "node server.js"
+  },
   "main": "server.js"
 }

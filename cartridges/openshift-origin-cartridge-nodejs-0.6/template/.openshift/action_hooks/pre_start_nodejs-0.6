@@ -12,3 +12,14 @@
 # prevent your application from stopping cleanly or starting at all.
 # Application start and stop is subject to different timeouts
 # throughout the system.
+
+
+#  Source utility functions.
+source "$OPENSHIFT_REPO_DIR/.openshift/lib/utils"
+
+#  Setup path to include the custom Node[.js] version.
+ver=$(get_node_version)
+echo ""
+echo "  - pre_start_nodejs: Adding Node.js version $ver binaries to path"
+_SHOW_SETUP_PATH_MESSAGES="true" setup_path_for_custom_node_version
+

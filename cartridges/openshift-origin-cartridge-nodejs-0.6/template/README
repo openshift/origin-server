@@ -1,124 +1,126 @@
+# Node.js on OpenShift
+
+This package includes a dynamic Node.js build stage that will provide your application with a customized Node.js runtime.
+The version of Node that is available will depend on the requirements listed in your application's `package.json` file.
+
+See: `.openshift/action_hooks/` for more informaiton on how the OpenShift build process works.
+
+### Basic Setup
+
+If this is your first time using OpenShift or Node.js, you'll have some quick prep-work to do:
+
+1. [Create an OpenShift Online account](http://openshift.redhat.com/app/account/new)
+2. If you don't already have the `rhc` (Red Hat Cloud) [command-line tools](https://openshift.redhat.com/community/get-started#cli), run: `sudo gem install rhc`
+3. Run `rhc setup` to link your OpenShift Online account with your local development environment, and to select an application namespace
+4. [Download and install Node.js](http://nodejs.org) for use in your local development environment: http://nodejs.org
+
+For OS-specific installation help, see: https://openshift.redhat.com/community/developers/rhc-client-tools-install
+
+##Host your Node.js applications on OpenShift
+
+Create a Node.js application.  This example will produce an application named **nodeapp**:
+
+    rhc app create nodeapp nodejs
+
+The above example will output a folder named after your application which contains your local development source.  Make sure to run it from within a directory where you would like to store your development code.
+
+That's it!  You should be able to access your application at:
+
+    http://nodeapp-$yournamespace.rhcloud.com
+
+If your app requires a specific version of Node.js, just update the 'engines' section of your app's `package.json` file to specify your runtime requirements:
+
+    "engines": {
+        "node": ">= 0.8.21",
+        "npm": ">= 1.0.0"
+     },
+
+Commit your changes locally:
+
+    git add package.json
+    git commit -m 'updating package.json to select Node.js version 0.8.21'
+
+Then push your updates to OpenShift
+
+    git push
+
+Additional updates can be made via the same `git add`, `git commit`, and `git push` workflow.
 Feel free to change or remove this file, it is informational only.
 
-Repo Layout
-===========
-node_modules/                       - Any Node modules packaged with the app
-deplist.txt                         - Deprecated.
-package.json                        - npm package descriptor.
-npm_global_module_list              - List of globally installed node modules
-                                      (on OpenShift)
-.openshift/                         - Location for openshift specific files
-.openshift/action_hooks/pre_build   - Script that gets run every git push before
-                                      the build
-.openshift/action_hooks/build       - Script that gets run every git push as
-                                      part of the build process (on the CI
-                                      system if available)
-.openshift/action_hooks/deploy      - Script that gets run every git push after
-                                      build but before the app is restarted
-.openshift/action_hooks/post_deploy - Script that gets run every git push after
-                                      the app is restarted
+### Repo layout
 
-Notes about layout
-==================
+    node_modules/                       - Any Node modules packaged with the app
+    deplist.txt                         - Deprecated.
+    package.json                        - npm package descriptor.
+    .openshift/                         - Location for openshift specific files
+    .openshift/action_hooks/pre_build   - Script that gets run every git push before
+                                          the build
+    .openshift/action_hooks/build       - Script that gets run every git push as
+                                          part of the build process (on the CI
+                                          system if available)
+    .openshift/action_hooks/deploy      - Script that gets run every git push after
+                                          build but before the app is restarted
+    .openshift/action_hooks/post_deploy - Script that gets run every git push after
+                                          the app is restarted
+
+### Notes about layout
 Please leave the node_modules and .openshift directories but feel free to
 create additional directories if needed.
 
-Note: Every time you push, everything in your remote repo dir gets recreated
-      please store long term items (like an sqlite database) in the OpenShift
-      data directory, which will persist between pushes of your repo.
-      The OpenShift data directory is accessible relative to the remote repo
-      directory (../data) or via an environment variable OPENSHIFT_DATA_DIR.
+    Note: Every time you push, everything in your remote repo dir gets recreated
+    please store long term items (like an sqlite database) in the OpenShift
+    data directory, which will persist between pushes of your repo.
+    The OpenShift data directory is accessible relative to the remote repo
+    directory (../data) or via an environment variable OPENSHIFT_DATA_DIR.
 
 
-Environment Variables
-=====================
+### Environment Variables
 OpenShift provides several environment variables to reference for ease
 of use.  The following list are some common variables but far from exhaustive:
+
+    process.env.OPENSHIFT_GEAR_NAME  - Application name
+    process.env.OPENSHIFT_GEAR_DIR   - Application dir
     process.env.OPENSHIFT_DATA_DIR  - For persistent storage (between pushes)
     process.env.OPENSHIFT_TMP_DIR   - Temp storage (unmodified files deleted after 10 days)
 
-When embedding a database using 'rhc cartridge add', you can reference
-environment variables for username, host and password. Example for mysql:
-    process.env.OPENSHIFT_MYSQL_DB_HOST      - DB Host
-    process.env.OPENSHIFT_MYSQL_DB_PORT      - DB Port
-    process.env.OPENSHIFT_MYSQL_DB_USERNAME  - DB Username
-    process.env.OPENSHIFT_MYSQL_DB_PASSWORD  - DB Password
+When embedding a database using 'rhc app cartridge add', you can reference environment
+variables for username, host and password:
 
-When embedding a NoSQL database using 'rhc cartridge add', you can
-reference environment variables for username, host and password.
-Example for MongoDB:
-    process.env.OPENSHIFT_MONGODB_DB_HOST      - NoSQL DB Host
-    process.env.OPENSHIFT_MONGODB_DB_PORT      - NoSQL DB Port
-    process.env.OPENSHIFT_MONGODB_DB_USERNAME  - NoSQL DB Username
-    process.env.OPENSHIFT_MONGODB_DB_PASSWORD  - NoSQL DB Password
+    process.env.OPENSHIFT_DB_HOST      - DB Host
+    process.env.OPENSHIFT_DB_PORT      - DB Port
+    process.env.OPENSHIFT_DB_USERNAME  - DB Username
+    process.env.OPENSHIFT_DB_PASSWORD  - DB Password
+
+When embedding a NoSQL database using 'rhc app cartridge add', you can reference environment
+variables for username, host and password:
+
+    process.env.OPENSHIFT_NOSQL_DB_HOST      - NoSQL DB Host
+    process.env.OPENSHIFT_NOSQL_DB_PORT      - NoSQL DB Port
+    process.env.OPENSHIFT_NOSQL_DB_USERNAME  - NoSQL DB Username
+    process.env.OPENSHIFT_NOSQL_DB_PASSWORD  - NoSQL DB Password
 
 To get a full list of environment variables, simply add a line in your
 .openshift/action_hooks/build script that says "export" and push.
 
 
-deplist.txt
-===========
-This functionality has been deprecated and will soon go away.
-package.json is the preferred method to add dependencies.
+### Configuring your runtime environment and dependencies 
+The `package.json` file contains a list of npm module dependencies to install.  These dependencies will automatically be fulfulled via `npm install` during the application build stagei(after any git push).
 
+#### npm default libs
+##### libraries
+ * async
+ * connect
+ * express
+ * formidable
+ * generic-pool
+ * hashish
+ * mime
+ * mkdirp
+ * node-static
+ * qs
+ * traverse
 
-package.json
-============
-npm package descriptor - run "npm help json" for more details.
-
-Note: Among other things, this file contains a list of dependencies
-      (node modules) to install alongside your application and is processed
-      every time you "git push" to your OpenShift application.
-
-
-Development Mode
-================
-
-When you push your code changes to OpenShift, if you want dynamic reloading
-of your javascript files in "development" mode, you can either use the
-hot_deploy marker (see .openshift/markers/README) or add the following to
-package.json.
-   "scripts": { "start": "supervisor <relative-path-from-repo-to>/server.js" },
-
-This will run Node with Supervisor - https://npmjs.org/package/supervisor
-
-
-Local Development + Testing
-===========================
-
-You can also develop and test your Node application locally on your machine
-(workstation). In order to do this, you will need to perform some
-basic setup - install Node + the npm modules that OpenShift has globally
-installed:
-   1. Collect some information about the environment on OpenShift.
-         A. Get Node.js version information:
-	      $ ssh $uuid@$appdns node -v
-         B. Get list of globally install npm modules
-	      $ ssh $uuid@$appdns npm list -g
-
-   2. Ensure that an appropriate version of Node is installed locally.
-      This depends on your application. Using the same version would be
-      preferable in most cases but your mileage may vary with newer versions.
-
-   3. Install the versions of the Node modules you got in step 1.A
-      Use -g if you want to install them globally, the better alternative
-      though is to install them in the home directory of the currently
-      logged user on your local machine/workstation.
-         pushd ~
-         npm install [-g] $module_name@$version
-         popd
-
-
-Once you have completed the above setup, you can then run your application
-locally by using any one of these commands:
-    node server.js
-    npm start -d
-    supervisor server.js
-
-And then iterate on developing+testing your application.
-
-
-Additional information
-======================
-Link to additional information will be here, when we have it :)
-
+##### drivers
+ * mongodb
+ * mysql
+ * pg
