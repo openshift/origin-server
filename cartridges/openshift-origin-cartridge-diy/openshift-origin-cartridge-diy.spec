@@ -16,7 +16,7 @@ BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
 BuildArch: noarch
 
 %description
-DIY cartridge for openshift.
+DIY cartridge for openshift. (Cartridge Format V2)
 
 
 %prep

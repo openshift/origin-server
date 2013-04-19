@@ -14,7 +14,7 @@ Requires:      httpd < 2.4
 BuildArch:     noarch
 
 %description
-Provides phpMyAdmin cartridge support
+Provides phpMyAdmin cartridge support. (Cartridge Format V2)
 
 
 

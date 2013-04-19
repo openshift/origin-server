@@ -31,7 +31,7 @@ BuildRequires: jpackage-utils
 BuildArch:     noarch
 
 %description
-Provides JBossAS support to OpenShift
+Provides JBossAS support to OpenShift. (Cartridge Format V2)
 
 
 %prep

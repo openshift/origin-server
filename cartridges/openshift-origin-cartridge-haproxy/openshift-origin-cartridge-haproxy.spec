@@ -22,7 +22,7 @@ BuildRequires: git
 BuildArch:     noarch
 
 %description
-HAProxy cartridge for OpenShift.
+HAProxy cartridge for OpenShift. (Cartridge Format V2)
 
 %prep
 %setup -q

@@ -147,7 +147,7 @@ BuildRoot:     %{_tmppath}/%{name}-%{version}-%{release}-root
 BuildArch:     noarch
 
 %description
-Ruby cartridge for openshift.
+Ruby cartridge for OpenShift. (Cartridge Format V2)
 
 
 %prep

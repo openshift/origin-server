@@ -25,7 +25,7 @@ BuildRequires: jpackage-utils
 BuildArch:     noarch
 
 %description
-Provides JBossEWS2.0 support to OpenShift
+Provides JBossEWS2.0 support to OpenShift. (Cartridge Format V2)
 
 
 %prep
