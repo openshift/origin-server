@@ -20,14 +20,14 @@ class GearGroupsController < BaseController
     end
 
     begin
-      domain = Domain.find_by(owner: @cloud_user, canonical_namespace: domain_id.downcase)
+      domain = Domain.with(consistency: :eventual).find_by(owner: @cloud_user, canonical_namespace: domain_id.downcase)
       @domain_name = domain.namespace
     rescue Mongoid::Errors::DocumentNotFound
       return render_error(:not_found, "Domain #{domain_id} not found", 127, "LIST_GEAR_GROUPS")
     end
 
     begin
-      application = Application.find_by(domain: domain, canonical_name: app_id.downcase)
+      application = Application.with(consistency: :eventual).find_by(domain: domain, canonical_name: app_id.downcase)
       @application_name = application.name
       @application_uuid = application.uuid
 
@@ -61,14 +61,14 @@ class GearGroupsController < BaseController
     end
 
     begin
-      domain = Domain.find_by(owner: @cloud_user, canonical_namespace: domain_id.downcase)
+      domain = Domain.with(consistency: :eventual).find_by(owner: @cloud_user, canonical_namespace: domain_id.downcase)
       @domain_name = domain.namespace
     rescue Mongoid::Errors::DocumentNotFound
       return render_error(:not_found, "Domain #{domain_id} not found", 127, "LIST_GEAR_GROUPS")
     end
 
     begin
-      application = Application.find_by(domain: domain, canonical_name: app_id.downcase)
+      application = Application.with(consistency: :eventual).find_by(domain: domain, canonical_name: app_id.downcase)
       @application_name = application.name
       @application_uuid = application.uuid
       gear_states = application.get_gear_states()

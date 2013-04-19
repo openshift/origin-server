@@ -68,7 +68,7 @@ Rails.configuration.analytics[:enabled] = false
 
 user = nil
 begin
-  user = CloudUser.find_by(login: login)
+  user = CloudUser.with(consistency: :eventual).find_by(login: login)
 rescue Mongoid::Errors::DocumentNotFound
 end
 unless user

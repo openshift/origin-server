@@ -7,14 +7,14 @@ class AliasController < BaseController
     id = params[:application_id].downcase if params[:application_id]
 
     begin
-      domain = Domain.find_by(owner: @cloud_user, canonical_namespace: domain_id)
+      domain = Domain.with(consistency: :eventual).find_by(owner: @cloud_user, canonical_namespace: domain_id)
       @domain_name = domain.namespace
     rescue Mongoid::Errors::DocumentNotFound
       return render_error(:not_found, "Domain #{domain_id} not found", 127, "LIST_APP_ALIASES")
     end
 
     begin
-      application = Application.find_by(domain: domain, canonical_name: id)
+      application = Application.with(consistency: :eventual).find_by(domain: domain, canonical_name: id)
       @application_name = application.name
       @application_uuid = application.uuid
       rest_aliases = []
@@ -36,14 +36,14 @@ class AliasController < BaseController
     id = params[:id].downcase if params[:id]
 
     begin
-      domain = Domain.find_by(owner: @cloud_user, canonical_namespace: domain_id)
+      domain = Domain.with(consistency: :eventual).find_by(owner: @cloud_user, canonical_namespace: domain_id)
       @domain_name = domain.namespace
     rescue Mongoid::Errors::DocumentNotFound
       return render_error(:not_found, "Domain #{domain_id} not found", 127, "SHOW_APP_ALIAS")
     end
 
     begin
-      application = Application.find_by(domain: domain, canonical_name: application_id)
+      application = Application.with(consistency: :eventual).find_by(domain: domain, canonical_name: application_id)
       @application_name = application.name
       @application_uuid = application.uuid
     rescue Mongoid::Errors::DocumentNotFound
@@ -76,7 +76,7 @@ class AliasController < BaseController
     end
     
     begin
-      domain = Domain.find_by(owner: @cloud_user, canonical_namespace: domain_id)
+      domain = Domain.with(consistency: :eventual).find_by(owner: @cloud_user, canonical_namespace: domain_id)
       @domain_name = domain.namespace
     rescue Mongoid::Errors::DocumentNotFound
       return render_error(:not_found, "Domain #{domain_id} not found", 127, "ADD_ALIAS")
@@ -118,7 +118,7 @@ class AliasController < BaseController
     end
 
     begin
-      domain = Domain.find_by(owner: @cloud_user, canonical_namespace: domain_id)
+      domain = Domain.with(consistency: :eventual).find_by(owner: @cloud_user, canonical_namespace: domain_id)
       @domain_name = domain.namespace
     rescue Mongoid::Errors::DocumentNotFound
       return render_error(:not_found, "Domain #{domain_id} not found", 127, "UPDATE_ALIAS")
@@ -156,7 +156,7 @@ class AliasController < BaseController
     application_id = params[:application_id].downcase if params[:application_id]
     server_alias = params[:id].downcase if params[:id]
     begin
-      domain = Domain.find_by(owner: @cloud_user, canonical_namespace: domain_id)
+      domain = Domain.with(consistency: :eventual).find_by(owner: @cloud_user, canonical_namespace: domain_id)
       @domain_name = domain.namespace
     rescue Mongoid::Errors::DocumentNotFound
       return render_error(:not_found, "Domain #{domain_id} not found", 127, "DELETE_ALIAS")
