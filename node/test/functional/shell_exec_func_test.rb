@@ -13,11 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #++
-
-require "openshift-origin-node/utils/shell_exec"
-require 'test_helper'
-require "test/unit"
-require "mocha"
+require_relative '../test_helper'
 
 module OpenShift
   class UtilsSpawnFunctionalTest < Test::Unit::TestCase

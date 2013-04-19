@@ -14,14 +14,12 @@
 # limitations under the License.
 #++
 
-require File.expand_path('../coverage_helper.rb', __FILE__)
+require_relative 'coverage_helper'
 
-#require File.expand_path('../../lib/openshift-origin-node', __FILE__)
-require 'rubygems'
 require 'test/unit'
 require 'mocha'
 
-require 'openshift-origin-node/utils/node_logger'
+require 'openshift-origin-node'
 
 module OpenShift
   module NodeLogger

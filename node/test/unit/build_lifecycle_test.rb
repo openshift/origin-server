@@ -17,23 +17,13 @@
 #
 # Test the OpenShift application_container model
 #
+require_relative '../test_helper'
+require 'fileutils'
+require 'yaml'
+
 module OpenShift
   ;
 end
-
-require 'test_helper'
-require 'openshift-origin-node/model/application_container'
-require 'openshift-origin-node/model/application_repository'
-require 'openshift-origin-node/model/v2_cart_model'
-require 'openshift-origin-node/model/unix_user'
-require 'openshift-origin-node/model/default_builder'
-require 'openshift-origin-node/utils/application_state'
-require 'openshift-origin-node/utils/environ'
-require 'openshift-origin-common'
-require 'test/unit'
-require 'fileutils'
-require 'yaml'
-require 'mocha'
 
 class BuildLifecycleTest < Test::Unit::TestCase
 
