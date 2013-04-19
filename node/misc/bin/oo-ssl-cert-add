@@ -88,7 +88,7 @@ $dry_run = true if args['--dry-run']
 $oo_debug = true if args['--debug']
 $porcelain = args['--porcelain'] ? true : false
 
-unless container_uuid
+if container_uuid.nil? or server_alias.nil?
   usage
 end
 
