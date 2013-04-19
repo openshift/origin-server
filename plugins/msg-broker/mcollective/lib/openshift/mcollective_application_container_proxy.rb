@@ -72,9 +72,11 @@ module OpenShift
       # find_available() method
       #
       # INPUTS:
-      # * node_profile: a set of node characteristics (app requires?)
-      # * district: a node district identifier
-      # * non_ha_server_identities: list of server identities which won't allow gear group to be highly available
+      # * node_profile: string identifier for a set of node characteristics
+      # * district_uuid: identifier for the district
+      # * least_preferred_server_identities: list of server identities that are least preferred. These could be the ones that won't allow the gear group to be highly available
+      # * gear_exists_in_district: true if the gear belongs to a node in the same district  
+      # * required_uid: the uid that is required to be available in the destination district
       #
       # RETURNS:
       # * an MCollectiveApplicationContainerProxy
@@ -87,12 +89,16 @@ module OpenShift
       # * Uses Rails.configuration.msg_broker
       # * Uses District
       # * Calls rpc_find_available
+      # 
+      # VALIDATIONS:
+      # * If gear_exists_in_district is true, then required_uid cannot be set and has to be nil
+      # * If gear_exists_in_district is true, then district_uuid must be passed and cannot be nil
       #
-      def self.find_available_impl(node_profile=nil, district_uuid=nil, non_ha_server_identities=nil, gear_uid=nil, ignore_servers=[])
+      def self.find_available_impl(node_profile=nil, district_uuid=nil, least_preferred_server_identities=nil, gear_exists_in_district=false, required_uid=nil)
         district = nil
-        current_server, current_capacity, preferred_district = rpc_find_available(node_profile, district_uuid, non_ha_server_identities, false, gear_uid, ignore_servers)
+        current_server, current_capacity, preferred_district = rpc_find_available(node_profile, district_uuid, least_preferred_server_identities, false, gear_exists_in_district, required_uid)
         if !current_server
-          current_server, current_capacity, preferred_district = rpc_find_available(node_profile, district_uuid, non_ha_server_identities, true, gear_uid, ignore_servers)
+          current_server, current_capacity, preferred_district = rpc_find_available(node_profile, district_uuid, least_preferred_server_identities, true, gear_exists_in_district, required_uid)
         end
         district = preferred_district if preferred_district
         raise OpenShift::NodeException.new("No nodes available.", 140) unless current_server
@@ -1707,6 +1713,12 @@ module OpenShift
         destination_container, destination_district_uuid, district_changed = resolve_destination(gear, destination_container, destination_district_uuid, change_district)
 
         source_container = gear.get_proxy
+
+        if source_container.id == destination_container.id
+          log_debug "Cannot move a gear within the same node. The source container and destination container are the same."
+          raise OpenShift::UserException.new("Error moving app. Destination container same as source container.", 1)
+        end
+
         destination_node_profile = destination_container.get_node_profile
         if source_container.get_node_profile != destination_node_profile
           log_debug "Cannot change node_profile for a gear - this operation is not supported. The destination container's node profile is #{destination_node_profile}, while the gear's node_profile is #{gear.group_instance.gear_size}"
@@ -1860,7 +1872,7 @@ module OpenShift
       # * change_district: Boolean
       #
       # RETURNS:
-      # * Array: [destination_container, destination_district_uuid, keep_uuid]
+      # * Array: [destination_container, destination_district_uuid, district_changed]
       # 
       # RAISES:
       # * OpenShift::UserException
@@ -1869,6 +1881,8 @@ module OpenShift
       # * uses MCollectiveApplicationContainerProxy.find_available_impl
       #
       def resolve_destination(gear, destination_container, destination_district_uuid, change_district)
+        gear_exists_in_district = false
+        required_uid = gear.uid
         source_container = gear.get_proxy
         source_district_uuid = source_container.get_district_uuid
   
@@ -1876,8 +1890,15 @@ module OpenShift
           if !destination_district_uuid and !change_district
             destination_district_uuid = source_district_uuid unless source_district_uuid == 'NONE'
           end
-          ignore_servers = [source_container]
-          destination_container = MCollectiveApplicationContainerProxy.find_available_impl(gear.group_instance.gear_size, destination_district_uuid, nil, gear.uid, ignore_servers)
+
+          # Check to see if the gear's current district and the destination district are the same
+          if (not destination_district_uuid.nil?) and (destination_district_uuid == source_district_uuid)
+            gear_exists_in_district = true
+            required_uid = nil
+          end
+          
+          least_preferred_server_identities = [source_container.id]
+          destination_container = MCollectiveApplicationContainerProxy.find_available_impl(gear.group_instance.gear_size, destination_district_uuid, nil, gear_exists_in_district, required_uid)
           log_debug "DEBUG: Destination container: #{destination_container.id}"
           destination_district_uuid = destination_container.get_district_uuid
         else
@@ -2691,9 +2712,12 @@ module OpenShift
       # ???
       #
       # INPUTS:
-      # * node_profile: ???
-      # * district_uuid: String
+      # * node_profile: String identifier for a set of node characteristics
+      # * district_uuid: String identifier for the district
+      # * least_preferred_server_identities: list of server identities that are least preferred. These could be the ones that won't allow the gear group to be highly available
       # * force_rediscovery: Boolean
+      # * gear_exists_in_district: Boolean - true if the gear belongs to a node in the same district  
+      # * required_uid: String - the uid that is required to be available in the destination district
       #
       # RETURNS:
       # * Array: [server, capacity, district] 
@@ -2701,12 +2725,21 @@ module OpenShift
       # NOTES:
       # * are the return values String?
       #
-      # 
+      # VALIDATIONS:
+      # * If gear_exists_in_district is true, then required_uid cannot be set and has to be nil
+      # * If gear_exists_in_district is true, then district_uuid must be passed and cannot be nil
       #
-      def self.rpc_find_available(node_profile=nil, district_uuid=nil, non_ha_server_identities=nil, force_rediscovery=false, gear_uid=nil, ignore_servers=[])
-        
+      def self.rpc_find_available(node_profile=nil, district_uuid=nil, least_preferred_server_identities=nil, force_rediscovery=false, gear_exists_in_district=false, required_uid=nil)
+
         district_uuid = nil if district_uuid == 'NONE'
         
+        # validate to ensure incompatible parameters are not passed
+        if gear_exists_in_district
+          if required_uid or district_uuid.nil?
+            raise OpenShift::UserException.new("Incompatible parameters being passed for finding available node within the same district", 1)
+          end
+        end
+
         require_specific_district = !district_uuid.nil?
         require_district = require_specific_district
         prefer_district = require_specific_district
@@ -2718,7 +2751,7 @@ module OpenShift
             end
           end
         end
-        require_district = true if gear_uid
+        require_district = true if required_uid
         current_server, current_capacity = nil, nil
         server_infos = []
 
@@ -2761,12 +2794,11 @@ module OpenShift
         # Get the active % on the nodes
         rpc_opts = nil
         rpc_get_fact('active_capacity', nil, force_rediscovery, additional_filters, rpc_opts) do |server, capacity|
-          next if ignore_servers and ignore_servers.include?(server)
           found_district = false
           districts.each do |district|
             if district.server_identities_hash.has_key?(server)
-              next if gear_uid and !district.available_uids.include?(gear_uid)
-              if district.available_capacity > 0 && district.server_identities_hash[server]["active"] 
+              next if required_uid and !district.available_uids.include?(required_uid)
+              if (gear_exists_in_district || district.available_capacity > 0) && district.server_identities_hash[server]["active"] 
                 server_infos << [server, capacity.to_f, district]
               end
               found_district = true
@@ -2781,8 +2813,8 @@ module OpenShift
           raise OpenShift::NodeException.new("No district nodes available.", 140)
         end
         unless server_infos.empty?
-          # Use an HA option if available
-          server_infos.delete_if { |server_info| server_infos.length > 1 && non_ha_server_identities.include?(server_info[0]) } if non_ha_server_identities
+          # Remove the least preferred servers from the list, ensuring there is at least one server remaining
+          server_infos.delete_if { |server_info| server_infos.length > 1 && least_preferred_server_identities.include?(server_info[0]) } if least_preferred_server_identities
 
           # Remove any non districted nodes if you prefer districts
           if prefer_district && !require_district && !districts.empty?
