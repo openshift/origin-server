@@ -26,7 +26,6 @@ class EnvironTest < Test::Unit::TestCase
     @gear_env     = File.join('/tmp', @uuid, '.env')
     @uservars_env = File.join('/tmp', @uuid, '.env', '.uservars')
     @cart_env     = File.join('/tmp', @uuid, @cart_name, 'env')
-    FileUtils.mkpath(@gear_env)
     FileUtils.mkpath(@uservars_env)
     FileUtils.mkpath(@cart_env)
   end
@@ -40,7 +39,7 @@ class EnvironTest < Test::Unit::TestCase
 
   # Helper to directly write values to ENV files
   # Send raw = true to manually set file contents
-  def write_var(where, name, value, raw = false)
+  def write_var(where, name, value, raw = true)
     base = case where
            when :gear
              @gear_env
@@ -51,11 +50,7 @@ class EnvironTest < Test::Unit::TestCase
            end
 
     val_str = raw ? value : %Q{export #{name}="#{value}"}
-    File.join(base, name).tap{ |file_name|
-      File.open(file_name, 'w') { |fd|
-        fd.write(val_str)
-      }
-    }
+    File.join(base, name).tap { |filename| IO.write(filename, val_str) }
   end
 
   # Helper to write gear UUID to ENV file
@@ -73,29 +68,11 @@ class EnvironTest < Test::Unit::TestCase
     end
   end
 
-  # Verify we are calling our logger properly if there's a problem loading a file
-  def test_load_error_exception
-    val_str = %Q{export OPENSHIFT_GEAR_UUID"#@uuid"}
-    file_name = write_var(:gear, 'OPENSHIFT_GEAR_UUID', val_str, true)
-
-    # Make sure we get the proper message for NoMethodError
-    err = assert_raises NoMethodError do
-      nil + 1
-    end
-
-    OpenShift::NodeLogger.logger.expects(:info).once().with(all_of(
-      regexp_matches(/^Failed to process: #{file_name}/),
-      regexp_matches(/\[#{val_str}\]/),
-      regexp_matches(/#{Regexp.escape(err.message)}$/)
-    ))
-    OpenShift::Utils::Environ.load(@gear_env)
-  end
-
   def test_load_error_permission
     file_name = write_uuid
 
     err_msg = "Permission denied"
-    File.stubs(:open).with(any_parameters).raises(Errno::EACCES.new(file_name))
+    IO.stubs(:read).with(any_parameters).raises(Errno::EACCES.new(file_name))
     OpenShift::NodeLogger.logger.expects(:info).once().with(all_of(
       regexp_matches(/^Failed to process: #{file_name}/),
       regexp_matches(/#{Regexp.escape(err_msg)}$/)
@@ -104,9 +81,7 @@ class EnvironTest < Test::Unit::TestCase
   end
 
   # Verify can read a gear and cartridge environment variables
-  def test_gear_env_v2
-    OpenShift::Utils::Sdk.expects(:new_sdk_app?).returns(true)
-
+  def test_gear_env
     write_uuid
     write_var(:uservars, 'OPENSHIFT_USERVAR', 'foo')
     write_var(:cart, 'OPENSHIFT_MOCK_IP', '127.0.0.666')
@@ -116,30 +91,6 @@ class EnvironTest < Test::Unit::TestCase
       assert_equal @uuid, env['OPENSHIFT_GEAR_UUID']
       assert_equal "127.0.0.666", env['OPENSHIFT_MOCK_IP']
       assert_equal "foo", env['OPENSHIFT_USERVAR']
-      assert_nil env['OPENSHIFT_APP_NAME']
-    end
-
-    # Ensure cartridge inherits gear variables
-    OpenShift::Utils::Environ.for_cartridge(File.join('/tmp', @uuid, @cart_name)).tap do |env|
-      assert_equal @uuid, env['OPENSHIFT_GEAR_UUID']
-      assert_equal "127.0.0.666", env['OPENSHIFT_MOCK_IP']
-      assert_nil env['OPENSHIFT_APP_NAME']
-    end
-  end
-
-  # Verify can read a gear and cartridge environment variables
-  def test_gear_env_v1
-    OpenShift::Utils::Sdk.expects(:new_sdk_app?).returns(false)
-
-    write_uuid
-    write_var(:uservars, 'OPENSHIFT_USERVAR', 'foo', true)
-    write_var(:cart, 'OPENSHIFT_MOCK_IP', '127.0.0.666')
-
-    # Ensure gear inherits cartridge variables
-    OpenShift::Utils::Environ.for_gear(File.join('/tmp', @uuid)).tap do |env|
-      assert_equal @uuid, env['OPENSHIFT_GEAR_UUID']
-      assert_equal "127.0.0.666", env['OPENSHIFT_MOCK_IP']
-      assert_nil env['OPENSHIFT_USERVAR']
       assert_nil env['OPENSHIFT_APP_NAME']
     end
 

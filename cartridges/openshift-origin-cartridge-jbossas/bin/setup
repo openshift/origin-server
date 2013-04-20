@@ -5,7 +5,7 @@ source $OPENSHIFT_CARTRIDGE_SDK_BASH
 cartridge_type="jbossas"
 
 version=7.1
-echo "export OPENSHIFT_JBOSSAS_VERSION='$version'" > "$OPENSHIFT_JBOSSAS_DIR/env/OPENSHIFT_JBOSSAS_VERSION"
+echo "$version" > "$OPENSHIFT_JBOSSAS_DIR/env/OPENSHIFT_JBOSSAS_VERSION"
 
 # Create additional directories required by JBOSSAS
 mkdir -p ${OPENSHIFT_HOMEDIR}/.m2
@@ -40,10 +40,9 @@ else
 	JAVA_HOME=/etc/alternatives/java_sdk_1.6.0
 fi
 M2_HOME=/etc/alternatives/maven-3.0
-echo "export JAVA_HOME=$JAVA_HOME" > $OPENSHIFT_JBOSSAS_DIR/env/JAVA_HOME
-echo "export M2_HOME=$M2_HOME" > $OPENSHIFT_JBOSSAS_DIR/env/M2_HOME
-echo "export PATH=$JAVA_HOME/bin:$M2_HOME/bin:$PATH" > $OPENSHIFT_JBOSSAS_DIR/env/PATH
-echo "export OPENSHIFT_JBOSSAS_LOG_DIR=${OPENSHIFT_JBOSSAS_DIR}/logs" > $OPENSHIFT_JBOSSAS_DIR/env/OPENSHIFT_JBOSSAS_LOG_DIR
+echo "$JAVA_HOME" > $OPENSHIFT_JBOSSAS_DIR/env/JAVA_HOME
+echo "$M2_HOME" > $OPENSHIFT_JBOSSAS_DIR/env/M2_HOME
+echo "$JAVA_HOME/bin:$M2_HOME/bin:$PATH" > $OPENSHIFT_JBOSSAS_DIR/env/PATH
 
 
 

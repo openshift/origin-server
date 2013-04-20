@@ -5,7 +5,7 @@ source $OPENSHIFT_CARTRIDGE_SDK_BASH
 cartridge_type="jbosseap"
 
 version=6.0
-echo "export OPENSHIFT_JBOSSEAP_VERSION='$version'" > "$OPENSHIFT_JBOSSEAP_DIR/env/OPENSHIFT_JBOSSEAP_VERSION"
+echo "$version" > "$OPENSHIFT_JBOSSEAP_DIR/env/OPENSHIFT_JBOSSEAP_VERSION"
 
 # Create additional directories required by JBOSSEAP
 mkdir -p ${OPENSHIFT_HOMEDIR}/.m2
@@ -40,10 +40,9 @@ else
 	JAVA_HOME=/etc/alternatives/java_sdk_1.6.0
 fi
 M2_HOME=/etc/alternatives/maven-3.0
-echo "export JAVA_HOME=$JAVA_HOME" > $OPENSHIFT_JBOSSEAP_DIR/env/JAVA_HOME
-echo "export M2_HOME=$M2_HOME" > $OPENSHIFT_JBOSSEAP_DIR/env/M2_HOME
-echo "export PATH=$JAVA_HOME/bin:$M2_HOME/bin:$PATH" > $OPENSHIFT_JBOSSEAP_DIR/env/PATH
-echo "export OPENSHIFT_JBOSSEAP_LOG_DIR=${OPENSHIFT_JBOSSEAP_DIR}/logs" > $OPENSHIFT_JBOSSEAP_DIR/env/OPENSHIFT_JBOSSEAP_LOG_DIR
+echo "$JAVA_HOME" > $OPENSHIFT_JBOSSEAP_DIR/env/JAVA_HOME
+echo "$M2_HOME" > $OPENSHIFT_JBOSSEAP_DIR/env/M2_HOME
+echo "$JAVA_HOME/bin:$M2_HOME/bin:$PATH" > $OPENSHIFT_JBOSSEAP_DIR/env/PATH
 
 
 

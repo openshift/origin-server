@@ -51,6 +51,7 @@ module OpenShift
     def initialize(application_uuid, container_uuid, user_uid=nil,
         app_name=nil, container_name=nil, namespace=nil, quota_blocks=nil, quota_files=nil, debug=false)
       @config = OpenShift::Config.new
+      @cartridge_format = Utils::Sdk.node_default_model(@config)
 
       @container_uuid = container_uuid
       @application_uuid = application_uuid
@@ -310,16 +311,18 @@ Dir(after)    #{@uuid}/#{@uid} => #{list_home_dir(@homedir)}
     # Returns the Integer value for how many bytes got written or raises on
     # failure.
     def add_env_var(key, value, prefix_cloud_name = false, &blk)
-      env_dir = File.join(@homedir,'.env/')
-      if prefix_cloud_name
-        key = "OPENSHIFT_#{key}"
-      end
+      env_dir = File.join(@homedir, '.env/')
+      key = "OPENSHIFT_#{key}" if prefix_cloud_name
+
       filename = File.join(env_dir, key)
-      File.open(filename,
-          File::WRONLY|File::TRUNC|File::CREAT) do |file|
-            file.write "export #{key}='#{value}'"
+      File.open(filename, File::WRONLY|File::TRUNC|File::CREAT) do |file|
+        if :v1 == @cartridge_format
+          file.write "export #{key}='#{value}'"
+        else
+          file.write value.to_s
         end
-        
+      end
+
       mcs_label = Utils::SELinux.get_mcs_label(uid)
       PathUtils.oo_chown(0, gid, filename)
       Utils::SELinux.set_mcs_label(mcs_label, filename)

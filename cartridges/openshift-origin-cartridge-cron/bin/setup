@@ -1,14 +1,13 @@
 #!/bin/bash -e
-set -x
 
 source $OPENSHIFT_CARTRIDGE_SDK_BASH
 
 version=1.4
-echo "export OPENSHIFT_CRON_VERSION='$version'" > "$OPENSHIFT_CRON_DIR/env/OPENSHIFT_CRON_VERSION"
+echo "$version" > "$OPENSHIFT_CRON_DIR/env/OPENSHIFT_CRON_VERSION"
 
 # Copy the version specific files into diy directory
 shopt -s dotglob
-mkdir $OPENSHIFT_CRON_DIR/{configuration,logs,etc,data,pid,run}
+mkdir -p $OPENSHIFT_CRON_DIR/{configuration,logs,etc,data,pid,run}
 cp -r $OPENSHIFT_CRON_DIR/versions/$version/configuration/* $OPENSHIFT_CRON_DIR/configuration
 ln -s ../app-root/repo/.openshift/cron $OPENSHIFT_CRON_DIR/configuration/jobs
 

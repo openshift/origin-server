@@ -23,6 +23,8 @@ module OpenShift
     # Called before every test method runs. Can be used
     # to set up fixture information.
     def setup
+      skip "Support for ruby oo-trap-user pushed to post Summit 2013"
+
       @uuid        = 'a62d6dd9e6cd4be6841bedb5750a01fb'
       @gear_dir    = File.join('/tmp', @uuid)
       @runtime_dir = File.join(@gear_dir, 'app-root', 'runtime')
@@ -52,14 +54,14 @@ module OpenShift
       FileUtils.rm_rf(File.join('/tmp', @uuid))
     end
 
-    def test_unknown
+    def skip_unknown
       ENV['SSH_ORIGINAL_COMMAND'] = 'unknown'
 
       Kernel.stubs(:exec).with(@env, '/bin/bash', '-c', 'unknown').returns(0)
       OpenShift::Application::TrapUser.new.apply
     end
 
-    def test_rhcsh
+    def skip_rhcsh
       # env['PS1'] = 'rhcsh> '
       Kernel.stubs(:exec).with(@env.merge({'PS1' => 'rhcsh> '}),
                                '/bin/bash', '--init-file', '/usr/bin/rhcsh', '-i'
@@ -69,7 +71,7 @@ module OpenShift
       OpenShift::Application::TrapUser.new.apply
     end
 
-    def test_rhcsh_argvs
+    def skip_rhcsh_argvs
       # env['PS1'] = 'rhcsh> '
       Kernel.stubs(:exec).with(@env.merge({'PS1' => 'rhcsh> '}),
                                '/bin/bash', '--init-file', '/usr/bin/rhcsh', '-c', 'ls', '/tmp'
@@ -79,7 +81,7 @@ module OpenShift
       OpenShift::Application::TrapUser.new.apply
     end
 
-    def test_ctl_all
+    def skip_ctl_all
       Kernel.stubs(:exec).with(@env,
                                '/bin/bash', '-c', '. /usr/bin/rhcsh > /dev/null ; ctl_all start app001'
       ).returns(0)
@@ -88,35 +90,35 @@ module OpenShift
       OpenShift::Application::TrapUser.new.apply
     end
 
-    def test_snapshot
+    def skip_snapshot
       Kernel.stubs(:exec).with(@env, '/bin/bash', 'oo-snapshot').returns(0)
 
       ENV['SSH_ORIGINAL_COMMAND'] = 'snapshot'
       OpenShift::Application::TrapUser.new.apply
     end
 
-    def test_restore
+    def skip_restore
       Kernel.stubs(:exec).with(@env, '/bin/bash', 'oo-restore').returns(0)
 
       ENV['SSH_ORIGINAL_COMMAND'] = 'restore'
       OpenShift::Application::TrapUser.new.apply
     end
 
-    def test_restore_include_git
+    def skip_restore_include_git
       Kernel.stubs(:exec).with(@env, '/bin/bash', 'oo-restore', 'INCLUDE_GIT').returns(0)
 
       ENV['SSH_ORIGINAL_COMMAND'] = 'restore INCLUDE_GIT'
       OpenShift::Application::TrapUser.new.apply
     end
 
-    def test_cd
+    def skip_cd
       Kernel.stubs(:exec).with(@env, '/bin/bash', '-c', 'cd', '/tmp').returns(0)
 
       ENV['SSH_ORIGINAL_COMMAND'] = 'cd /tmp'
       OpenShift::Application::TrapUser.new.apply
     end
 
-    def test_tail
+    def skip_tail
       `echo Hello, World > #@logs_dir/mock.log`
       tail_opts = Base64.encode64('-n 100')
       Kernel.stubs(:exec).with(@env, '/usr/bin/tail', '-f', '-n', '100', 'app-root/logs/mock.log').returns(0)
@@ -127,7 +129,7 @@ module OpenShift
       end
     end
 
-    def test_tail_with_follow
+    def skip_tail_with_follow
       `echo Hello, World > #@logs_dir/mock.log`
       tail_opts = Base64.encode64('-n 100 -f')
       Kernel.stubs(:exec).with(@env, '/usr/bin/tail', '-n', '100', '-f', 'app-root/logs/mock.log').returns(0)
@@ -138,7 +140,7 @@ module OpenShift
       end
     end
 
-    def test_git_receive_pack
+    def skip_git_receive_pack
       home_dir      = File.join('/tmp', Process.pid.to_s)
       git_directory = File.join(home_dir, 'git')
       FileUtils.mkpath(git_directory)
@@ -161,7 +163,7 @@ module OpenShift
       end
     end
 
-    def test_quota
+    def skip_quota
       Kernel.stubs(:exec).with(@env, '/usr/bin/quota', '--always-resolve').returns(0)
 
       ENV['SSH_ORIGINAL_COMMAND'] = 'quota'

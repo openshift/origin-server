@@ -33,30 +33,30 @@ module OpenShift
         @commands_map = {
             'git-receive-pack' => '/usr/bin/git-receive-pack',
             'git-upload-pack'  => '/usr/bin/git-upload-pack',
-            'snapshot'         => '/bin/bash',
-            'restore'          => '/bin/bash',
+            'snapshot'         => :bash,
+            'restore'          => :bash,
             'tail'             => '/usr/bin/tail',
-            'rhcsh'            => '/bin/bash',
+            'rhcsh'            => :bash,
             'true'             => '/bin/true',
-            'java'             => '/bin/bash',
-            'scp'              => '/bin/bash',
-            'cd'               => '/bin/bash',
-            'set'              => '/bin/bash',
-            'mkdir'            => '/bin/bash',
-            'test'             => '/bin/bash',
-            'rsync'            => '/bin/bash',
-            'ctl_all'          => '/bin/bash',
-            'deploy.sh'        => '/bin/bash',
-            'rhc-list-ports'   => '/bin/bash',
-            'post_deploy.sh'   => '/bin/bash',
+            'java'             => :bash,
+            'scp'              => :bash,
+            'cd'               => :bash,
+            'set'              => :bash,
+            'mkdir'            => :bash,
+            'test'             => :bash,
+            'rsync'            => :bash,
+            'ctl_all'          => :bash,
+            'deploy.sh'        => :bash,
+            'rhc-list-ports'   => :bash,
+            'post_deploy.sh'   => :bash,
             'quota'            => '/usr/bin/quota',
         }
       end
 
       def apply
-        env          = OpenShift::Utils::Environ.for_gear('~')
+        env          = OpenShift::Utils::Environ.for_gear(ENV['HOME'])
         command_line = ENV['SSH_ORIGINAL_COMMAND'] || 'rhcsh'
-        Syslog.info(command_line)
+        Syslog.info("#{ENV['OPENSHIFT_GEAR_UUID']}: rhcsh original command #{command_line}")
 
         orig_argv    = command_line.split(' ')
         orig_command = orig_argv.shift
@@ -75,23 +75,22 @@ module OpenShift
 
           # ssh {uuid}@{...}
           when 'rhcsh'
-            env['PS1'] = 'rhcsh> '
+            env['PS1']    = 'rhcsh> '
+            canon_command = '/bin/bash'
             canon_argv.concat %w(--init-file /usr/bin/rhcsh)
             if orig_argv.empty?
-              canon_argv.push('-i')
+              canon.argv.push '-i'
             else
-              canon_argv.push('-c')
-              canon_argv.concat(orig_argv)
+              canon.argv.push '-c'
+              canon_argv.concat orig_argv
             end
 
           # ssh {uuid}@{...} ctl_all start app
           when 'ctl_all'
-            canon_argv.push('-c')
-            canon_argv.push(". /usr/bin/rhcsh > /dev/null ; ctl_all #{orig_argv.join(' ')}")
+            canon_argv.push(%Q(. /usr/bin/rhcsh > /dev/null ; ctl_all #{orig_argv.join(' ')}))
 
           #  ssh {uuid}@{...}...
           when 'java', 'set', 'scp', 'cd', 'test', 'mkdir', 'rsync', 'deploy.sh', 'post_deploy.sh', 'rhc-list-ports'
-            canon_argv.push('-c')
             canon_argv.push(orig_command)
             canon_argv.concat(orig_argv)
 
@@ -181,13 +180,12 @@ module OpenShift
 
           else
             # Catch all, just run the command as-is via bash.
-            canon_command = '/bin/bash'
-            canon_argv.push('-c')
+            canon_command = :bash
             canon_argv.push(orig_command)
             canon_argv.concat(orig_argv)
         end
 
-        mcs_label = OpenShift::Utils::SELinux.get_mcs_label(Process.uid)
+        mcs_label      = OpenShift::Utils::SELinux.get_mcs_label(Process.uid)
         target_context = OpenShift::Utils::SELinux.context_from_defaults(mcs_label)
         actual_context = OpenShift::Utils::SELinux.getcon
 
@@ -202,7 +200,13 @@ module OpenShift
           return 1
         end
 
-        Kernel.exec(env, canon_command, *canon_argv)
+        if :bash == canon_command
+          Syslog.info("#{ENV['OPENSHIFT_GEAR_UUID']}: rhcsh cooked command = /bin/bash -c #{canon_argv.join(' ')}")
+          Kernel.exec(env, '/bin/bash', '-c', canon_argv.join(' '))
+        else
+          Syslog.info("#{ENV['OPENSHIFT_GEAR_UUID']}: rhcsh cooked command = #{canon_command}, #{canon_argv.join(',')}")
+          Kernel.exec(env, canon_command, *canon_argv)
+        end
         return 1
       end
     end

@@ -83,7 +83,7 @@ source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 
 setup_configure "$1" $2 $3
 
-import_env_vars
+# import_env_vars
 
 # Defines.
 HAPROXY_CONF_DIR=$APP_HOME/$CART_NAME-$CART_VERSION/conf
