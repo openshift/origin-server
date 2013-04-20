@@ -55,7 +55,7 @@
         %label.control-label{:for => 'certificate_pass_phrase'} 
           Certificate pass phrase
         .controls
-          = f.text_field :certificate_pass_phrase, :id => 'certificate_pass_phrase', :disabled => !@custom_certificates_supported 
+          = f.password_field :certificate_pass_phrase, :id => 'certificate_pass_phrase', :disabled => !@custom_certificates_supported
           %p.help-block Optional pass phrase for the certificate private key.
 
   = f.buttons do
