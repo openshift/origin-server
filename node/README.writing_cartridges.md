@@ -154,9 +154,9 @@ Endpoints:
     Mappings:
       - Frontend:      "/front"
         Backend:       "/back"
-```
 Additional-Control-Actions:
   - threaddump
+```
 
 ### Cartridge-Short-Name Element
 
