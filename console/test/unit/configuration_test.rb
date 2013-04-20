@@ -61,6 +61,28 @@ class ConfigurationTest < ActiveSupport::TestCase
     assert_nil Console.config.security_controller # base config object has no defaults
   end
 
+  test 'Console.config.env handles value types' do
+    expects_file_read(<<-FILE.strip_heredoc)
+      BROKER_URL=foo
+      ARRAY=[1, '2']
+      SYMBOL=:foo
+      HASH={'a' => 1}
+      NUMBER=1234
+      STRING="1234"
+      STRING_2='1234'
+    FILE
+    Console.configure('file')
+    assert_nil Console.config.env(:TEST)
+    assert_equal 'foo', Console.config.env(:TEST, 'foo')
+    assert_equal 'foo', Console.config.env(:BROKER_URL)
+    assert_equal :foo, Console.config.env(:SYMBOL)
+    assert_equal([1, '2'], Console.config.env(:ARRAY))
+    assert_equal({'a' => 1}, Console.config.env(:HASH))
+    assert_equal 1234, Console.config.env(:NUMBER)
+    assert_equal '1234', Console.config.env(:STRING)
+    assert_equal '1234', Console.config.env(:STRING_2)
+  end
+
   test 'Console.configure default succeeds' do
     Console.configure(File.expand_path('../../../conf/console.conf.example', __FILE__))
   end
