@@ -114,10 +114,22 @@ module Console
       @capabilities_model = name
     end
 
+    # 
+    # Retrieve a configuration value from the default environment
+    #
+    def env(sym, default=nil)
+      if @config 
+        v = @config[sym]
+        v.nil? ? default : to_ruby_value(v)
+      else
+        default
+      end
+    end
+
     protected
 
       def load(file)
-        config = Console::ConfigFile.new(file)
+        config = @config = Console::ConfigFile.new(file)
         raise InvalidConfiguration, "BROKER_URL not specified in #{file}" unless config[:BROKER_URL]
 
         freeze_api(api_config_from(config), file)
@@ -149,12 +161,16 @@ module Console
         case
         when s == nil
           nil
-        when s[0] == '{'
+        when s[0] == '{', s[0] == '[', s[0] == '"', s[0] == "'"
           eval(s)
         when s[0] == ':'
           s[1..-1].to_sym
         when s =~ /^\d+$/
           s.to_i
+        when s == 'true'
+          true
+        when s == 'false'
+          false
         else
           s
         end
