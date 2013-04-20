@@ -261,7 +261,7 @@ An entry ending in slash is processed as a directory.  Entries ending
 in asterisk are a list of files.  Entries ending in an other character
 are considered files.  OpenShift will not attempt to change files to
 directories or vice versa, and your cartridge may fail to operate if
-files are miscatergorized and you depend on OpenShift to create them.
+files are miscategorized and you depend on OpenShift to create them.
 
 Any lines starting with `~/` will be anchored at the gear directory rather
 than the cartridge directory.
