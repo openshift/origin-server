@@ -17,15 +17,12 @@
 #
 # Test the OpenShift application_container model
 #
+require_relative '../test_helper'
+require 'yaml'
+
 module OpenShift
   ;
 end
-
-require 'test_helper'
-require 'openshift-origin-node/model/cartridge'
-require 'test/unit'
-require 'yaml'
-require 'mocha'
 
 class CartridgeTest < Test::Unit::TestCase
 

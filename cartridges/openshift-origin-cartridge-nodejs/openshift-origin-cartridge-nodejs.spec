@@ -7,9 +7,8 @@ Version: 1.9.0
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
-URL:           http://openshift.redhat.com
+URL:           http://www.openshift.com
 Source0:       http://mirror.openshift.com/pub/openshift-origin/source/%{name}/%{name}-%{version}.tar.gz
-Requires:      openshift-origin-cartridge-abstract
 Requires:      rubygem(openshift-origin-node)
 Requires:      openshift-origin-node-util
 Requires:      nodejs >= 0.6
@@ -25,7 +24,7 @@ BuildRequires: git
 BuildArch:     noarch
 
 %description
-Provides Node.js support to OpenShift
+Provides Node.js support to OpenShift. (Cartridge Format V2)
 
 
 %prep

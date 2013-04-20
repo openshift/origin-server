@@ -26,11 +26,8 @@ Gem::Specification.new do |s|
   s.files       += %w(README.md Rakefile Gemfile rubygem-openshift-origin-dns-bind.spec openshift-origin-dns-bind.gemspec LICENSE COPYRIGHT)
   s.require_paths = ["lib"]
 
-  s.add_dependency('openshift-origin-controller')
-  s.add_dependency('json')  
+  s.add_dependency('openshift-origin-common')
   s.add_dependency('dnsruby')
   s.add_development_dependency('rake', '>= 0.8.7', '<= 0.9.6')  
-  s.add_development_dependency('rspec')
   s.add_development_dependency('bundler')
-  s.add_development_dependency('mocha')
 end

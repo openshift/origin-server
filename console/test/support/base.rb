@@ -121,7 +121,7 @@ class ActiveSupport::TestCase
   end
 
   def community_url
-    'https://www.openshift.com/'
+    Console.config.community_url
   end
   def community_base_url(path='')
     "#{community_url}#{path}"

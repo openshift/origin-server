@@ -18,7 +18,7 @@ Version:       1.5.18
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
-URL:           http://openshift.redhat.com
+URL:           http://www.openshift.com
 Source0:       http://mirror.openshift.com/pub/openshift-origin/source/%{name}/%{name}-%{version}.tar.gz
 Requires:      rubygem-openshift-origin-console
 Requires:      %{?scl:%scl_prefix}rubygem-passenger
@@ -47,6 +47,8 @@ This includes the configuration necessary to run the console with mod_passenger.
 %setup -q
 
 %build
+find . -name .gitignore | xargs rm
+find . -name .gitkeep | xargs rm
 
 %install
 %if %{with_systemd}

@@ -46,7 +46,7 @@ Not much magic here, basically the configuration script sets up a little apache 
 
 Once it's running, the systems' apache (running on port 80) uses ProxyPass and VirtualNameHosting to pass traffic through to the abcd users apache instance.
 
-Before moving on it's important to understand the concepts used above. If you're confused about features like ProxyPass or how a chroot works conceptually, you should google some of those terms. Alternatively you can just create an application on [http://openshift.redhat.com/](http://openshift.redhat.com/)  and ssh to your gear like this:
+Before moving on it's important to understand the concepts used above. If you're confused about features like ProxyPass or how a chroot works conceptually, you should google some of those terms. Alternatively you can just create an application on [http://www.openshift.com/](http://www.openshift.com/)  and ssh to your gear like this:
 
     ssh $UUID@$APPNAME-$DOMAIN.rhcloud.com
     

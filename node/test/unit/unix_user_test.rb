@@ -17,10 +17,7 @@
 #
 # Test the OpenShift unix_user model
 #
-require 'test_helper'
-require 'openshift-origin-node/model/unix_user'
-require 'test/unit'
-require 'mocha'
+require_relative '../test_helper'
 
 class UnixUserModelTest < Test::Unit::TestCase
   # Tests a variety of UID/host ID to IP address conversions.

@@ -13,11 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #++
-require 'test_helper'
-require "test/unit"
-require "mocha"
+require_relative '../test_helper'
 require "fileutils"
-require "openshift-origin-node/utils/environ"
 
 class EnvironTest < Test::Unit::TestCase
 

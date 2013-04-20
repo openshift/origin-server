@@ -17,21 +17,13 @@
 #
 # Test the OpenShift application_container model
 #
+require_relative '../test_helper'
+require 'ostruct'
+require 'fileutils'
+
 module OpenShift
   ;
 end
-
-require 'test_helper'
-require 'openshift-origin-node/model/v2_cart_model'
-require 'openshift-origin-node/model/unix_user'
-require 'openshift-origin-node/model/cartridge'
-require 'openshift-origin-node/model/cartridge_repository'
-require 'openshift-origin-node/utils/environ'
-require 'openshift-origin-common'
-require 'ostruct'
-require 'test/unit'
-require 'fileutils'
-require 'mocha'
 
 class V2CartModelTest < Test::Unit::TestCase
 

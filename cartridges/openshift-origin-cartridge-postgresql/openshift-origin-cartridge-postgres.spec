@@ -12,7 +12,7 @@ Version: 0.1.0
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
-URL:           http://openshift.redhat.com
+URL:           http://www.openshift.com
 Source0:       http://mirror.openshift.com/pub/openshift-origin/source/%{name}/%{name}-%{version}.tar.gz
 Requires:      postgresql < 9
 Requires:      postgresql-server
@@ -40,7 +40,7 @@ BuildArch:     noarch
 
 
 %description
-Provides PostgreSQL cartridge support to OpenShift
+Provides PostgreSQL cartridge support to OpenShift. (Cartridge Format V2)
 
 
 %prep

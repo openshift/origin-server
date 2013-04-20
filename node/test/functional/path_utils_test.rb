@@ -13,11 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #++
-
-require_relative '../../lib/openshift-origin-node/utils/path_utils'
+require_relative '../test_helper'
 require 'etc'
-require 'test/unit'
-require 'mocha'
 
 class PathUtilsTest < Test::Unit::TestCase
   MockStat = Struct.new(:gid, :uid)

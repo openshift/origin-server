@@ -344,7 +344,9 @@ if $list or $sync
     $billing_api.log.info "\n---------- STARTED ----------\n"
     begin
       $session = get_mongo_session
+      $billing_api.pre_sync_usage($session)
       process_usage_records
+      $billing_api.post_sync_usage($session)
     rescue Exception => e
       $billing_api.print_error e.message
       $billing_api.log.error e.backtrace.inspect

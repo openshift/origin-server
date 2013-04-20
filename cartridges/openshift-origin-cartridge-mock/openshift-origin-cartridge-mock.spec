@@ -17,7 +17,7 @@ Requires:      openshift-origin-node-util
 
 %description
 Provides a mock cartridge for use in the V2 Cartridge SDK. Used to integration
-test platform functionality.
+test platform functionality. (Cartridge Format V2)
 
 
 %prep

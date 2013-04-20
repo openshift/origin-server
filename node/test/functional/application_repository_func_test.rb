@@ -13,18 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #++
-
-require 'openshift-origin-node/model/cartridge_repository'
-require 'openshift-origin-node/utils/application_state'
-require 'openshift-origin-node/model/application_repository'
-require 'openshift-origin-node/model/frontend_proxy'
-require 'openshift-origin-node/model/v2_cart_model'
-require 'openshift-origin-node/model/unix_user'
-require 'openshift-origin-node/utils/environ'
-require 'openshift-origin-node/utils/sdk'
+require_relative '../test_helper'
 require 'pathname'
-require 'test/unit'
-require 'mocha'
 
 # Deploy cannot be testing in this manner. SELinux requires a valid UID or the tests fail.
 # See cucumber test application_repository.feature
@@ -73,11 +63,9 @@ class ApplicationRepositoryFuncTest < Test::Unit::TestCase
     @state = mock('OpenShift::Utils::ApplicationState')
     @state.stubs(:value=).with('started').returns('started')
 
-    @model               = OpenShift::V2CartridgeModel.new(@config, @user, @state)
     @cartridge_name      = 'mock-0.1'
     @cartridge_directory = 'mock'
     @cartridge_home      = File.join(@user.homedir, @cartridge_directory)
-    @model.configure(@cartridge_name)
   end
 
   def teardown

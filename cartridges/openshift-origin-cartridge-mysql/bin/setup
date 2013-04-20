@@ -23,7 +23,7 @@ echo 'Installing mysqld'
 # Must be invoked with absolute path to avoid a mysql bug involving my_print_defaults
 /usr/bin/mysql_install_db --datadir=$OPENSHIFT_MYSQL_DIR/data || error 'Failed to create mysqldb', 119
 
-touch $OPENSHIFT_TMP_DIR/.mysql_setup_invocation_marker
+touch $OPENSHIFT_DATA_DIR/.mysql_setup_invocation_marker
 
 client_result 'Connection URL: mysql://$OPENSHIFT_MYSQL_DB_HOST:$OPENSHIFT_MYSQL_DB_PORT/'
 client_result ""

@@ -136,6 +136,11 @@ module Console
         html_options[:class] ||= "inputs"
         html_options[:name] = title
 
+        if html_options[:autocomplete]
+          @old_autocomplete_section = @autocomplete_section
+          @autocomplete_section = html_options[:autocomplete]
+        end
+
         if html_options[:for] # Nested form
           inputs_for_nested_attributes(*(args << html_options), &block)
         elsif html_options[:inline]
@@ -161,6 +166,9 @@ module Console
 
           field_set_and_list_wrapping(*((args << html_options) << contents))
         end
+
+      ensure
+        @autocomplete_section = @old_autocomplete_section
       end
 
       def inline_fields_and_wrapping(*args, &block)
@@ -206,6 +214,14 @@ module Console
 
         options[:required] = method_required?(method) unless options.key?(:required)
         options[:as]     ||= default_input_type(method, options)
+
+        if (field = options[:autocomplete])
+          if (section = @autocomplete_section)
+            field = "#{section} #{field}"
+          end
+          options[:input_html] ||= {}
+          options[:input_html][:autocomplete] = field
+        end
 
         html_class = [ 
           options[:as], 

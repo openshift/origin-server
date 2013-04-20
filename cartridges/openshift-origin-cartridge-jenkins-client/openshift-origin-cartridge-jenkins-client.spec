@@ -26,7 +26,7 @@ Requires:      %{?scl:%scl_prefix}rubygem-json
 BuildArch:     noarch
 
 %description
-Provides plugin jenkins client support
+Provides plugin jenkins client support. (Cartridge Format V2)
 
 
 %prep

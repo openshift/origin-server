@@ -17,11 +17,7 @@
 #
 # Test the OpenShift unix_user model
 #
-require 'test_helper'
-require 'openshift-origin-node/model/unix_user'
-require 'openshift-origin-node/utils/selinux'
-require 'test/unit'
-require 'mocha'
+require_relative '../test_helper'
 
 class UnixUserModelFunctionalTest < Test::Unit::TestCase
 
@@ -34,12 +30,14 @@ class UnixUserModelFunctionalTest < Test::Unit::TestCase
   end
 
   def setup
-    @gear_uuid = Process.euid.to_s
-    @user_uid = Process.euid.to_s
+    @gear_uuid = '5995'
+    @user_uid = 5995
     @app_name = 'UnixUserTestCase'
     @gear_name = @app_name
     @namespace = 'jwh201204301647'
     @verbose = false
+    @user_homedir = "/tmp/homedir-#{@user_uid}"
+    `useradd -u #{@user_uid} -d #{@user_homedir} #{@user_uid} 1>/dev/null 2>&1`
 
     @config = mock('OpenShift::Config')
     @config.stubs(:get).returns(nil)
@@ -52,32 +50,31 @@ class UnixUserModelFunctionalTest < Test::Unit::TestCase
     @frontend.stubs(:create)
     @frontend.stubs(:destroy)
     OpenShift::FrontendHttpServer.stubs(:new).returns(@frontend)
+  end
 
-    # Use root's MCS label if we're using root's uid.
-    if @user_uid.to_i == 0
-      OpenShift::Utils::SELinux.stubs(:get_mcs_label).returns("s0:c0.c1023")
-    end
+  def teardown
+    `userdel #{@user_uid} 1>/dev/null`
   end
 
   def test_initialize
-    FileUtils.rm_rf("/tmp/homedir", :verbose => @verbose) if File.directory?("/tmp/homedir")
+    FileUtils.rm_rf(@user_homedir, :verbose => @verbose) if File.directory?(@user_homedir)
     o = OpenShift::UnixUser.new(@gear_uuid, @gear_uuid, @user_uid, @app_name,
                                 @gear_name, @namespace,
                                 nil, nil, @verbose)
     assert_not_nil o
 
-    o.initialize_homedir("/tmp/", "/tmp/homedir/", "cartridges/openshift-origin-cartridge-abstract/")
-    assert_directory?("/tmp/homedir")
-    assert !File.symlink?("/tmp/homedir/data"), 'found deprecated data symlink'
-    assert !File.directory?("/tmp/homedir/app"), 'found deprecated app directory'
-    assert_directory?("/tmp/homedir/app-root")
-    assert_directory?("/tmp/homedir/app-root/runtime/")
-    assert File.exist?("/tmp/homedir/app-root/runtime/.state"), '.state file missing'
-    assert_symlink?("/tmp/homedir/app-root/repo")
-    assert_directory?("/tmp/homedir/.tmp")
-    assert_directory?("/tmp/homedir/.env")
-    assert_directory?("/tmp/homedir/.sandbox")
-    assert !File.exist?("/tmp/homedir/.env/OPENSHIFT_NAMESPACE"),
+    o.initialize_homedir("/tmp/", "#{@user_homedir}/", "cartridges/openshift-origin-cartridge-abstract/")
+    assert_directory?(@user_homedir)
+    assert !File.symlink?("#{@user_homedir}/data"), 'found deprecated data symlink'
+    assert !File.directory?("#{@user_homedir}/app"), 'found deprecated app directory'
+    assert_directory?("#{@user_homedir}/app-root")
+    assert_directory?("#{@user_homedir}/app-root/runtime/")
+    assert File.exist?("#{@user_homedir}/app-root/runtime/.state"), '.state file missing'
+    assert_symlink?("#{@user_homedir}/app-root/repo")
+    assert_directory?("#{@user_homedir}/.tmp")
+    assert_directory?("#{@user_homedir}/.env")
+    assert_directory?("#{@user_homedir}/.sandbox")
+    assert !File.exist?("#{@user_homedir}/.env/OPENSHIFT_NAMESPACE"),
            'OPENSHIFT_NAMESPACE should be created in V2CartridgeModel'
 
   end

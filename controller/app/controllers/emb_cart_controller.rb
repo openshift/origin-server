@@ -21,14 +21,14 @@ class EmbCartController < BaseController
     end
 
     begin
-      domain = Domain.find_by(owner: @cloud_user, canonical_namespace: domain_id.downcase)
+      domain = Domain.with(consistency: :eventual).find_by(owner: @cloud_user, canonical_namespace: domain_id.downcase)
       @domain_name = domain.namespace
     rescue Mongoid::Errors::DocumentNotFound
       return render_error(:not_found, "Domain #{domain_id} not found", 127, "LIST_APP_CARTRIDGES")
     end
 
     begin
-      application = Application.find_by(domain: domain, canonical_name: id.downcase)
+      application = Application.with(consistency: :eventual).find_by(domain: domain, canonical_name: id.downcase)
       @application_name = application.name
       @application_uuid = application.uuid
       cartridges = get_application_rest_cartridges(application, domain) if application
@@ -62,14 +62,14 @@ class EmbCartController < BaseController
     end
     
     begin
-      domain = Domain.find_by(owner: @cloud_user, canonical_namespace: domain_id.downcase)
+      domain = Domain.with(consistency: :eventual).find_by(owner: @cloud_user, canonical_namespace: domain_id.downcase)
       @domain_name = domain.namespace
     rescue Mongoid::Errors::DocumentNotFound
       return render_error(:not_found, "Domain #{domain_id} not found", 127, "SHOW_APP_CARTRIDGE")
     end
 
     begin
-      application = Application.find_by(domain: domain, canonical_name: application_id.downcase)
+      application = Application.with(consistency: :eventual).find_by(domain: domain, canonical_name: application_id.downcase)
       @application_name = application.name
       @application_uuid = application.uuid
     rescue Mongoid::Errors::DocumentNotFound
@@ -111,7 +111,7 @@ class EmbCartController < BaseController
     end
 
     begin
-      domain = Domain.find_by(owner: @cloud_user, canonical_namespace: domain_id.downcase)
+      domain = Domain.with(consistency: :eventual).find_by(owner: @cloud_user, canonical_namespace: domain_id.downcase)
       @domain_name = domain.namespace
     rescue Mongoid::Errors::DocumentNotFound
       return render_error(:not_found, "Domain #{domain_id} not found", 127, "EMBED_CARTRIDGE")
@@ -213,7 +213,7 @@ class EmbCartController < BaseController
     end
 
     begin
-      domain = Domain.find_by(owner: @cloud_user, canonical_namespace: domain_id.downcase)
+      domain = Domain.with(consistency: :eventual).find_by(owner: @cloud_user, canonical_namespace: domain_id.downcase)
       @domain_name = domain.namespace
     rescue Mongoid::Errors::DocumentNotFound
       return render_error(:not_found, "Domain #{domain_id} not found", 127, "REMOVE_CARTRIDGE")
@@ -284,7 +284,7 @@ class EmbCartController < BaseController
     end
 
     begin
-      domain = Domain.find_by(owner: @cloud_user, canonical_namespace: domain_id.downcase)
+      domain = Domain.with(consistency: :eventual).find_by(owner: @cloud_user, canonical_namespace: domain_id.downcase)
       @domain_name = domain.namespace
     rescue Mongoid::Errors::DocumentNotFound
       return render_error(:not_found, "Domain #{domain_id} not found", 127, "PATCH_APP_CARTRIDGE")
