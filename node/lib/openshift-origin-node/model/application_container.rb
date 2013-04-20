@@ -242,6 +242,9 @@ module OpenShift
       gear_dir = env['OPENSHIFT_HOMEDIR']
       app_name = env['OPENSHIFT_APP_NAME']
 
+      raise 'Missing required env var OPENSHIFT_HOMEDIR' unless gear_dir
+      raise 'Missing required env var OPENSHIFT_APP_NAME' unless app_name
+
       gear_repo_dir = File.join(gear_dir, 'git', "#{app_name}.git")
       gear_tmp_dir  = File.join(gear_dir, '.tmp')
 

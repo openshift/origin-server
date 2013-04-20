@@ -2,7 +2,6 @@
 
 env_dir="${OPENSHIFT_POSTGRESQL_DIR}/env"
 
-#source "${env_dir}/*"
 source $OPENSHIFT_CARTRIDGE_SDK_BASH
 
 echo "Installing postgres"

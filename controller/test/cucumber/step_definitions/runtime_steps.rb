@@ -804,7 +804,7 @@ def cart_env_var_common(cart_name, var_name, expected = nil, negate = false)
     assert((File.stat(var_file_path).size > 0), "#{var_file_path} is empty")
     if expected
       file_content = File.read(var_file_path).chomp
-      assert_match /#{var_name}='#{expected}'/, file_content
+      assert_match /#{expected}/, file_content
     end
   end
 end

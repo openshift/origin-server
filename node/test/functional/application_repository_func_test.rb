@@ -18,7 +18,7 @@ require 'pathname'
 
 # Deploy cannot be testing in this manner. SELinux requires a valid UID or the tests fail.
 # See cucumber test application_repository.feature
-class ApplicationRepositoryFuncTest < Test::Unit::TestCase
+class ApplicationRepositoryFuncTest < OpenShift::V2SdkTestCase
   GEAR_BASE_DIR = '/var/lib/openshift'
 
   def setup
@@ -41,8 +41,6 @@ class ApplicationRepositoryFuncTest < Test::Unit::TestCase
     @config.stubs(:get).with("CARTRIDGE_BASE_PATH").returns('.')
     OpenShift::Config.stubs(:new).returns(@config)
 
-    OpenShift::Utils::Sdk.stubs(:new_sdk_app?).returns(true)
-
     @uuid = `uuidgen -r |sed -e s/-//g`.chomp
 
     begin
@@ -63,32 +61,15 @@ class ApplicationRepositoryFuncTest < Test::Unit::TestCase
     @state = mock('OpenShift::Utils::ApplicationState')
     @state.stubs(:value=).with('started').returns('started')
 
+    @model               = OpenShift::V2CartridgeModel.new(@config, @user, @state)
     @cartridge_name      = 'mock-0.1'
     @cartridge_directory = 'mock'
     @cartridge_home      = File.join(@user.homedir, @cartridge_directory)
+    @model.configure(@cartridge_name)
   end
 
   def teardown
     @user.destroy
-  end
-
-  # FIXME: I cannot get assert_path_exist method to resolve/bind. :-(
-  def assert_path_exist(path, message=nil)
-    failure_message = build_message(message,
-                                    "<?> expected to exist",
-                                    path)
-    assert_block(failure_message) do
-      File.exist?(path)
-    end
-  end
-
-  def refute_path_exist(path, message=nil)
-    failure_message = build_message(message,
-                                    "<?> expected to not exist",
-                                    path)
-    assert_block(failure_message) do
-      not File.exist?(path)
-    end
   end
 
   def assert_bare_repository(repo)

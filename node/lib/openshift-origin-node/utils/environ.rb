@@ -15,7 +15,7 @@
 #++
 
 require 'openshift-origin-node/utils/node_logger'
-require 'openshift-origin-node/utils/sdk'
+require 'openshift-origin-node/utils/path_utils'
 
 module OpenShift
   module Utils
@@ -25,16 +25,10 @@ module OpenShift
       # @param [String] gear_dir       Home directory of the gear
       # @return [Hash<String,String>]  hash[Environment Variable] = Value
       def self.for_gear(gear_dir)
-        if Sdk.new_sdk_app?(gear_dir)
-          load("/etc/openshift/env",
-               File.join(gear_dir, '.env'),
-               File.join(gear_dir, '.env', '.uservars'),
-               File.join(gear_dir, '*', 'env'))
-        else
-          load("/etc/openshift/env",
-               File.join(gear_dir, '.env'),
-               File.join(gear_dir, '*', 'env'))
-        end
+        load("/etc/openshift/env",
+             PathUtils.join(gear_dir, '.env', '.uservars'),
+             PathUtils.join(gear_dir, '.env'),
+             PathUtils.join(gear_dir, '*', 'env'))
       end
 
       # Load the combined cartridge environments for a gear
@@ -43,7 +37,7 @@ module OpenShift
       # @return [Hash<String,String>]  hash[Environment Variable] = Value
       def self.for_gear_ordered(gear_dir, *dirs)
         env = for_gear(gear_dir)
-        dirs.each_with_object(env) { |d, e| e.merge(load(File.join(d, 'env'))) }
+        dirs.each_with_object(env) { |d, e| e.merge(load(PathUtils.join(d, 'env'))) }
       end
 
       # @param [String] cartridge_dir       Home directory of the gear
@@ -68,15 +62,16 @@ module OpenShift
             next unless File.file? file
 
             begin
-              contents = nil
-              File.open(file) do |input|
-                contents = input.read.chomp
-                next if contents.empty?
+              contents = IO.read(file).chomp
+              next if contents.empty?
 
+              if contents.start_with? 'export '
                 index           = contents.index('=')
                 parsed_contents = contents[(index + 1)..-1]
                 parsed_contents.gsub!(/\A["']|["']\Z/, '')
                 env[File.basename(file)] = parsed_contents
+              else
+                env[File.basename(file)] = contents
               end
             rescue => e
               msg = "Failed to process: #{file}"

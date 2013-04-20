@@ -1,9 +1,5 @@
 #!/bin/bash -e
 
-# Mock cartridge for testing and verifying node platform code. This is
-# not an example of how to write a well-formed cartridge.
-
-source $OPENSHIFT_MYSQL_DIR/env/*
 source $OPENSHIFT_CARTRIDGE_SDK_BASH
 
 mkdir $OPENSHIFT_MYSQL_DIR/{log,pid,socket,data,run}
@@ -14,9 +10,9 @@ echo 'Generating username and password'
 username=$(generate_username)
 password=$(generate_password)
 
-echo "export OPENSHIFT_MYSQL_DB_USERNAME='$username'" > $OPENSHIFT_MYSQL_DIR/env/OPENSHIFT_MYSQL_DB_USERNAME
-echo "export OPENSHIFT_MYSQL_DB_PASSWORD='$password'" > $OPENSHIFT_MYSQL_DIR/env/OPENSHIFT_MYSQL_DB_PASSWORD
-echo "export OPENSHIFT_MYSQL_DB_URL='mysql://$username:$password@$OPENSHIFT_MYSQL_DB_HOST:$OPENSHIFT_MYSQL_DB_PORT/'" > $OPENSHIFT_MYSQL_DIR/env/OPENSHIFT_MYSQL_DB_URL
+echo "$username" > $OPENSHIFT_MYSQL_DIR/env/OPENSHIFT_MYSQL_DB_USERNAME
+echo "$password" > $OPENSHIFT_MYSQL_DIR/env/OPENSHIFT_MYSQL_DB_PASSWORD
+echo "mysql://$username:$password@$OPENSHIFT_MYSQL_DB_HOST:$OPENSHIFT_MYSQL_DB_PORT/" > $OPENSHIFT_MYSQL_DIR/env/OPENSHIFT_MYSQL_DB_URL
 
 echo 'Installing mysqld'
 

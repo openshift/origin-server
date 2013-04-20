@@ -4,11 +4,29 @@
 
 source /etc/init.d/functions 2> /dev/null
 
-# Import Environment Variables
-for f in /etc/openshift/env/* ~/.env/* ~/*/env/*
-do
-    [ -f "$f" ]  &&  . "$f"
-done
+if [ -f $GEAR_BASE_DIR/$OPENSHIFT_GEAR_UUID/.env/CARTRIDGE_VERSION_2 ]
+then
+    # source OpenShift environment variable into context
+    function source_env_file {
+      [ -z "$1" ] && return 1
+      [ -f "$1" ] || return 0
+
+      local KEY=$(basename $1)
+      export $KEY = $(< $1)
+    }
+
+    for f in /etc/openshift/env/* ~/.env/* ~/.env/.uservars ~/*/env/*
+    do
+        source_env_file $f
+    done
+else
+    # Import Environment Variables
+    for f in ~/.env/*
+    do
+      [ -f "$f" ] && . "$f"
+    done
+fi
+
 source /etc/openshift/node.conf
 
 function welcome {
@@ -78,11 +96,10 @@ else
             get_framework_ctl_script "$@"
 EOF
     }
+
     alias ctl_app=$(_get_app_ctl_script $OPENSHIFT_GEAR_UUID)
 
-
-
-  function ctl_all() {
+    function ctl_all() {
         case "$1" in
             start)
               echo "Starting services"
@@ -214,7 +231,9 @@ EOF
 
 }
 
-alias tail_all="/usr/bin/tail -f */logs/*"
+function tail_all {
+    /usr/bin/tail -f */logs/*
+}
 
 export PS1="[$OPENSHIFT_GEAR_DNS \W]\> "
 export TMOUT=300

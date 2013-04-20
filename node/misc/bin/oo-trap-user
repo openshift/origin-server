@@ -67,7 +67,11 @@ def load_vars(config, dir):
           continue
 
         fp = open(entry, 'r')
-        env_var = fp.readlines()[0].strip().split('=')[1].strip('\'"')
+        contents = fp.readlines()[0].strip()
+        try:
+            env_var = contents.split('=')[1].strip('\'"')
+        except IndexError:
+            env_var = contents.strip('\'"')
         fp.close()
 
         os.putenv(env, env_var)

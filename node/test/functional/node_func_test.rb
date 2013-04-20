@@ -15,11 +15,13 @@
 #++
 require_relative '../test_helper'
 
-class NodeTest < Test::Unit::TestCase
+class NodeTest < OpenShift::V2SdkTestCase
 
   # Called before every test method runs. Can be used
   # to set up fixture information.
   def setup
+    super
+
     YAML.stubs(:load_file).
         returns(YAML.load(MANIFESTS[0]))
 
@@ -30,12 +32,6 @@ class NodeTest < Test::Unit::TestCase
 
     OpenShift::CartridgeRepository.instance.clear
     OpenShift::CartridgeRepository.instance.load
-
-    OpenShift::Utils::Sdk.stubs(:node_default_model).returns(:v2)
-  end
-
-  def teardown
-    # Do nothing
   end
 
   def test_get_cartridge_list

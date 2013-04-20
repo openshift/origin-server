@@ -16,93 +16,98 @@
 require_relative '../test_helper'
 require 'etc'
 
-class V2CartridgeModelFunctionalTest < Test::Unit::TestCase
-  GEAR_BASE_DIR = '/var/lib/openshift'
+module OpenShift
+  class V2CartridgeModelFunctionalTest < OpenShift::V2SdkTestCase
+    GEAR_BASE_DIR = '/var/lib/openshift'
 
-  # Called before every test method runs. Can be used
-  # to set up fixture information.
-  def setup
-    @uid = 5996
+    # Called before every test method runs. Can be used
+    # to set up fixture information.
+    def setup
+      @uid = 5996
 
-    @config = mock('OpenShift::Config')
-    @config.stubs(:get).returns(nil)
-    @config.stubs(:get).with("GEAR_BASE_DIR").returns(GEAR_BASE_DIR)
-    @config.stubs(:get).with("GEAR_GECOS").returns('Functional Test')
-    @config.stubs(:get).with("CREATE_APP_SYMLINKS").returns('0')
-    @config.stubs(:get).with("GEAR_SKEL_DIR").returns(nil)
-    @config.stubs(:get).with("GEAR_SHELL").returns(nil)
-    @config.stubs(:get).with("CLOUD_DOMAIN").returns('example.com')
-    @config.stubs(:get).with("OPENSHIFT_HTTP_CONF_DIR").returns('/etc/httpd/conf.d/openshift')
-    @config.stubs(:get).with("PORT_BEGIN").returns(nil)
-    @config.stubs(:get).with("PORT_END").returns(nil)
-    @config.stubs(:get).with("PORTS_PER_USER").returns(5)
-    @config.stubs(:get).with("UID_BEGIN").returns(@uid)
-    @config.stubs(:get).with("BROKER_HOST").returns('localhost')
+      @config = mock('OpenShift::Config')
+      @config.stubs(:get).returns(nil)
+      @config.stubs(:get).with("GEAR_BASE_DIR").returns(GEAR_BASE_DIR)
+      @config.stubs(:get).with("GEAR_GECOS").returns('Functional Test')
+      @config.stubs(:get).with("CREATE_APP_SYMLINKS").returns('0')
+      @config.stubs(:get).with("GEAR_SKEL_DIR").returns(nil)
+      @config.stubs(:get).with("GEAR_SHELL").returns(nil)
+      @config.stubs(:get).with("CLOUD_DOMAIN").returns('example.com')
+      @config.stubs(:get).with("OPENSHIFT_HTTP_CONF_DIR").returns('/etc/httpd/conf.d/openshift')
+      @config.stubs(:get).with("PORT_BEGIN").returns(nil)
+      @config.stubs(:get).with("PORT_END").returns(nil)
+      @config.stubs(:get).with("PORTS_PER_USER").returns(5)
+      @config.stubs(:get).with("UID_BEGIN").returns(@uid)
+      @config.stubs(:get).with("BROKER_HOST").returns('localhost')
 
-    script_dir     = File.expand_path(File.dirname(__FILE__))
-    cart_base_path = File.join(script_dir, '..', '..', '..', 'cartridges')
-    raise "Couldn't find cart base path at #{cart_base_path}" unless File.exists?(cart_base_path)
-    @config.stubs(:get).with("CARTRIDGE_BASE_PATH").returns(cart_base_path)
+      script_dir     = File.expand_path(File.dirname(__FILE__))
+      cart_base_path = File.join(script_dir, '..', '..', '..', 'cartridges')
+      raise "Couldn't find cart base path at #{cart_base_path}" unless File.exists?(cart_base_path)
+      @config.stubs(:get).with("CARTRIDGE_BASE_PATH").returns(cart_base_path)
 
-    OpenShift::Config.stubs(:new).returns(@config)
+      OpenShift::Config.stubs(:new).returns(@config)
 
-    OpenShift::Utils::Sdk.stubs(:new_sdk_app?).returns(true)
+      @uuid = %x(uuidgen -r |sed -e s/-//g).chomp
 
-    @uuid = %x(uuidgen -r |sed -e s/-//g).chomp
+      begin
+        %x(userdel -f #{Etc.getpwuid(@uid).name})
+      rescue ArgumentError
+      end
 
-    begin
-      %x(userdel -f #{Etc.getpwuid(@uid).name})
-    rescue ArgumentError
+      @user = OpenShift::UnixUser.new(@uuid, @uuid,
+                                      @uid,
+                                      'V2CartridgeModelFunctionalTest',
+                                      'V2CartridgeModelFunctionalTest',
+                                      'functional-test')
+      @user.create
+      refute_nil @user.homedir
+
+      OpenShift::CartridgeRepository.instance.clear
+      OpenShift::CartridgeRepository.instance.load
+      @model = OpenShift::V2CartridgeModel.new(@config, @user, OpenShift::Utils::ApplicationState.new(@uuid))
+      @model.configure('mock-0.1')
+      @model.configure('mock-plugin-0.1')
     end
 
-    @user = OpenShift::UnixUser.new(@uuid, @uuid,
-                                    @uid,
-                                    'V2CartridgeModelFunctionalTest',
-                                    'V2CartridgeModelFunctionalTest',
-                                    'functional-test')
-    @user.create
-    refute_nil @user.homedir
+    # Called after every test method runs. Can be used to tear
+    # down fixture information.
+    def teardown
+      @user.destroy
+    end
 
-    OpenShift::CartridgeRepository.instance.clear
-    OpenShift::CartridgeRepository.instance.load
-    @model = OpenShift::V2CartridgeModel.new(@config, @user, OpenShift::Utils::ApplicationState.new(@uuid))
-    @model.configure('mock-0.1')
-    @model.configure('mock-plugin-0.1')
-  end
+    # wrapping these all up in 1 call right now to avoid unnecessary cart recreations
+    # for tests which don't require it
+    def test_model_basics
+      verify_hidden_erb
+      verify_publish_db_connection_info
+      verify_set_db_connection_info
+    end
 
-  # Called after every test method runs. Can be used to tear
-  # down fixture information.
-  def teardown
-    @user.destroy
-  end
+    def verify_hidden_erb
+      assert_path_exist(File.join(@user.homedir, 'mock', '.mock_hidden'),
+                        'Failed to process .mock_hidden.erb')
 
-  # wrapping these all up in 1 call right now to avoid unnecessary cart recreations
-  # for tests which don't require it
-  def test_model_basics
-    verify_hidden_erb
-    verify_publish_db_connection_info
-    verify_set_db_connection_info
-  end
+      refute_path_exist(File.join(@user.homedir, 'mock', '.mock_hidden.erb'),
+                        'Failed to delete .mock_hidden.erb after processing')
+    end
 
-  def verify_hidden_erb
-    assert File.exists?(File.join(@user.homedir, 'mock', '.mock_hidden')), 'Failed to process .mock_hidden.erb'
-    refute File.exists?(File.join(@user.homedir, 'mock', '.mock_hidden.erb')), 'Failed to delete .mock_hidden.erb after processing'
-  end
+    def verify_publish_db_connection_info
+      results = @model.connector_execute('mock-plugin-0.1', 'publish-db-connection-info', "")
+      refute_nil results
 
-  def verify_publish_db_connection_info
-    results = @model.connector_execute('mock-plugin-0.1', 'publish-db-connection-info', "")
-    refute_nil results
+      assert_match(
+          %r(OPENSHIFT_MOCK_PLUGIN_DB_USERNAME=UT_username; OPENSHIFT_MOCK_PLUGIN_DB_PASSWORD=UT_password; OPENSHIFT_MOCK_PLUGIN_GEAR_UUID=.*; OPENSHIFT_MOCK_PLUGIN_DB_HOST=\d+\.\d+\.\d+\.\d+; OPENSHIFT_MOCK_PLUGIN_DB_PORT=8080; OPENSHIFT_MOCK_PLUGIN_DB_URL=mock://\d+\.\d+\.\d+\.\d+:8080/unit_test;),
+          results)
+    end
 
-    assert_match(
-        %r(OPENSHIFT_MOCK_PLUGIN_DB_USERNAME=UT_username; OPENSHIFT_MOCK_PLUGIN_DB_PASSWORD=UT_password; OPENSHIFT_MOCK_PLUGIN_GEAR_UUID=.*; OPENSHIFT_MOCK_PLUGIN_DB_HOST=\d+\.\d+\.\d+\.\d+; OPENSHIFT_MOCK_PLUGIN_DB_PORT=8080; OPENSHIFT_MOCK_PLUGIN_DB_URL=mock://\d+\.\d+\.\d+\.\d+:8080/unit_test;),
-        results)
-  end
+    def verify_set_db_connection_info
+      @model.connector_execute('mock-0.1',
+                               'set-db-connection-info',
+                               "test testdomain 515c7e8bdf3e460939000001 \\'75e36e529c9211e29cc622000a8c0259\\'\\=\\'OPENSHIFT_MOCK_DB_GEAR_UUID\\=75e36e529c9211e29cc622000a8c0259\\;\\;\\ '\n'\\'")
 
-  def verify_set_db_connection_info
-    @model.connector_execute('mock-0.1', 'set-db-connection-info', "test testdomain 515c7e8bdf3e460939000001 \\'75e36e529c9211e29cc622000a8c0259\\'\\=\\'OPENSHIFT_MOCK_DB_GEAR_UUID\\=75e36e529c9211e29cc622000a8c0259\\;\\;\\ '\n'\\'")
-
-    uservar_file = File.join(@user.homedir, '.env', '.uservars', 'OPENSHIFT_MOCK_DB_GEAR_UUID')
-    assert File.exists?(uservar_file), "#{uservar_file} is missing"
-    assert_equal "export OPENSHIFT_MOCK_DB_GEAR_UUID='75e36e529c9211e29cc622000a8c0259'", IO.read(uservar_file).chomp
+      uservar_file = File.join(@user.homedir, '.env', '.uservars', 'OPENSHIFT_MOCK_DB_GEAR_UUID')
+      assert_path_exist(uservar_file)
+      assert_equal '75e36e529c9211e29cc622000a8c0259', IO.read(uservar_file).chomp
+    end
   end
 end

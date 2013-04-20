@@ -453,7 +453,7 @@ module OpenShift
       hash.first.each_pair do |k, v|
         name = "OPENSHIFT_#{cartridge.short_name.upcase}_#{k.to_s.upcase}"
         File.open(PathUtils.join(path, name), 'w', 0666) do |f|
-          f.write(%Q(export #{name}='#{v}'))
+          f.write(v)
         end
       end
     end

@@ -8,7 +8,7 @@ module OpenShift
       end
 
       def self.mark_new_sdk_app(gear_home)
-        IO.write(File.join(gear_home, '.env', MARKER), "export #{MARKER}=2", 0)
+        IO.write(File.join(gear_home, '.env', MARKER), '2', 0)
       end
 
       def self.node_default_model(config)

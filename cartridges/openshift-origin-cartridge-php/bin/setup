@@ -7,7 +7,7 @@ case "$1" in
     version="$2"
 esac
 
-echo "export OPENSHIFT_PHP_VERSION='$version'" > "$OPENSHIFT_PHP_DIR/env/OPENSHIFT_PHP_VERSION"
+echo "$version" > "$OPENSHIFT_PHP_DIR/env/OPENSHIFT_PHP_VERSION"
 
 # Copy the version specific files up to php directory
 shopt -s dotglob
