@@ -21,6 +21,12 @@ class CapabilityAwareTest < ActiveSupport::TestCase
     args
   end
 
+  test 'user capabilities handle wrapped hashes' do
+    assert caps = Console.config.capabilities_model_class.from(Class.new(SimpleDelegator).new(:max_gears => 2, :consumed_gears => 0))
+    assert_equal 2, caps.max_gears
+    assert_equal 0, caps.consumed_gears
+  end
+
   test 'user capabilities handles defaults' do
     User.expects(:find).returns(User.new(:capabilities => {}))
     assert cap = obj.user_capabilities

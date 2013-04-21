@@ -3,7 +3,7 @@ module Capabilities
   extend ActiveSupport::Concern
 
   included do
-    has_one :capabilities, :class_name => 'rest_api/base/attribute_hash'
+    has_one :capabilities, :class_name => as_indifferent_hash
     def capabilities
       attributes[:capabilities] || {}
     end
@@ -37,10 +37,12 @@ module Capabilities
     # Raise if the values cannot be converted
     #
     def self.from(obj)
-      case obj
-      when Array then new(*obj)
-      when Hash then  new(*attrs.map{ |s| obj[s] || obj[s.to_s] })
-      else            new(*attrs.map{ |s| obj.send(s) })
+      if obj.is_a? Array
+        new(*obj)
+      elsif obj.respond_to? :[]
+        new(*attrs.map{ |s| obj[s] || obj[s.to_s] })
+      else            
+        new(*attrs.map{ |s| obj.send(s) })
       end if obj
     end
 
