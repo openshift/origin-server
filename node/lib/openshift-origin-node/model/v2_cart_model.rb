@@ -422,7 +422,7 @@ module OpenShift
 
       mcs_label = Utils::SELinux.get_mcs_label(@user.uid)
 
-      @user.add_env_var("NAMESPACE", @user.namespace, true)
+      @user.add_env_var("NAMESPACE", @user.namespace, true) if @user.namespace
       @user.add_env_var('PRIMARY_CARTRIDGE_DIR', target + File::SEPARATOR, true) if cartridge.primary?
 
       uservars_env = File.join(@user.homedir, '.env', '.uservars')
