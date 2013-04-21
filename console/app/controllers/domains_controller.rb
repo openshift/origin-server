@@ -8,7 +8,7 @@ class DomainsController < ConsoleController
     @domain.as = current_user
 
     if @domain.save
-      redirect_to account_path, :flash => {:success => 'Your domain has been created'}
+      redirect_to settings_path, :flash => {:success => 'Your domain has been created'}
     else
       render :new
     end
