@@ -112,10 +112,6 @@ class ActionController::TestCase
     @user.expects(:extends).at_least(0).with(extends).returns(@user) if extends
     @user
   end
-
-  def account_settings_redirect
-    account_path
-  end
 end
 
 class ActionDispatch::IntegrationTest

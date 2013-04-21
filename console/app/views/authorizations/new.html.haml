@@ -1,5 +1,5 @@
 - content_for :title, "Add an Authorization"
-- breadcrumb_for_account_settings 'Add an Authorization'
+- breadcrumb_for_settings 'Add an Authorization'
 %h1 Add Authorization
 = flashes
 
@@ -46,7 +46,7 @@
     = f.input :note, :as => :text, :label => 'Add a reminder about what this authorization is for', :input_html => {:class => 'span6', :rows => 2}
 
   = f.buttons do
-    = link_to "Cancel", account_settings_redirect, :class => 'btn'
+    = link_to "Cancel", settings_path, :class => 'btn'
     = f.commit_button :label => 'Create'
     = f.loading
 
