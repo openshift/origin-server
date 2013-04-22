@@ -6,7 +6,7 @@ Depends:
 Conflicts:
 Type: Cartridge
 Role: misc
-Vendor: openshift.redhat.com
+Vendor: www.openshift.com
 DisplayName: raw-0.1
 Bundles:  raw
 Description: 

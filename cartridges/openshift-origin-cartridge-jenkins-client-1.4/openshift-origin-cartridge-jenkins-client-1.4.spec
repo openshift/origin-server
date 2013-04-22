@@ -12,7 +12,7 @@ Version: 1.7.0
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
-URL:           https://openshift.redhat.com
+URL:           https://www.openshift.com
 Source0:       http://mirror.openshift.com/pub/openshift-origin/source/%{name}/%{name}-%{version}.tar.gz
 Requires:      openshift-origin-cartridge-abstract
 Requires:      rubygem(openshift-origin-node)

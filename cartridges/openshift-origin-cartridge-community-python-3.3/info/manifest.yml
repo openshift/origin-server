@@ -14,7 +14,7 @@ Categories:
   - community
 Website: "http://www.python.org"
 Help-Topics:
-  "Developer Center": https://openshift.redhat.com/community/developers
+  "Developer Center": https://www.openshift.com/developers
   "Getting Started": https://www.openshift.com/community/videos/getting-started-with-diy-applications-on-openshift
 Cart-Data:
   - Key: OPENSHIFT_LOG_DIR
