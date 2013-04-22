@@ -1,0 +1,15 @@
+#!/bin/bash -e
+
+dbname=$OPENSHIFT_APP_NAME
+socket_file=$OPENSHIFT_MYSQL_DB_SOCKET
+username=$OPENSHIFT_MYSQL_DB_USERNAME
+password=$OPENSHIFT_MYSQL_DB_PASSWORD
+
+echo "drop database test;
+create database \`${dbname}\` DEFAULT CHARACTER SET utf8 DEFAULT COLLATE utf8_general_ci;" | mysql -u root -S "$socket_file" > /dev/null || error 'Failed to create database', 188
+
+echo "                                  
+delete from user;
+grant all on *.* to '$username'@'$OPENSHIFT_MYSQL_DB_HOST' identified by '$password' with grant option;
+grant all on *.* to '$username'@'localhost' identified by '$password' with grant option;
+flush privileges;" | mysql -u root -S "$socket_file" mysql > /dev/null || error "Failed to setup initial root user" 187
