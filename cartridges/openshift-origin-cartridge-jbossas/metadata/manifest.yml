@@ -53,7 +53,7 @@ Provides:
   - "jbossas"
   - "jbossas(version) = 7.1"
   - "jbossas(version) >= 7.1"
-  - "jboss-as7.1"
+  - "jboss-as7"
   - jbossas-standalone
   - jboss-as7-standalone
 Publishes:
