@@ -20,6 +20,7 @@
 require 'rubygems'
 require 'optparse'
 require 'socket'
+require 'json'
 
 $OPTIONS = {}
 
@@ -79,12 +80,14 @@ $LIMITS_CONF_DIR="/etc/security/limits.d"
 DEFAULT_SEBOOL_LIST="httpd_can_network_connect:on"
 DEFAULT_PACKAGES="rubygem-openshift-origin-node openshift-origin-node-util \
     rubygem-openshift-origin-common selinux-policy selinux-policy-targeted"
-DEFAULT_SERVICES="mcollective cgconfig cgred httpd openshift-port-proxy"
+DEFAULT_SERVICES="mcollective cgconfig cgred httpd openshift-port-proxy oddjobd"
+DEFAULT_SERVICE_CONTEXTS="mcollective='unconfined_u:system_r:openshift_initrc_t:s0-s0:c0.c1023' oddjobd='system_u:system_r:oddjob_t:s0-s0:c0.c1023'"
 DEFAULT_MINSEM=512
 
 $SEBOOL_LIST="SEBOOL_LIST"
 $PACKAGES="PACKAGES"
 $SERVICES="SERVICES"
+$SERVICE_CONTEXTS="SERVICE_CONTEXTS"
 $MINSEM="MINSEM"
 
 
@@ -111,6 +114,13 @@ if ENV[$SERVICES].nil?
 else
     eputs "WARNING: ENV overrides SERVICES"
 end
+
+if ENV[$SERVICE_CONTEXTS].nil?
+    $SERVICE_CONTEXTS=DEFAULT_SERVICE_CONTEXTS
+else
+    eputs "WARNING: ENV overrides SERVICE_CONTEXTS"
+end
+
 
 if ENV[$MINSEM].nil?
     $MINSEM=DEFAULT_MINSEM
@@ -275,6 +285,28 @@ def check_services
     }
 end
 
+def check_service_contexts
+    offset = 0
+    while m = /(\w+)\=[\'\"]?(\w+):(\w+):(\w+):([\w\-\:\.\,]+)[\'\"]?/.match($SERVICE_CONTEXTS[offset..-1])
+      offset += m.end(0)
+      service = m[1]
+      serole = m[3]
+      setype = m[4]
+      selabel = m[5]
+
+      servout = %x[service #{service} status 2>&1]
+      begin
+        pid = /pid\s+(\d+)/.match(servout)[1]
+        pcontext = File.read("/proc/#{pid}/attr/current").strip
+        pm = /(\w+):(\w+):(\w+):([\w\-\:\.\,]+)/.match(pcontext)
+        if (m[3] != pm[2]) or (m[4] != pm[3]) or (m[5] != pm[4])
+          do_fail("SELinux context for #{service} is incorrect")
+        end
+      rescue
+        do_fail("Could not get SELinux context for #{service}")
+      end
+    end
+end
 
 def check_semaphores
     verbose("checking kernel semaphores >= #{$MINSEM}")
@@ -450,6 +482,17 @@ def check_system_httpd_configs
     end
   end
 
+  ['routes.json', 'geardb.json'].each do |db|
+    begin
+      File.open(File.join(ENV['OPENSHIFT_HTTP_CONF_DIR'], db)) do |f|
+        httpconfs[db] = JSON.parse(f.read)
+      end
+    rescue => e
+      httpconfs[db] = Hash.new
+      do_fail("#{e}")
+    end
+  end
+
   httpconfs['nodes.txt'].delete_if   { |k,v|  k.split('/')[0] == '__default__' }
   $ALL_USERS.each do |u|
     dnsfile = File.join($GEAR_BASE_DIR, u, '.env', 'OPENSHIFT_GEAR_DNS')
@@ -459,6 +502,9 @@ def check_system_httpd_configs
       httpconfs['aliases.txt'].delete_if { |k,v|  v == fqdn }
       httpconfs['idler.txt'].delete(fqdn)
       httpconfs['sts.txt'].delete(fqdn)
+      httpconfs['routes.json'].delete(fqdn)
+      httpconfs['routes.json'].delete_if { |k, v| v["alias"] == fqdn }
+      httpconfs['geardb.json'].delete_if { |k, v| v["fqdn"] == fqdn }
     rescue
     end
   end
@@ -468,8 +514,23 @@ def check_system_httpd_configs
   httpconfs['aliases.txt'].each { |k, v| fail_dns_names[v]=1 }
   httpconfs['idler.txt'].each   { |k, v| fail_dns_names[k]=1 }
   httpconfs['sts.txt'].each     { |k, v| fail_dns_names[k]=1 }
+  httpconfs['routes.json'].each do |k, v|
+    if v["alias"]
+      fail_dns_names[v["alias"]]=1
+    else
+      fail_dns_names[k]=1
+    end
+  end
 
-  fail_dns_names.each { |k, v| do_fail("http config references DNS name without a gear: '#{k}'") }
+
+  httpconfs['geardb.json'].each do |k, v|
+    do_fail("httpd config references UUID without associated gear: '#{k}'")
+    fail_dns_names.delete(v["fqdn"])
+  end
+
+  fail_dns_names.each do |k, v|
+    do_fail("httpd config references DNS name without associated gear: '#{k}'")
+  end
 
   Dir.foreach(ENV['OPENSHIFT_HTTP_CONF_DIR']) { |cfile|
     next if cfile[0,1] == "."
@@ -508,6 +569,7 @@ if __FILE__ == $0
     check_selinux
     check_packages
     check_services
+    check_service_contexts
     check_semaphores
     check_cgroup_config
     check_cgroup_procs
