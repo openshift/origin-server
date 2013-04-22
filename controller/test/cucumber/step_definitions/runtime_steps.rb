@@ -919,3 +919,20 @@ Then /^the application stoplock should( not)? be present$/ do |negate|
     assert_file_exists stop_lock
   end 
 end
+
+When /^the application hot deploy marker is (added|removed)$/ do |verb|
+  record_measure("Runtime Benchmark: #{verb} hot deploy marker app repo at #{@app.git_repo}") do
+    Dir.chdir(@app.git_repo) do
+      if verb == "added"
+        run "mkdir -p .openshift/markers && touch .openshift/markers/hot_deploy"
+        run "git add ."
+      else
+        run "git rm .openshift/markers/hot_deploy"
+      end
+
+      run "git commit -m '#{verb} hot deploy marker'"
+      push_output = `git push`
+      $logger.info("Push output:\n#{push_output}")
+    end
+  end
+end

@@ -19,6 +19,7 @@ require 'pp'
 require 'rubygems'
 require 'commander/import'
 require 'openshift-origin-node/model/application_container'
+require 'openshift-origin-node/model/application_repository'
 require 'openshift-origin-node/utils/node_logger'
 
 name="#{__FILE__}"
@@ -29,6 +30,8 @@ program :description, "An assortment gear utilities"
 
 STDOUT.sync = true
 STDERR.sync = true
+
+HOT_DEPLOY_MARKER = '.openshift/markers/hot_deploy'
 
 module OpenShift
   module NodeLogger
@@ -57,7 +60,20 @@ def gear_cartridge_names
   cartridge_names
 end
 
+def file_in_commit?(sha1, fn, status)
+  Dir.chdir(@repo.path) do
+    return (not `git show --pretty="format:" --name-only --diff-filter=[#{status}] #{sha1} -- #{fn}`.chomp.strip.empty?)
+  end
+end
+
+def file_committed?(fn)
+  Dir.chdir(@repo.path) do
+    return (not `git ls-tree master -- #{fn}`.chomp.strip.empty?)
+  end
+end
+
 @container = OpenShift::ApplicationContainer.new(ENV['OPENSHIFT_APP_UUID'], ENV['OPENSHIFT_GEAR_UUID'], Etc.getpwuid.uid, ENV['OPENSHIFT_APP_NAME'], ENV['OPENSHIFT_GEAR_NAME'], ENV['OPENSHIFT_NAMESPACE'])
+@repo = OpenShift::ApplicationRepository.new(@container.user)
 
 def do_command
   begin
@@ -88,7 +104,26 @@ command :prereceive do |c|
   c.description = "Run the git prereceive steps"
   c.action do |args, options|
     do_command do
-      @container.pre_receive(out: $stdout, err: $stderr)
+      marker_added     = false
+      marker_deleted   = false
+      marker_committed = file_committed?(HOT_DEPLOY_MARKER)
+
+      $stdin.each_line do |str|
+        arr  = str.split                    
+        refs = arr[2].split('/')
+
+        old_rev  = arr[0]  # SHA
+        new_rev  = arr[1]  # SHA
+        ref_type = refs[1] # tags || heads (branch)
+        ref_name = refs[2] # develop, 1.4 etc.
+
+        marker_added   = file_in_commit?(new_rev, HOT_DEPLOY_MARKER, 'A')
+        marker_deleted = file_in_commit?(new_rev, HOT_DEPLOY_MARKER, 'D')
+      end
+
+      hot_deploy = marker_added || (marker_committed && !marker_deleted)
+
+      @container.pre_receive(out: $stdout, err: $stderr, hot_deploy: hot_deploy)
     end
   end
 end
@@ -99,7 +134,7 @@ command :postreceive do |c|
   c.description = "Run the git postreceive steps"
   c.action do |args, options|
     do_command do
-      @container.post_receive(out: $stdout, err: $stderr)
+      @container.post_receive(out: $stdout, err: $stderr, hot_deploy: file_committed?(HOT_DEPLOY_MARKER))
     end
   end
 end
@@ -121,7 +156,7 @@ command :remotedeploy do |c|
   c.description = "Run the remotedeploy steps"
   c.action do |args, options|
     do_command do
-      @container.remote_deploy(out: $stdout, err: $stderr)
+      @container.remote_deploy(out: $stdout, err: $stderr, hot_deploy: file_committed?(HOT_DEPLOY_MARKER))
     end
   end
 end
@@ -159,6 +194,7 @@ command :stop do |c|
   c.syntax = "#{name} stop"
   
   c.option "--cart CART", "The cart to stop"
+  c.option "--conditional", "Skip the gear stop if the hot deploy marker is present in the application Git repo"
 
   c.description = "Stop the gear/cart"
   c.action do |args, options|
@@ -166,8 +202,12 @@ command :stop do |c|
       if options.cart
         @container.stop(options.cart, out: $stdout, err: $stderr)
       else
-        puts "Stopping gear..."
-        @container.stop_gear(out: $stdout, err: $stderr)
+        if options.conditional && file_committed?(HOT_DEPLOY_MARKER)
+          puts "Skipping gear stop due to presence of hot deploy marker"
+        else
+          puts "Stopping gear..."
+          @container.stop_gear(out: $stdout, err: $stderr)
+        end
       end
     end
   end

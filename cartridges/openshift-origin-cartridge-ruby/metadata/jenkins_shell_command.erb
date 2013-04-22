@@ -19,7 +19,7 @@ gear build
 # Deploy new build
 
 # Stop app
-$GIT_SSH $upstream_ssh 'gear stop'
+$GIT_SSH $upstream_ssh 'gear stop --conditional'
 
 # Push content back to application
 rsync $WORKSPACE/ $upstream_ssh:'${OPENSHIFT_REPO_DIR}'
