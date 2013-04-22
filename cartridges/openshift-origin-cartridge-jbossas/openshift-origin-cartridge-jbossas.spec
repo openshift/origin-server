@@ -71,9 +71,9 @@ alternatives --set jbossas-7 /usr/share/jbossas
 #
 # Temp placeholder to add a postgresql datastore -- keep this until the
 # the postgresql module is added to jboss as7.* upstream.
-mkdir -p /etc/alternatives/jbossas-7.1/modules/org/postgresql/jdbc/main
-ln -fs /usr/share/java/postgresql-jdbc3.jar /etc/alternatives/jbossas-7.1/modules/org/postgresql/jdbc/main
-cp -p %{cartridgedir}/versions/7.1/modules/postgresql_module.xml /etc/alternatives/jbossas-7.1/modules/org/postgresql/jdbc/main/module.xml
+mkdir -p /etc/alternatives/jbossas-7/modules/org/postgresql/jdbc/main
+ln -fs /usr/share/java/postgresql-jdbc3.jar /etc/alternatives/jbossas-7/modules/org/postgresql/jdbc/main
+cp -p %{cartridgedir}/versions/7/modules/postgresql_module.xml /etc/alternatives/jbossas-7/modules/org/postgresql/jdbc/main/module.xml
 
 %{_sbindir}/oo-admin-cartridge --action install --offline --source /usr/libexec/openshift/cartridges/v2/jbossas
 
