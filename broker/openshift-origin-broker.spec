@@ -91,6 +91,7 @@ mkdir -p %{buildroot}%{brokerdir}/tmp/sockets
 mkdir -p %{buildroot}%{_sysconfdir}/httpd/conf.d
 mkdir -p %{buildroot}%{_sysconfdir}/sysconfig
 mkdir -p %{buildroot}%{_sysconfdir}/openshift
+mkdir -p %{buildroot}%{_sysconfdir}/openshift/plugins.d
 
 cp -r . %{buildroot}%{brokerdir}
 %if %{with_systemd}
@@ -114,6 +115,7 @@ touch %{buildroot}%{_var}/log/openshift/broker/development.log
 cp conf/broker.conf %{buildroot}%{_sysconfdir}/openshift/broker.conf
 cp conf/broker.conf %{buildroot}%{_sysconfdir}/openshift/broker-dev.conf
 cp conf/quickstarts.json %{buildroot}%{_sysconfdir}/openshift/quickstarts.json
+cp conf/plugins.d/README %{buildroot}%{_sysconfdir}/openshift/plugins.d/README
 
 %if 0%{?fedora} >= 18
 mv %{buildroot}%{brokerdir}/httpd/httpd.conf.apache-2.4 %{buildroot}%{brokerdir}/httpd/httpd.conf
@@ -150,6 +152,8 @@ rm %{buildroot}%{brokerdir}/httpd/broker-scl-ruby193.conf
 %config(noreplace) %{_sysconfdir}/httpd/conf.d/000002_openshift_origin_broker_proxy.conf
 %config(noreplace) %{_sysconfdir}/httpd/conf.d/000002_openshift_origin_broker_servername.conf
 %config(noreplace) %{_sysconfdir}/openshift/broker.conf
+%doc %{_sysconfdir}/openshift/plugins.d/README
+%dir %{_sysconfdir}/openshift/plugins.d
 %config(noreplace) %{_sysconfdir}/openshift/quickstarts.json
 %{_sysconfdir}/openshift/broker-dev.conf
 
