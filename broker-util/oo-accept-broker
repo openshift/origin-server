@@ -203,7 +203,6 @@ function check_missing_and_insecure_secrets() {
 # rails apps multiple times.
 function fetch_config() {
     pushd /var/www/openshift/broker > /dev/null
-    # bundle exec "ruby -rubygems --" <<EOF
     safe_bundle "ruby -rubygems --" <<EOF
       require 'openshift-origin-common'
       conf = OpenShift::Config.new('$1')
@@ -236,6 +235,9 @@ function load_application_values() {
 
 	# run those statements after initializing the Rails env
 	OLD_IFS=$IFS; IFS=$'\n' # read into array one line per element
+    # Tail the output on the next line, since deprecation warnings and
+    # other unrelated output will make this test fail, even when it
+    # works
 	declare -a new_app_values=( `run_ruby_rails_command "$ruby_program" | tail --lines="${#keys[@]}"` )
 	IFS=$OLD_IFS # back to normal
 	if [ $? -ne 0 ]
@@ -279,7 +281,6 @@ function run_ruby_rails_command() {
   if which ruby 2>/dev/null >/dev/null
   then
       pushd /var/www/openshift/broker > /dev/null
-      # bundle exec "ruby -I ${OSO_BROKER_ROOT} -r rubygems --" <<EOF 2>&1
       safe_bundle "ruby -I ${OSO_BROKER_ROOT} -r rubygems --" <<EOF 2>&1
         begin
           require 'config/environment'
