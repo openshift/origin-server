@@ -27,13 +27,12 @@ Feature: V2 SDK Mock Cartridge
     And the "mock/mock_cart_locked_file" content does exist for mock-0.1
     And the "app-root/data/mock_gear_data_locked_file" content does exist for mock-0.1
     And the "invalid_locked_file" content does not exist for mock-0.1
-
-    When I start the newfangled application
-    Then the mock control_start marker will exist
+    And the mock control_start marker will exist
     And the mock action_hook_pre_start marker will exist
     And the mock action_hook_pre_start_mock marker will exist
     And the mock action_hook_post_start marker will exist
     And the mock action_hook_post_start_mock marker will exist
+    And the mock control_build marker will not exist
 
     When I status the mock-0.1 cartridge
     Then the mock control_status marker will exist
@@ -84,4 +83,3 @@ Feature: V2 SDK Mock Cartridge
 
     When I destroy the application
     Then the application git repo will not exist
-

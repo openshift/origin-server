@@ -93,3 +93,4 @@ Endpoints:
     Private-Port:      8787
 Additional-Control-Actions:
     - threaddump
+Install-Build-Required: false

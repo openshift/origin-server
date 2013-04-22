@@ -50,3 +50,4 @@ Endpoints:
     Private-Port-Name: DB_PORT
     Private-Port:      27017
     Public-Port-Name:  DB_PROXY_PORT
+Install-Build-Required: false
