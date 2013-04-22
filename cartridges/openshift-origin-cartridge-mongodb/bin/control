@@ -178,7 +178,6 @@ function pre_restore {
 
 function cleanup_dump {
    /bin/rm -f $OPENSHIFT_DATA_DIR/mongodb_dump_snapshot.tar.gz
-   /bin/rm -f /tmp/mongodumpXXXXXXXX
 }
 
 function print_mongo_jira_warnings() {
