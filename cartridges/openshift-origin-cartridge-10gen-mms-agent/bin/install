@@ -1,0 +1,36 @@
+#!/bin/bash -e
+
+source $OPENSHIFT_CARTRIDGE_SDK_BASH
+
+if [ ${OPENSHIFT_MONGODB_DB_HOST:-'Not Installed'} == 'Not Installed' ]
+then
+  client_error ""
+  client_error "MongoDB must be added before the 10-gen-mms-agent."
+  client_error ""
+  exit 137
+fi
+
+#
+# Checking if the user has added the settings.py file in the git repo
+#
+if [ ! -f "${OPENSHIFT_REPO_DIR}/.openshift/mms/settings.py" ]
+then
+    client_error ""
+    client_error "Missing settings.py file:  ${OPENSHIFT_REPO_DIR}.openshift/mms/settings.py"
+    client_error "This file is part of the agent zip file: 10gen-mms-agent-<group-name>.zip"
+    client_error "The zip file is available to download from https://mms.10gen.com/ after you register with their service. "
+    client_error "It contains your 10gen MMS credentials and is required for running the agent."
+    client_error "You will need to add this file and then do a git commit and push before you can embed the 10gen-mms-agent cartridge."
+    client_error ""
+    exit 137
+fi
+
+client_result ""
+client_result "10gen-mms-agent added. " 
+client_result "Please configure your mongodb host at https://mms.10gen.com/ to start monitoring performance data."
+client_result ""
+client_result "Monitoring URL: https://mms.10gen.com/"
+
+cart_props "monitoring_url=https://mms.10gen.com/"
+
+set_app_info "Monitoring URL: https://mms.10gen.com/"

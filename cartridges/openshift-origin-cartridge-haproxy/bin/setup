@@ -1,13 +1,10 @@
 #!/bin/bash -eu
-source $OPENSHIFT_CARTRIDGE_SDK_BASH
 
 version=1.4
 
 echo "$version" > "$OPENSHIFT_HAPROXY_DIR/env/OPENSHIFT_HAPROXY_VERSION"
 
 mkdir -p $OPENSHIFT_HAPROXY_DIR/{conf,conf.d,logs,run,sessions}
-touch ${OPENSHIFT_HAPROXY_DIR}/conf/gear-registry.db
-touch ${OPENSHIFT_HAPROXY_DIR}/conf/gear-registry.db.lock
 
 cp ${OPENSHIFT_HAPROXY_DIR}/versions/$version/configuration/* $OPENSHIFT_HAPROXY_DIR/conf/
 cp $OPENSHIFT_HAPROXY_DIR/versions/shared/scripts/* $OPENSHIFT_HAPROXY_DIR/bin/

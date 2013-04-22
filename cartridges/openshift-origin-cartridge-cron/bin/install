@@ -1,0 +1,15 @@
+#!/bin/bash -e
+
+source $OPENSHIFT_CARTRIDGE_SDK_BASH
+
+frequencies=$(cat $OPENSHIFT_CRON_DIR/configuration/frequencies | tr '\n' ',')
+client_result ""
+client_result "To schedule your scripts to run on a periodic basis, add the scripts to " 
+client_result "your application's .openshift/cron/{${frequencies%?}}/"
+client_result "directories (and commit and redeploy your application)."
+client_result ""
+client_result "Example: A script .openshift/cron/hourly/crony added to your application"
+client_result "         will be executed once every hour."
+client_result "         Similarly, a script .openshift/cron/weekly/chronograph added"
+client_result "         to your application will be executed once every week."
+client_result ""
