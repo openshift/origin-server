@@ -43,9 +43,10 @@ def toggle_version
     `rm #{VERSION_MARKER}`
   end
 
-  `cd /var/www/openshift/broker/; bundle exec rake tmp:clear`
+  `cd /var/www/openshift/broker; bundle exec "rails runner -e development 'Rails.cache.clear'"`
   `rpm -q rhc-broker`
   $?.success? ?  `service rhc-broker restart` : `service openshift-broker restart`
+  `service mcollective restart`
 
    check_version
 end
