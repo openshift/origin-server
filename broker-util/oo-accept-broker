@@ -80,10 +80,6 @@ function safe_bundle() {
     bundle exec "$@"
 }
 
-function safe_ruby() {
-    ruby "$@"
-}
-
 USE_SCL=""
 
 if which scl 1> /dev/null 2> /dev/null && scl -l | grep -q '^ruby193$' ; then
@@ -92,10 +88,6 @@ if which scl 1> /dev/null 2> /dev/null && scl -l | grep -q '^ruby193$' ; then
         scl enable ruby193 "bundle exec \"$@\""
     }
 
-    function safe_ruby() {
-#        scl enable ruby193 "ruby \"$@\""
-        oo-ruby "$@"
-    }
     PACKAGES+="  ruby193-rubygem-rails
   ruby193-rubygem-passenger
   ruby193-rubygems
@@ -160,7 +152,7 @@ function check_ruby_requirements() {
     for OSO_RUBY_LIB in $*
     do
 	verbose checking ruby requirements for $OSO_RUBY_LIB
-        GEM_ERROR=`safe_ruby -I ${OSO_BROKER_ROOT} -r rubygems -- <<EOF
+        GEM_ERROR=`oo-ruby -I ${OSO_BROKER_ROOT} -r rubygems -- <<EOF
             require 'bundler'
             begin
               require '$OSO_RUBY_LIB'
