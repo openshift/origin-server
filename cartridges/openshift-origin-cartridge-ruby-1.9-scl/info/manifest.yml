@@ -10,7 +10,7 @@ Categories:
   - ruby
   - web_framework
 Help-Topics:
-  "Developer Center": https://openshift.redhat.com/community/developers
+  "Developer Center": https://www.openshift.com/developers
 Cart-Data:
   - Key: OPENSHIFT_REPO_DIR
     Type: environment

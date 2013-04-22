@@ -6,7 +6,7 @@ Version: 1.8.0
 Release:       1%{?dist}
 Group:         Applications/Internet
 License:       ASL 2.0
-URL:           https://openshift.redhat.com
+URL:           https://www.openshift.com
 Source0:       http://mirror.openshift.com/pub/openshift-origin/source/%{name}/%{name}-%{version}.tar.gz
 Requires:      rubygem(openshift-origin-node)
 Requires:      phpMyAdmin

@@ -17,7 +17,7 @@ Categories:
   - embedded
 Website: http://www.10gen.com
 Help-Topics:
-  - "Building with MongoDB" : https://openshift.redhat.com/community/developers/mongodb
+  - "Building with MongoDB" : https://www.openshift.com/developers/mongodb
 Cart-Data:
   - Key: "username"
     Type: cart_data

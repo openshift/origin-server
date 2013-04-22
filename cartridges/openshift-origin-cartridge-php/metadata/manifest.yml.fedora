@@ -14,7 +14,7 @@ Categories:
   - web_framework
 Website: http://www.php.net
 Help-Topics:
-  "Developer Center": https://openshift.redhat.com/community/developers
+  "Developer Center": https://www.openshift.com/developers
 Cart-Data:
   - Key: OPENSHIFT_TMP_DIR
     Type: environment

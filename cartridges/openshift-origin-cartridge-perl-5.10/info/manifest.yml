@@ -10,7 +10,7 @@ Categories:
   - web_framework
 Website: "http://www.perl.org"
 Help-Topics:
-  "Developer Center": https://openshift.redhat.com/community/developers
+  "Developer Center": https://www.openshift.com/developers
 Cart-Data:
   - Key: OPENSHIFT_PERL_LOG_DIR
     Type: environment

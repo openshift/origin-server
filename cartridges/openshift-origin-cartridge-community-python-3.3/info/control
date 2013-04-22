@@ -6,7 +6,7 @@ Depends:
 Conflicts:
 Type: Cartridge
 Role: misc
-Vendor: openshift.redhat.com
+Vendor: www.openshift.com
 DisplayName: community-python-3.3
 Bundles:  community-python
 Description:

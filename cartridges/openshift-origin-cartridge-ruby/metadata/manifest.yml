@@ -15,7 +15,7 @@ Categories:
   - web_framework
 Website: http://www.ruby.org
 Help-Topics:
-  "Developer Center": https://openshift.redhat.com/community/developers
+  "Developer Center": https://www.openshift.com/developers
 Cart-Data:
   - Key: OPENSHIFT_TMP_DIR
     Type: environment
