@@ -1,50 +1,15 @@
 #!/bin/bash -eu
 
-source $OPENSHIFT_CARTRIDGE_SDK_BASH
-
-cartridge_type="jbosseap"
-
-version=6.0
-echo "$version" > "$OPENSHIFT_JBOSSEAP_DIR/env/OPENSHIFT_JBOSSEAP_VERSION"
+case "$1" in
+  -v|--version)
+    version="$2"
+esac
 
 # Create additional directories required by JBOSSEAP
 mkdir -p ${OPENSHIFT_HOMEDIR}/.m2
 mkdir -p ${OPENSHIFT_JBOSSEAP_DIR}/{bin,template,standalone/tmp,standalone/deployments,standalone/configuration,standalone/log,standalone/data}
 
-ln -s ${OPENSHIFT_JBOSSEAP_DIR}/standalone/log ${OPENSHIFT_JBOSSEAP_DIR}/logs
-
 # Copy the version specific files up to jbosseap directory
 cp -r ${OPENSHIFT_JBOSSEAP_DIR}/versions/${version}/standalone/configuration/* ${OPENSHIFT_JBOSSEAP_DIR}/standalone/configuration
 cp -r ${OPENSHIFT_JBOSSEAP_DIR}/versions/${version}/metadata/* ${OPENSHIFT_JBOSSEAP_DIR}/metadata
-cp -r ${OPENSHIFT_JBOSSEAP_DIR}/versions/${version}/template/* ${OPENSHIFT_JBOSSEAP_DIR}/template
-cp -r ${OPENSHIFT_JBOSSEAP_DIR}/versions/${version}/template/.openshift ${OPENSHIFT_JBOSSEAP_DIR}/template
-cp ${OPENSHIFT_JBOSSEAP_DIR}/standalone/configuration/standalone.xml ${OPENSHIFT_JBOSSEAP_DIR}/template/.openshift/config
 cp ${OPENSHIFT_JBOSSEAP_DIR}/versions/${version}/bin/* ${OPENSHIFT_JBOSSEAP_DIR}/bin
-
-sed -i "s/{APP_NAME}/${OPENSHIFT_APP_NAME}/g" ${OPENSHIFT_JBOSSEAP_DIR}/template/pom.xml
-
-JBOSS_HOME=/etc/alternatives/jbosseap-$version
-
-cd $OPENSHIFT_JBOSSEAP_DIR
-ln -s ${JBOSS_HOME}/jboss-modules.jar
-ln -s ${JBOSS_HOME}/modules
-
-pushd $OPENSHIFT_JBOSSEAP_DIR/template/src/main/webapp
-jar cvf $OPENSHIFT_JBOSSEAP_DIR/standalone/deployments/ROOT.war ./*
-popd
-
-if [ -e ${OPENSHIFT_REPO_DIR}/.openshift/markers/java7 ];
-then
-	JAVA_HOME=/etc/alternatives/java_sdk_1.7.0
-else
-	JAVA_HOME=/etc/alternatives/java_sdk_1.6.0
-fi
-M2_HOME=/etc/alternatives/maven-3.0
-echo "$JAVA_HOME" > $OPENSHIFT_JBOSSEAP_DIR/env/JAVA_HOME
-echo "$M2_HOME" > $OPENSHIFT_JBOSSEAP_DIR/env/M2_HOME
-echo "$JAVA_HOME/bin:$M2_HOME/bin:$PATH" > $OPENSHIFT_JBOSSEAP_DIR/env/PATH
-
-
-
-
-

@@ -1,0 +1,23 @@
+#!/bin/bash -e
+
+socket=$OPENSHIFT_POSTGRESQL_DB_SOCKET_DIR
+user=$OPENSHIFT_POSTGRESQL_DB_USERNAME
+pass=$OPENSHIFT_POSTGRESQL_DB_PASSWORD
+db=$OPENSHIFT_APP_NAME
+
+# Create a user based on OPENSHIFT_POSTGRESQL_DB_USERNAME
+{
+  createuser --superuser --createdb --createrole -U postgres -h $socket $user
+} || error "Failed to create initial root user" 187
+
+# Create a database based on OPENSHIFT_APP_NAME
+{
+  createdb -O $user -U postgres -h $socket $db
+} || error "Failed to create database" 188
+
+# Set the user's password based on OPENSHIFT_POSTGRESQL_DB_PASSWORD
+{
+  echo "
+  ALTER USER ${user} PASSWORD '${pass}';
+  " | psql -d $db -h $socket -U postgres
+} || error "Failed to change password for initial root user" 187

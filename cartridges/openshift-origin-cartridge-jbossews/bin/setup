@@ -1,6 +1,4 @@
-#!/bin/bash
-set -e
-set -x
+#!/bin/bash -e
 
 SYSTEM_JBOSSEWS_DIR=/etc/alternatives/jbossews-2.0
 
@@ -20,11 +18,3 @@ ln -s ${OPENSHIFT_REPO_DIR}/.openshift/config/context.xml ${OPENSHIFT_JBOSSEWS_D
 ln -s ${OPENSHIFT_REPO_DIR}/.openshift/config/tomcat-users.xml ${OPENSHIFT_JBOSSEWS_DIR}/conf
 ln -s ${OPENSHIFT_REPO_DIR}/.openshift/config/catalina.properties ${OPENSHIFT_JBOSSEWS_DIR}/conf
 ln -s ${OPENSHIFT_REPO_DIR}/.openshift/config/logging.properties ${OPENSHIFT_JBOSSEWS_DIR}/conf
-
-# Create a link from the repo/webapps directory to the Tomcat webapps directory
-ln -s ${OPENSHIFT_REPO_DIR}/webapps ${OPENSHIFT_JBOSSEWS_DIR}/webapps
-
-# Create and install the initial template WAR
-pushd $OPENSHIFT_JBOSSEWS_DIR/template/src/main/webapp
-jar cvf $OPENSHIFT_JBOSSEWS_DIR/template/webapps/ROOT.war ./*
-popd

@@ -1,0 +1,45 @@
+#!/bin/bash -ex
+
+source $OPENSHIFT_CARTRIDGE_SDK_BASH
+
+echo "Installing postgres"
+
+env_dir="${OPENSHIFT_POSTGRESQL_DIR}/env"
+
+# Create postgresql database
+# The contained tar file is the results of "initdb -D data", but much, much faster.
+tar -zxf $OPENSHIFT_POSTGRESQL_DIR/conf/pgdata-template.tar.gz -C "${OPENSHIFT_POSTGRESQL_DIR}/data/"
+chmod 0700 $OPENSHIFT_POSTGRESQL_DIR/data
+chmod 0700 $OPENSHIFT_POSTGRESQL_DB_SOCKET_DIR
+
+echo 'Generating username and password'
+
+# Force the username to be all lowercase
+username=$(generate_username admin 12 'a-np-z1-9')
+password=$(generate_password)
+
+set_env_var 'OPENSHIFT_POSTGRESQL_DB_USERNAME' $username $env_dir
+set_env_var 'OPENSHIFT_POSTGRESQL_DB_PASSWORD' $password $env_dir
+
+# TODO: This should be able to be in an erb file, but they're not sourced in the correct order
+set_env_var 'OPENSHIFT_POSTGRESQL_DB_URL' "postgresql://${username}:${password}@${OPENSHIFT_POSTGRESQL_DB_HOST}:${OPENSHIFT_POSTGRESQL_DB_PORT}" $env_dir
+
+# These conf files need to override the values in the data directory AFTER it's been extracted by setup
+#  This needs to be done here because the ERB processing happens after setup
+ls $OPENSHIFT_POSTGRESQL_DIR/conf/
+cp $OPENSHIFT_POSTGRESQL_DIR/conf/*.conf $OPENSHIFT_POSTGRESQL_DIR/data/
+# Copy our user groups to the data dir for use in pg_hba.conf
+find "${OPENSHIFT_POSTGRESQL_DIR}/conf/groups" -not -name "*.md" -type f -exec cp '{}' "${OPENSHIFT_POSTGRESQL_DIR}/data" \;
+chmod 0600 $PGPASSFILE
+
+conn_url='postgresql://$OPENSHIFT_POSTGRESQL_DB_HOST:$OPENSHIFT_POSTGRESQL_DB_PORT'
+
+client_result "Connection URL: ${conn_url}"
+client_result ""
+
+cart_props "connection_url=${conn_url}"
+cart_props "username=${username}"
+cart_props "password=${password}"
+cart_props "database_name=${OPENSHIFT_APP_NAME}"
+
+set_app_info "Connection URL: ${conn_url}"

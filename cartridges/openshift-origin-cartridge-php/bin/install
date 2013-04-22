@@ -1,0 +1,20 @@
+#!/bin/bash -eu
+
+case "$1" in
+  -v|--version)
+    version="$2"
+esac
+
+echo "$version" > "$OPENSHIFT_PHP_DIR/env/OPENSHIFT_PHP_VERSION"
+
+shopt -s dotglob
+cp -r $OPENSHIFT_PHP_DIR/versions/$version/template/* $OPENSHIFT_PHP_DIR/template
+
+ln -s /usr/lib64/httpd/modules $OPENSHIFT_PHP_DIR/modules
+ln -s /etc/httpd/conf/magic $OPENSHIFT_PHP_DIR/conf/magic
+
+# Pear setup
+rm -f $OPENSHIFT_HOMEDIR/.pearrc
+pear config-create "$OPENSHIFT_PHP_DIR"/phplib/pear/ "$OPENSHIFT_HOMEDIR"/.pearrc
+pear -c "$OPENSHIFT_HOMEDIR"/.pearrc config-set php_ini "$OPENSHIFT_PHP_DIR"/versions/shared/configuration/etc/conf/php.ini
+pear -c "$OPENSHIFT_HOMEDIR"/.pearrc config-set auto_discover 1

@@ -2,7 +2,11 @@
 
 source $OPENSHIFT_CARTRIDGE_SDK_BASH
 
-version=1.4
+case "$1" in
+  -v|--version)
+    version="$2"
+esac
+
 echo "$version" > "$OPENSHIFT_CRON_DIR/env/OPENSHIFT_CRON_VERSION"
 
 # Copy the version specific files into diy directory
