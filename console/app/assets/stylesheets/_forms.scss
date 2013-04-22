@@ -748,3 +748,47 @@ textarea[readonly] {
   height: 28px;
   width: 100%;
 }
+
+// FORM-IMPORTANT
+// ---------------------------
+.form-important {
+  .control-group { margin-bottom: 14px; }
+  .controls { margin-left: 140px; }
+
+  input.expand { width: auto; max-width: -moz-available; }
+  input.narrow { width: 140px; }
+
+  .controls > h3 { 
+    margin-top: 5px; margin-bottom: 0; color: $consoleHeaderColor; 
+
+    > small { margin-left: 10px; vertical-align: middle; display: inline-block; }
+    > select { margin-top: -5px; }
+  }
+
+  .control-label { margin-left: 15px; width: 120px; text-align: left; color: #949494; }
+  .error > .control-label { color: $errorBackground; }
+
+  .help-block { color: #949494; max-width: 500px; -moz-transition: 0.2s; overflow: hidden; text-overflow: ellipsis; }
+  .alert { max-width: 500px; }
+
+  .form-actions { padding-left: 140px; }
+
+  h3 .font-icon {margin-left: 25px}
+}
+
+@media (max-width: 767px) {
+  .form-important {
+    .control-label { margin-left: 0; }
+    .controls { margin-left: 0; }
+    .help-block { max-width: inherit; white-space: normal; }
+    .alert { max-width: inherit; }
+    .controls > h3 { display: inline-block; margin-top: 0; }
+    .form-actions { padding-left: 10px; }
+  }
+}
+
+@media (max-width:480px) {
+  .form-important {
+    h3 .font-icon {margin-left: 10px}
+  }
+}
