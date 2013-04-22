@@ -238,7 +238,8 @@ module OpenShift
 
         Dir.chdir(@user.homedir) do
           unlock_gear(cartridge) do |c|
-            output << cartridge_setup(c, software_version)
+            output << cartridge_action(cartridge, 'setup', software_version, true)
+            output << cartridge_action(cartridge, 'install', software_version)
             populate_gear_repo(c.directory, template_git_url) if cartridge.primary?
 
             process_erb_templates(c.directory)
@@ -247,6 +248,8 @@ module OpenShift
         end
 
         output << start_cartridge('start', cartridge, user_initiated: true)
+        output << cartridge_action(cartridge, 'post-setup', software_version)
+        output << cartridge_action(cartridge, 'post-install', software_version)
       end
 
       connect_frontend(cartridge)
@@ -499,34 +502,37 @@ module OpenShift
       render_erbs(env, File.join(directory, '**'))
     end
 
-    #  cartridge_setup(cartridge, software_version) -> buffer
+    #  cartridge_action(cartridge, action, software_version, render_erbs) -> buffer
     #
-    #  Returns the results from calling the cartridge's setup script.
+    #  Returns the results from calling a cartridge's action script.
     #  Includes <code>--version</code> if provided.
     #  Raises exception if script fails
     #
-    #   stdout = cartridge_setup(cartridge_obj)
-    def cartridge_setup(cartridge, software_version)
-      logger.info "Running setup for #{@user.uuid}/#{cartridge.directory}"
+    #   stdout = cartridge_action(cartridge_obj)
+    def cartridge_action(cartridge, action, software_version, render_erbs=false)
+      logger.info "Running #{action} for #{@user.uuid}/#{cartridge.directory}"
 
+      cartridge_home = File.join(@user.homedir, cartridge.directory)
+      action = File.join(cartridge_home, 'bin', action)
+      return "" unless File.exists? action
+      
       gear_env = Utils::Environ.for_gear(@user.homedir)
-
-      cartridge_home     = File.join(@user.homedir, cartridge.directory)
       cartridge_env_home = File.join(cartridge_home, 'env')
 
       cartridge_env = gear_env.merge(Utils::Environ.load(cartridge_env_home))
-      render_erbs(cartridge_env, cartridge_env_home)
-      cartridge_env = gear_env.merge(Utils::Environ.load(cartridge_env_home))
+      if render_erbs
+        render_erbs(cartridge_env, cartridge_env_home)
+        cartridge_env = gear_env.merge(Utils::Environ.load(cartridge_env_home))
+      end
 
-      setup = File.join(cartridge_home, 'bin', 'setup')
-      setup << " --version #{software_version}"
-      out, _, _ = Utils.oo_spawn(setup,
+      action << " --version #{software_version}"
+      out, _, _ = Utils.oo_spawn(action,
                                  env:                 cartridge_env,
                                  unsetenv_others:     true,
                                  chdir:               @user.homedir,
                                  uid:                 @user.uid,
                                  expected_exitstatus: 0)
-      logger.info("Ran setup for #{@user.uuid}/#{cartridge.directory}\n#{out}")
+      logger.info("Ran #{action} for #{@user.uuid}/#{cartridge.directory}\n#{out}")
       out
     end
 
