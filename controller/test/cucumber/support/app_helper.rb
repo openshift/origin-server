@@ -11,7 +11,7 @@ module AppHelper
     DEFPASSWD = "xyz123"
 
     # attributes to represent the general information of the application
-    attr_accessor :name, :namespace, :login, :password, :type, :hostname, :repo, :file, :embed, :snapshot, :uid, :git_url, :owner
+    attr_accessor :name, :namespace, :login, :password, :type, :hostname, :repo, :file, :embed, :snapshot, :uid, :git_url, :owner, :scalable
 
     # attributes to represent the state of the rhc_create_* commands
     attr_accessor :create_domain_code, :create_app_code
@@ -26,21 +26,22 @@ module AppHelper
     attr_accessor :jenkins_url, :jenkins_job_url, :jenkins_user, :jenkins_password, :jenkins_build
 
     # Create the data structure for a test application
-    def initialize(namespace, login, type, name, password, owner)
+    def initialize(namespace, login, type, name, password, owner, scalable = false)
       @name, @namespace, @login, @type, @password, @owner = name, namespace, login, type, password, owner
       @hostname = "#{name}-#{namespace}.#{$domain}"
       @repo = "#{$temp}/#{namespace}_#{name}_repo"
       @file = "#{$temp}/#{namespace}.json"
       @embed = []
+      @scalable = scalable
     end
 
-    def self.create_unique(type, name="test")
+    def self.create_unique(type, name="test", scalable=false)
       loop do
         # Generate a random username
         chars = ("1".."9").to_a
         namespace = "ci" + Array.new(8, '').collect{chars[rand(chars.size)]}.join
         login = "cucumber-test_#{namespace}@example.com"
-        app = TestApp.new(namespace, login, type, name, DEFPASSWD, Process.pid)
+        app = TestApp.new(namespace, login, type, name, DEFPASSWD, Process.pid, scalable)
         unless app.reserved?
           app.persist
           return app
