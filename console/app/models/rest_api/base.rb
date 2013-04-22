@@ -64,7 +64,7 @@ class ActiveResource::Base
   private
     def find_or_create_resource_for_collection(name)
       return reflections[name.to_sym].klass if reflections.key?(name.to_sym)
-      find_or_create_resource_for(ActiveSupport::Inflector.singularize(name.to_s))
+      nil
     end
 
     alias_method :original_find_or_create_resource_for, :find_or_create_resource_for
@@ -74,7 +74,7 @@ class ActiveResource::Base
       name = name.to_s.gsub(/[^\w\:]/, '_')
       # association support
       return reflections[name.to_sym].klass if reflections.key?(name.to_sym)
-      original_find_or_create_resource_for(name)
+      nil
     end
 end
 
@@ -206,16 +206,27 @@ module RestApi
       resource
     end
 
+    class HashWithSimpleIndifferentAccess < Hash
+      def [](s)
+        super s.to_s
+      end
+      def []=(s, v)
+        super s.to_s, v
+      end
+    end
+
     def initialize(attributes = {}, persisted=false)
       @as = attributes.delete :as
-      super attributes, persisted
+      @attributes     = HashWithSimpleIndifferentAccess.new
+      @prefix_options = {}
+      @persisted = persisted
+      load(attributes)
     end
 
     def load(attributes, remove_root=false)
       raise ArgumentError, "expected an attributes Hash, got #{attributes.inspect}" unless attributes.is_a?(Hash)
       self.prefix_options, attributes = split_options(attributes)
 
-      attributes = attributes.dup
       aliased = self.class.aliased_attributes
       calculated = self.class.calculated_attributes
       known = self.class.known_attributes
@@ -229,25 +240,34 @@ module RestApi
         if !known.include? key.to_s and !calculated.include? key and self.class.method_defined?("#{key}=")
           send("#{key}=", value)
         else
-          self.attributes[key.to_s] =
+          @attributes[key.to_s] =
             case value
               when Array
-                resource = nil
-                value.map do |attrs|
-                  if attrs.is_a?(Hash)
-                    resource ||= find_or_create_resource_for_collection(key)
-                    attrs[:as] = as if resource.method_defined? :as=
-                    resource.new(attrs)
+                if value.length > 0
+                  if resource = find_or_create_resource_for_collection(key)
+                    value.map do |attrs|
+                      if attrs.is_a?(Hash)
+                        attrs[:as] = as if resource.method_defined? :as=
+                        resource.new(attrs)
+                      else
+                        attrs
+                      end
+                    end
                   else
-                    attrs.duplicable? ? attrs.dup : attrs
+                    value
                   end
+                else
+                  value
                 end
               when Hash
-                resource = find_or_create_resource_for(key)
-                value[:as] = as if resource.method_defined? :as=
-                resource.new(value)
+                if resource = find_or_create_resource_for(key)
+                  value[:as] = as if resource.method_defined? :as=
+                  resource.new(value)
+                else
+                  value
+                end
               else
-                value.duplicable? ? value.dup : value
+                value
             end
         end
       end
@@ -461,7 +481,23 @@ module RestApi
         hash.each_pair{ |k,v| self[k] = v }
       end
     end
-    has_many :messages, :class_name => 'rest_api/base/attribute_hash'
+    #
+    # Provides indifferent access to a backing Hash with String keys.
+    #
+    class IndifferentAccess < SimpleDelegator
+      def [](s)
+        v = __getobj__[s.to_s]
+        v = __getobj__[s] if v.nil? && !(String === s)
+        v
+      end
+      def []=(s, v)
+        __getobj__[s.to_s] = v
+      end
+    end
+    def self.as_indifferent_hash
+      IndifferentAccess
+    end
+    has_many :messages, :class_name => as_indifferent_hash
 
     #FIXME may be refactored
     def remote_results
@@ -688,8 +724,7 @@ module RestApi
 
       # supports presence of AttributeMethods and Dirty
       def attribute(s)
-        #puts "attribute[#{s}] #{caller.join("  \n")}"
-        attributes[s]
+        attributes[s.to_s]
       end
 
       def method_missing(method_symbol, *arguments) #:nodoc:

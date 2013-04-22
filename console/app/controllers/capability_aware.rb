@@ -16,7 +16,10 @@ module CapabilityAware
   # Call this with :refresh => true to force a
   # refresh of the values stored in session
   def user_capabilities(args = {})
-    @user_capabilities = nil if args[:refresh]
+    if args[:refresh]
+      @user_capabilities = nil
+      session[:caps] = nil
+    end
     model = Console.config.capabilities_model_class
     @user_capabilities ||=
       (model.from(session[:caps]) rescue nil) ||
