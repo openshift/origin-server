@@ -8,8 +8,17 @@ Feature: V2 Platform Extended Tests
     And the mock-0.1 cartridge private endpoints will be exposed
     And the mock setup_called marker will exist
     And the mock setup_version marker will exist
+    And the mock install_called marker will exist
+    And the mock install_version marker will exist
+    And the mock post_setup_called marker will exist
+    And the mock post_setup_version marker will exist
+    And the mock post_install_called marker will exist
+    And the mock post_install_version marker will exist
     And the mock-0.1 MOCK_VERSION env entry will exist
     And the mock setup_failure marker will not exist
+    And the mock install_failure marker will not exist
+    And the mock post_setup_failure marker will not exist
+    And the mock post_install_failure marker will not exist
     And the mock-0.1 MOCK_EXAMPLE env entry will exist
     And the mock-0.1 MOCK_SERVICE_URL env entry will exist
     And the mock-0.1 MOCK_IDENT env entry will exist

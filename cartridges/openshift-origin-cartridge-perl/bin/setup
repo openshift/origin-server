@@ -7,9 +7,4 @@ shopt -s dotglob
 cp -r $OPENSHIFT_PERL_DIR/versions/$version/etc/* $OPENSHIFT_PERL_DIR/etc
 cp -r $OPENSHIFT_PERL_DIR/versions/$version/metadata/* $OPENSHIFT_PERL_DIR/metadata
 cp -r $OPENSHIFT_PERL_DIR/versions/$version/template/* $OPENSHIFT_PERL_DIR/template
-mkdir $OPENSHIFT_HOMEDIR/.cpanm
-
-# Create additional directories required by PERL and httpd
-ln -s /usr/lib64/httpd/modules $OPENSHIFT_PERL_DIR
-ln -s /etc/httpd/conf/magic $OPENSHIFT_PERL_DIR/etc/magic
-
+mkdir -p $OPENSHIFT_HOMEDIR/.cpanm
