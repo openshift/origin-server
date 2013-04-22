@@ -111,8 +111,8 @@ rm -rf tmp/cache/*
 echo > %{buildroot}%{_var}/log/openshift/console/production.log
 popd
 
-find . -name .gitignore | xargs rm
-find . -name .gitkeep | xargs rm
+find . -name .gitignore -delete
+find . -name .gitkeep -delete
 
 rm -rf %{buildroot}%{_var}/log/openshift/*
 
