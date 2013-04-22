@@ -19,6 +19,7 @@ require 'openshift-origin-node/model/unix_user'
 require 'openshift-origin-node/model/application_repository'
 require 'openshift-origin-node/model/cartridge_repository'
 require 'openshift-origin-node/model/cartridge'
+require 'openshift-origin-node/model/pub_sub_connector'
 require 'openshift-origin-node/utils/shell_exec'
 require 'openshift-origin-node/utils/selinux'
 require 'openshift-origin-node/utils/node_logger'
@@ -808,13 +809,23 @@ module OpenShift
     end
 
     # :call-seq:
-    #    V2CartridgeModel.new(...).connector_execute(cartridge_name, connector, args)
+    #    V2CartridgeModel.new(...).connector_execute(cartridge_name, connection_type, connector, args) => String
     #
-    def connector_execute(cart_name, connector, args)
+    def connector_execute(cart_name, connection_type, connector, args)
       cartridge = get_cartridge(cart_name)
       env       = Utils::Environ.for_gear(@user.homedir, File.join(@user.homedir, cartridge.directory))
 
-      script = PathUtils.join(@user.homedir, cartridge.directory, 'hooks', connector)
+      conn = Runtime::PubSubConnector.new connection_type, connector
+
+      if conn.reserved?
+        begin
+          return send(conn.action_name)
+        rescue NoMethodError => e
+          logger.debug "#{e.message}; falling back to script"
+        end
+      end
+
+      script = PathUtils.join(@user.homedir, cartridge.directory, 'hooks', conn.name)
 
       unless File.executable?(script)
         msg = "ERROR: action '#{connector}' not found."
@@ -1170,6 +1181,39 @@ module OpenShift
 
       PathUtils.oo_chown_R(@user.uid, @user.gid, target)
       Utils::SELinux.set_mcs_label_R(mcs_label, target)
+    end
+
+    private
+    ## special methods that are handled especially by the platform
+    def publish_gear_endpoint
+      begin
+        # TODO:
+        # There is some concern about how well-behaved Facter is
+        # when it is require'd.
+        # Instead, we use oo_spawn here to avoid it altogether.
+        # For the long-term, then, figure out a way to reliably
+        # determine the IP address from Ruby.
+        out, err, status = Utils.oo_spawn('facter ipaddress',
+                                   env:                 cartridge_env,
+                                   unsetenv_others:     true,
+                                   chdir:               @user.homedir,
+                                   uid:                 @user.uid,
+                                   expected_exitstatus: 0)
+        private_ip = out.chomp
+      rescue
+        require 'socket'
+        addrinfo = Socket.getaddrinfo(Socket.gethostname, 80) # 80 is arbitrary
+        private_addr = addrinfo.select { |info|
+          info[3] !~ /^127/
+        }.first
+        private_ip = private_addr[3]
+      end
+
+      env = Utils::Environ::for_gear(@user.homedir)
+
+      output = "#{env['OPENSHIFT_GEAR_UUID']}@#{private_ip}:#{primary_cartridge.name};#{env['OPENSHIFT_GEAR_DNS']}"
+      logger.debug output
+      output
     end
   end
 end
