@@ -13,7 +13,7 @@ gear build
 # Deploy new build
 
 # Stop app
-$GIT_SSH $upstream_ssh 'gear stop'
+$GIT_SSH $upstream_ssh 'gear stop --conditional'
 
 # Push content back to application
 rsync ${OPENSHIFT_PERL_DIR}perl5lib/ $upstream_ssh:'${OPENSHIFT_PERL_DIR}perl5lib/'

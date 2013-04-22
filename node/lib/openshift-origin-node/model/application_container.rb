@@ -349,8 +349,9 @@ module OpenShift
                                     out: options[:out],
                                     err: options[:err])
       else
-        DefaultBuilder.new(self).pre_receive(out: options[:out],
-                                             err: options[:err])
+        DefaultBuilder.new(self).pre_receive(out:        options[:out],
+                                             err:        options[:err],
+                                             hot_deploy: options[:hot_deploy])
 
         @cartridge_model.do_control('pre-receive',
                                     @cartridge_model.primary_cartridge,
@@ -370,24 +371,33 @@ module OpenShift
                                     out: options[:out],
                                     err: options[:err])
       else
-        DefaultBuilder.new(self).post_receive(out: options[:out],
-                                              err: options[:err])
+        DefaultBuilder.new(self).post_receive(out:        options[:out],
+                                              err:        options[:err],
+                                              hot_deploy: options[:hot_deploy])
       end
     end
 
     def remote_deploy(options={})
-      start_gear(secondary_only: true,
-                 user_initiated: true,
-                 out:            options[:out],
-                 err:            options[:err])
+      if options[:hot_deploy]
+        options[:out].puts "Skipping secondary gear start due to presence of hot deploy marker" if options[:out]
+      else
+        start_gear(secondary_only: true,
+                   user_initiated: true,
+                   out:            options[:out],
+                   err:            options[:err])
+      end
 
       deploy(out: options[:out],
              err: options[:err])
 
-      start_gear(primary_only:  true,
-                user_initiated: true,
-                out:            options[:out],
-                err:            options[:err])
+      if options[:hot_deploy]
+        options[:out].puts "Skipping primary gear start due to presence of hot deploy marker" if options[:out]
+      else
+        start_gear(primary_only:  true,
+                  user_initiated: true,
+                  out:            options[:out],
+                  err:            options[:err])
+      end
 
       post_deploy(out: options[:out],
                   err: options[:err])

@@ -25,9 +25,13 @@ module OpenShift
     end
 
     def pre_receive(options)
-      @container.stop_gear(user_initiated: true,
-                           out: options[:out],
-                           err: options[:err])
+      if options[:hot_deploy]
+        options[:out].puts "Skipping gear stop due to presence of hot deploy marker" if options[:out]
+      else
+        @container.stop_gear(user_initiated: true,
+                             out: options[:out],
+                             err: options[:err])
+      end
     end
 
     def post_receive(options)
@@ -36,18 +40,26 @@ module OpenShift
       @container.build(out: options[:out],
                        err: options[:err])
 
-      @container.start_gear(secondary_only: true,
-                            user_initiated: true,
-                            out:            options[:out],
-                            err:            options[:err])
+      if options[:hot_deploy]
+        options[:out].puts "Skipping secondary gear start due to presence of hot deploy marker" if options[:out]
+      else
+        @container.start_gear(secondary_only: true,
+                              user_initiated: true,
+                              out:            options[:out],
+                              err:            options[:err])
+      end
 
       @container.deploy(out: options[:out],
                         err: options[:err])
 
-      @container.start_gear(primary_only:   true,
-                            user_initiated: true,
-                            out:            options[:out],
-                            err:            options[:err])
+      if options[:hot_deploy]
+        options[:out].puts "Skipping primary gear start due to presence of hot deploy marker" if options[:out]
+      else
+        @container.start_gear(primary_only:   true,
+                              user_initiated: true,
+                              out:            options[:out],
+                              err:            options[:err])
+      end
 
       @container.post_deploy(out: options[:out],
                              err: options[:err])
