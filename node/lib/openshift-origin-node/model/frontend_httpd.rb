@@ -110,6 +110,33 @@ module OpenShift
     attr_reader :container_uuid, :container_name
     attr_reader :namespace, :fqdn
 
+    # Public: return an Enumerator which yields FrontendHttpServer
+    # objects for each gear which has run create.
+    def self.all
+      Enumerator.new do |yielder|
+
+        # Avoid deadlocks by listing the gears first
+        gearlist = {}
+        GearDB.open(GearDB::READER) do |d|
+          d.each do |uuid, container|
+            gearlist[uuid.clone] = container.clone
+          end
+        end
+
+        gearlist.each do |uuid, container|
+          begin
+            frontend = FrontendHttpServer.new(uuid, container['container_name'], container['namespace'])
+          rescue => e
+            NodeLogger.logger.error("Failed to instantiate FrontendHttpServer for #{uuid}: #{e}")
+            NodeLogger.logger.error("Backtrace: #{e.backtrace}")
+          else
+            yielder.yield(frontend)
+          end
+        end
+      end
+
+    end
+
     def initialize(container_uuid, container_name=nil, namespace=nil)
       @config = OpenShift::Config.new
 
