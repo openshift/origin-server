@@ -42,9 +42,6 @@ MESG_PLUGINS="mcollective"
 
 DEFAULT_PACKAGES="
   ruby
-  rubygems
-  rubygem-rails
-  rubygem-passenger
   rubygem-openshift-origin-common
   rubygem-openshift-origin-controller
   openshift-origin-broker 
@@ -96,8 +93,18 @@ if which scl 1> /dev/null 2> /dev/null && scl -l | grep -q '^ruby193$' ; then
     }
 
     function safe_ruby() {
-        scl enable ruby193 "ruby $@"
+#        scl enable ruby193 "ruby \"$@\""
+        oo-ruby "$@"
     }
+    PACKAGES+="  ruby193-rubygem-rails
+  ruby193-rubygem-passenger
+  ruby193-rubygems
+"
+else
+    PACKAGES+="  rubygem-rails
+  rubygem-passenger
+  rubygems
+"
 fi
 
 
