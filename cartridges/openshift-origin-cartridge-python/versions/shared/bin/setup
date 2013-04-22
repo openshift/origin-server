@@ -9,6 +9,7 @@ source "${OPENSHIFT_PYTHON_DIR}/versions/$version/lib/utils"
 # Copy the version specific files
 shopt -s dotglob
 cp -r $OPENSHIFT_PYTHON_DIR/versions/$version/template/* $OPENSHIFT_PYTHON_DIR/template
+cp -r $OPENSHIFT_PYTHON_DIR/versions/$version/metadata/* $OPENSHIFT_PYTHON_DIR/metadata
 
 # Download the repo bits
 cart_git_url="git://github.com/openshift/openshift-community-cartridge-python-$version.git"
