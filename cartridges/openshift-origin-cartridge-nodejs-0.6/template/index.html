@@ -146,7 +146,7 @@
       Why not visit us at <a href="http://www.openshift.com">http://www.openshift.com</a>, or
     </li>
     <li>
-      You could get help in the <a href="http://www.redhat.com/openshift">OpenShift forums</a>, or
+      You could get help in the <a href="http://www.openshift.com/forums/openshift">OpenShift forums</a>, or
     </li>
     <li>
       You're welcome to come chat with us in our IRC channel at #openshift on freenode.net

@@ -16,7 +16,7 @@ Categories:
   - jee_full_profile
 Website: http://www.jboss.org
 Help-Topics:
-  "Developer Center": https://openshift.redhat.com/community/developers
+  "Developer Center": https://www.openshift.com/developers
 Cart-Data:
   - Key: OPENSHIFT_JBOSSAS_LOG_DIR
     Type: environment

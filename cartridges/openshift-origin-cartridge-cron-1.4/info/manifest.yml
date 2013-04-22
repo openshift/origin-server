@@ -10,7 +10,7 @@ Website: "http://www.openshift.com/"
 Categories:
   - embedded
 Help-Topics:
-  "Getting Started Guide": https://openshift.redhat.com/community/blogs/getting-started-with-cron-jobs-on-openshift
+  "Getting Started Guide": https://www.openshift.com/blogs/getting-started-with-cron-jobs-on-openshift
 Provides: 
   - cron-1.4
   - cron
