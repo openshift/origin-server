@@ -9,8 +9,8 @@ def socket_file_mysql(statement)
   output.strip
 end
 
-def app_helper_socket_file_mysql(statement)
-   @app.ssh_command("-o LogLevel=quiet \"/usr/bin/mysql -S \\$OPENSHIFT_MYSQL_DB_SOCKET -u \\$OPENSHIFT_MYSQL_DB_USERNAME --password=\\$OPENSHIFT_MYSQL_DB_PASSWORD -D #{@app.name} --batch --silent --execute='#{statement}'\"")
+def app_helper_mysql(statement)
+   @app.ssh_command("-o LogLevel=quiet \"/usr/bin/mysql -h \\$OPENSHIFT_MYSQL_DB_HOST -P \\$OPENSHIFT_MYSQL_DB_PORT -u \\$OPENSHIFT_MYSQL_DB_USERNAME --password=\\$OPENSHIFT_MYSQL_DB_PASSWORD -D #{@app.name} --batch --silent --execute='#{statement}'\"")
 end
 
 Then /^I can select from the mysql database using the socket file$/ do
@@ -18,7 +18,7 @@ Then /^I can select from the mysql database using the socket file$/ do
 end
 
 Then /^I can select from mysql$/ do
-  app_helper_socket_file_mysql('select 1').should be == '1'
+  app_helper_mysql('select 1').should be == '1'
 end
 
 When /^I insert (additional )?test data into mysql$/ do |additional|
@@ -39,11 +39,11 @@ insert into cuke_test(id, msg) values(null, \\"additional data\\");
 
   run_sql = additional_sql if additional
 
-  app_helper_socket_file_mysql(run_sql)
+  app_helper_mysql(run_sql)
 end
 
 Then /^the (additional )?test data will (not )?be present in mysql$/ do |additional, negate|
-  output = app_helper_socket_file_mysql('select msg from cuke_test;')
+  output = app_helper_mysql('select msg from cuke_test;')
 
   desired_state = !!!negate
 

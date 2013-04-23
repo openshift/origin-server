@@ -28,7 +28,7 @@ Given /^an existing (.+) application( without an embedded cartridge)?$/ do |type
 end
 
 Given /^a new client created( scalable)? (.+) application$/ do |scalable, type|
-  @app = TestApp.create_unique(type)
+  @app = TestApp.create_unique(type, 'test', scalable)
   register_user(@app.login, @app.password) if $registration_required
   if rhc_create_domain(@app)
     if scalable
