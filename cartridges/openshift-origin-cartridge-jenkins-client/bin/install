@@ -1,0 +1,69 @@
+#!/bin/bash -e
+
+source $OPENSHIFT_CARTRIDGE_SDK_BASH
+
+if [ -z "$JENKINS_URL" ]
+then
+    client_error "Jenkins server does not exist!  Please create with rhc app create -t jenkins-1.4"
+    exit 151
+fi
+
+JENKINS_DNS_NAME=${JENKINS_URL:8} #remove https://
+
+#TODO Adjust this after configurable erb locations are added
+mv ${OPENSHIFT_JENKINS_CLIENT_DIR}/configuration/jenkins_job_template.xml.erb.hidden  ${OPENSHIFT_JENKINS_CLIENT_DIR}/configuration/jenkins_job_template.xml.erb
+
+echo $JENKINS_PASSWORD > "$OPENSHIFT_JENKINS_CLIENT_DIR/.password"
+
+# Maybe allow cartridges to create their own jenkins job
+if [ -f "${OPENSHIFT_PRIMARY_CARTRIDGE_DIR}/metadata/jenkins_shell_command" ]
+then
+    SHELL_COMMAND="${OPENSHIFT_PRIMARY_CARTRIDGE_DIR}/metadata/jenkins_shell_command"
+else
+    SHELL_COMMAND="$OPENSHIFT_JENKINS_CLIENT_DIR/metadata/jenkins_shell_command"
+fi
+
+if [ -f "${OPENSHIFT_PRIMARY_CARTRIDGE_DIR}/metadata/jenkins_artifacts_glob" ]
+then
+    ARTIFACTS_GLOB="${OPENSHIFT_PRIMARY_CARTRIDGE_DIR}/metadata/jenkins_artifacts_glob"
+else
+    ARTIFACTS_GLOB="$OPENSHIFT_JENKINS_CLIENT_DIR/metadata/jenkins_artifacts_glob"
+fi
+
+JOB_NAME=${OPENSHIFT_APP_NAME}-build
+
+BUILDER_TYPE=$(primary_cartridge_name)
+
+if out=$(${OPENSHIFT_JENKINS_CLIENT_DIR}/bin/jenkins_create_job "${OPENSHIFT_CLOUD_DOMAIN}" "$BUILDER_TYPE" "$SHELL_COMMAND" "$ARTIFACTS_GLOB" 2>&1)
+then
+    # Embedding success
+    client_result ""
+else
+    if enable_out=$(${OPENSHIFT_JENKINS_CLIENT_DIR}/bin/jenkins_job_action enable 2>&1)
+    then
+        client_result ""
+        client_result "Associated with job '${JOB_NAME}' in Jenkins server."
+        bldr_url="${JENKINS_DNS_NAME}computer/${OPENSHIFT_APP_NAME}bldr/"
+        status_code=`curl -s -w %{http_code} --output /dev/null --insecure https://${JENKINS_USERNAME}:${JENKINS_PASSWORD}@$bldr_url`
+        if [ "$status_code" == "200" ]
+        then
+            client_result "In addition we found an existing builder which you might also want"
+            client_result "to delete: http://${bldr_url}"
+        fi
+        client_result ""
+    else
+        # An error occurred enabling existing job
+        client_error ""
+        client_error "Could not add job '${JOB_NAME}' in Jenkins server:"
+        client_error "   $out"
+        client_error "You'll need to correct this error before attempting to embed the Jenkins client again."
+        exit 1
+    fi
+fi
+client_result "Job URL: ${JENKINS_URL}job/${JOB_NAME}/"
+client_result ""
+client_result "Jenkins client 1.4 has been added to: $OPENSHIFT_APP_NAME"
+
+cart_props "job_url=${JENKINS_URL}job/${JOB_NAME}/"
+
+set_app_info "Job URL: ${JENKINS_URL}job/${JOB_NAME}/"
