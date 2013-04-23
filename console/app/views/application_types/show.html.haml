@@ -12,6 +12,7 @@
 
 = semantic_form_for @application, :url => applications_path, :html => {:class => "form-horizontal form-important #{@compact ? 'collapse-help' : ''}"} do |f|
   = hidden_field_tag :advanced, @advanced
+  = hidden_field_tag :unlock, @unlock_cartridges
   - if @application_type.persisted?
     = f.hidden_field :application_type, :value => @application_type.id
   - else
@@ -68,7 +69,7 @@
 
         - else
           %p.help-block 
-            This application is based on a link.
+            This application is based on a URL.
             -# If you want others to see this application, #{link_to "create a quickstart in our community", create_quickstart_url}.
           %p.help-block= link_to "Share this link", application_type_url(@application_type.id, @application_type.to_params)
 
@@ -144,14 +145,20 @@
     = control_group(e.has_key?(:cartridges), :important => true) do
       %h3.control-label Cartridges
       .controls.first
-        - if @cartridges.present?
+        - if @unlock_cartridges
+          = text_field_tag 'application_type[cartridges]', @application_type.cartridge_specs, :class => 'expand', :placeholder => 'URL to a custom cartridge'
+        - elsif @cartridges.present?
           %h3
             = map_to_sentence(@cartridges) do |(name, carts)|
               - if carts.length > 1
                 = select_tag 'application[cartridges][]', options_for_select(carts.sort.map{ |c| [c.display_name, c.name] }, [carts.map(&:name) & @application.cartridge_names].first ), :title => "Choose a cartridge that matches '#{name}'"
               - elsif carts.length == 1
-                = hidden_field_tag 'application[cartridges][]', [carts.first.name]
-                = carts.first.display_name
+                - if carts.first.url
+                  = hidden_field_tag('application[cartridges][][url]', [carts.first.url])
+                  = link_to carts.first.display_name, carts.first.url
+                - else
+                  = hidden_field_tag('application[cartridges][]', [carts.first.name])
+                  = carts.first.display_name
               - else
                 %span.text-warning #{name}
         - else
@@ -163,6 +170,9 @@
         %p.help-block
           Applications are composed of cartridges - each of which exposes a service or 
           capability to your code.  All applications must have a web cartridge.
+
+        - if @unlock_cartridges or (@cartridges and @cartridges.any?{ |(name, carts)| carts.any?{ |c| c.url } })
+          %span.text-warning Custom cartridges do not receive updates automatically.
 
     .control-group.control-group-important
       %h3.control-label Scaling

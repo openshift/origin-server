@@ -111,6 +111,64 @@ class ApplicationsControllerTest < ActionController::TestCase
     assert_select "select[name='application[cartridges][]'] > option[selected]", 'Ruby 1.8'
   end
 
+  test "should assign errors when advanced form with url carts" do
+    with_domain
+    app_params = get_post_form
+    app_type = {
+      :id => 'custom',
+      :cartridges => ['https://foo.bar'],
+    }
+    app_params[:name] = ''
+    app_params[:cartridges] = ['https://foo.bar']
+    post(:create, {:application => app_params, :application_type => app_type, :advanced => true})
+
+    assert_template 'application_types/show'
+    assert app = assigns(:application)
+    assert !app.errors.empty?
+    assert app.errors[:name].present?, app.errors.inspect
+    assert_equal 1, app.errors[:name].length
+
+    assert_select '.error .help-inline', /Application name is required/i
+    assert_select 'h3 > a', 'https://foo.bar'
+    assert_select '.text-warning', /Custom cartridges do not receive updates automatically/
+    assert_select "input[type=hidden][name='application[cartridges][][url]'][value=https://foo.bar]"
+  end
+
+  test "should send URL to server" do
+    with_domain
+    app_params = get_post_form
+    app_type = {
+      :id => 'custom',
+      :cartridges => ['https://foo.bar'],
+    }
+    app_params[:name] = ''
+    app_params[:cartridges] = [{:url => 'https://foo.bar'}]
+    Application.any_instance.expects(:save).returns(true)
+    Application.any_instance.expects(:persisted?).at_least_once.returns(true)
+
+    post(:create, {:application => app_params, :application_type => app_type, :advanced => true})
+    
+    assert app = assigns(:application)
+    assert_equal [{'url' => 'https://foo.bar'}], app.cartridges
+  end
+
+  test "should send app type URL to server" do
+    with_domain
+    app_params = get_post_form
+    app_type = {
+      :id => 'custom',
+      :cartridges => 'https://foo.bar',
+    }
+    app_params[:name] = ''
+    Application.any_instance.expects(:save).returns(true)
+    Application.any_instance.expects(:persisted?).at_least_once.returns(true)
+
+    post(:create, {:application => app_params, :application_type => app_type, :advanced => true})
+    
+    assert app = assigns(:application)
+    assert_equal [CartridgeType.for_url('https://foo.bar')], app.attributes['cartridges']
+  end
+
   test "should assign errors on long name" do
     with_domain
     app_params = get_post_form
@@ -298,6 +356,8 @@ class ApplicationsControllerTest < ActionController::TestCase
     assert_equal 'true', app.scale.to_s
     assert app.persisted?
 
+    assert_redirected_to get_started_application_path(app, :wizard => true)
+
     app.destroy
   end
 
@@ -321,23 +381,6 @@ class ApplicationsControllerTest < ActionController::TestCase
     # This space intentionally left blank;
     # Testing this end-to-end would be relatively time consuming right now.
   end
-
-#  test "should check for empty name" do
-#    form = get_post_form
-#    form[:name]=''
-#    post(:create, {:application => form})
-#    assert assigns(:application)
-#    assert assigns(:application).errors[:name].length > 0
-#    assert_response :success
-#  end
-
-#  test "should redirect on success" do
-#    post(:create, :application => get_post_form)
-#    assert assigns(:application)
-#    assert assigns(:application).errors.empty?
-#    assert_redirected_to :action => 'show'
-#    assert_template
-#  end
 
   def get_post_form(name = 'cart!diy-0.1')
     {:name => 'test1', :application_type => name}

@@ -995,6 +995,26 @@ class RestApiTest < ActiveSupport::TestCase
     assert_equal '2', d.id
   end
 
+  def test_cartridge_type_url_basename
+    assert_nil CartridgeType.new.url_basename
+    {
+      'http://foo.bar' => 'http://foo.bar',
+      'http://foo.bar/' => 'http://foo.bar/',
+      'http://foo.bar/test' => 'test',
+      'http://foo.bar/test/' => 'test',
+      'http://foo.bar?name=other' => 'other',
+      'http://foo.bar/?name=other' => 'other',
+      'http://foo.bar/test?name=other' => 'other',
+      'http://foo.bar?name=other#wow' => 'wow',
+    }.each do |k,v|
+      c = CartridgeType.for_url(k)
+      assert_equal v, c.url_basename
+      assert_equal v, c.display_name
+    end
+    assert_equal 'http://foo.com', CartridgeType.new(:name => 'test', :url => 'http://foo.com').display_name
+    assert_equal 'test', CartridgeType.new(:name => 'test', :url => 'http://foo.com', :display_name => 'test').display_name
+  end
+
   def test_cartridge_usage_rates_default
     type = CartridgeType.new :name => 'nodejs-0.6', :display_name => 'Node.js', :website => 'test'
 

@@ -20,6 +20,9 @@ class ApplicationTypesControllerTest < ActionController::TestCase
     assert groups.length > 1, groups.length.to_s
     assert groups.any?{ |g| g[0] == 'Java' }
     assert groups.first[1].present?
+
+    assert_select "input[name='application_type[cartridges]'][type=text]", nil, @response.inspect
+    assert_select "p", /Have your own framework/
   end
 
   test "should be able to find quickstarts" do
@@ -105,6 +108,26 @@ class ApplicationTypesControllerTest < ActionController::TestCase
     assert_response :success
     assert_select 'h3', 'Ruby 1.9'
     assert_select 'h3', 'From Scratch'
+    assert_select "input[name='application[cartridges][]'][value=ruby-1.9]"
+  end
+
+  test "should render custom single cart type with url" do
+    with_unique_user
+    get :show, :id => 'custom', :cartridges => 'http://foo.bar#custom_cart'
+    assert_response :success
+    assert_select 'h3', 'From Scratch'
+    assert_select 'h3 > a', 'custom_cart'
+    assert_select '.text-warning', /Custom cartridges do not receive updates automatically/
+    assert_select "input[type=hidden][name='application[cartridges][][url]'][value=http://foo.bar#custom_cart]"
+  end
+
+  test "should render custom single cart type with url unlocked" do
+    with_unique_user
+    get :show, :id => 'custom', :application_type => {:cartridges => 'http://foo.bar#custom_cart'}, :unlock => true
+    assert_response :success
+    assert_select 'h3', 'From Scratch'
+    assert_select '.text-warning', /Custom cartridges do not receive updates automatically/
+    assert_select "input[type=text][name='application_type[cartridges]'][value=http://foo.bar#custom_cart]"
   end
 
   test "should render custom cart type with a choice" do

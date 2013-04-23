@@ -111,16 +111,25 @@ class ApplicationType
 
   def cartridge?; source == :cartridge; end
   def quickstart?; source == :quickstart; end
+  def custom?; id == 'custom'; end
 
   def matching_cartridges
     self.class.matching_cartridges(cartridge_specs)
   end
 
   def >>(app)
-    app.cartridges = cartridges if cartridges.present?
+    app.cartridges = cartridges.map{ |s| to_cart(s) } if cartridges.present?
     app.initial_git_url = initial_git_url if initial_git_url
     app.initial_git_branch = initial_git_branch if initial_git_branch
     app
+  end
+
+  def to_cart(c)
+    if c.is_a?(String) && (c.start_with? 'http://' or c.start_with? 'https://')
+      CartridgeType.for_url(c)
+    else
+      c
+    end
   end
 
   #
@@ -164,7 +173,9 @@ class ApplicationType
   def self.matching_cartridges(cartridge_specs)
     valid, invalid = {}, []
     Array(cartridge_specs).uniq.each do |c|
-      if (matches = CartridgeType.cached.matches(c)).present?
+      if c.start_with? 'http://' or c.start_with? 'https://'
+        valid[c] = [CartridgeType.for_url(c)]
+      elsif (matches = CartridgeType.cached.matches(c)).present?
         valid[c] = matches
       else
         invalid << c
