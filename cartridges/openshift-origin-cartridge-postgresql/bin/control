@@ -11,28 +11,11 @@ function _is_running {
   return $?
 }
 
-function first_run {
-  setup_marker_file=$TMP/.postgresql_setup_invocation_marker
-
-  [ -f $setup_marker_file ]
-}
-
 function wait_for_postgres_availability {
   for i in {1..30}; do
     _is_running && return 0
     sleep 1
   done
-}
-
-function pre_start {
-  if first_run; then
-    # These conf files need to override the values in the data directory AFTER it's been extracted by setup
-    #  This needs to be done here because the ERB processing happens after setup
-    cp $OPENSHIFT_POSTGRESQL_DIR/conf/*.conf $OPENSHIFT_POSTGRESQL_DIR/data/
-    # Copy our user groups to the data dir for use in pg_hba.conf
-    find "${OPENSHIFT_POSTGRESQL_DIR}/conf/groups" -not -name "*.md" -type f -exec cp '{}' "${OPENSHIFT_POSTGRESQL_DIR}/data" \;
-    chmod 0600 $PGPASSFILE
-  fi
 }
 
 function start {
@@ -51,14 +34,6 @@ function start {
     echo "Postgres already running"
   fi
   return 0
-}
-
-function post_start {
-  if first_run; then
-    echo "Preparing database for first use"
-    prepare_database
-    rm -f $setup_marker_file
-  fi
 }
 
 function stop {
@@ -87,32 +62,6 @@ function status {
   fi
 
   exit 0
-}
-
-function prepare_database {
-  wait_for_postgres_availability
-
-  local socket=$OPENSHIFT_POSTGRESQL_DB_SOCKET_DIR
-  local user=$OPENSHIFT_POSTGRESQL_DB_USERNAME
-  local pass=$OPENSHIFT_POSTGRESQL_DB_PASSWORD
-  local db=$OPENSHIFT_APP_NAME
-
-  # Create a user based on OPENSHIFT_POSTGRESQL_DB_USERNAME
-  {
-    createuser --superuser --createdb --createrole -U postgres -h $socket $user
-  } || error "Failed to create initial root user" 187
-
-  # Create a database based on OPENSHIFT_APP_NAME
-  {
-    createdb -O $user -U postgres -h $socket $db
-  } || error "Failed to create database" 188
-
-  # Set the user's password based on OPENSHIFT_POSTGRESQL_DB_PASSWORD
-  {
-    echo "
-    ALTER USER ${user} PASSWORD '${pass}';
-    " | psql -d $db -h $socket -U postgres
-  } || error "Failed to change password for initial root user" 187
 }
 
 function pre_snapshot {
@@ -186,9 +135,7 @@ function cleanup_dump {
 
 case "$1" in
   start)
-    pre_start
     start
-    post_start
   ;;
   stop)
     stop

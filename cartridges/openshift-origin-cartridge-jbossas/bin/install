@@ -1,6 +1,11 @@
 #!/bin/bash -eux
 
-version=7.1
+case "$1" in
+  -v|--version)
+    version="$2"
+esac
+
+echo "$version" > "$OPENSHIFT_JBOSSAS_DIR/env/OPENSHIFT_JBOSSAS_VERSION"
 
 ln -s ${OPENSHIFT_JBOSSAS_DIR}/standalone/log ${OPENSHIFT_JBOSSAS_DIR}/logs
 

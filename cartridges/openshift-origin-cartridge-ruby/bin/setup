@@ -1,8 +1,9 @@
 #!/bin/bash -e
-set -x
 
-# Set default version
-version=1.9
+case "$1" in
+  -v|--version)
+    version="$2"
+esac
 
 # Parse arguments
 source "${OPENSHIFT_RUBY_DIR}/lib/util"
@@ -17,11 +18,3 @@ for dir in etc metadata template; do
     mkdir -p $OPENSHIFT_RUBY_DIR/$dir
     cp -Lr $OPENSHIFT_RUBY_DIR/versions/$version/$dir/* $OPENSHIFT_RUBY_DIR/$dir 
 done
-
-mkdir $OPENSHIFT_HOMEDIR/.gem
-
-echo "$version" > $OPENSHIFT_RUBY_DIR/env/OPENSHIFT_RUBY_VERSION
-
-# Create additional directories required by RUBY and httpd
-ln -s /usr/lib64/httpd/modules $OPENSHIFT_RUBY_DIR
-ln -s /etc/httpd/conf/magic $OPENSHIFT_RUBY_DIR/etc/magic

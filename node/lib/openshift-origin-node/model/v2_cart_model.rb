@@ -239,10 +239,9 @@ module OpenShift
         Dir.chdir(@user.homedir) do
           unlock_gear(cartridge) do |c|
             output << cartridge_action(cartridge, 'setup', software_version, true)
+            process_erb_templates(c.directory)
             output << cartridge_action(cartridge, 'install', software_version)
             populate_gear_repo(c.directory, template_git_url) if cartridge.primary?
-
-            process_erb_templates(c.directory)
           end
 
         end

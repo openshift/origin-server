@@ -1,22 +1,3 @@
 #!/bin/bash -e
 
-source $OPENSHIFT_CARTRIDGE_SDK_BASH
-
-function drop_setup_marker {
-    touch $OPENSHIFT_TMP_DIR/.setup_mongodb_invocation_marker
-}
-
 mkdir -p $OPENSHIFT_MONGODB_DIR/{log,pid,socket,data,run}
-
-# generate password and setup env vars
-echo 'Generating username and password'
-
-password=$(generate_password)
-
-echo "admin" > $OPENSHIFT_MONGODB_DIR/env/OPENSHIFT_MONGODB_DB_USERNAME
-echo "$password" > $OPENSHIFT_MONGODB_DIR/env/OPENSHIFT_MONGODB_DB_PASSWORD
-echo "mongodb://admin:$password@$OPENSHIFT_MONGODB_DB_HOST:$OPENSHIFT_MONGODB_PORT/" > $OPENSHIFT_MONGODB_DIR/env/OPENSHIFT_MONGODB_DB_URL
-
-drop_setup_marker
-
-exit 0

@@ -1,0 +1,22 @@
+#!/bin/bash -e
+
+source $OPENSHIFT_CARTRIDGE_SDK_BASH
+
+password=$OPENSHIFT_MONGODB_DB_PASSWORD
+echo "use admin
+      db.addUser(\"admin\", \"${password}\")
+      db.auth(\"admin\", \"${password}\")
+      db.system.users.find()
+      use $OPENSHIFT_APP_NAME
+      db.openshift.save({application: \"$OPENSHIFT_APP_NAME\", dbhost: \"$OPENSHIFT_MONGODB_DB_HOST\" })
+      db.addUser(\"admin\", \"${password}\")
+      exit
+     "  | mongo $OPENSHIFT_MONGODB_DB_HOST
+rm -f /tmp/.dbshell
+
+cart_props "connection_url=mongodb://\$OPENSHIFT_MONGODB_DB_HOST:\$OPENSHIFT_MONGODB_DB_PORT/"
+cart_props "username=admin"
+cart_props "password=${password}"
+cart_props "database_name=$OPENSHIFT_APP_NAME"
+
+set_app_info "Connection URL: mongodb://\$OPENSHIFT_MONGODB_DB_HOST:\$OPENSHIFT_MONGODB_DB_PORT/"

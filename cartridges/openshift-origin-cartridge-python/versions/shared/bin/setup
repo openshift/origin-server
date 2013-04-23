@@ -1,14 +1,12 @@
-#!/bin/bash
-set -xe
+#!/bin/bash -e
 
-version=$1
+version="$1"
 
-#  Source in the utility functions.
+# Source in the utility functions.
 source "${OPENSHIFT_PYTHON_DIR}/versions/$version/lib/utils"
 
 # Copy the version specific files
 shopt -s dotglob
-cp -r $OPENSHIFT_PYTHON_DIR/versions/$version/template/* $OPENSHIFT_PYTHON_DIR/template
 cp -r $OPENSHIFT_PYTHON_DIR/versions/$version/metadata/* $OPENSHIFT_PYTHON_DIR/metadata
 
 # Download the repo bits
@@ -17,14 +15,14 @@ download_dir=$OPENSHIFT_PYTHON_DIR/upstream-repo
 mkdir -p $download_dir
 git clone --no-hardlinks $cart_git_url $download_dir
 
-#  Extract the tarball files -- supports .tar, .tar.gz, .tar.gz and zip files.
+# Extract the tarball files -- supports .tar, .tar.gz, .tar.gz and zip files.
 extract_package_files "${download_dir}/opt" "${OPENSHIFT_PYTHON_DIR}/opt"
 
-#  Add the python cartridge environment variables.
+# Add the python cartridge environment variables.
 egg_cache_dir="${OPENSHIFT_PYTHON_DIR}/virtenv/.python-eggs"
 echo "$egg_cache_dir" > "$OPENSHIFT_PYTHON_DIR/env/PYTHON_EGG_CACHE"
 
-#  Create the virtualenv.
+# Create the virtualenv.
 create_virtualenv
 
 create_virtenv_activate_file
