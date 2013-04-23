@@ -1,0 +1,65 @@
+#!/bin/bash -ex
+
+case "$1" in
+  -v|--version)
+    version="$2"
+esac
+
+source $OPENSHIFT_CARTRIDGE_SDK_BASH
+
+function obfuscate_password {
+    password="$1"
+    acegi_security_path=`find ${OPENSHIFT_DATA_DIR}/war/WEB-INF/lib/ -name acegi-security-*.jar`
+    commons_codec_path=`find ${OPENSHIFT_DATA_DIR}/war/WEB-INF/lib/ -name commons-codec-*.jar`
+
+    java -classpath "${acegi_security_path}:${commons_codec_path}:${OPENSHIFT_JENKINS_DIR}usr/lib/password-encoder.jar" com.redhat.openshift.PasswordEncoder $password
+}
+
+function generate_ssh_keys {
+    mkdir -p ${OPENSHIFT_DATA_DIR}/.ssh/
+    ssh-keygen -N '' -f ${OPENSHIFT_DATA_DIR}/.ssh/jenkins_id_rsa > /dev/null
+
+    chmod 0750 "${OPENSHIFT_DATA_DIR}/.ssh/"
+    chmod 0640 "${OPENSHIFT_DATA_DIR}/.ssh/jenkins_id_rsa"
+    chmod 0640 "${OPENSHIFT_DATA_DIR}/.ssh/jenkins_id_rsa.pub"
+}
+
+generate_ssh_keys
+
+public_key=$(cat ${OPENSHIFT_DATA_DIR}/.ssh/jenkins_id_rsa.pub)
+set -- $public_key
+add_ssh_key "$2"
+
+add_broker_auth_key
+
+admin_password=$(generate_password)
+system_builder_password=$(generate_password)
+
+echo "admin" > $OPENSHIFT_JENKINS_DIR/env/JENKINS_USERNAME
+echo "$admin_password" > $OPENSHIFT_JENKINS_DIR/env/JENKINS_PASSWORD
+
+mv "${OPENSHIFT_JENKINS_DIR}configuration/"* "${OPENSHIFT_DATA_DIR}"
+openshift_server=`echo "${OPENSHIFT_BROKER_HOST}" | sed -e "s/\/*$//" `
+sed -i "s,OPENSHIFT_SERVER,$openshift_server,g" "${OPENSHIFT_DATA_DIR}/config.xml"
+unzip -q /usr/lib/jenkins/jenkins.war -d "${OPENSHIFT_DATA_DIR}/war/"
+admin_password_hash=`obfuscate_password $admin_password`
+sed -i "s,PASSWORD,$admin_password_hash,g" "${OPENSHIFT_DATA_DIR}/users/admin/config.xml"
+system_builder_password_hash=`obfuscate_password $system_builder_password`
+sed -i "s,PASSWORD,$system_builder_password_hash,g" "${OPENSHIFT_DATA_DIR}/users/system_builder/config.xml"
+echo $system_builder_password > ${OPENSHIFT_HOMEDIR}/.jenkins_password
+
+client_result ""
+client_result "Jenkins created successfully.  Please make note of these credentials:"
+client_result ""
+client_result "   User: admin"
+client_result "   Password: $admin_password"
+client_result ""
+client_result "Note:  You can change your password at: https://${OPENSHIFT_GEAR_DNS}/me/configure"
+client_result ""
+
+cart_props "username=system_builder"
+cart_props "password=$system_builder_password"
+
+add_env_var "JENKINS_URL=https://${OPENSHIFT_GEAR_DNS}/"
+add_env_var "JENKINS_USERNAME=system_builder"
+add_env_var "JENKINS_PASSWORD=$system_builder_password"
