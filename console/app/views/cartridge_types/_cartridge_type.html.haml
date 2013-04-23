@@ -16,8 +16,19 @@
     - if cartridge_type.usage_rates?
       = usage_rate_indicator
 
+  - if cartridge_type.custom?
+    %p
+      This is a custom cartridge.  OpenShift will download this cart and then add it to your application.  The cart will have access to all of your application data - be sure this is what you really want to do!
+
+    %p.text-warning Custom cartridges do not receive updates automatically
+
   - if extra_info
     %ul.unstyled.meta
+
+      -if cartridge_type.custom?
+        %li.url
+          %label URL:
+          %span= cartridge_type.url
 
       -# if cartridge_type.license
         %li.license
@@ -42,6 +53,8 @@
 
   - if cartridge_type.learn_more_url
     = link_to "Learn more", cartridge_type.learn_more_url
+  - elsif cartridge_type.custom?
+    = link_to "Learn more", custom_cartridges_help_url
 
   - if extra_info and cartridge_type.provides
     %div

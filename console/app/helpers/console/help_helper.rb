@@ -86,6 +86,10 @@ module Console::HelpHelper
     community_base_url 'developers/get-started'
   end
 
+  def custom_cartridges_help_url
+    community_base_url 'developers/custom-cartridges'
+  end
+
   def livecd_wiki_url(anchor=nil)
     community_base_url "wiki/getting-started-with-openshift-origin-livecd#{anchor.present? ? "##{anchor}" : ''}"
   end

@@ -4,7 +4,7 @@ class ApplicationType
   include RestApi::Cacheable
   extend ActiveModel::Naming
 
-  PROTECTED_TAGS = [:new, :premium, :blacklist, :featured]
+  PROTECTED_TAGS = [:new, :premium, :blacklist, :featured, :custom]
   def self.user_tags(tags)
     tags - PROTECTED_TAGS
   end

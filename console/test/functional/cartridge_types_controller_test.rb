@@ -24,6 +24,9 @@ class CartridgeTypesControllerTest < ActionController::TestCase
 
     cached = CartridgeType.cached.all
     assert cached.all? {|t| (t.tags & [:installed, :inactive, 'inactive']).empty? }, cached.pretty_inspect
+
+    assert_select "h3", 'Install a custom cartridge'
+    assert_select "input[type=submit][title='Add a custom cartridge']"
   end
 
   test "should show type page" do
@@ -35,6 +38,23 @@ class CartridgeTypesControllerTest < ActionController::TestCase
     assert assigns(:cartridge)
     assert assigns(:application)
     assert assigns(:domain)
+  end
+
+  test "should show custom url page" do
+    get :show, :application_id => with_app.name, :id => 'custom', :url => 'https://foo.com#bar'
+
+    assert_response :success
+    assert type = assigns(:cartridge_type)
+    assert_equal 'https://foo.com#bar', type.url
+    assert assigns(:cartridge)
+    assert assigns(:application)
+    assert assigns(:domain)
+
+    assert_select 'h3', 'bar'
+    assert_select 'p', /This is a custom cartridge/
+    assert_select 'span', 'https://foo.com#bar'
+    assert_select '.text-warning', /Custom cartridges do not receive updates automatically/
+    assert_select 'a[href=https://foo.com#bar]', 'bar'
   end
 
   test "should not raise on missing type" do

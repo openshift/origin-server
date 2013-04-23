@@ -45,6 +45,7 @@ class CartridgeType < RestApi::Base
 
   def embedded?;    type == :embedded; end
   def standalone?;  type == :standalone; end
+  def custom?;      url.present?; end
 
   def display_name
     @display_name ||= url_basename || name

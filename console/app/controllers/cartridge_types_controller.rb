@@ -22,9 +22,11 @@ class CartridgeTypesController < ConsoleController
 
   def show
     @domain = user_default_domain
+    name = params[:id].presence
+    url = params[:url].presence
 
+    @cartridge_type = url ? CartridgeType.for_url(url) : CartridgeType.cached.find(name)
     @application = @domain.find_application params[:application_id]
-    @cartridge_type = CartridgeType.cached.find params[:id]
     @cartridge = Cartridge.new :as => current_user
   end
 
