@@ -19,4 +19,11 @@ class ConsoleIndexControllerTest < ActionController::TestCase
     assert_response :success
     assert_template 'console/help'
   end
+
+  test 'render server maintenance' do
+    get :server_maintenance
+    assert_response :success
+    assert_template 'console/server_maintenance'
+  end
+
 end
