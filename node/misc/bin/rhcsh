@@ -4,27 +4,45 @@
 
 source /etc/init.d/functions 2> /dev/null
 
+# source OpenShift environment variable into context
+function load_env {
+    [ -z "$1" ] && return 1
+    [ -f "$1" ] || return 0
+
+    local contents=$(< $1)
+    if [[ $contents =~ ^export\ .* ]]
+    then
+      source $1
+    else
+      local key=$(basename $1)
+      export $key=$(< $1)
+    fi
+}
+
+for f in /etc/openshift/env/* ~/.env/* ~/.env/.uservars/* ~/*/env/*
+do
+    load_env $f
+done
+
 if [ -f ~/.env/CARTRIDGE_VERSION_2 ]
 then
-    # source OpenShift environment variable into context
-    function source_env_file {
-      [ -z "$1" ] && return 1
-      [ -f "$1" ] || return 0
+    if [ -n "$OPENSHIFT_PRIMARY_CARTRIDGE_DIR" ]
+    then
+        load_env $OPENSHIFT_PRIMARY_CARTRIDGE_DIR/env/*
+    fi
 
-      local KEY=$(basename $1)
-      export $KEY=$(< $1)
-    }
+    path=$(env |grep 'OPENSHIFT_.*_PATH'| sed 's/^.*=\(.*\)$/\1/'|tr '\n' ':')
 
-    for f in /etc/openshift/env/* ~/.env/* ~/.env/.uservars ~/*/env/*
-    do
-        source_env_file $f
-    done
-else
-    # Import Environment Variables
-    for f in ~/.env/*
-    do
-      [ -f "$f" ] && . "$f"
-    done
+    if [ -f $OPENSHIFT_PRIMARY_CARTRIDGE_DIR/env/OPENSHIFT_*_PATH ]
+    then
+        path=$(< $OPENSHIFT_PRIMARY_CARTRIDGE_DIR/env/OPENSHIFT_*_PATH)
+    fi
+
+    if [ -f /etc/openshift/env/PATH ]
+    then
+        path=$path:$(< /etc/openshift/env/PATH)
+    fi
+    export PATH=$path
 fi
 
 source /etc/openshift/node.conf

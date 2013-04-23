@@ -7,3 +7,6 @@ ln -s ${OPENSHIFT_REPO_DIR}/webapps ${OPENSHIFT_JBOSSEWS_DIR}/webapps
 pushd $OPENSHIFT_JBOSSEWS_DIR/template/src/main/webapp
   jar cvf $OPENSHIFT_JBOSSEWS_DIR/template/webapps/ROOT.war ./*
 popd
+
+M2_HOME=/etc/alternatives/maven-3.0
+echo "$M2_HOME/bin" > $OPENSHIFT_JBOSSEWS_DIR/env/OPENSHIFT_JBOSSEWS_DIR

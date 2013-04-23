@@ -9,9 +9,10 @@ echo "$version" > "$OPENSHIFT_JBOSSAS_DIR/env/OPENSHIFT_JBOSSAS_VERSION"
 
 ln -s ${OPENSHIFT_JBOSSAS_DIR}/standalone/log ${OPENSHIFT_JBOSSAS_DIR}/logs
 
+shopt -s dotglob
 cp -r ${OPENSHIFT_JBOSSAS_DIR}/versions/${version}/template/* ${OPENSHIFT_JBOSSAS_DIR}/template
-cp -r ${OPENSHIFT_JBOSSAS_DIR}/versions/${version}/template/.openshift ${OPENSHIFT_JBOSSAS_DIR}/template
 cp ${OPENSHIFT_JBOSSAS_DIR}/standalone/configuration/standalone.xml ${OPENSHIFT_JBOSSAS_DIR}/template/.openshift/config
+
 sed -i "s/{APP_NAME}/${OPENSHIFT_APP_NAME}/g" ${OPENSHIFT_JBOSSAS_DIR}/template/pom.xml
 
 pushd $OPENSHIFT_JBOSSAS_DIR/template/src/main/webapp
@@ -24,8 +25,4 @@ pushd $OPENSHIFT_JBOSSAS_DIR > /dev/null
   ln -s ${JBOSS_HOME}/modules
 popd > /dev/null
 
-JAVA_HOME=/etc/alternatives/java_sdk_1.7.0
-M2_HOME=/etc/alternatives/maven-3.0
-echo "$JAVA_HOME" > $OPENSHIFT_JBOSSAS_DIR/env/JAVA_HOME
-echo "$M2_HOME" > $OPENSHIFT_JBOSSAS_DIR/env/M2_HOME
-echo "$JAVA_HOME/bin:$M2_HOME/bin:$PATH" > $OPENSHIFT_JBOSSAS_DIR/env/PATH
+echo "$JAVA_HOME/bin:$M2_HOME/bin" > $OPENSHIFT_JBOSSAS_DIR/env/OPENSHIFT_JBOSSAS_PATH

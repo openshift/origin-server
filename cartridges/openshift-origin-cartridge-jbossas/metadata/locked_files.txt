@@ -1,4 +1,6 @@
-jbossas/
-jbossas/metadata/
-jbossas/env/
-jbossas/template/
+metadata/
+env/
+env/OPENSHIFT_JBOSSAS_LOG_DIR
+env/OPENSHIFT_JBOSSAS_VERSION
+env/M2_HOME
+template/

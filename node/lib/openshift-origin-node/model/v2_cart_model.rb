@@ -244,6 +244,7 @@ module OpenShift
             output << cartridge_action(cartridge, 'install', software_version)
             populate_gear_repo(c.directory, template_git_url) if cartridge.primary?
           end
+
         end
       end
 
@@ -448,6 +449,10 @@ module OpenShift
 
       mcs_label = Utils::SELinux.get_mcs_label(@user.uid)
 
+      # Gear level actions: Placed here to be off the V1 code path...
+      old_path = File.join(@user.homedir, '.env', 'PATH')
+      File.delete(old_path) if File.file? old_path
+
       uservars_env = File.join(@user.homedir, '.env', '.uservars')
       FileUtils.mkpath uservars_env
 
@@ -517,7 +522,7 @@ module OpenShift
       directory = File.join(@user.homedir, cartridge_name)
       logger.info "Processing ERB templates for #{directory}/**"
 
-      env = Utils::Environ.for_gear_ordered(@user.homedir, directory)
+      env = Utils::Environ.for_gear(@user.homedir, directory)
       render_erbs(env, File.join(directory, '**'))
     end
 
@@ -587,7 +592,7 @@ module OpenShift
     # stdout = cartridge_teardown('php-5.3')
     def cartridge_teardown(cartridge_name)
       cartridge_home = File.join(@user.homedir, cartridge_name)
-      env            = Utils::Environ.for_gear_ordered(@user.homedir, cartridge_home)
+      env            = Utils::Environ.for_gear(@user.homedir, cartridge_home)
       teardown       = File.join(cartridge_home, 'bin', 'teardown')
 
       return "" unless File.exists? teardown
@@ -805,7 +810,7 @@ module OpenShift
     #
     def connector_execute(cart_name, connector, args)
       cartridge = get_cartridge(cart_name)
-      env       = Utils::Environ.for_gear_ordered(@user.homedir, File.join(@user.homedir, cartridge.directory))
+      env       = Utils::Environ.for_gear(@user.homedir, File.join(@user.homedir, cartridge.directory))
 
       script = PathUtils.join(@user.homedir, cartridge.directory, 'hooks', connector)
 

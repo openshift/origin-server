@@ -1,4 +1,3 @@
-#!/bin/env bash
-export PATH=$OPENSHIFT_HAPROXY_DIR/bin:$PATH
+#!/bin/bash -eu
 
-oo-exec-ruby haproxy_ctld_daemon.rb "$@"
+exec oo-exec-ruby haproxy_ctld_daemon.rb "$@"
