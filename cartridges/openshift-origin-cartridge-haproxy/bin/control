@@ -9,7 +9,7 @@ export PATH=$OPENSHIFT_HAPROXY_DIR/bin:$PATH
 
 if ! [ $# -eq 1 ]
 then
-    echo "Usage: \$0 [start|restart|graceful|graceful-stop|stop]"
+    echo "Usage: \$0 [start|restart|stop|status|deploy]"
     exit 1
 fi
 
@@ -118,24 +118,19 @@ function _reload_service() {
     wait_to_start
 }
 
-function _send_client_result() {
-    # Only sent client result if call done at the cartridge level.
-    client_result "$@"
-}
-
 function start() {
     _start_haproxy_service
-    isrunning  &&  _send_client_result "HAProxy instance is started"
+    isrunning  &&  client_result "HAProxy instance is started"
 }
 
 function stop() {
     _stop_haproxy_service
-    isrunning  ||  _send_client_result "HAProxy instance is stopped"
+    isrunning  ||  client_result "HAProxy instance is stopped"
 }
 
 function restart() {
     _restart_haproxy_service
-    isrunning  &&  _send_client_result "Restarted HAProxy instance"
+    isrunning  &&  client_result "Restarted HAProxy instance"
 }
 
 function reload() {
@@ -147,29 +142,14 @@ function reload() {
        _start_haproxy_ctld_daemon
     fi
 
-    isrunning  &&  _send_client_result "Reloaded HAProxy instance"
-}
-
-function cond_reload() {
-    _state=`get_app_state`
-    if isrunning || [ "$_state" = "started" ]; then
-        echo "`date`: Conditionally reloading HAProxy service " 1>&2
-        _reload_service
-        _start_haproxy_ctld_daemon
-        isrunning  &&  _send_client_result "Conditionally reloaded HAProxy"
-    fi
-}
-
-function force_stop() {
-    pkill haproxy
-    isrunning  ||  _send_client_result "Force stopped HAProxy instance"
+    isrunning  &&  client_result "Reloaded HAProxy instance"
 }
 
 function status() {
     if isrunning; then
-        _send_client_result "HAProxy instance is running"
+        client_result "HAProxy instance is running"
     else
-        _send_client_result "HAProxy instance is stopped"
+        client_result "HAProxy instance is stopped"
     fi
     print_user_running_processes `id -u`
 }
@@ -184,14 +164,10 @@ function deploy() {
 
 # And then on the haproxy and haproxy_ctld.
 case "$1" in
-    start)               start       ;;
-    graceful-stop|stop)  stop        ;;
-    restart)             restart     ;;
-    graceful|reload)     reload      ;;
-    cond-reload)         cond_reload ;;
-    force-stop)          force_stop  ;;
-    status)              status      ;;
-    deploy)              deploy      ;;
+    start)     start   ;;
+    stop)      stop    ;;
+    restart)   restart ;;
+    reload)    reload  ;;
+    status)    status  ;;
+    deploy)    deploy  ;;
 esac
-
-exit 0

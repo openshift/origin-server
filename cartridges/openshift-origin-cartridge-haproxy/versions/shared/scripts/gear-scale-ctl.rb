@@ -146,13 +146,7 @@ class Gear_scale_ctl
     Dir["/var/lib/openshift/#{opts['uuid']}/.env/*"].each { | f |
       next if File.directory?(f)
       contents = nil
-      File.open(f) {|input|
-        contents = input.read.chomp
-        index = contents.index('=')
-        contents = contents[(index + 1)..-1]
-        contents = contents[/'(.*)'/, 1] if contents.start_with?("'")
-        contents = contents[/"(.*)"/, 1] if contents.start_with?('"')
-      }
+      File.open(f) { |input| contents = input.read.chomp }
       env[File.basename(f)] =  contents
     }
     env
