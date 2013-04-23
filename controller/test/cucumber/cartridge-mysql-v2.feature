@@ -35,5 +35,3 @@ Feature: MySQL Application Sub-Cartridge
     When I restore the application
     Then the test data will be present in mysql
     And the additional test data will not be present in mysql
-
-    
