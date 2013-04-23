@@ -1,0 +1,7 @@
+#!/bin/bash -e
+
+version="$1"
+
+# Copy the version specific files
+shopt -s dotglob
+cp -r $OPENSHIFT_PYTHON_DIR/versions/$version/template/* $OPENSHIFT_PYTHON_DIR/template

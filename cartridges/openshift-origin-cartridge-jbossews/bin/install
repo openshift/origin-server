@@ -1,0 +1,9 @@
+#!/bin/bash -e
+
+# Create a link from the repo/webapps directory to the Tomcat webapps directory
+ln -s ${OPENSHIFT_REPO_DIR}/webapps ${OPENSHIFT_JBOSSEWS_DIR}/webapps
+
+# Create and install the initial template WAR
+pushd $OPENSHIFT_JBOSSEWS_DIR/template/src/main/webapp
+  jar cvf $OPENSHIFT_JBOSSEWS_DIR/template/webapps/ROOT.war ./*
+popd
