@@ -31,7 +31,22 @@ class ActiveSupport::TestCase
 
   setup { $VERBOSE = nil }
   teardown { $VERBOSE = false }
-  setup { Rails.cache.clear }
+  setup :cache_clear
+
+  #
+  # By default, cache is preserved across most tests
+  #
+  def cache_clear
+    Rails.cache.clear if rand(15) == 0
+  end
+  #
+  # Some test suites may force the cache to be cleared
+  #
+  def self.with_clean_cache
+    define_method :cache_clear do
+      Rails.cache.clear
+    end
+  end
 
   #
   # In any test case where css_select is valid, take a form object or selector

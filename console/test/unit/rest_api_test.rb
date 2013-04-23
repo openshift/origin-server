@@ -7,7 +7,7 @@ require File.expand_path('../../test_helper', __FILE__)
 class RestApiTest < ActiveSupport::TestCase
 
   uses_http_mock
-  setup{ Rails.cache.clear }
+  with_clean_cache
 
   def setup
     ActiveResource::HttpMock.reset!
