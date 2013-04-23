@@ -1494,10 +1494,11 @@ module OpenShift
       # NOTES:
       # * uses RemoteJob
       #         
-      def get_execute_connector_job(gear, cart, connector_name, input_args)
+      def get_execute_connector_job(gear, cart, connector_name, connection_type, input_args)
         args = build_base_gear_args(gear)
         args['--cart-name'] = cart
         args['--hook-name'] = connector_name
+        args['--connection-type'] = connection_type
         args['--input-args'] = input_args.join(" ")
         job = RemoteJob.new('openshift-origin-node', 'connector-execute', args)
         job

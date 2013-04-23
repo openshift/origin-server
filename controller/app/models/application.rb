@@ -905,7 +905,7 @@ class Application
           break if (pub_inst.is_singleton? && idx > 0)
           gear = pub_ginst.gears[idx]
           input_args = [gear.name, self.domain.namespace, gear.uuid]
-          job = gear.get_execute_connector_job(pub_inst.cartridge_name, conn.from_connector_name, input_args)
+          job = gear.get_execute_connector_job(pub_inst.cartridge_name, conn.from_connector_name, conn.connection_type, input_args)
           RemoteJob.add_parallel_job(handle, tag, gear, job)
         end
       end
@@ -934,7 +934,7 @@ class Application
             gear = sub_ginst.gears[idx]
   
             input_args = [gear.name, self.domain.namespace, gear.uuid, input_to_subscriber]
-            job = gear.get_execute_connector_job(sub_inst.cartridge_name, conn.to_connector_name, input_args)
+            job = gear.get_execute_connector_job(sub_inst.cartridge_name, conn.to_connector_name, conn.connection_type, input_args)
             RemoteJob.add_parallel_job(handle, tag, gear, job)
           end
         end
