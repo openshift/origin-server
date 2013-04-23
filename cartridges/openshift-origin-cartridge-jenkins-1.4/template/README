@@ -9,8 +9,7 @@ Repo layout
 .openshift/action_hooks/pre_build - Script that gets run every git push before the build
 .openshift/action_hooks/build - Script that gets run every git push as part of the build process
 .openshift/action_hooks/deploy - Script that gets run every git push after build but before the app is restarted
-.openshift/action_hooks/post_deploy - Script that gets run every git push after the app is restarted
-.openshift/markers/enable_debugging - Enables remote Jenkins server debugging on port 7600
+.openshift/action_hooks/post_deploy - Script that gets run every git push after the app is restarted 
 
 Quickstart
 ==========
