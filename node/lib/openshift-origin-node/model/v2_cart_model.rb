@@ -412,20 +412,29 @@ module OpenShift
       Utils.oo_spawn("/bin/cp -ad #{entries.join(' ')} #{target}",
                      expected_exitstatus: 0)
 
-      write_environment_variable(cartridge, File.join(target, 'env'),
-                                 dir:   target + File::SEPARATOR,
-                                 ident: Runtime::Cartridge.build_ident(cartridge.cartridge_vendor,
-                                                                       cartridge.name,
-                                                                       software_version,
-                                                                       cartridge.cartridge_version))
+      ident = Runtime::Cartridge.build_ident(cartridge.cartridge_vendor,
+                                             cartridge.name,
+                                             software_version,
+                                             cartridge.cartridge_version)
+
+      envs = {}
+      envs["#{cartridge.short_name}_dir"] = target + File::SEPARATOR
+      envs["#{cartridge.short_name}_ident"] = ident
+
+      write_environment_variables(File.join(target, 'env'), envs)
+
+      envs.clear
+      envs['namespace'] = @user.namespace if @user.namespace
+      envs['primary_cartridge_dir'] = target + File::SEPARATOR if cartridge.primary?
+
+      if not envs.empty?
+        write_environment_variables(File.join(@user.homedir, '.env'), envs)
+      end
 
       usr_path = File.join(cartridge.repository_path, 'usr')
       FileUtils.symlink(usr_path, File.join(target, 'usr')) if File.exist? usr_path
 
       mcs_label = Utils::SELinux.get_mcs_label(@user.uid)
-
-      @user.add_env_var("NAMESPACE", @user.namespace, true) if @user.namespace
-      @user.add_env_var('PRIMARY_CARTRIDGE_DIR', target + File::SEPARATOR, true) if cartridge.primary?
 
       uservars_env = File.join(@user.homedir, '.env', '.uservars')
       FileUtils.mkpath uservars_env
@@ -448,18 +457,17 @@ module OpenShift
     end
 
     ##
-    # Write out cartridge environment variables
-    def write_environment_variable(cartridge, path, *hash)
+    # Write out environment variables.
+    def write_environment_variables(path, hash)
       FileUtils.mkpath(path) unless File.exist? path
 
-      hash.first.each_pair do |k, v|
-        name = "OPENSHIFT_#{cartridge.short_name.upcase}_#{k.to_s.upcase}"
+      hash.each_pair do |k, v|
+        name = "OPENSHIFT_#{k.to_s.upcase}"
         File.open(PathUtils.join(path, name), 'w', 0666) do |f|
           f.write(v)
         end
       end
     end
-
 
     def delete_cartridge_directory(cartridge)
       logger.info("Deleting cartridge directory for #{@user.uuid}/#{cartridge.directory}")
