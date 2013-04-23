@@ -35,7 +35,7 @@ module OpenShift
       if cartridge_name.nil?
         raise "Partial gear with no cartridges: #{@user.uuid}"
       end
-      File.join(@user.homedir, cartridge_name, 'run', 'stop-lock')
+      File.join(@user.homedir, cartridge_name, 'run', 'stop_lock')
     end
 
     def stop_lock?(cartridge_name=nil)
