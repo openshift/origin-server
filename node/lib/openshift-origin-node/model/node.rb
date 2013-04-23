@@ -31,7 +31,7 @@ module OpenShift
 
       if (OpenShift::Utils::Sdk.node_default_model(config) == :v1)
         Dir.foreach(cartridge_path) do |cart_dir|
-          next if [".", "..", "embedded", "abstract", "abstract-httpd", "abstract-jboss"].include? cart_dir
+          next if [".", "..", "v2", "embedded", "abstract", "abstract-httpd", "abstract-jboss"].include? cart_dir
           path = File.join(cartridge_path, cart_dir, "info", "manifest.yml")
           begin
             print "Loading #{cart_dir}..." if oo_debug
