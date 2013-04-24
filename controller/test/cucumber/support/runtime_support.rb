@@ -281,8 +281,9 @@ module OpenShift
       if cli
         output = `oo-cartridge -a add -c #{@gear.uuid} -n #{@name} -v`
       else
-        with_ex_handling do
-          output = @gear.container.configure(@name)
+        with_container do |container|
+          output = container.configure(@name)
+          output << container.post_configure(@name)
         end
       end
 
@@ -296,49 +297,51 @@ module OpenShift
     end
 
     def deconfigure
-      with_ex_handling do
-        @gear.container.deconfigure(@name)
+      with_container do |container|
+        container.deconfigure(@name)
       end
     end
 
     def start
-      with_ex_handling do
-        @gear.container.start(@name)
+      with_container do |container|
+        container.start(@name)
       end
     end
 
     def stop
-      with_ex_handling do
-        @gear.container.stop(@name)
+      with_container do |container|
+        container.stop(@name)
       end
     end
 
     def status()
-      with_ex_handling do
-        @gear.container.status(@name)
+      with_container do |container|
+        container.status(@name)
       end
     end
 
     def restart()
-      with_ex_handling do
-        @gear.container.restart(@name)
+      with_container do |container|
+        container.restart(@name)
       end
     end
 
     def tidy()
-      with_ex_handling do 
-        @gear.container.tidy
+      with_container do |container|
+        container.tidy
       end
     end
 
-    def with_ex_handling
+    def with_container
       begin
-        yield
+        yield @gear.container
       rescue Utils::ShellExecutionException => e
-        $logger.error("Caught ShellExecutionException (#{e.rc}): #{e.message}; output: #{e.stdout} #{e.stderr}\n#{e.backtrace}")
+        $logger.error "Caught ShellExecutionException (#{e.rc}): #{e.message}; output: #{e.stdout} #{e.stderr}"
+        $logger.error e.backtrace.join("\n")
         raise
       rescue => e
-        $logger.error("Caught an Exception, #{e.message}\n#{e.backtrace}")
+        $logger.error "Caught an Exception, #{e.message}"
+        $logger.error e.backtrace.join("\n")
         raise
       end
     end

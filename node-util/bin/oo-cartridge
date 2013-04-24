@@ -104,6 +104,7 @@ begin
   case action
     when 'add'
       output = container.configure(c, template_url)
+      output << container.post_configure(c, template_url)
     when 'delete'
       container.deconfigure(c)
     else

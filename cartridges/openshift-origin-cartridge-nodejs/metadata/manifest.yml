@@ -96,3 +96,4 @@ Endpoints:
       - Frontend:      ""
         Backend:       ""
         Options:       { websocket: true }
+Install-Build-Required: false
