@@ -7,8 +7,8 @@ class ConsoleIndexController < ConsoleController
   def unauthorized
     render 'console/unauthorized'
   end
-  def server_maintenance
-    render 'console/server_maintenance'
+  def server_unavailable
+    render 'console/server_unavailable'
   end
 
   def help
