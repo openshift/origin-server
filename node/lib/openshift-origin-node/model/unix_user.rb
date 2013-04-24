@@ -262,11 +262,7 @@ Dir(after)    #{@uuid}/#{@uid} => #{list_home_dir(@homedir)}
       comment = "" unless comment
       self.class.notify_observers(:before_add_ssh_key, self, key)
 
-      key_type    = "ssh-rsa" if key_type.to_s.strip.length == 0
-      cloud_name  = "OPENSHIFT"
-      ssh_comment = "#{cloud_name}-#{@uuid}-#{comment}"
-      shell       = @config.get("GEAR_SHELL") || "/bin/bash"
-      cmd_entry   = "command=\"#{shell}\",no-X11-forwarding #{key_type} #{key} #{ssh_comment}"
+      ssh_comment, cmd_entry = get_ssh_key_cmd_entry(key, key_type, comment)
 
       modify_ssh_keys do |keys|
         keys[ssh_comment] = cmd_entry
@@ -295,6 +291,33 @@ Dir(after)    #{@uuid}/#{@uid} => #{list_home_dir(@homedir)}
       end
 
       self.class.notify_observers(:after_remove_ssh_key, self, key)
+    end
+
+    # Public: Remove all existing SSH keys and add the new ones to a users authorized_keys file.
+    #
+    # ssh_keys - The Array of ssh keys.
+    #
+    # Examples
+    #
+    #   replace_ssh_keys([{'key' => AAAAB3NzaC1yc2EAAAADAQABAAABAQDE0DfenPIHn5Bq/...', 'type' => 'ssh-rsa', 'name' => 'key1'}])
+    #   # => nil
+    #
+    # Returns nil on Success or raises on Failure
+    def replace_ssh_keys(ssh_keys)
+      raise Exception.new('The provided ssh keys do not have the required attributes') unless validate_ssh_keys(ssh_keys)
+      
+      self.class.notify_observers(:before_replace_ssh_keys, self)
+
+      modify_ssh_keys do |keys|
+        keys.delete_if{ |k, v| true }
+        
+        ssh_keys.each do |key|
+          ssh_comment, cmd_entry = get_ssh_key_cmd_entry(key['key'], key['type'], key['comment'])
+          keys[ssh_comment] = cmd_entry
+        end
+      end
+
+      self.class.notify_observers(:after_replace_ssh_keys, self)
     end
 
     # Public: Add an environment variable to a given gear.
@@ -696,6 +719,31 @@ Dir(after)    #{@uuid}/#{@uid} => #{list_home_dir(@homedir)}
         end
       end
       keys
+    end
+
+    # Generate the command entry for the ssh key to be written into the authorized keys file
+    def get_ssh_key_cmd_entry(key, key_type, comment)
+      key_type    = "ssh-rsa" if key_type.to_s.strip.length == 0
+      cloud_name  = "OPENSHIFT"
+      ssh_comment = "#{cloud_name}-#{@uuid}-#{comment}"
+      shell       = @config.get("GEAR_SHELL") || "/bin/bash"
+      cmd_entry   = "command=\"#{shell}\",no-X11-forwarding #{key_type} #{key} #{ssh_comment}"
+      
+      [ssh_comment, cmd_entry]
+    end
+
+    # validate the ssh keys to check for the required attributes
+    def validate_ssh_keys(ssh_keys)
+      ssh_keys.each do |key|
+        begin
+          if key['key'].nil? or key['type'].nil? and key['comment'].nil?
+            return false
+          end
+        rescue Exception => ex
+          return false
+        end
+      end
+      return true
     end
 
     # Deterministically constructs an IP address for the given UID based on the given

@@ -70,15 +70,26 @@ module OpenShift
     end
 
     def after_add_ssh_key(user,key)
-      ssh_dir = File.join(user.homedir, ".ssh")
-      cmd = "restorecon -R #{ssh_dir}"
-      shellCmd(cmd)
+      restore_ssh_key_file_config(user)
     end
 
     def before_remove_ssh_key(user,key)
     end
 
     def after_remove_ssh_key(user,key)
+    end
+
+    def before_replace_ssh_keys(user)
+    end
+
+    def after_replace_ssh_keys(user)
+      restore_ssh_key_file_config(user)
+    end
+    
+    def restore_ssh_key_file_config(user)
+      ssh_dir = File.join(user.homedir, ".ssh")
+      cmd = "restorecon -R #{ssh_dir}"
+      shellCmd(cmd)
     end
   end
 

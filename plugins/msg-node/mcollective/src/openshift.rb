@@ -220,6 +220,21 @@ module MCollective
         end
       end
 
+      def oo_authorized_ssh_keys_replace(args)
+        ssh_keys  = args['--with-ssh-keys'] || []
+
+        begin
+          container = get_app_container_from_args(args)
+          container.user.replace_ssh_keys(ssh_keys)
+        rescue Exception => e
+          Log.instance.info e.message
+          Log.instance.info e.backtrace
+          return -1, e.message
+        else
+          return 0, ""
+        end
+      end
+
       def oo_broker_auth_key_add(args)
         iv    = args['--with-iv']
         token = args['--with-token']

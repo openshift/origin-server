@@ -281,6 +281,35 @@ class Application
   end
 
   ##
+  # Removes all ssh keys from the application's gears and adds the given ssh keys.
+  # @param user_id [String] The ID of the user associated with the keys. If the user ID is nil, then the key is assumed to be a system generated key
+  # @param keys [Array<SshKey>] Array of keys to add to the application.
+  # @return [ResultIO] Output from cartridges
+  def fix_gear_ssh_keys()
+    Application.run_in_application_lock(self) do
+      ssh_keys = []
+
+      # reload the application to get the latest data
+      self.with(consistency: :strong).reload
+      
+      # get the application keys
+      ssh_keys |= self.app_ssh_keys.map {|k| k.to_key_hash}
+      
+      # get the domain ssh keys
+      ssh_keys |= get_updated_ssh_keys(nil, self.domain.system_ssh_keys)
+      
+      # get the user ssh keys
+      ssh_keys |= get_updated_ssh_keys(self.domain.owner_id, self.domain.owner.ssh_keys)
+      
+      op_group = PendingAppOpGroup.new(op_type: :replace_all_ssh_keys,  args: {"keys_attrs" => ssh_keys}, user_agent: self.user_agent)
+      self.pending_op_groups.push op_group
+      result_io = ResultIO.new
+      self.run_jobs(result_io)
+      result_io
+    end
+  end
+
+  ##
   # Adds environment variables to all gears on the application.
   # @param vars [Array<Hash>] List of environment variables. Each entry must contain key and value
   # @param parent_op [PendingDomainOps] object used to track this operation at a domain level
@@ -1056,6 +1085,9 @@ class Application
             #need rollback
             ops, add_gear_count, rm_gear_count = calculate_scale_by(op_group.args["group_instance_id"], op_group.args["scale_by"])
             try_reserve_gears(add_gear_count, rm_gear_count, op_group, ops)
+          when :replace_all_ssh_keys
+            ops = calculate_replace_all_ssh_keys_ops(op_group.args)
+            op_group.pending_ops.push(*ops)
           when :add_alias
             self.group_instances.each do |group_instance|
               if group_instance.gears.where(app_dns: true).count > 0
@@ -1243,6 +1275,21 @@ class Application
         args["gear_id"] = gear_id
         prereq = gear_id_prereqs[gear_id].nil? ? [] : [gear_id_prereqs[gear_id]]
         ops.push(PendingAppOp.new(op_type: :update_configuration, args: args.dup, prereq: prereq))
+      end
+    end
+    ops
+  end
+
+  def calculate_replace_all_ssh_keys_ops(args)
+    ops = []
+
+    if (args.has_key?("keys_attrs"))
+      self.group_instances.each do |group_instance|
+        args["group_instance_id"] = group_instance._id.to_s
+        group_instance.gears.each do |gear|
+          args["gear_id"] = gear._id.to_s
+          ops.push(PendingAppOp.new(op_type: :replace_all_ssh_keys, args: args.dup, prereq: []))
+        end
       end
     end
     ops
@@ -2184,7 +2231,7 @@ class Application
   # Do not change the format of the key name, otherwise it may break key removal code on the node
   def get_updated_ssh_keys(user_id, keys)
     updated_keys_attrs = keys.map { |key|
-      key_attrs = deep_copy(key.attributes)
+      key_attrs = deep_copy(key.to_key_hash)
       case key.class
       when UserSshKey
         key_attrs["name"] = user_id.to_s + "-" + key_attrs["name"]
