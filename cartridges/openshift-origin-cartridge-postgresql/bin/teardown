@@ -1,5 +1,5 @@
-#!/bin/bash -e
+#!/bin/bash -ue
 
-set -x
-
-# Remove ENV variables
+rm -f $HOME/.psqlrc
+rm -f $HOME/.pgpass
+rm -r $OPENSHIFT_DATA_DIR/.psql_history*
