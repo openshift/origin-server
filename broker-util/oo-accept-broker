@@ -30,6 +30,9 @@ OSO_HTTPD_CONF_DIR=${OSO_HTTPD_DIR}/conf.d
 OSO_ENV_DIR=${OSO_CFG_DIR}/environments
 OSO_INI_DIR=${OSO_CFG_DIR}/initializers
 
+BROKER_CONF="/etc/openshift/broker.conf"
+CONSOLE_CONF="/etc/openshift/console.conf"
+
 if [ -e '/etc/openshift/development' ] ; then
   OSO_ENVIRONMENT=${OSO_ENVIRONMENT:=development}
 else
@@ -173,10 +176,24 @@ EOF`
     done
 }
 
-function check_missing_and_insecure_secrets() {
-    BROKER_CONF="/etc/openshift/broker.conf"
-    CONSOLE_CONF="/etc/openshift/console.conf"
+function check_logfile_perms() {
+    ENABLE_USER_ACTION_LOG=`fetch_config ${BROKER_CONF} ENABLE_USER_ACTION_LOG`
+    if [ $ENABLE_USER_ACTION_LOG = "true" ]
+    then 
+      USER_ACTION_LOG_FILE=`fetch_config ${BROKER_CONF} USER_ACTION_LOG_FILE`
+      if [ ! -f $USER_ACTION_LOG_FILE ]
+      then
+        fail "Rest API Logging enabled but the log file does not exist -- run touch ${USER_ACTION_LOG_FILE} && chown apache:apache ${USER_ACTION_LOG_FILE} && chmod 640 ${USER_ACTION_LOG_FILE}"
+      else
+        if [ `ls -l ${USER_ACTION_LOG_FILE} | awk '{print $3$4}'` != 'apacheapache' ]
+        then
+          fail "Rest API Logging enabled but the log file has wrong owner -- run chown apache:apache ${USER_ACTION_LOG_FILE}"
+        fi
+      fi
+    fi
+}
 
+function check_missing_and_insecure_secrets() {
     AUTH_SALT=`fetch_config ${BROKER_CONF} AUTH_SALT`
     if [ "$AUTH_SALT" = "ClWqe5zKtEW4CJEMyjzQ" ]
     then
@@ -899,6 +916,7 @@ STATUS=0
 probe_version
 
 check_missing_and_insecure_secrets
+check_logfile_perms
 check_packages $PACKAGES
 check_ruby_requirements $OSO_RUBY_LIBS
 check_selinux_enforcing
