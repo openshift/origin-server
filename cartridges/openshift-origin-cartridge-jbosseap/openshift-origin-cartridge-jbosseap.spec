@@ -28,6 +28,7 @@ Requires:      jboss-eap6-index
 Requires:      lsof
 Requires:      java-1.7.0-openjdk
 Requires:      java-1.7.0-openjdk-devel
+Requires:	   facter
 %if 0%{?rhel}
 Requires:      maven3
 %endif
