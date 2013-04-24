@@ -1435,7 +1435,7 @@ class Application
     ops = []
 
     comp_specs.each do |comp_spec|
-      component_ops[comp_spec] = {new_component: nil, adds: []} if component_ops[comp_spec].nil?
+      component_ops[comp_spec] = {new_component: nil, adds: [], post_configures: []} if component_ops[comp_spec].nil?
       cartridge = CartridgeCache.find_cartridge(comp_spec["cart"])
       is_singleton = cartridge.get_component(comp_spec["comp"]).is_singleton?
 
@@ -1450,23 +1450,41 @@ class Application
       if is_singleton
         if gear_id_prereqs.keys.include?(singleton_gear_id)
           prereq_id = gear_id_prereqs[singleton_gear_id]
-          op = PendingAppOp.new(op_type: :add_component, args: {"group_instance_id"=> group_instance_id, "gear_id" => singleton_gear_id, "comp_spec" => comp_spec, "init_git_url"=>init_git_url}, prereq: new_component_op_id + [prereq_id])
-          ops.push op
-          component_ops[comp_spec][:adds].push op
+          add_component_op = PendingAppOp.new(op_type: :add_component, args: {"group_instance_id"=> group_instance_id, "gear_id" => singleton_gear_id, "comp_spec" => comp_spec, "init_git_url"=>init_git_url}, prereq: new_component_op_id + [prereq_id])
+          ops.push add_component_op
+          component_ops[comp_spec][:adds].push add_component_op
+          usage_op_prereq = [add_component_op._id.to_s]
+
+          # if its a singleton, then it cannot be a scaleup, 
+          # hence no need to check whether its a primary cart and scaleup 
+          post_configure_op = PendingAppOp.new(op_type: :post_configure_component, args: {"group_instance_id"=> group_instance_id, "gear_id" => singleton_gear_id, "comp_spec" => comp_spec, "init_git_url"=>init_git_url}, prereq: [add_component_op._id.to_s] + [prereq_id])
+          ops.push post_configure_op 
+          component_ops[comp_spec][:post_configures].push post_configure_op
+          usage_op_prereq = [post_configure_op._id.to_s]
+
           ops.push(PendingAppOp.new(op_type: :track_usage, args: {"user_id" => self.domain.owner._id, "parent_user_id" => self.domain.owner.parent_user_id,
             "app_name" => self.name, "gear_ref" => singleton_gear_id, "event" => UsageRecord::EVENTS[:begin], 
-            "usage_type" => UsageRecord::USAGE_TYPES[:premium_cart], "cart_name" => comp_spec["cart"]}, prereq: [op._id.to_s])) if cartridge.is_premium?
+            "usage_type" => UsageRecord::USAGE_TYPES[:premium_cart], "cart_name" => comp_spec["cart"]}, prereq: usage_op_prereq)) if cartridge.is_premium?
         end
       else
         gear_id_prereqs.each do |gear_id, prereq_id|
           git_url = nil
           git_url = init_git_url if gear_id == singleton_gear_id
-          op = PendingAppOp.new(op_type: :add_component, args: {"group_instance_id"=> group_instance_id, "gear_id" => gear_id, "comp_spec" => comp_spec, "init_git_url"=>git_url}, prereq: new_component_op_id + [prereq_id])
-          ops.push op
-          component_ops[comp_spec][:adds].push op
+          add_component_op = PendingAppOp.new(op_type: :add_component, args: {"group_instance_id"=> group_instance_id, "gear_id" => gear_id, "comp_spec" => comp_spec, "init_git_url"=>git_url}, prereq: new_component_op_id + [prereq_id])
+          ops.push add_component_op
+          component_ops[comp_spec][:adds].push add_component_op
+          usage_op_prereq = [add_component_op._id.to_s]
+
+          unless is_scale_up and cartridge.is_primary_cart?
+            post_configure_op = PendingAppOp.new(op_type: :post_configure_component, args: {"group_instance_id"=> group_instance_id, "gear_id" => gear_id, "comp_spec" => comp_spec, "init_git_url"=>init_git_url}, prereq: [add_component_op._id.to_s] + [prereq_id])
+            ops.push post_configure_op 
+            component_ops[comp_spec][:post_configures].push post_configure_op
+            usage_op_prereq = [post_configure_op._id.to_s]
+          end
+
           ops.push(PendingAppOp.new(op_type: :track_usage, args: {"user_id" => self.domain.owner._id, "parent_user_id" => self.domain.owner.parent_user_id,
             "app_name" => self.name, "gear_ref" => gear_id, "event" => UsageRecord::EVENTS[:begin], 
-            "usage_type" => UsageRecord::USAGE_TYPES[:premium_cart], "cart_name" => comp_spec["cart"]}, prereq: [op._id.to_s])) if cartridge.is_premium?
+            "usage_type" => UsageRecord::USAGE_TYPES[:premium_cart], "cart_name" => comp_spec["cart"]}, prereq: usage_op_prereq)) if cartridge.is_premium?
         end
       end
     end
@@ -1732,6 +1750,7 @@ class Application
       component_ops[config_order[idx]][:adds].each { |op| op.prereq += prereq_ids }
     end
 
+    execute_connection_op = nil
     all_ops_ids = pending_ops.map{ |op| op._id.to_s }
     unless connections.nil?
       #needs to be set and run after all the gears are in place
@@ -1743,6 +1762,19 @@ class Application
     else
       execute_connection_op = PendingAppOp.new(op_type: :execute_connections, prereq: all_ops_ids)
       pending_ops.push execute_connection_op
+    end
+    
+    # check to see if there are any primary carts being configured
+    # if so, then make sure that the post-configure op for it is executed at the end
+    # also, it should not be the prerequisite for any other pending_op 
+    component_ops.keys.each do |comp_spec|
+      cartridge = CartridgeCache.find_cartridge(comp_spec["cart"])
+      if cartridge.is_primary_cart?
+        component_ops[comp_spec][:post_configures].each do |pcop|
+          pcop.prereq += [execute_connection_op._id.to_s]
+          pending_ops.each { |op| op.prereq.delete_if { |prereq_id| prereq_id == pcop._id.to_s } }
+        end
+      end
     end
 
     [pending_ops, add_gears, remove_gears]

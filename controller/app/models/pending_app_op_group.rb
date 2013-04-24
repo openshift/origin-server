@@ -183,6 +183,8 @@ class PendingAppOpGroup
             application.component_instances.delete(component_instance)
           when :add_component
             result_io.append gear.add_component(component_instance, op.args["init_git_url"])
+          when :post_configure_component
+            result_io.append gear.post_configure_component(component_instance, op.args["init_git_url"])
           when :remove_component
             result_io.append gear.remove_component(component_instance)          
           when :create_gear
