@@ -78,6 +78,52 @@ module OpenShift
           end
           raise OpenShift::OOException.new("Invalid value '#{param_value}'. Valid options: [true, false]", 167)
         end
+        
+        def get_log_tag_prepend
+          tag = "UNKNOWN"
+          case request.method
+          when "GET"
+            if params[:id]
+              tag = "SHOW_"
+            else
+              tag = "LIST_"
+            end
+          when "POST"
+            tag = "ADD_" 
+          when "PUT"
+            tag = "UPDATE_"
+          when "DELETE"
+            tag = "DELETE_"
+          end
+          return tag
+        end 
+        
+        def get_domain
+          domain_id = params[:domain_id] || params[:id] 
+          domain_id = domain_id.downcase if domain_id
+          return render_error(:not_found, "Domain '#{domain_id}' not found", 127) if domain_id.nil? or domain_id !~ Domain::DOMAIN_NAME_COMPATIBILITY_REGEX           
+          begin
+            @domain = Domain.find_by(owner: @cloud_user, canonical_namespace: domain_id)
+            @domain_name = @domain.namespace
+            return @domain
+          rescue Mongoid::Errors::DocumentNotFound => e
+            return render_error(:not_found, "Domain '#{domain_id}' not found", 127)
+          end
+        end
+        def get_application
+          application_id = params[:application_id] || params[:id]
+          application_id = application_id.downcase if application_id
+          return render_error(:not_found, "Application '#{application_id}' not found for domain '#{@domain.namespace}'", 101) if application_id.nil? or application_id !~ Application::APP_NAME_COMPATIBILITY_REGEX
+          begin
+            @application = Application.find_by(domain: @domain, canonical_name: application_id)
+
+            @application_name = @application.name
+            @application_uuid = @application.uuid
+          rescue Mongoid::Errors::DocumentNotFound
+            return render_error(:not_found, "Application '#{application_id}' not found for domain '#{@domain.namespace}'", 101)
+          end 
+        end
+        
     end
   end
 end

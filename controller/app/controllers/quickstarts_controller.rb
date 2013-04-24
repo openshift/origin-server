@@ -5,15 +5,15 @@ class QuickstartsController < BaseController
   skip_before_filter :authenticate_user!
 
   def index
-    render_success(:ok, "quickstarts", quickstarts, "LIST_QUICKSTARTS", "Showing all quickstarts")
+    render_success(:ok, "quickstarts", quickstarts, "Showing all quickstarts")
   end
 
   def show
     id = params[:id]
     if quickstart = quickstarts.find{ |obj| obj['quickstart']['id'] == id }
-      render_success(:ok, "quickstarts", [quickstart], "SHOW_QUICKSTART",  "Showing quickstart for '#{id}'")
+      render_success(:ok, "quickstarts", [quickstart],  "Showing quickstart for '#{id}'")
     else
-      render_error(:not_found, "Quickstart '#{id}' not found", 118, "SHOW_QUICKSTART")
+      render_error(:not_found, "Quickstart '#{id}' not found", 118)
     end
   end
 
@@ -27,5 +27,9 @@ class QuickstartsController < BaseController
     end
     def file
       File.join(OpenShift::Config::CONF_DIR, 'quickstarts.json')
+    end
+    
+    def set_log_tag
+      @log_tag = get_log_tag_prepend + "QUICKSTART"
     end
 end

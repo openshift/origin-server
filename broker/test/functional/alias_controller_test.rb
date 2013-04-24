@@ -47,7 +47,7 @@ class AliasControllerTest < ActionController::TestCase
     assert_response :no_content
   end
   
-  test "no app id" do
+  test "no or non-existent app id" do
     server_alias = "as#{@random}"
     get :show, {"id" => server_alias, "domain_id" => @domain.namespace}
     assert_response :not_found
@@ -55,9 +55,16 @@ class AliasControllerTest < ActionController::TestCase
     assert_response :not_found
     delete :destroy , {"id" => server_alias, "domain_id" => @domain.namespace}
     assert_response :not_found
+    
+    get :show, {"id" => server_alias, "domain_id" => @domain.namespace, "application_id" => "bogus"}
+    assert_response :not_found
+    put :update, {"id" => server_alias, "domain_id" => @domain.namespace, "application_id" => "bogus"}
+    assert_response :not_found
+    delete :destroy , {"id" => server_alias, "domain_id" => @domain.namespace, "application_id" => "bogus"}
+    assert_response :not_found
   end
   
-  test "no domain id" do
+  test "no or non-existent domain id" do
     server_alias = "as#{@random}"
     post :create, {"id" => server_alias, "application_id" => @app.name}
     assert_response :not_found
@@ -69,9 +76,20 @@ class AliasControllerTest < ActionController::TestCase
     assert_response :not_found
     delete :destroy , {"id" => server_alias, "application_id" => @app.name}
     assert_response :not_found
+    
+    post :create, {"id" => server_alias, "application_id" => @app.name, "domain_id" => "bogus"}
+    assert_response :not_found
+    get :show, {"id" => server_alias, "application_id" => @app.name, "domain_id" => "bogus"}
+    assert_response :not_found
+    put :update, {"id" => server_alias, "application_id" => @app.name, "domain_id" => "bogus"}
+    assert_response :not_found
+    get :index , {"id" => server_alias, "application_id" => @app.name, "domain_id" => "bogus"}
+    assert_response :not_found
+    delete :destroy , {"id" => server_alias, "application_id" => @app.name, "domain_id" => "bogus"}
+    assert_response :not_found
   end
   
-  test "no alias id" do
+  test "no or non-existent alias id" do
     post :create, {"domain_id" => @domain.namespace, "application_id" => @app.name}
     assert_response :unprocessable_entity
     get :show, {"domain_id" => @domain.namespace, "application_id" => @app.name}
@@ -79,6 +97,13 @@ class AliasControllerTest < ActionController::TestCase
     put :update, {"domain_id" => @domain.namespace, "application_id" => @app.name}
     assert_response :not_found
     delete :destroy , {"domain_id" => @domain.namespace, "application_id" => @app.name}
+    assert_response :not_found
+    
+    get :show, {"domain_id" => @domain.namespace, "application_id" => @app.name, "id" => "bogus"}
+    assert_response :not_found
+    put :update, {"domain_id" => @domain.namespace, "application_id" => @app.name, "id" => "bogus"}
+    assert_response :not_found
+    delete :destroy , {"domain_id" => @domain.namespace, "application_id" => @app.name, "id" => "bogus"}
     assert_response :not_found
   end
   

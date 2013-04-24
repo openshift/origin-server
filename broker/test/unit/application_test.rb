@@ -51,11 +51,14 @@ class ApplicationsTest < ActionDispatch::IntegrationTest #ActiveSupport::TestCas
     app.start
     app.tidy
     assert_raise(OpenShift::UserException){app.threaddump}
-    app.add_alias("www.example.com")
-    app.remove_alias("www.example.com")
+
+    as = "as#{gen_uuid[0..9]}"
+    app.add_alias(as)
+    app.remove_alias(as)
     # updating the application namespace is no longer supported
     #@domain.update_namespace("new_namespace")
     #@domain.update_namespace(@namespace)
+
     app.destroy_app
   end
   
