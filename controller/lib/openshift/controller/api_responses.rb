@@ -19,8 +19,6 @@ module OpenShift
         #    The error message returned in the REST response
         #  err_code::
         #    Error code for the message in the REST response
-        #  log_tag::
-        #    Tag used in action logs
         #  field::
         #    Specified the field (if any) that the message applies to.
         #  msg_type::
@@ -28,17 +26,15 @@ module OpenShift
         #  messages::
         #    Array of message objects. If provided, it will log all messages in the action log and will add them to the REST response.
         #    msg,  err_code, field, and msg_type will be ignored.
-        def render_error(status, msg, err_code=nil, log_tag=nil, field=nil, msg_type=nil, messages=nil, internal_error=false)
+        def render_error(status, msg, err_code=nil, field=nil, msg_type=nil, messages=nil, internal_error=false)
           reply = new_rest_reply(status)
           if messages.present?
             reply.messages.concat(messages)
-            if log_tag
-              log_action(log_tag, !internal_error, msg, get_extra_log_args, messages.map(&:text).join(', '))
-            end
+            log_action(@log_tag, !internal_error, msg, get_extra_log_args, messages.map(&:text).join(', '))
           else
             msg_type = :error unless msg_type
             reply.messages.push(Message.new(msg_type, msg, err_code, field)) if msg
-            log_action(log_tag, !internal_error, msg, get_extra_log_args) if log_tag
+            log_action(@log_tag, !internal_error, msg, get_extra_log_args)
           end
           respond_with reply
         end
@@ -48,9 +44,8 @@ module OpenShift
         # == Parameters:
         #  ex::
         #    The exception to return to the user.
-        #  log_tag::
-        #    Tag used in action logs
-        def render_exception(ex, log_tag=nil)
+
+        def render_exception(ex)
           Rails.logger.error "Reference ID: #{request.uuid} - #{ex.message}\n  #{ex.backtrace.join("\n  ")}"
           error_code = ex.respond_to?('code') ? ex.code : 1
           message = ex.message
@@ -76,7 +71,7 @@ module OpenShift
           end
 
           internal_error = status != :unprocessable_entity
-          render_error(status, message, error_code, log_tag, nil, nil, nil, internal_error)
+          render_error(status, message, error_code, nil, nil, nil, internal_error)
         end
 
         # Renders a REST response with for a successful request.
@@ -88,8 +83,6 @@ module OpenShift
         #    Rest object type.
         #  data::
         #    REST Object to render
-        #  log_tag::
-        #    Tag used in action logs
         #  log_msg::
         #    Message to be logged in action logs
         #  publish_msg::
@@ -99,17 +92,15 @@ module OpenShift
         #  messages::
         #    Array of message objects. If provided, it will log all messages in the action log and will add them to the REST response.
         #    publish_msg, log_msg, and msg_type will be ignored.
-        def render_success(status, type, data, log_tag, log_msg=nil, publish_msg=false, msg_type=nil, messages=nil, extra_log_args=get_extra_log_args)
+        def render_success(status, type, data, log_msg=nil, publish_msg=false, msg_type=nil, messages=nil, extra_log_args=get_extra_log_args)
           reply = new_rest_reply(status, type, data)
           if messages.present?
             reply.messages.concat(messages)
-            if log_tag
-              log_action(log_tag, true, log_msg, get_extra_log_args, messages.map(&:text).join(', '))
-            end
+            log_action(@log_tag, true, log_msg, get_extra_log_args, messages.map(&:text).join(', '))
           else
             msg_type = :info unless msg_type
             reply.messages.push(Message.new(msg_type, log_msg)) if publish_msg && log_msg
-            log_action(log_tag, true, log_msg, extra_log_args) if log_tag
+            log_action(@log_tag, true, log_msg, extra_log_args)
           end
           respond_with reply
         end

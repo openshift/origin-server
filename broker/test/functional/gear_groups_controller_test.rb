@@ -38,23 +38,42 @@ class GearGroupsControllerTest < ActionController::TestCase
   test "show and list gear groups" do
     get :index , {"domain_id" => @domain.namespace, "application_id" => @app.name}
     assert_response :success
-    #get :show, {"id" => name, "domain_id" => @domain.namespace, "application_id" => @app.name}
-    #assert_response :success
+    body = JSON.parse(@response.body)
+    id = body["data"][0]["uuid"]
+    get :show, {"id" => id, "domain_id" => @domain.namespace, "application_id" => @app.name}
+    assert_response :success
   end
 
-  test "no app id" do
+  test "no or non-existent app id" do
     get :index , {"domain_id" => @domain.namespace}
     assert_response :not_found
-    #get :show, {"id" => name, "domain_id" => @domain.namespace}
-    #assert_response :not_found
+    get :show, {"domain_id" => @domain.namespace}
+    assert_response :not_found
+    
+    get :index , {"domain_id" => @domain.namespace, "application_id" => "bogus"}
+    assert_response :not_found
+    get :show, {"domain_id" => @domain.namespace, "application_id" => "bogus"}
+    assert_response :not_found
   end
   
-  test "no domain id" do
+  test "no or non-existent domain id" do
     get :index , {"application_id" => @app.name}
     assert_response :not_found
-    #get :show, {"id" => name, "application_id" => @app.name}
-    #assert_response :not_found
+    get :show, {"application_id" => @app.name}
+    assert_response :not_found
+    
+    get :index , {"application_id" => @app.name, "domain_id" => "bogus"}
+    assert_response :not_found
+    get :show, {"application_id" => @app.name, "domain_id" => "bogus"}
+    assert_response :not_found
+    
   end
-
+  
+  test "no gear id" do
+    get :show , {"domain_id" => @domain.namespace, "application_id" => @app.name}
+    assert_response :not_found
+    get :show, {"id" => "bogus", "domain_id" => @domain.namespace, "application_id" => @app.name}
+    assert_response :not_found
+  end
 
 end

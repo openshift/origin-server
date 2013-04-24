@@ -42,6 +42,10 @@ class CartridgesController < BaseController
         RestCartridge.new(c)
       end
     end
-    render_success(:ok, "cartridges", rest_cartridges, "LIST_CARTRIDGES", "List #{type.nil? ? 'all' : type} cartridges")
+    render_success(:ok, "cartridges", rest_cartridges, "List #{type.nil? ? 'all' : type} cartridges")
+  end
+  
+  def set_log_tag
+    @log_tag = get_log_tag_prepend + "CARTRIDGE"
   end
 end
