@@ -21,6 +21,7 @@ class ConsoleIndexControllerTest < ActionController::TestCase
   end
 
   test 'render server unavailable' do
+    with_configured_user
     get :server_unavailable
     assert_response :success
     assert_template 'console/server_unavailable'
