@@ -184,13 +184,13 @@ function check_missing_and_insecure_secrets() {
     fi
 
     BROKER_SECRET=`fetch_config ${BROKER_CONF} SESSION_SECRET`
-    if [ "$BROKER_SECRET" = "nil" ]
+    if [ "$BROKER_SECRET" = "nil" -o "$BROKER_SECRET" = "" ]
     then
       fail "SESSION_SECRET must be set in $BROKER_CONF (Hint: use 'openssl rand -hex 64' to generate a unique secret."
     fi
 
     CONSOLE_SECRET=`fetch_config ${CONSOLE_CONF} SESSION_SECRET`
-    if [ "$CONSOLE_SECRET" = "nil" ]
+    if [ "$CONSOLE_SECRET" = "nil" -o "$CONSOLE_SECRET" = "" ]
     then
       fail "SESSION_SECRET must be set in ${CONSOLE_CONF} (Hint: use 'openssl rand -hex 64' to generate a unique secret."
     fi
