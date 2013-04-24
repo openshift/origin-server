@@ -96,12 +96,15 @@ class CartridgeTest < Test::Unit::TestCase
               - mock
               - web_proxy
     }
-
-    YAML.stubs(:load_file).with('mock_manifest').returns(YAML.load(@manifest))
   end
 
   def test_manifest_no_overrides
-    cart       = OpenShift::Runtime::Cartridge.new('mock_manifest')
+    stub_cart_with_vendor 'Unit_Test'
+    
+    cart = nil
+    assert_nothing_raised do
+      cart       = OpenShift::Runtime::Cartridge.new('mock_manifest')
+    end
     components = cart.manifest['Group-Overrides'].first['components']
 
     assert_equal 'mock', cart.name
@@ -113,6 +116,8 @@ class CartridgeTest < Test::Unit::TestCase
   end
 
   def test_manifest_overrides
+    stub_cart_with_vendor 'Unit_Test'
+
     cart       = OpenShift::Runtime::Cartridge.new('mock_manifest', '0.2')
     components = cart.manifest['Group-Overrides'].first['components']
 
@@ -123,5 +128,21 @@ class CartridgeTest < Test::Unit::TestCase
     assert_equal 2,           components.length
     assert_equal "mock",      components[0]
     assert_equal "web_proxy", components[1]
+  end
+
+  def test_invalid_vendor_name
+    ['vendor with space', 'nonalpha-$$', 'redhat'].each do |invalid_name|
+      stub_cart_with_vendor invalid_name
+
+      assert_raise(OpenShift::InvalidElementError) do
+        cart = OpenShift::Runtime::Cartridge.new('mock_manifest')
+      end
+    end
+  end
+
+  def stub_cart_with_vendor(name)
+    manifest = YAML.load(@manifest)
+    manifest['Cartridge-Vendor'] = name
+    YAML.stubs(:load_file).with('mock_manifest').returns(manifest)
   end
 end
