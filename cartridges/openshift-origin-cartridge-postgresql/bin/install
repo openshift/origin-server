@@ -4,6 +4,21 @@ source $OPENSHIFT_CARTRIDGE_SDK_BASH
 
 echo "Installing postgres"
 
+env_dir="${OPENSHIFT_POSTGRESQL_DIR}/env"
+
+echo 'Generating username and password'
+
+# Force the username to be all lowercase and not include o,O,0
+username=$(generate_username admin 12 'a-np-z1-9')
+password=$(generate_password)
+
+set_env_var 'OPENSHIFT_POSTGRESQL_DB_USERNAME' $username $env_dir
+set_env_var 'PGUSER' $username $env_dir
+set_env_var 'OPENSHIFT_POSTGRESQL_DB_PASSWORD' $password $env_dir
+
+# TODO: This should be able to be in an erb file, but they're not sourced in the correct order
+set_env_var 'OPENSHIFT_POSTGRESQL_DB_URL' "postgresql://${username}:${password}@${OPENSHIFT_POSTGRESQL_DB_HOST}:${OPENSHIFT_POSTGRESQL_DB_PORT}" $env_dir
+
 # Create postgresql database
 # The contained tar file is the results of "initdb -D data", but much, much faster.
 tar -zxf $OPENSHIFT_POSTGRESQL_DIR/conf/pgdata-template.tar.gz -C "${OPENSHIFT_POSTGRESQL_DIR}/data/"
@@ -16,7 +31,7 @@ conf_dir="${OPENSHIFT_POSTGRESQL_DIR}/conf"
 cp $conf_dir/*.conf $OPENSHIFT_POSTGRESQL_DIR/data/
 
 cp $conf_dir/psqlrc $HOME/.psqlrc
-cp $conf_dir/pgpass $HOME/.pgpass
+echo "*:*:*:${username}:${password}" > $HOME/.pgpass
 chmod 0600 $HOME/.pgpass
 
 conn_url='postgresql://$OPENSHIFT_POSTGRESQL_DB_HOST:$OPENSHIFT_POSTGRESQL_DB_PORT'
@@ -25,8 +40,8 @@ client_result "Connection URL: ${conn_url}"
 client_result ""
 
 cart_props "connection_url=${conn_url}"
-cart_props "username=${OPENSHIFT_POSTGRESQL_DB_USERNAME}"
-cart_props "password=${OPENSHIFT_POSTGRESQL_DB_PASSWORD}"
+cart_props "username=${username}"
+cart_props "password=${password}"
 cart_props "database_name=${OPENSHIFT_APP_NAME}"
 
 set_app_info "Connection URL: ${conn_url}"
