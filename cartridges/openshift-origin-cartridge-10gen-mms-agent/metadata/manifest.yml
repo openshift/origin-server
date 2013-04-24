@@ -29,3 +29,4 @@ Scaling:
 Configure-Order:
   - mongodb
   - 10gen-mms-agent
+Install-Build-Required: false

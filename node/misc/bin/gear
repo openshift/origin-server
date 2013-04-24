@@ -83,12 +83,8 @@ def do_command
     exit 1
   rescue OpenShift::Utils::ShellExecutionException => e
     $stderr.puts "#{e.message}: rc(#{e.rc})"
-
-    if 
-      $stderr.puts "stdout: #{e.stdout}\nstderr#{e.stderr}"
-      $stderr.puts e.backtrace.join("\n")
-    end
-
+    $stderr.puts "stdout: #{e.stdout}\nstderr#{e.stderr}"
+    $stderr.puts e.backtrace.join("\n")
     exit -1
   rescue Exception => e
     $stderr.puts e.message

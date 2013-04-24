@@ -3,6 +3,7 @@ Cartridge-Short-Name: MOCK
 Display-Name: Mock Cartridge 0.1
 Description: "A mock cartridge for development use only."
 Version: '0.1'
+Versions: ['0.1', '0.2']
 License: ASL 2.0
 Vendor: Red Hat
 Cartridge-Version: 0.0.1
@@ -59,3 +60,14 @@ Endpoints:
 Scaling:
   Min: 1
   Max: -1
+Install-Build-Required: false
+Version-Overrides:
+  '0.2':
+    Install-Build-Required: true
+    Provides:
+      - mock-0.2
+      - "mock"
+    Group-Overrides:
+      - components:
+        - mock-0.2
+        - web_proxy

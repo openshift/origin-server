@@ -133,7 +133,8 @@ module OpenShift
                   :short_name,
                   :categories,
                   :version,
-                  :source
+                  :source,
+                  :install_build_required
 
       # :call-seq:
       #   Cartridge.new(manifest_path) -> Cartridge
@@ -166,13 +167,14 @@ module OpenShift
           @manifest.merge!(vtree) if vtree
         end
 
-        @cartridge_vendor  = @manifest['Cartridge-Vendor']
-        @cartridge_version = @manifest['Cartridge-Version'] && @manifest['Cartridge-Version'].to_s
-        @name              = @manifest['Name']
-        @short_name        = @manifest['Cartridge-Short-Name']
-        @categories        = @manifest['Categories'] || []
-        @is_primary        = @categories.include?('web_framework')
-        @is_web_proxy      = @categories.include?('web_proxy')
+        @cartridge_vendor       = @manifest['Cartridge-Vendor']
+        @cartridge_version      = @manifest['Cartridge-Version'] && @manifest['Cartridge-Version'].to_s
+        @name                   = @manifest['Name']
+        @short_name             = @manifest['Cartridge-Short-Name']
+        @categories             = @manifest['Categories'] || []
+        @is_primary             = @categories.include?('web_framework')
+        @is_web_proxy           = @categories.include?('web_proxy')
+        @install_build_required = @manifest.has_key?('Install-Build-Required') ? @manifest['Install-Build-Required'] : true
 
         #FIXME: reinstate code after manifests are updated
         #raise MissingElementError.new(nil, 'Cartridge-Vendor') unless @cartridge_vendor

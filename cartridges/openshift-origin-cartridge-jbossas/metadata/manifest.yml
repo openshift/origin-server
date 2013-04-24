@@ -122,3 +122,4 @@ Endpoints:
     Public-Port-Name:  REMOTING_PROXY_PORT
 Additional-Control-Actions:
     - threaddump
+Install-Build-Required: false

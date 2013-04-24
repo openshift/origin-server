@@ -135,6 +135,7 @@ module OpenShift
 
           @cartridges[cart_name] = get_cartridge_from_directory(cart_dir)
         rescue Exception => e
+          logger.error e.backtrace.join("\n")
           raise "Failed to get cartridge '#{cart_name}' from #{cart_dir} in gear #{@user.uuid}: #{e.message}"
         end
       end
@@ -243,17 +244,28 @@ module OpenShift
             output << cartridge_action(cartridge, 'install', software_version)
             populate_gear_repo(c.directory, template_git_url) if cartridge.primary?
           end
-
         end
+      end
 
+      logger.info "configure output: #{output}"
+      output
+    end
+
+    def post_configure(cartridge_name)
+      output = ''
+
+      name, software_version = map_cartridge_name(cartridge_name)
+      cartridge              = CartridgeRepository.instance.select(name, software_version)
+
+      OpenShift::Utils::Cgroups::with_cgroups_disabled(@user.uuid) do
         output << start_cartridge('start', cartridge, user_initiated: true)
         output << cartridge_action(cartridge, 'post-setup', software_version)
         output << cartridge_action(cartridge, 'post-install', software_version)
       end
 
       connect_frontend(cartridge)
-
-      logger.info "configure output: #{output}"
+      
+      logger.info("post-configure output: #{output}")
       output
     end
 

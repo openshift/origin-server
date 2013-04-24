@@ -71,3 +71,4 @@ Endpoints:
     Mappings:
       - Frontend:      ""
         Backend:       ""
+Install-Build-Required: false

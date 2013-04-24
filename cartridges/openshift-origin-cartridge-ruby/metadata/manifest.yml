@@ -98,3 +98,4 @@ Version-Overrides:
       - components:
         - ruby-1.8
         - web_proxy
+Install-Build-Required: false

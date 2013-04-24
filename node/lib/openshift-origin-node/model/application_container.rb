@@ -53,17 +53,15 @@ module OpenShift
       @user             = UnixUser.new(application_uuid, container_uuid, user_uid,
                                        app_name, container_name, namespace, quota_blocks, quota_files)
       @state            = OpenShift::Utils::ApplicationState.new(container_uuid)
-
-      build_model = self.class.get_build_model(@user, @config)
+      @build_model      = self.class.get_build_model(@user, @config)
 
       # When v2 is the default cartridge format flip the test...
-      if build_model == :v1
+      if @build_model == :v1
         @cartridge_model = V1CartridgeModel.new(@config, @user)
       else
         @cartridge_model = V2CartridgeModel.new(@config, @user, @state)
       end
-      NodeLogger.logger.debug("Creating #{build_model} model for #{container_uuid}: #{__callee__}")
-
+      NodeLogger.logger.debug("Created #{@build_model} model for #{container_uuid}")
     end
 
     def self.get_build_model(user, config)
@@ -95,6 +93,33 @@ module OpenShift
     # @param cart_name   cartridge name
     def configure(cart_name, template_git_url=nil)
       @cartridge_model.configure(cart_name, template_git_url)
+    end
+
+    def post_configure(cart_name, template_git_url=nil)
+      return "" if @build_model == :v1 # not implemented for V1
+      
+      cartridge = @cartridge_model.get_cartridge(cart_name)
+
+      if cartridge.install_build_required || template_git_url
+        gear_script_log = '/tmp/initial-build.log'
+        env             = Utils::Environ.for_gear(@user.homedir)
+  
+        logger.info "Executing initial gear prereceive for #{@uuid}"
+        Utils.oo_spawn("gear prereceive >>#{gear_script_log} 2>&1",
+                       env:                 env,
+                       chdir:               @user.homedir,
+                       uid:                 @user.uid,
+                       expected_exitstatus: 0)
+
+        logger.info "Executing initial gear postreceive for #{@uuid}"
+        Utils.oo_spawn("gear postreceive >>#{gear_script_log} 2>&1",
+                       env:                 env,
+                       chdir:               @user.homedir,
+                       uid:                 @user.uid,
+                       expected_exitstatus: 0)
+        end
+
+      @cartridge_model.post_configure(cart_name)
     end
 
     # Remove cartridge from gear
