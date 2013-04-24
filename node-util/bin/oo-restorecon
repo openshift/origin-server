@@ -11,7 +11,7 @@ require 'openshift-origin-node'
 
 debug=1
 
-OpenShift::UnixUser.all_users.each do |user|
+OpenShift::UnixUser.all.each do |user|
   mcs_label = OpenShift::Utils::SELinux.get_mcs_label(user.uid)
 
   # Use case not a good match for the SELinux module's file methods

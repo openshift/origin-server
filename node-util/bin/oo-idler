@@ -23,99 +23,27 @@
 # application back on when a request comes to it (like
 # http://app-dom.example.com)
 
-TRUE=0
-FALSE=1
-source /etc/openshift/node.conf
-
 function print_help {
     echo "Usage: $0"
     echo "  -u UUID       idles the app"
     echo "  -l            list all idled apps"
-    echo "  -n            don't restart httpd"
     exit 1
-}
-
-function openshift_gears() {
-    grep ":${GEAR_GECOS}:" /etc/passwd | cut -d: -f1
-}
-
-function print_idled {
-    for appid in $(openshift_gears)
-    do
-        if is_idled "$appid"
-        then
-            echo "$appid is idled"
-        fi
-    done
-}
-
-function get_state {
-    source "${GEAR_BASE_DIR}/$1/.env/OPENSHIFT_HOMEDIR"
-    cat $OPENSHIFT_HOMEDIR/app-root/runtime/.state
-}
-
-function is_idled {
-    appid=$1
-    oo-ruby /usr/bin/oo-frontend-check-idle --with-container-uuid $appid
-}
-
-function is_stopped {
-    _test=`get_state $1`
-    return `test stopped = "$_test"`
 }
 
 while getopts 'u:dln' OPTION
 do
-case $OPTION in
-        u) uuid=$OPTARG
-    ;;
-        d) set -x
-    ;;
-        l) list_idled="TRUE"
-    ;;
-        n) no_httpd_restart="TRUE"
-    ;;
+    case $OPTION in
+        u)
+            $(dirname -- "$0")/oo-admin-ctl-gears idlegear $OPTARG
+            ;;
+        d) # deprecated option
+            ;;
+        l)
+            $(dirname -- "$0")/oo-admin-ctl-gears listidle
+            ;;
+        n) # deprecated option
+            ;;
         ?) print_help
-    ;;
-esac
+            ;;
+    esac
 done
-
-if [ ! -z "$list_idled" ]
-then
-    print_idled
-    exit 0
-fi
-
-if [ -z "$uuid" ] || ! [ -d "${GEAR_BASE_DIR}/$uuid" ]
-then
-    echo "Unknown gear UUID: $uuid"
-    print_help
-fi
-
-source /usr/libexec/openshift/cartridges/abstract/info/lib/util
-
-# Get the libra_server
-source /etc/openshift/node.conf
-source "${GEAR_BASE_DIR}/${uuid}/.env/OPENSHIFT_HOMEDIR"
-
-# If moving an idled scaled application the haproxy cartridge will report to be
-#   already "idled" but the associate httpd conf is not
-if `is_stopped "$uuid"` ; then
-    exit 0 # app is already stopped, nothing to do
-fi
-
-oo-ruby /usr/bin/oo-frontend-idle --with-container-uuid $uuid
-
-# timeout taken from oo-admin-ctl-gears
-/usr/bin/timeout -s USR1 30s /usr/sbin/oo-admin-ctl-gears stopgear "${uuid}"
-
-# Disable
-# code copied from node/lib/util_ext
-runuser --shell /bin/sh "$uuid" -c "echo idle >$OPENSHIFT_HOMEDIR/app-root/runtime/.state"
-
-# Get primary cart run directory
-framework_carts=$(get_installed_framework_carts)
-primary_framework_cart=${framework_carts[0]}
-touch "${OPENSHIFT_HOMEDIR}/${primary_framework_cart}/run/stop_lock"
-
-/usr/bin/logger -p local0.notice -t oo_idler "Idled: ${uuid}"
