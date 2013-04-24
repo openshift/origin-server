@@ -22,7 +22,10 @@ using your cartridge.
 
     `vendor name`-`cartridge name`
      +- bin                        (required)
-     |  +- setup                   (required)
+     |  +- setup                   (optional)
+     |  +- install                 (optional)
+     |  +- post-setup              (optional)
+     |  +- post-install            (optional)
      |  +- teardown                (optional)
      |  +- control                 (required)
      |- hooks                      (optional)
@@ -65,7 +68,7 @@ Items marked:
 
 
 To support multiple software versions within one cartridge,
-you may create symlinks between the bin/control and the setup
+you may create symlinks between the bin/control and the 
 versions/{software version}/bin/control file. Or, you may choose
 to use the bin/control file as a shim to call the correct versioned
 control file.
@@ -191,8 +194,8 @@ the cartridge to be re-started or the application developer's application to be 
 
 By not requiring a restart, you improve the application user's experience since no downtime will
 be incurred from your changes. If the cartridge's current version is not in the list when upgraded,
-the cartridge will be stopped, the new code will be installed, `setup` will be run, and the cartridge
-started.
+the cartridge will be stopped, the new code will be installed, `setup` will be run, the cartridge
+started and `post-setup` will be run.
 
 Today this is a simple list and string matching is used to determine compatible versions.
 If this list proves to be unmanageable, future versions of OpenShift may implement maven dependency range style checking.
@@ -284,7 +287,7 @@ In the above list:
 Directories like `~/.node-gyp` and `~/.npm` in nodejs are **NOT** candidates
 to be created in this manner as they require the application developer to have read
 and write access while the application is deploying and running. These
-directories would need to be created by the nodejs `setup` script.
+directories would need to be created by the nodejs `setup` or `install` scripts.
 
 The following list is reserved by OpenShift in the the gear's home
 directory:
@@ -307,11 +310,11 @@ Your application should welcome the application developer to
 your cartridge and let them see that your cartridge has indeed been installed and operating.
 If you provide a `template` directory, OpenShift will transform it into a bare git repository
 for use by the application developer. If you provide a `template.git` directory, OpenShift will
-copy the directory for use by the application developer. Your `setup` script should assume that
-`template` directories may be converted to `template.git` during the packaging of your cartridge
-for use by OpenShift. The PaaS operator may choose to convert all `template` directories to bare
-git repositories `template.git` to obtain the performance gain when adding your cartridge to gear.
-One good workflow point to make this change is when your cartridge is packaged into an RPM.
+copy the directory for use by the application developer. Your `setup` and `install` scripts should
+assume that `template` directories may be converted to `template.git` during the packaging of your 
+cartridge for use by OpenShift. The PaaS operator may choose to convert all `template` directories 
+to bare git repositories `template.git` to obtain the performance gain when adding your cartridge 
+to gear.  One good workflow point to make this change is when your cartridge is packaged into an RPM.
 
 A `ruby 1.8` with `Passenger` support would have a `public` sub-directory and
 a `config.ru` file to define the web application.
@@ -516,11 +519,14 @@ be run from the home directory of the gear.
 
 A cartridge must implement the following scripts:
 
-* `setup`: prepare this instance of cartridge to be operational
+* `setup` and/or `install`: prepare this instance of cartridge to be operational for the initial install and each upgrade
 * `control`: command cartridge to report or change state
 
 A cartridge may implement the following scripts:
 * `teardown`: prepare this instance of cartridge to be removed
+* `install`: prepare this instance of cartridge to be operational for the initial install
+* `post-setup`: an oportunity for setup after the cartridge has been started for the initial install and each upgrade
+* `post-install`: an oportunity for setup after the cartridge has been started for the initial install
 
 ### Exit Status Codes
 
