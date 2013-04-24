@@ -62,8 +62,12 @@ require 'openshift-origin-node/utils/path_utils'
 require 'openshift-origin-node/utils/shell_exec'
 require 'openshift-origin-node/utils/node_logger'
 require 'openshift-origin-node/model/cartridge'
+require 'pathname'
 require 'singleton'
 require 'thread'
+require 'open-uri'
+require 'uri'
+require 'rubygems/package'
 
 module OpenShift
 
@@ -295,7 +299,7 @@ module OpenShift
         end
       end
 
-      cartridges.uniq.each {|c| yield c}
+      cartridges.uniq.each { |c| yield c }
     end
 
     ## print out all indexed cartridges in a table
@@ -307,6 +311,187 @@ module OpenShift
           end
         end
       end << '>'
+    end
+
+    # :call-seq:
+    #   CartridgeRepository.instantiate_cartridge(cartridge, path) -> nil
+    #
+    # Instantiate a cartridge in a gear;
+    #   If the cartridge manifest_path is :url then source_url is used to obtain cartridge source
+    #   Otherwise the cartridge source is copied from the cartridge_repository
+    #
+    #   source_hash is used to ensure the download was successful.
+    #
+    #   CartridgeRepository.instantiate_cartridge(perl_cartridge, '/var/lib/.../mock') => nil
+    def self.instantiate_cartridge(cartridge, target)
+      FileUtils.mkpath target
+
+      if :url == cartridge.manifest_path
+        uri       = URI(cartridge.source_url)
+        temporary = PathUtils.join(File.dirname(target), File.basename(cartridge.source_url))
+
+        case
+          when 'git' == uri.scheme || cartridge.source_url.end_with?('.git')
+            Utils::oo_spawn(%Q(set -xe;
+                               git clone #{cartridge.source_url} #{cartridge.name};
+                               GIT_DIR=./#{cartridge.name}/.git git repack),
+                            chdir:               Pathname.new(target).parent.to_path,
+                            expected_exitstatus: 0)
+
+          when uri.scheme =~ /^https*/ && cartridge.source_url =~ /\.zip/
+            begin
+              uri_copy(URI(cartridge.source_url), temporary, cartridge.source_md5)
+              extract(:zip, temporary, target)
+            ensure
+              FileUtils.rm(temporary)
+            end
+
+          when uri.scheme =~ /^https*/ && cartridge.source_url =~ /(\.tar\.gz|\.tgz)$/
+            begin
+              uri_copy(URI(cartridge.source_url), temporary, cartridge.source_md5)
+              extract(:tgz, temporary, target)
+            ensure
+              FileUtils.rm(temporary)
+            end
+
+          when uri.scheme =~ /^https*/ && cartridge.source_url =~ /\.tar$/
+            begin
+              uri_copy(URI(cartridge.source_url), temporary, cartridge.source_md5)
+              extract(:tar, temporary, target)
+            ensure
+              FileUtils.rm(temporary)
+            end
+
+          when 'file' == uri.scheme
+            entries = Dir.glob(PathUtils.join(uri.path, '*'), File::FNM_DOTMATCH)
+            filesystem_copy(entries, target, %w(. ..))
+
+          else
+            raise ArgumentError.new("Unsupported URL(#{cartridge.source_url}) for downloading a private cartridge")
+        end
+      else
+        entries = Dir.glob(PathUtils.join(cartridge.repository_path, '*'), File::FNM_DOTMATCH)
+        filesystem_copy(entries, target, %w(. .. usr))
+
+        usr_path = File.join(cartridge.repository_path, 'usr')
+        FileUtils.symlink(usr_path, File.join(target, 'usr')) if File.exist? usr_path
+      end
+
+      valid_cartridge_home(cartridge, target)
+    rescue
+      FileUtils.rm_rf target
+      raise
+    end
+
+    private
+
+    def self.uri_copy(uri, temporary, md5 = nil)
+      File.open(temporary, 'w') do |output|
+        uri.open do |input|
+          begin
+            while true
+              partial = input.readpartial(4096)
+              output.write partial
+            end
+          rescue EOFError
+            # we are done
+          end
+        end
+      end
+
+      if md5
+        digest = Digest::MD5.file(temporary).hexdigest
+        raise IOError.new(
+                  "Failed to download cartridge, checksum failed: #{md5} expected, #{digest} actual"
+              ) if digest != md5
+      end
+    end
+
+    def self.filesystem_copy(entries, target, black_list)
+      entries.delete_if do |e|
+        black_list.include? File.basename(e)
+      end
+
+      raise ArgumentError.new('No cartridge sources found to install.') if entries.empty?
+
+      Utils.oo_spawn("/bin/cp -ad #{entries.join(' ')} #{target}",
+                     expected_exitstatus: 0)
+    end
+
+    def self.extract(method, source, target)
+      case method
+        when :zip
+          Utils.oo_spawn("/usr/bin/unzip -d #{target} #{source}",
+                         expected_exitstatus: 0)
+        when :tgz
+          Utils.oo_spawn("/bin/tar -C #{target} -zxpf #{source}",
+                         expected_exitstatus: 0)
+
+        when :tar
+          Utils.oo_spawn("/bin/tar -C #{target} -xpf #{source}",
+                         expected_exitstatus: 0)
+
+        else
+          raise "Packaging method #{method} not yet supported."
+      end
+
+      files = Dir.glob(PathUtils.join(target, '*'))
+      if 1 == files.size
+        # A directory of one file is not legal move everyone up a level (github zip's are this way)
+        to_delete = files.first + '.to_delete'
+        File.rename(files.first, to_delete)
+
+        entries = Dir.glob(File.join(to_delete, '*'), File::FNM_DOTMATCH).delete_if do |e|
+          %w(. ..).include? File.basename(e)
+        end
+
+        FileUtils.move(entries, target, verbose: true)
+        FileUtils.rm_rf(to_delete)
+      end
+    end
+
+    def self.valid_cartridge_home(cartridge, path)
+      errors = []
+      [
+          [File, :directory?, %w(metadata)],
+          [File, :directory?, %w(bin)],
+          [File, :directory?, %w(env)],
+          [File, :file?, %w(metadata manifest.yml)],
+          [File, :executable?, %w(bin control)],
+      ].each do |clazz, method, target|
+        relative = PathUtils.join(target)
+        absolute = PathUtils.join(path, relative)
+
+        unless clazz.method(method).(absolute)
+          errors << "#{relative} is not #{method}"
+        end
+      end
+
+      unless errors.empty?
+        raise MalformedCartridgeError.new(
+                  "Malformed cartridge (#{cartridge.name}, #{cartridge.version}, #{cartridge.cartridge_version})",
+                  errors
+              )
+      end
+    end
+  end
+
+  # MalformedCartridgeError will be raised if the cartridge instance is missing
+  #   files or they do not have expected settings.
+  #
+  #  MalformedCartridgeError#message provides minimal information.
+  #  MalformedCartridgeError#details or #to_s will provide exact issues.
+  #
+  class MalformedCartridgeError < RuntimeError
+    attr_reader :details
+
+    def initialize(message = nil, details = [])
+      super(message)
+      @details = details
+    end
+
+    def to_s
+      super + ":\n#{@details.join(', ')}"
     end
   end
 end

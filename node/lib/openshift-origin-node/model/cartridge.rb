@@ -14,8 +14,10 @@
 # limitations under the License.
 #++
 
+require 'uri'
 require 'yaml'
 require 'openshift-origin-node/utils/path_utils'
+
 
 module OpenShift
 
@@ -86,13 +88,13 @@ module OpenShift
 
             # TODO: validation
             begin
-              endpoint                      = Endpoint.new
-              endpoint.private_ip_name      = build_name(tag, entry['Private-IP-Name'])
-              endpoint.private_port_name    = build_name(tag, entry['Private-Port-Name'])
-              endpoint.private_port         = entry['Private-Port'].to_i
-              endpoint.public_port_name     = build_name(tag, entry['Public-Port-Name'])
-              endpoint.websocket_port_name  = build_name(tag, entry['WebSocket-Port-Name'])
-              endpoint.websocket_port       = entry['WebSocket-Port'].to_i if entry['WebSocket-Port']
+              endpoint                     = Endpoint.new
+              endpoint.private_ip_name     = build_name(tag, entry['Private-IP-Name'])
+              endpoint.private_port_name   = build_name(tag, entry['Private-Port-Name'])
+              endpoint.private_port        = entry['Private-Port'].to_i
+              endpoint.public_port_name    = build_name(tag, entry['Public-Port-Name'])
+              endpoint.websocket_port_name = build_name(tag, entry['WebSocket-Port-Name'])
+              endpoint.websocket_port = entry['WebSocket-Port'].to_i if entry['WebSocket-Port']
 
               if entry['Mappings'].respond_to?(:each)
                 endpoint.mappings = entry['Mappings'].each_with_object([]) do |mapping_entry, mapping_memo|
@@ -133,27 +135,37 @@ module OpenShift
                   :short_name,
                   :categories,
                   :version,
-                  :source,
-                  :install_build_required
+                  :manifest_path,
+                  :install_build_required,
+                  :source_url,
+                  :source_md5
 
       # :call-seq:
-      #   Cartridge.new(manifest_path) -> Cartridge
+      #   Cartridge.new(manifest) -> Cartridge
+      #   Cartridge.new(manifest, software_version) -> Cartridge
+      #   Cartridge.new(manifest, software_version, repository_base_path) -> Cartridge
       #
       # Cartridge is a wrapper class for cartridge manifests
       #
-      #   Cartridge.new('/var/lib/openshift/.cartridge_repository/php/1.0/metadata/manifest.yml') -> Cartridge
-      def initialize(manifest_path, version=nil, repository_base_path='')
-        @manifest = YAML.load_file(manifest_path)
+      #   Cartridge.new('/var/lib/openshift/.cartridge_repository/php/1.0/metadata/manifest.yml', '3.5', '.../.cartridge_repository') -> Cartridge
+      #   Cartridge.new('Name: ...', '3.5') -> Cartridge
+      def initialize(manifest, version=nil, repository_base_path='')
+
+        if File.exist? manifest
+          @manifest      = YAML.load_file(manifest)
+          @manifest_path = manifest
+        else
+          @manifest      = YAML.load(manifest)
+          @manifest_path = :url
+        end
 
         # Validate and use the provided version, defaulting to the manifest Version key
-        raise MissingElementError.new(nil, 'Version') unless @manifest['Version']
-        raise InvalidElementError.new(nil, 'Versions') if @manifest['Versions'] && !@manifest['Versions'].kind_of?(Array)
-
-        @source = manifest_path
+        raise MissingElementError.new(nil, 'Version') unless @manifest.has_key?('Version')
+        raise InvalidElementError.new(nil, 'Versions') if @manifest.has_key?('Versions') && !@manifest['Versions'].kind_of?(Array)
 
         if version
           raise ArgumentError.new(
-                    "Unsupported version #{version} from #{versions} for #{manifest_path}"
+                    "Unsupported version #{version} from #{versions} for #{@manifest['Name']}"
                 ) unless versions.include?(version.to_s)
 
           @version = version.to_s
@@ -184,6 +196,15 @@ module OpenShift
         raise InvalidElementError.new(nil, 'Cartridge-Short-Name') if @short_name.include?('-')
         raise MissingElementError.new(nil, 'Name') unless @name
         #raise InvalidElementError.new(nil, 'Name') if @name.include?('-')
+
+        if @manifest.has_key?('Source-Url')
+          raise InvalidElementError.new(nil, 'Source-Url') unless @manifest['Source-Url'] =~ URI::ABS_URI
+          @source_url = @manifest['Source-Url']
+          @source_md5 = @manifest['Source-Md5']
+        else
+          raise MissingElementError.new('Source-Url is required in manifest to obtain cartridge via URL',
+                                        'Source-Url') if :url == @manifest_path
+        end
 
         @short_name.upcase!
 
