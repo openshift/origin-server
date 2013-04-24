@@ -1,11 +1,11 @@
-- content_for :page_title, @message || "Server under maintenance"
+- content_for :page_title, @message || "Maintenance in progress"
 
 - content_for :javascripts do
   %script{:src => status_jsonp_url('system-status')}
 
-%h1= @message || "Server under maintenance"
+%h1= @message || "Maintenance in progress"
 
-%p Wait a few minutes and then try again.
+%p The OpenShift service is temporarily unavailable while we perform server maintenance.  Please check the status page for updates.
 
 %section.row
   .span7

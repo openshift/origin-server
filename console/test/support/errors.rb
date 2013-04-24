@@ -6,14 +6,14 @@ module ErrorPageAssertions
     /An error has occurred/i
   end
   def default_server_maintenance_message
-    /Server under maintenance/i
+    /Maintenance in progress/i
   end
 
   def assert_not_found_page(title=default_not_found_message)
     assert_response :success
     assert_select 'h1', title
   end
-  def assert_server_maintenance_page(title=default_server_maintenance_message)
+  def assert_server_unavailable_page(title=default_server_unavailable_message)
     assert_response :success
     assert_select 'h1', title
   end
