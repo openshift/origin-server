@@ -1,0 +1,5 @@
+#!/bin/bash -e
+
+# All NOOPs
+
+exit 0
