@@ -1,7 +1,10 @@
-#!/bin/bash -e
+#!/bin/bash
+#set -e
 
-# Set default version
-version=0.6
+case "$1" in
+  -v|--version)
+    version="$2"
+esac
 
 # Copy the version specific files to nodejs directory
 shopt -s dotglob
@@ -15,9 +18,7 @@ pushd $OPENSHIFT_NODEJS_DIR > /dev/null
   mkdir -p node_modules
   npmgl=$OPENSHIFT_NODEJS_DIR/versions/$version/configuration/npm_global_module_list
   module_list=$(perl -ne 'print if /^\s*[^#\s]/' "$npmgl" | tr '\n' ' ')
-  set +e
   npm link $module_list >/dev/null 2>&1
-  set -e
   mv node_modules $OPENSHIFT_HOMEDIR/.node_modules
 popd > /dev/null
 

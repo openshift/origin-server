@@ -40,7 +40,7 @@ function is_up() {
     jenkins_url="http://${OPENSHIFT_INTERNAL_IP}:8080/"
 
     let count=0
-    while [ ${count} -lt 15 ]
+    while [ ${count} -lt 25 ]
     do
         url="curl -s -k -X GET --user \"${JENKINS_USERNAME}:${JENKINS_PASSWORD}\" ${jenkins_url}"
         result=`$url`
