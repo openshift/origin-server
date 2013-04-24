@@ -887,9 +887,10 @@ module OpenShift
                                       err:             options[:err])
 
         buffer << out if out.is_a?(String)
+        buffer << err if err.is_a?(String)
 
         raise Utils::ShellExecutionException.new(
-                  "Failed to execute: 'control #{action}' for #{path}", rc, buffer, err
+                  "Failed to execute: 'control #{action}' for #{path}", rc, out, err
               ) if rc != 0
       }
 
@@ -909,7 +910,7 @@ module OpenShift
     def do_action_hook(action, env, options)
       action_hooks_dir = File.join(@user.homedir, %w{app-root runtime repo .openshift action_hooks})
       action_hook      = File.join(action_hooks_dir, action)
-      out              = ''
+      buffer           = ''
 
       if File.executable?(action_hook)
         out, err, rc = Utils.oo_spawn(action_hook,
@@ -925,7 +926,10 @@ module OpenShift
               ) if rc != 0
       end
 
-      out
+      buffer << out if out.is_a?(String)
+      buffer << err if err.is_a?(String)
+
+      buffer
     end
 
     def cartridge_hooks(action_hooks, action, name, version)
