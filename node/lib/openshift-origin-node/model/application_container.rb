@@ -403,26 +403,20 @@ module OpenShift
     end
 
     def remote_deploy(options={})
-      if options[:hot_deploy]
-        options[:out].puts "Skipping secondary gear start due to presence of hot deploy marker" if options[:out]
-      else
-        start_gear(secondary_only: true,
-                   user_initiated: true,
-                   out:            options[:out],
-                   err:            options[:err])
-      end
+      start_gear(secondary_only: true,
+                 user_initiated: true,
+                 hot_deploy:     options[:hot_deploy],
+                 out:            options[:out],
+                 err:            options[:err])
 
       deploy(out: options[:out],
              err: options[:err])
 
-      if options[:hot_deploy]
-        options[:out].puts "Skipping primary gear start due to presence of hot deploy marker" if options[:out]
-      else
-        start_gear(primary_only:  true,
-                  user_initiated: true,
-                  out:            options[:out],
-                  err:            options[:err])
-      end
+      start_gear(primary_only:   true,
+                 user_initiated: true,
+                 hot_deploy:     options[:hot_deploy],
+                 out:            options[:out],
+                 err:            options[:err])
 
       post_deploy(out: options[:out],
                   err: options[:err])

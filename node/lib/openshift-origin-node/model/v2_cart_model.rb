@@ -1020,6 +1020,10 @@ module OpenShift
     # +options+   : hash
     #   :user_initiated => [boolean]  : Indicates whether the operation was user initated.
     #                                   Default is +true+.
+    #   :hot_deploy => [boolean]      : If +true+ and if +cartridge+ is the primary cartridge in the gear, the
+    #                                   gear state will be set to +STARTED+ but the actual cartridge start operation
+    #                                   will be skipped. Non-primary cartridges will be skipped with no state change.
+    #                                   Default is +false+.
     #   :out                          : An +IO+ object to which control script STDOUT should be directed. If
     #                                   +nil+ (the default), output is logged.
     #   :err                          : An +IO+ object to which control script STDERR should be directed. If
@@ -1029,16 +1033,23 @@ module OpenShift
     # if the cartridge script fails.
     def start_cartridge(type, cartridge, options={})
       options[:user_initiated] = true if not options.has_key?(:user_initiated)
+      options[:hot_deploy]     = false if not options.has_key?(:hot_deploy)
+
+      cartridge = get_cartridge(cartridge) if cartridge.is_a?(String)
 
       if not options[:user_initiated] and stop_lock?
         return "Not starting cartridge #{cartridge.name} because the application was explicitly stopped by the user"
       end
 
-      cartridge = get_cartridge(cartridge) if cartridge.is_a?(String)
-
       if cartridge.primary?
         FileUtils.rm_f(stop_lock) if options[:user_initiated]
         @state.value = OpenShift::State::STARTED
+      end
+
+      if options[:hot_deploy]
+        output = "Not starting cartridge #{cartridge.name} because hot deploy is enabled"
+        options[:out].puts(output) if options[:out]
+        return output
       end
 
       do_control(type, cartridge, options)
@@ -1055,6 +1066,9 @@ module OpenShift
     # +options+   : hash
     #   :user_initiated => [boolean]  : Indicates whether the operation was user initated.
     #                                   Default is +true+.
+    #   :hot_deploy => [boolean]      : If +true+, the stop operation is skipped for all cartridge types,
+    #                                   the gear state is not modified, and the stop lock is never created.
+    #                                   Default is +false+. 
     #   :out                          : An +IO+ object to which control script STDOUT should be directed. If
     #                                   +nil+ (the default), output is logged.
     #   :err                          : An +IO+ object to which control script STDERR should be directed. If
@@ -1064,12 +1078,19 @@ module OpenShift
     # if the cartridge script fails.
     def stop_cartridge(cartridge, options={})
       options[:user_initiated] = true if not options.has_key?(:user_initiated)
+      options[:hot_deploy]     = false if not options.has_key?(:hot_deploy)
+
+      cartridge = get_cartridge(cartridge) if cartridge.is_a?(String)
+
+      if options[:hot_deploy]
+        output = "Not stopping cartridge #{cartridge.name} because hot deploy is enabled"
+        options[:out].puts(output) if options[:out]
+        return output
+      end
 
       if not options[:user_initiated] and stop_lock?
         return "Not stopping cartridge #{cartridge.name} because the application was explicitly stopped by the user"
       end
-
-      cartridge = get_cartridge(cartridge) if cartridge.is_a?(String)
 
       if cartridge.primary?
         create_stop_lock if options[:user_initiated]
