@@ -1,6 +1,6 @@
-#@runtime_other1
+#@runtime_extended_other1
 @runtime
-@runtime1
+@runtime_extended1
 Feature: cron Embedded Cartridge
 
   @rhel-only

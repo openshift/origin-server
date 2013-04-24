@@ -1,4 +1,4 @@
-@runtime_other
+@runtime_other3
 Feature: V2 SDK Mock Cartridge Build Tests
 
   Scenario: Exercise hot deployment

@@ -1,9 +1,8 @@
-@runtime_other
+@runtime_other1
 Feature: V2 SDK snapshot and restore
   Scenario: Create, snapshot, and restore application with client tools
     Given a v2 default node
     And the libra client tools
-    And an accepted node
     And a new client created mock-0.1 application
 
     When I snapshot the application
