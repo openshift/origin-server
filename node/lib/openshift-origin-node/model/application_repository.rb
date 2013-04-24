@@ -55,38 +55,42 @@ module OpenShift
     # +populate_from_cartridge+ uses the provided +cartridge_name+ to install a template application
     # for the gear
     #
-    # If the directory +template+ exists it will be installed in the application's repository.
-    # If the directory +template.git+ exists it will be cloned as the application's repository.
+    # Template search locations:
+    #   * ~/<cartridge home>/template
+    #   * ~/<cartridge home>/template.git
+    #   * ~/<cartridge home>/usr/template
+    #   * ~/<cartridge home>/usr/template.git
     #
+    # return nil if application bare repository exists or no template found
+    #            otherwise path of template used
     def populate_from_cartridge(cartridge_name)
       return nil if exists?
 
       FileUtils.mkpath(File.join(@user.homedir, 'git'))
 
-      cartridge_template     = File.join(@user.homedir, cartridge_name, 'template')
-      cartridge_template_git = File.join(@user.homedir, cartridge_name, 'template.git')
+      locations = [
+          File.join(@user.homedir, cartridge_name, 'template'),
+          File.join(@user.homedir, cartridge_name, 'template.git'),
+          File.join(@user.homedir, cartridge_name, 'usr', 'template'),
+          File.join(@user.homedir, cartridge_name, 'usr', 'template.git'),
+      ]
 
-      have_template = (File.exist? cartridge_template or File.exist? cartridge_template_git)
-      return nil unless have_template
-
-      # TODO: Support tar balls etc...
-      raise NotImplementedError.new(
-                "#{File.join(cartridge_name, 'template')}: files are not support for initializing a git repository"
-            ) if File.file? cartridge_template
+      template = locations.find {|l| File.directory?(l)}
+      return nil unless template
 
       # expose variables for ERB processing
       @application_name = @user.app_name
       @cartridge_name   = cartridge_name
       @user_homedir     = @user.homedir
 
-      case
-        when File.exists?(cartridge_template)
-          build_bare(cartridge_template)
-        when File.exist?(cartridge_template_git)
-          FileUtils.cp_r(cartridge_template_git, @path, preserve: true)
+      if template.end_with? '.git'
+        FileUtils.cp_r(template, @path, preserve: true)
+      else
+        build_bare(template)
       end
 
       configure
+      template
     end
 
     ##
