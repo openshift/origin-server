@@ -19,16 +19,19 @@ function load_env {
     fi
 }
 
-for f in /etc/openshift/env/* ~/.env/* ~/.env/.uservars/* ~/*/env/*
-do
-    load_env $f
-done
-
 if [ -f ~/.env/CARTRIDGE_VERSION_2 ]
 then
+    for f in /etc/openshift/env/* ~/.env/* ~/.env/.uservars/* ~/*/env/*
+    do
+      load_env $f
+    done
+
     if [ -n "$OPENSHIFT_PRIMARY_CARTRIDGE_DIR" ]
     then
-        load_env $OPENSHIFT_PRIMARY_CARTRIDGE_DIR/env/*
+        for f in $OPENSHIFT_PRIMARY_CARTRIDGE_DIR/env/*
+        do
+          load_env $f
+        done
     fi
 
     path=$(env |grep 'OPENSHIFT_.*_PATH'| sed 's/^.*=\(.*\)$/\1/'|tr '\n' ':')
@@ -43,6 +46,11 @@ then
         path=$path:$(< /etc/openshift/env/PATH)
     fi
     export PATH=$path
+else
+  for f in ~/.env/*
+  do
+    load_env $f
+  done
 fi
 
 source /etc/openshift/node.conf

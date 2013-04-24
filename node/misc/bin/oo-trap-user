@@ -78,6 +78,9 @@ def gear_env():
 
     if primary_path in os.environ:
         segments.insert(0, os.environ[primary_path])
+
+    if 'PATH' in os.environ:
+        segments.append(os.environ['PATH'])
     segments.append(system_path)
 
     os.environ['PATH'] = ':'.join(segments)
