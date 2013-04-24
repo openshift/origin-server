@@ -1,0 +1,3 @@
+#!/bin/bash
+
+echo -n "OPENSHIFT_JBOSS_MODULE_PATH=/etc/alternatives/switchyard-0/modules; "

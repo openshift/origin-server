@@ -1,0 +1,5 @@
+#!/bin/bash -e
+
+#NOOP
+
+exit 0
