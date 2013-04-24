@@ -307,7 +307,7 @@ module RestApi
         end
       end
 
-    rescue ActiveResource::ForbiddenAccess, ActiveResource::UnauthorizedAccess
+    rescue ActiveResource::ForbiddenAccess, ActiveResource::UnauthorizedAccess, ActiveResource::ServerError
       # Aggressively raise the error - TODO, parse codes or specialize
       raise
     rescue ActiveResource::ConnectionError => error

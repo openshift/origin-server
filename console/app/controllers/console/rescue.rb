@@ -51,11 +51,11 @@ module Console
       end
 
       def server_error(e=nil, message=nil, alternatives=nil)
-        unless e.nil? || e.response.nil? || e.response.code.nil? || e.response.code.to_i != 503
-          logger.debug "Server under maintenance: #{e}"
+        if e.present? && e.response.present? && e.response.code.present? && e.response.code.to_i == 503
+          logger.debug "Maintenance in progress: #{e}"
           redirect_to server_unavailable_path
         else
-          logger.debug "Server error"
+          logger.debug "Server error: #{e}"
           generic_error(e, message, alternatives)
         end
       end

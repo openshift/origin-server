@@ -205,8 +205,6 @@ module ActiveResource
             raise(ResourceInvalid.new(response))
           when 401...500
             raise(ClientError.new(response))
-          when 503
-            raise(ServerError.new(response, JSON.parse(response.body)['messages'][0]['text']))
           when 500...600
             raise(ServerError.new(response))
           else
