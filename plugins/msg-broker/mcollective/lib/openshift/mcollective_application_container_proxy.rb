@@ -1551,7 +1551,12 @@ module OpenShift
         args['--hook-name'] = connector_name
         args['--publishing-cart-name'] = pub_cart if pub_cart
         args['--connection-type'] = connection_type
-        args['--input-args'] = input_args.join(" ")
+        # Need to pass down args as hash for subscriber ENV hooks only
+        if connection_type.start_with?("ENV:") && pub_cart
+          args['--input-args'] = input_args
+        else
+          args['--input-args'] = input_args.join(" ")
+        end
         job = RemoteJob.new('openshift-origin-node', 'connector-execute', args)
         job
       end

@@ -44,6 +44,9 @@ def load_env(directory):
     for entry in glob.glob(os.path.expanduser(os.path.join(directory, '*'))):
         syslog.syslog("DEBUG: var entry %s" % entry)
         env = os.path.basename(entry)
+        if os.path.isdir(entry):
+            load_env(os.path.join(directory, entry))
+            continue
 
         with open(entry, 'r') as file:
             contents = file.read().rstrip()
@@ -59,7 +62,7 @@ def gear_env():
     load_env('/etc/openshift/env')
     system_path = os.environ['PATH']
 
-    load_env('~/.env/.uservars')
+    #load_env('~/.env/.uservars')
     load_env('~/.env')
     load_env('~/*/env/')
 
