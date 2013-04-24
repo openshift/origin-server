@@ -66,10 +66,15 @@ if job_available?
     print "."
     cancelled = is_cancelled
     if cancelled == nil
-      puts ""
-      puts "**BUILD FAILED/CANCELLED**"
-      puts "Please see the Jenkins log for more details via 'rhc tail'"
-      exit 1
+      next_build_num = get_build_num
+      if next_build_num == build_num + 1
+        break
+      else
+        puts ""
+        puts "**BUILD FAILED/CANCELLED**"
+        puts "Please see the Jenkins log for more details via 'rhc tail'"
+        exit 1
+      end
     end
     sleep 1
     next_build_num = get_build_num
