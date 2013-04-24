@@ -65,7 +65,6 @@ mv services/openshift-gears.service %{buildroot}/etc/systemd/system/openshift-ge
 %files
 %attr(0750,-,-) %{_sbindir}/oo-accept-node
 %attr(0750,-,-) %{_sbindir}/oo-admin-ctl-gears
-%attr(0750,-,-) %{_sbindir}/oo-admin-ctl-gears.rb
 %attr(0750,-,-) %{_sbindir}/oo-app-idle
 %attr(0750,-,-) %{_sbindir}/oo-autoidler
 %attr(0750,-,-) %{_sbindir}/oo-idler
