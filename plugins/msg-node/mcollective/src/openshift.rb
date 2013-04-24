@@ -564,12 +564,14 @@ module MCollective
       end
 
       def oo_connector_execute(args)
-        cart_name  = args['--cart-name']
-        hook_name  = args['--hook-name']
-        input_args = args['--input-args']
+        cart_name        = args['--cart-name']
+        pub_cart_name    = args['--publishing-cart-name']
+        hook_name        = args['--hook-name']
+        connection_type  = args['--connection-type']
+        input_args       = args['--input-args']
 
         with_container_from_args(args) do |container, output|
-          output << container.connector_execute(cart_name, hook_name, input_args)
+          output << container.connector_execute(cart_name, pub_cart_name, connection_type, hook_name, input_args)
         end
       end
 

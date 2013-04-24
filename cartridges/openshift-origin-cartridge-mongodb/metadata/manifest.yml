@@ -41,7 +41,7 @@ Provides:
   - mongodb-basic-mode
 Publishes:
   publish-nosql-db-connection-info:
-    Type: "NET_TCP:nosqldb:connection-info"
+    Type: "ENV:NET_TCP:nosqldb:connection-info"
 Scaling:
   Min: 1
   Max: 1

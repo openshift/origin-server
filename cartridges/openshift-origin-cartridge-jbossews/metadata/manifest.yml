@@ -65,10 +65,10 @@ Publishes:
     Type: "NET_TCP:gear-endpoint-info"
 Subscribes:
   set-db-connection-info:
-    Type: "NET_TCP:db:connection-info"
+    Type: "ENV:NET_TCP:db:connection-info"
     Required: false
   set-nosql-db-connection-info:
-    Type: "NET_TCP:nosqldb:connection-info"
+    Type: "ENV:NET_TCP:nosqldb:connection-info"
     Required: false
   set-jdbc-info:
     Type: "NET_TCP:jdbc"
