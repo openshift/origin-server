@@ -187,6 +187,8 @@ module OpenShift
 
         @short_name.upcase!
 
+        validate_cartridge_vendor_name
+
         if @cartridge_vendor && @name && @cartridge_version
           @directory           = @name.downcase
           repository_directory = "#{@cartridge_vendor.gsub(/\s+/, '').downcase}-#{@name}"
@@ -232,6 +234,16 @@ module OpenShift
         instance_variables.each_with_object('<Cartridge: ') do |v, a|
           a << "#{v}: #{instance_variable_get(v)} "
         end << ' >'
+      end
+
+      private
+      def validate_cartridge_vendor_name
+        if cartridge_vendor =~ /(^_|[^a-zA-Z0-9_])/ or cartridge_vendor == 'redhat'
+          raise InvalidElementError.new(
+            "Cartridge vendor name (#{cartridge_vendor}) may not: start with _, contain non-alphanumeric character except _, or be 'redhat'.",
+            'Cartridge-Vendor'
+            )
+        end
       end
     end
   end
