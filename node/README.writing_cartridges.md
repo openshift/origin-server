@@ -525,8 +525,8 @@ A cartridge must implement the following scripts:
 A cartridge may implement the following scripts:
 * `teardown`: prepare this instance of cartridge to be removed
 * `install`: prepare this instance of cartridge to be operational for the initial install
-* `post-setup`: an oportunity for setup after the cartridge has been started for the initial install and each upgrade
-* `post-install`: an oportunity for setup after the cartridge has been started for the initial install
+* `post-setup`: an opportunity for setup after the cartridge has been started for the initial install and each upgrade
+* `post-install`: an opportunity for setup after the cartridge has been started for the initial install
 
 ### Exit Status Codes
 
@@ -558,22 +558,85 @@ the version denoted by the `Version` element from `manifest.yml` will be install
 
 The `setup` script is responsible for creating and/or configuring the
 files that were copied from the cartridge repository into the gear's
-directory.
+directory.  Setup must also be reentrant and will be called on every
+non backward compatible upgrade.  Any logic you want to occur only once
+should be added to install.
 
 If you have used ERB templates for software configuration those files will be
 processed for environment variable substitution after `setup` is run.  An
 example would be PHP's php.ini file:
 
-    upload_tmp_dir = "<%= ENV['OPENSHIFT_HOMEDIR'] %>php-5.3/tmp/"
-    session.save_path = "<%= ENV['OPENSHIFT_HOMEDIR'] %>php-5.3/sessions/"
+    upload_tmp_dir = "<%= ENV['OPENSHIFT_HOMEDIR'] %>php/tmp/"
+    session.save_path = "<%= ENV['OPENSHIFT_HOMEDIR'] %>php/sessions/"
 
 Other candidates for templates are httpd configuration files for
 `includes`, configuring database to store persistent data in the
 OPENSHIFT_DATA_DIR, and setting the application name in the pom.xml file.
 
-`setup` may substitute a version dependent of the `template` or `template.git` directories.
+Lock context: `unlocked`
+
+## bin/install
+
+##### Synopsis
+
+`install [--version <version>]`
+
+##### Options
+
+* `--version <version>`: Selects which version of cartridge to install. If no version is provided,
+the version denoted by the `Version` element from `manifest.yml` will be installed.
+
+##### Description
+
+The `install` script is responsible for creating and/or configuring the
+files that were copied from the cartridge repository into the gear's
+directory.  `install` will only be called on the initial install of a cartridge.
+
+Any one time operations such as generating passwords, creating ssh keys, adding environment 
+variables should occur in install.
+
+Also any client results/messages should also be reported in install rather than setup.
+
+`install` may substitute a version dependent of the `template` or `template.git` directories.
 
 Lock context: `unlocked`
+
+## bin/post-setup
+
+##### Synopsis
+
+`post-setup [--version <version>]`
+
+##### Options
+
+* `--version <version>`: Selects which version of cartridge to install. If no version is provided,
+the version denoted by the `Version` element from `manifest.yml` will be installed.
+
+##### Description
+
+The `post-setup` script is an opportunity to configure your cartridge after the cartridge has been 
+started.  Like setup it must also be reentrant and is called for each non backward compatible cartridge 
+upgrade.
+
+Lock context: `locked`
+
+## bin/post-install
+
+##### Synopsis
+
+`post-install [--version <version>]`
+
+##### Options
+
+* `--version <version>`: Selects which version of cartridge to install. If no version is provided,
+the version denoted by the `Version` element from `manifest.yml` will be installed.
+
+##### Description
+
+The `post-install` script is an opportunity to configure your cartridge after the cartridge has been 
+started and is only called for the initial install of the cartridge.
+
+Lock context: `locked`
 
 ##### Messaging to OpenShift from cartridge
 
@@ -734,7 +797,7 @@ to be used for all cartridge entry points.
 
 These are variables you either provided to you for communicating to the application developer.  You may add
 additional variables for your cartridges or the packaged software needs. You may provide these files in your
-cartridge's `env` directory or choose to create them in your `setup` script.
+cartridge's `env` directory or choose to create them in your `setup` and `install` scripts.
 
  * `OPENSHIFT_MYSQL_DB_HOST`                  Backwards compatibility (ERB populate from `OPENSHIFT_MYSQL_DB_IP`)
  * `OPENSHIFT_MYSQL_DB_IP`
