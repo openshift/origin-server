@@ -1,13 +1,14 @@
-#!/bin/bash -e
-
-set -x
-export | grep 'POSTGRES\|PG'
+#!/bin/bash -ue
 
 source $OPENSHIFT_CARTRIDGE_SDK_BASH
 
+function _pg_stop {
+  pg_ctl stop -w -t 30 "$@"
+}
+
 function _is_running {
   # Can't use pg_ctl status here because it doesn't mean the db is done starting up
-  psql -l -h $OPENSHIFT_POSTGRESQL_DB_SOCKET_DIR -U postgres 2>&1 > /dev/null
+  psql -l -U postgres 2>&1 > /dev/null
   return $?
 }
 
@@ -16,20 +17,17 @@ function wait_for_postgres_availability {
     _is_running && return 0
     sleep 1
   done
+  return 1
 }
 
 function start {
   if ! _is_running; then
     echo "Starting Postgres"
-    # Should be able to use '-w -t 30' here but it always fails
-    pg_ctl start -D $OPENSHIFT_POSTGRESQL_DB_PGDATA
-    wait_for_postgres_availability
 
-    if _is_running; then
-      echo "Postgres started"
-    else
-      error "Could not start Postgres" 70
-    fi
+    pg_ctl start
+    wait_for_postgres_availability || error "Could not start Postgres" 70
+
+    echo "Postgres started"
   else
     echo "Postgres already running"
   fi
@@ -38,9 +36,9 @@ function start {
 
 function stop {
   if _is_running; then
-    pg_ctl stop -D $OPENSHIFT_POSTGRESQL_DB_PGDATA -m smart -w -t 30 ||
-      pg_ctl stop -D $OPENSHIFT_POSTGRESQL_DB_PGDATA -m fast -w -t 30 ||
-      pg_ctl stop -D $OPENSHIFT_POSTGRESQL_DB_PGDATA -m immediate -w -t 30 ||
+    _pg_stop -m smart ||
+      _pg_stop -m fast ||
+      _pg_stop -m immediate ||
       pkill postgres
     if _is_running; then
       error "Could not stop Postgres" 70
@@ -67,57 +65,52 @@ function status {
 function pre_snapshot {
   start
 
-  local dump_file="${OPENSHIFT_DATA_DIR}/postgresql_dump_snapshot.gz"
-  local dump_user="${OPENSHIFT_DATA_DIR}/postgresql_db_username"
+  echo $OPENSHIFT_POSTGRESQL_DB_USERNAME > $OPENSHIFT_DATA_DIR/postgresql_db_username
+  echo $OPENSHIFT_APP_NAME > $OPENSHIFT_DATA_DIR/postgresql_db_dbname
 
-  echo "$OPENSHIFT_POSTGRESQL_DB_USERNAME" > $dump_user
+  # Remove any statements that modify the postgres or user role
+  local rexp="^\s*\(DROP\|CREATE\|ALTER\)\s*ROLE\s*\(${OPENSHIFT_POSTGRESQL_DB_USERNAME}\|postgres\).*"
+  pg_dumpall -c -U postgres | \
+    sed "/$rexp/d;" | \
+    gzip -9 > $OPENSHIFT_DATA_DIR/postgresql_dump_snapshot.gz
 
-  pg_dumpall -h $OPENSHIFT_POSTGRESQL_DB_SOCKET_DIR -c -U postgres | gzip -9 > $dump_file
-
-  if [ ! ${PIPESTATUS[0]} -eq 0 ]
+  if [ ${PIPESTATUS[0]} -ne 0 ]
   then
     warning "WARNING!  Could not dump Postgres databases!  Continuing anyway"
-    rm -f $dump_file
+    rm -f $OPENSHIFT_DATA_DIR/postgresql_dump_snapshot.gz
   fi
 
   stop
 }
 
-function post_snapshot {
-  true
-}
-
-function pre_restore {
-  true
-}
-
 function post_restore {
-  local dump_file="${OPENSHIFT_DATA_DIR}/postgresql_dump_snapshot.gz"
-  local dump_user="${OPENSHIFT_DATA_DIR}/postgresql_db_username"
+  local dump_file=$OPENSHIFT_DATA_DIR/postgresql_dump_snapshot.gz
 
-  # TODO: Ensure the credentials are properly flushed
-  # TODO: Ensure the uids are correct in the pg_* files
+  local new_user=$OPENSHIFT_POSTGRESQL_DB_USERNAME
+  local old_user=$(< $OPENSHIFT_DATA_DIR/postgresql_db_username)
+
+  local new_db=$OPENSHIFT_APP_NAME
+  local old_db=$(< $OPENSHIFT_DATA_DIR/postgresql_db_dbname)
+
+  local rexp="\(DROP\|CREATE\)\s*DATABASE\s*$old_db"
+  local owner_rexp="\(CREATE\s*DATABASE\)\s*\(.*\)\s*OWNER\s*=\s*[^ ;]*"
+
   if [ -f $dump_file ]
   then
     start
-    local new_user=$OPENSHIFT_POSTGRESQL_DB_USERNAME
     # Restore the dumped file
-    zcat $dump_file | psql -U postgres -h $OPENSHIFT_POSTGRESQL_DB_SOCKET_DIR -d postgres
-    # Change the username and password if the username changed
-    if [ "$new_user" != "$dump_user" ]
-    then
-      {
-        echo "
-        ALTER USER ${dump_user} RENAME TO ${new_user};
-        ALTER USER ${new_user} PASSWORD '${pass}';
-        " | psql -d $db -h $socket -U postgres
-      } || warning "Could not change credentials"
-    fi
+    zcat $dump_file | \
+      sed "s#$rexp#\\1 DATABASE $new_db#g;           \
+      s#$owner_rexp#\\1 \\2 OWNER = \"$new_user\"#g; \
+      s#\\connect $old_db#\\connect $new_db#g;       \
+      s#$old_user#$new_user#g;" |  \
+      psql -U postgres -d postgres
 
-    if [ ! ${PIPESTATUS[1]} -eq 0 ]
+    if [ ${PIPESTATUS[2]} -ne 0 ]
     then
       warning "Error: Could not import Postgres Database!  Continuing..."
     fi
+
     cleanup_dump
   else
     warning "Postgres restore attempted, but no dump found"
@@ -126,11 +119,24 @@ function post_restore {
 }
 
 function cleanup_dump {
-  local dump_file="${OPENSHIFT_DATA_DIR}/postgresql_dump_snapshot.gz"
-  local dump_user="${OPENSHIFT_DATA_DIR}/postgresql_db_username"
+  local dumpfiles=(
+    postgresql_dump_snapshot.gz
+    postgresql_db_username
+    postgresql_db_dbname
+  )
+  for file in "${dumpfiles[@]}"
+  do
+    rm -f $OPENSHIFT_DATA_DIR/$file
+  done
+}
 
-  rm -f $dump_file
-  rm -f $dump_user
+function reload {
+  pg_ctl reload
+}
+
+function tidy {
+  truncate -s0 $OPENSHIFT_POSTGRESQL_DB_LOG_DIR/*
+  psql -c 'vacuum analyze;' -U postgres
 }
 
 case "$1" in
@@ -150,13 +156,19 @@ case "$1" in
   pre-snapshot)
     pre_snapshot
   ;;
-  post-snapshot)
-    post_snapshot
-  ;;
   pre-restore)
-    pre_restore
+    cleanup_dump
   ;;
   post-restore)
     post_restore
+  ;;
+  reload)
+    reload
+  ;;
+  tidy)
+    tidy
+  ;;
+  *)
+    echo 0
   ;;
 esac

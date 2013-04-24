@@ -142,6 +142,10 @@ When /^I tidy the application$/ do
   rhc_tidy(@app)
 end
 
+When /^I reload the application$/ do
+  rhc_reload(@app)
+end
+
 When /^I restore the application$/ do
   assert_file_exists @app.snapshot
   File.size(@app.snapshot).should > 0
