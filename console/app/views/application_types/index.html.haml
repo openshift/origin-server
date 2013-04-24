@@ -86,20 +86,20 @@
         Can't find what you're looking for?  Try searching for a specific quickstart or filtering by tag.
         Or, browse the entire list in our #{link_to "QuickStart gallery", community_quickstarts_url}.
 
-    - if Rails.configuration.custom_cartridges_enabled
+    - if RestApi.external_cartridges_enabled?
       %h3.divide Code Anything
       
       %form.form-inline.row{:method => :get, :action => application_type_path('custom')}
         .span6
           %p
-            Have your own framework?  Provide the URL of a #{link_to 'custom cartridge', custom_cartridges_help_url} here, and OpenShift will download and 
+            Have your own framework?  Provide the URL of an #{link_to 'external cartridge', external_cartridges_help_url} here, and OpenShift will download and 
             provision it automatically into your new app!
           %input{:type => :hidden, :name => :unlock, :value => 'true'}
-          %input{:type => :text, :name => 'application_type[cartridges]', :placeholder => 'URL to a cartridge manifest'}
-          %input.btn{:type => :submit, :value => 'Next', :title => 'Base an app on your own cartridge'}
+          %input{:type => :text, :name => 'application_type[cartridges]', :placeholder => 'URL to a cartridge definition'}
+          %input.btn{:type => :submit, :value => 'Next', :title => 'Base a new app on a cartridge you provide'}
           
         .span6
-          %p Want to build a custom cartridge? Get started with the DIY cart
+          %p Want to build your own cartridge? Get started with the DIY cart.
           .tile-dark
             - @custom_types.sort!.each do |type|
               = render :partial => 'tile', :locals => {:type => type, :excluded_tags => excluded_tags}

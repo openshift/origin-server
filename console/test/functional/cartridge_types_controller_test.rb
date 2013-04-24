@@ -3,6 +3,8 @@ require File.expand_path('../../test_helper', __FILE__)
 class CartridgeTypesControllerTest < ActionController::TestCase
 
   test "should show index" do
+    RestApi.stubs(:external_cartridges_enabled?).returns(true)
+
     get :index, :application_id => with_app.name
     assert_response :success
 
@@ -25,8 +27,8 @@ class CartridgeTypesControllerTest < ActionController::TestCase
     cached = CartridgeType.cached.all
     assert cached.all? {|t| (t.tags & [:installed, :inactive, 'inactive']).empty? }, cached.pretty_inspect
 
-    assert_select "h3", 'Install a custom cartridge'
-    assert_select "input[type=submit][title='Add a custom cartridge']"
+    assert_select "h3", 'Install your own cartridge'
+    assert_select "input[type=submit][title='Add an external cartridge to this app']"
   end
 
   test "should show type page" do

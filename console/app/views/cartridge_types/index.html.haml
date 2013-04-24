@@ -16,13 +16,13 @@
           .span4
             = render :collection => types, :partial => 'cartridge_types/cartridge_type', :locals => {:application => @application}
 
-      - if Rails.configuration.custom_cartridges_enabled
-        %h3 Install a custom cartridge
+      - if RestApi.external_cartridges_enabled?
+        %h3 Install your own cartridge
         %form.form-inline{:method => :get, :action => application_cartridge_type_path(@application, 'custom')}
-          %p You may also add a #{link_to 'custom cartridge', custom_cartridges_help_url} by providing the URL to its manifest.  OpenShift will download and install this cart into your application.  Remember that custom cartridges do not automatically receive updates.
+          %p You may also add an #{link_to 'external cartridge', external_cartridges_help_url} by providing the URL to the definition.  OpenShift will download and install this cart into your application.  Remember that external cartridges will not automatically receive updates.
 
-          %input{:type => :text, :name => :url, :placeholder => 'URL to a cartridge manifest'}
-          %input.btn{:type => :submit, :value => 'Next', :title => 'Add a custom cartridge'}
+          %input{:type => :text, :name => :url, :placeholder => 'URL to a cartridge definition'}
+          %input.btn{:type => :submit, :value => 'Next', :title => 'Add an external cartridge to this app'}
 
   - unless @installed.empty? and @requires.empty? and @conflicts.empty? and @blocked.empty?
     .span4

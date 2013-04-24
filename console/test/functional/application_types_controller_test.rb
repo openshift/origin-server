@@ -12,6 +12,8 @@ class ApplicationTypesControllerTest < ActionController::TestCase
   end
 
   test "should show index" do
+    RestApi.stubs(:external_cartridges_enabled?).returns(true)
+
     with_unique_user
     get :index
     assert_response :success

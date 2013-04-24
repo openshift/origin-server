@@ -17,9 +17,9 @@ class CartridgesController < ConsoleController
     name = (params[:cartridge] || {})[:name].presence
     url = (params[:cartridge] || {})[:url].presence
     
-    @cartridge_type = url ? CartridgeType.for_url(url) : CartridgeType.find(name)
     @domain = user_default_domain
     @application = @domain.find_application params[:application_id]
+    @cartridge_type = url ? CartridgeType.for_url(url) : CartridgeType.find(name)
     @cartridge = Cartridge.new(:url => url, :name => url ? nil : name, :as => current_user, :application => @application)
 
     if @cartridge.save

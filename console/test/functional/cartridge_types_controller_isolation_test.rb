@@ -24,6 +24,7 @@ class CartridgeTypesIsolationControllerTest < ActionController::TestCase
       mock.get '/broker/rest/domains/test/applications/test.json', json_header, app.to_json
       mock.get '/broker/rest/domains/test/applications/test.json?include=cartridges', json_header, app(true).to_json
       mock.get '/broker/rest/cartridges.json', anonymous_json_header, [{:name => 'fake-cart-1', :type => :embedded}].to_json
+      mock.get '/broker/rest/environment.json', anonymous_json_header, {:external_cartridges_enabled => true}.to_json
     end
     app
   end

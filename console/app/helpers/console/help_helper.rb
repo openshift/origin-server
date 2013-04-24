@@ -86,8 +86,8 @@ module Console::HelpHelper
     community_base_url 'developers/get-started'
   end
 
-  def custom_cartridges_help_url
-    community_base_url 'developers/custom-cartridges'
+  def external_cartridges_help_url
+    community_base_url 'developers/external-cartridges'
   end
 
   def livecd_wiki_url(anchor=nil)

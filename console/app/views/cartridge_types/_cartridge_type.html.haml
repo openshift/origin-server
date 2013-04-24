@@ -54,7 +54,7 @@
   - if cartridge_type.learn_more_url
     = link_to "Learn more", cartridge_type.learn_more_url
   - elsif cartridge_type.custom?
-    = link_to "Learn more", custom_cartridges_help_url
+    = link_to "Learn more", external_cartridges_help_url
 
   - if extra_info and cartridge_type.provides
     %div
