@@ -1440,6 +1440,26 @@ module OpenShift
       end
 
       #
+      # Create a job to remove existing authorized ssh keys and add the provided ones to the gear
+      #
+      # INPUTS:
+      # * gear: a Gear object
+      # * ssh_keys: Array - SSH public key list
+      # 
+      # RETURNS:
+      # * a RemoteJob object
+      #
+      # NOTES:
+      # * uses RemoteJob
+      # 
+      def get_fix_authorized_ssh_keys_job(gear, ssh_keys)
+        args = build_base_gear_args(gear)
+        args['--with-ssh-keys'] = ssh_keys.map {|k| {'key' => k['content'], 'type' => k['type'], 'comment' => k['name']}}
+        job = RemoteJob.new('openshift-origin-node', 'authorized-ssh-keys-replace', args)
+        job
+      end
+
+      #
       # Create a job to add a broker auth key
       #
       # INPUTS:

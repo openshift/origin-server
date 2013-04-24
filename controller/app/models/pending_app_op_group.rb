@@ -261,6 +261,10 @@ class PendingAppOpGroup
             a.has_private_ssl_certificate = false
             a.certificate_added_at = nil
             self.application.save
+          when :replace_all_ssh_keys
+            job = gear.get_fix_authorized_ssh_keys_job(op.args["keys_attrs"])
+            RemoteJob.add_parallel_job(handle, "", gear, job)
+            use_parallel_job = true
           end
           
           if use_parallel_job 

@@ -63,4 +63,12 @@ class SshKey
     self.content = args["content"] if args["content"]
     self
   end
+
+  def to_key_hash()
+    key_hash = {}
+    key_hash["name"] = self.name
+    key_hash["type"] = self.type
+    key_hash["content"] = self.content
+    key_hash
+  end
 end
