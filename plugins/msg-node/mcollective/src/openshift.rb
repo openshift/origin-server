@@ -651,32 +651,32 @@ module MCollective
       def oo_start(args)
         cart_name = args['--cart-name']
 
-        with_container_from_args(args) do |container|
-          container.start(cart_name)
+        with_container_from_args(args) do |container, output|
+          output << container.start(cart_name)
         end
       end
 
       def oo_stop(args)
         cart_name = args['--cart-name']
 
-        with_container_from_args(args) do |container|
-          container.stop(cart_name)
+        with_container_from_args(args) do |container, output|
+          output << container.stop(cart_name)
         end
       end
 
       def oo_restart(args)
         cart_name = args['--cart-name']
 
-        with_container_from_args(args) do |container|
-          container.restart(cart_name)
+        with_container_from_args(args) do |container, output|
+          output << container.restart(cart_name)
         end
       end
 
       def oo_reload(args)
         cart_name = args['--cart-name']
 
-        with_container_from_args(args) do |container|
-          container.reload(cart_name)
+        with_container_from_args(args) do |container, output|
+          output << container.reload(cart_name)
         end
       end
 
