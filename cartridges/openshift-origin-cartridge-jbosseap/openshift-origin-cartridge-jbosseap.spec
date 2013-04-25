@@ -5,7 +5,7 @@
 
 Summary:       Provides JBossEAP6.0 support
 Name:          openshift-origin-cartridge-jbosseap
-Version: 2.2.0
+Version: 2.2.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -96,6 +96,28 @@ cp -p %{cartridgedir}/versions/6.0/modules/postgresql_module.xml /etc/alternativ
 
 
 %changelog
+* Thu Apr 25 2013 Adam Miller <admiller@redhat.com> 2.2.1-1
+- Bug 956497: Fix port bindings for jboss carts (ironcladlou@gmail.com)
+- Card online_runtime_266 - Build PATH from
+  CARTRIDGE_<CARTRIDGE_SHORT_NAME>_PATH (jhonce@redhat.com)
+- cleanup (bdecoste@gmail.com)
+- Split v2 configure into configure/post-configure (ironcladlou@gmail.com)
+- more install/post-install scripts (dmcphers@redhat.com)
+- Merge pull request #2191 from jwhonce/wip/raw_envvar
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 954283 - JBoss standalone.conf sourcing env vars (jhonce@redhat.com)
+- Implement hot deployment for V2 cartridges (ironcladlou@gmail.com)
+- Update outdated links in 'cartridges' directory. (asari.ruby@gmail.com)
+- WIP Cartridge Refactor - Change environment variable files to contain just
+  value (jhonce@redhat.com)
+- Adding V2 Format to all v2 cartridges (calfonso@redhat.com)
+- Bug 952513 (bdecoste@gmail.com)
+- Bug 928675 (asari.ruby@gmail.com)
+- Bug 952044 and 952043: JBoss v2 cart tidy fixes (ironcladlou@gmail.com)
+- V2 documentation refactoring (ironcladlou@gmail.com)
+- V2 cartridge documentation updates (ironcladlou@gmail.com)
+- bump_minor_versions for sprint 2.0.26 (tdawson@redhat.com)
+
 * Tue Apr 16 2013 Troy Dawson <tdawson@redhat.com> 2.1.8-1
 - Merge pull request #2088 from calfonso/master (dmcphers@redhat.com)
 - Merge pull request #2076 from bdecoste/master
