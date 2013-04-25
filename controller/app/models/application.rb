@@ -1745,9 +1745,11 @@ class Application
     config_order.each_index do |idx|
       next if idx == 0
       prereq_ids = component_ops[config_order[idx-1]][:adds].map{|op| op._id.to_s}
+      prereq_ids += component_ops[config_order[idx-1]][:post_configures].map{|op| op._id.to_s}
 
       component_ops[config_order[idx]][:new_component].prereq += prereq_ids unless component_ops[config_order[idx]][:new_component].nil?
       component_ops[config_order[idx]][:adds].each { |op| op.prereq += prereq_ids }
+      component_ops[config_order[idx]][:post_configures].each { |op| op.prereq += prereq_ids }
     end
 
     execute_connection_op = nil
