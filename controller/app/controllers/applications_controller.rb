@@ -47,7 +47,20 @@ class ApplicationsController < BaseController
   # @return [RestReply<RestApplication>] Application object
   def create
     app_name = params[:name].downcase if params[:name]
-    features = Array(params[:cartridges] || params[:cartridge]).map{ |c| c.is_a?(Hash) ? c[:name] : c }
+    features = []
+    external_cart_urls = []
+    cart_params = [(params[:cartridges] || params[:cartridge])].flatten
+    cart_params.each do |c| 
+      if c.is_a?(Hash) 
+        if c[:name]
+          features << c[:name]
+        elsif c[:url]
+          external_cart_urls << c[:url]
+        end
+      else
+        features << c
+      end  
+    end 
     init_git_url = params[:initial_git_url]
     default_gear_size = params[:gear_profile]
     default_gear_size.downcase! if default_gear_size
@@ -67,31 +80,17 @@ class ApplicationsController < BaseController
     return render_error(:unprocessable_entity, "#{@cloud_user.login} has already reached the gear limit of #{@cloud_user.max_gears}",
                         104) if (@cloud_user.consumed_gears >= @cloud_user.max_gears)
 
+    external_cartridges_enabled = Rails.application.config.openshift[:external_cartridges_enabled] or true
+    limit = (Rails.application.config.external_cartridges[:max_external_carts_per_app] rescue 5) || 5
+    return render_error(:unprocessable_entity, "You must not specify more than #{limit} number of external cartridges.",
+                            109, "cartridge") if external_cartridges_enabled and external_cart_urls.length > limit
     return render_error(:unprocessable_entity, "You must specify a cartridge. Valid values are (#{carts.join(', ')})",
-                            109, "cartridge") if features.nil?
+                            109, "cartridge") if external_cartridges_enabled ? (external_cart_urls.empty? and features.empty?) : features.empty?
 
     begin
-      framework_carts = CartridgeCache.cartridge_names("web_framework")
-      return render_error(:unprocessable_entity, "You must specify a cartridge. Valid values are (#{framework_carts.join(', ')})", 109, "cartridge") if features.nil?
-      framework_cartridges = []
-      other_cartridges = []
-      features.each do |cart|
-        framework_cartridges.push(cart) unless not framework_carts.include?(cart)
-        other_cartridges.push(cart) unless framework_carts.include?(cart)
-      end
-      if framework_carts.empty?
-        return render_error(:unprocessable_entity, "Unable to determine list of available cartridges.  If the problem persists please contact Red Hat support",
-                          109, "cartridge")
-      elsif framework_cartridges.empty?
-        return render_error(:unprocessable_entity, "Each application must contain one web cartridge.  None of the specified cartridges #{features.to_sentence} is a web cartridge. Please include one of the following cartridges: #{framework_carts.to_sentence}.",
-                          109, "cartridge")
-      elsif framework_cartridges.length > 1
-        return render_error(:unprocessable_entity, "Each application must contain only one web cartridge.  Please include a single web cartridge from this list: #{framework_carts.to_sentence}.",
-                          109, "cartridge")
-      end
       app_creation_result = ResultIO.new
       scalable = get_bool(params[:scale])
-      application = Application.create_app(app_name, features, @domain, default_gear_size, scalable, app_creation_result, [], init_git_url, request.headers['User-Agent'])
+      application = Application.create_app(app_name, features, @domain, default_gear_size, scalable, app_creation_result, [], init_git_url, request.headers['User-Agent'], external_cart_urls)
 
       @application_name = application.name
       @application_uuid = application.uuid

@@ -44,6 +44,9 @@ class EmbCartController < BaseController
     scales_to = Integer(params[:scales_to]) rescue nil
     additional_storage = Integer(params[:additional_storage]) rescue nil
 
+    if name.is_a? Hash
+    end
+
     begin
       component_instance = @application.component_instances.find_by(cartridge_name: name)
       if !component_instance.nil?
