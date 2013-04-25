@@ -7,7 +7,7 @@
 %global frameworkdir %{_libexecdir}/openshift/cartridges/v2/ruby
 
 Name:          openshift-origin-cartridge-ruby
-Version: 0.3.0
+Version: 0.3.1
 Release:       1%{?dist}
 Summary:       Ruby cartridge
 Group:         Development/Languages
@@ -184,6 +184,25 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Thu Apr 25 2013 Adam Miller <admiller@redhat.com> 0.3.1-1
+- Split v2 configure into configure/post-configure (ironcladlou@gmail.com)
+- more install/post-install scripts (dmcphers@redhat.com)
+- Implement hot deployment for V2 cartridges (ironcladlou@gmail.com)
+- Update outdated links in 'cartridges' directory. (asari.ruby@gmail.com)
+- WIP Cartridge Refactor - Change environment variable files to contain just
+  value (jhonce@redhat.com)
+- Adding V2 Format to all v2 cartridges (calfonso@redhat.com)
+- The v2 cartridge needs to pull in the ruby-1.8 dependencies as well
+  (bleanhar@redhat.com)
+- Merge pull request #2136 from BanzaiMan/dev/hasari/bz949844
+  (dmcphers+openshiftbot@redhat.com)
+- <v2 carts> remove abstract cartridge from v2 requires (lmeyer@redhat.com)
+- Bug 949844 (asari.ruby@gmail.com)
+- Fix Ruby README symlinks (ironcladlou@gmail.com)
+- V2 documentation refactoring (ironcladlou@gmail.com)
+- V2 cartridge documentation updates (ironcladlou@gmail.com)
+- bump_minor_versions for sprint 2.0.26 (tdawson@redhat.com)
+
 * Tue Apr 16 2013 Troy Dawson <tdawson@redhat.com> 0.2.9-1
 - Merge pull request #2071 from BanzaiMan/dev/hasari/bz952097
   (dmcphers@redhat.com)
