@@ -122,6 +122,7 @@ fi
 %files
 %defattr(0640,apache,apache,0750)
 %{openshiftconfigdir}
+%attr(0750,-,-) %{_var}/log/openshift/console
 %attr(0750,-,-) %{_var}/log/openshift/console/httpd
 %attr(0644,-,-) %ghost %{_var}/log/openshift/console/production.log
 %attr(0644,-,-) %ghost %{_var}/log/openshift/console/development.log
