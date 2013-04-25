@@ -5,7 +5,7 @@
 
 Summary:       Provides JBossAS7 support
 Name:          openshift-origin-cartridge-jbossas
-Version: 1.1.0
+Version: 1.1.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -93,6 +93,43 @@ cp -p %{cartridgedir}/versions/7/modules/postgresql_module.xml /etc/alternatives
 
 
 %changelog
+* Thu Apr 25 2013 Adam Miller <admiller@redhat.com> 1.1.1-1
+- Bug 956497: Fix port bindings for jboss carts (ironcladlou@gmail.com)
+- Card online_runtime_266 - Build PATH from
+  CARTRIDGE_<CARTRIDGE_SHORT_NAME>_PATH (jhonce@redhat.com)
+- cleanup (bdecoste@gmail.com)
+- Split v2 configure into configure/post-configure (ironcladlou@gmail.com)
+- more install/post-install scripts (dmcphers@redhat.com)
+- Merge pull request #2193 from danmcp/master
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #2191 from jwhonce/wip/raw_envvar
+  (dmcphers+openshiftbot@redhat.com)
+- implementing install and post-install (dmcphers@redhat.com)
+- Merge pull request #2188 from ironcladlou/dev/v2carts/hot-deploy
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 954283 - JBoss standalone.conf sourcing env vars (jhonce@redhat.com)
+- Implement hot deployment for V2 cartridges (ironcladlou@gmail.com)
+- Bug 954283 (bdecoste@gmail.com)
+- fix spec (bdecoste@gmail.com)
+- Update outdated links in 'cartridges' directory. (asari.ruby@gmail.com)
+- Merge pull request #2170 from bdecoste/master
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 952051 (bdecoste@gmail.com)
+- WIP Cartridge Refactor - Change environment variable files to contain just
+  value (jhonce@redhat.com)
+- Adding V2 Format to all v2 cartridges (calfonso@redhat.com)
+- Bug 952513 (bdecoste@gmail.com)
+- Merge pull request #2094 from BanzaiMan/dev/hasari/bz928675
+  (dmcphers@redhat.com)
+- Bug 928675 (asari.ruby@gmail.com)
+- Add support for specifying websocket port in the manifest.
+  (mrunalp@gmail.com)
+- Bug 953041: Fix jbossas7 thread dump output to client (ironcladlou@gmail.com)
+- Bug 952044 and 952043: JBoss v2 cart tidy fixes (ironcladlou@gmail.com)
+- V2 documentation refactoring (ironcladlou@gmail.com)
+- V2 cartridge documentation updates (ironcladlou@gmail.com)
+- bump_minor_versions for sprint 2.0.26 (tdawson@redhat.com)
+
 * Tue Apr 16 2013 Troy Dawson <tdawson@redhat.com> 1.0.7-1
 - Setting mongodb connection hooks to use the generic nosqldb name
   (calfonso@redhat.com)
