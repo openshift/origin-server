@@ -7,7 +7,7 @@
 
 Summary:       OpenShift common cartridge components
 Name:          openshift-origin-cartridge-abstract
-Version: 1.8.0
+Version: 1.8.1
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -90,6 +90,14 @@ cp -rv -p abstract-jboss %{buildroot}%{cartdir}/
 %doc %{_libexecdir}/openshift/cartridges/abstract-jboss/README.md
 
 %changelog
+* Thu Apr 25 2013 Adam Miller <admiller@redhat.com> 1.8.1-1
+- Bug 955492: Fix rsync command to correct hot deployment
+  (ironcladlou@gmail.com)
+- Bug 835778 (dmcphers@redhat.com)
+- Bug 954317 - rhcsh test for V1 vs V2 failed (jhonce@redhat.com)
+- Bug 928675 (asari.ruby@gmail.com)
+- bump_minor_versions for sprint 2.0.26 (tdawson@redhat.com)
+
 * Fri Apr 12 2013 Adam Miller <admiller@redhat.com> 1.7.5-1
 - SELinux, ApplicationContainer and UnixUser model changes to support oo-admin-
   ctl-gears operating on v1 and v2 cartridges. (rmillner@redhat.com)
