@@ -1,4 +1,4 @@
-@runtime_other1
+@runtime_other4
 Feature: V2 SDK Python Cartridge
 
   Scenario: Add cartridge

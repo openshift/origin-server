@@ -5,7 +5,6 @@
 Feature: Cartridge Lifecycle Python Verification Tests
   Scenario: Application Creation
     Given the libra client tools
-    And an accepted node
     When 1 python-2.6 applications are created
     Then the applications should be accessible
 

@@ -4,7 +4,6 @@ Feature: Application Container Proxy gear retrieval
 
   Scenario Outline: Get gears with Broker auth tokens
     Given the libra client tools
-    And an accepted node
     When 1 scalable <php_version> applications are created
     Then the app is returned when fetching all gears using broker key auth
 
@@ -20,7 +19,6 @@ Feature: Application Container Proxy gear retrieval
 
   Scenario Outline: Get gears without Broker auth tokens
     Given the libra client tools
-    And an accepted node
     When 1 <php_version> applications are created
     Then the app is not returned when fetching all gears using broker key auth
 

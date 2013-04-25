@@ -1,4 +1,4 @@
-@runtime_other3
+@runtime_other4
 @cartridge_v2_nodejs
 @not-enterprise
 Feature: V2 SDK Node.js Cartridge

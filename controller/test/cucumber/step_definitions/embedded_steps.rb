@@ -1,7 +1,6 @@
 Given /^the libra client tools, create a new php-([^ ]+) application, verify addition and removal of mysql-5.1 , phpmyadmin-([^ ]+) , cron-1.4 , mongodb-2.2$/ do |php_version, phpmyadmin_version|
   steps %{
     Given the libra client tools
-    And an accepted node
     When 1 php-#{php_version} applications are created
     Then the applications should be accessible
 
