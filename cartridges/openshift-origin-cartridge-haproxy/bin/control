@@ -5,7 +5,6 @@ export STOPTIMEOUT=20
 
 HAPROXY_CART="haproxy-1.4"
 export HAPROXY_PID="${OPENSHIFT_HAPROXY_DIR}/run/haproxy.pid"
-export PATH=$OPENSHIFT_HAPROXY_DIR/bin:$PATH
 
 if ! [ $# -eq 1 ]
 then

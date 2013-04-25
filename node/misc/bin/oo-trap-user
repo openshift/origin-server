@@ -40,49 +40,50 @@ comment_re = re.compile("#.*$")
 # These should come from somewhere, not be hard coded - MAL
 openshift_cgroup_subsystems="cpu,cpuacct,memory,net_cls,freezer"
 
-#
-# Read in uservars variables.
-#
-def _set_env_uservars(uservars_dir):
-    for env in os.listdir(uservars_dir):
-        fp = open(os.path.join(uservars_dir, env), 'r')
-        env_var = fp.readlines()[0].strip().strip('\'"')
-        fp.close()
-        os.putenv(env, env_var)
-    pass
-
-#
-# Read in environment variables
-#
-def read_env_vars(config):
-    load_vars(config, '/etc/openshift/env/')
-    load_vars(config, '~/.env/')
-    load_vars(config, '~/*/env/')
-
-def load_vars(config, dir):
-    for entry in glob.glob(os.path.expanduser(os.path.join(dir, '*'))):
+def load_env(directory):
+    for entry in glob.glob(os.path.expanduser(os.path.join(directory, '*'))):
+        syslog.syslog("DEBUG: var entry %s" % entry)
         env = os.path.basename(entry)
 
-        if env in ['USER_VARS', 'TYPELESS_TRANSLATED_VARS']:
-          continue
+        with open(entry, 'r') as file:
+            contents = file.read().rstrip()
 
-        fp = open(entry, 'r')
-        contents = fp.readlines()[0].strip()
-        try:
-            env_var = contents.split('=')[1].strip('\'"')
-        except IndexError:
-            env_var = contents.strip('\'"')
-        fp.close()
+            if contents.startswith('export '):
+                value = contents.split('=')[1].strip('\'"')
+                os.environ[env] = value
+            else:
+                os.environ[env] = contents
 
-        os.putenv(env, env_var)
 
-    uservars = os.path.expanduser(os.path.join(dir, '.uservars'))
-    if os.path.isdir(uservars):
-      v2_marker = os.path.join(config['GEAR_BASE_DIR'], '.settings', 'v2_cartridge_format')
-      if os.path.isfile(v2_marker):
-        load_vars(config, uservars)
-      else:
-        _set_env_uservars(uservars)
+def gear_env():
+    load_env('/etc/openshift/env')
+    system_path = os.environ['PATH']
+
+    load_env('~/.env/.uservars')
+    load_env('~/.env')
+    load_env('~/*/env/')
+
+    primary = ''
+    if 'OPENSHIFT_PRIMARY_CARTRIDGE_DIR' in os.environ:
+        primary = os.path.basename(os.environ['OPENSHIFT_PRIMARY_CARTRIDGE_DIR'].rstrip('/'))
+        load_env(os.path.join(os.environ['OPENSHIFT_PRIMARY_CARTRIDGE_DIR'], 'env'))
+
+    primary_path = "OPENSHIFT_%s_PATH" % primary
+    matcher = re.compile('^OPENSHIFT_.*_PATH')
+    path_segments = [key for key in os.environ if matcher.match(key)]
+
+    if primary_path in path_segments:
+        path_segments.remove(primary_path)
+    segments = [os.environ[key] for key in path_segments]
+
+    if primary_path in os.environ:
+        segments.insert(0, os.environ[primary_path])
+
+    if 'PATH' in os.environ:
+        segments.append(os.environ['PATH'])
+    segments.append(system_path)
+
+    os.environ['PATH'] = ':'.join(segments)
 
 
 def get_mcs_level(uid):
@@ -135,7 +136,7 @@ if __name__ == '__main__':
     # first self-apply restrictions
     # join_cgroup()
     config = read_config()
-    read_env_vars(config)
+    gear_env()
 
     orig_cmd = os.environ.get('SSH_ORIGINAL_COMMAND', "rhcsh")
     syslog.syslog(orig_cmd)

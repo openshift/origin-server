@@ -1,6 +1,5 @@
 #!/bin/bash -e
 source $OPENSHIFT_CARTRIDGE_SDK_BASH
-export PATH=$OPENSHIFT_HAPROXY_DIR/bin:$PATH
 
 # Set the sync source base dir
 SYNC_BASE_DIR=$OPENSHIFT_PRIMARY_CARTRIDGE_DIR

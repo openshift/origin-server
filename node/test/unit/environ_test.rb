@@ -22,7 +22,7 @@ class EnvironTest < Test::Unit::TestCase
   # to set up fixture information.
   def setup
     @uuid         = 'f5586d7e690e4a7ea71da1507d60c192'
-    @cart_name    = 'mock-0.0'
+    @cart_name    = 'mock'
     @gear_env     = File.join('/tmp', @uuid, '.env')
     @uservars_env = File.join('/tmp', @uuid, '.env', '.uservars')
     @cart_env     = File.join('/tmp', @uuid, @cart_name, 'env')
@@ -41,21 +41,20 @@ class EnvironTest < Test::Unit::TestCase
   # Send raw = true to manually set file contents
   def write_var(where, name, value, raw = true)
     base = case where
-           when :gear
-             @gear_env
-           when :uservars
-             @uservars_env
-           when :cart
-             @cart_env
+             when :gear
+               @gear_env
+             when :uservars
+               @uservars_env
+             when :cart
+               @cart_env
            end
 
-    val_str = raw ? value : %Q{export #{name}="#{value}"}
-    File.join(base, name).tap { |filename| IO.write(filename, val_str) }
+    File.join(base, name).tap { |filename| IO.write(filename, value) }
   end
 
   # Helper to write gear UUID to ENV file
   def write_uuid
-    write_var(:gear, "OPENSHIFT_GEAR_UUID",@uuid)
+    write_var(:gear, "OPENSHIFT_GEAR_UUID", @uuid)
   end
 
   # Verify can read one directory of environment variables
@@ -74,9 +73,9 @@ class EnvironTest < Test::Unit::TestCase
     err_msg = "Permission denied"
     IO.stubs(:read).with(any_parameters).raises(Errno::EACCES.new(file_name))
     OpenShift::NodeLogger.logger.expects(:info).once().with(all_of(
-      regexp_matches(/^Failed to process: #{file_name}/),
-      regexp_matches(/#{Regexp.escape(err_msg)}$/)
-    ))
+                                                                regexp_matches(/^Failed to process: #{@gear_env}/),
+                                                                regexp_matches(/#{Regexp.escape(err_msg)}$/)
+                                                            ))
     OpenShift::Utils::Environ.load(@gear_env)
   end
 
@@ -93,12 +92,29 @@ class EnvironTest < Test::Unit::TestCase
       assert_equal "foo", env['OPENSHIFT_USERVAR']
       assert_nil env['OPENSHIFT_APP_NAME']
     end
+  end
 
-    # Ensure cartridge inherits gear variables
-    OpenShift::Utils::Environ.for_cartridge(File.join('/tmp', @uuid, @cart_name)).tap do |env|
-      assert_equal @uuid, env['OPENSHIFT_GEAR_UUID']
-      assert_equal "127.0.0.666", env['OPENSHIFT_MOCK_IP']
-      assert_nil env['OPENSHIFT_APP_NAME']
+  def test_path
+    write_uuid
+
+    # Mock up a second cartridge for overriding JDK_HOME
+    second_cartridge = File.join('/tmp', @uuid, 'mock_more', 'env')
+    FileUtils.mkpath(second_cartridge)
+    IO.write(File.join(second_cartridge, 'JDK_HOME'), 'java6')
+
+    write_var(:gear, 'OPENSHIFT_MOCK_PLUGIN_PATH', 'mock-plugin/bin')
+    write_var(:cart, 'OPENSHIFT_MOCK_PATH', "#{@cart_name}/bin")
+    write_var(:gear, 'OPENSHIFT_PRIMARY_CARTRIDGE_DIR', "/tmp/#{@uuid}/#{@cart_name}/")
+    write_var(:cart, 'JDK_HOME', 'java7')
+
+    OpenShift::Utils::Environ.for_gear(File.join('/tmp', @uuid)).tap do |env|
+      assert_equal "#{@cart_name}/bin:mock-plugin/bin:/bin:/usr/bin:/usr/sbin", env['PATH']
+      assert_equal 'java7', env['JDK_HOME']
+    end
+
+    OpenShift::Utils::Environ.for_gear(File.join('/tmp', @uuid)).tap do |env|
+      assert_equal "#{@cart_name}/bin:mock-plugin/bin:/bin:/usr/bin:/usr/sbin", env['PATH']
+      assert_equal 'java7', env['JDK_HOME']
     end
   end
 
