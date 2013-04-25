@@ -498,6 +498,61 @@ def check_system_httpd_configs
     dnsfile = File.join($GEAR_BASE_DIR, u, '.env', 'OPENSHIFT_GEAR_DNS')
     begin
       fqdn = File.read(dnsfile).sub(/^.*=/,'').gsub('\'','').gsub('"','').strip.downcase
+
+      has_websocket = false
+      has_framework = false
+
+      carts = Dir.glob(File.join($GEAR_BASE_DIR, u, '*')).map { |p|
+        File.basename(p)
+      }.map { |p|
+        cpath = nil
+        [ File.join(ENV['CARTRIDGE_BASE_PATH'], p), File.join(ENV['CARTRIDGE_BASE_PATH'], 'v2', p)].each { |cp|
+          cpath = cp if File.exists?(cp)
+        }
+        cpath
+      }.select { |p|
+        not p.nil?
+      }.each { |p|
+        is_framework = false
+
+        ['metadata', 'info'].each { |mp|
+          begin
+            manifest = File.read(File.join(p, mp, 'manifest.yml'))
+            manifest.gsub!(/\#.*$/, '')
+            is_framework = manifest.include?('web_framework')
+            has_websocket |= is_framework & manifest.include?('websocket')
+            has_framework  |= is_framework
+          rescue
+          end
+        }
+
+        if is_framework
+          hook = File.join(p, 'info', 'hooks', 'deploy-httpd-proxy')
+          deploy = File.join(p, 'info', 'bin', 'deploy_httpd_proxy.sh')
+          alt_deploy = File.join(ENV['CARTRIDGE_BASE_PATH'], 'abstract', 'info', 'bin', 'deploy_httpd_proxy.sh')
+          begin
+            hookcall = File.read(hook)
+            begin
+              hookcall += File.read(deploy)
+            rescue Errno::ENOENT
+              hookcall += File.read(alt_deploy)
+            end
+            hookcall.gsub!(/\#.*$/, '')
+            has_websocket |= hookcall.include?('--websocket')
+          rescue
+          end
+        end
+      }
+
+      if has_framework and not httpconfs['nodes.txt'].has_key?(fqdn)
+        do_fail("Gear has a web framework cartridge but no Apache configuration: #{u}")
+      end
+
+      if has_websocket and not httpconfs['routes.json'].has_key?(fqdn)
+        do_fail("Gear has a websocket framework cartridge but no websocket configuration: #{u}")
+      end
+
+
       httpconfs['nodes.txt'].delete_if   { |k,v|  k.split('/')[0] == fqdn }
       httpconfs['aliases.txt'].delete_if { |k,v|  v == fqdn }
       httpconfs['idler.txt'].delete(fqdn)
