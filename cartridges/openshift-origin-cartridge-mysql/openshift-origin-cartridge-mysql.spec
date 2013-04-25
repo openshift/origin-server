@@ -3,7 +3,7 @@
 
 Summary:       Provides embedded mysql support
 Name:          openshift-origin-cartridge-mysql
-Version: 0.2.0
+Version: 0.2.1
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -57,6 +57,33 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Thu Apr 25 2013 Adam Miller <admiller@redhat.com> 0.2.1-1
+- Merge pull request #2246 from ironcladlou/bz/955538
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #2241 from pmorie/dev/v2_mysql
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #2239 from jwhonce/wip/raw_envvar
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 955538: Don't fail on error in mysql control (ironcladlou@gmail.com)
+- Fix bug 956018 - communicate database name to broker for v2 mysql
+  (pmorie@gmail.com)
+- WIP Cartridge Refactor - cleanup in cartridges (jhonce@redhat.com)
+- Bug 956667 - Updated MySQL v2 cart to install with oo-admin-cartridge in
+  %%post (jdetiber@redhat.com)
+- Split v2 configure into configure/post-configure (ironcladlou@gmail.com)
+- implementing install and post-install (dmcphers@redhat.com)
+- WIP Cartridge Refactor - Change environment variable files to contain just
+  value (jhonce@redhat.com)
+- Adding V2 Format to all v2 cartridges (calfonso@redhat.com)
+- Merge pull request #2161 from pmorie/dev/v2_mysql
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 928675 (asari.ruby@gmail.com)
+- Move v2 mysql setup invocation marker to gear data directory
+  (pmorie@gmail.com)
+- V2 documentation refactoring (ironcladlou@gmail.com)
+- V2 cartridge documentation updates (ironcladlou@gmail.com)
+- bump_minor_versions for sprint 2.0.26 (tdawson@redhat.com)
+
 * Tue Apr 16 2013 Troy Dawson <tdawson@redhat.com> 0.1.7-1
 - Fix bug 927850 (pmorie@gmail.com)
 
