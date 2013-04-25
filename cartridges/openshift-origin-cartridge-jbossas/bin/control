@@ -71,8 +71,8 @@ function ishttpup() {
     let count=0
     while [ ${count} -lt 24 ]
     do
-        if /usr/sbin/lsof -P -n -i "@${OPENSHIFT_JBOSSAS_IP}:8080" | grep "(LISTEN)" > /dev/null; then
-            echo "Found ${OPENSHIFT_JBOSSAS_IP}:8080 listening port"
+        if /usr/sbin/lsof -P -n -i "@${OPENSHIFT_JBOSSAS_IP}:${OPENSHIFT_JBOSSAS_HTTP_PORT}" | grep "(LISTEN)" > /dev/null; then
+            echo "Found ${OPENSHIFT_JBOSSAS_IP}:${OPENSHIFT_JBOSSAS_HTTP_PORT} listening port"
             return 0
         fi
         let count=${count}+1
@@ -146,13 +146,7 @@ function build() {
         	export MAVEN_OPTS="$OPENSHIFT_MAVEN_XMX"
         	export PATH=$JAVA_HOME/bin:$M2_HOME/bin:$PATH
         	pushd ${OPENSHIFT_REPO_DIR} > /dev/null
-        
-        	if [ -f "${OPENSHIFT_REPO_DIR}/.openshift/action_hooks/pre_build_${cartridge_type}" ]
-        	then
-           		echo "Sourcing pre_build_jbossas" 1>&2
-           		source ${OPENSHIFT_REPO_DIR}/.openshift/action_hooks/pre_build_${cartridge_type}
-        	fi
-        
+
         	if [ -z "$MAVEN_OPTS" ]; then
         		export MAVEN_OPTS="$OPENSHIFT_MAVEN_XMX"
         	fi
