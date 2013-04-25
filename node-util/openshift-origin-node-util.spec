@@ -1,6 +1,6 @@
 Summary:       Utility scripts for the OpenShift Origin broker
 Name:          openshift-origin-node-util
-Version: 1.8.0
+Version: 1.8.1
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -118,6 +118,36 @@ mv services/openshift-gears.service %{buildroot}/etc/systemd/system/openshift-ge
 /sbin/restorecon /usr/sbin/oo-restorer* || :
 
 %changelog
+* Thu Apr 25 2013 Adam Miller <admiller@redhat.com> 1.8.1-1
+- Bug 928621 - Detect whether the gear is missing a frontend configuration.
+  (rmillner@redhat.com)
+- Feature complete v2 oo-admin-ctl-gears script with integrated idler.
+  (rmillner@redhat.com)
+- Switch back to native SELinux calls. (rmillner@redhat.com)
+- Split v2 configure into configure/post-configure (ironcladlou@gmail.com)
+- Merge pull request #2189 from rmillner/accept-node
+  (dmcphers+openshiftbot@redhat.com)
+- Resolve fqdn to uuid when reporting frontend issues and check the selinux
+  context of mcollective. (rmillner@redhat.com)
+- Fixes for oo-cart-version (pmorie@gmail.com)
+- Merge pull request #2094 from BanzaiMan/dev/hasari/bz928675
+  (dmcphers@redhat.com)
+- Merge pull request #2144 from sosiouxme/fixcartvers
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 928675 (asari.ruby@gmail.com)
+- <oo-cart-version> remove online-specifics so works in origin
+  (lmeyer@redhat.com)
+- Adding the ability to detect gear processes missing from cgroups
+  (kwoodson@redhat.com)
+- <oo-cart-version> add ability to set version rather than toggle
+  (lmeyer@redhat.com)
+- Fixed path to restorecon. (rmillner@redhat.com)
+- The .ssh directory was not getting the correct MCS label.
+  (rmillner@redhat.com)
+- Bug 928654 - Check if a gear exists before trying to stop or start.
+  (rmillner@redhat.com)
+- bump_minor_versions for sprint 2.0.26 (tdawson@redhat.com)
+
 * Tue Apr 16 2013 Troy Dawson <tdawson@redhat.com> 1.7.6-1
 - Merge pull request #2093 from rmillner/BZ952247
   (dmcphers+openshiftbot@redhat.com)
