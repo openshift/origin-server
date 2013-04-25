@@ -320,9 +320,13 @@ module RestApi
       server_unavailable = error.response.present? && 
         error.response.code.present? && 
         error.response.code.to_i == 503
+
       remote_errors = set_remote_errors(error, true)
-      if server_unavailable raise ServerUnavailable.new(error.response)
-      elsif !remote_errors raise
+
+      if server_unavailable 
+        raise ServerUnavailable.new(error.response)
+      elsif !remote_errors 
+        raise
       end
     end
     alias_method_chain :save, :change_tracking
@@ -526,7 +530,6 @@ module RestApi
       end
       def translate_api_error(errors, code, field, text)
         Rails.logger.debug "  Server error: :#{field} \##{code}: #{text}"
-        puts @exit_code_conditions
         if @exit_code_conditions
           handler = @exit_code_conditions[code]
           handler = handler[:raise] if Hash === handler

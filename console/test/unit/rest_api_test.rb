@@ -121,6 +121,13 @@ class RestApiTest < ActiveSupport::TestCase
     assert !d.has_exit_code?(1, :on => :foobar)
   end
 
+  def test_raise_server_unavailable
+    ActiveResource::HttpMock.respond_to do |mock|
+      mock.post '/broker/rest/domains.json', json_header(true), {:messages => [{:field => 'foo', :exit_code => 1, 'text' => 'bar'}], :data => nil}.to_json, 503
+    end
+    assert_raise(RestApi::ServerUnavailable){ Domain.new(:id => 'a', :as => @user).save! }
+  end
+
   def response(contents)
     object = mock
     body = mock
