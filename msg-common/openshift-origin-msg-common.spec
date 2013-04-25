@@ -8,7 +8,7 @@
 
 Summary:       Common msg components for OpenShift broker and node
 Name:          openshift-origin-msg-common
-Version: 1.6.0
+Version: 1.6.1
 Release:       1%{?dist}
 License:       ASL 2.0
 URL:           http://www.openshift.com
@@ -38,6 +38,14 @@ chmod 644 %{buildroot}%{mco_root}validator/*
 %{mco_root}validator/*
 
 %changelog
+* Thu Apr 25 2013 Adam Miller <admiller@redhat.com> 1.6.1-1
+- Splitting configure for cartridges into configure and post-configure
+  (abhgupta@redhat.com)
+- Creating fixer mechanism for replacing all ssh keys for an app
+  (abhgupta@redhat.com)
+- Bug 928675 (asari.ruby@gmail.com)
+- bump_minor_versions for sprint 2.0.26 (tdawson@redhat.com)
+
 * Wed Apr 10 2013 Adam Miller <admiller@redhat.com> 1.5.3-1
 - Delete move/pre-move/post-move hooks, these hooks are no longer needed.
   (rpenta@redhat.com)
