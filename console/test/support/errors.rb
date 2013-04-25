@@ -5,7 +5,7 @@ module ErrorPageAssertions
   def default_error_message
     /An error has occurred/i
   end
-  def default_server_maintenance_message
+  def default_server_unavailable_message
     /Maintenance in progress/i
   end
 
