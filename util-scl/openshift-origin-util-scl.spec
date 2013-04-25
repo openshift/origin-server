@@ -1,6 +1,6 @@
 Summary:       Utility scripts for the OpenShift Origin broker and node
 Name:          openshift-origin-util-scl
-Version: 1.4.0
+Version: 1.4.1
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -27,6 +27,10 @@ cp oo-* %{buildroot}%{_bindir}/
 
 
 %changelog
+* Thu Apr 25 2013 Adam Miller <admiller@redhat.com> 1.4.1-1
+- Bug 928675 (asari.ruby@gmail.com)
+- bump_minor_versions for sprint 2.0.26 (tdawson@redhat.com)
+
 * Mon Apr 08 2013 Adam Miller <admiller@redhat.com> 1.3.2-1
 - Fix how erb binary is resolved. Using util/util-scl packages instead of doing
   it dynamically in code. Separating manifest into RHEL and Fedora versions
