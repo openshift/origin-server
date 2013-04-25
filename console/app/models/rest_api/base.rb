@@ -320,7 +320,10 @@ module RestApi
       server_unavailable = error.response.present? && 
         error.response.code.present? && 
         error.response.code.to_i == 503
-      raise unless set_remote_errors(error, true) && !server_unavailable
+      remote_errors = set_remote_errors(error, true)
+      if server_unavailable raise ServerUnavailable.new(error.response)
+      elsif !remote_errors raise
+      end
     end
     alias_method_chain :save, :change_tracking
 
