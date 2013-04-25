@@ -6,7 +6,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin broker
 Name:          openshift-origin-broker-util
-Version: 1.8.0
+Version: 1.8.1
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -82,6 +82,36 @@ cp man/*.8 %{buildroot}%{_mandir}/man8/
 %{_mandir}/man8/oo-stats.8.gz
 
 %changelog
+* Thu Apr 25 2013 Adam Miller <admiller@redhat.com> 1.8.1-1
+- Merge pull request #2222 from detiber/sessionsecret
+  (dmcphers+openshiftbot@redhat.com)
+- <oo-accept-broker> Fix test for SESSION_SECRET (jdetiber@redhat.com)
+- <broker> Updated spec file for correct user_action.log location <oo-accept-
+  broker> Added permission check for rest api logs (jdetiber@redhat.com)
+- Creating fixer mechanism for replacing all ssh keys for an app
+  (abhgupta@redhat.com)
+- <oo-accept-broker> test for oo-ruby in path (jolamb@redhat.com)
+- <oo-accept-broker> replace safe_ruby fxn wrapper with oo-ruby
+  (jolamb@redhat.com)
+- <oo-accept-broker> more rhel/fedora reconciliation, cleanup
+  (jolamb@redhat.com)
+- <oo-accept-broker> cleanup, documentation comment (jolamb@redhat.com)
+- <oo-accept-broker> Fixes to generalize over RHEL and Fedora
+  (jolamb@redhat.com)
+- Bug 928675 (asari.ruby@gmail.com)
+- Merge pull request #2155 from rajatchopra/master
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #2152 from pravisankar/dev/ravi/plan_history_cleanup
+  (dmcphers+openshiftbot@redhat.com)
+- eventual consistency is alright in some cases (rchopra@redhat.com)
+- Added pre_sync_usage, post_sync_usage operations in oo-admin-ctl-usage script
+  (rpenta@redhat.com)
+- refix unreserve_uid when destroying gear (rchopra@redhat.com)
+- unreserve should not happen twice over (rchopra@redhat.com)
+- Adding support for Bearer auth in the sample remote-user plugin
+  (bleanhar@redhat.com)
+- bump_minor_versions for sprint 2.0.26 (tdawson@redhat.com)
+
 * Tue Apr 16 2013 Troy Dawson <tdawson@redhat.com> 1.7.7-1
 - Fix for bug 952551 Preventing the removal of gears that host singletons
   through admin script (abhgupta@redhat.com)
