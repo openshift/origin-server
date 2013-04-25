@@ -3,7 +3,7 @@
 
 Summary:       Embedded mongodb support for OpenShift
 Name:          openshift-origin-cartridge-mongodb
-Version: 1.7.0
+Version: 1.7.1
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -63,6 +63,27 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Thu Apr 25 2013 Adam Miller <admiller@redhat.com> 1.7.1-1
+- Split v2 configure into configure/post-configure (ironcladlou@gmail.com)
+- more install/post-install scripts (dmcphers@redhat.com)
+- Merge pull request #2176 from mscherer/fix/cartridges/mongo_useless_rm
+  (dmcphers+openshiftbot@redhat.com)
+- Update outdated links in 'cartridges' directory. (asari.ruby@gmail.com)
+- Do not remove file that do not exist (misc@zarb.org)
+- WIP Cartridge Refactor - Change environment variable files to contain just
+  value (jhonce@redhat.com)
+- Bug 928675 (asari.ruby@gmail.com)
+- Bug 950883 (asari.ruby@gmail.com)
+- Merge pull request #2126 from calfonso/master
+  (dmcphers+openshiftbot@redhat.com)
+- Sending the snapshot/restore messages stderr (calfonso@redhat.com)
+- Merge pull request #2121 from ironcladlou/dev/v2carts/documentation
+  (dmcphers+openshiftbot@redhat.com)
+- V2 documentation refactoring (ironcladlou@gmail.com)
+- V2 mongodb cartridge Connection URL display fix (calfonso@redhat.com)
+- V2 cartridge documentation updates (ironcladlou@gmail.com)
+- bump_minor_versions for sprint 2.0.26 (tdawson@redhat.com)
+
 * Tue Apr 16 2013 Troy Dawson <tdawson@redhat.com> 1.6.11-1
 - Setting mongodb connection hooks to use the generic nosqldb name
   (calfonso@redhat.com)
