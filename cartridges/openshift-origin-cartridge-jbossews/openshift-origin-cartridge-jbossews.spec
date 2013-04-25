@@ -2,7 +2,7 @@
 
 Summary:       Provides JBossEWS2.0 support
 Name:          openshift-origin-cartridge-jbossews
-Version: 0.3.0
+Version: 0.3.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -84,6 +84,20 @@ alternatives --set jbossews-2.0 /usr/share/tomcat7
 
 
 %changelog
+* Thu Apr 25 2013 Adam Miller <admiller@redhat.com> 0.3.1-1
+- Bug 956626: Fix jbossews-2.0 paths (ironcladlou@gmail.com)
+- Card online_runtime_266 - Build PATH from
+  CARTRIDGE_<CARTRIDGE_SHORT_NAME>_PATH (jhonce@redhat.com)
+- Split v2 configure into configure/post-configure (ironcladlou@gmail.com)
+- more install/post-install scripts (dmcphers@redhat.com)
+- Implement hot deployment for V2 cartridges (ironcladlou@gmail.com)
+- Update outdated links in 'cartridges' directory. (asari.ruby@gmail.com)
+- Adding V2 Format to all v2 cartridges (calfonso@redhat.com)
+- Bug 928675 (asari.ruby@gmail.com)
+- V2 documentation refactoring (ironcladlou@gmail.com)
+- V2 cartridge documentation updates (ironcladlou@gmail.com)
+- bump_minor_versions for sprint 2.0.26 (tdawson@redhat.com)
+
 * Tue Apr 16 2013 Troy Dawson <tdawson@redhat.com> 0.2.7-1
 - Setting mongodb connection hooks to use the generic nosqldb name
   (calfonso@redhat.com)
