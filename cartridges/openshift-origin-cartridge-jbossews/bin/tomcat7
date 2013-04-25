@@ -1,6 +1,7 @@
 #!/bin/bash
 
 source ${OPENSHIFT_JBOSSEWS_DIR}/bin/util
+source $OPENSHIFT_CARTRIDGE_SDK_BASH
 
 export_java_home
 
