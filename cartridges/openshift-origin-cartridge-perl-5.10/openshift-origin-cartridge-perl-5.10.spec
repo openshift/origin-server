@@ -2,7 +2,7 @@
 
 Summary:       Provides mod_perl support
 Name:          openshift-origin-cartridge-perl-5.10
-Version: 1.8.0
+Version: 1.8.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -102,6 +102,11 @@ ln -s %{cartridgedir}/../abstract/info/bin/sync_gears.sh %{buildroot}%{cartridge
 
 
 %changelog
+* Thu Apr 25 2013 Adam Miller <admiller@redhat.com> 1.8.1-1
+- Update outdated links in 'cartridges' directory. (asari.ruby@gmail.com)
+- Bug 928675 (asari.ruby@gmail.com)
+- bump_minor_versions for sprint 2.0.26 (tdawson@redhat.com)
+
 * Tue Apr 16 2013 Troy Dawson <tdawson@redhat.com> 1.7.4-1
 - Bug 947356 - Add Requires gd-devel (jhonce@redhat.com)
 
