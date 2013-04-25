@@ -3,14 +3,6 @@
 JAVA_JDK_16=/etc/alternatives/java_sdk_1.6.0
 JAVA_JDK_17=/etc/alternatives/java_sdk_1.7.0
 
-function marker_present() {
-  if [ -f "${OPENSHIFT_REPO_DIR}/.openshift/markers/$1" ]; then
-    return 0
-  else
-    return 1
-  fi
-}
-
 function export_java_home() {
   if marker_present "java7"; then
     export JAVA_HOME=$JAVA_JDK_17
