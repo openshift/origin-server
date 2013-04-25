@@ -243,7 +243,7 @@
         </subsystem>
         <subsystem xmlns="urn:jboss:domain:jaxr:1.0">
             <connection-factory jndi-name="java:jboss/jaxr/ConnectionFactory"/>
-            <juddi-server publish-url="http://${env.OPENSHIFT_INTERNAL_IP}:8080/juddi/publish" query-url="http://${env.OPENSHIFT_INTERNAL_IP}:8080/juddi/query"/>
+            <juddi-server publish-url="http://${env.OPENSHIFT_JBOSSAS_IP}:8080/juddi/publish" query-url="http://${env.OPENSHIFT_JBOSSAS_IP}:8080/juddi/query"/>
         </subsystem>
         <subsystem xmlns="urn:jboss:domain:jaxrs:1.0"/>
         <subsystem xmlns="urn:jboss:domain:jca:1.1">
@@ -271,7 +271,7 @@
                 	<property name="external_addr">${env.OPENSHIFT_GEAR_DNS}</property>
                     <property name="external_port">${env.OPENSHIFT_JBOSSAS_CLUSTER_PROXY_PORT}</property>
                     <property name="bind_port">7600</property>
-                    <property name="bind_addr">${env.OPENSHIFT_INTERNAL_IP}</property>
+                    <property name="bind_addr">${env.OPENSHIFT_JBOSSAS_IP}</property>
                     <property name="defer_client_bind_addr">true</property>
                 </transport>
                 <protocol type="TCPPING">
@@ -513,15 +513,15 @@
 
     <interfaces>
         <interface name="management">
-            <loopback-address value="${env.OPENSHIFT_INTERNAL_IP}"/>
+            <loopback-address value="${env.OPENSHIFT_JBOSSAS_IP}"/>
         </interface>
         <interface name="public">
-            <loopback-address value="${env.OPENSHIFT_INTERNAL_IP}"/>
+            <loopback-address value="${env.OPENSHIFT_JBOSSAS_IP}"/>
         </interface>
         <interface name="unsecure">
             <!-- Used for IIOP sockets in the standarad configuration.
                  To secure JacORB you need to setup SSL -->
-            <loopback-address value="${env.OPENSHIFT_INTERNAL_IP}"/>
+            <loopback-address value="${env.OPENSHIFT_JBOSSAS_IP}"/>
         </interface>
     </interfaces>
 

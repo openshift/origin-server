@@ -11,5 +11,4 @@ mkdir -p ${OPENSHIFT_JBOSSEAP_DIR}/{bin,template,standalone/tmp,standalone/deplo
 
 # Copy the version specific files up to jbosseap directory
 cp -r ${OPENSHIFT_JBOSSEAP_DIR}/versions/${version}/standalone/configuration/* ${OPENSHIFT_JBOSSEAP_DIR}/standalone/configuration
-cp -r ${OPENSHIFT_JBOSSEAP_DIR}/versions/${version}/metadata/* ${OPENSHIFT_JBOSSEAP_DIR}/metadata
 cp ${OPENSHIFT_JBOSSEAP_DIR}/versions/${version}/bin/* ${OPENSHIFT_JBOSSEAP_DIR}/bin
