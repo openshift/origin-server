@@ -1,4 +1,4 @@
-@runtime_other1
+@runtime_other4
 Feature: V2 SDK DIY Cartridge
 
   Scenario: Add cartridge

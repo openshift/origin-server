@@ -1,4 +1,4 @@
-@runtime_other
+@runtime_other1
 Feature: V2 SDK PHP Cartridge
 
   Scenario: Add cartridge

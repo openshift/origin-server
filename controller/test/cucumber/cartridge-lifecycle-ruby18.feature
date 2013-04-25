@@ -1,12 +1,11 @@
 @runtime
-@runtime1
-@runtime_other1
+@runtime_extended1
+@runtime_other4
 @not-enterprise
 @rhel-only
 Feature: Cartridge Lifecycle Ruby Verification Tests
   Scenario: Application Creation
     Given the libra client tools
-    And an accepted node
     When 1 ruby-1.8 applications are created
     Then the applications should be accessible
 

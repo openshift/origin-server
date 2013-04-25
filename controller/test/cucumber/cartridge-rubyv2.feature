@@ -1,4 +1,4 @@
-@runtime_other2
+@runtime_other4
 @cartridge_v2_ruby
 @cartridge_v2_ruby_19
 Feature: V2 SDK Ruby Cartridge

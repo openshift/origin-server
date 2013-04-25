@@ -6,7 +6,6 @@
 Feature: Cartridge Lifecycle NodeJS Verification Tests
   Scenario: Application Creation
     Given the libra client tools
-    And an accepted node
     When 1 nodejs-0.6 applications are created
     Then the applications should be accessible
 
