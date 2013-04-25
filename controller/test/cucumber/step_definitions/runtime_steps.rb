@@ -869,7 +869,6 @@ Then /^the platform-created default environment variables will exist$/ do
   app_env_var_will_exist('TMP_DIR')
   app_env_var_will_exist('HOMEDIR')
   app_env_var_will_exist('HISTFILE', false)
-  app_env_var_will_exist('PATH', false)
 end
 
 Then /^the ([^ ]+) cartridge private endpoints will be (exposed|concealed)$/ do |cart_name, action|
