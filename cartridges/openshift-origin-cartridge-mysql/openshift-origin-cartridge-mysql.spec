@@ -34,6 +34,8 @@ mkdir -p %{buildroot}/%{_sysconfdir}/openshift/cartridges/v2
 cp -r * %{buildroot}%{cartridgedir}/
 ln -s %{cartridgedir}/conf/ %{buildroot}/%{_sysconfdir}/openshift/cartridges/v2/%{name}
 
+%post
+%{_sbindir}/oo-admin-cartridge --action install --offline --source /usr/libexec/openshift/cartridges/v2/mysql
 
 %clean
 rm -rf %{buildroot}
