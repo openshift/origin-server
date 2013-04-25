@@ -601,7 +601,12 @@ module OpenShift
                                     prefix_action_hooks:      false,)
       end
 
-      exclusions = snapshot_exclusions
+      exclusions = []
+
+      @cartridge_model.each_cartridge do |cartridge|
+        exclusions |= snapshot_exclusions(cartridge)
+      end
+
       write_snapshot_archive(exclusions)
 
       @cartridge_model.each_cartridge do |cartridge|
@@ -692,28 +697,6 @@ module OpenShift
       secondary_groups
     end
 
-    def snapshot_exclusions
-      exclusions = []
-
-      @cartridge_model.each_cartridge do |cartridge|
-        exclusions_file = File.join(cartridge.directory, 'metadata', 'snapshot_exclusions.txt')
-        next unless File.exist? exclusions_file
-
-        File.readlines(exclusions_file).each do |line|
-          line.chomp!
-
-          case 
-          when line.empty?
-            # skip blank lines
-          else
-            exclusions << line
-          end
-        end
-      end
-
-      exclusions
-    end
-
     def write_snapshot_archive(exclusions)
       gear_env = Utils::Environ.for_gear(@user.homedir)
 
@@ -734,7 +717,7 @@ module OpenShift
 
       $stderr.puts 'Creating and sending tar.gz'
 
-      Utils.oo_spawn(tar_cmd, 
+      Utils.oo_spawn(tar_cmd,
                      env: gear_env,
                      unsetenv_others: true,
                      out: $stdout,
@@ -773,7 +756,11 @@ module OpenShift
 
       prepare_for_restore(restore_git_repo, gear_env)
 
-      transforms = restore_transforms
+      transforms = []
+      @cartridge_model.each_cartridge do |cartridge|
+        transforms |= restore_transforms(cartridge)
+      end
+
       extract_restore_archive(transforms, restore_git_repo, gear_env)
 
       if scalable_restore

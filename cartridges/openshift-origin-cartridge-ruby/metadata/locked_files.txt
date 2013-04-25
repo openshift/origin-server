@@ -1,4 +1,0 @@
-metadata/
-env/
-etc/
-template/

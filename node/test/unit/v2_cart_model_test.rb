@@ -96,7 +96,7 @@ module OpenShift
               - Frontend:      "/front1b"
                 Backend:       "/back1b"
                 Options:       { noproxy: true }
-          
+
           - Private-IP-Name:   EXAMPLE_IP1
             Private-Port-Name: EXAMPLE_PORT2
             Private-Port:      8081
@@ -105,7 +105,7 @@ module OpenShift
               - Frontend:      "/front2"
                 Backend:       "/back2"
                 Options:       { file: true }
-          
+
           - Private-IP-Name:   EXAMPLE_IP1
             Private-Port-Name: EXAMPLE_PORT3
             Private-Port:      8082
@@ -113,7 +113,7 @@ module OpenShift
             Mappings:
               - Frontend:      "/front3"
                 Backend:       "/back3"
-          
+
           - Private-IP-Name:   EXAMPLE_IP2
             Private-Port-Name: EXAMPLE_PORT4
             Private-Port:      9090
@@ -121,13 +121,13 @@ module OpenShift
             Mappings:
               - Frontend:      "/front4"
                 Backend:       "/back4"
-  
+
           - Private-IP-Name:   EXAMPLE_IP2
             Private-Port-Name: EXAMPLE_PORT5
             Private-Port:      9091
     }
 
-      manifest = "/tmp/manifest-#{Process.pid}"
+      manifest = Tempfile.new("manifest-#{Process.pid}")
       IO.write(manifest, @mock_manifest, 0)
       @mock_cartridge = OpenShift::Runtime::Manifest.new(manifest, nil, '/tmp')
       @model.stubs(:get_cartridge).with('mock-0.1').returns(@mock_cartridge)
