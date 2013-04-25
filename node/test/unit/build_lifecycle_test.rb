@@ -61,7 +61,7 @@ class BuildLifecycleTest < Test::Unit::TestCase
     primary = mock()
     @cartridge_model.expects(:primary_cartridge).returns(primary)
 
-    @container.expects(:stop_gear).with(user_initiated: true, out: $stdout, err: $stderr)
+    @container.expects(:stop_gear).with(user_initiated: true, hot_deploy: nil, out: $stdout, err: $stderr)
     @cartridge_model.expects(:do_control).with('pre-receive',
                                                primary,
                                                out:                       $stdout,
@@ -80,9 +80,9 @@ class BuildLifecycleTest < Test::Unit::TestCase
 
     repository.expects(:deploy)
     @container.expects(:build).with(out: $stdout, err: $stderr)
-    @container.expects(:start_gear).with(secondary_only: true, user_initiated: true, out: $stdout, err: $stderr)
+    @container.expects(:start_gear).with(secondary_only: true, user_initiated: true, hot_deploy: nil, out: $stdout, err: $stderr)
     @container.expects(:deploy).with(out: $stdout, err: $stderr)
-    @container.expects(:start_gear).with(primary_only: true, user_initiated: true, out: $stdout, err: $stderr)
+    @container.expects(:start_gear).with(primary_only: true, user_initiated: true, hot_deploy: nil, out: $stdout, err: $stderr)
     @container.expects(:post_deploy).with(out: $stdout, err: $stderr)
 
     @container.post_receive(out: $stdout, err: $stderr)
@@ -200,9 +200,9 @@ class BuildLifecycleTest < Test::Unit::TestCase
   end
 
   def test_remote_deploy_success
-    @container.expects(:start_gear).with(secondary_only: true, user_initiated: true, out: $stdout, err: $stderr)
+    @container.expects(:start_gear).with(secondary_only: true, user_initiated: true, hot_deploy: nil, out: $stdout, err: $stderr)
     @container.expects(:deploy).with(out: $stdout, err: $stderr)
-    @container.expects(:start_gear).with(primary_only: true, user_initiated: true, out: $stdout, err: $stderr)
+    @container.expects(:start_gear).with(primary_only: true, user_initiated: true, hot_deploy: nil, out: $stdout, err: $stderr)
     @container.expects(:post_deploy).with(out: $stdout, err: $stderr)
 
     @container.remote_deploy(out: $stdout, err: $stderr)
