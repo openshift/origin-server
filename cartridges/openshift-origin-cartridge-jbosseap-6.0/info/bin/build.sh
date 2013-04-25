@@ -96,7 +96,7 @@ then
         if [ ! -h ${OPENSHIFT_REPO_DIR}/deployments ] && [ ! -h ${OPENSHIFT_HOMEDIR}/${CART_NAME}/${CART_NAME}/standalone/deployments ]
 		then
 		    if [ "$(ls ${OPENSHIFT_REPO_DIR}/deployments)" ]; then
-  				rsync -r --delete --exclude ".*" ${OPENSHIFT_REPO_DIR}/deployments/ ${OPENSHIFT_HOMEDIR}/${CART_NAME}/${CART_NAME}/standalone/deployments/
+  				rsync -r --delete-after --exclude=".*" --exclude='*.deployed' --exclude='*.deploying' --exclude='*.isundeploying' ${OPENSHIFT_REPO_DIR}/deployments/ ${OPENSHIFT_HOMEDIR}/${CART_NAME}/${CART_NAME}/standalone/deployments/
   			else
     			rm -rf ${OPENSHIFT_HOMEDIR}/${CART_NAME}/${CART_NAME}/standalone/deployments/*
     		fi

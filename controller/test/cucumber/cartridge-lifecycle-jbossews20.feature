@@ -6,7 +6,6 @@
 Feature: Cartridge Lifecycle JBossEWS2.0 Verification Tests
   Scenario: Application Creation
     Given the libra client tools
-    And an accepted node
     When 1 jbossews-2.0 applications are created
     Then the applications should be accessible
 

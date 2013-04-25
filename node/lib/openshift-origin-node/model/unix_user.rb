@@ -814,7 +814,7 @@ Dir(after)    #{@uuid}/#{@uid} => #{list_home_dir(@homedir)}
     #
     # Caveat: the quota information will not be populated.
     #
-    def self.all_users
+    def self.all
       Enumerator.new do |yielder|
         config = OpenShift::Config.new
         gecos = config.get("GEAR_GECOS") || "OO application container"
@@ -828,15 +828,17 @@ Dir(after)    #{@uuid}/#{@uid} => #{list_home_dir(@homedir)}
 
         pwents.each do |pwent|
           if pwent.gecos == gecos
+            u = nil
             begin
               env = Utils::Environ.for_gear(pwent.dir)
               u = UnixUser.new(env["OPENSHIFT_APP_UUID"], pwent.name, pwent.uid,
                                env["OPENSHIFT_APP_NAME"], env["OPENSHIFT_GEAR_NAME"],
                                env['OPENSHIFT_GEAR_DNS'].sub(/\..*$/,"").sub(/^.*\-/,""))
-              yielder.yield(u)
             rescue => e
               NodeLogger.logger.error("Failed to instantiate UnixUser for #{pwent.uid}: #{e}")
               NodeLogger.logger.error("Backtrace: #{e.backtrace}")
+            else
+              yielder.yield(u)
             end
           end
         end

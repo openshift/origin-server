@@ -1,4 +1,4 @@
-@runtime_other
+@runtime_other2
 Feature: V2 SDK Mock Cartridge
 
   Scenario: Exercise basic platform functionality in isolation

@@ -1,6 +1,6 @@
 @runtime_extended_other1
-Feature: Mysql Scaling Tests
-  Scenario: Mysql in a scalable application
+Feature: MySQL Scaling Tests
+  Scenario: MySQL in a scalable application
     Given a v2 default node
     Given a new client created scalable mock-0.1 application
 

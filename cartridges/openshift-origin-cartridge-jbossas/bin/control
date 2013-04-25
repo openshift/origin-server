@@ -87,25 +87,28 @@ function build() {
     
 	CONFIG_DIR="${OPENSHIFT_JBOSSAS_DIR}/standalone/configuration"
 	OPENSHIFT_MAVEN_MIRROR="${CONFIG_DIR}/settings.base.xml"
-	if `echo $OPENSHIFT_GEAR_DNS | egrep -qe "\.rhcloud\.com"`
-	then 
+  if [[ $OPENSHIFT_GEAR_DNS =~ .*\.rhcloud\.com$ ]]
+	then
 	    OPENSHIFT_MAVEN_MIRROR="${CONFIG_DIR}/settings.rhcloud.xml"
 	fi
 
-	max_memory_bytes=`oo-cgroup-read memory.limit_in_bytes`
-	max_memory_mb=`expr $max_memory_bytes / 1048576`
+	max_memory_bytes=$(oo-cgroup-read memory.limit_in_bytes)
+	max_memory_mb=$(expr $max_memory_bytes / 1048576)
 
 	# If hot deploy is enabled, we need to restrict the Maven memory size to fit
 	# alongside the running application server. For now, just hard-code it to 64
 	# and figure out how to apply a scaling factor later.
-	if hot_deploy_marker_is_present ; then
+	if hot_deploy_marker_is_present
+    then
     	echo "Scaling down Maven heap settings due to presence of hot_deploy marker"
     
-    	if [ -z $MAVEN_JVM_HEAP_RATIO ]; then
-			MAVEN_JVM_HEAP_RATIO=0.25
+    	if [ -z $MAVEN_JVM_HEAP_RATIO ]
+        then
+			  MAVEN_JVM_HEAP_RATIO=0.25
 		fi
 	else
-		if [ -z $MAVEN_JVM_HEAP_RATIO ]; then
+		if [ -z $MAVEN_JVM_HEAP_RATIO ]
+        then
 			MAVEN_JVM_HEAP_RATIO=0.75
 		fi
 	fi
@@ -136,8 +139,10 @@ function build() {
         	else
           		export JAVA_HOME=/etc/alternatives/java_sdk_1.6.0
         	fi
-        
-        	export M2_HOME=/etc/alternatives/maven-3.0
+
+          echo $JAVA_HOME >$OPENSHIFT_JBOSSAS_DIR/env/JAVA_HOME
+          echo "$JAVA_HOME/bin:$M2_HOME/bin" >$OPENSHIFT_JBOSSAS_DIR/env/OPENSHIFT_JBOSSAS_PATH
+
         	export MAVEN_OPTS="$OPENSHIFT_MAVEN_XMX"
         	export PATH=$JAVA_HOME/bin:$M2_HOME/bin:$PATH
         	pushd ${OPENSHIFT_REPO_DIR} > /dev/null
@@ -167,8 +172,6 @@ function build() {
             	mvn $MAVEN_ARGS
         	fi
         	popd > /dev/null
-        	
-        	CART_NAME=${cartridge_type}
     	fi
 	fi
 
@@ -187,7 +190,8 @@ function deploy() {
 function start() {
   echo "Starting $cartridge_type cart"
     
-	if marker_present "nenable_jpda"; then
+  if marker_present "enable_jpda"
+  then
     ENABLE_JPDA=1
   fi
 
@@ -257,7 +261,7 @@ function threaddump() {
         exit 1
     elif [ -f "$JBOSSAS_PID_FILE" ]; then
         pid=$(cat $JBOSSAS_PID_FILE);
-        java_pid=`ps h --ppid $pid -o '%p'`
+        java_pid=$(ps h --ppid $pid -o '%p')
         kill -3 $java_pid
         client_result "Success"
         client_result ""

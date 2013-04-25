@@ -1,7 +1,7 @@
 @runtime
 Feature: Cartridge Runtime Standard Checks (PHP)
 
-  #@runtime_other2
+  #@runtime_other4
   @runtime2
   @rhel-only
   Scenario Outline: PHP cartridge checks

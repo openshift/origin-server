@@ -721,6 +721,37 @@ module OpenShift
         return result_io#, cart_data
       end
       
+      # 
+      # Post configuration for a cartridge on a gear.
+      #
+      # INPUTS:
+      # * gear: a Gear object
+      # * cart: the name of the cartridge
+      # * template_git_url: a url of a git repo containing a cart overlay
+      #
+      # RETURNS
+      # ResultIO: the result of running post-configuration on the cartridge
+      #
+      def post_configure_cartridge(gear, cart, template_git_url=nil)
+        result_io = ResultIO.new
+        cart_data = nil
+        
+        args = build_base_gear_args(gear)
+        args['--cart-name'] = cart
+        
+        if !template_git_url.nil?  && !template_git_url.empty?
+          args['--with-template-git-url'] = template_git_url
+        end
+
+        if framework_carts.include?(cart) or embedded_carts.include?(cart)
+          result_io = run_cartridge_command(cart, gear, "post-configure", args)
+        else
+          #no-op
+        end
+        
+        return result_io
+      end
+      
       #
       # Remove a Gear and the last contained cartridge from a node
       # 
@@ -2269,6 +2300,49 @@ module OpenShift
             Rails.logger.debug "DEBUG: Failed to embed '#{component}' in '#{app.name}' for user '#{app.domain.owner.login}'"
             reply.debugIO << "Failed to embed '#{component} in '#{app.name}'"
             reply.append run_cartridge_command(component, gear, 'deconfigure', args)
+          ensure
+            raise
+          end
+        end
+        
+        component_details = reply.appInfoIO.string.empty? ? '' : reply.appInfoIO.string
+        reply.debugIO << "Embedded app details: #{component_details}"
+        [reply, component_details]
+      end
+
+      # 
+      # Post configure a component on the gear
+      #
+      # INPUTS:
+      # * gear: a Gear object
+      # * component: String
+      #
+      # RETURNS:
+      # * Array [ResultIO, String]
+      #
+      # RAISES:
+      # * Exception
+      #
+      # CATCHES:
+      # * Exception
+      #
+      # NOTES:
+      # * uses run_cartridge_command
+      # * runs "post-configure" on a "component" which used to be called "embedded"
+      #
+      def post_configure_component(gear, component)
+        app = gear.app
+        reply = ResultIO.new
+
+        args = build_base_gear_args(gear)
+        args['--cart-name'] = component
+        
+        begin
+          reply.append run_cartridge_command(component, gear, 'post-configure', args)
+        rescue Exception => e
+          begin
+            Rails.logger.debug "DEBUG: Failed to run post-configure on '#{component}' in '#{app.name}' for user '#{app.domain.owner.login}'"
+            reply.debugIO << "Failed to run post-configure on '#{component} in '#{app.name}'"
           ensure
             raise
           end

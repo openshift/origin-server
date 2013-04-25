@@ -108,7 +108,7 @@ mv %{buildroot}%{brokerdir}/httpd/000002_openshift_origin_broker_proxy.conf %{bu
 mv %{buildroot}%{brokerdir}/httpd/000002_openshift_origin_broker_servername.conf %{buildroot}%{_sysconfdir}/httpd/conf.d/
 
 mkdir -p %{buildroot}%{_var}/log/openshift/broker/httpd
-touch %{buildroot}%{_var}/log/openshift/user_action.log
+touch %{buildroot}%{_var}/log/openshift/broker/user_action.log
 touch %{buildroot}%{_var}/log/openshift/broker/production.log
 touch %{buildroot}%{_var}/log/openshift/broker/development.log
 
@@ -137,7 +137,7 @@ rm %{buildroot}%{brokerdir}/httpd/broker-scl-ruby193.conf
 %attr(0750,-,-) %{_var}/log/openshift/broker/httpd
 %attr(0640,-,-) %ghost %{_var}/log/openshift/broker/production.log
 %attr(0640,-,-) %ghost %{_var}/log/openshift/broker/development.log
-%attr(0640,-,-) %ghost %{_var}/log/openshift/user_action.log
+%attr(0640,-,-) %ghost %{_var}/log/openshift/broker/user_action.log
 %attr(0750,-,-) %{brokerdir}/script
 %attr(0750,-,-) %{brokerdir}/tmp
 %attr(0750,-,-) %{brokerdir}/tmp/cache
@@ -182,7 +182,7 @@ systemctl --system daemon-reload
 # command line tools that will load the Rails environment and create the logs
 # as root.  We need the files labeled %ghost because we don't want these log
 # files overwritten on RPM upgrade.
-for l in %{_var}/log/openshift/user_action.log %{_var}/log/openshift/broker/{development,production}.log; do
+for l in %{_var}/log/openshift/broker/{development,production,user_action}.log; do
   if [ ! -f $l ]; then
     touch $l
   fi
@@ -199,7 +199,6 @@ boolean -m --on httpd_enable_homedirs
 fcontext -a -t httpd_var_run_t '%{brokerdir}/httpd/run(/.*)?'
 fcontext -a -t httpd_tmp_t '%{brokerdir}/tmp(/.*)?'
 fcontext -a -t httpd_log_t '%{_var}/log/openshift/broker(/.*)?'
-fcontext -a -t httpd_log_t '%{_var}/log/openshift/user_action.log'
 _EOF
 
 chcon -R -t httpd_log_t %{_var}/log/openshift/broker
@@ -210,7 +209,7 @@ chcon -R -t httpd_var_run_t %{brokerdir}/httpd/run
 /sbin/restorecon -R -v /var/run
 #/sbin/restorecon -rv %{_datarootdir}/rubygems/gems/passenger-*
 /sbin/restorecon -rv %{brokerdir}/tmp
-/sbin/restorecon -v '%{_var}/log/openshift/user_action.log'
+/sbin/restorecon -v '%{_var}/log/openshift/broker/user_action.log'
 
 %postun
 /sbin/fixfiles -R %{?scl:%scl_prefix}rubygem-passenger restore

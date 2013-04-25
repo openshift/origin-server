@@ -244,6 +244,7 @@ module OpenShift
             output << cartridge_action(cartridge, 'install', software_version)
             populate_gear_repo(c.directory, template_git_url) if cartridge.primary?
           end
+
         end
       end
 
@@ -448,6 +449,10 @@ module OpenShift
 
       mcs_label = Utils::SELinux.get_mcs_label(@user.uid)
 
+      # Gear level actions: Placed here to be off the V1 code path...
+      old_path = File.join(@user.homedir, '.env', 'PATH')
+      File.delete(old_path) if File.file? old_path
+
       uservars_env = File.join(@user.homedir, '.env', '.uservars')
       FileUtils.mkpath uservars_env
 
@@ -517,7 +522,7 @@ module OpenShift
       directory = File.join(@user.homedir, cartridge_name)
       logger.info "Processing ERB templates for #{directory}/**"
 
-      env = Utils::Environ.for_gear_ordered(@user.homedir, directory)
+      env = Utils::Environ.for_gear(@user.homedir, directory)
       render_erbs(env, File.join(directory, '**'))
     end
 
@@ -587,7 +592,7 @@ module OpenShift
     # stdout = cartridge_teardown('php-5.3')
     def cartridge_teardown(cartridge_name)
       cartridge_home = File.join(@user.homedir, cartridge_name)
-      env            = Utils::Environ.for_gear_ordered(@user.homedir, cartridge_home)
+      env            = Utils::Environ.for_gear(@user.homedir, cartridge_home)
       teardown       = File.join(cartridge_home, 'bin', 'teardown')
 
       return "" unless File.exists? teardown
@@ -805,7 +810,7 @@ module OpenShift
     #
     def connector_execute(cart_name, connector, args)
       cartridge = get_cartridge(cart_name)
-      env       = Utils::Environ.for_gear_ordered(@user.homedir, File.join(@user.homedir, cartridge.directory))
+      env       = Utils::Environ.for_gear(@user.homedir, File.join(@user.homedir, cartridge.directory))
 
       script = PathUtils.join(@user.homedir, cartridge.directory, 'hooks', connector)
 
@@ -887,9 +892,10 @@ module OpenShift
                                       err:             options[:err])
 
         buffer << out if out.is_a?(String)
+        buffer << err if err.is_a?(String)
 
         raise Utils::ShellExecutionException.new(
-                  "Failed to execute: 'control #{action}' for #{path}", rc, buffer, err
+                  "Failed to execute: 'control #{action}' for #{path}", rc, out, err
               ) if rc != 0
       }
 
@@ -909,7 +915,7 @@ module OpenShift
     def do_action_hook(action, env, options)
       action_hooks_dir = File.join(@user.homedir, %w{app-root runtime repo .openshift action_hooks})
       action_hook      = File.join(action_hooks_dir, action)
-      out              = ''
+      buffer           = ''
 
       if File.executable?(action_hook)
         out, err, rc = Utils.oo_spawn(action_hook,
@@ -925,7 +931,10 @@ module OpenShift
               ) if rc != 0
       end
 
-      out
+      buffer << out if out.is_a?(String)
+      buffer << err if err.is_a?(String)
+
+      buffer
     end
 
     def cartridge_hooks(action_hooks, action, name, version)
@@ -1020,6 +1029,10 @@ module OpenShift
     # +options+   : hash
     #   :user_initiated => [boolean]  : Indicates whether the operation was user initated.
     #                                   Default is +true+.
+    #   :hot_deploy => [boolean]      : If +true+ and if +cartridge+ is the primary cartridge in the gear, the
+    #                                   gear state will be set to +STARTED+ but the actual cartridge start operation
+    #                                   will be skipped. Non-primary cartridges will be skipped with no state change.
+    #                                   Default is +false+.
     #   :out                          : An +IO+ object to which control script STDOUT should be directed. If
     #                                   +nil+ (the default), output is logged.
     #   :err                          : An +IO+ object to which control script STDERR should be directed. If
@@ -1029,16 +1042,23 @@ module OpenShift
     # if the cartridge script fails.
     def start_cartridge(type, cartridge, options={})
       options[:user_initiated] = true if not options.has_key?(:user_initiated)
+      options[:hot_deploy]     = false if not options.has_key?(:hot_deploy)
+
+      cartridge = get_cartridge(cartridge) if cartridge.is_a?(String)
 
       if not options[:user_initiated] and stop_lock?
         return "Not starting cartridge #{cartridge.name} because the application was explicitly stopped by the user"
       end
 
-      cartridge = get_cartridge(cartridge) if cartridge.is_a?(String)
-
       if cartridge.primary?
         FileUtils.rm_f(stop_lock) if options[:user_initiated]
         @state.value = OpenShift::State::STARTED
+      end
+
+      if options[:hot_deploy]
+        output = "Not starting cartridge #{cartridge.name} because hot deploy is enabled"
+        options[:out].puts(output) if options[:out]
+        return output
       end
 
       do_control(type, cartridge, options)
@@ -1055,6 +1075,9 @@ module OpenShift
     # +options+   : hash
     #   :user_initiated => [boolean]  : Indicates whether the operation was user initated.
     #                                   Default is +true+.
+    #   :hot_deploy => [boolean]      : If +true+, the stop operation is skipped for all cartridge types,
+    #                                   the gear state is not modified, and the stop lock is never created.
+    #                                   Default is +false+. 
     #   :out                          : An +IO+ object to which control script STDOUT should be directed. If
     #                                   +nil+ (the default), output is logged.
     #   :err                          : An +IO+ object to which control script STDERR should be directed. If
@@ -1064,12 +1087,19 @@ module OpenShift
     # if the cartridge script fails.
     def stop_cartridge(cartridge, options={})
       options[:user_initiated] = true if not options.has_key?(:user_initiated)
+      options[:hot_deploy]     = false if not options.has_key?(:hot_deploy)
+
+      cartridge = get_cartridge(cartridge) if cartridge.is_a?(String)
+
+      if options[:hot_deploy]
+        output = "Not stopping cartridge #{cartridge.name} because hot deploy is enabled"
+        options[:out].puts(output) if options[:out]
+        return output
+      end
 
       if not options[:user_initiated] and stop_lock?
         return "Not stopping cartridge #{cartridge.name} because the application was explicitly stopped by the user"
       end
-
-      cartridge = get_cartridge(cartridge) if cartridge.is_a?(String)
 
       if cartridge.primary?
         create_stop_lock if options[:user_initiated]

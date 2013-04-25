@@ -72,7 +72,6 @@ end
 Given /^a new ([^ ]+) application, verify its availability$/ do |cart_name|
   steps %{
     Given the libra client tools
-    And an accepted node
     When 1 #{cart_name} applications are created
     Then the applications should be accessible
     Then the applications should be accessible via node-web-proxy
@@ -870,7 +869,6 @@ Then /^the platform-created default environment variables will exist$/ do
   app_env_var_will_exist('TMP_DIR')
   app_env_var_will_exist('HOMEDIR')
   app_env_var_will_exist('HISTFILE', false)
-  app_env_var_will_exist('PATH', false)
 end
 
 Then /^the ([^ ]+) cartridge private endpoints will be (exposed|concealed)$/ do |cart_name, action|

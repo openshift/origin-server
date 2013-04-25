@@ -124,6 +124,7 @@ module OpenShift
         end
 
         gearlist.each do |uuid, container|
+          frontend = nil
           begin
             frontend = FrontendHttpServer.new(uuid, container['container_name'], container['namespace'])
           rescue => e
@@ -899,12 +900,34 @@ module OpenShift
 
   # Present an API to Apache's DB files for mod_rewrite.
   #
-  # This is a bit complicated since there don't appear to be a DB file
-  # format common to ruby and Apache that does not have corruption
-  # issues.  The only format they can agree on is text, which is slow
-  # for 10's of thousands of entries.  Unfortunately, that means we
-  # have to go through a convoluted process to populate the final
-  # Apache DB.
+  # The process to update database files is complicated and
+  # hand-editing is strongly discouraged for the following reasons:
+  #
+  # 1. There did not appear to be a corruption free database format in
+  # common between ruby and Apache that had a guaranteed consistent
+  # API.  Even BerkeleyDB and the BDB module corrupted each other on
+  # testing.
+  #
+  # 2. Every effort was made to ensure that a crash, even due to a
+  # system issue such as disk space or memory starvation did not
+  # result in a corrupt database and the loss of old information.
+  #
+  # 3. Every effort was made to ensure that multiple threads and
+  # processes could not corrupt or step on each other.
+  #
+  # 4. While the httxt2dbm tool can run on an existing database, that
+  # will result in additions but not removals from the database.  Only
+  # some of your changes will take unless the entire db is recreated
+  # each time.
+  #
+  # 5. In order for BerkeleyDB to be safe for multiple processes to
+  # access/edit, the environment must be specifically set up to allow
+  # locking.  An audit of the Apache source code shows that it does
+  # not do that.  And an strace of Apache shows no attempt to either
+  # lock or establish a mutex on the BerkeleyDB file.  I believe the
+  # claim that BerkeleyDB is safe to have multiple processess
+  # reading/writing it is simply not true the way its used by Apache.
+  #
   #
   # This locks down to one thread for safety.  You MUST ensure that
   # close is called to release all locks.  Close also syncs changes to

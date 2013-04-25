@@ -21,7 +21,8 @@ require 'pathname'
 class ApplicationRepositoryFuncTest < OpenShift::V2SdkTestCase
   GEAR_BASE_DIR = '/var/lib/openshift'
 
-  def setup
+  def before_setup
+    super
     @uid = 5997
 
     @config = mock('OpenShift::Config')
@@ -68,8 +69,13 @@ class ApplicationRepositoryFuncTest < OpenShift::V2SdkTestCase
     @model.configure(@cartridge_name)
   end
 
-  def teardown
+  def after_teardown
     @user.destroy
+  end
+
+  def teardown
+    FileUtils.rm_rf(File.join(@user.homedir, '*', 'template*'))
+    FileUtils.rm_rf(File.join(@user.homedir, '*', 'usr', 'template*'))
   end
 
   def assert_bare_repository(repo)
@@ -98,9 +104,28 @@ class ApplicationRepositoryFuncTest < OpenShift::V2SdkTestCase
     refute_nil repo
   end
 
+  def test_bare_repository_usr
+    create_template(File.join(@cartridge_home, 'usr', 'template', 'perl'))
+    create_bare(File.join(@cartridge_home, 'usr', 'template'))
+
+    cartridge_template_git = File.join(@cartridge_home, 'usr', 'template.git')
+    assert_path_exist cartridge_template_git
+    refute_path_exist File.join(@cartridge_home, 'usr', 'template')
+
+    expected_path = File.join(@user.homedir, 'git', @user.app_name + '.git')
+
+    repo = OpenShift::ApplicationRepository.new(@user)
+    repo.populate_from_cartridge(@cartridge_directory)
+
+    assert_equal expected_path, repo.path
+    assert_bare_repository(repo)
+    assert repo.exist?, "Application Repository (#{repo.path}) not found"
+    assert repo.exists?, "Application Repository (#{repo.path}) not found"
+  end
+
   def test_bare_repository
-    create_template
-    create_bare
+    create_template(File.join(@cartridge_home, 'template', 'perl'))
+    create_bare(File.join(@cartridge_home, 'template'))
 
     cartridge_template_git = File.join(@cartridge_home, 'template.git')
     assert_path_exist cartridge_template_git
@@ -128,8 +153,8 @@ class ApplicationRepositoryFuncTest < OpenShift::V2SdkTestCase
   end
 
   def test_from_url
-    create_template
-    create_bare
+    create_template(File.join(@cartridge_home, 'template', 'perl'))
+    create_bare(File.join(@cartridge_home, 'template'))
 
     cartridge_template_git = File.join(@cartridge_home, 'template.git')
     assert_path_exist cartridge_template_git
@@ -167,7 +192,7 @@ class ApplicationRepositoryFuncTest < OpenShift::V2SdkTestCase
   end
 
   def test_source
-    create_template
+    create_template(File.join(@cartridge_home, 'template', 'perl'))
     expected_path = File.join(@user.homedir, 'git', @user.app_name + '.git')
     refute_path_exist File.join(@cartridge_home, 'template.git')
 
@@ -196,7 +221,7 @@ class ApplicationRepositoryFuncTest < OpenShift::V2SdkTestCase
   end
 
   def test_bare_submodule
-    create_template
+    create_template(File.join(@cartridge_home, 'template', 'perl'))
     create_bare_submodule
     expected_path = File.join(@user.homedir, 'git', @user.app_name + '.git')
 
@@ -225,12 +250,12 @@ class ApplicationRepositoryFuncTest < OpenShift::V2SdkTestCase
     end
   end
 
-  def create_template
+  def create_template(path)
     # Cartridge Author tasks...
-    perl = File.join(@cartridge_home, 'template', 'perl')
-    FileUtils.mkpath(perl)
+    #perl = File.join(@cartridge_home, 'template', 'perl')
+    FileUtils.mkpath(path)
 
-    File.open(File.join(perl, 'health_check.pl'), 'w', 0664) { |f|
+    File.open(File.join(path, 'health_check.pl'), 'w', 0664) { |f|
       f.write(%q{\
 #!/usr/bin/perl
 print "Content-type: text/plain\r\n\r\n";
@@ -238,7 +263,7 @@ print "1";
 })
     }
 
-    File.open(File.join(perl, 'index.pl'), 'w', 0664) { |f|
+    File.open(File.join(path, 'index.pl'), 'w', 0664) { |f|
       f.write(%q{\
 #!/usr/bin/perl
 print "Content-type: text/html\r\n\r\n";
@@ -257,19 +282,19 @@ EOF
     }
   end
 
-  def create_bare
-    template = File.join(@cartridge_home, 'template')
+  def create_bare(template)
     Dir.chdir(@cartridge_home) do
       output = %x{set -xe;
-pushd #{template}
+pushd #{template};
 git init;
 git config user.email "mocker@example.com";
 git config user.name "Mock Template builder";
 git add -f .;
 git </dev/null commit -a -m "Creating mocking template" 2>&1;
-popd;
+cd ..;
 git </dev/null clone --bare --no-hardlinks template template.git 2>&1;
-chown -R #{@user.uid}:#{@user.uid} template template.git
+chown -R #{@user.uid}:#{@user.uid} template template.git;
+popd;
 }
 
       #puts "\ncreate_bare: #{output}"

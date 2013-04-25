@@ -6,7 +6,6 @@
 Feature: Cartridge Lifecycle JBossEAP Verification Tests
   Scenario: Application Creation
     Given the libra client tools
-    And an accepted node
     When 1 jbosseap-6.0 applications are created
     Then the applications should be accessible
 

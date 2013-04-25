@@ -30,46 +30,19 @@ function print_help {
 
 while getopts 'u:d' OPTION
 do
-case $OPTION in
+    case $OPTION in
         u) uuid=$OPTARG
-    ;;
+            ;;
         d) set -x
-    ;;
+            ;;
         ?) print_help
-    ;;
-esac
+            ;;
+    esac
 done
 
-if [ -z "$uuid" ] || ! [ -d "/var/lib/openshift/$uuid" ]
+if [ -z "$uuid" ]
 then
     print_help
 fi
 
-source /usr/libexec/openshift/cartridges/abstract/info/lib/util
-source "/var/lib/openshift/${uuid}/.env/OPENSHIFT_HOMEDIR"
-
-# Turn user application back on.
-framework_carts=$(get_installed_framework_carts)
-primary_framework_cart=${framework_carts[0]}
-
-stop_lock_file="${OPENSHIFT_HOMEDIR}/${primary_framework_cart}/run/stop_lock"
-state=`cat $OPENSHIFT_HOMEDIR/app-root/runtime/.state`
-
-idled_proxy=`oo-ruby /usr/bin/oo-frontend-check-idle --with-container-uuid $uuid ; echo $?`
-if [ -f "$stop_lock_file" -o 'idled' = "$state" -o 0 -eq "$idled_proxy" ]
-then
-    rm -f "$stop_lock_file"
-else
-    # Do not restore non-idled application. Browser may cause 20+ retries when restoring application.
-    exit 0
-fi
-
-# code copied from node/lib/util_ext
-runuser --shell /bin/sh "$uuid" -c "echo started >$OPENSHIFT_HOMEDIR/app-root/runtime/.state"
-
-/usr/bin/timeout -s USR1 200s /usr/sbin/oo-admin-ctl-gears startgear "${uuid}"
-
-# Enable proxy setup
-oo-ruby /usr/bin/oo-frontend-unidle --with-container-uuid $uuid
-
-/usr/bin/logger -p local0.notice -t oo_restorer "Restored: ${uuid}"
+$(dirname -- "$0")/oo-admin-ctl-gears unidlegear "$uuid"

@@ -1,7 +1,7 @@
 @runtime
 Feature: Cartridge Runtime Standard Checks (Ruby)
 
-  #@runtime_other1
+  #@runtime_other4
   @runtime1
   @rhel-only
   Scenario: Ruby cartridge checks (RHEL/CentOS)
