@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/openshift/cartridges/v2/cron
 
 Name: openshift-origin-cartridge-cron
-Version: 1.6.0
+Version: 1.6.1
 Release: 1%{?dist}
 Summary: Embedded cron support for OpenShift
 Group: Development/Languages
@@ -55,6 +55,18 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Thu Apr 25 2013 Adam Miller <admiller@redhat.com> 1.6.1-1
+- Split v2 configure into configure/post-configure (ironcladlou@gmail.com)
+- more install/post-install scripts (dmcphers@redhat.com)
+- implementing install and post-install (dmcphers@redhat.com)
+- Update outdated links in 'cartridges' directory. (asari.ruby@gmail.com)
+- WIP Cartridge Refactor - Change environment variable files to contain just
+  value (jhonce@redhat.com)
+- Adding V2 Format to all v2 cartridges (calfonso@redhat.com)
+- Bug 928675 (asari.ruby@gmail.com)
+- <v2 carts> remove abstract cartridge from v2 requires (lmeyer@redhat.com)
+- bump_minor_versions for sprint 2.0.26 (tdawson@redhat.com)
+
 * Sun Apr 14 2013 Krishna Raman <kraman@gmail.com> 1.5.6-1
 - WIP Cartridge Refactor - Scrub manifests (jhonce@redhat.com)
 
