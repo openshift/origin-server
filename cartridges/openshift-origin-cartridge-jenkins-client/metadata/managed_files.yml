@@ -1,0 +1,6 @@
+---
+locked_files:
+- .password
+- metadata/
+- configuration/
+- env/

@@ -1,4 +1,0 @@
-.password
-metadata/
-configuration/
-env/
