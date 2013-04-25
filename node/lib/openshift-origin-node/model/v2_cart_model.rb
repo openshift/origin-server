@@ -221,7 +221,7 @@ module OpenShift
       cartridge              = CartridgeRepository.instance.select(name, software_version)
 
       OpenShift::Utils::Sdk.mark_new_sdk_app(@user.homedir)
-      OpenShift::Utils::Cgroups::with_cgroups_disabled(@user.uuid) do
+      OpenShift::Utils::Cgroups::with_no_cpu_limits(@user.uuid) do
         create_cartridge_directory(cartridge, software_version)
         # Note: the following if statement will check the following criteria long-term:
         # 1. Is the app scalable?
@@ -258,7 +258,7 @@ module OpenShift
       name, software_version = map_cartridge_name(cartridge_name)
       cartridge              = CartridgeRepository.instance.select(name, software_version)
 
-      OpenShift::Utils::Cgroups::with_cgroups_disabled(@user.uuid) do
+      OpenShift::Utils::Cgroups::with_no_cpu_limits(@user.uuid) do
         output << start_cartridge('start', cartridge, user_initiated: true)
         output << cartridge_action(cartridge, 'post-setup', software_version)
         output << cartridge_action(cartridge, 'post-install', software_version)
@@ -278,7 +278,7 @@ module OpenShift
     def deconfigure(cartridge_name)
       cartridge = get_cartridge(cartridge_name)
       delete_private_endpoints(cartridge)
-      OpenShift::Utils::Cgroups::with_cgroups_disabled(@user.uuid) do
+      OpenShift::Utils::Cgroups::with_no_cpu_limits(@user.uuid) do
         stop_cartridge(cartridge, user_initiated: true)
         unlock_gear(cartridge) { |c| cartridge_teardown(c.directory) }
         delete_cartridge_directory(cartridge)
