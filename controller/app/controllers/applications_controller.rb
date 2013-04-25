@@ -123,7 +123,7 @@ class ApplicationsController < BaseController
   end
   
   ##
-  # Create a new application
+  # Delete an application
   # 
   # URL: /domains/:domain_id/applications/:id
   #
