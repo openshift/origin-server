@@ -1,19 +1,11 @@
 - content_for :page_title, @message || "Maintenance in progress"
 
-- content_for :javascripts do
-  %script{:src => status_jsonp_url('system-status')}
-
 %h1= @message || "Maintenance in progress"
 
-%p The OpenShift service is temporarily unavailable while we perform server maintenance.  Please check the status page for updates.
+%p The OpenShift service is temporarily unavailable while we perform server maintenance. 
 
 %section.row
   .span7
 
-    %p You can also try the following:
-
     %ul.spaced-items
       %li If you are experiencing a repeatable error not related to a service outage, #{link_to "report it as a bug", open_bug_url }.
-
-  .span5
-    %h4 OpenShift status: #{link_to "No open issues", status_path, :id => 'system-status'}
