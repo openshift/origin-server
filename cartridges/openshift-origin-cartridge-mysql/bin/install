@@ -17,6 +17,14 @@ echo 'Installing mysqld'
 # Must be invoked with absolute path to avoid a mysql bug involving my_print_defaults
 /usr/bin/mysql_install_db --datadir=$OPENSHIFT_MYSQL_DIR/data || error 'Failed to create mysqldb', 119
 
+client_result ""
+client_result "MySQL 5.1 database added.  Please make note of these credentials:"
+client_result ""
+client_result "       Root User: $username"
+client_result "   Root Password: $password"
+client_result "   Database Name: $OPENSHIFT_APP_NAME"
+client_result ""
+
 client_result 'Connection URL: mysql://$OPENSHIFT_MYSQL_DB_HOST:$OPENSHIFT_MYSQL_DB_PORT/'
 client_result ""
 client_result "You can manage your new MySQL database by also embedding phpmyadmin-3.4."
@@ -25,6 +33,6 @@ client_result "The phpmyadmin username and password will be the same as the MySQ
 cart_props 'connection_url=mysql://$OPENSHIFT_MYSQL_DB_HOST:$OPENSHIFT_MYSQL_DB_PORT/'
 cart_props "username=$username"
 cart_props "password=$password"
-cart_props "database_name=$dbname"
+cart_props "database_name=$OPENSHIFT_APP_NAME"
 
 set_app_info "Connection URL: mysql://$OPENSHIFT_MYSQL_DB_HOST:$OPENSHIFT_MYSQL_DB_PORT"
