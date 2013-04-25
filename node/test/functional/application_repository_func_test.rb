@@ -75,6 +75,7 @@ class ApplicationRepositoryFuncTest < OpenShift::V2SdkTestCase
 
   def teardown
     FileUtils.rm_rf(File.join(@user.homedir, '*', 'template*'))
+    FileUtils.rm_rf(File.join(@user.homedir, '*', 'usr', 'template*'))
   end
 
   def assert_bare_repository(repo)
@@ -284,15 +285,16 @@ EOF
   def create_bare(template)
     Dir.chdir(@cartridge_home) do
       output = %x{set -xe;
-pushd #{template}
+pushd #{template};
 git init;
 git config user.email "mocker@example.com";
 git config user.name "Mock Template builder";
 git add -f .;
 git </dev/null commit -a -m "Creating mocking template" 2>&1;
-popd;
+cd ..;
 git </dev/null clone --bare --no-hardlinks template template.git 2>&1;
-chown -R #{@user.uid}:#{@user.uid} template template.git
+chown -R #{@user.uid}:#{@user.uid} template template.git;
+popd;
 }
 
       #puts "\ncreate_bare: #{output}"
