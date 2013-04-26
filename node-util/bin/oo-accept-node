@@ -456,6 +456,10 @@ def check_user_cgroups(username)
 end
 
 def check_system_httpd_configs
+    verbose("DISABLED: checking system httpd configs")
+end
+
+def check_system_httpd_configs_DISABLED
   verbose("checking system httpd configs")
   ['aliases.db', 'idler.db', 'nodes.db', 'sts.db'].each do |db|
     begin
