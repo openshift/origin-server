@@ -120,18 +120,13 @@ function reload() {
     restart
 }
 
+# Clean up any log files
 function tidy() {
-    echo "Tidying $cartridge_type cart"
-    
-    for logdir in `awk 'BEGIN {
-                           for (a in ENVIRON)
-                           if (a ~ /LOG_DIR$/)
-                           print ENVIRON[a] }'`
-	  do
-    	  client_message "Emptying log dir: ${logdir}"
-    	  rm -rf ${logdir}* ${logdir}.[^.]*
-	  done
+  client_message "Emptying log dir: $OPENSHIFT_JENKINS_LOG_DIR"
+  shopt -s dotglob
+  rm -rf $OPENSHIFT_JENKINS_LOG_DIR/*
 }
+
 
 case "$1" in
   start)     	start ;;
