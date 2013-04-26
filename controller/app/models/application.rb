@@ -950,6 +950,7 @@ class Application
       #subscribers
       handle = RemoteJob.create_parallel_job
       self.connections.each do |conn|
+        pub_inst = self.component_instances.find(conn.from_comp_inst_id)
         sub_inst = self.component_instances.find(conn.to_comp_inst_id)
         sub_ginst = self.group_instances.find(sub_inst.group_instance_id)
         tag = ""
@@ -963,7 +964,7 @@ class Application
             gear = sub_ginst.gears[idx]
   
             input_args = [gear.name, self.domain.namespace, gear.uuid, input_to_subscriber]
-            job = gear.get_execute_connector_job(sub_inst.cartridge_name, conn.to_connector_name, conn.connection_type, input_args)
+            job = gear.get_execute_connector_job(sub_inst.cartridge_name, conn.to_connector_name, conn.connection_type, input_args, pub_inst.cartridge_name)
             RemoteJob.add_parallel_job(handle, tag, gear, job)
           end
         end
