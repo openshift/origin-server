@@ -122,7 +122,8 @@ function threaddump() {
         exit 1
     elif [ -f "$JBOSS_PID_FILE" ]; then
         pid=$(cat $JBOSS_PID_FILE);
-        kill -3 $pid
+        java_pid=`ps h --ppid $pid -o '%p'`
+        kill -3 $java_pid
     else 
         echo "Failed to locate JBOSS PID File"
     fi
