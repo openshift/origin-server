@@ -6,7 +6,7 @@
 %global frameworkdir %{_libexecdir}/openshift/cartridges/v2/haproxy
 
 Name:          openshift-origin-cartridge-haproxy
-Version: 0.3.1
+Version: 0.3.2
 Release:       1%{?dist}
 Summary:       Provides HA Proxy
 Group:         Network/Daemons
@@ -57,6 +57,11 @@ rm -rf %{buildroot}
 %doc %{cartridgedir}/README.md
 
 %changelog
+* Thu Apr 25 2013 Adam Miller <admiller@redhat.com> 0.3.2-1
+- Merge pull request #2248 from mrunalp/bug/haproxy_fixes
+  (dmcphers+openshiftbot@redhat.com)
+- Move haproxy shared scripts into /usr/bin. (mrunalp@gmail.com)
+
 * Thu Apr 25 2013 Adam Miller <admiller@redhat.com> 0.3.1-1
 - Card online_runtime_266 - Build PATH from
   CARTRIDGE_<CARTRIDGE_SHORT_NAME>_PATH (jhonce@redhat.com)
