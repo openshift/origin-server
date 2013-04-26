@@ -110,7 +110,15 @@ class BuildLifecycleTest < Test::Unit::TestCase
     @state.expects(:value=).with(OpenShift::State::BUILDING)
 
     primary = mock()
-    @cartridge_model.expects(:primary_cartridge).returns(primary).twice
+    @cartridge_model.expects(:primary_cartridge).returns(primary).times(3)
+
+    @cartridge_model.expects(:do_control).with('process-version',
+                                               primary,
+                                               pre_action_hooks_enabled:  false,
+                                               post_action_hooks_enabled: false,
+                                               out:                       $stdout,
+                                               err:                       $stderr)
+                                          .returns('process-version|')
 
     @cartridge_model.expects(:do_control).with('pre-build',
                                                primary,
@@ -130,7 +138,7 @@ class BuildLifecycleTest < Test::Unit::TestCase
 
     output = @container.build(out: $stdout, err: $stderr)
 
-    assert_equal "pre-build|build", output
+    assert_equal "process-version|pre-build|build", output
   end
 
   def test_deploy_no_web_proxy_success
@@ -200,6 +208,17 @@ class BuildLifecycleTest < Test::Unit::TestCase
   end
 
   def test_remote_deploy_success
+    primary = mock()
+    @cartridge_model.expects(:primary_cartridge).returns(primary)
+    
+    @cartridge_model.expects(:do_control).with('process-version',
+                                               primary,
+                                               pre_action_hooks_enabled:  false,
+                                               post_action_hooks_enabled: false,
+                                               out:                       $stdout,
+                                               err:                       $stderr)
+                                          .returns('')
+
     @container.expects(:start_gear).with(secondary_only: true, user_initiated: true, hot_deploy: nil, out: $stdout, err: $stderr)
     @container.expects(:deploy).with(out: $stdout, err: $stderr)
     @container.expects(:start_gear).with(primary_only: true, user_initiated: true, hot_deploy: nil, out: $stdout, err: $stderr)

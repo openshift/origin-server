@@ -2,6 +2,7 @@
 set -e
 
 source $OPENSHIFT_CARTRIDGE_SDK_BASH
+source ${OPENSHIFT_JBOSSEWS_DIR}/bin/util
 
 if ! [ $# -eq 1 ]
 then
@@ -108,6 +109,12 @@ function tidy {
     rm -rf ${OPENSHIFT_JBOSSEWS_DIR}/tmp/* ${OPENSHIFT_JBOSSEWS_DIR}/tmp/.[^.]*
 }
 
+# Reconstruct JAVA_HOME and PATH based on the current version/marker selection
+function process_version {
+    export_java_home
+    reinstall_path
+}
+
 case "$1" in
     start)
         start_app
@@ -147,6 +154,10 @@ case "$1" in
     ;;
     deploy)
         ${OPENSHIFT_JBOSSEWS_DIR}/bin/deploy
+        exit 0
+    ;;
+    process-version)
+        process_version
         exit 0
     ;;
 esac

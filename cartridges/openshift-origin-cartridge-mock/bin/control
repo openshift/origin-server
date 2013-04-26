@@ -47,6 +47,7 @@ case "$1" in
   pre-restore)   touch $MOCK_STATE/control_pre_restore ;;
   post-restore)  touch $MOCK_STATE/control_post_restore ;;
   pre-receive)   touch $MOCK_STATE/control_pre_receive ;;
+  process-version) touch $MOCK_STATE/control_process_version ;;
   *)           exit 0
 esac
 
