@@ -67,6 +67,7 @@ class ApplicationRepositoryFuncTest < OpenShift::V2SdkTestCase
     @cartridge_directory = 'mock'
     @cartridge_home      = File.join(@user.homedir, @cartridge_directory)
     @model.configure(@cartridge_name)
+    teardown
   end
 
   def after_teardown
@@ -74,8 +75,10 @@ class ApplicationRepositoryFuncTest < OpenShift::V2SdkTestCase
   end
 
   def teardown
-    FileUtils.rm_rf(File.join(@user.homedir, '*', 'template*'))
-    FileUtils.rm_rf(File.join(@user.homedir, '*', 'usr', 'template*'))
+    FileUtils.rm_rf(File.join(@user.homedir, @cartridge_directory, 'template'))
+    FileUtils.rm_rf(File.join(@user.homedir, @cartridge_directory, 'template.git'))
+    FileUtils.rm_rf(File.join(@user.homedir, @cartridge_directory, 'usr', 'template'))
+    FileUtils.rm_rf(File.join(@user.homedir, @cartridge_directory, 'usr', 'template.git'))
   end
 
   def assert_bare_repository(repo)
@@ -115,6 +118,8 @@ class ApplicationRepositoryFuncTest < OpenShift::V2SdkTestCase
     expected_path = File.join(@user.homedir, 'git', @user.app_name + '.git')
 
     repo = OpenShift::ApplicationRepository.new(@user)
+    repo.destroy
+
     repo.populate_from_cartridge(@cartridge_directory)
 
     assert_equal expected_path, repo.path
@@ -134,6 +139,7 @@ class ApplicationRepositoryFuncTest < OpenShift::V2SdkTestCase
     expected_path = File.join(@user.homedir, 'git', @user.app_name + '.git')
 
     repo = OpenShift::ApplicationRepository.new(@user)
+    repo.destroy
 
     begin
       repo.populate_from_cartridge(@cartridge_directory)
@@ -164,6 +170,7 @@ class ApplicationRepositoryFuncTest < OpenShift::V2SdkTestCase
     expected_path = File.join(@user.homedir, 'git', @user.app_name + '.git')
 
     repo = OpenShift::ApplicationRepository.new(@user)
+    repo.destroy
 
     begin
       repo.populate_from_url(@cartridge_name, cartridge_template_url)
@@ -189,6 +196,36 @@ class ApplicationRepositoryFuncTest < OpenShift::V2SdkTestCase
 
     assert_equal 130, e.rc
     assert e.message.start_with?('CLIENT_ERROR:')
+  end
+
+  def test_source_usr
+    refute_path_exist File.join(@cartridge_home, 'template.git')
+
+    create_template(File.join(@cartridge_home, 'usr', 'template', 'perl'))
+    expected_path = File.join(@user.homedir, 'git', @user.app_name + '.git')
+
+    repo = OpenShift::ApplicationRepository.new(@user)
+    repo.destroy
+    refute_path_exist(expected_path)
+
+    begin
+      repo.populate_from_cartridge(@cartridge_directory)
+
+      assert_equal expected_path, repo.path
+      assert_bare_repository(repo)
+
+      runtime_repo = "#{@user.homedir}/app-root/runtime/repo"
+      FileUtils.mkpath(runtime_repo)
+      repo.deploy
+      assert_path_exist File.join(runtime_repo, 'perl', 'health_check.pl')
+    rescue OpenShift::Utils::ShellExecutionException => e
+      puts %Q{
+        Failed to create git repo from cartridge template: rc(#{e.rc})
+        stdout ==> #{e.stdout}
+        stderr ==> #{e.stderr}
+           #{e.backtrace.join("\n")}}
+      raise
+    end
   end
 
   def test_source
@@ -278,7 +315,7 @@ print <<EOF
   </html>
 EOF
 })
-      FileUtils.chown_R(@user.uid, @user.uid, File.join(@cartridge_home, 'template'))
+      FileUtils.chown_R(@user.uid, @user.uid, path)
     }
   end
 
