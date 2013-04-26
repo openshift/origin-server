@@ -65,6 +65,8 @@ Feature: V2 SDK Mock Cartridge
     And a simple update is pushed to the application repo
     Then the mock control_stop marker will exist
     And the mock control_pre_receive marker will exist
+    And the mock control_process_version marker will exist
+    And the mock control_pre_build marker will exist
     And the mock control_build marker will exist
     And the mock control_deploy marker will exist
     And the mock control_start marker will exist

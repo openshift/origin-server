@@ -403,6 +403,13 @@ module OpenShift
     end
 
     def remote_deploy(options={})
+      @cartridge_model.do_control('process-version',
+                                  @cartridge_model.primary_cartridge,
+                                  pre_action_hooks_enabled:  false,
+                                  post_action_hooks_enabled: false,
+                                  out:                       options[:out],
+                                  err:                       options[:err])
+
       start_gear(secondary_only: true,
                  user_initiated: true,
                  hot_deploy:     options[:hot_deploy],
@@ -426,16 +433,25 @@ module OpenShift
     # Implements the following build process:
     #
     #   1. Set the application state to +BUILDING+
-    #   2. Run the cartridge +pre-build+ control action
-    #   3. Run the +pre-build+ user action hook
-    #   4. Run the cartridge +build+ control action
-    #   5. Run the +build+ user action hook
+    #   2. Run the cartridge +process-version+ control action
+    #   3. Run the cartridge +pre-build+ control action
+    #   4. Run the +pre-build+ user action hook
+    #   5. Run the cartridge +build+ control action
+    #   6. Run the +build+ user action hook
     #
     # Returns the combined output of all actions as a +String+.
     def build(options={})
       @state.value = OpenShift::State::BUILDING
 
       buffer = ''
+
+      buffer << @cartridge_model.do_control('process-version',
+                                            @cartridge_model.primary_cartridge,
+                                            pre_action_hooks_enabled:  false,
+                                            post_action_hooks_enabled: false,
+                                            out:                       options[:out],
+                                            err:                       options[:err])
+
       buffer << @cartridge_model.do_control('pre-build',
                                             @cartridge_model.primary_cartridge,
                                             pre_action_hooks_enabled: false,
@@ -481,6 +497,7 @@ module OpenShift
                                   prefix_action_hooks:      false,
                                   out:                      options[:out],
                                   err:                      options[:err])
+
     end
 
     ##

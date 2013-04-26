@@ -1,5 +1,8 @@
 #!/bin/bash -e
 
+source $OPENSHIFT_CARTRIDGE_SDK_BASH
+source ${OPENSHIFT_JBOSSEWS_DIR}/bin/util
+
 # Create a link from the repo/webapps directory to the Tomcat webapps directory
 ln -s ${OPENSHIFT_REPO_DIR}/webapps ${OPENSHIFT_JBOSSEWS_DIR}/webapps
 
@@ -7,3 +10,7 @@ ln -s ${OPENSHIFT_REPO_DIR}/webapps ${OPENSHIFT_JBOSSEWS_DIR}/webapps
 pushd $OPENSHIFT_JBOSSEWS_DIR/template/src/main/webapp
   jar cvf $OPENSHIFT_JBOSSEWS_DIR/template/webapps/ROOT.war ./*
 popd
+
+# Set up the default path and JAVA_HOME
+export JAVA_HOME=$OPENSHIFT_JBOSSEWS_JDK7
+reinstall_path
