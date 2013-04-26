@@ -415,6 +415,8 @@ module OpenShift
             map_dest = "FORBIDDEN"
           elsif options["noproxy"]
             map_dest = "NOPROXY"
+          elsif options["health"]
+            map_dest = "HEALTH"
           elsif options["redirect"]
             map_dest = "REDIRECT:#{uri}"
           elsif options["file"]
@@ -498,7 +500,7 @@ module OpenShift
             end
           end
 
-          if v =~ /^(GONE|FORBIDDEN|NOPROXY)$/
+          if v =~ /^(GONE|FORBIDDEN|NOPROXY|HEALTH)$/
             entry[2][$~[1].downcase] = 1
           elsif v =~ /^(REDIRECT|FILE|TOHTTPS):(.*)$/
             entry[2][$~[1].downcase] = 1
