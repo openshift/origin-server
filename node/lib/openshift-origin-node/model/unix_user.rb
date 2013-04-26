@@ -462,18 +462,21 @@ Dir(after)    #{@uuid}/#{@uid} => #{list_home_dir(@homedir)}
       notify_observers(:before_initialize_homedir)
       homedir = homedir.end_with?('/') ? homedir : homedir + '/'
 
-      tmp_dir = File.join(homedir, ".tmp")
       # Required for polyinstantiated tmp dirs to work
-      FileUtils.mkdir_p tmp_dir
-      FileUtils.chmod(0o0000, tmp_dir)
+      [".tmp", ".sandbox"].each do |poly_dir|
+        full_poly_dir = File.join(homedir, poly_dir)
+        FileUtils.mkdir_p full_poly_dir
+        FileUtils.chmod(0o0000, full_poly_dir)
+      end
 
-      sandbox_dir = File.join(homedir, ".sandbox")
-      FileUtils.mkdir_p sandbox_dir
-      FileUtils.chmod(0o0000, sandbox_dir)
-
-      sandbox_uuid_dir = File.join(sandbox_dir, @uuid)
+      # Polydir runs before the marker is created so set up sandbox by hand
+      sandbox_uuid_dir = File.join(homedir, ".sandbox", @uuid)
       FileUtils.mkdir_p sandbox_uuid_dir
-      FileUtils.chmod(0o1755, sandbox_uuid_dir)
+      if @cartridge_format == :v1
+        FileUtils.chmod(0o1755, sandbox_uuid_dir)
+      else
+        PathUtils.oo_chown(@uuid, nil, sandbox_uuid_dir)
+      end
 
       env_dir = File.join(homedir, ".env")
       FileUtils.mkdir_p(env_dir)
