@@ -1,8 +1,9 @@
 require File.expand_path('../boot', __FILE__)
-require "action_controller/railtie" 
-require "action_mailer/railtie" 
-require "active_resource/railtie" 
-require "rails/test_unit/railtie"
+require "action_controller/railtie"
+require "action_mailer/railtie"
+require "active_resource/railtie"
+#require "rails/test_unit/railtie"
+
 Bundler.require(*Rails.groups(:default, :assets => %w(development test))) if defined?(Bundler)
 module OpenshiftConsole
   class Application < Rails::Application
