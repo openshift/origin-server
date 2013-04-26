@@ -100,7 +100,7 @@ module OpenShift
       options[:user_initiated] = true if not options.has_key?(:user_initiated)
 
       if not options[:user_initiated] and stop_lock?(cartridge)
-        return "Not starting cartridge #{cartridge.name} because the application was explicitly stopped by the user"
+        return "Not starting cartridge #{cartridge} because the application was explicitly stopped by the user"
       end
 
       do_control(type, cartridge)
@@ -110,7 +110,7 @@ module OpenShift
       options[:user_initiated] = true if not options.has_key?(:user_initiated)
 
       if not options[:user_initiated] and stop_lock?(cartridge)
-        return "Not stopping cartridge #{cartridge.name} because the application was explicitly stopped by the user"
+        return "Not stopping cartridge #{cartridge} because the application was explicitly stopped by the user"
       end
 
       buffer = do_control('stop', cartridge)
