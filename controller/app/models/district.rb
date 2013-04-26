@@ -18,7 +18,8 @@ class District
 #  attr_accessor :server_identities, :active_server_identities_size, :uuid, :creation_time, :available_capacity, :available_uids, :max_uid, :max_capacity, :externally_reserved_uids_size, :node_profile, :name
 
   def self.create_district(name, gear_size=nil)
-    profile = gear_size ? gear_size : "small"
+    
+    profile = gear_size ? gear_size : Rails.application.config.openshift[:default_gear_size]
     if District.where(name: name).count > 0
       raise OpenShift::OOException.new("District by name #{name} already exists")
     end
@@ -47,7 +48,7 @@ class District
   end
 
   def self.find_available(gear_size=nil)
-    gear_size = gear_size ? gear_size : 'small'
+    gear_size = gear_size ? gear_size : Rails.application.config.openshift[:default_gear_size]
     valid_district = District.where(:available_capacity.gt => 0, :gear_size => gear_size, :active_server_identities_size.gt => 0).desc(:available_capacity).first
     valid_district
   end

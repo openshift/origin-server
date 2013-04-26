@@ -162,7 +162,16 @@ class DistrictTest < ActiveSupport::TestCase
     # assert that the available_uids array is not sorted
     assert_nil(district.available_uids.reduce{|prev,l| break unless l >= prev; l}, "The UIDs are not randomized")
   end
-  
+
+  test "district gear_size matches DEFAULT_GEAR_SIZE" do
+    o_default_gear_size = Rails.application.config.openshift[:default_gear_size]
+    new_default_gear_size = "newsize"
+    Rails.application.config.openshift[:default_gear_size] = new_default_gear_size
+    new_d = District.create_district("a")
+    assert_equal(new_default_gear_size, new_d.gear_size)
+    Rails.application.config.openshift[:default_gear_size] = o_default_gear_size
+  end
+ 
 =begin
   test "district nodes" do
     orig_d = get_district_obj
