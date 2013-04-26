@@ -172,13 +172,13 @@ module OpenShift
 
       buffer        = ''
       unless skip_hooks
-        cartridge_dir = 'N/A'
-        process_cartridges do |path|
-          begin
-            cartridge_dir = File.basename(path)
-            buffer << cartridge_teardown(cartridge_dir)
-          rescue Utils::ShellExecutionException => e
-            logger.warn("Cartridge teardown operation failed on gear #{@user.uuid} for cartridge #{cartridge_dir}: #{e.message} (rc=#{e.rc})")
+        each_cartridge do |cartridge|
+          unlock_gear(cartridge) do |c|
+            begin
+              buffer << cartridge_teardown(c.directory)
+            rescue Utils::ShellExecutionException => e
+              logger.warn("Cartridge teardown operation failed on gear #{@user.uuid} for cartridge #{c.directory}: #{e.message} (rc=#{e.rc})")
+            end
           end
         end
       end
