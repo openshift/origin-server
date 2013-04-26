@@ -85,6 +85,9 @@ Endpoints:
       - Frontend:      ""
         Backend:       ""
         Options:       { websocket: true }
+      - Frontend:      "/health"
+        Backend:       ""
+        Options:       { health: true }
 Additional-Control-Actions:
     - threaddump
 Version-Overrides:

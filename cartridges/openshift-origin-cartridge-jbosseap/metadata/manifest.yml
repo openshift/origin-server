@@ -101,6 +101,9 @@ Endpoints:
       - Frontend:      ""
         Backend:       ""
         Options:       { "websocket": 1}
+      - Frontend:      "/health"
+        Backend:       ""
+        Options:       { "health": 1}
   - Private-IP-Name:   IP
     Private-Port-Name: CLUSTER_PORT
     Private-Port:      7600
