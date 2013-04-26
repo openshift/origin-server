@@ -1,13 +1,21 @@
 ---
+openshift-icon.dev.svg: openshift-icon.dev-c66df093e1f9659c3da3e40379f36630.svg
+openshift-icon.eot: openshift-icon-b0a8daa69799ef31ab87fd5faa565c51.eot
+openshift-icon.svg: openshift-icon-59123940ef74ee8836202581a4bca08f.svg
+openshift-icon.ttf: openshift-icon-4abffa43fc399ad7f90063c93eba2069.ttf
+openshift-icon.woff: openshift-icon-a512e46dbb592b834cf44bfa9809cf55.woff
 cartridge-edge.gif: cartridge-edge-8dc16f3e3f124fee23d9162bd29f736c.gif
 console/arrow-down.png: console/arrow-down-6f916309b8fe9fc4f6fac037bda19c37.png
 console/console-sprite.png: console/console-sprite-3b69a66c5d8aff52fa2dd92fc74c9db2.png
-favicon-32.png: favicon-32-4d9d1ed3ff69da31663d400dd6812e6a.png
+favicon-32.png: favicon-32-90f8b979272fa9abf7669e2bdba7eddb.png
 loader-dark.gif: loader-dark-1656ede40b24154e491bff05a07f52dd.gif
 loader.gif: loader-5a2141569e438427bd7abbeb8ba2df86.gif
+restart-icon.png: restart-icon-c147500a5d2c812257856da20761d805.png
+restart16x16.png: restart16x16-ab4f90577a4efe3fbbd4ff135f3b9043.png
+restart34.png: restart34-347d29e28aed58445ff01c04f1f736e7.png
 sprite-vert.png: sprite-vert-61bde6ab5ae99b6d36e9ad567c714386.png
-console.js: console-cda0a080246a50c5df9e0c1dedda9c48.js
-common.css: common-fc6eb3f48d627475b471b382d258ec45.css
-origin.css: origin-379b1381a73d4d518e0fe1cf01b4cb68.css
+console.js: console-b68a7e62d927babf969186434ba7c5f5.js
+common.css: common-47c2f3e2c301ceaf85a90548ff5ff7a9.css
+origin.css: origin-db19ec8c2dc3d1263671096710a2c2a7.css
 MIT-LICENSE.txt: MIT-LICENSE-da9e5cd18a83f3718ea92ece57d54eac.txt
 modernizr.min.js: modernizr.min-8bb4e7a407c7157e8ecdc555827d25a7.js
