@@ -70,17 +70,44 @@ class CartridgeCache
   # == Parameters:
   # feature::
   #   Name of feature to look for.
-  def self.find_cartridge(feature, app=nil)
+
+  def self.find_cartridge(requested_feature, app=nil)
+  
     app.community_cartridges.values.each do |cart|
-      return cart if cart.features.include?(feature)
-      return cart if cart.name == feature
+      return cart if cart.features.include?(requested_feature)
+      return cart if cart.name == requested_feature
     end if app
+    
     carts = self.cartridges
+    vendor, feature, version = self.extract_vendor_feature_version(requested_feature)
+    matching_carts = []
+    
     carts.each do |cart|
-      return cart if cart.features.include?(feature)
-      return cart if cart.name == feature
+      #v1 cartridges
+      return cart if cart.name == requested_feature
+      #v2 cartridges
+      matching_carts << cart if (cart.features.include?(feature) and 
+                                (vendor.nil? or cart.cartridge_vendor == vendor) and 
+                                (version.nil? or cart.version.to_s == version.to_s or (cart.versions and cart.versions.include?(version))))
     end
-    return nil
+    
+    return nil if matching_carts.empty?
+    
+    #return if only one match
+    return matching_carts[0] if matching_carts.length == 1
+    
+    #if any is by redhat return that one
+    cart = matching_carts.find { |c| c.cartridge_vendor == "redhat"}
+    return cart if cart
+    
+    #if there are more than one match and none by redhat raise an exception
+    choices = []
+    matching_carts.each do |cart|
+      choices << "#{cart.cartridge_vendor}-#{cart.name}-#{cart.version}"
+    end
+    
+    raise OpenShift::UserException.new("More that one cartridge was found matching #{requested_feature}.  Please select one of #{choices.to_s}")
+    
   end
 
   def self.download_from_url(url)
@@ -103,6 +130,23 @@ class CartridgeCache
        cmap[chash["Name"]] = { "url" => url, "manifest" => manifest_str }
     end
     return cmap
+  end
+  
+  def self.extract_vendor_feature_version(requested_feature)
+    vendor, feature, version = nil
+    return vendor, feature, version if requested_feature.nil?
+    a = requested_feature.split("-")
+    if a.length == 1 
+      feature = a[0]
+    elsif a.length == 2 
+      feature = a[0]
+      version = a[1]
+    elsif a.length == 3
+      vendor = a[0]
+      feature = a[1]
+      version = a[2]      
+    end
+    return vendor, feature, version
   end
 
 end
