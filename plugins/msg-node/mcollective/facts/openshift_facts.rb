@@ -131,24 +131,8 @@ end
 #   This is the *full* list.
 #
 Facter.add(:cart_list) do
-    carts = []
-    Dir.glob('/usr/libexec/openshift/cartridges/*/').each do |cart|
-        cart = File.basename(cart).sub(/^(.*)-(\d+)\.(\d+)\.?.*$/, '\1-\2.\3')
-        carts << cart unless cart.nil? || cart == "embedded"
-    end
-    setcode { carts.join('|') }
-end
-
-#
-# List embedded cartridges on the host
-#   Convert from name-m.n.p to name-m.n
-#   This is the *full* list.
-#
-Facter.add(:embed_cart_list) do
-    carts = []
-    Dir.glob('/usr/libexec/openshift/cartridges/embedded/*/').each do |cart|
-        cart = File.basename(cart).sub(/^(.*)-(\d+)\.(\d+)\.?.*$/, '\1-\2.\3')
-        carts << cart unless cart.nil?
-    end
+    carts = `oo-cartridge-list`.split
+    # The first element is the text "Cartridges:"
+    carts.shift
     setcode { carts.join('|') }
 end
