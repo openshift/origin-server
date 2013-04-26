@@ -1,6 +1,6 @@
 Summary:       Utility scripts for the OpenShift Origin broker
 Name:          openshift-origin-node-util
-Version: 1.8.1
+Version: 1.8.2
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -120,6 +120,11 @@ mv services/openshift-gears.service %{buildroot}/etc/systemd/system/openshift-ge
 /sbin/restorecon /usr/sbin/oo-restorer* || :
 
 %changelog
+* Thu Apr 25 2013 Adam Miller <admiller@redhat.com> 1.8.2-1
+- Merge pull request #2249 from rmillner/online_runtime_264
+  (dmcphers+openshiftbot@redhat.com)
+- Add health check option to front-end for v2 carts. (rmillner@redhat.com)
+
 * Thu Apr 25 2013 Adam Miller <admiller@redhat.com> 1.8.1-1
 - Bug 928621 - Detect whether the gear is missing a frontend configuration.
   (rmillner@redhat.com)
