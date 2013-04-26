@@ -15,4 +15,4 @@ options = {
     
 }
 
-Daemons.run("#{ENV['OPENSHIFT_HAPROXY_DIR']}/bin/haproxy_ctld.rb", options)
+Daemons.run("#{ENV['OPENSHIFT_HAPROXY_DIR']}/usr/bin/haproxy_ctld.rb", options)
