@@ -9,7 +9,7 @@
 
 Summary:       OpenShift plugin for mcollective service
 Name:          rubygem-%{gem_name}
-Version: 1.8.0
+Version: 1.8.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -80,6 +80,20 @@ cp %{buildroot}/%{gem_dir}/gems/%{gem_name}-%{version}/conf/openshift-origin-msg
 %attr(0644,-,-) %ghost /etc/mcollective/client.cfg
 
 %changelog
+* Thu Apr 25 2013 Adam Miller <admiller@redhat.com> 1.8.1-1
+- subscriber connection should know who is the publisher (rchopra@redhat.com)
+- Splitting configure for cartridges into configure and post-configure
+  (abhgupta@redhat.com)
+- Creating fixer mechanism for replacing all ssh keys for an app
+  (abhgupta@redhat.com)
+- add connection type to connector calls (dmcphers@redhat.com)
+- Fix for bug 953673  - Fixing gear move within the same district when target
+  server is not specified (abhgupta@redhat.com)
+- Bug 928675 (asari.ruby@gmail.com)
+- Fix Move gear: Based on district changed or not, we should reverse/unreserve
+  uid (rpenta@redhat.com)
+- bump_minor_versions for sprint 2.0.26 (tdawson@redhat.com)
+
 * Tue Apr 16 2013 Troy Dawson <tdawson@redhat.com> 1.7.4-1
 - Merge pull request #2079 from pravisankar/dev/ravi/fix_move_gear
   (dmcphers@redhat.com)
