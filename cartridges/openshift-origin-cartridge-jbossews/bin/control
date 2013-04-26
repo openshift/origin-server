@@ -104,9 +104,12 @@ function threaddump() {
     fi
 }
 
-function tidy {
-    rm -rf ${OPENSHIFT_JBOSSEWS_DIR}/logs/* ${OPENSHIFT_JBOSSEWS_DIR}/logs/.[^.]*
-    rm -rf ${OPENSHIFT_JBOSSEWS_DIR}/tmp/* ${OPENSHIFT_JBOSSEWS_DIR}/tmp/.[^.]*
+# Clean up any log files
+function tidy() {
+  client_message "Emptying log dir: $OPENSHIFT_JBOSSEWS_LOG_DIR"
+  shopt -s dotglob
+  rm -rf $OPENSHIFT_JBOSSEWS_LOG_DIR/*
+  rm -rf $OPENSHIFT_JBOSSEWS_DIR/tmp/*
 }
 
 # Reconstruct JAVA_HOME and PATH based on the current version/marker selection

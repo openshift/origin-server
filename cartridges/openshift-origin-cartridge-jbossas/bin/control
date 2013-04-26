@@ -243,8 +243,11 @@ function reload() {
     restart
 }
 
+# Clean up any log files
 function tidy() {
-    rm -rf ${OPENSHIFT_JBOSSAS_DIR}/logs/* ${OPENSHIFT_JBOSSAS_DIR}/logs/.[^.]*
+  client_message "Emptying log dir: $OPENSHIFT_JBOSSAS_LOG_DIR"
+  shopt -s dotglob
+  rm -rf $OPENSHIFT_JBOSSAS_LOG_DIR/*
 }
 
 function threaddump() {
