@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.8.0
+Version: 1.8.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -84,6 +84,81 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Thu Apr 25 2013 Adam Miller <admiller@redhat.com> 1.8.1-1
+- Merge pull request #2231 from rajatchopra/master
+  (dmcphers+openshiftbot@redhat.com)
+- subscriber connection should know who is the publisher (rchopra@redhat.com)
+- Bug 956670 - Fix static references to small gear size (jdetiber@redhat.com)
+- Card online_runtime_266 - Cucumber test checking for removed file
+  (jhonce@redhat.com)
+- splitting up runtime_other tests (dmcphers@redhat.com)
+- Merge pull request #2220 from abhgupta/abhgupta-dev
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #2217 from pmorie/dev/v2_mysql
+  (dmcphers+openshiftbot@redhat.com)
+- Splitting configure for cartridges into configure and post-configure
+  (abhgupta@redhat.com)
+- Merge pull request #2212 from danmcp/master
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #1918 from lnader/rest_api_improvments
+  (dmcphers+openshiftbot@redhat.com)
+- Trim execution time of runtime_other tests (pmorie@gmail.com)
+- Bug 955973 (dmcphers@redhat.com)
+- Postgres V2 fixes (fotios@redhat.com)
+- Creating fixer mechanism for replacing all ssh keys for an app
+  (abhgupta@redhat.com)
+- Merge pull request #2208 from ironcladlou/dev/v2carts/post-configure
+  (dmcphers+openshiftbot@redhat.com)
+- General REST API clean up - centralizing log tags and getting common objects
+  (lnader@redhat.com)
+- Split v2 configure into configure/post-configure (ironcladlou@gmail.com)
+- add connection type to connector calls (dmcphers@redhat.com)
+- Merge pull request #2196 from pmorie/dev/v2_mysql
+  (dmcphers+openshiftbot@redhat.com)
+- WIP: test mysql in scalable app (pmorie@gmail.com)
+- Merge pull request #2187 from danmcp/master
+  (dmcphers+openshiftbot@redhat.com)
+- install and post setup tests (dmcphers@redhat.com)
+- Implement hot deployment for V2 cartridges (ironcladlou@gmail.com)
+- WIP Cartridge Refactor - Update extended tests for raw environment variables
+  (jhonce@redhat.com)
+- WIP Cartridge Refactor - Card#255 missed env var source in app_helper.rb
+  (jhonce@redhat.com)
+- WIP Cartridge Refactor - Change environment variable files to contain just
+  value (jhonce@redhat.com)
+- app_dns should belong to only one group instance (rchopra@redhat.com)
+- Bug 928675 (asari.ruby@gmail.com)
+- Merge pull request #2155 from rajatchopra/master
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #2152 from pravisankar/dev/ravi/plan_history_cleanup
+  (dmcphers+openshiftbot@redhat.com)
+- eventual consistency is alright in some cases (rchopra@redhat.com)
+- Merge pull request #2149 from rajatchopra/master
+  (dmcphers+openshiftbot@redhat.com)
+- Added pre_sync_usage, post_sync_usage operations in oo-admin-ctl-usage script
+  (rpenta@redhat.com)
+- Merge pull request #2146 from abhgupta/bug_953493
+  (dmcphers+openshiftbot@redhat.com)
+- disallow creation of scalable apps with framework carts that do not scale
+  (rchopra@redhat.com)
+- Merge pull request #2142 from rajatchopra/master
+  (dmcphers+openshiftbot@redhat.com)
+- Fix for bug 953493  - Providing better error message when creating a scalable
+  application with a framework cartridge that cannot be scaled  - Validating
+  against adding more than one framework cartridge to an application
+  (abhgupta@redhat.com)
+- refix unreserve_uid when destroying gear (rchopra@redhat.com)
+- Merge pull request #2120 from rajatchopra/master
+  (dmcphers+openshiftbot@redhat.com)
+- unreserve should not happen twice over (rchopra@redhat.com)
+- Fix for bug 953035 Including the links for aliases embedded in application
+  response if nolinks was not specified (abhgupta@redhat.com)
+- bump_minor_versions for sprint 2.0.26 (tdawson@redhat.com)
+- bump_minor_versions for sprint 2.0.26 (tdawson@redhat.com)
+- Merge pull request #2099 from brenton/controller1
+  (dmcphers+openshiftbot@redhat.com)
+- controller dependency fixes (bleanhar@redhat.com)
+
 * Tue Apr 16 2013 Troy Dawson <tdawson@redhat.com> 1.7.8-1
 - Merge pull request #2083 from pmorie/bugs/927850
   (dmcphers+openshiftbot@redhat.com)
