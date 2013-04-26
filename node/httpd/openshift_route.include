@@ -146,6 +146,10 @@ RewriteRule ^(.*)$ - [E=V_ROUTE:127.0.0.1%{ENV:V_MATCH_PATH},NS,F]
 RewriteCond %{ENV:V_ROUTE} =NOPROXY
 RewriteRule ^(.*)$ - [E=V_ROUTE:127.0.0.1%{ENV:V_MATCH_PATH},NS,L]
 
+# Discard original request and load the health check file
+RewriteCond %{ENV:V_ROUTE} =HEALTH
+RewriteRule ^(.*)$ /var/www/html/health.txt [E=V_ROUTE:127.0.0.1%{ENV:V_MATCH_PATH},NS,L]
+
 # Issue a redirect
 RewriteCond %{ENV:V_ROUTE} ^REDIRECT:(.*)$
 RewriteRule ^(.*)$ %1%{ENV:V_PATH} [E=V_ROUTE:127.0.0.1%{ENV:V_MATCH_PATH},R,NS,L]

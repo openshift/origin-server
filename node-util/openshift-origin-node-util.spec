@@ -50,6 +50,7 @@ mkdir -p %{buildroot}%{_mandir}/man8/
 cp conf/oddjob/openshift-restorer.conf %{buildroot}%{_sysconfdir}/dbus-1/system.d/
 cp conf/oddjob/oddjobd-restorer.conf %{buildroot}%{_sysconfdir}/oddjobd.conf.d/
 cp www/html/restorer.php %{buildroot}/%{_localstatedir}/www/html/
+cp www/html/health.txt %{buildroot}/%{_localstatedir}/www/html/
 
 cp man8/*.8 %{buildroot}%{_mandir}/man8/
 
@@ -107,6 +108,7 @@ mv services/openshift-gears.service %{buildroot}/etc/systemd/system/openshift-ge
 %attr(0644,-,-) %config(noreplace) %{_sysconfdir}/dbus-1/system.d/openshift-restorer.conf
 
 %{_localstatedir}/www/html/restorer.php
+%{_localstatedir}/www/html/health.txt
 
 %if 0%{?fedora}%{?rhel} <= 6
 %attr(0750,-,-) %{_initddir}/openshift-gears

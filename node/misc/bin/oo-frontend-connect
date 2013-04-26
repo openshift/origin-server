@@ -39,6 +39,7 @@ def usage
     |--gone                             Return 410 GONE on this route (--option "gone=1")
     |--forbidden                        Return 403 FORBIDDEN on this route (--option "forbidden=1")
     |--noproxy                          Do not proxy this route (--option "noproxy=1")
+    |--health                           Return the health check (--option "health=1")
     |--redirect                         Redirect route instead of proxy (--option "redirect=1")
     |--file                             Target is a file to send (--option "file=1")
     |--tohttps                          Issue a 302 REDIRECT to https (--option "https=1")
@@ -55,7 +56,7 @@ Simple example, --path is implicitly set to ""
   --target "127.0.250.1:8080"
 
 Complicated example with multiple targets
-  --path "" --target "127.0.250.1:8080" --websocket --tohttps --path "/health" --target "/path/to/health.html" --file
+  --path "" --target "127.0.250.1:8080" --websocket --tohttps --path "/health" --health
 
 USAGE
   exit 255
@@ -74,6 +75,7 @@ opts = GetoptLong.new(
     ["--gone",                      GetoptLong::NO_ARGUMENT],
     ["--forbidden",                 GetoptLong::NO_ARGUMENT],
     ["--noproxy",                   GetoptLong::NO_ARGUMENT],
+    ["--health",                   GetoptLong::NO_ARGUMENT],
     ["--redirect",                  GetoptLong::NO_ARGUMENT],
     ["--file",                      GetoptLong::NO_ARGUMENT],
     ["--tohttps",                   GetoptLong::NO_ARGUMENT],
@@ -130,6 +132,8 @@ begin
       connect_ent[2]['forbidden']=1
     when '--noproxy'
       connect_ent[2]['noproxy']=1
+    when '--health'
+      connect_ent[2]['health']=1
     when '--redirect'
       connect_ent[2]['redirect']=1
     when '--file'
