@@ -1,0 +1,11 @@
+- content_for :page_title, @message || "Maintenance in progress"
+
+%h1= @message || "Maintenance in progress"
+
+%p The OpenShift service is temporarily unavailable while we perform server maintenance. 
+
+%section.row
+  .span7
+
+    %ul.spaced-items
+      %li If you are experiencing a repeatable error not related to a service outage, #{link_to "report it as a bug", open_bug_url }.
