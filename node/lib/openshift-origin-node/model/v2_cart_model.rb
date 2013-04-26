@@ -748,6 +748,7 @@ module OpenShift
     def connect_frontend(cartridge)
       frontend = OpenShift::FrontendHttpServer.new(@user.uuid, @user.container_name, @user.namespace)
       gear_env = Utils::Environ.for_gear(@user.homedir)
+      web_proxy_cart = web_proxy
 
       begin
         # TODO: exception handling
@@ -759,6 +760,12 @@ module OpenShift
 
             if endpoint.websocket_port
                 options["websocket_port"] = endpoint.websocket_port
+            end
+
+            # Make sure that the mapping does not collide with the default web_proxy mapping
+            if mapping.frontend == "" and not cartridge.web_proxy? and web_proxy_cart
+              logger.info("Skipping default mapping as web proxy owns it for the application")
+              next
             end
 
             logger.info("Connecting frontend mapping for #{@user.uuid}/#{cartridge.name}: "\
