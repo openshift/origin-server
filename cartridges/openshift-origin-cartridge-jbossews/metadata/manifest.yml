@@ -86,8 +86,8 @@ Endpoints:
         Backend:       ""
         Options:       { "websocket": 1}
       - Frontend:      "/health"
-        Backend:       "/$OPENSHIFT_REPO_DIR/.openshift/configuration/health.html"
-        Options:       { "file": 1}
+        Backend:       ""
+        Options:       { health: true}
   - Private-IP-Name:   IP
     Private-Port-Name: JPDA_PORT
     Private-Port:      8787

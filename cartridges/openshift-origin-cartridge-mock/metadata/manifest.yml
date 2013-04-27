@@ -46,6 +46,9 @@ Endpoints:
         Options:       { websocket: true }
       - Frontend:      "/front1a"
         Backend:       "/back1a"
+      - Frontend:      "/health"
+        Backend:       ""
+        Options:       { health: true }
   - Private-IP-Name:   EXAMPLE_IP1
     Private-Port-Name: EXAMPLE_PORT2
     Private-Port:      8081
