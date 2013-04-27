@@ -1,4 +1,3 @@
 metadata/
 env/
 etc/
-template/
