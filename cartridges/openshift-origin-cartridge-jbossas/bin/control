@@ -186,16 +186,13 @@ function start() {
     
   if marker_present "enable_jpda"
   then
-    ENABLE_JPDA=1
+    export ENABLE_JPDA=1
   fi
 
   # Check for running app
   if isrunning; then
       echo "Application is already running"
   else    
-    jopts="${JAVA_OPTS}"
-    [ "${ENABLE_JPDA:-0}" -eq 1 ] && jopts="-Xdebug -Xrunjdwp:transport=dt_socket,address=${OPENSHIFT_JBOSSAS_IP}:8787,server=y,suspend=n ${JAVA_OPTS}"
-    JAVA_OPTS="${jopts}"
     ${JBOSSAS_BIN_DIR}/standalone.sh > ${OPENSHIFT_TMP_DIR}/${cartridge_type}.log 2>&1 &
     PROCESS_ID=$!
     echo "$PROCESS_ID" > ${JBOSSAS_PID_FILE}
