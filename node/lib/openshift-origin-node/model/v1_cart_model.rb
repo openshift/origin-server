@@ -205,6 +205,9 @@ module OpenShift
       do_control('deconfigure', cart_name)
     end
 
+    def unsubscribe(cart_name, pub_cart_name)
+    end
+
     def deploy_httpd_proxy(cart_name)
       do_control('deploy-httpd-proxy', cart_name)
     end
