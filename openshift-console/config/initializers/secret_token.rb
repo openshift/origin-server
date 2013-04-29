@@ -1,8 +1,7 @@
 # Be sure to restart your server when you modify this file.
 require 'console/config_file'
 
-file = "/etc/openshift/console.conf"
-conf = Console::ConfigFile.new(file)
+conf = Console::ConfigFile.new(Rails.application.config.configfile)
 
 session_secret = conf[:SESSION_SECRET]
 if session_secret.blank?
