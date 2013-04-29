@@ -3,7 +3,7 @@
 
 Summary:       Provides Node.js support
 Name:          openshift-origin-cartridge-nodejs
-Version: 1.9.1
+Version: 1.9.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -56,6 +56,10 @@ rm -rf %{buildroot}
 %doc %{cartridgedir}/README.md
 
 %changelog
+* Mon Apr 29 2013 Adam Miller <admiller@redhat.com> 1.9.2-1
+- Add health urls to each v2 cartridge. (rmillner@redhat.com)
+- Bug 957073 (dmcphers@redhat.com)
+
 * Thu Apr 25 2013 Adam Miller <admiller@redhat.com> 1.9.1-1
 - fixing tests (dmcphers@redhat.com)
 - Split v2 configure into configure/post-configure (ironcladlou@gmail.com)
