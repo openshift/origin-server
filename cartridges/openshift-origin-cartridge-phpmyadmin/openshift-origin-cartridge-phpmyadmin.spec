@@ -2,7 +2,7 @@
 
 Summary:       phpMyAdmin support for OpenShift
 Name:          openshift-origin-cartridge-phpmyadmin
-Version: 1.8.1
+Version: 1.8.2
 Release:       1%{?dist}
 Group:         Applications/Internet
 License:       ASL 2.0
@@ -44,6 +44,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Mon Apr 29 2013 Adam Miller <admiller@redhat.com> 1.8.2-1
+- Bug 957073 (dmcphers@redhat.com)
+
 * Thu Apr 25 2013 Adam Miller <admiller@redhat.com> 1.8.1-1
 - Split v2 configure into configure/post-configure (ironcladlou@gmail.com)
 - more install/post-install scripts (dmcphers@redhat.com)
