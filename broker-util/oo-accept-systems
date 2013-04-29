@@ -1,5 +1,4 @@
 #!/usr/bin/env oo-ruby
-#!/usr/bin/env ruby
 
 #--
 # Copyright 2012 Red Hat, Inc.
@@ -21,6 +20,7 @@
 require 'rubygems'
 require 'optparse'
 require 'socket'
+require 'rest-client'
 
 OOAS_OPTIONS = {
     :wait => 5,
@@ -174,12 +174,15 @@ def check_nodes_cartridges
   verbose "checking that broker's cache is not stale"
   begin
     require 'json'
-    require 'rest-client'
     api_carts = JSON.parse(RestClient.get('http://localhost:8080/broker/rest/cartridges.json'))
     api_carts = api_carts["data"].map {|cart| cart["name"]}
     verbose "API reports carts: #{api_carts.join '|'}"
     # remove abstract_carts which don't show in the API
     all_carts.reject! {|cart| cart.start_with? "abstract"}
+
+    cache_clear_command = "bundle exec rake tmp:clear"
+    cache_clear_command = "scl enable ruby193 \"#{cache_clear_command}\"" if ENV["X_SCLS"] =~ /ruby193/
+
     do_fail <<-"MISMATCH" unless api_carts.sort == all_carts.sort
       The broker's list of cartridges does not match what is available on
       the node hosts. The broker probably has cached an old list.
@@ -187,7 +190,7 @@ def check_nodes_cartridges
       Broker has extra: #{(api_carts - all_carts).join ", "}
       Clear the cache by executing:
         # cd /var/www/openshift/broker
-        # bundle exec rake tmp:clear
+        # #{cache_clear_command}
     MISMATCH
   rescue StandardError => e
     do_fail "Couldn't retrieve cartridge list from broker: #{e}"
