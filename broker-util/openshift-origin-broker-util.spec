@@ -18,6 +18,7 @@ Requires:      ruby(release)
 Requires:      %{?scl:%scl_prefix}ruby(abi) >= %{rubyabi}
 %endif
 Requires:      openshift-origin-broker
+Requires:      %{?scl:%scl_prefix}rubygem-rest-client
 # For oo-register-dns
 Requires:      bind-utils
 # For oo-admin-broker-auth
