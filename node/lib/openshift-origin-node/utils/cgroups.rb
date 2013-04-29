@@ -13,7 +13,7 @@ module OpenShift
           @uuid = uuid
           @cgpath = "/openshift/#{uuid}"
 
-          out, err, rc = OpenShift::Utils::oo_spawn("cgget -a #{@cgpath}")
+          out, err, rc = OpenShift::Utils::oo_spawn("cgget -a #{@cgpath} >/dev/null")
           if rc != 0
             raise ValueError, "User does not exist in cgroups: #{@uuid}"
           end
