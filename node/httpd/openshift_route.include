@@ -22,6 +22,10 @@ RewriteMap      openshift-aliases dbm=db:/var/lib/openshift/.httpd.d/aliases.db
 RewriteMap      openshift-idler   dbm=db:/var/lib/openshift/.httpd.d/idler.db
 RewriteMap      openshift-sts     dbm=db:/var/lib/openshift/.httpd.d/sts.db
 
+# Set X-Request-Start header to allow checking request life cycle.
+RequestHeader set X-Request-Start "%t"
+
+
 # Set X-Client-IP to the node which contacted the front-end
 # This being Apache, you can't just use %{REMOTE_ADDR}e.
 RewriteCond %{REMOTE_ADDR} ^(.*)$
