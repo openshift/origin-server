@@ -1,6 +1,6 @@
 Summary:       Utility scripts for the OpenShift Origin broker
 Name:          openshift-origin-node-util
-Version: 1.8.2
+Version: 1.8.3
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -120,6 +120,9 @@ mv services/openshift-gears.service %{buildroot}/etc/systemd/system/openshift-ge
 /sbin/restorecon /usr/sbin/oo-restorer* || :
 
 %changelog
+* Mon Apr 29 2013 Adam Miller <admiller@redhat.com> 1.8.3-1
+- Temporarily disable check_system_httpd_configs. (rmillner@redhat.com)
+
 * Thu Apr 25 2013 Adam Miller <admiller@redhat.com> 1.8.2-1
 - Merge pull request #2249 from rmillner/online_runtime_264
   (dmcphers+openshiftbot@redhat.com)
