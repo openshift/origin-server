@@ -4,7 +4,7 @@ Architecture: noarch
 Cartridge-Short-Name: POSTGRESQL
 Cartridge-Version:    '0.2.0'
 Cartridge-Versions:   [0.2.0]
-Cartridge-Vendor:     Red Hat
+Cartridge-Vendor:     redhat
 Display-Name: PostgreSQL Database 8.4
 Description: "PostgreSQL is an advanced Object-Relational database management system"
 Version:   '8.4'
