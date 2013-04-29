@@ -5,7 +5,7 @@
 
 Summary:       Provides JBossAS7 support
 Name:          openshift-origin-cartridge-jbossas
-Version: 1.1.1
+Version: 1.1.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -93,6 +93,13 @@ cp -p %{cartridgedir}/versions/7/modules/postgresql_module.xml /etc/alternatives
 
 
 %changelog
+* Mon Apr 29 2013 Adam Miller <admiller@redhat.com> 1.1.2-1
+- Merge pull request #2258 from bdecoste/master
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 956050 956043 (bdecoste@gmail.com)
+- Add health urls to each v2 cartridge. (rmillner@redhat.com)
+- Bug 957073 (dmcphers@redhat.com)
+
 * Thu Apr 25 2013 Adam Miller <admiller@redhat.com> 1.1.1-1
 - Bug 956497: Fix port bindings for jboss carts (ironcladlou@gmail.com)
 - Card online_runtime_266 - Build PATH from
