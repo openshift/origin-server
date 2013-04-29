@@ -1,13 +1,26 @@
 #!/bin/bash
-CART_VERSION=0.0.1
-CART_DIRNAME=cron
-CART_INSTALL_DIR=/var/lib/openshift/.cartridge_repository/$CART_DIRNAME/$CART_VERSION
-CART_CONF_DIR=${CART_INSTALL_DIR}/versions/1.4/configuration
 
-for f in ~/.env/* ~/*/env/*
+# source OpenShift environment variable into context
+function load_env {
+    [ -z "$1" ] && return 1
+    [ -f "$1" ] || return 0
+
+    local contents=$(< $1)
+    if [[ $contents =~ ^export\ .* ]]
+    then
+      source $1
+    else
+      local key=$(basename $1)
+      export $key=$(< $1)
+    fi
+}
+
+for f in ~/.env/* ~/.env/.uservars/* ~/*/env/*
 do
-      [ -f "$f" ]  &&  . "$f"
+    load_env $f
 done
+
+CART_CONF_DIR=$OPENSHIFT_CRON_DIR/versions/$OPENSHIFT_CRON_VERSION/configuration
 
 function log_message() {
    msg=${1-""}
