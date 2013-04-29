@@ -2,7 +2,7 @@
 
 Summary:       Provides jenkins-1.4 support
 Name:          openshift-origin-cartridge-jenkins
-Version: 1.8.1
+Version: 1.8.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -59,6 +59,10 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Mon Apr 29 2013 Adam Miller <admiller@redhat.com> 1.8.2-1
+- Add health urls to each v2 cartridge. (rmillner@redhat.com)
+- Bug 957073 (dmcphers@redhat.com)
+
 * Thu Apr 25 2013 Adam Miller <admiller@redhat.com> 1.8.1-1
 - 956570 (dmcphers@redhat.com)
 - fixing tests (dmcphers@redhat.com)
