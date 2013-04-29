@@ -455,7 +455,6 @@ module OpenShift
       [
           [File, :directory?, %w(metadata)],
           [File, :directory?, %w(bin)],
-          [File, :directory?, %w(env)],
           [File, :file?, %w(metadata manifest.yml)],
           [File, :executable?, %w(bin control)],
       ].each do |clazz, method, target|
