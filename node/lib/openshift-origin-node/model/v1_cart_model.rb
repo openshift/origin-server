@@ -205,6 +205,9 @@ module OpenShift
       do_control('deconfigure', cart_name)
     end
 
+    def unsubscribe(cart_name, pub_cart_name)
+    end
+
     def deploy_httpd_proxy(cart_name)
       do_control('deploy-httpd-proxy', cart_name)
     end
@@ -221,7 +224,8 @@ module OpenShift
       do_control('restart-httpd-proxy', cart_name)
     end
 
-    def connector_execute(cart_name, connector, args)
+    def connector_execute(cart_name, pub_cart_name, connection_type, connector, args)
+      # pub_cart_name and connection_type unused in v1.
       do_control(connector, cart_name, args, "connection-hooks")
     end
 

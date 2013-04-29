@@ -807,12 +807,56 @@ module OpenShift
       do_control_with_directory(action, options)
     end
 
+    # Let a cart perform some action when another cart is being removed
+    # Today, it is used to cleanup environment variables
+    def unsubscribe(cart_name, pub_cart_name)
+      env_dir_path = File.join(@user.homedir, '.env', pub_cart_name)
+      FileUtils.rm_rf(env_dir_path)
+    end
+
+    def set_connection_hook_env_vars(cart_name, pub_cart_name, args)
+      logger.info("Setting env vars for #{cart_name} from #{pub_cart_name}")
+      logger.info("ARGS: #{args.inspect}")
+
+      env_dir_path = File.join(@user.homedir, '.env', pub_cart_name)
+      FileUtils.mkpath(env_dir_path)
+
+      # Skip the first three arguments and jump to gear => "k1=v1\nk2=v2\n" hash map
+      pairs = args[3].values[0].split("\n")
+
+      # Write out each environment variable in the payload
+      pairs.each do |pair|
+        k, v = pair.strip.split("=")
+        logger.info("#{k} --> #{v}")
+        File.open(PathUtils.join(env_dir_path, k), 'w', 0666) do |f|
+          f.write(v)
+        end
+      end
+    end
+
+    # Convert env var hook arguments to shell arguments
+    def convert_to_shell_arguments(args)
+      new_args = []
+      args[3].each do |k, v|
+        vstr = v.split("\n").map { |p| p + ";" }.join(' ')
+        new_args.push "'#{k}'='#{vstr}'"
+      end
+      (args[0, 2] << Shellwords::shellescape(new_args.join(' '))).join(' ')
+    end
+
     # :call-seq:
     #    V2CartridgeModel.new(...).connector_execute(cartridge_name, connector, args)
     #
-    def connector_execute(cart_name, connector, args)
+    def connector_execute(cart_name, pub_cart_name, connection_type, connector, args)
       cartridge = get_cartridge(cart_name)
       env       = Utils::Environ.for_gear(@user.homedir, File.join(@user.homedir, cartridge.directory))
+      logger.debug("CONNECTION_TYPE: #{connection_type}")
+
+      # Special treatment for env var connection hooks
+      if connection_type.start_with?("ENV:") && pub_cart_name
+        set_connection_hook_env_vars(cart_name, pub_cart_name, args)
+        args = convert_to_shell_arguments(args)
+      end
 
       script = PathUtils.join(@user.homedir, cartridge.directory, 'hooks', connector)
 
