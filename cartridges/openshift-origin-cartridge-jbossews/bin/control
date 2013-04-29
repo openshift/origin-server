@@ -64,7 +64,7 @@ function start_app() {
         export CATALINA_BASE=$OPENSHIFT_JBOSSEWS_DIR
         export CATALINA_TMPDIR=${OPENSHIFT_JBOSSEWS_DIR}/tmp
         
-        ${OPENSHIFT_JBOSSEWS_DIR}/bin/tomcat7 start > ${OPENSHIFT_JBOSSEWS_DIR}/logs/jbossews-2.0.log 2>&1 &
+        ${OPENSHIFT_JBOSSEWS_DIR}/bin/tomcat start > ${OPENSHIFT_JBOSSEWS_DIR}/logs/jbossews.log 2>&1 &
         PROCESS_ID=$!
         
         echo $PROCESS_ID > $JBOSS_PID_FILE

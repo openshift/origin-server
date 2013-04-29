@@ -1,9 +1,22 @@
 #!/bin/bash -e
 
-SYSTEM_JBOSSEWS_DIR=/etc/alternatives/jbossews-2.0
+case "$1" in
+  -v|--version)
+    version="$2"
+esac
+
+SYSTEM_JBOSSEWS_DIR="/etc/alternatives/jbossews-${version}"
+
+if [ ! -d ${SYSTEM_JBOSSEWS_DIR} ]; then
+  echo "Couldn't find system jbossews dir at ${SYSTEM_JBOSSEWS_DIR}" 1>&2
+  exit 127
+fi
 
 mkdir ${OPENSHIFT_JBOSSEWS_DIR}/{run,tmp,conf,logs}
 mkdir ${OPENSHIFT_HOMEDIR}/.m2
+
+# Set up the config directory in the user repository template
+cp ${OPENSHIFT_JBOSSEWS_DIR}/versions/{shared,${version}}/configuration/* ${OPENSHIFT_JBOSSEWS_DIR}/template/.openshift/config
 
 # Link the system Tomcat binaries to the cart Tomcat instance directory
 ln -s ${SYSTEM_JBOSSEWS_DIR}/bin/bootstrap.jar ${OPENSHIFT_JBOSSEWS_DIR}/bin/bootstrap.jar
@@ -16,5 +29,7 @@ ln -s ${OPENSHIFT_REPO_DIR}/.openshift/config/server.xml ${OPENSHIFT_JBOSSEWS_DI
 ln -s ${OPENSHIFT_REPO_DIR}/.openshift/config/web.xml ${OPENSHIFT_JBOSSEWS_DIR}/conf
 ln -s ${OPENSHIFT_REPO_DIR}/.openshift/config/context.xml ${OPENSHIFT_JBOSSEWS_DIR}/conf
 ln -s ${OPENSHIFT_REPO_DIR}/.openshift/config/tomcat-users.xml ${OPENSHIFT_JBOSSEWS_DIR}/conf
+ln -s ${OPENSHIFT_REPO_DIR}/.openshift/config/postgresql_module.xml ${OPENSHIFT_JBOSSEWS_DIR}/conf
 ln -s ${OPENSHIFT_REPO_DIR}/.openshift/config/catalina.properties ${OPENSHIFT_JBOSSEWS_DIR}/conf
+ln -s ${OPENSHIFT_REPO_DIR}/.openshift/config/catalina.policy ${OPENSHIFT_JBOSSEWS_DIR}/conf
 ln -s ${OPENSHIFT_REPO_DIR}/.openshift/config/logging.properties ${OPENSHIFT_JBOSSEWS_DIR}/conf

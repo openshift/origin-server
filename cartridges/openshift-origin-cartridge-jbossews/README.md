@@ -1,6 +1,6 @@
 # OpenShift Tomcat (JBossEWS) Cartridge
 
-The `jbossews` cartridge provides Tomcat on OpenShift via the JBoss EWS 2.0 package.
+The `jbossews` cartridge provides Tomcat on OpenShift via the JBoss EWS package.
 
 ## Template Repository Layout
 
@@ -34,8 +34,8 @@ webapp contents to be rendered at `http://app_name-namespace.rhcloud.com/`.  If 
 Note: If you are building locally you'll also want to add any output wars under webapps 
 from the build to your `.gitignore` file.
 
-Note: If you are running scaled EWS2.0 then you need an application deployed to the root context (i.e. 
-http://app_name-namespace.rhcloud.com/) for the HAProxy load-balancer to recognize that the EWS2.0 instance 
+Note: If you are running scaled EWS then you need an application deployed to the root context (i.e. 
+http://app_name-namespace.rhcloud.com/) for the HAProxy load-balancer to recognize that the EWS instance 
 is active.
 
 or
@@ -73,9 +73,9 @@ automatically deployed into the server runtime.
 The Tomcat cartridge provides several environment variables to reference for ease
 of use:
 
-    OPENSHIFT_JBOSSEWS_IP          The IP address used to bind EWS2.0
-    OPENSHIFT_JBOSSEWS_HTTP_PORT   The EWS2.0 listening port
-    OPENSHIFT_JBOSSEWS_JPDA_PORT   The EWS2.0 JPDA listening port
+    OPENSHIFT_JBOSSEWS_IP          The IP address used to bind EWS
+    OPENSHIFT_JBOSSEWS_HTTP_PORT   The EWS listening port
+    OPENSHIFT_JBOSSEWS_JPDA_PORT   The EWS JPDA listening port
 
 For more information about environment variables, consult the
 [OpenShift Application Author Guide](https://github.com/openshift/origin-server/blob/master/node/README.writing_applications.md).
