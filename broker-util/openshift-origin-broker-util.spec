@@ -59,6 +59,7 @@ cp man/*.8 %{buildroot}%{_mandir}/man8/
 %attr(0750,-,-) %{_sbindir}/oo-admin-ctl-user
 %attr(0750,-,-) %{_sbindir}/oo-admin-move
 %attr(0750,-,-) %{_sbindir}/oo-admin-broker-auth
+%attr(0750,-,-) %{_sbindir}/oo-admin-broker-cache
 %attr(0750,-,-) %{_sbindir}/oo-admin-usage
 %attr(0750,-,-) %{_sbindir}/oo-analytics-export
 %attr(0750,-,-) %{_sbindir}/oo-analytics-import
@@ -76,6 +77,7 @@ cp man/*.8 %{buildroot}%{_mandir}/man8/
 %{_mandir}/man8/oo-admin-ctl-user.8.gz
 %{_mandir}/man8/oo-admin-move.8.gz
 %{_mandir}/man8/oo-admin-broker-auth.8.gz
+%{_mandir}/man8/oo-admin-broker-cache.8.gz
 %{_mandir}/man8/oo-admin-usage.8.gz
 %{_mandir}/man8/oo-register-dns.8.gz
 %{_mandir}/man8/oo-accept-broker.8.gz

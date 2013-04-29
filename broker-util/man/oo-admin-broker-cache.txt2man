@@ -1,0 +1,30 @@
+  oo-admin-broker-cache
+  
+SYNOPSIS
+  oo-admin-broker-cache [-cqh]
+
+DESCRIPTION
+  This utility manages the broker Rails application cache.
+
+OPTIONS
+  -c|--clear
+    Clear the broker Rails application cache.
+
+  --console
+    Also clear the developer console Rails application cache. Implies --clear.
+
+  -q|--quiet
+    Suppress output under normal operation.
+
+  -h|--help
+    Display usage.
+
+EXAMPLE
+
+  $ oo-admin-broker-cache --clear
+ 
+SEE ALSO
+  oo-admin-broker-cache(8)
+
+AUTHOR
+  Luke Meyer <lmeyer@redhat.com> - man page written for OpenShift Origin 
