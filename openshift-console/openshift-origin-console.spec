@@ -43,21 +43,15 @@ BuildRequires:  ruby193-build
 BuildRequires:  scl-utils-build
 BuildRequires: %{?scl:%scl_prefix}rubygem(rails)
 BuildRequires: %{?scl:%scl_prefix}rubygem(compass-rails)
-BuildRequires: %{?scl:%scl_prefix}rubygem(mocha)
-BuildRequires: %{?scl:%scl_prefix}rubygem(simplecov)
 BuildRequires: %{?scl:%scl_prefix}rubygem(test-unit)
 BuildRequires: %{?scl:%scl_prefix}rubygem(ci_reporter)
-BuildRequires: %{?scl:%scl_prefix}rubygem(webmock)
 BuildRequires: %{?scl:%scl_prefix}rubygem(sprockets)
 BuildRequires: %{?scl:%scl_prefix}rubygem(rdiscount)
 BuildRequires: %{?scl:%scl_prefix}rubygem(formtastic)
 BuildRequires: %{?scl:%scl_prefix}rubygem(net-http-persistent)
 BuildRequires: %{?scl:%scl_prefix}rubygem(haml)
 BuildRequires: %{?scl:%scl_prefix}rubygem(therubyracer)
-BuildRequires: %{?scl:%scl_prefix}rubygem(poltergeist)
-BuildRequires: %{?scl:%scl_prefix}rubygem(konacha)
 BuildRequires: %{?scl:%scl_prefix}rubygem(minitest)
-BuildRequires: %{?scl:%scl_prefix}rubygem(rspec-core)
 %endif
 BuildRequires: %{?scl:%scl_prefix}rubygems-devel
 %if 0%{?fedora} >= 19
@@ -66,6 +60,7 @@ BuildRequires: ruby(release)
 BuildRequires: %{?scl:%scl_prefix}ruby(abi) >= %{rubyabi}
 %endif
 BuildRequires: %{?scl:%scl_prefix}rubygems
+BuildRequires: rubygem-openshift-origin-console
 
 BuildArch:     noarch
 Provides:      openshift-origin-console = %{version}
