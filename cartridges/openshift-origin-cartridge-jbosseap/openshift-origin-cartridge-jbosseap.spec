@@ -5,7 +5,7 @@
 
 Summary:       Provides JBossEAP6.0 support
 Name:          openshift-origin-cartridge-jbosseap
-Version: 2.2.1
+Version: 2.2.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -96,6 +96,13 @@ cp -p %{cartridgedir}/versions/6.0/modules/postgresql_module.xml /etc/alternativ
 
 
 %changelog
+* Mon Apr 29 2013 Adam Miller <admiller@redhat.com> 2.2.2-1
+- Merge pull request #2258 from bdecoste/master
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 956050 956043 (bdecoste@gmail.com)
+- Add health urls to each v2 cartridge. (rmillner@redhat.com)
+- Bug 957073 (dmcphers@redhat.com)
+
 * Thu Apr 25 2013 Adam Miller <admiller@redhat.com> 2.2.1-1
 - Bug 956497: Fix port bindings for jboss carts (ironcladlou@gmail.com)
 - Card online_runtime_266 - Build PATH from
