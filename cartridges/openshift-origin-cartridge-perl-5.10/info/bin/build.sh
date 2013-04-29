@@ -18,14 +18,11 @@ fi
 
 LINUX_DISTRO=$(</etc/redhat-release)
 RED_HAT_DISTRO_NAME="Red Hat"
-OPENSHIFT_CPAN_MIRROR=""
+MIRROR="--mirror http://search.cpan.org/CPAN"
 
-if [[ "$LINUX_DISTRO" =~ $RED_HAT_DISTRO_NAME* ]]
+if [[ "$LINUX_DISTRO" =~ $RED_HAT_DISTRO_NAME* && $OPENSHIFT_GEAR_DNS =~ .*\.rhcloud\.com$ ]]
 then
-  if `echo $OPENSHIFT_GEAR_DNS | egrep -qe "\.rhcloud\.com"`
-  then 
-      OPENSHIFT_CPAN_MIRROR="--mirror http://mirror1.ops.rhcloud.com/mirror/perl/CPAN/"
-  fi
+    MIRROR="--mirror http://mirror1.ops.rhcloud.com/mirror/perl/CPAN/ $MIRROR"
 fi
 
 if [ -f ${OPENSHIFT_REPO_DIR}deplist.txt ]
@@ -47,7 +44,7 @@ then
             echo ".openshift/markers/enable_cpan_tests!  enabling default cpan tests" 1>&2
             DISABLE_TEST=""
         fi
-        cpanm $DISABLE_TEST $OPENSHIFT_CPAN_MIRROR -L ~/${cartridge_type}/perl5lib "$f"
+        cpanm $DISABLE_TEST $MIRROR -L ~/${cartridge_type}/perl5lib "$f"
     done
 fi
 
