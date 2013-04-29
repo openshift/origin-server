@@ -10,6 +10,7 @@ import commands
 import re
 import selinux
 import subprocess
+import itertools
 
 EXT_LIB = "/usr/libexec/openshift/lib/util"
 
@@ -86,10 +87,22 @@ def gear_env():
     os.environ['PATH'] = ':'.join(segments)
 
 
+# Calling oo-get-mcs-level gets into trouble due to BZ 957257.  Use an
+# internal call which produces the same logic.
 def get_mcs_level(uid):
-    cmd = "/usr/bin/oo-get-mcs-level %s" % (uid)
-    ret = commands.getstatusoutput(cmd)
-    return ret[1]
+    set_size = 1024
+    group_size = 2
+    uid_offset = 0
+    mls_num = 0
+
+    mcs_set = [ "c%d" % n for n in xrange(set_size) ]
+    iuid = uid_offset
+
+    for mcs_col in itertools.combinations(mcs_set, 2):
+        iuid+=1
+        if iuid == uid:
+            return "s%d:%s" % ( mls_num, ",".join(mcs_col) )
+
 
 def read_config():
   config = {}
