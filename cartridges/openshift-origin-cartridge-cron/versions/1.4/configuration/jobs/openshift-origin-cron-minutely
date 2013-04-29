@@ -1,5 +1,0 @@
-#!/bin/bash
-
-MAILTO=""
-
-/usr/libexec/openshift/cartridges/v2/cron/bin/scheduled-jobs run minutely &> /dev/null

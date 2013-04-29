@@ -7,10 +7,6 @@ function _are_cronjobs_enabled() {
 
 }  #  End of function  _are_cronjobs_enabled.
 
-function _reload_cron_service() {
-   :  #  Do nothing.
-}  #  End of function  _reload_cron_service.
-
 function _status_cron_service() {
     if output=$(run_as_user "$CTL_SCRIPT status" 2>&1)
     then
@@ -21,27 +17,25 @@ function _status_cron_service() {
 }  #  End of function  _status_cron_service.
 
 function start() {
-    echo "Starting CRON cart"
+    client_result "Starting CRON cart"
     if _are_cronjobs_enabled; then
-        echo "cron scheduling service is already enabled" 1>&2
+        client_result "cron scheduling service is already enabled"
     else
-        rm -f "$OPENSHIFT_CRON_DIR/run/stop_lock"
         touch "$OPENSHIFT_CRON_DIR/run/jobs.enabled"
     fi
 }
 
 function stop() {
-    echo "Stopping CRON cart"
+    client_result "Stopping CRON cart"
     if _are_cronjobs_enabled; then
-        touch "$OPENSHIFT_CRON_DIR/run/stop_lock"
         rm -f $OPENSHIFT_CRON_DIR/run/jobs.enabled
     else
-        echo "cron scheduling service is already disabled" 1>&2
+        client_result "cron scheduling service is already disabled"
     fi
 }
 
 function restart() {
-    echo "Restarting CRON cart"
+    client_result "Restarting CRON cart"
     stop
     start
 }
@@ -56,27 +50,23 @@ function status() {
          fi
       done
       if test 0 -ge ${njobs:-0}; then
-         echo "Application has no scheduled jobs" 1>&2
+         client_result "Application has no scheduled jobs"
       fi
    else
-      echo "Application has no scheduled jobs" 1>&2
-      echo "   - Missing .openshift/cron/ directory." 1>&2
+      client_result "Application has no scheduled jobs"
+      client_result "   - Missing .openshift/cron/ directory."
    fi
 
    if _are_cronjobs_enabled; then
-      echo "cron scheduling service is enabled" 1>&2
+      client_result "cron scheduling service is enabled"
    else
-      echo "cron scheduling service is disabled" 1>&2
+      client_result "cron scheduling service is disabled"
    fi
 }
 
 function reload() {
-    echo "Reloading CRON cart"
+    client_result "Reloading CRON cart"
     restart
-}
-
-function tidy() {
-    echo "Tidying CRON cart"
 }
 
 case "$1" in
