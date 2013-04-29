@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.8.1
+Version: 1.8.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -84,6 +84,15 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Mon Apr 29 2013 Adam Miller <admiller@redhat.com> 1.8.2-1
+- Merge pull request #2254 from ironcladlou/dev/v2carts/process-version
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #2243 from abhgupta/abhgupta-dev
+  (dmcphers+openshiftbot@redhat.com)
+- Add process-version control action (ironcladlou@gmail.com)
+- Maintaining configure order among components for post-configure as well
+  (abhgupta@redhat.com)
+
 * Thu Apr 25 2013 Adam Miller <admiller@redhat.com> 1.8.1-1
 - Merge pull request #2231 from rajatchopra/master
   (dmcphers+openshiftbot@redhat.com)
