@@ -221,7 +221,8 @@ module OpenShift
       do_control('restart-httpd-proxy', cart_name)
     end
 
-    def connector_execute(cart_name, connector, args)
+    def connector_execute(cart_name, connection_type, connector, args)
+      # connection_type is ignored for v1
       do_control(connector, cart_name, args, "connection-hooks")
     end
 
