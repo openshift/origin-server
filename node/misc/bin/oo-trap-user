@@ -69,22 +69,22 @@ def gear_env():
         primary = os.path.basename(os.environ['OPENSHIFT_PRIMARY_CARTRIDGE_DIR'].rstrip('/'))
         load_env(os.path.join(os.environ['OPENSHIFT_PRIMARY_CARTRIDGE_DIR'], 'env'))
 
-    primary_path = "OPENSHIFT_%s_PATH" % primary
-    matcher = re.compile('^OPENSHIFT_.*_PATH')
-    path_segments = [key for key in os.environ if matcher.match(key)]
+    primary_path = "OPENSHIFT_%s_PATH_ELEMENT" % primary
+    matcher = re.compile('^OPENSHIFT_.*_PATH_ELEMENT$')
+    path_elements = [key for key in os.environ if matcher.match(key)]
 
-    if primary_path in path_segments:
-        path_segments.remove(primary_path)
-    segments = [os.environ[key] for key in path_segments]
+    if primary_path in path_elements:
+        path_elements.remove(primary_path)
+    elements = [os.environ[key] for key in path_elements]
 
     if primary_path in os.environ:
-        segments.insert(0, os.environ[primary_path])
+        elements.insert(0, os.environ[primary_path])
 
     if 'PATH' in os.environ:
-        segments.append(os.environ['PATH'])
-    segments.append(system_path)
+        elements.append(os.environ['PATH'])
+    elements.append(system_path)
 
-    os.environ['PATH'] = ':'.join(segments)
+    os.environ['PATH'] = ':'.join(elements)
 
 
 # Calling oo-get-mcs-level gets into trouble due to BZ 957257.  Use an
