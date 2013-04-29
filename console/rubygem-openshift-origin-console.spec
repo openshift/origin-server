@@ -9,7 +9,7 @@
 
 Summary:       OpenShift Origin Management Console
 Name:          rubygem-%{gem_name}
-Version: 1.8.1
+Version: 1.8.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -147,6 +147,23 @@ cp -a ./%{gem_dir}/* %{buildroot}%{gem_dir}/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Mon Apr 29 2013 Adam Miller <admiller@redhat.com> 1.8.2-1
+- Merge pull request #2206 from fabianofranz/master
+  (dmcphers+openshiftbot@redhat.com)
+- Fixed Maintenance mode message (ffranz@redhat.com)
+- Fixed tests for Maintenance mode (ffranz@redhat.com)
+- Using a dedicated exception to handle server unavailable so we don't have to
+  check status codes more than once (ffranz@redhat.com)
+- Handling a special ConnectionError so we can put the console in maintenance
+  mode (ffranz@redhat.com)
+- Maintenance mode, changed routing (ffranz@redhat.com)
+- Tests for Maintenance mode (ffranz@redhat.com)
+- Maintenance mode will now handle login/authorization properly
+  (ffranz@redhat.com)
+- Maintenance mode page, now handling nil responses on server error
+  (ffranz@redhat.com)
+- Maintenance mode for the web console (ffranz@redhat.com)
+
 * Thu Apr 25 2013 Adam Miller <admiller@redhat.com> 1.8.1-1
 - Merge pull request #2190 from smarterclayton/extract_form_important
   (dmcphers+openshiftbot@redhat.com)
