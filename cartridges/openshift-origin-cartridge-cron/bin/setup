@@ -13,5 +13,3 @@ echo "$version" > "$OPENSHIFT_CRON_DIR/env/OPENSHIFT_CRON_VERSION"
 shopt -s dotglob
 mkdir -p $OPENSHIFT_CRON_DIR/{configuration,logs,etc,data,pid,run}
 cp -r $OPENSHIFT_CRON_DIR/versions/$version/configuration/* $OPENSHIFT_CRON_DIR/configuration
-ln -s ../app-root/repo/.openshift/cron $OPENSHIFT_CRON_DIR/configuration/jobs
-

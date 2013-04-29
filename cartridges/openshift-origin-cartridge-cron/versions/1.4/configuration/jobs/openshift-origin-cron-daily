@@ -1,3 +1,0 @@
-#!/bin/bash
-
-/usr/libexec/openshift/cartridges/v2/cron/bin/scheduled-jobs run daily &> /dev/null
