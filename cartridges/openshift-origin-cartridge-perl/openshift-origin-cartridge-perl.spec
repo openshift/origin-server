@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/openshift/cartridges/v2/perl
 
 Name: openshift-origin-cartridge-perl
-Version: 0.3.1
+Version: 0.3.2
 Release: 1%{?dist}
 Summary: Perl cartridge
 Group: Development/Languages
@@ -70,6 +70,12 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Mon Apr 29 2013 Adam Miller <admiller@redhat.com> 0.3.2-1
+- Merge pull request #2261 from jwhonce/wip/card287
+  (dmcphers+openshiftbot@redhat.com)
+- Card online_runtime_287 - Bug fix (jhonce@redhat.com)
+- Add health urls to each v2 cartridge. (rmillner@redhat.com)
+
 * Thu Apr 25 2013 Adam Miller <admiller@redhat.com> 0.3.1-1
 - WIP Cartridge Refactor - cleanup in cartridges (jhonce@redhat.com)
 - fixing tests (dmcphers@redhat.com)
