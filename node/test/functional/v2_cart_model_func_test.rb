@@ -15,14 +15,15 @@
 #++
 require_relative '../test_helper'
 require 'etc'
+require 'openshift-origin-node/utils/shell_exec'
 
 module OpenShift
   class V2CartridgeModelFunctionalTest < OpenShift::V2SdkTestCase
     GEAR_BASE_DIR = '/var/lib/openshift'
 
-    # Called before every test method runs. Can be used
-    # to set up fixture information.
-    def setup
+    def before_setup
+      super
+
       @uid = 5996
 
       @config = mock('OpenShift::Config')
@@ -66,24 +67,17 @@ module OpenShift
       OpenShift::CartridgeRepository.instance.load
       @model = OpenShift::V2CartridgeModel.new(@config, @user, OpenShift::Utils::ApplicationState.new(@uuid))
       @model.configure('mock-0.1')
-      @model.configure('mock-plugin-0.1')
     end
 
-    # Called after every test method runs. Can be used to tear
-    # down fixture information.
     def teardown
+      @model.deconfigure('mock-plugin-0.1') if File.exist?(File.join(@user.homedir, 'mock-plugin'))
+    end
+
+    def after_teardown
       @user.destroy
     end
 
-    # wrapping these all up in 1 call right now to avoid unnecessary cart recreations
-    # for tests which don't require it
-    def test_model_basics
-      verify_hidden_erb
-      verify_publish_db_connection_info
-      verify_set_db_connection_info
-    end
-
-    def verify_hidden_erb
+    def test_hidden_erb
       assert_path_exist(File.join(@user.homedir, 'mock', '.mock_hidden'),
                         'Failed to process .mock_hidden.erb')
 
@@ -91,7 +85,9 @@ module OpenShift
                         'Failed to delete .mock_hidden.erb after processing')
     end
 
-    def verify_publish_db_connection_info
+    def test_publish_db_connection_info
+      @model.configure('mock-plugin-0.1')
+
       results = @model.connector_execute('mock-plugin-0.1', 'publish-db-connection-info', "")
       refute_nil results
 
@@ -100,7 +96,9 @@ module OpenShift
           results)
     end
 
-    def verify_set_db_connection_info
+    def test_set_db_connection_info
+      @model.configure('mock-plugin-0.1')
+
       @model.connector_execute('mock-0.1',
                                'set-db-connection-info',
                                "test testdomain 515c7e8bdf3e460939000001 \\'75e36e529c9211e29cc622000a8c0259\\'\\=\\'OPENSHIFT_MOCK_DB_GEAR_UUID\\=75e36e529c9211e29cc622000a8c0259\\;\\;\\ '\n'\\'")
@@ -108,6 +106,48 @@ module OpenShift
       uservar_file = File.join(@user.homedir, '.env', '.uservars', 'OPENSHIFT_MOCK_DB_GEAR_UUID')
       assert_path_exist(uservar_file)
       assert_equal '75e36e529c9211e29cc622000a8c0259', IO.read(uservar_file).chomp
+    end
+
+
+    def test_configure_with_manifest
+      refute_path_exist(File.join(@user.homedir, 'mock-plugin'))
+
+      cartridge = OpenShift::CartridgeRepository.instance.select('mock-plugin', '0.1')
+      skip 'Mock Plugin 0.1 cartridge required for this test' unless cartridge
+
+      cuckoo = File.join(@user.homedir, %w(app-root data cuckoo))
+      FileUtils.mkpath(cuckoo)
+      %x(shopt -s dotglob; cp -ad #{cartridge.repository_path}/* #{cuckoo})
+
+      # build our "remote" cartridge repository
+      cuckoo_repo = File.join(@user.homedir, %w(app-root data cuckoo_repo))
+      FileUtils.mkpath cuckoo_repo
+      Dir.chdir(cuckoo_repo) do
+        %x(git init;
+          shopt -s dotglob;
+          cp -ad #{cuckoo}/* .;
+          git add -f .;
+          git </dev/null commit -a -m "Creating cuckoo template" 2>&1;
+        )
+      end
+
+      # Point manifest at "remote" repository
+      manifest = IO.read(File.join(cuckoo, 'metadata', 'manifest.yml'))
+      manifest << ("Source-Url: file://" + cuckoo + '_repo')
+
+      # install the cuckoo
+      begin
+        @model.configure('cuckoo-0.1', nil, manifest)
+      rescue OpenShift::Utils::ShellExecutionException => e
+        NodeLogger.logger.debug(e.message + "\n" +
+                                    e.stdout + "\n" +
+                                    e.stderr + "\n" +
+                                    e.backtrace.join("\n")
+        )
+      end
+
+      assert_path_exist(File.join(@user.homedir, 'mock-plugin'))
+      assert_path_exist(File.join(@user.homedir, %w(mock-plugin bin control)))
     end
   end
 end

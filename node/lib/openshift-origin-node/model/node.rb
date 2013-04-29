@@ -46,7 +46,7 @@ module OpenShift
         CartridgeRepository.instance.each do |cartridge|
           cartridge.versions.each do |version|
             begin
-              cooked = Runtime::Cartridge.new(cartridge.source, version, cartridge.repository_path)
+              cooked = Runtime::Cartridge.new(cartridge.manifest_path, version, cartridge.repository_path)
               print "Loading #{cooked.name}-#{cooked.version}..." if oo_debug
 
               v1_manifest            = Marshal.load(Marshal.dump(cooked.manifest))
