@@ -2,7 +2,7 @@
 
 Summary:       Provides JBossEWS2.0 support
 Name:          openshift-origin-cartridge-jbossews
-Version: 0.3.1
+Version: 0.3.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -84,6 +84,14 @@ alternatives --set jbossews-2.0 /usr/share/tomcat7
 
 
 %changelog
+* Mon Apr 29 2013 Adam Miller <admiller@redhat.com> 0.3.2-1
+- Add health urls to each v2 cartridge. (rmillner@redhat.com)
+- Merge pull request #2252 from danmcp/master
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 952606: Fix JAVA_HOME/PATH switching with java7 marker
+  (ironcladlou@gmail.com)
+- Bug 957073 (dmcphers@redhat.com)
+
 * Thu Apr 25 2013 Adam Miller <admiller@redhat.com> 0.3.1-1
 - Bug 956626: Fix jbossews-2.0 paths (ironcladlou@gmail.com)
 - Card online_runtime_266 - Build PATH from
