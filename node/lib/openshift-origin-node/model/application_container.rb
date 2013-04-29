@@ -90,9 +90,11 @@ module OpenShift
     # is the responsibility of the broker.
     #
     # context: root -> gear user -> root
-    # @param cart_name   cartridge name
-    def configure(cart_name, template_git_url=nil)
-      @cartridge_model.configure(cart_name, template_git_url)
+    # @param cart_name         cartridge name
+    # @param template_git_url  URL for template application source/bare repository
+    # @param manifest          Broker provided manifest
+    def configure(cart_name, template_git_url=nil,  manifest=nil)
+      @cartridge_model.configure(cart_name, template_git_url, manifest)
     end
 
     def post_configure(cart_name, template_git_url=nil)

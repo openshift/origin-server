@@ -24,6 +24,7 @@ class NodeTest < OpenShift::V2SdkTestCase
 
     YAML.stubs(:load_file).
         returns(YAML.load(MANIFESTS[0]))
+    File.stubs(:exist?).returns(true)
 
     OpenShift::CartridgeRepository.
         any_instance.

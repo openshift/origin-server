@@ -18,6 +18,7 @@ require 'rubygems'
 require 'openshift-origin-node/model/unix_user'
 require 'openshift-origin-node/model/application_repository'
 require 'openshift-origin-node/model/cartridge_repository'
+require 'openshift-origin-node/model/cartridge'
 require 'openshift-origin-node/utils/shell_exec'
 require 'openshift-origin-node/utils/selinux'
 require 'openshift-origin-node/utils/node_logger'
@@ -170,7 +171,7 @@ module OpenShift
     def destroy(skip_hooks = false)
       logger.info('V2 destroy')
 
-      buffer        = ''
+      buffer = ''
       unless skip_hooks
         cartridge_dir = 'N/A'
         process_cartridges do |path|
@@ -208,17 +209,22 @@ module OpenShift
       end
     end
 
-    # configure(cartridge_name, template_git_url) -> stdout
+    # configure(cartridge_name, template_git_url, manifest) -> stdout
     #
     # Add a cartridge to a gear
     #
     # configure('php-5.3')
-    # configure('php-5.3', 'git://...')
-    def configure(cartridge_name, template_git_url = nil)
-      output = ''
-
+    # configure('php-666', 'git://')
+    # configure('php-666', 'git://', 'git://')
+    def configure(cartridge_name, template_git_url = nil, manifest = nil)
+      output                 = ''
       name, software_version = map_cartridge_name(cartridge_name)
-      cartridge              = CartridgeRepository.instance.select(name, software_version)
+      cartridge              = if manifest
+                                 logger.debug("Loading from manifest...")
+                                 Runtime::Cartridge.new(manifest, software_version)
+                               else
+                                 CartridgeRepository.instance.select(name, software_version)
+                               end
 
       OpenShift::Utils::Sdk.mark_new_sdk_app(@user.homedir)
       OpenShift::Utils::Cgroups::with_no_cpu_limits(@user.uuid) do
@@ -232,7 +238,7 @@ module OpenShift
         # of these criteria, and we do not have a way to explicitly check the first two
         # criteria.  However, it should be considered a TODO to add more explicit checks.
         if cartridge.web_proxy?
-          output << generate_ssh_key(cartridge) 
+          output << generate_ssh_key(cartridge)
         end
 
         create_private_endpoints(cartridge)
@@ -265,7 +271,7 @@ module OpenShift
       end
 
       connect_frontend(cartridge)
-      
+
       logger.info("post-configure output: #{output}")
       output
     end
@@ -314,7 +320,7 @@ module OpenShift
 
       File.readlines(locked_files).each_with_object([]) do |line, memo|
         line.chomp!
-        
+
         # Anchor lines starting with ~ at the gear root; otherwise anchor
         # them at the cartridge installation dir within the gear.
         if line.start_with?('~/')
@@ -333,7 +339,7 @@ module OpenShift
           # simple guard to ensure the line doesn't try to escape the gear or
           # write stuff into unacceptable places within the gear
           when line.start_with?('../') ||
-               (line.start_with?('~') && !(line.start_with?('~/.') || line.start_with?('~/app-root')))
+              (line.start_with?('~') && !(line.start_with?('~/.') || line.start_with?('~/app-root')))
             logger.info("#{cartridge.directory} attempted lock/unlock on out-of-bounds entry [#{line}]")
           else
             memo << line_abs
@@ -414,25 +420,17 @@ module OpenShift
     def create_cartridge_directory(cartridge, software_version)
       logger.info("Creating cartridge directory #{@user.uuid}/#{cartridge.directory}")
 
-      entries = Dir.glob(cartridge.repository_path + '/*', File::FNM_DOTMATCH)
-      entries.delete_if do |e|
-        basename = File.basename(e)
-        %w(usr . ..).include?(basename)
-      end
-
       target = File.join(@user.homedir, cartridge.directory)
-      FileUtils.mkpath target
-      Utils.oo_spawn("/bin/cp -ad #{entries.join(' ')} #{target}",
-                     expected_exitstatus: 0)
+      CartridgeRepository.instantiate_cartridge(cartridge, target)
 
       ident = Runtime::Cartridge.build_ident(cartridge.cartridge_vendor,
                                              cartridge.name,
                                              software_version,
                                              cartridge.cartridge_version)
 
-      envs = {}
-      envs["#{cartridge.short_name}_dir"] = target + File::SEPARATOR
-      envs["#{cartridge.short_name}_ident"] = ident
+      envs                                  = {}
+      envs["#{cartridge.short_name}_DIR"]   = target + File::SEPARATOR
+      envs["#{cartridge.short_name}_IDENT"] = ident
 
       write_environment_variables(File.join(target, 'env'), envs)
 
@@ -440,12 +438,9 @@ module OpenShift
       envs['namespace'] = @user.namespace if @user.namespace
       envs['primary_cartridge_dir'] = target + File::SEPARATOR if cartridge.primary?
 
-      if not envs.empty?
+      unless envs.empty?
         write_environment_variables(File.join(@user.homedir, '.env'), envs)
       end
-
-      usr_path = File.join(cartridge.repository_path, 'usr')
-      FileUtils.symlink(usr_path, File.join(target, 'usr')) if File.exist? usr_path
 
       mcs_label = Utils::SELinux.get_mcs_label(@user.uid)
 
@@ -537,10 +532,10 @@ module OpenShift
       logger.info "Running #{action} for #{@user.uuid}/#{cartridge.directory}"
 
       cartridge_home = File.join(@user.homedir, cartridge.directory)
-      action = File.join(cartridge_home, 'bin', action)
+      action         = File.join(cartridge_home, 'bin', action)
       return "" unless File.exists? action
-      
-      gear_env = Utils::Environ.for_gear(@user.homedir)
+
+      gear_env           = Utils::Environ.for_gear(@user.homedir)
       cartridge_env_home = File.join(cartridge_home, 'env')
 
       cartridge_env = gear_env.merge(Utils::Environ.load(cartridge_env_home))
@@ -654,7 +649,7 @@ module OpenShift
 
       # Validate all the allocations to ensure they aren't already bound. Batch up the initial check
       # for efficiency, then do individual checks to provide better reporting before we fail.
-      address_list = cartridge.endpoints.map{|e| {ip: allocated_ips[e.private_ip_name], port: e.private_port}}
+      address_list = cartridge.endpoints.map { |e| {ip: allocated_ips[e.private_ip_name], port: e.private_port} }
       if addresses_bound?(address_list)
         failures = ''
         cartridge.endpoints.each do |endpoint|
@@ -759,7 +754,7 @@ module OpenShift
             options     = mapping.options ||= {}
 
             if endpoint.websocket_port
-                options["websocket_port"] = endpoint.websocket_port
+              options["websocket_port"] = endpoint.websocket_port
             end
 
             # Make sure that the mapping does not collide with the default web_proxy mapping
@@ -1130,19 +1125,19 @@ module OpenShift
     ##
     # Generate an RSA ssh key
     def generate_ssh_key(cartridge)
-      ssh_dir = File.join(@user.homedir, '.openshift_ssh')
-      known_hosts = File.join(ssh_dir, 'known_hosts')
-      ssh_config = File.join(ssh_dir, 'config')
-      ssh_key = File.join(ssh_dir, 'id_rsa')
+      ssh_dir        = File.join(@user.homedir, '.openshift_ssh')
+      known_hosts    = File.join(ssh_dir, 'known_hosts')
+      ssh_config     = File.join(ssh_dir, 'config')
+      ssh_key        = File.join(ssh_dir, 'id_rsa')
       ssh_public_key = ssh_key + '.pub'
 
       FileUtils.mkdir_p(ssh_dir)
       make_user_owned(ssh_dir)
 
       Utils::oo_spawn("/usr/bin/ssh-keygen -N '' -f #{ssh_key}",
-                      chdir: @user.homedir,
-                      uid: @user.uid,
-                      gid: @user.gid,
+                      chdir:               @user.homedir,
+                      uid:                 @user.uid,
+                      gid:                 @user.gid,
                       expected_exitstatus: 0)
 
       FileUtils.touch(known_hosts)
