@@ -137,6 +137,7 @@ module OpenShift
 
           @cartridges[cart_name] = get_cartridge_from_directory(cart_dir)
         rescue Exception => e
+          logger.error e.message
           logger.error e.backtrace.join("\n")
           raise "Failed to get cartridge '#{cart_name}' from #{cart_dir} in gear #{@user.uuid}: #{e.message}"
         end
