@@ -16,7 +16,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.8.1
+Version: 1.8.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -287,6 +287,21 @@ fi
 %attr(0755,-,-) /etc/cron.monthly/openshift-origin-cron-monthly
 
 %changelog
+* Mon Apr 29 2013 Adam Miller <admiller@redhat.com> 1.8.2-1
+- Merge pull request #2267 from jwhonce/bug/957095
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 957095 - V2 support in rhcsh broke USER_VARS (jhonce@redhat.com)
+- Card online_runtime_239 - Remove env required directory (jhonce@redhat.com)
+- Merge pull request #2255 from brenton/oo-accept-systems
+  (dmcphers+openshiftbot@redhat.com)
+- Card online_runtime_239 - Download cartridge from URL (jhonce@redhat.com)
+- Card online_runtime_287 - Bug fix (jhonce@redhat.com)
+- Merge pull request #2251 from pmorie/dev/v1_stop_lock
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 957045 - fixing oo-accept-systems for v2 cartridges (bleanhar@redhat.com)
+- Fix issues w/ V1 stop lock (pmorie@gmail.com)
+- Add process-version control action (ironcladlou@gmail.com)
+
 * Thu Apr 25 2013 Adam Miller <admiller@redhat.com> 1.8.1-1
 - Merge pull request #2249 from rmillner/online_runtime_264
   (dmcphers+openshiftbot@redhat.com)
