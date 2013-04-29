@@ -203,17 +203,17 @@ class PendingAppOpGroup
           when :destroy_gear
             result_io.append gear.destroy_gear(true)
           when :start_component
-            result_io.append gear.start(comp_name)
+            result_io.append gear.start(cart_name)
           when :stop_component
             if args.has_key?("force") and args["force"]==true
-              result_io.append gear.force_stop(comp_name)
+              result_io.append gear.force_stop(cart_name)
             else
-              result_io.append gear.stop(comp_name)
+              result_io.append gear.stop(cart_name)
             end
           when :restart_component
-            result_io.append gear.restart(comp_name)
+            result_io.append gear.restart(cart_name)
           when :reload_component_config
-            result_io.append gear.reload_config(comp_name)
+            result_io.append gear.reload_config(cart_name)
           when :tidy_component
             result_io.append gear.tidy(comp_name)
           when :update_configuration
