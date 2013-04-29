@@ -75,7 +75,7 @@ module OpenShift
         access_info = Rails.application.config.dns
         @domain_suffix = Rails.application.config.openshift[:domain_suffix]
       else
-        raise Exception.new("Nsupdate DNS updates are not initialized")
+        raise DNSException.new("Nsupdate DNS updates are not initialized")
       end
 
       @server = access_info[:server]
@@ -85,6 +85,19 @@ module OpenShift
       @krb_principal = access_info[:krb_principal]
       @krb_keytab = access_info[:krb_keytab]
       @zone = access_info[:zone]
+
+      # verify that the plugin can read the keytab file, if specified
+      if @krb_keytab
+        if not File.exists? @krb_keytab
+          raise DNSException.new "missing GSS keytab file: #{@krb_keytab}"
+        
+        elsif not File.readable? @krb_keytab
+          raise DNSException.new(
+              "keytab file #{@krb_keytab} is not readable by UID #{Process.uid}"
+              )
+        end
+      end
+         
     end
 
     private
