@@ -25,4 +25,4 @@ pushd $OPENSHIFT_JBOSSAS_DIR > /dev/null
   ln -s ${JBOSS_HOME}/modules
 popd > /dev/null
 
-echo "$JAVA_HOME/bin:$M2_HOME/bin" > $OPENSHIFT_JBOSSAS_DIR/env/OPENSHIFT_JBOSSAS_PATH
+echo "$JAVA_HOME/bin:$M2_HOME/bin" > $OPENSHIFT_JBOSSAS_DIR/env/OPENSHIFT_JBOSSAS_PATH_ELEMENT

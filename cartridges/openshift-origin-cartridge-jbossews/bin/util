@@ -10,5 +10,5 @@ function export_java_home() {
 
 function reinstall_path {
   echo $JAVA_HOME > $OPENSHIFT_JBOSSEWS_DIR/env/JAVA_HOME
-  echo "$JAVA_HOME/bin:$M2_HOME/bin" > $OPENSHIFT_JBOSSEWS_DIR/env/OPENSHIFT_JBOSSEWS_PATH
+  echo "$JAVA_HOME/bin:$M2_HOME/bin" > $OPENSHIFT_JBOSSEWS_DIR/env/OPENSHIFT_JBOSSEWS_PATH_ELEMENT
 }

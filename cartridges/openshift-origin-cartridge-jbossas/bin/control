@@ -141,7 +141,7 @@ function build() {
         	fi
 
           echo $JAVA_HOME >$OPENSHIFT_JBOSSAS_DIR/env/JAVA_HOME
-          echo "$JAVA_HOME/bin:$M2_HOME/bin" >$OPENSHIFT_JBOSSAS_DIR/env/OPENSHIFT_JBOSSAS_PATH
+          echo "$JAVA_HOME/bin:$M2_HOME/bin" >$OPENSHIFT_JBOSSAS_DIR/env/OPENSHIFT_JBOSSAS_PATH_ELEMENT
 
         	export MAVEN_OPTS="$OPENSHIFT_MAVEN_XMX"
         	export PATH=$JAVA_HOME/bin:$M2_HOME/bin:$PATH

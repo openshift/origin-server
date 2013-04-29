@@ -56,11 +56,11 @@ then
         done
     fi
 
-    path=$(env |grep 'OPENSHIFT_.*_PATH'| sed 's/^.*=\(.*\)$/\1/'|tr '\n' ':')
+    path=$(env |grep 'OPENSHIFT_.*_PATH_ELEMENT'| sed 's/^.*=\(.*\)$/\1/'|tr '\n' ':')
 
-    if [ -f $OPENSHIFT_PRIMARY_CARTRIDGE_DIR/env/OPENSHIFT_*_PATH ]
+    if [ -f $OPENSHIFT_PRIMARY_CARTRIDGE_DIR/env/OPENSHIFT_*_PATH_ELEMENT ]
     then
-        path=$(< $OPENSHIFT_PRIMARY_CARTRIDGE_DIR/env/OPENSHIFT_*_PATH)
+        path=$(< $OPENSHIFT_PRIMARY_CARTRIDGE_DIR/env/OPENSHIFT_*_PATH_ELEMENT)
     fi
 
     if [ -f /etc/openshift/env/PATH ]
