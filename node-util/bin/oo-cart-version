@@ -43,9 +43,25 @@ def toggle_version
     `rm #{VERSION_MARKER}`
   end
 
-  `cd /var/www/openshift/broker; bundle exec "rails runner -e development 'Rails.cache.clear'"`
-  `rpm -q rhc-broker`
-  $?.success? ?  `service rhc-broker restart` : `service openshift-broker restart`
+  # if our node is also a broker, exchange old cartridge cache for new
+  if `rpm -q rhc-broker`
+    puts 'Clearing broker cache'
+    `oo-admin-broker-cache --clear --console`
+    puts 'Restarting broker'
+    `service rhc-broker restart`
+  elsif `rpm -q openshift-broker`
+    puts 'Clearing broker cache'
+    `oo-admin-broker-cache --clear --console`
+    puts 'Restarting broker'
+    `service openshift-broker restart`
+  else
+    puts <<-OUT
+      You will need to clear the cache on your broker(s) and restart the broker application.
+      You can clear the cache on the broker as follows:
+        oo-admin-broker-cache --clear --console
+    OUT
+  end
+  # in any case, node needs an mcollective restart
   `service mcollective restart`
 
    check_version
