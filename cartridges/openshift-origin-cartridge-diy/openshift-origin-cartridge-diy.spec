@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/openshift/cartridges/v2/diy
 
 Name: openshift-origin-cartridge-diy
-Version: 0.3.2
+Version: 0.3.3
 Release: 1%{?dist}
 Summary: DIY cartridge
 Group: Development/Languages
@@ -56,6 +56,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Tue Apr 30 2013 Adam Miller <admiller@redhat.com> 0.3.3-1
+- Env var WIP. (mrunalp@gmail.com)
+
 * Mon Apr 29 2013 Adam Miller <admiller@redhat.com> 0.3.2-1
 - Add health urls to each v2 cartridge. (rmillner@redhat.com)
 
