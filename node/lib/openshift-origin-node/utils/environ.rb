@@ -15,7 +15,7 @@
 #++
 
 require 'openshift-origin-node/utils/node_logger'
-require 'openshift-origin-node/utils/path_utils'
+require 'openshift-origin-common/utils/path_utils'
 
 module OpenShift
   module Utils

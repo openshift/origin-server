@@ -129,7 +129,7 @@ module OpenShift
 
       manifest = "/tmp/manifest-#{Process.pid}"
       IO.write(manifest, @mock_manifest, 0)
-      @mock_cartridge = OpenShift::Runtime::Cartridge.new(manifest, nil, '/tmp')
+      @mock_cartridge = OpenShift::Runtime::Manifest.new(manifest, nil, '/tmp')
       @model.stubs(:get_cartridge).with('mock-0.1').returns(@mock_cartridge)
     end
 
@@ -232,10 +232,10 @@ module OpenShift
     # Flow control for destroy success - cartridge_teardown called for each method
     # and unix user destroyed.
     def test_destroy_success
-      c1 = mock('OpenShift::Runtime::Cartridge')
+      c1 = mock('OpenShift::Runtime::Manifest')
       c1.stubs(:directory).returns("cartridge1")
 
-      c2 = mock('OpenShift::Runtime::Cartridge')
+      c2 = mock('OpenShift::Runtime::Manifest')
       c2.stubs(:directory).returns("cartridge2")
 
       @model.expects(:each_cartridge).multiple_yields(c1,c2)
@@ -256,10 +256,10 @@ module OpenShift
     # Verifies that all teardown hooks are called, even if one raises an error,
     # and that unix user is still destroyed.
     def test_destroy_teardown_raises
-      c1 = mock('OpenShift::Runtime::Cartridge')
+      c1 = mock('OpenShift::Runtime::Manifest')
       c1.stubs(:directory).returns("cartridge1")
 
-      c2 = mock('OpenShift::Runtime::Cartridge')
+      c2 = mock('OpenShift::Runtime::Manifest')
       c2.stubs(:directory).returns("cartridge2")
 
       @model.expects(:each_cartridge).multiple_yields(c1,c2)

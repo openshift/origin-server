@@ -17,7 +17,7 @@
 require 'rubygems'
 require 'openshift-origin-node/utils/shell_exec'
 require 'openshift-origin-node/utils/selinux'
-require 'openshift-origin-node/utils/path_utils'
+require 'openshift-origin-common/utils/path_utils'
 require 'openshift-origin-node/model/frontend_httpd.rb'
 require 'openshift-origin-node/utils/node_logger'
 require 'openshift-origin-common'

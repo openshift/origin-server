@@ -18,7 +18,7 @@ require 'rubygems'
 require 'openshift-origin-node/model/unix_user'
 require 'openshift-origin-node/model/application_repository'
 require 'openshift-origin-node/model/cartridge_repository'
-require 'openshift-origin-node/model/cartridge'
+require 'openshift-origin-common/models/manifest'
 require 'openshift-origin-node/model/pub_sub_connector'
 require 'openshift-origin-node/utils/shell_exec'
 require 'openshift-origin-node/utils/selinux'
@@ -26,7 +26,7 @@ require 'openshift-origin-node/utils/node_logger'
 require 'openshift-origin-node/utils/cgroups'
 require 'openshift-origin-node/utils/sdk'
 require 'openshift-origin-node/utils/environ'
-require 'openshift-origin-node/utils/path_utils'
+require 'openshift-origin-common/utils/path_utils'
 require 'openshift-origin-node/utils/application_state'
 
 module OpenShift
@@ -156,9 +156,9 @@ module OpenShift
         raise "Cartridge manifest not found: #{manifest_path} missing" unless File.exists?(manifest_path)
         raise "Cartridge Ident not found: #{ident_path} missing" unless File.exists?(ident_path)
 
-        _, _, version, _ = Runtime::Cartridge.parse_ident(IO.read(ident_path))
+        _, _, version, _ = Runtime::Manifest.parse_ident(IO.read(ident_path))
 
-        @cartridges[directory] = OpenShift::Runtime::Cartridge.new(manifest_path, version, @user.homedir)
+        @cartridges[directory] = OpenShift::Runtime::Manifest.new(manifest_path, version, @user.homedir)
       end
       @cartridges[directory]
     end
@@ -223,7 +223,7 @@ module OpenShift
       name, software_version = map_cartridge_name(cartridge_name)
       cartridge              = if manifest
                                  logger.debug("Loading from manifest...")
-                                 Runtime::Cartridge.new(manifest, software_version)
+                                 Runtime::Manifest.new(manifest, software_version)
                                else
                                  CartridgeRepository.instance.select(name, software_version)
                                end
@@ -427,7 +427,7 @@ module OpenShift
       target = File.join(@user.homedir, cartridge.directory)
       CartridgeRepository.instantiate_cartridge(cartridge, target)
 
-      ident = Runtime::Cartridge.build_ident(cartridge.cartridge_vendor,
+      ident = Runtime::Manifest.build_ident(cartridge.cartridge_vendor,
                                              cartridge.name,
                                              software_version,
                                              cartridge.cartridge_version)
@@ -803,7 +803,7 @@ module OpenShift
       case cartridge
         when String
           cartridge_dir = cartridge_directory(cartridge)
-        when OpenShift::Runtime::Cartridge
+        when OpenShift::Runtime::Manifest
           cartridge_dir = cartridge.directory
         else
           raise "Unsupported cartridge argument type: #{cartridge.class}"
@@ -939,7 +939,7 @@ module OpenShift
         cartridge_env = gear_env.merge(Utils::Environ.load(File.join(path, 'env')))
 
         ident                            = cartridge_env.keys.grep(/^OPENSHIFT_.*_IDENT/)
-        _, software, software_version, _ = Runtime::Cartridge.parse_ident(cartridge_env[ident.first])
+        _, software, software_version, _ = Runtime::Manifest.parse_ident(cartridge_env[ident.first])
         hooks                            = cartridge_hooks(action_hooks, action, software, software_version)
 
         control = File.join(path, 'bin', 'control')

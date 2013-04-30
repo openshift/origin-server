@@ -19,7 +19,7 @@ require_relative 'coverage_helper'
 require 'test/unit'
 require 'mocha'
 
-require 'openshift-origin-node'
+require_relative '../lib/openshift-origin-node'
 
 module OpenShift
   module NodeLogger
