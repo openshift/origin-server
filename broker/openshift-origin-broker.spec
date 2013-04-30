@@ -38,7 +38,6 @@ Requires:      %{?scl:%scl_prefix}mod_passenger
 Requires:      %{?scl:%scl_prefix}rubygem(bson_ext)
 Requires:      %{?scl:%scl_prefix}rubygem(json)
 Requires:      %{?scl:%scl_prefix}rubygem(json_pure)
-Requires:      %{?scl:%scl_prefix}rubygem(minitest)
 # This gem is required by oo-admin-chk, oo-admin-fix-sshkeys, and
 # oo-stats, for OpenShift::DataStore API support
 Requires:      %{?scl:%scl_prefix}rubygem(mongo)
@@ -54,7 +53,6 @@ Requires:      %{?scl:%scl_prefix}rubygem-passenger-native-libs
 Requires:      %{?scl:%scl_prefix}rubygem(rails)
 Requires:      %{?scl:%scl_prefix}rubygem(regin)
 Requires:      %{?scl:%scl_prefix}rubygem(rest-client)
-Requires:      %{?scl:%scl_prefix}rubygem(simplecov)
 Requires:      %{?scl:%scl_prefix}rubygem(systemu)
 Requires:      %{?scl:%scl_prefix}rubygem(xml-simple)
 %if %{with_systemd}
@@ -126,6 +124,12 @@ mv %{buildroot}%{brokerdir}/httpd/httpd.conf.apache-2.4 %{buildroot}%{brokerdir}
 mv %{buildroot}%{brokerdir}/httpd/httpd.conf.apache-2.3 %{buildroot}%{brokerdir}/httpd/httpd.conf
 %endif
 rm %{buildroot}%{brokerdir}/httpd/httpd.conf.apache-*
+
+%if 0%{?fedora} >= 18
+mv %{buildroot}%{brokerdir}/Gemfile.fedora %{buildroot}%{brokerdir}/Gemfile
+%else
+mv %{buildroot}%{brokerdir}/Gemfile.rhel %{buildroot}%{brokerdir}/Gemfile
+%endif
 
 %if 0%{?scl:1}
 rm %{buildroot}%{brokerdir}/httpd/broker.conf

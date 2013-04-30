@@ -28,7 +28,6 @@ Requires:      %{?scl:%scl_prefix}rubygem-passenger-native-libs
 Requires:      %{?scl:%scl_prefix}mod_passenger
 
 %if 0%{?rhel}
-Requires:      %{?scl:%scl_prefix}rubygem-minitest
 Requires:      %{?scl:%scl_prefix}rubygem-therubyracer
 Requires:      openshift-origin-util-scl
 %endif
@@ -43,15 +42,12 @@ BuildRequires:  ruby193-build
 BuildRequires:  scl-utils-build
 BuildRequires: %{?scl:%scl_prefix}rubygem(rails)
 BuildRequires: %{?scl:%scl_prefix}rubygem(compass-rails)
-BuildRequires: %{?scl:%scl_prefix}rubygem(test-unit)
-BuildRequires: %{?scl:%scl_prefix}rubygem(ci_reporter)
 BuildRequires: %{?scl:%scl_prefix}rubygem(sprockets)
 BuildRequires: %{?scl:%scl_prefix}rubygem(rdiscount)
 BuildRequires: %{?scl:%scl_prefix}rubygem(formtastic)
 BuildRequires: %{?scl:%scl_prefix}rubygem(net-http-persistent)
 BuildRequires: %{?scl:%scl_prefix}rubygem(haml)
 BuildRequires: %{?scl:%scl_prefix}rubygem(therubyracer)
-BuildRequires: %{?scl:%scl_prefix}rubygem(minitest)
 %endif
 BuildRequires: %{?scl:%scl_prefix}rubygems-devel
 %if 0%{?fedora} >= 19
@@ -159,6 +155,13 @@ mv %{buildroot}%{consoledir}/httpd/httpd.conf.apache-2.4 %{buildroot}%{consoledi
 mv %{buildroot}%{consoledir}/httpd/httpd.conf.apache-2.3 %{buildroot}%{consoledir}/httpd/httpd.conf
 %endif
 rm %{buildroot}%{consoledir}/httpd/httpd.conf.apache-*
+
+%if 0%{?fedora} >= 18
+mv %{buildroot}%{consoledir}/Gemfile.fedora %{buildroot}%{consoledir}/Gemfile
+%else
+mv %{buildroot}%{consoledir}/Gemfile.rhel %{buildroot}%{consoledir}/Gemfile
+%endif
+
 
 %clean
 rm -rf $RPM_BUILD_ROOT
