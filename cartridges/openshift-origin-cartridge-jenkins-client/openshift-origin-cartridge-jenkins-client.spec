@@ -7,7 +7,7 @@
 
 Summary:       Embedded jenkins client support for OpenShift 
 Name:          openshift-origin-cartridge-jenkins-client
-Version: 1.7.1
+Version: 1.7.2
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -62,6 +62,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Tue Apr 30 2013 Adam Miller <admiller@redhat.com> 1.7.2-1
+- minor fixes (dmcphers@redhat.com)
+
 * Thu Apr 25 2013 Adam Miller <admiller@redhat.com> 1.7.1-1
 - Bug 835778 (dmcphers@redhat.com)
 - Merge pull request #2208 from ironcladlou/dev/v2carts/post-configure
