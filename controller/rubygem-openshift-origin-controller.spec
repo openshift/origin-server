@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.8.2
+Version: 1.8.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -84,6 +84,25 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Tue Apr 30 2013 Adam Miller <admiller@redhat.com> 1.8.3-1
+- Merge pull request #2280 from mrunalp/dev/auto_env_vars
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #2230 from pravisankar/dev/ravi/card559
+  (dmcphers+openshiftbot@redhat.com)
+- Env var WIP. (mrunalp@gmail.com)
+- Merge pull request #2273 from rajatchopra/master
+  (dmcphers+openshiftbot@redhat.com)
+- fix for bug#956117 - cartname is required for start/stop and not comp_name
+  (rchopra@redhat.com)
+- Removed 'setmaxstorage' option for oo-admin-ctl-user script. Added
+  'setmaxtrackedstorage' and 'setmaxuntrackedstorage' options for oo-admin-ctl-
+  user script. Updated oo-admin-ctl-user man page. Max allowed additional fs
+  storage for user will be 'max_untracked_addtl_storage_per_gear' capability +
+  'max_tracked_addtl_storage_per_gear' capability. Don't record usage for
+  additional fs storage if it is less than
+  'max_untracked_addtl_storage_per_gear' limit. Fixed unit tests and models to
+  accommodate the above change. (rpenta@redhat.com)
+
 * Mon Apr 29 2013 Adam Miller <admiller@redhat.com> 1.8.2-1
 - Merge pull request #2254 from ironcladlou/dev/v2carts/process-version
   (dmcphers+openshiftbot@redhat.com)
