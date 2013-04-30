@@ -18,7 +18,7 @@ require 'webmock'
 require 'webmock/minitest'
 require 'openshift-origin-node/utils/node_logger'
 require 'openshift-origin-node/model/cartridge_repository'
-require 'openshift-origin-node/model/cartridge'
+require 'openshift-origin-common/models/manifest'
 require 'digest'
 
 module OpenShift
@@ -159,7 +159,7 @@ module OpenShift
       manifest = IO.read(File.join(cuckoo_source, 'metadata', 'manifest.yml'))
       manifest << ('Source-Url: file://' + cuckoo_repo + '.git')
 
-      cartridge      = OpenShift::Runtime::Cartridge.new(manifest)
+      cartridge      = OpenShift::Runtime::Manifest.new(manifest)
       cartridge_home = "#{@test_home}/gear/mock-plugin"
 
       with_detail_output do
@@ -179,7 +179,7 @@ module OpenShift
       manifest         = IO.read(File.join(cuckoo_source, 'metadata', 'manifest.yml'))
       manifest << ('Source-Url: file://' + cuckoo_source)
 
-      cartridge      = OpenShift::Runtime::Cartridge.new(manifest)
+      cartridge      = OpenShift::Runtime::Manifest.new(manifest)
       cartridge_home = "#{@test_home}/gear/mock-plugin"
 
       with_detail_output do
@@ -197,7 +197,7 @@ module OpenShift
       manifest << 'Source-Url: https://www.example.com/mock-plugin.zip' << "\n"
       manifest << "Source-Md5: #{@zip_hash}"
 
-      cartridge      = OpenShift::Runtime::Cartridge.new(manifest)
+      cartridge      = OpenShift::Runtime::Manifest.new(manifest)
       cartridge_home = "#{@test_home}/gear/mock-plugin"
 
       with_detail_output do
@@ -214,7 +214,7 @@ module OpenShift
       manifest << 'Source-Url: https://www.example.com/mock-plugin.zip' << "\n"
       manifest << 'Source-Md5: 666'
 
-      cartridge      = OpenShift::Runtime::Cartridge.new(manifest)
+      cartridge      = OpenShift::Runtime::Manifest.new(manifest)
       cartridge_home = "#{@test_home}/gear/mock-plugin"
 
       assert_raise (IOError) do
@@ -229,7 +229,7 @@ module OpenShift
       manifest = IO.read(File.join(@cartridge.manifest_path))
       manifest << 'Source-Url: https://www.example.com/malformed.zip' << "\n"
 
-      cartridge      = OpenShift::Runtime::Cartridge.new(manifest)
+      cartridge      = OpenShift::Runtime::Manifest.new(manifest)
       cartridge_home = "#{@test_home}/gear/mock-plugin"
 
       e = assert_raise (OpenShift::MalformedCartridgeError) do
@@ -246,7 +246,7 @@ module OpenShift
       manifest << 'Source-Url: https://www.example.com/mock-plugin.tar.gz' << "\n"
       manifest << "Source-Md5: #{@tgz_hash}"
 
-      cartridge      = OpenShift::Runtime::Cartridge.new(manifest)
+      cartridge      = OpenShift::Runtime::Manifest.new(manifest)
       cartridge_home = "#{@test_home}/gear/mock-plugin"
 
       with_detail_output do
@@ -264,7 +264,7 @@ module OpenShift
       manifest << 'Source-Url: http://www.example.com/mock-plugin.tar' << "\n"
       manifest << "Source-Md5: #{@tar_hash}"
 
-      cartridge      = OpenShift::Runtime::Cartridge.new(manifest)
+      cartridge      = OpenShift::Runtime::Manifest.new(manifest)
       cartridge_home = "#{@test_home}/gear/mock-plugin"
 
       with_detail_output do

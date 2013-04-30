@@ -15,16 +15,11 @@
 # limitations under the License.
 #++
 #
-# Test the OpenShift application_container model
+# Test the OpenShift manifest model
 #
 require_relative '../test_helper'
-require 'yaml'
 
-module OpenShift
-  ;
-end
-
-class CartridgeTest < Test::Unit::TestCase
+class ManifestTest < Test::Unit::TestCase
 
   def teardown
     YAML.unstub(:load_file)
@@ -35,7 +30,7 @@ class CartridgeTest < Test::Unit::TestCase
     YAML.stubs(:load_file).with('mock_manifest').returns(YAML.load(MANIFEST))
     File.stubs(:exist?).with('mock_manifest').returns(true)
 
-    cart       = OpenShift::Runtime::Cartridge.new('mock_manifest')
+    cart       = OpenShift::Runtime::Manifest.new('mock_manifest')
     components = cart.manifest['Group-Overrides'].first['components']
 
     assert_equal 'mock', cart.name
@@ -50,7 +45,7 @@ class CartridgeTest < Test::Unit::TestCase
     YAML.stubs(:load_file).with('mock_manifest').returns(YAML.load(MANIFEST))
     File.stubs(:exist?).with('mock_manifest').returns(true)
 
-    cart       = OpenShift::Runtime::Cartridge.new('mock_manifest', '0.2')
+    cart       = OpenShift::Runtime::Manifest.new('mock_manifest', '0.2')
     components = cart.manifest['Group-Overrides'].first['components']
 
     assert_equal 'mock',      cart.name
@@ -66,7 +61,7 @@ class CartridgeTest < Test::Unit::TestCase
     url      = 'http://www.example.com/killer-cartridge.zip'
     manifest = MANIFEST.concat("Source-Url: #{url}\n")
 
-    cart     = OpenShift::Runtime::Cartridge.new(manifest)
+    cart     = OpenShift::Runtime::Manifest.new(manifest)
 
     refute_nil   cart
     assert_equal url, cart.source_url
@@ -78,7 +73,7 @@ class CartridgeTest < Test::Unit::TestCase
     manifest = MANIFEST.concat("Source-Url: #{url}\n")
 
     assert_raise OpenShift::InvalidElementError do
-      OpenShift::Runtime::Cartridge.new(manifest)
+      OpenShift::Runtime::Manifest.new(manifest)
     end
   end
 

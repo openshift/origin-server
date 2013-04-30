@@ -17,7 +17,7 @@ module OpenShift
     def get_cartridge(cart_name)
       begin
         manifest_path = File.join(@config.get('CARTRIDGE_BASE_PATH'), cart_name, 'info', 'manifest.yml')
-        return OpenShift::Runtime::Cartridge.new(manifest_path)
+        return OpenShift::Runtime::Manifest.new(manifest_path)
       rescue => e
         logger.error(e.backtrace)
         raise "Failed to load cart manifest from #{manifest_path} for cart #{cart_name} in gear #{@user.uuid}: #{e.message}"
