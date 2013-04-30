@@ -1,5 +1,8 @@
 #!/bin/bash -eu
 
+source $OPENSHIFT_CARTRIDGE_SDK_BASH
+source $OPENSHIFT_PYTHON_DIR/lib/util
+
 case "$1" in
     -v|--version)
       version="$2"
@@ -7,5 +10,15 @@ esac
 
 echo "$version" > "$OPENSHIFT_PYTHON_DIR/env/OPENSHIFT_PYTHON_VERSION"
 
+if [ ${LD_LIBRARY_PATH:-""} == "" ]
+then
+    echo "$OPENSHIFT_PYTHON_DIR/opt/lib" > $OPENSHIFT_PYTHON_DIR/env/LD_LIBRARY_PATH
+else
+    $(prepend_path "$LD_LIBRARY_PATH" "$OPENSHIFT_PYTHON_DIR/opt/lib") > $OPENSHIFT_PYTHON_DIR/env/LD_LIBRARY_PATH
+fi
+
+update-configuration $version
+
 # Call the version specific setup script
 exec $OPENSHIFT_PYTHON_DIR/versions/$version/bin/install $version
+

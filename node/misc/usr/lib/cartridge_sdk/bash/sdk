@@ -272,3 +272,30 @@ function primary_cartridge_name() {
 function marker_present() {
   [ -f "${OPENSHIFT_REPO_DIR}/.openshift/markers/$1" ]
 }
+
+# Add element to end of path
+#
+# $1 path
+# $2 element to add
+# return modified path
+path_append ()  {
+    echo -n "$(path_remove $1 $2):$2"
+}
+
+# Add element to front of path
+#
+# $1 path
+# $2 element to add
+# return modified path
+function path_prepend () {
+    echo -n "$2:$(path_remove $1 $2)"
+}
+
+# Remove element from path
+#
+# $1 path
+# $2 element to remove
+# return modified path
+function path_remove ()  {
+    echo -n $(echo -n $1 | awk -v RS=: -v ORS=: '$0 != "'$2'"' | sed 's/:$//')
+}
