@@ -10,7 +10,7 @@
 
 Summary:       M-Collective agent file for openshift-origin-msg-node-mcollective
 Name:          openshift-origin-msg-node-mcollective
-Version: 1.8.2
+Version: 1.8.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -51,6 +51,12 @@ cp -p facts/update_yaml.rb %{buildroot}/usr/libexec/mcollective/
 %attr(0700,-,-) %config(noreplace) /etc/cron.minutely/openshift-facts
 
 %changelog
+* Tue Apr 30 2013 Adam Miller <admiller@redhat.com> 1.8.3-1
+- Env var WIP. (mrunalp@gmail.com)
+- Merge pull request #2201 from BanzaiMan/dev/hasari/c276
+  (dmcphers+openshiftbot@redhat.com)
+- Card 276 (asari.ruby@gmail.com)
+
 * Mon Apr 29 2013 Adam Miller <admiller@redhat.com> 1.8.2-1
 - Merge pull request #2255 from brenton/oo-accept-systems
   (dmcphers+openshiftbot@redhat.com)
