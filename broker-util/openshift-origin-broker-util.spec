@@ -6,7 +6,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin broker
 Name:          openshift-origin-broker-util
-Version: 1.8.3
+Version: 1.8.4
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -85,6 +85,29 @@ cp man/*.8 %{buildroot}%{_mandir}/man8/
 %{_mandir}/man8/oo-stats.8.gz
 
 %changelog
+* Tue Apr 30 2013 Adam Miller <admiller@redhat.com> 1.8.4-1
+- Merge pull request #2279 from abhgupta/abhgupta-dev
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #2230 from pravisankar/dev/ravi/card559
+  (dmcphers+openshiftbot@redhat.com)
+- Displaying the count of applications fixed/failed for ssh key mismatches
+  (abhgupta@redhat.com)
+- Preventing false positives from being reported for oo-admin-chk and bug fixes
+  - Fix for bug 954800  - Fix for bug 955187  - Fix for bug 955359
+  (abhgupta@redhat.com)
+- Merge pull request #2263 from sosiouxme/bz957818
+  (dmcphers+openshiftbot@redhat.com)
+- <cache> bug 957818 - clear-cache script, oo-cart-version uses it
+  (lmeyer@redhat.com)
+- Removed 'setmaxstorage' option for oo-admin-ctl-user script. Added
+  'setmaxtrackedstorage' and 'setmaxuntrackedstorage' options for oo-admin-ctl-
+  user script. Updated oo-admin-ctl-user man page. Max allowed additional fs
+  storage for user will be 'max_untracked_addtl_storage_per_gear' capability +
+  'max_tracked_addtl_storage_per_gear' capability. Don't record usage for
+  additional fs storage if it is less than
+  'max_untracked_addtl_storage_per_gear' limit. Fixed unit tests and models to
+  accommodate the above change. (rpenta@redhat.com)
+
 * Mon Apr 29 2013 Adam Miller <admiller@redhat.com> 1.8.3-1
 - Fixing the rest-client dependency in broker-util (bleanhar@redhat.com)
 - Bug 957045 - fixing oo-accept-systems for v2 cartridges (bleanhar@redhat.com)
