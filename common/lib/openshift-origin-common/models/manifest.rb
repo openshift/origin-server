@@ -14,10 +14,9 @@
 # limitations under the License.
 #++
 
+require 'openshift-origin-common/utils/path_utils'
 require 'uri'
 require 'yaml'
-require 'openshift-origin-node/utils/path_utils'
-
 
 module OpenShift
 
@@ -51,13 +50,12 @@ module OpenShift
     end
   end
 
-  # FIXME: Why is this class in it's own namespace?
   module Runtime
     #
-    # Cartridge is a wrapper class for cartridge manifests.
+    # Manifest is a wrapper class for cartridge manifests.
     #
     # Wrapper speeds up access and provides fixed API
-    class Cartridge
+    class Manifest
 
       #
       # Class to support Manifest +Endpoint+ elements

@@ -85,6 +85,7 @@ cp -a ./%{gem_dir}/* %{buildroot}%{gem_dir}/
 %doc %{gem_instdir}/Rakefile
 %doc %{gem_instdir}/README.md
 %doc %{gem_instdir}/%{gem_name}.gemspec
+%{gem_instdir}
 %{gem_spec}
 %{gem_libdir}
 
