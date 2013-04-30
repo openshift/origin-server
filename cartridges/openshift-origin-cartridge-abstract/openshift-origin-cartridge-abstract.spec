@@ -7,7 +7,7 @@
 
 Summary:       OpenShift common cartridge components
 Name:          openshift-origin-cartridge-abstract
-Version: 1.8.1
+Version: 1.8.2
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -90,6 +90,9 @@ cp -rv -p abstract-jboss %{buildroot}%{cartdir}/
 %doc %{_libexecdir}/openshift/cartridges/abstract-jboss/README.md
 
 %changelog
+* Tue Apr 30 2013 Adam Miller <admiller@redhat.com> 1.8.2-1
+- Card 276 (asari.ruby@gmail.com)
+
 * Thu Apr 25 2013 Adam Miller <admiller@redhat.com> 1.8.1-1
 - Bug 955492: Fix rsync command to correct hot deployment
   (ironcladlou@gmail.com)
