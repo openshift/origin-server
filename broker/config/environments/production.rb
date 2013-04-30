@@ -78,7 +78,8 @@ Broker::Application.configure do
     :community_quickstarts_url => conf.get("COMMUNITY_QUICKSTARTS_URL"),
     :scopes => ['Scope::Session', 'Scope::Read', 'Scope::Application', 'Scope::Userinfo'],
     :default_scope => 'userinfo',
-    :scope_expirations => OpenShift::Controller::Configuration.parse_expiration(conf.get('AUTH_SCOPE_TIMEOUTS'), 1.day)
+    :scope_expirations => OpenShift::Controller::Configuration.parse_expiration(conf.get('AUTH_SCOPE_TIMEOUTS'), 1.day),
+    :external_cartridges_enabled => false
   }
 
   config.auth = {
@@ -87,5 +88,12 @@ Broker::Application.configure do
     :privkeypass => conf.get("AUTH_PRIVKEYPASS", ""),
     :pubkeyfile  => conf.get("AUTH_PUBKEYFILE", "/var/www/openshift/broker/config/server_pub.pem"),
     :rsync_keyfile => conf.get("AUTH_RSYNC_KEY_FILE", "/etc/openshift/rsync_id_rsa")
+  }
+
+  config.external_cartridges = {
+    :max_external_carts_per_app => 5,
+    :max_download_redirects => 2,
+    :max_cart_size => 20480,
+    :max_download_time => 10
   }
 end

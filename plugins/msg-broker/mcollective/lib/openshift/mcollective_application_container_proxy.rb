@@ -705,6 +705,10 @@ module OpenShift
         
         args = build_base_gear_args(gear)
         args['--cart-name'] = cart
+
+        if gear.app.external_cart_map.has_key? cart
+          args['--with-cartridge-manifest'] = app.external_cart_map[cart]["manifest"]
+        end
         
         if !template_git_url.nil?  && !template_git_url.empty?
           args['--with-template-git-url'] = template_git_url
@@ -2298,6 +2302,9 @@ module OpenShift
 
         args = build_base_gear_args(gear)
         args['--cart-name'] = component
+        if app.external_cart_map.has_key? component
+          args['--with-cartridge-manifest'] = app.external_cart_map[component]["manifest"]
+        end
         
         begin
           reply.append run_cartridge_command(component, gear, 'configure', args)
