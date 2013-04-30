@@ -2,7 +2,7 @@
 
 Summary:       Provides JBossEWS2.0 support
 Name:          openshift-origin-cartridge-jbossews
-Version: 0.3.2
+Version: 0.3.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -84,6 +84,22 @@ alternatives --set jbossews-2.0 /usr/share/tomcat7
 
 
 %changelog
+* Tue Apr 30 2013 Adam Miller <admiller@redhat.com> 0.3.3-1
+- Merge pull request #2280 from mrunalp/dev/auto_env_vars
+  (dmcphers+openshiftbot@redhat.com)
+- Env var WIP. (mrunalp@gmail.com)
+- Merge pull request #2275 from jwhonce/wip/cartridge_path
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #2270 from ironcladlou/dev/v2carts/jbossews
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #2201 from BanzaiMan/dev/hasari/c276
+  (dmcphers+openshiftbot@redhat.com)
+- Card online_runtime_266 - Renamed OPENSHIFT_<short name>_PATH to
+  OPENSHIFT_<short name>_PATH_ELEMENT (jhonce@redhat.com)
+- Implement multi-versioned jbossews-1.0/2.0 v2 cartridge
+  (ironcladlou@gmail.com)
+- Card 276 (asari.ruby@gmail.com)
+
 * Mon Apr 29 2013 Adam Miller <admiller@redhat.com> 0.3.2-1
 - Add health urls to each v2 cartridge. (rmillner@redhat.com)
 - Merge pull request #2252 from danmcp/master
