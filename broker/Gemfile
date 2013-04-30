@@ -15,6 +15,15 @@ gem 'bson_ext'
 gem 'pry', :require => 'pry' if ENV['PRY']
 gem 'minitest'
 
+# For performance reasons, the following scripts will not be
+# refactored to use mongoid exclusively:
+#  * broker-util/oo-admin-chk
+#  * broker-util/oo-admin-fix-sshkeys
+#  * broker-util/oo-stats
+# These scripts use the OpenShift::DataStore API, and thus depend on
+# the mongo rubygem:
+gem 'mongo'
+
 if ENV['SOURCE']
   gem 'openshift-origin-common', :path => '../common'
   gem 'openshift-origin-controller', :path => '../controller'
