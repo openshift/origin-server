@@ -74,6 +74,8 @@ function pre-build() {
 
 function build() {
     echo "Running build on Ruby cart"
+    update-configuration $OPENSHIFT_PYTHON_VERSION
+
     USED_BUNDLER=false
     if [ -d $OPENSHIFT_RUBY_DIR/tmp/.bundle ]
     then
@@ -163,14 +165,15 @@ function _threaddump() {
 }
 
 case "$1" in
-  start)     start ;;
-  stop)      stop ;;
-  restart | reload )   restart $1 ;;
-  status)    status ;;
-  tidy)      tidy ;;
-  pre-build) pre-build ;;
-  build)     build ;;
-  post-deploy) post-deploy ;;
-  threaddump) threaddump ;;
-  *)         exit 0
+  start)             start ;;
+  stop)              stop ;;
+  restart | reload ) restart $1 ;;
+  status)            status ;;
+  tidy)              tidy ;;
+  pre-build)         pre-build ;;
+  build)             build ;;
+  post-deploy)       post-deploy ;;
+  threaddump)        threaddump ;;
+  process-version)   update-configuration $OPENSHIFT_PYTHON_VERSION;;
+  *)                 exit 0
 esac
