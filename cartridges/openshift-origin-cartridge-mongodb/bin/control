@@ -11,7 +11,9 @@ fi
 
 function isrunning() {
     if [ -f $OPENSHIFT_MONGODB_DIR/pid/mongodb.pid ]; then
+        set +e
         mongodb_pid=`cat $OPENSHIFT_MONGODB_DIR/pid/mongodb.pid 2> /dev/null`
+        set -e
         myid=`id -u`
         if `ps --pid $mongodb_pid 2>&1 | grep mongod > /dev/null 2>&1` || `pgrep -x mongod -u $myid > /dev/null 2>&1`
         then
@@ -69,16 +71,22 @@ function start() {
 
 function stop() {
     if [ -f $OPENSHIFT_MONGODB_DIR/pid/mongodb.pid ]; then
-        pid=$( /bin/cat $OPENSHIFT_MONGODB_DIR/pid/mongodb.pid )
+        set +e
+        pid=$( /bin/cat $OPENSHIFT_MONGODB_DIR/pid/mongodb.pid 2>/dev/null )
+        set -e
     fi
 
     if [ -n "$pid" ]; then
-        /bin/kill $pid
+        set +e
+        /bin/kill $pid 2>/dev/null
+        set -e
         ret=$?
         if [ $ret -eq 0 ]; then
             TIMEOUT="$STOPTIMEOUT"
             while [ $TIMEOUT -gt 0 ] && [ -f "$OPENSHIFT_MONGODB_DIR/pid/mongodb.pid" ]; do
+                set +e
                 /bin/kill -0 "$pid" >/dev/null 2>&1 || break
+                set -e
                 sleep 1
                 let TIMEOUT=${TIMEOUT}-1
             done
