@@ -1,6 +1,6 @@
 Summary:       Utility scripts for the OpenShift Origin broker
 Name:          openshift-origin-node-util
-Version: 1.8.3
+Version: 1.8.4
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -120,6 +120,12 @@ mv services/openshift-gears.service %{buildroot}/etc/systemd/system/openshift-ge
 /sbin/restorecon /usr/sbin/oo-restorer* || :
 
 %changelog
+* Tue Apr 30 2013 Adam Miller <admiller@redhat.com> 1.8.4-1
+- Merge pull request #2263 from sosiouxme/bz957818
+  (dmcphers+openshiftbot@redhat.com)
+- <cache> bug 957818 - clear-cache script, oo-cart-version uses it
+  (lmeyer@redhat.com)
+
 * Mon Apr 29 2013 Adam Miller <admiller@redhat.com> 1.8.3-1
 - Temporarily disable check_system_httpd_configs. (rmillner@redhat.com)
 
