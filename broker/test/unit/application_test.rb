@@ -75,7 +75,7 @@ class ApplicationsTest < ActionDispatch::IntegrationTest #ActiveSupport::TestCas
     app = Application.create_app(@appname, ["php-5.3", "mysql-5.1"], @domain, "small", true)
     app = Application.find_by(name: @appname, domain_id: @domain._id) rescue nil
 
-    @user.capabilities["max_storage_per_gear"] = 10
+    @user.capabilities["max_untracked_addtl_storage_per_gear"] = 5
     @user.save
     app.reload
     component_instance = app.component_instances.find_by(cartridge_name: "php-5.3")

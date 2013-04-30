@@ -4,6 +4,8 @@ NAME
 SYNOPSIS
   oo-admin-ctl-user [-h|--help] [-l|--login login_name] 
   [--setmaxgears max_gears] [--setconsumedgears consumed_gears]
+  [--setmaxuntrackedstorage max_untracked_storage]
+  [--setmaxtrackedstorage max_tracked_storage]
   [--listsubaccounts] [--addsubaccount subaccount_login]
   [--removesubaccount subaccount_login] [--allowsubaccounts true|false]
   [--addgearsize gear_size] [--removegearsize gear_size]
@@ -25,6 +27,12 @@ OPTIONS
   --setconsumedgears consumed_gears  
     Set the number of gears an user has consumed. Use with caution.
 
+  --setmaxuntrackedstorage max_untracked_storage 
+    Set the maximum amount of untracked additional file-system storage.
+
+  --setmaxtrackedstorage max_tracked_storage 
+    Set the maximum amount of tracked additional file-system storage.
+ 
   --listsubaccounts  
     List the subaccounts that have been created under this parent account.
     (login)

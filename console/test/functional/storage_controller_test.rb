@@ -1,13 +1,13 @@
 require File.expand_path('../../test_helper', __FILE__)
 
 class StorageControllerTest < ActionController::TestCase
-  test "should show with max_storage_per_gear" do
+  test "should show with max storage per gear" do
     get :show, {:application_id => with_storage_app.to_param}
 
     assert_response :success
   end
 
-  test "should not be able to set storage higher than user's max_storage_per_gear" do
+  test "should not be able to set storage higher than user's max storage per gear" do
     set_storage(with_storage_app,'ruby-1.8',100,false)
 
     assert flash[:error].length == 1, "Should only get one error"

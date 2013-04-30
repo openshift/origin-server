@@ -26,8 +26,10 @@ Options:
     Login with OpenShift access (required)
   --setmaxgears <number>
     Set the maximum number of gears a user is allowed to use
-  --setmaxstorage <number>
-    Set the maximum storage additional storage per gear for a user
+  --setmaxtrackedstorage <number>
+    Set the maximum additional storage per gear that will be tracked for a user
+  --setmaxuntrackedstorage <number>
+    Set the maximum additional storage per gear that will be untracked for a user
   --setconsumedgears <number>
     Set the number of gears a user has consumed (use carefully)
   --listsubaccounts
@@ -87,15 +89,33 @@ def set_max_gears(user, maxgears)
     end
 end
 
-def set_max_storage(user, maxstorage)
+def set_max_tracked_storage(user, maxtrackedstorage)
     user_capabilities = user.get_capabilities
-    if user_capabilities["max_storage_per_gear"] == maxstorage
-        puts "User already has max_storage_per_gear set to #{user_capabilities['max_storage_per_gear']}"
+    if user_capabilities["max_tracked_addtl_storage_per_gear"] == maxtrackedstorage
+        puts "User already has max_tracked_addtl_storage_per_gear set to #{user_capabilities['max_tracked_addtl_storage_per_gear']}"
         return
     end
 
-    print "Setting max_storage_per_gear to #{maxstorage}... "
-    user_capabilities["max_storage_per_gear"]=maxstorage
+    print "Setting max_tracked_addtl_storage_per_gear to #{maxtrackedstorage}... "
+    user_capabilities["max_tracked_addtl_storage_per_gear"]=maxtrackedstorage
+    user.set_capabilities(user_capabilities)
+    if user.save
+        puts "Done."
+    else
+        puts "An error occurred saving the user."
+        exit 6
+    end
+end
+
+def set_max_untracked_storage(user, maxuntrackedstorage)
+    user_capabilities = user.get_capabilities
+    if user_capabilities["max_untracked_addtl_storage_per_gear"] == maxuntrackedstorage
+        puts "User already has max_untracked_addtl_storage_per_gear set to #{user_capabilities['max_untracked_addtl_storage_per_gear']}"
+        return
+    end
+
+    print "Setting max_untracked_addtl_storage_per_gear to #{maxuntrackedstorage}... "
+    user_capabilities["max_untracked_addtl_storage_per_gear"]=maxuntrackedstorage
     user.set_capabilities(user_capabilities)
     if user.save
         puts "Done."
@@ -311,7 +331,8 @@ end
 opts = GetoptLong.new(
     ["--login",          "-l", GetoptLong::REQUIRED_ARGUMENT],
     ["--setmaxgears",      GetoptLong::REQUIRED_ARGUMENT],
-    ["--setmaxstorage",    GetoptLong::REQUIRED_ARGUMENT],
+    ["--setmaxtrackedstorage", GetoptLong::REQUIRED_ARGUMENT],
+    ["--setmaxuntrackedstorage", GetoptLong::REQUIRED_ARGUMENT],
     ["--setconsumedgears", GetoptLong::REQUIRED_ARGUMENT],
     ["--listsubaccounts",  GetoptLong::NO_ARGUMENT],
     ["--addsubaccount",    GetoptLong::REQUIRED_ARGUMENT],
@@ -345,12 +366,20 @@ if args["--setmaxgears"]
   maxgears = args["--setmaxgears"].to_i
 end
 
-if args["--setmaxstorage"]
-  unless args["--setmaxstorage"] =~ /^[0-9]+$/
-    puts "ERROR: Max storage must be a positive integer"
+if args["--setmaxtrackedstorage"]
+  unless args["--setmaxtrackedstorage"] =~ /^[0-9]+$/
+    puts "ERROR: Max tracked storage must be a positive integer"
     exit 1
   end
-  maxstorage = args["--setmaxstorage"].to_i
+  maxtrackedstorage = args["--setmaxtrackedstorage"].to_i
+end
+
+if args["--setmaxuntrackedstorage"]
+  unless args["--setmaxuntrackedstorage"] =~ /^[0-9]+$/
+    puts "ERROR: Max untracked storage must be a positive integer"
+    exit 1
+  end
+  maxuntrackedstorage = args["--setmaxuntrackedstorage"].to_i
 end
 
 if args["--setconsumedgears"]
@@ -392,8 +421,13 @@ unless maxgears.nil?
     changed_user = true
 end
 
-unless maxstorage.nil?
-    set_max_storage(user,maxstorage)
+unless maxtrackedstorage.nil?
+    set_max_tracked_storage(user,maxtrackedstorage)
+    changed_user = true
+end
+
+unless maxuntrackedstorage.nil?
+    set_max_untracked_storage(user,maxuntrackedstorage)
     changed_user = true
 end
 
@@ -454,14 +488,15 @@ user_capabilities = user.get_capabilities
 
 # print out the user's current settings
 puts "User #{user.login}:"
-puts "      consumed gears: #{user.consumed_gears}"
-puts "           max gears: #{user_capabilities['max_gears']}"
-puts "max storage per gear: #{user_capabilities['max_storage_per_gear'] || 0}"
-puts "plan upgrade enabled: #{user_capabilities['plan_upgrade_enabled']}"
-puts "          gear sizes: #{user_capabilities['gear_sizes'].join(', ')}" if user_capabilities.has_key?('gear_sizes')
-puts "sub accounts allowed: #{user_capabilities['subaccounts']}" if user_capabilities.has_key?('subaccounts')
+puts "                  consumed gears: #{user.consumed_gears}"
+puts "                       max gears: #{user_capabilities['max_gears']}"
+puts "    max tracked storage per gear: #{user_capabilities['max_tracked_addtl_storage_per_gear'] || 0}"
+puts "  max untracked storage per gear: #{user_capabilities['max_untracked_addtl_storage_per_gear'] || 0}"
+puts "            plan upgrade enabled: #{user_capabilities['plan_upgrade_enabled']}"
+puts "                      gear sizes: #{user_capabilities['gear_sizes'].join(', ')}" if user_capabilities.has_key?('gear_sizes')
+puts "            sub accounts allowed: #{user_capabilities['subaccounts']}" if user_capabilities.has_key?('subaccounts')
 puts "private SSL certificates allowed: #{user_capabilities['private_ssl_certificates']}" if user_capabilities.has_key?('private_ssl_certificates')
-puts "  inherit gear sizes: #{user_capabilities['inherit_on_subaccounts'].include?('gear_sizes')}" if user_capabilities.has_key?('inherit_on_subaccounts')
+puts "              inherit gear sizes: #{user_capabilities['inherit_on_subaccounts'].include?('gear_sizes')}" if user_capabilities.has_key?('inherit_on_subaccounts')
 puts 
 if args["--listsubaccounts"] and (not subaccount_list.nil?) and (not subaccount_list.empty?)
     puts "Sub Accounts: #{subaccount_list.length}"
