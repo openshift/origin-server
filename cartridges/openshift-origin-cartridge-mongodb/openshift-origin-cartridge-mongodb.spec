@@ -3,7 +3,7 @@
 
 Summary:       Embedded mongodb support for OpenShift
 Name:          openshift-origin-cartridge-mongodb
-Version: 1.7.1
+Version: 1.7.2
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -63,6 +63,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Tue Apr 30 2013 Adam Miller <admiller@redhat.com> 1.7.2-1
+- Env var WIP. (mrunalp@gmail.com)
+
 * Thu Apr 25 2013 Adam Miller <admiller@redhat.com> 1.7.1-1
 - Split v2 configure into configure/post-configure (ironcladlou@gmail.com)
 - more install/post-install scripts (dmcphers@redhat.com)
