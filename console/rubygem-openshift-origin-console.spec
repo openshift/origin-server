@@ -9,7 +9,7 @@
 
 Summary:       OpenShift Origin Management Console
 Name:          rubygem-%{gem_name}
-Version: 1.8.2
+Version: 1.8.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -147,6 +147,21 @@ cp -a ./%{gem_dir}/* %{buildroot}%{gem_dir}/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Tue Apr 30 2013 Adam Miller <admiller@redhat.com> 1.8.3-1
+- Merge pull request #2281 from smarterclayton/add_link_block
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #2230 from pravisankar/dev/ravi/card559
+  (dmcphers+openshiftbot@redhat.com)
+- Add a link-block class (ccoleman@redhat.com)
+- Removed 'setmaxstorage' option for oo-admin-ctl-user script. Added
+  'setmaxtrackedstorage' and 'setmaxuntrackedstorage' options for oo-admin-ctl-
+  user script. Updated oo-admin-ctl-user man page. Max allowed additional fs
+  storage for user will be 'max_untracked_addtl_storage_per_gear' capability +
+  'max_tracked_addtl_storage_per_gear' capability. Don't record usage for
+  additional fs storage if it is less than
+  'max_untracked_addtl_storage_per_gear' limit. Fixed unit tests and models to
+  accommodate the above change. (rpenta@redhat.com)
+
 * Mon Apr 29 2013 Adam Miller <admiller@redhat.com> 1.8.2-1
 - Merge pull request #2206 from fabianofranz/master
   (dmcphers+openshiftbot@redhat.com)
