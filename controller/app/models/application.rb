@@ -960,6 +960,59 @@ class Application
     self.connections = conns
   end
 
+  def get_unsubscribe_connections(comp_inst, old_connections, new_connections)
+    unsubscribe_conns = []
+    if self.scalable
+      pub_conns = []
+      old_connections.each do |old_conn|
+        if (old_conn["from_comp_inst"]["cart"] == comp_inst.cartridge_name) and
+           (old_conn["from_comp_inst"]["comp"] == comp_inst.component_name)
+          pub_conns << old_conn
+        end
+      end if old_connections
+
+      pub_conns.each do |pub_conn|
+        found = false
+        new_connections.each do |new_conn|
+          if pub_conn == new_conn
+            found = true
+            break
+          end
+        end
+        unless found
+          unsubscribe_conns << pub_conn
+        end
+      end
+    end
+    unsubscribe_conns
+  end
+
+  def unsubscribe_connections(connections)
+    if self.scalable
+      Rails.logger.debug "Running unsubscribe connections"
+      handle = RemoteJob.create_parallel_job
+      connections.each do |conn|
+        sub_inst = self.component_instances.find_by(cartridge_name: conn["to_comp_inst"]["cart"], component_name: conn["to_comp_inst"]["comp"])
+        sub_ginst = self.group_instances.find(sub_inst.group_instance_id)
+        pub_cart_name = conn["from_comp_inst"]["cart"]
+        tag = sub_inst._id.to_s
+
+        sub_ginst.gears.each_index do |idx|
+          gear = sub_ginst.gears[idx]
+          job = gear.get_unsubscribe_job(sub_inst.cartridge_name, pub_cart_name)
+          RemoteJob.add_parallel_job(handle, tag, gear, job)
+        end
+      end if connections
+      RemoteJob.execute_parallel_jobs(handle)
+      RemoteJob.get_parallel_run_results(handle) do |tag, gear_id, output, status|
+        if status != 0
+          Rails.logger.error "Unsubscribe Connection event failed:: tag: #{tag}, gear_id: #{gear_id},"\
+                             "output: #{output}, status: #{status}"
+        end
+      end
+    end
+  end
+
   def execute_connections
     if self.scalable
       Rails.logger.debug "Running publishers"
@@ -1367,7 +1420,7 @@ class Application
     calculate_ops(changes)
   end
 
-  def calculate_remove_group_instance_ops(comp_specs, group_instance)
+  def calculate_remove_group_instance_ops(comp_specs, group_instance, connections)
     pending_ops = []
     gear_destroy_ops = calculate_gear_destroy_ops(group_instance._id.to_s, group_instance.gears.map{|g| g._id.to_s}, group_instance.addtl_fs_gb)
     pending_ops.push(*gear_destroy_ops)
@@ -1376,6 +1429,11 @@ class Application
     delete_comp_ops = []
     comp_specs.each do |comp_spec|
       comp_instance = self.component_instances.find_by(cartridge_name: comp_spec["cart"], component_name: comp_spec["comp"])
+      old_connections = self.connections.map{|conn| conn.to_hash}
+      unsubscribe_conns = get_unsubscribe_connections(comp_instance, old_connections, connections)
+      unless unsubscribe_conns.empty?
+        pending_ops.push(PendingAppOp.new(op_type: :unsubscribe_connections, args: {"connections"=> unsubscribe_conns}, prereq: gear_destroy_op_ids))
+      end
       remove_ssh_keys = self.app_ssh_keys.find_by(component_id: comp_instance._id) rescue []
       remove_ssh_keys = [remove_ssh_keys].flatten
       if remove_ssh_keys.length > 0
@@ -1610,12 +1668,13 @@ class Application
     comp_op_type
   end
 
-  def calculate_remove_component_ops(comp_specs, group_instance, singleton_gear)
+  def calculate_remove_component_ops(comp_specs, group_instance, singleton_gear, connections)
     ops = []
     comp_specs.each do |comp_spec|
       component_instance = self.component_instances.find_by(cartridge_name: comp_spec["cart"], component_name: comp_spec["comp"])
       cartridge = CartridgeCache.find_cartridge(comp_spec["cart"], self)
       if component_instance.is_plugin? || (!self.scalable && component_instance.is_embeddable?)
+        op = nil
         if component_instance.is_singleton?
           op = PendingAppOp.new(op_type: :remove_component, args: {"group_instance_id"=> group_instance._id.to_s, "gear_id" => singleton_gear._id.to_s, "comp_spec" => comp_spec})
           ops.push op
@@ -1630,6 +1689,11 @@ class Application
               "app_name" => self.name, "gear_ref" => gear._id.to_s, "event" => UsageRecord::EVENTS[:end],
               "usage_type" => UsageRecord::USAGE_TYPES[:premium_cart], "cart_name" => comp_spec["cart"]}, prereq: [op._id.to_s])) if cartridge.is_premium?
           end
+        end
+        old_connections = self.connections.map{|conn| conn.to_hash}
+        unsubscribe_conns = get_unsubscribe_connections(component_instance, old_connections, connections)
+        unless unsubscribe_conns.empty?
+          ops.push(PendingAppOp.new(op_type: :unsubscribe_connections, args: {"connections"=> unsubscribe_conns}, prereq: [op._id.to_s]))
         end
       end
       remove_ssh_keys = self.app_ssh_keys.find_by(component_id: component_instance._id) rescue []
@@ -1712,7 +1776,7 @@ class Application
         if change[:to].nil?
           remove_gears += change[:from_scale][:current]
 
-          group_instance_remove_ops = calculate_remove_group_instance_ops(change[:removed], group_instance)
+          group_instance_remove_ops = calculate_remove_group_instance_ops(change[:removed], group_instance, connections)
           pending_ops.push(*group_instance_remove_ops)
         else
           scale_change = 0
@@ -1728,7 +1792,7 @@ class Application
           end
 
           singleton_gear = group_instance.gears.find_by(host_singletons: true)
-          ops = calculate_remove_component_ops(change[:removed], group_instance, singleton_gear)
+          ops = calculate_remove_component_ops(change[:removed], group_instance, singleton_gear, connections)
           pending_ops.push(*ops)
 
           gear_id_prereqs = {}
