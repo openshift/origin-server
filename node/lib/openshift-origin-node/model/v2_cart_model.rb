@@ -284,15 +284,17 @@ module OpenShift
     #
     # deconfigure('php-5.3')
     def deconfigure(cartridge_name)
+      teardown_output = ''
+
       cartridge = get_cartridge(cartridge_name)
       delete_private_endpoints(cartridge)
       OpenShift::Utils::Cgroups::with_no_cpu_limits(@user.uuid) do
         stop_cartridge(cartridge, user_initiated: true)
-        unlock_gear(cartridge) { |c| cartridge_teardown(c.directory) }
+        unlock_gear(cartridge) { |c| teardown_output << cartridge_teardown(c.directory) }
         delete_cartridge_directory(cartridge)
       end
 
-      nil
+      teardown_output
     end
 
     # unlock_gear(cartridge_name) -> nil
@@ -596,15 +598,18 @@ module OpenShift
       return "#{teardown}: is not executable\n" unless File.executable? teardown
 
       # FIXME: Will anyone retry if this reports error, or should we remove from disk no matter what?
-      out, _, _ = Utils.oo_spawn(teardown,
+      buffer, err, _ = Utils.oo_spawn(teardown,
                                  env:             env,
                                  unsetenv_others: true,
                                  chdir:           @user.homedir,
                                  uid:             @user.uid,
                                  expected_status: 0)
+
+      buffer << err
+
       FileUtils.rm_r(cartridge_home)
       logger.info("Ran teardown for #{@user.uuid}/#{cartridge_name}")
-      out
+      buffer
     end
 
     # Allocates and assigns private IP/port entries for a cartridge
