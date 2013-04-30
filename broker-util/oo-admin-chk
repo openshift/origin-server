@@ -120,7 +120,7 @@ def check_consumed_gears(user_id)
     # get the consumed_gears attribute for the user
     selection = {:fields => ["consumed_gears"], :read => :primary}
     OpenShift::DataStore.find(:cloud_users, {"_id" => user_id.to_s}, selection) do |user|
-      user_consumed_gears = user["comsumed_gears"]
+      user_consumed_gears = user["consumed_gears"]
     end
     
     # find all domains that the user owns
