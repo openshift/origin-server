@@ -112,7 +112,7 @@ OpenShift::DataStore.find(:domains, {}, domain_selection) do |domain|
   system_ssh_keys = {}
   domain["system_ssh_keys"].each { |k| system_ssh_keys[Digest::MD5.hexdigest(k["content"])] = k["name"] } if domain["system_ssh_keys"]
   if !user_hash[owner_id]
-    OpenShift::DataStore.find(:cloud_users, {"_id" => owner_id.to_s}, user_selection) do |user|
+    OpenShift::DataStore.find(:cloud_users, {"_id" => owner_id}, user_selection) do |user|
       user_hash[user["_id"].to_s] = get_user_info(user) 
     end
   end
@@ -211,19 +211,31 @@ puts no_error ? "Success" : "Check failed.\n#{summary.join("\n")}"
 puts "\nTotal #{error_app_uuids.length} applications have ssh key mismatches." if error_app_uuids.length > 0
 
 # check if we need to fix the ssh key mismatches as well
+fixed_app_count = 0
+failed_app_count = 0
 unless report_only or error_app_uuids.length == 0
   puts "Fixing ssh key inconsistencies for all applications:"
   error_app_uuids.each do |uuid|
     begin
+      print "Fixing ssh keys for application: #{uuid}" if verbose
       app = Application.find_by(:uuid => uuid)
-      puts "Fixing ssh keys for application: #{app.name} / #{app.uuid}" if verbose
       app.fix_gear_ssh_keys()
+      puts "OK" if verbose
+      fixed_app_count += 1
     rescue Mongoid::Errors::DocumentNotFound
-      puts "Application '#{app.uuid}' not found in the database" if verbose
+      puts "FAIL" if verbose
+      puts "Application '#{uuid}' not found in the database"
+      failed_app_count += 1
+    rescue Exception => ex
+      puts "FAIL" if verbose
+      puts "Failed to fix ssh key mismatches for application '#{uuid}': #{ex.message}"
+      failed_app_count += 1
     end
   end
 end
 
+puts "\nFixed ssh key mismatches for #{fixed_app_count} applications." if fixed_app_count > 0
+puts "Failed to fix ssh key mismatches for #{failed_app_count} applications.\n" if failed_app_count > 0
 
 total_time = (Time.now.to_f * 1000).to_i - start_time
 puts "Total time: #{total_time.to_f/1000}s"

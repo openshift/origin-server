@@ -110,6 +110,42 @@ def get_user_info(user)
           "ssh_keys" => user_ssh_keys}
 end
 
+def check_consumed_gears(user_id)
+  user_consumed_gears = 0
+  app_actual_gears = 0
+  domain_ids = []
+
+  $false_positive_check_cnt += 1
+  if $false_positive_check_cnt < FALSE_POSITIVE_CHECK_LIMIT
+    # get the consumed_gears attribute for the user
+    selection = {:fields => ["consumed_gears"], :read => :primary}
+    OpenShift::DataStore.find(:cloud_users, {"_id" => user_id.to_s}, selection) do |user|
+      user_consumed_gears = user["comsumed_gears"]
+    end
+    
+    # find all domains that the user owns
+    OpenShift::DataStore.find(:domains, {"owner_id" => user_id.to_s}, {}) do |domain|
+      domain_ids.push = domain["_id"].to_s
+    end
+    
+    # get the gears for all applications within the user's domains
+    if domain_ids.length > 0
+      query = {"domain_id" => domain_ids, "group_instances.gears.0" => {"$exists" => true}}
+      selection = {:fields => ["group_instances.gears._id"], :read => :primary}
+      OpenShift::DataStore.find(:applications, query, selection) do |app|
+        app['group_instances'].each do |gi|
+          if (gi.has_key?("gears")) and (gi['gears'].length > 0) 
+            app_actual_gears += gi['gears'].length
+          end
+        end
+      end
+    end
+  end
+  
+  # return the two gear counts
+  return user_consumed_gears, app_actual_gears
+end
+
 FALSE_POSITIVE_CHECK_LIMIT = 4000
 $false_positive_check_cnt = 0
 no_error = true
@@ -122,48 +158,58 @@ gear_uid_hash = {}
 district_hash = {}
 gear_sshkey_hash = {}
 
-puts "Started at: #{Time.now}"
-start_time = (Time.now.to_f * 1000).to_i
-query = {"group_instances.gears.0" => {"$exists" => true}}
-selection = {:fields => ["name",
-                         "uuid",
-                         "created_at",
-                         "domain_id",
-                         "group_instances.gears.uuid",
-                         "group_instances.gears.uid",
-                         "group_instances.gears.server_identity",
-                         "group_instances._id",
-                         "component_instances._id",
-                         "component_instances.group_instance_id",
-                         "app_ssh_keys.name", 
-                         "app_ssh_keys.content"],
-             :timeout => false}
+# store the current time for comparisons
+current_time = Time.now
+
+puts "Started at: #{current_time}"
+start_time = (current_time.to_f * 1000).to_i
+
+app_selection = {:fields => ["name",
+                             "uuid",
+                             "created_at",
+                             "domain_id",
+                             "group_instances.gears.uuid",
+                             "group_instances.gears.uid",
+                             "group_instances.gears.server_identity",
+                             "group_instances._id",
+                             "component_instances._id",
+                             "component_instances.group_instance_id",
+                             "app_ssh_keys.name", 
+                             "app_ssh_keys.content"],
+                 :timeout => false}
+
+user_selection = {:fields => ["consumed_gears", "login", "ssh_keys.name", "ssh_keys.content"], 
+                  :timeout => false}
+user_selection_primary = user_selection.dup
+user_selection_primary[:read] = :primary
+
+domain_selection = {:fields => ["owner_id", "system_ssh_keys.name", "system_ssh_keys.content"], 
+                    :timeout => false}
+
 ret = []
 
 if level >= 1
-  user_selection = {:fields => ["consumed_gears", "login", "ssh_keys.name", "ssh_keys.content"], 
-                    :timeout => false}
-  
   OpenShift::DataStore.find(:cloud_users, {}, user_selection) do |user|
-    user_hash[user["_id"]] = get_user_info(user) 
+    user_hash[user["_id"].to_s] = get_user_info(user)
   end
 
-  OpenShift::DataStore.find(:domains, {}, {:fields => ["owner_id", "system_ssh_keys.name", "system_ssh_keys.content"], :timeout => false}) { |domain|
-    owner_id = domain["owner_id"]
-    domain_hash[domain["_id"]] = owner_id
+  OpenShift::DataStore.find(:domains, {}, domain_selection) { |domain|
+    owner_id = domain["owner_id"].to_s
+    domain_hash[domain["_id"].to_s] = owner_id
     system_ssh_keys = {}
     domain["system_ssh_keys"].each { |k| system_ssh_keys[Digest::MD5.hexdigest(k["content"])] = k["name"] } if domain["system_ssh_keys"]
+    
     if !user_hash[owner_id]
-      OpenShift::DataStore.find(:cloud_users, {"_id" => owner_id.to_s}, user_selection) do |user|
-        user_hash[user["_id"]] = get_user_info(user) 
+      OpenShift::DataStore.find(:cloud_users, {"_id" => owner_id}, user_selection_primary) do |user|
+        user_hash[user["_id"].to_s] = get_user_info(user) 
       end
     end
 
     if user_hash[owner_id]
-      user_hash[owner_id]["domains"][domain["_id"]] = 0
+      user_hash[owner_id]["domains"][domain["_id"].to_s] = 0
       user_hash[owner_id]["ssh_keys"].merge! system_ssh_keys
     else
-      summary << "User '#{owner_id.to_s}' for domain '#{domain['_id'].to_s}' does not exist in mongo."
+      summary << "User '#{owner_id}' for domain '#{domain['_id']}' does not exist in mongo."
       no_error = false
     end
   } 
@@ -173,43 +219,49 @@ if level >= 2 and Rails.configuration.msg_broker[:districts][:enabled]
   OpenShift::DataStore.find(:districts, {}, {:timeout => false}) do |district|
     si_list =  district["server_identities"].map {|si| si["name"]}
     si_list.delete_if {|si| si.nil?}
-    district_hash[district["_id"]] = [ district["name"], district["max_capacity"], si_list, district["available_uids"] ] 
+    district_hash[district["_id"].to_s] = [ district["name"], district["max_capacity"], si_list, district["available_uids"] ] 
   end
 end
 
-OpenShift::DataStore.find(:applications, query, selection) do |app|
+app_query = {"group_instances.gears.0" => {"$exists" => true}}
+OpenShift::DataStore.find(:applications, app_query, app_selection) do |app|
     gear_count = 0
     owner_id = nil
     login = nil
     creation_time = app['created_at']
-    domain_id = app['domain_id']
+    domain_id = app['domain_id'].to_s
     app_ssh_keys = {}
     app['app_ssh_keys'].each { |k| app_ssh_keys[Digest::MD5.hexdigest(k["content"])] = k["name"] } if app['app_ssh_keys']
+    
     if level >= 1
       owner_id = domain_hash[domain_id]
 
       if owner_id.nil?
-        summary << "Application '#{app['name']}' does not have a domain '#{domain_id.to_s}' in mongo."
-        no_error = false
-      elsif !user_hash[owner_id]
-        summary << "Application '#{app['name']}' for domain '#{domain_id.to_s}' does not have a user '#{owner_id.to_s}' in mongo."
-        no_error = false
+        if (current_time - creation_time) > 600
+          summary << "Application '#{app['name']}' does not have a domain '#{domain_id}' in mongo."
+          no_error = false
+        end
+      elsif user_hash[owner_id].nil?
+        if (current_time - creation_time) > 600
+          summary << "Application '#{app['name']}' for domain '#{domain_id}' does not have a user '#{owner_id}' in mongo."
+          no_error = false
+        end
       else
         login = user_hash[owner_id]["login"]
         app_ssh_keys.merge! user_hash[owner_id]["ssh_keys"]
       end
             
-      if level >= 2
+      if (level >= 2) and ((current_time - creation_time) > 600)
         # check for component instances without corresponding group instances and vice-versa
         gi_hash = {}
         app["group_instances"].each do |gi|
-          gi_hash[gi["_id"]] = false
+          gi_hash[gi["_id"].to_s] = false
         end
 
         if app['component_instances']
           app['component_instances'].each do |ci|
-            if ci['group_instance_id'] and gi_hash.has_key? ci['group_instance_id']
-              gi_hash[ci['group_instance_id']] = true
+            if ci['group_instance_id'] and gi_hash.has_key? ci['group_instance_id'].to_s
+              gi_hash[ci['group_instance_id'].to_s] = true
             else
               summary << "Application '#{app['name']}' with Id '#{app['_id']}' has missing group instance for component instance '#{ci['_id']}'."
               no_error = false
@@ -250,14 +302,20 @@ if level >= 1
   user_hash.each do |owner_id, owner_hash|
     total_gears = 0
     owner_hash["domains"].each { |dom_id, domain_gear_count| total_gears += domain_gear_count }
-   
+
+    print "Checking consumed gear count for user #{owner_hash['login']}...\t" if verbose
     if owner_hash['consumed_gears'] != total_gears
-      msg = "FAIL - user #{owner_hash['login']} has a mismatch in consumed gears (#{owner_hash['consumed_gears']}) and actual gears (#{total_gears})!"
-      puts msg if verbose
-      summary << msg
-      no_error = false
-    else
-      puts "OK - user #{owner_hash['login']} has consumed_gears equal to actual gears (#{total_gears})!" if verbose
+      user_consumed_gears, app_actual_gears = check_consumed_gears(owner_id)
+      if user_consumed_gears != app_actual_gears
+        puts "FAIL" if verbose
+        msg = "User #{owner_hash['login']} has a mismatch in consumed gears (#{user_consumed_gears}) and actual gears (#{app_actual_gears})"
+        summary << msg
+        no_error = false
+      elsif verbose
+        puts "OK"
+      end
+    elsif verbose
+      puts "OK"
     end
   end
 end
@@ -278,12 +336,11 @@ if level >= 2
   puts "Total nodes that responded : #{sshkeys_sender_list.length}"
 end
 
-# store the current time for comparisons
-current_time = Time.now
 
 # now check
+non_responding_nodes = {}
 puts "Checking application gears and ssh keys on corresponding nodes:" if verbose
-datastore_hash.each { |gear_uuid, gear_info|
+datastore_hash.each do |gear_uuid, gear_info|
   login = gear_info[0]
   creation_time = gear_info[1]
   server_identity = gear_info[3]
@@ -301,9 +358,10 @@ datastore_hash.each { |gear_uuid, gear_info|
           puts "OK"
         end
       else
+        non_responding_nodes[server_identity] = 0 unless non_responding_nodes.has_key? server_identity
+        non_responding_nodes[server_identity] += 1
         no_error = false
         puts "FAIL" if verbose
-        summary << "The node #{server_identity} with gear #{gear_uuid} wasn't returned from mcollective for the gear list"
       end
     elsif verbose
       puts "OK"
@@ -339,26 +397,25 @@ datastore_hash.each { |gear_uuid, gear_info|
             summary << "Gear '#{gear_uuid}' has key with name '#{db_sshkeys[key]}' in mongo but not on the node."
           end
         end
-      elsif sshkeys_sender_list.include? server_identity
-        no_error = false
-        puts "FAIL" if verbose
-        summary << "The node #{server_identity} with gear #{gear_uuid} wasn't returned from mcollective for the sshkey list"
-      elsif datastore_has_gear?(gear_uuid, app_uuid, false)
-        no_error = false
-        puts "FAIL" if verbose
-        summary << "Gear #{gear_uuid} does not exist on any node"
       elsif verbose
+        # the case where gear is not returned from mcollective will be handled by the earlier checks 
         puts "OK"
       end
     elsif verbose
       puts "OK"
     end
   end
-}
+end
+
+# print error messages for any non-responding nodes
+non_responding_nodes.each do |server_identity, gear_count|
+  summary << "The node #{server_identity} expected to contain #{gear_count} gears wasn't returned from mcollective for the gear list"
+end
+
 
 # now check reverse
 puts "Checking node gears in application database:" if verbose
-node_hash.each { |gear_uuid, gear_info|
+node_hash.each do |gear_uuid, gear_info|
   print "#{gear_uuid}...\t" if verbose
   datastore_gear_info = datastore_hash[gear_uuid]
   if !datastore_gear_info
@@ -384,7 +441,8 @@ node_hash.each { |gear_uuid, gear_info|
       end
     end
   end
-}
+end
+
 
 if level >= 2
   # check for applications without any group instances in the database
@@ -480,7 +538,7 @@ if level >= 2
           # found a gear that uses this UID  
           puts "OK" if verbose
         elsif district_has_available_uid?(district_id, unused_uid, true)
-          # the UID is no longer available in the district
+          # the UID is no longer reserved in the district
           puts "OK" if verbose
         else
           no_error = false
@@ -491,6 +549,7 @@ if level >= 2
     end
   end
 end
+
 
 puts no_error ? "Success" : "Check failed.\n#{summary.join("\n")}"
 if $false_positive_check_cnt >= FALSE_POSITIVE_CHECK_LIMIT
