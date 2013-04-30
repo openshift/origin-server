@@ -30,10 +30,10 @@ if not File.directory?("/tmp/tmp/analytics")
   exit
 end
 
-`mongoimport --file /tmp/tmp/analytics/analytics.apps.json --db analytics --collection applications --upsert`
-`mongoimport --file /tmp/tmp/analytics/analytics.domains.json --db analytics --collection domains --upsert`
-`mongoimport --file /tmp/tmp/analytics/analytics.usage.json --db analytics --collection usage --upsert`
-`mongoimport --file /tmp/tmp/analytics/analytics.users.json --db analytics --collection cloud_users --upsert`
+`mongoimport --username #{u} --password #{p} --host #{hp} --file /tmp/tmp/analytics/analytics.apps.json --db analytics --collection applications --upsert`
+`mongoimport --username #{u} --password #{p} --host #{hp} --file /tmp/tmp/analytics/analytics.domains.json --db analytics --collection domains --upsert`
+`mongoimport --username #{u} --password #{p} --host #{hp} --file /tmp/tmp/analytics/analytics.usage.json --db analytics --collection usage --upsert`
+`mongoimport --username #{u} --password #{p} --host #{hp} --file /tmp/tmp/analytics/analytics.users.json --db analytics --collection cloud_users --upsert`
 
 `rm -rf /tmp/tmp/analytics`
 
@@ -47,6 +47,7 @@ def analytics_db(read_preference=:secondary, session_name='default')
     con = Mongo::Connection.new(host_port[0], host_port[1].to_i)
   end
   adb = con.db('analytics')
+  adb.authenticate(config['username'], config['password'])
   adb
 end
 
