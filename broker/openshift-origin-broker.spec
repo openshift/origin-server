@@ -39,6 +39,9 @@ Requires:      %{?scl:%scl_prefix}rubygem(bson_ext)
 Requires:      %{?scl:%scl_prefix}rubygem(json)
 Requires:      %{?scl:%scl_prefix}rubygem(json_pure)
 Requires:      %{?scl:%scl_prefix}rubygem(minitest)
+# This gem is required by oo-admin-chk, oo-admin-fix-sshkeys, and
+# oo-stats, for OpenShift::DataStore API support
+Requires:      %{?scl:%scl_prefix}rubygem(mongo)
 # The mongoid gem doesn't exist in Fedora yet
 %if 0%{?scl:1}
 Requires:      %{?scl:%scl_prefix}rubygem(mongoid)
