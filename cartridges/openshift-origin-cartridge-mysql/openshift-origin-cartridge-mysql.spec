@@ -3,7 +3,7 @@
 
 Summary:       Provides embedded mysql support
 Name:          openshift-origin-cartridge-mysql
-Version: 0.2.1
+Version: 0.2.2
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -57,6 +57,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Tue Apr 30 2013 Adam Miller <admiller@redhat.com> 0.2.2-1
+- Env var WIP. (mrunalp@gmail.com)
+
 * Thu Apr 25 2013 Adam Miller <admiller@redhat.com> 0.2.1-1
 - Merge pull request #2246 from ironcladlou/bz/955538
   (dmcphers+openshiftbot@redhat.com)
