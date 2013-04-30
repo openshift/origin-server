@@ -21,6 +21,7 @@ require 'rubygems'
 require 'optparse'
 require 'socket'
 require 'json'
+require 'parseconfig'
 
 $OPTIONS = {}
 
@@ -141,23 +142,17 @@ def do_fail(msg)
 end
 
 def source_file(file)
-    i = 0
-    IO.foreach(file) { |line|
-        next if line =~ /^#/
-        next if line =~ /^$/
-        if line.include?"#"
-            name,value = line.split("#")[0].split("=")
-        else
-            name,value = line.strip.split[0].split("=")
-        end
-        #$stdout.flush
-        #puts "Setting vars #{name}=>#{value.gsub('"',"")}"
-        next if name.nil? or value.nil?
-        #puts "Setting vars #{name}=>#{value.gsub('"',"")}"
-        ENV["#{name}"]=value.gsub('"','').strip
-        #p ENV
-        #exit
-    }
+    # for some reason, we use ParseConfig to parse this, and then hack it up with cargo-cult code.
+    # TODO: do something sane and make it consistent everywhere without breaking anything
+    parser = ParseConfig.new(file)
+    parser.get_params.each do |key|
+      val = parser[key]
+      next if val.nil?
+      val.gsub!(/\\:/,":") if not val.nil?
+      val.gsub!(/[ \t]*#[^\n]*/,"") if not val.nil?
+      val = val[1..-2] if not val.nil? and val.start_with? "\""
+      ENV[key] = val
+    end
 end
 
 ###############################
