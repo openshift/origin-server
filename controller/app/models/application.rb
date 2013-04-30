@@ -941,9 +941,15 @@ class Application
       pub_out = {}
       RemoteJob.execute_parallel_jobs(handle)
       RemoteJob.get_parallel_run_results(handle) do |tag, gear_id, output, status|
+        conn_type = self.connections.find_by(:_id => tag).connection_type
         if status==0
-          pub_out[tag] = [] if pub_out[tag].nil?
-          pub_out[tag].push("'#{gear_id}'='#{output}'")
+          if conn_type.start_with?("ENV:")
+            pub_out[tag] = {} if pub_out[tag].nil?
+            pub_out[tag][gear_id] = output
+          else
+            pub_out[tag] = [] if pub_out[tag].nil?
+            pub_out[tag].push("'#{gear_id}'='#{output}'")
+          end
         end
       end
       Rails.logger.debug "Running subscribers"
@@ -956,7 +962,11 @@ class Application
         tag = ""
   
         unless pub_out[conn._id.to_s].nil?
-          input_to_subscriber = Shellwords::shellescape(pub_out[conn._id.to_s].join(' '))
+          if conn.connection_type.start_with?("ENV:")
+            input_to_subscriber = pub_out[conn._id.to_s]
+          else
+            input_to_subscriber = Shellwords::shellescape(pub_out[conn._id.to_s].join(' '))
+          end
   
           Rails.logger.debug "Output of publisher - '#{pub_out}'"
           sub_ginst.gears.each_index do |idx|

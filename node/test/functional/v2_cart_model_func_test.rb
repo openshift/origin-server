@@ -88,7 +88,7 @@ module OpenShift
     def test_publish_db_connection_info
       @model.configure('mock-plugin-0.1')
 
-      results = @model.connector_execute('mock-plugin-0.1', 'NET_TCP:db:connection-info', 'publish-db-connection-info', "")
+      results = @model.connector_execute('mock-plugin-0.1', 'mysql-5.1', 'NET_TCP:db:connection-info', 'publish-db-connection-info', "")
       refute_nil results
 
       assert_match(
@@ -100,6 +100,7 @@ module OpenShift
       @model.configure('mock-plugin-0.1')
 
       @model.connector_execute('mock-0.1',
+                               'mysql-5.1',
                                'NET_TCP:db:connection-info',
                                'set-db-connection-info',
                                "test testdomain 515c7e8bdf3e460939000001 \\'75e36e529c9211e29cc622000a8c0259\\'\\=\\'OPENSHIFT_MOCK_DB_GEAR_UUID\\=75e36e529c9211e29cc622000a8c0259\\;\\;\\ '\n'\\'")

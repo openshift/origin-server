@@ -38,7 +38,7 @@ Conflicts:
   - mysql-5.1
 Publishes:
   publish-db-connection-info:
-    Type: "NET_TCP:db:connection-info"
+    Type: "ENV:NET_TCP:db:connection-info"
 Scaling:
   Min: 1
   Max: 1

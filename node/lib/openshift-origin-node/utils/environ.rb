@@ -35,6 +35,13 @@ module OpenShift
                        PathUtils.join(gear_dir, '.env'),
                        PathUtils.join(gear_dir, '*', 'env')))
 
+        # Load environment variables under subdirectories in ~/.env
+        Dir[PathUtils.join(gear_dir, '.env', '*')].each do |entry|
+          if File.directory?(entry)
+            env.merge!(load(entry))
+          end
+        end
+
         # If we have a primary cartridge make sure it's the last loaded in the environment
         primary = if env.has_key? 'OPENSHIFT_PRIMARY_CARTRIDGE_DIR'
                     dirs.delete env['OPENSHIFT_PRIMARY_CARTRIDGE_DIR']
