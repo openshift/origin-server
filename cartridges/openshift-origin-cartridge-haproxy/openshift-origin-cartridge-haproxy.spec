@@ -6,7 +6,7 @@
 %global frameworkdir %{_libexecdir}/openshift/cartridges/v2/haproxy
 
 Name:          openshift-origin-cartridge-haproxy
-Version: 0.3.3
+Version: 0.3.4
 Release:       1%{?dist}
 Summary:       Provides HA Proxy
 Group:         Network/Daemons
@@ -57,6 +57,12 @@ rm -rf %{buildroot}
 %doc %{cartridgedir}/README.md
 
 %changelog
+* Tue Apr 30 2013 Adam Miller <admiller@redhat.com> 0.3.4-1
+- Merge pull request #2275 from jwhonce/wip/cartridge_path
+  (dmcphers+openshiftbot@redhat.com)
+- Card online_runtime_266 - Renamed OPENSHIFT_<short name>_PATH to
+  OPENSHIFT_<short name>_PATH_ELEMENT (jhonce@redhat.com)
+
 * Mon Apr 29 2013 Adam Miller <admiller@redhat.com> 0.3.3-1
 - Add health urls to each v2 cartridge. (rmillner@redhat.com)
 
