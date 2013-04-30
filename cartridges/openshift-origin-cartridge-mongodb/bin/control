@@ -2,13 +2,6 @@
 source $OPENSHIFT_CARTRIDGE_SDK_BASH
 export STOPTIMEOUT=20
 
-if whoami | grep -q root
-then
-    client_result "Please don't run script as root, try:"
-    client_result "runuser --shell /bin/sh $OPENSHIFT_GEAR_UUID ${OPENSHIFT_MONGODB_DIR}/bin/control"
-    exit 15
-fi
-
 function isrunning() {
     if [ -f $OPENSHIFT_MONGODB_DIR/pid/mongodb.pid ]; then
         set +e
