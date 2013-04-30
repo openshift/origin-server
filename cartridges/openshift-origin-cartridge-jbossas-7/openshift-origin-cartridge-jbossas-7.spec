@@ -1,10 +1,10 @@
 %global cartridgedir %{_libexecdir}/openshift/cartridges/jbossas-7
-%global jbossver 7.1.0.Final
-%global oldjbossver 7.0.2.Final
+%global jbossver 7.1.1.Final
+%global oldjbossver 7.1.0.Final
 
 Summary:       Provides JBossAS7 support
 Name:          openshift-origin-cartridge-jbossas-7
-Version: 1.8.1
+Version: 1.9.0
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0

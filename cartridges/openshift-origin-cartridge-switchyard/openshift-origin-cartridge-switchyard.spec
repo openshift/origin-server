@@ -3,7 +3,7 @@
 
 Summary:       Provides embedded switchyard support
 Name:          openshift-origin-cartridge-switchyard
-Version:       0.1.0
+Version:       0.1.1
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -48,10 +48,7 @@ rm -rf %{buildroot}
 %defattr(-,root,root,-)
 %dir %{cartridgedir}
 %dir %{cartridgedir}/bin
-%dir %{cartridgedir}/conf
-%dir %{cartridgedir}/env
 %dir %{cartridgedir}/metadata
-%config(noreplace) %{cartridgedir}/conf/
 %attr(0755,-,-) %{cartridgedir}/bin/
 %attr(0755,-,-) %{frameworkdir}
 %{_sysconfdir}/openshift/cartridges/v2/%{name}
@@ -60,3 +57,6 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Mon Apr 29 2013 Unknown name <bdecoste@gmail.com> 0.1.1-1
+- new package built with tito
+
