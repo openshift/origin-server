@@ -16,7 +16,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.8.2
+Version: 1.8.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -287,6 +287,38 @@ fi
 %attr(0755,-,-) /etc/cron.monthly/openshift-origin-cron-monthly
 
 %changelog
+* Tue Apr 30 2013 Adam Miller <admiller@redhat.com> 1.8.3-1
+- Merge pull request #2283 from rmillner/BZ957883
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #2280 from mrunalp/dev/auto_env_vars
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 957883 - git clone was getting stuck asking for a password in remote
+  repository and no amount of redirecting or closing stdin prevented a
+  deadlock. (rmillner@redhat.com)
+- Merge pull request #2276 from ironcladlou/bz/956967
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #2277 from danmcp/master
+  (dmcphers+openshiftbot@redhat.com)
+- Env var WIP. (mrunalp@gmail.com)
+- Merge pull request #2275 from jwhonce/wip/cartridge_path
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #2274 from rmillner/v2_misc_fixes
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 956964: Collect teardown output on cart deconfigure
+  (ironcladlou@gmail.com)
+- minor fixes (dmcphers@redhat.com)
+- Merge pull request #2201 from BanzaiMan/dev/hasari/c276
+  (dmcphers+openshiftbot@redhat.com)
+- Fix v2 model unit tests. (rmillner@redhat.com)
+- origin_runtime_127: Add X-Request-Start header. (rmillner@redhat.com)
+- Bug 957257 - use an internal function to get the MCS label.
+  (rmillner@redhat.com)
+- The teardown hook needs gear unlock. (rmillner@redhat.com)
+- Make this call less chatty. (rmillner@redhat.com)
+- Card online_runtime_266 - Renamed OPENSHIFT_<short name>_PATH to
+  OPENSHIFT_<short name>_PATH_ELEMENT (jhonce@redhat.com)
+- Card 276 (asari.ruby@gmail.com)
+
 * Mon Apr 29 2013 Adam Miller <admiller@redhat.com> 1.8.2-1
 - Merge pull request #2267 from jwhonce/bug/957095
   (dmcphers+openshiftbot@redhat.com)
