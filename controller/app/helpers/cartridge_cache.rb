@@ -141,10 +141,10 @@ class CartridgeCache
     elsif a.length == 2 
       feature = a[0]
       version = a[1]
-    elsif a.length == 3
+    elsif a.length >= 3
       vendor = a[0]
-      feature = a[1]
-      version = a[2]      
+      version = a[a.length - 1] 
+      feature = a[1..(a.length - 2)].join("-")
     end
     return vendor, feature, version
   end
