@@ -132,6 +132,14 @@ module OpenShift
       @cartridge_model.deconfigure(cart_name)
     end
 
+    # Unsubscribe from a cart
+    #
+    # @param cart_name   unsubscribing cartridge name
+    # @param cart_name   publishing cartridge name
+    def unsubscribe(cart_name, pub_cart_name)
+      @cartridge_model.unsubscribe(cart_name, pub_cart_name)
+    end
+
     # create gear
     #
     # - model/unix_user.rb
@@ -351,8 +359,8 @@ module OpenShift
       @cartridge_model.update_namespace(cart_name, old_namespace, new_namespace)
     end
 
-    def connector_execute(cart_name, connection_type, connector, args)
-      @cartridge_model.connector_execute(cart_name, connection_type, connector, args)
+    def connector_execute(cart_name, pub_cart_name, connector_type, connector, args)
+      @cartridge_model.connector_execute(cart_name, pub_cart_name, connector_type, connector, args)
     end
 
     def deploy_httpd_proxy(cart_name)
