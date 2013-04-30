@@ -510,8 +510,8 @@ function check_datastore_mongo() {
 
     # get the service hostname, port, username, password
 	APP_VALUE_MAP=(
-		["DS_HOST"]="Rails.application.config.datastore[:host_port].splith(':')[0]"
-		["DS_PORT"]="Rails.application.config.datastore[:host_port].splith(':')[1]"
+		["DS_HOST"]="Rails.application.config.datastore[:host_port].split(':')[0]"
+		["DS_PORT"]="Rails.application.config.datastore[:host_port].split(':')[1]"
 		["DS_USER"]="Rails.application.config.datastore[:user]"
 		["DS_PASS"]="Rails.application.config.datastore[:password]"
 		["DS_NAME"]="Rails.application.config.datastore[:db]"
@@ -709,6 +709,11 @@ function check_auth_remote_user() {
 
 function check_authentication() {
     verbose checking cloud user authentication
+    APP_VALUE_MAP=(
+            ["oo_auth_provider"]="OpenShift::AuthService.instance_variable_get('@oo_auth_provider')"
+            )
+    load_application_values
+ 
     AUTH_PLUGIN=${APP_VALUES[oo_auth_provider]}
     verbose auth plugin = $AUTH_PLUGIN
     case $AUTH_PLUGIN in
@@ -817,6 +822,11 @@ function check_dns_bind() {
 
 function check_dynamic_dns() {
     verbose checking dynamic dns plugin
+    APP_VALUE_MAP=(
+            ["oo_dns_provider"]="OpenShift::DnsService.instance_variable_get('@oo_dns_provider')"
+            )
+    load_application_values
+
     NAME_PLUGIN=${APP_VALUES[oo_dns_provider]}
     case $NAME_PLUGIN in
         'OpenShift::DnsService')
@@ -848,6 +858,10 @@ function check_dynamic_dns() {
 
 function check_messaging() {
     verbose checking messaging configuration
+    APP_VALUE_MAP=(
+            ["proxy_provider"]="OpenShift::ApplicationContainerProxy.instance_variable_get('@proxy_provider')"
+            )
+    load_application_values
 
     MSG_PLUGIN=${APP_VALUES[proxy_provider]}
     case $MSG_PLUGIN in
@@ -922,6 +936,7 @@ check_ruby_requirements $OSO_RUBY_LIBS
 check_selinux_enforcing
 check_selinux_booleans
 check_firewall
+check_datastore_mongo
 check_services
 
 load_application_values
