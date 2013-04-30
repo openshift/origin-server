@@ -960,6 +960,47 @@ class Application
     self.connections = conns
   end
 
+  def get_unsubscribe_info(comp_inst, old_connections)
+    sub_pub_hash = {}
+    if self.scalable and old_connections
+      old_conn_hash = old_connections.map{|conn| conn.to_hash}
+      old_conn_hash.each do |old_conn|
+        if (old_conn["from_comp_inst"]["cart"] == comp_inst.cartridge_name) and
+           (old_conn["from_comp_inst"]["comp"] == comp_inst.component_name)
+          sub_pub_hash["to_comp_inst"] = old_conn["from_comp_inst"]
+        end
+      end
+    end
+    sub_pub_hash
+  end
+
+  def unsubscribe_connections(sub_pub_hash)
+    if self.scalable and sub_pub_hash
+      Rails.logger.debug "Running unsubscribe connections"
+      handle = RemoteJob.create_parallel_job
+      sub_pub_hash.each do |to, from|
+        sub_inst = self.component_instances.find_by(cartridge_name: to["cart"], component_name: to["comp"])
+        sub_ginst = self.group_instances.find(sub_inst.group_instance_id)
+        pub_cart_name = from["cart"]
+        tag = sub_inst._id.to_s
+
+        sub_ginst.gears.each_index do |idx|
+          break if (sub_inst.is_singleton? && idx > 0)
+          gear = sub_ginst.gears[idx]
+          job = gear.get_unsubscribe_job(sub_inst.cartridge_name, pub_cart_name)
+          RemoteJob.add_parallel_job(handle, tag, gear, job)
+        end
+      end
+      RemoteJob.execute_parallel_jobs(handle)
+      RemoteJob.get_parallel_run_results(handle) do |tag, gear_id, output, status|
+        if status != 0
+          Rails.logger.error "Unsubscribe Connection event failed:: tag: #{tag}, gear_id: #{gear_id},"\
+                             "output: #{output}, status: #{status}"
+        end
+      end
+    end
+  end
+
   def execute_connections
     if self.scalable
       Rails.logger.debug "Running publishers"
@@ -1367,13 +1408,14 @@ class Application
     calculate_ops(changes)
   end
 
-  def calculate_remove_group_instance_ops(comp_specs, group_instance)
+  def calculate_remove_group_instance_ops(comp_specs, group_instance, connections)
     pending_ops = []
     gear_destroy_ops = calculate_gear_destroy_ops(group_instance._id.to_s, group_instance.gears.map{|g| g._id.to_s}, group_instance.addtl_fs_gb)
     pending_ops.push(*gear_destroy_ops)
     gear_destroy_op_ids = gear_destroy_ops.map{|op| op._id.to_s}
 
     delete_comp_ops = []
+    unsubscribe_conn_ops = []
     comp_specs.each do |comp_spec|
       comp_instance = self.component_instances.find_by(cartridge_name: comp_spec["cart"], component_name: comp_spec["comp"])
       remove_ssh_keys = self.app_ssh_keys.find_by(component_id: comp_instance._id) rescue []
@@ -1385,14 +1427,16 @@ class Application
       end
       domain.remove_system_ssh_keys(comp_instance._id)
       domain.remove_env_variables(comp_instance._id)
-      delete_comp_ops.push(PendingAppOp.new(op_type: :del_component, args: {"group_instance_id"=> group_instance._id.to_s, "comp_spec" => comp_spec}, prereq: gear_destroy_op_ids))
+      op = PendingAppOp.new(op_type: :del_component, args: {"group_instance_id"=> group_instance._id.to_s, "comp_spec" => comp_spec}, prereq: gear_destroy_op_ids)
+      delete_comp_ops.push op
+      unsubscribe_conn_ops.push(PendingAppOp.new(op_type: :unsubscribe_connections, args: {"sub_pub_info" => get_unsubscribe_info(comp_instance, self.connections)}, prereq: [op._id.to_s]))
     end
     pending_ops.push(*delete_comp_ops)
+    pending_ops.push(*unsubscribe_conn_ops)
     comp_delete_op_ids = delete_comp_ops.map{|op| op._id.to_s}
     
     destroy_ginst_op  = PendingAppOp.new(op_type: :destroy_group_instance, args: {"group_instance_id"=> group_instance._id.to_s}, prereq: gear_destroy_op_ids + comp_delete_op_ids)
     pending_ops.push(destroy_ginst_op)
-    
     pending_ops
   end
 
@@ -1610,7 +1654,7 @@ class Application
     comp_op_type
   end
 
-  def calculate_remove_component_ops(comp_specs, group_instance, singleton_gear)
+  def calculate_remove_component_ops(comp_specs, group_instance, singleton_gear, connections)
     ops = []
     comp_specs.each do |comp_spec|
       component_instance = self.component_instances.find_by(cartridge_name: comp_spec["cart"], component_name: comp_spec["comp"])
@@ -1641,7 +1685,9 @@ class Application
       end
       domain.remove_system_ssh_keys(component_instance._id)
       domain.remove_env_variables(component_instance._id)
-      ops.push(PendingAppOp.new(op_type: :del_component, args: {"group_instance_id"=> group_instance._id.to_s, "comp_spec" => comp_spec}, prereq: ops.map{|o| o._id.to_s}))
+      op = PendingAppOp.new(op_type: :del_component, args: {"group_instance_id"=> group_instance._id.to_s, "comp_spec" => comp_spec}, prereq: ops.map{|o| o._id.to_s})
+      ops.push op
+      ops.push(PendingAppOp.new(op_type: :unsubscribe_connections, args: {"sub_pub_info" => get_unsubscribe_info(component_instance, self.connections)}, prereq: [op._id.to_s]))
     end
     ops
   end
@@ -1712,7 +1758,7 @@ class Application
         if change[:to].nil?
           remove_gears += change[:from_scale][:current]
 
-          group_instance_remove_ops = calculate_remove_group_instance_ops(change[:removed], group_instance)
+          group_instance_remove_ops = calculate_remove_group_instance_ops(change[:removed], group_instance, connections)
           pending_ops.push(*group_instance_remove_ops)
         else
           scale_change = 0
@@ -1728,7 +1774,7 @@ class Application
           end
 
           singleton_gear = group_instance.gears.find_by(host_singletons: true)
-          ops = calculate_remove_component_ops(change[:removed], group_instance, singleton_gear)
+          ops = calculate_remove_component_ops(change[:removed], group_instance, singleton_gear, connections)
           pending_ops.push(*ops)
 
           gear_id_prereqs = {}
