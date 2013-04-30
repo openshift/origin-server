@@ -978,7 +978,7 @@ module OpenShift
         end
         [nil, nil]
       end
-      
+
       #
       # Start cartridge services within a gear
       #
@@ -1548,7 +1548,7 @@ module OpenShift
       #
       # NOTES:
       # * uses RemoteJob
-      #         
+      # 
       def get_execute_connector_job(gear, cart, connector_name, connection_type, input_args, pub_cart=nil)
         args = build_base_gear_args(gear)
         args['--cart-name'] = cart
@@ -1562,6 +1562,28 @@ module OpenShift
           args['--input-args'] = input_args.join(" ")
         end
         job = RemoteJob.new('openshift-origin-node', 'connector-execute', args)
+        job
+      end
+
+      #
+      # Create a job to unsubscribe
+      #
+      # INPUTS:
+      # * gear: a Gear object
+      # * cart: a Cartridge object
+      # * publish_cart_name: a Cartridge object
+      #
+      # RETURNS:
+      # * a RemoteJob object
+      #
+      # NOTES:
+      # * uses RemoteJob
+      # 
+      def get_unsubscribe_job(gear, cart, publish_cart_name)
+        args = build_base_gear_args(gear)
+        args['--cart-name'] = cart
+        args['--publishing-cart-name'] = publish_cart_name
+        job = RemoteJob.new('openshift-origin-node', 'unsubscribe', args)
         job
       end
 
