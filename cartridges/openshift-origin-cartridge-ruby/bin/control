@@ -17,7 +17,9 @@ function stop() {
     # Stop the app
     # src_user_hook pre_stop_${cartridge_type}
     app_userid=`id -u`
+    set +e
     httpd_pid=`cat ${OPENSHIFT_RUBY_DIR}/run/httpd.pid 2> /dev/null`
+    set -e
 
     /usr/bin/scl enable ruby193 "/usr/sbin/httpd -C 'Include $OPENSHIFT_RUBY_DIR/etc/conf.d/*.conf' -f $HTTPD_CFG_FILE -k stop"
 
@@ -32,11 +34,15 @@ function stop() {
                 then
                     if [ $i -gt 16 ]
                     then
+                        set +e
                         /bin/kill -9 $httpd_pid
+                        set -e
                     fi
                 elif `pgrep -u $app_userid Passenger.* > /dev/null 2>&1`
                 then
+                    set +e
                     pkill -9 -u $app_userid Passenger.*
+                    set -e
                     break
                 fi
             fi
