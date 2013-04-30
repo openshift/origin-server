@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/openshift/cartridges/v2/php
 
 Name: openshift-origin-cartridge-php
-Version: 0.3.1
+Version: 0.3.2
 Release: 1%{?dist}
 Summary: Php cartridge
 Group: Development/Languages
@@ -95,6 +95,15 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Tue Apr 30 2013 Adam Miller <admiller@redhat.com> 0.3.2-1
+- Merge pull request #2280 from mrunalp/dev/auto_env_vars
+  (dmcphers+openshiftbot@redhat.com)
+- Env var WIP. (mrunalp@gmail.com)
+- Merge pull request #2274 from rmillner/v2_misc_fixes
+  (dmcphers+openshiftbot@redhat.com)
+- Add /health url to php cartridges. (rmillner@redhat.com)
+- Card 276 (asari.ruby@gmail.com)
+
 * Thu Apr 25 2013 Adam Miller <admiller@redhat.com> 0.3.1-1
 - Split v2 configure into configure/post-configure (ironcladlou@gmail.com)
 - more install/post-install scripts (dmcphers@redhat.com)
