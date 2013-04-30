@@ -5,7 +5,7 @@
 
 Summary:       Provides JBossAS7 support
 Name:          openshift-origin-cartridge-jbossas
-Version: 1.1.2
+Version: 1.1.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -93,6 +93,18 @@ cp -p %{cartridgedir}/versions/7/modules/postgresql_module.xml /etc/alternatives
 
 
 %changelog
+* Tue Apr 30 2013 Adam Miller <admiller@redhat.com> 1.1.3-1
+- Merge pull request #2280 from mrunalp/dev/auto_env_vars
+  (dmcphers+openshiftbot@redhat.com)
+- Env var WIP. (mrunalp@gmail.com)
+- Merge pull request #2275 from jwhonce/wip/cartridge_path
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #2201 from BanzaiMan/dev/hasari/c276
+  (dmcphers+openshiftbot@redhat.com)
+- Card online_runtime_266 - Renamed OPENSHIFT_<short name>_PATH to
+  OPENSHIFT_<short name>_PATH_ELEMENT (jhonce@redhat.com)
+- Card 276 (asari.ruby@gmail.com)
+
 * Mon Apr 29 2013 Adam Miller <admiller@redhat.com> 1.1.2-1
 - Merge pull request #2258 from bdecoste/master
   (dmcphers+openshiftbot@redhat.com)
