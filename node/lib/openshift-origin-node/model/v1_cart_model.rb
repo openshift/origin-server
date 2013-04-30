@@ -271,19 +271,20 @@ module OpenShift
 
     def complete_process_gracefully(pid, stdin, stdout)
       stdin.close
-      ignored, status = Process::waitpid2 pid
-      exitcode = status.exitstatus
-      # Do this to avoid cartridges that might hold open stdout
       output = ""
       begin
-        Timeout::timeout(5) do
+        Timeout::timeout(120) do
           while (line = stdout.gets)
             output << line
           end
         end
       rescue Timeout::Error
-        logger.info("WARNING: stdout read timed out")
+        logger.info("WARNING: stdout read timed out, killing #{pid} and its child processes")
+        OpenShift::Utils::ShellExec.kill_process_tree(pid)
       end
+
+      ignored, status = Process::waitpid2 pid
+      exitcode = status.exitstatus
 
       if exitcode == 0
         logger.info("(#{exitcode})\n------\n#{cleanpwd(output)}\n------)")
