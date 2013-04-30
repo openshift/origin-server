@@ -8,6 +8,8 @@
 .fam C
 \fBoo-admin-ctl-user\fP [\fB-h\fP|\fB--help\fP] [\fB-l\fP|\fB--login\fP \fIlogin_name\fP] 
 [\fB--setmaxgears\fP \fImax_gears\fP] [\fB--setconsumedgears\fP \fIconsumed_gears\fP]
+[\fB--setmaxuntrackedstorage\fP \fImax_untracked_storage\fP]
+[\fB--setmaxtrackedstorage\fP \fImax_tracked_storage\fP]
 [\fB--listsubaccounts\fP] [\fB--addsubaccount\fP \fIsubaccount_login\fP]
 [\fB--removesubaccount\fP \fIsubaccount_login\fP] [\fB--allowsubaccounts\fP true|false]
 [\fB--addgearsize\fP \fIgear_size\fP] [\fB--removegearsize\fP \fIgear_size\fP]
@@ -36,6 +38,14 @@ Set the maximum number of gears an user is allowed to consume.
 .B
 \fB--setconsumedgears\fP \fIconsumed_gears\fP
 Set the number of gears an user has consumed. Use with caution.
+.TP
+.B
+\fB--setmaxuntrackedstorage\fP \fImax_untracked_storage\fP
+Set the maximum amount of untracked additional file-system storage.
+.TP
+.B
+\fB--setmaxtrackedstorage\fP \fImax_tracked_storage\fP
+Set the maximum amount of tracked additional file-system storage.
 .TP
 .B
 \fB--listsubaccounts\fP

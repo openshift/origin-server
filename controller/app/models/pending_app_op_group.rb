@@ -88,8 +88,16 @@ class PendingAppOpGroup
           result_io.append gear.destroy_gear(true)
           self.inc(:num_gears_rolled_back, 1)
         when :track_usage
-          unless op.args["parent_user_id"]
-            UsageRecord.untrack_usage(op.args["user_id"], op.args["gear_ref"], op.args["event"], op.args["usage_type"]) 
+          unless op.args["parent_user_id"].nil?
+            storage_usage_type = (op.args["usage_type"] == UsageRecord::USAGE_TYPES[:addtl_fs_gb])
+            tracked_storage = nil
+            if storage_usage_type
+              max_untracked_storage = (application.domain.owner.get_capabilities['max_untracked_addtl_storage_per_gear'] || 0)
+              tracked_storage = op.args["additional_filesystem_gb"] - max_untracked_storage
+            end
+            if !storage_usage_type or (tracked_storage > 0)
+              UsageRecord.untrack_usage(op.args["user_id"], op.args["gear_ref"], op.args["event"], op.args["usage_type"])
+            end
           end
         when :register_dns
           gear = get_gear_for_rollback(op)
@@ -193,8 +201,16 @@ class PendingAppOpGroup
             self.inc(:num_gears_created, 1)
           when :track_usage
             unless op.args["parent_user_id"]
-              UsageRecord.track_usage(op.args["user_id"], op.args["app_name"], op.args["gear_ref"], op.args["event"], op.args["usage_type"],
-                                      op.args["gear_size"], op.args["additional_filesystem_gb"], op.args["cart_name"])
+              storage_usage_type = (op.args["usage_type"] == UsageRecord::USAGE_TYPES[:addtl_fs_gb])
+              tracked_storage = nil
+              if storage_usage_type
+                max_untracked_storage = (application.domain.owner.get_capabilities['max_untracked_addtl_storage_per_gear'] || 0)
+                tracked_storage = op.args["additional_filesystem_gb"] - max_untracked_storage
+              end
+              if !storage_usage_type or (tracked_storage > 0)
+                UsageRecord.track_usage(op.args["user_id"], op.args["app_name"], op.args["gear_ref"], op.args["event"], op.args["usage_type"],
+                                        op.args["gear_size"], tracked_storage, op.args["cart_name"])
+              end
             end
           when :register_dns          
             gear.register_dns

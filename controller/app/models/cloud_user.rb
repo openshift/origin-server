@@ -87,6 +87,13 @@ class CloudUser
     set_capabilities(user_capabilities)
   end
 
+  def max_storage
+    user_capabilities = get_capabilities
+    max_untracked_storage = user_capabilities["max_untracked_addtl_storage_per_gear"] || 0
+    max_tracked_storage = user_capabilities["max_tracked_addtl_storage_per_gear"] || 0
+    (max_untracked_storage + max_tracked_storage)
+  end
+
   def save(options = {})
     res = false
     notify = !self.persisted?
