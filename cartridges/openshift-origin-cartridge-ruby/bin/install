@@ -1,5 +1,8 @@
 #!/bin/bash -e
 
+source $OPENSHIFT_CARTRIDGE_SDK_BASH
+source "${OPENSHIFT_RUBY_DIR}/lib/util"
+
 case "$1" in
   -v|--version)
     version="$2"
@@ -9,7 +12,9 @@ esac
 mkdir $OPENSHIFT_HOMEDIR/.gem
 
 echo "$version" > $OPENSHIFT_RUBY_DIR/env/OPENSHIFT_RUBY_VERSION
+update-configuration $version
 
 # Create additional directories required by RUBY and httpd
 ln -s /usr/lib64/httpd/modules $OPENSHIFT_RUBY_DIR
 ln -s /etc/httpd/conf/magic $OPENSHIFT_RUBY_DIR/etc/magic
+
