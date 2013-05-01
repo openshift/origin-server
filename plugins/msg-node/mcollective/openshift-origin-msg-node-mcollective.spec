@@ -10,7 +10,7 @@
 
 Summary:       M-Collective agent file for openshift-origin-msg-node-mcollective
 Name:          openshift-origin-msg-node-mcollective
-Version: 1.8.3
+Version: 1.8.4
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -51,6 +51,13 @@ cp -p facts/update_yaml.rb %{buildroot}/usr/libexec/mcollective/
 %attr(0700,-,-) %config(noreplace) /etc/cron.minutely/openshift-facts
 
 %changelog
+* Wed May 01 2013 Adam Miller <admiller@redhat.com> 1.8.4-1
+- Broker changes for supporting unsubscribe connection event. Details: When one
+  of the component is removed from the app and if it has published some content
+  to other components located on different gears, we issue unsubscribe event on
+  all the subscribing gears to cleanup the published content.
+  (rpenta@redhat.com)
+
 * Tue Apr 30 2013 Adam Miller <admiller@redhat.com> 1.8.3-1
 - Env var WIP. (mrunalp@gmail.com)
 - Merge pull request #2201 from BanzaiMan/dev/hasari/c276
