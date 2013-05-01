@@ -255,6 +255,8 @@ class PendingAppOpGroup
             application.set_connections(op.args["connections"])
           when :execute_connections
             application.execute_connections
+          when :unsubscribe_connections
+            application.unsubscribe_connections(op.args["sub_pub_info"])
           when :set_gear_additional_filesystem_gb
             gear.set_addtl_fs_gb(op.args["additional_filesystem_gb"], handle)
             use_parallel_job = true
