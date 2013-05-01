@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.8.3
+Version: 1.8.4
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -84,6 +84,33 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Wed May 01 2013 Adam Miller <admiller@redhat.com> 1.8.4-1
+- Merge pull request #2300 from pravisankar/dev/ravi/card21
+  (dmcphers+openshiftbot@redhat.com)
+- Broker changes for supporting unsubscribe connection event. Details: When one
+  of the component is removed from the app and if it has published some content
+  to other components located on different gears, we issue unsubscribe event on
+  all the subscribing gears to cleanup the published content.
+  (rpenta@redhat.com)
+- Merge pull request #2307 from lnader/master
+  (dmcphers+openshiftbot@redhat.com)
+- embedding and versions support for community carts (rchopra@redhat.com)
+- Merge pull request #2284 from lnader/551 (dmcphers+openshiftbot@redhat.com)
+- fixed broker extended by increasing timeout (lnader@redhat.com)
+- Merge pull request #2301 from rajatchopra/master
+  (dmcphers+openshiftbot@redhat.com)
+- fix bug#958320 - no singleton cart's hook for scaled gears
+  (rchopra@redhat.com)
+- fixed issue with features with dashes (lnader@redhat.com)
+- Card 551 (lnader@redhat.com)
+- Card online_runtime_266 - Support for JAVA_HOME (jhonce@redhat.com)
+- Merge pull request #2287 from brenton/oo-accept-systems2
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #2282 from rajatchopra/url_story
+  (dmcphers+openshiftbot@redhat.com)
+- Adding a cucumber test for oo-accept-systems (bleanhar@redhat.com)
+- support for external cartridge through urls (rchopra@redhat.com)
+
 * Tue Apr 30 2013 Adam Miller <admiller@redhat.com> 1.8.3-1
 - Merge pull request #2280 from mrunalp/dev/auto_env_vars
   (dmcphers+openshiftbot@redhat.com)
