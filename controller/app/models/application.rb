@@ -426,10 +426,7 @@ class Application
   # @param init_git_url [String] URL to git repository to retrieve application code
   # @return [ResultIO] Output from cartridges
   # @raise [OpenShift::UserException] Exception raised if there is any reason the feature/cartridge cannot be added into the Application
-  def add_features(features, group_overrides=[], init_git_url=nil, community_cart_urls=[])
-    cmap = CartridgeCache.fetch_community_carts(community_cart_urls)
-    features.concat(cmap.keys.dup)
-    self.external_cart_map.merge(cmap)
+  def add_features(features, group_overrides=[], init_git_url=nil)
     features.each do |feature_name|
       cart = CartridgeCache.find_cartridge(feature_name, self)
 

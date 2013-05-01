@@ -44,7 +44,20 @@ class EmbCartController < BaseController
     scales_to = Integer(params[:scales_to]) rescue nil
     additional_storage = Integer(params[:additional_storage]) rescue nil
 
+    features = []
+    cart_urls = []
     if name.is_a? Hash
+      cart_urls << name[:url]
+      begin
+        cmap = CartridgeCache.fetch_community_carts(cart_urls)
+        name = cmap.keys[0]
+        features << name
+        @application.external_cart_map.merge!(cmap)
+      rescue Exception=>e
+        return render_error(:unprocessable_entity, "Error in cartridge url - #{e.message}", 109)
+      end
+    else
+      features << name
     end
 
     begin
@@ -72,10 +85,10 @@ class EmbCartController < BaseController
     begin
       group_overrides = []
       # Todo: REST API assumes cartridge only has one component
-      cart = CartridgeCache.find_cartridge(name)
+      cart = CartridgeCache.find_cartridge(name, @application)
 
       if cart.nil?
-        carts = CartridgeCache.cartridge_names("embedded")
+        carts = CartridgeCache.cartridge_names("embedded", @application)
         return render_error(:unprocessable_entity, "Invalid cartridge. Valid values are (#{carts.join(', ')})",
                             109, "cartridge")
       end
@@ -95,7 +108,7 @@ class EmbCartController < BaseController
         group_overrides << group_override
       end
 
-      cart_create_reply = @application.add_features([name], group_overrides)
+      cart_create_reply = @application.add_features(features, group_overrides)
 
       component_instance = @application.component_instances.find_by(cartridge_name: cart.name, component_name: comp.name)
       cartridge = get_rest_cartridge(@application, component_instance, @application.group_instances_with_scale, @application.group_overrides)
