@@ -1587,7 +1587,10 @@ class Application
   end
   
   def add_component_ops(op_type, component_instance, ops)
+    count = 0
     component_instance.group_instance.gears.each do |gear| 
+      break if component_instance.is_singleton? and count > 0
+      count += 1
       op = PendingAppOp.new(op_type: op_type, args: {'group_instance_id' => component_instance.group_instance._id, 'gear_id' => gear._id, 'comp_spec' => {'cart' => component_instance.cartridge_name, 'comp' => component_instance.component_name}})
       ops.push op
     end
