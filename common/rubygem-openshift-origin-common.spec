@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Common
 Name:          rubygem-%{gem_name}
-Version: 1.7.1
+Version: 1.7.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -96,6 +96,10 @@ cp -a ./%{gem_dir}/* %{buildroot}%{gem_dir}/
 %doc %{gem_docdir}
 
 %changelog
+* Wed May 01 2013 Adam Miller <admiller@redhat.com> 1.7.2-1
+- Card 551 (lnader@redhat.com)
+- Move Runtime::Cartridge to openshift-origin-common (ironcladlou@gmail.com)
+
 * Thu Apr 25 2013 Adam Miller <admiller@redhat.com> 1.7.1-1
 - Splitting configure for cartridges into configure and post-configure
   (abhgupta@redhat.com)
