@@ -2,6 +2,8 @@
 
 # Adds a gear to the haproxy configuration.
 
+source $OPENSHIFT_CARTRIDGE_SDK_BASH
+
 # Exit on any errors
 set -e
 

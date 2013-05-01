@@ -617,7 +617,7 @@ module MCollective
         pub_cart_name = args['--publishing-cart-name']
 
         with_container_from_args(args) do |container, output|
-          output << container.unsubscribe(cart_name, pub_cart_name)
+          output << container.unsubscribe(cart_name, pub_cart_name).to_s
         end
       end
 

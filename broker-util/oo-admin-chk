@@ -63,6 +63,7 @@ require "/var/www/openshift/broker/config/environment"
 # Disable analytics for admin scripts
 Rails.configuration.analytics[:enabled] = false
 Rails.configuration.msg_broker[:rpc_options][:disctimeout] = 20
+Rails.configuration.msg_broker[:rpc_options][:timeout] = 600
 
 def datastore_has_gear?(gear_uuid, app_uuid=nil, false_positive_response=true)
   $false_positive_check_cnt += 1

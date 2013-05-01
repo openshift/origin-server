@@ -45,6 +45,7 @@ def stubber
   @container.stubs(:get_public_hostname).returns("node_dns")
   @container.stubs(:set_quota).returns(ResultIO.new)
   OpenShift::ApplicationContainerProxy.stubs(:execute_parallel_jobs)
+  RemoteJob.stubs(:get_parallel_run_results)
   OpenShift::ApplicationContainerProxy.stubs(:find_available).returns(@container)
   OpenShift::ApplicationContainerProxy.stubs(:find_one).returns(@container)
   dns = mock()

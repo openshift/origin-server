@@ -1,5 +1,6 @@
 #!/bin/bash -e
 
-#NOOP
-
+source $OPENSHIFT_CARTRIDGE_SDK_BASH
+set_uservars "OPENSHIFT_JBOSS_MODULE_PATH=OPENSHIFT_JBOSS_MODULE_PATH=/etc/alternatives/switchyard-0/modules"
 exit 0
+

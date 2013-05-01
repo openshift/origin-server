@@ -3,7 +3,7 @@
 
 Summary:       Provides embedded switchyard support
 Name:          openshift-origin-cartridge-switchyard
-Version:       0.1.1
+Version:       0.1.3
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -57,6 +57,12 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Tue Apr 30 2013 Dan McPherson <dmcphers@redhat.com> 0.1.3-1
+- 
+
+* Tue Apr 30 2013 Dan McPherson <dmcphers@redhat.com> 0.1.2-1
+- new package built with tito
+
 * Mon Apr 29 2013 Unknown name <bdecoste@gmail.com> 0.1.1-1
 - new package built with tito
 

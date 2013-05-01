@@ -82,7 +82,18 @@ module OpenShift
         $stdout.puts("-----------------------------------------------")
         begin
           gear.cartridge_model.each_cartridge do |cart|
-            $stdout.puts(gear.status(cart.name))
+            $stdout.puts("Cartridge: #{cart.name}...")
+            output = ""
+            if gear.cartridge_model.class <= V1CartridgeModel
+              output = gear.status(cart.name)
+            else
+              output = gear.status(cart)
+            end
+            output.gsub!(/^ATTR:.*$/, '')
+            output.gsub!(/^CLIENT_RESULT:\s+/, '')
+            output.strip!
+            $stdout.puts(output)
+            $stdout.puts("")
           end
         rescue => e
           $stderr.puts("Gear #{gear.container_name} Exception: #{e}")
@@ -527,7 +538,6 @@ begin
 
 rescue => e
   $stderr.puts(e.to_s)
-  $stderr.puts(e.backtrace)  # TODO: don't include these
   exit 1
 end
 

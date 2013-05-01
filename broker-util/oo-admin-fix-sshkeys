@@ -64,6 +64,7 @@ require "/var/www/openshift/broker/config/environment"
 # Disable analytics for admin scripts
 Rails.configuration.analytics[:enabled] = false
 Rails.configuration.msg_broker[:rpc_options][:disctimeout] = 20
+Rails.configuration.msg_broker[:rpc_options][:timeout] = 600
 
 def get_user_info(user)
   user_ssh_keys = {}

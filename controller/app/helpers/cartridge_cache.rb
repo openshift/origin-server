@@ -70,17 +70,44 @@ class CartridgeCache
   # == Parameters:
   # feature::
   #   Name of feature to look for.
-  def self.find_cartridge(feature, app=nil)
+
+  def self.find_cartridge(requested_feature, app=nil)
+  
     app.community_cartridges.values.each do |cart|
-      return cart if cart.features.include?(feature)
-      return cart if cart.name == feature
+      return cart if cart.features.include?(requested_feature)
+      return cart if cart.name == requested_feature
     end if app
+    
     carts = self.cartridges
+    vendor, feature, version = self.extract_vendor_feature_version(requested_feature)
+    matching_carts = []
+    
     carts.each do |cart|
-      return cart if cart.features.include?(feature)
-      return cart if cart.name == feature
+      #v1 cartridges
+      return cart if cart.name == requested_feature
+      #v2 cartridges
+      matching_carts << cart if (cart.features.include?(feature) and 
+                                (vendor.nil? or cart.cartridge_vendor == vendor) and 
+                                (version.nil? or cart.version.to_s == version.to_s or (cart.versions and cart.versions.include?(version))))
     end
-    return nil
+    
+    return nil if matching_carts.empty?
+    
+    #return if only one match
+    return matching_carts[0] if matching_carts.length == 1
+    
+    #if any is by redhat return that one
+    cart = matching_carts.find { |c| c.cartridge_vendor == "redhat"}
+    return cart if cart
+    
+    #if there are more than one match and none by redhat raise an exception
+    choices = []
+    matching_carts.each do |cart|
+      choices << "#{cart.cartridge_vendor}-#{cart.name}-#{cart.version}"
+    end
+    
+    raise OpenShift::UserException.new("More that one cartridge was found matching #{requested_feature}.  Please select one of #{choices.to_s}")
+    
   end
 
   def self.download_from_url(url)
@@ -88,6 +115,19 @@ class CartridgeCache
     max_file_size = (Rails.application.config.downloaded_cartridges[:max_cart_size] rescue 20480) || 20480
     max_redirs = (Rails.application.config.downloaded_cartridges[:max_download_redirects] rescue 2) || 2
     `curl --max-time #{max_dl_time} --connect-timeout 2 --location --max-redirs #{max_redirs} --max-filesize #{max_file_size} -k #{url}`
+  end
+
+  def self.foreach_cart_version(manifest_str)
+    cartridge = Runtime::Manifest.new(manifest_str)
+    cartridge.versions.each do |version|
+      cooked = Runtime::Manifest.new(manifest_str, version)
+      Rails.logger.debug("Loading #{cooked.name}-#{cooked.version}...")
+      v1_manifest            = Marshal.load(Marshal.dump(cooked.manifest))
+      v1_manifest['Name']    = "#{cooked.name}-#{cooked.version}"
+      v1_manifest['Version'] = cooked.version
+      carts.push OpenShift::Cartridge.new.from_descriptor(v1_manifest)
+      carts.each { |c| yield c.to_descriptor }
+    end
   end
 
   def self.fetch_community_carts(urls)
@@ -98,11 +138,32 @@ class CartridgeCache
        if manifest_str.length == 0
          raise OpenShift::UserException.new("Invalid cartridge, error downloading from url '#{url}' ", 109)  
        end
-       chash = YAML.load(manifest_str)
+       # chash = YAML.load(manifest_str)
        # TODO: check versions and create multiple of them
-       cmap[chash["Name"]] = { "url" => url, "manifest" => manifest_str }
+       self.foreach_cart_version(manifest_str) do |chash|
+         cmap[chash["Name"]] = { "url" => url, "manifest" => chash.to_yaml}
+         # no versioning support on external cartridges yet.. use the default one
+         break
+       end
     end
     return cmap
+  end
+  
+  def self.extract_vendor_feature_version(requested_feature)
+    vendor, feature, version = nil
+    return vendor, feature, version if requested_feature.nil?
+    a = requested_feature.split("-")
+    if a.length == 1 
+      feature = a[0]
+    elsif a.length == 2 
+      feature = a[0]
+      version = a[1]
+    elsif a.length >= 3
+      vendor = a[0]
+      version = a[a.length - 1] 
+      feature = a[1..(a.length - 2)].join("-")
+    end
+    return vendor, feature, version
   end
 
 end
