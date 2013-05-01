@@ -79,7 +79,7 @@ Broker::Application.configure do
     :scopes => ['Scope::Session', 'Scope::Read', 'Scope::Application', 'Scope::Userinfo'],
     :default_scope => 'userinfo',
     :scope_expirations => OpenShift::Controller::Configuration.parse_expiration(conf.get('AUTH_SCOPE_TIMEOUTS'), 1.day),
-    :external_cartridges_enabled => conf.get_bool("ENABLE_EXTERNAL_CARTRIDGES", "false"),    
+    :external_cartridges_enabled => conf.get_bool("EXTERNAL_CARTRIDGES_ENABLED", "false"),    
   }
 
   config.auth = {
