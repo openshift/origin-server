@@ -19,12 +19,6 @@ Help-Topics:
 Provides:
   - switchyard-0
   - "switchyard"
-Publishes:
-  publish-jboss-module-info:
-    Type: "NET_TCP:jboss-module-info"
-Scaling:
-  Min: 1
-  Max: -1
 Endpoints:
   - Private-IP-Name:   IP
     Private-Port-Name: HTTP_PORT
