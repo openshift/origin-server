@@ -120,14 +120,15 @@ module OpenShift
     def unidle
       p_runner(false) do |gear|
         output_pass_fail("Unidling", gear) do
+          out = ""
           if gear.stop_lock? and (gear.state.value == State::IDLE)
-            frontend = FrontendHttpServer.new(gear.uuid)
-            if frontend.idle?
-              out = gear.start_gear
-              frontend.unidle
-              out
-            end
+            out = gear.start_gear
           end
+          frontend = FrontendHttpServer.new(gear.uuid)
+          if frontend.idle?
+            frontend.unidle
+          end
+          out
         end
       end
     end
