@@ -1,6 +1,6 @@
 Summary:       Utility scripts for the OpenShift Origin broker
 Name:          openshift-origin-node-util
-Version: 1.8.4
+Version: 1.8.5
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -120,6 +120,17 @@ mv services/openshift-gears.service %{buildroot}/etc/systemd/system/openshift-ge
 /sbin/restorecon /usr/sbin/oo-restorer* || :
 
 %changelog
+* Wed May 01 2013 Adam Miller <admiller@redhat.com> 1.8.5-1
+- Bug 957478 - Refactored oo-last-acess and oo-accept-node for V2
+  (jhonce@redhat.com)
+- Merge pull request #2302 from rmillner/ctl_gears
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 956366 - v1 status cleanup and fix v2 status exceptions.
+  (rmillner@redhat.com)
+- Merge pull request #2289 from sosiouxme/ooacceptnode
+  (dmcphers+openshiftbot@redhat.com)
+- <oo-accept-node> make conf file parsing consistent (lmeyer@redhat.com)
+
 * Tue Apr 30 2013 Adam Miller <admiller@redhat.com> 1.8.4-1
 - Merge pull request #2263 from sosiouxme/bz957818
   (dmcphers+openshiftbot@redhat.com)
