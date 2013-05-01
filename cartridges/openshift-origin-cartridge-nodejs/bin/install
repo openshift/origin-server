@@ -6,13 +6,6 @@ case "$1" in
     version="$2"
 esac
 
-# Copy the version specific files to nodejs directory
-shopt -s dotglob
-for dir in template; do
-    mkdir -p $OPENSHIFT_NODEJS_DIR/$dir
-    cp -Lr $OPENSHIFT_NODEJS_DIR/versions/$version/$dir/* $OPENSHIFT_NODEJS_DIR/$dir 
-done
-
 ## npm link
 pushd $OPENSHIFT_NODEJS_DIR > /dev/null
   mkdir -p node_modules

@@ -2,7 +2,6 @@
 locked_files:
 - configuration/
 - metadata/
-- template/
 - env/
 - tmp/
 - conf/
