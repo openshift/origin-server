@@ -318,7 +318,7 @@ module RestApi
       # :cause => :server_unavailable. As an improvement the broker could return an exit_code
       # for us to handle on translate_api_error. Otherwise throw as ActiveResource would.
       server_unavailable = error.response.present? && 
-        error.response.code.present? && 
+        error.response.respond_to?(:code) && 
         error.response.code.to_i == 503
 
       remote_errors = set_remote_errors(error, true)

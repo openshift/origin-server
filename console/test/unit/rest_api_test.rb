@@ -216,6 +216,11 @@ class RestApiTest < ActiveSupport::TestCase
     assert_equal [125, 'test', 'hello'], errors[0]
   end
 
+  def test_save_handles_invalid_error
+    Key.any_instance.expects(:save_without_change_tracking).raises(ActiveResource::ConnectionError.new(stub(:response => '')))
+    assert_raises(ActiveResource::ConnectionError){ Key.new(:name => 'test', :raw_content => 'bar', :as => @user).save }
+  end
+
   def test_serialization
     app = Application.new :name => 'test1', :cartridge => 'cool', :application_type => 'diy-0.1', :as => @user
     #puts app.class.send('known_attributes').inspect
