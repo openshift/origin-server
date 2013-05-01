@@ -9,7 +9,7 @@
 
 Summary:       OpenShift Origin Management Console
 Name:          rubygem-%{gem_name}
-Version: 1.8.3
+Version: 1.8.4
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -147,6 +147,9 @@ cp -a ./%{gem_dir}/* %{buildroot}%{gem_dir}/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Wed May 01 2013 Adam Miller <admiller@redhat.com> 1.8.4-1
+- Add host name as an option for asset generation (ccoleman@redhat.com)
+
 * Tue Apr 30 2013 Adam Miller <admiller@redhat.com> 1.8.3-1
 - Merge pull request #2281 from smarterclayton/add_link_block
   (dmcphers+openshiftbot@redhat.com)
