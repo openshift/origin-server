@@ -81,7 +81,7 @@ class ApplicationsController < BaseController
                         104) if (@cloud_user.consumed_gears >= @cloud_user.max_gears)
 
     download_cartridges_enabled = Rails.application.config.openshift[:download_cartridges_enabled]
-    limit = (Rails.application.config.downloaded_cartridges[:max_external_carts_per_app] rescue 5) || 5
+    limit = (Rails.application.config.downloaded_cartridges[:max_downloaded_carts_per_app] rescue 5) || 5
     return render_error(:unprocessable_entity, "You may not specify more than #{limit} cartridges to be downloaded.",
                             109, "cartridge") if download_cartridges_enabled and external_cart_urls.length > limit
     return render_error(:unprocessable_entity, "You must specify a cartridge. Valid values are (#{carts.join(', ')})",

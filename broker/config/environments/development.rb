@@ -92,7 +92,7 @@ Broker::Application.configure do
   }
 
   config.downloaded_cartridges = {
-    :max_external_carts_per_app => 5,
+    :max_downloaded_carts_per_app => 5,
     :max_download_redirects => 2,
     :max_cart_size => 20480,
     :max_download_time => 10
