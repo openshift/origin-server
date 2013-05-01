@@ -80,12 +80,12 @@ class ApplicationsController < BaseController
     return render_error(:unprocessable_entity, "#{@cloud_user.login} has already reached the gear limit of #{@cloud_user.max_gears}",
                         104) if (@cloud_user.consumed_gears >= @cloud_user.max_gears)
 
-    external_cartridges_enabled = Rails.application.config.openshift[:external_cartridges_enabled]
-    limit = (Rails.application.config.external_cartridges[:max_external_carts_per_app] rescue 5) || 5
-    return render_error(:unprocessable_entity, "You must not specify more than #{limit} number of external cartridges.",
-                            109, "cartridge") if external_cartridges_enabled and external_cart_urls.length > limit
+    download_cartridges_enabled = Rails.application.config.openshift[:download_cartridges_enabled]
+    limit = (Rails.application.config.downloaded_cartridges[:max_external_carts_per_app] rescue 5) || 5
+    return render_error(:unprocessable_entity, "You may not specify more than #{limit} cartridges to be downloaded.",
+                            109, "cartridge") if download_cartridges_enabled and external_cart_urls.length > limit
     return render_error(:unprocessable_entity, "You must specify a cartridge. Valid values are (#{carts.join(', ')})",
-                            109, "cartridge") if external_cartridges_enabled ? (external_cart_urls.empty? and features.empty?) : features.empty?
+                            109, "cartridge") if download_cartridges_enabled ? (external_cart_urls.empty? and features.empty?) : features.empty?
 
     begin
       app_creation_result = ResultIO.new

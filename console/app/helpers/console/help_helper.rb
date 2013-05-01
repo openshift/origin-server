@@ -86,7 +86,7 @@ module Console::HelpHelper
     community_base_url 'developers/get-started'
   end
 
-  def external_cartridges_help_url
+  def downloadable_cartridges_help_url
     community_base_url 'developers/external-cartridges'
   end
 

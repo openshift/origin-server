@@ -130,7 +130,7 @@ class ApplicationsControllerTest < ActionController::TestCase
 
     assert_select '.error .help-inline', /Application name is required/i
     assert_select 'h3 > a', 'https://foo.bar'
-    assert_select '.text-warning', /Custom cartridges do not receive updates automatically/
+    assert_select '.text-warning', /Personal cartridges do not receive updates automatically/
     assert_select "input[type=hidden][name='application[cartridges][][url]'][value=https://foo.bar]"
   end
 

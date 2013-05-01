@@ -12,7 +12,7 @@ class RestApiCartridgeTest < ActiveSupport::TestCase
   TEST_CART_NAME = 'name'
 
   test 'add a cartridge with a custom URL to an app' do
-    skip "External cartridges are disabled" unless RestApi.external_cartridges_enabled?
+    skip "External cartridges are disabled" unless RestApi.download_cartridges_enabled?
 
     cart = Cartridge.new(:url => TEST_CART_URL, :application => with_app)
 

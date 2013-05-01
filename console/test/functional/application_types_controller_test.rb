@@ -12,7 +12,7 @@ class ApplicationTypesControllerTest < ActionController::TestCase
   end
 
   test "should show index" do
-    RestApi.stubs(:external_cartridges_enabled?).returns(true)
+    RestApi.stubs(:download_cartridges_enabled?).returns(true)
 
     with_unique_user
     get :index
@@ -119,7 +119,7 @@ class ApplicationTypesControllerTest < ActionController::TestCase
     assert_response :success
     assert_select 'h3', 'From Scratch'
     assert_select 'h3 > a', 'custom_cart'
-    assert_select '.text-warning', /Custom cartridges do not receive updates automatically/
+    assert_select '.text-warning', /Personal cartridges do not receive updates automatically/
     assert_select "input[type=hidden][name='application[cartridges][][url]'][value=http://foo.bar#custom_cart]"
   end
 
@@ -128,7 +128,7 @@ class ApplicationTypesControllerTest < ActionController::TestCase
     get :show, :id => 'custom', :application_type => {:cartridges => 'http://foo.bar#custom_cart'}, :unlock => true
     assert_response :success
     assert_select 'h3', 'From Scratch'
-    assert_select '.text-warning', /Custom cartridges do not receive updates automatically/
+    assert_select '.text-warning', /Personal cartridges do not receive updates automatically/
     assert_select "input[type=text][name='application_type[cartridges]'][value=http://foo.bar#custom_cart]"
   end
 

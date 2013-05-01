@@ -45,7 +45,7 @@ class RestApiApplicationTest < ActiveSupport::TestCase
     with_configured_user
     setup_domain
 
-    skip "External cartridges are disabled" unless RestApi.external_cartridges_enabled?
+    skip "Downloadable cartridges are disabled" unless RestApi.download_cartridges_enabled?
 
     app = Application.new({
       :domain => @domain,

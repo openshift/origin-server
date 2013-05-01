@@ -125,8 +125,8 @@ The REST API could not be reached at #{Base.site}
   #
   # Does the server support the 'url' parameter on app creation and on cartridge addition?
   #
-  def self.external_cartridges_enabled?
-    @external_cartridges_enabled ||= Environment.cached.find(:one).external_cartridges_enabled
+  def self.download_cartridges_enabled?
+    @download_cartridges_enabled ||= Environment.cached.find(:one).download_cartridges_enabled
   end
 
   def self.site
