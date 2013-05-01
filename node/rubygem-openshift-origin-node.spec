@@ -16,7 +16,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.8.3
+Version: 1.8.4
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -287,6 +287,14 @@ fi
 %attr(0755,-,-) /etc/cron.monthly/openshift-origin-cron-monthly
 
 %changelog
+* Wed May 01 2013 Adam Miller <admiller@redhat.com> 1.8.4-1
+- fixed node test to include new cartridge attributes Versions and Cartridge-
+  Vendor (lnader@redhat.com)
+- Merge pull request #2293 from ironcladlou/dev/v2carts/cartridge-common
+  (dmcphers+openshiftbot@redhat.com)
+- Move Runtime::Cartridge to openshift-origin-common (ironcladlou@gmail.com)
+- Card online_runtime_266 - Support for LD_LIBRARY_PATH (jhonce@redhat.com)
+
 * Tue Apr 30 2013 Adam Miller <admiller@redhat.com> 1.8.3-1
 - Merge pull request #2283 from rmillner/BZ957883
   (dmcphers+openshiftbot@redhat.com)
