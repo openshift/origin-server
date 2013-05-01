@@ -3,7 +3,7 @@
 
 Summary:       Embedded mongodb support for OpenShift
 Name:          openshift-origin-cartridge-mongodb
-Version: 1.7.2
+Version: 1.7.3
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -63,6 +63,13 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Wed May 01 2013 Adam Miller <admiller@redhat.com> 1.7.3-1
+- Merge pull request #2296 from ironcladlou/bz/955538
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 954209: Remove unnecessary root check (ironcladlou@gmail.com)
+- Bug 955538: Fix error handling in mongodb stop routine
+  (ironcladlou@gmail.com)
+
 * Tue Apr 30 2013 Adam Miller <admiller@redhat.com> 1.7.2-1
 - Env var WIP. (mrunalp@gmail.com)
 
