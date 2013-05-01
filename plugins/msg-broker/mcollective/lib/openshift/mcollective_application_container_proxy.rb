@@ -337,30 +337,6 @@ module OpenShift
         end
       end
       
-      #
-      # A District object accessor method
-      # It uses the datastore to query persistent storage
-      # 
-      # INPUTS:
-      # * district_uuid: a lookup handle for a district in the datastore
-      #
-      # RETURNS:
-      # * not quite sure.
-      #
-      def inc_externally_reserved_uids_size(district_uuid=nil)
-        if Rails.configuration.msg_broker[:districts][:enabled]
-          if @district
-            district_uuid = @district.uuid
-          else
-            district_uuid = get_district_uuid unless district_uuid
-          end
-          if district_uuid && district_uuid != 'NONE'
-            #cleanup
-            District::inc_externally_reserved_uids_size(district_uuid)
-          end
-        end
-      end
-      
       def build_base_gear_args(gear, quota_blocks=nil, quota_files=nil)
         app = gear.app
         args = Hash.new
@@ -413,7 +389,6 @@ module OpenShift
             result = ooex.resultIO
             if result.exitcode == 129 && has_uid_or_gid?(gear.uid) # Code to indicate uid already taken
               destroy(gear, true)
-              inc_externally_reserved_uids_size
               gear.uid = reserve_uid
               app.save
             else
