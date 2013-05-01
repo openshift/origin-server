@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/openshift/cartridges/v2/diy
 
 Name: openshift-origin-cartridge-diy
-Version: 0.3.3
+Version: 0.3.4
 Release: 1%{?dist}
 Summary: DIY cartridge
 Group: Development/Languages
@@ -54,6 +54,11 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Wed May 01 2013 Adam Miller <admiller@redhat.com> 0.3.4-1
+- Merge pull request #2297 from ironcladlou/bz/955482
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 955482: Remove unnecessary symlink from RPM spec (ironcladlou@gmail.com)
+
 * Tue Apr 30 2013 Adam Miller <admiller@redhat.com> 0.3.3-1
 - Env var WIP. (mrunalp@gmail.com)
 
