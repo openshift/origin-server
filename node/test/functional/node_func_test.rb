@@ -39,7 +39,7 @@ class NodeTest < OpenShift::V2SdkTestCase
     buffer = OpenShift::Node.get_cartridge_list(true, true, true)
     refute_nil buffer
 
-    assert_equal %Q(CLIENT_RESULT: [\"---\\nName: CRTest-0.1\\nDisplay-Name: CRTest Unit Test\\nVersion: '0.1'\\nGroup-Overrides:\\n- components:\\n  - CRTest-0.1\\n  - web_proxy\\n\",\"---\\nName: CRTest-0.2\\nDisplay-Name: CRTest Unit Test\\nVersion: '0.2'\\nGroup-Overrides:\\n- components:\\n  - CRTest-0.2\\n  - web_proxy\\n\",\"---\\nName: CRTest-0.3\\nDisplay-Name: CRTest Unit Test\\nVersion: '0.3'\\nGroup-Overrides:\\n- components:\\n  - CRTest-0.2\\n  - web_proxy\\n\"]),
+    assert_equal %Q(CLIENT_RESULT: [\"---\\nName: CRTest-0.1\\nDisplay-Name: CRTest Unit Test\\nVersion: '0.1'\\nVersions:\\n- '0.1'\\n- '0.2'\\n- '0.3'\\nCartridge-Vendor: Red Hat\\nGroup-Overrides:\\n- components:\\n  - CRTest-0.1\\n  - web_proxy\\n\",\"---\\nName: CRTest-0.2\\nDisplay-Name: CRTest Unit Test\\nVersion: '0.2'\\nVersions:\\n- '0.1'\\n- '0.2'\\n- '0.3'\\nCartridge-Vendor: Red Hat\\nGroup-Overrides:\\n- components:\\n  - CRTest-0.2\\n  - web_proxy\\n\",\"---\\nName: CRTest-0.3\\nDisplay-Name: CRTest Unit Test\\nVersion: '0.3'\\nVersions:\\n- '0.1'\\n- '0.2'\\n- '0.3'\\nCartridge-Vendor: Red Hat\\nGroup-Overrides:\\n- components:\\n  - CRTest-0.2\\n  - web_proxy\\n\"]),
                  buffer
   end
 
