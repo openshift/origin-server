@@ -5,7 +5,7 @@
 
 Summary:       Provides JBossEAP6.0 support
 Name:          openshift-origin-cartridge-jbosseap
-Version: 2.2.3
+Version: 2.2.4
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -94,6 +94,13 @@ cp -p %{cartridgedir}/versions/6.0/modules/postgresql_module.xml /etc/alternativ
 
 
 %changelog
+* Wed May 01 2013 Adam Miller <admiller@redhat.com> 2.2.4-1
+- Merge pull request #2303 from ironcladlou/bz/955509
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 955509: Remove duplicate cart install lines from specfile
+  (ironcladlou@gmail.com)
+- Card online_runtime_266 - Support for JAVA_HOME (jhonce@redhat.com)
+
 * Tue Apr 30 2013 Adam Miller <admiller@redhat.com> 2.2.3-1
 - Merge pull request #2280 from mrunalp/dev/auto_env_vars
   (dmcphers+openshiftbot@redhat.com)
