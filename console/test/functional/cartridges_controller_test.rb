@@ -28,6 +28,21 @@ class CartridgesControllerTest < ActionController::TestCase
     assert_template :next_steps
   end
 
+  test "should submit with a URL" do
+    with_testable_app(false)
+    Cartridge.any_instance.expects(:save).returns(true)
+
+    post(:create, {:cartridge => {:name => 'custom', :url => 'https://foo.com'}, :application_id => with_testable_app.id, :domain_id => @domain.id})
+
+    assert cart = assigns(:cartridge)
+    assert cart.errors.empty?, cart.errors.to_hash.inspect
+    assert_response :success
+    assert_template :next_steps
+
+    assert_equal 'https://foo.com', cart.url
+    assert_nil cart.name
+  end
+
   test "should create two cartridges" do
     with_testable_app(true)
 

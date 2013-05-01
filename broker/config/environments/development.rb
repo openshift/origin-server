@@ -80,7 +80,7 @@ Broker::Application.configure do
     :scopes => ['Scope::Session', 'Scope::Read', 'Scope::Application', 'Scope::Userinfo'],
     :default_scope => 'userinfo',
     :scope_expirations => OpenShift::Controller::Configuration.parse_expiration(conf.get('AUTH_SCOPE_TIMEOUTS'), 1.day),
-    :external_cartridges_enabled => true,
+    :download_cartridges_enabled => conf.get_bool("DOWNLOAD_CARTRIDGES_ENABLED", "true"),
   }
 
   config.auth = {
@@ -91,8 +91,8 @@ Broker::Application.configure do
     :rsync_keyfile => conf.get("AUTH_RSYNC_KEY_FILE", "/etc/openshift/rsync_id_rsa")
   }
 
-  config.external_cartridges = {
-    :max_external_carts_per_app => 5,
+  config.downloaded_cartridges = {
+    :max_downloaded_carts_per_app => 5,
     :max_download_redirects => 2,
     :max_cart_size => 20480,
     :max_download_time => 10

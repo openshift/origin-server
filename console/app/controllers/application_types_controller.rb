@@ -41,6 +41,7 @@ class ApplicationTypesController < ConsoleController
         g[1].sort!
         g[0] = I18n.t(g[0], :scope => :types, :default => g[0].to_s.titleize)
       end
+      @custom_types, other = other.partition{ |t| t.tags.include?(:custom) }
       groups << ['Other types', other.sort!] unless other.empty?
       @type_groups = groups
     end
@@ -50,6 +51,7 @@ class ApplicationTypesController < ConsoleController
     app_params = params[:application] || params
     app_type_params = params[:application_type] || app_params
     @advanced = to_boolean(params[:advanced])
+    @unlock_cartridges = to_boolean(params[:unlock])
 
     user_default_domain rescue (@domain = Domain.new)
 
@@ -65,16 +67,18 @@ class ApplicationTypesController < ConsoleController
     @application.gear_profile = @capabilities.gear_sizes.first unless @capabilities.gear_sizes.include?(@application.gear_profile)
     @application.domain_name = app_params[:domain_name].presence || app_params[:domain_id].presence
 
-    begin
-      @cartridges, @missing_cartridges = @application_type.matching_cartridges
-      flash.now[:error] = "No cartridges are defined for this type - all applications require at least one web cartridge" unless @cartridges.present?
-    rescue ApplicationType::CartridgeSpecInvalid
-      logger.debug $!
-      flash.now[:error] = "The cartridges defined for this type are not valid.  The #{@application_type.source} may not be correct."
+    unless @unlock_cartridges
+      begin
+        @cartridges, @missing_cartridges = @application_type.matching_cartridges
+        flash.now[:error] = "No cartridges are defined for this type - all applications require at least one web cartridge" unless @cartridges.present?
+      rescue ApplicationType::CartridgeSpecInvalid
+        logger.debug $!
+        flash.now[:error] = "The cartridges defined for this type are not valid.  The #{@application_type.source} may not be correct."
+      end
+      @disabled = @missing_cartridges.present? || @cartridges.blank?
     end
 
     flash.now[:error] = "There are not enough free gears available to create a new application. You will either need to scale down or delete existing applications to free up resources." unless @capabilities.gears_free?
-    @disabled = @missing_cartridges.present? || @cartridges.blank?
 
     user_default_domain rescue nil
   end

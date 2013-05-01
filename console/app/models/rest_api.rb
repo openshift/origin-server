@@ -122,6 +122,13 @@ The REST API could not be reached at #{Base.site}
     @application_domain_suffix ||= Environment.cached.find(:one).domain_suffix
   end
 
+  #
+  # Does the server support the 'url' parameter on app creation and on cartridge addition?
+  #
+  def self.download_cartridges_enabled?
+    @download_cartridges_enabled ||= Environment.cached.find(:one).download_cartridges_enabled
+  end
+
   def self.site
     Base.site
   end

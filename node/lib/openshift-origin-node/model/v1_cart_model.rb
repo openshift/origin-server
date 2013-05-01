@@ -196,7 +196,7 @@ module OpenShift
     end
 
     def configure(cart_name, template_git_url, manifest)
-      raise "Custom cartridges are not supported" if manifest
+      raise "Personal cartridges are not supported" if manifest
 
       do_control('configure', cart_name, "#{@user.container_name} #{@user.namespace} #{@user.container_uuid} #{template_git_url}")
     end

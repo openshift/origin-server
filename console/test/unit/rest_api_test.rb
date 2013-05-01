@@ -7,7 +7,7 @@ require File.expand_path('../../test_helper', __FILE__)
 class RestApiTest < ActiveSupport::TestCase
 
   uses_http_mock
-  setup{ Rails.cache.clear }
+  with_clean_cache
 
   def setup
     ActiveResource::HttpMock.reset!
@@ -1000,6 +1000,26 @@ class RestApiTest < ActiveSupport::TestCase
     assert_equal '1', d.id_was
     assert d.save
     assert_equal '2', d.id
+  end
+
+  def test_cartridge_type_url_basename
+    assert_nil CartridgeType.new.url_basename
+    {
+      'http://foo.bar' => 'http://foo.bar',
+      'http://foo.bar/' => 'http://foo.bar/',
+      'http://foo.bar/test' => 'test',
+      'http://foo.bar/test/' => 'test',
+      'http://foo.bar?name=other' => 'other',
+      'http://foo.bar/?name=other' => 'other',
+      'http://foo.bar/test?name=other' => 'other',
+      'http://foo.bar?name=other#wow' => 'wow',
+    }.each do |k,v|
+      c = CartridgeType.for_url(k)
+      assert_equal v, c.url_basename
+      assert_equal v, c.display_name
+    end
+    assert_equal 'http://foo.com', CartridgeType.new(:name => 'test', :url => 'http://foo.com').display_name
+    assert_equal 'test', CartridgeType.new(:name => 'test', :url => 'http://foo.com', :display_name => 'test').display_name
   end
 
   def test_cartridge_usage_rates_default
