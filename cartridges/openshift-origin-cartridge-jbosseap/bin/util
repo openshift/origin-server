@@ -1,0 +1,15 @@
+#!/bin/bash -eu
+
+source $OPENSHIFT_CARTRIDGE_SDK_BASH
+
+function update-configuration() {
+  if marker_present java7 || [ ${1:-java7} == java7 ]
+  then
+    export JAVA_HOME=$OPENSHIFT_JBOSSEAP_JDK7
+  else
+    export JAVA_HOME=$OPENSHIFT_JBOSSEAP_JDK6
+  fi
+
+  echo $JAVA_HOME > $OPENSHIFT_JBOSSEAP_DIR/env/JAVA_HOME
+  echo "$JAVA_HOME/bin:$M2_HOME/bin" > $OPENSHIFT_JBOSSEAP_DIR/env/OPENSHIFT_JBOSSEAP_PATH_ELEMENT
+}

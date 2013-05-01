@@ -1,5 +1,7 @@
 #!/bin/bash -eu
 
+source $OPENSHIFT_JBOSSEAP_DIR/bin/util
+
 version=6.0
 
 echo "$version" > "$OPENSHIFT_JBOSSEAP_DIR/env/OPENSHIFT_JBOSSEAP_VERSION"
@@ -22,8 +24,4 @@ pushd $OPENSHIFT_JBOSSEAP_DIR/template/src/main/webapp
   jar cvf $OPENSHIFT_JBOSSEAP_DIR/standalone/deployments/ROOT.war ./*
 popd
 
-JAVA_HOME=/etc/alternatives/java_sdk_1.7.0
-M2_HOME=/etc/alternatives/maven-3.0
-echo "$JAVA_HOME" > $OPENSHIFT_JBOSSEAP_DIR/env/JAVA_HOME
-echo "$M2_HOME" > $OPENSHIFT_JBOSSEAP_DIR/env/M2_HOME
-echo "$JAVA_HOME/bin:$M2_HOME/bin" > $OPENSHIFT_JBOSSEAP_DIR/env/OPENSHIFT_JBOSSEAP_PATH_ELEMENT
+update-configuration java7
