@@ -705,6 +705,10 @@ module OpenShift
         
         args = build_base_gear_args(gear)
         args['--cart-name'] = cart
+
+        if gear.app.external_cart_map.has_key? cart
+          args['--with-cartridge-manifest'] = app.external_cart_map[cart]["manifest"]
+        end
         
         if !template_git_url.nil?  && !template_git_url.empty?
           args['--with-template-git-url'] = template_git_url
@@ -1545,12 +1549,18 @@ module OpenShift
       # NOTES:
       # * uses RemoteJob
       #         
-      def get_execute_connector_job(gear, cart, connector_name, connection_type, input_args)
+      def get_execute_connector_job(gear, cart, connector_name, connection_type, input_args, pub_cart=nil)
         args = build_base_gear_args(gear)
         args['--cart-name'] = cart
         args['--hook-name'] = connector_name
+        args['--publishing-cart-name'] = pub_cart if pub_cart
         args['--connection-type'] = connection_type
-        args['--input-args'] = input_args.join(" ")
+        # Need to pass down args as hash for subscriber ENV hooks only
+        if connection_type.start_with?("ENV:") && pub_cart
+          args['--input-args'] = input_args
+        else
+          args['--input-args'] = input_args.join(" ")
+        end
         job = RemoteJob.new('openshift-origin-node', 'connector-execute', args)
         job
       end
@@ -2292,6 +2302,9 @@ module OpenShift
 
         args = build_base_gear_args(gear)
         args['--cart-name'] = component
+        if app.external_cart_map.has_key? component
+          args['--with-cartridge-manifest'] = app.external_cart_map[component]["manifest"]
+        end
         
         begin
           reply.append run_cartridge_command(component, gear, 'configure', args)

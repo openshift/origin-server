@@ -20,7 +20,7 @@ require 'openshift-origin-node/utils/shell_exec'
 require 'openshift-origin-node/utils/selinux'
 require 'openshift-origin-node/utils/environ'
 require 'openshift-origin-node/model/unix_user'
-require 'openshift-origin-node/utils/path_utils'
+require 'openshift-origin-common/utils/path_utils'
 require 'openshift-origin-node/utils/node_logger'
 
 module OpenShift
@@ -76,6 +76,7 @@ module OpenShift
       ]
 
       template = locations.find {|l| File.directory?(l)}
+      logger.debug("Using '#{template}' to populate git repository for #{@user.uuid}")
       return nil unless template
 
       # expose variables for ERB processing
@@ -191,7 +192,8 @@ module OpenShift
       FileUtils.rm_r(template) if File.exist? template
 
       git_path = File.join(@user.homedir, 'git')
-      FileUtils.cp_r(path, git_path, preserve: true)
+      Utils.oo_spawn("/bin/cp -ad #{path} #{git_path}",
+                     expected_exitstatus: 0)
 
       Utils.oo_spawn(ERB.new(GIT_INIT).result(binding),
                      chdir:               template,

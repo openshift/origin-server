@@ -10,6 +10,7 @@ import commands
 import re
 import selinux
 import subprocess
+import itertools
 
 EXT_LIB = "/usr/libexec/openshift/lib/util"
 
@@ -44,6 +45,9 @@ def load_env(directory):
     for entry in glob.glob(os.path.expanduser(os.path.join(directory, '*'))):
         syslog.syslog("DEBUG: var entry %s" % entry)
         env = os.path.basename(entry)
+        if os.path.isdir(entry):
+            load_env(os.path.join(directory, entry))
+            continue
 
         with open(entry, 'r') as file:
             contents = file.read().rstrip()
@@ -59,7 +63,7 @@ def gear_env():
     load_env('/etc/openshift/env')
     system_path = os.environ['PATH']
 
-    load_env('~/.env/.uservars')
+    #load_env('~/.env/.uservars')
     load_env('~/.env')
     load_env('~/*/env/')
 
@@ -68,28 +72,40 @@ def gear_env():
         primary = os.path.basename(os.environ['OPENSHIFT_PRIMARY_CARTRIDGE_DIR'].rstrip('/'))
         load_env(os.path.join(os.environ['OPENSHIFT_PRIMARY_CARTRIDGE_DIR'], 'env'))
 
-    primary_path = "OPENSHIFT_%s_PATH" % primary
-    matcher = re.compile('^OPENSHIFT_.*_PATH')
-    path_segments = [key for key in os.environ if matcher.match(key)]
+    primary_path = "OPENSHIFT_%s_PATH_ELEMENT" % primary
+    matcher = re.compile('^OPENSHIFT_.*_PATH_ELEMENT$')
+    path_elements = [key for key in os.environ if matcher.match(key)]
 
-    if primary_path in path_segments:
-        path_segments.remove(primary_path)
-    segments = [os.environ[key] for key in path_segments]
+    if primary_path in path_elements:
+        path_elements.remove(primary_path)
+    elements = [os.environ[key] for key in path_elements]
 
     if primary_path in os.environ:
-        segments.insert(0, os.environ[primary_path])
+        elements.insert(0, os.environ[primary_path])
 
     if 'PATH' in os.environ:
-        segments.append(os.environ['PATH'])
-    segments.append(system_path)
+        elements.append(os.environ['PATH'])
+    elements.append(system_path)
 
-    os.environ['PATH'] = ':'.join(segments)
+    os.environ['PATH'] = ':'.join(elements)
 
 
+# Calling oo-get-mcs-level gets into trouble due to BZ 957257.  Use an
+# internal call which produces the same logic.
 def get_mcs_level(uid):
-    cmd = "/usr/bin/oo-get-mcs-level %s" % (uid)
-    ret = commands.getstatusoutput(cmd)
-    return ret[1]
+    set_size = 1024
+    group_size = 2
+    uid_offset = 0
+    mls_num = 0
+
+    mcs_set = [ "c%d" % n for n in xrange(set_size) ]
+    iuid = uid_offset
+
+    for mcs_col in itertools.combinations(mcs_set, 2):
+        iuid+=1
+        if iuid == uid:
+            return "s%d:%s" % ( mls_num, ",".join(mcs_col) )
+
 
 def read_config():
   config = {}

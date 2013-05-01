@@ -311,11 +311,23 @@ module RestApi
       # Aggressively raise the error - TODO, parse codes or specialize
       raise
     rescue ActiveResource::ConnectionError => error
-      # if the server returns a body that has messages, filter them through
+      # If the server returns a body that has messages, filter them through
       # the error handler.  If one or more errors were set, assume that the message
-      # is more useful than the exception and return false. Otherwise throw as ActiveResource
-      # would
-      raise unless set_remote_errors(error, true)
+      # is more useful than the exception and return false. Special case is "server under
+      # maintenance" where we raise even having messages, to be able to logout with 
+      # :cause => :server_unavailable. As an improvement the broker could return an exit_code
+      # for us to handle on translate_api_error. Otherwise throw as ActiveResource would.
+      server_unavailable = error.response.present? && 
+        error.response.code.present? && 
+        error.response.code.to_i == 503
+
+      remote_errors = set_remote_errors(error, true)
+
+      if server_unavailable 
+        raise ServerUnavailable.new(error.response)
+      elsif !remote_errors 
+        raise
+      end
     end
     alias_method_chain :save, :change_tracking
 

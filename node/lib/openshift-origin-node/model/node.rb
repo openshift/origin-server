@@ -15,7 +15,7 @@
 #++
 
 require 'openshift-origin-node/utils/sdk'
-require 'openshift-origin-node/model/cartridge'
+require 'openshift-origin-common/models/manifest'
 require 'openshift-origin-node/model/cartridge_repository'
 require 'openshift-origin-common'
 require 'systemu'
@@ -46,7 +46,7 @@ module OpenShift
         CartridgeRepository.instance.each do |cartridge|
           cartridge.versions.each do |version|
             begin
-              cooked = Runtime::Cartridge.new(cartridge.source, version, cartridge.repository_path)
+              cooked = Runtime::Manifest.new(cartridge.manifest_path, version, cartridge.repository_path)
               print "Loading #{cooked.name}-#{cooked.version}..." if oo_debug
 
               v1_manifest            = Marshal.load(Marshal.dump(cooked.manifest))

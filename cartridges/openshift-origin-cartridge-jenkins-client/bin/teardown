@@ -10,16 +10,16 @@ then
   then
       # Existing job was disabled
       client_result ""
-      client_result "The corresponding job '${OPENSHIFT_GEAR_NAME}-build' in Jenkins has been disabled."
+      client_result "The corresponding job '${OPENSHIFT_APP_NAME}-build' in Jenkins has been disabled."
       client_result "You can re-enable or delete as desired."
   else
       # An error occurred disabling existing job
       client_result ""
-      client_result "Could not disable job '${OPENSHIFT_GEAR_NAME}-build' in Jenkins server:"
+      client_result "Could not disable job '${OPENSHIFT_APP_NAME}-build' in Jenkins server:"
       client_result "   $out"
       client_result "Continuing anyway."
   fi
-  client_result "Job URL: ${JENKINS_URL}job/${OPENSHIFT_GEAR_NAME}-build/"
+  client_result "Job URL: ${JENKINS_URL}job/${OPENSHIFT_APP_NAME}-build/"
   client_result ""
 fi
-client_result "Jenkins client 1.4 has been removed from: $OPENSHIFT_GEAR_NAME"
+client_result "Jenkins client 1.4 has been removed from: $OPENSHIFT_APP_NAME"

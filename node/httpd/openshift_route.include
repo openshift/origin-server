@@ -22,6 +22,10 @@ RewriteMap      openshift-aliases dbm=db:/var/lib/openshift/.httpd.d/aliases.db
 RewriteMap      openshift-idler   dbm=db:/var/lib/openshift/.httpd.d/idler.db
 RewriteMap      openshift-sts     dbm=db:/var/lib/openshift/.httpd.d/sts.db
 
+# Set X-Request-Start header to allow checking request life cycle.
+RequestHeader set X-Request-Start "%t"
+
+
 # Set X-Client-IP to the node which contacted the front-end
 # This being Apache, you can't just use %{REMOTE_ADDR}e.
 RewriteCond %{REMOTE_ADDR} ^(.*)$
@@ -145,6 +149,10 @@ RewriteRule ^(.*)$ - [E=V_ROUTE:127.0.0.1%{ENV:V_MATCH_PATH},NS,F]
 # Do not proxy
 RewriteCond %{ENV:V_ROUTE} =NOPROXY
 RewriteRule ^(.*)$ - [E=V_ROUTE:127.0.0.1%{ENV:V_MATCH_PATH},NS,L]
+
+# Discard original request and load the health check file
+RewriteCond %{ENV:V_ROUTE} =HEALTH
+RewriteRule ^(.*)$ /var/www/html/health.txt [E=V_ROUTE:127.0.0.1%{ENV:V_MATCH_PATH},NS,L]
 
 # Issue a redirect
 RewriteCond %{ENV:V_ROUTE} ^REDIRECT:(.*)$

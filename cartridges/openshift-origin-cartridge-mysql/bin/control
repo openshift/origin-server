@@ -1,4 +1,4 @@
-#!/bin/bash -e
+#!/bin/bash
 
 source $OPENSHIFT_CARTRIDGE_SDK_BASH
 
@@ -51,26 +51,28 @@ function touch_mysqld {
 }
 
 function stop {
-  pidfile=$OPENSHIFT_MYSQL_DIR/pid/mysql.pid
+  if is_running; then
+    pidfile=$OPENSHIFT_MYSQL_DIR/pid/mysql.pid
 
-  if [ -f $pidfile ]; then
-    pid=$( /bin/cat $pidfile )
-    /bin/kill $pid
-    ret=$?
-    if [ $ret -eq 0 ]; then
-      TIMEOUT="$STOPTIMEOUT"
-      while [ $TIMEOUT -gt 0 ] && [ -f "$pidfile" ]
-      do
-        /bin/kill -0 "$pid" >/dev/null 2>&1 || break
-        sleep 1
-        let TIMEOUT=${TIMEOUT}-1
-      done
-    fi
-  else
-    if `pgrep -x mysqld_safe > /dev/null 2>&1`; then
-      echo "Warning: MySQL process exists without a pid file.  Use force-stop to kill." 1>&2
+    if [ -f $pidfile ]; then
+      pid=$( /bin/cat $pidfile )
+      /bin/kill $pid
+      ret=$?
+      if [ $ret -eq 0 ]; then
+        TIMEOUT="$STOPTIMEOUT"
+        while [ $TIMEOUT -gt 0 ] && [ -f "$pidfile" ]
+        do
+          /bin/kill -0 "$pid" >/dev/null 2>&1 || break
+          sleep 1
+          let TIMEOUT=${TIMEOUT}-1
+        done
+      fi
     else
-        echo "MySQL already stopped" 1>&2
+      if `pgrep -x mysqld_safe > /dev/null 2>&1`; then
+        echo "Warning: MySQL process exists without a pid file.  Use force-stop to kill." 1>&2
+      else
+          echo "MySQL already stopped" 1>&2
+      fi
     fi
   fi
 }

@@ -19,7 +19,7 @@ require 'openshift-origin-node/model/frontend_proxy'
 require 'openshift-origin-node/model/unix_user'
 require 'openshift-origin-node/model/v1_cart_model'
 require 'openshift-origin-node/model/v2_cart_model'
-require 'openshift-origin-node/model/cartridge'
+require 'openshift-origin-common/models/manifest'
 require 'openshift-origin-node/model/default_builder'
 require 'openshift-origin-node/utils/shell_exec'
 require 'openshift-origin-node/utils/application_state'
@@ -90,9 +90,11 @@ module OpenShift
     # is the responsibility of the broker.
     #
     # context: root -> gear user -> root
-    # @param cart_name   cartridge name
-    def configure(cart_name, template_git_url=nil)
-      @cartridge_model.configure(cart_name, template_git_url)
+    # @param cart_name         cartridge name
+    # @param template_git_url  URL for template application source/bare repository
+    # @param manifest          Broker provided manifest
+    def configure(cart_name, template_git_url=nil,  manifest=nil)
+      @cartridge_model.configure(cart_name, template_git_url, manifest)
     end
 
     def post_configure(cart_name, template_git_url=nil)
@@ -128,6 +130,14 @@ module OpenShift
     # @param cart_name   cartridge name
     def deconfigure(cart_name)
       @cartridge_model.deconfigure(cart_name)
+    end
+
+    # Unsubscribe from a cart
+    #
+    # @param cart_name   unsubscribing cartridge name
+    # @param cart_name   publishing cartridge name
+    def unsubscribe(cart_name, pub_cart_name)
+      @cartridge_model.unsubscribe(cart_name, pub_cart_name)
     end
 
     # create gear
@@ -349,8 +359,8 @@ module OpenShift
       @cartridge_model.update_namespace(cart_name, old_namespace, new_namespace)
     end
 
-    def connector_execute(cart_name, connector, args)
-      @cartridge_model.connector_execute(cart_name, connector, args)
+    def connector_execute(cart_name, pub_cart_name, connector_type, connector, args)
+      @cartridge_model.connector_execute(cart_name, pub_cart_name, connector_type, connector, args)
     end
 
     def deploy_httpd_proxy(cart_name)
@@ -403,6 +413,13 @@ module OpenShift
     end
 
     def remote_deploy(options={})
+      @cartridge_model.do_control('process-version',
+                                  @cartridge_model.primary_cartridge,
+                                  pre_action_hooks_enabled:  false,
+                                  post_action_hooks_enabled: false,
+                                  out:                       options[:out],
+                                  err:                       options[:err])
+
       start_gear(secondary_only: true,
                  user_initiated: true,
                  hot_deploy:     options[:hot_deploy],
@@ -426,16 +443,25 @@ module OpenShift
     # Implements the following build process:
     #
     #   1. Set the application state to +BUILDING+
-    #   2. Run the cartridge +pre-build+ control action
-    #   3. Run the +pre-build+ user action hook
-    #   4. Run the cartridge +build+ control action
-    #   5. Run the +build+ user action hook
+    #   2. Run the cartridge +process-version+ control action
+    #   3. Run the cartridge +pre-build+ control action
+    #   4. Run the +pre-build+ user action hook
+    #   5. Run the cartridge +build+ control action
+    #   6. Run the +build+ user action hook
     #
     # Returns the combined output of all actions as a +String+.
     def build(options={})
       @state.value = OpenShift::State::BUILDING
 
       buffer = ''
+
+      buffer << @cartridge_model.do_control('process-version',
+                                            @cartridge_model.primary_cartridge,
+                                            pre_action_hooks_enabled:  false,
+                                            post_action_hooks_enabled: false,
+                                            out:                       options[:out],
+                                            err:                       options[:err])
+
       buffer << @cartridge_model.do_control('pre-build',
                                             @cartridge_model.primary_cartridge,
                                             pre_action_hooks_enabled: false,
@@ -481,6 +507,7 @@ module OpenShift
                                   prefix_action_hooks:      false,
                                   out:                      options[:out],
                                   err:                      options[:err])
+
     end
 
     ##

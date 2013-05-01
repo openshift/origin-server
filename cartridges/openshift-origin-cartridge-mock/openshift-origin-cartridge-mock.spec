@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/openshift/cartridges/v2/mock
 
 Name: openshift-origin-cartridge-mock
-Version: 0.3.0
+Version: 0.3.4
 Release: 1%{?dist}
 Summary: Mock cartridge for V2 Cartridge SDK
 Group: Development/Languages
@@ -67,6 +67,36 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Tue Apr 30 2013 Adam Miller <admiller@redhat.com> 0.3.4-1
+- Merge pull request #2275 from jwhonce/wip/cartridge_path
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #2201 from BanzaiMan/dev/hasari/c276
+  (dmcphers+openshiftbot@redhat.com)
+- Card online_runtime_266 - Renamed OPENSHIFT_<short name>_PATH to
+  OPENSHIFT_<short name>_PATH_ELEMENT (jhonce@redhat.com)
+- Card 276 (asari.ruby@gmail.com)
+
+* Mon Apr 29 2013 Adam Miller <admiller@redhat.com> 0.3.3-1
+- Add health urls to each v2 cartridge. (rmillner@redhat.com)
+- Add process-version control action (ironcladlou@gmail.com)
+
+* Thu Apr 25 2013 Adam Miller <admiller@redhat.com> 0.3.2-1
+- Merge pull request #2247 from pmorie/dev/mockname
+  (dmcphers+openshiftbot@redhat.com)
+- Fix mock-0.2 display name (pmorie@gmail.com)
+
+* Thu Apr 25 2013 Adam Miller <admiller@redhat.com> 0.3.1-1
+- Card online_runtime_266 - Build PATH from
+  CARTRIDGE_<CARTRIDGE_SHORT_NAME>_PATH (jhonce@redhat.com)
+- Split v2 configure into configure/post-configure (ironcladlou@gmail.com)
+- install and post setup tests (dmcphers@redhat.com)
+- Update outdated links in 'cartridges' directory. (asari.ruby@gmail.com)
+- WIP Cartridge Refactor - Change environment variable files to contain just
+  value (jhonce@redhat.com)
+- Adding V2 Format to all v2 cartridges (calfonso@redhat.com)
+- V2 cartridge documentation updates (ironcladlou@gmail.com)
+- bump_minor_versions for sprint 2.0.26 (tdawson@redhat.com)
+
 * Tue Apr 16 2013 Troy Dawson <tdawson@redhat.com> 0.2.8-1
 - Setting mongodb connection hooks to use the generic nosqldb name
   (calfonso@redhat.com)

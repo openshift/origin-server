@@ -21,6 +21,7 @@ class CartridgeRepositoryTest < Test::Unit::TestCase
   def setup
     @path = '/var/lib/openshift/.cartridge_repository'
     FileUtils.stubs(:mkpath).with(@path)
+    File.stubs(:exist?).returns(true)
   end
 
   def test_one_manifest

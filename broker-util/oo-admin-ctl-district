@@ -145,7 +145,8 @@ begin
     district.remove_capacity(size)
     reply.resultIO << "Success!"
   when "create"
-    puts "node_profile not specified.  Using default: small" unless node_profile
+    default_gear_size = Rails.application.config.openshift[:default_gear_size]
+    puts "node_profile not specified.  Using default: #{default_gear_size}" unless node_profile
     district = District::create_district(name, node_profile)
     uuid = district.uuid
     reply.resultIO << "Successfully created district: #{district.uuid}" if reply.resultIO.string.empty?

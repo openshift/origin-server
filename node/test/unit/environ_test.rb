@@ -102,8 +102,8 @@ class EnvironTest < Test::Unit::TestCase
     FileUtils.mkpath(second_cartridge)
     IO.write(File.join(second_cartridge, 'JDK_HOME'), 'java6')
 
-    write_var(:gear, 'OPENSHIFT_MOCK_PLUGIN_PATH', 'mock-plugin/bin')
-    write_var(:cart, 'OPENSHIFT_MOCK_PATH', "#{@cart_name}/bin")
+    write_var(:gear, 'OPENSHIFT_MOCK_PLUGIN_PATH_ELEMENT', 'mock-plugin/bin')
+    write_var(:cart, 'OPENSHIFT_MOCK_PATH_ELEMENT', "#{@cart_name}/bin")
     write_var(:gear, 'OPENSHIFT_PRIMARY_CARTRIDGE_DIR', "/tmp/#{@uuid}/#{@cart_name}/")
     write_var(:cart, 'JDK_HOME', 'java7')
 

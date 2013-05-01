@@ -1,4 +1,6 @@
-#!/bin/bash -eux
+#!/bin/bash -eu
+
+source $OPENSHIFT_JBOSSAS_DIR/bin/util
 
 case "$1" in
   -v|--version)
@@ -25,4 +27,4 @@ pushd $OPENSHIFT_JBOSSAS_DIR > /dev/null
   ln -s ${JBOSS_HOME}/modules
 popd > /dev/null
 
-echo "$JAVA_HOME/bin:$M2_HOME/bin" > $OPENSHIFT_JBOSSAS_DIR/env/OPENSHIFT_JBOSSAS_PATH
+update-configuration java7

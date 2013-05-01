@@ -17,7 +17,9 @@ function stop() {
     # Stop the app
     # src_user_hook pre_stop_${cartridge_type}
     app_userid=`id -u`
+    set +e
     httpd_pid=`cat ${OPENSHIFT_RUBY_DIR}/run/httpd.pid 2> /dev/null`
+    set -e
 
     /usr/bin/scl enable ruby193 "/usr/sbin/httpd -C 'Include $OPENSHIFT_RUBY_DIR/etc/conf.d/*.conf' -f $HTTPD_CFG_FILE -k stop"
 
@@ -32,11 +34,15 @@ function stop() {
                 then
                     if [ $i -gt 16 ]
                     then
+                        set +e
                         /bin/kill -9 $httpd_pid
+                        set -e
                     fi
                 elif `pgrep -u $app_userid Passenger.* > /dev/null 2>&1`
                 then
+                    set +e
                     pkill -9 -u $app_userid Passenger.*
+                    set -e
                     break
                 fi
             fi
@@ -59,18 +65,12 @@ function status() {
    echo "Ruby cart status"
 }
 
+# Clean up any log files
 function tidy() {
-    if [ -d $OPENSHIFT_RUBY_LOG_DIR ]
-    then
-        client_message "Emptying log dir: ${OPENSHIFT_RUBY_LOG_DIR}"
-        rm -rf ${OPENSHIFT_RUBY_LOG_DIR}/* ${OPENSHIFT_RUBY_LOG_DIR}/.[^.]*
-    fi
-
-    if [ -d ${OPENSHIFT_RUBY_DIR}tmp/ ]
-    then
-        client_message "Emptying tmp dir: ${OPENSHIFT_RUBY_DIR}tmp/"
-        rm -rf ${OPENSHIFT_RUBY_DIR}tmp/* ${OPENSHIFT_RUBY_DIR}tmp/.[^.]*
-    fi
+  client_message "Emptying log dir: $OPENSHIFT_RUBY_LOG_DIR"
+  shopt -s dotglob
+  rm -rf $OPENSHIFT_RUBY_LOG_DIR/*
+  rm -rf ${OPENSHIFT_RUBY_DIR}tmp/*
 }
 
 function pre-build() {
@@ -80,6 +80,8 @@ function pre-build() {
 
 function build() {
     echo "Running build on Ruby cart"
+    update-configuration $OPENSHIFT_PYTHON_VERSION
+
     USED_BUNDLER=false
     if [ -d $OPENSHIFT_RUBY_DIR/tmp/.bundle ]
     then
@@ -169,14 +171,15 @@ function _threaddump() {
 }
 
 case "$1" in
-  start)     start ;;
-  stop)      stop ;;
-  restart | reload )   restart $1 ;;
-  status)    status ;;
-  tidy)      tidy ;;
-  pre-build) pre-build ;;
-  build)     build ;;
-  post-deploy) post-deploy ;;
-  threaddump) threaddump ;;
-  *)         exit 0
+  start)             start ;;
+  stop)              stop ;;
+  restart | reload ) restart $1 ;;
+  status)            status ;;
+  tidy)              tidy ;;
+  pre-build)         pre-build ;;
+  build)             build ;;
+  post-deploy)       post-deploy ;;
+  threaddump)        threaddump ;;
+  process-version)   update-configuration $OPENSHIFT_PYTHON_VERSION;;
+  *)                 exit 0
 esac

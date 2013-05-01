@@ -1,0 +1,82 @@
+#!/usr/bin/env oo-ruby
+
+#--
+# Copyright 2012 Red Hat, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#++
+
+# Note: currently all you can do is clear the whole cache.
+# This script could easily expand to giving cache statistics,
+# clearing particular keys or categories, etc. if there is a need
+# to do such things administratively.
+
+require 'rubygems'
+require 'getoptlong'
+
+def usage
+  puts <<USAGE
+== Synopsis
+
+oo-admin-broker-cache: Manage the broker Rails application's cache
+
+== Usage
+
+oo-admin-broker-cache OPTIONS
+
+Options:
+-c|--clear
+    Remove all entries from the broker Rails application's cache
+--console
+    Also clear the cache for the developer console if installed
+-q|--quiet
+    Show as little output as possible
+-h|--help
+    Show Usage info
+USAGE
+  exit 255
+end
+
+opts = GetoptLong.new(
+    ["--clear",            "-c", GetoptLong::NO_ARGUMENT],
+    ["--console",            GetoptLong::NO_ARGUMENT],
+    ["--quiet",            "-q", GetoptLong::NO_ARGUMENT],
+    ["--help",             "-h", GetoptLong::NO_ARGUMENT]
+)
+
+args = {}
+begin
+  opts.each{ |k,v| args[k]=v }
+rescue GetoptLong::Error => e
+  usage
+end
+
+if args["--help"] || (STDIN.tty? && args.empty?)
+  usage
+end
+
+if args['--clear'] || args['--console']
+  puts "Clearing broker cache." unless args["--quiet"]
+  `cd /var/www/openshift/broker && bundle exec "rails runner Rails.cache.clear"`
+  if args['--console']
+    puts "Clearing console cache." unless args["--quiet"]
+    %w[ /var/www/openshift/console /var/www/openshift/site ].
+      select {|dir| File.exists?(dir) }.
+      each {|dir| `cd #{dir} && bundle exec "rails runner Rails.cache.clear"`}.
+      size > 0 or puts "Warning: console not installed."
+  end
+else
+  usage
+end
+
+exit 0

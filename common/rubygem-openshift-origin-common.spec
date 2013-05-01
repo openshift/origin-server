@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Common
 Name:          rubygem-%{gem_name}
-Version: 1.7.0
+Version: 1.7.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,7 @@ cp -a ./%{gem_dir}/* %{buildroot}%{gem_dir}/
 %doc %{gem_instdir}/Rakefile
 %doc %{gem_instdir}/README.md
 %doc %{gem_instdir}/%{gem_name}.gemspec
+%{gem_instdir}
 %{gem_spec}
 %{gem_libdir}
 
@@ -95,6 +96,15 @@ cp -a ./%{gem_dir}/* %{buildroot}%{gem_dir}/
 %doc %{gem_docdir}
 
 %changelog
+* Thu Apr 25 2013 Adam Miller <admiller@redhat.com> 1.7.1-1
+- Splitting configure for cartridges into configure and post-configure
+  (abhgupta@redhat.com)
+- Bug 928675 (asari.ruby@gmail.com)
+- Keep a separate cache for each config file. (rmillner@redhat.com)
+- Cache the node conf into a singleton instance so we do not constantly reload
+  and re-parse it. (rmillner@redhat.com)
+- bump_minor_versions for sprint 2.0.26 (tdawson@redhat.com)
+
 * Tue Apr 09 2013 Adam Miller <admiller@redhat.com> 1.6.2-1
 - Card 534 (lnader@redhat.com)
 

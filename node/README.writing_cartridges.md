@@ -218,6 +218,33 @@ The `Version` element is the default or only version of the software packaged by
 
     Versions: ['5.3']
 
+### Source-Url Element
+
+`Source-Url` is used when you self distribute your cartridges. They are downloaded at the time
+the application is created.
+
+ - non-Git Schemes supported:
+    - https(get): zip, tar, tar.gz/tgz files
+    - http(get):  zip, tar, tar.gz/tgz files
+    - file(copy): files in directories in tree
+
+ - Git Schemes:
+    - Cartridge source will be cloned from these repository
+
+    Source-Url: https://github.com/exampe/killer-cartridge.git
+    Source-Url: git://github.com/chrisk/fakeweb.git
+    Source-Url: https:://www.example.com/killer-cartridge.zip
+    Source-Url: https://github.com/example/killer-cartridge/archive/master.zip
+
+### Source-Md5 Element
+
+If `Source-Md5` is provided and a non-Git scheme is used for downloading your cartridge, OpenShift will
+verify the downloaded file against this MD5 digest.
+
+    Source-Md5: 835ed97b00a61f0dae2e2b7a75c672db
+
+ - Git clones are not verified.
+
 ### Additional-Control-Actions Element
 
 The `Additional-Control-Actions` element is a list of optional actions supported by your cartridge.  `threaddump` is an example of
@@ -713,7 +740,7 @@ The `control` script allows OpenShift or user to control the state of the cartri
 
 The list of operations your cartridge may be called to perform:
 
-   * `pre-build`, `build`, `deploy`, and `post-deploy` are called at various
+   * `process-version`, `pre-build`, `build`, `deploy`, and `post-deploy` are called at various
      points during the build lifecycle, described in the [OpenShift Builds](#openshift-builds) section.
    * `start` start the software your cartridge controls
    * `stop` stop the software your cartridge controls
@@ -1057,7 +1084,8 @@ During the `build` phase:
 1. The newly committed application source code is copied to `$OPENSHIFT_REPO_DIR`
    **Note**: This step is the only time the application source code is copied by 
    OpenShift during this lifecycle.
-1. The primary cartridge `pre-build` control action is executed (if present)
+1. The primary cartridge `process-version` control action is executed
+1. The primary cartridge `pre-build` control action is executed
 1. The `pre-build` user action hook is executed (if present)
 1. The primary cartridge `build` control action is executed
 1. The `build` user action hook is executed

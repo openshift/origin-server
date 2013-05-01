@@ -82,6 +82,7 @@ class Application
   embeds_many :pending_op_groups, class_name: PendingAppOpGroup.name
 
   belongs_to :domain
+  field :external_cart_map, type: Hash, default: {}
   field :user_ids, type: Array, default: []
   field :component_start_order, type: Array, default: []
   field :component_stop_order, type: Array, default: []
@@ -102,6 +103,7 @@ class Application
 
   # non-presisted field used to store user agent of current request
   attr_accessor :user_agent
+  attr_accessor :community_cartridges
 
   validates :name,
     presence: {message: "Application name is required and cannot be blank."},
@@ -142,15 +144,29 @@ class Application
   # @param user_agent [String] user agent string of browser used for this rest API request
   # @return [Application] Application object
   # @raise [OpenShift::ApplicationValidationException] Exception to indicate a validation error
-  def self.create_app(application_name, features, domain, default_gear_size = nil, scalable=false, result_io=ResultIO.new, group_overrides=[], init_git_url=nil, user_agent=nil)
+  def self.create_app(application_name, features, domain, default_gear_size = nil, scalable=false, result_io=ResultIO.new, group_overrides=[], init_git_url=nil, user_agent=nil, community_cart_urls=[])
     default_gear_size =  Rails.application.config.openshift[:default_gear_size] if default_gear_size.nil?
-    app = Application.new(domain: domain, name: application_name, default_gear_size: default_gear_size, scalable: scalable, app_ssh_keys: [], pending_op_groups: [], init_git_url: init_git_url)
+    cmap = CartridgeCache.fetch_community_carts(community_cart_urls)
+    app = Application.new(domain: domain, name: application_name, default_gear_size: default_gear_size, scalable: scalable, app_ssh_keys: [], pending_op_groups: [], init_git_url: init_git_url, external_cart_map: cmap)
     app.user_agent = user_agent
     app.analytics['user_agent'] = user_agent
     app.save
     features << "web_proxy" if scalable
+    app.community_cartridges.each { |cname,c| features << c.name }
     if app.valid?
       begin
+        framework_carts = CartridgeCache.cartridge_names("web_framework", app)
+        framework_cartridges = []
+        features.each do |cart|
+          framework_cartridges.push(cart) unless not framework_carts.include?(cart)
+        end
+        if framework_carts.empty?
+          raise OpenShift::UserException.new("Unable to determine list of available cartridges.  If the problem persists please contact Red Hat support")
+        elsif framework_cartridges.empty?
+          raise OpenShift::UserException.new("Each application must contain one web cartridge.  None of the specified cartridges #{features.to_sentence} is a web cartridge. Please include one of the following cartridges: #{framework_carts.to_sentence} or supply a valid url to a custom web_framework cartridge.")
+        elsif framework_cartridges.length > 1
+          raise OpenShift::UserException.new("Each application must contain only one web cartridge.  Please include a single web cartridge from this list: #{framework_carts.to_sentence}.")
+        end
         add_feature_result = app.add_features(features, group_overrides, init_git_url)
         result_io.append add_feature_result
       rescue Exception => e
@@ -165,6 +181,28 @@ class Application
       raise OpenShift::ApplicationValidationException.new(app)
     end
     app
+  end
+
+  def community_cartridges
+    cmap = self.external_cart_map
+    return @community_cartridges if @community_cartridges and cmap.length==@community_cartridges.length
+    # download the content of the url
+    # careful, but assume this to be manifest.yml
+    # parse the manifest and store the cartridge
+    begin
+      @community_cartridges = {}
+      cmap.each { |cartname, cartdata|
+        manifest_str = cartdata["manifest"]
+        cart = OpenShift::Cartridge.new.from_descriptor(YAML.load(manifest_str))
+        if @community_cartridges.has_key?(cart.name) 
+          Rails.logger.error("Duplicate community cartridge exists for application '#{self.name}'! Overwriting..")
+        end
+        @community_cartridges[cart.name] = cart
+      }
+    rescue Exception =>e
+      Rails.logger.error(e.message)
+    end
+    @community_cartridges
   end
 
   ##
@@ -388,9 +426,12 @@ class Application
   # @param init_git_url [String] URL to git repository to retrieve application code
   # @return [ResultIO] Output from cartridges
   # @raise [OpenShift::UserException] Exception raised if there is any reason the feature/cartridge cannot be added into the Application
-  def add_features(features, group_overrides=[], init_git_url=nil)
+  def add_features(features, group_overrides=[], init_git_url=nil, community_cart_urls=[])
+    cmap = CartridgeCache.fetch_community_carts(community_cart_urls)
+    features.concat(cmap.keys.dup)
+    self.external_cart_map.merge(cmap)
     features.each do |feature_name|
-      cart = CartridgeCache.find_cartridge(feature_name)
+      cart = CartridgeCache.find_cartridge(feature_name, self)
 
       # Make sure this is a valid cartridge
       if cart.nil?
@@ -470,7 +511,7 @@ class Application
     
     result_io = ResultIO.new
     features.each do |feature|
-      cart = CartridgeCache.find_cartridge(feature)
+      cart = CartridgeCache.find_cartridge(feature, self)
       raise OpenShift::UserException.new("Invalid feature: #{feature}", 109) unless cart
       Rails.logger.debug "Removing feature #{feature}"
       
@@ -483,7 +524,7 @@ class Application
         self.domain.applications.each do |uapp|
           next if self.name == uapp.name
           uapp.requires.each do |feature_name|
-            ucart = CartridgeCache.find_cartridge(feature_name)
+            ucart = CartridgeCache.find_cartridge(feature_name, self)
             if ucart.is_ci_builder?
               Application.run_in_application_lock(uapp) do
                 uapp.pending_op_groups.push PendingAppOpGroup.new(op_type: :remove_features, args: {"features" => [feature_name], "group_overrides" => uapp.group_overrides}, user_agent: uapp.user_agent)
@@ -557,8 +598,8 @@ class Application
   # @raise [OpenShift::UserException] Exception raised if request cannot be completed
   def update_component_limits(component_instance, scale_from, scale_to, additional_filesystem_gb)
     if additional_filesystem_gb && additional_filesystem_gb != 0
-      max_storage = self.domain.owner.capabilities['max_storage_per_gear']
-      raise OpenShift::UserException.new("You are not allowed to request additional gear storage", 164) unless max_storage
+      max_storage = self.domain.owner.max_storage
+      raise OpenShift::UserException.new("You are not allowed to request additional gear storage", 164) if max_storage == 0
       raise OpenShift::UserException.new("You have requested more additional gear storage than you are allowed (max: #{max_storage} GB)", 166) if additional_filesystem_gb > max_storage
     end
     Application.run_in_application_lock(self) do    
@@ -941,21 +982,32 @@ class Application
       pub_out = {}
       RemoteJob.execute_parallel_jobs(handle)
       RemoteJob.get_parallel_run_results(handle) do |tag, gear_id, output, status|
+        conn_type = self.connections.find_by(:_id => tag).connection_type
         if status==0
-          pub_out[tag] = [] if pub_out[tag].nil?
-          pub_out[tag].push("'#{gear_id}'='#{output}'")
+          if conn_type.start_with?("ENV:")
+            pub_out[tag] = {} if pub_out[tag].nil?
+            pub_out[tag][gear_id] = output
+          else
+            pub_out[tag] = [] if pub_out[tag].nil?
+            pub_out[tag].push("'#{gear_id}'='#{output}'")
+          end
         end
       end
       Rails.logger.debug "Running subscribers"
       #subscribers
       handle = RemoteJob.create_parallel_job
       self.connections.each do |conn|
+        pub_inst = self.component_instances.find(conn.from_comp_inst_id)
         sub_inst = self.component_instances.find(conn.to_comp_inst_id)
         sub_ginst = self.group_instances.find(sub_inst.group_instance_id)
         tag = ""
   
         unless pub_out[conn._id.to_s].nil?
-          input_to_subscriber = Shellwords::shellescape(pub_out[conn._id.to_s].join(' '))
+          if conn.connection_type.start_with?("ENV:")
+            input_to_subscriber = pub_out[conn._id.to_s]
+          else
+            input_to_subscriber = Shellwords::shellescape(pub_out[conn._id.to_s].join(' '))
+          end
   
           Rails.logger.debug "Output of publisher - '#{pub_out}'"
           sub_ginst.gears.each_index do |idx|
@@ -963,7 +1015,7 @@ class Application
             gear = sub_ginst.gears[idx]
   
             input_args = [gear.name, self.domain.namespace, gear.uuid, input_to_subscriber]
-            job = gear.get_execute_connector_job(sub_inst.cartridge_name, conn.to_connector_name, conn.connection_type, input_args)
+            job = gear.get_execute_connector_job(sub_inst.cartridge_name, conn.to_connector_name, conn.connection_type, input_args, pub_inst.cartridge_name)
             RemoteJob.add_parallel_job(handle, tag, gear, job)
           end
         end
@@ -1421,7 +1473,7 @@ class Application
     end
     comp_specs = self.group_instances.find(ginst_id).all_component_instances.map{ |c| c.to_hash }
     comp_specs.each do |comp_spec|
-      cartridge = CartridgeCache.find_cartridge(comp_spec["cart"])
+      cartridge = CartridgeCache.find_cartridge(comp_spec["cart"], self)
       gear_ids.each do |gear_id|
         pending_ops.push(PendingAppOp.new(op_type: :track_usage, args: {"user_id" => self.domain.owner._id, "parent_user_id" => self.domain.owner.parent_user_id,
           "app_name" => self.name, "gear_ref" => gear_id, "event" => UsageRecord::EVENTS[:end], 
@@ -1436,7 +1488,7 @@ class Application
 
     comp_specs.each do |comp_spec|
       component_ops[comp_spec] = {new_component: nil, adds: [], post_configures: []} if component_ops[comp_spec].nil?
-      cartridge = CartridgeCache.find_cartridge(comp_spec["cart"])
+      cartridge = CartridgeCache.find_cartridge(comp_spec["cart"], self)
       is_singleton = cartridge.get_component(comp_spec["comp"]).is_singleton?
 
       new_component_op_id = []
@@ -1535,7 +1587,10 @@ class Application
   end
   
   def add_component_ops(op_type, component_instance, ops)
+    count = 0
     component_instance.group_instance.gears.each do |gear| 
+      break if component_instance.is_singleton? and count > 0
+      count += 1
       op = PendingAppOp.new(op_type: op_type, args: {'group_instance_id' => component_instance.group_instance._id, 'gear_id' => gear._id, 'comp_spec' => {'cart' => component_instance.cartridge_name, 'comp' => component_instance.component_name}})
       ops.push op
     end
@@ -1562,7 +1617,7 @@ class Application
     ops = []
     comp_specs.each do |comp_spec|
       component_instance = self.component_instances.find_by(cartridge_name: comp_spec["cart"], component_name: comp_spec["comp"])
-      cartridge = CartridgeCache.find_cartridge(comp_spec["cart"])
+      cartridge = CartridgeCache.find_cartridge(comp_spec["cart"], self)
       if component_instance.is_plugin? || (!self.scalable && component_instance.is_embeddable?)
         if component_instance.is_singleton?
           op = PendingAppOp.new(op_type: :remove_component, args: {"group_instance_id"=> group_instance._id.to_s, "gear_id" => singleton_gear._id.to_s, "comp_spec" => comp_spec})
@@ -1635,7 +1690,7 @@ class Application
       comp_specs = change[:added]
       app_dns_ginst = false
       comp_specs.each do |comp_spec|
-        cats = CartridgeCache.find_cartridge(comp_spec["cart"]).categories
+        cats = CartridgeCache.find_cartridge(comp_spec["cart"], self).categories
         app_dns_ginst = true if ((not self.scalable) and cats.include?("web_framework")) || cats.include?("web_proxy")
       end
 
@@ -1745,9 +1800,11 @@ class Application
     config_order.each_index do |idx|
       next if idx == 0
       prereq_ids = component_ops[config_order[idx-1]][:adds].map{|op| op._id.to_s}
+      prereq_ids += component_ops[config_order[idx-1]][:post_configures].map{|op| op._id.to_s}
 
       component_ops[config_order[idx]][:new_component].prereq += prereq_ids unless component_ops[config_order[idx]][:new_component].nil?
       component_ops[config_order[idx]][:adds].each { |op| op.prereq += prereq_ids }
+      component_ops[config_order[idx]][:post_configures].each { |op| op.prereq += prereq_ids }
     end
 
     execute_connection_op = nil
@@ -1910,7 +1967,7 @@ class Application
     
     # Resolve additional group overrides from component_instances
     component_instances.each do |component_instance|
-      cart = CartridgeCache.find_cartridge(component_instance["cart"])
+      cart = CartridgeCache.find_cartridge(component_instance["cart"], self)
       prof = cart.profile_for_feature(component_instance["comp"])
       prof = prof[0] if prof.is_a?(Array)
       comp = prof.get_component(component_instance["comp"])
@@ -1970,7 +2027,7 @@ class Application
   def merge_group_overrides(first, second)
     return_go = { }
 
-    framework_carts = CartridgeCache.cartridge_names("web_framework")
+    framework_carts = CartridgeCache.cartridge_names("web_framework", self)
     first_has_web_framework = false
     first["components"].each do |components|
       if framework_carts.include?(components['cart'])
@@ -2017,7 +2074,7 @@ class Application
 
     #calculate initial list based on user provided dependencies
     features.each do |feature|
-      cart = CartridgeCache.find_cartridge(feature)
+      cart = CartridgeCache.find_cartridge(feature, self)
       raise OpenShift::UnfulfilledRequirementException.new(feature) if cart.nil?
       prof = cart.profile_for_feature(feature)
       added_cartridges << cart
@@ -2032,7 +2089,7 @@ class Application
         cart.requires.each do |feature|
           next if profiles.count{|d| d[:cartridge].features.include?(feature)} > 0
 
-          cart = CartridgeCache.find_cartridge(feature)
+          cart = CartridgeCache.find_cartridge(feature, self)
           raise OpenShift::UnfulfilledRequirementException.new(feature) if cart.nil?
           prof = cart.profile_for_feature(feature)
           added_cartridges << cart
@@ -2119,7 +2176,7 @@ class Application
     categories = {}
 
     comp_specs.each do |comp_inst|
-      cart = CartridgeCache.find_cartridge(comp_inst["cart"])
+      cart = CartridgeCache.find_cartridge(comp_inst["cart"], self)
       prof = cart.get_profile_for_component(comp_inst["comp"])
 
       comps << {cart: cart, prof: prof}
@@ -2164,7 +2221,7 @@ class Application
 
     #build a map of [categories, features, cart name] => component_instance
     component_instances.each do |comp_inst|
-      cart = CartridgeCache.find_cartridge(comp_inst.cartridge_name)
+      cart = CartridgeCache.find_cartridge(comp_inst.cartridge_name, self)
       prof = cart.get_profile_for_component(comp_inst.component_name)
 
       comps << {cart: cart, prof: prof}
@@ -2215,13 +2272,13 @@ class Application
   # == Returns:
   # Feature name provided by the cartridge that includes the component
   def get_feature(cartridge_name,component_name)
-    cart = CartridgeCache.find_cartridge cartridge_name
+    cart = CartridgeCache.find_cartridge(cartridge_name, self)
     prof = cart.get_profile_for_component component_name
     (prof.provides.length > 0 && prof.name != cart.default_profile) ? prof.provides.first : cart.provides.first
   end
 
   def get_components_for_feature(feature)
-    cart = CartridgeCache.find_cartridge(feature)
+    cart = CartridgeCache.find_cartridge(feature, self)
     raise OpenShift::UserException.new("No cartridge found that provides #{feature}", 109) if cart.nil?
     prof = cart.profile_for_feature(feature)
     prof.components.map{ |comp| self.component_instances.find_by(cartridge_name: cart.name, component_name: comp.name) }
@@ -2231,7 +2288,7 @@ class Application
     #find web_framework
     web_framework = {}
     features.each do |feature|
-      cart = CartridgeCache.find_cartridge(feature)
+      cart = CartridgeCache.find_cartridge(feature, self)
       next unless cart.categories.include? "web_framework"
       prof = cart.profile_for_feature(feature)
       comp = prof.components.first
@@ -2241,7 +2298,7 @@ class Application
     group_overrides = [{"components"=>[web_framework], "max_gears"=> 1}]
     #generate group overrides to colocate all components with web_framework and limit scale to 1
     features.each do |feature|
-      cart = CartridgeCache.find_cartridge(feature)
+      cart = CartridgeCache.find_cartridge(feature, self)
       next if cart.categories.include? "web_framework"
       prof = cart.profile_for_feature(feature)
       components = prof.components
@@ -2311,7 +2368,7 @@ class Application
   def get_framework_cartridge
     web_cart = nil
     self.requires.each do |feature|
-      cart = CartridgeCache.find_cartridge(feature)
+      cart = CartridgeCache.find_cartridge(feature, self)
       next unless cart.categories.include? "web_framework"
       web_cart = cart
       break

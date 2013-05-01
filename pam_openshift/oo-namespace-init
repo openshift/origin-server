@@ -1,29 +1,13 @@
 #!/bin/sh -p
-# It receives polydir path as $1, the instance path as $2, 
-# a flag whether the instance dir was newly created (0 - no, 1 - yes) in $3,
-# and user name in $4.
+#
+# Parameters:
+#   $1   polydir path (ex: /tmp)
+#   $2   instance path  (ex: /var/lib/openshift/uuid/.tmp/uuid)
+#   $3   newly created instance dir (0 - no, 1 - yes)
+#   $4   user name (gear uuid)
 #
 # The following will create polyinstantiated directories for openshift
 #
-
-function get_mcs_level() {
-    # UID=$1
-    [ "$1" -lt 1 ] && return
-    [ "$1" -gt 523776 ] && return
-
-    SETSIZE=1023
-    TIER=$SETSIZE
-
-    ORD=$1
-    while [ $ORD -gt $(($TIER)) ]
-    do
-        ORD=$(($ORD - $TIER))
-        TIER=$(($TIER - 1))
-    done
-    TIER=$(($SETSIZE - $TIER))
-
-    echo s0:c$TIER,c$(($ORD + $TIER))
-}
 
 if [ "$3" = 1 ]; then
     passwd=$(getent passwd "$4")
@@ -31,17 +15,32 @@ if [ "$3" = 1 ]; then
     context=$(getfattr --only-values -n security.selinux "$homedir" 2>/dev/null)
     setype=$(echo "$context" | cut -f 3 -d":")
 
-    #  Don't change ownership on /sandbox
-    [ "$1" == "/sandbox" -o "$2" == "tmpfs" ] || /bin/chown $4 "$2"
+    cartvers=1
+    if [ -e "$homedir/.env/CARTRIDGE_VERSION_2" ]
+    then
+        cartvers=2
+    fi
+
+    #  Don't change ownership on /sandbox in v1 or /dev/shm
+    if [ "$2" != "tmpfs" ]
+    then
+        if [ $cartvers -eq 1 -a "$1" = "/sandbox" ]
+        then
+            /bin/chmod 1755 "$2"
+        else
+            /bin/chown $4 "$2"
+        fi
+    fi
+
     /sbin/restorecon "$1"
 
     # Only do this on openshift users
     if [ "$setype" = "openshift_var_lib_t" ]
     then
         uid=$(id -u "$4")
-        mcs_level=$(get_mcs_level $uid)
+        mcs_level=$(/usr/bin/oo-get-mcs-level $uid) 2>/dev/null || :
         /sbin/restorecon "$1"
-        /usr/bin/chcon -l $mcs_level "$1"
+        [ "$mcs_level" ] && /usr/bin/chcon -l $mcs_level "$1"
         [ "$2" == "tmpfs" ] || /sbin/restorecon "$2"
         [ "$2" == "tmpfs" ] || /usr/bin/chcon -l $mcs_level "$2"
     fi

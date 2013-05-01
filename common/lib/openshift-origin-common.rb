@@ -13,9 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #++
-
-require 'rubygems'
-
 require 'fileutils'
 require 'getoptlong'
 require 'json'
@@ -28,3 +25,5 @@ require "openshift-origin-common/models/component"
 require "openshift-origin-common/models/connection"
 require "openshift-origin-common/models/profile"
 require "openshift-origin-common/models/cartridge"
+require "openshift-origin-common/models/manifest"
+require "openshift-origin-common/utils/path_utils"

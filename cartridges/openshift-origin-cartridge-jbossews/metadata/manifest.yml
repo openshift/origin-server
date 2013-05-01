@@ -5,6 +5,7 @@ Cartridge-Version: 0.0.1
 Display-Name: Tomcat 7 (JBoss EWS 2.0)
 Description: "JBoss Enterprise Web Server is the enterprise-class Java web container for large-scale lightweight web applications based on Tomcat 7. Build and deploy JSPs and Servlets in the cloud."
 Version: '2.0'
+Versions: ['2.0', '1.0']
 License: LGPL
 License-Url: http://www.gnu.org/copyleft/lesser.txt
 Vendor:  jboss.com
@@ -14,6 +15,7 @@ Categories:
   - jboss
   - tomcat
   - tomcat7
+  - tomcat6
   - web_framework
 Website: http://www.redhat.com/products/jbossenterprisemiddleware/web-server/
 Help-Topics:
@@ -65,10 +67,10 @@ Publishes:
     Type: "NET_TCP:gear-endpoint-info"
 Subscribes:
   set-db-connection-info:
-    Type: "NET_TCP:db:connection-info"
+    Type: "ENV:NET_TCP:db:connection-info"
     Required: false
   set-nosql-db-connection-info:
-    Type: "NET_TCP:nosqldb:connection-info"
+    Type: "ENV:NET_TCP:nosqldb:connection-info"
     Required: false
   set-jdbc-info:
     Type: "NET_TCP:jdbc"
@@ -86,11 +88,26 @@ Endpoints:
         Backend:       ""
         Options:       { "websocket": 1}
       - Frontend:      "/health"
-        Backend:       "/$OPENSHIFT_REPO_DIR/.openshift/configuration/health.html"
-        Options:       { "file": 1}
+        Backend:       ""
+        Options:       { health: true}
   - Private-IP-Name:   IP
     Private-Port-Name: JPDA_PORT
     Private-Port:      8787
 Additional-Control-Actions:
     - threaddump
 Install-Build-Required: false
+Version-Overrides:
+  '1.0':
+    Display-Name: Tomcat 6 (JBoss EWS 1.0)
+    Description: "JBoss Enterprise Web Server is the enterprise-class Java web container for large-scale lightweight web applications based on Tomcat 6. Build and deploy JSPs and Servlets in the cloud."
+    Provides:
+      - "jbossews-1.0"
+      - "jbossews"
+      - "jbossews(version) = 1.0.0"
+      - "jbossews(version) >= 1.0"
+      - "jboss-ews-1.0"
+      - "jboss-ews-1.0.0"
+    Group-Overrides:
+      - components:
+        - "jbossews-1.0"
+        - web_proxy

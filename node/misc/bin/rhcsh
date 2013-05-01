@@ -4,15 +4,37 @@
 
 source /etc/init.d/functions 2> /dev/null
 
+# Support pre-Typeless cartridge variable names
+function translate_env_vars {
+  source_if_exists $OPENSHIFT_HOMEDIR/.env/TYPELESS_TRANSLATED_VARS
+  xlations=( $(echo $TRANSLATE_GEAR_VARS) )
+  i=0
+  while [ "${xlations[$i]}" ]
+  do
+    keyname="${xlations[$i]}"
+    i=$(( $i + 1 ))
+    valref="${xlations[$i]}"
+    i=$(( $i + 1 ))
+    keyprev=$(eval "echo \$$keyname")
+    if [ "$keyname" ] && [ "$valref" ] && [ -z "$keyprev" ]
+    then
+      eval "export ${keyname}=\"\$${valref}\""
+    fi
+  done
+}
+
 # source OpenShift environment variable into context
 function load_env {
     [ -z "$1" ] && return 1
     [ -f "$1" ] || return 0
 
     local contents=$(< $1)
-    if [[ $contents =~ ^export\ .* ]]
+    if [[ $contents =~ ^export\ .* || "$1" =~ .*USER_VARS$ ]]
     then
       source $1
+    elif [[ "$1" =~ .*TYPELESS_TRANSLATED_VARS$ ]]
+    then
+      translate_env_vars
     else
       local key=$(basename $1)
       export $key=$(< $1)
@@ -34,11 +56,11 @@ then
         done
     fi
 
-    path=$(env |grep 'OPENSHIFT_.*_PATH'| sed 's/^.*=\(.*\)$/\1/'|tr '\n' ':')
+    path=$(env |grep 'OPENSHIFT_.*_PATH_ELEMENT'| sed 's/^.*=\(.*\)$/\1/'|tr '\n' ':')
 
-    if [ -f $OPENSHIFT_PRIMARY_CARTRIDGE_DIR/env/OPENSHIFT_*_PATH ]
+    if [ -f $OPENSHIFT_PRIMARY_CARTRIDGE_DIR/env/OPENSHIFT_*_PATH_ELEMENT ]
     then
-        path=$(< $OPENSHIFT_PRIMARY_CARTRIDGE_DIR/env/OPENSHIFT_*_PATH)
+        path=$(< $OPENSHIFT_PRIMARY_CARTRIDGE_DIR/env/OPENSHIFT_*_PATH_ELEMENT)
     fi
 
     if [ -f /etc/openshift/env/PATH ]

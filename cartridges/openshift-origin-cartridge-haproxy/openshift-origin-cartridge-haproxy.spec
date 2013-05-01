@@ -6,7 +6,7 @@
 %global frameworkdir %{_libexecdir}/openshift/cartridges/v2/haproxy
 
 Name:          openshift-origin-cartridge-haproxy
-Version: 0.3.0
+Version: 0.3.4
 Release:       1%{?dist}
 Summary:       Provides HA Proxy
 Group:         Network/Daemons
@@ -57,6 +57,39 @@ rm -rf %{buildroot}
 %doc %{cartridgedir}/README.md
 
 %changelog
+* Tue Apr 30 2013 Adam Miller <admiller@redhat.com> 0.3.4-1
+- Merge pull request #2275 from jwhonce/wip/cartridge_path
+  (dmcphers+openshiftbot@redhat.com)
+- Card online_runtime_266 - Renamed OPENSHIFT_<short name>_PATH to
+  OPENSHIFT_<short name>_PATH_ELEMENT (jhonce@redhat.com)
+
+* Mon Apr 29 2013 Adam Miller <admiller@redhat.com> 0.3.3-1
+- Add health urls to each v2 cartridge. (rmillner@redhat.com)
+
+* Thu Apr 25 2013 Adam Miller <admiller@redhat.com> 0.3.2-1
+- Merge pull request #2248 from mrunalp/bug/haproxy_fixes
+  (dmcphers+openshiftbot@redhat.com)
+- Move haproxy shared scripts into /usr/bin. (mrunalp@gmail.com)
+
+* Thu Apr 25 2013 Adam Miller <admiller@redhat.com> 0.3.1-1
+- Card online_runtime_266 - Build PATH from
+  CARTRIDGE_<CARTRIDGE_SHORT_NAME>_PATH (jhonce@redhat.com)
+- Split v2 configure into configure/post-configure (ironcladlou@gmail.com)
+- more install/post-install scripts (dmcphers@redhat.com)
+- Merge pull request #2194 from mrunalp/dev/haproxy_cleanup
+  (dmcphers+openshiftbot@redhat.com)
+- HAProxy cleanup. (mrunalp@gmail.com)
+- implementing install and post-install (dmcphers@redhat.com)
+- WIP Cartridge Refactor - Change environment variable files to contain just
+  value (jhonce@redhat.com)
+- Adding V2 Format to all v2 cartridges (calfonso@redhat.com)
+- Bug 928675 (asari.ruby@gmail.com)
+- <v2 carts> remove abstract cartridge from v2 requires (lmeyer@redhat.com)
+- bump_minor_versions for sprint 2.0.26 (tdawson@redhat.com)
+- Automatic commit of package [openshift-origin-cartridge-haproxy] release
+  [0.2.10-1]. (tdawson@redhat.com)
+- Fix bug 927850 (pmorie@gmail.com)
+
 * Tue Apr 16 2013 Troy Dawson <tdawson@redhat.com> 0.2.10-1
 - Fix bug 927850 (pmorie@gmail.com)
 

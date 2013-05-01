@@ -3,7 +3,7 @@
 
 Summary:       Embedded phpMyAdmin support for express
 Name:          openshift-origin-cartridge-phpmyadmin-3.4
-Version: 1.8.0
+Version: 1.8.1
 Release:       1%{?dist}
 Group:         Applications/Internet
 License:       ASL 2.0
@@ -57,6 +57,10 @@ cp %{cartridgedir}/info/configuration/etc/phpMyAdmin/config.inc.php %{_sysconfdi
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Thu Apr 25 2013 Adam Miller <admiller@redhat.com> 1.8.1-1
+- Update outdated links in 'cartridges' directory. (asari.ruby@gmail.com)
+- bump_minor_versions for sprint 2.0.26 (tdawson@redhat.com)
+
 * Fri Apr 12 2013 Adam Miller <admiller@redhat.com> 1.7.3-1
 - SELinux, ApplicationContainer and UnixUser model changes to support oo-admin-
   ctl-gears operating on v1 and v2 cartridges. (rmillner@redhat.com)

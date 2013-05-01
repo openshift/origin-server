@@ -9,7 +9,7 @@
 
 Summary:       OpenShift Origin Management Console
 Name:          rubygem-%{gem_name}
-Version: 1.8.0
+Version: 1.8.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -147,6 +147,86 @@ cp -a ./%{gem_dir}/* %{buildroot}%{gem_dir}/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Tue Apr 30 2013 Adam Miller <admiller@redhat.com> 1.8.3-1
+- Merge pull request #2281 from smarterclayton/add_link_block
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #2230 from pravisankar/dev/ravi/card559
+  (dmcphers+openshiftbot@redhat.com)
+- Add a link-block class (ccoleman@redhat.com)
+- Removed 'setmaxstorage' option for oo-admin-ctl-user script. Added
+  'setmaxtrackedstorage' and 'setmaxuntrackedstorage' options for oo-admin-ctl-
+  user script. Updated oo-admin-ctl-user man page. Max allowed additional fs
+  storage for user will be 'max_untracked_addtl_storage_per_gear' capability +
+  'max_tracked_addtl_storage_per_gear' capability. Don't record usage for
+  additional fs storage if it is less than
+  'max_untracked_addtl_storage_per_gear' limit. Fixed unit tests and models to
+  accommodate the above change. (rpenta@redhat.com)
+
+* Mon Apr 29 2013 Adam Miller <admiller@redhat.com> 1.8.2-1
+- Merge pull request #2206 from fabianofranz/master
+  (dmcphers+openshiftbot@redhat.com)
+- Fixed Maintenance mode message (ffranz@redhat.com)
+- Fixed tests for Maintenance mode (ffranz@redhat.com)
+- Using a dedicated exception to handle server unavailable so we don't have to
+  check status codes more than once (ffranz@redhat.com)
+- Handling a special ConnectionError so we can put the console in maintenance
+  mode (ffranz@redhat.com)
+- Maintenance mode, changed routing (ffranz@redhat.com)
+- Tests for Maintenance mode (ffranz@redhat.com)
+- Maintenance mode will now handle login/authorization properly
+  (ffranz@redhat.com)
+- Maintenance mode page, now handling nil responses on server error
+  (ffranz@redhat.com)
+- Maintenance mode for the web console (ffranz@redhat.com)
+
+* Thu Apr 25 2013 Adam Miller <admiller@redhat.com> 1.8.1-1
+- Merge pull request #2190 from smarterclayton/extract_form_important
+  (dmcphers+openshiftbot@redhat.com)
+- Fix bug 951370 - update url for namespace user guide (jliggitt@redhat.com)
+- Merge pull request #2200 from mmahut/master
+  (dmcphers+openshiftbot@redhat.com)
+- Extract form-important from #new-application (ccoleman@redhat.com)
+- Fix find/delete command for openshift-console and console packages. Bug
+  888714. (kraman@gmail.com)
+- Merge pull request #2178 from smarterclayton/improve_memory_usage_of_rest_api
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #2177 from smarterclayton/split_settings_page
+  (dmcphers+openshiftbot@redhat.com)
+- Improve console rest api memory usage by reducing copies
+  (ccoleman@redhat.com)
+- Send all settings interactions to the settings page, and fix tests.  Add a
+  few more tests around the settings page, specifically for new key and new
+  domain. (ccoleman@redhat.com)
+- Split the settings page from the my account page (ccoleman@redhat.com)
+- Using password field instead of plain text input for the certificate
+  passphrase. (mmahut@redhat.com)
+- Merge remote-tracking branch 'origin/master' into
+  separate_config_from_environments (ccoleman@redhat.com)
+- Bug 888714 - Remove .gitkeep and .gitignore (ccoleman@redhat.com)
+- Merge pull request #1770 from fotioslindiakos/plan_currency
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #2112 from
+  smarterclayton/bug_953177_keys_with_periods_cannot_be_deleted
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #2089 from smarterclayton/add_web_integration_tests
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 953177 - Keys with periods in their name cannot be deleted
+  (ccoleman@redhat.com)
+- Add a test case for configuration to ruby values (ccoleman@redhat.com)
+- Merge remote-tracking branch 'origin/master' into
+  separate_config_from_environments (ccoleman@redhat.com)
+- Merge pull request #2123 from smarterclayton/bug_953263_use_color_only_in_dev
+  (dmcphers+openshiftbot@redhat.com)
+- Rspec core should be in the test group (ccoleman@redhat.com)
+- Bug 953263 - Use ANSI color codes only in development (ccoleman@redhat.com)
+- Separate config from environments (ccoleman@redhat.com)
+- bump_minor_versions for sprint 2.0.26 (tdawson@redhat.com)
+- bump_minor_versions for sprint 2.0.26 (tdawson@redhat.com)
+- Add additional flexibility for running community tests (ccoleman@redhat.com)
+- Add separators in the capybara log (ccoleman@redhat.com)
+- Demonstrate web integration testing (ccoleman@redhat.com)
+- Added :autocomplete option to inputs/input (fotios@redhat.com)
+
 * Tue Apr 16 2013 Dan McPherson <dmcphers@redhat.com> 1.7.8-1
 - Add buildrequires for new test packages (ccoleman@redhat.com)
 

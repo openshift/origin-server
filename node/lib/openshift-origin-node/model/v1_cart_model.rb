@@ -17,7 +17,7 @@ module OpenShift
     def get_cartridge(cart_name)
       begin
         manifest_path = File.join(@config.get('CARTRIDGE_BASE_PATH'), cart_name, 'info', 'manifest.yml')
-        return OpenShift::Runtime::Cartridge.new(manifest_path)
+        return OpenShift::Runtime::Manifest.new(manifest_path)
       rescue => e
         logger.error(e.backtrace)
         raise "Failed to load cart manifest from #{manifest_path} for cart #{cart_name} in gear #{@user.uuid}: #{e.message}"
@@ -100,7 +100,7 @@ module OpenShift
       options[:user_initiated] = true if not options.has_key?(:user_initiated)
 
       if not options[:user_initiated] and stop_lock?(cartridge)
-        return "Not starting cartridge #{cartridge.name} because the application was explicitly stopped by the user"
+        return "Not starting cartridge #{cartridge} because the application was explicitly stopped by the user"
       end
 
       do_control(type, cartridge)
@@ -110,7 +110,7 @@ module OpenShift
       options[:user_initiated] = true if not options.has_key?(:user_initiated)
 
       if not options[:user_initiated] and stop_lock?(cartridge)
-        return "Not stopping cartridge #{cartridge.name} because the application was explicitly stopped by the user"
+        return "Not stopping cartridge #{cartridge} because the application was explicitly stopped by the user"
       end
 
       buffer = do_control('stop', cartridge)
@@ -195,12 +195,17 @@ module OpenShift
       do_control('update-namespace', cart_name, "#{@user.container_name} #{new_namespace} #{old_namespace} #{@user.container_uuid}")
     end
 
-    def configure(cart_name, template_git_url)
+    def configure(cart_name, template_git_url, manifest)
+      raise "Custom cartridges are not supported" if manifest
+
       do_control('configure', cart_name, "#{@user.container_name} #{@user.namespace} #{@user.container_uuid} #{template_git_url}")
     end
 
     def deconfigure(cart_name)
       do_control('deconfigure', cart_name)
+    end
+
+    def unsubscribe(cart_name, pub_cart_name)
     end
 
     def deploy_httpd_proxy(cart_name)
@@ -219,7 +224,8 @@ module OpenShift
       do_control('restart-httpd-proxy', cart_name)
     end
 
-    def connector_execute(cart_name, connector, args)
+    def connector_execute(cart_name, pub_cart_name, connection_type, connector, args)
+      # pub_cart_name and connection_type unused in v1.
       do_control(connector, cart_name, args, "connection-hooks")
     end
 
@@ -265,19 +271,20 @@ module OpenShift
 
     def complete_process_gracefully(pid, stdin, stdout)
       stdin.close
-      ignored, status = Process::waitpid2 pid
-      exitcode = status.exitstatus
-      # Do this to avoid cartridges that might hold open stdout
       output = ""
       begin
-        Timeout::timeout(5) do
+        Timeout::timeout(120) do
           while (line = stdout.gets)
             output << line
           end
         end
       rescue Timeout::Error
-        logger.info("WARNING: stdout read timed out")
+        logger.info("WARNING: stdout read timed out, killing #{pid} and its child processes")
+        OpenShift::Utils::ShellExec.kill_process_tree(pid)
       end
+
+      ignored, status = Process::waitpid2 pid
+      exitcode = status.exitstatus
 
       if exitcode == 0
         logger.info("(#{exitcode})\n------\n#{cleanpwd(output)}\n------)")

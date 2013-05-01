@@ -2,6 +2,7 @@
 set -e
 
 source $OPENSHIFT_CARTRIDGE_SDK_BASH
+source ${OPENSHIFT_JBOSSEWS_DIR}/bin/util
 
 if ! [ $# -eq 1 ]
 then
@@ -63,7 +64,7 @@ function start_app() {
         export CATALINA_BASE=$OPENSHIFT_JBOSSEWS_DIR
         export CATALINA_TMPDIR=${OPENSHIFT_JBOSSEWS_DIR}/tmp
         
-        ${OPENSHIFT_JBOSSEWS_DIR}/bin/tomcat7 start > ${OPENSHIFT_JBOSSEWS_DIR}/logs/jbossews-2.0.log 2>&1 &
+        ${OPENSHIFT_JBOSSEWS_DIR}/bin/tomcat start > ${OPENSHIFT_JBOSSEWS_DIR}/logs/jbossews.log 2>&1 &
         PROCESS_ID=$!
         
         echo $PROCESS_ID > $JBOSS_PID_FILE
@@ -103,9 +104,18 @@ function threaddump() {
     fi
 }
 
-function tidy {
-    rm -rf ${OPENSHIFT_JBOSSEWS_DIR}/logs/* ${OPENSHIFT_JBOSSEWS_DIR}/logs/.[^.]*
-    rm -rf ${OPENSHIFT_JBOSSEWS_DIR}/tmp/* ${OPENSHIFT_JBOSSEWS_DIR}/tmp/.[^.]*
+# Clean up any log files
+function tidy() {
+  client_message "Emptying log dir: $OPENSHIFT_JBOSSEWS_LOG_DIR"
+  shopt -s dotglob
+  rm -rf $OPENSHIFT_JBOSSEWS_LOG_DIR/*
+  rm -rf $OPENSHIFT_JBOSSEWS_DIR/tmp/*
+}
+
+# Reconstruct JAVA_HOME and PATH based on the current version/marker selection
+function process_version {
+    export_java_home
+    reinstall_path
 }
 
 case "$1" in
@@ -147,6 +157,10 @@ case "$1" in
     ;;
     deploy)
         ${OPENSHIFT_JBOSSEWS_DIR}/bin/deploy
+        exit 0
+    ;;
+    process-version)
+        process_version
         exit 0
     ;;
 esac

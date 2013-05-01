@@ -129,7 +129,7 @@ module OpenShift
 
       manifest = "/tmp/manifest-#{Process.pid}"
       IO.write(manifest, @mock_manifest, 0)
-      @mock_cartridge = OpenShift::Runtime::Cartridge.new(manifest, nil, '/tmp')
+      @mock_cartridge = OpenShift::Runtime::Manifest.new(manifest, nil, '/tmp')
       @model.stubs(:get_cartridge).with('mock-0.1').returns(@mock_cartridge)
     end
 
@@ -232,10 +232,18 @@ module OpenShift
     # Flow control for destroy success - cartridge_teardown called for each method
     # and unix user destroyed.
     def test_destroy_success
-      @model.expects(:process_cartridges).multiple_yields(%w(/var/lib/openshift/0001000100010001/cartridge1),
-                                                          %w(/var/lib/openshift/0001000100010001/cartridge2))
-      @model.expects(:cartridge_teardown).with('cartridge1').returns("")
-      @model.expects(:cartridge_teardown).with('cartridge2').returns("")
+      c1 = mock('OpenShift::Runtime::Manifest')
+      c1.stubs(:directory).returns("cartridge1")
+
+      c2 = mock('OpenShift::Runtime::Manifest')
+      c2.stubs(:directory).returns("cartridge2")
+
+      @model.expects(:each_cartridge).multiple_yields(c1,c2)
+      @model.expects(:unlock_gear).with(c1).yields(c1)
+      @model.expects(:unlock_gear).with(c2).yields(c2)
+
+      @model.expects(:cartridge_teardown).with(c1.directory).returns("")
+      @model.expects(:cartridge_teardown).with(c2.directory).returns("")
 
       Dir.stubs(:chdir).with(GEAR_BASE_DIR).yields
 
@@ -248,10 +256,18 @@ module OpenShift
     # Verifies that all teardown hooks are called, even if one raises an error,
     # and that unix user is still destroyed.
     def test_destroy_teardown_raises
-      @model.expects(:process_cartridges).multiple_yields(%w(/var/lib/openshift/0001000100010001/cartridge1),
-                                                          %w(/var/lib/openshift/0001000100010001/cartridge2))
-      @model.expects(:cartridge_teardown).with('cartridge1').raises(OpenShift::Utils::ShellExecutionException.new('error'))
-      @model.expects(:cartridge_teardown).with('cartridge2').returns("")
+      c1 = mock('OpenShift::Runtime::Manifest')
+      c1.stubs(:directory).returns("cartridge1")
+
+      c2 = mock('OpenShift::Runtime::Manifest')
+      c2.stubs(:directory).returns("cartridge2")
+
+      @model.expects(:each_cartridge).multiple_yields(c1,c2)
+      @model.expects(:unlock_gear).with(c1).yields(c1)
+      @model.expects(:unlock_gear).with(c2).yields(c2)
+
+      @model.expects(:cartridge_teardown).with(c1.directory).raises(OpenShift::Utils::ShellExecutionException.new('error'))
+      @model.expects(:cartridge_teardown).with(c2.directory).returns("")
 
       Dir.stubs(:chdir).with(GEAR_BASE_DIR).yields
 

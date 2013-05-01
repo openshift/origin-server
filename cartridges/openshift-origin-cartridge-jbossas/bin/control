@@ -5,21 +5,13 @@ source $OPENSHIFT_CARTRIDGE_SDK_BASH
 JBOSSAS_BIN_DIR=${OPENSHIFT_JBOSSAS_DIR}/bin
 JBOSSAS_PID_FILE=${OPENSHIFT_HOMEDIR}/app-root/runtime/jbossas.pid
 
-cartridge_type="jbossas"
+source $JBOSSAS_BIN_DIR/util
 
-# Checks for the presence of the user-specified hot_deploy marker in the app
-# repo. Returns 0 if the marker is present, otherwise 1.
-function hot_deploy_marker_is_present {
-  if [ -f "${OPENSHIFT_REPO_DIR}/.openshift/markers/hot_deploy" ]; then
-    return 0
-  else
-    return 1
-  fi
-}
+cartridge_type="jbossas"
 
 # Check if the jbossas process is running
 function isrunning() {
-    
+
     # Check for running app
     if [ -f "$JBOSSAS_PID_FILE" ]; then
       jbpid=$(cat $JBOSSAS_PID_FILE);
@@ -28,7 +20,7 @@ function isrunning() {
         return 0
       fi
     fi
-   
+
     return 1
 }
 
@@ -71,8 +63,8 @@ function ishttpup() {
     let count=0
     while [ ${count} -lt 24 ]
     do
-        if /usr/sbin/lsof -P -n -i "@${OPENSHIFT_JBOSSAS_IP}:8080" | grep "(LISTEN)" > /dev/null; then
-            echo "Found ${OPENSHIFT_JBOSSAS_IP}:8080 listening port"
+        if /usr/sbin/lsof -P -n -i "@${OPENSHIFT_JBOSSAS_IP}:${OPENSHIFT_JBOSSAS_HTTP_PORT}" | grep "(LISTEN)" > /dev/null; then
+            echo "Found ${OPENSHIFT_JBOSSAS_IP}:${OPENSHIFT_JBOSSAS_HTTP_PORT} listening port"
             return 0
         fi
         let count=${count}+1
@@ -84,124 +76,107 @@ function ishttpup() {
 }
 
 function build() {
-    
-	CONFIG_DIR="${OPENSHIFT_JBOSSAS_DIR}/standalone/configuration"
-	OPENSHIFT_MAVEN_MIRROR="${CONFIG_DIR}/settings.base.xml"
+
+  CONFIG_DIR="${OPENSHIFT_JBOSSAS_DIR}/standalone/configuration"
+  OPENSHIFT_MAVEN_MIRROR="${CONFIG_DIR}/settings.base.xml"
   if [[ $OPENSHIFT_GEAR_DNS =~ .*\.rhcloud\.com$ ]]
-	then
-	    OPENSHIFT_MAVEN_MIRROR="${CONFIG_DIR}/settings.rhcloud.xml"
-	fi
+  then
+      OPENSHIFT_MAVEN_MIRROR="${CONFIG_DIR}/settings.rhcloud.xml"
+  fi
 
-	max_memory_bytes=$(oo-cgroup-read memory.limit_in_bytes)
-	max_memory_mb=$(expr $max_memory_bytes / 1048576)
+  max_memory_bytes=$(oo-cgroup-read memory.limit_in_bytes)
+  max_memory_mb=$(expr $max_memory_bytes / 1048576)
 
-	# If hot deploy is enabled, we need to restrict the Maven memory size to fit
-	# alongside the running application server. For now, just hard-code it to 64
-	# and figure out how to apply a scaling factor later.
-	if hot_deploy_marker_is_present
+  # If hot deploy is enabled, we need to restrict the Maven memory size to fit
+  # alongside the running application server. For now, just hard-code it to 64
+  # and figure out how to apply a scaling factor later.
+  if marker_present hot_deploy
     then
-    	echo "Scaling down Maven heap settings due to presence of hot_deploy marker"
-    
-    	if [ -z $MAVEN_JVM_HEAP_RATIO ]
+      echo "Scaling down Maven heap settings due to presence of hot_deploy marker"
+
+      if [ -z $MAVEN_JVM_HEAP_RATIO ]
         then
-			  MAVEN_JVM_HEAP_RATIO=0.25
-		fi
-	else
-		if [ -z $MAVEN_JVM_HEAP_RATIO ]
+        MAVEN_JVM_HEAP_RATIO=0.25
+    fi
+  else
+    if [ -z $MAVEN_JVM_HEAP_RATIO ]
         then
-			MAVEN_JVM_HEAP_RATIO=0.75
-		fi
-	fi
+      MAVEN_JVM_HEAP_RATIO=0.75
+    fi
+  fi
 
-	max_heap=$( echo "$max_memory_mb * $MAVEN_JVM_HEAP_RATIO" | bc | awk '{print int($1+0.5)}')
+  max_heap=$( echo "$max_memory_mb * $MAVEN_JVM_HEAP_RATIO" | bc | awk '{print int($1+0.5)}')
 
-	OPENSHIFT_MAVEN_XMX="-Xmx${max_heap}m"
+  OPENSHIFT_MAVEN_XMX="-Xmx${max_heap}m"
 
-	if [ -z "$BUILD_NUMBER" ]
-	then
-    	SKIP_MAVEN_BUILD=false
-    	if git show master:.openshift/markers/skip_maven_build > /dev/null 2>&1
-    	then
-    	    SKIP_MAVEN_BUILD=true
-    	fi
-    
-    	if [ -f "${OPENSHIFT_REPO_DIR}/.openshift/markers/force_clean_build" ]
-    	then
-        	echo ".openshift/markers/force_clean_build found!  Removing Maven dependencies." 1>&2
-        	rm -rf ${OPENSHIFT_HOMEDIR}.m2/* ${OPENSHIFT_HOMEDIR}.m2/.[^.]*
-    	fi
+  if [ -z "$BUILD_NUMBER" ]
+  then
+      SKIP_MAVEN_BUILD=false
+      if git show master:.openshift/markers/skip_maven_build > /dev/null 2>&1
+      then
+          SKIP_MAVEN_BUILD=true
+      fi
 
-    	if [ -f ${OPENSHIFT_REPO_DIR}pom.xml ] && ! $SKIP_MAVEN_BUILD
-    	then
-        	if [ -e ${OPENSHIFT_REPO_DIR}.openshift/markers/java7 ];
-        	then
-           		export JAVA_HOME=/etc/alternatives/java_sdk_1.7.0
-        	else
-          		export JAVA_HOME=/etc/alternatives/java_sdk_1.6.0
-        	fi
+      if marker_present force_clean_build
+      then
+          echo ".openshift/markers/force_clean_build found!  Removing Maven dependencies." 1>&2
+          rm -rf ${OPENSHIFT_HOMEDIR}.m2/* ${OPENSHIFT_HOMEDIR}.m2/.[^.]*
+      fi
 
-          echo $JAVA_HOME >$OPENSHIFT_JBOSSAS_DIR/env/JAVA_HOME
-          echo "$JAVA_HOME/bin:$M2_HOME/bin" >$OPENSHIFT_JBOSSAS_DIR/env/OPENSHIFT_JBOSSAS_PATH
+      if [ -f ${OPENSHIFT_REPO_DIR}pom.xml ] && ! $SKIP_MAVEN_BUILD
+      then
+          update-configuration
 
-        	export MAVEN_OPTS="$OPENSHIFT_MAVEN_XMX"
-        	export PATH=$JAVA_HOME/bin:$M2_HOME/bin:$PATH
-        	pushd ${OPENSHIFT_REPO_DIR} > /dev/null
-        
-        	if [ -f "${OPENSHIFT_REPO_DIR}/.openshift/action_hooks/pre_build_${cartridge_type}" ]
-        	then
-           		echo "Sourcing pre_build_jbossas" 1>&2
-           		source ${OPENSHIFT_REPO_DIR}/.openshift/action_hooks/pre_build_${cartridge_type}
-        	fi
-        
-        	if [ -z "$MAVEN_OPTS" ]; then
-        		export MAVEN_OPTS="$OPENSHIFT_MAVEN_XMX"
-        	fi
-        	
-        	if [ -z "$MAVEN_ARGS" ]; then
-		    	export MAVEN_ARGS="clean package -Popenshift -DskipTests"
-        	fi
-        
-        	echo "Found pom.xml... attempting to build with 'mvn -e ${MAVEN_ARGS}'"
-        
-        	if [ -n "$OPENSHIFT_MAVEN_MIRROR" ]
-        	then
-            	mvn --global-settings $OPENSHIFT_MAVEN_MIRROR --version
-            	mvn --global-settings $OPENSHIFT_MAVEN_MIRROR $MAVEN_ARGS
-        	else
-            	mvn --version
-            	mvn $MAVEN_ARGS
-        	fi
-        	popd > /dev/null
-    	fi
-	fi
+          export MAVEN_OPTS="$OPENSHIFT_MAVEN_XMX"
+          export PATH=$JAVA_HOME/bin:$M2_HOME/bin:$PATH
+          pushd ${OPENSHIFT_REPO_DIR} > /dev/null
+
+          if [ -z "$MAVEN_OPTS" ]; then
+            export MAVEN_OPTS="$OPENSHIFT_MAVEN_XMX"
+          fi
+
+          if [ -z "$MAVEN_ARGS" ]; then
+          export MAVEN_ARGS="clean package -Popenshift -DskipTests"
+          fi
+
+          echo "Found pom.xml... attempting to build with 'mvn -e ${MAVEN_ARGS}'"
+
+          if [ -n "$OPENSHIFT_MAVEN_MIRROR" ]
+          then
+              mvn --global-settings $OPENSHIFT_MAVEN_MIRROR --version
+              mvn --global-settings $OPENSHIFT_MAVEN_MIRROR $MAVEN_ARGS
+          else
+              mvn --version
+              mvn $MAVEN_ARGS
+          fi
+          popd > /dev/null
+      fi
+  fi
 
 }
 
 function deploy() {
   echo "Deploying JBoss"
-  
-	if [ "$(ls ${OPENSHIFT_REPO_DIR}/deployments)" ]; then
-		rsync -r --delete --exclude ".*" ${OPENSHIFT_REPO_DIR}/deployments/ ${OPENSHIFT_JBOSSAS_DIR}/standalone/deployments/
-	else
+
+  if [ "$(ls ${OPENSHIFT_REPO_DIR}/deployments)" ]; then
+    rsync -r --delete --exclude ".*" ${OPENSHIFT_REPO_DIR}/deployments/ ${OPENSHIFT_JBOSSAS_DIR}/standalone/deployments/
+  else
     rm -rf ${OPENSHIFT_JBOSSAS_DIR}/standalone/deployments/*
   fi
 }
 
 function start() {
   echo "Starting $cartridge_type cart"
-    
+
   if marker_present "enable_jpda"
   then
-    ENABLE_JPDA=1
+    export ENABLE_JPDA=1
   fi
 
   # Check for running app
   if isrunning; then
       echo "Application is already running"
   else    
-    jopts="${JAVA_OPTS}"
-    [ "${ENABLE_JPDA:-0}" -eq 1 ] && jopts="-Xdebug -Xrunjdwp:transport=dt_socket,address=${OPENSHIFT_JBOSSAS_IP}:8787,server=y,suspend=n ${JAVA_OPTS}"
-    JAVA_OPTS="${jopts}"
     ${JBOSSAS_BIN_DIR}/standalone.sh > ${OPENSHIFT_TMP_DIR}/${cartridge_type}.log 2>&1 &
     PROCESS_ID=$!
     echo "$PROCESS_ID" > ${JBOSSAS_PID_FILE}
@@ -215,24 +190,24 @@ function start() {
 
 function stop() {
   echo "Stopping $cartridge_type cart"
-  
+
   if isrunning; then
-		if [ -f "$JBOSSAS_PID_FILE" ]; then
-			pid=$(cat $JBOSSAS_PID_FILE);
-	    echo "Sending SIGTERM to jboss:$pid ..." 1>&2
-	    killtree $pid
-	  else 
-	    echo "Failed to locate JBOSS PID File" 1>&2
-	  fi
-	fi
+    if [ -f "$JBOSSAS_PID_FILE" ]; then
+      pid=$(cat $JBOSSAS_PID_FILE);
+      echo "Sending SIGTERM to jboss:$pid ..." 1>&2
+      killtree $pid
+    else
+      echo "Failed to locate JBOSS PID File" 1>&2
+    fi
+  fi
 }
 
 function restart() {
     echo "Restarting $cartridge_type cart"
-   
-  	stop
-  	
-  	start
+
+    stop
+
+    start
 }
 
 function status() {
@@ -249,13 +224,16 @@ function reload() {
     restart
 }
 
+# Clean up any log files
 function tidy() {
-    rm -rf ${OPENSHIFT_JBOSSAS_DIR}/logs/* ${OPENSHIFT_JBOSSAS_DIR}/logs/.[^.]*
+  client_message "Emptying log dir: $OPENSHIFT_JBOSSAS_LOG_DIR"
+  shopt -s dotglob
+  rm -rf $OPENSHIFT_JBOSSAS_LOG_DIR/*
 }
 
 function threaddump() {
-	echo "Thread dump for $cartridge_type cart"
-	
+  echo "Thread dump for $cartridge_type cart"
+
     if ! isrunning; then
         echo "Application is stopped"
         exit 1
@@ -272,26 +250,26 @@ function threaddump() {
 }
 
 function prebuild() {
-	echo "prebuild"
+  echo "prebuild"
 }
 
 function postdeploy() {
-	echo "postdeploy"
+  echo "postdeploy"
 }
 
 case "$1" in
-  build)		build ;;
-  deploy)	    deploy ;;
-  start)     	start ;;
-  stop)      	stop ;;
-  restart)   	restart ;;
-  status)    	status ;;
-  reload)    	reload ;;
-  tidy)      	tidy ;;
-  threaddump)   threaddump ;;
-  pre-build)    prebuild ;;
-  post-deploy)  postdeploy ;;
-  *)         	exit 0
+  build)           build ;;
+  deploy)          deploy ;;
+  start)           start ;;
+  stop)            stop ;;
+  restart)         restart ;;
+  status)          status ;;
+  reload)          reload ;;
+  tidy)            tidy ;;
+  threaddump)      threaddump ;;
+  pre-build)       prebuild ;;
+  post-deploy)     postdeploy ;;
+  process-version) update-configuration;;
+  *)               exit 0
 esac
-
 

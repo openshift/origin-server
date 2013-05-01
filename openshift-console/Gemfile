@@ -1,12 +1,22 @@
 source 'http://rubygems.org'
 
-gem 'minitest'
 gem 'openshift-origin-console', :require => 'console', :path => ENV['CONSOLE_PATH']
-group :assets do
-        gem 'compass-rails', '~> 1.0.3'
-        gem 'coffee-rails',  '~> 3.2.2'
-        gem 'jquery-rails',  '~> 2.0.2'
-        gem 'uglifier',      '>= 1.2.6'
-        gem 'therubyracer',  '>= 0.10'
-        gem 'sass-rails',    '~> 3.2.5'
+
+gem 'rake', '~> 0.9.2'
+gem 'pry', :require => 'pry' if ENV['PRY']
+gem 'perftools.rb', :require => 'perftools' if ENV['PERFTOOLS']
+
+group :test do
+  gem 'ci_reporter',   '~> 1.7.0', :require => false
+  gem 'minitest',      '~> 3.5.0', :require => false
 end
+
+group :assets do
+  gem 'compass-rails', '~> 1.0.3'
+  gem 'sass-rails',    '~> 3.2.5'
+  gem 'coffee-rails',  '~> 3.2.2'
+  gem 'jquery-rails',  '~> 2.0.2'
+  gem 'uglifier',      '>= 1.2.6'
+  gem 'therubyracer',  '>= 0.10'
+end
+

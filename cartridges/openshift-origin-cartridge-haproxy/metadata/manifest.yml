@@ -56,4 +56,7 @@ Endpoints:
     Mappings:
       - Frontend:      "/haproxy-status"
         Backend:       "/"
+      - Frontend:      "/health"
+        Backend:       ""
+        Options:       { health: true }
 Install-Build-Required: false
