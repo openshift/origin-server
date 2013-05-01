@@ -58,6 +58,8 @@ cp -r * %{buildroot}%{cartridgedir}/
 ln -s %{cartridgedir}/conf/ %{buildroot}/%{_sysconfdir}/openshift/cartridges/v2/%{name}
 ln -s %{cartridgedir} %{buildroot}/%{frameworkdir}
 
+%post
+%{_sbindir}/oo-admin-cartridge --action install --offline --source /usr/libexec/openshift/cartridges/v2/postgresql
 
 %clean
 rm -rf %{buildroot}
