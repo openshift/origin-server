@@ -61,13 +61,10 @@
                       %h6 Gears
                       %span.data{:title => 'This cartridge shares resources with the other cartridges it is grouped with.'} Shared
 
-                      -#%li
-                        %h6 Type
-                        %span.data= cartridge.type
-                      -#
-                        %li
-                          %img{:src => "/app/images/console/gear-sm.png", :alt => ''}
-                %h2= cartridge.display_name
+                %h2{:title => cartridge.name}= cartridge.display_name
+
+              - if cartridge.custom?
+                %p Created from #{link_to cartridge.url, cartridge.url}
 
               - if cartridge.git_url
                 - if @has_keys

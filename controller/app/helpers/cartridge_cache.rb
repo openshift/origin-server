@@ -111,9 +111,9 @@ class CartridgeCache
   end
 
   def self.download_from_url(url)
-    max_dl_time = (Rails.application.config.external_cartridges[:max_download_time] rescue 10) || 10
-    max_file_size = (Rails.application.config.external_cartridges[:max_cart_size] rescue 20480) || 20480
-    max_redirs = (Rails.application.config.external_cartridges[:max_download_redirects] rescue 2) || 2
+    max_dl_time = (Rails.application.config.downloaded_cartridges[:max_download_time] rescue 10) || 10
+    max_file_size = (Rails.application.config.downloaded_cartridges[:max_cart_size] rescue 20480) || 20480
+    max_redirs = (Rails.application.config.downloaded_cartridges[:max_download_redirects] rescue 2) || 2
     `curl --max-time #{max_dl_time} --connect-timeout 2 --location --max-redirs #{max_redirs} --max-filesize #{max_file_size} -k #{url}`
   end
 

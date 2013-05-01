@@ -7,7 +7,7 @@ class Cartridge < RestApi::Base
   #use_patch_on_update
 
   schema do
-    string :name, 'type'
+    string :name, 'type', :url
     integer :supported_scales_from, :supported_scales_to
     integer :scales_from, :scales_to, :current_scale
     string :scales_with
@@ -27,6 +27,10 @@ class Cartridge < RestApi::Base
   has_one    :links, :class_name => as_indifferent_hash
 
   delegate :display_name, :tags, :priority, :to => :cartridge_type, :allow_nil => false
+
+  def custom?
+    url.present?
+  end
 
   def collocated_with
     @attributes[:collocated_with] ||= []

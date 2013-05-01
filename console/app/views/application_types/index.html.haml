@@ -80,11 +80,31 @@
               - types.sort!.each do |type|
                 = render :partial => 'tile', :locals => {:type => type, :excluded_tags => excluded_tags}
 
-- unless Quickstart.disabled?
   %section
-    %p
-      Can't find what you're looking for?  Try searching for a specific quickstart or filtering by tag.
-      Or, browse the entire list in our #{link_to "QuickStart gallery", community_quickstarts_url}.
+    - unless Quickstart.disabled?
+      %p
+        Can't find what you're looking for?  Try searching for a specific quickstart or filtering by tag.
+        Or, browse the entire list in our #{link_to "QuickStart gallery", community_quickstarts_url}.
+
+    - if RestApi.download_cartridges_enabled?
+      %h3.divide Code Anything
+      
+      %form.form-inline.row{:method => :get, :action => application_type_path('custom')}
+        .span6
+          %p
+            Have your own framework?  Provide the URL of an #{link_to 'personal cartridge', downloadable_cartridges_help_url} here, and OpenShift will download and 
+            provision it automatically into your new app!
+          %input{:type => :hidden, :name => :unlock, :value => 'true'}
+          %input{:type => :text, :name => 'application_type[cartridges]', :placeholder => 'URL to a cartridge definition'}
+          %input.btn{:type => :submit, :value => 'Next', :title => 'Base a new app on a cartridge you provide'}
+          
+        .span6
+          %p Want to build your own cartridge? Get started with the DIY cart.
+          .tile-dark
+            - @custom_types.sort!.each do |type|
+              = render :partial => 'tile', :locals => {:type => type, :excluded_tags => excluded_tags}
+
+
 
 - content_for :javascripts do
   :javascript

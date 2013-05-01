@@ -10,11 +10,15 @@
 
 = semantic_form_for @cartridge, :url => application_cartridges_path(@application), :html => {:class => 'form'} do |f|
   = f.hidden_field :name, :value => @cartridge_type.name
+  = f.hidden_field :url, :value => @cartridge_type.url
   = f.semantic_errors
   %p
     Do you want to add the
     %strong
-      #{@cartridge_type.display_name}
+      - if @cartridge_type.custom?
+        = link_to @cartridge_type.display_name, @cartridge_type.url
+      - else 
+        = @cartridge_type.display_name
     cartridge to your application?
   = f.buttons do
     = link_to "Back", application_cartridge_types_path(@application), :class => 'btn'

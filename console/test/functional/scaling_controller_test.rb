@@ -30,6 +30,7 @@ class ScalingControllerTest < ActionController::TestCase
   end
 
   def with_mock_app(app=app_without_scaling, cartridges=cartridges_without_scaling)
+    Rails.cache.clear
     with_unique_user
 
     allow_http_mock
