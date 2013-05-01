@@ -6,7 +6,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin broker
 Name:          openshift-origin-broker-util
-Version: 1.8.4
+Version: 1.8.5
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -85,6 +85,22 @@ cp man/*.8 %{buildroot}%{_mandir}/man8/
 %{_mandir}/man8/oo-stats.8.gz
 
 %changelog
+* Wed May 01 2013 Adam Miller <admiller@redhat.com> 1.8.5-1
+- Fix for bug 956441  - increasing mcollective timeout for oo-admin-chk
+  (abhgupta@redhat.com)
+- Merge pull request #2308 from detiber/bz958437
+  (dmcphers+openshiftbot@redhat.com)
+- reslience to broken apps in analytics import cleanup (rchopra@redhat.com)
+- <oo-accept-broker> Bug 958437 - Making CONSOLE_SECRET check dependent on
+  existence of CONSOLE_CONF (jdetiber@redhat.com)
+- Merge pull request #2288 from detiber/bz955789
+  (dmcphers+openshiftbot@redhat.com)
+- fix oo-analytics-import to use global authentication for new db
+  (rchopra@redhat.com)
+- Bug 955789 - Enabling mongo connection check in oo-accept-broker
+  (jdetiber@redhat.com)
+- Fixing typo (abhgupta@redhat.com)
+
 * Tue Apr 30 2013 Adam Miller <admiller@redhat.com> 1.8.4-1
 - Merge pull request #2279 from abhgupta/abhgupta-dev
   (dmcphers+openshiftbot@redhat.com)
