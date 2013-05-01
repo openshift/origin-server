@@ -409,8 +409,10 @@ When /^I send a GET request to "([^\"]*)"$/ do |path|
   :user => @username, :password => @password, :headers => @headers)
   begin
     @response = @request.execute()
-  rescue => e
-  @response = e.response
+  rescue Timeout::Error, RestClient::RequestTimeout => e
+    raise Exception.new("#{e.message}: #{@request.method} #{@request.url} timed out")
+  rescue RestClient::ExceptionWithResponse => e
+    @response = e.response
   end
 end
 
@@ -420,8 +422,10 @@ When /^I send an unauthenticated GET request to "([^\"]*)"$/ do |path|
   @request = RestClient::Request.new(:method => :get, :url => url, :headers => @headers)
   begin
     @response = @request.execute()
-  rescue => e
-  @response = e.response
+  rescue Timeout::Error, RestClient::RequestTimeout => e
+    raise Exception.new("#{e.message}: #{@request.method} #{@request.url} timed out")
+  rescue RestClient::ExceptionWithResponse => e
+    @response = e.response
   end
 end
 
@@ -444,11 +448,14 @@ When /^I send a POST request to "([^\"]*)" with the following:"([^\"]*)"$/ do |p
   url = @base_url + path.to_s
   @request = RestClient::Request.new(:method => :post, :url => url,
   :user => @username, :password => @password, :headers => @headers,
-  :payload => payload)
+  :payload => payload, :timeout => 180)
   begin
     @response = @request.execute()
-  rescue => e
-  @response = e.response
+  rescue Timeout::Error, RestClient::RequestTimeout => e
+    @request.inspect
+    raise Exception.new("#{e.message}: #{@request.method} #{@request.url} with payload #{@request.payload} timed out")
+  rescue RestClient::ExceptionWithResponse => e
+    @response = e.response
   end
 end
 
@@ -466,11 +473,14 @@ When /^I send a PUT request to "([^\"]*)" with the following:"([^\"]*)"$/ do |pa
   url = @base_url + path.to_s
   @request = RestClient::Request.new(:method => :put, :url => url,
   :user => @username, :password => @password, :headers => @headers,
-  :payload => payload)
+  :payload => payload, :timeout => 180)
   begin
     @response = @request.execute()
-  rescue => e
-  @response = e.response
+  rescue Timeout::Error, RestClient::RequestTimeout => e
+    @request.inspect
+    raise Exception.new("#{e.message}: #{@request.method} #{@request.url} with payload #{@request.payload} timed out")
+  rescue RestClient::ExceptionWithResponse => e
+    @response = e.response
   end
 end
 
@@ -483,7 +493,9 @@ When /^I send a DELETE request to "([^\"]*)"$/ do |path|
   :user => @username, :password => @password, :headers => @headers)
   begin
     @response = @request.execute()
-  rescue => e
+  rescue Timeout::Error, RestClient::RequestTimeout => e
+    raise Exception.new("#{e.message}: #{@request.method} #{@request.url} timed out")
+  rescue RestClient::ExceptionWithResponse => e
     @response = e.response
   end
 end
