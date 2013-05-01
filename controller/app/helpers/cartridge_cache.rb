@@ -117,6 +117,19 @@ class CartridgeCache
     `curl --max-time #{max_dl_time} --connect-timeout 2 --location --max-redirs #{max_redirs} --max-filesize #{max_file_size} -k #{url}`
   end
 
+  def self.foreach_cart_version(manifest_str)
+    cartridge = Runtime::Manifest.new(manifest_str)
+    cartridge.versions.each do |version|
+      cooked = Runtime::Manifest.new(manifest_str, version)
+      Rails.logger.debug("Loading #{cooked.name}-#{cooked.version}...")
+      v1_manifest            = Marshal.load(Marshal.dump(cooked.manifest))
+      v1_manifest['Name']    = "#{cooked.name}-#{cooked.version}"
+      v1_manifest['Version'] = cooked.version
+      carts.push OpenShift::Cartridge.new.from_descriptor(v1_manifest)
+      carts.each { |c| yield c.to_descriptor }
+    end
+  end
+
   def self.fetch_community_carts(urls)
     cmap = {}
     return cmap if urls.nil?
@@ -125,9 +138,13 @@ class CartridgeCache
        if manifest_str.length == 0
          raise OpenShift::UserException.new("Invalid cartridge, error downloading from url '#{url}' ", 109)  
        end
-       chash = YAML.load(manifest_str)
+       # chash = YAML.load(manifest_str)
        # TODO: check versions and create multiple of them
-       cmap[chash["Name"]] = { "url" => url, "manifest" => manifest_str }
+       self.foreach_cart_version(manifest_str) do |chash|
+         cmap[chash["Name"]] = { "url" => url, "manifest" => chash.to_yaml}
+         # no versioning support on external cartridges yet.. use the default one
+         break
+       end
     end
     return cmap
   end
