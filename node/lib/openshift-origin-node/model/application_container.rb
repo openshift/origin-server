@@ -437,6 +437,23 @@ module OpenShift
 
       post_deploy(out: options[:out],
                   err: options[:err])
+
+      if options[:init]
+        primary_cart_env_dir = File.join(@user.homedir, @cartridge_model.primary_cartridge.directory, 'env')
+        primary_cart_env     = Utils::Environ.load(primary_cart_env_dir)
+        ident                = primary_cart_env.keys.grep(/^OPENSHIFT_.*_IDENT/)
+        _, _, version, _     = Runtime::Manifest.parse_ident(primary_cart_env[ident.first])
+
+        @cartridge_model.post_setup(@cartridge_model.primary_cartridge,
+                                    version,
+                                    out: options[:out],
+                                    err: options[:err])
+
+        @cartridge_model.post_install(@cartridge_model.primary_cartridge,
+                                      version,
+                                      out: options[:out],
+                                      err: options[:err])
+      end
     end
 
     ##

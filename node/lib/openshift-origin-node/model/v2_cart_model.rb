@@ -260,6 +260,18 @@ module OpenShift
       output
     end
 
+    def post_install(cartridge, software_version, options = {})
+      output = cartridge_action(cartridge, 'post-install', software_version)
+      options[:out].puts(output) if options[:out]
+      output
+    end
+
+    def post_setup(cartridge, software_version, options = {})
+      output = cartridge_action(cartridge, 'post-setup', software_version)
+      options[:out].puts(output) if options[:out]
+      output
+    end
+
     def post_configure(cartridge_name)
       output = ''
 
