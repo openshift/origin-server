@@ -16,7 +16,7 @@ module Console
       Haml::Template.options[:format] = :html5
     end
     initializer "static assets" do |app|
-      unless Console.config.disable_static_assets or Rails.env.production?
+      if Rails.application.config.serve_static_assets and not Console.config.disable_static_assets
         app.middleware.insert_before(::ActionDispatch::Static, ::ActionDispatch::Static, "#{root}/public")
       end
     end
