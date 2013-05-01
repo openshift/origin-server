@@ -53,6 +53,9 @@ class BuildLifecycleTest < Test::Unit::TestCase
 
     @container = OpenShift::ApplicationContainer.new(@gear_uuid, @gear_uuid, @user_uid,
         @app_name, @gear_uuid, @namespace, nil, nil, nil)
+
+    @frontend = mock('OpenShift::FrontendHttpServer')
+    OpenShift::FrontendHttpServer.stubs(:new).returns(@frontend)
   end
 
   def test_pre_receive_default_builder
@@ -84,6 +87,8 @@ class BuildLifecycleTest < Test::Unit::TestCase
     @container.expects(:deploy).with(out: $stdout, err: $stderr)
     @container.expects(:start_gear).with(primary_only: true, user_initiated: true, hot_deploy: nil, out: $stdout, err: $stderr)
     @container.expects(:post_deploy).with(out: $stdout, err: $stderr)
+
+    @frontend.expects(:unprivileged_unidle)
 
     @container.post_receive(out: $stdout, err: $stderr)
   end
