@@ -147,12 +147,17 @@ command :build do |c|
 end
 
 command :remotedeploy do |c|
-  c.syntax = "#{name} remotedeploy"
+  c.syntax = "#{name} remotedeploy [options]"
 
   c.description = "Run the remotedeploy steps"
+  c.option "--init", "Run post-install/post-setup for new gears"
   c.action do |args, options|
     do_command do
-      @container.remote_deploy(out: $stdout, err: $stderr, hot_deploy: file_committed?(HOT_DEPLOY_MARKER))
+      if options.init
+        @container.remote_deploy(out: $stdout, err: $stderr, hot_deploy: file_committed?(HOT_DEPLOY_MARKER), init: true)
+      else
+        @container.remote_deploy(out: $stdout, err: $stderr, hot_deploy: file_committed?(HOT_DEPLOY_MARKER))
+      end
     end
   end
 end

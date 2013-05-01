@@ -4,6 +4,12 @@ source $OPENSHIFT_CARTRIDGE_SDK_BASH
 # Set the sync source base dir
 SYNC_BASE_DIR=$OPENSHIFT_PRIMARY_CARTRIDGE_DIR
 
+# Check if we are syncing to a new gear
+new_gear="false"
+if [ -n "$1" ]; then
+    new_gear="true"
+fi
+
 # Defines the default pre sync actions, taking into account
 # the hot_deploy marker.
 function set_default_pre_actions {
@@ -18,13 +24,11 @@ function set_default_pre_actions {
 # Defines the default post sync actions, taking into account
 # the hot_deploy marker.
 function set_default_post_actions {
-  if hot_deploy_marker_is_present; then
-    echo "Application will not be restarted during gear sync due to presence of hot_deploy marker"
-    #TODO A version of remotedeploy that doesn't start
-    OPENSHIFT_SYNC_GEARS_POST=('gear remotedeploy')
-  else
-    OPENSHIFT_SYNC_GEARS_POST=('gear remotedeploy')
-  fi
+    if [ "$new_gear" = "true" ]; then
+        OPENSHIFT_SYNC_GEARS_POST=('gear remotedeploy --init')
+    else
+        OPENSHIFT_SYNC_GEARS_POST=('gear remotedeploy')
+    fi
 }
 
 # Defaults for sync-gears.  Override these in .env from the configure script
