@@ -7,7 +7,7 @@
 %global frameworkdir %{_libexecdir}/openshift/cartridges/v2/ruby
 
 Name:          openshift-origin-cartridge-ruby
-Version: 0.3.3
+Version: 0.3.4
 Release:       1%{?dist}
 Summary:       Ruby cartridge
 Group:         Development/Languages
@@ -184,6 +184,12 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Wed May 01 2013 Adam Miller <admiller@redhat.com> 0.3.4-1
+- Card online_runtime_266 - Fixed missing source in control script
+  (jhonce@redhat.com)
+- Bug 956552: Fix error handling in stop action (ironcladlou@gmail.com)
+- Card online_runtime_266 - Support for LD_LIBRARY_PATH (jhonce@redhat.com)
+
 * Tue Apr 30 2013 Adam Miller <admiller@redhat.com> 0.3.3-1
 - Env var WIP. (mrunalp@gmail.com)
 - Merge pull request #2201 from BanzaiMan/dev/hasari/c276
