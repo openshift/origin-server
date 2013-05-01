@@ -25,6 +25,10 @@ module OpenShift
 
     def managed_files(cart, type, root = nil)
       managed_files = File.join(cart.directory, 'metadata', 'managed_files.yml')
+      unless File.exists?(managed_files)
+        logger.info "#{cart.directory} is missing managed_files.yml"
+        return []
+      end
 
       # Ensure the this works with symbols or strings in yml file or argument
       file_patterns = YAML.load_file(managed_files).values_at(*[type.to_s,type.to_sym])
