@@ -56,8 +56,6 @@ mkdir -p %{buildroot}/%{_sysconfdir}/openshift/cartridges
 cp -r * %{buildroot}%{cartridgedir}/
 
 %post
-%{_sbindir}/oo-admin-cartridge --action install --offline --source /usr/libexec/openshift/cartridges/v2/jbosseap
-
 %if 0%{?rhel}
 alternatives --install /etc/alternatives/maven-3.0 maven-3.0 /usr/share/java/apache-maven-3.0.3 100
 alternatives --set maven-3.0 /usr/share/java/apache-maven-3.0.3
