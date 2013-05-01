@@ -495,9 +495,12 @@ def check_system_httpd_configs_DISABLED
   httpconfs['nodes.txt'].delete_if   { |k,v|  k.split('/')[0] == '__default__' }
   $ALL_USERS.each do |u|
     dnsfile = File.join($GEAR_BASE_DIR, u, '.env', 'OPENSHIFT_GEAR_DNS')
-    begin
-      fqdn = File.read(dnsfile).sub(/^.*=/,'').gsub('\'','').gsub('"','').strip.downcase
+    fqdn = File.read(dnsfile)
+    if contents.start_with?('export ')
+      fqdn = fqdn.sub(/^.*=/,'').gsub('\'','').gsub('"','').strip.downcase
+    end
 
+    begin
       has_websocket = false
       has_framework = false
 

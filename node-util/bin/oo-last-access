@@ -44,8 +44,12 @@ class LastAccessUpdater
     begin
       File.open(file_path) do |file|
         file.each_line do |line|
-          parts = line.split("=")
-          return parts[1].strip.delete("'")
+          if line.start_with?('export ')
+            parts = line.split('=')
+            return parts[1].strip.delete("'")
+          else
+            return line
+          end
         end
       end
     rescue Exception => e
