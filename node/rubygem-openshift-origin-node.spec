@@ -16,7 +16,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.8.4
+Version: 1.8.5
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -287,6 +287,17 @@ fi
 %attr(0755,-,-) /etc/cron.monthly/openshift-origin-cron-monthly
 
 %changelog
+* Thu May 02 2013 Adam Miller <admiller@redhat.com> 1.8.5-1
+- Merge pull request #2232 from smarterclayton/support_external_cartridges
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #2318 from mrunalp/dev/web_proxy_remote_deploy
+  (dmcphers+openshiftbot@redhat.com)
+- Merge remote-tracking branch 'origin/master' into support_external_cartridges
+  (ccoleman@redhat.com)
+- Rename "external cartridge" to "downloaded cartridge".  UI should call them
+  "personal" cartridges (ccoleman@redhat.com)
+- Add init option to remote deploy. (mrunalp@gmail.com)
+
 * Wed May 01 2013 Adam Miller <admiller@redhat.com> 1.8.4-1
 - fixed node test to include new cartridge attributes Versions and Cartridge-
   Vendor (lnader@redhat.com)
