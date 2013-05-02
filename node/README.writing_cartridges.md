@@ -96,7 +96,7 @@ Name: PHP
 Cartridge-Short-Name: PHP
 Cartridge-Version: '1.0.1'
 Cartridge-Versions: ['1.0.1']
-Cartridge-Vendor: Red Hat
+Cartridge-Vendor: redhat
 Display-Name: PHP 5.3
 Description: "PHP is a general-purpose server-side scripting language..."
 Version: '5.3'

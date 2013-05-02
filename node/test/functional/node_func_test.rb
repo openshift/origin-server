@@ -29,7 +29,7 @@ class NodeTest < OpenShift::V2SdkTestCase
     OpenShift::CartridgeRepository.
         any_instance.
         stubs(:find_manifests).
-        multiple_yields(["#{@path}/redhat-CRTest/1.2/metadata/manifest.yml"])
+        multiple_yields(["#{@path}/redhat-crtest/1.2/metadata/manifest.yml"])
 
     OpenShift::CartridgeRepository.instance.clear
     OpenShift::CartridgeRepository.instance.load
@@ -39,33 +39,33 @@ class NodeTest < OpenShift::V2SdkTestCase
     buffer = OpenShift::Node.get_cartridge_list(true, true, true)
     refute_nil buffer
 
-    assert_equal %Q(CLIENT_RESULT: [\"---\\nName: CRTest-0.1\\nDisplay-Name: CRTest Unit Test\\nVersion: '0.1'\\nVersions:\\n- '0.1'\\n- '0.2'\\n- '0.3'\\nCartridge-Vendor: Red Hat\\nGroup-Overrides:\\n- components:\\n  - CRTest-0.1\\n  - web_proxy\\n\",\"---\\nName: CRTest-0.2\\nDisplay-Name: CRTest Unit Test\\nVersion: '0.2'\\nVersions:\\n- '0.1'\\n- '0.2'\\n- '0.3'\\nCartridge-Vendor: Red Hat\\nGroup-Overrides:\\n- components:\\n  - CRTest-0.2\\n  - web_proxy\\n\",\"---\\nName: CRTest-0.3\\nDisplay-Name: CRTest Unit Test\\nVersion: '0.3'\\nVersions:\\n- '0.1'\\n- '0.2'\\n- '0.3'\\nCartridge-Vendor: Red Hat\\nGroup-Overrides:\\n- components:\\n  - CRTest-0.2\\n  - web_proxy\\n\"]),
+    assert_equal %Q(CLIENT_RESULT: [\"---\\nName: crtest-0.1\\nDisplay-Name: crtest Unit Test\\nVersion: '0.1'\\nVersions:\\n- '0.1'\\n- '0.2'\\n- '0.3'\\nCartridge-Vendor: redhat\\nGroup-Overrides:\\n- components:\\n  - crtest-0.1\\n  - web_proxy\\n\",\"---\\nName: crtest-0.2\\nDisplay-Name: crtest Unit Test\\nVersion: '0.2'\\nVersions:\\n- '0.1'\\n- '0.2'\\n- '0.3'\\nCartridge-Vendor: redhat\\nGroup-Overrides:\\n- components:\\n  - crtest-0.2\\n  - web_proxy\\n\",\"---\\nName: crtest-0.3\\nDisplay-Name: crtest Unit Test\\nVersion: '0.3'\\nVersions:\\n- '0.1'\\n- '0.2'\\n- '0.3'\\nCartridge-Vendor: redhat\\nGroup-Overrides:\\n- components:\\n  - crtest-0.2\\n  - web_proxy\\n\"]),
                  buffer
   end
 
   MANIFESTS = [
       %q{#
-        Name: CRTest
-        Display-Name: CRTest Unit Test
+        Name: crtest
+        Display-Name: crtest Unit Test
         Cartridge-Short-Name: CRTEST
         Version: '0.3'
         Versions: ['0.1', '0.2', '0.3']
         Cartridge-Version: '1.2'
-        Cartridge-Vendor: Red Hat
+        Cartridge-Vendor: redhat
         Group-Overrides:
           - components:
-            - CRTest-0.3
+            - crtest-0.3
             - web_proxy
         Version-Overrides:
           '0.1':
             Group-Overrides:
               - components:
-                - CRTest-0.1
+                - crtest-0.1
                 - web_proxy
           '0.2':
             Group-Overrides:
               - components:
-                - CRTest-0.2
+                - crtest-0.2
                 - web_proxy
       },
   ]

@@ -75,7 +75,7 @@ module OpenShift
     end
 
     def setup
-      @name       = "CRFTest_#{@uuid}"
+      @name       = "crftest_#{@uuid}"
       @repo_dir   = File.join(OpenShift::CartridgeRepository::CARTRIDGE_REPO_DIR, "redhat-#{@name}")
       @source_dir = "#{@test_home}/src-#{@uuid}"
 
@@ -84,12 +84,12 @@ module OpenShift
       FileUtils.mkpath(@source_dir + '/bin')
       File.open(@source_dir + '/metadata/manifest.yml', 'w') do |f|
         f.write(%Q{#
-        Name: CRFTest_#{@uuid}
+        Name: crftest_#{@uuid}
         Cartridge-Short-Name: CRFTEST
         Version: '0.3'
         Versions: ['0.1', '0.2', '0.3']
         Cartridge-Version: '1.2'
-        Cartridge-Vendor: RedHat
+        Cartridge-Vendor: redhat
       }
         )
       end
@@ -240,6 +240,33 @@ module OpenShift
       refute_path_exist(cartridge_home)
     end
 
+    def test_invalid_vendor_name
+      manifest = IO.read(File.join(@cartridge.manifest_path))
+      manifest << "Cartridge-Vendor: 0a" << "\n"
+      manifest << 'Source-Url: https://www.example.com/mock-plugin.tar.gz' << "\n"
+      manifest << "Source-Md5: #{@tgz_hash}"
+
+
+      err = assert_raise(OpenShift::InvalidElementError) do
+        cartridge      = OpenShift::Runtime::Manifest.new(manifest)
+      end
+
+      assert_match 'Cartridge-Vendor', err.message
+    end
+
+    def test_invalid_cartridge_name
+      manifest = IO.read(File.join(@cartridge.manifest_path))
+      manifest << "Name: 0a-" << "\n"
+      manifest << 'Source-Url: https://www.example.com/mock-plugin.tar.gz' << "\n"
+      manifest << "Source-Md5: #{@tgz_hash}"
+
+      err = assert_raise(OpenShift::InvalidElementError) do
+        cartridge      = OpenShift::Runtime::Manifest.new(manifest)
+      end
+
+      assert_match /\bName\b/, err.message
+    end
+
     def test_instantiate_cartridge_tgz
       # Point manifest at "remote" URL
       manifest = IO.read(File.join(@cartridge.manifest_path))
@@ -256,7 +283,6 @@ module OpenShift
       assert_path_exist(cartridge_home)
       assert_path_exist(File.join(cartridge_home, 'bin', 'control'))
     end
-
 
     def test_instantiate_cartridge_tar
       # Point manifest at "remote" URL
