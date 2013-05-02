@@ -1,7 +1,7 @@
 %global cartridgedir %{_libexecdir}/openshift/cartridges/v2/jbossas
 %global frameworkdir %{_libexecdir}/openshift/cartridges/v2/jbossas
-%global jbossver 7.1.0.Final
-%global oldjbossver 7.0.2.Final
+%global jbossver 7.1.1.Final
+%global oldjbossver 7.1.0.Final
 
 Summary:       Provides JBossAS7 support
 Name:          openshift-origin-cartridge-jbossas
@@ -54,9 +54,9 @@ cp -r * %{buildroot}%{cartridgedir}/
 alternatives --install /etc/alternatives/maven-3.0 maven-3.0 /usr/share/java/apache-maven-3.0.3 100
 alternatives --set maven-3.0 /usr/share/java/apache-maven-3.0.3
 
-alternatives --remove jbossas-7 /opt/jboss-as-7.1.0.Final
-alternatives --install /etc/alternatives/jbossas-7 jbossas-7 /opt/jboss-as-7.1.0.Final 102
-alternatives --set jbossas-7 /opt/jboss-as-7.1.0.Final
+alternatives --remove jbossas-7 /opt/jboss-as-%{oldjbossver}
+alternatives --install /etc/alternatives/jbossas-7 jbossas-7 /opt/jboss-as-%{jbossver} 102
+alternatives --set jbossas-7 /opt/jboss-as-%{jbossver}
 %endif
 
 %if 0%{?fedora}
