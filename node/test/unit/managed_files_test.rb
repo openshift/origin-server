@@ -23,7 +23,7 @@ module OpenShift
   class ManagedFilesTest < OpenShift::V2SdkTestCase
     include ManagedFiles
     def setup
-      @homedir = Dir.mktmpdir
+      @homedir = Dir.mktmpdir + '/'
       @user = OpenStruct.new({
         :homedir =>  @homedir
       })
@@ -49,15 +49,16 @@ module OpenShift
       end
     end
 
-    def set_managed_files(cart)
+    def set_managed_files(cart, homedir=nil)
       @good_files = %w(~/.good ~/app-root/good good) << "~/#{cart.directory}/good"
       blacklist_files = %w(~/.ssh/bad)
       oob_files = %w(~/../bad)
       @managed_files = {
         :locked_files => @good_files | blacklist_files | oob_files
       }
-
-      YAML.stubs(:load_file).with(File.join(cart.directory,'metadata','managed_files.yml')).returns(@managed_files)
+      manifest_file = File.join(homedir ? homedir : '',@cartridge.directory,'metadata','managed_files.yml')
+      File.stubs(:exists?).with(manifest_file).returns(true)
+      YAML.stubs(:load_file).with(manifest_file).returns(@managed_files)
     end
 
     def test_get_managed_files
@@ -66,9 +67,9 @@ module OpenShift
     end
 
     def test_get_locked_files
-      set_managed_files(@cartridge)
+      set_managed_files(@cartridge, @homedir)
       # The lock_files are returned relative to the homedir without the ~/
-      expected_files = %w{.good app-root/good mock/good mock/good}
+      expected_files = ["#{@homedir}.good", "#{@homedir}app-root/good", "#{@homedir}mock/good", "#{@homedir}mock/good"]
       assert_equal expected_files, lock_files(@cartridge)
     end
   end

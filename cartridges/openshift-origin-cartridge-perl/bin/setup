@@ -8,5 +8,4 @@ esac
 # Copy the version specific files to perl directory
 shopt -s dotglob
 cp -r $OPENSHIFT_PERL_DIR/versions/$version/etc/* $OPENSHIFT_PERL_DIR/etc
-cp -r $OPENSHIFT_PERL_DIR/versions/$version/metadata/* $OPENSHIFT_PERL_DIR/metadata
 mkdir -p $OPENSHIFT_HOMEDIR/.cpanm
