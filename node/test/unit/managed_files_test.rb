@@ -71,7 +71,8 @@ module OpenShift
 
     def test_get_locked_files
       # The lock_files are returned relative to the homedir without the ~/
-      expected_files = %w(.good app-root/good mock/good mock/good app-root/foo/good/).map{|x| File.join(@user.homedir,x) }
+      expected_files = %w(.good app-root/good mock/good mock/good).map{|x| File.join(@user.homedir,x) }
+      expected_files << "#{File.join(@user.homedir,'app-root','foo','good')}/"
       assert_equal expected_files.sort, lock_files(@cartridge).sort
     end
   end

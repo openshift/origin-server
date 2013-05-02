@@ -91,7 +91,11 @@ module OpenShift
         elsif line !~ /^(app-root\/|\.[^\/]+|#{cartridge.directory}\/)/ # Only allow files in app-root, the cart directory, or dot files/dirs (if they pass blacklist check)
           logger.info("#{cartridge.directory} attempted lock/unlock on out-of-bounds entry [#{line}]")
         else
-          files << File.join(@user.homedir, line)
+          abs_line = File.join(@user.homedir, line)
+          if line.end_with?('/') && !abs_line.end_with?('/')
+            abs_line = "#{abs_line}/"
+          end
+          files << abs_line
         end
       end
       files
