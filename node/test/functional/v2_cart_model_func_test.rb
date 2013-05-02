@@ -85,8 +85,6 @@ module OpenShift
                         'Failed to delete .mock_hidden.erb after processing')
     end
 
-    # Commenting out these tests because of changes to managed_files.yml
-=begin
     def test_publish_db_connection_info
       @model.configure('mock-plugin-0.1')
 
@@ -152,6 +150,5 @@ module OpenShift
       assert_path_exist(File.join(@user.homedir, 'mock-plugin'))
       assert_path_exist(File.join(@user.homedir, %w(mock-plugin bin control)))
     end
-=end
   end
 end
