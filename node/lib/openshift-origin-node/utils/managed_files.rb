@@ -25,6 +25,8 @@ module OpenShift
 
     # managed_files(cartridge_object, string) -> Array.new(file_names)
     def managed_files(cart, type, root, process_files = true)
+      # Ensure that root ends in a slash
+      root = File.join(root,'')
       # TODO: Is it possible to get a cart's full directory path?
       managed_files = File.join(root, cart.directory, 'metadata', 'managed_files.yml')
       unless File.exists?(managed_files)
@@ -44,7 +46,7 @@ module OpenShift
         file_patterns.map! do |line|
           abs_line = line.start_with?('~/') ? line : File.join('~/',cart.directory,line)
           # Ensure that any patterns that try to traverse upward are exposed
-          abs_line = File.expand_path(abs_line.sub(/^~/,root))
+          abs_line = File.expand_path(abs_line.sub(/^~\//,root))
           if line.end_with?('/') && !abs_line.end_with?('/')
             abs_line = "#{abs_line}/"
           end
