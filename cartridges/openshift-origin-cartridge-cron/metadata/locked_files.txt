@@ -1,5 +1,0 @@
-cron/
-cron/metadata/
-cron/env/
-cron/conf/
-cron/template/

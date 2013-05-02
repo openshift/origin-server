@@ -14,7 +14,7 @@ set -u
 
 # Copy the version specific files to ruby directory
 shopt -s dotglob
-for dir in etc metadata template; do
+for dir in etc template; do
     mkdir -p $OPENSHIFT_RUBY_DIR/$dir
     cp -Lr $OPENSHIFT_RUBY_DIR/versions/$version/$dir/* $OPENSHIFT_RUBY_DIR/$dir 
 done

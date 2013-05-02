@@ -1,5 +1,0 @@
-metadata/
-conf/
-conf.d/
-phpMyAdmin/
-env/

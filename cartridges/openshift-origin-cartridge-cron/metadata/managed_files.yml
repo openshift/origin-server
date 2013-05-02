@@ -1,0 +1,6 @@
+---
+locked_files:
+- cron/
+- cron/metadata/
+- cron/env/
+- cron/conf/

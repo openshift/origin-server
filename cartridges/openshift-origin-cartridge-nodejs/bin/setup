@@ -14,7 +14,7 @@ set -u
 
 # Copy the version specific files to nodejs directory
 shopt -s dotglob
-for dir in configuration etc metadata; do
+for dir in configuration etc; do
     mkdir -p $OPENSHIFT_NODEJS_DIR/$dir
     cp -Lr $OPENSHIFT_NODEJS_DIR/versions/$version/$dir/* $OPENSHIFT_NODEJS_DIR/$dir 
 done
