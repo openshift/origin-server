@@ -66,7 +66,7 @@ module OpenShift
         end.flatten
 
         # Return files as relative to root
-        wanted_files.map{|x| x[root.length..-1]}
+        wanted_files.map{|x| x[root.length+1..-1]}
       else
         file_patterns
       end
