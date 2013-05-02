@@ -82,7 +82,7 @@ class Application
   embeds_many :pending_op_groups, class_name: PendingAppOpGroup.name
 
   belongs_to :domain
-  field :external_cart_map, type: Hash, default: {}
+  field :downloaded_cart_map, type: Hash, default: {}
   field :user_ids, type: Array, default: []
   field :component_start_order, type: Array, default: []
   field :component_stop_order, type: Array, default: []
@@ -147,7 +147,7 @@ class Application
   def self.create_app(application_name, features, domain, default_gear_size = nil, scalable=false, result_io=ResultIO.new, group_overrides=[], init_git_url=nil, user_agent=nil, community_cart_urls=[])
     default_gear_size =  Rails.application.config.openshift[:default_gear_size] if default_gear_size.nil?
     cmap = CartridgeCache.fetch_community_carts(community_cart_urls)
-    app = Application.new(domain: domain, name: application_name, default_gear_size: default_gear_size, scalable: scalable, app_ssh_keys: [], pending_op_groups: [], init_git_url: init_git_url, external_cart_map: cmap)
+    app = Application.new(domain: domain, name: application_name, default_gear_size: default_gear_size, scalable: scalable, app_ssh_keys: [], pending_op_groups: [], init_git_url: init_git_url, downloaded_cart_map: cmap)
     app.user_agent = user_agent
     app.analytics['user_agent'] = user_agent
     app.save
@@ -184,7 +184,7 @@ class Application
   end
 
   def community_cartridges
-    cmap = self.external_cart_map
+    cmap = self.downloaded_cart_map
     return @community_cartridges if @community_cartridges and cmap.length==@community_cartridges.length
     # download the content of the url
     # careful, but assume this to be manifest.yml
@@ -1875,7 +1875,7 @@ class Application
     # if so, then make sure that the post-configure op for it is executed at the end
     # also, it should not be the prerequisite for any other pending_op 
     component_ops.keys.each do |comp_spec|
-      cartridge = CartridgeCache.find_cartridge(comp_spec["cart"])
+      cartridge = CartridgeCache.find_cartridge(comp_spec["cart"], self)
       if cartridge.is_primary_cart?
         component_ops[comp_spec][:post_configures].each do |pcop|
           pcop.prereq += [execute_connection_op._id.to_s]
