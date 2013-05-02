@@ -23,8 +23,10 @@ module OpenShift
     # Turn blacklist into regexes
     FILENAME_BLACKLIST = %r{^\.(ssh|sandbox|tmp|env)}
 
-    def managed_files(cart, type, root=nil)
-      managed_files = File.join(root ? root : '', cart.directory, 'metadata', 'managed_files.yml')
+    # managed_files(cartridge_object, string) -> Array.new(file_names)
+    def managed_files(cart, type, root, process_files = true)
+      # TODO: Is it possible to get a cart's full directory path?
+      managed_files = File.join(root, cart.directory, 'metadata', 'managed_files.yml')
       unless File.exists?(managed_files)
         logger.info "#{managed_files} is missing"
         return []
@@ -36,9 +38,8 @@ module OpenShift
         .map(&:strip)         # Remove leading/trailing whitespace
         .delete_if(&:empty?)  # Remove any empty patterns
 
-      # If we pass a root, do extra processing
-      # If not, just return the patterns
-      if root
+      # Specify whether or not to do extra processing
+      if process_files
         # If the file isn't ~/ make it relative to the cart directory
         file_patterns.map! do |line|
           abs_line = line.start_with?('~/') ? line : File.join('~/',cart.directory,line)
@@ -66,7 +67,7 @@ module OpenShift
         end.flatten
 
         # Return files as relative to root
-        wanted_files.map{|x| x[root.length+1..-1]}
+        wanted_files.map{|x| x[root.length..-1]}
       else
         file_patterns
       end
