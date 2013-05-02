@@ -118,16 +118,17 @@ class CartridgeCache
   end
 
   def self.foreach_cart_version(manifest_str)
-    cartridge = Runtime::Manifest.new(manifest_str)
+    cartridge = OpenShift::Runtime::Manifest.new(manifest_str)
+    carts = []
     cartridge.versions.each do |version|
-      cooked = Runtime::Manifest.new(manifest_str, version)
+      cooked = OpenShift::Runtime::Manifest.new(manifest_str, version)
       Rails.logger.debug("Loading #{cooked.name}-#{cooked.version}...")
       v1_manifest            = Marshal.load(Marshal.dump(cooked.manifest))
       v1_manifest['Name']    = "#{cooked.name}-#{cooked.version}"
       v1_manifest['Version'] = cooked.version
       carts.push OpenShift::Cartridge.new.from_descriptor(v1_manifest)
-      carts.each { |c| yield c.to_descriptor }
     end
+    carts.each { |c| yield c.to_descriptor }
   end
 
   def self.fetch_community_carts(urls)
@@ -142,7 +143,7 @@ class CartridgeCache
        # TODO: check versions and create multiple of them
        self.foreach_cart_version(manifest_str) do |chash|
          cmap[chash["Name"]] = { "url" => url, "manifest" => chash.to_yaml}
-         # no versioning support on external cartridges yet.. use the default one
+         # no versioning support on downloaded cartridges yet.. use the default one
          break
        end
     end

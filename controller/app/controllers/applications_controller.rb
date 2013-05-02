@@ -48,14 +48,14 @@ class ApplicationsController < BaseController
   def create
     app_name = params[:name].downcase if params[:name]
     features = []
-    external_cart_urls = []
+    downloaded_cart_urls = []
     cart_params = [(params[:cartridges] || params[:cartridge])].flatten
     cart_params.each do |c| 
       if c.is_a?(Hash) 
         if c[:name]
           features << c[:name]
         elsif c[:url]
-          external_cart_urls << c[:url]
+          downloaded_cart_urls << c[:url]
         end
       else
         features << c
@@ -82,15 +82,16 @@ class ApplicationsController < BaseController
 
     download_cartridges_enabled = Rails.application.config.openshift[:download_cartridges_enabled]
     limit = (Rails.application.config.downloaded_cartridges[:max_downloaded_carts_per_app] rescue 5) || 5
+    carts = CartridgeCache.cartridge_names("web_framework")
     return render_error(:unprocessable_entity, "You may not specify more than #{limit} cartridges to be downloaded.",
-                            109, "cartridge") if download_cartridges_enabled and external_cart_urls.length > limit
+                            109, "cartridge") if download_cartridges_enabled and downloaded_cart_urls.length > limit
     return render_error(:unprocessable_entity, "You must specify a cartridge. Valid values are (#{carts.join(', ')})",
-                            109, "cartridge") if download_cartridges_enabled ? (external_cart_urls.empty? and features.empty?) : features.empty?
+                            109, "cartridge") if download_cartridges_enabled ? (downloaded_cart_urls.empty? and features.empty?) : features.empty?
 
     begin
       app_creation_result = ResultIO.new
       scalable = get_bool(params[:scale])
-      application = Application.create_app(app_name, features, @domain, default_gear_size, scalable, app_creation_result, [], init_git_url, request.headers['User-Agent'], external_cart_urls)
+      application = Application.create_app(app_name, features, @domain, default_gear_size, scalable, app_creation_result, [], init_git_url, request.headers['User-Agent'], downloaded_cart_urls)
 
       @application_name = application.name
       @application_uuid = application.uuid
