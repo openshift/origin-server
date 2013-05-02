@@ -7,14 +7,26 @@
 
 # List ports of attached databases available to user:
 
-for f in $(ls -1 ~/.env/.uservars/*_DB_HOST 2>/dev/null); do
-    DB=$(echo $f |sed -e 's/.*OPENSHIFT_\(.*\)_DB_HOST/\1/' |tr '[A-Z]' '[a-z]')
-    PORT_FILE=$(echo $f |sed 's/_DB_HOST/_DB_PORT/')
-    echo $DB '->' $(cat $f)\:$(cat $PORT_FILE) 1>&2
+for HOST_VAR in $(env | grep _DB_HOST | awk -F '=' '{print $1}'); do
+    DB=$(echo $HOST_VAR |sed -e 's/.*OPENSHIFT_\(.*\)_DB_HOST/\1/' |tr '[A-Z]' '[a-z]')
+    PORT_VAR=$(echo $HOST_VAR |sed 's/_DB_HOST/_DB_PORT/')
+    PORT_VAL=$(echo ${!PORT_VAR})
+    HOST_VAL=$(echo ${!HOST_VAR})
+    echo "${DB} -> ${HOST_VAL}:${PORT_VAL}" 1>&2
 done
 
-gear_registry="./haproxy-1.4/conf/gear-registry.db"
-if [ -f "$gear_registry" ]; then
-    cat "$gear_registry" | while read line; do echo "$line" |  \
-        awk -F"@" '{ printf "SCALE%s\n", $1; }' ; done
+gear_registry_locations=(
+  "./haproxy-1.4/conf/gear-registry.db"
+  "./haproxy/conf/gear-registry.db"
+)
+
+for candidate_registry in "${gear_registry_locations[@]}"; do
+  if [ -f "$candidate_registry" ]; then
+    gear_registry=$candidate_registry
+    break
+  fi
+done
+
+if [ ! -z "$gear_registry" ]; then
+  cat "$gear_registry" | while read line; do echo "$line" | awk -F"@" '{ printf "SCALE%s\n", $1; }' ; done
 fi
