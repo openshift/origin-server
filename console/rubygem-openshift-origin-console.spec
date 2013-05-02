@@ -9,7 +9,7 @@
 
 Summary:       OpenShift Origin Management Console
 Name:          rubygem-%{gem_name}
-Version: 1.8.4
+Version: 1.8.5
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -147,6 +147,33 @@ cp -a ./%{gem_dir}/* %{buildroot}%{gem_dir}/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Thu May 02 2013 Adam Miller <admiller@redhat.com> 1.8.5-1
+- Merge pull request #2319 from
+  smarterclayton/rest_api_defends_against_bad_exceptions
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #2320 from liggitt/bug_958278_segfault_on_int_assetss
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #2232 from smarterclayton/support_external_cartridges
+  (dmcphers+openshiftbot@redhat.com)
+- Fix bug 958278 - only insert asset middleware when static asset serving is
+  enabled (jliggitt@redhat.com)
+- Rename "external cartridge" to "downloaded cartridge".  UI should call them
+  "personal" cartridges (ccoleman@redhat.com)
+- RestApi should defend against poorly formed response bodies (it's possible
+  for ActiveResource::ConnectionError#response to return a string)
+  (ccoleman@redhat.com)
+- Merge remote-tracking branch 'origin/master' into support_external_cartridges
+  (ccoleman@redhat.com)
+- Merge remote-tracking branch 'origin/master' into support_external_cartridges
+  (ccoleman@redhat.com)
+- Read the enabled state of the external cartridges feature from the broker
+  (ccoleman@redhat.com)
+- Add custom cartridges to existing apps (ccoleman@redhat.com)
+- Improve test performance by reusing cache for most tests
+  (ccoleman@redhat.com)
+- Support URL entry during app creation (ccoleman@redhat.com)
+- Extract form-important from #new-application (ccoleman@redhat.com)
+
 * Wed May 01 2013 Adam Miller <admiller@redhat.com> 1.8.4-1
 - Add host name as an option for asset generation (ccoleman@redhat.com)
 
