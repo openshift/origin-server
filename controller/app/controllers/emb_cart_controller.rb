@@ -52,7 +52,7 @@ class EmbCartController < BaseController
         cmap = CartridgeCache.fetch_community_carts(cart_urls)
         name = cmap.keys[0]
         features << name
-        @application.external_cart_map.merge!(cmap)
+        @application.downloaded_cart_map.merge!(cmap)
       rescue Exception=>e
         return render_error(:unprocessable_entity, "Error in cartridge url - #{e.message}", 109)
       end
