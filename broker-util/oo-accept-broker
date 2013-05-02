@@ -488,9 +488,10 @@ function check_mongo_login() {
     # $DB=$2
     # $USER=$3
     # $PASS=$4
+    # $SSL=$5
     verbose checking mongo db login access
     ssl_opt=""
-    if [ "${APP_VALUES[DS_SSL]}" == "true" ]
+    if [ "$5" == "true" ]
     then
         ssl_opt="--ssl"
     fi
@@ -590,7 +591,7 @@ function check_datastore_mongo() {
     fi
 
     # check OpenShift Origin user (username/password)
-    check_mongo_login "${APP_VALUES[DS_HOST]}:${APP_VALUES[DS_PORT]}" ${APP_VALUES[DS_NAME]} ${APP_VALUES[DS_USER]} ${APP_VALUES[DS_PASS]}
+    check_mongo_login "${APP_VALUES[DS_HOST]}:${APP_VALUES[DS_PORT]}" ${APP_VALUES[DS_NAME]} ${APP_VALUES[DS_USER]} ${APP_VALUES[DS_PASS]} ${APP_VALUES[DS_SSL]}
 }
 
 function check_auth_mongo() {
@@ -656,7 +657,7 @@ function check_auth_mongo() {
     fi
 
     # check OpenShift Origin user (username/password)
-    check_mongo_login "${APP_VALUES[DS_HOST]}:${APP_VALUES[DS_PORT]}" ${APP_VALUES[DS_NAME]} ${APP_VALUES[DS_USER]} ${APP_VALUES[DS_PASS]}
+    check_mongo_login "${APP_VALUES[DS_HOST]}:${APP_VALUES[DS_PORT]}" ${APP_VALUES[DS_NAME]} ${APP_VALUES[DS_USER]} ${APP_VALUES[DS_PASS]} ${APP_VALUES[DS_SSL]}
 }
 
 function get_http_response_code() {
