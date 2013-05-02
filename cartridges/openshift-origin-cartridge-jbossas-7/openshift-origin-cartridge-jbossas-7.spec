@@ -95,7 +95,7 @@ ln -s %{cartridgedir}/../abstract-jboss/info/hooks/configure %{buildroot}%{cartr
 alternatives --install /etc/alternatives/maven-3.0 maven-3.0 /usr/share/java/apache-maven-3.0.3 100
 alternatives --set maven-3.0 /usr/share/java/apache-maven-3.0.3
 
-alternatives --remove jbossas-7.0 /opt/jboss-as-%{oldjbossver}
+alternatives --remove jbossas-7 /opt/jboss-as-%{oldjbossver}
 alternatives --install /etc/alternatives/jbossas-7 jbossas-7 /opt/jboss-as-%{jbossver} 102
 alternatives --set jbossas-7 /opt/jboss-as-%{jbossver}
 %endif
