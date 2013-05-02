@@ -138,6 +138,17 @@ module OpenShift
                   :source_url,
                   :source_md5
 
+      # When a cartridge is installed from a URL, we validate the
+      # vendor name by matching against VALID_VENDOR_NAME_PATTERN,
+      # and the cartridge name agasint VALID_CARTRIDGE_NAME_PATTERN.
+      # If it does not match the respective pattern, the cartridge will be rejected.
+      VALID_VENDOR_NAME_PATTERN    = /\A[a-z][a-z0-9_]*\z/
+      VALID_CARTRIDGE_NAME_PATTERN = /\A[a-z0-9](?:[-\.a-z0-9_]*[a-z0-9]|)\z/
+      # Furthermore, we validate the vendor name by matching against
+      # RESERVED_VENDOR_NAME_PATTERN.
+      # If it matches the pattern, it will be rejected.
+      RESERVED_VENDOR_NAME_PATTERN = /\A(?:redhat)\z/
+
       # :call-seq:
       #   Cartridge.new(manifest) -> Cartridge
       #   Cartridge.new(manifest, software_version) -> Cartridge
@@ -195,6 +206,9 @@ module OpenShift
         raise MissingElementError.new(nil, 'Name') unless @name
         #raise InvalidElementError.new(nil, 'Name') if @name.include?('-')
 
+        validate_vendor_name
+        validate_cartridge_name
+
         if @manifest.has_key?('Source-Url')
           raise InvalidElementError.new(nil, 'Source-Url') unless @manifest['Source-Url'] =~ URI::ABS_URI
           @source_url = @manifest['Source-Url']
@@ -251,6 +265,30 @@ module OpenShift
         instance_variables.each_with_object('<Cartridge: ') do |v, a|
           a << "#{v}: #{instance_variable_get(v)} "
         end << ' >'
+      end
+
+      def validate_vendor_name(check_reserved_name = false)
+        if cartridge_vendor && cartridge_vendor !~ VALID_VENDOR_NAME_PATTERN
+          raise InvalidElementError.new(
+            "'#{cartridge_vendor}' does not match pattern #{VALID_VENDOR_NAME_PATTERN.inspect}.",
+            'Cartridge-Vendor'
+          )
+        end
+      end
+
+      def validate_cartridge_name
+        if name !~ VALID_CARTRIDGE_NAME_PATTERN
+          raise InvalidElementError.new(
+            "'#{name}' does not match pattern #{VALID_CARTRIDGE_NAME_PATTERN.inspect}.",
+            'Name'
+          )
+        end
+      end
+
+      def check_reserved_vendor_name
+        if cartridge_vendor =~ RESERVED_VENDOR_NAME_PATTERN
+          raise InvalidElementError.new("'#{cartridge_vendor}' is reserved.", 'Cartridge-Vendor')
+        end
       end
     end
   end

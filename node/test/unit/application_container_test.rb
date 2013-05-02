@@ -67,7 +67,7 @@ class ApplicationContainerTest < Test::Unit::TestCase
         Name: mock
         Cartridge-Short-Name: MOCK
         Cartridge-Version: 1.0
-        Cartridge-Vendor: Unit Test
+        Cartridge-Vendor: unit_test
         Display-Name: Mock
         Description: "A mock cartridge for development use only."
         Version: 0.1

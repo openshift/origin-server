@@ -122,8 +122,9 @@ module OpenShift
     def load(directory = nil)
       @semaphore.synchronize do
         find_manifests(directory || @path) do |manifest_path|
+          logger.debug { "Loading cartridge from #{manifest_path}" }
           c = insert(OpenShift::Runtime::Manifest.new(manifest_path, nil, @path))
-          logger.debug { "Loaded cartridge (#{c.name}, #{c.version}, #{c.cartridge_version}) from #{manifest_path}" }
+          logger.debug { "Loaded cartridge (#{c.name}, #{c.version}, #{c.cartridge_version})" }
         end
       end
 
@@ -269,7 +270,7 @@ module OpenShift
     #
     # Insert cartridge into index
     #
-    #   CartridgeRepository.instance.instance(cartridge) -> Cartridge
+    #   CartridgeRepository.instance.insert(cartridge) -> Cartridge
     def insert(cartridge) # :nodoc:
       cartridge.versions.each do |version|
         @index[cartridge.name][version][cartridge.cartridge_version] = cartridge
@@ -329,6 +330,8 @@ module OpenShift
       if :url == cartridge.manifest_path
         uri       = URI(cartridge.source_url)
         temporary = PathUtils.join(File.dirname(target), File.basename(cartridge.source_url))
+        cartridge.validate_vendor_name
+        cartridge.validate_cartridge_name
 
         case
           when 'git' == uri.scheme || cartridge.source_url.end_with?('.git')

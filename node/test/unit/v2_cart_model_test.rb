@@ -68,7 +68,7 @@ module OpenShift
         Name: mock
         Cartridge-Short-Name: MOCK
         Cartridge-Version: 1.0
-        Cartridge-Vendor: Unit Test
+        Cartridge-Vendor: unit_test
         Display-Name: Mock
         Description: "A mock cartridge for development use only."
         Version: '0.1'
@@ -140,9 +140,9 @@ module OpenShift
     def test_get_cartridge_error_loading
       local_model = OpenShift::V2CartridgeModel.new(@config, @user, mock())
 
-      YAML.stubs(:load_file).with("#{@homedir}/redhat-CRTest/metadata/manifest.yml").raises(ArgumentError.new('bla'))
+      YAML.stubs(:load_file).with("#{@homedir}/redhat-crtest/metadata/manifest.yml").raises(ArgumentError.new('bla'))
 
-      assert_raise(RuntimeError, "Failed to load cart manifest from #{@homedir}/redhat-CRTest/metadata/manifest.yml for cart mock in gear : bla") do
+      assert_raise(RuntimeError, "Failed to load cart manifest from #{@homedir}/redhat-crtest/metadata/manifest.yml for cart mock in gear : bla") do
         local_model.get_cartridge("mock-0.1")
       end
     end
