@@ -6,7 +6,7 @@
 %global frameworkdir %{_libexecdir}/openshift/cartridges/v2/haproxy
 
 Name:          openshift-origin-cartridge-haproxy
-Version: 0.3.4
+Version: 0.3.5
 Release:       1%{?dist}
 Summary:       Provides HA Proxy
 Group:         Network/Daemons
@@ -57,6 +57,9 @@ rm -rf %{buildroot}
 %doc %{cartridgedir}/README.md
 
 %changelog
+* Thu May 02 2013 Adam Miller <admiller@redhat.com> 0.3.5-1
+- Add init option to remote deploy. (mrunalp@gmail.com)
+
 * Tue Apr 30 2013 Adam Miller <admiller@redhat.com> 0.3.4-1
 - Merge pull request #2275 from jwhonce/wip/cartridge_path
   (dmcphers+openshiftbot@redhat.com)
