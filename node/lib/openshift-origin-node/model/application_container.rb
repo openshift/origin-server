@@ -31,6 +31,7 @@ require 'yaml'
 require 'active_model'
 require 'json'
 require 'rest-client'
+require 'openshift-origin-node/utils/managed_files'
 
 module OpenShift
   # == Application Container
@@ -38,6 +39,7 @@ module OpenShift
     include OpenShift::Utils::ShellExec
     include ActiveModel::Observing
     include NodeLogger
+    include ManagedFiles
 
     GEAR_TO_GEAR_SSH = "/usr/bin/ssh -q -o 'BatchMode=yes' -o 'StrictHostKeyChecking=no' -i $OPENSHIFT_APP_SSH_KEY "
 
@@ -801,28 +803,6 @@ module OpenShift
       FileUtils.rm_rf(Dir.glob(File.join(@user.homedir, 'app-root', 'data', '*')))
       FileUtils.rm_rf(Dir.glob(File.join(@user.homedir, 'app-root', 'data', '.[^.]*')))
       FileUtils.safe_unlink(File.join(@user.homedir, 'app-root', 'runtime', 'data'))
-    end
-
-    def restore_transforms
-      transforms = []
-
-      @cartridge_model.each_cartridge do |cartridge|
-        transforms_file = File.join(cartridge.directory, 'metadata', 'restore_transforms.txt')
-        next unless File.exist? transforms_file
-
-        File.readlines(transforms_file).each do |line|
-          line.chomp!
-
-          case 
-          when line.empty?
-            # skip blank lines
-          else
-            transforms << line
-          end
-        end
-      end
-
-      transforms
     end
 
     def extract_restore_archive(transforms, restore_git_repo, gear_env)
