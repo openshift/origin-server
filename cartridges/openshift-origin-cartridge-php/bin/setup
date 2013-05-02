@@ -13,8 +13,6 @@ cp $OPENSHIFT_PHP_DIR/versions/$version/configuration/etc/conf.d/* $OPENSHIFT_PH
 mkdir -p $OPENSHIFT_PHP_DIR/configuration/etc/conf
 cp $OPENSHIFT_PHP_DIR/versions/$version/configuration/etc/conf/* $OPENSHIFT_PHP_DIR/configuration/etc/conf/
 
-cp -r $OPENSHIFT_PHP_DIR/versions/$version/metadata/* $OPENSHIFT_PHP_DIR/metadata
-
 # Create additional directories required by PHP
 mkdir -p $OPENSHIFT_PHP_DIR/phplib/pear/{docs,ext,php,cache,cfg,data,download,temp,tests,www}
 mkdir -p $OPENSHIFT_PHP_DIR/{logs,run,tmp,sessions}

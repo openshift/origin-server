@@ -23,10 +23,10 @@ module OpenShift
     # Turn blacklist into regexes
     FILENAME_BLACKLIST = %r{^\.(ssh|sandbox|tmp|env)}
 
-    def managed_files(cart, type, root = nil)
-      managed_files = File.join(cart.directory, 'metadata', 'managed_files.yml')
+    def managed_files(cart, type, root=nil)
+      managed_files = File.join(root ? root : '', cart.directory, 'metadata', 'managed_files.yml')
       unless File.exists?(managed_files)
-        logger.info "#{cart.directory} is missing managed_files.yml"
+        logger.info "#{managed_files} is missing"
         return []
       end
 
@@ -41,9 +41,13 @@ module OpenShift
       if root
         # If the file isn't ~/ make it relative to the cart directory
         file_patterns.map! do |line|
-          abs_line = line.start_with?('~/') ?  line : File.join('~/',cart.directory,line)
+          abs_line = line.start_with?('~/') ? line : File.join('~/',cart.directory,line)
           # Ensure that any patterns that try to traverse upward are exposed
-          File.expand_path(abs_line.sub(/^~/,root))
+          abs_line = File.expand_path(abs_line.sub(/^~/,root))
+          if line.end_with?('/') && !abs_line.end_with?('/')
+            abs_line = "#{abs_line}/"
+          end
+          abs_line
         end
 
         # Ensure the file patterns are in the root
@@ -62,7 +66,7 @@ module OpenShift
         end.flatten
 
         # Return files as relative to root
-        wanted_files.map{|x| x.sub("#{root}/",'') }
+        wanted_files.map{|x| x[root.length..-1]}
       else
         file_patterns
       end
@@ -76,20 +80,18 @@ module OpenShift
     def lock_files(cartridge)
       locked_files = managed_files(cartridge, :locked_files, @user.homedir)
 
-      # Only allow files in app-root, the cart directory, or dot files (if they pass blacklist check)
-      accepted_locations = Regexp.new("^(app-root|\\.|#{cartridge.directory})")
-
-      locked_files.each_with_object([]) do |line, memo|
-        case
-          # Do not allow blacklisted directories
-          when line =~ FILENAME_BLACKLIST
-            logger.info("#{cartridge.directory} attempted lock/unlock on black listed entry [#{line}]")
-          when !(line =~ accepted_locations)
-            logger.info("#{cartridge.directory} attempted lock/unlock on out-of-bounds entry [#{line}]")
-          else
-            memo << line
+      files = []
+      locked_files.each do |line|
+        # Do not allow blacklisted directories
+        if line =~ FILENAME_BLACKLIST
+          logger.info("#{cartridge.directory} attempted lock/unlock on black listed entry [#{line}]")
+        elsif line !~ /^(app-root\/|\.[^\/]+|#{cartridge.directory}\/)/ # Only allow files in app-root, the cart directory, or dot files/dirs (if they pass blacklist check)
+          logger.info("#{cartridge.directory} attempted lock/unlock on out-of-bounds entry [#{line}]")
+        else
+          files << File.join(@user.homedir, line)
         end
       end
+      files
     end
 
     # snapshot_exclusions(cartridge_object) -> Array.new(file_names)
