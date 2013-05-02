@@ -38,7 +38,7 @@ module RestApi
               #puts "define method #{m} #{name}"
               eigenclass.class_eval do
                 define_method m do |*args, &blk|
-                  key = cache_key_for(m, args)
+                  key = cache_key_for(m, *args)
                   result = begin
                     Rails.cache.fetch(key, class_opts.merge(opts)) do
                       parent.send(m, *args, &blk).tap do |result|
