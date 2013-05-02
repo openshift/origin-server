@@ -23,17 +23,18 @@ module OpenShift
   class ManagedFilesTest < OpenShift::V2SdkTestCase
     include ManagedFiles
     def setup
-      @homedir = Dir.mktmpdir + '/'
       @user = OpenStruct.new({
-        :homedir =>  @homedir
+        :homedir =>  "#{Dir.mktmpdir}/"
       })
 
       @cartridge = OpenStruct.new({
         :name =>  'mock',
         :directory =>  'mock'
       })
-      FileUtils.mkdir_p(File.join(@homedir,@cartridge.directory))
+      FileUtils.mkdir_p(File.join(@user.homedir,@cartridge.directory))
 
+      # TODO: Don't actually need to create the files until we want to test globbing
+=begin
       %w(
         .good
         bad
@@ -47,29 +48,30 @@ module OpenShift
         FileUtils.mkdir_p(dir)
         FileUtils.touch(full_path)
       end
-    end
+=end
 
-    def set_managed_files(cart, homedir=nil)
-      @good_files = %w(~/.good ~/app-root/good good) << "~/#{cart.directory}/good"
+      good_files = %w(~/.good ~/app-root/good good) << "~/#{@cartridge.directory}/good"
       blacklist_files = %w(~/.ssh/bad)
       oob_files = %w(~/../bad)
       @managed_files = {
-        :locked_files => @good_files | blacklist_files | oob_files
+        :locked_files => good_files | blacklist_files | oob_files
       }
-      manifest_file = File.join(homedir ? homedir : '',@cartridge.directory,'metadata','managed_files.yml')
-      File.stubs(:exists?).with(manifest_file).returns(true)
-      YAML.stubs(:load_file).with(manifest_file).returns(@managed_files)
+
+      File.join(@user.homedir,@cartridge.directory,'metadata','managed_files.yml').tap do |manifest_file|
+        FileUtils.mkdir_p(File.dirname(manifest_file))
+        File.open(manifest_file,'w') do |f|
+          f.write(@managed_files.to_yaml)
+        end
+      end
     end
 
     def test_get_managed_files
-      set_managed_files(@cartridge)
-      assert_equal @managed_files[:locked_files], managed_files(@cartridge, :locked_files)
+      assert_equal @managed_files[:locked_files], managed_files(@cartridge, :locked_files, @user.homedir, false)
     end
 
     def test_get_locked_files
-      set_managed_files(@cartridge, @homedir)
       # The lock_files are returned relative to the homedir without the ~/
-      expected_files = ["#{@homedir}.good", "#{@homedir}app-root/good", "#{@homedir}mock/good", "#{@homedir}mock/good"]
+      expected_files = %w(.good app-root/good mock/good mock/good).map{|x| File.join(@user.homedir,x) }
       assert_equal expected_files, lock_files(@cartridge)
     end
   end
