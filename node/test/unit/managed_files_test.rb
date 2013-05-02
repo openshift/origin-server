@@ -50,7 +50,7 @@ module OpenShift
       end
 =end
 
-      good_files = %w(~/.good ~/app-root/good good) << "~/#{@cartridge.directory}/good"
+      good_files = %w(~/.good ~/app-root/good good ~/app-root/foo/good/) << "~/#{@cartridge.directory}/good"
       blacklist_files = %w(~/.ssh/bad)
       oob_files = %w(~/../bad)
       @managed_files = {
@@ -71,8 +71,8 @@ module OpenShift
 
     def test_get_locked_files
       # The lock_files are returned relative to the homedir without the ~/
-      expected_files = %w(.good app-root/good mock/good mock/good).map{|x| File.join(@user.homedir,x) }
-      assert_equal expected_files, lock_files(@cartridge)
+      expected_files = %w(.good app-root/good mock/good mock/good app-root/foo/good/).map{|x| File.join(@user.homedir,x) }
+      assert_equal expected_files.sort, lock_files(@cartridge).sort
     end
   end
 end
