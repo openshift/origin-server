@@ -6,7 +6,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin broker
 Name:          openshift-origin-broker-util
-Version: 1.8.5
+Version: 1.8.6
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -85,6 +85,10 @@ cp man/*.8 %{buildroot}%{_mandir}/man8/
 %{_mandir}/man8/oo-stats.8.gz
 
 %changelog
+* Fri May 03 2013 Adam Miller <admiller@redhat.com> 1.8.6-1
+- <broker><oo-accept-broker> Bug 958674 - Fix Mongo SSL support
+  (jdetiber@redhat.com)
+
 * Wed May 01 2013 Adam Miller <admiller@redhat.com> 1.8.5-1
 - Fix for bug 956441  - increasing mcollective timeout for oo-admin-chk
   (abhgupta@redhat.com)
