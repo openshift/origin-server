@@ -98,30 +98,38 @@ module OpenShift
     end
 
     def post_configure(cart_name, template_git_url=nil)
-      return "" if @build_model == :v1 # not implemented for V1
+      output = ''
+      if @build_model == :v1
+        if template_git_url
+          cartridge = @cartridge_model.get_cartridge(cart_name)
+          output = @cartridge_model.resolve_application_dependencies(cart_name) if cartridge.primary?        
+        end
+      else
       
-      cartridge = @cartridge_model.get_cartridge(cart_name)
+        cartridge = @cartridge_model.get_cartridge(cart_name)
 
-      if cartridge.install_build_required || template_git_url
-        gear_script_log = '/tmp/initial-build.log'
-        env             = Utils::Environ.for_gear(@user.homedir)
+        if cartridge.install_build_required || template_git_url
+          gear_script_log = '/tmp/initial-build.log'
+          env             = Utils::Environ.for_gear(@user.homedir)
   
-        logger.info "Executing initial gear prereceive for #{@uuid}"
-        Utils.oo_spawn("gear prereceive >>#{gear_script_log} 2>&1",
-                       env:                 env,
-                       chdir:               @user.homedir,
-                       uid:                 @user.uid,
-                       expected_exitstatus: 0)
+          logger.info "Executing initial gear prereceive for #{@uuid}"
+          Utils.oo_spawn("gear prereceive >>#{gear_script_log} 2>&1",
+                         env:                 env,
+                         chdir:               @user.homedir,
+                         uid:                 @user.uid,
+                         expected_exitstatus: 0)
 
-        logger.info "Executing initial gear postreceive for #{@uuid}"
-        Utils.oo_spawn("gear postreceive >>#{gear_script_log} 2>&1",
-                       env:                 env,
-                       chdir:               @user.homedir,
-                       uid:                 @user.uid,
-                       expected_exitstatus: 0)
+          logger.info "Executing initial gear postreceive for #{@uuid}"
+          Utils.oo_spawn("gear postreceive >>#{gear_script_log} 2>&1",
+                         env:                 env,
+                         chdir:               @user.homedir,
+                         uid:                 @user.uid,
+                         expected_exitstatus: 0)
         end
 
-      @cartridge_model.post_configure(cart_name)
+        output = @cartridge_model.post_configure(cart_name)
+      end
+      output
     end
 
     # Remove cartridge from gear

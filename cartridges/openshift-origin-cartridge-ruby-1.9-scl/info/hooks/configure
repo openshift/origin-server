@@ -99,15 +99,7 @@ echo "export LD_LIBRARY_PATH=$ruby19_ld_libs" > $APP_HOME/.env/LD_LIBRARY_PATH
 ruby19_manpath=$(scl enable ruby193 "printenv MANPATH")
 echo "export MANPATH=$ruby19_manpath" > $APP_HOME/.env/MANPATH
 
-if [ ! -d $git_url ]; then
-    #
-    # Resolve app dependencies for template
-    #
-    resolve_application_dependencies $uuid $application &
-else
-    #
-    # Start the server
-    #
+if [ -d $git_url ]; then
     start_app
 fi
 
