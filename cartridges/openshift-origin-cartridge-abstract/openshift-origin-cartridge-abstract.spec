@@ -7,7 +7,7 @@
 
 Summary:       OpenShift common cartridge components
 Name:          openshift-origin-cartridge-abstract
-Version: 1.8.2
+Version: 1.8.3
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -90,6 +90,10 @@ cp -rv -p abstract-jboss %{buildroot}%{cartdir}/
 %doc %{_libexecdir}/openshift/cartridges/abstract-jboss/README.md
 
 %changelog
+* Fri May 03 2013 Adam Miller <admiller@redhat.com> 1.8.3-1
+- Bugs 958709, 958744, 958757 (dmcphers@redhat.com)
+- Using post-configure to deploy quickstarts for v1 (dmcphers@redhat.com)
+
 * Tue Apr 30 2013 Adam Miller <admiller@redhat.com> 1.8.2-1
 - Card 276 (asari.ruby@gmail.com)
 
