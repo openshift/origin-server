@@ -192,15 +192,18 @@ class Application
     begin
       @community_cartridges = {}
       cmap.each { |cartname, cartdata|
-        manifest_str = cartdata["manifest"]
-        cart = OpenShift::Cartridge.new.from_descriptor(YAML.load(manifest_str))
-        if @community_cartridges.has_key?(cart.name) 
-          Rails.logger.error("Duplicate community cartridge exists for application '#{self.name}'! Overwriting..")
+        manifest_str = cartdata["original_manifest"]
+        CartridgeCache.foreach_cart_version(manifest_str, cartdata["version"]) do |chash,version|
+          cart = OpenShift::Cartridge.new.from_descriptor(chash)
+          if @community_cartridges.has_key?(cart.name) 
+            Rails.logger.error("Duplicate community cartridge exists for application '#{self.name}'! Overwriting..")
+          end
+          @community_cartridges[cart.name] = cart
         end
-        @community_cartridges[cart.name] = cart
       }
     rescue Exception =>e
       Rails.logger.error(e.message)
+      raise e
     end
     @community_cartridges
   end
@@ -233,6 +236,7 @@ class Application
   # @note side-effect: Saves application object in mongo
   def initialize(attrs = nil, options = nil)
     super
+    @community_cartridges = {}
     self.uuid = self._id.to_s if self.uuid=="" or self.uuid.nil?
     self.app_ssh_keys = []
     self.pending_op_groups = []

@@ -117,18 +117,28 @@ class CartridgeCache
     `curl --max-time #{max_dl_time} --connect-timeout 2 --location --max-redirs #{max_redirs} --max-filesize #{max_file_size} -k #{url}`
   end
 
-  def self.foreach_cart_version(manifest_str)
+  def self.foreach_cart_version(manifest_str, software_version=nil)
     cartridge = OpenShift::Runtime::Manifest.new(manifest_str)
-    carts = []
     cartridge.versions.each do |version|
+      next if software_version and version!=software_version
       cooked = OpenShift::Runtime::Manifest.new(manifest_str, version)
       Rails.logger.debug("Loading #{cooked.name}-#{cooked.version}...")
       v1_manifest            = Marshal.load(Marshal.dump(cooked.manifest))
       v1_manifest['Name']    = "#{cooked.name}-#{cooked.version}"
       v1_manifest['Version'] = cooked.version
-      carts.push OpenShift::Cartridge.new.from_descriptor(v1_manifest)
+      yield v1_manifest,version
     end
-    carts.each { |c| yield c.to_descriptor }
+  end
+
+  def self.validate_yaml(url, str)
+    raise OpenShift::UserException.new("Invalid cartridge, error downloading from url '#{url}' ", 109)  if str.nil? or str.length==0
+    raise OpenShift::UserException.new("Invalid manifest file from url '#{url}' - no structural directives allowed.") if str.include?("---")
+    begin
+      chash = YAML.load(str) #, options: {:safe => true})
+    rescue Exception=>e
+      raise OpenShift::UserException.new("Invalid manifest file from url '#{url}'")
+    end
+    chash
   end
 
   def self.fetch_community_carts(urls)
@@ -136,13 +146,10 @@ class CartridgeCache
     return cmap if urls.nil?
     urls.each do |url|
        manifest_str = download_from_url(url)
-       if manifest_str.length == 0
-         raise OpenShift::UserException.new("Invalid cartridge, error downloading from url '#{url}' ", 109)  
-       end
-       # chash = YAML.load(manifest_str)
+       chash = validate_yaml(url, manifest_str)
        # TODO: check versions and create multiple of them
-       self.foreach_cart_version(manifest_str) do |chash|
-         cmap[chash["Name"]] = { "url" => url, "manifest" => chash.to_yaml}
+       self.foreach_cart_version(manifest_str) do |chash,version|
+         cmap[chash["Name"]] = { "url" => url, "original_manifest" => manifest_str, "version" => version}
          # no versioning support on downloaded cartridges yet.. use the default one
          break
        end
