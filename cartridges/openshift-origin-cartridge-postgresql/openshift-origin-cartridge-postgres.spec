@@ -8,7 +8,7 @@
 
 Summary:       Provides embedded PostgreSQL support
 Name:          openshift-origin-cartridge-postgresql
-Version: 0.1.3
+Version: 0.1.4
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -80,6 +80,11 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Fri May 03 2013 Adam Miller <admiller@redhat.com> 0.1.4-1
+- Special file processing (fotios@redhat.com)
+- Validate cartridge and vendor names under certain conditions
+  (asari.ruby@gmail.com)
+
 * Thu May 02 2013 Adam Miller <admiller@redhat.com> 0.1.3-1
 - <postgres> add %%post to put in cartridge registry on installation
   (lmeyer@redhat.com)
