@@ -47,14 +47,18 @@ class EmbCartController < BaseController
     features = []
     cart_urls = []
     if name.is_a? Hash
-      cart_urls << name[:url]
-      begin
-        cmap = CartridgeCache.fetch_community_carts(cart_urls)
-        name = cmap.keys[0]
-        features << name
-        @application.downloaded_cart_map.merge!(cmap)
-      rescue Exception=>e
-        return render_error(:unprocessable_entity, "Error in cartridge url - #{e.message}", 109)
+      if name[:name] and name[:name].is_a? String
+        features << name[:name]
+      elsif name[:url]
+        cart_urls << name[:url]
+        begin
+          cmap = CartridgeCache.fetch_community_carts(cart_urls)
+          name = cmap.keys[0]
+          features << name
+          @application.downloaded_cart_map.merge!(cmap)
+        rescue Exception=>e
+          return render_error(:unprocessable_entity, "Error in cartridge url - #{e.message}", 109)
+        end
       end
     else
       features << name

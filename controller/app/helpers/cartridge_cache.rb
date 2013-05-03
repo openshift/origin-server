@@ -29,7 +29,7 @@ class CartridgeCache
     if cart_type.nil?
       cartnames = CacheHelper.get_cached("cart_names_all", :expires_in => 1.day) { cartridges.map{ |cart| cart.name } }
       if app
-        cartnames << app.community_cartridges.values.keys.dup
+        cartnames << app.personal_cartridges.values.keys.dup
         cartnames.flatten
       end
       return cartnames
@@ -41,7 +41,7 @@ class CartridgeCache
   
   def self.find_cartridge_by_component(component_name, app=nil)
     if app
-      app.community_cartridges.values.each do |cart|
+      app.personal_cartridges.values.each do |cart|
         return cart if cart.has_component?(component_name)
         return cart if cart.name == component_name
       end
@@ -57,7 +57,7 @@ class CartridgeCache
   def self.find_cartridge_by_category(cat, app=nil)
     global_carts = CacheHelper.get_cached("cartridges_by_cat_#{cat}", :expires_in => 1.day) {cartridges.select{|cart| cart.categories.include?(cat) }}
     if app
-      app_local_community_carts = app.community_cartridges.values.select { |cart| cart.categories.include?(cat) }
+      app_local_community_carts = app.personal_cartridges.values.select { |cart| cart.categories.include?(cat) }
       global_carts << app_local_community_carts
       global_carts.flatten!
     end
@@ -73,7 +73,7 @@ class CartridgeCache
 
   def self.find_cartridge(requested_feature, app=nil)
   
-    app.community_cartridges.values.each do |cart|
+    app.personal_cartridges.values.each do |cart|
       return cart if cart.features.include?(requested_feature)
       return cart if cart.name == requested_feature
     end if app
@@ -114,7 +114,12 @@ class CartridgeCache
     max_dl_time = (Rails.application.config.downloaded_cartridges[:max_download_time] rescue 10) || 10
     max_file_size = (Rails.application.config.downloaded_cartridges[:max_cart_size] rescue 20480) || 20480
     max_redirs = (Rails.application.config.downloaded_cartridges[:max_download_redirects] rescue 2) || 2
-    `curl --max-time #{max_dl_time} --connect-timeout 2 --location --max-redirs #{max_redirs} --max-filesize #{max_file_size} -k #{url}`
+    manifest = ""
+    uri_obj = URI.parse(url)
+    if uri_obj.kind_of? URI::HTTP or uri_obj.kind_of? URI::FTP
+      manifest = `curl --max-time #{max_dl_time} --connect-timeout 2 --location --max-redirs #{max_redirs} --max-filesize #{max_file_size} -k #{url}`
+    end
+    manifest
   end
 
   def self.foreach_cart_version(manifest_str, software_version=nil)
