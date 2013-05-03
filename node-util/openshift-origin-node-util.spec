@@ -1,6 +1,6 @@
 Summary:       Utility scripts for the OpenShift Origin broker
 Name:          openshift-origin-node-util
-Version: 1.8.5
+Version: 1.8.6
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -120,6 +120,15 @@ mv services/openshift-gears.service %{buildroot}/etc/systemd/system/openshift-ge
 /sbin/restorecon /usr/sbin/oo-restorer* || :
 
 %changelog
+* Fri May 03 2013 Adam Miller <admiller@redhat.com> 1.8.6-1
+- <oo-cart-version> fix toggling broker restart logic (lmeyer@redhat.com)
+- Merge pull request #2333 from ironcladlou/bz/949232
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 949232: Make rhc-list-port compatible with both v1/v2 cartridges
+  (ironcladlou@gmail.com)
+- Bug 957453 - properly account for unidle being called on a gear which was
+  already started but did not have its frontend unidled. (rmillner@redhat.com)
+
 * Wed May 01 2013 Adam Miller <admiller@redhat.com> 1.8.5-1
 - Bug 957478 - Refactored oo-last-acess and oo-accept-node for V2
   (jhonce@redhat.com)
