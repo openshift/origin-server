@@ -1,5 +1,6 @@
 Name: nodejs-0.6
 Cartridge-Short-Name: NODEJS
+Cartridge-Vendor: redhat
 Display-Name: Node.js 0.6
 Description: "Node.js is a platform built on Chrome's JavaScript runtime for easily building fast, scalable network applications. Node.js is perfect for data-intensive real-time applications that run across distributed devices."
 Version: 0.6

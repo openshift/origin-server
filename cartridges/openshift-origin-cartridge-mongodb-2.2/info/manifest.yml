@@ -1,5 +1,6 @@
 Name: mongodb-2.2
 Cartridge-Short-Name: MONGODB
+Cartridge-Vendor: redhat
 Display-Name: MongoDB NoSQL Database 2.2
 Description: "MongoDB is a scalable, high-performance, open source NoSQL database."
 Version: 2.2

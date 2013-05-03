@@ -1,5 +1,6 @@
 Name: phpmyadmin-3.4
 Cartridge-Short-Name: PHPMYADMIN
+Cartridge-Vendor: redhat
 Display-Name: phpMyAdmin 3.4
 Description: "Web based MySQL admin tool. Requires the MySQL cartridge to be installed first."
 Version: 3.4
