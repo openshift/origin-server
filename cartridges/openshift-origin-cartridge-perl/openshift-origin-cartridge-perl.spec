@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/openshift/cartridges/v2/perl
 
 Name: openshift-origin-cartridge-perl
-Version: 0.3.3
+Version: 0.3.4
 Release: 1%{?dist}
 Summary: Perl cartridge
 Group: Development/Languages
@@ -70,6 +70,10 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Fri May 03 2013 Adam Miller <admiller@redhat.com> 0.3.4-1
+- fix tests (dmcphers@redhat.com)
+- Special file processing (fotios@redhat.com)
+
 * Tue Apr 30 2013 Adam Miller <admiller@redhat.com> 0.3.3-1
 - Env var WIP. (mrunalp@gmail.com)
 - Merge pull request #2201 from BanzaiMan/dev/hasari/c276
