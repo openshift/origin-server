@@ -103,7 +103,7 @@ class Application
 
   # non-presisted field used to store user agent of current request
   attr_accessor :user_agent
-  attr_accessor :community_cartridges
+  attr_accessor :personal_cartridges
 
   validates :name,
     presence: {message: "Application name is required and cannot be blank."},
@@ -152,7 +152,7 @@ class Application
     app.analytics['user_agent'] = user_agent
     app.save
     features << "web_proxy" if scalable
-    app.community_cartridges.each { |cname,c| features << c.name }
+    app.personal_cartridges.each { |cname,c| features << c.name }
     if app.valid?
       begin
         framework_carts = CartridgeCache.cartridge_names("web_framework", app)
@@ -183,29 +183,29 @@ class Application
     app
   end
 
-  def community_cartridges
+  def personal_cartridges
     cmap = self.downloaded_cart_map
-    return @community_cartridges if @community_cartridges and cmap.length==@community_cartridges.length
+    return @personal_cartridges if @personal_cartridges and cmap.length==@personal_cartridges.length
     # download the content of the url
     # careful, but assume this to be manifest.yml
     # parse the manifest and store the cartridge
     begin
-      @community_cartridges = {}
+      @personal_cartridges = {}
       cmap.each { |cartname, cartdata|
         manifest_str = cartdata["original_manifest"]
         CartridgeCache.foreach_cart_version(manifest_str, cartdata["version"]) do |chash,version|
           cart = OpenShift::Cartridge.new.from_descriptor(chash)
-          if @community_cartridges.has_key?(cart.name) 
+          if @personal_cartridges.has_key?(cart.name) 
             Rails.logger.error("Duplicate community cartridge exists for application '#{self.name}'! Overwriting..")
           end
-          @community_cartridges[cart.name] = cart
+          @personal_cartridges[cart.name] = cart
         end
       }
     rescue Exception =>e
       Rails.logger.error(e.message)
       raise e
     end
-    @community_cartridges
+    @personal_cartridges
   end
 
   ##
@@ -236,7 +236,7 @@ class Application
   # @note side-effect: Saves application object in mongo
   def initialize(attrs = nil, options = nil)
     super
-    @community_cartridges = {}
+    @personal_cartridges = {}
     self.uuid = self._id.to_s if self.uuid=="" or self.uuid.nil?
     self.app_ssh_keys = []
     self.pending_op_groups = []
