@@ -2,7 +2,7 @@
 
 Summary:       Provides support for using community Python 2.7 cartridge
 Name:          openshift-origin-cartridge-community-python-2.7
-Version: 0.5.1
+Version: 0.5.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -78,6 +78,9 @@ ln -s %{cartridgedir}/../abstract/info/bin/sync_gears.sh %{buildroot}%{cartridge
 
 
 %changelog
+* Fri May 03 2013 Adam Miller <admiller@redhat.com> 0.5.2-1
+- Bugs 958709, 958744, 958757 (dmcphers@redhat.com)
+
 * Thu Apr 25 2013 Adam Miller <admiller@redhat.com> 0.5.1-1
 - Update outdated links in 'cartridges' directory. (asari.ruby@gmail.com)
 - Bug 928675 (asari.ruby@gmail.com)
