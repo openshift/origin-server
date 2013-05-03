@@ -35,6 +35,7 @@ do
     case $OPTION in
         u)
             $(dirname -- "$0")/oo-admin-ctl-gears idlegear $OPTARG
+            /usr/bin/logger -p local0.notice -t oo_idler "Idled: $OPTARG"
             ;;
         d) # deprecated option
             ;;
