@@ -1,6 +1,0 @@
-configuration/
-metadata/
-template/
-env/
-tmp/
-conf/

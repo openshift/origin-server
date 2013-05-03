@@ -1,0 +1,7 @@
+---
+locked_files:
+- conf/
+- metadata/
+- env/
+- etc/
+- template/

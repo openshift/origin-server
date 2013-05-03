@@ -1,0 +1,8 @@
+---
+locked_files:
+- metadata/
+- env/
+- env/OPENSHIFT_JBOSSAS_LOG_DIR
+- env/OPENSHIFT_JBOSSAS_VERSION
+- env/M2_HOME
+- template/

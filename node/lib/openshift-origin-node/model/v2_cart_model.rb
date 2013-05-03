@@ -28,6 +28,7 @@ require 'openshift-origin-node/utils/sdk'
 require 'openshift-origin-node/utils/environ'
 require 'openshift-origin-common/utils/path_utils'
 require 'openshift-origin-node/utils/application_state'
+require 'openshift-origin-node/utils/managed_files'
 
 module OpenShift
   class FileLockError < Exception
@@ -50,8 +51,7 @@ module OpenShift
 
   class V2CartridgeModel
     include NodeLogger
-
-    FILENAME_BLACKLIST = %W{~/.ssh ~/.sandbox ~/.tmp ~/.env}
+    include ManagedFiles
 
     def initialize(config, user, state)
       @config     = config
@@ -302,7 +302,7 @@ module OpenShift
       delete_private_endpoints(cartridge)
       OpenShift::Utils::Cgroups::with_no_cpu_limits(@user.uuid) do
         stop_cartridge(cartridge, user_initiated: true)
-        unlock_gear(cartridge) { |c| teardown_output << cartridge_teardown(c.directory) }
+        unlock_gear(cartridge, false) { |c| teardown_output << cartridge_teardown(c.directory) }
         delete_cartridge_directory(cartridge)
       end
 
@@ -314,53 +314,15 @@ module OpenShift
     # Prepare the given cartridge for the cartridge author
     #
     #   v2_cart_model.unlock_gear('php-5.3')
-    def unlock_gear(cartridge)
+    def unlock_gear(cartridge, relock = true)
       files = lock_files(cartridge)
       begin
         do_unlock(files)
         yield cartridge
       ensure
-        do_lock(files)
+        do_lock(files) if relock
       end
       nil
-    end
-
-    # lock_files(cartridge_name) -> Array.new(file_names)
-    #
-    # Returns an <code>Array</code> object containing the file names the cartridge author wishes to manipulate
-    #
-    #   v2_cart_model.lock_files("php-5.3")
-    def lock_files(cartridge)
-      locked_files = File.join(cartridge.directory, 'metadata', 'locked_files.txt')
-      return [] unless File.exist? locked_files
-
-      File.readlines(locked_files).each_with_object([]) do |line, memo|
-        line.chomp!
-
-        # Anchor lines starting with ~ at the gear root; otherwise anchor
-        # them at the cartridge installation dir within the gear.
-        if line.start_with?('~/')
-          line_abs = File.join(@user.homedir, line[2..-1])
-        else
-          line_abs = File.join(@user.homedir, cartridge.directory, line)
-        end
-
-        case
-          when line.empty?
-            # skip blank lines
-          when line.end_with?('/*')
-            memo << Dir.glob(line_abs).select { |f| File.file?(f) }
-          when FILENAME_BLACKLIST.include?(line)
-            logger.info("#{cartridge.directory} attempted lock/unlock on black listed entry [#{line}]")
-          # simple guard to ensure the line doesn't try to escape the gear or
-          # write stuff into unacceptable places within the gear
-          when line.start_with?('../') ||
-              (line.start_with?('~') && !(line.start_with?('~/.') || line.start_with?('~/app-root')))
-            logger.info("#{cartridge.directory} attempted lock/unlock on out-of-bounds entry [#{line}]")
-          else
-            memo << line_abs
-        end
-      end
     end
 
     # do_unlock_gear(array of file names) -> array

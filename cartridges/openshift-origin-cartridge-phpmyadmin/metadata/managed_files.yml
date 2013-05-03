@@ -1,0 +1,7 @@
+---
+locked_files:
+- metadata/
+- conf/
+- conf.d/
+- phpMyAdmin/
+- env/
