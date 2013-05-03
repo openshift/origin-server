@@ -7,7 +7,7 @@
 %global frameworkdir %{_libexecdir}/openshift/cartridges/v2/ruby
 
 Name:          openshift-origin-cartridge-ruby
-Version: 0.3.4
+Version: 0.3.5
 Release:       1%{?dist}
 Summary:       Ruby cartridge
 Group:         Development/Languages
@@ -184,6 +184,10 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Fri May 03 2013 Adam Miller <admiller@redhat.com> 0.3.5-1
+- fix tests (dmcphers@redhat.com)
+- Special file processing (fotios@redhat.com)
+
 * Wed May 01 2013 Adam Miller <admiller@redhat.com> 0.3.4-1
 - Card online_runtime_266 - Fixed missing source in control script
   (jhonce@redhat.com)
