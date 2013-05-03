@@ -110,7 +110,6 @@ module OpenShift
       assert_equal '75e36e529c9211e29cc622000a8c0259', IO.read(uservar_file).chomp
     end
 
-
     def test_configure_with_manifest
       refute_path_exist(File.join(@user.homedir, 'mock-plugin'))
 

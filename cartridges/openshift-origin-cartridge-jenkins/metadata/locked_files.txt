@@ -1,4 +1,0 @@
-~/.jenkins_password
-metadata/
-env/
-template/

@@ -1,0 +1,3 @@
+---
+snapshot_exclusions:
+- redhat-mongodb/*

@@ -1,6 +1,0 @@
-~/.pearrc
-configuration/
-metadata/
-env/
-conf/
-template/
