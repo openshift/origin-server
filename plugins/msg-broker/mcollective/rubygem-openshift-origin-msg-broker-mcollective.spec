@@ -9,7 +9,7 @@
 
 Summary:       OpenShift plugin for mcollective service
 Name:          rubygem-%{gem_name}
-Version: 1.8.4
+Version: 1.8.5
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -80,6 +80,10 @@ cp %{buildroot}/%{gem_dir}/gems/%{gem_name}-%{version}/conf/openshift-origin-msg
 %attr(0644,-,-) %ghost /etc/mcollective/client.cfg
 
 %changelog
+* Fri May 03 2013 Adam Miller <admiller@redhat.com> 1.8.5-1
+- fix version mismatch between broker/node for personal carts; some more safety
+  for yaml downloads (rchopra@redhat.com)
+
 * Thu May 02 2013 Adam Miller <admiller@redhat.com> 1.8.4-1
 - nomenclature cleanup and fix for bz958342 (rchopra@redhat.com)
 
