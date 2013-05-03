@@ -302,7 +302,7 @@ module OpenShift
       delete_private_endpoints(cartridge)
       OpenShift::Utils::Cgroups::with_no_cpu_limits(@user.uuid) do
         stop_cartridge(cartridge, user_initiated: true)
-        unlock_gear(cartridge) { |c| teardown_output << cartridge_teardown(c.directory) }
+        unlock_gear(cartridge, false) { |c| teardown_output << cartridge_teardown(c.directory) }
         delete_cartridge_directory(cartridge)
       end
 
@@ -314,13 +314,13 @@ module OpenShift
     # Prepare the given cartridge for the cartridge author
     #
     #   v2_cart_model.unlock_gear('php-5.3')
-    def unlock_gear(cartridge)
+    def unlock_gear(cartridge, relock = true)
       files = lock_files(cartridge)
       begin
         do_unlock(files)
         yield cartridge
       ensure
-        do_lock(files)
+        do_lock(files) if relock
       end
       nil
     end
