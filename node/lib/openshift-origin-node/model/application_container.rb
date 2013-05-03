@@ -577,7 +577,11 @@ module OpenShift
 
     # reload gear as supported by cartridges
     def reload(cart_name)
-      @cartridge_model.do_control('reload', cart_name) if State::STARTED == state.value
+      if State::STARTED == state.value
+        return @cartridge_model.do_control('reload', cart_name)
+      else
+        return "Application or component not running. Cannot reload."
+      end
     end
 
     ##
