@@ -2,7 +2,7 @@
 
 Summary:       Provides mod_perl support
 Name:          openshift-origin-cartridge-perl-5.10
-Version: 1.8.2
+Version: 1.8.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -102,6 +102,9 @@ ln -s %{cartridgedir}/../abstract/info/bin/sync_gears.sh %{buildroot}%{cartridge
 
 
 %changelog
+* Fri May 03 2013 Adam Miller <admiller@redhat.com> 1.8.3-1
+- Bugs 958709, 958744, 958757 (dmcphers@redhat.com)
+
 * Tue Apr 30 2013 Adam Miller <admiller@redhat.com> 1.8.2-1
 - Bug 957221 - Query local mirror, then remote mirror (jhonce@redhat.com)
 
