@@ -231,15 +231,7 @@ echo "export PATH=$JAVA_HOME/bin:$M2_HOME/bin:$PATH" > $APP_HOME/.env/PATH
 
 observe_setup_env_uservars_dir
 
-if [ ! -d $git_url ]; then
-    #
-    # Resolve app dependencies for template
-    #
-    resolve_application_dependencies $uuid $application &
-else
-    #
-    # Start the server
-    #
+if [ -d $git_url ]; then
     cd $JBOSS_INSTANCE_DIR
     start_app
 fi

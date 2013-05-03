@@ -1,14 +1,14 @@
 #!/bin/bash
 
-# Creates a php instance
+# Resolves application dependencies
 
 # Exit on any errors
 set -e
 
 function print_help {
-    echo "Usage: $0 app-name namespace uuid git-url"
+    echo "Usage: $0 app-name namespace uuid"
 
-    echo "$0 $@" | logger -p local0.notice -t openshift_origin_php_configure
+    echo "$0 $@" | logger -p local0.notice -t openshift_origin_resolve_application_dependencies
     exit 1
 }
 

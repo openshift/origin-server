@@ -201,7 +201,7 @@ module OpenShift
       do_control('configure', cart_name, "#{@user.container_name} #{@user.namespace} #{@user.container_uuid} #{template_git_url}")
     end
     
-    def post_configure(cart_name)    
+    def resolve_application_dependencies(cart_name)    
       do_control('resolve-application-dependencies', 'abstract', "#{@user.container_name} #{@user.namespace} #{@user.container_uuid}")
     end
 

@@ -98,10 +98,11 @@ module OpenShift
     end
 
     def post_configure(cart_name, template_git_url=nil)
+      output = ''
       if @build_model == :v1
         if template_git_url
           cartridge = @cartridge_model.get_cartridge(cart_name)
-          @cartridge_model.post_configure(cart_name) if cartridage.primary?
+          output = @cartridge_model.resolve_application_dependencies(cart_name) if cartridge.primary?        
         end
       else
       
@@ -126,8 +127,9 @@ module OpenShift
                          expected_exitstatus: 0)
         end
 
-        @cartridge_model.post_configure(cart_name)
+        output = @cartridge_model.post_configure(cart_name)
       end
+      output
     end
 
     # Remove cartridge from gear

@@ -88,15 +88,7 @@ observe_setup_env_uservars_dir
 #  Resolve the application dependencies. Reset git url to the passed parameter
 #  value as it gets clobbered over by abstract/lib/util.
 git_url=$4
-if [ -n "$git_url" ]; then
-    #
-    # Resolve app dependencies for template
-    #
-    resolve_application_dependencies "$uuid" "$application" &
-else
-    #
-    # Start the server
-    #
+if [ -z "$git_url" ]; then
     start_app
 fi
 

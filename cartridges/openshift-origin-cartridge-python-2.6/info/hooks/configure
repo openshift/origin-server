@@ -88,15 +88,7 @@ create_custom_uservars_var PYTHON_EGG_CACHE "$PYCART_INSTANCE_DIR/.python-eggs/"
 
 observe_setup_env_uservars_dir
 
-if [ ! -d $git_url ]; then
-    #
-    # Resolve app dependencies for template
-    #
-    resolve_application_dependencies $uuid $application &
-else
-    #
-    # Start the server
-    #
+if [ -d $git_url ]; then
     start_app
 fi
 
