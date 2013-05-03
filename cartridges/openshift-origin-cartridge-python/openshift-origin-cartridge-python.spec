@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/openshift/cartridges/v2/python
 
 Name: openshift-origin-cartridge-python
-Version: 0.3.4
+Version: 0.3.5
 Release: 1%{?dist}
 Summary: Python cartridge
 Group: Development/Languages
@@ -73,6 +73,10 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Fri May 03 2013 Adam Miller <admiller@redhat.com> 0.3.5-1
+- fix tests (dmcphers@redhat.com)
+- Special file processing (fotios@redhat.com)
+
 * Wed May 01 2013 Adam Miller <admiller@redhat.com> 0.3.4-1
 - Card online_runtime_266 - Support for LD_LIBRARY_PATH (jhonce@redhat.com)
 
