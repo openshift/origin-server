@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/openshift/cartridges/v2/cron
 
 Name: openshift-origin-cartridge-cron
-Version: 1.6.2
+Version: 1.6.3
 Release: 1%{?dist}
 Summary: Embedded cron support for OpenShift
 Group: Development/Languages
@@ -55,6 +55,10 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Fri May 03 2013 Adam Miller <admiller@redhat.com> 1.6.3-1
+- fix tests (dmcphers@redhat.com)
+- Special file processing (fotios@redhat.com)
+
 * Tue Apr 30 2013 Adam Miller <admiller@redhat.com> 1.6.2-1
 - Removed empty dirs from cron cartridge (calfonso@redhat.com)
 - Removed unused jobs from cron cart. This lives in the platform now
