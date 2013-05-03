@@ -1,5 +1,8 @@
-/* OPENSHIFT MANAGEMENT CONSOLE
+//
+// MANAGEMENT CONSOLE
+// ----------------------------------
 
+/*
 Color palette
 --------------------------------------------
   0   0   0    000000     Black
@@ -13,15 +16,141 @@ Color palette
 234   0  17    ea0011     Bright Red
 205  32  44    cd202c     Primary Red
 161   0  12    a1000c     Dark Red
-
 */
+
+html {
+  background: #000;
+}
 
 body {
 		font-weight: normal;
+		min-height: 100%;
+		position: relative;
+		background-color: #000;
     }
+    
+a:link,a:visited,a:hover,a:active {color:#6DB3C7;}
+a:hover,a:active {text-decoration: underline;}
+a:focus {
+    outline: thin dotted currentColor;
+    outline-offset: 0;
+}
+a:focus:active {
+    outline: none;
+}
+dl {
+  dt {
+    font-size: $baseFontSize + 1;
+    margin-bottom: $baseLineHeight / 3;
+  }
+  dd {
+    margin: 0 0 $baseLineHeight + 7 $baseLineHeight; 
+    font-size: $baseFontSize - 1;
+    a {
+      color: inherit;
+      font-style: italic;
+    }
+  }
+}
+
 h1,h2,h3,h4,h5,h6 {color: $consoleHeaderColor;}
-a {color:#76B6C6;}
-a:hover,a:active {color:#6ec1d5;}
+
+
+// Tables
+// ----------------------------------
+
+.table {
+  th,
+  td {
+    border-color: $consoleTableBorderColor;
+  }
+  // Account for multiple tbody instances
+  tbody + tbody {
+    border-color: $consoleTableBorderColor;
+  }
+}
+
+.table-bordered {
+  border-color: $consoleTableBorderColor;
+  th + th,
+  td + td,
+  th + td,
+  td + th {
+    border-color: $consoleTableBorderColor;
+  }
+}
+
+
+.table-striped {
+  tbody {
+    tr:nth-child(odd) td,
+    tr:nth-child(odd) th {
+      background-color: $consoleTableStriped;
+    }
+  }
+}
+.table {
+  tbody tr:hover td,
+  tbody tr:hover th {
+    background-color: $consoleTableStripedHover;
+  }
+}
+
+
+// Forms
+// ----------------------------------------
+
+input,
+select, 
+textarea,
+.uneditable-input {
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.075) inset;
+  background: #aaa;
+  border: 1px solid #222;
+  color: #222222;
+	}
+  input:focus, select:focus, textarea:focus {
+    background: #eee; color: #000;
+    box-shadow: none;
+    }
+
+input:-moz-placeholder,
+textarea:-moz-placeholder {
+  color: $grayMedium;
+  background-color: $grayLight;
+  &:focus {
+    color: $grayLight;
+    background-color: $grayLighter;
+  }
+}
+
+input:-ms-input-placeholder,
+textarea:-ms-input-placeholder {
+  color: $grayMedium;
+  background-color: $grayLight;
+  &:focus {
+    color: $grayLight;
+    background-color: $grayLighter;
+  }
+}
+
+input::-webkit-input-placeholder,
+textarea::-webkit-input-placeholder {
+  color: $grayMedium;
+  //background-color: $grayLight;
+  &:focus {
+    color: $grayLight;
+    //background-color: $grayLighter;
+  }
+}
+
+label {color: inherit;}
+legend {color: $consoleHeaderColor;}
+
+
+::-moz-selection {background: #f0f392;color: black;}
+::-selection {background: #f0f392;color: black;}
+
 
 // Code
 // ----------------------------------------
