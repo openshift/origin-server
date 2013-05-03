@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.8.5
+Version: 1.8.6
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -84,6 +84,10 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Fri May 03 2013 Adam Miller <admiller@redhat.com> 1.8.6-1
+- fix version mismatch between broker/node for personal carts; some more safety
+  for yaml downloads (rchopra@redhat.com)
+
 * Thu May 02 2013 Adam Miller <admiller@redhat.com> 1.8.5-1
 - nomenclature cleanup and fix for bz958342 (rchopra@redhat.com)
 - Merge pull request #2232 from smarterclayton/support_external_cartridges
