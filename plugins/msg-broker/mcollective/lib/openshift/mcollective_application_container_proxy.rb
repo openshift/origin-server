@@ -708,7 +708,8 @@ module OpenShift
 
         app = gear.app
         if gear.app.downloaded_cart_map.has_key? cart
-          args['--with-cartridge-manifest'] = app.downloaded_cart_map[cart]["manifest"]
+          args['--with-cartridge-manifest'] = app.downloaded_cart_map[cart]["original_manifest"]
+          args['--with-software-version'] = app.downloaded_cart_map[cart]["version"]
         end
         
         if !template_git_url.nil?  && !template_git_url.empty?
@@ -2326,7 +2327,8 @@ module OpenShift
         args = build_base_gear_args(gear)
         args['--cart-name'] = component
         if app.downloaded_cart_map.has_key? component
-          args['--with-cartridge-manifest'] = app.downloaded_cart_map[component]["manifest"]
+          args['--with-cartridge-manifest'] = app.downloaded_cart_map[component]["original_manifest"]
+          args['--with-software-version'] = app.downloaded_cart_map[cart]["version"]
         end
         
         begin
