@@ -9,7 +9,7 @@
 
 Summary:       OpenShift Origin Management Console
 Name:          rubygem-%{gem_name}
-Version: 1.8.5
+Version: 1.8.6
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -147,6 +147,11 @@ cp -a ./%{gem_dir}/* %{buildroot}%{gem_dir}/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Fri May 03 2013 Adam Miller <admiller@redhat.com> 1.8.6-1
+- Merge pull request #2334 from smarterclayton/unify_footer_header_colors
+  (dmcphers+openshiftbot@redhat.com)
+- Make the H3 and A consistent in color in the footer (ccoleman@redhat.com)
+
 * Thu May 02 2013 Adam Miller <admiller@redhat.com> 1.8.5-1
 - Merge pull request #2319 from
   smarterclayton/rest_api_defends_against_bad_exceptions
