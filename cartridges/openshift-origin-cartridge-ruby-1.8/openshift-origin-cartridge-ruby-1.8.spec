@@ -2,7 +2,7 @@
 
 Summary:       Provides ruby rack support running on Phusion Passenger
 Name:          openshift-origin-cartridge-ruby-1.8
-Version: 1.8.1
+Version: 1.8.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -113,6 +113,9 @@ ln -s %{cartridgedir}/../abstract/info/bin/sync_gears.sh %{buildroot}%{cartridge
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Fri May 03 2013 Adam Miller <admiller@redhat.com> 1.8.2-1
+- Bugs 958709, 958744, 958757 (dmcphers@redhat.com)
+
 * Thu Apr 25 2013 Adam Miller <admiller@redhat.com> 1.8.1-1
 - Update outdated links in 'cartridges' directory. (asari.ruby@gmail.com)
 - Bug 928675 (asari.ruby@gmail.com)
