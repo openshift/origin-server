@@ -24,6 +24,7 @@ require 'openssl'
 require 'fcntl'
 require 'json'
 require 'tmpdir'
+require 'net/http'
 
 module OpenShift
   
@@ -570,6 +571,30 @@ module OpenShift
     def unidle
       ApacheDBIdler.open(ApacheDBIdler::WRCREAT) do |d|
         d.delete(@fqdn)
+      end
+    end
+
+    # Public: Make an unprivileged call to unidle the gear
+    #
+    # Examples
+    #
+    #     unprivileged_unidle()
+    #
+    #     # => nil()
+    #
+    # Returns nil.  This is an opportunistic call, failure conditions
+    # are ignored but the call may take over a minute to complete.
+    def unprivileged_unidle
+      begin
+        http = Net::HTTP.new('127.0.0.1', 80)
+        http.open_timeout = 5
+        http.read_timeout = 60
+        http.use_ssl = false
+        http.start do |client|
+          resp = client.request_head('/', { 'Host' => @fqdn })
+          resp.code
+        end
+      rescue
       end
     end
 

@@ -52,6 +52,8 @@ module OpenShift
                             out:            options[:out],
                             err:            options[:err])
 
+      FrontendHttpServer.new(@container.uuid).unprivileged_unidle
+
       @container.post_deploy(out: options[:out],
                              err: options[:err])
     end
