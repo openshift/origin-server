@@ -64,10 +64,12 @@ require 'openshift-origin-node/utils/node_logger'
 require 'openshift-origin-common/models/manifest'
 require 'pathname'
 require 'singleton'
+require 'set'
 require 'thread'
 require 'open-uri'
 require 'uri'
 require 'rubygems/package'
+require 'openssl'
 
 module OpenShift
 
@@ -104,16 +106,6 @@ module OpenShift
     end
 
     # :call-seq:
-    #   CartridgeRepository.instance.size -> Fixnum
-    #
-    # number of cartridges in repository
-    #
-    #   CartridgeRepository.instance.size   #=> 24
-    def size
-      @index.keys.uniq.count
-    end
-
-    # :call-seq:
     #   CartridgeRepository.instance.load([directory path]) -> Fixnum
     #
     # Read cartridge manifests from the CARTRIDGE_REPO_DIR or the provided +directory+.
@@ -128,7 +120,7 @@ module OpenShift
         end
       end
 
-      size
+      count
     end
 
     # :call-seq:
@@ -277,7 +269,6 @@ module OpenShift
         @index[cartridge.name][version][nil]                         = cartridge
         @index[cartridge.name][nil][nil]                             = cartridge
       end
-
       cartridge
     end
 
@@ -288,23 +279,23 @@ module OpenShift
     #
     #   CartridgeRepository.instance.each {|c| puts c.name}
     def each
-      cartridges = []
-      # @index.values returned nothing...
+      return to_enum(:each) unless block_given?
+
+      cartridges = Set.new
       @index.each_pair do |_, sw_hash|
-        sw_hash.each_pair do |sw_ver, cart_hash|
-          next unless sw_ver
-          cart_hash.each_pair do |cart_ver, cartridge|
-            next unless cart_ver
-            cartridges.push cartridge
+        sw_hash.each_pair do |_, cart_hash|
+          cart_hash.each_pair do |_, cartridge|
+            cartridges.add(cartridge)
           end
         end
       end
 
-      cartridges.uniq.each { |c| yield c }
+      cartridges.each { |c| yield c }
+      self
     end
 
-    ## print out all indexed cartridges in a table
-    def to_s
+    ## print out all index entries in a table
+    def inspect
       @index.inject("<CartridgeRepository:\n") do |memo, (name, sw_hash)|
         sw_hash.inject(memo) do |memo, (sw_ver, cart_hash)|
           cart_hash.inject(memo) do |memo, (cart_ver, cartridge)|
@@ -312,6 +303,13 @@ module OpenShift
           end
         end
       end << '>'
+    end
+
+    ## print out all indexed cartridges in a table
+    def to_s
+      each_with_object("") do |c, memo|
+        memo << "(#{c.cartridge_vendor}, #{c.name}, #{c.version}, #{c.cartridge_version})\n"
+      end
     end
 
     # :call-seq:
@@ -389,12 +387,21 @@ module OpenShift
     private
 
     def self.uri_copy(uri, temporary, md5 = nil)
+      content_length = nil
       File.open(temporary, 'w') do |output|
-        uri.open do |input|
+        uri.open(ssl_verify_mode:    OpenSSL::SSL::VERIFY_NONE,
+                 content_length_proc: lambda { |l| content_length = l }
+        ) do |input|
+          input.meta
           begin
+            total = 0
             while true
               partial = input.readpartial(4096)
-              output.write partial
+              total   += output.write partial
+
+              if content_length && content_length < total
+                raise Net::HTTPBadResponse.new("Download of '#{uri}' exceeded Content-Length of #{content_length}. Download aborted.")
+              end
             end
           rescue EOFError
             # we are done
@@ -402,11 +409,16 @@ module OpenShift
         end
       end
 
+      if content_length && content_length != File.size(temporary)
+        raise Net::HTTPBadResponse.new(
+                  "Download of '#{uri}' failed, expected Content-Length of #{content_length} received #{File.size(temporary)}")
+      end
+
       if md5
         digest = Digest::MD5.file(temporary).hexdigest
-        raise IOError.new(
-                  "Failed to download cartridge, checksum failed: #{md5} expected, #{digest} actual"
-              ) if digest != md5
+        if digest != md5
+          raise IOError.new("Failed to download cartridge, checksum failed: #{md5} expected, #{digest} actual")
+        end
       end
     end
 
@@ -459,7 +471,7 @@ module OpenShift
           [File, :directory?, %w(metadata)],
           [File, :directory?, %w(bin)],
           [File, :file?, %w(metadata manifest.yml)],
-          [File, :executable?, %w(bin control)],
+          # [File, :executable?, %w(bin control)],
       ].each do |clazz, method, target|
         relative = PathUtils.join(target)
         absolute = PathUtils.join(path, relative)
