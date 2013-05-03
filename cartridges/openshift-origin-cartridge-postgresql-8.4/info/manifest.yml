@@ -1,5 +1,6 @@
 Name: postgresql-8.4
 Cartridge-Short-Name: POSTGRESQL
+Cartridge-Vendor: redhat
 Version: 8.4
 Architecture: noarch
 Display-Name: PostgreSQL Database 8.4

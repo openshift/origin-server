@@ -1,5 +1,6 @@
 Name: jbossas-7
 Cartridge-Short-Name: JBOSSAS
+Cartridge-Vendor: redhat
 Display-Name: JBoss Application Server 7.1
 Description: "The leading open source Java EE6 application server for enterprise Java applications. Popular development frameworks include Seam, CDI, Weld, and Spring."
 Version: 7

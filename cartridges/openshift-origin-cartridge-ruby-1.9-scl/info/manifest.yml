@@ -1,5 +1,6 @@
 Name: ruby-1.9
 Cartridge-Short-Name: RUBY
+Cartridge-Vendor: redhat
 Display-Name: Ruby 1.9
 Description: "Ruby is a dynamic, reflective, general-purpose object-oriented programming language. Popular development frameworks include Ruby on Rails and Sinatra."
 Version: 1.9

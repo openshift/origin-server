@@ -1,5 +1,6 @@
 Name: jenkins-client-1.4
 Cartridge-Short-Name: JENKINSCLIENT
+Cartridge-Vendor: redhat
 Display-Name: Jenkins Client 1.4
 Description: "The Jenkins client connects to your Jenkins application and enables builds and testing of your application. Requires the Jenkins Application to be created via the new application page."
 Version: 1.4

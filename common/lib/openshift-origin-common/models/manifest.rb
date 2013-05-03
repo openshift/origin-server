@@ -268,7 +268,7 @@ module OpenShift
       end
 
       def validate_vendor_name(check_reserved_name = false)
-        if cartridge_vendor && cartridge_vendor !~ VALID_VENDOR_NAME_PATTERN
+        if cartridge_vendor !~ VALID_VENDOR_NAME_PATTERN
           raise InvalidElementError.new(
             "'#{cartridge_vendor}' does not match pattern #{VALID_VENDOR_NAME_PATTERN.inspect}.",
             'Cartridge-Vendor'

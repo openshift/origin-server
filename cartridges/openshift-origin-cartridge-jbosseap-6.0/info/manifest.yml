@@ -1,5 +1,6 @@
 Name: jbosseap-6.0
 Cartridge-Short-Name: JBOSSEAP
+Cartridge-Vendor: redhat
 Display-Name: JBoss Enterprise Application Platform 6.0
 Description: "Market-leading open source enterprise platform for next-generation, highly transactional enterprise Java applications. Build and deploy enterprise Java in the cloud."
 Version: 6.0
