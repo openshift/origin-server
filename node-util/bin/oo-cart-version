@@ -44,16 +44,16 @@ def toggle_version
   end
 
   # if our node is also a broker, exchange old cartridge cache for new
-  if `rpm -q rhc-broker`
-    puts 'Clearing broker cache'
-    `oo-admin-broker-cache --clear --console`
-    puts 'Restarting broker'
-    `service rhc-broker restart`
-  elsif `rpm -q openshift-broker`
+  if system("rpm -q openshift-origin-broker")
     puts 'Clearing broker cache'
     `oo-admin-broker-cache --clear --console`
     puts 'Restarting broker'
     `service openshift-broker restart`
+  elsif system("rpm -q rhc-broker")
+    puts 'Clearing broker cache'
+    `oo-admin-broker-cache --clear --console`
+    puts 'Restarting broker'
+    `service rhc-broker restart`
   else
     puts <<-OUT
       You will need to clear the cache on your broker(s) and restart the broker application.
