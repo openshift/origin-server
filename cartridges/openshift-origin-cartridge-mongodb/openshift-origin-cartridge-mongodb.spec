@@ -3,7 +3,7 @@
 
 Summary:       Embedded mongodb support for OpenShift
 Name:          openshift-origin-cartridge-mongodb
-Version: 1.7.4
+Version: 1.7.5
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -63,6 +63,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Fri May 03 2013 Adam Miller <admiller@redhat.com> 1.7.5-1
+- Special file processing (fotios@redhat.com)
+
 * Thu May 02 2013 Adam Miller <admiller@redhat.com> 1.7.4-1
 - Bug 958788 - port number missing from OPENSHIFT_MONGODB_DB_URL
   (jhonce@redhat.com)
