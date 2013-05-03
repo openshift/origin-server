@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/openshift/cartridges/v2/diy
 
 Name: openshift-origin-cartridge-diy
-Version: 0.3.4
+Version: 0.3.5
 Release: 1%{?dist}
 Summary: DIY cartridge
 Group: Development/Languages
@@ -54,6 +54,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Fri May 03 2013 Adam Miller <admiller@redhat.com> 0.3.5-1
+- Special file processing (fotios@redhat.com)
+
 * Wed May 01 2013 Adam Miller <admiller@redhat.com> 0.3.4-1
 - Merge pull request #2297 from ironcladlou/bz/955482
   (dmcphers+openshiftbot@redhat.com)
