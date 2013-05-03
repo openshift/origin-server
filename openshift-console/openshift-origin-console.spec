@@ -139,6 +139,7 @@ rm -rf %{buildroot}%{consoledir}/systemd
 
 ln -s %{consoledir}/public %{buildroot}%{htmldir}/console
 mv %{buildroot}%{consoledir}/etc/openshift/* %{buildroot}%{_sysconfdir}/openshift
+cp %{buildroot}%{_sysconfdir}/openshift/console.conf %{buildroot}%{_sysconfdir}/openshift/console-dev.conf
 rm -rf %{buildroot}%{consoledir}/etc
 mv %{buildroot}%{consoledir}/.openshift/api.yml %{buildroot}%{openshiftconfigdir}
 ln -sf /usr/lib64/httpd/modules %{buildroot}%{consoledir}/httpd/modules
@@ -194,6 +195,7 @@ fi
 %config %{consoledir}/config/environments/production.rb
 %config %{consoledir}/config/environments/development.rb
 %config(noreplace) %{_sysconfdir}/openshift/console.conf
+%config(noreplace) %{_sysconfdir}/openshift/console-dev.conf
 
 %defattr(0640,root,root,0750)
 %if %{with_systemd}
