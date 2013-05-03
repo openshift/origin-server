@@ -16,7 +16,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.8.5
+Version: 1.8.6
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -287,6 +287,34 @@ fi
 %attr(0755,-,-) /etc/cron.monthly/openshift-origin-cron-monthly
 
 %changelog
+* Fri May 03 2013 Adam Miller <admiller@redhat.com> 1.8.6-1
+- Ensure cart doesn't try to do_lock on deconfigure (fotios@redhat.com)
+- Ensure that lock_files entries have the proper trailing slash and updated
+  test for it (fotios@redhat.com)
+- Uncommenting out tests (fotios@redhat.com)
+- Ensure paths with slashes are tested (fotios@redhat.com)
+- Ensure root contains a slash (fotios@redhat.com)
+- Fix testS (fotios@redhat.com)
+- Add root for all calls of managed_files functions (fotios@redhat.com)
+- Use managed_files version of restore_transforms (fotios@redhat.com)
+- Fix paths being returned with leading slash (fotios@redhat.com)
+- fix tests (dmcphers@redhat.com)
+- Fixed missing managed_files.yml (fotios@redhat.com)
+- Commented out failing tests (fotios@redhat.com)
+- Special file processing (fotios@redhat.com)
+- Bugs 958709, 958744, 958757 (dmcphers@redhat.com)
+- Using post-configure to deploy quickstarts for v1 (dmcphers@redhat.com)
+- Merge pull request #2333 from ironcladlou/bz/949232
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #2322 from rmillner/ctl_gears
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 949232: Make rhc-list-port compatible with both v1/v2 cartridges
+  (ironcladlou@gmail.com)
+- Bug 957453 - The v2 builder needs to do a complete unidle.
+  (rmillner@redhat.com)
+- Validate cartridge and vendor names under certain conditions
+  (asari.ruby@gmail.com)
+
 * Thu May 02 2013 Adam Miller <admiller@redhat.com> 1.8.5-1
 - Merge pull request #2232 from smarterclayton/support_external_cartridges
   (dmcphers+openshiftbot@redhat.com)
