@@ -1,5 +1,6 @@
 Name: perl-5.10
 Cartridge-Short-Name: PERL
+Cartridge-Vendor: redhat
 Display-Name: Perl 5.10
 Description: "Perl is a high-level, general-purpose, interpreted, dynamic programming language. Dynamic content produced by Perl scripts can be served in response to incoming web requests."
 Version: 5.10

@@ -1,5 +1,6 @@
 Name: 10gen-mms-agent-0.1
 Cartridge-Short-Name: 10GENMMSAGENT
+Cartridge-Vendor: redhat
 Display-Name: 10gen Mongo Monitoring Service Agent 0.1
 Description: "MongoDB Monitoring Service (MMS) instruments MongoDB and provides information about current and historical operational metrics of your system."
 Version: 0.1

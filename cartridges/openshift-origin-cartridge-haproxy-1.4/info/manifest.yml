@@ -1,5 +1,6 @@
 Name: haproxy-1.4
 Cartridge-Short-Name: HAPROXY
+Cartridge-Vendor: redhat
 Display-Name: OpenShift Web Balancer
 Description: "Acts as a load balancer for your web cartridge and will automatically scale up to handle incoming traffic. Is automatically added to scaled applications when they are created and cannot be removed or added to an application after the fact."
 Version: 1.4

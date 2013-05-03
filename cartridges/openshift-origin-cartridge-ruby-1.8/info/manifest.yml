@@ -1,5 +1,6 @@
 Name: ruby-1.8
 Cartridge-Short-Name: RUBY
+Cartridge-Vendor: redhat
 Display-Name: Ruby 1.8
 Description: "Ruby is a dynamic, reflective, general-purpose object-oriented programming language. We recommend using Ruby 1.9 for new applications."
 Version: 1.8

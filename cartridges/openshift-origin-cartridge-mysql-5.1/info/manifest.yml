@@ -1,5 +1,6 @@
 Name: mysql-5.1
 Cartridge-Short-Name: MYSQL
+Cartridge-Vendor: redhat
 Version: 5.1
 Architecture: noarch
 Display-Name: MySQL Database 5.1
