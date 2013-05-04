@@ -8,6 +8,14 @@ case "$1" in
     version="$2"
 esac
 
+# Copy the version specific files to ruby directory
+shopt -s dotglob
+for dir in template; do
+    mkdir -p $OPENSHIFT_RUBY_DIR/$dir
+    cp -Lr $OPENSHIFT_RUBY_DIR/versions/$version/$dir/* $OPENSHIFT_RUBY_DIR/$dir 
+done
+
+
 
 mkdir $OPENSHIFT_HOMEDIR/.gem
 
