@@ -276,7 +276,7 @@ module OpenShift
       output = ''
 
       name, software_version = map_cartridge_name(cartridge_name)
-      cartridge              = CartridgeRepository.instance.select(name, software_version)
+      cartridge              = get_cartridge(name)
 
       OpenShift::Utils::Cgroups::with_no_cpu_limits(@user.uuid) do
         output << start_cartridge('start', cartridge, user_initiated: true)

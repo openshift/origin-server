@@ -22,8 +22,9 @@ module MCollective
 
       activate_when do
         @cartridge_repository = ::OpenShift::CartridgeRepository.instance
+        @cartridge_repository.load
         Log.instance.info(
-            "#{@cartridge_repository.size} cartridge(s) installed in #{@cartridge_repository.path}")
+            "#{@cartridge_repository.count} cartridge(s) installed in #{@cartridge_repository.path}")
         true
       end
 

@@ -14,31 +14,39 @@
 # limitations under the License.
 #++
 require_relative '../test_helper'
+require 'fakefs/safe'
 require 'yaml'
 require 'pp'
 
 class CartridgeRepositoryTest < Test::Unit::TestCase
+  include FakeFS
+
   def setup
+    FakeFS.activate!
+    FileSystem.clear
+
     @path = '/var/lib/openshift/.cartridge_repository'
-    FileUtils.stubs(:mkpath).with(@path)
-    File.stubs(:exist?).returns(true)
+    OpenShift::CartridgeRepository.instance.clear
+  end
+
+  def teardown
+    FakeFS.deactivate!
+  end
+
+  def populate_manifest(manifests = [])
+    manifests.each_with_index do |m, i|
+      FileUtils.mkpath File.dirname(m)
+      File.open(m, 'w') {|file| file << MANIFESTS[i]}
+    end
   end
 
   def test_one_manifest
-    YAML.stubs(:load_file).
-        returns(YAML.load(MANIFESTS[0]))
-
-    OpenShift::CartridgeRepository.
-        any_instance.
-        stubs(:find_manifests).
-        with(@path).
-        yields("#{@path}/redhat-CRTEST/1.0/metadata/manifest.yml")
+    populate_manifest(%W(#{@path}/redhat-crtest/1.0/metadata/manifest.yml))
 
     cr = OpenShift::CartridgeRepository.instance
-    cr.clear
-    cr.load(@path)
-
+    cr.load
     refute_nil cr
+
     e = cr.select('crtest', '0.1', '1.0')
     refute_nil e
     assert_equal '0.1', e.version
@@ -57,44 +65,23 @@ class CartridgeRepositoryTest < Test::Unit::TestCase
   end
 
   def test_each
-    skip "jwhonce needs to review this test and CartridgeRepository.size"
-    
-    YAML.stubs(:load_file).
-        returns(YAML.load(MANIFESTS[0])).
-        then.returns(YAML.load(MANIFESTS[1])).
-        then.returns(YAML.load(MANIFESTS[2]))
-
-    OpenShift::CartridgeRepository.
-        any_instance.
-        stubs(:find_manifests).
-        with(@path).
-        multiple_yields(["#{@path}/RedHat-crtest/1.0/metadata/manifest.yml"],
-                        ["#{@path}/RedHat-crtest/1.1/metadata/manifest.yml"],
-                        ["#{@path}/RedHat-crtest/1.2/metadata/manifest.yml"],)
+    populate_manifest(["#{@path}/redhat-crtest/1.0/metadata/manifest.yml",
+                       "#{@path}/redhat-crtest/1.1/metadata/manifest.yml",
+                       "#{@path}/redhat-crtest/1.2/metadata/manifest.yml"])
 
     cr = OpenShift::CartridgeRepository.instance
-    cr.clear
-    cr.load(@path)
-    assert_equal 1, cr.inject(0) { |a, c| a += 1}
+    cr.load
+
+    assert_equal 3, cr.count
   end
 
   def test_three_manifest
-    YAML.stubs(:load_file).
-        returns(YAML.load(MANIFESTS[0])).
-        then.returns(YAML.load(MANIFESTS[1])).
-        then.returns(YAML.load(MANIFESTS[2]))
-
-    OpenShift::CartridgeRepository.
-        any_instance.
-        stubs(:find_manifests).
-        with(@path).
-        multiple_yields(["#{@path}/redhat-crtest/1.0/metadata/manifest.yml"],
-                        ["#{@path}/redhat-crtest/1.1/metadata/manifest.yml"],
-                        ["#{@path}/redhat-crtest/1.2/metadata/manifest.yml"],)
+    populate_manifest(["#{@path}/redhat-crtest/1.0/metadata/manifest.yml",
+                       "#{@path}/redhat-crtest/1.1/metadata/manifest.yml",
+                       "#{@path}/redhat-crtest/1.2/metadata/manifest.yml"])
 
     cr = OpenShift::CartridgeRepository.instance
-    cr.clear
-    cr.load(@path)
+    cr.load
 
     e = cr.select('crtest')
     refute_nil e
@@ -120,22 +107,12 @@ class CartridgeRepositoryTest < Test::Unit::TestCase
   end
 
   def test_not_found
-    YAML.stubs(:load_file).
-        returns(YAML.load(MANIFESTS[0])).
-        then.returns(YAML.load(MANIFESTS[1])).
-        then.returns(YAML.load(MANIFESTS[2]))
-
-    OpenShift::CartridgeRepository.
-        any_instance.
-        stubs(:find_manifests).
-        with(@path).
-        multiple_yields(["#{@path}/redhat-crtest/1.0/metadata/manifest.yml"],
-                        ["#{@path}/tests/redhat-crtest/1.1/metadata/manifest.yml"],
-                        ["#{@path}/tests/redhat-crtest/1.2/metadata/manifest.yml"],)
+    populate_manifest(["#{@path}/redhat-crtest/1.0/metadata/manifest.yml",
+                       "#{@path}/redhat-crtest/1.1/metadata/manifest.yml",
+                       "#{@path}/redhat-crtest/1.2/metadata/manifest.yml"])
 
     cr = OpenShift::CartridgeRepository.instance
-    cr.clear
-    cr.load(@path)
+    cr.load
 
     assert_raise(KeyError) do
       cr.select('crtest', '0.4')
@@ -145,7 +122,7 @@ class CartridgeRepositoryTest < Test::Unit::TestCase
   MANIFESTS = [
       %q{#
         Name: crtest
-        Cartridge-Short-Name: CRTEST
+        Cartridge-Short-Name: crtest
         Version: '0.1'
         Versions: ['0.1']
         Cartridge-Version: '1.0'
@@ -154,7 +131,7 @@ class CartridgeRepositoryTest < Test::Unit::TestCase
       },
       %q{#
         Name: crtest
-        Cartridge-Short-Name: CRTEST
+        Cartridge-Short-Name: crtest
         Version: '0.2'
         Versions: ['0.1', '0.2']
         Cartridge-Version: '1.1'
@@ -163,7 +140,7 @@ class CartridgeRepositoryTest < Test::Unit::TestCase
       },
       %q{#
         Name: crtest
-        Cartridge-Short-Name: CRTEST
+        Cartridge-Short-Name: crtest
         Version: '0.3'
         Versions: ['0.1', '0.2', '0.3']
         Cartridge-Version: '1.2'
