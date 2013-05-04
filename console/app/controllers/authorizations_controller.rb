@@ -36,7 +36,7 @@ class AuthorizationsController < ConsoleController
     if @authorization.save
       redirect_to authorization_path(@authorization), :flash => {:success => 'Authorization updated'}
     else
-      render :new
+      render :edit
     end
   end
 
