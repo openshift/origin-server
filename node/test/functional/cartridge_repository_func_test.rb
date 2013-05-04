@@ -44,10 +44,6 @@ module OpenShift
          zip  #{@malformed_file} README.md;
       )
 
-      #@tgz_hash = Digest::MD5.file(@tgz_file).hexdigest
-      #@tar_hash = Digest::MD5.file(@tar_file).hexdigest
-      #@zip_hash = Digest::MD5.file(@zip_file).hexdigest
-
       @tgz_hash = %x(md5sum #{@tgz_file} |cut -d' ' -f1)
       @tar_hash = %x(md5sum #{@tar_file} |cut -d' ' -f1)
       @zip_hash = %x(md5sum #{@zip_file} |cut -d' ' -f1)
@@ -116,7 +112,7 @@ module OpenShift
       cr.select(@name, '0.3')
 
       assert_raise(KeyError) do
-        cr.select('CRFTest', '0.4')
+        cr.select('crftest', '0.4')
       end
 
       # Will raise exception if missing...
@@ -296,6 +292,24 @@ module OpenShift
       with_detail_output do
         OpenShift::CartridgeRepository.instantiate_cartridge(cartridge, cartridge_home)
       end
+
+      assert_path_exist(cartridge_home)
+      assert_path_exist(File.join(cartridge_home, 'bin', 'control'))
+    end
+
+    def test_https_get
+
+      manifest = IO.read(File.join(@cartridge.manifest_path))
+      manifest << 'Source-Url: https://github.com/ironcladlou/openshift-personal-mock/archive/master.zip' << "\n"
+
+      cartridge      = OpenShift::Runtime::Manifest.new(manifest)
+      cartridge_home = "#{@test_home}/gear/mock"
+
+      WebMock.allow_net_connect!
+      with_detail_output do
+        OpenShift::CartridgeRepository.instantiate_cartridge(cartridge, cartridge_home)
+      end
+      WebMock.disable_net_connect!
 
       assert_path_exist(cartridge_home)
       assert_path_exist(File.join(cartridge_home, 'bin', 'control'))
