@@ -25,6 +25,7 @@ module OpenShift
   class CartridgeRepositoryFunctionalTest < OpenShift::V2SdkTestCase
 
     def before_setup
+
       @uuid = %x(uuidgen -r |sed -e s/-//g).chomp
 
       @test_home      = "/tmp/tests/#{@uuid}"
@@ -66,11 +67,12 @@ module OpenShift
     end
 
     def after_teardown
-      WebMock.reset!
       FileUtils.rm_rf @test_home
     end
 
     def setup
+      WebMock.disable_net_connect! allow_localhost: true
+
       @name       = "crftest_#{@uuid}"
       @repo_dir   = File.join(OpenShift::CartridgeRepository::CARTRIDGE_REPO_DIR, "redhat-#{@name}")
       @source_dir = "#{@test_home}/src-#{@uuid}"
@@ -92,6 +94,8 @@ module OpenShift
     end
 
     def teardown
+      WebMock.allow_net_connect!
+
       FileUtils.rm_rf(@repo_dir)
       FileUtils.rm_rf(@source_dir)
       FileUtils.rm_rf(@test_home)
