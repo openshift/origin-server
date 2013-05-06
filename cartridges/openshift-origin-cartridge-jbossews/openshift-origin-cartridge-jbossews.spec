@@ -2,7 +2,7 @@
 
 Summary:       Provides JBossEWS2.0 support
 Name:          openshift-origin-cartridge-jbossews
-Version: 0.3.5
+Version: 0.3.6
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -84,6 +84,9 @@ alternatives --set jbossews-2.0 /usr/share/tomcat7
 
 
 %changelog
+* Mon May 06 2013 Adam Miller <admiller@redhat.com> 0.3.6-1
+- Bug 959132: Add cron cartridge integration (ironcladlou@gmail.com)
+
 * Fri May 03 2013 Adam Miller <admiller@redhat.com> 0.3.5-1
 - Special file processing (fotios@redhat.com)
 - Validate cartridge and vendor names under certain conditions
