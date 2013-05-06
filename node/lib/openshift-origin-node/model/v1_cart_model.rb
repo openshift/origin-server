@@ -240,7 +240,7 @@ module OpenShift
 
       if exitcode != 0
         raise OpenShift::Utils::ShellExecutionException.new(
-          "Control action '#{action}' returned an error. rc=#{exitcode}\n#{output}", exitcode, output)
+          "Control action '#{action}' returned an error. rc=#{exitcode}", exitcode, output)
       end
 
       output
