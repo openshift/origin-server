@@ -30,10 +30,14 @@ if not File.directory?("/tmp/tmp/analytics")
   exit
 end
 
-`mongoimport --username #{u} --password #{p} --host #{hp} --file /tmp/tmp/analytics/analytics.apps.json --db analytics --collection applications --upsert`
-`mongoimport --username #{u} --password #{p} --host #{hp} --file /tmp/tmp/analytics/analytics.domains.json --db analytics --collection domains --upsert`
-`mongoimport --username #{u} --password #{p} --host #{hp} --file /tmp/tmp/analytics/analytics.usage.json --db analytics --collection usage --upsert`
-`mongoimport --username #{u} --password #{p} --host #{hp} --file /tmp/tmp/analytics/analytics.users.json --db analytics --collection cloud_users --upsert`
+files = [['analytics.apps.json', 'applications'], ['analytics.domains.json','domains'], ['analytics.usage.json', 'usage'], ['analytics.users.json', 'cloud_users']]
+
+files.each do |file, collection|
+    puts
+    puts "Running mongoimport on file [#{file}] on collection [#{collection}]"
+    cmd = "mongoimport --username #{u} --password #{p} --host #{hp} --file /tmp/tmp/analytics/#{file} --db analytics --collection #{collection} --upsert"
+    system(cmd)
+end
 
 `rm -rf /tmp/tmp/analytics`
 
