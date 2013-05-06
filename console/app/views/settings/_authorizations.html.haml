@@ -3,18 +3,19 @@
   Allow clients and 3rd parties to access your account via a secret token.
 
 - if authorizations.present?
-  %table.table.table-condensed.table-striped.table-fixed
-    %thead
-      %tr
-        %th{:scope => 'col'} Note
-        %th{:scope => 'col'} Scope
-        %th{:scope => 'col'} Expires in
-    %tbody
-    - authorizations.each do |authorization|
-      %tr{:id => "#{authorization.id}_auth"}
-        %td{:scope => 'row'}= link_to authorization.note.presence || "<none>", authorization_path(authorization)
-        %td= authorization.scopes.join(' ')
-        %td{:title => authorization.expires_at.to_s(:rfc822)}= distance_of_time_in_words(authorization.expires_at, Time.now)
+  %div.well
+    %table.table.table-condensed.table-striped.table-fixed
+      %thead
+        %tr
+          %th{:scope => 'col'} Note
+          %th{:scope => 'col'} Scope
+          %th{:scope => 'col'} Expires in
+      %tbody
+      - authorizations.each do |authorization|
+        %tr{:id => "#{authorization.id}_auth"}
+          %td{:scope => 'row'}= link_to authorization.note.presence || "<none>", authorization_path(authorization)
+          %td= authorization.scopes.join(' ')
+          %td{:title => authorization.expires_at.to_s(:rfc822)}= distance_of_time_in_words(authorization.expires_at, Time.now)
 
 .btn-toolbar
   = link_to "Add authorization...", new_authorization_path, :class => 'btn btn-small'

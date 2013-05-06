@@ -36,7 +36,8 @@ OpenshiftConsole::Application.configure do
   # Print deprecation notices to the stderr
   config.active_support.deprecation = :stderr
 
-  Console.configure('~/.openshift/console.conf') do |c|
+  config.configfile = ENV['CONSOLE_CONFIG_FILE'] || '/etc/openshift/console-dev.conf'
+  Console.configure(config.configfile) do |c|
     c.security_controller = 'Console::Auth::Basic' # test cases depend on basic authentication today
     c.community_url = "https://www.openshift.com/"
   end
