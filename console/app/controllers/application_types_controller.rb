@@ -41,7 +41,7 @@ class ApplicationTypesController < ConsoleController
         g[1].sort!
         g[0] = I18n.t(g[0], :scope => :types, :default => g[0].to_s.titleize)
       end
-      @custom_types, other = other.partition{ |t| t.tags.include?(:custom) }
+      @custom_types, other = other.partition{ |t| t.tags.include?(:custom) } if RestApi.download_cartridges_enabled?
       groups << ['Other types', other.sort!] unless other.empty?
       @type_groups = groups
     end
