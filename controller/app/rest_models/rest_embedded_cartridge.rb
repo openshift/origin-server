@@ -156,7 +156,7 @@ class RestEmbeddedCartridge < OpenShift::Model
 
       self.scales_with = nil
       app.component_instances.each do |component_instance|
-        cart = CartridgeCache::find_cartridge(component_instance.cartridge_name)
+        cart = CartridgeCache::find_cartridge(component_instance.cartridge_name, app)
         if cart.categories.include?("scales")
           self.scales_with = component_instance.cartridge_name
           break

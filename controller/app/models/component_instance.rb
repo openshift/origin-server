@@ -22,27 +22,27 @@ class ComponentInstance
   end
   
   def is_plugin?
-    cart = CartridgeCache.find_cartridge(cartridge_name)
+    cart = CartridgeCache.find_cartridge(cartridge_name, self.application)
     cart.is_plugin?
   end
   
   def is_embeddable?
-    cart = CartridgeCache.find_cartridge(cartridge_name)
+    cart = CartridgeCache.find_cartridge(cartridge_name, self.application)
     cart.is_embeddable?
   end
   
   def is_web_proxy?
-    cart = CartridgeCache.find_cartridge(cartridge_name)
+    cart = CartridgeCache.find_cartridge(cartridge_name, self.application)
     cart.is_web_proxy?
   end
   
   def is_web_framework?
-    cart = CartridgeCache.find_cartridge(cartridge_name)
+    cart = CartridgeCache.find_cartridge(cartridge_name, self.application)
     cart.is_web_framework?
   end
 
   def get_additional_control_actions
-    cart = CartridgeCache.find_cartridge(cartridge_name)
+    cart = CartridgeCache.find_cartridge(cartridge_name, self.application)
     cart.additional_control_actions
   end
 
@@ -72,7 +72,7 @@ class ComponentInstance
   end
 
   def get_cartridge
-    CartridgeCache.find_cartridge(cartridge_name)
+    CartridgeCache.find_cartridge(cartridge_name, self.application)
   end
 
   def get_component
