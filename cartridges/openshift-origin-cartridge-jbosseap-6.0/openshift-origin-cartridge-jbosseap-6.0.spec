@@ -4,7 +4,7 @@
 
 Summary:       Provides JBossEAP6.0 support
 Name:          openshift-origin-cartridge-jbosseap-6.0
-Version: 1.8.1
+Version: 1.8.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -143,6 +143,9 @@ cp -p %{cartridgedir}/info/configuration/postgresql_module.xml /etc/alternatives
 
 
 %changelog
+* Mon May 06 2013 Adam Miller <admiller@redhat.com> 1.8.2-1
+- Add Cartridge-Vendor to manifest.yml in v1. (asari.ruby@gmail.com)
+
 * Thu Apr 25 2013 Adam Miller <admiller@redhat.com> 1.8.1-1
 - Bug 955492: Fix rsync command to correct hot deployment
   (ironcladlou@gmail.com)
