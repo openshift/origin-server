@@ -756,6 +756,37 @@ module OpenShift
       end
     end
 
+
+    def add_appvar(key, value)
+      IO.write(PathUtils.join(@user.homedir, '.env', '.uservars', key), value, 0, mode: 'w', perm: 0666)
+    end
+
+    def remove_appvar(keys)
+      keys.each do |key|
+        FileUtils.remove PathUtils.join(@user.homedir, '.env', '.uservars', key)
+      end
+      return 0, ''
+    end
+
+    def list_appvar()
+      return 'CLIENT_RESULT: ' + Dir.entries(PathUtils.join(@user.homedir, '.env', '.uservars')).
+          delete_if { |e| e.start_with? '.' }.
+          join(',')
+    end
+
+    def push_appvar(gears)
+      begin
+        gears.each do |gear|
+          source       = PathUtils.join(@user.homedir, '.env', '.uservars')
+          Utils::oo_spawn("/usr/bin/rsync -arv #{source}/ #{gear}:.env/.uservars",
+                                         expected_exitstatus: 0)
+        end
+        return 0, ''        
+      rescue Utils::ShellExecutionException => e
+        return 127, 'CLIENT_ERROR: ' + e.stderr
+      end
+    end
+
     # Run code block against each cartridge in gear
     #
     # @param  [block]  Code block to process cartridge

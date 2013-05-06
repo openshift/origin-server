@@ -882,6 +882,22 @@ module OpenShift
       @cartridge_model.stop_lock?
     end
 
+    def add_appvar(key, value)
+      @cartridge_model.add_appvar(key, value)
+    end
+
+    def remove_appvar(keys)
+      @cartridge_model.remove_appvar(keys)
+    end
+
+    def list_appvar()
+      @cartridge_model.list_appvar()
+    end
+
+    def push_appvar(gears)
+      @cartridge_model.push_appvar(gears)
+    end
+
     #
     # Public: Return an ApplicationContainer object loaded from the container_uuid on the system
     #

@@ -229,6 +229,23 @@ module OpenShift
       do_control('restart-httpd-proxy', cart_name)
     end
 
+    def add_appvar(key, value)
+      raise NotImplementedError.new('V1 add_appvar is not implemented')
+    end
+
+    def remove_appvar(keys)
+      raise NotImplementedError.new('V1 remove_appvar is not implemented')
+    end
+
+    def list_appvar()
+      raise NotImplementedError.new('V1 list_appvar is not implemented')
+    end
+
+    def push_appvar(gears)
+      raise NotImplementedError.new('V1 push_appvar is not implemented')
+    end
+
+
     def connector_execute(cart_name, pub_cart_name, connection_type, connector, args)
       # pub_cart_name and connection_type unused in v1.
       do_control(connector, cart_name, args, "connection-hooks")

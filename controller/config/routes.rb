@@ -1,5 +1,6 @@
 Rails.application.routes.draw do
-  id_with_format = OpenShift::Controller::Routing::ID_WITH_FORMAT 
+  id_with_format = OpenShift::Controller::Routing::ID_WITH_FORMAT
+  app_env_format = OpenShift::Controller::Routing::APP_ENV_FORMAT
   
   scope "/rest" do
     resource :api, :only => :show, :controller => :api
@@ -21,6 +22,7 @@ Rails.application.routes.draw do
         resources :gear_groups, :constraints => { :id => id_with_format }, :only => [:index, :show]
         #added back the gears URL so we can return an appropriate message instead of a routing error
         resources :gears, :only => [:index, :show]
+        resources :environment_variables, :controller => :app_environment, :only => [:index, :create, :destroy], :constraints => { :id => app_env_format }
         resources :cartridges, :controller => :emb_cart, :only => [:index, :show, :create, :update, :destroy], :constraints => { :id => id_with_format } do
             resources :events, :controller => :emb_cart_events, :only => :create
         end

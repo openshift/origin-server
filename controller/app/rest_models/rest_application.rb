@@ -203,6 +203,12 @@ class RestApplication < OpenShift::Model
             OptionalParam.new("private_key", "string", "Private key for the certificate.  Required if adding a certificate"), 
             OptionalParam.new("pass_phrase", "string", "Optional passphrase for the private key")]),
         "LIST_ALIASES" => Link.new("List applications", "GET", URI::join(url, "domains/#{@domain_id}/applications/#{@name}/aliases")),
+        "LIST_ENVIRONMENT_VARIABLES" => Link.new("List user set application environment variables", "GET", URI::join(url, "domains/#{@domain_id}/applications/#{@name}/environment_variables")),
+        "ADD_ENVIRONMENT_VARIABLE" => Link.new("Add a new application environment variable", "POST", URI::join(url, "domains/#{@domain_id}/applications/#{@name}/environment_variables"),
+          [ Param.new("id", "string", "Name of the environment variable"),
+            Param.new("value", "string", "Value of the environment variable"),
+          ]
+        )
       }
     end
   end

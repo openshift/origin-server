@@ -235,6 +235,12 @@ class PendingAppOpGroup
           when :update_configuration
             gear.update_configuration(op.args,handle)
             use_parallel_job = true
+          when :list_app_env_var_names
+            result_io.append gear.list_app_env_var_names
+          when :app_env_push
+            dest_ginst = application.group_instances.find(op.args["dest_group_instance_id"])
+            dest_gear_endpoints = dest_ginst.gears.find(op.args["dest_gears"]).map{ |g| application.ssh_uri(application.domain, g.uuid) }
+            gear.push_app_env_vars(dest_gear_endpoints)
           when :update_namespace
             gear.update_namespace(op.args)
           when :add_broker_auth_key 

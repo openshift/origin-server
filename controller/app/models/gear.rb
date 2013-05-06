@@ -236,6 +236,8 @@ class Gear
     remove_keys = args["remove_keys_attrs"]
     add_envs = args["add_env_vars"]
     remove_envs = args["remove_env_vars"]
+    add_app_envs = args["add_app_env_vars"]
+    remove_app_envs = args["remove_app_env_vars"]
     tag = ""
     
     add_keys.each     { |ssh_key| RemoteJob.add_parallel_job(remote_job_handle, tag, self, get_proxy.get_add_authorized_ssh_key_job(self, ssh_key["content"], ssh_key["type"], ssh_key["name"])) } unless add_keys.nil?      
@@ -243,6 +245,12 @@ class Gear
                                                                                            
     add_envs.each     {|env|      RemoteJob.add_parallel_job(remote_job_handle, tag, self, get_proxy.get_env_var_add_job(self, env["key"],env["value"]))} unless add_envs.nil?                                                   
     remove_envs.each  {|env|      RemoteJob.add_parallel_job(remote_job_handle, tag, self, get_proxy.get_env_var_remove_job(self, env["key"]))} unless remove_envs.nil?
+    
+    add_app_envs.each     {|env|      RemoteJob.add_parallel_job(remote_job_handle, tag, self, get_proxy.get_app_env_var_add_job(self, env["key"],env["value"]))} unless add_app_envs.nil?                                                   
+    remove_app_envs.each  {|env|      RemoteJob.add_parallel_job(remote_job_handle, tag, self, get_proxy.get_app_env_var_remove_job(self, env["key"]))} unless remove_app_envs.nil?
+    
+    Rails.logger.error add_app_envs.pretty_inspect
+    Rails.logger.error remote_job_handle.pretty_inspect
   end
 
   # Convenience method to get the {Application}

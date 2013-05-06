@@ -110,6 +110,20 @@ module OpenShift
       assert_equal '75e36e529c9211e29cc622000a8c0259', IO.read(uservar_file).chomp
     end
 
+    def test_appvar
+      @model.add_appvar('KEY', 'Value')
+      key_file = File.join(@user.homedir, '.env', '.uservars', 'KEY')
+      assert_path_exist key_file
+      assert_equal 'Value', IO.read(key_file)
+
+      rc, actual = @model.list_appvar()
+      assert_equal 0, rc
+      assert_equal 'CLIENT_RESULT: KEY', actual
+
+      @model.remove_appvar('KEY'.split(';'))
+      refute_path_exist key_file
+    end
+
     def test_configure_with_manifest
       refute_path_exist(File.join(@user.homedir, 'mock-plugin'))
 
