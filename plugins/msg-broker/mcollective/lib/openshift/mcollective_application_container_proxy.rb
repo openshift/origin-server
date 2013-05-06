@@ -1707,6 +1707,7 @@ module OpenShift
         log_debug "DEBUG: Fixing DNS and mongo for gear '#{gear.name}' after move"
         log_debug "DEBUG: Changing server identity of '#{gear.name}' from '#{source_container.id}' to '#{destination_container.id}'"
         gear.server_identity = destination_container.id
+        gear.group_instance.gear_size = destination_container.get_node_profile
         begin
           dns = OpenShift::DnsService.instance
           public_hostname = destination_container.get_public_hostname
@@ -1806,7 +1807,7 @@ module OpenShift
         end
 
         destination_node_profile = destination_container.get_node_profile
-        if source_container.get_node_profile != destination_node_profile
+        if source_container.get_node_profile != destination_node_profile and app.scalable
           log_debug "Cannot change node_profile for a gear - this operation is not supported. The destination container's node profile is #{destination_node_profile}, while the gear's node_profile is #{gear.group_instance.gear_size}"
           raise OpenShift::UserException.new("Error moving app.  Cannot change node profile.", 1)
         end
@@ -1871,6 +1872,7 @@ module OpenShift
 
           rescue Exception => e
             gear.server_identity = source_container.id
+            gear.group_instance.gear_size = source_container.get_node_profile
             # remove-httpd-proxy of destination
             log_debug "DEBUG: Moving failed.  Rolling back gear '#{gear.name}' '#{app.name}' with remove-httpd-proxy on '#{destination_container.id}'"
             gi.all_component_instances.each do |cinst|
