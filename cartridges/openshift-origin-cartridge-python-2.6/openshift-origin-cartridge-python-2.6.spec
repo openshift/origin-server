@@ -2,7 +2,7 @@
 
 Summary:       Provides python-2.6 support
 Name:          openshift-origin-cartridge-python-2.6
-Version: 1.8.2
+Version: 1.8.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -103,6 +103,11 @@ ln -s %{cartridgedir}/../abstract/info/bin/sync_gears.sh %{buildroot}%{cartridge
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Mon May 06 2013 Adam Miller <admiller@redhat.com> 1.8.3-1
+- Merge pull request #2342 from BanzaiMan/dev/hasari/c288_followup
+  (dmcphers+openshiftbot@redhat.com)
+- Add Cartridge-Vendor to manifest.yml in v1. (asari.ruby@gmail.com)
+
 * Fri May 03 2013 Adam Miller <admiller@redhat.com> 1.8.2-1
 - Bugs 958709, 958744, 958757 (dmcphers@redhat.com)
 
