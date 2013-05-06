@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Common
 Name:          rubygem-%{gem_name}
-Version: 1.7.3
+Version: 1.7.4
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -96,6 +96,11 @@ cp -a ./%{gem_dir}/* %{buildroot}%{gem_dir}/
 %doc %{gem_docdir}
 
 %changelog
+* Mon May 06 2013 Adam Miller <admiller@redhat.com> 1.7.4-1
+- Merge pull request #2342 from BanzaiMan/dev/hasari/c288_followup
+  (dmcphers+openshiftbot@redhat.com)
+- Add Cartridge-Vendor to manifest.yml in v1. (asari.ruby@gmail.com)
+
 * Fri May 03 2013 Adam Miller <admiller@redhat.com> 1.7.3-1
 - Special file processing (fotios@redhat.com)
 - Validate cartridge and vendor names under certain conditions
