@@ -213,7 +213,7 @@ module OpenShift
     def destroy()
       $logger.info("Destroying gear #{@uuid} of application #{@app.name}")
 
-      @container.destroy(true)
+      @container.destroy
     end
 
     # Adds an alias to the gear
