@@ -1,0 +1,57 @@
+source 'http://rubygems.org'
+
+gem 'rails', '~> 3.2.8'
+gem 'json'
+gem 'json_pure'
+gem 'parseconfig'
+gem 'xml-simple'
+gem 'rack'
+gem 'regin'
+gem 'open4'
+gem 'systemu'
+gem 'mongoid'
+gem 'bson'
+gem 'bson_ext'
+gem 'pry', :require => 'pry' if ENV['PRY']
+
+# For performance reasons, the following scripts will not be
+# refactored to use mongoid exclusively:
+#  * broker-util/oo-admin-chk
+#  * broker-util/oo-admin-fix-sshkeys
+#  * broker-util/oo-stats
+# These scripts use the OpenShift::DataStore API, and thus depend on
+# the mongo rubygem:
+gem 'mongo'
+
+if ENV['BROKER_SOURCE']
+  gem 'openshift-origin-common', :path => '../common'
+  gem 'openshift-origin-controller', :path => '../controller'
+  gem 'netrc' # rest-client has an undeclared prereq on netrc
+
+  # Optionally load plugins from source
+  eval((IO.read(File.expand_path('~/.openshift/broker_plugins.rb')) rescue ''))
+else
+  gem 'openshift-origin-controller'
+end
+
+# Load plugin gems.
+Dir["/etc/openshift/plugins.d/*.conf"].delete_if{ |x| x.end_with? "-dev.conf" }.map{|x| File.basename(x, ".conf")}.each {|plugin| gem plugin}
+
+# Bundle edge Rails instead:
+# gem 'rails', :git => 'git://github.com/rails/rails.git'
+
+# Use unicorn as the web server
+# gem 'unicorn'
+
+# Deploy with Capistrano
+# gem 'capistrano'
+
+# To use debugger (ruby-debug for Ruby 1.8.7+, ruby-debug19 for Ruby 1.9.2+)
+# gem 'ruby-debug'
+# gem 'ruby-debug19', :require => 'ruby-debug'
+
+# Bundle the extra gems:
+# gem 'bj'
+# gem 'nokogiri'
+# gem 'sqlite3-ruby', :require => 'sqlite3'
+# gem 'aws-s3', :require => 'aws/s3'
