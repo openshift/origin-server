@@ -3,7 +3,7 @@
 
 Summary:       Provides Node.js support
 Name:          openshift-origin-cartridge-nodejs
-Version: 1.9.4
+Version: 1.9.5
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -56,6 +56,9 @@ rm -rf %{buildroot}
 %doc %{cartridgedir}/README.md
 
 %changelog
+* Mon May 06 2013 Adam Miller <admiller@redhat.com> 1.9.5-1
+- moving templates to usr (dmcphers@redhat.com)
+
 * Fri May 03 2013 Adam Miller <admiller@redhat.com> 1.9.4-1
 - fix tests (dmcphers@redhat.com)
 - Special file processing (fotios@redhat.com)
