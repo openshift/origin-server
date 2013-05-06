@@ -2,7 +2,7 @@
 
 Summary:       Provides jenkins-1.4 support
 Name:          openshift-origin-cartridge-jenkins
-Version: 1.8.3
+Version: 1.8.4
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -59,6 +59,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Mon May 06 2013 Adam Miller <admiller@redhat.com> 1.8.4-1
+- moving templates to usr (dmcphers@redhat.com)
+
 * Fri May 03 2013 Adam Miller <admiller@redhat.com> 1.8.3-1
 - Special file processing (fotios@redhat.com)
 
