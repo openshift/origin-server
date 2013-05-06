@@ -4,7 +4,7 @@
 
 Summary:       Provides JBossEWS1.0 support
 Name:          openshift-origin-cartridge-jbossews-1.0
-Version: 1.8.3
+Version: 1.8.4
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -118,6 +118,17 @@ alternatives --set jbossews-1.0 /usr/share/tomcat6
 
 
 %changelog
+* Mon May 06 2013 Adam Miller <admiller@redhat.com> 1.8.4-1
+- Merge pull request #2345 from pmorie/bugs/957262
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #2342 from BanzaiMan/dev/hasari/c288_followup
+  (dmcphers+openshiftbot@redhat.com)
+- Fix bug 957262 (pmorie@gmail.com)
+- Merge pull request #2340 from bdecoste/master
+  (dmcphers+openshiftbot@redhat.com)
+- Add Cartridge-Vendor to manifest.yml in v1. (asari.ruby@gmail.com)
+- fix env / replacement (bdecoste@gmail.com)
+
 * Fri May 03 2013 Adam Miller <admiller@redhat.com> 1.8.3-1
 - Bugs 958709, 958744, 958757 (dmcphers@redhat.com)
 
