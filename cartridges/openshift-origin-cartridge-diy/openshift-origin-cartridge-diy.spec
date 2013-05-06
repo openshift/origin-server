@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/openshift/cartridges/v2/diy
 
 Name: openshift-origin-cartridge-diy
-Version: 0.3.5
+Version: 0.3.6
 Release: 1%{?dist}
 Summary: DIY cartridge
 Group: Development/Languages
@@ -54,6 +54,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Mon May 06 2013 Adam Miller <admiller@redhat.com> 0.3.6-1
+- moving templates to usr (dmcphers@redhat.com)
+
 * Fri May 03 2013 Adam Miller <admiller@redhat.com> 0.3.5-1
 - Special file processing (fotios@redhat.com)
 
