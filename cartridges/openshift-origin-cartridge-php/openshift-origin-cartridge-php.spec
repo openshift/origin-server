@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/openshift/cartridges/v2/php
 
 Name: openshift-origin-cartridge-php
-Version: 0.3.3
+Version: 0.3.4
 Release: 1%{?dist}
 Summary: Php cartridge
 Group: Development/Languages
@@ -95,6 +95,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Mon May 06 2013 Adam Miller <admiller@redhat.com> 0.3.4-1
+- moving templates to usr (dmcphers@redhat.com)
+
 * Fri May 03 2013 Adam Miller <admiller@redhat.com> 0.3.3-1
 - fix tests (dmcphers@redhat.com)
 - Special file processing (fotios@redhat.com)
