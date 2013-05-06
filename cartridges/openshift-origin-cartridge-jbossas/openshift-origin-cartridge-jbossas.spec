@@ -5,7 +5,7 @@
 
 Summary:       Provides JBossAS7 support
 Name:          openshift-origin-cartridge-jbossas
-Version: 1.1.6
+Version: 1.1.7
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -93,6 +93,13 @@ cp -p %{cartridgedir}/versions/7/modules/postgresql_module.xml /etc/alternatives
 
 
 %changelog
+* Mon May 06 2013 Adam Miller <admiller@redhat.com> 1.1.7-1
+- Bug 958606; Bug 959833; Fix standalone.xml env replacement typos
+  (ironcladlou@gmail.com)
+- Merge pull request #2340 from bdecoste/master
+  (dmcphers+openshiftbot@redhat.com)
+- fix env / replacement (bdecoste@gmail.com)
+
 * Fri May 03 2013 Adam Miller <admiller@redhat.com> 1.1.6-1
 - Special file processing (fotios@redhat.com)
 - Merge pull request #2332 from ironcladlou/bz/958669
