@@ -16,7 +16,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.8.6
+Version: 1.8.7
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -287,6 +287,21 @@ fi
 %attr(0755,-,-) /etc/cron.monthly/openshift-origin-cron-monthly
 
 %changelog
+* Mon May 06 2013 Adam Miller <admiller@redhat.com> 1.8.7-1
+- Merge pull request #2357 from pmorie/bugs/951405
+  (dmcphers+openshiftbot@redhat.com)
+- WIP Cartridge Refactor - restore test (jhonce@redhat.com)
+- Remove broken test to fix (jhonce@redhat.com)
+- WIP Cartridge Refactor - Install cartridges without mco client
+  (jhonce@redhat.com)
+- Merge pull request #2348 from abhgupta/bug_959178
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #2339 from fotioslindiakos/locked_files
+  (dmcphers@redhat.com)
+- Updates to README for managed_files.yml (fotios@redhat.com)
+- Fix for bug 959178 (abhgupta@redhat.com)
+- Fix bug 951405 (pmorie@gmail.com)
+
 * Fri May 03 2013 Adam Miller <admiller@redhat.com> 1.8.6-1
 - Ensure cart doesn't try to do_lock on deconfigure (fotios@redhat.com)
 - Ensure that lock_files entries have the proper trailing slash and updated
