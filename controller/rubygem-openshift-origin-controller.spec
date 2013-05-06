@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.8.6
+Version: 1.8.7
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -84,6 +84,9 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Mon May 06 2013 Adam Miller <admiller@redhat.com> 1.8.7-1
+- renaming and fix bug#958970 (rchopra@redhat.com)
+
 * Fri May 03 2013 Adam Miller <admiller@redhat.com> 1.8.6-1
 - fix version mismatch between broker/node for personal carts; some more safety
   for yaml downloads (rchopra@redhat.com)
