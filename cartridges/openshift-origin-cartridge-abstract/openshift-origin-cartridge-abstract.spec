@@ -7,7 +7,7 @@
 
 Summary:       OpenShift common cartridge components
 Name:          openshift-origin-cartridge-abstract
-Version: 1.8.3
+Version: 1.8.4
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -90,6 +90,11 @@ cp -rv -p abstract-jboss %{buildroot}%{cartdir}/
 %doc %{_libexecdir}/openshift/cartridges/abstract-jboss/README.md
 
 %changelog
+* Mon May 06 2013 Adam Miller <admiller@redhat.com> 1.8.4-1
+- Merge pull request #2338 from mrunalp/bugs/missing_pub_gear_hook
+  (dmcphers+openshiftbot@redhat.com)
+- Adding back the abstract publish-gear-endpoint hook. (mrunalp@gmail.com)
+
 * Fri May 03 2013 Adam Miller <admiller@redhat.com> 1.8.3-1
 - Bugs 958709, 958744, 958757 (dmcphers@redhat.com)
 - Using post-configure to deploy quickstarts for v1 (dmcphers@redhat.com)
