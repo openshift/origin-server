@@ -9,7 +9,7 @@
 
 Summary:       OpenShift Origin Management Console
 Name:          rubygem-%{gem_name}
-Version: 1.8.6
+Version: 1.8.7
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -147,6 +147,14 @@ cp -a ./%{gem_dir}/* %{buildroot}%{gem_dir}/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Mon May 06 2013 Adam Miller <admiller@redhat.com> 1.8.7-1
+- Bug 959904 - DIY cartridge is not listed on the create app page
+  (jforrest@redhat.com)
+- Add authorization controller tests in console (ccoleman@redhat.com)
+- Merge pull request #2331 from liggitt/cache_method
+  (dmcphers+openshiftbot@redhat.com)
+- Fix call to cache_key_for (jliggitt@redhat.com)
+
 * Fri May 03 2013 Adam Miller <admiller@redhat.com> 1.8.6-1
 - Merge pull request #2334 from smarterclayton/unify_footer_header_colors
   (dmcphers+openshiftbot@redhat.com)
