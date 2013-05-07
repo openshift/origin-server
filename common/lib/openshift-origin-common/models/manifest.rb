@@ -147,7 +147,15 @@ module OpenShift
       # Furthermore, we validate the vendor name by matching against
       # RESERVED_VENDOR_NAME_PATTERN.
       # If it matches the pattern, it will be rejected.
-      RESERVED_VENDOR_NAME_PATTERN = /\A(?:redhat)\z/
+      reserved_vendor_names = %w(
+        redhat
+      )
+      reserved_cartridge_names = %w(
+        app-root
+        git
+      )
+      RESERVED_VENDOR_NAME_PATTERN    = Regexp.new("\\A(?:#{reserved_vendor_names.join('|')})\\z")
+      RESERVED_CARTRIDGE_NAME_PATTERN = Regexp.new("\\A(?:#{reserved_cartridge_names.join('|')})\\z")
 
       # :call-seq:
       #   Cartridge.new(manifest) -> Cartridge
@@ -208,6 +216,7 @@ module OpenShift
 
         validate_vendor_name
         validate_cartridge_name
+        check_reserved_cartridge_name
 
         if @manifest.has_key?('Source-Url')
           raise InvalidElementError.new(nil, 'Source-Url') unless @manifest['Source-Url'] =~ URI::ABS_URI
@@ -288,6 +297,12 @@ module OpenShift
       def check_reserved_vendor_name
         if cartridge_vendor =~ RESERVED_VENDOR_NAME_PATTERN
           raise InvalidElementError.new("'#{cartridge_vendor}' is reserved.", 'Cartridge-Vendor')
+        end
+      end
+
+      def check_reserved_cartridge_name
+        if name =~ RESERVED_CARTRIDGE_NAME_PATTERN
+          raise InvalidElementError.new("'#{name}' is reserved.", 'Name')
         end
       end
     end
