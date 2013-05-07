@@ -239,8 +239,8 @@ module OpenShift
       c2.stubs(:directory).returns("cartridge2")
 
       @model.expects(:each_cartridge).multiple_yields(c1,c2)
-      @model.expects(:unlock_gear).with(c1).yields(c1)
-      @model.expects(:unlock_gear).with(c2).yields(c2)
+      @model.expects(:unlock_gear).with(c1, false).yields(c1)
+      @model.expects(:unlock_gear).with(c2, false).yields(c2)
 
       @model.expects(:cartridge_teardown).with(c1.directory).returns("")
       @model.expects(:cartridge_teardown).with(c2.directory).returns("")
@@ -263,8 +263,8 @@ module OpenShift
       c2.stubs(:directory).returns("cartridge2")
 
       @model.expects(:each_cartridge).multiple_yields(c1,c2)
-      @model.expects(:unlock_gear).with(c1).yields(c1)
-      @model.expects(:unlock_gear).with(c2).yields(c2)
+      @model.expects(:unlock_gear).with(c1, false).yields(c1)
+      @model.expects(:unlock_gear).with(c2, false).yields(c2)
 
       @model.expects(:cartridge_teardown).with(c1.directory).raises(OpenShift::Utils::ShellExecutionException.new('error'))
       @model.expects(:cartridge_teardown).with(c2.directory).returns("")
@@ -274,6 +274,21 @@ module OpenShift
       @user.expects(:destroy)
 
       @model.destroy
+    end
+
+    # Flow control for destroy without running hooks
+    # Verifies that none of the teardown hooks are called but the user is destroyed
+    def test_destroy_skip_hooks
+      @model.expects(:each_cartridge).never
+
+      @model.expects(:unlock_gear).never
+      @model.expects(:cartridge_teardown).never
+
+      Dir.stubs(:chdir).with(GEAR_BASE_DIR).yields
+
+      @user.expects(:destroy)
+
+      @model.destroy(true)
     end
 
     # Flow control for unlock_gear success - block is yielded to
