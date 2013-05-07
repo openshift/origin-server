@@ -147,6 +147,8 @@ module OpenShift
       # Furthermore, we validate the vendor name by matching against
       # RESERVED_VENDOR_NAME_PATTERN.
       # If it matches the pattern, it will be rejected.
+      ## TODO:
+      # Add ability to configure reserved vendor names
       reserved_vendor_names = %w(
         redhat
       )
@@ -156,6 +158,10 @@ module OpenShift
       )
       RESERVED_VENDOR_NAME_PATTERN    = Regexp.new("\\A(?:#{reserved_vendor_names.join('|')})\\z")
       RESERVED_CARTRIDGE_NAME_PATTERN = Regexp.new("\\A(?:#{reserved_cartridge_names.join('|')})\\z")
+      ## TODO:
+      # these should be configurable
+      MAX_VENDOR_NAME    = 32
+      MAX_CARTRIDGE_NAME = 32
 
       # :call-seq:
       #   Cartridge.new(manifest) -> Cartridge
@@ -283,6 +289,13 @@ module OpenShift
             'Cartridge-Vendor'
           )
         end
+
+        if cartridge_vendor.length > MAX_VENDOR_NAME
+          raise InvalidElementError.new(
+            "'#{cartridge_vendor}' must be no longer than #{MAX_VENDOR_NAME} characters.",
+            'Cartridge-Vendor'
+          )
+        end
       end
 
       def validate_cartridge_name
@@ -291,6 +304,10 @@ module OpenShift
             "'#{name}' does not match pattern #{VALID_CARTRIDGE_NAME_PATTERN.inspect}.",
             'Name'
           )
+        end
+
+        if name.length > MAX_CARTRIDGE_NAME
+          raise InvalidElementError.new("'#{name}' must be no longer than #{MAX_VENDOR_NAME} characters.", 'Name')
         end
       end
 
