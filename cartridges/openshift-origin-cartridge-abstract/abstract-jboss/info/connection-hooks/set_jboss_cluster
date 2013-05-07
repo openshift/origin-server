@@ -20,12 +20,4 @@ for arg in $kvargs; do
     fi
 done
 
-if [ -f /var/lib/openshift/$3/.env/OPENSHIFT_${CART_NS}_HAPROXY_CLUSTER ]
-then
-  source /var/lib/openshift/$3/.env/OPENSHIFT_${CART_NS}_HAPROXY_CLUSTER
-  HAPROXY_CLUSTER=$(get_env_var_dynamic "OPENSHIFT_${CART_NS}_HAPROXY_CLUSTER")
-  echo "export OPENSHIFT_${CART_NS}_CLUSTER=$list,$HAPROXY_CLUSTER" > /var/lib/openshift/$3/.env/OPENSHIFT_${CART_NS}_CLUSTER
-  rm -f /var/lib/openshift/$3/.env/OPENSHIFT_${CART_NS}_HAPROXY_CLUSTER
-else
-  echo "export OPENSHIFT_${CART_NS}_HAPROXY_CLUSTER=$list" > /var/lib/openshift/$3/.env/OPENSHIFT_${CART_NS}_HAPROXY_CLUSTER
-fi
+echo "export OPENSHIFT_${CART_NS}_CLUSTER=$list" > /var/lib/openshift/$3/.env/OPENSHIFT_${CART_NS}_CLUSTER
