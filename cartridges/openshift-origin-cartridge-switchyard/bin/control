@@ -1,5 +1,12 @@
 #!/bin/bash -e
 
-# All NOOPs
+source $OPENSHIFT_CARTRIDGE_SDK_BASH
 
-exit 0
+function status() {
+   client_result "SwitchYard is enabled"
+}
+
+case "$1" in
+  status)          status ;;
+  *)               exit 0
+esac

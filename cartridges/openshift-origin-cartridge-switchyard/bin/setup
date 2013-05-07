@@ -1,6 +1,13 @@
 #!/bin/bash -e
 
 source $OPENSHIFT_CARTRIDGE_SDK_BASH
+
+if [ -z $OPENSHIFT_JBOSSAS_IP ] && [ -z $OPENSHIFT_JBOSSEAP_IP ]
+then
+      client_error "SwitchYard is only supported for JBoss AS/EAP"
+      exit 152
+fi
+
 set_uservars "OPENSHIFT_JBOSS_MODULE_PATH=OPENSHIFT_JBOSS_MODULE_PATH=/etc/alternatives/switchyard-0/modules"
-exit 0
+
 
