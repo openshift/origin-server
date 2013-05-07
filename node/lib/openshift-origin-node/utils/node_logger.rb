@@ -61,7 +61,9 @@ module OpenShift
 
         FileUtils.mkpath(File.dirname(log_file)) unless File.exist? File.dirname(log_file)
 
-        file = File.open(log_file, File::WRONLY | File::APPEND| File::CREAT, 0644)
+        orig_umask = File.umask(0)
+        file = File.open(log_file, File::WRONLY | File::APPEND| File::CREAT, 0660)
+        File.umask(orig_umask)
 
         file.sync = true
         
