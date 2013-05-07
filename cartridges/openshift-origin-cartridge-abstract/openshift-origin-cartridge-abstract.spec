@@ -7,7 +7,7 @@
 
 Summary:       OpenShift common cartridge components
 Name:          openshift-origin-cartridge-abstract
-Version: 1.8.4
+Version: 1.8.5
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -90,6 +90,9 @@ cp -rv -p abstract-jboss %{buildroot}%{cartdir}/
 %doc %{_libexecdir}/openshift/cartridges/abstract-jboss/README.md
 
 %changelog
+* Tue May 07 2013 Adam Miller <admiller@redhat.com> 1.8.5-1
+- Bug 960291 (bdecoste@gmail.com)
+
 * Mon May 06 2013 Adam Miller <admiller@redhat.com> 1.8.4-1
 - Merge pull request #2338 from mrunalp/bugs/missing_pub_gear_hook
   (dmcphers+openshiftbot@redhat.com)
