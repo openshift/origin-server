@@ -42,7 +42,7 @@ module RestModelHelper
 
     scale = {min: group_instance.min, max: group_instance.max, gear_size: group_instance.gear_size, additional_storage: additional_storage, current: group_instance.gears.count}
 
-    cart = CartridgeCache.find_cartridge(component_instance.cartridge_name)
+    cart = CartridgeCache.find_cartridge(component_instance.cartridge_name, application)
     comp = cart.get_component(component_instance.component_name)
     if requested_api_version == 1.0
       RestEmbeddedCartridge10.new(cart, application, @domain, component_instance, get_url, messages, nolinks)
