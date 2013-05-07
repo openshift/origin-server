@@ -108,7 +108,7 @@ class PendingAppOpGroup
         when :set_connections
           application.set_connections(op.saved_values["connections"])
         when :execute_connections
-          application.execute_connections
+          result_io.append application.execute_connections
         when :set_gear_additional_filesystem_gb
           gear = get_gear_for_rollback(op)
           gear.set_addtl_fs_gb(op.saved_values["additional_filesystem_gb"], handle)

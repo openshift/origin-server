@@ -1101,7 +1101,14 @@ class Application
       end
     end
     RemoteJob.execute_parallel_jobs(handle)
+    result_io = ResultIO.new
+    RemoteJob.get_parallel_run_results(handle) do |tag, gear_id, output, status|
+      Rails.logger.error "Subscriber connection event output:: tag: #{tag}, gear_id: #{gear_id}," +
+                   "output: #{output}, status: #{status}"
+      result_io.append = ResultIO.new(status, output, gear_id)
+    end
     Rails.logger.debug "Connections done"
+    result_io
   end
 
   #private
