@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/openshift/cartridges/v2/perl
 
 Name: openshift-origin-cartridge-perl
-Version: 0.3.4
+Version: 0.3.5
 Release: 1%{?dist}
 Summary: Perl cartridge
 Group: Development/Languages
@@ -70,6 +70,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Tue May 07 2013 Adam Miller <admiller@redhat.com> 0.3.5-1
+- fix missing target for cp (rchopra@redhat.com)
+
 * Fri May 03 2013 Adam Miller <admiller@redhat.com> 0.3.4-1
 - fix tests (dmcphers@redhat.com)
 - Special file processing (fotios@redhat.com)
