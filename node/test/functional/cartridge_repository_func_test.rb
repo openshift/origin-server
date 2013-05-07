@@ -267,6 +267,19 @@ module OpenShift
       assert_match /\bName\b/, err.message
     end
 
+    def test_reserved_cartridge_name
+      manifest = IO.read(File.join(@cartridge.manifest_path))
+      manifest << "Name: git" << "\n"
+      manifest << 'Source-Url: https://www.example.com/mock-plugin.tar.gz' << "\n"
+      manifest << "Source-Md5: #{@tgz_hash}"
+
+      err = assert_raise(OpenShift::InvalidElementError) do
+        cartridge      = OpenShift::Runtime::Manifest.new(manifest)
+      end
+
+      assert_match /is reserved.: 'Name'/, err.message
+    end
+
     def test_instantiate_cartridge_tgz
       # Point manifest at "remote" URL
       manifest = IO.read(File.join(@cartridge.manifest_path))
