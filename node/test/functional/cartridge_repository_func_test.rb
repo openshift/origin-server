@@ -157,7 +157,8 @@ module OpenShift
 
       # Point manifest at "remote" repository
       manifest = IO.read(File.join(cuckoo_source, 'metadata', 'manifest.yml'))
-      manifest << ('Source-Url: file://' + cuckoo_repo + '.git')
+      manifest << ('Source-Url: file://' + cuckoo_repo + '.git') << "\n"
+      manifest = change_cartridge_vendor_of manifest
 
       cartridge      = OpenShift::Runtime::Manifest.new(manifest)
       cartridge_home = "#{@test_home}/gear/mock-plugin"
@@ -177,7 +178,8 @@ module OpenShift
 
       # Point manifest at "remote" repository
       manifest         = IO.read(File.join(cuckoo_source, 'metadata', 'manifest.yml'))
-      manifest << ('Source-Url: file://' + cuckoo_source)
+      manifest << ('Source-Url: file://' + cuckoo_source) << "\n"
+      manifest = change_cartridge_vendor_of manifest
 
       cartridge      = OpenShift::Runtime::Manifest.new(manifest)
       cartridge_home = "#{@test_home}/gear/mock-plugin"
@@ -195,7 +197,8 @@ module OpenShift
       # Point manifest at "remote" URL
       manifest = IO.read(File.join(@cartridge.manifest_path))
       manifest << 'Source-Url: https://www.example.com/mock-plugin.zip' << "\n"
-      manifest << "Source-Md5: #{@zip_hash}"
+      manifest << "Source-Md5: #{@zip_hash}" << "\n"
+      manifest = change_cartridge_vendor_of manifest
 
       cartridge      = OpenShift::Runtime::Manifest.new(manifest)
       cartridge_home = "#{@test_home}/gear/mock-plugin"
@@ -212,7 +215,8 @@ module OpenShift
       # Point manifest at "remote" URL
       manifest = IO.read(File.join(@cartridge.manifest_path))
       manifest << 'Source-Url: https://www.example.com/mock-plugin.zip' << "\n"
-      manifest << 'Source-Md5: 666'
+      manifest << 'Source-Md5: 666' << "\n"
+      manifest = change_cartridge_vendor_of manifest
 
       cartridge      = OpenShift::Runtime::Manifest.new(manifest)
       cartridge_home = "#{@test_home}/gear/mock-plugin"
@@ -228,6 +232,7 @@ module OpenShift
       # Point manifest at "remote" URL
       manifest = IO.read(File.join(@cartridge.manifest_path))
       manifest << 'Source-Url: https://www.example.com/malformed.zip' << "\n"
+      manifest = change_cartridge_vendor_of manifest
 
       cartridge      = OpenShift::Runtime::Manifest.new(manifest)
       cartridge_home = "#{@test_home}/gear/mock-plugin"
@@ -246,6 +251,19 @@ module OpenShift
       manifest << 'Source-Url: https://www.example.com/mock-plugin.tar.gz' << "\n"
       manifest << "Source-Md5: #{@tgz_hash}"
 
+      err = assert_raise(OpenShift::InvalidElementError) do
+        cartridge      = OpenShift::Runtime::Manifest.new(manifest)
+      end
+
+      assert_match 'Cartridge-Vendor', err.message
+    end
+
+    def test_reserved_cartridge_name
+      manifest = IO.read(File.join(@cartridge.manifest_path))
+      manifest << "Cartridge-Vendor: redhat" << "\n"
+      manifest << 'Source-Url: https://www.example.com/mock-plugin.tar.gz' << "\n"
+      manifest << "Source-Md5: #{@tgz_hash}"
+      manifest = change_cartridge_vendor_of manifest
 
       err = assert_raise(OpenShift::InvalidElementError) do
         cartridge      = OpenShift::Runtime::Manifest.new(manifest)
@@ -260,7 +278,6 @@ module OpenShift
       manifest << 'Source-Url: https://www.example.com/mock-plugin.tar.gz' << "\n"
       manifest << "Source-Md5: #{@tgz_hash}"
 
-
       err = assert_raise(OpenShift::InvalidElementError) do
         cartridge      = OpenShift::Runtime::Manifest.new(manifest)
       end
@@ -273,6 +290,7 @@ module OpenShift
       manifest << "Name: 0a-" << "\n"
       manifest << 'Source-Url: https://www.example.com/mock-plugin.tar.gz' << "\n"
       manifest << "Source-Md5: #{@tgz_hash}"
+      manifest = change_cartridge_vendor_of manifest
 
       err = assert_raise(OpenShift::InvalidElementError) do
         cartridge      = OpenShift::Runtime::Manifest.new(manifest)
@@ -286,7 +304,7 @@ module OpenShift
       manifest << "Name: #{'a'* (OpenShift::Runtime::Manifest::MAX_CARTRIDGE_NAME + 1)}\n"
       manifest << 'Source-Url: https://www.example.com/mock-plugin.tar.gz' << "\n"
       manifest << "Source-Md5: #{@tgz_hash}"
-
+      manifest = change_cartridge_vendor_of manifest
 
       err = assert_raise(OpenShift::InvalidElementError) do
         cartridge      = OpenShift::Runtime::Manifest.new(manifest)
@@ -300,6 +318,7 @@ module OpenShift
       manifest << "Name: git" << "\n"
       manifest << 'Source-Url: https://www.example.com/mock-plugin.tar.gz' << "\n"
       manifest << "Source-Md5: #{@tgz_hash}"
+      manifest = change_cartridge_vendor_of manifest
 
       err = assert_raise(OpenShift::InvalidElementError) do
         cartridge      = OpenShift::Runtime::Manifest.new(manifest)
@@ -312,7 +331,8 @@ module OpenShift
       # Point manifest at "remote" URL
       manifest = IO.read(File.join(@cartridge.manifest_path))
       manifest << 'Source-Url: https://www.example.com/mock-plugin.tar.gz' << "\n"
-      manifest << "Source-Md5: #{@tgz_hash}"
+      manifest << "Source-Md5: #{@tgz_hash}" << "\n"
+      manifest = change_cartridge_vendor_of manifest
 
       cartridge      = OpenShift::Runtime::Manifest.new(manifest)
       cartridge_home = "#{@test_home}/gear/mock-plugin"
@@ -330,6 +350,7 @@ module OpenShift
       manifest = IO.read(File.join(@cartridge.manifest_path))
       manifest << 'Source-Url: http://www.example.com/mock-plugin.tar' << "\n"
       manifest << "Source-Md5: #{@tar_hash}"
+      manifest = change_cartridge_vendor_of manifest
 
       cartridge      = OpenShift::Runtime::Manifest.new(manifest)
       cartridge_home = "#{@test_home}/gear/mock-plugin"
@@ -346,6 +367,7 @@ module OpenShift
 
       manifest = IO.read(File.join(@cartridge.manifest_path))
       manifest << 'Source-Url: https://github.com/ironcladlou/openshift-personal-mock/archive/master.zip' << "\n"
+      manifest = change_cartridge_vendor_of manifest
 
       cartridge      = OpenShift::Runtime::Manifest.new(manifest)
       cartridge_home = "#{@test_home}/gear/mock"
