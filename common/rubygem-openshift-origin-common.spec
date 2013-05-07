@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Common
 Name:          rubygem-%{gem_name}
-Version: 1.7.4
+Version: 1.7.5
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -96,6 +96,10 @@ cp -a ./%{gem_dir}/* %{buildroot}%{gem_dir}/
 %doc %{gem_docdir}
 
 %changelog
+* Tue May 07 2013 Adam Miller <admiller@redhat.com> 1.7.5-1
+- Check cartridge name for reserved names ('app-root', 'git')
+  (asari.ruby@gmail.com)
+
 * Mon May 06 2013 Adam Miller <admiller@redhat.com> 1.7.4-1
 - Merge pull request #2342 from BanzaiMan/dev/hasari/c288_followup
   (dmcphers+openshiftbot@redhat.com)
