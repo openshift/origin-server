@@ -1080,7 +1080,7 @@ class Application
       pub_inst = self.component_instances.find(conn.from_comp_inst_id)
       sub_inst = self.component_instances.find(conn.to_comp_inst_id)
       sub_ginst = self.group_instances.find(sub_inst.group_instance_id)
-      tag = ""
+      tag = conn.connection_type
     
       unless pub_out[conn._id.to_s].nil?
         if conn.connection_type.start_with?("ENV:")
@@ -1101,13 +1101,19 @@ class Application
       end
     end
     RemoteJob.execute_parallel_jobs(handle)
-    result_io = ResultIO.new
+    info_messages = {}
     RemoteJob.get_parallel_run_results(handle) do |tag, gear_id, output, status|
       Rails.logger.error "Subscriber connection event output:: tag: #{tag}, gear_id: #{gear_id}," +
                    "output: #{output}, status: #{status}"
-      result_io.append = ResultIO.new(status, output, gear_id)
+      if tag.start_with?("INFO:") and not info_messages.has_key? tag
+        info_messages[tag] = output
+      end
     end
     Rails.logger.debug "Connections done"
+    result_io = ResultIO.new
+    info_messages.each do |k, v|
+      result_io.resultIO << v
+    end
     result_io
   end
 

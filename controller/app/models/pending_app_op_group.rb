@@ -260,7 +260,7 @@ class PendingAppOpGroup
           when :set_connections
             application.set_connections(op.args["connections"])
           when :execute_connections
-            application.execute_connections
+            result_io.append application.execute_connections
           when :unsubscribe_connections
             application.unsubscribe_connections(op.args["sub_pub_info"])
           when :set_gear_additional_filesystem_gb
