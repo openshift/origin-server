@@ -26,7 +26,7 @@ module OpenShift
 
     def before_setup
 
-      @uuid = %x(uuidgen -r |sed -e s/-//g).chomp
+      @uuid = %x(uuidgen -r).gsub(/-/,'').chomp[0..15]
 
       @test_home      = "/tmp/tests/#{@uuid}"
       @tgz_file       = File.join(@test_home, 'mock_plugin.tar.gz')
@@ -254,6 +254,20 @@ module OpenShift
       assert_match 'Cartridge-Vendor', err.message
     end
 
+    def test_vendor_name_too_long
+      manifest = IO.read(File.join(@cartridge.manifest_path))
+      manifest << "Cartridge-Vendor: #{'a'* (OpenShift::Runtime::Manifest::MAX_VENDOR_NAME + 1)}\n"
+      manifest << 'Source-Url: https://www.example.com/mock-plugin.tar.gz' << "\n"
+      manifest << "Source-Md5: #{@tgz_hash}"
+
+
+      err = assert_raise(OpenShift::InvalidElementError) do
+        cartridge      = OpenShift::Runtime::Manifest.new(manifest)
+      end
+
+      assert_match 'Cartridge-Vendor', err.message
+    end
+
     def test_invalid_cartridge_name
       manifest = IO.read(File.join(@cartridge.manifest_path))
       manifest << "Name: 0a-" << "\n"
@@ -267,6 +281,20 @@ module OpenShift
       assert_match /\bName\b/, err.message
     end
 
+    def test_cartridge_name_too_long
+      manifest = IO.read(File.join(@cartridge.manifest_path))
+      manifest << "Name: #{'a'* (OpenShift::Runtime::Manifest::MAX_CARTRIDGE_NAME + 1)}\n"
+      manifest << 'Source-Url: https://www.example.com/mock-plugin.tar.gz' << "\n"
+      manifest << "Source-Md5: #{@tgz_hash}"
+
+
+      err = assert_raise(OpenShift::InvalidElementError) do
+        cartridge      = OpenShift::Runtime::Manifest.new(manifest)
+      end
+
+      assert_match 'Name', err.message
+    end
+
     def test_reserved_cartridge_name
       manifest = IO.read(File.join(@cartridge.manifest_path))
       manifest << "Name: git" << "\n"
@@ -277,7 +305,7 @@ module OpenShift
         cartridge      = OpenShift::Runtime::Manifest.new(manifest)
       end
 
-      assert_match /is reserved.: 'Name'/, err.message
+      assert_match /is reserved\.: 'Name'/, err.message
     end
 
     def test_instantiate_cartridge_tgz
