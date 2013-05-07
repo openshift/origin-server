@@ -29,7 +29,7 @@ module OpenShift
         # Return a cartridge in the gear; the primary if there is one.
         each_cartridge do |cartridge|
           cartridge_name = cartridge.name
-          break if cartridge.primary?
+          break if cartridge.deployable?
         end
       end
       if cartridge_name.nil?
@@ -74,7 +74,7 @@ module OpenShift
       cart = nil
       each_cartridge do |cartridge|
         cart = cartridge
-        break if cartridge.primary?
+        break if cartridge.deployable?
       end
 
       if cart.nil?
