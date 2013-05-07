@@ -33,35 +33,33 @@ class EmbCartController < BaseController
 
   # POST /domains/[domain_id]/applications/[application_id]/cartridges
   def create
-    name = params[:name]
+    cart_param = params[:name]
 
     # :cartridge param is deprecated because it isn't consistent with
     # the rest of the apis which take :name. Leave it here because
     # some tools may still use it
-    name = params[:cartridge] if name.nil?
+    cart_param = params[:cartridge] if cart_param.nil?
     colocate_with = params[:colocate_with]
     scales_from = Integer(params[:scales_from]) rescue nil
     scales_to = Integer(params[:scales_to]) rescue nil
     additional_storage = Integer(params[:additional_storage]) rescue nil
 
-    features = []
     cart_urls = []
-    if name.is_a? Hash
-      if name[:name] and name[:name].is_a? String
-        features << name[:name]
-      elsif name[:url]
-        cart_urls << name[:url]
+    if cart_param.is_a? Hash
+      if cart_param[:name] and cart_param[:name].is_a? String
+        name = cart_param[:name]
+      elsif cart_param[:url]
+        cart_urls << cart_param[:url]
         begin
           cmap = CartridgeCache.fetch_community_carts(cart_urls)
           name = cmap.keys[0]
-          features << name
           @application.downloaded_cart_map.merge!(cmap)
         rescue Exception=>e
           return render_error(:unprocessable_entity, "Error in cartridge url - #{e.message}", 109)
         end
       end
     else
-      features << name
+      name = cart_param
     end
 
     begin
@@ -112,7 +110,7 @@ class EmbCartController < BaseController
         group_overrides << group_override
       end
 
-      cart_create_reply = @application.add_features(features, group_overrides)
+      cart_create_reply = @application.add_features([name], group_overrides)
 
       component_instance = @application.component_instances.find_by(cartridge_name: cart.name, component_name: comp.name)
       cartridge = get_rest_cartridge(@application, component_instance, @application.group_instances_with_scale, @application.group_overrides)
