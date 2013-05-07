@@ -638,9 +638,10 @@ class Application
   ##
   # Returns the fully qualified DNS name for the primary application gear
   # @return [String]
-  def fqdn(domain=nil)
+  def fqdn(domain=nil, gear_uuid = nil)
     domain = domain || self.domain
-    "#{self.name}-#{domain.namespace}.#{Rails.configuration.openshift[:domain_suffix]}"
+    appname = gear_uuid || self.name
+    "#{appname}-#{domain.namespace}.#{Rails.configuration.openshift[:domain_suffix]}"
   end
 
   ##
@@ -648,7 +649,7 @@ class Application
   # @return [String]
   def ssh_uri(domain=nil, gear_uuid=nil)
     #if gear_uuid provided
-    return "#{gear_uuid}@#{fqdn(domain)}" if gear_uuid
+    return "#{gear_uuid}@#{fqdn(domain,gear_uuid)}" if gear_uuid
     # else get the gear_uuid of head gear
     self.group_instances.each do |group_instance|
       if group_instance.gears.where(app_dns: true).count > 0
