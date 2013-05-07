@@ -176,7 +176,7 @@ module OpenShift
       buffer = ''
       unless skip_hooks
         each_cartridge do |cartridge|
-          unlock_gear(cartridge) do |c|
+          unlock_gear(cartridge, false) do |c|
             begin
               buffer << cartridge_teardown(c.directory)
             rescue Utils::ShellExecutionException => e
