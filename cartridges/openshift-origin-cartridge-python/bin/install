@@ -18,7 +18,7 @@ else
 fi
 
 update-configuration $version
-
+mkdir -p $OPENSHIFT_PYTHON_DIR/template
 # Call the version specific setup script
 exec $OPENSHIFT_PYTHON_DIR/versions/$version/bin/install $version
 

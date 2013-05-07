@@ -4,6 +4,6 @@ case "$1" in
     -v|--version)
       version="$2"
 esac
-
+mkdir -p $OPENSHIFT_PYTHON_DIR/etc
 # Call the version specific setup script
 exec $OPENSHIFT_PYTHON_DIR/versions/$version/bin/setup $version
