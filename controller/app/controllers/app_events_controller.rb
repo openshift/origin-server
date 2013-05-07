@@ -63,11 +63,11 @@ class AppEventsController < BaseController
           msg = "Application #{@application.name} has removed alias"
           # msg += ": #{r.resultIO.string.chomp}" if !r.resultIO.string.empty?
         when "scale-up"
-          web_framework_component_instance = @application.component_instances.select{ |c| CartridgeCache.find_cartridge(c.cartridge_name).categories.include?("web_framework") }.first
+          web_framework_component_instance = @application.component_instances.select{ |c| CartridgeCache.find_cartridge(c.cartridge_name,@application).categories.include?("web_framework") }.first
           @application.scale_by(web_framework_component_instance.group_instance_id, 1)
           msg = "Application #{@application.name} has scaled up"
         when "scale-down"
-          web_framework_component_instance = @application.component_instances.select{ |c| CartridgeCache.find_cartridge(c.cartridge_name).categories.include?("web_framework") }.first
+          web_framework_component_instance = @application.component_instances.select{ |c| CartridgeCache.find_cartridge(c.cartridge_name,@application).categories.include?("web_framework") }.first
           @application.scale_by(web_framework_component_instance.group_instance_id, -1)
           msg = "Application #{@application.name} has scaled down"
         when "thread-dump"
