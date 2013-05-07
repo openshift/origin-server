@@ -249,14 +249,6 @@ function threaddump() {
     fi
 }
 
-function prebuild() {
-  echo "prebuild"
-}
-
-function postdeploy() {
-  echo "postdeploy"
-}
-
 case "$1" in
   build)           build ;;
   deploy)          deploy ;;
@@ -267,8 +259,6 @@ case "$1" in
   reload)          reload ;;
   tidy)            tidy ;;
   threaddump)      threaddump ;;
-  pre-build)       prebuild ;;
-  post-deploy)     postdeploy ;;
   process-version) update-configuration;;
   *)               exit 0
 esac
