@@ -10,6 +10,7 @@ URL:           http://www.openshift.com
 Source0:       http://mirror.openshift.com/pub/openshift-origin/source/%{name}/%{name}-%{version}.tar.gz
 Requires:      rubygem(openshift-origin-node)
 Requires:      openshift-origin-node-util
+Requires:      tomcat6
 Requires:      tomcat7
 Requires:      lsof
 Requires:      java-1.7.0-openjdk
@@ -25,7 +26,7 @@ BuildRequires: jpackage-utils
 BuildArch:     noarch
 
 %description
-Provides JBossEWS2.0 support to OpenShift. (Cartridge Format V2)
+Provides JBossEWS1.0 and JBossEWS2.0 support to OpenShift. (Cartridge Format V2)
 
 
 %prep
@@ -60,10 +61,13 @@ alternatives --install /etc/alternatives/maven-3.0 maven-3.0 /usr/share/maven 10
 alternatives --set maven-3.0 /usr/share/maven
 %endif
 
+alternatives --remove jbossews-1.0 /usr/share/tomcat6
+alternatives --install /etc/alternatives/jbossews-1.0 jbossews-1.0 /usr/share/tomcat6 102
+alternatives --set jbossews-1.0 /usr/share/tomcat6
+
 alternatives --remove jbossews-2.0 /usr/share/tomcat7
 alternatives --install /etc/alternatives/jbossews-2.0 jbossews-2.0 /usr/share/tomcat7 102
 alternatives --set jbossews-2.0 /usr/share/tomcat7
-
 
 %{_sbindir}/oo-admin-cartridge --action install --offline --source /usr/libexec/openshift/cartridges/v2/jbossews
 
