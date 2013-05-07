@@ -29,6 +29,7 @@ require 'openshift-origin-node/utils/environ'
 require 'openshift-origin-common/utils/path_utils'
 require 'openshift-origin-node/utils/application_state'
 require 'openshift-origin-node/utils/managed_files'
+require 'openshift-origin-node/utils/sanitize'
 
 module OpenShift
   class FileLockError < Exception
@@ -867,11 +868,11 @@ module OpenShift
                                     timeout:         60,
                                     uid:             @user.uid)
       if 0 == rc
-        logger.info("(#{rc})\n------\n#{cleanpwd(out)}\n------)")
+        logger.info("(#{rc})\n------\n#{Runtime::Utils.sanitize_credentials(out)}\n------)")
         return out
       end
 
-      logger.info("ERROR: (#{rc})\n------\n#{cleanpwd(out)}\n------)")
+      logger.info("ERROR: (#{rc})\n------\n#{Runtime::Utils.sanitize_credentials(out)}\n------)")
       raise OpenShift::Utils::ShellExecutionException.new(
                 "Control action '#{connector}' returned an error. rc=#{rc}\n#{out}", rc, out, err)
     end
@@ -988,10 +989,6 @@ module OpenShift
         hooks[key] << "source #{old_hook}" if File.exist? old_hook
       end
       hooks
-    end
-
-    def cleanpwd(arg)
-      arg.gsub(/(passwo?r?d\s*[:=]+\s*)\S+/i, '\\1[HIDDEN]').gsub(/(usern?a?m?e?\s*[:=]+\s*)\S+/i, '\\1[HIDDEN]')
     end
 
     ##
