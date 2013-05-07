@@ -69,6 +69,9 @@ Subscribes:
   set-doc-url:
     Type: "STRING:urlpath"
     Required : false
+  set-php-config:
+    Type: "DEP:dep-install:php"
+    Required : false
 Scaling:
   Min: 1
   Max: -1
