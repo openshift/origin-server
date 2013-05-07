@@ -3,6 +3,7 @@ require 'open4'
 require 'openshift-origin-node/model/unix_user'
 require 'openshift-origin-node/utils/shell_exec'
 require 'openshift-origin-node/utils/node_logger'
+require 'openshift-origin-node/utils/sanitize'
 
 module OpenShift
   class V1CartridgeModel
@@ -291,15 +292,11 @@ module OpenShift
       exitcode = status.exitstatus
 
       if exitcode == 0
-        logger.info("(#{exitcode})\n------\n#{cleanpwd(output)}\n------)")
+        logger.info("(#{exitcode})\n------\n#{Runtime::Utils.sanitize_credentials(output)}\n------)")
       else
-        logger.info("ERROR: (#{exitcode})\n------\n#{cleanpwd(output)}\n------)")
+        logger.info("ERROR: (#{exitcode})\n------\n#{Runtime::Utils.sanitize_credentials(output)}\n------)")
       end
       return exitcode, output
-    end
-
-    def cleanpwd(arg)
-      arg.gsub(/(passwo?r?d\s*[:=]+\s*)\S+/i, '\\1[HIDDEN]').gsub(/(usern?a?m?e?\s*[:=]+\s*)\S+/i,'\\1[HIDDEN]')
     end
 
     def snapshot
