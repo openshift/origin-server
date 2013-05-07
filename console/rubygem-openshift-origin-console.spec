@@ -9,7 +9,7 @@
 
 Summary:       OpenShift Origin Management Console
 Name:          rubygem-%{gem_name}
-Version: 1.8.7
+Version: 1.8.8
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -147,6 +147,14 @@ cp -a ./%{gem_dir}/* %{buildroot}%{gem_dir}/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Tue May 07 2013 Adam Miller <admiller@redhat.com> 1.8.8-1
+- Merge pull request #2369 from liggitt/date_helper
+  (dmcphers+openshiftbot@redhat.com)
+- Add collapse_dates helper method (jliggitt@redhat.com)
+- Merge pull request #2358 from detiber/bz959162
+  (dmcphers+openshiftbot@redhat.com)
+- <console> Bug 959162 - Fix display issues (jdetiber@redhat.com)
+
 * Mon May 06 2013 Adam Miller <admiller@redhat.com> 1.8.7-1
 - Bug 959904 - DIY cartridge is not listed on the create app page
   (jforrest@redhat.com)
