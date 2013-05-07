@@ -16,7 +16,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.8.7
+Version: 1.8.8
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -287,6 +287,13 @@ fi
 %attr(0755,-,-) /etc/cron.monthly/openshift-origin-cron-monthly
 
 %changelog
+* Tue May 07 2013 Adam Miller <admiller@redhat.com> 1.8.8-1
+- Merge pull request #2364 from BanzaiMan/dev/hasari/reserved_cartridge_names
+  (dmcphers@redhat.com)
+- Do not try to unlock gear after destroy (fotios@redhat.com)
+- Check cartridge name for reserved names ('app-root', 'git')
+  (asari.ruby@gmail.com)
+
 * Mon May 06 2013 Adam Miller <admiller@redhat.com> 1.8.7-1
 - Merge pull request #2357 from pmorie/bugs/951405
   (dmcphers+openshiftbot@redhat.com)
