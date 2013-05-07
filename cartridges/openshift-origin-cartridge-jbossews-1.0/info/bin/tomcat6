@@ -7,6 +7,8 @@ function replace_envs() {
 	sed_replace_env=$(print_sed_exp_replace_env_var)
 
 	sed -i ${sed_replace_env} "${CATALINA_BASE}/conf/server.xml" > /dev/null 2>&1
+	
+	sed -i ${sed_replace_env} "${CATALINA_BASE}/conf/context.xml" > /dev/null 2>&1
 }
 
 # Create a link for each file in user config to server standalone/config
