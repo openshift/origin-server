@@ -21,8 +21,20 @@ module CommandHelper
     result
   end
 
-  def getenv_uservar(uuid, var)
-    IO.read("/var/lib/openshift/#{uuid}/.env/.uservars/#{var}").chomp!
+  def getenv_uservar(uuid, var, cart_name)
+    path = if $v2_node
+      "/var/lib/openshift/#{uuid}/.env/#{cart_name}/#{var}"
+    else
+      "/var/lib/openshift/#{uuid}/.env/.uservars/#{var}"
+    end
+
+    $logger.info("Reading #{path}")
+
+    result = IO.read(path).chomp
+
+    $logger.info("Result: #{result}")
+
+    result
   end
 
   def run_stdout(cmd)
@@ -291,9 +303,9 @@ module CommandHelper
         # Source the env var values from the gear directory
 
         if app.scalable
-          app.mysql_hostname = getenv_uservar(app.uid, 'OPENSHIFT_MYSQL_DB_HOST')
-          app.mysql_user     = getenv_uservar(app.uid, 'OPENSHIFT_MYSQL_DB_USERNAME')
-          app.mysql_password = getenv_uservar(app.uid, 'OPENSHIFT_MYSQL_DB_PASSWORD')
+          app.mysql_hostname = getenv_uservar(app.uid, 'OPENSHIFT_MYSQL_DB_HOST', 'mysql-5.1')
+          app.mysql_user     = getenv_uservar(app.uid, 'OPENSHIFT_MYSQL_DB_USERNAME', 'mysql-5.1')
+          app.mysql_password = getenv_uservar(app.uid, 'OPENSHIFT_MYSQL_DB_PASSWORD', 'mysql-5.1')
         else
           app.mysql_hostname = getenv(app.uid, 'OPENSHIFT_MYSQL_DB_HOST')
           app.mysql_user     = getenv(app.uid, 'OPENSHIFT_MYSQL_DB_USERNAME', 'mysql')

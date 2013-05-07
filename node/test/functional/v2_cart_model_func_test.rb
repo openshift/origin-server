@@ -85,31 +85,6 @@ module OpenShift
                         'Failed to delete .mock_hidden.erb after processing')
     end
 
-    def test_publish_db_connection_info
-      @model.configure('mock-plugin-0.1')
-
-      results = @model.connector_execute('mock-plugin-0.1', 'mysql-5.1', 'NET_TCP:db:connection-info', 'publish-db-connection-info', "")
-      refute_nil results
-
-      assert_match(
-          %r(OPENSHIFT_MOCK_PLUGIN_DB_USERNAME=UT_username; OPENSHIFT_MOCK_PLUGIN_DB_PASSWORD=UT_password; OPENSHIFT_MOCK_PLUGIN_GEAR_UUID=.*; OPENSHIFT_MOCK_PLUGIN_DB_HOST=\d+\.\d+\.\d+\.\d+; OPENSHIFT_MOCK_PLUGIN_DB_PORT=8080; OPENSHIFT_MOCK_PLUGIN_DB_URL=mock://\d+\.\d+\.\d+\.\d+:8080/unit_test;),
-          results)
-    end
-
-    def test_set_db_connection_info
-      @model.configure('mock-plugin-0.1')
-
-      @model.connector_execute('mock-0.1',
-                               'mysql-5.1',
-                               'NET_TCP:db:connection-info',
-                               'set-db-connection-info',
-                               "test testdomain 515c7e8bdf3e460939000001 \\'75e36e529c9211e29cc622000a8c0259\\'\\=\\'OPENSHIFT_MOCK_DB_GEAR_UUID\\=75e36e529c9211e29cc622000a8c0259\\;\\;\\ '\n'\\'")
-
-      uservar_file = File.join(@user.homedir, '.env', '.uservars', 'OPENSHIFT_MOCK_DB_GEAR_UUID')
-      assert_path_exist(uservar_file)
-      assert_equal '75e36e529c9211e29cc622000a8c0259', IO.read(uservar_file).chomp
-    end
-
     def test_configure_with_manifest
       refute_path_exist(File.join(@user.homedir, 'mock-plugin'))
 
