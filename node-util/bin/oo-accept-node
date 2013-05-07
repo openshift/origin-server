@@ -38,6 +38,12 @@ optparse = OptionParser.new { |opts|
     opts.on('-t n','--timeout n', OptionParser::DecimalInteger, 'length of timeout') { |timeout|
       $OPTIONS[:timeout] = timeout
     }
+
+    $OPTIONS[:devbuild] = false
+    opts.on('-d','--devbuild', 'Disable some tests for development bilding') { |devbuild|
+      $OPTIONS[:devbuild] = devbuild
+    }
+
   }
 optparse.parse!
 
@@ -451,10 +457,6 @@ def check_user_cgroups(username)
 end
 
 def check_system_httpd_configs
-    verbose("DISABLED: checking system httpd configs")
-end
-
-def check_system_httpd_configs_DISABLED
   verbose("checking system httpd configs")
   ['aliases.db', 'idler.db', 'nodes.db', 'sts.db'].each do |db|
     begin
@@ -496,7 +498,7 @@ def check_system_httpd_configs_DISABLED
   $ALL_USERS.each do |u|
     dnsfile = File.join($GEAR_BASE_DIR, u, '.env', 'OPENSHIFT_GEAR_DNS')
     fqdn = File.read(dnsfile)
-    if contents.start_with?('export ')
+    if fqdn.start_with?('export ')
       fqdn = fqdn.sub(/^.*=/,'').gsub('\'','').gsub('"','').strip.downcase
     end
 
