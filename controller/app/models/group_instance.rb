@@ -48,19 +48,23 @@ class GroupInstance
   end
   
   def gear_size
-    get_attribute_value("gear_size") || application.default_gear_size
+    get_group_override("gear_size") || application.default_gear_size
   end
 
   def gear_size=(value)
-    get_group_override["gear_size"] = value
+    if value == application.default_gear_size
+      unset_group_override("gear_size")
+    else
+      set_group_override("gear_size", value)
+    end
   end
 
   def addtl_fs_gb
-    get_attribute_value("additional_filesystem_gb") || 0
+    get_group_override("additional_filesystem_gb") || 0
   end
 
   def addtl_fs_gb=(value)
-    get_group_override["additional_filesystem_gb"] = value
+    set_group_override("additional_filesystem_gb", value)
   end
 
   # Adds ssh keys to all gears within the group instance.
@@ -105,21 +109,16 @@ class GroupInstance
     {component_instances: comps, scale: {current: self.gears.length, additional_filesystem_gb: self.addtl_fs_gb, gear_size: self.gear_size}, _id: _id}
   end
 
-  def get_group_override
-    value = nil
-    comps = all_component_instances.map{ |c| c.to_hash }
-    comps.each do |comp|
-      found = false
-      application.group_overrides.each do |group_override|
-        if group_override["components"].include?(comp)
-          value = group_override
-          found = true
-          break
-        end
-      end if application.group_overrides
-      break if found
-    end
-    value or { "components" => self.to_hash[:component_instances] }
+  def get_group_override(key=nil)
+    action_group_override("GET", key)
+  end
+ 
+  def set_group_override(key, value)
+    action_group_override("SET", key, value)
+  end
+
+  def unset_group_override(key)
+    action_group_override("UNSET", key)
   end
 
   protected
@@ -174,20 +173,34 @@ class GroupInstance
 
   private
  
-  def get_attribute_value(attr)
-    value = nil
+  def action_group_override(action, key=nil, value=nil)
     comps = all_component_instances.map{ |c| c.to_hash }
     comps.each do |comp|
-      found = false
       application.group_overrides.each do |group_override|
         if group_override["components"].include?(comp)
-          value = group_override[attr]
-          found = true
-          break
+          if action == "GET"
+            if key
+              return group_override[key]
+            else
+              return group_override
+            end
+          elsif action == "SET"
+            group_override[key] = value if key
+            return
+          elsif action == "UNSET"
+            group_override.delete(key)
+            return
+          end
         end
       end if application.group_overrides
-      break if found
     end
-    value
+    new_group_override = { "components" => comps }
+    if (action == "GET") and !key
+      return new_group_override
+    elsif (action == "SET") and key
+      new_group_override[key] = value
+      application.group_overrides << new_group_override
+    end
+    return nil
   end
 end
