@@ -44,7 +44,6 @@ rm -rf %{buildroot}
 %dir %{cartridgedir}/bin
 %dir %{cartridgedir}/env
 %dir %{cartridgedir}/metadata
-%dir %{cartridgedir}/versions
 %attr(0755,-,-) %{cartridgedir}/bin/
 %attr(0755,-,-) %{frameworkdir}
 %{cartridgedir}/metadata/manifest.yml
