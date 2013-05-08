@@ -329,6 +329,7 @@ module OpenShift
         uri       = URI(cartridge.source_url)
         temporary = PathUtils.join(File.dirname(target), File.basename(cartridge.source_url))
         cartridge.validate_vendor_name
+        cartridge.check_reserved_vendor_name
         cartridge.validate_cartridge_name
 
         case

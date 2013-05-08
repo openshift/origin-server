@@ -71,5 +71,15 @@ module OpenShift
       OpenShift::Utils::Sdk.unstub(:node_default_model)
       super
     end
+
+    # NOTE:
+    # #before_setup creates an archive with just the 'mock-plugin' cartridge
+    # for testing.
+    # Since this plugin's Cartridge-Vendor is 'redhat', which is reserved
+    # under certain circumstances (i.e., when cartridge is installed via URL).
+    # We need to tweak the Cartridge-Vendor value as required by tests.
+    def change_cartridge_vendor_of(manifest, vendor = 'redhat2')
+      manifest << "Cartridge-Vendor: #{vendor}"
+    end
   end
 end
