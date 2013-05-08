@@ -28,7 +28,7 @@ class CartridgeTypesControllerTest < ActionController::TestCase
     assert cached.all? {|t| (t.tags & [:installed, :inactive, 'inactive']).empty? }, cached.pretty_inspect
 
     assert_select "h3", 'Install your own cartridge'
-    assert_select "input[type=submit][title='Add an personal cartridge to this app']"
+    assert_select "input[type=submit][title='Download a cartridge into this app']"
   end
 
   test "should show type page" do
@@ -53,9 +53,9 @@ class CartridgeTypesControllerTest < ActionController::TestCase
     assert assigns(:domain)
 
     assert_select 'h3', 'bar'
-    assert_select 'p', /This is a personal cartridge/
+    assert_select 'p', /This cartridge will be downloaded/
     assert_select 'span', 'https://foo.com#bar'
-    assert_select '.text-warning', /Personal cartridges do not receive updates automatically/
+    assert_select '.text-warning', /Downloaded cartridges do not receive updates automatically/
     assert_select 'a[href=https://foo.com#bar]', 'bar'
   end
 

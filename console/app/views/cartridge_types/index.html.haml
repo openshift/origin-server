@@ -19,10 +19,10 @@
       - if RestApi.download_cartridges_enabled?
         %h3 Install your own cartridge
         %form.form-inline{:method => :get, :action => application_cartridge_type_path(@application, 'custom')}
-          %p You may also add an #{link_to 'personal cartridge', downloadable_cartridges_help_url} by providing the URL to the definition.  OpenShift will download and install this cart into your application.  Remember that personal cartridges will not automatically receive updates.
+          %p You may also add your own cartridges by providing a link to a #{link_to 'downloadable cartridge', downloadable_cartridges_help_url}.  OpenShift will download and install the cart into your application.  Remember that downloaded cartridges will not automatically receive updates.
 
           %input{:type => :text, :name => :url, :placeholder => 'URL to a cartridge definition'}
-          %input.btn{:type => :submit, :value => 'Next', :title => 'Add an personal cartridge to this app'}
+          %input.btn{:type => :submit, :value => 'Next', :title => 'Download a cartridge into this app'}
 
   - unless @installed.empty? and @requires.empty? and @conflicts.empty? and @blocked.empty?
     .span4
