@@ -5,7 +5,7 @@
 
 Summary:       Provides JBossEAP6.0 support
 Name:          openshift-origin-cartridge-jbosseap
-Version: 2.3.0
+Version: 2.3.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -94,6 +94,10 @@ cp -p %{cartridgedir}/versions/6.0/modules/postgresql_module.xml /etc/alternativ
 
 
 %changelog
+* Wed May 08 2013 Adam Miller <admiller@redhat.com> 2.3.1-1
+- bump_minor_versions for sprint 28 (admiller@redhat.com)
+- Bug 956572 (bdecoste@gmail.com)
+
 * Tue May 07 2013 Adam Miller <admiller@redhat.com> 2.2.7-1
 - Bug 960378 960458 (bdecoste@gmail.com)
 
