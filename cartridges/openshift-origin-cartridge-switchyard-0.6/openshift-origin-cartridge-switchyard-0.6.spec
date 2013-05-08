@@ -8,7 +8,7 @@
 
 Summary:       Embedded SwitchYard modules for JBoss
 Name:          openshift-origin-cartridge-switchyard-0.6
-Version: 1.7.2
+Version: 1.8.0
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0

@@ -2,7 +2,7 @@
 
 Summary:       Provides jenkins-1.4 support
 Name:          openshift-origin-cartridge-jenkins
-Version: 1.8.4
+Version: 1.9.0
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0

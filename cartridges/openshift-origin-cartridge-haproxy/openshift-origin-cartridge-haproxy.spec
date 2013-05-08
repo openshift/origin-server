@@ -6,7 +6,7 @@
 %global frameworkdir %{_libexecdir}/openshift/cartridges/v2/haproxy
 
 Name:          openshift-origin-cartridge-haproxy
-Version: 0.3.6
+Version: 0.4.0
 Release:       1%{?dist}
 Summary:       Provides HA Proxy
 Group:         Network/Daemons
