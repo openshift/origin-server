@@ -9,7 +9,7 @@
 
 Summary:       OpenShift Origin Management Console
 Name:          rubygem-%{gem_name}
-Version: 1.8.8
+Version: 1.8.9
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -147,6 +147,23 @@ cp -a ./%{gem_dir}/* %{buildroot}%{gem_dir}/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Wed May 08 2013 Adam Miller <admiller@redhat.com> 1.8.9-1
+- Merge pull request #2388 from detiber/bz959162
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #2390 from ironcladlou/bz/958694
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 958694: Make .state gear scoped and refactor primary cart concept
+  (ironcladlou@gmail.com)
+- Merge pull request #2377 from smarterclayton/fix_cart_messaging
+  (dmcphers+openshiftbot@redhat.com)
+- <console> Bug 959162 - Fix display issues (jdetiber@redhat.com)
+- Merge pull request #2383 from smarterclayton/revert_a0a565ff_in_console
+  (dmcphers+openshiftbot@redhat.com)
+- Revert a0a565ff - changes need to go through styling review
+  (ccoleman@redhat.com)
+- Adjust the naming of downloaded cartridges to match decisions
+  (ccoleman@redhat.com)
+
 * Tue May 07 2013 Adam Miller <admiller@redhat.com> 1.8.8-1
 - Merge pull request #2369 from liggitt/date_helper
   (dmcphers+openshiftbot@redhat.com)
