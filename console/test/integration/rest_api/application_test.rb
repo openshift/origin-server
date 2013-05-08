@@ -99,11 +99,11 @@ class RestApiApplicationTest < ActiveSupport::TestCase
     with_configured_user
     setup_domain
 
-    assert_create_app({:include => :cartridges, :initial_git_url => 'https://github.com/openshift/wordpress-example', :cartridges => ['php-5.3']}, "Set initial git URL") do |app|
-      assert_equal ['php-5.3'], app.cartridges.map(&:name)
+    assert_create_app({:include => :cartridges, :initial_git_url => 'https://github.com/openshift/nodejs-example', :cartridges => ['nodejs-0.6']}, "Set initial git URL") do |app|
+      assert_equal ['nodejs-0.6'], app.cartridges.map(&:name)
       loaded_app = Application.find(app.name, :params => {:domain_id => @domain.id}, :as => @user)
       omit("No initial_git_url returned") unless loaded_app.initial_git_url
-      assert_equal "https://github.com/openshift/wordpress-example", loaded_app.initial_git_url
+      assert_equal "https://github.com/openshift/nodejs-example", loaded_app.initial_git_url
     end
   end
 

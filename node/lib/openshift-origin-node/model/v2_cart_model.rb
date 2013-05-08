@@ -80,15 +80,16 @@ module OpenShift
     end
 
     ##
-    # Returns the +Cartridge+ in the gear whose +primary+ flag is set to true,
-    #
-    # Raises an exception if no such cartridge is present.
+    # Returns the primary +Cartridge+ in the gear as specified by the
+    # +OPENSHIFT_PRIMARY_CARTRIDGE_DIR+ environment variable, or +Nil+ if
+    # no primary cartridge is present.
     def primary_cartridge
-      each_cartridge do |cartridge|
-        return cartridge if cartridge.primary?
-      end
+      env              = Utils::Environ.for_gear(@user.homedir)
+      primary_cart_dir = env['OPENSHIFT_PRIMARY_CARTRIDGE_DIR']
 
-      raise "No primary cartridge found on gear #{@user.uuid}"
+      raise "No primary cartridge detected in gear #{@user.uuid}" unless primary_cart_dir
+      
+      return get_cartridge_from_directory(File.basename(primary_cart_dir))
     end
 
     ##
@@ -149,6 +150,8 @@ module OpenShift
 
     # Load cartridge's local manifest from cartridge directory name
     def get_cartridge_from_directory(directory)
+      raise "Directory name is required" if (directory == nil || directory.empty?)
+
       unless @cartridges.has_key? directory
         cartridge_path = PathUtils.join(@user.homedir, directory)
         manifest_path  = PathUtils.join(cartridge_path, 'metadata', 'manifest.yml')
@@ -251,7 +254,7 @@ module OpenShift
             output << cartridge_action(cartridge, 'setup', software_version, true)
             process_erb_templates(c.directory)
             output << cartridge_action(cartridge, 'install', software_version)
-            populate_gear_repo(c.directory, template_git_url) if cartridge.primary?
+            populate_gear_repo(c.directory, template_git_url) if cartridge.deployable?
           end
 
         end
@@ -415,7 +418,14 @@ module OpenShift
 
       envs.clear
       envs['namespace'] = @user.namespace if @user.namespace
-      envs['primary_cartridge_dir'] = target + File::SEPARATOR if cartridge.primary?
+
+      # If there's not already a primary cartridge on the gear, assume
+      # the new cartridge is the primary.
+      current_gear_env = Utils::Environ.for_gear(@user.homedir)
+      unless current_gear_env['OPENSHIFT_PRIMARY_CARTRIDGE_DIR']
+        envs['primary_cartridge_dir'] = target + File::SEPARATOR
+        logger.info("Cartridge #{cartridge.name} recorded as primary within gear #{@user.uuid}")
+      end
 
       unless envs.empty?
         write_environment_variables(File.join(@user.homedir, '.env'), envs)
@@ -1045,8 +1055,8 @@ module OpenShift
 
       buffer = ''
       each_cartridge do |cartridge|
-        next if options[:primary_only] and not cartridge.primary?
-        next if options[:secondary_only] and cartridge.primary?
+        next if options[:primary_only] and cartridge.name != primary_cartridge.name
+        next if options[:secondary_only] and cartridge.name == primary_cartridge.name
 
         buffer << start_cartridge('start', cartridge, options)
       end
@@ -1087,7 +1097,7 @@ module OpenShift
         return "Not starting cartridge #{cartridge.name} because the application was explicitly stopped by the user"
       end
 
-      if cartridge.primary?
+      if cartridge.name == primary_cartridge.name
         FileUtils.rm_f(stop_lock) if options[:user_initiated]
         @state.value = OpenShift::State::STARTED
       end
@@ -1138,7 +1148,7 @@ module OpenShift
         return "Not stopping cartridge #{cartridge.name} because the application was explicitly stopped by the user"
       end
 
-      if cartridge.primary?
+      if cartridge.name == primary_cartridge.name
         create_stop_lock if options[:user_initiated]
         @state.value = OpenShift::State::STOPPED
       end
