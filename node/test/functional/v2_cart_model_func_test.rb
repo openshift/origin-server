@@ -134,7 +134,8 @@ module OpenShift
 
       # Point manifest at "remote" repository
       manifest = IO.read(File.join(cuckoo, 'metadata', 'manifest.yml'))
-      manifest << ("Source-Url: file://" + cuckoo + '_repo')
+      manifest << ("Source-Url: file://" + cuckoo + '_repo') << "\n"
+      manifest = change_cartridge_vendor_of manifest
 
       # install the cuckoo
       begin

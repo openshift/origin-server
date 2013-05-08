@@ -101,6 +101,7 @@ class CartridgeRepositoryWebFunctionalTest < OpenShift::V2SdkTestCase
 
   def test_https_get
     manifest = @manifest + "Source-Url: https://localhost:#{@port}/mock_plugin.tar.gz\n"
+    manifest = change_cartridge_vendor_of manifest
 
     cartridge      = OpenShift::Runtime::Manifest.new(manifest)
     cartridge_home = "/tmp/var/home/gear/mock"
