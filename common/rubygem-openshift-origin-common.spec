@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Common
 Name:          rubygem-%{gem_name}
-Version: 1.8.0
+Version: 1.8.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -96,6 +96,12 @@ cp -a ./%{gem_dir}/* %{buildroot}%{gem_dir}/
 %doc %{gem_docdir}
 
 %changelog
+* Wed May 08 2013 Adam Miller <admiller@redhat.com> 1.8.1-1
+- bump_minor_versions for sprint 28 (admiller@redhat.com)
+- Merge pull request #2341 from lnader/master
+  (dmcphers+openshiftbot@redhat.com)
+- Bugs 958653, 959676, 959214 and Cleaned up UserException (lnader@redhat.com)
+
 * Wed May 08 2013 Adam Miller <admiller@redhat.com> 1.7.6-1
 - Merge pull request #2392 from BanzaiMan/dev/hasari/bz959843
   (dmcphers+openshiftbot@redhat.com)
