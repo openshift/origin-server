@@ -96,12 +96,12 @@ class ApplicationsController < BaseController
       @application_name = application.name
       @application_uuid = application.uuid
     rescue OpenShift::UnfulfilledRequirementException => e
-      return render_error(:unprocessable_entity, "Unable to create application for #{e.feature}", 109, "cartridge")
+      return render_error(:unprocessable_entity, "Unable to create application for #{e.feature}", 109, "cartridges")
     rescue OpenShift::ApplicationValidationException => e
       messages = get_error_messages(e.app)
       return render_error(:unprocessable_entity, nil, nil, nil, nil, messages)
     rescue OpenShift::UserException => e
-      return render_error(:unprocessable_entity, e.message, 109, "cartridge")
+      return render_error(:unprocessable_entity, e.message, e.code, e.field)
     rescue Exception => e
       return render_exception(e)  
     end
