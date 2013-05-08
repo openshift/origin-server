@@ -9,7 +9,7 @@
 
 Summary:       OpenShift Origin Management Console
 Name:          rubygem-%{gem_name}
-Version: 1.8.9
+Version: 1.8.10
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -147,6 +147,12 @@ cp -a ./%{gem_dir}/* %{buildroot}%{gem_dir}/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Wed May 08 2013 Adam Miller <admiller@redhat.com> 1.8.10-1
+- Merge pull request #2389 from liggitt/bug_959559_js_validation_errors
+  (dmcphers+openshiftbot@redhat.com)
+- Fix bug 959559 - mark individual fields as having errors, limit js validation
+  to onsubmit (jliggitt@redhat.com)
+
 * Wed May 08 2013 Adam Miller <admiller@redhat.com> 1.8.9-1
 - Merge pull request #2388 from detiber/bz959162
   (dmcphers+openshiftbot@redhat.com)
