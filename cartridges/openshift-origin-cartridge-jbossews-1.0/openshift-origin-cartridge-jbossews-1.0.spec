@@ -4,7 +4,7 @@
 
 Summary:       Provides JBossEWS1.0 support
 Name:          openshift-origin-cartridge-jbossews-1.0
-Version: 1.8.5
+Version: 1.8.6
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -118,6 +118,10 @@ alternatives --set jbossews-1.0 /usr/share/tomcat6
 
 
 %changelog
+* Wed May 08 2013 Adam Miller <admiller@redhat.com> 1.8.6-1
+- Bug 960650: Integrate with mysql and postgresql cartridges by default
+  (ironcladlou@gmail.com)
+
 * Tue May 07 2013 Adam Miller <admiller@redhat.com> 1.8.5-1
 - Bug 958892 (bdecoste@gmail.com)
 - Bug 958892 (bdecoste@gmail.com)
