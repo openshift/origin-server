@@ -16,7 +16,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.8.8
+Version: 1.8.9
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -287,6 +287,37 @@ fi
 %attr(0755,-,-) /etc/cron.monthly/openshift-origin-cron-monthly
 
 %changelog
+* Wed May 08 2013 Adam Miller <admiller@redhat.com> 1.8.9-1
+- Merge pull request #2392 from BanzaiMan/dev/hasari/bz959843
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #2390 from ironcladlou/bz/958694
+  (dmcphers+openshiftbot@redhat.com)
+- Do not validate vendor and cartridge names when instantiating Manifest from
+  filesystem. (asari.ruby@gmail.com)
+- Merge pull request #2379 from fotioslindiakos/Bug959123
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #2381 from BanzaiMan/dev/hasari/bz960364
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 958694: Make .state gear scoped and refactor primary cart concept
+  (ironcladlou@gmail.com)
+- Bug 959123: Fix Postgresql snapshot restore (fotios@redhat.com)
+- Merge pull request #2377 from smarterclayton/fix_cart_messaging
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 960364 (asari.ruby@gmail.com)
+- Merge pull request #2378 from pmorie/bugs/960675
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #2376 from ironcladlou/bz/960356
+  (dmcphers+openshiftbot@redhat.com)
+- Adjust the naming of downloaded cartridges to match decisions
+  (ccoleman@redhat.com)
+- Fix bug 960675 (pmorie@gmail.com)
+- Bug 960356: Make platform log permissions consistent with broker logs
+  (ironcladlou@gmail.com)
+- Merge pull request #2374 from BanzaiMan/dev/hasari/reserved_cartridge_names
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 960375: restrict vendor and cartridge names to 32 characters.
+  (asari.ruby@gmail.com)
+
 * Tue May 07 2013 Adam Miller <admiller@redhat.com> 1.8.8-1
 - Merge pull request #2364 from BanzaiMan/dev/hasari/reserved_cartridge_names
   (dmcphers@redhat.com)
