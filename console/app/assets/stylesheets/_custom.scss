@@ -100,15 +100,15 @@ textarea:focus {
 
 // Warning
 .control-group.warning {
-  @include formFieldState($warningBackground, $warningBackground, $warningBackground);
+  @include formFieldState($warningBackground, $warningBackground, $warningBackground, 'warning');
 }
 // Error
 .control-group.error {
-  @include formFieldState($errorBackground, $errorBackground, $errorBackground);
+  @include formFieldState($errorBackground, $errorBackground, $errorBackground, 'error');
 }
 // Success
 .control-group.success {
-  @include formFieldState($successBackground, $successBackground, $successBackground);
+  @include formFieldState($successBackground, $successBackground, $successBackground, 'success');
 }
 
 /* Print styles */
