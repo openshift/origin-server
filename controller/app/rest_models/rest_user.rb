@@ -47,6 +47,14 @@ class RestUser < OpenShift::Model
     self.max_gears = capabilities["max_gears"]
     self.capabilities.delete("max_gears")
 
+    if self.capabilities["max_tracked_addtl_storage_per_gear"] or self.capabilities["max_untracked_addtl_storage_per_gear"]
+      tracked_storage = (self.capabilities["max_tracked_addtl_storage_per_gear"] || 0)
+      untracked_storage = (self.capabilities["max_untracked_addtl_storage_per_gear"] || 0)
+      self.capabilities["max_storage_per_gear"] = tracked_storage + untracked_storage
+      self.capabilities.delete("max_tracked_addtl_storage_per_gear")
+      self.capabilities.delete("max_untracked_addtl_storage_per_gear")
+    end
+
     unless nolinks
       @links = {
         "LIST_KEYS" => Link.new("Get SSH keys", "GET", URI::join(url, "user/keys")),
