@@ -110,7 +110,9 @@ module OpenShift
       
         cartridge = @cartridge_model.get_cartridge(cart_name)
 
-        if cartridge.install_build_required || template_git_url
+        # Only perform an initial build if the manifest explicitly specifies a need,
+        # or if a template Git URL is provided and the cart is capable of builds or deploys.
+        if cartridge.install_build_required || (template_git_url && (cartridge.buildable? || cartridge.deployable?))
           gear_script_log = '/tmp/initial-build.log'
           env             = Utils::Environ.for_gear(@user.homedir)
   
