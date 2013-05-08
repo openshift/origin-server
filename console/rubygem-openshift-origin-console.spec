@@ -44,6 +44,8 @@ BuildRequires: %{?scl:%scl_prefix}rubygem(formtastic)
 BuildRequires: %{?scl:%scl_prefix}rubygem(net-http-persistent)
 BuildRequires: %{?scl:%scl_prefix}rubygem(haml)
 BuildRequires: %{?scl:%scl_prefix}rubygem(therubyracer)
+# Required by activesupport during the asset precompilation process
+BuildRequires: %{?scl:%scl_prefix}rubygem(minitest)
 
 %endif
 BuildRequires: %{?scl:%scl_prefix}rubygems-devel
@@ -73,6 +75,15 @@ OpenShift Origin Management Console ri documentation
 
 set -e
 mkdir -p .%{gem_dir}
+
+%if 0%{?fedora} >= 18
+mv Gemfile.fedora Gemfile
+%else
+mv Gemfile.rhel Gemfile
+%endif
+
+# requires ci_reporter
+rm lib/tasks/test_suites.rake
 
 %if 0%{?fedora}%{?rhel} <= 6
 rm -f Gemfile.lock
@@ -115,12 +126,6 @@ gem install -V \
 %install
 mkdir -p %{buildroot}%{gem_dir}
 cp -a ./%{gem_dir}/* %{buildroot}%{gem_dir}/
-
-%if 0%{?fedora} >= 18
-mv Gemfile.fedora %{buildroot}%{gem_instdir}/Gemfile
-%else
-mv Gemfile.rhel %{buildroot}%{gem_instdir}/Gemfile
-%endif
 
 %files
 %doc %{gem_instdir}/Gemfile

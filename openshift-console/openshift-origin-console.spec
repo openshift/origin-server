@@ -48,6 +48,8 @@ BuildRequires: %{?scl:%scl_prefix}rubygem(formtastic)
 BuildRequires: %{?scl:%scl_prefix}rubygem(net-http-persistent)
 BuildRequires: %{?scl:%scl_prefix}rubygem(haml)
 BuildRequires: %{?scl:%scl_prefix}rubygem(therubyracer)
+# Required by activesupport during the asset precompilation process
+BuildRequires: %{?scl:%scl_prefix}rubygem(minitest)
 %endif
 BuildRequires: %{?scl:%scl_prefix}rubygems-devel
 %if 0%{?fedora} >= 19
@@ -71,6 +73,12 @@ This includes the configuration necessary to run the console with mod_passenger.
 
 %build
 %{?scl:scl enable %scl - << \EOF}
+
+%if 0%{?fedora} >= 18
+mv Gemfile.fedora Gemfile
+%else
+mv Gemfile.rhel Gemfile
+%endif
 
 set -e
 %if 0%{?fedora}%{?rhel} <= 6
@@ -155,13 +163,6 @@ mv %{buildroot}%{consoledir}/httpd/httpd.conf.apache-2.4 %{buildroot}%{consoledi
 mv %{buildroot}%{consoledir}/httpd/httpd.conf.apache-2.3 %{buildroot}%{consoledir}/httpd/httpd.conf
 %endif
 rm %{buildroot}%{consoledir}/httpd/httpd.conf.apache-*
-
-%if 0%{?fedora} >= 18
-mv %{buildroot}%{consoledir}/Gemfile.fedora %{buildroot}%{consoledir}/Gemfile
-%else
-mv %{buildroot}%{consoledir}/Gemfile.rhel %{buildroot}%{consoledir}/Gemfile
-%endif
-
 
 %clean
 rm -rf $RPM_BUILD_ROOT
