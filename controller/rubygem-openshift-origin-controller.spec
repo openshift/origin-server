@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.8.8
+Version: 1.8.9
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -84,6 +84,9 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Wed May 08 2013 Adam Miller <admiller@redhat.com> 1.8.9-1
+- fix bz959826 - fqdn for secondary gears (rchopra@redhat.com)
+
 * Tue May 07 2013 Adam Miller <admiller@redhat.com> 1.8.8-1
 - Merge pull request #2366 from rajatchopra/url_carts_fixes
   (dmcphers+openshiftbot@redhat.com)
