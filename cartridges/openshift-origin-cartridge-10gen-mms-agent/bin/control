@@ -5,7 +5,7 @@ source $OPENSHIFT_CARTRIDGE_SDK_BASH
 cartridge_type="10gen-mms-agent"
 
 function status() {
-    if output=$(runuser --shell /bin/sh "${OPENSHIFT_GEAR_UUID}" -c "if ps -ef | grep ${OPENSHIFT_GEAR_UUID}_agent.py | grep -qv grep > /dev/null; then echo Running; else echo Stopped; fi" 2>&1)
+    if output=$(if ps -ef | grep ${OPENSHIFT_GEAR_UUID}_agent.py | grep -qv grep > /dev/null; then echo Running; else echo Stopped; exit 1; fi 2>&1)
     then
         client_result "$output"
     else
