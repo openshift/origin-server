@@ -172,7 +172,7 @@ module OpenShift
       #
       #   Cartridge.new('/var/lib/openshift/.cartridge_repository/php/1.0/metadata/manifest.yml', '3.5', '.../.cartridge_repository') -> Cartridge
       #   Cartridge.new('Name: ...', '3.5') -> Cartridge
-      def initialize(manifest, version=nil, repository_base_path='')
+      def initialize(manifest, version=nil, repository_base_path='', check_names=true)
 
         if File.exist? manifest
           @manifest      = YAML.load_file(manifest)
@@ -220,9 +220,11 @@ module OpenShift
         raise MissingElementError.new(nil, 'Name') unless @name
         #raise InvalidElementError.new(nil, 'Name') if @name.include?('-')
 
-        validate_vendor_name
-        validate_cartridge_name
-        check_reserved_cartridge_name
+        if check_names
+          validate_vendor_name
+          validate_cartridge_name
+          check_reserved_cartridge_name
+        end
 
         if @manifest.has_key?('Source-Url')
           raise InvalidElementError.new(nil, 'Source-Url') unless @manifest['Source-Url'] =~ URI::ABS_URI
