@@ -13,13 +13,12 @@ ln -s ${OPENSHIFT_JBOSSAS_DIR}/standalone/log ${OPENSHIFT_JBOSSAS_DIR}/logs
 
 shopt -s dotglob
 cp -r ${OPENSHIFT_JBOSSAS_DIR}/versions/${version}/template/* ${OPENSHIFT_JBOSSAS_DIR}/template
+cp -r ${OPENSHIFT_JBOSSAS_DIR}/versions/${version}/template/.openshift ${OPENSHIFT_JBOSSAS_DIR}/template
 cp ${OPENSHIFT_JBOSSAS_DIR}/standalone/configuration/standalone.xml ${OPENSHIFT_JBOSSAS_DIR}/template/.openshift/config
 
 sed -i "s/{APP_NAME}/${OPENSHIFT_APP_NAME}/g" ${OPENSHIFT_JBOSSAS_DIR}/template/pom.xml
 
-pushd $OPENSHIFT_JBOSSAS_DIR/template/src/main/webapp
-  jar cvf $OPENSHIFT_JBOSSAS_DIR/standalone/deployments/ROOT.war ./*
-popd
+cp ${OPENSHIFT_JBOSSAS_DIR}/template/deployments/ROOT.war $OPENSHIFT_JBOSSAS_DIR/standalone/deployments
 
 JBOSS_HOME=/etc/alternatives/jbossas-$version
 pushd $OPENSHIFT_JBOSSAS_DIR > /dev/null
