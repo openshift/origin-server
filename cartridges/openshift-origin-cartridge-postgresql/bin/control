@@ -102,7 +102,7 @@ function post_restore {
     zcat $dump_file | \
       sed "s#$rexp#\\1 DATABASE $new_db#g;           \
       s#$owner_rexp#\\1 \\2 OWNER = \"$new_user\"#g; \
-      s#\\connect $old_db#\\connect $new_db#g;       \
+      s#\\\\connect $old_db#\\\\connect $new_db#g;   \
       s#$old_user#$new_user#g;" |  \
       psql -U postgres -d postgres
 

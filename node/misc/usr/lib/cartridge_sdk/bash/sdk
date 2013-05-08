@@ -114,9 +114,10 @@ function random_string {
 
   local len=${1-$DEFAULT_LEN}
   local space=${2-"${DEFAULT_SPACE}"}
+  local omit=${3-""}
 
   local rnd=$(head -n 50 /dev/urandom | tr -dc $space | fold -w $len)
-  [ "$3" ] && rnd=$(echo "${rnd}" | grep -v "${3}")
+  [ -n "${omit}" ] && rnd=$(echo "${rnd}" | grep -v "${omit}")
   echo $(echo "${rnd}" | head -n1)
 }
 
