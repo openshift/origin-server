@@ -12,3 +12,13 @@ function reinstall_path {
   echo $JAVA_HOME > $OPENSHIFT_JBOSSEWS_DIR/env/JAVA_HOME
   echo "$JAVA_HOME/bin:$M2_HOME/bin" > $OPENSHIFT_JBOSSEWS_DIR/env/OPENSHIFT_JBOSSEWS_PATH_ELEMENT
 }
+
+function print_sed_exp_replace_env_var {
+  local sed_exp=""
+  for openshift_var in $(env | grep OPENSHIFT_ | awk -F '=' '{print $1}')
+  do
+    local variable_val=$(echo "${!openshift_var}" | sed -e "s@\/@\\\\/@g")
+    sed_exp="${sed_exp} -e s/\${${openshift_var}}/${variable_val}/g"
+  done
+  printf "%s\n" "$sed_exp"
+}

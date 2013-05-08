@@ -25,9 +25,7 @@ ln -s ${SYSTEM_JBOSSEWS_DIR}/bin/tomcat-juli.jar ${OPENSHIFT_JBOSSEWS_DIR}/bin/t
 ln -s ${SYSTEM_JBOSSEWS_DIR}/lib ${OPENSHIFT_JBOSSEWS_DIR}/lib
 
 # Link the user-controlled configurations to the Tomcat conf directory
-ln -s ${OPENSHIFT_REPO_DIR}/.openshift/config/server.xml ${OPENSHIFT_JBOSSEWS_DIR}/conf
 ln -s ${OPENSHIFT_REPO_DIR}/.openshift/config/web.xml ${OPENSHIFT_JBOSSEWS_DIR}/conf
-ln -s ${OPENSHIFT_REPO_DIR}/.openshift/config/context.xml ${OPENSHIFT_JBOSSEWS_DIR}/conf
 ln -s ${OPENSHIFT_REPO_DIR}/.openshift/config/tomcat-users.xml ${OPENSHIFT_JBOSSEWS_DIR}/conf
 ln -s ${OPENSHIFT_REPO_DIR}/.openshift/config/postgresql_module.xml ${OPENSHIFT_JBOSSEWS_DIR}/conf
 ln -s ${OPENSHIFT_REPO_DIR}/.openshift/config/catalina.properties ${OPENSHIFT_JBOSSEWS_DIR}/conf
