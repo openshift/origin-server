@@ -154,7 +154,7 @@ class CartridgeCache
        chash = validate_yaml(url, manifest_str)
        # TODO: check versions and create multiple of them
        self.foreach_cart_version(manifest_str) do |chash,name,version|
-         cmap[name] = { "url" => url, "original_manifest" => manifest_str, "version" => version}
+         cmap[name] = { "versioned_name" => chash["Name"], "url" => url, "original_manifest" => manifest_str, "version" => version}
          # no versioning support on downloaded cartridges yet.. use the default one
          break
        end
