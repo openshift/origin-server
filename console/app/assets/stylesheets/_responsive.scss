@@ -251,6 +251,11 @@
   .box-content {
     padding: $gridGutterWidthPhone/2 $gridGutterWidthPhone;
   }
+
+  // Reset style defined in grid
+  .pull-right[class*="span"] {
+    float: none;
+  }
 }
 
 
