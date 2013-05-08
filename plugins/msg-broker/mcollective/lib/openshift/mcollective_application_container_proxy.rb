@@ -707,18 +707,19 @@ module OpenShift
         args['--cart-name'] = cart
 
         app = gear.app
-        if gear.app.downloaded_cart_map.has_key? cart
-          args['--with-cartridge-manifest'] = app.downloaded_cart_map[cart]["original_manifest"]
-          args['--with-software-version'] = app.downloaded_cart_map[cart]["version"]
+        downloaded_cart =  app.downloaded_cart_map.find { |c| c["versioned_name"]==cart}
+        if downloaded_cart
+          args['--with-cartridge-manifest'] = downloaded_cart["original_manifest"]
+          args['--with-software-version'] = downloaded_cart["version"]
         end
         
         if !template_git_url.nil?  && !template_git_url.empty?
           args['--with-template-git-url'] = template_git_url
         end
 
-        if framework_carts.include? cart
+        if framework_carts(app).include? cart
           result_io = run_cartridge_command(cart, gear, "configure", args)
-        elsif embedded_carts.include? cart
+        elsif embedded_carts(app).include? cart
           result_io, cart_data = add_component(gear, cart)
         else
           #no-op
@@ -749,7 +750,7 @@ module OpenShift
           args['--with-template-git-url'] = template_git_url
         end
 
-        if framework_carts.include?(cart) or embedded_carts.include?(cart)
+        if framework_carts(gear.app).include?(cart) or embedded_carts(gear.app).include?(cart)
           result_io = run_cartridge_command(cart, gear, "post-configure", args)
         else
           #no-op
@@ -779,9 +780,9 @@ module OpenShift
         args = build_base_gear_args(gear)
         args['--cart-name'] = cart
 
-        if framework_carts.include? cart
+        if framework_carts(gear.app).include? cart
           run_cartridge_command(cart, gear, "deconfigure", args)
-        elsif embedded_carts.include? cart
+        elsif embedded_carts(gear.app).include? cart
           remove_component(gear,cart)
         else
           ResultIO.new
@@ -1154,7 +1155,7 @@ module OpenShift
         args = build_base_gear_args(gear)
         args['--cart-name'] = cart
 
-        if framework_carts.include?(cart)
+        if framework_carts(gear.app).include?(cart)
           run_cartridge_command(cart, gear, "threaddump", args)
         else
           ResultIO.new
@@ -1180,7 +1181,7 @@ module OpenShift
         args = build_base_gear_args(gear)
         args['--cart-name'] = cart
 
-        if framework_carts.include?(cart)
+        if framework_carts(gear.app).include?(cart)
           run_cartridge_command(cart, gear, "system-messages", args)
         else
           ResultIO.new
@@ -1751,7 +1752,7 @@ module OpenShift
             do_with_retry('stop') do
               reply.append source_container.stop(gear, cart)
             end
-            if framework_carts.include? cart
+            if framework_carts(app).include? cart
               log_debug "DEBUG: Force stopping existing app cartridge '#{cart}' before moving"
               do_with_retry('force-stop') do
                 reply.append source_container.force_stop(gear, cart)
@@ -1880,7 +1881,7 @@ module OpenShift
             gi.all_component_instances.each do |cinst|
               next if cinst.is_singleton? and (not gear.host_singletons)
               cart = cinst.cartridge_name
-              if framework_carts.include? cart
+              if framework_carts(app).include? cart
                 begin
                   args = build_base_gear_args(gear)
                   args['--cart-name'] = cart
@@ -2289,8 +2290,8 @@ module OpenShift
       # * why not just ask the CartidgeCache?
       # * that is: Why use an instance var at all?
       #
-      def framework_carts
-        @framework_carts ||= CartridgeCache.cartridge_names('web_framework')
+      def framework_carts(app=nil)
+        @framework_carts ||= CartridgeCache.cartridge_names('web_framework', app)
       end
 
       #
@@ -2308,8 +2309,8 @@ module OpenShift
       # * Uses CartridgeCache
       # * Why not just ask the CartridgeCache every time?
       #      
-      def embedded_carts
-        @embedded_carts ||= CartridgeCache.cartridge_names('embedded')
+      def embedded_carts(app=nil)
+        @embedded_carts ||= CartridgeCache.cartridge_names('embedded',app)
       end
       
       # 
@@ -2338,9 +2339,10 @@ module OpenShift
 
         args = build_base_gear_args(gear)
         args['--cart-name'] = component
-        if app.downloaded_cart_map.has_key? component
-          args['--with-cartridge-manifest'] = app.downloaded_cart_map[component]["original_manifest"]
-          args['--with-software-version'] = app.downloaded_cart_map[cart]["version"]
+        downloaded_cart =  app.downloaded_cart_map.find { |c| c["versioned_name"]==component }
+        if downloaded_cart
+          args['--with-cartridge-manifest'] = downloaded_cart["original_manifest"]
+          args['--with-software-version'] = downloaded_cart["version"]
         end
         
         begin
@@ -2746,7 +2748,7 @@ module OpenShift
       # If the cart specified is in the framework_carts or embedded_carts list, the arguments will pass
       # through to run_cartridge_command. Otherwise, a new ResultIO will be returned.
       def run_cartridge_command_ignore_components(cart, gear, command, arguments, allow_move=true)       
-        if framework_carts.include?(cart) || embedded_carts.include?(cart)
+        if framework_carts(gear.app).include?(cart) || embedded_carts(gear.app).include?(cart)
           result = run_cartridge_command(cart, gear, command, arguments, allow_move)
         else
           result = ResultIO.new
