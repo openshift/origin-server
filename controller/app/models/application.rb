@@ -103,7 +103,7 @@ class Application
 
   # non-presisted field used to store user agent of current request
   attr_accessor :user_agent
-  attr_accessor :personal_cartridges
+  attr_accessor :downloaded_cartridges
 
   validates :name,
     presence: {message: "Application name is required and cannot be blank."},
@@ -152,7 +152,7 @@ class Application
     app.analytics['user_agent'] = user_agent
     app.save
     features << "web_proxy" if scalable
-    app.personal_cartridges.each { |cname,c| features << c.name }
+    app.downloaded_cartridges.each { |cname,c| features << c.name }
     if app.valid?
       begin
         framework_carts = CartridgeCache.cartridge_names("web_framework", app)
@@ -183,29 +183,29 @@ class Application
     app
   end
 
-  def personal_cartridges
+  def downloaded_cartridges
     cmap = self.downloaded_cart_map
-    return @personal_cartridges if @personal_cartridges and cmap.length==@personal_cartridges.length
+    return @downloaded_cartridges if @downloaded_cartridges and cmap.length==@downloaded_cartridges.length
     # download the content of the url
     # careful, but assume this to be manifest.yml
     # parse the manifest and store the cartridge
     begin
-      @personal_cartridges = {}
+      @downloaded_cartridges = {}
       cmap.each { |cartname, cartdata|
         manifest_str = cartdata["original_manifest"]
-        CartridgeCache.foreach_cart_version(manifest_str, cartdata["version"]) do |chash,version|
+        CartridgeCache.foreach_cart_version(manifest_str, cartdata["version"]) do |chash,name,version|
           cart = OpenShift::Cartridge.new.from_descriptor(chash)
-          if @personal_cartridges.has_key?(cart.name) 
+          if @downloaded_cartridges.has_key?(cart.name) 
             Rails.logger.error("Duplicate community cartridge exists for application '#{self.name}'! Overwriting..")
           end
-          @personal_cartridges[cart.name] = cart
+          @downloaded_cartridges[cart.name] = cart
         end
       }
     rescue Exception =>e
       Rails.logger.error(e.message)
       raise e
     end
-    @personal_cartridges
+    @downloaded_cartridges
   end
 
   ##
@@ -236,7 +236,7 @@ class Application
   # @note side-effect: Saves application object in mongo
   def initialize(attrs = nil, options = nil)
     super
-    @personal_cartridges = {}
+    @downloaded_cartridges = {}
     self.uuid = self._id.to_s if self.uuid=="" or self.uuid.nil?
     self.app_ssh_keys = []
     self.pending_op_groups = []
