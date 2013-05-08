@@ -26,3 +26,8 @@
 .box-content {
   padding: 20px $gridGutterWidth;
 }
+
+// Allow pull-right to take precedence over a span
+.pull-right[class*="span"] {
+  float: right;
+}
