@@ -39,7 +39,7 @@
                
     <Resource name="jdbc/PostgreSQLDS" auth="Container" type="javax.sql.DataSource"
                maxActive="20" maxIdle="5" maxWait="10000"
-               username="${env.OPENSHIFT_POSTGRESQL_DB_USERNAME}" password="${env.OPENSHIFT_POSTGRESQL_DB_PASSWORD}" driverClassName="com.mysql.jdbc.Driver"
+               username="${env.OPENSHIFT_POSTGRESQL_DB_USERNAME}" password="${env.OPENSHIFT_POSTGRESQL_DB_PASSWORD}" driverClassName="org.postgresql.Driver"
                url="jdbc:postgresql://${env.OPENSHIFT_POSTGRESQL_DB_HOST}:${env.OPENSHIFT_POSTGRESQL_DB_PORT}/${env.OPENSHIFT_APP_NAME}"/>
 
 </Context>

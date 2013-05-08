@@ -2,6 +2,11 @@
 
 The `jbossews` cartridge provides Tomcat on OpenShift via the JBoss EWS package.
 
+This cartridge has special functionality to enable integration with OpenShift and with other
+cartridges. See the [Cartridge Integrations](#cartridge-integrations) and
+[Environment Variable Replacement Support](#environment-variable-replacement-support) sections
+for details.
+
 ## Template Repository Layout
 
     webapps/           Location for built WARs (details below)
@@ -79,6 +84,34 @@ of use:
 
 For more information about environment variables, consult the
 [OpenShift Application Author Guide](https://github.com/openshift/origin-server/blob/master/node/README.writing_applications.md).
+
+### Environment Variable Replacement Support
+
+The `jbossews` cart provides special environment variable replacement functionality for some of the Tomcat configuration files.
+For the following configuration files:
+
+  * `.openshift/config/server.xml`
+  * `.openshift/config/context.xml`
+
+Ant-style environment replacements are supported for all `OPENSHIFT_`-prefixed environment variables in the application. For
+example, the following replacements are valid in `server.xml`:
+
+      <Connector address="${OPENSHIFT_JBOSSEWS_IP}"
+                 port="${OPENSHIFT_JBOSSEWS_HTTP_PORT}"
+                 protocol="HTTP/1.1"
+                 connectionTimeout="20000"
+                 redirectPort="8443" />
+
+During server startup, the configuration files in the source repository are processed to replace `OPENSHIFT_*` values, and the
+resulting processed file is copied to the live Tomcat configuration directory.
+
+
+## Cartridge Integrations
+
+The `jbossews` cart has out-of-the-box integration support with the RedHat `postgresql` and `mysql` cartridges. The default
+`context.xml` contains two basic JDBC `Resource` definitions, `jdbc/MysqlDS` and `jdbc/PostgreSQLDS`, which will be automatically
+configured to work with their respective cartridges if installed into your application.
+
 
 ## Markers
 
