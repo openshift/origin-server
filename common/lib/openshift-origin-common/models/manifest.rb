@@ -207,7 +207,7 @@ module OpenShift
         @name                   = @manifest['Name']
         @short_name             = @manifest['Cartridge-Short-Name']
         @categories             = @manifest['Categories'] || []
-        @is_primary             = @categories.include?('web_framework')
+        @is_deployable          = @categories.include?('web_framework')
         @is_web_proxy           = @categories.include?('web_proxy')
         @install_build_required = @manifest.has_key?('Install-Build-Required') ? @manifest['Install-Build-Required'] : true
 
@@ -257,9 +257,12 @@ module OpenShift
         @endpoints.select { |e| e.public_port_name }
       end
 
-      def primary?
-        @is_primary
+      def deployable?
+        @is_deployable
       end
+
+      # For now, these are synonyms
+      alias :buildable? :deployable?
 
       def web_proxy?
         @is_web_proxy
