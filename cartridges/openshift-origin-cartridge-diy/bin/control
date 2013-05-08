@@ -1,18 +1,28 @@
 #!/bin/bash
 source $OPENSHIFT_CARTRIDGE_SDK_BASH
 
+function run_hook() {
+  local path="$OPENSHIFT_REPO_DIR/.openshift/action_hooks/$1"
+  if [ -f "$path" -a -x "$path" ]
+  then
+    "$path"
+  else
+    return 0
+  fi
+}
+
 function start() {
-    client_result "Starting DIY cart"
-    source $OPENSHIFT_REPO_DIR/.openshift/action_hooks/start
+    echo "Starting DIY cart"
+    run_hook start
 }
 
 function stop() {
-    client_result "Stopping DIY cart"
-    source $OPENSHIFT_REPO_DIR/.openshift/action_hooks/stop
+    echo "Stopping DIY cart"
+    run_hook stop
 }
 
 function restart() {
-    client_result "Restarting DIY cart"
+    echo "Restarting DIY cart"
     stop
     start
 }
