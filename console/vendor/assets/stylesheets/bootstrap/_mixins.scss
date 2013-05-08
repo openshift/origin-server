@@ -292,19 +292,19 @@
 
 // Form field states (used in forms.scss)
 // --------------------------------------------------
-
 // Mixin for form field states
-@mixin formFieldState($textColor: #555, $borderColor: #ccc, $backgroundColor: #f5f5f5) {
+@mixin formFieldState($textColor, $borderColor, $backgroundColor, $className) {
   // Set the text color
   > label,
   .help-block,
   .help-inline {
     color: $textColor;
   }
+
   // Style inputs accordingly
-  input,
-  select,
-  textarea {
+  input.#{$className},
+  select.#{$className},
+  textarea.#{$className} {
     color: $textColor;
     border-color: $borderColor;
     &:focus {

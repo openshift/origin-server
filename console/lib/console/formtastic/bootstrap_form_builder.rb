@@ -235,6 +235,10 @@ module Console
           html_class << 'error'
 
           wrapper_html[:"data-server-error"] = "server-error"
+          
+          options[:input_html] ||= {}
+          options[:input_html][:class] ||= ""
+          options[:input_html][:class] << " error"
         end
         wrapper_html[:id]  ||= generate_html_id(method)
         wrapper_html[:class] = (html_class << wrapper_html[:class]).flatten.compact.join(' ')

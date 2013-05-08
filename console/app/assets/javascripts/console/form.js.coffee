@@ -16,15 +16,21 @@ $ ->
   ), "Only letters and numbers are allowed"
 
   $.validator.setDefaults
+    onsubmit:     true
+    onkeyup:      false
+    onfocusout:   false
+    onclick:      false
     errorClass:   'help-inline'
     errorElement: 'p'
     highlight: (element,errorClass,validClass) ->
+      $(element).addClass('error')
       $el = find_control_group_parent(element)
       if el = $el.get(0)
         el.highlighted ||= []
         el.highlighted.unshift(element.id)
       $el.addClass('error').addClass('error-client').removeClass(validClass)
     unhighlight: (element,errorClass,validClass) ->
+      $(element).removeClass('error')
       $el = find_control_group_parent(element)
       if el = $el.get(0)
         el.highlighted = $.grep (el.highlighted || []), (i) -> i != element.id
