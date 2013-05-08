@@ -1707,6 +1707,7 @@ module OpenShift
         log_debug "DEBUG: Fixing DNS and mongo for gear '#{gear.name}' after move"
         log_debug "DEBUG: Changing server identity of '#{gear.name}' from '#{source_container.id}' to '#{destination_container.id}'"
         gear.server_identity = destination_container.id
+        gear.group_instance.gear_size = destination_container.get_node_profile
         begin
           dns = OpenShift::DnsService.instance
           public_hostname = destination_container.get_public_hostname
@@ -1768,6 +1769,8 @@ module OpenShift
       # * gear: a Gear object
       # * destination_container: An ApplicationContainerProxy?
       # * destination_district_uuid: String
+      # * change_district: Boolean
+      # * node_profile: String
       # 
       # RETURNS:
       # * ResultIO 
@@ -1796,7 +1799,7 @@ module OpenShift
         state_map = {}
 
         # resolve destination_container according to district
-        destination_container, destination_district_uuid, district_changed = resolve_destination(gear, destination_container, destination_district_uuid, change_district)
+        destination_container, destination_district_uuid, district_changed = resolve_destination(gear, destination_container, destination_district_uuid, change_district, node_profile)
 
         source_container = gear.get_proxy
 
@@ -1806,7 +1809,7 @@ module OpenShift
         end
 
         destination_node_profile = destination_container.get_node_profile
-        if source_container.get_node_profile != destination_node_profile
+        if source_container.get_node_profile != destination_node_profile and app.scalable
           log_debug "Cannot change node_profile for a gear - this operation is not supported. The destination container's node profile is #{destination_node_profile}, while the gear's node_profile is #{gear.group_instance.gear_size}"
           raise OpenShift::UserException.new("Error moving app.  Cannot change node profile.", 1)
         end
@@ -1871,6 +1874,7 @@ module OpenShift
 
           rescue Exception => e
             gear.server_identity = source_container.id
+            gear.group_instance.gear_size = source_container.get_node_profile
             # remove-httpd-proxy of destination
             log_debug "DEBUG: Moving failed.  Rolling back gear '#{gear.name}' '#{app.name}' with remove-httpd-proxy on '#{destination_container.id}'"
             gi.all_component_instances.each do |cinst|
@@ -1956,6 +1960,7 @@ module OpenShift
       # * destination_container: ??
       # * destination_district_uuid: String
       # * change_district: Boolean
+      # * node_profile: String
       #
       # RETURNS:
       # * Array: [destination_container, destination_district_uuid, district_changed]
@@ -1966,12 +1971,18 @@ module OpenShift
       # NOTES:
       # * uses MCollectiveApplicationContainerProxy.find_available_impl
       #
-      def resolve_destination(gear, destination_container, destination_district_uuid, change_district)
+      def resolve_destination(gear, destination_container, destination_district_uuid, change_district, node_profile)
         gear_exists_in_district = false
         required_uid = gear.uid
         source_container = gear.get_proxy
         source_district_uuid = source_container.get_district_uuid
-  
+ 
+        if node_profile and (destination_container or destination_district_uuid or !Rails.configuration.msg_broker[:node_profile_enabled])
+          log_debug "DEBUG: Option node_profile '#{node_profile}' is being ignored either in favor of destination district/container "\
+                    "or node_profile is disabled in msg broker configuration."
+          node_profile = nil
+        end
+ 
         if destination_container.nil?
           if !destination_district_uuid and !change_district
             destination_district_uuid = source_district_uuid unless source_district_uuid == 'NONE'
@@ -1984,7 +1995,8 @@ module OpenShift
           end
           
           least_preferred_server_identities = [source_container.id]
-          destination_container = MCollectiveApplicationContainerProxy.find_available_impl(gear.group_instance.gear_size, destination_district_uuid, nil, gear_exists_in_district, required_uid)
+          destination_gear_size = node_profile || gear.group_instance.gear_size
+          destination_container = MCollectiveApplicationContainerProxy.find_available_impl(destination_gear_size, destination_district_uuid, nil, gear_exists_in_district, required_uid)
           log_debug "DEBUG: Destination container: #{destination_container.id}"
           destination_district_uuid = destination_container.get_district_uuid
         else
