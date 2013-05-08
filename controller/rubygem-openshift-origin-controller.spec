@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.8.9
+Version: 1.8.10
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -84,6 +84,16 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Wed May 08 2013 Adam Miller <admiller@redhat.com> 1.8.10-1
+- Merge pull request #2385 from pravisankar/dev/ravi/misc-bug958249
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #2393 from rajatchopra/master
+  (dmcphers+openshiftbot@redhat.com)
+- Fix 'max_storage_per_gear' capability in rest user model. (rpenta@redhat.com)
+- Bug 958249 : oo-admin-move will allow different node profile for non-scalable
+  apps (rpenta@redhat.com)
+- cleanup download url flow for embedded cart (rchopra@redhat.com)
+
 * Wed May 08 2013 Adam Miller <admiller@redhat.com> 1.8.9-1
 - fix bz959826 - fqdn for secondary gears (rchopra@redhat.com)
 
