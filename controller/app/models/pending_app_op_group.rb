@@ -295,9 +295,9 @@ class PendingAppOpGroup
         end
         if result_io.exitcode != 0
           if result_io.hasUserActionableError
-            raise OpenShift::UserException.new("Unable to #{op.op_type.to_s.gsub("_"," ")}", result_io.exitcode, result_io) 
+            raise OpenShift::UserException.new("Unable to #{op.op_type.to_s.gsub("_"," ")}", result_io.exitcode, nil, result_io) 
           else
-            raise OpenShift::NodeException.new("Unable to #{op.op_type.to_s.gsub("_"," ")}", result_io.exitcode, result_io) 
+            raise OpenShift::NodeException.new("Unable to #{op.op_type.to_s.gsub("_"," ")}", result_io.exitcode, nil, result_io) 
           end
         end
       

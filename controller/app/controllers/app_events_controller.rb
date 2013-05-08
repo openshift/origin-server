@@ -104,7 +104,7 @@ class AppEventsController < BaseController
     @application = Application.find_by(domain: @domain, canonical_name: @application.name)
     app = get_rest_application(@application)
     @reply = new_rest_reply(:ok, "application", app)
-    message = Message.new("INFO", msg)
+    message = Message.new("INFO", msg, 0)
     @reply.messages.push(message)
     respond_with @reply, :status => @reply.status
   end
