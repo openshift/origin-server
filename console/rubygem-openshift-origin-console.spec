@@ -9,7 +9,7 @@
 
 Summary:       OpenShift Origin Management Console
 Name:          rubygem-%{gem_name}
-Version: 1.9.0
+Version: 1.9.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -147,6 +147,12 @@ cp -a ./%{gem_dir}/* %{buildroot}%{gem_dir}/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Wed May 08 2013 Adam Miller <admiller@redhat.com> 1.9.1-1
+- bump_minor_versions for sprint 28 (admiller@redhat.com)
+- Merge pull request #2399 from smarterclayton/allow_grids_to_be_pulled
+  (dmcphers+openshiftbot@redhat.com)
+- Allow spans to be pulled right responsively (ccoleman@redhat.com)
+
 * Wed May 08 2013 Adam Miller <admiller@redhat.com> 1.8.10-1
 - Merge pull request #2389 from liggitt/bug_959559_js_validation_errors
   (dmcphers+openshiftbot@redhat.com)
