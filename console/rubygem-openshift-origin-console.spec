@@ -9,7 +9,7 @@
 
 Summary:       OpenShift Origin Management Console
 Name:          rubygem-%{gem_name}
-Version: 1.8.10
+Version: 1.8.11
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -147,6 +147,10 @@ cp -a ./%{gem_dir}/* %{buildroot}%{gem_dir}/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Thu May 09 2013 Adam Miller <admiller@redhat.com> 1.8.11-1
+- Bug 961226 Update storage controller to reflect broker API change
+  (hripps@redhat.com)
+
 * Wed May 08 2013 Adam Miller <admiller@redhat.com> 1.8.10-1
 - Merge pull request #2389 from liggitt/bug_959559_js_validation_errors
   (dmcphers+openshiftbot@redhat.com)
