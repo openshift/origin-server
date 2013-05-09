@@ -64,10 +64,11 @@ module OpenShift
                 message = ex.resultIO.errorIO.string.strip
               end
               message ||= ""
-              message += "\nReference ID: #{request.uuid}"
+              message += "Unable to complete the requested operation due to: #{ex.message}.\nReference ID: #{request.uuid}"
             end
           else
             status = :internal_server_error
+            message = "Unable to complete the requested operation due to: #{ex.message}.\nReference ID: #{request.uuid}"
           end
 
           internal_error = status != :unprocessable_entity
