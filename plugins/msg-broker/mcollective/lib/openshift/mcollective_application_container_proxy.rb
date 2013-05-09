@@ -1811,8 +1811,8 @@ module OpenShift
 
         destination_node_profile = destination_container.get_node_profile
         if source_container.get_node_profile != destination_node_profile and app.scalable
-          log_debug "Cannot change node_profile for a gear - this operation is not supported. The destination container's node profile is #{destination_node_profile}, while the gear's node_profile is #{gear.group_instance.gear_size}"
-          raise OpenShift::UserException.new("Error moving app.  Cannot change node profile.", 1)
+          log_debug "Cannot change node_profile for *scalable* application gear - this operation is not supported. The destination container's node profile is #{destination_node_profile}, while the gear's node_profile is #{gear.group_instance.gear_size}"
+          raise OpenShift::UserException.new("Error moving app.  Cannot change node profile for *scalable* app.", 1)
         end
 
         # get the state of all cartridges
