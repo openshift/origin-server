@@ -1,20 +1,40 @@
 #!/bin/bash
 
-# List ports available to user:
+# Support filtering out remote bindings
+exclude_remote=false
+if [ "$1" == "--exclude-remote" ]; then
+  exclude_remote=true
+fi
 
-/usr/sbin/lsof -iTCP -sTCP:LISTEN -P 2> /dev/null | /bin/awk '/LISTEN/{ print $9 }' | /bin/sort -u
-/usr/sbin/lsof -iTCP -sTCP:LISTEN -P 2> /dev/null | /bin/awk '/LISTEN/{ print $1" -> "$9 }' | /bin/sort -u 1>&2
+# Collect locally bound ports
+declare -A $(/usr/sbin/lsof -iTCP -sTCP:LISTEN -P 2> /dev/null | /bin/awk '/LISTEN/{ print "local_bindings["$9"]="$1 }')
 
-# List ports of attached databases available to user:
+# Extract database ports out of the environment
+declare -A remote_bindings
 
-for HOST_VAR in $(env | grep _DB_HOST | awk -F '=' '{print $1}'); do
-    DB=$(echo $HOST_VAR |sed -e 's/.*OPENSHIFT_\(.*\)_DB_HOST/\1/' |tr '[A-Z]' '[a-z]')
-    PORT_VAR=$(echo $HOST_VAR |sed 's/_DB_HOST/_DB_PORT/')
-    PORT_VAL=$(echo ${!PORT_VAR})
-    HOST_VAL=$(echo ${!HOST_VAR})
-    echo "${DB} -> ${HOST_VAL}:${PORT_VAL}" 1>&2
+for host_var in $(env | grep _DB_HOST | awk -F '=' '{print $1}'); do
+    db_name=$(echo $host_var |sed -e 's/.*OPENSHIFT_\(.*\)_DB_HOST/\1/' |tr '[A-Z]' '[a-z]')
+    port_var=$(echo $host_var |sed 's/_DB_HOST/_DB_PORT/')
+    port_val=$(echo ${!port_var})
+    host_val=$(echo ${!host_var})
+    db_binding="${host_val}:${port_val}"
+    remote_bindings[$db_binding]=${db_name}
 done
 
+# Merge the database ports into the local binding list; if the databases are
+# local, the keys will simply be overwritten in the array
+if ! $exclude_remote ; then
+  for remote_binding in "${!remote_bindings[@]}"; do
+    local_bindings[$remote_binding]="${remote_bindings[$remote_binding]}"
+  done
+fi
+
+# Sort and report the final binding list
+for binding in "${!local_bindings[@]}"; do
+  echo "${local_bindings[${binding}]} -> ${binding}"
+done | sort -d -k1 1>&2
+
+# Report scaling information
 gear_registry_locations=(
   "./haproxy-1.4/conf/gear-registry.db"
   "./haproxy/conf/gear-registry.db"
