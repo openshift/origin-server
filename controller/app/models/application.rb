@@ -158,7 +158,7 @@ class Application
         framework_carts = CartridgeCache.cartridge_names("web_framework", app)
         framework_cartridges = []
         features.each do |feature|
-          cart = CartridgeCache.find_cartridge(feature)
+          cart = CartridgeCache.find_cartridge(feature, app)
           if cart
             framework_cartridges.push(cart.name) unless not framework_carts.include?(cart.name)
           else
