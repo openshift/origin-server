@@ -1,8 +1,7 @@
-#@runtime_other4
 @runtime
-@runtime1
 @not-enterprise
 Feature: MongoDB Application Sub-Cartridge
+  @runtime_other4
   @rhel-only
   Scenario: Create Delete one application with a MongoDB database (RHEL/CentOS)
     Given a perl-5.10 application, verify addition and removal of MongoDB database

@@ -1,10 +1,10 @@
+#@runtime_extended2
 @runtime
 @rhel-only
 @jboss
 Feature: Cartridge Runtime Extended Checks (JBoss)
 
-  #@runtime_extended_other2
-  @runtime_extended2
+  @runtime_extended_other2
   Scenario Outline: Hot deployment tests
     Given a new <type> type application
     And the application is made publicly accessible

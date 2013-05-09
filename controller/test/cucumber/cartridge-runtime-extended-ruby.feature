@@ -1,7 +1,7 @@
 @runtime
 Feature: Cartridge Runtime Extended Checks (Ruby)
 
-  #@runtime_extended_other2
+  @runtime_extended_other2
   @runtime_extended2
   @rhel-only
   Scenario Outline: Hot deployment tests (RHEL/CentOS)

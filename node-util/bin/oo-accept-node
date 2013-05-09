@@ -500,6 +500,8 @@ def check_system_httpd_configs
     fqdn = File.read(dnsfile)
     if fqdn.start_with?('export ')
       fqdn = fqdn.sub(/^.*=/,'').gsub('\'','').gsub('"','').strip.downcase
+    else
+      fqdn.chomp! 
     end
 
     begin
@@ -530,7 +532,7 @@ def check_system_httpd_configs
           end
         }
 
-        if is_framework
+        if is_framework && !has_websocket
           hook = File.join(p, 'info', 'hooks', 'deploy-httpd-proxy')
           deploy = File.join(p, 'info', 'bin', 'deploy_httpd_proxy.sh')
           alt_deploy = File.join(ENV['CARTRIDGE_BASE_PATH'], 'abstract', 'info', 'bin', 'deploy_httpd_proxy.sh')

@@ -1,4 +1,4 @@
-@runtime_extended_other1
+@runtime_extended1
 Feature: V2 SDK scalable snapshot and restore
   Scenario: Create, snapshot, and restore scalable application with plugin with client tools
     Given a v2 default node
