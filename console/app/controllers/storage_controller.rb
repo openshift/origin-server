@@ -22,7 +22,7 @@ class StorageController < ConsoleController
   def user_information
     user_default_domain
     @user = User.find :one, :as => current_user
-    @max_storage = (@user.capabilities[:max_untracked_addtl_storage_per_gear] || 0) + (@user.capabilities[:max_tracked_addtl_storage_per_gear] || 0)
+    @max_storage = @user.capabilities[:max_storage_per_gear] || 0
     @can_modify_storage = @max_storage > 0
   end
 
