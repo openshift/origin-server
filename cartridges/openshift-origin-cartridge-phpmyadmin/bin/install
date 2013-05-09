@@ -11,7 +11,6 @@ if [ -z "$OPENSHIFT_MYSQL_DB_USERNAME" ]; then
   exit 137
 fi
 
-mkdir -p $OPENSHIFT_PHPMYADMIN_DIR/{logs,run,sessions,tmp}
 ln -s /usr/lib64/httpd/modules ${OPENSHIFT_PHPMYADMIN_DIR}modules
 ln -s /etc/httpd/conf/magic ${OPENSHIFT_PHPMYADMIN_DIR}conf/magic
 
