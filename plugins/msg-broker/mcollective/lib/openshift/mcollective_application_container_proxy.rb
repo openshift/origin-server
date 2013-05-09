@@ -707,7 +707,7 @@ module OpenShift
         args['--cart-name'] = cart
 
         app = gear.app
-        downloaded_cart =  app.downloaded_cart_map.find { |c| c["versioned_name"]==cart}
+        downloaded_cart =  app.downloaded_cart_map.values.find { |c| c["versioned_name"]==cart}
         if downloaded_cart
           args['--with-cartridge-manifest'] = downloaded_cart["original_manifest"]
           args['--with-software-version'] = downloaded_cart["version"]
@@ -2339,7 +2339,7 @@ module OpenShift
 
         args = build_base_gear_args(gear)
         args['--cart-name'] = component
-        downloaded_cart =  app.downloaded_cart_map.find { |c| c["versioned_name"]==component }
+        downloaded_cart =  app.downloaded_cart_map.values.find { |c| c["versioned_name"]==component }
         if downloaded_cart
           args['--with-cartridge-manifest'] = downloaded_cart["original_manifest"]
           args['--with-software-version'] = downloaded_cart["version"]
