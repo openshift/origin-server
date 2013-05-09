@@ -74,14 +74,32 @@ function tidy() {
   rm -rf ${OPENSHIFT_RUBY_DIR}tmp/*
 }
 
+function pre-receive() {
+  # set -x
+  rm -rf ${OPENSHIFT_RUBY_DIR}/tmp/.bundle ${OPENSHIFT_RUBY_DIR}/tmp/vendor
+
+  # If the previous and current commits didn't upload .bundle and you have .bundle and vendor/bundle already deployed then store away for redeploy
+  # Also adding .openshift/markers/force_clean_build at the root of the repo will trigger a clean rebundle
+  if ! git show master:.openshift/markers/force_clean_build > /dev/null 2>&1 \
+    && ! git show master:.bundle > /dev/null 2>&1                            \
+    && ! git show master~1:.bundle > /dev/null 2>&1                          \
+    && [ -d ${OPENSHIFT_REPO_DIR}.bundle ]                                   \
+    && [ -d ${OPENSHIFT_REPO_DIR}vendor/bundle ]
+  then
+    echo 'Saving away previously bundled RubyGems'
+    mv ${OPENSHIFT_REPO_DIR}.bundle ${OPENSHIFT_RUBY_DIR}/tmp/
+    mv ${OPENSHIFT_REPO_DIR}vendor ${OPENSHIFT_RUBY_DIR}/tmp/
+  fi
+}
+
 function pre-build() {
-  # to be implemented
+  # empty
   true
 }
 
 function build() {
     echo "Running build on Ruby cart"
-    update-configuration $OPENSHIFT_PYTHON_VERSION
+    update-configuration $OPENSHIFT_RUBY_VERSION
 
     USED_BUNDLER=false
     if [ -d $OPENSHIFT_RUBY_DIR/tmp/.bundle ]
@@ -127,8 +145,10 @@ function build() {
 }
 
 function post-deploy() {
-  # to be implemented
-  true
+  if hot_deploy_marker_is_present; then
+    echo "Hot deploy marker is present. Touching Passenger restart.txt to trigger redeployment."
+    touch ${OPENSHIFT_REPO_DIR}tmp/restart.txt
+  fi
 }
 
 function threaddump() {
@@ -177,6 +197,7 @@ case "$1" in
   restart | reload ) restart $1 ;;
   status)            status ;;
   tidy)              tidy ;;
+  pre-receive)       pre-receive ;;
   pre-build)         pre-build ;;
   build)             build ;;
   post-deploy)       post-deploy ;;
