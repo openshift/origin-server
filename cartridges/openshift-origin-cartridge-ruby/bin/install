@@ -15,7 +15,7 @@ for dir in template; do
     cp -Lr $OPENSHIFT_RUBY_DIR/versions/$version/$dir/* $OPENSHIFT_RUBY_DIR/$dir 
 done
 
-
+mkdir $OPENSHIFT_RUBY_DIR/tmp
 
 mkdir $OPENSHIFT_HOMEDIR/.gem
 
