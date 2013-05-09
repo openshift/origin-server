@@ -39,6 +39,10 @@ alternatives --remove switchyard-0 /usr/share/switchyard
 alternatives --install /etc/alternatives/switchyard-0 switchyard-0 /usr/share/switchyard 102
 alternatives --set switchyard-0 /usr/share/switchyard
 
+alternatives --remove switchyard-0.6 /usr/share/switchyard
+alternatives --install /etc/alternatives/switchyard-0.6 switchyard-0 /usr/share/switchyard 102
+alternatives --set switchyard-0.6 /usr/share/switchyard
+
 
 %clean
 rm -rf %{buildroot}
