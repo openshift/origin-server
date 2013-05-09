@@ -7,9 +7,6 @@ case "$1" in
     version="$2"
 esac
 
-echo "$version" > "$OPENSHIFT_CRON_DIR/env/OPENSHIFT_CRON_VERSION"
+# Copy the version specific files into cron directory
 
-# Copy the version specific files into diy directory
-shopt -s dotglob
 mkdir -p $OPENSHIFT_CRON_DIR/{configuration,logs,etc,data,pid,run}
-cp -r $OPENSHIFT_CRON_DIR/versions/$version/configuration/* $OPENSHIFT_CRON_DIR/configuration
