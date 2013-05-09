@@ -3,7 +3,7 @@ source 'http://rubygems.org'
 gem 'rails', '~> 3.2.8'
 gem 'json'
 gem 'json_pure'
-gem 'parseconfig'
+gem 'parseconfig', '~> 1.0.2'
 gem 'xml-simple'
 gem 'rack'
 gem 'regin'
@@ -24,10 +24,13 @@ gem 'minitest'
 # the mongo rubygem:
 gem 'mongo'
 
-if ENV['SOURCE']
+if ENV['BROKER_SOURCE']
   gem 'openshift-origin-common', :path => '../common'
   gem 'openshift-origin-controller', :path => '../controller'
   gem 'netrc' # rest-client has an undeclared prereq on netrc
+
+  # Optionally load plugins from source
+  eval((IO.read(File.expand_path('~/.openshift/broker_plugins.rb')) rescue ''))
 else
   gem 'openshift-origin-controller'
 end
