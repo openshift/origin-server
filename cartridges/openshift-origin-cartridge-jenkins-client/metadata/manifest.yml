@@ -9,6 +9,10 @@ Cartridge-Vendor: redhat
 Categories:
   - ci_builder
   - embedded
+Cart-Data:
+  - Key: "job_url"
+    Type: cart_data
+    Description: "URL for the build job submitted on jenkins server"
 Website: http://www.jenkins-ci.org
 Help-Topics:
   "Developer Center": https://www.openshift.com/developers
