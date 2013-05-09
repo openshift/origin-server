@@ -30,7 +30,7 @@ module OpenShift
 
   class UserException < OpenShift::OOException
     attr_accessor :field
-    def initialize(msg=nil, code=nil, resultIO=nil, field=nil)
+    def initialize(msg=nil, code=nil, field=nil, resultIO=nil)
       super(msg)
       @code = code
       @resultIO = resultIO
