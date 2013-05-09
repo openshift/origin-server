@@ -110,15 +110,40 @@ class GroupInstance
   end
 
   def get_group_override(key=nil)
-    action_group_override("GET", key)
+    comps = all_component_instances.map{ |c| c.to_hash }
+    comps.each do |comp|
+      application.group_overrides.each do |group_override|
+        if group_override["components"].include?(comp)
+          if key
+            return group_override[key]
+          else
+            return group_override
+          end
+        end
+      end if application.group_overrides
+    end
+    if !key
+      return { "components" => comps }
+    end
+    return nil 
   end
  
   def set_group_override(key, value)
-    action_group_override("SET", key, value)
+    return unless key
+    group_override = get_group_override(key)
+    if group_override
+      group_override[key] = value
+    else
+      comps = all_component_instances.map{ |c| c.to_hash }
+      new_group_override = { "components" => comps }
+      new_group_override[key] = value
+      application.group_overrides << new_group_override
+    end
   end
 
   def unset_group_override(key)
-    action_group_override("UNSET", key)
+    group_override = get_group_override(key)
+    group_override.delete(key) if group_override
   end
 
   protected
@@ -170,37 +195,4 @@ class GroupInstance
     end
     [successful_runs,failed_runs]
   end 
-
-  private
- 
-  def action_group_override(action, key=nil, value=nil)
-    comps = all_component_instances.map{ |c| c.to_hash }
-    comps.each do |comp|
-      application.group_overrides.each do |group_override|
-        if group_override["components"].include?(comp)
-          if action == "GET"
-            if key
-              return group_override[key]
-            else
-              return group_override
-            end
-          elsif action == "SET"
-            group_override[key] = value if key
-            return
-          elsif action == "UNSET"
-            group_override.delete(key)
-            return
-          end
-        end
-      end if application.group_overrides
-    end
-    new_group_override = { "components" => comps }
-    if (action == "GET") and !key
-      return new_group_override
-    elsif (action == "SET") and key
-      new_group_override[key] = value
-      application.group_overrides << new_group_override
-    end
-    return nil
-  end
 end
