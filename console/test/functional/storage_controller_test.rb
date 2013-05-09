@@ -4,6 +4,10 @@ class StorageControllerTest < ActionController::TestCase
   test "should show with max storage per gear" do
     get :show, {:application_id => with_storage_app.to_param}
 
+    assert user = assigns(:user)
+    assert max_storage = assigns(:max_storage)
+    assert_not_nil user.capabilities[:max_storage_per_gear]
+    assert_equal user.capabilities[:max_storage_per_gear], max_storage
     assert_response :success
   end
 
