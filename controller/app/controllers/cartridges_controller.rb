@@ -27,14 +27,36 @@ class CartridgesController < BaseController
   # Action: GET
   # @return [RestReply<Array<RestCartridge>>] Array of cartridge objects
   def index
-    type = params[:id]
-    if type.nil?
-      cartridges = CartridgeCache.cartridges
-    else
-      # handle "standalone" type for backwards compatibility
-      type = "web_framework" if type == "standalone"
-      cartridges = CartridgeCache.cartridges.keep_if{ |c| c.categories.include?(type) }
+    search = params[:id]
+    # handle "standalone" type for backwards compatibility
+    if search and search == "embedded" or search == "standalone"
+      search = "web_framework" if search == "standalone"
+      cartridges = CartridgeCache.cartridges.keep_if{ |c| c.categories.include?(search) }
+      rest_cartridges = cartridges.map do |c|
+        if requested_api_version == 1.0
+          RestCartridge10.new(c)
+        else
+          RestCartridge.new(c)
+        end
+      end
+      return render_success(:ok, "cartridges", rest_cartridges, "List #{search.nil? ? 'all' : search} cartridges")
     end
+    # search by vendor, provides and version
+    if search
+      cartridges = CartridgeCache.find_all_cartridges(search)
+      rest_cartridges = [] 
+      cartridges.each do |c|
+        if requested_api_version == 1.0
+          rest_cartridges << RestCartridge10.new(c)
+        else
+          rest_cartridges << RestCartridge.new(c)
+        end
+      end if cartridges
+      Rails.logger.error "cartridges #{rest_cartridges}"
+      return render_success(:ok, "cartridges", rest_cartridges, "List #{search.nil? ? 'all' : search} cartridges")
+    end
+    # return all cartridges
+    cartridges = CartridgeCache.cartridges
     rest_cartridges = cartridges.map do |c|
       if requested_api_version == 1.0
         RestCartridge10.new(c)
@@ -42,7 +64,7 @@ class CartridgesController < BaseController
         RestCartridge.new(c)
       end
     end
-    render_success(:ok, "cartridges", rest_cartridges, "List #{type.nil? ? 'all' : type} cartridges")
+    render_success(:ok, "cartridges", rest_cartridges, "List #{search.nil? ? 'all' : search} cartridges")
   end
   
   def set_log_tag

@@ -78,22 +78,10 @@ class CartridgeCache
       return cart if cart.name == requested_feature
     end if app
     
-    carts = self.cartridges
-    vendor, feature, version = self.extract_vendor_feature_version(requested_feature)
-    matching_carts = []
-    
-    carts.each do |cart|
-      #v1 cartridges
-      return cart if cart.name == requested_feature
-      #v2 cartridges
-      matching_carts << cart if (cart.features.include?(feature) and 
-                                (vendor.nil? or cart.cartridge_vendor == vendor) and 
-                                (version.nil? or cart.version.to_s == version.to_s or (cart.versions and cart.versions.include?(version))))
-    end
+    matching_carts = self.find_all_cartridges(requested_feature)
     
     return nil if matching_carts.empty?
     
-    #return if only one match
     return matching_carts[0] if matching_carts.length == 1
     
     #if any is by redhat return that one
@@ -109,6 +97,23 @@ class CartridgeCache
     raise OpenShift::UserException.new("More that one cartridge was found matching #{requested_feature}.  Please select one of #{choices.to_s}")
     
   end
+  
+  def self.find_all_cartridges(requested_feature)
+    
+    carts = self.cartridges
+    vendor, feature, version = self.extract_vendor_feature_version(requested_feature)
+    matching_carts = []
+    
+    carts.each do |cart|
+      matching_carts << cart if cart.name == requested_feature
+      matching_carts << cart if (cart.features.include?(feature) and 
+                                (vendor.nil? or cart.cartridge_vendor == vendor) and 
+                                (version.nil? or cart.version.to_s == version.to_s))
+    end
+    
+    return matching_carts
+  end
+
 
   def self.download_from_url(url)
     max_dl_time = (Rails.application.config.downloaded_cartridges[:max_download_time] rescue 10) || 10
