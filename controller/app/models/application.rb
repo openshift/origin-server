@@ -103,7 +103,7 @@ class Application
 
   # non-presisted field used to store user agent of current request
   attr_accessor :user_agent
-  attr_accessor :personal_cartridges
+  attr_accessor :downloaded_cartridges
 
   validates :name,
     presence: {message: "Application name is required and cannot be blank."},
@@ -152,20 +152,25 @@ class Application
     app.analytics['user_agent'] = user_agent
     app.save
     features << "web_proxy" if scalable
-    app.personal_cartridges.each { |cname,c| features << c.name }
+    app.downloaded_cartridges.each { |cname,c| features << c.name }
     if app.valid?
       begin
         framework_carts = CartridgeCache.cartridge_names("web_framework", app)
         framework_cartridges = []
-        features.each do |cart|
-          framework_cartridges.push(cart) unless not framework_carts.include?(cart)
+        features.each do |feature|
+          cart = CartridgeCache.find_cartridge(feature, app)
+          if cart
+            framework_cartridges.push(cart.name) unless not framework_carts.include?(cart.name)
+          else
+            raise OpenShift::UserException.new("Invalid cartridge '#{feature}' specified.", 109, "cartridge")
+          end
         end
         if framework_carts.empty?
-          raise OpenShift::UserException.new("Unable to determine list of available cartridges.  If the problem persists please contact Red Hat support")
+          raise OpenShift::UserException.new("Unable to determine list of available cartridges.  If the problem persists please contact Red Hat support", 109, "cartridge")
         elsif framework_cartridges.empty?
-          raise OpenShift::UserException.new("Each application must contain one web cartridge.  None of the specified cartridges #{features.to_sentence} is a web cartridge. Please include one of the following cartridges: #{framework_carts.to_sentence} or supply a valid url to a custom web_framework cartridge.")
+          raise OpenShift::UserException.new("Each application must contain one web cartridge.  None of the specified cartridges #{features.to_sentence} is a web cartridge. Please include one of the following cartridges: #{framework_carts.to_sentence} or supply a valid url to a custom web_framework cartridge.", 109, "cartridge")
         elsif framework_cartridges.length > 1
-          raise OpenShift::UserException.new("Each application must contain only one web cartridge.  Please include a single web cartridge from this list: #{framework_carts.to_sentence}.")
+          raise OpenShift::UserException.new("Each application must contain only one web cartridge.  Please include a single web cartridge from this list: #{framework_carts.to_sentence}.", 109, "cartridge")
         end
         add_feature_result = app.add_features(features, group_overrides, init_git_url)
         result_io.append add_feature_result
@@ -183,29 +188,29 @@ class Application
     app
   end
 
-  def personal_cartridges
+  def downloaded_cartridges
     cmap = self.downloaded_cart_map
-    return @personal_cartridges if @personal_cartridges and cmap.length==@personal_cartridges.length
+    return @downloaded_cartridges if @downloaded_cartridges and cmap.length==@downloaded_cartridges.length
     # download the content of the url
     # careful, but assume this to be manifest.yml
     # parse the manifest and store the cartridge
     begin
-      @personal_cartridges = {}
+      @downloaded_cartridges = {}
       cmap.each { |cartname, cartdata|
         manifest_str = cartdata["original_manifest"]
-        CartridgeCache.foreach_cart_version(manifest_str, cartdata["version"]) do |chash,version|
+        CartridgeCache.foreach_cart_version(manifest_str, cartdata["version"]) do |chash,name,version|
           cart = OpenShift::Cartridge.new.from_descriptor(chash)
-          if @personal_cartridges.has_key?(cart.name) 
+          if @downloaded_cartridges.has_key?(cart.name) 
             Rails.logger.error("Duplicate community cartridge exists for application '#{self.name}'! Overwriting..")
           end
-          @personal_cartridges[cart.name] = cart
+          @downloaded_cartridges[cart.name] = cart
         end
       }
     rescue Exception =>e
       Rails.logger.error(e.message)
       raise e
     end
-    @personal_cartridges
+    @downloaded_cartridges
   end
 
   ##
@@ -236,7 +241,7 @@ class Application
   # @note side-effect: Saves application object in mongo
   def initialize(attrs = nil, options = nil)
     super
-    @personal_cartridges = {}
+    @downloaded_cartridges = {}
     self.uuid = self._id.to_s if self.uuid=="" or self.uuid.nil?
     self.app_ssh_keys = []
     self.pending_op_groups = []
@@ -478,7 +483,7 @@ class Application
       if cart.is_domain_scoped?
         begin
           if Application.where(domain_id: self.domain._id, "component_instances.cartridge_name" => cart.name).count() > 0
-            raise OpenShift::UserException.new("An application with #{feature_name} already exists within the domain. You can only have a single application with #{feature_name} within a domain.")
+            raise  .new("An application with #{feature_name} already exists within the domain. You can only have a single application with #{feature_name} within a domain.")
           end
         rescue Mongoid::Errors::DocumentNotFound
           #ignore
@@ -2346,6 +2351,7 @@ class Application
       cart = CartridgeCache.find_cartridge(feature, self)
       next unless cart.categories.include? "web_framework"
       prof = cart.profile_for_feature(feature)
+      prof = prof.first if prof.is_a? Array
       comp = prof.components.first
       web_framework = {"cart"=>cart.name, "comp"=>comp.name}
     end
@@ -2433,26 +2439,26 @@ class Application
   
   def validate_certificate(ssl_certificate, private_key, pass_phrase)
     if ssl_certificate and !ssl_certificate.empty?
-      raise OpenShift::UserException.new("Private key is required", 172, nil, "private_key") if private_key.nil? 
+      raise OpenShift::UserException.new("Private key is required", 172, "private_key") if private_key.nil? 
       #validate certificate
       begin
         ssl_cert_clean = OpenSSL::X509::Certificate.new(ssl_certificate.strip)
       rescue Exception => e
-        raise OpenShift::UserException.new("Invalid certificate: #{e.message}", 174, nil, "ssl_certificate")
+        raise OpenShift::UserException.new("Invalid certificate: #{e.message}", 174, "ssl_certificate")
       end
       #validate private key
       begin
         pass_phrase = '' if pass_phrase.nil?
         priv_key_clean = OpenSSL::PKey.read(private_key.strip, pass_phrase.strip)
       rescue Exception => e
-        raise OpenShift::UserException.new("Invalid private key or pass phrase: #{e.message}", 172, nil, "private_key")
+        raise OpenShift::UserException.new("Invalid private key or pass phrase: #{e.message}", 172, "private_key")
       end
       if not ssl_cert_clean.check_private_key(priv_key_clean)
-        raise OpenShift::UserException.new("Private key/certificate mismatch", 172, nil, "private_key")
+        raise OpenShift::UserException.new("Private key/certificate mismatch", 172, "private_key")
       end
 
       if not [OpenSSL::PKey::RSA, OpenSSL::PKey::DSA].include?(priv_key_clean.class)
-        raise OpenShift::UserException.new("Key must be RSA or DSA for Apache mod_ssl",172, nil, "private_key")
+        raise OpenShift::UserException.new("Key must be RSA or DSA for Apache mod_ssl",172, "private_key")
       end
     end
   end

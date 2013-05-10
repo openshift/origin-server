@@ -29,7 +29,7 @@ class CartridgeCache
     if cart_type.nil?
       cartnames = CacheHelper.get_cached("cart_names_all", :expires_in => 1.day) { cartridges.map{ |cart| cart.name } }
       if app
-        cartnames << app.personal_cartridges.values.keys.dup
+        cartnames << app.downloaded_cartridges.values.keys.dup
         cartnames.flatten
       end
       return cartnames
@@ -41,7 +41,7 @@ class CartridgeCache
   
   def self.find_cartridge_by_component(component_name, app=nil)
     if app
-      app.personal_cartridges.values.each do |cart|
+      app.downloaded_cartridges.values.each do |cart|
         return cart if cart.has_component?(component_name)
         return cart if cart.name == component_name
       end
@@ -57,7 +57,7 @@ class CartridgeCache
   def self.find_cartridge_by_category(cat, app=nil)
     global_carts = CacheHelper.get_cached("cartridges_by_cat_#{cat}", :expires_in => 1.day) {cartridges.select{|cart| cart.categories.include?(cat) }}
     if app
-      app_local_community_carts = app.personal_cartridges.values.select { |cart| cart.categories.include?(cat) }
+      app_local_community_carts = app.downloaded_cartridges.values.select { |cart| cart.categories.include?(cat) }
       global_carts << app_local_community_carts
       global_carts.flatten!
     end
@@ -73,7 +73,7 @@ class CartridgeCache
 
   def self.find_cartridge(requested_feature, app=nil)
   
-    app.personal_cartridges.values.each do |cart|
+    app.downloaded_cartridges.values.each do |cart|
       return cart if cart.features.include?(requested_feature)
       return cart if cart.name == requested_feature
     end if app
@@ -131,7 +131,7 @@ class CartridgeCache
       v1_manifest            = Marshal.load(Marshal.dump(cooked.manifest))
       v1_manifest['Name']    = "#{cooked.name}-#{cooked.version}"
       v1_manifest['Version'] = cooked.version
-      yield v1_manifest,version
+      yield v1_manifest,cooked.name,version
     end
   end
 
@@ -153,8 +153,8 @@ class CartridgeCache
        manifest_str = download_from_url(url)
        chash = validate_yaml(url, manifest_str)
        # TODO: check versions and create multiple of them
-       self.foreach_cart_version(manifest_str) do |chash,version|
-         cmap[chash["Name"]] = { "url" => url, "original_manifest" => manifest_str, "version" => version}
+       self.foreach_cart_version(manifest_str) do |chash,name,version|
+         cmap[name] = { "versioned_name" => chash["Name"], "url" => url, "original_manifest" => manifest_str, "version" => version}
          # no versioning support on downloaded cartridges yet.. use the default one
          break
        end

@@ -5,11 +5,5 @@ case "$1" in
     version="$2"
 esac
 
-echo "$version" > "$OPENSHIFT_DIY_DIR/env/OPENSHIFT_DIY_VERSION"
-
-# Copy the version specific files into diy directory
-shopt -s dotglob
-cp -r $OPENSHIFT_DIY_DIR/versions/$version/configuration/* $OPENSHIFT_DIY_DIR/configuration
-
 # Create additional directories required by the diy cartridge
 mkdir -p $OPENSHIFT_DIY_DIR/{logs,run}

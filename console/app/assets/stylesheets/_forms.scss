@@ -360,19 +360,19 @@ input[type="checkbox"][readonly] {
 
 // Warning
 .control-group.warning {
-  @include formFieldState($warningText, $warningText, $warningBackground);
+  @include formFieldState($warningText, $warningText, $warningBackground, 'warning');
 }
 // Error
 .control-group.error {
-  @include formFieldState($errorText, $errorText, $errorBackground);
+  @include formFieldState($errorText, $errorText, $errorBackground, 'error');
 }
 // Success
 .control-group.success {
-  @include formFieldState($successText, $successText, $successBackground);
+  @include formFieldState($successText, $successText, $successBackground, 'success');
 }
 // Info
 .control-group.info {
-  @include formFieldState($infoText, $infoText, $infoBackground);
+  @include formFieldState($infoText, $infoText, $infoBackground, 'info');
 }
 
 // HTML5 invalid states

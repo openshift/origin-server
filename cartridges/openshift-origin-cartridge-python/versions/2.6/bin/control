@@ -2,6 +2,9 @@
 
 HTTPD_CFG_FILE=$OPENSHIFT_PYTHON_DIR/etc/conf/httpd_nolog.conf
 
+# For backwards compatibility
+export APPDIR=$OPENSHIFT_PYTHON_DIR
+
 function start() {
     echo "Starting PYTHON cart"
     /usr/sbin/httpd -C "Include $OPENSHIFT_PYTHON_DIR/etc/conf.d/*.conf" -f $HTTPD_CFG_FILE -k start

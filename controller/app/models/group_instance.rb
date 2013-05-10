@@ -48,19 +48,23 @@ class GroupInstance
   end
   
   def gear_size
-    get_attribute_value("gear_size") || application.default_gear_size
+    get_group_override("gear_size") || application.default_gear_size
   end
 
   def gear_size=(value)
-    get_group_override["gear_size"] = value
+    if value == application.default_gear_size
+      unset_group_override("gear_size")
+    else
+      set_group_override("gear_size", value)
+    end
   end
 
   def addtl_fs_gb
-    get_attribute_value("additional_filesystem_gb") || 0
+    get_group_override("additional_filesystem_gb") || 0
   end
 
   def addtl_fs_gb=(value)
-    get_group_override["additional_filesystem_gb"] = value
+    set_group_override("additional_filesystem_gb", value)
   end
 
   # Adds ssh keys to all gears within the group instance.
@@ -105,21 +109,41 @@ class GroupInstance
     {component_instances: comps, scale: {current: self.gears.length, additional_filesystem_gb: self.addtl_fs_gb, gear_size: self.gear_size}, _id: _id}
   end
 
-  def get_group_override
-    value = nil
+  def get_group_override(key=nil)
     comps = all_component_instances.map{ |c| c.to_hash }
     comps.each do |comp|
-      found = false
       application.group_overrides.each do |group_override|
         if group_override["components"].include?(comp)
-          value = group_override
-          found = true
-          break
+          if key
+            return group_override[key]
+          else
+            return group_override
+          end
         end
       end if application.group_overrides
-      break if found
     end
-    value or { "components" => self.to_hash[:component_instances] }
+    if !key
+      return { "components" => comps }
+    end
+    return nil 
+  end
+ 
+  def set_group_override(key, value)
+    return unless key
+    group_override = get_group_override(key)
+    if group_override
+      group_override[key] = value
+    else
+      comps = all_component_instances.map{ |c| c.to_hash }
+      new_group_override = { "components" => comps }
+      new_group_override[key] = value
+      application.group_overrides << new_group_override
+    end
+  end
+
+  def unset_group_override(key)
+    group_override = get_group_override(key)
+    group_override.delete(key) if group_override
   end
 
   protected
@@ -171,23 +195,4 @@ class GroupInstance
     end
     [successful_runs,failed_runs]
   end 
-
-  private
- 
-  def get_attribute_value(attr)
-    value = nil
-    comps = all_component_instances.map{ |c| c.to_hash }
-    comps.each do |comp|
-      found = false
-      application.group_overrides.each do |group_override|
-        if group_override["components"].include?(comp)
-          value = group_override[attr]
-          found = true
-          break
-        end
-      end if application.group_overrides
-      break if found
-    end
-    value
-  end
 end

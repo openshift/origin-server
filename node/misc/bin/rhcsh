@@ -60,7 +60,7 @@ then
 
     if [ -f $OPENSHIFT_PRIMARY_CARTRIDGE_DIR/env/OPENSHIFT_*_PATH_ELEMENT ]
     then
-        path=$(< $OPENSHIFT_PRIMARY_CARTRIDGE_DIR/env/OPENSHIFT_*_PATH_ELEMENT)
+        path=$(< $OPENSHIFT_PRIMARY_CARTRIDGE_DIR/env/OPENSHIFT_*_PATH_ELEMENT):$path
     fi
 
     if [ -f /etc/openshift/env/PATH ]

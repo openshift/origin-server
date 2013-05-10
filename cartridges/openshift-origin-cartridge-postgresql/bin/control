@@ -68,8 +68,8 @@ function pre_snapshot {
   echo $OPENSHIFT_POSTGRESQL_DB_USERNAME > $OPENSHIFT_DATA_DIR/postgresql_db_username
   echo $OPENSHIFT_APP_NAME > $OPENSHIFT_DATA_DIR/postgresql_db_dbname
 
-  # Remove any statements that modify the postgres or user role
-  local rexp="^\s*\(DROP\|CREATE\|ALTER\)\s*ROLE\s*\(${OPENSHIFT_POSTGRESQL_DB_USERNAME}\|postgres\).*"
+  # Remove any statements that modify the postgres role
+  local rexp="^\s*\(DROP\|CREATE\|ALTER\)\s*ROLE\s*postgres.*"
   pg_dumpall -c -U postgres | \
     sed "/$rexp/d;" | \
     gzip -9 > $OPENSHIFT_DATA_DIR/postgresql_dump_snapshot.gz
@@ -92,24 +92,54 @@ function post_restore {
   local new_db=$OPENSHIFT_APP_NAME
   local old_db=$(< $OPENSHIFT_DATA_DIR/postgresql_db_dbname)
 
-  local rexp="\(DROP\|CREATE\)\s*DATABASE\s*$old_db"
-  local owner_rexp="\(CREATE\s*DATABASE\)\s*\(.*\)\s*OWNER\s*=\s*[^ ;]*"
-
   if [ -f $dump_file ]
   then
     start
-    # Restore the dumped file
-    zcat $dump_file | \
-      sed "s#$rexp#\\1 DATABASE $new_db#g;           \
-      s#$owner_rexp#\\1 \\2 OWNER = \"$new_user\"#g; \
-      s#\\connect $old_db#\\connect $new_db#g;       \
-      s#$old_user#$new_user#g;" |  \
-      psql -U postgres -d postgres
+    # Drop the existing database
+    {
+      echo "
+      DROP DATABASE IF EXISTS \"${new_db}\";
+      " | psql -U postgres -d postgres
+    } || error "Failed to drop existing database" 187
 
-    if [ ${PIPESTATUS[2]} -ne 0 ]
+    # Ensure any DROP DATABASE commands don't fail
+    local rexp="s#\(DROP DATABASE\) \(.*\)#\\1 IF EXISTS \\2#g;"
+
+    # Restore old postgres database
+    zcat $dump_file | sed "${rexp}" | psql -U postgres -d postgres
+
+    if [ $? -ne 0 ]
     then
       warning "Error: Could not import Postgres Database!  Continuing..."
     fi
+
+    # Rename old database
+    {
+      echo "
+      ALTER DATABASE \"${old_db}\" RENAME TO \"${new_db}\";
+      " | psql -U postgres -d postgres
+    } || error "Failed to rename database" 187
+
+    # Change ownership of database
+    {
+      echo "
+      ALTER DATABASE \"${new_db}\" OWNER TO \"${new_user}\";
+      " | psql -U postgres -d postgres
+    } || error "Failed to change owner of imported database" 187
+
+    # Change ownership of tables
+    {
+      echo "
+      REASSIGN OWNED BY \"${old_user}\" TO \"${new_user}\";
+      " | psql -U postgres -d $new_db
+    } || error "Failed to change owner of imported tables" 187
+
+    # Remove old user
+    {
+      echo "
+      DROP ROLE \"${old_user}\";
+      " | psql -U postgres -d postgres
+    } || error "Failed to remove old user" 187
 
     cleanup_dump
   else

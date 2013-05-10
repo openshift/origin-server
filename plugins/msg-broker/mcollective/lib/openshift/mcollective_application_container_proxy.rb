@@ -707,18 +707,19 @@ module OpenShift
         args['--cart-name'] = cart
 
         app = gear.app
-        if gear.app.downloaded_cart_map.has_key? cart
-          args['--with-cartridge-manifest'] = app.downloaded_cart_map[cart]["original_manifest"]
-          args['--with-software-version'] = app.downloaded_cart_map[cart]["version"]
+        downloaded_cart =  app.downloaded_cart_map.values.find { |c| c["versioned_name"]==cart}
+        if downloaded_cart
+          args['--with-cartridge-manifest'] = downloaded_cart["original_manifest"]
+          args['--with-software-version'] = downloaded_cart["version"]
         end
         
         if !template_git_url.nil?  && !template_git_url.empty?
           args['--with-template-git-url'] = template_git_url
         end
 
-        if framework_carts.include? cart
+        if framework_carts(app).include? cart
           result_io = run_cartridge_command(cart, gear, "configure", args)
-        elsif embedded_carts.include? cart
+        elsif embedded_carts(app).include? cart
           result_io, cart_data = add_component(gear, cart)
         else
           #no-op
@@ -749,7 +750,7 @@ module OpenShift
           args['--with-template-git-url'] = template_git_url
         end
 
-        if framework_carts.include?(cart) or embedded_carts.include?(cart)
+        if framework_carts(gear.app).include?(cart) or embedded_carts(gear.app).include?(cart)
           result_io = run_cartridge_command(cart, gear, "post-configure", args)
         else
           #no-op
@@ -779,9 +780,9 @@ module OpenShift
         args = build_base_gear_args(gear)
         args['--cart-name'] = cart
 
-        if framework_carts.include? cart
+        if framework_carts(gear.app).include? cart
           run_cartridge_command(cart, gear, "deconfigure", args)
-        elsif embedded_carts.include? cart
+        elsif embedded_carts(gear.app).include? cart
           remove_component(gear,cart)
         else
           ResultIO.new
@@ -1154,7 +1155,7 @@ module OpenShift
         args = build_base_gear_args(gear)
         args['--cart-name'] = cart
 
-        if framework_carts.include?(cart)
+        if framework_carts(gear.app).include?(cart)
           run_cartridge_command(cart, gear, "threaddump", args)
         else
           ResultIO.new
@@ -1180,7 +1181,7 @@ module OpenShift
         args = build_base_gear_args(gear)
         args['--cart-name'] = cart
 
-        if framework_carts.include?(cart)
+        if framework_carts(gear.app).include?(cart)
           run_cartridge_command(cart, gear, "system-messages", args)
         else
           ResultIO.new
@@ -1707,6 +1708,7 @@ module OpenShift
         log_debug "DEBUG: Fixing DNS and mongo for gear '#{gear.name}' after move"
         log_debug "DEBUG: Changing server identity of '#{gear.name}' from '#{source_container.id}' to '#{destination_container.id}'"
         gear.server_identity = destination_container.id
+        gear.group_instance.gear_size = destination_container.get_node_profile
         begin
           dns = OpenShift::DnsService.instance
           public_hostname = destination_container.get_public_hostname
@@ -1750,7 +1752,7 @@ module OpenShift
             do_with_retry('stop') do
               reply.append source_container.stop(gear, cart)
             end
-            if framework_carts.include? cart
+            if framework_carts(app).include? cart
               log_debug "DEBUG: Force stopping existing app cartridge '#{cart}' before moving"
               do_with_retry('force-stop') do
                 reply.append source_container.force_stop(gear, cart)
@@ -1768,6 +1770,8 @@ module OpenShift
       # * gear: a Gear object
       # * destination_container: An ApplicationContainerProxy?
       # * destination_district_uuid: String
+      # * change_district: Boolean
+      # * node_profile: String
       # 
       # RETURNS:
       # * ResultIO 
@@ -1796,7 +1800,7 @@ module OpenShift
         state_map = {}
 
         # resolve destination_container according to district
-        destination_container, destination_district_uuid, district_changed = resolve_destination(gear, destination_container, destination_district_uuid, change_district)
+        destination_container, destination_district_uuid, district_changed = resolve_destination(gear, destination_container, destination_district_uuid, change_district, node_profile)
 
         source_container = gear.get_proxy
 
@@ -1806,9 +1810,9 @@ module OpenShift
         end
 
         destination_node_profile = destination_container.get_node_profile
-        if source_container.get_node_profile != destination_node_profile
-          log_debug "Cannot change node_profile for a gear - this operation is not supported. The destination container's node profile is #{destination_node_profile}, while the gear's node_profile is #{gear.group_instance.gear_size}"
-          raise OpenShift::UserException.new("Error moving app.  Cannot change node profile.", 1)
+        if source_container.get_node_profile != destination_node_profile and app.scalable
+          log_debug "Cannot change node_profile for *scalable* application gear - this operation is not supported. The destination container's node profile is #{destination_node_profile}, while the gear's node_profile is #{gear.group_instance.gear_size}"
+          raise OpenShift::UserException.new("Error moving app.  Cannot change node profile for *scalable* app.", 1)
         end
 
         # get the state of all cartridges
@@ -1871,12 +1875,13 @@ module OpenShift
 
           rescue Exception => e
             gear.server_identity = source_container.id
+            gear.group_instance.gear_size = source_container.get_node_profile
             # remove-httpd-proxy of destination
             log_debug "DEBUG: Moving failed.  Rolling back gear '#{gear.name}' '#{app.name}' with remove-httpd-proxy on '#{destination_container.id}'"
             gi.all_component_instances.each do |cinst|
               next if cinst.is_singleton? and (not gear.host_singletons)
               cart = cinst.cartridge_name
-              if framework_carts.include? cart
+              if framework_carts(app).include? cart
                 begin
                   args = build_base_gear_args(gear)
                   args['--cart-name'] = cart
@@ -1956,6 +1961,7 @@ module OpenShift
       # * destination_container: ??
       # * destination_district_uuid: String
       # * change_district: Boolean
+      # * node_profile: String
       #
       # RETURNS:
       # * Array: [destination_container, destination_district_uuid, district_changed]
@@ -1966,12 +1972,18 @@ module OpenShift
       # NOTES:
       # * uses MCollectiveApplicationContainerProxy.find_available_impl
       #
-      def resolve_destination(gear, destination_container, destination_district_uuid, change_district)
+      def resolve_destination(gear, destination_container, destination_district_uuid, change_district, node_profile)
         gear_exists_in_district = false
         required_uid = gear.uid
         source_container = gear.get_proxy
         source_district_uuid = source_container.get_district_uuid
-  
+ 
+        if node_profile and (destination_container or destination_district_uuid or !Rails.configuration.msg_broker[:node_profile_enabled])
+          log_debug "DEBUG: Option node_profile '#{node_profile}' is being ignored either in favor of destination district/container "\
+                    "or node_profile is disabled in msg broker configuration."
+          node_profile = nil
+        end
+ 
         if destination_container.nil?
           if !destination_district_uuid and !change_district
             destination_district_uuid = source_district_uuid unless source_district_uuid == 'NONE'
@@ -1984,7 +1996,8 @@ module OpenShift
           end
           
           least_preferred_server_identities = [source_container.id]
-          destination_container = MCollectiveApplicationContainerProxy.find_available_impl(gear.group_instance.gear_size, destination_district_uuid, nil, gear_exists_in_district, required_uid)
+          destination_gear_size = node_profile || gear.group_instance.gear_size
+          destination_container = MCollectiveApplicationContainerProxy.find_available_impl(destination_gear_size, destination_district_uuid, nil, gear_exists_in_district, required_uid)
           log_debug "DEBUG: Destination container: #{destination_container.id}"
           destination_district_uuid = destination_container.get_district_uuid
         else
@@ -2277,8 +2290,8 @@ module OpenShift
       # * why not just ask the CartidgeCache?
       # * that is: Why use an instance var at all?
       #
-      def framework_carts
-        @framework_carts ||= CartridgeCache.cartridge_names('web_framework')
+      def framework_carts(app=nil)
+        @framework_carts ||= CartridgeCache.cartridge_names('web_framework', app)
       end
 
       #
@@ -2296,8 +2309,8 @@ module OpenShift
       # * Uses CartridgeCache
       # * Why not just ask the CartridgeCache every time?
       #      
-      def embedded_carts
-        @embedded_carts ||= CartridgeCache.cartridge_names('embedded')
+      def embedded_carts(app=nil)
+        @embedded_carts ||= CartridgeCache.cartridge_names('embedded',app)
       end
       
       # 
@@ -2326,9 +2339,10 @@ module OpenShift
 
         args = build_base_gear_args(gear)
         args['--cart-name'] = component
-        if app.downloaded_cart_map.has_key? component
-          args['--with-cartridge-manifest'] = app.downloaded_cart_map[component]["original_manifest"]
-          args['--with-software-version'] = app.downloaded_cart_map[cart]["version"]
+        downloaded_cart =  app.downloaded_cart_map.values.find { |c| c["versioned_name"]==component }
+        if downloaded_cart
+          args['--with-cartridge-manifest'] = downloaded_cart["original_manifest"]
+          args['--with-software-version'] = downloaded_cart["version"]
         end
         
         begin
@@ -2734,7 +2748,7 @@ module OpenShift
       # If the cart specified is in the framework_carts or embedded_carts list, the arguments will pass
       # through to run_cartridge_command. Otherwise, a new ResultIO will be returned.
       def run_cartridge_command_ignore_components(cart, gear, command, arguments, allow_move=true)       
-        if framework_carts.include?(cart) || embedded_carts.include?(cart)
+        if framework_carts(gear.app).include?(cart) || embedded_carts(gear.app).include?(cart)
           result = run_cartridge_command(cart, gear, command, arguments, allow_move)
         else
           result = ResultIO.new

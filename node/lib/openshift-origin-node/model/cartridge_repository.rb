@@ -113,9 +113,11 @@ module OpenShift
     #   CartridgeRepository.instance.load("/var/lib/openshift/.cartridge_repository")  #=> 24
     def load(directory = nil)
       @semaphore.synchronize do
+        load_via_url = directory.nil?
         find_manifests(directory || @path) do |manifest_path|
           logger.debug { "Loading cartridge from #{manifest_path}" }
-          c = insert(OpenShift::Runtime::Manifest.new(manifest_path, nil, @path))
+          # we check the vendor and cartridge names only when loading via URL
+          c = insert(OpenShift::Runtime::Manifest.new(manifest_path, nil, @path, load_via_url))
           logger.debug { "Loaded cartridge (#{c.name}, #{c.version}, #{c.cartridge_version})" }
         end
       end
@@ -329,6 +331,7 @@ module OpenShift
         uri       = URI(cartridge.source_url)
         temporary = PathUtils.join(File.dirname(target), File.basename(cartridge.source_url))
         cartridge.validate_vendor_name
+        cartridge.check_reserved_vendor_name
         cartridge.validate_cartridge_name
 
         case

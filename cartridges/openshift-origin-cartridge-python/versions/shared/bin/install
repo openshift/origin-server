@@ -2,6 +2,14 @@
 
 version="$1"
 
+# Source in the utility functions.
+source "${OPENSHIFT_PYTHON_DIR}/versions/$version/lib/utils"
+
 # Copy the version specific files
 shopt -s dotglob
 cp -r $OPENSHIFT_PYTHON_DIR/versions/$version/template/* $OPENSHIFT_PYTHON_DIR/template
+
+# Create the virtualenv.
+create_virtualenv
+
+create_virtenv_activate_file

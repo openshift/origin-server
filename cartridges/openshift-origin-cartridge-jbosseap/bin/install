@@ -2,26 +2,28 @@
 
 source $OPENSHIFT_JBOSSEAP_DIR/bin/util
 
-version=6.0
+case "$1" in
+  -v|--version)
+    version="$2"
+esac
 
 echo "$version" > "$OPENSHIFT_JBOSSEAP_DIR/env/OPENSHIFT_JBOSSEAP_VERSION"
 
 ln -s ${OPENSHIFT_JBOSSEAP_DIR}/standalone/log ${OPENSHIFT_JBOSSEAP_DIR}/logs
 
+shopt -s dotglob
 cp -r ${OPENSHIFT_JBOSSEAP_DIR}/versions/${version}/template/* ${OPENSHIFT_JBOSSEAP_DIR}/template
 cp -r ${OPENSHIFT_JBOSSEAP_DIR}/versions/${version}/template/.openshift ${OPENSHIFT_JBOSSEAP_DIR}/template
 cp ${OPENSHIFT_JBOSSEAP_DIR}/standalone/configuration/standalone.xml ${OPENSHIFT_JBOSSEAP_DIR}/template/.openshift/config
+
 sed -i "s/{APP_NAME}/${OPENSHIFT_APP_NAME}/g" ${OPENSHIFT_JBOSSEAP_DIR}/template/pom.xml
 
-JBOSS_HOME=/etc/alternatives/jbosseap-$version
+cp ${OPENSHIFT_JBOSSEAP_DIR}/template/deployments/ROOT.war $OPENSHIFT_JBOSSEAP_DIR/standalone/deployments
 
+JBOSS_HOME=/etc/alternatives/jbosseap-$version
 pushd $OPENSHIFT_JBOSSEAP_DIR > /dev/null
   ln -s ${JBOSS_HOME}/jboss-modules.jar
   ln -s ${JBOSS_HOME}/modules
 popd > /dev/null
-
-pushd $OPENSHIFT_JBOSSEAP_DIR/template/src/main/webapp
-  jar cvf $OPENSHIFT_JBOSSEAP_DIR/standalone/deployments/ROOT.war ./*
-popd
 
 update-configuration java7

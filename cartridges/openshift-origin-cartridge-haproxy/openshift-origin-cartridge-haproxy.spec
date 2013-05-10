@@ -6,7 +6,7 @@
 %global frameworkdir %{_libexecdir}/openshift/cartridges/v2/haproxy
 
 Name:          openshift-origin-cartridge-haproxy
-Version: 0.3.6
+Version: 0.4.1
 Release:       1%{?dist}
 Summary:       Provides HA Proxy
 Group:         Network/Daemons
@@ -57,6 +57,9 @@ rm -rf %{buildroot}
 %doc %{cartridgedir}/README.md
 
 %changelog
+* Wed May 08 2013 Adam Miller <admiller@redhat.com> 0.4.1-1
+- bump_minor_versions for sprint 28 (admiller@redhat.com)
+
 * Fri May 03 2013 Adam Miller <admiller@redhat.com> 0.3.6-1
 - Special file processing (fotios@redhat.com)
 

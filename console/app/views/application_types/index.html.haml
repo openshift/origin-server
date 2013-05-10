@@ -92,7 +92,7 @@
       %form.form-inline.row{:method => :get, :action => application_type_path('custom')}
         .span6
           %p
-            Have your own framework?  Provide the URL of an #{link_to 'personal cartridge', downloadable_cartridges_help_url} here, and OpenShift will download and 
+            Have your own framework?  Provide the URL of a #{link_to 'cartridge', downloadable_cartridges_help_url} here, and OpenShift will download and 
             provision it automatically into your new app!
           %input{:type => :hidden, :name => :unlock, :value => 'true'}
           %input{:type => :text, :name => 'application_type[cartridges]', :placeholder => 'URL to a cartridge definition'}

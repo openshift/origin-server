@@ -5,7 +5,7 @@
 
 Summary:       Provides JBossAS7 support
 Name:          openshift-origin-cartridge-jbossas
-Version: 1.1.8
+Version: 1.2.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -93,6 +93,10 @@ cp -p %{cartridgedir}/versions/7/modules/postgresql_module.xml /etc/alternatives
 
 
 %changelog
+* Wed May 08 2013 Adam Miller <admiller@redhat.com> 1.2.1-1
+- bump_minor_versions for sprint 28 (admiller@redhat.com)
+- Bug 956572 (bdecoste@gmail.com)
+
 * Tue May 07 2013 Adam Miller <admiller@redhat.com> 1.1.8-1
 - Bug 960378 960458 (bdecoste@gmail.com)
 

@@ -87,7 +87,7 @@ module Console::HelpHelper
   end
 
   def downloadable_cartridges_help_url
-    community_base_url 'developers/external-cartridges'
+    community_base_url 'developers/download-cartridges'
   end
 
   def livecd_wiki_url(anchor=nil)

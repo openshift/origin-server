@@ -8,8 +8,9 @@ env_dir="${OPENSHIFT_POSTGRESQL_DIR}/env"
 
 echo 'Generating username and password'
 
-# Force the username to be all lowercase and not include o,O,0
-username=$(generate_username admin 12 'a-np-z1-9')
+username=$(generate_username)
+# Force the username to be all lowercase so it works properly with psql
+username=$(echo "${username}" | tr '[:upper:]' '[:lower:]')
 password=$(generate_password)
 
 set_env_var 'OPENSHIFT_POSTGRESQL_DB_USERNAME' $username $env_dir

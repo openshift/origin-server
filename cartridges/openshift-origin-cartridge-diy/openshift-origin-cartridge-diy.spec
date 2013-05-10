@@ -1,8 +1,7 @@
 %global cartridgedir %{_libexecdir}/openshift/cartridges/v2/diy
-%global frameworkdir %{_libexecdir}/openshift/cartridges/v2/diy
 
 Name: openshift-origin-cartridge-diy
-Version: 0.3.6
+Version: 0.4.1
 Release: 1%{?dist}
 Summary: DIY cartridge
 Group: Development/Languages
@@ -41,12 +40,8 @@ rm -rf %{buildroot}
 %files
 %defattr(-,root,root,-)
 %dir %{cartridgedir}
-%dir %{cartridgedir}/bin
-%dir %{cartridgedir}/env
-%dir %{cartridgedir}/metadata
-%dir %{cartridgedir}/versions
+%attr(0755,-,-) %{cartridgedir}
 %attr(0755,-,-) %{cartridgedir}/bin/
-%attr(0755,-,-) %{frameworkdir}
 %{cartridgedir}/metadata/manifest.yml
 %doc %{cartridgedir}/README.md
 %doc %{cartridgedir}/COPYRIGHT
@@ -54,6 +49,10 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Wed May 08 2013 Adam Miller <admiller@redhat.com> 0.4.1-1
+- bump_minor_versions for sprint 28 (admiller@redhat.com)
+- removing version logic from diy (dmcphers@redhat.com)
+
 * Mon May 06 2013 Adam Miller <admiller@redhat.com> 0.3.6-1
 - moving templates to usr (dmcphers@redhat.com)
 

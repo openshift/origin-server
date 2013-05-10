@@ -30,7 +30,7 @@ module OpenShift
         # Return a cartridge in the gear; the primary if there is one.
         each_cartridge do |cartridge|
           cartridge_name = cartridge.name
-          break if cartridge.primary?
+          break if cartridge.deployable?
         end
       end
       if cartridge_name.nil?
@@ -75,7 +75,7 @@ module OpenShift
       cart = nil
       each_cartridge do |cartridge|
         cart = cartridge
-        break if cartridge.primary?
+        break if cartridge.deployable?
       end
 
       if cart.nil?
@@ -197,7 +197,7 @@ module OpenShift
     end
 
     def configure(cart_name, template_git_url, manifest)
-      raise "Personal cartridges are not supported" if manifest
+      raise "Downloaded cartridges are not supported" if manifest
 
       do_control('configure', cart_name, "#{@user.container_name} #{@user.namespace} #{@user.container_uuid} #{template_git_url}")
     end

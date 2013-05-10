@@ -7,7 +7,7 @@
 
 Summary:       Provides php-5.3 support
 Name:          openshift-origin-cartridge-php-5.3
-Version: 1.8.3
+Version: 1.9.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -111,6 +111,9 @@ ln -s %{cartridgedir}/../abstract/info/bin/sync_gears.sh %{buildroot}%{cartridge
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Wed May 08 2013 Adam Miller <admiller@redhat.com> 1.9.1-1
+- bump_minor_versions for sprint 28 (admiller@redhat.com)
+
 * Mon May 06 2013 Adam Miller <admiller@redhat.com> 1.8.3-1
 - Merge pull request #2342 from BanzaiMan/dev/hasari/c288_followup
   (dmcphers+openshiftbot@redhat.com)

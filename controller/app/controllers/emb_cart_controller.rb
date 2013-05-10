@@ -52,8 +52,10 @@ class EmbCartController < BaseController
         cart_urls << cart_param[:url]
         begin
           cmap = CartridgeCache.fetch_community_carts(cart_urls)
-          name = cmap.keys[0]
+          flat_name = cmap.keys[0]
+          name = "#{flat_name}-#{cmap[flat_name]["version"]}"
           @application.downloaded_cart_map.merge!(cmap)
+          @application.save
         rescue Exception=>e
           return render_error(:unprocessable_entity, "Error in cartridge url - #{e.message}", 109)
         end

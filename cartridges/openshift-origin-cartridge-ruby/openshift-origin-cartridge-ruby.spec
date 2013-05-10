@@ -7,7 +7,7 @@
 %global frameworkdir %{_libexecdir}/openshift/cartridges/v2/ruby
 
 Name:          openshift-origin-cartridge-ruby
-Version: 0.3.6
+Version: 0.4.1
 Release:       1%{?dist}
 Summary:       Ruby cartridge
 Group:         Development/Languages
@@ -184,6 +184,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Wed May 08 2013 Adam Miller <admiller@redhat.com> 0.4.1-1
+- bump_minor_versions for sprint 28 (admiller@redhat.com)
+
 * Mon May 06 2013 Adam Miller <admiller@redhat.com> 0.3.6-1
 - moving templates to usr (dmcphers@redhat.com)
 

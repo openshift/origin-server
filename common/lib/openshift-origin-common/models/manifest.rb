@@ -172,7 +172,7 @@ module OpenShift
       #
       #   Cartridge.new('/var/lib/openshift/.cartridge_repository/php/1.0/metadata/manifest.yml', '3.5', '.../.cartridge_repository') -> Cartridge
       #   Cartridge.new('Name: ...', '3.5') -> Cartridge
-      def initialize(manifest, version=nil, repository_base_path='')
+      def initialize(manifest, version=nil, repository_base_path='', check_names=true)
 
         if File.exist? manifest
           @manifest      = YAML.load_file(manifest)
@@ -207,7 +207,7 @@ module OpenShift
         @name                   = @manifest['Name']
         @short_name             = @manifest['Cartridge-Short-Name']
         @categories             = @manifest['Categories'] || []
-        @is_primary             = @categories.include?('web_framework')
+        @is_deployable          = @categories.include?('web_framework')
         @is_web_proxy           = @categories.include?('web_proxy')
         @install_build_required = @manifest.has_key?('Install-Build-Required') ? @manifest['Install-Build-Required'] : true
 
@@ -220,9 +220,11 @@ module OpenShift
         raise MissingElementError.new(nil, 'Name') unless @name
         #raise InvalidElementError.new(nil, 'Name') if @name.include?('-')
 
-        validate_vendor_name
-        validate_cartridge_name
-        check_reserved_cartridge_name
+        if check_names
+          validate_vendor_name
+          validate_cartridge_name
+          check_reserved_cartridge_name
+        end
 
         if @manifest.has_key?('Source-Url')
           raise InvalidElementError.new(nil, 'Source-Url') unless @manifest['Source-Url'] =~ URI::ABS_URI
@@ -257,9 +259,12 @@ module OpenShift
         @endpoints.select { |e| e.public_port_name }
       end
 
-      def primary?
-        @is_primary
+      def deployable?
+        @is_deployable
       end
+
+      # For now, these are synonyms
+      alias :buildable? :deployable?
 
       def web_proxy?
         @is_web_proxy

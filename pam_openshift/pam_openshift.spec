@@ -1,6 +1,6 @@
 Summary:       Openshift PAM module
 Name:          pam_openshift
-Version: 1.5.2
+Version: 1.6.1
 Release:       1%{?dist}
 Group:         System Environment/Base
 License:       GPLv2
@@ -38,6 +38,9 @@ install -D -m 755 oo-namespace-init %{buildroot}/%{_sbindir}/oo-namespace-init
 %attr(0755,root,root) %{_sbindir}/oo-namespace-init
 
 %changelog
+* Wed May 08 2013 Adam Miller <admiller@redhat.com> 1.6.1-1
+- bump_minor_versions for sprint 28 (admiller@redhat.com)
+
 * Thu Apr 25 2013 Adam Miller <admiller@redhat.com> 1.5.2-1
 - The sandbox directory is owned by the gear user in v2. (rmillner@redhat.com)
 

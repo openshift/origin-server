@@ -9,7 +9,7 @@
 
 Summary:       OpenShift plugin for mcollective service
 Name:          rubygem-%{gem_name}
-Version: 1.8.5
+Version: 1.9.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -80,6 +80,13 @@ cp %{buildroot}/%{gem_dir}/gems/%{gem_name}-%{version}/conf/openshift-origin-msg
 %attr(0644,-,-) %ghost /etc/mcollective/client.cfg
 
 %changelog
+* Wed May 08 2013 Adam Miller <admiller@redhat.com> 1.9.1-1
+- bump_minor_versions for sprint 28 (admiller@redhat.com)
+
+* Wed May 08 2013 Adam Miller <admiller@redhat.com> 1.8.6-1
+- Bug 958249 : oo-admin-move will allow different node profile for non-scalable
+  apps (rpenta@redhat.com)
+
 * Fri May 03 2013 Adam Miller <admiller@redhat.com> 1.8.5-1
 - fix version mismatch between broker/node for personal carts; some more safety
   for yaml downloads (rchopra@redhat.com)
