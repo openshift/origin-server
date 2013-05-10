@@ -170,7 +170,7 @@ EOF
 
       success = system cmd
       if not success
-        raise DnsException.new("error adding app record #{fqdn}")
+        raise Exception.new("error adding app record #{fqdn}")
       end
     end
 
@@ -195,7 +195,7 @@ EOF
 
       success = system cmd
       if not success
-        raise DnsException.new("error deleting app record #{fqdn}")
+        raise Exception.new("error deleting app record #{fqdn}")
       end  
     end
 
