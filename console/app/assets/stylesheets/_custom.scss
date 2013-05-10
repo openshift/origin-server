@@ -3,7 +3,6 @@
 ------------------------------------------------ */
 
 .column-content {
-  padding-top: 25px;
   section {
     margin-bottom: 25px;
   }
@@ -151,14 +150,13 @@ textarea:focus {
 	
 }
 
-
+/*
 @media (max-width: 980px) { 
 	#utility-nav {
 	  margin: 8px 5px 0 0;
 	 	}
 	.navbar .nav-collapse {
     clear: left;
-    // height: auto; /* override js toggle */
   	}
   .navbar .nav {
     float: none;
@@ -189,7 +187,7 @@ textarea:focus {
     background-color: #1a1a1a;
   	}
 }
-
+ 
 	  
 @media (min-width: 980px) {
   .navbar .nav > li > a {
@@ -198,6 +196,7 @@ textarea:focus {
   			    border-radius: 6px 6px 0 0;
 		}
 }
+*/
 
 @media (min-width: 1200px) {
 }

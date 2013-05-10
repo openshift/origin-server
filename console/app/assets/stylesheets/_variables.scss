@@ -3,6 +3,7 @@ $headerFontFamily:    "Helvetica Neue", Helvetica, Arial, sans-serif !default;
 
 $baseLineHeight:          18px;
 $baseFontSize:						13.5px;
+$bodyBackground:          #fff !default;
 
 $responsivePhone:         480px;
 $responsiveTablet:        768px;
@@ -142,5 +143,15 @@ $consoleTableStriped:            rgba(255,255,255,0.02);
 $consoleTableStripedHover:       rgba(255,255,255,0.04);
 
 $consoleHeaderColor:             #fafbfc;
+
+
+// Navbar
+// -------------------------
+$navbarCollapseWidth:                     979px !default;
+
+$navbarText:                              #e0e0e0 !default;
+$navbarLinkColor:                         $navbarText !default;
+
+$navbarBrandColor:                        $navbarLinkColor !default;
 
 
