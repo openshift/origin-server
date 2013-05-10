@@ -8,6 +8,10 @@ then
       exit 152
 fi
 
-set_uservars "OPENSHIFT_JBOSS_MODULE_PATH=OPENSHIFT_JBOSS_MODULE_PATH=/etc/alternatives/switchyard-0/modules"
-
+if [ -z $OPENSHIFT_JBOSSAS_IP ]
+then
+  set_uservars "OPENSHIFT_JBOSSEAP_MODULE_PATH=OPENSHIFT_JBOSSEAP_MODULE_PATH=/etc/alternatives/switchyard-0/modules"
+else 
+  set_uservars "OPENSHIFT_JBOSSAS_MODULE_PATH=OPENSHIFT_JBOSSAS_MODULE_PATH=/etc/alternatives/switchyard-0/modules"
+fi
 
