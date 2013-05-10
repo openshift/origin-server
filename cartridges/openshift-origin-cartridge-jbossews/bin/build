@@ -7,8 +7,17 @@ source $OPENSHIFT_CARTRIDGE_SDK_BASH
 export_java_home
 
 OPENSHIFT_MAVEN_MIRROR="${OPENSHIFT_REPO_DIR}/.openshift/config/settings.base.xml"
+
+if [ ! -f $OPENSHIFT_MAVEN_MIRROR ]; then
+  OPENSHIFT_MAVEN_MIRROR="${OPENSHIFT_JBOSSEWS_DIR}/versions/shared/configuration/settings.base.xml"
+fi
+
 if `echo $OPENSHIFT_GEAR_DNS | egrep -qe "\.rhcloud\.com"`; then 
   OPENSHIFT_MAVEN_MIRROR="${OPENSHIFT_REPO_DIR}/.openshift/config/settings.rhcloud.xml"
+
+  if [ ! -f $OPENSHIFT_MAVEN_MIRROR ]; then
+    OPENSHIFT_MAVEN_MIRROR="${OPENSHIFT_JBOSSEWS_DIR}/versions/shared/configuration/settings.rhcloud.xml"
+  fi
 fi
 
 if [ ! -f ${OPENSHIFT_REPO_DIR}pom.xml ]; then
