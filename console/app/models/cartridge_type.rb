@@ -106,8 +106,17 @@ class CartridgeType < RestApi::Base
   end
   alias_method :scalable?, :scalable
 
+  def ==(o)
+    to_param == o.to_param
+  end
+
+  def hash
+    to_param.hash
+  end
+
   def <=>(other)
     return 0 if name == other.name
+    return 0 if url && url == other.url
     c = self.class.tag_compare(tags, other.tags)
     return c unless c == 0
     c = priority - other.priority
