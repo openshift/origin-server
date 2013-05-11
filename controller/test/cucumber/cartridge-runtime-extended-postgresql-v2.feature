@@ -1,4 +1,4 @@
-@runtime_extended_other3
+@runtime_extended3
 @postgres
 @v2
 Feature: Postgresql extended tests
