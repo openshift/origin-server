@@ -1,5 +1,5 @@
+#@runtime_extended3
 @runtime
-@runtime_extended3
 @runtime_extended_other3
 @rhel-only
 @jboss

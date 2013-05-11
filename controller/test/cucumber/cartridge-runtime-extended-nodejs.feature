@@ -1,10 +1,10 @@
+#@runtime_extended2
 @runtime
 @rhel-only
 @not-enterprise
+@runtime_extended_other2
 Feature: Cartridge Runtime Extended Checks (Node)
 
-  @runtime_extended_other2
-  @runtime_extended2
   Scenario Outline: Hot deployment tests
     Given a new <type> type application
     And the application is made publicly accessible

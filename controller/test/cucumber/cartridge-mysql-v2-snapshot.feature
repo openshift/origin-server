@@ -1,4 +1,4 @@
-@runtime_extended_other1
+@runtime_extended1
 Feature: MySQL Application Sub-Cartridge
   Scenario: Snapshot/Restore an application with a MySQL database
     Given a v2 default node

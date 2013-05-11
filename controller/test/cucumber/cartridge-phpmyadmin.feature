@@ -1,5 +1,5 @@
 @runtime
-@runtime_extended3
+@runtime_extended_other3
 @not-enterprise
 Feature: phpMyAdmin Embedded Cartridge
 
