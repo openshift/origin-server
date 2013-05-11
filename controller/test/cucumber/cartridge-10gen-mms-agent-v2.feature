@@ -1,4 +1,4 @@
-@runtime_other4
+@runtime_extended3
 @not-enterprise
 Feature: 10gen-mms-agent Embedded Cartridge
 

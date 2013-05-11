@@ -1,7 +1,7 @@
 @runtime
 Feature: Cartridge Runtime Standard Checks (Perl)
 
-  #@runtime_other4
+  @runtime_extended_other2
   @runtime_extended2
   @rhel-only
   Scenario: Perl cartridge checks (RHEL/CentOS)

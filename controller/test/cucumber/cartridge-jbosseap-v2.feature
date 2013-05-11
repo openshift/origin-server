@@ -1,4 +1,4 @@
-@runtime_other4
+@runtime_extended3
 Feature: V2 SDK JBossEAP Cartridge
 
   Scenario: Add cartridge

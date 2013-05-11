@@ -19,10 +19,10 @@ module OpenShift
           raise 'Node cannot create both v1 and v2 formatted cartridges. Delete one of the cartridge format marker files'
         end
         # TODO: When v2 is the default cartridge format change this test...
-        if v2_marker_exist
-          return :v2
-        else
+        if v1_marker_exist
           return :v1
+        else
+          return :v2
         end
       end
     end
