@@ -1,4 +1,4 @@
-@runtime_other4
+@runtime4
 Feature: MySQL Application Sub-Cartridge
   
   Scenario: Create Delete one application with a MySQL database

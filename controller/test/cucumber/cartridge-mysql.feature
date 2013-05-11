@@ -1,6 +1,5 @@
-#@runtime_other4
 @runtime
-@runtime4
+@runtime_other1
 Feature: MySQL Application Sub-Cartridge
   @rhel-only
   Scenario: Create Delete one application with a MySQL database (RHEL/CentOS)

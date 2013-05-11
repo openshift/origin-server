@@ -41,6 +41,7 @@ def stubber
   @container.stubs(:destroy).returns(ResultIO.new)
   @container.stubs(:update_namespace).returns(ResultIO.new)
   @container.stubs(:configure_cartridge).returns(ResultIO.new)
+  @container.stubs(:post_configure_cartridge).returns(ResultIO.new)
   @container.stubs(:deconfigure_cartridge).returns(ResultIO.new)
   @container.stubs(:get_public_hostname).returns("node_dns")
   @container.stubs(:set_quota).returns(ResultIO.new)

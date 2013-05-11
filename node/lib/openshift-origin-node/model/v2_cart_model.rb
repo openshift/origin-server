@@ -258,6 +258,8 @@ module OpenShift
           end
 
         end
+        
+        connect_frontend(cartridge)
       end
 
       logger.info "configure output: #{output}"
@@ -287,8 +289,6 @@ module OpenShift
         output << cartridge_action(cartridge, 'post-setup', software_version)
         output << cartridge_action(cartridge, 'post-install', software_version)
       end
-
-      connect_frontend(cartridge)
 
       logger.info("post-configure output: #{output}")
       output
