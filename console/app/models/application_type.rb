@@ -67,7 +67,7 @@ class ApplicationType
       else
         s = s.strip
         if s[0] == '['
-          ActiveSupport::JSON.decode(s).map{ |s| s.is_a?(Hash) ? s['name'] : s }
+          ActiveSupport::JSON.decode(s)
         else
           s.split(',').map(&:strip)
         end
@@ -173,7 +173,19 @@ class ApplicationType
   def self.matching_cartridges(cartridge_specs)
     valid, invalid = {}, []
     Array(cartridge_specs).uniq.each do |c|
-      if c.start_with? 'http://' or c.start_with? 'https://'
+      if c.is_a? Hash
+        if c['name'].present?
+          if cart = CartridgeType.cached.find(c['name']) rescue nil
+            valid[c['name']] = [cart]
+          else
+            invalid << c['name']
+          end
+        elsif c['url'].present?
+          valid[c['url']] = [CartridgeType.for_url(c['url'])]
+        else
+          invalid << '-- Unknown'
+        end
+      elsif c.start_with? 'http://' or c.start_with? 'https://'
         valid[c] = [CartridgeType.for_url(c)]
       elsif (matches = CartridgeType.cached.matches(c)).present?
         valid[c] = matches
