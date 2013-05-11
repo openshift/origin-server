@@ -1,5 +1,4 @@
 %global cartridgedir %{_libexecdir}/openshift/cartridges/v2/jbossas
-%global frameworkdir %{_libexecdir}/openshift/cartridges/v2/jbossas
 %global jbossver 7.1.1.Final
 %global oldjbossver 7.1.0.Final
 
@@ -27,7 +26,6 @@ Requires:      jboss-as
 Requires:      bc
 Requires:      maven
 %endif
-BuildRequires: git
 BuildRequires: jpackage-utils
 BuildArch:     noarch
 
@@ -40,15 +38,19 @@ Provides JBossAS support to OpenShift. (Cartridge Format V2)
 
 
 %build
+%__rm %{name}.spec
 
 
 %install
-mkdir -p %{buildroot}%{cartridgedir}
-mkdir -p %{buildroot}/%{_sysconfdir}/openshift/cartridges
-cp -r * %{buildroot}%{cartridgedir}/
+%__rm -rf %{buildroot}
+%__mkdir -p %{buildroot}%{cartridgedir}
+%__cp -r * %{buildroot}%{cartridgedir}
+
+%clean
+%__rm -rf %{buildroot}
+
 
 %post
-%{_sbindir}/oo-admin-cartridge --action install --offline --source /usr/libexec/openshift/cartridges/v2/jbossas
 
 %if 0%{?rhel}
 alternatives --install /etc/alternatives/maven-3.0 maven-3.0 /usr/share/java/apache-maven-3.0.3 100
@@ -76,17 +78,14 @@ mkdir -p /etc/alternatives/jbossas-7/modules/org/postgresql/jdbc/main
 ln -fs /usr/share/java/postgresql-jdbc3.jar /etc/alternatives/jbossas-7/modules/org/postgresql/jdbc/main
 cp -p %{cartridgedir}/versions/7/modules/postgresql_module.xml /etc/alternatives/jbossas-7/modules/org/postgresql/jdbc/main/module.xml
 
-%{_sbindir}/oo-admin-cartridge --action install --offline --source /usr/libexec/openshift/cartridges/v2/jbossas
+%{_sbindir}/oo-admin-cartridge --action install --source %{cartridgedir}
 
 
 %files
 %defattr(-,root,root,-)
 %dir %{cartridgedir}
-%dir %{cartridgedir}/bin
-%dir %{cartridgedir}/metadata
-%dir %{cartridgedir}/versions
-%attr(0755,-,-) %{frameworkdir}
-%{cartridgedir}/metadata/manifest.yml
+%attr(0755,-,-) %{cartridgedir}
+%attr(0755,-,-) %{cartridgedir}/bin
 %doc %{cartridgedir}/README.md
 %doc %{cartridgedir}/COPYRIGHT
 %doc %{cartridgedir}/LICENSE
