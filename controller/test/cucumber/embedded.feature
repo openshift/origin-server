@@ -1,5 +1,6 @@
-@runtime_extended
 @runtime_extended3
+@runtime_extended
+@runtime_extended_other3
 Feature: Embedded Cartridge Verification Tests
   @runtime_extended_other3
   @rhel-only
