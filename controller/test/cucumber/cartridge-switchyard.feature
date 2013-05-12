@@ -1,6 +1,6 @@
-#@runtime_extended_other3
+#@runtime_extended3
 @runtime
-@runtime_extended2
+@runtime_extended_other3
 @rhel-only
 @jboss
 Feature: SwitchYard Application Sub-Cartridge

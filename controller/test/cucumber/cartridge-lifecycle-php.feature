@@ -1,6 +1,6 @@
-#@runtime_other4
+#@runtime4
+@runtime_other2
 @runtime
-@runtime4
 @not-enterprise
 Feature: Cartridge Lifecycle PHP Verification Tests
   @rhel-only
@@ -38,10 +38,6 @@ Feature: Cartridge Lifecycle PHP Verification Tests
   @rhel-only
   Scenario: Application Snapshot  (RHEL/CentOS)
     Given an existing php-5.3 application, verify it can be snapshotted and restored
-  
-  @rhel-only
-  Scenario: Application Change Namespace  (RHEL/CentOS)
-    Given an existing php-5.3 application, verify its namespace cannot be changed
     
   @rhel-only
   Scenario: Application Destroying  (RHEL/CentOS)
@@ -84,10 +80,6 @@ Feature: Cartridge Lifecycle PHP Verification Tests
   @fedora-only
   Scenario: Application Snapshot  (RHEL/CentOS)
     Given an existing php-5.4 application, verify it can be snapshotted and restored
-  
-  @fedora-only
-  Scenario: Application Change Namespace  (RHEL/CentOS)
-    Given an existing php-5.4 application, verify its namespace cannot be changed
   
   @fedora-only
   Scenario: Application Destroying  (RHEL/CentOS)

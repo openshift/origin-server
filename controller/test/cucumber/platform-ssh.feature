@@ -1,4 +1,4 @@
-@runtime_other4
+@runtime_extended2
 Feature: V2 Platform SSH Tests
   Scenario: Platform SSH for web proxy cartridge
     Given a v2 default node

@@ -818,7 +818,7 @@ When /^I (start|stop|status|restart|tidy|reload) the newfangled application$/ do
 end
 
 Given /^a v2 default node$/ do
-  assert_file_exists '/var/lib/openshift/.settings/v2_cartridge_format'
+  assert_file_not_exists '/var/lib/openshift/.settings/v1_cartridge_format'
   $v2_node = true
 end
 

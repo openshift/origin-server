@@ -1,4 +1,4 @@
-@runtime_other4
+@runtime_extended1
 @not-enterprise
 Feature: MongoDB Application Sub-Cartridge
   

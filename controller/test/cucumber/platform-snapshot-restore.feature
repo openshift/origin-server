@@ -1,4 +1,4 @@
-@runtime_other1
+@runtime1
 Feature: V2 SDK snapshot and restore
   Scenario: Create, snapshot, and restore application with client tools
     Given a v2 default node

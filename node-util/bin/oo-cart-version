@@ -19,15 +19,15 @@ USAGE
   exit 255
 end
 
-VERSION_MARKER = '/var/lib/openshift/.settings/v2_cartridge_format'
+VERSION_MARKER = '/var/lib/openshift/.settings/v1_cartridge_format'
 
 def check_version
   if File.exists? VERSION_MARKER
-    puts 'Node is currently in v2 mode'
-    :v2
-  else
     puts 'Node is currently in v1 mode'
     :v1
+  else
+    puts 'Node is currently in v2 mode'
+    :v2
   end
 end
 
@@ -36,7 +36,7 @@ def toggle_version
 
   puts 'Switching node cartridge version'
 
-  if (version == :v1)
+  if (version == :v2)
     `mkdir -p /var/lib/openshift/.settings;
      touch #{VERSION_MARKER}`
   else

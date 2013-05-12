@@ -1,4 +1,4 @@
-@runtime_other4
+@runtime_extended1
 @postgres
 @v2
 Feature: Postgres Application Sub-Cartridge
