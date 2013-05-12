@@ -14,7 +14,6 @@ Requires:      java >= 1.6
 Requires:      jenkins
 Requires:      jenkins-plugin-openshift
 Requires:      openshift-origin-node-util
-BuildRequires: git
 BuildArch:     noarch
 
 %description
@@ -26,23 +25,24 @@ Provides Jenkins cartridge to OpenShift. (Cartridge Format V2)
 
 
 %build
+%__rm %{name}.spec
 
 
 %post
 service jenkins stop
 chkconfig jenkins off
 
-%{_sbindir}/oo-admin-cartridge --action install --offline --source /usr/libexec/openshift/cartridges/v2/jenkins
+%{_sbindir}/oo-admin-cartridge --action install --source %{cartridgedir}
 
 
 %install
-rm -rf %{buildroot}
-mkdir -p %{buildroot}%{cartridgedir}
-cp -r * %{buildroot}%{cartridgedir}/
+%__rm -rf %{buildroot}
+%__mkdir -p %{buildroot}%{cartridgedir}
+%__cp -r * %{buildroot}%{cartridgedir}
 
 
 %clean
-rm -rf %{buildroot}
+%__rm -rf %{buildroot}
 
 
 %files
@@ -50,7 +50,6 @@ rm -rf %{buildroot}
 %dir %{cartridgedir}
 %attr(0755,-,-) %{cartridgedir}/bin/
 %attr(0755,-,-) %{cartridgedir}
-%{cartridgedir}/metadata/manifest.yml
 %doc %{cartridgedir}/README.md
 %doc %{cartridgedir}/COPYRIGHT
 %doc %{cartridgedir}/LICENSE

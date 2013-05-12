@@ -4,7 +4,6 @@
 %endif
 
 %global cartridgedir %{_libexecdir}/openshift/cartridges/v2/ruby
-%global frameworkdir %{_libexecdir}/openshift/cartridges/v2/ruby
 
 Name:          openshift-origin-cartridge-ruby
 Version: 0.4.1
@@ -21,9 +20,7 @@ Requires:      libxml2
 Requires:      libxml2-devel
 Requires:      libxslt
 Requires:      libxslt-devel
-Requires:      mod_bw
 Requires:      mysql-devel
-Requires:      openshift-origin-cartridge-abstract
 Requires:      openshift-origin-node-util
 Requires:      rubygem(openshift-origin-node)
 Requires:      sqlite-devel
@@ -142,8 +139,6 @@ Requires:      ruby-nokogiri
 Requires:      rubygem-nokogiri
 %endif
 
-BuildRequires: git
-BuildRoot:     %{_tmppath}/%{name}-%{version}-%{release}-root
 BuildArch:     noarch
 
 %description
@@ -154,34 +149,30 @@ Ruby cartridge for OpenShift. (Cartridge Format V2)
 %setup -q
 
 %build
+%__rm %{name}.spec
+
 
 %install
-rm -rf %{buildroot}
-mkdir -p %{buildroot}%{cartridgedir}
-mkdir -p %{buildroot}/%{_sysconfdir}/openshift/cartridges
-cp -r * %{buildroot}%{cartridgedir}/
+%__rm -rf %{buildroot}
+%__mkdir -p %{buildroot}%{cartridgedir}
+%__cp -r * %{buildroot}%{cartridgedir}
 
 
 %clean
-rm -rf %{buildroot}
+%__rm -rf %{buildroot}
 
 %post
-%{_sbindir}/oo-admin-cartridge --action install --offline --source /usr/libexec/openshift/cartridges/v2/ruby
+%{_sbindir}/oo-admin-cartridge --action install --source %{cartridgedir}
 
 %files
 %defattr(-,root,root,-)
 %dir %{cartridgedir}
-%dir %{cartridgedir}/bin
-%dir %{cartridgedir}/hooks
-%dir %{cartridgedir}/env
-%dir %{cartridgedir}/metadata
-%dir %{cartridgedir}/versions
 %attr(0755,-,-) %{cartridgedir}/bin/
 %attr(0755,-,-) %{cartridgedir}/hooks/
-%attr(0755,-,-) %{frameworkdir}
-%{cartridgedir}/metadata/manifest.yml
+%attr(0755,-,-) %{cartridgedir}
 %doc %{cartridgedir}/README.md
-
+%doc %{cartridgedir}/COPYRIGHT
+%doc %{cartridgedir}/LICENSE
 
 %changelog
 * Wed May 08 2013 Adam Miller <admiller@redhat.com> 0.4.1-1
