@@ -1,5 +1,4 @@
 %global cartridgedir %{_libexecdir}/openshift/cartridges/v2/jbosseap
-%global frameworkdir %{_libexecdir}/openshift/cartridges/v2/jbosseap
 %global jbossver 6.0.1.GA
 %global oldjbossver 6.0.0.GA
 
@@ -35,7 +34,6 @@ Requires:      maven3
 %if 0%{?fedora}
 Requires:      maven
 %endif
-BuildRequires: git
 BuildRequires: jpackage-utils
 BuildArch:     noarch
 
@@ -48,12 +46,18 @@ Provides JBossEAP support to OpenShift. (Cartridge Format V2)
 
 
 %build
+%__rm %{name}.spec
 
 
 %install
-mkdir -p %{buildroot}%{cartridgedir}
-mkdir -p %{buildroot}/%{_sysconfdir}/openshift/cartridges
-cp -r * %{buildroot}%{cartridgedir}/
+%__rm -rf %{buildroot}
+%__mkdir -p %{buildroot}%{cartridgedir}
+%__cp -r * %{buildroot}%{cartridgedir}
+
+
+%clean
+%__rm -rf %{buildroot}
+
 
 %post
 %if 0%{?rhel}
@@ -77,17 +81,14 @@ mkdir -p /etc/alternatives/jbosseap-6.0/modules/org/postgresql/jdbc/main
 ln -fs /usr/share/java/postgresql-jdbc3.jar /etc/alternatives/jbosseap-6.0/modules/org/postgresql/jdbc/main
 cp -p %{cartridgedir}/versions/6.0/modules/postgresql_module.xml /etc/alternatives/jbosseap-6.0/modules/org/postgresql/jdbc/main/module.xml
 
-%{_sbindir}/oo-admin-cartridge --action install --offline --source /usr/libexec/openshift/cartridges/v2/jbosseap
+%{_sbindir}/oo-admin-cartridge --action install --source %{cartridgedir}
 
 
 %files
 %defattr(-,root,root,-)
 %dir %{cartridgedir}
-%dir %{cartridgedir}/bin
-%dir %{cartridgedir}/metadata
-%dir %{cartridgedir}/versions
-%attr(0755,-,-) %{frameworkdir}
-%{cartridgedir}/metadata/manifest.yml
+%attr(0755,-,-) %{cartridgedir}
+%attr(0755,-,-) %{cartridgedir}/bin
 %doc %{cartridgedir}/README.md
 %doc %{cartridgedir}/COPYRIGHT
 %doc %{cartridgedir}/LICENSE

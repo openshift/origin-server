@@ -21,7 +21,6 @@ Requires:      maven3
 %if 0%{?fedora}
 Requires:      maven
 %endif
-BuildRequires: git
 BuildRequires: jpackage-utils
 BuildArch:     noarch
 
@@ -34,15 +33,17 @@ Provides JBossEWS1.0 and JBossEWS2.0 support to OpenShift. (Cartridge Format V2)
 
 
 %build
+%__rm %{name}.spec
+
 
 %install
-rm -rf %{buildroot}
-mkdir -p %{buildroot}%{cartridgedir}
-mkdir -p %{buildroot}/%{_sysconfdir}/openshift/cartridges
-cp -r * %{buildroot}%{cartridgedir}/
+%__rm -rf %{buildroot}
+%__mkdir -p %{buildroot}%{cartridgedir}
+%__cp -r * %{buildroot}%{cartridgedir}
+
 
 %clean
-rm -rf %{buildroot}
+%__rm -rf %{buildroot}
 
 %post
 # To modify an alternative you should:
@@ -69,23 +70,18 @@ alternatives --remove jbossews-2.0 /usr/share/tomcat7
 alternatives --install /etc/alternatives/jbossews-2.0 jbossews-2.0 /usr/share/tomcat7 102
 alternatives --set jbossews-2.0 /usr/share/tomcat7
 
-%{_sbindir}/oo-admin-cartridge --action install --offline --source /usr/libexec/openshift/cartridges/v2/jbossews
+%{_sbindir}/oo-admin-cartridge --action install --source %{cartridgedir}
 
 
 %files
 %defattr(-,root,root,-)
 %dir %{cartridgedir}
-%dir %{cartridgedir}/bin
-%dir %{cartridgedir}/hooks
-%dir %{cartridgedir}/env
-%dir %{cartridgedir}/metadata
-%dir %{cartridgedir}/template
 %attr(0755,-,-) %{cartridgedir}/bin/
 %attr(0755,-,-) %{cartridgedir}/hooks/
 %attr(0755,-,-) %{cartridgedir}
-%{cartridgedir}/metadata/manifest.yml
 %doc %{cartridgedir}/README.md
-
+%doc %{cartridgedir}/COPYRIGHT
+%doc %{cartridgedir}/LICENSE
 
 %changelog
 * Wed May 08 2013 Adam Miller <admiller@redhat.com> 0.4.1-1

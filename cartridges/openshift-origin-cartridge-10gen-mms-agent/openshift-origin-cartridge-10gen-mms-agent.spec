@@ -8,7 +8,7 @@ Group:         Applications/Internet
 License:       ASL 2.0
 URL:           http://www.openshift.com
 Source0:       http://mirror.openshift.com/pub/origin-server/source/%{name}/%{name}-%{version}.tar.gz
-Requires:      openshift-origin-cartridge-mongodb-2.2
+Requires:      openshift-origin-cartridge-mongodb
 Requires:      rubygem(openshift-origin-node)
 Requires:      openshift-origin-node-util
 Requires:      pymongo
@@ -24,27 +24,25 @@ Provides 10gen MMS agent cartridge support. (Cartridge Format V2)
 
 
 %build
+%__rm %{name}.spec
 
 
 %install
-rm -rf %{buildroot}
-mkdir -p %{buildroot}%{cartridgedir}
-cp -r * %{buildroot}%{cartridgedir}/
+%__rm -rf %{buildroot}
+%__mkdir -p %{buildroot}%{cartridgedir}
+%__cp -r * %{buildroot}%{cartridgedir}
 
 %clean
-rm -rf %{buildroot}
+%__rm -rf %{buildroot}
 
 %post
-%{_sbindir}/oo-admin-cartridge --action install --offline --source /usr/libexec/openshift/cartridges/v2/10gen-mms-agent
+%{_sbindir}/oo-admin-cartridge --action install --source %{cartridgedir}
 
 
 %files
 %defattr(-,root,root,-)
 %dir %{cartridgedir}
-%dir %{cartridgedir}/metadata
-%attr(0755,-,-) %{cartridgedir}/bin/
 %attr(0755,-,-) %{cartridgedir}
-%{cartridgedir}/metadata/manifest.yml
 %doc %{cartridgedir}/README.md
 %doc %{cartridgedir}/COPYRIGHT
 %doc %{cartridgedir}/LICENSE

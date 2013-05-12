@@ -1,5 +1,4 @@
 %global cartridgedir %{_libexecdir}/openshift/cartridges/v2/mock-plugin
-%global frameworkdir %{_libexecdir}/openshift/cartridges/v2/mock-plugin
 
 Name: openshift-origin-cartridge-mock-plugin
 Version: 0.4.1
@@ -10,7 +9,6 @@ License: ASL 2.0
 URL: https://www.openshift.com
 Source0: http://mirror.openshift.com/pub/origin-server/source/%{name}/%{name}-%{version}.tar.gz
 
-BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
 BuildArch: noarch
 Requires:      rubygem(openshift-origin-node)
 Requires:      openshift-origin-node-util
@@ -25,36 +23,30 @@ test platform functionality.
 
 
 %build
+%__rm %{name}.spec
 
 
 %install
-rm -rf %{buildroot}
-mkdir -p %{buildroot}%{cartridgedir}
-mkdir -p %{buildroot}/%{_sysconfdir}/openshift/cartridges/v2
-cp -r * %{buildroot}%{cartridgedir}/
-ln -s %{cartridgedir}/conf/ %{buildroot}/%{_sysconfdir}/openshift/cartridges/v2/%{name}
-
+%__rm -rf %{buildroot}
+%__mkdir -p %{buildroot}%{cartridgedir}
+%__cp -r * %{buildroot}%{cartridgedir}
 
 %clean
-rm -rf %{buildroot}
+%__rm -rf %{buildroot}
+
+
+%post
+%{_sbindir}/oo-admin-cartridge --action install --source %{cartridgedir}
 
 
 %files
 %defattr(-,root,root,-)
 %dir %{cartridgedir}
-%dir %{cartridgedir}/bin
-%dir %{cartridgedir}/conf
-%dir %{cartridgedir}/conf.d
-%dir %{cartridgedir}/env
-%dir %{cartridgedir}/metadata
-%dir %{cartridgedir}/usr
-%config(noreplace) %{cartridgedir}/conf/
 %attr(0755,-,-) %{cartridgedir}/bin/
-%attr(0755,-,-) %{frameworkdir}
-%{_sysconfdir}/openshift/cartridges/v2/%{name}
-%{cartridgedir}/metadata/manifest.yml
+%attr(0755,-,-) %{cartridgedir}
 %doc %{cartridgedir}/README.md
-%config(noreplace) %{cartridgedir}/mock-plugin.conf
+%doc %{cartridgedir}/COPYRIGHT
+%doc %{cartridgedir}/LICENSE
 
 
 %changelog
