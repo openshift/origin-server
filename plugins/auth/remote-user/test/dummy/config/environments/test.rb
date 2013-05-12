@@ -48,6 +48,6 @@ Dummy::Application.configure do
 
  config.user_action_logging = {
     :logging_enabled => false,
-    :log_filepath => "/var/log/openshift/user_action.log"
+    :log_filepath => "/var/log/openshift/broker/user_action.log"
   }
 end

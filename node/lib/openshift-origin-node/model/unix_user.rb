@@ -394,6 +394,7 @@ Dir(after)    #{@uuid}/#{@uid} => #{list_home_dir(@homedir)}
       status
     end
 
+<<<<<<< HEAD
     # Public: Add broker authorization keys so gear can communicate with
     #         broker.
     #
@@ -848,5 +849,46 @@ Dir(after)    #{@uuid}/#{@uid} => #{list_home_dir(@homedir)}
       end
     end
 
+=======
+    # Public: Add broker authori
+    #def modify_ssh_keys
+    #  authorized_keys_file = File.join(@homedir, ".ssh", "authorized_keys")
+    #  keys = Hash.new
+    #
+    #  @@MODIFY_SSH_KEY_MUTEX.synchronize do
+    #    File.open("/var/lock/oo-modify-ssh-keys", File::RDWR|File::CREAT, 0o0600) do | lock |
+    #      lock.fcntl(Fcntl::F_SETFD, Fcntl::FD_CLOEXEC)
+    #      lock.flock(File::LOCK_EX)
+    #      begin
+    #        File.open(authorized_keys_file, File::RDWR|File::CREAT, 0o0440) do |file|
+    #          file.each_line do |line|
+    #            begin
+    #              keys[line.split[-1].chomp] = line.chomp
+    #            rescue
+    #            end
+    #          end
+    #
+    #          if block_given?
+    #            old_keys = keys.clone
+    #
+    #            yield keys
+    #
+    #            if old_keys != keys
+    #              file.seek(0, IO::SEEK_SET)
+    #              file.write(keys.values.join("\n")+"\n")
+    #              file.truncate(file.tell)
+    #            end
+    #          end
+    #        end
+    #        PathUtils.oo_chown_R('root', @uuid, authorized_keys_file)
+    #        shellCmd("restorecon #{authorized_keys_file}")
+    #      ensure
+    #        lock.flock(File::LOCK_UN)
+    #      end
+    #    end
+    #  end
+    #  keys
+    #end
+>>>>>>> 175e863... Removing .yardoc generation from origin-common package
   end
 end

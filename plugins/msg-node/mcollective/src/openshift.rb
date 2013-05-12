@@ -5,6 +5,7 @@ require 'json'
 require 'zlib'
 require 'base64'
 require 'openshift-origin-node'
+require 'openshift-origin-node/model/application_container'
 require 'openshift-origin-node/model/cartridge_repository'
 require 'shellwords'
 require 'facter'
@@ -208,7 +209,7 @@ module MCollective
         comment  = args['--with-ssh-key-comment']
 
         with_container_from_args(args) do |container|
-          container.user.add_ssh_key(ssh_key, key_type, comment)
+          container.add_ssh_key(ssh_key, key_type, comment)
         end
       end
 
@@ -217,7 +218,7 @@ module MCollective
         comment = args['--with-ssh-comment']
 
         with_container_from_args(args) do |container|
-          container.user.remove_ssh_key(ssh_key, comment)
+          container.remove_ssh_key(ssh_key, comment)
         end
       end
 
@@ -226,7 +227,7 @@ module MCollective
 
         begin
           container = get_app_container_from_args(args)
-          container.user.replace_ssh_keys(ssh_keys)
+          container.replace_ssh_keys(ssh_keys)
         rescue Exception => e
           Log.instance.info e.message
           Log.instance.info e.backtrace
@@ -241,13 +242,13 @@ module MCollective
         token = args['--with-token']
 
         with_container_from_args(args) do |container|
-          container.user.add_broker_auth(iv, token)
+          container.add_broker_auth(iv, token)
         end
       end
 
       def oo_broker_auth_key_remove(args)
         with_container_from_args(args) do |container|
-          container.user.remove_broker_auth
+          container.remove_broker_auth
         end
       end
 
@@ -256,7 +257,7 @@ module MCollective
         value = args['--with-value']
 
         with_container_from_args(args) do |container|
-          container.user.add_env_var(key, value)
+          container.add_env_var(key, value)
         end
       end
 
@@ -264,7 +265,7 @@ module MCollective
         key = args['--with-key']
 
         with_container_from_args(args) do |container|
-          container.user.remove_env_var(key)
+          container.remove_env_var(key)
         end
       end
 

@@ -80,7 +80,6 @@ cp -a ./%{gem_dir}/* %{buildroot}%{gem_dir}/
 %dir %{gem_instdir}
 %doc %{gem_instdir}/LICENSE
 %doc %{gem_instdir}/COPYRIGHT
-%doc %{gem_instdir}/.yardoc
 %doc %{gem_instdir}/Gemfile
 %doc %{gem_instdir}/Rakefile
 %doc %{gem_instdir}/README.md

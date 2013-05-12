@@ -15,9 +15,16 @@ Requires:      php >= 5.3.2
 Requires:      php < 5.4
 Requires:      httpd < 2.4
 %endif
-%if 0%{?fedora} >= 18
+%if 0%{?fedora} >= 19
+Requires:      php >= 5.5
+Requires:      php < 5.6
+Requires:      httpd > 2.3
+Requires:      httpd < 2.5
+%endif
+%if 0%{?fedora} == 18
 Requires:      php >= 5.4
 Requires:      php < 5.5
+Requires:      httpd > 2.3
 Requires:      httpd < 2.5
 %endif
 Requires:      php
@@ -63,13 +70,21 @@ cp -r * %{buildroot}%{cartridgedir}/
 mv %{buildroot}%{cartridgedir}/versions/shared/configuration/etc/conf-httpd-2.2/* %{buildroot}%{cartridgedir}/versions/shared/configuration/etc/conf/
 rm -rf %{buildroot}%{cartridgedir}/versions/5.4
 mv %{buildroot}%{cartridgedir}/metadata/manifest.yml.rhel %{buildroot}%{cartridgedir}/metadata/manifest.yml
-rm %{buildroot}%{cartridgedir}/metadata/manifest.yml.fedora
+rm %{buildroot}%{cartridgedir}/metadata/manifest.yml.fedora*
 %endif
-%if 0%{?fedora} >= 18
+%if 0%{?fedora} == 18
 mv %{buildroot}%{cartridgedir}/versions/shared/configuration/etc/conf-httpd-2.4/* %{buildroot}%{cartridgedir}/versions/shared/configuration/etc/conf/
+rm %{buildroot}%{cartridgedir}/metadata/manifest.yml.fedora19
+mv %{buildroot}%{cartridgedir}/metadata/manifest.yml.fedora18 %{buildroot}%{cartridgedir}/metadata/manifest.yml
+sed -i 's/#DefaultRuntimeDir/DefaultRuntimeDir/g' %{buildroot}%{cartridgedir}/versions/shared/configuration/etc/conf.d/openshift.conf.erb
+%endif
+%if 0%{?fedora} == 19
+mv %{buildroot}%{cartridgedir}/versions/shared/configuration/etc/conf-httpd-2.4/* %{buildroot}%{cartridgedir}/versions/shared/configuration/etc/conf/
+rm %{buildroot}%{cartridgedir}/versions/5.5 
 rm -rf %{buildroot}%{cartridgedir}/versions/5.3
-mv %{buildroot}%{cartridgedir}/metadata/manifest.yml.fedora %{buildroot}%{cartridgedir}/metadata/manifest.yml
-rm %{buildroot}%{cartridgedir}/metadata/manifest.yml.rhel
+mv %{buildroot}%{cartridgedir}/versions/5.4 %{buildroot}%{cartridgedir}/versions/5.5
+rm %{buildroot}%{cartridgedir}/metadata/manifest.yml.fedora18
+mv %{buildroot}%{cartridgedir}/metadata/manifest.yml.fedora19 %{buildroot}%{cartridgedir}/metadata/manifest.yml
 sed -i 's/#DefaultRuntimeDir/DefaultRuntimeDir/g' %{buildroot}%{cartridgedir}/versions/shared/configuration/etc/conf.d/openshift.conf.erb
 %endif
 rm -rf %{buildroot}%{cartridgedir}/versions/shared/configuration/etc/conf-httpd-*

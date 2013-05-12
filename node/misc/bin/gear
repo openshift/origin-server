@@ -18,6 +18,7 @@
 require 'pp'
 require 'rubygems'
 require 'commander/import'
+require 'openshift-origin-node'
 require 'openshift-origin-node/model/application_container'
 require 'openshift-origin-node/model/application_repository'
 require 'openshift-origin-node/utils/node_logger'
@@ -73,7 +74,7 @@ def file_committed?(fn)
 end
 
 @container = OpenShift::ApplicationContainer.new(ENV['OPENSHIFT_APP_UUID'], ENV['OPENSHIFT_GEAR_UUID'], Etc.getpwuid.uid, ENV['OPENSHIFT_APP_NAME'], ENV['OPENSHIFT_GEAR_NAME'], ENV['OPENSHIFT_NAMESPACE'])
-@repo = OpenShift::ApplicationRepository.new(@container.user)
+@repo = OpenShift::ApplicationRepository.new(@container)
 
 def do_command
   begin

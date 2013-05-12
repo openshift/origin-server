@@ -19,7 +19,7 @@ raise "Must be run as root" if 0 != Process.uid
 
 require 'rubygems'
 require 'openshift-origin-node'
-require 'openshift-origin-node/model/unix_user'
+require 'openshift-origin-node/model/application_container'
 require 'openshift-origin-node/utils/environ'
 require 'openshift-origin-node/utils/shell_exec'
 require 'openshift-origin-node/utils/selinux'
@@ -71,16 +71,7 @@ unless uuid && command
   exit 255
 end
 
-# Obtain user context
-passwd         = Etc.getpwnam(uuid)
-env            = OpenShift::Utils::Environ.for_gear(passwd.dir)
+container = OpenShift::ApplicationContainer.from_uuid(uuid)
+env            = OpenShift::Utils::Environ.for_gear(container.container_dir)
 env['HOME']    = passwd.dir
-mcs            = OpenShift::Utils::SELinux.get_mcs_label(passwd.uid)
-context        = %Q{unconfined_u:system_r:openshift_t:#{mcs}}
-
-command = %Q{/sbin/runuser -m -s /bin/sh #{passwd.name} -c "exec /usr/bin/runcon '#{context}' #{command}"}
-$stderr.puts "command: #{command}" if $DEBUG
-
-Kernel.exec(env, command,
-            close_others: false,
-            chdir:        passwd.dir)
+run_in_container_context(command, env: env)

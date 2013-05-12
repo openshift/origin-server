@@ -7,8 +7,10 @@ module OpenShift
         File.exists?(File.join(gear_home, '.env', MARKER))
       end
 
-      def self.mark_new_sdk_app(gear_home)
-        IO.write(File.join(gear_home, '.env', MARKER), '2', 0)
+      def self.mark_new_sdk_app(container)
+        marker_file = File.join(container.container_dir, '.env', MARKER)
+        IO.write(marker_file, '2', 0)
+        container.set_ro_permission(marker_file)
       end
 
       def self.node_default_model(config)

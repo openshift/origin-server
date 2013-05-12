@@ -19,8 +19,8 @@ require 'openshift-origin-common'
 
 module OpenShift
   #load OPENSHIFT_NODE_PLUGINS
-  plugin_list = Config.new.get('OPENSHIFT_NODE_PLUGINS').split(',')
-  plugin_list.each do |plugin|
-    require "#{plugin}" unless plugin.start_with?('#')
-  end
+  #plugin_list = Config.new.get('OPENSHIFT_NODE_PLUGINS').split(',')
+  #plugin_list.each do |plugin|
+  #  require "#{plugin}" unless plugin.start_with?('#')
+  #end
 end

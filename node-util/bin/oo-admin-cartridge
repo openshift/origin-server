@@ -19,6 +19,7 @@ require 'rubygems'
 require 'etc'
 require 'optparse'
 require 'ostruct'
+require 'openshift-origin-node'
 require 'openshift-origin-node/utils/shell_exec'
 require 'openshift-origin-node/model/cartridge_repository'
 

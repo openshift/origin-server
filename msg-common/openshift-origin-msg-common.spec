@@ -27,15 +27,20 @@ for OpenShift broker and node
 
 %install
 mkdir -p %{buildroot}%{mco_root}agent
-mkdir -p %{buildroot}%{mco_root}validator
 cp -p agent/* %{buildroot}%{mco_root}agent/
-cp -p validator/* %{buildroot}%{mco_root}validator/
 chmod 644 %{buildroot}%{mco_root}agent/*
-chmod 644 %{buildroot}%{mco_root}validator/*
+
+%if 0%{?fedora}%{?rhel} < 19
+  mkdir -p %{buildroot}%{mco_root}validator
+  cp -p validator/* %{buildroot}%{mco_root}validator/
+  chmod 644 %{buildroot}%{mco_root}validator/*
+%endif
 
 %files
 %{mco_root}agent/*
-%{mco_root}validator/*
+%if 0%{?fedora}%{?rhel} < 19
+  %{mco_root}validator/*
+%endif
 
 %changelog
 * Wed May 08 2013 Adam Miller <admiller@redhat.com> 1.7.1-1

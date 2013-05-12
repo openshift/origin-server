@@ -17,7 +17,6 @@
 
 require 'rubygems'
 require 'openshift-origin-node'
-require 'openshift-origin-node/utils/shell_exec'
 
 def usage
   puts <<USAGE
@@ -69,7 +68,7 @@ end
 
 begin
   container = OpenShift::ApplicationContainer.new(uuid, uuid)
-  container.user.remove_env_var(key)
+  container.remove_env_var(key)
 rescue Exception => e
   $stderr.puts(e.message)
   exit -1

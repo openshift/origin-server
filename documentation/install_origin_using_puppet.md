@@ -119,7 +119,7 @@ Execute the puppet script:
 
 ## Configuring seperate hosts for broker/node
 
-### Boker host
+### Broker host
 
 In this configuration, the host will run the broker, active mq, mongodb and bind servers.
 

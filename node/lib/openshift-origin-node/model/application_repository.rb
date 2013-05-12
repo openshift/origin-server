@@ -19,7 +19,6 @@ require 'openshift-origin-common'
 require 'openshift-origin-node/utils/shell_exec'
 require 'openshift-origin-node/utils/selinux'
 require 'openshift-origin-node/utils/environ'
-require 'openshift-origin-node/model/unix_user'
 require 'openshift-origin-common/utils/path_utils'
 require 'openshift-origin-node/utils/node_logger'
 
@@ -40,9 +39,9 @@ module OpenShift
     # Creates a new application Git repository from a template
     #
     # +user+ is of type +UnixUser+
-    def initialize(user)
-      @user = user
-      @path = PathUtils.join(@user.homedir, 'git', "#{@user.app_name}.git")
+    def initialize(container)
+      @container = container
+      @path = PathUtils.join(@container.container_dir, 'git', "#{@container.application_name}.git")
     end
 
     def exist?
@@ -66,23 +65,23 @@ module OpenShift
     def populate_from_cartridge(cartridge_name)
       return nil if exists?
 
-      FileUtils.mkpath(File.join(@user.homedir, 'git'))
+      FileUtils.mkpath(File.join(@container.container_dir, 'git'))
 
       locations = [
-          File.join(@user.homedir, cartridge_name, 'template'),
-          File.join(@user.homedir, cartridge_name, 'template.git'),
-          File.join(@user.homedir, cartridge_name, 'usr', 'template'),
-          File.join(@user.homedir, cartridge_name, 'usr', 'template.git'),
+          File.join(@container.container_dir, cartridge_name, 'template'),
+          File.join(@container.container_dir, cartridge_name, 'template.git'),
+          File.join(@container.container_dir, cartridge_name, 'usr', 'template'),
+          File.join(@container.container_dir, cartridge_name, 'usr', 'template.git'),
       ]
 
       template = locations.find {|l| File.directory?(l)}
-      logger.debug("Using '#{template}' to populate git repository for #{@user.uuid}")
+      logger.debug("Using '#{template}' to populate git repository for #{@container.uuid}")
       return nil unless template
 
       # expose variables for ERB processing
-      @application_name = @user.app_name
+      @application_name = @container.application_name
       @cartridge_name   = cartridge_name
-      @user_homedir     = @user.homedir
+      @user_homedir     = @container.container_dir
 
       if template.end_with? '.git'
         FileUtils.cp_r(template, @path, preserve: true)
@@ -106,17 +105,17 @@ module OpenShift
                 "CLIENT_ERROR: Source Code repository URL type must be one of: #{SUPPORTED_PROTOCOLS.join(', ')}", 130
             ) unless supported
 
-      git_path = File.join(@user.homedir, 'git')
+      git_path = File.join(@container.container_dir, 'git')
       FileUtils.mkpath(git_path)
 
       # expose variables for ERB processing
-      @application_name = @user.app_name
+      @application_name = @container.application_name
       @cartridge_name   = cartridge_name
-      @user_homedir     = @user.homedir
+      @user_homedir     = @container.container_dir
       @url              = url
 
       begin
-        Utils.oo_spawn(ERB.new(GIT_URL_CLONE).result(binding),
+        @container.run_in_root_context(ERB.new(GIT_URL_CLONE).result(binding),
                        chdir:               git_path,
                        expected_exitstatus: 0)
       rescue Utils::ShellExecutionException => e
@@ -131,33 +130,31 @@ module OpenShift
 
     def deploy
       # expose variables for ERB processing
-      @application_name = @user.app_name
-      @user_homedir     = @user.homedir
-      @target_dir       = PathUtils.join(@user.homedir, 'app-root', 'runtime', 'repo')
+      @application_name = @container.application_name
+      @user_homedir     = @container.container_dir
+      @target_dir       = PathUtils.join(@container.container_dir, 'app-root', 'runtime', 'repo')
 
       FileUtils.rm_rf Dir.glob(PathUtils.join(@target_dir, '*'))
       FileUtils.rm_rf Dir.glob(PathUtils.join(@target_dir, '.[^\.]*'))
 
-      Utils.oo_spawn(ERB.new(GIT_DEPLOY).result(binding),
+      @container.run_in_container_context(ERB.new(GIT_DEPLOY).result(binding),
                      chdir:               @path,
-                     uid:                 @user.uid,
                      expected_exitstatus: 0)
 
       return unless File.exist? PathUtils.join(@target_dir, '.gitmodules')
 
-      env = Utils::Environ.load(PathUtils.join(@user.homedir, '.env'))
+      env = Utils::Environ.load(PathUtils.join(@container.container_dir, '.env'))
 
       cache = PathUtils.join(env['OPENSHIFT_TMP_DIR'], 'git_cache')
       FileUtils.rm_r(cache) if File.exist?(cache)
       FileUtils.mkpath(cache)
 
-      Utils.oo_spawn(ERB.new(GIT_DEPLOY_SUBMODULES).result(binding),
-                     chdir:               @user.homedir,
+      @container.run_in_container_context(ERB.new(GIT_DEPLOY_SUBMODULES).result(binding),
+                     chdir:               @container.container_dir,
                      env:                 env,
-                     uid:                 @user.uid,
                      expected_exitstatus: 0)
 
-      Utils.oo_spawn("/bin/rm -rf #{cache} &")
+      @container.run_in_container_context("/bin/rm -rf #{cache} &")
     end
 
     def destroy
@@ -167,8 +164,7 @@ module OpenShift
     ##
     # Install Git repository hooks and set permissions
     def configure
-      FileUtils.chown_R(@user.uid, @user.uid, @path)
-      Utils::SELinux.set_mcs_label(Utils::SELinux.get_mcs_label(@user.uid), @path)
+      @container.set_rw_permission_R(@path)
 
       # application developer cannot change git hooks
       hooks = File.join(@path, 'hooks')
@@ -179,7 +175,7 @@ module OpenShift
       }
 
       render_file.call(File.join(@path, 'description'), 0644, GIT_DESCRIPTION)
-      render_file.call(File.join(@user.homedir, '.gitconfig'), 0644, GIT_CONFIG)
+      render_file.call(File.join(@container.container_dir, '.gitconfig'), 0644, GIT_CONFIG)
 
       render_file.call(File.join(hooks, 'pre-receive'), 0755, PRE_RECEIVE)
       render_file.call(File.join(hooks, 'post-receive'), 0755, POST_RECEIVE)
@@ -188,19 +184,18 @@ module OpenShift
     ##
     # Copy a file tree structure and build an application repository
     def build_bare(path)
-      template = File.join(@user.homedir, 'git', 'template')
+      template = File.join(@container.container_dir, 'git', 'template')
       FileUtils.rm_r(template) if File.exist? template
 
-      git_path = File.join(@user.homedir, 'git')
-      Utils.oo_spawn("/bin/cp -ad #{path} #{git_path}",
-                     expected_exitstatus: 0)
+      git_path = File.join(@container.container_dir, 'git')
+      @container.run_in_root_context("/bin/cp -ad #{path} #{git_path}", expected_exitstatus: 0)
 
-      Utils.oo_spawn(ERB.new(GIT_INIT).result(binding),
+      @container.run_in_root_context(ERB.new(GIT_INIT).result(binding),
                      chdir:               template,
                      expected_exitstatus: 0)
       begin
         # trying to clone as the user proved to be painful as git managed to "lose" the selinux context
-        Utils.oo_spawn(ERB.new(GIT_LOCAL_CLONE).result(binding),
+        @container.run_in_root_context(ERB.new(GIT_LOCAL_CLONE).result(binding),
                        chdir:               git_path,
                        expected_exitstatus: 0)
       rescue ShellExecutionException => e
