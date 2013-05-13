@@ -332,6 +332,11 @@ module OpenShift
       end
     end
 
+    def directory
+      inst = @gear.container.cartridge_model.get_cartridge(@name)
+      inst.directory || inst.name
+    end
+
     def with_container
       begin
         yield @gear.container
