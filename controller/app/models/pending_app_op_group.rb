@@ -108,7 +108,7 @@ class PendingAppOpGroup
         when :set_connections
           application.set_connections(op.saved_values["connections"])
         when :execute_connections
-          application.execute_connections
+          result_io.append application.execute_connections
         when :set_gear_additional_filesystem_gb
           gear = get_gear_for_rollback(op)
           gear.set_addtl_fs_gb(op.saved_values["additional_filesystem_gb"], handle)
@@ -235,6 +235,12 @@ class PendingAppOpGroup
           when :update_configuration
             gear.update_configuration(op.args,handle)
             use_parallel_job = true
+          when :list_app_env_var_names
+            result_io.append gear.list_app_env_var_names
+          when :app_env_push
+            dest_ginst = application.group_instances.find(op.args["dest_group_instance_id"])
+            dest_gear_endpoints = dest_ginst.gears.find(op.args["dest_gears"]).map{ |g| application.ssh_uri(application.domain, g.uuid) }
+            gear.push_app_env_vars(dest_gear_endpoints)
           when :update_namespace
             gear.update_namespace(op.args)
           when :add_broker_auth_key 
@@ -254,7 +260,7 @@ class PendingAppOpGroup
           when :set_connections
             application.set_connections(op.args["connections"])
           when :execute_connections
-            application.execute_connections
+            result_io.append application.execute_connections
           when :unsubscribe_connections
             application.unsubscribe_connections(op.args["sub_pub_info"])
           when :set_gear_additional_filesystem_gb

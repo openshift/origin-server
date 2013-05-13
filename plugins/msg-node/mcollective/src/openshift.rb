@@ -44,7 +44,7 @@ module MCollective
         Log.instance.info("cartridge_do_action validation = #{request[:cartridge]} #{request[:action]} #{request[:args]}")
         validate :cartridge, /\A[a-zA-Z0-9\.\-\/]+\z/
         validate :cartridge, :shellsafe
-        validate :action, /\A(app-create|app-destroy|env-var-add|env-var-remove|broker-auth-key-add|broker-auth-key-remove|authorized-ssh-key-add|authorized-ssh-key-remove|ssl-cert-add|ssl-cert-remove|configure|post-configure|deconfigure|unsubscribe|update-namespace|tidy|deploy-httpd-proxy|remove-httpd-proxy|restart-httpd-proxy|info|post-install|post-remove|pre-install|reload|restart|start|status|stop|force-stop|add-alias|remove-alias|threaddump|cartridge-list|expose-port|frontend-backup|frontend-restore|frontend-create|frontend-destroy|frontend-update-name|frontend-update-namespace|frontend-connect|frontend-disconnect|frontend-connections|frontend-idle|frontend-unidle|frontend-check-idle|frontend-sts|frontend-no-sts|frontend-get-sts|aliases|ssl-cert-add|ssl-cert-remove|ssl-certs|frontend-to-hash|system-messages|connector-execute|get-quota|set-quota)\Z/
+        validate :action, /\A(app-create|app-destroy|env-var-add|env-var-remove|broker-auth-key-add|broker-auth-key-remove|authorized-ssh-key-add|authorized-ssh-key-remove|ssl-cert-add|ssl-cert-remove|configure|post-configure|deconfigure|unsubscribe|update-namespace|tidy|deploy-httpd-proxy|remove-httpd-proxy|restart-httpd-proxy|info|post-install|post-remove|pre-install|reload|restart|start|status|stop|force-stop|add-alias|remove-alias|threaddump|cartridge-list|expose-port|frontend-backup|frontend-restore|frontend-create|frontend-destroy|frontend-update-name|frontend-update-namespace|frontend-connect|frontend-disconnect|frontend-connections|frontend-idle|frontend-unidle|frontend-check-idle|frontend-sts|frontend-no-sts|frontend-get-sts|aliases|ssl-cert-add|ssl-cert-remove|ssl-certs|frontend-to-hash|system-messages|connector-execute|get-quota|set-quota|appvar-list|appvar-add|appvar-remove|appvar-push)\Z/
         validate :action, :shellsafe
         cartridge                  = request[:cartridge]
         action                     = request[:action]
@@ -265,6 +265,44 @@ module MCollective
 
         with_container_from_args(args) do |container|
           container.user.remove_env_var(key)
+        end
+      end
+
+      def oo_appvar_add(args)
+        key   = args['--with-key']
+        value = args['--with-value']
+
+        with_container_from_args(args) do |container|
+          container.add_appvar(key, value)
+        end
+      end
+
+      def oo_appvar_remove(args)
+        keys   = args['--with-key'].split(';')
+
+        with_container_from_args(args) do |container|
+          container.remove_appvar(keys)
+        end
+      end
+
+      def oo_appvar_list(args)
+        with_container_from_args(args) do |container, output|
+          begin
+            output << container.list_appvar()
+            return 0, output
+          rescue => e
+            Log.instance.info e.message
+            Log.instance.info e.backtrace
+            return -1, e.message
+          end
+        end
+      end
+
+      def oo_appvar_push(args)
+        gears = args['--with-gears'].split(';')
+
+        with_container_from_args(args) do |container|
+          container.push_appvar(gears)
         end
       end
 

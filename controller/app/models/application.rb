@@ -385,6 +385,37 @@ class Application
       result_io
     end
   end
+  
+  def add_app_env_var(name, value)
+    Application.run_in_application_lock(self) do
+      op_group = PendingAppOpGroup.new(op_type: :update_configuration, args: {"add_app_env_vars" => [{"key"=> name, "value"=>value}]}, user_agent: self.user_agent)
+      self.pending_op_groups.push op_group
+      result_io = ResultIO.new
+      self.run_jobs(result_io)
+      result_io
+    end
+  end
+  
+  def remove_app_env_var(name)
+    Application.run_in_application_lock(self) do
+      op_group = PendingAppOpGroup.new(op_type: :update_configuration, args: {"remove_app_env_vars" => [{"key" => name}]}, user_agent: self.user_agent)
+      self.pending_op_groups.push op_group
+      result_io = ResultIO.new
+      self.run_jobs(result_io)
+      result_io
+    end
+  end
+  
+  def app_env_var_names
+    Application.run_in_application_lock(self) do
+      op_group = PendingAppOpGroup.new(op_type: :list_app_env_var_names, user_agent: self.user_agent)
+      self.pending_op_groups.push op_group
+      result_io = ResultIO.new
+      self.run_jobs(result_io)
+      Rails.logger.debug result_io.to_s
+      result_io.resultIO.string.split(",")
+    end
+  end
 
   ##
   # Returns the total number of gears currently used by this application
@@ -611,6 +642,7 @@ class Application
     Application.run_in_application_lock(self) do    
       pending_op = PendingAppOpGroup.new(op_type: :update_component_limits, args: {"comp_spec" => component_instance.to_hash, "min"=>scale_from, "max"=>scale_to, "additional_filesystem_gb"=>additional_filesystem_gb}, created_at: Time.new, user_agent: self.user_agent)
       pending_op_groups.push pending_op
+      Rails.logger.debug self.pretty_inspect
       self.save
       result_io = ResultIO.new
       self.run_jobs(result_io)
@@ -1016,68 +1048,79 @@ class Application
   end
 
   def execute_connections
-    if self.scalable
-      Rails.logger.debug "Running publishers"
-      handle = RemoteJob.create_parallel_job
-      #publishers
-      sub_jobs = []
-      self.connections.each do |conn|
-        pub_inst = self.component_instances.find(conn.from_comp_inst_id)
-        pub_ginst = self.group_instances.find(pub_inst.group_instance_id)
-        tag = conn._id.to_s
-  
-        pub_ginst.gears.each_index do |idx|
-          break if (pub_inst.is_singleton? && idx > 0)
-          gear = pub_ginst.gears[idx]
-          input_args = [gear.name, self.domain.namespace, gear.uuid]
-          job = gear.get_execute_connector_job(pub_inst.cartridge_name, conn.from_connector_name, conn.connection_type, input_args)
+    Rails.logger.debug "Running publishers"
+    handle = RemoteJob.create_parallel_job
+    #publishers
+    sub_jobs = []
+    self.connections.each do |conn|
+      pub_inst = self.component_instances.find(conn.from_comp_inst_id)
+      pub_ginst = self.group_instances.find(pub_inst.group_instance_id)
+      tag = conn._id.to_s
+    
+      pub_ginst.gears.each_index do |idx|
+        break if (pub_inst.is_singleton? && idx > 0)
+        gear = pub_ginst.gears[idx]
+        input_args = [gear.name, self.domain.namespace, gear.uuid]
+        job = gear.get_execute_connector_job(pub_inst.cartridge_name, conn.from_connector_name, conn.connection_type, input_args)
+        RemoteJob.add_parallel_job(handle, tag, gear, job)
+      end
+    end
+    pub_out = {}
+    RemoteJob.execute_parallel_jobs(handle)
+    RemoteJob.get_parallel_run_results(handle) do |tag, gear_id, output, status|
+      conn_type = self.connections.find_by(:_id => tag).connection_type
+      if status==0
+        if conn_type.start_with?("ENV:")
+          pub_out[tag] = {} if pub_out[tag].nil?
+          pub_out[tag][gear_id] = output
+        else
+          pub_out[tag] = [] if pub_out[tag].nil?
+          pub_out[tag].push("'#{gear_id}'='#{output}'")
+        end
+      end
+    end
+    Rails.logger.debug "Running subscribers"
+    #subscribers
+    handle = RemoteJob.create_parallel_job
+    self.connections.each do |conn|
+      pub_inst = self.component_instances.find(conn.from_comp_inst_id)
+      sub_inst = self.component_instances.find(conn.to_comp_inst_id)
+      sub_ginst = self.group_instances.find(sub_inst.group_instance_id)
+      tag = conn.connection_type
+    
+      unless pub_out[conn._id.to_s].nil?
+        if conn.connection_type.start_with?("ENV:")
+          input_to_subscriber = pub_out[conn._id.to_s]
+        else
+          input_to_subscriber = Shellwords::shellescape(pub_out[conn._id.to_s].join(' '))
+        end
+    
+        Rails.logger.debug "Output of publisher - '#{pub_out}'"
+        sub_ginst.gears.each_index do |idx|
+          break if (sub_inst.is_singleton? && idx > 0)
+          gear = sub_ginst.gears[idx]
+    
+          input_args = [gear.name, self.domain.namespace, gear.uuid, input_to_subscriber]
+          job = gear.get_execute_connector_job(sub_inst.cartridge_name, conn.to_connector_name, conn.connection_type, input_args, pub_inst.cartridge_name)
           RemoteJob.add_parallel_job(handle, tag, gear, job)
         end
       end
-      pub_out = {}
-      RemoteJob.execute_parallel_jobs(handle)
-      RemoteJob.get_parallel_run_results(handle) do |tag, gear_id, output, status|
-        conn_type = self.connections.find_by(:_id => tag).connection_type
-        if status==0
-          if conn_type.start_with?("ENV:")
-            pub_out[tag] = {} if pub_out[tag].nil?
-            pub_out[tag][gear_id] = output
-          else
-            pub_out[tag] = [] if pub_out[tag].nil?
-            pub_out[tag].push("'#{gear_id}'='#{output}'")
-          end
-        end
-      end
-      Rails.logger.debug "Running subscribers"
-      #subscribers
-      handle = RemoteJob.create_parallel_job
-      self.connections.each do |conn|
-        pub_inst = self.component_instances.find(conn.from_comp_inst_id)
-        sub_inst = self.component_instances.find(conn.to_comp_inst_id)
-        sub_ginst = self.group_instances.find(sub_inst.group_instance_id)
-        tag = ""
-  
-        unless pub_out[conn._id.to_s].nil?
-          if conn.connection_type.start_with?("ENV:")
-            input_to_subscriber = pub_out[conn._id.to_s]
-          else
-            input_to_subscriber = Shellwords::shellescape(pub_out[conn._id.to_s].join(' '))
-          end
-  
-          Rails.logger.debug "Output of publisher - '#{pub_out}'"
-          sub_ginst.gears.each_index do |idx|
-            break if (sub_inst.is_singleton? && idx > 0)
-            gear = sub_ginst.gears[idx]
-  
-            input_args = [gear.name, self.domain.namespace, gear.uuid, input_to_subscriber]
-            job = gear.get_execute_connector_job(sub_inst.cartridge_name, conn.to_connector_name, conn.connection_type, input_args, pub_inst.cartridge_name)
-            RemoteJob.add_parallel_job(handle, tag, gear, job)
-          end
-        end
-      end
-      RemoteJob.execute_parallel_jobs(handle)
-      Rails.logger.debug "Connections done"
     end
+    RemoteJob.execute_parallel_jobs(handle)
+    info_messages = {}
+    RemoteJob.get_parallel_run_results(handle) do |tag, gear_id, output, status|
+      Rails.logger.error "Subscriber connection event output:: tag: #{tag}, gear_id: #{gear_id}," +
+                   "output: #{output}, status: #{status}"
+      if tag.start_with?("INFO:") and not info_messages.has_key? tag
+        info_messages[tag] = output
+      end
+    end
+    Rails.logger.debug "Connections done"
+    result_io = ResultIO.new
+    info_messages.each do |k, v|
+      result_io.resultIO << v
+    end
+    result_io
   end
 
   #private
@@ -1239,6 +1282,8 @@ class Application
               end
             end
             op_group.pending_ops.push(*ops)
+          when :list_app_env_var_names
+            op_group.pending_ops.push(PendingAppOp.new(op_type: op_group.op_type, args: {"group_instance_id" => self.group_instances.first.id , "gear_id" => self.group_instances.first.gears.first.id }))
           when :start_app, :stop_app, :restart_app, :reload_app_config, :tidy_app
             ops = calculate_ctl_app_component_ops(op_group.op_type)
             op_group.pending_ops.push(*ops)
@@ -1360,7 +1405,9 @@ class Application
   def calculate_update_existing_configuration_ops(args, prereqs={})
     ops = []
 
-    if (args.has_key?("add_keys_attrs") or args.has_key?("remove_keys_attrs") or args.has_key?("add_env_vars") or args.has_key?("remove_env_vars"))
+    if (  args.has_key?("add_keys_attrs") or args.has_key?("remove_keys_attrs") or 
+          args.has_key?("add_env_vars") or args.has_key?("remove_env_vars") or
+          args.has_key?("add_app_env_vars") or args.has_key?("remove_app_env_vars"))
       self.group_instances.each do |group_instance|
         args["group_instance_id"] = group_instance._id.to_s
         group_instance.gears.each do |gear|
@@ -1721,11 +1768,21 @@ class Application
   # connections::
   #   An array of connections. (Output of {#elaborate})
   def calculate_ops(changes,moves=[],connections=nil,group_overrides=nil,init_git_url=nil)
-    app_dns_ginst_found = false
     add_gears = 0
     remove_gears = 0
     pending_ops = []
     start_order, stop_order = calculate_component_orders
+    
+    app_dns_ginst = nil
+    app_dns_gear  = nil
+    self.group_instances.each do |group_instance|
+      if group_instance.gears.where(app_dns: true).count > 0
+        app_dns_ginst = group_instance
+        app_dns_gear = group_instance.gears.find_by(app_dns: true)
+        break
+      end
+    end
+    
 
     unless group_overrides.nil?
       set_group_override_op = PendingAppOp.new(op_type: :set_group_overrides, args: {"group_overrides"=> group_overrides}, saved_values: {"group_overrides" => self.group_overrides})
@@ -1841,6 +1898,10 @@ class Application
 
             ops = calculate_gear_create_ops(change[:from], gear_ids, singleton_gear._id.to_s, comp_specs, component_ops, additional_filesystem_gb, gear_size, nil, true)
             pending_ops.push *ops
+
+            #find a gear to get the env values from. (Current limitation... has to be haproxy gear)
+            app_env_push_op = PendingAppOp.new(op_type: :app_env_push, args: {"group_instance_id" => app_dns_ginst.id, "gear_id" => app_dns_gear.id, "dest_group_instance_id" => group_instance.id, "dest_gears" => gear_ids }, prereq: ops.map{ |op| op.id })
+            pending_ops.push app_env_push_op
           end
 
           if scale_change < 0
@@ -1996,6 +2057,7 @@ class Application
         raise OpenShift::GearLimitReachedException.new("#{owner.login} is currently using #{owner.consumed_gears} out of #{owner_capabilities["max_gears"]} limit and this application requires #{num_gears_added} additional gears.")
       end
       owner.consumed_gears += num_gears_added
+      
       op_group.pending_ops.push ops
       op_group.num_gears_added = num_gears_added
       op_group.num_gears_removed = num_gears_removed

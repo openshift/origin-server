@@ -49,6 +49,24 @@ function build() {
         mkdir -p "${OPENSHIFT_PHP_DIR}"/phplib/pear/{docs,ext,php,cache,cfg,data,download,temp,tests,www}
     fi
 
+    if [ -f ${OPENSHIFT_PHP_DIR}/system/deplist.txt ]
+    then
+        for f in $(cat ${OPENSHIFT_PHP_DIR}/system/deplist.txt)
+        do
+            echo "Checking pear: $f"
+            echo
+            if pear list "$f" > /dev/null
+            then
+                pear upgrade "$f"
+            elif ! ( php -c "${OPENSHIFT_PHP_DIR}"/conf -m | grep -i -q \^`basename "$f"`\$ )
+            then
+                pear install --alldeps "$f"
+            else
+                echo "Extension already installed in the system: $f"
+            fi
+        done
+    fi
+
     if [ -f ${OPENSHIFT_REPO_DIR}deplist.txt ]
     then
         for f in $(cat ${OPENSHIFT_REPO_DIR}deplist.txt)

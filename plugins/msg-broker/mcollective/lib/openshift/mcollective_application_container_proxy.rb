@@ -1137,6 +1137,18 @@ module OpenShift
         parse_result(result)
       end
       
+      def list_app_env_var_names(gear)
+        args = build_base_gear_args(gear)
+        result = execute_direct(@@C_CONTROLLER, 'appvar-list', args)
+        parse_result(result)
+      end
+      
+      def push_app_env_vars(gear, dest_gear_endpoints)
+        args = build_base_gear_args(gear)
+        args["--with-gears"] = dest_gear_endpoints.join(";")
+        result = execute_direct(@@C_CONTROLLER, 'appvar-push', args)
+      end
+      
       #
       # dump the cartridge threads
       #
@@ -1386,6 +1398,21 @@ module OpenShift
       def frontend_restore(backup)
         result = execute_direct(@@C_CONTROLLER, 'frontend-restore', {'--with-backup' => backup})
         parse_result(result)
+      end
+      
+      def get_app_env_var_add_job(gear, key, value)
+        args = build_base_gear_args(gear)
+        args['--with-key'] = key
+        args['--with-value'] = value
+        job = RemoteJob.new('openshift-origin-node', 'appvar-add', args)
+        job
+      end
+
+      def get_app_env_var_remove_job(gear, key)
+        args = build_base_gear_args(gear)
+        args['--with-key'] = key
+        job = RemoteJob.new('openshift-origin-node', 'appvar-remove', args)
+        job
       end
 
       #
