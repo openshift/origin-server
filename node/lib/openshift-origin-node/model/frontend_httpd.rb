@@ -377,10 +377,6 @@ module OpenShift
       update(container_name, @namespace)
     end
 
-    def update_namespace(namespace)
-      update(@container_name, namespace)
-    end
-
 
     # Public: Connect path elements to a back-end URI for this namespace.
     #

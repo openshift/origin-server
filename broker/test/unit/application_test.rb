@@ -55,9 +55,6 @@ class ApplicationsTest < ActionDispatch::IntegrationTest #ActiveSupport::TestCas
     as = "as#{gen_uuid[0..9]}"
     app.add_alias(as)
     app.remove_alias(as)
-    # updating the application namespace is no longer supported
-    #@domain.update_namespace("new_namespace")
-    #@domain.update_namespace(@namespace)
 
     app.destroy_app
   end

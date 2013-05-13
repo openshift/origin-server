@@ -258,39 +258,6 @@ class Application
   end
 
   ##
-  # Updates all Application and {Gear} DNS entries to reflect the new namespace. This function is the first step of the update namespace workflow.
-  # @param old_namespace [String] The old namespace of the [Domain] of this application. This field is used for rollback if namespace update fails
-  # @param new_namespace [String] The new namespace of the [Domain] of this application
-  # @param parent_op [PendingDomainOps] The pending domain operation that this update is part of
-  # @return [ResultIO] Output from cartridges during update namespace operation
-  def update_namespace(old_namespace, new_namespace, parent_op=nil)
-    Application.run_in_application_lock(self) do
-      result_io = ResultIO.new
-      op_group = PendingAppOpGroup.new(op_type: :update_namespace, args: {"old_namespace" => old_namespace, "new_namespace" => new_namespace}, parent_op: parent_op, user_agent: self.user_agent)
-      self.pending_op_groups.push op_group
-      self.run_jobs(result_io)
-      result_io
-    end
-  end
-
-  ##
-  # Updates all {ComponentInstance}s porperties to reflect the new namespace. This function is the second step of the update namespace workflow.
-  # @param old_namespace [String] The old namespace of the [Domain] of this application. This field is used for rollback if namespace update fails
-  # @param new_namespace [String] The new namespace of the [Domain] of this application
-  # @param parent_op [PendingDomainOps] The pending domain operation that this update is part of
-  # @return [ResultIO] Output from cartridges during update namespace operation
-  def complete_update_namespace(old_namespace, new_namespace, parent_op=nil)
-    Application.run_in_application_lock(self) do
-      result_io = ResultIO.new
-      op_group = PendingAppOpGroup.new(op_type: :complete_update_namespace, args: {"old_namespace" => old_namespace, "new_namespace" => new_namespace}, parent_op: parent_op, user_agent: self.user_agent)
-      self.pending_op_groups.push op_group
-      self.run_jobs(result_io)
-      self.save
-      result_io
-    end
-  end
-
-  ##
   # Adds the given ssh key to the application.
   # @param user_id [String] The ID of the user associated with the keys. If the user ID is nil, then the key is assumed to be a system generated key
   # @param keys [Array<SshKey>] Array of keys to add to the application.
@@ -1150,12 +1117,6 @@ class Application
         op_group.pending_ops
         if op_group.pending_ops.count == 0
           case op_group.op_type
-          when :update_namespace
-            ops = calculate_namespace_ops(op_group.args)
-            op_group.pending_ops.push(*ops)
-          when :complete_update_namespace
-            ops = calculate_complete_update_ns_ops(op_group.args)
-            op_group.pending_ops.push(*ops)
           when :update_configuration
             ops = calculate_update_existing_configuration_ops(op_group.args)
             op_group.pending_ops.push(*ops)
@@ -1310,40 +1271,6 @@ class Application
     ops = calculate_gear_destroy_ops(group_instance._id.to_s, [gear_id], group_instance.addtl_fs_gb)
     all_ops_ids = ops.map{ |op| op._id.to_s }
     ops.push PendingAppOp.new(op_type: :execute_connections, prereq: all_ops_ids)
-    ops
-  end
-
-  def calculate_complete_update_ns_ops(args, prereqs={})
-    ops = []
-    last_op = nil
-    last_op_id = nil
-    old_ns = args["old_namespace"]
-    new_ns = args["new_namespace"]
-    self.group_instances.each do |group_instance|
-      args["group_instance_id"] = group_instance._id.to_s
-      group_instance.all_component_instances.each do |component_instance|
-        args["comp_spec"] = {"comp" => component_instance.component_name, "cart" => component_instance.cartridge_name}
-        last_op_id = last_op._id.to_s if last_op
-        last_op = PendingAppOp.new(op_type: :complete_update_namespace, args: args.dup, prereq: [last_op_id])
-        ops.push last_op
-      end
-    end
-    last_op_id = last_op._id.to_s if last_op
-    ops.push PendingAppOp.new(op_type: :execute_connections, prereq: [last_op_id])
-    # self.domain.namespace = new_ns
-    ops
-  end
-
-  def calculate_namespace_ops(args, prereqs={})
-    ops = []
-    self.group_instances.each do |group_instance|
-      args["group_instance_id"] = group_instance._id.to_s
-      args["cartridge"] = "abstract"
-      group_instance.gears.each do |gear|
-        args["gear_id"] = gear._id.to_s
-        ops.push(PendingAppOp.new(op_type: :update_namespace, args: args.dup, prereq: prereqs))
-      end
-    end
     ops
   end
 
