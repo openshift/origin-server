@@ -28,7 +28,6 @@ Requires:      %{?scl:%scl_prefix}rubygem-passenger-native-libs
 Requires:      %{?scl:%scl_prefix}mod_passenger
 
 %if 0%{?rhel}
-Requires:      %{?scl:%scl_prefix}rubygem-minitest
 Requires:      %{?scl:%scl_prefix}rubygem-therubyracer
 Requires:      openshift-origin-util-scl
 %endif
@@ -43,14 +42,13 @@ BuildRequires:  ruby193-build
 BuildRequires:  scl-utils-build
 BuildRequires: %{?scl:%scl_prefix}rubygem(rails)
 BuildRequires: %{?scl:%scl_prefix}rubygem(compass-rails)
-BuildRequires: %{?scl:%scl_prefix}rubygem(test-unit)
-BuildRequires: %{?scl:%scl_prefix}rubygem(ci_reporter)
 BuildRequires: %{?scl:%scl_prefix}rubygem(sprockets)
 BuildRequires: %{?scl:%scl_prefix}rubygem(rdiscount)
 BuildRequires: %{?scl:%scl_prefix}rubygem(formtastic)
 BuildRequires: %{?scl:%scl_prefix}rubygem(net-http-persistent)
 BuildRequires: %{?scl:%scl_prefix}rubygem(haml)
 BuildRequires: %{?scl:%scl_prefix}rubygem(therubyracer)
+# Required by activesupport during the asset precompilation process
 BuildRequires: %{?scl:%scl_prefix}rubygem(minitest)
 %endif
 BuildRequires: %{?scl:%scl_prefix}rubygems-devel
@@ -75,6 +73,12 @@ This includes the configuration necessary to run the console with mod_passenger.
 
 %build
 %{?scl:scl enable %scl - << \EOF}
+
+%if 0%{?fedora} >= 18
+mv Gemfile.fedora Gemfile
+%else
+mv Gemfile.rhel Gemfile
+%endif
 
 set -e
 %if 0%{?fedora}%{?rhel} <= 6
