@@ -371,7 +371,7 @@ module OpenShift
             filesystem_copy(entries, target, %w(. ..))
 
           else
-            raise ArgumentError.new("Unsupported URL(#{cartridge.source_url}) for downloading a private cartridge")
+            raise ArgumentError.new("CLIENT_ERROR: Unsupported URL(#{cartridge.source_url}) for downloading a private cartridge")
         end
       else
         entries = Dir.glob(PathUtils.join(cartridge.repository_path, '*'), File::FNM_DOTMATCH)
@@ -403,7 +403,7 @@ module OpenShift
               total   += output.write partial
 
               if content_length && content_length < total
-                raise Net::HTTPBadResponse.new("Download of '#{uri}' exceeded Content-Length of #{content_length}. Download aborted.")
+                raise Net::HTTPBadResponse.new("CLIENT_ERROR: Download of '#{uri}' exceeded Content-Length of #{content_length}. Download aborted.")
               end
             end
           rescue EOFError
@@ -414,13 +414,13 @@ module OpenShift
 
       if content_length && content_length != File.size(temporary)
         raise Net::HTTPBadResponse.new(
-                  "Download of '#{uri}' failed, expected Content-Length of #{content_length} received #{File.size(temporary)}")
+                  "CLIENT_ERROR: Download of '#{uri}' failed, expected Content-Length of #{content_length} received #{File.size(temporary)}")
       end
 
       if md5
         digest = Digest::MD5.file(temporary).hexdigest
         if digest != md5
-          raise IOError.new("Failed to download cartridge, checksum failed: #{md5} expected, #{digest} actual")
+          raise IOError.new("CLIENT_ERROR: Failed to download cartridge, checksum failed: #{md5} expected, #{digest} actual")
         end
       end
     end
@@ -430,7 +430,7 @@ module OpenShift
         black_list.include? File.basename(e)
       end
 
-      raise ArgumentError.new('No cartridge sources found to install.') if entries.empty?
+      raise ArgumentError.new('CLIENT_ERROR: No cartridge sources found to install.') if entries.empty?
 
       Utils.oo_spawn("/bin/cp -ad #{entries.join(' ')} #{target}",
                      expected_exitstatus: 0)
@@ -486,7 +486,7 @@ module OpenShift
 
       unless errors.empty?
         raise MalformedCartridgeError.new(
-                  "Malformed cartridge (#{cartridge.name}, #{cartridge.version}, #{cartridge.cartridge_version})",
+                  "CLIENT_ERROR: Malformed cartridge (#{cartridge.name}, #{cartridge.version}, #{cartridge.cartridge_version})",
                   errors
               )
       end
