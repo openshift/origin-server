@@ -1,4 +1,3 @@
-#@runtime_extended3
 @runtime_extended_other3
 @runtime_extended
 @rhel-only

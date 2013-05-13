@@ -9,8 +9,7 @@ Feature: 10gen-mms-agent Embedded Cartridge
     And I embed a 10gen-mms-agent-0.1 cartridge into the application
 
     Then 1 process named python will be running
-    And the embedded 10gen-mms-agent cartridge subdirectory named mms-agent will exist
-    And the embedded 10gen-mms-agent cartridge log files will exist
+    And the embedded 10gen-mms-agent-0.1 cartridge log files will exist
 
     When I stop the 10gen-mms-agent-0.1 cartridge
     Then 0 processes named python will be running
@@ -23,5 +22,4 @@ Feature: 10gen-mms-agent Embedded Cartridge
 
     When I destroy the application
     Then 0 processes named python will be running
-    And the embedded 10gen-mms-agent cartridge subdirectory named mms-agent will not exist
-    And the embedded 10gen-mms-agent cartridge log files will not exist
+    And the embedded 10gen-mms-agent-0.1 cartridge log files will not exist
