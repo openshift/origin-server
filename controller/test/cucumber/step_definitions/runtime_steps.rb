@@ -376,7 +376,8 @@ end
 # Verifies the existence of an exported source tree associated with
 # the current application.
 Then /^the application source tree will( not)? exist$/ do | negate |
-  app_root = "#{$home_root}/#{@gear.uuid}/#{@cart.name}"
+  cartridge = @gear.carts[@cart.name]
+  app_root = "#{$home_root}/#{@gear.uuid}/#{cartridge.directory}"
 
   # TODO - need to check permissions and SELinux labels
 
@@ -392,7 +393,8 @@ end
 # Verifies the existence of application log files associated with the
 # current application.
 Then /^the application log files will( not)? exist$/ do | negate |
-  log_dir_path = "#{$home_root}/#{@gear.uuid}/#{@cart.name}/logs"
+  cartridge = @gear.carts[@cart.name]
+  log_dir_path = "#{$home_root}/#{@gear.uuid}/#{cartridge.directory}/logs"
 
   $logger.info("Checking for log dir at #{log_dir_path}")
 
@@ -413,7 +415,8 @@ end
 
 # Ensures that the root directory exists for the given embedded cartridge.
 Then /^the embedded ([^ ]+) cartridge directory will( not)? exist$/ do | cart_name, negate |
-  user_root = "#{$home_root}/#{@gear.uuid}/#{cart_name}"
+  cartridge = @gear.carts[cart_name]
+  user_root = "#{$home_root}/#{@gear.uuid}/#{cartridge.directory}"
 
   $logger.info("Checking for #{negate} cartridge root dir at #{user_root}")
   if negate
@@ -427,7 +430,8 @@ end
 # Ensures that more than zero log files exist in the given embedded cartridge
 # log directory.
 Then /^the embedded ([^ ]+) cartridge log files will( not)? exist$/ do | cart_name, negate |
-  log_dir_path = "#{$home_root}/#{@gear.uuid}/#{cart_name}/logs"
+  cartridge = @gear.carts[cart_name]
+  log_dir_path = "#{$home_root}/#{@gear.uuid}/#{cartridge.directory}/logs"
 
   $logger.info("Checking for #{negate} cartridge log dir at #{log_dir_path}")
   if negate
@@ -440,7 +444,8 @@ end
 
 # Simple verification of arbitrary cartridge directory existence.
 Then /^the embedded ([^ ]+) cartridge subdirectory named ([^ ]+) will( not)? exist$/ do | cart_name, dir_name, negate |
-  dir_path = "#{$home_root}/#{@gear.uuid}/#{cart_name}/#{dir_name}"
+  cartridge = @gear.carts[cart_name]
+  dir_path = "#{$home_root}/#{@gear.uuid}/#{cartridge.directory}/#{dir_name}"
 
   $logger.info("Checking for #{negate} cartridge subdirectory at #{dir_path}")
   if negate
