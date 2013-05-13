@@ -459,11 +459,16 @@ module OpenShift
 
     ##
     # Write out environment variables.
-    def write_environment_variables(path, hash)
+    def write_environment_variables(path, hash, prefix = true)
       FileUtils.mkpath(path) unless File.exist? path
 
       hash.each_pair do |k, v|
-        name = "OPENSHIFT_#{k.to_s.upcase}"
+        name = k.to_s.upcase
+
+        if prefix
+          name = "OPENSHIFT_#{name}"
+        end
+
         File.open(PathUtils.join(path, name), 'w', 0666) do |f|
           f.write(v)
         end
@@ -813,19 +818,21 @@ module OpenShift
       env_dir_path = File.join(@user.homedir, '.env', pub_cart_name)
       FileUtils.mkpath(env_dir_path)
 
+      envs = {}
+
       # Skip the first three arguments and jump to gear => "k1=v1\nk2=v2\n" hash map
       pairs = args[3].values[0].split("\n")
 
-      # Write out each environment variable in the payload
       pairs.each do |pair|
         k, v = pair.strip.split("=")
-        File.open(PathUtils.join(env_dir_path, k), 'w', 0666) do |f|
-          f.write(v)
-        end
+        envs[k] = v
       end
+
+      write_environment_variables(env_dir_path, envs, false)
     end
 
     # Convert env var hook arguments to shell arguments
+    # TODO: document expected form of args
     def convert_to_shell_arguments(args)
       new_args = []
       args[3].each do |k, v|
