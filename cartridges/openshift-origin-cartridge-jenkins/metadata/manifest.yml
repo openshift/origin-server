@@ -52,12 +52,6 @@ Cart-Data:
   - Key: JENKINS_PASSWORD
     Type: environment
     Description: "Admin user's password for jenkins server"
-  - Key: "username"
-    Type: cart_data
-    Description: "Admin user on jenkins server"
-  - Key: "password"
-    Type: cart_data
-    Description: "Admin user's password on jenkins server"
 Provides:
   - jenkins-1.4
   - "jenkins"
