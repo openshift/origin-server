@@ -1,5 +1,3 @@
-require 'ci/reporter/rake/minitest'
-
 class Rake::Task
   def abandon
     prerequisites.clear
@@ -16,11 +14,13 @@ namespace :test do
   namespace :prepare do
     task :ci_reporter do
       # define our own ci_reporter task to NOT delete test reports (can't run in parallel if we're deleting)
-      if Gem.loaded_specs['ci_reporter']
+      begin 
         require 'ci/reporter/rake/minitest'
         path = File.join(Gem.loaded_specs["ci_reporter"].full_gem_path, 'lib', 'ci', 'reporter', 'rake', 'minitest_loader.rb')
         test_loader = CI::Reporter.maybe_quote_filename path
         ENV["TESTOPTS"] = "#{ENV["TESTOPTS"]} #{test_loader}"
+      rescue Exception
+        # ci_reporter is optional in the gemfile
       end
     end
   end
