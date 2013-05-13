@@ -1,9 +1,9 @@
-#@runtime_extended2
-@runtime_extended_other2
 @runtime
 @rhel-only
-Feature: Cartridge Runtime Extended Checks (Python)
+@jboss
+Feature: Cartridge Runtime Extended Checks (JBoss)
 
+  @runtime_extended_other2
   Scenario Outline: Hot deployment tests
     Given a new <type> type application
     And the application is made publicly accessible
@@ -17,4 +17,5 @@ Feature: Cartridge Runtime Extended Checks (Python)
 
   Scenarios: Code push scenarios
     | type         | proc_name | hot_deploy_status | pid_changed   |
-    | python-2.6   | httpd     | is not enabled    | should be     |
+    | jbossas-7    | java      | is enabled        | should not be |
+    | jbossas-7    | java      | is not enabled    | should be     |
