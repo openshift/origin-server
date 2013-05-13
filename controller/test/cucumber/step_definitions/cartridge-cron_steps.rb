@@ -34,7 +34,7 @@ end
 Given /^cron is (running|stopped)$/ do | status |
   cron_cart = @gear.carts['cron-1.4']
 
-  cron_user_root = "#{$home_root}/#{@gear.uuid}/#{cron_cart.name}"
+  cron_user_root = "#{$home_root}/#{@gear.uuid}/#{cron_cart.directory}"
   jobs_enabled_file = "#{cron_user_root}/run/jobs.enabled"
 
   mark_exists = File.exists? jobs_enabled_file
@@ -70,7 +70,7 @@ end
 Then /^cron jobs will( not)? be enabled$/ do | negate |
   cron_cart = @gear.carts['cron-1.4']
 
-  cron_user_root = "#{$home_root}/#{@gear.uuid}/#{cron_cart.name}"
+  cron_user_root = "#{$home_root}/#{@gear.uuid}/#{cron_cart.directory}"
   jobs_enabled_file = "#{cron_user_root}/run/jobs.enabled"
 
   $logger.info("Checking for cron jobs marker at #{jobs_enabled_file}")
