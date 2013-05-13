@@ -513,8 +513,8 @@ function check_datastore_mongo() {
 
     # get the service hostname, port, username, password
 	APP_VALUE_MAP=(
-		["DS_HOST"]="Rails.application.config.datastore[:host_port].split(':')[0]"
-		["DS_PORT"]="Rails.application.config.datastore[:host_port].split(':')[1]"
+		["DS_HOST"]="Rails.application.config.datastore[:host_port].split(',')[0].split(':')[0]"
+		["DS_PORT"]="Rails.application.config.datastore[:host_port].split(',')[0].split(':')[1]"
 		["DS_USER"]="Rails.application.config.datastore[:user]"
 		["DS_PASS"]="Rails.application.config.datastore[:password]"
 		["DS_NAME"]="Rails.application.config.datastore[:db]"
@@ -599,8 +599,8 @@ function check_auth_mongo() {
 
     # get the service hostname, port, username, password
 	APP_VALUE_MAP=(
-		["DS_HOST"]="Rails.application.config.auth[:mongo_host_port].split(':')[0]"
-		["DS_PORT"]="Rails.application.config.auth[:mongo_host_port].split(':')[1]"
+		["DS_HOST"]="Rails.application.config.datastore[:host_port].split(',')[0].split(':')[0]"
+		["DS_PORT"]="Rails.application.config.datastore[:host_port].split(',')[0].split(':')[1]"
 		["DS_USER"]="Rails.application.config.auth[:mongo_user]"
 		["DS_PASS"]="Rails.application.config.auth[:mongo_password]"
 		["DS_NAME"]="Rails.application.config.auth[:mongo_db]"
