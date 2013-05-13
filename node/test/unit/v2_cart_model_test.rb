@@ -294,7 +294,7 @@ module OpenShift
     # Flow control for unlock_gear success - block is yielded to
     # with cartridge name, do_unlock_gear and do_lock_gear bound the call.
     def test_unlock_gear_success
-      @model.expects(:lock_files).with('mock-0.1').returns(%w(file1 file2 file3))
+      @model.expects(:locked_files).with('mock-0.1').returns(%w(file1 file2 file3))
       @model.expects(:do_unlock).with(%w(file1 file2 file3))
       @model.expects(:do_lock).with(%w(file1 file2 file3))
 
@@ -309,7 +309,7 @@ module OpenShift
     # even when the block raises and exception.  Exception bubbles
     # out to caller.
     def test_unlock_gear_block_raises
-      @model.expects(:lock_files).with('mock-0.1').returns(%w(file1 file2 file3))
+      @model.expects(:locked_files).with('mock-0.1').returns(%w(file1 file2 file3))
       @model.expects(:do_unlock).with(%w(file1 file2 file3))
       @model.expects(:do_lock).with(%w(file1 file2 file3))
 
@@ -340,7 +340,7 @@ module OpenShift
       cartridge = mock()
       files = %w(a b c)
 
-      @model.expects(:lock_files).with(cartridge).returns(files)
+      @model.expects(:locked_files).with(cartridge).returns(files)
       @model.expects(:do_unlock).with(files)
       @model.expects(:do_lock).never
 
@@ -353,7 +353,7 @@ module OpenShift
       cartridge = mock()
       files = %w(a b c)
 
-      @model.expects(:lock_files).with(cartridge).returns(files)
+      @model.expects(:locked_files).with(cartridge).returns(files)
       @model.expects(:do_unlock).with(files)
       @model.expects(:do_lock).with(files)
 
@@ -366,7 +366,7 @@ module OpenShift
       cartridge = mock()
       files = %w(a b c)
 
-      @model.expects(:lock_files).with(cartridge).returns(files)
+      @model.expects(:locked_files).with(cartridge).returns(files)
       @model.expects(:do_unlock).with(files)
       @model.expects(:do_lock).with(files)
 
@@ -381,7 +381,7 @@ module OpenShift
       cartridge = mock()
       files = %w(a b c)
 
-      @model.expects(:lock_files).with(cartridge).returns(files)
+      @model.expects(:locked_files).with(cartridge).returns(files)
       @model.expects(:do_unlock).with(files)
       @model.expects(:do_lock).never()
 

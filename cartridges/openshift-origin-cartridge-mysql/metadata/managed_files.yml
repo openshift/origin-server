@@ -5,3 +5,5 @@ locked_files:
 - env/OPENSHIFT_MYSQL_DB_USERNAME
 - env/OPENSHIFT_MYSQL_DB_PASSWORD
 - env/OPENSHIFT_MYSQL_DB_URL
+processed_templates:
+- '**/*.erb'
