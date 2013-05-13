@@ -234,14 +234,14 @@ Given /^a new ([^ ]+) application, with ([^ ]+) and ([^ ]+), verify that they ar
     And the application is made publicly accessible
 
     When I stop the application using ctl_all via rhcsh
-    Then a #{proc_name} process for #{cart_name} will not be running
+    Then a #{proc_name} process for #{cart_name.gsub(/-.*/,'')} will not be running
     And a #{db_proc_name} process will not be running 
-    And a httpd process for #{management_app} will not be running
+    And a httpd process for #{management_app.gsub(/-.*/,'')} will not be running
 
     When I start the application using ctl_all via rhcsh
-    Then a #{proc_name} process for #{cart_name} will be running
+    Then a #{proc_name} process for #{cart_name.gsub(/-.*/,'')} will be running
     And a #{db_proc_name} process will be running
-    And a httpd process for #{management_app} will be running
+    And a httpd process for #{management_app.gsub(/-.*/,'')} will be running
   }
 end
 
