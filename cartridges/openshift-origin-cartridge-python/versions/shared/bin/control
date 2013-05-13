@@ -78,7 +78,7 @@ function _restart_service() {
 
 
 function status() {
-   if output=$(wget -q http://$OPENSHIFT_PYTHON_IP:$OPENSHIFT_PYTHON_PORT/)
+   if output=$(curl http://$OPENSHIFT_PYTHON_IP:$OPENSHIFT_PYTHON_PORT/ &> /dev/null)
    then
       echo "Application is running"
       echo $output
