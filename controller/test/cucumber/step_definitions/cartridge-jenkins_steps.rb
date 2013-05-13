@@ -11,8 +11,7 @@ include AppHelper
 Given /^a ([^ ]+) application, verify that you cannot add jenkins client without server being available$/ do |cart_name|
   steps %Q{
     Given a new #{cart_name} type application
-    When I fail to embed a jenkins-client-1.4 cartridge into the application
-    Then the embedded jenkins-client-1.4 cartridge directory will not exist
+    Then I fail to embed a jenkins-client-1.4 cartridge into the application
   }
 end
 

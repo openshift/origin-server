@@ -62,8 +62,8 @@ if [ -d "$SCRIPTS_DIR" ]; then
          exit 1
       fi
 
-      if [ -f "$OPENSHIFT_CRON_DIR/logs/cron.$freq.log" ]; then
-         mv -f "$OPENSHIFT_CRON_DIR/logs/cron.$freq.log" "$OPENSHIFT_CRON_DIR/logs/cron.$freq.log.1"
+      if [ -f "$OPENSHIFT_CRON_DIR/log/cron.$freq.log" ]; then
+         mv -f "$OPENSHIFT_CRON_DIR/log/cron.$freq.log" "$OPENSHIFT_CRON_DIR/log/cron.$freq.log.1"
       fi
 
       separator=$(seq -s_ 75 | tr -d '[:digit:]')
@@ -84,7 +84,7 @@ if [ -d "$SCRIPTS_DIR" ]; then
          echo $separator
          echo "`date`: END $freq cron run - status=$status"
          echo $separator
-      } >> $OPENSHIFT_CRON_DIR/logs/cron.$freq.log 2>&1
+      } >> $OPENSHIFT_CRON_DIR/log/cron.$freq.log 2>&1
 
    ) 9>${OPENSHIFT_HOMEDIR}app-root/runtime/.cron.$freq.lock
 fi

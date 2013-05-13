@@ -10,7 +10,6 @@ Given /^a ([^ ]+) application, verify addition and removal of MongoDB database$/
     When I embed a mongodb-2.2 cartridge into the application
     Then 1 process named mongod will be running
     And the embedded mongodb-2.2 cartridge directory will exist
-    And the mongodb configuration file will exist
     And the mongodb database will exist
     And the embedded mongodb-2.2 cartridge control script will not exist
     And the mongodb admin user will have access
@@ -29,33 +28,13 @@ Given /^a ([^ ]+) application, verify addition and removal of MongoDB database$/
     When I destroy the application
     Then 0 processes named mongod will be running
     And the mongodb database will not exist
-    And the mongodb configuration file will not exist
     And the embedded mongodb-2.2 cartridge directory will not exist
   }
 end
 
-Then /^the mongodb configuration file will( not)? exist$/ do |negate|
-  cart = @gear.carts['mongodb-2.2']
-  user_root = "#{$home_root}/#{@gear.uuid}/#{cart.name}"
-  config_file = "#{user_root}/etc/mongodb.conf"
-
-  begin
-    cnffile = File.new config_file
-  rescue Errno::ENOENT
-    cnffile = nil
-  end
-
-  unless negate
-    cnffile.should be_a(File)
-  else
-    cnffile.should be_nil
-  end
-end
-
-
 Then /^the mongodb database will( not)? +exist$/ do |negate|
   cart = @gear.carts['mongodb-2.2']
-  user_root = "#{$home_root}/#{@gear.uuid}/#{cart.name}"
+  user_root = "#{$home_root}/#{@gear.uuid}/#{cart.directory}"
   config_file = "#{user_root}/etc/mongodb.conf"
   data_dir = "#{user_root}/data/"
 

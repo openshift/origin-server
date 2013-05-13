@@ -151,7 +151,7 @@ module OpenShift
 
       @gears.each do |gear|
         gear.carts.values.each do |cart|
-          Dir.glob("#{$home_root}/#{gear.uuid}/#{cart.name}/{run,pid}/*.pid") do |pid_file|
+          Dir.glob("#{$home_root}/#{gear.uuid}/#{cart.directory}/{run,pid}/*.pid") do |pid_file|
             $logger.info("Reading pid file #{pid_file} for cart #{cart.name}")
             pid = IO.read(pid_file).chomp
             proc_name = File.basename(pid_file, ".pid")
@@ -332,6 +332,11 @@ module OpenShift
       end
     end
 
+    def directory
+      inst = @gear.container.cartridge_model.get_cartridge(@name)
+      inst.directory || inst.name
+    end
+
     def with_container
       begin
         yield @gear.container
@@ -439,7 +444,8 @@ module OpenShift
           end
         end
 
-        $logger.info("DatabaseCartListener is adding a DbConnection to cartridge #{cart.name}: #{db.inspect}")
+        $logger.info("DatabaseCartListener is adding a DbConnection to cartridge #{cart.name}: "\
+                     "db.username=#{db.username}, db.password=#{db.password}, db.ip=#{db.port}, db.port=#{db.port}")
         cart.instance_variable_set(:@db, db)
         cart.instance_eval('def db; @db; end')
       end

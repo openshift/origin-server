@@ -43,7 +43,7 @@ Then /^the postgresql configuration file will( not)? exist$/ do |negate|
     end
   end
   
-  pgsql_user_root = "#{$home_root}/#{@gear.uuid}/#{pgsql_cart.name}"
+  pgsql_user_root = "#{$home_root}/#{@gear.uuid}/#{pgsql_cart.directory}"
   pgsql_config_file = "#{pgsql_user_root}/data/postgresql.conf"
 
   if negate
@@ -63,7 +63,7 @@ Then /^the postgresql database will( not)? +exist$/ do |negate|
     end
   end
 
-  pgsql_user_root = "#{$home_root}/#{@gear.uuid}/#{pgsql_cart.name}"
+  pgsql_user_root = "#{$home_root}/#{@gear.uuid}/#{pgsql_cart.directory}"
   pgsql_data_dir = "#{pgsql_user_root}/data"
 
   begin
