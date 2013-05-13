@@ -1,6 +1,5 @@
-#@runtime_other4
 @runtime
-@runtime2
+@runtime_other2
 Feature: PHP Application
   @rhel-only
   Scenario: Test Alias Hooks (RHEL/CentOS)

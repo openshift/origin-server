@@ -1475,6 +1475,16 @@ class RestApiTest < ActiveSupport::TestCase
     ]}
   end
 
+  def mock_cartridges
+    ActiveResource::HttpMock.respond_to(false) do |mock|
+      mock.get '/broker/rest/cartridges.json', anonymous_json_header, [
+        {:name => 'haproxy-1.4', :type => 'standalone'}, # type is blacklisted in cartridge_types.yml
+        {:name => 'php-5.3', :type => 'standalone', :tags => [:framework]},
+        {:name => 'blacklist', :type => 'standalone', :tags => [:framework, :blacklist]},
+      ].to_json
+    end
+  end
+
   def mock_quickstart(additional_tags=[])
     Quickstart.reset!
     RestApi.reset!
@@ -1533,6 +1543,20 @@ class RestApiTest < ActiveSupport::TestCase
     assert_equal [], ApplicationType.new(:cartridges_spec => '').cartridge_specs
     assert_raise(ApplicationType::CartridgeSpecInvalid){ ApplicationType.new(:cartridges_spec => "[{").cartridge_specs }
     assert_raise(ApplicationType::CartridgeSpecInvalid){ ApplicationType.new(:cartridges_spec => '[{name:"php"}]').cartridge_specs }
+  end
+
+  def test_application_type_matching
+    mock_cartridges
+    php = CartridgeType.cached.find('php-5.3')
+    assert_equal [{}, ['b']],               ApplicationType.matching_cartridges([{'name' => 'b'}])
+    assert_equal [{'php-5.3' => php}, []],  ApplicationType.matching_cartridges([{'name' => 'php-5.3'}])
+    assert_equal [{'php-5.3' => php}, []],  ApplicationType.matching_cartridges([{'name' => 'php-5.3', 'url' => 'a'}])
+    assert_equal [{}, ['php-5.']],          ApplicationType.matching_cartridges([{'name' => 'php-5.'}])
+    assert_equal [{'a' => CartridgeType.for_url('a')}, []], ApplicationType.matching_cartridges([{'url' => 'a'}])
+    
+    assert_equal [{}, ['-- Unknown']], ApplicationType.matching_cartridges([{}])
+    assert_equal [{}, ['-- Unknown']], ApplicationType.matching_cartridges([{'url' => ''}])
+    assert_equal [{}, ['-- Unknown']], ApplicationType.matching_cartridges([{'name' => ''}])
   end
 
   def test_quickstart_search

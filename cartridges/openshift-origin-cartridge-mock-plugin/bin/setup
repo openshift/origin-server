@@ -11,7 +11,7 @@ esac
 source $OPENSHIFT_MOCK_PLUGIN_DIR/mock-plugin.conf
 
 rm -rf $MOCK_STATE/
-mkdir $MOCK_STATE
+mkdir -p $MOCK_STATE
 touch $MOCK_STATE/setup_called
 
 function error_exit {

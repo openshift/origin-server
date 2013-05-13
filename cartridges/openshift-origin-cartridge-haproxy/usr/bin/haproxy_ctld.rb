@@ -96,7 +96,7 @@ class HAProxyUtils
 end
 
 class Haproxy
-    MAX_SESSIONS_PER_GEAR = 10.0
+    MAX_SESSIONS_PER_GEAR = 50.0
 
     class ShouldRetry < StandardError
       attr_reader :message

@@ -1,5 +1,4 @@
 %global cartridgedir %{_libexecdir}/openshift/cartridges/v2/perl
-%global frameworkdir %{_libexecdir}/openshift/cartridges/v2/perl
 
 Name: openshift-origin-cartridge-perl
 Version: 0.4.1
@@ -12,7 +11,6 @@ Source0: http://mirror.openshift.com/pub/origin-server/source/%{name}/%{name}-%{
 Requires:      rubygem(openshift-origin-node)
 Requires:      openshift-origin-node-util
 Requires:      mod_perl
-Requires:      mod_bw
 Requires:      perl-DBD-SQLite
 Requires:      perl-DBD-MySQL
 Requires:      perl-MongoDB
@@ -26,44 +24,36 @@ Requires:      expat-devel
 Requires:      perl-IO-Socket-SSL
 Requires:      gdbm-devel
 Requires:      httpd < 2.4
-BuildRequires: git
-BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
 BuildArch: noarch
 
 %description
-Perl cartridge for openshift. (Cartridge Format V2)
+Perl cartridge for OpenShift. (Cartridge Format V2)
 
 
 %prep
 %setup -q
 
 %build
+%__rm %{name}.spec
+
 
 %install
-rm -rf %{buildroot}
-mkdir -p %{buildroot}%{cartridgedir}
-mkdir -p %{buildroot}/%{_sysconfdir}/openshift/cartridges
-cp -r * %{buildroot}%{cartridgedir}/
-
+%__rm -rf %{buildroot}
+%__mkdir -p %{buildroot}%{cartridgedir}
+%__cp -r * %{buildroot}%{cartridgedir}
 
 %clean
-rm -rf %{buildroot}
+%__rm -rf %{buildroot}
 
 %post
-%{_sbindir}/oo-admin-cartridge --action install --offline --source /usr/libexec/openshift/cartridges/v2/perl
+%{_sbindir}/oo-admin-cartridge --action install --source %{cartridgedir}
 
 %files
 %defattr(-,root,root,-)
 %dir %{cartridgedir}
-%dir %{cartridgedir}/bin
-%dir %{cartridgedir}/hooks
-%dir %{cartridgedir}/env
-%dir %{cartridgedir}/metadata
-%dir %{cartridgedir}/versions
 %attr(0755,-,-) %{cartridgedir}/bin/
 %attr(0755,-,-) %{cartridgedir}/hooks/
-%attr(0755,-,-) %{frameworkdir}
-%{cartridgedir}/metadata/manifest.yml
+%attr(0755,-,-) %{cartridgedir}
 %doc %{cartridgedir}/README.md
 %doc %{cartridgedir}/COPYRIGHT
 %doc %{cartridgedir}/LICENSE

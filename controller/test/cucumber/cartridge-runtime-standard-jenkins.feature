@@ -1,6 +1,5 @@
-#@runtime_other4
+@runtime_other4
 @runtime
-@runtime3
 @jenkins
 Feature: Jenkins Application
 

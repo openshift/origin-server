@@ -38,6 +38,10 @@ RewriteCond ${openshift-aliases:%1} ^(.+)$    [OR]
 RewriteCond ${lowercase:%{HTTP_HOST}} ^(.+)$
 RewriteRule ^.*$ - [E=V_MATCH_HOST:%1,NS]
 
+# Provides the ability to override the HTTP_HOST header
+# by letting a client set the X-OpenShift-Host header
+RewriteCond %{HTTP:X-OpenShift-Host} ^(.+)$
+RewriteRule ^.*$ - [E=V_MATCH_HOST:%1,NS]
 
 # Call the unidler and redirect back to the original request.
 # www.example.com => uuid

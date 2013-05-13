@@ -1,4 +1,3 @@
-#@runtime_extended_other3
 @runtime_extended
 @runtime_extended3
 Feature: Descriptor parsing and elaboration tests

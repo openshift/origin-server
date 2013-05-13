@@ -1,5 +1,4 @@
 %global cartridgedir %{_libexecdir}/openshift/cartridges/v2/mysql
-%global frameworkdir %{_libexecdir}/openshift/cartridges/v2/mysql
 
 Summary:       Provides embedded mysql support
 Name:          openshift-origin-cartridge-mysql
@@ -25,36 +24,29 @@ Provides mysql cartridge support to OpenShift. (Cartridge Format V2)
 
 
 %build
+%__rm %{name}.spec
 
 
 %install
-rm -rf %{buildroot}
-mkdir -p %{buildroot}%{cartridgedir}
-mkdir -p %{buildroot}/%{_sysconfdir}/openshift/cartridges/v2
-cp -r * %{buildroot}%{cartridgedir}/
-ln -s %{cartridgedir}/conf/ %{buildroot}/%{_sysconfdir}/openshift/cartridges/v2/%{name}
+%__rm -rf %{buildroot}
+%__mkdir -p %{buildroot}%{cartridgedir}
+%__cp -r * %{buildroot}%{cartridgedir}
 
 %post
-%{_sbindir}/oo-admin-cartridge --action install --offline --source /usr/libexec/openshift/cartridges/v2/mysql
+%{_sbindir}/oo-admin-cartridge --action install --source %{cartridgedir}
 
 %clean
-rm -rf %{buildroot}
+%__rm -rf %{buildroot}
 
 
 %files
 %defattr(-,root,root,-)
 %dir %{cartridgedir}
-%dir %{cartridgedir}/bin
-%dir %{cartridgedir}/conf
-%dir %{cartridgedir}/env
-%dir %{cartridgedir}/metadata
-%config(noreplace) %{cartridgedir}/conf/
 %attr(0755,-,-) %{cartridgedir}/bin/
-%attr(0755,-,-) %{frameworkdir}
-%{_sysconfdir}/openshift/cartridges/v2/%{name}
-%{cartridgedir}/metadata/manifest.yml
+%attr(0755,-,-) %{cartridgedir}
 %doc %{cartridgedir}/README.md
-
+%doc %{cartridgedir}/COPYRIGHT
+%doc %{cartridgedir}/LICENSE
 
 %changelog
 * Wed May 08 2013 Adam Miller <admiller@redhat.com> 0.3.1-1

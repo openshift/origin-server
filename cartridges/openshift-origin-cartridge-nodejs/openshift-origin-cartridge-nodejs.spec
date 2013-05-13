@@ -1,5 +1,4 @@
 %global cartridgedir %{_libexecdir}/openshift/cartridges/v2/nodejs
-%global frameworkdir %{_libexecdir}/openshift/cartridges/v2/nodejs
 
 Summary:       Provides Node.js support
 Name:          openshift-origin-cartridge-nodejs
@@ -20,7 +19,6 @@ Requires:      nodejs-mysql
 Requires:      nodejs-node-static
 Requires:      nodejs-pg
 Requires:      nodejs-supervisor
-BuildRequires: git
 BuildArch:     noarch
 
 %description
@@ -31,29 +29,30 @@ Provides Node.js support to OpenShift. (Cartridge Format V2)
 %setup -q
 
 %build
+%__rm %{name}.spec
 
 %install
-rm -rf %{buildroot}
-mkdir -p %{buildroot}%{cartridgedir}
-mkdir -p %{buildroot}/%{_sysconfdir}/openshift/cartridges
-cp -r * %{buildroot}%{cartridgedir}/
+%__rm -rf %{buildroot}
+%__mkdir -p %{buildroot}%{cartridgedir}
+%__cp -r * %{buildroot}%{cartridgedir}
 
 %clean
-rm -rf %{buildroot}
+%__rm -rf %{buildroot}
+
+%post
+%{_sbindir}/oo-admin-cartridge --action install --source %{cartridgedir}
+
 
 %files
 %defattr(-,root,root,-)
 %dir %{cartridgedir}
-%dir %{cartridgedir}/bin
-%dir %{cartridgedir}/hooks
-%dir %{cartridgedir}/env
-%dir %{cartridgedir}/metadata
-%dir %{cartridgedir}/versions
 %attr(0755,-,-) %{cartridgedir}/bin/
 %attr(0755,-,-) %{cartridgedir}/hooks/
-%attr(0755,-,-) %{frameworkdir}
-%{cartridgedir}/metadata/manifest.yml
+%attr(0755,-,-) %{cartridgedir}
 %doc %{cartridgedir}/README.md
+%doc %{cartridgedir}/COPYRIGHT
+%doc %{cartridgedir}/LICENSE
+
 
 %changelog
 * Wed May 08 2013 Adam Miller <admiller@redhat.com> 1.10.1-1

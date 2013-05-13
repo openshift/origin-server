@@ -1,6 +1,6 @@
 @runtime
 @runtime_extended1
-@runtime_other4
+@runtime_extended_other1
 @not-enterprise
 @rhel-only
 Feature: Cartridge Lifecycle Ruby Verification Tests

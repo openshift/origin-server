@@ -1,5 +1,5 @@
-#@runtime_extended_other2
 @runtime_extended2
+@runtime_extended_other2
 Feature: Trap User Shell
 
   @rhel-only

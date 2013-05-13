@@ -1,4 +1,4 @@
-@runtime_other4
+@runtime_extended1
 Feature: V2 Platform Extended Tests
   Scenario: Basic functional test using oo-app-create and oo-cartridge
     Given a v2 default node

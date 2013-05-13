@@ -465,6 +465,7 @@ module OpenShift
                                       version,
                                       out: options[:out],
                                       err: options[:err])
+
       end
     end
 
