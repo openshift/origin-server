@@ -95,7 +95,6 @@ function stop() {
     wait_for_stop $pid
   else
     echo "Application is already stopped!" 1>&2
-    exit 0
   fi
 }
 
