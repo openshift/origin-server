@@ -7,6 +7,8 @@ case "$1" in
     version="$2"
 esac
 
+echo "$version" > "$OPENSHIFT_POSTGRESQL_DIR/env/OPENSHIFT_POSTGRES_VERSION"
+
 echo "Installing postgres"
 
 env_dir="${OPENSHIFT_POSTGRESQL_DIR}/env"
@@ -27,13 +29,13 @@ set_env_var 'OPENSHIFT_POSTGRESQL_DB_URL' "postgresql://${username}:${password}@
 
 # Create postgresql database
 # The contained tar file is the results of "initdb -D data", but much, much faster.
-tar -zxf $OPENSHIFT_POSTGRESQL_DIR/conf/pgdata-template.tar.gz -C "${OPENSHIFT_POSTGRESQL_DIR}/data/"
+tar -zxf $OPENSHIFT_POSTGRESQL_DIR/versions/$version/conf/pgdata-template.tar.gz -C "${OPENSHIFT_POSTGRESQL_DIR}/data/"
 chmod 0700 $OPENSHIFT_POSTGRESQL_DIR/data
 chmod 0700 $OPENSHIFT_POSTGRESQL_DB_SOCKET
 
 # These conf files need to override the values in the data directory AFTER it's been extracted by setup
 #  This needs to be done here because the ERB processing happens after setup
-conf_dir="${OPENSHIFT_POSTGRESQL_DIR}/conf"
+conf_dir="${OPENSHIFT_POSTGRESQL_DIR}/versions/$version/conf"
 cp $conf_dir/*.conf $OPENSHIFT_POSTGRESQL_DIR/data/
 
 cp $conf_dir/psqlrc $HOME/.psqlrc
