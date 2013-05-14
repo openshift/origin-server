@@ -23,8 +23,16 @@ Requires:      rpm-build
 Requires:      expat-devel
 Requires:      perl-IO-Socket-SSL
 Requires:      gdbm-devel
+
+%if 0%{?fedora}%{?rhel} <= 6
 Requires:      httpd < 2.4
-BuildArch:     noarch
+%endif
+%if 0%{?fedora} >= 19
+Requires:      httpd > 2.3
+Requires:      httpd < 2.5
+%endif
+
+BuildArch: noarch
 
 %description
 Perl cartridge for OpenShift. (Cartridge Format V2)
@@ -39,6 +47,16 @@ Perl cartridge for OpenShift. (Cartridge Format V2)
 %install
 %__mkdir -p %{buildroot}%{cartridgedir}
 %__cp -r * %{buildroot}%{cartridgedir}
+
+%if 0%{?fedora}%{?rhel} <= 6
+rm -rf %{buildroot}%{cartridgedir}/versions/5.16
+mv %{buildroot}%{cartridgedir}/metadata/manifest.yml.rhel %{buildroot}%{cartridgedir}/metadata/manifest.yml
+%endif
+%if 0%{?fedora} == 19
+rm -rf %{buildroot}%{cartridgedir}/versions/5.10
+mv %{buildroot}%{cartridgedir}/metadata/manifest.yml.f19 %{buildroot}%{cartridgedir}/metadata/manifest.yml
+%endif
+rm %{buildroot}%{cartridgedir}/metadata/manifest.yml.*
 
 %post
 %{_sbindir}/oo-admin-cartridge --action install --source %{cartridgedir}
