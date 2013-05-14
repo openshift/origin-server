@@ -22,7 +22,7 @@ module SQLHelper
       '-d' => '$OPENSHIFT_APP_NAME' # always use proper db name
     }
 
-    cmd = @psql_helper ? "psql" : "/usr/bin/psql"
+    cmd = "rhcsh #{@psql_helper ? "psql" : "/usr/bin/psql"}"
 
     # SCP the file so we don't have to worry about escaping SQL
     if @app.respond_to?(:scp_content)
