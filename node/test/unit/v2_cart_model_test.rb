@@ -541,17 +541,60 @@ module OpenShift
       end
     end
 
+    def test_connector_execute_nil_cart_name
+      pub_cart_name = 'mock-plugin-0.1'
+      connection_type = 'NET_TCP'
+      connector = 'set-db-connection-info'
+      args = "1 2 3"
+
+      @model.expects(:get_cartridge).never()
+      
+      assert_raise ArgumentError do
+        @model.connector_execute(nil, pub_cart_name, connection_type, connector, args)
+      end
+    end
+
     def test_set_connection_hook_env_vars
       cart_name = 'mock-0.1'
       pub_cart_name = 'mock-plugin-0.1'
       args = ['1', '2', '3', { 'gearuuid' => "A=B\nC=D\nE=F"}]
 
-      dest_dir = File.join(@user.homedir, '.env', 'mock-plugin-0.1')      
+      dest_dir = File.join(@user.homedir, '.env', 'mock-plugin')      
 
       FileUtils.expects(:mkpath).with(is_a(String))
       @model.expects(:write_environment_variables).with(dest_dir, has_entries('A' => 'B', 'C' => 'D', 'E' => 'F'), false)
 
       @model.set_connection_hook_env_vars(cart_name, pub_cart_name, args)
+    end
+
+    def test_short_name_from_full_cart_name_nil_arg
+      assert_raise ArgumentError do
+        @model.short_name_from_full_cart_name(nil)
+      end
+    end
+
+    def test_short_name_from_full_cart_name_no_dash
+      full_cart_name = 'mock'
+      assert_equal 'mock', @model.short_name_from_full_cart_name(full_cart_name)
+    end
+
+    def test_short_name_from_full_cart_name_one_dash
+      full_cart_name = 'mock-0.1'
+      assert_equal 'mock', @model.short_name_from_full_cart_name(full_cart_name)
+    end
+
+    def test_short_name_from_full_cart_name_two_dashes
+      full_cart_name = 'mock-plugin-0.1'
+      assert_equal 'mock-plugin', @model.short_name_from_full_cart_name(full_cart_name)
+    end
+
+    def test_unsubscribe
+      cart_name = 'mock-0.1'
+      pub_cart_name = 'mock-plugin-0.1'
+
+      FileUtils.expects(:rm_rf).with(File.join(@user.homedir, '.env', 'mock-plugin'))
+
+      @model.unsubscribe(cart_name, pub_cart_name)
     end
   end
 end
