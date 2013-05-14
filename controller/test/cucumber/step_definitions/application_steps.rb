@@ -176,10 +176,21 @@ Then /^the application should respond to the alias$/ do
   @app.is_accessible?(false, 120, "#{@app.name}-#{@app.namespace}.#{$alias_domain}").should be_true
 end
 
-Then /^the applications should be accessible?$/ do
+Then /^the applications should( not)? be accessible?$/ do |negate|
   @apps.each do |app|
-    app.is_accessible?.should be_true
-    app.is_accessible?(true).should be_true
+    if negate
+      app.is_accessible?.should be_false
+      app.is_accessible?(true).should be_false
+    else
+      app.is_accessible?.should be_true
+      app.is_accessible?(true).should be_true
+    end
+  end
+end
+
+When /^the applications are destroyed$/ do
+  @apps.each do |app|
+    rhc_ctl_destroy(app)
   end
 end
 

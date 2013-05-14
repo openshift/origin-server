@@ -1,10 +1,34 @@
 @runtime
-@rhel-only
+@not-fedora-19
 @runtime_extended_other2
 Feature: Cartridge Runtime Standard Checks (Python)
 
-  Scenario: Python cartridge checks
-    Given a new python-2.6 application, verify it using httpd
+  Scenario Outline: Python cartridge checks
+    #Given a new python-2.6 application, verify it using httpd
+    Given a new <cart_name> type application
+    Then the http proxy will exist
+    And a <proc_name> process will be running
+    And the application git repo will exist
+    And the application source tree will exist
+    And the application log files will exist
+    When I stop the application
+    Then a <proc_name> process will not be running
+    When I start the application
+    Then a <proc_name> process will be running
+    When I status the application
+    Then a <proc_name> process will be running
+    When I restart the application
+    Then a <proc_name> process will be running
+    When I destroy the application
+    Then the http proxy will not exist
+    And a <proc_name> process will not be running
+    And the application git repo will not exist
+    And the application source tree will not exist
+
+    @rhel-only
+    Scenarios: RHEL scenarios
+      | cart_name  | proc_name |
+      | python-2.6 | httpd     |
 
   Scenario Outline: Hot deployment tests
     Given a new <type> type application
@@ -17,6 +41,7 @@ Feature: Cartridge Runtime Standard Checks (Python)
     When I destroy the application
     Then a <proc_name> process will not be running
 
-  Scenarios: Code push scenarios
-    | type         | proc_name | hot_deploy_status | pid_changed   |
-    | python-2.6   | httpd     | is not enabled    | should be     |
+    @rhel-only
+    Scenarios: RHEL scenarios
+      | type       | proc_name | hot_deploy_status | pid_changed   |
+      | python-2.6 | httpd     | is not enabled    | should be     |

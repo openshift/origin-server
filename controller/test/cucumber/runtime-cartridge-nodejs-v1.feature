@@ -1,12 +1,32 @@
 @runtime
 @rhel-only
 @not-enterprise
+@not-fedora-19
 Feature: Cartridge Runtime Standard Checks (Node)
 
   @runtime_extended_other1
   @runtime_extended1
   Scenario: Node cartridge checks
-    Given a new nodejs-0.6 application, verify it using node
+    #Given a new nodejs-0.6 application, verify it using node
+    Given a new nodejs-0.6 type application
+    Then the http proxy will exist
+    And a node process will be running
+    And the application git repo will exist
+    And the application source tree will exist
+    And the application log files will exist
+    When I stop the application
+    Then a node process will not be running
+    When I start the application
+    Then a node process will be running
+    When I status the application
+    Then a node process will be running
+    When I restart the application
+    Then a node process will be running
+    When I destroy the application
+    Then the http proxy will not exist
+    And a node process will not be running
+    And the application git repo will not exist
+    And the application source tree will not exist
 
 
 #@runtime_extended2

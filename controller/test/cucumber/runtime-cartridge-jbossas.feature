@@ -1,4 +1,6 @@
 @runtime_extended1
+@jboss
+@jbossas
 Feature: V2 SDK JBossAS Cartridge
 
   Scenario: Add cartridge

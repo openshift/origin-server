@@ -4,7 +4,7 @@
 @rhel-only
 @jboss
 Feature: SwitchYard Application Sub-Cartridge
-  
+  @jbosseap
   Scenario: Create Delete one EAP application with embedded SwitchYard
     Given a new jbosseap-6.0 type application
     
@@ -15,7 +15,8 @@ Feature: SwitchYard Application Sub-Cartridge
     Then the eap module configuration file will not exist
     
     When I destroy the application
-    
+
+  @jbossas
   Scenario: Create Delete one AS application with embedded SwitchYard
     Given a new jbossas-7 type application
     
