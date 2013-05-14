@@ -1,15 +1,13 @@
-#@runtime_extended2
 @runtime
 @rhel-only
-@not-enterprise
-@runtime_extended_other2
-Feature: Cartridge Runtime Extended Checks (Node)
+@jboss
+Feature: Cartridge Runtime Extended Checks (JBoss)
 
+  @runtime_extended_other2
   Scenario Outline: Hot deployment tests
     Given a new <type> type application
     And the application is made publicly accessible
     And hot deployment <hot_deploy_status> for the application
-    And an update has been pushed to the application repo
     And the application cartridge PIDs are tracked
     When an update is pushed to the application repo
     Then a <proc_name> process will be running
@@ -19,5 +17,5 @@ Feature: Cartridge Runtime Extended Checks (Node)
 
   Scenarios: Code push scenarios
     | type         | proc_name | hot_deploy_status | pid_changed   |
-    | nodejs-0.6   | node      | is enabled        | should not be |
-    | nodejs-0.6   | node      | is not enabled    | should be     |
+    | jbosseap-6.0 | java      | is enabled        | should not be |
+    | jbosseap-6.0 | java      | is not enabled    | should be     |
