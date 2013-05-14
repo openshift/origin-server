@@ -255,25 +255,6 @@ class Gear
     RemoteJob.add_parallel_job(remote_job_handle, "addtl-fs-gb", self, get_proxy.get_update_gear_quota_job(self, total_fs_gb, ""))
   end
 
-  def update_namespace(args)
-    old_ns = args["old_namespace"]
-    new_ns = args["new_namespace"]
-    cart = args["cartridge"]
-
-    dns = OpenShift::DnsService.instance
-    begin
-      dns.deregister_application(self.name, old_ns)
-      dns.register_application(self.name, new_ns, public_hostname)
-      dns.publish
-    ensure
-      dns.close
-    end  
-
-    result = ResultIO.new
-    result.append get_proxy.update_namespace(self, cart, new_ns, old_ns)
-    self.app.process_commands(result)
-  end
-  
   def server_identities
     identities = self.group_instance.gears.map{|gear| gear.server_identity}
     identities.uniq!

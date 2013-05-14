@@ -10,10 +10,7 @@ URL: https://www.openshift.com
 Source0: http://mirror.openshift.com/pub/origin-server/source/%{name}/%{name}-%{version}.tar.gz
 Requires:      rubygem(openshift-origin-node)
 Requires:      openshift-origin-node-util
-
 BuildArch:     noarch
-BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
-BuildArch: noarch
 
 %description
 Cron cartridge for openshift. (Cartridge Format V2)
@@ -23,26 +20,24 @@ Cron cartridge for openshift. (Cartridge Format V2)
 %setup -q
 
 %build
+%__rm %{name}.spec
 
 %install
-rm -rf %{buildroot}
-mkdir -p %{buildroot}%{cartridgedir}
-mkdir -p %{buildroot}/%{_sysconfdir}/openshift/cartridges/v2
-cp -r * %{buildroot}%{cartridgedir}/
-ln -s %{cartridgedir}/conf/ %{buildroot}/%{_sysconfdir}/openshift/cartridges/v2/%{name}
+%__rm -rf %{buildroot}
+%__mkdir -p %{buildroot}%{cartridgedir}
+%__cp -r * %{buildroot}%{cartridgedir}
 
 %clean
-rm -rf %{buildroot}
+%__rm -rf %{buildroot}
 
 %post
-%{_sbindir}/oo-admin-cartridge --action install --offline --source /usr/libexec/openshift/cartridges/v2/cron
+%{_sbindir}/oo-admin-cartridge --action install --source %{cartridgedir}
 
 %files
 %defattr(-,root,root,-)
 %dir %{cartridgedir}
 %attr(0755,-,-) %{cartridgedir}
 %attr(0755,-,-) %{cartridgedir}/bin/
-%{_sysconfdir}/openshift/cartridges/v2/%{name}
 %doc %{cartridgedir}/README.md
 %doc %{cartridgedir}/COPYRIGHT
 %doc %{cartridgedir}/LICENSE

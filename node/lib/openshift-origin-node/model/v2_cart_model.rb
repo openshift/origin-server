@@ -88,7 +88,7 @@ module OpenShift
       primary_cart_dir = env['OPENSHIFT_PRIMARY_CARTRIDGE_DIR']
 
       raise "No primary cartridge detected in gear #{@user.uuid}" unless primary_cart_dir
-      
+
       return get_cartridge_from_directory(File.basename(primary_cart_dir))
     end
 
@@ -258,12 +258,19 @@ module OpenShift
           end
 
         end
-        
+
         connect_frontend(cartridge)
       end
 
       logger.info "configure output: #{output}"
-      output
+      return output
+    rescue Utils::ShellExecutionException => e
+      stdout = e.stdout.split("\n").map {|l| l.start_with?('CLIENT_') ? l : "CLIENT_MESSAGE: #{l}"}.join("\n")
+      stderr = e.stderr.split("\n").map {|l| l.start_with?('CLIENT_') ? l : "CLIENT_ERROR: #{l}"}.join("\n")
+      raise Utils::ShellExecutionException.new(e.message, 157, stdout, stderr)
+    rescue  => e
+      msg = e.message.split("\n").each {|l| l.start_with?('CLIENT_') ? l : "CLIENT_ERROR: #{l}"}.join("\n")
+      raise msg
     end
 
     def post_install(cartridge, software_version, options = {})
@@ -406,9 +413,9 @@ module OpenShift
       CartridgeRepository.instantiate_cartridge(cartridge, target)
 
       ident = Runtime::Manifest.build_ident(cartridge.cartridge_vendor,
-                                             cartridge.name,
-                                             software_version,
-                                             cartridge.cartridge_version)
+                                            cartridge.name,
+                                            software_version,
+                                            cartridge.cartridge_version)
 
       envs                                  = {}
       envs["#{cartridge.short_name}_DIR"]   = target + File::SEPARATOR
@@ -434,7 +441,7 @@ module OpenShift
       mcs_label = Utils::SELinux.get_mcs_label(@user.uid)
 
       # Gear level actions: Placed here to be off the V1 code path...
-      old_path = File.join(@user.homedir, '.env', 'PATH')
+      old_path  = File.join(@user.homedir, '.env', 'PATH')
       File.delete(old_path) if File.file? old_path
 
       uservars_env = File.join(@user.homedir, '.env', '.uservars')
@@ -554,11 +561,11 @@ module OpenShift
       Dir.glob(path_glob + '/*.erb', File::FNM_DOTMATCH).select { |f| File.file?(f) }.each do |file|
         begin
           Utils.oo_spawn(%Q{/usr/bin/oo-erb -S 2 -- #{file} > #{file.chomp('.erb')}},
-                         env:             env,
-                         unsetenv_others: true,
-                         chdir:           @user.homedir,
-                         uid:             @user.uid,
-                         expected_status: 0)
+                         env:                 env,
+                         unsetenv_others:     true,
+                         chdir:               @user.homedir,
+                         uid:                 @user.uid,
+                         expected_exitstatus: 0)
         rescue Utils::ShellExecutionException => e
           logger.info("Failed to render ERB #{file}: #{e.stderr}")
         else
@@ -584,11 +591,11 @@ module OpenShift
 
       # FIXME: Will anyone retry if this reports error, or should we remove from disk no matter what?
       buffer, err, _ = Utils.oo_spawn(teardown,
-                                 env:             env,
-                                 unsetenv_others: true,
-                                 chdir:           @user.homedir,
-                                 uid:             @user.uid,
-                                 expected_status: 0)
+                                      env:                 env,
+                                      unsetenv_others:     true,
+                                      chdir:               @user.homedir,
+                                      uid:                 @user.uid,
+                                      expected_exitstatus: 0)
 
       buffer << err
 
@@ -733,8 +740,8 @@ module OpenShift
     end
 
     def connect_frontend(cartridge)
-      frontend = OpenShift::FrontendHttpServer.new(@user.uuid, @user.container_name, @user.namespace)
-      gear_env = Utils::Environ.for_gear(@user.homedir)
+      frontend       = OpenShift::FrontendHttpServer.new(@user.uuid, @user.container_name, @user.namespace)
+      gear_env       = Utils::Environ.for_gear(@user.homedir)
       web_proxy_cart = web_proxy
 
       begin
@@ -1089,7 +1096,7 @@ module OpenShift
     # if the cartridge script fails.
     def start_cartridge(type, cartridge, options={})
       options[:user_initiated] = true if not options.has_key?(:user_initiated)
-      options[:hot_deploy]     = false if not options.has_key?(:hot_deploy)
+      options[:hot_deploy] = false if not options.has_key?(:hot_deploy)
 
       cartridge = get_cartridge(cartridge) if cartridge.is_a?(String)
 
@@ -1134,7 +1141,7 @@ module OpenShift
     # if the cartridge script fails.
     def stop_cartridge(cartridge, options={})
       options[:user_initiated] = true if not options.has_key?(:user_initiated)
-      options[:hot_deploy]     = false if not options.has_key?(:hot_deploy)
+      options[:hot_deploy] = false if not options.has_key?(:hot_deploy)
 
       cartridge = get_cartridge(cartridge) if cartridge.is_a?(String)
 
@@ -1228,19 +1235,19 @@ module OpenShift
         # For the long-term, then, figure out a way to reliably
         # determine the IP address from Ruby.
         out, err, status = Utils.oo_spawn('facter ipaddress',
-                                   env:                 cartridge_env,
-                                   unsetenv_others:     true,
-                                   chdir:               @user.homedir,
-                                   uid:                 @user.uid,
-                                   expected_exitstatus: 0)
-        private_ip = out.chomp
+                                          env:                 cartridge_env,
+                                          unsetenv_others:     true,
+                                          chdir:               @user.homedir,
+                                          uid:                 @user.uid,
+                                          expected_exitstatus: 0)
+        private_ip       = out.chomp
       rescue
         require 'socket'
-        addrinfo = Socket.getaddrinfo(Socket.gethostname, 80) # 80 is arbitrary
+        addrinfo     = Socket.getaddrinfo(Socket.gethostname, 80) # 80 is arbitrary
         private_addr = addrinfo.select { |info|
           info[3] !~ /^127/
         }.first
-        private_ip = private_addr[3]
+        private_ip   = private_addr[3]
       end
 
       env = Utils::Environ::for_gear(@user.homedir)

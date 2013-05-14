@@ -9,7 +9,7 @@ Rails.application.routes.draw do
       resources :authorizations, :controller => :authorizations, :constraints => { :id => id_with_format }, :only => [:index, :show, :destroy, :create, :update]
       match 'authorizations' => 'authorizations#destroy_all', :via => :delete
     end
-    resources :cartridges, :only => [:index, :show], :constraints => { :id => /standalone|embedded/ }
+    resources :cartridges, :only => [:index, :show], :constraints => { :id => id_with_format }
     resources :quickstarts, :only => [:index, :show]
     resources :estimates, :constraints => { :id => id_with_format }, :only => [:index, :show]
 

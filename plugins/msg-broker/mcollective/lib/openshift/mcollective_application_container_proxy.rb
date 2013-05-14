@@ -1316,33 +1316,6 @@ module OpenShift
       end
       
       #
-      # Change the namespace of a gear
-      # This updates the HTTP proxy for the gear?
-      #
-      # INPUTS:
-      # * gear: a Gear object
-      # * cart: a Cartridge object
-      # * new_ns: String - the new namespace
-      # * old_ns: String - the old namespace
-      # 
-      # RETURNS:
-      # * String - "parsed result" of an MCollective reply
-      # 
-      # NOTES:
-      # * uses execute_direct
-      # * operation on a cartridge?
-      #
-      #
-      def update_namespace(gear, cart, new_ns, old_ns)
-        args = build_base_gear_args(gear)
-        args['--cart-name']=cart
-        args['--with-new-namespace']=new_ns
-        args['--with-old-namespace']=old_ns
-        mcoll_reply = execute_direct(cart, 'update-namespace', args)
-        parse_result(mcoll_reply, gear)
-      end
-
-      #
       # Extracts the frontend httpd server configuration from a gear.
       #
       # INPUTS:

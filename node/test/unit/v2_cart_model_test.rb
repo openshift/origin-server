@@ -335,5 +335,61 @@ module OpenShift
 
       @model.connect_frontend(@mock_cartridge)
     end
+
+    def test_unlock_gear_no_relock
+      cartridge = mock()
+      files = %w(a b c)
+
+      @model.expects(:lock_files).with(cartridge).returns(files)
+      @model.expects(:do_unlock).with(files)
+      @model.expects(:do_lock).never
+
+      @model.unlock_gear(cartridge, false) do |cartridge|
+
+      end
+    end
+
+    def test_unlock_gear_relock
+      cartridge = mock()
+      files = %w(a b c)
+
+      @model.expects(:lock_files).with(cartridge).returns(files)
+      @model.expects(:do_unlock).with(files)
+      @model.expects(:do_lock).with(files)
+
+      @model.unlock_gear(cartridge) do |cartridge|
+
+      end
+    end
+
+    def test_unlock_gear_relock_block_raises
+      cartridge = mock()
+      files = %w(a b c)
+
+      @model.expects(:lock_files).with(cartridge).returns(files)
+      @model.expects(:do_unlock).with(files)
+      @model.expects(:do_lock).with(files)
+
+      assert_raise RuntimeError do
+        @model.unlock_gear(cartridge) do |cartridge|
+          raise 'foo' 
+        end
+      end
+    end
+
+    def test_unlock_gear_no_relock_block_raises
+      cartridge = mock()
+      files = %w(a b c)
+
+      @model.expects(:lock_files).with(cartridge).returns(files)
+      @model.expects(:do_unlock).with(files)
+      @model.expects(:do_lock).never()
+
+      assert_raise RuntimeError do
+        @model.unlock_gear(cartridge, false) do |cartridge|
+          raise 'foo' 
+        end
+      end
+    end
   end
 end

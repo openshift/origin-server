@@ -246,12 +246,11 @@ class FrontendHttpServerModelTest < Test::Unit::TestCase
 
     frontend = OpenShift::FrontendHttpServer.new(@container_uuid, @container_name, @namespace)
     frontend.update_name("newname")
-    frontend.update_namespace("newnamespace")
 
-    new_fqdn = "newname-newnamespace.#{@cloud_domain}"
+    new_fqdn = "newname-#{@namespace}.#{@cloud_domain}"
 
     assert_equal "newname", frontend.container_name
-    assert_equal "newnamespace", frontend.namespace
+    assert_equal @namespace, frontend.namespace
     assert_equal new_fqdn, frontend.fqdn
 
     check_dbs_not_empty

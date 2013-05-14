@@ -44,7 +44,7 @@ module MCollective
         Log.instance.info("cartridge_do_action validation = #{request[:cartridge]} #{request[:action]} #{request[:args]}")
         validate :cartridge, /\A[a-zA-Z0-9\.\-\/]+\z/
         validate :cartridge, :shellsafe
-        validate :action, /\A(app-create|app-destroy|env-var-add|env-var-remove|broker-auth-key-add|broker-auth-key-remove|authorized-ssh-key-add|authorized-ssh-key-remove|ssl-cert-add|ssl-cert-remove|configure|post-configure|deconfigure|unsubscribe|update-namespace|tidy|deploy-httpd-proxy|remove-httpd-proxy|restart-httpd-proxy|info|post-install|post-remove|pre-install|reload|restart|start|status|stop|force-stop|add-alias|remove-alias|threaddump|cartridge-list|expose-port|frontend-backup|frontend-restore|frontend-create|frontend-destroy|frontend-update-name|frontend-update-namespace|frontend-connect|frontend-disconnect|frontend-connections|frontend-idle|frontend-unidle|frontend-check-idle|frontend-sts|frontend-no-sts|frontend-get-sts|aliases|ssl-cert-add|ssl-cert-remove|ssl-certs|frontend-to-hash|system-messages|connector-execute|get-quota|set-quota)\Z/
+        validate :action, /\A(app-create|app-destroy|env-var-add|env-var-remove|broker-auth-key-add|broker-auth-key-remove|authorized-ssh-key-add|authorized-ssh-key-remove|ssl-cert-add|ssl-cert-remove|configure|post-configure|deconfigure|unsubscribe|tidy|deploy-httpd-proxy|remove-httpd-proxy|restart-httpd-proxy|info|post-install|post-remove|pre-install|reload|restart|start|status|stop|force-stop|add-alias|remove-alias|threaddump|cartridge-list|expose-port|frontend-backup|frontend-restore|frontend-create|frontend-destroy|frontend-update-name|frontend-connect|frontend-disconnect|frontend-connections|frontend-idle|frontend-unidle|frontend-check-idle|frontend-sts|frontend-no-sts|frontend-get-sts|aliases|ssl-cert-add|ssl-cert-remove|ssl-certs|frontend-to-hash|system-messages|connector-execute|get-quota|set-quota)\Z/
         validate :action, :shellsafe
         cartridge                  = request[:cartridge]
         action                     = request[:action]
@@ -401,13 +401,6 @@ module MCollective
         end
       end
 
-      def oo_frontend_update_namespace(args)
-        new_namespace = args['--with-new-namespace']
-        with_frontend_from_args(args) do |f, o|
-          f.update_namespace(new_namespace)
-        end
-      end
-
       #
       # The path-target-option is an array of the path, target and
       # options.  Multiple arrays may be specified and they are in
@@ -573,16 +566,6 @@ module MCollective
 
         with_container_from_args(args) do |container, output|
           output << container.connector_execute(cart_name, pub_cart_name, connection_type, hook_name, input_args)
-        end
-      end
-
-      def oo_update_namespace(args)
-        cart_name = args['--cart-name']
-        old_ns    = args['--with-old-namespace']
-        new_ns    = args['--with-new-namespace']
-
-        with_container_from_args(args) do |container, output|
-          output << container.update_namespace(cart_name, old_ns, new_ns)
         end
       end
 

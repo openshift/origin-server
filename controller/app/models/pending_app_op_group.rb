@@ -235,8 +235,6 @@ class PendingAppOpGroup
           when :update_configuration
             gear.update_configuration(op.args,handle)
             use_parallel_job = true
-          when :update_namespace
-            gear.update_namespace(op.args)
           when :add_broker_auth_key 
             job = gear.get_broker_auth_key_add_job(args["iv"], args["token"])
             RemoteJob.add_parallel_job(handle, "", gear, job)
@@ -245,9 +243,6 @@ class PendingAppOpGroup
             job = gear.get_broker_auth_key_remove_job()
             RemoteJob.add_parallel_job(handle, "", gear, job)
             use_parallel_job = true
-          when :complete_update_namespace
-            component_instance.complete_update_namespace(op.args)
-            self.application.save
           when :set_group_overrides
             application.group_overrides=op.args["group_overrides"]
             application.save
