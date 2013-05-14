@@ -252,7 +252,7 @@ module OpenShift
         Dir.chdir(@user.homedir) do
           unlock_gear(cartridge) do |c|
             output << cartridge_action(cartridge, 'setup', software_version, true)
-            process_erb_templates(c.directory)
+            process_erb_templates(c)
             output << cartridge_action(cartridge, 'install', software_version)
             populate_gear_repo(c.directory, template_git_url) if cartridge.deployable?
           end
@@ -326,7 +326,7 @@ module OpenShift
     #
     #   v2_cart_model.unlock_gear('php-5.3')
     def unlock_gear(cartridge, relock = true)
-      files = lock_files(cartridge)
+      files = locked_files(cartridge)
       begin
         do_unlock(files)
         yield cartridge
@@ -514,12 +514,13 @@ module OpenShift
     # process_erb_templates(cartridge_name) -> nil
     #
     # Search cartridge for any remaining <code>erb</code> files render them
-    def process_erb_templates(cartridge_name)
-      directory = File.join(@user.homedir, cartridge_name)
-      logger.info "Processing ERB templates for #{directory}/**"
+    def process_erb_templates(cartridge)
+      directory = PathUtils.join(@user.homedir, cartridge.name)
+      logger.info "Processing ERB templates for #{cartridge}"
 
       env = Utils::Environ.for_gear(@user.homedir, directory)
-      render_erbs(env, File.join(directory, '**'))
+      erbs = processed_templates(cartridge).map { |x| PathUtils.join(@user.homedir, x) }
+      render_erbs(env, erbs)
     end
 
     #  cartridge_action(cartridge, action, software_version, render_erbs) -> buffer
@@ -541,7 +542,8 @@ module OpenShift
 
       cartridge_env = gear_env.merge(Utils::Environ.load(cartridge_env_home))
       if render_erbs
-        render_erbs(cartridge_env, cartridge_env_home)
+        erbs = Dir.glob(cartridge_env_home + '/*.erb', File::FNM_DOTMATCH).select { |f| File.file?(f) }
+        render_erbs(cartridge_env, erbs)
         cartridge_env = gear_env.merge(Utils::Environ.load(cartridge_env_home))
       end
 
@@ -556,14 +558,13 @@ module OpenShift
       out
     end
 
-    # render_erbs(program environment as a hash, erb_path_glob) -> nil
+    # render_erbs(program environment as a hash, erbs) -> nil
     #
-    # Using the path globbing provided + '/*.erb', run <code>erb</code> against each template tile.
-    # See <code>Dir.glob</code> and <code>OpenShift::Utils.oo_spawn</code>
+    # Run <code>erb</code> against each template file submitted
     #
-    #   v2_cart_model.render_erbs({HOMEDIR => '/home/no_place_like'}, '/var/lib/...cartridge/env')
-    def render_erbs(env, path_glob)
-      Dir.glob(path_glob + '/*.erb', File::FNM_DOTMATCH).select { |f| File.file?(f) }.each do |file|
+    #   v2_cart_model.render_erbs({HOMEDIR => '/home/no_place_like'}, ['/var/lib/openshift/user/cart/foo.erb', ...])
+    def render_erbs(env, erbs)
+      erbs.each do |file|
         begin
           Utils.oo_spawn(%Q{/usr/bin/oo-erb -S 2 -- #{file} > #{file.chomp('.erb')}},
                          env:                 env,

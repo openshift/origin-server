@@ -5,3 +5,5 @@ locked_files:
 - conf.d/
 - phpMyAdmin/
 - env/
+processed_templates:
+- '**/*.erb'

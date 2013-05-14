@@ -3,3 +3,5 @@ locked_files:
 - ~/.jenkins_password
 - metadata/
 - env/
+processed_templates:
+- '**/*.erb'

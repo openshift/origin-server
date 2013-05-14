@@ -1,3 +1,5 @@
 ---
 snapshot_exclusions:
 - redhat-mongodb/*
+processed_templates:
+- '**/*.erb'
