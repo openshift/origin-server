@@ -36,7 +36,11 @@ class UnixUserModelFunctionalTest < Test::Unit::TestCase
     @gear_name = @app_name
     @namespace = 'jwh201204301647'
     @verbose = false
-    @user_homedir = "/tmp/homedir-#{@user_uid}"
+
+    # polyinstantiation makes creating the homedir a pain...
+    @user_homedir = "/data/tests/#{@user_uid}"
+    FileUtils.rm_r @user_homedir if File.exist?(@user_homedir)
+    FileUtils.mkdir_p @user_homedir
     `useradd -u #{@user_uid} -d #{@user_homedir} #{@user_uid} 1>/dev/null 2>&1`
 
     @config = mock('OpenShift::Config')

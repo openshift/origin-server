@@ -20,10 +20,13 @@ module OpenShift
 
     def setup
       @uid     = 5999
-      @homedir = "/tmp/tests/#@uid"
+
+      #NOTE: /tmp is pam-namespace mounted and having homedir under /tmp causes issues on F19+
+      @homedir = "/data/tests/#@uid"
 
       # polyinstantiation makes creating the homedir a pain...
       FileUtils.rm_r @homedir if File.exist?(@homedir)
+      FileUtils.mkdir_p @homedir
       %x{useradd -m -u #@uid -d #@homedir #@uid 1>/dev/null 2>&1}
       full_poly_dir = File.join(@homedir, '.tmp')
       FileUtils.mkpath(File.join(full_poly_dir, @uid.to_s))
