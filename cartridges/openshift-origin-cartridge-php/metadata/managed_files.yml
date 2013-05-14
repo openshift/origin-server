@@ -1,8 +1,11 @@
 ---
 locked_files:
 - ~/.pearrc
+- bin/
+- bin/*
 - configuration/
 - metadata/
+- metadata/*
 - env/
 - conf/
 processed_templates:
