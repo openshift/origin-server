@@ -192,7 +192,7 @@ class Haproxy
     def add_gear(verbose=false)
         @last_scale_up_time = Time.now
         @log.info("GEAR_UP - capacity: #{self.session_capacity_pct}% gear_count: #{self.gear_count} sessions: #{self.sessions} up_thresh: #{@gear_up_pct}%")
-        res=`add-gear -n #{self.gear_namespace}  -a #{ENV['OPENSHIFT_APP_NAME']} -u #{ENV['OPENSHIFT_APP_UUID']}`
+        res=`#{ENV['OPENSHIFT_HAPROXY_DIR']}/usr/bin/add-gear -n #{self.gear_namespace}  -a #{ENV['OPENSHIFT_APP_NAME']} -u #{ENV['OPENSHIFT_APP_UUID']}`
         @log.debug("GEAR_UP - add-gear: exit: #{$?}  stdout: #{res}")
         $stderr.puts(res) if verbose and res != ""
         self.print_gear_stats
@@ -200,7 +200,7 @@ class Haproxy
 
     def remove_gear(verbose=false)
         @log.info("GEAR_DOWN - capacity: #{self.session_capacity_pct}% gear_count: #{self.gear_count} sessions: #{self.sessions} remove_thresh: #{@gear_remove_pct}%")
-        res=`remove-gear -n #{self.gear_namespace} -a #{ENV['OPENSHIFT_APP_NAME']} -u #{ENV['OPENSHIFT_APP_UUID']}`
+        res=`#{ENV['OPENSHIFT_HAPROXY_DIR']}/usr/bin/remove-gear -n #{self.gear_namespace} -a #{ENV['OPENSHIFT_APP_NAME']} -u #{ENV['OPENSHIFT_APP_UUID']}`
         @log.debug("GEAR_DOWN - remove-gear: exit: #{$?}  stdout: #{res}")
         $stderr.puts(res) if verbose and res != ""
         self.print_gear_stats
