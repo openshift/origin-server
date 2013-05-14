@@ -1,6 +1,5 @@
 @runtime_other4
 @runtime
-@runtime3
 Feature: HAProxy Application Sub-Cartridge
   @rhel-only
   Scenario Outline: Create Delete Application With haproxy Scenarios (RHEL/CentOS)
