@@ -10,7 +10,15 @@ URL:           http://www.openshift.com
 Source0:       http://mirror.openshift.com/pub/openshift-origin/source/%{name}/%{name}-%{version}.tar.gz
 Requires:      rubygem(openshift-origin-node)
 Requires:      openshift-origin-node-util
+%if 0%{?fedora}%{?rhel} <= 6
 Requires:      nodejs >= 0.6
+Requires:      nodejs < 0.7
+%endif
+%if 0%{?fedora} >= 19
+Requires:      nodejs >= 0.10
+Requires:      nodejs < 0.11
+%endif
+
 Requires:      nodejs-async
 Requires:      nodejs-connect
 Requires:      nodejs-express
@@ -19,6 +27,10 @@ Requires:      nodejs-mysql
 Requires:      nodejs-node-static
 Requires:      nodejs-pg
 Requires:      nodejs-supervisor
+%if 0%{?fedora} >= 19
+Requires:      npm
+%endif
+
 BuildArch:     noarch
 
 %description
@@ -33,6 +45,15 @@ Provides Node.js support to OpenShift. (Cartridge Format V2)
 %install
 %__mkdir -p %{buildroot}%{cartridgedir}
 %__cp -r * %{buildroot}%{cartridgedir}
+
+%if 0%{?fedora}%{?rhel} <= 6
+%__mv %{buildroot}%{cartridgedir}/versions/native %{buildroot}%{cartridgedir}/versions/0.6
+%__mv %{buildroot}%{cartridgedir}/metadata/manifest.yml.rhel %{buildroot}%{cartridgedir}/metadata/manifest.yml
+%endif
+%if 0%{?fedora} >= 19
+%__mv %{buildroot}%{cartridgedir}/versions/native %{buildroot}%{cartridgedir}/versions/0.10
+%__mv %{buildroot}%{cartridgedir}/metadata/manifest.yml.f19 %{buildroot}%{cartridgedir}/metadata/manifest.yml
+%endif
 
 %post
 %{_sbindir}/oo-admin-cartridge --action install --source %{cartridgedir}
