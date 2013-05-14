@@ -13,3 +13,10 @@ cp -r $OPENSHIFT_PYTHON_DIR/versions/$version/template/* $OPENSHIFT_PYTHON_DIR/t
 create_virtualenv
 
 create_virtenv_activate_file
+
+if [ ${LD_LIBRARY_PATH:-""} == "" ]
+then
+    echo "$OPENSHIFT_PYTHON_DIR/opt/lib" > $OPENSHIFT_PYTHON_DIR/env/LD_LIBRARY_PATH
+else
+    $(prepend_path "$LD_LIBRARY_PATH" "$OPENSHIFT_PYTHON_DIR/opt/lib") > $OPENSHIFT_PYTHON_DIR/env/LD_LIBRARY_PATH
+fi
