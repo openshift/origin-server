@@ -198,6 +198,7 @@ module OpenShift
 
     def configure(cart_name, template_git_url, manifest)
       raise "Downloaded cartridges are not supported" if manifest
+      raise OpenShift::Utils::ShellExecutionException.new("Failed to configure a v1 cart while in v2 mode", 1, "CLIENT_ERROR: Your application is being upgraded and configuration changes can not be made at this time.  Please try again later.") if :v2 == OpenShift::Utils::Sdk.node_default_model(@config)
 
       do_control('configure', cart_name, "#{@user.container_name} #{@user.namespace} #{@user.container_uuid} #{template_git_url}")
     end
@@ -207,6 +208,8 @@ module OpenShift
     end
 
     def deconfigure(cart_name)
+      raise OpenShift::Utils::ShellExecutionException.new("Failed to deconfigure a v1 cart while in v2 mode", 1, "CLIENT_ERROR: Your application is being upgraded and configuration changes can not be made at this time.  Please try again later.") if :v2 == OpenShift::Utils::Sdk.node_default_model(@config)
+
       do_control('deconfigure', cart_name)
     end
 
