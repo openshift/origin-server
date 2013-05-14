@@ -4,3 +4,5 @@ locked_files:
 - cron/metadata/
 - cron/env/
 - cron/conf/
+processed_templates:
+- '**/*.erb'

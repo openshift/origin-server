@@ -6,3 +6,5 @@ locked_files:
 - env/PGDATABASE
 - env/PGDATA
 - env/PGHOST
+processed_templates:
+- '**/*.erb'
