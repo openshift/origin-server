@@ -1,0 +1,62 @@
+# -----------------------------
+# PostgreSQL configuration file
+# -----------------------------
+#
+# This file only contains values that have been changed from the defaults.
+#
+# For a description of this file, see:
+#  http://www.postgresql.org/docs/9.2/static/config-setting.html
+#
+# For a full version of this file with comments, see:
+#   http://git.postgresql.org/gitweb/?p=postgresql.git;a=blob_plain;f=src/backend/utils/misc/postgresql.conf.sample;hb=REL9_2_STABLE
+
+#------------------------------------------------------------------------------
+# FILE LOCATIONS
+#------------------------------------------------------------------------------
+data_directory = '<%= ENV['PGDATA'] %>'
+external_pid_file = '<%= ENV['OPENSHIFT_POSTGRESQL_DB_PID'] %>'
+
+#------------------------------------------------------------------------------
+# CONNECTIONS AND AUTHENTICATION
+#------------------------------------------------------------------------------
+listen_addresses = '<%= ENV['OPENSHIFT_POSTGRESQL_DB_HOST'] %>'
+port = <%= ENV['OPENSHIFT_POSTGRESQL_DB_PORT'] %>
+max_connections = 10
+unix_socket_directories  = '<%= ENV['OPENSHIFT_POSTGRESQL_DB_SOCKET'] %>'
+unix_socket_permissions = 0700
+
+#------------------------------------------------------------------------------
+# RESOURCE USAGE (except WAL)
+#------------------------------------------------------------------------------
+
+# - Memory -
+
+shared_buffers = 2MB
+temp_buffers = 1MB
+
+#------------------------------------------------------------------------------
+# QUERY TUNING
+#------------------------------------------------------------------------------
+effective_cache_size = 32
+
+#------------------------------------------------------------------------------
+# ERROR REPORTING AND LOGGING
+#------------------------------------------------------------------------------
+logging_collector = on
+log_directory = '<%= ENV['OPENSHIFT_POSTGRESQL_DB_LOG_DIR'] %>'
+log_filename = 'postgresql-%a.log'
+log_truncate_on_rotation = on
+log_rotation_age = 1d
+log_rotation_size = 0
+
+#------------------------------------------------------------------------------
+# CLIENT CONNECTION DEFAULTS
+#------------------------------------------------------------------------------
+# - Locale and Formatting -
+
+datestyle = 'iso, mdy'
+lc_messages = 'en_US.utf8'
+lc_monetary = 'en_US.utf8'
+lc_numeric = 'en_US.utf8'
+lc_time = 'en_US.utf8'
+default_text_search_config = 'pg_catalog.english'

@@ -1,0 +1,21 @@
+# PostgreSQL Client Authentication Configuration File
+# ===================================================
+#
+# This file only contains values that have been changed from the defaults.
+#
+# For a description of this file, see:
+#   http://www.postgresql.org/docs/8.4/static/auth-pg-hba-conf.html
+#
+# For a full version of this file with comments, see:
+#   http://git.postgresql.org/gitweb/?p=postgresql.git;a=blob;f=src/backend/libpq/pg_hba.conf.sample;hb=REL8_4_STABLE
+
+# Allow all users to connect over the local socket
+local   all         all                                 trust
+
+# Only allow the postgres to connect over the local socket
+host    all         postgres      0.0.0.0/8             reject
+host    all         postgres      ::/0                  reject
+
+# Allow all users to connect over the network with valid credentials
+host    all         all           127.0.0.1/8           md5
+host    all         all           ::1/128               md5

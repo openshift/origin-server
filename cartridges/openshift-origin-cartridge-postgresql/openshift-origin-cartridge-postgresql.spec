@@ -15,7 +15,13 @@ URL:           http://www.openshift.com
 Source0:       http://mirror.openshift.com/pub/openshift-origin/source/%{name}/%{name}-%{version}.tar.gz
 Requires:      rubygem(openshift-origin-node)
 Requires:      openshift-origin-node-util
+%if 0%{?fedora}%{?rhel} <= 6
 Requires:      postgresql < 9
+%endif
+%if 0%{?fedora} >= 19
+Requires:      postgresql >= 9.2
+Requires:      postgresql < 9.3
+%endif
 Requires:      postgresql-server
 Requires:      postgresql-libs
 Requires:      postgresql-devel
@@ -55,6 +61,15 @@ Provides PostgreSQL cartridge support to OpenShift. (Cartridge Format V2)
 %install
 %__mkdir -p %{buildroot}%{cartridgedir}
 %__cp -r * %{buildroot}%{cartridgedir}
+%if 0%{?fedora}%{?rhel} <= 6
+%__rm -rf %{buildroot}%{cartridgedir}/versions/9.2
+%__mv %{buildroot}%{cartridgedir}/metadata/manifest.yml.rhel %{buildroot}%{cartridgedir}/metadata/manifest.yml
+%endif
+%if 0%{?fedora} == 19
+%__rm -rf %{buildroot}%{cartridgedir}/versions/8.4
+%__mv %{buildroot}%{cartridgedir}/metadata/manifest.yml.f19 %{buildroot}%{cartridgedir}/metadata/manifest.yml
+%endif
+%__rm %{buildroot}%{cartridgedir}/metadata/manifest.yml.*
 
 %post
 %{_sbindir}/oo-admin-cartridge --action install --source %{cartridgedir}
@@ -67,7 +82,6 @@ Provides PostgreSQL cartridge support to OpenShift. (Cartridge Format V2)
 %doc %{cartridgedir}/README.md
 %doc %{cartridgedir}/COPYRIGHT
 %doc %{cartridgedir}/LICENSE
-
 
 %changelog
 * Thu May 30 2013 Adam Miller <admiller@redhat.com> 0.3.1-1
@@ -174,6 +188,5 @@ Provides PostgreSQL cartridge support to OpenShift. (Cartridge Format V2)
 * Fri Apr 12 2013 Fotios Lindiakos <fotios@redhat.com> 0.0.2-1
 - Initial v2 commit 
 
-
-* Wed Apr 04 2013 Fotios Lindiakos <fotios@redhat.com> 0.0.1-1
+* Wed Apr 03 2013 Fotios Lindiakos <fotios@redhat.com> 0.0.1-1
 - Initial V2 Package
