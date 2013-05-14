@@ -32,6 +32,11 @@ class AppEventsController < BaseController
     return render_error(:unprocessable_entity, "Alias must be specified for adding or removing application alias.", 126,
                         "event") if ['add-alias', 'remove-alias'].include?(event) && (server_alias.nil? or server_alias.to_s.empty?)
     return render_error(:unprocessable_entity, "Reached gear limit of #{@cloud_user.max_gears}", 104) if (event == 'scale-up') && (@cloud_user.consumed_gears >= @cloud_user.max_gears)
+    
+    if @application.upgrade_in_progress && ['scale-up', 'scale-down'].include?(event)
+      return rendor_upgrade_in_progress            
+    end
+      
 
     msg = "Added #{event} to application #{@application.name}"
     begin
