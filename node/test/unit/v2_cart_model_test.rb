@@ -548,6 +548,7 @@ module OpenShift
 
       dest_dir = File.join(@user.homedir, '.env', 'mock-plugin-0.1')      
 
+      FileUtils.expects(:mkpath).with(is_a(String))
       @model.expects(:write_environment_variables).with(dest_dir, has_entries('A' => 'B', 'C' => 'D', 'E' => 'F'), false)
 
       @model.set_connection_hook_env_vars(cart_name, pub_cart_name, args)
