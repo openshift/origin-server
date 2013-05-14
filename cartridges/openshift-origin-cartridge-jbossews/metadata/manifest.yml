@@ -15,7 +15,6 @@ Categories:
   - jboss
   - tomcat
   - tomcat7
-  - tomcat6
   - web_framework
 Website: http://www.redhat.com/products/jbossenterprisemiddleware/web-server/
 Help-Topics:
@@ -107,6 +106,13 @@ Version-Overrides:
       - "jbossews(version) >= 1.0"
       - "jboss-ews-1.0"
       - "jboss-ews-1.0.0"
+    Categories:
+      - service
+      - java
+      - jboss
+      - tomcat
+      - tomcat6
+      - web_framework
     Group-Overrides:
       - components:
         - "jbossews-1.0"
