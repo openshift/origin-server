@@ -25,7 +25,7 @@ class V1CartridgeModelFunctionalTest < Test::Unit::TestCase
     OpenShift::Config.stubs(:new).returns(@config)
     
     m = OpenShift::V1CartridgeModel.new(@config, MockUser.new("unit test"))
-    cartridge = m.get_cartridge('php-5.3')
+    cartridge = m.get_cartridge('diy-0.1')
     refute_nil cartridge
   end
 end
