@@ -192,10 +192,6 @@ module OpenShift
       end
     end
 
-    def update_namespace(cart_name, old_namespace, new_namespace)
-      do_control('update-namespace', cart_name, "#{@user.container_name} #{new_namespace} #{old_namespace} #{@user.container_uuid}")
-    end
-
     def configure(cart_name, template_git_url, manifest)
       raise "Downloaded cartridges are not supported" if manifest
 

@@ -367,10 +367,6 @@ module OpenShift
       end
     end
 
-    def update_namespace(cart_name, old_namespace, new_namespace)
-      @cartridge_model.update_namespace(cart_name, old_namespace, new_namespace)
-    end
-
     def connector_execute(cart_name, pub_cart_name, connector_type, connector, args)
       @cartridge_model.connector_execute(cart_name, pub_cart_name, connector_type, connector, args)
     end
