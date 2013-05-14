@@ -1,6 +1,7 @@
 @runtime
 @rhel-only
 @jboss
+@jbosseap
 Feature: Cartridge Runtime Extended Checks (JBoss)
 
   @runtime_extended_other2

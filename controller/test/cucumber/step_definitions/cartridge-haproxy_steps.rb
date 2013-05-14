@@ -5,25 +5,6 @@ require 'fileutils'
 # Hack to ensure haproxy_ctld_daemon continues to work
 ENV['BUNDLE_GEMFILE'] = nil
 
-Given /^a new ([^ ]+) application, verify haproxy-1.4 using ([^ ]+) process$/ do |cart_name, proc_name|
-  steps %Q{
-    Given a new #{cart_name} type application
-    Then a #{proc_name} process will be running
-    
-    When I embed a haproxy-1.4 cartridge into the application
-    Then 0 process named haproxy will be running
-    And the embedded haproxy-1.4 cartridge directory will exist
-    And the haproxy configuration file will exist
-    And the haproxy PATH override will exist
-
-    When I destroy the application
-    Then 0 processes named haproxy will be running
-    And a #{proc_name} process will not be running
-    And the embedded haproxy-1.4 cartridge directory will not exist
-    And the haproxy configuration file will not exist
-  }
-end
-
 Then /^the haproxy PATH override will( not)? exist$/ do |negate|
   path_location = "#{$home_root}/#{@gear.uuid}/.env/PATH"
 

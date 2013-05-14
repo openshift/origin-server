@@ -1,7 +1,10 @@
 @runtime_extended
 @runtime_extended2
 @rhel-only
-@jboss
+@not-fedora-19
+@jbosse
+@jbosseap
+
 Feature: Cartridge Lifecycle JBossEAP Verification Tests
   Scenario: Application Creation
     Given the libra client tools

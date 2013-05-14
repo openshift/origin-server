@@ -13,8 +13,8 @@ Feature: keys
     
     Scenarios:
      | format | 
-     | JSON | 
-     | XML | 
+     | JSON   |
+     | XML    |
     
   Scenario Outline: Create key
     Given a new user
@@ -25,8 +25,8 @@ Feature: keys
 
     Scenarios:
      | format | 
-     | JSON | 
-     | XML | 
+     | JSON   |
+     | XML    |
 
 
   Scenario Outline: Create key with with blank, missing and invalid content
@@ -44,8 +44,8 @@ Feature: keys
     
     Scenarios:
      | format | 
-     | JSON | 
-     | XML | 
+     | JSON   |
+     | XML    |
 
   Scenario Outline: Create key with with blank, missing, too long and invalid name
     Given a new user
@@ -65,8 +65,8 @@ Feature: keys
     
     Scenarios:
      | format | 
-     | JSON | 
-     | XML | 
+     | JSON   |
+     | XML    |
  
   Scenario Outline: Create key with blank, missing and invalid type
     Given a new user
@@ -83,8 +83,8 @@ Feature: keys
     
     Scenarios:
      | format | 
-     | JSON | 
-     | XML | 
+     | JSON   |
+     | XML    |
      
   Scenario Outline: Retrieve key
     Given a new user
@@ -97,8 +97,8 @@ Feature: keys
     
     Scenarios:
      | format | 
-     | JSON | 
-     | XML | 
+     | JSON   |
+     | XML    |
      
   Scenario Outline: Retrieve non-existent key
     Given a new user
@@ -109,8 +109,8 @@ Feature: keys
     
     Scenarios:
      | format | 
-     | JSON | 
-     | XML | 
+     | JSON   |
+     | XML    |
   
   Scenario Outline: Update key
     Given a new user
@@ -123,8 +123,8 @@ Feature: keys
     
     Scenarios:
      | format | 
-     | JSON | 
-     | XML | 
+     | JSON   |
+     | XML    |
     
 
   Scenario Outline: Update key with with blank, missing and invalid content
@@ -147,8 +147,8 @@ Feature: keys
     
     Scenarios:
      | format | 
-     | JSON | 
-     | XML | 
+     | JSON   |
+     | XML    |
     
   Scenario Outline: Update key with blank, missing and invalid type
     Given a new user
@@ -170,8 +170,8 @@ Feature: keys
     
     Scenarios:
      | format | 
-     | JSON | 
-     | XML | 
+     | JSON   |
+     | XML    |
     
   Scenario Outline: Update non-existent key
     Given a new user
@@ -182,8 +182,8 @@ Feature: keys
     
     Scenarios:
      | format | 
-     | JSON | 
-     | XML | 
+     | JSON   |
+     | XML    |
     
   Scenario Outline: Delete key
     Given a new user
@@ -197,8 +197,8 @@ Feature: keys
     
     Scenarios:
      | format | 
-     | JSON | 
-     | XML | 
+     | JSON   |
+     | XML    |
     
   Scenario Outline: Delete last key
     Given a new user
@@ -210,8 +210,8 @@ Feature: keys
     
     Scenarios:
      | format | 
-     | JSON | 
-     | XML | 
+     | JSON   |
+     | XML    |
     
   Scenario Outline: Delete non-existent key
     Given a new user
@@ -222,8 +222,8 @@ Feature: keys
     
     Scenarios:
      | format | 
-     | JSON | 
-     | XML | 
+     | JSON   |
+     | XML    |
     
   Scenario Outline: Create duplicate key
     Given a new user
@@ -237,8 +237,8 @@ Feature: keys
     
     Scenarios:
      | format | 
-     | JSON | 
-     | XML | 
+     | JSON   |
+     | XML    |
 
   
     
