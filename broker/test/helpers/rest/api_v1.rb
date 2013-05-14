@@ -128,7 +128,12 @@ keys_put_v1.request.merge!({ 'content' => ncontent, 'type' => nktype })
 keys_put_v1.response = RestKey_V1.new(kname, ncontent, nktype) 
 keys_put_v1.response_type = "key"
 
-php_cart = File.basename(Dir['/usr/libexec/openshift/cartridges/php-*'][0])
+if File.exist?("/var/lib/openshift/.settings/v2_cartridge_format")
+  manifest = YAML.load(File.open(Dir["/var/lib/openshift/.cartridge_repository/redhat-php/*/metadata/manifest.yml"].first))
+  php_cart = "php-" + manifest['Version']
+else
+  php_cart = File.basename(Dir['/usr/libexec/openshift/cartridges/php-*'][0])
+end
 app_post_v1 = RestApi_V1.new("/domains/#{dom_id}/applications", "POST")
 app_name, app_type, app_scale, app_timeout = 'app1', php_cart, true, 180
 app_post_v1.request.merge!({ 'name' => app_name, 'cartridge' => app_type, 'scale' => app_scale })
@@ -191,7 +196,7 @@ app_scale_down_post_v1.response = RestApplication_V1.new(app_name, app_type, dom
 app_scale_down_post_v1.response_type = "application"
 
 app_add_cart_post_v1 = RestApi_V1.new("/domains/#{dom_id}/applications/#{app_name}/cartridges", "POST")
-embed_cart = 'mysql-5.1'
+embed_cart = MYSQL_VERSION
 app_add_cart_post_v1.request.merge!({ 'name' => embed_cart, 'colocate_with' => nil })
 app_add_cart_post_v1.response = RestEmbeddedCartridge_V1.new('embedded', embed_cart, app_name)
 app_add_cart_post_v1.response_type = "cartridge"
