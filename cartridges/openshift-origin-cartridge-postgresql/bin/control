@@ -106,7 +106,7 @@ function post_restore {
     local rexp="s#\(DROP DATABASE\) \(.*\)#\\1 IF EXISTS \\2#g;"
 
     # Restore old postgres database
-    zcat $dump_file | sed "${rexp}" | psql -U postgres -d postgres
+    zcat $dump_file | sed "${rexp}" | psql -U postgres -d postgres &> /dev/null
 
     if [ $? -ne 0 ]
     then
@@ -120,11 +120,14 @@ function post_restore {
       " | psql -U postgres -d postgres
     } || error "Failed to rename database" 187
 
-    # Change ownership of database
+    # Change ownership of all databases
     {
-      echo "
-      ALTER DATABASE \"${new_db}\" OWNER TO \"${new_user}\";
-      " | psql -U postgres -d postgres
+      for db in `psql -qAt  -U postgres -d postgres -c "SELECT datname FROM pg_database JOIN pg_authid ON pg_database.datdba = pg_authid.oid WHERE NOT(rolname = '${new_user}' OR rolname = 'postgres')"`
+      do
+        echo "
+        ALTER DATABASE \"${db}\" OWNER TO \"${new_user}\";
+        " | psql -U postgres -d postgres
+      done
     } || error "Failed to change owner of imported database" 187
 
     # Change ownership of tables
