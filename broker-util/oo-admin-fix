@@ -459,9 +459,9 @@ unless fix_ssh_keys.nil? or report_only or error_ssh_keys_app_uuids.length == 0
       puts "OK" if verbose
       fixed_app_count += 1
     rescue Mongoid::Errors::DocumentNotFound
-      puts "FAIL" if verbose
+      puts "OK" if verbose
       puts "Application '#{uuid}' not found in the database"
-      failed_app_count += 1
+      fixed_app_count += 1
     rescue Exception => ex
       puts "FAIL" if verbose
       puts "Failed to fix ssh key mismatches for application '#{uuid}': #{ex.message}"
@@ -515,14 +515,17 @@ unless fix_district_uids.nil? or report_only or error_unreserved_district_uid_ma
       begin
         app = Application.find_by(query)
         Application.run_in_application_lock(app) do
-          reserved_uid = District::reserve_uid(district_uuid, gear_uid)
-          if reserved_uid.nil?
-            puts "FAIL" if verbose
-            puts "Failed to reserve UID #{gear_uid} within district #{district_info[0]}"
-            failed_unreserved_uid_count += 1
-          else
-            puts "OK" if verbose
-            fixed_unreserved_uid_count += 1
+          app.reload
+          if app.group_instance.gears.where(uid: gear_uid).count > 0
+            reserved_uid = District::reserve_uid(district_uuid, gear_uid)
+            if reserved_uid.nil?
+              puts "FAIL" if verbose
+              puts "Failed to reserve UID #{gear_uid} within district #{district_info[0]}"
+              failed_unreserved_uid_count += 1
+            else
+              puts "OK" if verbose
+              fixed_unreserved_uid_count += 1
+            end
           end
         end
       rescue Mongoid::Errors::DocumentNotFound
