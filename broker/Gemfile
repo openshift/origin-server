@@ -63,7 +63,7 @@ Dir["/etc/openshift/plugins.d/*.conf"].delete_if{ |x| x.end_with? "-dev.conf" }.
 group :development, :test do
   # The require part from http://tinyurl.com/3pf68ho
   gem 'rest-client', '>= 1.6.1', '<= 1.6.7', :require => 'rest-client'
-  gem 'mocha', '0.12.10', :require => nil
+  gem 'mocha', '0.13.1', :require => nil
   gem 'rake', '>= 0.8.7', '<= 0.9.6'
   gem 'simplecov'
   gem 'cucumber'
