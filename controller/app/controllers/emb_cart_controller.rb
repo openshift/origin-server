@@ -38,37 +38,41 @@ class EmbCartController < BaseController
       return render_upgrade_in_progress            
     end
 
-    cart_param = params[:name]
-
-    # :cartridge param is deprecated because it isn't consistent with
-    # the rest of the apis which take :name. Leave it here because
-    # some tools may still use it
-    cart_param = params[:cartridge] if cart_param.nil?
     colocate_with = params[:colocate_with]
     scales_from = Integer(params[:scales_from]) rescue nil
     scales_to = Integer(params[:scales_to]) rescue nil
     additional_storage = Integer(params[:additional_storage]) rescue nil
 
     cart_urls = []
-    if cart_param.is_a? Hash
-      if cart_param[:name] and cart_param[:name].is_a? String
-        name = cart_param[:name]
-      elsif cart_param[:url]
-        cart_urls << cart_param[:url]
-        begin
-          cmap = CartridgeCache.fetch_community_carts(cart_urls)
-          flat_name = cmap.keys[0]
-          name = "#{flat_name}-#{cmap[flat_name]["version"]}"
-          @application.downloaded_cart_map.merge!(cmap)
-          @application.save
-        rescue Exception=>e
-          return render_error(:unprocessable_entity, "Error in cartridge url - #{e.message}", 109)
-        end
-      end
+    if params[:name].is_a? String
+      name = params[:name]
+    elsif params[:url].is_a? String
+      cart_urls = [params[:url]]
+    # :cartridge param is deprecated because it isn't consistent with
+    # the rest of the apis which take :name. Leave it here because
+    # some tools may still use it
+    elsif params[:cartridge].is_a? Hash 
+      # unlikely that any client tool will use this format. nevertheless..
+      cart_urls = [params[:cartridge][:url]] if params[:cartridge][:url].is_a? String
+      name = params[:cartridge][:name] if params[:cartridge][:name].is_a? String
+    elsif params[:cartridge].is_a? String
+      name = params[:cartridge]
     else
-      name = cart_param
+      return render_error(:unprocessable_entity, "Error in parameters. Cannot determine cartridge. Use 'cartridge'/'name'/'url'", 109)
     end
-
+        
+    if cart_urls.length > 0
+      begin
+        cmap = CartridgeCache.fetch_community_carts(cart_urls)
+        flat_name = cmap.keys[0]
+        name = "#{flat_name}-#{cmap[flat_name]["version"]}"
+        @application.downloaded_cart_map.merge!(cmap)
+        @application.save
+      rescue Exception=>e
+        return render_error(:unprocessable_entity, "Error in cartridge url - #{e.message}", 109)
+      end
+    end
+        
     begin
       component_instance = @application.component_instances.find_by(cartridge_name: name)
       if !component_instance.nil?
