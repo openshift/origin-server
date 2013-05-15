@@ -326,12 +326,11 @@ module OpenShift
     #
     #   v2_cart_model.unlock_gear('php-5.3')
     def unlock_gear(cartridge, relock = true)
-      files = locked_files(cartridge)
       begin
-        do_unlock(files)
+        do_unlock(locked_files(cartridge))
         yield cartridge
       ensure
-        do_lock(files) if relock
+        do_lock(locked_files(cartridge)) if relock
       end
       nil
     end

@@ -1,7 +1,10 @@
 ---
 locked_files:
+- bin/
+- bin/*
 - configuration/
 - metadata/
+- metadata/*
 - env/
 - tmp/
 - conf/

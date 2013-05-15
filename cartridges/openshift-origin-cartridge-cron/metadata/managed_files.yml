@@ -1,8 +1,11 @@
 ---
 locked_files:
-- cron/
-- cron/metadata/
-- cron/env/
-- cron/conf/
+- bin/
+- bin/*
+- metadata/
+- metadata/*
+- env/
+- env/*
+- conf/
 processed_templates:
 - '**/*.erb'
