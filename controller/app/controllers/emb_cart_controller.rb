@@ -33,6 +33,11 @@ class EmbCartController < BaseController
 
   # POST /domains/[domain_id]/applications/[application_id]/cartridges
   def create
+
+    if @application.upgrade_in_progress
+      return rendor_upgrade_in_progress            
+    end
+
     cart_param = params[:name]
 
     # :cartridge param is deprecated because it isn't consistent with
@@ -132,6 +137,10 @@ class EmbCartController < BaseController
 
   # DELETE /domains/[domain_id]/applications/[application_id]/cartridges/[id]
   def destroy
+    if @application.upgrade_in_progress
+      return rendor_upgrade_in_progress
+    end
+
     cartridge = params[:id]
 
     # validate the cartridge name using regex to avoid a mongo call, if it is malformed
