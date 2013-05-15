@@ -7,7 +7,7 @@
 
 Summary:       OpenShift common cartridge components
 Name:          openshift-origin-cartridge-abstract
-Version: 1.8.5
+Version: 1.8.6
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -90,6 +90,11 @@ cp -rv -p abstract-jboss %{buildroot}%{cartdir}/
 %doc %{_libexecdir}/openshift/cartridges/abstract-jboss/README.md
 
 %changelog
+* Wed May 15 2013 Adam Miller <admiller@redhat.com> 1.8.6-1
+- Bug 963048 - the old oo-admin-ctl-gear script was setting/exporting APP_HOME
+  and OPENSHIFT_HOME_DIR but the new version assumed that the start hook did
+  that itself through setup_user_vars. (rmillner@redhat.com)
+
 * Tue May 07 2013 Adam Miller <admiller@redhat.com> 1.8.5-1
 - Bug 960291 (bdecoste@gmail.com)
 
