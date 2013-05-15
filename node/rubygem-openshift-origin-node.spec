@@ -41,6 +41,7 @@ Requires:      python
 Requires:      libselinux-python
 Requires:      mercurial
 Requires:      httpd
+Requires:      mod_ssl
 %if 0%{?fedora}%{?rhel} <= 6
 Requires:      libcgroup
 %else
