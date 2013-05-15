@@ -34,8 +34,8 @@ class EmbCartController < BaseController
   # POST /domains/[domain_id]/applications/[application_id]/cartridges
   def create
 
-    if @application.upgrade_in_progress
-      return rendor_upgrade_in_progress            
+    if @application.quarantined
+      return render_upgrade_in_progress            
     end
 
     cart_param = params[:name]
@@ -137,8 +137,8 @@ class EmbCartController < BaseController
 
   # DELETE /domains/[domain_id]/applications/[application_id]/cartridges/[id]
   def destroy
-    if @application.upgrade_in_progress
-      return rendor_upgrade_in_progress
+    if @application.quarantined
+      return render_upgrade_in_progress
     end
 
     cartridge = params[:id]
