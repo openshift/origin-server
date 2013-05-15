@@ -8,6 +8,8 @@
 require 'fileutils'
 require 'openshift-origin-node/utils/application_state'
 require 'openshift-origin-node/utils/shell_exec'
+require 'pty'
+require 'digest/md5'
 
 # These are provided to reduce duplication of code in feature files.
 #   Scenario Outlines are not used as they interfer with the devenv retry logic (whole feature is retried no example line)
@@ -765,6 +767,10 @@ end
 # V2-focused steps
 #####################
 
+def ssh_command(command) 
+  "ssh 2>/dev/null -o BatchMode=yes -o StrictHostKeyChecking=no -tt #{@gear.uuid}@#{@app.name}-#{@account.domain}.#{$cloud_domain} " + command
+end
+
 def app_env_var_will_exist(var_name, prefix = true)
   if prefix
     var_name = "OPENSHIFT_#{var_name}"
@@ -937,4 +943,81 @@ When /^the application hot deploy marker is (added|removed)$/ do |verb|
       $logger.info("Push output:\n#{push_output}")
     end
   end
+end
+
+Then /^I can run "([^\"]*)" with exit code: (\d+)$/ do |cmd, code|
+  command = ssh_command("rhcsh #{cmd}")
+  
+  $logger.debug "Running #{command}"
+
+  output = `#{command}`
+
+  $logger.debug "Output: #{output}"
+
+  assert_equal code.to_i, $?.exitstatus
+end
+
+When /^I run the rhcsh command "([^\"]*)"$/ do |cmd|
+  command = ssh_command("rhcsh #{cmd}")
+
+  $logger.debug "Running #{command}"
+
+  output = `#{command}`
+
+  $logger.debug "Output: #{output}"
+end
+
+When /^I tail the logs via ssh$/ do
+  ssh_cmd = ssh_command("tail -f */logs/\\*")
+  stdout, stdin, pid = PTY.spawn ssh_cmd
+
+  @ssh_cmd = {
+    :pid => pid,
+    :stdin => stdin,
+    :stdout => stdout,
+  }
+end
+
+When /^I stop tailing the logs$/ do
+  begin
+    Process.kill('KILL', @ssh_cmd[:pid])
+    exit_code = -1
+
+    # Don't let a command run more than 1 minute
+    Timeout::timeout(60) do
+      ignored, status = Process::waitpid2 @ssh_cmd[:pid]
+      exit_code = status.exitstatus
+    end
+  rescue PTY::ChildExited
+    # Completed as expected
+  end
+end
+
+Then /^I can obtain disk quota information via SSH$/ do
+  cmd = ssh_command('/usr/bin/quota')
+
+  $logger.debug "Running: #{cmd}"
+
+  out = `#{cmd}`
+
+  $logger.debug "Output: #{out}"
+
+  if out.index("Disk quotas for user ").nil?
+    raise "Could not obtain disk quota information"
+  end  
+end
+
+When /^I (start|stop) the application using ctl_all via rhcsh$/ do |action|
+  cmd = case action
+  when 'start'
+    ssh_command("rhcsh ctl_all start")
+  when 'stop'
+    ssh_command("rhcsh ctl_all stop")
+  end
+
+  $logger.debug "Running #{cmd}"
+
+  output = `#{cmd}`
+
+  $logger.debug "Output: #{output}"
 end
