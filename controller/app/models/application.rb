@@ -91,7 +91,6 @@ class Application
   field :scalable, type: Boolean, default: false
   field :init_git_url, type: String, default: ""
   field :analytics, type: Hash, default: {}
-  field :upgrade_in_progress, type: Boolean, default: false
   embeds_many :connections, class_name: ConnectionInstance.name
   embeds_many :component_instances, class_name: ComponentInstance.name
   embeds_many :group_instances, class_name: GroupInstance.name
@@ -102,7 +101,7 @@ class Application
   index({'domain_id' => 1})
   create_indexes
 
-  # non-presisted field used to store user agent of current request
+  # non-persisted field used to store user agent of current request
   attr_accessor :user_agent
   attr_accessor :downloaded_cartridges
 
@@ -187,6 +186,17 @@ class Application
       raise OpenShift::ApplicationValidationException.new(app)
     end
     app
+  end
+  
+  def quarantined
+    group_instances.each do |gi| 
+      gi.gears.each do |gear|
+        if gear.quarantined
+          return true
+        end
+      end
+    end
+    false
   end
 
   def downloaded_cartridges

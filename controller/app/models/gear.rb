@@ -15,6 +15,7 @@ class Gear
   field :uuid, type: String, default: ""
   field :uid, type: Integer
   field :name, type: String, default: ""
+  field :quarantined, type: Boolean, default: false
   field :host_singletons, type: Boolean, default: false
   field :app_dns, type: Boolean, default: false
 
