@@ -221,6 +221,12 @@ if level >= 2 and Rails.configuration.msg_broker[:districts][:enabled]
     si_list =  district["server_identities"].map {|si| si["name"]}
     si_list.delete_if {|si| si.nil?}
     district_hash[district["_id"].to_s] = [ district["name"], district["max_capacity"], si_list, district["available_uids"] ] 
+       
+    # check available_uids list length and available_capacity
+    if district["available_uids"].length != district["available_capacity"]
+      summary << "District '#{district["name"]}' has (#{district["available_uids"].length}) available UIDs but (#{district["available_capacity"]}) available capacity"
+      no_error = false
+    end
   end
 end
 
@@ -545,6 +551,31 @@ if level >= 2
           no_error = false
           puts "FAIL" if verbose
           summary << "UID '#{unused_uid}' is reserved in district '#{district_info[0]}' but not used by any gear"
+        end
+      end
+    end  
+    
+    # check to see if there are multiple gears with the same uid in the same district
+    puts "Checking for gears with the same UID:" if verbose 
+    district_hash.each do |district_id, district_info|
+      # collect gear uids from all nodes with server identities within this district
+      district_used_uids = []
+      server_ids = []
+      district_info[2].each do |server_identity|
+        server_ids << server_identity
+        district_used_uids = district_used_uids.concat(gear_uid_hash[server_identity] || [])
+      end
+      #get all the uids that appear more than once
+      reused_uids = district_used_uids.select { |e| district_used_uids.count(e) > 1 }.uniq
+      if reused_uids.length > 0
+        no_error = false
+        puts "FAIL" if verbose
+        summary << "Below UIDs are used by multiple gears in district: '#{district_info[0]}'.  Please move one of them to another district."
+        reused_uids.each do |uid|
+          summary << "UID: #{uid} is used by gears:"
+          datastore_hash.select{|k,v| v.include? uid and server_ids.any? {|server_id| v.include? server_id}}.each do |uuid, gear_info|
+            summary << "\tGear:#{uuid} in #{gear_info[3]}"
+          end
         end
       end
     end
