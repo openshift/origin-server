@@ -27,7 +27,8 @@ For TSIG authentication, the configuration file must contain the DNSSEC key name
     # TSIG authentication
     #
     BIND_KEYNAME="example.com"
-    BIND_KEYVALUE="base-64 encoded DNSSEC HMAC TSIG"
+    BIND_KEYVALUE="base-64 encoded DNSSEC HMAC TSIG KEY"
+    BIND_KEYALGORITHM=(HMAC-MD5|HMAC-SHA1|HMAC-SHA256|HMAC-SHA512) - MD5 default
 
 ## GSS-TSIG
 
