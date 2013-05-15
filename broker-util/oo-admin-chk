@@ -82,10 +82,10 @@ def datastore_has_gear?(gear_uuid, app_uuid=nil, false_positive_response=true)
   end
 end
 
-def datastore_has_gear_uid?(gear_uid, false_positive_response=true)
+def datastore_has_gear_uid?(gear_uid, si_list, false_positive_response=true)
   $false_positive_check_cnt += 1
   if $false_positive_check_cnt < FALSE_POSITIVE_CHECK_LIMIT
-    query = { "group_instances.gears.uid" => gear_uid }
+    query = {"group_instances.gears" => {"$elemMatch" => {"uid" => gear_uid, "server_identity" => {"$in" => si_list}}}}
     return Application.where(query).exists?
   else
     return false_positive_response
@@ -112,39 +112,21 @@ def get_user_info(user)
 end
 
 def check_consumed_gears(user_id)
-  user_consumed_gears = 0
-  app_actual_gears = 0
-  domain_ids = []
-
-  $false_positive_check_cnt += 1
-  if $false_positive_check_cnt < FALSE_POSITIVE_CHECK_LIMIT
-    # get the consumed_gears attribute for the user
-    selection = {:fields => ["consumed_gears"], :read => :primary}
-    OpenShift::DataStore.find(:cloud_users, {"_id" => user_id.to_s}, selection) do |user|
-      user_consumed_gears = user["consumed_gears"]
-    end
-    
-    # find all domains that the user owns
-    OpenShift::DataStore.find(:domains, {"owner_id" => user_id.to_s}, {}) do |domain|
-      domain_ids.push = domain["_id"].to_s
-    end
-    
-    # get the gears for all applications within the user's domains
-    if domain_ids.length > 0
-      query = {"domain_id" => domain_ids, "group_instances.gears.0" => {"$exists" => true}}
-      selection = {:fields => ["group_instances.gears._id"], :read => :primary}
-      OpenShift::DataStore.find(:applications, query, selection) do |app|
-        app['group_instances'].each do |gi|
-          if (gi.has_key?("gears")) and (gi['gears'].length > 0) 
-            app_actual_gears += gi['gears'].length
-          end
+  begin
+    actual_gears = 0
+    user = CloudUser.with(consistency: :strong).find_by(:_id => user_id)
+    user.domains.each do |d|
+      d.applications.each do |a|
+        a.group_instances.each do |gi|
+          actual_gears += gi.gears.length
         end
       end
     end
+    return user.consumed_gears, actual_gears
+  rescue Mongoid::Errors::DocumentNotFound
+    puts "Error: User with ID #{user_id} not found in mongo"
+    return 0, 0
   end
-  
-  # return the two gear counts
-  return user_consumed_gears, app_actual_gears
 end
 
 FALSE_POSITIVE_CHECK_LIMIT = 4000
@@ -201,7 +183,7 @@ if level >= 1
     domain["system_ssh_keys"].each { |k| system_ssh_keys[Digest::MD5.hexdigest(k["content"])] = k["name"] } if domain["system_ssh_keys"]
     
     if !user_hash[owner_id]
-      OpenShift::DataStore.find(:cloud_users, {"_id" => owner_id}, user_selection_primary) do |user|
+      OpenShift::DataStore.find(:cloud_users, {"_id" => BSON::ObjectId(owner_id)}, user_selection_primary) do |user|
         user_hash[user["_id"].to_s] = get_user_info(user) 
       end
     end
@@ -507,7 +489,7 @@ if level >= 2
           unreserved_uids.each do |unreserved_uid|
             # re-checking unreserved UID in the database
             print "Re-checking UID #{unreserved_uid} in district #{district_info[0]} in the database...\t" if verbose
-            if not datastore_has_gear_uid?(unreserved_uid, false)
+            if not datastore_has_gear_uid?(unreserved_uid, [server_identity], false)
               # the UID is no longer being used by any gear
               puts "OK" if verbose
             elsif not district_has_available_uid?(district_id, unreserved_uid, false)
@@ -542,8 +524,8 @@ if level >= 2
       district_unused_uids.each do |unused_uid|
         # re-checking unused UID in the database
         print "Re-checking UID #{unused_uid} in district #{district_info[0]} in the database...\t" if verbose
-        if datastore_has_gear_uid?(unused_uid, true)
-          # found a gear that uses this UID  
+        if datastore_has_gear_uid?(unused_uid, district_info[2], true)
+          # found a gear that uses this UID
           puts "OK" if verbose
         elsif district_has_available_uid?(district_id, unused_uid, true)
           # the UID is no longer reserved in the district
