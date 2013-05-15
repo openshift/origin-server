@@ -96,7 +96,7 @@
 # @!attribute [r] usage_rates
 #   @return [Array<Object>]
 class RestEmbeddedCartridge < OpenShift::Model
-  attr_accessor :type, :name, :version, :license, :license_url, :tags, :website, 
+  attr_accessor :type, :name, :version, :license, :license_url, :tags, :website, :url,
     :help_topics, :links, :properties, :display_name, :description, :scales_from,
     :scales_to, :current_scale, :supported_scales_from, :supported_scales_to,
     :scales_with, :base_gear_storage, :additional_gear_storage, :gear_profile, :collocated_with, 
@@ -112,6 +112,15 @@ class RestEmbeddedCartridge < OpenShift::Model
     self.license_url = cart.license_url
     self.tags = cart.categories
     self.website = cart.website
+    self.url = nil
+    if app.downloaded_cartridges.has_key? cart.name
+      app.downloaded_cart_map.each { |cname,chash|
+        if chash["versioned-name"]==cart.name or cname==cart.name
+          self.url = chash["url"]
+          break
+        end
+      }
+    end
     self.type = "standalone"
     self.type = "embedded" if cart.is_embeddable?
     self.usage_rates = cart.usage_rates
