@@ -167,6 +167,19 @@ module OpenShift
       @model.create_private_endpoints(@mock_cartridge)
     end
 
+    def test_private_endpoint_create_empty_endpoints
+      @user.expects(:add_env_var).never
+      @model.expects(:find_open_ip).never
+      @model.expects(:address_bound?).never
+      @model.expects(:addresses_bound?).never
+
+      cart = mock()
+      cart.stubs(:directory).returns("/nowhere")
+      cart.stubs(:endpoints).returns([])
+
+      @model.create_private_endpoints(cart)
+    end
+
     def test_private_endpoint_create_binding_failure
       ip1 = "127.0.250.1"
       ip2 = "127.0.250.2"

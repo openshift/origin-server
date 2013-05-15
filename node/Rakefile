@@ -14,18 +14,24 @@ end
 desc "Unit tests"
 Rake::TestTask.new(:unit_test) do |t|
   t.verbose = true
+  t.libs << File.expand_path('../lib', __FILE__)
+  t.libs << File.expand_path('../../common/lib', __FILE__)
   t.pattern = 'test/unit/*_test.rb'
 end
 
 desc "Functional tests"
 Rake::TestTask.new(:func_test) do |t|
   t.verbose = true
+  t.libs << File.expand_path('../lib', __FILE__)
+  t.libs << File.expand_path('../../common/lib', __FILE__)
   t.pattern = 'test/functional/*_test.rb'
 end
 
 desc "All tests"
 Rake::TestTask.new(:test) do |t|
   t.verbose = true
+  t.libs << File.expand_path('../lib', __FILE__)
+  t.libs << File.expand_path('../../common/lib', __FILE__)
   t.pattern = 'test/**/*_test.rb'
 end                                                          
 
