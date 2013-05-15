@@ -11,8 +11,8 @@ class ScalingController < ConsoleController
   def new
     user_default_domain
     @application = @domain.find_application params[:application_id]
-    @cartridge_type = CartridgeType.cached.find 'haproxy-1.4'
-    @cartridge = Cartridge.new :name => @cartridge_type.name
+    #@cartridge_type = CartridgeType.cached.find 'haproxy-1.4'
+    #@cartridge = Cartridge.new :name => @cartridge_type.name
   end
 
   def delete
