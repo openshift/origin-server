@@ -397,6 +397,7 @@ datastore_hash.each do |gear_uuid, gear_info|
           extra_db_sshkeys.each do |key|
             summary << "Gear '#{gear_uuid}' has key with name '#{db_sshkeys[key]}' in mongo but not on the node."
           end
+          summary << "SSH Key mismatch found -- refer to the oo-admin-fix-sshkeys tool"
         end
       elsif verbose
         # the case where gear is not returned from mcollective will be handled by the earlier checks 
