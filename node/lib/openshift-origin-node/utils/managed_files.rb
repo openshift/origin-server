@@ -23,12 +23,33 @@ module OpenShift
     # Turn blacklist into regexes
     FILENAME_BLACKLIST = %r{^\.(ssh|sandbox|tmp|env)}
 
-    # managed_files(cartridge_object, string) -> Array.new(file_names)
+    # Obtain values for an entry in a cartridge's managed_files.yml file
+    #
+    # cart - the cartridge you wish to query
+    # type - the key you wish to obtain
+    # process_files - whether or not to process the files before returning
+    #
+    # If process_files is true, the following actions are taken on the array:
+    #  - relative entries are chrooted to the user's home directory or cartridge
+    #  - entries are checked to ensure they stay within the user's home directory
+    #  - patterns are expanded (see http://ruby-doc.org/core-1.9.3/Dir.html#method-c-glob)
+    #    - patterns will only return existing files
+    #  - explicit paths are returned regardless of existence
+    #
+    # Examples:
+    #   managed_files(cart, :foo, false)
+    #   # => ['a', '../b', '~/.c', '~/../bad']
+    #
+    #   managed_files(cart, :foo)
+    #   # => ['cart_name/a', 'b', '.c'] # Note the bad entry would not be returned because it tries to escape home
+    #
+    # Returns an <code>Array</code> containing file names or strings
+    #  - If these entries are processed, they are returned relative to the user's home directory
     def managed_files(cart, type, root, process_files = true)
       # Ensure that root ends in a slash
-      root = File.join(root,'')
+      root = "#{PathUtils.join(root,'')}/"
       # TODO: Is it possible to get a cart's full directory path?
-      managed_files = File.join(root, cart.directory, 'metadata', 'managed_files.yml')
+      managed_files = PathUtils.join(root, cart.directory, 'metadata', 'managed_files.yml')
       unless File.exists?(managed_files)
         logger.info "#{managed_files} is missing"
         return []
@@ -44,7 +65,7 @@ module OpenShift
       if process_files
         # If the file isn't ~/ make it relative to the cart directory
         file_patterns.map! do |line|
-          abs_line = line.start_with?('~/') ? line : File.join('~/',cart.directory,line)
+          abs_line = line.start_with?('~/') ? line : PathUtils.join('~/',cart.directory,line)
           # Ensure that any patterns that try to traverse upward are exposed
           abs_line = File.expand_path(abs_line.sub(/^~\//,root))
           if line.end_with?('/') && !abs_line.end_with?('/')
@@ -75,12 +96,14 @@ module OpenShift
       end
     end
 
-    # lock_files(cartridge_object) -> Array.new(file_names)
+    # Obtain the 'locked_files' entry from the managed_files.yml file
     #
-    # Returns an <code>Array</code> object containing the file names the cartridge author wishes to manipulate
+    # cartridge - the cartridge you wish to query
     #
-    #   v2_cart_model.lock_files(cartridge)
-    def lock_files(cartridge)
+    # Returns an array of matching file entries. Entries are only allowed if:
+    #  - they do not match a blacklisted pattern
+    #  - they are in 'app-root', the cartridge's directory, or dot files/dirs in the user's home directory
+    def locked_files(cartridge)
       locked_files = managed_files(cartridge, :locked_files, @user.homedir)
 
       files = []
@@ -91,7 +114,7 @@ module OpenShift
         elsif line !~ /^(app-root\/|\.[^\/]+|#{cartridge.directory}\/)/ # Only allow files in app-root, the cart directory, or dot files/dirs (if they pass blacklist check)
           logger.info("#{cartridge.directory} attempted lock/unlock on out-of-bounds entry [#{line}]")
         else
-          abs_line = File.join(@user.homedir, line)
+          abs_line = PathUtils.join(@user.homedir, line)
           if line.end_with?('/') && !abs_line.end_with?('/')
             abs_line = "#{abs_line}/"
           end
@@ -101,39 +124,40 @@ module OpenShift
       files
     end
 
-    # snapshot_exclusions(cartridge_object) -> Array.new(file_names)
+    # Obtain the 'snapshot_exclusions' entry from the managed_files.yml file
     #
-    # Returns an <code>Array</code> object containing the file names the cartridge author wishes to exclude from snapshots
+    # cartridge - the cartridge you wish to query
     #
-    #   v2_cart_model.snapshot_exclusions(cartridge)
+    # Returns an array of matching file entries.
     def snapshot_exclusions(cartridge)
       managed_files(cartridge, :snapshot_exclusions, @user.homedir)
     end
 
-    # setup_rewritten(cartridge_object) -> Array.new(file_names)
+    # Obtain the 'setup_rewritten' entry from the managed_files.yml file
     #
-    # Returns an <code>Array</code> object containing the file names that will be cleared on subsequent setup runs
+    # cartridge - the cartridge you wish to query
     #
-    #   v2_cart_model.setup_rewritten(cartridge)
+    # Returns an array of matching file entries.
     def setup_rewritten(cartridge)
       managed_files(cartridge, :setup_rewritten, @user.homedir)
     end
 
-    # restore_transforms(cartridge_object) -> Array.new(file_names)
+    # Obtain the 'restore_transforms' entry from the managed_files.yml file
     #
-    # Returns an <code>Array</code> object containing the file names the cartridge author wishes to use to modify files after a restore
+    # cartridge - the cartridge you wish to query
     #
-    #   v2_cart_model.restore_transforms(cartridge)
+    # Returns an array of transform scripts (sed commands)
     def restore_transforms(cartridge)
-      managed_files(cartridge, :restore_transforms, @user.homedir)
+      # Do not let managed_files process the entries, since they will be sed scripts
+      managed_files(cartridge, :restore_transforms, @user.homedir, false)
     end
 
-    # process_templates(cartridge_object) -> Array.new(file_names)
+    # Obtain the 'processed_templates' entry from the managed_files.yml file
     #
-    # Returns an <code>Array</code> object containing the file names the cartridge author wishes to process, such as ERB templates
+    # cartridge - the cartridge you wish to query
     #
-    #   v2_cart_model.process_templates(cartridge)
-    def process_templates(cartridge)
+    # Returns an array of matching file entries.
+    def processed_templates(cartridge)
       managed_files(cartridge, :processed_templates, @user.homedir)
     end
   end

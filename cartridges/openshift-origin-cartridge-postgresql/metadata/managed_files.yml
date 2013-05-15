@@ -1,8 +1,16 @@
 ---
 locked_files:
+- bin/
+- bin/*
 - env/OPENSHIFT_POSTGRESQL_DB_LOG_DIR
 - env/OPENSHIFT_POSTGRESQL_DB_PID
 - env/OPENSHIFT_POSTGRESQL_DB_SOCKET
 - env/PGDATABASE
 - env/PGDATA
 - env/PGHOST
+- metadata/
+- metadata/*
+- hooks/
+- hooks/*
+processed_templates:
+- '**/*.erb'

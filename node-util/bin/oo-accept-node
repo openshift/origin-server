@@ -335,12 +335,20 @@ def check_cgroup_procs
     verbose("checking cgroups processes")
 
     ### Gather current procs running ###
-    all_user_procs = %x[ps -ef | egrep "^[0-9]{4}"].split("\n")
+    all_user_procs = %x[/bin/ps -ef | /bin/egrep "^[0-9]{4}"].split("\n")
     ps_procs = Hash.new(Array.new)
     all_user_procs.each do |line|
-        user_procs = line.split[0,3]
-        uname = users.grep(/:#{user_procs[0]}:/)[0].split(":")[0]
-        ps_procs[uname] += [user_procs[1]]
+        uid,pid = line.split[0,2]
+
+        passwd_lines = users.grep(/:#{uid}:/)
+
+        if passwd_lines.size == 0
+            do_fail("Process #{pid} is owned by a gear that's no longer on the system, uid: #{uid}")
+            next
+        end
+
+        uname = passwd_lines[0].split(":")[0]
+        ps_procs[uname] += [pid]
         ps_procs[uname].uniq!
     end
 
@@ -357,7 +365,14 @@ def check_cgroup_procs
     ps_procs.each do |uuid,procs|
         missing = procs - cgroup_procs[uuid]
         if missing.length > 0
-            do_fail("#{uuid} has procs missing from cgroups:  #{missing.join(" ")}")
+            missing.each do |pid|
+                proc_data = %x[/bin/ps -p #{pid} -o uid,pid,ppid,etime,cmd].split("\n")
+
+                # ensure the process is still running before failing (fixes transient process problem)
+                if proc_data.size > 1
+                    do_fail("#{uuid} has a process missing from cgroups:  #{pid}")
+                end
+            end
         end
     end
 end

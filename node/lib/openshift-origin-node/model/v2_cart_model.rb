@@ -252,7 +252,7 @@ module OpenShift
         Dir.chdir(@user.homedir) do
           unlock_gear(cartridge) do |c|
             output << cartridge_action(cartridge, 'setup', software_version, true)
-            process_erb_templates(c.directory)
+            process_erb_templates(c)
             output << cartridge_action(cartridge, 'install', software_version)
             populate_gear_repo(c.directory, template_git_url) if cartridge.deployable?
           end
@@ -326,12 +326,11 @@ module OpenShift
     #
     #   v2_cart_model.unlock_gear('php-5.3')
     def unlock_gear(cartridge, relock = true)
-      files = lock_files(cartridge)
       begin
-        do_unlock(files)
+        do_unlock(locked_files(cartridge))
         yield cartridge
       ensure
-        do_lock(files) if relock
+        do_lock(locked_files(cartridge)) if relock
       end
       nil
     end
@@ -466,11 +465,16 @@ module OpenShift
 
     ##
     # Write out environment variables.
-    def write_environment_variables(path, hash)
+    def write_environment_variables(path, hash, prefix = true)
       FileUtils.mkpath(path) unless File.exist? path
 
       hash.each_pair do |k, v|
-        name = "OPENSHIFT_#{k.to_s.upcase}"
+        name = k.to_s.upcase
+
+        if prefix
+          name = "OPENSHIFT_#{name}"
+        end
+
         File.open(PathUtils.join(path, name), 'w', 0666) do |f|
           f.write(v)
         end
@@ -509,12 +513,13 @@ module OpenShift
     # process_erb_templates(cartridge_name) -> nil
     #
     # Search cartridge for any remaining <code>erb</code> files render them
-    def process_erb_templates(cartridge_name)
-      directory = File.join(@user.homedir, cartridge_name)
-      logger.info "Processing ERB templates for #{directory}/**"
+    def process_erb_templates(cartridge)
+      directory = PathUtils.join(@user.homedir, cartridge.name)
+      logger.info "Processing ERB templates for #{cartridge}"
 
       env = Utils::Environ.for_gear(@user.homedir, directory)
-      render_erbs(env, File.join(directory, '**'))
+      erbs = processed_templates(cartridge).map { |x| PathUtils.join(@user.homedir, x) }
+      render_erbs(env, erbs)
     end
 
     #  cartridge_action(cartridge, action, software_version, render_erbs) -> buffer
@@ -536,7 +541,8 @@ module OpenShift
 
       cartridge_env = gear_env.merge(Utils::Environ.load(cartridge_env_home))
       if render_erbs
-        render_erbs(cartridge_env, cartridge_env_home)
+        erbs = Dir.glob(cartridge_env_home + '/*.erb', File::FNM_DOTMATCH).select { |f| File.file?(f) }
+        render_erbs(cartridge_env, erbs)
         cartridge_env = gear_env.merge(Utils::Environ.load(cartridge_env_home))
       end
 
@@ -551,14 +557,13 @@ module OpenShift
       out
     end
 
-    # render_erbs(program environment as a hash, erb_path_glob) -> nil
+    # render_erbs(program environment as a hash, erbs) -> nil
     #
-    # Using the path globbing provided + '/*.erb', run <code>erb</code> against each template tile.
-    # See <code>Dir.glob</code> and <code>OpenShift::Utils.oo_spawn</code>
+    # Run <code>erb</code> against each template file submitted
     #
-    #   v2_cart_model.render_erbs({HOMEDIR => '/home/no_place_like'}, '/var/lib/...cartridge/env')
-    def render_erbs(env, path_glob)
-      Dir.glob(path_glob + '/*.erb', File::FNM_DOTMATCH).select { |f| File.file?(f) }.each do |file|
+    #   v2_cart_model.render_erbs({HOMEDIR => '/home/no_place_like'}, ['/var/lib/openshift/user/cart/foo.erb', ...])
+    def render_erbs(env, erbs)
+      erbs.each do |file|
         begin
           Utils.oo_spawn(%Q{/usr/bin/oo-erb -S 2 -- #{file} > #{file.chomp('.erb')}},
                          env:                 env,
@@ -806,10 +811,20 @@ module OpenShift
       do_control_with_directory(action, options)
     end
 
+    def short_name_from_full_cart_name(pub_cart_name)
+      raise ArgumentError.new('pub_cart_name cannot be nil') unless pub_cart_name
+
+      return pub_cart_name if pub_cart_name.index('-').nil?
+
+      tokens = pub_cart_name.split('-')
+      tokens.pop
+      tokens.join('-')
+    end
+
     # Let a cart perform some action when another cart is being removed
     # Today, it is used to cleanup environment variables
     def unsubscribe(cart_name, pub_cart_name)
-      env_dir_path = File.join(@user.homedir, '.env', pub_cart_name)
+      env_dir_path = File.join(@user.homedir, '.env', short_name_from_full_cart_name(pub_cart_name))
       FileUtils.rm_rf(env_dir_path)
     end
 
@@ -817,22 +832,24 @@ module OpenShift
       logger.info("Setting env vars for #{cart_name} from #{pub_cart_name}")
       logger.info("ARGS: #{args.inspect}")
 
-      env_dir_path = File.join(@user.homedir, '.env', pub_cart_name)
+      env_dir_path = File.join(@user.homedir, '.env', short_name_from_full_cart_name(pub_cart_name))
       FileUtils.mkpath(env_dir_path)
+
+      envs = {}
 
       # Skip the first three arguments and jump to gear => "k1=v1\nk2=v2\n" hash map
       pairs = args[3].values[0].split("\n")
 
-      # Write out each environment variable in the payload
       pairs.each do |pair|
         k, v = pair.strip.split("=")
-        File.open(PathUtils.join(env_dir_path, k), 'w', 0666) do |f|
-          f.write(v)
-        end
+        envs[k] = v
       end
+
+      write_environment_variables(env_dir_path, envs, false)
     end
 
     # Convert env var hook arguments to shell arguments
+    # TODO: document expected form of args
     def convert_to_shell_arguments(args)
       new_args = []
       args[3].each do |k, v|
@@ -846,6 +863,8 @@ module OpenShift
     #    V2CartridgeModel.new(...).connector_execute(cartridge_name, connection_type, connector, args) => String
     #
     def connector_execute(cart_name, pub_cart_name, connection_type, connector, args)
+      raise ArgumentError.new('cart_name cannot be nil') unless cart_name
+
       cartridge    = get_cartridge(cart_name)
       env          = Utils::Environ.for_gear(@user.homedir, File.join(@user.homedir, cartridge.directory))
       env_var_hook = connection_type.start_with?("ENV:") && pub_cart_name
