@@ -696,9 +696,12 @@ function setup_basic_vars {
 
 function setup_app_dir_vars {
     APP_HOME="$GEAR_BASE_DIR/$uuid/"
+    OPENSHIFT_HOMEDIR="$APP_HOME"
     APP_DIR=`echo $APP_HOME/$cartridge_type | tr -s /`
     APP_REPO_DIR="$APP_HOME/app-root/repo"
     APP_DATA_DIR="$APP_HOME/app-root/data"
+
+    export APP_HOME OPENSHIFT_HOMEDIR
 }
 
 function force_kill {
