@@ -17,6 +17,8 @@ class Application < RestApi::Base
     name
   end
 
+  singular_resource
+
   belongs_to :domain
   alias_attribute :domain_name, :domain_id
   alias_attribute :scalable, :scale
