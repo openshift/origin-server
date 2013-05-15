@@ -2,12 +2,12 @@
 
 Summary:       Embedded 10gen MMS agent for performance monitoring of MondoDB
 Name:          openshift-origin-cartridge-10gen-mms-agent
-Version: 1.23.2
+Version:       1.23.2
 Release:       1%{?dist}
 Group:         Applications/Internet
 License:       ASL 2.0
 URL:           http://www.openshift.com
-Source0:       http://mirror.openshift.com/pub/origin-server/source/%{name}/%{name}-%{version}.tar.gz
+Source0:       http://mirror.openshift.com/pub/openshift-origin/source/%{name}/%{name}-%{version}.tar.gz
 Requires:      openshift-origin-cartridge-mongodb
 Requires:      rubygem(openshift-origin-node)
 Requires:      openshift-origin-node-util
@@ -18,35 +18,25 @@ BuildArch:     noarch
 %description
 Provides 10gen MMS agent cartridge support. (Cartridge Format V2)
 
-
 %prep
 %setup -q
-
 
 %build
 %__rm %{name}.spec
 
-
 %install
-%__rm -rf %{buildroot}
 %__mkdir -p %{buildroot}%{cartridgedir}
 %__cp -r * %{buildroot}%{cartridgedir}
-
-%clean
-%__rm -rf %{buildroot}
 
 %post
 %{_sbindir}/oo-admin-cartridge --action install --source %{cartridgedir}
 
-
 %files
-%defattr(-,root,root,-)
 %dir %{cartridgedir}
 %attr(0755,-,-) %{cartridgedir}
 %doc %{cartridgedir}/README.md
 %doc %{cartridgedir}/COPYRIGHT
 %doc %{cartridgedir}/LICENSE
-
 
 %changelog
 * Thu May 16 2013 Adam Miller <admiller@redhat.com> 1.23.2-1

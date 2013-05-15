@@ -1,13 +1,13 @@
 %global cartridgedir %{_libexecdir}/openshift/cartridges/v2/php
 
-Name: openshift-origin-cartridge-php
-Version: 0.4.2
-Release: 1%{?dist}
-Summary: Php cartridge
-Group: Development/Languages
-License: ASL 2.0
-URL: https://www.openshift.com
-Source0: http://mirror.openshift.com/pub/origin-server/source/%{name}/%{name}-%{version}.tar.gz
+Name:          openshift-origin-cartridge-php
+Version:       0.4.2
+Release:       1%{?dist}
+Summary:       Php cartridge
+Group:         Development/Languages
+License:       ASL 2.0
+URL:           https://www.openshift.com
+Source0:       http://mirror.openshift.com/pub/openshift-origin/source/%{name}/%{name}-%{version}.tar.gz
 Requires:      rubygem(openshift-origin-node)
 Requires:      openshift-origin-node-util
 %if 0%{?fedora}%{?rhel} <= 6
@@ -39,12 +39,10 @@ Requires:      php-bcmath
 Requires:      php-process
 Requires:      php-pecl-imagick
 Requires:      php-pecl-xdebug
-
-BuildArch: noarch
+BuildArch:     noarch
 
 %description
 PHP cartridge for openshift. (Cartridge Format V2)
-
 
 %prep
 %setup -q
@@ -53,7 +51,6 @@ PHP cartridge for openshift. (Cartridge Format V2)
 %__rm %{name}.spec
 
 %install
-%__rm -rf %{buildroot}
 %__mkdir -p %{buildroot}%{cartridgedir}
 %__cp -r * %{buildroot}%{cartridgedir}
 %__mkdir -p %{buildroot}%{cartridgedir}/versions/shared/configuration/etc/conf/
@@ -73,15 +70,10 @@ sed -i 's/#DefaultRuntimeDir/DefaultRuntimeDir/g' %{buildroot}%{cartridgedir}/ve
 %endif
 %__rm -rf %{buildroot}%{cartridgedir}/versions/shared/configuration/etc/conf-httpd-*
 
-%clean
-%__rm -rf %{buildroot}
-
 %post
 %{_sbindir}/oo-admin-cartridge --action install --source %{cartridgedir}
 
 %files
-%defattr(-,root,root,-)
-%dir %{cartridgedir}
 %attr(0755,-,-) %{cartridgedir}/bin/
 %attr(0755,-,-) %{cartridgedir}/hooks/
 %attr(0755,-,-) %{cartridgedir}

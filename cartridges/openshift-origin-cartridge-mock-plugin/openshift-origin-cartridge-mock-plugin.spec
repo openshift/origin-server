@@ -1,53 +1,41 @@
 %global cartridgedir %{_libexecdir}/openshift/cartridges/v2/mock-plugin
 
-Name: openshift-origin-cartridge-mock-plugin
-Version: 0.4.2
-Release: 1%{?dist}
-Summary: Mock plugin cartridge for V2 Cartridge SDK
-Group: Development/Languages
-License: ASL 2.0
-URL: https://www.openshift.com
-Source0: http://mirror.openshift.com/pub/origin-server/source/%{name}/%{name}-%{version}.tar.gz
-
-BuildArch: noarch
+Summary:       Mock plugin cartridge for V2 Cartridge SDK
+Name:          openshift-origin-cartridge-mock-plugin
+Version:       0.4.2
+Release:       1%{?dist}
+Group:         Development/Languages
+License:       ASL 2.0
+URL:           https://www.openshift.com
+Source0:       http://mirror.openshift.com/pub/openshift-origin/source/%{name}/%{name}-%{version}.tar.gz
 Requires:      rubygem(openshift-origin-node)
 Requires:      openshift-origin-node-util
+BuildArch:     noarch
 
 %description
-Provides a mock plugin cartridge for use in the V2 Cartridge SDK. Used to integration
+Provides a mock plugin cartridge for use in the V2 Cartridge SDK. Used for integration
 test platform functionality.
-
 
 %prep
 %setup -q
 
-
 %build
 %__rm %{name}.spec
 
-
 %install
-%__rm -rf %{buildroot}
 %__mkdir -p %{buildroot}%{cartridgedir}
 %__cp -r * %{buildroot}%{cartridgedir}
-
-%clean
-%__rm -rf %{buildroot}
-
 
 %post
 %{_sbindir}/oo-admin-cartridge --action install --source %{cartridgedir}
 
-
 %files
-%defattr(-,root,root,-)
 %dir %{cartridgedir}
 %attr(0755,-,-) %{cartridgedir}/bin/
 %attr(0755,-,-) %{cartridgedir}
 %doc %{cartridgedir}/README.md
 %doc %{cartridgedir}/COPYRIGHT
 %doc %{cartridgedir}/LICENSE
-
 
 %changelog
 * Thu May 16 2013 Adam Miller <admiller@redhat.com> 0.4.2-1

@@ -2,7 +2,7 @@
 
 Summary:       Provides Node.js support
 Name:          openshift-origin-cartridge-nodejs
-Version: 1.10.2
+Version:       1.10.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -24,7 +24,6 @@ BuildArch:     noarch
 %description
 Provides Node.js support to OpenShift. (Cartridge Format V2)
 
-
 %prep
 %setup -q
 
@@ -32,19 +31,13 @@ Provides Node.js support to OpenShift. (Cartridge Format V2)
 %__rm %{name}.spec
 
 %install
-%__rm -rf %{buildroot}
 %__mkdir -p %{buildroot}%{cartridgedir}
 %__cp -r * %{buildroot}%{cartridgedir}
-
-%clean
-%__rm -rf %{buildroot}
 
 %post
 %{_sbindir}/oo-admin-cartridge --action install --source %{cartridgedir}
 
-
 %files
-%defattr(-,root,root,-)
 %dir %{cartridgedir}
 %attr(0755,-,-) %{cartridgedir}/bin/
 %attr(0755,-,-) %{cartridgedir}/hooks/
@@ -52,7 +45,6 @@ Provides Node.js support to OpenShift. (Cartridge Format V2)
 %doc %{cartridgedir}/README.md
 %doc %{cartridgedir}/COPYRIGHT
 %doc %{cartridgedir}/LICENSE
-
 
 %changelog
 * Thu May 16 2013 Adam Miller <admiller@redhat.com> 1.10.2-1
