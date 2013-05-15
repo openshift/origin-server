@@ -1,0 +1,54 @@
+  oo-admin-fix
+  
+SYNOPSIS
+  oo-admin-fix [-h|--help] [-v|--verbose] [-r|--report-only] 
+  [--consumed-gears] [--ssh-keys] [--district-uids]
+
+DESCRIPTION
+  This utility checks and fixes various inconsistencies in mongo data
+
+  The following issues can be fixed with this script:
+    - mismatch between user's consumed gears and actual gears 
+      across all domains/applications for the user
+    - mismatch between the ssh keys in mongo and the ssh keys 
+      on the gear on the node
+    - mismatch in available UIDs for a district and actual 
+      UIDs used by the gears on the nodes within the district
+
+OPTIONS
+  -r|--report-only
+    Only report the mismatches, don't fix them 
+  --consumed-gears
+    Fix  mismatch in user's consumed gears vs actual gears 
+    in mongo
+  --ssh-keys
+    Fix  mismatch in SSH keys between mongo and on the node 
+    for a gear
+  --district-uids
+    Fix mismatch in available UIDs for a district in mongo
+  -h|--help
+    Display a simple help dialog.
+  -v|--verbose
+    Enable verbose output during the run of the script
+
+EXAMPLE
+
+  $ oo-admin-fix --consumed-gears
+  
+HINTS
+  If there are no data discrepancies, this command should exit 
+  with return code 0. Otherwise the discrepancies are listed 
+  and the command exits with return code 1. 
+  If --report-only option is not specified, then the 
+  inconsistencies in the areas specified by the options 
+  will be fixed. 
+ 
+SEE ALSO
+  oo-admin-ctl-district(8), oo-admin-move(8),
+  oo-admin-chk(8), oo-accept-broker(8), oo-admin-ctl-app(8),
+  oo-admin-ctl-domain(8), oo-admin-usage(8), 
+  oo-admin-ctl-user(8), oo-register-dns(8)
+
+AUTHOR
+  Adam Miller <admiller@redhat.com> - man page written for 
+  OpenShift Origin 

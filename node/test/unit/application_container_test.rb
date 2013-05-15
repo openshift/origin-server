@@ -221,4 +221,16 @@ class ApplicationContainerTest < Test::Unit::TestCase
     @container.cartridge_model.expects(:create_stop_lock)
     @container.force_stop
   end
+
+  def test_connector_execute
+    cart_name = 'mock-0.1'
+    pub_cart_name = 'mock-plugin-0.1'
+    connector_type = 'ENV:NET_TCP'
+    connector = 'set-db-connection-info'
+    args = 'foo'
+
+    @container.cartridge_model.expects(:connector_execute).with(cart_name, pub_cart_name, connector_type, connector, args)
+
+    @container.connector_execute(cart_name, pub_cart_name, connector_type, connector, args)
+  end
 end

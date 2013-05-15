@@ -91,6 +91,7 @@ class Application
   field :scalable, type: Boolean, default: false
   field :init_git_url, type: String, default: ""
   field :analytics, type: Hash, default: {}
+  field :upgrade_in_progress, type: Boolean, default: false
   embeds_many :connections, class_name: ConnectionInstance.name
   embeds_many :component_instances, class_name: ComponentInstance.name
   embeds_many :group_instances, class_name: GroupInstance.name

@@ -1,5 +1,11 @@
 ---
 locked_files:
 - ~/.jenkins_password
+- bin/
+- bin/*
 - metadata/
+- metadata/*
 - env/
+- env/*
+processed_templates:
+- '**/*.erb'

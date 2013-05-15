@@ -302,8 +302,8 @@ module OpenShift
       raise NotImplementedError.new('V1 snapshot is not implemented via ApplicationContainer')
     end
 
-    def lock_files(cartridge)
-      raise NotImplementedError.new('V1 lock_files is not implemented via ApplicationContainer')
+    def locked_files(cartridge)
+      raise NotImplementedError.new('V1 locked_files is not implemented via ApplicationContainer')
     end
 
     def snapshot_exclusions(cartridge)
@@ -318,8 +318,8 @@ module OpenShift
       raise NotImplementedError.new('V1 restore_transforms is not implemented via ApplicationContainer')
     end
 
-    def process_templates(cartridge)
-      raise NotImplementedError.new('V1 process_templates is not implemented via ApplicationContainer')
+    def processed_templates(cartridge)
+      raise NotImplementedError.new('V1 processed_templates is not implemented via ApplicationContainer')
     end
   end
 end
