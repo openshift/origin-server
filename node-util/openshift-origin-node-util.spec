@@ -1,6 +1,6 @@
 Summary:       Utility scripts for the OpenShift Origin broker
 Name:          openshift-origin-node-util
-Version: 1.8.9
+Version: 1.8.10
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -120,6 +120,9 @@ mv services/openshift-gears.service %{buildroot}/etc/systemd/system/openshift-ge
 /sbin/restorecon /usr/sbin/oo-restorer* || :
 
 %changelog
+* Wed May 15 2013 Adam Miller <admiller@redhat.com> 1.8.10-1
+- Fixed 2 bugs in oo-accept-node (twiest@redhat.com)
+
 * Thu May 09 2013 Adam Miller <admiller@redhat.com> 1.8.9-1
 - Bug 960509, Bug 960674: Refactor rhc-list-port (ironcladlou@gmail.com)
 
