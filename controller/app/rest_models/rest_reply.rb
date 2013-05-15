@@ -35,7 +35,8 @@ class RestReply < OpenShift::Model
     self.type = type
     self.data = data
     self.messages = []
-    self.version = requested_api_version.to_s
+    self.version = requested_api_version 
+    self.version = requested_api_version.to_s if requested_api_version <= 1.4
     self.supported_api_versions = OpenShift::Controller::ApiBehavior::SUPPORTED_API_VERSIONS
   end
   
