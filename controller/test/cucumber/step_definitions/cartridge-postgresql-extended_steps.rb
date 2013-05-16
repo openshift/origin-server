@@ -62,6 +62,10 @@ When /^I create a test table in postgres( without dropping)?$/ do |drop|
   @query_result = run_psql(sql)
 end
 
+When "I create a test database in postgres" do
+  run_psql("CREATE DATABASE new_test_database;")
+end
+
 When /^I insert (additional )?test data into postgres$/ do |additional|
   run_sql = <<-sql
     INSERT INTO cuke_test VALUES (1,'initial data');
@@ -108,4 +112,11 @@ When /^I add debug data to the log file$/ do
   # This can probably be made into a single command
   file = @app.ssh_command('find \$OPENSHIFT_POSTGRESQL_DB_LOG_DIR -type f | head -n1')
   @app.ssh_command("echo 'ZZZZZ' >> #{file}")
+end
+
+When "all databases will have the correct ownership" do
+  username = @app.ssh_command('echo \$OPENSHIFT_POSTGRESQL_DB_USERNAME')
+  dbs = run_psql("SELECT datname FROM pg_database JOIN pg_authid ON pg_database.datdba = pg_authid.oid WHERE NOT(rolname = '#{username}' OR rolname = 'postgres')").lines.to_a.compact.map(&:strip).delete_if(&:empty?)
+  # TODO: This can be done better if we can run the ssh command without the MOTD
+  dbs.select{|x| @apps.include?(x) }.should eq []
 end

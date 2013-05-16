@@ -28,7 +28,9 @@ Given /^an existing (.+) application( without an embedded cartridge)?$/ do |type
 end
 
 Given /^a new client created( scalable)? (.+) application$/ do |scalable, type|
-  @app = TestApp.create_unique(type, 'test', scalable)
+  @app = TestApp.create_unique(type, nil, scalable)
+  @apps ||= []
+  @apps << @app.name
   register_user(@app.login, @app.password) if $registration_required
   if rhc_create_domain(@app)
     if scalable
@@ -138,6 +140,14 @@ When /^I snapshot the application$/ do
   File.size(@app.snapshot).should > 0
 end
 
+When "I preserve the current snapshot" do
+  assert_file_exists @app.snapshot
+  tmpdir = Dir.mktmpdir
+
+  @saved_snapshot = File.join(tmpdir,File.basename(@app.snapshot))
+  FileUtils.cp(@app.snapshot,@saved_snapshot)
+end
+
 When /^I tidy the application$/ do
   rhc_tidy(@app)
 end
@@ -146,10 +156,13 @@ When /^I reload the application$/ do
   rhc_reload(@app)
 end
 
-When /^I restore the application$/ do
+When /^I restore the application( from a preserved snapshot)?$/ do |preserve|
+  if preserve
+    @app.snapshot = @saved_snapshot
+  end
   assert_file_exists @app.snapshot
   File.size(@app.snapshot).should > 0
-  
+
   file_list = `tar ztf #{@app.snapshot}`
   ["#{@app.name}_ctl.sh", "openshift.conf", "httpd.pid"].each {|file|
     assert ! file_list.include?(file), "Found illegal file \'#{file} in snapshot"

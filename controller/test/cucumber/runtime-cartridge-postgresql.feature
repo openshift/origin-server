@@ -179,3 +179,38 @@ Feature: Postgres Application Sub-Cartridge
     When I restore the application
     Then the test data will be present in postgres
     And the additional test data will not be present in postgres
+
+  @runtime_extended3
+  @postgres
+  @v2
+  Scenario: Snapshot/Restore after removing/adding application
+    Given a new client created mock-0.1 application
+    Given the embedded postgresql-8.4 cartridge is added
+
+    When I create a test database in postgres
+
+    When I create a test table in postgres
+    When I insert test data into postgres
+    Then the test data will be present in postgres
+
+    When I snapshot the application
+    And I insert additional test data into postgres
+    Then the additional test data will be present in postgres
+
+    Given I preserve the current snapshot
+    Given the application is destroyed
+    Given a new client created mock-0.1 application
+    Given the embedded postgresql-8.4 cartridge is added
+
+    When I create a test table in postgres without dropping
+    Then the test data will not be present in postgres
+    And the additional test data will not be present in postgres
+
+    When I insert additional test data into postgres
+    Then the additional test data will be present in postgres
+
+    When I restore the application from a preserved snapshot
+    Then the test data will be present in postgres
+    And the additional test data will not be present in postgres
+
+    Then all databases will have the correct ownership
