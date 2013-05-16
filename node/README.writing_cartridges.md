@@ -24,7 +24,6 @@ using your cartridge.
      +- bin                        (required)
      |  +- setup                   (optional)
      |  +- install                 (optional)
-     |  +- post-setup              (optional)
      |  +- post-install            (optional)
      |  +- teardown                (optional)
      |  +- control                 (required)
@@ -192,8 +191,8 @@ the cartridge to be re-started or the application developer's application to be 
 
 By not requiring a restart, you improve the application user's experience since no downtime will
 be incurred from your changes. If the cartridge's current version is not in the list when upgraded,
-the cartridge will be stopped, the new code will be installed, `setup` will be run, the cartridge
-started and `post-setup` will be run.
+the cartridge will be stopped, the new code will be installed, `setup` will be run and the cartridge
+started.
 
 Today this is a simple list and string matching is used to determine compatible versions.
 If this list proves to be unmanageable, future versions of OpenShift may implement maven dependency range style checking.
@@ -603,7 +602,6 @@ A cartridge must implement the following scripts:
 A cartridge may implement the following scripts:
 * `teardown`: prepare this instance of cartridge to be removed
 * `install`: prepare this instance of cartridge to be operational for the initial install
-* `post-setup`: an opportunity for setup after the cartridge has been started for the initial install and each upgrade
 * `post-install`: an opportunity for setup after the cartridge has been started for the initial install
 
 ### Exit Status Codes
@@ -721,29 +719,6 @@ Also any client results/messages should also be reported in install rather than 
 `install` may substitute a version dependent of the `template` or `template.git` directories.
 
 Lock context: `unlocked`
-
-## bin/post-setup
-
-##### Synopsis
-
-`post-setup [--version <version>]`
-
-##### Options
-
-* `--version <version>`: Selects which version of cartridge to install. If no version is provided,
-the version denoted by the `Version` element from `manifest.yml` will be installed.
-
-##### Description
-
-The `post-setup` script is an opportunity to configure your cartridge after the cartridge has been 
-started.  Like setup it must also be reentrant and is called for each non backward compatible cartridge 
-upgrade.
-
-Any files created during `post-setup` should be added to
-`setup_rewritten` section of `metadata/managed_files.yml`
-so that they may be cleared before upgrades.
-
-Lock context: `locked`
 
 ## bin/post-install
 
