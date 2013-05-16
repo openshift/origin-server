@@ -206,6 +206,7 @@ class Haproxy
         self.print_gear_stats
       else
         puts "Scale up of a V1 app is disabled in v2 mode"
+        exit 1
       end
     end
 
@@ -218,6 +219,7 @@ class Haproxy
         self.print_gear_stats
       else
         puts "Scale down of a V1 app is disabled in v2 mode"
+        exit 1
       end
     end
 
