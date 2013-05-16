@@ -20,7 +20,7 @@ function restart {
 }
 
 function status {
-  client_message "This is client status output from the mock cartridge"
+  client_result "This is client status output from the mock cartridge"
   touch $MOCK_STATE/control_status
   [ -f $MOCK_STATE/mock_process ]
 }
