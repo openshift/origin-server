@@ -1,4 +1,4 @@
-module LogHelper
+module Console::LogHelper
 
   # Common - request id, user agent, ip address
   def user_action(action, success=true, options={}, message=nil)
