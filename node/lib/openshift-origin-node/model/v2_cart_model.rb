@@ -279,12 +279,6 @@ module OpenShift
       output
     end
 
-    def post_setup(cartridge, software_version, options = {})
-      output = cartridge_action(cartridge, 'post-setup', software_version)
-      options[:out].puts(output) if options[:out]
-      output
-    end
-
     def post_configure(cartridge_name)
       output = ''
 
@@ -293,7 +287,6 @@ module OpenShift
 
       OpenShift::Utils::Cgroups::with_no_cpu_limits(@user.uuid) do
         output << start_cartridge('start', cartridge, user_initiated: true)
-        output << cartridge_action(cartridge, 'post-setup', software_version)
         output << cartridge_action(cartridge, 'post-install', software_version)
       end
 
