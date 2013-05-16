@@ -1,7 +1,7 @@
 %global cartridgedir %{_libexecdir}/openshift/cartridges/v2/cron
 
 Name: openshift-origin-cartridge-cron
-Version: 1.7.1
+Version: 1.7.2
 Release: 1%{?dist}
 Summary: Embedded cron support for OpenShift
 Group: Development/Languages
@@ -44,6 +44,15 @@ Cron cartridge for openshift. (Cartridge Format V2)
 
 
 %changelog
+* Thu May 16 2013 Adam Miller <admiller@redhat.com> 1.7.2-1
+- locking fixes and adjustments (dmcphers@redhat.com)
+- Add erb processing to managed_files.yml Also fixed and added some test cases
+  (fotios@redhat.com)
+- Make process label checks in cuke tests v1/v2 compatible
+  (ironcladlou@gmail.com)
+- WIP Cartridge Refactor -- Cleanup spec files (jhonce@redhat.com)
+- cron cleanup (dmcphers@redhat.com)
+
 * Wed May 08 2013 Adam Miller <admiller@redhat.com> 1.7.1-1
 - bump_minor_versions for sprint 28 (admiller@redhat.com)
 
