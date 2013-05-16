@@ -1,5 +1,5 @@
 #--
-# Copyright 2010 Red Hat, Inc.
+# Copyright 2013 Red Hat, Inc.
 # 
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -19,8 +19,23 @@ require 'openshift-origin-common'
 
 module OpenShift
   #load OPENSHIFT_NODE_PLUGINS
-  plugin_list = Config.new.get('OPENSHIFT_NODE_PLUGINS').split(',')
+  plugin_list = []
+
+  begin
+    config = Config.new
+    if config
+      plugins = config.get('OPENSHIFT_NODE_PLUGINS')
+      plugin_list = plugins.split(',') if plugins
+    end
+  rescue => e
+    puts "Warning: Couldn't load plugin list for environment: #{e.message}"
+  end
+
   plugin_list.each do |plugin|
-    require "#{plugin}" unless plugin.start_with?('#')
+    begin
+      require "#{plugin}" unless plugin.start_with?('#')
+    rescue => e
+      raise "Error loading environment plugin '#{plugin}': #{e.message}"
+    end
   end
 end
