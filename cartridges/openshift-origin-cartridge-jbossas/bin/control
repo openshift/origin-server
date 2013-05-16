@@ -259,7 +259,7 @@ case "$1" in
   reload)          reload ;;
   tidy)            tidy ;;
   threaddump)      threaddump ;;
-  process-version) update-configuration;;
+  update-configuration) update-configuration;;
   *)               exit 0
 esac
 
