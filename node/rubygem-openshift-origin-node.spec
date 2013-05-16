@@ -27,33 +27,33 @@ Requires:      ruby(release)
 %else
 Requires:      %{?scl:%scl_prefix}ruby(abi) >= %{rubyabi}
 %endif
-Requires:      %{?scl:%scl_prefix}rubygems
 Requires:      %{?scl:%scl_prefix}rubygem(commander)
 Requires:      %{?scl:%scl_prefix}rubygem(json)
-Requires:      %{?scl:%scl_prefix}rubygem(parseconfig)
 Requires:      %{?scl:%scl_prefix}rubygem(mocha)
+Requires:      %{?scl:%scl_prefix}rubygem(parseconfig)
 Requires:      %{?scl:%scl_prefix}rubygem(rspec)
-Requires:      rubygem(openshift-origin-common)
-# non-scl open4 required for oo-cgroup-read bug 924556 until selinux fix for bug 912215 is available
-Requires:      rubygem(open4)
+Requires:      %{?scl:%scl_prefix}rubygems
 Requires:      %{?scl:%scl_prefix}ruby(selinux)
-Requires:      python
+Requires:      cronie
+Requires:      crontabs
 Requires:      git
+Requires:      httpd
+Requires:      libcgroup-pam
 Requires:      libselinux-python
 Requires:      mercurial
-Requires:      httpd
 Requires:      mod_ssl
+Requires:      openshift-origin-node-proxy
+Requires:      pam_openshift
+Requires:      python
+Requires:      quota
+# non-scl open4 required for oo-cgroup-read bug 924556 until selinux fix for bug 912215 is available
+Requires:      rubygem(open4)
+Requires:      rubygem(openshift-origin-common)
 %if 0%{?fedora}%{?rhel} <= 6
 Requires:      libcgroup
 %else
 Requires:      libcgroup-tools
 %endif
-Requires:      libcgroup-pam
-Requires:      pam_openshift
-Requires:      quota
-Requires:      cronie
-Requires:      crontabs
-Requires:      openshift-origin-node-proxy
 %if 0%{?fedora} >= 18
 Requires:      httpd-tools
 BuildRequires: httpd-tools
