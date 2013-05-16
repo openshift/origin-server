@@ -427,7 +427,7 @@ module OpenShift
     end
 
     def remote_deploy(options={})
-      @cartridge_model.do_control('process-version',
+      @cartridge_model.do_control('update-configuration',
                                   @cartridge_model.primary_cartridge,
                                   pre_action_hooks_enabled:  false,
                                   post_action_hooks_enabled: false,
@@ -475,7 +475,7 @@ module OpenShift
     # Implements the following build process:
     #
     #   1. Set the application state to +BUILDING+
-    #   2. Run the cartridge +process-version+ control action
+    #   2. Run the cartridge +update-configuration+ control action
     #   3. Run the cartridge +pre-build+ control action
     #   4. Run the +pre-build+ user action hook
     #   5. Run the cartridge +build+ control action
@@ -487,7 +487,7 @@ module OpenShift
 
       buffer = ''
 
-      buffer << @cartridge_model.do_control('process-version',
+      buffer << @cartridge_model.do_control('update-configuration',
                                             @cartridge_model.primary_cartridge,
                                             pre_action_hooks_enabled:  false,
                                             post_action_hooks_enabled: false,

@@ -113,7 +113,7 @@ function tidy() {
 }
 
 # Reconstruct JAVA_HOME and PATH based on the current version/marker selection
-function process_version {
+function update-configuration {
     export_java_home
     reinstall_path
 }
@@ -159,8 +159,8 @@ case "$1" in
         ${OPENSHIFT_JBOSSEWS_DIR}/bin/deploy
         exit 0
     ;;
-    process-version)
-        process_version
+    update-configuration)
+        update-configuration
         exit 0
     ;;
 esac
