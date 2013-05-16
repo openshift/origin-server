@@ -7,11 +7,9 @@ esac
 
 # Copy the version specific files up to php directory
 shopt -s dotglob
-mkdir -p $OPENSHIFT_PHP_DIR/configuration/etc/conf.d
-cp $OPENSHIFT_PHP_DIR/versions/$version/configuration/etc/conf.d/* $OPENSHIFT_PHP_DIR/configuration/etc/conf.d/
 
-mkdir -p $OPENSHIFT_PHP_DIR/configuration/etc/conf
-cp $OPENSHIFT_PHP_DIR/versions/$version/configuration/etc/conf/* $OPENSHIFT_PHP_DIR/configuration/etc/conf/
+mkdir -p $OPENSHIFT_PHP_DIR/configuration/etc/
+cp -Hr $OPENSHIFT_PHP_DIR/versions/$version/configuration/etc/* $OPENSHIFT_PHP_DIR/configuration/etc/
 
 # Create additional directories required by PHP
 mkdir -p $OPENSHIFT_PHP_DIR/phplib/pear/{docs,ext,php,cache,cfg,data,download,temp,tests,www}
