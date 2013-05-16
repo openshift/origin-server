@@ -1,7 +1,7 @@
 require File.expand_path('../../../test_helper', __FILE__)
 
 class LogHelperTest < ActionView::TestCase
-  include LogHelper
+  include Console::LogHelper
 
   def setup
     Rails.logger = MiniTest::Mock.new
