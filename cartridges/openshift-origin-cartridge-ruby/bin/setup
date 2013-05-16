@@ -20,6 +20,7 @@ for dir in etc; do
 done
 
 if [ $version == '1.9' ]; then
-	scl enable ruby193 "printenv LD_LIBRARY_PATH" > $OPENSHIFT_RUBY_DIR/env/LD_LIBRARY_PATH
-	scl enable ruby193 "printenv MANPATH"         > $OPENSHIFT_RUBY_DIR/env/MANPATH
+    dirname $(scl enable ruby193 "which ruby")    > $OPENSHIFT_RUBY_DIR/env/OPENSHIFT_RUBY_PATH_ELEMENT
+    scl enable ruby193 "printenv LD_LIBRARY_PATH" > $OPENSHIFT_RUBY_DIR/env/LD_LIBRARY_PATH
+    scl enable ruby193 "printenv MANPATH"         > $OPENSHIFT_RUBY_DIR/env/MANPATH
 fi
