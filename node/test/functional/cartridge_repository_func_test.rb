@@ -363,25 +363,6 @@ module OpenShift
       assert_path_exist(File.join(cartridge_home, 'bin', 'control'))
     end
 
-    def test_https_get
-
-      manifest = IO.read(File.join(@cartridge.manifest_path))
-      manifest << 'Source-Url: https://github.com/ironcladlou/openshift-personal-mock/archive/master.zip' << "\n"
-      manifest = change_cartridge_vendor_of manifest
-
-      cartridge      = OpenShift::Runtime::Manifest.new(manifest)
-      cartridge_home = "#{@test_home}/gear/mock"
-
-      WebMock.allow_net_connect!
-      with_detail_output do
-        OpenShift::CartridgeRepository.instantiate_cartridge(cartridge, cartridge_home)
-      end
-      WebMock.disable_net_connect!
-
-      assert_path_exist(cartridge_home)
-      assert_path_exist(File.join(cartridge_home, 'bin', 'control'))
-    end
-
     def with_detail_output
       begin
         yield
