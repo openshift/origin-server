@@ -15,11 +15,11 @@
   color: $grayDark;
   font-weight: 500;
   text-align: center;
-  text-shadow: 0 1px 0 #DFDFDF;
+  text-shadow: 0 1px 0 rgba(255,255,255,0.7);
   vertical-align: middle;
-  @include border-radius(0); 
-  @include gradient-vertical($startColor: #ddd, $endColor: #a4a8b0);
-  border-color: rgba(5, 5, 5, 0.1) rgba(5, 5, 5, 0.3) rgba(5, 5, 5, 0.5) rgba(5, 5, 5, 0.3);
+  @include border-radius(2px); 
+  @include gradient-vertical($startColor: #ececec, $endColor: #e0e0e0);
+  border-color: rgba(5,5,5,0.05) rgba(5,5,5,0.15) rgba(5,5,5,0.2);
   cursor: pointer;
   border-style: solid;
   border-width: 1px;
@@ -38,14 +38,10 @@
 
 // Hover state
 .btn:hover {
-  color: $grayDark;
-  background-color: #adb0b8;
+  color: #000;
+  border-color: rgba(5,5,5,0.15) rgba(5,5,5,0.25) rgba(5,5,5,0.35);
   text-decoration: none;
-  background-image:none;
-
-  // transition is only when going to hover, otherwise the background
-  // behind the gradient (there for IE<=9 fallback) gets mismatched
-  @include transition(background-position .1s linear);
+  @include box-shadow(0 1px 2px rgba(0,0,0,.15));
 }
 
 // Focus state for keyboard and accessibility
@@ -56,11 +52,10 @@
 // Active state
 .btn:active {
   background-image: none;
-  background-color: darken($white, 20%);
-  background-color: darken($white, 25%) #{"\9"};
+  background-color: #ececec;
   outline: 0;
-  color: rgba(0,0,0,0.5); // custom
   border-color: rgba(5, 5, 5, 0.4) rgba(5, 5, 5, 0.4) rgba(5, 5, 5, 0.25) rgba(5, 5, 5, 0.25);
+  @include box-shadow(none);
 }
 
 // Disabled state
@@ -69,11 +64,16 @@
   cursor: default;
   background-image: none;
   background-color: darken($white, 10%);
+  border-color: rgba(0, 0, 0, 0.1);
   @include opacity(65);
   @include box-shadow(none);
+  &:hover {
+    border-color: rgba(0,0,0,.1);
+  }
 }
 
 input[type="submit"].btn {
+  @include box-shadow(none);
   margin-right: 12px;
 }
 
@@ -158,7 +158,10 @@ input[type="button"] {
 .btn-primary,
 .btn-primary:hover {
 	color: $grayDark;
-	text-shadow: 0 1px 0 rgba(255,255,255,.7);
+	text-shadow: 0 1px 0 rgba(255,255,255,0.6);
+}
+.btn-primary:hover {
+    color: #000;
 }
 // Provide *some* extra contrast for those who can get it
 .btn-primary.active,
@@ -173,7 +176,21 @@ input[type="button"] {
 // Set the backgrounds and changes from default
 // -------------------------
 .btn-primary {
-  @include buttonBackground($primaryButtonBackground, darken( $primaryButtonBackground, 15% ));
+  @include buttonBackground(#dbe7f4, #b1d0f0);
+}
+.btn-primary:hover,
+input[type="submit"].btn-primary:hover,
+.btn-primary:focus { 
+  border-color: rgba(0,0,0,0.15) rgba(0,0,0,0.3) rgba(0,0,0,0.45);
+  box-shadow: 0 1px 2px rgba(0,0,0,.2);
+}
+.btn-primary:active,
+input[type="submit"].btn-primary:active,
+.btn-primary.active,
+.btn-primary.disabled,
+.btn-primary[disabled] { 
+  background-color: #c1daf4;
+  box-shadow: none;
 }
 // Warning appears are orange
 .btn-warning {
