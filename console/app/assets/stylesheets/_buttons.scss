@@ -11,8 +11,8 @@
   padding: 5px 18px;
   margin-bottom: 0; // For input.btn
   font-size: $baseFontSize;
-  line-height: $baseLineHeight;
-  color: $grayDark;
+  line-height: $baseLineHeight - 2px;
+  color: rgba($grayDark, 0.9);
   font-weight: 500;
   text-align: center;
   text-shadow: 0 1px 0 rgba(255,255,255,0.7);
