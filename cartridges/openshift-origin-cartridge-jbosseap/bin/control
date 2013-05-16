@@ -211,9 +211,9 @@ function restart() {
 function status() {
    if isrunning
    then
-      echo "Application is running"
+      client_result "Application is running"
    else
-      echo "Application is either stopped or inaccessible"
+      client_result "Application is either stopped or inaccessible"
    fi
 }
 

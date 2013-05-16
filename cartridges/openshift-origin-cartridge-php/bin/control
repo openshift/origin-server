@@ -23,10 +23,10 @@ function restart() {
 function status() {
    if output=$(curl http://$OPENSHIFT_PHP_IP:$OPENSHIFT_PHP_PORT/server-status?auto 2>&1 )
    then
-      echo "Application is running"
-      echo $output
+      client_result "Application is running"
+      client_result $output
    else
-      echo "Application is either stopped or inaccessible"
+      client_result "Application is either stopped or inaccessible"
    fi
 }
 

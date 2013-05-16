@@ -321,7 +321,13 @@ module OpenShift
     # Sets the application state to +STOPPED+ and stops the gear. Gear stop implementation
     # is model specific, but +options+ is provided to the implementation.
     def stop_gear(options={})
-      @cartridge_model.stop_gear(options)
+      buffer = @cartridge_model.stop_gear(options)
+      unless buffer.empty?
+        buffer.chomp!
+        buffer << "\n"
+      end
+      buffer << stopped_status_attr
+      buffer
     end
 
     ##
@@ -866,7 +872,24 @@ module OpenShift
     end
 
     def status(cart_name)
-      @cartridge_model.do_control("status", cart_name)
+      buffer = ''
+      buffer << stopped_status_attr
+      quota_cmd = "/bin/sh #{File.join('/usr/libexec/openshift/lib', "quota_attrs.sh")} #{user.name}"
+      out,err,rc = shellCmd(quota_cmd)
+      raise "ERROR: Error fetching quota (#{rc}): #{quota_cmd.squeeze(" ")} stdout: #{out} stderr: #{err}" unless rc == 0
+      buffer << out
+      buffer << @cartridge_model.do_control("status", cart_name)
+      buffer
+    end
+
+    def stopped_status_attr
+      if state.value == State::STOPPED || stop_lock?
+        "ATTR: status=ALREADY_STOPPED\n"
+      elsif state.value == State::IDLE
+        "ATTR: status=ALREADY_IDLED\n"
+      else
+        ''
+      end
     end
 
     def threaddump(cart_name)

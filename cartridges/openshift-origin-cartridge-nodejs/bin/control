@@ -58,9 +58,9 @@ function is_node_module_installed() {
 
 function status() {
     if [ is_node_service_running ]; then
-        echo "Application is running"
+        client_result "Application is running"
     else
-        echo "Application is not running"
+        client_result "Application is not running"
     fi
 }  #  End of function  status.
 

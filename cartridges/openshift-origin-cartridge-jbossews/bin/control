@@ -142,13 +142,13 @@ case "$1" in
     ;;
     status)
         if ! isrunning; then
-            echo "The application is either stopped or inaccessible"
+            client_result "The application is either stopped or inaccessible"
             exit 0
         fi
 
-        echo tailing "$OPENSHIFT_JBOSSEWS_DIR/logs/catalina.out"
-        echo "------ Tail of JBoss catalina.out ------"
-        tail "$OPENSHIFT_JBOSSEWS_DIR/logs/catalina.out"
+        client_result tailing "$OPENSHIFT_JBOSSEWS_DIR/logs/catalina.out"
+        client_result "------ Tail of JBoss catalina.out ------"
+        client_result $(tail "$OPENSHIFT_JBOSSEWS_DIR/logs/catalina.out")
         exit 0
     ;;
     build)
