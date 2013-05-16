@@ -157,7 +157,7 @@ command :remotedeploy do |c|
   c.syntax = "#{name} remotedeploy [options]"
 
   c.description = "Run the remotedeploy steps"
-  c.option "--init", "Run post-install/post-setup for new gears"
+  c.option "--init", "Run post-install for new gears"
   c.action do |args, options|
     do_command(c, options) do
       if options.init

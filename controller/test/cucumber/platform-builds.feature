@@ -54,9 +54,6 @@ Feature: V2 SDK Mock Cartridge Build Tests
     And the mock install_called marker will exist
     And the mock install_version marker will exist
     And the mock install_failure marker will not exist
-    And the mock post_setup_called marker will exist
-    And the mock post_setup_version marker will exist
-    And the mock post_setup_failure marker will not exist
     And the mock post_install_called marker will exist
     And the mock post_install_version marker will exist
     And the mock post_install_failure marker will not exist
