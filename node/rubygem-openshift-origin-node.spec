@@ -38,6 +38,7 @@ Requires:      rubygem(openshift-origin-common)
 Requires:      rubygem(open4)
 Requires:      %{?scl:%scl_prefix}ruby(selinux)
 Requires:      python
+Requires:      git
 Requires:      libselinux-python
 Requires:      mercurial
 Requires:      httpd
