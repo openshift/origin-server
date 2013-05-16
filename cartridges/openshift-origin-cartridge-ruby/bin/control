@@ -207,6 +207,6 @@ case "$1" in
   build)             build ;;
   post-deploy)       post-deploy ;;
   threaddump)        threaddump ;;
-  process-version)   update-configuration $OPENSHIFT_RUBY_VERSION;;
+  update-configuration)   update-configuration $OPENSHIFT_RUBY_VERSION;;
   *)                 exit 0
 esac

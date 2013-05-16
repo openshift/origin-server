@@ -117,13 +117,13 @@ class BuildLifecycleTest < Test::Unit::TestCase
     primary = mock()
     @cartridge_model.expects(:primary_cartridge).returns(primary).times(3)
 
-    @cartridge_model.expects(:do_control).with('process-version',
+    @cartridge_model.expects(:do_control).with('update-configuration',
                                                primary,
                                                pre_action_hooks_enabled:  false,
                                                post_action_hooks_enabled: false,
                                                out:                       $stdout,
                                                err:                       $stderr)
-                                          .returns('process-version|')
+                                          .returns('update-configuration|')
 
     @cartridge_model.expects(:do_control).with('pre-build',
                                                primary,
@@ -143,7 +143,7 @@ class BuildLifecycleTest < Test::Unit::TestCase
 
     output = @container.build(out: $stdout, err: $stderr)
 
-    assert_equal "process-version|pre-build|build", output
+    assert_equal "update-configuration|pre-build|build", output
   end
 
   def test_deploy_no_web_proxy_success
@@ -216,7 +216,7 @@ class BuildLifecycleTest < Test::Unit::TestCase
     primary = mock()
     @cartridge_model.expects(:primary_cartridge).returns(primary)
     
-    @cartridge_model.expects(:do_control).with('process-version',
+    @cartridge_model.expects(:do_control).with('update-configuration',
                                                primary,
                                                pre_action_hooks_enabled:  false,
                                                post_action_hooks_enabled: false,
