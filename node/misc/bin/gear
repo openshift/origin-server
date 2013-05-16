@@ -75,16 +75,21 @@ end
 @container = OpenShift::ApplicationContainer.new(ENV['OPENSHIFT_APP_UUID'], ENV['OPENSHIFT_GEAR_UUID'], Etc.getpwuid.uid, ENV['OPENSHIFT_APP_NAME'], ENV['OPENSHIFT_GEAR_NAME'], ENV['OPENSHIFT_NAMESPACE'])
 @repo = OpenShift::ApplicationRepository.new(@container.user)
 
-def do_command
+def do_command(command, options)
   begin
     yield
   rescue SystemExit, Interrupt
     puts
     exit 1
   rescue OpenShift::Utils::ShellExecutionException => e
-    $stderr.puts "#{e.message}: rc(#{e.rc})"
-    $stderr.puts "stdout: #{e.stdout}\nstderr#{e.stderr}"
-    $stderr.puts e.backtrace.join("\n")
+    if options.trace
+      $stderr.puts "#{e.message}: rc(#{e.rc})"
+      $stderr.puts "stdout: #{e.stdout}\nstderr#{e.stderr}"
+      $stderr.puts e.backtrace.join("\n")
+    else
+      $stderr.puts "An error occured executing the '#{command.name}' command. For more details about "\
+                   "the problem, try running the command again with the '--trace' option."
+    end
     exit -1
   rescue Exception => e
     $stderr.puts e.message
@@ -94,12 +99,14 @@ def do_command
   end
 end
 
+global_option('--trace', 'Enable stack traces when reporting errors')
+
 command :prereceive do |c|
   c.syntax = "#{name} prereceive"
 
   c.description = "Run the git prereceive steps"
   c.action do |args, options|
-    do_command do
+    do_command(c, options) do
       marker_added     = false
       marker_deleted   = false
       marker_committed = file_committed?(HOT_DEPLOY_MARKER)
@@ -129,7 +136,7 @@ command :postreceive do |c|
 
   c.description = "Run the git postreceive steps"
   c.action do |args, options|
-    do_command do
+    do_command(c, options) do
       @container.post_receive(out: $stdout, err: $stderr, hot_deploy: file_committed?(HOT_DEPLOY_MARKER))
     end
   end
@@ -140,7 +147,7 @@ command :build do |c|
 
   c.description = "Run the build steps"
   c.action do |args, options|
-    do_command do
+    do_command(c, options) do
       @container.build(out: $stdout, err: $stderr)
     end
   end
@@ -152,7 +159,7 @@ command :remotedeploy do |c|
   c.description = "Run the remotedeploy steps"
   c.option "--init", "Run post-install/post-setup for new gears"
   c.action do |args, options|
-    do_command do
+    do_command(c, options) do
       if options.init
         @container.remote_deploy(out: $stdout, err: $stderr, hot_deploy: file_committed?(HOT_DEPLOY_MARKER), init: true)
       else
@@ -167,7 +174,7 @@ command :deploy do |c|
 
   c.description = "Run the deploy steps"
   c.action do |args, options|
-    do_command do
+    do_command(c, options) do
       deploy
     end
   end
@@ -180,7 +187,7 @@ command :start do |c|
 
   c.description = "Start the gear/cart"
   c.action do |args, options|
-    do_command do
+    do_command(c, options) do
       if options.cart
         @container.start(options.cart, out: $stdout, err: $stderr)
       else
@@ -199,7 +206,7 @@ command :stop do |c|
 
   c.description = "Stop the gear/cart"
   c.action do |args, options|
-    do_command do
+    do_command(c, options) do
       if options.cart
         @container.stop(options.cart, out: $stdout, err: $stderr)
       else
@@ -223,7 +230,7 @@ command :restart do |c|
   c.action do |args, options|
     # TODO: Should we be able to restart the gear via stop_gear / start_gear calls
     # in addition to individual cart restarts?
-    do_command do
+    do_command(c, options) do
       options.cart ||= choose("Cart to restart?", *gear_cartridge_names)
       @container.restart(options.cart, out: $stdout, err: $stderr)
     end
@@ -237,7 +244,7 @@ command :reload do |c|
 
   c.description = "Reload a cart"
   c.action do |args, options|
-    do_command do
+    do_command(c, options) do
       options.cart ||= choose("Cart to reload?", *gear_cartridge_names)
       @container.reload(options.cart)
     end
@@ -251,7 +258,7 @@ command :status do |c|
 
   c.description = "Get the status for a cart"
   c.action do |args, options|
-    do_command do
+    do_command(c, options) do
       options.cart ||= choose("Cart to get the status for?", *gear_cartridge_names)
       puts @container.status(options.cart)
     end

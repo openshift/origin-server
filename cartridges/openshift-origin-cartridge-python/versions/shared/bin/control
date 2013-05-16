@@ -80,10 +80,10 @@ function _restart_service() {
 function status() {
    if output=$(curl http://$OPENSHIFT_PYTHON_IP:$OPENSHIFT_PYTHON_PORT/ &> /dev/null)
    then
-      echo "Application is running"
-      echo $output
+      client_result "Application is running"
+      client_result $output
    else
-      echo "Application is either stopped or inaccessible"
+      client_result "Application is either stopped or inaccessible"
    fi
 }
 

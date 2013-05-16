@@ -12,7 +12,7 @@ class BaseController < ActionController::Base
                 :authenticate_user!,
                 :set_log_tag
 
-  def rendor_upgrade_in_progress
+  def render_upgrade_in_progress
     return render_error(:unprocessable_entity, "Your application is being upgraded and configuration changes can not be made at this time.  Please try again later.", 1)
   end
 end

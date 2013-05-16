@@ -113,7 +113,7 @@ function tidy() {
 }
 
 # Reconstruct JAVA_HOME and PATH based on the current version/marker selection
-function process_version {
+function update-configuration {
     export_java_home
     reinstall_path
 }
@@ -142,13 +142,13 @@ case "$1" in
     ;;
     status)
         if ! isrunning; then
-            echo "The application is either stopped or inaccessible"
+            client_result "The application is either stopped or inaccessible"
             exit 0
         fi
 
-        echo tailing "$OPENSHIFT_JBOSSEWS_DIR/logs/catalina.out"
-        echo "------ Tail of JBoss catalina.out ------"
-        tail "$OPENSHIFT_JBOSSEWS_DIR/logs/catalina.out"
+        client_result tailing "$OPENSHIFT_JBOSSEWS_DIR/logs/catalina.out"
+        client_result "------ Tail of JBoss catalina.out ------"
+        client_result $(tail "$OPENSHIFT_JBOSSEWS_DIR/logs/catalina.out")
         exit 0
     ;;
     build)
@@ -159,8 +159,8 @@ case "$1" in
         ${OPENSHIFT_JBOSSEWS_DIR}/bin/deploy
         exit 0
     ;;
-    process-version)
-        process_version
+    update-configuration)
+        update-configuration
         exit 0
     ;;
 esac

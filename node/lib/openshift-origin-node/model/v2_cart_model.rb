@@ -615,7 +615,10 @@ module OpenShift
     # Returns nil on success, or raises an exception if any errors occur: all errors
     # here are considered fatal.
     def create_private_endpoints(cartridge)
-      logger.info "Creating private endpoints for #{@user.uuid}/#{cartridge.directory}"
+      raise "Cartridge is required" unless cartridge
+      return unless cartridge.endpoints && cartridge.endpoints.length > 0
+
+      logger.info "Creating #{cartridge.endpoints.length} private endpoints for #{@user.uuid}/#{cartridge.directory}"
 
       allocated_ips = {}
 
@@ -654,7 +657,7 @@ module OpenShift
       # Validate all the allocations to ensure they aren't already bound. Batch up the initial check
       # for efficiency, then do individual checks to provide better reporting before we fail.
       address_list = cartridge.endpoints.map { |e| {ip: allocated_ips[e.private_ip_name], port: e.private_port} }
-      if addresses_bound?(address_list)
+      if !address_list.empty? && addresses_bound?(address_list)
         failures = ''
         cartridge.endpoints.each do |endpoint|
           if address_bound?(allocated_ips[endpoint.private_ip_name], endpoint.private_port)
@@ -663,8 +666,6 @@ module OpenShift
         end
         raise "Failed to create the following private endpoints due to existing process bindings: #{failures}" unless failures.empty?
       end
-
-      logger.info "Created private endpoints for #{@user.uuid}/#{cartridge.directory}"
     end
 
     def delete_private_endpoints(cartridge)

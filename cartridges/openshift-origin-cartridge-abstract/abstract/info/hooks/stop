@@ -36,5 +36,4 @@ setup_basic_hook "$1" $2 $3
 # Stop application
 #
 stop_app
-send_stopped_status
 touch "$APP_DIR/run/stop_lock"

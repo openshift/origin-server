@@ -321,7 +321,13 @@ module OpenShift
     # Sets the application state to +STOPPED+ and stops the gear. Gear stop implementation
     # is model specific, but +options+ is provided to the implementation.
     def stop_gear(options={})
-      @cartridge_model.stop_gear(options)
+      buffer = @cartridge_model.stop_gear(options)
+      unless buffer.empty?
+        buffer.chomp!
+        buffer << "\n"
+      end
+      buffer << stopped_status_attr
+      buffer
     end
 
     ##
@@ -421,7 +427,7 @@ module OpenShift
     end
 
     def remote_deploy(options={})
-      @cartridge_model.do_control('process-version',
+      @cartridge_model.do_control('update-configuration',
                                   @cartridge_model.primary_cartridge,
                                   pre_action_hooks_enabled:  false,
                                   post_action_hooks_enabled: false,
@@ -469,7 +475,7 @@ module OpenShift
     # Implements the following build process:
     #
     #   1. Set the application state to +BUILDING+
-    #   2. Run the cartridge +process-version+ control action
+    #   2. Run the cartridge +update-configuration+ control action
     #   3. Run the cartridge +pre-build+ control action
     #   4. Run the +pre-build+ user action hook
     #   5. Run the cartridge +build+ control action
@@ -481,7 +487,7 @@ module OpenShift
 
       buffer = ''
 
-      buffer << @cartridge_model.do_control('process-version',
+      buffer << @cartridge_model.do_control('update-configuration',
                                             @cartridge_model.primary_cartridge,
                                             pre_action_hooks_enabled:  false,
                                             post_action_hooks_enabled: false,
@@ -866,7 +872,24 @@ module OpenShift
     end
 
     def status(cart_name)
-      @cartridge_model.do_control("status", cart_name)
+      buffer = ''
+      buffer << stopped_status_attr
+      quota_cmd = "/bin/sh #{File.join('/usr/libexec/openshift/lib', "quota_attrs.sh")} #{user.name}"
+      out,err,rc = shellCmd(quota_cmd)
+      raise "ERROR: Error fetching quota (#{rc}): #{quota_cmd.squeeze(" ")} stdout: #{out} stderr: #{err}" unless rc == 0
+      buffer << out
+      buffer << @cartridge_model.do_control("status", cart_name)
+      buffer
+    end
+
+    def stopped_status_attr
+      if state.value == State::STOPPED || stop_lock?
+        "ATTR: status=ALREADY_STOPPED\n"
+      elsif state.value == State::IDLE
+        "ATTR: status=ALREADY_IDLED\n"
+      else
+        ''
+      end
     end
 
     def threaddump(cart_name)

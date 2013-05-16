@@ -51,7 +51,8 @@
                       %span.data= gear_group_state(group.states)
                     %li
                       %h6 Gears
-                      %span.data{:title => gear_group_count_title(group.gears.length)}= cartridge_gear_group_count(group)
+                      %span.data{:title => gear_group_count_title(group.gears.length)}
+                        = link_to cartridge_gear_group_count(group), application_scaling_path(@application)
                     %li
                       %h6 Storage
                       %span.data{:style => "text-transform: none"}
@@ -98,7 +99,7 @@
                   - if cartridge.scales?
                     .embedded-cart
                       - if cartridge.current_scale == 1
-                        = link_to "Scales with HAProxy", application_scaling_path(@application), :title => 'Your web cartridge will automatically scale up when we detect you are receiving more web traffic'
+                        = link_to "Scaling with HAProxy x1", application_scaling_path(@application), :title => 'Your web cartridge will automatically scale up when we detect you are receiving more web traffic'
                       - else
                         = link_to "Scaled up with HAProxy x#{cartridge.current_scale}", 
                                   application_scaling_path(@application), 

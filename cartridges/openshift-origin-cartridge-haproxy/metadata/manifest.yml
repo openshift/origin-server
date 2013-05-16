@@ -46,7 +46,7 @@ Endpoints:
     Mappings:
       - Frontend:      ""
         Backend:       ""
-        Options:       { websocket: true }
+        Options:       { websocket: true, connections: -1 }
       - Frontend:      "/health"
         Backend:       "configuration/health"
         Options:       { file: true }

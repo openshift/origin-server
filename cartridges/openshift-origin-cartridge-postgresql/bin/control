@@ -8,7 +8,7 @@ function _pg_stop {
 
 function _is_running {
   # Can't use pg_ctl status here because it doesn't mean the db is done starting up
-  psql -l -U postgres 2>&1 > /dev/null
+  psql -l -U postgres &> /dev/null
   return $?
 }
 

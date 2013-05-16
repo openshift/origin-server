@@ -696,9 +696,12 @@ function setup_basic_vars {
 
 function setup_app_dir_vars {
     APP_HOME="$GEAR_BASE_DIR/$uuid/"
+    OPENSHIFT_HOMEDIR="$APP_HOME"
     APP_DIR=`echo $APP_HOME/$cartridge_type | tr -s /`
     APP_REPO_DIR="$APP_HOME/app-root/repo"
     APP_DATA_DIR="$APP_HOME/app-root/data"
+
+    export APP_HOME OPENSHIFT_HOMEDIR
 }
 
 function force_kill {
@@ -794,34 +797,6 @@ function print_user_running_processes {
     echo ""
     ps -FCvx -U "${myuserid}"
     echo ""
-}
-
-function send_stopped_status {
-    _state=`get_app_state`
-
-    case "$_state" in
-      idle)     send_attr "status=ALREADY_IDLED" ;;
-      stopped)  send_attr "status=ALREADY_STOPPED" ;;
-      *)
-          if [ -f $APP_DIR/run/stop_lock ]
-          then
-              if oo-frontend-check-idle --with-container-uuid "$uuid"
-              then
-                  send_attr "status=ALREADY_IDLED"
-              else
-                  send_attr "status=ALREADY_STOPPED"
-              fi
-          fi
-          ;;
-    esac
-}
-
-function send_quotas {
-    q=$(quota --always-resolve -w -u ${uuid} | tail -n1)
-    quota_blocks=`echo $q | gawk '{print $4}'`
-    send_attr "quota_blocks=$quota_blocks"
-    quota_files=`echo $q | gawk '{print $7}'`
-    send_attr "quota_files=$quota_files"
 }
 
 function status_client_result {

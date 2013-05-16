@@ -41,6 +41,7 @@ Requires:      python
 Requires:      libselinux-python
 Requires:      mercurial
 Requires:      httpd
+Requires:      mod_ssl
 %if 0%{?fedora}%{?rhel} <= 6
 Requires:      libcgroup
 %else
@@ -131,6 +132,7 @@ mv %{buildroot}%{gem_instdir}/conf/* %{buildroot}/etc/openshift
 mkdir -p %{buildroot}/usr/libexec/openshift/lib
 mv %{buildroot}%{gem_instdir}/misc/libexec/lib/teardown_pam_fs_limits.sh %{buildroot}/usr/libexec/openshift/lib
 mv %{buildroot}%{gem_instdir}/misc/libexec/lib/setup_pam_fs_limits.sh %{buildroot}/usr/libexec/openshift/lib
+mv %{buildroot}%{gem_instdir}/misc/libexec/lib/quota_attrs.sh %{buildroot}/usr/libexec/openshift/lib
 
 # Install the cartridge SDK files and environment variables for each
 mkdir -p %{buildroot}/usr/lib/openshift/cartridge_sdk
@@ -234,6 +236,7 @@ fi
 %attr(0755,-,-) /usr/bin/*
 /usr/libexec/openshift/lib/setup_pam_fs_limits.sh
 /usr/libexec/openshift/lib/teardown_pam_fs_limits.sh
+/usr/libexec/openshift/lib/quota_attrs.sh
 %attr(0755,-,-) /usr/lib/openshift/cartridge_sdk
 %attr(0755,-,-) /usr/lib/openshift/cartridge_sdk/bash
 %attr(0744,-,-) /usr/lib/openshift/cartridge_sdk/bash/*

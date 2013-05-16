@@ -63,7 +63,12 @@ function restart() {
 }
 
 function status() {
-   echo "Ruby cart status"
+   if output=$(curl http://$OPENSHIFT_RUBY_IP:$OPENSHIFT_RUBY_PORT/ &> /dev/null)
+   then
+      client_result "Application is running"
+   else
+      client_result "Application is either stopped or inaccessible"
+   fi
 }
 
 # Clean up any log files
@@ -202,6 +207,6 @@ case "$1" in
   build)             build ;;
   post-deploy)       post-deploy ;;
   threaddump)        threaddump ;;
-  process-version)   update-configuration $OPENSHIFT_PYTHON_VERSION;;
+  update-configuration)   update-configuration $OPENSHIFT_RUBY_VERSION;;
   *)                 exit 0
 esac

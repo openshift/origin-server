@@ -1,3 +1,4 @@
+
 require 'rubygems'
 require 'singleton'
 require 'openshift-origin-node/config'
