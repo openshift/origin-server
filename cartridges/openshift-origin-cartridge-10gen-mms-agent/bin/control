@@ -51,7 +51,7 @@ function stop() {
     if [ -f ${OPENSHIFT_10GENMMSAGENT_DIR}/run/mms-agent.pid ]
     then
         mms_agent_pid=`cat ${OPENSHIFT_10GENMMSAGENT_DIR}/run/mms-agent.pid 2> /dev/null`
-        kill -9 $mms_agent_pid > /dev/null
+        kill -9 $mms_agent_pid > /dev/null || :
         rm -f ${OPENSHIFT_10GENMMSAGENT_DIR}/run/mms-agent.pid > /dev/null
     else
         if ps -ef | grep ${OPENSHIFT_GEAR_UUID}_agent.py | grep -qv grep > /dev/null 2>&1; then
