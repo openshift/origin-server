@@ -1,6 +1,4 @@
 #!/bin/bash
-set -x
-
 cartridge_type="python-2.7"
 
 #  Setup variables.
