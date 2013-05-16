@@ -119,10 +119,31 @@ class CartridgeCache
     max_dl_time = (Rails.application.config.downloaded_cartridges[:max_download_time] rescue 10) || 10
     max_file_size = (Rails.application.config.downloaded_cartridges[:max_cart_size] rescue 20480) || 20480
     max_redirs = (Rails.application.config.downloaded_cartridges[:max_download_redirects] rescue 2) || 2
+    rate_limit = (Rails.application.config.downloaded_cartridges[:max_download_rate] rescue "100k") || "100k" 
     manifest = ""
+    
+    return manifest if url.include? ";"
     uri_obj = URI.parse(url)
     if uri_obj.kind_of? URI::HTTP or uri_obj.kind_of? URI::FTP
-      manifest = `curl --max-time #{max_dl_time} --connect-timeout 2 --location --max-redirs #{max_redirs} --max-filesize #{max_file_size} -k #{url}`
+      rout,wout = IO.pipe
+      rerr,werr = IO.pipe
+      pid = Process.spawn("curl", "--max-time", max_dl_time.to_s, "--limit-rate", rate_limit.to_s, "--connect-timeout", "2", "--location", "--max-redirs", max_redirs.to_s, "--max-filesize", max_file_size.to_s, "-k", url, :out => wout, :err => werr)
+      begin
+        Timeout::timeout(max_dl_time) {
+          p,status = Process.waitpid2(pid)
+          wout.close
+          werr.close
+          if status.exitstatus==0
+            manifest = rout.read
+          end
+          rout.close
+          rerr.close
+        }
+      rescue Timeout::Error
+        Process.kill('SIGKILL', pid)
+      end
+
+      # manifest = `curl --max-time #{max_dl_time} --limit-rate #{rate_limit} --connect-timeout 2 --location --max-redirs #{max_redirs} --max-filesize #{max_file_size} -k #{url}`
     end
     manifest
   end
