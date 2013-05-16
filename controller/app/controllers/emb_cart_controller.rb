@@ -206,6 +206,10 @@ class EmbCartController < BaseController
       if scales_to and scales_from and scales_to >= 1 and scales_to < scales_from
         return render_error(:unprocessable_entity, "Invalid scales_(from|to) factor provided", 168, "scales_to") 
       end
+      
+      if @application.quarantined && (scales_from || scales_to)
+        return render_upgrade_in_progress            
+      end
 
       begin
         component_instance = @application.component_instances.find_by(cartridge_name: id)
