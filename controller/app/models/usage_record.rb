@@ -65,10 +65,47 @@ class UsageRecord
     (self.usage_type == UsageRecord::USAGE_TYPES[:premium_cart]) ? true : false
   end
 
+  def self.find_latest_by_user_gear(user_id, gear_id, usage_type)
+    where(:user_id => user_id, :gear_id => gear_id, :usage_type => usage_type).desc(:time).first
+  end
+
   def self.track_usage(user_id, app_name, gear_id, event, usage_type,
                        gear_size=nil, addtl_fs_gb=nil, cart_name=nil)
+    UsageRecord.log_usage(user_id, gear_id, event, usage_type, gear_size, addtl_fs_gb, cart_name)
+
     if Rails.configuration.usage_tracking[:datastore_enabled]
       now = Time.now.utc
+      if event == UsageRecord::EVENTS[:begin]
+        usage = Usage.new(user_id: user_id, app_name: app_name, gear_id: gear_id,
+                          begin_time: now, created_at: now, usage_type: usage_type)
+        usage.gear_size = gear_size if gear_size
+        usage.addtl_fs_gb = addtl_fs_gb if addtl_fs_gb
+        usage.cart_name = cart_name if cart_name
+        usage.save!
+      elsif event == UsageRecord::EVENTS[:end]
+        usage = Usage.find_latest_by_user_gear(user_id, gear_id, usage_type)
+        if usage
+          usage.end_time = now
+          usage.save!
+          old_usage_rec = UsageRecord.find_latest_by_user_gear(user_id, gear_id, usage_type)
+          # If we don't find begin/continue usage records for the 'end' event
+          # then recreate the usage_record using usage.
+          if !old_usage_rec or (old_usage_rec.event == UsageRecord::EVENTS[:end])
+            old_usage_rec.delete if old_usage_rec
+            usage_record = UsageRecord.new(event: UsageRecord::EVENTS[:begin], time: usage.begin_time,
+                                           usage_type: usage_type, user_id: user_id, gear_id: gear_id,
+                                           app_name: app_name, created_at: usage.created_at)
+            usage_record.gear_size = usage.gear_size if usage.gear_size
+            usage_record.addtl_fs_gb = usage.addtl_fs_gb if usage.addtl_fs_gb
+            usage_record.cart_name = usage.cart_name if usage.cart_name
+            usage_record.save!
+          end
+        else
+          Rails.logger.error "Can NOT find begin/continue usage_record for user_id:#{user_id}, gear:#{gear_id}, usage_type:#{usage_type}. This can happen if gear was created with usage_tracking disabled and gear was destroyed with usage_tracking enabled or some bug in usage workflow."
+          return
+        end
+      end
+
       # Keep created time in sync for UsageRecord and Usage mongo record.
       usage_record = UsageRecord.new(event: event, time: now, created_at: now, gear_id: gear_id,
                                      usage_type: usage_type, user_id: user_id, app_name: app_name)
@@ -81,46 +118,12 @@ class UsageRecord
         usage_record.cart_name = cart_name
       end
       usage_record.save!
-
-      usage = nil
-      if event == UsageRecord::EVENTS[:begin]
-        usage = Usage.new(user_id: user_id, app_name: app_name, gear_id: gear_id,
-                          begin_time: now, created_at: now, usage_type: usage_type)
-        usage.gear_size = gear_size if gear_size
-        usage.addtl_fs_gb = addtl_fs_gb if addtl_fs_gb
-        usage.cart_name = cart_name if cart_name
-      elsif event == UsageRecord::EVENTS[:end]
-        usage = Usage.find_latest_by_user_gear(user_id, gear_id, usage_type)
-        if usage
-          usage.end_time = now
-        else
-          Rails.logger.error "Can NOT find begin/continue usage record for user_id:#{user_id}, gear:#{gear_id}, usage_type:#{usage_type}. This can happen if gear was created with usage_tracking disabled and gear was destroyed with usage_tracking enabled or some bug in usage workflow."
-        end
-      end
-      usage.save! if usage
-    end
-
-    if OpenShift::UsageAuditLog.is_enabled?
-      usage_string = "User ID: #{user_id}  Event: #{event}"
-      case usage_type
-      when UsageRecord::USAGE_TYPES[:gear_usage]
-        usage_string += "   Gear: #{gear_id} Gear Size: #{gear_size}"
-      when UsageRecord::USAGE_TYPES[:addtl_fs_gb]
-        usage_string += "   Gear: #{gear_id} Addtl Storage GB: #{addtl_fs_gb}"
-      when UsageRecord::USAGE_TYPES[:premium_cart]
-        usage_string += "   Gear: #{gear_id} Catridge: #{cart_name}"
-      end
-      begin
-        OpenShift::UsageAuditLog.log(usage_string)
-      rescue Exception => e
-        # Can't fail because of a secondary logging error
-        Rails.logger.error e.message
-        Rails.logger.error e.backtrace
-      end
     end
   end
 
   def self.untrack_usage(user_id, gear_id, event, usage_type)
+    UsageRecord.log_usage(user_id, gear_id, event, usage_type, nil, nil, nil, true)
+
     if Rails.configuration.usage_tracking[:datastore_enabled]
       usage_record = where(:user_id => user_id, :gear_id => gear_id, :event => event, :usage_type => usage_type).desc(:time).first
       usage_record.delete if usage_record
@@ -135,9 +138,22 @@ class UsageRecord
         end
       end
     end
+  end
 
+  def self.log_usage(user_id, gear_id, event, usage_type,
+                     gear_size=nil, addtl_fs_gb=nil, cart_name=nil, rollback=false)
     if OpenShift::UsageAuditLog.is_enabled?
-      usage_string = "Rollback User ID: #{user_id} Event: #{event} Gear: #{gear_id} UsageType: #{usage_type}"
+      usage_string = ""
+      usage_string += "Rollback " if rollback
+      usage_string += "User ID: #{user_id} Event: #{event} Gear: #{gear_id} UsageType: #{usage_type}"
+      case usage_type
+      when UsageRecord::USAGE_TYPES[:gear_usage]
+        usage_string += " GearSize: #{gear_size}" if gear_size
+      when UsageRecord::USAGE_TYPES[:addtl_fs_gb]
+        usage_string += " AddtlStorageGB: #{addtl_fs_gb}" if addtl_fs_gb
+      when UsageRecord::USAGE_TYPES[:premium_cart]
+        usage_string += " Catridge: #{cart_name}" if cart_name
+      end
       begin
         OpenShift::UsageAuditLog.log(usage_string)
       rescue Exception => e
