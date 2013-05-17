@@ -258,6 +258,24 @@ class ApplicationsControllerTest < ActionController::TestCase
     assert groups[0].cartridges[0].display_name
     assert domain = assigns(:domain)
     assert !assigns(:has_keys)
+
+    assert_select 'h1', with_app.name
+    with_app.cartridges.map(&:name).each do |name|
+      assert_select 'h2', name
+    end
+  end
+
+  test "should retrieve downloaded application details" do
+    get :show, :id => with_downloaded_app.name
+    assert_response :success
+    assert app = assigns(:application)
+    assert groups = assigns(:gear_groups)
+
+    assert_select 'h1', with_downloaded_app.name
+    assert_select 'p', /Created from/ do |p|
+      assert_select 'a', :href => with_downloaded_app.cartridges.first.url
+    end
+    assert_select 'h2', with_downloaded_app.cartridges.first.name
   end
 
   test "should retrieve application details with has_sshkey cache set" do
