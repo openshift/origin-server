@@ -4,10 +4,10 @@
 %endif
 %global cartridgedir %{_libexecdir}/openshift/cartridges/v2/haproxy
 
-Name:          openshift-origin-cartridge-haproxy
-Version: 0.4.2
-Release:       1%{?dist}
 Summary:       Provides HA Proxy
+Name:          openshift-origin-cartridge-haproxy
+Version:       0.4.2
+Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
 URL:           http://www.openshift.com
@@ -29,18 +29,13 @@ HAProxy cartridge for OpenShift. (Cartridge Format V2)
 %__rm %{name}.spec
 
 %install
-%__rm -rf %{buildroot}
 %__mkdir -p %{buildroot}%{cartridgedir}
 %__cp -r * %{buildroot}%{cartridgedir}
-
-%clean
-%__rm -rf %{buildroot}
 
 %post
 %{_sbindir}/oo-admin-cartridge --action install --source %{cartridgedir}
 
 %files
-%defattr(-,root,root,-)
 %dir %{cartridgedir}
 %attr(0755,-,-) %{cartridgedir}/bin/
 %attr(0755,-,-) %{cartridgedir}/hooks/

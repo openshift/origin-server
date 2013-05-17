@@ -4,7 +4,7 @@
 
 Summary:       Provides JBossAS7 support
 Name:          openshift-origin-cartridge-jbossas
-Version: 1.2.2
+Version:       1.2.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -42,12 +42,8 @@ Provides JBossAS support to OpenShift. (Cartridge Format V2)
 
 
 %install
-%__rm -rf %{buildroot}
 %__mkdir -p %{buildroot}%{cartridgedir}
 %__cp -r * %{buildroot}%{cartridgedir}
-
-%clean
-%__rm -rf %{buildroot}
 
 
 %post
@@ -82,7 +78,6 @@ cp -p %{cartridgedir}/versions/7/modules/postgresql_module.xml /etc/alternatives
 
 
 %files
-%defattr(-,root,root,-)
 %dir %{cartridgedir}
 %attr(0755,-,-) %{cartridgedir}
 %attr(0755,-,-) %{cartridgedir}/bin
