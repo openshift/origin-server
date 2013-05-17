@@ -122,7 +122,6 @@ class CartridgeCache
     rate_limit = (Rails.application.config.downloaded_cartridges[:max_download_rate] rescue "100k") || "100k" 
     manifest = ""
     
-    return manifest if url.include? ";"
     uri_obj = URI.parse(url)
     if uri_obj.kind_of? URI::HTTP or uri_obj.kind_of? URI::FTP
       rout,wout = IO.pipe
