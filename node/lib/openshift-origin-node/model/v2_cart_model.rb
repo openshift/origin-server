@@ -191,9 +191,9 @@ module OpenShift
       end
 
       # Ensure we're not in the gear's directory
-      Dir.chdir(@config.get("GEAR_BASE_DIR")) {
-        @user.destroy
-      }
+      Dir.chdir(@config.get("GEAR_BASE_DIR"))
+      
+      @user.destroy
 
       # FIXME: V1 contract is there a better way?
       [buffer, '', 0]
@@ -787,7 +787,7 @@ module OpenShift
         next if cart_dir.end_with?('app-root') || cart_dir.end_with?('git') ||
             (not File.directory? cart_dir) || File.symlink?(cart_dir)
         yield cart_dir
-      end
+      end if @user.homedir and File.exist?(@user.homedir)
     end
 
     def do_control(action, cartridge, options={})
