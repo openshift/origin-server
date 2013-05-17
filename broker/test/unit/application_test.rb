@@ -29,7 +29,7 @@ class ApplicationsTest < ActionDispatch::IntegrationTest #ActiveSupport::TestCas
   test "create and destroy embedded application" do
     @appname = "test"
     app = Application.create_app(@appname, ["php-5.3", "mysql-5.1"], @domain, "small")
-    app = Application.find_by(name: @appname, domain_id: @domain._id) rescue nil
+    app = Application.find_by(canonical_name: @appname.downcase, domain_id: @domain._id) rescue nil
 
     app.destroy_app
   end
@@ -37,7 +37,7 @@ class ApplicationsTest < ActionDispatch::IntegrationTest #ActiveSupport::TestCas
   test "create and destroy embedded scalable application" do
     @appname = "test"
     app = Application.create_app(@appname, ["php-5.3", "mysql-5.1"], @domain, "small", true)
-    app = Application.find_by(name: @appname, domain_id: @domain._id) rescue nil
+    app = Application.find_by(canonical_name: @appname.downcase, domain_id: @domain._id) rescue nil
 
     app.destroy_app
   end
@@ -45,7 +45,7 @@ class ApplicationsTest < ActionDispatch::IntegrationTest #ActiveSupport::TestCas
   test "scalable application events" do
     @appname = "test"
     app = Application.create_app(@appname, ["php-5.3", "mysql-5.1"], @domain, "small", true)
-    app = Application.find_by(name: @appname, domain_id: @domain._id) rescue nil
+    app = Application.find_by(canonical_name: @appname.downcase, domain_id: @domain._id) rescue nil
     app.restart
     app.stop
     app.start
@@ -62,7 +62,7 @@ class ApplicationsTest < ActionDispatch::IntegrationTest #ActiveSupport::TestCas
   test "threaddump application events" do
     @appname = "test"
     app = Application.create_app(@appname, ["ruby-1.9", "mysql-5.1"], @domain, "small", true)
-    app = Application.find_by(name: @appname, domain_id: @domain._id) rescue nil
+    app = Application.find_by(canonical_name: @appname.downcase, domain_id: @domain._id) rescue nil
     app.threaddump
     app.destroy_app
   end
@@ -70,7 +70,7 @@ class ApplicationsTest < ActionDispatch::IntegrationTest #ActiveSupport::TestCas
   test "scaling and storage events on application" do
     @appname = "test"
     app = Application.create_app(@appname, ["php-5.3", "mysql-5.1"], @domain, "small", true)
-    app = Application.find_by(name: @appname, domain_id: @domain._id) rescue nil
+    app = Application.find_by(canonical_name: @appname.downcase, domain_id: @domain._id) rescue nil
 
     @user.capabilities["max_untracked_addtl_storage_per_gear"] = 5
     @user.save
@@ -101,7 +101,7 @@ class ApplicationsTest < ActionDispatch::IntegrationTest #ActiveSupport::TestCas
   test "application events through internal rest" do
     @appname = "test"
     app = Application.create_app(@appname, ["ruby-1.9", "mysql-5.1"], @domain, "small", true)
-    app = Application.find_by(name: @appname, domain_id: @domain._id) rescue nil
+    app = Application.find_by(canonical_name: @appname.downcase, domain_id: @domain._id) rescue nil
 
     resp = rest_check(:get, "", {})
     assert_equal resp.status, 200

@@ -80,7 +80,7 @@ class Domain
     if Application.with(consistency: :strong).where(domain_id: self._id).count > 0
       raise OpenShift::UserException.new("Domain contains applications. Delete applications first before changing the domain namespace.", 128)
     end
-    if Domain.with(consistency: :strong).where(canonical_namespace: new_namespace).count > 0 
+    if Domain.with(consistency: :strong).where(canonical_namespace: new_namespace.downcase).count > 0 
       raise OpenShift::UserException.new("Namespace '#{new_namespace}' is already in use. Please choose another.", 103, "id") 
     end
     self.namespace = new_namespace
