@@ -292,6 +292,10 @@ module OpenShift
 
       logger.info("post-configure output: #{output}")
       output
+    rescue Utils::ShellExecutionException => e
+      stdout = e.stdout.split("\n").map { |l| l.start_with?('CLIENT_') ? l : "CLIENT_MESSAGE: #{l}" }.join("\n")
+      stderr = e.stderr.split("\n").map { |l| l.start_with?('CLIENT_') ? l : "CLIENT_ERROR: #{l}" }.join("\n")
+      raise Utils::ShellExecutionException.new(e.message, 157, stdout, stderr)
     end
 
     # deconfigure(cartridge_name) -> nil
