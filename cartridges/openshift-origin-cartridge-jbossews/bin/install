@@ -1,7 +1,14 @@
 #!/bin/bash -e
 
+case "$1" in
+  -v|--version)
+    version="$2"
+esac
+
 source $OPENSHIFT_CARTRIDGE_SDK_BASH
 source ${OPENSHIFT_JBOSSEWS_DIR}/bin/util
+
+echo "$version" > "$OPENSHIFT_JBOSSEWS_DIR/env/OPENSHIFT_JBOSSEWS_VERSION"
 
 # Create a link from the repo/webapps directory to the Tomcat webapps directory
 ln -s ${OPENSHIFT_REPO_DIR}/webapps ${OPENSHIFT_JBOSSEWS_DIR}/webapps
