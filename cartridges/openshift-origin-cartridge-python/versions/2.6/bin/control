@@ -1,5 +1,6 @@
 #!/bin/bash -e
 
+source $OPENSHIFT_CARTRIDGE_SDK_BASH
 HTTPD_CFG_FILE=$OPENSHIFT_PYTHON_DIR/etc/conf/httpd_nolog.conf
 
 # For backwards compatibility

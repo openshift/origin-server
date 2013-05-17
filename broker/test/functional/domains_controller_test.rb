@@ -31,8 +31,13 @@ class DomiansControllerTest < ActionController::TestCase
     namespace = "ns#{@random}"
     post :create, {"id" => namespace}
     assert_response :created
+
     get :show, {"id" => namespace}
     assert_response :success
+    assert json = JSON.parse(response.body)
+    assert link = json['data']['links']['ADD_APPLICATION']
+    assert_equal Rails.configuration.openshift[:download_cartridges_enabled], link['optional_params'].one?{ |p| p['name'] == 'cartridges[][url]' }
+
     get :index , {}
     assert_response :success
     new_namespace = "xns#{@random}"

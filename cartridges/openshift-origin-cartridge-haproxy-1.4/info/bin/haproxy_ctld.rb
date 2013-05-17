@@ -158,7 +158,7 @@ class Haproxy
         end
 
         @sessions_per_gear = @sessions / @gear_count
-        @session_capacity_pct = @session_capacity_pct = (@sessions_per_gear / MAX_SESSIONS_PER_GEAR ) * 100
+        @session_capacity_pct = (@sessions_per_gear / MAX_SESSIONS_PER_GEAR ) * 100
 
     end
 
@@ -206,6 +206,7 @@ class Haproxy
         self.print_gear_stats
       else
         puts "Scale up of a V1 app is disabled in v2 mode"
+        exit 1
       end
     end
 
@@ -218,6 +219,7 @@ class Haproxy
         self.print_gear_stats
       else
         puts "Scale down of a V1 app is disabled in v2 mode"
+        exit 1
       end
     end
 

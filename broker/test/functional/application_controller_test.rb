@@ -35,6 +35,10 @@ class ApplicationControllerTest < ActionController::TestCase
     assert_response :created
     get :show, {"id" => @app_name, "domain_id" => @domain.namespace}
     assert_response :success
+    assert json = JSON.parse(response.body)
+    assert link = json['data']['links']['ADD_CARTRIDGE']
+    assert_equal Rails.configuration.openshift[:download_cartridges_enabled], link['optional_params'].one?{ |p| p['name'] == 'url' }
+
     get :index , {"domain_id" => @domain.namespace}
     assert_response :success
     delete :destroy , {"id" => @app_name, "domain_id" => @domain.namespace}

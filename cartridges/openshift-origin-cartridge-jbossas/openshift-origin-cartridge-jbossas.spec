@@ -4,7 +4,7 @@
 
 Summary:       Provides JBossAS7 support
 Name:          openshift-origin-cartridge-jbossas
-Version: 1.2.1
+Version: 1.2.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -92,6 +92,21 @@ cp -p %{cartridgedir}/versions/7/modules/postgresql_module.xml /etc/alternatives
 
 
 %changelog
+* Thu May 16 2013 Adam Miller <admiller@redhat.com> 1.2.2-1
+- process-version -> update-configuration (dmcphers@redhat.com)
+- Bug 963156 (dmcphers@redhat.com)
+- locking fixes and adjustments (dmcphers@redhat.com)
+- Merge pull request #2454 from fotioslindiakos/locked_files
+  (dmcphers+openshiftbot@redhat.com)
+- Add erb processing to managed_files.yml Also fixed and added some test cases
+  (fotios@redhat.com)
+- messaging_scheduled_thread_pool_max_size=5 (bdecoste@gmail.com)
+- WIP Cartridge Refactor -- Cleanup spec files (jhonce@redhat.com)
+- fix module path (bdecoste@gmail.com)
+- Merge pull request #2411 from bdecoste/master
+  (dmcphers+openshiftbot@redhat.com)
+- fix clustering for non-scaled AS/EAP (bdecoste@gmail.com)
+
 * Wed May 08 2013 Adam Miller <admiller@redhat.com> 1.2.1-1
 - bump_minor_versions for sprint 28 (admiller@redhat.com)
 - Bug 956572 (bdecoste@gmail.com)

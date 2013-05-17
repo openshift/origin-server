@@ -9,7 +9,7 @@
 
 Summary:       OpenShift Origin Management Console
 Name:          rubygem-%{gem_name}
-Version: 1.9.1
+Version: 1.9.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -147,6 +147,37 @@ cp -a ./%{gem_dir}/* %{buildroot}%{gem_dir}/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Thu May 16 2013 Adam Miller <admiller@redhat.com> 1.9.2-1
+- Merge pull request #2514 from jtharris/log_helper_move
+  (dmcphers+openshiftbot@redhat.com)
+- Moving log_helper into console (jharris@redhat.com)
+- Safeguard against unexpected field name responses from the REST API, using
+  sym to check (ffranz@redhat.com)
+- Safeguard against unexpected field name responses from the REST API
+  (ffranz@redhat.com)
+- Bug 963156 (dmcphers@redhat.com)
+- Merge pull request #2424 from smarterclayton/upgrade_to_mocha_0_13_3
+  (admiller@redhat.com)
+- Review comment - kill comments (ccoleman@redhat.com)
+- Make scaling info easier to get at in UI (ccoleman@redhat.com)
+- Card online_ui_278 - Log helper utility (jharris@redhat.com)
+- Merge pull request #2435 from smarterclayton/allow_ci_reporter_to_be_optional
+  (dmcphers+openshiftbot@redhat.com)
+- ci_reporter is optional, not required (ccoleman@redhat.com)
+- Merge pull request #2428 from
+  smarterclayton/cart_spec_parsing_doesnt_handle_urls
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #2427 from jwforres/Card227MenuHeaderDropdowns
+  (dmcphers+openshiftbot@redhat.com)
+- Cartridge spec parsing does not handle deserialized JSON hashes - a hash
+  should be treated as a hard match, not a soft spec (ccoleman@redhat.com)
+- Card 227 megamenu primary link dropdown - move bootstrap dropdown import
+  (jforrest@redhat.com)
+- Bug 961671 - Remove the community link from the header (ccoleman@redhat.com)
+- Upgrade to mocha 0.13.3 (compatible with Rails 3.2.12) (ccoleman@redhat.com)
+- Bug 961226 Update storage controller to reflect broker API change
+  (hripps@redhat.com)
+
 * Wed May 08 2013 Adam Miller <admiller@redhat.com> 1.9.1-1
 - bump_minor_versions for sprint 28 (admiller@redhat.com)
 - Merge pull request #2399 from smarterclayton/allow_grids_to_be_pulled

@@ -12,9 +12,6 @@ Feature: V2 Platform Plugin Tests
     And the mock-plugin install_called marker will exist
     And the mock-plugin install_version marker will exist
     And the mock-plugin install_failure marker will not exist
-    And the mock-plugin post_setup_called marker will exist
-    And the mock-plugin post_setup_version marker will exist
-    And the mock-plugin post_setup_failure marker will not exist
     And the mock-plugin post_install_called marker will exist
     And the mock-plugin post_install_version marker will exist
     And the mock-plugin post_install_failure marker will not exist

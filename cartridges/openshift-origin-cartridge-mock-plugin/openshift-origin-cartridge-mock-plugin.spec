@@ -1,7 +1,7 @@
 %global cartridgedir %{_libexecdir}/openshift/cartridges/v2/mock-plugin
 
 Name: openshift-origin-cartridge-mock-plugin
-Version: 0.4.1
+Version: 0.4.2
 Release: 1%{?dist}
 Summary: Mock plugin cartridge for V2 Cartridge SDK
 Group: Development/Languages
@@ -50,6 +50,15 @@ test platform functionality.
 
 
 %changelog
+* Thu May 16 2013 Adam Miller <admiller@redhat.com> 0.4.2-1
+- Merge pull request #2454 from fotioslindiakos/locked_files
+  (dmcphers+openshiftbot@redhat.com)
+- Add erb processing to managed_files.yml Also fixed and added some test cases
+  (fotios@redhat.com)
+- Fix bug 958977 (pmorie@gmail.com)
+- WIP Cartridge Refactor -- Cleanup spec files (jhonce@redhat.com)
+- Switching v2 to be the default (dmcphers@redhat.com)
+
 * Wed May 08 2013 Adam Miller <admiller@redhat.com> 0.4.1-1
 - bump_minor_versions for sprint 28 (admiller@redhat.com)
 
