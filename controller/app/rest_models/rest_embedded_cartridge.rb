@@ -115,7 +115,7 @@ class RestEmbeddedCartridge < OpenShift::Model
     self.url = nil
     if app.downloaded_cartridges.has_key? cart.name
       app.downloaded_cart_map.each { |cname,chash|
-        if chash["versioned-name"]==cart.name or cname==cart.name
+        if chash["versioned_name"]==cart.name or cname==cart.name
           self.url = chash["url"]
           break
         end
