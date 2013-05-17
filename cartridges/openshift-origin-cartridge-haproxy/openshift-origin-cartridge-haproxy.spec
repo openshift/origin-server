@@ -5,7 +5,7 @@
 %global cartridgedir %{_libexecdir}/openshift/cartridges/v2/haproxy
 
 Name:          openshift-origin-cartridge-haproxy
-Version: 0.4.1
+Version: 0.4.2
 Release:       1%{?dist}
 Summary:       Provides HA Proxy
 Group:         Network/Daemons
@@ -50,6 +50,21 @@ HAProxy cartridge for OpenShift. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Thu May 16 2013 Adam Miller <admiller@redhat.com> 0.4.2-1
+- Pass ws connections argument. (mrunalp@gmail.com)
+- locking fixes and adjustments (dmcphers@redhat.com)
+- Merge pull request #2454 from fotioslindiakos/locked_files
+  (dmcphers+openshiftbot@redhat.com)
+- <haproxy_ctld.rb> Bug 962714 - Fix p_usage method to exit immediately
+  (jolamb@redhat.com)
+- Add erb processing to managed_files.yml Also fixed and added some test cases
+  (fotios@redhat.com)
+- Add full paths to add-gear/remove-gear scripts. (mrunalp@gmail.com)
+- WIP Cartridge Refactor -- Cleanup spec files (jhonce@redhat.com)
+- Switching v2 to be the default (dmcphers@redhat.com)
+- Card online_runtime_297 - Allow cartridges to use more resources
+  (jhonce@redhat.com)
+
 * Wed May 08 2013 Adam Miller <admiller@redhat.com> 0.4.1-1
 - bump_minor_versions for sprint 28 (admiller@redhat.com)
 

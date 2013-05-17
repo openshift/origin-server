@@ -1,7 +1,7 @@
 %global cartridgedir %{_libexecdir}/openshift/cartridges/v2/diy
 
 Name: openshift-origin-cartridge-diy
-Version: 0.4.1
+Version: 0.4.2
 Release: 1%{?dist}
 Summary: DIY cartridge
 Group: Development/Languages
@@ -46,6 +46,13 @@ DIY cartridge for openshift. (Cartridge Format V2)
 
 
 %changelog
+* Thu May 16 2013 Adam Miller <admiller@redhat.com> 0.4.2-1
+- locking fixes and adjustments (dmcphers@redhat.com)
+- Add erb processing to managed_files.yml Also fixed and added some test cases
+  (fotios@redhat.com)
+- WIP Cartridge Refactor -- Cleanup spec files (jhonce@redhat.com)
+- cron cleanup (dmcphers@redhat.com)
+
 * Wed May 08 2013 Adam Miller <admiller@redhat.com> 0.4.1-1
 - bump_minor_versions for sprint 28 (admiller@redhat.com)
 - removing version logic from diy (dmcphers@redhat.com)

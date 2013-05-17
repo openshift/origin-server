@@ -6,7 +6,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin broker
 Name:          openshift-origin-broker-util
-Version: 1.9.1
+Version: 1.9.2
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -86,6 +86,29 @@ cp man/*.8 %{buildroot}%{_mandir}/man8/
 %{_mandir}/man8/oo-stats.8.gz
 
 %changelog
+* Thu May 16 2013 Adam Miller <admiller@redhat.com> 1.9.2-1
+- Fix for bug 963654 (abhgupta@redhat.com)
+- add parent_user_id to user collection for export (rchopra@redhat.com)
+- Fixing broken check to confirm gear UID existence in mongo
+  (abhgupta@redhat.com)
+- Merge pull request #2477 from detiber/bz958573
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #2470 from lnader/536 (dmcphers+openshiftbot@redhat.com)
+- <oo-admin-chk> Bug 958573 - Fix output when ssh key mismatch found
+  (jdetiber@redhat.com)
+- online_broker_536 (lnader@redhat.com)
+- Initial implementation for fixing district available UID mismatch
+  (abhgupta@redhat.com)
+- Initial implementation for fixing consumed gears mismatch
+  (abhgupta@redhat.com)
+- Merge pull request #2444 from detiber/bz961255
+  (dmcphers+openshiftbot@redhat.com)
+- <controller,broker-util> Bug 961255 - DataStore fixes for mongo ssl
+  (jdetiber@redhat.com)
+- <oo-accept-broker> Bug 959164 - Fix mongo test with replica sets
+  (jdetiber@redhat.com)
+- analytics should contain user login too (rchopra@redhat.com)
+
 * Wed May 08 2013 Adam Miller <admiller@redhat.com> 1.9.1-1
 - bump_minor_versions for sprint 28 (admiller@redhat.com)
 

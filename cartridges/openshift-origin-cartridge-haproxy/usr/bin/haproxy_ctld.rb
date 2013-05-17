@@ -151,7 +151,7 @@ class Haproxy
         end
 
         @sessions_per_gear = @sessions / @gear_count
-        @session_capacity_pct = @session_capacity_pct = (@sessions_per_gear / MAX_SESSIONS_PER_GEAR ) * 100
+        @session_capacity_pct = (@sessions_per_gear / MAX_SESSIONS_PER_GEAR ) * 100
 
     end
 
