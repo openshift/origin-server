@@ -31,7 +31,6 @@ module OpenShift
         system_path = env['PATH']
 
         env.merge!(load(
-                       PathUtils.join(gear_dir, '.env', '.uservars'),
                        PathUtils.join(gear_dir, '.env'),
                        PathUtils.join(gear_dir, '*', 'env')))
 
