@@ -440,12 +440,8 @@ module OpenShift
       old_path  = File.join(@user.homedir, '.env', 'PATH')
       File.delete(old_path) if File.file? old_path
 
-      uservars_env = File.join(@user.homedir, '.env', '.uservars')
-      FileUtils.mkpath uservars_env
-
-      PathUtils.oo_chown_R(@user.uid, @user.gid, uservars_env)
       PathUtils.oo_chown_R(@user.uid, @user.gid, target)
-      Utils::SELinux.set_mcs_label_R(mcs_label, uservars_env, target)
+      Utils::SELinux.set_mcs_label_R(mcs_label, target)
       Utils::SELinux.clear_mcs_label(Dir.glob(File.join(target, 'bin', '*')))
 
       # BZ 950752
