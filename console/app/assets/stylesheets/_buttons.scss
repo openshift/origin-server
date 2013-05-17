@@ -39,14 +39,16 @@
 // Hover state
 .btn:hover {
   color: #000;
-  border-color: rgba(5,5,5,0.15) rgba(5,5,5,0.25) rgba(5,5,5,0.35);
+  border-color: rgba(0,0,0,0.15) rgba(0,0,0,0.35) rgba(0,0,0,0.5);
   text-decoration: none;
-  @include box-shadow(0 1px 2px rgba(0,0,0,.15));
+  @include box-shadow(0 1px 2px rgba(0,0,0,.25));
 }
 
 // Focus state for keyboard and accessibility
 .btn:focus {
   @include tab-focus();
+  border-color: rgba(0,0,0,0.15) rgba(0,0,0,0.35) rgba(0,0,0,0.5);
+  color: #000;
 }
 
 // Active state
@@ -56,6 +58,7 @@
   outline: 0;
   border-color: rgba(5, 5, 5, 0.4) rgba(5, 5, 5, 0.4) rgba(5, 5, 5, 0.25) rgba(5, 5, 5, 0.25);
   @include box-shadow(none);
+  color: inherit;
 }
 
 // Disabled state
@@ -140,29 +143,31 @@ input[type="button"] {
 
 // Set text color
 // -------------------------
-.btn-primary,
-.btn-primary:hover,
-.btn-warning,
-.btn-warning:hover,
+
+
+
 .btn-danger,
-.btn-danger:hover,
-.btn-success,
-.btn-success:hover,
-.btn-info,
-.btn-info:hover,
-.btn-inverse,
-.btn-inverse:hover {
-  text-shadow: -1px 0px 1px rgba(0, 0, 0, 0.5); //tweaked
+.btn-inverse {
+  text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.25);
   color: $white;
+  &:hover {
+    color: $white;
+  }
 }
-.btn-primary,
+.btn-success,
+.btn-info,
+.btn-warning {
+  color: $grayDarker;
+}
+
+.btn-primary:hover,
+.btn-success:hover,
+.btn-info:hover,
 .btn-primary:hover {
-	color: $grayDark;
+	color: #000;
 	text-shadow: 0 1px 0 rgba(255,255,255,0.6);
 }
-.btn-primary:hover {
-    color: #000;
-}
+
 // Provide *some* extra contrast for those who can get it
 .btn-primary.active,
 .btn-warning.active,
@@ -182,7 +187,7 @@ input[type="button"] {
 input[type="submit"].btn-primary:hover,
 .btn-primary:focus { 
   border-color: rgba(0,0,0,0.15) rgba(0,0,0,0.3) rgba(0,0,0,0.45);
-  box-shadow: 0 1px 2px rgba(0,0,0,.2);
+
 }
 .btn-primary:active,
 input[type="submit"].btn-primary:active,
@@ -194,24 +199,57 @@ input[type="submit"].btn-primary:active,
 }
 // Warning appears are orange
 .btn-warning {
-  @include buttonBackground(lighten($orange, 15%), $orange);
+  @include buttonBackground($warningBackground, darken($warningBackground, 5%));
 }
 // Danger and error appear as red
 .btn-danger {
-  @include buttonBackground(#c00, #a00);
+  @include buttonBackground(lighten($errorBackground, 5%), $errorBackground);
 }
 // Success appears as green
 .btn-success {
-  @include buttonBackground(#ABB64C, #959f41);
+  @include buttonBackground($successBackground, darken($successBackground, 5%));
 }
 // Info appears as a neutral blue
 .btn-info {
-  @include buttonBackground(#93d8e2, #78cfdb);
+  @include buttonBackground(lighten($infoBackground, 5%), $infoBackground);
 }
 // Inverse appears as dark gray
 .btn-inverse {
   @include buttonBackground(#505050, #1f1f1f);
   border-color: #010101;
+}
+
+// Link buttons
+// --------------------------------------------------
+
+// Make a button look and behave like a link
+.btn-link,
+.btn-link:active,
+.btn-link[disabled],
+.btn-link:hover,
+.btn-link:focus {
+  background-color: transparent;
+  background-image: none;
+  @include box-shadow(none);
+  border-color: transparent;
+}
+.btn-link {
+  border-color: transparent;
+  cursor: pointer;
+  color: $linkColor;
+  @include border-radius(0);
+}
+.btn-link:hover,
+.btn-link:focus {
+  color: $linkColorHover;
+  text-decoration: underline;
+  background-color: transparent;
+  
+}
+.btn-link[disabled]:hover,
+.btn-link[disabled]:focus {
+  color: $grayDark;
+  text-decoration: none;
 }
 
 
