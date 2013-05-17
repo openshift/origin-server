@@ -377,8 +377,11 @@ module OpenShift
         entries = Dir.glob(PathUtils.join(cartridge.repository_path, '*'), File::FNM_DOTMATCH)
         filesystem_copy(entries, target, %w(. .. usr))
 
-        usr_path = File.join(cartridge.repository_path, 'usr')
-        FileUtils.symlink(usr_path, File.join(target, 'usr')) if File.exist? usr_path
+        source_usr = File.join(cartridge.repository_path, 'usr')
+        target_usr = File.join(target, 'usr')
+        File.rm target_usr if File.symlink? target_usr
+
+        FileUtils.symlink(source_usr, target_usr) if File.exist? source_usr
       end
 
       valid_cartridge_home(cartridge, target)
