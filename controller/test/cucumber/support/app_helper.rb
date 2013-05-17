@@ -192,7 +192,7 @@ jenkins_build    = #{@jenkins_build}
         if !curl_head_success?(url)
           return true
         else
-          $logger.info("Connection still accessible / retry #{i} of #{max_tries} / #{hostname}")
+          $logger.info("Connection still accessible / retry #{i} of #{max_retries} / #{hostname}")
           sleep 1
         end
       end
