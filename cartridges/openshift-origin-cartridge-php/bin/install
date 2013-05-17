@@ -6,6 +6,7 @@ case "$1" in
 esac
 
 echo "$version" > "$OPENSHIFT_PHP_DIR/env/OPENSHIFT_PHP_VERSION"
+echo "$OPENSHIFT_PHP_DIR/configuration/etc/php.ini" > "$OPENSHIFT_PHP_DIR/env/PHPRC"
 
 ln -s /usr/lib64/httpd/modules $OPENSHIFT_PHP_DIR/modules
 ln -s /etc/httpd/conf/magic $OPENSHIFT_PHP_DIR/conf/magic
@@ -13,5 +14,5 @@ ln -s /etc/httpd/conf/magic $OPENSHIFT_PHP_DIR/conf/magic
 # Pear setup
 rm -f $OPENSHIFT_HOMEDIR/.pearrc
 pear config-create "$OPENSHIFT_PHP_DIR"/phplib/pear/ "$OPENSHIFT_HOMEDIR"/.pearrc
-pear -c "$OPENSHIFT_HOMEDIR"/.pearrc config-set php_ini "$OPENSHIFT_PHP_DIR"/versions/shared/configuration/etc/conf/php.ini
+pear -c "$OPENSHIFT_HOMEDIR"/.pearrc config-set php_ini "$OPENSHIFT_PHP_DIR"/configuration/etc/php.ini
 pear -c "$OPENSHIFT_HOMEDIR"/.pearrc config-set auto_discover 1

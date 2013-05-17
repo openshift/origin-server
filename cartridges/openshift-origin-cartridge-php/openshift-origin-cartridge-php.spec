@@ -56,6 +56,7 @@ PHP cartridge for openshift. (Cartridge Format V2)
 %__rm -rf %{buildroot}
 %__mkdir -p %{buildroot}%{cartridgedir}
 %__cp -r * %{buildroot}%{cartridgedir}
+%__mkdir -p %{buildroot}%{cartridgedir}/versions/shared/configuration/etc/conf/
 
 %if 0%{?fedora}%{?rhel} <= 6
 %__mv %{buildroot}%{cartridgedir}/versions/shared/configuration/etc/conf-httpd-2.2/* %{buildroot}%{cartridgedir}/versions/shared/configuration/etc/conf/
