@@ -17,5 +17,4 @@ for arg in $kvargs; do
     fi
 done
 
-set_uservars "OPENSHIFT_JBOSSAS_CLUSTER=OPENSHIFT_JBOSSAS_CLUSTER=${list}"
-
+echo $list > $OPENSHIFT_JBOSSAS_DIR/env/OPENSHIFT_JBOSSAS_CLUSTER
