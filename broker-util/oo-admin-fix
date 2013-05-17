@@ -85,11 +85,11 @@ Rails.configuration.analytics[:enabled] = false
 Rails.configuration.msg_broker[:rpc_options][:disctimeout] = 20
 Rails.configuration.msg_broker[:rpc_options][:timeout] = 600
 
-def lock_user_without_app(user, timeout=30)
+def lock_user_without_app(user_id, timeout=30)
   begin
     now = Time.now.to_i
-    lock = Lock.with(consistency: :strong).find_or_create_by( :user_id => user._id )
-    query = {:user_id => user._id, "$or" => [{:locked => false}, {:timeout.lt => now}], "app_ids.0" => {"$exists" => false}}
+    lock = Lock.with(consistency: :strong).find_or_create_by( :user_id => user_id )
+    query = {:user_id => user_id, "$or" => [{:locked => false}, {:timeout.lt => now}], "app_ids" => {}}
     updates = {"$set" => { locked: true, timeout: (now + timeout) }}
     lock = Lock.with(consistency: :strong).where(query).find_and_modify(updates, new: true)
     return (not lock.nil?)
@@ -98,9 +98,9 @@ def lock_user_without_app(user, timeout=30)
   end
 end
   
-def unlock_user_without_app(user)
+def unlock_user_without_app(user_id)
   begin
-    query = {:user_id => user._id, :locked => true}
+    query = {:user_id => user_id, :locked => true}
     updates = {"$set" => { "locked" => false }}
     lock = Lock.with(consistency: :strong).where(query).find_and_modify(updates, new: true)
     return (not lock.nil?)
@@ -130,18 +130,17 @@ end
 def reset_consumed_gears(user_id)
   got_lock = false
   success = false
-  user = CloudUser.with(consistency: :strong).find_by(:_id => user_id)
-  got_lock = lock_user_without_app(user)
+  got_lock = lock_user_without_app(user_id)
   
   if got_lock
     begin
-      user_consumed_gears, app_actual_gears = check_consumed_gears(user._id)
+      user_consumed_gears, app_actual_gears = check_consumed_gears(user_id)
       if user_consumed_gears != app_actual_gears
-        user.set :consumed_gears, app_actual_gears
+        CloudUser.where(:_id => user_id).set(:consumed_gears, app_actual_gears)
       end
       success = true
     ensure
-      unlock_user_without_app(user)
+      unlock_user_without_app(user_id)
     end
   end
   return success
@@ -200,6 +199,7 @@ ret = []
 user_selection = {:fields => ["login", "ssh_keys.name", "ssh_keys.content", "consumed_gears"], 
                   :timeout => false}
 user_selection_primary = user_selection.dup
+user_selection_primary[:fields] = user_selection[:fields].dup
 user_selection_primary[:read] = :primary
 
 OpenShift::DataStore.find(:cloud_users, {}, user_selection) do |user|
