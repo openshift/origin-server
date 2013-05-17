@@ -16,7 +16,9 @@
 
 require 'openshift-origin-common/utils/path_utils'
 require 'uri'
-require 'yaml'
+require 'safe_yaml'
+
+SafeYAML::OPTIONS[:default_mode] = :unsafe
 
 module OpenShift
 
@@ -56,6 +58,10 @@ module OpenShift
     #
     # Wrapper speeds up access and provides fixed API
     class Manifest
+
+      def self.manifest_from_yaml(yaml_str)
+        YAML.load(yaml_str, :safe => true)
+      end
 
       #
       # Class to support Manifest +Endpoint+ elements

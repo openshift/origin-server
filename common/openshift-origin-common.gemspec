@@ -19,6 +19,7 @@ Gem::Specification.new do |s|
   s.require_paths = ["lib"]
 
   s.add_dependency("json")
+  s.add_dependency('safe_yaml')
   s.add_dependency("activemodel")
 
   s.add_development_dependency('rspec', "1.1.12")
