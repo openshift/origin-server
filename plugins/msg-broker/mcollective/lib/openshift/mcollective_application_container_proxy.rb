@@ -2634,7 +2634,7 @@ module OpenShift
         if result.exitcode != 0
           result.debugIO << "Command return code: " + result.exitcode.to_s
           if result.hasUserActionableError
-            raise OpenShift::UserException.new(result.errorIO.string, result.exitcode, result)
+            raise OpenShift::UserException.new(result.errorIO.string, result.exitcode, nil, result)
           else
             raise OpenShift::NodeException.new("Node execution failure (invalid exit code from node).  If the problem persists please contact Red Hat support.", 143, result)
           end
