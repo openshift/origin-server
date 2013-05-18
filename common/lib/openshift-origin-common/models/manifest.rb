@@ -131,7 +131,7 @@ module OpenShift
 
       attr_reader :cartridge_vendor,
                   :cartridge_version,
-                  :cartridge_versions,
+                  :compatible_versions,
                   :directory,
                   :endpoints,
                   :manifest,
@@ -197,8 +197,8 @@ module OpenShift
         raise MissingElementError.new(nil, 'Version') unless @manifest.has_key?('Version')
         raise InvalidElementError.new(nil, 'Versions') if @manifest.has_key?('Versions') && !@manifest['Versions'].kind_of?(Array)
 
-        if @manifest.has_key?('Cartridge-Versions') && !@manifest['Cartridge-Versions'].kind_of?(Array)
-          raise InvalidElementError.new(nil, 'Cartridge-Versions')
+        if @manifest.has_key?('Compatible-Versions') && !@manifest['Compatible-Versions'].kind_of?(Array)
+          raise InvalidElementError.new(nil, 'Compatible-Versions')
         end
 
         if version
@@ -226,11 +226,7 @@ module OpenShift
         @is_web_proxy           = @categories.include?('web_proxy')
         @install_build_required = @manifest.has_key?('Install-Build-Required') ? @manifest['Install-Build-Required'] : true
 
-        @cartridge_versions = if @manifest['Cartridge-Versions']
-                                @manifest['Cartridge-Versions'].map { |v| v.to_s }
-                              else
-                                []
-                              end
+        @compatible_versions = (@manifest['Compatible-Versions'] || []).map { |v| v.to_s }
 
         #FIXME: reinstate code after manifests are updated
         #raise MissingElementError.new(nil, 'Cartridge-Vendor') unless @cartridge_vendor

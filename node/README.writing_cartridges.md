@@ -92,7 +92,7 @@ An example `manifest.yml` file:
 Name: PHP
 Cartridge-Short-Name: PHP
 Cartridge-Version: '1.0.1'
-Cartridge-Versions: ['1.0.1']
+Compatible-Versions: ['1.0.1']
 Cartridge-Vendor: redhat
 Display-Name: PHP 5.3
 Description: "PHP is a general-purpose server-side scripting language..."
@@ -181,13 +181,13 @@ When you publish new versions of your cartridge to OpenShift, this number will b
 is necessary to upgrade the application developer's application. YAML will assume number.number is a float
 be sure to enclose it in quotes so it is read as a string.
 
-### Cartridge-Versions Element
+### Compatible-Versions Element
 
-`Cartridge-Versions` is a list of past cartridge versions that are **compatible** with this version.
+`Compatible-Versions` is a list of past cartridge versions that are **compatible** with this version.
 To be **compatible** with a previous version, the code changes you made in this version do not require
 the cartridge to be re-started or the application developer's application to be restarted.
 
-    Cartridge-Versions: ['1.0.1']
+    Compatible-Versions: ['1.0.1']
 
 By not requiring a restart, you improve the application user's experience since no downtime will
 be incurred from your changes. If the cartridge's current version is not in the list when upgraded,
