@@ -112,6 +112,13 @@ EOF
 
 EOF
   fi
+
+  # Quota returns nonzero if you are over limit
+  quota >/dev/null 2>&1
+  if [ $? -ne 0 ]
+  then
+      echo "Your application is out of disk space; please run \"rhc app-tidy $OPENSHIFT_APP_NAME\"" 1>&2
+  fi
 }
 
 if [ -f ~/.env/CARTRIDGE_VERSION_2 ]
