@@ -220,20 +220,20 @@ The `Version` element is the default or only version of the software packaged by
 `Source-Url` is used when you self distribute your cartridges. They are downloaded at the time
 the application is created.
 
- - non-Git Schemes supported:
-    - https(get): zip, tar, tar.gz/tgz files
-    - http(get):  zip, tar, tar.gz/tgz files
-    - file(copy): files in directories in tree
+non-Git URL support
 
- - Git Schemes:
-    - Cartridge source will be cloned from these repository
+| Scheme | Method      | Expected Inputs                         |
+| ------ | ------      | ---------------                         |
+| https  | GET         | extensions zip, tar, tag.gz, tgz        |
+| http   | GET         | extensions zip, tar, tag.gz, tgz        |
+| file   | file copy   | cartridge directory tree expected       |
 
-    ```
+All Git schemes are supported. The cartridge source will be cloned from the given repository.
+
     Source-Url: https://github.com/exampe/killer-cartridge.git
     Source-Url: git://github.com/chrisk/fakeweb.git
     Source-Url: https:://www.example.com/killer-cartridge.zip
     Source-Url: https://github.com/example/killer-cartridge/archive/master.zip
-    ```
 
 ### Source-Md5 Element
 
@@ -241,8 +241,6 @@ If `Source-Md5` is provided and a non-Git scheme is used for downloading your ca
 verify the downloaded file against this MD5 digest.
 
     Source-Md5: 835ed97b00a61f0dae2e2b7a75c672db
-
- - Git clones are not verified.
 
 ### Additional-Control-Actions Element
 
@@ -298,13 +296,13 @@ modification.
 ### Allowed Entries
 Currently, the following entries are supported
 
-| Entry                 | Type         | Usage                                               |
-| -----                 | ----         | -----                                               |
-| `locked_files`        | File Pattern | [Cartridge Locking][cart_locking]                   |
-| `snapshot_exclusions` | File Pattern | [Backing up and Restoring your Cartridge][snapshot] |
-| `restore_transforms`  | Strings      | [Backing up and Restoring your Cartridge][snapshot] |
-| `setup_rewritten`     | File Pattern | [bin/setup](#binsetup)                              |
-| `process_templates`   | File Pattern | [ERB Processing][erb_processing]                    |
+| Entry               | Type         | Usage                                               |
+| -----               | ----         | -----                                               |
+| locked_files        | File Pattern | [Cartridge Locking][cart_locking]                   |
+| snapshot_exclusions | File Pattern | [Backing up and Restoring your Cartridge][snapshot] |
+| restore_transforms  | Strings      | [Backing up and Restoring your Cartridge][snapshot] |
+| setup_rewritten     | File Pattern | [bin/setup](#binsetup)                              |
+| process_templates   | File Pattern | [ERB Processing][erb_processing]                    |
 
 ## Cartridge Locking
 
@@ -413,14 +411,11 @@ The sub-directory `.openshift/markers` may contain example files for the applica
 These files denote behavior you are expected to honor in your cartridges lifecycle. Current
 examples from a Ruby 1.8 cartridge include:
 
-    force_clean_build     Previous output from bundle install --deployment will be
-                          removed and all gems will be reinstalled according to the
-                          current Gemfile/Gemfile.lock.
-    hot_deploy            Will prevent the apache process from being restarted during
-                          build/deployment. Note that mod_passenger will respawn the
-                          Rack worker processes if any code has been modified.
-    disable_auto_scaling  Will prevent scalable applications from scaling up
-                          or down according to application load.
+| Marker               | Action |
+| ------               | ------ |
+| force_clean_build    | Previous output from bundle install --deployment will be removed and all gems will be reinstalled according to the current Gemfile/Gemfile.lock.|
+| hot_deploy           | Will prevent the apache process from being restarted during build/deployment. Note that mod_passenger will respawn the Rack worker processes if any code has been modified. |
+| disable_auto_scaling | Will prevent scalable applications from scaling up or down according to application load. |
 
 You may add additional markers to allow an application developer to control aspects
 of your cartridge.
@@ -596,13 +591,18 @@ be run from the home directory of the gear.
 
 A cartridge must implement the following scripts:
 
-* `setup` and/or `install`: prepare this instance of cartridge to be operational for the initial install and each upgrade
-* `control`: command cartridge to report or change state
+| Script Name | Usage  |
+| ----------- | -----  |
+| setup       | prepare this instance of cartridge to be operational for the initial install and each upgrade |
+| control     | command cartridge to report or change state                                                   |
 
 A cartridge may implement the following scripts:
-* `teardown`: prepare this instance of cartridge to be removed
-* `install`: prepare this instance of cartridge to be operational for the initial install
-* `post-install`: an opportunity for setup after the cartridge has been started for the initial install
+
+| Script Name   | Usage  |
+| -----------   | -----  |
+| teardown      | prepare this instance of cartridge to be removed                                              |
+| install       | prepare this instance of cartridge to be operational for the initial install                  |
+| post-install  | an opportunity for configuration after the cartridge has been started for the initial install |
 
 ### Exit Status Codes
 
@@ -610,8 +610,10 @@ OpenShift follows the convention that your scripts should return zero
 for success, and non-zero for failure. Additionally, OpenShift supports
 special handling of the following non-zero exit codes:
 
-    127. TODO
-    131. TODO
+| Exit Code | Usage |
+| --------- | ----- |
+| 127       | TODO  |
+| 131       | TODO  |
 
 These exit status codes will allow OpenShift to refine it's behavior
 when returning HTTP status codes for the REST API, whether an internal
@@ -636,26 +638,26 @@ for `bin/install` to use these values or processed files.
 
 Examples:
 
-* `env/OPENSHIFT_MONGODB_DB_LOG_DIR.erb`
+* given `env/OPENSHIFT_MONGODB_DB_LOG_DIR.erb` containing:
 
   ```erb
-  <% ENV['OPENSHIFT_HOMEDIR'] + "/mongodb-2.2/log/" %>
+  <% ENV['OPENSHIFT_HOMEDIR'] + "/mongodb/log/" %>
   ```
 
-  becomes `env/OPENSHIFT_MONGODB_DB_LOG_DIR`
+  becomes `env/OPENSHIFT_MONGODB_DB_LOG_DIR` containing:
 
   ```
-  /var/lib/openshift/aa9e0f66e6451791f86904eef0939e/mongodb-2.2/log/
+  /var/lib/openshift/aa9e0f66e6451791f86904eef0939e/mongodb/log/
   ```
 
-* `conf/php.ini.erb`
+* given `conf/php.ini.erb` containing:
 
   ```erb
   upload_tmp_dir = "<%= ENV['OPENSHIFT_HOMEDIR'] %>php/tmp/"
   session.save_path = "<%= ENV['OPENSHIFT_HOMEDIR'] %>php/sessions/"
   ```
 
-  becomes `conf/php.ini`
+  becomes `conf/php.ini` containing:
 
   ```
   upload_tmp_dir = "/var/lib/openshift/aa9e0f66e6451791f86904eef0939e/php/tmp/"
@@ -664,7 +666,7 @@ Examples:
 
 Other candidates for templates are httpd configuration files for
 `includes`, configuring database to store persistent data in the
-`OPENSHIFT_DATA_DIR`, and setting the application name in the pom.xml file.
+`OPENSHIFT_DATA_DIR`, and setting the application name in the `pom.xml` file.
 
 ## bin/setup
 
@@ -751,9 +753,6 @@ written to stdout, one message per line.
 * `CART_PROPERTIES: <key>=<value>`
 * `APP_INFO: <value>`
 
-*jwh: need to explain when/where to use each...  May need to change format to match Lock context*
-*jwh: See Krishna when he is back in town. He wished to make changes in this area with the model refactor.*
-
 *fotios: This entry seems out of place and should be moved*
 ## Custom HTTP Services
 
@@ -763,10 +762,10 @@ in the httpd.d directory. The httpd.d directory and it's contents are
 optional.  After OpenShift has run your `setup` script it will render
 each ERB template, and write the contents the node's httpd configuration.
 
-An example of `mongodb-2.2.conf.erb`:
+An example of `mongodb.conf.erb`:
 
-    Alias /health <%= ENV['OPENSHIFT_HOMEDIR'] + "/mongodb-2.2/httpd.d/health.html" %>
-    Alias / <%= ENV['OPENSHIFT_HOMEDIR'] + "/mongodb-2.2/httpd.d/index.html" %>
+    Alias /health <%= ENV['OPENSHIFT_HOMEDIR'] + "/mongodb/httpd.d/health.html" %>
+    Alias / <%= ENV['OPENSHIFT_HOMEDIR'] + "/mongodb/httpd.d/index.html" %>
 
 ## bin/teardown
 
@@ -784,18 +783,6 @@ cartridge.
 
 Lock context: `unlocked`
 
-*jwh: If all future gears are scaled, should teardown just always be called?*
-
-##### Messaging to OpenShift from cartridge
-
-After `teardown` your cartridge's services are no longer available. For
-each environment variable you published, you must now un-publish it by
-writing to stdout the following message(s):
-
-* `ENV_VAR_REMOVE: <name>`
-
-*jwh: See Krishna when he is back in town. He wished to make changes in this area with the model refactor.*
-
 ## bin/control
 
 ##### Synopsis
@@ -812,29 +799,28 @@ The `control` script allows OpenShift or user to control the state of the cartri
 
 The list of operations your cartridge may be called to perform:
 
-   * `update-configuration`, `pre-build`, `build`, `deploy`, and `post-deploy` are called at various
-     points during the build lifecycle, described in the [OpenShift Builds](#openshift-builds) section.
-   * `start` start the software your cartridge controls
-   * `stop` stop the software your cartridge controls
-   * `status` return an 0 exit status if your cartridge code is running.
-   * `reload` your cartridge and the packaged software needs to re-read their
-      configuration information. This operation will only be called if your cartridge is
-      running.
-   * `restart` stop current process and start a new one for the code your cartridge packages
-   * `threaddump` if applicable, your cartridge should signal the packaged software to perform a thread dump.
-   * `tidy` all unused resources should be released. It is at your discretion to
-     determine what should be done. Be frugal, on some systems resources may be
-     very limited. Some possible behaviors: 
-      * `rm $OPENSHIFT_CART_DIR/logs/log.[0-9]`
-      * `cd $OPENSHIFT_REPO_DIR ; mvn clean`
-   * `pre-snapshot` prepare the cartridge for snapshot
-   * `post-snapshot` clean up the cartridge after snapshot
-   * `pre-restore` prepare the cartridge for restore
-   * `post-restore` clean up the cartridge after being restored
-     
-    OpenShift has the following default behaviors:
-      * the Git repository will be garbage collected
-      * all files will be removed from the `/tmp` directory
+| Operation | Behavior |
+| --------- | -------- |
+| update-configuration, pre-build, build, deploy, or post-deploy            | described in the [OpenShift Builds](#openshift-builds) section |
+| start         | start the software your cartridge controls                |
+| stop          | stop the software your cartridge controls                 |
+| status        | return an 0 exit status if your cartridge code is running |
+| reload        | your cartridge and the packaged software needs to re-read their configuration information. This operation will only be called if your cartridge is running. |
+| restart       | stop current process and start a new one for the code your cartridge packages              |
+| threaddump    | if applicable, your cartridge should signal the packaged software to perform a thread dump |
+| tidy          | all unused resources should be released. It is at your discretion to determine what should be done. Be frugal, on some systems resources may be very limited. |
+| pre-snapshot  | prepare the cartridge for a snapshot. e.g. dump database to flat file               |
+| post-snapshot | clean up the cartridge after snapshot, e.g. remove database dump file               |
+| pre-restore   | prepare the cartridge for restore                                                   |
+| post-restore  | clean up the cartridge after being restored, load database with data from flat file |
+
+Some possible `tidy` behaviors:
+  * `rm $OPENSHIFT_{Cartridge-Short_Name}_DIR/logs/log.[0-9]`
+  * `cd $OPENSHIFT_REPO_DIR ; mvn clean`
+
+OpenShift has the following default `tidy` behaviors:
+  * the Git repository will be garbage collected
+  * all files will be removed from the `/tmp` directory
 
 Lock context: `locked`
 
@@ -856,14 +842,14 @@ value. Future versions of OpenShift may combine the results from the
 `status` action and the value of the `.state` file to automatically
 restart failed applications. For completeness, `.state` values:
 
-| Value       | Meaning                                                      |
-| -----       | -------                                                      |
-| `building`  | application is currently being built                         |
-| `deploying` | application is currently being deployed                      |
-| `idle`      | application has been shutdown because of no activity         |
-| `new`       | gear has been created, but no application has been installed |
-| `started`   | application has been commanded to start                      |
-| `stopped`   | application has been commanded to stop                       |
+| Value     | Meaning                                                      |
+| -----     | -------                                                      |
+| building  | application is currently being built                         |
+| deploying | application is currently being deployed                      |
+| idle      | application has been shutdown because of no activity         |
+| new       | gear has been created, but no application has been installed |
+| started   | application has been commanded to start                      |
+| stopped   | application has been commanded to stop                       |
 
 ## Environment Variables
 
@@ -876,25 +862,27 @@ to be used for all cartridge entry points.
 
 ### System Provided Variables (Read Only) ###
 
-| Name                  | Value                                                                                                                   |
-| ----                  | -----                                                                                                                   |
-| `HOME`                | alias for `OPENSHIFT_HOMEDIR`                                                                                           |
-| `HISTFILE`            | bash history file                                                                                                       |
-| `OPENSHIFT_APP_DNS`   | the application's fully qualified domain name that your cartridge is a part of                                          |
-| `OPENSHIFT_APP_NAME`  | the validated user assigned name for the application. Black list is system dependent.                                   |
-| `OPENSHIFT_APP_UUID`  | OpenShift assigned UUID for the application                                                                             |
-| `OPENSHIFT_DATA_DIR`  | the directory where your cartridge may store data                                                                       |
-| `OPENSHIFT_GEAR_DNS`  | the gear's fully qualified domain name that your cartridge is a part of. May or may not be equal to `OPENSHIFT_APP_DNS` |
-| `OPENSHIFT_GEAR_NAME` | OpenShift assigned name for the gear. May or may not be equal to `OPENSHIFT_APP_NAME`                                   |
-| `OPENSHIFT_GEAR_UUID` | OpenShift assigned UUID for the gear                                                                                    |
-| `OPENSHIFT_HOMEDIR`   | OpenShift assigned directory for the gear                                                                               |
-| `OPENSHIFT_REPO_DIR`  | the directory where the developer's application is "archived" to and will be run from.                                  |
-| `OPENSHIFT_TMP_DIR`   | the directory where your cartridge may store temporary data                                                             |
-| `TMPDIR`              | alias for `OPENSHIFT_TMP_DIR`                                                                                           |
-| `TMP`                 | alias for `OPENSHIFT_TMP_DIR`                                                                                           |
+| Name                | Value                                                                                                                   |
+| ----                | -----                                                                                                                   |
+| HOME                | alias for `OPENSHIFT_HOMEDIR`                                                                                           |
+| HISTFILE            | bash history file                                                                                                       |
+| OPENSHIFT_APP_DNS   | the application's fully qualified domain name that your cartridge is a part of                                          |
+| OPENSHIFT_APP_NAME  | the validated user assigned name for the application. Black list is system dependent.                                   |
+| OPENSHIFT_APP_UUID  | OpenShift assigned UUID for the application                                                                             |
+| OPENSHIFT_DATA_DIR  | the directory where your cartridge may store data                                                                       |
+| OPENSHIFT_GEAR_DNS  | the gear's fully qualified domain name that your cartridge is a part of. May or may not be equal to `OPENSHIFT_APP_DNS` |
+| OPENSHIFT_GEAR_NAME | OpenShift assigned name for the gear. May or may not be equal to `OPENSHIFT_APP_NAME`                                   |
+| OPENSHIFT_GEAR_UUID | OpenShift assigned UUID for the gear                                                                                    |
+| OPENSHIFT_HOMEDIR   | OpenShift assigned directory for the gear                                                                               |
+| OPENSHIFT_REPO_DIR  | the directory where the developer's application is "archived" to and will be run from.                                  |
+| OPENSHIFT_TMP_DIR   | the directory where your cartridge may store temporary data                                                             |
+| TMPDIR              | alias for `OPENSHIFT_TMP_DIR`                                                                                           |
+| TMP                 | alias for `OPENSHIFT_TMP_DIR`                                                                                           |
 
 ### System Provided Cartridge Variables (Read Only)
   * `OPENSHIFT_{Cartridge-Short-Name}_DIR`
+  * `OPENSHIFT_{Cartridge-Short-Name}_IDENT`
+  * `OPENSHIFT_PRIMARY_CARTRIDGE_DIR`
 
 ### Examples of Cartridge Variables  ###
 
@@ -931,30 +919,14 @@ Those you would add to your `env` directory or include in shim code in your `bin
 
 Cartridge provided environment variables are not validated by the
 system. Your cartridge may fail to function if you write invalid data
-to these files. If you provide ERB templates in the `env` directory,
-OpenShift will render those files and remove the .erb suffix. They will
-be processed before your `setup` script is run. You could write the
-`env/JENKINS_URL.erb` as:
+to these files.
 
-    export JENKINS_URL='https://<%= ENV['OPENSHIFT_APP_DNS'] %>/'
+You may provide ERB templates in the `env` directory, see above for details. ERB templates in the `env` directory will
+be processed before `setup` is called.
 
-which would then be rendered as `env/JENKINS_URL`:
-
-    export JENKINS_URL='http://jenkins-namespace.rhcloud.com/'
-
-Or, `env/OPENSHIFT_MONGODB_DB_LOG_DIR.erb`:
-
-    export OPENSHIFT_MONGODB_DB_LOG_DIR='<% ENV['OPENSHIFT_HOMEDIR'] + "/mongodb-2.2/log/" %>'
-
-renders as `env/OPENSHIFT_MONGODB_DB_LOG_DIR`:
-
-    export OPENSHIFT_MONGODB_DB_LOG_DIR='/var/lib/openshift/aa9e0f66e6451791f86904eef0939e/mongodb-2.2/log/'
-
-You may assume the `PATH` variable will be:
-     PATH=/bin:/usr/bin/
-
-when your code is executed. Any additional directories your code requires
-will need to be added in your cartridge's `env` variable.
+The `PATH` variable is set by OpenShift with the base being `/etc/openshift/env/PATH`.
+If you provide an `OPENSHIFT_{Cartridge-Short-Name}_PATH_ELEMENT`, OpenShift will include the value when building the
+`PATH` when your scripts are run or an application developer does an interactive log on.
 
 ## Backing up and Restoring your cartridge
 
