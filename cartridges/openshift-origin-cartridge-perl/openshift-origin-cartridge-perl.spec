@@ -1,7 +1,7 @@
 %global cartridgedir %{_libexecdir}/openshift/cartridges/v2/perl
 
 Name:          openshift-origin-cartridge-perl
-Version:       0.4.2
+Version:       0.4.3
 Release:       1%{?dist}
 Summary:       Perl cartridge
 Group:         Development/Languages
@@ -54,6 +54,9 @@ Perl cartridge for OpenShift. (Cartridge Format V2)
 
 
 %changelog
+* Mon May 20 2013 Dan McPherson <dmcphers@redhat.com> 0.4.3-1
+- spec file cleanup (tdawson@redhat.com)
+
 * Thu May 16 2013 Adam Miller <admiller@redhat.com> 0.4.2-1
 - locking fixes and adjustments (dmcphers@redhat.com)
 - Merge pull request #2454 from fotioslindiakos/locked_files
