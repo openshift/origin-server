@@ -2,12 +2,8 @@
 locked_files:
 - bin/
 - bin/*
-- env/OPENSHIFT_POSTGRESQL_DB_LOG_DIR
-- env/OPENSHIFT_POSTGRESQL_DB_PID
-- env/OPENSHIFT_POSTGRESQL_DB_SOCKET
-- env/PGDATABASE
-- env/PGDATA
-- env/PGHOST
+- env/
+- env/*
 - metadata/
 - metadata/*
 - hooks/
