@@ -6,7 +6,7 @@
 %global cartridgedir %{_libexecdir}/openshift/cartridges/v2/ruby
 
 Name:          openshift-origin-cartridge-ruby
-Version:       0.4.2
+Version:       0.4.3
 Release:       1%{?dist}
 Summary:       Ruby cartridge
 Group:         Development/Languages
@@ -168,6 +168,9 @@ Ruby cartridge for OpenShift. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Mon May 20 2013 Dan McPherson <dmcphers@redhat.com> 0.4.3-1
+- spec file cleanup (tdawson@redhat.com)
+
 * Thu May 16 2013 Adam Miller <admiller@redhat.com> 0.4.2-1
 - Bug 963634 - Need to create all 1.9.3 env vars in setup (jhonce@redhat.com)
 - process-version -> update-configuration (dmcphers@redhat.com)
