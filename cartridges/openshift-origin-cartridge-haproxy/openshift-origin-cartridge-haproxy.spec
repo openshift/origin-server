@@ -6,7 +6,7 @@
 
 Summary:       Provides HA Proxy
 Name:          openshift-origin-cartridge-haproxy
-Version:       0.4.2
+Version:       0.4.3
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -45,6 +45,13 @@ HAProxy cartridge for OpenShift. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Mon May 20 2013 Dan McPherson <dmcphers@redhat.com> 0.4.3-1
+- spec file cleanup (tdawson@redhat.com)
+- Merge pull request #2522 from mrunalp/dev/haproxy_hook
+  (dmcphers+openshiftbot@redhat.com)
+- Remove unused hooks. (mrunalp@gmail.com)
+- cleanup (dmcphers@redhat.com)
+
 * Thu May 16 2013 Adam Miller <admiller@redhat.com> 0.4.2-1
 - Pass ws connections argument. (mrunalp@gmail.com)
 - locking fixes and adjustments (dmcphers@redhat.com)
