@@ -164,7 +164,7 @@ class CartridgeCache
     raise OpenShift::UserException.new("Invalid cartridge, error downloading from url '#{url}' ", 109)  if str.nil? or str.length==0
     raise OpenShift::UserException.new("Invalid manifest file from url '#{url}' - no structural directives allowed.") if str.include?("---")
     begin
-      chash = YAML.load(str) #, options: {:safe => true})
+      chash = OpenShift::Runtime::Manifest.manifest_from_yaml(str) 
     rescue Exception=>e
       raise OpenShift::UserException.new("Invalid manifest file from url '#{url}'")
     end
