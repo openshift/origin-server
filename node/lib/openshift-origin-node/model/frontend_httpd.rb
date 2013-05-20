@@ -300,84 +300,6 @@ module OpenShift
     end
 
 
-    # Public: Update identifier to the new names
-    def update(container_name, namespace)
-      if (container_name == @container_name) and (namespace == @namespace)
-        return nil
-      end
-
-      saved_ssl_certs = ssl_certs
-
-      new_fqdn = clean_server_name("#{container_name}-#{namespace}.#{@cloud_domain}")
-
-      ApacheDBNodes.open(ApacheDBNodes::WRCREAT) do |d|
-        d.update_block do |deletions, updates, k, v|
-          if k.split('/')[0] == @fqdn
-            deletions << k
-            updates[k.sub(@fqdn, new_fqdn)] = v
-          end
-        end
-      end
-
-      ApacheDBAliases.open(ApacheDBAliases::WRCREAT) do |d|
-        d.update_block do |deletions, updates, k, v|
-          if v == @fqdn
-            updates[k]=new_fqdn
-          end
-        end
-      end
-
-      ApacheDBIdler.open(ApacheDBIdler::WRCREAT) do |d|
-        d.update_block do |deletions, updates, k, v|
-          if k == @fqdn
-            deletions << k
-            updates[new_fqdn] = v
-          end
-        end
-      end
-
-      ApacheDBSTS.open(ApacheDBSTS::WRCREAT) do |d|
-        d.update_block do |deletions, updates, k, v|
-          if k == @fqdn
-            deletions << k
-            updates[new_fqdn] = v
-          end
-        end
-      end
-
-      NodeJSDBRoutes.open(NodeJSDBRoutes::WRCREAT) do |d|
-        d.update_block do |deletions, updates, k, v|
-          if k == @fqdn
-            deletions << k
-            updates[new_fqdn] = v
-          end
-        end
-      end
-
-      GearDB.open(GearDB::WRCREAT) do |d|
-        d.store(@container_uuid, {'fqdn' => new_fqdn,  'container_name' => container_name, 'namespace' => namespace})
-      end
-
-      old_namespace = @namespace
-
-      @container_name = container_name
-      @namespace = namespace
-      @fqdn = new_fqdn
-
-      saved_ssl_certs.each do |c, k, a|
-        add_ssl_cert(c, k, a)
-        old_path = File.join(@basedir, "#{@container_uuid}_#{old_namespace}_#{a}")
-        FileUtils.rm_rf(old_path + ".conf")
-        FileUtils.rm_rf(old_path)
-        reload_httpd
-      end
-    end
-
-    def update_name(container_name)
-      update(container_name, @namespace)
-    end
-
-
     # Public: Connect path elements to a back-end URI for this namespace.
     #
     # Examples
@@ -1145,22 +1067,6 @@ module OpenShift
         end
       end
       inst
-    end
-
-    # Public, update using a block
-    # The block is called for each key, value pair of the hash
-    # and uses the following parameters:
-    #    deletions   Array of keys to delete
-    #    updates     Hash of key->value pairs to add/update
-    #    k, v        Key and value of this iteration
-    def update_block
-      deletions = []
-      updates = {}
-      self.each do |k, v|
-        yield(deletions, updates, k, v)
-      end
-      self.delete_if { |k, v| deletions.include?(k) }
-      self.update(updates)
     end
 
   end
