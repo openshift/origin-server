@@ -6,7 +6,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin broker
 Name:          openshift-origin-broker-util
-Version: 1.9.2
+Version: 1.9.3
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -86,6 +86,14 @@ cp man/*.8 %{buildroot}%{_mandir}/man8/
 %{_mandir}/man8/oo-stats.8.gz
 
 %changelog
+* Mon May 20 2013 Dan McPherson <dmcphers@redhat.com> 1.9.3-1
+- Merge pull request #2540 from pravisankar/dev/ravi/bug963981
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 963981 - Fix app events controller Use canonical_name/canonical_namespace
+  for application/domain respectively when using find_by op.
+  (rpenta@redhat.com)
+- Fixes based on review by Ravi (abhgupta@redhat.com)
+
 * Thu May 16 2013 Adam Miller <admiller@redhat.com> 1.9.2-1
 - Fix for bug 963654 (abhgupta@redhat.com)
 - add parent_user_id to user collection for export (rchopra@redhat.com)
