@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Common
 Name:          rubygem-%{gem_name}
-Version: 1.8.1
+Version: 1.8.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -96,6 +96,13 @@ cp -a ./%{gem_dir}/* %{buildroot}%{gem_dir}/
 %doc %{gem_docdir}
 
 %changelog
+* Thu May 16 2013 Adam Miller <admiller@redhat.com> 1.8.2-1
+- Merge pull request #2491 from ironcladlou/dev/v2carts/private-endpoints-fix
+  (dmcphers+openshiftbot@redhat.com)
+- Escape early from endpoint creation when there are none to create
+  (ironcladlou@gmail.com)
+- Bug 958653 (lnader@redhat.com)
+
 * Wed May 08 2013 Adam Miller <admiller@redhat.com> 1.8.1-1
 - bump_minor_versions for sprint 28 (admiller@redhat.com)
 - Merge pull request #2341 from lnader/master

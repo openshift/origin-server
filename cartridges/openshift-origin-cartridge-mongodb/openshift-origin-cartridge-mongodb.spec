@@ -2,7 +2,7 @@
 
 Summary:       Embedded mongodb support for OpenShift
 Name:          openshift-origin-cartridge-mongodb
-Version: 1.8.1
+Version:       1.8.2
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -16,35 +16,23 @@ Requires:      rubygem(openshift-origin-node)
 Requires:      openshift-origin-node-util
 BuildArch:     noarch
 
-
 %description
 Provides mongodb cartridge support to OpenShift
-
 
 %prep
 %setup -q
 
-
 %build
 %__rm %{name}.spec
 
-
 %install
-%__rm -rf %{buildroot}
 %__mkdir -p %{buildroot}%{cartridgedir}
 %__cp -r * %{buildroot}%{cartridgedir}
-
-
-%clean
-%__rm -rf %{buildroot}
-
 
 %post
 %{_sbindir}/oo-admin-cartridge --action install --source %{cartridgedir}
 
-
 %files
-%defattr(-,root,root,-)
 %dir %{cartridgedir}
 %attr(0755,-,-) %{cartridgedir}/bin/
 %attr(0755,-,-) %{cartridgedir}
@@ -52,8 +40,13 @@ Provides mongodb cartridge support to OpenShift
 %doc %{cartridgedir}/COPYRIGHT
 %doc %{cartridgedir}/LICENSE
 
-
 %changelog
+* Thu May 16 2013 Adam Miller <admiller@redhat.com> 1.8.2-1
+- locking fixes and adjustments (dmcphers@redhat.com)
+- Add erb processing to managed_files.yml Also fixed and added some test cases
+  (fotios@redhat.com)
+- WIP Cartridge Refactor -- Cleanup spec files (jhonce@redhat.com)
+
 * Wed May 08 2013 Adam Miller <admiller@redhat.com> 1.8.1-1
 - bump_minor_versions for sprint 28 (admiller@redhat.com)
 

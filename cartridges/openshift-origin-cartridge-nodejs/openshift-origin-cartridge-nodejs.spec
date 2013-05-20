@@ -2,7 +2,7 @@
 
 Summary:       Provides Node.js support
 Name:          openshift-origin-cartridge-nodejs
-Version: 1.10.1
+Version:       1.10.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -24,7 +24,6 @@ BuildArch:     noarch
 %description
 Provides Node.js support to OpenShift. (Cartridge Format V2)
 
-
 %prep
 %setup -q
 
@@ -32,19 +31,13 @@ Provides Node.js support to OpenShift. (Cartridge Format V2)
 %__rm %{name}.spec
 
 %install
-%__rm -rf %{buildroot}
 %__mkdir -p %{buildroot}%{cartridgedir}
 %__cp -r * %{buildroot}%{cartridgedir}
-
-%clean
-%__rm -rf %{buildroot}
 
 %post
 %{_sbindir}/oo-admin-cartridge --action install --source %{cartridgedir}
 
-
 %files
-%defattr(-,root,root,-)
 %dir %{cartridgedir}
 %attr(0755,-,-) %{cartridgedir}/bin/
 %attr(0755,-,-) %{cartridgedir}/hooks/
@@ -53,8 +46,15 @@ Provides Node.js support to OpenShift. (Cartridge Format V2)
 %doc %{cartridgedir}/COPYRIGHT
 %doc %{cartridgedir}/LICENSE
 
-
 %changelog
+* Thu May 16 2013 Adam Miller <admiller@redhat.com> 1.10.2-1
+- Bug 963156 (dmcphers@redhat.com)
+- status call should echo expected message (asari.ruby@gmail.com)
+- locking fixes and adjustments (dmcphers@redhat.com)
+- Add erb processing to managed_files.yml Also fixed and added some test cases
+  (fotios@redhat.com)
+- WIP Cartridge Refactor -- Cleanup spec files (jhonce@redhat.com)
+
 * Wed May 08 2013 Adam Miller <admiller@redhat.com> 1.10.1-1
 - bump_minor_versions for sprint 28 (admiller@redhat.com)
 

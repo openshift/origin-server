@@ -9,7 +9,7 @@
 
 Summary:       OpenShift plugin for mcollective service
 Name:          rubygem-%{gem_name}
-Version: 1.9.1
+Version: 1.9.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -80,6 +80,18 @@ cp %{buildroot}/%{gem_dir}/gems/%{gem_name}-%{version}/conf/openshift-origin-msg
 %attr(0644,-,-) %ghost /etc/mcollective/client.cfg
 
 %changelog
+* Thu May 16 2013 Adam Miller <admiller@redhat.com> 1.9.2-1
+- Removing code dealing with namespace updates for applications
+  (abhgupta@redhat.com)
+- Merge pull request #2412 from pravisankar/dev/ravi/bug961220-misc
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 961220 - Modify error message to state that node profile cannot be
+  changed for *scalable* app gear with oo-admin-move (rpenta@redhat.com)
+- fix bz961216 and others related to url based apps (rchopra@redhat.com)
+- Merge pull request #2400 from rajatchopra/master
+  (dmcphers+openshiftbot@redhat.com)
+- fix bz959221 - embedded cartridge map (rchopra@redhat.com)
+
 * Wed May 08 2013 Adam Miller <admiller@redhat.com> 1.9.1-1
 - bump_minor_versions for sprint 28 (admiller@redhat.com)
 

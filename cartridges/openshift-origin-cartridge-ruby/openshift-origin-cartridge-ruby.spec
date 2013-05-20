@@ -6,13 +6,13 @@
 %global cartridgedir %{_libexecdir}/openshift/cartridges/v2/ruby
 
 Name:          openshift-origin-cartridge-ruby
-Version: 0.4.1
+Version:       0.4.2
 Release:       1%{?dist}
 Summary:       Ruby cartridge
 Group:         Development/Languages
 License:       ASL 2.0
 URL:           https://www.openshift.com
-Source0:       http://mirror.openshift.com/pub/origin-server/source/%{name}/%{name}-%{version}.tar.gz
+Source0:       http://mirror.openshift.com/pub/openshift-origin/source/%{name}/%{name}-%{version}.tar.gz
 Requires:      gcc-c++
 Requires:      libev
 Requires:      libev-devel
@@ -144,28 +144,21 @@ BuildArch:     noarch
 %description
 Ruby cartridge for OpenShift. (Cartridge Format V2)
 
-
 %prep
 %setup -q
 
 %build
 %__rm %{name}.spec
 
-
 %install
-%__rm -rf %{buildroot}
 %__mkdir -p %{buildroot}%{cartridgedir}
 %__cp -r * %{buildroot}%{cartridgedir}
-
-
-%clean
-%__rm -rf %{buildroot}
 
 %post
 %{_sbindir}/oo-admin-cartridge --action install --source %{cartridgedir}
 
+
 %files
-%defattr(-,root,root,-)
 %dir %{cartridgedir}
 %attr(0755,-,-) %{cartridgedir}/bin/
 %attr(0755,-,-) %{cartridgedir}/hooks/
@@ -175,6 +168,22 @@ Ruby cartridge for OpenShift. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Thu May 16 2013 Adam Miller <admiller@redhat.com> 0.4.2-1
+- Bug 963634 - Need to create all 1.9.3 env vars in setup (jhonce@redhat.com)
+- process-version -> update-configuration (dmcphers@redhat.com)
+- Bug 963156 (dmcphers@redhat.com)
+- Implement status function for ruby v2 cart based on simple curl.
+  (asari.ruby@gmail.com)
+- locking fixes and adjustments (dmcphers@redhat.com)
+- Add erb processing to managed_files.yml Also fixed and added some test cases
+  (fotios@redhat.com)
+- Card online_runtime_297 - Allow cartridges to use more resources
+  (jhonce@redhat.com)
+- WIP Cartridge Refactor -- Cleanup spec files (jhonce@redhat.com)
+- Card online_runtime_297 - Allow cartridges to use more resources
+  (jhonce@redhat.com)
+- Bug 957247 (asari.ruby@gmail.com)
+
 * Wed May 08 2013 Adam Miller <admiller@redhat.com> 0.4.1-1
 - bump_minor_versions for sprint 28 (admiller@redhat.com)
 

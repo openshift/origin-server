@@ -45,7 +45,7 @@ function is_node_service_running() {
 function is_node_module_installed() {
     module_name=${1:-""}
     if [ -n "$module_name" ]; then
-        pushd "$cartridge_dir" > /dev/null
+        pushd "$OPENSHIFT_NODEJS_DIR" > /dev/null
         if [ -d $m ] ; then
             popd > /dev/null
             return 0
@@ -229,7 +229,7 @@ function is_supervisor_running() {
     [ -f "$OPENSHIFT_NODEJS_PID_DIR/node.pid" ]  ||  return 1
 
     #  Have a valid pid, use it - otherwise return not supervisor.
-    nodepid=$(cat "${cartridge_dir}/run/node.pid")
+    nodepid=$(cat "${OPENSHIFT_NODEJS_PID_DIR}/node.pid")
     [ -n "$nodepid" ]  ||  return 1
 
     #  Is the pid a supervisor process.

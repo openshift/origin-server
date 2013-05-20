@@ -1,13 +1,13 @@
 %global cartridgedir %{_libexecdir}/openshift/cartridges/v2/python
 
-Name: openshift-origin-cartridge-python
-Version: 0.4.1
-Release: 1%{?dist}
-Summary: Python cartridge
-Group: Development/Languages
-License: ASL 2.0
-URL: https://www.openshift.com
-Source0: http://mirror.openshift.com/pub/origin-server/source/%{name}/%{name}-%{version}.tar.gz
+Name:          openshift-origin-cartridge-python
+Version:       0.4.2
+Release:       1%{?dist}
+Summary:       Python cartridge
+Group:         Development/Languages
+License:       ASL 2.0
+URL:           https://www.openshift.com
+Source0:       http://mirror.openshift.com/pub/openshift-origin/source/%{name}/%{name}-%{version}.tar.gz
 Requires:      rubygem(openshift-origin-node)
 Requires:      openshift-origin-node-util
 Requires:      python
@@ -30,7 +30,7 @@ Requires:      gcc-gfortran
 Requires:      freetype-devel
 Requires:      atlas-devel
 Requires:      lapack-devel
-BuildArch: noarch
+BuildArch:     noarch
 
 %description
 Python cartridge for OpenShift. (Cartridge Format V2)
@@ -42,22 +42,14 @@ Python cartridge for OpenShift. (Cartridge Format V2)
 %build
 %__rm %{name}.spec
 
-
 %install
-%__rm -rf %{buildroot}
 %__mkdir -p %{buildroot}%{cartridgedir}
 %__cp -r * %{buildroot}%{cartridgedir}
-
-
-%clean
-%__rm -rf %{buildroot}
-
 
 %post
 %{_sbindir}/oo-admin-cartridge --action install --source %{cartridgedir}
 
 %files
-%defattr(-,root,root,-)
 %dir %{cartridgedir}
 %attr(0755,-,-) %{cartridgedir}/bin/
 %attr(0755,-,-) %{cartridgedir}/hooks/
@@ -67,6 +59,28 @@ Python cartridge for OpenShift. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Thu May 16 2013 Adam Miller <admiller@redhat.com> 0.4.2-1
+- Include bash sdk in control file. (mrunalp@gmail.com)
+- Merge pull request #2503 from danmcp/master
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #2492 from mrunalp/dev/pybugs
+  (dmcphers+openshiftbot@redhat.com)
+- process-version -> update-configuration (dmcphers@redhat.com)
+- Bug 963156 (dmcphers@redhat.com)
+- Move env var creation to correct install file. (mrunalp@gmail.com)
+- locking fixes and adjustments (dmcphers@redhat.com)
+- Add erb processing to managed_files.yml Also fixed and added some test cases
+  (fotios@redhat.com)
+- Merge pull request #2442 from mrunalp/bugs/python_status
+  (dmcphers+openshiftbot@redhat.com)
+- Card online_runtime_297 - Allow cartridges to use more resources
+  (jhonce@redhat.com)
+- Fix python control status. (mrunalp@gmail.com)
+- WIP Cartridge Refactor -- Cleanup spec files (jhonce@redhat.com)
+- Card online_runtime_297 - Allow cartridges to use more resources
+  (jhonce@redhat.com)
+- Python migration WIP. (mrunalp@gmail.com)
+
 * Wed May 08 2013 Adam Miller <admiller@redhat.com> 0.4.1-1
 - bump_minor_versions for sprint 28 (admiller@redhat.com)
 

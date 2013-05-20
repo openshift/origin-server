@@ -40,7 +40,7 @@ class DomainTest < ActiveSupport::TestCase
     @domain = Domain.new(namespace: namespace, owner:@user)
     @domain.save
     
-    @domain = Domain.find_by(owner: @user, canonical_namespace: namespace)
+    @domain = Domain.find_by(owner: @user, canonical_namespace: namespace.downcase)
     assert_equal(namespace, @domain.namespace)
     
     domains = Domain.where(owner: @user)
@@ -78,6 +78,7 @@ class DomainTest < ActiveSupport::TestCase
   
   test "add and remove ssh keys to domain" do
     namespace = "ns#{@random}"
+    namespace.downcase!
     @domain = Domain.new(namespace: namespace, owner:@user)
     @domain.save
     
@@ -105,6 +106,7 @@ class DomainTest < ActiveSupport::TestCase
   
   test "add and remove env variables to domain" do
     namespace = "ns#{@random}"
+    namespace.downcase!
     @domain = Domain.new(namespace: namespace, owner:@user)
     @domain.save
     
@@ -129,6 +131,7 @@ class DomainTest < ActiveSupport::TestCase
   
   test "update domain" do
     namespace = "ns#{@random}"
+    namespace.downcase!
     @domain = Domain.new(namespace: namespace, owner:@user)
     @domain.save
     

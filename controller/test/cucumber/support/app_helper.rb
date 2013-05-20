@@ -35,11 +35,19 @@ module AppHelper
       @scalable = scalable
     end
 
-    def self.create_unique(type, name="test", scalable=false)
+    RANDOM_RANGE = [('a'..'z'),('A'..'Z'),("1".."9")].inject([]){|ret,v| ret |= v.to_a }
+    def self.random_string(len = 8, charspace = RANDOM_RANGE)
+      # Make sure this is an Array in case we pass a range
+      charspace = charspace.to_a
+      (0...len).map{ charspace[rand(charspace.length)] }.join
+    end
+
+    def self.create_unique(type, name=nil, scalable=false)
+      chars = ("1".."9").to_a
       loop do
         # Generate a random username
-        chars = ("1".."9").to_a
-        namespace = "ci" + Array.new(8, '').collect{chars[rand(chars.size)]}.join
+        name ||= random_string(8, chars)
+        namespace = "ci" + random_string(8, chars)
         login = "cucumber-test_#{namespace}@example.com"
         app = TestApp.new(namespace, login, type, name, DEFPASSWD, Process.pid, scalable)
         unless app.reserved?
@@ -184,7 +192,7 @@ jenkins_build    = #{@jenkins_build}
         if !curl_head_success?(url)
           return true
         else
-          $logger.info("Connection still accessible / retry #{i} of #{max_tries} / #{hostname}")
+          $logger.info("Connection still accessible / retry #{i} of #{max_retries} / #{hostname}")
           sleep 1
         end
       end

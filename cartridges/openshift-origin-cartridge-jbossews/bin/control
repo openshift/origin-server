@@ -57,7 +57,7 @@ function ishttpup() {
 function start_app() {
     # Check for running app
     if isrunning; then
-        echo "Application is already running" 1>&2
+        echo "The jbossews cartridge is already running" 1>&2
     else
         # Start
         export CATALINA_HOME=$OPENSHIFT_JBOSSEWS_DIR
@@ -77,8 +77,7 @@ function start_app() {
 
 function stop_app() {
     if ! isrunning; then
-        jbpid=$(cat $JBOSS_PID_FILE);
-        echo "Application($jbpid) is already stopped" 1>&2
+        echo "The jbossews cartridge is already stopped" 1>&2
     elif [ -f "$JBOSS_PID_FILE" ]; then
         pid=$(cat $JBOSS_PID_FILE);
         echo "Sending SIGTERM to jboss:$pid ..." 1>&2
@@ -90,7 +89,7 @@ function stop_app() {
 
 function threaddump() {
     if ! isrunning; then
-        echo "Application is stopped"
+        echo "The jbossews cartridge is stopped"
         exit 1
     elif [ -f "$JBOSS_PID_FILE" ]; then
         pid=$(cat $JBOSS_PID_FILE);

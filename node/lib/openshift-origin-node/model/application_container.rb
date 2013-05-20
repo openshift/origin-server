@@ -458,11 +458,6 @@ module OpenShift
         ident                = primary_cart_env.keys.grep(/^OPENSHIFT_.*_IDENT/)
         _, _, version, _     = Runtime::Manifest.parse_ident(primary_cart_env[ident.first])
 
-        @cartridge_model.post_setup(@cartridge_model.primary_cartridge,
-                                    version,
-                                    out: options[:out],
-                                    err: options[:err])
-
         @cartridge_model.post_install(@cartridge_model.primary_cartridge,
                                       version,
                                       out: options[:out],

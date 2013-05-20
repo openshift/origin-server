@@ -19,10 +19,6 @@ days=${1:-15}
 
 export PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin:/root/bin:$PATH
 
-# Get the libra_server
-source /etc/openshift/node.conf
-source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
-
 function get_appids_to_idle() {
     /usr/sbin/oo-list-stale $days 2>/dev/null | /bin/awk '{print $1}'
 }
@@ -31,14 +27,23 @@ function print_stats() {
     (
         echo -n "$1: " ;
         /usr/sbin/oo-idler-stats
-    ) | /usr/bin/logger -p local0.notice -t origin_auto_idler
+    ) | /usr/bin/logger -p local0.notice -t oo-autoidler
 }
 
-print_stats "Before"
+(
+    if ! flock -e -n 9
+    then
+      /usr/bin/logger -p local0.warn -t oo-autoidler "previous instance of oo-autoidler is still running"
+      exit 1
+    fi
 
-for user in `get_appids_to_idle`
-do
-    /usr/sbin/oo-idler -n -u $user > /dev/null 2>&1
-done
+    print_stats "Before"
 
-print_stats "After"
+    for user in `get_appids_to_idle`
+    do
+        /usr/sbin/oo-idler -n -u $user > /dev/null 2>&1
+    done
+
+    print_stats "After"
+) 9> /var/lock/oo-autoidler
+exit 0

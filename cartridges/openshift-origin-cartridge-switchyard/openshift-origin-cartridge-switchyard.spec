@@ -2,7 +2,7 @@
 
 Summary:       Provides embedded switchyard support
 Name:          openshift-origin-cartridge-switchyard
-Version: 0.2.1
+Version:       0.2.2
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -27,7 +27,6 @@ Provides switchyard cartridge support to OpenShift
 
 
 %install
-%__rm -rf %{buildroot}
 %__mkdir -p %{buildroot}%{cartridgedir}
 %__cp -r * %{buildroot}%{cartridgedir}
 
@@ -43,12 +42,8 @@ alternatives --set switchyard-0.6 /usr/share/switchyard
 
 %{_sbindir}/oo-admin-cartridge --action install --source %{cartridgedir}
 
-%clean
-%__rm -rf %{buildroot}
-
 
 %files
-%defattr(-,root,root,-)
 %dir %{cartridgedir}
 %attr(0755,-,-) %{cartridgedir}/bin/
 %attr(0755,-,-) %{cartridgedir}
@@ -57,6 +52,15 @@ alternatives --set switchyard-0.6 /usr/share/switchyard
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Thu May 16 2013 Adam Miller <admiller@redhat.com> 0.2.2-1
+- move SY envs to erbs (bdecoste@gmail.com)
+- move SY envs to erbs (bdecoste@gmail.com)
+- locking fixes and adjustments (dmcphers@redhat.com)
+- Add erb processing to managed_files.yml Also fixed and added some test cases
+  (fotios@redhat.com)
+- WIP Cartridge Refactor -- Cleanup spec files (jhonce@redhat.com)
+- fix module path (bdecoste@gmail.com)
+
 * Wed May 08 2013 Adam Miller <admiller@redhat.com> 0.2.1-1
 - bump_minor_versions for sprint 28 (admiller@redhat.com)
 

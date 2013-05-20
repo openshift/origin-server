@@ -22,7 +22,7 @@ module SQLHelper
       '-d' => '$OPENSHIFT_APP_NAME' # always use proper db name
     }
 
-    cmd = "rhcsh #{@psql_helper ? "psql" : "/usr/bin/psql"}"
+    cmd = @psql_helper ? "rhcsh psql" : "/usr/bin/psql"
 
     # SCP the file so we don't have to worry about escaping SQL
     if @app.respond_to?(:scp_content)
@@ -46,7 +46,7 @@ module SQLHelper
     # Turn opts into '-k val' format
     opts = opts.inject(""){|str,(key,val)| "#{str} #{key} #{val}" }.strip
 
-    cmd = "-o LogLevel=quiet \"#{cmd} #{opts} 2>/dev/null\""
+    cmd = "#{cmd} #{opts}"
     cmd.gsub!(/\$/,'\\$')
 
     output = if @app && @app.respond_to?(:ssh_command)

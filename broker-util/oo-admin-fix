@@ -85,11 +85,11 @@ Rails.configuration.analytics[:enabled] = false
 Rails.configuration.msg_broker[:rpc_options][:disctimeout] = 20
 Rails.configuration.msg_broker[:rpc_options][:timeout] = 600
 
-def lock_user_without_app(user, timeout=30)
+def lock_user_without_app(user_id, timeout=30)
   begin
     now = Time.now.to_i
-    lock = Lock.with(consistency: :strong).find_or_create_by( :user_id => user._id )
-    query = {:user_id => user._id, "$or" => [{:locked => false}, {:timeout.lt => now}], "app_ids.0" => {"$exists" => false}}
+    lock = Lock.with(consistency: :strong).find_or_create_by( :user_id => user_id )
+    query = {:user_id => user_id, "$or" => [{:locked => false}, {:timeout.lt => now}], "app_ids" => {}}
     updates = {"$set" => { locked: true, timeout: (now + timeout) }}
     lock = Lock.with(consistency: :strong).where(query).find_and_modify(updates, new: true)
     return (not lock.nil?)
@@ -98,9 +98,9 @@ def lock_user_without_app(user, timeout=30)
   end
 end
   
-def unlock_user_without_app(user)
+def unlock_user_without_app(user_id)
   begin
-    query = {:user_id => user._id, :locked => true}
+    query = {:user_id => user_id, :locked => true}
     updates = {"$set" => { "locked" => false }}
     lock = Lock.with(consistency: :strong).where(query).find_and_modify(updates, new: true)
     return (not lock.nil?)
@@ -130,18 +130,17 @@ end
 def reset_consumed_gears(user_id)
   got_lock = false
   success = false
-  user = CloudUser.with(consistency: :strong).find_by(:_id => user_id)
-  got_lock = lock_user_without_app(user)
+  got_lock = lock_user_without_app(user_id)
   
   if got_lock
     begin
-      user_consumed_gears, app_actual_gears = check_consumed_gears(user._id)
+      user_consumed_gears, app_actual_gears = check_consumed_gears(user_id)
       if user_consumed_gears != app_actual_gears
-        user.set :consumed_gears, app_actual_gears
+        CloudUser.where(:_id => user_id).set(:consumed_gears, app_actual_gears)
       end
       success = true
     ensure
-      unlock_user_without_app(user)
+      unlock_user_without_app(user_id)
     end
   end
   return success
@@ -200,6 +199,7 @@ ret = []
 user_selection = {:fields => ["login", "ssh_keys.name", "ssh_keys.content", "consumed_gears"], 
                   :timeout => false}
 user_selection_primary = user_selection.dup
+user_selection_primary[:fields] = user_selection[:fields].dup
 user_selection_primary[:read] = :primary
 
 OpenShift::DataStore.find(:cloud_users, {}, user_selection) do |user|
@@ -427,7 +427,7 @@ error_consumed_gears_user_ids.uniq!
 
 puts no_error ? "Success" : "Check failed.\n#{summary.join("\n")}"
 
-puts ""
+puts "" unless no_error
 puts "Total #{error_ssh_keys_app_uuids.length} applications have ssh key mismatches." if error_ssh_keys_app_uuids.length > 0
 puts "Total #{error_consumed_gears_user_ids.length} users have consumed gear mismatches." if error_consumed_gears_user_ids.length > 0
 
@@ -444,7 +444,7 @@ unless error_unused_district_uid_map.empty?
   error_unused_district_uid_map.each { |district_uuid, uids| total_unused_uids += uids.length }
   puts "Total #{total_unused_uids} unused UIDs across #{total_affected_districts} districts."
 end
-
+puts "" unless no_error
 
 # check if we need to fix the ssh key mismatches
 fixed_app_count = 0
@@ -489,9 +489,9 @@ unless fix_consumed_gears.nil? or report_only or error_consumed_gears_user_ids.l
         failed_user_count += 1
       end
     rescue Mongoid::Errors::DocumentNotFound
-      puts "FAIL" if verbose
+      puts "OK" if verbose
       puts "User '#{user_id}' not found in the database"
-      failed_user_count += 1
+      fixed_user_count += 1
     rescue Exception => ex
       puts "FAIL" if verbose
       puts "Failed to fix consumed gears mismatches for user '#{user_id}': #{ex.message}"
@@ -515,8 +515,10 @@ unless fix_district_uids.nil? or report_only or error_unreserved_district_uid_ma
       begin
         app = Application.find_by(query)
         Application.run_in_application_lock(app) do
-          app.reload
-          if app.group_instance.gears.where(uid: gear_uid).count > 0
+          # check if this app still has the gear UID
+          verify_query = {"_id" => app._id}
+          verify_query.merge! query
+          if Application.where(verify_query).count > 0
             reserved_uid = District::reserve_uid(district_uuid, gear_uid)
             if reserved_uid.nil?
               puts "FAIL" if verbose
@@ -526,6 +528,10 @@ unless fix_district_uids.nil? or report_only or error_unreserved_district_uid_ma
               puts "OK" if verbose
               fixed_unreserved_uid_count += 1
             end
+          else
+            puts "OK" if verbose
+            puts "Gear with UID #{gear_uid} not found within application with Id #{app._id} in mongo"
+            fixed_unreserved_uid_count += 1
           end
         end
       rescue Mongoid::Errors::DocumentNotFound
@@ -559,18 +565,18 @@ unless fix_district_uids.nil? or report_only or error_unused_district_uid_map.em
   end
 end
 
+puts "" unless no_error or report_only
+puts "Fixed ssh key mismatches for #{fixed_app_count} applications." if fixed_app_count > 0
+puts "Failed to fix ssh key mismatches for #{failed_app_count} applications." if failed_app_count > 0
 
-puts "\nFixed ssh key mismatches for #{fixed_app_count} applications." if fixed_app_count > 0
-puts "Failed to fix ssh key mismatches for #{failed_app_count} applications.\n" if failed_app_count > 0
+puts "Fixed consumed gears mismatches for #{fixed_user_count} user." if fixed_user_count > 0
+puts "Failed to fix consumed gears mismatches for #{failed_user_count} applications." if failed_user_count > 0
 
-puts "\nFixed consumed gears mismatches for #{fixed_user_count} user." if fixed_user_count > 0
-puts "Failed to fix consumed gears mismatches for #{failed_user_count} applications.\n" if failed_user_count > 0
-
-puts "\nFixed #{fixed_unreserved_uid_count} unreserved UIDs across all districts." if fixed_unreserved_uid_count > 0
+puts "Fixed #{fixed_unreserved_uid_count} unreserved UIDs across all districts." if fixed_unreserved_uid_count > 0
 puts "Failed to fix #{failed_unreserved_uid_count} unreserved UIDs across all districts." if failed_unreserved_uid_count > 0
 
-puts "\nFixed #{fixed_unused_uid_count} unused UIDs across all districts." if fixed_unused_uid_count > 0
-
+puts "Fixed #{fixed_unused_uid_count} unused UIDs across all districts." if fixed_unused_uid_count > 0
+puts "" unless no_error or report_only
 
 total_time = (Time.now.to_f * 1000).to_i - start_time
 puts "Total time: #{total_time.to_f/1000}s"

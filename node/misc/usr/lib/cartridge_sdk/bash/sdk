@@ -239,23 +239,6 @@ function ensure_valid_httpd_process() {
     killall_matching_httpds "$2"
 }
 
-function set_uservars() {
-    while [ $# -gt 0 ]; do
-        local arg=$1
-        shift
-        local nvs=$(echo "$arg" | tr "\n" ";" | cut -f 2- -d '=' | sed "s/'\(.*\)'/\\1/")
-        echo "$nvs" | tr ";" "\n" |  while read line; do
-            [ -z "$line" ]  &&  continue
-            #  Got a name-value pair - add to userenv.
-            local name=$(echo "$line" | cut -f 1 -d '=')
-            local value=$(echo "$line" | cut -f 2- -d '=')
-            if [ -n "$name" ]; then
-                echo "$value" > $OPENSHIFT_HOMEDIR/.env/.uservars/$name
-            fi
-        done
-    done
-}
-
 function hot_deploy_marker_is_present() {
     if [ -f "${OPENSHIFT_REPO_DIR}/.openshift/markers/hot_deploy" ]; then
         return 0

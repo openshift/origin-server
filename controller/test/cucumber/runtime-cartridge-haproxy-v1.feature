@@ -1,4 +1,4 @@
-@runtime_other4
+@runtime_extended_other2
 @runtime
 Feature: HAProxy Application Sub-Cartridge
   @rhel-only

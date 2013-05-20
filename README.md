@@ -1,7 +1,7 @@
-Openshift Origin - Server Components (Console/Broker/Node)
-============================
+OpenShift Origin - Platform as a Service
+========================================
 
-Origin-server contains the core server components of the OpenShift service
+This repository contains the core components of the OpenShift service
 released under the [OpenShift Origin source
 project](https://openshift.redhat.com/community/open-source).  The
 components in this repository are sufficient to self host an OpenShift
@@ -33,6 +33,8 @@ SSL termination and deployment
 A [comprehensive architecture
 overview](https://openshift.redhat.com/community/wiki/architecture-overview)
 can be found on our wiki.
+
+The primary command line interface to OpenShift is [RHC](https://github.com/openshift/rhc).
 
 
 Contributing
