@@ -765,8 +765,14 @@ module OpenShift
               next
             end
 
+            # Only web proxy cartridges can override the default mapping
+            if mapping.frontend == "" && (!cartridge.web_proxy?) && (cartridge.name != primary_cartridge.name)
+              logger.info("Skipping default mapping as primary cartridge owns it for the application")
+              next
+            end
+
             logger.info("Connecting frontend mapping for #{@user.uuid}/#{cartridge.name}: "\
-                      "#{mapping.frontend} => #{backend_uri} with options: #{mapping.options}")
+                      "[#{mapping.frontend}] => [#{backend_uri}] with options: #{mapping.options}")
             frontend.connect(mapping.frontend, backend_uri, options)
           end
         end
