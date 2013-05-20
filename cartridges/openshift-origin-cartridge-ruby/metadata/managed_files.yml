@@ -5,6 +5,8 @@ locked_files:
 - metadata/
 - metadata/*
 - env/
+- env/OPENSHIFT_RUBY_DIR
+- env/OPENSHIFT_RUBY_LOG_DIR
 - etc/
 processed_templates:
 - '**/*.erb'
