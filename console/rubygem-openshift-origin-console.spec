@@ -38,6 +38,10 @@ BuildRequires: %{?scl:%scl_prefix}build
 BuildRequires: scl-utils-build
 BuildRequires: %{?scl:%scl_prefix}rubygem(rails)
 BuildRequires: %{?scl:%scl_prefix}rubygem(compass-rails)
+BuildRequires: %{?scl:%scl_prefix}rubygem(coffee-rails)
+BuildRequires: %{?scl:%scl_prefix}rubygem(sass-rails)
+BuildRequires: %{?scl:%scl_prefix}rubygem(uglifier-rails)
+BuildRequires: %{?scl:%scl_prefix}rubygem(jquery-rails)
 BuildRequires: %{?scl:%scl_prefix}rubygem(sprockets)
 BuildRequires: %{?scl:%scl_prefix}rubygem(rdiscount)
 BuildRequires: %{?scl:%scl_prefix}rubygem(formtastic)
