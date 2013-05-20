@@ -18,12 +18,15 @@ cp ${OPENSHIFT_JBOSSEAP_DIR}/standalone/configuration/standalone.xml ${OPENSHIFT
 
 sed -i "s/{APP_NAME}/${OPENSHIFT_APP_NAME}/g" ${OPENSHIFT_JBOSSEAP_DIR}/template/pom.xml
 
-cp ${OPENSHIFT_JBOSSEAP_DIR}/template/deployments/ROOT.war $OPENSHIFT_JBOSSEAP_DIR/standalone/deployments
+# Create and install the initial template WAR
+pushd $OPENSHIFT_JBOSSEAP_DIR/versions/${version}/template/src/main/webapp 1>/dev/null
+  jar cvf $OPENSHIFT_JBOSSEAP_DIR/standalone/deployments/ROOT.war ./*
+popd 1> /dev/null
 
 JBOSS_HOME=/etc/alternatives/jbosseap-$version
-pushd $OPENSHIFT_JBOSSEAP_DIR > /dev/null
+pushd $OPENSHIFT_JBOSSEAP_DIR 1> /dev/null
   ln -s ${JBOSS_HOME}/jboss-modules.jar
   ln -s ${JBOSS_HOME}/modules
-popd > /dev/null
+popd 1> /dev/null
 
 update-configuration java7
