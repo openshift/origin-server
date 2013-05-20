@@ -16,7 +16,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.9.2
+Version: 1.9.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -291,6 +291,39 @@ fi
 %attr(0755,-,-) /etc/cron.monthly/openshift-origin-cron-monthly
 
 %changelog
+* Mon May 20 2013 Dan McPherson <dmcphers@redhat.com> 1.9.3-1
+- WIP Cartridge Refactor - Update documentation (jhonce@redhat.com)
+- WIP Cartridge Refactor - V2 -> V2 Migration (jhonce@redhat.com)
+- Merge pull request #2543 from rmillner/BZ957257
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #2539 from ironcladlou/bz/963646
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #2535 from abhgupta/abhgupta_dev_2
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 957257 - add login message about running tidy. (rmillner@redhat.com)
+- Merge pull request #2533 from ironcladlou/bz/964265
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 963646: Quote env var contents to avoid undesirable array evals
+  (ironcladlou@gmail.com)
+- Preventing failures in deletion of partially created gears
+  (abhgupta@redhat.com)
+- online_runtime_296 - Change the nproc limit to soft per request but still
+  allow gear teardown to set a hard limit of 0 (rmillner@redhat.com)
+- Bug 964265: Ignore symlinks when detecting cart dirs in a gear
+  (ironcladlou@gmail.com)
+- WIP Cartridge Refactor - Allow CartridgeRepository#instantiate_cartridge
+  overlay existing cartridge (jhonce@redhat.com)
+- Merge pull request #2528 from pmorie/bugs/963286
+  (dmcphers+openshiftbot@redhat.com)
+- Fix bug 963286: remove uservars from v2 (pmorie@gmail.com)
+- Bug 961785 - Cartridge URL install failed (jhonce@redhat.com)
+- Merge pull request #2520 from jwhonce/wip/rm_post_setup
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #2518 from ironcladlou/bz/963637
+  (dmcphers+openshiftbot@redhat.com)
+- WIP Cartridge Refactor - remove post-setup support (jhonce@redhat.com)
+- Remove defunct test (ironcladlou@gmail.com)
+
 * Thu May 16 2013 Adam Miller <admiller@redhat.com> 1.9.2-1
 - Sorting the rubygem-openshift-origin-node deps (bleanhar@redhat.com)
 - Bug 963593 - rubygem-openshift-origin-node depends on git
