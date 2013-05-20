@@ -2,7 +2,7 @@
 
 Summary:       Provides JBossEWS2.0 support
 Name:          openshift-origin-cartridge-jbossews
-Version:       0.4.2
+Version:       0.4.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -75,6 +75,11 @@ alternatives --set jbossews-2.0 /usr/share/tomcat7
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Mon May 20 2013 Dan McPherson <dmcphers@redhat.com> 0.4.3-1
+- Bug 964093: Generate OPENSHIFT_JBOSSEWS_VERSION during jbossews install
+  (ironcladlou@gmail.com)
+- spec file cleanup (tdawson@redhat.com)
+
 * Thu May 16 2013 Adam Miller <admiller@redhat.com> 0.4.2-1
 - Bug 962324: Fix jbossews stop logic to tolerate missing pidfile
   (ironcladlou@gmail.com)
