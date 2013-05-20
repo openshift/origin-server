@@ -5,6 +5,7 @@ locked_files:
 - metadata/
 - metadata/*
 - env/
+- env/*
 - etc/
 processed_templates:
 - '**/*.erb'

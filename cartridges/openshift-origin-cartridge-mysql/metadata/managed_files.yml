@@ -4,9 +4,8 @@ snapshot_exclusions:
 locked_files:
 - bin/
 - bin/*
-- env/OPENSHIFT_MYSQL_DB_USERNAME
-- env/OPENSHIFT_MYSQL_DB_PASSWORD
-- env/OPENSHIFT_MYSQL_DB_URL
+- env/
+- env/*
 - metadata/
 - metadata/*
 - hooks/

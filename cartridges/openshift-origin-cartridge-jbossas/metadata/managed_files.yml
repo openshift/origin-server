@@ -5,7 +5,9 @@ locked_files:
 - metadata/
 - metadata/*
 - env/
+- env/OPENSHIFT_JBOSSAS_DIR
 - env/OPENSHIFT_JBOSSAS_LOG_DIR
+- env/OPENSHIFT_JBOSSAS_JDK*
 - env/OPENSHIFT_JBOSSAS_VERSION
 - env/M2_HOME
 processed_templates:
