@@ -2,6 +2,7 @@
 @runtime_extended
 @runtime_extended2
 @rhel-only
+@not-enterprise
 @jboss
 Feature: Cartridge Lifecycle JBossAS Verification Tests
   Scenario: Application Creation
