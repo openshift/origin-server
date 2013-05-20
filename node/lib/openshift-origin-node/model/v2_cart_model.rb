@@ -191,9 +191,9 @@ module OpenShift
       end
 
       # Ensure we're not in the gear's directory
-      Dir.chdir(@config.get("GEAR_BASE_DIR")) {
-        @user.destroy
-      }
+      Dir.chdir(@config.get("GEAR_BASE_DIR"))
+      
+      @user.destroy
 
       # FIXME: V1 contract is there a better way?
       [buffer, '', 0]
@@ -434,15 +434,22 @@ module OpenShift
         write_environment_variables(File.join(@user.homedir, '.env'), envs)
       end
 
-      mcs_label = Utils::SELinux.get_mcs_label(@user.uid)
-
       # Gear level actions: Placed here to be off the V1 code path...
       old_path  = File.join(@user.homedir, '.env', 'PATH')
       File.delete(old_path) if File.file? old_path
 
-      PathUtils.oo_chown_R(@user.uid, @user.gid, target)
+      secure_cartridge(@user.uid, @user.gid, target)
+
+      logger.info("Created cartridge directory #{@user.uuid}/#{cartridge.directory}")
+      nil
+    end
+
+    def secure_cartridge(uid, gid=uid, target)
+      PathUtils.oo_chown_R(uid, gid, target)
+
+      mcs_label = Utils::SELinux.get_mcs_label(uid)
       Utils::SELinux.set_mcs_label_R(mcs_label, target)
-      Utils::SELinux.clear_mcs_label(Dir.glob(File.join(target, 'bin', '*')))
+      #Utils::SELinux.clear_mcs_label(Dir.glob(File.join(target, 'bin', '*')))
 
       # BZ 950752
       # Find out if we can have upstream set a context for /var/lib/openshift/*/*/bin/*.
@@ -451,9 +458,6 @@ module OpenShift
           "chcon system_u:object_r:bin_t:s0 #{File.join(target, 'bin', '*')}",
           expected_exitstatus: 0
       )
-
-      logger.info("Created cartridge directory #{@user.uuid}/#{cartridge.directory}")
-      nil
     end
 
     ##
@@ -785,9 +789,9 @@ module OpenShift
 
       Dir[PathUtils.join(@user.homedir, "*")].each do |cart_dir|
         next if cart_dir.end_with?('app-root') || cart_dir.end_with?('git') ||
-            (not File.directory? cart_dir)
+            (not File.directory? cart_dir) || File.symlink?(cart_dir)
         yield cart_dir
-      end
+      end if @user.homedir and File.exist?(@user.homedir)
     end
 
     def do_control(action, cartridge, options={})

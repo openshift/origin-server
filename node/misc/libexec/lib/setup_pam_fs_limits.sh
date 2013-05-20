@@ -38,7 +38,7 @@ EOF
 #Each line describes a limit for a user in the form:
 #
 #<domain>        <type>  <item>  <value>
-${USERNAME}     hard    nproc   ${LIMITS_NPROC}
+${USERNAME}     soft    nproc   ${LIMITS_NPROC}
 EOF"
 
     fi
@@ -48,11 +48,17 @@ EOF"
 	VALUE=`eval echo \\$limits_$KEY`
 	if [ -n "$VALUE" ]
 	then
+            if [ "$KEY" == "nproc" -a "$VALUE" != "0" ]
+            then
+                limittype="soft"
+            else
+                limittype="hard"
+            fi
 	    if [ -z "${NOOP}" ]
-        then
-		    echo "${USERNAME} hard $KEY $VALUE" >> ${LIMITSFILE}
-        else
-		    echo "echo \"${USERNAME} hard $KEY $VALUE\" >> ${LIMITSFILE}"
+            then
+		echo "${USERNAME} $limittype $KEY $VALUE" >> ${LIMITSFILE}
+            else
+		echo "echo \"${USERNAME} $limittype $KEY $VALUE\" >> ${LIMITSFILE}"
 	    fi
 	fi
     done

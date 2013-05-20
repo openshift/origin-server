@@ -106,7 +106,7 @@ class AppEventsController < BaseController
       return render_exception(e)
     end
 
-    @application = Application.find_by(domain: @domain, canonical_name: @application.name)
+    @application.with(consistency: :strong).reload
     app = get_rest_application(@application)
     @reply = new_rest_reply(:ok, "application", app)
     message = Message.new("INFO", msg, 0)

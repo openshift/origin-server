@@ -2,7 +2,7 @@
 
 Summary:       phpMyAdmin support for OpenShift
 Name:          openshift-origin-cartridge-phpmyadmin
-Version: 1.9.2
+Version:       1.9.3
 Release:       1%{?dist}
 Group:         Applications/Internet
 License:       ASL 2.0
@@ -17,29 +17,20 @@ BuildArch:     noarch
 %description
 Provides phpMyAdmin cartridge support. (Cartridge Format V2)
 
-
-
 %prep
 %setup -q
-
 
 %build
 %__rm %{name}.spec
 
-
 %install
-%__rm -rf %{buildroot}
 %__mkdir -p %{buildroot}%{cartridgedir}
 %__cp -r * %{buildroot}%{cartridgedir}
-
-%clean
-%__rm -rf %{buildroot}
 
 %post
 %{_sbindir}/oo-admin-cartridge --action install --source %{cartridgedir}
 
 %files
-%defattr(-,root,root,-)
 %dir %{cartridgedir}
 %attr(0755,-,-) %{cartridgedir}/bin/
 %attr(0755,-,-) %{cartridgedir}
@@ -48,6 +39,9 @@ Provides phpMyAdmin cartridge support. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Mon May 20 2013 Dan McPherson <dmcphers@redhat.com> 1.9.3-1
+- spec file cleanup (tdawson@redhat.com)
+
 * Thu May 16 2013 Adam Miller <admiller@redhat.com> 1.9.2-1
 - locking fixes and adjustments (dmcphers@redhat.com)
 - Add erb processing to managed_files.yml Also fixed and added some test cases

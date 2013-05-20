@@ -2,7 +2,7 @@
 
 Summary:       Provides jenkins-1.4 support
 Name:          openshift-origin-cartridge-jenkins
-Version: 1.9.2
+Version:       1.9.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -19,34 +19,22 @@ BuildArch:     noarch
 %description
 Provides Jenkins cartridge to OpenShift. (Cartridge Format V2)
 
-
 %prep
 %setup -q
-
 
 %build
 %__rm %{name}.spec
 
+%install
+%__mkdir -p %{buildroot}%{cartridgedir}
+%__cp -r * %{buildroot}%{cartridgedir}
 
 %post
 service jenkins stop
 chkconfig jenkins off
-
 %{_sbindir}/oo-admin-cartridge --action install --source %{cartridgedir}
 
-
-%install
-%__rm -rf %{buildroot}
-%__mkdir -p %{buildroot}%{cartridgedir}
-%__cp -r * %{buildroot}%{cartridgedir}
-
-
-%clean
-%__rm -rf %{buildroot}
-
-
 %files
-%defattr(-,root,root,-)
 %dir %{cartridgedir}
 %attr(0755,-,-) %{cartridgedir}/bin/
 %attr(0755,-,-) %{cartridgedir}
@@ -54,9 +42,10 @@ chkconfig jenkins off
 %doc %{cartridgedir}/COPYRIGHT
 %doc %{cartridgedir}/LICENSE
 
-
-
 %changelog
+* Mon May 20 2013 Dan McPherson <dmcphers@redhat.com> 1.9.3-1
+- spec file cleanup (tdawson@redhat.com)
+
 * Thu May 16 2013 Adam Miller <admiller@redhat.com> 1.9.2-1
 - Bug 963156 (dmcphers@redhat.com)
 - locking fixes and adjustments (dmcphers@redhat.com)

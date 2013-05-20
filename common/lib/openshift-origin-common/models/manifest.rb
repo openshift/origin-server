@@ -125,6 +125,7 @@ module OpenShift
 
       attr_reader :cartridge_vendor,
                   :cartridge_version,
+                  :cartridge_versions,
                   :directory,
                   :endpoints,
                   :manifest,
@@ -144,6 +145,7 @@ module OpenShift
       # If it does not match the respective pattern, the cartridge will be rejected.
       VALID_VENDOR_NAME_PATTERN    = /\A[a-z][a-z0-9_]*\z/
       VALID_CARTRIDGE_NAME_PATTERN = /\A[a-z0-9](?:[-\.a-z0-9_]*[a-z0-9]|)\z/
+
       # Furthermore, we validate the vendor name by matching against
       # RESERVED_VENDOR_NAME_PATTERN.
       # If it matches the pattern, it will be rejected.
@@ -152,12 +154,15 @@ module OpenShift
       reserved_vendor_names = %w(
         redhat
       )
+
       reserved_cartridge_names = %w(
         app-root
         git
       )
+
       RESERVED_VENDOR_NAME_PATTERN    = Regexp.new("\\A(?:#{reserved_vendor_names.join('|')})\\z")
       RESERVED_CARTRIDGE_NAME_PATTERN = Regexp.new("\\A(?:#{reserved_cartridge_names.join('|')})\\z")
+
       ## TODO:
       # these should be configurable
       MAX_VENDOR_NAME    = 32
@@ -186,6 +191,10 @@ module OpenShift
         raise MissingElementError.new(nil, 'Version') unless @manifest.has_key?('Version')
         raise InvalidElementError.new(nil, 'Versions') if @manifest.has_key?('Versions') && !@manifest['Versions'].kind_of?(Array)
 
+        if @manifest.has_key?('Cartridge-Versions') && !@manifest['Cartridge-Versions'].kind_of?(Array)
+          raise InvalidElementError.new(nil, 'Cartridge-Versions')
+        end
+
         if version
           raise ArgumentError.new(
                     "Unsupported version #{version} from #{versions} for #{@manifest['Name']}"
@@ -211,14 +220,18 @@ module OpenShift
         @is_web_proxy           = @categories.include?('web_proxy')
         @install_build_required = @manifest.has_key?('Install-Build-Required') ? @manifest['Install-Build-Required'] : true
 
+        @cartridge_versions = if @manifest['Cartridge-Versions']
+                                @manifest['Cartridge-Versions'].map { |v| v.to_s }
+                              else
+                                []
+                              end
+
         #FIXME: reinstate code after manifests are updated
         #raise MissingElementError.new(nil, 'Cartridge-Vendor') unless @cartridge_vendor
-        #raise InvalidElementError.new(nil, 'Cartridge-Vendor') if @cartridge_vendor.include?('-')
         #raise MissingElementError.new(nil, 'Cartridge-Version') unless @cartridge_version
         raise MissingElementError.new(nil, 'Cartridge-Short-Name') unless @short_name
         raise InvalidElementError.new(nil, 'Cartridge-Short-Name') if @short_name.include?('-')
         raise MissingElementError.new(nil, 'Name') unless @name
-        #raise InvalidElementError.new(nil, 'Name') if @name.include?('-')
 
         if check_names
           validate_vendor_name

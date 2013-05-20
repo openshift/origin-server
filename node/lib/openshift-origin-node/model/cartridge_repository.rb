@@ -315,6 +315,20 @@ module OpenShift
     end
 
     # :call-seq:
+    #   CartridgeRepository.overlay_cartridge(cartridge, path) -> nil
+    #
+    # Overlay new code over existing cartridge in a gear;
+    #   If the cartridge manifest_path is :url then source_url is used to obtain cartridge source
+    #   Otherwise the cartridge source is copied from the cartridge_repository
+    #
+    #   source_hash is used to ensure the download was successful.
+    #
+    #   CartridgeRepository.overlay_cartridge(perl_cartridge, '/var/lib/.../mock') => nil
+    def self.overlay_cartridge(cartridge, target)
+      instantiate_cartridge(cartridge, target, false)
+    end
+
+    # :call-seq:
     #   CartridgeRepository.instantiate_cartridge(cartridge, path) -> nil
     #
     # Instantiate a cartridge in a gear;
@@ -324,7 +338,7 @@ module OpenShift
     #   source_hash is used to ensure the download was successful.
     #
     #   CartridgeRepository.instantiate_cartridge(perl_cartridge, '/var/lib/.../mock') => nil
-    def self.instantiate_cartridge(cartridge, target)
+    def self.instantiate_cartridge(cartridge, target, failure_remove = true)
       FileUtils.mkpath target
 
       if :url == cartridge.manifest_path
@@ -379,15 +393,15 @@ module OpenShift
 
         source_usr = File.join(cartridge.repository_path, 'usr')
         target_usr = File.join(target, 'usr')
-        File.rm target_usr if File.symlink? target_usr
 
-        FileUtils.symlink(source_usr, target_usr) if File.exist? source_usr
+        FileUtils.rm(target_usr) if File.symlink?(target_usr)
+        FileUtils.symlink(source_usr, target_usr) if File.exist?(source_usr) && !File.exist?(target_usr)
       end
 
       valid_cartridge_home(cartridge, target)
-    rescue
-      FileUtils.rm_rf target
-      raise
+    rescue => e
+      FileUtils.rm_rf target if failure_remove
+      raise e
     end
 
     private

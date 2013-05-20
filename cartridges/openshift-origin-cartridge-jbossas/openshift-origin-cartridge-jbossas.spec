@@ -4,7 +4,7 @@
 
 Summary:       Provides JBossAS7 support
 Name:          openshift-origin-cartridge-jbossas
-Version: 1.2.2
+Version:       1.2.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -42,12 +42,8 @@ Provides JBossAS support to OpenShift. (Cartridge Format V2)
 
 
 %install
-%__rm -rf %{buildroot}
 %__mkdir -p %{buildroot}%{cartridgedir}
 %__cp -r * %{buildroot}%{cartridgedir}
-
-%clean
-%__rm -rf %{buildroot}
 
 
 %post
@@ -82,7 +78,6 @@ cp -p %{cartridgedir}/versions/7/modules/postgresql_module.xml /etc/alternatives
 
 
 %files
-%defattr(-,root,root,-)
 %dir %{cartridgedir}
 %attr(0755,-,-) %{cartridgedir}
 %attr(0755,-,-) %{cartridgedir}/bin
@@ -92,6 +87,10 @@ cp -p %{cartridgedir}/versions/7/modules/postgresql_module.xml /etc/alternatives
 
 
 %changelog
+* Mon May 20 2013 Dan McPherson <dmcphers@redhat.com> 1.2.3-1
+- spec file cleanup (tdawson@redhat.com)
+- Make jboss cluster variables cartridge-scoped (ironcladlou@gmail.com)
+
 * Thu May 16 2013 Adam Miller <admiller@redhat.com> 1.2.2-1
 - process-version -> update-configuration (dmcphers@redhat.com)
 - Bug 963156 (dmcphers@redhat.com)

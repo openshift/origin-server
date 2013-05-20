@@ -82,7 +82,7 @@ when "env_add"
     exit 1
   end
   begin
-    domain = Domain.with(consistency: :eventual).find_by(owner: user, namespace: namespace)
+    domain = Domain.with(consistency: :eventual).find_by(owner: user, canonical_namespace: namespace.downcase)
   rescue Mongoid::Errors::DocumentNotFound
     puts "Domain with namespace: #{namespace} not found for user #{user.login}"
     exit 1
@@ -109,7 +109,7 @@ when "env_del"
     exit 1
   end
   begin
-    domain = Domain.with(consistency: :eventual).find_by(owner: user, namespace: namespace)
+    domain = Domain.with(consistency: :eventual).find_by(owner: user, canonical_namespace: namespace.downcase)
   rescue Mongoid::Errors::DocumentNotFound
     puts "Domain with namespace: #{namespace} not found for user #{user.login}"
     exit 1
