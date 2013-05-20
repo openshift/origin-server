@@ -62,6 +62,10 @@ class ApplicationsController < BaseController
       end  
     end 
     init_git_url = params[:initial_git_url]
+    
+    return render_error(:unprocessable_entity, "Invalid initial git URL",
+                        216, "initial_git_url") if init_git_url and (not init_git_url =~ /^#{URI::regexp}$/)
+                        
     default_gear_size = params[:gear_profile]
     default_gear_size.downcase! if default_gear_size
 

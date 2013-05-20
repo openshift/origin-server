@@ -14,6 +14,7 @@
 [\fB--removesubaccount\fP \fIsubaccount_login\fP] [\fB--allowsubaccounts\fP true|false]
 [\fB--addgearsize\fP \fIgear_size\fP] [\fB--removegearsize\fP \fIgear_size\fP]
 [\fB--inheritgearsizes\fP true|false]
+[\fB--allowprivatesslcertificate\fP true|false]
 
 .fam T
 .fi
@@ -76,6 +77,11 @@ Remove \fIgear_size\fP from the capability for this login user account.
 \fB--inheritgearsizes\fP true|false
 Allow or Diasllow inheritance of login user gearsizes capability to
 subaccounts.
+.TP
+.B
+\fB--allowprivatesslcertificates\fP true|false
+Add / Remove the capability to add private SSL certificates.
+
 .SH EXAMPLE
 
 List the current user settings with:
