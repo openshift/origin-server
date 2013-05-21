@@ -349,6 +349,103 @@ module OpenShift
       @model.connect_frontend(@mock_cartridge)
     end
 
+    def mawk
+      m = mock()
+      yield m
+      m
+    end
+
+    def test_frontend_connect_default_mapping_web_proxy_conflict
+      OpenShift::Utils::Environ.stubs(:for_gear).returns({
+        "private_ip" => "127.0.0.1",
+        "proxy_private_ip" => "127.0.0.2"
+      })
+
+      frontend = mock('OpenShift::FrontendHttpServer')
+      OpenShift::FrontendHttpServer.stubs(:new).returns(frontend)
+
+      cartridge = mock()
+      cartridge.stubs(:web_proxy?).returns(false)
+
+      cartridge.stubs(:endpoints).returns([mawk {|e|
+        e.stubs(:websocket_port).returns(nil)
+        e.stubs(:private_ip_name).returns("private_ip")
+        e.stubs(:private_port).returns(8080)
+        e.stubs(:mappings).returns([mawk {|m|
+          m.stubs(:frontend).returns("")
+          m.stubs(:backend).returns("/backend")
+          m.stubs(:options).returns({})
+        }])
+      }])
+
+      proxy_cart = mock()
+      proxy_cart.stubs(:web_proxy?).returns(true)
+
+      proxy_cart.stubs(:endpoints).returns([mawk {|e|
+        e.stubs(:websocket_port).returns(nil)
+        e.stubs(:private_ip_name).returns("proxy_private_ip")
+        e.stubs(:private_port).returns(8080)
+        e.stubs(:mappings).returns([mawk {|m|
+          m.stubs(:frontend).returns("")
+          m.stubs(:backend).returns("/backend")
+          m.stubs(:options).returns({})
+        }])
+      }])
+
+      @model.stubs(:web_proxy).returns(proxy_cart)
+
+      frontend.expects(:connect).never
+
+      @model.connect_frontend(cartridge)
+    end
+
+    def test_frontend_connect_default_mapping_primary_conflict
+      OpenShift::Utils::Environ.stubs(:for_gear).returns({
+        "private_ip" => "127.0.0.1",
+        "embedded_private_ip" => "127.0.0.2"
+      })
+
+      frontend = mock('OpenShift::FrontendHttpServer')
+      OpenShift::FrontendHttpServer.stubs(:new).returns(frontend)
+
+      primary_cart = mock()
+      primary_cart.stubs(:web_proxy?).returns(false)
+      primary_cart.stubs(:name).returns("primary-cart")
+
+      primary_cart.stubs(:endpoints).returns([mawk {|e|
+        e.stubs(:websocket_port).returns(nil)
+        e.stubs(:private_ip_name).returns("private_ip")
+        e.stubs(:private_port).returns(8080)
+        e.stubs(:mappings).returns([mawk {|m|
+          m.stubs(:frontend).returns("")
+          m.stubs(:backend).returns("/backend")
+          m.stubs(:options).returns({})
+        }])
+      }])
+
+      embeddable_cart = mock()
+      embeddable_cart.stubs(:web_proxy?).returns(false)
+      embeddable_cart.stubs(:name).returns("embeddable-cart")
+
+      embeddable_cart.stubs(:endpoints).returns([mawk {|e|
+        e.stubs(:websocket_port).returns(nil)
+        e.stubs(:private_ip_name).returns("embedded_private_ip")
+        e.stubs(:private_port).returns(8080)
+        e.stubs(:mappings).returns([mawk {|m|
+          m.stubs(:frontend).returns("")
+          m.stubs(:backend).returns("/backend")
+          m.stubs(:options).returns({})
+        }])
+      }])
+
+      @model.stubs(:web_proxy).returns(nil)
+      @model.stubs(:primary_cartridge).returns(primary_cart)
+
+      frontend.expects(:connect).never
+
+      @model.connect_frontend(embeddable_cart)
+    end
+
     def test_unlock_gear_no_relock
       cartridge = mock()
       files = %w(a b c)
