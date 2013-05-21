@@ -78,7 +78,7 @@ class CartridgeCache
       return cart if cart.name == requested_feature
     end if app
     
-    matching_carts = self.find_all_cartridges(requested_feature)
+    matching_carts = CacheHelper.get_cached("carts_by_feature_#{requested_feature}", :expires_in => 1.day) { self.find_all_cartridges(requested_feature) }
     
     return nil if matching_carts.empty?
     
