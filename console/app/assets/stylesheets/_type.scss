@@ -7,7 +7,7 @@
 // ---------
 
 p {
-  margin: 0 0 $baseLineHeight;
+  margin: 0 0 $baseLineHeight + 4;
   font-family: $baseFontFamily;
   font-size: $baseFontSize;
   line-height: $baseLineHeight;
@@ -43,17 +43,17 @@ p + h2, p + h3, p + h4, p + h5 {
   padding-top: $baseLineHeight / 2;
 }
 h1 {
-  font-size: $baseFontSize * 2.25;
+  font-size: $baseFontSize * 2.45;
   line-height: $baseLineHeight * 2;
   margin-bottom: $baseLineHeight - 8;
 }
 h2 {
-  font-size: $baseFontSize * 1.62;
+  font-size: $baseFontSize * 1.8;
   line-height: $baseLineHeight * 1.75;
   margin-bottom: $baseLineHeight - 8;
 }
 h3 {
-  font-size: $baseFontSize * 1.38;
+  font-size: $baseFontSize * 1.425;
   line-height: $baseLineHeight * 1.5;
   margin-bottom: $baseLineHeight / 3;
   small {
@@ -61,7 +61,7 @@ h3 {
   }
 }
 h4 {
-  font-size: $baseFontSize * 1.25;
+  font-size: $baseFontSize * 1.15;
   line-height: $baseLineHeight;
   margin-bottom: $baseLineHeight / 3;
   small {
@@ -69,7 +69,7 @@ h4 {
   }
 }
 h5 {
-  font-size: $baseFontSize;
+  font-size: $baseFontSize + 1;
   line-height: $baseLineHeight;
   margin-bottom: $baseLineHeight / 3;
   text-transform: uppercase;
@@ -79,13 +79,24 @@ h6 {
   line-height: $baseLineHeight;
   text-transform: uppercase;
 }
-
+@media (max-width:1239px) {
+	h1 {font-size: 31.75px;}
+	h2 {font-size: 22.25px;}
+	h3 {font-size: 19px;}
+}
+@media (max-width:979px) {
+	h1 {font-size: 27px;line-height: $baseLineHeight * 1.75;}
+	h2 {font-size: 21.5px;line-height: $baseLineHeight * 1.5;}
+	h3 {font-size: 18px;line-height: $baseLineHeight * 1.25;}
+	h4 {font-size: 15.5px;}
+	h5 {font-size: $baseFontSize;}
+}
 @media (max-width:480px) {
 	h1 {font-size:24px;line-height: $baseLineHeight * 1.5;}
 	h2 {font-size: 19.5px;line-height: $baseLineHeight * 1.25;}
-	h3 {font-size: 16.5px;}
+	h3 {font-size: 16.5px;line-height: $baseLineHeight + 2;}
 	h4 {font-size: 14px;}
-	h5 {font-size: 13px;}
+	h5 {font-size: 14px;}
 }
 
 footer h3 {
@@ -267,11 +278,29 @@ a.external img[alt="external"] {
   display: none;
 }
 
+.media-youtube {
+position: relative;
+padding-bottom: 56.25%;
+height: 0;
+overflow: hidden;
+}
+.media-youtube iframe,
+.media-youtube object,
+.media-youtube embed {
+position: absolute;
+top: 0;
+left: 0;
+width: 100%;
+height: 100%;
+} 
+
+
 
 p.larger,
 pre.larger { 
-  font-size: $baseFontSize + 1;
-  line-height: 21px;
+  font-size: $baseFontSize + 3.5;
+  line-height: $baseLineHeight + 8;
+  margin-bottom: $baseLineHeight + 10;
 }
 dl.larger {
   > dt {
