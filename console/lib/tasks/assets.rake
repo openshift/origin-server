@@ -1,3 +1,5 @@
+require 'rake/tasklib'
+
 class GenerateConsoleViewTask < Rake::TaskLib
   attr_accessor :layout, :views
 

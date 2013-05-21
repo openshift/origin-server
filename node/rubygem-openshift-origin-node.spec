@@ -29,9 +29,7 @@ Requires:      %{?scl:%scl_prefix}ruby(abi) >= %{rubyabi}
 %endif
 Requires:      %{?scl:%scl_prefix}rubygem(commander)
 Requires:      %{?scl:%scl_prefix}rubygem(json)
-Requires:      %{?scl:%scl_prefix}rubygem(mocha)
 Requires:      %{?scl:%scl_prefix}rubygem(parseconfig)
-Requires:      %{?scl:%scl_prefix}rubygem(rspec)
 Requires:      %{?scl:%scl_prefix}rubygems
 Requires:      %{?scl:%scl_prefix}ruby(selinux)
 Requires:      cronie
@@ -196,6 +194,12 @@ ln -s /usr/lib/openshift/node/jobs/openshift-origin-cron-hourly %{buildroot}/etc
 ln -s /usr/lib/openshift/node/jobs/openshift-origin-cron-daily %{buildroot}/etc/cron.daily/
 ln -s /usr/lib/openshift/node/jobs/openshift-origin-cron-weekly %{buildroot}/etc/cron.weekly/
 ln -s /usr/lib/openshift/node/jobs/openshift-origin-cron-monthly %{buildroot}/etc/cron.monthly/
+
+%if 0%{?fedora} >= 18
+mv Gemfile.fedora %{buildroot}%{gem_instdir}/Gemfile
+%else
+mv Gemfile.rhel %{buildroot}%{gem_instdir}/Gemfile
+%endif
 
 %post
 /bin/rm -f /etc/openshift/env/*.rpmnew

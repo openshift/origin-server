@@ -22,46 +22,33 @@ Requires:      %{?scl:%scl_prefix}ruby(abi) >= %{rubyabi}
 %endif
 Requires:      %{?scl:%scl_prefix}rubygems
 %if 0%{?fedora}%{?rhel} <= 6
-Requires:      %{?scl:%scl_prefix}rubygem(rails)
-Requires:      %{?scl:%scl_prefix}rubygem(compass-rails)
-Requires:      %{?scl:%scl_prefix}rubygem(rdiscount)
-Requires:      %{?scl:%scl_prefix}rubygem(formtastic)
-Requires:      %{?scl:%scl_prefix}rubygem(net-http-persistent)
-Requires:      %{?scl:%scl_prefix}rubygem(haml)
-Requires:      %{?scl:%scl_prefix}rubygem(ci_reporter)
 Requires:      %{?scl:%scl_prefix}rubygem(coffee-rails)
 Requires:      %{?scl:%scl_prefix}rubygem(compass-rails)
+Requires:      %{?scl:%scl_prefix}rubygem(formtastic)
+Requires:      %{?scl:%scl_prefix}rubygem(haml)
 Requires:      %{?scl:%scl_prefix}rubygem(jquery-rails)
-Requires:      %{?scl:%scl_prefix}rubygem(mocha)
+Requires:      %{?scl:%scl_prefix}rubygem(net-http-persistent)
+Requires:      %{?scl:%scl_prefix}rubygem(rails)
+Requires:      %{?scl:%scl_prefix}rubygem(rdiscount)
 Requires:      %{?scl:%scl_prefix}rubygem(sass-rails)
-Requires:      %{?scl:%scl_prefix}rubygem(simplecov)
-Requires:      %{?scl:%scl_prefix}rubygem(test-unit)
 Requires:      %{?scl:%scl_prefix}rubygem(uglifier)
-Requires:      %{?scl:%scl_prefix}rubygem(webmock)
-Requires:      %{?scl:%scl_prefix}rubygem(poltergeist)
-Requires:      %{?scl:%scl_prefix}rubygem(konacha)
-Requires:      %{?scl:%scl_prefix}rubygem(minitest)
-Requires:      %{?scl:%scl_prefix}rubygem(rspec-core)
 
 BuildRequires: %{?scl:%scl_prefix}build
-BuildRequires: scl-utils-build
-BuildRequires: %{?scl:%scl_prefix}rubygem(rails)
+BuildRequires: %{?scl:%scl_prefix}rubygem(coffee-rails)
 BuildRequires: %{?scl:%scl_prefix}rubygem(compass-rails)
-BuildRequires: %{?scl:%scl_prefix}rubygem(mocha)
-BuildRequires: %{?scl:%scl_prefix}rubygem(simplecov)
-BuildRequires: %{?scl:%scl_prefix}rubygem(test-unit)
-BuildRequires: %{?scl:%scl_prefix}rubygem(ci_reporter)
-BuildRequires: %{?scl:%scl_prefix}rubygem(webmock)
-BuildRequires: %{?scl:%scl_prefix}rubygem(sprockets)
-BuildRequires: %{?scl:%scl_prefix}rubygem(rdiscount)
 BuildRequires: %{?scl:%scl_prefix}rubygem(formtastic)
-BuildRequires: %{?scl:%scl_prefix}rubygem(net-http-persistent)
 BuildRequires: %{?scl:%scl_prefix}rubygem(haml)
-BuildRequires: %{?scl:%scl_prefix}rubygem(therubyracer)
-BuildRequires: %{?scl:%scl_prefix}rubygem(poltergeist)
-BuildRequires: %{?scl:%scl_prefix}rubygem(konacha)
+BuildRequires: %{?scl:%scl_prefix}rubygem(jquery-rails)
+# Required by activesupport during the asset precompilation process
 BuildRequires: %{?scl:%scl_prefix}rubygem(minitest)
-BuildRequires: %{?scl:%scl_prefix}rubygem(rspec-core)
+BuildRequires: %{?scl:%scl_prefix}rubygem(net-http-persistent)
+BuildRequires: %{?scl:%scl_prefix}rubygem(rails)
+BuildRequires: %{?scl:%scl_prefix}rubygem(rdiscount)
+BuildRequires: %{?scl:%scl_prefix}rubygem(sass-rails)
+BuildRequires: %{?scl:%scl_prefix}rubygem(sprockets)
+BuildRequires: %{?scl:%scl_prefix}rubygem(therubyracer)
+BuildRequires: %{?scl:%scl_prefix}rubygem(uglifier)
+BuildRequires: scl-utils-build
 
 %endif
 BuildRequires: %{?scl:%scl_prefix}rubygems-devel
@@ -91,6 +78,15 @@ OpenShift Origin Management Console ri documentation
 
 set -e
 mkdir -p .%{gem_dir}
+
+%if 0%{?fedora} >= 18
+mv Gemfile.fedora Gemfile
+%else
+mv Gemfile.rhel Gemfile
+%endif
+
+# requires ci_reporter
+rm lib/tasks/test_suites.rake
 
 %if 0%{?fedora}%{?rhel} <= 6
 rm -f Gemfile.lock
