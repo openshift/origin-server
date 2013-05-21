@@ -126,7 +126,7 @@ class CartridgeRepositoryTest < Test::Unit::TestCase
         Version: '0.1'
         Versions: ['0.1']
         Cartridge-Version: '1.0'
-        Cartridge-Versions: ['1.0']
+        Compatible-Versions: ['1.0']
         Cartridge-Vendor: redhat
       },
       %q{#
@@ -135,7 +135,7 @@ class CartridgeRepositoryTest < Test::Unit::TestCase
         Version: '0.2'
         Versions: ['0.1', '0.2']
         Cartridge-Version: '1.1'
-        Cartridge-Versions: ['1.0', '1.1']
+        Compatible-Versions: ['1.0', '1.1']
         Cartridge-Vendor: redhat
       },
       %q{#
