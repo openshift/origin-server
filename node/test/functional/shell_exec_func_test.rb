@@ -24,11 +24,10 @@ module OpenShift
 
       # polyinstantiation makes creating the homedir a pain...
       FileUtils.rm_r @homedir if File.exist?(@homedir)
-      FileUtils.mkpath(@homedir)
-      %x{useradd -u #@uid -d #@homedir #@uid 1>/dev/null 2>&1}
-      %x{chown -R #@uid:#@uid #@homedir}
-      FileUtils.mkpath(File.join(@homedir, '.tmp', @uid.to_s))
-      FileUtils.chmod(0, File.join(@homedir, '.tmp'))
+      %x{useradd -m -u #@uid -d #@homedir #@uid 1>/dev/null 2>&1}
+      full_poly_dir = File.join(@homedir, '.tmp')
+      FileUtils.mkpath(File.join(full_poly_dir, @uid.to_s))
+      FileUtils.chmod(0o0000, full_poly_dir)
     end
 
     def teardown
