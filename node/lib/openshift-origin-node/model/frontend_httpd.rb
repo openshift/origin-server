@@ -26,6 +26,17 @@ require 'json'
 require 'tmpdir'
 require 'net/http'
 
+# The mutexes for ApacheDB get declared early and in globals to ensure
+# the right mutex is in the right place during threaded operations.
+$OpenShift_ApacheDB_Lock = Mutex.new
+$OpenShift_ApacheDBNodes_Lock = Mutex.new
+$OpenShift_ApacheDBAliases_Lock = Mutex.new
+$OpenShift_ApacheDBIdler_Lock = Mutex.new
+$OpenShift_ApacheDBSTS_Lock = Mutex.new
+$OpenShift_NodeJSDBRoutes_Lock = Mutex.new
+$OpenShift_GearDB_Lock = Mutex.new
+
+
 module OpenShift
   
   class FrontendHttpServerException < StandardError
@@ -959,14 +970,16 @@ module OpenShift
   class ApacheDB < Hash
     include NodeLogger
 
-    # The locks and lockfiles are based on the file name
-    @@LOCKS = Hash.new { |h, k| h[k] = Mutex.new }
-    @@LOCKFILEBASE = "/var/run/openshift/ApacheDB"
-
     READER  = Fcntl::O_RDONLY
     WRITER  = Fcntl::O_RDWR
     WRCREAT = Fcntl::O_RDWR | Fcntl::O_CREAT
     NEWDB   = Fcntl::O_RDWR | Fcntl::O_CREAT | Fcntl::O_TRUNC
+
+    class_attribute :LOCK
+    self.LOCK = $OpenShift_ApacheDB_Lock
+
+    class_attribute :LOCKFILEBASE
+    self.LOCKFILEBASE = "/var/run/openshift/ApacheDB"
 
     class_attribute :MAPNAME
     self.MAPNAME = nil
@@ -994,12 +1007,12 @@ module OpenShift
 
       @filename = File.join(@basedir, self.MAPNAME)
 
-      @lockfile = @@LOCKFILEBASE + '.' + self.MAPNAME + self.SUFFIX + '.lock'
+      @lockfile = self.LOCKFILEBASE + '.' + self.MAPNAME + self.SUFFIX + '.lock'
 
       super()
 
       # Each filename needs its own mutex and lockfile
-      @@LOCKS[@lockfile].lock
+      self.LOCK.lock
 
       begin
         @lfd = File.new(@lockfile, Fcntl::O_RDWR | Fcntl::O_CREAT, 0640)
@@ -1020,7 +1033,7 @@ module OpenShift
             @lfd.close()
           end
         ensure
-          @@LOCKS[@lockfile].unlock
+          self.LOCK.unlock
         end
         raise
       end
@@ -1120,7 +1133,7 @@ module OpenShift
           @lfd.close() unless @lfd.closed?
         end
       ensure
-        @@LOCKS[@lockfile].unlock if @@LOCKS[@lockfile].locked?
+        self.LOCK.unlock if self.LOCK.locked?
       end
     end
 
@@ -1167,19 +1180,22 @@ module OpenShift
 
   class ApacheDBNodes < ApacheDB
     self.MAPNAME = "nodes"
+    self.LOCK = $OpenShift_ApacheDBNodes_Lock
   end
 
   class ApacheDBAliases < ApacheDB
     self.MAPNAME = "aliases"
+    self.LOCK = $OpenShift_ApacheDBAliases_Lock
   end
 
   class ApacheDBIdler < ApacheDB
     self.MAPNAME = "idler"
+    self.LOCK = $OpenShift_ApacheDBIdler_Lock
   end
-
 
   class ApacheDBSTS < ApacheDB
     self.MAPNAME = "sts"
+    self.LOCK = $OpenShift_ApacheDBSTS_Lock
   end
 
 
@@ -1195,7 +1211,7 @@ module OpenShift
     end
 
     def encode_contents(f)
-      f.write(JSON.generate(self.to_hash))
+      f.write(JSON.pretty_generate(self.to_hash))
     end
 
     def callout
@@ -1217,10 +1233,12 @@ module OpenShift
 
   class NodeJSDBRoutes < NodeJSDB
     self.MAPNAME = "routes"
+    self.LOCK = $OpenShift_NodeJSDBRoutes_Lock
   end
 
   class GearDB < ApacheDBJSON
     self.MAPNAME = "geardb"
+    self.LOCK = $OpenShift_GearDB_Lock
   end
 
   # TODO: Manage SNI Certificate and alias store

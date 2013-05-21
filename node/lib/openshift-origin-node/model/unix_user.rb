@@ -24,6 +24,8 @@ require 'openshift-origin-common'
 require 'fcntl'
 require 'active_model'
 
+$OpenShift_UnixUser_SSH_KEY_MUTEX = Mutex.new
+
 module OpenShift
   class UserCreationException < Exception
   end
@@ -45,8 +47,6 @@ module OpenShift
     attr_accessor :debug
 
     DEFAULT_SKEL_DIR = File.join(OpenShift::Config::CONF_DIR,"skel")
-
-    @@MODIFY_SSH_KEY_MUTEX = Mutex.new
 
     def initialize(application_uuid, container_uuid, user_uid=nil,
         app_name=nil, container_name=nil, namespace=nil, quota_blocks=nil, quota_files=nil, debug=false)
@@ -689,7 +689,7 @@ Dir(after)    #{@uuid}/#{@uid} => #{list_home_dir(@homedir)}
       authorized_keys_file = File.join(@homedir, ".ssh", "authorized_keys")
       keys = Hash.new
 
-      @@MODIFY_SSH_KEY_MUTEX.synchronize do
+      $OpenShift_UnixUser_SSH_KEY_MUTEX.synchronize do
         File.open("/var/lock/oo-modify-ssh-keys", File::RDWR|File::CREAT, 0o0600) do | lock |
           lock.fcntl(Fcntl::F_SETFD, Fcntl::FD_CLOEXEC)
           lock.flock(File::LOCK_EX)

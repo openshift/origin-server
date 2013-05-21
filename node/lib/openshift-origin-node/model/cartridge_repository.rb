@@ -71,6 +71,8 @@ require 'uri'
 require 'rubygems/package'
 require 'openssl'
 
+$OpenShift_CartridgeRepository_SEMAPHORE = Mutex.new
+
 module OpenShift
 
   # Singleton to provide management of cartridges installed on the system
@@ -87,7 +89,6 @@ module OpenShift
     attr_reader :path
 
     def initialize # :nodoc:
-      @semaphore = Mutex.new
       @path      = CARTRIDGE_REPO_DIR
 
       FileUtils.mkpath(@path) unless File.exist? @path
@@ -112,7 +113,7 @@ module OpenShift
     #
     #   CartridgeRepository.instance.load("/var/lib/openshift/.cartridge_repository")  #=> 24
     def load(directory = nil)
-      @semaphore.synchronize do
+      $OpenShift_CartridgeRepository_SEMAPHORE.synchronize do
         load_via_url = directory.nil?
         find_manifests(directory || @path) do |manifest_path|
           logger.debug { "Loading cartridge from #{manifest_path}" }
@@ -175,7 +176,7 @@ module OpenShift
       raise ArgumentError.new("Cartridge manifest.yml missing: '#{manifest_path}'") unless File.file?(manifest_path)
 
       entry = nil
-      @semaphore.synchronize do
+      $OpenShift_CartridgeRepository_SEMAPHORE.synchronize do
         entry = insert(OpenShift::Runtime::Manifest.new(manifest_path, nil, @path))
 
         FileUtils.rm_r(entry.repository_path) if File.exist?(entry.repository_path)
@@ -199,7 +200,7 @@ module OpenShift
       end
 
       entry = nil
-      @semaphore.synchronize do
+      $OpenShift_CartridgeRepository_SEMAPHORE.synchronize do
         # find a "template" entry
         entry = select(cartridge_name, version, cartridge_version)
 
