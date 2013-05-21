@@ -106,9 +106,9 @@ class PendingAppOpGroup
           application.group_overrides=op.saved_values["group_overrides"]
           application.save
         when :set_connections
-          application.set_connections(op.saved_values["connections"])
+          # no op
         when :execute_connections
-          application.execute_connections
+          application.execute_connections rescue nil
         when :set_gear_additional_filesystem_gb
           gear = get_gear_for_rollback(op)
           gear.set_addtl_fs_gb(op.saved_values["additional_filesystem_gb"], handle)
@@ -247,7 +247,7 @@ class PendingAppOpGroup
             application.group_overrides=op.args["group_overrides"]
             application.save
           when :set_connections
-            application.set_connections(op.args["connections"])
+            # no op
           when :execute_connections
             application.execute_connections
           when :unsubscribe_connections
