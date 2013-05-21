@@ -881,14 +881,16 @@ module OpenShift
   class ApacheDB < Hash
     include NodeLogger
 
-    # The locks and lockfiles are based on the file name
-    @@LOCKS = Hash.new { |h, k| h[k] = Mutex.new }
-    @@LOCKFILEBASE = "/var/run/openshift/ApacheDB"
-
     READER  = Fcntl::O_RDONLY
     WRITER  = Fcntl::O_RDWR
     WRCREAT = Fcntl::O_RDWR | Fcntl::O_CREAT
     NEWDB   = Fcntl::O_RDWR | Fcntl::O_CREAT | Fcntl::O_TRUNC
+
+    class_attribute :LOCK
+    self.LOCK = Mutex.new
+
+    class_attribute :LOCKFILEBASE
+    self.LOCKFILEBASE = "/var/run/openshift/ApacheDB"
 
     class_attribute :MAPNAME
     self.MAPNAME = nil
@@ -916,12 +918,12 @@ module OpenShift
 
       @filename = File.join(@basedir, self.MAPNAME)
 
-      @lockfile = @@LOCKFILEBASE + '.' + self.MAPNAME + self.SUFFIX + '.lock'
+      @lockfile = self.LOCKFILEBASE + '.' + self.MAPNAME + self.SUFFIX + '.lock'
 
       super()
 
       # Each filename needs its own mutex and lockfile
-      @@LOCKS[@lockfile].lock
+      self.LOCK.lock
 
       begin
         @lfd = File.new(@lockfile, Fcntl::O_RDWR | Fcntl::O_CREAT, 0640)
@@ -942,7 +944,7 @@ module OpenShift
             @lfd.close()
           end
         ensure
-          @@LOCKS[@lockfile].unlock
+          self.LOCK.unlock
         end
         raise
       end
@@ -1042,7 +1044,7 @@ module OpenShift
           @lfd.close() unless @lfd.closed?
         end
       ensure
-        @@LOCKS[@lockfile].unlock if @@LOCKS[@lockfile].locked?
+        self.LOCK.unlock if self.LOCK.locked?
       end
     end
 
@@ -1073,19 +1075,23 @@ module OpenShift
 
   class ApacheDBNodes < ApacheDB
     self.MAPNAME = "nodes"
+    self.LOCK = Mutex.new
   end
 
   class ApacheDBAliases < ApacheDB
     self.MAPNAME = "aliases"
+    self.LOCK = Mutex.new
   end
 
   class ApacheDBIdler < ApacheDB
     self.MAPNAME = "idler"
+    self.LOCK = Mutex.new
   end
 
 
   class ApacheDBSTS < ApacheDB
     self.MAPNAME = "sts"
+    self.LOCK = Mutex.new
   end
 
 
@@ -1123,10 +1129,12 @@ module OpenShift
 
   class NodeJSDBRoutes < NodeJSDB
     self.MAPNAME = "routes"
+    self.LOCK = Mutex.new
   end
 
   class GearDB < ApacheDBJSON
     self.MAPNAME = "geardb"
+    self.LOCK = Mutex.new
   end
 
   # TODO: Manage SNI Certificate and alias store
