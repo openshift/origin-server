@@ -335,26 +335,34 @@ def check_cgroup_procs
     verbose("checking cgroups processes")
 
     ### Gather current procs running ###
-    all_user_procs = %x[/bin/ps -ef | /bin/egrep "^[0-9]{4}"].split("\n")
+    min_uid = ENV['GEAR_MIN_UID']
+    max_uid = ENV['GEAR_MAX_UID']
+
+    all_user_procs = %x[/bin/ps -ef | /bin/egrep "^[0-9]+"].split("\n")
     ps_procs = Hash.new(Array.new)
     all_user_procs.each do |line|
         uid,pid = line.split[0,2]
 
-        passwd_lines = users.grep(/:#{uid}:/)
+        if (min_uid..max_uid).include?(uid)
+            passwd_lines = users.grep(/:#{uid}:/)
 
-        if passwd_lines.size == 0
-            do_fail("Process #{pid} is owned by a gear that's no longer on the system, uid: #{uid}")
-            next
+            if passwd_lines.size == 0
+                do_fail("Process #{pid} is owned by a gear that's no longer on the system, uid: #{uid}")
+                next
+            end
+
+            uname = passwd_lines[0].split(":")[0]
+            ps_procs[uname] += [pid]
+            ps_procs[uname].uniq!
         end
-
-        uname = passwd_lines[0].split(":")[0]
-        ps_procs[uname] += [pid]
-        ps_procs[uname].uniq!
     end
 
     ### Gather cgroup procs ###
     cgroup_procs = {}
-    Dir.glob("/cgroup/all/openshift/*/cgroup.procs").each do |file|
+
+    # Support mounting cgroup controllers under /cgroup/all or 
+    # /cgroup/<controller>
+    Dir.glob("/cgroup/{all,memory}/openshift/*/cgroup.procs").each do |file|
         uuid = file.split("/")[4]
         lines = []
         IO.foreach(file).each { |line| lines << line.strip }
