@@ -67,6 +67,7 @@ function pre_snapshot {
 
   echo $OPENSHIFT_POSTGRESQL_DB_USERNAME > $OPENSHIFT_DATA_DIR/postgresql_db_username
   echo $OPENSHIFT_APP_NAME > $OPENSHIFT_DATA_DIR/postgresql_db_dbname
+  echo $OPENSHIFT_GEAR_UUID > $OPENSHIFT_DATA_DIR/postgresql_db_uuid
 
   # Remove any statements that modify the postgres role
   local rexp="^\s*\(DROP\|CREATE\|ALTER\)\s*ROLE\s*postgres.*"
@@ -88,6 +89,7 @@ function post_restore {
 
   local new_user=$OPENSHIFT_POSTGRESQL_DB_USERNAME
   local old_user=$(< $OPENSHIFT_DATA_DIR/postgresql_db_username)
+  local uid=$(< $OPENSHIFT_DATA_DIR/postgresql_db_uuid)
 
   local new_db=$OPENSHIFT_APP_NAME
   local old_db=$(< $OPENSHIFT_DATA_DIR/postgresql_db_dbname)
@@ -120,9 +122,10 @@ function post_restore {
       " | psql -U postgres -d postgres
     } || error "Failed to rename database" 187
 
-    # Change ownership of all databases
     {
-      for db in `psql -qAt  -U postgres -d postgres -c "SELECT datname FROM pg_database JOIN pg_authid ON pg_database.datdba = pg_authid.oid WHERE NOT(rolname = '${new_user}' OR rolname = 'postgres')"`
+      # We want to change the default old user in case the app has its own users
+      # We also need to check the UID because v1 creates tables owned by the user
+      for db in `psql -qAt -U postgres -d postgres -c "SELECT datname FROM pg_database JOIN pg_authid ON pg_database.datdba = pg_authid.oid WHERE rolname = '${old_user}' OR rolname = '${uid}'"`
       do
         echo "
         ALTER DATABASE \"${db}\" OWNER TO \"${new_user}\";
@@ -137,12 +140,15 @@ function post_restore {
       " | psql -U postgres -d $new_db
     } || error "Failed to change owner of imported tables" 187
 
-    # Remove old user
-    {
-      echo "
-      DROP ROLE \"${old_user}\";
-      " | psql -U postgres -d postgres
-    } || error "Failed to remove old user" 187
+    # If the user names are different, drop the old role
+    if [ "${old_user}" != "${new_user}" ]
+    then
+      {
+        echo "
+        DROP ROLE \"${old_user}\";
+        " | psql -U postgres -d postgres
+      } || error "Failed to remove old user" 187
+    fi
 
     cleanup_dump
   else

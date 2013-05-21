@@ -46,7 +46,7 @@ module SQLHelper
     # Turn opts into '-k val' format
     opts = opts.inject(""){|str,(key,val)| "#{str} #{key} #{val}" }.strip
 
-    cmd = "#{cmd} #{opts}"
+    cmd = "\"#{cmd} #{opts}\""
     cmd.gsub!(/\$/,'\\$')
 
     output = if @app && @app.respond_to?(:ssh_command)
