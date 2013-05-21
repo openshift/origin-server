@@ -407,17 +407,19 @@ module OpenShift
           begin
             result = parse_result(mcoll_reply, gear)
           rescue OpenShift::OOException => ooex
+            # destroy the gear in case of failures
+            # the UID will be unreserved up as part of rollback
+            destroy(gear, true)
+            
             # raise the exception if this is the last retry
             raise ooex if i == 10
             
             result = ooex.resultIO
             if result.exitcode == 129 && has_uid_or_gid?(gear.uid) # Code to indicate uid already taken
-              destroy(gear, true)
               inc_externally_reserved_uids_size
               gear.uid = reserve_uid
               app.save
             else
-              destroy(gear, true)
               raise ooex
             end
           else
