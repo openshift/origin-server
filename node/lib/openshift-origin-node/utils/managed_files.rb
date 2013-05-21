@@ -15,6 +15,9 @@
 #++
 
 require 'openshift-origin-node/utils/node_logger'
+require 'safe_yaml'
+
+SafeYAML::OPTIONS[:default_mode] = :unsafe
 
 module OpenShift
   module ManagedFiles
@@ -56,7 +59,7 @@ module OpenShift
       end
 
       # Ensure the this works with symbols or strings in yml file or argument
-      file_patterns = YAML.load_file(managed_files).values_at(*[type.to_s,type.to_sym])
+      file_patterns = YAML.load_file(managed_files, :safe => true, :deserialize_symbols => true).values_at(*[type.to_s,type.to_sym])
         .flatten.compact      # Remove any nils
         .map(&:strip)         # Remove leading/trailing whitespace
         .delete_if(&:empty?)  # Remove any empty patterns
