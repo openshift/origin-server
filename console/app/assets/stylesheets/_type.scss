@@ -17,10 +17,16 @@ p {
   }
 }
 .lead {
-  margin-bottom: $baseLineHeight;
-  font-size: 20px;
-  font-weight: 200;
-  line-height: $baseLineHeight * 1.5;
+  line-height: $baseLineHeight;
+  font-size: $baseFontSize + 4;
+  font-weight: 300;
+  line-height: $baseLineHeight + 8;
+}
+p.larger,
+pre.larger { 
+  font-size: $baseFontSize + 2.5;
+  line-height: $baseLineHeight + 5;
+  font-weight: 300;
 }
 
 // HEADINGS
@@ -278,37 +284,13 @@ a.external img[alt="external"] {
   display: none;
 }
 
-.media-youtube {
-position: relative;
-padding-bottom: 56.25%;
-height: 0;
-overflow: hidden;
-}
-.media-youtube iframe,
-.media-youtube object,
-.media-youtube embed {
-position: absolute;
-top: 0;
-left: 0;
-width: 100%;
-height: 100%;
-} 
-
-
-
-p.larger,
-pre.larger { 
-  font-size: $baseFontSize + 3.5;
-  line-height: $baseLineHeight + 8;
-  margin-bottom: $baseLineHeight + 10;
-}
 dl.larger {
   > dt {
-    font-size: 18px; 
-    line-height: 23px; 
+    font-size: $baseFontSize + 3.5; 
+    line-height: $baseLineHeight + 3; 
   }
   > dd {
-    margin-bottom: 20px; 
+    margin-bottom: $baseLineHeight; 
   }
 }
 
@@ -353,7 +335,7 @@ ul.unstyled-flat {
 }
 
 .section {
-  margin-bottom: 30px;
+  margin-bottom: $baseLineHeight * 1.5;
 }
 
 // A semantic element that is wrapped
