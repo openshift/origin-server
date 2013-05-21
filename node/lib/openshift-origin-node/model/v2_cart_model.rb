@@ -905,7 +905,7 @@ module OpenShift
                                     env:             env,
                                     unsetenv_others: true,
                                     chdir:           @user.homedir,
-                                    timeout:         60,
+                                    timeout:         220,
                                     uid:             @user.uid)
       if 0 == rc
         logger.info("(#{rc})\n------\n#{Runtime::Utils.sanitize_credentials(out)}\n------)")
