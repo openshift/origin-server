@@ -73,6 +73,8 @@ Subscribes:
     Required: false
   set-jdbc-info:
     Type: "NET_TCP:jdbc"
+  set-generic-java:
+    Type: "ENV:NET_TCP:generic-java"
 Group-Overrides:
   - components:
     - "jbossews-2.0"
