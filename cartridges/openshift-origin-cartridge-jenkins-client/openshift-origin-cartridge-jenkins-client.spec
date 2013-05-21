@@ -7,7 +7,7 @@
 
 Summary:       Embedded jenkins client support for OpenShift 
 Name:          openshift-origin-cartridge-jenkins-client
-Version:       1.8.2
+Version:       1.8.3
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -50,6 +50,12 @@ Provides plugin jenkins client support. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Mon May 20 2013 Dan McPherson <dmcphers@redhat.com> 1.8.3-1
+- Merge pull request #2532 from ironcladlou/bz/962324
+  (dmcphers+openshiftbot@redhat.com)
+- spec file cleanup (tdawson@redhat.com)
+- Bug 962324: Add status output to jenkins-client (ironcladlou@gmail.com)
+
 * Thu May 16 2013 Adam Miller <admiller@redhat.com> 1.8.2-1
 - locking fixes and adjustments (dmcphers@redhat.com)
 - Add erb processing to managed_files.yml Also fixed and added some test cases

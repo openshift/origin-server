@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Common
 Name:          rubygem-%{gem_name}
-Version: 1.8.2
+Version: 1.8.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -96,6 +96,9 @@ cp -a ./%{gem_dir}/* %{buildroot}%{gem_dir}/
 %doc %{gem_docdir}
 
 %changelog
+* Mon May 20 2013 Dan McPherson <dmcphers@redhat.com> 1.8.3-1
+- WIP Cartridge Refactor - V2 -> V2 Migration (jhonce@redhat.com)
+
 * Thu May 16 2013 Adam Miller <admiller@redhat.com> 1.8.2-1
 - Merge pull request #2491 from ironcladlou/dev/v2carts/private-endpoints-fix
   (dmcphers+openshiftbot@redhat.com)

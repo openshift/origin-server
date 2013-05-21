@@ -41,25 +41,24 @@ textarea:focus {
 
 // hero overrides
 .hero-unit {
-  padding: 20px 25px;
-  margin-bottom: 25px;
   background-color: #f2f2f2;
-  -webkit-border-radius: 6px;
-  -moz-border-radius: 6px;
-  border-radius: 6px;
+  @include border-radius(3px);
   box-shadow: 1px 3px 0px rgba(0, 0, 0, 0.1);
+  margin-bottom: 25px;
+  padding: 20px 25px;
+  
+  h1 {
+    margin-bottom: 0;
+    font-size: 35px;
+    line-height: 1;
 	}
-.hero-unit h1 {
-  margin-bottom: 0;
-  font-size: 35px;
-  line-height: 1;
-  letter-spacing: -1px;
+  p, .p {
+    font-size: 18px;
+    font-weight: 200;
+    line-height: 27px;
+    margin-bottom: $baseLineHeight;
 	}
-.hero-unit p {
-  font-size: 18px;
-  font-weight: 200;
-  line-height: 27px;
-	}
+}
 
 // wizard steps
 .wizard-steps {

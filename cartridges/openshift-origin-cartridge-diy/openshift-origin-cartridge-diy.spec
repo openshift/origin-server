@@ -2,7 +2,7 @@
 
 Summary:       DIY cartridge
 Name:          openshift-origin-cartridge-diy
-Version:       0.4.2
+Version:       0.4.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -37,6 +37,12 @@ DIY cartridge for openshift. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Mon May 20 2013 Dan McPherson <dmcphers@redhat.com> 0.4.3-1
+- spec file cleanup (tdawson@redhat.com)
+- Merge pull request #2522 from mrunalp/dev/haproxy_hook
+  (dmcphers+openshiftbot@redhat.com)
+- Remove unused hooks. (mrunalp@gmail.com)
+
 * Thu May 16 2013 Adam Miller <admiller@redhat.com> 0.4.2-1
 - locking fixes and adjustments (dmcphers@redhat.com)
 - Add erb processing to managed_files.yml Also fixed and added some test cases

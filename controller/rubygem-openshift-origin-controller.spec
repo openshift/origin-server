@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.9.2
+Version: 1.9.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -84,6 +84,27 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Mon May 20 2013 Dan McPherson <dmcphers@redhat.com> 1.9.3-1
+- Skipping the as7 cukes on OpenShift Enterprise (bleanhar@redhat.com)
+- Adjusting test case allocations (dmcphers@redhat.com)
+- Merge pull request #2539 from ironcladlou/bz/963646
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 963981 - Fix app events controller Use canonical_name/canonical_namespace
+  for application/domain respectively when using find_by op.
+  (rpenta@redhat.com)
+- Bug 963646: Quote env var contents to avoid undesirable array evals
+  (ironcladlou@gmail.com)
+- Merge pull request #2524 from pravisankar/dev/ravi/guard-usage-records
+  (dmcphers+openshiftbot@redhat.com)
+- no need for semicolon check (rchopra@redhat.com)
+- refix 961904 (rchopra@redhat.com)
+- Add fault tolerance code to UsageRecord model (rpenta@redhat.com)
+- fix for bz963035, bz963607 - use spawn and rate limit for curl
+  (rchopra@redhat.com)
+- Merge pull request #2520 from jwhonce/wip/rm_post_setup
+  (dmcphers+openshiftbot@redhat.com)
+- WIP Cartridge Refactor - remove post-setup support (jhonce@redhat.com)
+
 * Thu May 16 2013 Adam Miller <admiller@redhat.com> 1.9.2-1
 - Merge pull request #2481 from smarterclayton/add_param_for_downloadable_carts
   (dmcphers@redhat.com)

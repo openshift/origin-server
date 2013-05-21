@@ -4,7 +4,7 @@
 
 Summary:       Provides JBossEAP6.0 support
 Name:          openshift-origin-cartridge-jbosseap
-Version:       2.3.2
+Version:       2.3.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -83,6 +83,10 @@ cp -p %{cartridgedir}/versions/6.0/modules/postgresql_module.xml /etc/alternativ
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Mon May 20 2013 Dan McPherson <dmcphers@redhat.com> 2.3.3-1
+- spec file cleanup (tdawson@redhat.com)
+- Make jboss cluster variables cartridge-scoped (ironcladlou@gmail.com)
+
 * Thu May 16 2013 Adam Miller <admiller@redhat.com> 2.3.2-1
 - process-version -> update-configuration (dmcphers@redhat.com)
 - Bug 963156 (dmcphers@redhat.com)
