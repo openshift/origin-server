@@ -5,6 +5,13 @@ source "${OPENSHIFT_RUBY_DIR}/lib/util"
 
 HTTPD_CFG_FILE=$OPENSHIFT_RUBY_DIR/etc/conf/httpd_nolog.conf
 
+function ruby_context {
+  case $OPENSHIFT_RUBY_VERSION in
+    1.8) eval $1 ;;
+    1.9) /usr/bin/scl enable ruby193 "$1" ;;
+  esac
+}
+
 function start() {
     echo "Starting Ruby cart"
     /usr/bin/scl enable ruby193 "/usr/sbin/httpd -C 'Include $OPENSHIFT_RUBY_DIR/etc/conf.d/*.conf' -f $HTTPD_CFG_FILE -k start"
@@ -124,7 +131,7 @@ function build() {
       fi
       rm -rf $OPENSHIFT_RUBY_DIR/tmp/.bundle $OPENSHIFT_RUBY_DIR/tmp/vendor
     fi
-    
+
     # If .bundle isn't currently committed and a Gemfile is then bundle install
     if [ -f ${OPENSHIFT_REPO_DIR}/Gemfile ]
     then
@@ -134,7 +141,7 @@ function build() {
             SAVED_GIT_DIR=$GIT_DIR
             unset GIT_DIR
             pushd ${OPENSHIFT_REPO_DIR} > /dev/null
-            /usr/bin/scl enable ruby193 "bundle install --deployment"
+            ruby_context "bundle install --deployment"
             popd > /dev/null
             export GIT_DIR=$SAVED_GIT_DIR
         fi
@@ -143,7 +150,7 @@ function build() {
         then
             echo "Precompiling with 'bundle exec rake assets:precompile'"
             pushd ${OPENSHIFT_REPO_DIR} > /dev/null
-            /usr/bin/scl enable ruby193 "bundle exec rake assets:precompile" 2>/dev/null
+            ruby_context "bundle exec rake assets:precompile"
             popd > /dev/null
         fi
     fi
