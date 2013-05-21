@@ -697,6 +697,22 @@ Then /^the platform-created default environment variables will exist$/ do
   app_env_var_will_exist('HISTFILE', false)
 end
 
+#And the domain env variable "TEST_VAR" with value "Foo" is added
+Then /^the domain env variable "([^\"]*)" with value "([^\"]*)" is added$/ do | env_var_name, env_var_value|
+
+    STDOUT.puts "\n\n in new step env_var_name is #{env_var_name} and env_var_value is #{env_var_value}"
+    domain = @app.account.domain
+    STDOUT.puts "\n\n in new step app account DOMAIN is #{domain}"
+    STDOUT.puts "\n\n in new step app NAME  #{@app.name}"
+    STDOUT.puts "\n\n in new step app UUID  #{@app.uuid}"
+    command = "oo-admin-ctl-domain -l \"cucumber-test_#{domain}@example.com\" -n #{domain} -c env_add -e #{env_var_name} -v #{env_var_value}"
+    STDOUT.puts "\n\n\n\n----------------------CLOUD DOMAIN is #{$cloud_domain}"
+    STDOUT.puts "Executing the command: #{command}"
+    out = `#{command}`
+    STDOUT.puts "\n\n Result output for the command is: \n      #{out}\n"
+end
+
+
 Then /^the ([^ ]+) cartridge private endpoints will be (exposed|concealed)$/ do |cart_name, action|
   cartridge = @gear.container.cartridge_model.get_cartridge(cart_name)
 
