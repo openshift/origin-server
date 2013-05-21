@@ -46,8 +46,6 @@ end
 #   @return [String] Stores the URL to the GIT url specified during application creation
 # @!attribute [r] analytics
 #   @return [Hash] Location to store analytics data relevant to the application
-# @!attribute [r] connections
-#   @return [Array<ConnectionInstance>] Array of connections between components of this application
 # @!attribute [r] component_instances
 #   @return [Array<ComponentInstance>] Array of components in this application
 # @!attribute [r] group_instances
@@ -91,7 +89,6 @@ class Application
   field :scalable, type: Boolean, default: false
   field :init_git_url, type: String, default: ""
   field :analytics, type: Hash, default: {}
-  embeds_many :connections, class_name: ConnectionInstance.name
   embeds_many :component_instances, class_name: ComponentInstance.name
   embeds_many :group_instances, class_name: GroupInstance.name
   embeds_many :app_ssh_keys, class_name: ApplicationSshKey.name
@@ -104,6 +101,7 @@ class Application
   # non-persisted field used to store user agent of current request
   attr_accessor :user_agent
   attr_accessor :downloaded_cartridges
+  attr_accessor :connections
 
   validates :name,
     presence: {message: "Application name is required and cannot be blank."},
@@ -937,10 +935,8 @@ class Application
     connections.each do |conn_info|
       from_comp_inst = self.component_instances.find_by(cartridge_name: conn_info["from_comp_inst"]["cart"], component_name: conn_info["from_comp_inst"]["comp"])
       to_comp_inst = self.component_instances.find_by(cartridge_name: conn_info["to_comp_inst"]["cart"], component_name: conn_info["to_comp_inst"]["comp"])
-      conns.push(ConnectionInstance.new(
-        from_comp_inst_id: from_comp_inst._id, to_comp_inst_id: to_comp_inst._id,
-        from_connector_name: conn_info["from_connector_name"], to_connector_name: conn_info["to_connector_name"],
-        connection_type: conn_info["connection_type"]))
+      conns.push(ConnectionInstance.new(from_comp_inst._id, to_comp_inst._id, 
+            conn_info["from_connector_name"], conn_info["to_connector_name"], conn_info["connection_type"]))
     end
     self.connections = conns
   end
@@ -948,7 +944,7 @@ class Application
   def get_unsubscribe_info(comp_inst, old_connections)
     sub_pub_hash = {}
     if self.scalable and old_connections
-      old_conn_hash = old_connections.map{|conn| conn.to_hash}
+      old_conn_hash = old_connections.map{|conn| conn.to_hash(self)}
       old_conn_hash.each do |old_conn|
         if (old_conn["from_comp_inst"]["cart"] == comp_inst.cartridge_name) and
            (old_conn["from_comp_inst"]["comp"] == comp_inst.component_name)
@@ -995,6 +991,9 @@ class Application
 
   def execute_connections
     if self.scalable
+      connections, new_group_instances, cleaned_group_overrides = elaborate(self.requires, self.group_overrides)
+      set_connections(connections)
+
       Rails.logger.debug "Running publishers"
       handle = RemoteJob.create_parallel_job
       #publishers
@@ -1015,7 +1014,7 @@ class Application
       pub_out = {}
       RemoteJob.execute_parallel_jobs(handle)
       RemoteJob.get_parallel_run_results(handle) do |tag, gear_id, output, status|
-        conn_type = self.connections.find_by(:_id => tag).connection_type
+        conn_type = self.connections.find { |c| c._id.to_s == tag}.connection_type
         if status==0
           if conn_type.start_with?("ENV:")
             pub_out[tag] = {} if pub_out[tag].nil?
@@ -1807,17 +1806,8 @@ class Application
 
     execute_connection_op = nil
     all_ops_ids = pending_ops.map{ |op| op._id.to_s }
-    unless connections.nil?
-      #needs to be set and run after all the gears are in place
-      saved_connections = self.connections.map{|conn| conn.to_hash}
-      set_connections_op = PendingAppOp.new(op_type: :set_connections, args: {"connections"=> connections}, prereq: all_ops_ids, saved_values: {connections: saved_connections})
-      execute_connection_op = PendingAppOp.new(op_type: :execute_connections, prereq: [set_connections_op._id.to_s])
-      pending_ops.push set_connections_op
-      pending_ops.push execute_connection_op
-    else
-      execute_connection_op = PendingAppOp.new(op_type: :execute_connections, prereq: all_ops_ids)
-      pending_ops.push execute_connection_op
-    end
+    execute_connection_op = PendingAppOp.new(op_type: :execute_connections, prereq: all_ops_ids)
+    pending_ops.push execute_connection_op
     
     # check to see if there are any primary carts being configured
     # if so, then make sure that the post-configure op for it is executed at the end
