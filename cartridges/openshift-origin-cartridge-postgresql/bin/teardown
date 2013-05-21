@@ -2,4 +2,4 @@
 
 rm -f $HOME/.psqlrc
 rm -f $HOME/.pgpass
-rm -r $OPENSHIFT_DATA_DIR/.psql_history*
+find $OPENSHIFT_DATA_DIR -type f -name ".psql_history*" -exec rm {} \;
