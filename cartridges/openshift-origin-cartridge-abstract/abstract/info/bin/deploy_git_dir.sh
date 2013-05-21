@@ -18,7 +18,7 @@ function extract_submodules {
     # if GIT_DIR is set we need to unset it
     [ ! -z "${GIT_DIR+xxx}" ] && unset GIT_DIR
 
-    # expload tree into a tmp dir
+    # explode tree into a tmp dir
     tmp_dir=${OPENSHIFT_TMP_DIR}
     [ -e ${tmp_dir} ] || mkdir ${tmp_dir}
     submodule_tmp_dir=${tmp_dir}/submodules
@@ -45,7 +45,7 @@ full_src_dir=`pwd`
 # archive and copy the main module
 git archive --format=tar HEAD | (cd ${dest_dir} && tar --warning=no-timestamp -xf -)
 
-# if a .gitmodules file exists we need to expload the whole tree and extract
+# if a .gitmodules file exists we need to explode the whole tree and extract
 # the submoules
 [ -f ${dest_dir}/.gitmodules ] && extract_submodules
 
