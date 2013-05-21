@@ -62,9 +62,9 @@ alternatives --remove maven-3.0 /usr/share/java/apache-maven-3.0.3
 alternatives --install /etc/alternatives/maven-3.0 maven-3.0 /usr/share/maven 102
 alternatives --set maven-3.0 /usr/share/maven
 
-alternatives --remove jbossas-7 /usr/share/jbossas
-alternatives --install /etc/alternatives/jbossas-7 jbossas-7 /usr/share/jbossas 102
-alternatives --set jbossas-7 /usr/share/jbossas
+alternatives --remove jbossas-7 /usr/share/jboss-as
+alternatives --install /etc/alternatives/jbossas-7 jbossas-7 /usr/share/jboss-as 102
+alternatives --set jbossas-7 /usr/share/jboss-as
 %endif
 
 #
