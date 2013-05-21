@@ -110,14 +110,6 @@ class DistrictTest < ActiveSupport::TestCase
     d = District.find_by(uuid: d.uuid)
     assert_equal(available_capacity_before, d.available_capacity)
   end
-
-  test "inc district externally reserved uids size" do
-    orig_d = get_district_obj
-    orig_d.save!
-    District.inc_externally_reserved_uids_size(orig_d.uuid)
-    new_d = District.find_by(uuid: orig_d.uuid)
-    assert_equal(orig_d.externally_reserved_uids_size + 1, new_d.externally_reserved_uids_size)
-  end
   
   test "district capacity" do
     orig_d = get_district_obj
@@ -239,7 +231,6 @@ class DistrictTest < ActiveSupport::TestCase
     district.max_uid = district.available_uids.max
     district.available_capacity = district.available_uids.length
     district.max_capacity = district.available_uids.length
-    district.externally_reserved_uids_size = 0
     district.gear_size = "small"
     district.uuid = uuid
     district.active_server_identities_size = 0

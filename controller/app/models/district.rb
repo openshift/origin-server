@@ -5,7 +5,6 @@ class District
   field :name, type: String
   field :uuid, type: String, default: ""
   field :gear_size, type: String
-  field :externally_reserved_uids_size, type: Integer
   field :max_capacity, type: Integer
   field :max_uid, type: Integer
   field :available_uids, type: Array, default: []
@@ -42,7 +41,6 @@ class District
     self.available_uids = (first_uid...first_uid + num_uids).sort_by{rand}
     self.max_uid = first_uid + num_uids - 1
     self.max_capacity = num_uids
-    self.externally_reserved_uids_size = 0
     self.active_server_identities_size = 0
     save!
   end
@@ -214,9 +212,4 @@ class District
       raise OpenShift::OOException.new("You must supply a positive number of uids to remove")
     end
   end
-
-  def self.inc_externally_reserved_uids_size(uuid)
-    District.where("uuid" => uuid).update({ "$inc" => { "externally_reserved_uids_size" => 1} })
-  end
-  
 end
