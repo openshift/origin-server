@@ -87,8 +87,9 @@ def do_command(command, options)
       $stderr.puts "stdout: #{e.stdout}\nstderr#{e.stderr}"
       $stderr.puts e.backtrace.join("\n")
     else
-      $stderr.puts "An error occured executing the '#{command.name}' command. For more details about "\
-                   "the problem, try running the command again with the '--trace' option."
+      $stderr.puts "An error occurred executing 'gear #{command.name}'"
+      $stderr.puts "stdout: #{e.stdout}\nstderr#{e.stderr}"
+      $stderr.puts "For more details about the problem, try running the command again with the '--trace' option."
     end
     exit -1
   rescue Exception => e
