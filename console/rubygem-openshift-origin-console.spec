@@ -47,7 +47,7 @@ BuildRequires: %{?scl:%scl_prefix}rubygem(rdiscount)
 BuildRequires: %{?scl:%scl_prefix}rubygem(sass-rails)
 BuildRequires: %{?scl:%scl_prefix}rubygem(sprockets)
 BuildRequires: %{?scl:%scl_prefix}rubygem(therubyracer)
-BuildRequires: %{?scl:%scl_prefix}rubygem(uglifier-rails)
+BuildRequires: %{?scl:%scl_prefix}rubygem(uglifier)
 BuildRequires: scl-utils-build
 
 %endif
