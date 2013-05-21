@@ -368,8 +368,10 @@ def check_cgroup_procs
             missing.each do |pid|
                 proc_data = %x[/bin/ps -p #{pid} -o uid,pid,ppid,etime,cmd].split("\n")
 
-                # ensure the process is still running before failing (fixes transient process problem)
-                if proc_data.size > 1
+                # ensure the process is still running and not defunct before failing
+                # this fixes both the transient process and the defunct process
+                # detection problems
+                if proc_data.size > 1 && ! proc_data[1].strip().end_with?('<defunct>')
                     do_fail("#{uuid} has a process missing from cgroups:  #{pid}")
                 end
             end
