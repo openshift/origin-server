@@ -80,10 +80,17 @@ textarea:focus {
   color: #000;
   background-color: #d8d8d8;
 	}
-.thumbnail {
-	border: none;
-	box-shadow: none;
-	padding: 0;
+.thumbnail-video {
+	font-size: 14px;
+  &.span2 {
+    height: 148px;
+    .views-field-field-video-third-party-embed {
+      height: 118px;
+    }
+  }
+  img {
+    width: 100%;
+    }
 	}
 
 .icon-loading {
@@ -91,6 +98,17 @@ textarea:focus {
   vertical-align: middle;
 	}
 
+// Inline list styles from newer bootstrap version
+ul.inline, ol.inline {
+    list-style: none outside none;
+    margin-left: 0;
+
+    > li {
+      display: inline-block;
+      padding-left: 5px;
+      padding-right: 5px;
+    }
+}
 
 
 // FORM FIELD FEEDBACK STATES
