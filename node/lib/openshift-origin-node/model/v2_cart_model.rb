@@ -268,7 +268,7 @@ module OpenShift
     rescue Utils::ShellExecutionException => e
       stdout = e.stdout.split("\n").map { |l| l.start_with?('CLIENT_') ? l : "CLIENT_MESSAGE: #{l}" }.join("\n")
       stderr = e.stderr.split("\n").map { |l| l.start_with?('CLIENT_') ? l : "CLIENT_ERROR: #{l}" }.join("\n")
-      raise Utils::ShellExecutionException.new(e.message, 157, stdout, stderr)
+      raise Utils::ShellExecutionException.new(e.message, (e.rc < 100 ? 157 : e.rc), stdout, stderr)
     rescue => e
       msg = e.message.split("\n").each { |l| l.start_with?('CLIENT_') ? l : "CLIENT_ERROR: #{l}" }.join("\n")
       raise msg
@@ -844,7 +844,7 @@ module OpenShift
       env_dir_path = File.join(@user.homedir, '.env', short_name_from_full_cart_name(pub_cart_name))
       FileUtils.mkpath(env_dir_path)
 
-      envs  = {}
+      envs = {}
 
       # Skip the first three arguments and jump to gear => "k1=v1\nk2=v2\n" hash map
       pairs = args[3].values[0].split("\n")
