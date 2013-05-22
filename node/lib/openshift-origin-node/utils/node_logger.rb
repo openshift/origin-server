@@ -69,6 +69,9 @@ module OpenShift
         
         logger       = Logger.new(file, 5, 10 * 1024 * 1024)
         logger.level = log_level
+        logger.formatter = proc do |severity, datetime, progname, msg|
+          "#{datetime.strftime("%B %d %H:%M:%S")} #{severity} #{msg}\n"
+        end
         logger
       rescue Exception => e
         # If all else fails, use a STDOUT logger
