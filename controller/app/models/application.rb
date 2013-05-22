@@ -1497,14 +1497,16 @@ class Application
       if is_singleton
         if gear_id_prereqs.keys.include?(singleton_gear_id)
           prereq_id = gear_id_prereqs[singleton_gear_id]
-          add_component_op = PendingAppOp.new(op_type: :add_component, args: {"group_instance_id"=> group_instance_id, "gear_id" => singleton_gear_id, "comp_spec" => comp_spec, "init_git_url"=>init_git_url}, prereq: new_component_op_id + [prereq_id])
+          git_url = nil
+          git_url = init_git_url if cartridge.is_deployable?
+          add_component_op = PendingAppOp.new(op_type: :add_component, args: {"group_instance_id"=> group_instance_id, "gear_id" => singleton_gear_id, "comp_spec" => comp_spec, "init_git_url" => git_url}, prereq: new_component_op_id + [prereq_id])
           ops.push add_component_op
           component_ops[comp_spec][:adds].push add_component_op
           usage_op_prereq = [add_component_op._id.to_s]
 
           # if its a singleton, then it cannot be a scaleup, 
-          # hence no need to check whether its a primary cart and scaleup 
-          post_configure_op = PendingAppOp.new(op_type: :post_configure_component, args: {"group_instance_id"=> group_instance_id, "gear_id" => singleton_gear_id, "comp_spec" => comp_spec, "init_git_url"=>init_git_url}, prereq: [add_component_op._id.to_s] + [prereq_id])
+          # hence no need to check whether its a deployable cart and scaleup case 
+          post_configure_op = PendingAppOp.new(op_type: :post_configure_component, args: {"group_instance_id"=> group_instance_id, "gear_id" => singleton_gear_id, "comp_spec" => comp_spec, "init_git_url" => git_url}, prereq: [add_component_op._id.to_s] + [prereq_id])
           ops.push post_configure_op 
           component_ops[comp_spec][:post_configures].push post_configure_op
           usage_op_prereq = [post_configure_op._id.to_s]
@@ -1516,14 +1518,14 @@ class Application
       else
         gear_id_prereqs.each do |gear_id, prereq_id|
           git_url = nil
-          git_url = init_git_url if gear_id == singleton_gear_id
-          add_component_op = PendingAppOp.new(op_type: :add_component, args: {"group_instance_id"=> group_instance_id, "gear_id" => gear_id, "comp_spec" => comp_spec, "init_git_url"=>git_url}, prereq: new_component_op_id + [prereq_id])
+          git_url = init_git_url if gear_id == singleton_gear_id && cartridge.is_deployable?
+          add_component_op = PendingAppOp.new(op_type: :add_component, args: {"group_instance_id"=> group_instance_id, "gear_id" => gear_id, "comp_spec" => comp_spec, "init_git_url" => git_url}, prereq: new_component_op_id + [prereq_id])
           ops.push add_component_op
           component_ops[comp_spec][:adds].push add_component_op
           usage_op_prereq = [add_component_op._id.to_s]
 
-          unless is_scale_up and cartridge.is_primary_cart?
-            post_configure_op = PendingAppOp.new(op_type: :post_configure_component, args: {"group_instance_id"=> group_instance_id, "gear_id" => gear_id, "comp_spec" => comp_spec, "init_git_url"=>init_git_url}, prereq: [add_component_op._id.to_s] + [prereq_id])
+          unless is_scale_up and cartridge.is_deployable?
+            post_configure_op = PendingAppOp.new(op_type: :post_configure_component, args: {"group_instance_id"=> group_instance_id, "gear_id" => gear_id, "comp_spec" => comp_spec, "init_git_url" => git_url}, prereq: [add_component_op._id.to_s] + [prereq_id])
             ops.push post_configure_op 
             component_ops[comp_spec][:post_configures].push post_configure_op
             usage_op_prereq = [post_configure_op._id.to_s]
@@ -1809,12 +1811,12 @@ class Application
     execute_connection_op = PendingAppOp.new(op_type: :execute_connections, prereq: all_ops_ids)
     pending_ops.push execute_connection_op
     
-    # check to see if there are any primary carts being configured
+    # check to see if there are any deployable carts being configured
     # if so, then make sure that the post-configure op for it is executed at the end
     # also, it should not be the prerequisite for any other pending_op 
     component_ops.keys.each do |comp_spec|
       cartridge = CartridgeCache.find_cartridge(comp_spec["cart"], self)
-      if cartridge.is_primary_cart?
+      if cartridge.is_deployable?
         component_ops[comp_spec][:post_configures].each do |pcop|
           pcop.prereq += [execute_connection_op._id.to_s]
           pending_ops.each { |op| op.prereq.delete_if { |prereq_id| prereq_id == pcop._id.to_s } }
