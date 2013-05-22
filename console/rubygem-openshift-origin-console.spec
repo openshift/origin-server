@@ -9,7 +9,7 @@
 
 Summary:       OpenShift Origin Management Console
 Name:          rubygem-%{gem_name}
-Version: 1.9.3
+Version: 1.9.4
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -147,6 +147,13 @@ cp -a ./%{gem_dir}/* %{buildroot}%{gem_dir}/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Wed May 22 2013 Adam Miller <admiller@redhat.com> 1.9.4-1
+- Merge pull request #2590 from smarterclayton/rescue_delivery_failures
+  (dmcphers+openshiftbot@redhat.com)
+- Rescue delivery failures gracefully with a global logger
+  (ccoleman@redhat.com)
+- Bug 961072 (jharris@redhat.com)
+
 * Mon May 20 2013 Dan McPherson <dmcphers@redhat.com> 1.9.3-1
 - 
 
