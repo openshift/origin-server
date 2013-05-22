@@ -107,6 +107,14 @@ class ApplicationRepositoryFuncTest < OpenShift::V2SdkTestCase
     refute_nil repo
   end
 
+  def test_no_template
+    template = File.join(@user.homedir, @cartridge_directory, 'template')
+    FileUtils.rm_rf template
+    repo = OpenShift::ApplicationRepository.new(@user)
+    refute_path_exist template
+    repo.deploy
+  end
+
   def test_bare_repository_usr
     create_template(File.join(@cartridge_home, 'usr', 'template', 'perl'))
     create_bare(File.join(@cartridge_home, 'usr', 'template'))
