@@ -9,7 +9,7 @@
 
 Summary:       OpenShift plugin for mcollective service
 Name:          rubygem-%{gem_name}
-Version: 1.9.3
+Version: 1.9.4
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -80,6 +80,14 @@ cp %{buildroot}/%{gem_dir}/gems/%{gem_name}-%{version}/conf/openshift-origin-msg
 %attr(0644,-,-) %ghost /etc/mcollective/client.cfg
 
 %changelog
+* Wed May 22 2013 Adam Miller <admiller@redhat.com> 1.9.4-1
+- Removing externally_reserved_uids_size attribute from districts
+  (abhgupta@redhat.com)
+- Fixes to cleanup during app operation failures (abhgupta@redhat.com)
+- Merge pull request #2499 from lnader/master
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 963828 (lnader@redhat.com)
+
 * Mon May 20 2013 Dan McPherson <dmcphers@redhat.com> 1.9.3-1
 - Rsync the tc limit settings on gear move. (rmillner@redhat.com)
 
