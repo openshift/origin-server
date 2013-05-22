@@ -45,6 +45,10 @@ Requires:      %{?scl:%scl_prefix}rubygem(rspec-core)
 
 BuildRequires: %{?scl:%scl_prefix}build
 BuildRequires: scl-utils-build
+BuildRequires: %{?scl:%scl_prefix}rubygem(coffee-rails)
+BuildRequires: %{?scl:%scl_prefix}rubygem(sass-rails)
+BuildRequires: %{?scl:%scl_prefix}rubygem(jquery-rails)
+BuildRequires: %{?scl:%scl_prefix}rubygem(uglifier)
 BuildRequires: %{?scl:%scl_prefix}rubygem(rails)
 BuildRequires: %{?scl:%scl_prefix}rubygem(compass-rails)
 BuildRequires: %{?scl:%scl_prefix}rubygem(mocha)
