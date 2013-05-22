@@ -7,6 +7,7 @@ HTTPD_CFG_DIR=$OPENSHIFT_PHP_DIR/configuration/etc/conf.d
 
 function start() {
     echo "Starting PHP cart"
+    update_httpd_passenv $HTTPD_CFG_FILE
     /usr/sbin/httpd -C "Include $HTTPD_CFG_DIR/*.conf" -f $HTTPD_CFG_FILE -k start
 }
 
@@ -16,7 +17,8 @@ function stop() {
 }
 
 function restart() {
-   echo "Restarting PHP cart"
+    echo "Restarting PHP cart"
+    update_httpd_passenv $HTTPD_CFG_FILE
     /usr/sbin/httpd -C "Include $HTTPD_CFG_DIR/*.conf" -f $HTTPD_CFG_FILE -k restart
 }
 

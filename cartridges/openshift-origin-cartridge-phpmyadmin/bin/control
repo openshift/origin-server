@@ -8,6 +8,7 @@ httpd_config=${OPENSHIFT_PHPMYADMIN_DIR}conf/httpd_nolog.conf
 httpd_pid_file=${OPENSHIFT_PHPMYADMIN_DIR}run/httpd.pid
 
 function start {
+  update_httpd_passenv $httpd_config
   /usr/sbin/httpd -C "Include ${OPENSHIFT_PHPMYADMIN_DIR}conf.d/*.conf" -f $httpd_config -k start
 }
 
@@ -16,6 +17,7 @@ function stop {
 }
 
 function restart {
+  update_httpd_passenv $httpd_config
   /usr/sbin/httpd -C "Include ${OPENSHIFT_PHPMYADMIN_DIR}conf.d/*.conf" -f $httpd_config -k restart
 }
 
