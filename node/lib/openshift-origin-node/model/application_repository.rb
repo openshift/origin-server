@@ -130,6 +130,8 @@ module OpenShift
     end
 
     def deploy
+      return unless exist?
+
       # expose variables for ERB processing
       @application_name = @user.app_name
       @user_homedir     = @user.homedir
