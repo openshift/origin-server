@@ -281,7 +281,7 @@ function ensure_valid_httpd_process() {
 
 # application developer has requested a hot deploy, 0 == true, 1 == false
 function hot_deploy_marker_is_present() {
-    marker_present host_deploy
+    marker_present hot_deploy
 }
 
 # report the primary cartridge name for this gear

@@ -31,7 +31,7 @@ program :description, "An assortment gear utilities"
 STDOUT.sync = true
 STDERR.sync = true
 
-HOT_DEPLOY_MARKER = '.openshift/markers/hot_deploy'
+HOT_DEPLOY_MARKER = File.join(%w(.openshift markers hot_deploy))
 
 module OpenShift
   module NodeLogger
@@ -160,12 +160,14 @@ command :remotedeploy do |c|
 
   c.description = "Run the remotedeploy steps"
   c.option "--init", "Run post-install for new gears"
+  c.option "--hot-deploy", "Perform hot deployment regardless of the presence of the hot_deploy marker in the application Git repo"
   c.action do |args, options|
     do_command(c, options) do
+      hot_deploy_enabled = options.hot_deploy || file_committed?(HOT_DEPLOY_MARKER)
       if options.init
-        @container.remote_deploy(out: $stdout, err: $stderr, hot_deploy: file_committed?(HOT_DEPLOY_MARKER), init: true)
+        @container.remote_deploy(out: $stdout, err: $stderr, hot_deploy: hot_deploy_enabled, init: true)
       else
-        @container.remote_deploy(out: $stdout, err: $stderr, hot_deploy: file_committed?(HOT_DEPLOY_MARKER))
+        @container.remote_deploy(out: $stdout, err: $stderr, hot_deploy: hot_deploy_enabled)
       end
     end
   end
