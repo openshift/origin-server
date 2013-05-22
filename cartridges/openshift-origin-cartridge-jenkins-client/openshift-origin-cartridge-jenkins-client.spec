@@ -44,7 +44,7 @@ Provides plugin jenkins client support. (Cartridge Format V2)
 %files
 %dir %{cartridgedir}
 %attr(0755,-,-) %{cartridgedir}/bin/
-%attr(0755,-,-) %{cartridgedir}
+%{cartridgedir}
 %doc %{cartridgedir}/README.md
 %doc %{cartridgedir}/COPYRIGHT
 %doc %{cartridgedir}/LICENSE

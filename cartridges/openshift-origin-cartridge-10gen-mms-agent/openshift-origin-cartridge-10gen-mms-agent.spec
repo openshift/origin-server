@@ -33,7 +33,7 @@ Provides 10gen MMS agent cartridge support. (Cartridge Format V2)
 
 %files
 %dir %{cartridgedir}
-%attr(0755,-,-) %{cartridgedir}
+%{cartridgedir}
 %doc %{cartridgedir}/README.md
 %doc %{cartridgedir}/COPYRIGHT
 %doc %{cartridgedir}/LICENSE
