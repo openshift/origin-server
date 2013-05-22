@@ -1,7 +1,7 @@
 %global cartridgedir %{_libexecdir}/openshift/cartridges/v2/python
 
 Name:          openshift-origin-cartridge-python
-Version:       0.4.3
+Version:       0.4.4
 Release:       1%{?dist}
 Summary:       Python cartridge
 Group:         Development/Languages
@@ -59,6 +59,13 @@ Python cartridge for OpenShift. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Wed May 22 2013 Adam Miller <admiller@redhat.com> 0.4.4-1
+- Bug 962662 (dmcphers@redhat.com)
+- get submodules working in all cases (dmcphers@redhat.com)
+- Bug 965537 - Dynamically build PassEnv httpd configuration
+  (jhonce@redhat.com)
+- Fix bug 964348 (pmorie@gmail.com)
+
 * Mon May 20 2013 Dan McPherson <dmcphers@redhat.com> 0.4.3-1
 - spec file cleanup (tdawson@redhat.com)
 
