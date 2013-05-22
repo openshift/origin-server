@@ -16,7 +16,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.9.4
+Version: 1.9.5
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -294,6 +294,12 @@ fi
 %attr(0755,-,-) /etc/cron.monthly/openshift-origin-cron-monthly
 
 %changelog
+* Wed May 22 2013 Adam Miller <admiller@redhat.com> 1.9.5-1
+- Merge pull request #2594 from calfonso/master
+  (dmcphers+openshiftbot@redhat.com)
+- Modify NodeLogger to use a format consistent with rsyslog
+  (calfonso@redhat.com)
+
 * Wed May 22 2013 Adam Miller <admiller@redhat.com> 1.9.4-1
 - WIP Cartridge Refactor - Improved error handling (jhonce@redhat.com)
 - Merge pull request #2585 from danmcp/master
