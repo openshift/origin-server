@@ -150,9 +150,9 @@ class Application
     app.analytics['user_agent'] = user_agent
     app.save
     features << "web_proxy" if scalable
-    app.downloaded_cartridges.each { |cname,c| features << c.name }
     if app.valid?
       begin
+        app.downloaded_cartridges.each { |cname,c| features << c.name }
         framework_carts = CartridgeCache.cartridge_names("web_framework", app)
         framework_cartridges = []
         features.each do |feature|
