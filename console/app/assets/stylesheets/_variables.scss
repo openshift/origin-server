@@ -3,6 +3,22 @@ $headerFontFamily:    "Helvetica Neue", Helvetica, Arial, sans-serif !default;
 
 $baseLineHeight:          18px;
 $baseFontSize:						13.5px;
+$leadLineHeight:          $baseLineHeight * 1.5;
+$leadFontSize:            20px;
+$largeLineHeight:         21px;
+$largeFontSize:           15px;
+$smallFontSize:           12px;
+$tinyFontSize:            11px;
+$extraTinyFontSize:       10px;
+
+// For matching header sizes exactly
+$h1FontSize:              $baseFontSize * 2.25;
+$h2FontSize:              $baseFontSize * 1.62;
+$h3FontSize:              $baseFontSize * 1.38;
+$h4FontSize:              $baseFontSize * 1.25;
+$h5FontSize:              $baseFontSize;
+$h6FontSize:              $baseFontSize * .82;
+
 $bodyBackground:          #fff !default;
 
 $responsivePhone:         480px;

@@ -87,7 +87,7 @@ input[type="submit"].btn {
 // Large
 .btn-large {
   padding: 8px 18px;
-  font-size: $baseFontSize + .5px;
+  font-size: $baseFontSize + .5px; // FIXME
   line-height: normal;
 }
 .btn-large [class^="icon-"] {
@@ -97,7 +97,7 @@ input[type="submit"].btn {
 // Small
 .btn-small {
   padding: 5px 10px;
-  font-size: $baseFontSize - 2px;
+  font-size: $baseFontSize - 2px; // FIXME
   line-height: $baseLineHeight - 2px;
 }
 .btn-small [class^="icon-"] {
@@ -107,7 +107,7 @@ input[type="submit"].btn {
 // Mini
 .btn-mini {
   padding: 2px 6px;
-  font-size: $baseFontSize - 2px;
+  font-size: $baseFontSize - 2px; // FIXME
   line-height: $baseLineHeight - 4px;
 }
 
