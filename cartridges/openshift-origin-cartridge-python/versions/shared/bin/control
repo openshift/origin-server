@@ -36,7 +36,6 @@ function _start_service() {
    echo "$pid" > "$pycart_dir/run/appserver.pid"
 
    sleep 5
-   tail "$pycart_dir/logs/appserver.log"
 
    #BZ 908673
    #popd > /dev/null
