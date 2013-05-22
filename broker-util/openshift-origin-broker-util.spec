@@ -6,7 +6,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin broker
 Name:          openshift-origin-broker-util
-Version: 1.9.3
+Version: 1.9.4
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -86,6 +86,13 @@ cp man/*.8 %{buildroot}%{_mandir}/man8/
 %{_mandir}/man8/oo-stats.8.gz
 
 %changelog
+* Wed May 22 2013 Adam Miller <admiller@redhat.com> 1.9.4-1
+- clean pending ops script to ensure rollbacks when needed; fix downloaded
+  manifest screening (rchopra@redhat.com)
+- Merge pull request #2499 from lnader/master
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 957164 (lnader@redhat.com)
+
 * Mon May 20 2013 Dan McPherson <dmcphers@redhat.com> 1.9.3-1
 - Merge pull request #2540 from pravisankar/dev/ravi/bug963981
   (dmcphers+openshiftbot@redhat.com)
