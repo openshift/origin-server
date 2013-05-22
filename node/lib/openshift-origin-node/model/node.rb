@@ -19,6 +19,9 @@ require 'openshift-origin-common/models/manifest'
 require 'openshift-origin-node/model/cartridge_repository'
 require 'openshift-origin-common'
 require 'systemu'
+require 'safe_yaml'
+
+SafeYAML::OPTIONS[:default_mode] = :unsafe
 
 module OpenShift
   class NodeCommandException < StandardError; end
@@ -35,7 +38,7 @@ module OpenShift
           path = File.join(cartridge_path, cart_dir, "info", "manifest.yml")
           begin
             print "Loading #{cart_dir}..." if oo_debug
-            carts.push OpenShift::Cartridge.new.from_descriptor(YAML.load(File.open(path)))
+            carts.push OpenShift::Cartridge.new.from_descriptor(YAML.load(File.open(path), :safe => true))
             print "OK\n" if oo_debug
           rescue Exception => e
             print "ERROR\n" if oo_debug
@@ -98,7 +101,7 @@ module OpenShift
         next if [".", "..", "embedded", "abstract", "abstract-httpd", "haproxy-1.4", "mysql-5.1", "mongodb-2.2", "postgresql-8.4"].include? cart_dir
         path = File.join(cartridge_path, cart_dir, "info", "manifest.yml")
         begin
-          cart = OpenShift::Cartridge.new.from_descriptor(YAML.load(File.open(path)))
+          cart = OpenShift::Cartridge.new.from_descriptor(YAML.load(File.open(path), :safe => true))
           if cart.name == cart_name
             output << "CLIENT_RESULT: "
             output << cart.to_descriptor.to_json
@@ -117,7 +120,7 @@ module OpenShift
           next if [".",".."].include? cart_dir
           path = File.join(embedded_cartridge_path, cart_dir, "info", "manifest.yml")
           begin
-            cart = OpenShift::Cartridge.new.from_descriptor(YAML.load(File.open(path)))
+            cart = OpenShift::Cartridge.new.from_descriptor(YAML.load(File.open(path), :safe => true))
             if cart.name == cart_name
               output << "CLIENT_RESULT: "
               output << cart.to_descriptor.to_json

@@ -126,6 +126,7 @@ module OpenShift
       name, _  = map_cartridge_name(cart_name)
       cart_dir = Dir.glob(PathUtils.join(@user.homedir, "#{name}"))
       raise "Ambiguous cartridge name #{cart_name}: found #{cart_dir}:#{cart_dir.size}" if 1 < cart_dir.size
+      raise "Cartridge directory not found for #{cart_name}" if  1 > cart_dir.size
 
       File.basename(cart_dir.first)
     end
@@ -192,7 +193,7 @@ module OpenShift
 
       # Ensure we're not in the gear's directory
       Dir.chdir(@config.get("GEAR_BASE_DIR"))
-      
+
       @user.destroy
 
       # FIXME: V1 contract is there a better way?
@@ -254,7 +255,7 @@ module OpenShift
             output << cartridge_action(cartridge, 'setup', software_version, true)
             process_erb_templates(c)
             output << cartridge_action(cartridge, 'install', software_version)
-            populate_gear_repo(c.directory, template_git_url) if cartridge.deployable?
+            output << populate_gear_repo(c.directory, template_git_url) if cartridge.deployable?
           end
 
         end
@@ -265,11 +266,11 @@ module OpenShift
       logger.info "configure output: #{output}"
       return output
     rescue Utils::ShellExecutionException => e
-      stdout = e.stdout.split("\n").map {|l| l.start_with?('CLIENT_') ? l : "CLIENT_MESSAGE: #{l}"}.join("\n")
-      stderr = e.stderr.split("\n").map {|l| l.start_with?('CLIENT_') ? l : "CLIENT_ERROR: #{l}"}.join("\n")
+      stdout = e.stdout.split("\n").map { |l| l.start_with?('CLIENT_') ? l : "CLIENT_MESSAGE: #{l}" }.join("\n")
+      stderr = e.stderr.split("\n").map { |l| l.start_with?('CLIENT_') ? l : "CLIENT_ERROR: #{l}" }.join("\n")
       raise Utils::ShellExecutionException.new(e.message, 157, stdout, stderr)
-    rescue  => e
-      msg = e.message.split("\n").each {|l| l.start_with?('CLIENT_') ? l : "CLIENT_ERROR: #{l}"}.join("\n")
+    rescue => e
+      msg = e.message.split("\n").each { |l| l.start_with?('CLIENT_') ? l : "CLIENT_ERROR: #{l}" }.join("\n")
       raise msg
     end
 
@@ -435,7 +436,7 @@ module OpenShift
       end
 
       # Gear level actions: Placed here to be off the V1 code path...
-      old_path  = File.join(@user.homedir, '.env', 'PATH')
+      old_path = File.join(@user.homedir, '.env', 'PATH')
       File.delete(old_path) if File.file? old_path
 
       secure_cartridge(@user.uid, @user.gid, target)
@@ -503,8 +504,12 @@ module OpenShift
         repo.populate_from_url(cartridge_name, template_url)
       end
 
-      repo.deploy
-      logger.info "Created gear repo for  #{@user.uuid}/#{cartridge_name}"
+      if repo.exist?
+        repo.deploy
+        "CLIENT_DEBUG: The cartridge #{cartridge_name} deployed a template application"
+      else
+        "CLIENT_MESSAGE: The cartridge #{cartridge_name} did not provide template application"
+      end
     end
 
     # process_erb_templates(cartridge_name) -> nil
@@ -512,9 +517,9 @@ module OpenShift
     # Search cartridge for any remaining <code>erb</code> files render them
     def process_erb_templates(cartridge)
       directory = PathUtils.join(@user.homedir, cartridge.name)
-      logger.info "Processing ERB templates for #{cartridge}"
+      logger.info "Processing ERB templates for #{cartridge.name}"
 
-      env = Utils::Environ.for_gear(@user.homedir, directory)
+      env  = Utils::Environ.for_gear(@user.homedir, directory)
       erbs = processed_templates(cartridge).map { |x| PathUtils.join(@user.homedir, x) }
       render_erbs(env, erbs)
     end
@@ -765,8 +770,14 @@ module OpenShift
               next
             end
 
+            # Only web proxy cartridges can override the default mapping
+            if mapping.frontend == "" && (!cartridge.web_proxy?) && (cartridge.name != primary_cartridge.name)
+              logger.info("Skipping default mapping as primary cartridge owns it for the application")
+              next
+            end
+
             logger.info("Connecting frontend mapping for #{@user.uuid}/#{cartridge.name}: "\
-                      "#{mapping.frontend} => #{backend_uri} with options: #{mapping.options}")
+                      "[#{mapping.frontend}] => [#{backend_uri}] with options: #{mapping.options}")
             frontend.connect(mapping.frontend, backend_uri, options)
           end
         end
@@ -833,13 +844,13 @@ module OpenShift
       env_dir_path = File.join(@user.homedir, '.env', short_name_from_full_cart_name(pub_cart_name))
       FileUtils.mkpath(env_dir_path)
 
-      envs = {}
+      envs  = {}
 
       # Skip the first three arguments and jump to gear => "k1=v1\nk2=v2\n" hash map
       pairs = args[3].values[0].split("\n")
 
       pairs.each do |pair|
-        k, v = pair.strip.split("=")
+        k, v    = pair.strip.split("=")
         envs[k] = v
       end
 
@@ -899,7 +910,7 @@ module OpenShift
                                     env:             env,
                                     unsetenv_others: true,
                                     chdir:           @user.homedir,
-                                    timeout:         60,
+                                    timeout:         220,
                                     uid:             @user.uid)
       if 0 == rc
         logger.info("(#{rc})\n------\n#{Runtime::Utils.sanitize_credentials(out)}\n------)")

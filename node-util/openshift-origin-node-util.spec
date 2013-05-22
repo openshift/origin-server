@@ -32,6 +32,7 @@ rm %{buildroot}%{_sbindir}/oo-restore
 cp bin/rhc-* %{buildroot}%{_bindir}/
 cp bin/oo-snapshot %{buildroot}%{_bindir}/
 cp bin/oo-restore %{buildroot}%{_bindir}/
+cp bin/unidle_gear.sh %{buildroot}%{_bindir}/
 
 %if 0%{?fedora} >= 18
   mv %{buildroot}%{_sbindir}/oo-httpd-singular.apache-2.4 %{buildroot}%{_sbindir}/oo-httpd-singular
@@ -85,6 +86,7 @@ mv services/openshift-gears.service %{buildroot}/etc/systemd/system/openshift-ge
 %attr(0755,-,-) %{_bindir}/rhc-list-ports
 %attr(0755,-,-) %{_bindir}/oo-snapshot
 %attr(0755,-,-) %{_bindir}/oo-restore
+%attr(0755,-,-) %{_bindir}/unidle_gear.sh
 
 %doc LICENSE
 %doc README-Idler.md

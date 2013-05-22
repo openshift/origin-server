@@ -1,6 +1,5 @@
-#!/bin/bash -e
+#!/bin/bash -eu
 source $OPENSHIFT_CARTRIDGE_SDK_BASH
-set -u
 
 # Perl cartridge. Perl packaged with OS.
 # Perl control script.
@@ -10,8 +9,8 @@ HTTPD_CFG_FILE=$OPENSHIFT_PERL_DIR/etc/conf/httpd_nolog.conf
 HTTPD_PID_FILE=$OPENSHIFT_PERL_DIR/run/httpd.pid
 
 # Functions called from case statement below
-
 function start() {
+  update_httpd_passenv $HTTPD_CFG_FILE
   /usr/sbin/httpd -C "Include $OPENSHIFT_PERL_DIR/etc/conf.d/*.conf" -f $HTTPD_CFG_FILE -k start
 }
 
@@ -20,6 +19,7 @@ function stop() {
 }
 
 function restart() {
+  update_httpd_passenv $HTTPD_CFG_FILE
   /usr/sbin/httpd -C "Include $OPENSHIFT_PERL_DIR/etc/conf.d/*.conf" -f $HTTPD_CFG_FILE -k restart
 }
 
@@ -41,12 +41,12 @@ function tidy() {
 }
 
 case "$1" in
-  start) start ;;
-  stop) stop ;;
+  start)   start ;;
+  stop)    stop ;;
   restart) restart ;;
-  status) status ;;
-  reload) restart ;;
-  tidy) tidy ;;
-  build) $OPENSHIFT_PERL_DIR/bin/build ;;
-  *) exit 0
+  status)  status ;;
+  reload)  restart ;;
+  tidy)    tidy ;;
+  build)   $OPENSHIFT_PERL_DIR/bin/build ;;
+  *)       exit 0
 esac

@@ -10,6 +10,7 @@ SYNOPSIS
   [--removesubaccount subaccount_login] [--allowsubaccounts true|false]
   [--addgearsize gear_size] [--removegearsize gear_size]
   [--inheritgearsizes true|false]
+  [--allowprivatesslcertificates true|false]
 
 DESCRIPTION
   Utility to manage users within OpenShift Origin.
@@ -55,6 +56,9 @@ OPTIONS
   --inheritgearsizes true|false  
     Allow or Diasllow inheritance of login user gearsizes capability to
     subaccounts.
+    
+  --allowprivatesslcertificates true|false  
+    Add / Remove the capability to add private SSL certificates.
 
 EXAMPLE
 

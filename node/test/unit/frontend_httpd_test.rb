@@ -27,16 +27,6 @@ class FrontendHttpServerModelTest < Test::Unit::TestCase
     WRITER = 1
     WRCREAT = 1
     NEWDB = 1
-
-    def update_block
-      deletions = []
-      updates = {}
-      self.each do |k, v|
-        yield(deletions, updates, k, v)
-      end
-      self.delete_if { |k, v| deletions.include?(k) }
-      self.update(updates)
-    end
   end
 
   def setup
@@ -238,34 +228,6 @@ class FrontendHttpServerModelTest < Test::Unit::TestCase
     frontend.destroy
 
     check_dbs_empty
-  end
-
-
-  def test_update
-    set_dbs_full
-
-    frontend = OpenShift::FrontendHttpServer.new(@container_uuid, @container_name, @namespace)
-    frontend.update_name("newname")
-
-    new_fqdn = "newname-#{@namespace}.#{@cloud_domain}"
-
-    assert_equal "newname", frontend.container_name
-    assert_equal @namespace, frontend.namespace
-    assert_equal new_fqdn, frontend.fqdn
-
-    check_dbs_not_empty
-
-    assert_equal @apache_db_nodes_full[@fqdn], @apache_db_nodes[new_fqdn]
-
-    assert_equal new_fqdn, @apache_db_aliases[@test_alias]
-
-    assert_equal @container_uuid, @apache_db_idler[new_fqdn]
-
-    assert_equal @sts_max_age, @apache_db_sts[new_fqdn]
-
-    assert_equal @nodejs_db_routes_full[@fqdn], @nodejs_db_routes[new_fqdn]
-
-    assert_equal @gear_db[@container_uuid]['fqdn'], new_fqdn
   end
 
   def test_connections

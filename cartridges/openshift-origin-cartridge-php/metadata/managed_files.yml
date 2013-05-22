@@ -4,9 +4,11 @@ locked_files:
 - bin/
 - bin/*
 - configuration/
+- configuration/etc/
 - metadata/
 - metadata/*
 - env/
+- env/*
 - conf/
 processed_templates:
 - '**/*.erb'

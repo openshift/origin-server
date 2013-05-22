@@ -337,30 +337,6 @@ module OpenShift
         end
       end
       
-      #
-      # A District object accessor method
-      # It uses the datastore to query persistent storage
-      # 
-      # INPUTS:
-      # * district_uuid: a lookup handle for a district in the datastore
-      #
-      # RETURNS:
-      # * not quite sure.
-      #
-      def inc_externally_reserved_uids_size(district_uuid=nil)
-        if Rails.configuration.msg_broker[:districts][:enabled]
-          if @district
-            district_uuid = @district.uuid
-          else
-            district_uuid = get_district_uuid unless district_uuid
-          end
-          if district_uuid && district_uuid != 'NONE'
-            #cleanup
-            District::inc_externally_reserved_uids_size(district_uuid)
-          end
-        end
-      end
-      
       def build_base_gear_args(gear, quota_blocks=nil, quota_files=nil)
         app = gear.app
         args = Hash.new
@@ -407,17 +383,18 @@ module OpenShift
           begin
             result = parse_result(mcoll_reply, gear)
           rescue OpenShift::OOException => ooex
+            # destroy the gear in case of failures
+            # the UID will be unreserved up as part of rollback
+            destroy(gear, true)
+            
             # raise the exception if this is the last retry
             raise ooex if i == 10
             
             result = ooex.resultIO
             if result.exitcode == 129 && has_uid_or_gid?(gear.uid) # Code to indicate uid already taken
-              destroy(gear, true)
-              inc_externally_reserved_uids_size
               gear.uid = reserve_uid
               app.save
             else
-              destroy(gear, true)
               raise ooex
             end
           else
@@ -2609,7 +2586,7 @@ module OpenShift
         if result.exitcode != 0
           result.debugIO << "Command return code: " + result.exitcode.to_s
           if result.hasUserActionableError
-            raise OpenShift::UserException.new(result.errorIO.string, result.exitcode, result)
+            raise OpenShift::UserException.new(result.errorIO.string, result.exitcode, nil, result)
           else
             raise OpenShift::NodeException.new("Node execution failure (invalid exit code from node).  If the problem persists please contact Red Hat support.", 143, result)
           end
