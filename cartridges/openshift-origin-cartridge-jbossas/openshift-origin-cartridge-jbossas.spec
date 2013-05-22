@@ -4,7 +4,7 @@
 
 Summary:       Provides JBossAS7 support
 Name:          openshift-origin-cartridge-jbossas
-Version:       1.2.3
+Version:       1.2.4
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -88,6 +88,20 @@ cp -p %{cartridgedir}/versions/7/modules/postgresql_module.xml /etc/alternatives
 
 
 %changelog
+* Wed May 22 2013 Adam Miller <admiller@redhat.com> 1.2.4-1
+- Bug 962662 (dmcphers@redhat.com)
+- fix fedora links (bdecoste@gmail.com)
+- Merge pull request #2560 from bdecoste/master
+  (dmcphers+openshiftbot@redhat.com)
+- add generic-java hook (bdecoste@gmail.com)
+- Merge pull request #2554 from pmorie/bugs/964348
+  (dmcphers+openshiftbot@redhat.com)
+- Fix bug 964348 (pmorie@gmail.com)
+- Merge pull request #2550 from ironcladlou/bz/965012
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 965012: Generate initial ROOT.war dynamically on install for jboss
+  cartridges (ironcladlou@gmail.com)
+
 * Mon May 20 2013 Dan McPherson <dmcphers@redhat.com> 1.2.3-1
 - spec file cleanup (tdawson@redhat.com)
 - Make jboss cluster variables cartridge-scoped (ironcladlou@gmail.com)
