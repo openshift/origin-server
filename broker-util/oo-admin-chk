@@ -385,7 +385,6 @@ datastore_hash.each do |gear_uuid, gear_info|
           extra_db_sshkeys.each do |key|
             summary << "Gear '#{gear_uuid}' has key with name '#{db_sshkeys[key]}' in mongo but not on the node."
           end
-          summary << "SSH Key mismatch found -- refer to the oo-admin-fix-sshkeys tool"
         end
       elsif verbose
         # the case where gear is not returned from mcollective will be handled by the earlier checks 
@@ -570,6 +569,9 @@ puts no_error ? "Success" : "Check failed.\n#{summary.join("\n")}"
 if $false_positive_check_cnt >= FALSE_POSITIVE_CHECK_LIMIT
   puts "WARNING: Only checked the first #{FALSE_POSITIVE_CHECK_LIMIT} errors for false positives."
 end
+
+puts "Please refer to the oo-admin-repair tool to resolve some of these inconsistencies." unless no_error
+
 total_time = (Time.now.to_f * 1000).to_i - start_time
 puts "Total time: #{total_time.to_f/1000}s"
 puts "Finished at: #{Time.now}"
