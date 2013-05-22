@@ -78,7 +78,7 @@ class CartridgeCache
       return cart if cart.name == requested_feature
     end if app
     
-    matching_carts = self.find_all_cartridges(requested_feature)
+    matching_carts = CacheHelper.get_cached("carts_by_feature_#{requested_feature}", :expires_in => 1.day) { self.find_all_cartridges(requested_feature) }
     
     return nil if matching_carts.empty?
     
@@ -162,7 +162,7 @@ class CartridgeCache
 
   def self.validate_yaml(url, str)
     raise OpenShift::UserException.new("Invalid cartridge, error downloading from url '#{url}' ", 109)  if str.nil? or str.length==0
-    raise OpenShift::UserException.new("Invalid manifest file from url '#{url}' - no structural directives allowed.") if str.include?("---")
+    # raise OpenShift::UserException.new("Invalid manifest file from url '#{url}' - no structural directives allowed.") if str.include?("---")
     begin
       chash = OpenShift::Runtime::Manifest.manifest_from_yaml(str) 
     rescue Exception=>e

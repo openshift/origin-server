@@ -84,6 +84,13 @@ class CartridgeCacheTest < ActiveSupport::TestCase
     assert cart.version == "1.9"
     assert cart.cartridge_vendor, "redhat"
     
+    Rails.cache.delete('carts_by_feature_python-3.3')
+    Rails.cache.delete('carts_by_feature_php-5.3')
+    Rails.cache.delete('carts_by_feature_php-5.4')
+    Rails.cache.delete('carts_by_feature_ruby-1.8')
+    Rails.cache.delete('carts_by_feature_ruby-1.9')
+    Rails.cache.delete('carts_by_feature_ruby-1.10')
+
   end
   
   test "find cartridge with real cartridges" do 

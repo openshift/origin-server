@@ -66,9 +66,12 @@ def clean_app(a)
     if op.created_at < $t 
       puts
       puts "Executing op for app (#{a.uuid}) - #{op.inspect} "
+      success = false
       Application.run_in_application_lock(a) do
-        success = false
         begin
+          if op.pending_ops.where(:state => :rolledback).count > 0
+            raise Exception.new("Op already being rolled back.. continuing.")
+          end
           op.execute 
           a.unreserve_gears(op.num_gears_removed)
           success = true
@@ -88,6 +91,7 @@ def clean_app(a)
         end
         dlist << op if success
       end
+      break if !success
     end
   } 
   dlist.each { |op| op.delete }
