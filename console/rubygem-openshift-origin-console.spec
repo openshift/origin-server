@@ -9,7 +9,7 @@
 
 Summary:       OpenShift Origin Management Console
 Name:          rubygem-%{gem_name}
-Version: 1.9.4
+Version: 1.9.5
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -151,6 +151,10 @@ cp -a ./%{gem_dir}/* %{buildroot}%{gem_dir}/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Wed May 22 2013 Adam Miller <admiller@redhat.com> 1.9.5-1
+- add required Build deps found because the Rails package got cleaned up
+  (admiller@redhat.com)
+
 * Wed May 22 2013 Adam Miller <admiller@redhat.com> 1.9.4-1
 - Merge pull request #2590 from smarterclayton/rescue_delivery_failures
   (dmcphers+openshiftbot@redhat.com)
