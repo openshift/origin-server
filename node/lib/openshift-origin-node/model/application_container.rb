@@ -580,7 +580,7 @@ module OpenShift
       if State::STARTED == state.value
         return @cartridge_model.do_control('reload', cart_name)
       else
-        return "Application or component not running. Cannot reload."
+        return @cartridge_model.do_control('force-reload', cart_name)
       end
     end
 
