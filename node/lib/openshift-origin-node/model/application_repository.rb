@@ -149,11 +149,17 @@ module OpenShift
 
       env = Utils::Environ.load(PathUtils.join(@user.homedir, '.env'))
 
-      Utils.oo_spawn(ERB.new(GIT_DEPLOY_SUBMODULES).result(binding),
+      cache = PathUtils.join(env['OPENSHIFT_TMP_DIR'], 'git_cache')
+      FileUtils.rm_r(cache) if File.exist?(cache)
+      FileUtils.mkpath(cache)
+
+      Utils.oo_spawn("/bin/sh #{File.join('/usr/libexec/openshift/lib', "deploy_git_submodules.sh")} #{@path} #{@target_dir}",
                      chdir:               @user.homedir,
                      env:                 env,
                      uid:                 @user.uid,
                      expected_exitstatus: 0)
+
+      Utils.oo_spawn("/bin/rm -rf #{cache} &")
     end
 
     def destroy
@@ -239,30 +245,6 @@ set -xe;
 shopt -s dotglob;
 rm -rf <%= @target_dir %>/*;
 git archive --format=tar HEAD | (cd <%= @target_dir %> && tar --warning=no-timestamp -xf -);
-}
-
-    GIT_DEPLOY_SUBMODULES = %Q{\
-# if GIT_DIR is set we need to unset it
-[ ! -z "${GIT_DIR+xxx}" ] && unset GIT_DIR
-set -xe;
-# explode tree into a tmp dir
-tmp_dir=${OPENSHIFT_TMP_DIR}
-submodule_tmp_dir=${tmp_dir}/submodules
-
-pushd ${tmp_dir} > /dev/null
-    [ -e ${submodule_tmp_dir} ] && rm -rf ${submodule_tmp_dir}
-    git clone <%= @path %> submodules
-
-    pushd ${submodule_tmp_dir} > /dev/null
-        # initialize submodules and pull down source
-        git submodule update --init --recursive
-
-        # archive and copy the submodules
-        git submodule foreach --recursive "git archive --format=tar HEAD | (cd <%= @target_dir %>/\\$name && tar --warning=no-timestamp -xf -)"
-
-    popd > /dev/null
-popd > /dev/null
-rm -rf ${submodule_tmp_dir}
 }
 
     GIT_DESCRIPTION = %Q{

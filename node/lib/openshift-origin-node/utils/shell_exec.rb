@@ -104,7 +104,8 @@ module OpenShift
             # Only switch contexts if necessary
             if (current_context != target_context) || (Process.uid != options[:uid])
               target_name = Etc.getpwuid(options[:uid]).name
-              command     = %Q{/sbin/runuser -m -s /bin/sh #{target_name} -c "exec /usr/bin/runcon '#{target_context}' /bin/sh -c \\"#{command}\\""}
+              exec        = %Q{exec /usr/bin/runcon '#{target_context}' /bin/sh -c \\"#{command}\\"}
+              command     = %Q{/sbin/runuser -m -s /bin/sh #{target_name} -c "#{exec}"}
             end
           end
 
