@@ -1,6 +1,6 @@
 Summary:       Utility scripts for the OpenShift Origin broker
 Name:          openshift-origin-node-util
-Version: 1.9.2
+Version: 1.9.3
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -122,6 +122,17 @@ mv services/openshift-gears.service %{buildroot}/etc/systemd/system/openshift-ge
 /sbin/restorecon /usr/sbin/oo-restorer* || :
 
 %changelog
+* Wed May 22 2013 Adam Miller <admiller@redhat.com> 1.9.3-1
+- Merge pull request #2572 from pmorie/bugs/957461
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #2553 from detiber/bz964089
+  (dmcphers+openshiftbot@redhat.com)
+- Fix bug 957461 (pmorie@gmail.com)
+- Bug 962673 (dmcphers@redhat.com)
+- <oo-accept-node> Bug 964089 - Fix check_cgroup_procs (jdetiber@redhat.com)
+- oo-accept-node changed the cgroups check to ignore defunct processes
+  (twiest@redhat.com)
+
 * Thu May 16 2013 Adam Miller <admiller@redhat.com> 1.9.2-1
 - Bug 961911 - Add lockfile for oo-autoidler (jhonce@redhat.com)
 - Fixed 2 bugs in oo-accept-node (twiest@redhat.com)
