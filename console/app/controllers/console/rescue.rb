@@ -12,6 +12,7 @@ module Console
 
     protected
       def resource_not_found(e)
+        logger.debug "Resource not found: #{e}"
         if respond_to? :domain_is_missing
           domain_is_missing if e.respond_to?(:domain_missing?) && e.domain_missing?
         end
