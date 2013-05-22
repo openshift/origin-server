@@ -16,7 +16,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.9.3
+Version: 1.9.4
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -294,6 +294,49 @@ fi
 %attr(0755,-,-) /etc/cron.monthly/openshift-origin-cron-monthly
 
 %changelog
+* Wed May 22 2013 Adam Miller <admiller@redhat.com> 1.9.4-1
+- WIP Cartridge Refactor - Improved error handling (jhonce@redhat.com)
+- Merge pull request #2585 from danmcp/master
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #2584 from jwhonce/bug/965364
+  (dmcphers+openshiftbot@redhat.com)
+- get submodules working in all cases (dmcphers@redhat.com)
+- Bug 965364 - ApplicationRepository#deploy assumed template application
+  existed (jhonce@redhat.com)
+- Merge pull request #2580 from jwhonce/bug/965537
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #2578 from ironcladlou/bz/965028
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #2577 from mrunalp/dev/safe_yaml
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 965537 - Dynamically build PassEnv httpd configuration
+  (jhonce@redhat.com)
+- Merge pull request #2574 from rmillner/BZ965317
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #2573 from pmorie/bugs/965357
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #2555 from brenton/shell_exec_func_test1
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 965028: Increase connector timeout (ironcladlou@gmail.com)
+- Add safe yaml parsing to node. (mrunalp@gmail.com)
+- Bug 965317 - The mutexes must be created as globals which evaluate ahead of
+  any multithreaded operations. (rmillner@redhat.com)
+- Fix bug 965357: add guard against export in PATH in rhcsh (pmorie@gmail.com)
+- Bug 962673 (dmcphers@redhat.com)
+- Merge pull request #2566 from danmcp/master
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #2561 from jwhonce/wip/v2v2_migration
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #2558 from ironcladlou/bz/965236
+  (dmcphers+openshiftbot@redhat.com)
+- Improve error messages (dmcphers@redhat.com)
+- WIP Cartridge Refactor - V2 -> V2 Migration (jhonce@redhat.com)
+- Bug 965236: Restrict endpoint mappings to default route
+  (ironcladlou@gmail.com)
+- Test fix for shell_exec_func_test.rb (bleanhar@redhat.com)
+- The update namespace functionality was removed.  Removing the supporting
+  functions that only serviced that function. (rmillner@redhat.com)
+
 * Mon May 20 2013 Dan McPherson <dmcphers@redhat.com> 1.9.3-1
 - WIP Cartridge Refactor - Update documentation (jhonce@redhat.com)
 - WIP Cartridge Refactor - V2 -> V2 Migration (jhonce@redhat.com)
