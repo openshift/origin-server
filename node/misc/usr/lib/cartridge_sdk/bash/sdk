@@ -1,37 +1,59 @@
-#!/bin/bash
+#!/bin/echo 'This is function library. To use: source $OPENSHIFT_CARTRIDGE_SDK_BASH'; exit 1
+
+# This is a library of functions for OpenShift cartridge authors.
+# To use this library add 'source $OPENSHIFT_CARTRIDGE_SDK_BASH' to your bash script.
+
 [ ${OO_BASH_SDK:-false} == true ] && return 0
 OO_BASH_SDK=true
 
+# report message on stderr and exit with provided exit status
 function error {
     echo "$1" 1>&2
     exit "$2"
 }
 
+# report message on stderr
 function warning {
     echo "$1" 1>&2
-    #echo "$2"
 }
 
+# report text to application developer
+# Argument(s):
+# - Text to be displayed on success
 function client_result {
     client_out "CLIENT_RESULT" "$1"
 }
 
+# report text to application developer
+# Argument(s):
+# - Text will always be displayed. Used to notify application developer of a transient issue.
 function client_message {
     client_out "CLIENT_MESSAGE" "$1"
 }
 
+# report text to application developer as error
+# Argument(s):
+# - Text will be displayed when there is an error
 function client_error {
     client_out "CLIENT_ERROR" "$1"
 }
 
+# report text to application developer as error in your code
+# Will be displayed...
 function client_internal_error {
     client_out "CLIENT_INTERNAL_ERROR" "$1"
 }
 
+# report text to application developer as debugging information
 function client_debug {
     client_out "CLIENT_DEBUG" "$1"
 }
 
+# format text for reporting to application developer
+#
+# Argument(s):
+# - type of message, will be prefix for each line in text
+# - text to be processed
 function client_out() {
     local type=$1
     local output=$2
@@ -45,10 +67,16 @@ IFS="
     IFS=$IFS_BAK
 }
 
+# set application information in Broker data store
+# Argument(s):
+# - name of attribute to add plus value
 function set_app_info {
     echo "APP_INFO: $1"
 }
 
+# set cartridge attribute in Broker data store
+# Argument(s):
+# - name of attribute to add plus value
 function send_attr {
     echo "ATTR: $1"
 }
@@ -61,10 +89,16 @@ function add_app_ssh_key {
     echo "APP_SSH_KEY_ADD: $1 $2"
 }
 
+# Add environment variable visible to all gears in application
+# Argument(s):
+# - name of environment variable to add plus value
 function add_env_var {
     echo "ENV_VAR_ADD: $1"
 }
 
+# remove environment variable visible to all gears in application
+# Argument(s):
+# - name of environment variable to remove
 function app_remove_env_var {
     echo "APP_ENV_VAR_REMOVE: $1"
 }
@@ -77,10 +111,16 @@ function remove_broker_auth_key {
     echo "BROKER_AUTH_KEY_REMOVE: "
 }
 
+# add cartridge data in Broker data store
+# Argument(s):
+# - list of cartridge datums
 function cart_data {
     echo "CART_DATA: $@"
 }
 
+# add cartridge properties in Broker data store
+# Argument(s):
+# - list of cartridge properties
 function cart_props {
     echo "CART_PROPERTIES: $@"
 }
@@ -166,12 +206,9 @@ function generate_username {
   echo $(pad_string ${1-$DEFAULT_USERNAME} ${2-$DEFAULT_LEN} ${3-$DEFAULT_CHAR})
 }
 
-function log_message() {
-   local msg=${1:-""}
-   [ -z "$msg" ]  &&  return 0
-   logger -i -s "run-scheduled-openshift-origin-user-jobs" -p user.info "`date`: $msg"
-}
-
+# wait up to 30 seconds for given process to stop
+# Argument(s):
+#  - process id to wait on
 function wait_for_stop {
     local pid=$1
     for i in {1..60}
@@ -186,6 +223,9 @@ function wait_for_stop {
     done
 }
 
+# report processing running for given user uid.
+# Argument(s):
+# - user uid    Do not use user login name, all numeric user login names will break ps
 function print_user_running_processes {
     local userid=$1
     echo ""
@@ -239,15 +279,12 @@ function ensure_valid_httpd_process() {
     killall_matching_httpds "$2"
 }
 
+# application developer has requested a hot deploy, 0 == true, 1 == false
 function hot_deploy_marker_is_present() {
-    if [ -f "${OPENSHIFT_REPO_DIR}/.openshift/markers/hot_deploy" ]; then
-        return 0
-    else
-        return 1
-    fi
+    marker_present host_deploy
 }
 
-
+# report the primary cartridge name for this gear
 function primary_cartridge_name() {
   awk -F: '{printf "%s-%s", $2, $3}' $OPENSHIFT_PRIMARY_CARTRIDGE_DIR/env/OPENSHIFT_*_IDENT
 }
@@ -282,4 +319,24 @@ function path_prepend () {
 # return modified path
 function path_remove ()  {
     echo -n $(echo -n $1 | awk -v RS=: -v ORS=: '$0 != "'$2'"' | sed 's/:$//')
+}
+
+# Update the PassEnv directives in the httpd configuration file
+#
+# $1 full path to httpd.conf file
+function update_httpd_passenv {
+  [ -f $1 ] || (client_error "HTTP Configuration for PassEnv failed: $1 missing" && return)
+
+  updated=/tmp/$(basename $1).updated
+  ( sed <$1 -e '/^PassEnv /d'
+    for key in $(env |cut -d= -f1)
+    do
+      if [[ $key =~ ^[A-Z].* ]]
+      then
+        echo PassEnv $key
+      fi
+    done ) >$updated
+
+  [ -s $updated ] || (client_error "HTTP Configuration for PassEnv failed: update corrupted $1, using old configuration" && return)
+  mv $updated $1
 }

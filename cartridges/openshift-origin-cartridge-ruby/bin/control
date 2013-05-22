@@ -8,6 +8,7 @@ HTTPD_CFG_FILE=$OPENSHIFT_RUBY_DIR/etc/conf/httpd_nolog.conf
 
 function start() {
     echo "Starting Ruby cart"
+    update_httpd_passenv $HTTPD_CFG_FILE
     ruby_context "/usr/sbin/httpd -C 'Include $OPENSHIFT_RUBY_DIR/etc/conf.d/*.conf' -f $HTTPD_CFG_FILE -k start"
 }
 
@@ -59,6 +60,7 @@ function stop() {
 
 function restart() {
     echo "${1}ing Ruby cart"
+    update_httpd_passenv $HTTPD_CFG_FILE
     touch $OPENSHIFT_REPO_DIR/tmp/restart.txt
     ruby_context "/usr/sbin/httpd -C 'Include $OPENSHIFT_RUBY_DIR/etc/conf.d/*.conf' -f $HTTPD_CFG_FILE -k restart"
 }
