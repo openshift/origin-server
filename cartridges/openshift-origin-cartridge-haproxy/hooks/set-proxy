@@ -111,8 +111,7 @@ rm -f /tmp/haproxy.cfg.$$
 flock -u 200
 
 uuid=$3
-$OPENSHIFT_HAPROXY_DIR/bin/control restart
-#run_as_user "app_ctl.sh cond-reload"
+/usr/bin/gear reload --cart haproxy-$OPENSHIFT_HAPROXY_VERSION
 appctl_exitcode=$?
 
 # Pass the appropriate exit code back.
