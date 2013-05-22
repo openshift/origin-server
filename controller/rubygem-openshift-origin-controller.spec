@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.9.4
+Version: 1.9.5
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -84,6 +84,12 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Wed May 22 2013 Adam Miller <admiller@redhat.com> 1.9.5-1
+- Merge pull request #2595 from abhgupta/abhgupta-dev
+  (dmcphers+openshiftbot@redhat.com)
+- Moving code that throws exception into the begin-rescue block
+  (abhgupta@redhat.com)
+
 * Wed May 22 2013 Adam Miller <admiller@redhat.com> 1.9.4-1
 - Merge pull request #2581 from abhgupta/abhgupta-dev-3
   (dmcphers+openshiftbot@redhat.com)
