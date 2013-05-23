@@ -26,6 +26,17 @@ require 'json'
 require 'tmpdir'
 require 'net/http'
 
+# The mutexes for ApacheDB get declared early and in globals to ensure
+# the right mutex is in the right place during threaded operations.
+$OpenShift_ApacheDB_Lock = Mutex.new
+$OpenShift_ApacheDBNodes_Lock = Mutex.new
+$OpenShift_ApacheDBAliases_Lock = Mutex.new
+$OpenShift_ApacheDBIdler_Lock = Mutex.new
+$OpenShift_ApacheDBSTS_Lock = Mutex.new
+$OpenShift_NodeJSDBRoutes_Lock = Mutex.new
+$OpenShift_GearDB_Lock = Mutex.new
+
+
 module OpenShift
   
   class FrontendHttpServerException < StandardError
@@ -297,84 +308,6 @@ module OpenShift
       end
 
       new_obj
-    end
-
-
-    # Public: Update identifier to the new names
-    def update(container_name, namespace)
-      if (container_name == @container_name) and (namespace == @namespace)
-        return nil
-      end
-
-      saved_ssl_certs = ssl_certs
-
-      new_fqdn = clean_server_name("#{container_name}-#{namespace}.#{@cloud_domain}")
-
-      ApacheDBNodes.open(ApacheDBNodes::WRCREAT) do |d|
-        d.update_block do |deletions, updates, k, v|
-          if k.split('/')[0] == @fqdn
-            deletions << k
-            updates[k.sub(@fqdn, new_fqdn)] = v
-          end
-        end
-      end
-
-      ApacheDBAliases.open(ApacheDBAliases::WRCREAT) do |d|
-        d.update_block do |deletions, updates, k, v|
-          if v == @fqdn
-            updates[k]=new_fqdn
-          end
-        end
-      end
-
-      ApacheDBIdler.open(ApacheDBIdler::WRCREAT) do |d|
-        d.update_block do |deletions, updates, k, v|
-          if k == @fqdn
-            deletions << k
-            updates[new_fqdn] = v
-          end
-        end
-      end
-
-      ApacheDBSTS.open(ApacheDBSTS::WRCREAT) do |d|
-        d.update_block do |deletions, updates, k, v|
-          if k == @fqdn
-            deletions << k
-            updates[new_fqdn] = v
-          end
-        end
-      end
-
-      NodeJSDBRoutes.open(NodeJSDBRoutes::WRCREAT) do |d|
-        d.update_block do |deletions, updates, k, v|
-          if k == @fqdn
-            deletions << k
-            updates[new_fqdn] = v
-          end
-        end
-      end
-
-      GearDB.open(GearDB::WRCREAT) do |d|
-        d.store(@container_uuid, {'fqdn' => new_fqdn,  'container_name' => container_name, 'namespace' => namespace})
-      end
-
-      old_namespace = @namespace
-
-      @container_name = container_name
-      @namespace = namespace
-      @fqdn = new_fqdn
-
-      saved_ssl_certs.each do |c, k, a|
-        add_ssl_cert(c, k, a)
-        old_path = File.join(@basedir, "#{@container_uuid}_#{old_namespace}_#{a}")
-        FileUtils.rm_rf(old_path + ".conf")
-        FileUtils.rm_rf(old_path)
-        reload_httpd
-      end
-    end
-
-    def update_name(container_name)
-      update(container_name, @namespace)
     end
 
 
@@ -959,14 +892,16 @@ module OpenShift
   class ApacheDB < Hash
     include NodeLogger
 
-    # The locks and lockfiles are based on the file name
-    @@LOCKS = Hash.new { |h, k| h[k] = Mutex.new }
-    @@LOCKFILEBASE = "/var/run/openshift/ApacheDB"
-
     READER  = Fcntl::O_RDONLY
     WRITER  = Fcntl::O_RDWR
     WRCREAT = Fcntl::O_RDWR | Fcntl::O_CREAT
     NEWDB   = Fcntl::O_RDWR | Fcntl::O_CREAT | Fcntl::O_TRUNC
+
+    class_attribute :LOCK
+    self.LOCK = $OpenShift_ApacheDB_Lock
+
+    class_attribute :LOCKFILEBASE
+    self.LOCKFILEBASE = "/var/run/openshift/ApacheDB"
 
     class_attribute :MAPNAME
     self.MAPNAME = nil
@@ -994,12 +929,12 @@ module OpenShift
 
       @filename = File.join(@basedir, self.MAPNAME)
 
-      @lockfile = @@LOCKFILEBASE + '.' + self.MAPNAME + self.SUFFIX + '.lock'
+      @lockfile = self.LOCKFILEBASE + '.' + self.MAPNAME + self.SUFFIX + '.lock'
 
       super()
 
       # Each filename needs its own mutex and lockfile
-      @@LOCKS[@lockfile].lock
+      self.LOCK.lock
 
       begin
         @lfd = File.new(@lockfile, Fcntl::O_RDWR | Fcntl::O_CREAT, 0640)
@@ -1020,7 +955,7 @@ module OpenShift
             @lfd.close()
           end
         ensure
-          @@LOCKS[@lockfile].unlock
+          self.LOCK.unlock
         end
         raise
       end
@@ -1120,7 +1055,7 @@ module OpenShift
           @lfd.close() unless @lfd.closed?
         end
       ensure
-        @@LOCKS[@lockfile].unlock if @@LOCKS[@lockfile].locked?
+        self.LOCK.unlock if self.LOCK.locked?
       end
     end
 
@@ -1147,39 +1082,26 @@ module OpenShift
       inst
     end
 
-    # Public, update using a block
-    # The block is called for each key, value pair of the hash
-    # and uses the following parameters:
-    #    deletions   Array of keys to delete
-    #    updates     Hash of key->value pairs to add/update
-    #    k, v        Key and value of this iteration
-    def update_block
-      deletions = []
-      updates = {}
-      self.each do |k, v|
-        yield(deletions, updates, k, v)
-      end
-      self.delete_if { |k, v| deletions.include?(k) }
-      self.update(updates)
-    end
-
   end
 
   class ApacheDBNodes < ApacheDB
     self.MAPNAME = "nodes"
+    self.LOCK = $OpenShift_ApacheDBNodes_Lock
   end
 
   class ApacheDBAliases < ApacheDB
     self.MAPNAME = "aliases"
+    self.LOCK = $OpenShift_ApacheDBAliases_Lock
   end
 
   class ApacheDBIdler < ApacheDB
     self.MAPNAME = "idler"
+    self.LOCK = $OpenShift_ApacheDBIdler_Lock
   end
-
 
   class ApacheDBSTS < ApacheDB
     self.MAPNAME = "sts"
+    self.LOCK = $OpenShift_ApacheDBSTS_Lock
   end
 
 
@@ -1195,7 +1117,7 @@ module OpenShift
     end
 
     def encode_contents(f)
-      f.write(JSON.generate(self.to_hash))
+      f.write(JSON.pretty_generate(self.to_hash))
     end
 
     def callout
@@ -1217,10 +1139,12 @@ module OpenShift
 
   class NodeJSDBRoutes < NodeJSDB
     self.MAPNAME = "routes"
+    self.LOCK = $OpenShift_NodeJSDBRoutes_Lock
   end
 
   class GearDB < ApacheDBJSON
     self.MAPNAME = "geardb"
+    self.LOCK = $OpenShift_GearDB_Lock
   end
 
   # TODO: Manage SNI Certificate and alias store

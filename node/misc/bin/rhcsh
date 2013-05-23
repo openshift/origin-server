@@ -65,7 +65,8 @@ then
 
     if [ -f /etc/openshift/env/PATH ]
     then
-        path=$path:$(< /etc/openshift/env/PATH)
+        load_env /etc/openshift/env/PATH
+        path=$path:$PATH
     fi
     export PATH=$path
 else

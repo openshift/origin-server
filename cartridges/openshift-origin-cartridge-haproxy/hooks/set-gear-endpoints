@@ -118,4 +118,4 @@ for zinfo in $(get_registered_endpoints); do
     fi
 done
 
-$OPENSHIFT_HAPROXY_DIR/bin/control restart
+/usr/bin/gear reload --cart haproxy-$OPENSHIFT_HAPROXY_VERSION

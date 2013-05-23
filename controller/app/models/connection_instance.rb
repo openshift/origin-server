@@ -10,18 +10,22 @@
 # @!attribute [r] connection_type
 #   @return [String] The connection type
 class ConnectionInstance
-  include Mongoid::Document
-  embedded_in :application, class_name: Application.name
-  field :from_comp_inst_id, type: Moped::BSON::ObjectId
-  field :to_comp_inst_id, type: Moped::BSON::ObjectId
-  field :from_connector_name, :type => String
-  field :to_connector_name, :type => String
-  field :connection_type, :type => String
+ 
+  attr_accessor :from_comp_inst_id, :to_comp_inst_id, :from_connector_name, :to_connector_name, :connection_type, :_id
+
+  def initialize(from_comp_inst_id, to_comp_inst_id, from_connector_name, to_connector_name, connection_type)
+    self.from_comp_inst_id = from_comp_inst_id
+    self.to_comp_inst_id = to_comp_inst_id
+    self.from_connector_name = from_connector_name
+    self.to_connector_name = to_connector_name
+    self.connection_type = connection_type
+    self._id = BSON::ObjectId.new
+  end
   
-  def to_hash
+  def to_hash(app)
     {
-      "from_comp_inst" => self.application.component_instances.find(from_comp_inst_id).to_hash,
-      "to_comp_inst" => self.application.component_instances.find(to_comp_inst_id).to_hash,
+      "from_comp_inst" => app.component_instances.find(from_comp_inst_id).to_hash,
+      "to_comp_inst" => app.component_instances.find(to_comp_inst_id).to_hash,
       "from_connector_name" => from_connector_name,
       "to_connector_name" => to_connector_name,
       "connection_type" => connection_type

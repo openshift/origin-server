@@ -66,11 +66,12 @@ module OpenShift
       OpenShift::CartridgeRepository.instance.clear
       OpenShift::CartridgeRepository.instance.load
       @model = OpenShift::V2CartridgeModel.new(@config, @user, OpenShift::Utils::ApplicationState.new(@uuid))
-      @model.configure('mock-0.1')
     end
 
     def teardown
       @model.deconfigure('mock-plugin-0.1') if File.exist?(File.join(@user.homedir, 'mock-plugin'))
+      @model.deconfigure('mock-0.1') if File.exist?(File.join(@user.homedir, 'mock'))
+      FileUtils.rm_rf(File.join(@user.homedir, 'git'))
     end
 
     def after_teardown
@@ -78,6 +79,8 @@ module OpenShift
     end
 
     def test_hidden_erb
+      @model.configure('mock-0.1')
+
       assert_path_exist(File.join(@user.homedir, 'mock', '.mock_hidden'),
                         'Failed to process .mock_hidden.erb')
 
@@ -86,6 +89,8 @@ module OpenShift
     end
 
     def test_configure_with_manifest
+      @model.configure('mock-0.1')
+
       refute_path_exist(File.join(@user.homedir, 'mock-plugin'))
 
       cartridge = OpenShift::CartridgeRepository.instance.select('mock-plugin', '0.1')
@@ -125,6 +130,40 @@ module OpenShift
 
       assert_path_exist(File.join(@user.homedir, 'mock-plugin'))
       assert_path_exist(File.join(@user.homedir, %w(mock-plugin bin control)))
+    end
+
+    def test_configure_with_no_template
+      cartridge = OpenShift::CartridgeRepository.instance.select('mock-plugin', '0.1')
+      skip 'Mock Plugin 0.1 cartridge required for this test' unless cartridge
+
+      cuckoo = File.join(@user.homedir, %w(app-root data cuckoo))
+      FileUtils.mkpath(cuckoo)
+      %x(shopt -s dotglob; cp -ad #{cartridge.repository_path}/* #{cuckoo})
+      refute_path_exist File.join(cuckoo, 'template')
+
+      # Point manifest at "remote" repository
+      manifest                     = YAML.load_file(File.join(cuckoo, 'metadata', 'manifest.yml'))
+      manifest['Name']             = 'cuckoo'
+      manifest['Source-Url']       = "file://#{cuckoo}"
+      manifest['Cartridge-Vendor'] = 'unittest'
+      manifest['Categories']       = %w(service cuckoo web_framework)
+      manifest                     = manifest.to_yaml
+
+      # install the cuckoo
+      begin
+        @model.configure('cuckoo-0.1', nil, manifest)
+      rescue OpenShift::Utils::ShellExecutionException => e
+        NodeLogger.logger.debug(e.message + "\n" +
+                                    e.stdout + "\n" +
+                                    e.stderr + "\n" +
+                                    e.backtrace.join("\n")
+        )
+      end
+
+      entries = Dir.entries(File.join(@user.homedir, 'git'))
+      assert_equal(2, entries.size, "Found application template: #{entries}")
+      assert_path_exist(File.join(@user.homedir, 'cuckoo'))
+      assert_path_exist(File.join(@user.homedir, %w(cuckoo bin control)))
     end
   end
 end

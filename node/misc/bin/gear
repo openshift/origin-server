@@ -82,13 +82,15 @@ def do_command(command, options)
     puts
     exit 1
   rescue OpenShift::Utils::ShellExecutionException => e
+    $stderr.puts "An error occurred executing 'gear #{command.name}'"
+    $stderr.puts "stdout: #{e.stdout}" if e.stdout.is_a? String 
+    $stderr.puts "stderr: #{e.stderr}" if e.stderr.is_a? String
+    $stderr.puts ""
     if options.trace
       $stderr.puts "#{e.message}: rc(#{e.rc})"
-      $stderr.puts "stdout: #{e.stdout}\nstderr#{e.stderr}"
       $stderr.puts e.backtrace.join("\n")
     else
-      $stderr.puts "An error occured executing the '#{command.name}' command. For more details about "\
-                   "the problem, try running the command again with the '--trace' option."
+      $stderr.puts "For more details about the problem, try running the command again with the '--trace' option."
     end
     exit -1
   rescue Exception => e

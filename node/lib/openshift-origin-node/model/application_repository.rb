@@ -130,6 +130,8 @@ module OpenShift
     end
 
     def deploy
+      return unless exist?
+
       # expose variables for ERB processing
       @application_name = @user.app_name
       @user_homedir     = @user.homedir
@@ -151,7 +153,7 @@ module OpenShift
       FileUtils.rm_r(cache) if File.exist?(cache)
       FileUtils.mkpath(cache)
 
-      Utils.oo_spawn(ERB.new(GIT_DEPLOY_SUBMODULES).result(binding),
+      Utils.oo_spawn("/bin/sh #{File.join('/usr/libexec/openshift/lib', "deploy_git_submodules.sh")} #{@path} #{@target_dir}",
                      chdir:               @user.homedir,
                      env:                 env,
                      uid:                 @user.uid,
@@ -243,16 +245,6 @@ set -xe;
 shopt -s dotglob;
 rm -rf <%= @target_dir %>/*;
 git archive --format=tar HEAD | (cd <%= @target_dir %> && tar --warning=no-timestamp -xf -);
-}
-
-    GIT_DEPLOY_SUBMODULES = %Q{\
-set -xe;
-cd $OPENSHIFT_TMP_DIR;
-git clone <%= @path %> git_cache;
-pushd git_cache;
-git submodule update --init --recursive;
-git submodule foreach --recursive 'git archive --format=tar HEAD | (cd <%= @target_dir %>/\\\\\\$path && tar --warning=no-timestamp -xf -)';
-popd;
 }
 
     GIT_DESCRIPTION = %Q{
