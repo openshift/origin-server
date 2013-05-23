@@ -158,7 +158,7 @@ class Application
         features.each do |feature|
           cart = CartridgeCache.find_cartridge(feature, app)
           if cart
-            framework_cartridges.push(cart.name) unless not framework_carts.include?(cart.name)
+            framework_cartridges.push(cart.name) if framework_carts.include?(feature)
           else
             raise OpenShift::UserException.new("Invalid cartridge '#{feature}' specified.", 109, "cartridge")
           end
