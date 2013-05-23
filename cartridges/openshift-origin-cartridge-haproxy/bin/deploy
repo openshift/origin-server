@@ -43,7 +43,12 @@ function set_default_post_actions {
 [ -z "$OPENSHIFT_SYNC_GEARS_POST" ] && set_default_post_actions
 declare -ax OPENSHIFT_SYNC_GEARS_DIRS OPENSHIFT_SYNC_GEARS_PRE OPENSHIFT_SYNC_GEARS_POST
 
+
 rsynccmd="rsync -v --delete-after -az"
+if [ -f ${SYNC_BASE_DIR}/metadata/rsync.excludes ]; then
+    rsynccmd="rsync --exclude-from=${SYNC_BASE_DIR}metadata/rsync.excludes --delete-after -az"
+fi
+
 export RSYNC_RSH="ssh"
 
 # Fix to get name of haproxy cartridge from environment
