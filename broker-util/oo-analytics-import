@@ -15,6 +15,7 @@ end
 
 
 require '/var/www/openshift/broker/config/environment'
+include Mongo
 
 u = Rails.application.config.datastore[:user]
 p = Rails.application.config.datastore[:password]
