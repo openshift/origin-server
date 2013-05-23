@@ -250,7 +250,7 @@ module OpenShift
 
         create_private_endpoints(cartridge)
 
-        Dir.chdir(@user.homedir) do
+        Dir.chdir(PathUtils.join(@user.homedir, cartridge.directory)) do
           unlock_gear(cartridge) do |c|
             output << cartridge_action(cartridge, 'setup', software_version, true)
             process_erb_templates(c)
@@ -552,7 +552,7 @@ module OpenShift
       out, _, _ = Utils.oo_spawn(action,
                                  env:                 cartridge_env,
                                  unsetenv_others:     true,
-                                 chdir:               @user.homedir,
+                                 chdir:               cartridge_home,
                                  uid:                 @user.uid,
                                  expected_exitstatus: 0)
       logger.info("Ran #{action} for #{@user.uuid}/#{cartridge.directory}\n#{out}")
@@ -600,7 +600,7 @@ module OpenShift
       buffer, err, _ = Utils.oo_spawn(teardown,
                                       env:                 env,
                                       unsetenv_others:     true,
-                                      chdir:               @user.homedir,
+                                      chdir:               cartridge_home,
                                       uid:                 @user.uid,
                                       expected_exitstatus: 0)
 
@@ -894,7 +894,8 @@ module OpenShift
         end
       end
 
-      script = PathUtils.join(@user.homedir, cartridge.directory, 'hooks', conn.name)
+      cartridge_home = PathUtils.join(@user.homedir, cartridge.directory)
+      script = PathUtils.join(cartridge_home, 'hooks', conn.name)
 
       unless File.executable?(script)
         if env_var_hook
@@ -909,7 +910,7 @@ module OpenShift
       out, err, rc = Utils.oo_spawn(command,
                                     env:             env,
                                     unsetenv_others: true,
-                                    chdir:           @user.homedir,
+                                    chdir:           cartridge_home,
                                     timeout:         220,
                                     uid:             @user.uid)
       if 0 == rc
@@ -972,7 +973,7 @@ module OpenShift
         out, err, rc = Utils.oo_spawn(command.join('; '),
                                       env:             cartridge_env,
                                       unsetenv_others: true,
-                                      chdir:           @user.homedir,
+                                      chdir:           path,
                                       uid:             @user.uid,
                                       out:             options[:out],
                                       err:             options[:err])
