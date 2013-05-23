@@ -115,8 +115,8 @@ function pre_snapshot {
    [ $? -eq 0 ] || die 0 "ERROR" "Failed to create working directory."
    pushd $dumpdir > /dev/null
 
-   #  Take a "dump".
-   creds="-u $OPENSHIFT_MONGODB_DB_USERNAME -p \"$OPENSHIFT_MONGODB_DB_PASSWORD\" --port $OPENSHIFT_MONGODB_DB_PORT"
+   #  Take a "mongodump".
+   creds="-u $OPENSHIFT_MONGODB_DB_ADMIN_USERNAME -p \"$OPENSHIFT_MONGODB_DB_ADMIN_PASSWORD\" --port $OPENSHIFT_MONGODB_DB_PORT"
    if mongodump -h $OPENSHIFT_MONGODB_DB_HOST $creds --directoryperdb > /dev/null 2>&1; then
       #  Dump ok - now create a gzipped tarball.
       if tar -zcf $OPENSHIFT_DATA_DIR/mongodb_dump_snapshot.tar.gz . ; then
@@ -181,9 +181,9 @@ function restore_from_mongodb_snapshot {
       die 0 "WARNING" "Could not restore MongoDB databases - extract failed!"
    fi
 
-   #  Restore from the "dump".
-   creds="-u $OPENSHIFT_MONGODB_DB_USERNAME         \
-          -p \"$OPENSHIFT_MONGODB_DB_PASSWORD\" "
+   #  Restore from the "mongodump".
+   creds="-u $OPENSHIFT_MONGODB_DB_ADMIN_USERNAME         \
+          -p \"$OPENSHIFT_MONGODB_DB_ADMIN_PASSWORD\" "
 
    #  FIXME: Temporarily commented out auth due to mongo issue w/ restore.
    #        See  https://jira.mongodb.org/browse/SERVER-7262 for details.
