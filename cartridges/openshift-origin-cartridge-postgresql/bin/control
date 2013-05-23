@@ -143,6 +143,7 @@ function post_restore {
     # If the user names are different, drop the old role
     if [ "${old_user}" != "${new_user}" ]
     then
+      # Remove old user
       {
         echo "
         DROP ROLE \"${old_user}\";

@@ -12,6 +12,7 @@ module Console
 
     protected
       def resource_not_found(e)
+        logger.debug "Resource not found: #{e}"
         if respond_to? :domain_is_missing
           domain_is_missing if e.respond_to?(:domain_missing?) && e.domain_missing?
         end
@@ -39,8 +40,8 @@ module Console
       end
 
       def generic_error(e=nil, message=nil, alternatives=nil)
+        log_error(e)
         @reference_id = request.uuid
-        logger.error "Unhandled exception reference ##{@reference_id}: #{e.message}\n#{e.backtrace.join("\n  ")}"
         @message, @alternatives = message, alternatives
         render 'console/error'
       end
@@ -58,6 +59,10 @@ module Console
           logger.debug "Server error: #{e}"
           generic_error(e, message, alternatives)
         end
+      end
+
+      def log_error(e, msg="Unhandled exception")
+        logger.error "#{msg} reference ##{request.uuid}: #{e.message}\n#{e.backtrace.join("\n  ")}"
       end
   end
 end

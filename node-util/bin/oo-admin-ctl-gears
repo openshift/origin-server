@@ -408,7 +408,6 @@ end
 
 
 $lockfile = "/var/lock/subsys/openshift-gears"
-$gearsfile = "/var/log/openshift-gears-async-start.log"
 
 def lock_if_good
   if block_given?
@@ -441,7 +440,6 @@ begin
     cpid = fork do
       Dir.chdir('/')
       $stdin.reopen('/dev/null', 'r')
-      $stdout.reopen($gearsfile, 'w')
       $stderr.reopen($stdout)            
       ObjectSpace.each_object(IO) do |i|
         next if i.closed?
@@ -458,7 +456,7 @@ begin
     OpenShift::NodeLogger.logger.info("Background start initiated - process id = #{cpid}")
     OpenShift::NodeLogger.logger.info("Check #{$gearsfile} for more details.")
     $stdout.puts "Background start initiated - process id = #{cpid}"
-    $stdout.puts "Check #{$gearsfile} for more details."
+    $stdout.puts "Check /var/log/openshift/node/platform.log for more details."
     $stdout.puts
     $stdout.puts "Note: In the future, if you wish to start the OpenShift services in the"
     $stdout.puts "      foreground (waited), use:  service openshift-gears waited-start"

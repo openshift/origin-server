@@ -144,6 +144,15 @@ function reload() {
     isrunning  &&  client_result "Reloaded HAProxy instance"
 }
 
+function force-reload() {
+    if isrunning; then
+        echo "`date`: Conditionally reloading HAProxy service " 1>&2
+        _reload_service
+        _start_haproxy_ctld_daemon
+        isrunning  &&  client_result "Conditionally reloaded HAProxy"
+    fi
+}
+
 function status() {
     if isrunning; then
         client_result "HAProxy instance is running"
@@ -163,10 +172,11 @@ function deploy() {
 
 # And then on the haproxy and haproxy_ctld.
 case "$1" in
-    start)     start   ;;
-    stop)      stop    ;;
-    restart)   restart ;;
-    reload)    reload  ;;
-    status)    status  ;;
-    deploy)    deploy  ;;
+    start)        start         ;;
+    stop)         stop          ;;
+    restart)      restart       ;;
+    reload)       reload        ;;
+    force-reload) force-reload  ;;
+    status)       status        ;;
+    deploy)       deploy        ;;
 esac

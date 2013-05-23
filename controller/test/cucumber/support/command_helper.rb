@@ -302,16 +302,18 @@ module CommandHelper
 
         # Source the env var values from the gear directory
 
+        app_name = $v2_node ? 'mysql' : 'mysql-5.1'
+
         if app.scalable
-          app.mysql_hostname = getenv_uservar(app.uid, 'OPENSHIFT_MYSQL_DB_HOST', 'mysql-5.1')
-          app.mysql_user     = getenv_uservar(app.uid, 'OPENSHIFT_MYSQL_DB_USERNAME', 'mysql-5.1')
-          app.mysql_password = getenv_uservar(app.uid, 'OPENSHIFT_MYSQL_DB_PASSWORD', 'mysql-5.1')
+          app.mysql_hostname = getenv_uservar(app.uid, 'OPENSHIFT_MYSQL_DB_HOST', app_name)
+          app.mysql_user     = getenv_uservar(app.uid, 'OPENSHIFT_MYSQL_DB_USERNAME', app_name)
+          app.mysql_password = getenv_uservar(app.uid, 'OPENSHIFT_MYSQL_DB_PASSWORD', app_name)
         else
           app.mysql_hostname = getenv(app.uid, 'OPENSHIFT_MYSQL_DB_HOST')
-          app.mysql_user     = getenv(app.uid, 'OPENSHIFT_MYSQL_DB_USERNAME', 'mysql')
-          app.mysql_password = getenv(app.uid, 'OPENSHIFT_MYSQL_DB_PASSWORD', 'mysql')
+          app.mysql_user     = getenv(app.uid, 'OPENSHIFT_MYSQL_DB_USERNAME', app_name)
+          app.mysql_password = getenv(app.uid, 'OPENSHIFT_MYSQL_DB_PASSWORD', app_name)
         end
-        
+
         app.mysql_database = getenv(app.uid, 'OPENSHIFT_APP_NAME')
 
         app.mysql_hostname.should_not be_nil, 'mysql hostname should not be nil'

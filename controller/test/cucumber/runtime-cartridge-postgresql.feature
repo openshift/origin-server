@@ -1,7 +1,10 @@
+@postgres
+@v2
 Feature: Postgres Application Sub-Cartridge
+  Background:
+    Given a v2 default node
+
   @runtime_extended1
-  @postgres
-  @v2
   Scenario: Create/Delete one application with a Postgres database
     Given a new mock-0.1 type application
 
@@ -19,8 +22,6 @@ Feature: Postgres Application Sub-Cartridge
     Then a postgres process will not be running
 
   @runtime_extended1
-  @postgres
-  @v2
   Scenario: Database connections
     Given a new client created mock-0.1 application
     Given the embedded postgresql-8.4 cartridge is added
@@ -181,8 +182,6 @@ Feature: Postgres Application Sub-Cartridge
     And the additional test data will not be present in postgres
 
   @runtime_extended3
-  @postgres
-  @v2
   Scenario: Snapshot/Restore after removing/adding application
     Given a new client created mock-0.1 application
     Given the embedded postgresql-8.4 cartridge is added

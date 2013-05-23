@@ -77,13 +77,6 @@ module OpenShift
       return categories.include?('web_framework')
     end
     
-    # creating a separate method for determining primary cart
-    # even though currently the web_framework category is used to define it
-    # later on, a different mechanism may be employed to determine the primary cart
-    def is_primary_cart?
-      return categories.include?('web_framework')
-    end
-
     def is_ci_server?
       return categories.include?('ci')
     end
@@ -95,6 +88,13 @@ module OpenShift
     def is_premium?
       return usage_rates.present?
     end
+
+    def is_deployable?
+      return categories.include?('web_framework')
+    end
+
+    # For now, these are synonyms
+    alias :is_buildable? :is_deployable?
 
     def usage_rates
       []

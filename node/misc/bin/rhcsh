@@ -208,12 +208,20 @@ function psql() {
   pgpassword=${PGPASSWORD:-$OPENSHIFT_POSTGRESQL_DB_PASSWORD}
   pgdatabase=${PGDATABASE:-$OPENSHIFT_APP_NAME}
 
+  extra_args=""
+  # Ensure our psqlrc sets the histfile
+  grep HISTFILE $HOME/.psqlrc &> /dev/null
+  if [ $? -ne 0 ]
+  then
+    extra_args="${extra_args} --set HISTFILE=$OPENSHIFT_DATA_DIR/.psql_history-$pgdatabase"
+  fi
+
   PGHOST=$pghost \
     PGPORT=$pgport \
     PGUSER=$pguser \
     PGPASSWORD=$pgpassword \
     PGDATABASE=$pgdatabase \
-    /usr/bin/psql "$@"
+    /usr/bin/psql $extra_args "$@"
 }
 
 function mongo() {

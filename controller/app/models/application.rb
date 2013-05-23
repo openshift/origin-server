@@ -150,9 +150,9 @@ class Application
     app.analytics['user_agent'] = user_agent
     app.save
     features << "web_proxy" if scalable
-    app.downloaded_cartridges.each { |cname,c| features << c.name }
     if app.valid?
       begin
+        app.downloaded_cartridges.each { |cname,c| features << c.name }
         framework_carts = CartridgeCache.cartridge_names("web_framework", app)
         framework_cartridges = []
         features.each do |feature|
@@ -941,11 +941,12 @@ class Application
     self.connections = conns
   end
 
-  def get_unsubscribe_info(comp_inst, old_connections)
+  def get_unsubscribe_info(comp_inst)
+    old_features = self.requires + [get_feature(comp_inst.cartridge_name, comp_inst.component_name)]
+    old_connections, ignore, ignore = elaborate(old_features)
     sub_pub_hash = {}
     if self.scalable and old_connections
-      old_conn_hash = old_connections.map{|conn| conn.to_hash(self)}
-      old_conn_hash.each do |old_conn|
+      old_connections.each do |old_conn|
         if (old_conn["from_comp_inst"]["cart"] == comp_inst.cartridge_name) and
            (old_conn["from_comp_inst"]["comp"] == comp_inst.component_name)
           to_cart_comp = old_conn["to_comp_inst"]["cart"] + old_conn["to_comp_inst"]["comp"]
@@ -1359,7 +1360,7 @@ class Application
     calculate_ops(changes)
   end
 
-  def calculate_remove_group_instance_ops(comp_specs, group_instance, connections)
+  def calculate_remove_group_instance_ops(comp_specs, group_instance)
     pending_ops = []
     gear_destroy_ops = calculate_gear_destroy_ops(group_instance._id.to_s, group_instance.gears.map{|g| g._id.to_s}, group_instance.addtl_fs_gb)
     pending_ops.push(*gear_destroy_ops)
@@ -1380,7 +1381,7 @@ class Application
       domain.remove_env_variables(comp_instance._id)
       op = PendingAppOp.new(op_type: :del_component, args: {"group_instance_id"=> group_instance._id.to_s, "comp_spec" => comp_spec}, prereq: gear_destroy_op_ids)
       delete_comp_ops.push op
-      unsubscribe_conn_ops.push(PendingAppOp.new(op_type: :unsubscribe_connections, args: {"sub_pub_info" => get_unsubscribe_info(comp_instance, self.connections)}, prereq: [op._id.to_s]))
+      unsubscribe_conn_ops.push(PendingAppOp.new(op_type: :unsubscribe_connections, args: {"sub_pub_info" => get_unsubscribe_info(comp_instance)}, prereq: [op._id.to_s]))
     end
     pending_ops.push(*delete_comp_ops)
     pending_ops.push(*unsubscribe_conn_ops)
@@ -1497,14 +1498,16 @@ class Application
       if is_singleton
         if gear_id_prereqs.keys.include?(singleton_gear_id)
           prereq_id = gear_id_prereqs[singleton_gear_id]
-          add_component_op = PendingAppOp.new(op_type: :add_component, args: {"group_instance_id"=> group_instance_id, "gear_id" => singleton_gear_id, "comp_spec" => comp_spec, "init_git_url"=>init_git_url}, prereq: new_component_op_id + [prereq_id])
+          git_url = nil
+          git_url = init_git_url if cartridge.is_deployable?
+          add_component_op = PendingAppOp.new(op_type: :add_component, args: {"group_instance_id"=> group_instance_id, "gear_id" => singleton_gear_id, "comp_spec" => comp_spec, "init_git_url" => git_url}, prereq: new_component_op_id + [prereq_id])
           ops.push add_component_op
           component_ops[comp_spec][:adds].push add_component_op
           usage_op_prereq = [add_component_op._id.to_s]
 
           # if its a singleton, then it cannot be a scaleup, 
-          # hence no need to check whether its a primary cart and scaleup 
-          post_configure_op = PendingAppOp.new(op_type: :post_configure_component, args: {"group_instance_id"=> group_instance_id, "gear_id" => singleton_gear_id, "comp_spec" => comp_spec, "init_git_url"=>init_git_url}, prereq: [add_component_op._id.to_s] + [prereq_id])
+          # hence no need to check whether its a deployable cart and scaleup case 
+          post_configure_op = PendingAppOp.new(op_type: :post_configure_component, args: {"group_instance_id"=> group_instance_id, "gear_id" => singleton_gear_id, "comp_spec" => comp_spec, "init_git_url" => git_url}, prereq: [add_component_op._id.to_s] + [prereq_id])
           ops.push post_configure_op 
           component_ops[comp_spec][:post_configures].push post_configure_op
           usage_op_prereq = [post_configure_op._id.to_s]
@@ -1516,14 +1519,14 @@ class Application
       else
         gear_id_prereqs.each do |gear_id, prereq_id|
           git_url = nil
-          git_url = init_git_url if gear_id == singleton_gear_id
-          add_component_op = PendingAppOp.new(op_type: :add_component, args: {"group_instance_id"=> group_instance_id, "gear_id" => gear_id, "comp_spec" => comp_spec, "init_git_url"=>git_url}, prereq: new_component_op_id + [prereq_id])
+          git_url = init_git_url if gear_id == singleton_gear_id && cartridge.is_deployable?
+          add_component_op = PendingAppOp.new(op_type: :add_component, args: {"group_instance_id"=> group_instance_id, "gear_id" => gear_id, "comp_spec" => comp_spec, "init_git_url" => git_url}, prereq: new_component_op_id + [prereq_id])
           ops.push add_component_op
           component_ops[comp_spec][:adds].push add_component_op
           usage_op_prereq = [add_component_op._id.to_s]
 
-          unless is_scale_up and cartridge.is_primary_cart?
-            post_configure_op = PendingAppOp.new(op_type: :post_configure_component, args: {"group_instance_id"=> group_instance_id, "gear_id" => gear_id, "comp_spec" => comp_spec, "init_git_url"=>init_git_url}, prereq: [add_component_op._id.to_s] + [prereq_id])
+          unless is_scale_up and cartridge.is_deployable?
+            post_configure_op = PendingAppOp.new(op_type: :post_configure_component, args: {"group_instance_id"=> group_instance_id, "gear_id" => gear_id, "comp_spec" => comp_spec, "init_git_url" => git_url}, prereq: [add_component_op._id.to_s] + [prereq_id])
             ops.push post_configure_op 
             component_ops[comp_spec][:post_configures].push post_configure_op
             usage_op_prereq = [post_configure_op._id.to_s]
@@ -1608,7 +1611,7 @@ class Application
     comp_op_type
   end
 
-  def calculate_remove_component_ops(comp_specs, group_instance, singleton_gear, connections)
+  def calculate_remove_component_ops(comp_specs, group_instance, singleton_gear)
     ops = []
     comp_specs.each do |comp_spec|
       component_instance = self.component_instances.find_by(cartridge_name: comp_spec["cart"], component_name: comp_spec["comp"])
@@ -1641,7 +1644,7 @@ class Application
       domain.remove_env_variables(component_instance._id)
       op = PendingAppOp.new(op_type: :del_component, args: {"group_instance_id"=> group_instance._id.to_s, "comp_spec" => comp_spec}, prereq: ops.map{|o| o._id.to_s})
       ops.push op
-      ops.push(PendingAppOp.new(op_type: :unsubscribe_connections, args: {"sub_pub_info" => get_unsubscribe_info(component_instance, self.connections)}, prereq: [op._id.to_s]))
+      ops.push(PendingAppOp.new(op_type: :unsubscribe_connections, args: {"sub_pub_info" => get_unsubscribe_info(component_instance)}, prereq: [op._id.to_s]))
     end
     ops
   end
@@ -1712,7 +1715,7 @@ class Application
         if change[:to].nil?
           remove_gears += change[:from_scale][:current]
 
-          group_instance_remove_ops = calculate_remove_group_instance_ops(change[:removed], group_instance, connections)
+          group_instance_remove_ops = calculate_remove_group_instance_ops(change[:removed], group_instance)
           pending_ops.push(*group_instance_remove_ops)
         else
           scale_change = 0
@@ -1728,7 +1731,7 @@ class Application
           end
 
           singleton_gear = group_instance.gears.find_by(host_singletons: true)
-          ops = calculate_remove_component_ops(change[:removed], group_instance, singleton_gear, connections)
+          ops = calculate_remove_component_ops(change[:removed], group_instance, singleton_gear)
           pending_ops.push(*ops)
 
           gear_id_prereqs = {}
@@ -1809,12 +1812,12 @@ class Application
     execute_connection_op = PendingAppOp.new(op_type: :execute_connections, prereq: all_ops_ids)
     pending_ops.push execute_connection_op
     
-    # check to see if there are any primary carts being configured
+    # check to see if there are any deployable carts being configured
     # if so, then make sure that the post-configure op for it is executed at the end
     # also, it should not be the prerequisite for any other pending_op 
     component_ops.keys.each do |comp_spec|
       cartridge = CartridgeCache.find_cartridge(comp_spec["cart"], self)
-      if cartridge.is_primary_cart?
+      if cartridge.is_deployable?
         component_ops[comp_spec][:post_configures].each do |pcop|
           pcop.prereq += [execute_connection_op._id.to_s]
           pending_ops.each { |op| op.prereq.delete_if { |prereq_id| prereq_id == pcop._id.to_s } }

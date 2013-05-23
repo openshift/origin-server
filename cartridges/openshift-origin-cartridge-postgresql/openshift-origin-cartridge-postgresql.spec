@@ -7,7 +7,7 @@
 
 Summary:       Provides embedded PostgreSQL support
 Name:          openshift-origin-cartridge-postgresql
-Version:       0.2.3
+Version:       0.2.4
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -70,6 +70,16 @@ Provides PostgreSQL cartridge support to OpenShift. (Cartridge Format V2)
 
 
 %changelog
+* Wed May 22 2013 Adam Miller <admiller@redhat.com> 0.2.4-1
+- Bug 962662 (dmcphers@redhat.com)
+- Merge pull request #2569 from fotioslindiakos/Bug965105
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #2562 from fotioslindiakos/Bug964116
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 965105: Cannot delete application (fotios@redhat.com)
+- Bug 964116: Postgres failed to restore snapshot (fotios@redhat.com)
+- Fix bug 964348 (pmorie@gmail.com)
+
 * Mon May 20 2013 Dan McPherson <dmcphers@redhat.com> 0.2.3-1
 - Merge pull request #2515 from fotioslindiakos/postgres_v2
   (dmcphers+openshiftbot@redhat.com)
