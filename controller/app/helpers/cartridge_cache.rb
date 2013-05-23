@@ -126,7 +126,7 @@ class CartridgeCache
     if uri_obj.kind_of? URI::HTTP or uri_obj.kind_of? URI::FTP
       rout,wout = IO.pipe
       rerr,werr = IO.pipe
-      pid = Process.spawn("curl", "--max-time", max_dl_time.to_s, "--limit-rate", rate_limit.to_s, "--connect-timeout", "2", "--location", "--max-redirs", max_redirs.to_s, "--max-filesize", max_file_size.to_s, "-k", url, :out => wout, :err => werr)
+      pid = Process.spawn("curl", "-H", "X-OpenShift-Cartridge-Download:1", "--max-time", max_dl_time.to_s, "--limit-rate", rate_limit.to_s, "--connect-timeout", "2", "--location", "--max-redirs", max_redirs.to_s, "--max-filesize", max_file_size.to_s, "-k", url, :out => wout, :err => werr)
       begin
         Timeout::timeout(max_dl_time) {
           p,status = Process.waitpid2(pid)
