@@ -124,6 +124,14 @@ module OpenShift
           files << abs_line
         end
       end
+
+      env = PathUtils.join(@user.homedir, cartridge.directory, 'env')
+      files << PathUtils.join(env, "OPENSHIFT_#{cartridge.short_name}_IDENT")
+      files << PathUtils.join(env, "OPENSHIFT_#{cartridge.short_name}_DIR")
+
+      metadata = PathUtils.join(@user.homedir, cartridge.directory, 'metadata')
+      files << PathUtils.join(metadata, 'manifest.yml')
+      files << PathUtils.join(metadata, 'managed_files.yml')
       files
     end
 
