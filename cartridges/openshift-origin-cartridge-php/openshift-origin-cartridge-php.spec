@@ -1,7 +1,7 @@
 %global cartridgedir %{_libexecdir}/openshift/cartridges/v2/php
 
 Name:          openshift-origin-cartridge-php
-Version:       0.4.4
+Version:       0.4.5
 Release:       1%{?dist}
 Summary:       Php cartridge
 Group:         Development/Languages
@@ -82,6 +82,10 @@ sed -i 's/#DefaultRuntimeDir/DefaultRuntimeDir/g' %{buildroot}%{cartridgedir}/ve
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Thu May 23 2013 Adam Miller <admiller@redhat.com> 0.4.5-1
+- Bug 966255: Remove OPENSHIFT_INTERNAL_* references from v2 carts
+  (ironcladlou@gmail.com)
+
 * Wed May 22 2013 Adam Miller <admiller@redhat.com> 0.4.4-1
 - Bug 962662 (dmcphers@redhat.com)
 - Bug 965537 - Dynamically build PassEnv httpd configuration
