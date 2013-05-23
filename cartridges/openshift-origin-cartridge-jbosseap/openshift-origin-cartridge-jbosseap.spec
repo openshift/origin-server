@@ -77,6 +77,7 @@ cp -p %{cartridgedir}/versions/6.0/modules/postgresql_module.xml /etc/alternativ
 %files
 %dir %{cartridgedir}
 %attr(0755,-,-) %{cartridgedir}/bin/
+%attr(0755,-,-) %{cartridgedir}/versions/6.0/bin/
 %attr(0755,-,-) %{cartridgedir}/hooks/
 %{cartridgedir}
 %doc %{cartridgedir}/README.md
