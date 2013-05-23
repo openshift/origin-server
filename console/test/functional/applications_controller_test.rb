@@ -219,9 +219,10 @@ class ApplicationsControllerTest < ActionController::TestCase
     get(:index)
     apps = assigns(:applications)
     assert apps
-    assert_equal apps.length, 1
-    apps[0].name == app.name
+    assert apps.length > 0
+    assert apps.any?{ |a| a.name == app.name }
     assert_response :success
+    assert_select 'h2 > a', app.name
   end
 
   test "should filter application list with name" do
@@ -260,7 +261,7 @@ class ApplicationsControllerTest < ActionController::TestCase
     assert !assigns(:has_keys)
 
     assert_select 'h1', with_app.name
-    with_app.cartridges.map(&:name).each do |name|
+    with_app.cartridges.map(&:display_name).each do |name|
       assert_select 'h2', name
     end
   end
@@ -270,6 +271,8 @@ class ApplicationsControllerTest < ActionController::TestCase
     assert_response :success
     assert app = assigns(:application)
     assert groups = assigns(:gear_groups)
+
+    with_downloaded_app.reload
 
     assert_select 'h1', with_downloaded_app.name
     assert_select 'p', /Created from/ do |p|
