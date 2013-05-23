@@ -4,7 +4,6 @@ locked_files:
 - bin/*
 - metadata/
 - metadata/*
-- conf/
 - conf.d/
 - phpMyAdmin/
 - phpMyAdmin/*
