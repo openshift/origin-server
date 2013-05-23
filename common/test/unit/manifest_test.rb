@@ -58,10 +58,11 @@ class ManifestTest < Test::Unit::TestCase
   end
 
   def test_manifest_url_good
-    url      = 'http://www.example.com/killer-cartridge.zip'
-    manifest = MANIFEST.concat("Source-Url: #{url}\n")
+    manifest = YAML.load(MANIFEST)
+    url = 'http://www.example.com/killer-cartridge.zip'
+    manifest['Source-Url'] = url
 
-    cart     = OpenShift::Runtime::Manifest.new(manifest)
+    cart     = OpenShift::Runtime::Manifest.new(manifest.to_yaml)
 
     refute_nil   cart
     assert_equal url, cart.source_url
@@ -69,12 +70,34 @@ class ManifestTest < Test::Unit::TestCase
 
 
   def test_manifest_url_bad
-    url      = 'Bad Url'
-    manifest = MANIFEST.concat("Source-Url: #{url}\n")
+    manifest = YAML.load(MANIFEST)
+    manifest['Source-Url'] = 'Bad Url'
 
     assert_raise OpenShift::InvalidElementError do
-      OpenShift::Runtime::Manifest.new(manifest)
+      OpenShift::Runtime::Manifest.new(manifest.to_yaml)
     end
+  end
+
+  def test_autocorrect_frontend
+    manifest = YAML.load(MANIFEST)
+    manifest['Source-Url'] = 'http://www.example.com/killer-cartridge.zip'
+
+    manifest['Endpoints'] = \
+    [
+        {"Private-IP-Name"   => "EXAMPLE_IP1",
+         "Private-Port-Name" => "EXAMPLE_PORT1",
+         "Private-Port"      => 8080,
+         "Public-Port-Name"  => "EXAMPLE_PUBLIC_PORT1",
+         "Mappings"          =>
+             [
+                 {"Frontend" => "front1a", "Backend" => "back1a"}
+             ]
+        }
+    ]
+
+    actual = OpenShift::Runtime::Manifest.new(manifest.to_yaml)
+    assert_equal '/front1a', actual.endpoints.first.mappings.first.frontend
+    assert_equal '/back1a', actual.endpoints.first.mappings.first.backend
   end
 
   MANIFEST = %q{#
