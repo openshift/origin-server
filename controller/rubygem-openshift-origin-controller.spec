@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.9.5
+Version: 1.9.6
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -84,6 +84,26 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Thu May 23 2013 Adam Miller <admiller@redhat.com> 1.9.6-1
+- Merge pull request #2611 from pravisankar/dev/ravi/unsubscribe_fix
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #2606 from abhgupta/abhgupta-dev
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #2596 from fotioslindiakos/Bug960707
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 966007 - Fix old connections for unsubscribe event (rpenta@redhat.com)
+- Merge pull request #2597 from lnader/master
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #2600 from mrunalp/bugs/966068
+  (dmcphers+openshiftbot@redhat.com)
+- Fix for bug 960757  - Sending init_git_url only for deployable cartridge
+  configure/post-configure  - Removing is_primary_cart method in favor of
+  is_deployable (abhgupta@redhat.com)
+- Add force-reload functionality. (mrunalp@gmail.com)
+- Fix test case in extended postgres tests (fotios@redhat.com)
+- Bug960707: MySQL snapshot and restore across applications (fotios@redhat.com)
+- Bug 964337 (lnader@redhat.com)
+
 * Wed May 22 2013 Adam Miller <admiller@redhat.com> 1.9.5-1
 - Merge pull request #2595 from abhgupta/abhgupta-dev
   (dmcphers+openshiftbot@redhat.com)
