@@ -2,7 +2,7 @@
 
 Summary:       Provides embedded mariadb support
 Name:          openshift-origin-cartridge-mariadb
-Version:       0.0.0
+Version:       0.0.1
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -39,3 +39,6 @@ Provides mariadb cartridge support to OpenShift. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Wed May 22 2013 Krishna Raman <kraman@gmail.com> 0.0.1-1
+- new package built with tito
+
