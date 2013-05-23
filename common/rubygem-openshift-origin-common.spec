@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Common
 Name:          rubygem-%{gem_name}
-Version: 1.8.3
+Version: 1.8.4
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -97,6 +97,10 @@ cp -a ./%{gem_dir}/* %{buildroot}%{gem_dir}/
 %doc %{gem_docdir}
 
 %changelog
+* Wed May 22 2013 Adam Miller <admiller@redhat.com> 1.8.4-1
+- WIP Cartridge Refactor - V2 -> V2 Migration (jhonce@redhat.com)
+- safe yaml for parsing of downloaded yaml (rchopra@redhat.com)
+
 * Mon May 20 2013 Dan McPherson <dmcphers@redhat.com> 1.8.3-1
 - WIP Cartridge Refactor - V2 -> V2 Migration (jhonce@redhat.com)
 

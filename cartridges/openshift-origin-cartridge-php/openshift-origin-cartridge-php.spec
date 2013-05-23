@@ -1,7 +1,7 @@
 %global cartridgedir %{_libexecdir}/openshift/cartridges/v2/php
 
 Name:          openshift-origin-cartridge-php
-Version:       0.4.3
+Version:       0.4.4
 Release:       1%{?dist}
 Summary:       Php cartridge
 Group:         Development/Languages
@@ -82,6 +82,12 @@ sed -i 's/#DefaultRuntimeDir/DefaultRuntimeDir/g' %{buildroot}%{cartridgedir}/ve
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Wed May 22 2013 Adam Miller <admiller@redhat.com> 0.4.4-1
+- Bug 962662 (dmcphers@redhat.com)
+- Bug 965537 - Dynamically build PassEnv httpd configuration
+  (jhonce@redhat.com)
+- Fix bug 964348 (pmorie@gmail.com)
+
 * Mon May 20 2013 Dan McPherson <dmcphers@redhat.com> 0.4.3-1
 - spec file cleanup (tdawson@redhat.com)
 - Merge pull request #2521 from VojtechVitek/bz956962_2

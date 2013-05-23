@@ -111,7 +111,6 @@ class ApplicationsController < BaseController
     end
     application.user_agent= request.headers['User-Agent']
     
-    current_ip = application.group_instances.first.gears.first.get_public_ip_address rescue nil
     include_cartridges = (params[:include] == "cartridges")
     
     app = get_rest_application(application, include_cartridges)
@@ -120,7 +119,8 @@ class ApplicationsController < BaseController
     messages = []
     log_msg = "Application #{application.name} was created."
     messages.push(Message.new(:info, log_msg))
-    messages.push(Message.new(:info, "#{current_ip}", 0, "current_ip")) unless !current_ip or current_ip.empty?
+    #current_ip = application.group_instances.first.gears.first.get_public_ip_address rescue nil
+    #messages.push(Message.new(:info, "#{current_ip}", 0, "current_ip")) unless !current_ip or current_ip.empty?
 
     messages.push(Message.new(:info, app_creation_result.resultIO.string, 0, :result)) if app_creation_result
     render_success(:created, "application", app, log_msg, nil, nil, messages)

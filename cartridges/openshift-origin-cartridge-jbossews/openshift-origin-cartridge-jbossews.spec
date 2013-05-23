@@ -2,7 +2,7 @@
 
 Summary:       Provides JBossEWS2.0 support
 Name:          openshift-origin-cartridge-jbossews
-Version:       0.4.3
+Version:       0.4.4
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -75,6 +75,19 @@ alternatives --set jbossews-2.0 /usr/share/tomcat7
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Wed May 22 2013 Adam Miller <admiller@redhat.com> 0.4.4-1
+- Bug 962662 (dmcphers@redhat.com)
+- Merge pull request #2560 from bdecoste/master
+  (dmcphers+openshiftbot@redhat.com)
+- add generic-java hook (bdecoste@gmail.com)
+- Merge pull request #2554 from pmorie/bugs/964348
+  (dmcphers+openshiftbot@redhat.com)
+- Fix bug 964348 (pmorie@gmail.com)
+- Merge pull request #2550 from ironcladlou/bz/965012
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 965012: Generate initial ROOT.war dynamically on install for jboss
+  cartridges (ironcladlou@gmail.com)
+
 * Mon May 20 2013 Dan McPherson <dmcphers@redhat.com> 0.4.3-1
 - Bug 964093: Generate OPENSHIFT_JBOSSEWS_VERSION during jbossews install
   (ironcladlou@gmail.com)

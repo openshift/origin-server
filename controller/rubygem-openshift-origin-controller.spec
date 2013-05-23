@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.9.3
+Version: 1.9.5
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -84,6 +84,42 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Wed May 22 2013 Adam Miller <admiller@redhat.com> 1.9.5-1
+- Merge pull request #2595 from abhgupta/abhgupta-dev
+  (dmcphers+openshiftbot@redhat.com)
+- Moving code that throws exception into the begin-rescue block
+  (abhgupta@redhat.com)
+
+* Wed May 22 2013 Adam Miller <admiller@redhat.com> 1.9.4-1
+- Merge pull request #2581 from abhgupta/abhgupta-dev-3
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #2576 from rajatchopra/master
+  (dmcphers+openshiftbot@redhat.com)
+- Ignoring if initial_git_url specified as an empty string
+  (abhgupta@redhat.com)
+- clean pending ops script to ensure rollbacks when needed; fix downloaded
+  manifest screening (rchopra@redhat.com)
+- Removing externally_reserved_uids_size attribute from districts
+  (abhgupta@redhat.com)
+- Merge pull request #2564 from abhgupta/abhgupta-dev
+  (dmcphers+openshiftbot@redhat.com)
+- split cartridge cache per feature (rchopra@redhat.com)
+- Merge pull request #2559 from rajatchopra/master
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #2562 from fotioslindiakos/Bug964116
+  (dmcphers+openshiftbot@redhat.com)
+- do not save connections in mongo; regenerate them everytime we need to
+  execute them (rchopra@redhat.com)
+- Fixes to cleanup during app operation failures (abhgupta@redhat.com)
+- Bug 964116: Postgres failed to restore snapshot (fotios@redhat.com)
+- Merge pull request #2542 from rajatchopra/master
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #2499 from lnader/master
+  (dmcphers+openshiftbot@redhat.com)
+- safe yaml for parsing of downloaded yaml (rchopra@redhat.com)
+- added validation for initial git url (lnader@redhat.com)
+- Bug 961475 (lnader@redhat.com)
+
 * Mon May 20 2013 Dan McPherson <dmcphers@redhat.com> 1.9.3-1
 - Skipping the as7 cukes on OpenShift Enterprise (bleanhar@redhat.com)
 - Adjusting test case allocations (dmcphers@redhat.com)

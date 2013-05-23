@@ -1,7 +1,7 @@
-  oo-admin-fix
+  oo-admin-repair
   
 SYNOPSIS
-  oo-admin-fix [-h|--help] [-v|--verbose] [-r|--report-only] 
+  oo-admin-repair [-h|--help] [-v|--verbose] [-r|--report-only] 
   [--consumed-gears] [--ssh-keys] [--district-uids]
 
 DESCRIPTION
@@ -33,7 +33,7 @@ OPTIONS
 
 EXAMPLE
 
-  $ oo-admin-fix --consumed-gears
+  $ oo-admin-repair --consumed-gears
   
 HINTS
   If there are no data discrepancies, this command should exit 
