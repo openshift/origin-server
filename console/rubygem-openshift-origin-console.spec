@@ -9,7 +9,7 @@
 
 Summary:       OpenShift Origin Management Console
 Name:          rubygem-%{gem_name}
-Version: 1.9.5
+Version: 1.9.6
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -151,6 +151,15 @@ cp -a ./%{gem_dir}/* %{buildroot}%{gem_dir}/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Thu May 23 2013 Adam Miller <admiller@redhat.com> 1.9.6-1
+- Merge pull request #2592 from smarterclayton/better_mail_config
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #2598 from smarterclayton/prevent_unrescued_errors
+  (dmcphers+openshiftbot@redhat.com)
+- Review comments (ccoleman@redhat.com)
+- Prevent unrescued errors in the console (ccoleman@redhat.com)
+- Better mail config, allow SMTP to be set by ops (ccoleman@redhat.com)
+
 * Wed May 22 2013 Adam Miller <admiller@redhat.com> 1.9.5-1
 - add required Build deps found because the Rails package got cleaned up
   (admiller@redhat.com)
