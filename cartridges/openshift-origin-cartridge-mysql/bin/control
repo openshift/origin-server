@@ -4,6 +4,12 @@ source $OPENSHIFT_CARTRIDGE_SDK_BASH
 
 export STOPTIMEOUT=10
 
+# Run mysql commands
+function run_sql {
+  sql=$1
+  echo "${1}" | /usr/bin/mysql -h $OPENSHIFT_MYSQL_DB_HOST -P $OPENSHIFT_MYSQL_DB_PORT -u $OPENSHIFT_MYSQL_DB_USERNAME --password="$OPENSHIFT_MYSQL_DB_PASSWORD" --skip-column-names
+}
+
 function is_running {
   pidfile=$OPENSHIFT_MYSQL_DIR/pid/mysql.pid
 
@@ -33,21 +39,11 @@ function start {
 }
 
 function wait_for_mysqld_availability {
-  pidfile=$OPENSHIFT_MYSQL_DIR/pid/mysql.pid
-
-  if [ -n "$OPENSHIFT_MYSQL_DB_USERNAME" ]; then
-    i=0
+  for i in {1..30}; do
+    is_running && return 0
     sleep 1
-    while (( ! touch_mysqld ) || [ ! -f $pidfile ]) && [ $i -lt 30 ]
-    do
-      sleep 1
-      i=$(($i + 1))
-    done
-  fi
-}
-
-function touch_mysqld {
-  echo ";" | mysql -h $OPENSHIFT_MYSQL_DB_HOST -P $OPENSHIFT_MYSQL_DB_PORT -u $OPENSHIFT_MYSQL_DB_USERNAME --password="$OPENSHIFT_MYSQL_DB_PASSWORD" > /dev/null 2>&1
+  done
+  return 1
 }
 
 function stop {
@@ -93,26 +89,19 @@ function pre_snapshot {
 
   echo "$OPENSHIFT_MYSQL_DB_USERNAME" > $OPENSHIFT_DATA_DIR/mysql_db_username
   echo "$OPENSHIFT_MYSQL_DB_HOST" > $OPENSHIFT_DATA_DIR/mysql_db_host
+  echo "$OPENSHIFT_APP_NAME" > $OPENSHIFT_DATA_DIR/mysql_db_dbname
 
   dump_file=$OPENSHIFT_DATA_DIR/mysql_dump_snapshot.gz
   local db_host=$OPENSHIFT_MYSQL_DB_HOST
   local db_port=$OPENSHIFT_MYSQL_DB_PORT
 
-  /usr/bin/mysqldump -h $db_host -P $db_port -u $OPENSHIFT_MYSQL_DB_USERNAME --password="$OPENSHIFT_MYSQL_DB_PASSWORD" --all-databases --add-drop-table | /bin/gzip > $dump_file
-
-  if [ ! ${PIPESTATUS[0]} -eq 0 ]; then
-    echo 1>&2
-    echo "WARNING!  Could not dump mysql!  Continuing anyway" 1>&2
-    echo 1>&2
+  {
+    /usr/bin/mysqldump -h $db_host -P $db_port -u $OPENSHIFT_MYSQL_DB_USERNAME --password="$OPENSHIFT_MYSQL_DB_PASSWORD" --all-databases --add-drop-table | /bin/gzip > $dump_file
+  } ||
+  {
+    warning "Couldn't not dump mysql! Continuing anyway"
     /bin/rm -rf $OPENSHIFT_DATA_DIR/mysql_dump_snapshot.gz
-  else
-    if [[ ! ${PIPESTATUS[1]} -eq 0 || ! -f $dump_file ]]; then
-      echo 1>&2
-      echo "WARNING!  Could not create mysql dump!  Continuing anyway" 1>&2
-      echo 1>&2
-      /bin/rm -rf $OPENSHIFT_DATA_DIR/mysql_dump_snapshot.gz
-    fi
-  fi
+  }
 
   stop
 }
@@ -126,54 +115,82 @@ function pre_restore {
 }
 
 function post_restore {
+  # Ensure a snapshot file exists
   if [ -f $OPENSHIFT_DATA_DIR/mysql_dump_snapshot.gz ]; then
     start
 
-    dbhost=$OPENSHIFT_MYSQL_DB_HOST
-    OLD_IP=$(/bin/cat $OPENSHIFT_DATA_DIR/mysql_db_host)
+    # Restore stashed variables and get current variables
+    OLD_IP=$(< $OPENSHIFT_DATA_DIR/mysql_db_host)
     NEW_IP=$OPENSHIFT_MYSQL_DB_HOST
+    OLD_NAME=$(< $OPENSHIFT_DATA_DIR/mysql_db_dbname)
+    NEW_NAME=$OPENSHIFT_APP_NAME
 
     if [ -s $OPENSHIFT_DATA_DIR/mysql_db_username ]; then
-        OLD_USER=$(/bin/cat $OPENSHIFT_DATA_DIR/mysql_db_username)
+      OLD_USER=$(< $OPENSHIFT_DATA_DIR/mysql_db_username)
     else
-        OLD_USER="admin"
+      OLD_USER="admin"
+    fi
+    NEW_USER=$OPENSHIFT_MYSQL_DB_USERNAME
+
+    # Drop and recreate current database
+    # Need to use backticks here to make sure name is properly escaped
+    run_sql "DROP DATABASE IF EXISTS \`$NEW_NAME\`;" || error "Could not drop existing database" 187
+    run_sql "CREATE DATABASE \`$NEW_NAME\`;" || error "Could not create database" 187
+
+    # Restore the old database verbatime, this will be using the old database name
+    local snapshot=$(/bin/zcat $OPENSHIFT_DATA_DIR/mysql_dump_snapshot.gz)
+    run_sql "${snapshot}" || error "Count not import MySQL Database" 187
+
+    # Grant permissions to the current user
+    run_sql "
+    GRANT ALL ON *.* TO '$NEW_USER'@'$NEW_IP' IDENTIFIED BY '$OPENSHIFT_MYSQL_DB_PASSWORD' WITH GRANT OPTION;
+    GRANT ALL ON *.* TO '$NEW_USER'@'localhost' IDENTIFIED BY '$OPENSHIFT_MYSQL_DB_PASSWORD' WITH GRANT OPTION;
+    " || error "Could not grant permissions for MySQL database" 187
+
+    # Only run the following if the username is different
+    if [ "${OLD_USER}" != "${NEW_USER}" ]
+    then
+      # Remove the user from any grants that it has
+      {
+        for host in $(run_sql "SELECT Host from mysql.user WHERE user.user='${OLD_USER}'")
+        do
+          run_sql "DROP USER \`$OLD_USER\`@'${host}';" || warning "Could not drop old user" 187
+        done
+      }
     fi
 
-    # Prep the mysql database
-    (
-      /bin/zcat $OPENSHIFT_DATA_DIR/mysql_dump_snapshot.gz
-      echo ";"
-      echo "GRANT ALL ON *.* TO '$OPENSHIFT_MYSQL_DB_USERNAME'@'$NEW_IP' IDENTIFIED BY '$OPENSHIFT_MYSQL_DB_PASSWORD' WITH GRANT OPTION;"
-      echo "GRANT ALL ON *.* TO '$OPENSHIFT_MYSQL_DB_USERNAME'@'localhost' IDENTIFIED BY '$OPENSHIFT_MYSQL_DB_PASSWORD' WITH GRANT OPTION;"
-      
-      if [ "$OPENSHIFT_MYSQL_DB_USERNAME" != "$OLD_USER" ]; then
-          echo "DROP USER '$OLD_USER'@'localhost';"
-      fi
+    # Refresh the privileges
+    run_sql "FLUSH PRIVILEGES;" || error "Could not flush privileges" 187
 
-      if [ "$OLD_IP" != "$NEW_IP" ]; then
-          echo "DROP USER '$OLD_USER'@'$OLD_IP';"
-      fi
-      
-      echo "FLUSH PRIVILEGES;"
-    ) | /usr/bin/mysql -h $dbhost -P $OPENSHIFT_MYSQL_DB_PORT -u $OPENSHIFT_MYSQL_DB_USERNAME --password="$OPENSHIFT_MYSQL_DB_PASSWORD"
+    # Only run the following if the database name has changed
+    if [ "${OLD_NAME}" == "${NEW_NAME}" ]
+    then
+      warning "Old and new names are the same, no need to rename"
+    else
+      # Dump the old database and restore it into the new database
+      # This approach provides relational consistency and will work with tables, views, triggers, etc
+      # TODO: This may not work if the user created another database that has references to this database
+      {
+        /usr/bin/mysqldump -h $NEW_IP -P $OPENSHIFT_MYSQL_DB_PORT -u $NEW_USER --password="$OPENSHIFT_MYSQL_DB_PASSWORD" $OLD_NAME | \
+          mysql -h $NEW_IP -P $OPENSHIFT_MYSQL_DB_PORT -u $NEW_USER --password="$OPENSHIFT_MYSQL_DB_PASSWORD" $NEW_NAME
+      } || error "Could not rename database" 187
 
-    if [ ! ${PIPESTATUS[1]} -eq 0 ]; then
-        echo 1>&2
-        echo "Error: Could not import MySQL Database!  Continuing..." 1>&2
-        echo 1>&2
+      # Drop the old database now that the data has been preserved
+      run_sql "DROP DATABASE \`$OLD_NAME\`;" || error "Could not drop old database" 187
     fi
 
     cleanup_dump
   else
-      echo "MySQL restore attempted but no dump found!" 1>&2
-      echo "$OPENSHIFT_DATA_DIR/mysql_dump_snapshot.gz does not exist" 1>&2
+    echo "MySQL restore attempted but no dump found!" 1>&2
+    echo "$OPENSHIFT_DATA_DIR/mysql_dump_snapshot.gz does not exist" 1>&2
   fi
 }
 
 function cleanup_dump {
   rm -f $OPENSHIFT_DATA_DIR/mysql_dump_snapshot.gz
   rm -f $OPENSHIFT_DATA_DIR/mysql_db_host
-  rm -f $OPENSHIFT_DATA_DIR/mysql_db_username  
+  rm -f $OPENSHIFT_DATA_DIR/mysql_db_username
+  rm -f $OPENSHIFT_DATA_DIR/mysql_db_dbname
 }
 
 case "$1" in
