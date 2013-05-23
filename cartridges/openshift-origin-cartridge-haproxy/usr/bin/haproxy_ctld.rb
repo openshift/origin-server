@@ -86,7 +86,7 @@ class HAProxyUtils
             @@log.info("GEAR_INFO - validate: Configuration was modified, reloading haproxy")
             ENV["CARTRIDGE_TYPE"] = "haproxy-1.4"
             cpid = fork do
-              exec "app_ctl.sh reload"
+              exec "#{ENV['OPENSHIFT_HAPROXY_DIR']}/bin/control reload"
             end
             Process.waitpid cpid
             # Expect restart to terminate this process during the wait.
