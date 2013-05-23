@@ -2,7 +2,7 @@
 
 Summary:       Provides embedded mysql support
 Name:          openshift-origin-cartridge-mysql
-Version:       0.3.4
+Version:       0.3.5
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -40,6 +40,11 @@ Provides mysql cartridge support to OpenShift. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Thu May 23 2013 Adam Miller <admiller@redhat.com> 0.3.5-1
+- Merge pull request #2596 from fotioslindiakos/Bug960707
+  (dmcphers+openshiftbot@redhat.com)
+- Bug960707: MySQL snapshot and restore across applications (fotios@redhat.com)
+
 * Wed May 22 2013 Adam Miller <admiller@redhat.com> 0.3.4-1
 - Bug 962662 (dmcphers@redhat.com)
 - Fix bug 964348 (pmorie@gmail.com)
