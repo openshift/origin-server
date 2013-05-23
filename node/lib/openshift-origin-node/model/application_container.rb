@@ -57,7 +57,6 @@ module OpenShift
       @state            = OpenShift::Utils::ApplicationState.new(container_uuid)
       @build_model      = self.class.get_build_model(@user, @config)
 
-      # When v2 is the default cartridge format flip the test...
       if @build_model == :v1
         @cartridge_model = V1CartridgeModel.new(@config, @user)
       else
@@ -67,7 +66,6 @@ module OpenShift
     end
 
     def self.get_build_model(user, config)
-      # TODO: When v2 is the default cartridge format change this default...
       build_model = :v1
 
       if user.homedir && File.exist?(user.homedir)
