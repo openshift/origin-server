@@ -941,7 +941,9 @@ class Application
     self.connections = conns
   end
 
-  def get_unsubscribe_info(comp_inst, old_connections)
+  def get_unsubscribe_info(comp_inst)
+    features = self.requires + [get_feature(comp_inst.cartridge_name, comp_inst.component_name)]
+    old_connections, new_group_instances, cleaned_group_overrides = elaborate(features, self.group_overrides)
     sub_pub_hash = {}
     if self.scalable and old_connections
       old_conn_hash = old_connections.map{|conn| conn.to_hash(self)}
@@ -1359,7 +1361,7 @@ class Application
     calculate_ops(changes)
   end
 
-  def calculate_remove_group_instance_ops(comp_specs, group_instance, connections)
+  def calculate_remove_group_instance_ops(comp_specs, group_instance)
     pending_ops = []
     gear_destroy_ops = calculate_gear_destroy_ops(group_instance._id.to_s, group_instance.gears.map{|g| g._id.to_s}, group_instance.addtl_fs_gb)
     pending_ops.push(*gear_destroy_ops)
@@ -1380,7 +1382,7 @@ class Application
       domain.remove_env_variables(comp_instance._id)
       op = PendingAppOp.new(op_type: :del_component, args: {"group_instance_id"=> group_instance._id.to_s, "comp_spec" => comp_spec}, prereq: gear_destroy_op_ids)
       delete_comp_ops.push op
-      unsubscribe_conn_ops.push(PendingAppOp.new(op_type: :unsubscribe_connections, args: {"sub_pub_info" => get_unsubscribe_info(comp_instance, self.connections)}, prereq: [op._id.to_s]))
+      unsubscribe_conn_ops.push(PendingAppOp.new(op_type: :unsubscribe_connections, args: {"sub_pub_info" => get_unsubscribe_info(comp_instance)}, prereq: [op._id.to_s]))
     end
     pending_ops.push(*delete_comp_ops)
     pending_ops.push(*unsubscribe_conn_ops)
@@ -1608,7 +1610,7 @@ class Application
     comp_op_type
   end
 
-  def calculate_remove_component_ops(comp_specs, group_instance, singleton_gear, connections)
+  def calculate_remove_component_ops(comp_specs, group_instance, singleton_gear)
     ops = []
     comp_specs.each do |comp_spec|
       component_instance = self.component_instances.find_by(cartridge_name: comp_spec["cart"], component_name: comp_spec["comp"])
@@ -1641,7 +1643,7 @@ class Application
       domain.remove_env_variables(component_instance._id)
       op = PendingAppOp.new(op_type: :del_component, args: {"group_instance_id"=> group_instance._id.to_s, "comp_spec" => comp_spec}, prereq: ops.map{|o| o._id.to_s})
       ops.push op
-      ops.push(PendingAppOp.new(op_type: :unsubscribe_connections, args: {"sub_pub_info" => get_unsubscribe_info(component_instance, self.connections)}, prereq: [op._id.to_s]))
+      ops.push(PendingAppOp.new(op_type: :unsubscribe_connections, args: {"sub_pub_info" => get_unsubscribe_info(component_instance)}, prereq: [op._id.to_s]))
     end
     ops
   end
@@ -1712,7 +1714,7 @@ class Application
         if change[:to].nil?
           remove_gears += change[:from_scale][:current]
 
-          group_instance_remove_ops = calculate_remove_group_instance_ops(change[:removed], group_instance, connections)
+          group_instance_remove_ops = calculate_remove_group_instance_ops(change[:removed], group_instance)
           pending_ops.push(*group_instance_remove_ops)
         else
           scale_change = 0
@@ -1728,7 +1730,7 @@ class Application
           end
 
           singleton_gear = group_instance.gears.find_by(host_singletons: true)
-          ops = calculate_remove_component_ops(change[:removed], group_instance, singleton_gear, connections)
+          ops = calculate_remove_component_ops(change[:removed], group_instance, singleton_gear)
           pending_ops.push(*ops)
 
           gear_id_prereqs = {}
