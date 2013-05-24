@@ -6,7 +6,7 @@
 
 Summary:       Provides HA Proxy
 Name:          openshift-origin-cartridge-haproxy
-Version:       0.4.5
+Version:       0.4.6
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -45,6 +45,16 @@ HAProxy cartridge for OpenShift. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Fri May 24 2013 Adam Miller <admiller@redhat.com> 0.4.6-1
+- remove install build required for non buildable carts (dmcphers@redhat.com)
+- Merge pull request #2622 from mrunalp/bugs/haproxy_validate_config
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #2612 from jwhonce/bug/964347
+  (dmcphers+openshiftbot@redhat.com)
+- fix to call correct script. (mrunalp@gmail.com)
+- Bug 964347 - Run cartridge scripts from cartridge home directory
+  (jhonce@redhat.com)
+
 * Thu May 23 2013 Adam Miller <admiller@redhat.com> 0.4.5-1
 - Merge pull request #2613 from mrunalp/bugs/965960
   (dmcphers+openshiftbot@redhat.com)
