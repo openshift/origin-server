@@ -61,25 +61,27 @@ class BuildLifecycleTest < Test::Unit::TestCase
   def test_pre_receive_default_builder
     @cartridge_model.expects(:builder_cartridge).returns(nil)
     
-    primary = mock()
-    @cartridge_model.expects(:primary_cartridge).returns(primary)
-
     @container.expects(:stop_gear).with(user_initiated: true, hot_deploy: nil, out: $stdout, err: $stderr)
-    @cartridge_model.expects(:do_control).with('pre-receive',
-                                               primary,
-                                               out:                       $stdout,
-                                               err:                       $stderr,
-                                               pre_action_hooks_enabled:  false,
-                                               post_action_hooks_enabled: false)
 
     @container.pre_receive(out: $stdout, err: $stderr)
   end
 
   def test_post_receive_default_builder
     repository = mock()
+
     OpenShift::ApplicationRepository.expects(:new).returns(repository)
 
     @cartridge_model.expects(:builder_cartridge).returns(nil)
+
+    primary = mock()
+    @cartridge_model.stubs(:primary_cartridge).returns(primary)
+
+    @cartridge_model.expects(:do_control).with('pre-repo-archive',
+                                                primary,
+                                                out:                       $stdout,
+                                                err:                       $stderr,
+                                                pre_action_hooks_enabled:  false,
+                                                post_action_hooks_enabled: false)
 
     repository.expects(:deploy)
     @container.expects(:build).with(out: $stdout, err: $stderr)

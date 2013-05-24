@@ -32,6 +32,13 @@ module OpenShift
     end
 
     def post_receive(options)
+      @container.cartridge_model.do_control('pre-repo-archive',
+                                            @container.cartridge_model.primary_cartridge,
+                                            out:                       options[:out],
+                                            err:                       options[:err],
+                                            pre_action_hooks_enabled:  false,
+                                            post_action_hooks_enabled: false)
+
       ApplicationRepository.new(@container.user).deploy
 
       @container.build(out: options[:out],

@@ -32,21 +32,21 @@ function build {
 }
 
 case "$1" in
-  start)         start ;;
-  stop)          stop ;;
-  restart)       restart ;;
-  status)        status ;;
-  reload)        touch $MOCK_STATE/control_reload ;;
-  tidy)          touch $MOCK_STATE/control_tidy ;;
-  pre-build)     touch $MOCK_STATE/control_pre_build ;;
-  build)         build ;;
-  deploy)        touch $MOCK_STATE/control_deploy ;;
-  post-deploy)   touch $MOCK_STATE/control_post_deploy ;;
-  pre-snapshot)  touch $MOCK_STATE/control_pre_snapshot ;;
-  post-snapshot) touch $MOCK_STATE/control_post_snapshot ;;
-  pre-restore)   touch $MOCK_STATE/control_pre_restore ;;
-  post-restore)  touch $MOCK_STATE/control_post_restore ;;
-  pre-receive)   touch $MOCK_STATE/control_pre_receive ;;
+  start)                start ;;
+  stop)                 stop ;;
+  restart)              restart ;;
+  status)               status ;;
+  reload)               touch $MOCK_STATE/control_reload ;;
+  tidy)                 touch $MOCK_STATE/control_tidy ;;
+  pre-build)            touch $MOCK_STATE/control_pre_build ;;
+  build)                build ;;
+  deploy)               touch $MOCK_STATE/control_deploy ;;
+  post-deploy)          touch $MOCK_STATE/control_post_deploy ;;
+  pre-snapshot)         touch $MOCK_STATE/control_pre_snapshot ;;
+  post-snapshot)        touch $MOCK_STATE/control_post_snapshot ;;
+  pre-restore)          touch $MOCK_STATE/control_pre_restore ;;
+  post-restore)         touch $MOCK_STATE/control_post_restore ;;
+  pre-repo-archive)     touch $MOCK_STATE/control_pre_repo_archive ;;
   update-configuration) touch $MOCK_STATE/control_update_configuration ;;
   *)           exit 0
 esac
