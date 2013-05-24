@@ -148,6 +148,18 @@ When /^the application is destroyed$/ do
   rhc_ctl_destroy(@app)
 end
 
+And /^the applications are destroyed$/ do
+   if !(@list_of_TestApps.nil?) 
+     @list_of_TestApps.each do |app|
+         rhc_ctl_destroy(app)
+     end
+   else
+    $logger.info("No apps to delete. List of TestApps is empty")
+   end
+   @listOfTestApps = []
+end
+
+
 When /^the application namespace is updated$/ do
   rhc_update_namespace(@app)
 end

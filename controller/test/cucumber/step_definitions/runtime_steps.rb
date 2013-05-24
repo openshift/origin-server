@@ -611,6 +611,16 @@ def app_env_var_will_not_exist(var_name, prefix = true)
   assert_file_not_exists var_file_path
 end
 
+def check_domain_env_var(actual_var_name, expected_var_name = nil, negate = false, prefix = false)
+  if prefix
+    var_name = "OPENSHIFT_#{actual_var_name}"
+  end
+
+  var_file_path = File.join($home_root, @app.uid, '.env', actual_var_name)
+  check_var_name(var_file_path, expected_var_name, negate)
+ 
+end
+
 
 def cart_env_var_will_exist(cart_name, var_name, negate = false)
   cart_env_var_common cart_name, var_name, nil, negate
@@ -626,7 +636,11 @@ def cart_env_var_common(cart_name, var_name, expected = nil, negate = false)
   cartridge = @gear.container.cartridge_model.get_cartridge(cart_name)
 
   var_file_path = File.join($home_root, @gear.uuid, cartridge.directory, 'env', var_name)
+  check_var_name(var_file_path, expected, negate)
 
+end
+
+def check_var_name(var_file_path, expected = nil, negate = false)
   if negate
     assert_file_not_exists var_file_path
   else
@@ -637,6 +651,7 @@ def cart_env_var_common(cart_name, var_name, expected = nil, negate = false)
       assert_match /#{expected}/, file_content
     end
   end
+
 end
 
 # Used to control the runtime state of the current application.
@@ -697,21 +712,58 @@ Then /^the platform-created default environment variables will exist$/ do
   app_env_var_will_exist('HISTFILE', false)
 end
 
-#And the domain env variable "TEST_VAR" with value "Foo" is added
-Then /^the domain env variable "([^\"]*)" with value "([^\"]*)" is added$/ do | env_var_name, env_var_value|
-
-    STDOUT.puts "\n\n in new step env_var_name is #{env_var_name} and env_var_value is #{env_var_value}"
-    domain = @app.account.domain
-    STDOUT.puts "\n\n in new step app account DOMAIN is #{domain}"
-    STDOUT.puts "\n\n in new step app NAME  #{@app.name}"
-    STDOUT.puts "\n\n in new step app UUID  #{@app.uuid}"
-    command = "oo-admin-ctl-domain -l \"cucumber-test_#{domain}@example.com\" -n #{domain} -c env_add -e #{env_var_name} -v #{env_var_value}"
-    STDOUT.puts "\n\n\n\n----------------------CLOUD DOMAIN is #{$cloud_domain}"
-    STDOUT.puts "Executing the command: #{command}"
-    out = `#{command}`
-    STDOUT.puts "\n\n Result output for the command is: \n      #{out}\n"
+Then /^the domain environment variable ([^\"]*) with value '([^\"]*)' is added$/ do | env_var_name, env_var_value|
+    domain = @app.namespace
+    app_login = @app.login
+    command = "oo-admin-ctl-domain -l \"#{app_login}\" -n #{domain} -c env_add -e #{env_var_name} -v #{env_var_value}"
+    $logger.info("Executing the command: #{command}")
+    output_buffer = []
+    exit_code = run(command, output_buffer)
+    raise "Error: Failed to add domain env var #{env_var_name}. Exit code: #{exit_code} and Output Message: #{output_buffer}" unless output_buffer[0] == ""
 end
 
+Then /^the domain environment variable ([^\"]*) is deleted$/ do | env_var_name|
+    domain = @app.namespace
+    app_login = @app.login
+    command = "oo-admin-ctl-domain -l \"#{app_login}\" -n #{domain} -c env_del -e #{env_var_name}"
+    $logger.info("Executing the command: #{command}")
+    output_buffer = []
+    exit_code = run(command, output_buffer)
+    raise "Error: Failed to add domain env var #{env_var_name}. Exit code: #{exit_code} and Output Message: #{output_buffer}" unless output_buffer[0] == ""
+end
+
+
+Then /^the domain environment variable ([^\"]*) will( not)? exist$/ do |var_name, negate |
+    check_domain_env_var var_name, nil, negate
+end
+
+
+Then /^the domain environment variable ([^\"]*) will equal '([^\"]*)'$/ do |actual_var_name, expected_var_name|
+    check_domain_env_var actual_var_name, expected_var_name, false
+end
+
+
+Then /^the domain environment variable ([^\"]*) will( not)? exist for all the applications in the current namespace$/ do |var_name, negate |
+   if !(@list_of_TestApps.nil?)
+      @list_of_TestApps.each do |app|
+          check_domain_env_var var_name, nil, negate
+      end
+   else
+      raise "Error: Cannot check for domain env var #{var_name} because the list of TestApps is empty"
+   end
+
+end
+
+
+Then /^the domain environment variable ([^\"]*) will equal '([^\"]*)' for all the applications in the current namespace$/ do |actual_var_name, expected_var_name |
+   if !(@list_of_TestApps.nil?)
+      @list_of_TestApps.each do |app|
+          check_domain_env_var actual_var_name, expected_var_name, false
+      end
+   else
+      raise "Error: Cannot check for env var #{actual_var_name} because the list of TestApps is empty"
+   end
+end
 
 Then /^the ([^ ]+) cartridge private endpoints will be (exposed|concealed)$/ do |cart_name, action|
   cartridge = @gear.container.cartridge_model.get_cartridge(cart_name)

@@ -57,6 +57,14 @@ module AppHelper
       end
     end
 
+    def self.create_app_from_params(namespace, login, type, password, scalable=false)
+      chars = ("1".."9").to_a
+      # Generate a random name
+      name ||= random_string(8, chars)
+      app = TestApp.new(namespace, login, type, name, password, Process.pid, scalable)
+      return app
+    end
+
     def self.find_on_fs
       Dir.glob("#{$temp}/*.json").collect {|f| TestApp.from_file(f)}.select { |app| ( ( app.owner == Process.pid ) or app.owner.nil? ) }
     end
