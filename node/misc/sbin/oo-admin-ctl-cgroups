@@ -300,7 +300,7 @@ startall() {
     [ $GROUP_RETVAL -eq 0 ] && touch ${lockfile}
     [ $GROUP_RETVAL -eq 0 ] && (echo -n "[ OK ]") || (echo -n "[ FAILED ]")
 
-    echo -n $"Openshift cgroups initialized"
+    echo -n "Openshift cgroups initialized"
     echo
     return $GROUP_RETVAL
     echo
@@ -379,7 +379,7 @@ stopall() {
     fi
 
     [ $GROUP_RETVAL -eq 0 ] && touch ${lockfile}
-    echo -n $"Openshift cgroups uninitialized"
+    echo -n "Openshift cgroups uninitialized"
     echo
     return $GROUP_RETVAL
 }
@@ -493,7 +493,7 @@ case "$1" in
         ;;
 
     *)
-        echo $"Usage: $0 {startall|stopall|restartall|condrestartall|status|startuser <username>|stopuser <username>|freezeuser <username>|thawuser <username>}"
+        echo "Usage: $0 {startall|stopall|restartall|condrestartall|status|startuser <username>|stopuser <username>|freezeuser <username>|thawuser <username>}"
         exit 1
 esac
 
