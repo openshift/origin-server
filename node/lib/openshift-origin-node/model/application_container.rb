@@ -166,15 +166,18 @@ module OpenShift
     def destroy(skip_hooks=false)
       notify_observers(:before_container_destroy)
 
-      conf = OpenShift::Config.instance
+      notify_endpoint_delete = ''
       @cartridge_model.each_cartridge do |cart|
         env = Utils::Environ.for_gear @user.homedir
         cart.public_endpoints.each do |endpoint|
-          RoutingService.notify_deleting_public_endpoint self, endpoint, env[endpoint.public_port_name].to_i
+          notify_endpoint_delete << "NOTIFY_ENDPOINT_DELETE: #{endpoint.public_port_name} #{@config.get('PUBLIC_IP')} #{env[endpoint.public_port_name]}\n"
         end
       end
+
       # possible mismatch across cart model versions
       output, errout, retcode = @cartridge_model.destroy(skip_hooks)
+
+      output += notify_endpoint_delete
 
       notify_observers(:after_container_destroy)
 
@@ -203,6 +206,8 @@ module OpenShift
 
       proxy = OpenShift::FrontendProxyServer.new
 
+      output = ''
+
       # TODO: better error handling
       cart.public_endpoints.each do |endpoint|
         # Load the private IP from the gear
@@ -218,12 +223,13 @@ module OpenShift
 
         @user.add_env_var(endpoint.public_port_name, public_port)
 
-        # Notify any routing providers about the newly added endpoint.
-        RoutingService.notify_adding_public_endpoint self, endpoint, public_port
+        output << "NOTIFY_ENDPOINT_CREATE: #{endpoint.public_port_name} #{@config.get('PUBLIC_IP')} #{public_port}\n"
 
         logger.info("Created public endpoint for cart #{cart.name} in gear #{@uuid}: "\
           "[#{endpoint.public_port_name}=#{public_port}]")
       end
+
+      output
     end
 
     # Deletes all public endpoints for the given cart. Public port mappings are
@@ -238,6 +244,8 @@ module OpenShift
 
       proxy = OpenShift::FrontendProxyServer.new
 
+      output = ''
+
       public_ports     = []
       public_port_vars = []
 
@@ -251,8 +259,7 @@ module OpenShift
 
         public_ports << public_port unless public_port == nil
 
-        # Notify any routing providers about the soon-to-be-deleted endpoint.
-        RoutingService.notify_deleting_public_endpoint self, endpoint, public_port if public_port
+        output << "NOTIFY_ENDPOINT_DELETE: #{endpoint.public_port_name} #{@config.get('PUBLIC_IP')} #{public_port}\n" unless public_port == nil
       end
 
       begin
@@ -271,6 +278,8 @@ module OpenShift
 
       # Clean up the environment variables
       public_port_vars.each { |var| @user.remove_env_var(var) }
+
+      output
     end
 
     # Public: Cleans up the gear, providing any installed

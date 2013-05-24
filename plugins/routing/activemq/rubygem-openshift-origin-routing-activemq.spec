@@ -4,7 +4,7 @@
 %endif
 %{!?scl:%global pkg_name %{name}}
 %{?scl:%scl_package rubygem-%{gem_name}}
-%global gem_name openshift-origin-node-plugin-activemq
+%global gem_name openshift-origin-routing-activemq
 %global rubyabi 1.9.1
 
 Summary:       OpenShift plugin for publishing routing information on ActiveMQ
@@ -37,7 +37,7 @@ BuildRequires: %{?scl:%scl_prefix}rubygems-devel
 BuildArch:     noarch
 
 %description
-OpenShift node plugin for publishing routing information on an ActiveMQ queue.
+OpenShift plug-in for publishing routing information on an ActiveMQ queue.
 
 %prep
 %setup -q
@@ -56,8 +56,10 @@ gem install -V \
 
 %install
 mkdir -p %{buildroot}%{gem_dir}
-
 cp -a ./%{gem_dir}/* %{buildroot}%{gem_dir}/
+
+mkdir -p %{buildroot}/etc/openshift/plugins.d
+cp conf/openshift-origin-routing-activemq.conf.example %{buildroot}/etc/openshift/plugins.d/openshift-origin-routing-activemq.conf.example
 
 %files
 %dir %{gem_instdir}
@@ -67,5 +69,6 @@ cp -a ./%{gem_dir}/* %{buildroot}%{gem_dir}/
 %{gem_dir}/gems/%{gem_name}-%{version}
 %{gem_dir}/cache/%{gem_name}-%{version}.gem
 %{gem_dir}/specifications/%{gem_name}-%{version}.gemspec
+/etc/openshift/plugins.d/openshift-origin-routing-activemq.conf.example
 
 %changelog

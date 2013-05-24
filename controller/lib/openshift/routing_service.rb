@@ -43,12 +43,20 @@ module OpenShift
       @routing_provider.each { |p| p.send(event, *args) if p.respond_to?(event) }
     end
 
-    def self.notify_adding_public_endpoint(app, endpoint, public_port)
-      notify_providers :adding_public_endpoint, app, endpoint, public_port
+    def self.notify_create_application(app)
+      notify_providers :notify_create_application, app
     end
 
-    def self.notify_deleting_public_endpoint(app, endpoint, public_port)
-      notify_providers :deleting_public_endpoint, app, endpoint, public_port
+    def self.notify_delete_application(app)
+      notify_providers :notify_delete_application, app
+    end
+
+    def self.notify_create_public_endpoint(app, endpoint_name, public_ip, public_port)
+      notify_providers :notify_create_public_endpoint, app, endpoint_name, public_ip, public_port
+    end
+
+    def self.notify_delete_public_endpoint(app, endpoint_name, public_ip, public_port)
+      notify_providers :notify_delete_public_endpoint, app, endpoint_name, public_ip, public_port
     end
 
     #def initialize
@@ -56,30 +64,30 @@ module OpenShift
 
     # Expose a new public endpoint.
     #
-    # @param [OpenShift::ApplicationContainer] app
+    # @param [OpenShift::Application] app
     #   The application to which the endpoint routes.
-    # @param [OpenShift::Runtime::Cartridge::Endpoint] endpoint
-    #   The new endpoint.
-    # @param [Integer] public_port
-    #   The public port assigned to the endpoint by port-proxy.
+    # @param [String] endpoint_name
+    #   The name of the new endpoint.
+    # @param [String] endpoint_port
+    #   The the public port for the new endpoint.
     # @return [Object]
     #   The response from the service provider in what ever form
     #   that takes.
-    def adding_public_endpoint(app, endpoint, public_port)
+    def notify_create_public_endpoint(app, endpoint_name, public_ip, public_port)
     end
 
     # Delete an existing public endpoint.
     #
-    # @param [OpenShift::ApplicationContainer] app
+    # @param [OpenShift::Application] app
     #   The application to which the endpoint routes.
-    # @param [OpenShift::Runtime::Cartridge::Endpoint] endpoint
-    #   The new endpoint.
-    # @param [Integer] public_port
-    #   The public port assigned to the endpoint by port-proxy.
+    # @param [String] endpoint_name
+    #   The name of the new endpoint.
+    # @param [String] endpoint_port
+    #   The the public port for the new endpoint.
     # @return [Object]
     #   The response from the service provider in what ever form
     #   that takes 
-    def deleting_public_endpoint(app, endpoint, public_port)
+    def notify_delete_public_endpoint(app, endpoint_name, public_ip, public_port)
     end
   end
 
