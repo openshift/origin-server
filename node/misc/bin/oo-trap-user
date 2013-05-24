@@ -43,7 +43,6 @@ openshift_cgroup_subsystems="cpu,cpuacct,memory,net_cls,freezer"
 
 def load_env(directory):
     for entry in glob.glob(os.path.expanduser(os.path.join(directory, '*'))):
-        syslog.syslog("DEBUG: var entry %s" % entry)
         env = os.path.basename(entry)
         if os.path.isdir(entry):
             load_env(os.path.join(directory, entry))
