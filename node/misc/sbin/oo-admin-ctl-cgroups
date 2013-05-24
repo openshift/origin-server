@@ -334,12 +334,17 @@ stopuser() {
     #pkill -u $(id -u $_deluser)
 
     # remove the user's cgroup
-    delete_cgroup $_deluser
-    (( _retval |= $? )) # capture return value
+    if cgroup_exists $_deluser
+    then
+        delete_cgroup $_deluser
+        (( _retval |= $? )) # capture return value
 
-    # remove the user's cgroup binding rule
-    delete_cgroup_rule $_deluser
-    (( _retval |= $? )) # capture return value
+        # remove the user's cgroup binding rule
+        delete_cgroup_rule $_deluser
+        (( _retval |= $? )) # capture return value
+    else
+        echo -n " cgroup already stopped"
+    fi
 
     if [ $_retval -eq 0 ]
     then
