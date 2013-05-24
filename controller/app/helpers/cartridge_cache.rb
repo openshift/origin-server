@@ -106,8 +106,8 @@ class CartridgeCache
     
     carts.each do |cart|
       matching_carts << cart if cart.name == requested_feature
-      matching_carts << cart if (cart.features.include?(feature) and 
-                                (vendor.nil? or cart.cartridge_vendor == vendor) and 
+      matching_carts << cart if cart.name == requested_feature or
+                                (cart.features.include?(feature) and
                                 (version.nil? or cart.version.to_s == version.to_s))
     end
     
