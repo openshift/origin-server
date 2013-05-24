@@ -6,6 +6,8 @@ case "$1" in
     version="$2"
 esac
 
+echo "$version" > $OPENSHIFT_NODEJS_DIR/env/OPENSHIFT_NODEJS_VERSION
+
 ## npm link
 pushd $OPENSHIFT_NODEJS_DIR > /dev/null
   mkdir -p node_modules
