@@ -275,7 +275,7 @@ module OpenShift
     end
 
     def post_install(cartridge, software_version, options = {})
-      output = cartridge_action(cartridge, 'post-install', software_version)
+      output = cartridge_action(cartridge, 'post_install', software_version)
       options[:out].puts(output) if options[:out]
       output
     end
@@ -288,7 +288,7 @@ module OpenShift
 
       OpenShift::Utils::Cgroups::with_no_cpu_limits(@user.uuid) do
         output << start_cartridge('start', cartridge, user_initiated: true)
-        output << cartridge_action(cartridge, 'post-install', software_version)
+        output << cartridge_action(cartridge, 'post_install', software_version)
       end
 
       logger.info("post-configure output: #{output}")
@@ -1019,7 +1019,11 @@ module OpenShift
     # Executes the named +action+ from the user repo +action_hooks+ directory and returns the
     # stdout of the execution, or raises a +ShellExecutionException+ if the action returns a
     # non-zero return code.
+    #
+    # All hyphens in the +action+ will be replaced with underscores.
     def do_action_hook(action, env, options)
+      action = action.gsub(/-/, '_')
+
       action_hooks_dir = File.join(@user.homedir, %w{app-root runtime repo .openshift action_hooks})
       action_hook      = File.join(action_hooks_dir, action)
       buffer           = ''
