@@ -4,7 +4,7 @@
 
 Summary:       Provides JBossAS7 support
 Name:          openshift-origin-cartridge-jbossas
-Version:       1.2.4
+Version:       1.2.5
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -80,6 +80,7 @@ cp -p %{cartridgedir}/versions/7/modules/postgresql_module.xml /etc/alternatives
 %files
 %dir %{cartridgedir}
 %attr(0755,-,-) %{cartridgedir}/bin/
+%attr(0755,-,-) %{cartridgedir}/versions/7/bin/
 %attr(0755,-,-) %{cartridgedir}/hooks/
 %{cartridgedir}
 %doc %{cartridgedir}/README.md
@@ -88,6 +89,11 @@ cp -p %{cartridgedir}/versions/7/modules/postgresql_module.xml /etc/alternatives
 
 
 %changelog
+* Thu May 23 2013 Adam Miller <admiller@redhat.com> 1.2.5-1
+- Bug 966065: Make python-2.6 install script executable (ironcladlou@gmail.com)
+- Bug 966255: Remove OPENSHIFT_INTERNAL_* references from v2 carts
+  (ironcladlou@gmail.com)
+
 * Wed May 22 2013 Adam Miller <admiller@redhat.com> 1.2.4-1
 - Bug 962662 (dmcphers@redhat.com)
 - fix fedora links (bdecoste@gmail.com)

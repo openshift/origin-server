@@ -6,7 +6,7 @@
 
 Summary:       Provides HA Proxy
 Name:          openshift-origin-cartridge-haproxy
-Version:       0.4.4
+Version:       0.4.5
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -45,6 +45,20 @@ HAProxy cartridge for OpenShift. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Thu May 23 2013 Adam Miller <admiller@redhat.com> 0.4.5-1
+- Merge pull request #2613 from mrunalp/bugs/965960
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #2609 from mrunalp/bugs/haproxy_set_proxy
+  (dmcphers+openshiftbot@redhat.com)
+- Handle rsync exclusions (mrunalp@gmail.com)
+- Fix set proxy to look for first endpoint in the manifest. (mrunalp@gmail.com)
+- Merge pull request #2601 from ironcladlou/bz/964002
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #2600 from mrunalp/bugs/966068
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 964002: Support hot deployment in scalable apps (ironcladlou@gmail.com)
+- Add force-reload functionality. (mrunalp@gmail.com)
+
 * Wed May 22 2013 Adam Miller <admiller@redhat.com> 0.4.4-1
 - Bug 962662 (dmcphers@redhat.com)
 - Reload HAProxy instead of restarting it in hooks. (mrunalp@gmail.com)

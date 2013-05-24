@@ -2,7 +2,7 @@
 
 Summary:       Provides jenkins-1.4 support
 Name:          openshift-origin-cartridge-jenkins
-Version:       1.9.4
+Version:       1.9.5
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -43,6 +43,10 @@ chkconfig jenkins off
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Thu May 23 2013 Adam Miller <admiller@redhat.com> 1.9.5-1
+- Bug 966255: Remove OPENSHIFT_INTERNAL_* references from v2 carts
+  (ironcladlou@gmail.com)
+
 * Wed May 22 2013 Adam Miller <admiller@redhat.com> 1.9.4-1
 - Bug 962662 (dmcphers@redhat.com)
 

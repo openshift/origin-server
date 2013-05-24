@@ -7,6 +7,14 @@
 # processname: haproxy
 # config:      /etc/openshift/port-proxy.cfg
 # pidfile:     /var/run/openshift-port-proxy.pid
+#
+### BEGIN INIT INFO
+# Provides: openshift-port-proxy
+# Required-Start: $local_fs $remote_fs $network $named
+# Required-Stop: $local_fs $remote_fs $network
+# Short-Description: start and stop OpenShift Node Port Proxy
+# Description: Script to configure HAProxy to do port forwarding for OpenShift
+### END INIT INFO
 
 # Source function library.
 . /etc/rc.d/init.d/functions

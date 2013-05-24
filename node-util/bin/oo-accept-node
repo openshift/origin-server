@@ -84,7 +84,7 @@ $LIMITS_CONF_DIR="/etc/security/limits.d"
 #
 # Control variables.  Override for testing
 #
-DEFAULT_SEBOOL_LIST="httpd_can_network_connect:on"
+DEFAULT_SEBOOL_LIST="httpd_can_network_connect:on allow_polyinstantiation:on"
 DEFAULT_PACKAGES="rubygem-openshift-origin-node openshift-origin-node-util \
     rubygem-openshift-origin-common selinux-policy selinux-policy-targeted"
 DEFAULT_SERVICES="mcollective cgconfig cgred httpd openshift-port-proxy oddjobd"

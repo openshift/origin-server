@@ -68,3 +68,16 @@ Then /^the mongodb admin user will have access$/ do
   dbh.should be_a(Mongo::DB)
   dbh.logout if dbh
 end
+
+Then /^the mongodb configuration file will( not)? exist$/ do |negate|
+  cart = @gear.carts['mongodb-2.2']
+
+  user_root   = "#{$home_root}/#{@gear.uuid}/#{cart.directory}"
+  config_file = "#{user_root}/etc/mongodb.conf"
+
+  if negate
+    assert_file_not_exists config_file
+  else
+    assert_file_exists config_file
+  end
+end
