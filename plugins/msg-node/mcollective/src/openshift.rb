@@ -8,6 +8,7 @@ require 'openshift-origin-node'
 require 'openshift-origin-node/model/cartridge_repository'
 require 'shellwords'
 require 'facter'
+require 'openshift-origin-common/utils/file_needs_sync'
 
 module MCollective
   module Agent
