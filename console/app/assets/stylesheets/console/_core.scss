@@ -363,7 +363,7 @@ aside .header-bar {
 .digest-bg {
   background-color: #212121;
   border-bottom: 3px solid #2a2a2a;
-  margin: 0 -25px;
+  margin: 0 -35px;
   padding: 20px 25px;
 }
 
@@ -863,11 +863,11 @@ $cartridgeBorderWidth: 10px;
   }
   #app-cartridges {
     header {
-      padding-left: $gridGutterWidthLarge;
+      padding-left: $gridGutterWidth;
     }
     .cartridge-block .cartridge-inset {
-      padding-left: $gridGutterWidthLarge - $cartridgeBorderWidth;
-      padding-right: $gridGutterWidthLarge - $cartridgeBorderWidth;
+      padding-left: $gridGutterWidth - $cartridgeBorderWidth;
+      padding-right: $gridGutterWidth - $cartridgeBorderWidth;
     }
   }
 

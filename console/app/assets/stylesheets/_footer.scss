@@ -48,7 +48,7 @@
 	footer nav h4,
 	footer nav h5 { display: inline; font-size: 14px; } // responsive
 	footer nav ul { margin: 0; padding: 0; display: inline; }
-	footer nav li { margin: 0; padding: 0; display: inline; list-style-image: none; list-style: none; }
+	footer nav li { margin: 0; padding: 0; display: inline-block; list-style-image: none; list-style: none; }
 	footer nav a { margin-left: 5px; white-space: nowrap}
 	footer nav > header a { margin-left: 0; }
 }

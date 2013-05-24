@@ -1,23 +1,23 @@
 $baseFontFamily:      "Helvetica Neue", Helvetica, "Liberation Sans", Arial, sans-serif !default;
 $headerFontFamily:    "Helvetica Neue", Helvetica, Arial, sans-serif !default;
 
-$baseLineHeight:          18px;
-$baseFontSize:						13.5px;
+$baseLineHeight:          20.5px;
+$baseFontSize:						14.5px;
 $leadLineHeight:          $baseLineHeight * 1.5;
 $leadFontSize:            20px;
-$largeLineHeight:         21px;
-$largeFontSize:           15px;
-$smallFontSize:           12px;
-$tinyFontSize:            11px;
-$extraTinyFontSize:       10px;
+$largeLineHeight:         $baseLineHeight * 1.2;
+$largeFontSize:           17px;
+$smallFontSize:           13.5px;
+$tinyFontSize:            12px;
+$extraTinyFontSize:       10.75px;
 
 // For matching header sizes exactly
 $h1FontSize:              $baseFontSize * 2.25;
 $h2FontSize:              $baseFontSize * 1.62;
 $h3FontSize:              $baseFontSize * 1.38;
-$h4FontSize:              $baseFontSize * 1.25;
+$h4FontSize:              $baseFontSize * 1.18;
 $h5FontSize:              $baseFontSize;
-$h6FontSize:              $baseFontSize * .82;
+$h6FontSize:              $baseFontSize * .85;
 
 $bodyBackground:          #fff !default;
 
@@ -52,9 +52,9 @@ $openshiftLinkGray:             #909090; /* Used on the signup link */
 $openshiftBorderGray:           #b4b4b2; /* From screenshots */
 $genericLightGreen:             #d4e16b;
 
-$preBackground:                 #222222;
-$preBorder:                     #000;
-$preColor:                      #babbbc;
+$preBackground:                 #F3EEEA;
+$preBorder:                     rgba(16, 13, 11, 0.2);
+$preColor:                      #484848;
 $cliColor:                      #D0E57B;
 
 $breadcrumbDividerColor:        $openshiftDarkRed;

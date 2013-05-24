@@ -7,10 +7,10 @@
 // ---------
 
 p {
-  margin: 0 0 $baseLineHeight;
+  margin: 0 0 $baseLineHeight + 5;
   font-family: $baseFontFamily;
   font-size: $baseFontSize;
-  line-height: $baseLineHeight;
+  //line-height: $baseLineHeight;
   small {
     font-size: $smallFontSize;
     color: $grayLight;
@@ -21,6 +21,11 @@ p {
   font-size: $leadFontSize;
   font-weight: 200;
   line-height: $leadLineHeight;
+}
+p.larger,
+pre.larger { 
+  font-size: $largeFontSize;
+  line-height: $largeLineHeight;
 }
 
 // HEADINGS
@@ -50,12 +55,12 @@ h1 {
 h2 {
   font-size: $h2FontSize;
   line-height: $baseLineHeight * 1.75;
-  margin-bottom: $baseLineHeight - 8;
+  margin-bottom: $baseLineHeight / 3.5;
 }
 h3 {
   font-size: $h3FontSize;
   line-height: $baseLineHeight * 1.5;
-  margin-bottom: $baseLineHeight / 3;
+  margin-bottom: $baseLineHeight / 3.5;
   small {
     font-size: $baseFontSize;
   }
@@ -73,11 +78,13 @@ h5 {
   line-height: $baseLineHeight;
   margin-bottom: $baseLineHeight / 3;
   text-transform: uppercase;
+  font-weight: bold;
 }
 h6 {
   font-size: $h6FontSize;
   line-height: $baseLineHeight;
   text-transform: uppercase;
+  font-weight: bold;
 }
 
 @media (max-width:480px) {
@@ -115,7 +122,7 @@ aside, aside p {
 // Unordered and Ordered lists
 ul, ol {
   padding: 0;
-  margin: 0 0 $baseLineHeight 25px;
+  margin: 0 0 25px 25px;
 }
 ul ul,
 ul ol,
@@ -138,7 +145,7 @@ ol {
   list-style: decimal;
 }
 li {
-  line-height: $baseLineHeight;
+  line-height: $baseLineHeight + 3;
 }
 ul.unstyled,
 ol.unstyled {
@@ -147,6 +154,9 @@ ol.unstyled {
 }
 ul.spaced-items li, ol.spaced-items li {
   margin-bottom: 10px;
+}
+p + ul, p + ol {
+  margin-top: -5px;
 }
 
 // Description Lists
@@ -268,11 +278,6 @@ a.external img[alt="external"] {
 }
 
 
-p.larger,
-pre.larger { 
-  font-size: $largeFontSize;
-  line-height: $largeLineHeight;
-}
 dl.larger {
   > dt {
     font-size: $leadFontSize; 
