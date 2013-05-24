@@ -311,7 +311,10 @@ module OpenShift
       delete_private_endpoints(cartridge)
       OpenShift::Utils::Cgroups::with_no_cpu_limits(@user.uuid) do
         stop_cartridge(cartridge, user_initiated: true)
-        unlock_gear(cartridge, false) { |c| teardown_output << cartridge_teardown(c.directory) }
+        unlock_gear(cartridge, false) do |c|
+          disconnect_frontend(c)
+          teardown_output << cartridge_teardown(c.directory)
+        end
         delete_cartridge_directory(cartridge)
       end
 
@@ -745,6 +748,23 @@ module OpenShift
       end
 
       allocated_ips
+    end
+
+    # disconnect cartridge from frontend proxy
+    #
+    # This is only called when a cartridge is removed from a cartridge not a gear delete
+    def disconnect_frontend(cartridge)
+      mappings = []
+      cartridge.endpoints.each do |endpoint|
+        endpoint.mappings.each do |mapping|
+          mappings << mapping.frontend
+        end
+      end
+
+      logger.info("Disconnecting frontend mapping for #{@user.uuid}/#{cartridge.name}: #{mappings.inspect}")
+      unless mappings.empty?
+        OpenShift::FrontendHttpServer.new(@user.uuid, @user.container_name, @user.namespace).disconnect(*mappings)
+      end
     end
 
     def connect_frontend(cartridge)
