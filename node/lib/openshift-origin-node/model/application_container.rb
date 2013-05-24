@@ -482,7 +482,7 @@ module OpenShift
     #   1. Set the application state to +BUILDING+
     #   2. Run the cartridge +update-configuration+ control action
     #   3. Run the cartridge +pre-build+ control action
-    #   4. Run the +pre-build+ user action hook
+    #   4. Run the +pre_build+ user action hook
     #   5. Run the cartridge +build+ control action
     #   6. Run the +build+ user action hook
     #
@@ -551,7 +551,7 @@ module OpenShift
     # Implements the following post-deploy process:
     #
     #   1. Run the cartridge +post-deploy+ action
-    #   2. Run the +post-deploy+ user action hook
+    #   2. Run the +post_deploy+ user action hook
     def post_deploy(options={})
       @cartridge_model.do_control('post-deploy',
                                   @cartridge_model.primary_cartridge,

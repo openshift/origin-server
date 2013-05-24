@@ -159,7 +159,7 @@ command :remotedeploy do |c|
   c.syntax = "#{name} remotedeploy [options]"
 
   c.description = "Run the remotedeploy steps"
-  c.option "--init", "Run post-install for new gears"
+  c.option "--init", "Run post_install for new gears"
   c.option "--hot-deploy", "Perform hot deployment regardless of the presence of the hot_deploy marker in the application Git repo"
   c.action do |args, options|
     do_command(c, options) do
