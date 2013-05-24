@@ -9,7 +9,7 @@
 
 Summary:       OpenShift Origin Management Console
 Name:          rubygem-%{gem_name}
-Version: 1.9.6
+Version: 1.9.7
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -151,6 +151,10 @@ cp -a ./%{gem_dir}/* %{buildroot}%{gem_dir}/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Fri May 24 2013 Adam Miller <admiller@redhat.com> 1.9.7-1
+- Tests don't pass (ccoleman@redhat.com)
+- Additional tests of downloading cartridges (ccoleman@redhat.com)
+
 * Thu May 23 2013 Adam Miller <admiller@redhat.com> 1.9.6-1
 - Merge pull request #2592 from smarterclayton/better_mail_config
   (dmcphers+openshiftbot@redhat.com)
