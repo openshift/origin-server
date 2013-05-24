@@ -255,8 +255,8 @@ module OpenShift
       @model.expects(:unlock_gear).with(c1, false).yields(c1)
       @model.expects(:unlock_gear).with(c2, false).yields(c2)
 
-      @model.expects(:cartridge_teardown).with(c1.directory).returns("")
-      @model.expects(:cartridge_teardown).with(c2.directory).returns("")
+      @model.expects(:cartridge_teardown).with(c1.directory, false).returns("")
+      @model.expects(:cartridge_teardown).with(c2.directory, false).returns("")
 
       Dir.stubs(:chdir).with(GEAR_BASE_DIR).yields
 
@@ -279,8 +279,8 @@ module OpenShift
       @model.expects(:unlock_gear).with(c1, false).yields(c1)
       @model.expects(:unlock_gear).with(c2, false).yields(c2)
 
-      @model.expects(:cartridge_teardown).with(c1.directory).raises(OpenShift::Utils::ShellExecutionException.new('error'))
-      @model.expects(:cartridge_teardown).with(c2.directory).returns("")
+      @model.expects(:cartridge_teardown).with(c1.directory, false).raises(OpenShift::Utils::ShellExecutionException.new('error'))
+      @model.expects(:cartridge_teardown).with(c2.directory, false).returns("")
 
       Dir.stubs(:chdir).with(GEAR_BASE_DIR).yields
 

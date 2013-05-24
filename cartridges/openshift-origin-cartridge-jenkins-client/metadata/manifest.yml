@@ -28,4 +28,3 @@ Group-Overrides:
 Scaling:
   Min: 1
   Max: 1
-Install-Build-Required: false
