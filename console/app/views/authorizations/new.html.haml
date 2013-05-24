@@ -16,8 +16,8 @@
         %table.table
           %thead
             %tr
-              %th{:scope => 'col'} Scope
-              %th{:scope => 'col'} Description
+              %th.nowrap{:scope => 'col'} Scope
+              %th.nowrap{:scope => 'col'} Description
           %tbody
             - @simple_scopes.each do |scope|
               - scope_id = sanitize_to_id("#{field}#{scope[:id]}")
@@ -25,9 +25,9 @@
                 %td{:scope => 'row'}
                   %label.checkbox{:for => scope_id}
                     = check_box_tag field, scope[:id], @authorization.scopes.include?(scope[:id]), :id => scope_id
-                    = scope[:name]
+                    .nowrap= scope[:name]
                     - if scope[:default]
-                      %span.small (default)
+                      %span.small.nowrap (default)
                 %td= scope[:description]
         - if @parameter_scopes.present?
           %p Or, you can enter scopes directly for those that require a parameter.  Separate multiple scopes with a space or comma.
