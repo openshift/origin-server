@@ -152,6 +152,13 @@ valid_user() {
 }
 
 #
+# Check to see if a cgroup exists for the specified user
+#
+cgroup_exists() {
+    [ "$(lscgroup ${OPENSHIFT_CGROUP_SUBSYSTEMS}:${OPENSHIFT_CGROUP_ROOT}/$1 | wc -l)" != "0" ]
+}
+
+#
 # Create a new openshift user cgroup
 #
 add_cgroup() {
@@ -456,6 +463,33 @@ status() {
     return $_group_retval
 }
 
+#
+# Find all users (or the specified user) which don't have cgroup
+# containers and create containers for them
+#
+repair() {
+    local _group_retval=0
+
+    # Iterate over the user-supplied list, or default to the list of
+    # all users
+    if [ -z "$1" ]
+    then
+        USERLIST=$(openshift_users)
+    else
+        USERLIST=$1
+    fi
+
+    for USERNAME in $USERLIST
+    do
+        if ! cgroup_exists $USERNAME
+        then
+            startuser $USERNAME
+            (( _group_retval += $? ))
+        fi
+    done
+    return $_group_retval
+}
+
 case "$1" in
     startall)
         startall
@@ -469,6 +503,11 @@ case "$1" in
 
     restartall)
         restartall
+        RETVAL=$?
+        ;;
+
+    repair)
+        repair $2
         RETVAL=$?
         ;;
 
@@ -517,7 +556,7 @@ case "$1" in
         ;;
 
     *)
-        echo "Usage: $0 {startall|stopall|restartall|condrestartall|status [<username>]|startuser <username>|stopuser <username>|freezeuser <username>|thawuser <username>}"
+        echo "Usage: $0 {startall|stopall|restartall|repair [<username>]|condrestartall|status [<username>]|startuser <username>|stopuser <username>|freezeuser <username>|thawuser <username>}"
         exit 1
 esac
 
