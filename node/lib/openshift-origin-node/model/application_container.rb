@@ -105,29 +105,40 @@ module OpenShift
           output = @cartridge_model.resolve_application_dependencies(cart_name) if cartridge.buildable?        
         end
       else
-      
         cartridge = @cartridge_model.get_cartridge(cart_name)
         cartridge_home = PathUtils.join(@user.homedir, cartridge.directory)
 
         # Only perform an initial build if the manifest explicitly specifies a need,
         # or if a template Git URL is provided and the cart is capable of builds or deploys.
         if (cartridge.install_build_required || template_git_url) && cartridge.buildable?
-          gear_script_log = '/tmp/initial-build.log'
-          env             = Utils::Environ.for_gear(@user.homedir)
+          build_log = '/tmp/initial-build.log'
+          env       = Utils::Environ.for_gear(@user.homedir)
   
-          logger.info "Executing initial gear prereceive for #{@uuid}"
-          Utils.oo_spawn("gear prereceive >>#{gear_script_log} 2>&1",
-                         env:                 env,
-                         chdir:               cartridge_home,
-                         uid:                 @user.uid,
-                         expected_exitstatus: 0)
+          begin
+            logger.info "Executing initial gear prereceive for #{@uuid}"
+            Utils.oo_spawn("gear prereceive >> #{build_log} 2>&1",
+                           env:                 env,
+                           chdir:               @user.homedir,
+                           uid:                 @user.uid,
+                           expected_exitstatus: 0)
 
-          logger.info "Executing initial gear postreceive for #{@uuid}"
-          Utils.oo_spawn("gear postreceive >>#{gear_script_log} 2>&1",
-                         env:                 env,
-                         chdir:               cartridge_home,
-                         uid:                 @user.uid,
-                         expected_exitstatus: 0)
+            logger.info "Executing initial gear postreceive for #{@uuid}"
+            Utils.oo_spawn("gear postreceive >> #{build_log} 2>&1",
+                           env:                 env,
+                           chdir:               @user.homedir,
+                           uid:                 @user.uid,
+                           expected_exitstatus: 0)
+          rescue Utils::ShellExecutionException => e
+            max_bytes = 10 * 1024
+            out, _, _ = Utils.oo_spawn("tail -c #{max_bytes} #{build_log} 2>&1",
+                           env:                 env,
+                           chdir:               @user.homedir,
+                           uid:                 @user.uid)
+
+            message = "The initial build for the application failed. Last #{max_bytes/1024} kB of build output:\n#{out}"
+
+            raise Utils::Sdk.translate_out_for_client(message, :error)
+          end
         end
 
         output = @cartridge_model.post_configure(cart_name)

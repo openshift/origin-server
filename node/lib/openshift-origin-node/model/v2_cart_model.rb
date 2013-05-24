@@ -266,12 +266,10 @@ module OpenShift
       logger.info "configure output: #{output}"
       return output
     rescue Utils::ShellExecutionException => e
-      stdout = e.stdout.split("\n").map { |l| l.start_with?('CLIENT_') ? l : "CLIENT_MESSAGE: #{l}" }.join("\n")
-      stderr = e.stderr.split("\n").map { |l| l.start_with?('CLIENT_') ? l : "CLIENT_ERROR: #{l}" }.join("\n")
-      raise Utils::ShellExecutionException.new(e.message, (e.rc < 100 ? 157 : e.rc), stdout, stderr)
+      rc_override = e.rc < 100 ? 157 : e.rc
+      raise Utils::Sdk.translate_shell_ex_for_client(e, rc_override)
     rescue => e
-      msg = e.message.split("\n").each { |l| l.start_with?('CLIENT_') ? l : "CLIENT_ERROR: #{l}" }.join("\n")
-      raise msg
+      raise Utils::Sdk.translate_out_for_client(e.message, :error)
     end
 
     def post_install(cartridge, software_version, options = {})
@@ -294,9 +292,7 @@ module OpenShift
       logger.info("post-configure output: #{output}")
       output
     rescue Utils::ShellExecutionException => e
-      stdout = e.stdout.split("\n").map { |l| l.start_with?('CLIENT_') ? l : "CLIENT_MESSAGE: #{l}" }.join("\n")
-      stderr = e.stderr.split("\n").map { |l| l.start_with?('CLIENT_') ? l : "CLIENT_ERROR: #{l}" }.join("\n")
-      raise Utils::ShellExecutionException.new(e.message, 157, stdout, stderr)
+      raise Utils::Sdk.translate_shell_ex_for_client(e, 157)
     end
 
     # deconfigure(cartridge_name) -> nil
