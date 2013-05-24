@@ -192,7 +192,7 @@ cgroup_rule_exists() {
 add_cgroup_rule() {
     # USERNAME=$1
     cat <<EOF >>${CGROUP_RULES_FILE}
-$1  $OPENSHIFT_CGROUP_SUBSYSTEMS    $OPENSHIFT_CGROUP_ROOT/$1
+$1	$OPENSHIFT_CGROUP_SUBSYSTEMS	$OPENSHIFT_CGROUP_ROOT/$1
 EOF
 }
 
@@ -218,47 +218,49 @@ collect_tasks() {
 }
 
 startuser() {
-    NEWUSER=$1
+    local _newuser=$1
 
-    echo -n "starting cgroups for $NEWUSER..."
+    local _retval=0
+    local _group_retval=0
 
-    add_cgroup $NEWUSER
-    if [ $? != 0 ]
-    then
-        RETVAL=$?
-    fi
+    echo -n "starting cgroups for ${_newuser}..."
 
-    set_cpu $NEWUSER
-    set_memory $NEWUSER
-    #set_blkio $NEWUSER
-    set_net_cls $NEWUSER
+    add_cgroup $_newuser
+    (( _retval |= $? )) # capture return value
+
+    set_cpu $_newuser
+    set_memory $_newuser
+    #set_blkio $_newuser
+    set_net_cls $_newuser
 
     # CHECK: don't trust old rules
-    if ( cgroup_rule_exists $NEWUSER )
+    if ( cgroup_rule_exists $_newuser )
     then
-        delete_cgroup_rule $NEWUSER
+        delete_cgroup_rule $_newuser
     fi
 
-    add_cgroup_rule $NEWUSER
-    if [ $? != 0 ]
-    then
-        RETVAL=$?
-    fi
+    add_cgroup_rule $_newuser
+    (( _retval |= $? )) # capture return value
 
-    collect_tasks $NEWUSER
+    collect_tasks $_newuser
 
-    if [ $RETVAL -eq 0 ]
+    if [ $_retval -eq 0 ]
     then
         echo -n " [OK] "
     else
-        GROUP_RETVAL=$(($GROUP_RETVAL+1))
+        (( _group_retval += 1 ))
         echo -n " [FAILED] "
     fi
     echo
+    return $_group_retval
 }
+
 
 startall() {
     echo "Initializing Openshift guest control groups: "
+
+    local _retval=0
+    local _group_retval=0
 
     # Hosts running an OS based on systemd already have cgroups running
     if ! is_systemd
@@ -266,94 +268,98 @@ startall() {
 
         if !(service cgconfig status >/dev/null)
         then
-            RETVAL=1
-            GROUP_RETVAL=3
+            _retval=1
+            _group_retval=3
             echo "cgconfig service not running. attempting to start it"
             service cgconfig start
-            return $GROUP_RETVAL
+            return $_group_retval
         fi
 
         if !(service cgconfig status >/dev/null)
         then
-            RETVAL=1
-            GROUP_RETVAL=3
+            _retval=1
+            _group_retval=3
             echo "cgconfig service not running."
-            return $GROUP_RETVAL
+            return $_group_retval
         fi
 
     fi
 
     # create the root of the openshift user control group
     add_cgroup # defaults to creating the root group
-    RETVAL=$?
+    _retval=$?
+    [ $_retval -eq 0 ] || return $_retval
 
     # This won't scale forever, but works fine in the '100 or so' range
     for USERNAME in `openshift_users`
     do
         startuser $USERNAME
+        (( _group_retval += $? ))
     done
 
     # kick the Cgroups rules daemon
     #service cgred reload
     pkill -USR2 cgrulesengd
 
-    [ $GROUP_RETVAL -eq 0 ] && touch ${lockfile}
-    [ $GROUP_RETVAL -eq 0 ] && (echo -n "[ OK ]") || (echo -n "[ FAILED ]")
+    [ $_group_retval -eq 0 ] && touch ${lockfile}
+    [ $_group_retval -eq 0 ] && (echo -n "[ OK ]") || (echo -n "[ FAILED ]")
 
     echo -n "Openshift cgroups initialized"
     echo
-    return $GROUP_RETVAL
     echo
     echo "WARNING !!! WARNING !!! WARNING !!!"
     echo "Cgroups may have just restarted.  It's important to confirm all the openshift apps are actively running."
     echo "It's suggested you run service openshift restart now"
     echo "WARNING !!! WARNING !!! WARNING !!!"
     echo
+    return $_group_retval
 }
 
 stopuser() {
-    DELUSER=$1
-    echo -n "stopping cgroups for $DELUSER..."
+    local _deluser=$1
+
+    local _retval=0
+    local _group_retval=0
+
+    echo -n "stopping cgroups for ${_deluser}..."
 
     # kill any processes owned by these users
-    #pkill -u $(id -u $DELUSER)
+    #pkill -u $(id -u $_deluser)
 
     # remove the user's cgroup
-    delete_cgroup $DELUSER
-    if [ $? != 0 ]
-    then
-        RETVAL=$?
-    fi
+    delete_cgroup $_deluser
+    (( _retval |= $? )) # capture return value
 
     # remove the user's cgroup binding rule
-    delete_cgroup_rule $DELUSER
-    if [ $? != 0 ]
-    then
-        RETVAL=$?
-    fi
+    delete_cgroup_rule $_deluser
+    (( _retval |= $? )) # capture return value
 
-    if [ $RETVAL -eq 0 ]
+    if [ $_retval -eq 0 ]
     then
         echo -n " [OK] "
     else
-        GROUP_RETVAL=$(($GROUP_RETVAL+1))
+        (( _group_retval += 1 ))
         echo -n " [FAILED] "
     fi
     echo
+    return $_group_retval
 }
 
 stopall() {
     echo "Removing Openshift guest control groups: "
 
+    local _retval=0
+    local _group_retval=0
+
     if ! is_systemd
     then
         if !(service cgconfig status >/dev/null)
         then
-            RETVAL=1
-            GROUP_RETVAL=3
+            _retval=1
+            _group_retval=3
             echo "cgconfig service not running"
 
-            return $GROUP_RETVAL
+            return $_group_retval
         fi
     fi
 
@@ -361,6 +367,7 @@ stopall() {
     for USERNAME in `openshift_users`
     do
         stopuser $USERNAME
+        (( _group_retval += $? ))
     done
 
     # notify the cgroup rule daemon
@@ -370,36 +377,44 @@ stopall() {
     # remove the openshift root cgroup
     delete_cgroup
 
-    if [ $RETVAL -eq 0 ]
+    if [ $_retval -eq 0 ]
     then
         echo -n "[ OK ]"
     else
-        GROUP_RETVAL=$(($GROUP_RETVAL+1))
+        (( _group_retval += 1 ))
         echo -n "[ FAILED ]"
     fi
 
-    [ $GROUP_RETVAL -eq 0 ] && touch ${lockfile}
+    [ $_group_retval -eq 0 ] && touch ${lockfile}
     echo -n "Openshift cgroups uninitialized"
     echo
-    return $GROUP_RETVAL
+    return $_group_retval
 }
 
 restartall() {
+
+    local _group_retval=0
+
     stopall
+    (( _group_retval += $? ))
     startall
+    (( _group_retval += $? ))
+    return $_group_retval
 }
 
 status() {
     echo "Checking Openshift Services: "
 
-    lscgroup | grep -e  ":${OPENSHIFT_CGROUP_ROOT}\$" >/dev/null 2>&1
-    if [ $? -ne 0 ]
+    local _retval=0
+    local _group_retval=0
+
+    if lscgroup | grep -e  ":${OPENSHIFT_CGROUP_ROOT}\$" >/dev/null 2>&1
     then
+        echo "Openshift cgroups initialized"
+    else
         echo "Openshift cgroups uninitialized"
         echo
         return 1
-    else
-        echo "Openshift cgroups initialized"
     fi
 
     if [ -z "$1" ]
@@ -419,53 +434,59 @@ status() {
         SUBSYSTEMS=`cgroup_user_subsystems`
         if ( cgroup_rule_exists $USERNAME )
         then
-            RETVAL=0
+            _retval=0
             BOUND="BOUND"
         else
-            RETVAL=1
+            _retval=1
             BOUND="UNBOUND"
         fi
 
         echo -n "${USERNAME}: $BOUND    " `echo $SUBSYSTEMS | tr ' ' ,`
         # check that cgrule exists
 
-        if [ $RETVAL -eq 0 ]
+        if [ $_retval -eq 0 ]
         then
             echo -n "[ OK ]"
         else
-            GROUP_RETVAL=$(($GROUP_RETVAL+1))
+            (( _group_retval += 1 ))
             echo -n "[ FAILED ]"
         fi
         echo
     done
-    return $GROUP_RETVAL
+    return $_group_retval
 }
 
 case "$1" in
     startall)
         startall
+        RETVAL=$?
         ;;
 
     stopall)
         stopall
+        RETVAL=$?
         ;;
 
     restartall)
         restartall
+        RETVAL=$?
         ;;
 
     condrestartall)
         [ -f "$lockfile" ] && restartall
+        RETVAL=$?
         ;;
 
     status)
         status $2
+        RETVAL=$?
         ;;
 
     startuser)
         if is_systemd || service cgconfig status >/dev/null 2>&1
         then
             startuser $2
+            RETVAL=$?
             pkill -USR2 cgrulesengd
         else
             RETVAL=1
@@ -477,6 +498,7 @@ case "$1" in
         if is_systemd || service cgconfig status >/dev/null 2>&1
         then
             stopuser $2
+            RETVAL=$?
             pkill -USR2 cgrulesengd
         else
             RETVAL=1
@@ -486,14 +508,16 @@ case "$1" in
 
     freezeuser)
         freeze_user $2
+        RETVAL=$?
         ;;
 
     thawuser)
         thaw_user $2
+        RETVAL=$?
         ;;
 
     *)
-        echo "Usage: $0 {startall|stopall|restartall|condrestartall|status|startuser <username>|stopuser <username>|freezeuser <username>|thawuser <username>}"
+        echo "Usage: $0 {startall|stopall|restartall|condrestartall|status [<username>]|startuser <username>|stopuser <username>|freezeuser <username>|thawuser <username>}"
         exit 1
 esac
 
