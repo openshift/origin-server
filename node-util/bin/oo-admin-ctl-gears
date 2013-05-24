@@ -20,6 +20,7 @@ require 'openshift-origin-node/utils/node_logger'
 require 'openshift-origin-node/utils/application_state'
 require 'openshift-origin-node/model/application_container'
 require 'openshift-origin-node/model/frontend_httpd'
+require 'openshift-origin-common/utils/file_needs_sync'
 
 module OpenShift
   class AdminGearsControl
