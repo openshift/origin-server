@@ -23,6 +23,9 @@ module OpenShift
   module ManagedFiles
     include NodeLogger
 
+    # Immutable Files: Once instantiated in a gear this files cannot be changed. mode: 0644  own: root.uuid
+    IMMUTABLE_FILES = %w(metadata/manifest.yml metadata/managed_files.yml env/OPENSHIFT_*_IDENT env/OPENSHIFT_*_DIR)
+
     # Turn blacklist into regexes
     FILENAME_BLACKLIST = %r{^\.(ssh|sandbox|tmp|env)}
 
@@ -63,6 +66,11 @@ module OpenShift
         .flatten.compact      # Remove any nils
         .map(&:strip)         # Remove leading/trailing whitespace
         .delete_if(&:empty?)  # Remove any empty patterns
+
+      IMMUTABLE_FILES.each do |name|
+        name.gsub!('*', cart.short_name)
+        file_patterns.delete(name)
+      end
 
       # Specify whether or not to do extra processing
       if process_files

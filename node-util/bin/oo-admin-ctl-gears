@@ -39,9 +39,9 @@ module OpenShift
       @gear_timeout = @@DEFAULT_GEAR_TIMEOUT
 
       if container_uuids.nil?
-        NodeLogger.logger.debug("Setting for all gears with #{@nslots} parallel")
+        NodeLogger.logger.debug("AdminGearsControl: initialized for all gears with #{@nslots} parallel")
       else
-        NodeLogger.logger.debug("Setting for gear(s) #{container_uuids.join(" ")}")
+        NodeLogger.logger.debug("AdminGearsControl: initialized for gear(s) #{container_uuids.join(' ')}")
       end
 
       @readers_mutex = Mutex.new
