@@ -7,10 +7,9 @@
 // ---------
 
 p {
-  margin: 0 0 $baseLineHeight + 5;
+  margin: 0 0 $baseLineHeight;
   font-family: $baseFontFamily;
   font-size: $baseFontSize;
-  //line-height: $baseLineHeight;
   small {
     font-size: $smallFontSize;
     color: $grayLight;
@@ -44,9 +43,8 @@ h1, h2, h3, h4, h5, h6 {
 h3 + h4, h3 + h5, h4 + h5 {
   padding-top: $baseLineHeight / 3;
 }
-p + h2, p + h3, p + h4, p + h5 {
-  padding-top: $baseLineHeight / 2;
-}
+//p + h2, p + h3, p + h4, p + h5 {
+//}
 h1 {
   font-size: $h1FontSize;
   line-height: $baseLineHeight * 2;
@@ -122,7 +120,7 @@ aside, aside p {
 // Unordered and Ordered lists
 ul, ol {
   padding: 0;
-  margin: 0 0 25px 25px;
+  margin: 0 0 $baseLineHeight + 4 $baseLineHeight + 4;
 }
 ul ul,
 ul ol,
@@ -145,7 +143,7 @@ ol {
   list-style: decimal;
 }
 li {
-  line-height: $baseLineHeight + 3;
+  margin-bottom: 2px;
 }
 ul.unstyled,
 ol.unstyled {

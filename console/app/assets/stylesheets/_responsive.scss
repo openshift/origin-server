@@ -382,6 +382,11 @@
     overflow: hidden;
     height: 0;
   }
+
+  p.larger {
+    font-size: $baseFontSize + 1;
+    line-height: $baseLineHeight + 2;
+  }
 }
 
 
