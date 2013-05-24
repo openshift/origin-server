@@ -64,8 +64,7 @@ class EmbCartController < BaseController
     if cart_urls.length > 0
       begin
         cmap = CartridgeCache.fetch_community_carts(cart_urls)
-        flat_name = cmap.keys[0]
-        name = "#{flat_name}-#{cmap[flat_name]["version"]}"
+        name = cmap.values[0]["versioned_name"]
         @application.downloaded_cart_map.merge!(cmap)
         @application.save
       rescue Exception=>e

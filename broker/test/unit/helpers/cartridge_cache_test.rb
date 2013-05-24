@@ -12,18 +12,21 @@ class CartridgeCacheTest < ActiveSupport::TestCase
     #redhat and another cartridge_vendor providing the same cartridge
     cart = OpenShift::Cartridge.new
     cart.cartridge_vendor = "redhat"
+    cart.name = "php-5.3"
     cart.provides = ["php"]
     cart.version = "5.3"
     
     carts << cart
     cart = OpenShift::Cartridge.new
     cart.cartridge_vendor = "other"
+    cart.name = "php-5.3"
     cart.provides = ["php"]
     cart.version = "5.3"
     carts << cart
     
     cart = OpenShift::Cartridge.new
     cart.cartridge_vendor = "other"
+    cart.name = "php-5.4"
     cart.provides = ["php"]
     cart.version = "5.4"
     carts << cart
@@ -31,12 +34,14 @@ class CartridgeCacheTest < ActiveSupport::TestCase
     # 2 different cartridge_vendors providing the same cartridge
     cart = OpenShift::Cartridge.new
     cart.cartridge_vendor = "other"
+    cart.name = "python-3.3"
     cart.provides = ["python"]
     cart.version = "3.3"
     carts << cart
     
     cart = OpenShift::Cartridge.new
     cart.cartridge_vendor = "another"
+    cart.name = "python-3.3"
     cart.provides = ["python"]
     cart.version = "3.3"    
     carts << cart
@@ -44,18 +49,21 @@ class CartridgeCacheTest < ActiveSupport::TestCase
     #redhat has more than one version of cartridge
     cart = OpenShift::Cartridge.new
     cart.cartridge_vendor = "redhat"
+    cart.name = "ruby-1.8"
     cart.provides = ["ruby"]
     cart.version = "1.8"
     
     carts << cart
     cart = OpenShift::Cartridge.new
     cart.cartridge_vendor = "redhat"
+    cart.name = "ruby-1.9"
     cart.provides = ["ruby"]
     cart.version = "1.9"
     carts << cart
     
     cart = OpenShift::Cartridge.new
     cart.cartridge_vendor = "other"
+    cart.name = "ruby-1.10"
     cart.provides = ["ruby"]
     cart.version = "1.10"
     carts << cart
@@ -75,6 +83,9 @@ class CartridgeCacheTest < ActiveSupport::TestCase
     cart = CartridgeCache.find_cartridge("php-5.4")
     assert cart.features.include?"php"
     assert cart.version, "5.4"
+
+    cart = CartridgeCache.find_cartridge("php")
+    assert cart.features.include?"php"
     
     #test for more that one match
     assert_raise(OpenShift::UserException){CartridgeCache.find_cartridge("python-3.3")}
@@ -86,6 +97,7 @@ class CartridgeCacheTest < ActiveSupport::TestCase
     
     Rails.cache.delete('carts_by_feature_python-3.3')
     Rails.cache.delete('carts_by_feature_php-5.3')
+    Rails.cache.delete('carts_by_feature_redhat-php-5.3')
     Rails.cache.delete('carts_by_feature_php-5.4')
     Rails.cache.delete('carts_by_feature_ruby-1.8')
     Rails.cache.delete('carts_by_feature_ruby-1.9')
@@ -100,8 +112,8 @@ class CartridgeCacheTest < ActiveSupport::TestCase
       c = CartridgeCache.find_cartridge(cart.name)
       assert(!c.nil?, "Cartridge #{cart.name} not found")
       
-      c = CartridgeCache.find_cartridge("#{cart.cartridge_vendor}-#{cart.features[0]}-#{cart.version}")
-      assert(!c.nil?, "Cartridge #{cart.cartridge_vendor}-#{cart.features[0]}-#{cart.version} not found")
+      c = CartridgeCache.find_cartridge("#{cart.cartridge_vendor}-#{cart.original_name}")
+      assert(!c.nil?, "Cartridge #{cart.cartridge_vendor}-#{cart.original_name} not found")
       
     end
   end
@@ -111,18 +123,21 @@ class CartridgeCacheTest < ActiveSupport::TestCase
     carts = []
     #redhat and another cartridge_vendor providing the same cartridge
     cart = OpenShift::Cartridge.new
+    cart.name = "php-5.3"
     cart.cartridge_vendor = "redhat"
     cart.provides = ["php"]
     cart.version = "5.3"
     
     carts << cart
     cart = OpenShift::Cartridge.new
+    cart.name = "php-5.3"
     cart.cartridge_vendor = "other"
     cart.provides = ["php"]
     cart.version = "5.3"
     carts << cart
     
     cart = OpenShift::Cartridge.new
+    cart.name = "php-5.4"
     cart.cartridge_vendor = "other"
     cart.provides = ["php"]
     cart.version = "5.4"
@@ -130,6 +145,7 @@ class CartridgeCacheTest < ActiveSupport::TestCase
     
     # 2 different cartridge_vendors providing the same cartridge
     cart = OpenShift::Cartridge.new
+    cart.name = "python-3.3"
     cart.cartridge_vendor = "other"
     cart.provides = ["python"]
     cart.version = "3.3"
@@ -137,6 +153,7 @@ class CartridgeCacheTest < ActiveSupport::TestCase
     
     cart = OpenShift::Cartridge.new
     cart.cartridge_vendor = "another"
+    cart.name = "python-3.3"
     cart.provides = ["python"]
     cart.version = "3.3"    
     carts << cart
@@ -144,18 +161,21 @@ class CartridgeCacheTest < ActiveSupport::TestCase
     #redhat has more than one version of cartridge
     cart = OpenShift::Cartridge.new
     cart.cartridge_vendor = "redhat"
+    cart.name = "ruby-1.8"
     cart.provides = ["ruby"]
     cart.version = "1.8"
     
     carts << cart
     cart = OpenShift::Cartridge.new
     cart.cartridge_vendor = "redhat"
+    cart.name = "ruby-1.9"
     cart.provides = ["ruby"]
     cart.version = "1.9"
     carts << cart
     
     cart = OpenShift::Cartridge.new
     cart.cartridge_vendor = "other"
+    cart.name = "ruby-1.10"
     cart.provides = ["ruby"]
     cart.version = "1.10"
     carts << cart
@@ -187,6 +207,13 @@ class CartridgeCacheTest < ActiveSupport::TestCase
       assert cart.version == "1.9"
     end
     
+    Rails.cache.delete('carts_by_feature_python-3.3')
+    Rails.cache.delete('carts_by_feature_php-5.3')
+    Rails.cache.delete('carts_by_feature_redhat-php-5.3')
+    Rails.cache.delete('carts_by_feature_php-5.4')
+    Rails.cache.delete('carts_by_feature_ruby-1.8')
+    Rails.cache.delete('carts_by_feature_ruby-1.9')
+    Rails.cache.delete('carts_by_feature_ruby-1.10')
   end
 
 
