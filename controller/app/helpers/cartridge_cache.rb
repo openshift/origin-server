@@ -39,21 +39,6 @@ class CartridgeCache
     end
   end
   
-  def self.find_cartridge_by_component(component_name, app=nil)
-    if app
-      app.downloaded_cartridges.values.each do |cart|
-        return cart if cart.has_component?(component_name)
-        return cart if cart.name == component_name
-      end
-    end
-    carts = self.cartridges
-    carts.each do |cart|
-      return cart if cart.has_component?(component_name)
-      return cart if cart.name == component_name
-    end
-    return nil
-  end
-  
   def self.find_cartridge_by_category(cat, app=nil)
     global_carts = CacheHelper.get_cached("cartridges_by_cat_#{cat}", :expires_in => 1.day) {cartridges.select{|cart| cart.categories.include?(cat) }}
     if app
@@ -101,14 +86,27 @@ class CartridgeCache
   def self.find_all_cartridges(requested_feature)
     
     carts = self.cartridges
-    vendor, feature, version = self.extract_vendor_feature_version(requested_feature)
+
+    with_vendor_hash = {}
+    without_vendor_hash = {}
+    carts.each { |c|
+      without_vendor_hash[c.original_name] = [] if !without_vendor_hash[c.original_name]
+      without_vendor_hash[c.original_name] = (without_vendor_hash[c.original_name] << c)
+      next if c.cartridge_vendor.to_s.empty?
+      vcartname = (c.cartridge_vendor + "-" + c.original_name)
+      with_vendor_hash[vcartname] = [] if !with_vendor_hash[vcartname]
+      with_vendor_hash[vcartname] = (with_vendor_hash[vcartname] << c)
+    }
+
+    # vendor, feature, version = self.extract_vendor_feature_version(requested_feature)
+    return with_vendor_hash[requested_feature] if with_vendor_hash[requested_feature]
+    return without_vendor_hash[requested_feature] if without_vendor_hash[requested_feature]
+
     matching_carts = []
     
     carts.each do |cart|
       matching_carts << cart if cart.name == requested_feature
-      matching_carts << cart if (cart.features.include?(feature) and 
-                                (vendor.nil? or cart.cartridge_vendor == vendor) and 
-                                (version.nil? or cart.version.to_s == version.to_s))
+      matching_carts << cart if cart.features.include?(requested_feature) 
     end
     
     return matching_carts
