@@ -271,7 +271,7 @@ Feature: applications
     When I send a POST request to "/domains/api<random>/applications/app/cartridges/mysql-5.1/events" with the following:"event=start"
     Then the response should be "200"
     When I send a DELETE request to "/domains/api<random>/applications/app"
-    Then the response should be "204"
+    Then the response should be "200"
     
     Scenarios: scenarios
       | format |
@@ -294,7 +294,7 @@ Feature: applications
     When I send a POST request to "/domains/api<random>/applications/app/cartridges/mysql-5.1/events" with the following:"event=restart"
     Then the response should be "200"
     When I send a DELETE request to "/domains/api<random>/applications/app"
-    Then the response should be "204"
+    Then the response should be "200"
     
     Scenarios: scenarios
       | format |
@@ -313,11 +313,11 @@ Feature: applications
     When I send a GET request to "/domains/api<random>/applications/app/descriptor"
     Then the response descriptor should have "diy-0.1,mysql-5.1" as dependencies
     When I send a DELETE request to "/domains/api<random>/applications/app/cartridges/mysql-5.1"
-    Then the response should be "204"
+    Then the response should be "200"
     When I send a GET request to "/domains/api<random>/applications/app/descriptor"
     Then the response descriptor should have "diy-0.1" as dependencies
     When I send a DELETE request to "/domains/api<random>/applications/app"
-    Then the response should be "204"
+    Then the response should be "200"
   
     Scenarios: scenarios
       | format |
@@ -336,7 +336,7 @@ Feature: applications
     When I send a POST request to "/domains/api<random>/applications/app/events" with the following:"event=scale-down"
     Then the response should be "422"
     When I send a DELETE request to "/domains/api<random>/applications/app"
-    Then the response should be "204"
+    Then the response should be "200"
 
     Scenarios:
      | format | 
@@ -383,7 +383,7 @@ Feature: applications
     When I send a POST request to "/domains/api<random>/applications/app/events" with the following:"event=thread-dump"
     Then the response should be "200"
     When I send a DELETE request to "/domains/api<random>/applications/app"
-    Then the response should be "204"
+    Then the response should be "200"
     
     Scenarios: scenarios
       | format |

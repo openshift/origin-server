@@ -40,7 +40,7 @@ class DomainsController < BaseController
   # 
   # @return [RestReply<RestDomain>] The new domain
   def create
-    namespace = params[:id].downcase if params[:id]
+    namespace = params[:id].downcase if params[:id].presence
     Rails.logger.debug "Creating domain with namespace #{namespace}"
 
     return render_error(:unprocessable_entity, "Namespace is required and cannot be blank.",
@@ -84,8 +84,8 @@ class DomainsController < BaseController
   # 
   # @return [RestReply<RestDomain>] The updated domain
   def update
-    id = params[:existing_id].downcase if params[:existing_id]
-    new_namespace = params[:id].downcase if params[:id]
+    id = params[:existing_id].downcase if params[:existing_id].presence
+    new_namespace = params[:id].downcase if params[:id].presence
     
     return render_error(:unprocessable_entity, "Namespace is required and cannot be blank.",106, "id") if !new_namespace or new_namespace.empty?
 
@@ -116,7 +116,7 @@ class DomainsController < BaseController
     Rails.logger.debug "Updating domain #{domain.namespace} to #{new_namespace}"
 
     begin
-      domain.update_namespace(new_namespace)
+      result = domain.update_namespace(new_namespace)
       domain.save
     rescue OpenShift::UserException => e
       return render_error(:unprocessable_entity, e.message, e.code, e.field)
@@ -124,7 +124,7 @@ class DomainsController < BaseController
       return render_exception(e) 
     end
     
-    render_success(:ok, "domain", get_rest_domain(domain), "Updated domain #{id} to #{new_namespace}")
+    render_success(:ok, "domain", get_rest_domain(domain), "Updated domain #{id} to #{new_namespace}", result)
   end
 
   # Delete a domain for the user. Requires that domain be empty unless 'force' parameter is set.
@@ -135,7 +135,7 @@ class DomainsController < BaseController
   #
   # @param [Boolean] force If true, broker will destroy all application within the domain and then destroy the domain
   def destroy
-    id = params[:id].downcase if params[:id]
+    id = params[:id].downcase if params[:id].presence
     force = get_bool(params[:force])
     if force
       apps = Application.with(consistency: :strong).where(domain_id: @domain._id)
@@ -156,8 +156,9 @@ class DomainsController < BaseController
     begin
       # reload the domain so that MongoId does not see any applications
       @domain.with(consistency: :strong).reload
-      @domain.delete
-      render_success(:no_content, nil, nil, "Domain #{id} deleted.", true)
+      result = @domain.delete
+      status = requested_api_version <= 1.4 ? :no_content : :ok
+      render_success(status, nil, nil, "Domain #{id} deleted.", result)
     rescue Exception => e
       return render_exception(e) 
     end
