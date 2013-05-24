@@ -183,7 +183,7 @@ module OpenShift
         each_cartridge do |cartridge|
           unlock_gear(cartridge, false) do |c|
             begin
-              buffer << cartridge_teardown(c.directory)
+              buffer << cartridge_teardown(c.directory, false)
             rescue Utils::ShellExecutionException => e
               logger.warn("Cartridge teardown operation failed on gear #{@user.uuid} for cartridge #{c.directory}: #{e.message} (rc=#{e.rc})")
             end
@@ -250,7 +250,7 @@ module OpenShift
 
         create_private_endpoints(cartridge)
 
-        Dir.chdir(@user.homedir) do
+        Dir.chdir(PathUtils.join(@user.homedir, cartridge.directory)) do
           unlock_gear(cartridge) do |c|
             output << cartridge_action(cartridge, 'setup', software_version, true)
             process_erb_templates(c)
@@ -311,7 +311,10 @@ module OpenShift
       delete_private_endpoints(cartridge)
       OpenShift::Utils::Cgroups::with_no_cpu_limits(@user.uuid) do
         stop_cartridge(cartridge, user_initiated: true)
-        unlock_gear(cartridge, false) { |c| teardown_output << cartridge_teardown(c.directory) }
+        unlock_gear(cartridge, false) do |c|
+          disconnect_frontend(c)
+          teardown_output << cartridge_teardown(c.directory)
+        end
         delete_cartridge_directory(cartridge)
       end
 
@@ -552,7 +555,7 @@ module OpenShift
       out, _, _ = Utils.oo_spawn(action,
                                  env:                 cartridge_env,
                                  unsetenv_others:     true,
-                                 chdir:               @user.homedir,
+                                 chdir:               cartridge_home,
                                  uid:                 @user.uid,
                                  expected_exitstatus: 0)
       logger.info("Ran #{action} for #{@user.uuid}/#{cartridge.directory}\n#{out}")
@@ -582,13 +585,13 @@ module OpenShift
       nil
     end
 
-    # cartridge_teardown(cartridge_name) -> buffer
+    # cartridge_teardown(cartridge_name, remove_cartridge_dir) -> buffer
     #
     # Returns the output from calling the cartridge's teardown script.
     #  Raises exception if script fails
     #
     # stdout = cartridge_teardown('php-5.3')
-    def cartridge_teardown(cartridge_name)
+    def cartridge_teardown(cartridge_name, remove_cartridge_dir=true)
       cartridge_home = File.join(@user.homedir, cartridge_name)
       env            = Utils::Environ.for_gear(@user.homedir, cartridge_home)
       teardown       = File.join(cartridge_home, 'bin', 'teardown')
@@ -600,13 +603,13 @@ module OpenShift
       buffer, err, _ = Utils.oo_spawn(teardown,
                                       env:                 env,
                                       unsetenv_others:     true,
-                                      chdir:               @user.homedir,
+                                      chdir:               cartridge_home,
                                       uid:                 @user.uid,
                                       expected_exitstatus: 0)
 
       buffer << err
 
-      FileUtils.rm_r(cartridge_home)
+      FileUtils.rm_r(cartridge_home) if remove_cartridge_dir
       logger.info("Ran teardown for #{@user.uuid}/#{cartridge_name}")
       buffer
     end
@@ -745,6 +748,23 @@ module OpenShift
       end
 
       allocated_ips
+    end
+
+    # disconnect cartridge from frontend proxy
+    #
+    # This is only called when a cartridge is removed from a cartridge not a gear delete
+    def disconnect_frontend(cartridge)
+      mappings = []
+      cartridge.endpoints.each do |endpoint|
+        endpoint.mappings.each do |mapping|
+          mappings << mapping.frontend
+        end
+      end
+
+      logger.info("Disconnecting frontend mapping for #{@user.uuid}/#{cartridge.name}: #{mappings.inspect}")
+      unless mappings.empty?
+        OpenShift::FrontendHttpServer.new(@user.uuid, @user.container_name, @user.namespace).disconnect(*mappings)
+      end
     end
 
     def connect_frontend(cartridge)
@@ -894,7 +914,8 @@ module OpenShift
         end
       end
 
-      script = PathUtils.join(@user.homedir, cartridge.directory, 'hooks', conn.name)
+      cartridge_home = PathUtils.join(@user.homedir, cartridge.directory)
+      script = PathUtils.join(cartridge_home, 'hooks', conn.name)
 
       unless File.executable?(script)
         if env_var_hook
@@ -909,7 +930,7 @@ module OpenShift
       out, err, rc = Utils.oo_spawn(command,
                                     env:             env,
                                     unsetenv_others: true,
-                                    chdir:           @user.homedir,
+                                    chdir:           cartridge_home,
                                     timeout:         220,
                                     uid:             @user.uid)
       if 0 == rc
@@ -972,7 +993,7 @@ module OpenShift
         out, err, rc = Utils.oo_spawn(command.join('; '),
                                       env:             cartridge_env,
                                       unsetenv_others: true,
-                                      chdir:           @user.homedir,
+                                      chdir:           path,
                                       uid:             @user.uid,
                                       out:             options[:out],
                                       err:             options[:err])

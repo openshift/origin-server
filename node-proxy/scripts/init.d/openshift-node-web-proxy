@@ -1,12 +1,20 @@
 #!/bin/bash
 #
-# openshift-port-proxy
+# openshift-node-web-proxy
 #
 # chkconfig:   345 85 15
 # description: OpenShift proxy
 # processname: node-supervisor
-# config:      /etc/openshift/port-proxy.cfg
+# config:      /etc/openshift/web-proxy-config.json
 # pidfile:     /var/run/node-web-proxy.pid
+#
+### BEGIN INIT INFO
+# Provides: openshift-node-web-proxy
+# Required-Start: $local_fs $remote_fs $network $named
+# Required-Stop: $local_fs $remote_fs $network
+# Short-Description: start and stop OpenShift Node Web Proxy
+# Description: Routing proxy for OpenShift Origin Node
+### END INIT INFO
 
 # Source function library.
 . /etc/rc.d/init.d/functions

@@ -153,7 +153,7 @@ module OpenShift
       FileUtils.rm_r(cache) if File.exist?(cache)
       FileUtils.mkpath(cache)
 
-      Utils.oo_spawn("/bin/sh #{File.join('/usr/libexec/openshift/lib', "deploy_git_submodules.sh")} #{@path} #{@target_dir}",
+      Utils.oo_spawn("/bin/sh #{PathUtils.join('/usr/libexec/openshift/lib', "deploy_git_submodules.sh")} #{@path} #{@target_dir}",
                      chdir:               @user.homedir,
                      env:                 env,
                      uid:                 @user.uid,

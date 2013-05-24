@@ -2,7 +2,7 @@
 
 Summary:       Provides JBossEWS2.0 support
 Name:          openshift-origin-cartridge-jbossews
-Version:       0.4.4
+Version:       0.4.5
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -75,6 +75,13 @@ alternatives --set jbossews-2.0 /usr/share/tomcat7
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Thu May 23 2013 Adam Miller <admiller@redhat.com> 0.4.5-1
+- Merge pull request #2605 from ironcladlou/dev/v2carts/jbossews
+  (dmcphers+openshiftbot@redhat.com)
+- Support OPENSHIFT_INTERNAL_* variables in jbossews v2 (ironcladlou@gmail.com)
+- Bug 966255: Remove OPENSHIFT_INTERNAL_* references from v2 carts
+  (ironcladlou@gmail.com)
+
 * Wed May 22 2013 Adam Miller <admiller@redhat.com> 0.4.4-1
 - Bug 962662 (dmcphers@redhat.com)
 - Merge pull request #2560 from bdecoste/master

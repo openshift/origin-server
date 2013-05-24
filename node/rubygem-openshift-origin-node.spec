@@ -16,7 +16,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.9.5
+Version: 1.9.6
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -294,6 +294,18 @@ fi
 %attr(0755,-,-) /etc/cron.monthly/openshift-origin-cron-monthly
 
 %changelog
+* Thu May 23 2013 Adam Miller <admiller@redhat.com> 1.9.6-1
+- Merge pull request #2603 from fotioslindiakos/Bug959476
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #2601 from ironcladlou/bz/964002
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #2600 from mrunalp/bugs/966068
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 959476: Ensure psql uses the correct .psql_history location
+  (fotios@redhat.com)
+- Bug 964002: Support hot deployment in scalable apps (ironcladlou@gmail.com)
+- Add force-reload functionality. (mrunalp@gmail.com)
+
 * Wed May 22 2013 Adam Miller <admiller@redhat.com> 1.9.5-1
 - Merge pull request #2594 from calfonso/master
   (dmcphers+openshiftbot@redhat.com)

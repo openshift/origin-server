@@ -103,8 +103,8 @@ module OpenShift
               if entry['Mappings'].respond_to?(:each)
                 endpoint.mappings = entry['Mappings'].each_with_object([]) do |mapping_entry, mapping_memo|
                   mapping          = Endpoint::Mapping.new
-                  mapping.frontend = mapping_entry['Frontend']
-                  mapping.backend  = mapping_entry['Backend']
+                  mapping.frontend = prepend_slash mapping_entry['Frontend']
+                  mapping.backend  = prepend_slash mapping_entry['Backend']
                   mapping.options  = mapping_entry['Options']
 
                   mapping_memo << mapping
@@ -122,6 +122,12 @@ module OpenShift
           raise "Couldn't parse endpoints: #{errors.join("\n")}" if errors.length > 0
 
           endpoints
+        end
+
+        def self.prepend_slash(string)
+          return string unless string
+          return string if string.empty?
+          string.start_with?('/') ? string : string.prepend('/')
         end
 
         def self.build_name(tag, name)

@@ -2,7 +2,7 @@
 
 Summary:       Mock cartridge for V2 Cartridge SDK
 Name:          openshift-origin-cartridge-mock
-Version:       0.4.4
+Version:       0.4.5
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -40,6 +40,11 @@ test platform functionality. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Thu May 23 2013 Adam Miller <admiller@redhat.com> 0.4.5-1
+- Merge pull request #2596 from fotioslindiakos/Bug960707
+  (dmcphers+openshiftbot@redhat.com)
+- Remove connection info hooks from the mock cartridge (fotios@redhat.com)
+
 * Wed May 22 2013 Adam Miller <admiller@redhat.com> 0.4.4-1
 - Bug 962662 (dmcphers@redhat.com)
 - Fix bug 964348 (pmorie@gmail.com)

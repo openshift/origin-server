@@ -57,7 +57,6 @@ module OpenShift
       @state            = OpenShift::Utils::ApplicationState.new(container_uuid)
       @build_model      = self.class.get_build_model(@user, @config)
 
-      # When v2 is the default cartridge format flip the test...
       if @build_model == :v1
         @cartridge_model = V1CartridgeModel.new(@config, @user)
       else
@@ -67,7 +66,6 @@ module OpenShift
     end
 
     def self.get_build_model(user, config)
-      # TODO: When v2 is the default cartridge format change this default...
       build_model = :v1
 
       if user.homedir && File.exist?(user.homedir)
@@ -109,24 +107,25 @@ module OpenShift
       else
       
         cartridge = @cartridge_model.get_cartridge(cart_name)
+        cartridge_home = PathUtils.join(@user.homedir, cartridge.directory)
 
         # Only perform an initial build if the manifest explicitly specifies a need,
         # or if a template Git URL is provided and the cart is capable of builds or deploys.
-        if cartridge.install_build_required || (template_git_url && cartridge.buildable?)
+        if (cartridge.install_build_required || template_git_url) && cartridge.buildable?
           gear_script_log = '/tmp/initial-build.log'
           env             = Utils::Environ.for_gear(@user.homedir)
   
           logger.info "Executing initial gear prereceive for #{@uuid}"
           Utils.oo_spawn("gear prereceive >>#{gear_script_log} 2>&1",
                          env:                 env,
-                         chdir:               @user.homedir,
+                         chdir:               cartridge_home,
                          uid:                 @user.uid,
                          expected_exitstatus: 0)
 
           logger.info "Executing initial gear postreceive for #{@uuid}"
           Utils.oo_spawn("gear postreceive >>#{gear_script_log} 2>&1",
                          env:                 env,
-                         chdir:               @user.homedir,
+                         chdir:               cartridge_home,
                          uid:                 @user.uid,
                          expected_exitstatus: 0)
         end
@@ -348,13 +347,13 @@ module OpenShift
     def gear_level_tidy_git(gear_repo_dir)
       # Git pruning
       tidy_action do
-        Utils.oo_spawn("git prune", uid: @user.uid, chdir: gear_repo_dir, expected_exitstatus: 0)
+        Utils.oo_spawn('git prune', uid: @user.uid, chdir: gear_repo_dir, expected_exitstatus: 0)
         logger.debug("Pruned git directory at #{gear_repo_dir}")
       end
 
       # Git GC
       tidy_action do
-        Utils.oo_spawn("git gc --aggressive", uid: @user.uid, chdir: gear_repo_dir, expected_exitstatus: 0)
+        Utils.oo_spawn('git gc --aggressive', uid: @user.uid, chdir: gear_repo_dir, expected_exitstatus: 0)
         logger.debug("Executed git gc for repo #{gear_repo_dir}")
       end
     end
@@ -834,7 +833,7 @@ module OpenShift
 
       tar_cmd = %Q{/bin/tar --strip=2 --overwrite -xmz #{includes} #{transforms} #{excludes} 1>&2}
 
-      Utils.oo_spawn(tar_cmd, 
+      Utils.oo_spawn(tar_cmd,
                      env: gear_env,
                      unsetenv_others: true,
                      out: $stdout,

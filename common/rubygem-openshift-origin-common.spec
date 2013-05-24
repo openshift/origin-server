@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Common
 Name:          rubygem-%{gem_name}
-Version: 1.8.4
+Version: 1.8.5
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -97,6 +97,11 @@ cp -a ./%{gem_dir}/* %{buildroot}%{gem_dir}/
 %doc %{gem_docdir}
 
 %changelog
+* Thu May 23 2013 Adam Miller <admiller@redhat.com> 1.8.5-1
+- Fix for bug 960757  - Sending init_git_url only for deployable cartridge
+  configure/post-configure  - Removing is_primary_cart method in favor of
+  is_deployable (abhgupta@redhat.com)
+
 * Wed May 22 2013 Adam Miller <admiller@redhat.com> 1.8.4-1
 - WIP Cartridge Refactor - V2 -> V2 Migration (jhonce@redhat.com)
 - safe yaml for parsing of downloaded yaml (rchopra@redhat.com)

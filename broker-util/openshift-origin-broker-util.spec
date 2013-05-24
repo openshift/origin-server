@@ -6,7 +6,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin broker
 Name:          openshift-origin-broker-util
-Version: 1.9.4
+Version: 1.9.5
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -86,6 +86,15 @@ cp man/*.8 %{buildroot}%{_mandir}/man8/
 %{_mandir}/man8/oo-stats.8.gz
 
 %changelog
+* Thu May 23 2013 Adam Miller <admiller@redhat.com> 1.9.5-1
+- Merge pull request #2607 from rajatchopra/master (dmcphers@redhat.com)
+- Merge pull request #2602 from tbielawa/grammarfix
+  (dmcphers+openshiftbot@redhat.com)
+- fix bz965949 - include Mongo as object qualifier (rchopra@redhat.com)
+- Rebuild that man page (tbielawa@redhat.com)
+- Grammar fix in oo-admin-ctl-user man page (tbielawa@redhat.com)
+- Renaming oo-admin-fix to oo-admin-repair (abhgupta@redhat.com)
+
 * Wed May 22 2013 Adam Miller <admiller@redhat.com> 1.9.4-1
 - clean pending ops script to ensure rollbacks when needed; fix downloaded
   manifest screening (rchopra@redhat.com)

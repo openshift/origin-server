@@ -1,7 +1,7 @@
 %global cartridgedir %{_libexecdir}/openshift/cartridges/v2/python
 
 Name:          openshift-origin-cartridge-python
-Version:       0.4.4
+Version:       0.4.5
 Release:       1%{?dist}
 Summary:       Python cartridge
 Group:         Development/Languages
@@ -52,6 +52,8 @@ Python cartridge for OpenShift. (Cartridge Format V2)
 %files
 %dir %{cartridgedir}
 %attr(0755,-,-) %{cartridgedir}/bin/
+%attr(0755,-,-) %{cartridgedir}/versions/2.6/bin/
+%attr(0755,-,-) %{cartridgedir}/versions/shared/bin/
 %attr(0755,-,-) %{cartridgedir}/hooks/
 %{cartridgedir}
 %doc %{cartridgedir}/README.md
@@ -59,6 +61,14 @@ Python cartridge for OpenShift. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Thu May 23 2013 Adam Miller <admiller@redhat.com> 0.4.5-1
+- Bug 966065: Make python-2.6 install script executable (ironcladlou@gmail.com)
+- Merge pull request #2613 from mrunalp/bugs/965960
+  (dmcphers+openshiftbot@redhat.com)
+- Handle rsync exclusions (mrunalp@gmail.com)
+- Bug 966255: Remove OPENSHIFT_INTERNAL_* references from v2 carts
+  (ironcladlou@gmail.com)
+
 * Wed May 22 2013 Adam Miller <admiller@redhat.com> 0.4.4-1
 - Bug 962662 (dmcphers@redhat.com)
 - get submodules working in all cases (dmcphers@redhat.com)

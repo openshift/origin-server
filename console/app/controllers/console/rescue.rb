@@ -40,7 +40,7 @@ module Console
       end
 
       def generic_error(e=nil, message=nil, alternatives=nil)
-        log_error(e)
+        log_error(e) if e
         @reference_id = request.uuid
         @message, @alternatives = message, alternatives
         render 'console/error'

@@ -117,13 +117,17 @@ module Console
     # 
     # Retrieve a configuration value from the default environment
     #
-    def env(sym, default=nil)
-      if @config 
+    # Pass an optional block to modify the value
+    #
+    def env(sym, default=nil, &block)
+      env = if @config 
         v = @config[sym]
         v.nil? ? default : to_ruby_value(v)
       else
         default
       end
+      env = yield env if block_given? && !env.nil?
+      env
     end
 
     protected
