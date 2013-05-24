@@ -24,7 +24,7 @@ using your cartridge.
      +- bin                        (required)
      |  +- setup                   (optional)
      |  +- install                 (optional)
-     |  +- post-install            (optional)
+     |  +- post_install            (optional)
      |  +- teardown                (optional)
      |  +- control                 (required)
      |- hooks                      (optional)
@@ -602,7 +602,7 @@ A cartridge may implement the following scripts:
 | -----------   | -----  |
 | teardown      | prepare this instance of cartridge to be removed                                              |
 | install       | prepare this instance of cartridge to be operational for the initial install                  |
-| post-install  | an opportunity for configuration after the cartridge has been started for the initial install |
+| post_install  | an opportunity for configuration after the cartridge has been started for the initial install |
 
 ### Exit Status Codes
 
@@ -722,11 +722,11 @@ Also any client results/messages should also be reported in install rather than 
 
 Lock context: `unlocked`
 
-## bin/post-install
+## bin/post_install
 
 ##### Synopsis
 
-`post-install [--version <version>]`
+`post_install [--version <version>]`
 
 ##### Options
 
@@ -735,7 +735,7 @@ the version denoted by the `Version` element from `manifest.yml` will be install
 
 ##### Description
 
-The `post-install` script is an opportunity to configure your cartridge after the cartridge has been 
+The `post_install` script is an opportunity to configure your cartridge after the cartridge has been 
 started and is only called for the initial install of the cartridge.
 
 Lock context: `locked`
@@ -1133,7 +1133,7 @@ During the `build` phase:
    OpenShift during this lifecycle.
 1. The primary cartridge `update-configuration` control action is executed
 1. The primary cartridge `pre-build` control action is executed
-1. The `pre-build` user action hook is executed (if present)
+1. The `pre_build` user action hook is executed (if present)
 1. The primary cartridge `build` control action is executed
 1. The `build` user action hook is executed
 
@@ -1144,7 +1144,7 @@ Next, during the `deploy` phase:
 1. The `deploy` user action hook is executed (if present)
 1. The primary cartridge is started (the application is now fully started)
 1. The primary cartridge `post-deploy` control action is executed
-1. The `post-deploy` user action hook is executed (if present)
+1. The `post_deploy` user action hook is executed (if present)
 
 At this point, the application has been fully built and restarted.
 

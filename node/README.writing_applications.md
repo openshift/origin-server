@@ -124,10 +124,10 @@ section of the [Writing Cartridges](README.writing_cartridges.md) guide.
 
 The list of action hooks supported during the default build lifecycle are:
 
-- `pre-build`
+- `pre_build`
 - `build`
 - `deploy`
-- `post-deploy`
+- `post_deploy`
 
 Refer to the [OpenShift Builds](README.writing_cartridges.md#openshift-builds)
 guide for details about when these action hooks are invoked.
