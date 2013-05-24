@@ -104,7 +104,7 @@ function set_memory() {
 }
 
 # ==========================================================================
-#  Functions for tuning the user's memory limits in cgroups
+#  Functions for tuning the weighting of user's disk IO
 # ==========================================================================
 BLKIOVARS="weight weight_device"
 function set_blkio() {
