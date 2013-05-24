@@ -2,7 +2,7 @@
 
 Summary:       phpMyAdmin support for OpenShift
 Name:          openshift-origin-cartridge-phpmyadmin
-Version:       1.9.5
+Version:       1.9.6
 Release:       1%{?dist}
 Group:         Applications/Internet
 License:       ASL 2.0
@@ -39,6 +39,9 @@ Provides phpMyAdmin cartridge support. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Fri May 24 2013 Adam Miller <admiller@redhat.com> 1.9.6-1
+- remove install build required for non buildable carts (dmcphers@redhat.com)
+
 * Thu May 23 2013 Adam Miller <admiller@redhat.com> 1.9.5-1
 - Bug 966319 - Gear needs to write to httpd configuration (jhonce@redhat.com)
 
