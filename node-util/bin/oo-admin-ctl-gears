@@ -218,19 +218,19 @@ module OpenShift
     # Private: Respond with pass/fail status depending on whether an exception was raised.
     def output_pass_fail(message, gear)
       rc = 0
-      @timeout_handlers << lambda { $stderr.puts "Timeout #{message} #{gear}...  [ #{@RED}FAILED#{@NORM} ]" }
+      @timeout_handlers << lambda { $stderr.puts "Timeout #{message} gear #{gear}...  [ #{@RED}FAILED#{@NORM} ]" }
       begin
-        $stdout.write("#{message} #{gear.uuid}... ")
+        $stdout.write("#{message} gear #{gear.uuid}... ")
         if block_given?
           output = yield
         end
-        NodeLogger.logger.info("#{message} #{gear.uuid}... [ OK ]")
+        NodeLogger.logger.info("#{message} gear #{gear.uuid}... [ OK ]")
         $stdout.write("[ #{@GREEN}OK#{@NORM} ]\n")
       rescue => e
         NodeLogger.logger.debug("Gear: #{gear.uuid} Exception #{e.inspect}")
         NodeLogger.logger.debug("Gear: #{gear.uuid} Backtrace #{e.backtrace}")
-        NodeLogger.logger.error("#{message} #{gear.uuid}: [ FAIL ]")
-        NodeLogger.logger.error("#{message} #{gear.uuid}: Error: #{e}")
+        NodeLogger.logger.error("#{message} gear #{gear.uuid}: [ FAIL ]")
+        NodeLogger.logger.error("#{message} gear #{gear.uuid}: Error: #{e}")
         $stdout.write("[ #{@RED}FAILED#{@NORM} ]\n")
         e.to_s.lines.each do |el|
           $stdout.write("      #{el}\n")
@@ -455,7 +455,6 @@ begin
       exit(exitval)
     end
     OpenShift::NodeLogger.logger.info("Background start initiated - process id = #{cpid}")
-    OpenShift::NodeLogger.logger.info("Check #{$gearsfile} for more details.")
     $stdout.puts "Background start initiated - process id = #{cpid}"
     $stdout.puts "Check /var/log/openshift/node/platform.log for more details."
     $stdout.puts
