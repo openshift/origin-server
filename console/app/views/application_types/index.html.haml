@@ -89,10 +89,10 @@
     - if RestApi.download_cartridges_enabled?
       %h3.divide Code Anything
       
-      %form.form-inline.row{:method => :get, :action => application_type_path('custom')}
+      %form.form-inline.row#download_cartridge_form{:method => :get, :action => application_type_path('custom')}
         .span6
           %p
-            Have your own framework?  Provide the URL of a #{link_to 'cartridge', downloadable_cartridges_help_url} here, and OpenShift will download and 
+            Have your own framework?  Provide the #{link_to 'URL of a cartridge', downloadable_cartridges_help_url} here, and OpenShift will download and 
             provision it automatically into your new app!
           %input{:type => :hidden, :name => :unlock, :value => 'true'}
           %input{:type => :text, :name => 'application_type[cartridges]', :placeholder => 'URL to a cartridge definition'}
