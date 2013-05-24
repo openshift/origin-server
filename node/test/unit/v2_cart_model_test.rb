@@ -706,5 +706,111 @@ module OpenShift
 
       @model.unsubscribe(cart_name, pub_cart_name)
     end
+
+    def with_start_cartridge_scenario
+      cart = mock()
+      cart.stubs(:name).returns("primary-cart")
+
+      user = mock()
+      user.stubs(:uuid).returns("1234")
+      
+      state = mock()
+      frontend = mock()
+      
+      model = V2CartridgeModel.new(mock(), user, state)
+      model.stubs(:primary_cartridge).returns(cart)
+      model.stubs(:user).returns(user)
+      model.stubs(:stop_lock?).returns(false)
+      model.stubs(:stop_lock).returns("stoplock")
+      
+      FrontendHttpServer.stubs(:new).with(user.uuid).returns(frontend)
+      
+      yield cart, user, state, frontend, model
+      
+    end
+
+    def test_start_cartridge_start_as_gear_user
+      with_start_cartridge_scenario do |cart, user, state, frontend, model|
+        user.stubs(:uid).returns(0)
+        Process.stubs(:uid).returns(0)
+
+        FileUtils.expects(:rm_f).with("stoplock")
+
+        state.expects(:value=).with(OpenShift::State::STARTED)
+        frontend.expects(:unprivileged_unidle)
+        model.expects(:do_control).with('start', cart, user_initiated: true, hot_deploy: false)
+
+        model.start_cartridge('start', cart, user_initiated: true, hot_deploy: false)
+      end
+    end
+
+    def test_start_cartridge_start_as_priv_user
+      with_start_cartridge_scenario do |cart, user, state, frontend, model|
+        user.stubs(:uid).returns(1)
+        Process.stubs(:uid).returns(0)
+
+        FileUtils.expects(:rm_f).with("stoplock")
+
+        state.expects(:value=).with(OpenShift::State::STARTED)
+        frontend.expects(:unidle)
+        model.expects(:do_control).with('start', cart, user_initiated: true, hot_deploy: false)
+
+        model.start_cartridge('start', cart, user_initiated: true, hot_deploy: false)
+      end
+    end
+
+    def test_start_cartridge_system_initiated_no_stoplock
+      with_start_cartridge_scenario do |cart, user, state, frontend, model|
+        user.stubs(:uid).returns(1)
+        Process.stubs(:uid).returns(0)
+
+        FileUtils.expects(:rm_f).with("stoplock").never
+
+        state.expects(:value=).with(OpenShift::State::STARTED)
+        frontend.expects(:unidle)
+        frontend.expects(:unprivileged_unidle).never
+        model.expects(:do_control).with('start', cart, user_initiated: false, hot_deploy: false)
+
+        model.start_cartridge('start', cart, user_initiated: false, hot_deploy: false)
+      end
+    end
+
+    def test_start_cartridge_system_initiated_stoplock
+      with_start_cartridge_scenario do |cart, user, state, frontend, model|
+        model.stubs(:stop_lock?).returns(true)
+        model.expects(:do_control).never
+
+        model.start_cartridge('start', cart, user_initiated: false, hot_deploy: false)
+      end
+    end
+
+    def test_start_cartridge_secondary
+      with_start_cartridge_scenario do |cart, user, state, frontend, model|
+        secondary = mock()
+        secondary.stubs(:name).returns("secondary-cart")
+
+        state.expects(:value=).never
+        frontend.expects(:unidle).never
+        frontend.expects(:unprivileged_unidle).never
+        model.expects(:do_control).with('start', secondary, user_initiated: true, hot_deploy: false)
+
+        model.start_cartridge('start', secondary, user_initiated: true, hot_deploy: false)
+      end
+    end
+
+    def test_start_cartridge_hot_deploy_as_gear_user
+      with_start_cartridge_scenario do |cart, user, state, frontend, model|
+        user.stubs(:uid).returns(0)
+        Process.stubs(:uid).returns(0)
+
+        FileUtils.expects(:rm_f).with("stoplock")
+
+        state.expects(:value=).with(OpenShift::State::STARTED)
+        frontend.expects(:unprivileged_unidle)
+        model.expects(:do_control).never
+
+        model.start_cartridge('start', cart, user_initiated: true, hot_deploy: true)
+      end
+    end
   end
 end

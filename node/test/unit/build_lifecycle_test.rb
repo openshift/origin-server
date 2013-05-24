@@ -88,8 +88,6 @@ class BuildLifecycleTest < Test::Unit::TestCase
     @container.expects(:start_gear).with(primary_only: true, user_initiated: true, hot_deploy: nil, out: $stdout, err: $stderr)
     @container.expects(:post_deploy).with(out: $stdout, err: $stderr)
 
-    @frontend.expects(:unprivileged_unidle)
-
     @container.post_receive(out: $stdout, err: $stderr)
   end
 
