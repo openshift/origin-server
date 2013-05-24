@@ -177,6 +177,16 @@ class CartridgeCache
     urls.each do |url|
        manifest_str = download_from_url(url)
        chash = validate_yaml(url, manifest_str)
+       
+       # check if Cartridge-Vendor is reserved
+       manifest = OpenShift::Runtime::Manifest.new(manifest_str)
+       begin
+         manifest.check_reserved_vendor_name
+       rescue OpenShift::InvalidElementError => iee
+         # cloaking it as a UserException until Manifest starts raising subclasses of OOException 
+         raise OpenShift::UserException.new(iee.message, 109)
+       end
+       
        # TODO: check versions and create multiple of them
        self.foreach_cart_version(manifest_str) do |chash,name,version|
          cmap[name] = { "versioned_name" => chash["Name"], "url" => url, "original_manifest" => manifest_str, "version" => version}
