@@ -183,7 +183,7 @@ module OpenShift
         each_cartridge do |cartridge|
           unlock_gear(cartridge, false) do |c|
             begin
-              buffer << cartridge_teardown(c.directory)
+              buffer << cartridge_teardown(c.directory, false)
             rescue Utils::ShellExecutionException => e
               logger.warn("Cartridge teardown operation failed on gear #{@user.uuid} for cartridge #{c.directory}: #{e.message} (rc=#{e.rc})")
             end
@@ -585,13 +585,13 @@ module OpenShift
       nil
     end
 
-    # cartridge_teardown(cartridge_name) -> buffer
+    # cartridge_teardown(cartridge_name, remove_cartridge_dir) -> buffer
     #
     # Returns the output from calling the cartridge's teardown script.
     #  Raises exception if script fails
     #
     # stdout = cartridge_teardown('php-5.3')
-    def cartridge_teardown(cartridge_name)
+    def cartridge_teardown(cartridge_name, remove_cartridge_dir=true)
       cartridge_home = File.join(@user.homedir, cartridge_name)
       env            = Utils::Environ.for_gear(@user.homedir, cartridge_home)
       teardown       = File.join(cartridge_home, 'bin', 'teardown')
@@ -609,7 +609,7 @@ module OpenShift
 
       buffer << err
 
-      FileUtils.rm_r(cartridge_home)
+      FileUtils.rm_r(cartridge_home) if remove_cartridge_dir
       logger.info("Ran teardown for #{@user.uuid}/#{cartridge_name}")
       buffer
     end

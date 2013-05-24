@@ -41,4 +41,3 @@ Endpoints:
     Mappings:
       - Frontend:      "/phpmyadmin"
         Backend:       "/phpmyadmin"
-Install-Build-Required: false
