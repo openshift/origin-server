@@ -458,7 +458,7 @@ module OpenShift
     # Returns nil on Success or raises on Failure
     def disconnect(*paths)
       ApacheDBNodes.open(ApacheDBNodes::WRCREAT) do |d|
-        paths.each do |p|
+        paths.flatten.each do |p|
           d.delete(@fqdn + p.to_s)
         end
       end
@@ -466,7 +466,7 @@ module OpenShift
     end
 
     def disconnect_websocket(*paths)
-      if paths.include?("")
+      if paths.flatten.include?("")
         NodeJSDBRoutes.open(NodeJSDBRoutes::WRCREAT) do |d|
           d.delete(@fqdn)
         end
