@@ -6,14 +6,16 @@
   %table.table.table-condensed.table-striped.table-fixed
     %thead
       %tr
-        %th{:scope => 'col'} Note
-        %th{:scope => 'col'} Scope
-        %th{:scope => 'col'} Expires in
+        %th.nowrap{:scope => 'col'} Note
+        %th.nowrap{:scope => 'col'} Scope
+        %th.nowrap{:scope => 'col'} Expires in
     %tbody
     - authorizations.each do |authorization|
       %tr{:id => "#{authorization.id}_auth"}
         %td{:scope => 'row'}= link_to authorization.note.presence || "<none>", authorization_path(authorization)
-        %td= authorization.scopes.join(' ')
+        %td
+          - authorization.scopes.each do |scope|
+            .nowrap= scope
         %td{:title => authorization.expires_at.to_s(:rfc822)}= distance_of_time_in_words(authorization.expires_at, Time.now)
 
 .btn-toolbar

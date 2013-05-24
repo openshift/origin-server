@@ -9,13 +9,13 @@
 %table.table.table-condensed.table-striped.table-fixed
   %thead
     %tr
-      %th{:scope => 'col'} Key name
-      %th{:scope => 'col'} Contents
+      %th.nowrap{:scope => 'col'} Key name
+      %th.nowrap{:scope => 'col'} Contents
       %td
   - keys.each do |key|
     %tr{:id => "#{key.name}_sshkey"}
       %td.sshkey-name{:scope => 'row'}= key.name
       %td.code.sshkey= key.display_content
-      %td= link_to 'Delete', key_path(key), :class => 'btn btn-mini btn-danger delete_button', :method => :delete, :confirm => "Are you sure you want to delete your key '#{key.name}'?"
+      %td= link_to 'Delete', key_path(key), :class => 'btn btn-mini btn-danger delete_button nowrap', :method => :delete, :confirm => "Are you sure you want to delete your key '#{key.name}'?"
 .btn-toolbar
   = link_to "Add a new key...", new_key_path, :class => 'btn btn-small'
