@@ -43,7 +43,8 @@ module OpenShift
         stderr = self.translate_out_for_client(e.stderr, :error)
         rc     = rc_override || e.rc
 
-        Utils::ShellExecutionException.new(e.message, rc, stdout, stderr)
+        ex = Utils::ShellExecutionException.new(e.message, rc, stdout, stderr)
+        ex.set_backtrace(e.backtrace)
       end
 
       # Public: Translate a String destined for the client with CLIENT_ prefixes. Handles newlines

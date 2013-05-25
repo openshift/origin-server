@@ -269,7 +269,9 @@ module OpenShift
       rc_override = e.rc < 100 ? 157 : e.rc
       raise Utils::Sdk.translate_shell_ex_for_client(e, rc_override)
     rescue => e
-      raise Utils::Sdk.translate_out_for_client(e.message, :error)
+      ex =  RuntimeError.new(Utils::Sdk.translate_out_for_client(e.message, :error))
+      ex.set_backtrace(e.backtrace)
+      raise ex
     end
 
     def post_install(cartridge, software_version, options = {})
@@ -444,20 +446,31 @@ module OpenShift
       nil
     end
 
-    def secure_cartridge(uid, gid=uid, target)
-      PathUtils.oo_chown_R(uid, gid, target)
+    def secure_cartridge(uid, gid=uid, cartridge_home)
+      name = File.basename(cartridge_home)
 
-      mcs_label = Utils::SELinux.get_mcs_label(uid)
-      Utils::SELinux.set_mcs_label_R(mcs_label, target)
-      #Utils::SELinux.clear_mcs_label(Dir.glob(File.join(target, 'bin', '*')))
+      Dir.chdir(cartridge_home) do
+        make_user_owned(cartridge_home)
 
-      # BZ 950752
-      # Find out if we can have upstream set a context for /var/lib/openshift/*/*/bin/*.
-      # The following will break WHEN the inevitable restorecon is run in production.
-      Utils.oo_spawn(
-          "chcon system_u:object_r:bin_t:s0 #{File.join(target, 'bin', '*')}",
-          expected_exitstatus: 0
-      )
+        files = ManagedFiles::IMMUTABLE_FILES.collect do |file|
+          file.gsub!('*', name.upcase)
+          file if File.exist?(file)
+        end || []
+
+        if files.empty?
+          PathUtils.oo_chown(0, gid, files)
+          FileUtils.chmod(0644, files)
+        end
+        #Utils::SELinux.clear_mcs_label(Dir.glob(File.join(target, 'bin', '*')))
+
+        # BZ 950752
+        # Find out if we can have upstream set a context for /var/lib/openshift/*/*/bin/*.
+        # The following will break WHEN the inevitable restorecon is run in production.
+        Utils.oo_spawn(
+            "chcon system_u:object_r:bin_t:s0 #{File.join(cartridge_home, 'bin', '*')}",
+            expected_exitstatus: 0
+        )
+      end
     end
 
     ##

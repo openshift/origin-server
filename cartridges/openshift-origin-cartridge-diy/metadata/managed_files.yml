@@ -4,7 +4,6 @@ locked_files:
 - bin/*
 - configuration/
 - metadata/
-- metadata/*
 - env/
 - env/*
 - tmp/
