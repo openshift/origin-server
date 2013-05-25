@@ -112,7 +112,7 @@ class ApplicationRepositoryFuncTest < OpenShift::V2SdkTestCase
     FileUtils.rm_rf template
     repo = OpenShift::ApplicationRepository.new(@user)
     refute_path_exist template
-    repo.deploy
+    repo.archive
   end
 
   def test_bare_repository_usr
@@ -224,7 +224,7 @@ class ApplicationRepositoryFuncTest < OpenShift::V2SdkTestCase
 
       runtime_repo = "#{@user.homedir}/app-root/runtime/repo"
       FileUtils.mkpath(runtime_repo)
-      repo.deploy
+      repo.archive
       assert_path_exist File.join(runtime_repo, 'perl', 'health_check.pl')
     rescue OpenShift::Utils::ShellExecutionException => e
       puts %Q{
@@ -253,7 +253,7 @@ class ApplicationRepositoryFuncTest < OpenShift::V2SdkTestCase
 
       runtime_repo = "#{@user.homedir}/app-root/runtime/repo"
       FileUtils.mkpath(runtime_repo)
-      repo.deploy
+      repo.archive
       assert_path_exist File.join(runtime_repo, 'perl', 'health_check.pl')
     rescue OpenShift::Utils::ShellExecutionException => e
       puts %Q{
@@ -282,7 +282,7 @@ class ApplicationRepositoryFuncTest < OpenShift::V2SdkTestCase
 
       runtime_repo = "#{@user.homedir}/app-root/runtime/repo"
       FileUtils.mkpath(runtime_repo)
-      repo.deploy
+      repo.archive
       assert_path_exist File.join(runtime_repo, 'perl', 'health_check.pl')
       assert_path_exist File.join(runtime_repo, 'module001', 'README.md')
     rescue OpenShift::Utils::ShellExecutionException => e

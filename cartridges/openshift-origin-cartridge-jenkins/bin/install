@@ -28,7 +28,7 @@ generate_ssh_keys
 
 public_key=$(cat ${OPENSHIFT_DATA_DIR}/.ssh/jenkins_id_rsa.pub)
 set -- $public_key
-add_ssh_key "$2"
+add_domain_ssh_key "$2"
 
 add_broker_auth_key
 
@@ -60,6 +60,6 @@ client_result ""
 cart_props "username=system_builder"
 cart_props "password=$system_builder_password"
 
-add_env_var "JENKINS_URL=https://${OPENSHIFT_GEAR_DNS}/"
-add_env_var "JENKINS_USERNAME=system_builder"
-add_env_var "JENKINS_PASSWORD=$system_builder_password"
+add_domain_env_var "JENKINS_URL=https://${OPENSHIFT_GEAR_DNS}/"
+add_domain_env_var "JENKINS_USERNAME=system_builder"
+add_domain_env_var "JENKINS_PASSWORD=$system_builder_password"

@@ -517,7 +517,7 @@ module OpenShift
       end
 
       if repo.exist?
-        repo.deploy
+        repo.archive
         "CLIENT_DEBUG: The cartridge #{cartridge_name} deployed a template application"
       else
         "CLIENT_MESSAGE: The cartridge #{cartridge_name} did not provide template application"

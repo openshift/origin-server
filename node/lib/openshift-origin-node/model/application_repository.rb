@@ -129,7 +129,7 @@ module OpenShift
       configure
     end
 
-    def deploy
+    def archive
       return unless exist?
 
       # expose variables for ERB processing
@@ -140,7 +140,7 @@ module OpenShift
       FileUtils.rm_rf Dir.glob(PathUtils.join(@target_dir, '*'))
       FileUtils.rm_rf Dir.glob(PathUtils.join(@target_dir, '.[^\.]*'))
 
-      Utils.oo_spawn(ERB.new(GIT_DEPLOY).result(binding),
+      Utils.oo_spawn(ERB.new(GIT_ARCHIVE).result(binding),
                      chdir:               @path,
                      uid:                 @user.uid,
                      expected_exitstatus: 0)
@@ -153,7 +153,7 @@ module OpenShift
       FileUtils.rm_r(cache) if File.exist?(cache)
       FileUtils.mkpath(cache)
 
-      Utils.oo_spawn("/bin/sh #{PathUtils.join('/usr/libexec/openshift/lib', "deploy_git_submodules.sh")} #{@path} #{@target_dir}",
+      Utils.oo_spawn("/bin/sh #{PathUtils.join('/usr/libexec/openshift/lib', "archive_git_submodules.sh")} #{@path} #{@target_dir}",
                      chdir:               @user.homedir,
                      env:                 env,
                      uid:                 @user.uid,
@@ -240,7 +240,7 @@ git clone --bare --no-hardlinks <%= @url %> <%= @application_name %>.git;
 GIT_DIR=./<%= @application_name %>.git git repack
 }
 
-    GIT_DEPLOY = %Q{\
+    GIT_ARCHIVE = %Q{\
 set -xe;
 shopt -s dotglob;
 rm -rf <%= @target_dir %>/*;
