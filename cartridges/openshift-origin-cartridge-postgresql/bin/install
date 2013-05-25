@@ -2,6 +2,11 @@
 
 source $OPENSHIFT_CARTRIDGE_SDK_BASH
 
+case "$1" in
+  -v|--version)
+    version="$2"
+esac
+
 echo "Installing postgres"
 
 env_dir="${OPENSHIFT_POSTGRESQL_DIR}/env"
@@ -37,6 +42,13 @@ chmod 0600 $HOME/.pgpass
 
 conn_url='postgresql://$OPENSHIFT_POSTGRESQL_DB_HOST:$OPENSHIFT_POSTGRESQL_DB_PORT'
 
+client_result ""
+client_result "PostgreSQL ${version} database added.  Please make note of these credentials:"
+client_result ""
+client_result "   Root User: ${username}"
+client_result "   Root Password: ${password}"
+client_result "   Database Name: ${OPENSHIFT_APP_NAME}"
+client_result ""
 client_result "Connection URL: ${conn_url}"
 client_result ""
 
