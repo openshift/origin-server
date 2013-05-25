@@ -81,7 +81,7 @@ function send_attr {
     echo "ATTR: $1"
 }
 
-function add_ssh_key {
+function add_domain_ssh_key {
     echo "SSH_KEY_ADD: $1"
 }
 
@@ -89,10 +89,10 @@ function add_app_ssh_key {
     echo "APP_SSH_KEY_ADD: $1 $2"
 }
 
-# Add environment variable visible to all gears in application
+# Add environment variable visible to all gears in a domain
 # Argument(s):
 # - name of environment variable to add plus value
-function add_env_var {
+function add_domain_env_var {
     echo "ENV_VAR_ADD: $1"
 }
 

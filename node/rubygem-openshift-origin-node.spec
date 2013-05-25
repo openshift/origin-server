@@ -135,7 +135,7 @@ mkdir -p %{buildroot}/usr/libexec/openshift/lib
 mv %{buildroot}%{gem_instdir}/misc/libexec/lib/teardown_pam_fs_limits.sh %{buildroot}/usr/libexec/openshift/lib
 mv %{buildroot}%{gem_instdir}/misc/libexec/lib/setup_pam_fs_limits.sh %{buildroot}/usr/libexec/openshift/lib
 mv %{buildroot}%{gem_instdir}/misc/libexec/lib/quota_attrs.sh %{buildroot}/usr/libexec/openshift/lib
-mv %{buildroot}%{gem_instdir}/misc/libexec/lib/deploy_git_submodules.sh %{buildroot}/usr/libexec/openshift/lib
+mv %{buildroot}%{gem_instdir}/misc/libexec/lib/archive_git_submodules.sh %{buildroot}/usr/libexec/openshift/lib
 
 # Install the cartridge SDK files and environment variables for each
 mkdir -p %{buildroot}/usr/lib/openshift/cartridge_sdk
@@ -240,7 +240,7 @@ fi
 /usr/libexec/openshift/lib/setup_pam_fs_limits.sh
 /usr/libexec/openshift/lib/teardown_pam_fs_limits.sh
 /usr/libexec/openshift/lib/quota_attrs.sh
-/usr/libexec/openshift/lib/deploy_git_submodules.sh
+/usr/libexec/openshift/lib/archive_git_submodules.sh
 %attr(0755,-,-) /usr/lib/openshift/cartridge_sdk
 %attr(0755,-,-) /usr/lib/openshift/cartridge_sdk/bash
 %attr(0744,-,-) /usr/lib/openshift/cartridge_sdk/bash/*

@@ -39,7 +39,7 @@ module OpenShift
                                             pre_action_hooks_enabled:  false,
                                             post_action_hooks_enabled: false)
 
-      ApplicationRepository.new(@container.user).deploy
+      ApplicationRepository.new(@container.user).archive
 
       @container.build(out: options[:out],
                        err: options[:err])
