@@ -3,7 +3,6 @@ locked_files:
 - bin/
 - bin/*
 - metadata/
-- metadata/*
 - env/
 - env/*
 - conf/
