@@ -411,13 +411,6 @@ module OpenShift
         DefaultBuilder.new(self).pre_receive(out:        options[:out],
                                              err:        options[:err],
                                              hot_deploy: options[:hot_deploy])
-
-        @cartridge_model.do_control('pre-receive',
-                                    @cartridge_model.primary_cartridge,
-                                    out:                       options[:out],
-                                    err:                       options[:err],
-                                    pre_action_hooks_enabled:  false,
-                                    post_action_hooks_enabled: false)
       end
     end
 
