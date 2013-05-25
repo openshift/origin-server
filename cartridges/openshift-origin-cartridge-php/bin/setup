@@ -9,7 +9,7 @@ esac
 shopt -s dotglob
 
 mkdir -p $OPENSHIFT_PHP_DIR/configuration/etc/
-cp -Hr $OPENSHIFT_PHP_DIR/versions/$version/configuration/etc/* $OPENSHIFT_PHP_DIR/configuration/etc/
+cp -Hr $OPENSHIFT_PHP_DIR/versions/shared/configuration/etc/* $OPENSHIFT_PHP_DIR/configuration/etc/
 
 # Create additional directories required by PHP
 mkdir -p $OPENSHIFT_PHP_DIR/phplib/pear/{docs,ext,php,cache,cfg,data,download,temp,tests,www}
