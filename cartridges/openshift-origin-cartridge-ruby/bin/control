@@ -82,22 +82,24 @@ function tidy() {
   rm -rf ${OPENSHIFT_RUBY_DIR}tmp/*
 }
 
-function pre-receive() {
+function pre-repo-archive() {
   # set -x
   rm -rf ${OPENSHIFT_RUBY_DIR}/tmp/.bundle ${OPENSHIFT_RUBY_DIR}/tmp/vendor
 
   # If the previous and current commits didn't upload .bundle and you have .bundle and vendor/bundle already deployed then store away for redeploy
   # Also adding .openshift/markers/force_clean_build at the root of the repo will trigger a clean rebundle
-  if ! git show master:.openshift/markers/force_clean_build > /dev/null 2>&1 \
-    && ! git show master:.bundle > /dev/null 2>&1                            \
-    && ! git show master~1:.bundle > /dev/null 2>&1                          \
-    && [ -d ${OPENSHIFT_REPO_DIR}.bundle ]                                   \
-    && [ -d ${OPENSHIFT_REPO_DIR}vendor/bundle ]
-  then
-    echo 'Saving away previously bundled RubyGems'
-    mv ${OPENSHIFT_REPO_DIR}.bundle ${OPENSHIFT_RUBY_DIR}/tmp/
-    mv ${OPENSHIFT_REPO_DIR}vendor ${OPENSHIFT_RUBY_DIR}/tmp/
-  fi
+  pushd "${OPENSHIFT_HOMEDIR}/git/${OPENSHIFT_APP_NAME}.git" 1>/dev/null
+    if ! git show master:.openshift/markers/force_clean_build > /dev/null 2>&1 \
+      && ! git show master:.bundle > /dev/null 2>&1                            \
+      && ! git show master~1:.bundle > /dev/null 2>&1                          \
+      && [ -d ${OPENSHIFT_REPO_DIR}.bundle ]                                   \
+      && [ -d ${OPENSHIFT_REPO_DIR}vendor/bundle ]
+    then
+      echo 'Saving away previously bundled RubyGems'
+      mv ${OPENSHIFT_REPO_DIR}.bundle ${OPENSHIFT_RUBY_DIR}/tmp/
+      mv ${OPENSHIFT_REPO_DIR}vendor ${OPENSHIFT_RUBY_DIR}/tmp/
+    fi
+  popd 1>/dev/null
 }
 
 function pre-build() {
@@ -131,16 +133,18 @@ function build() {
     # If .bundle isn't currently committed and a Gemfile is then bundle install
     if [ -f ${OPENSHIFT_REPO_DIR}/Gemfile ]
     then
-        if ! git show master:.bundle > /dev/null 2>&1
-        then
-            echo "Bundling RubyGems based on Gemfile/Gemfile.lock to repo/vendor/bundle with 'bundle install --deployment'"
-            SAVED_GIT_DIR=$GIT_DIR
-            unset GIT_DIR
-            pushd ${OPENSHIFT_REPO_DIR} > /dev/null
-            ruby_context "bundle install --deployment"
-            popd > /dev/null
-            export GIT_DIR=$SAVED_GIT_DIR
-        fi
+        pushd "${OPENSHIFT_HOMEDIR}/git/${OPENSHIFT_APP_NAME}.git" 1>/dev/null
+          if ! git show master:.bundle > /dev/null 2>&1
+          then
+              echo "Bundling RubyGems based on Gemfile/Gemfile.lock to repo/vendor/bundle with 'bundle install --deployment'"
+              pushd ${OPENSHIFT_REPO_DIR} 1> /dev/null
+                SAVED_GIT_DIR=$GIT_DIR
+                unset GIT_DIR
+                ruby_context "bundle install --deployment"
+                export GIT_DIR=$SAVED_GIT_DIR
+              popd 1> /dev/null
+          fi
+        popd 1>/dev/null
 
         if [ -f ${OPENSHIFT_REPO_DIR}/Rakefile ]
         then
@@ -205,7 +209,7 @@ case "$1" in
   restart | reload ) restart $1 ;;
   status)            status ;;
   tidy)              tidy ;;
-  pre-receive)       pre-receive ;;
+  pre-repo-archive)  pre-repo-archive ;;
   pre-build)         pre-build ;;
   build)             build ;;
   post-deploy)       post-deploy ;;
