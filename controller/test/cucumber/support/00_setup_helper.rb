@@ -34,7 +34,7 @@ end
 $alias_domain = "foobar.com"
 
 # Submodule repo directory for testing submodule addition test case
-$submodule_repo_dir = "#{Etc.getpwuid.dir}/submodule_test_repo"
+$submodule_repo_dir = "/opt/openshift-cucumber/submodule_test_repo"
 
 # RHC Client
 $rhc_script = '/usr/bin/rhc'
@@ -84,8 +84,9 @@ module SetupHelper
         `git add index`
         `git commit -m 'test'`
       end
+      `chmod -R 666 $submodule_repo_dir`
     end
-    
+
     # set the bind keyvalue from the installed plugin config
     if File.exists?("/etc/openshift/plugins.d/openshift-origin-dns-bind.conf")
       $bind_keyvalue = `cat /var/named/example.com.key | grep -i secret | gawk -F ' ' '{ print $2 }'`

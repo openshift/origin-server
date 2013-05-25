@@ -57,13 +57,11 @@ PHP cartridge for openshift. (Cartridge Format V2)
 
 %if 0%{?fedora}%{?rhel} <= 6
 %__mv %{buildroot}%{cartridgedir}/versions/shared/configuration/etc/conf-httpd-2.2/* %{buildroot}%{cartridgedir}/versions/shared/configuration/etc/conf/
-%__rm -rf %{buildroot}%{cartridgedir}/versions/5.4
 %__mv %{buildroot}%{cartridgedir}/metadata/manifest.yml.rhel %{buildroot}%{cartridgedir}/metadata/manifest.yml
 %__rm %{buildroot}%{cartridgedir}/metadata/manifest.yml.fedora
 %endif
 %if 0%{?fedora} >= 18
 %__mv %{buildroot}%{cartridgedir}/versions/shared/configuration/etc/conf-httpd-2.4/* %{buildroot}%{cartridgedir}/versions/shared/configuration/etc/conf/
-%__rm -rf %{buildroot}%{cartridgedir}/versions/5.3
 %__mv %{buildroot}%{cartridgedir}/metadata/manifest.yml.fedora %{buildroot}%{cartridgedir}/metadata/manifest.yml
 %__rm %{buildroot}%{cartridgedir}/metadata/manifest.yml.rhel
 sed -i 's/#DefaultRuntimeDir/DefaultRuntimeDir/g' %{buildroot}%{cartridgedir}/versions/shared/configuration/etc/conf.d/openshift.conf.erb
