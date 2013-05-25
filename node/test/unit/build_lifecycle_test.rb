@@ -83,7 +83,8 @@ class BuildLifecycleTest < Test::Unit::TestCase
                                                 pre_action_hooks_enabled:  false,
                                                 post_action_hooks_enabled: false)
 
-    repository.expects(:deploy)
+    repository.expects(:archive)
+
     @container.expects(:build).with(out: $stdout, err: $stderr)
     @container.expects(:start_gear).with(secondary_only: true, user_initiated: true, hot_deploy: nil, out: $stdout, err: $stderr)
     @container.expects(:deploy).with(out: $stdout, err: $stderr)

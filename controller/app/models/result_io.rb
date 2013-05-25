@@ -100,46 +100,47 @@ class ResultIO
     if output && !output.empty?
       output.each_line do |line|
         if line =~ /^CLIENT_(MESSAGE|RESULT|DEBUG|ERROR|INTERNAL_ERROR): /
-          if line =~ /^CLIENT_MESSAGE: /
+          case $1
+          when 'MESSAGE'
             self.messageIO << line['CLIENT_MESSAGE: '.length..-1]
-          elsif line =~ /^CLIENT_RESULT: /
+          when 'RESULT'
             self.resultIO << line['CLIENT_RESULT: '.length..-1]
-          elsif line =~ /^CLIENT_DEBUG: /
+          when 'DEBUG'
             self.debugIO << line['CLIENT_DEBUG: '.length..-1]
-          elsif line =~ /^CLIENT_INTERNAL_ERROR: /
+          when 'INTERNAL_ERROR'
             self.errorIO << line['CLIENT_INTERNAL_ERROR: '.length..-1]
           else
             self.errorIO << line['CLIENT_ERROR: '.length..-1]
             self.hasUserActionableError = true
           end
-        elsif line =~ /^CART_DATA: /
+        elsif line.start_with?('CART_DATA: ')
           key,value = line['CART_DATA: '.length..-1].chomp.split('=')
           self.set_cart_property(gear_id, "attributes", key, value)
-        elsif line =~ /^CART_PROPERTIES: /
+        elsif line.start_with?('CART_PROPERTIES: ')
           key,value = line['CART_PROPERTIES: '.length..-1].chomp.split('=')
           self.set_cart_property(gear_id, "component-properties", key, value)
-        elsif line =~ /^ATTR: /
+        elsif line.start_with?('ATTR: ')
           key,value = line['ATTR: '.length..-1].chomp.split('=')
           self.set_cart_property(gear_id, "attributes", key, value)              
-        elsif line =~ /^APP_INFO: /
+        elsif line.start_with?('APP_INFO: ')
           self.appInfoIO << line['APP_INFO: '.length..-1]
         elsif self.exitcode == 0
-          if line =~ /^SSH_KEY_ADD: /
+          if line.start_with?('SSH_KEY_ADD: ')
             key = line['SSH_KEY_ADD: '.length..-1].chomp
             self.cart_commands.push({:command => "SYSTEM_SSH_KEY_ADD", :args => [key]})
-          elsif line =~ /^APP_SSH_KEY_ADD: /
+          elsif line.start_with?('APP_SSH_KEY_ADD: ')
             response = line['APP_SSH_KEY_ADD: '.length..-1].chomp
             cart,key = response.split(' ')
             cart = cart.gsub(".", "-")
             self.cart_commands.push({:command => "APP_SSH_KEY_ADD", :args => [cart, key]})
-          elsif line =~ /^APP_ENV_VAR_REMOVE: /
+          elsif line.start_with?('APP_ENV_VAR_REMOVE: ')
             key = line['APP_ENV_VAR_REMOVE: '.length..-1].chomp
             self.cart_commands.push({:command => "APP_ENV_VAR_REMOVE", :args => [key]})
-          elsif line =~ /^ENV_VAR_ADD: /
+          elsif line.start_with?('ENV_VAR_ADD: ')
             env_var = line['ENV_VAR_ADD: '.length..-1].chomp.split('=')
             self.cart_commands.push({:command => "ENV_VAR_ADD", :args => [env_var[0], env_var[1]]})
           elsif line =~ /^BROKER_AUTH_KEY_(ADD|REMOVE): /
-            if line =~ /^BROKER_AUTH_KEY_ADD: /
+            if $1 == 'ADD'
               self.cart_commands.push({:command => "BROKER_KEY_ADD", :args => []})
             else
               self.cart_commands.push({:command => "BROKER_KEY_REMOVE", :args => []})
