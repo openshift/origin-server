@@ -158,7 +158,7 @@ class Application
         features.each do |feature|
           cart = CartridgeCache.find_cartridge(feature, app)
           if cart
-            framework_cartridges.push(cart.name) unless not framework_carts.include?(cart.name)
+            framework_cartridges.push(cart.name) if framework_carts.include?(feature)
           else
             raise OpenShift::UserException.new("Invalid cartridge '#{feature}' specified.", 109, "cartridge")
           end
@@ -207,7 +207,7 @@ class Application
       @downloaded_cartridges = {}
       cmap.each { |cartname, cartdata|
         manifest_str = cartdata["original_manifest"]
-        CartridgeCache.foreach_cart_version(manifest_str, cartdata["version"]) do |chash,name,version|
+        CartridgeCache.foreach_cart_version(manifest_str, cartdata["version"]) do |chash,name,version,vendored_name|
           cart = OpenShift::Cartridge.new.from_descriptor(chash)
           if @downloaded_cartridges.has_key?(cart.name) 
             Rails.logger.error("Duplicate community cartridge exists for application '#{self.name}'! Overwriting..")
@@ -388,7 +388,7 @@ class Application
   # @param include_pending [Boolean] Include the pending changes when calculating the list of features
   # @return [Array<String>] List of features
   def requires(include_pending=false)
-    features = component_instances.map {|ci| get_feature(ci.cartridge_name, ci.component_name)}
+    features = component_instances.map {|ci| ci.cartridge_name} #get_feature(ci.cartridge_name, ci.component_name)}
 
     if include_pending
       self.pending_op_groups.each do |op_group|
@@ -942,7 +942,7 @@ class Application
   end
 
   def get_unsubscribe_info(comp_inst)
-    old_features = self.requires + [get_feature(comp_inst.cartridge_name, comp_inst.component_name)]
+    old_features = self.requires + [comp_inst.cartridge_name] #[get_feature(comp_inst.cartridge_name, comp_inst.component_name)]
     old_connections, ignore, ignore = elaborate(old_features)
     sub_pub_hash = {}
     if self.scalable and old_connections
@@ -976,7 +976,7 @@ class Application
         sub_ginst.gears.each_index do |idx|
           break if (sub_inst.is_singleton? && idx > 0)
           gear = sub_ginst.gears[idx]
-          job = gear.get_unsubscribe_job(sub_inst.cartridge_name, pub_cart_name)
+          job = gear.get_unsubscribe_job(sub_inst, pub_cart_name)
           RemoteJob.add_parallel_job(handle, tag, gear, job)
         end
       end
@@ -1008,7 +1008,7 @@ class Application
           break if (pub_inst.is_singleton? && idx > 0)
           gear = pub_ginst.gears[idx]
           input_args = [gear.name, self.domain.namespace, gear.uuid]
-          job = gear.get_execute_connector_job(pub_inst.cartridge_name, conn.from_connector_name, conn.connection_type, input_args)
+          job = gear.get_execute_connector_job(pub_inst, conn.from_connector_name, conn.connection_type, input_args)
           RemoteJob.add_parallel_job(handle, tag, gear, job)
         end
       end
@@ -1048,7 +1048,7 @@ class Application
             gear = sub_ginst.gears[idx]
   
             input_args = [gear.name, self.domain.namespace, gear.uuid, input_to_subscriber]
-            job = gear.get_execute_connector_job(sub_inst.cartridge_name, conn.to_connector_name, conn.connection_type, input_args, pub_inst.cartridge_name)
+            job = gear.get_execute_connector_job(sub_inst, conn.to_connector_name, conn.connection_type, input_args, pub_inst.cartridge_name)
             RemoteJob.add_parallel_job(handle, tag, gear, job)
           end
         end
@@ -1489,7 +1489,7 @@ class Application
 
       new_component_op_id = []
       unless is_scale_up
-        new_component_op = PendingAppOp.new(op_type: :new_component, args: {"group_instance_id"=> group_instance_id, "comp_spec" => comp_spec}, prereq: [new_group_instance_op_id])
+        new_component_op = PendingAppOp.new(op_type: :new_component, args: {"group_instance_id"=> group_instance_id, "comp_spec" => comp_spec, "cartridge_vendor" => cartridge.cartridge_vendor, "version" => cartridge.version}, prereq: [new_group_instance_op_id])
         component_ops[comp_spec][:new_component] = new_component_op
         new_component_op_id = [new_component_op._id.to_s]
         ops.push new_component_op

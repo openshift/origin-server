@@ -39,21 +39,6 @@ class CartridgeCache
     end
   end
   
-  def self.find_cartridge_by_component(component_name, app=nil)
-    if app
-      app.downloaded_cartridges.values.each do |cart|
-        return cart if cart.has_component?(component_name)
-        return cart if cart.name == component_name
-      end
-    end
-    carts = self.cartridges
-    carts.each do |cart|
-      return cart if cart.has_component?(component_name)
-      return cart if cart.name == component_name
-    end
-    return nil
-  end
-  
   def self.find_cartridge_by_category(cat, app=nil)
     global_carts = CacheHelper.get_cached("cartridges_by_cat_#{cat}", :expires_in => 1.day) {cartridges.select{|cart| cart.categories.include?(cat) }}
     if app
@@ -101,14 +86,25 @@ class CartridgeCache
   def self.find_all_cartridges(requested_feature)
     
     carts = self.cartridges
-    vendor, feature, version = self.extract_vendor_feature_version(requested_feature)
+
+    with_vendor_hash = {}
+    without_vendor_hash = {}
+    carts.each { |c|
+      without_vendor_hash[c.original_name] = [] if !without_vendor_hash[c.original_name]
+      without_vendor_hash[c.original_name] = (without_vendor_hash[c.original_name] << c)
+      next if c.cartridge_vendor.to_s.empty?
+      vcartname = (c.cartridge_vendor + "-" + c.original_name)
+      with_vendor_hash[vcartname] = [] if !with_vendor_hash[vcartname]
+      with_vendor_hash[vcartname] = (with_vendor_hash[vcartname] << c)
+    }
+
+    return with_vendor_hash[requested_feature] if with_vendor_hash[requested_feature]
+    return without_vendor_hash[requested_feature] if without_vendor_hash[requested_feature]
+
     matching_carts = []
     
     carts.each do |cart|
-      matching_carts << cart if cart.name == requested_feature
-      matching_carts << cart if (cart.features.include?(feature) and 
-                                (vendor.nil? or cart.cartridge_vendor == vendor) and 
-                                (version.nil? or cart.version.to_s == version.to_s))
+      matching_carts << cart if cart.features.include?(requested_feature) 
     end
     
     return matching_carts
@@ -156,7 +152,8 @@ class CartridgeCache
       v1_manifest            = Marshal.load(Marshal.dump(cooked.manifest))
       v1_manifest['Name']    = "#{cooked.name}-#{cooked.version}"
       v1_manifest['Version'] = cooked.version
-      yield v1_manifest,cooked.name,version
+      vendored_name =  v1_manifest["Cartridge-Vendor"].to_s.empty? ? v1_manifest["Name"] : "#{cooked.cartridge_vendor}-#{cooked.name}-#{cooked.version}"
+      yield v1_manifest,cooked.name,version,vendored_name
     end
   end
 
@@ -188,8 +185,8 @@ class CartridgeCache
        end
        
        # TODO: check versions and create multiple of them
-       self.foreach_cart_version(manifest_str) do |chash,name,version|
-         cmap[name] = { "versioned_name" => chash["Name"], "url" => url, "original_manifest" => manifest_str, "version" => version}
+       self.foreach_cart_version(manifest_str) do |chash,name,version,vendored_name|
+         cmap[name] = { "versioned_name" => vendored_name, "url" => url, "original_manifest" => manifest_str, "version" => version}
          # no versioning support on downloaded cartridges yet.. use the default one
          break
        end
@@ -197,21 +194,4 @@ class CartridgeCache
     return cmap
   end
   
-  def self.extract_vendor_feature_version(requested_feature)
-    vendor, feature, version = nil
-    return vendor, feature, version if requested_feature.nil?
-    a = requested_feature.split("-")
-    if a.length == 1 
-      feature = a[0]
-    elsif a.length == 2 
-      feature = a[0]
-      version = a[1]
-    elsif a.length >= 3
-      vendor = a[0]
-      version = a[a.length - 1] 
-      feature = a[1..(a.length - 2)].join("-")
-    end
-    return vendor, feature, version
-  end
-
 end

@@ -159,7 +159,7 @@ class PendingAppOpGroup
             comp_name = op.args["comp_spec"]["comp"]
             cart_name = op.args["comp_spec"]["cart"]
             if op.op_type == :new_component
-              component_instance = ComponentInstance.new(cartridge_name: cart_name, component_name: comp_name, group_instance_id: group_instance._id)
+              component_instance = ComponentInstance.new(cartridge_name: cart_name, component_name: comp_name, group_instance_id: group_instance._id, cartridge_vendor: op.args["cartridge_vendor"], version: op.args["version"])
             else
               component_instance = application.component_instances.find_by(cartridge_name: cart_name, component_name: comp_name, group_instance_id: group_instance._id)
             end
@@ -182,7 +182,7 @@ class PendingAppOpGroup
           when :unreserve_uid
             gear.unreserve_uid          
           when :expose_port
-            job = gear.get_expose_port_job(cart_name)
+            job = gear.get_expose_port_job(component_instance)
             RemoteJob.add_parallel_job(handle, "expose-ports::#{component_instance._id.to_s}", gear, job)
             use_parallel_job = true
           when :new_component
@@ -219,19 +219,19 @@ class PendingAppOpGroup
           when :destroy_gear
             result_io.append gear.destroy_gear(true)
           when :start_component
-            result_io.append gear.start(cart_name)
+            result_io.append gear.start(component_instance)
           when :stop_component
             if args.has_key?("force") and args["force"]==true
-              result_io.append gear.force_stop(cart_name)
+              result_io.append gear.force_stop(component_instance)
             else
-              result_io.append gear.stop(cart_name)
+              result_io.append gear.stop(component_instance)
             end
           when :restart_component
-            result_io.append gear.restart(cart_name)
+            result_io.append gear.restart(component_instance)
           when :reload_component_config
-            result_io.append gear.reload_config(cart_name)
+            result_io.append gear.reload_config(component_instance)
           when :tidy_component
-            result_io.append gear.tidy(comp_name)
+            result_io.append gear.tidy(component_instance)
           when :update_configuration
             gear.update_configuration(op.args,handle)
             use_parallel_job = true
