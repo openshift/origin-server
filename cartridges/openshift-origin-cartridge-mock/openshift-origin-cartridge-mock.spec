@@ -2,7 +2,7 @@
 
 Summary:       Mock cartridge for V2 Cartridge SDK
 Name:          openshift-origin-cartridge-mock
-Version:       0.4.5
+Version:       0.4.6
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -40,6 +40,13 @@ test platform functionality. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Fri May 24 2013 Adam Miller <admiller@redhat.com> 0.4.6-1
+- Bug 967017: Use underscores for v2 cart script names (ironcladlou@gmail.com)
+- Merge pull request #2612 from jwhonce/bug/964347
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 964347 - Run cartridge scripts from cartridge home directory
+  (jhonce@redhat.com)
+
 * Thu May 23 2013 Adam Miller <admiller@redhat.com> 0.4.5-1
 - Merge pull request #2596 from fotioslindiakos/Bug960707
   (dmcphers+openshiftbot@redhat.com)

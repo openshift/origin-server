@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.9.6
+Version: 1.9.7
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -84,6 +84,20 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Fri May 24 2013 Adam Miller <admiller@redhat.com> 1.9.7-1
+- Merge pull request #2614 from
+  smarterclayton/add_unique_header_to_cart_download
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #2621 from abhgupta/abhgupta-dev
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #2612 from jwhonce/bug/964347
+  (dmcphers+openshiftbot@redhat.com)
+- Fix for bug 959976 (abhgupta@redhat.com)
+- Bug 964347 - Run cartridge scripts from cartridge home directory
+  (jhonce@redhat.com)
+- Add a unique header X-OpenShift-Cartridge-Download to all cart download
+  requests (ccoleman@redhat.com)
+
 * Thu May 23 2013 Adam Miller <admiller@redhat.com> 1.9.6-1
 - Merge pull request #2611 from pravisankar/dev/ravi/unsubscribe_fix
   (dmcphers+openshiftbot@redhat.com)

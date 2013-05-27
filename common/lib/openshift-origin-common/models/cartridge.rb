@@ -21,7 +21,7 @@ module OpenShift
     end
     
     def profile_for_feature(feature)
-      if feature.nil? || self.provides.include?(feature) || self.name == feature || feature == "#{self.cartridge_vendor}-#{self.name}"
+      if feature.nil? || self.provides.include?(feature) || self.name == feature || feature == self.original_name
         return @_profile_map[self.default_profile]
       else
         self.profiles.each do |profile|
@@ -105,7 +105,7 @@ module OpenShift
       self.version = spec_hash["Version"] || "0.0"
       self.versions = spec_hash["Versions"] || []
       self.architecture = spec_hash["Architecture"] || "noarch"
-      self.display_name = spec_hash["Display-Name"] || "#{self.name}-#{self.version}-#{self.architecture}"
+      self.display_name = spec_hash["Display-Name"] || "#{self.original_name}-#{self.version}-#{self.architecture}"
       self.license = spec_hash["License"] || "unknown"
       self.license_url = spec_hash["License-Url"] || ""
       self.vendor = spec_hash["Vendor"] || "unknown"
@@ -148,10 +148,18 @@ module OpenShift
       self.default_profile = spec_hash["Default-Profile"] || self.profiles.first.name
       self
     end
-    
+
+    def name
+      (self.cartridge_vendor.to_s=="redhat" || self.cartridge_vendor.to_s.empty?) ? self.original_name : (self.cartridge_vendor + "-" + self.original_name)
+    end
+
+    def original_name
+      @name
+    end
+
     def to_descriptor
       h = {
-        "Name" => self.name,
+        "Name" => self.original_name,
         "Display-Name" => self.display_name,
       }
       

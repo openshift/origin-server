@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Common
 Name:          rubygem-%{gem_name}
-Version: 1.8.5
+Version: 1.8.6
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -97,6 +97,11 @@ cp -a ./%{gem_dir}/* %{buildroot}%{gem_dir}/
 %doc %{gem_docdir}
 
 %changelog
+* Fri May 24 2013 Adam Miller <admiller@redhat.com> 1.8.6-1
+- Bug 965317 - Add way to patch File class so all files have sync enabled.
+  (rmillner@redhat.com)
+- Bug 966759 - Ensure mappings start with / (jhonce@redhat.com)
+
 * Thu May 23 2013 Adam Miller <admiller@redhat.com> 1.8.5-1
 - Fix for bug 960757  - Sending init_git_url only for deployable cartridge
   configure/post-configure  - Removing is_primary_cart method in favor of

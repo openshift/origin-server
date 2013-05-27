@@ -61,34 +61,35 @@ class BuildLifecycleTest < Test::Unit::TestCase
   def test_pre_receive_default_builder
     @cartridge_model.expects(:builder_cartridge).returns(nil)
     
-    primary = mock()
-    @cartridge_model.expects(:primary_cartridge).returns(primary)
-
     @container.expects(:stop_gear).with(user_initiated: true, hot_deploy: nil, out: $stdout, err: $stderr)
-    @cartridge_model.expects(:do_control).with('pre-receive',
-                                               primary,
-                                               out:                       $stdout,
-                                               err:                       $stderr,
-                                               pre_action_hooks_enabled:  false,
-                                               post_action_hooks_enabled: false)
 
     @container.pre_receive(out: $stdout, err: $stderr)
   end
 
   def test_post_receive_default_builder
     repository = mock()
+
     OpenShift::ApplicationRepository.expects(:new).returns(repository)
 
     @cartridge_model.expects(:builder_cartridge).returns(nil)
 
-    repository.expects(:deploy)
+    primary = mock()
+    @cartridge_model.stubs(:primary_cartridge).returns(primary)
+
+    @cartridge_model.expects(:do_control).with('pre-repo-archive',
+                                                primary,
+                                                out:                       $stdout,
+                                                err:                       $stderr,
+                                                pre_action_hooks_enabled:  false,
+                                                post_action_hooks_enabled: false)
+
+    repository.expects(:archive)
+
     @container.expects(:build).with(out: $stdout, err: $stderr)
     @container.expects(:start_gear).with(secondary_only: true, user_initiated: true, hot_deploy: nil, out: $stdout, err: $stderr)
     @container.expects(:deploy).with(out: $stdout, err: $stderr)
     @container.expects(:start_gear).with(primary_only: true, user_initiated: true, hot_deploy: nil, out: $stdout, err: $stderr)
     @container.expects(:post_deploy).with(out: $stdout, err: $stderr)
-
-    @frontend.expects(:unprivileged_unidle)
 
     @container.post_receive(out: $stdout, err: $stderr)
   end

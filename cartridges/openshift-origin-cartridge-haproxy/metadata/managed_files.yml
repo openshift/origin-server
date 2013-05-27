@@ -3,7 +3,6 @@ locked_files:
 - env/
 - env/*
 - metadata/
-- metadata/*
 - bin/
 - bin/*
 - hooks/

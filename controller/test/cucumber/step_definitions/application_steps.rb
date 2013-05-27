@@ -62,7 +62,7 @@ end
 When /^the submodule is added$/ do
   Dir.chdir(@app.repo) do
     # Add a submodule created in devenv and link the index file
-    run("git submodule add /root/submodule_test_repo")
+    run("git submodule add #{$submodule_repo_dir}")
     run("REPLACE=`cat submodule_test_repo/index`; sed -i \"s/OpenShift/${REPLACE}/\" #{@app.get_index_file}")
     run("git commit -a -m 'Test submodule change'")
     run("git push >> " + @app.get_log("git_push") + " 2>&1")

@@ -1,6 +1,6 @@
 Summary:       Utility scripts for the OpenShift Origin broker
 Name:          openshift-origin-node-util
-Version: 1.9.4
+Version: 1.9.5
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -122,6 +122,14 @@ mv services/openshift-gears.service %{buildroot}/etc/systemd/system/openshift-ge
 /sbin/restorecon /usr/sbin/oo-restorer* || :
 
 %changelog
+* Fri May 24 2013 Adam Miller <admiller@redhat.com> 1.9.5-1
+- BZ963827 - Improved logging messages (calfonso@redhat.com)
+- Bug 965317 - Add way to patch File class so all files have sync enabled.
+  (rmillner@redhat.com)
+- Merge pull request #2404 from Miciah/oo-accept-linux-check-
+  allow_polyinstantiation (dmcphers+openshiftbot@redhat.com)
+- oo-accept-node: check allow_polyinstantiation (miciah.masters@gmail.com)
+
 * Wed May 22 2013 Adam Miller <admiller@redhat.com> 1.9.4-1
 - Merge pull request #2594 from calfonso/master
   (dmcphers+openshiftbot@redhat.com)

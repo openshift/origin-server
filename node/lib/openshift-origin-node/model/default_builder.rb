@@ -32,7 +32,14 @@ module OpenShift
     end
 
     def post_receive(options)
-      ApplicationRepository.new(@container.user).deploy
+      @container.cartridge_model.do_control('pre-repo-archive',
+                                            @container.cartridge_model.primary_cartridge,
+                                            out:                       options[:out],
+                                            err:                       options[:err],
+                                            pre_action_hooks_enabled:  false,
+                                            post_action_hooks_enabled: false)
+
+      ApplicationRepository.new(@container.user).archive
 
       @container.build(out: options[:out],
                        err: options[:err])
@@ -51,8 +58,6 @@ module OpenShift
                             hot_deploy:     options[:hot_deploy],
                             out:            options[:out],
                             err:            options[:err])
-
-      FrontendHttpServer.new(@container.uuid).unprivileged_unidle
 
       @container.post_deploy(out: options[:out],
                              err: options[:err])

@@ -266,16 +266,16 @@ module OpenShift
       logger.info "configure output: #{output}"
       return output
     rescue Utils::ShellExecutionException => e
-      stdout = e.stdout.split("\n").map { |l| l.start_with?('CLIENT_') ? l : "CLIENT_MESSAGE: #{l}" }.join("\n")
-      stderr = e.stderr.split("\n").map { |l| l.start_with?('CLIENT_') ? l : "CLIENT_ERROR: #{l}" }.join("\n")
-      raise Utils::ShellExecutionException.new(e.message, (e.rc < 100 ? 157 : e.rc), stdout, stderr)
+      rc_override = e.rc < 100 ? 157 : e.rc
+      raise Utils::Sdk.translate_shell_ex_for_client(e, rc_override)
     rescue => e
-      msg = e.message.split("\n").each { |l| l.start_with?('CLIENT_') ? l : "CLIENT_ERROR: #{l}" }.join("\n")
-      raise msg
+      ex =  RuntimeError.new(Utils::Sdk.translate_out_for_client(e.message, :error))
+      ex.set_backtrace(e.backtrace)
+      raise ex
     end
 
     def post_install(cartridge, software_version, options = {})
-      output = cartridge_action(cartridge, 'post-install', software_version)
+      output = cartridge_action(cartridge, 'post_install', software_version)
       options[:out].puts(output) if options[:out]
       output
     end
@@ -288,15 +288,13 @@ module OpenShift
 
       OpenShift::Utils::Cgroups::with_no_cpu_limits(@user.uuid) do
         output << start_cartridge('start', cartridge, user_initiated: true)
-        output << cartridge_action(cartridge, 'post-install', software_version)
+        output << cartridge_action(cartridge, 'post_install', software_version)
       end
 
       logger.info("post-configure output: #{output}")
       output
     rescue Utils::ShellExecutionException => e
-      stdout = e.stdout.split("\n").map { |l| l.start_with?('CLIENT_') ? l : "CLIENT_MESSAGE: #{l}" }.join("\n")
-      stderr = e.stderr.split("\n").map { |l| l.start_with?('CLIENT_') ? l : "CLIENT_ERROR: #{l}" }.join("\n")
-      raise Utils::ShellExecutionException.new(e.message, 157, stdout, stderr)
+      raise Utils::Sdk.translate_shell_ex_for_client(e, 157)
     end
 
     # deconfigure(cartridge_name) -> nil
@@ -448,20 +446,31 @@ module OpenShift
       nil
     end
 
-    def secure_cartridge(uid, gid=uid, target)
-      PathUtils.oo_chown_R(uid, gid, target)
+    def secure_cartridge(uid, gid=uid, cartridge_home)
+      name = File.basename(cartridge_home)
 
-      mcs_label = Utils::SELinux.get_mcs_label(uid)
-      Utils::SELinux.set_mcs_label_R(mcs_label, target)
-      #Utils::SELinux.clear_mcs_label(Dir.glob(File.join(target, 'bin', '*')))
+      Dir.chdir(cartridge_home) do
+        make_user_owned(cartridge_home)
 
-      # BZ 950752
-      # Find out if we can have upstream set a context for /var/lib/openshift/*/*/bin/*.
-      # The following will break WHEN the inevitable restorecon is run in production.
-      Utils.oo_spawn(
-          "chcon system_u:object_r:bin_t:s0 #{File.join(target, 'bin', '*')}",
-          expected_exitstatus: 0
-      )
+        files = ManagedFiles::IMMUTABLE_FILES.collect do |file|
+          file.gsub!('*', name.upcase)
+          file if File.exist?(file)
+        end || []
+
+        if files.empty?
+          PathUtils.oo_chown(0, gid, files)
+          FileUtils.chmod(0644, files)
+        end
+        #Utils::SELinux.clear_mcs_label(Dir.glob(File.join(target, 'bin', '*')))
+
+        # BZ 950752
+        # Find out if we can have upstream set a context for /var/lib/openshift/*/*/bin/*.
+        # The following will break WHEN the inevitable restorecon is run in production.
+        Utils.oo_spawn(
+            "chcon system_u:object_r:bin_t:s0 #{File.join(cartridge_home, 'bin', '*')}",
+            expected_exitstatus: 0
+        )
+      end
     end
 
     ##
@@ -508,7 +517,7 @@ module OpenShift
       end
 
       if repo.exist?
-        repo.deploy
+        repo.archive
         "CLIENT_DEBUG: The cartridge #{cartridge_name} deployed a template application"
       else
         "CLIENT_MESSAGE: The cartridge #{cartridge_name} did not provide template application"
@@ -819,8 +828,7 @@ module OpenShift
       end
 
       Dir[PathUtils.join(@user.homedir, "*")].each do |cart_dir|
-        next if cart_dir.end_with?('app-root') || cart_dir.end_with?('git') ||
-            (not File.directory? cart_dir) || File.symlink?(cart_dir)
+        next if File.symlink?(cart_dir) || !File.exist?(PathUtils.join(cart_dir, "metadata", "manifest.yml"))
         yield cart_dir
       end if @user.homedir and File.exist?(@user.homedir)
     end
@@ -1019,7 +1027,11 @@ module OpenShift
     # Executes the named +action+ from the user repo +action_hooks+ directory and returns the
     # stdout of the execution, or raises a +ShellExecutionException+ if the action returns a
     # non-zero return code.
+    #
+    # All hyphens in the +action+ will be replaced with underscores.
     def do_action_hook(action, env, options)
+      action = action.gsub(/-/, '_')
+
       action_hooks_dir = File.join(@user.homedir, %w{app-root runtime repo .openshift action_hooks})
       action_hook      = File.join(action_hooks_dir, action)
       buffer           = ''
@@ -1156,6 +1168,14 @@ module OpenShift
       if cartridge.name == primary_cartridge.name
         FileUtils.rm_f(stop_lock) if options[:user_initiated]
         @state.value = OpenShift::State::STARTED
+
+        # Unidle the application, preferring to use the privileged operation if possible
+        frontend = FrontendHttpServer.new(@user.uuid)
+        if Process.uid == @user.uid
+          frontend.unprivileged_unidle
+        else
+          frontend.unidle
+        end
       end
 
       if options[:hot_deploy]

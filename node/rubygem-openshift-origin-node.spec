@@ -16,7 +16,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.9.6
+Version: 1.9.7
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -135,7 +135,7 @@ mkdir -p %{buildroot}/usr/libexec/openshift/lib
 mv %{buildroot}%{gem_instdir}/misc/libexec/lib/teardown_pam_fs_limits.sh %{buildroot}/usr/libexec/openshift/lib
 mv %{buildroot}%{gem_instdir}/misc/libexec/lib/setup_pam_fs_limits.sh %{buildroot}/usr/libexec/openshift/lib
 mv %{buildroot}%{gem_instdir}/misc/libexec/lib/quota_attrs.sh %{buildroot}/usr/libexec/openshift/lib
-mv %{buildroot}%{gem_instdir}/misc/libexec/lib/deploy_git_submodules.sh %{buildroot}/usr/libexec/openshift/lib
+mv %{buildroot}%{gem_instdir}/misc/libexec/lib/archive_git_submodules.sh %{buildroot}/usr/libexec/openshift/lib
 
 # Install the cartridge SDK files and environment variables for each
 mkdir -p %{buildroot}/usr/lib/openshift/cartridge_sdk
@@ -240,7 +240,7 @@ fi
 /usr/libexec/openshift/lib/setup_pam_fs_limits.sh
 /usr/libexec/openshift/lib/teardown_pam_fs_limits.sh
 /usr/libexec/openshift/lib/quota_attrs.sh
-/usr/libexec/openshift/lib/deploy_git_submodules.sh
+/usr/libexec/openshift/lib/archive_git_submodules.sh
 %attr(0755,-,-) /usr/lib/openshift/cartridge_sdk
 %attr(0755,-,-) /usr/lib/openshift/cartridge_sdk/bash
 %attr(0744,-,-) /usr/lib/openshift/cartridge_sdk/bash/*
@@ -294,6 +294,29 @@ fi
 %attr(0755,-,-) /etc/cron.monthly/openshift-origin-cron-monthly
 
 %changelog
+* Fri May 24 2013 Adam Miller <admiller@redhat.com> 1.9.7-1
+- Merge pull request #2633 from ironcladlou/bz/967017
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 967017: Use underscores for v2 cart script names (ironcladlou@gmail.com)
+- Bug 965757: Provide output to client on post-configure failure
+  (ironcladlou@gmail.com)
+- Flatten args to disconnect like the args to connect so that it can be used
+  the same way. (rmillner@redhat.com)
+- Merge pull request #2627 from danmcp/master
+  (dmcphers+openshiftbot@redhat.com)
+- remove install build required for non buildable carts (dmcphers@redhat.com)
+- Bug 966758 - Disconnect frontend mappings when removing catridge
+  (jhonce@redhat.com)
+- Don't remove files while the app is still running before the user is
+  destroyed. (dmcphers@redhat.com)
+- Merge pull request #2612 from jwhonce/bug/964347
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #2583 from Miciah/drop-todo-for-v2-switchover
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 964347 - Run cartridge scripts from cartridge home directory
+  (jhonce@redhat.com)
+- Delete old TODOs related to v2 switchover (miciah.masters@gmail.com)
+
 * Thu May 23 2013 Adam Miller <admiller@redhat.com> 1.9.6-1
 - Merge pull request #2603 from fotioslindiakos/Bug959476
   (dmcphers+openshiftbot@redhat.com)

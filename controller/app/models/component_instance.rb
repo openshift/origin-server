@@ -13,6 +13,8 @@ class ComponentInstance
 
   field :cartridge_name, type: String
   field :component_name, type: String
+  field :cartridge_vendor, type: String, default: ""
+  field :version, type: String, default: ""
   field :component_properties, type: Hash, default: {}
   field :group_instance_id, type: Moped::BSON::ObjectId
 
