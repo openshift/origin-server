@@ -6,7 +6,7 @@
 %global cartridgedir %{_libexecdir}/openshift/cartridges/v2/ruby
 
 Name:          openshift-origin-cartridge-ruby
-Version:       0.4.5
+Version:       0.4.6
 Release:       1%{?dist}
 Summary:       Ruby cartridge
 Group:         Development/Languages
@@ -168,6 +168,10 @@ Ruby cartridge for OpenShift. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Tue May 28 2013 Adam Miller <admiller@redhat.com> 0.4.6-1
+- Replace pre-receive cart control action with pre-repo-archive
+  (ironcladlou@gmail.com)
+
 * Thu May 23 2013 Adam Miller <admiller@redhat.com> 0.4.5-1
 - Bug 966255: Remove OPENSHIFT_INTERNAL_* references from v2 carts
   (ironcladlou@gmail.com)
