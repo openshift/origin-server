@@ -30,12 +30,15 @@ for APPHOME in $(gear_dirs); do
     # Is stale detection disabled
     [ -e "$APPHOME/.disable_stale" ] && continue
 
-    # Determine if something was committed using the git objects directory
-    objects_modified=$(find "$APPHOME/git" -mindepth 2 -maxdepth 2 -name objects -mtime -$days)
-    if [ -z "${objects_modified}" ]; then
-        uuid=$(basename "$APPHOME")
-        if /usr/sbin/oo-app-idle "$uuid" $days; then
-            echo "$uuid is stale"
+    # Only list gears that have any Frontend Mappings defined
+    if grep -r "Mappings:" `find $APPHOME -name 'manifest.yml'` &> /dev/null ; then
+        # Determine if something was committed using the git objects directory
+        objects_modified=$(find "$APPHOME/git" -mindepth 2 -maxdepth 2 -name objects -mtime -$days)
+        if [ -z "${objects_modified}" ]; then
+            uuid=$(basename "$APPHOME")
+            if /usr/sbin/oo-app-idle "$uuid" $days; then
+                echo "$uuid is stale"
+            fi
         fi
     fi
 done
