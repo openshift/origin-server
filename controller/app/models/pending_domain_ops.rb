@@ -77,4 +77,16 @@ class PendingDomainOps
       Rails.logger.error "Failed to add application #{app._id} to the completed_apps for pending_op #{self._id} for domain #{self.domain.namespace}"
     end  
   end
+  
+  def serializable_hash_with_timestamp
+    s_hash = self.serializable_hash
+    t = Time.zone.now
+    if self.created_at.nil?
+      s_hash["created_at"] = t
+    end
+    if self.updated_at.nil?
+      s_hash["updated_at"] = t
+    end
+    s_hash
+  end
 end

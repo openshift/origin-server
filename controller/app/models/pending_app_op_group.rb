@@ -338,4 +338,16 @@ class PendingAppOpGroup
     end
     component_instance
   end
+  
+  def serializable_hash_with_timestamp
+    s_hash = self.serializable_hash
+    t = Time.zone.now
+    if self.created_at.nil?
+      s_hash["created_at"] = t
+    end
+    if self.updated_at.nil?
+      s_hash["updated_at"] = t
+    end
+    s_hash
+  end
 end
