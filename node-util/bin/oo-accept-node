@@ -520,8 +520,15 @@ def check_system_httpd_configs
   end
 
   httpconfs['nodes.txt'].delete_if   { |k,v|  k.split('/')[0] == '__default__' }
+  mangled_gears=[]
   $ALL_USERS.each do |u|
     dnsfile = File.join($GEAR_BASE_DIR, u, '.env', 'OPENSHIFT_GEAR_DNS')
+    if not File.exists?(dnsfile)
+      do_fail("Gear does not have an OPENSHIFT_GEAR_DNS variable: '#{u}'")
+      mangled_gears << u
+      next
+    end
+
     fqdn = File.read(dnsfile)
     if fqdn.start_with?('export ')
       fqdn = fqdn.sub(/^.*=/,'').gsub('\'','').gsub('"','').strip.downcase
@@ -610,7 +617,9 @@ def check_system_httpd_configs
 
 
   httpconfs['geardb.json'].each do |k, v|
-    do_fail("httpd config references UUID without associated gear: '#{k}'")
+    if not mangled_gears.include?(k)
+      do_fail("httpd config references UUID without associated gear: '#{k}'")
+    end
     fail_dns_names.delete(v["fqdn"])
   end
 
