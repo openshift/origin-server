@@ -69,6 +69,7 @@ mv services/openshift-gears.service %{buildroot}/etc/systemd/system/openshift-ge
 %attr(0750,-,-) %{_sbindir}/oo-admin-ctl-gears
 %attr(0750,-,-) %{_sbindir}/oo-app-idle
 %attr(0750,-,-) %{_sbindir}/oo-autoidler
+%attr(0750,-,-) %{_sbindir}/oo-auto-idler
 %attr(0750,-,-) %{_sbindir}/oo-idler
 %attr(0750,-,-) %{_sbindir}/oo-idler-stats
 %attr(0750,-,-) %{_sbindir}/oo-init-quota

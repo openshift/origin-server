@@ -16,6 +16,7 @@
 
 require 'rubygems'
 require 'openshift-origin-node/model/frontend_proxy'
+require 'openshift-origin-node/model/frontend_httpd'
 require 'openshift-origin-node/model/unix_user'
 require 'openshift-origin-node/model/v1_cart_model'
 require 'openshift-origin-node/model/v2_cart_model'
@@ -338,6 +339,38 @@ module OpenShift
       end
       buffer << stopped_status_attr
       buffer
+    end
+
+    ##
+    # Idles the gear if there is no stop lock and state is not already +STOPPED+.
+    #
+    def idle_gear(options={})
+      if not stop_lock? and (state.value != State::STOPPED)
+        frontend = FrontendHttpServer.new(@uuid)
+        frontend.idle
+        begin
+          output = stop_gear
+        ensure
+          state.value = State::IDLE
+        end
+        output
+      end
+    end
+
+    ##
+    # Unidles the gear.
+    #
+    def unidle_gear(options={})
+      output = ""
+      if stop_lock? and (state.value == State::IDLE)
+        state.value = State::STARTED
+        output = start_gear
+      end
+      frontend = FrontendHttpServer.new(@uuid)
+      if frontend.idle?
+        frontend.unidle
+      end
+      output
     end
 
     ##
