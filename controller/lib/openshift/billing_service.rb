@@ -112,5 +112,11 @@ module OpenShift
       # Deleting ended usage records
       session.with(safe:true)[:usage_records].find({_id: {"$in" => user_ids}}).remove_all unless user_ids.empty?
     end
+
+    def check_inconsistencies(user_hash, summary, verbose)
+    end
+
+    def display_check_help
+    end
   end
 end
