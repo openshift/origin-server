@@ -459,7 +459,7 @@ class Application
       if cart.is_domain_scoped?
         begin
           if Application.where(domain_id: self.domain._id, "component_instances.cartridge_name" => cart.name).count() > 0
-            raise  .new("An application with #{feature_name} already exists within the domain. You can only have a single application with #{feature_name} within a domain.")
+            raise OpenShift::UserException.new("An application with #{feature_name} already exists within the domain. You can only have a single application with #{feature_name} within a domain.")
           end
         rescue Mongoid::Errors::DocumentNotFound
           #ignore
