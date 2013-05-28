@@ -45,6 +45,7 @@ module OpenShift
 
         ex = Utils::ShellExecutionException.new(e.message, rc, stdout, stderr)
         ex.set_backtrace(e.backtrace)
+        ex
       end
 
       # Public: Translate a String destined for the client with CLIENT_ prefixes. Handles newlines

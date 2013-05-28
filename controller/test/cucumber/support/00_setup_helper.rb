@@ -84,7 +84,7 @@ module SetupHelper
         `git add index`
         `git commit -m 'test'`
       end
-      `chmod -R 666 $submodule_repo_dir`
+      `chmod -R 666 #{$submodule_repo_dir}`
     end
 
     # set the bind keyvalue from the installed plugin config
