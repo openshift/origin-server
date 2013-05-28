@@ -764,7 +764,7 @@ class Application
     result_io = ResultIO.new
     component_instances.each do |component_instance|
       GroupInstance.run_on_gears(component_instance.group_instance.gears, result_io, false) do |gear, r|
-        r.append gear.threaddump(component_instance.cartridge_name)
+        r.append gear.threaddump(component_instance)
         threaddump_available = true
       end if component_instance.get_additional_control_actions and component_instance.get_additional_control_actions.include? "threaddump"
     end
