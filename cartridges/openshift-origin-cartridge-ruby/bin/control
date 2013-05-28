@@ -145,14 +145,16 @@ function build() {
               popd 1> /dev/null
           fi
         popd 1>/dev/null
+    fi
+}
 
-        if [ -f ${OPENSHIFT_REPO_DIR}/Rakefile ]
-        then
-            echo "Precompiling with 'bundle exec rake assets:precompile'"
-            pushd ${OPENSHIFT_REPO_DIR} > /dev/null
-            ruby_context "bundle exec rake assets:precompile"
-            popd > /dev/null
-        fi
+function deploy() {
+    if [ -f ${OPENSHIFT_REPO_DIR}/Rakefile ]
+    then
+        echo "Precompiling with 'bundle exec rake assets:precompile'"
+        pushd ${OPENSHIFT_REPO_DIR} > /dev/null
+        ruby_context "bundle exec rake assets:precompile"
+        popd > /dev/null
     fi
 }
 
@@ -212,6 +214,7 @@ case "$1" in
   pre-repo-archive)  pre-repo-archive ;;
   pre-build)         pre-build ;;
   build)             build ;;
+  deploy)            deploy ;;
   post-deploy)       post-deploy ;;
   threaddump)        threaddump ;;
   update-configuration)   update-configuration $OPENSHIFT_RUBY_VERSION;;
