@@ -9,7 +9,7 @@
 
 Summary:       OpenShift Origin Management Console
 Name:          rubygem-%{gem_name}
-Version: 1.9.7
+Version: 1.9.8
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -151,6 +151,16 @@ cp -a ./%{gem_dir}/* %{buildroot}%{gem_dir}/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Tue May 28 2013 Adam Miller <admiller@redhat.com> 1.9.8-1
+- Merge pull request #2638 from rajatchopra/master
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #2635 from
+  liggitt/bug_966330_authorization_keys_responsive_layout
+  (dmcphers+openshiftbot@redhat.com)
+- fix some broken tests (rchopra@redhat.com)
+- Fix bug 966330 - fix authorizations and ssh keys for responsive layouts
+  (jliggitt@redhat.com)
+
 * Fri May 24 2013 Adam Miller <admiller@redhat.com> 1.9.7-1
 - Tests don't pass (ccoleman@redhat.com)
 - Additional tests of downloading cartridges (ccoleman@redhat.com)
