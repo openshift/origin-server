@@ -1,6 +1,6 @@
 Summary:       Utility scripts for the OpenShift Origin broker
 Name:          openshift-origin-node-util
-Version: 1.9.5
+Version: 1.9.6
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -122,6 +122,15 @@ mv services/openshift-gears.service %{buildroot}/etc/systemd/system/openshift-ge
 /sbin/restorecon /usr/sbin/oo-restorer* || :
 
 %changelog
+* Tue May 28 2013 Adam Miller <admiller@redhat.com> 1.9.6-1
+- Ignore gears without frontend mappings in the idler. (mrunalp@gmail.com)
+- Bug 967118 - Make Platform/Cartridge shared files immutable
+  (jhonce@redhat.com)
+- Merge pull request #2624 from twiest/dev/twiest/oo-accept-node-invalid-ascii-
+  bug-fix (dmcphers+openshiftbot@redhat.com)
+- oo-accept-node: Fixed invalid ASCII bug, added full paths to binaries
+  (twiest@redhat.com)
+
 * Fri May 24 2013 Adam Miller <admiller@redhat.com> 1.9.5-1
 - BZ963827 - Improved logging messages (calfonso@redhat.com)
 - Bug 965317 - Add way to patch File class so all files have sync enabled.
