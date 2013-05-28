@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.9.7
+Version: 1.9.8
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -84,6 +84,17 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Tue May 28 2013 Adam Miller <admiller@redhat.com> 1.9.8-1
+- Bug 967518 (dmcphers@redhat.com)
+- Bug 966963: Remove unnecessary versioned conf files from php cart
+  (ironcladlou@gmail.com)
+- Various cleanup (dmcphers@redhat.com)
+- Merge pull request #2641 from ironcladlou/dev/v2carts/build-system
+  (dmcphers+openshiftbot@redhat.com)
+- Replace pre-receive cart control action with pre-repo-archive
+  (ironcladlou@gmail.com)
+- vendoring of cartridges (rchopra@redhat.com)
+
 * Fri May 24 2013 Adam Miller <admiller@redhat.com> 1.9.7-1
 - Merge pull request #2614 from
   smarterclayton/add_unique_header_to_cart_download
