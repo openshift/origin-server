@@ -3,8 +3,10 @@ class EmbCartEventsController < BaseController
   before_filter :get_domain, :get_application
   # POST /domain/[domain_id]/applications/[application_id]/cartridges/[cartridge_id]/events
   def create
-    cartridge = params[:cartridge_id].downcase if params[:cartridge_id]
+    cartid = params[:cartridge_id].downcase if params[:cartridge_id]
     event = params[:event].downcase if params[:event]
+    
+    cartridge = CartridgeCache.find_cartridge(cartid, @application).name rescue nil
     
     return render_error(:not_found, "Cartridge #{cartridge} not embedded within application #{@application.name}", 129) if !@application.requires.include?(cartridge)
 

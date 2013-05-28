@@ -106,7 +106,7 @@ class Gear
   end
   
   def status(component_instance)
-    @container.status(self, component_instance.cartridge_name)
+    @container.status(self, component_instance)
   end
   
   # Installs the specified component on the gear.
