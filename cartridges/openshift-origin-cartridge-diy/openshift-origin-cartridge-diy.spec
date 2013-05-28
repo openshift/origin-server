@@ -2,7 +2,7 @@
 
 Summary:       DIY cartridge
 Name:          openshift-origin-cartridge-diy
-Version:       0.4.5
+Version:       0.4.6
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -38,6 +38,10 @@ DIY cartridge for openshift. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Tue May 28 2013 Adam Miller <admiller@redhat.com> 0.4.6-1
+- Bug 967118 - Remove redundant entries from managed_files.yml
+  (jhonce@redhat.com)
+
 * Thu May 23 2013 Adam Miller <admiller@redhat.com> 0.4.5-1
 - Bug 966255: Remove OPENSHIFT_INTERNAL_* references from v2 carts
   (ironcladlou@gmail.com)
