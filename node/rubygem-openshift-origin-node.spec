@@ -16,7 +16,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.9.7
+Version: 1.9.8
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -294,6 +294,29 @@ fi
 %attr(0755,-,-) /etc/cron.monthly/openshift-origin-cron-monthly
 
 %changelog
+* Tue May 28 2013 Adam Miller <admiller@redhat.com> 1.9.8-1
+- WIP Cartridge Refactor - Updated Guide (jhonce@redhat.com)
+- Various cleanup (dmcphers@redhat.com)
+- Merge pull request #2642 from jwhonce/bug/967118
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #2641 from ironcladlou/dev/v2carts/build-system
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 967118 - Make Platform/Cartridge shared files immutable
+  (jhonce@redhat.com)
+- Merge pull request #2636 from ironcladlou/bz/967016
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #2637 from jwhonce/wip/oo-trap-user
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #2629 from ironcladlou/bz/966790
+  (dmcphers+openshiftbot@redhat.com)
+- Replace pre-receive cart control action with pre-repo-archive
+  (ironcladlou@gmail.com)
+- Bug 967016: Detect v2 carts in a gear more accurately (ironcladlou@gmail.com)
+- WIP Cartridge Refactor - remove extraneous syslog messages
+  (jhonce@redhat.com)
+- Bug 966790: Handle unidling consistently in the cart model
+  (ironcladlou@gmail.com)
+
 * Fri May 24 2013 Adam Miller <admiller@redhat.com> 1.9.7-1
 - Merge pull request #2633 from ironcladlou/bz/967017
   (dmcphers+openshiftbot@redhat.com)
