@@ -73,4 +73,16 @@ class PendingUserOps
       Rails.logger.error "Failed to add domain #{domain._id} to the completed_domains for pending_op #{self._id} for user #{self.cloud_user.login}"
     end  
   end
+  
+  def serializable_hash_with_timestamp
+    s_hash = self.serializable_hash
+    t = Time.zone.now
+    if self.created_at.nil?
+      s_hash["created_at"] = t
+    end
+    if self.updated_at.nil?
+      s_hash["updated_at"] = t
+    end
+    s_hash
+  end
 end
