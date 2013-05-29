@@ -31,6 +31,7 @@ module Rails
           :zone => "example.com",
           :keyname => "example.com.key",
           :keyvalue => "examplekeyvalue",
+          :keyalgorithm => "HMAC-MD5",
           :krb_principal => "kerberos_principal",
           :krb_keytab => "kerberos_keytable"
         }
@@ -45,6 +46,8 @@ module Rails
 end
 
 module OpenShift
+
+  class DNSException < Exception ; end
 
   # Make private methods public for testing
   class NsupdatePlugin
@@ -80,7 +83,8 @@ module OpenShift
           :zone => "tsigapp.example.com",
           :domain_suffix => "tsigapp.example.com",
           :keyname => "tsigapp.example.com.key",
-          :keyvalue => "tsigapp_key_value"
+          :keyvalue => "tsigapp_key_value",
+          :keyalgorithm => "HMAC-MD5"
         },
 
         :gss => {
@@ -145,7 +149,7 @@ module OpenShift
       cmdlines.length.should be === 7
 
       cmdlines[0].should be === "nsupdate <<EOF"
-      cmdlines[1].should eq "key #{@config[:tsig][:keyname]} #{@config[:tsig][:keyvalue]}"
+      cmdlines[1].should eq "key #{@config[:tsig][:keyalgorithm]}:#{@config[:tsig][:keyname]} #{@config[:tsig][:keyvalue]}"
       cmdlines[2].should eq "server #{@config[:tsig][:server]} #{@config[:tsig][:port]}"
       cmdlines[3].should eq "update add #{fqdn} 60 CNAME #{value}"
       cmdlines[4].should eq "send"
