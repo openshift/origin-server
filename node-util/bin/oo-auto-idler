@@ -1,0 +1,128 @@
+#!/usr/bin/env oo-ruby
+require 'rubygems'
+require 'logger'
+require 'date'
+require 'commander/import'
+require 'openshift-origin-common'
+require 'openshift-origin-node/model/application_container'
+require 'openshift-origin-common/utils/file_needs_sync'
+
+name = "#{__FILE__}"
+program :name, "OpenShift Auto Idler"
+program :version, "1.0.0"
+program :description, "Utility to idle gears"
+
+$config = OpenShift::Config.new
+$last_access_dir = $config.get("LAST_ACCESS_DIR")
+$log = Logger.new($stderr)
+$log.level = Logger::WARN
+
+# Return whether app has been accessed within the specified number of hours.
+def app_accessed?(uuid, interval)
+  file_path = File.join($last_access_dir, uuid)
+  if File.exists?(file_path)
+    File.open(file_path, 'r') do |file|
+      last_access_time = file.read
+      d1 = DateTime.strptime(last_access_time, "%d/%b/%Y:%H:%M:%S %Z")
+      d2 = DateTime.now
+      idle_hours = ((d2 - d1) * 24).to_i
+      if idle_hours >= interval
+        $log.debug "NO ACCESS"
+        true
+      else
+        $log.debug "ACCESS"
+        false
+      end
+    end
+  else
+    # If application has yet to be accessed, it's "idle"
+    $log.debug "NO ACCESS"
+    true
+  end
+end
+
+# Gears that have a frontend mapping defined in their manifest.
+def has_frontend?(gear_dir)
+  output = %x[grep -r "Mappings:" `find #{gear_dir} -name 'manifest.yml'` &> /dev/null]
+  if $?.success?
+    $log.debug "FRONTEND"
+    true
+  else
+    $log.debug "NO FRONTEND"
+    false
+  end
+end
+
+# Gears that have had code committed within the specified interval
+def code_committed?(gear_dir, interval)
+  min_interval = interval * 60
+  git_dir = File.join(gear_dir, "git")
+  if File.exist?(git_dir)
+    output = %x[find #{git_dir} -mindepth 2 -maxdepth 2 -name objects -mmin -#{min_interval}]
+    if not output.strip.empty?
+      $log.debug "CODE"
+      true
+    else
+      $log.debug "NO CODE"
+      false
+    end
+  else
+    $log.debug "NO GIT CODE"
+    false
+  end
+end
+
+# Determine if a gear is stale i.e. ready to be idled
+def gear_stale?(gear_dir, gear_uuid, interval)
+  $log.debug "Evaluating #{gear_uuid}"
+  has_frontend?(gear_dir) and not code_committed?(gear_dir, interval) and app_accessed?(gear_uuid, interval)
+end
+
+# Idle a gear
+def idle_gear(gear_uuid)
+  ac = OpenShift::ApplicationContainer.from_uuid(gear_uuid)
+  puts "GEAR STATE of #{gear_uuid}: #{ac.state.value}"
+  puts "Idling #{gear_uuid}"
+  ac.idle_gear
+  puts "GEAR STATE of #{gear_uuid}: #{ac.state.value}"
+  %x[/usr/bin/logger -p local0.notice -t oo_idler "Idled: #{gear_uuid}"]
+end
+
+# Idle all gears on the node unless the list only option has been passed
+def idle_gears(interval, list_only)
+  puts "Only listing idle gears" if list_only
+  gear_gecos = $config.get("GEAR_GECOS")
+  gear_dirs_str = %x[grep ":#{gear_gecos}:" /etc/passwd | cut -d: -f6]
+  gear_dirs = gear_dirs_str.split("\n")
+  gear_dirs.each do |gear_dir|
+    gear_uuid = File.basename(gear_dir)
+    if gear_stale?(gear_dir, gear_uuid, interval)
+      puts "#{gear_dir} is STALE"
+      if not list_only
+        begin
+          idle_gear(gear_uuid)
+        rescue Exception => e
+          $log.error e.message
+          $log.error "Failed to idle #{gear_dir}"
+        end
+      end
+    end
+  end
+end
+
+command :idle do |c|
+  c.syntax = "#{name} idle"
+  c.description = "List the gears ready to be idled"
+  c.option "--interval HOURS", Integer, "Hours for which gears have been idle"
+  c.option "--list", "Only list the stale gears"
+  c.option "--verbose", "Print debug information"
+
+  c.action do |args, options|
+    options.default :interval => 240
+    $log.level = Logger::DEBUG if options.verbose
+    puts "Gears idle for #{options.interval} hours"
+    %x[echo "Before" /usr/sbin/oo-idler-stats | /usr/bin/logger -p local0.notice -t oo-autoidler]
+    idle_gears(options.interval, options.list || false)
+    %x[echo "After" /usr/sbin/oo-idler-stats | /usr/bin/logger -p local0.notice -t oo-autoidler]
+  end
+end
