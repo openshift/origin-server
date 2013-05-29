@@ -1766,7 +1766,6 @@ module OpenShift
         gi = gear.group_instance
         gi.all_component_instances.each do |cinst|
           next if cinst.is_singleton? and (not gear.host_singletons)
-          # idle, leave_stopped, quota_blocks, quota_files = get_cart_status(gear, cart)
           state_map[cinst.cartridge_name] = [idle, leave_stopped]
         end
 
@@ -2036,7 +2035,7 @@ module OpenShift
 
         component_instances = app.get_components_for_feature(web_framework)
         gear = component_instances.first.group_instance.gears.first 
-        get_cart_status(gear, web_framework)
+        get_cart_status(gear, component_instances.first)
       end
 
       # 
@@ -2052,7 +2051,7 @@ module OpenShift
       # NOTES:
       # * uses do_with_retry
       #
-      def get_cart_status(gear, cart_name)
+      def get_cart_status(gear, component)
         app = gear.app
         source_container = gear.get_proxy
         leave_stopped = false
@@ -2061,7 +2060,7 @@ module OpenShift
         quota_files = nil
         log_debug "DEBUG: Getting existing app '#{app.name}' status before moving"
         do_with_retry('status') do
-          result = source_container.status(gear, cart_name)
+          result = source_container.status(gear, component)
           result.properties["attributes"][gear.uuid].each do |key, value|
             if key == 'status'
               case value
@@ -2079,6 +2078,7 @@ module OpenShift
           end
         end
 
+        cart_name = component.cartridge_name
         if idle
           log_debug "DEBUG: Gear component '#{cart_name}' was idle"
         elsif leave_stopped
