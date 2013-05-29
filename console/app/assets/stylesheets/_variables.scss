@@ -1,5 +1,6 @@
 $baseFontFamily:      "Helvetica Neue", Helvetica, "Liberation Sans", Arial, sans-serif !default;
 $headerFontFamily:    "Helvetica Neue", Helvetica, Arial, sans-serif !default;
+$monoFontFamily:      Menlo, Monaco, "Liberation Mono", Consolas, monospace !default;
 
 $baseLineHeight:          20.5px;
 $baseFontSize:						14.5px;
@@ -56,6 +57,7 @@ $preBackground:                 #F3EEEA;
 $preBorder:                     rgba(16, 13, 11, 0.2);
 $preColor:                      #484848;
 $cliColor:                      #D0E57B;
+$codeColor:                     #991144;
 
 $breadcrumbDividerColor:        $openshiftDarkRed;
 $breadcrumbTextColor:           $openshiftMediumBackgroundGray; 

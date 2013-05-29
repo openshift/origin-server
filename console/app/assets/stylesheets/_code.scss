@@ -6,7 +6,7 @@
 code,
 pre {
   padding: 0 3px 2px;
-  @include font-family-monospace;
+  font-family: $monoFontFamily;
   font-size: $baseFontSize - 1;
   color: $preColor;
   @include border-radius(0);
@@ -14,8 +14,8 @@ pre {
 
 // Inline code
 code {
-  padding: 3px 4px;
-  color: #d14;
+  padding: 1px 4px;
+  color: $codeColor;
   background-color: #f7f7f9;
   border: 1px solid #e1e1e8;
 }
@@ -35,7 +35,7 @@ pre,
   word-break: normal;
   word-wrap: break-word;
   overflow: auto;
-  font-family: Menlo,Monaco,"Liberation Mono",Consolas,monospace !important;
+  font-family: $monoFontFamily !important;
 
   // Make prettyprint styles more spaced out for readability
   &.prettyprint {
