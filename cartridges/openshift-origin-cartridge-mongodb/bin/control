@@ -42,12 +42,12 @@ function _repair_mongod() {
 
 function _start_mongod() {
     authopts=${1:-"--auth"}
-    /usr/bin/mongod $authopts --nojournal --smallfiles --quiet  \
+    /usr/bin/mongod $authopts \
                     -f $OPENSHIFT_MONGODB_DIR/conf/mongodb.conf run >/dev/null 2>&1 &
     _wait_for_mongod_to_startup
     if ! isrunning; then
        _repair_mongod "$authopts"
-       /usr/bin/mongod $authopts --nojournal --smallfiles --quiet  \
+       /usr/bin/mongod $authopts \
                        -f $OPENSHIFT_MONGODB_DIR/conf/mongodb.conf run >/dev/null 2>&1 &
        _wait_for_mongod_to_startup
     fi
