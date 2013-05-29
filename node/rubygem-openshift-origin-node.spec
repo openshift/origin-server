@@ -16,7 +16,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.9.8
+Version: 1.9.9
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -294,6 +294,25 @@ fi
 %attr(0755,-,-) /etc/cron.monthly/openshift-origin-cron-monthly
 
 %changelog
+* Wed May 29 2013 Adam Miller <admiller@redhat.com> 1.9.9-1
+- Merge pull request #2640 from dobbymoodge/oo-admin-ctl-cgroups-debug
+  (dmcphers+openshiftbot@redhat.com)
+- <oo-admin-ctl-cgroups> Bug 964205 - amend comments for cgroup_exists function
+  (jolamb@redhat.com)
+- Bug 967118 - Immutable files in cartridges (jhonce@redhat.com)
+- Merge pull request #2660 from ironcladlou/dev/v2carts/cucumber
+  (dmcphers+openshiftbot@redhat.com)
+- Fix client message translation function and add tests (ironcladlou@gmail.com)
+- <oo-admin-ctl-groups> Bug 964205 - fix set_blkio function comment to be more
+  accurate (jolamb@redhat.com)
+- <oo-admin-ctl-cgroups> Bug 964205 - prevent stopping already stopped cgroups
+  (jolamb@redhat.com)
+- <oo-admin-ctl-cgroups> Bug 964205 - add "repair" command (jolamb@redhat.com)
+- <oo-admin-ctl-cgroups> Fix return value handling, code fixes/refactoring
+  (jolamb@redhat.com)
+- <oo-admin-ctl-groups> Fix typos in echo statements (jolamb@redhat.com)
+- <oo-admin-ctl-cgroups> whitespace fixes (jolamb@redhat.com)
+
 * Tue May 28 2013 Adam Miller <admiller@redhat.com> 1.9.8-1
 - WIP Cartridge Refactor - Updated Guide (jhonce@redhat.com)
 - Various cleanup (dmcphers@redhat.com)
