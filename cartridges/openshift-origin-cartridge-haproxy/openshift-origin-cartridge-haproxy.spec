@@ -6,7 +6,7 @@
 
 Summary:       Provides HA Proxy
 Name:          openshift-origin-cartridge-haproxy
-Version:       0.4.7
+Version:       0.4.8
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -45,6 +45,12 @@ HAProxy cartridge for OpenShift. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Wed May 29 2013 Adam Miller <admiller@redhat.com> 0.4.8-1
+- Merge pull request #2655 from ironcladlou/bz/967532
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 967532: Fix initial ROOT.war deployment for jboss cartridges
+  (ironcladlou@gmail.com)
+
 * Tue May 28 2013 Adam Miller <admiller@redhat.com> 0.4.7-1
 - Bug 967118 - Remove redundant entries from managed_files.yml
   (jhonce@redhat.com)
