@@ -88,7 +88,7 @@ class PendingAppOpGroup
           result_io.append gear.destroy_gear(true)
           self.inc(:num_gears_rolled_back, 1)
         when :track_usage
-          unless op.args["parent_user_id"].nil?
+          unless op.args["parent_user_id"]
             storage_usage_type = (op.args["usage_type"] == UsageRecord::USAGE_TYPES[:addtl_fs_gb])
             tracked_storage = nil
             if storage_usage_type
