@@ -1694,12 +1694,12 @@ module OpenShift
           unless leave_stopped
             log_debug "DEBUG: Stopping existing app cartridge '#{cart}' before moving"
             do_with_retry('stop') do
-              reply.append source_container.stop(gear, cart)
+              reply.append source_container.stop(gear, cinst)
             end
             if framework_carts(app).include? cart
               log_debug "DEBUG: Force stopping existing app cartridge '#{cart}' before moving"
               do_with_retry('force-stop') do
-                reply.append source_container.force_stop(gear, cart)
+                reply.append source_container.force_stop(gear, cinst)
               end
             end
           end
@@ -1791,7 +1791,7 @@ module OpenShift
 
               if app.scalable and not CartridgeCache.find_cartridge(cart).categories.include? "web_proxy"
                 begin
-                  reply.append destination_container.expose_port(gear, cinst.cartridge_name)
+                  reply.append destination_container.expose_port(gear, cinst)
                 rescue Exception=>e
                   # just pass because some embedded cartridges do not have expose-port hook implemented (e.g. jenkins-client)
                 end
@@ -1810,7 +1810,7 @@ module OpenShift
                 idle, leave_stopped = state_map[cart]
                 if leave_stopped and CartridgeCache.find_cartridge(cart).categories.include? "web_proxy"
                   log_debug "DEBUG: Explicitly stopping cartridge '#{cart}' in '#{app.name}' after move on #{destination_container.id}"
-                  reply.append destination_container.stop(gear, cart)
+                  reply.append destination_container.stop(gear, cinst)
                 end
               end
             end
