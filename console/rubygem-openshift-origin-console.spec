@@ -9,7 +9,7 @@
 
 Summary:       OpenShift Origin Management Console
 Name:          rubygem-%{gem_name}
-Version: 1.9.8
+Version: 1.9.9
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -151,6 +151,12 @@ cp -a ./%{gem_dir}/* %{buildroot}%{gem_dir}/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Wed May 29 2013 Adam Miller <admiller@redhat.com> 1.9.9-1
+- Merge pull request #2657 from smarterclayton/clear_carts_on_reload
+  (dmcphers+openshiftbot@redhat.com)
+- Clear cartridges when applications are reloaded, fix downloadable application
+  test (ccoleman@redhat.com)
+
 * Tue May 28 2013 Adam Miller <admiller@redhat.com> 1.9.8-1
 - Merge pull request #2638 from rajatchopra/master
   (dmcphers+openshiftbot@redhat.com)
