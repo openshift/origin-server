@@ -4,7 +4,7 @@
 
 Summary:       Provides JBossAS7 support
 Name:          openshift-origin-cartridge-jbossas
-Version:       1.2.5
+Version:       1.2.6
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -89,6 +89,15 @@ cp -p %{cartridgedir}/versions/7/modules/postgresql_module.xml /etc/alternatives
 
 
 %changelog
+* Wed May 29 2013 Adam Miller <admiller@redhat.com> 1.2.6-1
+- Bug 968279: Fix jboss[as|eap] java7 marker detection (ironcladlou@gmail.com)
+- Merge pull request #2655 from ironcladlou/bz/967532
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 967532: Fix initial ROOT.war deployment for jboss cartridges
+  (ironcladlou@gmail.com)
+- Bug 966876 - Fix AVC denial in jbossas7 and jbosseap6 carts on startup
+  (jdetiber@redhat.com)
+
 * Thu May 23 2013 Adam Miller <admiller@redhat.com> 1.2.5-1
 - Bug 966065: Make python-2.6 install script executable (ironcladlou@gmail.com)
 - Bug 966255: Remove OPENSHIFT_INTERNAL_* references from v2 carts
