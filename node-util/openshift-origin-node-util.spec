@@ -1,6 +1,6 @@
 Summary:       Utility scripts for the OpenShift Origin broker
 Name:          openshift-origin-node-util
-Version: 1.9.6
+Version: 1.9.7
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -122,6 +122,12 @@ mv services/openshift-gears.service %{buildroot}/etc/systemd/system/openshift-ge
 /sbin/restorecon /usr/sbin/oo-restorer* || :
 
 %changelog
+* Wed May 29 2013 Adam Miller <admiller@redhat.com> 1.9.7-1
+- Merge pull request #2661 from rmillner/BZ963321
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 963321 - Report an error if OPENSHIFT_GEAR_DNS is missing instead of
+  crash. (rmillner@redhat.com)
+
 * Tue May 28 2013 Adam Miller <admiller@redhat.com> 1.9.6-1
 - Ignore gears without frontend mappings in the idler. (mrunalp@gmail.com)
 - Bug 967118 - Make Platform/Cartridge shared files immutable
