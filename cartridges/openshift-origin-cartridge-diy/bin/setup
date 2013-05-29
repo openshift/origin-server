@@ -1,5 +1,7 @@
 #!/bin/bash -eu
 
+source $OPENSHIFT_CARTRIDGE_SDK_BASH
+
 case "$1" in
   -v|--version)
     version="$2"
@@ -7,3 +9,5 @@ esac
 
 # Create additional directories required by the diy cartridge
 mkdir -p $OPENSHIFT_DIY_DIR/{logs,run}
+
+client_result "Disclaimer: This is an experimental cartridge that provides a way to try unsupported languages, frameworks, and middleware on Openshift."
