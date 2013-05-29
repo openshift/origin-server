@@ -1,11 +1,11 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-	<groupId>com.openshift.example.jbossews</groupId>
-	<artifactId>jbossews-example</artifactId>
+	<groupId>{APP_NAME}</groupId>
+	<artifactId>{APP_NAME}</artifactId>
 	<packaging>war</packaging>
 	<version>1.0</version>
-	<name>jbossews-example</name>
+	<name>{APP_NAME}</name>
 	<repositories>
 		<repository>
 			<id>eap</id>
@@ -55,7 +55,7 @@
 			<!-- http://maven.apache.org/guides/mini/guide-building-for-different-environments.html -->
 			<id>openshift</id>
 			<build>
-				<finalName>${env.OPENSHIFT_APP_NAME}</finalName>
+				<finalName>{APP_NAME}</finalName>
 				<plugins>
 					<plugin>
 						<artifactId>maven-war-plugin</artifactId>
