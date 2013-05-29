@@ -681,7 +681,7 @@ Other candidates for templates are httpd configuration files for
 
 ##### Synopsis
 
-`setup [--version <version>]`
+    setup [--version <version>]
 
 ##### Options
 
@@ -709,7 +709,7 @@ Lock context: `unlocked`
 
 ##### Synopsis
 
-`install [--version <version>]`
+    install [--version <version>]
 
 ##### Options
 
@@ -735,7 +735,7 @@ Lock context: `unlocked`
 
 ##### Synopsis
 
-`post-install [--version <version>]`
+    post-install [--version <version>]
 
 ##### Options
 
@@ -755,7 +755,7 @@ Lock context: `locked`
 
 ##### Synopsis
 
-`teardown`
+    teardown
 
 ##### Description
 
@@ -771,7 +771,7 @@ Lock context: `unlocked`
 
 ##### Synopsis
 
-`control <action>`
+    control <action>
 
 ##### Options
 
@@ -965,7 +965,7 @@ section of the manifest is used to construct events dispatched to other cartridg
 in the application. For each publish entry, OpenShift will attempt to execute a
 script named `hooks/<event name>`, e.g.:
 
-`hooks/<event name> <gear name> <namespace> <gear uuid>`
+    hooks/<event name> <gear name> <namespace> <gear uuid>
 
 All lines of output (on stdout) produced by the script will be joined by single spaces and 
 used as the input to matching subscriber scripts. All cartridges which declare a subscription 
@@ -987,7 +987,7 @@ section whose `Type` matches that of the publish event will be processed. For ea
 matching subscription event, OpenShift will attempt to execute a script named
 `hooks/<event name>`, e.g.:
 
-`hooks/<event name> <gear name> <namespace> <gear uuid> <publish output>`
+    hooks/<event name> <gear name> <namespace> <gear uuid> <publish output>
 
 The format of the `<publish output>` input to the subscription script is defined by the 
 implementation of the publisher script, and so the cartridge subscription script must have 
@@ -1034,7 +1034,7 @@ OPENSHIFT_MYSQL_DB_URL=url;
 
 This would be fed as input to `hooks/publish-mysql-connection-info` in the PHP cartridge, as follows:
 
-`hooks/publish-mysql-connection-info gear_name namespace gear_uuid 'OPENSHIFT_MYSQL_DB_USERNAME=username;OPENSHIFT_MYSQL_DB_PASSWORD=password;OPENSHIFT_MYSQL_DB_HOST=hostname;OPENSHIFT_MYSQL_DB_PORT=port;OPENSHIFT_MYSQL_DB_URL=url;'`
+    hooks/publish-mysql-connection-info gear_name namespace gear_uuid 'OPENSHIFT_MYSQL_DB_USERNAME=username;OPENSHIFT_MYSQL_DB_PASSWORD=password;OPENSHIFT_MYSQL_DB_HOST=hostname;OPENSHIFT_MYSQL_DB_PORT=port;OPENSHIFT_MYSQL_DB_URL=url;'
 
 The `publish-mysql-connection-info` is responsible for being capable of parsing the final argument
 and extracting the values provided.
