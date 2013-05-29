@@ -165,5 +165,35 @@ module OpenShift
       assert_path_exist(File.join(@user.homedir, 'cuckoo'))
       assert_path_exist(File.join(@user.homedir, %w(cuckoo bin control)))
     end
+
+    def test_configure_with_short_name
+      cartridge = OpenShift::CartridgeRepository.instance.select('mock-plugin', '0.1')
+      skip 'Mock Plugin 0.1 cartridge required for this test' unless cartridge
+
+      # Point manifest at "remote" repository
+      manifest                     = YAML.load_file(File.join(cartridge.repository_path, 'metadata', 'manifest.yml'))
+      manifest['Name']             = 'cuckoo'
+      manifest['Source-Url']       = "file://#{cartridge.repository_path}"
+      manifest['Cartridge-Vendor'] = 'unittest'
+      manifest['Categories']       = %w(service cuckoo web_framework)
+      manifest                     = manifest.to_yaml
+
+      # install the cuckoo
+      begin
+        @model.configure('cuckoo-0.1', nil, manifest)
+      rescue OpenShift::Utils::ShellExecutionException => e
+        NodeLogger.logger.debug(e.message + "\n" +
+                                    e.stdout + "\n" +
+                                    e.stderr + "\n" +
+                                    e.backtrace.join("\n")
+        )
+      end
+
+      env = File.join(@user.homedir, 'cuckoo', 'env')
+      assert_path_exist File.join(env, 'OPENSHIFT_MOCK_PLUGIN_DIR')
+      assert_path_exist File.join(env, 'OPENSHIFT_MOCK_PLUGIN_IDENT')
+      refute_path_exist File.join(env, 'OPENSHIFT_CUCKOO_DIR')
+      refute_path_exist File.join(env, 'OPENSHIFT_CUCKOO_IDENT')
+    end
   end
 end
