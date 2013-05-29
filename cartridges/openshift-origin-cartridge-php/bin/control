@@ -26,7 +26,9 @@ function status() {
       return 0
    else
       client_result "Application is either stopped or inaccessible"
-      return 1
+      # FIXME: We should return 1 once we can handle non-zero return statuses
+      #        (This should be possible after we remove the v1 logic completely)
+      return 0
    fi
 }
 
