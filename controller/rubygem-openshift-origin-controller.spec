@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.9.8
+Version: 1.9.9
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -84,6 +84,21 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Wed May 29 2013 Adam Miller <admiller@redhat.com> 1.9.9-1
+- Merge pull request #2664 from abhgupta/bug_967426
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #2662 from abhgupta/abhgupta-dev
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #2654 from rajatchopra/master
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #2660 from ironcladlou/dev/v2carts/cucumber
+  (dmcphers+openshiftbot@redhat.com)
+- Fix for bug 967426 (abhgupta@redhat.com)
+- Fix for bug 966750 (abhgupta@redhat.com)
+- fix bz 967779, 967409, 967395 (rchopra@redhat.com)
+- Fix client message translation function and add tests (ironcladlou@gmail.com)
+- Bug 962657 (dmcphers@redhat.com)
+
 * Tue May 28 2013 Adam Miller <admiller@redhat.com> 1.9.8-1
 - Bug 967518 (dmcphers@redhat.com)
 - Bug 966963: Remove unnecessary versioned conf files from php cart
