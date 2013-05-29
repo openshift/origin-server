@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Common
 Name:          rubygem-%{gem_name}
-Version: 1.8.7
+Version: 1.8.8
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -97,6 +97,15 @@ cp -a ./%{gem_dir}/* %{buildroot}%{gem_dir}/
 %doc %{gem_docdir}
 
 %changelog
+* Wed May 29 2013 Adam Miller <admiller@redhat.com> 1.8.8-1
+- Merge pull request #2654 from rajatchopra/master
+  (dmcphers+openshiftbot@redhat.com)
+- fix bz 967779, 967409, 967395 (rchopra@redhat.com)
+- Merge pull request #2658 from rmillner/out_of_date
+  (dmcphers+openshiftbot@redhat.com)
+- These policies are long deprecated, removing them to avoid confusion.
+  (rmillner@redhat.com)
+
 * Tue May 28 2013 Adam Miller <admiller@redhat.com> 1.8.7-1
 - vendoring of cartridges (rchopra@redhat.com)
 
