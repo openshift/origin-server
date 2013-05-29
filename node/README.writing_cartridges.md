@@ -237,7 +237,7 @@ All Git schemes are supported. The cartridge source will be cloned from the give
 
     Source-Url: https://github.com/example/killer-cartridge.git
     Source-Url: git://github.com/chrisk/fakeweb.git
-    Source-Url: https:://www.example.com/killer-cartridge.zip
+    Source-Url: https://www.example.com/killer-cartridge.zip
     Source-Url: https://github.com/example/killer-cartridge/archive/master.zip
 
 ### Source-Md5 Element
