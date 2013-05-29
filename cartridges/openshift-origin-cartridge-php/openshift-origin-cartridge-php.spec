@@ -1,7 +1,7 @@
 %global cartridgedir %{_libexecdir}/openshift/cartridges/v2/php
 
 Name:          openshift-origin-cartridge-php
-Version:       0.4.6
+Version:       0.4.7
 Release:       1%{?dist}
 Summary:       Php cartridge
 Group:         Development/Languages
@@ -80,6 +80,11 @@ sed -i 's/#DefaultRuntimeDir/DefaultRuntimeDir/g' %{buildroot}%{cartridgedir}/ve
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Wed May 29 2013 Adam Miller <admiller@redhat.com> 0.4.7-1
+- Merge pull request #2652 from VojtechVitek/php_cartridge_cleanup
+  (dmcphers+openshiftbot@redhat.com)
+- php v2 cartridge clean-up (vvitek@redhat.com)
+
 * Tue May 28 2013 Adam Miller <admiller@redhat.com> 0.4.6-1
 - Bug 966963: Remove unnecessary versioned conf files from php cart
   (ironcladlou@gmail.com)
