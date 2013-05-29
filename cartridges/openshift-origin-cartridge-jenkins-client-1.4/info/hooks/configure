@@ -37,7 +37,8 @@ setup_embedded_configure "$1" $2 $3
 
 if ! [ -f "$APP_HOME/.env/JENKINS_URL" ]
 then
-    client_error "Jenkins server does not exist!  Please create with rhc app create -t jenkins-1.4"
+    client_error "A Jenkins server does not exist in this domain!"
+    client_error "You must create a Jenkins server before configuring this cartridge."
     exit 151
 fi
 if [ -f "$APP_HOME/.env/OPENSHIFT_CI_TYPE" ]
