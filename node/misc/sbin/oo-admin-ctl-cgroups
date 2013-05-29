@@ -152,9 +152,10 @@ valid_user() {
 }
 
 #
-# Check to see if a cgroup exists for the specified user
+# Check that a cgroup exists for a user
 #
 cgroup_exists() {
+    # USERNAME=$1
     [ "$(lscgroup ${OPENSHIFT_CGROUP_SUBSYSTEMS}:${OPENSHIFT_CGROUP_ROOT}/$1 | wc -l)" != "0" ]
 }
 
