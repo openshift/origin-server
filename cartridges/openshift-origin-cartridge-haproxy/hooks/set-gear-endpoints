@@ -76,6 +76,7 @@ done
 # Defines.
 HAPROXY_CONF_DIR=$OPENSHIFT_HAPROXY_DIR/conf
 HAPROXY_GEAR_REGISTRY=$HAPROXY_CONF_DIR/gear-registry.db
+HAPROXY_CONFIG=$HAPROXY_CONF_DIR/haproxy.cfg
 
 # Establish locking file descriptor
 exec 201>${HAPROXY_GEAR_REGISTRY}.lock
@@ -117,5 +118,16 @@ for zinfo in $(get_registered_endpoints); do
         unregister_gear_endpoint "$gname" ||  :
     fi
 done
+
+# Disable the local endpoint if one of the remote gears is available and it
+# isn't already disabled
+if [ $(grep -E "server\s*gear" $HAPROXY_CONFIG | wc -l) -ge 2 ]; then
+    if grep "local-gear" $HAPROXY_CONFIG | grep "weight 0" &>/dev/null; then
+        echo "Local gear already disabled in config. "
+    else
+        echo "Disabling local gear in the config. "
+        nohup $OPENSHIFT_HAPROXY_DIR/usr/bin/fix_local.sh &
+    fi
+fi
 
 /usr/bin/gear reload --cart haproxy-$OPENSHIFT_HAPROXY_VERSION
