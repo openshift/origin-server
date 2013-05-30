@@ -144,6 +144,7 @@ class Haproxy
         @gear_count = self.stats['express'].count - 3
         @gear_up_pct = 90.0
         if @gear_count > 1
+          # Pick a percentage for removing gears which is a moderate amount below the threshold where the gear would scale back up.
           @gear_remove_pct = (@gear_up_pct * ([1-(1.0 / @gear_count), 0.95].max)) - (@gear_up_pct / @gear_count)
         else
           @gear_remove_pct = 1.0
@@ -154,7 +155,7 @@ class Haproxy
           raise ShouldRetry, "Failed to get information from haproxy"
         end
 
-        @sessions_per_gear = @sessions / @gear_count
+        @sessions_per_gear = @sessions.to_f / @gear_count
         @session_capacity_pct = (@sessions_per_gear / MAX_SESSIONS_PER_GEAR ) * 100
 
     end
