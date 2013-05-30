@@ -9,7 +9,7 @@
 
 Summary:       OpenShift plugin for mcollective service
 Name:          rubygem-%{gem_name}
-Version: 1.9.7
+Version: 1.9.8
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -80,6 +80,11 @@ cp %{buildroot}/%{gem_dir}/gems/%{gem_name}-%{version}/conf/openshift-origin-msg
 %attr(0644,-,-) %ghost /etc/mcollective/client.cfg
 
 %changelog
+* Thu May 30 2013 Adam Miller <admiller@redhat.com> 1.9.8-1
+- Merge pull request #2675 from rajatchopra/master
+  (dmcphers+openshiftbot@redhat.com)
+- refix bz967706 - stop call for move (rchopra@redhat.com)
+
 * Wed May 29 2013 Adam Miller <admiller@redhat.com> 1.9.7-1
 - fix for bz967706 (rchopra@redhat.com)
 
