@@ -96,7 +96,7 @@ class HAProxyUtils
 end
 
 class Haproxy
-    MAX_SESSIONS_PER_GEAR = 50.0
+    MAX_SESSIONS_PER_GEAR = 16.0
 
     class ShouldRetry < StandardError
       attr_reader :message
@@ -120,9 +120,7 @@ class Haproxy
     end
 
     def refresh(stats_sock="#{HAPROXY_RUN_DIR}/stats")
-        
-        @gear_remove_pct = 49.9
-        @gear_up_pct = 90.0
+
         @gear_namespace = ENV['OPENSHIFT_GEAR_DNS'].split('.')[0].split('-')[1]
         @log = Logger.new("#{ENV['OPENSHIFT_HAPROXY_LOG_DIR']}/scale_events.log")
 
@@ -144,6 +142,12 @@ class Haproxy
         end
 
         @gear_count = self.stats['express'].count - 3
+        @gear_up_pct = 90.0
+        if @gear_count > 1
+          @gear_remove_pct = (@gear_up_pct * ([1-(1.0 / @gear_count), 0.95].max)) - (@gear_up_pct / @gear_count)
+        else
+          @gear_remove_pct = 1.0
+        end
         @sessions = self.stats['express']['BACKEND'].scur.to_i
         if @gear_count == 0
           @log.error("Failed to get information from haproxy")
