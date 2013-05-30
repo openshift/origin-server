@@ -20,10 +20,10 @@
     %h2 Accessing your application
     %p
       - if true #FIXME Need to come up with a better way to control this in the model.  Requires info about carts.
-        Your application has one or more cartridges that expose a public URL to the Internet.  Click the link below
+        Your application has one or more cartridges that expose a public URL.  Click the link below
         to see your application:
       - else
-        If your application exposes services to the Internet they will be available at
+        If your application exposes services they will be available at
 
       %p.well.application-url.larger
         = link_to @application.web_url, @application.web_url, :target => '_blank'
