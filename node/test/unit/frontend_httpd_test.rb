@@ -491,6 +491,7 @@ class TestApacheDB < Test::Unit::TestCase
 
     writefile_mock = mock('FileWrite') do
       stubs(:write).with("www.example.com 127.0.0.1:8080\n").once
+      stubs(:fsync).once
     end
     File.stubs(:open).with(@apachedb_files["nodes"] + '-', anything, anything).yields(writefile_mock).once
 
