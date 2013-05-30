@@ -16,7 +16,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.10.0
+Version: 1.10.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -294,6 +294,9 @@ fi
 %attr(0755,-,-) /etc/cron.monthly/openshift-origin-cron-monthly
 
 %changelog
+* Thu May 30 2013 Adam Miller <admiller@redhat.com> 1.10.1-1
+- bump_minor_versions for sprint 29 (admiller@redhat.com)
+
 * Thu May 30 2013 Adam Miller <admiller@redhat.com> 1.9.10-1
 - Merge pull request #2694 from pmorie/dev/v2_switchyard
   (dmcphers+openshiftbot@redhat.com)
