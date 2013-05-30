@@ -34,7 +34,7 @@ class AliasControllerTest < ActionController::TestCase
   end
   
   test "alias create show list update and destory" do
-    server_alias = "as#{@random}"
+    server_alias = "as.#{@random}"
     post :create, {"id" => server_alias, "domain_id" => @domain.namespace, "application_id" => @app.name}
     assert_response :created
     get :show, {"id" => server_alias, "domain_id" => @domain.namespace, "application_id" => @app.name}
@@ -48,7 +48,7 @@ class AliasControllerTest < ActionController::TestCase
   end
   
   test "no or non-existent app id" do
-    server_alias = "as#{@random}"
+    server_alias = "as.#{@random}"
     get :show, {"id" => server_alias, "domain_id" => @domain.namespace}
     assert_response :not_found
     put :update, {"id" => server_alias, "domain_id" => @domain.namespace}
@@ -65,7 +65,7 @@ class AliasControllerTest < ActionController::TestCase
   end
   
   test "no or non-existent domain id" do
-    server_alias = "as#{@random}"
+    server_alias = "as.#{@random}"
     post :create, {"id" => server_alias, "application_id" => @app.name}
     assert_response :not_found
     get :show, {"id" => server_alias, "application_id" => @app.name}
@@ -108,7 +108,7 @@ class AliasControllerTest < ActionController::TestCase
   end
   
   test "no private key" do
-    server_alias = "as#{@random}"
+    server_alias = "as.#{@random}"
     post :create, {"id" => server_alias, "domain_id" => @domain.namespace, "application_id" => @app.name, 
       "ssl_certificate" => @ssl_certificate}
     assert_response :unprocessable_entity
@@ -117,7 +117,7 @@ class AliasControllerTest < ActionController::TestCase
   test "no user capability" do
     @user.capabilities["private_ssl_certificates"] = false
     @user.save
-    server_alias = "as#{@random}"
+    server_alias = "as.#{@random}"
     post :create, {"id" => server_alias, "domain_id" => @domain.namespace, "application_id" => @app.name, 
       "ssl_certificate" => @ssl_certificate, "private_key" => @private_key, "pass_phrase" => @pass_phrase}
     assert_response :forbidden

@@ -170,7 +170,7 @@ app_force_stop_post_v1.response_type = "application"
 
 app_add_alias_post_v1 = RestApi_V1.new("/domains/#{dom_id}/applications/#{app_name}/events", "POST")
 random=rand(100000)
-app_alias = "myApp#{random}"
+app_alias = "myApp.#{random}"
 app_add_alias_post_v1.request.merge!({ 'event' => 'add-alias' , 'alias' => app_alias })
 app_add_alias_post_v1.response = RestApplication_V1.new(app_name, app_type, dom_id, app_scale)
 app_add_alias_post_v1.response_type = "application"
