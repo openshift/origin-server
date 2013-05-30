@@ -984,6 +984,7 @@ module OpenShift
       end
 
       process_cartridges(cartridge_dir) { |path|
+        # Make sure this cartridge's env directory overrides that of other cartridge envs
         cartridge_env = gear_env.merge(Utils::Environ.load(File.join(path, 'env')))
 
         ident                            = cartridge_env.keys.grep(/^OPENSHIFT_.*_IDENT/)
