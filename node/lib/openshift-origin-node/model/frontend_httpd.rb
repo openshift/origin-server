@@ -1028,6 +1028,7 @@ module OpenShift
       if writable?
         File.open(@filename + self.SUFFIX + '-', Fcntl::O_RDWR | Fcntl::O_CREAT | Fcntl::O_TRUNC, 0640) do |f|
           encode_contents(f)
+          f.fsync
         end
 
         # Ruby 1.9 Hash preserves order, compare files to see if anything changed
