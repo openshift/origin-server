@@ -30,7 +30,7 @@ class AliasTest < ActiveSupport::TestCase
   end
   
   test "create and find and and update and delete alias" do
-    server_alias = "as#{@random}"
+    server_alias = "as.#{@random}"
     @app.add_alias(server_alias)
     assert(@app.aliases.length == 1)
     
@@ -51,7 +51,7 @@ class AliasTest < ActiveSupport::TestCase
   end
   
   test "create and find and update and delete alias with certificate" do
-    server_alias = "as#{@random}"
+    server_alias = "as.#{@random}"
     @app.add_alias(server_alias, @ssl_certificate, @private_key, @pass_phrase)
     assert(@app.aliases.length == 1)
     
@@ -69,7 +69,7 @@ class AliasTest < ActiveSupport::TestCase
   end
   
   test "create dulicate alias" do
-    server_alias = "as#{@random}"
+    server_alias = "as.#{@random}"
     @app.add_alias(server_alias)
     assert(@app.aliases.length == 1)
     
@@ -96,24 +96,24 @@ class AliasTest < ActiveSupport::TestCase
 01234567890123456789012345678901234567890123456789012345678901234567890123456789"
     assert_raise(OpenShift::UserException){@app.add_alias(server_alias)}
     #no private key
-    server_alias = "as#{@random}"
+    server_alias = "as.#{@random}"
     assert_raise(OpenShift::UserException){@app.add_alias(server_alias, @ssl_certificate)}
     
     #bad private key
-    server_alias = "as#{@random}"
+    server_alias = "as.#{@random}"
     assert_raise(OpenShift::UserException){@app.add_alias(server_alias, @ssl_certificate, "abcd")}
     
     #wrong private key
-    server_alias = "as#{@random}"
+    server_alias = "as.#{@random}"
     assert_raise(OpenShift::UserException){@app.add_alias(server_alias, @ssl_certificate, @private_key2)}
     
     #bad certificate
-    server_alias = "as#{@random}"
+    server_alias = "as.#{@random}"
     assert_raise(OpenShift::UserException){@app.add_alias(server_alias, "ABCDEFG", @private_key, @pass_phrase)}
   end
   
   test "update alias with bad inputs" do
-    server_alias = "as#{@random}"
+    server_alias = "as.#{@random}"
     #non-existent alias
     assert_raise(Mongoid::Errors::DocumentNotFound){@app.update_alias(server_alias)}
     #no private key
@@ -121,20 +121,20 @@ class AliasTest < ActiveSupport::TestCase
     assert_raise(OpenShift::UserException){@app.update_alias(server_alias, @ssl_certificate)}
     
     #bad private key
-    server_alias = "as#{@random}"
+    server_alias = "as.#{@random}"
     assert_raise(OpenShift::UserException){@app.update_alias(server_alias, @ssl_certificate, "abcd")}
     
     #wrong private key
-    server_alias = "as#{@random}"
+    server_alias = "as.#{@random}"
     assert_raise(OpenShift::UserException){@app.update_alias(server_alias, @ssl_certificate, @private_key2)}
     
     #bad certificate
-    server_alias = "as#{@random}"
+    server_alias = "as.#{@random}"
     assert_raise(OpenShift::UserException){@app.update_alias(server_alias, "ABCDEFG", @private_key, @pass_phrase)}
   end
   
   test "remove alias with bad inputs" do
-    server_alias = "as#{@random}"
+    server_alias = "as.#{@random}"
     #non-existent alias
     assert_raise(Mongoid::Errors::DocumentNotFound){@app.remove_alias(server_alias)}
   end
