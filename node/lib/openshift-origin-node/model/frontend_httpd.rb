@@ -817,6 +817,11 @@ module OpenShift
     def clean_server_name(name)
       dname = name.downcase
 
+      if not dname =~ /^[a-z0-9]/
+        raise FrontendHttpServerNameException.new("Invalid start character", @container_uuid, \
+                                                   @container_name, @namespace, dname )
+      end
+
       if not dname.index(/[^0-9a-z\-.]/).nil?
         raise FrontendHttpServerNameException.new("Invalid characters", @container_uuid, \
                                                    @container_name, @namespace, dname )
