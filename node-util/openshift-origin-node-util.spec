@@ -1,6 +1,6 @@
 Summary:       Utility scripts for the OpenShift Origin broker
 Name:          openshift-origin-node-util
-Version: 1.9.7
+Version: 1.9.8
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -123,6 +123,9 @@ mv services/openshift-gears.service %{buildroot}/etc/systemd/system/openshift-ge
 /sbin/restorecon /usr/sbin/oo-restorer* || :
 
 %changelog
+* Thu May 30 2013 Adam Miller <admiller@redhat.com> 1.9.8-1
+- Auto Idler (mrunalp@gmail.com)
+
 * Wed May 29 2013 Adam Miller <admiller@redhat.com> 1.9.7-1
 - Merge pull request #2661 from rmillner/BZ963321
   (dmcphers+openshiftbot@redhat.com)
