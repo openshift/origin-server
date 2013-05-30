@@ -270,27 +270,29 @@ puts "Time to fetch mongo data: #{total_time.to_f/1000}s"
 puts "Total gears found in mongo: #{datastore_hash.length}"
 
 
-# Check consumed gears vs actual gears
-user_hash.each do |owner_id, owner_hash|
-  total_gears = 0
-  owner_hash["domains"].each { |dom_id, domain_gear_count| total_gears += domain_gear_count }
+if fix_consumed_gears
+  # Check consumed gears vs actual gears
+  user_hash.each do |owner_id, owner_hash|
+    total_gears = 0
+    owner_hash["domains"].each { |dom_id, domain_gear_count| total_gears += domain_gear_count }
 
-  print "Checking consumed gear count for user #{owner_hash['login']}...\t" if verbose
-  if owner_hash['consumed_gears'] != total_gears
-    user_consumed_gears, app_actual_gears = check_consumed_gears(owner_id)
-    if user_consumed_gears != app_actual_gears
-      puts "FAIL" if verbose
-      msg = "User #{owner_hash['login']} has a mismatch in consumed gears (#{user_consumed_gears}) and actual gears (#{app_actual_gears})"
-      summary << msg
-      no_error = false
+    print "Checking consumed gear count for user #{owner_hash['login']}...\t" if verbose
+    if owner_hash['consumed_gears'] != total_gears
+      user_consumed_gears, app_actual_gears = check_consumed_gears(owner_id)
+      if user_consumed_gears != app_actual_gears
+        puts "FAIL" if verbose
+        msg = "User #{owner_hash['login']} has a mismatch in consumed gears (#{user_consumed_gears}) and actual gears (#{app_actual_gears})"
+        summary << msg
+        no_error = false
       
-      # record the user id for fixing later
-      error_consumed_gears_user_ids << owner_id
+        # record the user id for fixing later
+        error_consumed_gears_user_ids << owner_id
+      elsif verbose
+        puts "OK"
+      end
     elsif verbose
       puts "OK"
     end
-  elsif verbose
-    puts "OK"
   end
 end
 
