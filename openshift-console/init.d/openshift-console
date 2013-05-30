@@ -39,11 +39,11 @@ OPTIONS="-C 'Include /var/www/openshift/console/httpd/console.conf' -f /var/www/
 # when not running is also a failure.  So we just do it the way init scripts
 # are expected to behave here.
 start() {
-        pushd /var/www/openshift/console
-          rm -rf Gemfile.lock
-          scl enable ruby193 "bundle install --local" > /dev/null
-          chown apache:apache Gemfile.lock
-        popd > /dev/null
+        pushd /var/www/openshift/console >/dev/null 2>&1
+        rm -rf Gemfile.lock
+        scl enable ruby193 "bundle install --local" > /dev/null
+        chown apache:apache Gemfile.lock
+        popd >/dev/null 2>&1
         echo -n $"Starting $prog: "
         LANG=$HTTPD_LANG daemon --pidfile=${pidfile} $httpd $OPTIONS
         RETVAL=$?
@@ -70,7 +70,8 @@ stop() {
 }
 reload() {
     echo -n $"Reloading $prog: "
-    if ! LANG=$HTTPD_LANG $httpd $OPTIONS -t >&/dev/null; then
+    eval "set -- $OPTIONS"
+    if ! LANG=$HTTPD_LANG $httpd "$@" -t >&/dev/null; then
         RETVAL=6
         echo $"not reloading due to configuration syntax error"
         failure $"not reloading $httpd due to configuration syntax error"
@@ -80,7 +81,9 @@ reload() {
         RETVAL=$?
         if [ $RETVAL -eq 7 ]; then
             failure $"httpd shutdown"
-        fi
+	else
+	    success
+	fi
     fi
     echo
 }
