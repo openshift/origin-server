@@ -52,7 +52,7 @@ class ApplicationsTest < ActionDispatch::IntegrationTest #ActiveSupport::TestCas
     app.tidy
     assert_raise(OpenShift::UserException){app.threaddump}
 
-    as = "as#{gen_uuid[0..9]}"
+    as = "as.#{gen_uuid[0..9]}"
     app.add_alias(as)
     app.remove_alias(as)
 

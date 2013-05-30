@@ -52,7 +52,7 @@ class AppEventsControllerTest < ActionController::TestCase
     assert_response :unprocessable_entity
     post :create, {"event" => "tidy", "domain_id" => @domain.namespace, "application_id" => @app.name}
     assert_response :success
-    as = "as#{@random}"
+    as = "as.#{@random}"
     post :create, {"event" => "add-alias", "alias" => as, "domain_id" => @domain.namespace, "application_id" => @app.name}
     assert_response :success
     post :create, {"event" => "remove-alias", "alias" => as, "domain_id" => @domain.namespace, "application_id" => @app.name}
