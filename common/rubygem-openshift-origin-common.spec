@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Common
 Name:          rubygem-%{gem_name}
-Version: 1.9.0
+Version: 1.9.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -97,6 +97,9 @@ cp -a ./%{gem_dir}/* %{buildroot}%{gem_dir}/
 %doc %{gem_docdir}
 
 %changelog
+* Thu May 30 2013 Adam Miller <admiller@redhat.com> 1.9.1-1
+- bump_minor_versions for sprint 29 (admiller@redhat.com)
+
 * Wed May 29 2013 Adam Miller <admiller@redhat.com> 1.8.8-1
 - Merge pull request #2654 from rajatchopra/master
   (dmcphers+openshiftbot@redhat.com)
