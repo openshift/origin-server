@@ -4,7 +4,7 @@
 
 Summary:       Provides JBossAS7 support
 Name:          openshift-origin-cartridge-jbossas
-Version:       1.2.6
+Version:       1.2.7
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -89,6 +89,11 @@ cp -p %{cartridgedir}/versions/7/modules/postgresql_module.xml /etc/alternatives
 
 
 %changelog
+* Thu May 30 2013 Adam Miller <admiller@redhat.com> 1.2.7-1
+- Merge pull request #2672 from pmorie/bugs/968343
+  (dmcphers+openshiftbot@redhat.com)
+- Fix bug 968343 (pmorie@gmail.com)
+
 * Wed May 29 2013 Adam Miller <admiller@redhat.com> 1.2.6-1
 - Bug 968279: Fix jboss[as|eap] java7 marker detection (ironcladlou@gmail.com)
 - Merge pull request #2655 from ironcladlou/bz/967532
