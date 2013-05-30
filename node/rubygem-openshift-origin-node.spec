@@ -16,7 +16,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.9.9
+Version: 1.9.10
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -294,6 +294,19 @@ fi
 %attr(0755,-,-) /etc/cron.monthly/openshift-origin-cron-monthly
 
 %changelog
+* Thu May 30 2013 Adam Miller <admiller@redhat.com> 1.9.10-1
+- Merge pull request #2694 from pmorie/dev/v2_switchyard
+  (dmcphers+openshiftbot@redhat.com)
+- Add V2 tests for switchyard (pmorie@gmail.com)
+- Merge pull request #2688 from mrunalp/dev/idler
+  (dmcphers+openshiftbot@redhat.com)
+- Auto Idler (mrunalp@gmail.com)
+- Merge pull request #2680 from ironcladlou/bz/968228
+  (dmcphers+openshiftbot@redhat.com)
+- Update README.writing_cartridges.md (ccoleman@redhat.com)
+- Update README.writing_cartridges.md (ccoleman@redhat.com)
+- Bug 968228: Report analytics on build post-receive (ironcladlou@gmail.com)
+
 * Wed May 29 2013 Adam Miller <admiller@redhat.com> 1.9.9-1
 - Merge pull request #2640 from dobbymoodge/oo-admin-ctl-cgroups-debug
   (dmcphers+openshiftbot@redhat.com)
