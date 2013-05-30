@@ -486,12 +486,19 @@ class Application
   # @param features [Array<String>] List of features to remove from the application. Each feature will be resolved to the cartridge which provides it
   # @param group_overrides [Array] List of group overrides
   # @param force [Boolean] Set to true when deleting an application. It allows removal of web_proxy and ignores missing features
+  # @param remove_all_features [Boolean] Set to true when deleting an application. 
+  #        It allows recomputing the list of features within the application after acquiring the lock. 
+  #        If set to true, this ignores the features argument 
   # @return [ResultIO] Output from cartridges
   # @raise [OpenShift::UserException] Exception raised if there is any reason the feature/cartridge cannot be removed from the Application
-  def remove_features(features, group_overrides=[], force=false)
+  def remove_features(features, group_overrides=[], force=false, remove_all_features=false)
     installed_features = self.requires
-    
     result_io = ResultIO.new
+
+    # FIXME: remove_all_features argument is ignored here
+    # For now, it is only used to check if we are removing a jenkins server application
+    # If the jenkins server app is still being created, jenkins clients cannot exist.
+    # But if this loop is modified to perform other checks/actions, we'll have to consider the remove_all_features flag
     features.each do |feature|
       cart = CartridgeCache.find_cartridge(feature, self)
       raise OpenShift::UserException.new("Invalid feature: #{feature}", 109) unless cart
@@ -502,6 +509,8 @@ class Application
         raise OpenShift::UserException.new("'#{feature}' is not a feature of '#{self.name}'", 135) unless installed_features.include? feature
       end
       
+      # FIXME: Instead of relying on individual cartridge categories to determine if any dependent features 
+      # need to be removed in other applications, we need to make it more generic by using the domain_scope category
       if cart.is_ci_server?
         self.domain.applications.each do |uapp|
           next if self.name == uapp.name
@@ -518,7 +527,7 @@ class Application
       end
     end
     Application.run_in_application_lock(self) do
-      self.pending_op_groups.push PendingAppOpGroup.new(op_type: :remove_features, args: {"features" => features, "group_overrides" => group_overrides}, user_agent: self.user_agent)
+      self.pending_op_groups.push PendingAppOpGroup.new(op_type: :remove_features, args: {"features" => features, "group_overrides" => group_overrides, "remove_all_features" => remove_all_features}, user_agent: self.user_agent)
       self.run_jobs(result_io)
     end
 
@@ -546,7 +555,8 @@ class Application
         end
       }
     }
-    self.remove_features(self.requires, [], true)
+    # specifying the remove_all_features flag as true to ensure removal of all features
+    self.remove_features(self.requires, [], true, true)
     Application.run_in_application_lock(self) do
       self.pending_op_groups.push PendingAppOpGroup.new(op_type: :delete_app, user_agent: self.user_agent)
       result_io = ResultIO.new
@@ -1139,7 +1149,8 @@ class Application
             try_reserve_gears(add_gear_count, rm_gear_count, op_group, ops)
           when :remove_features
             #need rollback
-            features = self.requires - op_group.args["features"]
+            features = []
+            features = self.requires - op_group.args["features"] unless op_group.args["remove_all_features"]
             group_overrides = (self.group_overrides || []) + (op_group.args["group_overrides"] || [])
             ops, add_gear_count, rm_gear_count = update_requirements(features, group_overrides)
             try_reserve_gears(add_gear_count, rm_gear_count, op_group, ops)
