@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.9.9
+Version: 1.9.10
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -84,6 +84,19 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Thu May 30 2013 Adam Miller <admiller@redhat.com> 1.9.10-1
+- Merge pull request #2694 from pmorie/dev/v2_switchyard
+  (dmcphers+openshiftbot@redhat.com)
+- Add V2 tests for switchyard (pmorie@gmail.com)
+- Merge pull request #2679 from rajatchopra/master
+  (dmcphers+openshiftbot@redhat.com)
+- fix search for components given in group overrides (rchopra@redhat.com)
+- Merge pull request #2677 from pravisankar/dev/ravi/bug968283
+  (dmcphers+openshiftbot@redhat.com)
+- Fix track_usage rollback (rpenta@redhat.com)
+- Bug 968283 - before_filter check_version must be applied before check_outage
+  to ensure @requested_api_version is populated (rpenta@redhat.com)
+
 * Wed May 29 2013 Adam Miller <admiller@redhat.com> 1.9.9-1
 - Merge pull request #2664 from abhgupta/bug_967426
   (dmcphers+openshiftbot@redhat.com)
