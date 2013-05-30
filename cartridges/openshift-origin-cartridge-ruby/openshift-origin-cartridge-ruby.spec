@@ -6,7 +6,7 @@
 %global cartridgedir %{_libexecdir}/openshift/cartridges/v2/ruby
 
 Name:          openshift-origin-cartridge-ruby
-Version:       0.4.7
+Version:       0.4.8
 Release:       1%{?dist}
 Summary:       Ruby cartridge
 Group:         Development/Languages
@@ -168,6 +168,9 @@ Ruby cartridge for OpenShift. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Thu May 30 2013 Adam Miller <admiller@redhat.com> 0.4.8-1
+- Bug 968882 - Fix MIMEMagicFile (jhonce@redhat.com)
+
 * Wed May 29 2013 Adam Miller <admiller@redhat.com> 0.4.7-1
 - Bug 966465 (dmcphers@redhat.com)
 - Bug 962657 (dmcphers@redhat.com)
