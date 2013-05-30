@@ -1,7 +1,7 @@
 %global cartridgedir %{_libexecdir}/openshift/cartridges/v2/perl
 
 Name:          openshift-origin-cartridge-perl
-Version:       0.4.5
+Version:       0.4.6
 Release:       1%{?dist}
 Summary:       Perl cartridge
 Group:         Development/Languages
@@ -54,6 +54,9 @@ Perl cartridge for OpenShift. (Cartridge Format V2)
 
 
 %changelog
+* Thu May 30 2013 Adam Miller <admiller@redhat.com> 0.4.6-1
+- Bug 968340 - Update MIMEMagicFile in conf files (jhonce@redhat.com)
+
 * Thu May 23 2013 Adam Miller <admiller@redhat.com> 0.4.5-1
 - Bug 966255: Remove OPENSHIFT_INTERNAL_* references from v2 carts
   (ironcladlou@gmail.com)
