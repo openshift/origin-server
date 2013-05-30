@@ -9,7 +9,7 @@
 
 Summary:       OpenShift Origin Management Console
 Name:          rubygem-%{gem_name}
-Version: 1.9.9
+Version: 1.9.10
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -151,6 +151,13 @@ cp -a ./%{gem_dir}/* %{buildroot}%{gem_dir}/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Thu May 30 2013 Adam Miller <admiller@redhat.com> 1.9.10-1
+- <openshift-console> Bug 968442 - Change verbiage of get_started page
+  (jdetiber@redhat.com)
+- Merge pull request #2619 from jtharris/email_blacklist
+  (dmcphers+openshiftbot@redhat.com)
+- Add prohibited email domain configuration. (jharris@redhat.com)
+
 * Wed May 29 2013 Adam Miller <admiller@redhat.com> 1.9.9-1
 - Merge pull request #2657 from smarterclayton/clear_carts_on_reload
   (dmcphers+openshiftbot@redhat.com)
