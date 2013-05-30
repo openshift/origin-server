@@ -817,6 +817,11 @@ module OpenShift
     def clean_server_name(name)
       dname = name.downcase
 
+      if not dname =~ /^[a-z0-9]/
+        raise FrontendHttpServerNameException.new("Invalid start character", @container_uuid, \
+                                                   @container_name, @namespace, dname )
+      end
+
       if not dname.index(/[^0-9a-z\-.]/).nil?
         raise FrontendHttpServerNameException.new("Invalid characters", @container_uuid, \
                                                    @container_name, @namespace, dname )
@@ -1028,6 +1033,7 @@ module OpenShift
       if writable?
         File.open(@filename + self.SUFFIX + '-', Fcntl::O_RDWR | Fcntl::O_CREAT | Fcntl::O_TRUNC, 0640) do |f|
           encode_contents(f)
+          f.fsync
         end
 
         # Ruby 1.9 Hash preserves order, compare files to see if anything changed
