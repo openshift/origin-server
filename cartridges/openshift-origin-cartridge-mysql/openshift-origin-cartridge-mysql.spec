@@ -2,7 +2,7 @@
 
 Summary:       Provides embedded mysql support
 Name:          openshift-origin-cartridge-mysql
-Version: 0.4.0
+Version: 0.4.1
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -40,6 +40,9 @@ Provides mysql cartridge support to OpenShift. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Thu May 30 2013 Adam Miller <admiller@redhat.com> 0.4.1-1
+- bump_minor_versions for sprint 29 (admiller@redhat.com)
+
 * Fri May 24 2013 Adam Miller <admiller@redhat.com> 0.3.6-1
 - Bug 967017: Use underscores for v2 cart script names (ironcladlou@gmail.com)
 - remove install build required for non buildable carts (dmcphers@redhat.com)
