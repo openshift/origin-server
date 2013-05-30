@@ -2,7 +2,7 @@
 
 Summary:       Provides embedded switchyard support
 Name:          openshift-origin-cartridge-switchyard
-Version:       0.2.6
+Version: 0.3.0
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
