@@ -1979,7 +1979,27 @@ class Application
       
       group_override["components"].map! do |comp_spec|
         comp_spec = {"comp" => comp_spec} if comp_spec.class == String
-        component = component_instances.select{|ci| ci["comp"] == comp_spec["comp"] && (comp_spec["cart"].nil? || ci["cart"] == comp_spec["cart"])}
+        component = component_instances.select { |ci| 
+          is_valid =  (ci["comp"] == comp_spec["comp"] && (comp_spec["cart"].nil? || ci["cart"] == comp_spec["cart"]))
+          unless is_valid
+            # try once more with comp_spec["comp"] possibly not the cartridge name
+            # basically some override (either by the user or through a group_override section in a cartridge)
+            # is referring to a component/feature that is not a cartridge name or component name of any of the cartridges
+            # installed on the system
+            ci_cart = CartridgeCache.find_cartridge(ci["cart"], self)
+            p = ci_cart.profile_for_feature(comp_spec["comp"])
+            unless p.nil? or p.is_a? Array
+              # this is the cartridge because we found a profile matching the feature, just double check on the component
+              # if this was an auto-generated component then we are good to choose this ci
+              begin
+                is_valid = true if p.get_component(ci["comp"]).generated
+              rescue Exception=>e
+                # ignore
+              end
+            end
+          end
+          is_valid
+        }
         next if component.size == 0
         component = component.first
 
@@ -2021,7 +2041,8 @@ class Application
     framework_carts = CartridgeCache.cartridge_names("web_framework", self)
     first_has_web_framework = false
     first["components"].each do |components|
-      if framework_carts.include?(components['cart'])
+      c = CartridgeCache.find_cartridge(components['cart'], self)
+      if c.is_web_framework? 
         first_has_web_framework = true
         break
       end
