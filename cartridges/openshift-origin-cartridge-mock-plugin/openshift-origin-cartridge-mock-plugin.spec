@@ -2,7 +2,7 @@
 
 Summary:       Mock plugin cartridge for V2 Cartridge SDK
 Name:          openshift-origin-cartridge-mock-plugin
-Version: 0.5.0
+Version: 0.5.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -39,6 +39,9 @@ test platform functionality.
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Thu May 30 2013 Adam Miller <admiller@redhat.com> 0.5.1-1
+- bump_minor_versions for sprint 29 (admiller@redhat.com)
+
 * Fri May 24 2013 Adam Miller <admiller@redhat.com> 0.4.5-1
 - Bug 967017: Use underscores for v2 cart script names (ironcladlou@gmail.com)
 - remove install build required for non buildable carts (dmcphers@redhat.com)
