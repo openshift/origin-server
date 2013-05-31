@@ -288,6 +288,3 @@ command :restore do |c|
     @container.restore(options.restore_git_repo)
   end
 end
-
-
-default_command :status
