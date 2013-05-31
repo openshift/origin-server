@@ -1,4 +1,4 @@
-@runtime_other2
+@runtime_extended_other2
 @runtime
 @not-enterprise
 Feature: Cartridge Lifecycle PHP Verification Tests
