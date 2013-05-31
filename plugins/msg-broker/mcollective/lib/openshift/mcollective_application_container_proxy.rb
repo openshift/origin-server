@@ -1693,8 +1693,15 @@ module OpenShift
           # stop the cartridge if it needs to
           unless leave_stopped
             log_debug "DEBUG: Stopping existing app cartridge '#{cart}' before moving"
-            do_with_retry('stop') do
-              reply.append source_container.stop(gear, cinst)
+            begin
+              do_with_retry('stop') do
+                reply.append source_container.stop(gear, cinst)
+              end
+            rescue Exception=>e
+              # a force-stop will be applied if its a framework cartridge, so ignore the failure on stop
+              if not framework_carts(app).include? cart
+                raise e
+              end
             end
             if framework_carts(app).include? cart
               log_debug "DEBUG: Force stopping existing app cartridge '#{cart}' before moving"
