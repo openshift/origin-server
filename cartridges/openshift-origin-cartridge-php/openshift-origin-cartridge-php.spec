@@ -21,7 +21,6 @@ Requires:      php < 5.5
 Requires:      httpd < 2.5
 %endif
 Requires:      php
-Requires:      rubygem-builder
 Requires:      php-devel
 Requires:      php-pdo
 Requires:      php-gd
