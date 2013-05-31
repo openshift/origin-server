@@ -460,15 +460,6 @@ module OpenShift
           PathUtils.oo_chown(0, gid, files)
           FileUtils.chmod(0644, files)
         end
-        #Utils::SELinux.clear_mcs_label(Dir.glob(File.join(target, 'bin', '*')))
-
-        # BZ 950752
-        # Find out if we can have upstream set a context for /var/lib/openshift/*/*/bin/*.
-        # The following will break WHEN the inevitable restorecon is run in production.
-        Utils.oo_spawn(
-            "chcon system_u:object_r:bin_t:s0 #{File.join(cartridge_home, 'bin', '*')}",
-            expected_exitstatus: 0
-        )
       end
     end
 
