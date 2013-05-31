@@ -800,7 +800,7 @@ module RestApi
   class Base
     self.idle_timeout = 4
     self.open_timeout = 3
-    self.read_timeout = 180
+    self.read_timeout = 240
 
     #
     # Update the configuration of the Rest API.  Use instead of
