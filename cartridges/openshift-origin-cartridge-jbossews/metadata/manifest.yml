@@ -96,7 +96,6 @@ Endpoints:
     Private-Port:      8787
 Additional-Control-Actions:
     - threaddump
-Install-Build-Required: false
 Version-Overrides:
   '1.0':
     Display-Name: Tomcat 6 (JBoss EWS 1.0)
