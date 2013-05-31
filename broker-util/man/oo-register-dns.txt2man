@@ -3,7 +3,8 @@ NAME
 
 SYNOPSIS
   oo-regsiter-dns [-h|--with-node-hostname name] [-n|--with-node-ip ipaddr] 
-  [-d|--domain domain_name] [-k|--key-file keyfile] [-?|--help]
+  [-d|--domain domain_name] [-k|--key-file keyfile] [-g|--gss-tsig]
+  [-?|--help]
 
 DESCRIPTION
   Register OpenShift node DNS name with Bind. This command must be run as root.
@@ -27,6 +28,9 @@ OPTIONS
   -k or --key-file keyfile  
     Bind keyfile to make the DNS entry in. 
     (optional, default: /var/named/<domain_name>.key)
+
+  -g or --gss-tsig
+    Use GSS-TSIG Kerberos credentials to bind (optional)
 
   -? or --help  
     Print basic help information.
