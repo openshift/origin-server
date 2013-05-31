@@ -90,6 +90,7 @@ class BuildLifecycleTest < Test::Unit::TestCase
     @container.expects(:deploy).with(out: $stdout, err: $stderr)
     @container.expects(:start_gear).with(primary_only: true, user_initiated: true, hot_deploy: nil, out: $stdout, err: $stderr)
     @container.expects(:post_deploy).with(out: $stdout, err: $stderr)
+    @container.expects(:report_build_analytics)
 
     @container.post_receive(out: $stdout, err: $stderr)
   end
@@ -108,6 +109,8 @@ class BuildLifecycleTest < Test::Unit::TestCase
     @cartridge_model.expects(:builder_cartridge).returns(builder)
 
     @cartridge_model.expects(:do_control).with('post-receive', builder, out: $stdout, err: $stderr)
+
+    @container.expects(:report_build_analytics)
 
     @container.post_receive(out: $stdout, err: $stderr)
   end

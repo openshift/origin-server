@@ -63,7 +63,13 @@ def clean_app(a)
   delete_app = false
   dlist = []
   a.pending_op_groups.each { |op| 
-    if op.created_at < $t 
+    if op.op_type.nil? 
+      puts "ERROR in cleaning up application's op because the type is nil. App uuid - #{a.uuid}. Op - #{op.inspect}"
+      next
+    end
+    puts "WARNING : Application #{a.uuid} has created_at field nil for op - #{op.inspect}" if op.created_at.nil?
+    
+    if op.created_at.nil? or op.created_at < $t 
       puts
       puts "Executing op for app (#{a.uuid}) - #{op.inspect} "
       success = false
@@ -98,7 +104,8 @@ def clean_app(a)
   if not delete_app
     a.save
     a.pending_op_groups.each { |op| 
-      if op.created_at < $t 
+      if op.created_at.nil? or op.created_at < $t 
+        next if op.op_type.nil?
         puts
         puts "Failed to clear op for app (#{a.uuid}) - #{op.inspect} "
       end
@@ -112,17 +119,18 @@ end
 $domain_count = 0
 def clean_domain(d)
   $domain_count += 1
-  dlist = d.pending_ops.select { |op| op.created_at.nil? or op.op_type.nil? }
+  dlist = d.pending_ops.select { |op| op.op_type.nil? }
   dlist.each { |op| op.delete }
   d.pending_ops.delete_if { |op| op.nil? }
-  d.pending_ops.each { |op| op.state = :init if op.state==:queued and op.created_at < $t }
+  d.pending_ops.each { |op| op.state = :init if op.state==:queued and (op.created_at.nil? or op.created_at < $t) }
   d.save
   d.run_jobs rescue nil
   d.with(consistency: :strong).reload
-  dlist = d.pending_ops.select { |op| op.created_at < $t and op.completed? }
+  dlist = d.pending_ops.select { |op| (op.created_at.nil? or op.created_at < $t) and op.completed? }
   dlist.each { |op| op.delete }
   d.pending_ops.each { |op|
-    if op.created_at < $t and not op.completed?
+    puts "WARNING : Domain #{d.namespace} has created_at field nil for op - #{op.inspect}" if op.created_at.nil?
+    if (op.created_at.nil? or op.created_at < $t) and not op.completed?
       puts "Failed to clear op for domain (#{d.namespace}) - #{op.inspect} "
       op.state = :queued if op.state == :init
     end
@@ -133,17 +141,18 @@ end
 $user_count = 0
 def clean_user(u)
   $user_count += 1
-  dlist = u.pending_ops.select { |op| op.created_at.nil? or op.op_type.nil? or op.pending_domains.empty? }
+  dlist = u.pending_ops.select { |op| op.op_type.nil? or op.pending_domains.empty? }
   dlist.each { |op| op.delete }
   u.pending_ops.delete_if { |op| op.nil? }
-  u.pending_ops.each { |op| op.state = :init if op.state==:queued and op.created_at < $t }
+  u.pending_ops.each { |op| op.state = :init if op.state==:queued and (op.created_at.nil? or op.created_at < $t) }
   u.save
   u.run_jobs rescue nil
   u.with(consistency: :strong).reload
-  dlist = u.pending_ops.select { |op| op.created_at < $t and op.completed? }
+  dlist = u.pending_ops.select { |op| (op.created_at.nil? or op.created_at < $t) and op.completed? }
   dlist.each { |op| puts "Clearing op for user (#{u.login}) - #{op.inspect} " and op.delete }
   u.pending_ops.each { |op|
-    if op.created_at < $t and not op.completed?
+    puts "WARNING : User #{u.login} has created_at field nil for op - #{op.inspect}" if op.created_at.nil?
+    if (op.created_at.nil? or op.created_at < $t) and not op.completed?
       puts "Failed to clear op for user (#{u.login}) - #{op.inspect} "
       # putting back to queued state if it is in init state
       op.state = :queued if op.state == :init

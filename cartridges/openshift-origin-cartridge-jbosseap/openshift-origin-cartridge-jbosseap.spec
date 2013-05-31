@@ -4,7 +4,7 @@
 
 Summary:       Provides JBossEAP6.0 support
 Name:          openshift-origin-cartridge-jbosseap
-Version:       2.3.6
+Version: 2.4.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,23 @@ cp -p %{cartridgedir}/versions/6.0/modules/postgresql_module.xml /etc/alternativ
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Thu May 30 2013 Adam Miller <admiller@redhat.com> 2.4.1-1
+- bump_minor_versions for sprint 29 (admiller@redhat.com)
+
+* Thu May 30 2013 Adam Miller <admiller@redhat.com> 2.3.8-1
+- Merge pull request #2672 from pmorie/bugs/968343
+  (dmcphers+openshiftbot@redhat.com)
+- Fix bug 968343 (pmorie@gmail.com)
+
+* Wed May 29 2013 Adam Miller <admiller@redhat.com> 2.3.7-1
+- Bug 968279: Fix jboss[as|eap] java7 marker detection (ironcladlou@gmail.com)
+- Merge pull request #2655 from ironcladlou/bz/967532
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 967532: Fix initial ROOT.war deployment for jboss cartridges
+  (ironcladlou@gmail.com)
+- Bug 966876 - Fix AVC denial in jbossas7 and jbosseap6 carts on startup
+  (jdetiber@redhat.com)
+
 * Thu May 23 2013 Adam Miller <admiller@redhat.com> 2.3.6-1
 - Bug 966065: Make python-2.6 install script executable (ironcladlou@gmail.com)
 - Merge pull request #2604 from ironcladlou/bz/966255

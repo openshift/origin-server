@@ -1,6 +1,6 @@
 Summary:       Utility scripts for the OpenShift Origin broker
 Name:          openshift-origin-node-util
-Version: 1.9.5
+Version: 1.10.1
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -69,6 +69,7 @@ mv services/openshift-gears.service %{buildroot}/etc/systemd/system/openshift-ge
 %attr(0750,-,-) %{_sbindir}/oo-admin-ctl-gears
 %attr(0750,-,-) %{_sbindir}/oo-app-idle
 %attr(0750,-,-) %{_sbindir}/oo-autoidler
+%attr(0750,-,-) %{_sbindir}/oo-auto-idler
 %attr(0750,-,-) %{_sbindir}/oo-idler
 %attr(0750,-,-) %{_sbindir}/oo-idler-stats
 %attr(0750,-,-) %{_sbindir}/oo-init-quota
@@ -122,6 +123,27 @@ mv services/openshift-gears.service %{buildroot}/etc/systemd/system/openshift-ge
 /sbin/restorecon /usr/sbin/oo-restorer* || :
 
 %changelog
+* Thu May 30 2013 Adam Miller <admiller@redhat.com> 1.10.1-1
+- bump_minor_versions for sprint 29 (admiller@redhat.com)
+
+* Thu May 30 2013 Adam Miller <admiller@redhat.com> 1.9.8-1
+- Auto Idler (mrunalp@gmail.com)
+
+* Wed May 29 2013 Adam Miller <admiller@redhat.com> 1.9.7-1
+- Merge pull request #2661 from rmillner/BZ963321
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 963321 - Report an error if OPENSHIFT_GEAR_DNS is missing instead of
+  crash. (rmillner@redhat.com)
+
+* Tue May 28 2013 Adam Miller <admiller@redhat.com> 1.9.6-1
+- Ignore gears without frontend mappings in the idler. (mrunalp@gmail.com)
+- Bug 967118 - Make Platform/Cartridge shared files immutable
+  (jhonce@redhat.com)
+- Merge pull request #2624 from twiest/dev/twiest/oo-accept-node-invalid-ascii-
+  bug-fix (dmcphers+openshiftbot@redhat.com)
+- oo-accept-node: Fixed invalid ASCII bug, added full paths to binaries
+  (twiest@redhat.com)
+
 * Fri May 24 2013 Adam Miller <admiller@redhat.com> 1.9.5-1
 - BZ963827 - Improved logging messages (calfonso@redhat.com)
 - Bug 965317 - Add way to patch File class so all files have sync enabled.

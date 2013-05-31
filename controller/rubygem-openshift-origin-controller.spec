@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.9.7
+Version: 1.10.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -84,6 +84,51 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Thu May 30 2013 Adam Miller <admiller@redhat.com> 1.10.1-1
+- bump_minor_versions for sprint 29 (admiller@redhat.com)
+- Merge pull request #2695 from fotioslindiakos/runtime_extended
+  (dmcphers+openshiftbot@redhat.com)
+- Fix failing runtime_extended test (fotios@redhat.com)
+
+* Thu May 30 2013 Adam Miller <admiller@redhat.com> 1.9.10-1
+- Merge pull request #2694 from pmorie/dev/v2_switchyard
+  (dmcphers+openshiftbot@redhat.com)
+- Add V2 tests for switchyard (pmorie@gmail.com)
+- Merge pull request #2679 from rajatchopra/master
+  (dmcphers+openshiftbot@redhat.com)
+- fix search for components given in group overrides (rchopra@redhat.com)
+- Merge pull request #2677 from pravisankar/dev/ravi/bug968283
+  (dmcphers+openshiftbot@redhat.com)
+- Fix track_usage rollback (rpenta@redhat.com)
+- Bug 968283 - before_filter check_version must be applied before check_outage
+  to ensure @requested_api_version is populated (rpenta@redhat.com)
+
+* Wed May 29 2013 Adam Miller <admiller@redhat.com> 1.9.9-1
+- Merge pull request #2664 from abhgupta/bug_967426
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #2662 from abhgupta/abhgupta-dev
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #2654 from rajatchopra/master
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #2660 from ironcladlou/dev/v2carts/cucumber
+  (dmcphers+openshiftbot@redhat.com)
+- Fix for bug 967426 (abhgupta@redhat.com)
+- Fix for bug 966750 (abhgupta@redhat.com)
+- fix bz 967779, 967409, 967395 (rchopra@redhat.com)
+- Fix client message translation function and add tests (ironcladlou@gmail.com)
+- Bug 962657 (dmcphers@redhat.com)
+
+* Tue May 28 2013 Adam Miller <admiller@redhat.com> 1.9.8-1
+- Bug 967518 (dmcphers@redhat.com)
+- Bug 966963: Remove unnecessary versioned conf files from php cart
+  (ironcladlou@gmail.com)
+- Various cleanup (dmcphers@redhat.com)
+- Merge pull request #2641 from ironcladlou/dev/v2carts/build-system
+  (dmcphers+openshiftbot@redhat.com)
+- Replace pre-receive cart control action with pre-repo-archive
+  (ironcladlou@gmail.com)
+- vendoring of cartridges (rchopra@redhat.com)
+
 * Fri May 24 2013 Adam Miller <admiller@redhat.com> 1.9.7-1
 - Merge pull request #2614 from
   smarterclayton/add_unique_header_to_cart_download

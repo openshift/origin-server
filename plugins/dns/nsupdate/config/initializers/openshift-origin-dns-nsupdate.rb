@@ -22,6 +22,7 @@ Broker::Application.configure do
     # TSIG credentials
     :keyname => conf.get("BIND_KEYNAME", nil),
     :keyvalue => conf.get("BIND_KEYVALUE", nil),
+    :keyalgorithm => conf.get("BIND_KEYALGORITHM", "HMAC-MD5"),
 
     # GSS-TSIG (kerberos) credentials
     :krb_principal => conf.get("BIND_KRB_PRINCIPAL", nil),

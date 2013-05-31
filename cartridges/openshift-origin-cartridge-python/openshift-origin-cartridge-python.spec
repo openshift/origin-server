@@ -1,7 +1,7 @@
 %global cartridgedir %{_libexecdir}/openshift/cartridges/v2/python
 
 Name:          openshift-origin-cartridge-python
-Version:       0.4.5
+Version: 0.5.1
 Release:       1%{?dist}
 Summary:       Python cartridge
 Group:         Development/Languages
@@ -61,6 +61,15 @@ Python cartridge for OpenShift. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Thu May 30 2013 Adam Miller <admiller@redhat.com> 0.5.1-1
+- bump_minor_versions for sprint 29 (admiller@redhat.com)
+
+* Thu May 30 2013 Adam Miller <admiller@redhat.com> 0.4.7-1
+- Bug 968882 - Fix MIMEMagicFile (jhonce@redhat.com)
+
+* Wed May 29 2013 Adam Miller <admiller@redhat.com> 0.4.6-1
+- Add cherrypy to python 3.3 template. (mrunalp@gmail.com)
+
 * Thu May 23 2013 Adam Miller <admiller@redhat.com> 0.4.5-1
 - Bug 966065: Make python-2.6 install script executable (ironcladlou@gmail.com)
 - Merge pull request #2613 from mrunalp/bugs/965960

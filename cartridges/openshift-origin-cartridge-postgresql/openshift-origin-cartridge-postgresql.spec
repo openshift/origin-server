@@ -7,7 +7,7 @@
 
 Summary:       Provides embedded PostgreSQL support
 Name:          openshift-origin-cartridge-postgresql
-Version:       0.2.6
+Version: 0.3.1
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -70,6 +70,15 @@ Provides PostgreSQL cartridge support to OpenShift. (Cartridge Format V2)
 
 
 %changelog
+* Thu May 30 2013 Adam Miller <admiller@redhat.com> 0.3.1-1
+- bump_minor_versions for sprint 29 (admiller@redhat.com)
+
+* Tue May 28 2013 Adam Miller <admiller@redhat.com> 0.2.7-1
+- Bug 962657: Return db info to client during postgres install
+  (ironcladlou@gmail.com)
+- Bug 967118 - Remove redundant entries from managed_files.yml
+  (jhonce@redhat.com)
+
 * Fri May 24 2013 Adam Miller <admiller@redhat.com> 0.2.6-1
 - Bug 967017: Use underscores for v2 cart script names (ironcladlou@gmail.com)
 - remove install build required for non buildable carts (dmcphers@redhat.com)

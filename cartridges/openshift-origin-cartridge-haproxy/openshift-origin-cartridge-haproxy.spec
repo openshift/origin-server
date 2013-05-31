@@ -6,7 +6,7 @@
 
 Summary:       Provides HA Proxy
 Name:          openshift-origin-cartridge-haproxy
-Version:       0.4.6
+Version: 0.5.1
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -45,6 +45,25 @@ HAProxy cartridge for OpenShift. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Thu May 30 2013 Adam Miller <admiller@redhat.com> 0.5.1-1
+- bump_minor_versions for sprint 29 (admiller@redhat.com)
+
+* Thu May 30 2013 Adam Miller <admiller@redhat.com> 0.4.9-1
+- Bug 968994: Fix hot deploy during initial scaled gear deployment
+  (ironcladlou@gmail.com)
+- make sure you are doing math with floats (dmcphers@redhat.com)
+- Tuning scale up and down (dmcphers@redhat.com)
+
+* Wed May 29 2013 Adam Miller <admiller@redhat.com> 0.4.8-1
+- Merge pull request #2655 from ironcladlou/bz/967532
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 967532: Fix initial ROOT.war deployment for jboss cartridges
+  (ironcladlou@gmail.com)
+
+* Tue May 28 2013 Adam Miller <admiller@redhat.com> 0.4.7-1
+- Bug 967118 - Remove redundant entries from managed_files.yml
+  (jhonce@redhat.com)
+
 * Fri May 24 2013 Adam Miller <admiller@redhat.com> 0.4.6-1
 - remove install build required for non buildable carts (dmcphers@redhat.com)
 - Merge pull request #2622 from mrunalp/bugs/haproxy_validate_config

@@ -16,6 +16,7 @@
 
 require 'rubygems'
 require 'openshift-origin-node/model/frontend_proxy'
+require 'openshift-origin-node/model/frontend_httpd'
 require 'openshift-origin-node/model/unix_user'
 require 'openshift-origin-node/model/v1_cart_model'
 require 'openshift-origin-node/model/v2_cart_model'
@@ -32,6 +33,7 @@ require 'active_model'
 require 'json'
 require 'rest-client'
 require 'openshift-origin-node/utils/managed_files'
+require 'timeout'
 
 module OpenShift
   # == Application Container
@@ -341,6 +343,38 @@ module OpenShift
     end
 
     ##
+    # Idles the gear if there is no stop lock and state is not already +STOPPED+.
+    #
+    def idle_gear(options={})
+      if not stop_lock? and (state.value != State::STOPPED)
+        frontend = FrontendHttpServer.new(@uuid)
+        frontend.idle
+        begin
+          output = stop_gear
+        ensure
+          state.value = State::IDLE
+        end
+        output
+      end
+    end
+
+    ##
+    # Unidles the gear.
+    #
+    def unidle_gear(options={})
+      output = ""
+      if stop_lock? and (state.value == State::IDLE)
+        state.value = State::STARTED
+        output = start_gear
+      end
+      frontend = FrontendHttpServer.new(@uuid)
+      if frontend.idle?
+        frontend.unidle
+      end
+      output
+    end
+
+    ##
     # Sets the application state to +STARTED+ and starts the gear. Gear state implementation
     # is model specific, but +options+ is provided to the implementation.
     def start_gear(options={})
@@ -427,6 +461,8 @@ module OpenShift
                                               err:        options[:err],
                                               hot_deploy: options[:hot_deploy])
       end
+
+      report_build_analytics
     end
 
     def remote_deploy(options={})
@@ -900,6 +936,43 @@ module OpenShift
 
     def stop_lock?
       @cartridge_model.stop_lock?
+    end
+
+    #
+    # Send a fire-and-forget request to the broker to report build analytics.
+    #
+    def report_build_analytics
+      broker_addr = @config.get('BROKER_HOST')
+      url         = "https://#{broker_addr}/broker/nurture"
+
+      payload = {
+        "json_data" => {
+          "app_uuid" => @application_uuid,
+          "action"   => "push"
+        }.to_json
+      }
+      
+      request = RestClient::Request.new(:method => :post, 
+                                        :url => url, 
+                                        :timeout => 30,
+                                        :open_timeout => 30,
+                                        :headers => { :user_agent => 'OpenShift' },
+                                        :payload => payload)
+
+      pid = fork do
+        Process.daemon
+        begin
+          Timeout::timeout(60) do
+            response = request.execute()
+          end
+        rescue
+          # ignore it
+        end
+
+        exit!
+      end
+
+      Process.detach(pid)
     end
 
     #

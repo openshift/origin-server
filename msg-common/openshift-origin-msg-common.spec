@@ -8,7 +8,7 @@
 
 Summary:       Common msg components for OpenShift broker and node
 Name:          openshift-origin-msg-common
-Version: 1.7.2
+Version: 1.8.1
 Release:       1%{?dist}
 License:       ASL 2.0
 URL:           http://www.openshift.com
@@ -38,6 +38,9 @@ chmod 644 %{buildroot}%{mco_root}validator/*
 %{mco_root}validator/*
 
 %changelog
+* Thu May 30 2013 Adam Miller <admiller@redhat.com> 1.8.1-1
+- bump_minor_versions for sprint 29 (admiller@redhat.com)
+
 * Thu May 16 2013 Adam Miller <admiller@redhat.com> 1.7.2-1
 - Removing code dealing with namespace updates for applications
   (abhgupta@redhat.com)

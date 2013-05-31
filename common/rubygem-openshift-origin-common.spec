@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Common
 Name:          rubygem-%{gem_name}
-Version: 1.8.6
+Version: 1.9.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -97,6 +97,21 @@ cp -a ./%{gem_dir}/* %{buildroot}%{gem_dir}/
 %doc %{gem_docdir}
 
 %changelog
+* Thu May 30 2013 Adam Miller <admiller@redhat.com> 1.9.1-1
+- bump_minor_versions for sprint 29 (admiller@redhat.com)
+
+* Wed May 29 2013 Adam Miller <admiller@redhat.com> 1.8.8-1
+- Merge pull request #2654 from rajatchopra/master
+  (dmcphers+openshiftbot@redhat.com)
+- fix bz 967779, 967409, 967395 (rchopra@redhat.com)
+- Merge pull request #2658 from rmillner/out_of_date
+  (dmcphers+openshiftbot@redhat.com)
+- These policies are long deprecated, removing them to avoid confusion.
+  (rmillner@redhat.com)
+
+* Tue May 28 2013 Adam Miller <admiller@redhat.com> 1.8.7-1
+- vendoring of cartridges (rchopra@redhat.com)
+
 * Fri May 24 2013 Adam Miller <admiller@redhat.com> 1.8.6-1
 - Bug 965317 - Add way to patch File class so all files have sync enabled.
   (rmillner@redhat.com)

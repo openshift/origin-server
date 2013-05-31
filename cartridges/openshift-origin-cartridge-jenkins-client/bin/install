@@ -4,7 +4,8 @@ source $OPENSHIFT_CARTRIDGE_SDK_BASH
 
 if [ -z "$JENKINS_URL" ]
 then
-    client_error "Jenkins server does not exist!  Please create with rhc app create -t jenkins-1.4"
+    client_error "A Jenkins server does not exist in this domain!"
+    client_error "You must create a Jenkins server before installing this cartridge."
     exit 151
 fi
 

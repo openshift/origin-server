@@ -96,7 +96,7 @@ class HAProxyUtils
 end
 
 class Haproxy
-    MAX_SESSIONS_PER_GEAR = 50.0
+    MAX_SESSIONS_PER_GEAR = 16.0
 
     class ShouldRetry < StandardError
       attr_reader :message
@@ -120,9 +120,7 @@ class Haproxy
     end
 
     def refresh(stats_sock="#{HAPROXY_RUN_DIR}/stats")
-        
-        @gear_remove_pct = 49.9
-        @gear_up_pct = 90.0
+
         @gear_namespace = ENV['OPENSHIFT_GEAR_DNS'].split('.')[0].split('-')[1]
         @log = Logger.new("#{ENV['OPENSHIFT_HAPROXY_LOG_DIR']}/scale_events.log")
 
@@ -144,13 +142,20 @@ class Haproxy
         end
 
         @gear_count = self.stats['express'].count - 3
+        @gear_up_pct = 90.0
+        if @gear_count > 1
+          # Pick a percentage for removing gears which is a moderate amount below the threshold where the gear would scale back up.
+          @gear_remove_pct = (@gear_up_pct * ([1-(1.0 / @gear_count), 0.95].max)) - (@gear_up_pct / @gear_count)
+        else
+          @gear_remove_pct = 1.0
+        end
         @sessions = self.stats['express']['BACKEND'].scur.to_i
         if @gear_count == 0
           @log.error("Failed to get information from haproxy")
           raise ShouldRetry, "Failed to get information from haproxy"
         end
 
-        @sessions_per_gear = @sessions / @gear_count
+        @sessions_per_gear = @sessions.to_f / @gear_count
         @session_capacity_pct = (@sessions_per_gear / MAX_SESSIONS_PER_GEAR ) * 100
 
     end
@@ -192,7 +197,7 @@ class Haproxy
     def add_gear(verbose=false)
         @last_scale_up_time = Time.now
         @log.info("GEAR_UP - capacity: #{self.session_capacity_pct}% gear_count: #{self.gear_count} sessions: #{self.sessions} up_thresh: #{@gear_up_pct}%")
-        res=`#{ENV['OPENSHIFT_HAPROXY_DIR']}/usr/bin/add-gear -n #{self.gear_namespace}  -a #{ENV['OPENSHIFT_APP_NAME']} -u #{ENV['OPENSHIFT_APP_UUID']}`
+        res=`#{ENV['OPENSHIFT_HAPROXY_DIR']}/usr/bin/add-gear -n #{self.gear_namespace}  -a #{ENV['OPENSHIFT_APP_NAME']} -u #{ENV['OPENSHIFT_APP_UUID']} 2>&1`
         @log.debug("GEAR_UP - add-gear: exit: #{$?}  stdout: #{res}")
         $stderr.puts(res) if verbose and res != ""
         self.print_gear_stats
@@ -200,7 +205,7 @@ class Haproxy
 
     def remove_gear(verbose=false)
         @log.info("GEAR_DOWN - capacity: #{self.session_capacity_pct}% gear_count: #{self.gear_count} sessions: #{self.sessions} remove_thresh: #{@gear_remove_pct}%")
-        res=`#{ENV['OPENSHIFT_HAPROXY_DIR']}/usr/bin/remove-gear -n #{self.gear_namespace} -a #{ENV['OPENSHIFT_APP_NAME']} -u #{ENV['OPENSHIFT_APP_UUID']}`
+        res=`#{ENV['OPENSHIFT_HAPROXY_DIR']}/usr/bin/remove-gear -n #{self.gear_namespace} -a #{ENV['OPENSHIFT_APP_NAME']} -u #{ENV['OPENSHIFT_APP_UUID']} 2>&1`
         @log.debug("GEAR_DOWN - remove-gear: exit: #{$?}  stdout: #{res}")
         $stderr.puts(res) if verbose and res != ""
         self.print_gear_stats

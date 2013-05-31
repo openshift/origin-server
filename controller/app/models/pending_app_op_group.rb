@@ -88,7 +88,7 @@ class PendingAppOpGroup
           result_io.append gear.destroy_gear(true)
           self.inc(:num_gears_rolled_back, 1)
         when :track_usage
-          unless op.args["parent_user_id"].nil?
+          unless op.args["parent_user_id"]
             storage_usage_type = (op.args["usage_type"] == UsageRecord::USAGE_TYPES[:addtl_fs_gb])
             tracked_storage = nil
             if storage_usage_type
@@ -337,5 +337,17 @@ class PendingAppOpGroup
       component_instance = application.component_instances.find_by(cartridge_name: cart_name, component_name: comp_name, group_instance_id: group_instance._id)
     end
     component_instance
+  end
+  
+  def serializable_hash_with_timestamp
+    s_hash = self.serializable_hash
+    t = Time.zone.now
+    if self.created_at.nil?
+      s_hash["created_at"] = t
+    end
+    if self.updated_at.nil?
+      s_hash["updated_at"] = t
+    end
+    s_hash
   end
 end

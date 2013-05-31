@@ -3,7 +3,7 @@
 source $OPENSHIFT_CARTRIDGE_SDK_BASH
 
 function update-configuration() {
-  if marker_present java7 || [ ${1:-java7} == java7 ]
+  if marker_present java7
   then
     export JAVA_HOME=$OPENSHIFT_JBOSSAS_JDK7
   else

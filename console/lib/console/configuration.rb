@@ -37,6 +37,7 @@ module Console
 
     config_accessor :community_url
     config_accessor :cache_store
+    config_accessor :prohibited_email_domains
 
     #
     # A class that represents the capabilities object
@@ -114,13 +115,13 @@ module Console
       @capabilities_model = name
     end
 
-    # 
+    #
     # Retrieve a configuration value from the default environment
     #
     # Pass an optional block to modify the value
     #
     def env(sym, default=nil, &block)
-      env = if @config 
+      env = if @config
         v = @config[sym]
         v.nil? ? default : to_ruby_value(v)
       else
@@ -142,6 +143,8 @@ module Console
         if self.community_url && !self.community_url.end_with?('/')
           raise InvalidConfiguration, "COMMUNITY_URL must end in '/'"
         end
+
+        self.prohibited_email_domains = config[:PROHIBITED_EMAIL_DOMAINS].split(',').map { |email| email.strip } rescue []
 
         if cache_store = config[:CACHE_STORE]
           Rails.configuration.send(:cache_store=, eval("[#{cache_store}]"))

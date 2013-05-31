@@ -213,6 +213,9 @@ module RestApi
       def []=(s, v)
         super s.to_s, v
       end
+      def delete(s)
+        super s.to_s
+      end
     end
 
     def initialize(attributes = {}, persisted=false)

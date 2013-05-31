@@ -1,7 +1,7 @@
 %global cartridgedir %{_libexecdir}/openshift/cartridges/v2/php
 
 Name:          openshift-origin-cartridge-php
-Version:       0.4.5
+Version: 0.5.1
 Release:       1%{?dist}
 Summary:       Php cartridge
 Group:         Development/Languages
@@ -80,6 +80,23 @@ sed -i 's/#DefaultRuntimeDir/DefaultRuntimeDir/g' %{buildroot}%{cartridgedir}/ve
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Thu May 30 2013 Adam Miller <admiller@redhat.com> 0.5.1-1
+- bump_minor_versions for sprint 29 (admiller@redhat.com)
+
+* Thu May 30 2013 Adam Miller <admiller@redhat.com> 0.4.8-1
+- Merge pull request #2676 from VojtechVitek/php_control_always_return_0
+  (dmcphers+openshiftbot@redhat.com)
+- fix php control script to always return 0 (vvitek@redhat.com)
+
+* Wed May 29 2013 Adam Miller <admiller@redhat.com> 0.4.7-1
+- Merge pull request #2652 from VojtechVitek/php_cartridge_cleanup
+  (dmcphers+openshiftbot@redhat.com)
+- php v2 cartridge clean-up (vvitek@redhat.com)
+
+* Tue May 28 2013 Adam Miller <admiller@redhat.com> 0.4.6-1
+- Bug 966963: Remove unnecessary versioned conf files from php cart
+  (ironcladlou@gmail.com)
+
 * Thu May 23 2013 Adam Miller <admiller@redhat.com> 0.4.5-1
 - Bug 966255: Remove OPENSHIFT_INTERNAL_* references from v2 carts
   (ironcladlou@gmail.com)

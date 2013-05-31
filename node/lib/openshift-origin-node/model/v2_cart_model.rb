@@ -440,24 +440,23 @@ module OpenShift
       old_path = File.join(@user.homedir, '.env', 'PATH')
       File.delete(old_path) if File.file? old_path
 
-      secure_cartridge(@user.uid, @user.gid, target)
+      secure_cartridge(cartridge.short_name, @user.uid, @user.gid, target)
 
       logger.info("Created cartridge directory #{@user.uuid}/#{cartridge.directory}")
       nil
     end
 
-    def secure_cartridge(uid, gid=uid, cartridge_home)
-      name = File.basename(cartridge_home)
-
+    def secure_cartridge(short_name, uid, gid=uid, cartridge_home)
       Dir.chdir(cartridge_home) do
         make_user_owned(cartridge_home)
 
         files = ManagedFiles::IMMUTABLE_FILES.collect do |file|
-          file.gsub!('*', name.upcase)
+          file.gsub!('*', short_name)
           file if File.exist?(file)
         end || []
+        files.compact!
 
-        if files.empty?
+        unless files.empty?
           PathUtils.oo_chown(0, gid, files)
           FileUtils.chmod(0644, files)
         end
@@ -985,6 +984,7 @@ module OpenShift
       end
 
       process_cartridges(cartridge_dir) { |path|
+        # Make sure this cartridge's env directory overrides that of other cartridge envs
         cartridge_env = gear_env.merge(Utils::Environ.load(File.join(path, 'env')))
 
         ident                            = cartridge_env.keys.grep(/^OPENSHIFT_.*_IDENT/)

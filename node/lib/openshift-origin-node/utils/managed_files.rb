@@ -67,10 +67,6 @@ module OpenShift
         .map(&:strip)         # Remove leading/trailing whitespace
         .delete_if(&:empty?)  # Remove any empty patterns
 
-      IMMUTABLE_FILES.each do |name|
-        name.gsub!('*', cart.short_name)
-        file_patterns.delete(name)
-      end
 
       # Specify whether or not to do extra processing
       if process_files
@@ -99,6 +95,11 @@ module OpenShift
             pattern
           end
         end.flatten
+
+        IMMUTABLE_FILES.each do |name|
+          name.gsub!('*', cart.short_name)
+          wanted_files.delete(PathUtils.join(root, cart.directory, name))
+        end
 
         # Return files as relative to root
         wanted_files.map{|x| x[root.length..-1]}

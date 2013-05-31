@@ -21,7 +21,7 @@ module OpenShift
     end
     
     def profile_for_feature(feature)
-      if feature.nil? || self.provides.include?(feature) || self.name == feature || feature == self.original_name
+      if feature.nil? || self.provides.include?(feature) || self.name == feature || feature == self.original_name || feature=="#{self.cartridge_vendor}-#{self.original_name}"
         return @_profile_map[self.default_profile]
       else
         self.profiles.each do |profile|

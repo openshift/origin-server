@@ -16,7 +16,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.9.7
+Version: 1.10.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -294,6 +294,64 @@ fi
 %attr(0755,-,-) /etc/cron.monthly/openshift-origin-cron-monthly
 
 %changelog
+* Thu May 30 2013 Adam Miller <admiller@redhat.com> 1.10.1-1
+- bump_minor_versions for sprint 29 (admiller@redhat.com)
+
+* Thu May 30 2013 Adam Miller <admiller@redhat.com> 1.9.10-1
+- Merge pull request #2694 from pmorie/dev/v2_switchyard
+  (dmcphers+openshiftbot@redhat.com)
+- Add V2 tests for switchyard (pmorie@gmail.com)
+- Merge pull request #2688 from mrunalp/dev/idler
+  (dmcphers+openshiftbot@redhat.com)
+- Auto Idler (mrunalp@gmail.com)
+- Merge pull request #2680 from ironcladlou/bz/968228
+  (dmcphers+openshiftbot@redhat.com)
+- Update README.writing_cartridges.md (ccoleman@redhat.com)
+- Update README.writing_cartridges.md (ccoleman@redhat.com)
+- Bug 968228: Report analytics on build post-receive (ironcladlou@gmail.com)
+
+* Wed May 29 2013 Adam Miller <admiller@redhat.com> 1.9.9-1
+- Merge pull request #2640 from dobbymoodge/oo-admin-ctl-cgroups-debug
+  (dmcphers+openshiftbot@redhat.com)
+- <oo-admin-ctl-cgroups> Bug 964205 - amend comments for cgroup_exists function
+  (jolamb@redhat.com)
+- Bug 967118 - Immutable files in cartridges (jhonce@redhat.com)
+- Merge pull request #2660 from ironcladlou/dev/v2carts/cucumber
+  (dmcphers+openshiftbot@redhat.com)
+- Fix client message translation function and add tests (ironcladlou@gmail.com)
+- <oo-admin-ctl-groups> Bug 964205 - fix set_blkio function comment to be more
+  accurate (jolamb@redhat.com)
+- <oo-admin-ctl-cgroups> Bug 964205 - prevent stopping already stopped cgroups
+  (jolamb@redhat.com)
+- <oo-admin-ctl-cgroups> Bug 964205 - add "repair" command (jolamb@redhat.com)
+- <oo-admin-ctl-cgroups> Fix return value handling, code fixes/refactoring
+  (jolamb@redhat.com)
+- <oo-admin-ctl-groups> Fix typos in echo statements (jolamb@redhat.com)
+- <oo-admin-ctl-cgroups> whitespace fixes (jolamb@redhat.com)
+
+* Tue May 28 2013 Adam Miller <admiller@redhat.com> 1.9.8-1
+- WIP Cartridge Refactor - Updated Guide (jhonce@redhat.com)
+- Various cleanup (dmcphers@redhat.com)
+- Merge pull request #2642 from jwhonce/bug/967118
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #2641 from ironcladlou/dev/v2carts/build-system
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 967118 - Make Platform/Cartridge shared files immutable
+  (jhonce@redhat.com)
+- Merge pull request #2636 from ironcladlou/bz/967016
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #2637 from jwhonce/wip/oo-trap-user
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #2629 from ironcladlou/bz/966790
+  (dmcphers+openshiftbot@redhat.com)
+- Replace pre-receive cart control action with pre-repo-archive
+  (ironcladlou@gmail.com)
+- Bug 967016: Detect v2 carts in a gear more accurately (ironcladlou@gmail.com)
+- WIP Cartridge Refactor - remove extraneous syslog messages
+  (jhonce@redhat.com)
+- Bug 966790: Handle unidling consistently in the cart model
+  (ironcladlou@gmail.com)
+
 * Fri May 24 2013 Adam Miller <admiller@redhat.com> 1.9.7-1
 - Merge pull request #2633 from ironcladlou/bz/967017
   (dmcphers+openshiftbot@redhat.com)

@@ -5,21 +5,17 @@ source $OPENSHIFT_CARTRIDGE_SDK_BASH
 HTTPD_CFG_FILE=$OPENSHIFT_PHP_DIR/configuration/etc/conf/httpd_nolog.conf
 HTTPD_CFG_DIR=$OPENSHIFT_PHP_DIR/configuration/etc/conf.d
 
-function start() {
-    echo "Starting PHP cart"
-    update_httpd_passenv $HTTPD_CFG_FILE
-    /usr/sbin/httpd -C "Include $HTTPD_CFG_DIR/*.conf" -f $HTTPD_CFG_FILE -k start
+function apache() {
+    client_message "$2 Apache+mod_php HTTPD server"
+    [ "$1" != "stop" ] && update_httpd_passenv $HTTPD_CFG_FILE
+    /usr/sbin/httpd -C "Include $HTTPD_CFG_DIR/*.conf" -f $HTTPD_CFG_FILE -k $1
+    return $?
 }
 
-function stop() {
-    echo "Stopping PHP cart"
-    /usr/sbin/httpd -C "Include $HTTPD_CFG_DIR/*.conf" -f $HTTPD_CFG_FILE -k stop
-}
-
-function restart() {
-    echo "Restarting PHP cart"
-    update_httpd_passenv $HTTPD_CFG_FILE
-    /usr/sbin/httpd -C "Include $HTTPD_CFG_DIR/*.conf" -f $HTTPD_CFG_FILE -k restart
+function configtest() {
+    client_message "Testing Apache *.conf files"
+    /usr/sbin/httpd -C "Include $HTTPD_CFG_DIR/*.conf" -f $HTTPD_CFG_FILE -t
+    return $?
 }
 
 function status() {
@@ -27,20 +23,20 @@ function status() {
    then
       client_result "Application is running"
       client_result $output
+      return 0
    else
       client_result "Application is either stopped or inaccessible"
+      # FIXME: We should return 1 once we can handle non-zero return statuses
+      #        (This should be possible after we remove the v1 logic completely)
+      return 0
    fi
-}
-
-function reload() {
-    echo "Reloading PHP cart"
-    restart
 }
 
 function tidy() {
     client_message "Emptying log dir: $OPENSHIFT_PHP_LOG_DIR"
     shopt -s dotglob
     rm -rf $OPENSHIFT_PHP_LOG_DIR/*
+    return 0
 }
 
 function build() {
@@ -68,20 +64,20 @@ function build() {
             fi
         done
     fi
-}
-
-function deploy() {
-    echo "TODO"
+    return 0
 }
 
 case "$1" in
-  start)     start ;;
-  stop)      stop ;;
-  restart)   restart ;;
-  status)    status ;;
-  reload)    reload ;;
-  tidy)      tidy ;;
-  build)     build ;;
-  deploy)    deploy ;;
-  *)         exit 0
+  start)           apache start "Starting" ;;
+  stop)            apache stop "Stopping" ;;
+  restart)         apache restart "Restarting" ;;
+  reload|graceful) apache graceful "Restarting gracefully" ;;
+  status)          status ;;
+  configtest)      configtest ;;
+  tidy)            tidy ;;
+  build)           build ;;
+  deploy)          exit 0 ;; # Nothing to deploy on template PHP cartridge
+  *)               client_message "\`$1' control action not implemented"; exit 0
 esac
+
+exit $?

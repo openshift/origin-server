@@ -158,7 +158,7 @@ class Application
         features.each do |feature|
           cart = CartridgeCache.find_cartridge(feature, app)
           if cart
-            framework_cartridges.push(cart.name) if framework_carts.include?(feature)
+            framework_cartridges.push(cart.name) if cart.is_web_framework?
           else
             raise OpenShift::UserException.new("Invalid cartridge '#{feature}' specified.", 109, "cartridge")
           end
@@ -459,7 +459,7 @@ class Application
       if cart.is_domain_scoped?
         begin
           if Application.where(domain_id: self.domain._id, "component_instances.cartridge_name" => cart.name).count() > 0
-            raise  .new("An application with #{feature_name} already exists within the domain. You can only have a single application with #{feature_name} within a domain.")
+            raise OpenShift::UserException.new("An application with #{feature_name} already exists within the domain. You can only have a single application with #{feature_name} within a domain.")
           end
         rescue Mongoid::Errors::DocumentNotFound
           #ignore
@@ -486,12 +486,19 @@ class Application
   # @param features [Array<String>] List of features to remove from the application. Each feature will be resolved to the cartridge which provides it
   # @param group_overrides [Array] List of group overrides
   # @param force [Boolean] Set to true when deleting an application. It allows removal of web_proxy and ignores missing features
+  # @param remove_all_features [Boolean] Set to true when deleting an application. 
+  #        It allows recomputing the list of features within the application after acquiring the lock. 
+  #        If set to true, this ignores the features argument 
   # @return [ResultIO] Output from cartridges
   # @raise [OpenShift::UserException] Exception raised if there is any reason the feature/cartridge cannot be removed from the Application
-  def remove_features(features, group_overrides=[], force=false)
+  def remove_features(features, group_overrides=[], force=false, remove_all_features=false)
     installed_features = self.requires
-    
     result_io = ResultIO.new
+
+    # FIXME: remove_all_features argument is ignored here
+    # For now, it is only used to check if we are removing a jenkins server application
+    # If the jenkins server app is still being created, jenkins clients cannot exist.
+    # But if this loop is modified to perform other checks/actions, we'll have to consider the remove_all_features flag
     features.each do |feature|
       cart = CartridgeCache.find_cartridge(feature, self)
       raise OpenShift::UserException.new("Invalid feature: #{feature}", 109) unless cart
@@ -502,6 +509,8 @@ class Application
         raise OpenShift::UserException.new("'#{feature}' is not a feature of '#{self.name}'", 135) unless installed_features.include? feature
       end
       
+      # FIXME: Instead of relying on individual cartridge categories to determine if any dependent features 
+      # need to be removed in other applications, we need to make it more generic by using the domain_scope category
       if cart.is_ci_server?
         self.domain.applications.each do |uapp|
           next if self.name == uapp.name
@@ -518,7 +527,7 @@ class Application
       end
     end
     Application.run_in_application_lock(self) do
-      self.pending_op_groups.push PendingAppOpGroup.new(op_type: :remove_features, args: {"features" => features, "group_overrides" => group_overrides}, user_agent: self.user_agent)
+      self.pending_op_groups.push PendingAppOpGroup.new(op_type: :remove_features, args: {"features" => features, "group_overrides" => group_overrides, "remove_all_features" => remove_all_features}, user_agent: self.user_agent)
       self.run_jobs(result_io)
     end
 
@@ -546,7 +555,8 @@ class Application
         end
       }
     }
-    self.remove_features(self.requires, [], true)
+    # specifying the remove_all_features flag as true to ensure removal of all features
+    self.remove_features(self.requires, [], true, true)
     Application.run_in_application_lock(self) do
       self.pending_op_groups.push PendingAppOpGroup.new(op_type: :delete_app, user_agent: self.user_agent)
       result_io = ResultIO.new
@@ -764,7 +774,7 @@ class Application
     result_io = ResultIO.new
     component_instances.each do |component_instance|
       GroupInstance.run_on_gears(component_instance.group_instance.gears, result_io, false) do |gear, r|
-        r.append gear.threaddump(component_instance.cartridge_name)
+        r.append gear.threaddump(component_instance)
         threaddump_available = true
       end if component_instance.get_additional_control_actions and component_instance.get_additional_control_actions.include? "threaddump"
     end
@@ -856,7 +866,7 @@ class Application
     # Since DNS is case insensitive, all names are downcased for
     # indexing/compares.
     server_alias = fqdn.downcase if fqdn
-    if !(server_alias =~ /\A[0-9a-zA-Z\-\.]+\z/) or
+    if !(server_alias =~ /\A[a-z0-9]+(-[a-z0-9]+)*(\.[a-z0-9]+(-[a-z0-9]+)*)+\z/) or
         (server_alias =~ /#{Rails.configuration.openshift[:domain_suffix]}$/) or
         (server_alias.length > 255 ) or
         (server_alias.length == 0 ) or
@@ -1089,21 +1099,21 @@ class Application
       when "BROKER_KEY_ADD"
         iv, token = OpenShift::Auth::BrokerKey.new.generate_broker_key(self)
         pending_op = PendingAppOpGroup.new(op_type: :add_broker_auth_key, args: { "iv" => iv, "token" => token }, user_agent: self.user_agent)
-        Application.where(_id: self._id).update_all({ "$push" => { pending_op_groups: pending_op.serializable_hash } })
+        Application.where(_id: self._id).update_all({ "$push" => { pending_op_groups: pending_op.serializable_hash_with_timestamp } })
       when "BROKER_KEY_REMOVE"
         pending_op = PendingAppOpGroup.new(op_type: :remove_broker_auth_key, args: { }, user_agent: self.user_agent)
-        Application.where(_id: self._id).update_all({ "$push" => { pending_op_groups: pending_op.serializable_hash } })
+        Application.where(_id: self._id).update_all({ "$push" => { pending_op_groups: pending_op.serializable_hash_with_timestamp } })
       end
     end
 
     if add_ssh_keys.length > 0
       keys_attrs = get_updated_ssh_keys(nil, add_ssh_keys)
       pending_op = PendingAppOpGroup.new(op_type: :update_configuration, args: {"add_keys_attrs" => keys_attrs}, user_agent: self.user_agent)
-      Application.where(_id: self._id).update_all({ "$push" => { pending_op_groups: pending_op.serializable_hash }, "$pushAll" => { app_ssh_keys: keys_attrs }})
+      Application.where(_id: self._id).update_all({ "$push" => { pending_op_groups: pending_op.serializable_hash_with_timestamp }, "$pushAll" => { app_ssh_keys: keys_attrs }})
     end
     if remove_env_vars.length > 0
       pending_op = PendingAppOpGroup.new(op_type: :update_configuration, args: {"remove_env_vars" => remove_env_vars})
-      Application.where(_id: self._id).update_all({ "$push" => { pending_op_groups: pending_op.serializable_hash }})
+      Application.where(_id: self._id).update_all({ "$push" => { pending_op_groups: pending_op.serializable_hash_with_timestamp }})
     end
 
     # Have to remember to run_jobs for the other apps involved at some point
@@ -1139,7 +1149,8 @@ class Application
             try_reserve_gears(add_gear_count, rm_gear_count, op_group, ops)
           when :remove_features
             #need rollback
-            features = self.requires - op_group.args["features"]
+            features = []
+            features = self.requires - op_group.args["features"] unless op_group.args["remove_all_features"]
             group_overrides = (self.group_overrides || []) + (op_group.args["group_overrides"] || [])
             ops, add_gear_count, rm_gear_count = update_requirements(features, group_overrides)
             try_reserve_gears(add_gear_count, rm_gear_count, op_group, ops)
@@ -1375,7 +1386,7 @@ class Application
       if remove_ssh_keys.length > 0
         keys_attrs = remove_ssh_keys.map{|k| k.attributes.dup}
         pending_op = PendingAppOpGroup.new(op_type: :update_configuration, args: {"remove_keys_attrs" => keys_attrs}, user_agent: self.user_agent)
-        Application.where(_id: self._id).update_all({ "$push" => { pending_op_groups: pending_op.serializable_hash }, "$pullAll" => { app_ssh_keys: keys_attrs }})
+        Application.where(_id: self._id).update_all({ "$push" => { pending_op_groups: pending_op.serializable_hash_with_timestamp }, "$pullAll" => { app_ssh_keys: keys_attrs }})
       end
       domain.remove_system_ssh_keys(comp_instance._id)
       domain.remove_env_variables(comp_instance._id)
@@ -1638,7 +1649,7 @@ class Application
       if remove_ssh_keys.length > 0
         keys_attrs = remove_ssh_keys.map{|k| k.attributes.dup}
         pending_op = PendingAppOpGroup.new(op_type: :update_configuration, args: {"remove_keys_attrs" => keys_attrs}, user_agent: self.user_agent)
-        Application.where(_id: self._id).update_all({ "$push" => { pending_op_groups: pending_op.serializable_hash }, "$pullAll" => { app_ssh_keys: keys_attrs }})
+        Application.where(_id: self._id).update_all({ "$push" => { pending_op_groups: pending_op.serializable_hash_with_timestamp }, "$pullAll" => { app_ssh_keys: keys_attrs }})
       end
       domain.remove_system_ssh_keys(component_instance._id)
       domain.remove_env_variables(component_instance._id)
@@ -1979,7 +1990,27 @@ class Application
       
       group_override["components"].map! do |comp_spec|
         comp_spec = {"comp" => comp_spec} if comp_spec.class == String
-        component = component_instances.select{|ci| ci["comp"] == comp_spec["comp"] && (comp_spec["cart"].nil? || ci["cart"] == comp_spec["cart"])}
+        component = component_instances.select { |ci| 
+          is_valid =  (ci["comp"] == comp_spec["comp"] && (comp_spec["cart"].nil? || ci["cart"] == comp_spec["cart"]))
+          unless is_valid
+            # try once more with comp_spec["comp"] possibly not the cartridge name
+            # basically some override (either by the user or through a group_override section in a cartridge)
+            # is referring to a component/feature that is not a cartridge name or component name of any of the cartridges
+            # installed on the system
+            ci_cart = CartridgeCache.find_cartridge(ci["cart"], self)
+            p = ci_cart.profile_for_feature(comp_spec["comp"])
+            unless p.nil? or p.is_a? Array
+              # this is the cartridge because we found a profile matching the feature, just double check on the component
+              # if this was an auto-generated component then we are good to choose this ci
+              begin
+                is_valid = true if p.get_component(ci["comp"]).generated
+              rescue Exception=>e
+                # ignore
+              end
+            end
+          end
+          is_valid
+        }
         next if component.size == 0
         component = component.first
 
@@ -2021,7 +2052,8 @@ class Application
     framework_carts = CartridgeCache.cartridge_names("web_framework", self)
     first_has_web_framework = false
     first["components"].each do |components|
-      if framework_carts.include?(components['cart'])
+      c = CartridgeCache.find_cartridge(components['cart'], self)
+      if c.is_web_framework? 
         first_has_web_framework = true
         break
       end
