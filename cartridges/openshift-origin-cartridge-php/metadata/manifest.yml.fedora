@@ -89,4 +89,3 @@ Endpoints:
       - Frontend:      "/health"
         Backend:       ""
         Options:       { health: true }
-Install-Build-Required: false
