@@ -230,7 +230,7 @@ module OpenShift
         @categories             = @manifest['Categories'] || []
         @is_deployable          = @categories.include?('web_framework')
         @is_web_proxy           = @categories.include?('web_proxy')
-        @install_build_required = @manifest.has_key?('Install-Build-Required') ? @manifest['Install-Build-Required'] : true
+        @install_build_required = @manifest.has_key?('Install-Build-Required') ? @manifest['Install-Build-Required'] : false
 
         @compatible_versions = (@manifest['Compatible-Versions'] || []).map { |v| v.to_s }
 
