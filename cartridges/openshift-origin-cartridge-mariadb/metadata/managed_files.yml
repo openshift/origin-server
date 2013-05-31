@@ -1,0 +1,13 @@
+---
+snapshot_exclusions:
+- mariadb/*
+locked_files:
+- bin/
+- bin/*
+- env/*
+- metadata/
+- metadata/*
+- hooks/
+- hooks/*
+processed_templates:
+- '**/*.erb'

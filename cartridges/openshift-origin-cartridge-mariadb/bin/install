@@ -1,0 +1,44 @@
+#!/bin/bash -e
+
+source $OPENSHIFT_CARTRIDGE_SDK_BASH
+
+# Generate username, password, and db name and create env variables
+echo 'Generating username and password'
+
+username=$(generate_username)
+password=$(generate_password)
+
+echo "$username" > $OPENSHIFT_MARIADB_DIR/env/OPENSHIFT_MARIADB_DB_USERNAME
+echo "$password" > $OPENSHIFT_MARIADB_DIR/env/OPENSHIFT_MARIADB_DB_PASSWORD
+echo "mysql://$username:$password@$OPENSHIFT_MARIADB_DB_HOST:$OPENSHIFT_MARIADB_DB_PORT/" > $OPENSHIFT_MARIADB_DIR/env/OPENSHIFT_MARIADB_DB_URL
+
+#backward comat to mysql
+echo "$username" > $OPENSHIFT_MARIADB_DIR/env/OPENSHIFT_MYSQL_DB_USERNAME
+echo "$password" > $OPENSHIFT_MARIADB_DIR/env/OPENSHIFT_MYSQL_DB_PASSWORD
+echo "mysql://$username:$password@$OPENSHIFT_MARIADB_DB_HOST:$OPENSHIFT_MARIADB_DB_PORT/" > $OPENSHIFT_MARIADB_DIR/env/OPENSHIFT_MYSQL_DB_URL
+
+
+echo 'Installing mysqld'
+
+# Must be invoked with absolute path to avoid a mariadb bug involving my_print_defaults
+/usr/bin/mysql_install_db --datadir=$OPENSHIFT_MARIADB_DIR/data || error 'Failed to create database', 119
+
+client_result ""
+client_result "MySQL 5.1 database added.  Please make note of these credentials:"
+client_result ""
+client_result "       Root User: $username"
+client_result "   Root Password: $password"
+client_result "   Database Name: $OPENSHIFT_APP_NAME"
+client_result ""
+
+client_result 'Connection URL: mysql://$OPENSHIFT_MARIADB_DB_HOST:$OPENSHIFT_MARIADB_DB_PORT/'
+client_result ""
+client_result "You can manage your new MySQL database by also embedding phpmyadmin-3.4."
+client_result "The phpmyadmin username and password will be the same as the MySQL credentials above."
+
+cart_props 'connection_url=mysql://$OPENSHIFT_MARIADB_DB_HOST:$OPENSHIFT_MARIADB_DB_PORT/'
+cart_props "username=$username"
+cart_props "password=$password"
+cart_props "database_name=$OPENSHIFT_APP_NAME"
+
+set_app_info "Connection URL: mysql://$OPENSHIFT_MARIADB_DB_HOST:$OPENSHIFT_MARIADB_DB_PORT"

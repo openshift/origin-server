@@ -1,0 +1,213 @@
+#!/bin/bash
+
+source $OPENSHIFT_CARTRIDGE_SDK_BASH
+
+export STOPTIMEOUT=10
+
+function is_running {
+  pidfile=$OPENSHIFT_MARIADB_DIR/pid/mariadb.pid
+
+  if [ -f $pidfile ]; then
+    mariadb_pid=`cat $pidfile 2> /dev/null`
+    myid=`id -u`
+
+    if `ps --pid $mariadb_pid > /dev/null 2>&1` || `pgrep -x /usr/bin/mysqld_safe -u $myid > /dev/null 2>&1`
+    then
+      return 0
+    fi
+  fi
+
+  return 1
+}
+
+# TODO: account for standalone scenario
+# TODO: source user hooks?
+# Start mysqld and block until it comes up.
+function start {
+  if ! is_running; then
+    /usr/bin/mysqld_safe --defaults-file=$OPENSHIFT_MARIADB_DIR/conf/my.cnf > /dev/null 2>&1 &    
+    wait_for_mariadbd_availability
+  else
+    echo "MySQL already running" 1>&2
+  fi
+}
+
+function wait_for_mariadbd_availability {
+  pidfile=$OPENSHIFT_MARIADB_DIR/pid/mariadb.pid
+
+  if [ -n "$OPENSHIFT_MARIADB_DB_USERNAME" ]; then
+    i=0
+    sleep 1
+    while (( ! touch_mariadbd ) || [ ! -f $pidfile ]) && [ $i -lt 30 ]
+    do
+      sleep 1
+      i=$(($i + 1))
+    done
+  fi
+}
+
+function touch_mariadbd {
+  echo ";" | /usr/bin/mysql -h $OPENSHIFT_MARIADB_DB_HOST -P $OPENSHIFT_MARIADB_DB_PORT -u $OPENSHIFT_MARIADB_DB_USERNAME --password="$OPENSHIFT_MARIADB_DB_PASSWORD" > /dev/null 2>&1
+}
+
+function stop {
+  if is_running; then
+    pidfile=$OPENSHIFT_MARIADB_DIR/pid/mariadb.pid
+
+    if [ -f $pidfile ]; then
+      pid=$( /bin/cat $pidfile )
+      /bin/kill $pid
+      ret=$?
+      if [ $ret -eq 0 ]; then
+        TIMEOUT="$STOPTIMEOUT"
+        while [ $TIMEOUT -gt 0 ] && [ -f "$pidfile" ]
+        do
+          /bin/kill -0 "$pid" >/dev/null 2>&1 || break
+          sleep 1
+          let TIMEOUT=${TIMEOUT}-1
+        done
+      fi
+    else
+      if `pgrep -x /usr/bin/mysqld_safe > /dev/null 2>&1`; then
+        echo "Warning: MySQL process exists without a pid file.  Use force-stop to kill." 1>&2
+      else
+          echo "MySQL already stopped" 1>&2
+      fi
+    fi
+  fi
+}
+
+function status {
+  if is_running; then
+    client_result "MySQL is running" 
+  else
+    client_result "MySQL is stopped" 
+  fi
+
+  exit 0
+}
+
+function pre_snapshot {
+  # TODO: add support for scalable apps, where DB is not located on primary gear
+  start
+
+  echo "$OPENSHIFT_MARIADB_DB_USERNAME" > $OPENSHIFT_DATA_DIR/mariadb_db_username
+  echo "$OPENSHIFT_MARIADB_DB_HOST" > $OPENSHIFT_DATA_DIR/mariadb_db_host
+  
+  #backward comat to mysql
+  echo "$OPENSHIFT_MARIADB_DB_USERNAME" > $OPENSHIFT_DATA_DIR/mysql_db_username
+  echo "$OPENSHIFT_MARIADB_DB_HOST" > $OPENSHIFT_DATA_DIR/mysql_db_host  
+
+  dump_file=$OPENSHIFT_DATA_DIR/mariadb_dump_snapshot.gz
+  local db_host=$OPENSHIFT_MARIADB_DB_HOST
+  local db_port=$OPENSHIFT_MARIADB_DB_PORT
+
+  /usr/bin/mysqldump -h $db_host -P $db_port -u $OPENSHIFT_MARIADB_DB_USERNAME --password="$OPENSHIFT_MARIADB_DB_PASSWORD" --all-databases --add-drop-table | /bin/gzip > $dump_file
+
+  if [ ! ${PIPESTATUS[0]} -eq 0 ]; then
+    echo 1>&2
+    echo "WARNING!  Could not dump mariadb!  Continuing anyway" 1>&2
+    echo 1>&2
+    /bin/rm -rf $OPENSHIFT_DATA_DIR/mariadb_dump_snapshot.gz
+  else
+    if [[ ! ${PIPESTATUS[1]} -eq 0 || ! -f $dump_file ]]; then
+      echo 1>&2
+      echo "WARNING!  Could not create mariadb dump!  Continuing anyway" 1>&2
+      echo 1>&2
+      /bin/rm -rf $OPENSHIFT_DATA_DIR/mariadb_dump_snapshot.gz
+    fi
+  fi
+
+  stop
+}
+
+function post_snapshot {
+  true
+}
+
+function pre_restore {
+  cleanup_dump
+}
+
+function post_restore {
+  if [ -f $OPENSHIFT_DATA_DIR/mariadb_dump_snapshot.gz ]; then
+    start
+
+    dbhost=$OPENSHIFT_MARIADB_DB_HOST
+    OLD_IP=$(/bin/cat $OPENSHIFT_DATA_DIR/mariadb_db_host)
+    NEW_IP=$OPENSHIFT_MARIADB_DB_HOST
+
+    if [ -s $OPENSHIFT_DATA_DIR/mariadb_db_username ]; then
+        OLD_USER=$(/bin/cat $OPENSHIFT_DATA_DIR/mariadb_db_username)
+    else
+        OLD_USER="admin"
+    fi
+
+    # Prep the mariadb database
+    (
+      /bin/zcat $OPENSHIFT_DATA_DIR/mariadb_dump_snapshot.gz
+      echo ";"
+      echo "GRANT ALL ON *.* TO '$OPENSHIFT_MARIADB_DB_USERNAME'@'$NEW_IP' IDENTIFIED BY '$OPENSHIFT_MARIADB_DB_PASSWORD' WITH GRANT OPTION;"
+      echo "GRANT ALL ON *.* TO '$OPENSHIFT_MARIADB_DB_USERNAME'@'localhost' IDENTIFIED BY '$OPENSHIFT_MARIADB_DB_PASSWORD' WITH GRANT OPTION;"
+      
+      if [ "$OPENSHIFT_MARIADB_DB_USERNAME" != "$OLD_USER" ]; then
+          echo "DROP USER '$OLD_USER'@'localhost';"
+      fi
+
+      if [ "$OLD_IP" != "$NEW_IP" ]; then
+          echo "DROP USER '$OLD_USER'@'$OLD_IP';"
+      fi
+      
+      echo "FLUSH PRIVILEGES;"
+    ) | /usr/bin/mysql -h $dbhost -P $OPENSHIFT_MARIADB_DB_PORT -u $OPENSHIFT_MARIADB_DB_USERNAME --password="$OPENSHIFT_MARIADB_DB_PASSWORD"
+
+    if [ ! ${PIPESTATUS[1]} -eq 0 ]; then
+        echo 1>&2
+        echo "Error: Could not import MySQL Database!  Continuing..." 1>&2
+        echo 1>&2
+    fi
+
+    cleanup_dump
+  else
+      echo "MySQL restore attempted but no dump found!" 1>&2
+      echo "$OPENSHIFT_DATA_DIR/mariadb_dump_snapshot.gz does not exist" 1>&2
+  fi
+}
+
+function cleanup_dump {
+  rm -f $OPENSHIFT_DATA_DIR/mariadb_dump_snapshot.gz
+  rm -f $OPENSHIFT_DATA_DIR/mariadb_db_host
+  rm -f $OPENSHIFT_DATA_DIR/mariadb_db_username
+  
+  #backward comat to mysql  
+  rm -f $OPENSHIFT_DATA_DIR/mysql_db_host
+  rm -f $OPENSHIFT_DATA_DIR/mysql_db_username
+}
+
+case "$1" in
+  start)
+    start
+  ;;
+  stop)
+    stop
+  ;;
+  status)
+    status
+  ;;
+  restart)
+    stop
+    start
+  ;;
+  pre-snapshot)
+    pre_snapshot
+  ;;
+  post-snapshot)
+    post_snapshot
+  ;;
+  pre-restore)
+    pre_restore
+  ;;
+  post-restore)
+    post_restore
+  ;;
+esac

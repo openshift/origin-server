@@ -1,0 +1,51 @@
+Name: mariadb
+Cartridge-Short-Name: MARIADB
+Architecture: noarch
+Display-Name: MariaDB Database 5.5
+Description: "MariaDB is a multi-user, multi-threaded SQL database server."
+Version: '5.5'
+Versions: [5.5]
+Cartridge-Version: 0.2.0
+Cartridge-Vendor: redhat
+License: GPL
+Vendor: MariaDB Foundation
+Categories:
+  - service
+  - database
+  - embedded
+Website: https://www.mariadb.org/
+Help-Topics:
+  - "Building with MariaDB" : http://docs.redhat.com/docs/en-US/OpenShift/2.0/html/User_Guide/sect-User_Guide-Working_With_Database_Cartridges.html
+Cart-Data:
+  - Key: "username"
+    Type: cart_data
+    Description: "Root user on mariadb database"
+  - Key: "password"
+    Type: cart_data
+    Description: "Password for root user on mariadb database"
+  - Key: database_name
+    Type: cart_data
+    Description: "MariaDB database name"
+  - Key: connection_url
+    Type: cart_data
+    Description: "MariaDB connection URL"
+Suggests:
+  - phpmyadmin-3.5
+Provides:
+  - mariadb-5.5
+  - mariadb
+  - mariadb-singleton-master
+Conflicts:
+  - postgresql
+Publishes:
+  publish-db-connection-info:
+    Type: "ENV:NET_TCP:db:connection-info"
+Scaling:
+  Min: 1
+  Max: 1
+Endpoints:
+  - Private-IP-Name:   DB_HOST
+    Private-Port-Name: DB_PORT
+    Private-Port:      3306
+    Public-Port-Name:  DB_PROXY_PORT
+Install-Build-Required: false
