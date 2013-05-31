@@ -382,6 +382,11 @@
     overflow: hidden;
     height: 0;
   }
+
+  p.larger {
+    font-size: $baseFontSize + 1;
+    line-height: $baseLineHeight + 2;
+  }
 }
 
 
@@ -400,7 +405,7 @@
 // LARGE DESKTOP & UP
 // ------------------
 
-@media (min-width: 1200px) {
+@media (min-width: 1240px) {
   .is-above-1200 { content: 'true'; }
 
   // Fixed grid

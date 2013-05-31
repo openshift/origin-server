@@ -98,12 +98,12 @@
 .control-group-important .input-prepend-append .add-on-middle,
 .control-group-important .input-prepend-append input,
 .control-group-important .input-prepend-append input {
-  font-size: 15px;
+  font-size: $largeFontSize;
   padding: 8px 10px;
   max-width: 716px;
   }
   .control-group-important label {
-  	font-size: 15px;
+  	font-size: $largeFontSize;
   	}
   .form-horizontal .control-group-important > label {
     padding-top: 10px;
