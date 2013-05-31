@@ -16,8 +16,8 @@ pre {
 code {
   padding: 1px 4px;
   color: $codeColor;
-  background-color: #f7f7f9;
-  border: 1px solid #e1e1e8;
+  background-color: $preBackground;
+  border: 1px solid darken($preBackground, 10%);
 }
 
 // Blocks of code
