@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.9.10
+Version: 1.9.11
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -84,6 +84,11 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Fri May 31 2013 Adam Miller <admiller@redhat.com> 1.9.11-1
+- Fix for bug 969165 (abhgupta@redhat.com)
+- Fix for bug 968952  - Fixing application alias validation regex
+  (abhgupta@redhat.com)
+
 * Thu May 30 2013 Adam Miller <admiller@redhat.com> 1.9.10-1
 - Merge pull request #2694 from pmorie/dev/v2_switchyard
   (dmcphers+openshiftbot@redhat.com)
