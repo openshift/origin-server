@@ -267,6 +267,10 @@ def check_selinux()
         break
       end
     end
+
+    if defined?(check_selinux_additional)
+      check_selinux_additional
+    end
 end
 
 def check_packages
