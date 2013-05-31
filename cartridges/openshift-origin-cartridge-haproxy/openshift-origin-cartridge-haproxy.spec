@@ -6,7 +6,7 @@
 
 Summary:       Provides HA Proxy
 Name:          openshift-origin-cartridge-haproxy
-Version:       0.4.9
+Version:       0.4.10
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -45,6 +45,10 @@ HAProxy cartridge for OpenShift. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Fri May 31 2013 Adam Miller <admiller@redhat.com> 0.4.10-1
+- Disable local gear only after a remote gear is UP or there is a timeout.
+  (mrunalp@gmail.com)
+
 * Thu May 30 2013 Adam Miller <admiller@redhat.com> 0.4.9-1
 - Bug 968994: Fix hot deploy during initial scaled gear deployment
   (ironcladlou@gmail.com)
