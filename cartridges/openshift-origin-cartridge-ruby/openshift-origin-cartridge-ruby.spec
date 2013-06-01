@@ -6,7 +6,7 @@
 %global cartridgedir %{_libexecdir}/openshift/cartridges/v2/ruby
 
 Name:          openshift-origin-cartridge-ruby
-Version:       0.4.8
+Version:       0.4.9
 Release:       1%{?dist}
 Summary:       Ruby cartridge
 Group:         Development/Languages
@@ -168,6 +168,12 @@ Ruby cartridge for OpenShift. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Sat Jun 01 2013 Dan McPherson <dmcphers@redhat.com> 0.4.9-1
+- Merge pull request #2719 from mrunalp/bugs/carts_stop
+  (dmcphers+openshiftbot@redhat.com)
+- Fix stop for httpd-based carts. (mrunalp@gmail.com)
+- Make Install-Build-Required default to false (ironcladlou@gmail.com)
+
 * Thu May 30 2013 Adam Miller <admiller@redhat.com> 0.4.8-1
 - Bug 968882 - Fix MIMEMagicFile (jhonce@redhat.com)
 
