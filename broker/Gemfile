@@ -14,7 +14,10 @@ gem 'bson'
 gem 'bson_ext'
 gem 'pry', :require => 'pry' if ENV['PRY']
 gem 'minitest'
-gem 'psych'
+# Fedora 19 splits psych out into its own gem.
+if Gem::Specification.respond_to?(:find_all_by_name) and not Gem::Specification::find_all_by_name('psych').empty?
+  gem 'psych'
+end
 
 # For performance reasons, the following scripts will not be
 # refactored to use mongoid exclusively:
