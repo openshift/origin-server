@@ -18,7 +18,7 @@ require_relative '../../misc/bin/oo-trap-user'
 require 'base64'
 
 module OpenShift
-  class TrapUserFunctionalTest < Test::Unit::TestCase
+  class TrapUserFunctionalTest < OpenShift::NodeTestCase
 
     # Called before every test method runs. Can be used
     # to set up fixture information.

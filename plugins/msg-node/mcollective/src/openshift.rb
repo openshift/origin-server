@@ -73,6 +73,7 @@ module MCollective
       # Returns [exitcode, output] from the resulting action execution.
       def execute_action(action, args)
         action_method = "oo_#{action.gsub('-', '_')}"
+        request_id    = args['--with-request-id'].to_s if args['--with-request-id']
 
         exitcode = 0
         output   = ""
@@ -83,12 +84,18 @@ module MCollective
         else
           Log.instance.info("Executing action [#{action}] using method #{action_method} with args [#{args}]")
           begin
+            OpenShift::NodeLogger.context[:request_id]    = request_id if request_id
+            OpenShift::NodeLogger.context[:action_method] = action_method if action_method
+
             exitcode, output = self.send(action_method.to_sym, args)
           rescue => e
             Log.instance.error("Unhandled action execution exception for action [#{action}]: #{e.message}")
             Log.instance.error(e.backtrace)
             exitcode = 127
             output   = "An internal exception occured processing action #{action}: #{e.message}"
+          ensure
+            OpenShift::NodeLogger.context.delete(:request_id)
+            OpenShift::NodeLogger.context.delete(:action_method)
           end
           Log.instance.info("Finished executing action [#{action}] (#{exitcode})")
         end
@@ -151,20 +158,19 @@ module MCollective
       end
 
       def with_container_from_args(args)
-        container = get_app_container_from_args(args)
+        container  = get_app_container_from_args(args)
 
         output = ''
         begin
           container = get_app_container_from_args(args)
           yield(container, output)
+          return 0, output
         rescue OpenShift::Utils::ShellExecutionException => e
           return e.rc, "#{e.message}\n#{e.stdout}\n#{e.stderr}"
         rescue Exception => e
           Log.instance.error e.message
           Log.instance.error e.backtrace.join("\n")
           return -1, e.message
-        else
-          return 0, output
         end
       end
 

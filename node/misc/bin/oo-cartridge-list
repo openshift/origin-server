@@ -19,24 +19,7 @@ require 'rubygems'
 require 'openshift-origin-node'
 require 'openshift-origin-common'
 
-module OpenShift
-  module NodeLogger
-    def self.logger
-       unless @logger
-          @logger = Logger.new(File.open(File::NULL, "w"))
-       end
-       @logger
-    end
-
-    def self.trace_logger
-       unless @trace_logger
-         @trace_logger = Logger.new(File.open(File::NULL, "w"))
-         @trace_logger.level = Logger::Severity::ERROR
-       end
-       @trace_logger
-    end
-  end
-end
+OpenShift::NodeLogger.disable
 
 def usage
   puts <<USAGE

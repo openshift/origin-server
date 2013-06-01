@@ -18,7 +18,7 @@ require "etc"
 require "fileutils"
 
 module OpenShift
-  class ApplicationStateFunctionalTest < Test::Unit::TestCase
+  class ApplicationStateFunctionalTest < OpenShift::NodeTestCase
     def setup
       @uid     = 5907
       @homedir = "/tmp/tests/#@uid"

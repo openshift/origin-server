@@ -109,7 +109,7 @@ module OpenShift
             end
           end
 
-          NodeLogger.trace_logger.debug { "oo_spawn running #{command}: #{opts}" }
+          NodeLogger.logger.trace { "oo_spawn running #{command}: #{opts}" }
           pid = Kernel.spawn(options[:env], command, opts)
 
           unless pid
@@ -171,7 +171,7 @@ module OpenShift
                   partial = fd.readpartial(options[:buffer_size])
                   buffer << partial
 
-                  NodeLogger.trace_logger.debug { "oo_spawn buffer(#{fd.fileno}/#{fd.pid}) #{partial}" }
+                  NodeLogger.logger.trace { "oo_spawn buffer(#{fd.fileno}/#{fd.pid}) #{partial}" }
                 rescue Errno::EAGAIN, Errno::EINTR
                 rescue EOFError
                   readers.delete(fd)

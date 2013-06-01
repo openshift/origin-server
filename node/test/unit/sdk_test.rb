@@ -20,7 +20,7 @@
 require_relative '../test_helper'
 
 module OpenShift
-  class SdkTest < Test::Unit::TestCase
+  class SdkTest < OpenShift::NodeTestCase
     def test_translate_shell_ex_for_client
       orig = Utils::ShellExecutionException.new("Message", 1, "stdout", "stderr")
       orig.set_backtrace(["line1", "line2"])

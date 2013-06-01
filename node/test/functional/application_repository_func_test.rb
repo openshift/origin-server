@@ -18,7 +18,7 @@ require 'pathname'
 
 # Deploy cannot be testing in this manner. SELinux requires a valid UID or the tests fail.
 # See cucumber test application_repository.feature
-class ApplicationRepositoryFuncTest < OpenShift::V2SdkTestCase
+class ApplicationRepositoryFuncTest < OpenShift::NodeTestCase
   GEAR_BASE_DIR = '/var/lib/openshift'
 
   def before_setup

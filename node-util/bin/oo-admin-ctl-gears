@@ -260,7 +260,7 @@ module OpenShift
               next if [$stdin, $stdout, $stderr, writer].map { |f| f.fileno }.include?(i.fileno)
               i.close
             end
-            NodeLogger.logger_rebuild
+            NodeLogger.logger.reinitialize
 
             # Signal USR1 causes us to report a timeout error and detach
             @timeout_handlers = []
@@ -434,7 +434,7 @@ begin
         i.close
       end
       Process.setsid
-      OpenShift::NodeLogger.logger_rebuild
+      OpenShift::NodeLogger.logger.reinitialize
       exitval = lock_if_good do
         OpenShift::AdminGearsControl.new.start
       end

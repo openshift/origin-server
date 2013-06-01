@@ -18,7 +18,7 @@ require 'fakefs/safe'
 require 'yaml'
 require 'pp'
 
-class CartridgeRepositoryTest < Test::Unit::TestCase
+class CartridgeRepositoryTest < OpenShift::NodeTestCase
   include FakeFS
 
   def setup
