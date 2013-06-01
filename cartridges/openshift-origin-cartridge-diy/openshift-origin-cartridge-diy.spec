@@ -2,7 +2,7 @@
 
 Summary:       DIY cartridge
 Name:          openshift-origin-cartridge-diy
-Version:       0.4.7
+Version:       0.4.8
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -38,6 +38,9 @@ DIY cartridge for openshift. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Sat Jun 01 2013 Dan McPherson <dmcphers@redhat.com> 0.4.8-1
+- Make Install-Build-Required default to false (ironcladlou@gmail.com)
+
 * Wed May 29 2013 Adam Miller <admiller@redhat.com> 0.4.7-1
 - Bug 968071 - Restore message (jhonce@redhat.com)
 
