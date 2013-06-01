@@ -1,6 +1,6 @@
 Summary:       Utility scripts for the OpenShift Origin broker
 Name:          openshift-origin-node-util
-Version: 1.9.8
+Version: 1.9.9
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -123,6 +123,10 @@ mv services/openshift-gears.service %{buildroot}/etc/systemd/system/openshift-ge
 /sbin/restorecon /usr/sbin/oo-restorer* || :
 
 %changelog
+* Sat Jun 01 2013 Dan McPherson <dmcphers@redhat.com> 1.9.9-1
+- Bug 969228 - Check selinux node set with oo-accept-node.
+  (rmillner@redhat.com)
+
 * Thu May 30 2013 Adam Miller <admiller@redhat.com> 1.9.8-1
 - Auto Idler (mrunalp@gmail.com)
 
