@@ -4,7 +4,7 @@
 
 Summary:       Provides JBossEAP6.0 support
 Name:          openshift-origin-cartridge-jbosseap
-Version:       2.3.9
+Version:       2.3.10
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,9 @@ cp -p %{cartridgedir}/versions/6.0/modules/postgresql_module.xml /etc/alternativ
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Sat Jun 01 2013 Dan McPherson <dmcphers@redhat.com> 2.3.10-1
+- Make Install-Build-Required default to false (ironcladlou@gmail.com)
+
 * Fri May 31 2013 Adam Miller <admiller@redhat.com> 2.3.9-1
 - Bug 969321: Fix jboss thread dump log file path message
   (ironcladlou@gmail.com)
