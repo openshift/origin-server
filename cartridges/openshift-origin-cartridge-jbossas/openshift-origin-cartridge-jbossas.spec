@@ -4,7 +4,7 @@
 
 Summary:       Provides JBossAS7 support
 Name:          openshift-origin-cartridge-jbossas
-Version:       1.2.8
+Version:       1.2.9
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -89,6 +89,9 @@ cp -p %{cartridgedir}/versions/7/modules/postgresql_module.xml /etc/alternatives
 
 
 %changelog
+* Sat Jun 01 2013 Dan McPherson <dmcphers@redhat.com> 1.2.9-1
+- Make Install-Build-Required default to false (ironcladlou@gmail.com)
+
 * Fri May 31 2013 Adam Miller <admiller@redhat.com> 1.2.8-1
 - Bug 969321: Fix jboss thread dump log file path message
   (ironcladlou@gmail.com)
