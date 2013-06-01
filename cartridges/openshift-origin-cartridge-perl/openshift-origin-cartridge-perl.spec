@@ -1,7 +1,7 @@
 %global cartridgedir %{_libexecdir}/openshift/cartridges/v2/perl
 
 Name:          openshift-origin-cartridge-perl
-Version:       0.4.6
+Version:       0.4.7
 Release:       1%{?dist}
 Summary:       Perl cartridge
 Group:         Development/Languages
@@ -54,6 +54,12 @@ Perl cartridge for OpenShift. (Cartridge Format V2)
 
 
 %changelog
+* Sat Jun 01 2013 Dan McPherson <dmcphers@redhat.com> 0.4.7-1
+- Merge pull request #2719 from mrunalp/bugs/carts_stop
+  (dmcphers+openshiftbot@redhat.com)
+- Fix stop for httpd-based carts. (mrunalp@gmail.com)
+- Make Install-Build-Required default to false (ironcladlou@gmail.com)
+
 * Thu May 30 2013 Adam Miller <admiller@redhat.com> 0.4.6-1
 - Bug 968340 - Update MIMEMagicFile in conf files (jhonce@redhat.com)
 
