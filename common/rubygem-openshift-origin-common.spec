@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Common
 Name:          rubygem-%{gem_name}
-Version: 1.8.8
+Version: 1.8.9
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -97,6 +97,9 @@ cp -a ./%{gem_dir}/* %{buildroot}%{gem_dir}/
 %doc %{gem_docdir}
 
 %changelog
+* Sat Jun 01 2013 Dan McPherson <dmcphers@redhat.com> 1.8.9-1
+- Make Install-Build-Required default to false (ironcladlou@gmail.com)
+
 * Wed May 29 2013 Adam Miller <admiller@redhat.com> 1.8.8-1
 - Merge pull request #2654 from rajatchopra/master
   (dmcphers+openshiftbot@redhat.com)
