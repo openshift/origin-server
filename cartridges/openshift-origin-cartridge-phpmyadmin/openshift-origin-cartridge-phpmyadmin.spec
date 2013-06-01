@@ -10,13 +10,12 @@ URL:           https://www.openshift.com
 Source0:       http://mirror.openshift.com/pub/openshift-origin/source/%{name}/%{name}-%{version}.tar.gz
 Requires:      rubygem(openshift-origin-node)
 Requires:      openshift-origin-node-util
+Requires:      phpMyAdmin >= 3.4
+Requires:      phpMyAdmin < 3.6
 %if 0%{?fedora}%{?rhel} <= 6
-Requires:      phpMyAdmin < 3.5
 Requires:      httpd < 2.4
 %endif
 %if 0%{?fedora} >= 19
-Requires:      phpMyAdmin >= 3.5
-Requires:      phpMyAdmin < 3.6
 Requires:      httpd > 2.3
 Requires:      httpd < 2.5
 %endif
