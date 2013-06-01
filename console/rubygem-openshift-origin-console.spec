@@ -9,7 +9,7 @@
 
 Summary:       OpenShift Origin Management Console
 Name:          rubygem-%{gem_name}
-Version: 1.9.10
+Version: 1.9.11
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -151,6 +151,10 @@ cp -a ./%{gem_dir}/* %{buildroot}%{gem_dir}/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Sat Jun 01 2013 Dan McPherson <dmcphers@redhat.com> 1.9.11-1
+- Fixes Bug 967504 and Bug 969536 - increased timeout to properly handle some
+  quickstarts (ffranz@redhat.com)
+
 * Thu May 30 2013 Adam Miller <admiller@redhat.com> 1.9.10-1
 - <openshift-console> Bug 968442 - Change verbiage of get_started page
   (jdetiber@redhat.com)
