@@ -1,7 +1,7 @@
 %global cartridgedir %{_libexecdir}/openshift/cartridges/v2/php
 
 Name:          openshift-origin-cartridge-php
-Version:       0.4.8
+Version:       0.4.9
 Release:       1%{?dist}
 Summary:       Php cartridge
 Group:         Development/Languages
@@ -80,6 +80,12 @@ sed -i 's/#DefaultRuntimeDir/DefaultRuntimeDir/g' %{buildroot}%{cartridgedir}/ve
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Sat Jun 01 2013 Dan McPherson <dmcphers@redhat.com> 0.4.9-1
+- Merge pull request #2719 from mrunalp/bugs/carts_stop
+  (dmcphers+openshiftbot@redhat.com)
+- Fix stop for httpd-based carts. (mrunalp@gmail.com)
+- Make Install-Build-Required default to false (ironcladlou@gmail.com)
+
 * Thu May 30 2013 Adam Miller <admiller@redhat.com> 0.4.8-1
 - Merge pull request #2676 from VojtechVitek/php_control_always_return_0
   (dmcphers+openshiftbot@redhat.com)
