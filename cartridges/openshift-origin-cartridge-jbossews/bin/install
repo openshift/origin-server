@@ -13,6 +13,7 @@ echo "$version" > "$OPENSHIFT_JBOSSEWS_DIR/env/OPENSHIFT_JBOSSEWS_VERSION"
 # Create a link from the repo/webapps directory to the Tomcat webapps directory
 ln -s ${OPENSHIFT_REPO_DIR}/webapps ${OPENSHIFT_JBOSSEWS_DIR}/webapps
 
+
 sed -i "s/{APP_NAME}/${OPENSHIFT_APP_NAME}/g" ${OPENSHIFT_JBOSSEWS_DIR}/template/pom.xml
 
 # Create and install the initial template WAR
