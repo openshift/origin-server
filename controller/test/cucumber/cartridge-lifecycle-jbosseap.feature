@@ -2,7 +2,7 @@
 @runtime_extended2
 @rhel-only
 @not-fedora-19
-@jbosse
+@jboss
 @jbosseap
 
 Feature: Cartridge Lifecycle JBossEAP Verification Tests

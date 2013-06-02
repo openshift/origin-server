@@ -1,5 +1,6 @@
 @runtime_extended2
-@rhel-only
+@not-rhel
+@not-fedora
 Feature: V2 Platform Scaling Tests
 
   Scenario Outline: Scaling test for php
