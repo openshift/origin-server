@@ -2,6 +2,7 @@
 
 source $OPENSHIFT_CARTRIDGE_SDK_BASH
 HTTPD_CFG_FILE=$OPENSHIFT_PYTHON_DIR/etc/conf/httpd_nolog.conf
+HTTPD_PID_FILE=$OPENSHIFT_PYTHON_DIR/run/httpd.pid
 
 # For backwards compatibility
 export APPDIR=$OPENSHIFT_PYTHON_DIR
@@ -14,7 +15,12 @@ function start() {
 
 function stop() {
     echo "Stopping PYTHON cart"
+    if [ -f "$HTTPD_PID_FILE" ]; then
+        httpd_pid=`cat "$HTTPD_PID_FILE" 2> /dev/null`
+    fi
+    ensure_valid_httpd_process "$HTTPD_PID_FILE" "$HTTPD_CFG_FILE"
     /usr/sbin/httpd -C "Include $OPENSHIFT_PYTHON_DIR/etc/conf.d/*.conf" -f $HTTPD_CFG_FILE -k stop
+    wait_for_stop $httpd_pid
 }
 
 function restart() {
