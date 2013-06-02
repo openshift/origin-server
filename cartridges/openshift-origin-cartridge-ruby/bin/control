@@ -5,6 +5,7 @@ source "${OPENSHIFT_RUBY_DIR}/lib/util"
 source "${OPENSHIFT_RUBY_DIR}/lib/ruby_context"
 
 HTTPD_CFG_FILE=$OPENSHIFT_RUBY_DIR/etc/conf/httpd_nolog.conf
+HTTPD_PID_FILE=$OPENSHIFT_RUBY_DIR/run/httpd.pid
 
 function start() {
     echo "Starting Ruby cart"
@@ -14,48 +15,12 @@ function start() {
 
 function stop() {
     echo "Stopping Ruby cart"
-
-    CART_CONF_DIR=${OPENSHIFT_RUBY_DIR}/etc/conf
-
-    # Stop the app
-    # src_user_hook pre_stop_${cartridge_type}
-    app_userid=`id -u`
-    set +e
-    httpd_pid=`cat ${OPENSHIFT_RUBY_DIR}/run/httpd.pid 2> /dev/null`
-    set -e
-
+    if [ -f "$HTTPD_PID_FILE" ]; then
+        httpd_pid=`cat "$HTTPD_PID_FILE" 2> /dev/null`
+    fi
+    ensure_valid_httpd_process "$HTTPD_PID_FILE" "$HTTPD_CFG_FILE"
     ruby_context "/usr/sbin/httpd -C 'Include $OPENSHIFT_RUBY_DIR/etc/conf.d/*.conf' -f $HTTPD_CFG_FILE -k stop"
-
-    for i in {1..20}
-    do
-        if `ps --pid $httpd_pid > /dev/null 2>&1`  ||  \
-           `pgrep -u $app_userid Passenger.* > /dev/null 2>&1`
-        then
-            if [ $i -gt 4 ]
-            then
-                if `ps --pid $httpd_pid > /dev/null 2>&1`
-                then
-                    if [ $i -gt 16 ]
-                    then
-                        set +e
-                        /bin/kill -9 $httpd_pid
-                        set -e
-                    fi
-                elif `pgrep -u $app_userid Passenger.* > /dev/null 2>&1`
-                then
-                    set +e
-                    pkill -9 -u $app_userid Passenger.*
-                    set -e
-                    break
-                fi
-            fi
-            echo "Waiting for stop to finish"
-            sleep .5
-        else
-            break
-        fi
-    done
-
+    wait_for_stop $httpd_pid
 }
 
 function restart() {
