@@ -19,6 +19,8 @@ mkdir $OPENSHIFT_RUBY_DIR/tmp
 
 mkdir $OPENSHIFT_HOMEDIR/.gem
 
+mkdir $OPENSHIFT_HOMEDIR/.passenger
+
 echo "$version" > $OPENSHIFT_RUBY_DIR/env/OPENSHIFT_RUBY_VERSION
 update-configuration $version
 
