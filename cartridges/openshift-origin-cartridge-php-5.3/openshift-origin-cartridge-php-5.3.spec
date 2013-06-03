@@ -21,7 +21,6 @@ Requires:      php < 5.4
 Requires:      httpd < 2.4
 Requires:      php
 Requires:      mod_bw
-Requires:      %{?scl:%scl_prefix}rubygem-builder
 Requires:      php-devel
 Requires:      php-pdo
 Requires:      php-gd
