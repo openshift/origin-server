@@ -42,7 +42,7 @@ class ApplicationControllerTest < ActionController::TestCase
     get :index , {"domain_id" => @domain.namespace}
     assert_response :success
     delete :destroy , {"id" => @app_name, "domain_id" => @domain.namespace}
-    assert_response :no_content
+    assert_response :ok
   end
   
   test "no app id" do

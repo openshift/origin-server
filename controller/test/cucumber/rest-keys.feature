@@ -193,7 +193,7 @@ Feature: keys
     When I send a POST request to "/user/keys" with the following:"name=api1&type=ssh-rsa&content=XYZ123456"
     Then the response should be "201"
     When I send a DELETE request to "/user/keys/api1"
-    Then the response should be "204"
+    Then the response should be "200"
     
     Scenarios:
      | format | 
@@ -206,7 +206,7 @@ Feature: keys
     When I send a POST request to "/user/keys" with the following:"name=api&type=ssh-rsa&content=XYZ123"
     Then the response should be "201"
     When I send a DELETE request to "/user/keys/api"
-    Then the response should be "204"
+    Then the response should be "200"
     
     Scenarios:
      | format | 

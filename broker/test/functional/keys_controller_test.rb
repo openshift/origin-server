@@ -39,7 +39,7 @@ class KeysControllerTest < ActionController::TestCase
     put :update, {"id" => key_name, "type" => "ssh-rsa", "content" => "ABCD1234XYZ"}
     assert_response :success
     delete :destroy , {"id" => key_name}
-    assert_response :no_content
+    assert_response :ok
   end
   
   test "no key id or bad id" do

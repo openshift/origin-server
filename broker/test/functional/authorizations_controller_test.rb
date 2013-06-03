@@ -41,9 +41,9 @@ class AuthorizationsControllerTest < ActionController::TestCase
     get :index , {}
     assert_response :success
     delete :destroy , {"id" =>  id}
-    assert_response :no_content
+    assert_response :ok
     delete :destroy_all 
-    assert_response :no_content
+    assert_response :ok
   end
   
   test "invalid id" do
@@ -52,7 +52,7 @@ class AuthorizationsControllerTest < ActionController::TestCase
     put :update
     assert_response :not_found
     delete :destroy 
-    assert_response :no_content
+    assert_response :ok
   end
   
   

@@ -9,7 +9,7 @@ class QuickstartsController < BaseController
   end
 
   def show
-    id = params[:id]
+    id = params[:id].presence
     if quickstart = quickstarts.find{ |obj| obj['quickstart']['id'] == id }
       render_success(:ok, "quickstarts", [quickstart],  "Showing quickstart for '#{id}'")
     else

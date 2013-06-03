@@ -13,7 +13,7 @@ class KeysController < BaseController
 
   #GET /user/keys/<id>
   def show
-    id = params[:id]
+    id = params[:id].presence
 
     # validate the key name using regex to avoid a mongo call, if it is malformed
     if id !~ SshKey::KEY_NAME_COMPATIBILITY_REGEX
@@ -30,9 +30,9 @@ class KeysController < BaseController
 
   #POST /user/keys
   def create
-    content = params[:content]
-    name = params[:name]
-    type = params[:type]
+    content = params[:content].presence
+    name = params[:name].presence
+    type = params[:type].presence
     
     Rails.logger.debug "Creating key name:#{name} type:#{type} for user #{@cloud_user.login}"
     
@@ -58,9 +58,9 @@ class KeysController < BaseController
     end
 
     begin
-      @cloud_user.add_ssh_key(key)
+      result = @cloud_user.add_ssh_key(key)
       ssh_key = RestKey.new(key, get_url, nolinks)
-      render_success(:created, "key", ssh_key, "Created SSH key #{name}", true, nil, nil, 'IP' => request.remote_ip)
+      render_success(:created, "key", ssh_key, "Created SSH key #{name}", result, nil, 'IP' => request.remote_ip)
     rescue OpenShift::LockUnavailableException => e
       return render_error(:service_unavailable, e.message, e.code)
     rescue Exception => e
@@ -70,9 +70,9 @@ class KeysController < BaseController
 
   #PUT /user/keys/<id>
   def update
-    id = params[:id]
-    content = params[:content]
-    type = params[:type]
+    id = params[:id].presence
+    content = params[:content].presence
+    type = params[:type].presence
     
     Rails.logger.debug "Updating key name:#{id} type:#{type} for user #{@cloud_user.login}"
     
@@ -89,12 +89,9 @@ class KeysController < BaseController
     end
 
     begin
-      @cloud_user.update_ssh_key(key)
+      result = @cloud_user.update_ssh_key(key)
       ssh_key = RestKey.new(key, get_url, nolinks)
-      log_action(@log_tag, true, "Updated SSH key #{id}", 'IP' => request.remote_ip)
-      @reply = new_rest_reply(:ok, "key", ssh_key)
-      @reply.messages.push(Message.new(:info, "Updated SSH key with name #{id} for user #{@cloud_user.login}"))
-      respond_with @reply, :status => @reply.status
+      render_success(:ok, "key", ssh_key, "Updates SSH key #{id} for user #{@cloud_user.login}", result, nil, 'IP' => request.remote_ip)
     rescue OpenShift::LockUnavailableException => e
       return render_error(:service_unavailable, e.message, e.code)
     rescue Exception => e
@@ -110,7 +107,7 @@ class KeysController < BaseController
 
   #DELETE /user/keys/<id>
   def destroy
-    id = params[:id]
+    id = params[:id].presence
     
     # validate the key name using regex to avoid a mongo call, if it is malformed
     if id !~ SshKey::KEY_NAME_COMPATIBILITY_REGEX or @cloud_user.ssh_keys.where(name: id).count == 0
@@ -118,8 +115,9 @@ class KeysController < BaseController
     end
 
     begin
-      @cloud_user.remove_ssh_key(id)
-      render_success(:no_content, nil, nil, "Deleted SSH key #{id}", true)
+      result = @cloud_user.remove_ssh_key(id)
+      status = requested_api_version <= 1.4 ? :no_content : :ok
+      render_success(status, nil, nil, "Deleted SSH key #{id}", result)
     rescue OpenShift::LockUnavailableException => e
       return render_error(:service_unavailable, e.message, e.code)
     rescue Exception => e

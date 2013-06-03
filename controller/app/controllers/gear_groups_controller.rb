@@ -18,7 +18,7 @@ class GearGroupsController < BaseController
 
   # GET /domains/[domain_id]/applications/[application_id]/gear_groups/[id]
   def show
-    gear_group_id = params[:id]
+    gear_group_id = params[:id].presence
     # validate the gear group ID using regex to avoid a mongo call, if it is malformed
     if gear_group_id !~ GROUP_INSTANCE_ID_COMPATIBILITY_REGEX
       return render_error(:not_found, "Gear group '#{gear_group_id}' not found for application #{@application.name} on domain '#{@domain.namespace}'", 101)

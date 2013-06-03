@@ -42,10 +42,17 @@ class RestReply < OpenShift::Model
   
   def process_result_io(result_io)
     unless result_io.nil?
-      messages.push(Message.new(:debug, result_io.debugIO.string)) unless result_io.debugIO.string.empty?
-      messages.push(Message.new(:info, result_io.messageIO.string)) unless result_io.messageIO.string.empty?
-      messages.push(Message.new(:error, result_io.errorIO.string)) unless result_io.errorIO.string.empty?
-      messages.push(Message.new(:result, result_io.resultIO.string)) unless result_io.resultIO.string.empty?    
+      if result_io.is_a? Array
+        result_io.each do |r|
+          process_result_io(r)
+        end
+      end
+      if result_io.is_a? ResultIO
+        messages.push(Message.new(:debug, result_io.debugIO.string)) unless result_io.debugIO.string.empty?
+        messages.push(Message.new(:info, result_io.messageIO.string)) unless result_io.messageIO.string.empty?
+        messages.push(Message.new(:error, result_io.errorIO.string)) unless result_io.errorIO.string.empty?
+        messages.push(Message.new(:result, result_io.resultIO.string)) unless result_io.resultIO.string.empty?    
+      end
     end
   end
   
