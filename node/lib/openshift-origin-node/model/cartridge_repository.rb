@@ -492,7 +492,7 @@ module OpenShift
           [File, :directory?, %w(metadata)],
           [File, :directory?, %w(bin)],
           [File, :file?, %w(metadata manifest.yml)],
-          # [File, :executable?, %w(bin control)],
+          [File, :executable?, %w(bin control)],
       ].each do |clazz, method, target|
         relative = PathUtils.join(target)
         absolute = PathUtils.join(path, relative)

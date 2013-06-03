@@ -1000,12 +1000,15 @@ module OpenShift
 
         control = File.join(path, 'bin', 'control')
 
-        command = ['set -e']
+        command = []
         command << hooks[:pre] unless hooks[:pre].empty?
         command << "#{control} #{action}" if File.executable? control
         command << hooks[:post] unless hooks[:post].empty?
 
-        out, err, rc = Utils.oo_spawn(command.join('; '),
+        unless command.empty?
+          command = ['set -e'] | command 
+
+          out, err, rc = Utils.oo_spawn(command.join('; '),
                                       env:             cartridge_env,
                                       unsetenv_others: true,
                                       chdir:           path,
@@ -1013,12 +1016,13 @@ module OpenShift
                                       out:             options[:out],
                                       err:             options[:err])
 
-        buffer << out if out.is_a?(String)
-        buffer << err if err.is_a?(String)
+          buffer << out if out.is_a?(String)
+          buffer << err if err.is_a?(String)
 
-        raise Utils::ShellExecutionException.new(
+          raise Utils::ShellExecutionException.new(
                   "Failed to execute: 'control #{action}' for #{path}", rc, out, err
-              ) if rc != 0
+                ) if rc != 0
+        end
       }
 
       if post_action_hooks_enabled
