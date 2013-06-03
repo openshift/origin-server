@@ -153,7 +153,7 @@ class EmbCartController < BaseController
 
     begin
       comp = @application.component_instances.find_by(cartridge_name: cartridge)
-      feature = @application.get_feature(comp.cartridge_name, comp.component_name)  
+      feature = comp.cartridge_name #@application.get_feature(comp.cartridge_name, comp.component_name)  
       return render_error(:not_found, "Cartridge '#{cartridge}' not found for application '#{@application.name}'", 101, "REMOVE_CARTRIDGE") if feature.nil?   
       @application.remove_features([feature])
 
