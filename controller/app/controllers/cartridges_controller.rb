@@ -27,7 +27,7 @@ class CartridgesController < BaseController
   # Action: GET
   # @return [RestReply<Array<RestCartridge>>] Array of cartridge objects
   def index
-    search = params[:id]
+    search = params[:id].presence
     # handle "standalone" type for backwards compatibility
     if search and search == "embedded" or search == "standalone"
       search = "web_framework" if search == "standalone"

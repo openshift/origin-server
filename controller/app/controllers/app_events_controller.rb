@@ -26,8 +26,8 @@ class AppEventsController < BaseController
   # 
   # @return [RestReply<RestApplication>] Application object on which the event operates and messages returned for the event.
   def create
-    event = params[:event]
-    server_alias = params[:alias]
+    event = params[:event].presence
+    server_alias = params[:alias].presence
 
     return render_error(:unprocessable_entity, "Alias must be specified for adding or removing application alias.", 126,
                         "event") if ['add-alias', 'remove-alias'].include?(event) && (server_alias.nil? or server_alias.to_s.empty?)
@@ -42,23 +42,22 @@ class AppEventsController < BaseController
     begin
       case event
         when "start"
-          @application.start
+          r = @application.start
           msg = "Application #{@application.name} has started"
         when "stop"
-          @application.stop
+          r = @application.stop
           msg = "Application #{@application.name} has stopped"
         when "force-stop"
-          @application.stop(nil, true)
+          r = @application.stop(nil, true)
           msg = "Application #{@application.name} has forcefully stopped"
         when "restart"
-          @application.restart
+          r = @application.restart
           msg = "Application #{@application.name} has restarted"
         when "show-port", "expose-port", "conceal-port"
           return render_error(:gone, "This event (#{event}) is no longer supported.", 112)
         when "add-alias"
           r = @application.add_alias(server_alias)
           msg = "Application #{@application.name} has added alias"
-          # msg += ": #{r.resultIO.string.chomp}" if !r.resultIO.string.empty?
         when "remove-alias"
           begin
             r = @application.remove_alias(server_alias)
@@ -66,14 +65,13 @@ class AppEventsController < BaseController
             return render_error(:not_found, "Alias #{server_alias} not found for application #{@application.name}", 173, "#{event.sub('-', '_').upcase}_APPLICATION")
           end
           msg = "Application #{@application.name} has removed alias"
-          # msg += ": #{r.resultIO.string.chomp}" if !r.resultIO.string.empty?
         when "scale-up"
           web_framework_component_instance = @application.component_instances.select{ |c| CartridgeCache.find_cartridge(c.cartridge_name,@application).categories.include?("web_framework") }.first
-          @application.scale_by(web_framework_component_instance.group_instance_id, 1)
+          r = @application.scale_by(web_framework_component_instance.group_instance_id, 1)
           msg = "Application #{@application.name} has scaled up"
         when "scale-down"
           web_framework_component_instance = @application.component_instances.select{ |c| CartridgeCache.find_cartridge(c.cartridge_name,@application).categories.include?("web_framework") }.first
-          @application.scale_by(web_framework_component_instance.group_instance_id, -1)
+          r = @application.scale_by(web_framework_component_instance.group_instance_id, -1)
           msg = "Application #{@application.name} has scaled down"
         when "thread-dump"
           r = @application.threaddump
@@ -82,18 +80,12 @@ class AppEventsController < BaseController
           else
             msg = !r.errorIO.string.empty? ? r.errorIO.string.chomp : r.resultIO.string.chomp
           end
-          #TODO: We need to reconsider how we are reporting messages to the client
-          message = Message.new(:result, msg, 0)
-          app = get_rest_application(@application)
-          return render_success(:ok, "application", app, "Application event '#{event}' successful", true, nil, [message])
         when 'tidy'
           r = @application.tidy
           msg = "Application #{@application.name} called tidy"
-          # msg += ": #{r.resultIO.string.chomp}" if !r.resultIO.string.empty?
         when 'reload'
           r = @application.reload_config
           msg = "Application #{@application.name} called reload"
-          # msg += ": #{r.resultIO.string.chomp}" if !r.resultIO.string.empty?
         else
           return render_error(:unprocessable_entity, "Invalid application event '#{event}' specified",
                               126, "event")
@@ -108,10 +100,7 @@ class AppEventsController < BaseController
 
     @application.with(consistency: :strong).reload
     app = get_rest_application(@application)
-    @reply = new_rest_reply(:ok, "application", app)
-    message = Message.new("INFO", msg, 0)
-    @reply.messages.push(message)
-    respond_with @reply, :status => @reply.status
+    render_success(:ok, "application", app, msg, r)
   end
   
   def set_log_tag

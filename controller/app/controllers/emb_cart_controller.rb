@@ -14,7 +14,7 @@ class EmbCartController < BaseController
 
   # GET /domains/[domain_id]/applications/[application_id]/cartridges/[id]
   def show
-    id = params[:id]
+    id = params[:id].presence
     status_messages = !params[:include].nil? and params[:include].split(",").include?("status_messages")
     
     # validate the cartridge name using regex to avoid a mongo call, if it is malformed
@@ -38,10 +38,10 @@ class EmbCartController < BaseController
       return render_upgrade_in_progress            
     end
 
-    colocate_with = params[:colocate_with]
-    scales_from = Integer(params[:scales_from]) rescue nil
-    scales_to = Integer(params[:scales_to]) rescue nil
-    additional_storage = Integer(params[:additional_storage]) rescue nil
+    colocate_with = params[:colocate_with].presence
+    scales_from = Integer(params[:scales_from].presence) rescue nil
+    scales_to = Integer(params[:scales_to].presence) rescue nil
+    additional_storage = Integer(params[:additional_storage].presence) rescue nil
 
     cart_urls = []
     if params[:name].is_a? String
@@ -129,17 +129,12 @@ class EmbCartController < BaseController
         group_overrides << group_override
       end
 
-      cart_create_reply = @application.add_features([name], group_overrides)
+      result = @application.add_features([name], group_overrides)
 
       component_instance = @application.component_instances.find_by(cartridge_name: cart.name, component_name: comp.name)
       cartridge = get_rest_cartridge(@application, component_instance, @application.group_instances_with_scale, @application.group_overrides)
 
-      messages = []
-      log_msg = "Added #{name} to application #{@application.name}"
-      messages.push(Message.new(:info, log_msg))
-      messages.push(Message.new(:info, cart_create_reply.resultIO.string, 0, :result))
-      messages.push(Message.new(:info, cart_create_reply.appInfoIO.string, 0, :appinfo))
-      return render_success(:created, "cartridge", cartridge, log_msg, nil, nil, messages)
+      return render_success(:created, "cartridge", cartridge, "Added #{name} to application #{@application.name}", result)
     rescue OpenShift::GearLimitReachedException => e
       return render_error(:unprocessable_entity, "Unable to add cartridge: #{e.message}", 104)
     rescue OpenShift::UserException => e
@@ -153,7 +148,7 @@ class EmbCartController < BaseController
       return render_upgrade_in_progress
     end
 
-    cartridge = params[:id]
+    cartridge = params[:id].presence
 
     # validate the cartridge name using regex to avoid a mongo call, if it is malformed
     if cartridge !~ CART_NAME_COMPATIBILITY_REGEX
@@ -164,9 +159,9 @@ class EmbCartController < BaseController
       comp = @application.component_instances.find_by(cartridge_name: cartridge)
       feature = comp.cartridge_name #@application.get_feature(comp.cartridge_name, comp.component_name)  
       return render_error(:not_found, "Cartridge '#{cartridge}' not found for application '#{@application.name}'", 101, "REMOVE_CARTRIDGE") if feature.nil?   
-      @application.remove_features([feature])
-
-      render_success(:no_content, nil, nil, "Removed #{cartridge} from application #{@application.name}", true)
+      result = @application.remove_features([feature])
+      status = requested_api_version <= 1.4 ? :no_content : :ok
+      render_success(status, nil, nil, "Removed #{cartridge} from application #{@application.name}", result)
     rescue OpenShift::LockUnavailableException => e
       return render_error(:service_unavailable, "Application is currently busy performing another operation. Please try again in a minute.", e.code)
     rescue OpenShift::UserException => e
@@ -178,10 +173,10 @@ class EmbCartController < BaseController
 
   # PUT /domains/[domain_id]/applications/[application_id]/cartridges/[id]
   def update
-    id = params[:id]
-    scales_from = Integer(params[:scales_from]) rescue nil
-    scales_to = Integer(params[:scales_to]) rescue nil
-    additional_storage = params[:additional_gear_storage]
+    id = params[:id].presence
+    scales_from = Integer(params[:scales_from].presence) rescue nil
+    scales_to = Integer(params[:scales_to].presence) rescue nil
+    additional_storage = params[:additional_gear_storage].presence
 
     if scales_from.nil? and scales_to.nil? and additional_storage.nil?
       return render_error(:unprocessable_entity, "No update parameters specified.  Valid update parameters are: scales_from, scales_to, additional_gear_storage", 168) 
@@ -247,11 +242,11 @@ class EmbCartController < BaseController
         return render_error(:unprocessable_entity, "The scales_from factor currently provided cannot be higher than the scales_to factor previously provided. Please specify both scales_(from|to) factors together to override.", 168, "scales_from") 
       end
 
-      @application.update_component_limits(component_instance, scales_from, scales_to, additional_storage)
+      result = @application.update_component_limits(component_instance, scales_from, scales_to, additional_storage)
 
       component_instance = @application.component_instances.find_by(cartridge_name: id)
       cartridge = get_rest_cartridge(@application, component_instance, @application.group_instances_with_scale, @application.group_overrides)
-      return render_success(:ok, "cartridge", cartridge, "Showing cartridge #{id} for application #{@application.name} under domain #{@domain.namespace}")
+      return render_success(:ok, "cartridge", cartridge, "Showing cartridge #{id} for application #{@application.name} under domain #{@domain.namespace}", result)
     rescue OpenShift::LockUnavailableException => e
       return render_error(:service_unavailable, "Application is currently busy performing another operation. Please try again in a minute.", e.code)
     rescue Mongoid::Errors::DocumentNotFound
@@ -259,8 +254,6 @@ class EmbCartController < BaseController
     rescue Exception => e
       return render_exception(e)
     end
-
-    return render_success(:ok, "cartridge", [], "")  
   end
   
   def set_log_tag

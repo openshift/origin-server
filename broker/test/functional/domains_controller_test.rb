@@ -44,7 +44,7 @@ class DomiansControllerTest < ActionController::TestCase
     put :update, {"existing_id" => namespace, "id" => new_namespace}
     assert_response :success
     delete :destroy , {"id" => new_namespace}
-    assert_response :no_content
+    assert_response :ok
   end
   
   
@@ -81,7 +81,7 @@ class DomiansControllerTest < ActionController::TestCase
     assert_response :unprocessable_entity
     
     delete :destroy , {"id" => namespace, "force" => true}
-    assert_response :no_content
+    assert_response :ok
   end
   
   test "update domain with apps" do

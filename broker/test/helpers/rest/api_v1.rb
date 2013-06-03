@@ -8,13 +8,17 @@ class RestApi_V1 < RestApi
   end
 
   def compare(hash)
-    raise_ex("Response 'type' Not found") if !defined?(hash['type'])
+    raise_ex("Response 'type' Not found for " +
+             "#{self.method} #{self.uri}") if !defined?(hash['type'])
     raise_ex("Response 'type' mismatch " +
-             "expected:#{self.response_type}, got:#{hash['type']}") if hash['type'] != self.response_type
+             "expected:#{self.response_type}, got:#{hash['type']} for " +
+             "#{self.method} #{self.uri}") if hash['type'] != self.response_type
     raise_ex("Response 'version' mismatch " +
-             "expected:#{self.version}, got:#{hash['version']}") if hash['version'] != self.version
+             "expected:#{self.version}, got:#{hash['version']} for " +
+             "#{self.method} #{self.uri}") if hash['version'] != self.version
     raise_ex("Response 'status' incorrect " +
-             "expected:#{self.response_status}, got:#{hash['status']}") if hash['status'] != self.response_status
+             "expected:#{self.response_status}, got:#{hash['status']} for " +
+             "#{self.method} #{self.uri}") if hash['status'] != self.response_status
 
     data = hash['data']
     case hash['type']
@@ -68,7 +72,7 @@ class RestApi_V1 < RestApi
           obj = RestGear_V1.to_obj(gear_hash)
         end
       else
-        raise_ex("Invalid Response type")
+        raise_ex("Invalid Response type for #{self.method} #{self.uri}")
     end
   end
 end
@@ -228,8 +232,6 @@ app_cart_stop_post_v1.response = RestApplication_V1.new(app_name, app_type, dom_
 app_cart_stop_post_v1.response_type = "application"
 
 app_cart_delete_v1 = RestApi_V1.new("/domains/#{dom_id}/applications/#{app_name}/cartridges/#{embed_cart}", "DELETE")
-app_cart_delete_v1.response = RestApplication_V1.new(app_name, app_type, dom_id, app_scale)
-app_cart_delete_v1.response_type = "application"
 
 app_delete_v1 = RestApi_V1.new("/domains/#{dom_id}/applications/#{app_name}", "DELETE")
 

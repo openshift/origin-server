@@ -44,7 +44,7 @@ class AliasControllerTest < ActionController::TestCase
     get :index , {"domain_id" => @domain.namespace, "application_id" => @app.name}
     assert_response :success
     delete :destroy , {"id" => server_alias, "domain_id" => @domain.namespace, "application_id" => @app.name}
-    assert_response :no_content
+    assert_response :ok
   end
   
   test "no or non-existent app id" do

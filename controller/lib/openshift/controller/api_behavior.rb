@@ -3,15 +3,11 @@ module OpenShift
     module ApiBehavior
       extend ActiveSupport::Concern
 
-      API_VERSION = 1.4
-      SUPPORTED_API_VERSIONS = [1.0, 1.1, 1.2, 1.3, 1.4]
+      API_VERSION = 1.5
+      SUPPORTED_API_VERSIONS = [1.0, 1.1, 1.2, 1.3, 1.4, 1.5]
 
       protected
         attr :requested_api_version
-
-        def new_rest_reply(*arguments)
-          RestReply.new(requested_api_version, *arguments)
-        end
 
         def check_version
 

@@ -30,11 +30,11 @@ module OpenShift
           reply = new_rest_reply(status)
           if messages.present?
             reply.messages.concat(messages)
-            log_action(@log_tag, !internal_error, msg, get_extra_log_args, messages.map(&:text).join(', '))
+            log_action(@log_tag, !internal_error, msg, get_log_args, messages.map(&:text).join(', '))
           else
             msg_type = :error unless msg_type
             reply.messages.push(Message.new(msg_type, msg, err_code, field)) if msg
-            log_action(@log_tag, !internal_error, msg, get_extra_log_args)
+            log_action(@log_tag, !internal_error, msg, get_log_args)
           end
           respond_with reply
         end
@@ -84,24 +84,23 @@ module OpenShift
         #    Rest object type.
         #  data::
         #    REST Object to render
-        #  log_msg::
-        #    Message to be logged in action logs
-        #  publish_msg::
-        #    If true, adds a message object to the REST response with type=>msg_type and message=>log_msg
-        #  msg_type::
-        #    Can be one of :error, :warning, :info. Defaults to :error
-        #  messages::
+        #  message::
+        #    Message to be returned to REST response and logged
+        #  extra_messages::
         #    Array of message objects. If provided, it will log all messages in the action log and will add them to the REST response.
-        #    publish_msg, log_msg, and msg_type will be ignored.
-        def render_success(status, type, data, log_msg=nil, publish_msg=false, msg_type=nil, messages=nil, extra_log_args=get_extra_log_args)
+
+        def render_success(status, type, data, message=nil, result=nil ,extra_messages=nil, extra_log_args={})
           reply = new_rest_reply(status, type, data)
-          if messages.present?
+          reply.messages.push(Message.new(:info, message)) if message
+          reply.process_result_io(result) if result
+          
+          log_args = get_log_args.merge(extra_log_args)
+          
+          if extra_messages.present?
             reply.messages.concat(messages)
-            log_action(@log_tag, true, log_msg, get_extra_log_args, messages.map(&:text).join(', '))
+            log_action(@log_tag, true, message, log_args, messages.map(&:text).join(', '))
           else
-            msg_type = :info unless msg_type
-            reply.messages.push(Message.new(msg_type, log_msg)) if publish_msg && log_msg
-            log_action(@log_tag, true, log_msg, extra_log_args)
+            log_action(@log_tag, true, message, log_args)
           end
           respond_with reply
         end
@@ -124,12 +123,16 @@ module OpenShift
           end if object && object.errors && object.errors.keys
           messages
         end
+        
+        def new_rest_reply(*arguments)
+          RestReply.new(requested_api_version, *arguments)
+        end
 
         #
         # Should be gradually phased out in preference to
         # direct argument passing
         #
-        def get_extra_log_args
+        def get_log_args
           args = {}
           args["APP"] = @application_name if @application_name
           args["DOMAIN"] = @domain_name if @domain_name

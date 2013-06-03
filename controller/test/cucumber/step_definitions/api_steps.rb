@@ -56,7 +56,7 @@ Given /^a new user, verify updating a domain with an php-([^ ]+) application in 
     Then the response should be "422"
     And the error message should have "severity=error&exit_code=128"
     When I send a DELETE request to "/domains/api<random>/applications/app"
-    Then the response should be "204"
+    Then the response should be "200"
     When I send a PUT request to "/domains/api<random>" with the following:"id=apix<random>"
     Then the response should be "200"
     And the response should be a "domain" with attributes "id=apix<random>"
@@ -75,7 +75,7 @@ Given /^a new user, verify deleting a domain with an php-([^ ]+) application in 
     Then the response should be "422"
     And the error message should have "severity=error&exit_code=128"
     When I send a DELETE request to "/domains/api<random>/applications/app"
-    Then the response should be "204"
+    Then the response should be "200"
   }
 end
 
@@ -88,7 +88,7 @@ Given /^a new user, verify force deleting a domain with an php-([^ ]+) applicati
     When I send a POST request to "/domains/api<random>/applications" with the following:"name=app&cartridge=php-#{php_version}"
     Then the response should be "201"
     When I send a DELETE request to "/domains/api<random>?force=true"
-    Then the response should be "204"
+    Then the response should be "200"
   }
 end
 
@@ -123,7 +123,7 @@ Given /^a new user, verify typical REST interactios with a ([^ ]+) application o
     When I send a POST request to "/domains/api<random>/applications/app/aliases" with the following:"id=app-api<random>.foobar.com"
     Then the response should be "201"
     When I send a DELETE request to "/domains/api<random>/applications/app/aliases/app-api<random>.foobar.com"
-    Then the response should be "204"
+    Then the response should be "200"
     When I send a POST request to "/domains/api<random>/applications/app/cartridges" with the following:"cartridge=mysql-5.1"
     Then the response should be "201"
     When I send a GET request to "/domains/api<random>/applications/app/descriptor"
@@ -135,20 +135,20 @@ Given /^a new user, verify typical REST interactios with a ([^ ]+) application o
     When I send a POST request to "/domains/api<random>/applications/app/cartridges/mysql-5.1/events" with the following:"event=restart"
     Then the response should be "200"
     When I send a DELETE request to "/domains/api<random>/applications/app/cartridges/mysql-5.1"
-    Then the response should be "204"
+    Then the response should be "200"
     When I send a PUT request to "/domains/api<random>" with the following:"id=apix<random>"
     Then the response should be "422"
     When I send a DELETE request to "/domains/api<random>/applications/app"
-    Then the response should be "204"
+    Then the response should be "200"
     When I send a PUT request to "/domains/api<random>" with the following:"id=apix<random>"
     Then the response should be "200"
     And the response should be a "domain" with attributes "id=apix<random>"
     When I send a GET request to "/domains/apix<random>/applications/app"
     Then the response should be "404"
     When I send a DELETE request to "/domains/apix<random>"
-    Then the response should be "204"
+    Then the response should be "200"
     When I send a DELETE request to "/user/keys/api"
-    Then the response should be "204"
+    Then the response should be "200"
   }
 end
 
@@ -180,7 +180,7 @@ Given /^a new user, create a ([^ ]+) application using ([^ ]+) format and verify
     Then the response should be a "gear-group/gears/gear" with attributes "state=started"
     
     When I send a DELETE request to "/domains/api<random>/applications/app"
-    Then the response should be "204"
+    Then the response should be "200"
   }
 end
 
@@ -195,7 +195,7 @@ Given /^a new user, create a ([^ ]+) application using ([^ ]+) format and verify
     When I send a GET request to "/domains/api<random>/applications"
     Then the response should be "200"
     When I send a DELETE request to "/domains/api<random>/applications/app"
-    Then the response should be "204"
+    Then the response should be "200"
   }
 end
 
@@ -209,7 +209,7 @@ Given /^a new user, create a ([^ ]+) application using ([^ ]+) format and verify
     Then the response should be "201"
     And the response should be a "application" with attributes "name=app&framework=#{cart_name}"
     When I send a DELETE request to "/domains/api<random>/applications/app"
-    Then the response should be "204"
+    Then the response should be "200"
   }
 end
 
@@ -223,7 +223,7 @@ Given /^a new user, create a ([^ ]+) application with ([^ ]+) using ([^ ]+) form
     Then the response should be "201"
     And the response should be a "application" with attributes "name=app&framework=#{cart_name}"
     When I send a DELETE request to "/domains/api<random>/applications/app"
-    Then the response should be "204"
+    Then the response should be "200"
   }
 end
 
@@ -273,7 +273,7 @@ Given /^a new user, create a php-([^ ]+) application using ([^ ]+) format verify
     Then the response should be "200"
     And the response should be a "application" with attributes "name=app&framework=php-#{php_version}"
     When I send a DELETE request to "/domains/api<random>/applications/app"
-    Then the response should be "204"
+    Then the response should be "200"
   }
 end
 
@@ -288,7 +288,7 @@ Given /^a new user, create a php-([^ ]+) application using ([^ ]+) format verify
     When I send a POST request to "/domains/api<random>/applications/app/events" with the following:"event=#{event}"
     Then the response should be "200"
     When I send a DELETE request to "/domains/api<random>/applications/app"
-    Then the response should be "204"
+    Then the response should be "200"
   }
 end
 
@@ -309,7 +309,7 @@ Given /^a new user, create a php-([^ ]+) application using ([^ ]+) format verify
     When I send a POST request to "/domains/api<random>/applications/app/events" with the following:"event=add-alias&alias=app-@#$api.foobar.com"
     Then the response should be "422"
     When I send a DELETE request to "/domains/api<random>/applications/app"
-    Then the response should be "204"
+    Then the response should be "200"
   }
 end
 
@@ -322,7 +322,7 @@ Given /^a new user, create a php-([^ ]+) application using ([^ ]+) format verify
     When I send a POST request to "/domains/api<random>/applications" with the following:"name=app&cartridge=php-#{php_version}"
     Then the response should be "201"
     When I send a DELETE request to "/domains/api<random>/applications/app"
-    Then the response should be "204"
+    Then the response should be "200"
     When I send a GET request to "/domains/api<random>/applications/app"
     Then the response should be "404"
   }
@@ -340,7 +340,7 @@ Given /^a new user, create a php-([^ ]+) application using ([^ ]+) format verify
     Then the response should be "422"
     And the error message should have "field=name&severity=error&exit_code=100"
     When I send a DELETE request to "/domains/api<random>/applications/app"
-    Then the response should be "204"
+    Then the response should be "200"
   }
 end
 
@@ -357,7 +357,7 @@ Given /^a new user, create a php-([^ ]+) application using ([^ ]+) format verify
     When I send a GET request to "/domains/api<random>/applications/app/descriptor"
     Then the response descriptor should have "php-#{php_version},mysql-5.1" as dependencies
     When I send a DELETE request to "/domains/api<random>/applications/app"
-    Then the response should be "204"
+    Then the response should be "200"
   }
 end
 

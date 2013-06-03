@@ -107,10 +107,10 @@ class SubUserTest < ActionDispatch::IntegrationTest
     assert_equal 422, status
 
     delete "rest/domains/#{domain_name}.json", nil, @headers2
-    assert_equal 204, status
+    assert_equal 200, status
 
     delete "rest/user.json", nil, @headers2
-    assert_equal 204, status
+    assert_equal 200, status
   end
 
   def test_subaccount_inherit_gear_sizes
