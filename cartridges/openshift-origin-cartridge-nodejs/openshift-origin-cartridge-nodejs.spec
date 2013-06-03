@@ -8,17 +8,10 @@ Group:         Development/Languages
 License:       ASL 2.0
 URL:           http://www.openshift.com
 Source0:       http://mirror.openshift.com/pub/openshift-origin/source/%{name}/%{name}-%{version}.tar.gz
+BuildRequires: nodejs >= 0.6
+BuildRequires: nodejs <= 0.11
 Requires:      rubygem(openshift-origin-node)
 Requires:      openshift-origin-node-util
-%if 0%{?fedora}%{?rhel} <= 6
-Requires:      nodejs >= 0.6
-Requires:      nodejs < 0.7
-%endif
-%if 0%{?fedora} >= 19
-Requires:      nodejs >= 0.10
-Requires:      nodejs < 0.11
-%endif
-
 Requires:      nodejs-async
 Requires:      nodejs-connect
 Requires:      nodejs-express
@@ -46,14 +39,16 @@ Provides Node.js support to OpenShift. (Cartridge Format V2)
 %__mkdir -p %{buildroot}%{cartridgedir}
 %__cp -r * %{buildroot}%{cartridgedir}
 
-%if 0%{?fedora}%{?rhel} <= 6
-%__mv %{buildroot}%{cartridgedir}/versions/native %{buildroot}%{cartridgedir}/versions/0.6
-%__mv %{buildroot}%{cartridgedir}/metadata/manifest.yml.rhel %{buildroot}%{cartridgedir}/metadata/manifest.yml
-%endif
-%if 0%{?fedora} >= 19
-%__mv %{buildroot}%{cartridgedir}/versions/native %{buildroot}%{cartridgedir}/versions/0.10
-%__mv %{buildroot}%{cartridgedir}/metadata/manifest.yml.f19 %{buildroot}%{cartridgedir}/metadata/manifest.yml
-%endif
+echo "NodeJS version is `/usr/bin/node -v`"
+if [[ $(/usr/bin/node -v) == v0.6* ]]; then
+%__rm -f %{buildroot}%{cartridgedir}/versions/0.10
+%__mv %{buildroot}%{cartridgedir}/metadata/manifest.yml.0.6 %{buildroot}%{cartridgedir}/metadata/manifest.yml;
+fi
+
+if [[ $(/usr/bin/node -v) == v0.10* ]]; then
+%__rm -f %{buildroot}%{cartridgedir}/versions/0.6
+%__mv %{buildroot}%{cartridgedir}/metadata/manifest.yml.0.10 %{buildroot}%{cartridgedir}/metadata/manifest.yml;
+fi
 
 %post
 %{_sbindir}/oo-admin-cartridge --action install --source %{cartridgedir}
