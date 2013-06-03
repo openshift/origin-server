@@ -20,7 +20,7 @@
 require_relative '../test_helper'
 
 module OpenShift
-  class ManagedFilesTest < OpenShift::V2SdkTestCase
+  class ManagedFilesTest < OpenShift::NodeTestCase
     include ManagedFiles
 
     def setup

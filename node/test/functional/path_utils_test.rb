@@ -16,7 +16,7 @@
 require_relative '../test_helper'
 require 'etc'
 
-class PathUtilsTest < Test::Unit::TestCase
+class PathUtilsTest < OpenShift::NodeTestCase
   MockStat = Struct.new(:gid, :uid)
 
   # Called before every test method runs. Can be used

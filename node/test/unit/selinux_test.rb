@@ -19,7 +19,7 @@
 #
 require_relative '../test_helper'
 
-class SELinuxUtilsMCSLabelTest < Test::Unit::TestCase
+class SELinuxUtilsMCSLabelTest < OpenShift::NodeTestCase
 
   def setup
     @config_mock = mock('OpenShift::Config')

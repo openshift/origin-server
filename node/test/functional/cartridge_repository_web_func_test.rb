@@ -25,7 +25,7 @@ require 'digest'
 require 'webmock'
 require 'webmock/minitest'
 
-class CartridgeRepositoryWebFunctionalTest < OpenShift::V2SdkTestCase
+class CartridgeRepositoryWebFunctionalTest < OpenShift::NodeTestCase
   include WEBrick
 
   def before_setup

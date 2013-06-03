@@ -25,7 +25,7 @@ module OpenShift
   ;
 end
 
-class ApplicationContainerTest < Test::Unit::TestCase
+class ApplicationContainerTest < OpenShift::NodeTestCase
 
   def setup
     # Set up the config

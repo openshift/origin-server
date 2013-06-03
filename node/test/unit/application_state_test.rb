@@ -17,7 +17,7 @@ require_relative '../test_helper'
 require 'fileutils'
 require 'yaml'
 
-class ApplicationStateTest < Test::Unit::TestCase
+class ApplicationStateTest < OpenShift::NodeTestCase
 
   # Called before every test method runs. Can be used
   # to set up fixture information.

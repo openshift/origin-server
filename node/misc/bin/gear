@@ -33,24 +33,7 @@ STDERR.sync = true
 
 HOT_DEPLOY_MARKER = File.join(%w(.openshift markers hot_deploy))
 
-module OpenShift
-  module NodeLogger
-    def self.logger
-       unless @logger
-          @logger = Logger.new(File.open(File::NULL, "w"))
-       end
-       @logger
-    end
-
-    def self.trace_logger
-       unless @trace_logger
-         @trace_logger = Logger.new(File.open(File::NULL, "w"))
-         @trace_logger.level = Logger::Severity::ERROR
-       end
-       @trace_logger
-    end
-  end
-end
+OpenShift::NodeLogger.disable
 
 def gear_cartridge_names
   cartridge_names = []

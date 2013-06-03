@@ -19,7 +19,7 @@
 #
 require_relative '../test_helper'
 
-class UnixUserModelTest < Test::Unit::TestCase
+class UnixUserModelTest < OpenShift::NodeTestCase
   # Tests a variety of UID/host ID to IP address conversions.
   #
   # TODO: Is there a way to do this algorithmically?
