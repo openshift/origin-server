@@ -784,19 +784,36 @@ function check_dns_bind() {
 	APP_VALUE_MAP=(
 		["DNS_SERVER"]="Rails.application.config.dns[:server]"
 		["DNS_PORT"]="Rails.application.config.dns[:port].to_s"
-		["DNS_KEYNAME"]="Rails.application.config.dns[:keyname]"
-		["DNS_KEYVAL"]="Rails.application.config.dns[:keyvalue]"
 		["DNS_ZONE"]="Rails.application.config.dns[:zone]"
 		["DNS_SUFFIX"]="Rails.application.config.openshift[:domain_suffix]"
+		["DNS_KEY_OR_KRB"]='(Rails.application.config.dns[:keyvalue].blank?)?"krb":"key"'
 		)
 	load_application_values
 
     verbose "DNS Server: ${APP_VALUES[DNS_SERVER]}"
     verbose "DNS Port: ${APP_VALUES[DNS_PORT]}"
-    verbose "DNS Key Name: ${APP_VALUES[DNS_KEYNAME]}"
-    verbose "DNS Key Value: *****"
     verbose "DNS Zone: ${APP_VALUES[DNS_ZONE]}"
     verbose "DNS Domain Suffix: ${APP_VALUES[DNS_SUFFIX]}"
+    verbose "DNS Update Auth: ${APP_VALUES[DNS_KEY_OR_KRB]}"
+
+    if [ "${APP_VALUES[DNS_KEY_OR_KRB]}" = "key" ]
+    then
+	APP_VALUE_MAP=(
+		["DNS_KEYNAME"]="Rails.application.config.dns[:keyname]"
+		["DNS_KEYVAL"]="Rails.application.config.dns[:keyvalue]"
+		)
+	load_application_values
+        verbose "DNS Key Name: ${APP_VALUES[DNS_KEYNAME]}"
+        verbose "DNS Key Value: *****"
+    else
+	APP_VALUE_MAP=(
+		["DNS_KRB_KEYTAB"]="Rails.application.config.dns[:krb_keytab]"
+		["DNS_KRB_PRINCIPAL"]="Rails.application.config.dns[:krb_principal]"
+		)
+	load_application_values
+        verbose "DNS Kerberos Keytab: ${APP_VALUES[DNS_KRB_KEYTAB]}"
+        verbose "DNS Kerberos Principal: ${APP_VALUES[DNS_KRB_PRINCIPAL]}"
+    fi
 
     # check that zone suffix ends exactly with dns_zone (zone contains suffix)
 
