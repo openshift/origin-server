@@ -13,7 +13,7 @@ Feature: Explicit idle/restore checks
     @rhel-only
     Scenarios:
       | type         | proc_name |
-      | nodejs-0.6   | node      |
+      | nodejs       | node      |
       | ruby-1.9     | httpd     |
       | perl-5.10    | httpd     |
       | jbossas-7    | java      |
@@ -26,7 +26,7 @@ Feature: Explicit idle/restore checks
     @fedora-19-only
     Scenarios:
       | type         | proc_name |
-      | nodejs-0.10  | node      |
+      | nodejs       | node      |
       | ruby-2.0     | httpd     |
       | perl-5.16    | httpd     |
       | php-5.5      | httpd     |
@@ -50,7 +50,7 @@ Feature: Explicit idle/restore checks
     @rhel-only
     Scenarios:
       | type         | proc_name |
-      | nodejs-0.6   | node      |
+      | nodejs       | node      |
       | ruby-1.9     | httpd     |
       | perl-5.10    | httpd     |
       | jbossas-7    | java      |
@@ -63,7 +63,7 @@ Feature: Explicit idle/restore checks
     @fedora-19-only
     Scenarios:
       | type         | proc_name |
-      | nodejs-0.10  | node      |
+      | nodejs       | node      |
       | ruby-2.0     | httpd     |
       | perl-5.16    | httpd     |
       | php-5.5      | httpd     |
@@ -87,7 +87,7 @@ Feature: Explicit idle/restore checks
     @rhel-only
     Scenarios:
       | type         | proc_name |
-      | nodejs-0.6   | node      |
+      | nodejs       | node      |
       | ruby-1.9     | httpd     |
       | perl-5.10    | httpd     |
       | jbossas-7    | java      |
@@ -100,7 +100,7 @@ Feature: Explicit idle/restore checks
     @fedora-19-only
     Scenarios:
       | type         | proc_name |
-      | nodejs-0.10  | node      |
+      | nodejs       | node      |
       | ruby-2.0     | httpd     |
       | perl-5.16    | httpd     |
       | python-2.7   | httpd     |

@@ -1,7 +1,7 @@
 @runtime
 @rhel-only
 @not-enterprise
-@not-fedora-19
+@not-origin
 Feature: Cartridge Runtime Standard Checks (Node)
 
   @runtime_extended_other1
@@ -31,7 +31,7 @@ Feature: Cartridge Runtime Standard Checks (Node)
 
 #@runtime_extended2
 @runtime
-@rhel-only
+@not-origin
 @not-enterprise
 @runtime_extended_other2
   Scenario Outline: Hot deployment tests

@@ -1,6 +1,5 @@
 @runtime_extended_other2
-@not-fedora-19
-@rhel-only
+@not-origin
 Feature: Trap User Shell
 
   Scenario Outline: Use ctl_all to start and stop a simple application (RHEL/CentOS)

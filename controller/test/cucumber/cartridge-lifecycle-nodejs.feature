@@ -2,12 +2,12 @@
 @runtime_extended
 @not-enterprise
 Feature: Cartridge Lifecycle NodeJS Verification Tests
-  Scenario Outline: Application Creation
+  Scenario: Application Creation
     Given the libra client tools
-    When 1 nodejs-<nodejs_version> applications are created
+    When 1 nodejs applications are created
     Then the applications should be accessible
     #Scenario: Application Modification
-    Given an existing nodejs-<nodejs_version> application
+    Given an existing nodejs application
     When the application is changed
     Then it should be updated successfully
     And the application should be accessible
@@ -23,13 +23,3 @@ Feature: Cartridge Lifecycle NodeJS Verification Tests
     #Scenario: Application Destroying
     When the application is destroyed
     Then the application should not be accessible
-
-    @rhel-only
-    Scenarios: RHEL scenario
-      | nodejs_version |
-      |      0.6       |
-
-    @fedora-19-only
-    Scenarios: Fedora 19 scenario
-      | nodejs_version |
-      |      0.10      |
