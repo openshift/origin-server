@@ -16,7 +16,7 @@
 require_relative '../test_helper'
 require "fileutils"
 
-class EnvironTest < Test::Unit::TestCase
+class EnvironTest < OpenShift::NodeTestCase
 
   # Called before every test method runs. Can be used
   # to set up fixture information.

@@ -16,7 +16,7 @@
 require_relative '../test_helper'
 
 module OpenShift
-  class UtilsSpawnFunctionalTest < Test::Unit::TestCase
+  class UtilsSpawnFunctionalTest < OpenShift::NodeTestCase
 
     def setup
       @uid     = 5999
@@ -153,7 +153,7 @@ module OpenShift
     end
 
     def test_jailed_env
-      assert_not_empty ENV['HOME']
+      refute_empty ENV['HOME']
       out, err, rc = Utils.oo_spawn('echo ${HOME}xx',
                                     env:             {},
                                     unsetenv_others: true)
@@ -163,7 +163,7 @@ module OpenShift
     end
 
     def test_env
-      assert_not_empty ENV['HOME']
+      refute_empty ENV['HOME']
       out, err, rc = Utils.oo_spawn('echo ${HOME}xx')
       assert_equal 0, rc
       assert_empty err
@@ -171,7 +171,7 @@ module OpenShift
     end
 
     def test_run_as_env
-      assert_not_empty ENV['HOME']
+      refute_empty ENV['HOME']
       out, err, rc = Utils.oo_spawn('echo ${HOME}xx',
                                     uid: @uid)
       assert_equal 0, rc

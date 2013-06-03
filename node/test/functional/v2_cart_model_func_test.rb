@@ -18,7 +18,7 @@ require 'etc'
 require 'openshift-origin-node/utils/shell_exec'
 
 module OpenShift
-  class V2CartridgeModelFunctionalTest < OpenShift::V2SdkTestCase
+  class V2CartridgeModelFunctionalTest < OpenShift::NodeTestCase
     GEAR_BASE_DIR = '/var/lib/openshift'
 
     def before_setup

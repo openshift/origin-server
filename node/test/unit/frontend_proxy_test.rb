@@ -24,7 +24,7 @@ module OpenShift; end
 
 # Run unit test manually
 # ruby -I node/lib:common/lib node/test/unit/frontend_proxy_test.rb
-class FrontendProxyTest < Test::Unit::TestCase
+class FrontendProxyTest < OpenShift::NodeTestCase
 
   def setup
     config = mock('OpenShift::Config')

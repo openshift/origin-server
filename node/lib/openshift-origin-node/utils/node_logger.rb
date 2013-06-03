@@ -17,67 +17,93 @@
 require 'logger'
 require 'fileutils'
 require 'openshift-origin-common/config'
+require 'openshift-origin-node/utils/logger/split_trace_logger'
+require 'openshift-origin-node/utils/logger/null_logger'
+require 'openshift-origin-node/utils/logger/stdout_logger'
 
 module OpenShift
+  #
+  # This class provides a central logging facility for all node operations.
+  #
+  # The specific logger implementation used is created lazily upon first reference
+  # to +logger+. The logger implementation is obtained by reading the +PLATFORM_LOG_CLASS+
+  # key from +OpenShift::Config+, which is assumed to be the string name of the logger
+  # class to instantiate. The class is assumed to be in the +OpenShift::NodeLogger+ module.
+  #
+  # If no logger class is configured, the +OpenShift::NodeLogger::SplitTraceLogger+ will be
+  # used by default.
+  #
+  # Logger implementations are expected to confirm to the following simple interface:
+  #
+  #   module OpenShift
+  #     module NodeLogger
+  #       class CustomLogger
+  #         def initialize(config, context); end
+  #
+  #         def info(*args, &block); end
+  #         def warn(*args, &block); end
+  #         def error(*args, &block); end
+  #         def fatal(*args, &block); end
+  #         def debug(*args, &block); end
+  #         def trace(*args, &block); end
+  #
+  #         def reinitialize; end
+  #       end
+  #     end
+  #   end
+  #
+  # NodeLogger maintains a +context+ Hash which is passed to logger implementations. Callers
+  # may set and remove keys from the context at-will, to provide information such as transaction
+  # IDs or any other data which may be useful for loggers. The context object is NOT thread-safe.
+  #
+  # A +disable+ method is provided for convenience to initialize NodeLogger with the +NullLogger+,
+  # effectively disabling logging. This is equivalent to using external configuration, but provides
+  # a programmatic entrypoint.
+  #
+  # Example:
+  #
+  #   require 'node_logger'
+  #
+  #   NodeLogger.logger.warn "A warning"
+  #   NodeLogger.logger.info { "A deferred-evaluation log message" }
+  #
+  #   NodeLogger.context[:tx_id] = 1234
+  #   NodeLogger.context.delete(:tx_id)
+  #
+  #   class MyClass
+  #     include NodeLogger
+  #
+  #     def fun
+  #       logger.debug "A message"
+  #     end
+  #   end
+  # 
   module NodeLogger
-    PROFILES = {
-        :standard => {
-            file_config:   'PLATFORM_LOG_FILE',
-            level_config:  'PLATFORM_LOG_LEVEL',
-            default_file:  File.join(File::SEPARATOR, %w{var log openshift node platform.log}),
-            default_level: Logger::DEBUG
-        },
-        :trace    => {
-            file_config:   'PLATFORM_TRACE_LOG_FILE',
-            level_config:  'PLATFORM_TRACE_LOG_LEVEL',
-            default_file:  File.join(File::SEPARATOR, %w{var log openshift node platform-trace.log}),
-            default_level: Logger::INFO
-        }
-    }
+    DEFAULT_LOGGER_CLASS = "SplitTraceLogger"
 
-    def self.build_logger(profile)
+    def self.create_logger
+      config = self.load_config
+      logger_class = config.get("PLATFORM_LOG_CLASS") || DEFAULT_LOGGER_CLASS
+
       begin
-        # Use defaults
-        log_file  = profile[:default_file]
-        log_level = profile[:default_level]
-
-        # Override defaults with configs if possible
-        begin
-          config           = OpenShift::Config.new
-          config_log_file  = config.get(profile[:file_config])
-          config_log_level = config.get(profile[:level_config])
-
-          if config_log_level && Logger::Severity.const_defined?(config_log_level)
-            log_level = Logger::Severity.const_get(config_log_level)
-          end
-
-          if config_log_file
-            log_file = config_log_file
-          end
-        rescue => e
-          # just use the defaults
-          Logger.new(STDERR).error { "Failed to apply logging configuration #{profile}: #{e.message}" }
-        end
-
-        FileUtils.mkpath(File.dirname(log_file)) unless File.exist? File.dirname(log_file)
-
-        orig_umask = File.umask(0)
-        file = File.open(log_file, File::WRONLY | File::APPEND| File::CREAT, 0660)
-        File.umask(orig_umask)
-
-        file.sync = true
-        
-        logger       = Logger.new(file, 5, 10 * 1024 * 1024)
-        logger.level = log_level
-        logger.formatter = proc do |severity, datetime, progname, msg|
-          "#{datetime.strftime("%B %d %H:%M:%S")} #{severity} #{msg}\n"
-        end
-        logger
-      rescue Exception => e
-        # If all else fails, use a STDOUT logger
-        Logger.new(STDERR).error { "Failed to create logger; falling back to STDOUT: #{e.message}" }
-        Logger.new(STDOUT)
+        logger = OpenShift::NodeLogger.const_get(logger_class).new(config, self.context)
+      rescue => e
+        raise "Couldn't create NodeLogger class #{logger_class}: #{e.message}"
       end
+
+      logger
+    end
+
+    def self.load_config
+      begin
+        config = OpenShift::Config.new
+      rescue => e
+        raise "Couldn't load NodeLogger configuration: #{e.message}"
+      end
+    end
+
+    def self.disable
+      @logger = NullLogger.new
     end
 
     def logger
@@ -85,24 +111,11 @@ module OpenShift
     end
 
     def self.logger
-      @logger ||= self.build_logger(PROFILES[:standard])
+      @logger ||= self.create_logger
     end
 
-    def self.logger_rebuild
-      @logger = self.build_logger(PROFILES[:standard])
+    def self.context
+      @context ||= {}
     end
-
-    def trace_logger
-      NodeLogger.trace_logger
-    end
-
-    def self.trace_logger
-      @trace_logger ||= self.build_logger(PROFILES[:trace])
-    end
-
-    def self.trace_rebuild
-      @trace_logger = self.build_logger(PROFILES[:trace])
-    end
-
   end
 end

@@ -1,6 +1,6 @@
 #!/usr/bin/env oo-ruby
 #--
-# Copyright 2010 Red Hat, Inc.
+# Copyright 2013 Red Hat, Inc.
 # 
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -19,27 +19,19 @@
 #
 require_relative '../test_helper'
 
-class VersionFunctionalTest < Test::Unit::TestCase
+class VersionFunctionalTest < OpenShift::NodeTestCase
 
   def test_leading_space
-    assert_no_match(/^\s+/, 
+    refute_match(/^\s+/, 
                     OpenShift::VERSION, 
                     'Version string must not have leading white space'
                     )
   end
 
   def test_trailing_space
-    assert_no_match(/\s+$/,
+    refute_match(/\s+$/,
                     OpenShift::VERSION,
                     'Version string must not have trailing white space'
                     )
   end
-
-  def test_version_pattern
-    assert_match(/^(\d+)\.(\d+).(\d+)$/, 
-                 OpenShift::VERSION,
-                 'Version string must be of the form N.N'
-                 )
-  end
 end
-

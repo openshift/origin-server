@@ -22,7 +22,7 @@ require 'openshift-origin-common/models/manifest'
 require 'digest'
 
 module OpenShift
-  class CartridgeRepositoryFunctionalTest < OpenShift::V2SdkTestCase
+  class CartridgeRepositoryFunctionalTest < OpenShift::NodeTestCase
 
     def before_setup
 

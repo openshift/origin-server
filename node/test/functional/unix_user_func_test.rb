@@ -19,7 +19,7 @@
 #
 require_relative '../test_helper'
 
-class UnixUserModelFunctionalTest < Test::Unit::TestCase
+class UnixUserModelFunctionalTest < OpenShift::NodeTestCase
 
   def assert_directory?(file)
     assert File.directory?(file), "Directory #{file} not found"
@@ -61,7 +61,7 @@ class UnixUserModelFunctionalTest < Test::Unit::TestCase
     o = OpenShift::UnixUser.new(@gear_uuid, @gear_uuid, @user_uid, @app_name,
                                 @gear_name, @namespace,
                                 nil, nil, @verbose)
-    assert_not_nil o
+    refute_nil o
 
     o.initialize_homedir("/tmp/", "#{@user_homedir}/", "cartridges/openshift-origin-cartridge-abstract/")
     assert_directory?(@user_homedir)

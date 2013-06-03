@@ -1,6 +1,6 @@
 require_relative '../test_helper'
 
-class SanitizeTest < Test::Unit::TestCase
+class SanitizeTest < OpenShift::NodeTestCase
   def test_sanitize_password
     result = OpenShift::Runtime::Utils.sanitize_credentials("password=foo")
 

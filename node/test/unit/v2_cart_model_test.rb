@@ -22,7 +22,7 @@ require 'ostruct'
 require 'fileutils'
 
 module OpenShift
-  class V2CartModelTest < OpenShift::V2SdkTestCase
+  class V2CartModelTest < OpenShift::NodeTestCase
 
     GEAR_BASE_DIR = '/var/lib/openshift'
 

@@ -25,7 +25,7 @@ module OpenShift
   ;
 end
 
-class BuildLifecycleTest < Test::Unit::TestCase
+class BuildLifecycleTest < OpenShift::NodeTestCase
 
   def setup
     # Set up the config

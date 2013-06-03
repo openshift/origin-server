@@ -18,38 +18,13 @@ require_relative 'coverage_helper'
 
 require 'test/unit'
 require 'mocha'
+require 'logger'
 
 require_relative '../lib/openshift-origin-node'
+require_relative '../lib/openshift-origin-node/utils/logger/stdout_logger'
 
 module OpenShift
-  module NodeLogger
-
-    def logger
-      NodeLogger.logger
-    end
-
-    def self.logger
-      @logger ||= begin
-        logger       = Logger.new(STDOUT)
-        logger.level = Logger::DEBUG
-        logger
-      end
-    end
-
-    def trace_logger
-      NodeLogger.trace_logger
-    end
-
-    def self.trace_logger
-      @trace_logger ||= begin
-        logger       = Logger.new(STDOUT)
-        logger.level = Logger::INFO
-        logger
-      end
-    end
-  end
-
-  class V2SdkTestCase < MiniTest::Unit::TestCase
+  class NodeTestCase < MiniTest::Unit::TestCase
     alias assert_raise assert_raises
 
     def assert_path_exist(path, message=nil)
@@ -61,6 +36,10 @@ module OpenShift
     end
 
     def before_setup
+      log_config = mock()
+      log_config.stubs(:get).with("PLATFORM_LOG_CLASS").returns("StdoutLogger")
+      OpenShift::NodeLogger.stubs(:load_config).returns(log_config)
+
       OpenShift::Utils::Sdk.stubs(:new_sdk_app?).returns(true)
       OpenShift::Utils::Sdk.stubs(:node_default_model).returns(:v2)
       super

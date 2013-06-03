@@ -15,7 +15,7 @@
 #++
 require_relative '../test_helper'
 
-class NodeTest < OpenShift::V2SdkTestCase
+class NodeTest < OpenShift::NodeTestCase
 
   # Called before every test method runs. Can be used
   # to set up fixture information.
