@@ -492,7 +492,7 @@ module OpenShift
           [File, :directory?, %w(metadata)],
           [File, :directory?, %w(bin)],
           [File, :file?, %w(metadata manifest.yml)],
-          # [File, :executable?, %w(bin control)],
+          #[File, :executable?, %w(bin control)],
       ].each do |clazz, method, target|
         relative = PathUtils.join(target)
         absolute = PathUtils.join(path, relative)
@@ -500,6 +500,11 @@ module OpenShift
         unless clazz.method(method).(absolute)
           errors << "#{relative} is not #{method}"
         end
+      end
+
+      control_script = PathUtils.join(path, 'bin', 'control')
+      if File.exists?(control_script) && !File.executable?(control_script)
+        errors << 'bin/control is not executable'
       end
 
       unless errors.empty?
