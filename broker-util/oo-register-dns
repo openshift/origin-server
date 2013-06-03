@@ -39,6 +39,7 @@ oo-register-dns --with-node-hostname node1 \\
   -d|--domain               domain      Domain name for this node (optional, default: example.com)  
   -s|--dns-server           server      IP address or hostname of DNS server to update (optional, default: 127.0.0.1)  
   -k|--key-file             file        Bind key (optional, default: /var/named/<domain name>.key)  
+  -g|--gss-tsig                         Use GSS-TSIG Kerberos credentials to bind (optional)
   -?|--help                             Print this message
 
 USAGE
@@ -51,6 +52,7 @@ opts = GetoptLong.new(
     ["--domain",              "-d", GetoptLong::OPTIONAL_ARGUMENT],    
     ["--dns-server",          "-s", GetoptLong::OPTIONAL_ARGUMENT],
     ["--key-file",            "-k", GetoptLong::OPTIONAL_ARGUMENT],        
+    ["--gss-tsig",            "-g", GetoptLong::NO_ARGUMENT],
     ["--help",                "-?", GetoptLong::NO_ARGUMENT]
 )
 
@@ -78,4 +80,8 @@ update add #{node_hostname}.#{node_domain} 180 A #{ip}
 send
 EOF
 
-system "nsupdate -k #{key} <<EOF\n#{command}\nEOF"
+if args["--gss-tsig"]
+  system "nsupdate -g <<EOF\n#{command}\nEOF"
+else
+  system "nsupdate -k #{key} <<EOF\n#{command}\nEOF"
+end
