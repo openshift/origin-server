@@ -42,6 +42,7 @@ class EmbCartController < BaseController
     scales_from = Integer(params[:scales_from]) rescue nil
     scales_to = Integer(params[:scales_to]) rescue nil
     additional_storage = Integer(params[:additional_storage]) rescue nil
+    gear_profile = params[:gear_profile] rescue nil
 
     cart_urls = []
     if params[:name].is_a? String
@@ -112,11 +113,12 @@ class EmbCartController < BaseController
       unless colocate_component_instance.nil?
         group_overrides << {"components" => [colocate_component_instance.to_hash, comp_spec]}
       end
-      if !scales_to.nil? or !scales_from.nil? or !additional_storage.nil?
+      if !scales_to.nil? or !scales_from.nil? or !additional_storage.nil? or !gear_profile.nil?
         group_override = {"components" => [comp_spec]}
         group_override["min_gears"] = scales_from unless scales_from.nil?
         group_override["max_gears"] = scales_to unless scales_to.nil?
         group_override["additional_filesystem_gb"] = additional_storage unless additional_storage.nil?
+        group_override["gear_size"] = gear_profile unless gear_profile.nil?
         group_overrides << group_override
       end
 
