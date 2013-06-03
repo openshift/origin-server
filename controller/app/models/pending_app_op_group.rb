@@ -188,7 +188,10 @@ class PendingAppOpGroup
           when :new_component
             application.component_instances.push(component_instance)
           when :del_component
+            cartname = component_instance.cartridge_name
             application.component_instances.delete(component_instance)
+            application.downloaded_cart_map.delete_if { |cname,c| c["versioned_name"]==component_instance.cartridge_name}
+            application.save
           when :add_component
             result_io.append gear.add_component(component_instance, op.args["init_git_url"])
           when :post_configure_component
