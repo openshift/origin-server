@@ -299,7 +299,17 @@ module OpenShift
 
     # deconfigure(cartridge_name) -> nil
     #
-    # Remove cartridge from gear
+    # Remove cartridge from gear with the following workflow:
+    #
+    #   1. Delete private endpoints
+    #   2. Stop the cartridge
+    #   3. Execute the cartridge `control teardown` action
+    #   4. Disconnect the frontend for the cartridge
+    #   5. Delete the cartridge directory
+    #
+    # If the cartridge stop or teardown operations fail, the error output will be
+    # captured, but the frontend will still be disconnect and the cartridge directory
+    # will be deleted.
     #
     # deconfigure('php-5.3')
     def deconfigure(cartridge_name)
@@ -308,12 +318,18 @@ module OpenShift
       cartridge = get_cartridge(cartridge_name)
       delete_private_endpoints(cartridge)
       OpenShift::Utils::Cgroups::with_no_cpu_limits(@user.uuid) do
-        stop_cartridge(cartridge, user_initiated: true)
-        unlock_gear(cartridge, false) do |c|
-          disconnect_frontend(c)
-          teardown_output << cartridge_teardown(c.directory)
+        begin
+          stop_cartridge(cartridge, user_initiated: true)
+          unlock_gear(cartridge, false) do |c|
+            teardown_output << cartridge_teardown(c.directory)            
+          end
+        rescue Utils::ShellExecutionException => e
+          teardown_output << Utils::Sdk::translate_out_for_client(e.stdout, :error)
+          teardown_output << Utils::Sdk::translate_out_for_client(e.stderr, :error)
+        ensure
+          disconnect_frontend(cartridge)
+          delete_cartridge_directory(cartridge)
         end
-        delete_cartridge_directory(cartridge)
       end
 
       teardown_output
