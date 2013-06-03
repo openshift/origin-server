@@ -16,7 +16,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.9.11
+Version: 1.9.12
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -294,6 +294,11 @@ fi
 %attr(0755,-,-) /etc/cron.monthly/openshift-origin-cron-monthly
 
 %changelog
+* Mon Jun 03 2013 Adam Miller <admiller@redhat.com> 1.9.12-1
+- Fix bug 969605 (pmorie@gmail.com)
+- Fix bug 969605 (pmorie@gmail.com)
+- Bug 969725: Ensure cleanup on cartridge deconfigure (ironcladlou@gmail.com)
+
 * Sat Jun 01 2013 Dan McPherson <dmcphers@redhat.com> 1.9.11-1
 - Do not default to stauts if gear script is invoked without an invalid
   command. (pmorie@gmail.com)
