@@ -1,4 +1,4 @@
-#!/usr/bin/env ruby
+#!/usr/bin/env oo-ruby
 # Run with "-h" for usage, "-v" to see INFO-level output while running.
 #
 # Run this script as root on any kind of OpenShift host to diagnose common problems.
@@ -35,6 +35,8 @@ class OODiag
 
   require 'rubygems'
   require 'tempfile'
+  require 'bundler'
+
   def initialize(options = nil)
     @options = options || @options || {
       :wait => 2,
@@ -146,7 +148,10 @@ class OODiag
 
   def run_script(script)
     verbose "running #{script}"
-    output = `#{script} 2>&1`
+    output = ""
+    Bundler.with_clean_env do
+      output = `#{script} 2>&1`
+    end
     if $?.success?
       verbose "#{script} ran without error:\n--BEGIN OUTPUT--\n#{output}\n--END #{script} OUTPUT--"
     else
@@ -183,9 +188,8 @@ class OODiag
     @project_is = {}
     # It's OpenShift Enterprise if there are any el6op RPMs on the system.
     @project_is[:enterprise] = @rpms.values.select {|rpm| rpm[:release].include? 'el6op'}.length > 0
-    # It's OpenShift Online if not Enterprise but there are RHEL6 RPMs
-    @project_is[:online] = (!@project_is[:enterprise]) &&
-                           @rpms.values.select {|rpm| rpm[:release].include? 'el6'}.length > 0
+    # It's OpenShift Online if certain RPMs are present
+    @project_is[:online] = @rpms['rhc-common'] && true
     # It's OpenShift Origin otherwise...
     @project_is[:origin] = !(@project_is[:enterprise] || @project_is[:online])
 
@@ -363,8 +367,6 @@ class OODiag
     unittest
   ]
 
-  LOCALHOST = %w[127.0.0.1 ::1]
-
 ######## TESTS #############
   #
   # Methods beginning with prereq_ or test_ will be run automatically.
@@ -430,7 +432,7 @@ class OODiag
         end
       end
     end
-    rogue_rpms.empty? or do_warn <<-ROGUES
+    rogue_rpms.empty? or do_fail <<-ROGUES
       The following problems were found with your RPMs: \n\t#{ rogue_rpms.join("\n\t") }
       Please ensure that you have not enabled EPEL or other third-party repositories, and
       do not have any of these RPMs pre-installed in your install image. These RPMs must come
@@ -439,8 +441,7 @@ class OODiag
   end
 
   def test_selinux_policy_rpm
-    skip_test unless @os_is[:rhel6]
-    require_rpm_minimum_version 'selinux-policy', "3.7.19", "155.el6_3.8"
+    require_rpm_minimum_version 'selinux-policy', "3.7.19", "195.el6_4.4" if @os_is[:rhel6]
   end
 
   def test_selinux_enabled
@@ -483,140 +484,10 @@ class OODiag
       do_fail <<-PERMS
         Broker application cache contains files belonging to root. This will probably
         result in cache items that can't expire. Please clear the cache by executing:
-            # cd /var/www/openshift/broker
-            # bundle exec rake tmp:clear
+            # oo-admin-broker-cache --clear
       PERMS
     else
       verbose "broker application cache permissions appear fine"
-    end
-  end
-
-  def test_nodes_public_hostname
-    skip_test unless @is_broker
-    require 'socket'
-    verbose "checking that each public_hostname resolves properly"
-    names_for = Hash.new {|h,k| h[k]=[]}
-    #
-    # get the PUBLIC_HOSTNAME from every node
-    # and make sure it resolves and is not localhost
-    #
-    OpenShift::MCollectiveApplicationContainerProxy.rpc_get_fact("public_hostname") do |node,host|
-      names_for[host] << node
-      # test host resolution
-      begin
-        # public_hostname must resolve as a FQDN, so should be the full name
-        # (the "." at the end blocks adding a search domain)
-        resolved_host = IPSocket.getaddress(host + ".")
-        if LOCALHOST.member? resolved_host
-          do_fail "PUBLIC_HOSTNAME #{host} for #{node} should be public, not localhost"
-        else
-          verbose "PUBLIC_HOSTNAME #{host} for #{node} resolves to #{resolved_host}"
-        end
-      rescue Exception => e
-        do_fail "PUBLIC_HOSTNAME #{host} for #{node} does not resolve as a FQDN (#{e})"
-      end
-    end
-    if names_for.empty?
-      do_fail "No node hosts responded. Run 'mco ping' and troubleshoot if this is unexpected."
-      return
-    end
-    #
-    # check that each hostname is unique
-    # as it causes really confusing problems creating apps if it isn't.
-    #
-    verbose "checking that each public_hostname is unique"
-    names_for.each do |host,nodes|
-      if nodes.length > 1
-        do_fail "multiple node hosts have PUBLIC_HOSTNAME #{host}: #{nodes.join ','}"
-      end
-    end
-  end
-
-  def test_nodes_public_ip
-    skip_test unless @is_broker
-    verbose "checking that public_ip has been set for all nodes"
-    nodes_for = Hash.new {|h,k| h[k]=[]}
-    #
-    # get the PUBLIC_IP from every node
-    # and make sure it's not localhost
-    #
-    OpenShift::MCollectiveApplicationContainerProxy.rpc_get_fact("public_ip") do |node,ip|
-      nodes_for[ip] << node
-      if LOCALHOST.member? ip
-        do_fail "PUBLIC_IP #{ip} should be public, not localhost"
-      else
-        verbose "PUBLIC_IP #{ip} for #{node}"
-      end
-    end
-    nodes_for.empty? and return #nothing to do...
-    #
-    # check that public_ip is unique for all nodes
-    #
-    verbose "checking that public_ip is unique for all nodes"
-    nodes_for.each do |ip,nodes|
-      if nodes.length > 1
-        do_fail "multiple node hosts have public_ip #{ip}: #{nodes.join ','}"
-      end
-    end
-  end
-
-  def test_nodes_cartridges_from_broker
-    skip_test unless @is_broker
-    verbose "checking that all node hosts have cartridges installed"
-    carts_for = Hash.new
-    all_carts = []
-    #
-    # get the list of cartridges from every node
-    #
-    OpenShift::MCollectiveApplicationContainerProxy.rpc_get_fact("cart_list") do |node,carts|
-      all_carts << ( carts_for[node] = carts.split('|').sort )
-      if carts.empty?
-        do_fail "host #{node} does not have any cartridges installed"
-      else
-        verbose "cartridges for #{node}: #{carts}"
-      end
-    end
-    carts_for.empty? and return #nothing to do...
-    #
-    # check it's the same on every node
-    #
-    verbose "checking that same cartridges are installed on all node hosts"
-    all_carts = all_carts.flatten.uniq.sort
-    if all_carts.empty?
-      do_fail "no cartridges are installed; please install cartridges on your node hosts"
-      return
-    end
-    any_missing = false
-    carts_for.each do |node,carts|
-      missing = all_carts - carts
-      missing.empty? or do_fail "node #{node} cartridge list is missing #{missing.join ','}"
-      any_missing ||= !missing.empty?
-    end
-    #
-    # check against broker's probably-cached list of carts
-    #
-    unless any_missing # would likely get false positive
-      verbose "checking that broker's cache is not stale"
-      begin
-        require 'json'
-        require 'rest-client'
-        api_carts = JSON.parse(RestClient.get('http://localhost:8080/broker/rest/cartridges.json'))
-        api_carts = api_carts["data"].map {|cart| cart["name"]}
-        verbose "API reports carts: #{api_carts.join '|'}"
-        # remove abstract_carts which don't show in the API
-        all_carts.reject! {|cart| cart.start_with? "abstract"}
-        do_warn <<-"MISMATCH" unless api_carts.sort == all_carts.sort
-          The broker's list of cartridges does not match what is available on
-          the node hosts. The broker probably has cached an old list.
-          Broker is missing: #{(all_carts - api_carts).join ", "}
-          Broker has extra: #{(api_carts - all_carts).join ", "}
-          Clear the cache by executing:
-            # cd /var/www/openshift/broker
-            # bundle exec rake tmp:clear
-        MISMATCH
-      rescue StandardError => e
-        do_fail "Couldn't retrieve cartridge list from broker: #{e}"
-      end
     end
   end
 
@@ -679,7 +550,7 @@ class OODiag
         skip_test
       end
       missing_profiles = conf_profiles - a_nodes_with_profile.keys
-      do_fail <<-MISSING unless missing_profiles.empty?
+      do_warn <<-MISSING unless missing_profiles.empty?
         The following gear profile(s) are configured but not provided by node hosts:
           #{missing_profiles.join ", "}
         Attempts to create apps using these gear profiles will fail.
@@ -721,12 +592,12 @@ class OODiag
       if district.server_identities.empty?
         do_warn "There are no node hosts in district '#{district.name}'"
       end
-      district.server_identities.each do |node,v|
-        d_profile_for[node] = profile
-        d_district_for[node] = district.name
-        d_profile_active[profile] = true if v["active"]
-        d_nodes_with_profile[profile] << node
-        verbose "  host #{node} is #{v['active']? 'active' : 'inactive'} in district '#{district.name}'"
+      district.server_identities.each do |node|
+        d_profile_for[node["name"]] = profile
+        d_district_for[node["name"]] = district.name
+        d_profile_active[profile] = true if node["active"]
+        d_nodes_with_profile[profile] << node["name"]
+        verbose "  host #{node['name']} is #{node['active']? 'active' : 'inactive'} in district '#{district.name}'"
       end
     end
 
@@ -791,7 +662,7 @@ class OODiag
       run_script("oo-accept-systems -w #{@options[:wait]}") if @rpms["openshift-origin-broker-util"]
     elsif @rpms["openshift-origin-broker-util"]
       run_script("oo-accept-broker")
-      run_script("oo-accept-systems -w #{@options[:wait]}") if File.exists? '/usr/sbin/oo-accept-systems'
+      run_script("oo-accept-systems -w #{@options[:wait]}")
     else
       do_warn "openshift-origin-broker-util is not installed; you really should install it"
     end
@@ -817,7 +688,7 @@ class OODiag
     # create a tmp file with all of the unique error log statements after the most recent openshift-broker start
     #
     tmpfile = Tempfile.new("oodiag-log-#{$$}").path
-    logfile = @project_is[:enterprise] ? '/var/www/openshift/broker/httpd/logs/error_log' : '/var/log/openshift/broker/httpd/error_log'
+    logfile = '/var/log/openshift/broker/httpd/error_log'
     verbose "no file #{logfile}" and skip_test if ! File.exists? logfile # log file just not there
     system %Q[sed -n 'H; /configured -- resuming normal operations/h; ${g;p;}' #{logfile} | sort -u > #{tmpfile}]
     # if no restart msg, just use the whole thing
@@ -951,7 +822,7 @@ class OODiag
     # create a tmp file with all of the unique log statements after most recent mcollective start
     tmpfile = Tempfile.new("oodiag-mco-#{$$}").path
     system %Q! sed -n 'H; /INFO.*The Marionette Collective.*started logging/h; ${g;p;}' /var/log/mcollective.log | sed 's|^\w, \[[^]]*\]||' | sort -u > #{tmpfile} !
-    # if no restart see, just use the whole thing
+    # if no restart seen, just use the whole thing
     system %Q! sort -u /var/log/mcollective.log > #{tmpfile} ! unless File.exists? tmpfile
     return unless File.exists? tmpfile
     #
@@ -977,12 +848,7 @@ class OODiag
       fail; please refer to the Deployment Guide for proper settings.
     SSHD
     %w[runuser runuser-l sshd su system-auth-ac].each do |file|
-      last_line = ""
-      File.open("/etc/pam.d/#{file}", "r").each_line do |line|
-        # keep last non-empty non-commented line
-        last_line = line if line =~ /\S/ && line =~ /^\s*[^#]/
-      end
-      do_fail <<-"PAM" unless last_line =~ /pam_namespace.so\s+no_unmount_on_close/
+      do_fail <<-"PAM" unless `grep '/pam_namespace.so\s*no_unmount_on_close/' /etc/pam.d/#{file}`
         /etc/pam.d/#{file} should end with:
            session required pam_namespace.so no_unmount_on_close
         Without this, OpenShift gears as well as other processes
@@ -1018,8 +884,7 @@ class OODiag
     end
     if @is_node
       fail_without += %w{httpd network sshd openshift-port-proxy openshift-gears mcollective
-                        cgconfig cgred openshift-cgroups crond }
-      fail_without += %w{openshift-node-web-proxy } unless @project_is[:enterprise]
+                        cgconfig cgred openshift-cgroups crond openshift-node-web-proxy}
 
       warn_without += %w{ntpd oddjobd messagebus}
     end
@@ -1031,15 +896,13 @@ class OODiag
       The following service(s) are not currently started:
         #{missing.join ", "}
       These services are required for OpenShift functionality.
-      Please "service <service> start" for any not currently started.
     REQ
        #
     missing = warn_without.uniq.select {|svc| !service_started? svc}
     do_warn <<-WANT unless missing.empty?
       The following service(s) are not currently started:
         #{missing.join ", "}
-      Unless you know they are not needed, use "service <service> start" for any
-      that are not currently started.
+      Unless you know they are not needed, please start these services.
     WANT
        #
     verbose "checking that required services are enabled at boot"
@@ -1048,17 +911,14 @@ class OODiag
       The following service(s) are not started at boot time:
         #{missing.join ", "}
       These services are required for OpenShift functionality.
-      Please "chkconfig <service> on" for each to ensure that they start at boot,
-      and "service <service> start" for any not currently running.
+      Please ensure that they start at boot.
     REQ
        #
     missing = warn_without.uniq.select {|svc| !service_enabled? svc}
     do_warn <<-WANT unless missing.empty?
       The following service(s) are not started at boot time:
         #{missing.join ", "}
-      Unless you know they are not needed, use "chkconfig <service> on" for each
-      to ensure that they start at boot and use "service <service> start" for any
-      that are not currently started.
+      Unless you know they are not needed, please ensure that they start at boot.
     WANT
   end
 
@@ -1154,6 +1014,107 @@ class OODiag
       impact OpenShift operations.  Please upgrade or downgrade httpd accordingly.
       For details see: https://access.redhat.com/knowledge/articles/311023
       BORKED
+  end
+
+  def test_usergroups_enabled
+    skip_test unless @is_node
+    #Check if login.defs has usergroups enabled
+    ugs = `grep -i 'USERGROUPS_ENAB yes' /etc/login.defs`
+    if(ugs.empty?)
+      do_fail <<-UGS
+        The USERGROUPS_ENAB setting is either missing or set to no in /etc/login.defs.
+        This will prevent creating user groups for new gears that are added to the system.
+        Fix this by editing /etc/login.defs to add/fix the line 'USERGROUPS_ENAB yes'
+      UGS
+    end
+  end
+
+  def test_mcollective_context
+    skip_test unless @is_node
+    # Check if the context for running mcollective process is correct -
+    # it should be {unconfined_u,system_u}:system_r:openshift_initrc_t:s0-s0:c0.c1023
+    # One bug would express when commands were run through oo-spawn/shellExec.
+    # Under certain circumstances they would not have the dominating MCS label
+    # (s0-s0:c0.c1023) and not be able to affect gears.
+    context = `ps -o label= $(pgrep -f ruby[[:space:]]/usr/sbin/mcollectived)`.chomp.split ":"
+    context.shift
+    context = context.join ":"
+    expected = "system_r:openshift_initrc_t:s0-s0:c0.c1023"
+    unless context == expected
+      do_fail <<-CONTEXT
+      Mcollectived is not running in the expected SELinux context, which
+      may result in node execution failures. Please check that the correct
+      context is set on /usr/sbin/mcollectived and that the correct SELinux
+      policies are loaded.
+        Expected: #{expected}
+        Found: #{context}
+      CONTEXT
+      # TODO: which policies are those?
+    end
+  end
+
+  def test_mcollective_bad_facts
+    skip_test unless @is_broker
+    #Grep for a NaN of max active gears from mcollective
+    max_active_gears = `mco facts max_active_gears | grep -i NaN`
+    #If not empty, then there is a problem
+    if(!max_active_gears.empty?)
+      do_fail <<-NAN
+      The max_active_gears fact is NaN (Not a Number) for at least one
+      node host. This will prevent proper gear distribution by the broker
+      and could result in node hosts being overloaded. Please check for
+      problems on these node hosts, such as AVC denials in /var/log/audit/audit.log
+      or misconfigurations in /etc/openshift/resource_limits.conf
+      NAN
+    end
+  end
+
+  def test_auth_conf_files
+    skip_test unless @is_broker
+    #Boolean for aborting match check
+    do_match_check = true
+
+    if File.exists? '/var/www/openshift/console'
+      console = `ls /var/www/openshift/console/httpd/conf.d/*auth*.conf | grep -v -- '-dev.conf$'`
+      #Make sure there is only 1 conf file for the console
+      if(console.split.size > 1)
+        do_match_check = false
+        do_warn <<-CONSOLE
+          There is more than one authentication configuration file for the
+          console in /var/www/openshift/console/httpd/conf.d
+          Authentication configration files:
+          #{console.join "\n\t"}
+        CONSOLE
+      elsif console.empty?
+        do_match_check = false
+      end
+    else
+      do_match_check = false
+    end
+
+    broker = `ls /etc/openshift/plugins.d/*auth*.conf | grep -v -- '-dev.conf$'`
+    #Make sure there is only 1 conf file for the broker
+    if(broker.split.size > 1)
+      do_match_check = false
+      do_warn <<-BROKER
+        There is more than one authentication configuration file for the
+        broker in /etc/openshift/plugins.d
+        Authentication configration files:
+        #{broker.join "\n\t"}
+      BROKER
+    end
+
+    #If conf files don't match, then it is possible they are using two different auth types.
+    if(do_match_check && console.split("/")[-1] != broker.split("/")[-1])
+      do_warn <<-MISMATCH
+        The two authentication configuration file names set up for the console and broker do not match;
+        please ensure that they are using the same authentication mechanism.
+        Authentication configration files:
+        Broker: #{broker}
+        Console: #{console}
+      MISMATCH
+    end
+
   end
 
 end #class OODiag
