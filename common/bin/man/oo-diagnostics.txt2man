@@ -1,0 +1,56 @@
+NAME
+  oo-diagnostics
+  
+SYNOPSIS
+  oo-diagnostics [-h|--help] [-v|--verbose] [-w|--wait <seconds>] [-o|--abortok] [methods]
+
+DESCRIPTION
+  oo-diagnostics is a utility for detecting and diagnosing common problems with OpenShift hosts.
+
+  The tests are adapted to what is installed on the host. It is intended
+  to run on all hosts in an OpenShift installation to assist with
+  troubleshooting installations and upgrades.
+
+
+OPTIONS
+  -h|--help  
+    Display a simple help dialog.
+
+  -v|--verbose  
+    Display informational messages while running tests, rather than just displaying
+    (by default) warnings and errors.
+
+  -w|--wait <seconds>  
+    When run on a broker host, some tests make MCollective calls to probe all node
+    hosts. This sets the timeout for responses (by default 2 seconds). If a host
+    does not respond in this time, its response is ignored. Depending on network
+    topology, often half a second or less is adequate; however, if node hosts are
+    reported missing, increasing the value may help accommodate slower responses.
+
+  -o|--abortok  
+    It is possible for initial testing to indicate an installation severely impaired
+    enough to abort further testing. In this case testing halts automatically to
+    focus attention on the main problem, rather than letting that report scroll off
+    due to related test failures. If, however, you really want to run all relevant
+    tests when testing would normally abort, use this option.
+
+EXAMPLE
+
+  Simple usage on any host:
+  
+    # oo-diagnostics
+  
+  Make it less boring by displaying the tests running and other information:
+  
+    # oo-diagnostics --verbose
+  
+  Just re-run a single test rather than the whole set:
+  
+    # oo-diagnostics test_broker_accept_scripts
+  
+SEE ALSO
+  oo-admin-chk(8), oo-accept-broker(8), 
+  oo-accept-systems(8), oo-accept-node(8)
+ 
+AUTHOR
+  Luke Meyer <lmeyer@redhat.com> - man page written for OpenShift
