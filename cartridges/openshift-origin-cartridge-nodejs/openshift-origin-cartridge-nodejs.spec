@@ -9,7 +9,6 @@ License:       ASL 2.0
 URL:           http://www.openshift.com
 Source0:       http://mirror.openshift.com/pub/openshift-origin/source/%{name}/%{name}-%{version}.tar.gz
 BuildRequires: nodejs >= 0.6
-BuildRequires: nodejs <= 0.11
 Requires:      rubygem(openshift-origin-node)
 Requires:      openshift-origin-node-util
 Requires:      nodejs-async
