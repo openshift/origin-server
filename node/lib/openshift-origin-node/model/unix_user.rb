@@ -210,7 +210,7 @@ module OpenShift
         OpenShift::FrontendHttpServer.new(@container_uuid,@container_name,@namespace).destroy
 
         dirs = list_home_dir(@homedir)
-        cmd = "userdel -f \"#{@uuid}\""
+        cmd = "userdel --remove -f \"#{@uuid}\""
         out,err,rc = shellCmd(cmd)
         raise UserDeletionException.new(
               "ERROR: unable to destroy user account(#{rc}): #{cmd} stdout: #{out} stderr: #{err}"
