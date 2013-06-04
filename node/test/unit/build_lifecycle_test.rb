@@ -86,10 +86,7 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
     repository.expects(:archive)
 
     @container.expects(:build).with(out: $stdout, err: $stderr)
-    @container.expects(:start_gear).with(secondary_only: true, user_initiated: true, hot_deploy: nil, out: $stdout, err: $stderr)
     @container.expects(:deploy).with(out: $stdout, err: $stderr)
-    @container.expects(:start_gear).with(primary_only: true, user_initiated: true, hot_deploy: nil, out: $stdout, err: $stderr)
-    @container.expects(:post_deploy).with(out: $stdout, err: $stderr)
     @container.expects(:report_build_analytics)
 
     @container.post_receive(out: $stdout, err: $stderr)
@@ -154,8 +151,10 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
     @state.expects(:value=).with(OpenShift::State::DEPLOYING)
 
     primary = mock()
-    @cartridge_model.expects(:primary_cartridge).returns(primary)
-    @cartridge_model.expects(:web_proxy).returns(nil)
+    @cartridge_model.stubs(:primary_cartridge).returns(primary)
+    @cartridge_model.stubs(:web_proxy).returns(nil)
+
+    @container.expects(:start_gear).with(secondary_only: true, user_initiated: true, hot_deploy: nil, out: $stdout, err: $stderr).returns('start_gear|')
 
     @cartridge_model.expects(:do_control).with('deploy',
                                                primary,
@@ -163,45 +162,9 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
                                                prefix_action_hooks:      false,
                                                out:                      $stdout,
                                                err:                      $stderr)
-                                           .returns('deploy')
+                                           .returns('deploy|')
 
-    output = @container.deploy(out: $stdout, err: $stderr)
-
-    assert_equal "deploy", output
-  end
-
-  def test_deploy_web_proxy_success
-    @state.expects(:value=).with(OpenShift::State::DEPLOYING)
-
-    primary = mock()
-    @cartridge_model.expects(:primary_cartridge).returns(primary)
-    proxy = mock()
-    @cartridge_model.expects(:web_proxy).returns(proxy)
-
-    @cartridge_model.expects(:do_control).with('deploy',
-                                               proxy,
-                                               pre_action_hooks_enabled: false,
-                                               prefix_action_hooks:      false,
-                                               out:                      $stdout,
-                                               err:                      $stderr)
-                                           .returns('deploy')
-
-    @cartridge_model.expects(:do_control).with('deploy',
-                                               primary,
-                                               pre_action_hooks_enabled: false,
-                                               prefix_action_hooks:      false,
-                                               out:                      $stdout,
-                                               err:                      $stderr)
-                                           .returns('deploy')
-
-    output = @container.deploy(out: $stdout, err: $stderr)
-
-    assert_equal "deploy", output
-  end
-
-  def test_post_deploy_success
-    primary = mock()
-    @cartridge_model.expects(:primary_cartridge).returns(primary)
+    @container.expects(:start_gear).with(primary_only: true, user_initiated: true, hot_deploy: nil, out: $stdout, err: $stderr).returns('start_gear|')
 
     @cartridge_model.expects(:do_control).with('post-deploy',
                                                primary,
@@ -211,10 +174,52 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
                                                err:                      $stderr)
                                            .returns('post-deploy')
 
-    output = @container.post_deploy(out: $stdout, err: $stderr)
+    output = @container.deploy(out: $stdout, err: $stderr)
 
-    assert_equal "post-deploy", output
+    assert_equal "start_gear|deploy|start_gear|post-deploy", output
   end
+
+  def test_deploy_web_proxy_success
+    @state.expects(:value=).with(OpenShift::State::DEPLOYING)
+
+    primary = mock()
+    @cartridge_model.stubs(:primary_cartridge).returns(primary)
+    proxy = mock()
+    @cartridge_model.stubs(:web_proxy).returns(proxy)
+
+    @container.expects(:start_gear).with(secondary_only: true, user_initiated: true, hot_deploy: nil, out: $stdout, err: $stderr).returns("start_gear|")
+
+    @cartridge_model.expects(:do_control).with('deploy',
+                                               proxy,
+                                               pre_action_hooks_enabled: false,
+                                               prefix_action_hooks:      false,
+                                               out:                      $stdout,
+                                               err:                      $stderr)
+                                           .returns('deploy|')
+
+    @cartridge_model.expects(:do_control).with('deploy',
+                                               primary,
+                                               pre_action_hooks_enabled: false,
+                                               prefix_action_hooks:      false,
+                                               out:                      $stdout,
+                                               err:                      $stderr)
+                                           .returns('deploy|')
+
+    @container.expects(:start_gear).with(primary_only: true, user_initiated: true, hot_deploy: nil, out: $stdout, err: $stderr).returns("start_gear|")
+
+    @cartridge_model.expects(:do_control).with('post-deploy',
+                                               primary,
+                                               pre_action_hooks_enabled: false,
+                                               prefix_action_hooks:      false,
+                                               out:                      $stdout,
+                                               err:                      $stderr)
+                                           .returns('post-deploy')
+
+    output = @container.deploy(out: $stdout, err: $stderr)
+
+    assert_equal "start_gear|deploy|deploy|start_gear|post-deploy", output
+  end
+
 
   def test_remote_deploy_success
     primary = mock()
@@ -228,10 +233,7 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
                                                err:                       $stderr)
                                           .returns('')
 
-    @container.expects(:start_gear).with(secondary_only: true, user_initiated: true, hot_deploy: nil, out: $stdout, err: $stderr)
     @container.expects(:deploy).with(out: $stdout, err: $stderr)
-    @container.expects(:start_gear).with(primary_only: true, user_initiated: true, hot_deploy: nil, out: $stdout, err: $stderr)
-    @container.expects(:post_deploy).with(out: $stdout, err: $stderr)
 
     @container.remote_deploy(out: $stdout, err: $stderr)
   end

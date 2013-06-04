@@ -21,7 +21,6 @@ require 'openshift-origin-node/model/unix_user'
 require 'openshift-origin-node/model/v1_cart_model'
 require 'openshift-origin-node/model/v2_cart_model'
 require 'openshift-origin-common/models/manifest'
-require 'openshift-origin-node/model/default_builder'
 require 'openshift-origin-node/utils/shell_exec'
 require 'openshift-origin-node/utils/application_state'
 require 'openshift-origin-node/utils/environ'
@@ -64,7 +63,6 @@ module OpenShift
       else
         @cartridge_model = V2CartridgeModel.new(@config, @user, @state)
       end
-      NodeLogger.logger.debug("Created #{@build_model} model for #{container_uuid}")
     end
 
     def self.get_build_model(user, config)
@@ -433,6 +431,18 @@ module OpenShift
       @cartridge_model.restart_httpd_proxy(cart_name)
     end
 
+    #
+    # Handles the pre-receive portion of the Git push lifecycle.
+    #
+    # If a builder cartridge is present, the +pre-receive+ control action is invoked on
+    # the builder cartridge. If no builder is present, a user-initiated gear stop is
+    # invoked.
+    #
+    # options: hash
+    #   :out        : an IO to which any stdout should be written (default: nil)
+    #   :err        : an IO to which any stderr should be written (default: nil)
+    #   :hot_deploy : a boolean to toggle hot deploy for the operation (default: false)
+    #
     def pre_receive(options={})
       builder_cartridge = @cartridge_model.builder_cartridge
 
@@ -442,12 +452,29 @@ module OpenShift
                                     out: options[:out],
                                     err: options[:err])
       else
-        DefaultBuilder.new(self).pre_receive(out:        options[:out],
-                                             err:        options[:err],
-                                             hot_deploy: options[:hot_deploy])
+        stop_gear(user_initiated: true,
+                  hot_deploy:     options[:hot_deploy],
+                  out:            options[:out],
+                  err:            options[:err])
       end
     end
 
+    #
+    # Handles the post-receive portion of the Git push lifecycle.
+    #
+    # If a builder cartridge is present, the +post-receive+ control action is invoked on
+    # the builder cartridge. If no builder is present, the following sequence occurs:
+    #
+    #   1. Executes the primary cartridge +pre-repo-archive+ control action
+    #   2. Archives the application Git repository, redeploying the code
+    #   3. Executes +build+
+    #   4. Executes +deploy+
+    #
+    # options: hash
+    #   :out        : an IO to which any stdout should be written (default: nil)
+    #   :err        : an IO to which any stderr should be written (default: nil)
+    #   :hot_deploy : a boolean to toggle hot deploy for the operation (default: false)
+    #
     def post_receive(options={})
       builder_cartridge = @cartridge_model.builder_cartridge
 
@@ -457,14 +484,36 @@ module OpenShift
                                     out: options[:out],
                                     err: options[:err])
       else
-        DefaultBuilder.new(self).post_receive(out:        options[:out],
-                                              err:        options[:err],
-                                              hot_deploy: options[:hot_deploy])
+        @cartridge_model.do_control('pre-repo-archive',
+                                    @cartridge_model.primary_cartridge,
+                                    out:                       options[:out],
+                                    err:                       options[:err],
+                                    pre_action_hooks_enabled:  false,
+                                    post_action_hooks_enabled: false)
+
+        ApplicationRepository.new(@user).archive
+
+        build(options)
+
+        deploy(options)
       end
 
       report_build_analytics
     end
 
+    #
+    # A deploy variant intended for use by builder cartridges. This method is useful when
+    # the build has already occured elsewhere, and the gear now needs a local deployment.
+    #
+    #   1. Runs the primary cartridge +update-configuration+ control action
+    #   2. Executes +deploy+
+    #   3. (optional) Executes the primary cartridge post-install steps
+    #
+    # options: hash
+    #   :out  : an IO to which any stdout should be written (default: nil)
+    #   :err  : an IO to which any stderr should be written (default: nil)
+    #   :init : boolean; if true, post-install steps will be executed (default: false)
+    # 
     def remote_deploy(options={})
       @cartridge_model.do_control('update-configuration',
                                   @cartridge_model.primary_cartridge,
@@ -473,23 +522,7 @@ module OpenShift
                                   out:                       options[:out],
                                   err:                       options[:err])
 
-      start_gear(secondary_only: true,
-                 user_initiated: true,
-                 hot_deploy:     options[:hot_deploy],
-                 out:            options[:out],
-                 err:            options[:err])
-
-      deploy(out: options[:out],
-             err: options[:err])
-
-      start_gear(primary_only:   true,
-                 user_initiated: true,
-                 hot_deploy:     options[:hot_deploy],
-                 out:            options[:out],
-                 err:            options[:err])
-
-      post_deploy(out: options[:out],
-                  err: options[:err])
+      deploy(options)
 
       if options[:init]
         primary_cart_env_dir = File.join(@user.homedir, @cartridge_model.primary_cartridge.directory, 'env')
@@ -505,7 +538,7 @@ module OpenShift
       end
     end
 
-    ##
+    #
     # Implements the following build process:
     #
     #   1. Set the application state to +BUILDING+
@@ -516,6 +549,7 @@ module OpenShift
     #   6. Run the +build+ user action hook
     #
     # Returns the combined output of all actions as a +String+.
+    #
     def build(options={})
       @state.value = OpenShift::State::BUILDING
 
@@ -545,50 +579,68 @@ module OpenShift
       buffer
     end
 
-    ##
+    #
     # Implements the following deploy process:
     #
-    #   1. Set the application state to +DEPLOYING+
-    #   2. Run the web proxy cartridge +deploy+ control action
-    #   3. Run the primary cartridge +deploy+ control action
-    #   4. Run the +deploy+ user action hook
+    #   1. Start secondary cartridges on the gear
+    #   2. Set the application state to +DEPLOYING+
+    #   3. Run the web proxy cartridge +deploy+ control action (if such a cartridge is present)
+    #   4. Run the primary cartridge +deploy+ control action
+    #   5. Run the +deploy+ user action hook
+    #   6. Start the primary cartridge on the gear
+    #   7. Run the primary cartridge +post-deploy+ control action
+    #
+    # options: hash
+    #   :out        : an IO to which any stdout should be written (default: nil)
+    #   :err        : an IO to which any stderr should be written (default: nil)
+    #   :hot_deploy : a boolean to toggle hot deploy for the operation (default: false)
     #
     # Returns the combined output of all actions as a +String+.
+    #
     def deploy(options={})
+      buffer = ''
+
+      buffer << start_gear(secondary_only: true,
+                           user_initiated: true,
+                           hot_deploy:     options[:hot_deploy],
+                           out:            options[:out],
+                           err:            options[:err])
+
       @state.value = OpenShift::State::DEPLOYING
 
       web_proxy_cart = @cartridge_model.web_proxy
       if web_proxy_cart
-        @cartridge_model.do_control('deploy',
-                                    web_proxy_cart,
-                                    pre_action_hooks_enabled: false,
-                                    prefix_action_hooks:      false,
-                                    out:                      options[:out],
-                                    err:                      options[:err])
+        buffer << @cartridge_model.do_control('deploy',
+                                              web_proxy_cart,
+                                              pre_action_hooks_enabled: false,
+                                              prefix_action_hooks:      false,
+                                              out:                      options[:out],
+                                              err:                      options[:err])
       end
 
-      @cartridge_model.do_control('deploy',
-                                  @cartridge_model.primary_cartridge,
-                                  pre_action_hooks_enabled: false,
-                                  prefix_action_hooks:      false,
-                                  out:                      options[:out],
-                                  err:                      options[:err])
+      buffer << @cartridge_model.do_control('deploy',
+                                            @cartridge_model.primary_cartridge,
+                                            pre_action_hooks_enabled: false,
+                                            prefix_action_hooks:      false,
+                                            out:                      options[:out],
+                                            err:                      options[:err])
 
+      buffer << start_gear(primary_only:   true,
+                           user_initiated: true,
+                           hot_deploy:     options[:hot_deploy],
+                           out:            options[:out],
+                           err:            options[:err])
+
+      buffer << @cartridge_model.do_control('post-deploy',
+                                            @cartridge_model.primary_cartridge,
+                                            pre_action_hooks_enabled: false,
+                                            prefix_action_hooks:      false,
+                                            out:                      options[:out],
+                                            err:                      options[:err])
+
+      buffer
     end
 
-    ##
-    # Implements the following post-deploy process:
-    #
-    #   1. Run the cartridge +post-deploy+ action
-    #   2. Run the +post_deploy+ user action hook
-    def post_deploy(options={})
-      @cartridge_model.do_control('post-deploy',
-                                  @cartridge_model.primary_cartridge,
-                                  pre_action_hooks_enabled: false,
-                                  prefix_action_hooks:      false,
-                                  out:                      options[:out],
-                                  err:                      options[:err])
-    end
 
     # === Cartridge control methods
 
