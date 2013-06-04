@@ -1141,7 +1141,7 @@ if __FILE__ == $0
 
       Usage: #{$0} [switches] [test methods to run]
       Example: #{$0}
-      Example: #{$0} -v -w 1 test_nodes_public_hostname
+      Example: #{$0} -v -w 1 test_broker_accept_scripts
 
       Switches:
     USAGE
