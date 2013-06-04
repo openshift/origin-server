@@ -6,7 +6,7 @@ if [ -f Gemfile ]
 then
   if [ ! -f .openshift/markers/force_clean_build ] && ! [ -d .bundle ] && ! git show master~1:.bundle > /dev/null 2>&1
   then
-    rsync --include='.bundle/' --include='.bundle/***' --include='vendor/' --include='vendor/***' --exclude='*' $upstream_ssh:~/app-root/repo/ ~/$WORKSPACE
+    rsync --include='.bundle/' --include='.bundle/***' --include='vendor/' --include='vendor/***' --exclude='*' $upstream_ssh:~/app-root/repo/ $WORKSPACE
   fi
 fi
 
