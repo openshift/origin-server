@@ -752,9 +752,6 @@ module OpenShift
   SSLCipherSuite RSA:!EXPORT:!DH:!LOW:!NULL:+MEDIUM:+HIGH
   SSLProtocol -ALL +SSLv3 +TLSv1
   SSLOptions +StdEnvVars +ExportCertData
-  # SSLVerifyClient must be set for +ExportCertData to take effect, so just use
-  # optional_no_ca.
-  SSLVerifyClient optional_no_ca
 
   RequestHeader set X-Forwarded-Proto "https"
   RequestHeader set X-Forwarded-SSL-Client-Cert %{SSL_CLIENT_CERT}e
