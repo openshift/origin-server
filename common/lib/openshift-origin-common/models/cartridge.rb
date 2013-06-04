@@ -3,13 +3,15 @@ module OpenShift
     attr_accessor :name, :version, :architecture, :display_name, :description, :vendor, :license,
                   :provides, :requires, :conflicts, :suggests, :native_requires, :default_profile,
                   :path, :license_url, :categories, :website, :suggests_feature,
-                  :help_topics, :cart_data_def, :additional_control_actions, :versions, :cartridge_vendor
+                  :help_topics, :cart_data_def, :additional_control_actions, :versions, :cartridge_vendor,
+                  :endpoints
     attr_reader   :profiles
     
     def initialize
       super
       @_profile_map = {}
       @profiles = []      
+      @endpoints = []
     end
     
     def features
@@ -127,6 +129,13 @@ module OpenShift
       self.conflicts = [self.conflicts] if self.conflicts.class == String
       self.native_requires = [self.native_requires] if self.native_requires.class == String
 
+      self.endpoints = []
+      if spec_hash.has_key?("Endpoints") and spec_hash["Endpoints"].respond_to?(:each)
+        spec_hash["Endpoints"].each do |ep|
+          self.endpoints << Endpoint.new.from_descriptor(ep)
+        end
+      end
+
       if spec_hash.has_key?("Profiles")
         spec_hash["Profiles"].each do |pname, p|
           profile = Profile.new.from_descriptor(self, p)
@@ -184,6 +193,10 @@ module OpenShift
       h["Cartridge-Vendor"] = self.cartridge_vendor if self.cartridge_vendor and !self.cartridge_vendor.empty? and self.cartridge_vendor != "unknown"
       h["Default-Profile"] = self.default_profile if !self.default_profile.nil? and !self.default_profile.empty? and !@_profile_map[@default_profile].generated
     
+      if self.endpoints.length > 0
+        h["Endpoints"] = self.endpoints.map { |e| e.to_descriptor }
+      end
+
       if self.profiles.length == 1 && self.profiles.first.generated
         profile_h = self.profiles.first.to_descriptor
         profile_h.delete("Name")
