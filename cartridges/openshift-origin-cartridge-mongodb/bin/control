@@ -1,4 +1,4 @@
-#!/bin/bash -e
+#!/bin/bash
 source $OPENSHIFT_CARTRIDGE_SDK_BASH
 export STOPTIMEOUT=20
 
@@ -18,8 +18,8 @@ function isrunning() {
 
 function _wait_for_mongod_to_startup() {
     i=0
-    while ( (! echo "exit" | mongo $IP > /dev/null 2>&1) ||  \
-            [ ! -f ${OPENSHIFT_MONGODB_DIR}/pid/mongodb.pid ]) && [ $i -lt 20 ]; do
+    while (! echo "exit" | mongo $OPENSHIFT_MONGODB_DB_HOST > /dev/null 2>&1) \
+             && [ $i -lt 20 ]; do
         sleep 1
         i=$(($i + 1))
     done
