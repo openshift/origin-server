@@ -629,6 +629,22 @@ module OpenShift
       buffer
     end
 
+    # Expose an endpoint for a cartridge through the port proxy.
+    #
+    # Returns nil on success, or raises an exception if any errors occur: all errors
+    # here are considered fatal.
+    def create_public_endpoint(cartridge, endpoint, private_ip)
+      proxy = OpenShift::FrontendProxyServer.new
+
+      # Add the public-to-private endpoint-mapping to the port proxy
+      public_port = proxy.add(@user.uid, private_ip, endpoint.private_port)
+
+      @user.add_env_var(endpoint.public_port_name, public_port)
+
+      logger.info("Created public endpoint for cart #{cartridge.name} in gear #{@uuid}: "\
+        "[#{endpoint.public_port_name}=#{public_port}]")
+    end
+
     # Allocates and assigns private IP/port entries for a cartridge
     # based on endpoint metadata for the cartridge.
     #
@@ -670,8 +686,15 @@ module OpenShift
           @user.add_env_var(endpoint.websocket_port_name, endpoint.websocket_port)
         end
 
+
         logger.info("Created private endpoint for cart #{cartridge.name} in gear #{@user.uuid}: "\
           "[#{endpoint.private_ip_name}=#{private_ip}, #{endpoint.private_port_name}=#{endpoint.private_port}]")
+
+        # Expose the public endpoint if ssl_to_gear option is set
+        if endpoint.options and endpoint.options["ssl_to_gear"]
+          logger.info("ssl_to_gear option set for the endpoint")
+          create_public_endpoint(cartridge, endpoint, private_ip)
+        end
       end
 
       # Validate all the allocations to ensure they aren't already bound. Batch up the initial check

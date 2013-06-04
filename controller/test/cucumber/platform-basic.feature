@@ -7,6 +7,7 @@ Feature: V2 SDK Mock Cartridge
     Then the application git repo will exist
     And the platform-created default environment variables will exist
     And the mock-0.1 cartridge private endpoints will be exposed
+    And the mock-0.1 cartridge endpoints with ssl to gear option will be exposed
     And the mock setup_called marker will exist
     And the mock setup_version marker will exist
     And the mock setup_failure marker will not exist

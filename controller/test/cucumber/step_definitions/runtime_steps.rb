@@ -899,6 +899,23 @@ Then /^the ([^ ]+) cartridge private endpoints will be (exposed|concealed)$/ do 
   end
 end
 
+Then /^the ([^ ]+) cartridge endpoints with ssl to gear option will be (exposed|concealed)$/ do |cart_name, action|
+  cartridge = @gear.container.cartridge_model.get_cartridge(cart_name)
+
+  cartridge.endpoints.each do |endpoint|
+    if endpoint.options and endpoint.options["ssl_to_gear"]
+      $logger.info("Validating public endpoint #{endpoint.private_ip_name}:#{endpoint.private_port_name}:"\
+                   "#{endpoint.public_port_name} for cartridge #{cart_name}")
+      case action
+      when 'exposed'
+        app_env_var_will_exist(endpoint.public_port_name, false)
+      when 'concealed'
+        app_env_var_will_not_exist(endpoint.public_port_name, false)
+      end
+    end
+  end
+end
+
 Then /^the application state will be ([^ ]+)$/ do |state_value|
   state_const = OpenShift::State.const_get(state_value.upcase)
 
