@@ -328,17 +328,32 @@ module OpenShift
     #             redirect       Use redirection to uri instead of proxy (uri must be a path)
     #             file           Ignore request and load file path contained in uri (must be path)
     #             tohttps        Redirect request to https and use the path contained in the uri (must be path)
+    #             target_update  Preserve existing options and update the target.
     #         While more than one option is allowed, the above options conflict with each other.
     #         Additional options may be provided which are target specific.
     #     # => nil
     #
     # Returns nil on Success or raises on Failure
     def connect(*elements)
+      working_elements = []
+
+      elements.flatten.enum_for(:each_slice, 3).each do |path, uri, options|
+        if options["target_update"]
+          ApacheDBNodes.open(ApacheDBNodes::READER) do |d|
+            begin
+              old_conn = d.fetch(@fqdn + path.to_s)
+              options = decode_connection(path.to_s, old_conn)[2]
+            rescue KeyError
+              raise FrontendHttpServerException.new("The target_update option specified but no old configuration: #{path}",
+                                                    @container_uuid, @container_name, @namespace)
+            end
+          end
+        end
+        working_elements << [path, uri, options]
+      end
 
       ApacheDBNodes.open(ApacheDBNodes::WRCREAT) do |d|
-
-        elements.flatten.enum_for(:each_slice, 3).each do |path, uri, options|
-
+        working_elements.each do |path, uri, options|
           if options["gone"]
             map_dest = "GONE"
           elsif options["forbidden"]
@@ -407,6 +422,31 @@ module OpenShift
 
     end
 
+    def decode_connection(path, connection)
+      entry = [ path, "", {} ]
+
+      if entry[0] == ""
+        begin
+          NodeJSDBRoutes.open(NodeJSDBRoutes::READER) do |d|
+            routes_ent = d.fetch(@fqdn)
+            entry[2].merge!(routes_ent["limits"])
+            entry[2]["websocket"]=1
+          end
+        rescue
+        end
+      end
+
+      if connection =~ /^(GONE|FORBIDDEN|NOPROXY|HEALTH)$/
+        entry[2][$~[1].downcase] = 1
+      elsif connection =~ /^(REDIRECT|FILE|TOHTTPS):(.*)$/
+        entry[2][$~[1].downcase] = 1
+        entry[1] = $~[2]
+      else
+        entry[1] = connection
+      end
+      entry
+    end
+
     # Public: List connections
     # Returns [ [path, uri, options], [path, uri, options], ...]
     def connections
@@ -417,28 +457,7 @@ module OpenShift
         entries = d.select { |k, v|
           k.split('/')[0] == @fqdn
         }.map { |k, v|
-          entry = [ k.sub(@fqdn, ""), "", {} ]
-
-          if entry[0] == ""
-            begin
-              NodeJSDBRoutes.open(NodeJSDBRoutes::READER) do |d|
-                routes_ent = d.fetch(@fqdn)
-                entry[2].merge!(routes_ent["limits"])
-                entry[2]["websocket"]=1
-              end
-            rescue
-            end
-          end
-
-          if v =~ /^(GONE|FORBIDDEN|NOPROXY|HEALTH)$/
-            entry[2][$~[1].downcase] = 1
-          elsif v =~ /^(REDIRECT|FILE|TOHTTPS):(.*)$/
-            entry[2][$~[1].downcase] = 1
-            entry[1] = $~[2]
-          else
-            entry[1] = v
-          end
-          entry
+          decode_connection(k.sub(@fqdn, ""), v)
         }
       end
       entries

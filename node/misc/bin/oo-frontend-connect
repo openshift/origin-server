@@ -43,6 +43,7 @@ def usage
     |--redirect                         Redirect route instead of proxy (--option "redirect=1")
     |--file                             Target is a file to send (--option "file=1")
     |--tohttps                          Issue a 302 REDIRECT to https (--option "https=1")
+    |--target-update                    Update the target but preserve existing options.
   -n|--dry-run                          Don't make changes, just do a dry run
   -q|--porcelain                        TODO: what does this do?
   -d|--debug                            Enable debug mode
@@ -79,6 +80,7 @@ opts = GetoptLong.new(
     ["--redirect",                  GetoptLong::NO_ARGUMENT],
     ["--file",                      GetoptLong::NO_ARGUMENT],
     ["--tohttps",                   GetoptLong::NO_ARGUMENT],
+    ["--target-update",             GetoptLong::NO_ARGUMENT],
     ["--dry-run",             "-n", GetoptLong::NO_ARGUMENT],
     ["--porcelain",           "-q", GetoptLong::NO_ARGUMENT],
     ["--debug",               "-d", GetoptLong::NO_ARGUMENT],
@@ -140,6 +142,8 @@ begin
       connect_ent[2]['file']=1
     when '--tohttps'
       connect_ent[2]['tohttps']=1
+    when '--target-update'
+      connect_ent[2]['target_update']=1
     else
       usage
     end
