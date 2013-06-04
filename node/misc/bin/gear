@@ -162,7 +162,8 @@ command :deploy do |c|
   c.description = "Run the deploy steps"
   c.action do |args, options|
     do_command(c, options) do
-      deploy
+      @container.pre_receive(out: $stdout, err: $stderr, hot_deploy: file_committed?(HOT_DEPLOY_MARKER))
+      @container.post_receive(out: $stdout, err: $stderr, hot_deploy: file_committed?(HOT_DEPLOY_MARKER))
     end
   end
 end

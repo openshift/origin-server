@@ -79,7 +79,7 @@ class SELinuxUtilsContextTest < Test::Unit::TestCase
 end
 
 
-class SELinuxUtilsChconTest < Test::Unit::TestCase
+class SELinuxUtilsChconTest < OpenShift::NodeTestCase
     def setup
     @config_mock = mock('OpenShift::Config')
     @config_mock.stubs(:get).returns(nil)
@@ -102,9 +102,7 @@ class SELinuxUtilsChconTest < Test::Unit::TestCase
     OpenShift::NodeLogger.logger.expects(:error).never
     Selinux.expects(:lsetfilecon).with(@test_path, tcontext).returns(0).never
     
-    assert_nothing_raised do
-      OpenShift::Utils::SELinux.chcon(@test_path)
-    end
+    OpenShift::Utils::SELinux.chcon(@test_path)
   end
   
   def test_chcon_with_label
@@ -119,9 +117,7 @@ class SELinuxUtilsChconTest < Test::Unit::TestCase
     OpenShift::NodeLogger.logger.expects(:error).never
     Selinux.expects(:lsetfilecon).with(@test_path, tcontext).returns(0).once
 
-    assert_nothing_raised do
-      OpenShift::Utils::SELinux.chcon(@test_path, tlabel)
-    end
+    OpenShift::Utils::SELinux.chcon(@test_path, tlabel)
   end
 
   def test_chcon_with_full_context
@@ -140,9 +136,7 @@ class SELinuxUtilsChconTest < Test::Unit::TestCase
     OpenShift::NodeLogger.logger.expects(:error).never
     Selinux.expects(:lsetfilecon).with(@test_path, tcontext).returns(0).once
 
-    assert_nothing_raised do
-      OpenShift::Utils::SELinux.chcon(@test_path, tlabel, ttype, trole, tuser)
-    end
+    OpenShift::Utils::SELinux.chcon(@test_path, tlabel, ttype, trole, tuser)
   end
 
   def test_setmatchpathcon_update
@@ -154,15 +148,13 @@ class SELinuxUtilsChconTest < Test::Unit::TestCase
     Selinux.stubs(:matchpathcon_fini)
     Selinux.expects(:matchpathcon_init).with(nil).once
 
-    assert_nothing_raised do
-      OpenShift::Utils::SELinux.matchpathcon_update
-    end
+    OpenShift::Utils::SELinux.matchpathcon_update
   end
 
 end
 
 
-class SELinuxUtilsSetMCSLabelTest < Test::Unit::TestCase
+class SELinuxUtilsSetMCSLabelTest < OpenShift::NodeTestCase
 
   def setup
     @config_mock = mock('OpenShift::Config')
@@ -183,18 +175,14 @@ class SELinuxUtilsSetMCSLabelTest < Test::Unit::TestCase
     @test_paths.each do |path|
       OpenShift::Utils::SELinux.expects(:chcon).with(path, @test_label).once
     end
-    assert_nothing_raised do
-      OpenShift::Utils::SELinux.set_mcs_label(@test_label, *@test_paths)
-    end
+    OpenShift::Utils::SELinux.set_mcs_label(@test_label, *@test_paths)
   end
 
   def test_set_mcs_label_flatten
     @test_paths.each do |path|
       OpenShift::Utils::SELinux.expects(:chcon).with(path, @test_label).once
     end
-    assert_nothing_raised do
-      OpenShift::Utils::SELinux.set_mcs_label(@test_label, @test_paths)
-    end
+    OpenShift::Utils::SELinux.set_mcs_label(@test_label, @test_paths)
   end
 
   def test_set_mcs_label_R
@@ -202,9 +190,7 @@ class SELinuxUtilsSetMCSLabelTest < Test::Unit::TestCase
       Find.expects(:find).with(path).yields(path).once
       OpenShift::Utils::SELinux.expects(:chcon).with(path, @test_label).once
     end
-    assert_nothing_raised do
-      OpenShift::Utils::SELinux.set_mcs_label_R(@test_label, *@test_paths)
-    end
+    OpenShift::Utils::SELinux.set_mcs_label_R(@test_label, *@test_paths)
   end
 
   def test_set_mcs_label_R_flatten
@@ -212,27 +198,21 @@ class SELinuxUtilsSetMCSLabelTest < Test::Unit::TestCase
       Find.expects(:find).with(path).yields(path).once
       OpenShift::Utils::SELinux.expects(:chcon).with(path, @test_label).once
     end
-    assert_nothing_raised do
-      OpenShift::Utils::SELinux.set_mcs_label_R(@test_label, @test_paths)
-    end
+    OpenShift::Utils::SELinux.set_mcs_label_R(@test_label, @test_paths)
   end
 
   def test_clear_mcs_label
     @test_paths.each do |path|
       OpenShift::Utils::SELinux.expects(:chcon).with(path, nil).once
     end
-    assert_nothing_raised do
-      OpenShift::Utils::SELinux.clear_mcs_label(*@test_paths)
-    end
+    OpenShift::Utils::SELinux.clear_mcs_label(*@test_paths)
   end
 
   def test_clear_mcs_label_flatten
     @test_paths.each do |path|
       OpenShift::Utils::SELinux.expects(:chcon).with(path, nil).once
     end
-    assert_nothing_raised do
-      OpenShift::Utils::SELinux.clear_mcs_label(@test_paths)
-    end
+    OpenShift::Utils::SELinux.clear_mcs_label(@test_paths)
   end
 
   def test_clear_mcs_label_R
@@ -240,9 +220,7 @@ class SELinuxUtilsSetMCSLabelTest < Test::Unit::TestCase
       Find.expects(:find).with(path).yields(path).once
       OpenShift::Utils::SELinux.expects(:chcon).with(path, nil).once
     end
-    assert_nothing_raised do
-      OpenShift::Utils::SELinux.clear_mcs_label_R(*@test_paths)
-    end
+    OpenShift::Utils::SELinux.clear_mcs_label_R(*@test_paths)
   end
 
   def test_clear_mcs_label_R_flatten
@@ -250,8 +228,6 @@ class SELinuxUtilsSetMCSLabelTest < Test::Unit::TestCase
       Find.expects(:find).with(path).yields(path).once
       OpenShift::Utils::SELinux.expects(:chcon).with(path, nil).once
     end
-    assert_nothing_raised do
-      OpenShift::Utils::SELinux.clear_mcs_label_R(@test_paths)
-    end
+    OpenShift::Utils::SELinux.clear_mcs_label_R(@test_paths)
   end
 end
