@@ -20,7 +20,7 @@
 require_relative '../test_helper'
 require 'fileutils'
 
-class FrontendHttpServerModelTest < Test::Unit::TestCase
+class FrontendHttpServerModelTest < OpenShift::NodeTestCase
 
   class FauxApacheDB < Hash
     READER = 1
@@ -184,9 +184,7 @@ class FrontendHttpServerModelTest < Test::Unit::TestCase
     OpenShift::Utils::Environ.stubs(:for_gear).returns(t_environ).never
 
     frontend = nil
-    assert_nothing_raised do
-      frontend = OpenShift::FrontendHttpServer.new(@container_uuid)
-    end
+    frontend = OpenShift::FrontendHttpServer.new(@container_uuid)
 
     assert_equal @container_name, frontend.container_name
     assert_equal @namespace, frontend.namespace
@@ -199,9 +197,7 @@ class FrontendHttpServerModelTest < Test::Unit::TestCase
     OpenShift::Utils::Environ.stubs(:for_gear).returns(t_environ).once
 
     frontend = nil
-    assert_nothing_raised do
-      frontend = OpenShift::FrontendHttpServer.new(@container_uuid)
-    end
+    frontend = OpenShift::FrontendHttpServer.new(@container_uuid)
 
     assert_equal @container_name, frontend.container_name
     assert_equal @namespace, frontend.namespace
@@ -412,7 +408,7 @@ class FrontendHttpServerModelTest < Test::Unit::TestCase
 
 end
 
-class TestApacheDB < Test::Unit::TestCase
+class TestApacheDB < OpenShift::NodeTestCase
 
   def setup
 
@@ -472,10 +468,8 @@ class TestApacheDB < Test::Unit::TestCase
     OpenShift::ApacheDBNodes.stubs(:callout).never
 
     dest = nil
-    assert_nothing_raised do
-      OpenShift::ApacheDBNodes.open(OpenShift::ApacheDBNodes::READER) do |d|
-        dest = d.fetch("www.example.com")
-      end
+    OpenShift::ApacheDBNodes.open(OpenShift::ApacheDBNodes::READER) do |d|
+      dest = d.fetch("www.example.com")
     end
     assert_equal "127.0.0.1:8080", dest
   end
