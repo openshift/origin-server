@@ -16,7 +16,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.9.13
+Version: 1.9.14
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -294,6 +294,9 @@ fi
 %attr(0755,-,-) /etc/cron.monthly/openshift-origin-cron-monthly
 
 %changelog
+* Wed Jun 05 2013 Adam Miller <admiller@redhat.com> 1.9.14-1
+- rm -f .erb files after processing (pmorie@gmail.com)
+
 * Wed Jun 05 2013 Adam Miller <admiller@redhat.com> 1.9.13-1
 - Skip symlinks in V1 cart model each_cartridge (pmorie@gmail.com)
 - Bug 970792 - The SSLVerifyClient stanza causes browser popups.
