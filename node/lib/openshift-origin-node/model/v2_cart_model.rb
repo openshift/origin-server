@@ -594,7 +594,7 @@ module OpenShift
         rescue Utils::ShellExecutionException => e
           logger.info("Failed to render ERB #{file}: #{e.stderr}")
         else
-          File.delete(file)
+          FileUtils.rm_f(file)
         end
       end
       nil
@@ -1173,7 +1173,7 @@ module OpenShift
       cartridge = get_cartridge(cartridge) if cartridge.is_a?(String)
 
       if not options[:user_initiated] and stop_lock?
-        return "Not starting cartridge #{cartridge.name} because the application was explicitly stopped by the user"
+        return "Not starting cartridge #{cartridge.name} because the application was explicitly stopped by the user\n"
       end
 
       if cartridge.name == primary_cartridge.name
