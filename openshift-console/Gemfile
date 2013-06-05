@@ -7,8 +7,8 @@ gem 'pry', :require => 'pry' if ENV['PRY']
 gem 'perftools.rb', :require => 'perftools' if ENV['PERFTOOLS']
 
 group :test do
-  gem 'ci_reporter',   '~> 1.7.0', :require => false
-  gem 'minitest',      '~> 3.5.0', :require => false
+  gem 'ci_reporter',   '>= 1.7.0', :require => false
+  gem 'minitest',      '>= 3.5.0', :require => false
 end
 
 group :assets do
