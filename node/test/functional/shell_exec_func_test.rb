@@ -20,14 +20,12 @@ module OpenShift
 
     def setup
       @uid     = 5999
-      @homedir = "/tmp/tests/#@uid"
 
-      # polyinstantiation makes creating the homedir a pain...
+      # Using /var/tmp since using /tmp causes problems with polyinstantiation
+      @homedir = "/var/tmp/homedir-#{@uid}"
+
       FileUtils.rm_r @homedir if File.exist?(@homedir)
       %x{useradd -m -u #@uid -d #@homedir #@uid 1>/dev/null 2>&1}
-      full_poly_dir = File.join(@homedir, '.tmp')
-      FileUtils.mkpath(File.join(full_poly_dir, @uid.to_s))
-      FileUtils.chmod(0o0000, full_poly_dir)
     end
 
     def teardown
