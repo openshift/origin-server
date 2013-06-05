@@ -75,6 +75,7 @@ Broker::Application.configure do
     :default_scope => 'userinfo',
     :scope_expirations => OpenShift::Controller::Configuration.parse_expiration("session=1.days|2.days", 1.month),
     :download_cartridges_enabled => conf.get_bool("DOWNLOAD_CARTRIDGES_ENABLED", "true"),
+    :ssl_endpoint => conf.get("SSL_ENDPOINT", "allow"),
   }
 
   config.auth = {
