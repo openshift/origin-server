@@ -64,7 +64,7 @@ end
 
 # Gears that have a frontend mapping defined in their manifest.
 def has_frontend?(gear_dir)
-  output = %x[grep -r "Mappings:" `find #{gear_dir} -name 'manifest.yml'` &> /dev/null]
+  output = %x[grep -r "Mappings:" `find #{gear_dir} -mindepth 3 -maxdepth 3 -name 'manifest.yml'` &> /dev/null]
   if $?.success?
     $log.debug "FRONTEND"
     true
