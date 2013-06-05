@@ -29,6 +29,13 @@ module MCollective
         true
       end
 
+      def before_processing_hook(msg, connection)
+        # Set working directory to a 'safe' directory to prevent Dir.chdir
+        # calls with block from changing back to a directory which doesn't exist.
+        Log.instance.debug("Changing working directory to /tmp")
+        Dir.chdir('/tmp')
+      end
+
       def echo_action
         validate :msg, String
         reply[:msg] = request[:msg]
