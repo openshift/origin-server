@@ -114,18 +114,16 @@ function build() {
 }
 
 function deploy() {
-    if [ -f ${OPENSHIFT_REPO_DIR}/Gemfile ]
+  pushd ${OPENSHIFT_REPO_DIR} > /dev/null
+  if [ -f Gemfile ]
+  then
+    if [ -f Rakefile ] && bundle exec "rake -T" | grep "assets:precompile" >/dev/null
     then
-        if [ -f ${OPENSHIFT_REPO_DIR}/Rakefile ]
-        then
-            echo "Precompiling with 'bundle exec rake assets:precompile'"
-            pushd ${OPENSHIFT_REPO_DIR} > /dev/null
-            set +e
-            ruby_context "bundle exec rake assets:precompile"
-            set -e
-            popd > /dev/null
-        fi
+      echo "Precompiling with 'bundle exec rake assets:precompile'"
+      ruby_context "bundle exec rake assets:precompile"
     fi
+  fi
+  popd > /dev/null
 }
 
 function post-deploy() {
