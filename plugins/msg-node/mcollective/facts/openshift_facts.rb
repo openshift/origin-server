@@ -134,5 +134,6 @@ Facter.add(:cart_list) do
     carts = `oo-cartridge-list`.split
     # The first element is the text "Cartridges:"
     carts.shift
+    carts.sort!
     setcode { carts.join('|') }
 end
