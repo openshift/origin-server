@@ -61,6 +61,7 @@ module OpenShift
         next if cart_dir.end_with?('app-root')
         next if cart_dir.end_with?('git')
         next if not File.directory? cart_dir
+        next if File.symlink? cart_dir
 
         cartridge = get_cartridge(File.basename(cart_dir))
         yield cartridge
