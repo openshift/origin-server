@@ -1255,7 +1255,7 @@ module OpenShift
       end
 
       if not options[:user_initiated] and stop_lock?
-        return "Not stopping cartridge #{cartridge.name} because the application was explicitly stopped by the user"
+        return "Not stopping cartridge #{cartridge.name} because the application was explicitly stopped by the user\n"
       end
 
       if cartridge.name == primary_cartridge.name
