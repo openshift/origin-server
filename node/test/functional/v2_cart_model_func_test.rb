@@ -65,7 +65,11 @@ module OpenShift
 
       OpenShift::CartridgeRepository.instance.clear
       OpenShift::CartridgeRepository.instance.load
-      @model = OpenShift::V2CartridgeModel.new(@config, @user, OpenShift::Utils::ApplicationState.new(@uuid))
+
+      @hourglass = mock()
+      @hourglass.stubs(:remaining).returns(3600)
+
+      @model = OpenShift::V2CartridgeModel.new(@config, @user, OpenShift::Utils::ApplicationState.new(@uuid), @hourglass)
     end
 
     def teardown

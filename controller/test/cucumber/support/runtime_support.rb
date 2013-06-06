@@ -199,7 +199,7 @@ module OpenShift
 
       # Create the container object for use in the event listener later
       begin
-        @container = OpenShift::ApplicationContainer.new(@app.uuid, @uuid, nil, @app.name, @app.name, @app.account.domain, nil, nil, $logger)
+        @container = OpenShift::ApplicationContainer.new(@app.uuid, @uuid, nil, @app.name, @app.name, @app.account.domain, nil, nil)
       rescue Exception => e
         $logger.error("#{e.message}\n#{e.backtrace}")
         raise
