@@ -150,8 +150,8 @@ ol.unstyled {
   margin-left: 0;
   list-style: none;
 }
-ul.spaced-items li, ol.spaced-items li {
-  margin-bottom: 10px;
+ul.spaced-items > li, ol.spaced-items > li {
+  margin-bottom: 13px;
 }
 p + ul, p + ol {
   margin-top: -5px;
