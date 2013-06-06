@@ -1,6 +1,6 @@
 include SQLHelper
 
-Given /^I use the helper to connect to the postgresql database$/ do
+Given /^I use the helper to connect to the postgresql database\s*$/ do
   @psql_env = {}
   @psql_opts = {}
 end
@@ -119,4 +119,11 @@ When "all databases will have the correct ownership" do
   dbs = run_psql("SELECT datname FROM pg_database JOIN pg_authid ON pg_database.datdba = pg_authid.oid WHERE NOT(rolname = '#{username}' OR rolname = 'postgres')").lines.to_a.compact.map(&:strip).delete_if(&:empty?)
   # TODO: This can be done better if we can run the ssh command without the MOTD
   dbs.select{|x| @apps.include?(x) }.should eq []
+end
+
+When "I drop existing test data" do
+  run_psql(<<-eof)
+  DROP DATABASE IF EXISTS new_test_database;
+  DROP TABLE IF EXISTS cuke_test;
+  eof
 end
