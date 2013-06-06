@@ -1,7 +1,7 @@
 %global cartridgedir %{_libexecdir}/openshift/cartridges/v2/php
 
 Name:          openshift-origin-cartridge-php
-Version:       0.4.9
+Version:       0.4.10
 Release:       1%{?dist}
 Summary:       Php cartridge
 Group:         Development/Languages
@@ -80,6 +80,9 @@ sed -i 's/#DefaultRuntimeDir/DefaultRuntimeDir/g' %{buildroot}%{cartridgedir}/ve
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Thu Jun 06 2013 Adam Miller <admiller@redhat.com> 0.4.10-1
+- Eliminate noisy output from php control script (ironcladlou@gmail.com)
+
 * Sat Jun 01 2013 Dan McPherson <dmcphers@redhat.com> 0.4.9-1
 - Merge pull request #2719 from mrunalp/bugs/carts_stop
   (dmcphers+openshiftbot@redhat.com)
