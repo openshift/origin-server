@@ -412,6 +412,8 @@ class Application
   # @return [ResultIO] Output from cartridges
   # @raise [OpenShift::UserException] Exception raised if there is any reason the feature/cartridge cannot be added into the Application
   def add_features(features, group_overrides=[], init_git_url=nil)
+    ssl_endpoint = Rails.application.config.openshift[:ssl_endpoint]
+
     features.each do |feature_name|
       cart = CartridgeCache.find_cartridge(feature_name, self)
 
@@ -425,6 +427,19 @@ class Application
           if ci.is_web_framework?
             raise OpenShift::UserException.new("You can only have one framework cartridge in your application '#{name}'.", 109)
           end
+        end
+      end
+
+      if cart.is_web_framework? and defined?(cart.endpoints) and cart.endpoints.respond_to?(:each)
+        cart_req_ssl_endpoint = false
+        cart.endpoints.each do |endpoint|
+          if endpoint.options and endpoint.options["ssl_to_gear"]
+            cart_req_ssl_endpoint = true
+          end
+        end
+        if (((ssl_endpoint == "deny") and cart_req_ssl_endpoint ) or
+            ((ssl_endpoint == "force") and not cart_req_ssl_endpoint))
+          raise OpenShift::UserException.new("Invalid cartridge '#{feature_name}' conflicts with platform SSL_ENDPOINT setting.", 109, "cartridge")
         end
       end
 
