@@ -537,7 +537,8 @@ def check_system_httpd_configs
     if fqdn.start_with?('export ')
       fqdn = fqdn.sub(/^.*=/,'').gsub('\'','').gsub('"','').strip.downcase
     else
-      fqdn.chomp! 
+      fqdn.chomp!
+      fqdn.downcase!
     end
 
     begin
