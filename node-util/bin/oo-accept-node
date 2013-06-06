@@ -646,15 +646,38 @@ end
 def check_app_dirs
     verbose("checking application dirs")
     copy_all_users = $ALL_USERS.dup
+
     Dir.foreach($GEAR_BASE_DIR) { |entry|
         next if entry[0,1] == "."
         next if entry == 'lost+found'
         next if entry == 'last_access.log'
-        next if File.symlink? File.join($GEAR_BASE_DIR,entry)
-        next unless File.directory? File.join($GEAR_BASE_DIR,entry)
+
+        gear_home = File.join($GEAR_BASE_DIR, entry)
+
+        next if File.symlink? gear_home
+        next unless File.directory? gear_home
+
         [ ".ssh", ".env", ".sandbox", ".tmp" ].each { |dotdir|
-             do_fail("directory #{entry} doesn't have a #{dotdir} directory") unless File.directory? File.join($GEAR_BASE_DIR,entry,dotdir)
+             do_fail("directory #{entry} doesn't have a #{dotdir} directory") unless File.directory? File.join(gear_home,dotdir)
         }
+
+        cartridge_found = false
+
+        Dir.glob(File.join(gear_home, '*')).each do |gear_entry|
+          next if gear_entry.end_with?('app-root')
+          next if gear_entry.end_with?('git')
+          next if File.symlink?(gear_entry)
+
+          if File.exists?(File.join(gear_entry, %w(metadata manifest.yml)))
+            cartridge_found = true
+            break
+          end
+        end
+
+        if !cartridge_found
+          do_fail("directory #{entry} doesn't have a cartridge directory")
+        end
+
         ind = copy_all_users.index(entry)
         if ind
           copy_all_users.delete_at(ind)
