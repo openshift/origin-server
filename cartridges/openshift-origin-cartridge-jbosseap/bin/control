@@ -109,19 +109,13 @@ function build() {
 
   if [ -z "$BUILD_NUMBER" ]
   then
-      SKIP_MAVEN_BUILD=false
-      if git show master:.openshift/markers/skip_maven_build > /dev/null 2>&1
-      then
-          SKIP_MAVEN_BUILD=true
-      fi
-
       if marker_present force_clean_build
       then
           echo ".openshift/markers/force_clean_build found!  Removing Maven dependencies." 1>&2
           rm -rf ${OPENSHIFT_HOMEDIR}.m2/* ${OPENSHIFT_HOMEDIR}.m2/.[^.]*
       fi
 
-      if [ -f ${OPENSHIFT_REPO_DIR}pom.xml ] && ! $SKIP_MAVEN_BUILD
+      if [ -f ${OPENSHIFT_REPO_DIR}pom.xml ] && ! marker_present skip_maven_build
       then
           update-configuration
 
