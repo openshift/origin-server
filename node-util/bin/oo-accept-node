@@ -545,7 +545,9 @@ def check_system_httpd_configs
       has_websocket = false
       has_framework = false
 
-      carts = Dir.glob(File.join($GEAR_BASE_DIR, u, '*')).map { |p|
+      carts = Dir.glob(File.join($GEAR_BASE_DIR, u, '*')).select { |p|
+        not File.symlink?(p)
+      }.map { |p|
         File.basename(p)
       }.map { |p|
         cpath = nil
