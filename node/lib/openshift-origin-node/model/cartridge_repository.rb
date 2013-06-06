@@ -151,7 +151,7 @@ module OpenShift
     #   CartridgeRepository.instance['php', '3.5']                #=> Cartridge
     #   CartridgeRepository.instance['php']                       #=> Cartridge
                     #
-    def select(cartridge_name, version = nil, cartridge_version = nil)
+    def select(cartridge_name, version = '_', cartridge_version = "_")
       unless exist?(cartridge_name, cartridge_version, version)
         raise KeyError.new("key not found: (#{cartridge_name}, #{version}, #{cartridge_version})")
       end
@@ -269,8 +269,8 @@ module OpenShift
     def insert(cartridge) # :nodoc:
       cartridge.versions.each do |version|
         @index[cartridge.name][version][cartridge.cartridge_version] = cartridge
-        @index[cartridge.name][version][nil]                         = cartridge
-        @index[cartridge.name][nil][nil]                             = cartridge
+        @index[cartridge.name][version]['_']                         = cartridge
+        @index[cartridge.name]['_']['_']                             = cartridge
       end
       cartridge
     end
