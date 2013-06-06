@@ -398,7 +398,7 @@ Open the firewall rules and make the service restart on reboot with:
 
 Now start the mongo daemon:
 
-    service mongod start
+    systemctl start mongod
 
 Ref: https://github.com/openshift/puppet-openshift_origin/blob/master/manifests/mongo.pp
 
@@ -604,9 +604,10 @@ Note: Replace "broker.example.com" with the actual FQDN of the broker. You are a
 
 Open the firewall rules and make the service restart on reboot with:
 
-    lokkit --port=61613:tcp
+    firewall-cmd --add-port=61613/tcp
     chkconfig activemq on
     
 Now start the activemq service with:
 
-    service activemq start
+    systemctl start activemq
+
