@@ -2,6 +2,16 @@
 
 source $OPENSHIFT_CARTRIDGE_SDK_BASH
 
+case "$1" in
+    -v|--version)
+      version="$2"
+esac
+
+echo "$version" > "$OPENSHIFT_PHPMYADMIN_DIR/env/OPENSHIFT_PHPMYADMIN_VERSION"
+cp -r ${OPENSHIFT_PHPMYADMIN_DIR}/versions/$version/conf/* ${OPENSHIFT_PHPMYADMIN_DIR}/conf/
+cp -r ${OPENSHIFT_PHPMYADMIN_DIR}/versions/$version/conf.d/* ${OPENSHIFT_PHPMYADMIN_DIR}/conf.d/
+cp -r ${OPENSHIFT_PHPMYADMIN_DIR}/versions/$version/phpMyAdmin/* ${OPENSHIFT_PHPMYADMIN_DIR}/phpMyAdmin/
+
 # check that mysql is installed
 
 if [ -z "$OPENSHIFT_MYSQL_DB_USERNAME" ]; then

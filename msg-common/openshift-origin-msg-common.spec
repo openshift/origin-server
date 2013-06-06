@@ -29,13 +29,17 @@ for OpenShift broker and node
 mkdir -p %{buildroot}%{mco_root}agent
 mkdir -p %{buildroot}%{mco_root}validator
 cp -p agent/* %{buildroot}%{mco_root}agent/
-cp -p validator/* %{buildroot}%{mco_root}validator/
 chmod 644 %{buildroot}%{mco_root}agent/*
+%if 0%{?fedora}%{?rhel} < 19
+cp -p validator/* %{buildroot}%{mco_root}validator/
 chmod 644 %{buildroot}%{mco_root}validator/*
+%endif
 
 %files
 %{mco_root}agent/*
+%if 0%{?fedora}%{?rhel} < 19
 %{mco_root}validator/*
+%endif
 
 %changelog
 * Thu May 30 2013 Adam Miller <admiller@redhat.com> 1.8.1-1

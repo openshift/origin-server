@@ -1,0 +1,10 @@
+# Do not include this into the util file...
+# RHEL, Fedora18 and Fedora19 will overwrite this file to support invoking their Ruby versions
+
+# RHEL OpenShift Online supported versions
+function ruby_context {
+  case $OPENSHIFT_RUBY_VERSION in
+    1.8) eval $1 ;;
+    1.9) /usr/bin/scl enable ruby193 "$1" ;;
+  esac
+}

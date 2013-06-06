@@ -6,6 +6,9 @@ DocumentRoot "<%= ENV['OPENSHIFT_REPO_DIR'] %>/perl"
 Listen <%= ENV['OPENSHIFT_PERL_IP'] %>:<%= ENV['OPENSHIFT_PERL_PORT'] %>
 User <%= ENV['OPENSHIFT_GEAR_UUID'] %>
 Group <%= ENV['OPENSHIFT_GEAR_UUID'] %>
+<IfVersion >= 2.4>
+DefaultRuntimeDir "<%= "#{ENV['OPENSHIFT_PERL_DIR']}/run"%>"
+</IfVersion>
 
 ErrorLog "|/usr/sbin/rotatelogs <%= ENV['OPENSHIFT_PERL_DIR'] %>/logs/error_log-%Y%m%d-%H%M%S-%Z 86400"
 CustomLog "|/usr/sbin/rotatelogs <%= ENV['OPENSHIFT_PERL_DIR'] %>/logs/access_log-%Y%m%d-%H%M%S-%Z 86400" combined

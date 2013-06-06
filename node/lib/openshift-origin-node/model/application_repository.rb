@@ -169,7 +169,7 @@ module OpenShift
     ##
     # Install Git repository hooks and set permissions
     def configure
-      FileUtils.chown_R(@user.uid, @user.uid, @path)
+      FileUtils.chown_R(@user.uid, @user.gid, @path)
       Utils::SELinux.set_mcs_label(Utils::SELinux.get_mcs_label(@user.uid), @path)
 
       # application developer cannot change git hooks

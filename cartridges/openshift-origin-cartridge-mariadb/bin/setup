@@ -1,0 +1,3 @@
+#!/bin/bash -e
+
+mkdir -p $OPENSHIFT_MARIADB_DIR/{log,pid,socket,data,run}

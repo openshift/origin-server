@@ -1,9 +1,0 @@
-ServerRoot "<%= ENV['OPENSHIFT_PHPMYADMIN_DIR'] %>"
-Listen <%= ENV['OPENSHIFT_PHPMYADMIN_IP'] %>:<%= ENV['OPENSHIFT_PHPMYADMIN_PORT'] %>
-User <%= ENV['OPENSHIFT_GEAR_UUID'] %>
-Group <%= ENV['OPENSHIFT_GEAR_UUID'] %>
-
-ErrorLog "|/usr/sbin/rotatelogs <%= ENV['OPENSHIFT_PHPMYADMIN_DIR'] %>/logs/error_log-%Y%m%d-%H%M%S-%Z 86400"
-CustomLog "|/usr/sbin/rotatelogs <%= ENV['OPENSHIFT_PHPMYADMIN_DIR'] %>/logs/access_log-%Y%m%d-%H%M%S-%Z 86400" combined
-
-php_value include_path "."

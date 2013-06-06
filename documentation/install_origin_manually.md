@@ -3,7 +3,7 @@
 
 # Installing OpenShift Origin Manually
 
-This document describes how to create a private PaaS service using OpenShift. It makes a number of simplifying assumptions about the environment of the service. In particular, we will assume that the underlying platform is Fedora 18 with Ruby 1.9. You may have to adjust the configuration for a different environment.
+This document describes how to create a private PaaS service using OpenShift. It makes a number of simplifying assumptions about the environment of the service. In particular, we will assume that the underlying platform is Fedora 19 with Ruby 1.9. You may have to adjust the configuration for a different environment.
 
 The document is organized into two. The first part will take the reader, step-by-step, through the process of installing and configuring a broker and one or more nodes. And, the second part will explain and demonstrate the operation of the new installation using the rhc tool.
 
@@ -20,7 +20,7 @@ Before proceeding with the installation and configuration, this section provides
 
 ### Supported Operating Systems
 
-This installation relies on a current Fedora 18 installation as its base. We recommend installing the "Basic Server" configuration for a base install, though others should work too.
+This installation relies on a current Fedora 19 installation as its base. We recommend installing the "Basic Server" configuration for a base install, though others should work too.
 
 ### Hardware Requirements
 
@@ -123,7 +123,7 @@ Contents:
 
     [openshift-origin-deps]
     name=openshift-origin-deps
-    baseurl=https://mirror.openshift.com/pub/openshift-origin/fedora-18/$basearch/
+    baseurl=https://mirror.openshift.com/pub/openshift-origin/fedora-19/$basearch/
     gpgcheck=0
     enabled=1
 
@@ -137,7 +137,7 @@ Contents:
 
     [openshift-origin]
     name=openshift-origin
-    baseurl=https://mirror.openshift.com/pub/openshift-origin/nightly/fedora-18/latest/$basearch/
+    baseurl=https://mirror.openshift.com/pub/openshift-origin/nightly/fedora-19/latest/$basearch/
     gpgcheck=0
     enabled=1
 

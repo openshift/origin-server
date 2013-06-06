@@ -6,7 +6,7 @@
 
 This guide will walk you through retrieving the OpenShift Origin source from GitHub and build local copies of the Origin RPMS.
 
-OpenShift Origin requires a Fedora 18, or RHEL 6.4 compatible system to build these packages. You should start with a minimal installation to perform the build.
+OpenShift Origin requires a Fedora 19, or RHEL 6.4 compatible system to build these packages. You should start with a minimal installation to perform the build.
 
 ##OpenShift Origin Repositories
 
@@ -14,7 +14,7 @@ OpenShift Origin sources are arranged into 5 repositories:
 
 * [origin-dev-tools](http://github.com/openshift/origin-dev-tools): This repository contains all the build tools necessary for building and testing a local or EC2 OpenShift Origin installation.
 * [origin-server](http://github.com/openshift/origin-server):This is the main repository that contains the source code for the Broker, Node and various plugins for DNS, Communication and Authentication. It also contains some of the core cartridges used by OpenShift installations.
-* [origin-community-cartridges](http://github.com/openshift/origin-community-cartridges): This repository contains additional cartridges used during the Fedora 18 installation.
+* [origin-community-cartridges](http://github.com/openshift/origin-community-cartridges): This repository contains additional cartridges used during the Fedora 19 installation.
 * [rhc](http://github.com/openshift/rhc): This repository contains command line tools used to access an OpenShift based PaaS.
 * [puppet-openshift_origin](http://github.com/openshift/puppet-openshift_origin): This repository contains puppet scripts for configuring OpenShift Origin.
 

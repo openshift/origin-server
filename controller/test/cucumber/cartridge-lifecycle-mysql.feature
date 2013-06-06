@@ -1,4 +1,5 @@
 @runtime_extended1
+@not-fedora-19
 Feature: MySQL Tests
   Background:
     Given a v2 default node

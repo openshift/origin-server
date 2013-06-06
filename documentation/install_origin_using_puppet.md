@@ -9,7 +9,7 @@ The OpenShift Origin RPMs can be available from:
 
 * Your local repository [Budinging OpenShift Origin RPMs](file.building_source.html)
 * OpenShift Origin nightly mirrors repository.
-  + [Fedora 18 repository](https://mirror.openshift.com/pub/origin-server/nightly/fedora-18/latest/x86_64)
+  + [Fedora 19 repository](https://mirror.openshift.com/pub/origin-server/nightly/fedora-19/latest/x86_64)
   + [RHEL 6.4 repository](https://mirror.openshift.com/pub/origin-server/nightly/rhel-6/latest/x86_64/)
 
     Note: For OpenShift Origin broker/nodes to be configured properly you will need the host to be

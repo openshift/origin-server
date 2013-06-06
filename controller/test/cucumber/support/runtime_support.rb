@@ -12,6 +12,7 @@ require 'openshift-origin-node'
 require 'openshift-origin-node/utils/shell_exec'
 require 'etc'
 require 'timeout'
+require 'json'
 
 # Some constants which might be misplaced here. Perhaps they should
 # go in 00_setup_helper.rb?
@@ -264,6 +265,12 @@ module OpenShift
     attr_reader :name, :gear, :path, :metadata
 
     def initialize(name, gear)
+      unless name.match('-')
+        cart_list = JSON.parse(`oo-cartridge-list --porcelain`[15..-1])
+        cart_list.delete_if{ |c| not c.start_with? name }
+        name = cart_list.first
+      end
+
       @name = name
       @gear = gear
 

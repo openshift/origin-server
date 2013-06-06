@@ -20,11 +20,11 @@ module OpenShift
 
     def setup
       @uid     = 5999
-
       # Using /var/tmp since using /tmp causes problems with polyinstantiation
       @homedir = "/var/tmp/homedir-#{@uid}"
 
       FileUtils.rm_r @homedir if File.exist?(@homedir)
+      FileUtils.mkdir_p @homedir
       %x{useradd -m -u #@uid -d #@homedir #@uid 1>/dev/null 2>&1}
     end
 

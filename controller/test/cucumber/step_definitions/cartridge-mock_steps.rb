@@ -44,8 +44,7 @@ Then /^the new file will (not )?be present in the (secondary )?gear app-root rep
   file = File.join($home_root, @app.uid, 'app-root', 'repo', 'cucumber_test_file')
 
   if secondary
-    secondary_gear = @app.ssh_command("grep gear- haproxy/conf/haproxy.cfg | awk '{ print $2}' | sed 's#gear-##g'")
-
+    secondary_gear = @app.ssh_command("grep gear- haproxy/conf/haproxy.cfg | awk '{ print $2}' | sed 's#gear-##g'").split("-").first
     file = File.join($home_root, secondary_gear, 'app-root', 'repo', 'cucumber_test_file')
   end
 
