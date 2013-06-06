@@ -10,10 +10,22 @@ URL:           https://www.openshift.com
 Source0:       http://mirror.openshift.com/pub/openshift-origin/source/%{name}/%{name}-%{version}.tar.gz
 Requires:      rubygem(openshift-origin-node)
 Requires:      openshift-origin-node-util
-Requires:      python
+%if 0%{?fedora}%{?rhel} <= 6
+Requires:      python >= 2.6
+Requires:      python < 2.7
 Requires:      mod_wsgi >= 3.2
 Requires:      mod_wsgi < 3.4
 Requires:      httpd < 2.4
+%endif
+%if 0%{?fedora} >= 19
+Requires:      python >= 2.7
+Requires:      python < 2.8
+Requires:      mod_wsgi >= 3.4
+Requires:      mod_wsgi < 3.5
+Requires:      httpd > 2.3
+Requires:      httpd < 2.5
+%endif
+
 Requires:      MySQL-python
 Requires:      pymongo
 Requires:      pymongo-gridfs
@@ -30,6 +42,7 @@ Requires:      gcc-gfortran
 Requires:      freetype-devel
 Requires:      atlas-devel
 Requires:      lapack-devel
+Requires:      redhat-lsb-core
 BuildArch:     noarch
 
 %description
@@ -46,13 +59,25 @@ Python cartridge for OpenShift. (Cartridge Format V2)
 %__mkdir -p %{buildroot}%{cartridgedir}
 %__cp -r * %{buildroot}%{cartridgedir}
 
+%if 0%{?fedora}%{?rhel} <= 6
+%__mv %{buildroot}%{cartridgedir}/versions/native %{buildroot}%{cartridgedir}/versions/2.6
+mv %{buildroot}%{cartridgedir}/metadata/manifest.yml.rhel %{buildroot}%{cartridgedir}/metadata/manifest.yml
+%endif
+%if 0%{?fedora} == 19
+%__rm -rf %{buildroot}%{cartridgedir}/versions/2.7
+%__mv %{buildroot}%{cartridgedir}/versions/native %{buildroot}%{cartridgedir}/versions/2.7
+mv %{buildroot}%{cartridgedir}/metadata/manifest.yml.f19 %{buildroot}%{cartridgedir}/metadata/manifest.yml
+%endif
+
 %post
 %{_sbindir}/oo-admin-cartridge --action install --source %{cartridgedir}
 
 %files
 %dir %{cartridgedir}
 %attr(0755,-,-) %{cartridgedir}/bin/
+%if 0%{?fedora}%{?rhel} <= 6
 %attr(0755,-,-) %{cartridgedir}/versions/2.6/bin/
+%endif
 %attr(0755,-,-) %{cartridgedir}/versions/shared/bin/
 %attr(0755,-,-) %{cartridgedir}/hooks/
 %{cartridgedir}

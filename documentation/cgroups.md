@@ -32,7 +32,7 @@ Openshift uses the command line interface.
 
 When an OpenShift node starts up, it needs to make sure all user cgroup configurations are applied.
 
-The [openshift-cgroups](https://github.com/openshift/origin-server/blob/master/node/misc/init/openshift-cgroups) on RHEL and [openshift-cgroups](https://github.com/openshift/origin-server/blob/master/node/misc/services/openshift-cgroups.service) on F18 controls the initialization of the openshift control groups.  The openshift-cgroups service uses the [oo-admin-ctl-cgroups](../node/misc/sbin/oo-admin-ctl-cgroups) script to read the configured default values and start cgroups for each OpenShift user.
+The [openshift-cgroups](https://github.com/openshift/origin-server/blob/master/node/misc/init/openshift-cgroups) on RHEL and [openshift-cgroups](https://github.com/openshift/origin-server/blob/master/node/misc/services/openshift-cgroups.service) on F19 controls the initialization of the openshift control groups.  The openshift-cgroups service uses the [oo-admin-ctl-cgroups](../node/misc/sbin/oo-admin-ctl-cgroups) script to read the configured default values and start cgroups for each OpenShift user.
 
 The list of users for which cgroups are started is established from ```getent passwd``` and finding any user that has "OpenShift guest" as the User ID Info field in /etc/passwd on the node.
 

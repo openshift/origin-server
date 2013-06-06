@@ -33,7 +33,7 @@ class EmbCartControllerTest < ActionController::TestCase
   end
   
   test "embedded cartridge create show list and destory" do
-    name = "mysql-5.1"
+    name = MYSQL_VERSION
     post :create, {"name" => name, "domain_id" => @domain.namespace, "application_id" => @app.name}
     assert_response :created
     get :show, {"id" => name, "domain_id" => @domain.namespace, "application_id" => @app.name}
@@ -45,7 +45,7 @@ class EmbCartControllerTest < ActionController::TestCase
   end
   
   test "no app id" do
-    name = "mysql-5.1"
+    name = MYSQL_VERSION
     post :create, {"name" => name, "domain_id" => @domain.namespace}
     assert_response :not_found
     get :show, {"id" => name, "domain_id" => @domain.namespace}
@@ -59,7 +59,7 @@ class EmbCartControllerTest < ActionController::TestCase
   end
   
   test "no domain id" do
-    name = "mysql-5.1"
+    name = MYSQL_VERSION
     post :create, {"name" => name, "application_id" => @app.name}
     assert_response :not_found
     get :show, {"id" => name, "application_id" => @app.name}

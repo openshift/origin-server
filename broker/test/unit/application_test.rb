@@ -16,9 +16,9 @@ class ApplicationsTest < ActionDispatch::IntegrationTest #ActiveSupport::TestCas
   def setup
     #setup test user auth on the mongo db
     system "/usr/bin/mongo localhost/openshift_broker_dev --eval 'db.addUser(\"openshift\", \"mooo\")' 2>&1 > /dev/null"
-    @login = "user" + gen_uuid[0..9]
+    register_user
     @namespace = "domain" + gen_uuid[0..9]
-    @user = CloudUser.new(login: @login)
+    @user = CloudUser.new(login: $user)
     @user.save
     @domain = Domain.new(namespace: @namespace, owner: @user)
     @domain.save
@@ -28,7 +28,7 @@ class ApplicationsTest < ActionDispatch::IntegrationTest #ActiveSupport::TestCas
 
   test "create and destroy embedded application" do
     @appname = "test"
-    app = Application.create_app(@appname, ["php-5.3", "mysql-5.1"], @domain, "small")
+    app = Application.create_app(@appname, [PHP_VERSION, MYSQL_VERSION], @domain, "small")
     app = Application.find_by(canonical_name: @appname.downcase, domain_id: @domain._id) rescue nil
 
     app.destroy_app
@@ -36,7 +36,7 @@ class ApplicationsTest < ActionDispatch::IntegrationTest #ActiveSupport::TestCas
 
   test "create and destroy embedded scalable application" do
     @appname = "test"
-    app = Application.create_app(@appname, ["php-5.3", "mysql-5.1"], @domain, "small", true)
+    app = Application.create_app(@appname, [PHP_VERSION, MYSQL_VERSION], @domain, "small", true)
     app = Application.find_by(canonical_name: @appname.downcase, domain_id: @domain._id) rescue nil
 
     app.destroy_app
@@ -44,7 +44,7 @@ class ApplicationsTest < ActionDispatch::IntegrationTest #ActiveSupport::TestCas
 
   test "scalable application events" do
     @appname = "test"
-    app = Application.create_app(@appname, ["php-5.3", "mysql-5.1"], @domain, "small", true)
+    app = Application.create_app(@appname, [PHP_VERSION, MYSQL_VERSION], @domain, "small", true)
     app = Application.find_by(canonical_name: @appname.downcase, domain_id: @domain._id) rescue nil
     app.restart
     app.stop
@@ -61,7 +61,7 @@ class ApplicationsTest < ActionDispatch::IntegrationTest #ActiveSupport::TestCas
   
   test "threaddump application events" do
     @appname = "test"
-    app = Application.create_app(@appname, ["ruby-1.9", "mysql-5.1"], @domain, "small", true)
+    app = Application.create_app(@appname, [RUBY_VERSION, MYSQL_VERSION], @domain, "small", true)
     app = Application.find_by(canonical_name: @appname.downcase, domain_id: @domain._id) rescue nil
     app.threaddump
     app.destroy_app
@@ -69,13 +69,13 @@ class ApplicationsTest < ActionDispatch::IntegrationTest #ActiveSupport::TestCas
 
   test "scaling and storage events on application" do
     @appname = "test"
-    app = Application.create_app(@appname, ["php-5.3", "mysql-5.1"], @domain, "small", true)
+    app = Application.create_app(@appname, [PHP_VERSION, MYSQL_VERSION], @domain, "small", true)
     app = Application.find_by(canonical_name: @appname.downcase, domain_id: @domain._id) rescue nil
 
     @user.capabilities["max_untracked_addtl_storage_per_gear"] = 5
     @user.save
     app.reload
-    component_instance = app.component_instances.find_by(cartridge_name: "php-5.3")
+    component_instance = app.component_instances.find_by(cartridge_name: PHP_VERSION)
     group_instance = app.group_instances_with_scale.select{ |go| go.all_component_instances.include? component_instance }[0]
     app.update_component_limits(component_instance, nil, nil, 2)
     app.update_component_limits(component_instance, 1, 2, nil)
@@ -100,16 +100,16 @@ class ApplicationsTest < ActionDispatch::IntegrationTest #ActiveSupport::TestCas
 
   test "application events through internal rest" do
     @appname = "test"
-    app = Application.create_app(@appname, ["ruby-1.9", "mysql-5.1"], @domain, "small", true)
+    app = Application.create_app(@appname, [RUBY_VERSION, MYSQL_VERSION], @domain, "small", true)
     app = Application.find_by(canonical_name: @appname.downcase, domain_id: @domain._id) rescue nil
 
     resp = rest_check(:get, "", {})
     assert_equal resp.status, 200
 
-    resp = rest_check(:put, "/cartridges/ruby-1.9", { "scales_from" => 2, "scales_to" => 2})
+    resp = rest_check(:put, "/cartridges/#{RUBY_VERSION}", { "scales_from" => 2, "scales_to" => 2})
     assert_equal resp.status, 200
 
-    resp = rest_check(:put, "/cartridges/ruby-1.9", {})
+    resp = rest_check(:put, "/cartridges/#{RUBY_VERSION}", {})
     assert_equal resp.status, 422
 
     resp = rest_check(:get, "/cartridges", {})
@@ -124,7 +124,7 @@ class ApplicationsTest < ActionDispatch::IntegrationTest #ActiveSupport::TestCas
     resp = rest_check(:post, "/events", { "event" => "tidy" })
     assert_equal resp.status, 200
 
-    component_instance = app.component_instances.find_by(cartridge_name: "ruby-1.9")
+    component_instance = app.component_instances.find_by(cartridge_name: RUBY_VERSION)
     group_instance = app.group_instances_with_scale.select{ |go| go.all_component_instances.include? component_instance }[0]
     resp = rest_check(:get, "/gear_groups/#{group_instance._id.to_s}", { })
     assert_equal resp.status, 200
@@ -133,7 +133,7 @@ class ApplicationsTest < ActionDispatch::IntegrationTest #ActiveSupport::TestCas
   end
 
   test "user info through internal rest" do
-    credentials = Base64.encode64("#{@login}:nopass")
+    credentials = Base64.encode64("#{$user}:#{$password}")
     headers = {}
     headers["HTTP_ACCEPT"] = "application/json" 
     headers["HTTP_AUTHORIZATION"] = "Basic #{credentials}"
@@ -143,7 +143,7 @@ class ApplicationsTest < ActionDispatch::IntegrationTest #ActiveSupport::TestCas
 
   def rest_check(method, resource, params)
     uri = "/domains/#{@namespace}/applications/#{@appname}" + resource
-    credentials = Base64.encode64("#{@login}:nopass")
+    credentials = Base64.encode64("#{$user}:#{$password}")
     headers = {}
     headers["HTTP_ACCEPT"] = "application/json" 
     headers["HTTP_AUTHORIZATION"] = "Basic #{credentials}"

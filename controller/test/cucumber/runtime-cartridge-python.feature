@@ -1,6 +1,7 @@
 @runtime_extended3
 Feature: V2 SDK Python Cartridge
 
+  @not-fedora-19
   Scenario: Add 2.6 cartridge
   Given a v2 default node
   Given a new python-2.6 type application
@@ -11,6 +12,7 @@ Feature: V2 SDK Python Cartridge
   And the python-2.6 PYTHON_LOG_DIR env entry will exist
   And the python-2.6 PYTHON_VERSION env entry will exist
 
+  @not-fedora-19
   Scenario: Destroy application
   Given a v2 default node
   Given a new python-2.6 type application

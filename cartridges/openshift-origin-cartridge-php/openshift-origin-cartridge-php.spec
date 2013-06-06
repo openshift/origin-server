@@ -1,4 +1,5 @@
 %global cartridgedir %{_libexecdir}/openshift/cartridges/v2/php
+%global frameworkdir %{_libexecdir}/openshift/cartridges/v2/php
 
 Name:          openshift-origin-cartridge-php
 Version: 0.5.1
@@ -9,15 +10,15 @@ License:       ASL 2.0
 URL:           https://www.openshift.com
 Source0:       http://mirror.openshift.com/pub/openshift-origin/source/%{name}/%{name}-%{version}.tar.gz
 Requires:      rubygem(openshift-origin-node)
-Requires:      openshift-origin-node-util
 %if 0%{?fedora}%{?rhel} <= 6
 Requires:      php >= 5.3.2
 Requires:      php < 5.4
 Requires:      httpd < 2.4
 %endif
-%if 0%{?fedora} >= 18
-Requires:      php >= 5.4
-Requires:      php < 5.5
+%if 0%{?fedora} >= 19
+Requires:      php >= 5.5
+Requires:      php < 5.6
+Requires:      httpd > 2.3
 Requires:      httpd < 2.5
 %endif
 Requires:      php
@@ -47,7 +48,6 @@ PHP cartridge for openshift. (Cartridge Format V2)
 %setup -q
 
 %build
-%__rm %{name}.spec
 
 %install
 %__mkdir -p %{buildroot}%{cartridgedir}
@@ -55,28 +55,25 @@ PHP cartridge for openshift. (Cartridge Format V2)
 %__mkdir -p %{buildroot}%{cartridgedir}/versions/shared/configuration/etc/conf/
 
 %if 0%{?fedora}%{?rhel} <= 6
-%__mv %{buildroot}%{cartridgedir}/versions/shared/configuration/etc/conf-httpd-2.2/* %{buildroot}%{cartridgedir}/versions/shared/configuration/etc/conf/
-%__mv %{buildroot}%{cartridgedir}/metadata/manifest.yml.rhel %{buildroot}%{cartridgedir}/metadata/manifest.yml
-%__rm %{buildroot}%{cartridgedir}/metadata/manifest.yml.fedora
+mv %{buildroot}%{cartridgedir}/metadata/manifest.yml.rhel %{buildroot}%{cartridgedir}/metadata/manifest.yml
 %endif
-%if 0%{?fedora} >= 18
-%__mv %{buildroot}%{cartridgedir}/versions/shared/configuration/etc/conf-httpd-2.4/* %{buildroot}%{cartridgedir}/versions/shared/configuration/etc/conf/
-%__mv %{buildroot}%{cartridgedir}/metadata/manifest.yml.fedora %{buildroot}%{cartridgedir}/metadata/manifest.yml
-%__rm %{buildroot}%{cartridgedir}/metadata/manifest.yml.rhel
-sed -i 's/#DefaultRuntimeDir/DefaultRuntimeDir/g' %{buildroot}%{cartridgedir}/versions/shared/configuration/etc/conf.d/openshift.conf.erb
+%if 0%{?fedora} == 18
+mv %{buildroot}%{cartridgedir}/metadata/manifest.yml.fedora18 %{buildroot}%{cartridgedir}/metadata/manifest.yml
 %endif
-%__rm -rf %{buildroot}%{cartridgedir}/versions/shared/configuration/etc/conf-httpd-*
+%if 0%{?fedora} == 19
+mv %{buildroot}%{cartridgedir}/metadata/manifest.yml.fedora19 %{buildroot}%{cartridgedir}/metadata/manifest.yml
+%endif
+rm %{buildroot}%{cartridgedir}/metadata/manifest.yml.*
 
 %post
-%{_sbindir}/oo-admin-cartridge --action install --source %{cartridgedir}
+%{_sbindir}/oo-admin-cartridge --action install --source /usr/libexec/openshift/cartridges/v2/php
 
 %files
 %attr(0755,-,-) %{cartridgedir}/bin/
 %attr(0755,-,-) %{cartridgedir}/hooks/
 %{cartridgedir}
 %doc %{cartridgedir}/README.md
-%doc %{cartridgedir}/COPYRIGHT
-%doc %{cartridgedir}/LICENSE
+
 
 %changelog
 * Thu May 30 2013 Adam Miller <admiller@redhat.com> 0.5.1-1
@@ -213,7 +210,7 @@ sed -i 's/#DefaultRuntimeDir/DefaultRuntimeDir/g' %{buildroot}%{cartridgedir}/ve
 - Merge pull request #1801 from VojtechVitek/php5_standard
   (dmcphers+openshiftbot@redhat.com)
 - HAProxy WIP. (mrunalp@gmail.com)
-- Fix health_check.php to confo%__rm PHP 5 standards (vvitek@redhat.com)
+- Fix health_check.php to conform PHP 5 standards (vvitek@redhat.com)
 
 * Tue Mar 26 2013 Adam Miller <admiller@redhat.com> 0.1.6-1
 - getting jenkins working (dmcphers@redhat.com)

@@ -114,6 +114,7 @@ mkdir -p %{buildroot}%{_var}/log/openshift/broker/httpd
 touch %{buildroot}%{_var}/log/openshift/broker/user_action.log
 touch %{buildroot}%{_var}/log/openshift/broker/production.log
 touch %{buildroot}%{_var}/log/openshift/broker/development.log
+touch %{buildroot}%{_var}/log/openshift/broker/usage.log
 
 cp conf/broker.conf %{buildroot}%{_sysconfdir}/openshift/broker.conf
 cp conf/broker.conf %{buildroot}%{_sysconfdir}/openshift/broker-dev.conf
@@ -141,6 +142,7 @@ rm %{buildroot}%{brokerdir}/httpd/broker-scl-ruby193.conf
 %attr(0640,-,-) %ghost %{_var}/log/openshift/broker/production.log
 %attr(0640,-,-) %ghost %{_var}/log/openshift/broker/development.log
 %attr(0640,-,-) %ghost %{_var}/log/openshift/broker/user_action.log
+%attr(0640,-,-) %ghost %{_var}/log/openshift/broker/usage.log
 %attr(0750,-,-) %{brokerdir}/script
 %attr(0750,-,-) %{brokerdir}/tmp
 %attr(0750,-,-) %{brokerdir}/tmp/cache

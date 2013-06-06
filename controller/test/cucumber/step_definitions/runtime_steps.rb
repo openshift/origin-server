@@ -13,29 +13,6 @@ require 'digest/md5'
 
 # These are provided to reduce duplication of code in feature files.
 #   Scenario Outlines are not used as they interfer with the devenv retry logic (whole feature is retried no example line)
-Given /^a new ([^ ]+) application, verify it using ([^ ]+)$/ do |cart_name, proc_name|
-  steps %Q{
-    Given a new #{cart_name} type application
-    Then the http proxy will exist
-    And a #{proc_name} process will be running
-    And the application git repo will exist
-    And the application source tree will exist
-    And the application log files will exist
-    When I stop the application
-    Then a #{proc_name} process will not be running
-    When I start the application
-    Then a #{proc_name} process will be running
-    When I status the application
-    Then a #{proc_name} process will be running
-    When I restart the application
-    Then a #{proc_name} process will be running
-    When I destroy the application
-    Then the http proxy will not exist
-    And a #{proc_name} process will not be running
-    And the application git repo will not exist
-    And the application source tree will not exist
-  }
-end
 
 Given /^a new ([^ ]+) application, verify create and delete using ([^ ]+)$/ do |cart_name, proc_name|
   steps %Q{
@@ -71,112 +48,11 @@ Given /^a new ([^ ]+) application, verify start, stop, restart using ([^ ]+)$/ d
   }
 end
 
-Given /^a new ([^ ]+) application, verify its availability$/ do |cart_name|
-  steps %{
-    Given the libra client tools
-    When 1 #{cart_name} applications are created
-    Then the applications should be accessible
-    Then the applications should be accessible via node-web-proxy
-  }
-end
-
-Given /^an existing ([^ ]+) application, verify application aliases$/ do |cart_name|
-  steps %{
-    Given an existing #{cart_name} application
-    When the application is aliased
-    Then the application should respond to the alias
-  }
-end
-
-Given /^a new ([^ ]+) application, verify application alias setup on the node$/ do |cart_name|
-  steps %{
-    Given a new #{cart_name} type application
-    And I add an alias to the application
-    Then the php application will be aliased
-    And the php file permissions are correct
-    When I remove an alias from the application
-    Then the php application will not be aliased 
-    When I destroy the application
-    Then the http proxy will not exist
-  }
-end
-
-Given /^an existing ([^ ]+) application, verify submodules$/ do |cart_name|
-  steps %{
-    Given an existing #{cart_name} application
-    When the submodule is added
-    Then the submodule should be deployed successfully
-    And the application should be accessible
-  }
-end
-
-Given /^an existing ([^ ]+) application, verify code updates$/ do |cart_name|
-  steps %{
-    Given an existing #{cart_name} application
-    When the application is changed
-    Then it should be updated successfully
-    And the application should be accessible
-  }
-end
-
-Given /^an existing ([^ ]+) application, verify it can be stopped$/ do |cart_name|
-  steps %{
-    Given an existing #{cart_name} application
-    When the application is stopped
-    Then the application should not be accessible
-  }
-end
-
-Given /^an existing ([^ ]+) application, verify it can be started$/ do |cart_name|
-  steps %{
-    Given an existing #{cart_name} application
-    When the application is started
-    Then the application should be accessible
-  }
-end
-
-Given /^an existing ([^ ]+) application, verify it can be restarted$/ do |cart_name|
-  steps %{
-    Given an existing #{cart_name} application
-    When the application is restarted
-    Then the application should be accessible
-  }
-end
-
-Given /^an existing ([^ ]+) application, verify it can be tidied$/ do |cart_name|
-  steps %{
-    Given an existing #{cart_name} application
-    When I tidy the application
-    Then the application should be accessible
-  }
-end
-
-Given /^an existing ([^ ]+) application, verify it can be snapshotted and restored$/ do |cart_name|
-  steps %{
-    Given an existing #{cart_name} application    
-    When I snapshot the application
-    Then the application should be accessible
-    When a new file is added and pushed to the client-created application repo
-    When I restore the application
-    Then the application should be accessible
-    And the new file will not be present in the gear app-root repo
-  }
-end
-
 Given /^an existing ([^ ]+) application, verify its namespace cannot be changed$/ do |cart_name|
   steps %{
     Given an existing #{cart_name} application
     When the application namespace is updated
     Then the application should be accessible
-  }
-end
-
-Given /^an existing ([^ ]+) application, verify it can be destroyed$/ do |cart_name|
-  steps %{
-    Given an existing #{cart_name} application
-    When the application is destroyed
-    Then the application should not be accessible
-    Then the application should not be accessible via node-web-proxy
   }
 end
 
@@ -212,62 +88,6 @@ Given /^a new ([^ ]+) application, obtain disk quota information via SSH$/ do |c
     Given a new #{cart_name} type application
     And the application is made publicly accessible
     Then I can obtain disk quota information via SSH
-  }
-end
-
-Given /^a new ([^ ]+) application, use ctl_all to start and stop it, and verify it using ([^ ]+)$/ do |cart_name, proc_name|
-  steps %{
-    Given a new #{cart_name} type application
-    And the application is made publicly accessible
-
-    When I stop the application using ctl_all via rhcsh
-    Then a #{proc_name} process will not be running
-
-    When I start the application using ctl_all via rhcsh
-    Then a #{proc_name} process will be running
-  }
-end
-
-Given /^a new ([^ ]+) application, with ([^ ]+) and ([^ ]+), verify that they are running using ([^ ]+) and ([^ ]+)$/ do |cart_name, db_type, management_app, proc_name, db_proc_name|
-  steps %{
-    Given a new #{cart_name} type application
-    And I embed a #{db_type} cartridge into the application
-    And I embed a #{management_app} cartridge into the application
-    And the application is made publicly accessible
-
-    When I stop the application using ctl_all via rhcsh
-    Then a #{proc_name} process for #{cart_name.gsub(/-.*/,'')} will not be running
-    And a #{db_proc_name} process will not be running 
-    And a httpd process for #{management_app.gsub(/-.*/,'')} will not be running
-
-    When I start the application using ctl_all via rhcsh
-    Then a #{proc_name} process for #{cart_name.gsub(/-.*/,'')} will be running
-    And a #{db_proc_name} process will be running
-    And a httpd process for #{management_app.gsub(/-.*/,'')} will be running
-  }
-end
-
-Given /^a new ([^ ]+) application, verify using socket file to connect to database$/ do |cart_name|
-  steps %{  
-    Given a new #{cart_name} type application
-    And I embed a mysql-5.1 cartridge into the application
-
-    When the application is made publicly accessible
-    Then I can select from the mysql database using the socket file
-  }
-end
-
-Given /^a new ([^ ]+) application, verify when hot deploy is( not)? enabled, it does( not)? change pid of ([^ ]+) proc$/ do |cart_name, hot_deply_not_enabled, pid_not_changed, proc_name|
-  steps %{
-    Given a new #{cart_name} type application
-    And the application is made publicly accessible
-    And hot deployment is#{hot_deply_not_enabled} enabled for the application
-    And the application cartridge PIDs are tracked
-    When an update is pushed to the application repo
-    Then a #{proc_name} process will be running
-    And the tracked application cartridge PIDs should#{pid_not_changed} be changed
-    When I destroy the application
-    Then a #{proc_name} process will not be running
   }
 end
 

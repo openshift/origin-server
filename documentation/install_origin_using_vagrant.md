@@ -177,7 +177,7 @@ Below is the output of the commands running on my desktop:
     
     Info: create new repo openshift-origin-deps in file /etc/yum.repos.d/openshift-origin-deps.repo
     
-    Notice: /Stage[main]/Openshift_origin/Yumrepo[openshift-origin-deps]/baseurl: baseurl changed '' to 'https://mirror.openshift.com/pub/openshift-origin/fedora-18/x86_64/'
+    Notice: /Stage[main]/Openshift_origin/Yumrepo[openshift-origin-deps]/baseurl: baseurl changed '' to 'https://mirror.openshift.com/pub/openshift-origin/fedora-19/x86_64/'
     
     Notice: /Stage[main]/Openshift_origin/Yumrepo[openshift-origin-deps]/enabled: enabled changed '' to '1'
     
@@ -307,7 +307,7 @@ Below is the output of the commands running on my desktop:
     Notice: /Stage[main]/Openshift_origin/Service[network]/enable: enable changed 'false' to 'true'
     Notice: /Stage[main]/Openshift_origin::Broker/Package[rest-client]/ensure: created
     Info: create new repo openshift-origin in file /etc/yum.repos.d/openshift-origin.repo
-    Notice: /Stage[main]/Openshift_origin/Yumrepo[openshift-origin-packages]/baseurl: baseurl changed '' to 'https://mirror.openshift.com/pub/openshift-origin/nightly/fedora-18/latest/x86_64/'
+    Notice: /Stage[main]/Openshift_origin/Yumrepo[openshift-origin-packages]/baseurl: baseurl changed '' to 'https://mirror.openshift.com/pub/openshift-origin/nightly/fedora-19/latest/x86_64/'
     
     Notice: /Stage[main]/Openshift_origin/Yumrepo[openshift-origin-packages]/enabled: enabled changed '' to '1'
     

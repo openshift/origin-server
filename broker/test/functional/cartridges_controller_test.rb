@@ -58,13 +58,13 @@ class CartridgesControllerTest < ActionDispatch::IntegrationTest
   
   test "find cartridge" do
 
-    request_via_redirect(:get, "/rest/cartridges/redhat-php-5.3", {}, @headers)
+    request_via_redirect(:get, "/rest/cartridges/redhat-#{PHP_VERSION}", {}, @headers)
     assert_response :ok
     body1 = JSON.parse(@response.body)
     cart_count1 = body1["data"].length
     assert cart_count1 > 0
     
-        request_via_redirect(:get, "/rest/cartridges/php-5.3", {}, @headers)
+    request_via_redirect(:get, "/rest/cartridges/#{PHP_VERSION}", {}, @headers)
     assert_response :ok
     body1 = JSON.parse(@response.body)
     cart_count1 = body1["data"].length

@@ -31,16 +31,21 @@ def register_user
   elsif File.exists?("/etc/openshift/plugins.d/openshift-origin-auth-remote-user.conf")
     cmd = "/usr/bin/htpasswd -b /etc/openshift/htpasswd #{$user} #{$password}"
   else
-    raise "No authentication plug-in is configured."
+    #ignore
+    print "Unknown auth plugin. Not registering user #{$user}/#{$password}."
+    print "Modify #{__FILE__}:36 if user registration is required."
+    cmd = nil
   end
   pid, stdin, stdout, stderr = nil, nil, nil, nil
 
-  with_clean_env {
-    pid, stdin, stdout, stderr = Open4::popen4(cmd)
-    stdin.close
-    ignored, status = Process::waitpid2 pid
-#    exitcode = status.exitstatus
-  }
+  if not cmd.nil?
+    with_clean_env {
+      pid, stdin, stdout, stderr = Open4::popen4(cmd)
+      stdin.close
+      ignored, status = Process::waitpid2 pid
+#      exitcode = status.exitstatus
+    }
+  end
 end
 
 #From http://spectator.in/2011/01/28/bundler-in-subshells/

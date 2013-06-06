@@ -1,4 +1,5 @@
 @runtime4
+@not-fedora-19
 Feature: MySQL Application Sub-Cartridge
   
   Scenario: Create Delete one application with a MySQL database

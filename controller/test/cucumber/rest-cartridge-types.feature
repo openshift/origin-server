@@ -13,4 +13,4 @@ Feature: cartridge types
     
     Scenarios:
     |format|
-    |JSON|
+    |JSON  |

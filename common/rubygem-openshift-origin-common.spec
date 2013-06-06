@@ -76,6 +76,7 @@ gem install -V \
 %install
 mkdir -p %{buildroot}%{gem_dir}
 cp -a ./%{gem_dir}/* %{buildroot}%{gem_dir}/
+mkdir -p %{buildroot}/%{gem_instdir}/.yardoc
 
 mkdir -p %{buildroot}%{_root_sbindir}
 cp -p bin/oo-* %{buildroot}%{_root_sbindir}/
