@@ -4,7 +4,7 @@
 
 Summary:       Provides JBossAS7 support
 Name:          openshift-origin-cartridge-jbossas
-Version:       1.2.9
+Version:       1.2.10
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -89,6 +89,9 @@ cp -p %{cartridgedir}/versions/7/modules/postgresql_module.xml /etc/alternatives
 
 
 %changelog
+* Thu Jun 06 2013 Adam Miller <admiller@redhat.com> 1.2.10-1
+- Bug 971106: Fix skip_maven_build marker support (ironcladlou@gmail.com)
+
 * Sat Jun 01 2013 Dan McPherson <dmcphers@redhat.com> 1.2.9-1
 - Make Install-Build-Required default to false (ironcladlou@gmail.com)
 
