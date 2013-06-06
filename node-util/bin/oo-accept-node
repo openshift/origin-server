@@ -537,14 +537,17 @@ def check_system_httpd_configs
     if fqdn.start_with?('export ')
       fqdn = fqdn.sub(/^.*=/,'').gsub('\'','').gsub('"','').strip.downcase
     else
-      fqdn.chomp! 
+      fqdn.chomp!
+      fqdn.downcase!
     end
 
     begin
       has_websocket = false
       has_framework = false
 
-      carts = Dir.glob(File.join($GEAR_BASE_DIR, u, '*')).map { |p|
+      carts = Dir.glob(File.join($GEAR_BASE_DIR, u, '*')).select { |p|
+        not File.symlink?(p)
+      }.map { |p|
         File.basename(p)
       }.map { |p|
         cpath = nil
