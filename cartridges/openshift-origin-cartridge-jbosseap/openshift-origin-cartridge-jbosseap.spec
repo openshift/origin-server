@@ -4,7 +4,7 @@
 
 Summary:       Provides JBossEAP6.0 support
 Name:          openshift-origin-cartridge-jbosseap
-Version:       2.3.10
+Version:       2.3.11
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,9 @@ cp -p %{cartridgedir}/versions/6.0/modules/postgresql_module.xml /etc/alternativ
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Thu Jun 06 2013 Adam Miller <admiller@redhat.com> 2.3.11-1
+- Bug 971106: Fix skip_maven_build marker support (ironcladlou@gmail.com)
+
 * Sat Jun 01 2013 Dan McPherson <dmcphers@redhat.com> 2.3.10-1
 - Make Install-Build-Required default to false (ironcladlou@gmail.com)
 
