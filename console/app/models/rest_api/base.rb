@@ -523,7 +523,30 @@ module RestApi
     def self.as_indifferent_hash
       IndifferentAccess
     end
-    has_many :messages, :class_name => as_indifferent_hash
+
+    class Message < Struct.new(:exit_code, :field, :text)
+      def to_s
+        text
+      end
+    end
+
+    def messages
+      @messages ||= begin
+        Array(attributes[:messages]).map do |m|
+          Message.new(
+            m['exit_code'].to_i,
+            m['field'],
+            m['text']
+          )
+        end
+      rescue
+        []
+      end
+    end
+    def messages= messages
+      @messages = nil
+      attributes[:messages] = messages
+    end
 
     #FIXME may be refactored
     def remote_results

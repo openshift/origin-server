@@ -49,10 +49,9 @@ class AliasesController < ConsoleController
     alias_name = params[:id]
     if alias_name and @application.remove_alias(alias_name)
       message = @application.messages.first || "Alias '#{alias_name}' has been removed"
-      redirect_to @application, :flash => {:success => message.kind_of?(Array) ? message.select {|x| x.is_a?(String)} : message}
+      redirect_to @application, :flash => {:success => message.to_s}
     else
-      message = @alias.errors.first || "Unable to delete alias '#{alias_name}'"
-      flash.now[:error] = message.kind_of?(Array) ? message.select {|x| x.is_a?(String)} : message
+      flash.now[:error] = "Unable to delete alias '#{alias_name}'"
       render :index
     end
   end
