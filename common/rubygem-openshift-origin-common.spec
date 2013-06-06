@@ -77,10 +77,10 @@ gem install -V \
 mkdir -p %{buildroot}%{gem_dir}
 cp -a ./%{gem_dir}/* %{buildroot}%{gem_dir}/
 
-mkdir -p %{buildroot}%{_sbindir}
-cp -p bin/oo-* %{buildroot}%{_sbindir}/
-mkdir -p %{buildroot}%{_mandir}/man8/
-cp bin/man/*.8 %{buildroot}%{_mandir}/man8/
+mkdir -p %{buildroot}%{_root_sbindir}
+cp -p bin/oo-* %{buildroot}%{_root_sbindir}/
+mkdir -p %{buildroot}%{_root_mandir}/man8/
+cp bin/man/*.8 %{buildroot}%{_root_mandir}/man8/
 
 %files
 %dir %{gem_instdir}
@@ -95,8 +95,8 @@ cp bin/man/*.8 %{buildroot}%{_mandir}/man8/
 %{gem_spec}
 %{gem_libdir}
 
-%attr(0750,-,-) %{_sbindir}/oo-diagnostics
-%{_mandir}/man8/oo-diagnostics.8.gz
+%attr(0750,-,-) %{_root_sbindir}/oo-diagnostics
+%{_root_mandir}/man8/oo-diagnostics.8.gz
 
 %exclude %{gem_cache}
 %exclude %{gem_instdir}/rubygem-%{gem_name}.spec
