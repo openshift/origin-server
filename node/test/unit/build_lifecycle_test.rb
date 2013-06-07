@@ -52,7 +52,7 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
     OpenShift::Utils::ApplicationState.stubs(:new).returns(@state)
 
     @container = OpenShift::ApplicationContainer.new(@gear_uuid, @gear_uuid, @user_uid,
-        @app_name, @gear_uuid, @namespace, nil, nil, nil)
+        @app_name, @gear_uuid, @namespace, nil, nil)
 
     @frontend = mock('OpenShift::FrontendHttpServer')
     OpenShift::FrontendHttpServer.stubs(:new).returns(@frontend)

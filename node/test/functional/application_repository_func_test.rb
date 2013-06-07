@@ -62,7 +62,10 @@ class ApplicationRepositoryFuncTest < OpenShift::NodeTestCase
     @state = mock('OpenShift::Utils::ApplicationState')
     @state.stubs(:value=).with('started').returns('started')
 
-    @model               = OpenShift::V2CartridgeModel.new(@config, @user, @state)
+    @hourglass = mock()
+    @hourglass.stubs(:remaining).returns(3600)
+
+    @model               = OpenShift::V2CartridgeModel.new(@config, @user, @state, @hourglass)
     @cartridge_name      = 'mock-0.1'
     @cartridge_directory = 'mock'
     @cartridge_home      = File.join(@user.homedir, @cartridge_directory)

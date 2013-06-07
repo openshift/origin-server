@@ -26,6 +26,7 @@ require 'openshift-origin-node/utils/application_state'
 require 'openshift-origin-node/utils/environ'
 require 'openshift-origin-node/utils/sdk'
 require 'openshift-origin-node/utils/node_logger'
+require 'openshift-origin-node/utils/hourglass'
 require 'openshift-origin-common'
 require 'yaml'
 require 'active_model'
@@ -47,7 +48,7 @@ module OpenShift
     attr_reader :uuid, :application_uuid, :user, :state, :container_name, :cartridge_model
 
     def initialize(application_uuid, container_uuid, user_uid = nil,
-        app_name = nil, container_name = nil, namespace = nil, quota_blocks = nil, quota_files = nil, logger = nil)
+        app_name = nil, container_name = nil, namespace = nil, quota_blocks = nil, quota_files = nil, hourglass = nil)
 
       @config           = OpenShift::Config.new
       @uuid             = container_uuid
@@ -57,11 +58,12 @@ module OpenShift
                                        app_name, container_name, namespace, quota_blocks, quota_files)
       @state            = OpenShift::Utils::ApplicationState.new(container_uuid)
       @build_model      = self.class.get_build_model(@user, @config)
+      @hourglass        = hourglass || Utils::Hourglass.new(3600)
 
       if @build_model == :v1
         @cartridge_model = V1CartridgeModel.new(@config, @user)
       else
-        @cartridge_model = V2CartridgeModel.new(@config, @user, @state)
+        @cartridge_model = V2CartridgeModel.new(@config, @user, @state, @hourglass)
       end
     end
 
@@ -120,6 +122,7 @@ module OpenShift
                            env:                 env,
                            chdir:               @user.homedir,
                            uid:                 @user.uid,
+                           timeout:             @hourglass.remaining,
                            expected_exitstatus: 0)
 
             logger.info "Executing initial gear postreceive for #{@uuid}"
@@ -127,15 +130,17 @@ module OpenShift
                            env:                 env,
                            chdir:               @user.homedir,
                            uid:                 @user.uid,
+                           timeout:             @hourglass.remaining,
                            expected_exitstatus: 0)
           rescue Utils::ShellExecutionException => e
             max_bytes = 10 * 1024
             out, _, _ = Utils.oo_spawn("tail -c #{max_bytes} #{build_log} 2>&1",
                            env:                 env,
                            chdir:               @user.homedir,
-                           uid:                 @user.uid)
+                           uid:                 @user.uid,
+                           timeout:             @hourglass.remaining)
 
-            message = "The initial build for the application failed. Last #{max_bytes/1024} kB of build output:\n#{out}"
+            message = "The initial build for the application failed: #{e.message}\n\n.Last #{max_bytes/1024} kB of build output:\n#{out}"
 
             raise Utils::Sdk.translate_out_for_client(message, :error)
           end
@@ -390,13 +395,13 @@ module OpenShift
     def gear_level_tidy_git(gear_repo_dir)
       # Git pruning
       tidy_action do
-        Utils.oo_spawn('git prune', uid: @user.uid, chdir: gear_repo_dir, expected_exitstatus: 0)
+        Utils.oo_spawn('git prune', uid: @user.uid, chdir: gear_repo_dir, expected_exitstatus: 0, timeout: @hourglass.remaining)
         logger.debug("Pruned git directory at #{gear_repo_dir}")
       end
 
       # Git GC
       tidy_action do
-        Utils.oo_spawn('git gc --aggressive', uid: @user.uid, chdir: gear_repo_dir, expected_exitstatus: 0)
+        Utils.oo_spawn('git gc --aggressive', uid: @user.uid, chdir: gear_repo_dir, expected_exitstatus: 0, timeout: @hourglass.remaining)
         logger.debug("Executed git gc for repo #{gear_repo_dir}")
       end
     end
@@ -740,6 +745,7 @@ module OpenShift
                         uid: @user.uid,
                         gid: @user.gid,
                         err: $stderr,
+                        timeout: @hourglass.remaining,
                         expected_exitstatus: 0)
       end
     end
@@ -828,6 +834,7 @@ module OpenShift
                      out: $stdout,
                      chdir: @config.get('GEAR_BASE_DIR'),
                      uid: @user.uid,
+                     timeout: @hourglass.remaining,
                      expected_exitstatus: 0)
     end
 
@@ -933,6 +940,7 @@ module OpenShift
                      in: $stdin,
                      chdir: @user.homedir,
                      uid: @user.uid,
+                     timeout: @hourglass.remaining,
                      expected_exitstatus: 0)
 
       FileUtils.cd File.join(@user.homedir, 'app-root', 'runtime') do
@@ -953,6 +961,7 @@ module OpenShift
                         uid: @user.uid,
                         gid: @user.gid,
                         err: $stderr,
+                        timeout: @hourglass.remaining,
                         expected_exitstatus: 0)
       end
     end
@@ -1045,14 +1054,14 @@ module OpenShift
     #
     # Caveat: the quota information will not be populated.
     #
-    def self.all(logger=nil)
+    def self.all(hourglass=nil)
       Enumerator.new do |yielder|
         UnixUser.all.each do |u|
           a=nil
           begin
             a=ApplicationContainer.new(u.application_uuid, u.container_uuid, u.uid,
                                        u.app_name, u.container_name, u.namespace,
-                                       nil, nil, logger)
+                                       nil, nil, hourglass)
           rescue => e
             if logger
               logger.error("Failed to instantiate ApplicationContainer for #{u.application_uuid}: #{e}")

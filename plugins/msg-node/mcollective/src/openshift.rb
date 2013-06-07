@@ -6,6 +6,7 @@ require 'zlib'
 require 'base64'
 require 'openshift-origin-node'
 require 'openshift-origin-node/model/cartridge_repository'
+require 'openshift-origin-node/utils/hourglass'
 require 'shellwords'
 require 'facter'
 require 'openshift-origin-common/utils/file_needs_sync'
@@ -19,7 +20,7 @@ module MCollective
                :license     => "ASL 2.0",
                :version     => "0.1",
                :url         => "http://www.openshift.com",
-               :timeout     => 240
+               :timeout     => 360
 
       activate_when do
         @cartridge_repository = ::OpenShift::CartridgeRepository.instance
@@ -141,11 +142,18 @@ module MCollective
         reply[:exitcode] = 0
       end
 
+      #
       # Builds a new ApplicationContainer instance from the standard
       # argument payload which is expected for any message used for
       # gear/cart operations.
       #
       # Use this to get a new ApplicationContainer instance in all cases.
+      #
+      # A new OpenShift::Runtime::Hourglass will be initialized and passed
+      # to the ApplicationContainerInstance to allow for timing consistency.
+      # The hourglass will be initialized with a duration shorter than the
+      # configured MCollective agent timeout.
+      #
       def get_app_container_from_args(args)
         app_uuid = args['--with-app-uuid'].to_s if args['--with-app-uuid']
         app_name = args['--with-app-name'].to_s if args['--with-app-name']
@@ -161,7 +169,7 @@ module MCollective
         uid = nil if uid && uid.to_s.empty?
 
         OpenShift::ApplicationContainer.new(app_uuid, gear_uuid, uid, app_name, gear_name,
-                                            namespace, quota_blocks, quota_files, Log.instance)
+                                            namespace, quota_blocks, quota_files, OpenShift::Utils::Hourglass.new(235))
       end
 
       def with_container_from_args(args)

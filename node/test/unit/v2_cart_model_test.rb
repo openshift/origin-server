@@ -62,7 +62,10 @@ module OpenShift
 
       )
 
-      @model = OpenShift::V2CartridgeModel.new(@config, @user, mock())
+      @hourglass = mock()
+      @hourglass.stubs(:remaining).returns(3600)
+
+      @model = OpenShift::V2CartridgeModel.new(@config, @user, mock(), @hourglass)
 
       @mock_manifest = %q{#
         Name: mock
@@ -138,7 +141,10 @@ module OpenShift
     end
 
     def test_get_cartridge_error_loading
-      local_model = OpenShift::V2CartridgeModel.new(@config, @user, mock())
+      hourglass = mock()
+      hourglass.stubs(:remaining).returns(3600)
+
+      local_model = OpenShift::V2CartridgeModel.new(@config, @user, mock(), hourglass)
 
       YAML.stubs(:load_file).with("#{@homedir}/redhat-crtest/metadata/manifest.yml").raises(ArgumentError.new('bla'))
 
@@ -716,8 +722,10 @@ module OpenShift
       
       state = mock()
       frontend = mock()
+      hourglass = mock()
+      hourglass.stubs(:remaining).returns(3600)
       
-      model = V2CartridgeModel.new(mock(), user, state)
+      model = V2CartridgeModel.new(mock(), user, state, hourglass)
       model.stubs(:primary_cartridge).returns(cart)
       model.stubs(:user).returns(user)
       model.stubs(:stop_lock?).returns(false)
