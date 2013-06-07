@@ -22,7 +22,7 @@
     vertical-align: text-bottom;
     white-space: nowrap;
     vertical-align: middle;
-    font-size: 12px;
+    font-size: $smallFontSize;
   }
 
 	.gear-numbers {
@@ -45,7 +45,7 @@
 
   > .url {
     line-height: 36px; // chosen to match h1
-    font-size: 16px;
+    font-size: $largeFontSize;
   }
 
   // move these under .application-info
@@ -57,7 +57,7 @@
     }
   }
 	.total-cost {	
-		font-size: 32px;
+		font-size: 32px; //FIXME
 		font-weight: 200;
 		margin-top: 10px;
 		padding-right: 30px;

@@ -30,7 +30,7 @@ $noiseImage: image-url('noise.png') !default;
 }
 .navbar.centered .brand {
     bottom: 0;
-    font-size: 36px;
+    font-size: 36px; // special case
     letter-spacing: 1.5px;
     margin: 0 auto;
     width: 270px;
@@ -83,7 +83,7 @@ $noiseImage: image-url('noise.png') !default;
     letter-spacing: 1px;
   }
   .navbar.centered .brand {
-    font-size: 28px;
+    font-size: 28px; // responsive
     width: 235px;
   }
 }
@@ -95,7 +95,7 @@ h2 + ul, h3 + ul, h4 + ul {
   position: relative;
   .help-block {
     text-align: right;
-    font-size: smaller;
+    font-size: $smallFontSize;
     margin-top: -5px;
   }
 }
@@ -156,7 +156,7 @@ web_user_password_confirmation_input button.eye:hover {opacity: 1;}
   margin-top: 5px;
 }
 
-.timestamp {font-size: $baseFontSize - 2;}
+.timestamp {font-size: $smallFontSize;}
 
 
 @media (max-width: 767px) {
@@ -179,7 +179,7 @@ web_user_password_confirmation_input button.eye:hover {opacity: 1;}
     padding: 20px;
   }
   h1.marquee {
-  font-size: 30px;
+  font-size: 30px; // FIXME
 }
 }
 

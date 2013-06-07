@@ -44,11 +44,12 @@
 
 .font-icon-red          {color: #ea0011;}
 .font-icon-green        {color: #73D216;}
-.font-icon-orange       {color:#ffc10a;}
-.font-icon-blue         {color:#6DB3C7;}
-.font-icon-grey         {color:#8a8b8c;}
-.font-icon-white        {color:#fefefe;}
+.font-icon-orange       {color: #ffc10a;}
+.font-icon-blue         {color: #6DB3C7;}
+.font-icon-grey         {color: #8a8b8c;}
+.font-icon-white        {color: #fefefe;}
 
+// Use sparingly
 .font-icon-size-10      {font-size: 10px !important;}
 .font-icon-size-12      {font-size: 12px !important;}
 .font-icon-size-16      {font-size: 16px !important;}
@@ -132,7 +133,7 @@ dl.font-icon-legend {
   }
   dt .font-icon {
     margin: 0 15px 0 -20px;
-    font-size: 18px;
+    font-size: $leadFontSize;
   }
 }
 
