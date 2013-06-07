@@ -10,17 +10,21 @@ p {
   margin: 0 0 $baseLineHeight;
   font-family: $baseFontFamily;
   font-size: $baseFontSize;
-  line-height: $baseLineHeight;
   small {
-    font-size: $baseFontSize - 2;
+    font-size: $smallFontSize;
     color: $grayLight;
   }
 }
 .lead {
   margin-bottom: $baseLineHeight;
-  font-size: 20px;
+  font-size: $leadFontSize;
   font-weight: 200;
-  line-height: $baseLineHeight * 1.5;
+  line-height: $leadLineHeight;
+}
+p.larger,
+pre.larger { 
+  font-size: $largeFontSize;
+  line-height: $largeLineHeight;
 }
 
 // HEADINGS
@@ -39,29 +43,28 @@ h1, h2, h3, h4, h5, h6 {
 h3 + h4, h3 + h5, h4 + h5 {
   padding-top: $baseLineHeight / 3;
 }
-p + h2, p + h3, p + h4, p + h5 {
-  padding-top: $baseLineHeight / 2;
-}
+//p + h2, p + h3, p + h4, p + h5 {
+//}
 h1 {
-  font-size: $baseFontSize * 2.25;
+  font-size: $h1FontSize;
   line-height: $baseLineHeight * 2;
   margin-bottom: $baseLineHeight - 8;
 }
 h2 {
-  font-size: $baseFontSize * 1.62;
+  font-size: $h2FontSize;
   line-height: $baseLineHeight * 1.75;
-  margin-bottom: $baseLineHeight - 8;
+  margin-bottom: $baseLineHeight / 3.5;
 }
 h3 {
-  font-size: $baseFontSize * 1.38;
+  font-size: $h3FontSize;
   line-height: $baseLineHeight * 1.5;
-  margin-bottom: $baseLineHeight / 3;
+  margin-bottom: $baseLineHeight / 3.5;
   small {
     font-size: $baseFontSize;
   }
 }
 h4 {
-  font-size: $baseFontSize * 1.25;
+  font-size: $h4FontSize;
   line-height: $baseLineHeight;
   margin-bottom: $baseLineHeight / 3;
   small {
@@ -69,19 +72,21 @@ h4 {
   }
 }
 h5 {
-  font-size: $baseFontSize;
+  font-size: $h5FontSize;
   line-height: $baseLineHeight;
   margin-bottom: $baseLineHeight / 3;
   text-transform: uppercase;
+  font-weight: bold;
 }
 h6 {
-  font-size: $baseFontSize * .82;
+  font-size: $h6FontSize;
   line-height: $baseLineHeight;
   text-transform: uppercase;
+  font-weight: bold;
 }
 
 @media (max-width:480px) {
-	h1 {font-size:24px;line-height: $baseLineHeight * 1.5;}
+	h1 {font-size: 24px;line-height: $baseLineHeight * 1.5;}
 	h2 {font-size: 19.5px;line-height: $baseLineHeight * 1.25;}
 	h3 {font-size: 16.5px;}
 	h4 {font-size: 14px;}
@@ -100,9 +105,14 @@ footer h3 {
 // ASIDE
 // -----
 aside, aside p {
-    font-size: $baseFontSize - 1;
+    font-size: $smallFontSize;
 }
 
+// TABLES
+// -----
+.table td > *:last-child {
+  margin-bottom: 0;
+}
 
 // LISTS
 // -----
@@ -110,7 +120,7 @@ aside, aside p {
 // Unordered and Ordered lists
 ul, ol {
   padding: 0;
-  margin: 0 0 $baseLineHeight 25px;
+  margin: 0 0 $baseLineHeight + 4 $baseLineHeight + 4;
 }
 ul ul,
 ul ol,
@@ -120,20 +130,31 @@ ol ul {
 }
 ul {
   list-style: disc;
+
+  ul {
+    list-style-type: circle;
+
+    ul {
+      list-style-type: square;
+    }
+  }
 }
 ol {
   list-style: decimal;
 }
 li {
-  line-height: $baseLineHeight;
+  margin-bottom: 2px;
 }
 ul.unstyled,
 ol.unstyled {
   margin-left: 0;
   list-style: none;
 }
-ul.spaced-items li, ol.spaced-items li {
-  margin-bottom: 10px;
+ul.spaced-items > li, ol.spaced-items > li {
+  margin-bottom: 13px;
+}
+p + ul, p + ol {
+  margin-top: -5px;
 }
 
 // Description Lists
@@ -243,11 +264,11 @@ cite {
   font-style: normal;
 }
 
-.smaller {font-size: $baseFontSize - 1.5 ;}
+.smaller {font-size: $smallFontSize ;}
 
 a.external:after { 
   content: "\279A";
-  font-size: $baseFontSize - 1;
+  font-size: $smallFontSize;
   vertical-align: text-bottom;
 }
 a.external img[alt="external"] {
@@ -255,15 +276,10 @@ a.external img[alt="external"] {
 }
 
 
-p.larger,
-pre.larger { 
-  font-size: $baseFontSize + 1;
-  line-height: 21px;
-}
 dl.larger {
   > dt {
-    font-size: 18px; 
-    line-height: 23px; 
+    font-size: $leadFontSize; 
+    line-height: $leadLineHeight; 
   }
   > dd {
     margin-bottom: 20px; 
