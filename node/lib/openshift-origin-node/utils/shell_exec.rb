@@ -134,7 +134,7 @@ module OpenShift
           rescue TimeoutExceeded => e
             ShellExec.kill_process_tree(pid)
             raise OpenShift::Utils::ShellExecutionException.new(
-                      "Shell command '#{command}'' exceeded timeout of #{e.seconds}", -1, out, err)
+                      "Shell command '#{command}' exceeded timeout of #{e.seconds}", -1, out, err)
           end
         end
       end

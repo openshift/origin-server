@@ -61,7 +61,7 @@ class ApplicationContainerTest < OpenShift::NodeTestCase
     OpenShift::ApplicationContainer.stubs(:get_build_model).returns(:v2)
 
     @container = OpenShift::ApplicationContainer.new(@gear_uuid, @gear_uuid, @user_uid,
-        @app_name, @gear_uuid, @namespace, nil, nil, nil)
+        @app_name, @gear_uuid, @namespace, nil, nil)
 
     @mock_manifest = %q{#
         Name: mock

@@ -54,12 +54,13 @@ module OpenShift
     include NodeLogger
     include ManagedFiles
 
-    def initialize(config, user, state)
+    def initialize(config, user, state, hourglass)
       @config     = config
       @user       = user
       @state      = state
       @timeout    = 30
       @cartridges = {}
+      @hourglass  = hourglass
     end
 
     def stop_lock
@@ -572,6 +573,7 @@ module OpenShift
                                  unsetenv_others:     true,
                                  chdir:               cartridge_home,
                                  uid:                 @user.uid,
+                                 timeout:             @hourglass.remaining,
                                  expected_exitstatus: 0)
       logger.info("Ran #{action} for #{@user.uuid}/#{cartridge.directory}\n#{out}")
       out
@@ -590,6 +592,7 @@ module OpenShift
                          unsetenv_others:     true,
                          chdir:               @user.homedir,
                          uid:                 @user.uid,
+                         timeout:             @hourglass.remaining,
                          expected_exitstatus: 0)
         rescue Utils::ShellExecutionException => e
           logger.info("Failed to render ERB #{file}: #{e.stderr}")
@@ -620,6 +623,7 @@ module OpenShift
                                       unsetenv_others:     true,
                                       chdir:               cartridge_home,
                                       uid:                 @user.uid,
+                                      timeout:             @hourglass.remaining,
                                       expected_exitstatus: 0)
 
       buffer << err
@@ -750,7 +754,7 @@ module OpenShift
     # Returns true if the given IP and port are currently bound
     # according to lsof, otherwise false.
     def address_bound?(ip, port)
-      _, _, rc = Utils.oo_spawn("/usr/sbin/lsof -i @#{ip}:#{port}")
+      _, _, rc = Utils.oo_spawn("/usr/sbin/lsof -i @#{ip}:#{port}", timeout: @hourglass.remaining)
       rc == 0
     end
 
@@ -760,7 +764,7 @@ module OpenShift
         command << " -i @#{addr[:ip]}:#{addr[:port]}"
       end
 
-      _, _, rc = Utils.oo_spawn(command)
+      _, _, rc = Utils.oo_spawn(command, timeout: @hourglass.remaining)
       rc == 0
     end
 
@@ -968,7 +972,7 @@ module OpenShift
                                     env:             env,
                                     unsetenv_others: true,
                                     chdir:           cartridge_home,
-                                    timeout:         220,
+                                    timeout:         @hourglass.remaining,
                                     uid:             @user.uid)
       if 0 == rc
         logger.info("(#{rc})\n------\n#{Runtime::Utils.sanitize_credentials(out)}\n------)")
@@ -1036,6 +1040,7 @@ module OpenShift
                                       unsetenv_others: true,
                                       chdir:           path,
                                       uid:             @user.uid,
+                                      timeout:         @hourglass.remaining,
                                       out:             options[:out],
                                       err:             options[:err])
 
@@ -1076,6 +1081,7 @@ module OpenShift
                                       unsetenv_others: true,
                                       chdir:           @user.homedir,
                                       uid:             @user.uid,
+                                      timeout:         @hourglass.remaining,
                                       out:             options[:out],
                                       err:             options[:err])
         raise Utils::ShellExecutionException.new(
@@ -1293,6 +1299,7 @@ module OpenShift
                       chdir:               @user.homedir,
                       uid:                 @user.uid,
                       gid:                 @user.gid,
+                      timeout:             @hourglass.remaining,
                       expected_exitstatus: 0)
 
       FileUtils.touch(known_hosts)
@@ -1342,6 +1349,7 @@ module OpenShift
                                           unsetenv_others:     true,
                                           chdir:               @user.homedir,
                                           uid:                 @user.uid,
+                                          timeout:             @hourglass.remaining,
                                           expected_exitstatus: 0)
         private_ip       = out.chomp
       rescue
