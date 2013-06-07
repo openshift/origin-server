@@ -135,6 +135,17 @@ When /^I create a new namespace$/ do
   #ec = run("#{$rhc_script} domain create #{namespace} -l #{login} -p #{@account['password']} -d")
 end
 
+When /^I create a new namespace called "([^\"]*)"$/ do |namespace_key|
+  @unique_namespace_apps_hash ||= {} 
+  login, namespace = gen_unique_login_and_namespace
+  register_user(login, "xyz123") if $registration_required
+  empty_app = AppHelper::TestApp.new(namespace, login, nil, nil, "xyz123", nil)
+  rhc_create_domain(empty_app)
+  raise "Could not create domain: #{empty_app.create_domain_code}" unless empty_app.create_domain_code == 0
+   @unique_namespace_apps_hash[namespace_key] = empty_app 
+end
+ 
+
 When /^I delete the namespace$/ do
 #  ec = run("#{$rhc_script} domain destroy #{@account['namespace']} -l #{@account['login']} -p #{@account['password']} -d")
   ec = rhc_delete_domain(AppHelper::TestApp.new(@account['namespace'], @account['login'], nil, nil, @account['password'], nil))

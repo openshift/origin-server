@@ -60,6 +60,51 @@ Then /^creating a new client( scalable)? (.+) application should fail$/ do |scal
   @apps << @app.name
 end
 
+Given /^a new client created( scalable)? (.+) application named "([^\"]*)" in the namespace "([^\"]*)"$/ do |scalable, type, app_name, namespace_key|
+  @unique_namespace_apps_hash ||= {}
+  @app = TestApp.create_unique(type, nil, scalable)
+  @test_apps_hash ||= {}
+
+  register_user(@app.login, @app.password) if $registration_required
+  if rhc_create_domain(@app)
+    if scalable
+      rhc_create_app(@app, true, '-s')
+    else
+      rhc_create_app(@app)
+    end
+  end
+
+  raise "Could not create domain: #{@app.create_domain_code}" unless @app.create_domain_code == 0
+  raise "Could not create application #{@app.create_app_code}" unless @app.create_app_code == 0
+
+ @test_apps_hash[app_name] = @app
+ @unique_namespace_apps_hash[namespace_key]= @app
+ @apps ||= []
+ @apps << @app.name
+end
+
+Given /^an additional client created( scalable)? (.+) application named "([^\"]*)" in the namespace "([^\"]*)"$/ do |scalable, type, app_name, namespace_key|
+
+ if @unique_namespace_apps_hash[namespace_key].nil?
+  raise "Cannot add new application because the namespace /'#{namespace_key}/' does not exist in the hash of namespaces"
+ else
+  previous_app = @unique_namespace_apps_hash[namespace_key]
+  @app =  TestApp.create_app_from_params(previous_app.namespace, previous_app.login, type, previous_app.password, scalable)
+  register_user(@app.login, @app.password) if $registration_required
+  if scalable
+     rhc_create_app(@app, true, '-s')
+  else
+     rhc_create_app(@app)
+  end 
+ end
+
+ raise "Could not create application #{@app.create_app_code}" unless @app.create_app_code == 0
+ @test_apps_hash ||= {}
+ @test_apps_hash[app_name] = @app
+ @apps ||= []
+ @apps << @app.name
+
+end
 
 When /^(\d+)( scalable)? (.+) applications are created$/ do |app_count, scalable, type|
   # Create our domain and apps
@@ -149,16 +194,16 @@ When /^the application is destroyed$/ do
 end
 
 And /^the applications are destroyed$/ do
-   if !(@list_of_TestApps.nil?) 
-     @list_of_TestApps.each do |app|
+   if !(@test_apps_hash.nil?)
+     @test_apps_hash.each do |app_name_key, app|
          rhc_ctl_destroy(app)
      end
    else
-    $logger.info("No apps to delete. List of TestApps is empty")
+    $logger.info("No apps to delete. The hash of TestApps is empty")
    end
-   @listOfTestApps = []
+   @test_apps_hash = {}
+   @unique_namespace_apps_hash = {}
 end
-
 
 When /^the application namespace is updated$/ do
   rhc_update_namespace(@app)

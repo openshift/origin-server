@@ -1,53 +1,77 @@
-Feature: Adding and deleteing domain environment variable
+Feature: Adding and deleting domain environment variable
 
   @runtime_extended3
-  @domain_env_var_1
+  @domain_env_var_test_1
   Scenario: Add and remove new env variable after creating applications that are in the same namespace
     Given a v2 default node
-    And a new client created mock-0.1 application
-    And an additional ruby-1.9 application in the same namespace as the previous application
-    And an additional scalable python-2.6 application in the same namespace as the previous application
-  
-    When the domain environment variable TEST_VAR_1 with value 'Foo' is added
-    Then the domain environment variable TEST_VAR_1 will equal 'Foo' for all the applications in the current namespace
+    And a new client created mock-0.1 application named "mock01app1" in the namespace "randomNamespaceA"
+    And an additional client created ruby-1.9 application named "ruby19app2" in the namespace "randomNamespaceA"
+    And an additional client created scalable python-2.6 application named "python26app3" in the namespace "randomNamespaceA"
 
-    When the domain environment variable TEST_VAR_1 is deleted
-    Then the domain environment variable TEST_VAR_1 will not exist for all the applications in the current namespace
- 
-    #For cleanup           
-    And the applications are destroyed
+    When the domain environment variable TEST_VAR_1 with value 'Foo' is added in the namespace "randomNamespaceA"
+    Then the domain environment variable TEST_VAR_1 will equal 'Foo' for all the applications in the namespace "randomNamespaceA"
 
- @runtime_extended3
-  @domain_env_var_2
-  Scenario: Add and remove new env variable in between setting up the applications in the same namespace
-    Given a v2 default node
-    And a new client created mock-0.1 application
-    
-    When the domain environment variable TEST_VAR_1 with value 'Foo' is added
-    And an additional ruby-1.9 application in the same namespace as the previous application
-    Then the domain environment variable TEST_VAR_1 will equal 'Foo' for all the applications in the current namespace
+    When the domain environment variable TEST_VAR_1 is deleted in the namespace "randomNamespaceA"
+    Then the domain environment variable TEST_VAR_1 will not exist for all the applications in the namespace "randomNamespaceA" 
 
-    When the domain environment variable TEST_VAR_1 is deleted
-    Then the domain environment variable TEST_VAR_1 will not exist for all the applications in the current namespace
-    
-    #For cleanup
-    And the applications are destroyed
 
   @runtime_extended3
-  @domain_env_var_3
+  @domain_env_var_test_2
   Scenario: Add and remove new env variable in between setting up the applications in the same namespace
     Given a v2 default node
-    And a new client created mock-0.1 application
-    And an additional ruby-1.9 application in the same namespace as the previous application
+    And a new client created mock-0.1 application named "mock01app1" in the namespace "randomNamespaceA"
+ 
+    When the domain environment variable TEST_VAR_1 with value 'Foo' is added in the namespace "randomNamespaceA"
+    And an additional client created ruby-1.9 application named "ruby19app2" in the namespace "randomNamespaceA"
+
+    Then the domain environment variable TEST_VAR_1 will equal 'Foo' for all the applications in the namespace "randomNamespaceA"
+
+    When the domain environment variable TEST_VAR_1 is deleted in the namespace "randomNamespaceA"
+    Then the domain environment variable TEST_VAR_1 will not exist for all the applications in the namespace "randomNamespaceA"   
+
+
+  @runtime_extended3
+  @domain_env_var_test_3
+  Scenario: Adding a domain env variable in a first namespace should not update the new application created in another namespace
+    Given a v2 default node
+    And a new client created mock-0.1 application named "mock01app1" in the namespace "randomNamespaceA"
+    And an additional client created ruby-1.9 application named "ruby19app2" in the namespace "randomNamespaceA"
    
-    When the domain environment variable TEST_VAR_1 with value 'Foo' is added
-    Then the domain environment variable TEST_VAR_1 will equal 'Foo' for all the applications in the current namespace
+    When the domain environment variable TEST_VAR_1 with value 'Foo' is added in the namespace "randomNamespaceA"
+    Then the domain environment variable TEST_VAR_1 will equal 'Foo' for all the applications in the namespace "randomNamespaceA"
 
     #Create another app in a different namespace then check to see if TEST_VAR_1 var that is for the previous namespace is not in the new namespace
-    When a new client created mock-0.2 application
-    And the domain environment variable TEST_VAR_1 will not exist
+    When a new client created mock-0.2 application named "mock02app3" in the namespace "randomNamespaceB"
+    Then the domain environment variable TEST_VAR_1 will not exist for the application "mock02app3"
 
-    #For cleanup
-    And the applications are destroyed
+    When the domain environment variable TEST_VAR_2 with value 'Foo2' is added in the namespace "randomNamespaceB"
+    And the domain environment variable TEST_VAR_2 will equal 'Foo2' for the application "mock02app3"
+    And the domain environment variable TEST_VAR_2 will not exist for all the applications in the namespace "randomNamespaceA"
+
+ 
+  @runtime_extended3
+  @domain_env_var_test_4
+  Scenario: Previously created application in a different namespace should not contain the domain variable added to another namespace
+    Given a v2 default node
+    And a new client created mock-0.1 application named "mock01app1" in the namespace "randomNamespaceA"
+    And a new client created mock-0.1 application named "mock02app2" in the namespace "randomNamespaceB"
+    And an additional client created ruby-1.9 application named "ruby19app3" in the namespace "randomNamespaceB"
+
+    When the domain environment variable TEST_VAR_1 with value 'Foo' is added in the namespace "randomNamespaceB"
+    Then the domain environment variable TEST_VAR_1 will equal 'Foo' for all the applications in the namespace "randomNamespaceB"
+    And the domain environment variable TEST_VAR_1 will not exist for the application "mock01app1"
 
 
+  @runtime_extended3
+  @domain_env_var_test_5
+  Scenario: Adding a domain env variable to an empty namespace and only the applications to be created in the namespace will get the domain env variable
+
+    Given a v2 default node
+    When I create a new namespace called "randomNamespaceA"
+    And the domain environment variable TEST_VAR_1 with value 'Foo' is added in the namespace "randomNamespaceA"
+    And an additional client created mock-0.1 application named "mock01app1" in the namespace "randomNamespaceA"
+    And an additional client created mock-0.1 application named "mock02app2" in the namespace "randomNamespaceA" 
+    And a new client created mock-0.1 application named "ruby19app3" in the namespace "randomNamespaceB"
+
+    Then the domain environment variable TEST_VAR_1 will equal 'Foo' for all the applications in the namespace "randomNamespaceA"
+    And the domain environment variable TEST_VAR_1 will not exist for the application "ruby19app3"
