@@ -42,3 +42,7 @@ LoadModule authnz_ldap_module modules/mod_authnz_ldap.so
 <Location /broker/rest/api*>
     Allow from all
 </Location>
+
+<Location /broker/rest/environment*>
+    Allow from all
+</Location>

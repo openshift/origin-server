@@ -33,3 +33,7 @@ LoadModule authz_user_module modules/mod_authz_user.so
 <Location /broker/rest/api*>
     Allow from all
 </Location>
+
+<Location /broker/rest/environment*>
+    Allow from all
+</Location>

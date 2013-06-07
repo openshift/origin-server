@@ -37,3 +37,7 @@ LoadModule auth_kerb_module modules/mod_auth_kerb.so
 <Location /broker/rest/api*>
     Allow from all
 </Location>
+
+<Location /broker/rest/environment*>
+    Allow from all
+</Location>
