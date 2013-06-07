@@ -135,6 +135,12 @@
   @include truncate();
 }
 
+@mixin iconfont-left() {
+  position: absolute;
+  left: 15px;
+  font-family: openshift-icon;
+}
+
 // Horizontal dividers
 // -------------------------
 // Dividers (basically an hr) within dropdowns and nav lists

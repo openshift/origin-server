@@ -2,17 +2,17 @@
 // --------------------
 
 .fade {
-  @include transition(opacity .15s linear);
   opacity: 0;
+  @include transition(opacity .15s linear);
   &.in {
     opacity: 1;
   }
 }
 
 .collapse {
-  @include transition(height .35s ease);
   position:relative;
+  height:0;
   overflow:hidden;
-  height: 0;
+  @include transition(height .35s ease);
   &.in { height: auto; }
 }
