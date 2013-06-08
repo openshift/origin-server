@@ -9,8 +9,8 @@
 
 Summary:       OpenShift Origin Management Console
 Name:          rubygem-%{gem_name}
-Version: 1.9.12
-Release:       2%{?dist}
+Version: 1.9.13
+Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
 URL:           https://openshift.redhat.com
@@ -151,6 +151,11 @@ cp -a ./%{gem_dir}/* %{buildroot}%{gem_dir}/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Sat Jun 08 2013 Dan McPherson <dmcphers@redhat.com> 1.9.13-1
+- Automatic commit of package [rubygem-openshift-origin-console] release
+  [1.9.12-2]. (admiller@redhat.com)
+- Bug 970933 - CLI backgrounds are incorrect (ccoleman@redhat.com)
+
 * Sat Jun 08 2013 Adam Miller 1.9.12-2
 - - Bump spec for site rebuild
 
