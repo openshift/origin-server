@@ -315,10 +315,9 @@ module OpenShift
 
     def test_invalid_cartridge_vendor_name
       manifest = IO.read(File.join(@cartridge.manifest_path))
-      manifest << "Cartridge-Vendor: redhat" << "\n"
+      manifest << "Cartridge-Vendor: INVALID" << "\n"
       manifest << 'Source-Url: https://www.example.com/mock-plugin.tar.gz' << "\n"
       manifest << "Source-Md5: #{@tgz_hash}"
-      manifest = change_cartridge_vendor_of manifest
 
       err = assert_raise(OpenShift::InvalidElementError) do
         cartridge = OpenShift::Runtime::Manifest.new(manifest)
