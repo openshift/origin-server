@@ -6,12 +6,14 @@ require 'commander/import'
 require 'openshift-origin-common'
 require 'openshift-origin-node/model/application_container'
 require 'openshift-origin-common/utils/file_needs_sync'
+require 'set'
 
 name = "#{__FILE__}"
 program :name, "OpenShift Auto Idler"
 program :version, "1.0.0"
 program :description, "Utility to idle gears"
 
+IDLER_IGNORELIST = "/etc/openshift/node/idler_ignorelist.conf"
 $config = OpenShift::Config.new
 $last_access_dir = $config.get("LAST_ACCESS_DIR")
 $log = Logger.new($stderr)
@@ -109,14 +111,35 @@ def idle_gear(gear_uuid)
   %x[/usr/bin/logger -p local0.notice -t oo_idler "Idled: #{gear_uuid}"]
 end
 
+# Load the gears into the ignorelist
+def populate_ignorelist()
+  s = Set.new
+  if File.exist?(IDLER_IGNORELIST)
+    begin
+      File.open(IDLER_IGNORELIST).each_line do |line|
+        s.add(line.strip)
+      end
+    rescue Exception => e
+      $log.error e.message
+      $log.error "Failed to read the ignorelist"
+    end
+  end
+  s
+end
+
 # Idle all gears on the node unless the list only option has been passed
 def idle_gears(interval, list_only)
   puts "Only listing idle gears" if list_only
   gear_gecos = $config.get("GEAR_GECOS")
+  ignorelist = populate_ignorelist()
   gear_dirs_str = %x[grep ":#{gear_gecos}:" /etc/passwd | cut -d: -f6]
   gear_dirs = gear_dirs_str.split("\n")
   gear_dirs.each do |gear_dir|
     gear_uuid = File.basename(gear_dir)
+    if ignorelist.include? (gear_uuid)
+      $log.debug("Skipping #{gear_uuid}: IGNORELIST")
+      next
+    end
     if gear_stale?(gear_dir, gear_uuid, interval)
       puts "#{gear_dir} is STALE"
       if not list_only
