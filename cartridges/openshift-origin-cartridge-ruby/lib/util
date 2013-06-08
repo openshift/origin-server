@@ -20,8 +20,12 @@ function update-configuration {
     case "$1" in
       1.9)
         dirname $(scl enable ruby193 "which ruby") >$OPENSHIFT_RUBY_DIR/env/OPENSHIFT_RUBY_PATH_ELEMENT
-        path_append $LD_LIBRARY_PATH $(scl enable ruby193 "printenv LD_LIBRARY_PATH") >$OPENSHIFT_RUBY_DIR/env/LD_LIBRARY_PATH
-        path_append $MANPATH $(scl enable ruby193 "printenv MANPATH") >$OPENSHIFT_RUBY_DIR/env/MANPATH
+
+        local ld_path=$(LD_LIBRARY_PATH="" scl enable ruby193 "printenv LD_LIBRARY_PATH")
+        path_append $LD_LIBRARY_PATH $ld_path >$OPENSHIFT_RUBY_DIR/env/LD_LIBRARY_PATH
+
+        local man_path=$(MANPATH="" scl enable ruby193 "printenv MANPATH")
+        path_append $MANPATH $man_path >$OPENSHIFT_RUBY_DIR/env/MANPATH
         ;;
 
       1.8)
