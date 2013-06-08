@@ -9,7 +9,7 @@
 
 Summary:       OpenShift Origin Management Console
 Name:          rubygem-%{gem_name}
-Version: 1.9.11
+Version: 1.9.12
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -151,6 +151,11 @@ cp -a ./%{gem_dir}/* %{buildroot}%{gem_dir}/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Fri Jun 07 2013 Adam Miller <admiller@redhat.com> 1.9.12-1
+- Additional summit site changes (dmcphers@redhat.com)
+- Summit changes, backported from 53624d468f955740945d39cd0809dbc23b3f77ca in
+  master (ccoleman@redhat.com)
+
 * Sat Jun 01 2013 Dan McPherson <dmcphers@redhat.com> 1.9.11-1
 - Fixes Bug 967504 and Bug 969536 - increased timeout to properly handle some
   quickstarts (ffranz@redhat.com)
