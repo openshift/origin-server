@@ -515,7 +515,7 @@ class Application
         self.domain.applications.each do |uapp|
           next if self.name == uapp.name
           uapp.requires.each do |feature_name|
-            ucart = CartridgeCache.find_cartridge(feature_name, self)
+            ucart = CartridgeCache.find_cartridge(feature_name, uapp)
             if ucart.is_ci_builder?
               Application.run_in_application_lock(uapp) do
                 uapp.pending_op_groups.push PendingAppOpGroup.new(op_type: :remove_features, args: {"features" => [feature_name], "group_overrides" => uapp.group_overrides}, user_agent: uapp.user_agent)
