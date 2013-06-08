@@ -244,7 +244,7 @@ module OpenShift
 
       # wildcards: cartridges and cartridge versions
       glob = PathUtils.join(directory, '*', '*', 'metadata', 'manifest.yml')
-      Dir[glob].each { |e| yield e }
+      Dir[glob].sort.each { |e| yield e }
     end
 
     # :call-seq:
