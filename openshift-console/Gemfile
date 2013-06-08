@@ -1,5 +1,10 @@
 source 'http://rubygems.org'
 
+# Fedora 19 splits psych out into its own gem.
+if Gem::Specification.respond_to?(:find_all_by_name) and not Gem::Specification::find_all_by_name('psych').empty?
+  gem 'psych'
+end
+
 gem 'openshift-origin-console', :require => 'console', :path => ENV['CONSOLE_PATH']
 
 gem 'rake', '> 0.9.2'
