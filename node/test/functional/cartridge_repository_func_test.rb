@@ -26,9 +26,9 @@ module OpenShift
 
     def before_setup
 
-      @uuid = %x(uuidgen -r).gsub(/-/,'').chomp[0..15]
+      @uuid = %x(uuidgen -r).gsub(/-/, '').chomp[0..15]
 
-      @test_home      = "/tmp/tests/#{@uuid}"
+      @test_home      = "/data/tests/#{@uuid}"
       @tgz_file       = File.join(@test_home, 'mock_plugin.tar.gz')
       @zip_file       = File.join(@test_home, 'mock_plugin.zip')
       @tar_file       = File.join(@test_home, 'mock_plugin.tar')
@@ -252,21 +252,7 @@ module OpenShift
       manifest << "Source-Md5: #{@tgz_hash}"
 
       err = assert_raise(OpenShift::InvalidElementError) do
-        cartridge      = OpenShift::Runtime::Manifest.new(manifest)
-      end
-
-      assert_match 'Cartridge-Vendor', err.message
-    end
-
-    def test_reserved_cartridge_name
-      manifest = IO.read(File.join(@cartridge.manifest_path))
-      manifest << "Cartridge-Vendor: redhat" << "\n"
-      manifest << 'Source-Url: https://www.example.com/mock-plugin.tar.gz' << "\n"
-      manifest << "Source-Md5: #{@tgz_hash}"
-      manifest = change_cartridge_vendor_of manifest
-
-      err = assert_raise(OpenShift::InvalidElementError) do
-        cartridge      = OpenShift::Runtime::Manifest.new(manifest)
+        cartridge = OpenShift::Runtime::Manifest.new(manifest)
       end
 
       assert_match 'Cartridge-Vendor', err.message
@@ -279,7 +265,7 @@ module OpenShift
       manifest << "Source-Md5: #{@tgz_hash}"
 
       err = assert_raise(OpenShift::InvalidElementError) do
-        cartridge      = OpenShift::Runtime::Manifest.new(manifest)
+        cartridge = OpenShift::Runtime::Manifest.new(manifest)
       end
 
       assert_match 'Cartridge-Vendor', err.message
@@ -293,7 +279,7 @@ module OpenShift
       manifest = change_cartridge_vendor_of manifest
 
       err = assert_raise(OpenShift::InvalidElementError) do
-        cartridge      = OpenShift::Runtime::Manifest.new(manifest)
+        cartridge = OpenShift::Runtime::Manifest.new(manifest)
       end
 
       assert_match /\bName\b/, err.message
@@ -307,7 +293,7 @@ module OpenShift
       manifest = change_cartridge_vendor_of manifest
 
       err = assert_raise(OpenShift::InvalidElementError) do
-        cartridge      = OpenShift::Runtime::Manifest.new(manifest)
+        cartridge = OpenShift::Runtime::Manifest.new(manifest)
       end
 
       assert_match 'Name', err.message
@@ -321,11 +307,25 @@ module OpenShift
       manifest = change_cartridge_vendor_of manifest
 
       err = assert_raise(OpenShift::InvalidElementError) do
-        cartridge      = OpenShift::Runtime::Manifest.new(manifest)
+        cartridge = OpenShift::Runtime::Manifest.new(manifest)
       end
 
       assert_match /is reserved\.: 'Name'/, err.message
     end
+
+    def test_invalid_cartridge_vendor_name
+      manifest = IO.read(File.join(@cartridge.manifest_path))
+      manifest << "Cartridge-Vendor: INVALID" << "\n"
+      manifest << 'Source-Url: https://www.example.com/mock-plugin.tar.gz' << "\n"
+      manifest << "Source-Md5: #{@tgz_hash}"
+
+      err = assert_raise(OpenShift::InvalidElementError) do
+        cartridge = OpenShift::Runtime::Manifest.new(manifest)
+      end
+
+      assert_match 'Cartridge-Vendor', err.message
+    end
+
 
     def test_instantiate_cartridge_tgz
       # Point manifest at "remote" URL
@@ -363,6 +363,26 @@ module OpenShift
       assert_path_exist(File.join(cartridge_home, 'bin', 'control'))
     end
 
+    def test_cartridge_update
+      build_multi_versions()
+
+      name = "crftest_#{@uuid}"
+      cr   = OpenShift::CartridgeRepository.instance
+      cr.clear
+
+      cr.install(@source_dir + '/1')
+      m = cr.select(name)
+      assert_equal '0.0.1', m.cartridge_version
+
+      cr.install(@source_dir + '/2')
+      m = cr.select(name, '0.3')
+      assert_equal '0.0.2', m.cartridge_version
+
+      cr.install(@source_dir + '/3')
+      m = cr.select(name, '0.3')
+      assert_equal '0.0.3', m.cartridge_version
+    end
+
     def with_detail_output
       begin
         yield
@@ -394,6 +414,22 @@ module OpenShift
       end
 
       return cuckoo_repo, cuckoo_source
+    end
+
+    def build_multi_versions
+      (1..3).each do |i|
+        target = File.join(@source_dir, i.to_s)
+        FileUtils.mkpath(target + '/metadata')
+        FileUtils.mkpath(target + '/bin')
+        IO.write(target + '/metadata/manifest.yml', %Q{#
+        Name: crftest_#{@uuid}
+        Cartridge-Short-Name: CRFTEST
+        Version: '0.3'
+        Cartridge-Version: '0.0.#{i}'
+        Cartridge-Vendor: redhat
+      }
+        )
+      end
     end
   end
 end
