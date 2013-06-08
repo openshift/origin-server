@@ -156,8 +156,8 @@ legend {color: $consoleHeaderColor;}
 // ----------------------------------------
 
 code, pre {
-	background-color: $preBackground;
-	border: 1px solid $preBorder;
+	background-color: $consolePreBackground;
+	border: 1px solid $consolePreBorder;
   border-radius: 0 0 0 0;
-  color: $preColor;
+  color: $consolePreColor;
   }
