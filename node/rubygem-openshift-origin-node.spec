@@ -16,7 +16,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.9.14
+Version: 1.9.15
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -294,6 +294,13 @@ fi
 %attr(0755,-,-) /etc/cron.monthly/openshift-origin-cron-monthly
 
 %changelog
+* Sat Jun 08 2013 Dan McPherson <dmcphers@redhat.com> 1.9.15-1
+- Fix test case (dmcphers@redhat.com)
+- WIP Cartridge Refactor - Fixed test method names (jhonce@redhat.com)
+- Bug 971460 - Refactor path_append/prepend to accept multiple elements
+  (jhonce@redhat.com)
+- Sort by cartridge version in cartridge_repository (pmorie@gmail.com)
+
 * Wed Jun 05 2013 Adam Miller <admiller@redhat.com> 1.9.14-1
 - rm -f .erb files after processing (pmorie@gmail.com)
 
