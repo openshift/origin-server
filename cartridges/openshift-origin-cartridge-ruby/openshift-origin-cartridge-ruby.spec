@@ -6,7 +6,7 @@
 %global cartridgedir %{_libexecdir}/openshift/cartridges/v2/ruby
 
 Name:          openshift-origin-cartridge-ruby
-Version:       0.4.10
+Version:       0.4.11
 Release:       1%{?dist}
 Summary:       Ruby cartridge
 Group:         Development/Languages
@@ -168,6 +168,11 @@ Ruby cartridge for OpenShift. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Sat Jun 08 2013 Dan McPherson <dmcphers@redhat.com> 0.4.11-1
+- Bug 971460 - clear env settings (jhonce@redhat.com)
+- Bug 971460 - Refactor path_append/prepend to accept multiple elements
+  (jhonce@redhat.com)
+
 * Wed Jun 05 2013 Adam Miller <admiller@redhat.com> 0.4.10-1
 - Bug 970698 (asari.ruby@gmail.com)
 
