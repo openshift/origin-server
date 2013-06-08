@@ -6,34 +6,36 @@
 code,
 pre {
   padding: 0 3px 2px;
-  @include font-family-monospace;
+  font-family: $monoFontFamily;
   font-size: $baseFontSize - 1;
-  color: $grayDark;
+  color: $preColor;
   @include border-radius(0);
 }
 
 // Inline code
 code {
-  padding: 3px 4px;
-  color: #d14;
-  background-color: #f7f7f9;
-  border: 1px solid #e1e1e8;
+  padding: 1px 4px;
+  color: $codeColor;
+  background-color: $preBackground;
+  border: 1px solid darken($preBackground, 10%);
 }
 
 // Blocks of code
-pre {
+pre,
+.column-content div.geshifilter pre {
   display: block;
-  padding: $baseLineHeight / 2 $baseLineHeight;
+  padding: $baseLineHeight / 1.5 $baseLineHeight;
   margin: 0 0 $baseLineHeight;
   line-height: $baseLineHeight;
-  background-color: #f5f5f5;
-  border: 1px solid #ccc; // fallback for IE7-8
-  border: 1px solid rgba(0,0,0,.15);
-  @include border-radius(4px);
+  background-color: $preBackground;
+  @include border-radius(0);
+  border-left: 2px solid $preBorder;
   white-space: pre;
   white-space: pre-wrap;
   word-break: normal;
   word-wrap: break-word;
+  overflow: auto;
+  font-family: $monoFontFamily !important;
 
   // Make prettyprint styles more spaced out for readability
   &.prettyprint {
@@ -66,13 +68,4 @@ pre.pre-scrollable-horizontal {
   margin: 0;
   border: 0;
   background: none;
-
-  // Reset to _type defaults
-  pre {
-    padding: 8.5px;
-    margin: 0 0 9px;
-    line-height: 18px;
-    border: 1px solid #ccc; // fallback for IE7-8
-    border: 1px solid rgba(0,0,0,.15);
-  }
 }

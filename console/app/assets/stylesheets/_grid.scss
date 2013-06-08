@@ -31,3 +31,20 @@
 .pull-right[class*="span"] {
   float: right;
 }
+
+// Row of blocks that can vary in height, use with row-fluid
+// ----------
+
+.row-fluid.row-block {
+  margin-left: 0;
+  list-style: none;
+}
+.row-fluid.row-block > li {
+  &.span6:nth-child(2n + 1),
+  &.span4:nth-child(3n + 1),
+  &.span3:nth-child(4n + 1),
+  &.span2:nth-child(6n + 1) {
+    clear: left;
+    margin-left: 0;
+  }
+}

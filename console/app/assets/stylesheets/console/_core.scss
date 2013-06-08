@@ -10,7 +10,7 @@
 h3 .label { font-size: inherit; margin: 0 0 0 10px; }
 
 .account-total {
-	font-size: 250%;
+	font-size: $h1FontSize;
 	margin-top: 20px;
 	}
 
@@ -102,7 +102,7 @@ ol.wizard li {
    background-position: 0 -84px;
   background-repeat: no-repeat;
   display: inline-block;
-  font-size: 110%;
+  font-size: $largeFontSize;
   line-height: 25px;
   list-style-position: inside;
   list-style-type: none;
@@ -292,7 +292,7 @@ figure {
       display: table;
       height: 100%;
       width: 100%;
-      font-size: $baseFontSize - 3;
+      font-size: $tinyFontSize;
       text-transform: uppercase;
       &:hover {
         text-decoration: none;
@@ -307,7 +307,7 @@ figure {
         display: table-cell;
         vertical-align: middle;
         text-align: center;
-        font-size: 11px;
+        font-size: $tinyFontSize;
         height: 100%;
         width: 34px;
         border-left: 1px solid rgba(0, 0, 0, 0.3);
@@ -324,13 +324,13 @@ aside .header-bar {
   background: transparent;
   .header-btn {
     a {
-      font-size: $baseFontSize - 3;
+      font-size: $tinyFontSize;
       .header-btn-title {
         padding: 0;
         text-align: center;
       }
       .font-icon {
-        font-size: 9.5px;
+        font-size: $tinyFontSize;
         width: 24px;
       }
     }
@@ -363,7 +363,7 @@ aside .header-bar {
 .digest-bg {
   background-color: #212121;
   border-bottom: 3px solid #2a2a2a;
-  margin: 0 -25px;
+  margin: 0 -35px;
   padding: 20px 25px;
 }
 
@@ -443,7 +443,7 @@ aside .header-bar {
   -moz-border-radius: 0;
   border-radius: 0;
   color: #bebebe;
-  font-size: 12px;
+  font-size: $smallFontSize;
   }
     .nav-pills.console-overview > li > a:hover {
       color: #212121;
@@ -503,7 +503,7 @@ a.cap-link {
   text-transform: uppercase;
   padding: 8px 10px;
   color: #555;
-  font-size: 11px;
+  font-size: $tinyFontSize;
   }
   a.cap-link:hover {
     color: #bebebe;
@@ -566,7 +566,7 @@ $cartridgeBorderWidth: 10px;
       width: 130px;
       color: #9a9b9c;
       text-decoration: none;
-      font-size: 11px;
+      font-size: $tinyFontSize;
       text-transform: uppercase;
       font-family: $headerFontFamily;
       border-left: 2px solid transparent;
@@ -707,7 +707,7 @@ $cartridgeBorderWidth: 10px;
 .section-console .bits .data {
   color: #eaebec;
   text-transform: uppercase;
-  font-size: $baseFontSize * 0.90; // match h6
+  font-size: $h6FontSize
   }
 
 .cartridge_type.installed,
@@ -786,7 +786,7 @@ $cartridgeBorderWidth: 10px;
   }
 
   .total-cost {
-    font-size: 23px;
+    font-size: 23px; // responsive
     float: left;
     margin-left: 28px;
   }
@@ -843,7 +843,7 @@ $cartridgeBorderWidth: 10px;
 
 @media (min-width: 768px) and (max-width: 979px) {
   .total-cost {
-    font-size: 23px;
+    font-size: 23px; // responsive
   }
   .digest-bg {
     margin-right: -15px;
@@ -863,11 +863,11 @@ $cartridgeBorderWidth: 10px;
   }
   #app-cartridges {
     header {
-      padding-left: $gridGutterWidthLarge;
+      padding-left: $gridGutterWidth;
     }
     .cartridge-block .cartridge-inset {
-      padding-left: $gridGutterWidthLarge - $cartridgeBorderWidth;
-      padding-right: $gridGutterWidthLarge - $cartridgeBorderWidth;
+      padding-left: $gridGutterWidth - $cartridgeBorderWidth;
+      padding-right: $gridGutterWidth - $cartridgeBorderWidth;
     }
   }
 
@@ -953,7 +953,7 @@ $cartridgeBorderWidth: 10px;
 	display: none;
 	color: $infoText;
 	@include border-radius(5px);
-	font-size: 12px;
+	font-size: $smallFontSize;
 	padding: 3px 7px;
 	position: absolute;
 	left: 0;
