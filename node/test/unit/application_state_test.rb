@@ -47,7 +47,7 @@ class ApplicationStateTest < OpenShift::NodeTestCase
   end
 
   def new_state(uuid)
-    OpenShift::Utils::ApplicationState.new(uuid)
+    OpenShift::Runtime::Utils::ApplicationState.new(uuid)
   end
 
   def get_state
@@ -69,8 +69,8 @@ class ApplicationStateTest < OpenShift::NodeTestCase
 
   def test_set_value
     PathUtils.expects(:oo_chown).with(@uuid, @uuid, @state_file).once()
-    OpenShift::Utils::SELinux.expects(:get_mcs_label).with(@uuid).once().returns("test label")
-    OpenShift::Utils::SELinux.expects(:set_mcs_label).with("test label", @state_file).once()
+    OpenShift::Runtime::Utils::SELinux.expects(:get_mcs_label).with(@uuid).once().returns("test label")
+    OpenShift::Runtime::Utils::SELinux.expects(:set_mcs_label).with("test label", @state_file).once()
     new_state(@uuid).tap { |state|
       state.value = @good_state
     }

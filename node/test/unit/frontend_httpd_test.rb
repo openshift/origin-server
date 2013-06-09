@@ -159,11 +159,11 @@ class FrontendHttpServerModelTest < OpenShift::NodeTestCase
   end
 
   def test_clean_server_name
-    frontend = OpenShift::FrontendHttpServer.new(@container_uuid, @container_name, @namespace)
+    frontend = OpenShift::Runtime::FrontendHttpServer.new(@container_uuid, @container_name, @namespace)
     
     assert_equal "#{@test_alias}", frontend.clean_server_name("#{@test_alias}")
     assert_equal "#{@test_alias}", frontend.clean_server_name("#{@test_alias}".upcase)
-    assert_raise OpenShift::FrontendHttpServerNameException do
+    assert_raise OpenShift::Runtime::FrontendHttpServerNameException do
       frontend.clean_server_name("../../../../../../../etc/passwd")
     end
   end
@@ -171,7 +171,7 @@ class FrontendHttpServerModelTest < OpenShift::NodeTestCase
   def test_create
     set_dbs_empty
 
-    frontend = OpenShift::FrontendHttpServer.new(@container_uuid, @container_name, @namespace)
+    frontend = OpenShift::Runtime::FrontendHttpServer.new(@container_uuid, @container_name, @namespace)
     frontend.create
 
     # Does nothing.
@@ -181,10 +181,10 @@ class FrontendHttpServerModelTest < OpenShift::NodeTestCase
     set_dbs_full
 
     t_environ = { 'OPENSHIFT_GEAR_NAME' => @container_name, 'OPENSHIFT_GEAR_DNS' => @fqdn }
-    OpenShift::Utils::Environ.stubs(:for_gear).returns(t_environ).never
+    OpenShift::Runtime::Utils::Environ.stubs(:for_gear).returns(t_environ).never
 
     frontend = nil
-    frontend = OpenShift::FrontendHttpServer.new(@container_uuid)
+    frontend = OpenShift::Runtime::FrontendHttpServer.new(@container_uuid)
 
     assert_equal @container_name, frontend.container_name
     assert_equal @namespace, frontend.namespace
@@ -194,10 +194,10 @@ class FrontendHttpServerModelTest < OpenShift::NodeTestCase
     set_dbs_empty
 
     t_environ = { 'OPENSHIFT_GEAR_NAME' => @container_name, 'OPENSHIFT_GEAR_DNS' => @fqdn }
-    OpenShift::Utils::Environ.stubs(:for_gear).returns(t_environ).once
+    OpenShift::Runtime::Utils::Environ.stubs(:for_gear).returns(t_environ).once
 
     frontend = nil
-    frontend = OpenShift::FrontendHttpServer.new(@container_uuid)
+    frontend = OpenShift::Runtime::FrontendHttpServer.new(@container_uuid)
 
     assert_equal @container_name, frontend.container_name
     assert_equal @namespace, frontend.namespace
@@ -206,8 +206,8 @@ class FrontendHttpServerModelTest < OpenShift::NodeTestCase
   def test_initialize_uncreated
     set_dbs_empty
 
-    assert_raise OpenShift::FrontendHttpServerException do
-      frontend = OpenShift::FrontendHttpServer.new(@container_uuid)
+    assert_raise OpenShift::Runtime::FrontendHttpServerException do
+      frontend = OpenShift::Runtime::FrontendHttpServer.new(@container_uuid)
     end
   end
 
@@ -218,9 +218,9 @@ class FrontendHttpServerModelTest < OpenShift::NodeTestCase
     Dir.stubs(:glob).returns(["foo.conf"]).once
     FileUtils.stubs(:rm_rf).once
 
-    OpenShift::Utils.stubs(:oo_spawn).returns(["", "", 0]).once
+    OpenShift::Runtime::Utils.stubs(:oo_spawn).returns(["", "", 0]).once
 
-    frontend = OpenShift::FrontendHttpServer.new(@container_uuid, @container_name, @namespace)
+    frontend = OpenShift::Runtime::FrontendHttpServer.new(@container_uuid, @container_name, @namespace)
     frontend.destroy
 
     check_dbs_empty
@@ -238,7 +238,7 @@ class FrontendHttpServerModelTest < OpenShift::NodeTestCase
                     ["/file", "/dest.html", { "file" => 1 }],
                     ["/tohttps", "/dest", { "tohttps" => 1 }] ]
 
-    frontend = OpenShift::FrontendHttpServer.new(@container_uuid, @container_name, @namespace)
+    frontend = OpenShift::Runtime::FrontendHttpServer.new(@container_uuid, @container_name, @namespace)
     frontend.create
     frontend.connect(connections)
 
@@ -273,7 +273,7 @@ class FrontendHttpServerModelTest < OpenShift::NodeTestCase
   def test_idle
     set_dbs_empty
 
-    frontend = OpenShift::FrontendHttpServer.new(@container_uuid, @container_name, @namespace)
+    frontend = OpenShift::Runtime::FrontendHttpServer.new(@container_uuid, @container_name, @namespace)
     frontend.create
 
     frontend.idle
@@ -288,7 +288,7 @@ class FrontendHttpServerModelTest < OpenShift::NodeTestCase
   def test_sts
     set_dbs_empty
 
-    frontend = OpenShift::FrontendHttpServer.new(@container_uuid, @container_name, @namespace)
+    frontend = OpenShift::Runtime::FrontendHttpServer.new(@container_uuid, @container_name, @namespace)
     frontend.create
 
     frontend.sts(@sts_max_age)
@@ -303,7 +303,7 @@ class FrontendHttpServerModelTest < OpenShift::NodeTestCase
   def test_aliases
     set_dbs_empty
 
-    frontend = OpenShift::FrontendHttpServer.new(@container_uuid, @container_name, @namespace)
+    frontend = OpenShift::Runtime::FrontendHttpServer.new(@container_uuid, @container_name, @namespace)
     frontend.create
     frontend.connect("", "#{@ip}:#{@port}", { "websocket" => 1})
     frontend.add_alias("#{@test_alias}")
@@ -351,9 +351,9 @@ class FrontendHttpServerModelTest < OpenShift::NodeTestCase
     FileUtils.stubs(:rm_rf).with(@test_ssl_path).once
     FileUtils.stubs(:rm_rf).with("#{@test_ssl_path}.conf").once
 
-    OpenShift::Utils.stubs(:oo_spawn).returns(["", "", 0]).twice
+    OpenShift::Runtime::Utils.stubs(:oo_spawn).returns(["", "", 0]).twice
 
-    frontend = OpenShift::FrontendHttpServer.new(@container_uuid, @container_name, @namespace)
+    frontend = OpenShift::Runtime::FrontendHttpServer.new(@container_uuid, @container_name, @namespace)
     frontend.create
     frontend.connect("", "#{@ip}:#{@port}", { "websocket" => 1})
     frontend.add_alias("#{@test_alias}")
@@ -365,12 +365,12 @@ class FrontendHttpServerModelTest < OpenShift::NodeTestCase
     frontend.remove_ssl_cert(@test_alias)
 
     # check_private_key returns false
-    assert_raise OpenShift::FrontendHttpServerException do
+    assert_raise OpenShift::Runtime::FrontendHttpServerException do
       frontend.add_ssl_cert(@test_ssl_cert, @test_ssl_key, @test_alias)
     end
 
     # bad alias
-    assert_raise OpenShift::FrontendHttpServerException do
+    assert_raise OpenShift::Runtime::FrontendHttpServerException do
       frontend.add_ssl_cert(@test_ssl_cert, @test_ssl_key, @test_alias.reverse)
     end
   end
@@ -379,7 +379,7 @@ class FrontendHttpServerModelTest < OpenShift::NodeTestCase
   def test_serialization
     set_dbs_empty
 
-    frontend = OpenShift::FrontendHttpServer.new(@container_uuid, @container_name, @namespace)
+    frontend = OpenShift::Runtime::FrontendHttpServer.new(@container_uuid, @container_name, @namespace)
     frontend.create
     frontend.connect("", "#{@ip}:#{@port}", { "websocket" => 1})
     frontend.add_alias("#{@test_alias}")
@@ -388,7 +388,7 @@ class FrontendHttpServerModelTest < OpenShift::NodeTestCase
 
     set_dbs_empty
 
-    new_frontend = OpenShift::FrontendHttpServer.json_create( { 'data' => fehash } )
+    new_frontend = OpenShift::Runtime::FrontendHttpServer.json_create( { 'data' => fehash } )
 
     assert_equal @container_uuid, new_frontend.container_uuid
     assert_equal @container_name, new_frontend.container_name

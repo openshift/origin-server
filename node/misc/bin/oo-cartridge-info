@@ -65,7 +65,7 @@ cart_name = ARGV.shift
 cart_found = false
 
 begin
-  cart_info = OpenShift::Node.get_cartridge_info(cart_name, $porcelain, $oo_debug)
+  cart_info = OpenShift::Runtime::Node.get_cartridge_info(cart_name, $porcelain, $oo_debug)
   puts cart_info
 rescue Exception => e
   $stderr.puts(e.message)

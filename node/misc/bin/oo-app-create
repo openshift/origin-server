@@ -98,11 +98,11 @@ unless gear_uuid
 end
 
 begin
-  container = OpenShift::ApplicationContainer.new(app_uuid, gear_uuid, uid,
+  container = OpenShift::Runtime::ApplicationContainer.new(app_uuid, gear_uuid, uid,
                         app_name, gear_name, namespace, quota_blocks,
                         quota_files)
   container.create
-rescue OpenShift::UserCreationException => e
+rescue OpenShift::Runtime::UserCreationException => e
   $stderr.puts(e.message)
   exit 129
 rescue Exception => e

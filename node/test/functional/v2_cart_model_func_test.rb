@@ -63,13 +63,13 @@ module OpenShift
       @user.create
       refute_nil @user.homedir
 
-      OpenShift::CartridgeRepository.instance.clear
-      OpenShift::CartridgeRepository.instance.load
+      OpenShift::Runtime::CartridgeRepository.instance.clear
+      OpenShift::Runtime::CartridgeRepository.instance.load
 
       @hourglass = mock()
       @hourglass.stubs(:remaining).returns(3600)
 
-      @model = OpenShift::V2CartridgeModel.new(@config, @user, OpenShift::Utils::ApplicationState.new(@uuid), @hourglass)
+      @model = OpenShift::Runtime::V2CartridgeModel.new(@config, @user, OpenShift::Runtime::Utils::ApplicationState.new(@uuid), @hourglass)
     end
 
     def teardown
@@ -97,7 +97,7 @@ module OpenShift
 
       refute_path_exist(File.join(@user.homedir, 'mock-plugin'))
 
-      cartridge = OpenShift::CartridgeRepository.instance.select('mock-plugin', '0.1')
+      cartridge = OpenShift::Runtime::CartridgeRepository.instance.select('mock-plugin', '0.1')
       skip 'Mock Plugin 0.1 cartridge required for this test' unless cartridge
 
       cuckoo = File.join(@user.homedir, %w(app-root data cuckoo))
@@ -124,7 +124,7 @@ module OpenShift
       # install the cuckoo
       begin
         @model.configure('cuckoo-0.1', nil, manifest)
-      rescue OpenShift::Utils::ShellExecutionException => e
+      rescue OpenShift::Runtime::Utils::ShellExecutionException => e
         NodeLogger.logger.debug(e.message + "\n" +
                                     e.stdout + "\n" +
                                     e.stderr + "\n" +
@@ -137,7 +137,7 @@ module OpenShift
     end
 
     def test_configure_with_no_template
-      cartridge = OpenShift::CartridgeRepository.instance.select('mock-plugin', '0.1')
+      cartridge = OpenShift::Runtime::CartridgeRepository.instance.select('mock-plugin', '0.1')
       skip 'Mock Plugin 0.1 cartridge required for this test' unless cartridge
 
       cuckoo = File.join(@user.homedir, %w(app-root data cuckoo))
@@ -156,7 +156,7 @@ module OpenShift
       # install the cuckoo
       begin
         @model.configure('cuckoo-0.1', nil, manifest)
-      rescue OpenShift::Utils::ShellExecutionException => e
+      rescue OpenShift::Runtime::Utils::ShellExecutionException => e
         NodeLogger.logger.debug(e.message + "\n" +
                                     e.stdout + "\n" +
                                     e.stderr + "\n" +
@@ -171,7 +171,7 @@ module OpenShift
     end
 
     def test_configure_with_short_name
-      cartridge = OpenShift::CartridgeRepository.instance.select('mock-plugin', '0.1')
+      cartridge = OpenShift::Runtime::CartridgeRepository.instance.select('mock-plugin', '0.1')
       skip 'Mock Plugin 0.1 cartridge required for this test' unless cartridge
 
       # Point manifest at "remote" repository
@@ -185,7 +185,7 @@ module OpenShift
       # install the cuckoo
       begin
         @model.configure('cuckoo-0.1', nil, manifest)
-      rescue OpenShift::Utils::ShellExecutionException => e
+      rescue OpenShift::Runtime::Utils::ShellExecutionException => e
         NodeLogger.logger.debug(e.message + "\n" +
                                     e.stdout + "\n" +
                                     e.stderr + "\n" +

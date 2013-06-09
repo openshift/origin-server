@@ -35,8 +35,8 @@ module OpenShift
       @malformed_file = File.join(@test_home, 'malformed.zip')
 
       FileUtils.mkpath(@test_home)
-      OpenShift::CartridgeRepository.instance.load()
-      @cartridge = OpenShift::CartridgeRepository.instance.select('mock-plugin', '0.1')
+      OpenShift::Runtime::CartridgeRepository.instance.load()
+      @cartridge = OpenShift::Runtime::CartridgeRepository.instance.select('mock-plugin', '0.1')
       %x(shopt -s dotglob;
          cd #{@cartridge.repository_path};
          zip -r #{@zip_file} *;
@@ -74,10 +74,10 @@ module OpenShift
       WebMock.disable_net_connect! allow_localhost: true
 
       @name       = "crftest_#{@uuid}"
-      @repo_dir   = File.join(OpenShift::CartridgeRepository::CARTRIDGE_REPO_DIR, "redhat-#{@name}")
+      @repo_dir   = File.join(OpenShift::Runtime::CartridgeRepository::CARTRIDGE_REPO_DIR, "redhat-#{@name}")
       @source_dir = "#{@test_home}/src-#{@uuid}"
 
-      FileUtils.mkpath(OpenShift::CartridgeRepository::CARTRIDGE_REPO_DIR)
+      FileUtils.mkpath(OpenShift::Runtime::CartridgeRepository::CARTRIDGE_REPO_DIR)
       FileUtils.mkpath(@source_dir + '/metadata')
       FileUtils.mkpath(@source_dir + '/bin')
       File.open(@source_dir + '/metadata/manifest.yml', 'w') do |f|
@@ -102,7 +102,7 @@ module OpenShift
     end
 
     def test_install_remove
-      cr = OpenShift::CartridgeRepository.instance
+      cr = OpenShift::Runtime::CartridgeRepository.instance
       cr.clear
       cr.install(@source_dir)
 
@@ -131,7 +131,7 @@ module OpenShift
     end
 
     def test_reinstall
-      cr = OpenShift::CartridgeRepository.instance
+      cr = OpenShift::Runtime::CartridgeRepository.instance
       cr.clear
       cr.install(@source_dir)
 
@@ -164,7 +164,7 @@ module OpenShift
       cartridge_home = "#{@test_home}/gear/mock-plugin"
 
       with_detail_output do
-        OpenShift::CartridgeRepository.instantiate_cartridge(cartridge, cartridge_home)
+        OpenShift::Runtime::CartridgeRepository.instantiate_cartridge(cartridge, cartridge_home)
       end
 
       assert_path_exist(cartridge_home)
@@ -185,7 +185,7 @@ module OpenShift
       cartridge_home = "#{@test_home}/gear/mock-plugin"
 
       with_detail_output do
-        OpenShift::CartridgeRepository.instantiate_cartridge(cartridge, cartridge_home)
+        OpenShift::Runtime::CartridgeRepository.instantiate_cartridge(cartridge, cartridge_home)
       end
 
       assert_path_exist(cartridge_home)
@@ -204,7 +204,7 @@ module OpenShift
       cartridge_home = "#{@test_home}/gear/mock-plugin"
 
       with_detail_output do
-        OpenShift::CartridgeRepository.instantiate_cartridge(cartridge, cartridge_home)
+        OpenShift::Runtime::CartridgeRepository.instantiate_cartridge(cartridge, cartridge_home)
       end
 
       assert_path_exist(cartridge_home)
@@ -222,7 +222,7 @@ module OpenShift
       cartridge_home = "#{@test_home}/gear/mock-plugin"
 
       assert_raise (IOError) do
-        OpenShift::CartridgeRepository.instantiate_cartridge(cartridge, cartridge_home)
+        OpenShift::Runtime::CartridgeRepository.instantiate_cartridge(cartridge, cartridge_home)
       end
 
       refute_path_exist(cartridge_home)
@@ -238,7 +238,7 @@ module OpenShift
       cartridge_home = "#{@test_home}/gear/mock-plugin"
 
       e = assert_raise (OpenShift::MalformedCartridgeError) do
-        OpenShift::CartridgeRepository.instantiate_cartridge(cartridge, cartridge_home)
+        OpenShift::Runtime::CartridgeRepository.instantiate_cartridge(cartridge, cartridge_home)
       end
 
       refute_empty e.details, 'Details of malformed cartridge missing'
@@ -338,7 +338,7 @@ module OpenShift
       cartridge_home = "#{@test_home}/gear/mock-plugin"
 
       with_detail_output do
-        OpenShift::CartridgeRepository.instantiate_cartridge(cartridge, cartridge_home)
+        OpenShift::Runtime::CartridgeRepository.instantiate_cartridge(cartridge, cartridge_home)
       end
 
       assert_path_exist(cartridge_home)
@@ -356,7 +356,7 @@ module OpenShift
       cartridge_home = "#{@test_home}/gear/mock-plugin"
 
       with_detail_output do
-        OpenShift::CartridgeRepository.instantiate_cartridge(cartridge, cartridge_home)
+        OpenShift::Runtime::CartridgeRepository.instantiate_cartridge(cartridge, cartridge_home)
       end
 
       assert_path_exist(cartridge_home)
@@ -367,7 +367,7 @@ module OpenShift
       build_multi_versions()
 
       name = "crftest_#{@uuid}"
-      cr   = OpenShift::CartridgeRepository.instance
+      cr   = OpenShift::Runtime::CartridgeRepository.instance
       cr.clear
 
       cr.install(@source_dir + '/1')
@@ -386,7 +386,7 @@ module OpenShift
     def with_detail_output
       begin
         yield
-      rescue OpenShift::Utils::ShellExecutionException => e
+      rescue OpenShift::Runtime::Utils::ShellExecutionException => e
         NodeLogger.logger.debug(e.message + "\n" +
                                     e.stdout + "\n" +
                                     e.stderr + "\n" +

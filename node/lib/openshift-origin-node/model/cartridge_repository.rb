@@ -74,482 +74,484 @@ require 'openssl'
 $OpenShift_CartridgeRepository_SEMAPHORE = Mutex.new
 
 module OpenShift
-
-  # Singleton to provide management of cartridges installed on the system
-  #
-  class CartridgeRepository
-    include Singleton
-    include NodeLogger
-    include Enumerable
-
-    #FIXME: move to node.conf
-    CARTRIDGE_REPO_DIR = '/var/lib/openshift/.cartridge_repository'
-
-    # Filesystem path to where cartridges are installed
-    attr_reader :path
-
-    def initialize # :nodoc:
-      @path      = CARTRIDGE_REPO_DIR
-
-      FileUtils.mkpath(@path) unless File.exist? @path
-      clear
-      load @path
-    end
-
-    # :call-seq:
-    #   CartridgeRepository.instance.clear -> nil
+  module Runtime
+    # Singleton to provide management of cartridges installed on the system
     #
-    # Clear all entries from the memory index. Nothing is removed from the disk.
-    #
-    #   CartridgeRepository.instance.clear #=> nil
-    def clear
-      @index = Hash.new { |h, k| h[k] = Hash.new(&h.default_proc) }
-    end
+    class CartridgeRepository
+      include Singleton
+      include NodeLogger
+      include Enumerable
 
-    # :call-seq:
-    #   CartridgeRepository.instance.load([directory path]) -> Fixnum
-    #
-    # Read cartridge manifests from the CARTRIDGE_REPO_DIR or the provided +directory+.
-    #
-    #   CartridgeRepository.instance.load("/var/lib/openshift/.cartridge_repository")  #=> 24
-    def load(directory = nil)
-      $OpenShift_CartridgeRepository_SEMAPHORE.synchronize do
-        load_via_url = directory.nil?
-        find_manifests(directory || @path) do |manifest_path|
-          logger.debug { "Loading cartridge from #{manifest_path}" }
-          # we check the vendor and cartridge names only when loading via URL
-          c = insert(OpenShift::Runtime::Manifest.new(manifest_path, nil, @path, load_via_url))
-          logger.debug { "Loaded cartridge (#{c.name}, #{c.version}, #{c.cartridge_version})" }
-        end
+      #FIXME: move to node.conf
+      CARTRIDGE_REPO_DIR = '/var/lib/openshift/.cartridge_repository'
+
+      # Filesystem path to where cartridges are installed
+      attr_reader :path
+
+      def initialize # :nodoc:
+        @path      = CARTRIDGE_REPO_DIR
+
+        FileUtils.mkpath(@path) unless File.exist? @path
+        clear
+        load @path
       end
 
-      count
-    end
-
-    # :call-seq:
-    #   CartridgeRepository.instance.select(cartridge_name)                             -> Cartridge
-    #   CartridgeRepository.instance.select(cartridge_name, version)                    -> Cartridge
-    #   CartridgeRepository.instance.select(cartridge_name, version, cartridge_version) -> Cartridge
-    #   CartridgeRepository.instance[cartridge_name]                                    -> Cartridge
-    #   CartridgeRepository.instance[cartridge_name, version]                           -> Cartridge
-    #   CartridgeRepository.instance[cartridge_name, version, cartridge_version]        -> Cartridge
-    #
-    # Select a cartridge from repository
-    #
-    # Each version parameter you provide narrows the search to the exact revision of the Cartridge you are requesting.
-    # If you do not provide _cartridge_version_ then the latest is assumed, for _version_ and _cartridge_name_.
-    # If you do not provide _cartridge_version_ and _version_, then the latest _cartridge_name_ will be returned.
-    #
-    # Latest is determined from the _Version_ elements provided in the cartridge's manifest, when the cartridge is
-    # loaded.
-    #
-    # Assuming PHP, 3.5 and 0.1 are all the latest each of these calls would return the same cartridge.
-    #   CartridgeRepository.instance.select('php', '3.5', '0.1')  #=> Cartridge
-    #   CartridgeRepository.instance.select('php', '3.5')         #=> Cartridge
-    #   CartridgeRepository.instance.select('php')                #=> Cartridge
-    #   CartridgeRepository.instance['php', '3.5', '0.1']         #=> Cartridge
-    #   CartridgeRepository.instance['php', '3.5']                #=> Cartridge
-    #   CartridgeRepository.instance['php']                       #=> Cartridge
-                    #
-    def select(cartridge_name, version = '_', cartridge_version = '_')
-      unless exist?(cartridge_name, cartridge_version, version)
-        raise KeyError.new("key not found: (#{cartridge_name}, #{version}, #{cartridge_version})")
+      # :call-seq:
+      #   CartridgeRepository.instance.clear -> nil
+      #
+      # Clear all entries from the memory index. Nothing is removed from the disk.
+      #
+      #   CartridgeRepository.instance.clear #=> nil
+      def clear
+        @index = Hash.new { |h, k| h[k] = Hash.new(&h.default_proc) }
       end
 
-      @index[cartridge_name][version][cartridge_version]
-    end
-
-    alias [] select # :nodoc:
-
-    # :call-seq:
-    #   CartridgeRepository.instance.install(directory) -> Cartridge
-    #
-    # Copies a cartridge's source into the cartridge repository from a +directory+. The Cartridge will additionally
-    # be indexed and available from a CartridgeRepository.instance
-    #
-    #   CartridgeRepository.instance.install('/usr/libexec/openshift/cartridges/openshift-origin-php')  #=> Cartridge
-    def install(directory)
-      raise ArgumentError.new("Illegal path to cartridge source: '#{directory}'") unless directory && File.directory?(directory)
-      raise ArgumentError.new("Source cannot be: '#{@path}'") if directory == @path
-
-      manifest_path = PathUtils.join(directory, 'metadata', 'manifest.yml')
-      raise ArgumentError.new("Cartridge manifest.yml missing: '#{manifest_path}'") unless File.file?(manifest_path)
-
-      entry = nil
-      $OpenShift_CartridgeRepository_SEMAPHORE.synchronize do
-        entry = insert(OpenShift::Runtime::Manifest.new(manifest_path, nil, @path))
-
-        FileUtils.rm_r(entry.repository_path) if File.exist?(entry.repository_path)
-        FileUtils.mkpath(entry.repository_path)
-
-        Utils.oo_spawn("shopt -s dotglob; /bin/cp -ad #{directory}/* #{entry.repository_path}",
-                       expected_exitstatus: 0)
-      end
-      entry
-    end
-
-    # :call-seq:
-    #   CartridgeRepository.instance.erase(cartridge_name, version, cartridge_version) -> Cartridge
-    #
-    # Erase given version of a cartridge from the cartridge repository and remove from index. This cannot be undone.
-    #
-    #   CartridgeRepository.instance.erase('php', '3.5', '1.0') #=> Cartridge
-    def erase(cartridge_name, version, cartridge_version)
-      unless exist?(cartridge_name, cartridge_version, version)
-        raise KeyError.new("key not found: (#{cartridge_name}, #{version}, #{cartridge_version})")
-      end
-
-      entry = nil
-      $OpenShift_CartridgeRepository_SEMAPHORE.synchronize do
-        # find a "template" entry
-        entry = select(cartridge_name, version, cartridge_version)
-
-        # Now go back and find all occurrences of the "template"
-        @index[cartridge_name].each_key do |k2|
-          @index[cartridge_name][k2].each_pair do |k3, v3|
-            if v3.eql?(entry)
-              remove(cartridge_name, k2, k3)
-            end
+      # :call-seq:
+      #   CartridgeRepository.instance.load([directory path]) -> Fixnum
+      #
+      # Read cartridge manifests from the CARTRIDGE_REPO_DIR or the provided +directory+.
+      #
+      #   CartridgeRepository.instance.load("/var/lib/openshift/.cartridge_repository")  #=> 24
+      def load(directory = nil)
+        $OpenShift_CartridgeRepository_SEMAPHORE.synchronize do
+          load_via_url = directory.nil?
+          find_manifests(directory || @path) do |manifest_path|
+            logger.debug { "Loading cartridge from #{manifest_path}" }
+            # we check the vendor and cartridge names only when loading via URL
+            c = insert(OpenShift::Runtime::Manifest.new(manifest_path, nil, @path, load_via_url))
+            logger.debug { "Loaded cartridge (#{c.name}, #{c.version}, #{c.cartridge_version})" }
           end
         end
 
-        FileUtils.rm_r(entry.repository_path)
-        parent = Pathname.new(entry.repository_path).parent
-        FileUtils.rm_r(parent) if 0 == parent.children.count
+        count
       end
 
-      entry
-    end
-
-    # :call-seq:
-    #   CartridgeRepository.instance.exists?(cartridge_name, cartridge_version, version)  -> true or false
-    #
-    # Is there an entry in the repository for this tuple?
-    #
-    #   CartridgeRepository.instance.erase('cobol', '2002', '1.0') #=> false
-    def exist?(cartridge_name, cartridge_version, version)
-      @index.key?(cartridge_name) &&
-          @index[cartridge_name].key?(version) &&
-          @index[cartridge_name][version].key?(cartridge_version)
-    end
-
-    # :call-seq:
-    #   CartridgeRepository.instance.find_manifests(directory)
-    #
-    # Search the cartridge repository +directory+ sub-directories for cartridge manifest files
-    #
-    #   CartridgeRepository.instance.find_manifests(directory)
-    def find_manifests(directory) # :nodoc: :yield: pathname
-      raise ArgumentError.new("Illegal path to cartridge repository: '#{directory}'") unless File.directory?(directory)
-
-      # wildcards: cartridges and cartridge versions
-      glob = PathUtils.join(directory, '*', '*', 'metadata', 'manifest.yml')
-      Dir[glob].sort.each { |e| yield e }
-    end
-
-    # :call-seq:
-    #   CartridgeRepository.instance.remove(cartridge_name, version, cartridge_version) -> Cartridge
-    #
-    # Remove index entry for this tuple
-    #
-    #   CartridgeRepository.instance.remove('php', '5.3', '1.0') -> Cartridge
-    def remove(cartridge_name, version, cartridge_version) # :nodoc:
-      @index[cartridge_name][version].delete(cartridge_version)
-      @index[cartridge_name].delete(version) if  @index[cartridge_name][version].empty?
-      @index.delete(cartridge_name) if  @index[cartridge_name].empty?
-    end
-
-
-    # :call-seq:
-    #   CartridgeRepository.instance.insert(cartridge) -> Cartridge
-    #
-    # Insert cartridge into index
-    #
-    #   CartridgeRepository.instance.insert(cartridge) -> Cartridge
-    def insert(cartridge) # :nodoc:
-      cartridge.versions.each do |version|
-        @index[cartridge.name][version][cartridge.cartridge_version] = cartridge
-        @index[cartridge.name][version]['_']                         = cartridge
-        @index[cartridge.name]['_']['_']                             = cartridge
-      end
-      cartridge
-    end
-
-    # :call-seq:
-    #   CartridgeRepository.instance.each -> Cartridge
-    #
-    # Process each unique cartridge
-    #
-    #   CartridgeRepository.instance.each {|c| puts c.name}
-    def each
-      return to_enum(:each) unless block_given?
-
-      cartridges = Set.new
-      @index.each_pair do |_, sw_hash|
-        sw_hash.each_pair do |_, cart_hash|
-          cart_hash.each_pair do |_, cartridge|
-            cartridges.add(cartridge)
-          end
+      # :call-seq:
+      #   CartridgeRepository.instance.select(cartridge_name)                             -> Cartridge
+      #   CartridgeRepository.instance.select(cartridge_name, version)                    -> Cartridge
+      #   CartridgeRepository.instance.select(cartridge_name, version, cartridge_version) -> Cartridge
+      #   CartridgeRepository.instance[cartridge_name]                                    -> Cartridge
+      #   CartridgeRepository.instance[cartridge_name, version]                           -> Cartridge
+      #   CartridgeRepository.instance[cartridge_name, version, cartridge_version]        -> Cartridge
+      #
+      # Select a cartridge from repository
+      #
+      # Each version parameter you provide narrows the search to the exact revision of the Cartridge you are requesting.
+      # If you do not provide _cartridge_version_ then the latest is assumed, for _version_ and _cartridge_name_.
+      # If you do not provide _cartridge_version_ and _version_, then the latest _cartridge_name_ will be returned.
+      #
+      # Latest is determined from the _Version_ elements provided in the cartridge's manifest, when the cartridge is
+      # loaded.
+      #
+      # Assuming PHP, 3.5 and 0.1 are all the latest each of these calls would return the same cartridge.
+      #   CartridgeRepository.instance.select('php', '3.5', '0.1')  #=> Cartridge
+      #   CartridgeRepository.instance.select('php', '3.5')         #=> Cartridge
+      #   CartridgeRepository.instance.select('php')                #=> Cartridge
+      #   CartridgeRepository.instance['php', '3.5', '0.1']         #=> Cartridge
+      #   CartridgeRepository.instance['php', '3.5']                #=> Cartridge
+      #   CartridgeRepository.instance['php']                       #=> Cartridge
+      #
+      def select(cartridge_name, version = '_', cartridge_version = '_')
+        unless exist?(cartridge_name, cartridge_version, version)
+          raise KeyError.new("key not found: (#{cartridge_name}, #{version}, #{cartridge_version})")
         end
+
+        @index[cartridge_name][version][cartridge_version]
       end
 
-      cartridges.each { |c| yield c }
-      self
-    end
+      alias [] select # :nodoc:
 
-    def latest_versions
-      cartridges = Set.new
-      @index.each_pair do |_, sw_hash|
-        sw_hash.each_pair do |_, cart_version_hash|
-          latest_version = cart_version_hash.keys.sort.last
-          cartridges.add(cart_version_hash[latest_version])
+      # :call-seq:
+      #   CartridgeRepository.instance.install(directory) -> Cartridge
+      #
+      # Copies a cartridge's source into the cartridge repository from a +directory+. The Cartridge will additionally
+      # be indexed and available from a CartridgeRepository.instance
+      #
+      #   CartridgeRepository.instance.install('/usr/libexec/openshift/cartridges/openshift-origin-php')  #=> Cartridge
+      def install(directory)
+        raise ArgumentError.new("Illegal path to cartridge source: '#{directory}'") unless directory && File.directory?(directory)
+        raise ArgumentError.new("Source cannot be: '#{@path}'") if directory == @path
+
+        manifest_path = PathUtils.join(directory, 'metadata', 'manifest.yml')
+        raise ArgumentError.new("Cartridge manifest.yml missing: '#{manifest_path}'") unless File.file?(manifest_path)
+
+        entry = nil
+        $OpenShift_CartridgeRepository_SEMAPHORE.synchronize do
+          entry = insert(OpenShift::Runtime::Manifest.new(manifest_path, nil, @path))
+
+          FileUtils.rm_r(entry.repository_path) if File.exist?(entry.repository_path)
+          FileUtils.mkpath(entry.repository_path)
+
+          Utils.oo_spawn("shopt -s dotglob; /bin/cp -ad #{directory}/* #{entry.repository_path}",
+                         expected_exitstatus: 0)
         end
+        entry
       end
 
-      if block_given?
-        cartridges.each { |c| yield c }
-      end
-
-      cartridges
-    end
-
-    ## print out all index entries in a table
-    def inspect
-      @index.inject("<CartridgeRepository:\n") do |memo, (name, sw_hash)|
-        sw_hash.inject(memo) do |memo, (sw_ver, cart_hash)|
-          cart_hash.inject(memo) do |memo, (cart_ver, cartridge)|
-            memo << "(#{name}, #{sw_ver}, #{cart_ver}): " << cartridge.to_s << "\n"
-          end
+      # :call-seq:
+      #   CartridgeRepository.instance.erase(cartridge_name, version, cartridge_version) -> Cartridge
+      #
+      # Erase given version of a cartridge from the cartridge repository and remove from index. This cannot be undone.
+      #
+      #   CartridgeRepository.instance.erase('php', '3.5', '1.0') #=> Cartridge
+      def erase(cartridge_name, version, cartridge_version)
+        unless exist?(cartridge_name, cartridge_version, version)
+          raise KeyError.new("key not found: (#{cartridge_name}, #{version}, #{cartridge_version})")
         end
-      end << '>'
-    end
 
-    ## print out all indexed cartridges in a table
-    def to_s
-      each_with_object("") do |c, memo|
-        memo << "(#{c.cartridge_vendor}, #{c.name}, #{c.version}, #{c.cartridge_version})\n"
-      end
-    end
+        entry = nil
+        $OpenShift_CartridgeRepository_SEMAPHORE.synchronize do
+          # find a "template" entry
+          entry = select(cartridge_name, version, cartridge_version)
 
-    # :call-seq:
-    #   CartridgeRepository.overlay_cartridge(cartridge, path) -> nil
-    #
-    # Overlay new code over existing cartridge in a gear;
-    #   If the cartridge manifest_path is :url then source_url is used to obtain cartridge source
-    #   Otherwise the cartridge source is copied from the cartridge_repository
-    #
-    #   source_hash is used to ensure the download was successful.
-    #
-    #   CartridgeRepository.overlay_cartridge(perl_cartridge, '/var/lib/.../mock') => nil
-    def self.overlay_cartridge(cartridge, target)
-      instantiate_cartridge(cartridge, target, false)
-    end
-
-    # :call-seq:
-    #   CartridgeRepository.instantiate_cartridge(cartridge, path) -> nil
-    #
-    # Instantiate a cartridge in a gear;
-    #   If the cartridge manifest_path is :url then source_url is used to obtain cartridge source
-    #   Otherwise the cartridge source is copied from the cartridge_repository
-    #
-    #   source_hash is used to ensure the download was successful.
-    #
-    #   CartridgeRepository.instantiate_cartridge(perl_cartridge, '/var/lib/.../mock') => nil
-    def self.instantiate_cartridge(cartridge, target, failure_remove = true)
-      FileUtils.mkpath target
-      if :url == cartridge.manifest_path
-        downloadable = true
-      end
-
-      if downloadable
-        uri       = URI(cartridge.source_url)
-        temporary = PathUtils.join(File.dirname(target), File.basename(cartridge.source_url))
-        cartridge.validate_vendor_name
-        cartridge.check_reserved_vendor_name
-        cartridge.validate_cartridge_name
-
-        case
-          when 'git' == uri.scheme || cartridge.source_url.end_with?('.git')
-            Utils::oo_spawn(%Q(set -xe;
-                               git clone #{cartridge.source_url} #{cartridge.name};
-                               GIT_DIR=./#{cartridge.name}/.git git repack),
-                            chdir:               Pathname.new(target).parent.to_path,
-                            expected_exitstatus: 0)
-
-          when uri.scheme =~ /^https*/ && cartridge.source_url =~ /\.zip/
-            begin
-              uri_copy(URI(cartridge.source_url), temporary, cartridge.source_md5)
-              extract(:zip, temporary, target)
-            ensure
-              FileUtils.rm(temporary)
-            end
-
-          when uri.scheme =~ /^https*/ && cartridge.source_url =~ /(\.tar\.gz|\.tgz)$/
-            begin
-              uri_copy(URI(cartridge.source_url), temporary, cartridge.source_md5)
-              extract(:tgz, temporary, target)
-            ensure
-              FileUtils.rm(temporary)
-            end
-
-          when uri.scheme =~ /^https*/ && cartridge.source_url =~ /\.tar$/
-            begin
-              uri_copy(URI(cartridge.source_url), temporary, cartridge.source_md5)
-              extract(:tar, temporary, target)
-            ensure
-              FileUtils.rm(temporary)
-            end
-
-          when 'file' == uri.scheme
-            entries = Dir.glob(PathUtils.join(uri.path, '*'), File::FNM_DOTMATCH)
-            filesystem_copy(entries, target, %w(. ..))
-
-          else
-            raise ArgumentError.new("CLIENT_ERROR: Unsupported URL(#{cartridge.source_url}) for downloading a private cartridge")
-        end
-      else
-        entries = Dir.glob(PathUtils.join(cartridge.repository_path, '*'), File::FNM_DOTMATCH)
-        filesystem_copy(entries, target, %w(. .. usr))
-
-        source_usr = File.join(cartridge.repository_path, 'usr')
-        target_usr = File.join(target, 'usr')
-
-        FileUtils.rm(target_usr) if File.symlink?(target_usr)
-        FileUtils.symlink(source_usr, target_usr) if File.exist?(source_usr) && !File.exist?(target_usr)
-      end
-
-      valid_cartridge_home(cartridge, target)
-
-      if downloadable
-        manifest_on_disk = PathUtils.join(target, %w(metadata manifest.yml))
-        IO.write(manifest_on_disk, YAML.dump(cartridge.manifest))
-      end
-    rescue => e
-      FileUtils.rm_rf target if failure_remove
-      raise e
-    end
-
-    private
-
-    def self.uri_copy(uri, temporary, md5 = nil)
-      content_length = nil
-      File.open(temporary, 'w') do |output|
-        uri.open(ssl_verify_mode:    OpenSSL::SSL::VERIFY_NONE,
-                 content_length_proc: lambda { |l| content_length = l }
-        ) do |input|
-          input.meta
-          begin
-            total = 0
-            while true
-              partial = input.readpartial(4096)
-              total   += output.write partial
-
-              if content_length && content_length < total
-                raise Net::HTTPBadResponse.new("CLIENT_ERROR: Download of '#{uri}' exceeded Content-Length of #{content_length}. Download aborted.")
+          # Now go back and find all occurrences of the "template"
+          @index[cartridge_name].each_key do |k2|
+            @index[cartridge_name][k2].each_pair do |k3, v3|
+              if v3.eql?(entry)
+                remove(cartridge_name, k2, k3)
               end
             end
-          rescue EOFError
-            # we are done
+          end
+
+          FileUtils.rm_r(entry.repository_path)
+          parent = Pathname.new(entry.repository_path).parent
+          FileUtils.rm_r(parent) if 0 == parent.children.count
+        end
+
+        entry
+      end
+
+      # :call-seq:
+      #   CartridgeRepository.instance.exists?(cartridge_name, cartridge_version, version)  -> true or false
+      #
+      # Is there an entry in the repository for this tuple?
+      #
+      #   CartridgeRepository.instance.erase('cobol', '2002', '1.0') #=> false
+      def exist?(cartridge_name, cartridge_version, version)
+        @index.key?(cartridge_name) &&
+            @index[cartridge_name].key?(version) &&
+            @index[cartridge_name][version].key?(cartridge_version)
+      end
+
+      # :call-seq:
+      #   CartridgeRepository.instance.find_manifests(directory)
+      #
+      # Search the cartridge repository +directory+ sub-directories for cartridge manifest files
+      #
+      #   CartridgeRepository.instance.find_manifests(directory)
+      def find_manifests(directory) # :nodoc: :yield: pathname
+        raise ArgumentError.new("Illegal path to cartridge repository: '#{directory}'") unless File.directory?(directory)
+
+        # wildcards: cartridges and cartridge versions
+        glob = PathUtils.join(directory, '*', '*', 'metadata', 'manifest.yml')
+        Dir[glob].sort.each { |e| yield e }
+      end
+
+      # :call-seq:
+      #   CartridgeRepository.instance.remove(cartridge_name, version, cartridge_version) -> Cartridge
+      #
+      # Remove index entry for this tuple
+      #
+      #   CartridgeRepository.instance.remove('php', '5.3', '1.0') -> Cartridge
+      def remove(cartridge_name, version, cartridge_version) # :nodoc:
+        @index[cartridge_name][version].delete(cartridge_version)
+        @index[cartridge_name].delete(version) if  @index[cartridge_name][version].empty?
+        @index.delete(cartridge_name) if  @index[cartridge_name].empty?
+      end
+
+
+      # :call-seq:
+      #   CartridgeRepository.instance.insert(cartridge) -> Cartridge
+      #
+      # Insert cartridge into index
+      #
+      #   CartridgeRepository.instance.insert(cartridge) -> Cartridge
+      def insert(cartridge) # :nodoc:
+        cartridge.versions.each do |version|
+          @index[cartridge.name][version][cartridge.cartridge_version] = cartridge
+          @index[cartridge.name][version]['_']                         = cartridge
+          @index[cartridge.name]['_']['_']                             = cartridge
+        end
+        cartridge
+      end
+
+      # :call-seq:
+      #   CartridgeRepository.instance.each -> Cartridge
+      #
+      # Process each unique cartridge
+      #
+      #   CartridgeRepository.instance.each {|c| puts c.name}
+      def each
+        return to_enum(:each) unless block_given?
+
+        cartridges = Set.new
+        @index.each_pair do |_, sw_hash|
+          sw_hash.each_pair do |_, cart_hash|
+            cart_hash.each_pair do |_, cartridge|
+              cartridges.add(cartridge)
+            end
+          end
+        end
+
+        cartridges.each { |c| yield c }
+        self
+      end
+
+      def latest_versions
+        cartridges = Set.new
+        @index.each_pair do |_, sw_hash|
+          sw_hash.each_pair do |_, cart_version_hash|
+            latest_version = cart_version_hash.keys.sort.last
+            cartridges.add(cart_version_hash[latest_version])
+          end
+        end
+
+        if block_given?
+          cartridges.each { |c| yield c }
+        end
+
+        cartridges
+      end
+
+      ## print out all index entries in a table
+      def inspect
+        @index.inject("<CartridgeRepository:\n") do |memo, (name, sw_hash)|
+          sw_hash.inject(memo) do |memo, (sw_ver, cart_hash)|
+            cart_hash.inject(memo) do |memo, (cart_ver, cartridge)|
+              memo << "(#{name}, #{sw_ver}, #{cart_ver}): " << cartridge.to_s << "\n"
+            end
+          end << '>'
+        end
+      end
+
+      ## print out all indexed cartridges in a table
+      def to_s
+        each_with_object("") do |c, memo|
+          memo << "(#{c.cartridge_vendor}, #{c.name}, #{c.version}, #{c.cartridge_version})\n"
+        end
+      end
+
+      # :call-seq:
+      #   CartridgeRepository.overlay_cartridge(cartridge, path) -> nil
+      #
+      # Overlay new code over existing cartridge in a gear;
+      #   If the cartridge manifest_path is :url then source_url is used to obtain cartridge source
+      #   Otherwise the cartridge source is copied from the cartridge_repository
+      #
+      #   source_hash is used to ensure the download was successful.
+      #
+      #   CartridgeRepository.overlay_cartridge(perl_cartridge, '/var/lib/.../mock') => nil
+      def self.overlay_cartridge(cartridge, target)
+        instantiate_cartridge(cartridge, target, false)
+      end
+
+      # :call-seq:
+      #   CartridgeRepository.instantiate_cartridge(cartridge, path) -> nil
+      #
+      # Instantiate a cartridge in a gear;
+      #   If the cartridge manifest_path is :url then source_url is used to obtain cartridge source
+      #   Otherwise the cartridge source is copied from the cartridge_repository
+      #
+      #   source_hash is used to ensure the download was successful.
+      #
+      #   CartridgeRepository.instantiate_cartridge(perl_cartridge, '/var/lib/.../mock') => nil
+      def self.instantiate_cartridge(cartridge, target, failure_remove = true)
+        FileUtils.mkpath target
+        if :url == cartridge.manifest_path
+          downloadable = true
+        end
+
+        if downloadable
+          uri       = URI(cartridge.source_url)
+          temporary = PathUtils.join(File.dirname(target), File.basename(cartridge.source_url))
+          cartridge.validate_vendor_name
+          cartridge.check_reserved_vendor_name
+          cartridge.validate_cartridge_name
+
+          case
+            when 'git' == uri.scheme || cartridge.source_url.end_with?('.git')
+              Utils::oo_spawn(%Q(set -xe;
+                               git clone #{cartridge.source_url} #{cartridge.name};
+                               GIT_DIR=./#{cartridge.name}/.git git repack),
+                              chdir:               Pathname.new(target).parent.to_path,
+                  expected_exitstatus: 0)
+
+            when uri.scheme =~ /^https*/ && cartridge.source_url =~ /\.zip/
+              begin
+                uri_copy(URI(cartridge.source_url), temporary, cartridge.source_md5)
+                extract(:zip, temporary, target)
+              ensure
+                FileUtils.rm(temporary)
+              end
+
+            when uri.scheme =~ /^https*/ && cartridge.source_url =~ /(\.tar\.gz|\.tgz)$/
+              begin
+                uri_copy(URI(cartridge.source_url), temporary, cartridge.source_md5)
+                extract(:tgz, temporary, target)
+              ensure
+                FileUtils.rm(temporary)
+              end
+
+            when uri.scheme =~ /^https*/ && cartridge.source_url =~ /\.tar$/
+              begin
+                uri_copy(URI(cartridge.source_url), temporary, cartridge.source_md5)
+                extract(:tar, temporary, target)
+              ensure
+                FileUtils.rm(temporary)
+              end
+
+            when 'file' == uri.scheme
+              entries = Dir.glob(PathUtils.join(uri.path, '*'), File::FNM_DOTMATCH)
+              filesystem_copy(entries, target, %w(. ..))
+
+            else
+              raise ArgumentError.new("CLIENT_ERROR: Unsupported URL(#{cartridge.source_url}) for downloading a private cartridge")
+          end
+        else
+          entries = Dir.glob(PathUtils.join(cartridge.repository_path, '*'), File::FNM_DOTMATCH)
+          filesystem_copy(entries, target, %w(. .. usr))
+
+          source_usr = File.join(cartridge.repository_path, 'usr')
+          target_usr = File.join(target, 'usr')
+
+          FileUtils.rm(target_usr) if File.symlink?(target_usr)
+          FileUtils.symlink(source_usr, target_usr) if File.exist?(source_usr) && !File.exist?(target_usr)
+        end
+
+        valid_cartridge_home(cartridge, target)
+
+        if downloadable
+          manifest_on_disk = PathUtils.join(target, %w(metadata manifest.yml))
+          IO.write(manifest_on_disk, YAML.dump(cartridge.manifest))
+        end
+
+      rescue => e
+        FileUtils.rm_rf target if failure_remove
+        raise e
+      end
+
+      private
+
+      def self.uri_copy(uri, temporary, md5 = nil)
+        content_length = nil
+        File.open(temporary, 'w') do |output|
+          uri.open(ssl_verify_mode:    OpenSSL::SSL::VERIFY_NONE,
+              content_length_proc: lambda { |l| content_length = l }
+          ) do |input|
+            input.meta
+            begin
+              total = 0
+              while true
+                partial = input.readpartial(4096)
+                total   += output.write partial
+
+                if content_length && content_length < total
+                  raise Net::HTTPBadResponse.new("CLIENT_ERROR: Download of '#{uri}' exceeded Content-Length of #{content_length}. Download aborted.")
+                end
+              end
+            rescue EOFError
+              # we are done
+            end
+          end
+        end
+
+        if content_length && content_length != File.size(temporary)
+          raise Net::HTTPBadResponse.new(
+                    "CLIENT_ERROR: Download of '#{uri}' failed, expected Content-Length of #{content_length} received #{File.size(temporary)}")
+        end
+
+        if md5
+          digest = Digest::MD5.file(temporary).hexdigest
+          if digest != md5
+            raise IOError.new("CLIENT_ERROR: Failed to download cartridge, checksum failed: #{md5} expected, #{digest} actual")
           end
         end
       end
 
-      if content_length && content_length != File.size(temporary)
-        raise Net::HTTPBadResponse.new(
-                  "CLIENT_ERROR: Download of '#{uri}' failed, expected Content-Length of #{content_length} received #{File.size(temporary)}")
+      def self.filesystem_copy(entries, target, black_list)
+        entries.delete_if do |e|
+          black_list.include? File.basename(e)
+        end
+
+        raise ArgumentError.new('CLIENT_ERROR: No cartridge sources found to install.') if entries.empty?
+
+        Utils.oo_spawn("/bin/cp -ad #{entries.join(' ')} #{target}",
+                       expected_exitstatus: 0)
       end
 
-      if md5
-        digest = Digest::MD5.file(temporary).hexdigest
-        if digest != md5
-          raise IOError.new("CLIENT_ERROR: Failed to download cartridge, checksum failed: #{md5} expected, #{digest} actual")
+      def self.extract(method, source, target)
+        case method
+          when :zip
+            Utils.oo_spawn("/usr/bin/unzip -d #{target} #{source}",
+                           expected_exitstatus: 0)
+          when :tgz
+            Utils.oo_spawn("/bin/tar -C #{target} -zxpf #{source}",
+                           expected_exitstatus: 0)
+
+          when :tar
+            Utils.oo_spawn("/bin/tar -C #{target} -xpf #{source}",
+                           expected_exitstatus: 0)
+
+          else
+            raise "Packaging method #{method} not yet supported."
+        end
+
+        files = Dir.glob(PathUtils.join(target, '*'))
+        if 1 == files.size
+          # A directory of one file is not legal move everyone up a level (github zip's are this way)
+          to_delete = files.first + '.to_delete'
+          File.rename(files.first, to_delete)
+
+          entries = Dir.glob(File.join(to_delete, '*'), File::FNM_DOTMATCH).delete_if do |e|
+            %w(. ..).include? File.basename(e)
+          end
+
+          FileUtils.move(entries, target, verbose: true)
+          FileUtils.rm_rf(to_delete)
+        end
+      end
+
+      def self.valid_cartridge_home(cartridge, path)
+        errors = []
+        [
+            [File, :directory?, %w(metadata)],
+            [File, :directory?, %w(bin)],
+            [File, :file?, %w(metadata manifest.yml)]
+        ].each do |clazz, method, target|
+          relative = PathUtils.join(target)
+          absolute = PathUtils.join(path, relative)
+
+          unless clazz.method(method).(absolute)
+            errors << "#{relative} is not #{method}"
+          end
+        end
+
+        unless errors.empty?
+          raise MalformedCartridgeError.new(
+                    "CLIENT_ERROR: Malformed cartridge (#{cartridge.name}, #{cartridge.version}, #{cartridge.cartridge_version})",
+                    errors
+                )
         end
       end
     end
 
-    def self.filesystem_copy(entries, target, black_list)
-      entries.delete_if do |e|
-        black_list.include? File.basename(e)
+    # MalformedCartridgeError will be raised if the cartridge instance is missing
+    #   files or they do not have expected settings.
+    #
+    #  MalformedCartridgeError#message provides minimal information.
+    #  MalformedCartridgeError#details or #to_s will provide exact issues.
+    #
+    class MalformedCartridgeError < RuntimeError
+      attr_reader :details
+
+      def initialize(message = nil, details = [])
+        super(message)
+        @details = details
       end
 
-      raise ArgumentError.new('CLIENT_ERROR: No cartridge sources found to install.') if entries.empty?
-
-      Utils.oo_spawn("/bin/cp -ad #{entries.join(' ')} #{target}",
-                     expected_exitstatus: 0)
-    end
-
-    def self.extract(method, source, target)
-      case method
-        when :zip
-          Utils.oo_spawn("/usr/bin/unzip -d #{target} #{source}",
-                         expected_exitstatus: 0)
-        when :tgz
-          Utils.oo_spawn("/bin/tar -C #{target} -zxpf #{source}",
-                         expected_exitstatus: 0)
-
-        when :tar
-          Utils.oo_spawn("/bin/tar -C #{target} -xpf #{source}",
-                         expected_exitstatus: 0)
-
-        else
-          raise "Packaging method #{method} not yet supported."
+      def to_s
+        super + ":\n#{@details.join(', ')}"
       end
-
-      files = Dir.glob(PathUtils.join(target, '*'))
-      if 1 == files.size
-        # A directory of one file is not legal move everyone up a level (github zip's are this way)
-        to_delete = files.first + '.to_delete'
-        File.rename(files.first, to_delete)
-
-        entries = Dir.glob(File.join(to_delete, '*'), File::FNM_DOTMATCH).delete_if do |e|
-          %w(. ..).include? File.basename(e)
-        end
-
-        FileUtils.move(entries, target, verbose: true)
-        FileUtils.rm_rf(to_delete)
-      end
-    end
-
-    def self.valid_cartridge_home(cartridge, path)
-      errors = []
-      [
-          [File, :directory?, %w(metadata)],
-          [File, :directory?, %w(bin)],
-          [File, :file?, %w(metadata manifest.yml)]
-      ].each do |clazz, method, target|
-        relative = PathUtils.join(target)
-        absolute = PathUtils.join(path, relative)
-
-        unless clazz.method(method).(absolute)
-          errors << "#{relative} is not #{method}"
-        end
-      end
-
-      unless errors.empty?
-        raise MalformedCartridgeError.new(
-                  "CLIENT_ERROR: Malformed cartridge (#{cartridge.name}, #{cartridge.version}, #{cartridge.cartridge_version})",
-                  errors
-              )
-      end
-    end
-  end
-
-  # MalformedCartridgeError will be raised if the cartridge instance is missing
-  #   files or they do not have expected settings.
-  #
-  #  MalformedCartridgeError#message provides minimal information.
-  #  MalformedCartridgeError#details or #to_s will provide exact issues.
-  #
-  class MalformedCartridgeError < RuntimeError
-    attr_reader :details
-
-    def initialize(message = nil, details = [])
-      super(message)
-      @details = details
-    end
-
-    def to_s
-      super + ":\n#{@details.join(', ')}"
     end
   end
 end

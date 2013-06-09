@@ -44,18 +44,18 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
     @namespace = 'jwh201204301647'
     @gear_ip   = "127.0.0.1"
 
-    OpenShift::ApplicationContainer.stubs(:get_build_model).returns(:v2)
+    OpenShift::Runtime::ApplicationContainer.stubs(:get_build_model).returns(:v2)
     @cartridge_model = mock()
-    OpenShift::V2CartridgeModel.stubs(:new).returns(@cartridge_model)
+    OpenShift::Runtime::V2CartridgeModel.stubs(:new).returns(@cartridge_model)
 
     @state = mock()
-    OpenShift::Utils::ApplicationState.stubs(:new).returns(@state)
+    OpenShift::Runtime::Utils::ApplicationState.stubs(:new).returns(@state)
 
-    @container = OpenShift::ApplicationContainer.new(@gear_uuid, @gear_uuid, @user_uid,
+    @container = OpenShift::Runtime::ApplicationContainer.new(@gear_uuid, @gear_uuid, @user_uid,
         @app_name, @gear_uuid, @namespace, nil, nil)
 
-    @frontend = mock('OpenShift::FrontendHttpServer')
-    OpenShift::FrontendHttpServer.stubs(:new).returns(@frontend)
+    @frontend = mock('OpenShift::Runtime::FrontendHttpServer')
+    OpenShift::Runtime::FrontendHttpServer.stubs(:new).returns(@frontend)
   end
 
   def test_pre_receive_default_builder
@@ -69,7 +69,7 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
   def test_post_receive_default_builder
     repository = mock()
 
-    OpenShift::ApplicationRepository.expects(:new).returns(repository)
+    OpenShift::Runtime::ApplicationRepository.expects(:new).returns(repository)
 
     @cartridge_model.expects(:builder_cartridge).returns(nil)
 

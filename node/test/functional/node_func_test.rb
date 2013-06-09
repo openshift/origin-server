@@ -26,13 +26,13 @@ class NodeTest < OpenShift::NodeTestCase
         returns(YAML.load(MANIFESTS[0]))
     File.stubs(:exist?).returns(true)
 
-    OpenShift::CartridgeRepository.
+    OpenShift::Runtime::CartridgeRepository.
         any_instance.
         stubs(:find_manifests).
         multiple_yields(["#{@path}/redhat-crtest/1.2/metadata/manifest.yml"])
 
-    OpenShift::CartridgeRepository.instance.clear
-    OpenShift::CartridgeRepository.instance.load
+    OpenShift::Runtime::CartridgeRepository.instance.clear
+    OpenShift::Runtime::CartridgeRepository.instance.load
   end
 
   def test_get_cartridge_list

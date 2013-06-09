@@ -47,7 +47,7 @@ module OpenShift
       OpenShift::Config.stubs(:new).returns(config)
 
       # .state file is missing
-      state = OpenShift::Utils::ApplicationState.new(@uid.to_s)
+      state = OpenShift::Runtime::Utils::ApplicationState.new(@uid.to_s)
       assert_equal State::UNKNOWN, state.value
 
       # .state file is created

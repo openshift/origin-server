@@ -14,31 +14,33 @@
 # limitations under the License.
 #++
 
-module OpenShift; module Runtime
-  class PubSubConnector
-    attr_reader :name, :connection_type
-    RESERVED = {
-      "publish-gear-endpoint" => 'NET_TCP:gear-endpoint-info'
-    }
+module OpenShift
+  module Runtime
+    class PubSubConnector
+      attr_reader :name, :connection_type
+      RESERVED = {
+          "publish-gear-endpoint" => 'NET_TCP:gear-endpoint-info'
+      }
 
-    def initialize(connection_type, name)
-      @name = name
-      @connection_type = connection_type
-    end
+      def initialize(connection_type, name)
+        @name = name
+        @connection_type = connection_type
+      end
 
-    alias_method :to_s, :name
+      alias_method :to_s, :name
 
-    # returns true if and only if this connector's name is
-    # reserved by the platform
-    def reserved?
-      RESERVED.keys.include?(name) and RESERVED[name] == connection_type
-    end
+      # returns true if and only if this connector's name is
+      # reserved by the platform
+      def reserved?
+        RESERVED.keys.include?(name) and RESERVED[name] == connection_type
+      end
 
-    ## name of the method invoked by the cartridge
-    # since cartridge manifest specifies with hyphens,
-    # substitute them with underscores
-    def action_name
-      name.gsub('-', '_').to_sym
+      ## name of the method invoked by the cartridge
+      # since cartridge manifest specifies with hyphens,
+      # substitute them with underscores
+      def action_name
+        name.gsub('-', '_').to_sym
+      end
     end
   end
-end; end
+end

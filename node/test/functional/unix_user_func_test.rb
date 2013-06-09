@@ -50,10 +50,10 @@ class UnixUserModelFunctionalTest < OpenShift::NodeTestCase
     @config.stubs(:get).with("OPENSHIFT_HTTP_CONF_DIR").returns("/tmp")
     OpenShift::Config.stubs(:new).returns(@config)
 
-    @frontend = mock('OpenShift::FrontendHttpServer')
+    @frontend = mock('OpenShift::Runtime::FrontendHttpServer')
     @frontend.stubs(:create)
     @frontend.stubs(:destroy)
-    OpenShift::FrontendHttpServer.stubs(:new).returns(@frontend)
+    OpenShift::Runtime::FrontendHttpServer.stubs(:new).returns(@frontend)
   end
 
   def teardown

@@ -121,7 +121,7 @@ module OpenShift
     end
 
     def test_timeout
-      assert_raises OpenShift::Utils::ShellExecutionException do
+      assert_raises OpenShift::Runtime::Utils::ShellExecutionException do
         Utils.oo_spawn("sleep 15",
                        timeout: 1)
       end
