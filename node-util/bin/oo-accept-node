@@ -383,7 +383,7 @@ def check_cgroup_procs
                 # ensure the process is still running and not defunct before failing
                 # this fixes both the transient process and the defunct process
                 # detection problems
-                if proc_data.size > 1 && !proc_data.first.strip.end_with?('<defunct>')
+                if proc_data.size > 1 && !proc_data.last.strip.end_with?('<defunct>')
                     do_fail("#{uuid} has a process missing from cgroups:  #{pid}")
                 end
             end
