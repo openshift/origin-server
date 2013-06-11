@@ -20,6 +20,13 @@ do
     load_env $f
 done
 
+## with v2, PATH is no longer modified by the cartridge
+## use OPENSHIFT_*_PATH_ELEMENT from the primary cartridge instead
+## here, we assume that OPENSHIFT_*_PATH_ELEMENT has only one line
+for f in $OPENSHIFT_PRIMARY_CARTRIDGE_DIR/env/OPENSHIFT_*_PATH_ELEMENT; do
+  PATH=$(cat $f | tr -d '\n'):$PATH
+done
+
 CART_CONF_DIR=$OPENSHIFT_CRON_DIR/versions/$OPENSHIFT_CRON_VERSION/configuration
 
 function log_message() {
