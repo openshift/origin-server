@@ -39,11 +39,10 @@ optparse = OptionParser.new { |opts|
       $OPTIONS[:timeout] = timeout
     }
 
-    $OPTIONS[:devbuild] = false
-    opts.on('-d','--devbuild', 'Disable some tests for development bilding') { |devbuild|
-      $OPTIONS[:devbuild] = devbuild
+    $OPTIONS[:'include-upgrade-checks'] = false
+    opts.on('--include-upgrade-checks', 'Enable checks for upgrade consistency') { |checks|
+      $OPTIONS[:'include-upgrade-checks'] = checks
     }
-
   }
 optparse.parse!
 
@@ -644,24 +643,43 @@ def check_system_httpd_configs
 end
 
 def check_app_dirs
-    verbose("checking application dirs")
-    copy_all_users = $ALL_USERS.dup
-    Dir.foreach($GEAR_BASE_DIR) { |entry|
-        next if entry[0,1] == "."
-        next if entry == 'lost+found'
-        next if entry == 'last_access.log'
-        next if File.symlink? File.join($GEAR_BASE_DIR,entry)
-        next unless File.directory? File.join($GEAR_BASE_DIR,entry)
-        [ ".ssh", ".env", ".sandbox", ".tmp" ].each { |dotdir|
-             do_fail("directory #{entry} doesn't have a #{dotdir} directory") unless File.directory? File.join($GEAR_BASE_DIR,entry,dotdir)
-        }
-        ind = copy_all_users.index(entry)
-        if ind
-          copy_all_users.delete_at(ind)
-        else
-          do_fail("directory #{entry} doesn't have an associated user")
-        end
-    }
+  verbose("checking application dirs")
+  copy_all_users = $ALL_USERS.dup
+
+  Dir.foreach($GEAR_BASE_DIR) do |entry|
+    next if entry[0,1] == "."
+    next if entry == 'lost+found'
+    next if entry == 'last_access.log'
+
+    gear_home = File.join($GEAR_BASE_DIR, entry)
+
+    next if File.symlink? gear_home
+    next unless File.directory? gear_home
+
+    [ ".ssh", ".env", ".sandbox", ".tmp" ].each do |dotdir|
+         do_fail("directory #{entry} doesn't have a #{dotdir} directory") unless File.directory? File.join(gear_home,dotdir)
+    end
+
+    if $OPTIONS[:'include-upgrade-checks']
+      migration_markers_found = !Dir.glob(File.join(gear_home, %w(app-root data .migration*))).empty?
+      premigration_state_found = File.exists?(File.join(gear_home, %w(app-root runtime .premigration_state)))
+
+      if migration_markers_found 
+        do_fail("directory #{entry} contains migration data")
+      end
+
+      if premigration_state_found
+        do_fail("directory #{entry} contains pre-migration state")
+      end
+    end
+
+    ind = copy_all_users.index(entry)
+    if ind
+      copy_all_users.delete_at(ind)
+    else
+      do_fail("directory #{entry} doesn't have an associated user")
+    end
+  end
 end
 
 if __FILE__ == $0
@@ -688,4 +706,3 @@ if __FILE__ == $0
     end
     exit($STATUS)
 end
-
