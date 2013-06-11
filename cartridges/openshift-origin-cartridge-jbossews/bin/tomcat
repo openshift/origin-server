@@ -37,7 +37,7 @@ memory_options="-Xmx${max_heap}m -XX:MaxPermSize=${max_permgen}m -XX:+Aggressive
 # Specify options to pass to the Java VM.
 #
 if [ -z "$JAVA_OPTS" ]; then
-   JAVA_OPTS="$memory_options -Djava.util.logging.config.file=$CATALINA_BASE/conf/logging.properties -Djava.util.logging.manager=org.apache.juli.ClassLoaderLogManager -Djava.net.preferIPv4Stack=true -Dfile.encoding=UTF-8 -Djava.net.preferIPv4Stack=true"                                                                                                                                    
+   JAVA_OPTS="$memory_options -DOPENSHIFT_APP_UUID=${OPENSHIFT_APP_UUID} -Djava.util.logging.config.file=$CATALINA_BASE/conf/logging.properties -Djava.util.logging.manager=org.apache.juli.ClassLoaderLogManager -Djava.net.preferIPv4Stack=true -Dfile.encoding=UTF-8 -Djava.net.preferIPv4Stack=true"                                                                                                                                    
 
    if marker_present "enable_jpda"; then
       echo "enable_jpda marker found; enabling debugging on ${OPENSHIFT_JBOSSEWS_IP}:${OPENSHIFT_JBOSSEWS_JPDA_PORT}"
