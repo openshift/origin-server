@@ -1117,6 +1117,41 @@ class OODiag
 
   end
 
+  def test_broker_certificate
+    skip_test unless @is_broker
+
+    require 'net/http'
+    require 'net/https'
+    require 'uri'
+    require 'openssl'
+    require 'socket'
+    require 'tempfile'
+
+    url = URI.parse "https://#{Socket.gethostname}/"
+    http = Net::HTTP.new(url.host, url.port)
+    http.use_ssl = true
+
+    # Retrieve the SSL cert from Apache
+    certfile = Tempfile.new('oodiag')
+    certfile.write `echo "" | openssl s_client -connect #{url.host}:#{url.port} -prexit 2>/dev/null | sed -n -e '/BEGIN\ CERTIFICATE/,/END\ CERTIFICATE/ p'`
+    certfile.flush
+
+    # Use the server certificate retrieved above to verify the peer certificate
+    # This allows us to verify self-signed certs as well as CA issued certs without 
+    # having to verify the certificate chain
+    http.ca_file = certfile.path
+
+    # Force verification of the server SSL certificate
+    http.verify_mode = OpenSSL::SSL::VERIFY_PEER
+    begin
+      request = Net::HTTP::Get.new(url.path)
+      response = http.request(request)
+    rescue OpenSSL::SSL::SSLError => e
+      do_warn "There was an error verifying the Broker SSL cert: #{e.message}"
+    ensure
+      certfile.close!
+    end
+  end
 end #class OODiag
 
 
