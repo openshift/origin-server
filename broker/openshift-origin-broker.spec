@@ -16,7 +16,7 @@
 
 Summary:       OpenShift Origin broker components
 Name:          openshift-origin-broker
-Version:       1.10.1
+Version:       1.10.2
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -222,6 +222,112 @@ chcon -R -t httpd_var_run_t %{brokerdir}/httpd/run
 /sbin/restorecon -R -v /var/run
 
 %changelog
+* Tue Jun 11 2013 Troy Dawson <tdawson@redhat.com> 1.10.2-1
+- <broker.conf> default to usage db tracking on (lmeyer@redhat.com)
+- Print warning instead of failing tests if there is an unknown auth plugin
+  configured (kraman@gmail.com)
+- Include psych gem only on F19 systems where it has been split out
+  (kraman@gmail.com)
+- Update broker tests with new versions of packages for F19 Fix bug where test
+  was not creating user on before using it (kraman@gmail.com)
+- Create usage.log when broker is installed (kraman@gmail.com)
+- Relax rake and mocha gem version dependencies (kraman@gmail.com)
+- origin_runtime_138 - Add SSL_ENDPOINT variable and filter whether carts use
+  ssl_to_gear. (rmillner@redhat.com)
+- Merge pull request #2740 from danmcp/master
+  (dmcphers+openshiftbot@redhat.com)
+- fix sanity tests (dmcphers@redhat.com)
+- return HTTP Status code 200 from DELETE instead of 204 (lnader@redhat.com)
+- Fixing alias tests (abhgupta@redhat.com)
+- vendoring of cartridges (rchopra@redhat.com)
+- Merge pull request #2576 from rajatchopra/master
+  (dmcphers+openshiftbot@redhat.com)
+- fix to cartridge cache test (rchopra@redhat.com)
+- Removing externally_reserved_uids_size attribute from districts
+  (abhgupta@redhat.com)
+- enable downloading of cartridges (rchopra@redhat.com)
+- Bug 963981 - Fix app events controller Use canonical_name/canonical_namespace
+  for application/domain respectively when using find_by op.
+  (rpenta@redhat.com)
+- Add fault tolerance code to UsageRecord model (rpenta@redhat.com)
+- Merge pull request #2481 from smarterclayton/add_param_for_downloadable_carts
+  (dmcphers@redhat.com)
+- Mocha should be constrained (ccoleman@redhat.com)
+- Bug 963156 (dmcphers@redhat.com)
+- Merge pull request #2424 from smarterclayton/upgrade_to_mocha_0_13_3
+  (admiller@redhat.com)
+- Add 'cartridges[][url]' as an optional parameter on ADD_APPLICATION and 'url'
+  as an optional parameter on ADD_CARTRIDGE (ccoleman@redhat.com)
+- Merge pull request #2450 from lnader/master
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #2426 from abhgupta/abhgupta-dev
+  (dmcphers+openshiftbot@redhat.com)
+- Added API for cartridge search (lnader@redhat.com)
+- Switching v2 to be the default (dmcphers@redhat.com)
+- Removing code dealing with namespace updates for applications
+  (abhgupta@redhat.com)
+- Upgrade to mocha 0.13.3 (compatible with Rails 3.2.12) (ccoleman@redhat.com)
+- Allow broker to be run in source mode and load source plugins
+  (ccoleman@redhat.com)
+- Broker requires parse config newer than 1.0.1 (ccoleman@redhat.com)
+- <broker><oo-accept-broker> Bug 958674 - Fix Mongo SSL support
+  (jdetiber@redhat.com)
+- Remove last external reference (ccoleman@redhat.com)
+- Merge remote-tracking branch 'origin/master' into support_external_cartridges
+  (ccoleman@redhat.com)
+- Rename "external cartridge" to "downloaded cartridge".  UI should call them
+  "personal" cartridges (ccoleman@redhat.com)
+- Merge pull request #2300 from pravisankar/dev/ravi/card21
+  (dmcphers+openshiftbot@redhat.com)
+- Broker changes for supporting unsubscribe connection event. Details: When one
+  of the component is removed from the app and if it has published some content
+  to other components located on different gears, we issue unsubscribe event on
+  all the subscribing gears to cleanup the published content.
+  (rpenta@redhat.com)
+- Merge pull request #2306 from
+  smarterclayton/bug_958192_document_auth_scope_config
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 958192 - Document scopes in config (ccoleman@redhat.com)
+- Use standard name for boolean (ccoleman@redhat.com)
+- Merge remote-tracking branch 'origin/master' into support_external_cartridges
+  (ccoleman@redhat.com)
+- Card 551 (lnader@redhat.com)
+- <broker> Bug 956351 - Add mongo rubygem dependency, docs (jolamb@redhat.com)
+- Merge pull request #2282 from rajatchopra/url_story
+  (dmcphers+openshiftbot@redhat.com)
+- support for external cartridge through urls (rchopra@redhat.com)
+- Removed 'setmaxstorage' option for oo-admin-ctl-user script. Added
+  'setmaxtrackedstorage' and 'setmaxuntrackedstorage' options for oo-admin-ctl-
+  user script. Updated oo-admin-ctl-user man page. Max allowed additional fs
+  storage for user will be 'max_untracked_addtl_storage_per_gear' capability +
+  'max_tracked_addtl_storage_per_gear' capability. Don't record usage for
+  additional fs storage if it is less than
+  'max_untracked_addtl_storage_per_gear' limit. Fixed unit tests and models to
+  accommodate the above change. (rpenta@redhat.com)
+- Merge remote-tracking branch 'origin/master' into support_external_cartridges
+  (ccoleman@redhat.com)
+- Bug 956670 - Fix static references to small gear size (jdetiber@redhat.com)
+- Merge pull request #2219 from detiber/useractionlogfix
+  (dmcphers+openshiftbot@redhat.com)
+- Add broker config for external cartridges (ccoleman@redhat.com)
+- <broker> Updated spec file for correct user_action.log location <oo-accept-
+  broker> Added permission check for rest api logs (jdetiber@redhat.com)
+- General REST API clean up - centralizing log tags and getting common objects
+  (lnader@redhat.com)
+- Merge pull request #2062 from Miciah/move-plugins.d-README-from-node-to-
+  broker (dmcphers+openshiftbot@redhat.com)
+- Bug 928675 (asari.ruby@gmail.com)
+- Merge pull request #2111 from brenton/specs3
+  (dmcphers+openshiftbot@redhat.com)
+- Removing the MongoDB dependency from the Broker rpm spec
+  (bleanhar@redhat.com)
+- Merge pull request #2080 from brenton/specs2
+  (dmcphers+openshiftbot@redhat.com)
+- Move to minitest 3.5.0, webmock 1.8.11, and mocha 0.12.10
+  (ccoleman@redhat.com)
+- Cucumber is not a runtime requirement for the Broker (bleanhar@redhat.com)
+- Move plugins.d/README from the node to the broker (miciah.masters@gmail.com)
+
 * Tue Jun 11 2013 Troy Dawson <tdawson@redhat.com> 1.10.1-1
 - Bump up version to 1.10
 
