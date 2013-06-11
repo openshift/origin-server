@@ -16,7 +16,7 @@
 
 Summary:       OpenShift Origin broker components
 Name:          openshift-origin-broker
-Version:       1.5.2
+Version:       1.10.1
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -222,6 +222,9 @@ chcon -R -t httpd_var_run_t %{brokerdir}/httpd/run
 /sbin/restorecon -R -v /var/run
 
 %changelog
+* Tue Jun 11 2013 Troy Dawson <tdawson@redhat.com> 1.10.1-1
+- Bump up version to 1.10
+
 * Sat Apr 13 2013 Krishna Raman <kraman@gmail.com> 1.5.2-1
 - Fixing broker and nsupdate plugin deps (bleanhar@redhat.com)
 - Replace zend with ruby in broker function test as zend is not available on
