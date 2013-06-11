@@ -6,14 +6,15 @@
 #   $3   newly created instance dir (0 - no, 1 - yes)
 #   $4   user name (gear uuid)
 #
-# The following will create polyinstantiated directories for openshift
+# The following will create polyinstantiated directories for OpenShift
 #
 
 if [ "$3" = 1 ]; then
-    passwd=$(getent passwd "$4")
-    homedir=$(echo "$passwd" | cut -f6 -d":")
-    context=$(getfattr --only-values -n security.selinux "$homedir" 2>/dev/null)
-    setype=$(echo "$context" | cut -f 3 -d":")
+    IFS=":"  # Used for token splitting below
+
+    uid=$(id -u "$4")                 # NOTE: Getent treats OpenShift's all numeric usernames
+    passwd=($(getent passwd "$uid"))  #       as userids and does not resolve them.
+    homedir="${passwd[5]}"
 
     cartvers=1
     if [ -e "$homedir/.env/CARTRIDGE_VERSION_2" ]
@@ -33,16 +34,29 @@ if [ "$3" = 1 ]; then
     fi
 
     /sbin/restorecon "$1"
+    [ "$2" == "tmpfs" ] || /sbin/restorecon "$2"
 
-    # Only do this on openshift users
+    # Only set MCS on OpenShift users
+    for d in "${homedir}/app-root" "$homedir"
+    do
+        context=($(getfattr --only-values -n security.selinux "$d" 2>/dev/null)) && break
+    done
+    setype="${context[2]}"
+    semls="${context[3]}"
+    semcs="${context[4]}"
+
     if [ "$setype" = "openshift_var_lib_t" ]
     then
-        uid=$(id -u "$4")
-        mcs_level=$(/usr/bin/oo-get-mcs-level $uid) 2>/dev/null || :
-        /sbin/restorecon "$1"
-        [ "$mcs_level" ] && /usr/bin/chcon -l $mcs_level "$1"
-        [ "$2" == "tmpfs" ] || /sbin/restorecon "$2"
-        [ "$2" == "tmpfs" ] || /usr/bin/chcon -l $mcs_level "$2"
+        # Reading mcs from the fs is far less expensive than running the generator.
+        if [ -n "$semcs" ]
+        then
+            mcs_level="${semls}:${semcs}"
+        else
+            mcs_level=$(/usr/bin/oo-get-mcs-level "$uid") 2>/dev/null || :
+        fi
+
+        /usr/bin/chcon -l "$mcs_level" "$1"
+        [ "$2" == "tmpfs" ] || /usr/bin/chcon -l "$mcs_level" "$2"
     fi
 fi
 
