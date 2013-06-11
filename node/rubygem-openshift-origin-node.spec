@@ -204,17 +204,6 @@ ln -s /usr/lib/openshift/node/jobs/openshift-origin-cron-monthly %{buildroot}/et
 
 echo "/usr/bin/oo-trap-user" >> /etc/shells
 
-# Enable cgroups on ssh logins
-if [ -f /etc/pam.d/sshd ] ; then
-   if ! grep pam_cgroup.so /etc/pam.d/sshd > /dev/null ; then
-     echo "session    optional     pam_cgroup.so" >> /etc/pam.d/sshd
-   else
-     logger -t rpm-post "pam_cgroup.so is already enabled for sshd"
-   fi
-else
-   logger -t rpm-post "cannot add pam_cgroup.so to /etc/pamd./sshd: file not found"
-fi
-
 # Start the cron service so that each gear gets its cron job run, if they're enabled
 %if 0%{?fedora} >= 16 || 0%{?rhel} >= 7
   systemctl restart  crond.service || :
@@ -223,11 +212,6 @@ fi
 %endif
 
 %preun
-# Check to make sure we uninstalling instead of updating
-if [ "$1" -eq 0 ] ; then
-  # disable cgroups on sshd logins
-  sed -i -e '/pam_cgroup/d' /etc/pam.d/sshd
-fi
 
 %files
 %doc LICENSE COPYRIGHT
