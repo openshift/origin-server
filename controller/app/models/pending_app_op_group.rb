@@ -111,7 +111,8 @@ class PendingAppOpGroup
           application.execute_connections rescue nil
         when :set_gear_additional_filesystem_gb
           gear = get_gear_for_rollback(op)
-          gear.set_addtl_fs_gb(op.saved_values["additional_filesystem_gb"], handle)
+          tag = { "op_id" => op._id.to_s }
+          gear.set_addtl_fs_gb(op.saved_values["additional_filesystem_gb"], handle, tag)
           use_parallel_job = true
         when :add_alias
           gear = get_gear_for_rollback(op)
@@ -183,7 +184,8 @@ class PendingAppOpGroup
             gear.unreserve_uid          
           when :expose_port
             job = gear.get_expose_port_job(component_instance)
-            RemoteJob.add_parallel_job(handle, "expose-ports::#{component_instance._id.to_s}", gear, job)
+            tag = { "expose-ports" => component_instance._id.to_s, "op_id" => op._id.to_s }
+            RemoteJob.add_parallel_job(handle, tag, gear, job)
             use_parallel_job = true
           when :new_component
             application.component_instances.push(component_instance)
@@ -222,7 +224,10 @@ class PendingAppOpGroup
           when :destroy_gear
             result_io.append gear.destroy_gear(true)
           when :start_component
-            result_io.append gear.start(component_instance)
+            tag = { "op_id" => op._id.to_s }
+            job = gear.get_start_job(component_instance)
+            RemoteJob.add_parallel_job(handle, tag, gear, job)
+            use_parallel_job = true
           when :stop_component
             if args.has_key?("force") and args["force"]==true
               result_io.append gear.force_stop(component_instance)
@@ -236,15 +241,18 @@ class PendingAppOpGroup
           when :tidy_component
             result_io.append gear.tidy(component_instance)
           when :update_configuration
-            gear.update_configuration(op.args,handle)
+            tag = { "op_id" => op._id.to_s }
+            gear.update_configuration(op.args,handle,tag)
             use_parallel_job = true
           when :add_broker_auth_key 
+            tag = { "op_id" => op._id.to_s }
             job = gear.get_broker_auth_key_add_job(args["iv"], args["token"])
-            RemoteJob.add_parallel_job(handle, "", gear, job)
+            RemoteJob.add_parallel_job(handle, tag, gear, job)
             use_parallel_job = true
           when :remove_broker_auth_key
+            tag = { "op_id" => op._id.to_s }
             job = gear.get_broker_auth_key_remove_job()
-            RemoteJob.add_parallel_job(handle, "", gear, job)
+            RemoteJob.add_parallel_job(handle, tag, gear, job)
             use_parallel_job = true
           when :set_group_overrides
             application.group_overrides=op.args["group_overrides"]
@@ -256,7 +264,8 @@ class PendingAppOpGroup
           when :unsubscribe_connections
             application.unsubscribe_connections(op.args["sub_pub_info"])
           when :set_gear_additional_filesystem_gb
-            gear.set_addtl_fs_gb(op.args["additional_filesystem_gb"], handle)
+            tag = { "op_id" => op._id.to_s }
+            gear.set_addtl_fs_gb(op.args["additional_filesystem_gb"], handle, tag)
             use_parallel_job = true
           when :add_alias
             result_io.append gear.add_alias(op.args["fqdn"])
@@ -280,35 +289,49 @@ class PendingAppOpGroup
             a.certificate_added_at = nil
             self.application.save
           when :replace_all_ssh_keys
+            tag = { "op_id" => op._id.to_s }
             job = gear.get_fix_authorized_ssh_keys_job(op.args["keys_attrs"])
-            RemoteJob.add_parallel_job(handle, "", gear, job)
+            RemoteJob.add_parallel_job(handle, tag, gear, job)
             use_parallel_job = true
           end
           
           if use_parallel_job 
             parallel_job_ops.push op
+          elsif result_io.exitcode != 0
+            op.set(:state, :failed)
+            if result_io.hasUserActionableError
+              raise OpenShift::UserException.new("Unable to #{self.op_type.to_s.gsub("_"," ")}", result_io.exitcode, nil, result_io) 
+            else
+              raise OpenShift::NodeException.new("Unable to #{self.op_type.to_s.gsub("_"," ")}", result_io.exitcode, result_io) 
+            end
           else
             op.set(:state, :completed)
-          end
-        end
-        if result_io.exitcode != 0
-          if result_io.hasUserActionableError
-            raise OpenShift::UserException.new("Unable to #{op.op_type.to_s.gsub("_"," ")}", result_io.exitcode, nil, result_io) 
-          else
-            raise OpenShift::NodeException.new("Unable to #{op.op_type.to_s.gsub("_"," ")}", result_io.exitcode, nil, result_io) 
           end
         end
       
         if parallel_job_ops.length > 0
           RemoteJob.execute_parallel_jobs(handle)
+          failed_ops = []
           RemoteJob.get_parallel_run_results(handle) do |tag, gear_id, output, status|
-            if status==0 && tag.start_with?("expose-ports::")
-              component_instance_id = tag[14..-1]
-              application.component_instances.find(component_instance_id).process_properties(ResultIO.new(status, output, gear_id))
+            if tag.has_key?("expose-ports")
+              if status==0
+                component_instance_id = tag["expose-ports"]
+                application.component_instances.find(component_instance_id).process_properties(ResultIO.new(status, output, gear_id))
+              end
+            else
+              result_io.append ResultIO.new(status, output, gear_id)
+              failed_ops << tag["op_id"] if status!=0 
             end
           end
-          parallel_job_ops.each{ |op| op.set(:state, :completed) }
+          parallel_job_ops.each{ |op| 
+            if failed_ops.include? op._id.to_s 
+              op.set(:state, :failed) 
+            else
+              op.set(:state, :completed) 
+            end
+          }
           self.application.save
+          raise Exception.new("Failed to correctly execute all parallel operations - #{result_io.inspect}") unless failed_ops.empty?
         end
       end
       unless self.parent_op_id.nil?

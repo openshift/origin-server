@@ -232,12 +232,11 @@ class Gear
     return @container
   end
 
-  def update_configuration(args, remote_job_handle)
+  def update_configuration(args, remote_job_handle, tag="")
     add_keys = args["add_keys_attrs"]
     remove_keys = args["remove_keys_attrs"]
     add_envs = args["add_env_vars"]
     remove_envs = args["remove_env_vars"]
-    tag = ""
     
     add_keys.each     { |ssh_key| RemoteJob.add_parallel_job(remote_job_handle, tag, self, get_proxy.get_add_authorized_ssh_key_job(self, ssh_key["content"], ssh_key["type"], ssh_key["name"])) } unless add_keys.nil?      
     remove_keys.each  { |ssh_key| RemoteJob.add_parallel_job(remote_job_handle, tag, self, get_proxy.get_remove_authorized_ssh_key_job(self, ssh_key["content"], ssh_key["name"])) } unless remove_keys.nil?                 
@@ -251,9 +250,9 @@ class Gear
     @app ||= group_instance.application
   end
   
-  def set_addtl_fs_gb(additional_filesystem_gb, remote_job_handle)
+  def set_addtl_fs_gb(additional_filesystem_gb, remote_job_handle, tag = "addtl-fs-gb")
     total_fs_gb = additional_filesystem_gb + Gear.base_filesystem_gb(self.group_instance.gear_size)
-    RemoteJob.add_parallel_job(remote_job_handle, "addtl-fs-gb", self, get_proxy.get_update_gear_quota_job(self, total_fs_gb, ""))
+    RemoteJob.add_parallel_job(remote_job_handle, tag, self, get_proxy.get_update_gear_quota_job(self, total_fs_gb, ""))
   end
 
   def server_identities
