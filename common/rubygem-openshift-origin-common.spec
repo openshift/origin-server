@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Common
 Name:          rubygem-%{gem_name}
-Version: 1.10.1
+Version: 1.10.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -119,6 +119,23 @@ cp bin/man/*.8 %{buildroot}%{_mandir}/man8/
 %doc %{gem_docdir}
 
 %changelog
+* Tue Jun 11 2013 Troy Dawson <tdawson@redhat.com> 1.10.2-1
+- Bump up version (tdawson@redhat.com)
+- <oo-diagnostics> Bug 970805 - Add check for broker SSL cert
+  (jdetiber@redhat.com)
+- Fixing optional scl macros in rubygem-openshift-origin-common
+  (kraman@gmail.com)
+- Merge pull request #2707 from kraman/f19_fixes
+  (dmcphers+openshiftbot@redhat.com)
+- <common> fix .spec so oo-diag is in non-scl locations (lmeyer@redhat.com)
+- Fixed spurious yardoc inclusion as this causes build to break on F19
+  (kraman@gmail.com)
+- origin_runtime_138 - Add SSL_ENDPOINT variable and filter whether carts use
+  ssl_to_gear. (rmillner@redhat.com)
+- Add ssl_to_gear option. (mrunalp@gmail.com)
+- <common> add oo-diagnostics and man page (lmeyer@redhat.com)
+- Make Install-Build-Required default to false (ironcladlou@gmail.com)
+
 * Thu May 30 2013 Adam Miller <admiller@redhat.com> 1.9.1-1
 - bump_minor_versions for sprint 29 (admiller@redhat.com)
 
