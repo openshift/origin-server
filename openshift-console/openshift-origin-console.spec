@@ -15,7 +15,7 @@
 
 Summary:       The OpenShift Management Console
 Name:          openshift-origin-console
-Version:       1.10.1
+Version:       1.10.2
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -233,6 +233,31 @@ _EOF
 /sbin/fixfiles -R %{?scl:%scl_prefix}mod_passenger restore
 /sbin/restorecon -R -v /var/run
 %changelog
+* Tue Jun 11 2013 Troy Dawson <tdawson@redhat.com> 1.10.2-1
+- Bump up version (tdawson@redhat.com)
+- Added psych dependency to openshift-console if psych has been split into a
+  separate gem. (kraman@gmail.com)
+- Loosen requirements on ci_reporter and minitest gems to we can use the
+  version distributed with fedora (kraman@gmail.com)
+- Relax rake and mocha gem version dependencies (kraman@gmail.com)
+- Bug 968834: fix `service openshift-console reload` (tbielawa@redhat.com)
+- <openshift-console> - Run restorecon on ${consoledir} in %%post
+  (jdetiber@redhat.com)
+- <openshift-console> Bug 961888 - Fix SELinux context for httpd run dir
+  (jdetiber@redhat.com)
+- <console> Bug 959162 - Fix display issues (jdetiber@redhat.com)
+- <openshift-console> - Bug 957818 Update boot.rb to default to production env
+  (jdetiber@redhat.com)
+- Bug 956625 - Cleanup some BuildRequires that were added for this bug
+  (jdetiber@redhat.com)
+- Bug 956625 - Updating to precompile the origin console assets during RPM
+  build (jdetiber@redhat.com)
+- Bug 956561 - No available console log file generated. (bleanhar@redhat.com)
+- Fix find/delete command for openshift-console and console packages. Bug
+  888714. (kraman@gmail.com)
+- Bug 888714 - Remove .gitkeep and .gitignore (ccoleman@redhat.com)
+- Bug 928675 (asari.ruby@gmail.com)
+
 * Tue Jun 11 2013 Troy Dawson <tdawson@redhat.com> 1.10.1-1
 - Bump up version to 1.10
 
