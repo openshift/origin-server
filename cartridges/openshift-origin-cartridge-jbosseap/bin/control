@@ -32,7 +32,7 @@ killtree() {
     done
 
     local should_be_gone_pid=$(ps -o pid -p ${_pid} --no-headers)
-    if [ -z $should_be_gone_pid ]; then
+    if [ -z "$should_be_gone_pid" ]; then
         return
     else
         kill -TERM ${_pid}
@@ -42,7 +42,7 @@ killtree() {
     while [ ${count} -lt 15 ]
     do
         local should_be_gone_pid=$(ps -o pid -p ${_pid} --no-headers)
-        if [ -z $should_be_gone_pid ]; then
+        if [ -z "$should_be_gone_pid" ]; then
                 return
         else
                 sleep 2
@@ -94,11 +94,11 @@ function build() {
   then
       echo "Scaling down Maven heap settings due to presence of hot_deploy marker"
 
-      if [ -z $MAVEN_JVM_HEAP_RATIO ]; then
+      if [ -z "$MAVEN_JVM_HEAP_RATIO" ]; then
       MAVEN_JVM_HEAP_RATIO=0.25
     fi
   else
-    if [ -z $MAVEN_JVM_HEAP_RATIO ]; then
+    if [ -z "$MAVEN_JVM_HEAP_RATIO" ]; then
       MAVEN_JVM_HEAP_RATIO=0.75
     fi
   fi

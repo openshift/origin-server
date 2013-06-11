@@ -57,7 +57,7 @@ function start() {
       JENKINS_CMD="${JENKINS_CMD} -Xdebug -Xrunjdwp:server=y,transport=dt_socket,address=${OPENSHIFT_JENKINS_IP}:7600,suspend=n"
   fi
   
-  if [ -z $JENKINS_WAR_PATH ]; then
+  if [ -z "$JENKINS_WAR_PATH" ]; then
 	 JENKINS_WAR_PATH=/usr/lib/jenkins/jenkins.war
   fi
 
