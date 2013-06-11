@@ -9,7 +9,7 @@
 
 Summary:       OpenShift plugin for BIND service
 Name:          rubygem-%{gem_name}
-Version:       1.10.1
+Version:       1.10.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -93,6 +93,12 @@ cp %{buildroot}%{gem_dir}/gems/openshift-origin-dns-bind-*/doc/examples/dhcpname
 
 
 %changelog
+* Tue Jun 11 2013 Troy Dawson <tdawson@redhat.com> 1.10.2-1
+- Merge pull request #535 from mscherer/fix_uplift_gem
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 928675 (asari.ruby@gmail.com)
+- fix requirement in the spec and gemspec (misc@zarb.org)
+
 * Tue Jun 11 2013 Troy Dawson <tdawson@redhat.com> 1.10.1-1
 - Bump up version to 1.10
 
