@@ -9,7 +9,7 @@
 
 Summary:       OpenShift plugin for kerberos auth service
 Name:          rubygem-%{gem_name}
-Version:       1.10.1
+Version:       1.10.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -93,6 +93,13 @@ cp conf/openshift-origin-auth-kerberos.conf.example %{buildroot}/etc/openshift/p
 %doc %{gem_docdir}
 
 %changelog
+* Tue Jun 11 2013 Troy Dawson <tdawson@redhat.com> 1.10.2-1
+- Bump up version (tdawson@redhat.com)
+- General REST API clean up - centralizing log tags and getting common objects
+  (lnader@redhat.com)
+- Bug 928675 (asari.ruby@gmail.com)
+- Make packages build/install on F19+ (tdawson@redhat.com)
+
 * Tue Mar 12 2013 Troy Dawson <tdawson@redhat.com> 1.5.1-1
 - Implement authorization support in the broker (ccoleman@redhat.com)
 - fix rubygem sources (tdawson@redhat.com)
