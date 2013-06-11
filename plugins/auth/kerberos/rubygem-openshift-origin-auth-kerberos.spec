@@ -9,7 +9,7 @@
 
 Summary:       OpenShift plugin for kerberos auth service
 Name:          rubygem-%{gem_name}
-Version:       1.5.1
+Version:       1.10.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
