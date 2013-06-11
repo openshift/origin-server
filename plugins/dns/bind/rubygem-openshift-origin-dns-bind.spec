@@ -9,7 +9,7 @@
 
 Summary:       OpenShift plugin for BIND service
 Name:          rubygem-%{gem_name}
-Version:       1.5.2
+Version:       1.10.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -93,6 +93,9 @@ cp %{buildroot}%{gem_dir}/gems/openshift-origin-dns-bind-*/doc/examples/dhcpname
 
 
 %changelog
+* Tue Jun 11 2013 Troy Dawson <tdawson@redhat.com> 1.10.1-1
+- Bump up version to 1.10
+
 * Sat Apr 13 2013 Krishna Raman <kraman@gmail.com> 1.5.2-1
 - Fix all incorrect occurrences of 'who's'. (asari.ruby@gmail.com)
 - Updating rest-client and rake gem versions to match F18 (kraman@gmail.com)
