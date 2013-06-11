@@ -46,7 +46,7 @@ module OpenShift
           end
         end
       else
-        CartridgeRepository.instance.each do |cartridge|
+        CartridgeRepository.instance.latest_versions do |cartridge|
           cartridge.versions.each do |version|
             begin
               cooked = Runtime::Manifest.new(cartridge.manifest_path, version, cartridge.repository_path)
