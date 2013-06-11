@@ -185,9 +185,9 @@ function check_logfile_perms() {
       then
         fail "Rest API Logging enabled but the log file does not exist -- run touch ${USER_ACTION_LOG_FILE} && chown apache:apache ${USER_ACTION_LOG_FILE} && chmod 640 ${USER_ACTION_LOG_FILE}"
       else
-        if [ `ls -l ${USER_ACTION_LOG_FILE} | awk '{print $3$4}'` != 'apacheapache' ]
+        if [ `ls -l ${USER_ACTION_LOG_FILE} | awk '{print $3}'` != 'apache' ]
         then
-          fail "Rest API Logging enabled but the log file has wrong owner -- run chown apache:apache ${USER_ACTION_LOG_FILE}"
+          fail "Rest API Logging enabled but the log file has wrong owner -- run chown apache ${USER_ACTION_LOG_FILE}"
         fi
       fi
     fi
