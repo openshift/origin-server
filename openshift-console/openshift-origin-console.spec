@@ -15,7 +15,7 @@
 
 Summary:       The OpenShift Management Console
 Name:          openshift-origin-console
-Version:       1.5.18
+Version:       1.10.1
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -233,6 +233,9 @@ _EOF
 /sbin/fixfiles -R %{?scl:%scl_prefix}mod_passenger restore
 /sbin/restorecon -R -v /var/run
 %changelog
+* Tue Jun 11 2013 Troy Dawson <tdawson@redhat.com> 1.10.1-1
+- Bump up version to 1.10
+
 * Sat Apr 13 2013 Krishna Raman <kraman@gmail.com> 1.5.18-1
 - Add a few base URLs and helpers for fetching assets during static page
   compilation (ccoleman@redhat.com)
