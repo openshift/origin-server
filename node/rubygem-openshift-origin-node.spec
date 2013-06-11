@@ -16,7 +16,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.9.15
+Version: 1.9.16
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -294,6 +294,10 @@ fi
 %attr(0755,-,-) /etc/cron.monthly/openshift-origin-cron-monthly
 
 %changelog
+* Tue Jun 11 2013 Dan McPherson <dmcphers@redhat.com> 1.9.16-1
+- Add CartridgeRepository.latest_versions for use in rhc cartridge list
+  (pmorie@gmail.com)
+
 * Sat Jun 08 2013 Dan McPherson <dmcphers@redhat.com> 1.9.15-1
 - Fix test case (dmcphers@redhat.com)
 - WIP Cartridge Refactor - Fixed test method names (jhonce@redhat.com)
