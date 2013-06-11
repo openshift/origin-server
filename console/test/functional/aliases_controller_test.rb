@@ -56,17 +56,6 @@ class AliasesControllerTest < ActionController::TestCase
     assert_equal an_alias.id, loaded_alias.id
   end
 
-  test "should create and show alias named new" do
-    app = with_app
-    an_alias = Alias.create :as => @user, :application_name => app.name, :id => "new", :domain_id => app.domain_id
-    an_alias.reload
-    get :show, :application_id=>app.name, :id=>an_alias.id
-    assert loaded_app = assigns(:application)
-    assert_equal loaded_app.name, app.name
-    assert loaded_alias = assigns(:alias)
-    assert_equal an_alias.id, loaded_alias.id
-  end
-
   test "should assign errors with empty id" do
     app = with_app
     post :create, {:alias => {:id => ''}, :application_id => app.name}

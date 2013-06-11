@@ -14,7 +14,9 @@ Rails.application.routes.draw do
     resources :estimates, :constraints => { :id => id_with_format }, :only => [:index, :show], :singular_resource => true, :expose_legacy_api => true
 
     # Allow restful update of the domain name via the standard id parameter
+    # Include support for the legacy plural API pattern domains/:existing_id for now
     match "domains/:existing_id" => "domains#update", :via => :put, :existing_id => id_with_format
+    match "domain/:existing_id" => "domains#update", :via => :put, :existing_id => id_with_format
     resources :domains, :only => [:index, :show, :create, :update, :destroy], :constraints => { :id => id_with_format }, :singular_resource => true, :expose_legacy_api => true do
       resources :applications, :only => [:index, :show, :create, :destroy], :constraints => { :id => id_with_format }, :singular_resource => true do
         resource :descriptor, :only => :show
