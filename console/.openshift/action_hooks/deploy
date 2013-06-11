@@ -6,7 +6,7 @@
 
 set -e
 
-if [ -z $OPENSHIFT_DB_HOST ]
+if [ -z "$OPENSHIFT_MYSQL_DB_HOST" ]
 then
     echo 1>&2
     echo "Could not find mysql database.  Please run:" 1>&2
