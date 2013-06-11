@@ -16,10 +16,10 @@ if ! [[ "$max_threads" =~ ^[0-9]+$ ]] ; then
   max_threads=1024
 fi
 
-if [ -z $JVM_HEAP_RATIO ]; then
+if [ -z "$JVM_HEAP_RATIO" ]; then
 	JVM_HEAP_RATIO=0.5
 fi
-if [ -z $JVM_PERMGEN_RATIO ]; then
+if [ -z "$JVM_PERMGEN_RATIO" ]; then
 	JVM_PERMGEN_RATIO=0.2
 fi
 
@@ -36,7 +36,7 @@ memory_options="-Xmx${max_heap}m -XX:MaxPermSize=${max_permgen}m -XX:+Aggressive
 #
 # Specify options to pass to the Java VM.
 #
-if [ -z $JAVA_OPTS ]; then
+if [ -z "$JAVA_OPTS" ]; then
    JAVA_OPTS="$memory_options -Djava.util.logging.config.file=$CATALINA_BASE/conf/logging.properties -Djava.util.logging.manager=org.apache.juli.ClassLoaderLogManager -Djava.net.preferIPv4Stack=true -Dfile.encoding=UTF-8 -Djava.net.preferIPv4Stack=true"                                                                                                                                    
 
    if marker_present "enable_jpda"; then
