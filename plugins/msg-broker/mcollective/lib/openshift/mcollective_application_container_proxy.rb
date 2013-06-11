@@ -966,6 +966,12 @@ module OpenShift
         run_cartridge_command_ignore_components(cart, gear, "start", args)
       end
 
+      def get_start_job(gear, component)
+        args = build_base_gear_args(gear)
+        args = build_base_component_args(component, args)
+        RemoteJob.new('openshift-origin-node', 'start', args)
+      end
+
       #
       # Stop cartridge services within a gear
       #
