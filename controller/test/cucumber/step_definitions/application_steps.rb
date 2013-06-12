@@ -279,8 +279,7 @@ end
 
 
 Then /^the application should be assigned to the supplementary groups? "([^\"]*)" as shown by the node's \/etc\/group$/ do | supplementary_groups|
-  added_supplementary_group = []
-  added_supplementary_group = check_for_multiple_inputs(supplementary_groups)
+  added_supplementary_group = supplementary_groups.split(",")
 
   added_supplementary_group.each do |group|
     output_buffer = []
@@ -291,8 +290,7 @@ Then /^the application should be assigned to the supplementary groups? "([^\"]*)
   end
 end
 
-
-Then /^the application should list the group "([^\"]*)" as its secondary group$/ do |supplementary_group|
+Then /^the application has the group "([^\"]*)" as a secondary group$/ do |supplementary_group|
  command = "ssh 2>/dev/null -o BatchMode=yes -o StrictHostKeyChecking=no -tt #{@app.uid}@#{@app.name}-#{@app.namespace}.dev.rhcloud.com " +  "groups"
  $logger.info("About to execute command:'#{command}'")
  output_buffer=[]
@@ -301,17 +299,5 @@ Then /^the application should list the group "([^\"]*)" as its secondary group$/
  if !(output_buffer[0].include? supplementary_group)
    raise "The application with uuid #{@app.uid} is not assigned to group #{supplementary_group}."
  end
-end
-
-def check_for_multiple_inputs(supplementary_groups)
-   added_supplementary_group = []
-   #If more than one supplementary group
-   if supplementary_groups.include? (",")
-      added_supplementary_group = supplementary_groups.split(",")
-   else
-      added_supplementary_group[0] = supplementary_groups
-   end
-   return added_supplementary_group
-
 end
 

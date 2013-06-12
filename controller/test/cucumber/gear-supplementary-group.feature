@@ -6,9 +6,9 @@ Feature: Gear Supplementary Group
     And the group "groupFoo" is added on the node
     And the group "groupFoo" is assigned as supplementary group to upcoming new gears on the node 
     When a new client created scalable mock-0.1 application
-    Then the application should be assigned to the supplementary group "groupFoo" as shown by the node's /etc/group 
-    And the application should list the group "groupFoo" as its secondary group
-   
+    Then the application should be assigned to the supplementary group "groupFoo" as shown by the node's /etc/group
+    And the application has the group "groupFoo" as a secondary group 
+
     #For clean up 
     And I delete the supplementary group setting from /etc/openshift/node.conf
     And the group "groupFoo" is deleted from the node
@@ -22,8 +22,8 @@ Feature: Gear Supplementary Group
     And the groups "groupFoo1,groupFoo2" is assigned as supplementary groups to upcoming new gears on the node
     When a new client created scalable mock-0.1 application
     Then the application should be assigned to the supplementary groups "groupFoo1,groupFoo2" as shown by the node's /etc/group
-    And the application should list the group "groupFoo1" as its secondary group
-    And the application should list the group "groupFoo2" as its secondary group
+    And the application has the group "groupFoo1" as a secondary group 
+    And the application has the group "groupFoo2" as a secondary group 
     
     #For clean up 
     And I delete the supplementary group setting from /etc/openshift/node.conf
