@@ -996,6 +996,12 @@ module OpenShift
         run_cartridge_command_ignore_components(cart, gear, "stop", args)
       end
       
+      def get_stop_job(gear, component)
+        args = build_base_gear_args(gear)
+        args = build_base_component_args(component, args)
+        RemoteJob.new('openshift-origin-node', 'stop', args)
+      end
+
       # 
       # Force gear services to stop
       # 
@@ -1017,6 +1023,12 @@ module OpenShift
         parse_result(result)
       end
       
+      def get_force_stop_job(gear, component)
+        args = build_base_gear_args(gear)
+        args = build_base_component_args(component, args)
+        RemoteJob.new('openshift-origin-node', 'force-stop', args)
+      end
+
       #
       # Stop and restart cart services on a gear
       #
@@ -1040,6 +1052,11 @@ module OpenShift
         run_cartridge_command_ignore_components(cart, gear, "restart", args)
       end
       
+      def get_restart_job(gear, component)
+        args = build_base_gear_args(gear)
+        args = build_base_component_args(component, args)
+        RemoteJob.new('openshift-origin-node', 'restart', args)
+      end
 
       #
       # "reload" cart services on a gear.
@@ -1065,6 +1082,12 @@ module OpenShift
         run_cartridge_command_ignore_components(cart, gear, "reload", args)
       end
  
+      def get_reload_job(gear, component)
+        args = build_base_gear_args(gear)
+        args = build_base_component_args(component, args)
+        RemoteJob.new('openshift-origin-node', 'reload', args)
+      end
+
       #
       # Get the status from cart services in an existing Gear
       #
@@ -1109,6 +1132,12 @@ module OpenShift
         parse_result(result)
       end
       
+      def get_tidy_job(gear, component)
+        args = build_base_gear_args(gear)
+        args = build_base_component_args(component, args)
+        RemoteJob.new('openshift-origin-node', 'tidy', args)
+      end
+
       #
       # dump the cartridge threads
       #
@@ -1133,6 +1162,12 @@ module OpenShift
         else
           ResultIO.new
         end 
+      end
+
+      def get_threaddump_job(gear, component)
+        args = build_base_gear_args(gear)
+        args = build_base_component_args(component, args)
+        RemoteJob.new('openshift-origin-node', 'threaddump', args)
       end
 
       #
