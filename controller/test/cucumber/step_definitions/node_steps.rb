@@ -203,3 +203,44 @@ Then /^an account home directory should( not)? exist$/ do |negate|
   end
 end
 
+And /^the group "([^\"]*)" is added on the node$/ do |group_name|
+  output_buffer=[]
+  command = "groupadd #{group_name}"
+  exit_code = run(command, output_buffer)    
+  if !(output_buffer[0].include? ("already exists")) && exit_code !=0
+     raise "Cannot add group '#{group_name}' to the node. Running '#{command}' returns exit code: #{exit_code} and output: #{output_buffer[0]}"
+  end
+end
+
+And /^the group "([^\"]*)" is deleted from the node$/ do |group_name|
+  output_buffer=[]
+  command = "groupdel #{group_name}"
+  exit_code = run(command, output_buffer)
+  if !(output_buffer[0].include? ("does not exists")) && exit_code !=0
+     raise "Cannot delete group '#{group_name}' from the node. Running '#{command}' returns exit code: #{exit_code} and output: #{output_buffer[0]}"
+  end
+end
+
+#When more than one group is to be added, separate each group with a comma
+#For example: a format for a single group is "foo" and for multiple groups is "foo,group1,group2"
+Then /^the groups? "([^\"]*)" is assigned as supplementary groups? to upcoming new gears on the node$/ do |supplementary_group|
+   filepath="/etc/openshift/node.conf"
+   if File.exists?(filepath)
+    file =  File.open(filepath, 'a')
+    file.write "GEAR_SUPL_GRPS=\"#{supplementary_group}\"\n"
+    file.close
+   else
+     raise "Cannot modify file /etc/openshift/node.conf because file does not exist."
+   end
+end
+
+And /^I delete the supplementary group setting from \/etc\/openshift\/node.conf$/ do 
+  output_buffer=[]
+  filepath="/etc/openshift/node.conf"
+  command = "sed -i '\/\\(^GEAR_SUPL_GRPS=.*\\)\/d' #{filepath}"
+  exit_code = run(command, output_buffer)
+  if !(output_buffer[0].include? ("does not exists")) && exit_code !=0
+     raise "Cannot delete GEAR_SUPL_GRPS setting in file '#{filepath}' from the node. Running '#{command}' returns exit code: #{exit_code} and output: #{output_buffer[0]}"
+  end
+end
+
