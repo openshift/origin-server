@@ -247,7 +247,7 @@ textarea {
 }
 .radio input[type="radio"],
 .checkbox input[type="checkbox"] {
-  float: left;
+  display: inline-block; // change from float left to inline-block because FF isn't vertically aligning
   margin-left: -18px;
   margin-top: 0;
 }
