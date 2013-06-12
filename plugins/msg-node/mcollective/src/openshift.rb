@@ -124,9 +124,7 @@ module MCollective
 
         joblist = request[config.identity]
 
-        th_list = []
-        joblist.each do |pj|
-          th_list << Thread.new(pj) do |parallel_job|
+        joblist.each do |parallel_job|
             job = parallel_job[:job]
 
             cartridge = job[:cartridge]
@@ -137,9 +135,7 @@ module MCollective
 
             parallel_job[:result_exit_code] = exitcode
             parallel_job[:result_stdout]    = output
-          end
         end
-        th_list.each { |th| th.join }
 
         Log.instance.info("execute_parallel_action call - #{joblist}")
         reply[:output]   = joblist
@@ -177,8 +173,6 @@ module MCollective
       end
 
       def with_container_from_args(args)
-        container  = get_app_container_from_args(args)
-
         output = ''
         begin
           container = get_app_container_from_args(args)
