@@ -1,0 +1,99 @@
+#!/usr/bin/env oo-ruby
+
+require 'commander/import'
+require 'openshift-origin-common/config'
+require 'fileutils'
+
+program :name, "OpenShift Node Repair Kit"
+program :version, "1.0.0"
+program :description, "An assortment of node and gear repair utilities"
+
+name = "#{__FILE__}"
+
+module OpenShift
+  module GearRepairKit
+
+    def self.validate_gear_home(gear_home)
+      if !File.exists?(gear_home)
+        puts "Directory #{gear_home} does not exist"
+         return false
+      end
+
+      if File.symlink?(gear_home)
+        puts "Directory #{gear_home} is a symlink, please use the actual path"
+        return false
+      end
+
+      if !File.directory?(gear_home)
+        puts "Given gear home #{gear_home} is not a directory"
+        return false
+      end
+
+      true
+    end
+
+    def self.clean_upgrade(gear_home)
+      return if !validate_gear_home(gear_home)
+
+      Dir.glob(File.join(gear_home, %w(app-root data .migration*))).each do |entry|
+        puts "Removing #{entry}"
+        FileUtils.rm_rf(entry)
+      end
+
+      premigration_state_file = File.join(gear_home, %w(app-root runtime .premigration_state))
+
+      if File.exists?(premigration_state_file)
+        puts "Removing #{premigration_state_file}"
+        FileUtils.rm_f(premigration_state_file)
+      end
+    end
+  end
+
+  module NodeRepairKit
+    def self.clean_upgrade
+      config = OpenShift::Config.new
+      gear_base_dir = config.get('GEAR_BASE_DIR')
+
+      Dir.foreach(gear_base_dir) do |entry|
+        next if entry[0,1] == "."
+        next if entry == 'lost+found'
+        next if entry == 'last_access.log'
+
+        gear_home = File.join(gear_base_dir, entry)
+
+        next if File.symlink? gear_home
+        next unless File.directory? gear_home
+
+        GearRepairKit.clean_upgrade(gear_home)
+      end
+    end
+  end
+end
+
+command :'gear-clean-upgrade' do |c|
+  c.syntax = "#{name} gear-clean-upgrade [options]"
+  
+  c.description = "Clean upgrade metadata from the specified gear"
+  c.option "--gear UUID", "UUID or homedir of gear to clean"
+  c.action do |args, options|
+    config = OpenShift::Config.new 
+    gear_option = options.gear
+
+    gear_home = if gear_option =~ /\//
+      gear_option
+    else
+      File.join(config.get("GEAR_BASE_DIR"), gear_option)
+    end
+
+    OpenShift::GearRepairKit.clean_upgrade(gear_home)
+  end
+end
+
+command :'clean-upgrade' do |c|
+  c.syntax = "#{name} clean-upgrade"
+
+  c.description = "Clean upgrade metadata from all gears on this node"
+  c.action do |args, options|
+    OpenShift::NodeRepairKit.clean_upgrade
+  end
+end
