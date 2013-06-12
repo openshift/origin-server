@@ -25,11 +25,13 @@ class ApplicationType
   attr_accessor :priority
   attr_accessor :scalable
   alias_method :scalable?, :scalable
+  attr_accessor :scalable_warning
+  alias_method :scalable_warning?, :scalable_warning
   attr_accessor :provider
   attr_accessor :source
   attr_accessor :usage_rates
 
-  attr_accessible :initial_git_url, :cartridges, :initial_git_branch, :scalable
+  attr_accessible :initial_git_url, :cartridges, :initial_git_branch, :scalable, :scalable_warning
   alias_attribute :categories, :tags
 
   def initialize(attributes={}, persisted=false)
@@ -199,6 +201,7 @@ class ApplicationType
   def self.custom(attrs={})
     attrs = {} if attrs.nil? || attrs.is_a?(String)
     attrs[:scalable] = true unless attrs.has_key?(:scalable)
+    attrs[:scalable_warning] = true unless attrs.has_key?(:scalable_warning)
     new(:id => 'custom', :display_name => 'From Scratch').assign_attributes(attrs)
   end
 
@@ -256,7 +259,7 @@ class ApplicationType
     end
     def self.from_quickstart(type)
       attrs = { :id => "quickstart!#{type.id}", :source => :quickstart }
-      [:display_name, :tags, :description, :website, :initial_git_url, :initial_git_branch, :cartridges_spec, :priority, :scalable, :learn_more_url, :provider].each do |m|
+      [:display_name, :tags, :description, :website, :initial_git_url, :initial_git_branch, :cartridges_spec, :priority, :scalable, :scalable_warning, :learn_more_url, :provider].each do |m|
         attrs[m] = type.send(m)
       end
 

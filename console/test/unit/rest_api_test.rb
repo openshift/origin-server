@@ -1608,7 +1608,7 @@ class RestApiTest < ActiveSupport::TestCase
 
     assert_equal 1, Quickstart.promoted.length
     assert q = Quickstart.promoted.first
-    assert_equal false, q.scalable?
+    assert_equal true, q.scalable?
   end
 
   def test_quickstart_disabled

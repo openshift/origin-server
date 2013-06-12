@@ -96,6 +96,12 @@ module Console::ModelHelper
     end
   end
 
+  def scalable_warning(type, capabilities)
+    if type.scalable_warning?
+      "This application may require additional work to scale. Please see the application's documentation for more information."
+    end
+  end
+
   def user_currency_symbol
     "$"
   end

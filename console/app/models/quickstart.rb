@@ -46,9 +46,14 @@ class Quickstart < RestApi::Base
   end
 
   def scalable
-    (not tags.include?(:not_scalable) rescue true)
+    true
   end
   alias_method :scalable?, :scalable
+
+  def scalable_warning
+    (tags.include?(:not_scalable) rescue false)
+  end
+  alias_method :scalable_warning?, :scalable_warning
 
   def >>(application)
     #application.cartridges = cartridges

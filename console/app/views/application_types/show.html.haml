@@ -191,9 +191,11 @@
             %span.text-warning{:title => scale_reason}= scale_options[0][0]
 
       .controls
+        - scalable_warning = scalable_warning(@application_type, @capabilities)
+        - if scalable_warning
+          %span.text-warning=scalable_warning
         %p.help-block
           OpenShift automatically routes web requests to your web gear.
-
           - if can_scale
             If you allow your application to scale, we'll set up a load balancer and
             allocate more gears to handle traffic as you need it.
