@@ -297,6 +297,22 @@ module OpenShift
       self
     end
 
+    def latest_versions
+      cartridges = Set.new
+      @index.each_pair do |_, sw_hash|
+        sw_hash.each_pair do |_, cart_version_hash|
+          latest_version = cart_version_hash.keys.sort.last
+          cartridges.add(cart_version_hash[latest_version])
+        end
+      end
+
+      if block_given?
+        cartridges.each { |c| yield c }
+      end
+
+      cartridges
+    end
+
     ## print out all index entries in a table
     def inspect
       @index.inject("<CartridgeRepository:\n") do |memo, (name, sw_hash)|
