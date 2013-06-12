@@ -229,17 +229,29 @@ class PendingAppOpGroup
             RemoteJob.add_parallel_job(handle, tag, gear, job)
             use_parallel_job = true
           when :stop_component
+            tag = { "op_id" => op._id.to_s }
             if args.has_key?("force") and args["force"]==true
-              result_io.append gear.force_stop(component_instance)
+              job = gear.get_force_stop_job(component_instance)
             else
-              result_io.append gear.stop(component_instance)
+              job = gear.get_stop_job(component_instance)
             end
+            RemoteJob.add_parallel_job(handle, tag, gear, job)
+            use_parallel_job = true
           when :restart_component
-            result_io.append gear.restart(component_instance)
+            tag = { "op_id" => op._id.to_s }
+            job = gear.get_restart_job(component_instance)
+            RemoteJob.add_parallel_job(handle, tag, gear, job)
+            use_parallel_job = true
           when :reload_component_config
-            result_io.append gear.reload_config(component_instance)
+            tag = { "op_id" => op._id.to_s }
+            job = gear.get_reload_job(component_instance)
+            RemoteJob.add_parallel_job(handle, tag, gear, job)
+            use_parallel_job = true
           when :tidy_component
-            result_io.append gear.tidy(component_instance)
+            tag = { "op_id" => op._id.to_s }
+            job = gear.get_tidy_job(component_instance)
+            RemoteJob.add_parallel_job(handle, tag, gear, job)
+            use_parallel_job = true
           when :update_configuration
             tag = { "op_id" => op._id.to_s }
             gear.update_configuration(op.args,handle,tag)
