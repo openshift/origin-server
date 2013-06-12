@@ -96,8 +96,8 @@ module Console::ModelHelper
     end
   end
 
-  def scalable_warning(type, capabilities)
-    if type.scalable_warning?
+  def warn_may_not_scale(type, capabilities)
+    if type.may_not_scale?
       "This application may require additional work to scale. Please see the application's documentation for more information."
     end
   end
