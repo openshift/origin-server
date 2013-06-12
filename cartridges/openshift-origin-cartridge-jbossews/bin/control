@@ -42,7 +42,7 @@ isrunning() {
 # Check if the server http port is up
 function ishttpup() {
     let count=0
-    while [ ${count} -lt 24 ]
+    while [ ${count} -lt 48 ]
     do
         if /usr/sbin/lsof -P -n -i "@${OPENSHIFT_JBOSSEWS_IP}:${OPENSHIFT_JBOSSEWS_HTTP_PORT}" | grep "(LISTEN)" > /dev/null; then
             echo "Found ${OPENSHIFT_JBOSSEWS_IP}:${OPENSHIFT_JBOSSEWS_HTTP_PORT} listening port"
