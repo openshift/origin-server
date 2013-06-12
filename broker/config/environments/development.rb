@@ -82,6 +82,7 @@ Broker::Application.configure do
     :scope_expirations => OpenShift::Controller::Configuration.parse_expiration(conf.get('AUTH_SCOPE_TIMEOUTS'), 1.day),
     :download_cartridges_enabled => conf.get_bool("DOWNLOAD_CARTRIDGES_ENABLED", "true"),
     :ssl_endpoint => conf.get("SSL_ENDPOINT", "allow"),
+    :ssh_fqdn => conf.get("SSH_FQDN", "true"),
   }
 
   config.auth = {

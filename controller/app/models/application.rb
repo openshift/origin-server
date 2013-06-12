@@ -1,4 +1,5 @@
 require 'matrix'
+require 'resolv'
 
 class Matrix
   def []=(i, j, x)
@@ -651,16 +652,39 @@ class Application
   end
 
   ##
+  # Returns the IP address for the primary application gear
+  # @return [String]
+  def resolveIp(domain=nil)
+    begin
+      return Resolv.getaddress(fqdn(domain))
+    rescue Exception => e
+      return fqdn(domain)
+    end
+  end
+
+  ##
+  # Returns the fqdn for the primary application gear if config SSH_FQDN is true,
+  # otherwise returns the IP address
+  # @return [String]
+  def fqdnOrIp(domain=nil, gear_name = nil)
+    if Rails.configuration.openshift[:ssh_fqdn] == "true"
+      fqdn(domain, gear_name)
+    else
+      resolveIp(domain)
+    end
+  end
+
+  ##
   # Returns the SSH URI for the primary application gear
   # @return [String]
   def ssh_uri(domain=nil, gear_uuid=nil)
     #if gear_uuid provided
-    return "#{gear_uuid}@#{fqdn(domain,gear_uuid)}" if gear_uuid
+    return "#{gear_uuid}@#{fqdnOrIp(domain,gear_uuid)}" if gear_uuid
     # else get the gear_uuid of head gear
     self.group_instances.each do |group_instance|
       if group_instance.gears.where(app_dns: true).count > 0
         gear = group_instance.gears.find_by(app_dns: true)
-        return "#{gear.uuid}@#{fqdn(domain)}"
+        return "#{gear.uuid}@#{fqdnOrIp(domain)}"
       end
     end
     ""
