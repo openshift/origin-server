@@ -25,7 +25,7 @@
                 %td{:scope => 'row'}
                   %label.checkbox{:for => scope_id}
                     = check_box_tag field, scope[:id], @authorization.scopes.include?(scope[:id]), :id => scope_id
-                    .nowrap= scope[:name]
+                    %span.nowrap= scope[:name]
                     - if scope[:default]
                       %span.small.nowrap (default)
                 %td= scope[:description]
