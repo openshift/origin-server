@@ -9,6 +9,7 @@ class Application < RestApi::Base
     string :server_identity
     string :gear_profile, :scale
     string :building_with, :build_job_url, :building_app
+    string :framework
   end
 
   custom_id :name
