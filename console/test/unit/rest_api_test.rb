@@ -859,6 +859,12 @@ class RestApiTest < ActiveSupport::TestCase
     assert app.attributes[:cartridges].first.is_a?(Cartridge)
   end
 
+  def test_app_framework_missing
+    # Given - application with no framework defined
+    app = Application.new :name => 'app', :domain_id => 'foo',  :as => @user
+    assert_nil app.framework
+  end
+
   def test_cartridges
     ActiveResource::HttpMock.respond_to do |mock|
       mock.get '/broker/rest/cartridges/embedded', json_header
@@ -1553,7 +1559,7 @@ class RestApiTest < ActiveSupport::TestCase
     assert_equal [{'php-5.3' => php}, []],  ApplicationType.matching_cartridges([{'name' => 'php-5.3', 'url' => 'a'}])
     assert_equal [{}, ['php-5.']],          ApplicationType.matching_cartridges([{'name' => 'php-5.'}])
     assert_equal [{'a' => CartridgeType.for_url('a')}, []], ApplicationType.matching_cartridges([{'url' => 'a'}])
-    
+
     assert_equal [{}, ['-- Unknown']], ApplicationType.matching_cartridges([{}])
     assert_equal [{}, ['-- Unknown']], ApplicationType.matching_cartridges([{'url' => ''}])
     assert_equal [{}, ['-- Unknown']], ApplicationType.matching_cartridges([{'name' => ''}])
