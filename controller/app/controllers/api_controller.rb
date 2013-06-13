@@ -31,7 +31,7 @@ class ApiController < BaseController
       }
       links.merge!({
         "LIST_AUTHORIZATIONS" => Link.new("List authorizations", "GET", URI::join(get_url, "user/authorizations")),
-        "SHOW_AUTHORIZATION"  => Link.new("Retrieve authorization :id", "GET", URI::join(get_url, "user/authorizations/:id"), [
+        "SHOW_AUTHORIZATION"  => Link.new("Retrieve authorization :id", "GET", URI::join(get_url, "user/authorization/:id"), [
           Param.new(":id", "string", "Unique identifier of the authorization", nil, [])
         ]),
         "ADD_AUTHORIZATION" => Link.new("Add new authorization", "POST", URI::join(get_url, "user/authorizations"), [], [
@@ -46,7 +46,7 @@ class ApiController < BaseController
       if base_url.nil?
         quickstart_links = {
           "LIST_QUICKSTARTS"   => Link.new("List quickstarts", "GET", URI::join(get_url, "quickstarts")),
-          "SHOW_QUICKSTART"    => Link.new("Retrieve quickstart with :id", "GET", URI::join(get_url, "quickstarts/:id"), [
+          "SHOW_QUICKSTART"    => Link.new("Retrieve quickstart with :id", "GET", URI::join(get_url, "quickstart/:id"), [
             Param.new(":id", "string", "Unique identifier of the quickstart", nil, [])
           ]),
         }

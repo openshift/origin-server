@@ -23,8 +23,8 @@ class RestartsControllerTest < ActionController::TestCase
     allow_http_mock
     ActiveResource::HttpMock.respond_to do |mock|
       mock.get '/broker/rest/domains.json', json_header, [@domain].to_json
-      mock.get "/broker/rest/domains/#{@domain.name}/applications/#{app.name}.json", json_header, app.to_json
-      mock.post "/broker/rest/domains/#{@domain.name}/applications/#{app.name}/events.json", json_header(true)
+      mock.get "/broker/rest/domain/#{@domain.name}/application/#{app.name}.json", json_header, app.to_json
+      mock.post "/broker/rest/domain/#{@domain.name}/application/#{app.name}/events.json", json_header(true)
     end
 
     put :update, :application_id => app.name
@@ -41,12 +41,12 @@ class RestartsControllerTest < ActionController::TestCase
 
   test 'should actually restart the application' do
     app = with_app
-    uri = "/broker/rest/domains/#{@domain.name}/applications/#{app.name}/events.json"
+    uri = "/broker/rest/domain/#{@domain.name}/application/#{app.name}/events.json"
 
     allow_http_mock
     ActiveResource::HttpMock.respond_to do |mock|
       mock.get '/broker/rest/domains.json', json_header, [@domain].to_json
-      mock.get "/broker/rest/domains/#{@domain.name}/applications/#{app.name}.json", json_header, app.to_json
+      mock.get "/broker/rest/domain/#{@domain.name}/application/#{app.name}.json", json_header, app.to_json
       mock.post uri, json_header(true)
     end
 

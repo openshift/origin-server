@@ -21,8 +21,8 @@ class CartridgeTypesIsolationControllerTest < ActionController::TestCase
     allow_http_mock
     ActiveResource::HttpMock.respond_to({},true) do |mock|
       mock.get '/broker/rest/domains.json', json_header, [domain].to_json
-      mock.get '/broker/rest/domains/test/applications/test.json', json_header, app.to_json
-      mock.get '/broker/rest/domains/test/applications/test.json?include=cartridges', json_header, app(true).to_json
+      mock.get '/broker/rest/domain/test/application/test.json', json_header, app.to_json
+      mock.get '/broker/rest/domain/test/application/test.json?include=cartridges', json_header, app(true).to_json
       mock.get '/broker/rest/cartridges.json', anonymous_json_header, [{:name => 'fake-cart-1', :type => :embedded}].to_json
       mock.get '/broker/rest/environment.json', anonymous_json_header, {:download_cartridges_enabled => true}.to_json
     end

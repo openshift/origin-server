@@ -391,7 +391,12 @@ module RestApi
         prefix_options, query_options = split_options(prefix_options) if query_options.nil?
 
         #begin changes
-        path = "#{prefix(prefix_options)}#{collection_name}"
+        path = "#{prefix(prefix_options)}"
+        if singular_resource? && !id.nil?
+          path << "#{element_name}"
+        else
+          path << "#{collection_name}"
+        end
         unless singleton?
           raise ArgumentError, "id is required for non-singleton resources #{self}" if id.nil?
           path << "/#{URI.parser.escape id.to_s}"
@@ -442,6 +447,9 @@ module RestApi
       def use_patch_on_update?
         self.use_patch_api?
       end
+      def singular_resource?
+        self.singular_resource_api
+      end
 
       protected
         def allow_anonymous
@@ -452,6 +460,9 @@ module RestApi
         end
         def use_patch_on_update
           self.use_patch_api = true
+        end
+        def singular_resource
+          self.singular_resource_api = true
         end
     end
 
@@ -572,6 +583,30 @@ module RestApi
     #
     def reload
       self.load(prefix_options.merge(self.class.find(to_param, :params => prefix_options, :as => as).attributes))
+    end
+
+    #
+    # Override method from CustomMethods to handle singular resource paths
+    #
+    def custom_method_element_url(method_name, options = {})
+        path = "#{self.class.prefix(prefix_options)}"
+        if self.class.singular_resource?
+          path << "#{self.class.element_name}"
+        else
+          path << "#{self.class.collection_name}"
+        end
+        path << "/#{id}/#{method_name}.#{self.class.format.extension}#{self.class.__send__(:query_string, options)}"
+    end
+
+    def custom_method_collection_url(method_name, options = {})
+      prefix_options, query_options = split_options(options)
+      path = "#{self.class.prefix(prefix_options)}"
+      if self.class.singular_resource?
+        path << "#{self.class.element_name}"
+      else
+        path << "#{self.class.collection_name}"
+      end
+      path << "/#{method_name}.#{self.class.format.extension}#{self.class.__send__(:query_string, options)}"
     end
 
     class << self
@@ -736,6 +771,7 @@ module RestApi
       class_attribute :anonymous_api, :instance_writer => false
       class_attribute :singleton_api, :instance_writer => false
       class_attribute :use_patch_api, :instance_writer => false
+      class_attribute :singular_resource_api, :instance_writer => false
 
       # supports presence of AttributeMethods and Dirty
       def attribute(s)
