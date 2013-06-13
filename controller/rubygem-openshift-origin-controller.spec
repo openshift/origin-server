@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.9.14
+Version: 1.9.15
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -84,6 +84,9 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Thu Jun 13 2013 Dan McPherson <dmcphers@redhat.com> 1.9.15-1
+- Bug 973718 (lnader@redhat.com)
+
 * Sat Jun 08 2013 Dan McPherson <dmcphers@redhat.com> 1.9.14-1
 - fix bz971876 - ci cleanup on app delete (rchopra@redhat.com)
 
