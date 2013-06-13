@@ -6,7 +6,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin broker
 Name:          openshift-origin-broker-util
-Version: 1.9.7
+Version: 1.9.8
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -86,6 +86,10 @@ cp man/*.8 %{buildroot}%{_mandir}/man8/
 %{_mandir}/man8/oo-stats.8.gz
 
 %changelog
+* Thu Jun 13 2013 Dan McPherson <dmcphers@redhat.com> 1.9.8-1
+- fix staleness issue with apps in clear-pending-ops script
+  (rchopra@redhat.com)
+
 * Thu May 30 2013 Adam Miller <admiller@redhat.com> 1.9.7-1
 - Checking consumed gears mismatch only if requested (abhgupta@redhat.com)
 
