@@ -191,6 +191,7 @@ module OpenShift
         # 2. Lock down the user from creating new processes (cgroups freeze, nprocs 0)
         # 3. Attempt to move any processes that didn't die into state 'D' (re: cgroups freeze)
         self.class.kill_procs(@uid)
+        Node.pam_freeze(@uuid)
         notify_observers(:before_unix_user_destroy)
         self.class.kill_procs(@uid)
 
@@ -231,6 +232,9 @@ Dir(after)    #{@uuid}/#{@uid} => #{list_home_dir(@homedir)}
 
         # release resources (cgroups thaw), this causes Zombies to get killed
         notify_observers(:after_unix_user_destroy)
+
+        Node.remove_pam_limits(@uuid)
+        Node.remove_quota(@uuid)
 
         # try one last time...
         if File.exists?(@homedir)
@@ -561,6 +565,9 @@ Dir(after)    #{@uuid}/#{@uid} => #{list_home_dir(@homedir)}
       # Fix SELinux context for cart dirs
       Utils::SELinux.clear_mcs_label_R(homedir)
       Utils::SELinux.set_mcs_label_R(Utils::SELinux.get_mcs_label(@uid), Dir.glob(File.join(homedir, '*')))
+
+      Node.init_quota(@uuid, @quota_blocks, @quota_files)
+      Node.init_pam_limits(@uuid)
 
       notify_observers(:after_initialize_homedir)
     end

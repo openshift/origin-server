@@ -4,6 +4,7 @@ require 'singleton'
 require 'openshift-origin-node/config'
 require 'openshift-origin-node/model/unix_user'
 require 'openshift-origin-node/utils/shell_exec'
+require 'openshift-origin-node/model/node'
 
 module OpenShift
   class UnixUserObserver
@@ -31,17 +32,10 @@ module OpenShift
     end
 
     def after_initialize_homedir(user)
-      cmd = "/bin/sh #{File.join('/usr/libexec/openshift/lib', "setup_pam_fs_limits.sh")} #{user.name} #{user.quota_blocks ? user.quota_blocks : ''} #{user.quota_files ? user.quota_files : ''}"
-      out,err,rc = shellCmd(cmd)
-      raise OpenShift::UserCreationException.new("Unable to setup pam/fs limits for #{user.name}: stdout -- #{out} stderr -- #{err}") unless rc == 0
     end
 
 
     def before_unix_user_destroy(user)
-      cmd = "/bin/sh #{File.join('/usr/libexec/openshift/lib', "setup_pam_fs_limits.sh")} #{user.name} 0 0 0"
-      out,err,rc = shellCmd(cmd)
-      raise OpenShift::UserCreationException.new("Unable to setup pam/fs/nproc limits for #{user.name}") unless rc == 0
-
       out,err,rc = shellCmd("service cgconfig status > /dev/null")
       if rc == 0
         shellCmd("/usr/sbin/oo-admin-ctl-cgroups freezeuser #{user.name} > /dev/null") if rc == 0
@@ -61,10 +55,6 @@ module OpenShift
       out,err,rc = shellCmd("service cgconfig status > /dev/null")
       shellCmd("/usr/sbin/oo-admin-ctl-cgroups thawuser #{user.name} > /dev/null") if rc == 0
       shellCmd("/usr/sbin/oo-admin-ctl-cgroups stopuser #{user.name} > /dev/null") if rc == 0
-
-      cmd = "/bin/sh #{File.join("/usr/libexec/openshift/lib", "teardown_pam_fs_limits.sh")} #{user.name}"
-      out,err,rc = shellCmd(cmd)
-      raise OpenShift::UserCreationException.new("Unable to teardown pam/fs/nproc limits for #{user.name}") unless rc == 0
     end
 
     def before_add_ssh_key(user,key)

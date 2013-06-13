@@ -132,8 +132,6 @@ mv %{buildroot}%{gem_instdir}/conf/* %{buildroot}/etc/openshift
 
 #move pam limit binaries to proper location
 mkdir -p %{buildroot}/usr/libexec/openshift/lib
-mv %{buildroot}%{gem_instdir}/misc/libexec/lib/teardown_pam_fs_limits.sh %{buildroot}/usr/libexec/openshift/lib
-mv %{buildroot}%{gem_instdir}/misc/libexec/lib/setup_pam_fs_limits.sh %{buildroot}/usr/libexec/openshift/lib
 mv %{buildroot}%{gem_instdir}/misc/libexec/lib/quota_attrs.sh %{buildroot}/usr/libexec/openshift/lib
 mv %{buildroot}%{gem_instdir}/misc/libexec/lib/archive_git_submodules.sh %{buildroot}/usr/libexec/openshift/lib
 
@@ -221,8 +219,6 @@ echo "/usr/bin/oo-trap-user" >> /etc/shells
 %{gem_spec}
 %attr(0750,-,-) /usr/sbin/*
 %attr(0755,-,-) /usr/bin/*
-/usr/libexec/openshift/lib/setup_pam_fs_limits.sh
-/usr/libexec/openshift/lib/teardown_pam_fs_limits.sh
 /usr/libexec/openshift/lib/quota_attrs.sh
 /usr/libexec/openshift/lib/archive_git_submodules.sh
 %attr(0755,-,-) /usr/lib/openshift/cartridge_sdk
