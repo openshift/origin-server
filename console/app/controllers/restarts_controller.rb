@@ -12,7 +12,7 @@ class RestartsController < ConsoleController
     @application.restart!
     
     message = @application.messages.first || "The application '#{@application.name}' has been restarted"
-    redirect_to @application, :flash => {:success => message}
+    redirect_to @application, :flash => {:success => message.to_s}
   end
 
 end

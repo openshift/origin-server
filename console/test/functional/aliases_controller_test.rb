@@ -3,7 +3,9 @@ require File.expand_path('../../test_helper', __FILE__)
 class AliasesControllerTest < ActionController::TestCase
 
   setup :with_configured_user
-  setup { with_app.remove_aliases }
+  setup do 
+    with_app.aliases.each {|a| a.destroy }
+  end
 
   def unique_name_format
     'www.alias%i.com'
@@ -43,6 +45,19 @@ class AliasesControllerTest < ActionController::TestCase
     assert_nil a.pass_phrase
     assert a.errors.empty?
     assert_redirected_to application_path(app)
+  end
+
+  test "should delete alias without cert" do
+    app = with_app
+
+    a = Alias.new({:id => "www.foo.com"})
+    a.application = app
+    a.save!
+
+    post :destroy, {:id => a.id, :application_id => app.name}
+
+    assert_redirected_to application_path(app)
+    assert flash[:success] =~ /removed/, "Expected a success message"
   end
 
   test "should show alias information" do
