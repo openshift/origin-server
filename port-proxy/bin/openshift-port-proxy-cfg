@@ -133,7 +133,7 @@ lockwrap() {
 
     flock 200
     oldsum=$( md5sum $cfgfile | awk '{ print $1 }' )
-    "$@"
+    "$@" 200>&- 201>&-
     retcode=$?
     newsum=$( md5sum $cfgfile | awk '{ print $1 }' )
     flock -u 200
@@ -162,7 +162,7 @@ lockwrap() {
 
         if [ "$reloadit" ]
         then
-            rollcfg
+            rollcfg 200>&- 201>&-
             retcode=$?
 
             for f in "${reloadreq[@]}"
