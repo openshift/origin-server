@@ -89,6 +89,12 @@ DEFAULT_PACKAGES="rubygem-openshift-origin-node openshift-origin-node-util \
 DEFAULT_SERVICES="mcollective cgconfig cgred httpd openshift-port-proxy oddjobd"
 DEFAULT_SERVICE_CONTEXTS="mcollective='unconfined_u:system_r:openshift_initrc_t:s0-s0:c0.c1023' oddjobd='system_u:system_r:oddjob_t:s0-s0:c0.c1023'"
 DEFAULT_MINSEM=512
+V1_DIRECTORIES=%w(ruby-1.8 ruby-1.9 nodejs-0.6
+                  jbosseap-6.0 jbossews-1.0 jbossews-2.0 jbossas-7
+                  php-5.3 python-2.6 python-2.7 python-3.3 10gen-mms-agent-0.1
+                  metrics-0.1 jenkins-1.4 jenkins-client-1.4 perl-5.10 zend-5.6
+                  mysql-5.1 postgresql-8.4 mongodb-2.2 rockmongo-1.1 phpmyadmin-3.4
+                  diy-0.1 haproxy-1.4 cron-1.4)
 
 $SEBOOL_LIST="SEBOOL_LIST"
 $PACKAGES="PACKAGES"
@@ -661,8 +667,27 @@ def check_app_dirs
     end
 
     if $OPTIONS[:'include-upgrade-checks']
+      v1_cartridge_dirs_found = false
+
+      Dir.foreach(gear_home) do |gear_entry|
+        next if gear_entry[0,1] == "."
+
+        gear_entry_full = File.join(gear_home, gear_entry)
+
+        next if File.symlink? gear_entry_full
+        next unless File.directory? gear_entry_full
+        next unless V1_DIRECTORIES.include?(gear_entry)
+
+        v1_cartridge_dirs_found = true
+        break
+      end
+
       migration_markers_found = !Dir.glob(File.join(gear_home, %w(app-root data .migration*))).empty?
       premigration_state_found = File.exists?(File.join(gear_home, %w(app-root runtime .premigration_state)))
+
+      if v1_cartridge_dirs_found
+        do_fail("directory #{entry} contains a V1 cartridge directory")
+      end
 
       if migration_markers_found 
         do_fail("directory #{entry} contains migration data")
