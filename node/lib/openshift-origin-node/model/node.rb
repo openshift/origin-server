@@ -28,6 +28,14 @@ module OpenShift
     class NodeCommandException < StandardError; end
 
     class Node < Model
+      DEFAULT_PAM_LIMITS_ORDER = 84
+      DEFAULT_PAM_LIMITS_DIR   = '/etc/security/limits.d'
+      DEFAULT_PAM_LIMITS_VARS  = %w(core data fsize memlock nofile rss stack cpu nproc as maxlogins priority locks sigpending msgqueue nice rprio)
+      DEFAULT_PAM_HARD_VARS    = %w(nproc)
+
+      DEFAULT_QUOTA            = { 'quota_files' => 1000, 'quota_blocks' => 128 * 1024 }
+      DEFAULT_PAM_LIMITS       = { 'nproc' => 100 }
+
       def self.get_cartridge_list(list_descriptors = false, porcelain = false, oo_debug = false)
         carts = []
         CartridgeRepository.instance.latest_versions do |cartridge|
@@ -130,19 +138,127 @@ module OpenShift
         end
       end
 
-      def self.set_quota(uuid, blocksmax, inodemax)
-        cur_quota = get_quota(uuid)
-        inodemax = cur_quota[6] if inodemax.to_s.empty?
+      def self.get_gear_mountpoint
+        cartridge_path = OpenShift::Config.new.get("GEAR_BASE_DIR")
 
-        mountpoint = %x[quota --always-resolve -w #{uuid} | awk '/^.*\\/dev/ {print $1}']
+        oldpath=File.absolute_path(cartridge_path)
+        olddev=File.stat(oldpath).dev
+        while true
+          newpath = File.dirname(oldpath)
+          newdev  = File.stat(newpath).dev
+          if (newpath == oldpath) or (newdev != olddev)
+            break
+          end
+          oldpath = newpath
+        end
+        oldpath
+      end
+
+      def self.set_quota(uuid, blocksmax, inodemax)
+        if inodemax.to_s.empty?
+          cur_quota = get_quota(uuid)
+          inodemax = cur_quota[6]
+        end
+
+        mountpoint = self.get_gear_mountpoint
         cmd = "setquota --always-resolve -u #{uuid} 0 #{blocksmax} 0 #{inodemax} -a #{mountpoint}"
         st, out, errout = systemu cmd
         raise NodeCommandException.new "Error: #{errout} executing command #{cmd}" unless st.exitstatus == 0
       end
 
+      def self.init_quota(uuid, blocksmax=nil, inodemax=nil)
+        resource = OpenShift::Config.new('/etc/openshift/resource_limits.conf')
+        blocksmax = (blocksmax or resource.get('quota_blocks') or DEFAULT_QUOTA['quota_blocks'])
+        inodemax  = (inodemax  or resource.get('quota_files')  or DEFAULT_QUOTA['quota_files'])
+        self.set_quota(uuid, blocksmax.to_i, inodemax.to_i)
+      end
+
+      def self.remove_quota(uuid)
+        begin
+          self.set_quota(uuid, 0, 0)
+        rescue NodeCommandException
+          # If the user no longer exists than it has no quota
+        end
+      end
+
       def self.find_system_messages(pattern)
         regex = Regexp.new(pattern)
         open('/var/log/messages') { |f| f.grep(regex) }.join("\n")
+      end
+
+      def self.init_pam_limits(uuid, limits={})
+        resource =OpenShift::Config.new('/etc/openshift/resource_limits.conf')
+        limits_order = (resource.get('limits_order') or DEFAULT_PAM_LIMITS_ORDER)
+        limits_file = PathUtils.join(DEFAULT_PAM_LIMITS_DIR, "#{limits_order}-#{uuid}.conf")
+
+        DEFAULT_PAM_LIMITS.each { |k, v| limits[k]=v unless limits.has_key?(k) }
+
+        DEFAULT_PAM_LIMITS_VARS.each do |k|
+          if not limits.has_key?(k)
+            v = resource.get("limits_#{k}")
+            if not v.nil?
+              limits[k]=v
+            end
+          end
+        end
+
+        File.open(limits_file, File::RDWR | File::CREAT | File::TRUNC ) do |f|
+          f.write("# PAM process limits for guest #{uuid}\n")
+          f.write("# see limits.conf(5) for details\n")
+          f.write("#Each line describes a limit for a user in the form:\n")
+          f.write("#\n")
+          f.write("#<domain>        <type>  <item>  <value>\n")
+          limits.each do |k, v|
+            if DEFAULT_PAM_HARD_VARS.include?(k)
+              limtype = "hard"
+            else
+              limtype = "soft"
+            end
+            f.write("#{uuid}\t#{limtype}\t#{k}\t#{v}\n")
+          end
+          f.fsync
+        end
+      end
+
+      def self.get_pam_limits(uuid)
+        resource = OpenShift::Config.new('/etc/openshift/resource_limits.conf')
+        limits_order = (resource.get('limits_order') or DEFAULT_PAM_LIMITS_ORDER)
+        limits_file = PathUtils.join(DEFAULT_PAM_LIMITS_DIR, "#{limits_order}-#{uuid}.conf")
+
+        limits = {}
+
+        begin
+          File.open(limits_file, File::RDONLY) do |f|
+            f.each do |l|
+              l.gsub!(/\#.*$/,'')
+              l.strip!
+              l.chomp!
+              limset = l.split()
+              if (limset[0] == uuid) and limset[2] and limset[3]
+                limits[limset[2]]=limset[3]
+              end
+            end
+          end
+        rescue Errno::ENOENT
+        end
+
+        limits
+      end
+
+      def self.pam_freeze(uuid)
+        limits = self.get_pam_limits(uuid)
+        limits["nproc"]=0
+        init_pam_limits(uuid, limits)
+      end
+
+      def self.remove_pam_limits(uuid)
+        resource = OpenShift::Config.new('/etc/openshift/resource_limits.conf')
+        limits_order = (resource.get('limits_order') or DEFAULT_PAM_LIMITS_ORDER)
+        limits_file = PathUtils.join(DEFAULT_PAM_LIMITS_DIR, "#{limits_order}-#{uuid}.conf")
+        begin
+          File.unlink(limits_file)
+        rescue Errno::ENOENT
+        end
       end
 
     end
