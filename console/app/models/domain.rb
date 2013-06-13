@@ -13,6 +13,8 @@ class Domain < RestApi::Base
   custom_id :id, true # domain id is mutable, FIXME rename method to primary_key
   alias_attribute :name, :id
 
+  singular_resource
+
   has_many :applications
   def applications
     @applications ||= Application.find :all, { :params => { :domain_id => self.id }, :as => as }

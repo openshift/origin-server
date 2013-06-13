@@ -1,7 +1,8 @@
 class Quickstart < RestApi::Base
   include RestApi::Cacheable
   allow_anonymous
-
+  singular_resource
+  
   instance_variable_set(:@connection, nil)
 
   schema do

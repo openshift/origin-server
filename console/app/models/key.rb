@@ -5,6 +5,8 @@ class Key < RestApi::Base
   #self.element_name = 'key'
   #self.primary_key = 'name'
 
+  singular_resource
+
   class DuplicateName < ActiveResource::ResourceConflict ; end
   on_exit_code 120, DuplicateName
 
