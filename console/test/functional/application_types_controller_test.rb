@@ -67,10 +67,10 @@ class ApplicationTypesControllerTest < ActionController::TestCase
     assert assigns(:application)
     assert assigns(:domain)
     assert css_select('input#application_domain_name').present?
-    if t.tags.include?(:not_scalable) or t.id == 'diy-0.1'
+    if t.id == 'diy-0.1'
       # Sanity-check known non-scalable types
       assert_equal false, t.scalable?
-    elsif t.id == 'php-5.3'
+    elsif t.id == 'php-5.3' or t.source == :quickstart
       # Sanity-check a known scaling-capable type
       assert_equal true, t.scalable?
     end
@@ -97,7 +97,7 @@ class ApplicationTypesControllerTest < ActionController::TestCase
     with_unique_user
     type = Quickstart.new(:id => 'test', :name => '', :cartridges => '[{')
     Quickstart.expects(:find).returns(type)
-
+    type = ApplicationType.from_quickstart(type)
     get :show, :id => 'quickstart!test'
     assert_standard_show_type(type)
   end

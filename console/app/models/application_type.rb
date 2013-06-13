@@ -25,11 +25,13 @@ class ApplicationType
   attr_accessor :priority
   attr_accessor :scalable
   alias_method :scalable?, :scalable
+  attr_accessor :may_not_scale
+  alias_method :may_not_scale?, :may_not_scale
   attr_accessor :provider
   attr_accessor :source
   attr_accessor :usage_rates
 
-  attr_accessible :initial_git_url, :cartridges, :initial_git_branch, :scalable
+  attr_accessible :initial_git_url, :cartridges, :initial_git_branch, :scalable, :may_not_scale
   alias_attribute :categories, :tags
 
   def initialize(attributes={}, persisted=false)
@@ -256,7 +258,7 @@ class ApplicationType
     end
     def self.from_quickstart(type)
       attrs = { :id => "quickstart!#{type.id}", :source => :quickstart }
-      [:display_name, :tags, :description, :website, :initial_git_url, :initial_git_branch, :cartridges_spec, :priority, :scalable, :learn_more_url, :provider].each do |m|
+      [:display_name, :tags, :description, :website, :initial_git_url, :initial_git_branch, :cartridges_spec, :priority, :scalable, :may_not_scale, :learn_more_url, :provider].each do |m|
         attrs[m] = type.send(m)
       end
 

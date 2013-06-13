@@ -96,6 +96,12 @@ module Console::ModelHelper
     end
   end
 
+  def warn_may_not_scale(type, capabilities)
+    if type.may_not_scale?
+      "This application may require additional work to scale. Please see the application's documentation for more information."
+    end
+  end
+
   def user_currency_symbol
     "$"
   end
