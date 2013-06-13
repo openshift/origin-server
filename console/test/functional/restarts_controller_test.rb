@@ -15,8 +15,8 @@ class RestartsControllerTest < ActionController::TestCase
     allow_http_mock
     ActiveResource::HttpMock.respond_to do |mock|
       mock.get '/broker/rest/domains.json', json_header, [@domain].to_json
-      mock.get "/broker/rest/domains/#{@domain.name}/applications/#{app.name}.json", json_header, app.to_json
-      mock.post "/broker/rest/domains/#{@domain.name}/applications/#{app.name}/events.json", json_header(true) # No messages on restart
+      mock.get "/broker/rest/domain/#{@domain.name}/application/#{app.name}.json", json_header, app.to_json
+      mock.post "/broker/rest/domain/#{@domain.name}/application/#{app.name}/events.json", json_header(true) # No messages on restart
     end
 
     put :update, :application_id => app.name
