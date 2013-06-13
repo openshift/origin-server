@@ -62,18 +62,19 @@ def clean_app(a)
   $count += 1
   delete_app = false
   dlist = []
-  a.pending_op_groups.each { |op| 
-    if op.op_type.nil? 
-      puts "ERROR in cleaning up application's op because the type is nil. App uuid - #{a.uuid}. Op - #{op.inspect}"
-      next
-    end
-    puts "WARNING : Application #{a.uuid} has created_at field nil for op - #{op.inspect}" if op.created_at.nil?
+  Application.run_in_application_lock(a) do
+    a.with(consistency: :strong).reload
+    a.pending_op_groups.each { |op| 
+      if op.op_type.nil? 
+        puts "ERROR in cleaning up application's op because the type is nil. App uuid - #{a.uuid}. Op - #{op.inspect}"
+        next
+      end
+      puts "WARNING : Application #{a.uuid} has created_at field nil for op - #{op.inspect}" if op.created_at.nil?
     
-    if op.created_at.nil? or op.created_at < $t 
-      puts
-      puts "Executing op for app (#{a.uuid}) - #{op.inspect} "
-      success = false
-      Application.run_in_application_lock(a) do
+      if op.created_at.nil? or op.created_at < $t 
+        puts
+        puts "Executing op for app (#{a.uuid}) - #{op.inspect} "
+        success = false
         begin
           if op.pending_ops.where(:state => :rolledback).count > 0
             raise Exception.new("Op already being rolled back.. continuing.")
@@ -98,9 +99,9 @@ def clean_app(a)
         dlist << op if success
       end
       break if !success
-    end
-  } 
-  dlist.each { |op| op.delete }
+    } 
+    dlist.each { |op| op.delete }
+  end # end of lock
   if not delete_app
     a.save
     a.pending_op_groups.each { |op| 
@@ -119,6 +120,7 @@ end
 $domain_count = 0
 def clean_domain(d)
   $domain_count += 1
+  d.with(consistency: :strong).reload
   dlist = d.pending_ops.select { |op| op.op_type.nil? }
   dlist.each { |op| op.delete }
   d.pending_ops.delete_if { |op| op.nil? }
@@ -141,6 +143,7 @@ end
 $user_count = 0
 def clean_user(u)
   $user_count += 1
+  u.with(consistency: :strong).reload
   dlist = u.pending_ops.select { |op| op.op_type.nil? or op.pending_domains.empty? }
   dlist.each { |op| op.delete }
   u.pending_ops.delete_if { |op| op.nil? }
