@@ -156,7 +156,7 @@ module OpenShift
       # vendor name by matching against VALID_VENDOR_NAME_PATTERN,
       # and the cartridge name agasint VALID_CARTRIDGE_NAME_PATTERN.
       # If it does not match the respective pattern, the cartridge will be rejected.
-      VALID_VENDOR_NAME_PATTERN    = /\A[a-z][a-z0-9_]*\z/
+      VALID_VENDOR_NAME_PATTERN    = /\A[a-z0-9](?:[a-z0-9_]*[a-z0-9]|)\z/
       VALID_CARTRIDGE_NAME_PATTERN = /\A[a-z0-9](?:[-\.a-z0-9_]*[a-z0-9]|)\z/
 
       # Furthermore, we validate the vendor name by matching against

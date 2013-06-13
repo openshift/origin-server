@@ -247,7 +247,7 @@ module OpenShift
 
     def test_invalid_vendor_name
       manifest = IO.read(File.join(@cartridge.manifest_path))
-      manifest << "Cartridge-Vendor: 0a" << "\n"
+      manifest << "Cartridge-Vendor: 0a_" << "\n"
       manifest << 'Source-Url: https://www.example.com/mock-plugin.tar.gz' << "\n"
       manifest << "Source-Md5: #{@tgz_hash}"
 
