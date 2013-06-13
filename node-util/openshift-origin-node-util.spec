@@ -1,6 +1,6 @@
 Summary:       Utility scripts for the OpenShift Origin broker
 Name:          openshift-origin-node-util
-Version: 1.9.11
+Version: 1.9.12
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -124,6 +124,11 @@ mv services/openshift-gears.service %{buildroot}/etc/systemd/system/openshift-ge
 /sbin/restorecon /usr/sbin/oo-restorer* || :
 
 %changelog
+* Thu Jun 13 2013 Dan McPherson <dmcphers@redhat.com> 1.9.12-1
+- Fix bug 974203: add checks for V1 cartridge directories in gears
+  (pmorie@gmail.com)
+- Fix bug 971955: migration metadata check in oo-accept-node (pmorie@gmail.com)
+
 * Thu Jun 06 2013 Adam Miller <admiller@redhat.com> 1.9.11-1
 - The symbolic link for the old cartridge was confusing the websocket test.
   (rmillner@redhat.com)
