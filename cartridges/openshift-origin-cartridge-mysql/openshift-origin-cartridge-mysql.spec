@@ -14,6 +14,8 @@ Requires:      rubygem(openshift-origin-node)
 Requires:      openshift-origin-node-util
 BuildArch:     noarch
 
+Obsoletes: openshift-origin-cartridge-mysql-5.1
+
 %description
 Provides mysql cartridge support to OpenShift. (Cartridge Format V2)
 

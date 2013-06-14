@@ -23,6 +23,8 @@ Requires:      nodejs-supervisor
 Requires:      npm
 %endif
 
+Obsoletes: openshift-origin-cartridge-nodejs-0.6
+
 BuildArch:     noarch
 
 %description

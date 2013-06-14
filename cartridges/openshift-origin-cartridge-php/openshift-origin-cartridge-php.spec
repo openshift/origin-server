@@ -41,6 +41,8 @@ Requires:      php-pecl-imagick
 Requires:      php-pecl-xdebug
 BuildArch:     noarch
 
+Obsoletes: openshift-origin-cartridge-php-5.3
+
 %description
 PHP cartridge for openshift. (Cartridge Format V2)
 

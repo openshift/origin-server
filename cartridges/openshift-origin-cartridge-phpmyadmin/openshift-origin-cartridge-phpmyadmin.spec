@@ -21,6 +21,8 @@ Requires:      httpd < 2.5
 %endif
 BuildArch:     noarch
 
+Obsoletes: openshift-origin-cartridge-phpmyadmin-3.4
+
 %description
 Provides phpMyAdmin cartridge support. (Cartridge Format V2)
 

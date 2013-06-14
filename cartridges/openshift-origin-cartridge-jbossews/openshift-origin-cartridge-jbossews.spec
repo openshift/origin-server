@@ -24,6 +24,9 @@ Requires:      maven
 BuildRequires: jpackage-utils
 BuildArch:     noarch
 
+Obsoletes: openshift-origin-cartridge-jbossews-1.0
+Obsoletes: openshift-origin-cartridge-jbossews-2.0
+
 %description
 Provides JBossEWS1.0 and JBossEWS2.0 support to OpenShift. (Cartridge Format V2)
 

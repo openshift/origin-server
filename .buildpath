@@ -1,8 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <buildpath>
-	<buildpathentry kind="src" path="cartridges/openshift-origin-cartridge-haproxy-1.4/info/bin"/>
-	<buildpathentry kind="src" path="cartridges/openshift-origin-cartridge-jenkins-client-1.4/info/bin"/>
-	<buildpathentry kind="src" path="cartridges/openshift-origin-cartridge-abstract/abstract/info/bin"/>
 	<buildpathentry kind="src" path="broker"/>
 	<buildpathentry kind="src" path="common"/>
 	<buildpathentry kind="src" path="controller"/>

@@ -43,6 +43,11 @@ Requires:      freetype-devel
 Requires:      atlas-devel
 Requires:      lapack-devel
 Requires:      redhat-lsb-core
+
+Obsoletes: openshift-origin-cartridge-community-python-2.7
+Obsoletes: openshift-origin-cartridge-community-python-3.3
+Obsoletes: openshift-origin-cartridge-python-2.6
+
 BuildArch:     noarch
 
 %description

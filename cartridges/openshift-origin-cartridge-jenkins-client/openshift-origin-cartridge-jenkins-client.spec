@@ -25,6 +25,8 @@ Requires:      %{?scl:%scl_prefix}rubygems
 Requires:      %{?scl:%scl_prefix}rubygem-json
 BuildArch:     noarch
 
+Obsoletes: openshift-origin-cartridge-jenkins-client-1.4
+
 %description
 Provides plugin jenkins client support. (Cartridge Format V2)
 

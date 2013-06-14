@@ -315,19 +315,19 @@ Below is the output of the commands running on my desktop:
     
     Info: changing mode of /etc/yum.repos.d/openshift-origin.repo from 600 to 644
     
-    Notice: /Stage[main]/Openshift_origin::Node/Package[openshift-origin-cartridge-mongodb-2.2]/ensure: created
+    Notice: /Stage[main]/Openshift_origin::Node/Package[openshift-origin-cartridge-mongodb]/ensure: created
     Notice: /Stage[main]/Openshift_origin/Package[rhc]/ensure: created
-    Notice: /Stage[main]/Openshift_origin::Node/Package[openshift-origin-cartridge-jenkins-client-1.4]/ensure: created
-    Notice: /Stage[main]/Openshift_origin::Node/Package[openshift-origin-cartridge-perl-5.16]/ensure: created
+    Notice: /Stage[main]/Openshift_origin::Node/Package[openshift-origin-cartridge-jenkins-client]/ensure: created
+    Notice: /Stage[main]/Openshift_origin::Node/Package[openshift-origin-cartridge-perl]/ensure: created
     Notice: /Stage[main]/Openshift_origin::Broker/Package[rubygem-openshift-origin-dns-nsupdate]/ensure: created
-    Notice: /Stage[main]/Openshift_origin::Node/Package[openshift-origin-cartridge-diy-0.1]/ensure: created
-    Notice: /Stage[main]/Openshift_origin::Node/Package[openshift-origin-cartridge-jenkins-1.4]/ensure: created
+    Notice: /Stage[main]/Openshift_origin::Node/Package[openshift-origin-cartridge-diy]/ensure: created
+    Notice: /Stage[main]/Openshift_origin::Node/Package[openshift-origin-cartridge-jenkins]/ensure: created
     Notice: /File[plugin openshift-origin-dns-nsupdate.conf]/ensure: defined content as '{md5}7704a8bfe2abaf76e9841d76a71ce07d'
     
-    Notice: /Stage[main]/Openshift_origin::Node/Package[openshift-origin-cartridge-haproxy-1.4]/ensure: created
+    Notice: /Stage[main]/Openshift_origin::Node/Package[openshift-origin-cartridge-haproxy]/ensure: created
     Notice: /Stage[main]/Openshift_origin::Node/Package[openshift-origin-port-proxy]/ensure: created
     
-    Notice: /Stage[main]/Openshift_origin::Node/Package[openshift-origin-cartridge-community-python-2.7]/ensure: created
+    Notice: /Stage[main]/Openshift_origin::Node/Package[openshift-origin-cartridge-python]/ensure: created
     Notice: /Stage[main]/Openshift_origin::Node/Exec[Restoring SELinux contexts]/returns: executed successfully
     
     Info: FileBucket adding {md5}cbd4bafffd7029c62485969acb059c77
@@ -342,9 +342,9 @@ Below is the output of the commands running on my desktop:
     
     Notice: /File[/etc/openshift/express.conf]/content: content changed '{md5}bad9c0612287ec22998becdf24e2b54b' to '{md5}3269dfca42bf7d18a65716379c0f0645'
     
-    Notice: /Stage[main]/Openshift_origin::Node/Package[openshift-origin-cartridge-phpmyadmin-3.5]/ensure: created
-    Notice: /Stage[main]/Openshift_origin::Node/Package[openshift-origin-cartridge-php-5.4]/ensure: created
-    Notice: /Stage[main]/Openshift_origin::Node/Package[openshift-origin-cartridge-ruby-1.9]/ensure: created
+    Notice: /Stage[main]/Openshift_origin::Node/Package[openshift-origin-cartridge-phpmyadmin]/ensure: created
+    Notice: /Stage[main]/Openshift_origin::Node/Package[openshift-origin-cartridge-php]/ensure: created
+    Notice: /Stage[main]/Openshift_origin::Node/Package[openshift-origin-cartridge-ruby]/ensure: created
     Notice: /Stage[main]/Openshift_origin::Node/Package[openshift-origin-msg-node-mcollective]/ensure: created
     Notice: /File[openshift node pam-namespace sandbox.conf]/ensure: created
     
@@ -364,14 +364,14 @@ Below is the output of the commands running on my desktop:
     
     Notice: /File[openshift node pam sshd]/content: content changed '{md5}5b7b390767c45395b78100e64dfb90f8' to '{md5}ea3f11c56e6fc90afcb1be46792efb0b'
     
-    Notice: /Stage[main]/Openshift_origin::Node/Package[openshift-origin-cartridge-community-python-3.3]/ensure: created
-    Notice: /Stage[main]/Openshift_origin::Node/Package[openshift-origin-cartridge-mysql-5.1]/ensure: created
+    Notice: /Stage[main]/Openshift_origin::Node/Package[openshift-origin-cartridge-python]/ensure: created
+    Notice: /Stage[main]/Openshift_origin::Node/Package[openshift-origin-cartridge-mysql]/ensure: created
     Notice: /Stage[main]/Openshift_origin::Node/Package[openshift-origin-node-util]/ensure: created
     
     Notice: /Stage[main]/Openshift_origin::Node/Exec[Initialize quota DB]/returns: executed successfully
     Notice: /Stage[main]/Openshift_origin::Console/Package[rubygem-openshift-origin-console]/ensure: created
     Info: /Stage[main]/Openshift_origin::Console/Package[rubygem-openshift-origin-console]: Scheduling refresh of Exec[Console gem dependencies]
-    Notice: /Stage[main]/Openshift_origin::Node/Package[openshift-origin-cartridge-cron-1.4]/ensure: created
+    Notice: /Stage[main]/Openshift_origin::Node/Package[openshift-origin-cartridge-cron]/ensure: created
     Notice: /Stage[main]/Openshift_origin::Broker/Package[rubygem-openshift-origin-auth-mongo]/ensure: created
     Notice: /Stage[main]/Openshift_origin::Broker/Package[rubygem-openshift-origin-dns-bind]/ensure: created
     
@@ -404,7 +404,7 @@ Below is the output of the commands running on my desktop:
     Notice: /File[/etc/openshift/development]/ensure: defined content as '{md5}d41d8cd98f00b204e9800998ecf8427e'
     
     Notice: /Stage[main]/Openshift_origin::Broker/Service[openshift-broker]/enable: enable changed 'false' to 'true'
-    Notice: /Stage[main]/Openshift_origin::Node/Package[openshift-origin-cartridge-nodejs-0.6]/ensure: created
+    Notice: /Stage[main]/Openshift_origin::Node/Package[openshift-origin-cartridge-nodejs]/ensure: created
     Notice: /File[mcollective broker plugin config]/ensure: created
     Notice: /Stage[main]/Openshift_origin::Broker/Package[openshift-origin-broker-util]/ensure: created
     Notice: /Stage[main]/Openshift_origin::Console/Package[openshift-origin-console]/ensure: created
@@ -423,7 +423,7 @@ Below is the output of the commands running on my desktop:
     Notice: /Stage[main]/Openshift_origin::Node/File[broker and console route for node]/ensure: created
     
     Notice: /Stage[main]/Openshift_origin::Node/Exec[regen node routes]/returns: executed successfully
-    Notice: /Stage[main]/Openshift_origin::Node/Package[openshift-origin-cartridge-postgresql-9.2]/ensure: created
+    Notice: /Stage[main]/Openshift_origin::Node/Package[openshift-origin-cartridge-postgresql]/ensure: created
     Notice: /File[broker servername config]/ensure: created
     
     Notice: /Stage[main]/Openshift_origin::Node/Package[openshift-origin-node-proxy]/ensure: created
@@ -475,7 +475,7 @@ Below is the output of the commands running on my desktop:
     
     Notice: /File[activemq.xml config]/mode: mode changed '0644' to '0444'
     
-    Notice: /Stage[main]/Openshift_origin::Node/Package[openshift-origin-cartridge-10gen-mms-agent-0.1]/ensure: created
+    Notice: /Stage[main]/Openshift_origin::Node/Package[openshift-origin-cartridge-10gen-mms-agent]/ensure: created
     Info: FileBucket adding {md5}b8b44b045259525e0fae9e38fdb2aeeb
     
     Info: /File[openshift node pam runuser]: Filebucketed /etc/pam.d/runuser to puppet with sum b8b44b045259525e0fae9e38fdb2aeeb
