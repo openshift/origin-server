@@ -2342,7 +2342,7 @@ module OpenShift
         end
         
         component_details = reply.appInfoIO.string.empty? ? '' : reply.appInfoIO.string
-        reply.debugIO << "Embedded app details: #{component_details}"
+        reply.debugIO << "\n\n#{cart}: #{component_details}"
         [reply, component_details]
       end
 
