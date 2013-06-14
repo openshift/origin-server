@@ -85,6 +85,8 @@ def gear_env():
     if 'PATH' in os.environ:
         elements.append(os.environ['PATH'])
     elements.append(system_path)
+    elements.reject!(&:empty?)
+    elements = elements.uniq
 
     os.environ['PATH'] = ':'.join(elements)
 
