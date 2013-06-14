@@ -23,9 +23,19 @@ done
 ## with v2, PATH is no longer modified by the cartridge
 ## use OPENSHIFT_*_PATH_ELEMENT from the primary cartridge instead
 ## here, we assume that OPENSHIFT_*_PATH_ELEMENT has only one line
+path=$(env |grep 'OPENSHIFT_.*_PATH_ELEMENT'| sed 's/^.*=\(.*\)$/\1/'|tr '\n' ':')
+
 for f in $OPENSHIFT_PRIMARY_CARTRIDGE_DIR/env/OPENSHIFT_*_PATH_ELEMENT; do
-  PATH=$(cat $f | tr -d '\n'):$PATH
+  path=$(cat $f | tr -d '\n'):$path
 done
+
+if [ -f /etc/openshift/env/PATH ]
+then
+  load_env /etc/openshift/PATH
+  path=$path:$PATH
+fi
+
+export PATH=$path
 
 CART_CONF_DIR=$OPENSHIFT_CRON_DIR/versions/$OPENSHIFT_CRON_VERSION/configuration
 
