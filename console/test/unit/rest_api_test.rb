@@ -142,6 +142,47 @@ class RestApiTest < ActiveSupport::TestCase
     assert_nil obj[:foo]
   end
 
+  def test_decode_messages
+    # No messages passed, malformed messages
+    assert_equal [], Application.new( {} ).messages
+    assert_equal [], Application.new( { 'messages' => nil  } ).messages
+    assert_equal [], Application.new( { 'messages' => "A"  } ).messages
+    assert_equal [], Application.new( { 'messages' => {}   } ).messages
+    assert_equal [], Application.new( { 'messages' => []   } ).messages
+    assert_equal [], Application.new( { 'messages' => [ {}                 ] } ).messages
+    assert_equal [], Application.new( { 'messages' => [ {'text' => ''}     ] } ).messages
+    assert_equal [], Application.new( { 'messages' => [ {'text' => nil}    ] } ).messages
+
+    a = Application.new({'messages' => [
+      {},
+      {'exit_code' => '1', 'field' => 'Field',  'text' => 'Test'},
+      {'exit_code' => 'A', 'field' => 'Field2', 'text' => 'Test2'},
+      {'text' => 'Test3'},
+      {}
+    ]})
+    assert messages = a.messages.presence
+    assert_equal 3, messages.length
+
+    assert_equal 1,        messages[0].exit_code
+    assert_equal 'Field',  messages[0].field
+    assert_equal 'Test',   messages[0].text
+    assert_equal 'Test',   messages[0].to_s
+
+    assert_equal 0,        messages[1].exit_code
+    assert_equal 'Field2', messages[1].field
+    assert_equal 'Test2',  messages[1].text
+
+    assert_equal 0,        messages[2].exit_code
+    assert_equal nil,      messages[2].field
+    assert_equal 'Test3',  messages[2].text
+
+    a.load({})
+    assert_equal [], a.messages
+
+    a.load({'messages' => [{'text' => 'Test4'}]})
+    assert_equal 'Test4', a.messages.first.to_s
+  end
+
   def test_remote_results
     ActiveResource::HttpMock.respond_to do |mock|
       mock.get '/broker/rest/bases/1.json', json_header, {:messages => [{:field => 'result', :text => 'text'}],:data => {}}.to_json

@@ -230,6 +230,9 @@ module RestApi
       raise ArgumentError, "expected an attributes Hash, got #{attributes.inspect}" unless attributes.is_a?(Hash)
       self.prefix_options, attributes = split_options(attributes)
 
+      # Clear calculated messages
+      self.messages = nil
+
       aliased = self.class.aliased_attributes
       calculated = self.class.calculated_attributes
       known = self.class.known_attributes
@@ -523,7 +526,35 @@ module RestApi
     def self.as_indifferent_hash
       IndifferentAccess
     end
-    has_many :messages, :class_name => as_indifferent_hash
+
+    class Message < Struct.new(:exit_code, :field, :severity, :text)
+      def to_s
+        text
+      end
+    end
+
+    def messages
+      @messages ||= begin
+        Array(attributes[:messages]).map do |m|
+          Message.new(
+            m['exit_code'].to_i,
+            m['field'],
+            m['severity'],
+            m['text']
+          ) if m['text'].present?
+        end.compact
+      rescue
+        []
+      end
+    end
+    def messages= messages
+      @messages = nil
+      if messages.present?
+        attributes[:messages] = messages
+      else
+        attributes.delete(:messages)
+      end
+    end
 
     #FIXME may be refactored
     def remote_results
