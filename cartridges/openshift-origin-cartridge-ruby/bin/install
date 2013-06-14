@@ -18,6 +18,7 @@ done
 mkdir $OPENSHIFT_RUBY_DIR/tmp
 
 mkdir $OPENSHIFT_HOMEDIR/.gem
+chown $user_id.$group_id -R $OPENSHIFT_HOMEDIR/.gem || error "Failed to chown new application space.  Please contact support" 123
 
 mkdir $OPENSHIFT_HOMEDIR/.passenger
 
