@@ -9,4 +9,6 @@ echo "$version" > "$OPENSHIFT_HAPROXY_DIR/env/OPENSHIFT_HAPROXY_VERSION"
 
 mkdir -p $OPENSHIFT_HAPROXY_DIR/{conf,conf.d,logs,run,sessions}
 
-cp ${OPENSHIFT_HAPROXY_DIR}/versions/$version/configuration/* $OPENSHIFT_HAPROXY_DIR/conf/
+if [ ! -f "$OPENSHIFT_HAPROXY_DIR/conf/haproxy.cfg" ]; then
+    cp ${OPENSHIFT_HAPROXY_DIR}/versions/$version/configuration/haproxy.cfg.erb $OPENSHIFT_HAPROXY_DIR/conf/
+fi
