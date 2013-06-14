@@ -19,6 +19,20 @@
 require 'rubygems'
 require 'getoptlong'
 require 'time'
+require "/var/www/openshift/broker/config/environment"
+# Disable analytics for admin scripts
+Rails.configuration.analytics[:enabled] = false
+Rails.configuration.msg_broker[:rpc_options][:disctimeout] = 20
+Rails.configuration.msg_broker[:rpc_options][:timeout] = 600
+
+def usage_additional_plugins
+  usage_info = ""
+  if Rails.configuration.respond_to?('billing')
+    billing_api = OpenShift::BillingService.instance
+    usage_info += billing_api.display_check_help.to_s
+  end
+  usage_info
+end
 
 def usage
   puts <<USAGE
@@ -33,10 +47,10 @@ def usage
 Options:
 -v|--verbose
     Print information about each check being performed
--l|--level [0, 1, 2]
+-l|--level [0, 1]
     Level '0' is default, and checks to see if any gears are present in mongo but don't exist on the nodes and vice-versa.
-    Level '1' performs extra checks such as integrity of consumed_gears count
-    Level '2' additionally performs checks for application data integrity in mongo and checks for unused and unreserved gear UIDs
+    Level '1' performs checks such as integrity of consumed_gears count
+    Level '1' performs checks for application data integrity in mongo and checks for unused and unreserved gear UIDs
     #{usage_additional_plugins}
 -h|--help
     Show Usage info
@@ -59,12 +73,6 @@ end
 level = args["--level"].to_i || 0
 verbose = args["--verbose"]
 usage if args["--help"]
-
-require "/var/www/openshift/broker/config/environment"
-# Disable analytics for admin scripts
-Rails.configuration.analytics[:enabled] = false
-Rails.configuration.msg_broker[:rpc_options][:disctimeout] = 20
-Rails.configuration.msg_broker[:rpc_options][:timeout] = 600
 
 def datastore_has_gear?(gear_uuid, app_uuid=nil, false_positive_response=true)
   $false_positive_check_cnt += 1
@@ -106,10 +114,9 @@ end
 def get_user_info(user, level=0)
   user_ssh_keys = {}
   user["ssh_keys"].each { |k| user_ssh_keys[Digest::MD5.hexdigest(k["content"])] = k["name"] } if user["ssh_keys"]
-  user_info = {"consumed_gears" => user["consumed_gears"], "domains" => {}, "login" => user["login"], "ssh_keys" => user_ssh_keys}
-  if level >= 2
-    user_info.merge!({"plan_id" => user["plan_id"], "plan_state" => user["plan_state"], "usage_account_id" => user["usage_account_id"]})
-  end
+  user_info = {"consumed_gears" => user["consumed_gears"], "domains" => {}, "login" => user["login"], "ssh_keys" => user_ssh_keys,
+               "max_untracked_addtl_storage_per_gear" => user["capabilities"]["max_untracked_addtl_storage_per_gear"],
+               "plan_id" => user["plan_id"], "plan_state" => user["plan_state"], "usage_account_id" => user["usage_account_id"]}
   user_info
 end
 
@@ -131,15 +138,6 @@ def check_consumed_gears(user_id)
   end
 end
 
-def usage_additional_plugins
-  usage_info = ""
-  if Rails.configuration.respond_to?('billing')
-    billing_api = OpenShift::BillingService.instance
-    usage_info += billing_api.display_check_help.to_s
-  end
-  usage_info
-end
-
 def get_premium_carts
   premium_carts = []
   all_carts = CartridgeCache.cartridges
@@ -149,8 +147,13 @@ def get_premium_carts
   premium_carts
 end
 
-def assign_usage_hash(urec, gear_hash, storage_hash, cart_hash)
+def assign_usage_hash(urec, gear_hash, storage_hash, cart_hash, summary, verbose)
   gear_id = urec['gear_id'].to_s
+  if !UsageRecord::EVENTS.values.include?(urec['event'])
+    puts "FAIL" if verbose
+    summary << "Found record in usage_records collection with invalid event '#{urec['event']}' for gear Id '#{gear_id}'."
+    return
+  end
   case urec['usage_type']
   when UsageRecord::USAGE_TYPES[:gear_usage]
     gear_hash[gear_id] = { 'app_name' => urec['app_name'] }
@@ -184,40 +187,21 @@ current_time = Time.now
 puts "Started at: #{current_time}"
 start_time = (current_time.to_f * 1000).to_i
 
-app_selection = {:fields => ["name",
-                             "uuid",
-                             "created_at",
-                             "domain_id",
-                             "group_instances.gears._id",
-                             "group_instances.gears.uuid",
-                             "group_instances.gears.uid",
-                             "group_instances.gears.server_identity",
-                             "group_instances._id",
-                             "component_instances._id",
-                             "component_instances.cartridge_name",
-                             "component_instances.group_instance_id",
-                             "group_overrides",
-                             "app_ssh_keys.name", 
-                             "app_ssh_keys.content"],
-                 :timeout => false}
-
-user_selection = {:fields => ["consumed_gears", "login", "ssh_keys.name", "ssh_keys.content",
-                              "plan_id", "plan_state", "usage_account_id"], 
-                  :timeout => false}
-user_selection_primary = user_selection.dup
-user_selection_primary[:read] = :primary
-
-domain_selection = {:fields => ["owner_id", "system_ssh_keys.name", "system_ssh_keys.content"], 
-                    :timeout => false}
-
-ret = []
-
 if level >= 1
+  user_selection = {:fields => ["consumed_gears", "login", "ssh_keys.name", "ssh_keys.content",
+                                "capabilities.max_untracked_addtl_storage_per_gear", "plan_id",
+                                "plan_state", "usage_account_id"], :timeout => false}
+  user_selection_primary = user_selection.dup
+  user_selection_primary[:read] = :primary
+
+  domain_selection = {:fields => ["owner_id", "system_ssh_keys.name", "system_ssh_keys.content"], 
+                      :timeout => false}
+
   OpenShift::DataStore.find(:cloud_users, {}, user_selection) do |user|
     user_hash[user["_id"].to_s] = get_user_info(user, level)
   end
 
-  OpenShift::DataStore.find(:domains, {}, domain_selection) { |domain|
+  OpenShift::DataStore.find(:domains, {}, domain_selection) do |domain|
     owner_id = domain["owner_id"].to_s
     domain_hash[domain["_id"].to_s] = owner_id
     system_ssh_keys = {}
@@ -235,10 +219,10 @@ if level >= 1
     else
       summary << "User '#{owner_id}' for domain '#{domain['_id']}' does not exist in mongo."
     end
-  } 
+  end 
 end
 
-if level >= 2 and Rails.configuration.msg_broker[:districts][:enabled]
+if level >= 1 and Rails.configuration.msg_broker[:districts][:enabled]
   OpenShift::DataStore.find(:districts, {}, {:timeout => false}) do |district|
     si_list =  district["server_identities"].map {|si| si["name"]}
     si_list.delete_if {|si| si.nil?}
@@ -251,6 +235,11 @@ if level >= 2 and Rails.configuration.msg_broker[:districts][:enabled]
   end
 end
 
+app_selection = {:fields => ["name", "uuid", "created_at", "domain_id", "group_instances.gears._id",
+                             "group_instances.gears.uuid", "group_instances.gears.uid", "group_instances.gears.server_identity",
+                             "group_instances._id", "component_instances._id", "component_instances.cartridge_name",
+                             "component_instances.group_instance_id", "group_overrides", "app_ssh_keys.name", "app_ssh_keys.content"],
+                 :timeout => false}
 app_query = {"group_instances.gears.0" => {"$exists" => true}}
 OpenShift::DataStore.find(:applications, app_query, app_selection) do |app|
   gear_count = 0
@@ -277,7 +266,7 @@ OpenShift::DataStore.find(:applications, app_query, app_selection) do |app|
       app_ssh_keys.merge! user_hash[owner_id]["ssh_keys"]
     end
           
-    if (level >= 2) and ((current_time - creation_time) > 600)
+    if (current_time - creation_time) > 600
       # check for component instances without corresponding group instances and vice-versa
       gi_hash = {}
       app["group_instances"].each do |gi|
@@ -307,7 +296,7 @@ OpenShift::DataStore.find(:applications, app_query, app_selection) do |app|
       gear_count += 1
       datastore_hash[gear['uuid'].to_s] = [login, creation_time, gear['uid'], gear['server_identity'], app["uuid"], app_ssh_keys ]
       
-      if level >= 2 and Rails.configuration.msg_broker[:districts][:enabled]
+      if level >= 1 and Rails.configuration.msg_broker[:districts][:enabled]
         # record all used uid values for each node to match later with the district
         gear_uid_hash[gear['server_identity']] = [] unless gear_uid_hash.has_key?(gear['server_identity'])
         gear_uid_hash[gear['server_identity']] << gear['uid'].to_i
@@ -316,7 +305,7 @@ OpenShift::DataStore.find(:applications, app_query, app_selection) do |app|
   end
   user_hash[owner_id]["domains"][domain_id] += gear_count if level >= 1 and user_hash[owner_id]
 
-  if level >= 2 and Rails.configuration.respond_to?('billing')
+  if level >= 1 and Rails.configuration.respond_to?('billing')
     gi_hash = {}
     app['group_instances'].each do |gi|
       gid = gi['_id'].to_s
@@ -335,8 +324,13 @@ OpenShift::DataStore.find(:applications, app_query, app_selection) do |app|
       end
     end
     # Get group instances with additional storage consumption
+    user_untracked_storage_limit = 0
+    owner_id = domain_hash[domain_id]
+    if owner_id and user_hash[owner_id]["max_untracked_addtl_storage_per_gear"]
+      user_untracked_storage_limit = user_hash[owner_id]["max_untracked_addtl_storage_per_gear"]
+    end
     app['group_overrides'].each do |go|
-      next unless go['additional_filesystem_gb']
+      next if !go['additional_filesystem_gb'] or (go['additional_filesystem_gb'] <= user_untracked_storage_limit)
       go['components'].each do |go_components|
         found = false
         app['component_instances'].each do |ci|
@@ -400,7 +394,7 @@ puts "Time to get all gears from nodes: #{total_time.to_f/1000}s"
 puts "Total gears found on the nodes: #{node_hash.length}"
 puts "Total nodes that responded : #{gear_sender_hash.length}"
 
-if level >= 2
+if level >= 1
   get_all_sshkeys_start_time = (Time.now.to_f * 1000).to_i
   gear_sshkey_hash, sshkeys_sender_list = OpenShift::ApplicationContainerProxy.get_all_gears_sshkeys
   total_time = (Time.now.to_f * 1000).to_i - get_all_sshkeys_start_time
@@ -440,7 +434,7 @@ datastore_hash.each do |gear_uuid, gear_info|
     puts "OK"
   end
 
-  if level >= 2
+  if level >= 1
     print "Checking ssh keys for gear: #{gear_uuid}...\t" if verbose
     if (current_time - creation_time) > 600
       if gear_sshkey_hash.has_key? gear_uuid
@@ -508,7 +502,7 @@ node_hash.each do |gear_uuid, gear_info|
   end
 end
 
-if level >= 2
+if level >= 1
   # check for applications without any group instances in the database
   puts "Checking for application without any group instances in the database:" if verbose
   query = {"group_instances.0" => {"$exists" => false}}
@@ -633,7 +627,7 @@ if level >= 2
   end
 end
 
-if level >= 2 and Rails.configuration.respond_to?('billing')
+if level >= 1 and Rails.configuration.respond_to?('billing')
   usage_gear_hash = {}
   usage_storage_hash = {}
   usage_cart_hash = {}
@@ -645,7 +639,7 @@ if level >= 2 and Rails.configuration.respond_to?('billing')
     if urec['event'] == UsageRecord::EVENTS[:end]
       if prev
         unless (prev['gear_id'] == urec['gear_id']) and (prev['usage_type'] == urec['usage_type']) and (prev['user_id'] == urec['user_id'])
-          assign_usage_hash(prev, usage_gear_hash, usage_storage_hash, usage_cart_hash)
+          assign_usage_hash(prev, usage_gear_hash, usage_storage_hash, usage_cart_hash, summary, verbose)
         end
         prev = nil
       end
@@ -653,12 +647,12 @@ if level >= 2 and Rails.configuration.respond_to?('billing')
       prev = urec
     else 
       unless (prev['gear_id'] == urec['gear_id']) and (prev['usage_type'] == urec['usage_type']) and (prev['user_id'] == urec['user_id'])
-        assign_usage_hash(prev, usage_gear_hash, usage_storage_hash, usage_cart_hash)
+        assign_usage_hash(prev, usage_gear_hash, usage_storage_hash, usage_cart_hash, summary, verbose)
         prev = urec
       end
     end
   end
-  assign_usage_hash(prev, usage_gear_hash, usage_storage_hash, usage_cart_hash) if prev
+  assign_usage_hash(prev, usage_gear_hash, usage_storage_hash, usage_cart_hash, summary, verbose) if prev
 
   # Find application gears that does not have usage records and viceversa.
   usage_gear_ids = usage_gear_hash.keys
@@ -680,6 +674,7 @@ if level >= 2 and Rails.configuration.respond_to?('billing')
     selection = {:fields => ["event"], :timeout => false}
     num_end_events = num_begin_events = 0
     OpenShift::DataStore.find(:usage_records, query, selection) do |urec|
+      next !UsageRecord::EVENTS.values.include?(urec['event'])
       if urec['event'] == UsageRecord::EVENTS[:end]
         num_end_events += 1
       else
@@ -735,6 +730,7 @@ if level >= 2 and Rails.configuration.respond_to?('billing')
     selection = {:fields => ["event"], :timeout => false}
     num_end_events = num_begin_events = 0
     OpenShift::DataStore.find(:usage_records, query, selection) do |urec|
+      next !UsageRecord::EVENTS.values.include?(urec['event'])
       if urec['event'] == UsageRecord::EVENTS[:end]
         num_end_events += 1
       else
@@ -791,6 +787,7 @@ if level >= 2 and Rails.configuration.respond_to?('billing')
     query = {'gear_id' => BSON::ObjectId(gear_id), 'usage_type' => UsageRecord::USAGE_TYPES[:premium_cart]}
     selection = {:fields => ["event", "cart_name"], :timeout => false}
     OpenShift::DataStore.find(:usage_records, query, selection) do |urec|
+      next !UsageRecord::EVENTS.values.include?(urec['event'])
       if urec['event'] == UsageRecord::EVENTS[:end]
         usage_carts.delete(urec['cart_name'])
       else
@@ -847,6 +844,7 @@ if level >= 2 and Rails.configuration.respond_to?('billing')
     usage_record_begin_events = 0
     usage_record_end_events = 0
     OpenShift::DataStore.find(:usage_records, {'gear_id' => BSON::ObjectId(gear_id)}, {:fields => ["event"], :timeout => false}) do |urec|
+      next !UsageRecord::EVENTS.values.include?(urec['event'])
       if urec['event'] == UsageRecord::EVENTS[:end]
         usage_record_end_events += 1
       else
@@ -869,7 +867,7 @@ if level >= 2 and Rails.configuration.respond_to?('billing')
     else
       puts "FAIL" if verbose
       if usage_record_unended_events > usage_unended_events
-        summary << "Found #{usage_record_unended_events-usage_unended_events} un-ended records in usage_records collection for gear Id '#{gear_id}' but could not find corresponding records in usage"
+        summary << "Found #{usage_record_unended_events-usage_unended_events} un-ended records in usage_records collection for gear Id '#{gear_id}' but could not find corresponding records in usage."
       else
         summary << "Found #{usage_unended_events-usage_record_unended_events} un-ended records in usage collection for gear Id '#{gear_id}' but could not find corresponding records in usage_records."
       end
@@ -878,7 +876,7 @@ if level >= 2 and Rails.configuration.respond_to?('billing')
 
   # Find user plan_id/plan_state inconsistencies in mongo vs billing provider
   billing_user_hash = {}
-  user_hash.each { |k,v| billing_user_hash[k] = v if v['usage_account_id'] }
+  user_hash.each { |k,v| billing_user_hash[k] = v if v['usage_account_id'] and (v['usage_account_id'].to_i > 0) }
   billing_api = OpenShift::BillingService.instance
   billing_api.check_inconsistencies(billing_user_hash, summary, verbose) unless billing_user_hash.empty?
 end
