@@ -642,23 +642,26 @@ class Application
   end
 
   ##
-  # Returns the fully qualified DNS name for the primary application gear
+  # Returns the fully qualified DNS name for an application gear (unless specified, the primary)
   # @return [String]
-  def fqdn(domain=nil, gear_uuid = nil)
+  def fqdn(domain=nil, gear_name = nil)
     domain = domain || self.domain
-    appname = gear_uuid || self.name
+    appname = gear_name || self.name
     "#{appname}-#{domain.namespace}.#{Rails.configuration.openshift[:domain_suffix]}"
   end
 
   ##
-  # Returns the SSH URI for the primary application gear
+  # Returns the SSH URI for an application gear (unless specified, the primary)
   # @return [String]
   def ssh_uri(domain=nil, gear_uuid=nil)
-    #if gear_uuid provided
-    return "#{gear_uuid}@#{fqdn(domain,gear_uuid)}" if gear_uuid
-    # else get the gear_uuid of head gear
     self.group_instances.each do |group_instance|
-      if group_instance.gears.where(app_dns: true).count > 0
+      if gear_uuid # specific gear_uuid requested
+        if group_instance.gears.where(uuid: gear_uuid).count > 0
+          gear = group_instance.gears.find_by(uuid: gear_uuid)
+          return "#{gear_uuid}@#{fqdn(domain,gear.name)}"
+        end
+      elsif group_instance.gears.where(app_dns: true).count > 0
+        # get the gear_uuid of head gear
         gear = group_instance.gears.find_by(app_dns: true)
         return "#{gear.uuid}@#{fqdn(domain)}"
       end
