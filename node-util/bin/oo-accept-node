@@ -22,6 +22,7 @@ require 'optparse'
 require 'socket'
 require 'json'
 require 'parseconfig'
+require 'etc'
 
 $OPTIONS = {}
 
@@ -106,7 +107,6 @@ $MINSEM="MINSEM"
 ####### GLOBAL VARS ########
 $CGROUP_PASS=true
 $TC_PASS=true
-$ALL_USERS = []
 ###########################
 
 if ENV[$SEBOOL_LIST].nil?
@@ -147,6 +147,49 @@ end
 
 ######## UTILITIES ########
 
+# Use user_fail to screen out messages for users which are in
+# transition during the run of this script.
+#
+def user_fail(uuid, msg)
+  user_ents = users.select { |u| (u.name == uuid) or (u.uid == uuid) }
+
+  pw_ent = nil
+  begin
+    pw_ent = Etc.getpwnam(uuid)
+  rescue ArgumentError
+  end
+
+  if pw_ent.nil?
+    begin
+      pw_ent = Etc.getpwuid(uuid.to_i)
+    rescue ArgumentError
+    end
+  end
+
+  if not pw_ent.nil?
+    if pw_ent.gecos != ENV['GEAR_GECOS']
+      pw_ent = nil
+    end
+  end
+
+  # Did the password entry come/go during the script run?
+  if user_ents.empty? != pw_ent.nil?
+    return
+  end
+
+  # Was the home directory modified during the script run?
+  begin
+    if File.stat(pw_ent.dir).mtime > $START_TIME
+      return
+    end
+  rescue Errno::ENOENT
+  rescue NoMethodError
+  rescue ArgumentError
+  end
+
+  do_fail(msg)
+end
+
 def do_fail(msg)
     eputs("FAIL: " + msg)
     $STATUS += 1
@@ -169,7 +212,11 @@ end
 ###############################
 
 def users
-    $USERS ||= %x[/bin/grep ":#{ENV['GEAR_GECOS']}:" /etc/passwd].split("\n")
+  if not $USERS
+    $USERS=[]
+    Etc.passwd { |u| $USERS << u if u.gecos == ENV['GEAR_GECOS'] }
+  end
+  $USERS
 end
 
 def load_node_conf
@@ -353,14 +400,14 @@ def check_cgroup_procs
         uid,pid = line.split[0,2]
 
         if (min_uid..max_uid).include?(uid)
-            passwd_lines = users.grep(/:#{uid}:/)
+            passwd_lines = users.select { |u| u.uid == uid }
 
-            if passwd_lines.size == 0
-                do_fail("Process #{pid} is owned by a gear that's no longer on the system, uid: #{uid}")
+          if paswd_lines.empty?
+                user_fail(uid, "Process #{pid} is owned by a gear that's no longer on the system, uid: #{uid}")
                 next
             end
 
-            uname = passwd_lines[0].split(":")[0]
+            uname = passwd_lines[0].name
             ps_procs[uname] += [pid]
             ps_procs[uname].uniq!
         end
@@ -389,7 +436,7 @@ def check_cgroup_procs
                 # this fixes both the transient process and the defunct process
                 # detection problems
                 if proc_data.size > 1 && !proc_data.last.strip.end_with?('<defunct>')
-                    do_fail("#{uuid} has a process missing from cgroups:  #{pid}")
+                    user_fail(uuid, "#{uuid} has a process missing from cgroups:  #{pid}")
                 end
             end
         end
@@ -446,25 +493,23 @@ def check_users
     verbose("checking #{users.length} user accounts")
     conf_dir_templ = "#{$LIMITS_CONF_DIR}/84-%s.conf"
     users.each do |user|
-        username,password,uid,gid,gecos,home_dir,shell = user.split(":")
-        $ALL_USERS << username #store it so we can use it later
         #Test home dir
-        do_fail("user #{username} does not have a home directory #{home_dir}") unless File.exists? home_dir
-        do_fail("user #{username} does not have a PAM limits file") unless File.exists?(conf_dir_templ % username)
+        user_fail(user.name, "user #{user.name} does not have a home directory #{user.dir}") unless File.exists? user.dir
+        user_fail(user.name, "user #{user.name} does not have a PAM limits file") unless File.exists?(conf_dir_templ % user.name)
         if $CGROUP_PASS
-          check_user_cgroups username
+          check_user_cgroups user.name
         end
         if $TC_CHECK && $TC_PASS
-            hex_uid = uid.to_i.to_s(16)
+            hex_uid = user.uid.to_i.to_s(16)
             tc_results = $TC_DATA.grep(/1:#{hex_uid}/)
-            do_fail("user #{username} must have 1 tc class entry: actual=#{tc_results.length}") if tc_results.length != 1
+            user_fail(user.name, "user #{user.name} must have 1 tc class entry: actual=#{tc_results.length}") if tc_results.length != 1
         end
 
-        results = $ALL_QUOTAS.grep(/#{username}/)
+        results = $ALL_QUOTAS.grep(/#{user.name}/)
         if results.length == 0 ||
            results[0].split[4].to_i == 0 ||
            results[0].split[7].to_i == 0
-            do_fail("user #{username} does not have quotas imposed")
+            user_fail(user.name, "user #{user.name} does not have quotas imposed")
         end
     end
 
@@ -486,7 +531,7 @@ def check_user_cgroups(username)
   # then flatten the list sort and remove duplicates
   actual = reply.split.map {|s| s[/([^:]+)/,1] }.map {|g| g.split(',')}.flatten.uniq.sort
 
-  do_fail("user #{username} must have all cgroup subsystems") if not (actual == test_subsystems)
+  user_fail(username, "user #{username} must have all cgroup subsystems") if not (actual == test_subsystems)
 
 end
 
@@ -530,11 +575,11 @@ def check_system_httpd_configs
 
   httpconfs['nodes.txt'].delete_if   { |k,v|  k.split('/')[0] == '__default__' }
   mangled_gears=[]
-  $ALL_USERS.each do |u|
-    dnsfile = File.join($GEAR_BASE_DIR, u, '.env', 'OPENSHIFT_GEAR_DNS')
+  users.each do |u|
+    dnsfile = File.join($GEAR_BASE_DIR, u.name, '.env', 'OPENSHIFT_GEAR_DNS')
     if not File.exists?(dnsfile)
-      do_fail("Gear does not have an OPENSHIFT_GEAR_DNS variable: '#{u}'")
-      mangled_gears << u
+      user_fail(u.name, "Gear does not have an OPENSHIFT_GEAR_DNS variable: '#{u.name}'")
+      mangled_gears << u.name
       next
     end
 
@@ -550,7 +595,7 @@ def check_system_httpd_configs
       has_websocket = false
       has_framework = false
 
-      carts = Dir.glob(File.join($GEAR_BASE_DIR, u, '*')).select { |p|
+      carts = Dir.glob(File.join(u.dir, '*')).select { |p|
         not File.symlink?(p)
       }.map { |p|
         File.basename(p)
@@ -595,11 +640,11 @@ def check_system_httpd_configs
       }
 
       if has_framework and not httpconfs['nodes.txt'].has_key?(fqdn)
-        do_fail("Gear has a web framework cartridge but no Apache configuration: #{u}")
+        user_fail(u.name, "Gear has a web framework cartridge but no Apache configuration: #{u.name}")
       end
 
       if has_websocket and not httpconfs['routes.json'].has_key?(fqdn)
-        do_fail("Gear has a websocket framework cartridge but no websocket configuration: #{u}")
+        user_fail(u.name, "Gear has a websocket framework cartridge but no websocket configuration: #{u.name}")
       end
 
 
@@ -630,7 +675,7 @@ def check_system_httpd_configs
 
   httpconfs['geardb.json'].each do |k, v|
     if not mangled_gears.include?(k)
-      do_fail("httpd config references UUID without associated gear: '#{k}'")
+      user_fail(k, "httpd config references UUID without associated gear: '#{k}'")
     end
     fail_dns_names.delete(v["fqdn"])
   end
@@ -642,7 +687,7 @@ def check_system_httpd_configs
   Dir.foreach(ENV['OPENSHIFT_HTTP_CONF_DIR']) { |cfile|
     next if cfile[0,1] == "."
     next if cfile[-5,5] != ".conf"
-    if ! $ALL_USERS.include?(cfile[0..cfile.index('_')-1])
+    if users.select { |u| u.name == cfile[0..cfile.index('_')-1]}.empty?
       do_fail("httpd config file #{cfile} doesn't have an associated user")
     end
   }
@@ -650,7 +695,7 @@ end
 
 def check_app_dirs
   verbose("checking application dirs")
-  copy_all_users = $ALL_USERS.dup
+  copy_all_users = users.dup
 
   Dir.foreach($GEAR_BASE_DIR) do |entry|
     next if entry[0,1] == "."
@@ -663,7 +708,7 @@ def check_app_dirs
     next unless File.directory? gear_home
 
     [ ".ssh", ".env", ".sandbox", ".tmp" ].each do |dotdir|
-         do_fail("directory #{entry} doesn't have a #{dotdir} directory") unless File.directory? File.join(gear_home,dotdir)
+         user_fail(entry, "directory #{entry} doesn't have a #{dotdir} directory") unless File.directory? File.join(gear_home,dotdir)
     end
 
     if $OPTIONS[:'include-upgrade-checks']
@@ -686,29 +731,30 @@ def check_app_dirs
       premigration_state_found = File.exists?(File.join(gear_home, %w(app-root runtime .premigration_state)))
 
       if v1_cartridge_dirs_found
-        do_fail("directory #{entry} contains a V1 cartridge directory")
+        user_fail(entry, "directory #{entry} contains a V1 cartridge directory")
       end
 
       if migration_markers_found 
-        do_fail("directory #{entry} contains migration data")
+        user_fail(entry, "directory #{entry} contains migration data")
       end
 
       if premigration_state_found
-        do_fail("directory #{entry} contains pre-migration state")
+        user_fail(entry, "directory #{entry} contains pre-migration state")
       end
     end
 
-    ind = copy_all_users.index(entry)
-    if ind
-      copy_all_users.delete_at(ind)
+    if copy_all_users.select { |u| u.name == entry }.empty?
+      user_fail(entry, "directory #{entry} doesn't have an associated user")
     else
-      do_fail("directory #{entry} doesn't have an associated user")
+      copy_all_users.delete_if { |u| u.name == entry }
     end
+
   end
 end
 
 if __FILE__ == $0
     $STATUS=0
+    $START_TIME=Time.now
     load_node_conf
     check_node_public_resolution
     check_selinux
