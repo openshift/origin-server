@@ -185,7 +185,7 @@ class RestApiTest < ActiveSupport::TestCase
 
   def test_remote_results
     ActiveResource::HttpMock.respond_to do |mock|
-      mock.get '/broker/rest/bases/1.json', json_header, {:messages => [{:field => 'result', :text => 'text'}],:data => {}}.to_json
+      mock.get '/broker/rest/bases/1.json', json_header, {:messages => [{:severity => 'result', :text => 'text'}],:data => {}}.to_json
     end
     assert obj = RestApi::Base.find(1, :as => @user)
     assert_equal ['text'], obj.remote_results
