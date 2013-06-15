@@ -17,6 +17,9 @@ Requires:      openshift-origin-node-util
 Requires:      haproxy
 Requires:      %{?scl:%scl_prefix}rubygem-daemons
 Requires:      %{?scl:%scl_prefix}rubygem-rest-client
+
+Obsoletes: openshift-origin-cartridge-haproxy-1.4
+
 BuildArch:     noarch
 
 %description

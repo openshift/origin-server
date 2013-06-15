@@ -16,6 +16,8 @@ Requires:      jenkins-plugin-openshift
 Requires:      openshift-origin-node-util
 BuildArch:     noarch
 
+Obsoletes: openshift-origin-cartridge-jenkins-1.4
+
 %description
 Provides Jenkins cartridge to OpenShift. (Cartridge Format V2)
 

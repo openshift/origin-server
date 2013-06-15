@@ -32,6 +32,8 @@ Requires:      httpd > 2.3
 Requires:      httpd < 2.5
 %endif
 
+Obsoletes: openshift-origin-cartridge-perl-5.10
+
 BuildArch: noarch
 
 %description

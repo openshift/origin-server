@@ -248,17 +248,16 @@ class OODiag
     mcollective-client mcollective-common mod_bw mod_bw-debuginfo mod_passenger
     mongodb mongodb-debuginfo mongodb-devel mongodb-server openshift-console
     openshift-origin-console openshift-origin-broker openshift-origin-broker-util
-    openshift-origin-cartridge-abstract openshift-origin-cartridge-cron-1.4
-    openshift-origin-cartridge-diy-0.1 openshift-origin-cartridge-haproxy-1.4
-    openshift-origin-cartridge-jbosseap-6.0
-    openshift-origin-cartridge-jbossews-1.0
-    openshift-origin-cartridge-jbossews-2.0
-    openshift-origin-cartridge-jenkins-1.4
-    openshift-origin-cartridge-jenkins-client-1.4
-    openshift-origin-cartridge-mysql-5.1 openshift-origin-cartridge-perl-5.10
-    openshift-origin-cartridge-php-5.3 openshift-origin-cartridge-postgresql-8.4
-    openshift-origin-cartridge-python-2.6 openshift-origin-cartridge-ruby-1.8
-    openshift-origin-cartridge-ruby-1.9-scl openshift-origin-msg-node-mcollective
+    openshift-origin-cartridge-cron
+    openshift-origin-cartridge-diy openshift-origin-cartridge-haproxy
+    openshift-origin-cartridge-jbosseap
+    openshift-origin-cartridge-jbossews
+    openshift-origin-cartridge-jenkins
+    openshift-origin-cartridge-jenkins-client
+    openshift-origin-cartridge-mysql openshift-origin-cartridge-perl
+    openshift-origin-cartridge-php openshift-origin-cartridge-postgresql
+    openshift-origin-cartridge-python openshift-origin-cartridge-ruby
+    openshift-origin-msg-node-mcollective
     openshift-origin-node-util openshift-origin-port-proxy pam_openshift
     pam_openshift-debuginfo perl-Algorithm-C3 perl-App-cpanminus perl-Class-C3
     perl-Class-C3-XS perl-Class-C3-XS-debuginfo perl-Class-DBI perl-Class-DBI-Pg

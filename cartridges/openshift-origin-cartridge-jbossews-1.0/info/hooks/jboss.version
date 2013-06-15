@@ -1,4 +1,0 @@
-# The name of the jbossews cartridge dir under /usr/libexec/openshift/cartridges
-jboss_version=jbossews-1.0
-# The location of jbossews server installation
-jboss_home=/etc/alternatives/jbossews-1.0

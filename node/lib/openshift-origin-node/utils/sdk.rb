@@ -14,17 +14,7 @@ module OpenShift
       end
 
       def self.node_default_model(config)
-        v1_marker_exist = File.exist?(File.join(config.get('GEAR_BASE_DIR'), '.settings', 'v1_cartridge_format'))
-        v2_marker_exist = File.exist?(File.join(config.get('GEAR_BASE_DIR'), '.settings', 'v2_cartridge_format'))
-
-        if v1_marker_exist and v2_marker_exist
-          raise 'Node cannot create both v1 and v2 formatted cartridges. Delete one of the cartridge format marker files'
-        end
-        if v1_marker_exist
-          return :v1
-        else
-          return :v2
-        end
+        return :v2
       end
 
       # Public: Translates a ShellExecutionException into a new instance whose stdout, stderr,

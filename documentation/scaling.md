@@ -3,7 +3,7 @@
 
 # Scaling in OpenShift
 
-The first thing to know about scaling in OpenShift is that it is implemented using haproxy.  The best technical document on how this is done can be found in the [haproxy cartridge README](https://github.com/openshift/origin-server/blob/master/cartridges/openshift-origin-cartridge-haproxy-1.4/README).
+The first thing to know about scaling in OpenShift is that it is implemented using haproxy.  The best technical document on how this is done can be found in the [haproxy cartridge README](https://github.com/openshift/origin-server/blob/master/cartridges/openshift-origin-cartridge-haproxy/README).
 
 You should definitely read that document before continuing further.
 

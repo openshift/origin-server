@@ -1,3 +1,0 @@
-#!/bin/bash
-
-java -jar "$OPENSHIFT_HOMEDIR/jenkins-client-1.4/jenkins-cli.jar" -s "$JENKINS_URL" $@

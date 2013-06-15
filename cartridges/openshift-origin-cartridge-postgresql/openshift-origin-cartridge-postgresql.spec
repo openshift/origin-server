@@ -45,6 +45,7 @@ Requires:      rhdb-utils
 Requires:      uuid-pgsql
 BuildArch:     noarch
 
+Obsoletes: openshift-origin-cartridge-postgresql-8.4
 
 %description
 Provides PostgreSQL cartridge support to OpenShift. (Cartridge Format V2)

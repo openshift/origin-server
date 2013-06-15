@@ -37,6 +37,8 @@ Requires:      maven
 BuildRequires: jpackage-utils
 BuildArch:     noarch
 
+Obsoletes: openshift-origin-cartridge-jbosseap-6.0
+
 %description
 Provides JBossEAP support to OpenShift. (Cartridge Format V2)
 
