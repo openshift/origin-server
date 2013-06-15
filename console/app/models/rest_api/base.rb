@@ -558,7 +558,7 @@ module RestApi
 
     #FIXME may be refactored
     def remote_results
-      (attributes[:messages] || []).select{ |m| m['field'] == 'result' }.map{ |m| m['text'].presence }.compact
+      (attributes[:messages] || []).select{ |m| m['severity'] == 'result' }.map{ |m| m['text'].presence }.compact
     end
     def has_exit_code?(code, opts=nil)
       codes = errors.instance_variable_get(:@codes) || {}
