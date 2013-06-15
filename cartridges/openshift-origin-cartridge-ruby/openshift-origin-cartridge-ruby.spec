@@ -139,6 +139,9 @@ Requires:      ruby-nokogiri
 Requires:      rubygem-nokogiri
 %endif
 
+Obsoletes: openshift-origin-cartridge-ruby-1.8
+Obsoletes: openshift-origin-cartridge-ruby-1.9-scl
+
 BuildArch:     noarch
 
 %description

@@ -10,6 +10,9 @@ URL:           https://www.openshift.com
 Source0:       http://mirror.openshift.com/pub/openshift-origin/source/%{name}/%{name}-%{version}.tar.gz
 Requires:      rubygem(openshift-origin-node)
 Requires:      openshift-origin-node-util
+
+Obsoletes: openshift-origin-cartridge-cron-1.4
+
 BuildArch:     noarch
 
 %description

@@ -29,6 +29,8 @@ Requires:      maven
 BuildRequires: jpackage-utils
 BuildArch:     noarch
 
+Obsoletes: openshift-origin-cartridge-jbossas-7
+
 %description
 Provides JBossAS support to OpenShift. (Cartridge Format V2)
 

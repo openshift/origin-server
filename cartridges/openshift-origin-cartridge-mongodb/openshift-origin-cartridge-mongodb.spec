@@ -16,6 +16,8 @@ Requires:      rubygem(openshift-origin-node)
 Requires:      openshift-origin-node-util
 BuildArch:     noarch
 
+Obsoletes: openshift-origin-cartridge-mongodb-2.2
+
 %description
 Provides mongodb cartridge support to OpenShift
 

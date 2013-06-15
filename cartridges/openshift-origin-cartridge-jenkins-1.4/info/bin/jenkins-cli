@@ -1,3 +1,0 @@
-#!/bin/bash
-
-java -jar "${OPENSHIFT_DATA_DIR}war/WEB-INF/jenkins-cli.jar" -s "$JENKINS_URL" $@

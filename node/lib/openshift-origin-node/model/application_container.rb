@@ -18,7 +18,6 @@ require 'rubygems'
 require 'openshift-origin-node/model/frontend_proxy'
 require 'openshift-origin-node/model/frontend_httpd'
 require 'openshift-origin-node/model/unix_user'
-require 'openshift-origin-node/model/v1_cart_model'
 require 'openshift-origin-node/model/v2_cart_model'
 require 'openshift-origin-common/models/manifest'
 require 'openshift-origin-node/utils/shell_exec'
@@ -60,11 +59,7 @@ module OpenShift
       @build_model      = self.class.get_build_model(@user, @config)
       @hourglass        = hourglass || Utils::Hourglass.new(3600)
 
-      if @build_model == :v1
-        @cartridge_model = V1CartridgeModel.new(@config, @user)
-      else
-        @cartridge_model = V2CartridgeModel.new(@config, @user, @state, @hourglass)
-      end
+      @cartridge_model = V2CartridgeModel.new(@config, @user, @state, @hourglass)
     end
 
     def self.get_build_model(user, config)

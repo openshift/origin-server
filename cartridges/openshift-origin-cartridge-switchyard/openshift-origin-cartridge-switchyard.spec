@@ -13,6 +13,7 @@ Requires:      rubygem(openshift-origin-node)
 Requires:      openshift-origin-node-util
 BuildArch:     noarch
 
+Obsoletes: openshift-origin-cartridge-switchyard-0.6
 
 %description
 Provides switchyard cartridge support to OpenShift
