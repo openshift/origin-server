@@ -198,6 +198,7 @@ ln -s /usr/lib/openshift/node/jobs/openshift-origin-cron-hourly %{buildroot}/etc
 ln -s /usr/lib/openshift/node/jobs/openshift-origin-cron-daily %{buildroot}/etc/cron.daily/
 ln -s /usr/lib/openshift/node/jobs/openshift-origin-cron-weekly %{buildroot}/etc/cron.weekly/
 ln -s /usr/lib/openshift/node/jobs/openshift-origin-cron-monthly %{buildroot}/etc/cron.monthly/
+ln -s /usr/lib/openshift/node/jobs/openshift-origin-stale-lockfiles %{buildroot}/etc/cron.daily/
 
 %post
 /bin/rm -f /etc/openshift/env/*.rpmnew
@@ -269,6 +270,7 @@ echo "/usr/bin/oo-trap-user" >> /etc/shells
 %attr(0755,-,-) /usr/lib/openshift/node/jobs/openshift-origin-cron-daily
 %attr(0755,-,-) /usr/lib/openshift/node/jobs/openshift-origin-cron-weekly
 %attr(0755,-,-) /usr/lib/openshift/node/jobs/openshift-origin-cron-monthly
+%attr(0755,-,-) /usr/lib/openshift/node/jobs/openshift-origin-stale-lockfiles
 %dir /etc/cron.minutely
 %config(noreplace) %attr(0644,-,-) /etc/cron.d/1minutely
 %attr(0755,-,-) /etc/cron.minutely/openshift-origin-cron-minutely
@@ -276,6 +278,7 @@ echo "/usr/bin/oo-trap-user" >> /etc/shells
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-cron-daily
 %attr(0755,-,-) /etc/cron.weekly/openshift-origin-cron-weekly
 %attr(0755,-,-) /etc/cron.monthly/openshift-origin-cron-monthly
+%attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
 * Thu May 30 2013 Adam Miller <admiller@redhat.com> 1.10.1-1
