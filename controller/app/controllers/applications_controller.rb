@@ -15,13 +15,8 @@ class ApplicationsController < BaseController
   # @return [RestReply<Array<RestApplication>>] List of applications within the domain
   def index
     include_cartridges = (params[:include] == "cartridges")
-    apps = []
-    @domain.applications.each do |app|
-      if app.group_instances.length > 0 and app.component_instances.length > 0 and app.group_instances.select{|gi| gi.gears.length>0}.length>0
-        apps.push(app)
-      end
-    end
-    rest_apps = apps.map { |application| get_rest_application(application, include_cartridges, apps) }
+    apps = @domain.applications
+    rest_apps = apps.map! { |application| get_rest_application(application, include_cartridges, apps) }
     render_success(:ok, "applications", rest_apps, "Found #{rest_apps.length} applications for domain '#{@domain.namespace}'")
   end
   
