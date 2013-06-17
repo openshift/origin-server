@@ -21,7 +21,7 @@ class ApplicationsController < BaseController
         apps.push(app)
       end
     end
-    rest_apps = apps.map! { |application| get_rest_application(application, include_cartridges, apps) }
+    rest_apps = apps.map { |application| get_rest_application(application, include_cartridges, apps) }
     render_success(:ok, "applications", rest_apps, "Found #{rest_apps.length} applications for domain '#{@domain.namespace}'")
   end
   
