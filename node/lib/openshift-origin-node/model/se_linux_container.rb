@@ -36,7 +36,7 @@ module OpenShift
                     "ERROR: unable to create user account(#{rc}): #{cmd.squeeze(" ")} stdout: #{out} stderr: #{err}"
                 ) unless rc == 0
 
-          PathUtils.oo_chown("root", @container.uuid, @container.container_dir)
+          set_ro_permission(@container.container_dir)
           FileUtils.chmod 0o0750, @container.container_dir
         end
 
@@ -204,6 +204,102 @@ Dir(after)    #{@container.uuid}/#{@container.uid} => #{list_home_dir(@container
           cmd = "/bin/sh #{File.join("/usr/libexec/openshift/lib", "teardown_pam_fs_limits.sh")} #{@container.uuid}"
           out,err,rc = shellCmd(cmd)
           raise OpenShift::Runtime::UserCreationException.new("Unable to teardown pam/fs/nproc limits for #{@container.uuid}") unless rc == 0
+        end
+
+        # run_in_root_context(command, [, options]) -> [stdout, stderr, exit status]
+        #
+        # Executes specified command and return its stdout, stderr and exit status.
+        # Or, raise exceptions if certain conditions are not met.
+        #
+        # command: command line string which is passed to the standard shell
+        #
+        # options: hash
+        #   :env: hash
+        #     name => val : set the environment variable
+        #     name => nil : unset the environment variable
+        #   :unsetenv_others => true   : clear environment variables except specified by :env
+        #   :chdir => path             : set current directory when running command
+        #   :expected_exitstatus       : An Integer value for the expected return code of command
+        #                              : If not set spawn() returns exitstatus from command otherwise
+        #                              : raise an error if exitstatus is not expected_exitstatus
+        #   :timeout                   : Maximum number of seconds to wait for command to finish. default: 3600
+        #   :out                       : If specified, STDOUT from the child process will be redirected to the
+        #                                provided +IO+ object.
+        #   :err                       : If specified, STDERR from the child process will be redirected to the
+        #                                provided +IO+ object.
+        #
+        # NOTE: If the +out+ or +err+ options are specified, the corresponding return value from +oo_spawn+
+        # will be the incoming/provided +IO+ objects instead of the buffered +String+ output. It's the
+        # responsibility of the caller to correctly handle the resulting data type.
+        def run_in_root_context(command, options = {})
+          options.delete(:uid)
+          options.delete(:selinux_context)
+          OpenShift::Runtime::Utils::oo_spawn(command, options)
+        end
+
+        # run_in_container_context(command, [, options]) -> [stdout, stderr, exit status]
+        #
+        # Executes specified command and return its stdout, stderr and exit status.
+        # Or, raise exceptions if certain conditions are not met.
+        # The command is as container user in a SELinux context using runuser/runcon.
+        # The environment variables are cleared and mys be specified by :env.
+        #
+        # command: command line string which is passed to the standard shell
+        #
+        # options: hash
+        #   :env: hash
+        #     name => val : set the environment variable
+        #     name => nil : unset the environment variable
+        #   :chdir => path             : set current directory when running command
+        #   :expected_exitstatus       : An Integer value for the expected return code of command
+        #                              : If not set spawn() returns exitstatus from command otherwise
+        #                              : raise an error if exitstatus is not expected_exitstatus
+        #   :timeout                   : Maximum number of seconds to wait for command to finish. default: 3600
+        #                              : stdin for the command is /dev/null
+        #   :out                       : If specified, STDOUT from the child process will be redirected to the
+        #                                provided +IO+ object.
+        #   :err                       : If specified, STDERR from the child process will be redirected to the
+        #                                provided +IO+ object.
+        #
+        # NOTE: If the +out+ or +err+ options are specified, the corresponding return value from +oo_spawn+
+        # will be the incoming/provided +IO+ objects instead of the buffered +String+ output. It's the
+        # responsibility of the caller to correctly handle the resulting data type.
+        def run_in_container_context(command, options = {})
+          require 'openshift-origin-node/utils/selinux'
+          options[:unsetenv_others] = true
+          options[:uid] = @container_uid
+          options[:selinux_context] = OpenShift::Runtime::Utils::SELinux.context_from_defaults(@mcs_label)
+          OpenShift::Runtime::Utils::oo_spawn(command, options)
+        end
+
+        def reset_permission(*paths)
+          OpenShift::Runtime::Utils::SELinux.clear_mcs_label(paths)
+          OpenShift::Runtime::Utils::SELinux.set_mcs_label(@mcs_label, paths)
+        end
+
+        def reset_permission_R(*paths)
+          OpenShift::Runtime::Utils::SELinux.clear_mcs_label_R(paths)
+          OpenShift::Runtime::Utils::SELinux.set_mcs_label_R(@mcs_label, paths)
+        end
+
+        def set_ro_permission_R(*paths)
+          PathUtils.oo_chown_R(0, @container_gid, paths)
+          OpenShift::Runtime::Utils::SELinux.set_mcs_label_R(@mcs_label, paths)
+        end
+
+        def set_ro_permission(*paths)
+          PathUtils.oo_chown(0, @container_gid, paths)
+          OpenShift::Runtime::Utils::SELinux.set_mcs_label(@mcs_label, paths)
+        end
+
+        def set_rw_permission_R(*paths)
+          PathUtils.oo_chown_R(@container_uid, @container_gid, paths)
+          OpenShift::Runtime::Utils::SELinux.set_mcs_label_R(@mcs_label, paths)
+        end
+
+        def set_rw_permission(*paths)
+          PathUtils.oo_chown(@container_uid, @container_gid, paths)
+          OpenShift::Runtime::Utils::SELinux.set_mcs_label(@mcs_label, paths)
         end
 
         private

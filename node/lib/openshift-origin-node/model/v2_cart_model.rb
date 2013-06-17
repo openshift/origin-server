@@ -441,18 +441,17 @@ module OpenShift
           # ...it allows reporting on the failed command at the file level
           # ...we don't have to worry about the length of argv
           begin
-            PathUtils.oo_chown(@container.uid, @container.gid, entry)
-            Utils::SELinux.set_mcs_label(mcs_label, entry)
+            @container.set_rw_permission(entry)
           rescue Exception => e
-            raise OpenShift::FileUnlockError.new("Failed to unlock file system entry [#{entry}]: #{e}",
+            raise OpenShift::Runtime::FileUnlockError.new("Failed to unlock file system entry [#{entry}]: #{e}",
                                                  entry)
           end
         end
 
         begin
-          PathUtils.oo_chown(@container.uid, @container.gid, @container.container_dir)
+          @container.set_rw_permission(@container.container_dir)
         rescue Exception => e
-          raise OpenShift::FileUnlockError.new(
+          raise OpenShift::Runtime::FileUnlockError.new(
                     "Failed to unlock gear home [#{@container.container_dir}]: #{e}",
                     @container.container_dir)
         end
@@ -470,8 +469,7 @@ module OpenShift
         # ...we don't have to worry about the length of argv
         entries.each do |entry|
           begin
-            PathUtils.oo_chown(0, @container.gid, entry)
-            Utils::SELinux.set_mcs_label(mcs_label, entry)
+            @container.set_ro_permission(entry)
           rescue Exception => e
             raise OpenShift::FileLockError.new("Failed to lock file system entry [#{entry}]: #{e}",
                                                entry)
@@ -479,7 +477,7 @@ module OpenShift
         end
 
         begin
-          PathUtils.oo_chown(0, @container.gid, @container.container_dir)
+          @container.set_ro_permission(@container.container_dir)
         rescue Exception => e
           raise OpenShift::FileLockError.new("Failed to lock gear home [#{@container.container_dir}]: #{e}",
                                              @container.container_dir)
@@ -535,7 +533,7 @@ module OpenShift
 
       def secure_cartridge(short_name, uid, gid=uid, cartridge_home)
         Dir.chdir(cartridge_home) do
-          make_user_owned(cartridge_home)
+          @container.set_rw_permission_R(cartridge_home)
 
           files = ManagedFiles::IMMUTABLE_FILES.collect do |file|
             file.gsub!('*', short_name)
@@ -544,7 +542,7 @@ module OpenShift
           files.compact!
 
           unless files.empty?
-            PathUtils.oo_chown(0, gid, files)
+            @container.set_ro_permission(files)
             FileUtils.chmod(0644, files)
           end
         end
@@ -1349,8 +1347,7 @@ module OpenShift
         unless stop_lock?
           mcs_label = Utils::SELinux.get_mcs_label(@container.uid)
           File.new(stop_lock, File::CREAT|File::TRUNC|File::WRONLY, 0644).close()
-          PathUtils.oo_chown(@container.uid, @container.gid, stop_lock)
-          Utils::SELinux.set_mcs_label(mcs_label, stop_lock)
+          @container.set_rw_permission(stop_lock)
         end
       end
 
@@ -1364,7 +1361,7 @@ module OpenShift
         ssh_public_key = ssh_key + '.pub'
 
         FileUtils.mkdir_p(ssh_dir)
-        make_user_owned(ssh_dir)
+        @container.set_rw_permission(ssh_dir)
 
         Utils::oo_spawn("/usr/bin/ssh-keygen -N '' -f #{ssh_key}",
                         chdir:               @container.container_dir,
@@ -1376,7 +1373,7 @@ module OpenShift
         FileUtils.touch(known_hosts)
         FileUtils.touch(ssh_config)
 
-        make_user_owned(ssh_dir)
+        @container.set_rw_permission_R(ssh_dir)
 
         FileUtils.chmod(0750, ssh_dir)
         FileUtils.chmod(0600, [ssh_key, ssh_public_key])
@@ -1393,16 +1390,6 @@ module OpenShift
         # to enable this gear to make REST API calls on behalf of the user who owns this gear.
         output << "BROKER_AUTH_KEY_ADD: \n"
         output
-      end
-
-      ##
-      # Change the ownership and SELinux context of the target
-      # to be owned as the user using the user's MCS labels
-      def make_user_owned(target)
-        mcs_label = Utils::SELinux.get_mcs_label(@container.uid)
-
-        PathUtils.oo_chown_R(@container.uid, @container.gid, target)
-        Utils::SELinux.set_mcs_label_R(mcs_label, target)
       end
 
       private

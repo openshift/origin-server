@@ -25,8 +25,7 @@ module OpenShift
           end
 
           mcs_label = Utils::SELinux.get_mcs_label(uid)
-          PathUtils.oo_chown(0, gid, filename)
-          Utils::SELinux.set_mcs_label(mcs_label, filename)
+          @container.set_ro_permission(filename)
 
           if block_given?
             blk.call(value)
@@ -82,7 +81,7 @@ module OpenShift
             file.write token
           end
 
-          PathUtils.oo_chown_R("root", @uuid,broker_auth_dir)
+          @container.set_ro_permission(broker_auth_dir)
           FileUtils.chmod(0o0750, broker_auth_dir)
           FileUtils.chmod(0o0640, Dir.glob("#{broker_auth_dir}/*"))
         end
@@ -239,8 +238,8 @@ module OpenShift
                       file.truncate(file.tell)
                     end
                   end
-                end
-                PathUtils.oo_chown_R('root', @uuid, authorized_keys_file)
+              end
+                @container.set_ro_permission(authorized_keys_file)
                 shellCmd("restorecon #{authorized_keys_file}")
               ensure
                 lock.flock(File::LOCK_UN)

@@ -72,7 +72,7 @@ module OpenShift
         @config           = OpenShift::Config.new
         @uuid             = container_uuid
         @application_uuid = application_uuid
-        @state            = OpenShift::Runtime::Utils::ApplicationState.new(@uuid)
+        @state            = OpenShift::Runtime::Utils::ApplicationState.new(self)
         @container_name   = container_name
         @application_name = application_name
         @namespace        = namespace
@@ -523,6 +523,90 @@ module OpenShift
             end
           end
         end
+      end
+
+      # run_in_root_context(command, [, options]) -> [stdout, stderr, exit status]
+      #
+      # Executes specified command and return its stdout, stderr and exit status.
+      # Or, raise exceptions if certain conditions are not met.
+      #
+      # command: command line string which is passed to the standard shell
+      #
+      # options: hash
+      #   :env: hash
+      #     name => val : set the environment variable
+      #     name => nil : unset the environment variable
+      #   :unsetenv_others => true   : clear environment variables except specified by :env
+      #   :chdir => path             : set current directory when running command
+      #   :expected_exitstatus       : An Integer value for the expected return code of command
+      #                              : If not set spawn() returns exitstatus from command otherwise
+      #                              : raise an error if exitstatus is not expected_exitstatus
+      #   :timeout                   : Maximum number of seconds to wait for command to finish. default: 3600
+      #   :out                       : If specified, STDOUT from the child process will be redirected to the
+      #                                provided +IO+ object.
+      #   :err                       : If specified, STDERR from the child process will be redirected to the
+      #                                provided +IO+ object.
+      #
+      # NOTE: If the +out+ or +err+ options are specified, the corresponding return value from +oo_spawn+
+      # will be the incoming/provided +IO+ objects instead of the buffered +String+ output. It's the
+      # responsibility of the caller to correctly handle the resulting data type.
+      def run_in_root_context(command, options = {})
+        @container_plugin.run_in_root_context(command, options)
+      end
+
+      # run_in_container_context(command, [, options]) -> [stdout, stderr, exit status]
+      #
+      # Executes specified command and return its stdout, stderr and exit status.
+      # Or, raise exceptions if certain conditions are not met.
+      # The command is as container user in a SELinux context using runuser/runcon.
+      # The environment variables are cleared and mys be specified by :env.
+      #
+      # command: command line string which is passed to the standard shell
+      #
+      # options: hash
+      #   :env: hash
+      #     name => val : set the environment variable
+      #     name => nil : unset the environment variable
+      #   :chdir => path             : set current directory when running command
+      #   :expected_exitstatus       : An Integer value for the expected return code of command
+      #                              : If not set spawn() returns exitstatus from command otherwise
+      #                              : raise an error if exitstatus is not expected_exitstatus
+      #   :timeout                   : Maximum number of seconds to wait for command to finish. default: 3600
+      #                              : stdin for the command is /dev/null
+      #   :out                       : If specified, STDOUT from the child process will be redirected to the
+      #                                provided +IO+ object.
+      #   :err                       : If specified, STDERR from the child process will be redirected to the
+      #                                provided +IO+ object.
+      #
+      # NOTE: If the +out+ or +err+ options are specified, the corresponding return value from +oo_spawn+
+      # will be the incoming/provided +IO+ objects instead of the buffered +String+ output. It's the
+      # responsibility of the caller to correctly handle the resulting data type.
+      def run_in_container_context(command, options = {})
+        @container_plugin.run_in_container_context(command, options)
+      end
+
+      def reset_permission(*paths)
+        @container_plugin.reset_permission(paths)
+      end
+
+      def reset_permission_R(*paths)
+        @container_plugin.reset_permission_R(paths)
+      end
+
+      def set_ro_permission_R(*paths)
+        @container_plugin.set_ro_permission_R(paths)
+      end
+
+      def set_ro_permission(*paths)
+        @container_plugin.set_ro_permission(paths)
+      end
+
+      def set_rw_permission_R(*paths)
+        @container_plugin.set_rw_permission_R(paths)
+      end
+
+      def set_rw_permission(*paths)
+        @container_plugin.set_rw_permission(paths)
       end
     end
   end
