@@ -9,7 +9,7 @@
 
 Summary:       OpenShift Origin Management Console
 Name:          rubygem-%{gem_name}
-Version: 1.10.2
+Version: 1.10.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -151,6 +151,12 @@ cp -a ./%{gem_dir}/* %{buildroot}%{gem_dir}/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Mon Jun 17 2013 Adam Miller <admiller@redhat.com> 1.10.3-1
+- Merge pull request #2847 from liggitt/bug_974483_error_page_header
+  (dmcphers+openshiftbot@redhat.com)
+- Remove obsolete panda container from 404 pages (jliggitt@redhat.com)
+- Fix bug 974483 - make header match openshift.com (jliggitt@redhat.com)
+
 * Mon Jun 17 2013 Adam Miller <admiller@redhat.com> 1.10.2-1
 - Add a proper check for rockmongo (dmcphers@redhat.com)
 - Merge pull request #2856 from danmcp/master
