@@ -134,9 +134,22 @@ function post-deploy() {
 }
 
 function threaddump() {
+  # Handle scaled (non-head) gears
   if [ "$OPENSHIFT_GEAR_UUID" != "$OPENSHIFT_APP_UUID" ]
   then
-      client_error "The threaddump command is not supported on scalable applications."
+      if [ -t 0 ]
+      then
+          result=$(_threaddump $OPENSHIFT_GEAR_UUID)
+          if [ "$result" = "" ]; then
+              DATE=`date -u '+%Y%m%d'`
+              echo "The thread dump file will be available via: tail -f ${OPENSHIFT_RUBY_LOG_DIR}/error_log-$DATE-*"
+          else
+              echo " $result"
+          fi
+          echo ""
+      else
+          client_error "The rhc threaddump command is not supported on scaled gear: $OPENSHIFT_GEAR_UUID. ssh into the gear and issue ~/ruby/bin/control threaddump. "
+      fi
       exit
   fi
 
