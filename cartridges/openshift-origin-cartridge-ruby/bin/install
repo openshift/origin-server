@@ -17,7 +17,8 @@ done
 
 mkdir $OPENSHIFT_RUBY_DIR/tmp
 
-mkdir $OPENSHIFT_HOMEDIR/.gem
+# .gem is now created by the platform. See https://bugzilla.redhat.com/show_bug.cgi?id=974632
+# mkdir $OPENSHIFT_HOMEDIR/.gem
 
 mkdir $OPENSHIFT_HOMEDIR/.passenger
 
