@@ -1791,6 +1791,10 @@ module OpenShift
         reply = ResultIO.new
         state_map = {}
 
+        if gear.get_proxy.get_district_uuid == 'NONE'
+          raise OpenShift::UserException.new("Move gear *not* supported without districts.")
+        end
+
         # resolve destination_container according to district
         destination_container, destination_district_uuid, district_changed = resolve_destination(gear, destination_container, destination_district_uuid, change_district, node_profile)
 
@@ -2003,7 +2007,7 @@ module OpenShift
         district_changed = (destination_district_uuid != source_district_uuid)
 
         if source_container.id == destination_container.id
-          raise OpenShift::UserException.new("Error moving app.  Old and new servers are the same: #{source_container.id}", 1)
+          raise OpenShift::UserException.new("Error moving gear.  Old and new servers are the same: #{source_container.id}", 1)
         end
         return [destination_container, destination_district_uuid, district_changed]
       end

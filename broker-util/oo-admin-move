@@ -113,6 +113,9 @@ begin
 rescue OpenShift::NodeException => ne
   puts ne.message
   exit 1
+rescue OpenShift::UserException => ue
+  puts ue.message
+  exit 1
 end
 
 unless reply.nil?
