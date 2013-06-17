@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.10.1
+Version: 1.10.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -84,6 +84,54 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Mon Jun 17 2013 Adam Miller <admiller@redhat.com> 1.10.2-1
+- Merge pull request #2851 from lnader/master
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 974507 (dmcphers@redhat.com)
+- Merge pull request #2856 from danmcp/master
+  (dmcphers+openshiftbot@redhat.com)
+- First pass at removing v1 cartridges (dmcphers@redhat.com)
+- Bug 974493 (lnader@redhat.com)
+- Bug 971204 (lnader@redhat.com)
+- <app model> ssh_url should use gear.name for secondary gears
+  (lmeyer@redhat.com)
+- <app model> fix whitespace (lmeyer@redhat.com)
+- Merge pull request #2841 from lnader/master
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 973718 (lnader@redhat.com)
+- Fix mock test cases for the new routes used by the console
+  (jforrest@redhat.com)
+- Fix routing clashes when id matches new or edit (jforrest@redhat.com)
+- part two of parallelizing node tasks from broker (rchopra@redhat.com)
+- Added Usage consistency checks as part of oo-admin-chk script
+  (rpenta@redhat.com)
+- parallelization of app events across gears (rchopra@redhat.com)
+- Bug 971876 (dmcphers@redhat.com)
+- Node timeout handling improvements (ironcladlou@gmail.com)
+- Fix jboss tests (kraman@gmail.com)
+- Build RPM depending on which version of nodejs is available on the platform.
+  Make tests pick nodejs version based on what is installed (kraman@gmail.com)
+- Fix ruby cartridge. It reuires a ~/.passenger dir on RHEL 6.4 systems Fix
+  some cucumber tests tags (kraman@gmail.com)
+- Update test for F19 package versions Remove F18 tests Added new tags @not-
+  fedora-19, @fedora-19-only to indicate which tests to run Moved cucumber step
+  definitons from ruby files back into feature files (kraman@gmail.com)
+- origin_runtime_138 - Add SSL_ENDPOINT variable and filter whether carts use
+  ssl_to_gear. (rmillner@redhat.com)
+- Add ssl_to_gear option. (mrunalp@gmail.com)
+- delete downloaded cartridge when component is deleted (rchopra@redhat.com)
+- Merge pull request #2666 from lnader/rest-api-version-1.5
+  (dmcphers+openshiftbot@redhat.com)
+- return HTTP Status code 200 from DELETE instead of 204 (lnader@redhat.com)
+- fix for bz970008 (rchopra@redhat.com)
+- fix bz969724 - feature name is now just cartridge name (rchopra@redhat.com)
+- move v1 tests to extended other only (dmcphers@redhat.com)
+- Merge pull request #2697 from abhgupta/abhgupta-dev
+  (dmcphers+openshiftbot@redhat.com)
+- Fix for bug 969165 (abhgupta@redhat.com)
+- Fix for bug 968952  - Fixing application alias validation regex
+  (abhgupta@redhat.com)
+
 * Thu May 30 2013 Adam Miller <admiller@redhat.com> 1.10.1-1
 - bump_minor_versions for sprint 29 (admiller@redhat.com)
 - Merge pull request #2695 from fotioslindiakos/runtime_extended
