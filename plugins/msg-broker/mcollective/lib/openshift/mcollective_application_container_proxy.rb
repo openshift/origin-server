@@ -1837,7 +1837,7 @@ module OpenShift
               cart = cinst.cartridge_name
               idle, leave_stopped = state_map[cart]
 
-              if app.scalable and not CartridgeCache.find_cartridge(cart).categories.include? "web_proxy"
+              if app.scalable and not CartridgeCache.find_cartridge(cart, app).categories.include? "web_proxy"
                 begin
                   reply.append destination_container.expose_port(gear, cinst)
                 rescue Exception=>e
@@ -1856,7 +1856,7 @@ module OpenShift
                 next if not gi_comps.include? cinst
                 cart = cinst.cartridge_name
                 idle, leave_stopped = state_map[cart]
-                if leave_stopped and CartridgeCache.find_cartridge(cart).categories.include? "web_proxy"
+                if leave_stopped and CartridgeCache.find_cartridge(cart, app).categories.include? "web_proxy"
                   log_debug "DEBUG: Explicitly stopping cartridge '#{cart}' in '#{app.name}' after move on #{destination_container.id}"
                   reply.append destination_container.stop(gear, cinst)
                 end
@@ -2075,7 +2075,7 @@ module OpenShift
       def get_app_status(app)
         web_framework = nil
         app.requires.each do |feature|
-          cart = CartridgeCache.find_cartridge(feature)
+          cart = CartridgeCache.find_cartridge(feature, app)
           next unless cart.categories.include? "web_framework"
           web_framework = cart.name
           break

@@ -116,7 +116,8 @@ def get_user_info(user, level=0)
   user["ssh_keys"].each { |k| user_ssh_keys[Digest::MD5.hexdigest(k["content"])] = k["name"] } if user["ssh_keys"]
   user_info = {"consumed_gears" => user["consumed_gears"], "domains" => {}, "login" => user["login"], "ssh_keys" => user_ssh_keys,
                "max_untracked_addtl_storage_per_gear" => user["capabilities"]["max_untracked_addtl_storage_per_gear"],
-               "plan_id" => user["plan_id"], "plan_state" => user["plan_state"], "usage_account_id" => user["usage_account_id"]}
+               "plan_id" => user["plan_id"], "plan_state" => user["plan_state"], "usage_account_id" => user["usage_account_id"],
+               "parent_user_id" => user["parent_user_id"]}
   user_info
 end
 
@@ -190,7 +191,7 @@ start_time = (current_time.to_f * 1000).to_i
 if level >= 1
   user_selection = {:fields => ["consumed_gears", "login", "ssh_keys.name", "ssh_keys.content",
                                 "capabilities.max_untracked_addtl_storage_per_gear", "plan_id",
-                                "plan_state", "usage_account_id"], :timeout => false}
+                                "plan_state", "usage_account_id", "parent_user_id"], :timeout => false}
   user_selection_primary = user_selection.dup
   user_selection_primary[:read] = :primary
 
@@ -305,7 +306,8 @@ OpenShift::DataStore.find(:applications, app_query, app_selection) do |app|
   end
   user_hash[owner_id]["domains"][domain_id] += gear_count if level >= 1 and user_hash[owner_id]
 
-  if level >= 1 and Rails.configuration.respond_to?('billing')
+  if level >= 1 and Rails.configuration.respond_to?('billing') and
+     owner_id and user_hash[owner_id] and !user_hash[owner_id]['parent_user_id']
     gi_hash = {}
     app['group_instances'].each do |gi|
       gid = gi['_id'].to_s
@@ -325,7 +327,6 @@ OpenShift::DataStore.find(:applications, app_query, app_selection) do |app|
     end
     # Get group instances with additional storage consumption
     user_untracked_storage_limit = 0
-    owner_id = domain_hash[domain_id]
     if owner_id and user_hash[owner_id]["max_untracked_addtl_storage_per_gear"]
       user_untracked_storage_limit = user_hash[owner_id]["max_untracked_addtl_storage_per_gear"]
     end
