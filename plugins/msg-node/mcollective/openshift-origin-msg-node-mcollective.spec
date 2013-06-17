@@ -10,7 +10,7 @@
 
 Summary:       M-Collective agent file for openshift-origin-msg-node-mcollective
 Name:          openshift-origin-msg-node-mcollective
-Version: 1.10.1
+Version: 1.10.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -51,6 +51,13 @@ cp -p facts/update_yaml.rb %{buildroot}/usr/libexec/mcollective/
 %attr(0700,-,-) %config(noreplace) /etc/cron.minutely/openshift-facts
 
 %changelog
+* Mon Jun 17 2013 Adam Miller <admiller@redhat.com> 1.10.2-1
+- remove threads for now (rchopra@redhat.com)
+- parallelization of app events across gears (rchopra@redhat.com)
+- Node timeout handling improvements (ironcladlou@gmail.com)
+- Change working directory to /tmp for openshift mcol agent (pmorie@gmail.com)
+- Make NodeLogger pluggable (ironcladlou@gmail.com)
+
 * Thu May 30 2013 Adam Miller <admiller@redhat.com> 1.10.1-1
 - bump_minor_versions for sprint 29 (admiller@redhat.com)
 
