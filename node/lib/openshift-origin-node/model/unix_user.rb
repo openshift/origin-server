@@ -852,6 +852,7 @@ Dir(after)    #{@uuid}/#{@uid} => #{list_home_dir(@homedir)}
     def setup_gem_home
       gem_home = File.join(homedir, ".gem")
       add_env_var "GEM_HOME", gem_home
+      add_env_var "OPENSHIFT_RUBYGEMS_PATH_ELEMENT", File.join(gem_home, "bin")
       mkdir_and_chown gem_home, :user => @uuid
     end
 
