@@ -46,6 +46,18 @@ module Console::HelpHelper
     community_base_url 'blogs'
   end
 
+  def openshift_twitter_url
+    "http://twitter.com/openshift"
+  end
+
+  def openshift_facebook_url
+    "http://facebook.com/openshift"
+  end
+
+  def openshift_google_plus_url
+    "https://plus.google.com/b/108052331678796731786/108052331678796731786/posts"
+  end
+
   def opensource_community_url
     community_base_url 'open-source'
   end
@@ -68,6 +80,10 @@ module Console::HelpHelper
 
   def developers_path
     community_base_url 'developers'
+  end
+
+  def support_path
+    community_base_url 'support'
   end
 
   def ssh_help_url
@@ -179,7 +195,7 @@ module Console::HelpHelper
   end
 
   def product_overview_path(opts=nil)
-    community_base_url "paas", opts
+    community_base_url "products", opts
   end
 
   def opensource_process_url
