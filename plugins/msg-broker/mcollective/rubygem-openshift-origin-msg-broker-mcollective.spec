@@ -9,7 +9,7 @@
 
 Summary:       OpenShift plugin for mcollective service
 Name:          rubygem-%{gem_name}
-Version: 1.10.2
+Version: 1.10.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -80,6 +80,13 @@ cp %{buildroot}/%{gem_dir}/gems/%{gem_name}-%{version}/conf/openshift-origin-msg
 %attr(0644,-,-) %ghost /etc/mcollective/client.cfg
 
 %changelog
+* Tue Jun 18 2013 Adam Miller <admiller@redhat.com> 1.10.3-1
+- Merge pull request #2872 from pravisankar/dev/ravi/bug973918
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 973918 - Do not allow move gear with oo-admin-move without districts.
+  (rpenta@redhat.com)
+- Various cleanup (dmcphers@redhat.com)
+
 * Mon Jun 17 2013 Adam Miller <admiller@redhat.com> 1.10.2-1
 - Bug 971199 - Need to pass application object to CartridgeCache.find_cartridge
   method in mcollective_application_container_proxy.rb (rpenta@redhat.com)
