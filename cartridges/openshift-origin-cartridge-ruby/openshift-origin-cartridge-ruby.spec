@@ -6,7 +6,7 @@
 %global cartridgedir %{_libexecdir}/openshift/cartridges/v2/ruby
 
 Name:          openshift-origin-cartridge-ruby
-Version: 0.5.2
+Version: 0.5.3
 Release:       1%{?dist}
 Summary:       Ruby cartridge
 Group:         Development/Languages
@@ -185,6 +185,12 @@ Ruby cartridge for OpenShift. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Tue Jun 18 2013 Adam Miller <admiller@redhat.com> 0.5.3-1
+- Remove 'thread-dumper' (asari.ruby@gmail.com)
+- Merge pull request #2871 from mrunalp/bugs/974933
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 974933: Better handle threaddump for scaled up gears. (mrunalp@gmail.com)
+
 * Mon Jun 17 2013 Adam Miller <admiller@redhat.com> 0.5.2-1
 - First pass at removing v1 cartridges (dmcphers@redhat.com)
 - Fix Ruby's URL in the v2 cartridge (asari.ruby@gmail.com)
