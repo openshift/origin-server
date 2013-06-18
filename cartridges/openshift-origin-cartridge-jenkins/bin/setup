@@ -10,8 +10,12 @@ source $OPENSHIFT_CARTRIDGE_SDK_BASH
 # Create additional directories required by JENKINS
 mkdir -p ${OPENSHIFT_JENKINS_DIR}/{logs,data}
 
-
-
-
-
-
+#TODO This is a tmp fix for 975255.  Can be removed after 2.0.29.
+if [ -f $OPENSHIFT_HOMEDIR/.env/JENKINS_USERNAME ]
+then
+  cat $OPENSHIFT_HOMEDIR/.env/JENKINS_USERNAME > $OPENSHIFT_JENKINS_DIR/env/JENKINS_USERNAME
+fi
+if [ -f $OPENSHIFT_HOMEDIR/.env/JENKINS_PASSWORD ]
+then
+  cat $OPENSHIFT_HOMEDIR/.env/JENKINS_PASSWORD > $OPENSHIFT_JENKINS_DIR/env/JENKINS_PASSWORD
+fi

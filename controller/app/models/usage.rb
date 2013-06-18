@@ -79,7 +79,7 @@ class Usage
       return get_list(where(:user_id => user_id, :gear_id => gear_id, :begin_time => begin_time))
     end
   end
-  
+
   def self.find_by_filter(user_id, filter = {})
     # Construct the query criteria
     condition = where(user_id: user_id)
@@ -87,7 +87,7 @@ class Usage
     condition = condition.where(app_name: filter["app_name"]) unless filter["app_name"].nil?
     condition = condition.where("$or" => [{:end_time => nil}, {:end_time.gte => filter["begin_time"]}]) unless filter["begin_time"].nil?
     condition = condition.where(:begin_time.lte => filter["end_time"]) unless filter["end_time"].nil?
-    
+
     return get_list(condition)
   end
 
@@ -119,11 +119,11 @@ class Usage
   def self.delete_by_gear(gear_id)
     where(gear_id: gear_id).delete
   end
-  
+
   def get_usage_rate(plan_id)
     nil
   end
-  
+
   private
 
   def self.get_list(cond)
