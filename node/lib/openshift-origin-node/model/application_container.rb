@@ -26,6 +26,7 @@ require 'openshift-origin-node/utils/environ'
 require 'openshift-origin-node/utils/sdk'
 require 'openshift-origin-node/utils/node_logger'
 require 'openshift-origin-node/utils/hourglass'
+require 'openshift-origin-node/utils/cgroups'
 require 'openshift-origin-common'
 require 'yaml'
 require 'active_model'
@@ -361,13 +362,16 @@ module OpenShift
     #
     def unidle_gear(options={})
       output = ""
-      if stop_lock? and (state.value == State::IDLE)
-        state.value = State::STARTED
-        output = start_gear
-      end
-      frontend = FrontendHttpServer.new(@uuid)
-      if frontend.idle?
-        frontend.unidle
+      OpenShift::Utils::Cgroups::with_no_cpu_limits(@user.uuid) do
+        if stop_lock? and (state.value == State::IDLE)
+          state.value = State::STARTED
+          output      = start_gear
+        end
+
+        frontend = FrontendHttpServer.new(@uuid)
+        if frontend.idle?
+          frontend.unidle
+        end
       end
       output
     end
