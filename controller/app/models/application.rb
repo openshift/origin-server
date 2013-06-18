@@ -560,21 +560,21 @@ class Application
   # This operation will trigger deletion of any applications listed in {#domain_requires}
   # @return [ResultIO] Output from cartridges
   def destroy_app
+    result_io = ResultIO.new
     self.domain.applications.each { |app|
       app.domain_requires.each { |app_id|
         if app_id==self._id
           # now we have to worry if apps have a circular dependency among them or not
           # assuming not for now or else stack overflow
-          app.destroy_app
+          result_io.append(app.destroy_app)
           break
         end
       }
     }
     # specifying the remove_all_features flag as true to ensure removal of all features
-    self.remove_features(self.requires, [], true, true)
+    result_io.append(self.remove_features(self.requires, [], true, true))
     Application.run_in_application_lock(self) do
       self.pending_op_groups.push PendingAppOpGroup.new(op_type: :delete_app, user_agent: self.user_agent)
-      result_io = ResultIO.new
       self.run_jobs(result_io)
       result_io
     end
