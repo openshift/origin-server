@@ -112,7 +112,7 @@ function tidy() {
 }
 
 # Reconstruct JAVA_HOME and PATH based on the current version/marker selection
-function update-configuration {
+function update_configuration {
     export_java_home
     reinstall_path
 }
@@ -159,7 +159,7 @@ case "$1" in
         exit 0
     ;;
     update-configuration)
-        update-configuration
+        update_configuration
         exit 0
     ;;
 esac
