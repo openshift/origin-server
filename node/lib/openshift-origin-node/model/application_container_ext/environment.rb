@@ -25,7 +25,7 @@ module OpenShift
           end
 
           mcs_label = Utils::SELinux.get_mcs_label(uid)
-          @container.set_ro_permission(filename)
+          set_ro_permission(filename)
 
           if block_given?
             blk.call(value)
@@ -81,7 +81,7 @@ module OpenShift
             file.write token
           end
 
-          @container.set_ro_permission(broker_auth_dir)
+          set_ro_permission(broker_auth_dir)
           FileUtils.chmod(0o0750, broker_auth_dir)
           FileUtils.chmod(0o0640, Dir.glob("#{broker_auth_dir}/*"))
         end
@@ -174,7 +174,7 @@ module OpenShift
 
           ssh_dir = File.join(@container_dir, ".ssh")
           cmd = "restorecon -R #{ssh_dir}"
-          shellCmd(cmd)
+          run_in_root_context(cmd)
         end
 
         # Generate the command entry for the ssh key to be written into the authorized keys file
@@ -239,8 +239,8 @@ module OpenShift
                     end
                   end
               end
-                @container.set_ro_permission(authorized_keys_file)
-                shellCmd("restorecon #{authorized_keys_file}")
+                set_ro_permission(authorized_keys_file)
+                run_in_root_context("restorecon #{authorized_keys_file}")
               ensure
                 lock.flock(File::LOCK_UN)
               end

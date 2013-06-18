@@ -220,8 +220,8 @@ module OpenShift
     # Adds an alias to the gear
     def add_alias(alias_name)
       $logger.info("Adding alias #{alias_name} to gear #{@uuid} of application #{@app.name}")
-      
-      frontend = OpenShift::FrontendHttpServer.new(@uuid, @app.name, @app.account.domain)
+
+      frontend = OpenShift::Runtime::FrontendHttpServer.new(ApplicationContainer.from_uuid(@uuid))
       frontend.add_alias(alias_name)
     end
 
@@ -230,14 +230,14 @@ module OpenShift
     def remove_alias(alias_name)
       $logger.info("Adding alias #{alias_name} to gear #{@uuid} of application #{@app.name}")
 
-      frontend = OpenShift::FrontendHttpServer.new(@uuid, @app.name, @app.account.domain)
+      frontend = OpenShift::Runtime::FrontendHttpServer.new(ApplicationContainer.from_uuid(@uuid))
       frontend.remove_alias(alias_name)
     end
 
     # List FrontendHttpServer proxy for the gear
     def list_http_proxy_paths
       $logger.info("Checking routes for gear #{@uuid} of application #{@app.name}")
-      frontend = OpenShift::FrontendHttpServer.new(@uuid, @app.name, @app.account.domain)
+      frontend = OpenShift::Runtime::FrontendHttpServer.new(ApplicationContainer.from_uuid(@uuid))
       Hash[*frontend.connections.map { |path, uri, opts| [path, [uri, opts ] ] }.flatten(1)]
     end
 

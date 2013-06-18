@@ -137,7 +137,8 @@ module OpenShift
           gearlist.each do |uuid, container|
             frontend = nil
             begin
-              frontend = FrontendHttpServer.new(uuid, container['container_name'], container['namespace'])
+
+              frontend = FrontendHttpServer.new(ApplicationContainer.from_uuid(uuid))
             rescue => e
               NodeLogger.logger.error("Failed to instantiate FrontendHttpServer for #{uuid}: #{e}")
               NodeLogger.logger.error("Backtrace: #{e.backtrace}")
@@ -149,16 +150,17 @@ module OpenShift
 
       end
 
-      def initialize(container_uuid, container_name=nil, namespace=nil)
+      def initialize(container)
         @config = OpenShift::Config.new
 
         @cloud_domain = clean_server_name(@config.get("CLOUD_DOMAIN"))
 
         @basedir = @config.get("OPENSHIFT_HTTP_CONF_DIR")
 
-        @container_uuid = container_uuid
-        @container_name = container_name
-        @namespace = namespace
+        @container_uuid = container.uuid
+        @container_name = container.name
+        @namespace = container.namespace
+        @container = container
 
         @fqdn = nil
 
@@ -864,7 +866,7 @@ module OpenShift
       def reload_httpd(async=false)
         async_opt="-b" if async
         begin
-          Utils::oo_spawn("/usr/sbin/oo-httpd-singular #{async_opt} graceful", {:expected_exitstatus=>0})
+          @container.run_in_root_context("/usr/sbin/oo-httpd-singular #{async_opt} graceful", {:expected_exitstatus=>0})
         rescue Utils::ShellExecutionException => e
           logger.error("ERROR: failure from oo-httpd-singular(#{e.rc}): #{@uuid} stdout: #{e.stdout} stderr:#{e.stderr}")
           raise FrontendHttpServerExecException.new(e.message, @container_uuid, @container_name, @namespace, e.rc, e.stdout, e.stderr)

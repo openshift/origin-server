@@ -159,7 +159,7 @@ class FrontendHttpServerModelTest < OpenShift::NodeTestCase
   end
 
   def test_clean_server_name
-    frontend = OpenShift::Runtime::FrontendHttpServer.new(@container_uuid, @container_name, @namespace)
+    frontend = OpenShift::Runtime::FrontendHttpServer.new(ApplicationContainer.from_uuid(@container_uuid))
     
     assert_equal "#{@test_alias}", frontend.clean_server_name("#{@test_alias}")
     assert_equal "#{@test_alias}", frontend.clean_server_name("#{@test_alias}".upcase)
@@ -171,7 +171,7 @@ class FrontendHttpServerModelTest < OpenShift::NodeTestCase
   def test_create
     set_dbs_empty
 
-    frontend = OpenShift::Runtime::FrontendHttpServer.new(@container_uuid, @container_name, @namespace)
+    frontend = OpenShift::Runtime::FrontendHttpServer.new(ApplicationContainer.from_uuid(@container_uuid))
     frontend.create
 
     # Does nothing.
@@ -184,7 +184,7 @@ class FrontendHttpServerModelTest < OpenShift::NodeTestCase
     OpenShift::Runtime::Utils::Environ.stubs(:for_gear).returns(t_environ).never
 
     frontend = nil
-    frontend = OpenShift::Runtime::FrontendHttpServer.new(@container_uuid)
+    frontend = OpenShift::Runtime::FrontendHttpServer.new(ApplicationContainer.from_uuid(@container_uuid))
 
     assert_equal @container_name, frontend.container_name
     assert_equal @namespace, frontend.namespace
@@ -197,7 +197,7 @@ class FrontendHttpServerModelTest < OpenShift::NodeTestCase
     OpenShift::Runtime::Utils::Environ.stubs(:for_gear).returns(t_environ).once
 
     frontend = nil
-    frontend = OpenShift::Runtime::FrontendHttpServer.new(@container_uuid)
+    frontend = OpenShift::Runtime::FrontendHttpServer.new(ApplicationContainer.from_uuid(@container_uuid))
 
     assert_equal @container_name, frontend.container_name
     assert_equal @namespace, frontend.namespace
@@ -207,7 +207,7 @@ class FrontendHttpServerModelTest < OpenShift::NodeTestCase
     set_dbs_empty
 
     assert_raise OpenShift::Runtime::FrontendHttpServerException do
-      frontend = OpenShift::Runtime::FrontendHttpServer.new(@container_uuid)
+      frontend = OpenShift::Runtime::FrontendHttpServer.new(ApplicationContainer.from_uuid(@container_uuid))
     end
   end
 
@@ -220,7 +220,7 @@ class FrontendHttpServerModelTest < OpenShift::NodeTestCase
 
     OpenShift::Runtime::Utils.stubs(:oo_spawn).returns(["", "", 0]).once
 
-    frontend = OpenShift::Runtime::FrontendHttpServer.new(@container_uuid, @container_name, @namespace)
+    frontend = OpenShift::Runtime::FrontendHttpServer.new(ApplicationContainer.from_uuid(@container_uuid))
     frontend.destroy
 
     check_dbs_empty
@@ -238,7 +238,7 @@ class FrontendHttpServerModelTest < OpenShift::NodeTestCase
                     ["/file", "/dest.html", { "file" => 1 }],
                     ["/tohttps", "/dest", { "tohttps" => 1 }] ]
 
-    frontend = OpenShift::Runtime::FrontendHttpServer.new(@container_uuid, @container_name, @namespace)
+    frontend = OpenShift::Runtime::FrontendHttpServer.new(ApplicationContainer.from_uuid(@container_uuid))
     frontend.create
     frontend.connect(connections)
 
@@ -273,7 +273,7 @@ class FrontendHttpServerModelTest < OpenShift::NodeTestCase
   def test_idle
     set_dbs_empty
 
-    frontend = OpenShift::Runtime::FrontendHttpServer.new(@container_uuid, @container_name, @namespace)
+    frontend = OpenShift::Runtime::FrontendHttpServer.new(ApplicationContainer.from_uuid(@container_uuid))
     frontend.create
 
     frontend.idle
@@ -288,7 +288,7 @@ class FrontendHttpServerModelTest < OpenShift::NodeTestCase
   def test_sts
     set_dbs_empty
 
-    frontend = OpenShift::Runtime::FrontendHttpServer.new(@container_uuid, @container_name, @namespace)
+    frontend = OpenShift::Runtime::FrontendHttpServer.new(ApplicationContainer.from_uuid(@container_uuid))
     frontend.create
 
     frontend.sts(@sts_max_age)
@@ -303,7 +303,7 @@ class FrontendHttpServerModelTest < OpenShift::NodeTestCase
   def test_aliases
     set_dbs_empty
 
-    frontend = OpenShift::Runtime::FrontendHttpServer.new(@container_uuid, @container_name, @namespace)
+    frontend = OpenShift::Runtime::FrontendHttpServer.new(ApplicationContainer.from_uuid(@container_uuid))
     frontend.create
     frontend.connect("", "#{@ip}:#{@port}", { "websocket" => 1})
     frontend.add_alias("#{@test_alias}")
@@ -353,7 +353,7 @@ class FrontendHttpServerModelTest < OpenShift::NodeTestCase
 
     OpenShift::Runtime::Utils.stubs(:oo_spawn).returns(["", "", 0]).twice
 
-    frontend = OpenShift::Runtime::FrontendHttpServer.new(@container_uuid, @container_name, @namespace)
+    frontend = OpenShift::Runtime::FrontendHttpServer.new(ApplicationContainer.from_uuid(@container_uuid))
     frontend.create
     frontend.connect("", "#{@ip}:#{@port}", { "websocket" => 1})
     frontend.add_alias("#{@test_alias}")
@@ -379,7 +379,7 @@ class FrontendHttpServerModelTest < OpenShift::NodeTestCase
   def test_serialization
     set_dbs_empty
 
-    frontend = OpenShift::Runtime::FrontendHttpServer.new(@container_uuid, @container_name, @namespace)
+    frontend = OpenShift::Runtime::FrontendHttpServer.new(ApplicationContainer.from_uuid(@container_uuid))
     frontend.create
     frontend.connect("", "#{@ip}:#{@port}", { "websocket" => 1})
     frontend.add_alias("#{@test_alias}")

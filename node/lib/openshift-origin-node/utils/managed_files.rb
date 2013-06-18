@@ -156,7 +156,7 @@ module OpenShift
       #
       # Returns an array of matching files, directories and symbolic links
       def setup_rewritten(cartridge)
-        managed_files(cartridge, :setup_rewritten, @user.homedir, true, ['file', 'directory', 'link'])
+        managed_files(cartridge, :setup_rewritten, @container_dir, true, ['file', 'directory', 'link'])
       end
 
       # Obtain the 'restore_transforms' entry from the managed_files.yml file

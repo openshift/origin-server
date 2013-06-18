@@ -508,7 +508,7 @@ begin
 
   when 'listidle'
     OpenShift::Runtime::AdminGearsControl.new.gear_uuids(false).each do |uuid|
-      if OpenShift::Runtime::FrontendHttpServer.new(uuid).idle?
+      if OpenShift::Runtime::FrontendHttpServer.new(ApplicationContainer.from_uuid(uuid)).idle?
         $stdout.puts "#{uuid} is idled"
       end
     end

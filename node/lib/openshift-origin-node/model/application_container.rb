@@ -85,7 +85,6 @@ module OpenShift
         @shell            = @config.get("GEAR_SHELL")    || "/bin/bash"
         @supplementary_groups = @config.get("GEAR_SUPPLEMENTARY_GROUPS")
         @hourglass        = hourglass || Utils::Hourglass.new(3600)
-        @container_plugin = ::OpenShift::Runtime::ApplicationContainerPlugin::SELinuxContainer.new(self)
 
         begin
           user_info      = Etc.getpwnam(@uuid)
@@ -93,11 +92,15 @@ module OpenShift
           @gid           = user_info.gid
           @gecos         = user_info.gecos
           @container_dir = "#{user_info.dir}/"
+          @container_plugin = ::OpenShift::Runtime::ApplicationContainerPlugin::SELinuxContainer.new(self)
         rescue ArgumentError => e
           @uid           = user_uid
           @gid           = user_uid #user_gid || user_uid
           @gecos         = @config.get("GEAR_GECOS") || "OO application container"
           @container_dir = File.join(@base_dir,@uuid)
+
+          #will be instantiated when create() is called
+          @container_plugin = nil
         end
 
         @cartridge_model = V2CartridgeModel.new(@config, self, @state, @hourglass)
@@ -150,6 +153,7 @@ module OpenShift
 
             unless @uid
               @uid = @gid = next_uid
+              @container_plugin = ::OpenShift::Runtime::ApplicationContainerPlugin::SELinuxContainer.new(self)
             end
 
             @container_plugin.create
@@ -183,7 +187,7 @@ module OpenShift
         if @uid.nil? or (@container_dir.nil? or !File.directory?(@container_dir.to_s))
           # gear seems to have been destroyed already... suppress any error
           # TODO : remove remaining stuff if it exists, e.g. .httpd/#{uuid}* etc
-          return nil
+          return ['', '', 0]
         end
 
         # possible mismatch across cart model versions
@@ -196,7 +200,7 @@ module OpenShift
         File.open(uuid_lock_file, File::RDWR|File::CREAT|File::TRUNC, 0o0600) do | lock |
           lock.fcntl(Fcntl::F_SETFD, Fcntl::FD_CLOEXEC)
           lock.flock(File::LOCK_EX)
-          OpenShift::Runtime::FrontendHttpServer.new(@uuid,@name,@namespace).destroy
+          OpenShift::Runtime::FrontendHttpServer.new(self).destroy
           @container_plugin.reset_openshift_port_proxy
           @container_plugin.destroy
           @container_plugin.disable_fs_limits
@@ -212,7 +216,7 @@ module OpenShift
           end
 
           last_access_dir = @config.get("LAST_ACCESS_DIR")
-          shellCmd("rm -f #{last_access_dir}/#{@uuid} > /dev/null")
+          run_in_root_context("rm -f #{last_access_dir}/#{@uuid} > /dev/null")
 
           lock.flock(File::LOCK_UN)
         end
@@ -285,7 +289,7 @@ module OpenShift
       #
       def idle_gear(options={})
         if not stop_lock? and (state.value != State::STOPPED)
-          frontend = FrontendHttpServer.new(@uuid)
+          frontend = FrontendHttpServer.new(self)
           frontend.idle
           begin
             output = stop_gear
@@ -307,7 +311,7 @@ module OpenShift
             output      = start_gear
           end
 
-          frontend = FrontendHttpServer.new(@uuid)
+          frontend = FrontendHttpServer.new(self)
           if frontend.idle?
             frontend.unidle
           end
@@ -346,13 +350,13 @@ module OpenShift
       def gear_level_tidy_git(gear_repo_dir)
         # Git pruning
         tidy_action do
-          Utils.oo_spawn('git prune', uid: @uid, chdir: gear_repo_dir, expected_exitstatus: 0, timeout: @hourglass.remaining)
+          run_in_container_context('git prune', chdir: gear_repo_dir, expected_exitstatus: 0, timeout: @hourglass.remaining)
           logger.debug("Pruned git directory at #{gear_repo_dir}")
         end
 
         # Git GC
         tidy_action do
-          Utils.oo_spawn('git gc --aggressive', uid: @uid, chdir: gear_repo_dir, expected_exitstatus: 0, timeout: @hourglass.remaining)
+          run_in_container_context('git gc --aggressive', chdir: gear_repo_dir, expected_exitstatus: 0, timeout: @hourglass.remaining)
           logger.debug("Executed git gc for repo #{gear_repo_dir}")
         end
       end
@@ -547,7 +551,7 @@ module OpenShift
       #   :err                       : If specified, STDERR from the child process will be redirected to the
       #                                provided +IO+ object.
       #
-      # NOTE: If the +out+ or +err+ options are specified, the corresponding return value from +oo_spawn+
+      # NOTE: If the +out+ or +err+ options are specified, the corresponding return value from +run_in_root_context+
       # will be the incoming/provided +IO+ objects instead of the buffered +String+ output. It's the
       # responsibility of the caller to correctly handle the resulting data type.
       def run_in_root_context(command, options = {})
@@ -578,7 +582,7 @@ module OpenShift
       #   :err                       : If specified, STDERR from the child process will be redirected to the
       #                                provided +IO+ object.
       #
-      # NOTE: If the +out+ or +err+ options are specified, the corresponding return value from +oo_spawn+
+      # NOTE: If the +out+ or +err+ options are specified, the corresponding return value from +run_in_container_context+
       # will be the incoming/provided +IO+ objects instead of the buffered +String+ output. It's the
       # responsibility of the caller to correctly handle the resulting data type.
       def run_in_container_context(command, options = {})

@@ -22,12 +22,10 @@ module OpenShift
 
           $stderr.puts 'Creating and sending tar.gz'
 
-          Utils.oo_spawn(tar_cmd,
-                         env: gear_env,
-              unsetenv_others: true,
+          run_in_container_context(tar_cmd,
+              env: gear_env,
               out: $stdout,
               chdir: @config.get('GEAR_BASE_DIR'),
-              uid: @uid,
               timeout: @hourglass.remaining,
               expected_exitstatus: 0)
         end
@@ -91,11 +89,9 @@ module OpenShift
             $stderr.puts "Saving snapshot for secondary #{type} gear"
 
             ssh_coords = group['gears'][0]['ssh_url'].sub(/^ssh:\/\//, '')
-            Utils::oo_spawn("#{GEAR_TO_GEAR_SSH} #{ssh_coords} 'snapshot' > #{type}.tar.gz",
-                            env: gear_env,
+            run_in_container_context("#{GEAR_TO_GEAR_SSH} #{ssh_coords} 'snapshot' > #{type}.tar.gz",
+                env: gear_env,
                 chdir: gear_env['OPENSHIFT_DATA_DIR'],
-                uid: @uid,
-                gid: @gid,
                 err: $stderr,
                 timeout: @hourglass.remaining,
                 expected_exitstatus: 0)
@@ -196,14 +192,12 @@ module OpenShift
 
           tar_cmd = %Q{/bin/tar --strip=2 --overwrite -xmz #{includes} #{transforms} #{excludes} 1>&2}
 
-          Utils.oo_spawn(tar_cmd,
-                         env: gear_env,
-              unsetenv_others: true,
+          run_in_container_context(tar_cmd,
+              env: gear_env,
               out: $stdout,
               err: $stderr,
-          in: $stdin,
+              in: $stdin,
               chdir: @container_dir,
-              uid: @uid,
               timeout: @hourglass.remaining,
               expected_exitstatus: 0)
 
@@ -219,11 +213,9 @@ module OpenShift
             $stderr.puts "Restoring snapshot for #{type} gear"
 
             ssh_coords = group['gears'][0]['ssh_url'].sub(/^ssh:\/\//, '')
-            Utils::oo_spawn("cat #{type}.tar.gz | #{GEAR_TO_GEAR_SSH} #{ssh_coords} 'restore'",
-                            env: gear_env,
+            run_in_container_context("cat #{type}.tar.gz | #{GEAR_TO_GEAR_SSH} #{ssh_coords} 'restore'",
+                env: gear_env,
                 chdir: gear_env['OPENSHIFT_DATA_DIR'],
-                uid: @uid,
-                gid: @gid,
                 err: $stderr,
                 timeout: @hourglass.remaining,
                 expected_exitstatus: 0)

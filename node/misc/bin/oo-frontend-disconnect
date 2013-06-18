@@ -100,7 +100,7 @@ if disconnect_args.empty?
 end
 
 begin
-  frontend = OpenShift::Runtime::FrontendHttpServer.new(container_uuid, container_name, namespace)
+  frontend = OpenShift::Runtime::FrontendHttpServer.new(ApplicationContainer.from_uuid(container_uuid))
   frontend.disconnect(*disconnect_args)
 rescue OpenShift::Runtime::FrontendHttpServerExecException => e
   $stderr.puts(e.message + e.stdout + e.stderr)

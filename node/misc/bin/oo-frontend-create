@@ -89,7 +89,7 @@ end
 
 
 begin
-  frontend = OpenShift::Runtime::FrontendHttpServer.new(container_uuid, container_name, namespace)
+  frontend = OpenShift::Runtime::FrontendHttpServer.new(ApplicationContainer.from_uuid(container_uuid))
   frontend.create
 rescue OpenShift::Runtime::FrontendHttpServerExecException => e
   $stderr.puts(e.message + e.stdout + e.stderr)

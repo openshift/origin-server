@@ -636,11 +636,9 @@ module OpenShift
         end
 
         action << " --version #{software_version}"
-        out, _, _ = Utils.oo_spawn(action,
-                                   env:                 cartridge_env,
-            unsetenv_others:     true,
+        out, _, _ = @container.run_in_container_context(action,
+            env:                 cartridge_env,
             chdir:               cartridge_home,
-            uid:                 @container.uid,
             timeout:             @hourglass.remaining,
             expected_exitstatus: 0)
         logger.info("Ran #{action} for #{@container.uuid}/#{cartridge.directory}\n#{out}")
@@ -655,11 +653,9 @@ module OpenShift
       def render_erbs(env, erbs)
         erbs.each do |file|
           begin
-            Utils.oo_spawn(%Q{/usr/bin/oo-erb -S 2 -- #{file} > #{file.chomp('.erb')}},
-                           env:                 env,
-                unsetenv_others:     true,
+            @container.run_in_container_context(%Q{/usr/bin/oo-erb -S 2 -- #{file} > #{file.chomp('.erb')}},
+                env:                 env,
                 chdir:               @container.container_dir,
-                uid:                 @container.uid,
                 timeout:             @hourglass.remaining,
                 expected_exitstatus: 0)
           rescue Utils::ShellExecutionException => e
@@ -686,11 +682,9 @@ module OpenShift
         return "#{teardown}: is not executable\n" unless File.executable? teardown
 
         # FIXME: Will anyone retry if this reports error, or should we remove from disk no matter what?
-        buffer, err, _ = Utils.oo_spawn(teardown,
-                                        env:                 env,
-            unsetenv_others:     true,
+        buffer, err, _ = @container.run_in_container_context(teardown,
+            env:                 env,
             chdir:               cartridge_home,
-            uid:                 @container.uid,
             timeout:             @hourglass.remaining,
             expected_exitstatus: 0)
 
@@ -822,7 +816,7 @@ module OpenShift
       # Returns true if the given IP and port are currently bound
       # according to lsof, otherwise false.
       def address_bound?(ip, port)
-        _, _, rc = Utils.oo_spawn("/usr/sbin/lsof -i @#{ip}:#{port}", timeout: @hourglass.remaining)
+        _, _, rc = @container.run_in_container_context("/usr/sbin/lsof -i @#{ip}:#{port}", timeout: @hourglass.remaining)
         rc == 0
       end
 
@@ -832,7 +826,7 @@ module OpenShift
           command << " -i @#{addr[:ip]}:#{addr[:port]}"
         end
 
-        _, _, rc = Utils.oo_spawn(command, timeout: @hourglass.remaining)
+        _, _, rc = @container.run_in_container_context(command, timeout: @hourglass.remaining)
         rc == 0
       end
 
@@ -873,12 +867,12 @@ module OpenShift
 
         logger.info("Disconnecting frontend mapping for #{@container.uuid}/#{cartridge.name}: #{mappings.inspect}")
         unless mappings.empty?
-          OpenShift::Runtime::FrontendHttpServer.new(@container.uuid, @container.name, @container.namespace).disconnect(*mappings)
+          OpenShift::Runtime::FrontendHttpServer.new(@container).disconnect(*mappings)
         end
       end
 
       def connect_frontend(cartridge)
-        frontend       = OpenShift::Runtime::FrontendHttpServer.new(@container.uuid, @container.name, @container.namespace)
+        frontend       = OpenShift::Runtime::FrontendHttpServer.new(@container)
         gear_env       = Utils::Environ.for_gear(@container.container_dir)
         web_proxy_cart = web_proxy
 
@@ -1036,12 +1030,10 @@ module OpenShift
         end
 
         command      = script << " " << args
-        out, err, rc = Utils.oo_spawn(command,
-                                      env:             env,
-            unsetenv_others: true,
+        out, err, rc = @container.run_in_container_context(command,
+            env:             env,
             chdir:           cartridge_home,
-            timeout:         @hourglass.remaining,
-            uid:             @container.uid)
+            timeout:         @hourglass.remaining)
         if 0 == rc
           logger.info("(#{rc})\n------\n#{Runtime::Utils.sanitize_credentials(out)}\n------)")
           return out
@@ -1104,11 +1096,9 @@ module OpenShift
           unless command.empty?
             command = ['set -e'] | command
 
-            out, err, rc = Utils.oo_spawn(command.join('; '),
-                                          env:             cartridge_env,
-                unsetenv_others: true,
+            out, err, rc = @container.run_in_container_context(command.join('; '),
+                env:             cartridge_env,
                 chdir:           path,
-                uid:             @container.uid,
                 timeout:         @hourglass.remaining,
                 out:             options[:out],
                 err:             options[:err])
@@ -1145,11 +1135,9 @@ module OpenShift
         buffer           = ''
 
         if File.executable?(action_hook)
-          out, err, rc = Utils.oo_spawn(action_hook,
-                                        env:             env,
-              unsetenv_others: true,
+          out, err, rc = @container.run_in_container_context(action_hook,
+              env:             env,
               chdir:           @container.container_dir,
-              uid:             @container.uid,
               timeout:         @hourglass.remaining,
               out:             options[:out],
               err:             options[:err])
@@ -1279,7 +1267,7 @@ module OpenShift
           @state.value = OpenShift::Runtime::State::STARTED
 
           # Unidle the application, preferring to use the privileged operation if possible
-          frontend = FrontendHttpServer.new(@container.uuid)
+          frontend = FrontendHttpServer.new(@container)
           if Process.uid == @container.uid
             frontend.unprivileged_unidle
           else
@@ -1363,10 +1351,8 @@ module OpenShift
         FileUtils.mkdir_p(ssh_dir)
         @container.set_rw_permission(ssh_dir)
 
-        Utils::oo_spawn("/usr/bin/ssh-keygen -N '' -f #{ssh_key}",
-                        chdir:               @container.container_dir,
-            uid:                 @container.uid,
-            gid:                 @container.gid,
+        @container.run_in_container_context("/usr/bin/ssh-keygen -N '' -f #{ssh_key}",
+            chdir:               @container.container_dir,
             timeout:             @hourglass.remaining,
             expected_exitstatus: 0)
 
@@ -1399,14 +1385,12 @@ module OpenShift
           # TODO:
           # There is some concern about how well-behaved Facter is
           # when it is require'd.
-          # Instead, we use oo_spawn here to avoid it altogether.
+          # Instead, we use run_in_container_context here to avoid it altogether.
           # For the long-term, then, figure out a way to reliably
           # determine the IP address from Ruby.
-          out, err, status = Utils.oo_spawn('facter ipaddress',
-                                            env:                 cartridge_env,
-              unsetenv_others:     true,
+          out, err, status = @container.run_in_container_context('facter ipaddress',
+              env:                 cartridge_env,
               chdir:               @container.container_dir,
-              uid:                 @container.uid,
               timeout:             @hourglass.remaining,
               expected_exitstatus: 0)
           private_ip       = out.chomp

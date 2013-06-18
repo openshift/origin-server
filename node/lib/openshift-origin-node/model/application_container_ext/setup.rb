@@ -35,17 +35,17 @@ module OpenShift
           # Polydir runs before the marker is created so set up sandbox by hand
           sandbox_uuid_dir = File.join(homedir, ".sandbox", @uuid)
           FileUtils.mkdir_p sandbox_uuid_dir
-          @container.set_rw_permission(sandbox_uuid_dir)
+          set_rw_permission(sandbox_uuid_dir)
 
           env_dir = File.join(homedir, ".env")
           FileUtils.mkdir_p(env_dir)
           FileUtils.chmod(0o0750, env_dir)
-          @container.set_ro_permission(env_dir)
+          set_ro_permission(env_dir)
 
           ssh_dir = File.join(homedir, ".ssh")
           FileUtils.mkdir_p(ssh_dir)
           FileUtils.chmod(0o0750, ssh_dir)
-          @container.set_ro_permission(ssh_dir)
+          set_ro_permission(ssh_dir)
 
           gem_home = File.join(homedir, ".gem")
           add_env_var "GEM_HOME", gem_home
@@ -75,15 +75,14 @@ module OpenShift
 #          Your changes may cause your application to fail.
 }
           }
-          @container.set_rw_permission(profile)
-
+          set_rw_permission(profile)
+          set_rw_permission_R(data_dir);
 
           add_env_var("GEAR_DNS",
                       "#{@container_name}-#{@namespace}.#{@config.get("CLOUD_DOMAIN")}",
                       true)
           add_env_var("GEAR_NAME", @container_name, true)
           add_env_var("GEAR_UUID", @uuid, true)
-
           add_env_var("HOMEDIR", homedir, true)
 
           # Ensure HOME exists for git support
@@ -107,21 +106,21 @@ module OpenShift
           # Update all directory entries ~/app-root/*
           Dir[gearappdir + "/*"].entries.reject{|e| [".", ".."].include? e}.each {|e|
             FileUtils.chmod_R(0o0750, e, :verbose => @debug)
-            @container.set_rw_permission_R(e)
+            set_rw_permission_R(e)
           }
-          @container.set_ro_permission(gearappdir)
+          set_ro_permission(gearappdir)
           raise "Failed to instantiate gear: missing application directory (#{gearappdir})" unless File.exist?(gearappdir)
 
           state_file = File.join(gearappdir, "runtime", ".state")
           File.open(state_file, File::WRONLY|File::TRUNC|File::CREAT, 0o0660) {|file|
             file.write "new\n"
 
-          @container.set_rw_permission(state_file)          }
+          set_rw_permission(state_file)          }
 
-          OpenShift::Runtime::FrontendHttpServer.new(@uuid,@container_name,@namespace).create
+          OpenShift::Runtime::FrontendHttpServer.new(self).create
 
           # Fix SELinux context for cart dirs
-          @container.set_rw_permission(profile)
+          set_rw_permission(profile)
           reset_permission_R(homedir)
         end
 

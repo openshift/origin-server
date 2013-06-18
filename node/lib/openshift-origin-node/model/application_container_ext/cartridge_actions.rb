@@ -20,38 +20,37 @@ module OpenShift
 
         def post_configure(cart_name, template_git_url=nil)
           output = ''
-
           cartridge = @cartridge_model.get_cartridge(cart_name)
-          cartridge_home = PathUtils.join(@user.homedir, cartridge.directory)
+          cartridge_home = PathUtils.join(@container_dir, cartridge.directory)
 
           # Only perform an initial build if the manifest explicitly specifies a need,
           # or if a template Git URL is provided and the cart is capable of builds or deploys.
           if !OpenShift::Git.empty_clone_spec?(template_git_url) && (cartridge.install_build_required || template_git_url) && cartridge.buildable?
             build_log = '/tmp/initial-build.log'
-            env       = Utils::Environ.for_gear(@user.homedir)
+            env       = Utils::Environ.for_gear(@container_dir)
 
             begin
               logger.info "Executing initial gear prereceive for #{@uuid}"
               Utils.oo_spawn("gear prereceive >> #{build_log} 2>&1",
                              env:                 env,
-                             chdir:               @user.homedir,
-                             uid:                 @user.uid,
+                             chdir:               @container_dir,
+                             uid:                 @uid,
                              timeout:             @hourglass.remaining,
                              expected_exitstatus: 0)
 
               logger.info "Executing initial gear postreceive for #{@uuid}"
               Utils.oo_spawn("gear postreceive >> #{build_log} 2>&1",
                              env:                 env,
-                             chdir:               @user.homedir,
-                             uid:                 @user.uid,
+                             chdir:               @container_dir,
+                             uid:                 @uid,
                              timeout:             @hourglass.remaining,
                              expected_exitstatus: 0)
             rescue Utils::ShellExecutionException => e
               max_bytes = 10 * 1024
               out, _, _ = Utils.oo_spawn("tail -c #{max_bytes} #{build_log} 2>&1",
                              env:                 env,
-                             chdir:               @user.homedir,
-                             uid:                 @user.uid,
+                             chdir:               @container_dir,
+                             uid:                 @uid,
                              timeout:             @hourglass.remaining)
 
               message = "The initial build for the application failed: #{e.message}\n\n.Last #{max_bytes/1024} kB of build output:\n#{out}"
@@ -427,7 +426,7 @@ module OpenShift
           buffer = ''
           buffer << stopped_status_attr
           quota_cmd = "/bin/sh #{File.join('/usr/libexec/openshift/lib', "quota_attrs.sh")} #{@uuid}"
-          out,err,rc = shellCmd(quota_cmd)
+          out,err,rc = run_in_container_context(quota_cmd)
           raise "ERROR: Error fetching quota (#{rc}): #{quota_cmd.squeeze(" ")} stdout: #{out} stderr: #{err}" unless rc == 0
           buffer << out
           buffer << @cartridge_model.do_control("status", cart_name)

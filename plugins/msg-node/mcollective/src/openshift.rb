@@ -480,7 +480,7 @@ module MCollective
         namespace = args['--with-namespace'].to_s if args['--with-namespace']
 
         with_frontend_rescue_pattern do |o|
-          frontend = OpenShift::Runtime::FrontendHttpServer.new(container_uuid, container_name, namespace)
+          frontend = OpenShift::Runtime::FrontendHttpServer.new(ApplicationContainer.from_uuid(container_uuid))
           yield(frontend, o)
         end
       end

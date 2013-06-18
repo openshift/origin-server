@@ -119,8 +119,8 @@ module OpenShift
         @commit           = commit
 
         begin
-          Utils.oo_spawn(ERB.new(GIT_URL_CLONE).result(binding),
-                         chdir:               git_path,
+          @container.run_in_container_context(ERB.new(GIT_URL_CLONE).result(binding),
+              chdir:               git_path,
               expected_exitstatus: 0)
         rescue Utils::ShellExecutionException => e
           raise Utils::ShellExecutionException.new(
@@ -172,9 +172,8 @@ module OpenShift
         FileUtils.rm_rf Dir.glob(PathUtils.join(@target_dir, '*'))
         FileUtils.rm_rf Dir.glob(PathUtils.join(@target_dir, '.[^\.]*'))
 
-        Utils.oo_spawn(ERB.new(GIT_ARCHIVE).result(binding),
-                       chdir:               @path,
-            uid:                 @container.uid,
+        @container.run_in_container_context(ERB.new(GIT_ARCHIVE).result(binding),
+            chdir:               @path,
             expected_exitstatus: 0)
 
         return unless File.exist? PathUtils.join(@target_dir, '.gitmodules')
@@ -185,13 +184,12 @@ module OpenShift
         FileUtils.rm_r(cache) if File.exist?(cache)
         FileUtils.mkpath(cache)
 
-        Utils.oo_spawn("/bin/sh #{PathUtils.join('/usr/libexec/openshift/lib', "archive_git_submodules.sh")} #{@path} #{@target_dir}",
-                       chdir:               @container.container_dir,
+        @container.run_in_container_context("/bin/sh #{PathUtils.join('/usr/libexec/openshift/lib', "archive_git_submodules.sh")} #{@path} #{@target_dir}",
+            chdir:               @container.container_dir,
             env:                 env,
-            uid:                 @container.uid,
             expected_exitstatus: 0)
 
-        Utils.oo_spawn("/bin/rm -rf #{cache} &")
+        @container.run_in_container_context("/bin/rm -rf #{cache} &")
       end
 
       def destroy
@@ -226,16 +224,16 @@ module OpenShift
         FileUtils.rm_r(template) if File.exist? template
 
         git_path = File.join(@container.container_dir, 'git')
-        Utils.oo_spawn("/bin/cp -ad #{path} #{git_path}",
+        @container.run_in_root_context("/bin/cp -ad #{path} #{git_path}",
                        expected_exitstatus: 0)
 
-        Utils.oo_spawn(ERB.new(GIT_INIT).result(binding),
-                       chdir:               template,
+        @container.run_in_root_context(ERB.new(GIT_INIT).result(binding),
+            chdir:               template,
             expected_exitstatus: 0)
         begin
           # trying to clone as the user proved to be painful as git managed to "lose" the selinux context
-          Utils.oo_spawn(ERB.new(GIT_LOCAL_CLONE).result(binding),
-                         chdir:               git_path,
+          @container.run_in_root_context(ERB.new(GIT_LOCAL_CLONE).result(binding),
+              chdir:               git_path,
               expected_exitstatus: 0)
         rescue ShellExecutionException => e
           FileUtils.rm_r(@path) if File.exist? @path
