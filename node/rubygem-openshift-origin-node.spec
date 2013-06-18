@@ -16,7 +16,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.10.2
+Version: 1.10.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -281,6 +281,17 @@ echo "/usr/bin/oo-trap-user" >> /etc/shells
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Tue Jun 18 2013 Adam Miller <admiller@redhat.com> 1.10.3-1
+- Merge pull request #2878 from pmorie/bugs/975034
+  (dmcphers+openshiftbot@redhat.com)
+- Fix bug 975034: remove validation for control script executability
+  (pmorie@gmail.com)
+- Merge pull request #2867 from rmillner/misc_bugs
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 974268 - Narrow the window where user and quota data can get out of sync
+  and set the start time prior to any other collection.  Deal with a race
+  condition with the lock files in unix_user. (rmillner@redhat.com)
+
 * Mon Jun 17 2013 Adam Miller <admiller@redhat.com> 1.10.2-1
 - First pass at removing v1 cartridges (dmcphers@redhat.com)
 - Merge pull request #2805 from BanzaiMan/dev/hasari/bz972757
