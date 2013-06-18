@@ -165,8 +165,8 @@ command :idle do |c|
     options.default :interval => 240
     $log.level = Logger::DEBUG if options.verbose
     puts "Gears idle for #{options.interval} hours"
-    %x[(echo -n "Before: ";  /usr/sbin/oo-idler-stats) | /usr/bin/logger -p local0.notice -t oo-autoidler]
+    %x[(echo -n "Before: ";  /usr/sbin/oo-idler-stats) | /usr/bin/logger -p local0.notice -t oo-auto-idler]
     idle_gears(options.interval, options.list || false)
-    %x[(echo -n "After: ";  /usr/sbin/oo-idler-stats) | /usr/bin/logger -p local0.notice -t oo-autoidler]
+    %x[(echo -n "After: ";  /usr/sbin/oo-idler-stats) | /usr/bin/logger -p local0.notice -t oo-auto-idler]
   end
 end
