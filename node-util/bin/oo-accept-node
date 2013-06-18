@@ -23,6 +23,7 @@ require 'socket'
 require 'json'
 require 'parseconfig'
 require 'etc'
+require 'safe_yaml'
 
 $OPTIONS = {}
 
@@ -760,6 +761,56 @@ def check_app_dirs
   end
 end
 
+def check_cartridge_repository
+  verbose("checking cartridge repository")
+
+  SafeYAML::OPTIONS[:default_mode] = :safe
+
+  dst_glob = "#{ENV['GEAR_BASE_DIR']}/.cartridge_repository/*/*/metadata/manifest.yml"
+  dst_ctimes = {}
+  dst_manifests = {}
+  Dir.glob(dst_glob).each do |f|
+    begin
+      dst_ctimes[f] = File.stat(f).ctime
+      dst_manifests[f] = YAML.load(File.read(f))
+    rescue Psych::SyntaxError
+      do_fail("failed to parse manifest file: #{f}")
+    rescue => e
+      do_fail("error with manifest file: #{f} #{e}")
+    end
+  end
+
+  src_glob = "#{ENV['CARTRIDGE_BASE_PATH']}/{v2,}/*/{info,metadata}/manifest.yml"
+  Dir.glob(src_glob).each do |f|
+    begin
+      src_m = YAML.load(File.read(f))
+      src_ct = File.stat(f).ctime
+
+      matched_ct = nil
+      dst_manifests.each do |dst_f, dst_m|
+        if (dst_m['Name'] == src_m['Name']) and
+            (not src_m['Cartridge-Version'].nil? and (src_m['Cartridge-Version'] == dst_m['Cartridge-Version'])) or
+            (src_m['Version'] == dst_m['Version'])
+          matched_ct = dst_ctimes[dst_f]
+          break
+        end
+      end
+
+      if matched_ct.nil?
+        do_fail("no manifest in the cart repo matches #{f}")
+      elsif matched_ct < src_ct
+        do_fail("cart repo version is older than #{f}")
+      end
+
+    rescue Psych::SyntaxError
+      do_fail("failed to parse manifest file: #{f}")
+    rescue => e
+      do_fail("error with manifest file: #{f} #{e}")
+    end
+
+  end
+end
+
 if __FILE__ == $0
     $STATUS=0
     load_node_conf
@@ -776,6 +827,7 @@ if __FILE__ == $0
     check_users
     check_app_dirs
     check_system_httpd_configs
+    check_cartridge_repository
 
     if $STATUS == 0
         puts "PASS"
