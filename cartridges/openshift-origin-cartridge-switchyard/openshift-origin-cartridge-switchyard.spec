@@ -2,7 +2,7 @@
 
 Summary:       Provides embedded switchyard support
 Name:          openshift-origin-cartridge-switchyard
-Version: 0.3.1
+Version: 0.3.2
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -13,6 +13,7 @@ Requires:      rubygem(openshift-origin-node)
 Requires:      openshift-origin-node-util
 BuildArch:     noarch
 
+Obsoletes: openshift-origin-cartridge-switchyard-0.6
 
 %description
 Provides switchyard cartridge support to OpenShift
@@ -52,6 +53,14 @@ alternatives --set switchyard-0.6 /usr/share/switchyard
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Mon Jun 17 2013 Adam Miller <admiller@redhat.com> 0.3.2-1
+- Merge pull request #2864 from bdecoste/master
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 974479 (bdecoste@gmail.com)
+- First pass at removing v1 cartridges (dmcphers@redhat.com)
+- Bug 974479 (bdecoste@gmail.com)
+- Use -z with quotes (dmcphers@redhat.com)
+
 * Thu May 30 2013 Adam Miller <admiller@redhat.com> 0.3.1-1
 - bump_minor_versions for sprint 29 (admiller@redhat.com)
 

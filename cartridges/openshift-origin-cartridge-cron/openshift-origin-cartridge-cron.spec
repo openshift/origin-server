@@ -2,7 +2,7 @@
 
 Summary:       Embedded cron support for OpenShift
 Name:          openshift-origin-cartridge-cron
-Version: 1.8.1
+Version: 1.8.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -10,6 +10,9 @@ URL:           https://www.openshift.com
 Source0:       http://mirror.openshift.com/pub/openshift-origin/source/%{name}/%{name}-%{version}.tar.gz
 Requires:      rubygem(openshift-origin-node)
 Requires:      openshift-origin-node-util
+
+Obsoletes: openshift-origin-cartridge-cron-1.4
+
 BuildArch:     noarch
 
 %description
@@ -37,6 +40,9 @@ Cron cartridge for openshift. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Mon Jun 17 2013 Adam Miller <admiller@redhat.com> 1.8.2-1
+- First pass at removing v1 cartridges (dmcphers@redhat.com)
+
 * Thu May 30 2013 Adam Miller <admiller@redhat.com> 1.8.1-1
 - bump_minor_versions for sprint 29 (admiller@redhat.com)
 

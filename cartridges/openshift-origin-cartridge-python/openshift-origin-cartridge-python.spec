@@ -1,7 +1,7 @@
 %global cartridgedir %{_libexecdir}/openshift/cartridges/v2/python
 
 Name:          openshift-origin-cartridge-python
-Version: 0.5.1
+Version: 0.5.2
 Release:       1%{?dist}
 Summary:       Python cartridge
 Group:         Development/Languages
@@ -43,6 +43,11 @@ Requires:      freetype-devel
 Requires:      atlas-devel
 Requires:      lapack-devel
 Requires:      redhat-lsb-core
+
+Obsoletes: openshift-origin-cartridge-community-python-2.7
+Obsoletes: openshift-origin-cartridge-community-python-3.3
+Obsoletes: openshift-origin-cartridge-python-2.6
+
 BuildArch:     noarch
 
 %description
@@ -86,6 +91,16 @@ mv %{buildroot}%{cartridgedir}/metadata/manifest.yml.f19 %{buildroot}%{cartridge
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Mon Jun 17 2013 Adam Miller <admiller@redhat.com> 0.5.2-1
+- First pass at removing v1 cartridges (dmcphers@redhat.com)
+- Pass the python binary to virtualenv. (mrunalp@gmail.com)
+- Add version check around DefaultRuntimeDir directive as it is available only
+  on apache 2.4+ (kraman@gmail.com)
+- Update python cartridge for F19 version (kraman@gmail.com)
+- Fix stop for httpd-based carts. (mrunalp@gmail.com)
+- WIP Cartridge Refactor - Fix setups to be reentrant (jhonce@redhat.com)
+- Make Install-Build-Required default to false (ironcladlou@gmail.com)
+
 * Thu May 30 2013 Adam Miller <admiller@redhat.com> 0.5.1-1
 - bump_minor_versions for sprint 29 (admiller@redhat.com)
 

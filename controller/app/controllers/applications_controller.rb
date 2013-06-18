@@ -9,17 +9,22 @@ class ApplicationsController < BaseController
   # List all applications
   # 
   # URL: /domains/:domain_id/applications
-  # @param [String] include Comma seperated list of sub-objects to include in reply. Only "cartridges" is supported at the moment.
+  # @param [String] include Comma separated list of sub-objects to include in reply. Only "cartridges" is supported at the moment.
   #
   # Action: GET
   # @return [RestReply<Array<RestApplication>>] List of applications within the domain
   def index
     include_cartridges = (params[:include] == "cartridges")
-    apps = @domain.applications
-    rest_apps = apps.map! { |application| get_rest_application(application, include_cartridges, apps) }
+    apps = []
+    @domain.applications.each do |app|
+      if app.group_instances.length > 0 and app.component_instances.length > 0 and app.group_instances.select{|gi| gi.gears.length>0}.length>0
+        apps.push(app)
+      end
+    end
+    rest_apps = apps.map { |application| get_rest_application(application, include_cartridges, apps) }
     render_success(:ok, "applications", rest_apps, "Found #{rest_apps.length} applications for domain '#{@domain.namespace}'")
   end
-  
+
   ##
   # Retrieve a specific application
   # 
@@ -31,7 +36,7 @@ class ApplicationsController < BaseController
     include_cartridges = (params[:include] == "cartridges")
     render_success(:ok, "application", get_rest_application(@application, include_cartridges), "Application '#{@application.name}' found")
   end
-  
+
   ##
   # Create a new application
   # 
@@ -62,10 +67,10 @@ class ApplicationsController < BaseController
       end  
     end 
     init_git_url = params[:initial_git_url].presence
-    
+
     return render_error(:unprocessable_entity, "Invalid initial git URL",
                         216, "initial_git_url") if (not init_git_url.blank?) and (not init_git_url =~ /^#{URI::regexp}$/)
-                        
+
     default_gear_size = params[:gear_profile].presence
     default_gear_size.downcase! if default_gear_size
 
@@ -110,13 +115,13 @@ class ApplicationsController < BaseController
       return render_exception(e)  
     end
     application.user_agent= request.headers['User-Agent']
-    
+
     include_cartridges = (params[:include] == "cartridges")
-    
+
     app = get_rest_application(application, include_cartridges)
     render_success(:created, "application", app, "Application #{application.name} was created.", result)
   end
-  
+
   ##
   # Delete an application
   # 
@@ -134,7 +139,7 @@ class ApplicationsController < BaseController
     status = requested_api_version <= 1.4 ? :no_content : :ok
     return render_success(status, nil, nil, "Application #{id} is deleted.", result) 
   end
-  
+
   def set_log_tag
     @log_tag = get_log_tag_prepend + "APPLICATION"
   end

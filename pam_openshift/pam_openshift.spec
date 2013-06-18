@@ -1,12 +1,13 @@
 Summary:       Openshift PAM module
 Name:          pam_openshift
-Version: 1.6.1
+Version: 1.6.2
 Release:       1%{?dist}
 Group:         System Environment/Base
 License:       GPLv2
 URL:           http://www.openshift.com/
 Source0:       http://mirror.openshift.com/pub/openshift-origin/source/%{name}/%{name}-%{version}.tar.gz
 Requires:      policycoreutils
+Requires:      attr
 BuildRequires: gcc
 BuildRequires: pam-devel
 BuildRequires: libselinux-devel
@@ -38,6 +39,11 @@ install -D -m 755 oo-namespace-init %{buildroot}/%{_sbindir}/oo-namespace-init
 %attr(0755,root,root) %{_sbindir}/oo-namespace-init
 
 %changelog
+* Mon Jun 17 2013 Adam Miller <admiller@redhat.com> 1.6.2-1
+- require attr from pam_openshift (calfonso@redhat.com)
+- Bug 972977 - Fails on all numeric usernames.  Improve performance by
+  eliminating call to oo-get-mcs-level where possible. (rmillner@redhat.com)
+
 * Wed May 08 2013 Adam Miller <admiller@redhat.com> 1.6.1-1
 - bump_minor_versions for sprint 28 (admiller@redhat.com)
 

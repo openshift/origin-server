@@ -7,7 +7,7 @@
 
 Summary:       Provides embedded PostgreSQL support
 Name:          openshift-origin-cartridge-postgresql
-Version: 0.3.1
+Version: 0.3.2
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -45,6 +45,7 @@ Requires:      rhdb-utils
 Requires:      uuid-pgsql
 BuildArch:     noarch
 
+Obsoletes: openshift-origin-cartridge-postgresql-8.4
 
 %description
 Provides PostgreSQL cartridge support to OpenShift. (Cartridge Format V2)
@@ -84,6 +85,10 @@ Provides PostgreSQL cartridge support to OpenShift. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Mon Jun 17 2013 Adam Miller <admiller@redhat.com> 0.3.2-1
+- First pass at removing v1 cartridges (dmcphers@redhat.com)
+- Update postgresql cartridge for F19 version (kraman@gmail.com)
+
 * Thu May 30 2013 Adam Miller <admiller@redhat.com> 0.3.1-1
 - bump_minor_versions for sprint 29 (admiller@redhat.com)
 

@@ -2,7 +2,7 @@
 
 Summary:       phpMyAdmin support for OpenShift
 Name:          openshift-origin-cartridge-phpmyadmin
-Version: 1.10.1
+Version: 1.10.2
 Release:       1%{?dist}
 Group:         Applications/Internet
 License:       ASL 2.0
@@ -20,6 +20,8 @@ Requires:      httpd > 2.3
 Requires:      httpd < 2.5
 %endif
 BuildArch:     noarch
+
+Obsoletes: openshift-origin-cartridge-phpmyadmin-3.4
 
 %description
 Provides phpMyAdmin cartridge support. (Cartridge Format V2)
@@ -55,6 +57,14 @@ rm %{buildroot}%{cartridgedir}/metadata/manifest.yml.*
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Mon Jun 17 2013 Adam Miller <admiller@redhat.com> 1.10.2-1
+- First pass at removing v1 cartridges (dmcphers@redhat.com)
+- Add version check around DefaultRuntimeDir directive as it is available only
+  on apache 2.4+ (kraman@gmail.com)
+- Relax phpmyadmin version check (kraman@gmail.com)
+- Update phpmyadmin cartridge for F19 version (kraman@gmail.com)
+- Fix stop for httpd-based carts. (mrunalp@gmail.com)
+
 * Thu May 30 2013 Adam Miller <admiller@redhat.com> 1.10.1-1
 - bump_minor_versions for sprint 29 (admiller@redhat.com)
 

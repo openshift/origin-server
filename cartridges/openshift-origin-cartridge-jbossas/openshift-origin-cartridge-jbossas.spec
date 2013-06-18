@@ -4,7 +4,7 @@
 
 Summary:       Provides JBossAS7 support
 Name:          openshift-origin-cartridge-jbossas
-Version: 1.3.1
+Version: 1.3.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -28,6 +28,8 @@ Requires:      maven
 %endif
 BuildRequires: jpackage-utils
 BuildArch:     noarch
+
+Obsoletes: openshift-origin-cartridge-jbossas-7
 
 %description
 Provides JBossAS support to OpenShift. (Cartridge Format V2)
@@ -89,6 +91,16 @@ cp -p %{cartridgedir}/versions/7/modules/postgresql_module.xml /etc/alternatives
 
 
 %changelog
+* Mon Jun 17 2013 Adam Miller <admiller@redhat.com> 1.3.2-1
+- First pass at removing v1 cartridges (dmcphers@redhat.com)
+- Bug 973825 (dmcphers@redhat.com)
+- add APP_UUID to process (bdecoste@gmail.com)
+- Use -z with quotes (dmcphers@redhat.com)
+- Bug 971106: Fix skip_maven_build marker support (ironcladlou@gmail.com)
+- Make Install-Build-Required default to false (ironcladlou@gmail.com)
+- Bug 969321: Fix jboss thread dump log file path message
+  (ironcladlou@gmail.com)
+
 * Thu May 30 2013 Adam Miller <admiller@redhat.com> 1.3.1-1
 - bump_minor_versions for sprint 29 (admiller@redhat.com)
 

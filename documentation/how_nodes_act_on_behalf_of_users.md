@@ -8,7 +8,7 @@ There are a few cases where a Node will actually need to contact the broker. The
   * haproxy handling scaling events to create/destroy gears
   * jenkins starting/stopping an application
 
-The configure hook for both of those cartridges calls the add_broker_auth_key method defined in ```cartridges/openshift-origin-cartridge-abstract/abstract/info/lib/util```.
+The install hook for both of those cartridges calls the add_broker_auth_key method defined in the cartridge bash sdk.
 
 In order for this to be done securely OpenShift uses an encrypted auth token that is specific to each gear.  There is never a case where a Node uses some sort of admin account to make calls to the Broker.
 

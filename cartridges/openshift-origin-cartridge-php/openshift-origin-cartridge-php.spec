@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/openshift/cartridges/v2/php
 
 Name:          openshift-origin-cartridge-php
-Version: 0.5.1
+Version: 0.5.2
 Release:       1%{?dist}
 Summary:       Php cartridge
 Group:         Development/Languages
@@ -41,6 +41,8 @@ Requires:      php-pecl-imagick
 Requires:      php-pecl-xdebug
 BuildArch:     noarch
 
+Obsoletes: openshift-origin-cartridge-php-5.3
+
 %description
 PHP cartridge for openshift. (Cartridge Format V2)
 
@@ -76,6 +78,17 @@ rm %{buildroot}%{cartridgedir}/metadata/manifest.yml.*
 
 
 %changelog
+* Mon Jun 17 2013 Adam Miller <admiller@redhat.com> 0.5.2-1
+- First pass at removing v1 cartridges (dmcphers@redhat.com)
+- Fix php configuration bugs. (mrunalp@gmail.com)
+- Add version check around DefaultRuntimeDir directive as it is available only
+  on apache 2.4+ (kraman@gmail.com)
+- Update PHP cartridge for F19 version (kraman@gmail.com)
+- Eliminate noisy output from php control script (ironcladlou@gmail.com)
+- Remove rubygem-builder dep from php cartridges (jdetiber@redhat.com)
+- Fix stop for httpd-based carts. (mrunalp@gmail.com)
+- Make Install-Build-Required default to false (ironcladlou@gmail.com)
+
 * Thu May 30 2013 Adam Miller <admiller@redhat.com> 0.5.1-1
 - bump_minor_versions for sprint 29 (admiller@redhat.com)
 

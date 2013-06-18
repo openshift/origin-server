@@ -19,6 +19,20 @@
 require 'rubygems'
 require 'getoptlong'
 require 'time'
+require "/var/www/openshift/broker/config/environment"
+# Disable analytics for admin scripts
+Rails.configuration.analytics[:enabled] = false
+Rails.configuration.msg_broker[:rpc_options][:disctimeout] = 20
+Rails.configuration.msg_broker[:rpc_options][:timeout] = 600
+
+def usage_additional_plugins
+  usage_info = ""
+  if Rails.configuration.respond_to?('billing')
+    billing_api = OpenShift::BillingService.instance
+    usage_info += billing_api.display_check_help.to_s
+  end
+  usage_info
+end
 
 def usage
   puts <<USAGE
@@ -33,10 +47,11 @@ def usage
 Options:
 -v|--verbose
     Print information about each check being performed
--l|--level [0, 1, 2]
+-l|--level [0, 1]
     Level '0' is default, and checks to see if any gears are present in mongo but don't exist on the nodes and vice-versa.
-    Level '1' performs extra checks such as integrity of consumed_gears count
-    Level '2' additionally performs checks for application data integrity in mongo and checks for unused and unreserved gear UIDs 
+    Level '1' performs checks such as integrity of consumed_gears count
+    Level '1' performs checks for application data integrity in mongo and checks for unused and unreserved gear UIDs
+    #{usage_additional_plugins}
 -h|--help
     Show Usage info
 USAGE
@@ -58,12 +73,6 @@ end
 level = args["--level"].to_i || 0
 verbose = args["--verbose"]
 usage if args["--help"]
-
-require "/var/www/openshift/broker/config/environment"
-# Disable analytics for admin scripts
-Rails.configuration.analytics[:enabled] = false
-Rails.configuration.msg_broker[:rpc_options][:disctimeout] = 20
-Rails.configuration.msg_broker[:rpc_options][:timeout] = 600
 
 def datastore_has_gear?(gear_uuid, app_uuid=nil, false_positive_response=true)
   $false_positive_check_cnt += 1
@@ -102,13 +111,14 @@ def district_has_available_uid?(district_id, gear_uid, false_positive_response=t
   end
 end
 
-def get_user_info(user)
+def get_user_info(user, level=0)
   user_ssh_keys = {}
   user["ssh_keys"].each { |k| user_ssh_keys[Digest::MD5.hexdigest(k["content"])] = k["name"] } if user["ssh_keys"]
-  return {"consumed_gears" => user["consumed_gears"],
-          "domains" => {},
-          "login" => user["login"],
-          "ssh_keys" => user_ssh_keys}
+  user_info = {"consumed_gears" => user["consumed_gears"], "domains" => {}, "login" => user["login"], "ssh_keys" => user_ssh_keys,
+               "max_untracked_addtl_storage_per_gear" => user["capabilities"]["max_untracked_addtl_storage_per_gear"],
+               "plan_id" => user["plan_id"], "plan_state" => user["plan_state"], "usage_account_id" => user["usage_account_id"],
+               "parent_user_id" => user["parent_user_id"]}
+  user_info
 end
 
 def check_consumed_gears(user_id)
@@ -129,15 +139,46 @@ def check_consumed_gears(user_id)
   end
 end
 
+def get_premium_carts
+  premium_carts = []
+  all_carts = CartridgeCache.cartridges
+  all_carts.each do |cart|
+    premium_carts.push(cart.name) if cart.is_premium?
+  end
+  premium_carts
+end
+
+def assign_usage_hash(urec, gear_hash, storage_hash, cart_hash, summary, verbose)
+  gear_id = urec['gear_id'].to_s
+  if !UsageRecord::EVENTS.values.include?(urec['event'])
+    puts "FAIL" if verbose
+    summary << "Found record in usage_records collection with invalid event '#{urec['event']}' for gear Id '#{gear_id}'."
+    return
+  end
+  case urec['usage_type']
+  when UsageRecord::USAGE_TYPES[:gear_usage]
+    gear_hash[gear_id] = { 'app_name' => urec['app_name'] }
+  when UsageRecord::USAGE_TYPES[:addtl_fs_gb]
+    storage_hash[gear_id] = { 'app_name' => urec['app_name'] }
+  when UsageRecord::USAGE_TYPES[:premium_cart]
+    unless cart_hash[gear_id]
+      cart_hash[gear_id] = {}
+      cart_hash[gear_id]['app_name'] = urec['app_name']
+      cart_hash[gear_id]['cart_name'] = []
+    end
+    cart_hash[gear_id]['cart_name'] << urec['cart_name']
+  end
+end
+
 FALSE_POSITIVE_CHECK_LIMIT = 4000
 $false_positive_check_cnt = 0
-no_error = true
 summary = []
 
 datastore_hash = {}
 user_hash = {}
 domain_hash = {}
 gear_uid_hash = {}
+gear_id_hash = {}
 district_hash = {}
 gear_sshkey_hash = {}
 
@@ -147,36 +188,21 @@ current_time = Time.now
 puts "Started at: #{current_time}"
 start_time = (current_time.to_f * 1000).to_i
 
-app_selection = {:fields => ["name",
-                             "uuid",
-                             "created_at",
-                             "domain_id",
-                             "group_instances.gears.uuid",
-                             "group_instances.gears.uid",
-                             "group_instances.gears.server_identity",
-                             "group_instances._id",
-                             "component_instances._id",
-                             "component_instances.group_instance_id",
-                             "app_ssh_keys.name", 
-                             "app_ssh_keys.content"],
-                 :timeout => false}
-
-user_selection = {:fields => ["consumed_gears", "login", "ssh_keys.name", "ssh_keys.content"], 
-                  :timeout => false}
-user_selection_primary = user_selection.dup
-user_selection_primary[:read] = :primary
-
-domain_selection = {:fields => ["owner_id", "system_ssh_keys.name", "system_ssh_keys.content"], 
-                    :timeout => false}
-
-ret = []
-
 if level >= 1
+  user_selection = {:fields => ["consumed_gears", "login", "ssh_keys.name", "ssh_keys.content",
+                                "capabilities.max_untracked_addtl_storage_per_gear", "plan_id",
+                                "plan_state", "usage_account_id", "parent_user_id"], :timeout => false}
+  user_selection_primary = user_selection.dup
+  user_selection_primary[:read] = :primary
+
+  domain_selection = {:fields => ["owner_id", "system_ssh_keys.name", "system_ssh_keys.content"], 
+                      :timeout => false}
+
   OpenShift::DataStore.find(:cloud_users, {}, user_selection) do |user|
-    user_hash[user["_id"].to_s] = get_user_info(user)
+    user_hash[user["_id"].to_s] = get_user_info(user, level)
   end
 
-  OpenShift::DataStore.find(:domains, {}, domain_selection) { |domain|
+  OpenShift::DataStore.find(:domains, {}, domain_selection) do |domain|
     owner_id = domain["owner_id"].to_s
     domain_hash[domain["_id"].to_s] = owner_id
     system_ssh_keys = {}
@@ -184,7 +210,7 @@ if level >= 1
     
     if !user_hash[owner_id]
       OpenShift::DataStore.find(:cloud_users, {"_id" => BSON::ObjectId(owner_id)}, user_selection_primary) do |user|
-        user_hash[user["_id"].to_s] = get_user_info(user) 
+        user_hash[user["_id"].to_s] = get_user_info(user, level) 
       end
     end
 
@@ -193,12 +219,11 @@ if level >= 1
       user_hash[owner_id]["ssh_keys"].merge! system_ssh_keys
     else
       summary << "User '#{owner_id}' for domain '#{domain['_id']}' does not exist in mongo."
-      no_error = false
     end
-  } 
+  end 
 end
 
-if level >= 2 and Rails.configuration.msg_broker[:districts][:enabled]
+if level >= 1 and Rails.configuration.msg_broker[:districts][:enabled]
   OpenShift::DataStore.find(:districts, {}, {:timeout => false}) do |district|
     si_list =  district["server_identities"].map {|si| si["name"]}
     si_list.delete_if {|si| si.nil?}
@@ -207,80 +232,135 @@ if level >= 2 and Rails.configuration.msg_broker[:districts][:enabled]
     # check available_uids list length and available_capacity
     if district["available_uids"].length != district["available_capacity"]
       summary << "District '#{district["name"]}' has (#{district["available_uids"].length}) available UIDs but (#{district["available_capacity"]}) available capacity"
-      no_error = false
     end
   end
 end
 
+app_selection = {:fields => ["name", "uuid", "created_at", "domain_id", "group_instances.gears._id",
+                             "group_instances.gears.uuid", "group_instances.gears.uid", "group_instances.gears.server_identity",
+                             "group_instances._id", "component_instances._id", "component_instances.cartridge_name",
+                             "component_instances.group_instance_id", "group_overrides", "app_ssh_keys.name", "app_ssh_keys.content"],
+                 :timeout => false}
 app_query = {"group_instances.gears.0" => {"$exists" => true}}
 OpenShift::DataStore.find(:applications, app_query, app_selection) do |app|
-    gear_count = 0
-    owner_id = nil
-    login = nil
-    creation_time = app['created_at']
-    domain_id = app['domain_id'].to_s
-    app_ssh_keys = {}
-    app['app_ssh_keys'].each { |k| app_ssh_keys[Digest::MD5.hexdigest(k["content"])] = k["name"] } if app['app_ssh_keys']
-    
-    if level >= 1
-      owner_id = domain_hash[domain_id]
+  gear_count = 0
+  owner_id = nil
+  login = nil
+  creation_time = app['created_at']
+  domain_id = app['domain_id'].to_s
+  app_ssh_keys = {}
+  app['app_ssh_keys'].each { |k| app_ssh_keys[Digest::MD5.hexdigest(k["content"])] = k["name"] } if app['app_ssh_keys']
+  
+  if level >= 1
+    owner_id = domain_hash[domain_id]
 
-      if owner_id.nil?
-        if (current_time - creation_time) > 600
-          summary << "Application '#{app['name']}' does not have a domain '#{domain_id}' in mongo."
-          no_error = false
+    if owner_id.nil?
+      if (current_time - creation_time) > 600
+        summary << "Application '#{app['name']}' does not have a domain '#{domain_id}' in mongo."
+      end
+    elsif user_hash[owner_id].nil?
+      if (current_time - creation_time) > 600
+        summary << "Application '#{app['name']}' for domain '#{domain_id}' does not have a user '#{owner_id}' in mongo."
+      end
+    else
+      login = user_hash[owner_id]["login"]
+      app_ssh_keys.merge! user_hash[owner_id]["ssh_keys"]
+    end
+          
+    if (current_time - creation_time) > 600
+      # check for component instances without corresponding group instances and vice-versa
+      gi_hash = {}
+      app["group_instances"].each do |gi|
+        gi_hash[gi["_id"].to_s] = false
+      end
+
+      if app['component_instances']
+        app['component_instances'].each do |ci|
+          if ci['group_instance_id'] and gi_hash.has_key? ci['group_instance_id'].to_s
+            gi_hash[ci['group_instance_id'].to_s] = true
+          else
+            summary << "Application '#{app['name']}' with Id '#{app['_id']}' has missing group instance for component instance '#{ci['_id']}'."
+          end
         end
-      elsif user_hash[owner_id].nil?
-        if (current_time - creation_time) > 600
-          summary << "Application '#{app['name']}' for domain '#{domain_id}' does not have a user '#{owner_id}' in mongo."
-          no_error = false
+        gi_hash.each do |gi_id, present|
+          unless present
+            summary << "Application '#{app['name']}' with Id '#{app['_id']}' has no components for group instance with Id '#{gi_id}'"
+          end
         end
       else
-        login = user_hash[owner_id]["login"]
-        app_ssh_keys.merge! user_hash[owner_id]["ssh_keys"]
+        summary << "Application '#{app['name']}' with Id '#{app['_id']}' doesn't have any component instances"
       end
-            
-      if (level >= 2) and ((current_time - creation_time) > 600)
-        # check for component instances without corresponding group instances and vice-versa
-        gi_hash = {}
-        app["group_instances"].each do |gi|
-          gi_hash[gi["_id"].to_s] = false
-        end
+    end
+  end
+  app['group_instances'].each do |gi|
+    gi['gears'].each do |gear|
+      gear_count += 1
+      datastore_hash[gear['uuid'].to_s] = [login, creation_time, gear['uid'], gear['server_identity'], app["uuid"], app_ssh_keys ]
+      
+      if level >= 1 and Rails.configuration.msg_broker[:districts][:enabled]
+        # record all used uid values for each node to match later with the district
+        gear_uid_hash[gear['server_identity']] = [] unless gear_uid_hash.has_key?(gear['server_identity'])
+        gear_uid_hash[gear['server_identity']] << gear['uid'].to_i
+      end
+    end
+  end
+  user_hash[owner_id]["domains"][domain_id] += gear_count if level >= 1 and user_hash[owner_id]
 
-        if app['component_instances']
-          app['component_instances'].each do |ci|
-            if ci['group_instance_id'] and gi_hash.has_key? ci['group_instance_id'].to_s
-              gi_hash[ci['group_instance_id'].to_s] = true
-            else
-              summary << "Application '#{app['name']}' with Id '#{app['_id']}' has missing group instance for component instance '#{ci['_id']}'."
-              no_error = false
-            end
-          end
-          gi_hash.each do |gi_id, present|
-            unless present
-              summary << "Application '#{app['name']}' with Id '#{app['_id']}' has no components for group instance with Id '#{gi_id}'"
-              no_error = false
-            end
-          end
-        else
-          summary << "Application '#{app['name']}' with Id '#{app['_id']}' doesn't have any component instances"
-          no_error = false
-        end
-      end
-    end
+  if level >= 1 and Rails.configuration.respond_to?('billing') and
+     owner_id and user_hash[owner_id] and !user_hash[owner_id]['parent_user_id']
+    gi_hash = {}
     app['group_instances'].each do |gi|
-      gi['gears'].each do |gear|
-        gear_count += 1
-        datastore_hash[gear['uuid'].to_s] = [login, creation_time, gear['uid'], gear['server_identity'], app["uuid"], app_ssh_keys ]
-        
-        if level >= 2 and Rails.configuration.msg_broker[:districts][:enabled]
-          # record all used uid values for each node to match later with the district
-          gear_uid_hash[gear['server_identity']] = [] unless gear_uid_hash.has_key?(gear['server_identity'])
-          gear_uid_hash[gear['server_identity']] << gear['uid'].to_i
-        end
+      gid = gi['_id'].to_s
+      gi_hash[gid] = {}
+      gi_hash[gid]['premium_carts'] = []
+      gi_hash[gid]['addtl_fs_gb'] = false
+    end
+    # Get premium carts for the group instance
+    premium_carts = get_premium_carts
+    app['component_instances'].each do |ci|
+      if premium_carts.include?(ci['cartridge_name'])
+        gid = ci['group_instance_id'].to_s
+        gi_hash[gid] = {} unless gi_hash[gid]
+        gi_hash[gid]['premium_carts'] = [] unless gi_hash[gid]['premium_carts']
+        gi_hash[gid]['premium_carts'] << ci['cartridge_name']
       end
     end
-    user_hash[owner_id]["domains"][domain_id] += gear_count if level >= 1 and user_hash[owner_id]
+    # Get group instances with additional storage consumption
+    user_untracked_storage_limit = 0
+    if owner_id and user_hash[owner_id]["max_untracked_addtl_storage_per_gear"]
+      user_untracked_storage_limit = user_hash[owner_id]["max_untracked_addtl_storage_per_gear"]
+    end
+    app['group_overrides'].each do |go|
+      next if !go['additional_filesystem_gb'] or (go['additional_filesystem_gb'] <= user_untracked_storage_limit)
+      go['components'].each do |go_components|
+        found = false
+        app['component_instances'].each do |ci|
+          if ci['cartridge_name'] == go_components['cart']
+            gid = ci['group_instance_id'].to_s
+            gi_hash[gid] = {} unless gi_hash[gid]
+            gi_hash[gid]['addtl_fs_gb'] = true
+            found = true
+            break
+          end
+        end
+        break if found
+      end 
+    end
+    # Generate gear_id_hash
+    app['group_instances'].each do |gi|
+      gid = gi['_id'].to_s
+      gid_info = [ app['_id'].to_s, app['name'], gi_hash[gid]['addtl_fs_gb'], gi_hash[gid]['premium_carts'] ]
+      gi['gears'].each do |gear|
+        gear_id = gear['_id'].to_s
+        unless gear_id_hash[gear_id]
+          gear_id_hash[gear_id] = gid_info
+        else
+          app_name = gear_id_hash[gear_id][1]
+          summary << "Gear Id '#{gear['_id']}' for Application '#{app['name']}' is already taken by another Application '#{app_name}'"
+        end 
+      end
+    end
+  end
 end
 
 total_time = (Time.now.to_f * 1000).to_i - start_time
@@ -299,7 +379,6 @@ if level >= 1
         puts "FAIL" if verbose
         msg = "User #{owner_hash['login']} has a mismatch in consumed gears (#{user_consumed_gears}) and actual gears (#{app_actual_gears})"
         summary << msg
-        no_error = false
       elsif verbose
         puts "OK"
       end
@@ -316,7 +395,7 @@ puts "Time to get all gears from nodes: #{total_time.to_f/1000}s"
 puts "Total gears found on the nodes: #{node_hash.length}"
 puts "Total nodes that responded : #{gear_sender_hash.length}"
 
-if level >= 2
+if level >= 1
   get_all_sshkeys_start_time = (Time.now.to_f * 1000).to_i
   gear_sshkey_hash, sshkeys_sender_list = OpenShift::ApplicationContainerProxy.get_all_gears_sshkeys
   total_time = (Time.now.to_f * 1000).to_i - get_all_sshkeys_start_time
@@ -324,7 +403,6 @@ if level >= 2
   puts "Total gears found on the nodes: #{gear_sshkey_hash.length}"
   puts "Total nodes that responded : #{sshkeys_sender_list.length}"
 end
-
 
 # now check
 non_responding_nodes = {}
@@ -340,7 +418,6 @@ datastore_hash.each do |gear_uuid, gear_info|
     if not node_hash.has_key? gear_uuid
       if gear_sender_hash.has_key? server_identity
         if datastore_has_gear?(gear_uuid, app_uuid, false)
-          no_error = false
           puts "FAIL" if verbose
           summary << "Gear #{gear_uuid} does not exist on any node"
         elsif verbose
@@ -349,7 +426,6 @@ datastore_hash.each do |gear_uuid, gear_info|
       else
         non_responding_nodes[server_identity] = 0 unless non_responding_nodes.has_key? server_identity
         non_responding_nodes[server_identity] += 1
-        no_error = false
         puts "FAIL" if verbose
       end
     elsif verbose
@@ -359,7 +435,7 @@ datastore_hash.each do |gear_uuid, gear_info|
     puts "OK"
   end
 
-  if level >= 2
+  if level >= 1
     print "Checking ssh keys for gear: #{gear_uuid}...\t" if verbose
     if (current_time - creation_time) > 600
       if gear_sshkey_hash.has_key? gear_uuid
@@ -368,7 +444,6 @@ datastore_hash.each do |gear_uuid, gear_info|
         if db_sshkeys_list == gear_sshkeys_list
           puts "OK" if verbose
         else
-          no_error = false
           puts "FAIL" if verbose
           
           # calculate the common ssh keys in mongo and on the node
@@ -401,7 +476,6 @@ non_responding_nodes.each do |server_identity, gear_count|
   summary << "The node #{server_identity} expected to contain #{gear_count} gears wasn't returned from mcollective for the gear list"
 end
 
-
 # now check reverse
 puts "Checking node gears in application database:" if verbose
 node_hash.each do |gear_uuid, gear_info|
@@ -409,7 +483,6 @@ node_hash.each do |gear_uuid, gear_info|
   datastore_gear_info = datastore_hash[gear_uuid]
   if !datastore_gear_info
     if !datastore_has_gear?(gear_uuid, nil, true)
-      no_error = false
       puts "FAIL" if verbose
       summary << "Gear #{gear_uuid} exists on node #{gear_info[0]} (uid: #{gear_info[1]}) but does not exist in mongo database"
     elsif verbose
@@ -422,18 +495,15 @@ node_hash.each do |gear_uuid, gear_info|
         uid = gear_info[1]
         if uid != datastore_gear_info[2].to_i
           summary << "Gear #{gear_uuid} is using uid: '#{uid}' but has reserved uid: '#{datastore_gear_info[2].to_i}'"
-          no_error = false
         end
       rescue Exception => e
         summary << "Failed to check gear: '#{gear_uuid}'s uid because of exception: #{e.message}"
-        no_error = false
       end
     end
   end
 end
 
-
-if level >= 2
+if level >= 1
   # check for applications without any group instances in the database
   puts "Checking for application without any group instances in the database:" if verbose
   query = {"group_instances.0" => {"$exists" => false}}
@@ -442,7 +512,6 @@ if level >= 2
     print "Application #{app['name']}/#{app['_id']}...\t" if verbose
     if (current_time - app['created_at']) > 600
       puts "FAIL" if verbose
-      no_error = false
       summary << "Application '#{app['name']}' with Id '#{app['_id']}' does not have any group instances"
     elsif verbose
       puts "OK"
@@ -458,7 +527,6 @@ if level >= 2
     if (current_time - app['created_at']) > 600
       app['group_instances'].each do |gi|
         if (not gi.has_key?("gears")) or gi['gears'].length == 0 
-          no_error = false
           puts "FAIL" if verbose
           summary << "Application '#{app['name']}' with Id '#{app['_id']}' does not have any gears within group instance '#{gi['_id']}'"
         end
@@ -473,7 +541,6 @@ if level >= 2
   query = {"$or" => [{"login" => {"$type" => 10}}, {"login" => ""}, {"login" => {"$exists" => false}}]}
   selection = {:fields => ["_id"], :timeout => false}
   OpenShift::DataStore.find(:cloud_users, query, selection) do |user|
-    no_error = false
     summary << "User with Id #{user['_id']} has a null, empty, or missing login."
   end
 
@@ -495,7 +562,6 @@ if level >= 2
               # the UID is available in the district
               puts "OK" if verbose
             else
-              no_error = false
               puts "FAIL" if verbose
               summary << "UID '#{unreserved_uid}' is available in district '#{district_info[0]}' but used by a gear on node '#{server_identity}'"
             end
@@ -530,7 +596,6 @@ if level >= 2
           # the UID is no longer reserved in the district
           puts "OK" if verbose
         else
-          no_error = false
           puts "FAIL" if verbose
           summary << "UID '#{unused_uid}' is reserved in district '#{district_info[0]}' but not used by any gear"
         end
@@ -550,7 +615,6 @@ if level >= 2
       #get all the uids that appear more than once
       reused_uids = district_used_uids.select { |e| district_used_uids.count(e) > 1 }.uniq
       if reused_uids.length > 0
-        no_error = false
         puts "FAIL" if verbose
         summary << "Below UIDs are used by multiple gears in district: '#{district_info[0]}'.  Please move one of them to another district."
         reused_uids.each do |uid|
@@ -564,15 +628,268 @@ if level >= 2
   end
 end
 
+if level >= 1 and Rails.configuration.respond_to?('billing')
+  usage_gear_hash = {}
+  usage_storage_hash = {}
+  usage_cart_hash = {}
+  # Populate usage hash: Only for un-ended usage records
+  selection = {:fields => ["user_id", "app_name", "gear_id", "event", "usage_type", "cart_name"],
+               :sort => [["gear_id", 1], ["usage_type", 1], ["time", 1]], :timeout => false}
+  prev = nil
+  OpenShift::DataStore.find(:usage_records, {}, selection) do |urec|
+    if urec['event'] == UsageRecord::EVENTS[:end]
+      if prev
+        unless (prev['gear_id'] == urec['gear_id']) and (prev['usage_type'] == urec['usage_type']) and (prev['user_id'] == urec['user_id'])
+          assign_usage_hash(prev, usage_gear_hash, usage_storage_hash, usage_cart_hash, summary, verbose)
+        end
+        prev = nil
+      end
+    elsif !prev
+      prev = urec
+    else 
+      unless (prev['gear_id'] == urec['gear_id']) and (prev['usage_type'] == urec['usage_type']) and (prev['user_id'] == urec['user_id'])
+        assign_usage_hash(prev, usage_gear_hash, usage_storage_hash, usage_cart_hash, summary, verbose)
+        prev = urec
+      end
+    end
+  end
+  assign_usage_hash(prev, usage_gear_hash, usage_storage_hash, usage_cart_hash, summary, verbose) if prev
 
-puts no_error ? "Success" : "Check failed.\n#{summary.join("\n")}"
+  # Find application gears that does not have usage records and viceversa.
+  usage_gear_ids = usage_gear_hash.keys
+  app_gear_ids = gear_id_hash.keys
+  missing_gear_ids = (usage_gear_ids - app_gear_ids) + (app_gear_ids - usage_gear_ids)
+  puts "Checking gears available in applications collection but not in usage_records and viceversa: " + ((missing_gear_ids.length > 0) ? "FAIL" : "OK") if verbose
+
+  missing_gear_ids.each do |gear_id|
+    print "Re-checking for gear '#{gear_id}'...\t" if verbose
+    if gear_id_hash[gear_id]
+      query = {'_id' => Moped::BSON::ObjectId(gear_id_hash[gear_id][0])}
+    else
+      query = {'name' => usage_gear_hash[gear_id]['app_name']}
+    end
+    query['group_instances.gears._id'] = Moped::BSON::ObjectId(gear_id)
+    app_gear_exists = Application.where(query).exists?
+
+    query = {'gear_id' => BSON::ObjectId(gear_id), 'usage_type' => UsageRecord::USAGE_TYPES[:gear_usage]}
+    selection = {:fields => ["event"], :timeout => false}
+    num_end_events = num_begin_events = 0
+    OpenShift::DataStore.find(:usage_records, query, selection) do |urec|
+      next !UsageRecord::EVENTS.values.include?(urec['event'])
+      if urec['event'] == UsageRecord::EVENTS[:end]
+        num_end_events += 1
+      else
+        num_begin_events += 1
+      end
+    end
+    usage_gear_exists = (num_begin_events > num_end_events)
+
+    if app_gear_exists and usage_gear_exists
+      # Ignore, false alarm
+      puts "OK" if verbose
+    else
+      puts "FAIL" if verbose
+      if app_gear_exists
+        summary << "Found application with gear Id '#{gear_id}' but could not find corresponding usage record."
+      else
+        summary << "Found usage record for gear Id '#{gear_id}' but could not find corresponding gear in the application."
+      end
+    end
+  end
+
+  # Find applications with additional storage but not in usage_records and viceversa.
+  app_storage_hash = {}
+  gear_id_hash.each { |gear_id, gear_info| app_storage_hash[gear_id] = gear_info if gear_info[2] }
+  app_storage_gear_ids = app_storage_hash.keys
+  usage_storage_gear_ids = usage_storage_hash.keys
+  missing_storage_gear_ids = (usage_storage_gear_ids - app_storage_gear_ids) + (app_storage_gear_ids - usage_storage_gear_ids)
+  puts "Checking gears with additional storage in applications collection but not in usage_records and viceversa: " + ((missing_storage_gear_ids.length > 0) ? "FAIL" : "OK") if verbose
+
+  missing_storage_gear_ids.each do |gear_id|
+    print "Re-checking for gear '#{gear_id}'...\t" if verbose
+    if app_storage_hash[gear_id]
+      query = {'_id' => Moped::BSON::ObjectId(app_storage_hash[gear_id][0])}
+    else
+      query = {'name' => usage_storage_hash[gear_id]['app_name']}
+    end
+    query['group_instances.gears._id'] = Moped::BSON::ObjectId(gear_id)
+    app = Application.where(query).first
+    app_storage_exists = false
+    group_inst = nil
+    app.group_instances.each do |gi|
+      gi.gears.each do |gear|
+        if gear._id.to_s == gear_id
+          group_inst = gi
+          break
+        end
+      end
+      break if group_inst
+    end if app
+    app_storage_exists = true if group_inst and (group_inst.addtl_fs_gb != 0)
+
+    query = {'gear_id' => BSON::ObjectId(gear_id), 'usage_type' => UsageRecord::USAGE_TYPES[:addtl_fs_gb]}
+    selection = {:fields => ["event"], :timeout => false}
+    num_end_events = num_begin_events = 0
+    OpenShift::DataStore.find(:usage_records, query, selection) do |urec|
+      next !UsageRecord::EVENTS.values.include?(urec['event'])
+      if urec['event'] == UsageRecord::EVENTS[:end]
+        num_end_events += 1
+      else
+        num_begin_events += 1
+      end
+    end
+    usage_storage_exists = (num_begin_events > num_end_events)
+
+    if app_storage_exists and usage_storage_exists
+      # Ignore, false alarm
+      puts "OK" if verbose
+    else
+      puts "FAIL" if verbose
+      if app_storage_exists
+        summary << "Found addtl storage for gear Id '#{gear_id}' but could not find corresponding usage record."
+      else
+        summary << "Found usage record for addtl storage with gear Id '#{gear_id}' but could not find corresponding gear with addtl storage in the application."
+      end
+    end
+  end
+
+  # Find applications with premium cartridges but not in usage_records and viceversa.
+  app_cart_hash = {}
+  gear_id_hash.each { |gear_id, gear_info| app_cart_hash[gear_id] = gear_info if gear_info[3] and !gear_info[3].empty? }
+  app_cart_gear_ids = app_cart_hash.keys
+  usage_cart_gear_ids = usage_cart_hash.keys
+  missing_cart_gear_ids = (usage_cart_gear_ids - app_cart_gear_ids) + (app_cart_gear_ids - usage_cart_gear_ids)
+  (usage_cart_gear_ids & app_cart_gear_ids).each do |gear_id|
+    if app_cart_hash[gear_id][3].sort != usage_cart_hash[gear_id]['cart_name'].sort
+      missing_cart_gear_ids << gear_id
+    end
+  end
+  puts "Checking gears with premium cartridge in applications collection but not in usage_records and viceversa: " + ((missing_cart_gear_ids.length > 0) ? "FAIL" : "OK") if verbose
+
+  premium_carts = get_premium_carts
+  missing_cart_gear_ids.each do |gear_id|
+    print "Re-checking for gear '#{gear_id}'...\t" if verbose
+    if app_cart_hash[gear_id]
+      query = {'_id' => BSON::ObjectId(app_cart_hash[gear_id][0])}
+    else
+      query = {'name' => usage_cart_hash[gear_id]['app_name']}
+    end
+    query['group_instances.gears._id'] = BSON::ObjectId(gear_id)
+    selection = {:fields => ["component_instances.cartridge_name"], :timeout => false}
+    app_carts = []
+    OpenShift::DataStore.find(:applications, query, selection) do |app|
+      app['component_instances'].each do |ci|
+        app_carts << ci['cartridge_name'] if premium_carts.include?(ci['cartridge_name'])
+      end
+    end 
+    app_carts.sort!
+
+    usage_carts = []
+    query = {'gear_id' => BSON::ObjectId(gear_id), 'usage_type' => UsageRecord::USAGE_TYPES[:premium_cart]}
+    selection = {:fields => ["event", "cart_name"], :timeout => false}
+    OpenShift::DataStore.find(:usage_records, query, selection) do |urec|
+      next !UsageRecord::EVENTS.values.include?(urec['event'])
+      if urec['event'] == UsageRecord::EVENTS[:end]
+        usage_carts.delete(urec['cart_name'])
+      else
+        usage_carts << urec['cart_name']
+      end
+    end
+    usage_carts.sort!
+
+    if app_carts == usage_carts
+      # Ignore, false alarm
+      puts "OK" if verbose
+    else
+      puts "FAIL" if verbose
+      if (app_carts - usage_carts).length > 0
+        summary << "Found premium carts #{(app_carts - usage_carts).join(',')} for gear Id '#{gear_id}' but could not find corresponding usage records."
+      else
+        summary << "Found usage records for premium carts #{(usage_carts - app_carts).join(',')} with gear Id '#{gear_id}' but could not find corresponding gear with premium carts in the application."
+      end
+    end
+  end
+
+  # Find records in usage_records mongo collection but not in usage and viceversa
+  usage_records_hash = {}
+  [usage_gear_hash, usage_storage_hash, usage_cart_hash].each do |usage_hash|
+    usage_hash.each do |gear_id, gear_info|
+      usage_records_hash[gear_id] = {'num_unended_events' => 0} unless usage_records_hash[gear_id]
+      if gear_info['cart_name']
+        usage_records_hash[gear_id]['num_unended_events'] += gear_info['cart_name'].length
+      else
+        usage_records_hash[gear_id]['num_unended_events'] += 1
+      end
+    end
+  end
+  usage_hash = {}
+  selection = {:fields => ["gear_id", "begin_time", "end_time"], :timeout => false}
+  OpenShift::DataStore.find(:usage, {}, selection) do |urec|
+    gear_id = urec['gear_id'].to_s
+    usage_hash[gear_id] = {'num_begin_events' => 0, 'num_end_events' => 0} unless usage_hash[gear_id]
+    usage_hash[gear_id]['num_begin_events'] += 1 if urec['begin_time']
+    usage_hash[gear_id]['num_end_events'] += 1 if urec['end_time']
+  end
+  usage_record_gear_ids = usage_records_hash.keys
+  usage_gear_ids = usage_hash.keys
+  missing_urecs = (usage_record_gear_ids - usage_gear_ids) + (usage_gear_ids - usage_record_gear_ids)
+  (usage_record_gear_ids & usage_gear_ids).each do |gear_id|
+    if usage_records_hash[gear_id]['num_unended_events'] != (usage_hash[gear_id]['num_begin_events'] - usage_hash[gear_id]['num_end_events'])
+      missing_urecs << gear_id
+    end
+  end
+  puts "Checking un-ended records in usage_records collection but not in usage collection and viceversa: " + ((missing_urecs.length > 0) ? "FAIL" : "OK")
+
+  missing_urecs.each do |gear_id|
+    print "Re-checking for gear '#{gear_id}'...\t" if verbose
+    usage_record_begin_events = 0
+    usage_record_end_events = 0
+    OpenShift::DataStore.find(:usage_records, {'gear_id' => BSON::ObjectId(gear_id)}, {:fields => ["event"], :timeout => false}) do |urec|
+      next !UsageRecord::EVENTS.values.include?(urec['event'])
+      if urec['event'] == UsageRecord::EVENTS[:end]
+        usage_record_end_events += 1
+      else
+        usage_record_begin_events += 1
+      end
+    end
+    usage_record_unended_events = usage_record_begin_events - usage_record_end_events
+
+    usage_begin_events = 0
+    usage_end_events = 0
+    OpenShift::DataStore.find(:usage, {'gear_id' => BSON::ObjectId(gear_id)}, {:fields => ["begin_time", "end_time"], :timeout => false}) do |urec|
+      usage_begin_events += 1 if urec['begin_time']
+      usage_end_events += 1 if urec['end_time']
+    end
+    usage_unended_events = usage_begin_events - usage_end_events
+
+    if usage_record_unended_events == usage_unended_events
+      # Ignore, false alarm
+      puts "OK" if verbose
+    else
+      puts "FAIL" if verbose
+      if usage_record_unended_events > usage_unended_events
+        summary << "Found #{usage_record_unended_events-usage_unended_events} un-ended records in usage_records collection for gear Id '#{gear_id}' but could not find corresponding records in usage."
+      else
+        summary << "Found #{usage_unended_events-usage_record_unended_events} un-ended records in usage collection for gear Id '#{gear_id}' but could not find corresponding records in usage_records."
+      end
+    end
+  end
+
+  # Find user plan_id/plan_state inconsistencies in mongo vs billing provider
+  billing_user_hash = {}
+  user_hash.each { |k,v| billing_user_hash[k] = v if v['usage_account_id'] and (v['usage_account_id'].to_i > 0) }
+  billing_api = OpenShift::BillingService.instance
+  billing_api.check_inconsistencies(billing_user_hash, summary, verbose) unless billing_user_hash.empty?
+end
+ 
+puts summary.empty? ? "Success" : "Check failed.\n#{summary.join("\n")}"
 if $false_positive_check_cnt >= FALSE_POSITIVE_CHECK_LIMIT
   puts "WARNING: Only checked the first #{FALSE_POSITIVE_CHECK_LIMIT} errors for false positives."
 end
 
-puts "Please refer to the oo-admin-repair tool to resolve some of these inconsistencies." unless no_error
+puts "Please refer to the oo-admin-repair tool to resolve some of these inconsistencies." unless summary.empty?
 
 total_time = (Time.now.to_f * 1000).to_i - start_time
 puts "Total time: #{total_time.to_f/1000}s"
 puts "Finished at: #{Time.now}"
-exit (no_error ? 0 : 1)
+exit (summary.empty? ? 0 : 1)

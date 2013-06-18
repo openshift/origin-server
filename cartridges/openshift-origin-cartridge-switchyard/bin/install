@@ -1,0 +1,5 @@
+#!/bin/bash -e
+
+source $OPENSHIFT_CARTRIDGE_SDK_BASH
+
+client_result 'module_path=/etc/alternatives/switchyard-0.x/modules'

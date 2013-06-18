@@ -247,7 +247,9 @@ textarea {
 }
 .radio input[type="radio"],
 .checkbox input[type="checkbox"] {
-  float: left;
+  display: inline-block; // change from float left to inline-block because FF isn't vertically aligning
+  border-color: transparent; // IE10 will set borders and backgrounds on checkboxes, override the defaults for input
+  background-color: transparent;
   margin-left: -18px;
   margin-top: 0;
 }

@@ -28,15 +28,15 @@
 # @attr [Array<Message>] messages Messages and errors returned in the REST reply
 # @attr [Array<String>] supported_api_versions Other supported REST API versions
 class RestReply < OpenShift::Model
-  attr_accessor :version, :status, :type, :data, :messages, :supported_api_versions
+  attr_accessor :version, :status, :type, :data, :messages, :supported_api_versions, :api_version
   
   def initialize(requested_api_version, status=nil, type=nil, data=nil)
     self.status = status
     self.type = type
     self.data = data
     self.messages = []
-    self.version = requested_api_version 
-    self.version = requested_api_version.to_s if requested_api_version <= 1.4
+    self.version = requested_api_version.to_s 
+    self.api_version = requested_api_version
     self.supported_api_versions = OpenShift::Controller::ApiBehavior::SUPPORTED_API_VERSIONS
   end
   

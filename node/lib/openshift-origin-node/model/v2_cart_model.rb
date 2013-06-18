@@ -1019,12 +1019,13 @@ module OpenShift
 
       process_cartridges(cartridge_dir) { |path|
         # Make sure this cartridge's env directory overrides that of other cartridge envs
-        cartridge_env = gear_env.merge(Utils::Environ.load(File.join(path, 'env')))
+        cartridge_local_env = Utils::Environ.load(File.join(path, 'env'))
 
-        ident                            = cartridge_env.keys.grep(/^OPENSHIFT_.*_IDENT/)
-        _, software, software_version, _ = Runtime::Manifest.parse_ident(cartridge_env[ident.first])
+        ident                            = cartridge_local_env.keys.grep(/^OPENSHIFT_.*_IDENT/)
+        _, software, software_version, _ = Runtime::Manifest.parse_ident(cartridge_local_env[ident.first])
         hooks                            = cartridge_hooks(action_hooks, action, software, software_version)
 
+        cartridge_env = gear_env.merge(cartridge_local_env)
         control = File.join(path, 'bin', 'control')
 
         command = []

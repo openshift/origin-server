@@ -16,7 +16,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.10.1
+Version: 1.10.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -204,17 +204,6 @@ ln -s /usr/lib/openshift/node/jobs/openshift-origin-cron-monthly %{buildroot}/et
 
 echo "/usr/bin/oo-trap-user" >> /etc/shells
 
-# Enable cgroups on ssh logins
-if [ -f /etc/pam.d/sshd ] ; then
-   if ! grep pam_cgroup.so /etc/pam.d/sshd > /dev/null ; then
-     echo "session    optional     pam_cgroup.so" >> /etc/pam.d/sshd
-   else
-     logger -t rpm-post "pam_cgroup.so is already enabled for sshd"
-   fi
-else
-   logger -t rpm-post "cannot add pam_cgroup.so to /etc/pamd./sshd: file not found"
-fi
-
 # Start the cron service so that each gear gets its cron job run, if they're enabled
 %if 0%{?fedora} >= 16 || 0%{?rhel} >= 7
   systemctl restart  crond.service || :
@@ -223,11 +212,6 @@ fi
 %endif
 
 %preun
-# Check to make sure we uninstalling instead of updating
-if [ "$1" -eq 0 ] ; then
-  # disable cgroups on sshd logins
-  sed -i -e '/pam_cgroup/d' /etc/pam.d/sshd
-fi
 
 %files
 %doc LICENSE COPYRIGHT
@@ -294,6 +278,79 @@ fi
 %attr(0755,-,-) /etc/cron.monthly/openshift-origin-cron-monthly
 
 %changelog
+* Mon Jun 17 2013 Adam Miller <admiller@redhat.com> 1.10.2-1
+- First pass at removing v1 cartridges (dmcphers@redhat.com)
+- Merge pull request #2805 from BanzaiMan/dev/hasari/bz972757
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #2830 from mrunalp/bugs/972356
+  (dmcphers+openshiftbot@redhat.com)
+- Make sure we call the hooks on the correct cartridge by reading ident from
+  the cartridge_dir (mrunalp@gmail.com)
+- Fix typo in gear script (pmorie@gmail.com)
+- Merge pull request #2819 from pmorie/dev/cart-repo
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #2818 from rmillner/misc_bugs
+  (dmcphers+openshiftbot@redhat.com)
+- Fix bug 973351: Add CartridgeRepository.latest_versions for use in rhc
+  cartridge list (pmorie@gmail.com)
+- Bug 972977 - /var/tmp is also polyinstantiated and restorecon was giving
+  errors about the old directory. (rmillner@redhat.com)
+- Devenv, Hosted and Origin already add pam_cgroup to sshd via their own
+  methods along with other edits to those files.  Duplicating this in node.spec
+  just adds confusion. (rmillner@redhat.com)
+- Bug 972757: Allow vendor names to start with a numeral (asari.ruby@gmail.com)
+- Node timeout handling improvements (ironcladlou@gmail.com)
+- Bug 971460 - Refactor path_append/prepend to accept multiple elements
+  (jhonce@redhat.com)
+- Use diy instead of php since php-5.3 is not available on all platforms
+  (kraman@gmail.com)
+- Create test dir under /data instead of /tmp. /tmp is bind mounted and tests
+  fail if homedir is kept under there. (kraman@gmail.com)
+- Node fixes where uid is being used instead of gid to set permission. Update
+  shell exec to preserve environment when invoking runuser. (kraman@gmail.com)
+- Merge pull request #2762 from pmorie/dev/typo
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #2752 from detiber/fixShellExecFuncTest
+  (dmcphers+openshiftbot@redhat.com)
+- Fix typo in v2_cart_model#stop_cartridge (pmorie@gmail.com)
+- Merge pull request #2754 from rmillner/BZ970792
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #2753 from ironcladlou/bz/969937
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #2751 from pmorie/bugs/969828
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #2750 from mrunalp/dev/ssl_to_gear
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 970792 - The SSLVerifyClient stanza causes browser popups.
+  (rmillner@redhat.com)
+- Bug 969937: Implement gear script deploy method (ironcladlou@gmail.com)
+- Fix bug 969828 (pmorie@gmail.com)
+- Add ssl_to_gear option. (mrunalp@gmail.com)
+- origin_runtime_137 - FrontendHttpServer accepts "target_update" option which
+  causes it to read the old options for a connection and just update the
+  target. (rmillner@redhat.com)
+- <node tests> - Update shell_exec_func_test to create homedir in /var/tmp
+  (jdetiber@redhat.com)
+- Merge pull request #2735 from pmorie/bugs/969605
+  (dmcphers+openshiftbot@redhat.com)
+- Fix bug 969605 (pmorie@gmail.com)
+- Make NodeLogger pluggable (ironcladlou@gmail.com)
+- Fix bug 969605 (pmorie@gmail.com)
+- Bug 969725: Ensure cleanup on cartridge deconfigure (ironcladlou@gmail.com)
+- Merge pull request #2724 from jwhonce/bug/969599
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 969599 - selinux policy unnecessarily applied (jhonce@redhat.com)
+- Do not default to stauts if gear script is invoked without an invalid
+  command. (pmorie@gmail.com)
+- Merge pull request #2700 from rmillner/sync_more
+  (dmcphers+openshiftbot@redhat.com)
+- Unit tests mock File object needed to know about the fsync call.
+  (rmillner@redhat.com)
+- Bug 969112 - RFC 1121 (sect 2.1) specifies that a host name must start with a
+  letter or number. (rmillner@redhat.com)
+- Force sync to disk prior to renaming the file for additional safety.
+  (rmillner@redhat.com)
+
 * Thu May 30 2013 Adam Miller <admiller@redhat.com> 1.10.1-1
 - bump_minor_versions for sprint 29 (admiller@redhat.com)
 

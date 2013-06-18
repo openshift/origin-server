@@ -67,7 +67,7 @@ class UnixUserModelFunctionalTest < OpenShift::NodeTestCase
                                 nil, nil, @verbose)
     refute_nil o
 
-    o.initialize_homedir("/tmp/", "#{@user_homedir}/", "cartridges/openshift-origin-cartridge-abstract/")
+    o.initialize_homedir("/tmp/", "#{@user_homedir}/")
     assert_directory?(@user_homedir)
     assert !File.symlink?("#{@user_homedir}/data"), 'found deprecated data symlink'
     assert !File.directory?("#{@user_homedir}/app"), 'found deprecated app directory'

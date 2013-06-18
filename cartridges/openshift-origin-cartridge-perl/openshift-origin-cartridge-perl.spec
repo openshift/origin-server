@@ -1,7 +1,7 @@
 %global cartridgedir %{_libexecdir}/openshift/cartridges/v2/perl
 
 Name:          openshift-origin-cartridge-perl
-Version: 0.5.1
+Version: 0.5.2
 Release:       1%{?dist}
 Summary:       Perl cartridge
 Group:         Development/Languages
@@ -31,6 +31,8 @@ Requires:      httpd < 2.4
 Requires:      httpd > 2.3
 Requires:      httpd < 2.5
 %endif
+
+Obsoletes: openshift-origin-cartridge-perl-5.10
 
 BuildArch: noarch
 
@@ -72,6 +74,14 @@ rm %{buildroot}%{cartridgedir}/metadata/manifest.yml.*
 
 
 %changelog
+* Mon Jun 17 2013 Adam Miller <admiller@redhat.com> 0.5.2-1
+- First pass at removing v1 cartridges (dmcphers@redhat.com)
+- Add version check around DefaultRuntimeDir directive as it is available only
+  on apache 2.4+ (kraman@gmail.com)
+- Update perl package for F19 versions. (kraman@gmail.com)
+- Fix stop for httpd-based carts. (mrunalp@gmail.com)
+- Make Install-Build-Required default to false (ironcladlou@gmail.com)
+
 * Thu May 30 2013 Adam Miller <admiller@redhat.com> 0.5.1-1
 - bump_minor_versions for sprint 29 (admiller@redhat.com)
 

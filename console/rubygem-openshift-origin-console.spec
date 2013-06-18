@@ -9,8 +9,8 @@
 
 Summary:       OpenShift Origin Management Console
 Name:          rubygem-%{gem_name}
-Version: 1.10.1
-Release:       5%{?dist}
+Version: 1.10.3
+Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
 URL:           https://openshift.redhat.com
@@ -151,6 +151,59 @@ cp -a ./%{gem_dir}/* %{buildroot}%{gem_dir}/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Mon Jun 17 2013 Adam Miller <admiller@redhat.com> 1.10.3-1
+- Merge pull request #2847 from liggitt/bug_974483_error_page_header
+  (dmcphers+openshiftbot@redhat.com)
+- Remove obsolete panda container from 404 pages (jliggitt@redhat.com)
+- Fix bug 974483 - make header match openshift.com (jliggitt@redhat.com)
+
+* Mon Jun 17 2013 Adam Miller <admiller@redhat.com> 1.10.2-1
+- Add a proper check for rockmongo (dmcphers@redhat.com)
+- Merge pull request #2856 from danmcp/master
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #2852 from
+  liggitt/bug_971328_app_create_missing_result_messages
+  (dmcphers+openshiftbot@redhat.com)
+- First pass at removing v1 cartridges (dmcphers@redhat.com)
+- Fix bug 971328 - jenkins creation missing result messages
+  (jliggitt@redhat.com)
+- Merge pull request #2831 from smarterclayton/bug_972878_version_assets
+  (dmcphers+openshiftbot@redhat.com)
+- Use new routes (jliggitt@redhat.com)
+- Add unit tests for message parsing, add reload support (jliggitt@redhat.com)
+- Fix bug 971280 - make app restart message correct (jliggitt@redhat.com)
+- Merge pull request #2509 from jwforres/route_id_clash
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #2801 from smarterclayton/bug_970933_to_master
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #2832 from jwforres/bug_971147_allow_scaling_quickstart
+  (dmcphers+openshiftbot@redhat.com)
+- Fix mock test cases for the new routes used by the console
+  (jforrest@redhat.com)
+- Fix routing clashes when id matches new or edit (jforrest@redhat.com)
+- Implement review feedback (jforrest@redhat.com)
+- Bug 971147 - make not-scalable a recommendation (jforrest@redhat.com)
+- js_required forces session cookie reset, wrong abstraction to use for
+  noscript (ccoleman@redhat.com)
+- Merge pull request #2824 from jwforres/bug_972877
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #2825 from liggitt/user_guide_url
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #2814 from jtharris/bugs/BZ971136
+  (dmcphers+openshiftbot@redhat.com)
+- Remove border and background color from checkboxes to fix IE10
+  (jforrest@redhat.com)
+- Fix checkbox on authorizations page to work with new styles
+  (jforrest@redhat.com)
+- Use community redirect for linking to the user guide (jliggitt@redhat.com)
+- Bug 972877 - checkboxes are not correctly aligned (jforrest@redhat.com)
+- Add test to validate REST API returning partially created results
+  (ccoleman@redhat.com)
+- Unit test for missing framework. (jharris@redhat.com)
+- Add framework to the Application schema (jharris@redhat.com)
+- Use -z with quotes (dmcphers@redhat.com)
+- Bug 970933 - CLI backgrounds are incorrect (ccoleman@redhat.com)
+
 * Fri Jun 07 2013 Adam Miller 1.10.1-5
 - Bump spec for site rebuild
 

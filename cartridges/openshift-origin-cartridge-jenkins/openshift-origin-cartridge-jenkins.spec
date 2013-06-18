@@ -2,7 +2,7 @@
 
 Summary:       Provides jenkins-1.4 support
 Name:          openshift-origin-cartridge-jenkins
-Version: 1.10.1
+Version: 1.10.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -15,6 +15,8 @@ Requires:      jenkins
 Requires:      jenkins-plugin-openshift
 Requires:      openshift-origin-node-util
 BuildArch:     noarch
+
+Obsoletes: openshift-origin-cartridge-jenkins-1.4
 
 %description
 Provides Jenkins cartridge to OpenShift. (Cartridge Format V2)
@@ -43,6 +45,11 @@ chkconfig jenkins off
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Mon Jun 17 2013 Adam Miller <admiller@redhat.com> 1.10.2-1
+- First pass at removing v1 cartridges (dmcphers@redhat.com)
+- Use -z with quotes (dmcphers@redhat.com)
+- Make Install-Build-Required default to false (ironcladlou@gmail.com)
+
 * Thu May 30 2013 Adam Miller <admiller@redhat.com> 1.10.1-1
 - bump_minor_versions for sprint 29 (admiller@redhat.com)
 

@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Common
 Name:          rubygem-%{gem_name}
-Version: 1.10.2
+Version: 1.10.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -119,6 +119,12 @@ cp bin/man/*.8 %{buildroot}%{_mandir}/man8/
 %doc %{gem_docdir}
 
 %changelog
+* Mon Jun 17 2013 Adam Miller <admiller@redhat.com> 1.10.3-1
+- First pass at removing v1 cartridges (dmcphers@redhat.com)
+- Merge pull request #2805 from BanzaiMan/dev/hasari/bz972757
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 972757: Allow vendor names to start with a numeral (asari.ruby@gmail.com)
+
 * Tue Jun 11 2013 Troy Dawson <tdawson@redhat.com> 1.10.2-1
 - Bump up version (tdawson@redhat.com)
 - <oo-diagnostics> Bug 970805 - Add check for broker SSL cert

@@ -6,7 +6,7 @@
 
 Summary:       Provides HA Proxy
 Name:          openshift-origin-cartridge-haproxy
-Version: 0.5.1
+Version: 0.5.2
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -17,6 +17,9 @@ Requires:      openshift-origin-node-util
 Requires:      haproxy
 Requires:      %{?scl:%scl_prefix}rubygem-daemons
 Requires:      %{?scl:%scl_prefix}rubygem-rest-client
+
+Obsoletes: openshift-origin-cartridge-haproxy-1.4
+
 BuildArch:     noarch
 
 %description
@@ -45,6 +48,17 @@ HAProxy cartridge for OpenShift. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Mon Jun 17 2013 Adam Miller <admiller@redhat.com> 0.5.2-1
+- First pass at removing v1 cartridges (dmcphers@redhat.com)
+- Copy over haproxy.cfg template only if it doesn't exist. (mrunalp@gmail.com)
+- origin_runtime_137 - FrontendHttpServer accepts "target_update" option which
+  causes it to read the old options for a connection and just update the
+  target. (rmillner@redhat.com)
+- Merge pull request #2702 from mrunalp/bugs/haproxy_disable_local
+  (dmcphers+openshiftbot@redhat.com)
+- Disable local gear only after a remote gear is UP or there is a timeout.
+  (mrunalp@gmail.com)
+
 * Thu May 30 2013 Adam Miller <admiller@redhat.com> 0.5.1-1
 - bump_minor_versions for sprint 29 (admiller@redhat.com)
 

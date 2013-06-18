@@ -6,7 +6,7 @@
 %global cartridgedir %{_libexecdir}/openshift/cartridges/v2/ruby
 
 Name:          openshift-origin-cartridge-ruby
-Version: 0.5.1
+Version: 0.5.2
 Release:       1%{?dist}
 Summary:       Ruby cartridge
 Group:         Development/Languages
@@ -139,6 +139,9 @@ Requires:      ruby-nokogiri
 Requires:      rubygem-nokogiri
 %endif
 
+Obsoletes: openshift-origin-cartridge-ruby-1.8
+Obsoletes: openshift-origin-cartridge-ruby-1.9-scl
+
 BuildArch:     noarch
 
 %description
@@ -182,6 +185,21 @@ Ruby cartridge for OpenShift. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Mon Jun 17 2013 Adam Miller <admiller@redhat.com> 0.5.2-1
+- First pass at removing v1 cartridges (dmcphers@redhat.com)
+- Fix Ruby's URL in the v2 cartridge (asari.ruby@gmail.com)
+- Bug 971460 - Refactor path_append/prepend to accept multiple elements
+  (jhonce@redhat.com)
+- Fix ruby cartridge. It reuires a ~/.passenger dir on RHEL 6.4 systems Fix
+  some cucumber tests tags (kraman@gmail.com)
+- Add version check around DefaultRuntimeDir directive as it is available only
+  on apache 2.4+ (kraman@gmail.com)
+- Update Ruby cartridge for F19 version. (kraman@gmail.com)
+- Bug 970658 (asari.ruby@gmail.com)
+- Bug 970698 (asari.ruby@gmail.com)
+- Fix stop for httpd-based carts. (mrunalp@gmail.com)
+- Make Install-Build-Required default to false (ironcladlou@gmail.com)
+
 * Thu May 30 2013 Adam Miller <admiller@redhat.com> 0.5.1-1
 - bump_minor_versions for sprint 29 (admiller@redhat.com)
 

@@ -36,6 +36,10 @@ class RestApiCartridgeTypeTest < ActiveSupport::TestCase
     assert type.requires.find{ |r| r.starts_with?('mysql-') }, type.requires.inspect
     assert type.tags.include? :administration
     assert_not_equal type.name, type.display_name
+    
+    assert type = types.find{ |t| t.name.starts_with?('rockmongo-') }
+    assert type.requires.find{ |r| r.starts_with?('mongodb-') }, type.requires.inspect
+    assert type.tags.include? :administration
 
     assert (required = types.select{ |t| t.requires.present? }).length > 1
     assert types.all?{ |t| t.tags.present? }

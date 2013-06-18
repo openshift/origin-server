@@ -84,12 +84,7 @@ module OpenShift
         begin
           gear.cartridge_model.each_cartridge do |cart|
             $stdout.puts("Cartridge: #{cart.name}...")
-            output = ""
-            if gear.cartridge_model.class <= V1CartridgeModel
-              output = gear.status(cart.name)
-            else
-              output = gear.status(cart)
-            end
+            output = gear.status(cart)
             output.gsub!(/^ATTR:.*$/, '')
             output.gsub!(/^CLIENT_RESULT:\s+/, '')
             output.strip!

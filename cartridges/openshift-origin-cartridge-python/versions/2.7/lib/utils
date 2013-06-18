@@ -43,7 +43,7 @@ function activate_virtualenv() {
 
 
 function make_virtualenv_relocatable() {
-   virtualenv --relocatable $python27_dir/virtenv
+   virtualenv --relocatable $python27_dir/virtenv -p $python27_binary
 
 }  #  End of function  make_virtualenv_relocatable.
 

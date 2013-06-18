@@ -1,6 +1,0 @@
-bin/activate
-bin/easy_install*
-bin/pip*
-bin/python*
-bin/pydoc
-pyvenv.cfg

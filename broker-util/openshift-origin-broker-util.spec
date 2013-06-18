@@ -6,7 +6,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin broker
 Name:          openshift-origin-broker-util
-Version: 1.10.1
+Version: 1.10.2
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -86,6 +86,23 @@ cp man/*.8 %{buildroot}%{_mandir}/man8/
 %{_mandir}/man8/oo-stats.8.gz
 
 %changelog
+* Mon Jun 17 2013 Adam Miller <admiller@redhat.com> 1.10.2-1
+- oo-admin-chk fix: Do not generate gear_id_hash for subaccount users
+  (rpenta@redhat.com)
+- oo-admin-chk fixes (rpenta@redhat.com)
+- fix staleness issue with apps (rchopra@redhat.com)
+- Added Usage consistency checks as part of oo-admin-chk script
+  (rpenta@redhat.com)
+- <broker-util> Bug 972308 - Update permissions check for user_action.log
+  (jdetiber@redhat.com)
+- Merge pull request #2732 from adelton/oo-accept-broker-krb
+  (dmcphers+openshiftbot@redhat.com)
+- With BIND_KRB_*, nsupdate -g needs to be used. (jpazdziora@redhat.com)
+- Account for case when BIND_KRB_* is used in openshift-origin-dns-
+  nsupdate.conf. (jpazdziora@redhat.com)
+- Add option to use GSS-TSIG Kerberos credentials to bind.
+  (jpazdziora@redhat.com)
+
 * Thu May 30 2013 Adam Miller <admiller@redhat.com> 1.10.1-1
 - bump_minor_versions for sprint 29 (admiller@redhat.com)
 

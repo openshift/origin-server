@@ -1,6 +1,6 @@
 Summary:       Utility scripts for the OpenShift Origin broker
 Name:          openshift-origin-node-util
-Version: 1.10.1
+Version: 1.10.2
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -84,6 +84,7 @@ mv services/openshift-gears.service %{buildroot}/etc/systemd/system/openshift-ge
 %attr(0750,-,-) %{_sbindir}/oo-cartridge
 %attr(0750,-,-) %{_sbindir}/oo-admin-cartridge
 %attr(0750,-,-) %{_sbindir}/oo-cart-version
+%attr(0750,-,-) %{_sbindir}/oo-admin-repair-node
 %attr(0755,-,-) %{_bindir}/rhc-list-ports
 %attr(0755,-,-) %{_bindir}/oo-snapshot
 %attr(0755,-,-) %{_bindir}/oo-restore
@@ -123,6 +124,29 @@ mv services/openshift-gears.service %{buildroot}/etc/systemd/system/openshift-ge
 /sbin/restorecon /usr/sbin/oo-restorer* || :
 
 %changelog
+* Mon Jun 17 2013 Adam Miller <admiller@redhat.com> 1.10.2-1
+- Merge pull request #2858 from rmillner/misc_bugs
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 974268 - Squash error messages for gears which have been created or
+  destroyed while the accept-node script is run. (rmillner@redhat.com)
+- First pass at removing v1 cartridges (dmcphers@redhat.com)
+- Bug 974370 - oo-admin-repair-node should be mode 0750. (rmillner@redhat.com)
+- Fix bug 974203: add checks for V1 cartridge directories in gears
+  (pmorie@gmail.com)
+- Fix bug 971955: migration metadata check in oo-accept-node (pmorie@gmail.com)
+- oo-accept-node: fixed cgroups defunct proc bug (twiest@redhat.com)
+- Merge pull request #2780 from rmillner/capital_dns
+  (dmcphers+openshiftbot@redhat.com)
+- The symbolic link for the old cartridge was confusing the websocket test.
+  (rmillner@redhat.com)
+- Post v2 migration issues - some legacy DNS variables had capitals in them.
+  (rmillner@redhat.com)
+- Idler whitelist. (mrunalp@gmail.com)
+- Add mindepth/maxdepth for finding manifest file. (mrunalp@gmail.com)
+- Make NodeLogger pluggable (ironcladlou@gmail.com)
+- Bug 969228 - Check selinux node set with oo-accept-node.
+  (rmillner@redhat.com)
+
 * Thu May 30 2013 Adam Miller <admiller@redhat.com> 1.10.1-1
 - bump_minor_versions for sprint 29 (admiller@redhat.com)
 

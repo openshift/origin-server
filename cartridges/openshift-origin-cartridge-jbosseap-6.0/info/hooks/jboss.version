@@ -1,4 +1,0 @@
-# The name of the jbosseap cartridge dir under /usr/libexec/openshift/cartridges
-jboss_version=jbosseap-6.0
-# The location of jbosseap server installation
-jboss_home=/etc/alternatives/jbosseap-6.0

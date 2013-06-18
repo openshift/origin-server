@@ -1,4 +1,6 @@
 class GearGroup < RestApi::Base
+  singular_resource
+
   schema do
     string :name, :gear_profile
     integer :scales_from, :scales_to

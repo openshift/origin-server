@@ -9,7 +9,7 @@
 
 Summary:       OpenShift plugin for mcollective service
 Name:          rubygem-%{gem_name}
-Version: 1.10.1
+Version: 1.10.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -80,6 +80,15 @@ cp %{buildroot}/%{gem_dir}/gems/%{gem_name}-%{version}/conf/openshift-origin-msg
 %attr(0644,-,-) %ghost /etc/mcollective/client.cfg
 
 %changelog
+* Mon Jun 17 2013 Adam Miller <admiller@redhat.com> 1.10.2-1
+- Bug 971199 - Need to pass application object to CartridgeCache.find_cartridge
+  method in mcollective_application_container_proxy.rb (rpenta@redhat.com)
+- Bug 974533 - Separate response messages from secondary carts
+  (jforrest@redhat.com)
+- part two of parallelizing node tasks from broker (rchopra@redhat.com)
+- parallelization of app events across gears (rchopra@redhat.com)
+- workaround for bz969325 (rchopra@redhat.com)
+
 * Thu May 30 2013 Adam Miller <admiller@redhat.com> 1.10.1-1
 - bump_minor_versions for sprint 29 (admiller@redhat.com)
 

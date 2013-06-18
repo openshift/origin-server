@@ -9,12 +9,15 @@ class Application < RestApi::Base
     string :server_identity
     string :gear_profile, :scale
     string :building_with, :build_job_url, :building_app
+    string :framework
   end
 
   custom_id :name
   def id #FIXME provided as legacy support for accessing .name via .id
     name
   end
+
+  singular_resource
 
   belongs_to :domain
   alias_attribute :domain_name, :domain_id
@@ -62,7 +65,9 @@ class Application < RestApi::Base
   end
 
   def restart!
-    post(:events, nil, {:event => :restart}.to_json)
+    self.messages.clear
+    response = post(:events, nil, {:event => :restart}.to_json)
+    self.messages = extract_messages(response)
     true
   end
 
@@ -75,14 +80,13 @@ class Application < RestApi::Base
 
   def remove_alias(alias_name)
     begin
+      self.messages.clear
       response = post(:events, nil, {:event => 'remove-alias', :alias => alias_name}.to_json)
+      self.messages = extract_messages(response)
       response.is_a? Net::HTTPOK
     rescue
       false
     end
-  end
-  def remove_aliases
-    self.aliases.each {|a| self.remove_alias(a.id) }
   end
 
   def web_url
@@ -143,6 +147,12 @@ class Application < RestApi::Base
   end
 
   protected
+    def extract_messages(response)
+      RestApi::Base.format.decode(response.body)['messages'] || []
+    rescue
+      []
+    end
+
     def child_options
       { :params => { :domain_id => domain_id, :application_name => self.name},
         :as => as }

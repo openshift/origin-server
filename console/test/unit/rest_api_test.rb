@@ -29,7 +29,7 @@ class RestApiTest < ActiveSupport::TestCase
       mock.delete '/user/keys/test1.json', {'Accept' => 'application/json'}.merge!(@auth_headers), {}
       mock.get '/user.json', {'Accept' => 'application/json'}.merge!(@auth_headers), { :login => 'test1' }.to_json()
       mock.get '/domains.json', {'Accept' => 'application/json'}.merge!(@auth_headers), [{ :name => 'adomain' }].to_json()
-      mock.get '/domains/adomain/applications.json', {'Accept' => 'application/json'}.merge!(@auth_headers), [{ :name => 'app1' }, { :name => 'app2' }].to_json()
+      mock.get '/domain/adomain/applications.json', {'Accept' => 'application/json'}.merge!(@auth_headers), [{ :name => 'app1' }, { :name => 'app2' }].to_json()
     end
   end
 
@@ -142,9 +142,50 @@ class RestApiTest < ActiveSupport::TestCase
     assert_nil obj[:foo]
   end
 
+  def test_decode_messages
+    # No messages passed, malformed messages
+    assert_equal [], Application.new( {} ).messages
+    assert_equal [], Application.new( { 'messages' => nil  } ).messages
+    assert_equal [], Application.new( { 'messages' => "A"  } ).messages
+    assert_equal [], Application.new( { 'messages' => {}   } ).messages
+    assert_equal [], Application.new( { 'messages' => []   } ).messages
+    assert_equal [], Application.new( { 'messages' => [ {}                 ] } ).messages
+    assert_equal [], Application.new( { 'messages' => [ {'text' => ''}     ] } ).messages
+    assert_equal [], Application.new( { 'messages' => [ {'text' => nil}    ] } ).messages
+
+    a = Application.new({'messages' => [
+      {},
+      {'exit_code' => '1', 'field' => 'Field',  'text' => 'Test'},
+      {'exit_code' => 'A', 'field' => 'Field2', 'text' => 'Test2'},
+      {'text' => 'Test3'},
+      {}
+    ]})
+    assert messages = a.messages.presence
+    assert_equal 3, messages.length
+
+    assert_equal 1,        messages[0].exit_code
+    assert_equal 'Field',  messages[0].field
+    assert_equal 'Test',   messages[0].text
+    assert_equal 'Test',   messages[0].to_s
+
+    assert_equal 0,        messages[1].exit_code
+    assert_equal 'Field2', messages[1].field
+    assert_equal 'Test2',  messages[1].text
+
+    assert_equal 0,        messages[2].exit_code
+    assert_equal nil,      messages[2].field
+    assert_equal 'Test3',  messages[2].text
+
+    a.load({})
+    assert_equal [], a.messages
+
+    a.load({'messages' => [{'text' => 'Test4'}]})
+    assert_equal 'Test4', a.messages.first.to_s
+  end
+
   def test_remote_results
     ActiveResource::HttpMock.respond_to do |mock|
-      mock.get '/broker/rest/bases/1.json', json_header, {:messages => [{:field => 'result', :text => 'text'}],:data => {}}.to_json
+      mock.get '/broker/rest/bases/1.json', json_header, {:messages => [{:severity => 'result', :text => 'text'}],:data => {}}.to_json
     end
     assert obj = RestApi::Base.find(1, :as => @user)
     assert_equal ['text'], obj.remote_results
@@ -461,7 +502,7 @@ class RestApiTest < ActiveSupport::TestCase
 
   def test_find_single_raises_resource_not_found
     ActiveResource::HttpMock.respond_to do |mock|
-      mock.get '/broker/rest/domains/foo.json', json_header, nil, 404
+      mock.get '/broker/rest/domain/foo.json', json_header, nil, 404
     end
     begin
       Domain.find 'foo', :as => @user
@@ -476,7 +517,7 @@ class RestApiTest < ActiveSupport::TestCase
 
   def test_find_single_raises_resource_not_found
     ActiveResource::HttpMock.respond_to do |mock|
-      mock.get '/broker/rest/domains/foo/applications/bar.json', json_header, nil, 404
+      mock.get '/broker/rest/domain/foo/application/bar.json', json_header, nil, 404
     end
     begin
       Application.find 'bar', :as => @user, :params => {:domain_id => 'foo'}
@@ -491,7 +532,7 @@ class RestApiTest < ActiveSupport::TestCase
 
   def test_find_application_fetch_detects_domain_missing
     ActiveResource::HttpMock.respond_to do |mock|
-      mock.get '/broker/rest/domains/foo/applications/bar.json', json_header, {:messages => [{:exit_code => 127}]}.to_json, 404
+      mock.get '/broker/rest/domain/foo/application/bar.json', json_header, {:messages => [{:exit_code => 127}]}.to_json, 404
     end
     begin
       Application.find 'bar', :as => @user, :params => {:domain_id => 'foo'}
@@ -517,19 +558,19 @@ class RestApiTest < ActiveSupport::TestCase
   def test_custom_id_rename
     ActiveResource::HttpMock.respond_to do |mock|
       mock.get '/broker/rest/domains.json', json_header, [{:id => 'a'}].to_json
-      mock.put '/broker/rest/domains/a.json', json_header(true), {:id => 'b'}.to_json
+      mock.put '/broker/rest/domain/a.json', json_header(true), {:id => 'b'}.to_json
     end
 
     domain = Domain.first :as => @user
     assert_equal 'a', domain.name
-    assert_equal '/broker/rest/domains/a.json', domain.send(:element_path)
+    assert_equal '/broker/rest/domain/a.json', domain.send(:element_path)
 
     domain.name = 'b'
 
     assert_equal 'a', domain.id_was
     assert_equal 'b', domain.id
     assert_equal 'b', domain.name
-    assert_equal '/broker/rest/domains/a.json', domain.send(:element_path)
+    assert_equal '/broker/rest/domain/a.json', domain.send(:element_path)
     assert domain.save
 
     domain = Domain.new({:name => 'a'}, true)
@@ -537,7 +578,7 @@ class RestApiTest < ActiveSupport::TestCase
     assert_equal 'a', domain.id_was
     assert_equal 'b', domain.id
     assert_equal 'b', domain.name
-    assert_equal '/broker/rest/domains/a.json', domain.send(:element_path)
+    assert_equal '/broker/rest/domain/a.json', domain.send(:element_path)
   end
 
   class DomainWithValidation < Domain
@@ -550,7 +591,7 @@ class RestApiTest < ActiveSupport::TestCase
   def test_custom_id_rename_with_validation
     ActiveResource::HttpMock.respond_to do |mock|
       mock.get '/broker/rest/domains.json', json_header, [{:id => 'a'}].to_json
-      mock.put '/broker/rest/domains/a.json', json_header(true), {:id => 'b'}.to_json
+      mock.put '/broker/rest/domain/a.json', json_header(true), {:id => 'b'}.to_json
     end
     t = DomainWithValidation.first :as => @user
     assert_equal 'a', t.id_was
@@ -678,8 +719,8 @@ class RestApiTest < ActiveSupport::TestCase
   def test_app_reload
     ActiveResource::HttpMock.respond_to do |mock|
       mock.get '/broker/rest/domains.json', json_header, [{:id => 'a'}].to_json
-      mock.get '/broker/rest/domains/a/applications.json', json_header, [{:name => 'a'}].to_json
-      mock.get '/broker/rest/domains/a/applications/a.json', json_header, {:name => 'a', :git_url => 'test'}.to_json
+      mock.get '/broker/rest/domain/a/applications.json', json_header, [{:name => 'a'}].to_json
+      mock.get '/broker/rest/domain/a/application/a.json', json_header, {:name => 'a', :git_url => 'test'}.to_json
     end
     app = Domain.find(:one, :as => @user).applications.first
     assert_nil app.git_url
@@ -695,7 +736,7 @@ class RestApiTest < ActiveSupport::TestCase
 
   def test_prefix_option_during_reload
     ActiveResource::HttpMock.respond_to do |mock|
-      mock.get '/broker/rest/domains/a/applications/b/cartridges/foo.json', json_header, {:name => 'foo'}.to_json
+      mock.get '/broker/rest/domain/a/application/b/cartridge/foo.json', json_header, {:name => 'foo'}.to_json
     end
     cart = Cartridge.find 'foo', :as => @user, :params => {:domain_id => 'a', :application_name => 'b'}
     assert_equal({:domain_id => 'a', :application_name => 'b'}, cart.prefix_options)
@@ -705,8 +746,8 @@ class RestApiTest < ActiveSupport::TestCase
 
   def test_prefix_option_during_save
     ActiveResource::HttpMock.respond_to do |mock|
-      mock.get '/broker/rest/domains/a/applications/b/cartridges/foo.json', json_header, {:name => 'foo'}.to_json
-      mock.put '/broker/rest/domains/a/applications/b/cartridges/foo.json', json_header(true), {:name => 'foo'}.to_json
+      mock.get '/broker/rest/domain/a/application/b/cartridge/foo.json', json_header, {:name => 'foo'}.to_json
+      mock.put '/broker/rest/domain/a/application/b/cartridge/foo.json', json_header(true), {:name => 'foo'}.to_json
     end
     prefix_options = {:domain_id => 'a', :application_name => 'b'}
     cart = Cartridge.find 'foo', :as => @user, :params => prefix_options
@@ -718,7 +759,7 @@ class RestApiTest < ActiveSupport::TestCase
   def test_domain_reload
     ActiveResource::HttpMock.respond_to do |mock|
       mock.get '/broker/rest/domains.json', json_header, [{:id => 'a'}].to_json
-      mock.get '/broker/rest/domains/a.json', json_header, {:id => 'a'}.to_json
+      mock.get '/broker/rest/domain/a.json', json_header, {:id => 'a'}.to_json
     end
     domain = Domain.find :one, :as => @user
     oldname = domain.name
@@ -776,7 +817,7 @@ class RestApiTest < ActiveSupport::TestCase
 
   def test_domain_object_assignment_to_application
     ActiveResource::HttpMock.respond_to do |mock|
-      mock.get '/broker/rest/domains/test3.json', json_header, { :id => 'test3' }.to_json()
+      mock.get '/broker/rest/domain/test3.json', json_header, { :id => 'test3' }.to_json()
     end
 
     app = Application.new :as => @user
@@ -800,7 +841,7 @@ class RestApiTest < ActiveSupport::TestCase
   def test_domain_applications
     ActiveResource::HttpMock.respond_to do |mock|
       mock.get '/broker/rest/domains.json', json_header, [{ :id => 'a' }].to_json
-      mock.get '/broker/rest/domains/a/applications.json', json_header, [opts1, opts2].to_json
+      mock.get '/broker/rest/domain/a/applications.json', json_header, [opts1, opts2].to_json
     end
 
     domain = Domain.find :one, :as => @user
@@ -812,8 +853,8 @@ class RestApiTest < ActiveSupport::TestCase
   def test_domain_applications_reload
     with_apps = lambda do |mock|
       mock.get '/broker/rest/domains.json', json_header, [{ :id => 'a' }].to_json
-      mock.get '/broker/rest/domains/a.json', json_header, { :id => 'a' }.to_json
-      mock.get '/broker/rest/domains/a/applications.json', json_header, [opts1, opts2].to_json
+      mock.get '/broker/rest/domain/a.json', json_header, { :id => 'a' }.to_json
+      mock.get '/broker/rest/domain/a/applications.json', json_header, [opts1, opts2].to_json
     end
 
     ActiveResource::HttpMock.respond_to &with_apps
@@ -838,9 +879,9 @@ class RestApiTest < ActiveSupport::TestCase
   def test_domain_find_applications
     ActiveResource::HttpMock.respond_to do |mock|
       mock.get '/broker/rest/domains.json', json_header, [{ :id => 'a' }].to_json
-      mock.get '/broker/rest/domains/a/applications/app1.json', json_header, opts1.to_json
-      mock.get '/broker/rest/domains/a/applications/app2.json', json_header, opts2.to_json
-      mock.get '/broker/rest/domains/a/applications/app3.json', json_header, nil, 404
+      mock.get '/broker/rest/domain/a/application/app1.json', json_header, opts1.to_json
+      mock.get '/broker/rest/domain/a/application/app2.json', json_header, opts2.to_json
+      mock.get '/broker/rest/domain/a/application/app3.json', json_header, nil, 404
     end
 
     domain = Domain.find :one, :as => @user
@@ -851,12 +892,18 @@ class RestApiTest < ActiveSupport::TestCase
 
   def test_app_create_includes_cartridges
     ActiveResource::HttpMock.respond_to do |mock|
-      mock.post '/broker/rest/domains/foo/applications.json', json_header(true), {:id => 'bar', :cartridges => [{:name => 'php-5.3', :display_name => 'PHP 5.3'}]}.to_json
+      mock.post '/broker/rest/domain/foo/applications.json', json_header(true), {:id => 'bar', :cartridges => [{:name => 'php-5.3', :display_name => 'PHP 5.3'}]}.to_json
     end
 
     app = Application.new :name => 'app', :domain_id => 'foo', :include => :cartridges, :as => @user
     assert app.save
     assert app.attributes[:cartridges].first.is_a?(Cartridge)
+  end
+
+  def test_app_framework_missing
+    # Given - application with no framework defined
+    app = Application.new :name => 'app', :domain_id => 'foo',  :as => @user
+    assert_nil app.framework
   end
 
   def test_cartridges
@@ -871,7 +918,7 @@ class RestApiTest < ActiveSupport::TestCase
     cart = Cartridge.new
     cart.application = app
 
-    assert_equal '/broker/rest/domains/test3/applications/testapp1/cartridges.json', cart.send(:collection_path)
+    assert_equal '/broker/rest/domain/test3/application/testapp1/cartridges.json', cart.send(:collection_path)
   end
 
   def test_cartridge_assignment
@@ -879,7 +926,7 @@ class RestApiTest < ActiveSupport::TestCase
     app = Application.new :name => 'testapp1', :domain_name => 'test3'
     cart.application = app
 
-    assert_equal '/broker/rest/domains/test3/applications/testapp1/cartridges.json', cart.send(:collection_path)
+    assert_equal '/broker/rest/domain/test3/application/testapp1/cartridges.json', cart.send(:collection_path)
   end
 
   def test_cartridges_assignment
@@ -916,7 +963,7 @@ class RestApiTest < ActiveSupport::TestCase
     Application.expects(:find).with(app.name, :params => {:domain_id => app.domain_id}, :as => nil).returns(app)
     assert_equal app.name, cart.application.name
 
-    assert_equal '/broker/rest/domains/test3/applications/testapp1/cartridges.json', cart.send(:collection_path)
+    assert_equal '/broker/rest/domain/test3/application/testapp1/cartridges.json', cart.send(:collection_path)
   end
 
   def test_cartridge_assignment_object
@@ -929,7 +976,7 @@ class RestApiTest < ActiveSupport::TestCase
     Application.expects(:find).with(app.name, :params => {:domain_id => app.domain_id}, :as => nil).returns(app)
     assert_equal app.name, cart.application.name
 
-    assert_equal '/broker/rest/domains/test3/applications/testapp1/cartridges.json', cart.send(:collection_path)
+    assert_equal '/broker/rest/domain/test3/application/testapp1/cartridges.json', cart.send(:collection_path)
   end
 
   def test_gear_assigns_as
@@ -957,17 +1004,17 @@ class RestApiTest < ActiveSupport::TestCase
     app = Application.new({:name => 'testapp1', :domain => domain}, true)
     assert_equal 'testapp1', app.to_param
     assert_equal domain.id, app.domain_id
-    assert_equal '/broker/rest/domains/1/applications/testapp1.json', app.send(:element_path)
+    assert_equal '/broker/rest/domain/1/application/testapp1.json', app.send(:element_path)
 
     app = Application.new({:name => 'testapp1'}, true)
     app.domain = domain
     assert_equal domain.id, app.domain_id
-    assert_equal '/broker/rest/domains/1/applications/testapp1.json', app.send(:element_path)
+    assert_equal '/broker/rest/domain/1/application/testapp1.json', app.send(:element_path)
   end
 
   def test_app_custom_get_method
     ActiveResource::HttpMock.respond_to do |mock|
-      mock.get '/broker/rest/domains/1/applications/custom_app_get/gears.json', json_header, [
+      mock.get '/broker/rest/domain/1/application/custom_app_get/gears.json', json_header, [
         { :uuid => 'abc', :components => [ { :name => 'ruby-1.8' } ] },
       ].to_json
     end
@@ -996,7 +1043,7 @@ class RestApiTest < ActiveSupport::TestCase
   def test_domain_update_id_reset
     ActiveResource::HttpMock.respond_to do |mock|
       mock.post '/broker/rest/domains.json', json_header(true), {:id => '1'}.to_json
-      mock.put '/broker/rest/domains/1.json', json_header(true), {:id => '2'}.to_json
+      mock.put '/broker/rest/domain/1.json', json_header(true), {:id => '2'}.to_json
     end
     d = Domain.create :id => '1', :as => @user
     assert !d.changed?, d.pretty_inspect
@@ -1338,7 +1385,7 @@ class RestApiTest < ActiveSupport::TestCase
 
   def mock_complex_scaling_cartridges
     ActiveResource::HttpMock.respond_to do |mock|
-      mock.get '/broker/rest/domains/test/applications/test/cartridges.json', json_header, [
+      mock.get '/broker/rest/domain/test/application/test/cartridges.json', json_header, [
         {
           :name => 'mysql-5.1',
           :collocated_with => [],
@@ -1398,7 +1445,7 @@ class RestApiTest < ActiveSupport::TestCase
 
   def mock_complex_scaling_gear_group
     ActiveResource::HttpMock.respond_to do |mock|
-      mock.get '/broker/rest/domains/test/applications/test/gear_groups.json', json_header, [
+      mock.get '/broker/rest/domain/test/application/test/gear_groups.json', json_header, [
         {:name => '@@app/comp-web/php-5.3', :gears => [
           {:id => 1, :state => 'started'}
         ], :cartridges => [
@@ -1553,7 +1600,7 @@ class RestApiTest < ActiveSupport::TestCase
     assert_equal [{'php-5.3' => php}, []],  ApplicationType.matching_cartridges([{'name' => 'php-5.3', 'url' => 'a'}])
     assert_equal [{}, ['php-5.']],          ApplicationType.matching_cartridges([{'name' => 'php-5.'}])
     assert_equal [{'a' => CartridgeType.for_url('a')}, []], ApplicationType.matching_cartridges([{'url' => 'a'}])
-    
+
     assert_equal [{}, ['-- Unknown']], ApplicationType.matching_cartridges([{}])
     assert_equal [{}, ['-- Unknown']], ApplicationType.matching_cartridges([{'url' => ''}])
     assert_equal [{}, ['-- Unknown']], ApplicationType.matching_cartridges([{'name' => ''}])
@@ -1602,7 +1649,7 @@ class RestApiTest < ActiveSupport::TestCase
 
     assert_equal 1, Quickstart.promoted.length
     assert q = Quickstart.promoted.first
-    assert_equal false, q.scalable?
+    assert_equal true, q.scalable?
   end
 
   def test_quickstart_disabled
