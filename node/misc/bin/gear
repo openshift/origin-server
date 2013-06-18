@@ -17,10 +17,11 @@
 
 require 'pp'
 require 'rubygems'
-require 'commander/import'
 require 'openshift-origin-node/model/application_container'
 require 'openshift-origin-node/model/application_repository'
 require 'openshift-origin-node/utils/node_logger'
+
+require 'commander/import'
 
 name="#{__FILE__}"
 
