@@ -6,7 +6,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin broker
 Name:          openshift-origin-broker-util
-Version: 1.10.2
+Version: 1.10.3
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -86,6 +86,12 @@ cp man/*.8 %{buildroot}%{_mandir}/man8/
 %{_mandir}/man8/oo-stats.8.gz
 
 %changelog
+* Tue Jun 18 2013 Adam Miller <admiller@redhat.com> 1.10.3-1
+- Merge pull request #2872 from pravisankar/dev/ravi/bug973918
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 973918 - Do not allow move gear with oo-admin-move without districts.
+  (rpenta@redhat.com)
+
 * Mon Jun 17 2013 Adam Miller <admiller@redhat.com> 1.10.2-1
 - oo-admin-chk fix: Do not generate gear_id_hash for subaccount users
   (rpenta@redhat.com)
