@@ -23,6 +23,7 @@ require 'socket'
 require 'json'
 require 'parseconfig'
 require 'etc'
+require 'safe_yaml'
 
 $OPTIONS = {}
 
@@ -74,6 +75,12 @@ rescue LoadError => e
 end
 
 $TC_CHECK=false
+
+# Narrow the window where USERS, TC_DATA and ALL_QUOTAS can reflect
+# the system in different states.
+$START_TIME=Time.now
+$USERS=[]
+Etc.passwd { |u| $USERS << u if u.gecos == ENV['GEAR_GECOS'] }
 $TC_DATA = %x[/sbin/tc clas show dev eth0].split("\n").grep(/parent/)
 $ALL_QUOTAS = %x[/usr/sbin/repquota -a].split("\n")
 
@@ -151,7 +158,16 @@ end
 # transition during the run of this script.
 #
 def user_fail(uuid, msg)
-  user_ents = users.select { |u| (u.name == uuid) or (u.uid == uuid) }
+
+  # Did a create/destroy hook get modified for the user?
+  begin
+    if File.stat("/var/lock/oo-create.#{uuid}").mtime >= $START_TIME
+      return
+    end
+  rescue Errno::ENOENT
+  end
+
+  user_ents = $USERS.select { |u| (u.name == uuid) or (u.uid == uuid) }
 
   pw_ent = nil
   begin
@@ -179,7 +195,7 @@ def user_fail(uuid, msg)
 
   # Was the home directory modified during the script run?
   begin
-    if File.stat(pw_ent.dir).mtime > $START_TIME
+    if File.stat(pw_ent.dir).mtime >= $START_TIME
       return
     end
   rescue Errno::ENOENT
@@ -210,14 +226,6 @@ def source_file(file)
 end
 
 ###############################
-
-def users
-  if not $USERS
-    $USERS=[]
-    Etc.passwd { |u| $USERS << u if u.gecos == ENV['GEAR_GECOS'] }
-  end
-  $USERS
-end
 
 def load_node_conf
     verbose("loading node configuration file #{$NODE_CONF_FILE}")
@@ -311,11 +319,12 @@ def check_selinux()
     # This will likely only detect the effects of a full relabel but it's
     # better than nothing.  My unscientific tests shows that checking 100 gears
     # only added about 1.5 seconds execution time.
-    Dir.glob(File.join($GEAR_BASE_DIR, "*/app-root"))[0,99].each do |dir|
-      out = %x[/bin/ls --scontext #{dir}]
+  Dir.glob(File.join($GEAR_BASE_DIR, "*")).select { |d| File.directory?(d) and not (File.symlink?(d) or (File.stat(d).uid == 0)) }[0,99].each do |dir|
+      out = %x[/bin/ls -d --scontext #{dir}/app-root 2>/dev/null]
       mcs = /.+:.+:.+:.+:c\d+,c\d+? /.match(out)
       if mcs.nil?
-        do_fail("invalid MCS labels on #{dir}. run oo-restorecon to restore OpenShift SELinux categories")
+        user = File.basename(dir)
+        user_fail(user, "invalid MCS labels on #{dir}/app-root. run oo-restorecon to restore OpenShift SELinux categories")
         break
       end
     end
@@ -400,7 +409,7 @@ def check_cgroup_procs
         uid,pid = line.split[0,2]
 
         if (min_uid..max_uid).include?(uid)
-            passwd_lines = users.select { |u| u.uid == uid }
+            passwd_lines = $USERS.select { |u| u.uid == uid }
 
           if paswd_lines.empty?
                 user_fail(uid, "Process #{pid} is owned by a gear that's no longer on the system, uid: #{uid}")
@@ -490,9 +499,9 @@ def check_quotas
 end
 
 def check_users
-    verbose("checking #{users.length} user accounts")
+    verbose("checking #{$USERS.length} user accounts")
     conf_dir_templ = "#{$LIMITS_CONF_DIR}/84-%s.conf"
-    users.each do |user|
+    $USERS.each do |user|
         #Test home dir
         user_fail(user.name, "user #{user.name} does not have a home directory #{user.dir}") unless File.exists? user.dir
         user_fail(user.name, "user #{user.name} does not have a PAM limits file") unless File.exists?(conf_dir_templ % user.name)
@@ -575,7 +584,7 @@ def check_system_httpd_configs
 
   httpconfs['nodes.txt'].delete_if   { |k,v|  k.split('/')[0] == '__default__' }
   mangled_gears=[]
-  users.each do |u|
+  $USERS.each do |u|
     dnsfile = File.join($GEAR_BASE_DIR, u.name, '.env', 'OPENSHIFT_GEAR_DNS')
     if not File.exists?(dnsfile)
       user_fail(u.name, "Gear does not have an OPENSHIFT_GEAR_DNS variable: '#{u.name}'")
@@ -687,7 +696,7 @@ def check_system_httpd_configs
   Dir.foreach(ENV['OPENSHIFT_HTTP_CONF_DIR']) { |cfile|
     next if cfile[0,1] == "."
     next if cfile[-5,5] != ".conf"
-    if users.select { |u| u.name == cfile[0..cfile.index('_')-1]}.empty?
+    if $USERS.select { |u| u.name == cfile[0..cfile.index('_')-1]}.empty?
       do_fail("httpd config file #{cfile} doesn't have an associated user")
     end
   }
@@ -695,7 +704,7 @@ end
 
 def check_app_dirs
   verbose("checking application dirs")
-  copy_all_users = users.dup
+  copy_all_users = $USERS.dup
 
   Dir.foreach($GEAR_BASE_DIR) do |entry|
     next if entry[0,1] == "."
@@ -752,9 +761,58 @@ def check_app_dirs
   end
 end
 
+def check_cartridge_repository
+  verbose("checking cartridge repository")
+
+  SafeYAML::OPTIONS[:default_mode] = :safe
+
+  dst_glob = "#{ENV['GEAR_BASE_DIR']}/.cartridge_repository/*/*/metadata/manifest.yml"
+  dst_ctimes = {}
+  dst_manifests = {}
+  Dir.glob(dst_glob).each do |f|
+    begin
+      dst_ctimes[f] = File.stat(f).ctime
+      dst_manifests[f] = YAML.load(File.read(f))
+    rescue Psych::SyntaxError
+      do_fail("failed to parse manifest file: #{f}")
+    rescue => e
+      do_fail("error with manifest file: #{f} #{e}")
+    end
+  end
+
+  src_glob = "#{ENV['CARTRIDGE_BASE_PATH']}/{v2,}/*/{info,metadata}/manifest.yml"
+  Dir.glob(src_glob).each do |f|
+    begin
+      src_m = YAML.load(File.read(f))
+      src_ct = File.stat(f).ctime
+
+      matched_ct = nil
+      dst_manifests.each do |dst_f, dst_m|
+        if (dst_m['Name'] == src_m['Name']) and
+            (not src_m['Cartridge-Version'].nil? and (src_m['Cartridge-Version'] == dst_m['Cartridge-Version'])) or
+            (src_m['Version'] == dst_m['Version'])
+          matched_ct = dst_ctimes[dst_f]
+          break
+        end
+      end
+
+      if matched_ct.nil?
+        do_fail("no manifest in the cart repo matches #{f}")
+      elsif matched_ct < src_ct
+        do_fail("cart repo version is older than #{f}")
+      end
+
+    rescue Psych::SyntaxError
+      do_fail("failed to parse manifest file: #{f}")
+    rescue => e
+      do_fail("error with manifest file: #{f} #{e}")
+    end
+
+  end
+end
+
 if __FILE__ == $0
     $STATUS=0
-    $START_TIME=Time.now
     load_node_conf
     check_node_public_resolution
     check_selinux
@@ -769,6 +827,7 @@ if __FILE__ == $0
     check_users
     check_app_dirs
     check_system_httpd_configs
+    check_cartridge_repository
 
     if $STATUS == 0
         puts "PASS"

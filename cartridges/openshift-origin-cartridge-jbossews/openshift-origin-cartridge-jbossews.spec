@@ -2,7 +2,7 @@
 
 Summary:       Provides JBossEWS2.0 support
 Name:          openshift-origin-cartridge-jbossews
-Version: 0.5.1
+Version: 0.5.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -78,6 +78,16 @@ alternatives --set jbossews-2.0 /usr/share/tomcat7
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Mon Jun 17 2013 Adam Miller <admiller@redhat.com> 0.5.2-1
+- Bug 974923: Fix inaccurate Cart-Data env var references
+  (ironcladlou@gmail.com)
+- First pass at removing v1 cartridges (dmcphers@redhat.com)
+- Bug 973825 (dmcphers@redhat.com)
+- add APP_UUID to process (bdecoste@gmail.com)
+- Use -z with quotes (dmcphers@redhat.com)
+- WIP Cartridge Refactor - Fix setups to be reentrant (jhonce@redhat.com)
+- Make Install-Build-Required default to false (ironcladlou@gmail.com)
+
 * Thu May 30 2013 Adam Miller <admiller@redhat.com> 0.5.1-1
 - bump_minor_versions for sprint 29 (admiller@redhat.com)
 

@@ -2,7 +2,7 @@
 
 Summary:       Provides Node.js support
 Name:          openshift-origin-cartridge-nodejs
-Version: 1.11.1
+Version: 1.11.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -64,6 +64,14 @@ fi
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Mon Jun 17 2013 Adam Miller <admiller@redhat.com> 1.11.2-1
+- First pass at removing v1 cartridges (dmcphers@redhat.com)
+- Nodejs spec fix (kraman@gmail.com)
+- Build RPM depending on which version of nodejs is available on the platform.
+  Make tests pick nodejs version based on what is installed (kraman@gmail.com)
+- Update nodejs package for F19 versions. (kraman@gmail.com)
+- Make Install-Build-Required default to false (ironcladlou@gmail.com)
+
 * Thu May 30 2013 Adam Miller <admiller@redhat.com> 1.11.1-1
 - bump_minor_versions for sprint 29 (admiller@redhat.com)
 
