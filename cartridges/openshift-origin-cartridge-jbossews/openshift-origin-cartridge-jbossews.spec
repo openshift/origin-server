@@ -2,7 +2,7 @@
 
 Summary:       Provides JBossEWS2.0 support
 Name:          openshift-origin-cartridge-jbossews
-Version: 0.5.2
+Version: 0.5.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -78,6 +78,12 @@ alternatives --set jbossews-2.0 /usr/share/tomcat7
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Tue Jun 18 2013 Adam Miller <admiller@redhat.com> 0.5.3-1
+- Merge pull request #2881 from ironcladlou/bz/972979
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 972979: Don't include ROOT.war in initial Git repository
+  (ironcladlou@gmail.com)
+
 * Mon Jun 17 2013 Adam Miller <admiller@redhat.com> 0.5.2-1
 - Bug 974923: Fix inaccurate Cart-Data env var references
   (ironcladlou@gmail.com)
