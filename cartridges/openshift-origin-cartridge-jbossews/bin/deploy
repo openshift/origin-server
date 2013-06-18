@@ -11,3 +11,10 @@ if [ -d $tmp ]; then
       fi
   done
 fi
+
+if [ -d ${OPENSHIFT_REPO_DIR}/webapps ]; then
+  rm -rf ${OPENSHIFT_JBOSSEWS_DIR}/webapps/*
+  shopt -s dotglob
+  mv ${OPENSHIFT_REPO_DIR}/webapps/* ${OPENSHIFT_JBOSSEWS_DIR}/webapps/
+  shopt -u dotglob
+fi

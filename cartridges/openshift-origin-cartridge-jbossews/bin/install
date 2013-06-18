@@ -10,15 +10,11 @@ source ${OPENSHIFT_JBOSSEWS_DIR}/bin/util
 
 echo "$version" > "$OPENSHIFT_JBOSSEWS_DIR/env/OPENSHIFT_JBOSSEWS_VERSION"
 
-# Create a link from the repo/webapps directory to the Tomcat webapps directory
-ln -s ${OPENSHIFT_REPO_DIR}/webapps ${OPENSHIFT_JBOSSEWS_DIR}/webapps
-
-
 sed -i "s/{APP_NAME}/${OPENSHIFT_APP_NAME}/g" ${OPENSHIFT_JBOSSEWS_DIR}/template/pom.xml
 
 # Create and install the initial template WAR
 pushd $OPENSHIFT_JBOSSEWS_DIR/template/src/main/webapp 1>/dev/null
-  jar cvf $OPENSHIFT_JBOSSEWS_DIR/template/webapps/ROOT.war ./*
+  jar cvf $OPENSHIFT_JBOSSEWS_DIR/webapps/ROOT.war ./*
 popd 1>/dev/null
 
 # Set up the default path and JAVA_HOME
