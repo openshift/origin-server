@@ -47,6 +47,8 @@ rm %{buildroot}%{cartridgedir}/metadata/manifest.yml.*
 
 %post
 %{_sbindir}/oo-admin-cartridge --action install --source %{cartridgedir}
+test -L %{_sysconfdir}/phpMyAdmin/config.inc.php || mv %{_sysconfdir}/phpMyAdmin/config.inc.php %{_sysconfdir}/phpMyAdmin/config.inc.php.orig
+ln -sf /sandbox/phpMyAdmin/config.inc.php %{_sysconfdir}/phpMyAdmin/config.inc.php
 
 %files
 %dir %{cartridgedir}
