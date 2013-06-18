@@ -16,6 +16,11 @@ module ActionDispatch::Routing
         match 'unauthorized' => 'console_index#unauthorized', :via => :get, :as => 'unauthorized'
         match 'server_unavailable' => 'console_index#server_unavailable', :via => :get, :as => 'server_unavailable'
 
+        # Legacy plural paths
+        match 'application_types/:id'=> redirect('/console/application_type/%{id}'), :id => id_regex
+        match 'applications/:id' => redirect('/console/application/%{id}'), :id => id_regex
+        match 'applications/:id/aliases/:alias_id' => redirect('/console/application/%{id}/alias/%{alias_id}'), :alias_id => id_regex
+
         # Application specific resources
         resources :application_types, :only => [:show, :index], :id => id_regex, :singular_resource => true
         resources :applications, :singular_resource => true do
