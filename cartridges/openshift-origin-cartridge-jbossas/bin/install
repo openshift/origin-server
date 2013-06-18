@@ -23,8 +23,6 @@ pushd $OPENSHIFT_JBOSSAS_DIR/versions/${version}/template/src/main/webapp 1> /de
   jar cvf $OPENSHIFT_JBOSSAS_DIR/standalone/deployments/ROOT.war ./*
 popd 1> /dev/null
 
-cp $OPENSHIFT_JBOSSAS_DIR/standalone/deployments/ROOT.war ${OPENSHIFT_JBOSSAS_DIR}/template/deployments
-
 JBOSS_HOME=/etc/alternatives/jbossas-$version
 pushd $OPENSHIFT_JBOSSAS_DIR 1> /dev/null
   ln -s ${JBOSS_HOME}/jboss-modules.jar
