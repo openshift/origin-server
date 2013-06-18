@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.9.16
+Version: 1.9.17
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -84,6 +84,10 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Mon Jun 17 2013 Dan McPherson <dmcphers@redhat.com> 1.9.17-1
+- Reinstating fix for bug 974507 (abhgupta@redhat.com)
+- Reverting fix for bug 973718 (abhgupta@redhat.com)
+
 * Mon Jun 17 2013 Dan McPherson <dmcphers@redhat.com> 1.9.16-1
 - Bug 974507 (dmcphers@redhat.com)
 
