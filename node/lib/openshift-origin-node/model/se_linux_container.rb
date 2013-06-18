@@ -1,8 +1,11 @@
+require 'openshift-origin-node/utils/node_logger'
+
 module OpenShift
   module Runtime
     module ApplicationContainerPlugin
       class SELinuxContainer
         include OpenShift::Runtime::Utils::ShellExec
+        include OpenShift::Runtime::NodeLogger
 
         def initialize(application_container)
           @container = application_container
@@ -22,11 +25,21 @@ module OpenShift
         #
         # Returns nil on Success or raises on Failure
         def create
+          cmd = %{groupadd -g #{@container.gid} \
+                #{@container.uuid}}
+          out,err,rc = run_in_root_context(cmd)
+          raise UserCreationException.new(
+                    "ERROR: unable to create group for user account(#{rc}): #{cmd.squeeze(" ")} stdout: #{out} stderr: #{err}"
+                ) unless rc == 0
+
+          FileUtils.mkdir_p @container.container_dir
           cmd = %{useradd -u #{@container.uid} \
+                  -g #{@container.gid} \
                   -d #{@container.container_dir} \
                   -s #{@container.shell} \
                   -c '#{@container.gecos}' \
                   -m \
+                  -N \
                   -k #{@container.skel_dir} \
                 #{@container.uuid}}
           if @container.supplementary_groups != ""
@@ -85,11 +98,29 @@ module OpenShift
           OpenShift::Runtime::FrontendHttpServer.new(@container).destroy
 
           dirs = list_home_dir(@container.container_dir)
-          cmd = "userdel --remove -f \"#{@container.uuid}\""
-          out,err,rc = run_in_root_context(cmd)
-          raise UserDeletionException.new(
-                    "ERROR: unable to destroy user account(#{rc}): #{cmd} stdout: #{out} stderr: #{err}"
-                ) unless rc == 0
+          begin
+            user = Etc.getpwnam(@container.uuid)
+
+            cmd = "userdel --remove -f \"#{@container.uuid}\""
+            out,err,rc = run_in_root_context(cmd)
+            raise UserDeletionException.new(
+                      "ERROR: unable to destroy user account(#{rc}): #{cmd} stdout: #{out} stderr: #{err}"
+                  ) unless rc == 0
+          rescue ArgumentError => e
+            logger.debug("user does not exist. ignore.")
+          end
+
+          begin
+            group = Etc.getgrnam(@container.uuid)
+
+            cmd = "groupdel \"#{@container.uuid}\""
+            out,err,rc = run_in_root_context(cmd)
+            raise UserDeletionException.new(
+                      "ERROR: unable to destroy group of user account(#{rc}): #{cmd} stdout: #{out} stderr: #{err}"
+                  ) unless rc == 0
+          rescue ArgumentError => e
+            logger.debug("group does not exist. ignore.")
+          end
 
           # 1. Don't believe everything you read on the userdel man page...
           # 2. If there are any active processes left pam_namespace is not going
