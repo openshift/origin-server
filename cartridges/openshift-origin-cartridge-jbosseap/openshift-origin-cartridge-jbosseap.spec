@@ -4,7 +4,7 @@
 
 Summary:       Provides JBossEAP6.0 support
 Name:          openshift-origin-cartridge-jbosseap
-Version: 2.4.2
+Version: 2.4.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -87,6 +87,12 @@ cp -p %{cartridgedir}/versions/6.0/modules/postgresql_module.xml /etc/alternativ
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Tue Jun 18 2013 Adam Miller <admiller@redhat.com> 2.4.3-1
+- Merge pull request #2881 from ironcladlou/bz/972979
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 972979: Don't include ROOT.war in initial Git repository
+  (ironcladlou@gmail.com)
+
 * Mon Jun 17 2013 Adam Miller <admiller@redhat.com> 2.4.2-1
 - First pass at removing v1 cartridges (dmcphers@redhat.com)
 - Bug 973825 (dmcphers@redhat.com)

@@ -205,7 +205,11 @@ class Gear
     tag = ""
     handle = RemoteJob.create_parallel_job
     RemoteJob.run_parallel_on_gears(gears, handle) { |exec_handle, gear|
-      RemoteJob.add_parallel_job(exec_handle, tag, gear, gear.get_proxy.get_show_state_job(gear))
+      if gear.get_proxy
+        RemoteJob.add_parallel_job(exec_handle, tag, gear, gear.get_proxy.get_show_state_job(gear))
+      else
+        gear_states[gear.uuid.to_s] = "unknown"
+      end
     }
     RemoteJob.get_parallel_run_results(handle) { |tag, gear, output, status|
       if status != 0

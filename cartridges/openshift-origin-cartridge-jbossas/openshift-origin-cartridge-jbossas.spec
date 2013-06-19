@@ -4,7 +4,7 @@
 
 Summary:       Provides JBossAS7 support
 Name:          openshift-origin-cartridge-jbossas
-Version: 1.3.2
+Version: 1.3.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -91,6 +91,12 @@ cp -p %{cartridgedir}/versions/7/modules/postgresql_module.xml /etc/alternatives
 
 
 %changelog
+* Tue Jun 18 2013 Adam Miller <admiller@redhat.com> 1.3.3-1
+- Merge pull request #2881 from ironcladlou/bz/972979
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 972979: Don't include ROOT.war in initial Git repository
+  (ironcladlou@gmail.com)
+
 * Mon Jun 17 2013 Adam Miller <admiller@redhat.com> 1.3.2-1
 - First pass at removing v1 cartridges (dmcphers@redhat.com)
 - Bug 973825 (dmcphers@redhat.com)

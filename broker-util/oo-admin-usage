@@ -117,12 +117,13 @@ end
 require "/var/www/openshift/broker/config/environment"
 
 # record current time so that it remains constant throughout the execution of the script
-current_time = Time.now
+current_time = Time.now.utc
 
 unless start_timeframe.nil?
   begin
     raise unless start_timeframe =~ TIME_FORMAT_REGEX
-    start_timeframe = Time.parse(start_timeframe).to_i
+    start_time = Time.parse(start_timeframe)
+    start_timeframe = start_time.to_i + start_time.gmt_offset
   rescue Exception => ex
     puts "Please specify the start time as yyyy-mm-dd"
     show_usage
@@ -132,7 +133,8 @@ end
 unless end_timeframe.nil?
   begin
     raise unless end_timeframe =~ TIME_FORMAT_REGEX
-    end_timeframe = Time.parse(end_timeframe).to_i
+    end_time = Time.parse(end_timeframe)
+    end_timeframe = end_time.to_i + end_time.gmt_offset
     if end_timeframe > current_time.to_i
       puts "End timeframe specified is greater than the current time. Defaulting to current time..."
       end_timeframe = current_time.to_i
@@ -170,6 +172,7 @@ end
 puts "Usage for #{login} (Plan: #{user.plan_id})"
 puts "------------------------------------------"
 
+usage_rate = nil
 filter = {"app_name" => app, "gear_id" => gear, "begin_time" => start_timeframe, "end_time" => end_timeframe}
 usage_data = Usage.find_by_filter(user._id, filter)
 if usage_data.count > 0
@@ -199,8 +202,8 @@ if usage_data.count > 0
 
     duration = end_time - begin_time
     duration_str = pretty_duration(duration)
-    begin_time_str = begin_time.localtime.strftime('%Y-%m-%d %H:%M:%S')
-    end_time_str = end_time.localtime.strftime('%Y-%m-%d %H:%M:%S') unless end_time_str == "PRESENT" 
+    begin_time_str = begin_time.utc.strftime('%Y-%m-%d %H:%M:%S')
+    end_time_str = end_time.utc.strftime('%Y-%m-%d %H:%M:%S') unless end_time_str == "PRESENT" 
 
     # calculate the usage cost
     usage_rate = usage.get_usage_rate(user.plan_id)
@@ -224,10 +227,7 @@ if usage_data.count > 0
   end
 
   puts "Note: The cost displayed is based on the usage duration and the usage rate. " \
-  "It does not take into account any unbilled usage by the billing provider."
-  puts 
+  "It does not take into account any unbilled usage by the billing provider." unless usage_rate.nil?
 else
   puts "No usage data found"
-  puts
 end
-

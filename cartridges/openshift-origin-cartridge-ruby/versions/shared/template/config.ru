@@ -1,5 +1,4 @@
 require 'rack/lobster'
-require './thread-dumper'
 
 map '/health' do
   health = proc do |env|

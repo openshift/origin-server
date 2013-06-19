@@ -6,7 +6,8 @@ Version: '7'
 License: LGPL
 License-Url: http://www.gnu.org/copyleft/lesser.txt
 Vendor: Red Hat
-Cartridge-Version: 0.0.1
+Cartridge-Version: 0.0.2
+Compatible-Versions: ['0.0.1']
 Cartridge-Vendor: redhat
 Categories:
   - service

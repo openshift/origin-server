@@ -17,10 +17,11 @@
 
 require 'pp'
 require 'rubygems'
-require 'commander/import'
 require 'openshift-origin-node/model/application_container'
 require 'openshift-origin-node/model/application_repository'
 require 'openshift-origin-node/utils/node_logger'
+
+require 'commander/import'
 
 name="#{__FILE__}"
 
@@ -65,12 +66,12 @@ def do_command(command, options)
     puts
     exit 1
   rescue OpenShift::Utils::ShellExecutionException => e
-    $stderr.puts "An error occurred executing 'gear #{command.name}'"
+    $stderr.puts "An error occurred executing 'gear #{command.name}' (exit code: #{e.rc})"
+    $stderr.puts "Error message: #{e.message}" if e.message.is_a? String
     $stderr.puts "stdout: #{e.stdout}" if e.stdout.is_a? String 
     $stderr.puts "stderr: #{e.stderr}" if e.stderr.is_a? String
     $stderr.puts ""
     if options.trace
-      $stderr.puts "#{e.message}: rc(#{e.rc})"
       $stderr.puts e.backtrace.join("\n")
     else
       $stderr.puts "For more details about the problem, try running the command again with the '--trace' option."

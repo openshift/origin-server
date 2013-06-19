@@ -101,14 +101,14 @@ module OpenShift
 
       # lock to prevent race condition between create and delete of gear
       uuid_lock_file = "/var/lock/oo-create.#{@uuid}"
-      File.open(uuid_lock_file, File::RDWR|File::CREAT, 0o0600) do | uuid_lock |
+      File.open(uuid_lock_file, File::RDWR|File::CREAT|File::TRUNC, 0o0600) do | uuid_lock |
         uuid_lock.fcntl(Fcntl::F_SETFD, Fcntl::FD_CLOEXEC)
         uuid_lock.flock(File::LOCK_EX)
 
         # Lock to prevent race condition on obtaining a UNIX user uid.
         # When running without districts, there is a simple search on the
         #   passwd file for the next available uid.
-        File.open("/var/lock/oo-create", File::RDWR|File::CREAT, 0o0600) do | uid_lock |
+        File.open("/var/lock/oo-create", File::RDWR|File::CREAT|File::TRUNC, 0o0600) do | uid_lock |
           uid_lock.fcntl(Fcntl::F_SETFD, Fcntl::FD_CLOEXEC)
           uid_lock.flock(File::LOCK_EX)
 
@@ -150,7 +150,6 @@ module OpenShift
         initialize_openshift_port_proxy
 
         uuid_lock.flock(File::LOCK_UN)
-        File.unlink(uuid_lock_file)
       end
     end
 
@@ -180,7 +179,7 @@ module OpenShift
 
       # Don't try to delete a gear that is being scaled-up|created|deleted
       uuid_lock_file = "/var/lock/oo-create.#{@uuid}"
-      File.open(uuid_lock_file, File::RDWR|File::CREAT, 0o0600) do | lock |
+      File.open(uuid_lock_file, File::RDWR|File::CREAT|File::TRUNC, 0o0600) do | lock |
         lock.fcntl(Fcntl::F_SETFD, Fcntl::FD_CLOEXEC)
         lock.flock(File::LOCK_EX)
 
@@ -240,7 +239,6 @@ Dir(after)    #{@uuid}/#{@uid} => #{list_home_dir(@homedir)}
         end
 
         lock.flock(File::LOCK_UN)
-        File.unlink(uuid_lock_file)
       end
     end
 
@@ -686,7 +684,7 @@ Dir(after)    #{@uuid}/#{@uid} => #{list_home_dir(@homedir)}
       keys = Hash.new
 
       $OpenShift_UnixUser_SSH_KEY_MUTEX.synchronize do
-        File.open("/var/lock/oo-modify-ssh-keys", File::RDWR|File::CREAT, 0o0600) do | lock |
+        File.open("/var/lock/oo-modify-ssh-keys.#{@uuid}", File::RDWR|File::CREAT|File::TRUNC, 0o0600) do | lock |
           lock.fcntl(Fcntl::F_SETFD, Fcntl::FD_CLOEXEC)
           lock.flock(File::LOCK_EX)
           begin

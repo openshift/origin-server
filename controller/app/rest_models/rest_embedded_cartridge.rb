@@ -101,7 +101,7 @@ class RestEmbeddedCartridge < OpenShift::Model
     :scales_to, :current_scale, :supported_scales_from, :supported_scales_to,
     :scales_with, :base_gear_storage, :additional_gear_storage, :gear_profile, :collocated_with, 
     :status_messages, :usage_rates
-                   
+
   def initialize(cart, comp, app, domain, cinst, colocated_cinsts, scale, url, status_messages, nolinks=false)
     self.name = cart.name
     self.status_messages = status_messages

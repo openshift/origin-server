@@ -16,7 +16,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.10.2
+Version: 1.10.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -198,6 +198,7 @@ ln -s /usr/lib/openshift/node/jobs/openshift-origin-cron-hourly %{buildroot}/etc
 ln -s /usr/lib/openshift/node/jobs/openshift-origin-cron-daily %{buildroot}/etc/cron.daily/
 ln -s /usr/lib/openshift/node/jobs/openshift-origin-cron-weekly %{buildroot}/etc/cron.weekly/
 ln -s /usr/lib/openshift/node/jobs/openshift-origin-cron-monthly %{buildroot}/etc/cron.monthly/
+ln -s /usr/lib/openshift/node/jobs/openshift-origin-stale-lockfiles %{buildroot}/etc/cron.daily/
 
 %post
 /bin/rm -f /etc/openshift/env/*.rpmnew
@@ -269,6 +270,7 @@ echo "/usr/bin/oo-trap-user" >> /etc/shells
 %attr(0755,-,-) /usr/lib/openshift/node/jobs/openshift-origin-cron-daily
 %attr(0755,-,-) /usr/lib/openshift/node/jobs/openshift-origin-cron-weekly
 %attr(0755,-,-) /usr/lib/openshift/node/jobs/openshift-origin-cron-monthly
+%attr(0755,-,-) /usr/lib/openshift/node/jobs/openshift-origin-stale-lockfiles
 %dir /etc/cron.minutely
 %config(noreplace) %attr(0644,-,-) /etc/cron.d/1minutely
 %attr(0755,-,-) /etc/cron.minutely/openshift-origin-cron-minutely
@@ -276,8 +278,20 @@ echo "/usr/bin/oo-trap-user" >> /etc/shells
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-cron-daily
 %attr(0755,-,-) /etc/cron.weekly/openshift-origin-cron-weekly
 %attr(0755,-,-) /etc/cron.monthly/openshift-origin-cron-monthly
+%attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Tue Jun 18 2013 Adam Miller <admiller@redhat.com> 1.10.3-1
+- Merge pull request #2878 from pmorie/bugs/975034
+  (dmcphers+openshiftbot@redhat.com)
+- Fix bug 975034: remove validation for control script executability
+  (pmorie@gmail.com)
+- Merge pull request #2867 from rmillner/misc_bugs
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 974268 - Narrow the window where user and quota data can get out of sync
+  and set the start time prior to any other collection.  Deal with a race
+  condition with the lock files in unix_user. (rmillner@redhat.com)
+
 * Mon Jun 17 2013 Adam Miller <admiller@redhat.com> 1.10.2-1
 - First pass at removing v1 cartridges (dmcphers@redhat.com)
 - Merge pull request #2805 from BanzaiMan/dev/hasari/bz972757

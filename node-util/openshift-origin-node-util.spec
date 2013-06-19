@@ -1,6 +1,6 @@
 Summary:       Utility scripts for the OpenShift Origin broker
 Name:          openshift-origin-node-util
-Version: 1.10.2
+Version: 1.10.3
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -124,6 +124,15 @@ mv services/openshift-gears.service %{buildroot}/etc/systemd/system/openshift-ge
 /sbin/restorecon /usr/sbin/oo-restorer* || :
 
 %changelog
+* Tue Jun 18 2013 Adam Miller <admiller@redhat.com> 1.10.3-1
+- Bug 971176 - Catch cartridge repository issues. (rmillner@redhat.com)
+- Merge pull request #2867 from rmillner/misc_bugs
+  (dmcphers+openshiftbot@redhat.com)
+- Fix typo (dmcphers@redhat.com)
+- Bug 974268 - Narrow the window where user and quota data can get out of sync
+  and set the start time prior to any other collection.  Deal with a race
+  condition with the lock files in unix_user. (rmillner@redhat.com)
+
 * Mon Jun 17 2013 Adam Miller <admiller@redhat.com> 1.10.2-1
 - Merge pull request #2858 from rmillner/misc_bugs
   (dmcphers+openshiftbot@redhat.com)
