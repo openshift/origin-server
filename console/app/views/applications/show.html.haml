@@ -124,7 +124,7 @@
       %h5
         Aliases
       .header-btn
-        = link_to application_aliases_path(@application) do
+        = link_to new_application_alias_path(@application) do
           %span.header-btn-title add alias
           %span.font-icon{"aria-hidden" => "true", "data-icon" => "\uee16"}
           
@@ -132,7 +132,7 @@
       - if @application.aliases.empty?
         %li 
           %span No aliases set.
-          = link_to('Set one now', application_aliases_path(@application))
+          = link_to('Set one now', new_application_alias_path(@application))
       - else
         - alias_scheme = @application.web_url.split(':').first
         - @application.aliases.sort.each do |a|
@@ -141,9 +141,9 @@
               %span.icon-lock.font-icon-size-12.font-icon-white.pull-left{'aria-hidden' => true, :title => 'SSL certificate attached'}
             - else
               %span.icon-unlock.font-icon-size-12.font-icon-grey.pull-left{'aria-hidden' => true, :title => 'No SSL certificate'}
-            = link_to a.name, application_alias_path(@application, a)
+            = link_to a.name, edit_application_alias_path(@application, a)
             .pull-right.icon-pencil.font-icon-grey
-              = link_to 'edit', application_alias_path(@application, a)
+              = link_to 'edit', edit_application_alias_path(@application, a)
 
     - if @application.initial_git_url.present?
       %h5 Based On
