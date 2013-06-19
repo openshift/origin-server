@@ -25,32 +25,36 @@ directory (../data) or via an environment variable `OPENSHIFT_DATA_DIR`.
 
 ## Ruby Mirror
 
-OpenShift is mirroring rubygems.org at http://mirror1.ops.rhcloud.com/mirror/ruby/
+OpenShift is mirroring rubygems.org at http://mirror1.ops.rhcloud.com/mirror/ruby/.
 This mirror is on the same network as your application, and your gem download should be faster.
 
 To use the OpenShift mirror:
 
 Edit your Gemfile and replace
+
     source 'http://rubygems.org'
 
 with
+
     source 'http://mirror1.ops.rhcloud.com/mirror/ruby/'
 
 Edit your Gemfile.lock and replace
+
     remote: http://rubygems.org/
 
 with
+
     remote: http://mirror1.ops.rhcloud.com/mirror/ruby/
 
 
-## Rails 3.0
+## Rails 3.x
 
 Option 1) (Recommended) Git push your application `Gemfile/Gemfile.lock`.  This will 
 cause the remote OpenShift node to run `bundle install --deployment` to download and 
 install your dependencies.  Each subsequent git push will use the previously
 downloaded dependencies as a starting point, so additional downloads will be a delta.
 
-Option 2) Git add your `.bundle` and `vendor/bundle` directories after running
+Option 2) Add `.bundle` and `vendor/bundle` to your git repository after running
 `bundle install --deployment` locally.  Be sure to exclude any gems that have native 
 code or ensure they can run on RHEL x86_64.
 
