@@ -6,8 +6,7 @@ export STOPTIMEOUT=10
 
 # Run mysql commands
 function run_sql {
-  sql=$1
-  echo "${1}" | /usr/bin/mysql -h $OPENSHIFT_MYSQL_DB_HOST -P $OPENSHIFT_MYSQL_DB_PORT -u $OPENSHIFT_MYSQL_DB_USERNAME --password="$OPENSHIFT_MYSQL_DB_PASSWORD" --skip-column-names
+  echo "$@" | /usr/bin/mysql -h $OPENSHIFT_MYSQL_DB_HOST -P $OPENSHIFT_MYSQL_DB_PORT -u $OPENSHIFT_MYSQL_DB_USERNAME --password="$OPENSHIFT_MYSQL_DB_PASSWORD" --skip-column-names
 }
 
 function is_running {
@@ -96,7 +95,7 @@ function pre_snapshot {
   local db_port=$OPENSHIFT_MYSQL_DB_PORT
 
   {
-    /usr/bin/mysqldump -h $db_host -P $db_port -u $OPENSHIFT_MYSQL_DB_USERNAME --password="$OPENSHIFT_MYSQL_DB_PASSWORD" --all-databases --add-drop-table | /bin/gzip > $dump_file
+    /usr/bin/mysqldump --extended-insert --quick -h $db_host -P $db_port -u $OPENSHIFT_MYSQL_DB_USERNAME --password="$OPENSHIFT_MYSQL_DB_PASSWORD" --all-databases --add-drop-table | /bin/gzip > $dump_file
   } ||
   {
     warning "Couldn't not dump mysql! Continuing anyway"
@@ -137,9 +136,22 @@ function post_restore {
     run_sql "DROP DATABASE IF EXISTS \`$NEW_NAME\`;" || error "Could not drop existing database" 187
     run_sql "CREATE DATABASE \`$NEW_NAME\`;" || error "Could not create database" 187
 
-    # Restore the old database verbatime, this will be using the old database name
-    local snapshot=$(/bin/zcat $OPENSHIFT_DATA_DIR/mysql_dump_snapshot.gz)
-    run_sql "${snapshot}" || error "Count not import MySQL Database" 187
+    # Restore the old database verbatim, this will be using the old database name
+    # Pipe this command directly to mysql instead of using run_sql so that we don't have to create a massive string to hold the sql dump file
+    # TODO: Ideally this would pipe directly into run_sql, but I have yet to get it to work
+    {
+      (
+        echo "SET AUTOCOMMIT=0;"
+        echo "SET UNIQUE_CHECKS=0;"
+        echo "SET FOREIGN_KEY_CHECKS=0;"
+        /bin/zcat $OPENSHIFT_DATA_DIR/mysql_dump_snapshot.gz
+        echo "SET FOREIGN_KEY_CHECKS=1;"
+        echo "SET UNIQUE_CHECKS=1;"
+        echo "SET AUTOCOMMIT=1;"
+        echo "COMMIT;"
+      ) | /usr/bin/mysql -h $OPENSHIFT_MYSQL_DB_HOST -P $OPENSHIFT_MYSQL_DB_PORT -u $OPENSHIFT_MYSQL_DB_USERNAME --password="$OPENSHIFT_MYSQL_DB_PASSWORD" --skip-column-names
+    } || error "Could not import MySQL Database" 187
+
 
     # Grant permissions to the current user
     run_sql "
