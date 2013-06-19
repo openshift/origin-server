@@ -175,7 +175,7 @@ module ActiveResource
       rescue OpenSSL::SSL::SSLError => e
         raise SSLError.new(e.message)
       rescue Net::HTTP::Persistent::Error => e
-        raise e.message.include?('Timeout::Error') ? TimeoutError.new(e.message) : ConnectionError.new(e.message)
+        raise e.message.present? && e.message.include?('Timeout::Error') ? TimeoutError.new(e.message) : ConnectionError.new(e.message)
       rescue Errno::ECONNREFUSED => e
         raise ServerRefusedConnection.new(site, req.path)
       end
