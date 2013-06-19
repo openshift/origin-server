@@ -34,7 +34,9 @@ function set_default_post_actions {
     else
       # Only respect hot deployment for initialized gears
       if hot_deploy_marker_is_present; then
-        remote_deploy_cmd="${remote_deploy_cmd} --hot-deploy"
+        remote_deploy_cmd="${remote_deploy_cmd} --hot-deploy=true"
+      else
+        remote_deploy_cmd="${remote_deploy_cmd} --hot-deploy=false"
       fi
     fi
 
