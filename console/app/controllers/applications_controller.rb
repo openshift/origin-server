@@ -150,14 +150,13 @@ class ApplicationsController < ConsoleController
     end
     @application.domain = @domain
 
-    saved = false
     begin
-      saved = @application.save
+      @application.save
     rescue ActiveResource::TimeoutError
       flash.now[:error] = "The application creation timed out. Your app is probably still being created in background. Please give it a couple minutes and check the 'My Applications' section."
     end
 
-    if saved
+    if @application.persisted?
       messages = @application.remote_results
 
       redirect_to get_started_application_path(@application, :wizard => true), :flash => {:info_pre => messages}
