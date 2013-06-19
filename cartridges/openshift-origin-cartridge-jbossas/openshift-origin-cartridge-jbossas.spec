@@ -4,7 +4,7 @@
 
 Summary:       Provides JBossAS7 support
 Name:          openshift-origin-cartridge-jbossas
-Version: 1.3.3
+Version: 1.3.4
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -91,6 +91,9 @@ cp -p %{cartridgedir}/versions/7/modules/postgresql_module.xml /etc/alternatives
 
 
 %changelog
+* Wed Jun 19 2013 Adam Miller <admiller@redhat.com> 1.3.4-1
+- Bug 975708: Fix jboss java7 marker regression (ironcladlou@gmail.com)
+
 * Tue Jun 18 2013 Adam Miller <admiller@redhat.com> 1.3.3-1
 - Merge pull request #2881 from ironcladlou/bz/972979
   (dmcphers+openshiftbot@redhat.com)
