@@ -1,7 +1,7 @@
 %global cartridgedir %{_libexecdir}/openshift/cartridges/v2/python
 
 Name:          openshift-origin-cartridge-python
-Version: 0.5.2
+Version: 0.5.3
 Release:       1%{?dist}
 Summary:       Python cartridge
 Group:         Development/Languages
@@ -91,6 +91,11 @@ mv %{buildroot}%{cartridgedir}/metadata/manifest.yml.f19 %{buildroot}%{cartridge
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Wed Jun 19 2013 Adam Miller <admiller@redhat.com> 0.5.3-1
+- Merge pull request #2889 from mrunalp/bugs/pymig
+  (dmcphers+openshiftbot@redhat.com)
+- Specify python migrations as compatible. (mrunalp@gmail.com)
+
 * Mon Jun 17 2013 Adam Miller <admiller@redhat.com> 0.5.2-1
 - First pass at removing v1 cartridges (dmcphers@redhat.com)
 - Pass the python binary to virtualenv. (mrunalp@gmail.com)
