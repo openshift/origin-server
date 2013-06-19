@@ -357,8 +357,11 @@ module OpenShift
     #   CartridgeRepository.instantiate_cartridge(perl_cartridge, '/var/lib/.../mock') => nil
     def self.instantiate_cartridge(cartridge, target, failure_remove = true)
       FileUtils.mkpath target
-
       if :url == cartridge.manifest_path
+        downloadable = true
+      end
+
+      if downloadable
         uri       = URI(cartridge.source_url)
         temporary = PathUtils.join(File.dirname(target), File.basename(cartridge.source_url))
         cartridge.validate_vendor_name
@@ -416,6 +419,11 @@ module OpenShift
       end
 
       valid_cartridge_home(cartridge, target)
+
+      if downloadable
+        manifest_on_disk = PathUtils.join(target, %w(metadata manifest.yml))
+        IO.write(manifest_on_disk, YAML.dump(cartridge.manifest))
+      end
     rescue => e
       FileUtils.rm_rf target if failure_remove
       raise e
