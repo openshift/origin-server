@@ -1,3 +1,8 @@
 #!/bin/bash -e
 
 mkdir -p $OPENSHIFT_PHPMYADMIN_DIR/{logs,run,sessions,tmp,conf,conf.d}
+
+# phpMyAdmin config file
+# TODO: remove this after v2->v2 migration
+test -d /sandbox/phpMyAdmin || mkdir -p /sandbox/phpMyAdmin
+test -L /sandbox/phpMyAdmin/config.inc.php || ln -sf ${OPENSHIFT_PHPMYADMIN_DIR}/phpMyAdmin/config.inc.php /sandbox/phpMyAdmin/config.inc.php

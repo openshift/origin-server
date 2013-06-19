@@ -12,6 +12,10 @@ cp -r ${OPENSHIFT_PHPMYADMIN_DIR}/versions/$version/conf/* ${OPENSHIFT_PHPMYADMI
 cp -r ${OPENSHIFT_PHPMYADMIN_DIR}/versions/$version/conf.d/* ${OPENSHIFT_PHPMYADMIN_DIR}/conf.d/
 cp -r ${OPENSHIFT_PHPMYADMIN_DIR}/versions/$version/phpMyAdmin/* ${OPENSHIFT_PHPMYADMIN_DIR}/phpMyAdmin/
 
+# phpMyAdmin config file
+mkdir -p /sandbox/phpMyAdmin
+ln -s ${OPENSHIFT_PHPMYADMIN_DIR}/phpMyAdmin/config.inc.php /sandbox/phpMyAdmin/config.inc.php
+
 # check that mysql is installed
 
 if [ -z "$OPENSHIFT_MYSQL_DB_USERNAME" ]; then
