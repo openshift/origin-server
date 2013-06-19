@@ -344,7 +344,7 @@ class ApplicationsControllerTest < ActionController::TestCase
     assert !app.persisted?
     assert_response :success
     assert_template 'application_types/show'
-    assert_select '.alert.alert-error', /The application creation timed out/i
+    assert_select '.alert.alert-error', /Application creation is taking longer than expected./i
   end
 
   test 'invalid destroy should render page' do

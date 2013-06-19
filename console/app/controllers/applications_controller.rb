@@ -153,7 +153,7 @@ class ApplicationsController < ConsoleController
     begin
       @application.save
     rescue ActiveResource::TimeoutError
-      flash.now[:error] = "The application creation timed out. Your app is probably still being created in background. Please give it a couple minutes and check the 'My Applications' section."
+      flash.now[:error] = "Application creation is taking longer than expected. Please wait a couple minutes, then check the 'My Applications' section."
     end
 
     if @application.persisted?
