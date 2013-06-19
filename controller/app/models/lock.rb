@@ -36,7 +36,7 @@ class Lock
  
   # Attempts to lock the {CloudUser}. 
   # NOTE: User lock is available only for user apps with application lock.
-  def self.lock_user(user, app, timeout=600)
+  def self.lock_user(user, app, timeout=1800)
     begin
       now = Time.now.to_i
       lock = Lock.with(consistency: :strong).find_or_create_by( :user_id => user._id )
@@ -77,7 +77,7 @@ class Lock
   #
   # == Returns:
   # True if the lock was successful.
-  def self.lock_application(application, timeout=600)
+  def self.lock_application(application, timeout=1800)
     begin
       # application.domain can be nil if the application is being created immediately after domain creation
       # If the domain is being read from the secondary, it may not be present
