@@ -85,7 +85,7 @@ class Usage
     condition = where(user_id: user_id)
     condition = condition.where(gear_id: filter["gear_id"]) unless filter["gear_id"].nil?
     condition = condition.where(app_name: filter["app_name"]) unless filter["app_name"].nil?
-    condition = condition.where("$or" => [{:end_time => nil}, {:end_time.gte => filter["begin_time"]}]) unless filter["begin_time"].nil?
+    condition = condition.where("$or" => [{:end_time => nil}, {:end_time => {"$gte" => filter["begin_time"]}}]) unless filter["begin_time"].nil?
     condition = condition.where(:begin_time.lte => filter["end_time"]) unless filter["end_time"].nil?
 
     return get_list(condition)
