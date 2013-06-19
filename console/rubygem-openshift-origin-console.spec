@@ -9,7 +9,7 @@
 
 Summary:       OpenShift Origin Management Console
 Name:          rubygem-%{gem_name}
-Version: 1.10.3
+Version: 1.10.4
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -151,6 +151,12 @@ cp -a ./%{gem_dir}/* %{buildroot}%{gem_dir}/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Wed Jun 19 2013 Adam Miller <admiller@redhat.com> 1.10.4-1
+- Merge branch 'master' of github.com:openshift/origin-server into 617dev
+  (sgoodwin@redhat.com)
+- Addition of defaul print specific css from latest bootstrap Updated entire
+  _reset.scss - no impact expected (sgoodwin@redhat.com)
+
 * Mon Jun 17 2013 Adam Miller <admiller@redhat.com> 1.10.3-1
 - Merge pull request #2847 from liggitt/bug_974483_error_page_header
   (dmcphers+openshiftbot@redhat.com)
