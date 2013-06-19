@@ -342,6 +342,8 @@ class ApplicationsControllerTest < ActionController::TestCase
     post(:create, {:application => get_post_form})
     assert app = assigns(:application)
     assert !app.persisted?
+    assert !flash[:error].empty?
+    assert_match /Application creation is taking longer than expected./i, flash[:error]
     assert_redirected_to applications_path
   end
 
