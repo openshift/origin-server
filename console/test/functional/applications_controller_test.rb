@@ -342,9 +342,7 @@ class ApplicationsControllerTest < ActionController::TestCase
     post(:create, {:application => get_post_form})
     assert app = assigns(:application)
     assert !app.persisted?
-    assert_response :success
-    assert_template 'application_types/show'
-    assert_select '.alert.alert-error', /Application creation is taking longer than expected./i
+    assert_redirected_to applications_path
   end
 
   test 'invalid destroy should render page' do
