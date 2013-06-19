@@ -271,9 +271,52 @@ function killall_matching_httpds() {
        awk '{ print $1 }' |  xargs kill -9  > /dev/null 2>&1  || :
 }
 
+# Attempt to resurrect the Apache PID file if its corrupt.
+#  Caution: there may be multiple Apache processes on the gear.
+function ensure_valid_httpd_pid_file() {
+    local pid_file="$1"
+    local cfg_file="$2"
+
+    local force_rebuild=""
+    local pid_contents=""
+    local pid_regex='^[1-9][0-9]+$'
+    local real_pid=""
+
+    if [ -e "$pid_file" ]
+    then
+        # Is it a file, owned by me and readable?
+        if ! [ -f "$pid_file" -a -O "$pid_file" -a -r "$pid_file" ]
+        then
+            force_rebuild="true"
+        else
+            # The pid file must contain one and only one number, nothing else or be blank.
+            pid_contents=$(cat "$pid_file" 2>/dev/null || :)
+            if ! [[ "$pid_contents" =~ $pid_regex ]]
+            then
+                force_rebuild="true"
+            fi
+        fi
+    fi
+
+    # If we are very lucky, we can find a valid PID to replace corrupt data.
+    if [ -n "$force_rebuild" ]
+    then
+        rm -rf "$pid_file"  # Could be a corrupt inode, a dir, symlink, context or ownership problems, etc...
+        if [ "$cfg_file" ]
+        then
+            real_pid=$(pgrep -o -u `id -u` -f -- "-f $cfg_file" )
+            if [ -n "$real_pid" ]
+            then
+                echo "$real_pid" > "$pid_file"
+            fi
+        fi
+    fi
+}
+
 function ensure_valid_httpd_process() {
     # $1 == pidfile.
     # $2 == httpd config file.
+    ensure_valid_httpd_pid_file "$1" "$2"
     [ -n "$1" ]  &&  [ -f "$1" ]  &&  pid_is_httpd `cat "$1"`  &&  return 0
     [ -n "$1" ]  &&  rm -f "$1"
     killall_matching_httpds "$2"
