@@ -7,12 +7,14 @@ module OpenShift
         include OpenShift::Runtime::Utils::ShellExec
         include OpenShift::Runtime::NodeLogger
 
-        def initialize(application_container)
-          @container = application_container
-          @config    = OpenShift::Config.new
-          @mcs_label = OpenShift::Runtime::Utils::SELinux.get_mcs_label(@container.uid)
-        end
+        attr_reader :gear_shell, :mcs_label
 
+        def initialize(application_container)
+          @container  = application_container
+          @config     = OpenShift::Config.new
+          @mcs_label  = OpenShift::Runtime::Utils::SELinux.get_mcs_label(@container.uid)
+          @gear_shell = @config.get("GEAR_SHELL")    || "/bin/bash"
+        end
 
         # Public: Create an empty gear.
         #
@@ -26,7 +28,7 @@ module OpenShift
         # Returns nil on Success or raises on Failure
         def create
           cmd = %{groupadd -g #{@container.gid} \
-                #{@container.uuid}}
+          #{@container.uuid}}
           out,err,rc = run_in_root_context(cmd)
           raise UserCreationException.new(
                     "ERROR: unable to create group for user account(#{rc}): #{cmd.squeeze(" ")} stdout: #{out} stderr: #{err}"
@@ -41,7 +43,7 @@ module OpenShift
                   -m \
                   -N \
                   -k #{@container.skel_dir} \
-                #{@container.uuid}}
+          #{@container.uuid}}
           if @container.supplementary_groups != ""
             cmd << %{ -G "#{@container.supplementary_groups}"}
           end
@@ -83,7 +85,7 @@ module OpenShift
           kill_procs
 
           purge_sysvipc
-          reset_openshift_port_proxy
+          delete_public_endpoints
 
           if @config.get("CREATE_APP_SYMLINKS").to_i == 1
             Dir.foreach(File.dirname(@container.container_dir)) do |dent|
@@ -148,25 +150,6 @@ Dir(after)    #{@container.uuid}/#{@container.uid} => #{list_home_dir(@container
           end
         end
 
-        # Public: Initialize OpenShift Port Proxy for this gear
-        #
-        # The port proxy range is determined by configuration and must
-        # produce identical results to the abstract cartridge provided
-        # range.
-        #
-        # Examples:
-        # reset_openshift_port_proxy
-        #    => true
-        #    service openshift_port_proxy setproxy 35000 delete 35001 delete etc...
-        #
-        # Returns:
-        #    true   - port proxy could be initialized properly
-        #    false  - port proxy could not be initialized properly
-        def reset_openshift_port_proxy
-          proxy_server = FrontendProxyServer.new
-          proxy_server.delete_all_for_uid(@container.uid, true)
-        end
-
         # Private: Kill all processes for a given gear
         #
         # Kill all processes owned by the uid or uuid.
@@ -210,6 +193,31 @@ Dir(after)    #{@container.uuid}/#{@container.uid} => #{list_home_dir(@container
 
           # Return the IP in dotted-quad notation
           "#{ip >> 24}.#{ip >> 16 & 0xFF}.#{ip >> 8 & 0xFF}.#{ip & 0xFF}"
+        end
+
+        def create_public_endpoint(private_ip, private_port)
+          proxy = OpenShift::Runtime::FrontendProxyServer.new
+          # Add the public-to-private endpoint-mapping to the port proxy
+          public_port = proxy.add(@container.uid, private_ip, private_port)
+        end
+
+        # Public: Initialize OpenShift Port Proxy for this gear
+        #
+        # The port proxy range is determined by configuration and must
+        # produce identical results to the abstract cartridge provided
+        # range.
+        #
+        # Examples:
+        # reset_openshift_port_proxy
+        #    => true
+        #    service openshift_port_proxy setproxy 35000 delete 35001 delete etc...
+        #
+        # Returns:
+        #    true   - port proxy could be initialized properly
+        #    false  - port proxy could not be initialized properly
+        def delete_public_endpoints
+          proxy_server = FrontendProxyServer.new
+          proxy_server.delete_all_for_uid(@container.uid, true)
         end
 
         def enable_cgroups

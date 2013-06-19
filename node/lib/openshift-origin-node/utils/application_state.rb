@@ -44,7 +44,7 @@ module OpenShift
           @uuid = @container.uuid
 
           config      = OpenShift::Config.new
-          @state_file = File.join(config.get("GEAR_BASE_DIR"), uuid, "app-root", "runtime", ".state")
+          @state_file = File.join(@container.container_dir, "app-root", "runtime", ".state")
         end
 
         # Public: Sets the application state.

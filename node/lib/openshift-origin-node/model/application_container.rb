@@ -18,7 +18,6 @@ require 'rubygems'
 require 'openshift-origin-node/model/frontend_proxy'
 require 'openshift-origin-node/model/frontend_httpd'
 require 'openshift-origin-node/model/v2_cart_model'
-require 'openshift-origin-node/model/se_linux_container'
 require 'openshift-origin-common/models/manifest'
 require 'openshift-origin-node/model/application_container_ext/environment'
 require 'openshift-origin-node/model/application_container_ext/setup'
@@ -61,9 +60,17 @@ module OpenShift
       GEAR_TO_GEAR_SSH = "/usr/bin/ssh -q -o 'BatchMode=yes' -o 'StrictHostKeyChecking=no' -i $OPENSHIFT_APP_SSH_KEY "
       DEFAULT_SKEL_DIR = File.join(OpenShift::Config::CONF_DIR,"skel")
       $OpenShift_ApplicationContainer_SSH_KEY_MUTEX = Mutex.new
+      #$OpenShift_ApplicationContainer_Class = ::OpenShift::Runtime::ApplicationContainerPlugin::LibvirtContainer
+
+      def self.container_plugin=(plugin)
+        $OpenShift_ApplicationContainer_Class = plugin
+      end
+
+      # Load plugin gems.
+      Dir["/etc/openshift/node-plugins.d/*.conf"].delete_if{ |x| x.end_with? "-dev.conf" }.map{|x| File.basename(x, ".conf")}.each {|plugin| require plugin}
 
       attr_reader :uuid, :application_uuid, :state, :container_name, :application_name, :namespace, :container_dir,
-                  :quota_blocks, :quota_files, :uid, :gid, :base_dir, :gecos, :skel_dir, :shell, :supplementary_groups,
+                  :quota_blocks, :quota_files, :uid, :gid, :base_dir, :gecos, :skel_dir, :supplementary_groups,
                   :cartridge_model, :build_model, :container_plugin, :hourglass
 
       def initialize(application_uuid, container_uuid, user_uid = nil, application_name = nil, container_name = nil,
@@ -72,7 +79,6 @@ module OpenShift
         @config           = OpenShift::Config.new
         @uuid             = container_uuid
         @application_uuid = application_uuid
-        @state            = OpenShift::Runtime::Utils::ApplicationState.new(self)
         @container_name   = container_name
         @application_name = application_name
         @namespace        = namespace
@@ -82,7 +88,6 @@ module OpenShift
         @gid              = user_uid
         @base_dir         = @config.get("GEAR_BASE_DIR")
         @skel_dir         = @config.get("GEAR_SKEL_DIR") || DEFAULT_SKEL_DIR
-        @shell            = @config.get("GEAR_SHELL")    || "/bin/bash"
         @supplementary_groups = @config.get("GEAR_SUPPLEMENTARY_GROUPS")
         @hourglass        = hourglass || Utils::Hourglass.new(3600)
 
@@ -92,17 +97,18 @@ module OpenShift
           @gid           = user_info.gid
           @gecos         = user_info.gecos
           @container_dir = "#{user_info.dir}/"
-          @container_plugin = ::OpenShift::Runtime::ApplicationContainerPlugin::SELinuxContainer.new(self)
+          @container_plugin = $OpenShift_ApplicationContainer_Class.new(self)
         rescue ArgumentError => e
           @uid           = user_uid
           @gid           = user_uid #user_gid || user_uid
           @gecos         = @config.get("GEAR_GECOS") || "OO application container"
-          @container_dir = File.join(@base_dir,@uuid)
+          @container_dir = $OpenShift_ApplicationContainer_Class.container_dir(self)
 
           #will be instantiated when create() is called
           @container_plugin = nil
         end
 
+        @state            = OpenShift::Runtime::Utils::ApplicationState.new(self)
         @cartridge_model = V2CartridgeModel.new(@config, self, @state, @hourglass)
       end
 
@@ -132,6 +138,10 @@ module OpenShift
         @container_plugin.get_ip_addr(host_id)
       end
 
+      def create_public_endpoint(private_ip, private_port)
+        @container_plugin.create_public_endpoint(private_ip, private_port)
+      end
+
       # create gear
       #
       # - model/unix_user.rb
@@ -153,7 +163,7 @@ module OpenShift
 
             unless @uid
               @uid = @gid = next_uid
-              @container_plugin = ::OpenShift::Runtime::ApplicationContainerPlugin::SELinuxContainer.new(self)
+              @container_plugin = $OpenShift_ApplicationContainer_Class.new(self)
             end
 
             @container_plugin.create
@@ -168,7 +178,7 @@ module OpenShift
 
           initialize_homedir(@base_dir, @container_dir)
           @container_plugin.enable_fs_limits
-          @container_plugin.reset_openshift_port_proxy
+          @container_plugin.delete_public_endpoints
 
           uuid_lock.flock(File::LOCK_UN)
         end
@@ -201,7 +211,7 @@ module OpenShift
           lock.fcntl(Fcntl::F_SETFD, Fcntl::FD_CLOEXEC)
           lock.flock(File::LOCK_EX)
           OpenShift::Runtime::FrontendHttpServer.new(self).destroy
-          @container_plugin.reset_openshift_port_proxy
+          @container_plugin.delete_public_endpoints
           @container_plugin.destroy
           @container_plugin.disable_fs_limits
 

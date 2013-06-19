@@ -700,11 +700,7 @@ module OpenShift
       # Returns nil on success, or raises an exception if any errors occur: all errors
       # here are considered fatal.
       def create_public_endpoint(cartridge, endpoint, private_ip)
-        proxy = OpenShift::Runtime::FrontendProxyServer.new
-
-        # Add the public-to-private endpoint-mapping to the port proxy
-        public_port = proxy.add(@container.uid, private_ip, endpoint.private_port)
-
+        public_port = @container.create_public_endpoint(private_ip, endpoint.private_port)
         @container.add_env_var(endpoint.public_port_name, public_port)
 
         logger.info("Created public endpoint for cart #{cartridge.name} in gear #{@container.uuid}: "\

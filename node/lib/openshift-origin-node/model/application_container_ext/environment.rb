@@ -182,7 +182,7 @@ module OpenShift
           key_type    = "ssh-rsa" if key_type.to_s.strip.length == 0
           cloud_name  = "OPENSHIFT"
           ssh_comment = "#{cloud_name}-#{@uuid}-#{comment}"
-          shell       = @config.get("GEAR_SHELL") || "/bin/bash"
+          shell       = @container_plugin.gear_shell || "/bin/bash"
           cmd_entry   = "command=\"#{shell}\",no-X11-forwarding #{key_type} #{key} #{ssh_comment}"
 
           [ssh_comment, cmd_entry]

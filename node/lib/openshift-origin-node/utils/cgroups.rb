@@ -14,10 +14,10 @@ module OpenShift
             @uuid = uuid
             @cgpath = "/openshift/#{uuid}"
 
-            out, err, rc = OpenShift::Runtime::Utils::oo_spawn("cgget -a #{@cgpath} >/dev/null")
-            if rc != 0
-              raise ValueError, "User does not exist in cgroups: #{@uuid}"
-            end
+            #out, err, rc = OpenShift::Runtime::Utils::oo_spawn("cgget -a #{@cgpath} >/dev/null")
+            #if rc != 0
+            #  raise ValueError, "User does not exist in cgroups: #{@uuid}"
+            #end
           end
 
           def fetch(key)
@@ -62,26 +62,26 @@ module OpenShift
         end
 
         def self.with_no_cpu_limits(uuid)
-          param = "cpu.cfs_quota_us"
-          attrs = Attrs.new(uuid)
-          full_cpu = attrs["cpu.cfs_period_us"]
-          oldlimit = attrs[param]
-          begin
-            attrs[param]=full_cpu
+          #param = "cpu.cfs_quota_us"
+          #attrs = Attrs.new(uuid)
+          #full_cpu = attrs["cpu.cfs_period_us"]
+          #oldlimit = attrs[param]
+          #begin
+          #  attrs[param]=full_cpu
             yield
-          ensure
-            attrs[param]=oldlimit
-          end
+          #ensure
+          #  attrs[param]=oldlimit
+          #end
         end
 
         def self.disable_cgroups(uuid)
-          OpenShift::Runtime::Utils::oo_spawn("oo-admin-ctl-cgroups stopuser #{uuid}",
-                                     expected_exitstatus: 0)
+          #OpenShift::Runtime::Utils::oo_spawn("oo-admin-ctl-cgroups stopuser #{uuid}",
+          #                           expected_exitstatus: 0)
         end
 
         def self.enable_cgroups(uuid)
-          OpenShift::Runtime::Utils::oo_spawn("oo-admin-ctl-cgroups startuser #{uuid}",
-                                     expected_exitstatus: 0)
+          #OpenShift::Runtime::Utils::oo_spawn("oo-admin-ctl-cgroups startuser #{uuid}",
+          #                           expected_exitstatus: 0)
         end
       end
     end

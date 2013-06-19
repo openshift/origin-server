@@ -104,9 +104,11 @@ begin
   container.create
 rescue OpenShift::Runtime::UserCreationException => e
   $stderr.puts(e.message)
+  $stderr.puts(e.backtrace)
   exit 129
 rescue Exception => e
   $stderr.puts(e.message)
+  $stderr.puts(e.backtrace)
   exit -1
 else
   exit 0
