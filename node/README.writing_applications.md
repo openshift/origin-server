@@ -70,6 +70,9 @@ action hook directory will be checked for an executable file matching the
 specified name. If such a file is present, it will be executed before returning
 control to the process.
 
+Unless otherwise documented, OpenShift generally imposes no implementation requirement
+on action hooks other than they be executable files.
+
 #### Cartridge Control Action Hooks
 
 Cartridges implement a standard set of named control actions which allow them to
@@ -81,38 +84,41 @@ cartridges.
 The following is a list of all possible action hooks executed in association
 with a single cartridge control action. For each control action, a set of `pre`
 and `post` action hooks surround the control action. In the action hook names,
-`{Cartridge-Short-Name}` refers to the `Cartridge-Short-Name` manifest element
-of the cartridge.
+`{Name}` refers to the `Name` cartridge manifest element.
 
 - `start` control action:
   - `pre_start`
-  - `pre_start_{Cartridge-Short-Name}`
+  - `pre_start_{Name}` <sup>[1](#action-hook-note)</sup>
   - `post_start`
-  - `post_start_{Cartridge-Short-Name}`
+  - `post_start_{Name}` <sup>[1](#action-hook-note)</sup>
 - `stop` control action: 
   - `pre_stop`
-  - `pre_stop_{Cartridge-Short-Name}`
+  - `pre_stop_{Name}` <sup>[1](#action-hook-note)</sup>
   - `post_stop`
-  - `post_stop_{Cartridge-Short-Name}`
+  - `post_stop_{Name}` <sup>[1](#action-hook-note)</sup>
 - `reload` control action:
   - `pre_reload`
-  - `pre_reload_{Cartridge-Short-Name}`
+  - `pre_reload_{Name}` <sup>[1](#action-hook-note)</sup>
   - `post_reload`
-  - `post_reload_{Cartridge-Short-Name}`
+  - `post_reload_{Name}` <sup>[1](#action-hook-note)</sup>
 - `restart` control action: 
   - `pre_restart`
-  - `pre_restart_{Cartridge-Short-Name}`
+  - `pre_restart_{Name}` <sup>[1](#action-hook-note)</sup>
   - `post_restart`
-  - `post_restart_{Cartridge-Short-Name}`
+  - `post_restart_{Name}` <sup>[1](#action-hook-note)</sup>
 - `tidy` control action:
   - `pre_tidy`
-  - `pre_tidy_{Cartridge-Short-Name}`
+  - `pre_tidy_{Name}` <sup>[1](#action-hook-note)</sup>
   - `post_tidy`
-  - `post_tidy_{Cartridge-Short-Name}`
+  - `post_tidy_{Name}`<sup>[1](#action-hook-note)</sup>
 
 For details about the control actions (including what they represent and when
 they are called), refer to the [control script documentation](README.writing_cartridges.md#bincontrol)
 in the [Writing Cartridges](README.writing_cartridges.md) guide.
+
+<a name="action-hook-note"/>
+<sup>1</sup> Hook is assumed to be a shell script which is `sourced` in the same execution as the action it
+relates to; this facilitates the modification of the control action's environment (e.g. via `export` statements).
 
 #### Build Action Hooks
 
