@@ -46,6 +46,10 @@ mv %{buildroot}%{cartridgedir}/metadata/manifest.yml.f19 %{buildroot}%{cartridge
 rm %{buildroot}%{cartridgedir}/metadata/manifest.yml.*
 
 %post
+# make local copy of phpMyAdmin
+cp -r %{_datadir}/phpMyAdmin %{cartridgedir}/usr/
+# change the phpMyAdmin config directory
+sed "s|define('CONFIG_DIR', '.*');|define('CONFIG_DIR', getenv('OPENSHIFT_PHPMYADMIN_DIR').'/phpMyAdmin/');|g" -i %{cartridgedir}/usr/phpMyAdmin/libraries/vendor_config.php
 %{_sbindir}/oo-admin-cartridge --action install --source %{cartridgedir}
 
 %files
