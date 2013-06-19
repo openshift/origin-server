@@ -10,11 +10,13 @@ pushd ${OPENSHIFT_TMP_DIR} > /dev/null
     git clone $git_dir git_cache
 
     pushd git_cache > /dev/null
+        prefix_length=`expr length $PWD`
+
         # initialize submodules and pull down source
         git submodule update --init --recursive
 
         # archive and copy the submodules
-        git submodule foreach --recursive "git archive --format=tar HEAD | (cd $target_dir/\$name && tar --warning=no-timestamp -xf -)"
+        git submodule foreach --recursive "git archive --format=tar HEAD | (cd $target_dir/\${PWD:$prefix_length} && tar --warning=no-timestamp -xf -)"
 
     popd > /dev/null
 popd > /dev/null
