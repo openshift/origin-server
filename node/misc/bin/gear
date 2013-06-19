@@ -144,10 +144,17 @@ command :remotedeploy do |c|
 
   c.description = "Run the remotedeploy steps"
   c.option "--init", "Run post_install for new gears"
-  c.option "--hot-deploy", "Perform hot deployment regardless of the presence of the hot_deploy marker in the application Git repo"
+  c.option "--hot-deploy BOOLEAN", "Perform hot deployment according to the specified "\
+           "argument rather than checking for the presence of the hot_deploy marker in the application Git repo"
+
   c.action do |args, options|
     do_command(c, options) do
-      hot_deploy_enabled = options.hot_deploy || file_committed?(HOT_DEPLOY_MARKER)
+      if options.hot_deploy.nil?
+        hot_deploy_enabled = file_committed?(HOT_DEPLOY_MARKER)
+      else
+        hot_deploy_enabled = (options.hot_deploy == true)
+      end
+
       if options.init
         @container.remote_deploy(out: $stdout, err: $stderr, hot_deploy: hot_deploy_enabled, init: true)
       else
