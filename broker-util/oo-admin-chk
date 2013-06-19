@@ -675,7 +675,7 @@ if level >= 1 and Rails.configuration.respond_to?('billing')
     selection = {:fields => ["event"], :timeout => false}
     num_end_events = num_begin_events = 0
     OpenShift::DataStore.find(:usage_records, query, selection) do |urec|
-      next !UsageRecord::EVENTS.values.include?(urec['event'])
+      next if !UsageRecord::EVENTS.values.include?(urec['event'])
       if urec['event'] == UsageRecord::EVENTS[:end]
         num_end_events += 1
       else
@@ -731,7 +731,7 @@ if level >= 1 and Rails.configuration.respond_to?('billing')
     selection = {:fields => ["event"], :timeout => false}
     num_end_events = num_begin_events = 0
     OpenShift::DataStore.find(:usage_records, query, selection) do |urec|
-      next !UsageRecord::EVENTS.values.include?(urec['event'])
+      next if !UsageRecord::EVENTS.values.include?(urec['event'])
       if urec['event'] == UsageRecord::EVENTS[:end]
         num_end_events += 1
       else
@@ -788,7 +788,7 @@ if level >= 1 and Rails.configuration.respond_to?('billing')
     query = {'gear_id' => BSON::ObjectId(gear_id), 'usage_type' => UsageRecord::USAGE_TYPES[:premium_cart]}
     selection = {:fields => ["event", "cart_name"], :timeout => false}
     OpenShift::DataStore.find(:usage_records, query, selection) do |urec|
-      next !UsageRecord::EVENTS.values.include?(urec['event'])
+      next if !UsageRecord::EVENTS.values.include?(urec['event'])
       if urec['event'] == UsageRecord::EVENTS[:end]
         usage_carts.delete(urec['cart_name'])
       else
@@ -838,14 +838,14 @@ if level >= 1 and Rails.configuration.respond_to?('billing')
       missing_urecs << gear_id
     end
   end
-  puts "Checking un-ended records in usage_records collection but not in usage collection and viceversa: " + ((missing_urecs.length > 0) ? "FAIL" : "OK")
+  puts "Checking un-ended records in usage_records collection but not in usage collection and viceversa: " + ((missing_urecs.length > 0) ? "FAIL" : "OK") if verbose
 
   missing_urecs.each do |gear_id|
     print "Re-checking for gear '#{gear_id}'...\t" if verbose
     usage_record_begin_events = 0
     usage_record_end_events = 0
     OpenShift::DataStore.find(:usage_records, {'gear_id' => BSON::ObjectId(gear_id)}, {:fields => ["event"], :timeout => false}) do |urec|
-      next !UsageRecord::EVENTS.values.include?(urec['event'])
+      next if !UsageRecord::EVENTS.values.include?(urec['event'])
       if urec['event'] == UsageRecord::EVENTS[:end]
         usage_record_end_events += 1
       else

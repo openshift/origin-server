@@ -25,9 +25,9 @@ Options:
 -g|--gear
     The gear id to filter the usage data 
 -s|--start
-    The start date (yyyy-mm-dd) to filter the usage data (defaults to start of current month)
+    The start date (yyyy-mm-dd) to filter the usage data (defaults to start of current month in UTC)
 -e|--end
-    The end date (yyyy-mm-dd) to filter the usage data (defaults to the current time)
+    The end date (yyyy-mm-dd) to filter the usage data (defaults to the current time in UTC)
 -h|--help
     Show Usage info
 USAGE
