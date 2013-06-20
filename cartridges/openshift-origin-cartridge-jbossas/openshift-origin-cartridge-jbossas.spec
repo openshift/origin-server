@@ -4,7 +4,7 @@
 
 Summary:       Provides JBossAS7 support
 Name:          openshift-origin-cartridge-jbossas
-Version: 1.3.4
+Version: 1.3.5
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -91,6 +91,13 @@ cp -p %{cartridgedir}/versions/7/modules/postgresql_module.xml /etc/alternatives
 
 
 %changelog
+* Thu Jun 20 2013 Adam Miller <admiller@redhat.com> 1.3.5-1
+- Bug 975708: Fix java7 marker regression (ironcladlou@gmail.com)
+- Merge pull request #2904 from ironcladlou/bz/975794
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 975794: Use install to create volatile environment variables
+  (ironcladlou@gmail.com)
+
 * Wed Jun 19 2013 Adam Miller <admiller@redhat.com> 1.3.4-1
 - Bug 975708: Fix jboss java7 marker regression (ironcladlou@gmail.com)
 
