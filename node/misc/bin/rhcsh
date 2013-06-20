@@ -56,7 +56,7 @@ then
         done
     fi
 
-    path=$(env |grep 'OPENSHIFT_.*_PATH_ELEMENT'| sed 's/^.*=\(.*\)$/\1/'|tr '\n' ':')
+    path=$(env | grep 'OPENSHIFT_.*_PATH_ELEMENT' | sed 's/^.*=\(.*\)$/\1/')
 
     if [ -f $OPENSHIFT_PRIMARY_CARTRIDGE_DIR/env/OPENSHIFT_*_PATH_ELEMENT ]
     then
@@ -68,7 +68,8 @@ then
         load_env /etc/openshift/env/PATH
         path=$path:$PATH
     fi
-    export PATH=$path
+
+    export PATH=$(echo $path | tr '\n' ':' | awk -v RS=':' '{ if (!x[$0]++ && $0!="") {printf s $0; s=":"} }')
 else
   for f in ~/.env/*
   do

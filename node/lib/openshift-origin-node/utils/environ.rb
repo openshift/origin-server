@@ -60,6 +60,8 @@ module OpenShift
 
         elements.unshift env[primary_path] if env[primary_path]
         elements << system_path if system_path
+        elements.reject!(&:empty?)
+        elements = elements.uniq
 
         env['PATH'] = elements.join(':')
         env
