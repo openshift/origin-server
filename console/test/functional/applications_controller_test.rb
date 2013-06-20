@@ -336,6 +336,17 @@ class ApplicationsControllerTest < ActionController::TestCase
     assert_select 'h1', /Application 'idontexist' does not exist/
   end
 
+  test "should result in error message when app creation times out" do
+    with_domain
+    Application.any_instance.expects(:save).raises(ActiveResource::TimeoutError.new('Timeout'))
+    post(:create, {:application => get_post_form})
+    assert app = assigns(:application)
+    assert !app.persisted?
+    assert !flash[:error].empty?
+    assert_match /Application creation is taking longer than expected./i, flash[:error]
+    assert_redirected_to applications_path
+  end
+
   test 'invalid destroy should render page' do
     Application.any_instance.expects(:destroy).returns(false)
     delete :destroy, :id => with_app.name
