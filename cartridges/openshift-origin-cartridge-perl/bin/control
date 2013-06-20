@@ -11,14 +11,15 @@ HTTPD_PID_FILE=$OPENSHIFT_PERL_DIR/run/httpd.pid
 # Functions called from case statement below
 function start() {
   update_httpd_passenv $HTTPD_CFG_FILE
+  ensure_valid_httpd_process "$HTTPD_PID_FILE" "$HTTPD_CFG_FILE"
   /usr/sbin/httpd -C "Include $OPENSHIFT_PERL_DIR/etc/conf.d/*.conf" -f $HTTPD_CFG_FILE -k start
 }
 
 function stop() {
+  ensure_valid_httpd_process "$HTTPD_PID_FILE" "$HTTPD_CFG_FILE"
   if [ -f "$HTTPD_PID_FILE" ]; then
     httpd_pid=`cat "$HTTPD_PID_FILE" 2> /dev/null`
   fi
-  ensure_valid_httpd_process "$HTTPD_PID_FILE" "$HTTPD_CFG_FILE"
   /usr/sbin/httpd -C "Include $OPENSHIFT_PERL_DIR/etc/conf.d/*.conf" -f $HTTPD_CFG_FILE -k stop
   wait_for_stop $httpd_pid
 }
