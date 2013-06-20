@@ -76,14 +76,6 @@ end
 
 $TC_CHECK=false
 
-# Narrow the window where USERS, TC_DATA and ALL_QUOTAS can reflect
-# the system in different states.
-$START_TIME=Time.now
-$USERS=[]
-Etc.passwd { |u| $USERS << u if u.gecos == ENV['GEAR_GECOS'] }
-$TC_DATA = %x[/sbin/tc clas show dev eth0].split("\n").grep(/parent/)
-$ALL_QUOTAS = %x[/usr/sbin/repquota -a].split("\n")
-
 $CONF_DIR="/etc/openshift"
 $NODE_CONF_FILE=File.join($CONF_DIR, "/node.conf")
 $RESOURCE_LIMITS_FILE=File.join($CONF_DIR,"/resource_limits.conf")
@@ -115,38 +107,6 @@ $MINSEM="MINSEM"
 $CGROUP_PASS=true
 $TC_PASS=true
 ###########################
-
-if ENV[$SEBOOL_LIST].nil?
-    $SEBOOL_LIST=DEFAULT_SEBOOL_LIST
-else
-    eputs "WARNING: ENV overrides SEBOOL_LIST"
-end
-
-if ENV[$PACKAGES].nil?
-    $PACKAGES=DEFAULT_PACKAGES
-else
-    eputs "WARNING: ENV overrides PACKAGES"
-end
-
-if ENV[$SERVICES].nil?
-    $SERVICES=DEFAULT_SERVICES
-else
-    eputs "WARNING: ENV overrides SERVICES"
-end
-
-if ENV[$SERVICE_CONTEXTS].nil?
-    $SERVICE_CONTEXTS=DEFAULT_SERVICE_CONTEXTS
-else
-    eputs "WARNING: ENV overrides SERVICE_CONTEXTS"
-end
-
-
-if ENV[$MINSEM].nil?
-    $MINSEM=DEFAULT_MINSEM
-else
-    eputs "WARNING: ENV overrides MINSEM"
-end
-
 
 def eputs(msg)
     $stderr.write("#{msg}\n")
@@ -252,6 +212,49 @@ def load_node_conf
 
     do_fail("No resource limits file: #{$RESOURCE_LIMITS_FILE}") unless File.exists? $RESOURCE_LIMITS_FILE
     source_file($RESOURCE_LIMITS_FILE)
+end
+
+def load_users
+  # Narrow the window where USERS, TC_DATA and ALL_QUOTAS can reflect
+# the system in different states.
+  $START_TIME=Time.now
+  $TC_DATA = %x[/sbin/tc clas show dev eth0].split("\n").grep(/parent/)
+  $ALL_QUOTAS = %x[/usr/sbin/repquota -a].split("\n")
+  $USERS=[]
+  Etc.passwd { |u| $USERS << u if u.gecos == ENV['GEAR_GECOS'] }
+end
+
+def validate_env
+  if ENV[$SEBOOL_LIST].nil?
+      $SEBOOL_LIST=DEFAULT_SEBOOL_LIST
+  else
+      eputs "WARNING: ENV overrides SEBOOL_LIST"
+  end
+
+  if ENV[$PACKAGES].nil?
+      $PACKAGES=DEFAULT_PACKAGES
+  else
+      eputs "WARNING: ENV overrides PACKAGES"
+  end
+
+  if ENV[$SERVICES].nil?
+      $SERVICES=DEFAULT_SERVICES
+  else
+      eputs "WARNING: ENV overrides SERVICES"
+  end
+
+  if ENV[$SERVICE_CONTEXTS].nil?
+      $SERVICE_CONTEXTS=DEFAULT_SERVICE_CONTEXTS
+  else
+      eputs "WARNING: ENV overrides SERVICE_CONTEXTS"
+  end
+
+
+  if ENV[$MINSEM].nil?
+      $MINSEM=DEFAULT_MINSEM
+  else
+      eputs "WARNING: ENV overrides MINSEM"
+  end
 end
 
 def check_node_public_resolution
@@ -814,6 +817,8 @@ end
 if __FILE__ == $0
     $STATUS=0
     load_node_conf
+    load_users
+    validate_env
     check_node_public_resolution
     check_selinux
     check_packages
