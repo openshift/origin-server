@@ -67,12 +67,15 @@ class Application
 
   # This is the current regex for validations for new applications
   APP_NAME_REGEX = /\A[A-Za-z0-9]+\z/
+
   def self.check_name!(name)
     if name.blank? or name !~ APP_NAME_REGEX
       raise Mongoid::Errors::DocumentNotFound.new(Application, nil, [name]) 
     end
     name
   end
+  
+  APP_STATES =[:active, :deactivated]
 
   field :name, type: String
   field :canonical_name, type: String
@@ -91,6 +94,7 @@ class Application
   field :scalable, type: Boolean, default: false
   field :init_git_url, type: String, default: ""
   field :analytics, type: Hash, default: {}
+  field :state, type: String, default: -> { :active }
   embeds_many :component_instances, class_name: ComponentInstance.name
   embeds_many :group_instances, class_name: GroupInstance.name
   embeds_many :app_ssh_keys, class_name: ApplicationSshKey.name
@@ -110,6 +114,8 @@ class Application
     format:   {with: APP_NAME_REGEX, message: "Invalid application name. Name must only contain alphanumeric characters."},
     length:   {maximum: APP_NAME_MAX_LENGTH, minimum: 1, message: "Application name must be a minimum of 1 and maximum of #{APP_NAME_MAX_LENGTH} characters."},
     blacklisted: {message: "Application name is not allowed.  Please choose another."}
+    
+  validates :state, :inclusion => { :in => APP_STATES.map { |s| s.to_s }, :message => "%{value} is not a valid option.  Valid options are #{APP_STATES.join(", ")}." }
   validate :extended_validator
 
   # Returns a map of field to error code for validation failures
@@ -881,6 +887,51 @@ class Application
       r.append gear_output
     end
     status_messages
+  end
+  
+  ##
+  # Deaactivate an application 
+  # Deactivating an application scales down the application to minimum number of gears, stops the application and
+  # deactivates all the remaining gears. No actions can be taken on a deacativated application other than snapshot.
+  # @return [ResultIO] Output from node  
+  def deactivate  
+    result_io = ResultIO.new
+    if self.scalable
+      web_framework_component_instance = self.component_instances.select{ |c| CartridgeCache.find_cartridge(c.cartridge_name,self).categories.include?("web_framework") }.first
+      ginst = group_instances_with_scale.select {|gi| gi._id == web_framework_component_instance.group_instance_id}.first
+      result_io.append(self.scale_by(web_framework_component_instance.group_instance_id, -(ginst.gears.length - ginst.min))) if ginst.gears.length >= ginst.min
+    end
+    result_io.append(self.stop(nil, true))
+    Application.run_in_application_lock(self) do
+      self.group_instances.each do |gi|
+        gi.gears.each do |g|
+          g.deactivate_gear
+        end
+      end
+      self.run_jobs(result_io)
+      self.state = :deactivated
+      self.save
+    end
+    result_io
+  end
+  
+  ##
+  # Reactivate an application 
+  # Reactivating an application reactivates the application gears and starts the application. 
+  # @return [ResultIO] Output from node  
+  def reactivate
+    result_io = ResultIO.new
+    Application.run_in_application_lock(self) do
+      self.group_instances.each do |gi|
+        gi.gears.each do |g|
+          g.reactivate_gear
+        end
+      end
+      self.run_jobs(result_io)
+      self.state = :active
+      self.save
+    end
+    result_io
   end
 
   # Register a DNS alias for the application.

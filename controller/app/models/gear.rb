@@ -93,6 +93,16 @@ class Gear
     result_io
   end
   
+  def deactivate_gear
+    result_io = get_proxy.deactivate(self)
+    result_io
+  end
+  
+  def reactivate_gear
+    result_io = get_proxy.reactivate(self)
+    result_io
+  end
+  
   def register_dns
     dns = OpenShift::DnsService.instance
     begin

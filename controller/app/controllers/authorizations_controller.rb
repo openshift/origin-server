@@ -1,4 +1,5 @@
 class AuthorizationsController < BaseController
+  skip_before_filter :check_user_plan_state
   #
   # Display only non-revoked tokens (includes expired tokens).
   #

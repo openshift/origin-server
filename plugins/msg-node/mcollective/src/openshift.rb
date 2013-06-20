@@ -72,6 +72,7 @@ module MCollective
         Log.instance.info("cartridge_do_action validation = #{request[:cartridge]} #{request[:action]} #{request[:args]}")
         validate :cartridge, /\A[a-zA-Z0-9\.\-\/_]+\z/
         validate :cartridge, :shellsafe
+
         valid_actions = %w(
           app-create
           app-destroy
@@ -129,8 +130,11 @@ module MCollective
           connector-execute
           get-quota
           set-quota
+          gear-deactivate
+          gear-reactivate
         )
         validate :action, /\A#{valid_actions.join("|")}\Z/
+
         validate :action, :shellsafe
         cartridge                  = request[:cartridge]
         action                     = request[:action]
@@ -470,6 +474,16 @@ module MCollective
         with_container_from_args(args) do |container|
           container.force_stop
         end
+      end
+      
+      def oo_gear_deactivate(args)
+        #TODO deactivate gear and return result from node
+        return 0, "GEAR DEACTIVATED"
+      end
+      
+      def oo_gear_reactivate(args)
+        #TODO reactivate gear and return result from node
+        return 0, "GEAR REACTIVATED"
       end
 
 

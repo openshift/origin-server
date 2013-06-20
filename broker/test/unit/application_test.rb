@@ -141,6 +141,24 @@ class ApplicationsTest < ActionDispatch::IntegrationTest #ActiveSupport::TestCas
     request_via_redirect(:get, "/broker/rest/user", {}, headers)
     assert_equal @response.status, 200
   end
+  
+  test "deactivate and reactivate application" do
+    @appname = "test"
+    app = Application.create_app(@appname, [RUBY_VERSION], @domain, "small", true)
+    app = Application.find_by(canonical_name: @appname.downcase, domain_id: @domain._id) rescue nil
+    web_framework_component_instance = app.component_instances.select{ |c| CartridgeCache.find_cartridge(c.cartridge_name).categories.include?("web_framework") }.first
+    app.scale_by(web_framework_component_instance.group_instance_id, 1)
+    app.reload
+    count = app.group_instances.map { |gi| gi.gears }.flatten.count
+    assert_equal count, 2
+    app.deactivate
+    app.reload
+    count = app.group_instances.map { |gi| gi.gears }.flatten.count
+    assert_equal count, 1
+    sleep 30
+    app.reactivate
+    app.destroy_app
+  end
 
   def rest_check(method, resource, params)
     uri = "/domains/#{@namespace}/applications/#{@appname}" + resource
@@ -153,11 +171,11 @@ class ApplicationsTest < ActionDispatch::IntegrationTest #ActiveSupport::TestCas
   end
 
   def teardown
-    @domain.reload
+    @domain.reload if @domain
     @domain.applications.each do |app|
       app.delete
-    end
-    @domain.reload.delete
+    end if @domain
+    @domain.reload.delete if @domain
     @user.reload.delete
     Mocha::Mockery.instance.stubba.unstub_all
   end

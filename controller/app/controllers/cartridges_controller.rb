@@ -3,7 +3,7 @@
 # @api REST
 class CartridgesController < BaseController
   include RestModelHelper
-  skip_before_filter :authenticate_user!
+  skip_before_filter :authenticate_user!, :check_user_plan_state
 
   ##
   # Retrieve details for specific cartridge
