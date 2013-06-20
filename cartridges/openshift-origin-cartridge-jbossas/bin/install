@@ -32,4 +32,4 @@ popd 1> /dev/null
 touch ${OPENSHIFT_JBOSSAS_DIR}/env/OPENSHIFT_JBOSSAS_CLUSTER
 touch ${OPENSHIFT_JBOSSAS_DIR}/env/OPENSHIFT_JBOSSAS_CLUSTER_REMOTING
 
-update-configuration
+update-configuration java7
