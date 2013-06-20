@@ -6,7 +6,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin broker
 Name:          openshift-origin-broker-util
-Version: 1.10.4
+Version: 1.10.5
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -86,6 +86,11 @@ cp man/*.8 %{buildroot}%{_mandir}/man8/
 %{_mandir}/man8/oo-stats.8.gz
 
 %changelog
+* Thu Jun 20 2013 Adam Miller <admiller@redhat.com> 1.10.5-1
+- Merge pull request #2905 from pravisankar/dev/ravi/bug975713
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 975713 - oo-admin-chk fix (rpenta@redhat.com)
+
 * Wed Jun 19 2013 Adam Miller <admiller@redhat.com> 1.10.4-1
 - Bug 975388 - oo-admin-usage fixes (rpenta@redhat.com)
 
