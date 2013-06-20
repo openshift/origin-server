@@ -1,0 +1,26 @@
+#
+#  This file contains a list of globally installed and available npm modules.
+#
+#  To get the actual versions of the modules, please ssh into your
+#  OpenShift app gear instance and run:
+#     npm list -g
+#
+
+#  DB drivers.
+mongodb
+mysql
+pg
+
+#  Other modules (including frameworks, middleware etc).
+async
+connect
+express
+formidable
+generic-pool
+hashish
+mime
+mkdirp
+node-static
+qs
+supervisor
+traverse
