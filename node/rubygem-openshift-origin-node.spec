@@ -16,7 +16,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.10.4
+Version: 1.10.5
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -282,6 +282,15 @@ echo "/usr/bin/oo-trap-user" >> /etc/shells
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Thu Jun 20 2013 Adam Miller <admiller@redhat.com> 1.10.5-1
+- Bug 976173 - oo-* scripts fail on node with ruby LoadError
+  (bleanhar@redhat.com)
+- Bug 975700 - check the httpd pid file for corruption and attempt to fix it.
+  (rmillner@redhat.com)
+- Merge pull request #2903 from ironcladlou/bz/974786
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 974786: Scaled gear hot deploy logic fix (ironcladlou@gmail.com)
+
 * Wed Jun 19 2013 Adam Miller <admiller@redhat.com> 1.10.4-1
 - Hook documentation updates (ironcladlou@gmail.com)
 - Merge pull request #2894 from jwhonce/bug/975183
