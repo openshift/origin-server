@@ -70,6 +70,7 @@ require 'open-uri'
 require 'uri'
 require 'rubygems/package'
 require 'openssl'
+require 'safe_yaml'
 
 $OpenShift_CartridgeRepository_SEMAPHORE = Mutex.new
 
@@ -89,7 +90,8 @@ module OpenShift
     attr_reader :path
 
     def initialize # :nodoc:
-      @path      = CARTRIDGE_REPO_DIR
+      @path           = CARTRIDGE_REPO_DIR
+      @overrides_file = File.join(@path, 'cartridge_version_overrides.yml')
 
       FileUtils.mkpath(@path) unless File.exist? @path
       clear
@@ -150,8 +152,21 @@ module OpenShift
     #   CartridgeRepository.instance['php', '3.5', '0.1']         #=> Cartridge
     #   CartridgeRepository.instance['php', '3.5']                #=> Cartridge
     #   CartridgeRepository.instance['php']                       #=> Cartridge
-                    #
+    #
     def select(cartridge_name, version = '_', cartridge_version = '_')
+      if File.exist?(@overrides_file)
+        begin
+          overrides = YAML.load_file(@overrides_file)
+          override_version = overrides[cartridge_name]
+          if override_version
+            logger.debug { "Overriding cartridge #{cartridge_name} version #{cartridge_version} with #{override_version}"}
+            cartridge_version = override_version
+          end
+        rescue => e
+          raise "The cartridge version overrides file #{@overrides_file} is invalid: #{e.message}"
+        end
+      end
+
       unless exist?(cartridge_name, cartridge_version, version)
         raise KeyError.new("key not found: (#{cartridge_name}, #{version}, #{cartridge_version})")
       end
