@@ -2,12 +2,8 @@
 
 cd ~
 
-if [ -f '.env/CARTRIDGE_VERSION_2' ]; then
-  if [ "$1" == "INCLUDE_GIT" ]; then
-    gear restore --restore-git-repo
-  else
-    gear restore
-  fi
+if [ "$1" == "INCLUDE_GIT" ]; then
+  gear restore --restore-git-repo
 else
-  restore.sh "$@"
+  gear restore
 fi

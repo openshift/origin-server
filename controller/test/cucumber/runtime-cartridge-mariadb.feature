@@ -3,7 +3,6 @@
 Feature: MySQL Application Sub-Cartridge
 
   Scenario: Create Delete one application with a MySQL database
-    Given a v2 default node
     Given a new mock-0.1 type application
 
     When I embed a mariadb-5.5 cartridge into the application

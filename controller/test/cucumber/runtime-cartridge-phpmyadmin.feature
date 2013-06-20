@@ -5,7 +5,6 @@ Feature: phpMyAdmin Embedded Cartridge
   @rhel-only
   Scenario Outline: Add Remove phpMyAdmin to one application
     #Given a mock application, verify addition and removal of v2 phpmyadmin-3.4
-    Given a v2 default node
     Given a new mock-0.1 type application
 
     When I embed a <database> cartridge into the application
