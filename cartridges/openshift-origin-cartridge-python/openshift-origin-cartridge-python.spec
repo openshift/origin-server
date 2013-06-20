@@ -1,7 +1,7 @@
 %global cartridgedir %{_libexecdir}/openshift/cartridges/v2/python
 
 Name:          openshift-origin-cartridge-python
-Version: 0.5.3
+Version: 0.5.4
 Release:       1%{?dist}
 Summary:       Python cartridge
 Group:         Development/Languages
@@ -91,6 +91,10 @@ mv %{buildroot}%{cartridgedir}/metadata/manifest.yml.f19 %{buildroot}%{cartridge
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Thu Jun 20 2013 Adam Miller <admiller@redhat.com> 0.5.4-1
+- Bug 975700 - check the httpd pid file for corruption and attempt to fix it.
+  (rmillner@redhat.com)
+
 * Wed Jun 19 2013 Adam Miller <admiller@redhat.com> 0.5.3-1
 - Merge pull request #2889 from mrunalp/bugs/pymig
   (dmcphers+openshiftbot@redhat.com)
