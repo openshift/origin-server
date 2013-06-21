@@ -206,9 +206,11 @@ class OODiag
       :fedora16 => release.include?('Fedora release 16'),
       :fedora17 => release.include?('Fedora release 17'),
       :fedora18 => release.include?('Fedora release 18'),
+      :fedora19 => release.include?('Fedora release 19'),
       # e.g. Red Hat Enterprise Linux Server release 6.3 (Santiago)
       :rhel => release.include?('Enterprise Linux'),
       :rhel6 => release.include?('Enterprise Linux Server release 6'),
+      :rhel64 => release.include?('Enterprise Linux Server release 6.4'),
       :rhel7 => release.include?('Enterprise Linux Server release 7'),
     }
     return @os_is
@@ -1149,6 +1151,20 @@ class OODiag
       do_warn "There was an error verifying the Broker SSL cert: #{e.message}"
     ensure
       certfile.close!
+    end
+  end
+
+  def test_abrt_addon_python
+    skip_test unless @is_node
+    if @os_is[:rhel64]
+      verbose "Checking for v2 python cart/abrt incompatibility (BZ907449)"
+      rogue_rpms = []
+      if @rpms.has_key?('abrt-addon-python') and @rpms.has_key?('openshift-origin-cartridge-python')
+        rogue_rpms << "abrt-addon-python has a known conflict with openshift-origin-cartridge-python (https://bugzilla.redhat.com/show_bug.cgi?id=907449)"
+      end
+      rogue_rpms.empty? or do_fail <<-ROGUES
+        The following problems were found with your RPMs: \n\t#{ rogue_rpms.join("\n\t") }
+      ROGUES
     end
   end
 end #class OODiag
