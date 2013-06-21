@@ -171,7 +171,7 @@ Ruby cartridge for OpenShift. (Cartridge Format V2)
 %__rm -f %{buildroot}%{cartridgedir}/lib/ruby_context.*
 %__rm -f %{buildroot}%{cartridgedir}/metadata/manifest.yml.*
 
-%post
+%posttrans
 %{_sbindir}/oo-admin-cartridge --action install --source %{cartridgedir}
 
 
