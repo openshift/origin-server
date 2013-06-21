@@ -5,7 +5,7 @@ Description: "Jenkins is a continuous integration (CI) build server that is deep
 Version: '1.4'
 License: MIT license
 License-Url: http://jenkinsci.org/mitlicense
-Cartridge-Version: 0.0.1
+Cartridge-Version: 0.0.2
 Cartridge-Vendor: redhat
 Categories:
   - web_framework
