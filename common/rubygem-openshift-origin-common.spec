@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Common
 Name:          rubygem-%{gem_name}
-Version: 1.10.3
+Version: 1.10.4
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -120,6 +120,11 @@ cp bin/man/*.8 %{buildroot}%{_mandir}/man8/
 %doc %{gem_docdir}
 
 %changelog
+* Fri Jun 21 2013 Adam Miller <admiller@redhat.com> 1.10.4-1
+- <oo-diagnostics> Bug 976874 - Detect abrt-addon-python conflicts
+  (jdetiber@redhat.com)
+- <common> bug 976173 oo-diagnostics requires bundler (lmeyer@redhat.com)
+
 * Mon Jun 17 2013 Adam Miller <admiller@redhat.com> 1.10.3-1
 - First pass at removing v1 cartridges (dmcphers@redhat.com)
 - Merge pull request #2805 from BanzaiMan/dev/hasari/bz972757
