@@ -150,14 +150,16 @@ class ApplicationsController < ConsoleController
     end
     @application.domain = @domain
 
-    if @application.save
-      messages = @application.remote_results
-
-      redirect_to get_started_application_path(@application, :wizard => true), :flash => {:info_pre => messages}
-    else
-      logger.debug @application.errors.inspect
-
-      render 'application_types/show'
+    begin
+      if @application.save
+        messages = @application.remote_results
+        redirect_to get_started_application_path(@application, :wizard => true), :flash => {:info_pre => messages}
+      else
+        logger.debug @application.errors.inspect
+        render 'application_types/show'
+      end
+    rescue ActiveResource::TimeoutError
+      redirect_to applications_path, :flash => {:error => "Application creation is taking longer than expected. Please wait a few minutes, then refresh this page."}
     end
   end
 

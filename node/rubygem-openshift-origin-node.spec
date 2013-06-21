@@ -16,7 +16,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.10.3
+Version: 1.10.5
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -33,6 +33,7 @@ Requires:      %{?scl:%scl_prefix}rubygem(mocha)
 Requires:      %{?scl:%scl_prefix}rubygem(parseconfig)
 Requires:      %{?scl:%scl_prefix}rubygem(rspec)
 Requires:      %{?scl:%scl_prefix}rubygem(safe_yaml)
+Requires:      %{?scl:%scl_prefix}rubygem(rest-client)
 Requires:      %{?scl:%scl_prefix}rubygems
 Requires:      %{?scl:%scl_prefix}ruby(selinux)
 Requires:      cronie
@@ -281,6 +282,35 @@ echo "/usr/bin/oo-trap-user" >> /etc/shells
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Thu Jun 20 2013 Adam Miller <admiller@redhat.com> 1.10.5-1
+- Bug 976173 - oo-* scripts fail on node with ruby LoadError
+  (bleanhar@redhat.com)
+- Bug 975700 - check the httpd pid file for corruption and attempt to fix it.
+  (rmillner@redhat.com)
+- Merge pull request #2903 from ironcladlou/bz/974786
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 974786: Scaled gear hot deploy logic fix (ironcladlou@gmail.com)
+
+* Wed Jun 19 2013 Adam Miller <admiller@redhat.com> 1.10.4-1
+- Hook documentation updates (ironcladlou@gmail.com)
+- Merge pull request #2894 from jwhonce/bug/975183
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #2892 from jwhonce/bug/975611
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #2890 from ironcladlou/dev/push-profiling
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #2886 from pmorie/bugs/975349
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 975183 -  nested submodule repository cannot be found (jhonce@redhat.com)
+- Merge pull request #2884 from fotioslindiakos/BZ975108
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 975611 - Remove cgroup cpu limit during un-idle (jhonce@redhat.com)
+- Optimize gear script for ~50%% Git push overhead reduction
+  (ironcladlou@gmail.com)
+- Fix bug 975349: always use manifest passed to rhc for downloadable cartridges
+  (pmorie@gmail.com)
+- Always display message when do_command fails (fotios@redhat.com)
+
 * Tue Jun 18 2013 Adam Miller <admiller@redhat.com> 1.10.3-1
 - Merge pull request #2878 from pmorie/bugs/975034
   (dmcphers+openshiftbot@redhat.com)

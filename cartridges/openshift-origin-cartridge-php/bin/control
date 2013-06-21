@@ -9,16 +9,17 @@ HTTPD_PID_FILE=$OPENSHIFT_PHP_DIR/run/httpd.pid
 function apache() {
     client_message "$2 Apache+mod_php HTTPD server"
     [ "$1" != "stop" ] && update_httpd_passenv $HTTPD_CFG_FILE
+    ensure_valid_httpd_process "$HTTPD_PID_FILE" "$HTTPD_CFG_FILE"
     /usr/sbin/httpd -C "Include $HTTPD_CFG_DIR/*.conf" -f $HTTPD_CFG_FILE -k $1
     return $?
 }
 
 function stop() {
     client_message "Stopping Apache+mod_php HTTPD server"
+    ensure_valid_httpd_process "$HTTPD_PID_FILE" "$HTTPD_CFG_FILE"
     if [ -f "$HTTPD_PID_FILE" ]; then
         httpd_pid=`cat "$HTTPD_PID_FILE" 2> /dev/null`
     fi
-    ensure_valid_httpd_process "$HTTPD_PID_FILE" "$HTTPD_CFG_FILE"
     /usr/sbin/httpd -C "Include $HTTPD_CFG_DIR/*.conf" -f $HTTPD_CFG_FILE -k stop
     wait_for_stop $httpd_pid
 }

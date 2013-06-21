@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.10.3
+Version: 1.10.5
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -84,6 +84,22 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Thu Jun 20 2013 Adam Miller <admiller@redhat.com> 1.10.5-1
+- Merge pull request #2908 from rajatchopra/master
+  (dmcphers+openshiftbot@redhat.com)
+- quick fix for 972958 - increase lock timeout (rchopra@redhat.com)
+- Merge pull request #2902 from abhgupta/abhgupta-dev
+  (dmcphers+openshiftbot@redhat.com)
+- Fix for bug 975586  - Alowing multiple dashes in alias (abhgupta@redhat.com)
+
+* Wed Jun 19 2013 Adam Miller <admiller@redhat.com> 1.10.4-1
+- Bug 975388 - oo-admin-usage fixes (rpenta@redhat.com)
+- Merge pull request #2887 from rajatchopra/master
+  (dmcphers+openshiftbot@redhat.com)
+- Fix runtime extended tests (dmcphers@redhat.com)
+- fix for bz972514 - handle cases where gear's server id is not set yet
+  (rchopra@redhat.com)
+
 * Tue Jun 18 2013 Adam Miller <admiller@redhat.com> 1.10.3-1
 - Bug 975255 (dmcphers@redhat.com)
 - Bug 965804 (lnader@redhat.com)

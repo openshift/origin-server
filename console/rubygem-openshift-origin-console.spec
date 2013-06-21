@@ -9,7 +9,7 @@
 
 Summary:       OpenShift Origin Management Console
 Name:          rubygem-%{gem_name}
-Version: 1.10.3
+Version: 1.10.5
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -151,6 +151,27 @@ cp -a ./%{gem_dir}/* %{buildroot}%{gem_dir}/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Thu Jun 20 2013 Adam Miller <admiller@redhat.com> 1.10.5-1
+- Merge pull request #2900 from fabianofranz/master
+  (dmcphers+openshiftbot@redhat.com)
+- The console tabs are slightly misaligned (ccoleman@redhat.com)
+- More assertions on app creation timeout tests (ffranz@redhat.com)
+- Now redirecting to My Applications when app creation times out
+  (ffranz@redhat.com)
+- Handling nil exception message (ffranz@redhat.com)
+- Proper timeout error message (ffranz@redhat.com)
+- Bug 967504 - proper timeout (ffranz@redhat.com)
+- Bug 967504 - tests (ffranz@redhat.com)
+- Bug 967504 - handling timeout (ffranz@redhat.com)
+- Bug 967504 - web console now properly handling app creation timeout
+  (ffranz@redhat.com)
+
+* Wed Jun 19 2013 Adam Miller <admiller@redhat.com> 1.10.4-1
+- Merge branch 'master' of github.com:openshift/origin-server into 617dev
+  (sgoodwin@redhat.com)
+- Addition of defaul print specific css from latest bootstrap Updated entire
+  _reset.scss - no impact expected (sgoodwin@redhat.com)
+
 * Mon Jun 17 2013 Adam Miller <admiller@redhat.com> 1.10.3-1
 - Merge pull request #2847 from liggitt/bug_974483_error_page_header
   (dmcphers+openshiftbot@redhat.com)

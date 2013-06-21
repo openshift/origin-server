@@ -7,7 +7,7 @@ Versions: ['2.0']
 License: "Ruby BSDL"
 License-Url: http://www.ruby-lang.org/en/about/license.txt
 Vendor: ruby.org
-Cartridge-Version: 0.0.1
+Cartridge-Version: 0.0.3
 Cartridge-Vendor: redhat
 Categories:
   - service
@@ -23,10 +23,10 @@ Cart-Data:
   - Key: OPENSHIFT_REPO_DIR
     Type: environment
     Description: "Application root directory where application files reside. This directory is reset every time you do a git-push"
-  - Key: OPENSHIFT_INTERNAL_PORT
+  - Key: OPENSHIFT_RUBY_PORT
     Type: environment
     Description: "Internal port to which the web-framework binds to."
-  - Key: OPENSHIFT_INTERNAL_IP
+  - Key: OPENSHIFT_RUBY_IP
     Type: environment
     Description: "Internal IP to which the web-framework binds to."
   - Key: OPENSHIFT_APP_DNS
@@ -90,4 +90,3 @@ Endpoints:
         Options:       { health: true }
 Additional-Control-Actions:
     - threaddump
-Install-Build-Required: false

@@ -6,7 +6,7 @@
 
 Summary:       Provides HA Proxy
 Name:          openshift-origin-cartridge-haproxy
-Version: 0.5.2
+Version: 0.5.3
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -48,6 +48,9 @@ HAProxy cartridge for OpenShift. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Thu Jun 20 2013 Adam Miller <admiller@redhat.com> 0.5.3-1
+- Bug 974786: Scaled gear hot deploy logic fix (ironcladlou@gmail.com)
+
 * Mon Jun 17 2013 Adam Miller <admiller@redhat.com> 0.5.2-1
 - First pass at removing v1 cartridges (dmcphers@redhat.com)
 - Copy over haproxy.cfg template only if it doesn't exist. (mrunalp@gmail.com)

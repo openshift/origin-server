@@ -4,7 +4,7 @@
 
 Summary:       Provides JBossEAP6.0 support
 Name:          openshift-origin-cartridge-jbosseap
-Version: 2.4.3
+Version: 2.4.5
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -87,6 +87,16 @@ cp -p %{cartridgedir}/versions/6.0/modules/postgresql_module.xml /etc/alternativ
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Thu Jun 20 2013 Adam Miller <admiller@redhat.com> 2.4.5-1
+- Bug 975708: Fix java7 marker regression (ironcladlou@gmail.com)
+- Merge pull request #2904 from ironcladlou/bz/975794
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 975794: Use install to create volatile environment variables
+  (ironcladlou@gmail.com)
+
+* Wed Jun 19 2013 Adam Miller <admiller@redhat.com> 2.4.4-1
+- Bug 975708: Fix jboss java7 marker regression (ironcladlou@gmail.com)
+
 * Tue Jun 18 2013 Adam Miller <admiller@redhat.com> 2.4.3-1
 - Merge pull request #2881 from ironcladlou/bz/972979
   (dmcphers+openshiftbot@redhat.com)

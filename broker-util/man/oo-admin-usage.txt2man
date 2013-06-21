@@ -26,10 +26,10 @@ OPTIONS
     The gear id to filter the usage data.
 
   -s|--start start_timeframe
-    The start time (yyyy-mm-dd) to filter the usage data (defaults to start of current month).
+    The start time (yyyy-mm-dd) to filter the usage data (defaults to start of current month in UTC).
 
   -e|--end end_timeframe
-    The end time (yyyy-mm-dd) to filter the usage data (defaults to the current time).
+    The end time (yyyy-mm-dd) to filter the usage data (defaults to the current time in UTC).
 
 EXAMPLE
 
