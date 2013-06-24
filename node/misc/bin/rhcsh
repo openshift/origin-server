@@ -145,7 +145,7 @@ function psql() {
     PGUSER=$pguser \
     PGPASSWORD=$pgpassword \
     PGDATABASE=$pgdatabase \
-    /usr/bin/psql $extra_args "$@"
+    `which psql` $extra_args "$@"
 }
 
 function mongo() {
