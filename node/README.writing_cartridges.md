@@ -873,6 +873,10 @@ system-provided environment variables but before your code is called.
 OpenShift-provided environment variables will be loaded and available
 to be used for all cartridge entry points.
 
+You cannot override system provided variables by creating new copies in your cartridge `env` directory.
+If you attempt to do so, when an application developer attempts to instantiate your cartridge the system
+will raise an exception and refuse to do so.
+
 ### System Provided Variables (Read Only) ###
 
 | Name                | Value                                                                                                                    |
