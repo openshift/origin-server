@@ -9,3 +9,5 @@ locked_files:
 - etc/
 processed_templates:
 - '**/*.erb'
+setup_rewritten:
+- 'versions/**/*'
