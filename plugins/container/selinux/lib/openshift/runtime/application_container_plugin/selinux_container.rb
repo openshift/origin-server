@@ -85,7 +85,7 @@ module OpenShift
           kill_procs
 
           purge_sysvipc
-          delete_public_endpoints
+          delete_all_public_endpoints
 
           if @config.get("CREATE_APP_SYMLINKS").to_i == 1
             Dir.foreach(File.dirname(@container.container_dir)) do |dent|
@@ -201,6 +201,11 @@ Dir(after)    #{@container.uuid}/#{@container.uid} => #{list_home_dir(@container
           public_port = proxy.add(@container.uid, private_ip, private_port)
         end
 
+        def delete_public_endpoints(proxy_mappings)
+          proxy = OpenShift::Runtime::FrontendProxyServer.new
+          proxy.delete_all(proxy_mappings.map{|p| p[:public_port]}, true)
+        end
+
         # Public: Initialize OpenShift Port Proxy for this gear
         #
         # The port proxy range is determined by configuration and must
@@ -215,7 +220,7 @@ Dir(after)    #{@container.uuid}/#{@container.uid} => #{list_home_dir(@container
         # Returns:
         #    true   - port proxy could be initialized properly
         #    false  - port proxy could not be initialized properly
-        def delete_public_endpoints
+        def delete_all_public_endpoints
           proxy_server = FrontendProxyServer.new
           proxy_server.delete_all_for_uid(@container.uid, true)
         end

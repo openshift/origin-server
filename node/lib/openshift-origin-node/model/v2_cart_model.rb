@@ -707,6 +707,24 @@ module OpenShift
         "[#{endpoint.public_port_name}=#{public_port}]")
       end
 
+      def list_proxy_mappings
+        proxied_ports = []
+        gear_env = Utils::Environ.for_gear(@container.container_dir)
+        each_cartridge do |cartridge|
+          cartridge.endpoints.each do |endpoint|
+            next if gear_env[endpoint.public_port_name].nil?
+            proxied_ports << {
+              :private_ip_name  => endpoint.private_ip_name,
+              :public_port_name => endpoint.public_port_name,
+              :private_ip   => gear_env[endpoint.private_ip_name],
+              :private_port => endpoint.private_port,
+              :proxy_port   => gear_env[endpoint.public_port_name],
+            }
+          end
+        end
+        proxied_ports
+      end
+
       # Allocates and assigns private IP/port entries for a cartridge
       # based on endpoint metadata for the cartridge.
       #

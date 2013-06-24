@@ -7,6 +7,7 @@ module OpenShift
       class LibvirtContainer
         include OpenShift::Runtime::Utils::ShellExec
         include OpenShift::Runtime::NodeLogger
+        NODE_PLUGINS_DIR = File.join(CONF_DIR, 'node-plugins.d/')
 
         attr_reader :gear_shell, :mcs_label
 
@@ -17,6 +18,7 @@ module OpenShift
         def initialize(application_container)
           @container  = application_container
           @config     = OpenShift::Config.new
+          @container_config     = OpenShift::Config.new(File.join(NODE_PLUGINS_DIR, "openshift-origin-container-libvirt.conf"))
           @gear_shell = "/usr/bin/nsjoin"
           @mcs_label  = OpenShift::Runtime::Utils::SELinux.get_mcs_label(@container.gid)
 
@@ -76,10 +78,10 @@ module OpenShift
           set_ro_permission_R(@container_metadata)
 
           security_field = "static,label=unconfined_u:system_r:openshift_t:#{@mcs_label}"
-          external_ip_addr = get_nat_ip_address
+          external_ip_addr = "#{get_nat_ip_address}/#{get_nat_ip_mask}"
           external_ip_mask = get_nat_ip_mask
-          route            = @config.get('LIBVIRT_PRIVATE_IP_ROUTE')
-          gw               = @config.get('LIBVIRT_PRIVATE_IP_GW')
+          route            = @container_config.get('LIBVIRT_PRIVATE_IP_ROUTE')
+          gw               = @container_config.get('LIBVIRT_PRIVATE_IP_GW')
 
           cmd = "/usr/bin/virt-sandbox-service create " +
               "-U #{@container.uid} -G #{@container.gid} " +
@@ -144,7 +146,7 @@ module OpenShift
           kill_procs
 
           purge_sysvipc
-          delete_public_endpoints
+          delete_all_public_endpoints
 
           if @config.get("CREATE_APP_SYMLINKS").to_i == 1
             Dir.foreach(File.dirname(@container.container_dir)) do |dent|
@@ -266,11 +268,56 @@ Dir(after)    #{@container.uuid}/#{@container.uid} => #{list_home_dir(@container
         end
 
         def create_public_endpoint(private_ip, private_port)
-          get_open_proxy_port
+          container_ip   = get_nat_ip_address
+          public_port    = get_open_proxy_port
+          node_ip        = @config.get('PUBLIC_IP')
+
+          create_iptables_rules(:add, public_port, container_ip, node_ip, private_ip, private_port)
+
+          public_port
         end
 
-        def delete_public_endpoints
+        def delete_public_endpoints(proxy_mappings)
+          proxy_mappings.each do |mapping|
+            public_port  = mapping[:proxy_port]
+            container_ip = get_nat_ip_address
+            node_ip      = @config.get('PUBLIC_IP')
+            private_ip   = mapping[:private_ip]
+            private_port = mapping[:private_port]
 
+            create_iptables_rules(:delete, public_port, container_ip, node_ip, private_ip, private_port)
+          end
+        end
+
+        # Public: Initialize OpenShift Port Proxy for this gear
+        #
+        # The port proxy range is determined by configuration and must
+        # produce identical results to the abstract cartridge provided
+        # range.
+        #
+        # Examples:
+        # reset_openshift_port_proxy
+        #    => true
+        #    service openshift_port_proxy setproxy 35000 delete 35001 delete etc...
+        #
+        # Returns:
+        #    true   - port proxy could be initialized properly
+        #    false  - port proxy could not be initialized properly
+        def delete_all_public_endpoints
+          delete_public_endpoints(@container.list_proxy_mappings)
+        end
+
+        def recreate_all_public_endpoints
+          delete_all_public_endpoints
+          proxy_mappings.each do |mapping|
+            public_port  = mapping[:proxy_port]
+            container_ip = get_nat_ip_address
+            node_ip      = @config.get('PUBLIC_IP')
+            private_ip   = mapping[:private_ip]
+            private_port = mapping[:private_port]
+
+            create_iptables_rules(:add, public_port, container_ip, node_ip, private_ip, private_port)
+          end
         end
 
         def enable_cgroups
@@ -408,7 +455,7 @@ Dir(after)    #{@container.uuid}/#{@container.uid} => #{list_home_dir(@container
         private
 
         def set_default_route
-          gw = @config.get('LIBVIRT_PRIVATE_IP_GW')
+          gw = @container_config.get('LIBVIRT_PRIVATE_IP_GW')
           out, _, _ = run_in_container_root_context(%{ip route show})
           m = out.match(/default via ([\d\.]+) dev eth0 \n/)
           if !m || m[1] != gw
@@ -440,8 +487,8 @@ Dir(after)    #{@container.uuid}/#{@container.uid} => #{list_home_dir(@container
         end
 
         def get_open_proxy_port
-          interface_data = JSON.parse(File.read(File.join(@container_metadata, "interfaces.json")))
-          used_ports = interface_data.map{|entry| entry[:proxy_port]} || []
+          endpoints = @container.list_proxy_mappings
+          used_ports = endpoints.map{|entry| entry[:proxy_port]}
           port_range.each do |port|
             return port unless used_ports.include? port
           end
@@ -587,11 +634,11 @@ Dir(after)    #{@container.uuid}/#{@container.uid} => #{list_home_dir(@container
         end
 
         def get_nat_ip_address
-          iprange = @config.get('LIBVIRT_PRIVATE_IP_RANGE')
+          iprange = @container_config.get('LIBVIRT_PRIVATE_IP_RANGE')
 
           valid_ips = IPAddr.new(iprange).to_range
           uid_offset = @container.uid.to_i - @uid_begin
-          gw_ip = @config.get('LIBVIRT_PRIVATE_IP_GW')
+          gw_ip = @container_config.get('LIBVIRT_PRIVATE_IP_GW')
 
           #offset to skip address ending in .0
           nat_ip = valid_ips.first(uid_offset + 2).last.to_s
@@ -602,15 +649,57 @@ Dir(after)    #{@container.uuid}/#{@container.uid} => #{list_home_dir(@container
           mask = iprange.split('/')[1]
           mask = dotted_to_cidr(mask) if mask.match('\.')
 
-          "#{nat_ip}/#{get_nat_ip_mask}"
+          nat_ip
         end
 
         def get_nat_ip_mask
-          iprange = @config.get('LIBVIRT_PRIVATE_IP_RANGE')
+          iprange = @container_config.get('LIBVIRT_PRIVATE_IP_RANGE')
           mask = iprange.split('/')[1]
           mask = dotted_to_cidr(mask) if mask.match('\.')
 
           mask
+        end
+
+        def create_iptables_rules(action, public_port, container_ip, node_ip, private_ip, private_port)
+          if action == :add
+            cmd = "iptables -t nat -A PREROUTING " +
+                "-d #{container_ip} -p tcp --dport=#{public_port} " +
+                "-j DNAT --to-destination #{private_ip}:#{private_port};" +
+                "iptables -t nat -A OUTPUT " +
+                "-d #{container_ip} -p tcp --dport=#{public_port} " +
+                "-j DNAT --to-destination #{private_ip}:#{private_port};"
+            run_in_container_root_context(cmd)
+
+            cmd = "firewall-cmd --direct --passthrough ipv4 -t nat -A PREROUTING " +
+                "-d #{node_ip} -p tcp --dport=#{public_port} " +
+                "-j DNAT --to-destination #{container_ip}:#{public_port};" +
+                "firewall-cmd --direct --passthrough ipv4 -t nat -A OUTPUT " +
+                "-d #{node_ip} -p tcp --dport=#{public_port} " +
+                "-j DNAT --to-destination #{container_ip}:#{public_port};" +
+                "firewall-cmd --direct --passthrough ipv4 -t filter -I FORWARD " +
+                "-p tcp --dport #{public_port} -d #{container_ip} -j ACCEPT"
+            run_in_root_context(cmd)
+          end
+
+          if action == :delete
+            cmd = "iptables -t nat -D PREROUTING " +
+                "-d #{container_ip} -p tcp --dport=#{public_port} " +
+                "-j DNAT --to-destination #{private_ip}:#{private_port};" +
+                "iptables -t nat -D OUTPUT " +
+                "-d #{container_ip} -p tcp --dport=#{public_port} " +
+                "-j DNAT --to-destination #{private_ip}:#{private_port};"
+            run_in_container_root_context(cmd)
+
+            cmd = "firewall-cmd --direct --passthrough ipv4 -t nat -D PREROUTING " +
+                "-d #{node_ip} -p tcp --dport=#{public_port} " +
+                "-j DNAT --to-destination #{container_ip}:#{public_port};" +
+                "firewall-cmd --direct --passthrough ipv4 -t nat -D OUTPUT " +
+                "-d #{node_ip} -p tcp --dport=#{public_port} " +
+                "-j DNAT --to-destination #{container_ip}:#{public_port};" +
+                "firewall-cmd --direct --passthrough ipv4 -t filter -D FORWARD " +
+                "-p tcp --dport #{public_port} -d #{container_ip} -j ACCEPT"
+            run_in_root_context(cmd)
+          end
         end
       end
     end

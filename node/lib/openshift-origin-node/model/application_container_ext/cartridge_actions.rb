@@ -86,11 +86,9 @@ module OpenShift
         # Returns nil on success, or raises an exception if any errors occur: all errors here
         # are considered fatal.
         def create_public_endpoints(cart_name)
-          env  = Utils::Environ::for_gear(@container_dir)
           cart = @cartridge_model.get_cartridge(cart_name)
 
-          proxy = OpenShift::Runtime::FrontendProxyServer.new
-
+          env  = Utils::Environ::for_gear(@container_dir)
           # TODO: better error handling
           cart.public_endpoints.each do |endpoint|
             # Load the private IP from the gear
@@ -101,13 +99,16 @@ module OpenShift
             "required to create public endpoint #{endpoint.public_port_name}"
             end
 
-            # Attempt the actual proxy mapping assignment
-            public_port = proxy.add(@uid, private_ip, endpoint.private_port)
+            public_port = create_public_endpoint(private_ip, endpoint.private_port)
             add_env_var(endpoint.public_port_name, public_port)
 
             logger.info("Created public endpoint for cart #{cart.name} in gear #{@uuid}: "\
           "[#{endpoint.public_port_name}=#{public_port}]")
           end
+        end
+
+        def create_public_endpoint(private_ip, private_port)
+          @container_plugin.create_public_endpoint(private_ip, private_port)
         end
 
         # Deletes all public endpoints for the given cart. Public port mappings are
@@ -119,39 +120,25 @@ module OpenShift
         def delete_public_endpoints(cart_name)
           env  = Utils::Environ::for_gear(@container_dir)
           cart = @cartridge_model.get_cartridge(cart_name)
-
-          proxy = OpenShift::Runtime::FrontendProxyServer.new
-
-          public_ports     = []
-          public_port_vars = []
-
-          cart.public_endpoints.each do |endpoint|
-            # Load the private IP from the gear
-            private_ip = env[endpoint.private_ip_name]
-
-            public_port_vars << endpoint.public_port_name
-
-            public_port = proxy.find_mapped_proxy_port(@uid, private_ip, endpoint.private_port)
-
-            public_ports << public_port unless public_port == nil
-          end
+          proxy_mappings = @cartridge_model.list_proxy_mappings
 
           begin
             # Remove the proxy entries
-            rc = proxy.delete_all(public_ports, true)
+            @container_plugin.delete_public_endpoints(proxy_mappings)
+
             logger.info("Deleted all public endpoints for cart #{cart.name} in gear #{@uuid}\n"\
-          "Endpoints: #{public_port_vars}\n"\
-          "Public ports: #{public_ports}")
+              "Endpoints: #{proxy_mappings.map{|p| p[:public_port_name]}}\n"\
+              "Public ports: #{proxy_mappings.map{|p| p[:public_port]}}")
           rescue => e
             logger.warn(%Q{Couldn't delete all public endpoints for cart #{cart.name} in gear #{@uuid}: #{e.message}
-          Endpoints: #{public_port_vars}
-          Public ports: #{public_ports}
-                        #{e.backtrace}
-                        })
+              "Endpoints: #{proxy_mappings.map{|p| p[:public_port_name]}}\n"\
+              "Public ports: #{proxy_mappings.map{|p| p[:public_port]}}\n"\
+              #{e.backtrace}
+            })
           end
 
           # Clean up the environment variables
-          public_port_vars.each { |var| remove_env_var(var) }
+          proxy_mappings.map{|p| remove_env_var(p[:public_port_name])}
         end
 
         def connector_execute(cart_name, pub_cart_name, connector_type, connector, args)

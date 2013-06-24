@@ -138,10 +138,6 @@ module OpenShift
         @container_plugin.get_ip_addr(host_id)
       end
 
-      def create_public_endpoint(private_ip, private_port)
-        @container_plugin.create_public_endpoint(private_ip, private_port)
-      end
-
       # create gear
       #
       # - model/unix_user.rb
@@ -178,7 +174,7 @@ module OpenShift
 
           initialize_homedir(@base_dir, @container_dir)
           @container_plugin.enable_fs_limits
-          @container_plugin.delete_public_endpoints
+          @container_plugin.delete_all_public_endpoints
 
           uuid_lock.flock(File::LOCK_UN)
         end
@@ -211,7 +207,7 @@ module OpenShift
           lock.fcntl(Fcntl::F_SETFD, Fcntl::FD_CLOEXEC)
           lock.flock(File::LOCK_EX)
           OpenShift::Runtime::FrontendHttpServer.new(self).destroy
-          @container_plugin.delete_public_endpoints
+          @container_plugin.delete_all_public_endpoints
           @container_plugin.destroy
           @container_plugin.disable_fs_limits
 
@@ -496,6 +492,10 @@ module OpenShift
         end
 
         Process.detach(pid)
+      end
+
+      def list_proxy_mappings
+        @cartridge_model.list_proxy_mappings
       end
 
       #
