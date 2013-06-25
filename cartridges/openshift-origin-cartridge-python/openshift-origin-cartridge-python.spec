@@ -1,7 +1,7 @@
 %global cartridgedir %{_libexecdir}/openshift/cartridges/v2/python
 
 Name:          openshift-origin-cartridge-python
-Version: 0.6.0
+Version: 0.6.1
 Release:       1%{?dist}
 Summary:       Python cartridge
 Group:         Development/Languages
@@ -91,6 +91,9 @@ mv %{buildroot}%{cartridgedir}/metadata/manifest.yml.f19 %{buildroot}%{cartridge
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Tue Jun 25 2013 Adam Miller <admiller@redhat.com> 0.6.1-1
+- bump_minor_versions for sprint 30 (admiller@redhat.com)
+
 * Mon Jun 24 2013 Adam Miller <admiller@redhat.com> 0.5.6-1
 - Merge pull request #2921 from jwhonce/wip/cartridge_change_audit
   (dmcphers+openshiftbot@redhat.com)
