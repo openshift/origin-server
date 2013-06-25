@@ -73,32 +73,38 @@
 
       - if @alias.has_private_ssl_certificate?
         %p
-          Your alias already have a SSL Certificate attached. Uploading a new certificate will override the existing one.
+          Your alias already has an SSL Certificate attached. Uploading a new certificate will override the existing one.
       - else
         %p
-          Optionally upload a SSL certificate for your custom domain alias to allow secure HTTPS communication with your app.
-
-      .file.optional.control-group
+          Optionally upload an SSL certificate for your custom domain alias to allow secure HTTPS communication with your app.
+      - e = @alias.errors
+      = control_group(e.has_key?(:certificate_file)) do
         %label.control-label{:for => 'certificate_file'} 
           SSL Certificate
           %abbr{:title => 'required'} *
         .controls
           = f.file_field :certificate_file, :id => 'certificate_file', :disabled => !@private_ssl_certificates_supported 
+          = f.inline_errors_for :certificate_file
+        .controls
           %p.help-block Certificate files must be Base64 PEM-encoded and typically have a .crt or .pem extension. You may combine multiple certificates and certificate chains in a single file, but the RSA or DSA private key must always be provided in a separate file.
 
-      .file.optional.control-group
+      = control_group(e.has_key?(:certificate_chain_file)) do
         %label.control-label{:for => 'certificate_chain_file'} 
           SSL Certificate Chain
         .controls
           = f.file_field :certificate_chain_file, :id => 'certificate_chain_file', :disabled => !@private_ssl_certificates_supported 
+          = f.inline_errors_for :certificate_chain_file
+        .controls
           %p.help-block  Optionally you can provide a certificate chain/bundle in a separate PEM-encoded file.
 
-      .file.optional.control-group
+      = control_group(e.has_key?(:certificate_private_key_file)) do
         %label.control-label{:for => 'certificate_private_key_file'} 
           Certificate Private Key
           %abbr{:title => 'required'} *
         .controls
           = f.file_field :certificate_private_key_file, :id => 'certificate_private_key_file', :disabled => !@private_ssl_certificates_supported 
+          = f.inline_errors_for :certificate_private_key_file
+        .controls
           %p.help-block RSA or DSA private key file for the root certificate in PEM-encoded format.
 
       .string.optional.control-group

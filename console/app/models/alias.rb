@@ -16,6 +16,7 @@ class Alias < RestApi::Base
 
   custom_id :id
 
+  # Optional accessors for form upload
   attr_accessor :certificate_file, :certificate_chain_file, :certificate_private_key_file
 
   belongs_to :application
@@ -26,11 +27,33 @@ class Alias < RestApi::Base
   alias_attribute :certificate_private_key, :private_key
   alias_attribute :certificate_pass_phrase, :pass_phrase
 
-  def normalize_certificate_content!
-    self.ssl_certificate = File.read(@certificate_file.path) if !@certificate_file.nil?
-    self.ssl_certificate << "\n" << File.read(@certificate_chain_file.path) if !@certificate_file.nil? && !@certificate_chain_file.nil?
-    self.private_key = File.read(@certificate_private_key_file.path) if !@certificate_private_key_file.nil?
-    @certificate_file, @certificate_chain_file, @certificate_private_key_file = nil, nil, nil
+  validates_presence_of :certificate_file, :message => "Required if a certificate chain or private key file is selected.", :if => lambda { |a| a.certificate_chain_file.present? || a.certificate_private_key_file.present? }
+  validates :certificate_file, :length => {:minimum => 1, :message => "SSL certificate file was empty."}, :allow_nil => true
+
+  validates_presence_of :certificate_private_key_file, :message => "Required if a certificate or certificate chain file is selected.", :if => lambda { |a| a.certificate_chain_file.present? || a.certificate_file.present? }
+  validates :certificate_private_key_file, :length => {:minimum => 1, :message => "Certificate private key file was empty."}, :allow_nil => true
+  
+  validates :certificate_chain_file, :length => {:minimum => 1, :message => "SSL certificate chain file was empty."}, :allow_nil => true
+
+  def certificate_file=(value)
+    @certificate_file = value.present? ? File.read(value.path) : nil;
+    recreate_ssl_certificate
+  end
+
+  def certificate_chain_file=(value)
+    @certificate_chain_file = value.present? ? File.read(value.path) : nil;
+    recreate_ssl_certificate
+  end
+
+  def recreate_ssl_certificate
+    if !@certificate_file.nil?
+      self.ssl_certificate = @certificate_file
+      self.ssl_certificate << "\n" << @certificate_chain_file unless @certificate_chain_file.nil?
+    end
+  end
+
+  def certificate_private_key_file=(value)
+    self.private_key = @certificate_private_key_file = value.present? ? File.read(value.path) : nil;
   end
 
   def has_private_ssl_certificate?
