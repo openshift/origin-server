@@ -8,14 +8,10 @@ module CommandHelper
   def getenv(uuid, var, cart=nil)
     result = ''
 
-    if $v2_node
-      if cart
-        result = IO.read("/var/lib/openshift/#{uuid}/#{cart}/env/#{var}").chomp
-      else
-        result = IO.read("/var/lib/openshift/#{uuid}/.env/#{var}").chomp
-      end
+    if cart
+      result = IO.read("/var/lib/openshift/#{uuid}/#{cart}/env/#{var}").chomp
     else
-      result = run_stdout("source /var/lib/openshift/#{uuid}/.env/#{var};echo $#{var}").chomp
+      result = IO.read("/var/lib/openshift/#{uuid}/.env/#{var}").chomp
     end
 
     result
