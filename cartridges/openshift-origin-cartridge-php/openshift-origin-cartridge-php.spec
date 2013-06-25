@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/openshift/cartridges/v2/php
 
 Name:          openshift-origin-cartridge-php
-Version: 0.6.0
+Version: 0.6.1
 Release:       1%{?dist}
 Summary:       Php cartridge
 Group:         Development/Languages
@@ -78,6 +78,9 @@ rm %{buildroot}%{cartridgedir}/metadata/manifest.yml.*
 
 
 %changelog
+* Tue Jun 25 2013 Adam Miller <admiller@redhat.com> 0.6.1-1
+- bump_minor_versions for sprint 30 (admiller@redhat.com)
+
 * Thu Jun 20 2013 Adam Miller <admiller@redhat.com> 0.5.3-1
 - Bug 975700 - check the httpd pid file for corruption and attempt to fix it.
   (rmillner@redhat.com)
