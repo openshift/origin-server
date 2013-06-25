@@ -8,7 +8,7 @@
 
 Summary:       Common msg components for OpenShift broker and node
 Name:          openshift-origin-msg-common
-Version: 1.10.3
+Version: 1.11.0
 Release:       1%{?dist}
 License:       ASL 2.0
 URL:           http://www.openshift.com

@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/openshift/cartridges/v2/php
 
 Name:          openshift-origin-cartridge-php
-Version: 0.5.3
+Version: 0.6.0
 Release:       1%{?dist}
 Summary:       Php cartridge
 Group:         Development/Languages
