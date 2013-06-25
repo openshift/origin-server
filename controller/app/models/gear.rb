@@ -29,7 +29,6 @@ class Gear
     super(attrs, options)
     self._id = custom_id unless custom_id.nil?
     self.uuid = self._id.to_s if self.uuid=="" or self.uuid.nil?
-    #@TODO: Remove when typeless gears is completed
     if app_dns
       self.name = group_instance.application.name if self.name=="" or self.name.nil?
     else

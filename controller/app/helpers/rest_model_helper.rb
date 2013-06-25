@@ -1,4 +1,27 @@
 module RestModelHelper
+  def get_rest_user(cloud_user)
+    if requested_api_version == 1.0
+      user = RestUser10.new(cloud_user, get_url, nolinks)
+    else
+      user = RestUser.new(cloud_user, get_url, nolinks)
+    end
+    user
+  end
+
+  # Creates a new [RestDomain] or [RestDomain10] based on the requested API version.
+  #
+  # @param [Domain] domain The Domain object
+  # @param [CloudUser] owner of the Domain
+  # @return [RestDomain] REST object for API version > 1.0
+  # @return [RestDomain10] REST object for API version == 1.0
+  def get_rest_domain(domain)
+    if requested_api_version == 1.0
+      RestDomain10.new(domain, @cloud_user, get_url, nolinks)
+    else
+      RestDomain.new(domain, @cloud_user, get_url, nolinks)
+    end
+  end
+
   def get_rest_application(application, include_cartridges=false, applications=nil)
     if requested_api_version == 1.0
         app = RestApplication10.new(application, @domain, get_url, nolinks, applications)
@@ -21,16 +44,16 @@ module RestModelHelper
       component_instances = group_instance.all_component_instances
       component_instances.each do |component_instance|
         if requested_api_version == 1.0
-          cartridges << get_rest_cartridge(application, component_instance, group_instances, application.group_overrides) if component_instance.is_embeddable?
+          cartridges << get_embedded_rest_cartridge(application, component_instance, group_instances, application.group_overrides) if component_instance.is_embeddable?
         else
-          cartridges << get_rest_cartridge(application, component_instance, group_instances, application.group_overrides)
+          cartridges << get_embedded_rest_cartridge(application, component_instance, group_instances, application.group_overrides)
         end
       end
     end
     cartridges
   end
 
-  def get_rest_cartridge(application, component_instance, group_instances_with_scale, group_overrides, include_status_messages=false)
+  def get_embedded_rest_cartridge(application, component_instance, group_instances_with_scale, group_overrides, include_status_messages=false)
     group_instance = group_instances_with_scale.select{ |go| go.all_component_instances.include? component_instance }[0]
     group_component_instances = group_instance.all_component_instances
     colocated_instances = group_component_instances - [component_instance]
@@ -50,7 +73,16 @@ module RestModelHelper
       RestEmbeddedCartridge.new(cart, comp, application, @domain, component_instance, colocated_instances, scale, get_url, messages, nolinks)
     end
   end
-  
+ 
+  def get_rest_cartridge(cartridge)
+    if requested_api_version == 1.0
+      cart = RestCartridge10.new(cartridge)
+    else
+      cart = RestCartridge.new(cartridge)
+    end
+    cart
+  end
+ 
   def get_rest_alias(al1as)
      RestAlias.new(@application, @domain, al1as, get_url, nolinks)
   end

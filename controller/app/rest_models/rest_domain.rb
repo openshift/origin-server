@@ -37,7 +37,7 @@ class RestDomain < OpenShift::Model
         "LIST_APPLICATIONS" => Link.new("List applications", "GET", URI::join(url, "domains/#{id}/applications")),
         "ADD_APPLICATION" => Link.new("Create new application", "POST", URI::join(url, "domains/#{id}/applications"), 
           [Param.new("name", "string", "Name of the application",nil,blacklisted_words)], 
-          [OptionalParam.new("cartridges", "array", "Array of one or more cartridge names. i.e. [\"php-5.3\", \"mongodb-2.2\"]", carts),
+          [OptionalParam.new("cartridges", "array", "Array of one or more cartridge names", carts),
           OptionalParam.new("scale", "boolean", "Mark application as scalable", [true, false], false),
           OptionalParam.new("gear_profile", "string", "The size of the gear", valid_sizes, valid_sizes[0]),
           OptionalParam.new("initial_git_url", "string", "A URL to a Git source code repository that will be the basis for this application.", ['*', OpenShift::Git::EMPTY_CLONE_SPEC]),

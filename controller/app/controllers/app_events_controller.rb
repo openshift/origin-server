@@ -92,8 +92,6 @@ class AppEventsController < BaseController
         end
     rescue OpenShift::LockUnavailableException => e
       return render_error(:service_unavailable, "Application is currently busy performing another operation. Please try again in a minute.", e.code)
-    rescue OpenShift::UserException => uex
-      return render_error(:unprocessable_entity, uex.message, uex.code)
     rescue Exception => e
       return render_exception(e)
     end

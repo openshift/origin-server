@@ -58,11 +58,11 @@ module OpenShift
         capability_gear_sizes = user_capabilities['gear_sizes'] if user_capabilities.has_key?('gear_sizes')
 
         if user.auth_method == :broker_auth
-          return ["small", "medium"] | capability_gear_sizes
+          return Rails.configuration.openshift[:gear_sizes] | capability_gear_sizes
         elsif !capability_gear_sizes.nil? and !capability_gear_sizes.empty?
           return capability_gear_sizes
         else
-          return ["small"]
+          return Rails.configuration.openshift[:default_gear_capabilities]
         end
       end
 

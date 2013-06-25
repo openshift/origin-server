@@ -177,8 +177,6 @@ def check_nodes_cartridges
     api_carts = JSON.parse(RestClient.get('http://localhost:8080/broker/rest/cartridges.json'))
     api_carts = api_carts["data"].map {|cart| cart["name"]}
     verbose "API reports carts: #{api_carts.join '|'}"
-    # remove abstract_carts which don't show in the API
-    all_carts.reject! {|cart| cart.start_with? "abstract"}
 
     cache_clear_command = "bundle exec rake tmp:clear"
     cache_clear_command = "scl enable ruby193 \"#{cache_clear_command}\"" if ENV["X_SCLS"] =~ /ruby193/
