@@ -632,23 +632,6 @@ def check_system_httpd_configs
           rescue
           end
         }
-
-        if is_framework && !has_websocket
-          hook = File.join(p, 'info', 'hooks', 'deploy-httpd-proxy')
-          deploy = File.join(p, 'info', 'bin', 'deploy_httpd_proxy.sh')
-          alt_deploy = File.join(ENV['CARTRIDGE_BASE_PATH'], 'abstract', 'info', 'bin', 'deploy_httpd_proxy.sh')
-          begin
-            hookcall = File.read(hook)
-            begin
-              hookcall += File.read(deploy)
-            rescue Errno::ENOENT
-              hookcall += File.read(alt_deploy)
-            end
-            hookcall.gsub!(/\#.*$/, '')
-            has_websocket |= hookcall.include?('--websocket')
-          rescue
-          end
-        end
       }
 
       if has_framework and not httpconfs['nodes.txt'].has_key?(fqdn)

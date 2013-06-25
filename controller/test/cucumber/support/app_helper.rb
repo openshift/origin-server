@@ -76,15 +76,9 @@ module AppHelper
     end
 
     def update_jenkins_info
-      if File.exists?("/var/lib/openshift/#{@uid}/.env/CARTRIDGE_VERSION_2")
-        @jenkins_user     = IO.read("/var/lib/openshift/#{@uid}/.env/JENKINS_USERNAME").chomp
-        @jenkins_password = IO.read("/var/lib/openshift/#{@uid}/.env/JENKINS_PASSWORD").chomp
-        @jenkins_url      = IO.read("/var/lib/openshift/#{@uid}/.env/JENKINS_URL").chomp
-      else
-        @jenkins_user     = `source /var/lib/openshift/#{@uid}/.env/JENKINS_USERNAME;echo $JENKINS_USERNAME`.chomp!
-        @jenkins_password = `source /var/lib/openshift/#{@uid}/.env/JENKINS_PASSWORD;echo $JENKINS_PASSWORD`.chomp!
-        @jenkins_url      = `source /var/lib/openshift/#{@uid}/.env/JENKINS_URL;echo $JENKINS_URL`.chomp!
-      end
+      @jenkins_user     = IO.read("/var/lib/openshift/#{@uid}/.env/JENKINS_USERNAME").chomp
+      @jenkins_password = IO.read("/var/lib/openshift/#{@uid}/.env/JENKINS_PASSWORD").chomp
+      @jenkins_url      = IO.read("/var/lib/openshift/#{@uid}/.env/JENKINS_URL").chomp
 
       @jenkins_job_url = "#{@jenkins_url}job/#{@name}-build/"
       @jenkins_build   = "curl -ksS -X GET #{@jenkins_job_url}api/json --user '#{@jenkins_user}:#{@jenkins_password}'"
