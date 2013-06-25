@@ -105,6 +105,11 @@ class ApplicationRepositoryFuncTest < OpenShift::NodeTestCase
     assert_equal 0, stat.uid, 'Error: Git hook post-receive not owned by root'
   end
 
+  def assert_repo_reset(repo)
+    reflog = Dir.chdir(repo.path){ `git reflog | head -1` }
+    assert reflog.include?("reset: moving to HEAD~1"), "Repository was not reset or reflog was not enabled (#{reflog})"
+  end
+
   def test_new
     repo = OpenShift::ApplicationRepository.new(@user)
     refute_nil repo
@@ -198,16 +203,76 @@ class ApplicationRepositoryFuncTest < OpenShift::NodeTestCase
     assert_bare_repository(repo)
   end
 
-  def test_from_ssh_url
-    e = assert_raise(OpenShift::Utils::ShellExecutionException) do
-      repo = OpenShift::ApplicationRepository.new(@user)
-      repo.destroy
-      repo.populate_from_url(@cartridge_name, 'git@github.com:jwhonce/origin-server.git')
+  def test_from_url_with_reset
+    create_template(File.join(@cartridge_home, 'template', 'perl'))
+    create_bare(File.join(@cartridge_home, 'template'))
+
+    cartridge_template_git = File.join(@cartridge_home, 'template.git')
+    assert_path_exist cartridge_template_git
+    refute_path_exist File.join(@cartridge_home, 'template')
+    cartridge_template_url = "file://#{cartridge_template_git}#HEAD~1"
+
+    expected_path = File.join(@user.homedir, 'git', @user.app_name + '.git')
+
+    repo = OpenShift::ApplicationRepository.new(@user)
+    repo.destroy
+
+    begin
+      repo.populate_from_url(@cartridge_name, cartridge_template_url)
+    rescue OpenShift::Utils::ShellExecutionException => e
+      puts %Q{
+        Failed to create git repo from cartridge template: rc(#{e.rc})
+        stdout ==> #{e.stdout}
+        stderr ==> #{e.stderr}
+           #{e.backtrace.join("\n")}}
+      raise
     end
 
-    assert_equal 130, e.rc
-    assert e.message.start_with?('CLIENT_ERROR:')
+    assert_equal expected_path, repo.path
+    assert_bare_repository(repo)
+    assert_repo_reset(repo)
   end
+
+  def test_from_ssh_url
+    expected_path = File.join(@user.homedir, 'git', @user.app_name + '.git')
+
+    repo = OpenShift::ApplicationRepository.new(@user)
+    repo.destroy
+    begin
+      repo.populate_from_url(@cartridge_name, 'git@github.com:openshift/downloadable-mock.git')
+    rescue OpenShift::Utils::ShellExecutionException => e
+      puts %Q{
+        Failed to create git repo from cartridge template: rc(#{e.rc})
+        stdout ==> #{e.stdout}
+        stderr ==> #{e.stderr}
+           #{e.backtrace.join("\n")}}
+      raise
+    end    
+
+    assert_equal expected_path, repo.path
+    assert_bare_repository(repo)
+  end
+
+  def test_from_ssh_url_with_reset
+    expected_path = File.join(@user.homedir, 'git', @user.app_name + '.git')
+
+    repo = OpenShift::ApplicationRepository.new(@user)
+    repo.destroy
+    begin
+      repo.populate_from_url(@cartridge_name, 'git@github.com:openshift/downloadable-mock.git#HEAD~1')
+    rescue OpenShift::Utils::ShellExecutionException => e
+      puts %Q{
+        Failed to create git repo from cartridge template: rc(#{e.rc})
+        stdout ==> #{e.stdout}
+        stderr ==> #{e.stderr}
+           #{e.backtrace.join("\n")}}
+      raise
+    end    
+
+    assert_equal expected_path, repo.path
+    assert_bare_repository(repo)
+    assert_repo_reset(repo)
+  end  
 
   def test_source_usr
     refute_path_exist File.join(@cartridge_home, 'template.git')
@@ -370,6 +435,9 @@ git config user.email "mocker@example.com";
 git config user.name "Mock Template builder";
 git add -f .;
 git </dev/null commit -a -m "Creating mocking template" 2>&1;
+touch secondcommit
+git add -f .;
+git </dev/null commit -a -m "Second commit" 2>&1;
 cd ..;
 git </dev/null clone --bare --no-hardlinks template template.git 2>&1;
 chown -R #{@user.uid}:#{@user.uid} template template.git;
