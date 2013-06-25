@@ -134,6 +134,8 @@ class ApplicationsController < BaseController
       result = @application.destroy_app
     rescue OpenShift::LockUnavailableException => e
       return render_error(:service_unavailable, "Application is currently busy performing another operation. Please try again in a minute.", e.code)
+    rescue Exception => e
+      return render_exception(e)
     end
 
     status = requested_api_version <= 1.4 ? :no_content : :ok
