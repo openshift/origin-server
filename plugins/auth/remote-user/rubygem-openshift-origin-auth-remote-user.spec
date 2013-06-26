@@ -95,7 +95,13 @@ cp conf/openshift-origin-auth-remote-user.conf.example %{buildroot}/etc/openshif
 
 if [ $1 -ne 1 ] # this is an update; fix the previously configured realm.
 then
-  sed -i -e 's/AuthName.*/AuthName "OpenShift Broker API"/' /var/www/openshift/broker/httpd/conf.d/openshift-origin-auth-remote-user.conf
+  conf='/var/www/openshift/broker/httpd/conf.d/openshift-origin-auth-remote-user.conf'
+  # The configuration file may not be present if the plug-in was installed
+  # but never enabled.
+  if [ -e "$conf" ]
+  then
+    sed -i -e 's/AuthName.*/AuthName "OpenShift Broker API"/' "$conf"
+  fi
 fi
 
 %changelog
