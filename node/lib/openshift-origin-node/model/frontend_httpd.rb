@@ -179,7 +179,7 @@ module OpenShift
         # Last ditch, attempt to infer from the gear itself
         if (@container_name.to_s == "") or (@namespace.to_s == "")
           begin
-            env = Utils::Environ.for_gear(File.join(@config.get("GEAR_BASE_DIR"), @container_uuid))
+            env = Utils::Environ.for_gear(PathUtils.join(@config.get("GEAR_BASE_DIR"), @container_uuid))
             @fqdn = clean_server_name(env['OPENSHIFT_GEAR_DNS'])
             @container_name = env['OPENSHIFT_GEAR_NAME']
             @namespace = env['OPENSHIFT_GEAR_DNS'].sub(/\..*$/,"").sub(/^.*\-/,"")
@@ -231,7 +231,7 @@ module OpenShift
 
         # Clean up SSL certs and legacy node configuration
         ApacheDBAliases.open(ApacheDBAliases::WRCREAT) do
-          paths = Dir.glob(File.join(@basedir, "#{container_uuid}_*"))
+          paths = Dir.glob(PathUtils.join(@basedir, "#{container_uuid}_*"))
           FileUtils.rm_rf(paths)
           paths.each do |p|
             if p =~ /\.conf$/
@@ -680,9 +680,9 @@ module OpenShift
       def ssl_certs
         aliases.map { |a|
           alias_token = "#{@container_uuid}_#{@namespace}_#{a}"
-          alias_conf_dir_path = File.join(@basedir, alias_token)
-          ssl_cert_file_path = File.join(alias_conf_dir_path, a + ".crt")
-          priv_key_file_path = File.join(alias_conf_dir_path, a + ".key")
+          alias_conf_dir_path = PathUtils.join(@basedir, alias_token)
+          ssl_cert_file_path = PathUtils.join(alias_conf_dir_path, a + ".crt")
+          priv_key_file_path = PathUtils.join(alias_conf_dir_path, a + ".key")
 
           begin
             ssl_cert = File.read(ssl_cert_file_path)
@@ -746,9 +746,9 @@ module OpenShift
 
         # Create a new directory for the alias and copy the certificates
         alias_token = "#{@container_uuid}_#{@namespace}_#{server_alias_clean}"
-        alias_conf_dir_path = File.join(@basedir, alias_token)
-        ssl_cert_file_path = File.join(alias_conf_dir_path, server_alias_clean + ".crt")
-        priv_key_file_path = File.join(alias_conf_dir_path, server_alias_clean + ".key")
+        alias_conf_dir_path = PathUtils.join(@basedir, alias_token)
+        ssl_cert_file_path = PathUtils.join(alias_conf_dir_path, server_alias_clean + ".crt")
+        priv_key_file_path = PathUtils.join(alias_conf_dir_path, server_alias_clean + ".key")
 
         #
         # Create configuration for the alias
@@ -792,7 +792,7 @@ module OpenShift
           File.open(ssl_cert_file_path, 'w') { |f| f.write(ssl_cert_clean.map { |c| c.to_pem}.join) }
           File.open(priv_key_file_path, 'w') { |f| f.write(priv_key_clean.to_pem) }
 
-          alias_conf_file_path = File.join(@basedir, "#{alias_token}.conf")
+          alias_conf_file_path = PathUtils.join(@basedir, "#{alias_token}.conf")
           File.open(alias_conf_file_path, 'w') { |f| f.write(alias_conf_contents) }
 
           # Reload httpd to pick up the new configuration
@@ -809,8 +809,8 @@ module OpenShift
         #
         alias_token = "#{@container_uuid}_#{@namespace}_#{server_alias_clean}"
 
-        alias_conf_dir_path = File.join(@basedir, alias_token)
-        alias_conf_file_path = File.join(@basedir, "#{alias_token}.conf")
+        alias_conf_dir_path = PathUtils.join(@basedir, alias_token)
+        alias_conf_file_path = PathUtils.join(@basedir, "#{alias_token}.conf")
 
         if File.exists?(alias_conf_file_path) or File.exists?(alias_conf_dir_path)
           ApacheDBAliases.open(ApacheDBAliases::WRCREAT) do
@@ -946,7 +946,7 @@ module OpenShift
           @flags = flags
         end
 
-        @filename = File.join(@basedir, self.MAPNAME)
+        @filename = PathUtils.join(@basedir, self.MAPNAME)
 
         @lockfile = self.LOCKFILEBASE + '.' + self.MAPNAME + self.SUFFIX + '.lock'
 
@@ -1019,9 +1019,9 @@ module OpenShift
         # scratch working file under certain circumstances.  Use a
         # scratch dir to protect it.
         Dir.mktmpdir([File.basename(@filename) + ".db-", ""], File.dirname(@filename)) do |wd|
-          tmpdb = File.join(wd, 'new.db')
+          tmpdb = PathUtils.join(wd, 'new.db')
 
-          httxt2dbm = ["/usr/bin","/usr/sbin","/bin","/sbin"].map {|d| File.join(d, "httxt2dbm")}.select {|p| File.exists?(p)}.pop
+          httxt2dbm = ["/usr/bin","/usr/sbin","/bin","/sbin"].map {|d| PathUtils.join(d, "httxt2dbm")}.select {|p| File.exists?(p)}.pop
           if httxt2dbm.nil?
             logger.warn("WARNING: no httxt2dbm command found, relying on PATH")
             httxt2dbm="httxt2dbm"

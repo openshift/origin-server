@@ -70,13 +70,13 @@ module OpenShift
       def populate_from_cartridge(cartridge_name)
         return nil if exists?
 
-        FileUtils.mkpath(File.join(@container.container_dir, 'git'))
+        FileUtils.mkpath(PathUtils.join(@container.container_dir, 'git'))
 
         locations = [
-            File.join(@container.container_dir, cartridge_name, 'template'),
-            File.join(@container.container_dir, cartridge_name, 'template.git'),
-            File.join(@container.container_dir, cartridge_name, 'usr', 'template'),
-            File.join(@container.container_dir, cartridge_name, 'usr', 'template.git'),
+            PathUtils.join(@container.container_dir, cartridge_name, 'template'),
+            PathUtils.join(@container.container_dir, cartridge_name, 'template.git'),
+            PathUtils.join(@container.container_dir, cartridge_name, 'usr', 'template'),
+            PathUtils.join(@container.container_dir, cartridge_name, 'usr', 'template.git'),
         ]
 
         template = locations.find {|l| File.directory?(l)}
@@ -108,7 +108,7 @@ module OpenShift
         repo_spec, commit = OpenShift::Git.safe_clone_spec(url, OpenShift::Git::ALLOWED_NODE_SCHEMES) rescue raise Utils::ShellExecutionException.new("CLIENT_ERROR: The provided source code repository URL is not valid (#{$!.message})", 130)
         raise Utils::ShellExecutionException.new("CLIENT_ERROR: Source code repository URL protocol must be one of: #{OpenShift::Git::ALLOWED_NODE_SCHEMES.join(', ')}", 130) unless repo_spec
 
-        git_path = File.join(@container.container_dir, 'git')
+        git_path = PathUtils.join(@container.container_dir, 'git')
         FileUtils.mkpath(git_path)
 
         # expose variables for ERB processing
@@ -203,27 +203,27 @@ module OpenShift
         Utils::SELinux.set_mcs_label(Utils::SELinux.get_mcs_label(@container.uid), @path)
 
         # application developer cannot change git hooks
-        hooks = File.join(@path, 'hooks')
+        hooks = PathUtils.join(@path, 'hooks')
         FileUtils.chown_R(0, 0, hooks)
 
         render_file = lambda { |f, m, t|
           File.open(f, 'w', m) { |f| f.write(ERB.new(t).result(binding)) }
         }
 
-        render_file.call(File.join(@path, 'description'), 0644, GIT_DESCRIPTION)
-        render_file.call(File.join(@container.container_dir, '.gitconfig'), 0644, GIT_CONFIG)
+        render_file.call(PathUtils.join(@path, 'description'), 0644, GIT_DESCRIPTION)
+        render_file.call(PathUtils.join(@container.container_dir, '.gitconfig'), 0644, GIT_CONFIG)
 
-        render_file.call(File.join(hooks, 'pre-receive'), 0755, PRE_RECEIVE)
-        render_file.call(File.join(hooks, 'post-receive'), 0755, POST_RECEIVE)
+        render_file.call(PathUtils.join(hooks, 'pre-receive'), 0755, PRE_RECEIVE)
+        render_file.call(PathUtils.join(hooks, 'post-receive'), 0755, POST_RECEIVE)
       end
 
       ##
       # Copy a file tree structure and build an application repository
       def build_bare(path)
-        template = File.join(@container.container_dir, 'git', 'template')
+        template = PathUtils.join(@container.container_dir, 'git', 'template')
         FileUtils.rm_r(template) if File.exist? template
 
-        git_path = File.join(@container.container_dir, 'git')
+        git_path = PathUtils.join(@container.container_dir, 'git')
         @container.run_in_root_context("/bin/cp -ad #{path} #{git_path}",
                        expected_exitstatus: 0)
 

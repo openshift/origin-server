@@ -16,6 +16,7 @@
 require 'fileutils'
 require 'getoptlong'
 require 'json'
+require "openshift-origin-common/utils/path_utils"
 require "openshift-origin-common/config"
 require "openshift-origin-common/models/model"
 require "openshift-origin-common/exceptions/oo_exception"
@@ -27,5 +28,4 @@ require "openshift-origin-common/models/profile"
 require "openshift-origin-common/models/cartridge"
 require "openshift-origin-common/models/manifest"
 require "openshift-origin-common/models/endpoint"
-require "openshift-origin-common/utils/path_utils"
 require "openshift-origin-common/utils/git"

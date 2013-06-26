@@ -411,8 +411,8 @@ module OpenShift
           entries = Dir.glob(PathUtils.join(cartridge.repository_path, '*'), File::FNM_DOTMATCH)
           filesystem_copy(entries, target, %w(. .. usr))
 
-          source_usr = File.join(cartridge.repository_path, 'usr')
-          target_usr = File.join(target, 'usr')
+          source_usr = PathUtils.join(cartridge.repository_path, 'usr')
+          target_usr = PathUtils.join(target, 'usr')
 
           FileUtils.rm(target_usr) if File.symlink?(target_usr)
           FileUtils.symlink(source_usr, target_usr) if File.exist?(source_usr) && !File.exist?(target_usr)
@@ -502,7 +502,7 @@ module OpenShift
           to_delete = files.first + '.to_delete'
           File.rename(files.first, to_delete)
 
-          entries = Dir.glob(File.join(to_delete, '*'), File::FNM_DOTMATCH).delete_if do |e|
+          entries = Dir.glob(PathUtils.join(to_delete, '*'), File::FNM_DOTMATCH).delete_if do |e|
             %w(. ..).include? File.basename(e)
           end
 

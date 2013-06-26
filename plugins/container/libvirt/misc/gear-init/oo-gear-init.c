@@ -18,6 +18,7 @@ void shandler(int signo)
       if (wait(&status) == -1){
         perror("Wait error");      
       }
+      signal(SIGCHLD, shandler);
       break;
     }
     case SIGTERM:

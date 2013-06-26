@@ -16,10 +16,10 @@ module OpenShift
         # Returns the Integer value for how many bytes got written or raises on
         # failure.
         def add_env_var(key, value, prefix_cloud_name = false, &blk)
-          env_dir = File.join(@container_dir, '.env/')
+          env_dir = PathUtils.join(@container_dir, '.env/')
           key = "OPENSHIFT_#{key}" if prefix_cloud_name
 
-          filename = File.join(env_dir, key)
+          filename = PathUtils.join(env_dir, key)
           File.open(filename, File::WRONLY|File::TRUNC|File::CREAT) do |file|
             file.write value.to_s
           end
@@ -46,11 +46,11 @@ module OpenShift
         def remove_env_var(key, prefix_cloud_name=false)
           status = false
           [".env", ".env/.uservars"].each do |path|
-            env_dir = File.join(@container_dir,path)
+            env_dir = PathUtils.join(@container_dir,path)
             if prefix_cloud_name
               key = "OPENSHIFT_#{key}"
             end
-            env_file_path = File.join(env_dir, key)
+            env_file_path = PathUtils.join(env_dir, key)
             FileUtils.rm_f env_file_path
             status = status ? true : (File.exists?(env_file_path) ? false : true)
           end
@@ -70,13 +70,13 @@ module OpenShift
         #
         # Returns An Array of Strings for the newly created auth files
         def add_broker_auth(iv,token)
-          broker_auth_dir=File.join(@container_dir,'.auth')
+          broker_auth_dir=PathUtils.join(@container_dir,'.auth')
           FileUtils.mkdir_p broker_auth_dir
-          File.open(File.join(broker_auth_dir, 'iv'),
+          File.open(PathUtils.join(broker_auth_dir, 'iv'),
                     File::WRONLY|File::TRUNC|File::CREAT) do |file|
             file.write iv
           end
-          File.open(File.join(broker_auth_dir, 'token'),
+          File.open(PathUtils.join(broker_auth_dir, 'token'),
                     File::WRONLY|File::TRUNC|File::CREAT) do |file|
             file.write token
           end
@@ -94,7 +94,7 @@ module OpenShift
         #
         # Returns nil on Success and false on Failure
         def remove_broker_auth
-          broker_auth_dir=File.join(@container_dir, '.auth')
+          broker_auth_dir=PathUtils.join(@container_dir, '.auth')
           FileUtils.rm_rf broker_auth_dir
           File.exists?(broker_auth_dir) ? false : true
         end
@@ -172,7 +172,7 @@ module OpenShift
             end
           end
 
-          ssh_dir = File.join(@container_dir, ".ssh")
+          ssh_dir = PathUtils.join(@container_dir, ".ssh")
           cmd = "restorecon -R #{ssh_dir}"
           run_in_root_context(cmd)
         end
@@ -211,7 +211,7 @@ module OpenShift
         # @yields [Hash] authorized keys with the comment field as the key which will save if modified.
         # @return [Hash] authorized keys with the comment field as the key
         def modify_ssh_keys
-          authorized_keys_file = File.join(@container_dir, ".ssh", "authorized_keys")
+          authorized_keys_file = PathUtils.join(@container_dir, ".ssh", "authorized_keys")
           keys = Hash.new
 
           $OpenShift_ApplicationContainer_SSH_KEY_MUTEX.synchronize do

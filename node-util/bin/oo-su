@@ -19,7 +19,6 @@ raise "Must be run as root" if 0 != Process.uid
 
 require 'rubygems'
 require 'openshift-origin-node'
-require 'openshift-origin-node/model/unix_user'
 require 'openshift-origin-node/utils/environ'
 require 'openshift-origin-node/utils/shell_exec'
 require 'openshift-origin-node/utils/selinux'

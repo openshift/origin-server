@@ -58,7 +58,7 @@ module OpenShift
       include ApplicationContainerExt::CartridgeActions
 
       GEAR_TO_GEAR_SSH = "/usr/bin/ssh -q -o 'BatchMode=yes' -o 'StrictHostKeyChecking=no' -i $OPENSHIFT_APP_SSH_KEY "
-      DEFAULT_SKEL_DIR = File.join(OpenShift::Config::CONF_DIR,"skel")
+      DEFAULT_SKEL_DIR = PathUtils.join(OpenShift::Config::CONF_DIR,"skel")
       $OpenShift_ApplicationContainer_SSH_KEY_MUTEX = Mutex.new
       #$OpenShift_ApplicationContainer_Class = ::OpenShift::Runtime::ApplicationContainerPlugin::LibvirtContainer
 
@@ -165,7 +165,7 @@ module OpenShift
             @container_plugin.create
           end
           if @config.get("CREATE_APP_SYMLINKS").to_i == 1
-            unobfuscated = File.join(File.dirname(@container.container_dir),"#{@container.name}-#{namespace}")
+            unobfuscated = PathUtils.join(File.dirname(@container.container_dir),"#{@container.name}-#{namespace}")
             if not File.exists? unobfuscated
               FileUtils.ln_s File.basename(@container.container_dir), unobfuscated, :force=>true
             end
@@ -213,7 +213,7 @@ module OpenShift
 
           if @config.get("CREATE_APP_SYMLINKS").to_i == 1
             Dir.foreach(File.dirname(@container_dir)) do |dent|
-              unobfuscate = File.join(File.dirname(@container_dir), dent)
+              unobfuscate = PathUtils.join(File.dirname(@container_dir), dent)
               if (File.symlink?(unobfuscate)) &&
                   (File.readlink(unobfuscate) == File.basename(@container_dir))
                 File.unlink(unobfuscate)
@@ -265,8 +265,8 @@ module OpenShift
         raise 'Missing required env var OPENSHIFT_HOMEDIR' unless gear_dir
         raise 'Missing required env var OPENSHIFT_APP_NAME' unless app_name
 
-        gear_repo_dir = File.join(gear_dir, 'git', "#{app_name}.git")
-        gear_tmp_dir  = File.join(gear_dir, '.tmp')
+        gear_repo_dir = PathUtils.join(gear_dir, 'git', "#{app_name}.git")
+        gear_tmp_dir  = PathUtils.join(gear_dir, '.tmp')
 
         stop_gear(user_initiated: false)
 
@@ -348,7 +348,7 @@ module OpenShift
       def gear_level_tidy_tmp(gear_tmp_dir)
         # Temp dir cleanup
         tidy_action do
-          FileUtils.rm_rf(Dir.glob(File.join(gear_tmp_dir, "*")))
+          FileUtils.rm_rf(Dir.glob(PathUtils.join(gear_tmp_dir, "*")))
           logger.debug("Cleaned gear temp dir at #{gear_tmp_dir}")
         end
       end
@@ -392,8 +392,8 @@ module OpenShift
         url = "https://#{broker_addr}/broker/rest/domains/#{domain}/applications/#{app_name}/gear_groups.json"
 
         params = {
-          'broker_auth_key' => File.read(File.join(@config.get('GEAR_BASE_DIR'), name, '.auth', 'token')).chomp,
-          'broker_auth_iv' => File.read(File.join(@config.get('GEAR_BASE_DIR'), name, '.auth', 'iv')).chomp
+          'broker_auth_key' => File.read(PathUtils.join(@config.get('GEAR_BASE_DIR'), name, '.auth', 'token')).chomp,
+          'broker_auth_iv' => File.read(PathUtils.join(@config.get('GEAR_BASE_DIR'), name, '.auth', 'iv')).chomp
         }
 
         request = RestClient::Request.new(:method => :get,

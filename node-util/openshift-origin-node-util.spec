@@ -10,6 +10,7 @@ Requires:      oddjob
 Requires:      rng-tools
 Requires:      rubygem-openshift-origin-node
 Requires:      httpd
+Requires:      lsof
 Requires:      php >= 5.3.2
 Requires:      lsof
 BuildArch:     noarch

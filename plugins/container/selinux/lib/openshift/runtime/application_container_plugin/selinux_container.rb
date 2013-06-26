@@ -32,7 +32,6 @@ module OpenShift
         # Returns nil on Success or raises on Failure
         def create
           cmd = %{useradd -u #{@container.uid} \
-                  -g #{@container.gid} \
                   -d #{@container.container_dir} \
                   -s #{@gear_shell} \
                   -c '#{@container.gecos}' \

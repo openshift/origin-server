@@ -250,7 +250,7 @@ module OpenShift
           deploy(options)
 
           if options[:init]
-            primary_cart_env_dir = File.join(@container_dir, @cartridge_model.primary_cartridge.directory, 'env')
+            primary_cart_env_dir = PathUtils.join(@container_dir, @cartridge_model.primary_cartridge.directory, 'env')
             primary_cart_env     = Utils::Environ.load(primary_cart_env_dir)
             ident                = primary_cart_env.keys.grep(/^OPENSHIFT_.*_IDENT/)
             _, _, version, _     = Runtime::Manifest.parse_ident(primary_cart_env[ident.first])
@@ -411,7 +411,7 @@ module OpenShift
         def status(cart_name)
           buffer = ''
           buffer << stopped_status_attr
-          quota_cmd = "/bin/sh #{File.join('/usr/libexec/openshift/lib', "quota_attrs.sh")} #{@uuid}"
+          quota_cmd = "/bin/sh #{PathUtils.join('/usr/libexec/openshift/lib', "quota_attrs.sh")} #{@uuid}"
           out,err,rc = run_in_container_context(quota_cmd)
           raise "ERROR: Error fetching quota (#{rc}): #{quota_cmd.squeeze(" ")} stdout: #{out} stderr: #{err}" unless rc == 0
           buffer << out

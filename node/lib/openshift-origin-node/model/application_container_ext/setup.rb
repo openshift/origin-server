@@ -27,35 +27,35 @@ module OpenShift
 
           # Required for polyinstantiated tmp dirs to work
           [".tmp", ".sandbox"].each do |poly_dir|
-            full_poly_dir = File.join(homedir, poly_dir)
+            full_poly_dir = PathUtils.join(homedir, poly_dir)
             FileUtils.mkdir_p full_poly_dir
             FileUtils.chmod(0o0000, full_poly_dir)
           end
 
           # Polydir runs before the marker is created so set up sandbox by hand
-          sandbox_uuid_dir = File.join(homedir, ".sandbox", @uuid)
+          sandbox_uuid_dir = PathUtils.join(homedir, ".sandbox", @uuid)
           FileUtils.mkdir_p sandbox_uuid_dir
           set_rw_permission(sandbox_uuid_dir)
 
-          env_dir = File.join(homedir, ".env")
+          env_dir = PathUtils.join(homedir, ".env")
           FileUtils.mkdir_p(env_dir)
           FileUtils.chmod(0o0750, env_dir)
           set_ro_permission(env_dir)
 
-          ssh_dir = File.join(homedir, ".ssh")
+          ssh_dir = PathUtils.join(homedir, ".ssh")
           FileUtils.mkdir_p(ssh_dir)
           FileUtils.chmod(0o0750, ssh_dir)
           set_ro_permission(ssh_dir)
 
-          gem_home = File.join(homedir, ".gem")
+          gem_home = PathUtils.join(homedir, ".gem")
           add_env_var "GEM_HOME", gem_home
-          add_env_var "OPENSHIFT_RUBYGEMS_PATH_ELEMENT", File.join(gem_home, "bin")
+          add_env_var "OPENSHIFT_RUBYGEMS_PATH_ELEMENT", PathUtils.join(gem_home, "bin")
           FileUtils.mkdir_p(gem_home)
           FileUtils.chmod(0o0750, gem_home)
           set_rw_permission(gem_home)
 
-          geardir = File.join(homedir, @container_name, "/")
-          gearappdir = File.join(homedir, "app-root", "/")
+          geardir = PathUtils.join(homedir, @container_name, "/")
+          gearappdir = PathUtils.join(homedir, "app-root", "/")
 
           add_env_var("APP_DNS",
                       "#{@application_name}-#{@namespace}.#{@config.get("CLOUD_DOMAIN")}",
@@ -63,12 +63,12 @@ module OpenShift
           add_env_var("APP_NAME", @application_name, true)
           add_env_var("APP_UUID", @application_uuid, true)
 
-          data_dir = File.join(gearappdir, "data", "/")
+          data_dir = PathUtils.join(gearappdir, "data", "/")
           add_env_var("DATA_DIR", data_dir, true) {|v|
             FileUtils.mkdir_p(v, :verbose => @debug)
           }
-          add_env_var("HISTFILE", File.join(data_dir, ".bash_history"))
-          profile = File.join(data_dir, ".bash_profile")
+          add_env_var("HISTFILE", PathUtils.join(data_dir, ".bash_history"))
+          profile = PathUtils.join(data_dir, ".bash_profile")
           File.open(profile, File::WRONLY|File::TRUNC|File::CREAT, 0o0600) {|file|
           file.write %Q{
 # Warning: Be careful with modifications to this file,
@@ -88,12 +88,12 @@ module OpenShift
           # Ensure HOME exists for git support
           add_env_var("HOME", homedir, false)
 
-          add_env_var("REPO_DIR", File.join(gearappdir, "runtime", "repo", "/"), true) {|v|
+          add_env_var("REPO_DIR", PathUtils.join(gearappdir, "runtime", "repo", "/"), true) {|v|
             FileUtils.mkdir_p(v, :verbose => @debug)
             FileUtils.cd gearappdir do |d|
               FileUtils.ln_s("runtime/repo", "repo", :verbose => @debug)
             end
-            FileUtils.cd File.join(gearappdir, "runtime") do |d|
+            FileUtils.cd PathUtils.join(gearappdir, "runtime") do |d|
               FileUtils.ln_s("../data", "data", :verbose => @debug)
             end
           }
@@ -111,7 +111,7 @@ module OpenShift
           set_ro_permission(gearappdir)
           raise "Failed to instantiate gear: missing application directory (#{gearappdir})" unless File.exist?(gearappdir)
 
-          state_file = File.join(gearappdir, "runtime", ".state")
+          state_file = PathUtils.join(gearappdir, "runtime", ".state")
           File.open(state_file, File::WRONLY|File::TRUNC|File::CREAT, 0o0660) {|file|
             file.write "new\n"
 

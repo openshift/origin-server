@@ -40,6 +40,7 @@ Requires:      cronie
 Requires:      crontabs
 Requires:      git
 Requires:      httpd
+Requires:      lsof
 Requires:      libcgroup-pam
 Requires:      libselinux-python
 Requires:      mercurial

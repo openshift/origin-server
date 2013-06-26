@@ -63,7 +63,7 @@ module OpenShift
       end
 
       def stop_lock
-        File.join(@container.container_dir, 'app-root', 'runtime', '.stop_lock')
+        PathUtils.join(@container.container_dir, 'app-root', 'runtime', '.stop_lock')
       end
 
       def stop_lock?
@@ -492,7 +492,7 @@ module OpenShift
       def create_cartridge_directory(cartridge, software_version)
         logger.info("Creating cartridge directory #{@container.uuid}/#{cartridge.directory}")
 
-        target = File.join(@container.container_dir, cartridge.directory)
+        target = PathUtils.join(@container.container_dir, cartridge.directory)
         CartridgeRepository.instantiate_cartridge(cartridge, target)
 
         ident = Runtime::Manifest.build_ident(cartridge.cartridge_vendor,
@@ -504,7 +504,7 @@ module OpenShift
         envs["#{cartridge.short_name}_DIR"]   = target + File::SEPARATOR
         envs["#{cartridge.short_name}_IDENT"] = ident
 
-        write_environment_variables(File.join(target, 'env'), envs)
+        write_environment_variables(PathUtils.join(target, 'env'), envs)
 
         envs.clear
         envs['namespace'] = @container.namespace if @container.namespace
@@ -518,11 +518,11 @@ module OpenShift
         end
 
         unless envs.empty?
-          write_environment_variables(File.join(@container.container_dir, '.env'), envs)
+          write_environment_variables(PathUtils.join(@container.container_dir, '.env'), envs)
         end
 
         # Gear level actions: Placed here to be off the V1 code path...
-        old_path = File.join(@container.container_dir, '.env', 'PATH')
+        old_path = PathUtils.join(@container.container_dir, '.env', 'PATH')
         File.delete(old_path) if File.file? old_path
 
         secure_cartridge(cartridge.short_name, @container.uid, @container.gid, target)
@@ -569,7 +569,7 @@ module OpenShift
       def delete_cartridge_directory(cartridge)
         logger.info("Deleting cartridge directory for #{@container.uuid}/#{cartridge.directory}")
         # TODO: rm_rf correct?
-        FileUtils.rm_rf(File.join(@container.container_dir, cartridge.directory))
+        FileUtils.rm_rf(PathUtils.join(@container.container_dir, cartridge.directory))
         logger.info("Deleted cartridge directory for #{@container.uuid}/#{cartridge.directory}")
       end
 
@@ -621,12 +621,12 @@ module OpenShift
       def cartridge_action(cartridge, action, software_version, render_erbs=false)
         logger.info "Running #{action} for #{@container.uuid}/#{cartridge.directory}"
 
-        cartridge_home = File.join(@container.container_dir, cartridge.directory)
-        action         = File.join(cartridge_home, 'bin', action)
+        cartridge_home = PathUtils.join(@container.container_dir, cartridge.directory)
+        action         = PathUtils.join(cartridge_home, 'bin', action)
         return "" unless File.exists? action
 
         gear_env           = Utils::Environ.for_gear(@container.container_dir)
-        cartridge_env_home = File.join(cartridge_home, 'env')
+        cartridge_env_home = PathUtils.join(cartridge_home, 'env')
 
         cartridge_env = gear_env.merge(Utils::Environ.load(cartridge_env_home))
         if render_erbs
@@ -674,9 +674,9 @@ module OpenShift
       #
       # stdout = cartridge_teardown('php-5.3')
       def cartridge_teardown(cartridge_name, remove_cartridge_dir=true)
-        cartridge_home = File.join(@container.container_dir, cartridge_name)
+        cartridge_home = PathUtils.join(@container.container_dir, cartridge_name)
         env            = Utils::Environ.for_gear(@container.container_dir, cartridge_home)
-        teardown       = File.join(cartridge_home, 'bin', 'teardown')
+        teardown       = PathUtils.join(cartridge_home, 'bin', 'teardown')
 
         return "" unless File.exists? teardown
         return "#{teardown}: is not executable\n" unless File.executable? teardown
@@ -931,7 +931,7 @@ module OpenShift
       # @yields [String] cartridge directory for each cartridge in gear
       def process_cartridges(cartridge_dir = nil) # : yields cartridge_path
         if cartridge_dir
-          cart_dir = File.join(@container.container_dir, cartridge_dir)
+          cart_dir = PathUtils.join(@container.container_dir, cartridge_dir)
           yield cart_dir if File.exist?(cart_dir)
           return
         end
@@ -970,7 +970,7 @@ module OpenShift
       # Let a cart perform some action when another cart is being removed
       # Today, it is used to cleanup environment variables
       def unsubscribe(cart_name, pub_cart_name)
-        env_dir_path = File.join(@container.container_dir, '.env', short_name_from_full_cart_name(pub_cart_name))
+        env_dir_path = PathUtils.join(@container.container_dir, '.env', short_name_from_full_cart_name(pub_cart_name))
         FileUtils.rm_rf(env_dir_path)
       end
 
@@ -978,7 +978,7 @@ module OpenShift
         logger.info("Setting env vars for #{cart_name} from #{pub_cart_name}")
         logger.info("ARGS: #{args.inspect}")
 
-        env_dir_path = File.join(@container.container_dir, '.env', short_name_from_full_cart_name(pub_cart_name))
+        env_dir_path = PathUtils.join(@container.container_dir, '.env', short_name_from_full_cart_name(pub_cart_name))
         FileUtils.mkpath(env_dir_path)
 
         envs = {}
@@ -1012,7 +1012,7 @@ module OpenShift
         raise ArgumentError.new('cart_name cannot be nil') unless cart_name
 
         cartridge    = get_cartridge(cart_name)
-        env          = Utils::Environ.for_gear(@container.container_dir, File.join(@container.container_dir, cartridge.directory))
+        env          = Utils::Environ.for_gear(@container.container_dir, PathUtils.join(@container.container_dir, cartridge.directory))
         env_var_hook = connection_type.start_with?("ENV:") && pub_cart_name
 
         # Special treatment for env var connection hooks
@@ -1083,7 +1083,7 @@ module OpenShift
         logger.debug { "#{@container.uuid} #{action} against '#{cartridge_dir}'" }
         buffer       = ''
         gear_env     = Utils::Environ.for_gear(@container.container_dir)
-        action_hooks = File.join(@container.container_dir, %w{app-root runtime repo .openshift action_hooks})
+        action_hooks = PathUtils.join(@container.container_dir, %w{app-root runtime repo .openshift action_hooks})
 
         if pre_action_hooks_enabled
           pre_action_hook = prefix_action_hooks ? "pre_#{action}" : action
@@ -1093,14 +1093,14 @@ module OpenShift
 
         process_cartridges(cartridge_dir) { |path|
           # Make sure this cartridge's env directory overrides that of other cartridge envs
-          cartridge_local_env = Utils::Environ.load(File.join(path, 'env'))
+          cartridge_local_env = Utils::Environ.load(PathUtils.join(path, 'env'))
 
           ident                            = cartridge_local_env.keys.grep(/^OPENSHIFT_.*_IDENT/)
           _, software, software_version, _ = Runtime::Manifest.parse_ident(cartridge_local_env[ident.first])
           hooks                            = cartridge_hooks(action_hooks, action, software, software_version)
 
           cartridge_env = gear_env.merge(cartridge_local_env)
-          control = File.join(path, 'bin', 'control')
+          control = PathUtils.join(path, 'bin', 'control')
 
           command = []
           command << hooks[:pre] unless hooks[:pre].empty?
@@ -1144,8 +1144,8 @@ module OpenShift
       def do_action_hook(action, env, options)
         action = action.gsub(/-/, '_')
 
-        action_hooks_dir = File.join(@container.container_dir, %w{app-root runtime repo .openshift action_hooks})
-        action_hook      = File.join(action_hooks_dir, action)
+        action_hooks_dir = PathUtils.join(@container.container_dir, %w{app-root runtime repo .openshift action_hooks})
+        action_hook      = PathUtils.join(action_hooks_dir, action)
         buffer           = ''
 
         if File.executable?(action_hook)
@@ -1356,10 +1356,10 @@ module OpenShift
       ##
       # Generate an RSA ssh key
       def generate_ssh_key(cartridge)
-        ssh_dir        = File.join(@container.container_dir, '.openshift_ssh')
-        known_hosts    = File.join(ssh_dir, 'known_hosts')
-        ssh_config     = File.join(ssh_dir, 'config')
-        ssh_key        = File.join(ssh_dir, 'id_rsa')
+        ssh_dir        = PathUtils.join(@container.container_dir, '.openshift_ssh')
+        known_hosts    = PathUtils.join(ssh_dir, 'known_hosts')
+        ssh_config     = PathUtils.join(ssh_dir, 'config')
+        ssh_key        = PathUtils.join(ssh_dir, 'id_rsa')
         ssh_public_key = ssh_key + '.pub'
 
         FileUtils.mkdir_p(ssh_dir)

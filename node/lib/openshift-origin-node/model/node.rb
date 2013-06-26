@@ -82,7 +82,7 @@ module OpenShift
         cartridge_path = OpenShift::Config.new.get("CARTRIDGE_BASE_PATH")
         Dir.foreach(cartridge_path) do |cart_dir|
           next if [".", "..", "embedded", "abstract", "abstract-httpd", "haproxy-1.4", "mysql-5.1", "mongodb-2.2", "postgresql-8.4"].include? cart_dir
-          path = File.join(cartridge_path, cart_dir, "info", "manifest.yml")
+          path = PathUtils.join(cartridge_path, cart_dir, "info", "manifest.yml")
           begin
             cart = OpenShift::Cartridge.new.from_descriptor(YAML.load(File.open(path), :safe => true))
             if cart.name == cart_name
@@ -97,11 +97,11 @@ module OpenShift
           end
         end
 
-        embedded_cartridge_path = File.join(cartridge_path, "embedded")
+        embedded_cartridge_path = PathUtils.join(cartridge_path, "embedded")
         if (! cart_found) and File.directory?(embedded_cartridge_path)
           Dir.foreach(embedded_cartridge_path) do |cart_dir|
             next if [".",".."].include? cart_dir
-            path = File.join(embedded_cartridge_path, cart_dir, "info", "manifest.yml")
+            path = PathUtils.join(embedded_cartridge_path, cart_dir, "info", "manifest.yml")
             begin
               cart = OpenShift::Cartridge.new.from_descriptor(YAML.load(File.open(path), :safe => true))
               if cart.name == cart_name

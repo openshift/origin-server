@@ -158,13 +158,13 @@ module OpenShift
           if restore_git_repo
             app_name = gear_env['OPENSHIFT_APP_NAME']
             $stderr.puts "Removing old git repo: ~/git/#{app_name}.git/"
-            FileUtils.rm_rf(Dir.glob(File.join(@container_dir, 'git', "#{app_name}.git", '[^h]*', '*')))
+            FileUtils.rm_rf(Dir.glob(PathUtils.join(@container_dir, 'git', "#{app_name}.git", '[^h]*', '*')))
           end
 
           $stderr.puts "Removing old data dir: ~/app-root/data/*"
-          FileUtils.rm_rf(Dir.glob(File.join(@container_dir, 'app-root', 'data', '*')))
-          FileUtils.rm_rf(Dir.glob(File.join(@container_dir, 'app-root', 'data', '.[^.]*')))
-          FileUtils.safe_unlink(File.join(@container_dir, 'app-root', 'runtime', 'data'))
+          FileUtils.rm_rf(Dir.glob(PathUtils.join(@container_dir, 'app-root', 'data', '*')))
+          FileUtils.rm_rf(Dir.glob(PathUtils.join(@container_dir, 'app-root', 'data', '.[^.]*')))
+          FileUtils.safe_unlink(PathUtils.join(@container_dir, 'app-root', 'runtime', 'data'))
         end
 
         def extract_restore_archive(transforms, restore_git_repo, gear_env)
@@ -201,7 +201,7 @@ module OpenShift
               timeout: @hourglass.remaining,
               expected_exitstatus: 0)
 
-          FileUtils.cd File.join(@container_dir, 'app-root', 'runtime') do
+          FileUtils.cd PathUtils.join(@container_dir, 'app-root', 'runtime') do
             FileUtils.ln_s('../data', 'data')
           end
         end
