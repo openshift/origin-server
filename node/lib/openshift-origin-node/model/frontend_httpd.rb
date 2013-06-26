@@ -959,7 +959,7 @@ module OpenShift
 
       begin
         @lfd = File.new(@lockfile, Fcntl::O_RDWR | Fcntl::O_CREAT, 0640)
-
+        @lfd.fcntl(Fcntl::F_SETFD, Fcntl::FD_CLOEXEC)
         if writable?
           @lfd.flock(File::LOCK_EX)
         else

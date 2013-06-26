@@ -33,17 +33,18 @@ function print_stats() {
 (
     if ! flock -e -n 9
     then
-      /usr/bin/logger -p local0.warn -t oo-autoidler "previous instance of oo-autoidler is still running"
+      /usr/bin/logger -p local0.warn -t oo-autoidler "previous instance of oo-autoidler is still running" 9>&-
       exit 1
     fi
+    (
+        print_stats "Before"
 
-    print_stats "Before"
+        for user in `get_appids_to_idle`
+        do
+            /usr/sbin/oo-idler -n -u $user > /dev/null 2>&1
+        done
 
-    for user in `get_appids_to_idle`
-    do
-        /usr/sbin/oo-idler -n -u $user > /dev/null 2>&1
-    done
-
-    print_stats "After"
+        print_stats "After"
+    ) 9>&-
 ) 9> /var/lock/oo-autoidler
 exit 0
