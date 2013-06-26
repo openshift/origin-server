@@ -105,12 +105,20 @@ module OpenShift
       src = 'this/file'
       link = 'this/link'
       dotfile = 'this/.foo'
-      touch_files [src, dotfile]
+      deep = 'this/is/a/file'
+      touch_files [src, dotfile, deep]
       symlink_files link => src
 
       set_managed_files({:setup_rewritten => ['this/**/*']})
 
-      assert_equal %w(mock/this/file mock/this/link mock/this/.foo).sort, setup_rewritten(@cartridge).sort
+      assert_equal %w(
+        mock/this/file
+        mock/this/link
+        mock/this/.foo
+        mock/this/is
+        mock/this/is/a
+        mock/this/is/a/file
+      ).sort, setup_rewritten(@cartridge).sort
     end
 
     # Ensure locked_files does not return bad entries
