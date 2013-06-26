@@ -93,7 +93,7 @@ module OpenShift
             if files_only
               Dir.glob(pattern, File::FNM_DOTMATCH).select{ |f| File.file?(f) }
             else
-              Dir.glob(pattern)
+              Dir.glob(pattern, File::FNM_DOTMATCH).select {|f| File.basename(f) !~ /\A\.\.?\z/ }
             end
           else
             # Use all explicit patterns
