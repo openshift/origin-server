@@ -7,7 +7,7 @@ class ApplicationsController < BaseController
   before_filter :get_application, :only => [:show, :destroy, :update]
   ##
   # List all applications
-  # 
+  #
   # URL: /domains/:domain_id/applications
   # @param [String] include Comma separated list of sub-objects to include in reply. Only "cartridges" is supported at the moment.
   #
@@ -22,7 +22,7 @@ class ApplicationsController < BaseController
 
   ##
   # Retrieve a specific application
-  # 
+  #
   # URL: /domains/:domain_id/applications/:id
   #
   # Action: GET
@@ -34,7 +34,7 @@ class ApplicationsController < BaseController
 
   ##
   # Create a new application
-  # 
+  #
   # URL: /domains/:domain_id/applications
   #
   # Action: POST
@@ -50,8 +50,8 @@ class ApplicationsController < BaseController
     features = []
     downloaded_cart_urls = []
     cart_params = [(params[:cartridges].presence || params[:cartridge].presence)].flatten
-    cart_params.each do |c| 
-      if c.is_a?(Hash) 
+    cart_params.each do |c|
+      if c.is_a?(Hash)
         if c[:name]
           features << c[:name]
         elsif c[:url]
@@ -59,8 +59,8 @@ class ApplicationsController < BaseController
         end
       else
         features << c
-      end  
-    end 
+      end
+    end
     init_git_url = params[:initial_git_url].presence
 
     return render_error(:unprocessable_entity, "Invalid initial git URL",
@@ -73,7 +73,7 @@ class ApplicationsController < BaseController
                         105, "name") if !app_name or app_name.empty?
 
     valid_sizes = OpenShift::ApplicationContainerProxy.valid_gear_sizes(@domain.owner)
-    return render_error(:unprocessable_entity, "Invalid size: #{default_gear_size}. Acceptable values are #{valid_sizes.join(",")}",
+    return render_error(:unprocessable_entity, "Invalid size: #{default_gear_size}. Acceptable values are: #{valid_sizes.join(",")}",
                         134, "gear_profile") if default_gear_size and !valid_sizes.include?(default_gear_size)
 
     if Application.where(domain: @domain, canonical_name: app_name.downcase).count > 0
@@ -107,7 +107,7 @@ class ApplicationsController < BaseController
     rescue OpenShift::UserException => e
       return render_error(:unprocessable_entity, e.message, e.code, e.field)
     rescue Exception => e
-      return render_exception(e)  
+      return render_exception(e)
     end
     application.user_agent= request.headers['User-Agent']
 
@@ -119,7 +119,7 @@ class ApplicationsController < BaseController
 
   ##
   # Delete an application
-  # 
+  #
   # URL: /domains/:domain_id/applications/:id
   #
   # Action: DELETE
@@ -134,7 +134,7 @@ class ApplicationsController < BaseController
     end
 
     status = requested_api_version <= 1.4 ? :no_content : :ok
-    return render_success(status, nil, nil, "Application #{id} is deleted.", result) 
+    return render_success(status, nil, nil, "Application #{id} is deleted.", result)
   end
 
   def set_log_tag
