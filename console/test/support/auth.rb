@@ -115,7 +115,11 @@ class ActionController::TestCase
 end
 
 class ActionDispatch::IntegrationTest
-
+  def user_can_authenticate(obj)
+    assert @user.login
+    @user.password ||= "arbitrary_pass"
+    obj
+  end
   def login
     @user_env = {'HTTP_AUTHORIZATION' => ActionController::HttpAuthentication::Basic.encode_credentials(@user.login, @user.password)}
   end
