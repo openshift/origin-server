@@ -34,7 +34,7 @@ module OpenShift
     # cart - the cartridge you wish to query
     # type - the key you wish to obtain
     # process_files - whether or not to process the files before returning
-    # files_only - whether or not only files are processed (i.e., no symlinks, directories). default is true
+    # wanted_types - array of file types (as reported by `File.ftype`) returned; default is ['file']
     #
     # If process_files is true, the following actions are taken on the array:
     #  - relative entries are chrooted to the user's home directory or cartridge
@@ -52,7 +52,7 @@ module OpenShift
     #
     # Returns an <code>Array</code> containing file names or strings
     #  - If these entries are processed, they are returned relative to the user's home directory
-    def managed_files(cart, type, root, process_files = true, files_only = true)
+    def managed_files(cart, type, root, process_files = true, wanted_types = ['file'])
       # Ensure that root ends in a slash
       root = "#{PathUtils.join(root,'')}/"
       # TODO: Is it possible to get a cart's full directory path?
@@ -90,10 +90,9 @@ module OpenShift
         wanted_files = good_patterns.map do |pattern|
           if pattern =~ /\*/
             # Ensure only files are globbed and not dirs
-            if files_only
-              Dir.glob(pattern, File::FNM_DOTMATCH).select{ |f| File.file?(f) }
-            else
-              Dir.glob(pattern, File::FNM_DOTMATCH).select {|f| File.basename(f) !~ /\A\.\.?\z/ }
+            Dir.glob(pattern, File::FNM_DOTMATCH).select do |f|
+              wanted_types.include?( File.ftype(f) ) &&
+              File.basename(f) !~ /\A\.\.?\z/
             end
           else
             # Use all explicit patterns
@@ -154,9 +153,9 @@ module OpenShift
     #
     # cartridge - the cartridge you wish to query
     #
-    # Returns an array of all matching entries, including non-files
+    # Returns an array of matching files, directories and symbolic links
     def setup_rewritten(cartridge)
-      managed_files(cartridge, :setup_rewritten, @user.homedir, true, false)
+      managed_files(cartridge, :setup_rewritten, @user.homedir, true, ['file', 'directory', 'link'])
     end
 
     # Obtain the 'restore_transforms' entry from the managed_files.yml file
