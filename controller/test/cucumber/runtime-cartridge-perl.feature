@@ -2,7 +2,6 @@
 Feature: V2 SDK Perl Cartridge
 
   Scenario Outline: Add cartridge
-    Given a v2 default node
     Given a new <cart_name> type application
     Then the application git repo will exist
     And the platform-created default environment variables will exist
@@ -24,7 +23,6 @@ Feature: V2 SDK Perl Cartridge
       | perl-5.16 |
 
   Scenario Outline: Destroy application
-    Given a v2 default node
     Given a new <cart_name> type application
     When I destroy the application
     Then the application git repo will not exist

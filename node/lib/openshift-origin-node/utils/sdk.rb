@@ -3,20 +3,6 @@ require 'openshift-origin-node/utils/shell_exec'
 module OpenShift
   module Utils
     class Sdk
-      MARKER = 'CARTRIDGE_VERSION_2'
-
-      def self.new_sdk_app?(gear_home)
-        File.exists?(File.join(gear_home, '.env', MARKER))
-      end
-
-      def self.mark_new_sdk_app(gear_home)
-        IO.write(File.join(gear_home, '.env', MARKER), '2', 0)
-      end
-
-      def self.node_default_model(config)
-        return :v2
-      end
-
       # Public: Translates a ShellExecutionException into a new instance whose stdout, stderr,
       # and return code are suitable for returning to the client. Output is translated with
       # translate_out_for_client, and return codes < 100 are mapped to 157.
