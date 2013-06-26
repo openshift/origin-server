@@ -1,6 +1,6 @@
 class AliasesController < ConsoleController
 
-  def index
+  def new
     user_default_domain
     @capabilities = user_capabilities
     @application = @domain.find_application params[:application_id]
@@ -9,7 +9,7 @@ class AliasesController < ConsoleController
     @private_ssl_certificates_supported = @user.capabilities["private_ssl_certificates"]
   end
 
-  def show
+  def edit
     user_default_domain
     @capabilities = user_capabilities
     @application = @domain.find_application params[:application_id]
@@ -23,17 +23,23 @@ class AliasesController < ConsoleController
     @application = @domain.find_application(params[:application_id])
     @user = User.find :one, :as => current_user
     @private_ssl_certificates_supported = @user.capabilities["private_ssl_certificates"]
+
     @alias = Alias.new params[:alias]
     @alias.as = current_user
     @alias.application = @application
 
-    @alias.normalize_certificate_content!
-
     if @alias.save
       redirect_to @application, :flash => {:success => "Alias '#{@alias.id}' has been created"}
     else
-      message = @alias.errors.first || "Unable to create alias '#{@alias.name}'"
-      redirect_to application_aliases_path(@application), :flash => {:error => message.kind_of?(Array) ? message.select {|x| x.is_a?(String)} : message}
+      flash.now[:error] = "Unable to create alias '#{@alias.name}'"
+      render :new
+    end
+  rescue ActiveResource::ResetConnectionError => e
+    if Rails.env.test? || Rails.env.devenv? || Rails.env.development?
+      @alias = @application.find_alias params[:alias][:id]
+      redirect_to @application, :flash => {:success => "Alias '#{@alias.id}' has been created"}
+    else
+      raise ActiveResource::ConnectionError.new(e.message)
     end
   end
 
@@ -46,13 +52,13 @@ class AliasesController < ConsoleController
   def destroy
     @domain = Domain.find :one, :as => current_user
     @application = @domain.find_application params[:application_id]
-    alias_name = params[:id]
-    if alias_name and @application.remove_alias(alias_name)
-      message = @application.messages.first || "Alias '#{alias_name}' has been removed"
+    @alias = @application.find_alias params[:id]
+    if @alias.destroy
+      message = "Alias '#{params[:id]}' has been removed"
       redirect_to @application, :flash => {:success => message.to_s}
     else
       flash.now[:error] = "Unable to delete alias '#{alias_name}'"
-      render :index
+      render :edit
     end
   end
 
@@ -67,7 +73,6 @@ class AliasesController < ConsoleController
       @alias.certificate_file = params[:alias][:certificate_file]
       @alias.certificate_private_key_file = params[:alias][:certificate_private_key_file]
       @alias.certificate_pass_phrase = params[:alias][:certificate_pass_phrase]
-      @alias.normalize_certificate_content!
       @alias.save if !@alias.certificate.nil?
     else
       @alias.save
@@ -76,9 +81,8 @@ class AliasesController < ConsoleController
     if @alias.errors.empty?
       redirect_to @application, :flash => {:success => "Alias '#{@alias.id}' has been updated"}
     else
-      message = @alias.errors.first || "Unable to update alias '#{@alias.name}'"
-      flash.now[:error] = message.kind_of?(Array) ? message.select {|x| x.is_a?(String)} : message
-      render :show
+      flash.now[:error] = "Unable to update alias '#{@alias.name}'"
+      render :edit and return
     end
   end
 end

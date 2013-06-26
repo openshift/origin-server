@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Common
 Name:          rubygem-%{gem_name}
-Version: 1.10.4
+Version: 1.11.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -120,6 +120,9 @@ cp bin/man/*.8 %{buildroot}%{_mandir}/man8/
 %doc %{gem_docdir}
 
 %changelog
+* Tue Jun 25 2013 Adam Miller <admiller@redhat.com> 1.11.1-1
+- bump_minor_versions for sprint 30 (admiller@redhat.com)
+
 * Fri Jun 21 2013 Adam Miller <admiller@redhat.com> 1.10.4-1
 - <oo-diagnostics> Bug 976874 - Detect abrt-addon-python conflicts
   (jdetiber@redhat.com)

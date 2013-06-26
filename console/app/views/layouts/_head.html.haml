@@ -20,7 +20,16 @@
 -# Mobile viewport optimized: j.mp/bplateviewport
 %meta{ :name => "viewport", :content => "width=device-width, initial-scale=1.0" }/
 
-%link{ :rel => "shortcut icon", :type => "image/png", :href => image_path('favicon-32.png') }
+%link{ :rel => "icon", :href => '/favicon.ico' }
+%link{ :type => "image/png", :rel => 'apple-touch-icon-precomposed', :href => image_path('touch-icon-precomposed.png') }
+/[if IE] <link rel="shortcut icon" href="/favicon.ico">
+/ or, set /favicon.ico for IE10 win
+%meta{:content => "OpenShift", :name => "application-name"}/
+%meta{:content => "#000000", :name => "msapplication-TileColor"}/
+%meta{:content => image_path('touch-icon-precomposed.png'), :name => "msapplication-TileImage"}/
+%meta{:content => "name=Manage your applications on OpenShift Online;action-uri=https://openshift.redhat.com/app/console;icon-uri=/favicon.ico", :name => "msapplication-task"}/
+%meta{:content => "name=Latest News from OpenShift;action-uri=https://www.openshift.com/blogs;icon-uri=/favicon.ico", :name => "msapplication-task"}/
+%meta{:content => "name=Get help in the OpenShift Dev Center;action-uri=https://www.openshift.com/support;icon-uri=/favicon.ico", :name => "msapplication-task"}/
 
 -# Place favicon.ico and apple-touch-icon.png in the root directory: mathiasbynens.be/notes/touch-icons
 

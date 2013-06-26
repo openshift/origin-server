@@ -11,7 +11,7 @@
 
 Summary:       OpenShift plugin for remote-user authentication
 Name:          rubygem-%{gem_name}
-Version: 1.10.2
+Version: 1.11.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -99,6 +99,9 @@ then
 fi
 
 %changelog
+* Tue Jun 25 2013 Adam Miller <admiller@redhat.com> 1.11.1-1
+- bump_minor_versions for sprint 30 (admiller@redhat.com)
+
 * Tue Jun 11 2013 Troy Dawson <tdawson@redhat.com> 1.10.2-1
 - Letting environment unprotected is ok, it matches openshift.com.
   (jpazdziora@redhat.com)

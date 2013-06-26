@@ -1,7 +1,7 @@
 %global cartridgedir %{_libexecdir}/openshift/cartridges/v2/perl
 
 Name:          openshift-origin-cartridge-perl
-Version: 0.5.4
+Version: 0.6.1
 Release:       1%{?dist}
 Summary:       Perl cartridge
 Group:         Development/Languages
@@ -74,6 +74,9 @@ rm %{buildroot}%{cartridgedir}/metadata/manifest.yml.*
 
 
 %changelog
+* Tue Jun 25 2013 Adam Miller <admiller@redhat.com> 0.6.1-1
+- bump_minor_versions for sprint 30 (admiller@redhat.com)
+
 * Thu Jun 20 2013 Adam Miller <admiller@redhat.com> 0.5.4-1
 - Bug 975700 - check the httpd pid file for corruption and attempt to fix it.
   (rmillner@redhat.com)

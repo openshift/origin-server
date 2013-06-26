@@ -5,6 +5,10 @@ end
 
 class ActiveSupport::TestCase
 
+  def self.fixture_path
+    File.dirname(__FILE__) + "/../fixtures/"
+  end
+
   def self.isolate(&block)
     self.module_eval do
       include ActiveSupport::Testing::Isolation

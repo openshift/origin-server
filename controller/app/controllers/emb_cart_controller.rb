@@ -96,6 +96,8 @@ class EmbCartController < BaseController
         colocate_component_instance = colocate_component_instance.first if colocate_component_instance.class == Array
       rescue Mongoid::Errors::DocumentNotFound
         return render_error(:unprocessable_entity, "Invalid colocation specified. No component matches #{colocate_with}", 109, "cartridge")      
+      rescue Exception => e
+        return render_exception(e) 
       end
     end
 
@@ -139,6 +141,8 @@ class EmbCartController < BaseController
       return render_error(:unprocessable_entity, "Unable to add cartridge: #{e.message}", 104)
     rescue OpenShift::UserException => e
       return render_error(:unprocessable_entity, e.message, 109, "cartridge")
+    rescue Exception => e
+      return render_exception(e) 
     end
   end
 
@@ -168,6 +172,8 @@ class EmbCartController < BaseController
       return render_error(:unprocessable_entity, e.message, e.code)
     rescue Mongoid::Errors::DocumentNotFound
       return render_error(:not_found, "Cartridge #{cartridge} not embedded within application #{@application.name}", 129)
+    rescue Exception => e
+      return render_exception(e) 
     end
   end
 
