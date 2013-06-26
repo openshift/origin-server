@@ -56,6 +56,20 @@ module OpenShift
       end
     end
 
+    # create symlink in @cartridge.directory
+    # 'files' should be a Hash {link => target, ...}
+    def symlink_files(files)
+      files.each do |link, path|
+        target = File.join(@user.homedir, @cartridge.directory, path)
+        sl = File.join(@user.homedir, @cartridge.directory, link)
+        dir = File.dirname(target)
+        linkdir = File.dirname(sl)
+        FileUtils.mkdir_p(dir)
+        FileUtils.mkdir_p(linkdir)
+        FileUtils.ln_sf(target, sl)
+      end
+    end
+
     # Transform relative file paths
     def chroot_files(files)
       files.map do |x|
@@ -85,6 +99,27 @@ module OpenShift
 
         assert_equal %w(mock/a), managed_files(@cartridge, :foo, @user.homedir)
       end
+    end
+
+    def test_setup_rewritten
+      src = 'this/file'
+      link = 'this/link'
+      dotfile = 'this/.foo'
+      deep = 'this/is/a/file'
+      touch_files [src, dotfile, deep]
+      symlink_files link => src
+
+      set_managed_files({:setup_rewritten => ['this/**/*']})
+
+      expected_files = %w(
+        mock/this/file
+        mock/this/link
+        mock/this/.foo
+        mock/this/is
+        mock/this/is/a
+        mock/this/is/a/file
+      )
+      assert_equal expected_files.sort, setup_rewritten(@cartridge).sort
     end
 
     # Ensure locked_files does not return bad entries
