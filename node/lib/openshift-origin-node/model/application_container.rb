@@ -108,7 +108,7 @@ module OpenShift
 
         # Only perform an initial build if the manifest explicitly specifies a need,
         # or if a template Git URL is provided and the cart is capable of builds or deploys.
-        if (cartridge.install_build_required || template_git_url) && cartridge.buildable?
+        if !OpenShift::Git.empty_clone_spec?(template_git_url) && (cartridge.install_build_required || template_git_url) && cartridge.buildable?
           build_log = '/tmp/initial-build.log'
           env       = Utils::Environ.for_gear(@user.homedir)
   

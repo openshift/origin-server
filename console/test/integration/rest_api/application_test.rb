@@ -122,6 +122,18 @@ class RestApiApplicationTest < ActiveSupport::TestCase
     end
   end
 
+  def test_create_app_with_empty_repo
+    with_configured_user
+    setup_domain
+
+    assert_create_app({:include => :cartridges, :initial_git_url => 'empty', :cartridges => ['nodejs-0.6']}, "Set initial git URL") do |app|
+      assert_equal ['nodejs-0.6'], app.cartridges.map(&:name), "node-js was not an installed cartridge"
+      assert app.messages.any?{ |m| m.to_s =~ /An empty Git repository has been created for your application/ }, "None of the app creation messages described the empty repo: #{app.messages.inspect}"
+      loaded_app = Application.find(app.name, :params => {:domain_id => @domain.id}, :as => @user)
+      assert loaded_app.initial_git_url.blank?
+    end
+  end
+
   def test_create_app_with_initial_git_url_and_fragment
     with_configured_user
     setup_domain

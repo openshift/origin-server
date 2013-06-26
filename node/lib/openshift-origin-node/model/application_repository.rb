@@ -47,6 +47,13 @@ module OpenShift
       File.directory?(@path)
     end
 
+    def empty?
+      return false unless exist?
+      out, err, exitstatus = Utils.oo_spawn(COUNT_GIT_OBJECTS,
+                                            chdir:               @path)
+      out.strip == "0" && exitstatus == 0
+    end
+
     alias exists? exist?
 
     ##
@@ -125,6 +132,35 @@ module OpenShift
 
       configure
     end
+
+    ##
+    # +populate_empty+ initializes a default, empty Git repository
+    # for the gear
+    #
+    def populate_empty(cartridge_name)
+      return nil if exists?
+
+      git_path = @path
+      FileUtils.mkpath(git_path)
+
+      # expose variables for ERB processing
+      @application_name = @user.app_name
+      @cartridge_name   = cartridge_name
+      @user_homedir     = @user.homedir
+
+      begin
+        Utils.oo_spawn(ERB.new(GIT_INIT_BARE).result(binding),
+                       chdir:               git_path,
+                       expected_exitstatus: 0)
+      rescue Utils::ShellExecutionException => e
+        raise Utils::ShellExecutionException.new(
+                  "CLIENT_ERROR: Source code repository could not be created.  Please contact support.",
+                  131
+              )
+      end
+
+      configure
+    end    
 
     def archive
       return unless exist?
@@ -216,37 +252,47 @@ module OpenShift
     private
     #-- ERB Templates -----------------------------------------------------------
 
+    COUNT_GIT_OBJECTS = 'find objects -type f 2>/dev/null | wc -l'
+
     GIT_INIT = %q{
 set -xe;
 git init;
 git config user.email "builder@example.com";
 git config user.name "Template builder";
-git config core.logAllRefUpdates true
+git config core.logAllRefUpdates true;
 git add -f .;
-git commit -a -m "Creating template"
+git commit -a -m "Creating template";
+}
+
+    GIT_INIT_BARE = %q{
+set -xe;
+git init --bare;
+git config core.logAllRefUpdates true;
 }
 
     GIT_LOCAL_CLONE = %q{
 set -xe;
 git clone --bare --no-hardlinks template <%= @application_name %>.git;
-GIT_DIR=./<%= @application_name %>.git git config core.logAllRefUpdates true
-GIT_DIR=./<%= @application_name %>.git git repack
+GIT_DIR=./<%= @application_name %>.git git config core.logAllRefUpdates true;
+GIT_DIR=./<%= @application_name %>.git git repack;
 }
 
     GIT_URL_CLONE = %q{
 set -xe;
 git clone --bare --no-hardlinks <%= @url %> <%= @application_name %>.git;
-GIT_DIR=./<%= @application_name %>.git git config core.logAllRefUpdates true
+GIT_DIR=./<%= @application_name %>.git git config core.logAllRefUpdates true;
 <% if @commit && !@commit.empty? %>
 GIT_DIR=./<%= @application_name %>.git git reset --soft '<%= @commit %>';
 <% end %>
-GIT_DIR=./<%= @application_name %>.git git repack
+GIT_DIR=./<%= @application_name %>.git git repack;
 }
 
-    GIT_ARCHIVE = %q{
+    GIT_ARCHIVE = %Q{
 set -xe;
 shopt -s dotglob;
-rm -rf <%= @target_dir %>/*;
+if [ "$(#{COUNT_GIT_OBJECTS})" -eq "0" ]; then
+  exit 0;
+fi
 git archive --format=tar HEAD | (cd <%= @target_dir %> && tar --warning=no-timestamp -xf -);
 }
 

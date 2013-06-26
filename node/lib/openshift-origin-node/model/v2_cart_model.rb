@@ -270,7 +270,8 @@ module OpenShift
       rc_override = e.rc < 100 ? 157 : e.rc
       raise Utils::Sdk.translate_shell_ex_for_client(e, rc_override)
     rescue => e
-      ex =  RuntimeError.new(Utils::Sdk.translate_out_for_client(e.message, :error))
+      logger.error "Unexpected error during configure: #{e.message} (#{e.class})\n  #{e.backtrace.join("\n  ")}"
+      ex =  RuntimeError.new(Utils::Sdk.translate_out_for_client("Unexpected error: #{e.message}", :error))
       ex.set_backtrace(e.backtrace)
       raise ex
     end
@@ -288,7 +289,11 @@ module OpenShift
       cartridge              = get_cartridge(name)
 
       OpenShift::Utils::Cgroups::with_no_cpu_limits(@user.uuid) do
-        output << start_cartridge('start', cartridge, user_initiated: true)
+        if empty_repository?
+          output << "CLIENT_MESSAGE: An empty Git repository has been created for your application.  Use 'git push' to add your code."
+        else
+          output << start_cartridge('start', cartridge, user_initiated: true) 
+        end
         output << cartridge_action(cartridge, 'post_install', software_version)
       end
 
@@ -519,16 +524,16 @@ module OpenShift
       repo = ApplicationRepository.new(@user)
       if template_url.nil?
         repo.populate_from_cartridge(cartridge_name)
+      elsif OpenShift::Git.empty_clone_spec?(template_url)
+        repo.populate_empty(cartridge_name)
       else
         repo.populate_from_url(cartridge_name, template_url)
       end
 
       if repo.exist?
         repo.archive
-        "CLIENT_DEBUG: The cartridge #{cartridge_name} deployed a template application"
-      else
-        "CLIENT_MESSAGE: The cartridge #{cartridge_name} did not provide template application"
       end
+      ""
     end
 
     # process_erb_templates(cartridge_name) -> nil
@@ -1367,6 +1372,10 @@ module OpenShift
       output = "#{env['OPENSHIFT_GEAR_UUID']}@#{private_ip}:#{primary_cartridge.name};#{env['OPENSHIFT_GEAR_DNS']}"
       logger.debug output
       output
+    end
+
+    def empty_repository?
+      ApplicationRepository.new(@user).empty?
     end
   end
 end

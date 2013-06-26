@@ -84,15 +84,19 @@ class ApplicationRepositoryFuncTest < OpenShift::NodeTestCase
     FileUtils.rm_rf(File.join(@user.homedir, @cartridge_directory, 'usr', 'template.git'))
   end
 
-  def assert_bare_repository(repo)
+  def assert_bare_repository(repo, empty=false)
     assert_path_exist repo.path
     assert_path_exist File.join(repo.path, 'description')
     assert_path_exist File.join(@user.homedir, '.gitconfig')
     assert_path_exist File.join(repo.path, 'hooks', 'pre-receive')
     assert_path_exist File.join(repo.path, 'hooks', 'post-receive')
 
-    files = Dir[repo.path + '/objects/**/*']
-    assert files.count > 0, 'Error: Git repository missing objects'
+    files = Dir[repo.path + '/objects/**/*'].select{ |p| File.file?(p) }
+    if empty
+      assert_equal 0, files.count, "Error: Git repository should be empty"
+    else
+      assert files.count > 0, 'Error: Git repository missing objects'
+    end
     files.each { |f|
       stat = File.stat(f)
       assert_equal @user.uid, stat.uid, 'Error: Git object wrong ownership'
@@ -326,6 +330,33 @@ class ApplicationRepositoryFuncTest < OpenShift::NodeTestCase
     rescue OpenShift::Utils::ShellExecutionException => e
       puts %Q{
         Failed to create git repo from cartridge template: rc(#{e.rc})
+        stdout ==> #{e.stdout}
+        stderr ==> #{e.stderr}
+           #{e.backtrace.join("\n")}}
+      raise
+    end
+  end
+
+  def test_empty_repository
+    expected_path = File.join(@user.homedir, 'git', @user.app_name + '.git')
+
+    repo = OpenShift::ApplicationRepository.new(@user)
+    repo.destroy
+    refute_path_exist(expected_path)
+
+    begin
+      repo.populate_empty(@cartridge_directory)
+
+      assert_equal expected_path, repo.path
+      assert_bare_repository(repo, true)
+
+      runtime_repo = "#{@user.homedir}/app-root/runtime/repo"
+      FileUtils.mkpath(runtime_repo)
+      repo.archive
+      assert_equal ['.', '..'].sort, Dir.entries(runtime_repo).sort
+    rescue OpenShift::Utils::ShellExecutionException => e
+      puts %Q{
+        Failed to create empty git repo: rc(#{e.rc})
         stdout ==> #{e.stdout}
         stderr ==> #{e.stderr}
            #{e.backtrace.join("\n")}}

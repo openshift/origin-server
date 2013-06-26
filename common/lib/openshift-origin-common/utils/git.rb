@@ -3,7 +3,19 @@ require 'uri'
 module OpenShift
   module Git
     #
-    # Allowed schemes that are safe to execute
+    # This spec will start the application with an empty Git repository.
+    #
+    EMPTY_CLONE_SPEC = "empty"
+
+    #
+    # Return true if this clone specification should create an empty repository
+    # 
+    def self.empty_clone_spec?(url)
+      EMPTY_CLONE_SPEC == url
+    end
+
+    #
+    # Allowed schemes for Git clone.
     #
     ALLOWED_SCHEMES = %w{git git@ http https ftp ftps rsync}
     ALLOWED_NODE_SCHEMES = ALLOWED_SCHEMES + ['file']
@@ -16,6 +28,7 @@ module OpenShift
     # URI::InvalidURIError if the input is not a valid URI.
     #
     def self.safe_clone_spec(url, schemes=ALLOWED_SCHEMES)
+      return [EMPTY_CLONE_SPEC, nil] if empty_clone_spec?(url)
       uri = URI.parse(url)
       return nil unless schemes.include?(uri.scheme)
       fragment = uri.fragment

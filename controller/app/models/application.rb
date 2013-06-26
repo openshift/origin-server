@@ -145,8 +145,9 @@ class Application
   def self.create_app(application_name, features, domain, default_gear_size = nil, scalable=false, result_io=ResultIO.new, group_overrides=[], init_git_url=nil, user_agent=nil, community_cart_urls=[])
     default_gear_size =  Rails.application.config.openshift[:default_gear_size] if default_gear_size.nil?
     cmap = CartridgeCache.fetch_community_carts(community_cart_urls)
-    app = Application.new(domain: domain, name: application_name, default_gear_size: default_gear_size, scalable: scalable, app_ssh_keys: [], pending_op_groups: [], init_git_url: init_git_url, downloaded_cart_map: cmap)
+    app = Application.new(domain: domain, name: application_name, default_gear_size: default_gear_size, scalable: scalable, app_ssh_keys: [], pending_op_groups: [], downloaded_cart_map: cmap)
     app.user_agent = user_agent
+    app.init_git_url = init_git_url unless OpenShift::Git.empty_clone_spec?(init_git_url)
     app.analytics['user_agent'] = user_agent
     app.save
     features << "web_proxy" if scalable
