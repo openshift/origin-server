@@ -9,6 +9,10 @@ module OpenShift
 
         attr_reader :gear_shell, :mcs_label
 
+        def self.container_dir(container)
+          File.join(container.base_dir,container.uuid)
+        end
+
         def initialize(application_container)
           @container  = application_container
           @config     = OpenShift::Config.new
@@ -27,18 +31,10 @@ module OpenShift
         #
         # Returns nil on Success or raises on Failure
         def create
-          cmd = %{groupadd -g #{@container.gid} \
-          #{@container.uuid}}
-          out,err,rc = run_in_root_context(cmd)
-          raise UserCreationException.new(
-                    "ERROR: unable to create group for user account(#{rc}): #{cmd.squeeze(" ")} stdout: #{out} stderr: #{err}"
-                ) unless rc == 0
-
-          FileUtils.mkdir_p @container.container_dir
           cmd = %{useradd -u #{@container.uid} \
                   -g #{@container.gid} \
                   -d #{@container.container_dir} \
-                  -s #{@container.shell} \
+                  -s #{@gear_shell} \
                   -c '#{@container.gecos}' \
                   -m \
                   -N \
@@ -110,18 +106,6 @@ module OpenShift
                   ) unless rc == 0
           rescue ArgumentError => e
             logger.debug("user does not exist. ignore.")
-          end
-
-          begin
-            group = Etc.getgrnam(@container.uuid)
-
-            cmd = "groupdel \"#{@container.uuid}\""
-            out,err,rc = run_in_root_context(cmd)
-            raise UserDeletionException.new(
-                      "ERROR: unable to destroy group of user account(#{rc}): #{cmd} stdout: #{out} stderr: #{err}"
-                  ) unless rc == 0
-          rescue ArgumentError => e
-            logger.debug("group does not exist. ignore.")
           end
 
           # 1. Don't believe everything you read on the userdel man page...
@@ -203,7 +187,7 @@ Dir(after)    #{@container.uuid}/#{@container.uid} => #{list_home_dir(@container
 
         def delete_public_endpoints(proxy_mappings)
           proxy = OpenShift::Runtime::FrontendProxyServer.new
-          proxy.delete_all(proxy_mappings.map{|p| p[:public_port]}, true)
+          proxy.delete_all(proxy_mappings.map{|p| p[:proxy_port]}, true)
         end
 
         # Public: Initialize OpenShift Port Proxy for this gear
@@ -318,32 +302,32 @@ Dir(after)    #{@container.uuid}/#{@container.uid} => #{list_home_dir(@container
           OpenShift::Runtime::Utils::oo_spawn(command, options)
         end
 
-        def reset_permission(*paths)
+        def reset_permission(paths)
           OpenShift::Runtime::Utils::SELinux.clear_mcs_label(paths)
           OpenShift::Runtime::Utils::SELinux.set_mcs_label(@mcs_label, paths)
         end
 
-        def reset_permission_R(*paths)
+        def reset_permission_R(paths)
           OpenShift::Runtime::Utils::SELinux.clear_mcs_label_R(paths)
           OpenShift::Runtime::Utils::SELinux.set_mcs_label_R(@mcs_label, paths)
         end
 
-        def set_ro_permission_R(*paths)
+        def set_ro_permission_R(paths)
           PathUtils.oo_chown_R(0, @container.gid, paths)
           OpenShift::Runtime::Utils::SELinux.set_mcs_label_R(@mcs_label, paths)
         end
 
-        def set_ro_permission(*paths)
+        def set_ro_permission(paths)
           PathUtils.oo_chown(0, @container.gid, paths)
           OpenShift::Runtime::Utils::SELinux.set_mcs_label(@mcs_label, paths)
         end
 
-        def set_rw_permission_R(*paths)
+        def set_rw_permission_R(paths)
           PathUtils.oo_chown_R(@container.uid, @container.gid, paths)
           OpenShift::Runtime::Utils::SELinux.set_mcs_label_R(@mcs_label, paths)
         end
 
-        def set_rw_permission(*paths)
+        def set_rw_permission(paths)
           PathUtils.oo_chown(@container.uid, @container.gid, paths)
           OpenShift::Runtime::Utils::SELinux.set_mcs_label(@mcs_label, paths)
         end

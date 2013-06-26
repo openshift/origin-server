@@ -39,7 +39,7 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
     # Set up the container
     @gear_uuid = "5503"
     @user_uid  = "5503"
-    @app_name  = 'UnixUserTestCase'
+    @app_name  = 'ApplicationContainerTestCase'
     @gear_name = @app_name
     @namespace = 'jwh201204301647'
     @gear_ip   = "127.0.0.1"
@@ -113,7 +113,7 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
   end
 
   def test_build_success
-    @state.expects(:value=).with(OpenShift::State::BUILDING)
+    @state.expects(:value=).with(OpenShift::Runtime::State::BUILDING)
 
     primary = mock()
     @cartridge_model.expects(:primary_cartridge).returns(primary).times(3)
@@ -148,7 +148,7 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
   end
 
   def test_deploy_no_web_proxy_success
-    @state.expects(:value=).with(OpenShift::State::DEPLOYING)
+    @state.expects(:value=).with(OpenShift::Runtime::State::DEPLOYING)
 
     primary = mock()
     @cartridge_model.stubs(:primary_cartridge).returns(primary)
@@ -180,7 +180,7 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
   end
 
   def test_deploy_web_proxy_success
-    @state.expects(:value=).with(OpenShift::State::DEPLOYING)
+    @state.expects(:value=).with(OpenShift::Runtime::State::DEPLOYING)
 
     primary = mock()
     @cartridge_model.stubs(:primary_cartridge).returns(primary)

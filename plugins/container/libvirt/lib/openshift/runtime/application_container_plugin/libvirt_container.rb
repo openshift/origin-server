@@ -7,12 +7,13 @@ module OpenShift
       class LibvirtContainer
         include OpenShift::Runtime::Utils::ShellExec
         include OpenShift::Runtime::NodeLogger
+        CONF_DIR = '/etc/openshift/'
         NODE_PLUGINS_DIR = File.join(CONF_DIR, 'node-plugins.d/')
 
         attr_reader :gear_shell, :mcs_label
 
         def self.container_dir(container)
-          File.join(container.base_dir,'gears',container.uuid)
+          File.join(container.base_dir,'gear',container.uuid)
         end
 
         def initialize(application_container)

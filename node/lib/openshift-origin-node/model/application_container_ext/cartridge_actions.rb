@@ -118,7 +118,6 @@ module OpenShift
         # Returns nil on success. Failed public port delete operations are logged
         # and skipped.
         def delete_public_endpoints(cart_name)
-          env  = Utils::Environ::for_gear(@container_dir)
           cart = @cartridge_model.get_cartridge(cart_name)
           proxy_mappings = @cartridge_model.list_proxy_mappings
 
@@ -128,11 +127,11 @@ module OpenShift
 
             logger.info("Deleted all public endpoints for cart #{cart.name} in gear #{@uuid}\n"\
               "Endpoints: #{proxy_mappings.map{|p| p[:public_port_name]}}\n"\
-              "Public ports: #{proxy_mappings.map{|p| p[:public_port]}}")
+              "Public ports: #{proxy_mappings.map{|p| p[:proxy_port]}}")
           rescue => e
             logger.warn(%Q{Couldn't delete all public endpoints for cart #{cart.name} in gear #{@uuid}: #{e.message}
               "Endpoints: #{proxy_mappings.map{|p| p[:public_port_name]}}\n"\
-              "Public ports: #{proxy_mappings.map{|p| p[:public_port]}}\n"\
+              "Public ports: #{proxy_mappings.map{|p| p[:proxy_port]}}\n"\
               #{e.backtrace}
             })
           end
@@ -178,7 +177,7 @@ module OpenShift
                                         out: options[:out],
                 err: options[:err])
           else
-            stop1_gear(user_initiated: true,
+            stop_gear(user_initiated: true,
                 hot_deploy:     options[:hot_deploy],
                 out:            options[:out],
                 err:            options[:err])
@@ -277,7 +276,7 @@ module OpenShift
         # Returns the combined output of all actions as a +String+.
         #
         def build(options={})
-          @state.value = OpenShift::State::BUILDING
+          @state.value = OpenShift::Runtime::State::BUILDING
 
           buffer = ''
 
@@ -332,7 +331,7 @@ module OpenShift
               out:            options[:out],
               err:            options[:err])
 
-          @state.value = OpenShift::State::DEPLOYING
+          @state.value = OpenShift::Runtime::State::DEPLOYING
 
           web_proxy_cart = @cartridge_model.web_proxy
           if web_proxy_cart

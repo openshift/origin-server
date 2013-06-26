@@ -99,7 +99,7 @@ class SELinuxUtilsChconTest < OpenShift::NodeTestCase
     File.expects(:lstat).with(@test_path).returns(mock('File::Stat') { expects(:mode).returns(0755) }).once
     Selinux.expects(:matchpathcon).with(@test_path, anything).returns([0, fcontext])
     Selinux.expects(:lgetfilecon).with(@test_path).returns([fcontext.length, fcontext])
-    OpenShift::NodeLogger.logger.expects(:error).never
+    OpenShift::Runtime::NodeLogger.logger.expects(:error).never
     Selinux.expects(:lsetfilecon).with(@test_path, tcontext).returns(0).never
     
     OpenShift::Runtime::Utils::SELinux.chcon(@test_path)
@@ -114,7 +114,7 @@ class SELinuxUtilsChconTest < OpenShift::NodeTestCase
     File.expects(:lstat).with(@test_path).returns(mock('File::Stat') { expects(:mode).returns(0755) }).once
     Selinux.expects(:matchpathcon).with(@test_path, anything).returns([0, fcontext])
     Selinux.expects(:lgetfilecon).with(@test_path).returns([fcontext.length, fcontext])
-    OpenShift::NodeLogger.logger.expects(:error).never
+    OpenShift::Runtime::NodeLogger.logger.expects(:error).never
     Selinux.expects(:lsetfilecon).with(@test_path, tcontext).returns(0).once
 
     OpenShift::Runtime::Utils::SELinux.chcon(@test_path, tlabel)
@@ -133,7 +133,7 @@ class SELinuxUtilsChconTest < OpenShift::NodeTestCase
     File.expects(:lstat).with(@test_path).returns(mock('File::Stat') { expects(:mode).returns(0755) }).once
     Selinux.expects(:matchpathcon).with(@test_path, anything).returns([0, fcontext])
     Selinux.expects(:lgetfilecon).with(@test_path).returns([fcontext.length, fcontext])
-    OpenShift::NodeLogger.logger.expects(:error).never
+    OpenShift::Runtime::NodeLogger.logger.expects(:error).never
     Selinux.expects(:lsetfilecon).with(@test_path, tcontext).returns(0).once
 
     OpenShift::Runtime::Utils::SELinux.chcon(@test_path, tlabel, ttype, trole, tuser)
@@ -144,7 +144,7 @@ class SELinuxUtilsChconTest < OpenShift::NodeTestCase
     Dir.expects(:glob).with("foo*").returns(["foo", "bar"]).once
     File.expects(:stat).with("foo").returns(mock('File::Stat') { expects(:mtime).returns(1234567) }).once
     File.expects(:stat).with("bar").returns(mock('File::Stat') { expects(:mtime).returns(7890123) }).once
-    OpenShift::NodeLogger.logger.expects(:debug)
+    OpenShift::Runtime::NodeLogger.logger.expects(:debug)
     Selinux.stubs(:matchpathcon_fini)
     Selinux.expects(:matchpathcon_init).with(nil).once
 

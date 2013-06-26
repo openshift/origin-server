@@ -55,13 +55,11 @@ module OpenShift
       rescue ArgumentError
       end
 
-      @user = OpenShift::UnixUser.new(@uuid, @uuid,
-                                      @uid,
-                                      'V2CartridgeModelFunctionalTest',
-                                      'V2CartridgeModelFunctionalTest',
-                                      'functional-test')
-      @user.create
-      refute_nil @user.homedir
+      @container = OpenShift::Runtime::ApplicationContainer.new(@uuid, @uuid, @uid, "V2CartridgeModelFunctionalTest",
+                                                                "V2CartridgeModelFunctionalTest", "functional-test")
+      @container.create
+
+      refute_nil @container.container_dir
 
       OpenShift::Runtime::CartridgeRepository.instance.clear
       OpenShift::Runtime::CartridgeRepository.instance.load
@@ -69,43 +67,43 @@ module OpenShift
       @hourglass = mock()
       @hourglass.stubs(:remaining).returns(3600)
 
-      @model = OpenShift::Runtime::V2CartridgeModel.new(@config, @user, OpenShift::Runtime::Utils::ApplicationState.new(@uuid), @hourglass)
+      @model = OpenShift::Runtime::V2CartridgeModel.new(@config, @container, OpenShift::Runtime::Utils::ApplicationState.new(@uuid), @hourglass)
     end
 
     def teardown
-      @model.deconfigure('mock-plugin-0.1') if File.exist?(File.join(@user.homedir, 'mock-plugin'))
-      @model.deconfigure('mock-0.1') if File.exist?(File.join(@user.homedir, 'mock'))
-      FileUtils.rm_rf(File.join(@user.homedir, 'git'))
+      @model.deconfigure('mock-plugin-0.1') if File.exist?(File.join(@container.container_dir, 'mock-plugin'))
+      @model.deconfigure('mock-0.1') if File.exist?(File.join(@container.container_dir, 'mock'))
+      FileUtils.rm_rf(File.join(@container.container_dir, 'git'))
     end
 
     def after_teardown
-      @user.destroy
+      @container.destroy
     end
 
     def test_hidden_erb
       @model.configure('mock-0.1')
 
-      assert_path_exist(File.join(@user.homedir, 'mock', '.mock_hidden'),
+      assert_path_exist(File.join(@container.container_dir, 'mock', '.mock_hidden'),
                         'Failed to process .mock_hidden.erb')
 
-      refute_path_exist(File.join(@user.homedir, 'mock', '.mock_hidden.erb'),
+      refute_path_exist(File.join(@container.container_dir, 'mock', '.mock_hidden.erb'),
                         'Failed to delete .mock_hidden.erb after processing')
     end
 
     def test_configure_with_manifest
       @model.configure('mock-0.1')
 
-      refute_path_exist(File.join(@user.homedir, 'mock-plugin'))
+      refute_path_exist(File.join(@container.container_dir, 'mock-plugin'))
 
       cartridge = OpenShift::Runtime::CartridgeRepository.instance.select('mock-plugin', '0.1')
       skip 'Mock Plugin 0.1 cartridge required for this test' unless cartridge
 
-      cuckoo = File.join(@user.homedir, %w(app-root data cuckoo))
+      cuckoo = File.join(@container.container_dir, %w(app-root data cuckoo))
       FileUtils.mkpath(cuckoo)
       %x(shopt -s dotglob; cp -ad #{cartridge.repository_path}/* #{cuckoo})
 
       # build our "remote" cartridge repository
-      cuckoo_repo = File.join(@user.homedir, %w(app-root data cuckoo_repo))
+      cuckoo_repo = File.join(@container.container_dir, %w(app-root data cuckoo_repo))
       FileUtils.mkpath cuckoo_repo
       Dir.chdir(cuckoo_repo) do
         %x(git init;
@@ -132,15 +130,15 @@ module OpenShift
         )
       end
 
-      assert_path_exist(File.join(@user.homedir, 'mock-plugin'))
-      assert_path_exist(File.join(@user.homedir, %w(mock-plugin bin control)))
+      assert_path_exist(File.join(@container.container_dir, 'mock-plugin'))
+      assert_path_exist(File.join(@container.container_dir, %w(mock-plugin bin control)))
     end
 
     def test_configure_with_no_template
       cartridge = OpenShift::Runtime::CartridgeRepository.instance.select('mock-plugin', '0.1')
       skip 'Mock Plugin 0.1 cartridge required for this test' unless cartridge
 
-      cuckoo = File.join(@user.homedir, %w(app-root data cuckoo))
+      cuckoo = File.join(@container.container_dir, %w(app-root data cuckoo))
       FileUtils.mkpath(cuckoo)
       %x(shopt -s dotglob; cp -ad #{cartridge.repository_path}/* #{cuckoo})
       refute_path_exist File.join(cuckoo, 'template')
@@ -164,10 +162,10 @@ module OpenShift
         )
       end
 
-      entries = Dir.entries(File.join(@user.homedir, 'git'))
+      entries = Dir.entries(File.join(@container.container_dir, 'git'))
       assert_equal(2, entries.size, "Found application template: #{entries}")
-      assert_path_exist(File.join(@user.homedir, 'cuckoo'))
-      assert_path_exist(File.join(@user.homedir, %w(cuckoo bin control)))
+      assert_path_exist(File.join(@container.container_dir, 'cuckoo'))
+      assert_path_exist(File.join(@container.container_dir, %w(cuckoo bin control)))
     end
 
     def test_configure_with_short_name
@@ -193,7 +191,7 @@ module OpenShift
         )
       end
 
-      env = File.join(@user.homedir, 'cuckoo', 'env')
+      env = File.join(@container.container_dir, 'cuckoo', 'env')
       assert_path_exist File.join(env, 'OPENSHIFT_MOCK_PLUGIN_DIR')
       assert_path_exist File.join(env, 'OPENSHIFT_MOCK_PLUGIN_IDENT')
       refute_path_exist File.join(env, 'OPENSHIFT_CUCKOO_DIR')
@@ -204,7 +202,7 @@ module OpenShift
       cartridge = OpenShift::CartridgeRepository.instance.select('mock-plugin', '0.1')
       skip 'Mock Plugin 0.1 cartridge required for this test' unless cartridge
 
-      cuckoo = File.join(@user.homedir, %w(app-root data cuckoo))
+      cuckoo = File.join(@container.container_dir, %w(app-root data cuckoo))
       FileUtils.mkpath(cuckoo)
       %x(shopt -s dotglob; cp -ad #{cartridge.repository_path}/* #{cuckoo})
       IO.write(File.join(cuckoo, 'bin', 'setup'),
@@ -230,7 +228,7 @@ module OpenShift
       cartridge = OpenShift::CartridgeRepository.instance.select('mock-plugin', '0.1')
       skip 'Mock Plugin 0.1 cartridge required for this test' unless cartridge
 
-      cuckoo = File.join(@user.homedir, %w(app-root data cuckoo))
+      cuckoo = File.join(@container.container_dir, %w(app-root data cuckoo))
       FileUtils.mkpath(cuckoo)
       %x(shopt -s dotglob; cp -ad #{cartridge.repository_path}/* #{cuckoo})
       IO.write(File.join(cuckoo, 'bin', 'setup'),

@@ -237,7 +237,7 @@ module OpenShift
       #
       # TODO: exception handling
       def force_stop
-        @state.value = OpenShift::State::STOPPED
+        @state.value = OpenShift::Runtime::State::STOPPED
         @cartridge_model.create_stop_lock
         @container_plugin.stop
       end
@@ -599,27 +599,27 @@ module OpenShift
         @container_plugin.run_in_container_context(command, options)
       end
 
-      def reset_permission(*paths)
+      def reset_permission(paths)
         @container_plugin.reset_permission(paths)
       end
 
-      def reset_permission_R(*paths)
+      def reset_permission_R(paths)
         @container_plugin.reset_permission_R(paths)
       end
 
-      def set_ro_permission_R(*paths)
+      def set_ro_permission_R(paths)
         @container_plugin.set_ro_permission_R(paths)
       end
 
-      def set_ro_permission(*paths)
+      def set_ro_permission(paths)
         @container_plugin.set_ro_permission(paths)
       end
 
-      def set_rw_permission_R(*paths)
+      def set_rw_permission_R(paths)
         @container_plugin.set_rw_permission_R(paths)
       end
 
-      def set_rw_permission(*paths)
+      def set_rw_permission(paths)
         @container_plugin.set_rw_permission(paths)
       end
     end

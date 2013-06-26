@@ -271,9 +271,7 @@ module OpenShift
       # Public: Load from json
       def self.json_create(obj)
         data = obj['data']
-        new_obj = new(data['container_uuid'],
-                      data['container_name'],
-                      data['namespace'])
+        new_obj = FrontendHttpServer.new(OpenShift::Runtime::ApplicationContainer.from_uuid(data['container_uuid']))
         new_obj.create
 
         if data.has_key?("connections")

@@ -62,9 +62,7 @@ class UnixUserModelFunctionalTest < OpenShift::NodeTestCase
 
   def test_initialize
     FileUtils.rm_rf(@user_homedir, :verbose => @verbose) if File.directory?(@user_homedir)
-    o = OpenShift::UnixUser.new(@gear_uuid, @gear_uuid, @user_uid, @app_name,
-                                @gear_name, @namespace,
-                                nil, nil, @verbose)
+    o = OpenShift::Runtime::ApplicationContainer.new(@gear_uuid, @gear_uuid, @user_uid, @app_name, @gear_name, @namespace)
     refute_nil o
 
     o.initialize_homedir("/tmp/", "#{@user_homedir}/")

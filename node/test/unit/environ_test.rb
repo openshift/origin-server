@@ -69,7 +69,7 @@ class EnvironTest < OpenShift::NodeTestCase
 
     err_msg = "Permission denied"
     IO.stubs(:read).with(any_parameters).raises(Errno::EACCES.new(file_name))
-    OpenShift::NodeLogger.logger.expects(:info).once().with(all_of(
+    OpenShift::Runtime::NodeLogger.logger.expects(:info).once().with(all_of(
                                                                 regexp_matches(/^Failed to process: #{@gear_env}/),
                                                                 regexp_matches(/#{Regexp.escape(err_msg)}$/)
                                                             ))
