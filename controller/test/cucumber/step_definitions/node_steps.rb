@@ -227,7 +227,7 @@ Then /^the groups? "([^\"]*)" is assigned as supplementary groups? to upcoming n
    filepath="/etc/openshift/node.conf"
    if File.exists?(filepath)
     file =  File.open(filepath, 'a')
-    file.write "GEAR_SUPL_GRPS=\"#{supplementary_group}\"\n"
+    file.write "GEAR_SUPPLEMENTARY_GROUPS=\"#{supplementary_group}\"\n"
     file.close
    else
      raise "Cannot modify file /etc/openshift/node.conf because file does not exist."
@@ -237,10 +237,10 @@ end
 And /^I delete the supplementary group setting from \/etc\/openshift\/node.conf$/ do 
   output_buffer=[]
   filepath="/etc/openshift/node.conf"
-  command = "sed -i '\/\\(^GEAR_SUPL_GRPS=.*\\)\/d' #{filepath}"
+  command = "sed -i '\/\\(^GEAR_SUPPLEMENTARY_GROUPS=.*\\)\/d' #{filepath}"
   exit_code = run(command, output_buffer)
   if !(output_buffer[0].include? ("does not exists")) && exit_code !=0
-     raise "Cannot delete GEAR_SUPL_GRPS setting in file '#{filepath}' from the node. Running '#{command}' returns exit code: #{exit_code} and output: #{output_buffer[0]}"
+     raise "Cannot delete GEAR_SUPPLEMENTARY_GROUPS setting in file '#{filepath}' from the node. Running '#{command}' returns exit code: #{exit_code} and output: #{output_buffer[0]}"
   end
 end
 

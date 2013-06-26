@@ -97,7 +97,7 @@ module OpenShift
       gecos    = @config.get("GEAR_GECOS")     || "OO application container"
       notify_observers(:before_unix_user_create)
       basedir = @config.get("GEAR_BASE_DIR")
-      supplementary_groups = @config.get("GEAR_SUPL_GRPS")
+      supplementary_groups = @config.get("GEAR_SUPPLEMENTARY_GROUPS")
 
       # lock to prevent race condition between create and delete of gear
       uuid_lock_file = "/var/lock/oo-create.#{@uuid}"
