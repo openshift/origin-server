@@ -199,5 +199,57 @@ module OpenShift
       refute_path_exist File.join(env, 'OPENSHIFT_CUCKOO_DIR')
       refute_path_exist File.join(env, 'OPENSHIFT_CUCKOO_IDENT')
     end
+
+    def test_configure_with_envvar_override
+      cartridge = OpenShift::CartridgeRepository.instance.select('mock-plugin', '0.1')
+      skip 'Mock Plugin 0.1 cartridge required for this test' unless cartridge
+
+      cuckoo = File.join(@user.homedir, %w(app-root data cuckoo))
+      FileUtils.mkpath(cuckoo)
+      %x(shopt -s dotglob; cp -ad #{cartridge.repository_path}/* #{cuckoo})
+      IO.write(File.join(cuckoo, 'bin', 'setup'),
+               %q(echo 'Illegal Operation' >env/OPENSHIFT_GEAR_UUID),
+               0,
+               mode: 'w', perm: 0755)
+
+      # Point manifest at "remote" repository
+      manifest                     = YAML.load_file(File.join(cuckoo, 'metadata', 'manifest.yml'))
+      manifest['Name']             = 'cuckoo'
+      manifest['Source-Url']       = "file://#{cuckoo}"
+      manifest['Cartridge-Vendor'] = 'unittest'
+      manifest['Categories']       = %w(service cuckoo web_framework)
+      manifest                     = manifest.to_yaml
+
+      # install the cuckoo
+      assert_raises RuntimeError do
+        @model.configure('cuckoo-0.1', nil, manifest)
+      end
+    end
+
+    def test_configure_with_bad_directory
+      cartridge = OpenShift::CartridgeRepository.instance.select('mock-plugin', '0.1')
+      skip 'Mock Plugin 0.1 cartridge required for this test' unless cartridge
+
+      cuckoo = File.join(@user.homedir, %w(app-root data cuckoo))
+      FileUtils.mkpath(cuckoo)
+      %x(shopt -s dotglob; cp -ad #{cartridge.repository_path}/* #{cuckoo})
+      IO.write(File.join(cuckoo, 'bin', 'setup'),
+               %q(mkdir ~/illegal_directory),
+               0,
+               mode: 'w', perm: 0755)
+
+      # Point manifest at "remote" repository
+      manifest                     = YAML.load_file(File.join(cuckoo, 'metadata', 'manifest.yml'))
+      manifest['Name']             = 'cuckoo'
+      manifest['Source-Url']       = "file://#{cuckoo}"
+      manifest['Cartridge-Vendor'] = 'unittest'
+      manifest['Categories']       = %w(service cuckoo web_framework)
+      manifest                     = manifest.to_yaml
+
+      # install the cuckoo
+      assert_raises RuntimeError do
+        @model.configure('cuckoo-0.1', nil, manifest)
+      end
+    end
   end
 end

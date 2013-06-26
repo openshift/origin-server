@@ -253,12 +253,22 @@ module OpenShift
 
         Dir.chdir(PathUtils.join(@user.homedir, cartridge.directory)) do
           unlock_gear(cartridge) do |c|
+            expected_entries = Dir.glob(PathUtils.join(@user.homedir, '*'))
+
             output << cartridge_action(cartridge, 'setup', software_version, true)
             process_erb_templates(c)
             output << cartridge_action(cartridge, 'install', software_version)
+
+            actual_entries  = Dir.glob(PathUtils.join(@user.homedir, '*'))
+            illegal_entries = actual_entries - expected_entries
+            unless illegal_entries.empty?
+              raise RuntimeError.new(
+                        "Cartridge created the following directories in the gear home directory: #{illegal_entries.join(', ')}")
+            end
+
             output << populate_gear_repo(c.directory, template_git_url) if cartridge.deployable?
           end
-
+          validate_cartridge(cartridge)
         end
 
         connect_frontend(cartridge)
@@ -270,9 +280,23 @@ module OpenShift
       rc_override = e.rc < 100 ? 157 : e.rc
       raise Utils::Sdk.translate_shell_ex_for_client(e, rc_override)
     rescue => e
-      ex =  RuntimeError.new(Utils::Sdk.translate_out_for_client(e.message, :error))
+      ex = RuntimeError.new(Utils::Sdk.translate_out_for_client(e.message, :error))
       ex.set_backtrace(e.backtrace)
       raise ex
+    end
+
+    def validate_cartridge(manifest)
+      illegal_overrides = Utils::Environ.load(PathUtils.join(@user.homedir, '.env')).keys &
+          Utils::Environ.load(PathUtils.join(@user.homedir, manifest.directory, 'env')).keys
+
+      # Older gears may have these and cartridges are allowed to override them
+      illegal_overrides.delete('LD_LIBRARY_PATH')
+      illegal_overrides.delete('PATH')
+
+      unless illegal_overrides.empty?
+        raise RuntimeError.new(
+                  "Cartridge attempted to override the following gear environment variables: #{illegal_overrides.join(', ')}")
+      end
     end
 
     def post_install(cartridge, software_version, options = {})
