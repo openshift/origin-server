@@ -18,11 +18,7 @@ module CommandHelper
   end
 
   def getenv_uservar(uuid, var, cart_name)
-    path = if $v2_node
-      "/var/lib/openshift/#{uuid}/.env/#{cart_name}/#{var}"
-    else
-      "/var/lib/openshift/#{uuid}/.env/.uservars/#{var}"
-    end
+    path "/var/lib/openshift/#{uuid}/.env/#{cart_name}/#{var}"
 
     $logger.info("Reading #{path}")
 
@@ -298,7 +294,7 @@ module CommandHelper
 
         # Source the env var values from the gear directory
 
-        app_name = $v2_node ? 'mysql' : 'mysql-5.1'
+        app_name = 'mysql'
 
         if app.scalable
           app.mysql_hostname = getenv_uservar(app.uid, 'OPENSHIFT_MYSQL_DB_HOST', app_name)

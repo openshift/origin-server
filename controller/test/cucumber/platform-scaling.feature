@@ -4,7 +4,6 @@
 Feature: V2 Platform Scaling Tests
 
   Scenario Outline: Scaling test for php
-    Given a v2 default node
     And a new client created scalable <cart_name> application
     Then the application should be accessible
     Then the haproxy-status page will be responding

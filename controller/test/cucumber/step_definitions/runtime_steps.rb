@@ -648,11 +648,6 @@ When /^I (start|stop|status|restart|tidy|reload) the newfangled application$/ do
   end
 end
 
-Given /^a v2 default node$/ do
-  assert_file_not_exists '/var/lib/openshift/.settings/v1_cartridge_format'
-  $v2_node = true
-end
-
 Then /^the "(.*)" content does( not)? exist(s)? for ([^ ]+)$/ do |path, negate, _, cartridge_name|
   cartridge = @gear.container.cartridge_model.get_cartridge(cartridge_name)
   entry = File.join($home_root, @gear.uuid, path)
