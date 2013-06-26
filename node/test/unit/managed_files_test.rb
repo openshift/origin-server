@@ -111,14 +111,15 @@ module OpenShift
 
       set_managed_files({:setup_rewritten => ['this/**/*']})
 
-      assert_equal %w(
+      expected_files = %w(
         mock/this/file
         mock/this/link
         mock/this/.foo
         mock/this/is
         mock/this/is/a
         mock/this/is/a/file
-      ).sort, setup_rewritten(@cartridge).sort
+      )
+      assert_equal expected_files.sort, setup_rewritten(@cartridge).sort
     end
 
     # Ensure locked_files does not return bad entries
