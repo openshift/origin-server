@@ -115,6 +115,17 @@ class ActionController::TestCase
 end
 
 class ActionDispatch::IntegrationTest
+  def user_can_authenticate(obj)
+    assert @user.login
+    @user.password ||= "arbitrary_pass"
+    obj
+  end
+  def login
+    @user_env = {'HTTP_AUTHORIZATION' => ActionController::HttpAuthentication::Basic.encode_credentials(@user.login, @user.password)}
+  end
+  def user_env
+    @user_env
+  end
   #
   # Helper to reuse session cookies (and avoid login) in
   # web sessions.
