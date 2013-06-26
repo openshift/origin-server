@@ -72,10 +72,10 @@
 #   @return [Array<RestCartridge>] List of cartridges in application. Used only when requesting application and included cartridges.
 #   @see [ApplicationsController#index]
 class RestApplication < OpenShift::Model
-  attr_accessor :framework, :creation_time, :uuid, :embedded, :aliases, :name, :gear_count, :links, :domain_id, :git_url, :app_url, :ssh_url,
+  attr_accessor :framework, :creation_time, :id, :embedded, :aliases, :name, :gear_count, :links, :domain_id, :git_url, :app_url, :ssh_url,
       :gear_profile, :scalable, :health_check_path, :building_with, :building_app, :build_job_url, :cartridges, :initial_git_url
 
-  def initialize(app, domain, url, nolinks=false, applications=nil)
+  def initialize(app, url, nolinks=false, applications=nil)
     self.embedded = {}
     app.requires(true).each do |feature|
       cart = CartridgeCache.find_cartridge(feature, app)
@@ -88,20 +88,20 @@ class RestApplication < OpenShift::Model
 
     self.name = app.name
     self.creation_time = app.created_at
-    self.uuid = app.uuid
+    self.id = app.uuid
     self.aliases = []
     app.aliases.each do |a|
-      self.aliases << RestAlias.new(app, domain, a, url, nolinks)
+      self.aliases << RestAlias.new(app, a, url, nolinks)
     end
     self.gear_count = app.num_gears
-    self.domain_id = domain.namespace
+    self.domain_id = app.domain.namespace
 
     self.gear_profile = app.default_gear_size
     self.scalable = app.scalable
 
-    self.git_url = "ssh://#{app.ssh_uri(domain)}/~/git/#{@name}.git/"
-    self.app_url = "http://#{app.fqdn(domain)}/"
-    self.ssh_url = "ssh://#{app.ssh_uri(domain)}"
+    self.git_url = "ssh://#{app.ssh_uri(app.domain)}/~/git/#{@name}.git/"
+    self.app_url = "http://#{app.fqdn(app.domain)}/"
+    self.ssh_url = "ssh://#{app.ssh_uri(app.domain)}"
     self.health_check_path = app.health_check_path
 
     self.building_with = nil
@@ -134,9 +134,9 @@ class RestApplication < OpenShift::Model
     end
 
     #TODO this is way too inefficient.  Adding a bit of a hack to not have to call this all the time.
-    domain.env_vars.each do |env_var|
+    app.domain.env_vars.each do |env_var|
       if env_var['key'] == 'JENKINS_URL'
-        apps = applications || domain.applications
+        apps = applications || app.domain.applications
         apps.each do |domain_app|
           domain_app.component_instances.each do |component_instance|
             cart = CartridgeCache::find_cartridge(component_instance.cartridge_name, domain_app)
@@ -154,39 +154,40 @@ class RestApplication < OpenShift::Model
       carts = CartridgeCache.find_cartridge_by_category("embedded", app).map{ |c| c.name }
 
       self.links = {
-        "GET" => Link.new("Get application", "GET", URI::join(url, "domains/#{@domain_id}/applications/#{@name}")),
-        "GET_DESCRIPTOR" => Link.new("Get application descriptor", "GET", URI::join(url, "domains/#{@domain_id}/applications/#{@name}/descriptor")),
-        #"GET_GEARS" => Link.new("Get application gears", "GET", URI::join(url, "domains/#{@domain_id}/applications/#{@name}/gears")),
-        "GET_GEAR_GROUPS" => Link.new("Get application gear groups", "GET", URI::join(url, "domains/#{@domain_id}/applications/#{@name}/gear_groups")),
-        "START" => Link.new("Start application", "POST", URI::join(url, "domains/#{@domain_id}/applications/#{@name}/events"), [
+        "GET" => Link.new("Get application", "GET", URI::join(url, "applications/#{@id}")),
+        "GET_BY_NAME" => Link.new("Get application by name", "GET", URI::join(url, "domains/#{app.domain.namespace}/applications/#{@name}")),
+        "GET_DESCRIPTOR" => Link.new("Get application descriptor", "GET", URI::join(url, "applications/#{@id}/descriptor")),
+        #"GET_GEARS" => Link.new("Get application gears", "GET", URI::join(url, "applications/#{@id}/gears")),
+        "GET_GEAR_GROUPS" => Link.new("Get application gear groups", "GET", URI::join(url, "applications/#{@id}/gear_groups")),
+        "START" => Link.new("Start application", "POST", URI::join(url, "applications/#{@id}/events"), [
           Param.new("event", "string", "event", "start")
         ]),
-        "STOP" => Link.new("Stop application", "POST", URI::join(url, "domains/#{@domain_id}/applications/#{@name}/events"), [
+        "STOP" => Link.new("Stop application", "POST", URI::join(url, "applications/#{@id}/events"), [
           Param.new("event", "string", "event", "stop")
         ]),
-        "RESTART" => Link.new("Restart application", "POST", URI::join(url, "domains/#{@domain_id}/applications/#{@name}/events"), [
+        "RESTART" => Link.new("Restart application", "POST", URI::join(url, "applications/#{@id}/events"), [
           Param.new("event", "string", "event", "restart")
         ]),
-        "FORCE_STOP" => Link.new("Force stop application", "POST", URI::join(url, "domains/#{@domain_id}/applications/#{@name}/events"), [
+        "FORCE_STOP" => Link.new("Force stop application", "POST", URI::join(url, "applications/#{@id}/events"), [
           Param.new("event", "string", "event", "force-stop")
         ]),
-        "SCALE_UP" => Link.new("Scale up application", "POST", URI::join(url, "domains/#{@domain_id}/applications/#{@name}/events"), [
+        "SCALE_UP" => Link.new("Scale up application", "POST", URI::join(url, "applications/#{@id}/events"), [
           Param.new("event", "string", "event", "scale-up")
         ]),
-        "SCALE_DOWN" => Link.new("Scale down application", "POST", URI::join(url, "domains/#{@domain_id}/applications/#{@name}/events"), [
+        "SCALE_DOWN" => Link.new("Scale down application", "POST", URI::join(url, "applications/#{@id}/events"), [
           Param.new("event", "string", "event", "scale-down")
         ]),
-        "TIDY" => Link.new("Tidy the application framework", "POST", URI::join(url, "domains/#{@domain_id}/applications/#{@name}/events"), [
+        "TIDY" => Link.new("Tidy the application framework", "POST", URI::join(url, "applications/#{@id}/events"), [
           Param.new("event", "string", "event", "tidy")
         ]),
-        "RELOAD" => Link.new("Reload the application", "POST", URI::join(url, "domains/#{@domain_id}/applications/#{@name}/events"), [
+        "RELOAD" => Link.new("Reload the application", "POST", URI::join(url, "applications/#{@id}/events"), [
           Param.new("event", "string", "event", "reload")
         ]),
-        "THREAD_DUMP" => Link.new("Trigger thread dump", "POST", URI::join(url, "domains/#{@domain_id}/applications/#{@name}/events"), [
+        "THREAD_DUMP" => Link.new("Trigger thread dump", "POST", URI::join(url, "applications/#{@id}/events"), [
           Param.new("event", "string", "event", "thread-dump")
         ]),
-        "DELETE" => Link.new("Delete application", "DELETE", URI::join(url, "domains/#{@domain_id}/applications/#{@name}")),
-        "ADD_CARTRIDGE" => Link.new("Add embedded cartridge", "POST", URI::join(url, "domains/#{@domain_id}/applications/#{@name}/cartridges"),[
+        "DELETE" => Link.new("Delete application", "DELETE", URI::join(url, "applications/#{@id}")),
+        "ADD_CARTRIDGE" => Link.new("Add embedded cartridge", "POST", URI::join(url, "applications/#{@id}/cartridges"),[
             Param.new("name", "string", "framework-type, e.g.: mongodb-2.0", carts)
           ],[
             OptionalParam.new("colocate_with", "string", "The component to colocate with", app.component_instances.map{|c| c.cartridge_name}),
@@ -196,14 +197,14 @@ class RestApplication < OpenShift::Model
             (OptionalParam.new("url", "string", "A URL to a downloadable cartridge.") if Rails.application.config.openshift[:download_cartridges_enabled]),
           ].compact
         ),
-        "LIST_CARTRIDGES" => Link.new("List embedded cartridges", "GET", URI::join(url, "domains/#{@domain_id}/applications/#{@name}/cartridges")),
-        "DNS_RESOLVABLE" => Link.new("Resolve DNS", "GET", URI::join(url, "domains/#{@domain_id}/applications/#{@name}/dns_resolvable")),
-        "ADD_ALIAS" => Link.new("Create new alias", "POST", URI::join(url, "domains/#{@domain_id}/applications/#{@name}/aliases"), 
+        "LIST_CARTRIDGES" => Link.new("List embedded cartridges", "GET", URI::join(url, "applications/#{@id}/cartridges")),
+        "DNS_RESOLVABLE" => Link.new("Resolve DNS", "GET", URI::join(url, "applications/#{@id}/dns_resolvable")),
+        "ADD_ALIAS" => Link.new("Create new alias", "POST", URI::join(url, "applications/#{@id}/aliases"), 
           [Param.new("id", "string", "Alias for application")], 
           [OptionalParam.new("ssl_certificate", "string", "Content of SSL Certificate"), 
             OptionalParam.new("private_key", "string", "Private key for the certificate.  Required if adding a certificate"), 
             OptionalParam.new("pass_phrase", "string", "Optional passphrase for the private key")]),
-        "LIST_ALIASES" => Link.new("List application aliases", "GET", URI::join(url, "domains/#{@domain_id}/applications/#{@name}/aliases")),
+        "LIST_ALIASES" => Link.new("List application aliases", "GET", URI::join(url, "applications/#{@id}/aliases")),
       }
     end
   end

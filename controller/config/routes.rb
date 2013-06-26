@@ -13,12 +13,25 @@ Rails.application.routes.draw do
     resources :quickstarts, :only => [:index, :show], :singular_resource => true, :expose_legacy_api => true
     resources :estimates, :constraints => { :id => id_with_format }, :only => [:index, :show], :singular_resource => true, :expose_legacy_api => true
 
+    #applications can now be accessed without going through domain
+    resources :applications, :only => [:index, :show, :create, :destroy], :constraints => { :id => id_with_format }, :singular_resource => true, :expose_legacy_api => true do
+      resource :descriptor, :only => :show
+      resources :gear_groups, :constraints => { :id => id_with_format }, :only => [:index, :show], :singular_resource => true
+      #added back the gears URL so we can return an appropriate message instead of a routing error
+      resources :gears, :only => [:index, :show], :singular_resource => true
+      resources :cartridges, :controller => :emb_cart, :only => [:index, :show, :create, :update, :destroy], :constraints => { :id => id_with_format }, :singular_resource => true do
+        resources :events, :controller => :emb_cart_events, :only => :create, :singular_resource => true
+      end
+      resources :events, :controller => :app_events, :only => :create, :singular_resource => true
+      resource :dns_resolvable, :only => :show, :controller => :dns_resolvable
+      resources :aliases, :only => [:index, :show, :create, :update, :destroy], :controller => :alias, :constraints => { :id => id_with_format }, :singular_resource => true
+    end
     # Allow restful update of the domain name via the standard id parameter
     # Include support for the legacy plural API pattern domains/:existing_id for now
     match "domains/:existing_id" => "domains#update", :via => :put, :existing_id => id_with_format
     match "domain/:existing_id" => "domains#update", :via => :put, :existing_id => id_with_format
     resources :domains, :only => [:index, :show, :create, :update, :destroy], :constraints => { :id => id_with_format }, :singular_resource => true, :expose_legacy_api => true do
-      resources :applications, :only => [:index, :show, :create, :destroy], :constraints => { :id => id_with_format }, :singular_resource => true do
+      resources :applications, :controller => :applications, :only => [:index, :show, :create, :destroy], :constraints => { :id => id_with_format }, :singular_resource => true do
         resource :descriptor, :only => :show
         resources :gear_groups, :constraints => { :id => id_with_format }, :only => [:index, :show], :singular_resource => true
         #added back the gears URL so we can return an appropriate message instead of a routing error

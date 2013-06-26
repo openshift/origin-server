@@ -32,7 +32,7 @@ class AppEventsControllerTest < ActionController::TestCase
     end
   end
   
-  test "app events" do
+  test "app events by domain name and app name" do
     server_alias = "as#{@random}"
     post :create, {"event" => "stop", "domain_id" => @domain.namespace, "application_id" => @app.name}
     assert_response :success
@@ -59,10 +59,42 @@ class AppEventsControllerTest < ActionController::TestCase
     assert_response :success
   end
   
-  test "no app or domain id" do
+  test "app events by app id" do
+    server_alias = "as#{@random}"
+    post :create, {"event" => "stop", "application_id" => @app.id}
+    assert_response :success
+    post :create, {"event" => "start", "application_id" => @app.id}
+    assert_response :success
+    post :create, {"event" => "restart", "application_id" => @app.id}
+    assert_response :success
+    post :create, {"event" => "force-stop", "application_id" => @app.id}
+    assert_response :success
+    post :create, {"event" => "scale-up", "application_id" => @app.id}
+    assert_response :success
+    post :create, {"event" => "scale-down", "application_id" => @app.id}
+    assert_response :success
+    post :create, {"event" => "reload", "application_id" => @app.id}
+    assert_response :success
+    post :create, {"event" => "thread-dump", "application_id" => @app.id}
+    assert_response :unprocessable_entity
+    post :create, {"event" => "tidy", "application_id" => @app.id}
+    assert_response :success
+    as = "as.#{@random}"
+    post :create, {"event" => "add-alias", "alias" => as, "application_id" => @app.id}
+    assert_response :success
+    post :create, {"event" => "remove-alias", "alias" => as, "application_id" => @app.id}
+    assert_response :success
+  end
+  
+  test "no app name or domain name" do
     post :create, {"event" => "stop", "application_id" => @app.name}
     assert_response :not_found
     post :create, {"event" => "stop", "domain_id" => @domain.namespace}
+    assert_response :not_found
+  end
+  
+  test "no app id" do
+    post :create, {"event" => "stop"}
     assert_response :not_found
   end
   

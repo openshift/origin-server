@@ -8,7 +8,7 @@ Feature: gear-groups
     #Given a new user, create a php-5.3 application using XML format and verify application state on gear
     Given a new user
     And I accept "<format>"
-    When I send a POST request to "/domains" with the following:"id=api<random>"
+    When I send a POST request to "/domains" with the following:"name=api<random>"
     Then the response should be "201"
     When I send a POST request to "/domains/api<random>/applications" with the following:"name=app&cartridge=<cart_name>"
     Then the response should be "201"

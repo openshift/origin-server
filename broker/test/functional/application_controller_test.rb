@@ -29,7 +29,7 @@ class ApplicationControllerTest < ActionController::TestCase
     end
   end
   
-  test "app create show list and destory" do
+  test "app create show list and destory by domain and app name" do
     @app_name = "app#{@random}"
     post :create, {"name" => @app_name, "cartridge" => PHP_VERSION, "domain_id" => @domain.namespace}
     assert_response :created
@@ -45,12 +45,35 @@ class ApplicationControllerTest < ActionController::TestCase
     assert_response :ok
   end
   
-  test "no app id" do
+  test "app create show list and destory by app id" do
+    @app_name = "app#{@random}"
+    post :create, {"name" => @app_name, "cartridge" => PHP_VERSION, "domain_id" => @domain.namespace}
+    assert_response :created
+    assert json = JSON.parse(response.body)
+    assert link = json['data']['id']
+    app_id =  json['data']['id']
+    get :show, {"id" => app_id}
+    assert_response :success
+    assert json = JSON.parse(response.body)
+    assert link = json['data']['links']['ADD_CARTRIDGE']
+    assert_equal Rails.configuration.openshift[:download_cartridges_enabled], link['optional_params'].one?{ |p| p['name'] == 'url' }
+
+    get :index 
+    assert_response :success
+    delete :destroy , {"id" => app_id}
+    assert_response :ok
+  end
+  
+  test "no app name or id" do
     post :create, {"domain_id" => @domain.namespace}
     assert_response :unprocessable_entity
     get :show, {"domain_id" => @domain.namespace}
     assert_response :not_found
+    get :show
+    assert_response :not_found
     delete :destroy , {"domain_id" => @domain.namespace}
+    assert_response :not_found
+    delete :destroy
     assert_response :not_found
   end
   
@@ -59,8 +82,6 @@ class ApplicationControllerTest < ActionController::TestCase
     post :create, {"id" => @app_name}
     assert_response :not_found
     get :show, {"id" => @app_name}
-    assert_response :not_found
-    get :index , {"id" => @app_name}
     assert_response :not_found
     delete :destroy , {"id" => @app_name}
     assert_response :not_found

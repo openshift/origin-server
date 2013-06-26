@@ -33,7 +33,9 @@ class DnsResolvableControllerTest < ActionController::TestCase
   end
   
   test "get dns resolvable" do
-    get :show, {"application_id" => @app_name, "domain_id" => @domain.namespace}
+    get :show, {"application_id" => @app.name, "domain_id" => @domain.namespace}
+    assert_response :not_found
+    get :show, {"application_id" => @app.id}
     assert_response :not_found
   end
   
