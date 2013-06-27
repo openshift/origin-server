@@ -468,15 +468,10 @@ Dir(after)    #{@uuid}/#{@uid} => #{list_home_dir(@homedir)}
 
       PathUtils.oo_chown(@uuid, nil, sandbox_uuid_dir)
 
-      env_dir = File.join(homedir, ".env")
-      FileUtils.mkdir_p(env_dir)
-      FileUtils.chmod(0o0750, env_dir)
-      PathUtils.oo_chown(nil, @uuid, env_dir)
+      mkdir_and_chown File.join(homedir, ".env")
+      mkdir_and_chown File.join(homedir, ".ssh")
 
-      ssh_dir = File.join(homedir, ".ssh")
-      FileUtils.mkdir_p(ssh_dir)
-      FileUtils.chmod(0o0750, ssh_dir)
-      PathUtils.oo_chown(nil, @uuid, ssh_dir)
+      setup_gem_home
 
       geardir = File.join(homedir, @container_name, "/")
       gearappdir = File.join(homedir, "app-root", "/")
@@ -832,6 +827,23 @@ Dir(after)    #{@uuid}/#{@uid} => #{list_home_dir(@homedir)}
           end
         end
       end
+    end
+
+    private
+    def mkdir_and_chown(dir, opts = {})
+      user  = opts[:user]
+      group = opts[:group] || @uuid
+      mode  = opts[:mode] || 0o0750
+      FileUtils.mkdir_p(dir)
+      FileUtils.chmod(mode, dir)
+      PathUtils.oo_chown(user, group, dir)
+    end
+
+    def setup_gem_home
+      gem_home = File.join(homedir, ".gem")
+      add_env_var "GEM_HOME", gem_home
+      add_env_var "OPENSHIFT_RUBYGEMS_PATH_ELEMENT", File.join(gem_home, "bin")
+      mkdir_and_chown gem_home, :user => @uuid
     end
 
   end
