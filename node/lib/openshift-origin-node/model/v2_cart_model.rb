@@ -169,6 +169,21 @@ module OpenShift
       @cartridges[directory]
     end
 
+    # Load the cartridge's local manifest from the Broker token 'name-version'
+    def get_cartridge_fallback(cart_name)
+      directory = cartridge_directory(cart_name)
+      _, version  = map_cartridge_name(cart_name)
+
+      raise "Directory name is required" if (directory == nil || directory.empty?)
+
+      cartridge_path = PathUtils.join(@user.homedir, directory)
+      manifest_path  = PathUtils.join(cartridge_path, 'metadata', 'manifest.yml')
+
+      raise "Cartridge manifest not found: #{manifest_path} missing" unless File.exists?(manifest_path)
+
+      OpenShift::Runtime::Manifest.new(manifest_path, version, @user.homedir)
+    end
+
     # destroy(skip_hooks = false) -> [buffer, '', 0]
     #
     # Remove all cartridges from a gear and delete the gear.  Accepts
@@ -180,16 +195,21 @@ module OpenShift
       logger.info('V2 destroy')
 
       buffer = ''
-      unless skip_hooks
-        each_cartridge do |cartridge|
-          unlock_gear(cartridge, false) do |c|
-            begin
-              buffer << cartridge_teardown(c.directory, false)
-            rescue Utils::ShellExecutionException => e
-              logger.warn("Cartridge teardown operation failed on gear #{@user.uuid} for cartridge #{c.directory}: #{e.message} (rc=#{e.rc})")
+      begin
+        unless skip_hooks
+          each_cartridge do |cartridge|
+            unlock_gear(cartridge, false) do |c|
+              begin
+                buffer << cartridge_teardown(c.directory, false)
+              rescue Utils::ShellExecutionException => e
+                logger.warn("Cartridge teardown operation failed on gear #{@user.uuid} for cartridge #{c.directory}: #{e.message} (rc=#{e.rc})")
+              end
             end
           end
         end
+      rescue Exception => e
+        logger.warn("Cartridge teardown operation failed on gear #{@user.uuid} for some cartridge #{c.directory}: #{e.message}")
+        buffer << "CLIENT_ERROR: Abandoned cartridge teardowns. There may be extraneous data left on system."
       end
 
       # Ensure we're not in the gear's directory
@@ -344,13 +364,37 @@ module OpenShift
     def deconfigure(cartridge_name)
       teardown_output = ''
 
-      cartridge = get_cartridge(cartridge_name)
+      cartridge = nil
+      begin
+        cartridge = get_cartridge(cartridge_name)
+      rescue
+        teardown_output << "CLIENT_ERROR: Corrupted cartridge #{cartridge_name} removed. There may be extraneous data left on system.\n"
+        logger.warn("Corrupted cartridge #{@user.uuid}/#{cartridge_name} removed. There may be extraneous data left on system.")
+
+        name, software_version = map_cartridge_name(cartridge_name)
+        begin
+          logger.warn("Corrupted cartridge #{@user.uuid}/#{cartridge_name}. Attempting to auto-correct for deconfigure using local manifest.yml.")
+          cartridge = get_cartridge_fallback(cartridge_name)
+        rescue
+          logger.warn("Corrupted cartridge #{@user.uuid}/#{cartridge_name}. Attempting to auto-correct for deconfigure resorting to CartridgeRepository.")
+          cartridge = CartridgeRepository.instance.select(name, software_version)
+        end
+
+        ident = Runtime::Manifest.build_ident(cartridge.cartridge_vendor,
+                                              cartridge.name,
+                                              software_version,
+                                              cartridge.cartridge_version)
+        write_environment_variables(
+            PathUtils.join(@user.homedir, cartridge.directory, 'env'),
+            {"#{cartridge.short_name}_IDENT" => ident})
+      end
+
       delete_private_endpoints(cartridge)
       OpenShift::Utils::Cgroups::with_no_cpu_limits(@user.uuid) do
         begin
           stop_cartridge(cartridge, user_initiated: true)
           unlock_gear(cartridge, false) do |c|
-            teardown_output << cartridge_teardown(c.directory)            
+            teardown_output << cartridge_teardown(c.directory)
           end
         rescue Utils::ShellExecutionException => e
           teardown_output << Utils::Sdk::translate_out_for_client(e.stdout, :error)
