@@ -43,6 +43,24 @@ Given /^a new client created( scalable)? (.+) application$/ do |scalable, type|
   raise "Could not create application #{@app.create_app_code}" unless @app.create_app_code == 0
 end
 
+Then /^creating a new client( scalable)? (.+) application should fail$/ do |scalable, type|
+  @app = TestApp.create_unique(type, nil, scalable)
+  @apps ||= []
+  register_user(@app.login, @app.password) if $registration_required
+  if rhc_create_domain(@app)
+    if scalable
+      rhc_create_app(@app, true, '-s')
+    else
+      rhc_create_app(@app)
+    end
+  end
+  if  @app.create_app_code == 0
+    raise "Expecting to fail in creating a new application but successfully created the application with uuid  #{@app.uuid}"
+  end
+  @apps << @app.name
+end
+
+
 When /^(\d+)( scalable)? (.+) applications are created$/ do |app_count, scalable, type|
   # Create our domain and apps
   @apps = app_count.to_i.times.collect do
@@ -258,3 +276,28 @@ end
 Then /^the application should not be accessible via node\-web\-proxy$/ do
   @app.is_inaccessible?(60, 8000).should be_true
 end
+
+
+Then /^the application should be assigned to the supplementary groups? "([^\"]*)" as shown by the node's \/etc\/group$/ do | supplementary_groups|
+  added_supplementary_group = supplementary_groups.split(",")
+
+  added_supplementary_group.each do |group|
+    output_buffer = []
+    exit_code = run("cat /etc/group | grep #{group}:x | grep #{@app.uid}", output_buffer)
+    if output_buffer[0] == ""
+      raise "The user for application with uid #{@app.uid} is not assigned to group \'#{group}\'"
+    end
+  end
+end
+
+Then /^the application has the group "([^\"]*)" as a secondary group$/ do |supplementary_group|
+ command = "ssh 2>/dev/null -o BatchMode=yes -o StrictHostKeyChecking=no -tt #{@app.uid}@#{@app.name}-#{@app.namespace}.dev.rhcloud.com " +  "groups"
+ $logger.info("About to execute command:'#{command}'")
+ output_buffer=[]
+ exit_code = run(command,output_buffer)
+ raise "Cannot ssh into the application with #{@app.uid}. Running command: '#{command}' returns: \n Exit code: #{exit_code} \nOutput message:\n #{output_buffer[0]}" unless exit_code == 0
+ if !(output_buffer[0].include? supplementary_group)
+   raise "The application with uuid #{@app.uid} is not assigned to group #{supplementary_group}."
+ end
+end
+
