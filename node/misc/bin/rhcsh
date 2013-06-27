@@ -13,40 +13,32 @@ function load_env {
     export $key="$(< $1)"
 }
 
-if [ -f ~/.env/CARTRIDGE_VERSION_2 ]
+for f in /etc/openshift/env/* ~/.env/* ~/.env/.uservars/* ~/*/env/*
+do
+  load_env $f
+done
+
+if [ -n "$OPENSHIFT_PRIMARY_CARTRIDGE_DIR" ]
 then
-    for f in /etc/openshift/env/* ~/.env/* ~/.env/.uservars/* ~/*/env/*
+    for f in $OPENSHIFT_PRIMARY_CARTRIDGE_DIR/env/*
     do
       load_env $f
     done
-
-    if [ -n "$OPENSHIFT_PRIMARY_CARTRIDGE_DIR" ]
-    then
-        for f in $OPENSHIFT_PRIMARY_CARTRIDGE_DIR/env/*
-        do
-          load_env $f
-        done
-    fi
-
-    path=$(env |grep 'OPENSHIFT_.*_PATH_ELEMENT'| sed 's/^.*=\(.*\)$/\1/'|tr '\n' ':')
-
-    if [ -f $OPENSHIFT_PRIMARY_CARTRIDGE_DIR/env/OPENSHIFT_*_PATH_ELEMENT ]
-    then
-        path=$(< $OPENSHIFT_PRIMARY_CARTRIDGE_DIR/env/OPENSHIFT_*_PATH_ELEMENT):$path
-    fi
-
-    if [ -f /etc/openshift/env/PATH ]
-    then
-        load_env /etc/openshift/env/PATH
-        path=$path:$PATH
-    fi
-    export PATH=$path
-else
-  for f in ~/.env/*
-  do
-    load_env $f
-  done
 fi
+
+path=$(env |grep 'OPENSHIFT_.*_PATH_ELEMENT'| sed 's/^.*=\(.*\)$/\1/'|tr '\n' ':')
+
+if [ -f $OPENSHIFT_PRIMARY_CARTRIDGE_DIR/env/OPENSHIFT_*_PATH_ELEMENT ]
+then
+    path=$(< $OPENSHIFT_PRIMARY_CARTRIDGE_DIR/env/OPENSHIFT_*_PATH_ELEMENT):$path
+fi
+
+if [ -f /etc/openshift/env/PATH ]
+then
+    load_env /etc/openshift/env/PATH
+    path=$path:$PATH
+fi
+export PATH=$path
 
 source /etc/openshift/node.conf
 
@@ -78,14 +70,6 @@ function welcome {
 
 EOF
 
-  if [ -f ~/.env/CARTRIDGE_VERSION_2 ]
-  then
-    cat 1>&2 <<EOF
-    Note: Your application supports version 2 cartridges.
-
-EOF
-  fi
-
   # Quota returns nonzero if you are over limit
   quota >/dev/null 2>&1
   if [ $? -ne 0 ]
@@ -94,58 +78,26 @@ EOF
   fi
 }
 
-if [ -f ~/.env/CARTRIDGE_VERSION_2 ]
-then
-    alias ctl_app=gear
+alias ctl_app=gear
 
-    function ctl_all() {
-      case "$1" in
-        start)
-          echo "Starting services"
-          gear start
-        ;;
-        stop)
-          echo "Stopping services"
-          gear stop
-        ;;
-        restart)
-          echo "Stopping services"
-          gear stop;
-          echo "Starting services"
-          gear start
-        ;;
-      esac
-    }
-else
-    function _get_app_ctl_script() {
-        bash <<EOF
-            source /etc/openshift/node.conf
-            source \${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
-            get_framework_ctl_script "$@"
-EOF
-    }
-
-    alias ctl_app=$(_get_app_ctl_script $OPENSHIFT_GEAR_UUID)
-
-    function ctl_all() {
-        case "$1" in
-            start)
-              echo "Starting services"
-              start_app.sh
-              ;;
-            stop)
-              echo "Stopping services"
-              stop_app.sh
-              ;;
-            restart)
-              echo "Stopping services"
-              stop_app.sh;
-              echo "Starting services"
-              start_app.sh
-              ;;
-        esac
-    }
-fi
+function ctl_all() {
+  case "$1" in
+    start)
+      echo "Starting services"
+      gear start
+    ;;
+    stop)
+      echo "Stopping services"
+      gear stop
+    ;;
+    restart)
+      echo "Stopping services"
+      gear stop;
+      echo "Starting services"
+      gear start
+    ;;
+  esac
+}
 
 function mysql() {
    #  Setup default options.
@@ -216,8 +168,7 @@ function mongo() {
    fi
 
    ( unset LD_LIBRARY_PATH; /usr/bin/mongo ${hopt} ${uopt} ${popt} "$@" )
-
-}  #  End of  mongo  function.
+}
 
 # The mco command shouldn't be run by gears
 # but its really protected at the config files.

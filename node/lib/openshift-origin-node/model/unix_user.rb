@@ -9,7 +9,7 @@
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or imp54lied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #++
@@ -51,7 +51,6 @@ module OpenShift
     def initialize(application_uuid, container_uuid, user_uid=nil,
         app_name=nil, container_name=nil, namespace=nil, quota_blocks=nil, quota_files=nil, debug=false)
       @config = OpenShift::Config.new
-      @cartridge_format = Utils::Sdk.node_default_model(@config)
 
       @container_uuid = container_uuid
       @application_uuid = application_uuid
@@ -337,11 +336,7 @@ Dir(after)    #{@uuid}/#{@uid} => #{list_home_dir(@homedir)}
 
       filename = File.join(env_dir, key)
       File.open(filename, File::WRONLY|File::TRUNC|File::CREAT) do |file|
-        if :v1 == @cartridge_format
-          file.write "export #{key}='#{value}'"
-        else
-          file.write value.to_s
-        end
+        file.write value.to_s
       end
 
       mcs_label = Utils::SELinux.get_mcs_label(uid)
@@ -470,11 +465,8 @@ Dir(after)    #{@uuid}/#{@uid} => #{list_home_dir(@homedir)}
       # Polydir runs before the marker is created so set up sandbox by hand
       sandbox_uuid_dir = File.join(homedir, ".sandbox", @uuid)
       FileUtils.mkdir_p sandbox_uuid_dir
-      if @cartridge_format == :v1
-        FileUtils.chmod(0o1755, sandbox_uuid_dir)
-      else
-        PathUtils.oo_chown(@uuid, nil, sandbox_uuid_dir)
-      end
+
+      PathUtils.oo_chown(@uuid, nil, sandbox_uuid_dir)
 
       env_dir = File.join(homedir, ".env")
       FileUtils.mkdir_p(env_dir)

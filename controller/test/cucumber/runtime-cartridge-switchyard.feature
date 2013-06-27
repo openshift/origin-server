@@ -3,9 +3,6 @@
 @rhel-only
 @jboss
 Feature: SwitchYard Application Sub-Cartridge
-  Background:
-    Given a v2 default node
-  
   Scenario: Create Delete one EAP application with embedded SwitchYard
     Given a new jbosseap-6.0 type application
     

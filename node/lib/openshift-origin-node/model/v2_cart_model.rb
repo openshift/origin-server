@@ -234,7 +234,6 @@ module OpenShift
                                  CartridgeRepository.instance.select(name, software_version)
                                end
 
-      OpenShift::Utils::Sdk.mark_new_sdk_app(@user.homedir)
       OpenShift::Utils::Cgroups::with_no_cpu_limits(@user.uuid) do
         create_cartridge_directory(cartridge, software_version)
         # Note: the following if statement will check the following criteria long-term:

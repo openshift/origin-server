@@ -1,9 +1,6 @@
 @postgres
 @v2
 Feature: Postgres Application Sub-Cartridge
-  Background:
-    Given a v2 default node
-
   @runtime_extended1
   Scenario Outline: Create/Delete one application with a Postgres database
     Given a new mock-0.1 type application

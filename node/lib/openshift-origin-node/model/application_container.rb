@@ -57,22 +57,9 @@ module OpenShift
       @user             = UnixUser.new(application_uuid, container_uuid, user_uid,
                                        app_name, container_name, namespace, quota_blocks, quota_files)
       @state            = OpenShift::Utils::ApplicationState.new(container_uuid)
-      @build_model      = self.class.get_build_model(@user, @config)
       @hourglass        = hourglass || Utils::Hourglass.new(3600)
 
       @cartridge_model = V2CartridgeModel.new(@config, @user, @state, @hourglass)
-    end
-
-    def self.get_build_model(user, config)
-      build_model = :v1
-
-      if user.homedir && File.exist?(user.homedir)
-        build_model = :v2 if OpenShift::Utils::Sdk.new_sdk_app?(user.homedir)
-      else
-        build_model = OpenShift::Utils::Sdk.node_default_model(config)
-      end
-
-      build_model
     end
 
     def name
@@ -97,53 +84,48 @@ module OpenShift
 
     def post_configure(cart_name, template_git_url=nil)
       output = ''
-      if @build_model == :v1
-        if template_git_url
-          cartridge = @cartridge_model.get_cartridge(cart_name)
-          output = @cartridge_model.resolve_application_dependencies(cart_name) if cartridge.buildable?        
+
+      cartridge = @cartridge_model.get_cartridge(cart_name)
+      cartridge_home = PathUtils.join(@user.homedir, cartridge.directory)
+
+      # Only perform an initial build if the manifest explicitly specifies a need,
+      # or if a template Git URL is provided and the cart is capable of builds or deploys.
+      if !OpenShift::Git.empty_clone_spec?(template_git_url) && (cartridge.install_build_required || template_git_url) && cartridge.buildable?
+        build_log = '/tmp/initial-build.log'
+        env       = Utils::Environ.for_gear(@user.homedir)
+
+        begin
+          logger.info "Executing initial gear prereceive for #{@uuid}"
+          Utils.oo_spawn("gear prereceive >> #{build_log} 2>&1",
+                         env:                 env,
+                         chdir:               @user.homedir,
+                         uid:                 @user.uid,
+                         timeout:             @hourglass.remaining,
+                         expected_exitstatus: 0)
+
+          logger.info "Executing initial gear postreceive for #{@uuid}"
+          Utils.oo_spawn("gear postreceive >> #{build_log} 2>&1",
+                         env:                 env,
+                         chdir:               @user.homedir,
+                         uid:                 @user.uid,
+                         timeout:             @hourglass.remaining,
+                         expected_exitstatus: 0)
+        rescue Utils::ShellExecutionException => e
+          max_bytes = 10 * 1024
+          out, _, _ = Utils.oo_spawn("tail -c #{max_bytes} #{build_log} 2>&1",
+                         env:                 env,
+                         chdir:               @user.homedir,
+                         uid:                 @user.uid,
+                         timeout:             @hourglass.remaining)
+
+          message = "The initial build for the application failed: #{e.message}\n\n.Last #{max_bytes/1024} kB of build output:\n#{out}"
+
+          raise Utils::Sdk.translate_out_for_client(message, :error)
         end
-      else
-        cartridge = @cartridge_model.get_cartridge(cart_name)
-        cartridge_home = PathUtils.join(@user.homedir, cartridge.directory)
-
-        # Only perform an initial build if the manifest explicitly specifies a need,
-        # or if a template Git URL is provided and the cart is capable of builds or deploys.
-        if !OpenShift::Git.empty_clone_spec?(template_git_url) && (cartridge.install_build_required || template_git_url) && cartridge.buildable?
-          build_log = '/tmp/initial-build.log'
-          env       = Utils::Environ.for_gear(@user.homedir)
-  
-          begin
-            logger.info "Executing initial gear prereceive for #{@uuid}"
-            Utils.oo_spawn("gear prereceive >> #{build_log} 2>&1",
-                           env:                 env,
-                           chdir:               @user.homedir,
-                           uid:                 @user.uid,
-                           timeout:             @hourglass.remaining,
-                           expected_exitstatus: 0)
-
-            logger.info "Executing initial gear postreceive for #{@uuid}"
-            Utils.oo_spawn("gear postreceive >> #{build_log} 2>&1",
-                           env:                 env,
-                           chdir:               @user.homedir,
-                           uid:                 @user.uid,
-                           timeout:             @hourglass.remaining,
-                           expected_exitstatus: 0)
-          rescue Utils::ShellExecutionException => e
-            max_bytes = 10 * 1024
-            out, _, _ = Utils.oo_spawn("tail -c #{max_bytes} #{build_log} 2>&1",
-                           env:                 env,
-                           chdir:               @user.homedir,
-                           uid:                 @user.uid,
-                           timeout:             @hourglass.remaining)
-
-            message = "The initial build for the application failed: #{e.message}\n\n.Last #{max_bytes/1024} kB of build output:\n#{out}"
-
-            raise Utils::Sdk.translate_out_for_client(message, :error)
-          end
-        end
-
-        output = @cartridge_model.post_configure(cart_name)
       end
+
+      output = @cartridge_model.post_configure(cart_name)
+
       output
     end
 
@@ -171,9 +153,6 @@ module OpenShift
       notify_observers(:before_container_create)
 
       @user.create
-      if :v2 == OpenShift::Utils::Sdk.node_default_model(@config)
-        Utils::Sdk.mark_new_sdk_app(@user.homedir)
-      end
 
       notify_observers(:after_container_create)
     end

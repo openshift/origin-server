@@ -1,6 +1,5 @@
 Given /^a mock application, verify addition and removal of v2 phpmyadmin-([\d\.]+)$/ do |phpmyadmin_version|
   steps %Q{
-    Given a v2 default node
     Given a new mock-0.1 type application
     
     When I embed a mysql-5.1 cartridge into the application
