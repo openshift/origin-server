@@ -43,5 +43,18 @@ module OpenShift
         raise
       end
     end
+
+    #
+    # Return a clone specification that can be safely persisted
+    # to the database (empty and userinfo are both removed).
+    #
+    def self.persistable_clone_spec(url)
+      return nil if empty_clone_spec?(url)
+      uri = URI.parse(url)
+      uri.userinfo = nil rescue nil
+      uri.to_s
+    rescue URI::InvalidURIError
+      url
+    end
   end
 end

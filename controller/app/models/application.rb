@@ -147,7 +147,7 @@ class Application
     cmap = CartridgeCache.fetch_community_carts(community_cart_urls)
     app = Application.new(domain: domain, name: application_name, default_gear_size: default_gear_size, scalable: scalable, app_ssh_keys: [], pending_op_groups: [], downloaded_cart_map: cmap)
     app.user_agent = user_agent
-    app.init_git_url = init_git_url unless OpenShift::Git.empty_clone_spec?(init_git_url)
+    app.init_git_url = OpenShift::Git.persistable_clone_spec(init_git_url)
     app.analytics['user_agent'] = user_agent
     app.save
     features << "web_proxy" if scalable
