@@ -3,7 +3,7 @@ require File.expand_path('../coverage_helper.rb', __FILE__)
 ENV["RAILS_ENV"] = "test"
 require File.expand_path('../../config/environment', __FILE__)
 require 'rails/test_help'
-require 'mocha'
+require 'mocha/setup'
 
 manifest = YAML.load(File.open(Dir["/var/lib/openshift/.cartridge_repository/redhat-php/*/metadata/manifest.yml"].first))
 PHP_VERSION = "php-" + manifest['Version']
