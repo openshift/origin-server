@@ -13,6 +13,10 @@ Requires:      openshift-origin-node-util
 %if 0%{?fedora}%{?rhel} <= 6
 Requires:      python >= 2.6
 Requires:      python < 2.7
+Requires:      scl-utils
+BuildRequires: scl-utils-build
+#FIXME: Use %scl_require macro to properly define dependencies
+Requires:      python27
 Requires:      mod_wsgi >= 3.2
 Requires:      mod_wsgi < 3.4
 Requires:      httpd < 2.4
@@ -32,6 +36,10 @@ Requires:      pymongo-gridfs
 Requires:      python-psycopg2
 Requires:      python-virtualenv
 Requires:      python-magic
+%if 0%{?fedora}%{?rhel} <= 6
+Requires:      python27-MySQL-python
+Requires:      python27-python-psycopg2
+%endif
 Requires:      libjpeg
 Requires:      libjpeg-devel
 Requires:      libcurl
