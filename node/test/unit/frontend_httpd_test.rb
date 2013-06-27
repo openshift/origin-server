@@ -452,6 +452,7 @@ class TestApacheDB < OpenShift::NodeTestCase
     lockfile_mock = mock('FileLockfile') do
       stubs(:flock).with(File::LOCK_SH).once
       stubs(:flock).with(File::LOCK_EX).never
+      stubs(:fcntl)
       stubs(:closed?).returns(false)
       stubs(:close).once
     end
@@ -478,6 +479,7 @@ class TestApacheDB < OpenShift::NodeTestCase
     lockfile_mock = mock('FileLockfile') do
       stubs(:flock).with(File::LOCK_SH).never
       stubs(:flock).with(File::LOCK_EX).once
+      stubs(:fcntl)
       stubs(:closed?).returns(false)
       stubs(:close).once
     end
