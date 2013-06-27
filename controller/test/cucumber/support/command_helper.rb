@@ -18,7 +18,7 @@ module CommandHelper
   end
 
   def getenv_uservar(uuid, var, cart_name)
-    path "/var/lib/openshift/#{uuid}/.env/#{cart_name}/#{var}"
+    path = "/var/lib/openshift/#{uuid}/.env/#{cart_name}/#{var}"
 
     $logger.info("Reading #{path}")
 
