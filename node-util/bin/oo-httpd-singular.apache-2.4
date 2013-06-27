@@ -41,6 +41,7 @@ REQPREFIX="httpd_singular.req"
 
 def single_instance(&block)
   File.open(LOCKFILE, File::CREAT|File::TRUNC|File::RDWR, 0640) do |f|
+    f.fcntl(Fcntl::F_SETFD, Fcntl::FD_CLOEXEC)
     begin
       f.flock(File::LOCK_EX)
       block.call
