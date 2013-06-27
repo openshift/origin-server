@@ -69,6 +69,7 @@ module SetupHelper
     # Wait for any other process that may already be creating the file
     FileUtils.mkdir_p(File.dirname("/var/lock/#{$test_priv_key}.lock"))
     File.open("/var/lock/#{$test_priv_key}.lock", File::RDWR|File::CREAT, 0644) do |f|
+      f.fcntl(Fcntl::F_SETFD, Fcntl::FD_CLOEXEC)
       f.flock(File::LOCK_EX)
       `ssh-keygen -q -f #{$test_priv_key} -P '' </dev/null` if !File.exists?($test_priv_key)
       f.flock(File::LOCK_UN)
