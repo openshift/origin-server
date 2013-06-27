@@ -3,7 +3,7 @@
     %global scl_prefix ruby193-
 %endif
 
-%global cartridgedir %{_libexecdir}/openshift/cartridges/v2/jenkins-client
+%global cartridgedir %{_libexecdir}/openshift/cartridges/jenkins-client
 
 Summary:       Embedded jenkins client support for OpenShift 
 Name:          openshift-origin-cartridge-jenkins-client

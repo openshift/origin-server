@@ -1,4 +1,4 @@
-%global cartridgedir %{_libexecdir}/openshift/cartridges/v2/mariadb
+%global cartridgedir %{_libexecdir}/openshift/cartridges/mariadb
 
 Summary:       Provides embedded mariadb support
 Name:          openshift-origin-cartridge-mariadb

@@ -1,4 +1,4 @@
-%global cartridgedir %{_libexecdir}/openshift/cartridges/v2/switchyard
+%global cartridgedir %{_libexecdir}/openshift/cartridges/switchyard
 
 Summary:       Provides embedded switchyard support
 Name:          openshift-origin-cartridge-switchyard

@@ -1,4 +1,4 @@
-%global cartridgedir %{_libexecdir}/openshift/cartridges/v2/nodejs
+%global cartridgedir %{_libexecdir}/openshift/cartridges/nodejs
 
 Summary:       Provides Node.js support
 Name:          openshift-origin-cartridge-nodejs

@@ -1,5 +1,5 @@
-%global cartridgedir %{_libexecdir}/openshift/cartridges/v2/php
-%global frameworkdir %{_libexecdir}/openshift/cartridges/v2/php
+%global cartridgedir %{_libexecdir}/openshift/cartridges/php
+%global frameworkdir %{_libexecdir}/openshift/cartridges/php
 
 Name:          openshift-origin-cartridge-php
 Version: 0.6.1
@@ -68,7 +68,7 @@ mv %{buildroot}%{cartridgedir}/metadata/manifest.yml.fedora19 %{buildroot}%{cart
 rm %{buildroot}%{cartridgedir}/metadata/manifest.yml.*
 
 %post
-%{_sbindir}/oo-admin-cartridge --action install --source /usr/libexec/openshift/cartridges/v2/php
+%{_sbindir}/oo-admin-cartridge --action install --source /usr/libexec/openshift/cartridges/php
 
 %files
 %attr(0755,-,-) %{cartridgedir}/bin/
