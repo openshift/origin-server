@@ -2343,7 +2343,7 @@ module OpenShift
         end
 
         component_details = reply.appInfoIO.string.empty? ? '' : reply.appInfoIO.string
-        reply.debugIO << "\n\n#{cart}: #{component_details}"
+        reply.debugIO << "\n\n#{cart}: #{component_details}" unless component_details.blank?
         [reply, component_details]
       end
 
