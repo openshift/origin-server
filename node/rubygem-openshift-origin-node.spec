@@ -16,7 +16,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.10.5
+Version: 1.10.6
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -282,6 +282,13 @@ echo "/usr/bin/oo-trap-user" >> /etc/shells
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Thu Jun 27 2013 Adam Miller <admiller@redhat.com> 1.10.6-1
+- Clean up the assertion (asari.ruby@gmail.com)
+- Test recursive case, too. (asari.ruby@gmail.com)
+- Generalize the file filtering somewhat (asari.ruby@gmail.com)
+- Process dot files, too. (asari.ruby@gmail.com)
+- Bug 976112 (asari.ruby@gmail.com)
+
 * Thu Jun 20 2013 Adam Miller <admiller@redhat.com> 1.10.5-1
 - Bug 976173 - oo-* scripts fail on node with ruby LoadError
   (bleanhar@redhat.com)
