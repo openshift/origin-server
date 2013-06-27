@@ -5,8 +5,8 @@ Broker::Application.configure do
   # test suite.  You never need to work with it otherwise.  Remember that
   # your test database is "scratch space" for the test suite and is wiped
   # and recreated between test runs.  Don't rely on the data there!
-  config.cache_classes = ENV['SOURCE'] ? false : true
-  config.reload_plugins = ENV['SOURCE'] ? true : false
+  config.cache_classes = ENV['BROKER_SOURCE'] ? false : true
+  config.reload_plugins = ENV['BROKER_SOURCE'] ? true : false
 
   # Log error messages when you accidentally call methods on nil.
   config.whiny_nils = true
