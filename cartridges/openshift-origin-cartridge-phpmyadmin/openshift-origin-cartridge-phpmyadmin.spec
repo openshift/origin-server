@@ -1,4 +1,4 @@
-%global cartridgedir %{_libexecdir}/openshift/cartridges/v2/phpmyadmin
+%global cartridgedir %{_libexecdir}/openshift/cartridges/phpmyadmin
 
 Summary:       phpMyAdmin support for OpenShift
 Name:          openshift-origin-cartridge-phpmyadmin

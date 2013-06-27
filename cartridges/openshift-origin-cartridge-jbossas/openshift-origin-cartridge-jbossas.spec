@@ -1,4 +1,4 @@
-%global cartridgedir %{_libexecdir}/openshift/cartridges/v2/jbossas
+%global cartridgedir %{_libexecdir}/openshift/cartridges/jbossas
 %global jbossver 7.1.1.Final
 %global oldjbossver 7.1.0.Final
 

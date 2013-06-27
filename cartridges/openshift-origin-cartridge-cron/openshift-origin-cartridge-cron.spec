@@ -1,4 +1,4 @@
-%global cartridgedir %{_libexecdir}/openshift/cartridges/v2/cron
+%global cartridgedir %{_libexecdir}/openshift/cartridges/cron
 
 Summary:       Embedded cron support for OpenShift
 Name:          openshift-origin-cartridge-cron

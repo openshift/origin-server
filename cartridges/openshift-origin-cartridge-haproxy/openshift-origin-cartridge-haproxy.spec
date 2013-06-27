@@ -2,7 +2,7 @@
     %global scl ruby193
     %global scl_prefix ruby193-
 %endif
-%global cartridgedir %{_libexecdir}/openshift/cartridges/v2/haproxy
+%global cartridgedir %{_libexecdir}/openshift/cartridges/haproxy
 
 Summary:       Provides HA Proxy
 Name:          openshift-origin-cartridge-haproxy

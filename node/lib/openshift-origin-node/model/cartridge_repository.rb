@@ -167,7 +167,7 @@ module OpenShift
     # Copies a cartridge's source into the cartridge repository from a +directory+. The Cartridge will additionally
     # be indexed and available from a CartridgeRepository.instance
     #
-    #   CartridgeRepository.instance.install('/usr/libexec/openshift/v2/cartridges/openshift-origin-php')  #=> Cartridge
+    #   CartridgeRepository.instance.install('/usr/libexec/openshift/cartridges/openshift-origin-php')  #=> Cartridge
     def install(directory)
       raise ArgumentError.new("Illegal path to cartridge source: '#{directory}'") unless directory && File.directory?(directory)
       raise ArgumentError.new("Source cannot be: '#{@path}'") if directory == @path

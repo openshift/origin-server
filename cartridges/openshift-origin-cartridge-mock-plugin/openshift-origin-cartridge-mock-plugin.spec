@@ -1,4 +1,4 @@
-%global cartridgedir %{_libexecdir}/openshift/cartridges/v2/mock-plugin
+%global cartridgedir %{_libexecdir}/openshift/cartridges/mock-plugin
 
 Summary:       Mock plugin cartridge for V2 Cartridge SDK
 Name:          openshift-origin-cartridge-mock-plugin

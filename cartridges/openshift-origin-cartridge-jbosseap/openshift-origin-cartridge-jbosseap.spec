@@ -1,4 +1,4 @@
-%global cartridgedir %{_libexecdir}/openshift/cartridges/v2/jbosseap
+%global cartridgedir %{_libexecdir}/openshift/cartridges/jbosseap
 %global jbossver 6.0.1.GA
 %global oldjbossver 6.0.0.GA
 

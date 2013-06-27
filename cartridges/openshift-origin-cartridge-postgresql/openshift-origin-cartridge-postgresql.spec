@@ -3,7 +3,7 @@
     %global scl_prefix ruby193-
 %endif
 
-%global cartridgedir %{_libexecdir}/openshift/cartridges/v2/postgresql
+%global cartridgedir %{_libexecdir}/openshift/cartridges/postgresql
 
 Summary:       Provides embedded PostgreSQL support
 Name:          openshift-origin-cartridge-postgresql
