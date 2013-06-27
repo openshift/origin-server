@@ -1,4 +1,4 @@
-%global cartridgedir %{_libexecdir}/openshift/cartridges/v2/diy
+%global cartridgedir %{_libexecdir}/openshift/cartridges/diy
 
 Summary:       DIY cartridge
 Name:          openshift-origin-cartridge-diy

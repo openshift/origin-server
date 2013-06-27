@@ -1,4 +1,4 @@
-%global cartridgedir %{_libexecdir}/openshift/cartridges/v2/mysql
+%global cartridgedir %{_libexecdir}/openshift/cartridges/mysql
 
 Summary:       Provides embedded mysql support
 Name:          openshift-origin-cartridge-mysql
