@@ -17,7 +17,7 @@
 require_relative 'coverage_helper'
 
 require 'test/unit'
-require 'mocha'
+require 'mocha/setup'
 require 'yaml'
 
 require_relative '../lib/openshift-origin-common'
