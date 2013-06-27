@@ -37,10 +37,10 @@ if ENV['BROKER_SOURCE']
   eval((IO.read(File.expand_path('~/.openshift/broker_plugins.rb')) rescue ''))
 else
   gem 'openshift-origin-controller'
+  
+  # Load plugin gems.
+  Dir["/etc/openshift/plugins.d/*.conf"].delete_if{ |x| x.end_with? "-dev.conf" }.map{|x| File.basename(x, ".conf")}.each {|plugin| gem plugin}
 end
-
-# Load plugin gems.
-Dir["/etc/openshift/plugins.d/*.conf"].delete_if{ |x| x.end_with? "-dev.conf" }.map{|x| File.basename(x, ".conf")}.each {|plugin| gem plugin}
 
 # Bundle edge Rails instead:
 # gem 'rails', :git => 'git://github.com/rails/rails.git'
