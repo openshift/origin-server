@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.10.5
+Version: 1.10.6
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -84,6 +84,15 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Thu Jun 27 2013 Adam Miller <admiller@redhat.com> 1.10.6-1
+- Merge pull request #2937 from rajatchopra/stg_hotfix
+  (dmcphers+openshiftbot@redhat.com)
+- fix bz977519 - for cases where v2 parsing succeeds but broker manifest
+  parsing fails (rchopra@redhat.com)
+- Reverting fix for bug 973718  - instead of not returning the broken apps, we
+  are relying on the CLI/console resilience to handle these broken apps for now
+  (abhgupta@redhat.com)
+
 * Thu Jun 20 2013 Adam Miller <admiller@redhat.com> 1.10.5-1
 - Merge pull request #2908 from rajatchopra/master
   (dmcphers+openshiftbot@redhat.com)
