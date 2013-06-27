@@ -414,7 +414,7 @@ def check_cgroup_procs
         if (min_uid..max_uid).include?(uid)
             passwd_lines = $USERS.select { |u| u.uid == uid }
 
-          if paswd_lines.empty?
+          if passwd_lines.empty?
                 user_fail(uid, "Process #{pid} is owned by a gear that's no longer on the system, uid: #{uid}")
                 next
             end
