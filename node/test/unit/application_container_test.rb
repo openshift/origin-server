@@ -230,7 +230,7 @@ class ApplicationContainerTest < OpenShift::NodeTestCase
 
   def test_force_stop
     FileUtils.mkpath("/tmp/#@user_uid/app-root/runtime")
-    OpenShift::Runtime::ApplicationContainerPlugin::SELinuxContainer.stubs(:kill_procs).with(@user_uid).returns(nil)
+    OpenShift::Runtime::Containerization::SELinuxContainer.stubs(:kill_procs).with(@user_uid).returns(nil)
     @container.state.expects(:value=).with(OpenShift::Runtime::State::STOPPED)
     @container.cartridge_model.expects(:create_stop_lock)
     @container.force_stop

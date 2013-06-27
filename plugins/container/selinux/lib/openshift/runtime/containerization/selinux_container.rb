@@ -2,7 +2,7 @@ require 'openshift-origin-node/utils/node_logger'
 
 module OpenShift
   module Runtime
-    module ApplicationContainerPlugin
+    module Containerization
       class SELinuxContainer
         include OpenShift::Runtime::Utils::ShellExec
         include OpenShift::Runtime::NodeLogger
@@ -42,7 +42,7 @@ module OpenShift
           if @container.supplementary_groups != ""
             cmd << %{ -G "#{@container.supplementary_groups}"}
           end
-          out,err,rc = run_in_root_context(cmd)
+          out,err,rc = @container.run_in_root_context(cmd)
           raise UserCreationException.new(
                     "ERROR: unable to create user account(#{rc}): #{cmd.squeeze(" ")} stdout: #{out} stderr: #{err}"
                 ) unless rc == 0
@@ -76,7 +76,7 @@ module OpenShift
           freeze_fs_limits
           freeze_cgroups
           last_access_dir = @config.get("LAST_ACCESS_DIR")
-          run_in_root_context("rm -f #{last_access_dir}/#{@container.name} > /dev/null")
+          @container.run_in_root_context("rm -f #{last_access_dir}/#{@container.name} > /dev/null")
           kill_procs
 
           purge_sysvipc
@@ -99,7 +99,7 @@ module OpenShift
             user = Etc.getpwnam(@container.uuid)
 
             cmd = "userdel --remove -f \"#{@container.uuid}\""
-            out,err,rc = run_in_root_context(cmd)
+            out,err,rc = @container.run_in_root_context(cmd)
             raise UserDeletionException.new(
                       "ERROR: unable to destroy user account(#{rc}): #{cmd} stdout: #{out} stderr: #{err}"
                   ) unless rc == 0
@@ -209,60 +209,29 @@ Dir(after)    #{@container.uuid}/#{@container.uid} => #{list_home_dir(@container
         end
 
         def enable_cgroups
-          out,err,rc = run_in_root_context("service cgconfig status > /dev/null 2>&1")
+          out,err,rc = @container.run_in_root_context("service cgconfig status > /dev/null 2>&1")
 
           if rc == 0
-            out,err,rc = run_in_root_context("/usr/sbin/oo-admin-ctl-cgroups startuser #{@container.uuid} > /dev/null")
+            out,err,rc = @container.run_in_root_context("/usr/sbin/oo-admin-ctl-cgroups startuser #{@container.uuid} > /dev/null")
             raise OpenShift::Runtime::UserCreationException.new("Unable to setup cgroups for #{@container.uuid}: stdout -- #{out} stderr --#{err}}") unless rc == 0
           end
         end
 
         def stop_cgroups
-          out,err,rc = run_in_root_context("service cgconfig status > /dev/null 2>&1")
-          run_in_root_context("/usr/sbin/oo-admin-ctl-cgroups stopuser #{@container.uuid} > /dev/null") if rc == 0
+          out,err,rc = @container.run_in_root_context("service cgconfig status > /dev/null 2>&1")
+          @container.run_in_root_context("/usr/sbin/oo-admin-ctl-cgroups stopuser #{@container.uuid} > /dev/null") if rc == 0
         end
 
         def enable_fs_limits
           cmd = "/bin/sh #{File.join('/usr/libexec/openshift/lib', "setup_pam_fs_limits.sh")} #{@container.uuid} #{@container.quota_blocks ? @container.quota_blocks : ''} #{@container.quota_files ? @container.quota_files : ''}"
-          out,err,rc = run_in_root_context(cmd)
+          out,err,rc = @container.run_in_root_context(cmd)
           raise OpenShift::Runtime::UserCreationException.new("Unable to setup pam/fs limits for #{@container.name}: stdout -- #{out} stderr -- #{err}") unless rc == 0
         end
 
         def disable_fs_limits
           cmd = "/bin/sh #{File.join("/usr/libexec/openshift/lib", "teardown_pam_fs_limits.sh")} #{@container.uuid}"
-          out,err,rc = run_in_root_context(cmd)
+          out,err,rc = @container.run_in_root_context(cmd)
           raise OpenShift::Runtime::UserCreationException.new("Unable to teardown pam/fs/nproc limits for #{@container.uuid}") unless rc == 0
-        end
-
-        # run_in_root_context(command, [, options]) -> [stdout, stderr, exit status]
-        #
-        # Executes specified command and return its stdout, stderr and exit status.
-        # Or, raise exceptions if certain conditions are not met.
-        #
-        # command: command line string which is passed to the standard shell
-        #
-        # options: hash
-        #   :env: hash
-        #     name => val : set the environment variable
-        #     name => nil : unset the environment variable
-        #   :unsetenv_others => true   : clear environment variables except specified by :env
-        #   :chdir => path             : set current directory when running command
-        #   :expected_exitstatus       : An Integer value for the expected return code of command
-        #                              : If not set spawn() returns exitstatus from command otherwise
-        #                              : raise an error if exitstatus is not expected_exitstatus
-        #   :timeout                   : Maximum number of seconds to wait for command to finish. default: 3600
-        #   :out                       : If specified, STDOUT from the child process will be redirected to the
-        #                                provided +IO+ object.
-        #   :err                       : If specified, STDERR from the child process will be redirected to the
-        #                                provided +IO+ object.
-        #
-        # NOTE: If the +out+ or +err+ options are specified, the corresponding return value from +oo_spawn+
-        # will be the incoming/provided +IO+ objects instead of the buffered +String+ output. It's the
-        # responsibility of the caller to correctly handle the resulting data type.
-        def run_in_root_context(command, options = {})
-          options.delete(:uid)
-          options.delete(:selinux_context)
-          OpenShift::Runtime::Utils::oo_spawn(command, options)
         end
 
         # run_in_container_context(command, [, options]) -> [stdout, stderr, exit status]
@@ -335,21 +304,21 @@ Dir(after)    #{@container.uuid}/#{@container.uid} => #{list_home_dir(@container
 
         def freeze_fs_limits
           cmd = "/bin/sh #{File.join('/usr/libexec/openshift/lib', "setup_pam_fs_limits.sh")} #{@container.uuid} 0 0 0"
-          out,err,rc = run_in_root_context(cmd)
+          out,err,rc = @container.run_in_root_context(cmd)
           raise OpenShift::Runtime::UserCreationException.new("Unable to setup pam/fs/nproc limits for #{@container.uuid}") unless rc == 0
         end
 
         def freeze_cgroups
-          out,err,rc = run_in_root_context("service cgconfig status > /dev/null")
+          out,err,rc = @container.run_in_root_context("service cgconfig status > /dev/null")
           if rc == 0
-            run_in_root_context("/usr/sbin/oo-admin-ctl-cgroups freezeuser #{@container.uuid} > /dev/null") if rc == 0
+            @container.run_in_root_context("/usr/sbin/oo-admin-ctl-cgroups freezeuser #{@container.uuid} > /dev/null") if rc == 0
           end
         end
 
         # release resources (cgroups thaw), this causes Zombies to get killed
         def unfreeze_cgroups
-          out,err,rc = run_in_root_context("service cgconfig status > /dev/null")
-          run_in_root_context("/usr/sbin/oo-admin-ctl-cgroups thawuser #{@container.uuid} > /dev/null") if rc == 0
+          out,err,rc = @container.run_in_root_context("service cgconfig status > /dev/null")
+          @container.run_in_root_context("/usr/sbin/oo-admin-ctl-cgroups thawuser #{@container.uuid} > /dev/null") if rc == 0
         end
 
         def kill_procs
@@ -358,8 +327,8 @@ Dir(after)    #{@container.uuid}/#{@container.uid} => #{list_home_dir(@container
           #    directories by pam_namespace.
           out = err = rc = nil
           10.times do |i|
-            run_in_root_context(%{/usr/bin/pkill -9 -u #{@container.uid}})
-            out,err,rc = run_in_root_context(%{/usr/bin/pgrep -u #{@container.uid}})
+            @container.run_in_root_context(%{/usr/bin/pkill -9 -u #{@container.uid}})
+            out,err,rc = @container.run_in_root_context(%{/usr/bin/pgrep -u #{@container.uid}})
             break unless 0 == rc
 
             NodeLogger.logger.error "ERROR: attempt #{i}/10 there are running \"killed\" processes for #{@container.uid}(#{rc}): stdout: #{out} stderr: #{err}"
@@ -368,7 +337,7 @@ Dir(after)    #{@container.uuid}/#{@container.uid} => #{list_home_dir(@container
 
           # looks backwards but 0 implies processes still existed
           if 0 == rc
-            out,err,rc = run_in_root_context("ps -u #{@container.uid} -o state,pid,ppid,cmd")
+            out,err,rc = @container.run_in_root_context("ps -u #{@container.uid} -o state,pid,ppid,cmd")
             NodeLogger.logger.error "ERROR: failed to kill all processes for #{@container.uid}(#{rc}): stdout: #{out} stderr: #{err}"
           end
         end
@@ -403,13 +372,13 @@ Dir(after)    #{@container.uuid}/#{@container.uid} => #{list_home_dir(@container
         #
         def purge_sysvipc
           ['-m', '-q', '-s' ].each do |ipctype|
-            out,err,rc=run_in_root_context(%{/usr/bin/ipcs -c #{ipctype} 2> /dev/null})
+            out,err,rc=@container.run_in_root_context(%{/usr/bin/ipcs -c #{ipctype} 2> /dev/null})
             out.lines do |ipcl|
               next unless ipcl=~/^\d/
               ipcent = ipcl.split
               if ipcent[2] == @container.uuid
                 # The ID may already be gone
-                run_in_root_context(%{/usr/bin/ipcrm #{ipctype} #{ipcent[0]}})
+                @container.run_in_root_context(%{/usr/bin/ipcrm #{ipctype} #{ipcent[0]}})
               end
             end
           end

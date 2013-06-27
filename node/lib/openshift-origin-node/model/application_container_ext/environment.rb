@@ -23,8 +23,6 @@ module OpenShift
           File.open(filename, File::WRONLY|File::TRUNC|File::CREAT) do |file|
             file.write value.to_s
           end
-
-          mcs_label = Utils::SELinux.get_mcs_label(uid)
           set_ro_permission(filename)
 
           if block_given?

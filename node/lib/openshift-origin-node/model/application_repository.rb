@@ -36,7 +36,7 @@ module OpenShift
       ##
       # Creates a new application Git repository from a template
       #
-      # +user+ is of type +UnixUser+
+      # +container+ is of type +ApplicationContainer+
       def initialize(container)
         @container = container
         @path = PathUtils.join(@container.container_dir, 'git', "#{@container.application_name}.git")
@@ -86,7 +86,6 @@ module OpenShift
         # expose variables for ERB processing
         @application_name = @container.application_name
         @cartridge_name   = cartridge_name
-        @user_homedir     = @container.container_dir
 
         if template.end_with? '.git'
           FileUtils.cp_r(template, @path, preserve: true)
@@ -166,7 +165,6 @@ module OpenShift
 
         # expose variables for ERB processing
         @application_name = @container.application_name
-        @user_homedir     = @container.container_dir
         @target_dir       = PathUtils.join(@container.container_dir, 'app-root', 'runtime', 'repo')
 
         FileUtils.rm_rf Dir.glob(PathUtils.join(@target_dir, '*'))
@@ -199,8 +197,7 @@ module OpenShift
       ##
       # Install Git repository hooks and set permissions
       def configure
-        FileUtils.chown_R(@container.uid, @container.gid, @path)
-        Utils::SELinux.set_mcs_label(Utils::SELinux.get_mcs_label(@container.uid), @path)
+        @container.set_rw_permission(@path)
 
         # application developer cannot change git hooks
         hooks = PathUtils.join(@path, 'hooks')

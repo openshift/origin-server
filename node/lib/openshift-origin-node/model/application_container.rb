@@ -60,10 +60,10 @@ module OpenShift
       GEAR_TO_GEAR_SSH = "/usr/bin/ssh -q -o 'BatchMode=yes' -o 'StrictHostKeyChecking=no' -i $OPENSHIFT_APP_SSH_KEY "
       DEFAULT_SKEL_DIR = PathUtils.join(OpenShift::Config::CONF_DIR,"skel")
       $OpenShift_ApplicationContainer_SSH_KEY_MUTEX = Mutex.new
-      #$OpenShift_ApplicationContainer_Class = ::OpenShift::Runtime::ApplicationContainerPlugin::LibvirtContainer
+      #@@container_plugin_class = ::OpenShift::Runtime::Containerization::LibvirtContainer
 
       def self.container_plugin=(plugin)
-        $OpenShift_ApplicationContainer_Class = plugin
+        @@container_plugin_class = plugin
       end
 
       # Load plugin gems.
@@ -97,12 +97,12 @@ module OpenShift
           @gid           = user_info.gid
           @gecos         = user_info.gecos
           @container_dir = "#{user_info.dir}/"
-          @container_plugin = $OpenShift_ApplicationContainer_Class.new(self)
+          @container_plugin = @@container_plugin_class.new(self)
         rescue ArgumentError => e
           @uid           = user_uid
           @gid           = user_uid #user_gid || user_uid
           @gecos         = @config.get("GEAR_GECOS") || "OO application container"
-          @container_dir = $OpenShift_ApplicationContainer_Class.container_dir(self)
+          @container_dir = @@container_plugin_class.container_dir(self)
 
           #will be instantiated when create() is called
           @container_plugin = nil
@@ -159,7 +159,7 @@ module OpenShift
 
             unless @uid
               @uid = @gid = next_uid
-              @container_plugin = $OpenShift_ApplicationContainer_Class.new(self)
+              @container_plugin = @@container_plugin_class.new(self)
             end
 
             @container_plugin.create
@@ -561,11 +561,13 @@ module OpenShift
       #   :err                       : If specified, STDERR from the child process will be redirected to the
       #                                provided +IO+ object.
       #
-      # NOTE: If the +out+ or +err+ options are specified, the corresponding return value from +run_in_root_context+
+      # NOTE: If the +out+ or +err+ options are specified, the corresponding return value from +oo_spawn+
       # will be the incoming/provided +IO+ objects instead of the buffered +String+ output. It's the
       # responsibility of the caller to correctly handle the resulting data type.
       def run_in_root_context(command, options = {})
-        @container_plugin.run_in_root_context(command, options)
+        options.delete(:uid)
+        options.delete(:selinux_context)
+        OpenShift::Runtime::Utils::oo_spawn(command, options)
       end
 
       # run_in_container_context(command, [, options]) -> [stdout, stderr, exit status]
