@@ -1,7 +1,7 @@
 ENV["TEST_NAME"] = "functional_gear_groups_controller_test"
 require 'test_helper'
 require 'openshift-origin-controller'
-require 'mocha'
+require 'mocha/setup'
 
 class GearGroupsControllerTest < ActionController::TestCase
   

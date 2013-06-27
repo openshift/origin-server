@@ -1,6 +1,6 @@
 require File.expand_path('../../test_helper', __FILE__)
 require 'openshift-origin-controller'
-require 'mocha'
+require 'mocha/setup'
 
 module Rails
   def self.logger
