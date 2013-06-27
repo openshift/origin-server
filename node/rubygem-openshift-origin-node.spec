@@ -48,6 +48,7 @@ Requires:      openshift-origin-node-proxy
 Requires:      pam_openshift
 Requires:      python
 Requires:      quota
+Requires:      lsof
 # non-scl open4 required for oo-cgroup-read bug 924556 until selinux fix for bug 912215 is available
 Requires:      rubygem(open4)
 Requires:      rubygem(openshift-origin-common)
