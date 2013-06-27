@@ -6,7 +6,7 @@
 %global cartridgedir %{_libexecdir}/openshift/cartridges/v2/ruby
 
 Name:          openshift-origin-cartridge-ruby
-Version: 0.5.6
+Version: 0.5.7
 Release:       1%{?dist}
 Summary:       Ruby cartridge
 Group:         Development/Languages
@@ -185,6 +185,9 @@ Ruby cartridge for OpenShift. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Thu Jun 27 2013 Adam Miller <admiller@redhat.com> 0.5.7-1
+- Bug 977563 (asari.ruby@gmail.com)
+
 * Mon Jun 24 2013 Adam Miller <admiller@redhat.com> 0.5.6-1
 - Bug 975794: Move oo-admin-cartridge operations to %%posttrans
   (ironcladlou@gmail.com)
