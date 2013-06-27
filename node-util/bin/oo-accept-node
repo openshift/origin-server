@@ -791,9 +791,8 @@ def check_cartridge_repository
 
       matched_ct = nil
       dst_manifests.each do |dst_f, dst_m|
-        if (dst_m['Name'] == src_m['Name']) and
-            (not src_m['Cartridge-Version'].nil? and (src_m['Cartridge-Version'] == dst_m['Cartridge-Version'])) or
-            (src_m['Version'] == dst_m['Version'])
+        if ( (src_m['Name']              == dst_m['Name']) and
+             (src_m['Cartridge-Version'] == dst_m['Cartridge-Version']) )
           matched_ct = dst_ctimes[dst_f]
           break
         end
