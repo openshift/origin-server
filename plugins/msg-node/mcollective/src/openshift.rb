@@ -222,7 +222,7 @@ module MCollective
         rescue LoadError => e
           exitcode = 127
           output += "upgrade not supported. #{e.message}\n"
-        rescue OpenShift::Utils::ShellExecutionException => e
+        rescue OpenShift::Runtime::Utils::ShellExecutionException => e
           exitcode = 1
           output += "Gear failed to upgrade: #{e.message}\n#{e.stdout}\n#{e.stderr}"
         rescue Exception => e
@@ -480,7 +480,7 @@ module MCollective
         namespace = args['--with-namespace'].to_s if args['--with-namespace']
 
         with_frontend_rescue_pattern do |o|
-          frontend = OpenShift::Runtime::FrontendHttpServer.new(ApplicationContainer.from_uuid(container_uuid))
+          frontend = OpenShift::Runtime::FrontendHttpServer.new(OpenShift::Runtime::ApplicationContainer.from_uuid(container_uuid))
           yield(frontend, o)
         end
       end

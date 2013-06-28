@@ -54,8 +54,8 @@ module OpenShift
           FileUtils.chmod(0o0750, gem_home)
           set_rw_permission(gem_home)
 
-          geardir = PathUtils.join(homedir, @container_name, "/")
-          gearappdir = PathUtils.join(homedir, "app-root", "/")
+          geardir = PathUtils.join(homedir, @container_name) + "/"
+          gearappdir = PathUtils.join(homedir, "app-root") + "/"
 
           add_env_var("APP_DNS",
                       "#{@application_name}-#{@namespace}.#{@config.get("CLOUD_DOMAIN")}",
@@ -63,7 +63,7 @@ module OpenShift
           add_env_var("APP_NAME", @application_name, true)
           add_env_var("APP_UUID", @application_uuid, true)
 
-          data_dir = PathUtils.join(gearappdir, "data", "/")
+          data_dir = PathUtils.join(gearappdir, "data") + "/"
           add_env_var("DATA_DIR", data_dir, true) {|v|
             FileUtils.mkdir_p(v, :verbose => @debug)
           }
@@ -88,7 +88,7 @@ module OpenShift
           # Ensure HOME exists for git support
           add_env_var("HOME", homedir, false)
 
-          add_env_var("REPO_DIR", PathUtils.join(gearappdir, "runtime", "repo", "/"), true) {|v|
+          add_env_var("REPO_DIR", PathUtils.join(gearappdir, "runtime", "repo") + "/", true) {|v|
             FileUtils.mkdir_p(v, :verbose => @debug)
             FileUtils.cd gearappdir do |d|
               FileUtils.ln_s("runtime/repo", "repo", :verbose => @debug)
@@ -117,7 +117,7 @@ module OpenShift
 
           set_rw_permission(state_file)          }
 
-          OpenShift::Runtime::FrontendHttpServer.new(self).create
+          ::OpenShift::Runtime::FrontendHttpServer.new(self).create
 
           # Fix SELinux context for cart dirs
           set_rw_permission(profile)

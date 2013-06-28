@@ -18,7 +18,7 @@ require_relative '../../misc/bin/oo-trap-user'
 require 'base64'
 
 module OpenShift
-  class TrapUserFunctionalTest < OpenShift::NodeTestCase
+  class TrapUserFunctionalTest < NodeTestCase
 
     # Called before every test method runs. Can be used
     # to set up fixture information.
@@ -35,8 +35,8 @@ module OpenShift
       FileUtils.mkpath(@runtime_dir)
       FileUtils.mkpath(@logs_dir)
 
-      OpenShift::Runtime::Utils::SELinux.stubs(:get_mcs_label).with(0).returns('s0-s0:c0.c1023')
-      OpenShift::Runtime::Utils::SELinux.stubs(:getcon).returns('unconfined_u:system_r:openshift_t:s0-s0:c0.c1023')
+      ::OpenShift::Runtime::Utils::SELinux.stubs(:get_mcs_label).with(0).returns('s0-s0:c0.c1023')
+      ::OpenShift::Runtime::Utils::SELinux.stubs(:getcon).returns('unconfined_u:system_r:openshift_t:s0-s0:c0.c1023')
 
       ## default env from /etc/openshift/env
       #@env = {'OPENSHIFT_CLOUD_DOMAIN'       => @env['OPENSHIFT_CLOUD_DOMAIN'],

@@ -65,7 +65,7 @@ def do_command(command, options)
   rescue SystemExit, Interrupt
     puts
     exit 1
-    rescue OpenShift::Utils::ShellExecutionException => e
+    rescue OpenShift::Runtime::Utils::ShellExecutionException => e
       $stderr.puts "An error occurred executing 'gear #{command.name}' (exit code: #{e.rc})"
       $stderr.puts "Error message: #{e.message}" if e.message.is_a? String
     $stderr.puts "stdout: #{e.stdout}" if e.stdout.is_a? String 

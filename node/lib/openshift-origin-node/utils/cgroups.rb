@@ -14,14 +14,14 @@ module OpenShift
             @uuid = uuid
             @cgpath = "/openshift/#{uuid}"
 
-            out, err, rc = OpenShift::Runtime::Utils::oo_spawn("cgget -a #{@cgpath} >/dev/null")
+            out, err, rc = Utils::oo_spawn("cgget -a #{@cgpath} >/dev/null")
             if rc != 0
               raise ValueError, "User does not exist in cgroups: #{@uuid}"
             end
           end
 
           def fetch(key)
-            out, err, rc = OpenShift::Runtime::Utils::oo_spawn("cgget -n -v -r #{key} #{@cgpath}")
+            out, err, rc = Utils::oo_spawn("cgget -n -v -r #{key} #{@cgpath}")
             case rc
               when 0
                 return out.strip
@@ -37,7 +37,7 @@ module OpenShift
           end
 
           def store(key, value)
-            out, err, rc = OpenShift::Runtime::Utils::oo_spawn("cgset -r #{key}=#{value} #{@cgpath}")
+            out, err, rc = Utils::oo_spawn("cgset -r #{key}=#{value} #{@cgpath}")
             case rc
               when 0
                 return value
@@ -75,12 +75,12 @@ module OpenShift
         end
 
         def self.disable_cgroups(uuid)
-          OpenShift::Runtime::Utils::oo_spawn("oo-admin-ctl-cgroups stopuser #{uuid}",
+          Utils::oo_spawn("oo-admin-ctl-cgroups stopuser #{uuid}",
                                      expected_exitstatus: 0)
         end
 
         def self.enable_cgroups(uuid)
-          OpenShift::Runtime::Utils::oo_spawn("oo-admin-ctl-cgroups startuser #{uuid}",
+          Utils::oo_spawn("oo-admin-ctl-cgroups startuser #{uuid}",
                                      expected_exitstatus: 0)
         end
       end

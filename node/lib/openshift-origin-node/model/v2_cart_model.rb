@@ -163,7 +163,7 @@ module OpenShift
 
           _, _, version, _ = Runtime::Manifest.parse_ident(IO.read(ident_path))
 
-          @cartridges[directory] = OpenShift::Runtime::Manifest.new(manifest_path, version, @container.container_dir)
+          @cartridges[directory] = Manifest.new(manifest_path, version, @container.container_dir)
         end
         @cartridges[directory]
       end
@@ -180,7 +180,7 @@ module OpenShift
 
         raise "Cartridge manifest not found: #{manifest_path} missing" unless File.exists?(manifest_path)
 
-        OpenShift::Runtime::Manifest.new(manifest_path, version, @container.container_dir)
+        Manifest.new(manifest_path, version, @container.container_dir)
       end
 
       # destroy(skip_hooks = false) -> [buffer, '', 0]
@@ -251,7 +251,7 @@ module OpenShift
                                    CartridgeRepository.instance.select(name, software_version)
                                  end
 
-        OpenShift::Runtime::Utils::Cgroups::with_no_cpu_limits(@container.uuid) do
+        Utils::Cgroups::with_no_cpu_limits(@container.uuid) do
           create_cartridge_directory(cartridge, software_version)
           # Note: the following if statement will check the following criteria long-term:
           # 1. Is the app scalable?
@@ -329,7 +329,7 @@ module OpenShift
         name, software_version = map_cartridge_name(cartridge_name)
         cartridge              = get_cartridge(name)
 
-        OpenShift::Runtime::Utils::Cgroups::with_no_cpu_limits(@container.uuid) do
+        Utils::Cgroups::with_no_cpu_limits(@container.uuid) do
           if empty_repository?
             output << "CLIENT_MESSAGE: An empty Git repository has been created for your application.  Use 'git push' to add your code."
           else
@@ -388,7 +388,7 @@ module OpenShift
         end
 
         delete_private_endpoints(cartridge)
-        OpenShift::Runtime::Utils::Cgroups::with_no_cpu_limits(@container.uuid) do
+        Utils::Cgroups::with_no_cpu_limits(@container.uuid) do
           begin
             stop_cartridge(cartridge, user_initiated: true)
             unlock_gear(cartridge, false) do |c|
@@ -443,7 +443,7 @@ module OpenShift
           begin
             @container.set_rw_permission(entry)
           rescue Exception => e
-            raise OpenShift::Runtime::FileUnlockError.new("Failed to unlock file system entry [#{entry}]: #{e}",
+            raise FileUnlockError.new("Failed to unlock file system entry [#{entry}]: #{e}",
                                                  entry)
           end
         end
@@ -451,7 +451,7 @@ module OpenShift
         begin
           @container.set_rw_permission(@container.container_dir)
         rescue Exception => e
-          raise OpenShift::Runtime::FileUnlockError.new(
+          raise FileUnlockError.new(
                     "Failed to unlock gear home [#{@container.container_dir}]: #{e}",
                     @container.container_dir)
         end
@@ -881,12 +881,12 @@ module OpenShift
 
         logger.info("Disconnecting frontend mapping for #{@container.uuid}/#{cartridge.name}: #{mappings.inspect}")
         unless mappings.empty?
-          OpenShift::Runtime::FrontendHttpServer.new(@container).disconnect(*mappings)
+          FrontendHttpServer.new(@container).disconnect(*mappings)
         end
       end
 
       def connect_frontend(cartridge)
-        frontend       = OpenShift::Runtime::FrontendHttpServer.new(@container)
+        frontend       = FrontendHttpServer.new(@container)
         gear_env       = Utils::Environ.for_gear(@container.container_dir)
         web_proxy_cart = web_proxy
 
@@ -946,7 +946,7 @@ module OpenShift
         case cartridge
           when String
             cartridge_dir = cartridge_directory(cartridge)
-          when OpenShift::Runtime::Manifest
+          when Manifest
             cartridge_dir = cartridge.directory
           else
             raise "Unsupported cartridge argument type: #{cartridge.class}"
@@ -1054,7 +1054,7 @@ module OpenShift
         end
 
         logger.info("ERROR: (#{rc})\n------\n#{Runtime::Utils.sanitize_credentials(out)}\n------)")
-        raise OpenShift::Runtime::Utils::ShellExecutionException.new(
+        raise Utils::ShellExecutionException.new(
                   "Control action '#{connector}' returned an error. rc=#{rc}\n#{out}", rc, out, err)
       end
 
@@ -1278,7 +1278,7 @@ module OpenShift
 
         if cartridge.name == primary_cartridge.name
           FileUtils.rm_f(stop_lock) if options[:user_initiated]
-          @state.value = OpenShift::Runtime::State::STARTED
+          @state.value = State::STARTED
 
           # Unidle the application, preferring to use the privileged operation if possible
           frontend = FrontendHttpServer.new(@container)
@@ -1337,7 +1337,7 @@ module OpenShift
 
         if cartridge.name == primary_cartridge.name
           create_stop_lock if options[:user_initiated]
-          @state.value = OpenShift::Runtime::State::STOPPED
+          @state.value = State::STOPPED
         end
 
         do_control('stop', cartridge, options)
@@ -1423,10 +1423,10 @@ module OpenShift
         logger.debug output
         output
       end
-    end
 
-    def empty_repository?
-      ApplicationRepository.new(@container).empty?
+      def empty_repository?
+        ApplicationRepository.new(@container).empty?
+      end
     end
   end
 end

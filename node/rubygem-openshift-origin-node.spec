@@ -258,6 +258,7 @@ echo "/usr/bin/oo-trap-user" >> /etc/shells
 
 #%if 0%{?fedora}%{?rhel} <= 6
 %attr(0755,-,-)	/etc/rc.d/init.d/openshift-cgroups
+%attr(0755,-,-)	/etc/rc.d/init.d/openshift-tc
 #%else
 #%attr(0750,-,-) /etc/systemd/system
 #%endif

@@ -79,7 +79,7 @@ module OpenShift
     def test_missing_managed_files
       logger = mock()
       logger.expects(:info).with { |x| x =~ /.yml is missing$/ }
-      OpenShift::Runtime::NodeLogger.expects(:logger).returns(logger)
+      ::OpenShift::Runtime::NodeLogger.expects(:logger).returns(logger)
       assert_empty managed_files(@cartridge, :foo, @container_dir)
     end
 

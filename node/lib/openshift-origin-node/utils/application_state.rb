@@ -43,7 +43,7 @@ module OpenShift
           @container = container
           @uuid = @container.uuid
 
-          config      = OpenShift::Config.new
+          config      = ::OpenShift::Config.new
           @state_file = File.join(@container.container_dir, "app-root", "runtime", ".state")
         end
 
@@ -54,7 +54,7 @@ module OpenShift
         def value=(new_state)
           new_state_val = nil
           begin
-            new_state_val = OpenShift::Runtime::State.const_get new_state.upcase.intern
+            new_state_val = ::OpenShift::Runtime::State.const_get new_state.upcase.intern
           rescue
             raise ArgumentError, "Invalid state '#{new_state}' specified"
           end

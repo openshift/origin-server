@@ -79,7 +79,7 @@ module OpenShift
             file.write token
           end
 
-          set_ro_permission(broker_auth_dir)
+          set_rw_permission_R(broker_auth_dir)
           FileUtils.chmod(0o0750, broker_auth_dir)
           FileUtils.chmod(0o0640, Dir.glob("#{broker_auth_dir}/*"))
         end

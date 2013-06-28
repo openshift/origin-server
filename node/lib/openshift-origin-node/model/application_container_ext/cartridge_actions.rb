@@ -276,7 +276,7 @@ module OpenShift
         # Returns the combined output of all actions as a +String+.
         #
         def build(options={})
-          @state.value = OpenShift::Runtime::State::BUILDING
+          @state.value = ::OpenShift::Runtime::State::BUILDING
 
           buffer = ''
 
@@ -331,7 +331,7 @@ module OpenShift
               out:            options[:out],
               err:            options[:err])
 
-          @state.value = OpenShift::Runtime::State::DEPLOYING
+          @state.value = ::OpenShift::Runtime::State::DEPLOYING
 
           web_proxy_cart = @cartridge_model.web_proxy
           if web_proxy_cart
@@ -393,7 +393,7 @@ module OpenShift
 
         # reload gear as supported by cartridges
         def reload(cart_name)
-          if State::STARTED == state.value
+          if ::OpenShift::Runtime::State::STARTED == state.value
             return @cartridge_model.do_control('reload', cart_name)
           else
             return @cartridge_model.do_control('force-reload', cart_name)
@@ -401,8 +401,8 @@ module OpenShift
         end
 
         def threaddump(cart_name)
-          unless State::STARTED == state.value
-            return "CLIENT_ERROR: Application is #{state.value}, must be #{State::STARTED} to allow a thread dump"
+          unless ::OpenShift::Runtime::State::STARTED == state.value
+            return "CLIENT_ERROR: Application is #{state.value}, must be #{::OpenShift::Runtime::State::STARTED} to allow a thread dump"
           end
 
           @cartridge_model.do_control('threaddump', cart_name)

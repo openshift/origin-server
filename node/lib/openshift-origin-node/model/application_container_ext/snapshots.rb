@@ -89,7 +89,7 @@ module OpenShift
             $stderr.puts "Saving snapshot for secondary #{type} gear"
 
             ssh_coords = group['gears'][0]['ssh_url'].sub(/^ssh:\/\//, '')
-            run_in_container_context("#{GEAR_TO_GEAR_SSH} #{ssh_coords} 'snapshot' > #{type}.tar.gz",
+            run_in_container_context("#{::OpenShift::Runtime::ApplicationContainer::GEAR_TO_GEAR_SSH} #{ssh_coords} 'snapshot' > #{type}.tar.gz",
                 env: gear_env,
                 chdir: gear_env['OPENSHIFT_DATA_DIR'],
                 err: $stderr,
@@ -213,7 +213,7 @@ module OpenShift
             $stderr.puts "Restoring snapshot for #{type} gear"
 
             ssh_coords = group['gears'][0]['ssh_url'].sub(/^ssh:\/\//, '')
-            run_in_container_context("cat #{type}.tar.gz | #{GEAR_TO_GEAR_SSH} #{ssh_coords} 'restore'",
+            run_in_container_context("cat #{type}.tar.gz | #{::OpenShift::Runtime::ApplicationContainer::GEAR_TO_GEAR_SSH} #{ssh_coords} 'restore'",
                 env: gear_env,
                 chdir: gear_env['OPENSHIFT_DATA_DIR'],
                 err: $stderr,

@@ -828,7 +828,7 @@ Then /^the ([^ ]+) cartridge endpoints with ssl to gear option will be (exposed|
 end
 
 Then /^the application state will be ([^ ]+)$/ do |state_value|
-  state_const = OpenShift::State.const_get(state_value.upcase)
+  state_const = OpenShift::Runtime::State.const_get(state_value.upcase)
 
   raise "Invalid state '#{state_value}' provided to step" unless state_const
 

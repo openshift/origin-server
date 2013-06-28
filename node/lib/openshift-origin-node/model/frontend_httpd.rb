@@ -151,7 +151,7 @@ module OpenShift
       end
 
       def initialize(container)
-        @config = OpenShift::Config.new
+        @config = ::OpenShift::Config.new
 
         @cloud_domain = clean_server_name(@config.get("CLOUD_DOMAIN"))
 
@@ -271,7 +271,7 @@ module OpenShift
       # Public: Load from json
       def self.json_create(obj)
         data = obj['data']
-        new_obj = FrontendHttpServer.new(OpenShift::Runtime::ApplicationContainer.from_uuid(data['container_uuid']))
+        new_obj = FrontendHttpServer.new(ApplicationContainer.from_uuid(data['container_uuid']))
         new_obj.create
 
         if data.has_key?("connections")
@@ -936,7 +936,7 @@ module OpenShift
           raise NotImplementedError.new("Must subclass with proper map name.")
         end
 
-        @config = OpenShift::Config.new
+        @config = ::OpenShift::Config.new
         @basedir = @config.get("OPENSHIFT_HTTP_CONF_DIR")
         @mode = 0640
 

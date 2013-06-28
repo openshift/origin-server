@@ -48,7 +48,7 @@ module OpenShift
 
     # == Application Container
     class ApplicationContainer
-      include OpenShift::Runtime::Utils::ShellExec
+      include Utils::ShellExec
       include ActiveModel::Observing
       include NodeLogger
       include ManagedFiles
@@ -60,7 +60,6 @@ module OpenShift
       GEAR_TO_GEAR_SSH = "/usr/bin/ssh -q -o 'BatchMode=yes' -o 'StrictHostKeyChecking=no' -i $OPENSHIFT_APP_SSH_KEY "
       DEFAULT_SKEL_DIR = PathUtils.join(OpenShift::Config::CONF_DIR,"skel")
       $OpenShift_ApplicationContainer_SSH_KEY_MUTEX = Mutex.new
-      #@@container_plugin_class = ::OpenShift::Runtime::Containerization::LibvirtContainer
 
       def self.container_plugin=(plugin)
         @@container_plugin_class = plugin
@@ -76,7 +75,7 @@ module OpenShift
       def initialize(application_uuid, container_uuid, user_uid = nil, application_name = nil, container_name = nil,
                      namespace = nil, quota_blocks = nil, quota_files = nil, hourglass = nil)
 
-        @config           = OpenShift::Config.new
+        @config           = ::OpenShift::Config.new
         @uuid             = container_uuid
         @application_uuid = application_uuid
         @container_name   = container_name
@@ -108,7 +107,7 @@ module OpenShift
           @container_plugin = nil
         end
 
-        @state            = OpenShift::Runtime::Utils::ApplicationState.new(self)
+        @state            = Utils::ApplicationState.new(self)
         @cartridge_model = V2CartridgeModel.new(@config, self, @state, @hourglass)
       end
 
@@ -118,7 +117,7 @@ module OpenShift
       # Caveat: the quota information will not be populated.
       #
       def self.from_uuid(container_uuid, hourglass=nil)
-        config = OpenShift::Config.new
+        config = ::OpenShift::Config.new
         gecos  = config.get("GEAR_GECOS") || "OO application container"
         pwent   = Etc.getpwnam(container_uuid)
         if pwent.gecos != gecos
@@ -159,15 +158,15 @@ module OpenShift
 
             unless @uid
               @uid = @gid = next_uid
-              @container_plugin = @@container_plugin_class.new(self)
             end
+            @container_plugin = @@container_plugin_class.new(self)
 
             @container_plugin.create
           end
           if @config.get("CREATE_APP_SYMLINKS").to_i == 1
-            unobfuscated = PathUtils.join(File.dirname(@container.container_dir),"#{@container.name}-#{namespace}")
+            unobfuscated = PathUtils.join(File.dirname(@container_dir),"#{@container_name}-#{@namespace}")
             if not File.exists? unobfuscated
-              FileUtils.ln_s File.basename(@container.container_dir), unobfuscated, :force=>true
+              FileUtils.ln_s File.basename(@container_dir), unobfuscated, :force=>true
             end
           end
           @container_plugin.enable_cgroups
@@ -207,7 +206,7 @@ module OpenShift
         File.open(uuid_lock_file, File::RDWR|File::CREAT|File::TRUNC, 0o0600) do | lock |
           lock.fcntl(Fcntl::F_SETFD, Fcntl::FD_CLOEXEC)
           lock.flock(File::LOCK_EX)
-          OpenShift::Runtime::FrontendHttpServer.new(self).destroy
+          FrontendHttpServer.new(self).destroy
           @container_plugin.delete_all_public_endpoints
           @container_plugin.disable_traffic_control
           @container_plugin.destroy
@@ -239,7 +238,7 @@ module OpenShift
       #
       # TODO: exception handling
       def force_stop
-        @state.value = OpenShift::Runtime::State::STOPPED
+        @state.value = State::STOPPED
         @cartridge_model.create_stop_lock
         @container_plugin.stop
       end
@@ -313,7 +312,7 @@ module OpenShift
       #
       def unidle_gear(options={})
         output = ""
-        OpenShift::Utils::Cgroups::with_no_cpu_limits(@uuid) do
+        OpenShift::Runtime::Utils::Cgroups::with_no_cpu_limits(@uuid) do
           if stop_lock? and (state.value == State::IDLE)
             state.value = State::STARTED
             output      = start_gear
@@ -374,7 +373,7 @@ module OpenShift
       def tidy_action
         begin
           yield
-        rescue OpenShift::Runtime::Utils::ShellExecutionException => e
+        rescue Utils::ShellExecutionException => e
           logger.warn(%Q{
             Tidy operation failed on gear #{@uuid}: #{e.message}
             --- stdout ---\n#{e.stdout}
@@ -394,8 +393,8 @@ module OpenShift
         url = "https://#{broker_addr}/broker/rest/domains/#{domain}/applications/#{app_name}/gear_groups.json"
 
         params = {
-          'broker_auth_key' => File.read(PathUtils.join(@config.get('GEAR_BASE_DIR'), name, '.auth', 'token')).chomp,
-          'broker_auth_iv' => File.read(PathUtils.join(@config.get('GEAR_BASE_DIR'), name, '.auth', 'iv')).chomp
+          'broker_auth_key' => File.read(PathUtils.join(@config.get('GEAR_BASE_DIR'), uuid, '.auth', 'token')).chomp,
+          'broker_auth_iv' => File.read(PathUtils.join(@config.get('GEAR_BASE_DIR'), uuid, '.auth', 'iv')).chomp
         }
 
         request = RestClient::Request.new(:method => :get,
@@ -569,7 +568,7 @@ module OpenShift
       def run_in_root_context(command, options = {})
         options.delete(:uid)
         options.delete(:selinux_context)
-        OpenShift::Runtime::Utils::oo_spawn(command, options)
+        Utils::oo_spawn(command, options)
       end
 
       # run_in_container_context(command, [, options]) -> [stdout, stderr, exit status]

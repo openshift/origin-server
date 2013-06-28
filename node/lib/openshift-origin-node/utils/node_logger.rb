@@ -87,7 +87,7 @@ module OpenShift
         logger_class = config.get("PLATFORM_LOG_CLASS") || DEFAULT_LOGGER_CLASS
 
         begin
-          logger = OpenShift::Runtime::NodeLogger.const_get(logger_class).new(config, self.context)
+          logger = ::OpenShift::Runtime::NodeLogger.const_get(logger_class).new(config, self.context)
         rescue => e
           raise "Couldn't create NodeLogger class #{logger_class}: #{e.message}"
         end
@@ -97,7 +97,7 @@ module OpenShift
 
       def self.load_config
         begin
-          config = OpenShift::Config.new
+          config = ::OpenShift::Config.new
         rescue => e
           raise "Couldn't load NodeLogger configuration: #{e.message}"
         end

@@ -18,7 +18,7 @@ require "etc"
 require "fileutils"
 
 module OpenShift
-  class ApplicationStateFunctionalTest < OpenShift::NodeTestCase
+  class ApplicationStateFunctionalTest < NodeTestCase
     def setup
       @uid     = 5907
       @homedir = "/tmp/tests/#@uid"
@@ -31,6 +31,9 @@ module OpenShift
       %x{chown -R #@uid:#@uid #@homedir}
       FileUtils.mkpath(File.join(@homedir, '.tmp', @uid.to_s))
       FileUtils.chmod(0, File.join(@homedir, '.tmp'))
+
+      @container = ::OpenShift::Runtime::ApplicationContainer.new(@uid.to_s, @uid.to_s, @uid,
+                                                                  @uid.to_s, @uid.to_s, "xyz", nil, nil, nil)
     end
 
     def teardown
@@ -44,19 +47,21 @@ module OpenShift
       config = mock('OpenShift::Config')
       config.stubs(:get).returns(nil)
       config.stubs(:get).with("GEAR_BASE_DIR").returns("/tmp/tests")
-      OpenShift::Config.stubs(:new).returns(config)
+      ::OpenShift::Config.stubs(:new).returns(config)
+
+
 
       # .state file is missing
-      state = OpenShift::Runtime::Utils::ApplicationState.new(@uid.to_s)
-      assert_equal State::UNKNOWN, state.value
+      state = ::OpenShift::Runtime::Utils::ApplicationState.new(@container)
+      assert_equal ::OpenShift::Runtime::State::UNKNOWN, state.value
 
       # .state file is created
-      state.value = State::NEW
-      assert_equal State::NEW, state.value
+      state.value = ::OpenShift::Runtime::State::NEW
+      assert_equal ::OpenShift::Runtime::State::NEW, state.value
 
       # .state file is updated
-      state.value = State::STARTED
-      assert_equal State::STARTED, state.value
+      state.value = ::OpenShift::Runtime::State::STARTED
+      assert_equal ::OpenShift::Runtime::State::STARTED, state.value
 
       stats = File.stat(File.join(@runtime_dir, ".state"))
       assert_equal @uid, stats.uid

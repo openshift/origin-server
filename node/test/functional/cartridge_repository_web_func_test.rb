@@ -117,7 +117,7 @@ class CartridgeRepositoryWebFunctionalTest < OpenShift::NodeTestCase
   def with_detail_output
     begin
       yield
-    rescue OpenShift::Runtime::Utils::ShellExecutionException => e
+    rescue ::OpenShift::Runtime::Utils::ShellExecutionException => e
       NodeLogger.logger.debug(e.message + "\n" +
                                   e.stdout + "\n" +
                                   e.stderr + "\n" +

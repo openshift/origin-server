@@ -15,8 +15,8 @@ module OpenShift
 
         def initialize(application_container)
           @container  = application_container
-          @config     = OpenShift::Config.new
-          @mcs_label  = OpenShift::Runtime::Utils::SELinux.get_mcs_label(@container.uid)
+          @config     = ::OpenShift::Config.new
+          @mcs_label  = ::OpenShift::Runtime::Utils::SELinux.get_mcs_label(@container.uid)
           @gear_shell = @config.get("GEAR_SHELL")    || "/bin/bash"
         end
 
@@ -36,7 +36,6 @@ module OpenShift
                   -s #{@gear_shell} \
                   -c '#{@container.gecos}' \
                   -m \
-                  -N \
                   -k #{@container.skel_dir} \
           #{@container.uuid}}
           if @container.supplementary_groups != ""
@@ -92,7 +91,7 @@ module OpenShift
             end
           end
 
-          OpenShift::Runtime::FrontendHttpServer.new(@container).destroy
+          ::OpenShift::Runtime::FrontendHttpServer.new(@container).destroy
 
           dirs = list_home_dir(@container.container_dir)
           begin
@@ -179,13 +178,13 @@ Dir(after)    #{@container.uuid}/#{@container.uid} => #{list_home_dir(@container
         end
 
         def create_public_endpoint(private_ip, private_port)
-          proxy = OpenShift::Runtime::FrontendProxyServer.new
+          proxy = ::OpenShift::Runtime::FrontendProxyServer.new
           # Add the public-to-private endpoint-mapping to the port proxy
           public_port = proxy.add(@container.uid, private_ip, private_port)
         end
 
         def delete_public_endpoints(proxy_mappings)
-          proxy = OpenShift::Runtime::FrontendProxyServer.new
+          proxy = ::OpenShift::Runtime::FrontendProxyServer.new
           proxy.delete_all(proxy_mappings.map{|p| p[:proxy_port]}, true)
         end
 
@@ -225,7 +224,7 @@ Dir(after)    #{@container.uuid}/#{@container.uid} => #{list_home_dir(@container
         def enable_traffic_control
           out,err,rc = @container.run_in_root_context("service openshift-tc status > /dev/null 2>&1")
           if rc == 0
-            out,err,rc = @container.run_in_root_context("service openshift-tc startuser #{@container.uuid} > /dev/null")
+            out,err,rc = @container.run_in_root_context("/usr/sbin/oo-admin-ctl-tc startuser #{@container.uuid} > /dev/null")
             raise OpenShift::UserCreationException.new("Unable to setup tc for #{@container.uuid}") unless rc == 0
           end
         end
@@ -233,7 +232,7 @@ Dir(after)    #{@container.uuid}/#{@container.uid} => #{list_home_dir(@container
         def disable_traffic_control
           out,err,rc = @container.run_in_root_context("service openshift-tc status > /dev/null 2>&1")
           if rc == 0
-            @container.run_in_root_context("service openshift-tc deluser #{@container.uuid} > /dev/null")
+            @container.run_in_root_context("/usr/sbin/oo-admin-ctl-tc deluser #{@container.uuid} > /dev/null")
           end
         end
 
@@ -281,38 +280,38 @@ Dir(after)    #{@container.uuid}/#{@container.uid} => #{list_home_dir(@container
           options[:unsetenv_others] = true
           options[:uid] = @container.uid
           options[:gid] = @container.gid
-          options[:selinux_context] = OpenShift::Runtime::Utils::SELinux.context_from_defaults(@mcs_label)
-          OpenShift::Runtime::Utils::oo_spawn(command, options)
+          options[:selinux_context] = ::OpenShift::Runtime::Utils::SELinux.context_from_defaults(@mcs_label)
+          ::OpenShift::Runtime::Utils::oo_spawn(command, options)
         end
 
         def reset_permission(paths)
-          OpenShift::Runtime::Utils::SELinux.clear_mcs_label(paths)
-          OpenShift::Runtime::Utils::SELinux.set_mcs_label(@mcs_label, paths)
+          ::OpenShift::Runtime::Utils::SELinux.clear_mcs_label(paths)
+          ::OpenShift::Runtime::Utils::SELinux.set_mcs_label(@mcs_label, paths)
         end
 
         def reset_permission_R(paths)
-          OpenShift::Runtime::Utils::SELinux.clear_mcs_label_R(paths)
-          OpenShift::Runtime::Utils::SELinux.set_mcs_label_R(@mcs_label, paths)
+          ::OpenShift::Runtime::Utils::SELinux.clear_mcs_label_R(paths)
+          ::OpenShift::Runtime::Utils::SELinux.set_mcs_label_R(@mcs_label, paths)
         end
 
         def set_ro_permission_R(paths)
           PathUtils.oo_chown_R(0, @container.gid, paths)
-          OpenShift::Runtime::Utils::SELinux.set_mcs_label_R(@mcs_label, paths)
+          ::OpenShift::Runtime::Utils::SELinux.set_mcs_label_R(@mcs_label, paths)
         end
 
         def set_ro_permission(paths)
           PathUtils.oo_chown(0, @container.gid, paths)
-          OpenShift::Runtime::Utils::SELinux.set_mcs_label(@mcs_label, paths)
+          ::OpenShift::Runtime::Utils::SELinux.set_mcs_label(@mcs_label, paths)
         end
 
         def set_rw_permission_R(paths)
           PathUtils.oo_chown_R(@container.uid, @container.gid, paths)
-          OpenShift::Runtime::Utils::SELinux.set_mcs_label_R(@mcs_label, paths)
+          ::OpenShift::Runtime::Utils::SELinux.set_mcs_label_R(@mcs_label, paths)
         end
 
         def set_rw_permission(paths)
           PathUtils.oo_chown(@container.uid, @container.gid, paths)
-          OpenShift::Runtime::Utils::SELinux.set_mcs_label(@mcs_label, paths)
+          ::OpenShift::Runtime::Utils::SELinux.set_mcs_label(@mcs_label, paths)
         end
 
         private
@@ -320,7 +319,7 @@ Dir(after)    #{@container.uuid}/#{@container.uid} => #{list_home_dir(@container
         def freeze_fs_limits
           cmd = "/bin/sh #{File.join('/usr/libexec/openshift/lib', "setup_pam_fs_limits.sh")} #{@container.uuid} 0 0 0"
           out,err,rc = @container.run_in_root_context(cmd)
-          raise OpenShift::Runtime::UserCreationException.new("Unable to setup pam/fs/nproc limits for #{@container.uuid}") unless rc == 0
+          raise ::OpenShift::Runtime::UserCreationException.new("Unable to setup pam/fs/nproc limits for #{@container.uuid}") unless rc == 0
         end
 
         def freeze_cgroups

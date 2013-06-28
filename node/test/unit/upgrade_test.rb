@@ -3,7 +3,7 @@ require_relative '../../lib/openshift-origin-node/model/upgrade'
 
 module OpenShift
   module Runtime
-    class MigrationTest < OpenShift::NodeTestCase
+    class MigrationTest < ::OpenShift::NodeTestCase
       attr_reader :progress, :cart_model, :current_manifest, :next_manifest, :version, :target, :user
 
       def setup
@@ -55,7 +55,7 @@ module OpenShift
       # end
 
       def test_compatible_success
-        OpenShift::CartridgeRepository.expects(:overlay_cartridge).with(next_manifest, target)
+        CartridgeRepository.expects(:overlay_cartridge).with(next_manifest, target)
 
         cart_model.expects(:processed_templates).with(next_manifest).returns(%w(a b c))
         FileUtils.expects(:rm_f).with(%w(a b c))
@@ -63,7 +63,7 @@ module OpenShift
         cart_model.expects(:unlock_gear).with(next_manifest).yields(next_manifest)
         cart_model.expects(:secure_cartridge).with('mock', user.uid, user.gid, target)
 
-        OpenShift::Runtime::Upgrade.compatible_upgrade(progress, cart_model, next_manifest, target, user)
+        ::OpenShift::Runtime::Upgrade.compatible_upgrade(progress, cart_model, next_manifest, target, user)
       end
 
       def test_incompatible_success
@@ -76,7 +76,7 @@ module OpenShift
         File.expects(:file?).with('b/').returns(false)
         FileUtils.expects(:rm_r).with('b/')
 
-        OpenShift::CartridgeRepository.expects(:overlay_cartridge).with(next_manifest, target)
+        CartridgeRepository.expects(:overlay_cartridge).with(next_manifest, target)
 
         cart_model.expects(:unlock_gear).with(next_manifest).yields(next_manifest)
         cart_model.expects(:secure_cartridge).with('mock', user.uid, user.gid, target)
@@ -93,7 +93,7 @@ module OpenShift
         cart_model.expects(:connect_frontend).with(next_manifest)
         progress.expects(:mark_complete).with('mock_connect_frontend')
 
-        OpenShift::Runtime::Upgrade.incompatible_upgrade(progress, cart_model, next_manifest, version, target, user)
+        ::OpenShift::Runtime::Upgrade.incompatible_upgrade(progress, cart_model, next_manifest, version, target, user)
       end
 
       def test_incompatible_recover_after_setup
@@ -106,7 +106,7 @@ module OpenShift
         File.expects(:file?).with('b/').returns(false)
         FileUtils.expects(:rm_r).with('b/')
 
-        OpenShift::CartridgeRepository.expects(:overlay_cartridge).with(next_manifest, target)
+        CartridgeRepository.expects(:overlay_cartridge).with(next_manifest, target)
 
         cart_model.expects(:unlock_gear).with(next_manifest).yields(next_manifest)
         cart_model.expects(:secure_cartridge).with('mock', user.uid, user.gid, target)
@@ -122,7 +122,7 @@ module OpenShift
         cart_model.expects(:connect_frontend).with(next_manifest)
         progress.expects(:mark_complete).with('mock_connect_frontend')
 
-        OpenShift::Runtime::Upgrade.incompatible_upgrade(progress, cart_model, next_manifest, version, target, user)
+        ::OpenShift::Runtime::Upgrade.incompatible_upgrade(progress, cart_model, next_manifest, version, target, user)
       end
 
       def test_incompatible_recover_after_erb_processing
@@ -135,7 +135,7 @@ module OpenShift
         File.expects(:file?).with('b/').returns(false)
         FileUtils.expects(:rm_r).with('b/')
 
-        OpenShift::CartridgeRepository.expects(:overlay_cartridge).with(next_manifest, target)
+        CartridgeRepository.expects(:overlay_cartridge).with(next_manifest, target)
 
         cart_model.expects(:unlock_gear).with(next_manifest).yields(next_manifest)
         cart_model.expects(:secure_cartridge).with('mock', user.uid, user.gid, target)
@@ -150,7 +150,7 @@ module OpenShift
         cart_model.expects(:connect_frontend).with(next_manifest)
         progress.expects(:mark_complete).with('mock_connect_frontend')
 
-        OpenShift::Runtime::Upgrade.incompatible_upgrade(progress, cart_model, next_manifest, version, target, user)
+        ::OpenShift::Runtime::Upgrade.incompatible_upgrade(progress, cart_model, next_manifest, version, target, user)
       end
 
       def test_incompatible_done
@@ -163,7 +163,7 @@ module OpenShift
         File.expects(:file?).with('b/').returns(false)
         FileUtils.expects(:rm_r).with('b/')
 
-        OpenShift::CartridgeRepository.expects(:overlay_cartridge).with(next_manifest, target)
+        CartridgeRepository.expects(:overlay_cartridge).with(next_manifest, target)
 
         cart_model.expects(:unlock_gear).with(next_manifest).yields(next_manifest)
         cart_model.expects(:secure_cartridge).with('mock', user.uid, user.gid, target)
@@ -177,7 +177,7 @@ module OpenShift
         progress.expects(:incomplete?).with('mock_connect_frontend').returns(false)
         cart_model.expects(:connect_frontend).never()
 
-        OpenShift::Runtime::Upgrade.incompatible_upgrade(progress, cart_model, next_manifest, version, target, user)
+        ::OpenShift::Runtime::Upgrade.incompatible_upgrade(progress, cart_model, next_manifest, version, target, user)
       end
 
     end

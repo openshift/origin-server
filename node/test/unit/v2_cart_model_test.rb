@@ -28,7 +28,7 @@ module OpenShift
 
     def setup
       # Set up the config
-      @config = mock('OpenShift::Config')
+      @config = mock('::OpenShift::Config')
 
       @config.stubs(:get).returns(nil)
       @config.stubs(:get).with("GEAR_BASE_DIR").returns(GEAR_BASE_DIR)
@@ -40,7 +40,7 @@ module OpenShift
 
       @config.stubs(:get).with("CARTRIDGE_BASE_PATH").returns(cart_base_path)
 
-      OpenShift::Config.stubs(:new).returns(@config)
+      ::OpenShift::Config.stubs(:new).returns(@config)
 
       # Set up the container
       @gear_uuid = "5501"
@@ -60,13 +60,13 @@ module OpenShift
         )
       )
 
-      @container = OpenShift::Runtime::ApplicationContainer.new(@gear_uuid, @gear_uuid, @user_uid,
+      @container = Runtime::ApplicationContainer.new(@gear_uuid, @gear_uuid, @user_uid,
                                                                 @app_name, @gear_uuid, @namespace, nil, nil, nil)
 
       @hourglass = mock()
       @hourglass.stubs(:remaining).returns(3600)
 
-      @model = OpenShift::Runtime::V2CartridgeModel.new(@config, @container, mock(), @hourglass)
+      @model = Runtime::V2CartridgeModel.new(@config, @container, mock(), @hourglass)
 
       @mock_manifest = %q{#
         Name: mock
@@ -133,7 +133,7 @@ module OpenShift
 
       manifest = Tempfile.new("manifest-#{Process.pid}")
       IO.write(manifest, @mock_manifest, 0)
-      @mock_cartridge = OpenShift::Runtime::Manifest.new(manifest, nil, '/tmp')
+      @mock_cartridge = Runtime::Manifest.new(manifest, nil, '/tmp')
       @model.stubs(:get_cartridge).with('mock-0.1').returns(@mock_cartridge)
     end
 
@@ -145,7 +145,7 @@ module OpenShift
       hourglass = mock()
       hourglass.stubs(:remaining).returns(3600)
 
-      local_model = OpenShift::Runtime::V2CartridgeModel.new(@config, @container, mock(), hourglass)
+      local_model = Runtime::V2CartridgeModel.new(@config, @container, mock(), hourglass)
 
       YAML.stubs(:load_file).with("#{@homedir}/redhat-crtest/metadata/manifest.yml").raises(ArgumentError.new('bla'))
 
@@ -252,10 +252,10 @@ module OpenShift
     # Flow control for destroy success - cartridge_teardown called for each method
     # and unix user destroyed.
     def test_destroy_success
-      c1 = mock('OpenShift::Runtime::Manifest')
+      c1 = mock('Runtime::Manifest')
       c1.stubs(:directory).returns("cartridge1")
 
-      c2 = mock('OpenShift::Runtime::Manifest')
+      c2 = mock('Runtime::Manifest')
       c2.stubs(:directory).returns("cartridge2")
 
       @model.expects(:each_cartridge).multiple_yields(c1,c2)
@@ -274,17 +274,17 @@ module OpenShift
     # Verifies that all teardown hooks are called, even if one raises an error,
     # and that unix user is still destroyed.
     def test_destroy_teardown_raises
-      c1 = mock('OpenShift::Runtime::Manifest')
+      c1 = mock('Runtime::Manifest')
       c1.stubs(:directory).returns("cartridge1")
 
-      c2 = mock('OpenShift::Runtime::Manifest')
+      c2 = mock('Runtime::Manifest')
       c2.stubs(:directory).returns("cartridge2")
 
       @model.expects(:each_cartridge).multiple_yields(c1,c2)
       @model.expects(:unlock_gear).with(c1, false).yields(c1)
       @model.expects(:unlock_gear).with(c2, false).yields(c2)
 
-      @model.expects(:cartridge_teardown).with(c1.directory, false).raises(OpenShift::Runtime::Utils::ShellExecutionException.new('error'))
+      @model.expects(:cartridge_teardown).with(c1.directory, false).raises(Runtime::Utils::ShellExecutionException.new('error'))
       @model.expects(:cartridge_teardown).with(c2.directory, false).returns("")
 
       Dir.stubs(:chdir).with(GEAR_BASE_DIR).yields
@@ -327,19 +327,19 @@ module OpenShift
       @model.expects(:do_unlock).with(%w(file1 file2 file3))
       @model.expects(:do_lock).with(%w(file1 file2 file3))
 
-      assert_raise OpenShift::Runtime::Utils::ShellExecutionException do
-        @model.unlock_gear('mock-0.1') { raise OpenShift::Runtime::Utils::ShellExecutionException.new('error') }
+      assert_raise Runtime::Utils::ShellExecutionException do
+        @model.unlock_gear('mock-0.1') { raise Runtime::Utils::ShellExecutionException.new('error') }
       end
     end
 
     def test_frontend_connect_success
-      OpenShift::Runtime::Utils::Environ.stubs(:for_gear).returns({
+      Runtime::Utils::Environ.stubs(:for_gear).returns({
                                                              "OPENSHIFT_MOCK_EXAMPLE_IP1" => "127.0.0.1",
                                                              "OPENSHIFT_MOCK_EXAMPLE_IP2" => "127.0.0.2"
                                                          })
 
-      frontend = mock('OpenShift::Runtime::FrontendHttpServer')
-      OpenShift::Runtime::FrontendHttpServer.stubs(:new).returns(frontend)
+      frontend = mock('Runtime::FrontendHttpServer')
+      Runtime::FrontendHttpServer.stubs(:new).returns(frontend)
 
       frontend.expects(:connect).with("/front1a", "127.0.0.1:8080/back1a", {"websocket" => true, "tohttps" => true})
       frontend.expects(:connect).with("/front1b", "127.0.0.1:8080/back1b", {"noproxy" => true})
@@ -357,13 +357,13 @@ module OpenShift
     end
 
     def test_frontend_connect_default_mapping_web_proxy_conflict
-      OpenShift::Runtime::Utils::Environ.stubs(:for_gear).returns({
+      Runtime::Utils::Environ.stubs(:for_gear).returns({
         "private_ip" => "127.0.0.1",
         "proxy_private_ip" => "127.0.0.2"
       })
 
-      frontend = mock('OpenShift::Runtime::FrontendHttpServer')
-      OpenShift::Runtime::FrontendHttpServer.stubs(:new).returns(frontend)
+      frontend = mock('Runtime::FrontendHttpServer')
+      Runtime::FrontendHttpServer.stubs(:new).returns(frontend)
 
       cartridge = mock()
       cartridge.stubs(:web_proxy?).returns(false)
@@ -401,13 +401,13 @@ module OpenShift
     end
 
     def test_frontend_connect_default_mapping_primary_conflict
-      OpenShift::Runtime::Utils::Environ.stubs(:for_gear).returns({
+      Runtime::Utils::Environ.stubs(:for_gear).returns({
         "private_ip" => "127.0.0.1",
         "embedded_private_ip" => "127.0.0.2"
       })
 
-      frontend = mock('OpenShift::Runtime::FrontendHttpServer')
-      OpenShift::Runtime::FrontendHttpServer.stubs(:new).returns(frontend)
+      frontend = mock('Runtime::FrontendHttpServer')
+      Runtime::FrontendHttpServer.stubs(:new).returns(frontend)
 
       primary_cart = mock()
       primary_cart.stubs(:web_proxy?).returns(false)
@@ -517,7 +517,7 @@ module OpenShift
       env = mock()
 
       @model.expects(:get_cartridge).with(cart_name).returns(cart)
-      OpenShift::Runtime::Utils::Environ.expects(:for_gear).with(@container.container_dir, is_a(String)).returns(env)
+      Runtime::Utils::Environ.expects(:for_gear).with(@container.container_dir, is_a(String)).returns(env)
       @model.expects(:set_connection_hook_env_vars).with(cart_name, pub_cart_name, args)
       @model.expects(:convert_to_shell_arguments).with(args)
       File.expects(:executable?).with(File.join(@container.container_dir,"mock/hooks/set-db-connection-info")).returns(false)
@@ -542,7 +542,7 @@ module OpenShift
       env = mock()
 
       @model.expects(:get_cartridge).with(cart_name).returns(cart)
-      OpenShift::Runtime::Utils::Environ.expects(:for_gear).with(@container.container_dir, is_a(String)).returns(env)
+      Runtime::Utils::Environ.expects(:for_gear).with(@container.container_dir, is_a(String)).returns(env)
       @model.expects(:set_connection_hook_env_vars).with(cart_name, pub_cart_name, args)
       @model.expects(:convert_to_shell_arguments).with(args).returns('1 2 3')
       File.expects(:executable?).with(File.join(@container.container_dir,"mock/hooks/set-db-connection-info")).returns(true)
@@ -566,14 +566,14 @@ module OpenShift
       env = mock()
 
       @model.expects(:get_cartridge).with(cart_name).returns(cart)
-      OpenShift::Runtime::Utils::Environ.expects(:for_gear).with(@container.container_dir, is_a(String)).returns(env)
+      Runtime::Utils::Environ.expects(:for_gear).with(@container.container_dir, is_a(String)).returns(env)
       @model.expects(:set_connection_hook_env_vars).with(cart_name, pub_cart_name, args)
       @model.expects(:convert_to_shell_arguments).with(args).returns('1 2 3')
       File.expects(:executable?).with(File.join(@container.container_dir,"mock/hooks/set-db-connection-info")).returns(true)
 
       @container.expects(:run_in_container_context).with(is_a(String), is_a(Hash)).returns(['stdout', 'stderr', 1])
 
-      assert_raise OpenShift::Runtime::Utils::ShellExecutionException do
+      assert_raise Runtime::Utils::ShellExecutionException do
         @model.connector_execute(cart_name, pub_cart_name, connection_type, connector, args)
       end
     end
@@ -591,7 +591,7 @@ module OpenShift
       env = mock()
 
       @model.expects(:get_cartridge).with(cart_name).returns(cart)
-      OpenShift::Runtime::Utils::Environ.expects(:for_gear).with(@container.container_dir, is_a(String)).returns(env)
+      Runtime::Utils::Environ.expects(:for_gear).with(@container.container_dir, is_a(String)).returns(env)
       @model.expects(:set_connection_hook_env_vars).never()
       @model.expects(:convert_to_shell_arguments).never()
       File.expects(:executable?).with(File.join(@container.container_dir,"mock/hooks/set-db-connection-info")).returns(true)
@@ -615,14 +615,14 @@ module OpenShift
       env = mock()
 
       @model.expects(:get_cartridge).with(cart_name).returns(cart)
-      OpenShift::Runtime::Utils::Environ.expects(:for_gear).with(@container.container_dir, is_a(String)).returns(env)
+      Runtime::Utils::Environ.expects(:for_gear).with(@container.container_dir, is_a(String)).returns(env)
       @model.expects(:set_connection_hook_env_vars).never()
       @model.expects(:convert_to_shell_arguments).never()
       File.expects(:executable?).with(File.join @container.container_dir,"mock/hooks/set-db-connection-info").returns(true)
 
       @container.expects(:run_in_container_context).with(is_a(String), is_a(Hash)).returns(['stdout', 'stderr', 1])
 
-      assert_raise OpenShift::Runtime::Utils::ShellExecutionException do
+      assert_raise Runtime::Utils::ShellExecutionException do
         @model.connector_execute(cart_name, pub_cart_name, connection_type, connector, args)
       end
     end
@@ -640,14 +640,14 @@ module OpenShift
       env = mock()
 
       @model.expects(:get_cartridge).with(cart_name).returns(cart)
-      OpenShift::Runtime::Utils::Environ.expects(:for_gear).with(@container.container_dir, is_a(String)).returns(env)
+      Runtime::Utils::Environ.expects(:for_gear).with(@container.container_dir, is_a(String)).returns(env)
       @model.expects(:set_connection_hook_env_vars).never()
       @model.expects(:convert_to_shell_arguments).never()
       File.expects(:executable?).with("#{@container.container_dir}mock/hooks/set-db-connection-info").returns(false)
 
       @container.expects(:run_in_container_context).never()
 
-      assert_raise OpenShift::Runtime::Utils::ShellExecutionException do
+      assert_raise Runtime::Utils::ShellExecutionException do
         @model.connector_execute(cart_name, pub_cart_name, connection_type, connector, args)
       end
     end
@@ -718,13 +718,13 @@ module OpenShift
       hourglass = mock()
       hourglass.stubs(:remaining).returns(3600)
       
-      model = OpenShift::Runtime::V2CartridgeModel.new(mock(), container, state, hourglass)
+      model = Runtime::V2CartridgeModel.new(mock(), container, state, hourglass)
       model.stubs(:primary_cartridge).returns(cart)
       model.stubs(:stop_lock?).returns(false)
       model.stubs(:stop_lock).returns("stoplock")
 
 
-      OpenShift::Runtime::FrontendHttpServer.stubs(:new).with(container).returns(frontend)
+      Runtime::FrontendHttpServer.stubs(:new).with(container).returns(frontend)
       
       yield cart, container, state, frontend, model
       
@@ -737,7 +737,7 @@ module OpenShift
 
         FileUtils.expects(:rm_f).with("stoplock")
 
-        state.expects(:value=).with(OpenShift::Runtime::State::STARTED)
+        state.expects(:value=).with(Runtime::State::STARTED)
         frontend.expects(:unprivileged_unidle)
         model.expects(:do_control).with('start', cart, user_initiated: true, hot_deploy: false)
 
@@ -752,7 +752,7 @@ module OpenShift
 
         FileUtils.expects(:rm_f).with("stoplock")
 
-        state.expects(:value=).with(OpenShift::Runtime::State::STARTED)
+        state.expects(:value=).with(Runtime::State::STARTED)
         frontend.expects(:unidle)
         model.expects(:do_control).with('start', cart, user_initiated: true, hot_deploy: false)
 
@@ -767,7 +767,7 @@ module OpenShift
 
         FileUtils.expects(:rm_f).with("stoplock").never
 
-        state.expects(:value=).with(OpenShift::Runtime::State::STARTED)
+        state.expects(:value=).with(Runtime::State::STARTED)
         frontend.expects(:unidle)
         frontend.expects(:unprivileged_unidle).never
         model.expects(:do_control).with('start', cart, user_initiated: false, hot_deploy: false)
@@ -806,7 +806,7 @@ module OpenShift
 
         FileUtils.expects(:rm_f).with("stoplock")
 
-        state.expects(:value=).with(OpenShift::Runtime::State::STARTED)
+        state.expects(:value=).with(Runtime::State::STARTED)
         frontend.expects(:unprivileged_unidle)
         model.expects(:do_control).never
 

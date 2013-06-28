@@ -44,7 +44,7 @@ module OpenShift
         #
         def self.mcs_labels
           Enumerator.new do |yielder|
-            config = OpenShift::Config.new
+            config = ::OpenShift::Config.new
 
             set_size  = (config.get("SELINUX_MCS_SET_SIZE")   || @@DEF_MCS_SET_SIZE).to_i
             group_size= (config.get("SELINUX_MCS_GROUP_SIZE") || @@DEF_MCS_GROUP_SIZE).to_i
@@ -70,7 +70,7 @@ module OpenShift
         # @param [Integer] The user name or uid
         # @return [String] The SELinux MCS label
         def self.get_mcs_label(name)
-          config = OpenShift::Config.new
+          config = ::OpenShift::Config.new
 
           group_size= (config.get("SELINUX_MCS_GROUP_SIZE") || @@DEF_MCS_GROUP_SIZE).to_i
           uid_offset= (config.get("SELINUX_MCS_UID_OFFSET") || @@DEF_MCS_UID_OFFSET).to_i

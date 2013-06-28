@@ -114,7 +114,7 @@ module OpenShift
             pid = Kernel.spawn(options[:env], command, opts)
 
             unless pid
-              raise OpenShift::Runtime::Utils::ShellExecutionException.new(
+              raise ::OpenShift::Runtime::Utils::ShellExecutionException.new(
                         "Kernel.spawn failed for command '#{command}'")
             end
 
@@ -126,7 +126,7 @@ module OpenShift
               NodeLogger.logger.debug { "Shell command '#{command}' ran. rc=#{status.exitstatus} out=#{out}" }
 
               if (!options[:expected_exitstatus].nil?) && (status.exitstatus != options[:expected_exitstatus])
-                raise OpenShift::Runtime::Utils::ShellExecutionException.new(
+                raise ::OpenShift::Runtime::Utils::ShellExecutionException.new(
                           "Shell command '#{command}' returned an error. rc=#{status.exitstatus}",
                           status.exitstatus, out, err)
               end
@@ -134,7 +134,7 @@ module OpenShift
               return [out, err, status.exitstatus]
             rescue TimeoutExceeded => e
               ShellExec.kill_process_tree(pid)
-              raise OpenShift::Runtime::Utils::ShellExecutionException.new(
+              raise ::OpenShift::Runtime::Utils::ShellExecutionException.new(
                         "Shell command '#{command}' exceeded timeout of #{e.seconds}", -1, out, err)
             end
           end

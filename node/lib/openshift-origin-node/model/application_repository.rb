@@ -20,6 +20,7 @@ require 'openshift-origin-node/utils/shell_exec'
 require 'openshift-origin-node/utils/selinux'
 require 'openshift-origin-node/utils/environ'
 require 'openshift-origin-common/utils/path_utils'
+require 'openshift-origin-common/utils/git'
 require 'openshift-origin-node/utils/node_logger'
 
 module OpenShift
@@ -104,8 +105,8 @@ module OpenShift
       def populate_from_url(cartridge_name, url)
         return nil if exists?
 
-        repo_spec, commit = OpenShift::Git.safe_clone_spec(url, OpenShift::Git::ALLOWED_NODE_SCHEMES) rescue raise Utils::ShellExecutionException.new("CLIENT_ERROR: The provided source code repository URL is not valid (#{$!.message})", 130)
-        raise Utils::ShellExecutionException.new("CLIENT_ERROR: Source code repository URL protocol must be one of: #{OpenShift::Git::ALLOWED_NODE_SCHEMES.join(', ')}", 130) unless repo_spec
+        repo_spec, commit = ::OpenShift::Git.safe_clone_spec(url, ::OpenShift::Git::ALLOWED_NODE_SCHEMES) rescue raise Utils::ShellExecutionException.new("CLIENT_ERROR: The provided source code repository URL is not valid (#{$!.message})", 130)
+        raise Utils::ShellExecutionException.new("CLIENT_ERROR: Source code repository URL protocol must be one of: #{::OpenShift::Git::ALLOWED_NODE_SCHEMES.join(', ')}", 130) unless repo_spec
 
         git_path = PathUtils.join(@container.container_dir, 'git')
         FileUtils.mkpath(git_path)
@@ -118,7 +119,7 @@ module OpenShift
         @commit           = commit
 
         begin
-          @container.run_in_container_context(ERB.new(GIT_URL_CLONE).result(binding),
+          @container.run_in_root_context(ERB.new(GIT_URL_CLONE).result(binding),
               chdir:               git_path,
               expected_exitstatus: 0)
         rescue Utils::ShellExecutionException => e
@@ -142,9 +143,9 @@ module OpenShift
         FileUtils.mkpath(git_path)
 
         # expose variables for ERB processing
-        @application_name = @user.app_name
+        @application_name = @container.application_name
         @cartridge_name   = cartridge_name
-        @user_homedir     = @user.homedir
+        @user_homedir     = @container.container_dir
 
         begin
           Utils.oo_spawn(ERB.new(GIT_INIT_BARE).result(binding),
@@ -197,11 +198,11 @@ module OpenShift
       ##
       # Install Git repository hooks and set permissions
       def configure
-        @container.set_rw_permission(@path)
+        @container.set_rw_permission_R(@path)
 
         # application developer cannot change git hooks
         hooks = PathUtils.join(@path, 'hooks')
-        FileUtils.chown_R(0, 0, hooks)
+        @container.set_ro_permission_R(hooks)
 
         render_file = lambda { |f, m, t|
           File.open(f, 'w', m) { |f| f.write(ERB.new(t).result(binding)) }
