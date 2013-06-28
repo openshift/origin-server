@@ -7,7 +7,7 @@ require 'stringio'
 require 'set'
 
 $max_threads = 8
-WORK_DIR = '/tmp/rhc/migration'
+WORK_DIR = '/tmp/oo-upgrade'
 ACTIVE_SUFFIX = '_active'
 
 # For each of these sets:  nil implies all and empty implies none
@@ -28,13 +28,13 @@ end
 STDOUT.sync, STDERR.sync = true
 
 #
-#  Migrate the specified gear
+#  upgrade the specified gear
 #
-def migrate_gear(login, app_name, gear_uuid, version, ignore_cartridge_version=false)
-  total_migrate_gear_start_time = (Time.now.to_f * 1000).to_i
-  migrate_cmd = "#{__FILE__} --login '#{login}' --migrate-gear '#{gear_uuid}' --app-name '#{app_name}' --version '#{version}' #{ignore_cartridge_version ? '--ignore-cartridge-version' : ''}"
+def upgrade_gear(login, app_name, gear_uuid, version, ignore_cartridge_version=false)
+  total_upgrade_gear_start_time = (Time.now.to_f * 1000).to_i
+  upgrade_cmd = "#{__FILE__} --login '#{login}' --upgrade-gear '#{gear_uuid}' --app-name '#{app_name}' --version '#{version}' #{ignore_cartridge_version ? '--ignore-cartridge-version' : ''}"
   out = StringIO.new
-  out << "Migrating gear on node with: #{migrate_cmd}\n"
+  out << "Migrating gear on node with: #{upgrade_cmd}\n"
   begin
     user = nil
     begin
@@ -51,20 +51,20 @@ def migrate_gear(login, app_name, gear_uuid, version, ignore_cartridge_version=f
             Timeout::timeout(420) do
               output = ''
               exit_code = 1
-              migrate = MIGRATION_CART_TYPES.nil? 
+              upgrade = MIGRATION_CART_TYPES.nil? 
               cartridges = gear.group_instance.all_component_instances.map { |ci| ci.cartridge_name }.uniq
               MIGRATION_CART_TYPES.each do |cart_name|
                 if cartridges.include?(cart_name)
-                  migrate = true
+                  upgrade = true
                   break
                 end
-              end unless migrate
+              end unless upgrade
 
-              if migrate
-                migrate_on_node_start_time = (Time.now.to_f * 1000).to_i
-                out << "Migrating on node...\n"
+              if upgrade
+                upgrade_on_node_start_time = (Time.now.to_f * 1000).to_i
+                out << "Upgrading on node...\n"
                 OpenShift::MCollectiveApplicationContainerProxy.rpc_exec('openshift', server_identity) do |client|
-                  client.migrate(:uuid => gear_uuid,
+                  client.upgrade(:uuid => gear_uuid,
                                  :namespace => app.domain.namespace,
                                  :version => version,
                                  :ignore_cartridge_version => ignore_cartridge_version.to_s) do |response|
@@ -72,15 +72,15 @@ def migrate_gear(login, app_name, gear_uuid, version, ignore_cartridge_version=f
                     output = response[:body][:data][:output]
                   end
                 end
-                migrate_on_node_time = (Time.now.to_f * 1000).to_i - migrate_on_node_start_time
-                out << "***time_migrate_on_node_measured_from_broker=#{migrate_on_node_time}***\n"
+                upgrade_on_node_time = (Time.now.to_f * 1000).to_i - upgrade_on_node_start_time
+                out << "***time_upgrade_on_node_measured_from_broker=#{upgrade_on_node_time}***\n"
               end
               if (output.length > 0)
-                out << "Migrate on node output:\n #{output}\n"
+                out << "Upgrade on node output:\n #{output}\n"
               end
-              if migrate && exit_code != 0
-                out << "Migrate on node exit code: #{exit_code}\n"
-                raise "Failed migrating gear. Rerun with: #{migrate_cmd}"
+              if upgrade && exit_code != 0
+                out << "Upgrade on node exit code: #{exit_code}\n"
+                raise "Failed upgrading gear. Rerun with: #{upgrade_cmd}"
               else
                 redeploy_httpd_proxy = REDEPLOY_HTTPD_PROXY_CART_TYPES.nil?
 
@@ -122,7 +122,7 @@ def migrate_gear(login, app_name, gear_uuid, version, ignore_cartridge_version=f
               end
             end
           rescue Timeout::Error
-            raise "Command '#{migrate_cmd}' timed out"
+            raise "Command '#{upgrade_cmd}' timed out"
           end
           #gear.quarantined = false
           #gear.save
@@ -138,8 +138,8 @@ def migrate_gear(login, app_name, gear_uuid, version, ignore_cartridge_version=f
   rescue Exception => e
     raise "#{e.message}\n#{e.backtrace}\nOutput:\n#{out.string}"
   end
-  total_migrate_gear_time = (Time.now.to_f * 1000).to_i - total_migrate_gear_start_time
-  out << "***time_total_migrate_gear_measured_from_broker=#{total_migrate_gear_time}***\n"
+  total_upgrade_gear_time = (Time.now.to_f * 1000).to_i - total_upgrade_gear_start_time
+  out << "***time_total_upgrade_gear_measured_from_broker=#{total_upgrade_gear_time}***\n"
   out.string
 end
 
@@ -245,7 +245,7 @@ def add_to(stuffs, more_stuffs)
   end
 end
 
-def migrate(version, continue=false, ignore_cartridge_version=false, target_server_identity=nil, migrate_position=1, num_migrators=1)
+def upgrade(version, continue=false, ignore_cartridge_version=false, target_server_identity=nil, upgrade_position=1, num_upgraders=1)
   start_time = (Time.now.to_f * 1000).to_i
   logins_cnt = 0
   gear_cnt = 0
@@ -333,14 +333,14 @@ def migrate(version, continue=false, ignore_cartridge_version=false, target_serv
 
   puts "\nlogins.length: #{logins_cnt.to_s}"
 
-  position = migrate_position - 1
-  migrator_position_nodes = []
-  if num_migrators > 1
+  position = upgrade_position - 1
+  upgrader_position_nodes = []
+  if num_upgraders > 1
     server_identities = node_to_gears.keys.sort
     server_identities.each_with_index do |server_identity, index|
       if index == position
-        migrator_position_nodes << server_identity
-        position += num_migrators
+        upgrader_position_nodes << server_identity
+        position += num_upgraders
       else
         node_to_gears.delete(server_identity)
       end
@@ -381,9 +381,9 @@ def migrate(version, continue=false, ignore_cartridge_version=false, target_serv
   node_queue = active_node_queue + inactive_node_queue
 
   puts "#####################################################"
-  if !migrator_position_nodes.empty?
-    puts 'Nodes this migrator is handling:'
-    puts migrator_position_nodes.pretty_inspect
+  if !upgrader_position_nodes.empty?
+    puts 'Nodes this upgrader is handling:'
+    puts upgrader_position_nodes.pretty_inspect
   end
   puts "#####################################################"
 
@@ -399,7 +399,7 @@ def migrate(version, continue=false, ignore_cartridge_version=false, target_serv
     gear_cnts[index] = node[:gears_length]
     gear_cnt += node[:gears_length]
     node_threads << Thread.new do
-      node_timings, node_acceptable_errors = migrate_node(server_identity, continue)
+      node_timings, node_acceptable_errors = upgrade_node(server_identity, continue)
       add_to(timings, node_timings)
       add_to(acceptable_errors, node_acceptable_errors)
       # Get the next available node to process
@@ -418,7 +418,7 @@ def migrate(version, continue=false, ignore_cartridge_version=false, target_serv
           end
         end
         if server_identity
-          node_timings, node_acceptable_errors = migrate_node(server_identity, continue)
+          node_timings, node_acceptable_errors = upgrade_node(server_identity, continue)
           add_to(timings, node_timings)
           add_to(acceptable_errors, node_acceptable_errors)
         end
@@ -444,11 +444,11 @@ def migrate(version, continue=false, ignore_cartridge_version=false, target_serv
 
   node_queue.each do |node|
     server_identity = node[:server_identity]
-    f = migrate_file_path(server_identity)
+    f = upgrade_file_path(server_identity)
     leftover_count = `wc -l #{f}`.to_i
     if leftover_count > 0
       puts "!!!!!!!!!!WARNING!!!!!!!!!!!!!WARNING!!!!!!!!!!!!WARNING!!!!!!!!!!"
-      puts "#{leftover_count} leftover gears found in migrate file: #{f}"
+      puts "#{leftover_count} leftover gears found in upgrade file: #{f}"
       puts "You can run with --continue to try again"
       puts "!!!!!!!!!!WARNING!!!!!!!!!!!!!WARNING!!!!!!!!!!!!WARNING!!!!!!!!!!"
       puts ""
@@ -469,7 +469,7 @@ def migrate(version, continue=false, ignore_cartridge_version=false, target_serv
   puts "# of gears: #{gear_cnt}"
   puts "# of failures: #{@failures.length}"
   puts "Gear counts per thread: #{gear_cnts.pretty_inspect}"
-  puts "Nodes migrated: #{migrator_position_nodes.pretty_inspect}" if !migrator_position_nodes.empty?
+  puts "Nodes upgraded: #{upgrader_position_nodes.pretty_inspect}" if !upgrader_position_nodes.empty?
   puts "Additional timings:"
   timings.each do |topic, time_in_millis|
     puts "    #{topic}=#{time_in_millis.to_f/1000}s"
@@ -481,30 +481,30 @@ def migrate(version, continue=false, ignore_cartridge_version=false, target_serv
 end
 
 def write_node_to_file(server_identity, gears, version, ignore_cartridge_version)
-  f = migrate_file_path(server_identity)
+  f = upgrade_file_path(server_identity)
   puts "Writing #{gears.length} gears for node #{server_identity} to file #{f}"
   FileUtils.mkdir_p WORK_DIR
   FileUtils.rm_f f
   FileUtils.touch f
   gears.each_with_index do |gear, index|
-    migrate_on_node_args = "#{gear[:server_identity]},#{gear[:uuid]},#{gear[:name]},#{gear[:app_name]},#{gear[:login]},#{version},#{ignore_cartridge_version.to_s}"
-    append_to_file(f, migrate_on_node_args)
+    upgrade_on_node_args = "#{gear[:server_identity]},#{gear[:uuid]},#{gear[:name]},#{gear[:app_name]},#{gear[:login]},#{version},#{ignore_cartridge_version.to_s}"
+    append_to_file(f, upgrade_on_node_args)
   end
 end
 
 def error_file_path(server_identity)
-  "#{WORK_DIR}/migrate_errors_#{server_identity}"
+  "#{WORK_DIR}/upgrade_errors_#{server_identity}"
 end
 
 def log_file_path(server_identity)
-  "#{WORK_DIR}/migrate_log_#{server_identity}"
+  "#{WORK_DIR}/upgrade_log_#{server_identity}"
 end
 
-def migrate_file_path(server_identity)
-  "#{WORK_DIR}/migrate_#{server_identity}"
+def upgrade_file_path(server_identity)
+  "#{WORK_DIR}/upgrade_#{server_identity}"
 end
 
-def migrate_node(server_identity, continue)
+def upgrade_node(server_identity, continue)
   puts "Migrating gears on node #{server_identity}"
   error_file = error_file_path(server_identity)
   FileUtils.rm_f error_file unless continue
@@ -512,9 +512,9 @@ def migrate_node(server_identity, continue)
   log_file = log_file_path(server_identity)
   FileUtils.rm_f log_file unless continue
   FileUtils.touch log_file
-  f = migrate_file_path(server_identity)
-  migrate_node_cmd = "#{__FILE__} --migrate-file '#{f}'"
-  output, exit_code = execute_script(migrate_node_cmd)
+  f = upgrade_file_path(server_identity)
+  upgrade_node_cmd = "#{__FILE__} --upgrade-file '#{f}'"
+  output, exit_code = execute_script(upgrade_node_cmd)
   puts output
   file = File.open(error_file, "r")
   begin
@@ -544,7 +544,7 @@ def migrate_node(server_identity, continue)
   return timings, acceptable_errors
 end
 
-def migrate_from_file(file)
+def upgrade_from_file(file)
   while true
     line = File.open(file, &:gets)
     if line && !line.empty?
@@ -556,9 +556,9 @@ def migrate_from_file(file)
       login = params[4]
       version = params[5]
       ignore_cartridge_version = params[6] ? params[6] : 'false'
-      migrate_on_node_cmd = "#{__FILE__} --login '#{login}' --migrate-gear '#{gear_uuid}' --app-name '#{app_name}' --version '#{version}' #{ignore_cartridge_version == 'true' ? '--ignore-cartridge-version' : ''}"
+      upgrade_on_node_cmd = "#{__FILE__} --login '#{login}' --upgrade-gear '#{gear_uuid}' --app-name '#{app_name}' --version '#{version}' #{ignore_cartridge_version == 'true' ? '--ignore-cartridge-version' : ''}"
       base_path = server_identity
-      if File.basename(file) == File.basename(migrate_file_path(server_identity) + ACTIVE_SUFFIX)
+      if File.basename(file) == File.basename(upgrade_file_path(server_identity) + ACTIVE_SUFFIX)
         base_path += ACTIVE_SUFFIX
       end
       error_file = error_file_path(base_path)
@@ -567,13 +567,13 @@ def migrate_from_file(file)
       num_tries = 2
       (1..num_tries).each do |i|
         begin
-          output = migrate_gear(login, app_name, gear_uuid, version, ignore_cartridge_version)
+          output = upgrade_gear(login, app_name, gear_uuid, version, ignore_cartridge_version)
           append_to_file(log_file, output)
           break
         rescue Exception => e
           if i == num_tries
-            append_to_file(log_file, "Failed to migrate with cmd: '#{migrate_on_node_cmd}' after #{num_tries} tries with exception: #{e.message}")
-            append_to_file(error_file, migrate_on_node_cmd)
+            append_to_file(log_file, "Failed to upgrade with cmd: '#{upgrade_on_node_cmd}' after #{num_tries} tries with exception: #{e.message}")
+            append_to_file(error_file, upgrade_on_node_cmd)
             break
           else
             user = nil
@@ -648,19 +648,19 @@ def p_usage
 Usage: #{$0}
 
   --login login_name                   User login
-  --migrate-gear gear_uuid             Gear uuid of the single gear to migrate
-  --app-name app_name                  App name of the gear to migrate
-  --migrate-node server_identity       Server identity of the node to migrate
-  --migrate-file file                  File containing the gears to migrate
-  --num-migrators num                  The total number of migrators to be run.  Each migrate-position will be a 
-                                       migrate-position of num-migrators.  All positions must to taken to migrate
-                                       all gears.  Ex: If you are going to run 2 migrators you would need to run:
-                                       ./rhc-admin-migrate --version <version> --position 1 --num-migrators 2
-                                       ./rhc-admin-migrate --version <version> --position 2 --num-migrators 2
-  --migrate-position position          Postion of this migrator (1 based) amongst the num of migrators (--num_migrators)
+  --upgrade-gear gear_uuid             Gear uuid of the single gear to upgrade
+  --app-name app_name                  App name of the gear to upgrade
+  --upgrade-node server_identity       Server identity of the node to upgrade
+  --upgrade-file file                  File containing the gears to upgrade
+  --num-upgraders num                  The total number of upgraders to be run.  Each upgrade-position will be a 
+                                       upgrade-position of num-upgraders.  All positions must to taken to upgrade
+                                       all gears.  Ex: If you are going to run 2 upgraders you would need to run:
+                                       ./rhc-admin-upgrade --version <version> --position 1 --num-upgraders 2
+                                       ./rhc-admin-upgrade --version <version> --position 2 --num-upgraders 2
+  --upgrade-position position          Postion of this upgrader (1 based) amongst the num of upgraders (--num_upgraders)
   --max-threads num                    Indicates the number of processing queues
   --ignore-cartridge-version           Force cartridge upgrade even if cartridge versions match
-  --continue                           Flag indicating to continue a previous migration
+  --continue                           Flag indicating to continue a previous upgrade
 
 USAGE
   exit 255
@@ -669,13 +669,13 @@ end
 begin
   opts = GetoptLong.new(
     ["--login", GetoptLong::REQUIRED_ARGUMENT],
-    ["--migrate-gear", GetoptLong::REQUIRED_ARGUMENT],
+    ["--upgrade-gear", GetoptLong::REQUIRED_ARGUMENT],
     ["--app-name", GetoptLong::REQUIRED_ARGUMENT],
-    ["--migrate-node", GetoptLong::REQUIRED_ARGUMENT],
-    ["--migrate-file", GetoptLong::REQUIRED_ARGUMENT],
+    ["--upgrade-node", GetoptLong::REQUIRED_ARGUMENT],
+    ["--upgrade-file", GetoptLong::REQUIRED_ARGUMENT],
     ["--version", GetoptLong::REQUIRED_ARGUMENT],
-    ["--num-migrators", GetoptLong::REQUIRED_ARGUMENT],
-    ["--migrate-position", GetoptLong::REQUIRED_ARGUMENT],
+    ["--num-upgraders", GetoptLong::REQUIRED_ARGUMENT],
+    ["--upgrade-position", GetoptLong::REQUIRED_ARGUMENT],
     ["--max-threads", GetoptLong::REQUIRED_ARGUMENT],
     ["--ignore-cartridge-version", GetoptLong::NO_ARGUMENT],
     ["--continue", GetoptLong::NO_ARGUMENT],
@@ -712,74 +712,74 @@ if opt['max-threads']
   end
 end
 
-if opt['migrate-file']
-  migrate_from_file(opt['migrate-file'])
-elsif opt['migrate-gear']
+if opt['upgrade-file']
+  upgrade_from_file(opt['upgrade-file'])
+elsif opt['upgrade-gear']
   if opt['login'] && opt['app-name'] && opt['version']
-    puts migrate_gear(opt['login'], opt['app-name'], opt['migrate-gear'], opt['version'], opt['ignore-cartridge-version'])
+    puts upgrade_gear(opt['login'], opt['app-name'], opt['upgrade-gear'], opt['version'], opt['ignore-cartridge-version'])
   else
-    puts "--login, --app-name, and --version is required with --migrate-gear"
+    puts "--login, --app-name, and --version is required with --upgrade-gear"
     exit 255
   end
-elsif opt['migrate-node']
+elsif opt['upgrade-node']
   if opt['version']
-    migrate_file = migrate_file_path(opt['migrate-node'])
+    upgrade_file = upgrade_file_path(opt['upgrade-node'])
     if opt['continue']
-      migrate(opt['version'], true, opt['migrate-node'])
-    elsif File.exists?(migrate_file)
+      upgrade(opt['version'], true, opt['upgrade-node'])
+    elsif File.exists?(upgrade_file)
         puts <<-WARNING
 !!!!!!!!!!!!!!!!!!!! EXISTING MIGRATION DATA FOUND !!!!!!!!!!!!!!!!!!!!
-Data from a previous migration exists at #{migrate_file}.  You must 
-either move/remove (Ex: rm #{migrate_file}) that data or pick up
-where it left off with '#{__FILE__} --migrate-node #{opt['migrate-node']} --version '#{opt['version']}'#{opt['ignore-cartridge-version'] ? ' --ignore-cartridge-version' : ''} --continue'.
+Data from a previous upgrade exists at #{upgrade_file}.  You must 
+either move/remove (Ex: rm #{upgrade_file}) that data or pick up
+where it left off with '#{__FILE__} --upgrade-node #{opt['upgrade-node']} --version '#{opt['version']}'#{opt['ignore-cartridge-version'] ? ' --ignore-cartridge-version' : ''} --continue'.
 WARNING
         exit 1
     else
-      migrate(opt['version'], false, opt['ignore-cartridge-version'], opt['migrate-node'])
+      upgrade(opt['version'], false, opt['ignore-cartridge-version'], opt['upgrade-node'])
     end
   else
-    puts "--version is required with --migrate-node"
+    puts "--version is required with --upgrade-node"
     exit 255
   end
 else
   if opt['version']
-    num_migrators = opt['num-migrators']
-    migrate_position = opt['migrate-position']
-    if num_migrators || migrate_position
-      unless num_migrators
-        puts "--num-migrators is required with --migrate-position"
+    num_upgraders = opt['num-upgraders']
+    upgrade_position = opt['upgrade-position']
+    if num_upgraders || upgrade_position
+      unless num_upgraders
+        puts "--num-upgraders is required with --upgrade-position"
         exit 255
       end
-      unless migrate_position
-        puts "--migrate-position is required with --num-migrators"
+      unless upgrade_position
+        puts "--upgrade-position is required with --num-upgraders"
         exit 255
       end
-      num_migrators = num_migrators.to_i
-      migrate_position = migrate_position.to_i
-      unless migrate_position > 0 && migrate_position <= num_migrators
-        puts "migrate-position must be > 0 and <= num_migrators"
+      num_upgraders = num_upgraders.to_i
+      upgrade_position = upgrade_position.to_i
+      unless upgrade_position > 0 && upgrade_position <= num_upgraders
+        puts "upgrade-position must be > 0 and <= num_upgraders"
         exit 255
       end
-      unless num_migrators > 0
-        puts "num-migrators must be > 0"
+      unless num_upgraders > 0
+        puts "num-upgraders must be > 0"
         exit 255
       end
     else
-      num_migrators = 1
-      migrate_position = 1
+      num_upgraders = 1
+      upgrade_position = 1
     end
     if opt['continue']
-      migrate(opt['version'], true, opt['ignore-cartridge-version'], nil, migrate_position, num_migrators)
-    elsif File.exists?("/tmp/rhc/migration")
+      upgrade(opt['version'], true, opt['ignore-cartridge-version'], nil, upgrade_position, num_upgraders)
+    elsif File.exists?(WORK_DIR)
       puts <<-WARNING
 !!!!!!!!!!!!!!!!!!!! EXISTING MIGRATION DATA FOUND !!!!!!!!!!!!!!!!!!!!
-Data from a previous migration exists at /tmp/rhc/migration.  You must 
-either move/remove (Ex: rm -rf /tmp/rhc/migration) that data or pick up
+Data from a previous migration exists at #{WORK_DIR}.  You must 
+either move/remove (Ex: rm -rf #{WORK_DIR}) that data or pick up
 where it left off with '#{__FILE__} --continue'.
 WARNING
       exit 1
     else
-      migrate(opt['version'], false, opt['ignore-cartridge-version'], nil, migrate_position, num_migrators)
+      upgrade(opt['version'], false, opt['ignore-cartridge-version'], nil, upgrade_position, num_upgraders)
     end
   else
     puts "--version is required"
