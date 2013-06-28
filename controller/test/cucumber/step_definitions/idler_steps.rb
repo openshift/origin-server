@@ -21,7 +21,7 @@ When /^I oo-(idle|restore) the application$/ do |action|
 
   case action
     when "idle"
-      cmd = "/usr/sbin/oo-idler -u #{@gear.uuid}" 
+      cmd = "/usr/sbin/oo-admin-ctl-gears idlegear #{@gear.uuid}"
     when "restore"
       cmd = "/usr/sbin/oo-restorer -u #{@gear.uuid}"
   end
