@@ -222,6 +222,21 @@ Dir(after)    #{@container.uuid}/#{@container.uid} => #{list_home_dir(@container
           @container.run_in_root_context("/usr/sbin/oo-admin-ctl-cgroups stopuser #{@container.uuid} > /dev/null") if rc == 0
         end
 
+        def enable_traffic_control
+          out,err,rc = @container.run_in_root_context("service openshift-tc status > /dev/null 2>&1")
+          if rc == 0
+            out,err,rc = @container.run_in_root_context("service openshift-tc startuser #{@container.uuid} > /dev/null")
+            raise OpenShift::UserCreationException.new("Unable to setup tc for #{@container.uuid}") unless rc == 0
+          end
+        end
+
+        def disable_traffic_control
+          out,err,rc = @container.run_in_root_context("service openshift-tc status > /dev/null 2>&1")
+          if rc == 0
+            @container.run_in_root_context("service openshift-tc deluser #{@container.uuid} > /dev/null")
+          end
+        end
+
         def enable_fs_limits
           cmd = "/bin/sh #{File.join('/usr/libexec/openshift/lib', "setup_pam_fs_limits.sh")} #{@container.uuid} #{@container.quota_blocks ? @container.quota_blocks : ''} #{@container.quota_files ? @container.quota_files : ''}"
           out,err,rc = @container.run_in_root_context(cmd)

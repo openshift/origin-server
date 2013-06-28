@@ -171,6 +171,7 @@ module OpenShift
             end
           end
           @container_plugin.enable_cgroups
+          @container_plugin.enable_traffic_control
 
           initialize_homedir(@base_dir, @container_dir)
           @container_plugin.enable_fs_limits
@@ -208,6 +209,7 @@ module OpenShift
           lock.flock(File::LOCK_EX)
           OpenShift::Runtime::FrontendHttpServer.new(self).destroy
           @container_plugin.delete_all_public_endpoints
+          @container_plugin.disable_traffic_control
           @container_plugin.destroy
           @container_plugin.disable_fs_limits
 
