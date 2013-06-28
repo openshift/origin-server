@@ -491,57 +491,6 @@ module OpenShift
       end
 
       #
-      # Add an ssh key to a gear on the remote node.
-      # See node/bin/oo-authorized-ssh-key-add.
-      #
-      # INPUTS:
-      # * gear: a Gear object
-      # * ssh_key: String - an SSH RSA or DSA public key string
-      # * key_type: String, Enum [rsa|dsa]
-      # * comment: String - identify the key
-      #
-      # RETURNS:
-      # * MCollective result string: STDOUT from a command.
-      #
-      # NOTES:
-      # * uses execute_direct
-      # * calls oo-authorized-ssh-key-add on the node
-      #
-      def add_authorized_ssh_key(gear, ssh_key, key_type=nil, comment=nil)
-        args = build_base_gear_args(gear)
-        args['--with-ssh-key'] = ssh_key
-        args['--with-ssh-key-type'] = key_type if key_type
-        args['--with-ssh-key-comment'] = comment if comment
-        result = execute_direct(@@C_CONTROLLER, 'authorized-ssh-key-add', args)
-        parse_result(result, gear)
-      end
-
-      #
-      # remove an ssh key from a gear on a remote node.
-      # See node/bin/oo-authorized-ssh-key-remove
-      #
-      # INPUTS:
-      # * gear: a Gear object
-      # * ssh_key: String - an SSH RSA or DSA public key string
-      # * comment: String - identify the key
-      #
-      # RETURNS:
-      # * MCollective result string: STDOUT from a command.
-      #
-      # NOTES:
-      # * uses execute_direct
-      # * calls oo-authorized-ssh-key-remove on the node
-      #
-      def remove_authorized_ssh_key(gear, ssh_key, comment=nil)
-        args = build_base_gear_args(gear)
-        args['--with-ssh-key'] = ssh_key
-        args['--with-ssh-comment'] = comment if comment
-        result = execute_direct(@@C_CONTROLLER, 'authorized-ssh-key-remove', args)
-        parse_result(result, gear)
-      end
-
-
-      #
       # Add an environment variable on gear on a remote node.
       # Calls oo-env-var-add on the remote node
       #
