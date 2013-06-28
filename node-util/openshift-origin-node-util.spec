@@ -68,14 +68,10 @@ mv services/openshift-gears.service %{buildroot}/etc/systemd/system/openshift-ge
 %files
 %attr(0750,-,-) %{_sbindir}/oo-accept-node
 %attr(0750,-,-) %{_sbindir}/oo-admin-ctl-gears
-%attr(0750,-,-) %{_sbindir}/oo-app-idle
-%attr(0750,-,-) %{_sbindir}/oo-autoidler
 %attr(0750,-,-) %{_sbindir}/oo-auto-idler
-%attr(0750,-,-) %{_sbindir}/oo-idler
 %attr(0750,-,-) %{_sbindir}/oo-idler-stats
 %attr(0750,-,-) %{_sbindir}/oo-init-quota
 %attr(0750,-,-) %{_sbindir}/oo-last-access
-%attr(0750,-,-) %{_sbindir}/oo-list-stale
 %attr(0750,-,-) %{_sbindir}/oo-list-access
 %attr(0750,-,-) %{_sbindir}/oo-restorecon
 %attr(0750,-,-) %{_sbindir}/oo-restorer
@@ -95,13 +91,9 @@ mv services/openshift-gears.service %{buildroot}/etc/systemd/system/openshift-ge
 %doc README-Idler.md
 %{_mandir}/man8/oo-accept-node.8.gz
 %{_mandir}/man8/oo-admin-ctl-gears.8.gz
-%{_mandir}/man8/oo-app-idle.8.gz
-%{_mandir}/man8/oo-autoidler.8.gz
-%{_mandir}/man8/oo-idler.8.gz
 %{_mandir}/man8/oo-idler-stats.8.gz
 %{_mandir}/man8/oo-init-quota.8.gz
 %{_mandir}/man8/oo-last-access.8.gz
-%{_mandir}/man8/oo-list-stale.8.gz
 %{_mandir}/man8/oo-list-access.8.gz
 %{_mandir}/man8/oo-restorecon.8.gz
 %{_mandir}/man8/oo-restorer.8.gz
