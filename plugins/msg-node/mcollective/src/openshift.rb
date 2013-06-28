@@ -201,10 +201,10 @@ module MCollective
       end
 
       #
-      # Migrate between versions
+      # Upgrade between versions
       #
-      def migrate_action
-        Log.instance.info("migrate_action call / action=#{request.action}, agent=#{request.agent}, data=#{request.data.pretty_inspect}")
+      def upgrade_action
+        Log.instance.info("upgrade_action call / action=#{request.action}, agent=#{request.agent}, data=#{request.data.pretty_inspect}")
         validate :uuid, /^[a-zA-Z0-9]+$/
         validate :version, /^.+$/
         validate :namespace, /^.+$/  
@@ -217,23 +217,23 @@ module MCollective
 
         server_identify = Facter.value(:hostname)
         begin
-          require 'openshift-origin-node/model/migrate'
-          output, exitcode = OpenShiftMigration::migrate(uuid, namespace, version, server_identify, ignore_cartridge_version)
+          require 'openshift-origin-node/model/upgrade'
+          output, exitcode = OpenShift::Runtime::Upgrade::upgrade(uuid, namespace, version, server_identify, ignore_cartridge_version)
         rescue LoadError => e
           exitcode = 127
-          output += "Migrate not supported. #{e.message}\n"
+          output += "upgrade not supported. #{e.message}\n"
         rescue OpenShift::Utils::ShellExecutionException => e
           exitcode = 1
-          output += "Gear failed to migrate: #{e.message}\n#{e.stdout}\n#{e.stderr}"
+          output += "Gear failed to upgrade: #{e.message}\n#{e.stdout}\n#{e.stderr}"
         rescue Exception => e
           exitcode = 1
-          output += "Gear failed to migrate with exception: #{e.message}\n#{e.backtrace}\n"
+          output += "Gear failed to upgrade with exception: #{e.message}\n#{e.backtrace}\n"
         end
-        Log.instance.info("migrate_action (#{exitcode})\n------\n#{output}\n------)")
+        Log.instance.info("upgrade_action (#{exitcode})\n------\n#{output}\n------)")
 
         reply[:output] = output
         reply[:exitcode] = exitcode
-        reply.fail! "migrate_action failed #{exitcode}.  Output #{output}" unless exitcode == 0
+        reply.fail! "upgrade_action failed #{exitcode}.  Output #{output}" unless exitcode == 0
       end
 
       #

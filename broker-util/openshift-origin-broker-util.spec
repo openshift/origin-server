@@ -59,7 +59,7 @@ cp man/*.8 %{buildroot}%{_mandir}/man8/
 %attr(0750,-,-) %{_sbindir}/oo-admin-ctl-usage
 %attr(0750,-,-) %{_sbindir}/oo-admin-ctl-user
 %attr(0750,-,-) %{_sbindir}/oo-admin-move
-%attr(0750,-,-) %{_sbindir}/oo-admin-migrate
+%attr(0750,-,-) %{_sbindir}/oo-admin-upgrade
 %attr(0750,-,-) %{_sbindir}/oo-admin-broker-auth
 %attr(0750,-,-) %{_sbindir}/oo-admin-broker-cache
 %attr(0750,-,-) %{_sbindir}/oo-admin-usage

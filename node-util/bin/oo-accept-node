@@ -758,19 +758,19 @@ def check_app_dirs
         break
       end
 
-      migration_markers_found = !Dir.glob(File.join(gear_home, %w(app-root data .migration*))).empty?
-      premigration_state_found = File.exists?(File.join(gear_home, %w(app-root runtime .premigration_state)))
+      upgrade_markers_found = !Dir.glob(File.join(gear_home, %w(app-root data .upgrade*))).empty?
+      preupgrade_state_found = File.exists?(File.join(gear_home, %w(app-root runtime .preupgrade_state)))
 
       if v1_cartridge_dirs_found
         user_fail(entry, "directory #{entry} contains a V1 cartridge directory")
       end
 
-      if migration_markers_found 
-        user_fail(entry, "directory #{entry} contains migration data")
+      if upgrade_markers_found 
+        user_fail(entry, "directory #{entry} contains upgrade data")
       end
 
-      if premigration_state_found
-        user_fail(entry, "directory #{entry} contains pre-migration state")
+      if preupgrade_state_found
+        user_fail(entry, "directory #{entry} contains pre-upgrade state")
       end
     end
 
