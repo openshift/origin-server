@@ -1,19 +1,13 @@
-#require_relative '../../../mcollective/lib/migrate'
-
-def migrate_gear(name, login, gear_uuid)
+def upgrade_gear(name, login, gear_uuid)
   current_version = '2.0.29' #OpenShiftMigration.current_version
-  output = `oo-admin-migrate --app-name #{@app.name} --login #{@app.login} --migrate-gear #{gear_uuid} --version #{current_version}`
-  $logger.info("Migration output: #{output}")
+  output = `oo-admin-upgrade --app-name #{@app.name} --login #{@app.login} --upgrade-gear #{gear_uuid} --version #{current_version}`
+  $logger.info("Upgrade output: #{output}")
   assert_equal 0, $?.exitstatus
 end
 
-When /^the application is migrated to the latest versions$/ do
-  migrate_gear(@app.name, @app.login, @app.uid)
-end
-
-Then /^the migration metadata will be cleaned up$/ do 
+Then /^the upgrade metadata will be cleaned up$/ do 
   assert Dir.glob(File.join($home_root, @app.uid, 'data', '.migration*')).empty?
-  assert_file_not_exists File.join($home_root, @app.uid, 'app-root', 'runtime', '.premigration_state')
+  assert_file_not_exists File.join($home_root, @app.uid, 'app-root', 'runtime', '.preupgrade_state')
 end
 
 Then /^no unprocessed ERB templates should exist$/ do
@@ -102,11 +96,11 @@ When /^the ([^ ]+) invocation markers are cleared$/ do |cartridge_name|
   }
 end
 
-When /^the application is migrated to the new cartridge versions$/ do
-  migrate_gear(@app.name, @app.login, @app.uid)
+When /^the application is upgraded to the new cartridge versions$/ do
+  upgrade_gear(@app.name, @app.login, @app.uid)
 end
 
-Then /^the invocation markers from an? (compatible|incompatible) migration should exist$/ do |type|
+Then /^the invocation markers from an? (compatible|incompatible) upgrade should exist$/ do |type|
   should_exist_markers = case type
   when 'compatible'
     %w(control_status)
@@ -119,7 +113,7 @@ Then /^the invocation markers from an? (compatible|incompatible) migration shoul
     %w(setup_called control_start)
   when 'incompatible'
     # The control_stop marker is deleted during the mock cartridge setup, 
-    # so we expect it _not_ to exist after an incompatible migration.
+    # so we expect it _not_ to exist after an incompatible upgrade.
     %w(setup_failure control_stop)
   end
 

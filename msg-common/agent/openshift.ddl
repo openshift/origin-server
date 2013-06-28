@@ -268,7 +268,7 @@ action "echo", :description => "echo's a string back" do
             :display_as => "Time"
 end
 
-action "migrate", :description => "migrate a gear" do
+action "upgrade", :description => "upgrade a gear" do
     display :always
 
     input :uuid,
@@ -297,7 +297,7 @@ action "migrate", :description => "migrate a gear" do
 
     input :ignore_cartridge_version,
         :prompt         => "Ignore Cartridge Version",
-        :description    => "Do not skip migration if Cartridge Versions match",
+        :description    => "Do not skip upgrade if Cartridge Versions match",
         :type           => :list,
         :optional       => false,
         :list           => ["true", "false"]
