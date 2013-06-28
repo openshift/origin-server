@@ -59,12 +59,14 @@ class ApplicationsController < BaseController
         end
       else
         features << c
-      end
-    end
-    init_git_url = params[:initial_git_url].presence
+      end  
+    end 
 
-    return render_error(:unprocessable_entity, "Invalid initial git URL",
-                        216, "initial_git_url") if (not init_git_url.blank?) and (not init_git_url =~ /^#{URI::regexp}$/)
+    if init_git_url = params[:initial_git_url].presence
+      repo_spec, _ = (OpenShift::Git.safe_clone_spec(init_git_url) rescue nil)
+      return render_error(:unprocessable_entity, "Invalid initial git URL",
+                          216, "initial_git_url") unless repo_spec
+    end
 
     default_gear_size = params[:gear_profile].presence
     default_gear_size.downcase! if default_gear_size
