@@ -16,7 +16,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.10.6
+Version: 1.10.7
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -282,6 +282,11 @@ echo "/usr/bin/oo-trap-user" >> /etc/shells
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Fri Jun 28 2013 Adam Miller <admiller@redhat.com> 1.10.7-1
+- Merge pull request #2960 from jwhonce/stage
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 977034 - Removing IDENT breaks deconfigure (jhonce@redhat.com)
+
 * Thu Jun 27 2013 Adam Miller <admiller@redhat.com> 1.10.6-1
 - Clean up the assertion (asari.ruby@gmail.com)
 - Test recursive case, too. (asari.ruby@gmail.com)
