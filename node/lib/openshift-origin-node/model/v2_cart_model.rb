@@ -208,7 +208,7 @@ module OpenShift
           end
         end
       rescue Exception => e
-        logger.warn("Cartridge teardown operation failed on gear #{@user.uuid} for some cartridge #{c.directory}: #{e.message}")
+        logger.warn("Cartridge teardown operation failed on gear #{@user.uuid} for some cartridge: #{e.message}")
         buffer << "CLIENT_ERROR: Abandoned cartridge teardowns. There may be extraneous data left on system."
       end
 
