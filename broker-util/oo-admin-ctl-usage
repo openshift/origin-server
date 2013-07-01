@@ -97,18 +97,18 @@ def populate_user_info
 end
 
 def set_user_info(urec)
-  user_id = urec['user_id']
-  unless $user_info_cache[user_id.to_s]
+  user_id = urec['user_id'].to_s
+  unless $user_info_cache[user_id]
     user_obj = $session[:cloud_users].find(_id: user_id).select(login: 1, usage_account_id: 1, plan_history: 1).first
     if user_obj
-      $user_info_cache[user_id.to_s] = { 'login' => user_obj['login'], 'acct_no' => user_obj['usage_account_id'],
+      $user_info_cache[user_id] = { 'login' => user_obj['login'], 'acct_no' => user_obj['usage_account_id'],
                                          'plan_history' => user_obj['plan_history'] }
     end
   end
-  if $user_info_cache[user_id.to_s]
-    urec['login'] = $user_info_cache[user_id.to_s]['login']
-    urec['acct_no'] = $user_info_cache[user_id.to_s]['acct_no']
-    urec['plan_history'] = $user_info_cache[user_id.to_s]['plan_history']
+  if $user_info_cache[user_id]
+    urec['login'] = $user_info_cache[user_id]['login']
+    urec['acct_no'] = $user_info_cache[user_id]['acct_no']
+    urec['plan_history'] = $user_info_cache[user_id]['plan_history']
   else
     $billing_api.print_warning "Can NOT find user from cloud_users collection for user_id, '#{user_id}'"
   end
@@ -119,13 +119,13 @@ $prev_login = nil
 def list_usage
   return if $user_srecs.empty?
   billing_provider_name = $billing_api.get_provider_name
-  if billing_provider_name
-    billing_provider_str = ", #{billing_provider_name}#: #{srec['acct_no']}"
-  else
-    billing_provider_str = ""
-  end
   $user_srecs.each do |srec|
     if $prev_login != srec['login']
+      if billing_provider_name
+        billing_provider_str = ", #{billing_provider_name}#: #{srec['acct_no']}"
+      else
+        billing_provider_str = ""
+      end
       puts "User: #{srec['login']}" + billing_provider_str
       $prev_login = srec['login']
     end
@@ -157,13 +157,14 @@ end
 
 # Check basic validations and try to fix/delete incorrect records
 def sanitize_usage_records(urecs)
-  return if urecs.empty?
+  return urecs if urecs.empty?
   if urecs.length > 2
     $billing_api.print_error "Found more than 2 usage records, We expect only begin/continue and end records."\
                              "Ivestigate these records: #{urecs.inspect}"
     end_rec = nil
     continue_rec = nil
     begin_rec = nil
+    new_urecs = []
     # Pick first available begin and end record if present
     # Pick last available continue record if present
     urecs.each do |urec|
@@ -188,7 +189,7 @@ def sanitize_usage_records(urecs)
     else
       $billing_api.print_error "Unexpected behavior found. Ivestigate these records: #{urecs.inspect}"
       urecs = []
-      return # Ignore processing these records
+      return urecs # Ignore processing these records
     end
     urec_ids = urecs.map {|rec| rec['_id']}
     new_urec_ids = new_urecs.map{|rec| rec['_id']}
@@ -209,9 +210,9 @@ def sanitize_usage_records(urecs)
       $session.with(safe:true)[:usage_records].find(_id: urecs.first['_id']).remove
       $session.with(safe:true)[:usage_records].find(_id: urecs.last['_id']).remove if urecs.length == 2
       urecs = []
-      return
+      return urecs
     end
-    return urecs.length == 1
+    return urecs if urecs.length == 1
 
     if urecs.last['event'] != UsageRecord::EVENTS[:end]
       $billing_api.print_error "Found 2 usage records with no end marker. Ivestigate these records: #{urecs.inspect}"
@@ -233,22 +234,17 @@ def sanitize_usage_records(urecs)
                   "Unexpected behavior found. Ivestigate these records: #{urecs.inspect}"
       urecs.last['time'] = urecs.first['time']
     end
-    if urecs.last['time'] < urecs.first['time']
-      $billing_api.print_error "End time less than begin/continue time. Ivestigate these records: #{urecs.inspect}"
-      urecs.last['time'] = urecs.first['time']
-    end
   end
+  return urecs
 end
 
 # Generate usage summary for the given usage records
 def populate_user_summary_records(urecs)
   return if urecs.empty?
   begin
-    sanitize_usage_records(urecs)
+    urecs = sanitize_usage_records(urecs)
     return if urecs.empty?
     urec = urecs.first
-    return if urec['ended']
-
     end_time = urecs.last['time'] if urecs.length == 2
     end_time = $cur_time unless end_time
 
@@ -308,8 +304,8 @@ def process_usage_records
   # Populate user info cache
   populate_user_info
 
-  # usage_records collection is indexed by 'gear_id' field
-  $session[:usage_records].find.sort({:gear_id => 1, :usage_type => 1, :time => 1}).no_timeout.each do |urec|
+  # usage_records collection is indexed by 'gear_id', 'usage_type' and 'created_at' fields
+  $session[:usage_records].find.sort({:gear_id => 1, :usage_type => 1, :created_at => 1}).no_timeout.each do |urec|
     set_user_info(urec)
     if cur_urec_count < $bulk_recs_threshold
       user_urecs << urec
