@@ -67,7 +67,7 @@ if defined? Capybara
           CAPYBARA_LOG.puts
          end
       end
-      teardown{ save_screenshot("#{ENV['TEST_SCREENSHOT_DIR']}#{"#{self.class}#{__name__}".parameterize}_#{DateTime.now.strftime("%Y%m%d%H%M%S%L")}.png") unless passed? }
+      teardown{ save_screenshot("#{ENV['TEST_SCREENSHOT_DIR']}#{"#{self.class}#{__name__}".parameterize}_#{DateTime.now.strftime("%Y%m%d%H%M%S%L")}.png", :full => true) unless passed? }
     end
   end
 end
