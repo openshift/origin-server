@@ -32,8 +32,6 @@ module OpenShift
     include OpenShift::Utils
     include NodeLogger
 
-    SUPPORTED_PROTOCOLS = %w{git:// http:// https:// file:// ftp:// ftps:// rsync://}
-
     attr_reader :path
 
     ##
@@ -47,6 +45,13 @@ module OpenShift
 
     def exist?
       File.directory?(@path)
+    end
+
+    def empty?
+      return false unless exist?
+      out, err, exitstatus = Utils.oo_spawn(COUNT_GIT_OBJECTS,
+                                            chdir:               @path)
+      out.strip == "0" && exitstatus == 0
     end
 
     alias exists? exist?
@@ -101,10 +106,8 @@ module OpenShift
     def populate_from_url(cartridge_name, url)
       return nil if exists?
 
-      supported = SUPPORTED_PROTOCOLS.any? { |k| url.start_with?(k) }
-      raise Utils::ShellExecutionException.new(
-                "CLIENT_ERROR: Source Code repository URL type must be one of: #{SUPPORTED_PROTOCOLS.join(', ')}", 130
-            ) unless supported
+      repo_spec, commit = OpenShift::Git.safe_clone_spec(url, OpenShift::Git::ALLOWED_NODE_SCHEMES) rescue raise Utils::ShellExecutionException.new("CLIENT_ERROR: The provided source code repository URL is not valid (#{$!.message})", 130)
+      raise Utils::ShellExecutionException.new("CLIENT_ERROR: Source code repository URL protocol must be one of: #{OpenShift::Git::ALLOWED_NODE_SCHEMES.join(', ')}", 130) unless repo_spec
 
       git_path = File.join(@user.homedir, 'git')
       FileUtils.mkpath(git_path)
@@ -113,7 +116,8 @@ module OpenShift
       @application_name = @user.app_name
       @cartridge_name   = cartridge_name
       @user_homedir     = @user.homedir
-      @url              = url
+      @url              = repo_spec
+      @commit           = commit
 
       begin
         Utils.oo_spawn(ERB.new(GIT_URL_CLONE).result(binding),
@@ -128,6 +132,35 @@ module OpenShift
 
       configure
     end
+
+    ##
+    # +populate_empty+ initializes a default, empty Git repository
+    # for the gear
+    #
+    def populate_empty(cartridge_name)
+      return nil if exists?
+
+      git_path = @path
+      FileUtils.mkpath(git_path)
+
+      # expose variables for ERB processing
+      @application_name = @user.app_name
+      @cartridge_name   = cartridge_name
+      @user_homedir     = @user.homedir
+
+      begin
+        Utils.oo_spawn(ERB.new(GIT_INIT_BARE).result(binding),
+                       chdir:               git_path,
+                       expected_exitstatus: 0)
+      rescue Utils::ShellExecutionException => e
+        raise Utils::ShellExecutionException.new(
+                  "CLIENT_ERROR: Source code repository could not be created.  Please contact support.",
+                  131
+              )
+      end
+
+      configure
+    end    
 
     def archive
       return unless exist?
@@ -219,50 +252,66 @@ module OpenShift
     private
     #-- ERB Templates -----------------------------------------------------------
 
-    GIT_INIT = %Q{\
+    COUNT_GIT_OBJECTS = 'find objects -type f 2>/dev/null | wc -l'
+
+    GIT_INIT = %q{
 set -xe;
 git init;
 git config user.email "builder@example.com";
 git config user.name "Template builder";
+git config core.logAllRefUpdates true;
 git add -f .;
-git commit -a -m "Creating template"
+git commit -a -m "Creating template";
 }
 
-    GIT_LOCAL_CLONE = %Q{\
+    GIT_INIT_BARE = %q{
+set -xe;
+git init --bare;
+git config core.logAllRefUpdates true;
+}
+
+    GIT_LOCAL_CLONE = %q{
 set -xe;
 git clone --bare --no-hardlinks template <%= @application_name %>.git;
-GIT_DIR=./<%= @application_name %>.git git repack
+GIT_DIR=./<%= @application_name %>.git git config core.logAllRefUpdates true;
+GIT_DIR=./<%= @application_name %>.git git repack;
 }
 
-    GIT_URL_CLONE = %Q{\
+    GIT_URL_CLONE = %q{
 set -xe;
 git clone --bare --no-hardlinks <%= @url %> <%= @application_name %>.git;
-GIT_DIR=./<%= @application_name %>.git git repack
+GIT_DIR=./<%= @application_name %>.git git config core.logAllRefUpdates true;
+<% if @commit && !@commit.empty? %>
+GIT_DIR=./<%= @application_name %>.git git reset --soft '<%= @commit %>';
+<% end %>
+GIT_DIR=./<%= @application_name %>.git git repack;
 }
 
-    GIT_ARCHIVE = %Q{\
+    GIT_ARCHIVE = %Q{
 set -xe;
 shopt -s dotglob;
-rm -rf <%= @target_dir %>/*;
+if [ "$(#{COUNT_GIT_OBJECTS})" -eq "0" ]; then
+  exit 0;
+fi
 git archive --format=tar HEAD | (cd <%= @target_dir %> && tar --warning=no-timestamp -xf -);
 }
 
-    GIT_DESCRIPTION = %Q{
+    GIT_DESCRIPTION = %q{
 <%= @cartridge_name %> application <%= @application_name %>
 }
 
-    GIT_CONFIG = %Q{\
+    GIT_CONFIG = %q{
 [user]
   name = OpenShift System User
 [gc]
   auto = 100
 }
 
-    PRE_RECEIVE = %Q{\
+    PRE_RECEIVE = %q{
 gear prereceive
 }
 
-    POST_RECEIVE = %Q{\
+    POST_RECEIVE = %q{
 gear postreceive
 }
   end
