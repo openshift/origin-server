@@ -40,7 +40,7 @@ class OptionalParam_V1 < BaseObj
     if (self.name != obj.name) ||
        (self.type != obj.type) ||
        ((self.valid_options.length > 0) && (self.valid_options.size > obj.valid_options.size)) ||
-       (self.default_value != obj.default_value)
+       (self.default_value && (self.default_value != obj.default_value))
       raise_ex("Link Optional Param '#{self.name}' inconsistent")
     end
     self.valid_options.each do |opt|
@@ -239,7 +239,7 @@ class RestDomain_V1 < BaseObj_V1
         [Param_V1.new("name", "string")],
         [OptionalParam_V1.new("cartridge", "string"),
          OptionalParam_V1.new("scale", "boolean", [true, false], false),
-         OptionalParam_V1.new("gear_profile", "string", ["small"], "small"),
+         OptionalParam_V1.new("gear_profile", "string"),
          OptionalParam_V1.new("initial_git_url", "string", ["*", "empty"]),
         ]),
       "UPDATE" => Link_V1.new("PUT", "domains/#{id}",

@@ -7,7 +7,7 @@ module OpenShift
     end
     
     def self.valid_gear_sizes_impl(user)    
-      return ["small"]
+      return Rails.configuration.openshift[:gear_sizes]
     end
 
     def self.provider=(provider_class)

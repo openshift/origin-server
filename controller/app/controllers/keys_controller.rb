@@ -62,7 +62,7 @@ class KeysController < BaseController
       ssh_key = RestKey.new(key, get_url, nolinks)
       render_success(:created, "key", ssh_key, "Created SSH key #{name}", result, nil, 'IP' => request.remote_ip)
     rescue OpenShift::LockUnavailableException => e
-      return render_error(:service_unavailable, e.message, e.code)
+      return render_error(:service_unavailable, "User is currently busy performing another operation. Please try again in a minute.", e.code)
     rescue Exception => e
       return render_exception(e)
     end
@@ -93,15 +93,9 @@ class KeysController < BaseController
       ssh_key = RestKey.new(key, get_url, nolinks)
       render_success(:ok, "key", ssh_key, "Updates SSH key #{id} for user #{@cloud_user.login}", result, nil, 'IP' => request.remote_ip)
     rescue OpenShift::LockUnavailableException => e
-      return render_error(:service_unavailable, e.message, e.code)
+      return render_error(:service_unavailable, "User is currently busy performing another operation. Please try again in a minute.", e.code)
     rescue Exception => e
-      log_action(@log_tag, false, "Failed to update SSH key #{id}: #{e.message}")
-      Rails.logger.error e
-      Rails.logger.error e.backtrace
-      @reply = new_rest_reply(:internal_server_error)
-      error_code = e.respond_to?('code') ? e.code : 1
-      @reply.messages.push(Message.new(:error, "Failed to update SSH key #{id} for user #{@cloud_user.login} due to:#{e.message}", error_code) )
-      respond_with @reply, :status => @reply.status
+      return render_exception(e)
     end
   end
 
@@ -119,7 +113,7 @@ class KeysController < BaseController
       status = requested_api_version <= 1.4 ? :no_content : :ok
       render_success(status, nil, nil, "Deleted SSH key #{id}", result)
     rescue OpenShift::LockUnavailableException => e
-      return render_error(:service_unavailable, e.message, e.code)
+      return render_error(:service_unavailable, "User is currently busy performing another operation. Please try again in a minute.", e.code)
     rescue Exception => e
       return render_exception(e)
     end
