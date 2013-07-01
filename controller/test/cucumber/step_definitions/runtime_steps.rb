@@ -611,6 +611,31 @@ def app_env_var_will_not_exist(var_name, prefix = true)
   assert_file_not_exists var_file_path
 end
 
+def get_app_from_hash_with_given_namespace(namespace_key)
+    if @unique_namespace_apps_hash[namespace_key].nil?
+      raise "Error: The namespace key \'#{namespace_key}\' does not exist in the @unique_namespace_apps_hash"
+    end
+    app = @unique_namespace_apps_hash[namespace_key]
+    return app
+end
+
+def get_app_from_hash_of_all_test_apps(app_name_key)
+    if @test_apps_hash[app_name_key].nil?
+      raise "Error: The app name key \'#{app_name_key}\' does not exist in the @test_apps_hash"
+    end
+    app = @test_apps_hash[app_name_key]
+    return app
+end
+
+
+def check_domain_env_var(app, actual_var_name, expected_var_name = nil, negate = false, prefix = false)
+  if prefix
+    var_name = "OPENSHIFT_#{actual_var_name}"
+  end
+  var_file_path = File.join($home_root, app.uid, '.env', actual_var_name)
+  check_var_name(var_file_path, expected_var_name, negate)
+
+end
 
 def cart_env_var_will_exist(cart_name, var_name, negate = false)
   cart_env_var_common cart_name, var_name, nil, negate
@@ -626,7 +651,11 @@ def cart_env_var_common(cart_name, var_name, expected = nil, negate = false)
   cartridge = @gear.container.cartridge_model.get_cartridge(cart_name)
 
   var_file_path = File.join($home_root, @gear.uuid, cartridge.directory, 'env', var_name)
+  check_var_name(var_file_path, expected, negate)
 
+end
+
+def check_var_name(var_file_path, expected = nil, negate = false)
   if negate
     assert_file_not_exists var_file_path
   else
@@ -637,6 +666,7 @@ def cart_env_var_common(cart_name, var_name, expected = nil, negate = false)
       assert_match /#{expected}/, file_content
     end
   end
+
 end
 
 # Used to control the runtime state of the current application.
@@ -696,6 +726,72 @@ Then /^the platform-created default environment variables will exist$/ do
   app_env_var_will_exist('HOMEDIR')
   app_env_var_will_exist('HISTFILE', false)
 end
+
+
+Then /^the domain environment variable ([^\"]*) with value '([^\"]*)' is added in the namespace "([^\"]*)"$/ do | env_var_name, env_var_value, namespace_key|
+    app = get_app_from_hash_with_given_namespace(namespace_key)
+    domain = app.namespace
+    app_login = app.login
+    command = "oo-admin-ctl-domain -l \"#{app_login}\" -n #{domain} -c env_add -e #{env_var_name} -v #{env_var_value}"
+    $logger.info("Executing the command: #{command}")
+    output_buffer = []
+    exit_code = run(command, output_buffer)
+    raise "Error: Failed to add domain env var #{env_var_name}. Exit code: #{exit_code} and Output Message: #{output_buffer}" unless output_buffer[0] == ""
+end
+
+Then /^the domain environment variable ([^\"]*) is deleted in the namespace "([^\"]*)"$/ do | env_var_name, namespace_key|
+    app = get_app_from_hash_with_given_namespace(namespace_key) 
+    domain = app.namespace
+    app_login = app.login
+    command = "oo-admin-ctl-domain -l \"#{app_login}\" -n #{domain} -c env_del -e #{env_var_name}"
+    $logger.info("Executing the command: #{command}")
+    output_buffer = []
+    exit_code = run(command, output_buffer)
+    raise "Error: Failed to add domain env var #{env_var_name}. Exit code: #{exit_code} and Output Message: #{output_buffer}" unless output_buffer[0] == ""
+end 
+
+
+Then /^the domain environment variable ([^\"]*) will( not)? exist for the application "([^\"]*)"$/ do |var_name, negate, app_name_key|
+    app = get_app_from_hash_of_all_test_apps(app_name_key)
+    check_domain_env_var app, var_name, nil, negate
+end
+
+
+Then /^the domain environment variable ([^\"]*) will equal '([^\"]*)' for the application "([^\"]*)"$/ do |actual_var_name, expected_var_name, app_name_key|
+    app = get_app_from_hash_of_all_test_apps(app_name_key)
+    check_domain_env_var app, actual_var_name, expected_var_name, false
+end
+
+Then /^the domain environment variable ([^\"]*) will( not)? exist for all the applications in the namespace "([^\"]*)"$/ do |var_name, negate, namespace_key|
+   app_with_namespace_key = get_app_from_hash_with_given_namespace(namespace_key) 
+   target_namespace = app_with_namespace_key.namespace  
+
+   if !(@test_apps_hash.nil?) 
+      @test_apps_hash.each do |app_name_key, app|
+         if app.namespace == target_namespace
+            check_domain_env_var app, var_name, nil, negate
+	 end
+       end
+   else
+      raise "Error: Cannot check for domain env var #{var_name} because the hash of TestApps is empty"
+   end
+
+end
+
+Then /^the domain environment variable ([^\"]*) will equal '([^\"]*)' for all the applications in the namespace "([^\"]*)"$/ do |actual_var_name, expected_var_name, namespace_key|
+   app_with_namespace_key = get_app_from_hash_with_given_namespace(namespace_key)
+   target_namespace = app_with_namespace_key.namespace
+    if !(@test_apps_hash.nil?)
+       @test_apps_hash.each do |app_name_key, app|
+          if app.namespace == target_namespace
+            check_domain_env_var app, actual_var_name, expected_var_name, false
+          end
+       end
+   else
+      raise "Error: Cannot check for env var #{actual_var_name} because the list of TestApps is empty"
+   end
+end
+
 
 Then /^the ([^ ]+) cartridge private endpoints will be (exposed|concealed)$/ do |cart_name, action|
   cartridge = @gear.container.cartridge_model.get_cartridge(cart_name)
