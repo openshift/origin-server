@@ -2,12 +2,16 @@
 
 The `nodejs` cartridge provides [Node.js](http://nodejs.org/) on OpenShift.
 
+The cartridge provides a short list of Node.js modules by default.
+The list is available in `$OPENSHIFT_NODEJS_DIR/versions/0.6/configuration/npm_global_module_list`.
+You can also see the file `versions/0.6/configuration/npm_global_module_list`
+under this directory.
+
 ## Template Repository Layout
 
     node_modules/            Any Node modules packaged with the app [1]
     deplist.txt              Deprecated.
     package.json             npm package descriptor.
-    npm_global_module_list   List of globally installed node modules (on OpenShift)
     .openshift/              Location for OpenShift specific files
       action_hooks/          See the Action Hooks documentation [2]
       markers/               See the Markers section [3]
