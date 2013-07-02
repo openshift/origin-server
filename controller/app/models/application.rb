@@ -849,11 +849,6 @@ class Application
   end
 
   def component_status(component_instance)
-    #if cartridge_name.nil?
-    #  component_instance = self.component_instances.find(component_name: component_name)
-    #else
-    #  component_instance = self.component_instances.find(component_name: component_name, cartridge_name: cartridge_name)
-    #end
     result_io = ResultIO.new
     status_messages = []
     GroupInstance.run_on_gears(component_instance.group_instance.gears, result_io, false) do |gear, r|

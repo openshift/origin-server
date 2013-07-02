@@ -9,7 +9,7 @@ class DistrictTest < ActiveSupport::TestCase
     container = OpenShift::ApplicationContainerProxy.instance("node_dns")
     OpenShift::ApplicationContainerProxy.stubs(:instance).returns(container)
     container.stubs(:get_capacity).returns(0)
-    container.stubs(:get_node_profile).returns("small")
+    container.stubs(:get_node_profile).returns(Rails.configuration.openshift[:default_gear_size])
     container.stubs(:set_district)
   end
 
@@ -231,7 +231,7 @@ class DistrictTest < ActiveSupport::TestCase
     district.max_uid = district.available_uids.max
     district.available_capacity = district.available_uids.length
     district.max_capacity = district.available_uids.length
-    district.gear_size = "small"
+    district.gear_size = Rails.configuration.openshift[:default_gear_size]
     district.uuid = uuid
     district.active_server_identities_size = 0
     district

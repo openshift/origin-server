@@ -24,7 +24,7 @@ class EmbCartController < BaseController
 
     begin
       component_instance = @application.component_instances.find_by(cartridge_name: id)
-      cartridge = get_rest_cartridge(@application, component_instance, @application.group_instances_with_scale, @application.group_overrides, status_messages)
+      cartridge = get_embedded_rest_cartridge(@application, component_instance, @application.group_instances_with_scale, @application.group_overrides, status_messages)
       return render_success(:ok, "cartridge", cartridge, "Showing cartridge #{id} for application #{@application.name} under domain #{@domain.namespace}")
     rescue Mongoid::Errors::DocumentNotFound
       return render_error(:not_found, "Cartridge '#{id}' not found for application '#{@application.name}'", 129)
@@ -134,7 +134,7 @@ class EmbCartController < BaseController
       result = @application.add_features([name], group_overrides)
 
       component_instance = @application.component_instances.find_by(cartridge_name: cart.name, component_name: comp.name)
-      cartridge = get_rest_cartridge(@application, component_instance, @application.group_instances_with_scale, @application.group_overrides)
+      cartridge = get_embedded_rest_cartridge(@application, component_instance, @application.group_instances_with_scale, @application.group_overrides)
 
       return render_success(:created, "cartridge", cartridge, "Added #{name} to application #{@application.name}", result)
     rescue OpenShift::GearLimitReachedException => e
@@ -251,7 +251,7 @@ class EmbCartController < BaseController
       result = @application.update_component_limits(component_instance, scales_from, scales_to, additional_storage)
 
       component_instance = @application.component_instances.find_by(cartridge_name: id)
-      cartridge = get_rest_cartridge(@application, component_instance, @application.group_instances_with_scale, @application.group_overrides)
+      cartridge = get_embedded_rest_cartridge(@application, component_instance, @application.group_instances_with_scale, @application.group_overrides)
       return render_success(:ok, "cartridge", cartridge, "Showing cartridge #{id} for application #{@application.name} under domain #{@domain.namespace}", result)
     rescue OpenShift::LockUnavailableException => e
       return render_error(:service_unavailable, "Application is currently busy performing another operation. Please try again in a minute.", e.code)

@@ -2,6 +2,7 @@
 # Cartridge list API
 # @api REST
 class CartridgesController < BaseController
+  include RestModelHelper
   skip_before_filter :authenticate_user!
 
   ##
@@ -32,38 +33,19 @@ class CartridgesController < BaseController
     if search and search == "embedded" or search == "standalone"
       search = "web_framework" if search == "standalone"
       cartridges = CartridgeCache.cartridges.keep_if{ |c| c.categories.include?(search) }
-      rest_cartridges = cartridges.map do |c|
-        if requested_api_version == 1.0
-          RestCartridge10.new(c)
-        else
-          RestCartridge.new(c)
-        end
-      end
+      rest_cartridges = cartridges.map { |c| get_rest_cartridge(c) }
       return render_success(:ok, "cartridges", rest_cartridges, "List #{search.nil? ? 'all' : search} cartridges")
     end
     # search by vendor, provides and version
     if search
       cartridges = CartridgeCache.find_all_cartridges(search)
-      rest_cartridges = [] 
-      cartridges.each do |c|
-        if requested_api_version == 1.0
-          rest_cartridges << RestCartridge10.new(c)
-        else
-          rest_cartridges << RestCartridge.new(c)
-        end
-      end if cartridges
+      rest_cartridges = cartridges.map { |c| get_rest_cartridge(c) }
       Rails.logger.error "cartridges #{rest_cartridges}"
       return render_success(:ok, "cartridges", rest_cartridges, "List #{search.nil? ? 'all' : search} cartridges")
     end
     # return all cartridges
     cartridges = CartridgeCache.cartridges
-    rest_cartridges = cartridges.map do |c|
-      if requested_api_version == 1.0
-        RestCartridge10.new(c)
-      else
-        RestCartridge.new(c)
-      end
-    end
+    rest_cartridges = cartridges.map { |c| get_rest_cartridge(c) }
     render_success(:ok, "cartridges", rest_cartridges, "List #{search.nil? ? 'all' : search} cartridges")
   end
   
