@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.11.1
+Version: 1.11.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -84,6 +84,93 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Tue Jul 02 2013 Adam Miller <admiller@redhat.com> 1.11.2-1
+- Moving scaled deploy into the platform (dmcphers@redhat.com)
+- Handling cleanup of failed pending op using rollbacks (abhgupta@redhat.com)
+- Merge pull request #2925 from BanzaiMan/dev/hasari/c157
+  (dmcphers+openshiftbot@redhat.com)
+- Add gear-level upgrade extensions (pmorie@gmail.com)
+- Merge pull request #2945 from pravisankar/dev/ravi/card7
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #2783 from genesarm/PULL_1844
+  (dmcphers+openshiftbot@redhat.com)
+- Remove Online specific references: -Remove hard-coded cart name references.
+  -Remove login validations from CloudUser model, login validation must be done
+  by authentication plugin. -Remove 'medium' gear size references -All 'small'
+  gear size references must be from configuration files. -Remove stale
+  application_observer.rb and its references -Remove stale 'abstract' cart
+  references -Remove duplicate code from rest controllers -Move all
+  get_rest_{user,domain,app,cart} methods in RestModelHelper module. -Cleanup
+  unnecessary TODO/FIXME comments in broker. (rpenta@redhat.com)
+- Updated platform-oo-admin.feature testing adding and removing domain wide env
+  variables (gsarmien@redhat.com)
+- PODO-61 Added tests for adding and removing domain wide environment variables
+  (gsarmien@redhat.com)
+- Added test for adding domain env variable (gsarmien@redhat.com)
+- oo-admin-ctl-usage fixes: Create index on 'gear_id'+'usage_type'+'created_at'
+  fields for usage_records mongo collection. (rpenta@redhat.com)
+- Card online_runtime_157 (asari.ruby@gmail.com)
+- Merge pull request #2927 from smarterclayton/bug_970257_support_git_at_urls
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #2967 from pmorie/dev/os_migrations
+  (dmcphers+openshiftbot@redhat.com)
+- Rename migrate to upgrade in code (pmorie@gmail.com)
+- Fix alias validation regex (kraman@gmail.com)
+- Remove unused scripts. (mrunalp@gmail.com)
+- Bug 977493 - Avoid leaking the lock file descriptor to child processes.
+  (rmillner@redhat.com)
+- Merge pull request #2827 from genesarm/PULL_2005
+  (dmcphers+openshiftbot@redhat.com)
+- Move core migration into origin-server (pmorie@gmail.com)
+- Merge pull request #2951 from BanzaiMan/mocha_deprecation_warning
+  (dmcphers@redhat.com)
+- Merge pull request #2952 from pmorie/fix-tests (dmcphers@redhat.com)
+- Avoid harmless but annoying deprecation warning (asari.ruby@gmail.com)
+- Fix mysql scaling tests (pmorie@gmail.com)
+- Merge pull request #2865 from BanzaiMan/dev/hasari/bz974632
+  (dmcphers+openshiftbot@redhat.com)
+- Tests pass fully (add initial_git_url for earlier api versions).  Control
+  what values of URI get persisted to DB (passwords and userinfo from clone
+  specs should not be) (ccoleman@redhat.com)
+- Merge remote-tracking branch 'origin/master' into
+  bug_970257_support_git_at_urls (ccoleman@redhat.com)
+- Merge pull request #2938 from rajatchopra/master
+  (dmcphers+openshiftbot@redhat.com)
+- fix bz977519 - for cases where v2 parsing succeeds but broker manifest
+  parsing fails (rchopra@redhat.com)
+- PULL_2005 Changed GEAR_SUPL_GRPS to GEAR_SUPPLEMENTARY_GROUPS in node and
+  tests (gsarmien@redhat.com)
+- PULL_2005 fixed code review bugs for adding supplementary groups to new gears
+  (gsarmien@redhat.com)
+- PULL_2005 added tests for adding supplementary groups when creating new gears
+  in a node (gsarmien@redhat.com)
+- Remove V1 code and V2-specific stepdefs (pmorie@gmail.com)
+- Merge pull request #2757 from tbielawa/acceptable_values
+  (dmcphers+openshiftbot@redhat.com)
+- Merge remote-tracking branch 'origin/master' into
+  bug_970257_support_git_at_urls (ccoleman@redhat.com)
+- Allow clients to pass an initial_git_url of "empty", which creates a bare
+  repo but does not add a commit.  When 'empty' is passed, the node will skip
+  starting the gear and also skip the initial build.  This allows clients that
+  want to send a local Git repository (one that isn't visible to OpenShift.com,
+  for example) to avoid having to push/merge/delete the initial commit, and
+  instead submit their own clean repo.  In this case, the user will get a
+  result indicating that their repository is empty. (ccoleman@redhat.com)
+- Merge pull request #2930 from abhgupta/abhgupta-dev
+  (dmcphers+openshiftbot@redhat.com)
+- <App creation error message> Clarify wording in error message
+  (tbielawa@redhat.com)
+- Reverting fix for bug 973718  - instead of not returning the broken apps, we
+  are relying on the CLI/console resilience to handle these broken apps for now
+  (abhgupta@redhat.com)
+- Bug 970257 - Allow git@ urls (ccoleman@redhat.com)
+- removing v1 logic (dmcphers@redhat.com)
+- Merge pull request #2923 from lnader/master
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 977037 (lnader@redhat.com)
+- Resurrect file permissions tests that existed for v1 PHP cartridge
+  (asari.ruby@gmail.com)
+
 * Tue Jun 25 2013 Adam Miller <admiller@redhat.com> 1.11.1-1
 - bump_minor_versions for sprint 30 (admiller@redhat.com)
 
