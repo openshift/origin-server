@@ -1,6 +1,8 @@
 #!/bin/bash -e
 
 source $OPENSHIFT_CARTRIDGE_SDK_BASH
+source $OPENSHIFT_PYTHON_DIR/lib/python_context
+
 HTTPD_CFG_FILE=$OPENSHIFT_PYTHON_DIR/etc/conf/httpd_nolog.conf
 HTTPD_PID_FILE=$OPENSHIFT_PYTHON_DIR/run/httpd.pid
 
@@ -11,7 +13,7 @@ function start() {
     echo "Starting Python cartridge"
     update_httpd_passenv $HTTPD_CFG_FILE
     ensure_valid_httpd_process "$HTTPD_PID_FILE" "$HTTPD_CFG_FILE"
-    /usr/sbin/httpd -C "Include $OPENSHIFT_PYTHON_DIR/etc/conf.d/*.conf" -f $HTTPD_CFG_FILE -k start
+    python_context /usr/sbin/httpd -C "Include $OPENSHIFT_PYTHON_DIR/etc/conf.d/*.conf" -f $HTTPD_CFG_FILE -k start
 }
 
 function stop() {
@@ -20,14 +22,14 @@ function stop() {
     if [ -f "$HTTPD_PID_FILE" ]; then
         httpd_pid=`cat "$HTTPD_PID_FILE" 2> /dev/null`
     fi
-    /usr/sbin/httpd -C "Include $OPENSHIFT_PYTHON_DIR/etc/conf.d/*.conf" -f $HTTPD_CFG_FILE -k stop
+    python_context /usr/sbin/httpd -C "Include $OPENSHIFT_PYTHON_DIR/etc/conf.d/*.conf" -f $HTTPD_CFG_FILE -k stop
     wait_for_stop $httpd_pid
 }
 
 function restart() {
    echo "Restarting Python cartridge"
    update_httpd_passenv $HTTPD_CFG_FILE
-    /usr/sbin/httpd -C "Include $OPENSHIFT_PYTHON_DIR/etc/conf.d/*.conf" -f $HTTPD_CFG_FILE -k restart
+   python_context /usr/sbin/httpd -C "Include $OPENSHIFT_PYTHON_DIR/etc/conf.d/*.conf" -f $HTTPD_CFG_FILE -k restart
 }
 
 function status() {

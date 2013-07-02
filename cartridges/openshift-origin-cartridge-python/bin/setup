@@ -1,9 +1,13 @@
 #!/bin/bash -eu
 
+source $OPENSHIFT_PYTHON_DIR/lib/python_context
+
 case "$1" in
     -v|--version)
       version="$2"
 esac
+
 mkdir -p $OPENSHIFT_PYTHON_DIR/etc
+
 # Call the version specific setup script
-exec $OPENSHIFT_PYTHON_DIR/versions/$version/bin/setup $version
+exec $OPENSHIFT_PYTHON_DIR/versions/$(python_context_dir $version)/bin/setup $version
