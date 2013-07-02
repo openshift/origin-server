@@ -10,7 +10,7 @@
 
 Summary:       M-Collective agent file for openshift-origin-msg-node-mcollective
 Name:          openshift-origin-msg-node-mcollective
-Version: 1.11.1
+Version: 1.11.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -51,6 +51,12 @@ cp -p facts/update_yaml.rb %{buildroot}/usr/libexec/mcollective/
 %attr(0700,-,-) %config(noreplace) /etc/cron.minutely/openshift-facts
 
 %changelog
+* Tue Jul 02 2013 Adam Miller <admiller@redhat.com> 1.11.2-1
+- Moving scaled deploy into the platform (dmcphers@redhat.com)
+- Handling cleanup of failed pending op using rollbacks (abhgupta@redhat.com)
+- Rename migrate to upgrade in code (pmorie@gmail.com)
+- Move core migration into origin-server (pmorie@gmail.com)
+
 * Tue Jun 25 2013 Adam Miller <admiller@redhat.com> 1.11.1-1
 - bump_minor_versions for sprint 30 (admiller@redhat.com)
 
