@@ -15,6 +15,7 @@
 #++
 
 require 'openshift-origin-common/utils/path_utils'
+require 'rubygems/version'
 require 'uri'
 require 'safe_yaml'
 
@@ -248,6 +249,16 @@ module OpenShift
           check_reserved_cartridge_name
         end
 
+        raise InvalidElementError.new("Version number #{@version} is invalid", 'Version') unless validate_version_number(@version)
+        versions.each do |v|
+          raise InvalidElementError.new("Version number #{v} is invalid", 'Versions') unless validate_version_number(v)
+        end
+
+        raise InvalidElementError.new("Cartridge-Version number #{@cartridge_version} is invalid", 'Version') unless validate_version_number(@cartridge_version)
+        compatible_versions.each do |v|
+          raise InvalidElementError.new("Compatible-Version number #{v} is invalid", 'Compatible-Versions') unless validate_version_number(v)
+        end
+
         if @manifest.has_key?('Source-Url')
           raise InvalidElementError.new(nil, 'Source-Url') unless @manifest['Source-Url'] =~ URI::ABS_URI
           @source_url = @manifest['Source-Url']
@@ -349,6 +360,18 @@ module OpenShift
           raise InvalidElementError.new("'#{name}' is reserved.", 'Name')
         end
       end
+
+      def validate_version_number(version)
+        version =~ /^\A(\d+\.*)+\Z/
+      end
+
+      # Sort an array of "string" version numbers
+      def self.sort_versions(array)
+        copy = Marshal.load(Marshal.dump(array))
+        copy.delete_if {|v| v == '_'}
+        copy.collect {|v| Gem::Version.new(v)}.sort
+      end
+
     end
   end
 end

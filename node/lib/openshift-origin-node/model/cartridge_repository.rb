@@ -89,7 +89,7 @@ module OpenShift
       attr_reader :path
 
       def initialize # :nodoc:
-        @path      = CARTRIDGE_REPO_DIR
+        @path = CARTRIDGE_REPO_DIR
 
         FileUtils.mkpath(@path) unless File.exist? @path
         clear
@@ -150,7 +150,7 @@ module OpenShift
       #   CartridgeRepository.instance['php', '3.5', '0.1']         #=> Cartridge
       #   CartridgeRepository.instance['php', '3.5']                #=> Cartridge
       #   CartridgeRepository.instance['php']                       #=> Cartridge
-      #
+                      #
       def select(cartridge_name, version = '_', cartridge_version = '_')
         unless exist?(cartridge_name, cartridge_version, version)
           raise KeyError.new("key not found: (#{cartridge_name}, #{version}, #{cartridge_version})")
@@ -242,9 +242,16 @@ module OpenShift
       def find_manifests(directory) # :nodoc: :yield: pathname
         raise ArgumentError.new("Illegal path to cartridge repository: '#{directory}'") unless File.directory?(directory)
 
-        # wildcards: cartridges and cartridge versions
-        glob = PathUtils.join(directory, '*', '*', 'metadata', 'manifest.yml')
-        Dir[glob].sort.each { |e| yield e }
+        Dir.glob(PathUtils.join(directory, '*')).each do |path|
+          entries = Dir.entries(path)
+          entries.delete_if { |e| e =~ /\A\.\.?\Z/ }
+          next unless entries && !entries.empty?
+
+          Manifest.sort_versions(entries).each do |version|
+            filename = PathUtils.join(path, version.to_s, 'metadata', 'manifest.yml')
+            yield filename if File.exist?(filename)
+          end
+        end
       end
 
       # :call-seq:
@@ -301,8 +308,8 @@ module OpenShift
         cartridges = Set.new
         @index.each_pair do |_, sw_hash|
           sw_hash.each_pair do |_, cart_version_hash|
-            latest_version = cart_version_hash.keys.sort.last
-            cartridges.add(cart_version_hash[latest_version])
+            latest_version = Manifest.sort_versions(cart_version_hash.keys).last.to_s
+            cartridges.add(cart_version_hash[latest_version]) unless cart_version_hash[latest_version].instance_of?(Hash)
           end
         end
 
@@ -370,11 +377,11 @@ module OpenShift
 
           case
             when 'git' == uri.scheme || cartridge.source_url.end_with?('.git')
-              ::OpenShift::Runtime::Utils::oo_spawn(%Q(set -xe;
+              Utils::oo_spawn(%Q(set -xe;
                                git clone #{cartridge.source_url} #{cartridge.name};
                                GIT_DIR=./#{cartridge.name}/.git git repack),
                               chdir:               Pathname.new(target).parent.to_path,
-                  expected_exitstatus: 0)
+                              expected_exitstatus: 0)
 
             when uri.scheme =~ /^https*/ && cartridge.source_url =~ /\.zip/
               begin
@@ -435,8 +442,8 @@ module OpenShift
       def self.uri_copy(uri, temporary, md5 = nil)
         content_length = nil
         File.open(temporary, 'w') do |output|
-          uri.open(ssl_verify_mode:    OpenSSL::SSL::VERIFY_NONE,
-              content_length_proc: lambda { |l| content_length = l }
+          uri.open(ssl_verify_mode:     OpenSSL::SSL::VERIFY_NONE,
+                   content_length_proc: lambda { |l| content_length = l }
           ) do |input|
             input.meta
             begin
@@ -506,7 +513,7 @@ module OpenShift
             %w(. ..).include? File.basename(e)
           end
 
-          FileUtils.move(entries, target, verbose: true)
+          FileUtils.move(entries, target)
           FileUtils.rm_rf(to_delete)
         end
       end
