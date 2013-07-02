@@ -71,7 +71,10 @@ module OpenShift
 
         start_time = (Time.now.to_f * 1000).to_i
 
-        gear_home = "/var/lib/openshift/#{uuid}"
+        config = OpenShift::Config.new
+        gear_base_dir = config.get('GEAR_BASE_DIR')
+        gear_home = PathUtils.join(gear_base_dir, uuid)
+
         unless File.directory?(gear_home) && !File.symlink?(gear_home)
           return "Application not found to upgrade: #{gear_home}\n", 127
         end
@@ -83,13 +86,35 @@ module OpenShift
 
         exitcode = 0
         progress = Utils::UpgradeProgress.new(uuid)
+        progress.init_store
+
+        gear_extension_path = config.get('GEAR_UPGRADE_EXTENSION')
+        gear_extension = nil
+
+        if gear_extension_path 
+          if !File.exists?("#{gear_extension_path}.rb")
+            return "Gear upgrade extension configured at #{gear_extension_path}, but ruby file does not exist.", 127
+          end
+
+          begin
+            require gear_extension_path
+
+            gear_extension = OpenShift::GearUpgradeExtension.new(uuid, gear_home)
+            progress.log("Gear upgrade extension loaded from #{gear_extension_path}")
+          rescue Exception => e
+            progress.log "Caught an exception during upgrade: #{e.message}"
+            progress.log e.backtrace.join("\n")
+            return "Unable to instantiate gear upgrade extension.  Progress report: #{progress.report}", 127
+          end
+        end
 
         begin
           progress.log "Beginning #{version} upgrade for #{uuid}"
-          progress.init_store
 
           inspect_gear_state(progress, uuid, gear_home)
+          gear_pre_upgrade(progress, gear_extension)
           upgrade_cartridges(progress, ignore_cartridge_version, gear_home, gear_env, uuid, hostname)
+          gear_post_upgrade(progress, gear_extension)
 
           if progress.has_instruction?('validate_gear')
             validate_gear(progress, uuid, gear_home)
@@ -113,6 +138,26 @@ module OpenShift
         end
 
         [progress.report, exitcode]
+      end
+
+      #
+      # Execute the gear extension's 'pre_upgrade' method, if defined.
+      #
+      def self.gear_pre_upgrade(progress, gear_extension)
+        if !gear_extension.nil? && gear_extension.respond_to?(:pre_upgrade) && progress.incomplete?('pre_upgrade')
+          gear_extension.pre_upgrade(progress)
+          progress.mark_complete('pre_upgrade')
+        end
+      end
+
+      #
+      # Execute the gear extension's 'post_upgrade' method, if defined.
+      #
+      def self.gear_post_upgrade(progress, gear_extension)
+        if !gear_extension.nil? && gear_extension.respond_to?(:post_upgrade) && progress.incomplete?('post_upgrade') 
+          gear_extension.post_upgrade(progress) 
+          progress.mark_complete('post_upgrade')
+        end
       end
 
       #
