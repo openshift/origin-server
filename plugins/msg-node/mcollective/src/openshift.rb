@@ -687,7 +687,7 @@ module MCollective
         cart_name        = args['--cart-name']
         template_git_url = args['--with-template-git-url']
         manifest         = args['--with-cartridge-manifest']
-        
+
         with_container_from_args(args) do |container, output|
           output << container.configure(cart_name, template_git_url, manifest)
         end
