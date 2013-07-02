@@ -1,6 +1,6 @@
 %if 0%{?fedora}%{?rhel} <= 6
-    %global scl ruby193
-    %global scl_prefix ruby193-
+    %global scl postgresql92
+    %global scl_prefix postgresql92-
 %endif
 
 %global cartridgedir %{_libexecdir}/openshift/cartridges/postgresql
@@ -15,22 +15,26 @@ URL:           http://www.openshift.com
 Source0:       http://mirror.openshift.com/pub/openshift-origin/source/%{name}/%{name}-%{version}.tar.gz
 Requires:      rubygem(openshift-origin-node)
 Requires:      openshift-origin-node-util
+%if 0%{?rhel} <=6
+Requires:      postgresql-ip4r
+Requires:      postgresql-jdbc
+%endif
 %if 0%{?fedora}%{?rhel} <= 6
 Requires:      postgresql < 9
+# PostgreSQL 9.2 with SCL
+Requires:      %{scl}
 %endif
 %if 0%{?fedora} >= 19
 Requires:      postgresql >= 9.2
 Requires:      postgresql < 9.3
 %endif
-Requires:      postgresql-server
-Requires:      postgresql-libs
-Requires:      postgresql-devel
-Requires:      postgresql-contrib
-Requires:      postgresql-ip4r
-Requires:      postgresql-jdbc
-Requires:      postgresql-plperl
-Requires:      postgresql-plpython
-Requires:      postgresql-pltcl
+Requires:      %{?scl:%scl_prefix}postgresql-server
+Requires:      %{?scl:%scl_prefix}postgresql-libs
+Requires:      %{?scl:%scl_prefix}postgresql-devel
+Requires:      %{?scl:%scl_prefix}postgresql-contrib
+Requires:      %{?scl:%scl_prefix}postgresql-plperl
+Requires:      %{?scl:%scl_prefix}postgresql-plpython
+Requires:      %{?scl:%scl_prefix}postgresql-pltcl
 Requires:      PyGreSQL
 Requires:      perl-Class-DBI-Pg
 Requires:      perl-DBD-Pg
@@ -40,7 +44,6 @@ Requires:      php-pgsql
 Requires:      gdal
 Requires:      postgis
 Requires:      python-psycopg2
-Requires:      %{?scl:%scl_prefix}rubygem-pg
 Requires:      rhdb-utils
 Requires:      uuid-pgsql
 BuildArch:     noarch
@@ -63,12 +66,15 @@ Provides PostgreSQL cartridge support to OpenShift. (Cartridge Format V2)
 %__mkdir -p %{buildroot}%{cartridgedir}
 %__cp -r * %{buildroot}%{cartridgedir}
 %if 0%{?fedora}%{?rhel} <= 6
-%__rm -rf %{buildroot}%{cartridgedir}/versions/9.2
 %__mv %{buildroot}%{cartridgedir}/metadata/manifest.yml.rhel %{buildroot}%{cartridgedir}/metadata/manifest.yml
+%__mv %{buildroot}%{cartridgedir}/lib/util.rhel %{buildroot}%{cartridgedir}/lib/util
+%__rm %{buildroot}%{cartridgedir}/lib/util.f19
 %endif
 %if 0%{?fedora} == 19
 %__rm -rf %{buildroot}%{cartridgedir}/versions/8.4
 %__mv %{buildroot}%{cartridgedir}/metadata/manifest.yml.f19 %{buildroot}%{cartridgedir}/metadata/manifest.yml
+%__mv %{buildroot}%{cartridgedir}/lib/util.f19 %{buildroot}%{cartridgedir}/lib/util
+%__rm %{buildroot}%{cartridgedir}/lib/util.rhel
 %endif
 %__rm %{buildroot}%{cartridgedir}/metadata/manifest.yml.*
 
