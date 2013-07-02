@@ -6,7 +6,7 @@
 %global cartridgedir %{_libexecdir}/openshift/cartridges/ruby
 
 Name:          openshift-origin-cartridge-ruby
-Version: 0.6.1
+Version: 0.6.2
 Release:       1%{?dist}
 Summary:       Ruby cartridge
 Group:         Development/Languages
@@ -185,6 +185,16 @@ Ruby cartridge for OpenShift. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Tue Jul 02 2013 Adam Miller <admiller@redhat.com> 0.6.2-1
+- remove v2 folder from cart install (dmcphers@redhat.com)
+- Merge pull request #2939 from BanzaiMan/dev/hasari/bz977563
+  (dmcphers@redhat.com)
+- Merge pull request #2865 from BanzaiMan/dev/hasari/bz974632
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 977563 (asari.ruby@gmail.com)
+- Remove unsightly comment (asari.ruby@gmail.com)
+- Bug 974632 (asari.ruby@gmail.com)
+
 * Tue Jun 25 2013 Adam Miller <admiller@redhat.com> 0.6.1-1
 - bump_minor_versions for sprint 30 (admiller@redhat.com)
 
