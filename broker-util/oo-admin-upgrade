@@ -315,7 +315,7 @@ def upgrade(version, continue=false, ignore_cartridge_version=false, target_serv
       cart_names = group_cart_map[gi['_id'].to_s]
       gi['gears'].each do |gear|
         server_identity = gear['server_identity']
-        if (!target_server_identity || (server_identity == target_server_identity))
+        if server_identity && (!target_server_identity || (server_identity == target_server_identity))
           cart_names.each do |cart_name|
             if $all_cart_types.nil? || $all_cart_types.include?(cart_name)
               node_to_gears[server_identity] = [] unless node_to_gears[server_identity]
