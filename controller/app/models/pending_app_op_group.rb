@@ -42,7 +42,7 @@ class PendingAppOpGroup
     reloaded_app = Application.with(consistency: :strong).find_by(_id: application._id)
     op_group = reloaded_app.pending_op_groups.find_by(_id: self._id)
     self.pending_ops = op_group.pending_ops
-    pending_ops.where(:state => :completed).select{|op| (pending_ops.where(:prereq => op._id.to_s, :state => :completed).count == 0)}
+    pending_ops.where(:state.in => [:completed, :queued]).select{|op| (pending_ops.where(:prereq => op._id.to_s, :state.in => [:completed, :queued]).count == 0)}
   end
   
   def eligible_ops
@@ -67,18 +67,30 @@ class PendingAppOpGroup
         Rails.logger.debug "Rollback #{op.op_type}"
         case op.op_type
         when :create_group_instance
-          group_instance = get_group_instance_for_rollback(op)
-          group_instance.delete
+          begin
+            group_instance = get_group_instance_for_rollback(op)
+            group_instance.delete
+          rescue Mongoid::Errors::DocumentNotFound
+            # ignore if group instance is already deleted
+          end
         when :init_gear
-          gear = get_gear_for_rollback(op)
-          gear.delete
-          application.save
+          begin
+            gear = get_gear_for_rollback(op)
+            gear.delete
+            application.save
+          rescue Mongoid::Errors::DocumentNotFound
+            # ignore if gear is already deleted
+          end
         when :reserve_uid
           gear = get_gear_for_rollback(op)
           gear.unreserve_uid
         when :new_component
-          component_instance = get_component_instance_for_rollback(op)
-          application.component_instances.delete(component_instance)
+          begin
+            component_instance = get_component_instance_for_rollback(op)
+            application.component_instances.delete(component_instance)
+          rescue Mongoid::Errors::DocumentNotFound
+            # ignore if component instance is already deleted
+          end
         when :add_component
           gear = get_gear_for_rollback(op)
           component_instance = get_component_instance_for_rollback(op)
@@ -86,7 +98,7 @@ class PendingAppOpGroup
         when :create_gear
           gear = get_gear_for_rollback(op)
           result_io.append gear.destroy_gear(true)
-          self.inc(:num_gears_rolled_back, 1)
+          self.inc(:num_gears_rolled_back, 1) if op.state == :completed
         when :track_usage
           unless op.args["parent_user_id"]
             storage_usage_type = (op.args["usage_type"] == UsageRecord::USAGE_TYPES[:addtl_fs_gb])
@@ -167,6 +179,10 @@ class PendingAppOpGroup
           end
 
           Rails.logger.debug "Execute #{op.op_type}"
+          
+          # set the pending_op state to queued
+          op.set(:state, :queued)
+          
           case op.op_type
           when :create_group_instance
             application.group_instances.push(GroupInstance.new(custom_id: op.args["group_instance_id"]))

@@ -903,6 +903,32 @@ module MCollective
       end
 
       #
+      # Returns whether the cartridge is present on a gear
+      #
+      def has_app_cartridge_action
+        validate :app_uuid, /^[a-zA-Z0-9]+$/
+        validate :gear_uuid, /^[a-zA-Z0-9]+$/
+        validate :cartridge, /\A[a-zA-Z0-9\.\-\/_]+\z/
+        
+        app_uuid = request[:app_uuid].to_s if request[:app_uuid]
+        gear_uuid = request[:gear_uuid].to_s if request[:gear_uuid]
+        cart_name = request[:cartridge]
+
+        begin
+          container = OpenShift::ApplicationContainer.new(app_uuid, gear_uuid)
+          cartridge = container.get_cartridge(cart_name)
+          reply[:output] = (not cartridge.nil?)
+          reply[:exitcode] = 0
+        rescue Exception => e
+          Log.instance.error e.message
+          Log.instance.error e.backtrace.join("\n")
+          reply[:output] = false
+          reply[:exitcode] = 1
+        end
+        reply
+      end
+
+      #
       # Get all gears
       #
       def get_all_gears_action
