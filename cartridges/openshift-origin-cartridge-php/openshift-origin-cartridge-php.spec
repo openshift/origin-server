@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/openshift/cartridges/php
 
 Name:          openshift-origin-cartridge-php
-Version: 0.6.1
+Version: 0.6.2
 Release:       1%{?dist}
 Summary:       Php cartridge
 Group:         Development/Languages
@@ -78,6 +78,10 @@ rm %{buildroot}%{cartridgedir}/metadata/manifest.yml.*
 
 
 %changelog
+* Tue Jul 02 2013 Adam Miller <admiller@redhat.com> 0.6.2-1
+- Bug 976921: Move cart installation to %%posttrans (ironcladlou@gmail.com)
+- remove v2 folder from cart install (dmcphers@redhat.com)
+
 * Tue Jun 25 2013 Adam Miller <admiller@redhat.com> 0.6.1-1
 - bump_minor_versions for sprint 30 (admiller@redhat.com)
 
