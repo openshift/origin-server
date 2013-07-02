@@ -33,7 +33,8 @@ Cart-Data:
     Description: "PostgreSQL DB connection URL"
 Provides:
   - postgresql-9.2
-  - postgresql
+  - "postgresql"
+  - "postgresql(version) = 9.2"
 Conflicts:
   - mysql-5.1
 Publishes:
