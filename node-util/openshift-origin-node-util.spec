@@ -1,6 +1,6 @@
 Summary:       Utility scripts for the OpenShift Origin broker
 Name:          openshift-origin-node-util
-Version: 1.11.1
+Version: 1.11.2
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -117,6 +117,22 @@ mv services/openshift-gears.service %{buildroot}/etc/systemd/system/openshift-ge
 /sbin/restorecon /usr/sbin/oo-restorer* || :
 
 %changelog
+* Tue Jul 02 2013 Adam Miller <admiller@redhat.com> 1.11.2-1
+- Rename migrate to upgrade in code (pmorie@gmail.com)
+- Remove unused scripts. (mrunalp@gmail.com)
+- Merge pull request #2957 from rmillner/BZ977493
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 977493 - Avoid leaking the lock file descriptor to child processes.
+  (rmillner@redhat.com)
+- Bug 978261 - find the external ethernet device rather than hard-code eth0
+  (rmillner@redhat.com)
+- Bug 979134 - the v1 cart version check was matching older versions of the v2
+  cart and is no longer necessary. (rmillner@redhat.com)
+- node-util: Fixing undefined local variable due to typo (mmahut@redhat.com)
+- Adding lsof dependency (kraman@gmail.com)
+- Remove V1 code and V2-specific stepdefs (pmorie@gmail.com)
+- removing v1 logic (dmcphers@redhat.com)
+
 * Tue Jun 25 2013 Adam Miller <admiller@redhat.com> 1.11.1-1
 - bump_minor_versions for sprint 30 (admiller@redhat.com)
 
