@@ -55,6 +55,3 @@ Version-Overrides:
       - postgresql-8.4
       - "postgresql"
       - "postgresql(version) = 8.4"
-    Group-Overrides:
-      - components:
-        - postgresql-8.4
