@@ -16,7 +16,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.11.1
+Version: 1.11.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -283,6 +283,61 @@ echo "/usr/bin/oo-trap-user" >> /etc/shells
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Tue Jul 02 2013 Adam Miller <admiller@redhat.com> 1.11.2-1
+- Handling cleanup of failed pending op using rollbacks (abhgupta@redhat.com)
+- Merge pull request #2925 from BanzaiMan/dev/hasari/c157
+  (dmcphers+openshiftbot@redhat.com)
+- Add gear-level upgrade extensions (pmorie@gmail.com)
+- Card online_runtime_157 (asari.ruby@gmail.com)
+- Bug 977034 - Removing IDENT breaks destroy (jhonce@redhat.com)
+- Bug 977034 - Removing IDENT breaks deconfigure (jhonce@redhat.com)
+- Merge pull request #2927 from smarterclayton/bug_970257_support_git_at_urls
+  (dmcphers+openshiftbot@redhat.com)
+- Rename migrate to upgrade in code (pmorie@gmail.com)
+- Merge pull request #2958 from danmcp/master
+  (dmcphers+openshiftbot@redhat.com)
+- remove v2 folder from cart install (dmcphers@redhat.com)
+- Bug 977493 - Avoid leaking the lock file descriptor to child processes.
+  (rmillner@redhat.com)
+- Merge pull request #2827 from genesarm/PULL_2005
+  (dmcphers+openshiftbot@redhat.com)
+- Move core migration into origin-server (pmorie@gmail.com)
+- Merge pull request #2951 from BanzaiMan/mocha_deprecation_warning
+  (dmcphers@redhat.com)
+- Avoid harmless but annoying deprecation warning (asari.ruby@gmail.com)
+- Merge pull request #2865 from BanzaiMan/dev/hasari/bz974632
+  (dmcphers+openshiftbot@redhat.com)
+- Adding lsof dependency (kraman@gmail.com)
+- Merge remote-tracking branch 'origin/master' into
+  bug_970257_support_git_at_urls (ccoleman@redhat.com)
+- Merge pull request #2928 from BanzaiMan/dev/hasari/bz971622
+  (dmcphers+openshiftbot@redhat.com)
+- PULL_2005 Changed GEAR_SUPL_GRPS to GEAR_SUPPLEMENTARY_GROUPS in node and
+  tests (gsarmien@redhat.com)
+- Clean up the assertion (asari.ruby@gmail.com)
+- Test recursive case, too. (asari.ruby@gmail.com)
+- Generalize the file filtering somewhat (asari.ruby@gmail.com)
+- Process dot files, too. (asari.ruby@gmail.com)
+- Bug 976112 (asari.ruby@gmail.com)
+- Remove V1 code and V2-specific stepdefs (pmorie@gmail.com)
+- Merge remote-tracking branch 'origin/master' into
+  bug_970257_support_git_at_urls (ccoleman@redhat.com)
+- Allow clients to pass an initial_git_url of "empty", which creates a bare
+  repo but does not add a commit.  When 'empty' is passed, the node will skip
+  starting the gear and also skip the initial build.  This allows clients that
+  want to send a local Git repository (one that isn't visible to OpenShift.com,
+  for example) to avoid having to push/merge/delete the initial commit, and
+  instead submit their own clean repo.  In this case, the user will get a
+  result indicating that their repository is empty. (ccoleman@redhat.com)
+- Merge pull request #2931 from jwhonce/card/163
+  (dmcphers+openshiftbot@redhat.com)
+- Card origin_runtime_163 - Validate attempted Gear env var overrides
+  (jhonce@redhat.com)
+- Bug 970257 - Allow git@ urls (ccoleman@redhat.com)
+- removing v1 logic (dmcphers@redhat.com)
+- Bug 974983 (asari.ruby@gmail.com)
+- Bug 974632 (asari.ruby@gmail.com)
+
 * Tue Jun 25 2013 Adam Miller <admiller@redhat.com> 1.11.1-1
 - bump_minor_versions for sprint 30 (admiller@redhat.com)
 
