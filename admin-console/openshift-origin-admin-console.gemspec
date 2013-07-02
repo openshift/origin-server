@@ -13,7 +13,7 @@ Gem::Specification.new do |s|
   s.summary     = %q{OpenShift Origin Admin Console}
   s.description = %q{The OpenShift Origin admin console is a Rails engine that provides an easy-to-use interface for administering OpenShift Origin.}
 
-  s.files = Dir["{app,config,db,lib}/**/*"] + ["MIT-LICENSE", "Rakefile", "README.rdoc"]
+  s.files = Dir["{app,conf,config,db,lib}/**/*"] + ["MIT-LICENSE", "Rakefile", "README.rdoc"]
   s.test_files = Dir["test/**/*"]
 
   s.add_dependency "rails", "~> 3.2.8"

@@ -11,3 +11,7 @@ AdminConsole::Engine.routes.draw do
     resources :profiles, :only => [:show], :id => id_regex
   end
 end
+# integrate admin-console routes into the broker routes.
+Rails.application.routes.draw do
+      mount AdminConsole::Engine => "/admin-console"
+end
