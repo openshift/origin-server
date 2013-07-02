@@ -1,1 +1,32 @@
-../../shared/bin/build
+#!/bin/bash
+
+#  Source in the utility functions.
+source "${OPENSHIFT_PYTHON_DIR}/versions/${OPENSHIFT_PYTHON_VERSION}/lib/utils"
+
+# Run when jenkins is not being used or run when inside a build.
+clean_build_marker=".openshift/markers/force_clean_build"
+if [ -f "${OPENSHIFT_REPO_DIR}$clean_build_marker" ]; then
+   echo "  - Found a $clean_build_marker marker - recreating virtenv ..." 1>&2
+   delete_virtualenv
+fi
+
+#  Create (or update if exists) and activate the virtualenv.
+create_virtualenv
+activate_virtualenv
+echo "  - Created/Updated virtenv and activated it."
+
+if [ -f "${OPENSHIFT_REPO_DIR}setup.py" ]; then
+   echo " - Found setup.py. Processing it ..."
+
+   if `echo $OPENSHIFT_GEAR_DNS | egrep -qe "\.rhcloud\.com"`; then
+      mirror_opts="-i http://mirror1.ops.rhcloud.com/mirror/python/web/simple"
+   fi
+
+   pushd "$OPENSHIFT_REPO_DIR" > /dev/null
+   python "${OPENSHIFT_REPO_DIR}setup.py" develop $mirror_opts
+   echo " - Done processing setup.py"
+   popd  > /dev/null
+fi
+
+#  Fix the scripts + .pth files in the virtualenv - make it relocatable.
+make_virtualenv_relocatable

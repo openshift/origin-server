@@ -77,7 +77,6 @@ Python cartridge for OpenShift. (Cartridge Format V2)
 mv %{buildroot}%{cartridgedir}/metadata/manifest.yml.rhel %{buildroot}%{cartridgedir}/metadata/manifest.yml
 %endif
 %if 0%{?fedora} == 19
-%__rm -rf %{buildroot}%{cartridgedir}/versions/2.7
 %__mv %{buildroot}%{cartridgedir}/versions/native %{buildroot}%{cartridgedir}/versions/2.7
 mv %{buildroot}%{cartridgedir}/metadata/manifest.yml.f19 %{buildroot}%{cartridgedir}/metadata/manifest.yml
 %endif

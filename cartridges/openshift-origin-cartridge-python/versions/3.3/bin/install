@@ -1,1 +1,23 @@
-../../shared/bin/install
+#!/bin/bash -e
+
+source $OPENSHIFT_CARTRIDGE_SDK_BASH
+version="$1"
+
+if [ ${LD_LIBRARY_PATH:-""} == "" ]
+then
+    echo "$OPENSHIFT_PYTHON_DIR/opt/lib" > $OPENSHIFT_PYTHON_DIR/env/LD_LIBRARY_PATH
+else
+    $(path_prepend "$LD_LIBRARY_PATH" "$OPENSHIFT_PYTHON_DIR/opt/lib") > $OPENSHIFT_PYTHON_DIR/env/LD_LIBRARY_PATH
+fi
+
+# Copy the version specific files
+shopt -s dotglob
+cp -r $OPENSHIFT_PYTHON_DIR/versions/$version/template/* $OPENSHIFT_PYTHON_DIR/template
+
+# Source in the utility functions.
+source "${OPENSHIFT_PYTHON_DIR}/versions/$version/lib/utils"
+
+# Create the virtualenv.
+create_virtualenv
+
+create_virtenv_activate_file
