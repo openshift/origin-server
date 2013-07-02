@@ -973,6 +973,10 @@ module OpenShift
       @cartridge_model.do_control('threaddump', cart_name)
     end
 
+    def get_cartridge(cart_name)
+      @cartridge_model.get_cartridge(cart_name)
+    end
+
     def stop_lock?
       @cartridge_model.stop_lock?
     end
