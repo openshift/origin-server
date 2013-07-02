@@ -1,31 +1,35 @@
 #!/bin/bash
 # Utility functions for use in the cartridge scripts.
 
-function wait_for_stop {
-        pid=$1
-    for i in {1..60}
-    do
-        if `ps --pid $pid > /dev/null 2>&1`
-        then
-            echo "Waiting for stop to finish"
-            sleep .5
-        else
-            break
-        fi
-    done
-}
+source $OPENSHIFT_PYTHON_DIR/lib/python_context
 
 function update-configuration {
-  case $1 in
-    3.3)
+  case $(python_context_dir $1) in
+    3.3-community)
       echo "$OPENSHIFT_PYTHON_DIR/bin:$OPENSHIFT_PYTHON_DIR/virtenv/venv/bin" > $OPENSHIFT_PYTHON_DIR/env/OPENSHIFT_PYTHON_PATH_ELEMENT
       ;;
-    2.7)
-      echo "$OPENSHIFT_PYTHON_DIR/bin:$OPENSHIFT_PYTHON_DIR/virtenv/bin" > $OPENSHIFT_PYTHON_DIR/env/OPENSHIFT_PYTHON_PATH_ELEMENT
+
+    *-scl)
+      echo "$OPENSHIFT_PYTHON_DIR/bin" > $OPENSHIFT_PYTHON_DIR/env/OPENSHIFT_PYTHON_PATH_ELEMENT
+
+      OPENSHIFT_PYTHON_VERSION=$1
+      dirname $(python_context "which python") > $OPENSHIFT_PYTHON_DIR/env/OPENSHIFT_PYTHON_PATH_ELEMENT
+
+      local ld_path=$(LD_LIBRARY_PATH="" python_context "printenv LD_LIBRARY_PATH")
+      path_append ${LD_LIBRARY_PATH:+:} ${ld_path:+:} > $OPENSHIFT_PYTHON_DIR/env/LD_LIBRARY_PATH
+
+      local man_path=$(MANPATH="" python_context "printenv MANPATH")
+      path_append ${MANPATH:+:} ${man_path:+:} > $OPENSHIFT_PYTHON_DIR/env/MANPATH
+
+      local xdg_data_dirs=$(XDG_DATA_DIRS="" python_context "printenv XDG_DATA_DIRS")
+      path_append ${XDG_DATA_DIRS:+:} ${xdg_data_dirs:+:} > $OPENSHIFT_PYTHON_DIR/env/XDG_DATA_DIRS
+
+      local pkg_config_path=$(PKG_CONFIG_PATH="" python_context "printenv PKG_CONFIG_PATH")
+      path_append ${PKG_CONFIG_PATH:+:} ${pkg_config_path:+:} > $OPENSHIFT_PYTHON_DIR/env/PKG_CONFIG_PATH
       ;;
-    2.6)
+
+    *)
       echo "$OPENSHIFT_PYTHON_DIR/bin" > $OPENSHIFT_PYTHON_DIR/env/OPENSHIFT_PYTHON_PATH_ELEMENT
       ;;
   esac
-
 }
