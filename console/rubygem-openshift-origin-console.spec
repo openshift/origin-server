@@ -9,7 +9,7 @@
 
 Summary:       OpenShift Origin Management Console
 Name:          rubygem-%{gem_name}
-Version: 1.11.1
+Version: 1.11.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -151,6 +151,40 @@ cp -a ./%{gem_dir}/* %{buildroot}%{gem_dir}/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Tue Jul 02 2013 Adam Miller <admiller@redhat.com> 1.11.2-1
+- Merge pull request #2966 from sg00dwin/701dev
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #2970 from liggitt/full_screenshot
+  (dmcphers+openshiftbot@redhat.com)
+- Take full screenshots when web tests fail (jliggitt@redhat.com)
+- Link path correction (sgoodwin@redhat.com)
+- Changes: (sgoodwin@redhat.com)
+- Merge remote-tracking branch 'origin/master' into
+  bug_970257_support_git_at_urls (ccoleman@redhat.com)
+- Fix testcase login to work with full test suite (jforrest@redhat.com)
+- Bug 975365 - Change to direct mapping and update testcase
+  (jforrest@redhat.com)
+- Bug 975365 - Redirect old console routes to the new singular forms
+  (jforrest@redhat.com)
+- Merge remote-tracking branch 'origin/master' into
+  bug_970257_support_git_at_urls (ccoleman@redhat.com)
+- Allow clients to pass an initial_git_url of "empty", which creates a bare
+  repo but does not add a commit.  When 'empty' is passed, the node will skip
+  starting the gear and also skip the initial build.  This allows clients that
+  want to send a local Git repository (one that isn't visible to OpenShift.com,
+  for example) to avoid having to push/merge/delete the initial commit, and
+  instead submit their own clean repo.  In this case, the user will get a
+  result indicating that their repository is empty. (ccoleman@redhat.com)
+- Merge pull request #2922 from sg00dwin/624dev
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #2919 from jwforres/bug_971337_cleanup_alias_form_errors
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 970257 - Allow git@ urls (ccoleman@redhat.com)
+- Correct img link (sgoodwin@redhat.com)
+- Addition of touch image to console images and markup to support touch/favicon
+  within console across browsers (sgoodwin@redhat.com)
+- Bug 971337 - cleanup alias form errors (jforrest@redhat.com)
+
 * Tue Jun 25 2013 Adam Miller <admiller@redhat.com> 1.11.1-1
 - bump_minor_versions for sprint 30 (admiller@redhat.com)
 
