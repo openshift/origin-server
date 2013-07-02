@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.10.6
+Version: 1.10.7
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -84,6 +84,10 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Tue Jul 02 2013 Adam Miller <admiller@redhat.com> 1.10.7-1
+- oo-admin-ctl-usage fixes: Create index on 'gear_id'+'usage_type'+'created_at'
+  fields for usage_records mongo collection. (rpenta@redhat.com)
+
 * Thu Jun 27 2013 Adam Miller <admiller@redhat.com> 1.10.6-1
 - Merge pull request #2937 from rajatchopra/stg_hotfix
   (dmcphers+openshiftbot@redhat.com)
