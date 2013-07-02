@@ -67,7 +67,7 @@ mv %{buildroot}%{cartridgedir}/metadata/manifest.yml.fedora19 %{buildroot}%{cart
 %endif
 rm %{buildroot}%{cartridgedir}/metadata/manifest.yml.*
 
-%post
+%posttrans
 %{_sbindir}/oo-admin-cartridge --action install --source /usr/libexec/openshift/cartridges/php
 
 %files

@@ -60,7 +60,7 @@ mv %{buildroot}%{cartridgedir}/metadata/manifest.yml.f19 %{buildroot}%{cartridge
 %endif
 rm %{buildroot}%{cartridgedir}/metadata/manifest.yml.*
 
-%post
+%posttrans
 %{_sbindir}/oo-admin-cartridge --action install --source %{cartridgedir}
 
 %files
