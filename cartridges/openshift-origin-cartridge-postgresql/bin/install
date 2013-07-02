@@ -1,13 +1,14 @@
 #!/bin/bash -ue
 
 source $OPENSHIFT_CARTRIDGE_SDK_BASH
+source "${OPENSHIFT_POSTGRESQL_DIR}/lib/util"
 
 case "$1" in
   -v|--version)
     version="$2"
 esac
 
-echo "$version" > "$OPENSHIFT_POSTGRESQL_DIR/env/OPENSHIFT_POSTGRES_VERSION"
+echo "$version" > "$OPENSHIFT_POSTGRESQL_DIR/env/OPENSHIFT_POSTGRESQL_VERSION"
 
 echo "Installing postgres"
 
@@ -41,6 +42,8 @@ cp $conf_dir/*.conf $OPENSHIFT_POSTGRESQL_DIR/data/
 cp $conf_dir/psqlrc $HOME/.psqlrc
 echo "*:*:*:${username}:${password}" > $HOME/.pgpass
 chmod 0600 $HOME/.pgpass
+
+update-configuration $version
 
 conn_url='postgresql://$OPENSHIFT_POSTGRESQL_DB_HOST:$OPENSHIFT_POSTGRESQL_DB_PORT'
 
