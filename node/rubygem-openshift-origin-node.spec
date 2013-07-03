@@ -16,7 +16,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.11.2
+Version: 1.11.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -286,6 +286,39 @@ echo "/usr/bin/oo-trap-user" >> /etc/shells
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Tue Jul 02 2013 Adam Miller <admiller@redhat.com> 1.11.3-1
+- Merge pull request #2934 from kraman/libvirt-f19-2
+  (dmcphers+openshiftbot@redhat.com)
+- Fixing class/module namespaces Fixing tests Fixing rebase errors Un-hardcode
+  context in step_definitions/cartridge-php_steps.rb Fixing paths that were
+  broken when going from File.join -> PathUtils.join (kraman@gmail.com)
+- Adding traffic control for selinux container (kraman@gmail.com)
+- Renamed package to Containerization instead of ApplicationContainerPlugin
+  Renamed OpenShift_ApplicationContainer_Class to container_plugin_class and
+  made it a class variable instead of global Moved run_in_root_context to
+  ApplicationContainer since it is not implementation specific Cleanup unused
+  variables (kraman@gmail.com)
+- Changing File.join to PathUtils.join in node and common packages Uncommenting
+  cgroups Fixing signal handling in oo-gear-init (kraman@gmail.com)
+- Fixing tests (assuming selinux container for now) (kraman@gmail.com)
+- Make port-forwarding container specific.   * SELinux container uses port-
+  proxy   * Libvirt container uses IP Tables (kraman@gmail.com)
+- Moving selinux and libvirt container plugins into seperate gem files Added
+  nsjoin which allows joining a running container Temporarily disabled cgroups
+  Moved gear dir to /var/lib/openshift/gears for libvirt container Moved shell
+  definition into container plugin rather than application container
+  (kraman@gmail.com)
+- Explicitly create a group for the gear user and fail if group cannot be
+  created. (kraman@gmail.com)
+- Refactor code to use run_in_container_context/run_in_root_context calls
+  instead of generically calling oo_spawn and passing uid. Modify frontend
+  httpd/proxy classes to accept a container object instead of indivigual
+  properties (kraman@gmail.com)
+- Refactor code to call set_ro_permission/set_rw_permission instead of calling
+  chown/chcon (kraman@gmail.com)
+- Moving Node classes into Runtime namespace Removing UnixUser Moving
+  functionality into SELinux plugin class (kraman@gmail.com)
+
 * Tue Jul 02 2013 Adam Miller <admiller@redhat.com> 1.11.2-1
 - Handling cleanup of failed pending op using rollbacks (abhgupta@redhat.com)
 - Merge pull request #2925 from BanzaiMan/dev/hasari/c157
