@@ -16,7 +16,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.11.3
+Version: 1.11.4
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -286,6 +286,11 @@ echo "/usr/bin/oo-trap-user" >> /etc/shells
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Wed Jul 03 2013 Adam Miller <admiller@redhat.com> 1.11.4-1
+- Merge pull request #2980 from danmcp/master
+  (dmcphers+openshiftbot@redhat.com)
+- moving sync into the sdk (dmcphers@redhat.com)
+
 * Tue Jul 02 2013 Adam Miller <admiller@redhat.com> 1.11.3-1
 - Merge pull request #2934 from kraman/libvirt-f19-2
   (dmcphers+openshiftbot@redhat.com)
