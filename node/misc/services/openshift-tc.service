@@ -1,0 +1,14 @@
+[Unit]
+Description=OpenShift Traffic Control
+After=runlevel3.target
+
+[Service]
+Type=forking
+ExecStart=/usr/sbin/oo-admin-ctl-tc start
+ExecStop=/usr/sbin/oo-admin-ctl-tc stop
+ExecReload=/usr/sbin/oo-admin-ctl-tc restart
+Restart=no
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target

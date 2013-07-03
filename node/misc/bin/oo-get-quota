@@ -46,7 +46,7 @@ end
 
 
 begin
-  quota_info = OpenShift::Node.get_quota(uuid)
+  quota_info = OpenShift::Runtime::Node.get_quota(uuid)
   filesystem, quota, quota_soft, quota_hard, inodes, inodes_soft, inodes_hard = quota_info
   puts "Quota information for uuid: #{uuid}"
   puts "Filesystem: #{filesystem}"

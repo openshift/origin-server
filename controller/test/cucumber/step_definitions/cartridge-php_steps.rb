@@ -56,7 +56,7 @@ Then /^the php file permissions are correct/ do
     "php/tmp/" => [gear_uuid, gear_uuid, '40755', se_context],
     "app-root/data/" => [gear_uuid, gear_uuid, '40750', se_context2],
     "app-root/repo/" => [gear_uuid, gear_uuid, '40750', se_context],
-    ".gem" => [gear_uuid, gear_uuid, '40750', "unconfined_u:object_r:openshift_var_lib_t:s0"], # see https://bugzilla.redhat.com/show_bug.cgi?id=974632
+    ".gem" => [gear_uuid, gear_uuid, '40750', se_context], # see https://bugzilla.redhat.com/show_bug.cgi?id=974632
     ".pearrc" => ['root', gear_uuid, '100644', se_context],
   }
   configure_files.each do | file, permissions |

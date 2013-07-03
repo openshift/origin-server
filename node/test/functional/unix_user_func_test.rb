@@ -50,10 +50,10 @@ class UnixUserModelFunctionalTest < OpenShift::NodeTestCase
     @config.stubs(:get).with("OPENSHIFT_HTTP_CONF_DIR").returns("/tmp")
     OpenShift::Config.stubs(:new).returns(@config)
 
-    @frontend = mock('OpenShift::FrontendHttpServer')
+    @frontend = mock('OpenShift::Runtime::FrontendHttpServer')
     @frontend.stubs(:create)
     @frontend.stubs(:destroy)
-    OpenShift::FrontendHttpServer.stubs(:new).returns(@frontend)
+    OpenShift::Runtime::FrontendHttpServer.stubs(:new).returns(@frontend)
   end
 
   def teardown
@@ -62,9 +62,7 @@ class UnixUserModelFunctionalTest < OpenShift::NodeTestCase
 
   def test_initialize
     FileUtils.rm_rf(@user_homedir, :verbose => @verbose) if File.directory?(@user_homedir)
-    o = OpenShift::UnixUser.new(@gear_uuid, @gear_uuid, @user_uid, @app_name,
-                                @gear_name, @namespace,
-                                nil, nil, @verbose)
+    o = OpenShift::Runtime::ApplicationContainer.new(@gear_uuid, @gear_uuid, @user_uid, @app_name, @gear_name, @namespace)
     refute_nil o
 
     o.initialize_homedir("/tmp/", "#{@user_homedir}/")

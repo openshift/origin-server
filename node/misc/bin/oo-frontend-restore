@@ -83,11 +83,11 @@ else
 end
 
 begin
-  OpenShift::FrontendHttpServer.json_create({ 'data' => JSON.parse(blob) })
-rescue OpenShift::FrontendHttpServerExecException => e
+  OpenShift::Runtime::FrontendHttpServer.json_create({ 'data' => JSON.parse(blob) })
+rescue OpenShift::Runtime::FrontendHttpServerExecException => e
   $stderr.puts(e.message + e.stdout + e.stderr)
   exit e.rc
-rescue OpenShift::FrontendHttpServerException => e
+rescue OpenShift::Runtime::FrontendHttpServerException => e
   $stderr.puts(e.message)
   exit 129
 rescue Exception => e

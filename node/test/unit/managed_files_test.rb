@@ -21,24 +21,22 @@ require_relative '../test_helper'
 
 module OpenShift
   class ManagedFilesTest < OpenShift::NodeTestCase
-    include ManagedFiles
+    include OpenShift::Runtime::ManagedFiles
 
     def setup
-      @user = OpenStruct.new({
-        :homedir =>  "#{Dir.mktmpdir}/"
-      })
+      @container_dir = "#{Dir.mktmpdir}/" 
 
       @cartridge = OpenStruct.new({
         :name =>  'mock',
         :directory =>  'mock',
         :short_name =>  'MOCK'
       })
-      FileUtils.mkdir_p(File.join(@user.homedir,@cartridge.directory))
+      FileUtils.mkdir_p(File.join(@container_dir,@cartridge.directory))
     end
 
     # Set the managed_files hash
     def set_managed_files(hash)
-      File.join(@user.homedir,@cartridge.directory,'metadata','managed_files.yml').tap do |manifest_file|
+      File.join(@container_dir,@cartridge.directory,'metadata','managed_files.yml').tap do |manifest_file|
         FileUtils.mkdir_p(File.dirname(manifest_file))
         File.open(manifest_file,'w') do |f|
           f.write(hash.to_yaml)
@@ -49,7 +47,7 @@ module OpenShift
     # Create files for globbing
     def touch_files(files)
       files.each do |path|
-        full_path = File.join(@user.homedir,@cartridge.directory,path)
+        full_path = File.join(@container_dir,@cartridge.directory,path)
         dir = File.dirname(full_path)
         FileUtils.mkdir_p(dir)
         FileUtils.touch(full_path)
@@ -60,8 +58,8 @@ module OpenShift
     # 'files' should be a Hash {link => target, ...}
     def symlink_files(files)
       files.each do |link, path|
-        target = File.join(@user.homedir, @cartridge.directory, path)
-        sl = File.join(@user.homedir, @cartridge.directory, link)
+        target = File.join(@container_dir, @cartridge.directory, path)
+        sl = File.join(@container_dir, @cartridge.directory, link)
         dir = File.dirname(target)
         linkdir = File.dirname(sl)
         FileUtils.mkdir_p(dir)
@@ -74,22 +72,22 @@ module OpenShift
     def chroot_files(files)
       files.map do |x|
         x = "~/#{@cartridge.name}/#{x}" unless x.start_with?("~")
-        x.sub(/^~\//,@user.homedir)
+        x.sub(/^~\//,@container_dir)
       end
     end
 
     def test_missing_managed_files
       logger = mock()
       logger.expects(:info).with { |x| x =~ /.yml is missing$/ }
-      NodeLogger.expects(:logger).returns(logger)
-      assert_empty managed_files(@cartridge, :foo, @user.homedir)
+      ::OpenShift::Runtime::NodeLogger.expects(:logger).returns(logger)
+      assert_empty managed_files(@cartridge, :foo, @container_dir)
     end
 
     # Ensure that managed_files does not attempt to render the values in any way
     def test_get_managed_files
       %w(a ./b /c ~/d e/f/g).tap do |expected|
         set_managed_files({:foo => expected})
-        assert_equal expected, managed_files(@cartridge, :foo, @user.homedir, false)
+        assert_equal expected, managed_files(@cartridge, :foo, @container_dir, false)
       end
     end
 
@@ -97,7 +95,7 @@ module OpenShift
       %w(metadata/manifest.yml metadata/managed_files.yml env/OPENSHIFT_MOCK_IDENT env/OPENSHIFT_MOCK_DIR a).tap do |expected|
         set_managed_files({:foo => expected})
 
-        assert_equal %w(mock/a), managed_files(@cartridge, :foo, @user.homedir)
+        assert_equal %w(mock/a), managed_files(@cartridge, :foo, @container_dir)
       end
     end
 

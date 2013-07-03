@@ -103,7 +103,7 @@ end
 
 # Idle a gear
 def idle_gear(gear_uuid)
-  ac = OpenShift::ApplicationContainer.from_uuid(gear_uuid)
+  ac = OpenShift::Runtime::ApplicationContainer.from_uuid(gear_uuid)
   puts "GEAR STATE of #{gear_uuid}: #{ac.state.value}"
   puts "Idling #{gear_uuid}"
   ac.idle_gear

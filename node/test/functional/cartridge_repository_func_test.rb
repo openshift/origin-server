@@ -22,7 +22,7 @@ require 'openshift-origin-common/models/manifest'
 require 'digest'
 
 module OpenShift
-  class CartridgeRepositoryFunctionalTest < OpenShift::NodeTestCase
+  class CartridgeRepositoryFunctionalTest < NodeTestCase
 
     def before_setup
 
@@ -35,8 +35,8 @@ module OpenShift
       @malformed_file = File.join(@test_home, 'malformed.zip')
 
       FileUtils.mkpath(@test_home)
-      OpenShift::CartridgeRepository.instance.load()
-      @cartridge = OpenShift::CartridgeRepository.instance.select('mock-plugin', '0.1')
+      ::OpenShift::Runtime::CartridgeRepository.instance.load()
+      @cartridge = ::OpenShift::Runtime::CartridgeRepository.instance.select('mock-plugin', '0.1')
       %x(shopt -s dotglob;
          cd #{@cartridge.repository_path};
          zip -r #{@zip_file} *;
@@ -74,10 +74,10 @@ module OpenShift
       WebMock.disable_net_connect! allow_localhost: true
 
       @name       = "crftest_#{@uuid}"
-      @repo_dir   = File.join(OpenShift::CartridgeRepository::CARTRIDGE_REPO_DIR, "redhat-#{@name}")
+      @repo_dir   = File.join(::OpenShift::Runtime::CartridgeRepository::CARTRIDGE_REPO_DIR, "redhat-#{@name}")
       @source_dir = "#{@test_home}/src-#{@uuid}"
 
-      FileUtils.mkpath(OpenShift::CartridgeRepository::CARTRIDGE_REPO_DIR)
+      FileUtils.mkpath(::OpenShift::Runtime::CartridgeRepository::CARTRIDGE_REPO_DIR)
       FileUtils.mkpath(@source_dir + '/metadata')
       FileUtils.mkpath(@source_dir + '/bin')
       File.open(@source_dir + '/metadata/manifest.yml', 'w') do |f|
@@ -102,7 +102,7 @@ module OpenShift
     end
 
     def test_install_remove
-      cr = OpenShift::CartridgeRepository.instance
+      cr = ::OpenShift::Runtime::CartridgeRepository.instance
       cr.clear
       cr.install(@source_dir)
 
@@ -131,7 +131,7 @@ module OpenShift
     end
 
     def test_reinstall
-      cr = OpenShift::CartridgeRepository.instance
+      cr = ::OpenShift::Runtime::CartridgeRepository.instance
       cr.clear
       cr.install(@source_dir)
 
@@ -160,11 +160,11 @@ module OpenShift
       manifest << ('Source-Url: file://' + cuckoo_repo + '.git') << "\n"
       manifest = change_cartridge_vendor_of manifest
 
-      cartridge      = OpenShift::Runtime::Manifest.new(manifest)
+      cartridge      = ::OpenShift::Runtime::Manifest.new(manifest)
       cartridge_home = "#{@test_home}/gear/mock-plugin"
 
       with_detail_output do
-        OpenShift::CartridgeRepository.instantiate_cartridge(cartridge, cartridge_home)
+        ::OpenShift::Runtime::CartridgeRepository.instantiate_cartridge(cartridge, cartridge_home)
       end
 
       assert_path_exist(cartridge_home)
@@ -181,11 +181,11 @@ module OpenShift
       manifest << ('Source-Url: file://' + cuckoo_source) << "\n"
       manifest = change_cartridge_vendor_of manifest
 
-      cartridge      = OpenShift::Runtime::Manifest.new(manifest)
+      cartridge      = ::OpenShift::Runtime::Manifest.new(manifest)
       cartridge_home = "#{@test_home}/gear/mock-plugin"
 
       with_detail_output do
-        OpenShift::CartridgeRepository.instantiate_cartridge(cartridge, cartridge_home)
+        ::OpenShift::Runtime::CartridgeRepository.instantiate_cartridge(cartridge, cartridge_home)
       end
 
       assert_path_exist(cartridge_home)
@@ -200,11 +200,11 @@ module OpenShift
       manifest << "Source-Md5: #{@zip_hash}" << "\n"
       manifest = change_cartridge_vendor_of manifest
 
-      cartridge      = OpenShift::Runtime::Manifest.new(manifest)
+      cartridge      = ::OpenShift::Runtime::Manifest.new(manifest)
       cartridge_home = "#{@test_home}/gear/mock-plugin"
 
       with_detail_output do
-        OpenShift::CartridgeRepository.instantiate_cartridge(cartridge, cartridge_home)
+        ::OpenShift::Runtime::CartridgeRepository.instantiate_cartridge(cartridge, cartridge_home)
       end
 
       assert_path_exist(cartridge_home)
@@ -218,11 +218,11 @@ module OpenShift
       manifest << 'Source-Md5: 666' << "\n"
       manifest = change_cartridge_vendor_of manifest
 
-      cartridge      = OpenShift::Runtime::Manifest.new(manifest)
+      cartridge      = ::OpenShift::Runtime::Manifest.new(manifest)
       cartridge_home = "#{@test_home}/gear/mock-plugin"
 
       assert_raise (IOError) do
-        OpenShift::CartridgeRepository.instantiate_cartridge(cartridge, cartridge_home)
+        ::OpenShift::Runtime::CartridgeRepository.instantiate_cartridge(cartridge, cartridge_home)
       end
 
       refute_path_exist(cartridge_home)
@@ -234,11 +234,11 @@ module OpenShift
       manifest << 'Source-Url: https://www.example.com/malformed.zip' << "\n"
       manifest = change_cartridge_vendor_of manifest
 
-      cartridge      = OpenShift::Runtime::Manifest.new(manifest)
+      cartridge      = ::OpenShift::Runtime::Manifest.new(manifest)
       cartridge_home = "#{@test_home}/gear/mock-plugin"
 
-      e = assert_raise (OpenShift::MalformedCartridgeError) do
-        OpenShift::CartridgeRepository.instantiate_cartridge(cartridge, cartridge_home)
+      e = assert_raise (::OpenShift::Runtime::MalformedCartridgeError) do
+        ::OpenShift::Runtime::CartridgeRepository.instantiate_cartridge(cartridge, cartridge_home)
       end
 
       refute_empty e.details, 'Details of malformed cartridge missing'
@@ -251,8 +251,8 @@ module OpenShift
       manifest << 'Source-Url: https://www.example.com/mock-plugin.tar.gz' << "\n"
       manifest << "Source-Md5: #{@tgz_hash}"
 
-      err = assert_raise(OpenShift::InvalidElementError) do
-        cartridge = OpenShift::Runtime::Manifest.new(manifest)
+      err = assert_raise(::OpenShift::InvalidElementError) do
+        cartridge = ::OpenShift::Runtime::Manifest.new(manifest)
       end
 
       assert_match 'Cartridge-Vendor', err.message
@@ -260,12 +260,12 @@ module OpenShift
 
     def test_vendor_name_too_long
       manifest = IO.read(File.join(@cartridge.manifest_path))
-      manifest << "Cartridge-Vendor: #{'a'* (OpenShift::Runtime::Manifest::MAX_VENDOR_NAME + 1)}\n"
+      manifest << "Cartridge-Vendor: #{'a'* (::OpenShift::Runtime::Manifest::MAX_VENDOR_NAME + 1)}\n"
       manifest << 'Source-Url: https://www.example.com/mock-plugin.tar.gz' << "\n"
       manifest << "Source-Md5: #{@tgz_hash}"
 
-      err = assert_raise(OpenShift::InvalidElementError) do
-        cartridge = OpenShift::Runtime::Manifest.new(manifest)
+      err = assert_raise(::OpenShift::InvalidElementError) do
+        cartridge = ::OpenShift::Runtime::Manifest.new(manifest)
       end
 
       assert_match 'Cartridge-Vendor', err.message
@@ -278,8 +278,8 @@ module OpenShift
       manifest << "Source-Md5: #{@tgz_hash}"
       manifest = change_cartridge_vendor_of manifest
 
-      err = assert_raise(OpenShift::InvalidElementError) do
-        cartridge = OpenShift::Runtime::Manifest.new(manifest)
+      err = assert_raise(::OpenShift::InvalidElementError) do
+        cartridge = ::OpenShift::Runtime::Manifest.new(manifest)
       end
 
       assert_match /\bName\b/, err.message
@@ -287,13 +287,13 @@ module OpenShift
 
     def test_cartridge_name_too_long
       manifest = IO.read(File.join(@cartridge.manifest_path))
-      manifest << "Name: #{'a'* (OpenShift::Runtime::Manifest::MAX_CARTRIDGE_NAME + 1)}\n"
+      manifest << "Name: #{'a'* (::OpenShift::Runtime::Manifest::MAX_CARTRIDGE_NAME + 1)}\n"
       manifest << 'Source-Url: https://www.example.com/mock-plugin.tar.gz' << "\n"
       manifest << "Source-Md5: #{@tgz_hash}"
       manifest = change_cartridge_vendor_of manifest
 
-      err = assert_raise(OpenShift::InvalidElementError) do
-        cartridge = OpenShift::Runtime::Manifest.new(manifest)
+      err = assert_raise(::OpenShift::InvalidElementError) do
+        cartridge = ::OpenShift::Runtime::Manifest.new(manifest)
       end
 
       assert_match 'Name', err.message
@@ -306,8 +306,8 @@ module OpenShift
       manifest << "Source-Md5: #{@tgz_hash}"
       manifest = change_cartridge_vendor_of manifest
 
-      err = assert_raise(OpenShift::InvalidElementError) do
-        cartridge = OpenShift::Runtime::Manifest.new(manifest)
+      err = assert_raise(::OpenShift::InvalidElementError) do
+        cartridge = ::OpenShift::Runtime::Manifest.new(manifest)
       end
 
       assert_match /is reserved\.: 'Name'/, err.message
@@ -320,8 +320,8 @@ module OpenShift
     #  manifest << "Source-Md5: #{@tgz_hash}"
     #  manifest = change_cartridge_vendor_of manifest
     #
-    #  err = assert_raise(OpenShift::InvalidElementError) do
-    #    cartridge = OpenShift::Runtime::Manifest.new(manifest)
+    #  err = assert_raise(::OpenShift::InvalidElementError) do
+    #    cartridge = ::OpenShift::Runtime::Manifest.new(manifest)
     #  end
     #
     #  assert_match 'Cartridge-Vendor', err.message
@@ -334,11 +334,11 @@ module OpenShift
       manifest << "Source-Md5: #{@tgz_hash}" << "\n"
       manifest = change_cartridge_vendor_of manifest
 
-      cartridge      = OpenShift::Runtime::Manifest.new(manifest)
+      cartridge      = ::OpenShift::Runtime::Manifest.new(manifest)
       cartridge_home = "#{@test_home}/gear/mock-plugin"
 
       with_detail_output do
-        OpenShift::CartridgeRepository.instantiate_cartridge(cartridge, cartridge_home)
+        ::OpenShift::Runtime::CartridgeRepository.instantiate_cartridge(cartridge, cartridge_home)
       end
 
       assert_path_exist(cartridge_home)
@@ -352,11 +352,11 @@ module OpenShift
       manifest << "Source-Md5: #{@tar_hash}"
       manifest = change_cartridge_vendor_of manifest
 
-      cartridge      = OpenShift::Runtime::Manifest.new(manifest)
+      cartridge      = ::OpenShift::Runtime::Manifest.new(manifest)
       cartridge_home = "#{@test_home}/gear/mock-plugin"
 
       with_detail_output do
-        OpenShift::CartridgeRepository.instantiate_cartridge(cartridge, cartridge_home)
+        ::OpenShift::Runtime::CartridgeRepository.instantiate_cartridge(cartridge, cartridge_home)
       end
 
       assert_path_exist(cartridge_home)
@@ -367,7 +367,7 @@ module OpenShift
       build_multi_versions()
 
       name = "crftest_#{@uuid}"
-      cr   = OpenShift::CartridgeRepository.instance
+      cr   = ::OpenShift::Runtime::CartridgeRepository.instance
       cr.clear
 
       cr.install(@source_dir + '/1')
@@ -386,7 +386,7 @@ module OpenShift
     def with_detail_output
       begin
         yield
-      rescue OpenShift::Utils::ShellExecutionException => e
+      rescue ::OpenShift::Runtime::Utils::ShellExecutionException => e
         NodeLogger.logger.debug(e.message + "\n" +
                                     e.stdout + "\n" +
                                     e.stderr + "\n" +

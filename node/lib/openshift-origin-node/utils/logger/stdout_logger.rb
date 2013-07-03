@@ -17,44 +17,46 @@
 require 'logger'
 
 module OpenShift
-  module NodeLogger
-    #
-    # This NodeLogger implementation is backed by the Ruby stdlib +logger+ class.
-    #
-    # NOTE: The +trace+ method is unimplemented.
-    #
-    class StdoutLogger
-      def initialize(config=nil, context=nil)
-        @context = context
-        reinitialize
-      end
+  module Runtime
+    module NodeLogger
+      #
+      # This NodeLogger implementation is backed by the Ruby stdlib +logger+ class.
+      #
+      # NOTE: The +trace+ method is unimplemented.
+      #
+      class StdoutLogger
+        def initialize(config=nil, context=nil)
+          @context = context
+          reinitialize
+        end
 
-      def reinitialize
-        @logger = Logger.new(STDOUT)
-      end
+        def reinitialize
+          @logger = Logger.new(STDOUT)
+        end
 
-      def info(*args, &block)
-        @logger.info(*args, &block)
-      end
+        def info(*args, &block)
+          @logger.info(*args, &block)
+        end
 
-      def debug(*args, &block)
-        @logger.info(*args, &block)
-      end
+        def debug(*args, &block)
+          @logger.info(*args, &block)
+        end
 
-      def warn(*args, &block)
-        @logger.warn(*args, &block)
-      end
+        def warn(*args, &block)
+          @logger.warn(*args, &block)
+        end
 
-      def error(*args, &block)
-        @logger.error(*args, &block)
-      end
+        def error(*args, &block)
+          @logger.error(*args, &block)
+        end
 
-      def fatal(*args, &block)
-        @logger.fatal(*args, &block)
-      end
+        def fatal(*args, &block)
+          @logger.fatal(*args, &block)
+        end
 
-      def trace(*args, &block)
-        # not supported
+        def trace(*args, &block)
+          # not supported
+        end
       end
     end
   end

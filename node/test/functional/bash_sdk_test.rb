@@ -16,7 +16,7 @@
 require_relative '../test_helper'
 
 module OpenShift
-  class BashSdkTest < OpenShift::NodeTestCase
+  class BashSdkTest < NodeTestCase
     def setup
       @ld_library_path='/usr/local/lib'
     end
