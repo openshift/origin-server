@@ -193,18 +193,6 @@ When /^the application is destroyed$/ do
   rhc_ctl_destroy(@app)
 end
 
-And /^the applications are destroyed$/ do
-   if !(@test_apps_hash.nil?)
-     @test_apps_hash.each do |app_name_key, app|
-         rhc_ctl_destroy(app)
-     end
-   else
-    $logger.info("No apps to delete. The hash of TestApps is empty")
-   end
-   @test_apps_hash = {}
-   @unique_namespace_apps_hash = {}
-end
-
 When /^the application namespace is updated$/ do
   rhc_update_namespace(@app)
 end
