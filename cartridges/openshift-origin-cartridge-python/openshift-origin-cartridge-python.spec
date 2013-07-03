@@ -39,6 +39,8 @@ Requires:      python-magic
 %if 0%{?fedora}%{?rhel} <= 6
 Requires:      python27-MySQL-python
 Requires:      python27-python-psycopg2
+Requires:      python27-mod_wsgi
+Requires:      python27-python-pip-virtualenv
 %endif
 Requires:      libjpeg
 Requires:      libjpeg-devel
@@ -72,25 +74,39 @@ Python cartridge for OpenShift. (Cartridge Format V2)
 %__mkdir -p %{buildroot}%{cartridgedir}
 %__cp -r * %{buildroot}%{cartridgedir}
 
+%__mkdir -p %{buildroot}%{cartridgedir}/env
+
 %if 0%{?fedora}%{?rhel} <= 6
-%__mv %{buildroot}%{cartridgedir}/lib/python_context.rhel %{buildroot}%{cartridgedir}/lib/python_context
 %__mv %{buildroot}%{cartridgedir}/metadata/manifest.yml.rhel %{buildroot}%{cartridgedir}/metadata/manifest.yml
 %endif
 %if 0%{?fedora} == 19
-%__mv %{buildroot}%{cartridgedir}/lib/python_context.f19 %{buildroot}%{cartridgedir}/lib/python_context
 %__mv %{buildroot}%{cartridgedir}/metadata/manifest.yml.f19 %{buildroot}%{cartridgedir}/metadata/manifest.yml
 %endif
-%__rm -f %{buildroot}%{cartridgedir}/lib/python_context.*
 %__rm -f %{buildroot}%{cartridgedir}/metadata/manifest.yml.*
+
+
+%__mkdir -p %{buildroot}%{cartridgedir}/usr/versions/{2.6,2.7}
+%if 0%{?fedora}%{?rhel} <= 6
+%__cp -anv %{buildroot}%{cartridgedir}/usr/versions/2.7-scl/* %{buildroot}%{cartridgedir}/usr/versions/2.7/
+%endif
+%__cp -anv %{buildroot}%{cartridgedir}/usr/versions/shared/* %{buildroot}%{cartridgedir}/usr/versions/2.6/
+%__cp -anv %{buildroot}%{cartridgedir}/usr/versions/shared/* %{buildroot}%{cartridgedir}/usr/versions/2.7/
+
+%__rm -rf %{buildroot}%{cartridgedir}/usr/versions/shared
+%__rm -rf %{buildroot}%{cartridgedir}/usr/versions/2.7-scl
+
+%__mv %{buildroot}%{cartridgedir}/usr/versions/3.3-community %{buildroot}%{cartridgedir}/usr/versions/3.3/
 
 %files
 %dir %{cartridgedir}
 %attr(0755,-,-) %{cartridgedir}/bin/
 %if 0%{?fedora}%{?rhel} <= 6
-%attr(0755,-,-) %{cartridgedir}/versions/2.6/bin/
+%attr(0755,-,-) %{cartridgedir}/usr/versions/2.6/bin/
+%attr(0755,-,-) %{cartridgedir}/usr/versions/2.6/bin/*
 %endif
-%attr(0755,-,-) %{cartridgedir}/versions/shared/bin/
-%attr(0755,-,-) %{cartridgedir}/hooks/
+%attr(0755,-,-) %{cartridgedir}/usr/versions/2.7/bin/*
+%attr(0755,-,-) %{cartridgedir}/usr/versions/3.3/bin/*
+%attr(0755,-,-) %{cartridgedir}/hooks
 %{cartridgedir}
 %doc %{cartridgedir}/README.md
 %doc %{cartridgedir}/COPYRIGHT

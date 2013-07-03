@@ -1,8 +1,6 @@
 #!/bin/bash -eu
 
 source $OPENSHIFT_CARTRIDGE_SDK_BASH
-source $OPENSHIFT_PYTHON_DIR/lib/util
-source $OPENSHIFT_PYTHON_DIR/lib/python_context
 
 case "$1" in
     -v|--version)
@@ -11,8 +9,7 @@ esac
 
 echo "$version" > "$OPENSHIFT_PYTHON_DIR/env/OPENSHIFT_PYTHON_VERSION"
 
-update-configuration $version
 mkdir -p $OPENSHIFT_PYTHON_DIR/template
 
 # Call the version specific install script
-exec $OPENSHIFT_PYTHON_DIR/versions/$(python_context_dir $version)/bin/install $version
+exec $OPENSHIFT_PYTHON_DIR/usr/versions/$version/bin/install $version

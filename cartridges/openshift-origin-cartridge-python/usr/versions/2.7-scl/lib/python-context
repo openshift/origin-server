@@ -1,0 +1,12 @@
+#!/bin/bash
+
+# Utility function to execute in the installing python context ahead
+# of any updates to PATH and LD_LIBRARY_PATH.
+
+function python-context {
+    scl enable python27 "$@"
+}
+
+function python-context-stdin {
+    scl enable python27 -
+}

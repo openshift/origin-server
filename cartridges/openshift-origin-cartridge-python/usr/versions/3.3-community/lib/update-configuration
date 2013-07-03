@@ -1,0 +1,8 @@
+#!/bin/bash
+
+# Utility function to update cartridge configuration
+
+function update-configuration {
+    # 3.3-community installations of python
+    echo "$OPENSHIFT_PYTHON_DIR/bin:$OPENSHIFT_PYTHON_DIR/virtenv/venv/bin" > $OPENSHIFT_PYTHON_DIR/env/OPENSHIFT_PYTHON_PATH_ELEMENT
+}

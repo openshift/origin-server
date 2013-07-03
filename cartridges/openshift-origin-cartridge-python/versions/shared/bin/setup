@@ -1,7 +1,0 @@
-#!/bin/bash -eu
-
-version="$1"
-
-# Copy the version specific files to python directory
-shopt -s dotglob
-cp -r $OPENSHIFT_PYTHON_DIR/versions/$version/etc/* $OPENSHIFT_PYTHON_DIR/etc
