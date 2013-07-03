@@ -11,9 +11,9 @@ v2.0, July 2013
 Adapted from the OpenShift Enterprise Training - Lab Manual By Grant Shipley <gshipley@redhat.com>
 ////
 
-The OpenShift Client tools, known as *rhc*, are built and packaged using the Ruby programming language. OpenShift Origin integrates with the Git version control system to provide powerful, decentralized version control for your application source code.
+The OpenShift Client tools, known as *rhc*, are built and packaged using the Ruby programming language. OpenShift Origin integrates with the Git version control system to provide powerful, decentralized version control for your application source code. OpenShift Origin client tools can be installed on any operating system with Ruby 1.8.7 or higher. Instructions for specific operating systems are provided below. It is assumed that you are running the commands from a command line window, such as Command Prompt, or Terminal.
 
-OpenShift Origin client tools can be installed on any operating system with Ruby 1.8.7 or higher. Instructions for specific operating systems are provided below. It is assumed that you are running the commands from a command line window, such as Command Prompt, or Terminal. If you are using Ruby Version Manager (rvm) see the instructions below.
+If you want to use https://rvm.io/[Ruby Version Manager (rvm)], no problem; see the instructions <<rvm_and_rhc,below>>.
 
 Microsoft Windows
 -----------------
@@ -189,4 +189,34 @@ With Ruby and Git correctly installed, you can now use the RubyGems package mana
 
 ----
 $ sudo gem install rhc
+----
+
+[[rvm_and_rhc]]
+Ruby Version Manager and rhc
+----------------------------
+https://rvm.io/[Ruby Version Manager (RVM)] is an alternate management system for Ruby and Ruby Gems that makes it easier for users to switch between ruby versions and to work with the latest gem versions. Because _rhc_ is itself a Ruby Gem, using it with RVM doesn't require any special magic. Once RVM is installed, use the _rvm use_ command to specify the ruby version / environment of your choice:
+
+----
+$ rvm use 1.9.3    # tells rvm to use a Ruby 1.93 environment
+$ rvm use system   # tells rvm to use the Ruby environment that is not managed by RVM
+----
+
+To set the persistent default environment, use the _--default_ flag:
+
+----
+$ rvm --default use 1.9.3
+Using /path/to/homedir/.rvm/gems/ruby-1.9.3-p286
+----
+
+Once you are working in your preferred environment, run the gem command as usual to install rhc:
+
+----
+$ gem install rhc
+----
+
+And confirm that you are going to be using the desired version of rhc using _which_:
+
+----
+$ which rhc
+/path/to/homedir/.rvm/gems/ruby-1.9.3-p286/bin/rhc
 ----
