@@ -163,7 +163,12 @@ function status() {
 }
 
 function deploy() {
-    $OPENSHIFT_HAPROXY_DIR/bin/deploy
+    # Fix to get name of haproxy cartridge from environment
+    HAPROXY_CONF_DIR=$OPENSHIFT_HAPROXY_DIR/conf
+    HAPROXY_GEAR_REGISTRY=$HAPROXY_CONF_DIR/gear-registry.db
+    local gears=($(< "${HAPROXY_GEAR_REGISTRY}"))
+    sync_gear_repos "false" "${gears[@]}"
+    [ $? -eq 0 ] || exit $?
 }
 
 #

@@ -66,9 +66,9 @@ module OpenShift
       # harmless changes the 2-n times around.
       #
       def self.upgrade(uuid, namespace, version, hostname, ignore_cartridge_version)
-        unless version == '2.0.29'
-          return "Invalid version: #{version}", 255
-        end
+        #unless version == '2.0.30'
+        #    return "Invalid version: #{version}", 255
+        #end
 
         start_time = (Time.now.to_f * 1000).to_i
 
