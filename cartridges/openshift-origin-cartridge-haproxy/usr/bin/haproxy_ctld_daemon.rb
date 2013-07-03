@@ -4,7 +4,7 @@ require 'rubygems'
 require 'daemons'
 
 options = {
-    :backgrace => true,
+    :backtrace => true,
     :ontop => false,
     :log_output => true,
     :log_dir => "#{ENV['OPENSHIFT_HAPROXY_LOG_DIR']}",
