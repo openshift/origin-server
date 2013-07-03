@@ -196,6 +196,13 @@ module OpenShift
           return ['', '', 0]
         end
 
+        notify_endpoint_delete = ''
+        @cartridge_model.each_cartridge do |cart|
+          env = Utils::Environ::for_gear(@container_dir)
+          cart.public_endpoints.each do |endpoint|
+            notify_endpoint_delete << "NOTIFY_ENDPOINT_DELETE: #{endpoint.public_port_name} #{@config.get('PUBLIC_IP')} #{env[endpoint.public_port_name]}\n"
+          end
+        end
         # possible mismatch across cart model versions
         output, errout, retcode = @cartridge_model.destroy(skip_hooks)
 
@@ -227,6 +234,8 @@ module OpenShift
 
           lock.flock(File::LOCK_UN)
         end
+
+        output += notify_endpoint_delete
 
         notify_observers(:after_container_destroy)
 
