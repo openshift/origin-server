@@ -27,6 +27,7 @@ require 'openshift-origin-node/utils/sdk'
 require 'openshift-origin-node/utils/node_logger'
 require 'openshift-origin-node/utils/hourglass'
 require 'openshift-origin-node/utils/cgroups'
+require 'openshift-origin-node/routing_service'
 require 'openshift-origin-common'
 require 'yaml'
 require 'active_model'
@@ -165,8 +166,18 @@ module OpenShift
     def destroy(skip_hooks=false)
       notify_observers(:before_container_destroy)
 
+      notify_endpoint_delete = ''
+      @cartridge_model.each_cartridge do |cart|
+        env = Utils::Environ.for_gear @user.homedir
+        cart.public_endpoints.each do |endpoint|
+          notify_endpoint_delete << "NOTIFY_ENDPOINT_DELETE: #{endpoint.public_port_name} #{@config.get('PUBLIC_IP')} #{env[endpoint.public_port_name]}\n"
+        end
+      end
+
       # possible mismatch across cart model versions
       output, errout, retcode = @cartridge_model.destroy(skip_hooks)
+
+      output += notify_endpoint_delete
 
       notify_observers(:after_container_destroy)
 
@@ -195,6 +206,8 @@ module OpenShift
 
       proxy = OpenShift::FrontendProxyServer.new
 
+      output = ''
+
       # TODO: better error handling
       cart.public_endpoints.each do |endpoint|
         # Load the private IP from the gear
@@ -210,9 +223,13 @@ module OpenShift
 
         @user.add_env_var(endpoint.public_port_name, public_port)
 
+        output << "NOTIFY_ENDPOINT_CREATE: #{endpoint.public_port_name} #{@config.get('PUBLIC_IP')} #{public_port}\n"
+
         logger.info("Created public endpoint for cart #{cart.name} in gear #{@uuid}: "\
           "[#{endpoint.public_port_name}=#{public_port}]")
       end
+
+      output
     end
 
     # Deletes all public endpoints for the given cart. Public port mappings are
@@ -227,6 +244,8 @@ module OpenShift
 
       proxy = OpenShift::FrontendProxyServer.new
 
+      output = ''
+
       public_ports     = []
       public_port_vars = []
 
@@ -239,6 +258,8 @@ module OpenShift
         public_port = proxy.find_mapped_proxy_port(@user.uid, private_ip, endpoint.private_port)
 
         public_ports << public_port unless public_port == nil
+
+        output << "NOTIFY_ENDPOINT_DELETE: #{endpoint.public_port_name} #{@config.get('PUBLIC_IP')} #{public_port}\n" unless public_port == nil
       end
 
       begin
@@ -257,6 +278,8 @@ module OpenShift
 
       # Clean up the environment variables
       public_port_vars.each { |var| @user.remove_env_var(var) }
+
+      output
     end
 
     # Public: Cleans up the gear, providing any installed
