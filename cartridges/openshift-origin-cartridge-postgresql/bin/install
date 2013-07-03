@@ -8,8 +8,6 @@ case "$1" in
     version="$2"
 esac
 
-echo "$version" > "$OPENSHIFT_POSTGRESQL_DIR/env/OPENSHIFT_POSTGRESQL_VERSION"
-
 echo "Installing postgres"
 
 env_dir="${OPENSHIFT_POSTGRESQL_DIR}/env"
@@ -24,6 +22,8 @@ password=$(generate_password)
 set_env_var 'OPENSHIFT_POSTGRESQL_DB_USERNAME' $username $env_dir
 set_env_var 'PGUSER' $username $env_dir
 set_env_var 'OPENSHIFT_POSTGRESQL_DB_PASSWORD' $password $env_dir
+
+set_env_var 'OPENSHIFT_POSTGRESQL_VERSION' $version $env_dir
 
 # TODO: This should be able to be in an erb file, but they're not sourced in the correct order
 set_env_var 'OPENSHIFT_POSTGRESQL_DB_URL' "postgresql://${username}:${password}@${OPENSHIFT_POSTGRESQL_DB_HOST}:${OPENSHIFT_POSTGRESQL_DB_PORT}" $env_dir
