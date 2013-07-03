@@ -1,5 +1,4 @@
-OpenShift Origin Troubleshooting Guide
-======================================
+= OpenShift Origin Troubleshooting Guide
 OpenShift Origin Documentation Project <dev@lists.openshift.redhat.com>
 v2.0, July 2013
 :data-uri:
@@ -15,8 +14,7 @@ If you are running into trouble with an application _hosted_ on an OpenShift Ori
 * OpenShift FAQ: https://www.openshift.com/faq
 * OpenShift Forums: https://www.openshift.com/forums/
 
-Diagnostics Script
-------------------
+== Diagnostics Script
 Installing and configuring an OpenShift Origin PaaS can often fail due to simple mistakes in configuration files. Fortunately, the OpenShift team provides an unsupported troubleshooting script that can diagnose most problems with an installation. The most updated version of this script is available at:
 
 ----
@@ -35,7 +33,7 @@ To run the command and check for errors, issue the following command:
 # ./oo-diagnostics -v
 ----
 
-[NOTE]
+[TIP]
 ====
 Sometimes the script will fail at the first error and not continue processing. In order to run a full check on your node, add the _--abortok_ switch
 
@@ -46,11 +44,10 @@ Sometimes the script will fail at the first error and not continue processing. I
 
 Under the covers, this script performs a lot of checks on your host as well as executing the existing _oo-accept-broker_ and _oo-accept-node_ commands on the respective host.
 
-Recovering Failed Nodes
------------------------
+== Recovering Failed Nodes
 A node host that fails catastrophically can be recovered if the gear directory /var/lib/openshift has been stored in a fault-tolerant way and can be recovered. In practice this scenario occurs rarely, especially when node hosts are virtual machines in a fault tolerant infrastructure rather than physical machines.
 
-NOTE: Do not start the MCollective service on the replacement node host until you have completed the following steps.
+WARNING: Do not start the MCollective service on the replacement node host until you have completed the following steps.
 
 Install a node host with the same hostname and IP address as the one that failed. The hostname DNS A record can be adjusted if the IP address must be different, but note that the application CNAME and database records all point to the hostname, and cannot be easily changed.
 
@@ -66,8 +63,7 @@ Recreate /etc/passwd entries for all the gears using the following steps:
 
 Reboot the new node host to activate all changes, start the gears, and allow MCollective and other services to run.
 
-Removing Applications from a Node
----------------------------------
+== Removing Applications from a Node
 While trying to add a node to a district, a common error is that the node already has user applications on it. In order to be able to add this node to a district, you will either need to move these applications to another node or delete the applications. Whether you choose to move or delete the applications will depend largely on your agreements with your end users regarding application persistence.
 
 In order to remove a users application, issue the following commands:
@@ -79,8 +75,7 @@ In order to remove a users application, issue the following commands:
 
 The above commands will stop the user's application and them remove the application from the node. If you want to preserve the application data, you should backup the application first using the snapshot tool that is part of the RHC command line tools.
 
-Unknown Locale Error When Running _lokkit_
-------------------------------------------
+== Unknown Locale Error When Running _lokkit_
 If you get unknown locale error when running _lokkit_, run the following command to set the locale and then try your lokkit command again:
 
 ----
