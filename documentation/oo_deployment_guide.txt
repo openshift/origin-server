@@ -1,5 +1,4 @@
-OpenShift Origin Deployment Guide
-=================================
+= OpenShift Origin Deployment Guide
 OpenShift Origin Documentation Project <dev@lists.openshift.redhat.com>
 v2.0, July 2013
 :data-uri:
@@ -11,16 +10,16 @@ v2.0, July 2013
 Adapted from the OpenShift Enterprise Training - Lab Manual By Grant Shipley <gshipley@redhat.com>
 ////
 
-Overview
---------
+[float]
+== Overview
 Platform as a Service is changing the way developers approach developing software. Developers typically use a local sandbox with their preferred application server and only deploy locally on that instance. Developers typically start JBoss locally using the startup.sh command and drop their .war or .ear file in the deployment directory and they are done. Developers have a hard time understanding why deploying to the production infrastructure is such a time consuming process.
 
 System Administrators understand the complexity of not only deploying the code, but procuring, provisioning and maintaining a production level system. They need to stay up to date on the latest security patches and errata, ensure the firewall is properly configured, maintain a consistent and reliable backup and restore plan, monitor the application and servers for CPU load, disk IO, HTTP requests, etc.
 
 OpenShift Origin provides developers and IT organizations an open source auto-scaling cloud application platform for quickly deploying new applications on secure and scalable resources with minimal configuration and management headaches. This means increased developer productivity and a faster pace in which IT can support innovation.
 
-Getting up and Running with OpenShift Origin
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[float]
+=== Getting up and Running with OpenShift Origin
 OpenShift Origin is "infrastructure agnostic". That means that you can run OpenShift on bare metal, virtualized instances, or on public/private cloud instances. The only thing that is required is Fedora Linux or Red Hat Enterprise Linux as the underlying operating system. We require this in order to take advantage of SELinux so that you can ensure your installation is rock solid and secure.
 
 What does this mean? This means that in order to take advantage of OpenShift Origin, you can use any existing resources that you have in your hardware pool today. It doesn't matter if your infrastructure is based on EC2, VMware, RHEV, Rackspace, OpenStack, CloudStack, or even bare metal as long as your CPUs are 64 bit processors.
@@ -42,8 +41,8 @@ For help with your specific setup, you can ask the OpenShift team at IRC channel
 
 This document assumes that you have a working knowledge of SSH, git, and yum, and are familiar with a Linux-based text editor like vi or emacs. Additionally, you will need to be able to install / and or administer the systems described in the next section.
 
-Installation Prerequisites
-~~~~~~~~~~~~~~~~~~~~~~~~~~
+[float]
+=== Installation Prerequisites
 Before OpenShift Origin can be installed, the following services must be available in your network:
 
 * DNS
@@ -57,20 +56,17 @@ And the hosts (or nodes) in your system must have the following clients installe
 
 This document includes chapters on how to install and configure these services and clients on a single host, along with the OpenShift Origin _broker_ component. However, in a production environment these services may already be in place, and it may not be necessary to modify them.
 
-Electronic version of this document
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[float]
+=== Electronic version of this document
 This document is available online at _URL_
 
-Prerequisite: Preparing the Broker Host System
-----------------------------------------------
+== Prerequisite: Preparing the Broker Host System
 The broker acts as the central dispatcher in your OpenShift Origin service. Before you can run the broker, you need to prepare the broker host according to these instructions.
 
-Updates and NTP
-~~~~~~~~~~~~~~~
+=== Updates and NTP
 The broker host should be running the latest Fedora packages, and should be configured to use NTP for clock synchronization.
 
-Update the Operating System
-^^^^^^^^^^^^^^^^^^^^^^^^^^^
+==== Update the Operating System
 *Server used:*
 
 * broker host
@@ -88,8 +84,8 @@ First, you need to update the operating system to have all of the latest package
 
 NOTE: Depending on your connection and speed of your broker host, this installation make take several minutes.
 
-Configure the Clock to Avoid Time Skew
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+==== Configure the Clock to Avoid Time Skew
+
 *Server used:*
 
 * broker host
@@ -109,8 +105,7 @@ the recipient drops the message. This is often referred to as clock skew and is 
 # service ntpd start
 ----
 
-DNS
-~~~
+=== DNS
 At a typical network site, a DNS infrastructure will already be in place. However, this section describes a known good DNS configuration that will ensure that name resolution works properly.
 
 *Server used:*
@@ -127,8 +122,7 @@ At a typical network site, a DNS infrastructure will already be in place. Howeve
 * Commands: `cat`, `echo`, `chown`, `dnssec-keygen`, `rndc-confgen`, `restorecon`,
 `chmod`, `lokkit`, `chkconfig`, `service`, `nsupdate`, `ping`, `dig`
 
-Install the BIND DNS Server
-^^^^^^^^^^^^^^^^^^^^^^^^^^^
+==== Install the BIND DNS Server
 In order for OpenShift Origin to work correctly, you will need to configure BIND so that you have a DNS server setup.
 
 In OpenShift Origin, name resolution is used primarily for communication between our broker and node hosts. It is additionally used for dynamically updating the DNS server to resolve gear application names when we start creating application gears.
@@ -139,8 +133,7 @@ To proceed, ensure that bind and the bind utilities have been installed on the b
 # yum install bind bind-utils
 ----
 
-Create DNS environment variables and a DNSSEC key file
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+==== Create DNS environment variables and a DNSSEC key file
 OpenShift recommends that you set an environment variable for the domain name that you will be using to
 facilitate faster configuration of BIND. This section describes the process of setting that up.
 
@@ -186,9 +179,7 @@ Configure the ownership, permissions, and SELinux contexts for the keys that you
 # chmod -v 640 /etc/rndc.key
 ----
 
-Create a fowarders.conf file for host name resolution
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
+==== Create a fowarders.conf file for host name resolution
 The DNS forwarding facility of BIND can be used to create a large site-wide cache on a few servers, reducing traffic over links to external name servers. It can also be used to allow queries by servers that do not have direct access to the Internet, but wish to look up exterior names anyway. Forwarding occurs only on those queries for which the server is not authoritative and does not have the answer in its cache.
 
 Create the forwarders.conf file with the following commands:
@@ -199,9 +190,7 @@ Create the forwarders.conf file with the following commands:
 # chmod -v 755 /var/named/forwarders.conf
 ----
 
-Configure subdomain resolution and create an initial DNS database
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
+==== Configure subdomain resolution and create an initial DNS database
 To ensure that you are starting with a clean _/var/named/dynamic_ directory, remove this directory if it exists:
 
 ----
@@ -271,8 +260,7 @@ Set the correct permissions and contexts:
 # restorecon -rv /var/named
 ----
 
-Create the _named_ configuration file
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+==== Create the _named_ configuration file
 You will also need to create the _named.conf_ file. Before running the following command, verify that the $domain variable that you set earlier is still available.
 
 ----
@@ -336,8 +324,7 @@ Finally, set the permissions for the new configuration file that you just create
 # restorecon /etc/named.conf
 ----
 
-Configure host name resolution to use new the _BIND_ server
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+==== Configure host name resolution to use new the _BIND_ server
 Now you need to update the resolv.conf file to use the local _named_ service that you just installed and configured. Open up your _/etc/resolv.conf_ file and add the following entry *as the first nameserver entry in the file*:
 
 ----
@@ -353,8 +340,7 @@ We also need to make sure that _named_ starts on boot and that the firewall is c
 
 NOTE: If you get unknown locale error when running _lokkit_, consult the troubleshooting section at the end of this manual.
 
-Start the _named_ service
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+==== Start the _named_ service
 Now you are ready to start up your new DNS server and add some updates.
 
 ----
@@ -363,8 +349,7 @@ Now you are ready to start up your new DNS server and add some updates.
 
 You should see a confirmation message that the service was started correctly. If you do not see an OK message, run through the above steps again and ensure that the output of each command matches the contents of this document. If you are still having trouble after trying the steps again, refer to your help options.
 
-Add the Broker Node to DNS
-~~~~~~~~~~~~~~~~~~~~~~~~~~
+=== Add the Broker Node to DNS
 If you configured and started a BIND server per this document, or you are working against a BIND server that was already in place, you now need to add a record for your broker node (or host) to BIND's database. To accomplish this task, you will use the `nsupdate` command, which opens an interactive shell. Replace "broker.example.com" with your preferred hostname:
 
 ----
@@ -389,8 +374,7 @@ and it should resolve to the local machine that you are working on. You can also
 # dig @127.0.0.1 broker.example.com
 ----
 
-DHCP Client and Hostname
-~~~~~~~~~~~~~~~~~~~~~~~~
+=== DHCP Client and Hostname
 
 *Server used:*
 
@@ -401,8 +385,7 @@ DHCP Client and Hostname
 * text editor
 * Commands: hostname
 
-Create _dhclient-eth0.conf_
-^^^^^^^^^^^^^^^^^^^^^^^^^^^
+==== Create _dhclient-eth0.conf_
 In order to configure your broker host to use a specific DNS server, you will need to edit the _/etc/dhcp/dhclient-\{$network device}.conf file_ or create the file if it does not exist. Without this step, the DNS server information in _/etc/resolv.conf_ would default back the server returned from your DHCP server on the next boot of the server.
 
 For example, if you are using eth0 as your default ethernet device, you would need to edit the following file:
@@ -425,9 +408,7 @@ supersede domain-name "example.com";
 
 Ensure that you do not have any typos. Command errors include forgetting a semicolon, putting in the node's IP address instead of the broker's, or typing "server" instead of "servers."
 
-Set the host name for your server
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
+==== Set the host name for your server
 You need to set the hostname of your broker host. In order to accomplish
 this task, edit the _/etc/sysconfig/network_ file and locate the section
 labeled _HOSTNAME_. The line that you want to replace should look like
@@ -453,8 +434,7 @@ current session by using the following command:
 # hostname broker.example.com
 ----
 
-Prerequisite: MongoDB
----------------------
+== Prerequisite: MongoDB
 
 *Server used:*
 
@@ -472,8 +452,7 @@ OpenShift Origin makes heavy use of MongoDB for storing internal information abo
 MongoDB site (http://www.mongodb.org). For the purpose of OpenShift Origin, you need to know that MongoDB is
 a document data storage system that uses JavaScript for the command syntax and stores all documents in a JSON format.
 
-Install the _mongod_ server
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
+=== Install the _mongod_ server
 In order to use MongoDB, you will need to install the mongod server:
 
 ----
@@ -492,8 +471,7 @@ boost-program-options  x86_64  2.0.2-2.el6op      rhel-server-ose-infra-6-rpms  
 mongodb                x86_64  2.0.2-2.el6op      rhel-server-ose-infra-6-rpms   21 M
 ----
 
-Configure _mongod_
-~~~~~~~~~~~~~~~~~~
+=== Configure _mongod_
 MongoDB uses a configuration file for its settings. This file can be found at _/etc/mongodb.conf_. You will need to make a few changes to this file to ensure that MongoDB handles authentication correctly and that is enabled to use small files. Edit the configuration file and ensure the two following conditions are set correctly:
 
 ----
@@ -509,8 +487,7 @@ smallfiles=true
 Setting _smallfiles=true_ configures MongoDB not to pre-allocate a huge database, which wastes a surprising amount of time and disk space and is unnecessary for the comparatively small amount of data that the broker
 will store in it. It is not absolutely necessary to set _smallfiles=true_. For a new installation it save a minute or two of initialization time and saves a fair amount of disk space.
 
-Set _mongod_ to Start on Boot
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+=== Set _mongod_ to Start on Boot
 MongoDB is an essential part of the OpenShift Origin platform. Because of this, you must ensure that mongod is configured to start on system boot:
 
 ----
@@ -556,8 +533,7 @@ To exit the Mongo shell, you can simply type exit:
 > exit
 ----
 
-Prerequisite: ActiveMQ
-----------------------
+== Prerequisite: ActiveMQ
 ActiveMQ is a fully open source messenger service that is available for use across many different programming languages and environments. OpenShift Origin makes use of this technology to handle communications between the broker host and the node hosts in the deployment. In order to make use of this messaging service, you need to
 install and configure ActiveMQ  on your broker node.
 
@@ -575,8 +551,7 @@ install and configure ActiveMQ  on your broker node.
 * service
 
 
-Installation
-~~~~~~~~~~~~
+=== Installation
 Installing ActiveMQ on Fedora is a fairly easy process as the packages are included in the rpm repositories that are already configured on your broker node. You need to install both the server and client packages by using the following command:
 
 ----
@@ -585,8 +560,7 @@ Installing ActiveMQ on Fedora is a fairly easy process as the packages are inclu
 
 NOTE: This will also install all of the dependencies required for the packages if they aren't already installed. Notably, Java 1.6 and the libraries for use with the Ruby programming language may be installed.
 
-Configuration
-~~~~~~~~~~~~~
+=== Configuration
 ActiveMQ uses an XML configuration file that is located at _/etc/activemq/activemq.xml_. This installation guide is accompanied by a template version of activemq.xml that you can use to replace this file. *But first: back up the original file*:
 
 ----
@@ -622,8 +596,7 @@ The second change is to provide your own credentials for authentication. The aut
  </simpleAuthenticationPlugin>
 ----
 
-Firewall Rules / Start on Boot
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+=== Firewall Rules / Start on Boot
 The broker host firewall rules must be adjusted to allow MCollective to communicate on port 61613:
 
 ----
@@ -637,8 +610,7 @@ Finally, you need to enable the ActiveMQ service to start on boot as well as sta
 # service activemq start
 ----
 
-Verify that ActiveMQ is Working
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+=== Verify that ActiveMQ is Working
 Now that ActiveMQ has been installed, configured, and started, verify that the web console is working as expected. The ActiveMQ web console should be running and listening on port 8161. In order to verify that
 everything worked correctly, load the following URL in a web browser:
 
@@ -670,13 +642,12 @@ Alternatively, the following command creates a SSH tunnel, so that if you connec
 # ssh -f -N -L 8161:broker.example.com:8161 root@10.4.59.x
 ----
 
-image:images/activemqconsole.png[image]
+image:activemqconsole.png[image]
 
 NOTE: You have changed the authentication credentials for the ActiveMQ service itself, but the above configuration requires no authentication for accessing the activemq console. For a production deployment, you
 would want to restrict web console access to localhost (127.0.0.1) and require authentication. The authentication information is stored in the _/etc/activemq/jetty.xml_ configuration file as well as the _/etc/activemq/jetty-realm.properties_ file.
 
-Prerequisite: MCollective client
---------------------------------
+== Prerequisite: MCollective client
 
 *Server used:*
 
@@ -689,16 +660,14 @@ Prerequisite: MCollective client
 
 For communication between the broker host and the gear nodes, OpenShift Origin uses MCollective. You may be wondering how MCollective is different from ActiveMQ. ActiveMQ is the messenger server that provides a queue of transport messages. You can think of MCollective as the client that actually sends and receives those messages. For example, if we want to create a new gear on an OpenShift Origin node, MCollective would receive the "create gear" message from ActiveMQ and perform the operation.
 
-Installation
-~~~~~~~~~~~~
+=== Installation
 In order to use MCollective, first install it via yum:
 
 ----
 # yum install mcollective-client
 ----
 
-Configuration
-~~~~~~~~~~~~~
+=== Configuration
 Replace the contents of the _/etc/mcollective/client.cfg_ with the following information:
 
 ----
@@ -722,8 +691,7 @@ plugin.stomp.password = <choose a password>
 
 Now you have configured the MCollective client to connect to ActiveMQ running on the local host. In a typical deployment, you will configure MCollective to connect to ActiveMQ running on a remote server by putting the appropriate hostname for the plugin.stomp.host setting.
 
-The Broker
-----------
+== The Broker
 
 *Server used:*
 
@@ -741,8 +709,7 @@ The Broker
 * fixfiles
 * restorecon
 
-Install Necessary Packages
-~~~~~~~~~~~~~~~~~~~~~~~~~~
+=== Install Necessary Packages
 In order for users to interact with the OpenShift Origin platform, they will typically use client tools or the web console. These tools communicate with the broker via a REST API that is also accessible for writing third party applications and tools. In order to use the broker application, we need to install several packages from the OpenShift Origin repository.
 
 ----
@@ -751,8 +718,7 @@ In order for users to interact with the OpenShift Origin platform, they will typ
 
 NOTE: Depending on your connection and speed of your broker host, this installation make take several minutes.
 
-Configure the Firewall and Enable Service at Boot
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+=== Configure the Firewall and Enable Service at Boot
 The broker application requires a number of services to be running in order to function properly. Configure them to start at boot time:
 
 ----
@@ -769,8 +735,7 @@ Additionally, modify the firewall rules to ensure that the traffic for these ser
 # lokkit --service=http
 ----
 
-Generate access keys
-~~~~~~~~~~~~~~~~~~~~
+=== Generate access keys
 Now you will need to generate access keys that will allow some of the services (Jenkins for example) to communicate to the broker.
 
 ----
@@ -796,8 +761,7 @@ Press <enter> for the passphrase. This generates a passwordless key which is con
 
 Later, during configuration of the node hosts, you will copy this newly created key to each node host.
 
-Configure SELinux
-~~~~~~~~~~~~~~~~~
+=== Configure SELinux
 SELinux has several variables that we want to ensure are set correctly. These variables include the following:
 
 .SELinux Boolean Values
@@ -829,8 +793,7 @@ You will also need to set several files and directories with the proper SELinux 
 
 The _fixfiles_ command updates SELinux's database that associates pathnames with SELinux contexts. The _restorecon_ command uses this database to update the SELinux contexts of the specified files on the file system itself so that those contexts will be in effect when the kernel enforces policy. See the manual pages of the _fixfiles_ and _restorecon_ commands for further details.
 
-Understand and Change the Broker Configuration
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+=== Understand and Change the Broker Configuration
 The OpenShift Origin broker uses a configuration file to define several of the attributes for controlling how the platform as a service works. This configuration file is located at _/etc/openshift/broker.conf_. For instance, the valid gear types that a user can create are defined using the _VALID_GEAR_SIZES_ variable.
 
 ----
@@ -847,8 +810,7 @@ CLOUD_DOMAIN="example.com"
 
 While you are in this file, you can change any other settings that need to be configured for your specific installation.
 
-Broker Plugins and MongoDB User Accounts
-----------------------------------------
+== Broker Plugins and MongoDB User Accounts
 
 *Server used:*
 
@@ -884,8 +846,7 @@ files.
 * openshift-origin-dns-bind.conf.example
 * openshift-origin-msg-broker-mcollective.conf.example
 
-Create Configuration Files
-~~~~~~~~~~~~~~~~~~~~~~~~~~
+=== Create Configuration Files
 To begin, copy the .example files to actual configuration files that will be used by OpenShift Origin:
 
 ----
@@ -895,8 +856,7 @@ To begin, copy the .example files to actual configuration files that will be use
 
 The broker application will check the plugins.d directory for files ending in .conf. The presence of .conf file enables the corresponding plug-in. Thus, for example, copying the openshift-origin-auth-remote-user.conf.example file to openshift-origin-auth-remote-user.conf enables the auth-remote-user plug-in.
 
-Configure the DNS plugin
-~~~~~~~~~~~~~~~~~~~~~~~~
+=== Configure the DNS plugin
 If you installed a DNS server on the same host as the broker by following the instructions at TK, you can create a DNS configuration file using the `cat` command instead of starting with the example DNS configuration file. You can do that by taking advantage of the $domain and $keyfile environment variables that you created during that process. If you no longer have these variables set, you can recreate them with the following commands:
 
 ----
@@ -958,11 +918,8 @@ The last step to configure DNS is to compile and install the SELinux policy for 
 # semodule -i /usr/share/selinux/packages/rubygem-openshift-origin-dns-bind/dhcpnamedforward.pp
 ----
 
-Configure an Authentication Plugin
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-OpenShift Origin supports various different authentication systems for authorizing a user. In a production environment, you will probably want to use LDAP, kerberos, or some other enterprise class authorization
-and authentication system. For this reference system we will use a system called Basic Auth that relies on a _htpasswd_ file to configure authentication. OpenShift Origin provides three example authentication configuration files in the _/var/www/openshift/broker/httpd/conf.d/_ directory:
+=== Configure an Authentication Plugin
+OpenShift Origin supports various different authentication systems for authorizing a user. In a production environment, you will probably want to use LDAP, kerberos, or some other enterprise class authorization and authentication system. For this reference system we will use a system called Basic Auth that relies on a _htpasswd_ file to configure authentication. OpenShift Origin provides three example authentication configuration files in the _/var/www/openshift/broker/httpd/conf.d/_ directory:
 
 .Authentication Sample Files
 [options="header"]
@@ -999,8 +956,7 @@ If the operation was a success, you should see output similar to the following:
 demo:$apr1$Q7yO3MF7$rmSZ7SI.vITfEiLtkKSMZ/
 ----
 
-Add a MongoDB account
-~~~~~~~~~~~~~~~~~~~~~
+=== Add a MongoDB account
 OpenShift Origin makes heavy use of the MongoDB NOSQL database. At this point, you will need to add a user to your MongoDB instance for the broker application. If you take a look at the broker configuration file:
 
 ----
@@ -1027,8 +983,7 @@ connecting to: openshift_broker_dev
 }
 ----
 
-Verify the Ruby Bundler
-~~~~~~~~~~~~~~~~~~~~~~~
+=== Verify the Ruby Bundler
 The broker Rails application depends on several gem files in order to operate correctly. You need to ensure that the Ruby bundler can find the appropriate gem files.
 
 ----
@@ -1042,8 +997,7 @@ You should see a lot of information scroll by letting you know what gem files th
 Your bundle is complete! Use `bundle show [gemname]` to see where a bundled gem is installed.
 ----
 
-Set Services to Start on Boot
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+=== Set Services to Start on Boot
 The last step in configuring our broker application is to ensure that all of the necessary services are started and that they are configured to start upon system boot.
 
 ----
@@ -1057,8 +1011,7 @@ This will ensure that the broker starts upon next system boot. However, you also
 # service openshift-broker start
 ----
 
-Verify the Broker REST API
-~~~~~~~~~~~~~~~~~~~~~~~~~~
+=== Verify the Broker REST API
 
 In order to verify that the REST API is functioning for the broker host, you can use the following _curl_ command:
 
@@ -1144,8 +1097,7 @@ You should see the following output:
 
 At this point you have a fully functional Broker. In order to work with it, proceed through the Web Console installation.
 
-The Web Console
----------------
+== The Web Console
 
 *Server used:*
 
@@ -1161,8 +1113,7 @@ The Web Console
 The OpenShift Origin Web Console is written in Ruby and will provide a graphical user interface for users of the
 system to create and manage application gears that are deployed on the gear hosts.
 
-Install the Web Console RPMs
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+=== Install the Web Console RPMs
 The installation of the web console can be performed with a simple _yum install_ command, but note that it will pull in many dependencies from the Ruby programming language. At the time of this writing, executing the
 following command installed 77 additional packages.
 
@@ -1172,8 +1123,7 @@ following command installed 77 additional packages.
 
 NOTE: Depending on your connection and speed of your broker host, this installation may take several minutes.
 
-Configure Authentication for the Console
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+=== Configure Authentication for the Console
 If you are building the reference configuration described in this document, then you have configured the broker application for Basic Authentication. What you actually configured was authentication for the Broker REST API. The console application uses a separate authentication scheme for authenticating users to the web console. This will enable you to restrict which users you want to have access to the REST API and keep that authentication separate from the web based user console.
 
 The openshift-console package created some sample authentication files for us. These files are located
@@ -1184,8 +1134,7 @@ in the _/var/www/openshift/console/httpd/conf.d_ directory. For this reference c
 # cp openshift-origin-auth-remote-user-basic.conf.sample openshift-origin-auth-remote-user-basic.conf
 ----
 
-Set Console to Start on Boot
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+=== Set Console to Start on Boot
 Start the service and ensure it starts on boot:
 
 ----
@@ -1197,8 +1146,7 @@ Once completed, the console will prompt the user to provide their login credenti
 
 NOTE: Seeing an error page after authenticating to the console is expected at this point. The web console will not be fully active until you add a node host to the Origin system
 
-The Node Host
--------------
+== The Node Host
 
 *Servers used:*
 
@@ -1216,12 +1164,12 @@ The Node Host
 * scp
 * ssh
 
-*Before proceeding, ensure that you are connected  to your node host via SSH and subscribed to the OpenShift Origin repository*
+WARNING: Before proceeding, ensure that you are connected to your node host via SSH and subscribed to the OpenShift Origin repository
 
-Updates and NTP
-~~~~~~~~~~~~~~~
-Ensure that your operating system is updated to the latest packages. *Execute
-the following on the node host*:
+=== Updates and NTP
+Ensure that your operating system is updated to the latest packages.
+
+*Execute the following on the node host*:
 
 ----
 # yum update
@@ -1237,8 +1185,7 @@ OpenShift Origin requires NTP to synchronize the system and hardware clocks. Thi
 # service ntpd start
 ----
 
-Register a DNS entry for the Node Host
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+=== Register a DNS entry for the Node Host
 *SSH to your broker application host* and set a variable that points to your keyfile. The following command
 should work after you replace "example.com" with the domain that you are going to use.
 
@@ -1263,8 +1210,7 @@ Now that you have added your node host to the DNS server, the broker application
 This should resolve to the 10.4.59.y IP address that you specified for the node host in the _oo-register-node_ command.
 
 
-Configure SSH Key Authentication
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+=== Configure SSH Key Authentication
 While on the broker application host, you need to copy the SSH key that you previously created over to the node. This will enable operations to work from inside of OpenShift Origin without requiring a password. Once you connect to the broker host, copy the key with the following command:
 
 *Execute the following on the broker host*:
@@ -1293,8 +1239,7 @@ be authenticated to the node host without having to specify the root user passwo
 # ssh -i /root/.ssh/rsync_id_rsa root@node.example.com
 ----
 
-Configure DNS Resolution on the Node
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+=== Configure DNS Resolution on the Node
 Now you need to configure the node host to use the BIND server that was installed and configured on the broker application host. This is a fairly straightforward process of adding the IP address of the broker application host to the _/etc/resolv.conf_ on the node host. Edit this file and add the following line, making sure to use the correct IP address of your broker host:
 
 *Perform this change on the node host*:
@@ -1303,9 +1248,7 @@ Now you need to configure the node host to use the BIND server that was installe
 nameserver 10.4.59.x
 ----
 
-Configure the DHCP Client and Hostname
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
+=== Configure the DHCP Client and Hostname
 On the node host, configure your system settings to prepend the DNS server to the resolv.conf file on system
 boot. This will allow the node host to resolve references to broker.example.com to ensure that all pieces of OpenShift Origin can communicate with one another. This process is similar to setting up the _dhclient-eth0.conf_ configuration file for the broker application.
 
@@ -1337,8 +1280,7 @@ Verify that the hostname was set correctly by running the `hostname` command. If
 # hostname
 ----
 
-MCollective on the Node Host
-----------------------------
+== MCollective on the Node Host
 
 *Server used:*
 
@@ -1355,8 +1297,7 @@ MCollective on the Node Host
 MCollective is the tool that OpenShift Origin uses to send and receive messages via the ActiveMQ messaging server. In order for the node host to send and receive messages with the broker application, you need to install and configure MCollective on the node host to communicate with the broker application.
 
 
-Install MCollective
-~~~~~~~~~~~~~~~~~~~
+=== Install MCollective
 In order to install MCollective on the node host, you will need to install the _openshift-origin-msg-node-mcollective_ package that is provided by the OpenShift Origin repository:
 
 ----
@@ -1365,9 +1306,7 @@ In order to install MCollective on the node host, you will need to install the _
 
 NOTE: Depending on your connection and speed of your broker host, this installation make take several minutes.
 
-Configure MCollective
-~~~~~~~~~~~~~~~~~~~~~
-
+=== Configure MCollective
 Configure the MCollective client to communicate with the broker application service. In order to accomplish this, replace the contents of the MCollective server.cfg configuration file to point to your correct stomp host. Edit the _/etc/mcollective/server.cfg_ file and add the following information. If you used a different hostname for your broker application host, ensure that you provide the correct stomp host. You also need to ensure that you use the same username and password that you specified in your ActiveMQ configuration.
 
 ----
@@ -1413,8 +1352,7 @@ At this point, MCollective on the node host should be able to communicate with t
 
 If MCollective was installed and configured correctly, you should see node.example.com in the output from the previous command.
 
-Node Host Packages
-------------------
+== Node Host Packages
 
 *Server used:*
 
@@ -1432,8 +1370,7 @@ functionality for the broker application to work correctly, the node
 host also has a set of packages that need to be installed to properly
 identify the host as a node that will contain application gears.
 
-Install the Core Packages
-~~~~~~~~~~~~~~~~~~~~~~~~~
+=== Install the Core Packages
 The following packages are required for your node host to work correctly:
 
 * rubygem-openshift-origin-node
@@ -1449,8 +1386,7 @@ Installing these packages can be performed in one yum install command.
 
 NOTE: Depending on your connection and speed of your broker host, this installation make take several minutes.
 
-Select and Install Built-In Cartridges to be Supported
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+=== Select and Install Built-In Cartridges to be Supported
 Cartridges provide the functionality that a consumer of the PaaS can use to create specific application types, databases, or other functionality. OpenShift Origin provides a number of built-in cartridges as well as an extensive cartridge API that will allow you to create your own custom cartridge types for your specific deployment needs.
 
 At the time of this writing, the following optional application cartridges are available for consumption on the node host.
@@ -1504,8 +1440,7 @@ OpenShift Origin cartridges.
 # yum search origin-cartridge
 ----
 
-Start Required Services
-~~~~~~~~~~~~~~~~~~~~~~~
+=== Start Required Services
 The node host will need to allow HTTP, HTTPS, and SSH traffic to flow through the firewall. We also want to ensure that the httpd, network, and sshd services are set to start on boot.
 
 ----
@@ -1517,8 +1452,7 @@ The node host will need to allow HTTP, HTTPS, and SSH traffic to flow through th
 # chkconfig sshd on
 ----
 
-Configuring Multi-Tenancy on the Node Host
-------------------------------------------
+== Configuring Multi-Tenancy on the Node Host
 
 *Server used:*
 
@@ -1534,8 +1468,7 @@ Configuring Multi-Tenancy on the Node Host
 * mount
 * quotacheck
 
-Configure PAM to use the OpenShift Origin Configuration
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+=== Configure PAM to use the OpenShift Origin Configuration
 The pam_namespace PAM module sets up a private namespace for a session with _polyinstantiated_ directories. A polyinstantiated directory provides a different instance of itself based on user name, or when using SELinux, user name, security context or both. OpenShift Origin ships with its own PAM configuration and we need to configure the node to use the configuration.
 
 ----
@@ -1553,8 +1486,7 @@ fi; \
 done;
 ----
 
-Configure Linux Control Groups (cgroups)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+=== Configure Linux Control Groups (cgroups)
 Cgroups enable you to allocate resources—such as CPU time, system memory, network bandwidth, or combinations of these resources—among user-defined groups of tasks (processes) running on a system. You can monitor the cgroups you configure, deny cgroups access to certain resources, and even reconfigure your cgroups dynamically on a running system.
 
 Run the following commands to configure cgroups for OpenShift Origin.
@@ -1602,8 +1534,7 @@ Output should be:
 drwxr-xr-x. root root system_u:object_r:cgroup_t:s0    cgroup
 ----
 
-Configure Disk Quotas
-~~~~~~~~~~~~~~~~~~~~~
+=== Configure Disk Quotas
 When a consumer of OpenShift Origin creates an application gear, you will need to be able to control and set the amount of disk space that the gear can consume. This configuration is located in the _/etc/openshift/resource_limits.conf_ file. The two settings of interest are the qouta_files and the quota_blocks. The usrquota setting specifies the total number of files that a gear / user is allowed to own. The quota_blocks is the actual amount of disk storage that the gear is allowed to consume — where 1 block is equal to 1024 bytes.
 
 In order to enable _usrqouta_ on the filesystem, you will need to add the _usrquota_ option in the _/etc/fstab_ for the mount of /var/lib/openshift. In this chapter, the /var/lib/openshift directory is mounted as part of the root filesystem. The corresponding line in the /etc/fstab file looks like
@@ -1630,8 +1561,7 @@ And then generate user quota info for the mount point:
 # quotacheck -cmug /
 ----
 
-Configure SELinux and System Control Settings
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+=== Configure SELinux and System Control Settings
 
 *Server used:*
 
@@ -1645,8 +1575,7 @@ Configure SELinux and System Control Settings
 * restorecon
 * sysctl
 
-Configuring SELinux
-^^^^^^^^^^^^^^^^^^^
+==== Configuring SELinux
 The OpenShift Origin node requires several SELinux boolean values to be set in order to operate correctly.
 
 .SELinux Boolean Values
@@ -1671,8 +1600,7 @@ To set these values and then relabel files to the correct context, issue the fol
 # restorecon -rv /var/lib/openshift /etc/openshift/node.conf /etc/httpd/conf.d/openshift
 ----
 
-Configuring System Control Settings
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+==== Configuring System Control Settings
 You will need to modify the _/etc/sysctl.conf_ configuration file to increase the number of kernel semaphores (to allow many httpd processes), increase the number ephemeral ports, and to also increase the connection tracking table size. Edit the file in your favorite text editor and add the following lines to the bottom of the file:
 
 ----
@@ -1690,8 +1618,7 @@ Once the changes have been made, reload the configuration file.
 
 You may see error messages about unknown keys. Check that these error messages did not result from typos in the settings you have added just now. If they result from settings that were already present in _/etc/sysctl.conf_, you can ignore them.
 
-Configure SSH, OpenShift Port Proxy, and Node Configuration
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+=== Configure SSH, OpenShift Port Proxy, and Node Configuration
 
 *Server used:*
 
@@ -1706,9 +1633,7 @@ Configure SSH, OpenShift Port Proxy, and Node Configuration
 * service
 * openshift-facts
 
-Configuring SSH to Pass Through the _GIT_SSH_ Environment Variable
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
+==== Configuring SSH to Pass Through the _GIT_SSH_ Environment Variable
 Edit the _/etc/ssh/sshd_config_ file and add the following lines
 
 ----
@@ -1723,8 +1648,7 @@ When a developer pushes a change up to their OpenShift Origin gear, an SSH conne
 # perl -p -i -e "s/^#MaxStartups .*$/MaxStartups 40/" /etc/ssh/sshd_config
 ----
 
-Configuring the Port Proxy
-^^^^^^^^^^^^^^^^^^^^^^^^^^
+==== Configuring the Port Proxy
 Multiple application gears can and will reside on the same node host. In order for these applications to receive HTTP requests to the node, you need to configure a proxy that will pass traffic to the gear application that is listening for connections on the loopback address. To do this, you need to open up a range of ports that the node can accept traffic on as well as ensure the port-proxy is started on boot.
 
 ----
@@ -1739,8 +1663,7 @@ If a node is restarted, you want to ensure that the gear applications are also r
 # chkconfig openshift-gears on
 ----
 
-Configuring Node Settings for Domain Name
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+==== Configuring Node Settings for Domain Name
 Edit the _/etc/openshift/node.conf_ file and *specify the correct settings for your _CLOUD_DOMAIN, PUBLIC_HOSTNAME, and BROKER_HOST_ IP address*. For example:
 
 ----
@@ -1750,21 +1673,18 @@ BROKER_HOST="broker.example.com"              # IP or DNS name of broker host fo
 ----
 
 
-Update the _facter_ Database
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+=== Update the _facter_ Database
 Facter generates metadata files for MCollective and is normally run by cron. Run the following command to execute facter immediately to create the initial database and ensure that it runs properly:
 
 ----
 # /etc/cron.minutely/openshift-facts
 ----
 
-Reboot the Node Host
-~~~~~~~~~~~~~~~~~~~~
+=== Reboot the Node Host
 In order to verify that all services were installed and configured correctly, restart the node to ensure that all
 services start on boot as described in this post.
 
-Testing the Configuration
--------------------------
+== Testing the Configuration
 If everything to this point has been completed successfully, you can now test your deployment of OpenShift Origin. To run a test, first setup an SSH tunnel to enable communication with the broker and node hosts. This will allow you to connect to localhost on your desktop machine and forward all traffic to your OpenShift Origin installation. In the next test, you will update your local machine to point directly to your DNS server, but for now, an SSH tunnel will suffice.
 
 NOTE: You can also just use the IP address of your broker node instead of using port forwarding.
@@ -1783,7 +1703,7 @@ http://127.0.0.1
 
 You will notice that you may, depending on your browser settings, have to accept the SSL certificate. In Firefox, the page will look similar to this:
 
-image:images/cert.png[image]
+image:cert.png[image]
 
 Once you have accepted and added the SSL certificate, you will prompted to authenticate to the OpenShift console. Use the credentials that we created in a previous chapter, which should be:
 
@@ -1792,12 +1712,11 @@ Once you have accepted and added the SSL certificate, you will prompted to authe
 
 After you have authenticated, you should be presented with the OpenShift web console as shown below:
 
-image:images/console.png[image]
+image:console.png[image]
 
 If you do not see the expected content, consult the troubleshooting section at the end of this manual.
 
-Configuring local machine for DNS resolution
---------------------------------------------
+== Configuring local machine for DNS resolution
 
 *Server used:*
 
@@ -1810,8 +1729,7 @@ Configuring local machine for DNS resolution
 
 At this point, you should have a complete and correctly functioning OpenShift Origin installation. During the next portion of the training, we will be focussing on administration and usage of the OpenShift Origin PaaS. To make performing these tasks easier, it is suggested that you add the DNS server that we created in lab 2 to be the first nameserver that your local machine uses to resolve hostnames. The process for this varies depending on the operating system. This lab manual will cover the configuration for both the Linux and Mac operating systems. If you are using a Microsoft Windows operating system, consult the instructor for instructions on how to perform this lab.
 
-Configure example.com resolution for Linux
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+=== Configure example.com resolution for Linux
 If you are using Linux, the process for updating your name server is straightforward. Simply edit the _/etc/resolv.conf_ configuration file and add the IP address of your broker node as the first entry. For
 example, add the following at the top of the file, replacing the 10.4.59.x IP address with the correct address of your broker node:
 
@@ -1826,27 +1744,26 @@ $ ping broker.example.com
 $ ping node.example.com
 ----
 
-Configure example.com resolution for OS X
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+=== Configure example.com resolution for OS X
 If you are using OSX, you will notice that the operating has a _/etc/resolv.conf_ configuration file. However, the operating system does not respect this file and requires users to edit the DNS servers via the _System Preferences_ tool.
 
 Open up the _System Preferences_ tool and select the _Network_ utility:
 
-image:images/network.png[image]
+image:network.png[image]
 
 On the bottom left hand corner of the _Network_ utility, ensure that the lock button is unlocked to enable user modifications to the DNS configuration. Once you have unlocked the system for changes, locate the ethernet device that is providing connectivity for your machine and click the advanced button:
 
-image:images/network2.png[image]
+image:network2.png[image]
 
 Select the DNS tab at the top of the window:
 
-image:images/network3.png[image]
+image:network3.png[image]
 
 NOTE: Make a list of the current DNS servers that you have configured for your operating system. When you add a new one, OS X removes the existing servers forcing you to add them back.
 
 Click the _+_ button to add a new DNS server and enter the 10.4.59.x IP address of your broker host.
 
-image:images/network4.png[image]
+image:network4.png[image]
 
 NOTE: Add your existing nameservers back that you made a note of above.
 

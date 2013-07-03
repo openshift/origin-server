@@ -1,5 +1,4 @@
-OpenShift Origin User's Guide
-=============================
+= OpenShift Origin User's Guide
 OpenShift Origin Documentation Project <dev@lists.openshift.redhat.com>
 v2.0, July 2013
 :data-uri:
@@ -11,24 +10,21 @@ v2.0, July 2013
 Adapted from the OpenShift Enterprise Training - Lab Manual By Grant Shipley <gshipley@redhat.com>
 ////
 
-Overview
---------
 Platform as a Service is changing the way developers approach developing software. Developers typically use a local sandbox with their preferred application server and only deploy locally on that instance. Developers typically start JBoss locally using the startup.sh command and drop their .war or .ear file in the deployment directory and they are done. Developers have a hard time understanding why deploying to the production infrastructure is such a time consuming process.
 
 System Administrators understand the complexity of not only deploying the code, but procuring, provisioning and maintaining a production level system. They need to stay up to date on the latest security patches and errata, ensure the firewall is properly configured, maintain a consistent and reliable backup and restore plan, monitor the application and servers for CPU load, disk IO, HTTP requests, etc.
 
 OpenShift Origin provides developers and IT organizations an open source auto-scaling cloud application platform for quickly deploying new applications on secure and scalable resources with minimal configuration and management headaches. This means increased developer productivity and a faster pace in which IT can support innovation.
 
-Building Apps on OpenShift Origin
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[float]
+=== Building Apps on OpenShift Origin
 This document assumes that you are working against an OpenShift Origin installation that is distinct from OpenShift Online (http://www.openshift.com). If you do not have OpenShift Origin yet, you will want to refer to the OpenShift Origin Installation Guide.
 
-How is OpenShift Origin Different from OpenShift Online?
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[float]
+=== How is OpenShift Origin Different from OpenShift Online?
 The rhc tools work interchangeably with OpenShift Online and OpenShift Origin, however, OpenShift Origin gives the administrator complete flexibility in assigning resources (like RAM and disk space) to application gears. OpenShift Origin can also be deployed on a private network, making it a better fit for enterprise and secure development environments.
 
-Establish a Development Environment Using _rhc setup_
------------------------------------------------------
+== Setting Up a Development Environment
 
 *Server used:*
 
@@ -38,8 +34,7 @@ Establish a Development Environment Using _rhc setup_
 
 * rhc
 
-Configure RHC Setup
-~~~~~~~~~~~~~~~~~~~
+=== Configure RHC Setup
 By default, the RHC command line tool will default to use the publicly hosted OpenShift environment. Since we are using our own enterprise environment, we need to tell _rhc_ to use our broker.example.com server instead of openshift.com. In order to accomplish this, the first thing we need to do is set our _LIBRA_SERVER_ variable to point to our broker host and then run the _rhc setup_ command:
 
 ----
@@ -56,8 +51,7 @@ Finally, you will be asked to create a namespace for the provided user account. 
 ose
 ----
 
-What _rhc setup_ Does
-~~~~~~~~~~~~~~~~~~~~~
+=== What _rhc setup_ Does
 The _rhc setup_ tool is a convenient command line utility to ensure that the user's operating system is configured properly to create and manage applications from the command line. After this command has been executed, a _.openshift_ directory was created in the users home directory with some basic configuration items specified in the _express.conf_ file. The contents of that file are as follows:
 
 ----
@@ -70,8 +64,7 @@ libra_server = 'broker.example.com'
 
 This information will be provided to the _rhc_ command line tool for every future command that is issued. If you want to run commands as a different user than the one listed above, you can either change the default login in this file or provide the _-l_ switch to the _rhc_ command.
 
-Application Development
------------------------
+== Application Development
 
 *Server used:*
 
@@ -115,8 +108,7 @@ Global Options
 -v, --version             Display version information
 ----
 
-Create a New Application
-~~~~~~~~~~~~~~~~~~~~~~~~
+=== Create a New Application
 It is very easy to create an OpenShift Origin application using _rhc_. The command to create an application is _rhc app create_ and it requires two mandatory arguments:
 
 * *Application Name (-a or --app)* : The name of the application. The application name can only contain alpha-numeric characters and at max contain only 32 characters.
@@ -181,10 +173,9 @@ http://firstphp-ose.example.com
 
 You should see the default template that OpenShift Origin uses for a new application.
 
-image:images/firstphp.png[image]
+image:firstphp.png[image]
 
-What _rhc app create_ Does
-~~~~~~~~~~~~~~~~~~~~~~~~~~
+=== What _rhc app create_ Does
 After you entered the command to create a new PHP application, a lot of things happened under the covers:
 
 * A request was made to the broker application host to create a new php application
@@ -196,8 +187,7 @@ After you entered the command to create a new PHP application, a lot of things h
 * The git repository was cloned on your local machine
 * BIND was updated on the broker host to include an entry for your application
 
-Node Host Directory Structure
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+=== Node Host Directory Structure
 It is important to understand the directory structure of each OpenShift Origin application gear. For the PHP application that we just created, we can verify and examine the layout of the gear on the node host. SSH to your node host and execute the following commands:
 
 ----
@@ -248,8 +238,7 @@ You will also notice the following three directories:
 * git - Your private git repository that was created upon gear creation.
 * php-5.3 - The core PHP runtime and associated configuration files. Your application is served from this directory.
 
-Localhost Directory Structure
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+=== Localhost Directory Structure
 When you created the PHP application using the _rhc app create_ command, the private git repository that was created on your node host was cloned to your local machine.
 
 ----
@@ -272,8 +261,7 @@ drwxr-xr-x   3 gshipley  staff   102 Jan 21 13:48 misc
 drwxr-xr-x   4 gshipley  staff   136 Jan 21 13:48 php
 ----
 
-The .git Directory
-^^^^^^^^^^^^^^^^^^
+==== The .git Directory
 If you are not familiar with the git revision control system, this is where information about the git repositories that you will be interacting with is stored. For instance, to list all of the repositories that you are currently setup to use for this project, issue the following command:
 
 ----
@@ -301,9 +289,7 @@ You should see the following information which specifies the URL for our reposit
 
 NOTE: You are also able to add other remote repositories. This is useful for developers who also use github or have private git repositories for an existing code base.
 
-The .openshift Directory
-^^^^^^^^^^^^^^^^^^^^^^^^
-
+==== The .openshift Directory
 The .openshift directory is a hidden directory where a user can create action hooks, set markers, and create cron jobs.
 
 Action hooks are scripts that are executed directly so can be written in Python, PHP, Ruby, shell, etc. OpenShift Origin supports the following action hooks:
@@ -328,23 +314,19 @@ OpenShift Origin also supports the ability for a user to schedule jobs to be ran
 
 The markers directory will allow the user to specify settings such as enabling hot deployments or which version of Java to use.
 
-The libs directory
-^^^^^^^^^^^^^^^^^^
+==== The libs directory
 The libs directory is a location where the developer can provide any dependencies that are not able to be deployed using the standard dependency resolution system for the selected runtime. In the case of PHP, the standard convention that OpenShift Origin uses is providing _PEAR_ modules in the deptlist.txt file.
 
-The misc directory
-^^^^^^^^^^^^^^^^^^
+==== The misc directory
 The misc directory is a location provided to the developer to store any application code that they do not want exposed publicly.
 
-The php directory
-^^^^^^^^^^^^^^^^^
+==== The php directory
 The php directory is where all of the application code that the developer writes should be created. By default, two files are created in this directory:
 
 * health_check.php - A simple file to determine if the application is responding to requests
 * index.php - The OpenShift template that we saw after application creation in the web browser.
 
-Modifying and Deploying Updated Code
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+=== Modifying and Deploying Updated Code
 To get a good understanding of the development workflow for a user, let's change the contents of the _index.php_ template that is provided on the newly created gear. Edit the file and look for the following code block:
 
 ----
@@ -410,10 +392,9 @@ http://firstphp-ose.example.com
 
 You should see the updated code for the application.
 
-image:images/firstphpOSE.png[image]
+image:firstphpOSE.png[image]
 
-Adding a New PHP File
-~~~~~~~~~~~~~~~~~~~~~
+=== Adding a New PHP File
 Adding a new source code file to your OpenShift Origin application is an easy and straightforward process. For instance, to create a PHP source code file that displays the server date and time, create a new file located in _php_ directory and name it _time.php_. After creating this file, add the following contents:
 
 ----
@@ -440,10 +421,9 @@ http://firstphp-ose.example.com/time.php
 
 You should see the updated code for the application.
 
-image:images/firstphpTime.png[image]
+image:firstphpTime.png[image]
 
-Application Management
-----------------------
+== Application Management
 
 *Server used:*
 
@@ -454,8 +434,7 @@ Application Management
 
 * rhc
 
-Start, Stop and Restart
-~~~~~~~~~~~~~~~~~~~~~~~
+=== Start, Stop and Restart
 OpenShift Origin provides commands to start,stop, and restart an application. If at any point in the future you decided that an application should be stopped for some maintenance, you can stop the application using the _rhc app stop_ command. After making necessary maintenance tasks you can start the application again using the _rhc app start_ command.
 
 To stop an application execute the following command:
@@ -511,8 +490,7 @@ RESULT:
 firstphp restarted
 ----
 
-View Application Details
-~~~~~~~~~~~~~~~~~~~~~~~~
+=== View Application Details
 All of the details about an application can be viewed by the _rhc app show_ command. This command will list when the application was created, unique identifier of the application, git URL, SSH URL, and other details as shown below:
 
 ----
@@ -534,8 +512,7 @@ firstphp @ http://firstphp-ose.example.com/
     php-5.3
 ----
 
-View Application Status
-~~~~~~~~~~~~~~~~~~~~~~~
+=== View Application Status
 The state of application gears can be viewed by passing the _state_ switch to the _rhc app show_ command as shown below:
 
 ----
@@ -547,8 +524,7 @@ RESULT:
 Geargroup php-5.3 is started
 ----
 
-Clean Up an Application
-~~~~~~~~~~~~~~~~~~~~~~~
+=== Clean Up an Application
 As users start developing an application and deploying changes to OpenShift Origin, the application will start consuming some of the available disk space that is part of their quota. This space is consumed by the git repository, log files, temp files, and unused application libraries. OpenShift Origin provides a disk space cleanup tool to help users manage the application disk space. This command is also available under _rhc app_ and performs the following functions:
 
 * Runs the _git gc_ command on the application's remote git repository
@@ -561,8 +537,7 @@ To clean up the disk space on your application gear, run the following command:
 $ rhc app tidy -a firstphp
 ----
 
-SSH to an Application Gear
-~~~~~~~~~~~~~~~~~~~~~~~~~~
+=== SSH to an Application Gear
 OpenShift allows remote access to the application gear by using the Secure Shell protocol (SSH). http://en.wikipedia.org/wiki/Secure_Shell[Secure Shell (SSH)] is a network protocol for securely getting access to a remote computer. SSH uses RSA public key cryptography for both the connection and authentication. SSH provides direct access to the command line of your application gear on the remote server. After you are logged in on the remote server, you can use the command line to directly manage the server, check logs and test quick changes. OpenShift Origin uses SSH for:
 
 * Performing Git operations
@@ -570,7 +545,7 @@ OpenShift allows remote access to the application gear by using the Secure Shell
 
 The SSH keys were generated and uploaded to OpenShift Origin by rhc setup command we executed in a previous lab. You can verify that SSH keys are uploaded by logging into the OpenShift Origin web console and clicking on the "My Account" tab as shown below.
 
-image:images/sshkeys.png[image]
+image:sshkeys.png[image]
 
 NOTE: If you don't see an entry under "Public Keys" then you can either upload the SSH keys by clicking on "Add a new key" or run the _rhc setup_ command again. This will create a SSH key pair in /.ssh folder and upload the public key to the OpenShift Origin server.
 
@@ -651,8 +626,7 @@ psql            interactive PostgreSQL shell
 quota           list disk usage
 ----
 
-View Log Files
-~~~~~~~~~~~~~~
+=== View Log Files
 Logs are very important when you want to find out why an error is happening or if you want to check the health of your application. OpenShift Origin provides the _rhc tail_ command to display the contents of your log files. To view all the options available for the _rhc tail_ command, issue the following:
 
 ----
@@ -683,8 +657,7 @@ You should see information for both the access and error logs. While you have th
 
 The log files are also available on the gear node host in the _php-5.3/logs_ directory.
 
-View Disk Quota
-~~~~~~~~~~~~~~~
+=== View Disk Quota
 In a previous lab, we configured the application gears to have a disk usage quota. You can view the quota of your currently running gear by connecting to the gear node host via SSH as discussed previously in this lab. Once you are connected to your application gear, enter the following command:
 
 ----
@@ -706,8 +679,7 @@ To view how much disk space your gear is actually using, you can also enter in t
 $ du -h
 ----
 
-Add a Custom Domain
-~~~~~~~~~~~~~~~~~~~
+=== Add a Custom Domain
 OpenShift Origin supports the use of custom domain names for an application. For example, suppose we want to use
 http://www.somesupercooldomain.com domain name for the application _firstphp_ we created in a previous lab. The first thing you need to do before setting up a custom domain name is to buy the domain name from domain registration provider.
 
@@ -719,8 +691,7 @@ $ rhc alias add firstphp www.mycustomdomainname.com
 
 Technically, what OpenShift Origin has done under the hood is set up a Vhost in Apache to handle the custom URL.
 
-Back Up an Application
-~~~~~~~~~~~~~~~~~~~~~~
+=== Back Up an Application
 Use the _rhc snapshot save_ command to create backups of your OpenShift Origin application. This command creates a gzipped tar file of your application and of any locally-created log and data files. This snapshot is downloaded to your local machine and the directory structure that exists on the server is maintained in the downloaded archive.
 
 ----
@@ -741,8 +712,7 @@ After the command successfully finishes you will see a file named firstphp.tar.g
 
 NOTE: This command will stop your application for the duration of the backup process.
 
-Delete an Application
-~~~~~~~~~~~~~~~~~~~~~
+=== Delete an Application
 You can delete an OpenShift Origin application by executing the _rhc app delete_ command. This command deletes your application and all of its data on the OpenShift Origin server but leaves your local directory intact. This operation can not be undone so use it with caution.
 
 ----
@@ -768,8 +738,7 @@ RESULT:
 Application 'someAppToDelete' successfully deleted
 ----
 
-Restore From Backup
-~~~~~~~~~~~~~~~~~~~
+=== Restore From Backup
 Not only you can take a backup of an application but you can also restore a previously saved snapshot. This form of the _rhc_ command restores the git repository, as well as the application data directories and the log files found in the specified archive. When the restoration is complete, OpenShift Origin runs the deployment script on the newly restored repository. To restore an application snapshot, run the following command:
 
 ----
@@ -787,8 +756,7 @@ http://firstphp-ose.example.com
 
 If the restore process worked correctly, you should see the restored application running just as it was before the delete operation that you performed earlier in this lab.
 
-View a Thread Dump
-~~~~~~~~~~~~~~~~~~
+=== View a Thread Dump
 This can be performed on Ruby and JBoss application types.
 
 You can trigger a thread dump for Ruby and JBoss applications using the _rhc threaddump_ command. A thread dump is a snapshot of the state of all threads that are part of the runtime process. If an application appears to have stalled or is running out of resources, a thread dump can help reveal the state of the runtime, identify what might be causing any issues and ultimately to help resolve the problem. To trigger a thread dump execute the following command:
@@ -803,8 +771,7 @@ After running this command for a JBoss or Ruby application, you will be given a 
 $ rhc tail ApplicationName -f ruby-1.9/logs/error_log-20130104-000000-EST -o '-n 250'
 ----
 
-Using Cartridges
-----------------
+== Using Cartridges
 
 *Server used:*
 
@@ -821,16 +788,14 @@ Using Cartridges
 
 Cartridges provide the actual functionality necessary to run applications. Currently, there are several cartridges available to support different programming languages, databases, monitoring and management. Cartridges are designed to be extensible so the community can add support for any programming language, database or any management tool not officially supported by OpenShift Origin. Please refer to the official OpenShift Origin documentation for how you can https://openshift.redhat.com/community/wiki/introduction-to-cartridge-building[write your own cartridge].
 
-View Available Cartridges
-~~~~~~~~~~~~~~~~~~~~~~~~~
+=== View Available Cartridges
 To view all of the available commands for working with cartridges on OpenShift Origin, enter the following command:
 
 ----
 $ rhc cartridge -h
 ----
 
-List Available Cartridges
-~~~~~~~~~~~~~~~~~~~~~~~~~
+=== List Available Cartridges
 To see a list of all available cartridges to users of this OpenShift Origin deployment, issue the following command:
 
 ----
@@ -844,8 +809,7 @@ RESULT:
 cron-1.4, mysql-5.1, haproxy-1.4, postgresql-8.4
 ----
 
-Example: Add a MySQL Cartridge to an Application
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+=== Example: Add a MySQL Cartridge to an Application
 In order to use a cartridge, we need to embed it into our existing application. As an example, we will add a MySQL cartridge. OpenShift Origin provides support for version 5.1 of this popular open source database. To enable MySQL support for the _firstphp_ application, issue the following command:
 
 ----
@@ -869,8 +833,7 @@ mysql-5.1
     Database Name  = firstphp
 ----
 
-Using MySQL
-^^^^^^^^^^^
+==== Using MySQL
 Developers will typically interact with MySQL by using the mysql shell command on OpenShift Origin. In order to use the mysql shell, use the information you gained in a previous lab in order to SSH to your application gear. Once you have been authenticated, issue the following command:
 
 ----
@@ -911,8 +874,7 @@ To exit out of the MySQL session, simply enter the _exit_ command:
 mysql> exit
 ----
 
-MySQL Environment Variables
-^^^^^^^^^^^^^^^^^^^^^^^^^^^
+==== MySQL Environment Variables
 As mentioned earlier in this lab, OpenShift Origin creates environment variables that contain the connection information for your MySQL database. If a user forgets their connection information, they can always retrieve the authentication information by viewing these environment variables:
 
 *Execute the following on the application gear*:
@@ -939,16 +901,14 @@ To view a list of all _OPENSHIFT_ environment variables, you can use the followi
 [firstphp-ose.example.com ~]\> env | grep OPENSHIFT
 ----
 
-Viewing MySQL Logs
-^^^^^^^^^^^^^^^^^^
+==== Viewing MySQL Logs
 Given the above information, you can see that the log file directory for MySQL is specified with the _OPENSHIFT_MYSQL_DB_LOG_DIR_ environment variable. To view these log files, simply use the tail command:
 
 ----
 [firstphp-ose.example.com ~]\> tail -f $OPENSHIFT_MYSQL_DB_LOG_DIR/*
 ----
 
-Connecting to the MySQL Cartridge from PHP
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+==== Connecting to the MySQL Cartridge from PHP
 Now that we have verified that our MySQL database has been created correctly, and have created a database table with some user information, let's connect to the database from PHP in order to verify that our application code can communicate to the newly embedded MySQL cartridge. Create a new file in the _php_ directory of your _firstphp_ application named _dbtest.php_. Add the following source code to the _dbtest.php_ file:
 
 ----
@@ -1003,8 +963,7 @@ Connected to database.
 1 gshipley@redhat.com 
 ----
 
-Manage Cartridges
-~~~~~~~~~~~~~~~~~
+=== Manage Cartridges
 OpenShift Origin provides the ability to embed multiple cartridges in an application. For instance, even though we are using MySQL for our _firstphp_ application, we could also embed the cron cartridge as well. It may be useful to stop, restart, or even check the status of a cartridge. To check the status of our MySQL database, use the following command:
 
 ----
@@ -1057,8 +1016,7 @@ mysql-5.1
     
 ----
 
-Port Forwarding
-~~~~~~~~~~~~~~~
+=== Port Forwarding
 At this point, you may have noticed that the database cartridge is only accessible via a 127.x.x.x private address. This ensures that only the application gear can communicate with the database.
 
 With OpenShift Origin port forwarding, developers can connect to remote services with local client tools. This allows the developer to focus on code without having to worry about the details of configuring complicated firewall rules or SSH tunnels. To connect to the MySQL database running on our OpenShift Origin gear, you have to first forward all the ports to your local machine. This can be done using the _rhc port-forward_ command. This command is a wrapper that configures SSH port forwarding. Once the command is executed, you should see a list
@@ -1089,8 +1047,7 @@ $ mysql -uadmin -p -h 127.11.144.1
 
 NOTE: The above command assumes that you have the MySQL client installed locally.
 
-Enable _hot_deploy_
-~~~~~~~~~~~~~~~~~~~
+=== Enable _hot_deploy_
 If you are familiar with PHP, you will probably be wondering why we stop and start apache on each code deployment. Fortunately, we provide a way for developers to signal to OpenShift Origin that they do not want
 us to restart the application runtime for each deployment. This is accomplished by creating a hot_deploy marker in the correct directory. Change to your application root directory, for example ~/code/ose/firstphp and issue the following commands:
 
@@ -1134,8 +1091,7 @@ remote: App will not be stopped due to presence of hot_deploy marker
 
 Adding a hot_deploy marker will significantly increase the speed of application deployments while developing an application.
 
-The Web Console
----------------
+== The Web Console
 
 *Server used:*
 
@@ -1150,8 +1106,7 @@ OpenShift Origin provides users with multiple ways to create and manage applicat
 
 Having DNS resolution setup on your local machine, as discussed in lab 16, is crucial in order to complete this lab.
 
-Authenticate to the Web Console
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+=== Authenticate to the Web Console
 Open your favorite web browser and go to the following URL:
 
 ----
@@ -1160,19 +1115,18 @@ http://broker.example.com
 
 Once you enter the above URL, you will be asked to authenticate using basic auth. For this training class, you can use the demo account that you created in a previous lab.
 
-image:images/consoleAuth.png[image]
+image:consoleAuth.png[image]
 
 After entering in valid credentials, you will see the OpenShift Origin web console dashboard:
 
-image:images/consoleDashboard.png[image]
+image:consoleDashboard.png[image]
 
-Create a New Application
-~~~~~~~~~~~~~~~~~~~~~~~~
+=== Create a New Application
 In order to create a new application using the web console, click on the _ADD APPLICATION_ button. You will then be presented with a list of available runtimes that you can choose from. To follow along with our PHP examples above, let's create a new PHP application and name it _phptwo_.
 
-image:images/php2.png[image]
+image:php2.png[image]
 
-image:images/php2.1.png[image]
+image:php2.1.png[image]
 
 Once you have created the application, you will see a confirmation screen with some important information:
 
@@ -1181,40 +1135,36 @@ Once you have created the application, you will see a confirmation screen with s
 * Instructions for making code changes
 * Link to add a cartridge
 
-image:images/php2.2.png[image]
+image:php2.2.png[image]
 
-Clone an Application Repository
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+=== Clone an Application Repository
 Open up a command prompt and clone your application repository with the instructions provided on the web console. When executing the _git clone_ command, a new directory will be created in your current working directory. Once you have a local copy of your application, make a small code change to the _index.php_ and push your changes to your OpenShift Origin gear.
 
 Once you have made a code change, view your application in a web browser to ensure that the code was deployed correctly to your server.
 
-Add a Cartridge
-~~~~~~~~~~~~~~~
+=== Add a Cartridge
 Click on the _My Applications_ tab at the top of the screen and then select the _Phptwo_ application by clicking on it.
 
-image:images/php2.3.png[image]
+image:php2.3.png[image]
 
 After clicking on the _Phptwo_ application link, you will be presented with the management dashboard for that application. On this page, you can view the GIT repository URL, add a cartridge, or delete the application. We want to add the MySQL database to our application. To do this, click on the _ADD CARTRIDGE_ button.
 
-image:images/php2.4.png[image]
+image:php2.4.png[image]
 
 On the next screen, select the MySQL 5.1 cartridge.
 
-image:images/php2.5.png[image]
+image:php2.5.png[image]
 
 Once the MySQL database cartridge has been added to your application, the web console will display a confirmation screen which contains the connection information for your database.
 
-image:images/php2.6.png[image]
+image:php2.6.png[image]
 
 If you recall from a previous lab, the connection information is always available via environment variables on your OpenShift Origin gear.
 
-Verify Database Connection
-~~~~~~~~~~~~~~~~~~~~~~~~~~
+=== Verify Database Connection
 Using information you learned in a previous lab, add a PHP file that tests the connection to the database. You will need to modify the previously used PHP code block to only display if the connection was successful as we have not created a schema for this new database instance.
 
-Application Scaling
--------------------
+== Application Scaling
 
 *Server used:*
 
@@ -1231,8 +1181,7 @@ Application Scaling
 
 Application scaling enables your application to react to changes in HTTP traffic and automatically allocate the necessary resources to handle the current demand. The OpenShift Origin infrastructure monitors incoming web traffic and automatically adds additional gear of your web cartridge online to handle requests.
 
-How Scaling Works
-~~~~~~~~~~~~~~~~~
+=== How Scaling Works
 If you create a non-scaled application, the web cartridge occupies only a single gear and all traffic is sent to that gear. When you create a scaled application, it consumes two gears; one for the high-availability proxy (HAProxy) itself, and one for your actual application. If you add other cartridges like PostgreSQL or MySQL to your application, they are installed on their own dedicated gears.
 
 The HAProxy cartridge sits between your application and the network and routes web traffic to your web cartridges. When traffic increases, HAProxy notifies the OpenShift Origin servers that it needs additional capacity. OpenShift checks that you have a free gear (out of your max number of gears) and then creates another copy of your web cartridge on that new gear. The code in the git repository is copied to each new gear, but the data directory begins empty. When the new cartridge copy starts it will invoke your build hooks and then HAProxy
@@ -1245,8 +1194,7 @@ write consistent data. As OpenShift Origin grows we anticipate adding more capab
 
 The OpenShift Origin web console shows you how many gears are currently being consumed by your application. We have lots of great things coming for web application scaling, so stay tuned.
 
-Create a Scaled Application
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
+=== Create a Scaled Application
 In order to create a scaled application using the _rhc_ command line tools, you need to specify the _-s_ switch to the command. Let's create a scaled PHP application with the following command:
 
 ----
@@ -1297,16 +1245,14 @@ Application scaledapp was created.
 
 Log in to the web console with your browser and click on the _scaledapp_ application. You will notice while looking at the gear details that it lists the number of gears that your application is currently using.
 
-image:images/scaledApp.png[image]
+image:scaledApp.png[image]
 
-Set the Scaling Strategy
-~~~~~~~~~~~~~~~~~~~~~~~~
+=== Set the Scaling Strategy
 OpenShift Origin allows users the ability to set the minimum and maximum numbers of gears that an application can use to handle increased HTTP traffic. This scaling strategy is exposed via the web console. While on the application details screen, click the _Scaled up with HAProxy x2_ button to change the default scaling rules.
 
-image:images/scaledApp2.png[image]
+image:scaledApp2.png[image]
 
-Manual Scaling
-~~~~~~~~~~~~~~
+=== Manual Scaling
 There are often times when a developer will want to disable automatic scaling in order to manually control when a new gear is added to an application. Some examples of when manual scaling may be preferred over
 automatic scaling could include:
 
@@ -1372,7 +1318,7 @@ scaledapp @ http://scaledapp-ose.example.com/
   
 ----
 
-image:images/scaledApp3.png[image]
+image:scaledApp3.png[image]
 
 Just as we scaled up with the _add-gear_ command, we can manually scale down with the _remove-gear_ command. Remove the third gear from your application with the following command making sure to substitute the correct application UUID:
 
@@ -1403,18 +1349,16 @@ scaledapp @ http://scaledapp-ose.example.com/
     Scaled x2 (minimum: 2, maximum: available gears) with haproxy-1.4 on small gears
 ----
 
-Viewing HAProxy Information
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
+=== Viewing HAProxy Information
 OpenShift Origin provides a dashboard that will give users relevant information about the status of the HAProxy gear that is balancing and managing load between the application gears. This dashboard provides visibility into metrics such as process id, uptime, system limits, current connections, and running tasks. To view the HAProxy dashboard, open your web browser and enter the following URL:
 
 ----
 http://scaledapp-ose.example.com/haproxy-status/
 ----
 
-image:images/scaledApp4.png[image]
+image:scaledApp4.png[image]
 
-DIY Applications
-----------------
+== DIY Applications
 
 *Server used:*
 
@@ -1435,8 +1379,7 @@ Your application will be executed by the .openshift/action_hooks/start script, a
 
 NOTE: DIY applications are unsupported but is a great way for developers to try out unsupported languages, frameworks, or middleware that doesn't ship as an official OpenShift Origin cartridge.
 
-Creating a DIY Application
-~~~~~~~~~~~~~~~~~~~~~~~~~~
+=== Creating a DIY Application
 To create an application gear that will use the DIY application type, use the _rhc app create_ command:
 
 ----
@@ -1444,8 +1387,7 @@ $ rhc app create -a myjavademo -t diy
 $ cd myjavademo
 ----
 
-Deploying the DIY Application
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+=== Deploying the DIY Application
 Instead of spending time in this lab with writing a server runtime, we are going to use an existing one that is available on the OpenShift github page. This application code is written in Java and consists of a single MyHttpServer main class. Since this source code lives on the github OpenShift project page, we need to add the remote github repository and then pull the remote source code while at the same time overwriting the existing source code we have in our DIY application directory.
 
 ----
@@ -1454,8 +1396,7 @@ $ git pull -s recursive -X theirs upstream master
 $ git push
 ----
 
-Verifying the DIY Application
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+=== Verifying the DIY Application
 Once the java example has been pushed to your OpenShift Origin gear, open up a web browser and point to the following URL:
 
 ----
@@ -1466,8 +1407,7 @@ NOTE: Make sure to include the index.html file at the end of the URL.
 
 If the application was deployed correctly, you should see a _Hello DIY World!_ message. This little http java server will serve any files found in your application's html directory, so you can add files or make changes to them, push the contents and see those reflected in your browser.
 
-How This Works
-~~~~~~~~~~~~~~
+=== How This Works
 The DIY cartridge provides a number of hooks that are called during the lifecycle actions of the application. The hooks available to you for customization are found in the .openshift/action_hooks directory of your application repository.
 
 For this application, all that has been customized are the start and stop scripts. They simply launch the MyHttpServer class using Java, and perform a _wget_ call to have the MyHttpServer stop itself:
@@ -1490,8 +1430,7 @@ wget http://${OPENSHIFT_INTERNAL_IP}:${OPENSHIFT_INTERNAL_PORT}?action=stop
 
 See the _src/test/MyHttpServer.java_ source to understand how the Java application is making use of the OpenShift Origin environment variables to interact with the server environment.
 
-Developing Java EE applications using JBoss EAP
------------------------------------------------
+== Developing Java EE applications using JBoss EAP
 
 *Server used:*
 
@@ -1507,9 +1446,7 @@ OpenShift Origin provides the JBoss EAP runtime to facilitate the development an
 
 JBoss Enterprise Application Platform 6 (JBoss EAP 6) is a fully compliant Java EE 6 platform which includes a subscription model with long-term support, platform certification, service packs and SLA(s). In this lab we will build a simple todo application using Java EE 6 deployed on the JBoss EAP platform. The application will have a single entity called Todo and will persist todos to PostgreSQL using JPA. The application will also use EJB 3.1 Stateless session beans, Context and Dependency Injection (or CDI), and JAX RS for exposing RESTful web services.
 
-Create a JBoss EAP Application
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
+=== Create a JBoss EAP Application
 NOTE: Before starting this lab, it is suggested that you delete any existing applications that you have deployed to your OpenShift Origin installation. The OpenStack virtual machines that have been provided for this training class only contain 2gb of memory.
 
 ----
@@ -1524,8 +1461,7 @@ http://todo-ose.example.com
 
 Verify that the application has been deployed and the template is displaying correctly in your web browser.
 
-Additional Marker Files for JBoss EAP
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+=== Additional Marker Files for JBoss EAP
 If you recall from a previous lab, we discussed the way that OpenShift Origin allows the developer to control and manage some of the runtime features using marker files. For Java based deployments, there are additional marker files that a developer needs to be aware of:
 
 * enable_jpda - Will enable the JPDA socket based transport on the JVM running the JBoss EAP application server. This enables you to remotely debug code running inside of the JBoss application server.
@@ -1534,28 +1470,22 @@ If you recall from a previous lab, we discussed the way that OpenShift Origin al
 * hot_deploy - Will prevent a JBoss container restart during build/deployment. Newly built archives will be re-deployed automatically by the JBoss HDScanner component.
 * java7 - Will run JBoss EAP with Java7 if present. If no marker is present then the baseline Java version will be used (currently Java6)
 
-Deployment Directory
-~~~~~~~~~~~~~~~~~~~~
+=== Deployment Directory
 If you list the contents of the application repository that was cloned to your local machine, you will notice a deployments directory. This directory is a location where a developer can place binary archive files, .ear files for example, for deployment. If you want to deploy a .war file rather than pushing source code, copy the .war file to deployments directory, add the .war file to your git repository, commit the change, and then push the content to your OpenShift Origin server.
 
-Maven
-~~~~~
+=== Maven
 OpenShift Origin uses the Maven build system for all Java projects. Once you add new source code following the standard Maven directory structure, OpenShift Origin will recognize the existing _pom.xml_ in your applications root directory in order to build the code remotely.
 
 The most important thing specified in the _pom.xml_ file is a Maven profile named _openshift_. This is the profile which is invoked when you do deploy the code to OpenShift Origin.
 
-Adding a PostgreSQL Cartridge
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+=== Adding a PostgreSQL Cartridge
 The _todo_ sample application that we are going to write as part of this lab will make use of the PostgreSQL database. Using the information that you have learned from previous labs, add the PostgreSQL cartridge to the
 _todo_ application.
 
-Building the _todo_ Application
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+=== Building the _todo_ Application
 At this point, we should have an application named _todo_ created as well as having PostgreSQL embedded in the application to use as our datastore. Now we can begin working on the application.
 
-Creating Domain Model
-^^^^^^^^^^^^^^^^^^^^^
-
+==== Creating Domain Model
 NOTE: The source code for this application is available on github at https://github.com/gshipley/todo-javaee6
 
 If you want the easy way out, use the information you have learned from a previous lab to add the above repository as a remote repository and then pull in the source code while overwriting the existing template.
@@ -1649,8 +1579,7 @@ public class Todo {
 }
 ----
 
-Create the _persistence.xml_ File
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+==== Create the _persistence.xml_ File
 The persistence.xml file is a standard configuration file in JPA that defines your data source. It has to be included in the _META-INF_ directory inside of the JAR file that contains the entity beans. The persistence.xml file must define a persistence-unit with a unique name. Create a _META-INF_ directory under src/main/resources and then create the _persistence.xml_ file with the contents below:
 
 ----
@@ -1674,8 +1603,7 @@ The persistence.xml file is a standard configuration file in JPA that defines yo
 
 The _jta-data-source_ refers to JNDI name preconfigured by OpenShift Origin in the standalone.xml file located in the _.openshift/config_ directory.
 
-Create the TodoService EJB Bean
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+==== Create the TodoService EJB Bean
 Next we will create a stateless EJB bean named _TodoService_ in the _com.todo.service package_. This bean will perform basic CRUD operations using _javax.persistence.EntityManager_. Create a file named _TodoService_ in the _src/main/java/com/todo/service_ directory and add the following contents:
 
 ----
@@ -1708,8 +1636,7 @@ public class TodoService {
 }
 ----
 
-Enable CDI
-^^^^^^^^^^
+==== Enable CDI
 CDI or Context and Dependency Injection is a Java EE 6 specification which enables dependency injection in a Java EE 6 project. To enable CDI in the _todo_ project, create a _beans.xml_ file in _src/main/webapp/WEB-INF_ directory with the following contents:
 
 ----
@@ -1736,8 +1663,7 @@ public class Resources {
 }
 ----
 
-Creating a RESTful Web Service
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+==== Creating a RESTful Web Service
 Before exposing a RESTful web service for the _Todo_ entity, we need to enable JAX-RS in our application. To enable JAX-RS, create a class which extends _javax.ws.rs.core.Application_ and specify the application path
 using a _javax.ws.rs.ApplicationPath_ annotation. Create a source file named _JaxRsActivator_ in the _src/main/java/com/todo/rest_ directory and add the following source code:
 
@@ -1800,8 +1726,7 @@ public class TodoRestService {
 }
 ----
 
-Deploy the _todo_ Application to OpenShift Origin
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+=== Deploy the _todo_ Application to OpenShift Origin
 Now that we have our application created, we need to push our changes to the OpenShift Origin gear that we created earlier in this lab. From the application root directory, issue the following commands:
 
 ----
@@ -1812,8 +1737,7 @@ $ git push
 
 Once you execute the _git push_ command, the application will begin building on the OpenShift Origin node host. During this training class, the OpenStack virtual machines we have created are not production grade environments. Because of this, the build process will take some time to complete. Sit back, be patient, and help your fellow classmates who may be having problems.
 
-Testing the _todo_ Application
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+=== Testing the _todo_ Application
 In order to test out the RESTful web service that we created in this lab, we can add and retrieve todo items using the _curl_ command line utility. To add a new item, enter the following command:
 
 ----
@@ -1847,12 +1771,10 @@ http://todo-ose.example.com
 
 to verify that the application was deployed correctly.
 
-Extra Credit
-~~~~~~~~~~~~
+=== Extra Credit
 SSH into the application gear and verify the todo item was added to the PostgreSQL database.
 
-Jenkins Continuous Integration
-------------------------------
+== Jenkins Continuous Integration
 
 *Server used:*
 
@@ -1878,8 +1800,7 @@ There are many reasons why you would want to leverage Jenkins as a continuous in
 
 Jenkins includes a feature-rich web user interface that provides the ability to trigger builds, customize builds, manage resources, manage plugins, and many other features.
 
-Verify Jenkins Cartridges
-~~~~~~~~~~~~~~~~~~~~~~~~~
+=== Verify Jenkins Cartridges
 SSH to your node host and verify that you have the Jenkins cartridges installed:
 
 ----
@@ -1895,8 +1816,7 @@ You should see the following four packages installed:
 
 If you do now have the above RPM packages installed on your node host, follow the directions in lab 17 to install the Jenkins packages. Make sure to clear the cache on the broker host after installing the new packages.
 
-Create a Jenkins Gear
-~~~~~~~~~~~~~~~~~~~~~
+=== Create a Jenkins Gear
 In order to use Jenkins on OpenShift Origin, you will need to create an application gear that contains the Jenkins application. This is done using the _rhc app create_ command line tool, or you can use the web console to create the application. The syntax for using the command line tool is as follows:
 
 ----
@@ -1946,8 +1866,7 @@ Note:  You can change your password at: https://jenkins-ose.example.com/me/confi
 
 Make a note of the user username and password that was created for you by OpenShift Origin.
 
-Add Jenkins Support to an Application
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+=== Add Jenkins Support to an Application
 Now that we have a Jenkins server setup and running, we can add support to our _todo_ application which will allow all futures builds to compile on the Jenkins server. To embed the Jenkins support cartridge in your
 application, use the following command:
 
@@ -1984,9 +1903,7 @@ At the bottom of the output, you should see the following information:
     
 ----
 
-Configure Jenkins
-~~~~~~~~~~~~~~~~~
-
+=== Configure Jenkins
 Open up a web browser and point to the following URL:
 
 ----
@@ -1995,17 +1912,17 @@ https://jenkins-ose.example.com/job/todo-build/
 
 Authenticate to the Jenkins environment by providing the username and password that was displayed after adding the Jenkins application.
 
-image:images/jenkins.png[image]
+image:jenkins.png[image]
 
 Once you are authenticated to the Jenkins dashboard, click on the configure link:
 
-image:images/jenkins2.png[image]
+image:jenkins2.png[image]
 
 A few interesting configuration items exist that may come in handy in the future:
 
 Builder Configuration:: The first interesting configuration is concerned with the builder. The configuration below states that Jenkins should create a builder with a small size using the JBoss EAP cartridge and that the Jenkins master will wait for 5 minutes for the slave to come online.
 
-image:images/jenkins3.png[image]
+image:jenkins3.png[image]
 
 Git Configuration:: The next configuration item of interest is the git SCM URL. It specifies the URL of the git repository to use, the branch to use, etc. This section is important if you want to use Jenkins to build a project which exists outside of OpenShift Origin. This would be useful for developers who have an internal repo for their source code that they would prefer to build from.
 
@@ -2053,8 +1970,7 @@ $GIT_SSH 4d1b096e414243e9833dad55d774de73@todo-ose.example.com post_deploy.sh
       
 ----
 
-Deploy Code to Jenkins
-~~~~~~~~~~~~~~~~~~~~~~
+=== Deploy Code to Jenkins
 Now that you have the Jenkins client embedded into your _todo_ application gear, any future _git push_ commands will send the code to the Jenkins server for building. To test this out, edit the _src/main/webapp/todo.xhtml_ source file and change the title of the page. If you do not have this file, just create a new file instead. Look
 for the following code block:
 
@@ -2123,10 +2039,9 @@ ssh://ffee273344bd404e99e59ba070512d0b@todobldr-ose.example.com/~/git/todobldr.g
 
 If the build fails, or if you just want to see the output of the Maven build process, you can log in to your Jenkins application, click on the build, and then click the link to view the console output. Log in to your Jenkins application and view the contents of the last build.
 
-image:images/jenkins4.png[image]
+image:jenkins4.png[image]
 
-Start a New Build
-~~~~~~~~~~~~~~~~~
+=== Start a New Build
 One of the great things about integrating your application with the Jenkins CI environment is the ability to start a new build without having to modify and push your source code. To initiate a new build, log in to the Jenkins dashboard and select the _todo_ builder. Point your browser to:
 
 ----
@@ -2135,20 +2050,19 @@ https://jenkins-ose.example.com/
 
 Once you have been authenticated, click the _todo-build_ link:
 
-image:images/jenkins5.png[image]
+image:jenkins5.png[image]
 
 This will place you on the _todo_ application builder dashboard. Click the _Build Now_ link on the left hand side of the screen to initiate a new build:
 
-image:images/jenkins6.png[image]
+image:jenkins6.png[image]
 
 After you click the _Build Now_ link, a new build will show up under the links on the left hand side of the screen.
 
-image:images/jenkins7.png[image]
+image:jenkins7.png[image]
 
 For more information about the current build, you can click on the build to manage and view details, including the console output, for the build.
 
-JBoss Tools
------------
+== JBoss Tools
 
 *Server used:*
 
@@ -2161,8 +2075,7 @@ JBoss Tools
 JBoss Tools is an umbrella project for a set of Eclipse plugins that supports JBoss and related technologies; there is support for OpenShift, Hibernate, JBoss AS, Drools, jBPM, JSF, (X)HTML, Seam, Maven, JBoss ESB, JBoss Portal and more...
 
 
-Download and Install Eclipse - Juno
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+=== Download and Install Eclipse - Juno
 In this lab, we are going to use the latest version of JBoss Tools. In order to make use of this version, we will need to use the Juno version of the popular Eclipse IDE. Head on over to the eclipse.org website and download the latest version of Eclipse for Java EE developers.
 
 Once you have Eclipse installed, go to the JBoss Tools page located at
@@ -2173,8 +2086,7 @@ http://www.jboss.org/tools
 
 and follow the instructions to install JBoss Tools 4.0 (Juno).
 
-Use JBoss Tools with OpenShift Origin
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+=== Use JBoss Tools with OpenShift Origin
 By default, JBoss Tools OpenShift integration will default to use the OpenShift Online service that is hosted by Red Hat. In order for us to use JBoss Tools to communicate with our OpenShift Origin installation, we need to configure Eclipse with our _LIBRA_SERVER_ setting. This is a straight forward process but one that may catch
 people off guard. To make the change, edit the _eclipse.ini_ file located in the root directory of your Eclipse deployment and add _-Dlibra_server=broker.example.com_ directly after the the following line:
 
@@ -2228,60 +2140,54 @@ openFile
 
 After adding the correct arguments to the _eclipse.ini_ file, restart the Eclipse IDE.
 
-Create an OpenShift Origin Application
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+=== Create an OpenShift Origin Application
 
 Now that we have Eclipse Juno and JBoss Tools 4.0 installed, we can create an OpenShift Origin application without having the leave the comfort of our favorite IDE. Click on the _OpenShift Applicaiton_ link that is provided on the JBoss Central screen.
 
-image:images/jbosstools1.png[image]
+image:jbosstools1.png[image]
 
 Once you click on the link to create a new OpenShift Origin application, you will be presented with a dialog to authenticate to OpenShift Origin. Now is also a good time to validate the _Server_ setting is correctly set to _broker.example.com_. If your server does not reflect this, you have not configured your _eclipse.ini_ file
 correctly. If you are unable to configure your _eclipse.ini_ file as specified in this lab, inform the instructor so that he/she may help you.
 
-image:images/jbosstools2.png[image]
+image:jbosstools2.png[image]
 
 After clicking _next_, the JBoss Tools plugin will authenticate you to the broker host and present another dialog box to you. On this dialog box, you have the option of creating a new application, or to use an existing one. Since we already have a JBoss EAP application deployed, let's select to _Use existing application_ and click the _Browse_ button. After clicking the _Browse_ button, a REST API call be made to the broker host to retrieve the existing applications that you already have deployed.
 
-image:images/jbosstools3.png[image]
+image:jbosstools3.png[image]
 
 Highlight the _todo_ application and click on the _Details..._ button. This will display all of the necessary information about the application, including any cartridges that may be embedded.
 
-image:images/jbosstools4.png[image]
+image:jbosstools4.png[image]
 
 After clicking _Next_, Eclipse will ask you to create a new project or to use an existing one. Let's create a new one and set the correct location where we want to store the project files.
 
-image:images/jbosstools5.png[image]
+image:jbosstools5.png[image]
 
 Once you click the _Finish_ button, the existing application will be cloned to your local project.
 
-Manage OpenShift Origin Applications with JBoss Tools
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+=== Manage OpenShift Origin Applications with JBoss Tools
 JBoss Tools provide many features to allow a developer to manage their application from directly inside of the Eclipse IDE. This includes features such as viewing log files, publishing the application, and port-forwarding. Click on the servers tab at the bottom on the Eclipse IDE to see your OpenShift Origin server.
 
-image:images/jbosstools6.png[image]
+image:jbosstools6.png[image]
 
-Tailing Log files
-^^^^^^^^^^^^^^^^^
+==== Tailing Log files
 After clicking on the _servers_ tab, right click on your OpenShift Origin server and then select _OpenShift_ and finally select _tail files_.
 
-image:images/jbosstools7.png[image]
+image:jbosstools7.png[image]
 
 You will now be able to view the log files in the console tab that has been opened for you inside of Eclipse.
 
-Viewing Environment Variables
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+==== Viewing Environment Variables
 After clicking on the _servers_ tab, right click on your OpenShift Origin server and then select _OpenShift_ and finally select _Environment Variables_. Once you select this option, all of the system environment variables, including database connections, will be displayed in the console window of Eclipse.
 
-Using Port-Forwarding
-^^^^^^^^^^^^^^^^^^^^^
+==== Using Port-Forwarding
 After clicking on the _servers_ tab, right click on your OpenShift Origin server and then select _OpenShift_ and finally select _Port Forwarding_. This will open up a new dialog that displays which services and what IP address will be used for the forwarded services.
 
-image:images/jbosstools8.png[image]
+image:jbosstools8.png[image]
 
 For the next section of this lab, ensure that you click on _Start Forwarding_ so that we will be able to connect to PostgreSQL from our local machine.
 
-Adding PostgreSQL as an Eclipse Data Source
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+==== Adding PostgreSQL as an Eclipse Data Source
 Download the latest PostgreSQL driver from the following location
 
 ----
@@ -2290,7 +2196,7 @@ http://jdbc.postgresql.org/download.html
 
 and save it to your local computer. Once you have the file downloaded, click on the _Data Source Explorer_ tab, right click on _Database Connection_ and select _New_. This will open the following dialog where you will want to select PostgreSQL:
 
-image:images/db1.png[image]
+image:db1.png[image]
 
 Initially, the _Drivers_ pull down box will be empty. In order to add our PostgreSQL driver, click the plug sign next to the drop down, highlight _PostgreSQL JDBC Driver_ and then click on _JAR List_. Click on _Add JAR/Zip_ and browse to the location of the JDBC4 driver that you downloaded.
 
@@ -2306,12 +2212,11 @@ credentials and that port-fowarding is started via JBoss Tools.
 
 Once you have correctly added the database connection, you should now see the remote database from the OpenShift Origin node host available for use in your Eclipse IDE.
 
-image:images/db2.png[image]
+image:db2.png[image]
 
 At this point, you should be able to use any of the database tools provided by Eclipse to communicate with and manage your OpenShift Origin PostgreSQL database.
 
-Code Changes and Application Deployment
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+=== Code Changes and Application Deployment
 In the project view, expand the source files for the _src/main/webapp_ directory and edit the _todo.xhtml_ source file. Change the following line
 
 ----
@@ -2326,11 +2231,11 @@ to the include JBoss Tools
 
 Once you have made the source code change, save the contents of the file and then use the _Team_ functionality by right clicking on your project. Commit and push the changes to your OpenShift Origin server. This push will follow the same workflow used previously by initiating a build on your Jenkins server.
 
-image:images/tools1.png[image]
+image:tools1.png[image]
 
 After you push your changes, open up your Jenkins dashboard and open the _Console Output_ screen to see the build progress. Once your build has completed, Eclipse will display a dialog box with a summary of the deployment:
 
-image:images/tools2.png[image]
+image:tools2.png[image]
 
 Verify that your changes were deployed correctly by opening up a web browser and going to the following URL:
 
@@ -2338,10 +2243,9 @@ Verify that your changes were deployed correctly by opening up a web browser and
 http://todo-ose.example.com/    
 ----
 
-image:images/tools3.png[image]
+image:tools3.png[image]
 
-Quickstarts
------------
+== Quickstarts
 
 *Server used:*
 
@@ -2362,8 +2266,7 @@ A key tenet when Red Hat was designing OpenShift Origin was the ability for deve
 * Redmine
 * MediaWiki
 
-Quickstart Installation
-~~~~~~~~~~~~~~~~~~~~~~~
+=== Quickstart Installation
 Point your browser to the following URL:
 
 ----
@@ -2372,10 +2275,9 @@ http://www.github.com/openshift
 
 Given the number of available quick starts, you may have to use the search functionality of your browser to locate the quick start that you would like to install. For this lab, choose either the Wordpress or Drupal quick start and follow the instructions provided to install the application.
 
-image:images/quickstart.png[image]
+image:quickstart.png[image]
 
-Quickstart Creation
--------------------
+== Quickstart Creation
 
 *Server used:*
 
@@ -2390,8 +2292,7 @@ Quickstart Creation
 
 A common task that you will be asked to do is make a software developer's development environment easily deployable on OpenShift Origin. Development teams desire a quick and repeatable way to spin up an environment with their application code already deployed and integrated with various data stores. In the previous lab, we saw how easy it was to install applications via our quick start process. During this lab, we will focus on the ability for you to create your own quick starts using the popular open source project Piwik as an example.
 
-Download the Piwik Source Code
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+=== Download the Piwik Source Code
 At the time of this writing, you can obtain the code directly from the Piwik website at: http://piwik.org/latest.zip. Once downloaded, save the file to _~/code/piwikstage_.
 
 After you have downloaded the source code, extract the contents of the zip archive with the following command:
@@ -2405,8 +2306,7 @@ $ unzip latest.zip
 
 This will create a piwik directory under the ~/code/piwikstage directory.
 
-Create an OpenShift Origin Application
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+=== Create an OpenShift Origin Application
 We need to create an OpenShift Origin application to hold the source code as well as embed the MySQL database:
 
 ----
@@ -2442,10 +2342,9 @@ Assuming everything went as expected, you should be able to verify Piwik is runn
 http://piwik-ose.example.com
 ----
 
-image:images/piwik.png[image]
+image:piwik.png[image]
 
-Creating a github Repository
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+=== Creating a github Repository
 NOTE: This step assumes that you already have a github account. If you don't, head on over to www.github.com and sign up (it's free).
 
 Log in to the github website and create a new repository for our quick start. The direct link, after you are logged in, to create a new repository is:
@@ -2457,19 +2356,18 @@ https://github.com/repositories/new
 
 Enter a project name and a description for your quick start. I suggest a name that identifies the project as a OpenShift Origin quick start. For example, a good name would be _Piwik-openshift-quickstart_.
 
-image:images/piwik2.png[image]
+image:piwik2.png[image]
 
 On your newly created project space, grab the HTTP Git URL and add the github repository as a remote to your existing _piwik_ OpenShift Origin application.
 
-image:images/piwik3.png[image]
+image:piwik3.png[image]
 
 ----
 $ cd ~/code/piwik
 $ git remote add github ${github http URL from github}
 ----
 
-Create Deployment Instructions
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+=== Create Deployment Instructions
 In order for developers to be able to use the quick start that you have created, you need to provide instructions on how to install the application. These instructions need to be in the _README_ and _README.md_ files. By default, github will display the contents of this file, using the markdown version if it exits, on the repository page. For example, a proper README file would contain the following contents:
 
 ----
@@ -2525,9 +2423,7 @@ Now we need to push these changes to the github repository we created:
 $ git push -u github master
 ----
 
-Verify the Quickstart
-~~~~~~~~~~~~~~~~~~~~~
-
+=== Verify the Quickstart
 Delete the _piwik_ OpenShift Origin application and follow the instruction you created for your Piwik quick start to verify that everything works as expected.
 
-NOTE: If your application requires an existing populated database, the way to accomplish this is by using the .openshift/action_hooks/build script located in your application directory. Once you have your database created locally, do a _mysqldump_ on the table and store the .sql file in the action_hooks directory. You can then modify an existing build file to import the schema on application deployment. For an example, take a look at the action_hooks directory of the Wordpress quick start.
+TIP: If your application requires an existing populated database, the way to accomplish this is by using the .openshift/action_hooks/build script located in your application directory. Once you have your database created locally, do a _mysqldump_ on the table and store the .sql file in the action_hooks directory. You can then modify an existing build file to import the schema on application deployment. For an example, take a look at the action_hooks directory of the Wordpress quick start.
