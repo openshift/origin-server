@@ -55,11 +55,8 @@ Publishes:
   publish-gear-endpoint:
     Type: "NET_TCP:gear-endpoint-info"
 Subscribes:
-  set-db-connection-info:
-    Type: "ENV:NET_TCP:db:connection-info"
-    Required: false
-  set-nosql-db-connection-info:
-    Type: "ENV:NET_TCP:nosqldb:connection-info"
+  set-env:
+    Type: "ENV:*"
     Required: false
 Scaling:
   Min: 1
