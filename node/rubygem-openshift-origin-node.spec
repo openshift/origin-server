@@ -40,6 +40,7 @@ Requires:      cronie
 Requires:      crontabs
 Requires:      git
 Requires:      httpd
+Requires:      lsof
 Requires:      libcgroup-pam
 Requires:      libselinux-python
 Requires:      mercurial
@@ -174,6 +175,7 @@ mv httpd/openshift_route.include %{buildroot}/etc/httpd/conf.d/
 #%if 0%{?fedora}%{?rhel} <= 6
 mkdir -p %{buildroot}/etc/rc.d/init.d/
 cp %{buildroot}%{gem_instdir}/misc/init/openshift-cgroups %{buildroot}/etc/rc.d/init.d/
+cp %{buildroot}%{gem_instdir}/misc/init/openshift-tc %{buildroot}/etc/rc.d/init.d/
 #%else
 #mkdir -p %{buildroot}/etc/systemd/system
 #mv %{buildroot}%{gem_instdir}/misc/services/openshift-cgroups.service %{buildroot}/etc/systemd/system/openshift-cgroups.service
@@ -256,6 +258,7 @@ echo "/usr/bin/oo-trap-user" >> /etc/shells
 
 #%if 0%{?fedora}%{?rhel} <= 6
 %attr(0755,-,-)	/etc/rc.d/init.d/openshift-cgroups
+%attr(0755,-,-)	/etc/rc.d/init.d/openshift-tc
 #%else
 #%attr(0750,-,-) /etc/systemd/system
 #%endif

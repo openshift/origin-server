@@ -15,26 +15,28 @@
 #++
 
 module OpenShift
-  module NodeLogger
-    #
-    # This NodeLogger implementation discards all log messages.
-    #
-    class NullLogger
-      def initialize(config=nil, context=nil)
-      end
+  module Runtime
+    module NodeLogger
+      #
+      # This NodeLogger implementation discards all log messages.
+      #
+      class NullLogger
+        def initialize(config=nil, context=nil)
+        end
 
-      def reinitialize
-      end
+        def reinitialize
+        end
 
-      def drop(*args, &block)
-      end
+        def drop(*args, &block)
+        end
 
-      alias :info :drop
-      alias :debug :drop
-      alias :warn :drop
-      alias :error :drop
-      alias :fatal :drop
-      alias :trace :drop
+        alias :info :drop
+        alias :debug :drop
+        alias :warn :drop
+        alias :error :drop
+        alias :fatal :drop
+        alias :trace :drop
+      end
     end
   end
 end

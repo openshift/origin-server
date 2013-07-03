@@ -42,7 +42,7 @@ class CartridgeRepositoryWebFunctionalTest < OpenShift::NodeTestCase
     FileUtils.mkdir_p(@config_home)
     assert_path_exist @test_home
 
-    cr = OpenShift::CartridgeRepository.instance
+    cr = OpenShift::Runtime::CartridgeRepository.instance
     cr.load
     @cartridge = cr.select('mock-plugin', '0.1')
     puts %x(shopt -s dotglob;
@@ -107,7 +107,7 @@ class CartridgeRepositoryWebFunctionalTest < OpenShift::NodeTestCase
     cartridge_home = "/tmp/var/home/gear/mock"
 
     with_detail_output do
-      OpenShift::CartridgeRepository.instantiate_cartridge(cartridge, cartridge_home)
+      OpenShift::Runtime::CartridgeRepository.instantiate_cartridge(cartridge, cartridge_home)
     end
 
     assert_path_exist(cartridge_home)
@@ -117,7 +117,7 @@ class CartridgeRepositoryWebFunctionalTest < OpenShift::NodeTestCase
   def with_detail_output
     begin
       yield
-    rescue OpenShift::Utils::ShellExecutionException => e
+    rescue ::OpenShift::Runtime::Utils::ShellExecutionException => e
       NodeLogger.logger.debug(e.message + "\n" +
                                   e.stdout + "\n" +
                                   e.stderr + "\n" +

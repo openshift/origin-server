@@ -21,8 +21,8 @@ module OpenShift
             FileUtils.mkpath(data_dir)
             FileUtils.chmod_R(0o750, data_dir)
             PathUtils.oo_chown_R(@uuid, @uuid, data_dir)
-            mcs_label = OpenShift::Utils::SELinux::get_mcs_label(uuid)
-            OpenShift::Utils::SELinux.set_mcs_label_R(mcs_label, data_dir)
+            mcs_label = OpenShift::Runtime::Utils::SELinux::get_mcs_label(uuid)
+            OpenShift::Runtime::Utils::SELinux.set_mcs_label_R(mcs_label, data_dir)
           end
         end
 

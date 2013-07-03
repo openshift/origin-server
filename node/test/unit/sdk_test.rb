@@ -22,43 +22,43 @@ require_relative '../test_helper'
 module OpenShift
   class SdkTest < OpenShift::NodeTestCase
     def test_translate_shell_ex_for_client
-      orig = Utils::ShellExecutionException.new("Message", 1, "stdout", "stderr")
+      orig = Runtime::Utils::ShellExecutionException.new("Message", 1, "stdout", "stderr")
       orig.set_backtrace(["line1", "line2"])
 
-      translated = Utils::Sdk.translate_shell_ex_for_client(orig)
+      translated = Runtime::Utils::Sdk.translate_shell_ex_for_client(orig)
 
-      assert_kind_of Utils::ShellExecutionException, translated
+      assert_kind_of Runtime::Utils::ShellExecutionException, translated
       assert_equal orig.message, translated.message
       assert_equal orig.rc, translated.rc
-      assert_equal Utils::Sdk.translate_out_for_client(orig.stdout, :message), translated.stdout
-      assert_equal Utils::Sdk.translate_out_for_client(orig.stderr, :error), translated.stderr
+      assert_equal Runtime::Utils::Sdk.translate_out_for_client(orig.stdout, :message), translated.stdout
+      assert_equal Runtime::Utils::Sdk.translate_out_for_client(orig.stderr, :error), translated.stderr
       assert_equal orig.backtrace, translated.backtrace
     end
 
     def test_translate_shell_ex_for_client_rc_override
-      orig = Utils::ShellExecutionException.new("Message", 1, "stdout", "stderr")
+      orig = Runtime::Utils::ShellExecutionException.new("Message", 1, "stdout", "stderr")
       orig.set_backtrace(["line1", "line2"])
 
-      translated = Utils::Sdk.translate_shell_ex_for_client(orig, 2)
+      translated = Runtime::Utils::Sdk.translate_shell_ex_for_client(orig, 2)
 
-      assert_kind_of Utils::ShellExecutionException, translated
+      assert_kind_of Runtime::Utils::ShellExecutionException, translated
       assert_equal orig.message, translated.message
       assert_equal 2, translated.rc
-      assert_equal Utils::Sdk.translate_out_for_client(orig.stdout, :message), translated.stdout
-      assert_equal Utils::Sdk.translate_out_for_client(orig.stderr, :error), translated.stderr
+      assert_equal Runtime::Utils::Sdk.translate_out_for_client(orig.stdout, :message), translated.stdout
+      assert_equal Runtime::Utils::Sdk.translate_out_for_client(orig.stderr, :error), translated.stderr
       assert_equal orig.backtrace, translated.backtrace
     end
 
     def test_translate_shell_ex_for_client_unsupported_ex_type
       orig = RuntimeError.new
-      translated = Utils::Sdk.translate_shell_ex_for_client(orig)
+      translated = Runtime::Utils::Sdk.translate_shell_ex_for_client(orig)
       assert_equal orig, translated
     end
 
     def test_translate_out_for_client_message
       out = "message1\nmessage2\nmessage3"
 
-      translated = Utils::Sdk.translate_out_for_client(out, :message)
+      translated = Runtime::Utils::Sdk.translate_out_for_client(out, :message)
 
       assert_equal "CLIENT_MESSAGE: message1\nCLIENT_MESSAGE: message2\nCLIENT_MESSAGE: message3", translated
     end
@@ -66,13 +66,13 @@ module OpenShift
     def test_translate_out_for_client_error
       out = "message1\nmessage2\nmessage3"
 
-      translated = Utils::Sdk.translate_out_for_client(out, :error)
+      translated = Runtime::Utils::Sdk.translate_out_for_client(out, :error)
 
       assert_equal "CLIENT_ERROR: message1\nCLIENT_ERROR: message2\nCLIENT_ERROR: message3", translated
     end
 
     def test_translate_out_for_client_nil
-      translated = Utils::Sdk.translate_out_for_client(nil, :message)
+      translated = Runtime::Utils::Sdk.translate_out_for_client(nil, :message)
 
       assert_equal "", translated
     end

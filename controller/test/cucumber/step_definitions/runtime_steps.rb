@@ -142,7 +142,7 @@ When /^I (fail to )?embed a ([^ ]+) cartridge into the application$/ do | negate
     cart = @gear.add_cartridge(cart_name)
 
     if negate
-      assert_raise(OpenShift::Utils::ShellExecutionException) do
+      assert_raise(OpenShift::Runtime::Utils::ShellExecutionException) do
         exit_code = cart.configure
       end
     else
@@ -828,7 +828,7 @@ Then /^the ([^ ]+) cartridge endpoints with ssl to gear option will be (exposed|
 end
 
 Then /^the application state will be ([^ ]+)$/ do |state_value|
-  state_const = OpenShift::State.const_get(state_value.upcase)
+  state_const = OpenShift::Runtime::State.const_get(state_value.upcase)
 
   raise "Invalid state '#{state_value}' provided to step" unless state_const
 
@@ -840,7 +840,7 @@ Then /^the ([^ ]+) cartridge status should be (running|stopped)$/ do |cart_name,
     @gear.carts[cart_name].status
     # If we're here, the cart status is 'running'
     raise "Expected #{cart_name} cartridge to be stopped" if expected_status == "stopped"
-  rescue OpenShift::Utils::ShellExecutionException
+  rescue OpenShift::Runtime::Utils::ShellExecutionException
     # If we're here, the cart status is 'stopped'
     raise if expected_status == "running"
   end

@@ -36,6 +36,12 @@ class ApplicationStateTest < OpenShift::NodeTestCase
     @bad_state      = "asdf"
     @unknown_state  = "unknown"
 
+    # Set up the container
+    @uid  = 5502
+    @app_name  = 'ApplicatioStateTestCase'
+    @gear_name = @uuid
+    @namespace = 'jwh201204301647'
+
     OpenShift::Config.stubs(:new).returns(config)
   end
 
@@ -47,7 +53,18 @@ class ApplicationStateTest < OpenShift::NodeTestCase
   end
 
   def new_state(uuid)
-    OpenShift::Utils::ApplicationState.new(uuid)
+    OpenShift::Runtime::ApplicationContainer.stubs(:get_build_model).returns(:v2)
+    Etc.stubs(:getpwnam).returns(
+      OpenStruct.new(
+        uid: @uid.to_i,
+        gid: @uid.to_i,
+        gecos: "OpenShift guest",
+        dir: "/tmp/#{@uuid}"
+      )
+    )
+
+    container = OpenShift::Runtime::ApplicationContainer.new(@uuid, @uuid, @uid, @app_name, @uuid, @namespace, nil, nil, nil)
+    OpenShift::Runtime::Utils::ApplicationState.new(container)
   end
 
   def get_state
@@ -68,9 +85,9 @@ class ApplicationStateTest < OpenShift::NodeTestCase
   end
 
   def test_set_value
-    PathUtils.expects(:oo_chown).with(@uuid, @uuid, @state_file).once()
-    OpenShift::Utils::SELinux.expects(:get_mcs_label).with(@uuid).once().returns("test label")
-    OpenShift::Utils::SELinux.expects(:set_mcs_label).with("test label", @state_file).once()
+    PathUtils.expects(:oo_chown).with(@uid, @uid, @state_file).once()
+    OpenShift::Runtime::Utils::SELinux.expects(:get_mcs_label).with(@uid).once().returns("test label")
+    OpenShift::Runtime::Utils::SELinux.expects(:set_mcs_label).with("test label", @state_file).once()
     new_state(@uuid).tap { |state|
       state.value = @good_state
     }
@@ -94,7 +111,7 @@ class ApplicationStateTest < OpenShift::NodeTestCase
   end
 
   def test_get_value_error_permission
-    OpenShift::NodeLogger.logger.expects(:info).once().with(all_of(
+    OpenShift::Runtime::NodeLogger.logger.expects(:info).once().with(all_of(
       regexp_matches(/^#{Regexp.escape("Failed to get state: #{@uuid} [#{@state_file}]")}/),
       regexp_matches(/Permission denied$/)
     ))
@@ -106,7 +123,7 @@ class ApplicationStateTest < OpenShift::NodeTestCase
   end
 
   def test_get_value_error_runtime
-    OpenShift::NodeLogger.logger.expects(:info).once().with(all_of(
+    OpenShift::Runtime::NodeLogger.logger.expects(:info).once().with(all_of(
       regexp_matches(/^#{Regexp.escape("Failed to get state: #{@uuid} [#{@state_file}]")}/),
       regexp_matches(/asdf$/)
     ))

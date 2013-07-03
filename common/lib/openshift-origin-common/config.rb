@@ -16,12 +16,13 @@
 
 require 'rubygems'
 require 'parseconfig'
+require 'openshift-origin-common/utils/path_utils'
 
 module OpenShift
   class Config
     CONF_DIR = '/etc/openshift/'
-    PLUGINS_DIR = File.join(CONF_DIR, 'plugins.d/')
-    NODE_CONF_FILE = File.join(CONF_DIR, 'node.conf')
+    PLUGINS_DIR = PathUtils.join(CONF_DIR, 'plugins.d/')
+    NODE_CONF_FILE = PathUtils.join(CONF_DIR, 'node.conf')
 
     @@conf_parsed = {}
     @@conf_mtime  = {}
