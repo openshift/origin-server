@@ -7,7 +7,7 @@
 
 Summary:       Provides embedded PostgreSQL support
 Name:          openshift-origin-cartridge-postgresql
-Version: 0.4.2
+Version: 0.4.3
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -91,6 +91,9 @@ Provides PostgreSQL cartridge support to OpenShift. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Wed Jul 03 2013 Adam Miller <admiller@redhat.com> 0.4.3-1
+- Make more SDK calls (asari.ruby@gmail.com)
+
 * Tue Jul 02 2013 Adam Miller <admiller@redhat.com> 0.4.2-1
 - Bug 976921: Move cart installation to %%posttrans (ironcladlou@gmail.com)
 - Conflicts: is obsolete. (asari.ruby@gmail.com)
