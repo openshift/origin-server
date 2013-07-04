@@ -10,7 +10,7 @@
 Summary:       OpenShift plugin for SELinux based containers
 Name:          rubygem-%{gem_name}
 Version:       0.0.2
-Release:       1%{?dist}
+Release:       2%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
 URL:           http://openshift.redhat.com
