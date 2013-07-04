@@ -88,6 +88,8 @@ module OpenShift
         def create_public_endpoints(cart_name)
           cart = @cartridge_model.get_cartridge(cart_name)
 
+          output = ''
+
           env  = Utils::Environ::for_gear(@container_dir)
           # TODO: better error handling
           cart.public_endpoints.each do |endpoint|
@@ -102,9 +104,14 @@ module OpenShift
             public_port = create_public_endpoint(private_ip, endpoint.private_port)
             add_env_var(endpoint.public_port_name, public_port)
 
+            config = ::OpenShift::Config.new
+            output << "NOTIFY_ENDPOINT_CREATE: #{endpoint.public_port_name} #{config.get('PUBLIC_IP')} #{public_port}\n" 
+
             logger.info("Created public endpoint for cart #{cart.name} in gear #{@uuid}: "\
           "[#{endpoint.public_port_name}=#{public_port}]")
           end
+
+          output
         end
 
         def create_public_endpoint(private_ip, private_port)
@@ -121,9 +128,16 @@ module OpenShift
           cart = @cartridge_model.get_cartridge(cart_name)
           proxy_mappings = @cartridge_model.list_proxy_mappings
 
+          output = ''
+
           begin
             # Remove the proxy entries
             @container_plugin.delete_public_endpoints(proxy_mappings)
+
+            config = ::OpenShift::Config.new
+            proxy_mappings.each { |p| 
+              output << "NOTIFY_ENDPOINT_DELETE: #{p[:public_port_name]} #{config.get('PUBLIC_IP')} #{p[:proxy_port]}\n" if p[:proxy_port]
+            }
 
             logger.info("Deleted all public endpoints for cart #{cart.name} in gear #{@uuid}\n"\
               "Endpoints: #{proxy_mappings.map{|p| p[:public_port_name]}}\n"\
@@ -138,6 +152,8 @@ module OpenShift
 
           # Clean up the environment variables
           proxy_mappings.map{|p| remove_env_var(p[:public_port_name])}
+
+          output
         end
 
         def connector_execute(cart_name, pub_cart_name, connector_type, connector, args)
