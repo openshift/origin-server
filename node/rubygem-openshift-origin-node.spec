@@ -16,7 +16,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.11.4
+Version: 1.11.5
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -286,6 +286,12 @@ echo "/usr/bin/oo-trap-user" >> /etc/shells
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Fri Jul 05 2013 Adam Miller <admiller@redhat.com> 1.11.5-1
+- Merge pull request #2987 from rajatchopra/routing_broker
+  (dmcphers+openshiftbot@redhat.com)
+- Routing plug-in for broker. Code base from github/miciah/broker-plugin-
+  routing-activemq (miciah.masters@gmail.com)
+
 * Wed Jul 03 2013 Adam Miller <admiller@redhat.com> 1.11.4-1
 - Merge pull request #2980 from danmcp/master
   (dmcphers+openshiftbot@redhat.com)
