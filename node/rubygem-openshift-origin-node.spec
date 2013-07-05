@@ -30,6 +30,12 @@ Requires:      %{?scl:%scl_prefix}ruby(abi) >= %{rubyabi}
 Requires:      %{?scl:%scl_prefix}rubygem(commander)
 Requires:      %{?scl:%scl_prefix}rubygem(json)
 Requires:      %{?scl:%scl_prefix}rubygem(mocha)
+Requires:      %{?scl:%scl_prefix}rubygem(open4)
+%if 0%{?rhel} <= 6
+# non-scl open4 required for ruby 1.8 cartridge
+# Also see related bugs 924556 and 912215
+Requires:      rubygem(open4)
+%endif
 Requires:      %{?scl:%scl_prefix}rubygem(parseconfig)
 Requires:      %{?scl:%scl_prefix}rubygem(rspec)
 Requires:      %{?scl:%scl_prefix}rubygem(safe_yaml)
@@ -50,8 +56,6 @@ Requires:      pam_openshift
 Requires:      python
 Requires:      quota
 Requires:      lsof
-# non-scl open4 required for oo-cgroup-read bug 924556 until selinux fix for bug 912215 is available
-Requires:      rubygem(open4)
 Requires:      rubygem(openshift-origin-common)
 %if 0%{?fedora}%{?rhel} <= 6
 Requires:      libcgroup
