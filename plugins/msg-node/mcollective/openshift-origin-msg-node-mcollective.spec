@@ -10,7 +10,7 @@
 
 Summary:       M-Collective agent file for openshift-origin-msg-node-mcollective
 Name:          openshift-origin-msg-node-mcollective
-Version: 1.11.3
+Version: 1.11.4
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -51,6 +51,10 @@ cp -p facts/update_yaml.rb %{buildroot}/usr/libexec/mcollective/
 %attr(0700,-,-) %config(noreplace) /etc/cron.minutely/openshift-facts
 
 %changelog
+* Fri Jul 05 2013 Adam Miller <admiller@redhat.com> 1.11.4-1
+- Routing plug-in for broker. Code base from github/miciah/broker-plugin-
+  routing-activemq (miciah.masters@gmail.com)
+
 * Tue Jul 02 2013 Adam Miller <admiller@redhat.com> 1.11.3-1
 - Merge pull request #2934 from kraman/libvirt-f19-2
   (dmcphers+openshiftbot@redhat.com)
