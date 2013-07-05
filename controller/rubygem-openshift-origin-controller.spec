@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.11.3
+Version: 1.11.4
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -84,6 +84,15 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Fri Jul 05 2013 Adam Miller <admiller@redhat.com> 1.11.4-1
+- Assign default gear size if not specified in applications_controller.rb
+  (rpenta@redhat.com)
+- Merge pull request #2987 from rajatchopra/routing_broker
+  (dmcphers+openshiftbot@redhat.com)
+- fix runtime extended tests (dmcphers@redhat.com)
+- Routing plug-in for broker. Code base from github/miciah/broker-plugin-
+  routing-activemq (miciah.masters@gmail.com)
+
 * Tue Jul 02 2013 Adam Miller <admiller@redhat.com> 1.11.3-1
 - Merge pull request #2934 from kraman/libvirt-f19-2
   (dmcphers+openshiftbot@redhat.com)
