@@ -2,7 +2,7 @@
 
 Summary:       Provides Node.js support
 Name:          openshift-origin-cartridge-nodejs
-Version: 1.12.2
+Version: 1.12.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -64,6 +64,11 @@ fi
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Fri Jul 05 2013 Adam Miller <admiller@redhat.com> 1.12.3-1
+- Merge pull request #2977 from BanzaiMan/dev/hasari/bz980102
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 980102 (asari.ruby@gmail.com)
+
 * Tue Jul 02 2013 Adam Miller <admiller@redhat.com> 1.12.2-1
 - Bug 976921: Move cart installation to %%posttrans (ironcladlou@gmail.com)
 - Bug 979991 (asari.ruby@gmail.com)
