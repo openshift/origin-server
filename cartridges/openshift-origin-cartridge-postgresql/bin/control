@@ -172,7 +172,11 @@ function cleanup_dump {
 }
 
 function reload {
-  postgresql_context "pg_ctl reload"
+  if _is_running
+    postgresql_context "pg_ctl reload"
+  else
+    client_message "'reload' is valid only when the database is running"
+  fi
 }
 
 function tidy {
