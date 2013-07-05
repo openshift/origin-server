@@ -69,6 +69,7 @@ class ApplicationsController < BaseController
     end
 
     default_gear_size = params[:gear_profile].presence
+    default_gear_size = Rails.application.config.openshift[:default_gear_size] if default_gear_size.nil?
     default_gear_size.downcase! if default_gear_size
 
     return render_error(:unprocessable_entity, "Application name is required and cannot be blank",
