@@ -2,7 +2,6 @@
 @runtime_extended3
 @jenkins
 Feature: Jenkins Client Embedded Cartridge
-  @runtime_extended_other3
   Scenario Outline: Add Jenkins Client to one application without Jenkins server available (RHEL/CentOS)
     #Given a perl-5.10 application, verify that you cannot add jenkins client without server being available
     Given a new <cart_name> type application
