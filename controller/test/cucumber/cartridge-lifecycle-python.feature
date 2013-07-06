@@ -1,6 +1,5 @@
 @runtime_extended
 @runtime_extended1
-@runtime_extended_other1
 Feature: Cartridge Lifecycle Python Verification Tests
   Scenario Outline: Application Creation
   #Given a new <cart_name> application, verify its availability
@@ -36,14 +35,6 @@ Feature: Cartridge Lifecycle Python Verification Tests
   #Given an existing <cart_name> application, verify it can be tidied
   #  When I tidy the application
   #  Then the application should be accessible
-  #
-  #Given an existing <cart_name> application, verify it can be snapshotted and restored
-  #  When I snapshot the application
-  #  Then the application should be accessible
-  #  When a new file is added and pushed to the client-created application repo
-  #  When I restore the application
-  #  Then the application should be accessible
-  #  And the new file will not be present in the gear app-root repo
 
   #Given an existing <cart_name> application, verify it can be restarted
     When the application is restarted

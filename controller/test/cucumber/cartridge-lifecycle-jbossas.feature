@@ -1,4 +1,3 @@
-@runtime_extended_other2
 @runtime_extended
 @runtime_extended2
 @not-enterprise
