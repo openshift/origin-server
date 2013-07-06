@@ -26,7 +26,6 @@ Feature: Cartridge Lifecycle JBossEAP Verification Tests
     Then the application should be accessible
 
   #Scenario: Application Snapshot
-    #Given an existing jbosseap-6.0 application, verify it can be snapshotted and restored
     When I snapshot the application
     Then the application should be accessible
     When a new file is added and pushed to the client-created application repo
