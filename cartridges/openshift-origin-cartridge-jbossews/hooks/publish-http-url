@@ -1,5 +1,2 @@
 #!/usr/bin/python
-
-# Start the application httpd instance
-
-import os, socket; print "{0}|{1}:{2}".format(os.environ.get('OPENSHIFT_GEAR_DNS', ""), socket.gethostbyname(socket.gethostname()), os.environ.get('OPENSHIFT_JBOSSEWS_HTTP_PROXY_PORT', ""))
+import os, socket; print "{0}|{1}:{2}".format(os.environ.get(OPENSHIFT_GEAR_DNS, ""), socket.gethostbyname(socket.gethostname()), os.environ.get(OPENSHIFT_JBOSSEWS_HTTP_PROXY_PORT, ""))
