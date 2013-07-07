@@ -1,8 +1,8 @@
-%global cartridgedir %{_libexecdir}/openshift/cartridges/v2/diy
+%global cartridgedir %{_libexecdir}/openshift/cartridges/diy
 
 Summary:       DIY cartridge
 Name:          openshift-origin-cartridge-diy
-Version: 0.5.2
+Version: 0.6.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -28,7 +28,7 @@ DIY cartridge for openshift. (Cartridge Format V2)
 %__mkdir -p %{buildroot}%{cartridgedir}
 %__cp -r * %{buildroot}%{cartridgedir}
 
-%post
+%posttrans
 %{_sbindir}/oo-admin-cartridge --action install --source %{cartridgedir}
 
 %files
@@ -41,6 +41,20 @@ DIY cartridge for openshift. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Tue Jul 02 2013 Adam Miller <admiller@redhat.com> 0.6.2-1
+- Bug 976921: Move cart installation to %%posttrans (ironcladlou@gmail.com)
+- remove v2 folder from cart install (dmcphers@redhat.com)
+- Merge pull request #2924 from wang0x7a/dev/zhewang/bug/976758
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 976758 & 969948 - Update the name of internal IP env var to match v2
+  carts https://bugzilla.redhat.com/show_bug.cgi?id=976758
+  https://bugzilla.redhat.com/show_bug.cgi?id=969948 Changed the
+  OPENSHIFT_INTERNAL_IP env var in index.html and start hook to
+  OPENSHIFT_DIY_IP (zhewang@redhat.com)
+
+* Tue Jun 25 2013 Adam Miller <admiller@redhat.com> 0.6.1-1
+- bump_minor_versions for sprint 30 (admiller@redhat.com)
+
 * Mon Jun 17 2013 Adam Miller <admiller@redhat.com> 0.5.2-1
 - First pass at removing v1 cartridges (dmcphers@redhat.com)
 - Make Install-Build-Required default to false (ironcladlou@gmail.com)

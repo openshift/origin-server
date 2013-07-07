@@ -34,7 +34,7 @@ STDERR.sync = true
 
 HOT_DEPLOY_MARKER = File.join(%w(.openshift markers hot_deploy))
 
-OpenShift::NodeLogger.disable
+OpenShift::Runtime::NodeLogger.disable
 
 def gear_cartridge_names
   cartridge_names = []
@@ -56,8 +56,8 @@ def file_committed?(fn)
   end
 end
 
-@container = OpenShift::ApplicationContainer.new(ENV['OPENSHIFT_APP_UUID'], ENV['OPENSHIFT_GEAR_UUID'], Etc.getpwuid.uid, ENV['OPENSHIFT_APP_NAME'], ENV['OPENSHIFT_GEAR_NAME'], ENV['OPENSHIFT_NAMESPACE'])
-@repo = OpenShift::ApplicationRepository.new(@container.user)
+@container = OpenShift::Runtime::ApplicationContainer.new(ENV['OPENSHIFT_APP_UUID'], ENV['OPENSHIFT_GEAR_UUID'], Etc.getpwuid.uid, ENV['OPENSHIFT_APP_NAME'], ENV['OPENSHIFT_GEAR_NAME'], ENV['OPENSHIFT_NAMESPACE'])
+@repo = OpenShift::Runtime::ApplicationRepository.new(@container)
 
 def do_command(command, options)
   begin
@@ -65,9 +65,9 @@ def do_command(command, options)
   rescue SystemExit, Interrupt
     puts
     exit 1
-  rescue OpenShift::Utils::ShellExecutionException => e
-    $stderr.puts "An error occurred executing 'gear #{command.name}' (exit code: #{e.rc})"
-    $stderr.puts "Error message: #{e.message}" if e.message.is_a? String
+    rescue OpenShift::Runtime::Utils::ShellExecutionException => e
+      $stderr.puts "An error occurred executing 'gear #{command.name}' (exit code: #{e.rc})"
+      $stderr.puts "Error message: #{e.message}" if e.message.is_a? String
     $stderr.puts "stdout: #{e.stdout}" if e.stdout.is_a? String 
     $stderr.puts "stderr: #{e.stderr}" if e.stderr.is_a? String
     $stderr.puts ""

@@ -1,9 +1,8 @@
 @runtime_extended1
 @fedora-19-only
 @not-rhel
-Feature: MySQL Tests
-  Scenario: MySQL in a scalable application
-    Given a v2 default node
+Feature: MariaDB Tests
+  Scenario: MariaDB in a scalable application
     Given a new client created scalable mock-0.1 application
 
     When the embedded mariadb-5.5 cartridge is added
@@ -25,8 +24,7 @@ Feature: MySQL Tests
     Then the test data will be present in mysql
     And the additional test data will not be present in mysql
 
-  Scenario: Snapshot/Restore an application with a MySQL database
-    Given a v2 default node
+  Scenario: Snapshot/Restore an application with a MariaDB database
     Given a new client created mock-0.1 application
 
     When the embedded mariadb-5.5 cartridge is added

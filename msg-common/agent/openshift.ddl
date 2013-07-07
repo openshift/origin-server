@@ -205,6 +205,46 @@ action "has_uid_or_gid", :description => "Returns whether this system has alread
            :display_as => "Exit Code"
 end
 
+action "has_app_cartridge", :description => "Does this application contain the specified cartridge on the gear?" do
+    display :always
+
+    input :app_uuid,
+        :prompt         => "Application uuid",
+        :description    => "Application uuid",
+        :type           => :string,
+        :validation     => '^[a-zA-Z0-9]+$',
+        :optional       => false,
+        :maxlength      => 32
+
+    input :gear_uuid,
+        :prompt         => "Gear uuid",
+        :description    => "Gear uuid",
+        :type           => :string,
+        :validation     => '^[a-zA-Z0-9]+$',
+        :optional       => false,
+        :maxlength      => 32
+
+    input :cartridge,
+        :prompt         => "Cartridge",
+        :description    => "Full name and version of the cartridge to run an action on",
+        :type           => :string,
+        :validation     => '\A[a-zA-Z0-9\.\-\/_]+\z',
+        :optional       => false,
+        :maxlength      => 64
+
+    output  :time,
+            :description => "The time as a message",
+            :display_as => "Time"
+
+    output  :output,
+            :description => "true or false",
+            :display_as => "Output"
+
+    output :exitcode,
+           :description => "Exit code",
+           :display_as => "Exit Code"
+end
+
 action 'cartridge_repository', :description => 'perform given operation on a cartridge repository' do
   display :always
 
@@ -266,4 +306,51 @@ action "echo", :description => "echo's a string back" do
     output  :time,
             :description => "the time as a message",
             :display_as => "Time"
+end
+
+action "upgrade", :description => "upgrade a gear" do
+    display :always
+
+    input :uuid,
+        :prompt         => "Gear uuid",
+        :description    => "Gear uuid",
+        :type           => :string,
+        :validation     => '^[a-zA-Z0-9]+$',
+        :optional       => false,
+        :maxlength      => 32
+        
+    input :namespace,
+        :prompt         => "Namespace",
+        :description    => "Namespace",
+        :type           => :string,
+        :validation     => '^.+$',
+        :optional       => false,
+        :maxlength      => 32
+
+    input :version,
+        :prompt         => "Target Version",
+        :description    => "Target version",
+        :type           => :string,
+        :validation     => '^.+$',
+        :optional       => false,
+        :maxlength      => 64
+
+    input :ignore_cartridge_version,
+        :prompt         => "Ignore Cartridge Version",
+        :description    => "Do not skip upgrade if Cartridge Versions match",
+        :type           => :list,
+        :optional       => false,
+        :list           => ["true", "false"]
+
+    output  :time,
+            :description => "The time as a message",
+            :display_as => "Time"
+
+    output  :output,
+            :description => "Output from script",
+            :display_as => "Output"
+
+    output :exitcode,
+           :description => "Exit code",
+           :display_as => "Exit Code"
 end

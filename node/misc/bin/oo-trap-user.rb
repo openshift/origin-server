@@ -24,7 +24,7 @@ require 'openshift-origin-node/utils/selinux'
 require 'pathname'
 
 module OpenShift
-  module Application
+  module Runtime
     class TrapUser
 
       def initialize
@@ -54,7 +54,7 @@ module OpenShift
       end
 
       def apply
-        env          = OpenShift::Utils::Environ.for_gear(ENV['HOME'])
+        env          = OpenShift::Runtime::Utils::Environ.for_gear(ENV['HOME'])
         command_line = ENV['SSH_ORIGINAL_COMMAND'] || 'rhcsh'
         Syslog.info("#{ENV['OPENSHIFT_GEAR_UUID']}: rhcsh original command #{command_line}")
 
@@ -185,9 +185,9 @@ module OpenShift
             canon_argv.concat(orig_argv)
         end
 
-        mcs_label      = OpenShift::Utils::SELinux.get_mcs_label(Process.uid)
-        target_context = OpenShift::Utils::SELinux.context_from_defaults(mcs_label)
-        actual_context = OpenShift::Utils::SELinux.getcon
+        mcs_label      = OpenShift::Runtime::Utils::SELinux.get_mcs_label(Process.uid)
+        target_context = OpenShift::Runtime::Utils::SELinux.context_from_defaults(mcs_label)
+        actual_context = OpenShift::Runtime::Utils::SELinux.getcon
 
         if target_context != actual_context
           $stderr.puts "Invalid context: #{actual_context}, expected #{target_context}"
@@ -215,7 +215,7 @@ end
 
 
 if __FILE__ == $0
-  exit_status = OpenShift::Application::TrapUser.new.apply
+  exit_status = OpenShift::Runtime::TrapUser.new.apply
 
   # Will only reach here if exec fails
   exit exit_status

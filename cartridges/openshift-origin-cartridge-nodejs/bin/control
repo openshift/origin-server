@@ -93,8 +93,8 @@ function start() {
     #  Ensure we have script file.
     node_app=${node_app:-"server.js"}
 
-    if [ ! -h "$OPENSHIFT_REPO_DIR/../node_modules" ]; then
-       ln -s ../../nodejs-0.6/node_modules $OPENSHIFT_REPO_DIR/../node_modules
+    if [ ! -h "$OPENSHIFT_NODEJS_DIR/node_modules" ]; then
+       ln -s $OPENSHIFT_HOMEDIR/.node_modules $OPENSHIFT_NODEJS_DIR/node_modules
     fi
 
     pushd "$OPENSHIFT_REPO_DIR" > /dev/null

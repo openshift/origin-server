@@ -62,7 +62,6 @@ def gear_env():
     load_env('/etc/openshift/env')
     system_path = os.environ['PATH']
 
-    load_env('~/.env/.uservars') # TODO: remove when V1 goes away
     load_env('~/.env')
     load_env('~/*/env/')
 

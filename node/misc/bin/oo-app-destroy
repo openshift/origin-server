@@ -89,7 +89,7 @@ end
 require 'openshift-origin-node'
 
 begin
-  container = OpenShift::ApplicationContainer.new(app_uuid, container_uuid, nil, app_name,
+  container = OpenShift::Runtime::ApplicationContainer.new(app_uuid, container_uuid, nil, app_name,
                                                    container_name, namespace, nil, nil)
   out, err, rc = container.destroy(skip_hooks)
 rescue Exception => e

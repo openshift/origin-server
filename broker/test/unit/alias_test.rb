@@ -13,7 +13,7 @@ class AliasTest < ActiveSupport::TestCase
     @domain = Domain.new(namespace: @namespace, owner:@user)
     @domain.save
     @app_name = "app#{@random}"
-    @app = Application.create_app(@app_name, [PHP_VERSION], @domain, "small")
+    @app = Application.create_app(@app_name, [PHP_VERSION], @domain)
     @app.save
     set_certificate_data
   end
@@ -76,7 +76,7 @@ class AliasTest < ActiveSupport::TestCase
     as = @app.aliases.find_by(fqdn: server_alias)
     assert_equal(server_alias, as.fqdn)
     
-    app2 = Application.create_app("app2", [PHP_VERSION], @domain, "small")
+    app2 = Application.create_app("app2", [PHP_VERSION], @domain)
     app2.save
     assert_raise(OpenShift::UserException){app2.add_alias(server_alias)}
     

@@ -124,6 +124,15 @@ class ResultIO
           self.set_cart_property(gear_id, "attributes", key, value)              
         elsif line.start_with?('APP_INFO: ')
           self.appInfoIO << line['APP_INFO: '.length..-1]
+        elsif line =~ /^NOTIFY_ENDPOINT_(CREATE|DELETE): /
+          # 'NOTIFY_ENDPOINT_CREATE: ' and 'NOTIFY_ENDPOINT_DELETE: '
+          # both have length 24.
+          endpoint,address,port = line[23..-1].chomp.split(' ')
+          if line =~ /^NOTIFY_ENDPOINT_CREATE: /
+            self.cart_commands.push({:command => "NOTIFY_ENDPOINT_CREATE", :args => [endpoint,address,port]})
+          else
+            self.cart_commands.push({:command => "NOTIFY_ENDPOINT_DELETE", :args => [endpoint,address,port]})
+          end
         elsif self.exitcode == 0
           if line.start_with?('SSH_KEY_ADD: ')
             key = line['SSH_KEY_ADD: '.length..-1].chomp

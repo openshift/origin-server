@@ -1,6 +1,6 @@
 require File.expand_path('../../test_helper', __FILE__)
 require 'openshift-origin-controller'
-require 'mocha'
+require 'mocha/setup'
 
 module Rails
   def self.logger
@@ -19,18 +19,6 @@ class CloudUserTest < ActiveSupport::TestCase
     @login = "user" + gen_uuid[0..9]
   end
 
-  test "validation of login" do
-    invalid_chars = '"$^<>|%/;:,\*=~'
-    invalid_chars.length.times do |i|
-      user = CloudUser.new(login: "test#{invalid_chars[i].chr}login")
-      assert user.invalid?
-      assert !user.errors[:login].empty?
-    end
-    
-    user = CloudUser.new(login: @login)
-    assert user.valid?
-  end
-  
   test "validation of ssh key" do
     invalid_chars = '"$^<>|%;:,\*~'
     invalid_chars.length.times do |i|

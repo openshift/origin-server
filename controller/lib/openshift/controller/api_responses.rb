@@ -39,6 +39,11 @@ module OpenShift
           respond_with reply
         end
 
+        # Renders a REST response for an application being upgraded.
+        def render_upgrade_in_progress
+          return render_error(:unprocessable_entity, "Your application is being upgraded and configuration changes can not be made at this time.  Please try again later.", 1)
+        end
+
         # Renders a REST response for an exception.
         #
         # == Parameters:
@@ -54,6 +59,8 @@ module OpenShift
           elsif ex.kind_of? OpenShift::AccessDeniedException
             status = :forbidden
           elsif ex.kind_of? OpenShift::DNSException
+            status = :service_unavailable
+          elsif ex.kind_of? OpenShift::LockUnavailableException
             status = :service_unavailable
           elsif ex.kind_of? OpenShift::NodeException
             status = :internal_server_error

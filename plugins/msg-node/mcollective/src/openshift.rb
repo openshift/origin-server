@@ -23,7 +23,7 @@ module MCollective
                :timeout     => 360
 
       activate_when do
-        @cartridge_repository = ::OpenShift::CartridgeRepository.instance
+        @cartridge_repository = ::OpenShift::Runtime::CartridgeRepository.instance
         @cartridge_repository.load
         Log.instance.info(
             "#{@cartridge_repository.count} cartridge(s) installed in #{@cartridge_repository.path}")
@@ -150,8 +150,8 @@ module MCollective
         else
           Log.instance.info("Executing action [#{action}] using method #{action_method} with args [#{args}]")
           begin
-            OpenShift::NodeLogger.context[:request_id]    = request_id if request_id
-            OpenShift::NodeLogger.context[:action_method] = action_method if action_method
+            OpenShift::Runtime::NodeLogger.context[:request_id]    = request_id if request_id
+            OpenShift::Runtime::NodeLogger.context[:action_method] = action_method if action_method
 
             exitcode, output = self.send(action_method.to_sym, args)
           rescue => e
@@ -160,8 +160,8 @@ module MCollective
             exitcode = 127
             output   = "An internal exception occured processing action #{action}: #{e.message}"
           ensure
-            OpenShift::NodeLogger.context.delete(:request_id)
-            OpenShift::NodeLogger.context.delete(:action_method)
+            OpenShift::Runtime::NodeLogger.context.delete(:request_id)
+            OpenShift::Runtime::NodeLogger.context.delete(:action_method)
           end
           Log.instance.info("Finished executing action [#{action}] (#{exitcode})")
         end
@@ -201,6 +201,42 @@ module MCollective
       end
 
       #
+      # Upgrade between versions
+      #
+      def upgrade_action
+        Log.instance.info("upgrade_action call / action=#{request.action}, agent=#{request.agent}, data=#{request.data.pretty_inspect}")
+        validate :uuid, /^[a-zA-Z0-9]+$/
+        validate :version, /^.+$/
+        validate :namespace, /^.+$/  
+        uuid = request[:uuid]
+        namespace = request[:namespace]
+        version = request[:version]
+        ignore_cartridge_version = request[:ignore_cartridge_version] == 'true' ? true : false
+        output = ''
+        exitcode = 0
+
+        server_identify = Facter.value(:hostname)
+        begin
+          require 'openshift-origin-node/model/upgrade'
+          output, exitcode = OpenShift::Runtime::Upgrade::upgrade(uuid, namespace, version, server_identify, ignore_cartridge_version)
+        rescue LoadError => e
+          exitcode = 127
+          output += "upgrade not supported. #{e.message}\n"
+        rescue OpenShift::Runtime::Utils::ShellExecutionException => e
+          exitcode = 1
+          output += "Gear failed to upgrade: #{e.message}\n#{e.stdout}\n#{e.stderr}"
+        rescue Exception => e
+          exitcode = 1
+          output += "Gear failed to upgrade with exception: #{e.message}\n#{e.backtrace}\n"
+        end
+        Log.instance.info("upgrade_action (#{exitcode})\n------\n#{output}\n------)")
+
+        reply[:output] = output
+        reply[:exitcode] = exitcode
+        reply.fail! "upgrade_action failed #{exitcode}.  Output #{output}" unless exitcode == 0
+      end
+
+      #
       # Builds a new ApplicationContainer instance from the standard
       # argument payload which is expected for any message used for
       # gear/cart operations.
@@ -226,8 +262,8 @@ module MCollective
         quota_files = nil if quota_files && quota_files.to_s.empty?
         uid = nil if uid && uid.to_s.empty?
 
-        OpenShift::ApplicationContainer.new(app_uuid, gear_uuid, uid, app_name, gear_name,
-                                            namespace, quota_blocks, quota_files, OpenShift::Utils::Hourglass.new(235))
+        OpenShift::Runtime::ApplicationContainer.new(app_uuid, gear_uuid, uid, app_name, gear_name,
+                                            namespace, quota_blocks, quota_files, OpenShift::Runtime::Utils::Hourglass.new(235))
       end
 
       def with_container_from_args(args)
@@ -236,7 +272,7 @@ module MCollective
           container = get_app_container_from_args(args)
           yield(container, output)
           return 0, output
-        rescue OpenShift::Utils::ShellExecutionException => e
+        rescue OpenShift::Runtime::Utils::ShellExecutionException => e
           return e.rc, "#{e.message}\n#{e.stdout}\n#{e.stderr}"
         rescue Exception => e
           Log.instance.error e.message
@@ -250,7 +286,7 @@ module MCollective
         begin
           container = get_app_container_from_args(args)
           container.create
-        rescue OpenShift::UserCreationException => e
+        rescue OpenShift::Runtime::UserCreationException => e
           Log.instance.info e.message
           Log.instance.info e.backtrace
           return 129, e.message
@@ -286,7 +322,7 @@ module MCollective
         comment  = args['--with-ssh-key-comment']
 
         with_container_from_args(args) do |container|
-          container.user.add_ssh_key(ssh_key, key_type, comment)
+          container.add_ssh_key(ssh_key, key_type, comment)
         end
       end
 
@@ -295,7 +331,7 @@ module MCollective
         comment = args['--with-ssh-comment']
 
         with_container_from_args(args) do |container|
-          container.user.remove_ssh_key(ssh_key, comment)
+          container.remove_ssh_key(ssh_key, comment)
         end
       end
 
@@ -304,7 +340,7 @@ module MCollective
 
         begin
           container = get_app_container_from_args(args)
-          container.user.replace_ssh_keys(ssh_keys)
+          container.replace_ssh_keys(ssh_keys)
         rescue Exception => e
           Log.instance.info e.message
           Log.instance.info e.backtrace
@@ -319,13 +355,13 @@ module MCollective
         token = args['--with-token']
 
         with_container_from_args(args) do |container|
-          container.user.add_broker_auth(iv, token)
+          container.add_broker_auth(iv, token)
         end
       end
 
       def oo_broker_auth_key_remove(args)
         with_container_from_args(args) do |container|
-          container.user.remove_broker_auth
+          container.remove_broker_auth
         end
       end
 
@@ -334,7 +370,7 @@ module MCollective
         value = args['--with-value']
 
         with_container_from_args(args) do |container|
-          container.user.add_env_var(key, value)
+          container.add_env_var(key, value)
         end
       end
 
@@ -342,7 +378,7 @@ module MCollective
         key = args['--with-key']
 
         with_container_from_args(args) do |container|
-          container.user.remove_env_var(key)
+          container.remove_env_var(key)
         end
       end
 
@@ -352,7 +388,7 @@ module MCollective
 
         output = ""
         begin
-          output = OpenShift::Node.get_cartridge_list(list_descriptors, porcelain, false)
+          output = OpenShift::Runtime::Node.get_cartridge_list(list_descriptors, porcelain, false)
         rescue Exception => e
           Log.instance.info e.message
           Log.instance.info e.backtrace
@@ -376,7 +412,7 @@ module MCollective
 
         output = ""
         begin
-          output = OpenShift::Node.get_quota(uuid)
+          output = OpenShift::Runtime::Node.get_quota(uuid)
         rescue Exception => e
           Log.instance.info e.message
           Log.instance.info e.backtrace
@@ -393,7 +429,7 @@ module MCollective
 
         output = ""
         begin
-          output = OpenShift::Node.set_quota(uuid, blocks, inodes)
+          output = OpenShift::Runtime::Node.set_quota(uuid, blocks, inodes)
         rescue Exception => e
           Log.instance.info e.message
           Log.instance.info e.backtrace
@@ -421,11 +457,11 @@ module MCollective
         output = ""
         begin
           yield(output)
-        rescue OpenShift::FrontendHttpServerExecException => e
+        rescue OpenShift::Runtime::FrontendHttpServerExecException => e
           Log.instance.info e.message
           Log.instance.info e.backtrace
           return e.rc, e.message + e.stdout + e.stderr
-        rescue OpenShift::FrontendHttpServerException => e
+        rescue OpenShift::Runtime::FrontendHttpServerException => e
           Log.instance.info e.message
           Log.instance.info e.backtrace
           return 129, e.message
@@ -444,7 +480,7 @@ module MCollective
         namespace = args['--with-namespace'].to_s if args['--with-namespace']
 
         with_frontend_rescue_pattern do |o|
-          frontend = OpenShift::FrontendHttpServer.new(container_uuid, container_name, namespace)
+          frontend = OpenShift::Runtime::FrontendHttpServer.new(OpenShift::Runtime::ApplicationContainer.from_uuid(container_uuid))
           yield(frontend, o)
         end
       end
@@ -609,7 +645,7 @@ module MCollective
         backup = args['--with-backup']
 
         with_frontend_rescue_pattern do |o|
-          OpenShift::FrontendHttpServer.json_create({'data' => JSON.parse(backup)})
+          OpenShift::Runtime::FrontendHttpServer.json_create({'data' => JSON.parse(backup)})
         end
       end
 
@@ -622,16 +658,16 @@ module MCollective
       def oo_expose_port(args)
         cart_name = args['--cart-name']
 
-        with_container_from_args(args) do |container|
-          container.create_public_endpoints(cart_name)
+        with_container_from_args(args) do |container, output|
+          output << container.create_public_endpoints(cart_name)
         end
       end
 
       def oo_conceal_port(args)
         cart_name = args['--cart-name']
 
-        with_container_from_args(args) do |container|
-          container.delete_public_endpoints(cart_name)
+        with_container_from_args(args) do |container, output|
+          output << container.delete_public_endpoints(cart_name)
         end
       end
 
@@ -651,7 +687,7 @@ module MCollective
         cart_name        = args['--cart-name']
         template_git_url = args['--with-template-git-url']
         manifest         = args['--with-cartridge-manifest']
-        
+
         with_container_from_args(args) do |container, output|
           output << container.configure(cart_name, template_git_url, manifest)
         end
@@ -712,7 +748,7 @@ module MCollective
 
         output = ""
         begin
-          output = OpenShift::Node.find_system_messages(cart_name)
+          output = OpenShift::Runtime::Node.find_system_messages(cart_name)
         rescue Exception => e
           Log.instance.info e.message
           Log.instance.info e.backtrace
@@ -769,7 +805,7 @@ module MCollective
         begin
           container = get_app_container_from_args(args)
           output    = container.threaddump(cart_name)
-        rescue OpenShift::Utils::ShellExecutionException => e
+        rescue OpenShift::Runtime::Utils::ShellExecutionException => e
           Log.instance.info "#{e.message}\n#{e.backtrace}\n#{e.stderr}"
           return e.rc, "CLIENT_ERROR: action 'threaddump' failed #{e.message} #{e.stderr}"
         rescue Exception => e
@@ -867,6 +903,32 @@ module MCollective
       end
 
       #
+      # Returns whether the cartridge is present on a gear
+      #
+      def has_app_cartridge_action
+        validate :app_uuid, /^[a-zA-Z0-9]+$/
+        validate :gear_uuid, /^[a-zA-Z0-9]+$/
+        validate :cartridge, /\A[a-zA-Z0-9\.\-\/_]+\z/
+        
+        app_uuid = request[:app_uuid].to_s if request[:app_uuid]
+        gear_uuid = request[:gear_uuid].to_s if request[:gear_uuid]
+        cart_name = request[:cartridge]
+
+        begin
+          container = OpenShift::Runtime::ApplicationContainer.new(app_uuid, gear_uuid)
+          cartridge = container.get_cartridge(cart_name)
+          reply[:output] = (not cartridge.nil?)
+          reply[:exitcode] = 0
+        rescue Exception => e
+          Log.instance.error e.message
+          Log.instance.error e.backtrace.join("\n")
+          reply[:output] = false
+          reply[:exitcode] = 1
+        end
+        reply
+      end
+
+      #
       # Get all gears
       #
       def get_all_gears_action
@@ -954,11 +1016,11 @@ module MCollective
         begin
           case action
             when 'install'
-              ::OpenShift::CartridgeRepository.instance.install(path)
+              ::OpenShift::Runtime::CartridgeRepository.instance.install(path)
             when 'erase'
-              ::OpenShift::CartridgeRepository.instance.erase(name, version, cartridge_version)
+              ::OpenShift::Runtime::CartridgeRepository.instance.erase(name, version, cartridge_version)
             when 'list'
-              reply[:output] = ::OpenShift::CartridgeRepository.instance.to_s
+              reply[:output] = ::OpenShift::Runtime::CartridgeRepository.instance.to_s
             else
               reply.fail(
                   "#{action} is not implemented. openshift.ddl may be out of date.",

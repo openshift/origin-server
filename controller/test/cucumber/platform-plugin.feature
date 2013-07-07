@@ -1,7 +1,6 @@
 @runtime_extended2
 Feature: V2 Platform Plugin Tests
   Scenario: Basic state checks for an application with an embedded cartridge
-    Given a v2 default node
     Given a new mock-0.1 type application   
     
     When I embed a mock-plugin-0.1 cartridge into the application

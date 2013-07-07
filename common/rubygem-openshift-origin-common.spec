@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Common
 Name:          rubygem-%{gem_name}
-Version: 1.10.4
+Version: 1.11.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -120,6 +120,38 @@ cp bin/man/*.8 %{buildroot}%{_mandir}/man8/
 %doc %{gem_docdir}
 
 %changelog
+* Tue Jul 02 2013 Adam Miller <admiller@redhat.com> 1.11.3-1
+- Merge pull request #2934 from kraman/libvirt-f19-2
+  (dmcphers+openshiftbot@redhat.com)
+- Changing File.join to PathUtils.join in node and common packages Uncommenting
+  cgroups Fixing signal handling in oo-gear-init (kraman@gmail.com)
+
+* Tue Jul 02 2013 Adam Miller <admiller@redhat.com> 1.11.2-1
+- Merge pull request #2927 from smarterclayton/bug_970257_support_git_at_urls
+  (dmcphers+openshiftbot@redhat.com)
+- Avoid harmless but annoying deprecation warning (asari.ruby@gmail.com)
+- Tests pass fully (add initial_git_url for earlier api versions).  Control
+  what values of URI get persisted to DB (passwords and userinfo from clone
+  specs should not be) (ccoleman@redhat.com)
+- Merge remote-tracking branch 'origin/master' into
+  bug_970257_support_git_at_urls (ccoleman@redhat.com)
+- Merge pull request #2938 from rajatchopra/master
+  (dmcphers+openshiftbot@redhat.com)
+- some strictures on broker's manifest parsing (rchopra@redhat.com)
+- Merge remote-tracking branch 'origin/master' into
+  bug_970257_support_git_at_urls (ccoleman@redhat.com)
+- Allow clients to pass an initial_git_url of "empty", which creates a bare
+  repo but does not add a commit.  When 'empty' is passed, the node will skip
+  starting the gear and also skip the initial build.  This allows clients that
+  want to send a local Git repository (one that isn't visible to OpenShift.com,
+  for example) to avoid having to push/merge/delete the initial commit, and
+  instead submit their own clean repo.  In this case, the user will get a
+  result indicating that their repository is empty. (ccoleman@redhat.com)
+- Bug 970257 - Allow git@ urls (ccoleman@redhat.com)
+
+* Tue Jun 25 2013 Adam Miller <admiller@redhat.com> 1.11.1-1
+- bump_minor_versions for sprint 30 (admiller@redhat.com)
+
 * Fri Jun 21 2013 Adam Miller <admiller@redhat.com> 1.10.4-1
 - <oo-diagnostics> Bug 976874 - Detect abrt-addon-python conflicts
   (jdetiber@redhat.com)

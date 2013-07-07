@@ -2,7 +2,6 @@
 Feature: V2 SDK Mock Cartridge Build Tests
 
   Scenario: Exercise hot deployment
-    Given a v2 default node
     Given a new mock-0.1 type application
     Then the application git repo will exist
 
@@ -43,7 +42,6 @@ Feature: V2 SDK Mock Cartridge Build Tests
     And the mock control_build marker will exist
 
   Scenario: Exercise basic platform functionality in isolation with install builds enabled
-    Given a v2 default node
     Given a new mock-0.2 type application
     Then the application git repo will exist
     And the platform-created default environment variables will exist

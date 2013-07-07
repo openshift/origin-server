@@ -3,7 +3,7 @@ require 'bundler'
 Bundler.setup
 require 'active_support'
 require 'test/unit'
-require 'mocha'
+require 'mocha/setup'
 
 require 'ddns/named_service'
 

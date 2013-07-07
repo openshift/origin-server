@@ -3,7 +3,6 @@
 Feature: MongoDB Application Sub-Cartridge
   
   Scenario: Create Delete one application with a MongoDB database
-    Given a v2 default node
     Given a new mock-0.1 type application
     
     When I embed a mongodb-2.2 cartridge into the application

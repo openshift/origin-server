@@ -253,6 +253,7 @@ when "delete"
     end
     unless domain.applications.empty?
       puts "User still has applications. Delete them first."
+      exit 1
     end
     domain.delete
     reply.resultIO << "Successfully deleted domain.\n"

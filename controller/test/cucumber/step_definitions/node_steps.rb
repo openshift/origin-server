@@ -135,6 +135,17 @@ When /^I create a new namespace$/ do
   #ec = run("#{$rhc_script} domain create #{namespace} -l #{login} -p #{@account['password']} -d")
 end
 
+When /^I create a new namespace called "([^\"]*)"$/ do |namespace_key|
+  @unique_namespace_apps_hash ||= {} 
+  login, namespace = gen_unique_login_and_namespace
+  register_user(login, "xyz123") if $registration_required
+  empty_app = AppHelper::TestApp.new(namespace, login, nil, nil, "xyz123", nil)
+  rhc_create_domain(empty_app)
+  raise "Could not create domain: #{empty_app.create_domain_code}" unless empty_app.create_domain_code == 0
+   @unique_namespace_apps_hash[namespace_key] = empty_app 
+end
+ 
+
 When /^I delete the namespace$/ do
 #  ec = run("#{$rhc_script} domain destroy #{@account['namespace']} -l #{@account['login']} -p #{@account['password']} -d")
   ec = rhc_delete_domain(AppHelper::TestApp.new(@account['namespace'], @account['login'], nil, nil, @account['password'], nil))
@@ -200,6 +211,47 @@ Then /^an account home directory should( not)? exist$/ do |negate|
     @homedir.should_not be_true
   else
     @homedir.should be_true
+  end
+end
+
+And /^the group "([^\"]*)" is added on the node$/ do |group_name|
+  output_buffer=[]
+  command = "groupadd #{group_name}"
+  exit_code = run(command, output_buffer)    
+  if !(output_buffer[0].include? ("already exists")) && exit_code !=0
+     raise "Cannot add group '#{group_name}' to the node. Running '#{command}' returns exit code: #{exit_code} and output: #{output_buffer[0]}"
+  end
+end
+
+And /^the group "([^\"]*)" is deleted from the node$/ do |group_name|
+  output_buffer=[]
+  command = "groupdel #{group_name}"
+  exit_code = run(command, output_buffer)
+  if !(output_buffer[0].include? ("does not exists")) && exit_code !=0
+     raise "Cannot delete group '#{group_name}' from the node. Running '#{command}' returns exit code: #{exit_code} and output: #{output_buffer[0]}"
+  end
+end
+
+#When more than one group is to be added, separate each group with a comma
+#For example: a format for a single group is "foo" and for multiple groups is "foo,group1,group2"
+Then /^the groups? "([^\"]*)" is assigned as supplementary groups? to upcoming new gears on the node$/ do |supplementary_group|
+   filepath="/etc/openshift/node.conf"
+   if File.exists?(filepath)
+    file =  File.open(filepath, 'a')
+    file.write "GEAR_SUPPLEMENTARY_GROUPS=\"#{supplementary_group}\"\n"
+    file.close
+   else
+     raise "Cannot modify file /etc/openshift/node.conf because file does not exist."
+   end
+end
+
+And /^I delete the supplementary group setting from \/etc\/openshift\/node.conf$/ do 
+  output_buffer=[]
+  filepath="/etc/openshift/node.conf"
+  command = "sed -i '\/\\(^GEAR_SUPPLEMENTARY_GROUPS=.*\\)\/d' #{filepath}"
+  exit_code = run(command, output_buffer)
+  if !(output_buffer[0].include? ("does not exists")) && exit_code !=0
+     raise "Cannot delete GEAR_SUPPLEMENTARY_GROUPS setting in file '#{filepath}' from the node. Running '#{command}' returns exit code: #{exit_code} and output: #{output_buffer[0]}"
   end
 end
 

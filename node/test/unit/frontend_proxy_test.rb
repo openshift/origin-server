@@ -43,7 +43,7 @@ class FrontendProxyTest < OpenShift::NodeTestCase
 
   # Ensure that the wrapped UID is calculated properly
   def test_wrap_uid
-    proxy = OpenShift::FrontendProxyServer.new
+    proxy = OpenShift::Runtime::FrontendProxyServer.new
 
     assert_equal @wrap_uid, proxy.wrap_uid
   end
@@ -51,21 +51,21 @@ class FrontendProxyTest < OpenShift::NodeTestCase
   # Simple test to validate the port range computation given
   # a certain UID.
   def test_port_range
-    proxy = OpenShift::FrontendProxyServer.new
+    proxy = OpenShift::Runtime::FrontendProxyServer.new
 
     assert_equal (@ports_begin ... (@ports_begin + @ports_per_user)), proxy.port_range(500)
   end
 
   # Ensure that the wrapped UID has the same values
   def test_wrap_port_range
-    proxy = OpenShift::FrontendProxyServer.new
+    proxy = OpenShift::Runtime::FrontendProxyServer.new
 
     assert_equal (@ports_begin ... (@ports_begin + @ports_per_user)), proxy.port_range(@wrap_uid)
   end
 
   # Verify a valid mapping request is mapped to a port.
   def test_valid_add
-    proxy = OpenShift::FrontendProxyServer.new
+    proxy = OpenShift::Runtime::FrontendProxyServer.new
 
     uid = 500
 
@@ -79,7 +79,7 @@ class FrontendProxyTest < OpenShift::NodeTestCase
   # When adding the same mapping twice, the existing port mapping
   # should be returned immediately.
   def test_valid_add_twice
-    proxy = OpenShift::FrontendProxyServer.new
+    proxy = OpenShift::Runtime::FrontendProxyServer.new
 
     uid = 500
 
@@ -98,14 +98,14 @@ class FrontendProxyTest < OpenShift::NodeTestCase
   # Ensures that a non-zero return code from a system proxy set
   # attempt during an add operation raises an exception.
   def test_add_system_error
-    proxy = OpenShift::FrontendProxyServer.new
+    proxy = OpenShift::Runtime::FrontendProxyServer.new
 
     uid = 500
 
     proxy.expects(:system_proxy_show).returns(nil).once
     proxy.expects(:system_proxy_set).returns(['Stdout', 'Stderr', 1]).once
 
-    assert_raises OpenShift::FrontendProxyServerException do
+    assert_raises OpenShift::Runtime::FrontendProxyServerException do
       proxy.add(uid, '127.0.0.1', 8080)
     end
   end
@@ -113,14 +113,14 @@ class FrontendProxyTest < OpenShift::NodeTestCase
   # Verifies that an exception is thrown if all ports in the given
   # UID's range are already mapped to an address.
   def test_out_of_ports_during_add
-    proxy = OpenShift::FrontendProxyServer.new
+    proxy = OpenShift::Runtime::FrontendProxyServer.new
 
     uid = 500
 
     proxy.expects(:system_proxy_show).returns("127.0.0.1:9000").times(@ports_per_user)
     proxy.expects(:system_proxy_set).never
 
-    assert_raises OpenShift::FrontendProxyServerException do
+    assert_raises OpenShift::Runtime::FrontendProxyServerException do
       proxy.add(uid, '127.0.0.1', 8080)
     end
   end
@@ -128,7 +128,7 @@ class FrontendProxyTest < OpenShift::NodeTestCase
   # Verifies that a successful system proxy delete is executed for
   # an existing mapping.
   def test_delete_success
-    proxy = OpenShift::FrontendProxyServer.new
+    proxy = OpenShift::Runtime::FrontendProxyServer.new
 
     uid = 500
 
@@ -141,7 +141,7 @@ class FrontendProxyTest < OpenShift::NodeTestCase
   # Ensures that no system proxy delete is attempted when no mapping
   # to the requested address is found.
   def test_delete_nonexistent
-    proxy = OpenShift::FrontendProxyServer.new
+    proxy = OpenShift::Runtime::FrontendProxyServer.new
 
     uid = 500
 
@@ -154,14 +154,14 @@ class FrontendProxyTest < OpenShift::NodeTestCase
   # Verifies an exception is raised when a valid delete attempt to the
   # system proxy returns a non-zero exit code.
   def test_delete_failure
-    proxy = OpenShift::FrontendProxyServer.new
+    proxy = OpenShift::Runtime::FrontendProxyServer.new
 
     uid = 500
 
     proxy.expects(:system_proxy_show).with(35531).returns("127.0.0.1:8080").once
     proxy.expects(:system_proxy_delete).with(35531).returns(['Stdout', 'Stderr', 1]).once
 
-    assert_raises OpenShift::FrontendProxyServerException do
+    assert_raises OpenShift::Runtime::FrontendProxyServerException do
       proxy.delete(uid, "127.0.0.1", 8080)
     end
   end
@@ -169,7 +169,7 @@ class FrontendProxyTest < OpenShift::NodeTestCase
   # Tests that a successful delete of all proxy mappings for the UID
   # results in a batch of 5 ports being sent to the system proxy command.
   def test_delete_all_for_uid_success
-    proxy = OpenShift::FrontendProxyServer.new
+    proxy = OpenShift::Runtime::FrontendProxyServer.new
 
     uid = 500
     ports = [1,2,3]
@@ -181,7 +181,7 @@ class FrontendProxyTest < OpenShift::NodeTestCase
   end
 
   def test_delete_all_for_uid_failure
-    proxy = OpenShift::FrontendProxyServer.new
+    proxy = OpenShift::Runtime::FrontendProxyServer.new
     err = assert_raises RuntimeError do
       proxy.delete_all_for_uid(nil)
     end
@@ -189,7 +189,7 @@ class FrontendProxyTest < OpenShift::NodeTestCase
   end
 
   def test_delete_all_success
-    proxy = OpenShift::FrontendProxyServer.new
+    proxy = OpenShift::Runtime::FrontendProxyServer.new
 
     ports = [1,2,3]
 
@@ -199,7 +199,7 @@ class FrontendProxyTest < OpenShift::NodeTestCase
   end
 
   def test_delete_all_failure_missing_uid
-    proxy = OpenShift::FrontendProxyServer.new
+    proxy = OpenShift::Runtime::FrontendProxyServer.new
 
     err = assert_raises RuntimeError do
       proxy.delete_all(nil)
@@ -211,13 +211,13 @@ class FrontendProxyTest < OpenShift::NodeTestCase
   # Ensures that a non-zero response from the system proxy delete call
   # and the ignore errors flag disables results in an exception bubbling.
   def test_delete_all_failure
-    proxy = OpenShift::FrontendProxyServer.new
+    proxy = OpenShift::Runtime::FrontendProxyServer.new
 
     ports = [1,2,3]
 
     proxy.expects(:system_proxy_delete).with(*ports).returns(['Stdout', 'Stderr', 1]).once
 
-    err = assert_raises OpenShift::FrontendProxyServerException do
+    err = assert_raises OpenShift::Runtime::FrontendProxyServerException do
       proxy.delete_all(ports, false)
     end
 
@@ -225,7 +225,7 @@ class FrontendProxyTest < OpenShift::NodeTestCase
   end
 
   def test_delete_all_failure_ignore
-    proxy = OpenShift::FrontendProxyServer.new
+    proxy = OpenShift::Runtime::FrontendProxyServer.new
 
     ports = [1,2,3]
 
@@ -238,27 +238,27 @@ class FrontendProxyTest < OpenShift::NodeTestCase
   # Verify the command line constructed by the system proxy delete
   # given a variety of arguments.
   def test_system_proxy_delete
-    proxy = OpenShift::FrontendProxyServer.new
+    proxy = OpenShift::Runtime::FrontendProxyServer.new
 
-    proxy.expects(:shellCmd).with(equals("openshift-port-proxy-cfg setproxy 1 delete")).once
+    OpenShift::Runtime::Utils.expects(:oo_spawn).with(equals("openshift-port-proxy-cfg setproxy 1 delete")).once
     proxy.system_proxy_delete(1)
 
-    proxy.expects(:shellCmd).with(equals("openshift-port-proxy-cfg setproxy 1 delete 2 delete 3 delete")).once
+    OpenShift::Runtime::Utils.expects(:oo_spawn).with(equals("openshift-port-proxy-cfg setproxy 1 delete 2 delete 3 delete")).once
     proxy.system_proxy_delete(1, 2, 3)
 
-    proxy.expects(:shellCmd).with(regexp_matches(/^openshift-port-proxy-cfg/)).never
+    OpenShift::Runtime::Utils.expects(:oo_spawn).with(regexp_matches(/^openshift-port-proxy-cfg/)).never
     assert_equal [0,nil,nil], proxy.system_proxy_delete()
   end
 
   # Verify the command line constructed by the system proxy add command
   # given a variety of arguments.
   def test_system_proxy_add
-    proxy = OpenShift::FrontendProxyServer.new
+    proxy = OpenShift::Runtime::FrontendProxyServer.new
 
-    proxy.expects(:shellCmd).with(equals('openshift-port-proxy-cfg setproxy 3000 "127.0.0.1:1000"')).once
+    OpenShift::Runtime::Utils.expects(:oo_spawn).with(equals('openshift-port-proxy-cfg setproxy 3000 "127.0.0.1:1000"')).once
     proxy.system_proxy_set({:proxy_port => 3000, :addr => '127.0.0.1:1000'})
 
-    proxy.expects(:shellCmd)
+    OpenShift::Runtime::Utils.expects(:oo_spawn)
       .with(equals('openshift-port-proxy-cfg setproxy 3000 "127.0.0.1:1000" 3001 "127.0.0.1:1001" 3002 "127.0.0.1:1002"'))
       .once
 
@@ -268,22 +268,22 @@ class FrontendProxyTest < OpenShift::NodeTestCase
       {:proxy_port => 3002, :addr => '127.0.0.1:1002'}
       )
 
-    proxy.expects(:shellCmd).with(regexp_matches(/^openshift-port-proxy-cfg/)).never
+    OpenShift::Runtime::Utils.expects(:oo_spawn).with(regexp_matches(/^openshift-port-proxy-cfg/)).never
     assert_equal [0,nil,nil], proxy.system_proxy_set()
   end
 
   # Verify the command line constructed by the system proxy show
   # given a variety of arguments.
   def test_system_proxy_show
-    proxy = OpenShift::FrontendProxyServer.new
+    proxy = OpenShift::Runtime::FrontendProxyServer.new
 
-    proxy.expects(:shellCmd).with(regexp_matches(/^openshift-port-proxy-cfg showproxy 3000 /)).once.returns("127.0.0.1:1234")
+    OpenShift::Runtime::Utils.expects(:oo_spawn).with(regexp_matches(/^openshift-port-proxy-cfg showproxy 3000 /)).once.returns("127.0.0.1:1234")
     assert_equal "127.0.0.1:1234", proxy.system_proxy_show(3000)
 
-    proxy.expects(:shellCmd).with(regexp_matches(/^openshift-port-proxy-cfg showproxy 3000 /)).once.returns("")
+    OpenShift::Runtime::Utils.expects(:oo_spawn).with(regexp_matches(/^openshift-port-proxy-cfg showproxy 3000 /)).once.returns("")
     assert_nil proxy.system_proxy_show(3000)
 
-    proxy.expects(:shellCmd).with(regexp_matches(/^openshift-port-proxy-cfg showproxy/)).never
+    OpenShift::Runtime::Utils.expects(:oo_spawn).with(regexp_matches(/^openshift-port-proxy-cfg showproxy/)).never
 
     err = assert_raises RuntimeError do
       proxy.system_proxy_show(nil)

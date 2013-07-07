@@ -2,13 +2,13 @@ Name: postgresql
 Namespace: POSTGRESQL
 Architecture: noarch
 Cartridge-Short-Name: POSTGRESQL
-Cartridge-Version:    '0.2.0'
-Cartridge-Versions:   [0.2.0]
+Cartridge-Version:    '0.3.0'
+Cartridge-Versions:   [0.3.0]
 Cartridge-Vendor:     redhat
-Display-Name: PostgreSQL Database 8.4
+Display-Name: PostgreSQL Database 9.2
 Description: "PostgreSQL is an advanced Object-Relational database management system"
-Version:   '8.4'
-Versions:  [8.4]
+Version:   '9.2'
+Versions:  ['8.4', '9.2']
 License:   ASL 2.0
 Vendor:    Red Hat
 Website: http://www.postgresql.org
@@ -32,10 +32,9 @@ Cart-Data:
     Type: cart_data
     Description: "PostgreSQL DB connection URL"
 Provides:
-  - postgresql-8.4
-  - postgresql
-Conflicts:
-  - mysql-5.1
+  - postgresql-9.2
+  - "postgresql"
+  - "postgresql(version) = 9.2"
 Publishes:
   publish-db-connection-info:
     Type: "ENV:NET_TCP:db:connection-info"
@@ -47,3 +46,10 @@ Endpoints:
     Private-Port-Name: DB_PORT
     Private-Port:      5432
     Public-Port-Name:  DB_PROXY_PORT
+Version-Overrides:
+  '8.4':
+    Display-Name: PostgreSQL Database 8.4
+    Provides:
+      - postgresql-8.4
+      - "postgresql"
+      - "postgresql(version) = 8.4"

@@ -58,7 +58,7 @@ class EnvironTest < OpenShift::NodeTestCase
   def test_single_directory
     write_uuid
 
-    OpenShift::Utils::Environ.load(@gear_env).tap do |env|
+    OpenShift::Runtime::Utils::Environ.load(@gear_env).tap do |env|
       assert_equal @uuid, env['OPENSHIFT_GEAR_UUID']
       assert_nil env['OPENSHIFT_APP_NAME']
     end
@@ -69,11 +69,11 @@ class EnvironTest < OpenShift::NodeTestCase
 
     err_msg = "Permission denied"
     IO.stubs(:read).with(any_parameters).raises(Errno::EACCES.new(file_name))
-    OpenShift::NodeLogger.logger.expects(:info).once().with(all_of(
+    OpenShift::Runtime::NodeLogger.logger.expects(:info).once().with(all_of(
                                                                 regexp_matches(/^Failed to process: #{@gear_env}/),
                                                                 regexp_matches(/#{Regexp.escape(err_msg)}$/)
                                                             ))
-    OpenShift::Utils::Environ.load(@gear_env)
+    OpenShift::Runtime::Utils::Environ.load(@gear_env)
   end
 
   # Verify can read a gear and cartridge environment variables
@@ -82,7 +82,7 @@ class EnvironTest < OpenShift::NodeTestCase
     write_var(:cart, 'OPENSHIFT_MOCK_IP', '127.0.0.666')
 
     # Ensure gear inherits cartridge variables
-    OpenShift::Utils::Environ.for_gear(File.join('/tmp', @uuid)).tap do |env|
+    OpenShift::Runtime::Utils::Environ.for_gear(File.join('/tmp', @uuid)).tap do |env|
       assert_equal @uuid, env['OPENSHIFT_GEAR_UUID']
       assert_equal "127.0.0.666", env['OPENSHIFT_MOCK_IP']
       assert_nil env['OPENSHIFT_APP_NAME']
@@ -102,12 +102,12 @@ class EnvironTest < OpenShift::NodeTestCase
     write_var(:gear, 'OPENSHIFT_PRIMARY_CARTRIDGE_DIR', "/tmp/#{@uuid}/#{@cart_name}/")
     write_var(:cart, 'JDK_HOME', 'java7')
 
-    OpenShift::Utils::Environ.for_gear(File.join('/tmp', @uuid)).tap do |env|
+    OpenShift::Runtime::Utils::Environ.for_gear(File.join('/tmp', @uuid)).tap do |env|
       assert_equal "#{@cart_name}/bin:mock-plugin/bin:/bin:/usr/bin:/usr/sbin", env['PATH']
       assert_equal 'java7', env['JDK_HOME']
     end
 
-    OpenShift::Utils::Environ.for_gear(File.join('/tmp', @uuid)).tap do |env|
+    OpenShift::Runtime::Utils::Environ.for_gear(File.join('/tmp', @uuid)).tap do |env|
       assert_equal "#{@cart_name}/bin:mock-plugin/bin:/bin:/usr/bin:/usr/sbin", env['PATH']
       assert_equal 'java7', env['JDK_HOME']
     end
@@ -117,13 +117,13 @@ class EnvironTest < OpenShift::NodeTestCase
   def test_override
     write_var(:gear, 'DEFAULT_LABEL', 'bogus')
 
-    OpenShift::Utils::Environ.for_gear(File.join('/tmp', @uuid)).tap do |env|
+    OpenShift::Runtime::Utils::Environ.for_gear(File.join('/tmp', @uuid)).tap do |env|
       assert_equal 'bogus', env['DEFAULT_LABEL']
     end
 
     write_var(:cart, 'DEFAULT_LABEL', 'VIP')
 
-    OpenShift::Utils::Environ.for_gear(File.join('/tmp', @uuid)).tap do |env|
+    OpenShift::Runtime::Utils::Environ.for_gear(File.join('/tmp', @uuid)).tap do |env|
       assert_equal 'VIP', env['DEFAULT_LABEL']
     end
   end

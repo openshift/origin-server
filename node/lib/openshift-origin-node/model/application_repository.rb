@@ -19,251 +19,296 @@ require 'openshift-origin-common'
 require 'openshift-origin-node/utils/shell_exec'
 require 'openshift-origin-node/utils/selinux'
 require 'openshift-origin-node/utils/environ'
-require 'openshift-origin-node/model/unix_user'
 require 'openshift-origin-common/utils/path_utils'
+require 'openshift-origin-common/utils/git'
 require 'openshift-origin-node/utils/node_logger'
 
 module OpenShift
-
-  ##
-  # This class represents an Application's Git repository
-
-  class ApplicationRepository
-    include OpenShift::Utils
-    include NodeLogger
-
-    SUPPORTED_PROTOCOLS = %w{git:// http:// https:// file:// ftp:// ftps:// rsync://}
-
-    attr_reader :path
-
+  module Runtime
     ##
-    # Creates a new application Git repository from a template
-    #
-    # +user+ is of type +UnixUser+
-    def initialize(user)
-      @user = user
-      @path = PathUtils.join(@user.homedir, 'git', "#{@user.app_name}.git")
-    end
+    # This class represents an Application's Git repository
 
-    def exist?
-      File.directory?(@path)
-    end
+    class ApplicationRepository
+      include OpenShift::Runtime::Utils
+      include NodeLogger
 
-    alias exists? exist?
+      attr_reader :path
 
-    ##
-    # +populate_from_cartridge+ uses the provided +cartridge_name+ to install a template application
-    # for the gear
-    #
-    # Template search locations:
-    #   * ~/<cartridge home>/template
-    #   * ~/<cartridge home>/template.git
-    #   * ~/<cartridge home>/usr/template
-    #   * ~/<cartridge home>/usr/template.git
-    #
-    # return nil if application bare repository exists or no template found
-    #            otherwise path of template used
-    def populate_from_cartridge(cartridge_name)
-      return nil if exists?
-
-      FileUtils.mkpath(File.join(@user.homedir, 'git'))
-
-      locations = [
-          File.join(@user.homedir, cartridge_name, 'template'),
-          File.join(@user.homedir, cartridge_name, 'template.git'),
-          File.join(@user.homedir, cartridge_name, 'usr', 'template'),
-          File.join(@user.homedir, cartridge_name, 'usr', 'template.git'),
-      ]
-
-      template = locations.find {|l| File.directory?(l)}
-      logger.debug("Using '#{template}' to populate git repository for #{@user.uuid}")
-      return nil unless template
-
-      # expose variables for ERB processing
-      @application_name = @user.app_name
-      @cartridge_name   = cartridge_name
-      @user_homedir     = @user.homedir
-
-      if template.end_with? '.git'
-        FileUtils.cp_r(template, @path, preserve: true)
-      else
-        build_bare(template)
+      ##
+      # Creates a new application Git repository from a template
+      #
+      # +container+ is of type +ApplicationContainer+
+      def initialize(container)
+        @container = container
+        @path = PathUtils.join(@container.container_dir, 'git', "#{@container.application_name}.git")
       end
 
-      configure
-      template
-    end
-
-    ##
-    # +populate_from_url+ uses the provided +cartridge_url+ to install a template application
-    # for the gear
-    #
-    def populate_from_url(cartridge_name, url)
-      return nil if exists?
-
-      supported = SUPPORTED_PROTOCOLS.any? { |k| url.start_with?(k) }
-      raise Utils::ShellExecutionException.new(
-                "CLIENT_ERROR: Source Code repository URL type must be one of: #{SUPPORTED_PROTOCOLS.join(', ')}", 130
-            ) unless supported
-
-      git_path = File.join(@user.homedir, 'git')
-      FileUtils.mkpath(git_path)
-
-      # expose variables for ERB processing
-      @application_name = @user.app_name
-      @cartridge_name   = cartridge_name
-      @user_homedir     = @user.homedir
-      @url              = url
-
-      begin
-        Utils.oo_spawn(ERB.new(GIT_URL_CLONE).result(binding),
-                       chdir:               git_path,
-                       expected_exitstatus: 0)
-      rescue Utils::ShellExecutionException => e
-        raise Utils::ShellExecutionException.new(
-                  "CLIENT_ERROR: Source Code repository could not be cloned: '#{url}'.  Please verify the repository is correct and contact support.",
-                  131
-              )
+      def empty?
+        return false unless exist?
+        out, err, exitstatus = Utils.oo_spawn(COUNT_GIT_OBJECTS,
+                                              chdir:               @path)
+        out.strip == "0" && exitstatus == 0
       end
 
-      configure
-    end
+      def exist?
+        File.directory?(@path)
+      end
 
-    def archive
-      return unless exist?
+      alias exists? exist?
 
-      # expose variables for ERB processing
-      @application_name = @user.app_name
-      @user_homedir     = @user.homedir
-      @target_dir       = PathUtils.join(@user.homedir, 'app-root', 'runtime', 'repo')
+      ##
+      # +populate_from_cartridge+ uses the provided +cartridge_name+ to install a template application
+      # for the gear
+      #
+      # Template search locations:
+      #   * ~/<cartridge home>/template
+      #   * ~/<cartridge home>/template.git
+      #   * ~/<cartridge home>/usr/template
+      #   * ~/<cartridge home>/usr/template.git
+      #
+      # return nil if application bare repository exists or no template found
+      #            otherwise path of template used
+      def populate_from_cartridge(cartridge_name)
+        return nil if exists?
 
-      FileUtils.rm_rf Dir.glob(PathUtils.join(@target_dir, '*'))
-      FileUtils.rm_rf Dir.glob(PathUtils.join(@target_dir, '.[^\.]*'))
+        FileUtils.mkpath(PathUtils.join(@container.container_dir, 'git'))
 
-      Utils.oo_spawn(ERB.new(GIT_ARCHIVE).result(binding),
-                     chdir:               @path,
-                     uid:                 @user.uid,
-                     expected_exitstatus: 0)
+        locations = [
+            PathUtils.join(@container.container_dir, cartridge_name, 'template'),
+            PathUtils.join(@container.container_dir, cartridge_name, 'template.git'),
+            PathUtils.join(@container.container_dir, cartridge_name, 'usr', 'template'),
+            PathUtils.join(@container.container_dir, cartridge_name, 'usr', 'template.git'),
+        ]
 
-      return unless File.exist? PathUtils.join(@target_dir, '.gitmodules')
+        template = locations.find {|l| File.directory?(l)}
+        logger.debug("Using '#{template}' to populate git repository for #{@container.uuid}")
+        return nil unless template
 
-      env = Utils::Environ.load(PathUtils.join(@user.homedir, '.env'))
+        # expose variables for ERB processing
+        @application_name = @container.application_name
+        @cartridge_name   = cartridge_name
 
-      cache = PathUtils.join(env['OPENSHIFT_TMP_DIR'], 'git_cache')
-      FileUtils.rm_r(cache) if File.exist?(cache)
-      FileUtils.mkpath(cache)
+        if template.end_with? '.git'
+          FileUtils.cp_r(template, @path, preserve: true)
+        else
+          build_bare(template)
+        end
 
-      Utils.oo_spawn("/bin/sh #{PathUtils.join('/usr/libexec/openshift/lib', "archive_git_submodules.sh")} #{@path} #{@target_dir}",
-                     chdir:               @user.homedir,
-                     env:                 env,
-                     uid:                 @user.uid,
-                     expected_exitstatus: 0)
+        configure
+        template
+      end
 
-      Utils.oo_spawn("/bin/rm -rf #{cache} &")
-    end
+      ##
+      # +populate_from_url+ uses the provided +cartridge_url+ to install a template application
+      # for the gear
+      #
+      def populate_from_url(cartridge_name, url)
+        return nil if exists?
 
-    def destroy
-      FileUtils.rm_r(@path) if File.exist? @path
-    end
+        repo_spec, commit = ::OpenShift::Git.safe_clone_spec(url, ::OpenShift::Git::ALLOWED_NODE_SCHEMES) rescue raise Utils::ShellExecutionException.new("CLIENT_ERROR: The provided source code repository URL is not valid (#{$!.message})", 130)
+        raise Utils::ShellExecutionException.new("CLIENT_ERROR: Source code repository URL protocol must be one of: #{::OpenShift::Git::ALLOWED_NODE_SCHEMES.join(', ')}", 130) unless repo_spec
 
-    ##
-    # Install Git repository hooks and set permissions
-    def configure
-      FileUtils.chown_R(@user.uid, @user.gid, @path)
-      Utils::SELinux.set_mcs_label(Utils::SELinux.get_mcs_label(@user.uid), @path)
+        git_path = PathUtils.join(@container.container_dir, 'git')
+        FileUtils.mkpath(git_path)
 
-      # application developer cannot change git hooks
-      hooks = File.join(@path, 'hooks')
-      FileUtils.chown_R(0, 0, hooks)
+        # expose variables for ERB processing
+        @application_name = @container.application_name
+        @cartridge_name   = cartridge_name
+        @user_homedir     = @container.container_dir
+        @url              = repo_spec
+        @commit           = commit
 
-      render_file = lambda { |f, m, t|
-        File.open(f, 'w', m) { |f| f.write(ERB.new(t).result(binding)) }
-      }
+        begin
+          @container.run_in_root_context(ERB.new(GIT_URL_CLONE).result(binding),
+              chdir:               git_path,
+              expected_exitstatus: 0)
+        rescue Utils::ShellExecutionException => e
+          raise Utils::ShellExecutionException.new(
+                    "CLIENT_ERROR: Source Code repository could not be cloned: '#{url}'.  Please verify the repository is correct and contact support.",
+                    131
+                )
+        end
 
-      render_file.call(File.join(@path, 'description'), 0644, GIT_DESCRIPTION)
-      render_file.call(File.join(@user.homedir, '.gitconfig'), 0644, GIT_CONFIG)
+        configure
+      end
 
-      render_file.call(File.join(hooks, 'pre-receive'), 0755, PRE_RECEIVE)
-      render_file.call(File.join(hooks, 'post-receive'), 0755, POST_RECEIVE)
-    end
+      ##
+      # +populate_empty+ initializes a default, empty Git repository
+      # for the gear
+      #
+      def populate_empty(cartridge_name)
+        return nil if exists?
 
-    ##
-    # Copy a file tree structure and build an application repository
-    def build_bare(path)
-      template = File.join(@user.homedir, 'git', 'template')
-      FileUtils.rm_r(template) if File.exist? template
+        git_path = @path
+        FileUtils.mkpath(git_path)
 
-      git_path = File.join(@user.homedir, 'git')
-      Utils.oo_spawn("/bin/cp -ad #{path} #{git_path}",
-                     expected_exitstatus: 0)
+        # expose variables for ERB processing
+        @application_name = @container.application_name
+        @cartridge_name   = cartridge_name
+        @user_homedir     = @container.container_dir
 
-      Utils.oo_spawn(ERB.new(GIT_INIT).result(binding),
-                     chdir:               template,
-                     expected_exitstatus: 0)
-      begin
-        # trying to clone as the user proved to be painful as git managed to "lose" the selinux context
-        Utils.oo_spawn(ERB.new(GIT_LOCAL_CLONE).result(binding),
-                       chdir:               git_path,
-                       expected_exitstatus: 0)
-      rescue ShellExecutionException => e
+        begin
+          Utils.oo_spawn(ERB.new(GIT_INIT_BARE).result(binding),
+                         chdir:               git_path,
+                         expected_exitstatus: 0)
+        rescue Utils::ShellExecutionException => e
+          raise Utils::ShellExecutionException.new(
+                    "CLIENT_ERROR: Source code repository could not be created.  Please contact support.",
+                    131
+                )
+        end
+
+        configure
+      end
+
+      def archive
+        return unless exist?
+
+        # expose variables for ERB processing
+        @application_name = @container.application_name
+        @target_dir       = PathUtils.join(@container.container_dir, 'app-root', 'runtime', 'repo')
+
+        FileUtils.rm_rf Dir.glob(PathUtils.join(@target_dir, '*'))
+        FileUtils.rm_rf Dir.glob(PathUtils.join(@target_dir, '.[^\.]*'))
+
+        @container.run_in_container_context(ERB.new(GIT_ARCHIVE).result(binding),
+            chdir:               @path,
+            expected_exitstatus: 0)
+
+        return unless File.exist? PathUtils.join(@target_dir, '.gitmodules')
+
+        env = Utils::Environ.load(PathUtils.join(@container.container_dir, '.env'))
+
+        cache = PathUtils.join(env['OPENSHIFT_TMP_DIR'], 'git_cache')
+        FileUtils.rm_r(cache) if File.exist?(cache)
+        FileUtils.mkpath(cache)
+
+        @container.run_in_container_context("/bin/sh #{PathUtils.join('/usr/libexec/openshift/lib', "archive_git_submodules.sh")} #{@path} #{@target_dir}",
+            chdir:               @container.container_dir,
+            env:                 env,
+            expected_exitstatus: 0)
+
+        @container.run_in_container_context("/bin/rm -rf #{cache} &")
+      end
+
+      def destroy
         FileUtils.rm_r(@path) if File.exist? @path
-
-        raise ShellExecutionException.new(
-                  'Failed to clone application git repository from template repository',
-                  e.rc, e.stdout, e.stderr)
-      ensure
-        FileUtils.rm_r(template)
       end
-    end
 
-    private
-    #-- ERB Templates -----------------------------------------------------------
+      ##
+      # Install Git repository hooks and set permissions
+      def configure
+        @container.set_rw_permission_R(@path)
 
-    GIT_INIT = %Q{\
+        # application developer cannot change git hooks
+        hooks = PathUtils.join(@path, 'hooks')
+        @container.set_ro_permission_R(hooks)
+
+        render_file = lambda { |f, m, t|
+          File.open(f, 'w', m) { |f| f.write(ERB.new(t).result(binding)) }
+        }
+
+        render_file.call(PathUtils.join(@path, 'description'), 0644, GIT_DESCRIPTION)
+        render_file.call(PathUtils.join(@container.container_dir, '.gitconfig'), 0644, GIT_CONFIG)
+
+        render_file.call(PathUtils.join(hooks, 'pre-receive'), 0755, PRE_RECEIVE)
+        render_file.call(PathUtils.join(hooks, 'post-receive'), 0755, POST_RECEIVE)
+      end
+
+      ##
+      # Copy a file tree structure and build an application repository
+      def build_bare(path)
+        template = PathUtils.join(@container.container_dir, 'git', 'template')
+        FileUtils.rm_r(template) if File.exist? template
+
+        git_path = PathUtils.join(@container.container_dir, 'git')
+        @container.run_in_root_context("/bin/cp -ad #{path} #{git_path}",
+                       expected_exitstatus: 0)
+
+        @container.run_in_root_context(ERB.new(GIT_INIT).result(binding),
+            chdir:               template,
+            expected_exitstatus: 0)
+        begin
+          # trying to clone as the user proved to be painful as git managed to "lose" the selinux context
+          @container.run_in_root_context(ERB.new(GIT_LOCAL_CLONE).result(binding),
+              chdir:               git_path,
+              expected_exitstatus: 0)
+        rescue ShellExecutionException => e
+          FileUtils.rm_r(@path) if File.exist? @path
+
+          raise ShellExecutionException.new(
+                    'Failed to clone application git repository from template repository',
+                    e.rc, e.stdout, e.stderr)
+        ensure
+          FileUtils.rm_r(template)
+        end
+      end
+
+      private
+      #-- ERB Templates -----------------------------------------------------------
+
+      COUNT_GIT_OBJECTS = 'find objects -type f 2>/dev/null | wc -l'
+
+      GIT_INIT = %q{\
 set -xe;
 git init;
 git config user.email "builder@example.com";
 git config user.name "Template builder";
+git config core.logAllRefUpdates true;
 git add -f .;
-git commit -a -m "Creating template"
+git commit -a -m "Creating template";
 }
 
-    GIT_LOCAL_CLONE = %Q{\
+    GIT_INIT_BARE = %q{
+set -xe;
+git init --bare;
+git config core.logAllRefUpdates true;
+}
+
+      GIT_LOCAL_CLONE = %q{\
 set -xe;
 git clone --bare --no-hardlinks template <%= @application_name %>.git;
-GIT_DIR=./<%= @application_name %>.git git repack
+GIT_DIR=./<%= @application_name %>.git git config core.logAllRefUpdates true;
+GIT_DIR=./<%= @application_name %>.git git repack;
 }
 
-    GIT_URL_CLONE = %Q{\
+      GIT_URL_CLONE = %q{\
 set -xe;
 git clone --bare --no-hardlinks <%= @url %> <%= @application_name %>.git;
-GIT_DIR=./<%= @application_name %>.git git repack
+GIT_DIR=./<%= @application_name %>.git git config core.logAllRefUpdates true;
+<% if @commit && !@commit.empty? %>
+GIT_DIR=./<%= @application_name %>.git git reset --soft '<%= @commit %>';
+<% end %>
+GIT_DIR=./<%= @application_name %>.git git repack;
 }
 
-    GIT_ARCHIVE = %Q{\
+      GIT_ARCHIVE = %Q{
 set -xe;
 shopt -s dotglob;
-rm -rf <%= @target_dir %>/*;
+if [ "$(#{COUNT_GIT_OBJECTS})" -eq "0" ]; then
+  exit 0;
+fi
 git archive --format=tar HEAD | (cd <%= @target_dir %> && tar --warning=no-timestamp -xf -);
 }
 
-    GIT_DESCRIPTION = %Q{
+      GIT_DESCRIPTION = %q{
 <%= @cartridge_name %> application <%= @application_name %>
 }
 
-    GIT_CONFIG = %Q{\
+      GIT_CONFIG = %q{
 [user]
   name = OpenShift System User
 [gc]
   auto = 100
 }
 
-    PRE_RECEIVE = %Q{\
+      PRE_RECEIVE = %q{
 gear prereceive
 }
 
-    POST_RECEIVE = %Q{\
+      POST_RECEIVE = %q{
 gear postreceive
 }
+    end
   end
 end

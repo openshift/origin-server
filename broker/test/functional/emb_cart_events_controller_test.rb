@@ -22,7 +22,7 @@ class EmbCartEventsControllerTest < ActionController::TestCase
     @domain.save
     @app_name = "app#{@random}"
     @cartridge_id = MYSQL_VERSION
-    @app = Application.create_app(@app_name, [PHP_VERSION, @cartridge_id], @domain, "small")
+    @app = Application.create_app(@app_name, [PHP_VERSION, @cartridge_id], @domain)
     @app.save
   end
   

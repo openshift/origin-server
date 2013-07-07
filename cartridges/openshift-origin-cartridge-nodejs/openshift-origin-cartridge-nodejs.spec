@@ -1,8 +1,8 @@
-%global cartridgedir %{_libexecdir}/openshift/cartridges/v2/nodejs
+%global cartridgedir %{_libexecdir}/openshift/cartridges/nodejs
 
 Summary:       Provides Node.js support
 Name:          openshift-origin-cartridge-nodejs
-Version: 1.11.2
+Version: 1.12.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -51,7 +51,7 @@ if [[ $(/usr/bin/node -v) == v0.10* ]]; then
 %__mv %{buildroot}%{cartridgedir}/metadata/manifest.yml.0.10 %{buildroot}%{cartridgedir}/metadata/manifest.yml;
 fi
 
-%post
+%posttrans
 %{_sbindir}/oo-admin-cartridge --action install --source %{cartridgedir}
 
 %files
@@ -64,6 +64,22 @@ fi
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Fri Jul 05 2013 Adam Miller <admiller@redhat.com> 1.12.3-1
+- Merge pull request #2977 from BanzaiMan/dev/hasari/bz980102
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 980102 (asari.ruby@gmail.com)
+
+* Tue Jul 02 2013 Adam Miller <admiller@redhat.com> 1.12.2-1
+- Bug 976921: Move cart installation to %%posttrans (ironcladlou@gmail.com)
+- Bug 979991 (asari.ruby@gmail.com)
+- remove v2 folder from cart install (dmcphers@redhat.com)
+
+* Tue Jun 25 2013 Adam Miller <admiller@redhat.com> 1.12.1-1
+- bump_minor_versions for sprint 30 (admiller@redhat.com)
+
+* Tue Jun 25 2013 Adam Miller <admiller@redhat.com> 1.11.3-1
+- Bug 976112 (asari.ruby@gmail.com)
+
 * Mon Jun 17 2013 Adam Miller <admiller@redhat.com> 1.11.2-1
 - First pass at removing v1 cartridges (dmcphers@redhat.com)
 - Nodejs spec fix (kraman@gmail.com)

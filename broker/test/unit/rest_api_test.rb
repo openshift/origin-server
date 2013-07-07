@@ -2,7 +2,7 @@ require 'test_helper'
 require 'openshift-origin-controller'
 require 'helpers/rest/api'
 require 'json'
-require 'mocha'
+require 'mocha/setup'
 
 class RestApiUnitTest < ActionDispatch::IntegrationTest #ActiveSupport::TestCase
   def setup

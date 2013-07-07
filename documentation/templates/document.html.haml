@@ -1,0 +1,120 @@
+!!! 5
+%html{:lang=>(attr :lang, 'en')}
+  %head
+    %meta(http-equiv='Content-Type' content="text/html; charset=#{attr :encoding}")
+    %meta(name='viewport' content='width=device-width, initial-scale=1.0')
+    %meta(name='generator' content="Asciidoctor #{attr 'asciidoctor-version'}")
+    - [:description, :author, :copyright].each do |key|
+      - if attr? key
+        %meta{:name=>key, :content=>(attr key)}
+    %title=doctitle
+    - if Asciidoctor::DEFAULT_STYLESHEET_KEYS.include?(attr :stylesheet)
+      - if @safe >= Asciidoctor::SafeMode::SECURE || (attr? :linkcss)
+        %link(rel='stylesheet'){:href=>normalize_web_path(Asciidoctor::DEFAULT_STYLESHEET_NAME, (attr :stylesdir, ''))}
+      - else
+        %style=Asciidoctor::HTML5.default_asciidoctor_stylesheet
+    - elsif attr? :stylesheet
+      - if @safe >= Asciidoctor::SafeMode::SECURE || (attr? :linkcss)
+        %link(rel='stylesheet'){:href=>normalize_web_path((attr :stylesheet), (attr :stylesdir, ''))}
+      - else
+        %style=read_asset(normalize_system_path((attr :stylesheet), (attr :stylesdir, '')), true)
+    - if attr? :icons, 'font'
+      - if !(attr 'iconfont-remote', '').nil?
+        %link(rel='stylesheet'){:href=>"#{attr 'iconfont-cdn', 'http://cdnjs.cloudflare.com/ajax/libs/font-awesome/3.2.0/css'}/#{attr 'iconfont-name', 'font-awesome'}.min.css"}
+      - else
+        %link(rel='stylesheet'){:href=>normalize_web_path("#{attr 'iconfont-name', 'font-awesome'}.css", (attr :stylesdir, ''))}
+    - case attr 'source-highlighter'
+    - when 'coderay'
+      - if (attr 'coderay-css', 'class') == 'class'
+        =Asciidoctor::HTML5.default_coderay_stylesheet
+    - when 'highlightjs'
+      %link(rel='stylesheet' href="#{attr :highlightjsdir, 'http://cdnjs.cloudflare.com/ajax/libs/highlight.js/7.3'}/styles/#{attr 'highlightjs-theme', 'default'}.min.css")
+      %script(src="#{attr :highlightjsdir, 'http://cdnjs.cloudflare.com/ajax/libs/highlight.js/7.3'}/highlight.min.js")
+      %script hljs.initHighlightingOnLoad()
+    - unless (docinfo_content = docinfo).empty?
+      = docinfo_content
+  %body{:id => @id, :class=>[(attr :doctype), ((attr? 'toc-class') && (attr? :toc) && (attr? 'toc-placement', 'auto') ? (attr 'toc-class') : nil)], :style=>("max-width: #{attr 'max-width'};" if (attr? 'max-width'))}
+    - unless noheader
+      -# AsciiDoc leaves an empty header div even if there's no doctitle
+      #header
+        - if has_header?
+          - unless notitle
+            %h1=@header.title
+          - if attr? :author
+            %span#author=attr :author
+            %br
+            - if attr? :email
+              %span#email=sub_macros(attr :email)
+              %br
+            - if (authorcount = (attr :authorcount).to_i) > 1
+              - (2..authorcount).each do |idx|
+                %span{:id=>"author#{idx}", :class=>"author"}=(attr "author_#{idx}")
+                %br
+                - if attr? "email_#{idx}"
+                  %span{:id=>"email#{idx}", :class=>"email"}=sub_macros(attr "email_#{idx}")
+          - if attr? :revnumber
+            %span#revnumber #{((attr 'version-label') || '').downcase} #{attr :revnumber}#{',' if (attr? :revdate)}
+          - if attr? :revdate
+            %span#revdate=attr :revdate
+          - if attr? :revremark
+            %br
+            %span#revremark=attr :revremark
+        - if (attr? :toc) && (attr? 'toc-placement', 'auto')
+          #toc{:class=>(attr 'toc-class', 'toc')}
+            #toctitle=attr 'toc-title'
+            -# hackish, find a way to make the toc generator more generic
+            =Asciidoctor::HTML5::DocumentTemplate.outline(self, (attr :toclevels, 2).to_i)
+    #content=content.chomp
+    - unless !footnotes? || attr?(:nofootnotes)
+      #footnotes
+        %hr
+        - footnotes.each do |fn|
+          .footnote{:id=>['_footnote', fn.index]}
+            = succeed ". #{fn.text}" do
+              %a(href="#_footnoteref_#{fn.index}")=fn.index
+    #footer
+      #footer-text
+        - if attr? :revnumber
+          #{attr 'version-label'} #{attr :revnumber}
+        - if attr? 'last-update-label'
+          %br
+          #{attr 'last-update-label'} #{attr :localdatetime}
+      / Google Analytics
+      :javascript
+        var _gaq = _gaq || [];
+        _gaq.push(['_setAccount', 'UA-40375612-1']);
+        _gaq.push(['_setDomainName', 'openshift.github.io']);
+        _gaq.push(['_trackPageview']);
+
+        (function() {
+          var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+          ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+          var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+        })();
+
+        $(document).ready(function() {
+          _gaq.push(function() {
+            $('a:not([href^="http"])').on("click", function(e) {
+              e.preventDefault();
+              var link = $(this).attr("href");
+              _gaq.push(["_trackEvent", "Internal Links", "click", link]);
+              setTimeout('document.location = "' + link + '"', 300);
+            });
+            $('a[href^="http"]').on("click", function(e) {
+              e.preventDefault();
+              var link = $(this).attr("href");
+              _gaq.push(["_trackEvent", "Outbound Links", "click", link]);
+              setTimeout('document.location = "' + link + '"', 300);
+            });
+          });
+        });
+      / Google Code for Remarketing
+      :javascript
+        var google_conversion_id = 1007064360;
+        var google_conversion_label = "7jfmCMC5ugQQqKqa4AM";
+        var google_custom_params = window.google_tag_params;
+        var google_remarketing_only = true;
+      <script type="text/javascript" src="//www.googleadservices.com/pagead/conversion.js"></script>
+      %noscript
+        %div{ :style => "display: inline;" }
+          %img{ :height => "1", :width => "1", :style => "border-style: none;", :alt => "", :src => "//googleads.g.doubleclick.net/pagead/viewthroughconversion/1007064360/?value=0&amp;label=7jfmCMC5ugQQqKqa4AM&amp;guid=ON&amp;script=0" }

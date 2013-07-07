@@ -24,7 +24,7 @@ class EmbCartController < BaseController
 
     begin
       component_instance = @application.component_instances.find_by(cartridge_name: id)
-      cartridge = get_rest_cartridge(@application, component_instance, @application.group_instances_with_scale, @application.group_overrides, status_messages)
+      cartridge = get_embedded_rest_cartridge(@application, component_instance, @application.group_instances_with_scale, @application.group_overrides, status_messages)
       return render_success(:ok, "cartridge", cartridge, "Showing cartridge #{id} for application #{@application.name} under domain #{@domain.namespace}")
     rescue Mongoid::Errors::DocumentNotFound
       return render_error(:not_found, "Cartridge '#{id}' not found for application '#{@application.name}'", 129)
@@ -96,6 +96,8 @@ class EmbCartController < BaseController
         colocate_component_instance = colocate_component_instance.first if colocate_component_instance.class == Array
       rescue Mongoid::Errors::DocumentNotFound
         return render_error(:unprocessable_entity, "Invalid colocation specified. No component matches #{colocate_with}", 109, "cartridge")      
+      rescue Exception => e
+        return render_exception(e) 
       end
     end
 
@@ -132,13 +134,15 @@ class EmbCartController < BaseController
       result = @application.add_features([name], group_overrides)
 
       component_instance = @application.component_instances.find_by(cartridge_name: cart.name, component_name: comp.name)
-      cartridge = get_rest_cartridge(@application, component_instance, @application.group_instances_with_scale, @application.group_overrides)
+      cartridge = get_embedded_rest_cartridge(@application, component_instance, @application.group_instances_with_scale, @application.group_overrides)
 
       return render_success(:created, "cartridge", cartridge, "Added #{name} to application #{@application.name}", result)
     rescue OpenShift::GearLimitReachedException => e
       return render_error(:unprocessable_entity, "Unable to add cartridge: #{e.message}", 104)
     rescue OpenShift::UserException => e
       return render_error(:unprocessable_entity, e.message, 109, "cartridge")
+    rescue Exception => e
+      return render_exception(e) 
     end
   end
 
@@ -168,6 +172,8 @@ class EmbCartController < BaseController
       return render_error(:unprocessable_entity, e.message, e.code)
     rescue Mongoid::Errors::DocumentNotFound
       return render_error(:not_found, "Cartridge #{cartridge} not embedded within application #{@application.name}", 129)
+    rescue Exception => e
+      return render_exception(e) 
     end
   end
 
@@ -245,7 +251,7 @@ class EmbCartController < BaseController
       result = @application.update_component_limits(component_instance, scales_from, scales_to, additional_storage)
 
       component_instance = @application.component_instances.find_by(cartridge_name: id)
-      cartridge = get_rest_cartridge(@application, component_instance, @application.group_instances_with_scale, @application.group_overrides)
+      cartridge = get_embedded_rest_cartridge(@application, component_instance, @application.group_instances_with_scale, @application.group_overrides)
       return render_success(:ok, "cartridge", cartridge, "Showing cartridge #{id} for application #{@application.name} under domain #{@domain.namespace}", result)
     rescue OpenShift::LockUnavailableException => e
       return render_error(:service_unavailable, "Application is currently busy performing another operation. Please try again in a minute.", e.code)

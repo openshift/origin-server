@@ -18,7 +18,7 @@
 require 'openshift-origin-node/utils/selinux'
 
 begin
-  puts OpenShift::Utils::SELinux.get_mcs_label(ARGV[0].to_i)
+  puts OpenShift::Runtime::Utils::SELinux.get_mcs_label(ARGV[0].to_i)
 rescue ArgumentError => e
   $stderr.puts(e.message)
   exit 1

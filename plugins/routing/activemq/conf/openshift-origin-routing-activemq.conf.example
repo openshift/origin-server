@@ -1,0 +1,5 @@
+ACTIVEMQ_TOPIC='/topic/routinginfo'
+ACTIVEMQ_USERNAME='routinginfo'
+ACTIVEMQ_PASSWORD='routinginfopasswd'
+ACTIVEMQ_HOST='127.0.0.1'
+ACTIVEMQ_PORT='61613'
