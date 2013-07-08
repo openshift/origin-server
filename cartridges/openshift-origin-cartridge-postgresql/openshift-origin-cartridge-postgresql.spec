@@ -1,6 +1,8 @@
 %if 0%{?fedora}%{?rhel} <= 6
     %global scl postgresql92
     %global scl_prefix postgresql92-
+    %global scl_ruby ruby193
+    %global scl_prefix_ruby ruby193-
 %endif
 
 %global cartridgedir %{_libexecdir}/openshift/cartridges/postgresql
@@ -51,6 +53,7 @@ Requires:      php-pgsql
 Requires:      gdal
 Requires:      postgis
 Requires:      python-psycopg2
+Requires:      %{?scl_ruby:%scl_prefix_ruby}rubygem-pg
 Requires:      rhdb-utils
 Requires:      uuid-pgsql
 BuildArch:     noarch
