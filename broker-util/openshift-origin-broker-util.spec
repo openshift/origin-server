@@ -6,7 +6,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin broker
 Name:          openshift-origin-broker-util
-Version: 1.11.2
+Version: 1.11.3
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -87,6 +87,9 @@ cp man/*.8 %{buildroot}%{_mandir}/man8/
 %{_mandir}/man8/oo-stats.8.gz
 
 %changelog
+* Mon Jul 08 2013 Adam Miller <admiller@redhat.com> 1.11.3-1
+- Bug 980333 - Add missing 'exit 1' in oo-admin-ctl-domain (rpenta@redhat.com)
+
 * Tue Jul 02 2013 Adam Miller <admiller@redhat.com> 1.11.2-1
 - Moving scaled deploy into the platform (dmcphers@redhat.com)
 - Remove Online specific references: -Remove hard-coded cart name references.
