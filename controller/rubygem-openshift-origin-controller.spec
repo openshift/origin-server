@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.11.4
+Version: 1.11.5
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -84,6 +84,10 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Mon Jul 08 2013 Adam Miller <admiller@redhat.com> 1.11.5-1
+- Fixing runtime tests (dmcphers@redhat.com)
+- Increase jenkins start timeout (dmcphers@redhat.com)
+
 * Fri Jul 05 2013 Adam Miller <admiller@redhat.com> 1.11.4-1
 - Assign default gear size if not specified in applications_controller.rb
   (rpenta@redhat.com)
