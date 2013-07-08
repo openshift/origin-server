@@ -17,7 +17,7 @@
 require 'etc'
 require 'selinux'
 require 'find'
-require 'openshift-origin-common'
+require 'openshift-origin-common/config'
 require 'openshift-origin-node/utils/node_logger'
 
 module OpenShift
