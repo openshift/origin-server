@@ -16,7 +16,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.11.5
+Version: 1.11.6
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -287,6 +287,14 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Mon Jul 08 2013 Adam Miller <admiller@redhat.com> 1.11.6-1
+- Merge pull request #2992 from brenton/BZ981249
+  (dmcphers+openshiftbot@redhat.com)
+-  Revamp the cgroups and pam scripts to leverage the system setup for better
+  performance and simplify the code. (rmillner@redhat.com)
+- Bug 981249 - rubygem-openshift-origin-node was missing open4 dependency
+  (bleanhar@redhat.com)
+
 * Fri Jul 05 2013 Adam Miller <admiller@redhat.com> 1.11.5-1
 - Merge pull request #2987 from rajatchopra/routing_broker
   (dmcphers+openshiftbot@redhat.com)
