@@ -8,6 +8,7 @@
   //text-shadow: 0 1px 0 rgba(255,255,255,.5);
   background-color: $warningBackground;
   //border: 1px solid $warningBorder;
+  overflow: auto;
   @include border-radius(4px);
   > p:last-child {
     margin-bottom: 0;
