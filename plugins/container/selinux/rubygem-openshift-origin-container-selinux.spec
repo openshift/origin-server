@@ -9,7 +9,7 @@
 
 Summary:       OpenShift plugin for SELinux based containers
 Name:          rubygem-%{gem_name}
-Version:       0.0.3
+Version:       0.0.4
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -77,6 +77,10 @@ cp %{buildroot}/%{gem_instdir}/conf/openshift-origin-container-selinux.conf.exam
 /etc/openshift/node-plugins.d/
 
 %changelog
+* Mon Jul 08 2013 Adam Miller <admiller@redhat.com> 0.0.4-1
+-  Revamp the cgroups and pam scripts to leverage the system setup for better
+  performance and simplify the code. (rmillner@redhat.com)
+
 * Wed Jul 03 2013 Adam Miller <admiller@redhat.com> 0.0.3-1
 - artificial bump to get build reporting back in line (admiller@redhat.com)
 
