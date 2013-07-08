@@ -31,7 +31,7 @@ module OpenShift
       DEFAULT_PAM_LIMITS_ORDER = 84
       DEFAULT_PAM_LIMITS_DIR   = '/etc/security/limits.d'
       DEFAULT_PAM_LIMITS_VARS  = %w(core data fsize memlock nofile rss stack cpu nproc as maxlogins priority locks sigpending msgqueue nice rprio)
-      DEFAULT_PAM_HARD_VARS    = %w(nproc)
+      DEFAULT_PAM_SOFT_VARS    = %w(nproc)
 
       DEFAULT_QUOTA            = { 'quota_files' => 1000, 'quota_blocks' => 128 * 1024 }
       DEFAULT_PAM_LIMITS       = { 'nproc' => 100 }
@@ -191,8 +191,6 @@ module OpenShift
         limits_order = (resource.get('limits_order') or DEFAULT_PAM_LIMITS_ORDER)
         limits_file = PathUtils.join(DEFAULT_PAM_LIMITS_DIR, "#{limits_order}-#{uuid}.conf")
 
-        DEFAULT_PAM_LIMITS.each { |k, v| limits[k]=v unless limits.has_key?(k) }
-
         DEFAULT_PAM_LIMITS_VARS.each do |k|
           if not limits.has_key?(k)
             v = resource.get("limits_#{k}")
@@ -202,6 +200,8 @@ module OpenShift
           end
         end
 
+        DEFAULT_PAM_LIMITS.each { |k, v| limits[k]=v unless limits.has_key?(k) }
+
         File.open(limits_file, File::RDWR | File::CREAT | File::TRUNC ) do |f|
           f.write("# PAM process limits for guest #{uuid}\n")
           f.write("# see limits.conf(5) for details\n")
@@ -209,10 +209,10 @@ module OpenShift
           f.write("#\n")
           f.write("#<domain>        <type>  <item>  <value>\n")
           limits.each do |k, v|
-            if DEFAULT_PAM_HARD_VARS.include?(k)
-              limtype = "hard"
-            else
+            if DEFAULT_PAM_SOFT_VARS.include?(k) and (v.to_i != 0)
               limtype = "soft"
+            else
+              limtype = "hard"
             end
             f.write("#{uuid}\t#{limtype}\t#{k}\t#{v}\n")
           end
