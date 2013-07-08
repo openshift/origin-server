@@ -44,7 +44,7 @@ module OpenShift
           cmd = %{groupadd -g #{@container.gid} \
           #{@container.uuid}}
           out,err,rc = @container.run_in_root_context(cmd)
-          raise UserCreationException.new(
+          raise ::OpenShift::Runtime::UserCreationException.new(
                     "ERROR: unable to create group for user account(#{rc}): #{cmd.squeeze(" ")} stdout: #{out} stderr: #{err}"
                 ) unless rc == 0
 
@@ -62,7 +62,7 @@ module OpenShift
             cmd << %{ -G "#{@container.supplementary_groups}"}
           end
           out,err,rc = @container.run_in_root_context(cmd)
-          raise UserCreationException.new(
+          raise ::OpenShift::Runtime::UserCreationException.new(
                     "ERROR: unable to create user account(#{rc}): #{cmd.squeeze(" ")} stdout: #{out} stderr: #{err}"
                 ) unless rc == 0
 
@@ -95,7 +95,7 @@ module OpenShift
               " -- " +
               "#{@container.uuid} /usr/sbin/oo-gear-init"
           out, err, rc = @container.run_in_root_context(cmd)
-          raise UserCreationException.new( "Failed to create lxc container. rc=#{rc}, out=#{out}, err=#{err}" ) if rc != 0
+          raise ::UserCreationException.new( "Failed to create lxc container. rc=#{rc}, out=#{out}, err=#{err}" ) if rc != 0
 
           container_link = File.join(@container.container_dir, @container.uuid)
           FileUtils.ln_s("/var/lib/openshift/gears", container_link)
@@ -167,7 +167,7 @@ module OpenShift
 
             cmd = "userdel --remove -f \"#{@container.uuid}\""
             out,err,rc = @container.run_in_root_context(cmd)
-            raise UserDeletionException.new(
+            raise ::OpenShift::Runtime::UserDeletionException.new(
                       "ERROR: unable to destroy user account(#{rc}): #{cmd} stdout: #{out} stderr: #{err}"
                   ) unless rc == 0
           rescue ArgumentError => e
@@ -179,7 +179,7 @@ module OpenShift
 
             cmd = "groupdel \"#{@container.uuid}\""
             out,err,rc = @container.run_in_root_context(cmd)
-            raise UserDeletionException.new(
+            raise ::OpenShift::Runtime::UserDeletionException.new(
                       "ERROR: unable to destroy group of user account(#{rc}): #{cmd} stdout: #{out} stderr: #{err}"
                   ) unless rc == 0
           rescue ArgumentError => e
@@ -327,7 +327,7 @@ Dir(after)    #{@container.uuid}/#{@container.uid} => #{list_home_dir(@container
           #
           #if rc == 0
           #  out,err,rc = @container.run_in_root_context("/usr/sbin/oo-admin-ctl-cgroups startuser #{@container.uuid} > /dev/null")
-          #  raise OpenShift::Runtime::UserCreationException.new("Unable to setup cgroups for #{@container.uuid}: stdout -- #{out} stderr --#{err}}") unless rc == 0
+          #  raise ::OpenShift::Runtime::UserCreationException.new("Unable to setup cgroups for #{@container.uuid}: stdout -- #{out} stderr --#{err}}") unless rc == 0
           #end
         end
 
@@ -339,13 +339,13 @@ Dir(after)    #{@container.uuid}/#{@container.uid} => #{list_home_dir(@container
         def enable_fs_limits
           cmd = "/bin/sh #{File.join('/usr/libexec/openshift/lib', "setup_pam_fs_limits.sh")} #{@container.uuid} #{@container.quota_blocks ? @container.quota_blocks : ''} #{@container.quota_files ? @container.quota_files : ''}"
           out,err,rc = @container.run_in_root_context(cmd)
-          raise OpenShift::Runtime::UserCreationException.new("Unable to setup pam/fs limits for #{@container.name}: stdout -- #{out} stderr -- #{err}") unless rc == 0
+          raise ::OpenShift::Runtime::UserCreationException.new("Unable to setup pam/fs limits for #{@container.name}: stdout -- #{out} stderr -- #{err}") unless rc == 0
         end
 
         def disable_fs_limits
           cmd = "/bin/sh #{File.join("/usr/libexec/openshift/lib", "teardown_pam_fs_limits.sh")} #{@container.uuid}"
           out,err,rc = @container.run_in_root_context(cmd)
-          raise OpenShift::Runtime::UserCreationException.new("Unable to teardown pam/fs/nproc limits for #{@container.uuid}") unless rc == 0
+          raise ::OpenShift::Runtime::UserCreationException.new("Unable to teardown pam/fs/nproc limits for #{@container.uuid}") unless rc == 0
         end
 
         # run_in_container_context(command, [, options]) -> [stdout, stderr, exit status]
@@ -517,7 +517,7 @@ Dir(after)    #{@container.uuid}/#{@container.uid} => #{list_home_dir(@container
         def freeze_fs_limits
           cmd = "/bin/sh #{File.join('/usr/libexec/openshift/lib', "setup_pam_fs_limits.sh")} #{@container.uuid} 0 0 0"
           out,err,rc = @container.run_in_root_context(cmd)
-          raise OpenShift::Runtime::UserCreationException.new("Unable to setup pam/fs/nproc limits for #{@container.uuid}") unless rc == 0
+          raise ::OpenShift::Runtime::UserCreationException.new("Unable to setup pam/fs/nproc limits for #{@container.uuid}") unless rc == 0
         end
 
         def freeze_cgroups

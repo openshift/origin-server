@@ -42,7 +42,7 @@ module OpenShift
             cmd << %{ -G "#{@container.supplementary_groups}"}
           end
           out,err,rc = @container.run_in_root_context(cmd)
-          raise UserCreationException.new(
+          raise ::OpenShift::Runtime::UserCreationException.new(
                     "ERROR: unable to create user account(#{rc}): #{cmd.squeeze(" ")} stdout: #{out} stderr: #{err}"
                 ) unless rc == 0
 
@@ -99,7 +99,7 @@ module OpenShift
 
             cmd = "userdel --remove -f \"#{@container.uuid}\""
             out,err,rc = @container.run_in_root_context(cmd)
-            raise UserDeletionException.new(
+            raise ::OpenShift::Runtime::UserDeletionException.new(
                       "ERROR: unable to destroy user account(#{rc}): #{cmd} stdout: #{out} stderr: #{err}"
                   ) unless rc == 0
           rescue ArgumentError => e
@@ -219,7 +219,7 @@ Dir(after)    #{@container.uuid}/#{@container.uid} => #{list_home_dir(@container
           out,err,rc = @container.run_in_root_context("service openshift-tc status > /dev/null 2>&1")
           if rc == 0
             out,err,rc = @container.run_in_root_context("/usr/sbin/oo-admin-ctl-tc startuser #{@container.uuid} > /dev/null")
-            raise OpenShift::Runtime::UserCreationException.new("Unable to setup tc for #{@container.uuid}") unless rc == 0
+            raise ::OpenShift::Runtime::UserCreationException.new("Unable to setup tc for #{@container.uuid}") unless rc == 0
           end
         end
 
