@@ -67,7 +67,7 @@ class Gear
   end
   
   def unreserve_uid
-    get_proxy.unreserve_uid(self.uid)
+    get_proxy.unreserve_uid(self.uid) if get_proxy
     self.set :server_identity, nil
     self.set :uid, nil
   end
