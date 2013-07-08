@@ -135,8 +135,6 @@ mv %{buildroot}%{gem_instdir}/conf/* %{buildroot}/etc/openshift
 
 #move pam limit binaries to proper location
 mkdir -p %{buildroot}/usr/libexec/openshift/lib
-mv %{buildroot}%{gem_instdir}/misc/libexec/lib/teardown_pam_fs_limits.sh %{buildroot}/usr/libexec/openshift/lib
-mv %{buildroot}%{gem_instdir}/misc/libexec/lib/setup_pam_fs_limits.sh %{buildroot}/usr/libexec/openshift/lib
 mv %{buildroot}%{gem_instdir}/misc/libexec/lib/quota_attrs.sh %{buildroot}/usr/libexec/openshift/lib
 mv %{buildroot}%{gem_instdir}/misc/libexec/lib/archive_git_submodules.sh %{buildroot}/usr/libexec/openshift/lib
 
@@ -174,7 +172,6 @@ mv httpd/openshift_route.include %{buildroot}/etc/httpd/conf.d/
 
 #%if 0%{?fedora}%{?rhel} <= 6
 mkdir -p %{buildroot}/etc/rc.d/init.d/
-cp %{buildroot}%{gem_instdir}/misc/init/openshift-cgroups %{buildroot}/etc/rc.d/init.d/
 cp %{buildroot}%{gem_instdir}/misc/init/openshift-tc %{buildroot}/etc/rc.d/init.d/
 #%else
 #mkdir -p %{buildroot}/etc/systemd/system
@@ -207,7 +204,10 @@ ln -s /usr/lib/openshift/node/jobs/openshift-origin-stale-lockfiles %{buildroot}
 %post
 /bin/rm -f /etc/openshift/env/*.rpmnew
 
-echo "/usr/bin/oo-trap-user" >> /etc/shells
+if ! grep -q "/usr/bin/oo-trap-user" /etc/shells
+then
+  echo "/usr/bin/oo-trap-user" >> /etc/shells
+fi
 
 # Start the cron service so that each gear gets its cron job run, if they're enabled
 %if 0%{?fedora} >= 16 || 0%{?rhel} >= 7
@@ -226,8 +226,6 @@ echo "/usr/bin/oo-trap-user" >> /etc/shells
 %{gem_spec}
 %attr(0750,-,-) /usr/sbin/*
 %attr(0755,-,-) /usr/bin/*
-/usr/libexec/openshift/lib/setup_pam_fs_limits.sh
-/usr/libexec/openshift/lib/teardown_pam_fs_limits.sh
 /usr/libexec/openshift/lib/quota_attrs.sh
 /usr/libexec/openshift/lib/archive_git_submodules.sh
 %attr(0755,-,-) /usr/lib/openshift/cartridge_sdk
@@ -257,7 +255,6 @@ echo "/usr/bin/oo-trap-user" >> /etc/shells
 %attr(0750,root,apache) %config(noreplace) %{appdir}/.httpd.d/sts.db
 
 #%if 0%{?fedora}%{?rhel} <= 6
-%attr(0755,-,-)	/etc/rc.d/init.d/openshift-cgroups
 %attr(0755,-,-)	/etc/rc.d/init.d/openshift-tc
 #%else
 #%attr(0750,-,-) /etc/systemd/system

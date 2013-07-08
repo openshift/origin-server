@@ -48,7 +48,7 @@ module OpenShift
       #   cartridge_repo = mock()
       #   OpenShift::CartridgeRepository.expects(:instance).returns(cartridge_repo)
 
-      #   OpenShift::Utils::Cgroups.expects(:with_no_cpu_limits).yields
+      #   OpenShift::Runtime::Utils::Cgroups.expects(:with_no_cpu_limits).yields
       #   Dir.expects(:chdir).with(user.homedir).yields
       #   model.expects(:each_cartridge).yields(current_manifest)
         

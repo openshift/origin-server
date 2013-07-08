@@ -885,7 +885,7 @@ class OODiag
     end
     if @is_node
       fail_without += %w{httpd network sshd openshift-port-proxy openshift-gears mcollective
-                        cgconfig cgred openshift-cgroups crond openshift-node-web-proxy}
+                        cgconfig cgred crond openshift-node-web-proxy}
 
       warn_without += %w{ntpd oddjobd messagebus}
     end

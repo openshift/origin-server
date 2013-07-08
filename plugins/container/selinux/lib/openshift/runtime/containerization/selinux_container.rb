@@ -208,24 +208,18 @@ Dir(after)    #{@container.uuid}/#{@container.uid} => #{list_home_dir(@container
         end
 
         def enable_cgroups
-          out,err,rc = @container.run_in_root_context("service cgconfig status > /dev/null 2>&1")
-
-          if rc == 0
-            out,err,rc = @container.run_in_root_context("/usr/sbin/oo-admin-ctl-cgroups startuser #{@container.uuid} > /dev/null")
-            raise OpenShift::Runtime::UserCreationException.new("Unable to setup cgroups for #{@container.uuid}: stdout -- #{out} stderr --#{err}}") unless rc == 0
-          end
+          ::OpenShift::Runtime::Utils::Cgroups.enable(@container.uuid)
         end
 
         def stop_cgroups
-          out,err,rc = @container.run_in_root_context("service cgconfig status > /dev/null 2>&1")
-          @container.run_in_root_context("/usr/sbin/oo-admin-ctl-cgroups stopuser #{@container.uuid} > /dev/null") if rc == 0
+          ::OpenShift::Runtime::Utils::Cgroups.disable(@container.uuid)
         end
 
         def enable_traffic_control
           out,err,rc = @container.run_in_root_context("service openshift-tc status > /dev/null 2>&1")
           if rc == 0
             out,err,rc = @container.run_in_root_context("/usr/sbin/oo-admin-ctl-tc startuser #{@container.uuid} > /dev/null")
-            raise OpenShift::UserCreationException.new("Unable to setup tc for #{@container.uuid}") unless rc == 0
+            raise OpenShift::Runtime::UserCreationException.new("Unable to setup tc for #{@container.uuid}") unless rc == 0
           end
         end
 
@@ -237,15 +231,13 @@ Dir(after)    #{@container.uuid}/#{@container.uid} => #{list_home_dir(@container
         end
 
         def enable_fs_limits
-          cmd = "/bin/sh #{File.join('/usr/libexec/openshift/lib', "setup_pam_fs_limits.sh")} #{@container.uuid} #{@container.quota_blocks ? @container.quota_blocks : ''} #{@container.quota_files ? @container.quota_files : ''}"
-          out,err,rc = @container.run_in_root_context(cmd)
-          raise OpenShift::Runtime::UserCreationException.new("Unable to setup pam/fs limits for #{@container.name}: stdout -- #{out} stderr -- #{err}") unless rc == 0
+          ::OpenShift::Runtime::Node.init_quota(@container.uuid, @container.quota_blocks, @container.quota_files)
+          ::OpenShift::Runtime::Node.init_pam_limits(@container.uuid)
         end
 
         def disable_fs_limits
-          cmd = "/bin/sh #{File.join("/usr/libexec/openshift/lib", "teardown_pam_fs_limits.sh")} #{@container.uuid}"
-          out,err,rc = @container.run_in_root_context(cmd)
-          raise OpenShift::Runtime::UserCreationException.new("Unable to teardown pam/fs/nproc limits for #{@container.uuid}") unless rc == 0
+          ::OpenShift::Runtime::Node.remove_pam_limits(@container.uuid)
+          ::OpenShift::Runtime::Node.remove_quota(@container.uuid)
         end
 
         # run_in_container_context(command, [, options]) -> [stdout, stderr, exit status]
@@ -317,22 +309,16 @@ Dir(after)    #{@container.uuid}/#{@container.uid} => #{list_home_dir(@container
         private
 
         def freeze_fs_limits
-          cmd = "/bin/sh #{File.join('/usr/libexec/openshift/lib', "setup_pam_fs_limits.sh")} #{@container.uuid} 0 0 0"
-          out,err,rc = @container.run_in_root_context(cmd)
-          raise ::OpenShift::Runtime::UserCreationException.new("Unable to setup pam/fs/nproc limits for #{@container.uuid}") unless rc == 0
+          ::OpenShift::Runtime::Node.pam_freeze(@container.uuid)
         end
 
         def freeze_cgroups
-          out,err,rc = @container.run_in_root_context("service cgconfig status > /dev/null")
-          if rc == 0
-            @container.run_in_root_context("/usr/sbin/oo-admin-ctl-cgroups freezeuser #{@container.uuid} > /dev/null") if rc == 0
-          end
+          ::OpenShift::Runtime::Utils::Cgroups.freeze(@container.uuid)
         end
 
         # release resources (cgroups thaw), this causes Zombies to get killed
         def unfreeze_cgroups
-          out,err,rc = @container.run_in_root_context("service cgconfig status > /dev/null")
-          @container.run_in_root_context("/usr/sbin/oo-admin-ctl-cgroups thawuser #{@container.uuid} > /dev/null") if rc == 0
+          ::OpenShift::Runtime::Utils::Cgroups.thaw(@container.uuid)
         end
 
         def kill_procs
