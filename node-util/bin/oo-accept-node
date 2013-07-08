@@ -425,8 +425,8 @@ end
 def check_cgroup_config
     verbose("checking cgroups configuration")
 
-    if %x[/bin/lscgroup cpu,cpuacct,memory,freezer,net_cls:/openshift 2>/dev/null | /usr/bin/wc -l].strip.to_i < 1
-        do_fail("lscgroup /openshift path does not exist")
+    if %x[/bin/lscgroup cpu,cpuacct,memory,freezer,net_cls:/ 2>/dev/null | /usr/bin/wc -l].strip.to_i < 1
+        do_fail("The root cgroup does not exist (cgroups not enabled)")
         $CGROUP_PASS=false
     end
 end

@@ -59,14 +59,6 @@ function run_all_scheduled_jobs() {
 }
 
 
-function setuppam() {
-   uuid=$1
-   if [ ! -f "/etc/security/limits.d/84-${uuid}.conf" ]; then
-     /usr/libexec/openshift/lib/setup_pam_fs_limits.sh $uuid
-   fi
-}
-
-
 function run_user_scheduled_jobs() {
    uuid=${1:-""}
    freq=${2:-""}
@@ -88,7 +80,6 @@ function run_user_scheduled_jobs() {
    # Ensure scripts are executable
    chmod +x -R "$GEAR_BASE_DIR/$uuid/app-root/repo/.openshift/cron/$freq/"
 
-   setuppam "$uuid"
    if [ "$CART_FORMAT" == "v2" ]
    then
       cron_runjob="$USER_CRON_INSTANCE_DIR/bin/cron_runjobs.sh"
