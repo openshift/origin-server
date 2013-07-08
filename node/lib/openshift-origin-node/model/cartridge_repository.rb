@@ -370,7 +370,7 @@ module OpenShift
 
           case
             when 'git' == uri.scheme || cartridge.source_url.end_with?('.git')
-              Utils::oo_spawn(%Q(set -xe;
+              ::OpenShift::Runtime::Utils::oo_spawn(%Q(set -xe;
                                git clone #{cartridge.source_url} #{cartridge.name};
                                GIT_DIR=./#{cartridge.name}/.git git repack),
                               chdir:               Pathname.new(target).parent.to_path,

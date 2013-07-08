@@ -380,7 +380,7 @@ Dir(after)    #{@container.uuid}/#{@container.uid} => #{list_home_dir(@container
           options[:unsetenv_others] = true
 
           if options[:env].nil? or options[:env].empty?
-            options[:env] = Utils::Environ.for_gear(@container.container_dir)
+            options[:env] = ::OpenShift::Runtime::Utils::Environ.for_gear(@container.container_dir)
           end
 
           if not File.exist?("/dev/container-id")
@@ -502,7 +502,7 @@ Dir(after)    #{@container.uuid}/#{@container.uid} => #{list_home_dir(@container
           options[:unsetenv_others] = true
 
           if options[:env].nil? or options[:env].empty?
-            options[:env] = Utils::Environ.for_gear(@container.container_dir)
+            options[:env] = ::OpenShift::Runtime::Utils::Environ.for_gear(@container.container_dir)
           end
 
           if not File.exist?("/dev/container-id")
