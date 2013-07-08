@@ -203,7 +203,7 @@ Dir(after)    #{@container.uuid}/#{@container.uid} => #{list_home_dir(@container
         #    true   - port proxy could be initialized properly
         #    false  - port proxy could not be initialized properly
         def delete_all_public_endpoints
-          proxy_server = FrontendProxyServer.new
+          proxy_server = ::OpenShift::Runtime::FrontendProxyServer.new
           proxy_server.delete_all_for_uid(@container.uid, true)
         end
 
