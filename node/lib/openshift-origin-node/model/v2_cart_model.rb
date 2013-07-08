@@ -471,7 +471,7 @@ module OpenShift
           begin
             @container.set_ro_permission(entry)
           rescue Exception => e
-            raise OpenShift::FileLockError.new("Failed to lock file system entry [#{entry}]: #{e}",
+            raise OpenShift::Runtime::FileLockError.new("Failed to lock file system entry [#{entry}]: #{e}",
                                                entry)
           end
         end
@@ -479,7 +479,7 @@ module OpenShift
         begin
           @container.set_ro_permission(@container.container_dir)
         rescue Exception => e
-          raise OpenShift::FileLockError.new("Failed to lock gear home [#{@container.container_dir}]: #{e}",
+          raise OpenShift::Runtime::FileLockError.new("Failed to lock gear home [#{@container.container_dir}]: #{e}",
                                              @container.container_dir)
         end
       end
