@@ -145,9 +145,7 @@ case "$1" in
             exit 0
         fi
 
-        client_result tailing "$OPENSHIFT_JBOSSEWS_DIR/logs/catalina.out"
-        client_result "------ Tail of JBoss catalina.out ------"
-        client_result $(tail "$OPENSHIFT_JBOSSEWS_DIR/logs/catalina.out")
+        client_result "The jbossews cartridge is running."
         exit 0
     ;;
     build)
