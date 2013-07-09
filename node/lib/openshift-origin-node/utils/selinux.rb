@@ -17,7 +17,7 @@
 require 'etc'
 require 'selinux'
 require 'find'
-require 'openshift-origin-common'
+require 'openshift-origin-common/config'
 require 'openshift-origin-node/utils/node_logger'
 
 module OpenShift
@@ -72,8 +72,10 @@ module OpenShift
         def self.get_mcs_label(name)
           config = ::OpenShift::Config.new
 
+          set_size  = (config.get("SELINUX_MCS_SET_SIZE")   || @@DEF_MCS_SET_SIZE).to_i
           group_size= (config.get("SELINUX_MCS_GROUP_SIZE") || @@DEF_MCS_GROUP_SIZE).to_i
           uid_offset= (config.get("SELINUX_MCS_UID_OFFSET") || @@DEF_MCS_UID_OFFSET).to_i
+          mls_num   = (config.get("SELINUX_MLS_NUM")        || @@DEF_MLS_NUM).to_i
 
           begin
             uid = Etc.getpwnam(name.to_s).uid
@@ -85,9 +87,27 @@ module OpenShift
             raise ArgumentError, "Argument must resolve to a UID greater than #{uid_offset + group_size - 1}: #{name}"
           end
 
-          mcs_labels.each do |tuid, label|
-            if uid == tuid
-              return label
+          if group_size == 2
+            if uid < uid_offset + set_size * ( set_size - 1) / 2
+              # offset uid
+              ouid = uid - uid_offset
+              # Quadratic formula
+              a = 1
+              # This is actually negative b, which is what you want
+              b = 2 * set_size - 1
+              c = ( 2 * ouid - 2 )
+
+              # Root of the equation
+              root = ((b - Math::sqrt(b**2 - 4*a*c)) / (2 * a)).to_i
+              # remainder
+              remainder = (ouid - ( 2*set_size - root - 1 ) * root / 2) + root
+              return "s#{mls_num}:c#{root},c#{remainder}"
+            end
+          else
+            mcs_labels.each do |tuid, label|
+              if uid == tuid
+                return label
+              end
             end
           end
           raise ArgumentError, "Argument resolved to a UID too large for MCS set parameters: #{uid}"

@@ -93,7 +93,7 @@ unless container_uuid
 end
 
 begin
-  frontend = OpenShift::Runtime::FrontendHttpServer.new(ApplicationContainer.from_uuid(container_uuid))
+  frontend = OpenShift::Runtime::FrontendHttpServer.new(OpenShift::Runtime::ApplicationContainer.from_uuid(container_uuid))
   frontend.sts(max_age)
 rescue OpenShift::Runtime::FrontendHttpServerExecException => e
   $stderr.puts(e.message + e.stdout + e.stderr)
