@@ -89,7 +89,7 @@ unless container_uuid
 end
 
 begin
-  frontend = OpenShift::Runtime::FrontendHttpServer.new(ApplicationContainer.from_uuid(container_uuid))
+  frontend = OpenShift::Runtime::FrontendHttpServer.new(OpenShift::Runtime::ApplicationContainer.from_uuid(container_uuid))
   max_age = frontend.get_sts
   if $porcelain
     $stdout.puts max_age.to_json

@@ -89,7 +89,7 @@ unless container_uuid
 end
 
 begin
-  frontend = OpenShift::Runtime::FrontendHttpServer.new(ApplicationContainer.from_uuid(container_uuid))
+  frontend = OpenShift::Runtime::FrontendHttpServer.new(OpenShift::Runtime::ApplicationContainer.from_uuid(container_uuid))
   connections = frontend.connections
   if $porcelain
     $stdout.puts connections.to_json

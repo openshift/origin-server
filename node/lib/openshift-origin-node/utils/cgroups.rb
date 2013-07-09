@@ -94,14 +94,16 @@ module OpenShift
           r
         end
 
-        def self.enable(uuid)
+        def self.enable(uuid, uid=nil)
           config = OpenShift::Config.new
           root = (config.get("OPENSHIFT_CGROUP_ROOT") or @@DEFAULT_CGROUP_ROOT)
           subsystems = (config.get("OPENSHIFT_CGROUP_SUBSYSTEMS") or @@DEFAULT_CGROUP_SUBSYSTEMS)
           controller_vars = (config.get("OPENSHIFT_CGROUP_CONTROLLER_VARS") or @@DEFAULT_CGROUP_CONTROLLER_VARS)
           path = "#{root}/#{uuid}"
 
-          uid = Etc.getpwnam(uuid).uid
+          if uid.nil?
+            uid = Etc.getpwnam(uuid).uid
+          end
 
           newcfg = Hash.new {|h,k| h[k]={}}
           newcfg["perm"] = {
@@ -142,6 +144,22 @@ module OpenShift
           classify_procs(uuid, uid)
         end
 
+        def self.enable_all
+          config = OpenShift::Config.new
+          gecos = (config.get("GEAR_GECOS") or "OO guest")
+
+          pwents=[]
+          Etc.passwd do |pwent|
+            if pwent.gecos == gecos
+              pwents << pwent
+            end
+          end
+
+          pwents.each do |pwent|
+            enable(pwent.name, pwent.uid)
+          end
+        end
+
         def self.disable(uuid)
           config = OpenShift::Config.new
           root = (config.get("OPENSHIFT_CGROUP_ROOT") or @@DEFAULT_CGROUP_ROOT)
@@ -153,6 +171,22 @@ module OpenShift
             reload_cgred
           end
           cgdelete(uuid)
+        end
+
+        def self.disable_all
+          config = OpenShift::Config.new
+          gecos = (config.get("GEAR_GECOS") or "OO guest")
+
+          pwents=[]
+          Etc.passwd do |pwent|
+            if pwent.gecos == gecos
+              pwents << pwent
+            end
+          end
+
+          pwents.each do |pwent|
+            disable(pwent.name)
+          end
         end
 
         def self.freeze(uuid)
