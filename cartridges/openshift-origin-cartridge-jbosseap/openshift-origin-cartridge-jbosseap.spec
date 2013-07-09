@@ -4,7 +4,7 @@
 
 Summary:       Provides JBossEAP6.0 support
 Name:          openshift-origin-cartridge-jbosseap
-Version: 2.5.2
+Version: 2.5.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -88,6 +88,10 @@ cp -p %{cartridgedir}/versions/6.0/modules/postgresql_module.xml /etc/alternativ
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Tue Jul 09 2013 Adam Miller <admiller@redhat.com> 2.5.3-1
+- Explicitly specify ERB files to process in jboss cartridges
+  (ironcladlou@gmail.com)
+
 * Tue Jul 02 2013 Adam Miller <admiller@redhat.com> 2.5.2-1
 - remove v2 folder from cart install (dmcphers@redhat.com)
 
