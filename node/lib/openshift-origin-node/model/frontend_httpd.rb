@@ -160,7 +160,6 @@ module OpenShift
         @container_uuid = container.uuid
         @container_name = container.name
         @namespace = container.namespace
-        @container = container
 
         @fqdn = nil
 
@@ -172,17 +171,6 @@ module OpenShift
               @namespace = d.fetch(@container_uuid).fetch('namespace')
               @fqdn = d.fetch(@container_uuid).fetch('fqdn')
             end
-          rescue
-          end
-        end
-
-        # Last ditch, attempt to infer from the gear itself
-        if (@container_name.to_s == "") or (@namespace.to_s == "")
-          begin
-            env = ::OpenShift::Runtime::Utils::Environ.for_gear(PathUtils.join(@config.get("GEAR_BASE_DIR"), @container_uuid))
-            @fqdn = clean_server_name(env['OPENSHIFT_GEAR_DNS'])
-            @container_name = env['OPENSHIFT_GEAR_NAME']
-            @namespace = env['OPENSHIFT_GEAR_DNS'].sub(/\..*$/,"").sub(/^.*\-/,"")
           rescue
           end
         end
@@ -864,7 +852,7 @@ module OpenShift
       def reload_httpd(async=false)
         async_opt="-b" if async
         begin
-          @container.run_in_root_context("/usr/sbin/oo-httpd-singular #{async_opt} graceful", {:expected_exitstatus=>0})
+          ::OpenShift::Runtime::Utils::oo_spawn("/usr/sbin/oo-httpd-singular #{async_opt} graceful", {:expected_exitstatus=>0})
         rescue ::OpenShift::Runtime::Utils::ShellExecutionException => e
           logger.error("ERROR: failure from oo-httpd-singular(#{e.rc}): #{@uuid} stdout: #{e.stdout} stderr:#{e.stderr}")
           raise FrontendHttpServerExecException.new(e.message, @container_uuid, @container_name, @namespace, e.rc, e.stdout, e.stderr)

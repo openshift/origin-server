@@ -124,9 +124,13 @@ module OpenShift
           raise ArgumentError, "Not an OpenShift gear: #{container_uuid}"
         end
         env = ::OpenShift::Runtime::Utils::Environ.for_gear(pwent.dir)
+        if env['OPENSHIFT_GEAR_DNS'] == nil
+          namespace = nil
+        else
+          namespace = env['OPENSHIFT_GEAR_DNS'].sub(/\..*$/,"").sub(/^.*\-/,"")
+        end
         ApplicationContainer.new(env["OPENSHIFT_APP_UUID"], container_uuid, pwent.uid, env["OPENSHIFT_APP_NAME"],
-                                 env["OPENSHIFT_GEAR_NAME"], env['OPENSHIFT_GEAR_DNS'].sub(/\..*$/,"").sub(/^.*\-/,""),
-                                nil, nil, hourglass)
+                                 env["OPENSHIFT_GEAR_NAME"], namespace, nil, nil, hourglass)
       end
 
       def name
@@ -523,27 +527,27 @@ module OpenShift
           # Etc is not reentrent.  Capture the password table in one shot.
           pwents = []
           Etc.passwd do |pwent|
-            pwents << pwent.clone
+            if pwent.gecos == gecos
+              pwents << pwent.clone
+            end
           end
 
           pwents.each do |pwent|
-            if pwent.gecos == gecos
-              env = ::OpenShift::Runtime::Utils::Environ.for_gear(pwent.dir)
-              begin
-                a=ApplicationContainer.new(env["OPENSHIFT_APP_UUID"], pwent.name, pwent.uid, env["OPENSHIFT_APP_NAME"],
-                                           env["OPENSHIFT_GEAR_NAME"],env['OPENSHIFT_GEAR_DNS'].sub(/\..*$/,"").sub(/^.*\-/,""),
-                                           nil, nil, hourglass)
-              rescue => e
-                if logger
-                  logger.error("Failed to instantiate ApplicationContainer for uid #{pwent.uid}/uuid #{env["OPENSHIFT_APP_UUID"]}: #{e}")
-                  logger.error("Backtrace: #{e.backtrace}")
-                else
-                  NodeLogger.logger.error("Failed to instantiate ApplicationContainer for uid #{pwent.uid}/uuid #{env["OPENSHIFT_APP_UUID"]}: #{e}")
-                  NodeLogger.logger.error("Backtrace: #{e.backtrace}")
-                end
-              else
-                yielder.yield(a)
-              end
+            env = ::OpenShift::Runtime::Utils::Environ.for_gear(pwent.dir)
+            if env['OPENSHIFT_GEAR_DNS'] == nil
+              namespace = nil
+            else
+              namespace = env['OPENSHIFT_GEAR_DNS'].sub(/\..*$/,"").sub(/^.*\-/,"")
+            end
+
+            begin
+              a=ApplicationContainer.new(env["OPENSHIFT_APP_UUID"], pwent.name, pwent.uid, env["OPENSHIFT_APP_NAME"],
+                                         env["OPENSHIFT_GEAR_NAME"], namespace, nil, nil, hourglass)
+            rescue => e
+              NodeLogger.logger.error("Failed to instantiate ApplicationContainer for uid #{pwent.uid}/uuid #{env["OPENSHIFT_APP_UUID"]}: #{e}")
+              NodeLogger.logger.error("Backtrace: #{e.backtrace}")
+            else
+              yielder.yield(a)
             end
           end
         end
