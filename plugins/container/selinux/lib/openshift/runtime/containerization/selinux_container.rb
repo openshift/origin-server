@@ -71,12 +71,12 @@ module OpenShift
           # 1. Kill off the easy processes
           # 2. Lock down the user from creating new processes (cgroups freeze, nprocs 0)
           # 3. Attempt to move any processes that didn't die into state 'D' (re: cgroups freeze)
-          kill_procs
+          @container.kill_procs
           freeze_fs_limits
           freeze_cgroups
           last_access_dir = @config.get("LAST_ACCESS_DIR")
           @container.run_in_root_context("rm -f #{last_access_dir}/#{@container.name} > /dev/null")
-          kill_procs
+          @container.kill_procs
 
           purge_sysvipc
           delete_all_public_endpoints
@@ -146,7 +146,7 @@ Dir(after)    #{@container.uuid}/#{@container.uid} => #{list_home_dir(@container
         # Raises exception on error.
         #
         def stop
-          kill_procs
+          @container.kill_procs
         end
 
         def start
@@ -319,27 +319,6 @@ Dir(after)    #{@container.uuid}/#{@container.uid} => #{list_home_dir(@container
         # release resources (cgroups thaw), this causes Zombies to get killed
         def unfreeze_cgroups
           ::OpenShift::Runtime::Utils::Cgroups.thaw(@container.uuid)
-        end
-
-        def kill_procs
-          # Give it a good try to delete all processes.
-          # This abuse is neccessary to release locks on polyinstantiated
-          #    directories by pam_namespace.
-          out = err = rc = nil
-          10.times do |i|
-            @container.run_in_root_context(%{/usr/bin/pkill -9 -u #{@container.uid}})
-            out,err,rc = @container.run_in_root_context(%{/usr/bin/pgrep -u #{@container.uid}})
-            break unless 0 == rc
-
-            NodeLogger.logger.error "ERROR: attempt #{i}/10 there are running \"killed\" processes for #{@container.uid}(#{rc}): stdout: #{out} stderr: #{err}"
-            sleep 0.5
-          end
-
-          # looks backwards but 0 implies processes still existed
-          if 0 == rc
-            out,err,rc = @container.run_in_root_context("ps -u #{@container.uid} -o state,pid,ppid,cmd")
-            NodeLogger.logger.error "ERROR: failed to kill all processes for #{@container.uid}(#{rc}): stdout: #{out} stderr: #{err}"
-          end
         end
 
         # Private: list directories (cartridges) in home directory

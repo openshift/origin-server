@@ -43,8 +43,9 @@ end
 
 module OpenShift::Runtime::Utils
   class UpgradeApplicationState < ApplicationState
-    def initialize(uuid, state_file = '.state')
-      @uuid = uuid
+    def initialize(container, state_file = '.state')
+      @container = container
+      @uuid = container.uuid
 
       config      = OpenShift::Config.new
       @state_file = File.join(config.get("GEAR_BASE_DIR"), uuid, "app-root", "runtime", state_file)
@@ -309,7 +310,7 @@ module OpenShift
         OpenShift::Runtime::CartridgeRepository.overlay_cartridge(next_manifest, target)
 
         # No ERB's are rendered for fast upgrades
-        FileUtils.rm_f cart_model.processed_templates(next_manifest)
+        FileUtils.rm_f container.processed_templates(next_manifest)
         progress.log "Removed ERB templates for #{next_manifest.name}"
 
         cart_model.unlock_gear(next_manifest) do |m|
@@ -329,7 +330,7 @@ module OpenShift
       # 4. Connect the frontend
       #
       def self.incompatible_upgrade(progress, cart_model, next_manifest, version, target, container)
-        cart_model.setup_rewritten(next_manifest).each do |entry|
+        container.setup_rewritten(next_manifest).each do |entry|
           FileUtils.rm entry if File.file? entry
           FileUtils.rm_r entry if File.directory? entry
         end
@@ -368,18 +369,18 @@ module OpenShift
         if progress.incomplete? 'inspect_gear_state'
           app_state = File.join(gear_home, 'app-root', 'runtime', '.state')
           save_state = File.join(gear_home, 'app-root', 'runtime', PREUPGRADE_STATE)
+          container = OpenShift::Runtime::ApplicationContainer.from_uuid(uuid)
 
           if File.exists? app_state
             FileUtils.cp(app_state, save_state)
           else
             IO.write(save_state, 'stopped')
             mcs_label = OpenShift::Runtime::Utils::SELinux.get_mcs_label(uuid)
-            container = OpenShift::Runtime::ApplicationContainer.from_uuid(uuid)
             PathUtils.oo_chown(container.uid, container.gid, save_state)
             OpenShift::Runtime::Utils::SELinux.set_mcs_label(mcs_label, save_state)
           end
 
-          preupgrade_state = OpenShift::Runtime::Utils::UpgradeApplicationState.new(uuid, PREUPGRADE_STATE)
+          preupgrade_state = OpenShift::Runtime::Utils::UpgradeApplicationState.new(container, PREUPGRADE_STATE)
           progress.log "Pre-upgrade state: #{preupgrade_state.value}"
           progress.mark_complete('inspect_gear_state')
         end
@@ -398,7 +399,7 @@ module OpenShift
           rescue Exception => e
             progress.log "Stop gear failed with an exception: #{e.message}"
           ensure
-            container.stop
+            container.kill_procs
           end
 
           progress.mark_complete('stop_gear')
@@ -436,13 +437,14 @@ module OpenShift
         progress.log "Validating gear #{uuid} post-upgrade"
 
         if progress.incomplete? 'validate_gear'
-          preupgrade_state = OpenShift::Runtime::Utils::UpgradeApplicationState.new(uuid, PREUPGRADE_STATE)
+          container = OpenShift::Runtime::ApplicationContainer.from_uuid(uuid)
+          preupgrade_state = OpenShift::Runtime::Utils::UpgradeApplicationState.new(container, PREUPGRADE_STATE)
 
           progress.log "Pre-upgrade state: #{preupgrade_state.value}"
 
           if preupgrade_state.value != 'stopped' && preupgrade_state.value != 'idle'
             config = OpenShift::Config.new
-            state  = OpenShift::Runtime::Utils::ApplicationState.new(uuid)
+            state  = OpenShift::Runtime::Utils::ApplicationState.new(container)
             container   = OpenShift::Runtime::ApplicationContainer.from_uuid(uuid)
 
             cart_model = OpenShift::Runtime::V2UpgradeCartridgeModel.new(config, container, state, OpenShift::Runtime::Utils::Hourglass.new(235))

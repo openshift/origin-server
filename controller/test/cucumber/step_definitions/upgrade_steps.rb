@@ -17,7 +17,7 @@ end
 # TODO: eliminate dependency on 0.0.1 version being hardcoded
 
 Given /^the expected version of the mock cartridge is installed$/ do
-  cart_repo = OpenShift::CartridgeRepository.instance
+  cart_repo = OpenShift::Runtime::CartridgeRepository.instance
   assert cart_repo.exist?('mock', '0.0.1', '0.1'), 'expected mock version must exist'
 end
 
@@ -38,7 +38,7 @@ Given /^an incompatible version of the mock cartridge$/ do
 end
 
 def prepare_mock_for_rewrite(target)
-  cart_repo = OpenShift::CartridgeRepository.instance
+  cart_repo = OpenShift::Runtime::CartridgeRepository.instance
   cartridge = cart_repo.select('mock', '0.1')
 
   FileUtils.rm_rf target
@@ -69,8 +69,8 @@ def rewrite_and_install(current_manifest, tmp_cart_src)
 end
 
 def assert_successful_install(tmp_cart_src, next_version)
-  OpenShift::CartridgeRepository.instance.install(tmp_cart_src)
-  observed_latest_version = OpenShift::CartridgeRepository.instance.select('mock', '0.1').cartridge_version
+  OpenShift::Runtime::CartridgeRepository.instance.install(tmp_cart_src)
+  observed_latest_version = OpenShift::Runtime::CartridgeRepository.instance.select('mock', '0.1').cartridge_version
 
   $logger.info "Observed latest version: #{observed_latest_version}"
 

@@ -9,7 +9,7 @@ After('@manipulates_cart_repo') do
 end
 
 def clean_cart_repo
-  cart_repo = OpenShift::CartridgeRepository.instance
+  cart_repo = OpenShift::Runtime::CartridgeRepository.instance
 
   if cart_repo.exist?('mock', '0.0.2', '0.1')
     $logger.info('Erasing test-generated version mock-0.1')
