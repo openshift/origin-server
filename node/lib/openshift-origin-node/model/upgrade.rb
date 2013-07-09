@@ -174,8 +174,8 @@ module OpenShift
         progress.log "Migrating gear at #{gear_home}"
 
         config               = OpenShift::Config.new
-        state                = OpenShift::Runtime::Utils::ApplicationState.new(uuid)
         container            = OpenShift::Runtime::ApplicationContainer.from_uuid(uuid)
+        state                = OpenShift::Runtime::Utils::ApplicationState.new(container)
         cartridge_model      = OpenShift::Runtime::V2UpgradeCartridgeModel.new(config, container, state, OpenShift::Runtime::Utils::Hourglass.new(235))
         cartridge_repository = OpenShift::Runtime::CartridgeRepository.instance
         restart_required     = false
