@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.11.5
+Version: 1.11.6
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -84,6 +84,12 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Tue Jul 09 2013 Adam Miller <admiller@redhat.com> 1.11.6-1
+- Merge pull request #3010 from pravisankar/dev/ravi/bug982172
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 982172 - Do not try to unreserve_uid if we don't get valid container for
+  the gear. (rpenta@redhat.com)
+
 * Mon Jul 08 2013 Adam Miller <admiller@redhat.com> 1.11.5-1
 - Fixing runtime tests (dmcphers@redhat.com)
 - Increase jenkins start timeout (dmcphers@redhat.com)
