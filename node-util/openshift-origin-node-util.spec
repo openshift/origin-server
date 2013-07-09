@@ -1,6 +1,6 @@
 Summary:       Utility scripts for the OpenShift Origin broker
 Name:          openshift-origin-node-util
-Version: 1.11.4
+Version: 1.11.5
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -118,6 +118,11 @@ mv services/openshift-gears.service %{buildroot}/etc/systemd/system/openshift-ge
 /sbin/restorecon /usr/sbin/oo-restorer* || :
 
 %changelog
+* Tue Jul 09 2013 Adam Miller <admiller@redhat.com> 1.11.5-1
+- Bug 981594 - ApplicationContainer used as an argument needed full module
+  paths. (rmillner@redhat.com)
+- Make resolution for Utils module explicit (kraman@gmail.com)
+
 * Mon Jul 08 2013 Adam Miller <admiller@redhat.com> 1.11.4-1
 -  Revamp the cgroups and pam scripts to leverage the system setup for better
   performance and simplify the code. (rmillner@redhat.com)
