@@ -44,7 +44,6 @@ class HAProxyUtils
 
       @@log.debug("GEAR_INFO - repair: Repairing gear registry - #{gdns} now resolves to #{newipaddr} (was #{oldipaddr}) ...") if debug
       File.open(GEAR_REGISTRY_DB+".lock", "w") do |lockfile|
-        lockfile.fcntl(Fcntl::F_SETFD, Fcntl::FD_CLOEXEC)
         lockfile.flock(File::LOCK_EX)
         cfgdata = File.readlines(GEAR_REGISTRY_DB)
         cfgdata.map! {|line| line.gsub(/#{uuid}\@[0-9.]+:/, "#{uuid}@#{newipaddr}:") }
@@ -56,7 +55,6 @@ class HAProxyUtils
       gear_name = gdns.split(".")[0]
       @@log.debug("GEAR_INFO - validate: Repairing haproxy config - #{gdns} now resolves to #{newipaddr} (was #{oldipaddr}) ...") if debug
       File.open(HAPROXY_CONFIG+".lock", 'w') do |lockfile|
-        lockfile.fcntl(Fcntl::F_SETFD, Fcntl::FD_CLOEXEC)
         lockfile.flock(File::LOCK_EX)
         hacfgdata = File.readlines(HAPROXY_CONFIG)
         hacfgdata.map! {|line| line.gsub(/\s*server\s*gear-#{gear_name}\s*[0-9.]+:/, "    server gear-#{gear_name} #{newipaddr}:") }
