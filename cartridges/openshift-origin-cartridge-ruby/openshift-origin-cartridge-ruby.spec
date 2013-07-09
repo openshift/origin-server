@@ -138,6 +138,7 @@ Requires:      ruby-nokogiri
 %if 0%{?fedora}
 Requires:      rubygem-nokogiri
 %endif
+Requires:      gmp-devel
 
 Obsoletes: openshift-origin-cartridge-ruby-1.8
 Obsoletes: openshift-origin-cartridge-ruby-1.9-scl
