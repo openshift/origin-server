@@ -86,7 +86,7 @@ module OpenShift
         end
 
         exitcode = 0
-        progress = Utils::UpgradeProgress.new(uuid)
+        progress = ::OpenShift::Runtime::Utils::UpgradeProgress.new(uuid)
         progress.init_store
 
         gear_extension_path = config.get('GEAR_UPGRADE_EXTENSION')

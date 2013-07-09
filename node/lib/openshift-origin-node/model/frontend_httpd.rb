@@ -179,7 +179,7 @@ module OpenShift
         # Last ditch, attempt to infer from the gear itself
         if (@container_name.to_s == "") or (@namespace.to_s == "")
           begin
-            env = Utils::Environ.for_gear(PathUtils.join(@config.get("GEAR_BASE_DIR"), @container_uuid))
+            env = ::OpenShift::Runtime::Utils::Environ.for_gear(PathUtils.join(@config.get("GEAR_BASE_DIR"), @container_uuid))
             @fqdn = clean_server_name(env['OPENSHIFT_GEAR_DNS'])
             @container_name = env['OPENSHIFT_GEAR_NAME']
             @namespace = env['OPENSHIFT_GEAR_DNS'].sub(/\..*$/,"").sub(/^.*\-/,"")
@@ -865,7 +865,7 @@ module OpenShift
         async_opt="-b" if async
         begin
           @container.run_in_root_context("/usr/sbin/oo-httpd-singular #{async_opt} graceful", {:expected_exitstatus=>0})
-        rescue Utils::ShellExecutionException => e
+        rescue ::OpenShift::Runtime::Utils::ShellExecutionException => e
           logger.error("ERROR: failure from oo-httpd-singular(#{e.rc}): #{@uuid} stdout: #{e.stdout} stderr:#{e.stderr}")
           raise FrontendHttpServerExecException.new(e.message, @container_uuid, @container_name, @namespace, e.rc, e.stdout, e.stderr)
         end
@@ -1028,7 +1028,7 @@ module OpenShift
           end
 
           cmd = %{#{httxt2dbm} -f DB -i #{@filename}#{self.SUFFIX} -o #{tmpdb}}
-          out,err,rc = Utils::oo_spawn(cmd)
+          out,err,rc = ::OpenShift::Runtime::Utils::oo_spawn(cmd)
           if rc == 0
             logger.debug("httxt2dbm: #{@filename}: #{rc}: stdout: #{out} stderr:#{err}")
             begin
@@ -1150,8 +1150,8 @@ module OpenShift
 
       def callout
         begin
-          Utils::oo_spawn("service openshift-node-web-proxy reload",{:expected_exitstatus=>0})
-        rescue Utils::ShellExecutionException => e
+          ::OpenShift::Runtime::Utils::oo_spawn("service openshift-node-web-proxy reload",{:expected_exitstatus=>0})
+        rescue ::OpenShift::Runtime::Utils::ShellExecutionException => e
           logger.error("ERROR: failure from openshift-node-web-proxy(#{e.rc}) stdout: #{e.stdout} stderr:#{e.stderr}")
         end
       end

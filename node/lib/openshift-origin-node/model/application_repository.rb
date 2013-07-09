@@ -105,8 +105,8 @@ module OpenShift
       def populate_from_url(cartridge_name, url)
         return nil if exists?
 
-        repo_spec, commit = ::OpenShift::Git.safe_clone_spec(url, ::OpenShift::Git::ALLOWED_NODE_SCHEMES) rescue raise Utils::ShellExecutionException.new("CLIENT_ERROR: The provided source code repository URL is not valid (#{$!.message})", 130)
-        raise Utils::ShellExecutionException.new("CLIENT_ERROR: Source code repository URL protocol must be one of: #{::OpenShift::Git::ALLOWED_NODE_SCHEMES.join(', ')}", 130) unless repo_spec
+        repo_spec, commit = ::OpenShift::Git.safe_clone_spec(url, ::OpenShift::Git::ALLOWED_NODE_SCHEMES) rescue raise ::OpenShift::Runtime::Utils::ShellExecutionException.new("CLIENT_ERROR: The provided source code repository URL is not valid (#{$!.message})", 130)
+        raise ::OpenShift::Runtime::Utils::ShellExecutionException.new("CLIENT_ERROR: Source code repository URL protocol must be one of: #{::OpenShift::Git::ALLOWED_NODE_SCHEMES.join(', ')}", 130) unless repo_spec
 
         git_path = PathUtils.join(@container.container_dir, 'git')
         FileUtils.mkpath(git_path)
@@ -122,8 +122,8 @@ module OpenShift
           @container.run_in_root_context(ERB.new(GIT_URL_CLONE).result(binding),
               chdir:               git_path,
               expected_exitstatus: 0)
-        rescue Utils::ShellExecutionException => e
-          raise Utils::ShellExecutionException.new(
+        rescue ::OpenShift::Runtime::Utils::ShellExecutionException => e
+          raise ::OpenShift::Runtime::Utils::ShellExecutionException.new(
                     "CLIENT_ERROR: Source Code repository could not be cloned: '#{url}'.  Please verify the repository is correct and contact support.",
                     131
                 )
@@ -151,8 +151,8 @@ module OpenShift
           Utils.oo_spawn(ERB.new(GIT_INIT_BARE).result(binding),
                          chdir:               git_path,
                          expected_exitstatus: 0)
-        rescue Utils::ShellExecutionException => e
-          raise Utils::ShellExecutionException.new(
+        rescue ::OpenShift::Runtime::Utils::ShellExecutionException => e
+          raise ::OpenShift::Runtime::Utils::ShellExecutionException.new(
                     "CLIENT_ERROR: Source code repository could not be created.  Please contact support.",
                     131
                 )
@@ -177,7 +177,7 @@ module OpenShift
 
         return unless File.exist? PathUtils.join(@target_dir, '.gitmodules')
 
-        env = Utils::Environ.load(PathUtils.join(@container.container_dir, '.env'))
+        env = ::OpenShift::Runtime::Utils::Environ.load(PathUtils.join(@container.container_dir, '.env'))
 
         cache = PathUtils.join(env['OPENSHIFT_TMP_DIR'], 'git_cache')
         FileUtils.rm_r(cache) if File.exist?(cache)

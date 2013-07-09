@@ -102,7 +102,7 @@ begin
                         app_name, gear_name, namespace, quota_blocks,
                         quota_files)
   container.create
-rescue OpenShift::Runtime::UserCreationException => e
+rescue ::OpenShift::Runtime::UserCreationException => e
   $stderr.puts(e.message)
   $stderr.puts(e.backtrace)
   exit 129

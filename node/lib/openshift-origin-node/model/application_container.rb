@@ -48,7 +48,7 @@ module OpenShift
 
     # == Application Container
     class ApplicationContainer
-      include Utils::ShellExec
+      include ::OpenShift::Runtime::Utils::ShellExec
       include ActiveModel::Observing
       include NodeLogger
       include ManagedFiles
@@ -88,7 +88,7 @@ module OpenShift
         @base_dir         = @config.get("GEAR_BASE_DIR")
         @skel_dir         = @config.get("GEAR_SKEL_DIR") || DEFAULT_SKEL_DIR
         @supplementary_groups = @config.get("GEAR_SUPPLEMENTARY_GROUPS")
-        @hourglass        = hourglass || Utils::Hourglass.new(3600)
+        @hourglass        = hourglass || ::OpenShift::Runtime::Utils::Hourglass.new(3600)
 
         begin
           user_info      = Etc.getpwnam(@uuid)
@@ -107,7 +107,7 @@ module OpenShift
           @container_plugin = nil
         end
 
-        @state            = Utils::ApplicationState.new(self)
+        @state            = ::OpenShift::Runtime::Utils::ApplicationState.new(self)
         @cartridge_model = V2CartridgeModel.new(@config, self, @state, @hourglass)
       end
 
@@ -123,7 +123,7 @@ module OpenShift
         if pwent.gecos != gecos
           raise ArgumentError, "Not an OpenShift gear: #{container_uuid}"
         end
-        env = Utils::Environ.for_gear(pwent.dir)
+        env = ::OpenShift::Runtime::Utils::Environ.for_gear(pwent.dir)
         ApplicationContainer.new(env["OPENSHIFT_APP_UUID"], container_uuid, pwent.uid, env["OPENSHIFT_APP_NAME"],
                                  env["OPENSHIFT_GEAR_NAME"], env['OPENSHIFT_GEAR_DNS'].sub(/\..*$/,"").sub(/^.*\-/,""),
                                 nil, nil, hourglass)
@@ -198,7 +198,7 @@ module OpenShift
 
         notify_endpoint_delete = ''
         @cartridge_model.each_cartridge do |cart|
-          env = Utils::Environ::for_gear(@container_dir)
+          env = ::OpenShift::Runtime::Utils::Environ::for_gear(@container_dir)
           cart.public_endpoints.each do |endpoint|
             notify_endpoint_delete << "NOTIFY_ENDPOINT_DELETE: #{endpoint.public_port_name} #{@config.get('PUBLIC_IP')} #{env[endpoint.public_port_name]}\n"
           end
@@ -268,7 +268,7 @@ module OpenShift
       def tidy
         logger.debug("Starting tidy on gear #{@uuid}")
 
-        env      = Utils::Environ::for_gear(@container_dir)
+        env      = ::OpenShift::Runtime::Utils::Environ::for_gear(@container_dir)
         gear_dir = env['OPENSHIFT_HOMEDIR']
         app_name = env['OPENSHIFT_APP_NAME']
 
@@ -382,7 +382,7 @@ module OpenShift
       def tidy_action
         begin
           yield
-        rescue Utils::ShellExecutionException => e
+        rescue ::OpenShift::Runtime::Utils::ShellExecutionException => e
           logger.warn(%Q{
             Tidy operation failed on gear #{@uuid}: #{e.message}
             --- stdout ---\n#{e.stdout}
@@ -528,7 +528,7 @@ module OpenShift
 
           pwents.each do |pwent|
             if pwent.gecos == gecos
-              env = Utils::Environ.for_gear(pwent.dir)
+              env = ::OpenShift::Runtime::Utils::Environ.for_gear(pwent.dir)
               begin
                 a=ApplicationContainer.new(env["OPENSHIFT_APP_UUID"], pwent.name, pwent.uid, env["OPENSHIFT_APP_NAME"],
                                            env["OPENSHIFT_GEAR_NAME"],env['OPENSHIFT_GEAR_DNS'].sub(/\..*$/,"").sub(/^.*\-/,""),
@@ -577,7 +577,7 @@ module OpenShift
       def run_in_root_context(command, options = {})
         options.delete(:uid)
         options.delete(:selinux_context)
-        Utils::oo_spawn(command, options)
+        ::OpenShift::Runtime::Utils::oo_spawn(command, options)
       end
 
       # run_in_container_context(command, [, options]) -> [stdout, stderr, exit status]

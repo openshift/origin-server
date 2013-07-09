@@ -27,7 +27,7 @@ module OpenShift
           # or if a template Git URL is provided and the cart is capable of builds or deploys.
           if !OpenShift::Git.empty_clone_spec?(template_git_url) && (cartridge.install_build_required || template_git_url) && cartridge.buildable?
             build_log = '/tmp/initial-build.log'
-            env       = Utils::Environ.for_gear(@container_dir)
+            env       = ::OpenShift::Runtime::Utils::Environ.for_gear(@container_dir)
 
             begin
               logger.info "Executing initial gear prereceive for #{@uuid}"
@@ -45,7 +45,7 @@ module OpenShift
                              uid:                 @uid,
                              timeout:             @hourglass.remaining,
                              expected_exitstatus: 0)
-            rescue Utils::ShellExecutionException => e
+            rescue ::OpenShift::Runtime::Utils::ShellExecutionException => e
               max_bytes = 10 * 1024
               out, _, _ = Utils.oo_spawn("tail -c #{max_bytes} #{build_log} 2>&1",
                              env:                 env,
@@ -55,7 +55,7 @@ module OpenShift
 
               message = "The initial build for the application failed: #{e.message}\n\n.Last #{max_bytes/1024} kB of build output:\n#{out}"
 
-              raise Utils::Sdk.translate_out_for_client(message, :error)
+              raise ::OpenShift::Runtime::Utils::Sdk.translate_out_for_client(message, :error)
             end
           end
 
@@ -90,7 +90,7 @@ module OpenShift
 
           output = ''
 
-          env  = Utils::Environ::for_gear(@container_dir)
+          env  = ::OpenShift::Runtime::Utils::Environ::for_gear(@container_dir)
           # TODO: better error handling
           cart.public_endpoints.each do |endpoint|
             # Load the private IP from the gear
@@ -267,7 +267,7 @@ module OpenShift
 
           if options[:init]
             primary_cart_env_dir = PathUtils.join(@container_dir, @cartridge_model.primary_cartridge.directory, 'env')
-            primary_cart_env     = Utils::Environ.load(primary_cart_env_dir)
+            primary_cart_env     = ::OpenShift::Runtime::Utils::Environ.load(primary_cart_env_dir)
             ident                = primary_cart_env.keys.grep(/^OPENSHIFT_.*_IDENT/)
             _, _, version, _     = Runtime::Manifest.parse_ident(primary_cart_env[ident.first])
 
