@@ -159,7 +159,7 @@ module OpenShift
     end
 
     def name
-      (self.cartridge_vendor.to_s=="redhat" || self.cartridge_vendor.to_s.empty?) ? self.original_name : (self.cartridge_vendor + "-" + self.original_name)
+      (self.cartridge_vendor.to_s=="redhat" || self.cartridge_vendor.to_s.empty?) ? (self.original_name + "-" + self.version) : (self.cartridge_vendor + "-" + self.original_name + "-" + self.version)
     end
 
     def original_name
