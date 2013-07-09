@@ -16,7 +16,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.11.6
+Version: 1.11.7
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -287,6 +287,30 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Tue Jul 09 2013 Adam Miller <admiller@redhat.com> 1.11.7-1
+- Bug 982403 - Work around contexts where gear environment is incomplete.
+  (rmillner@redhat.com)
+- Bug 981037 - Use an O(1) generator for the common use case.
+  (rmillner@redhat.com)
+- Bug 981022 - only load the parts of common that are needed.
+  (rmillner@redhat.com)
+- Bug 981594 - ApplicationContainer used as an argument needed full module
+  paths. (rmillner@redhat.com)
+- Merge pull request #3011 from kraman/bugfix
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3010 from pravisankar/dev/ravi/bug982172
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3001 from rmillner/pam_rewrite
+  (dmcphers+openshiftbot@redhat.com)
+- Fixing module path for FileLockError (kraman@gmail.com)
+- Making module resolution for UserCreationException and UserDeletionException
+  explicit (kraman@gmail.com)
+- Make resolution for Utils module explicit (kraman@gmail.com)
+- Bug 980841 - Need to pass 'container' instead of 'uuid' for ApplicationState
+  constructor (rpenta@redhat.com)
+- Had missed that we were setting nproc as a soft value except for freeze.
+  Order of applying defaults was backwards. (rmillner@redhat.com)
+
 * Mon Jul 08 2013 Adam Miller <admiller@redhat.com> 1.11.6-1
 - Merge pull request #2992 from brenton/BZ981249
   (dmcphers+openshiftbot@redhat.com)
