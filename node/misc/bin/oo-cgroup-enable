@@ -79,9 +79,7 @@ end
 
 begin
   if all_containers
-    OpenShift::Runtime::ApplicationContainer.all.each do |c|
-      OpenShift::Runtime::Utils::Cgroups::enable(c.uuid) # Slow, painful, multiple edits to the file.
-    end
+    OpenShift::Runtime::Utils::Cgroups::enable_all
   else
     OpenShift::Runtime::Utils::Cgroups::enable(container_uuid.to_s)
   end
