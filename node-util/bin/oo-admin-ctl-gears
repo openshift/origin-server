@@ -21,6 +21,7 @@ require 'openshift-origin-node/utils/application_state'
 require 'openshift-origin-node/model/application_container'
 require 'openshift-origin-node/model/frontend_httpd'
 require 'openshift-origin-common/utils/file_needs_sync'
+require 'syslog'
 
 module OpenShift
   module Runtime
@@ -53,27 +54,33 @@ module OpenShift
 
       def start
         p_runner do |gear|
-          output_pass_fail("Starting", gear) do
-            gear.start_gear
+          syslog_pass_fail("Started", "Failed to start", gear) do
+            output_pass_fail("Starting", gear) do
+              gear.start_gear
+            end
           end
         end
       end
 
       def stop
         p_runner do |gear|
-          output_pass_fail("Stopping", gear) do
-            gear.stop_gear(user_initiated: false)
+          syslog_pass_fail("Stopped", "Failed to stop", gear) do
+            output_pass_fail("Stopping", gear) do
+              gear.stop_gear(user_initiated: false)
+            end
           end
         end
       end
 
       def restart
         p_runner do |gear|
-          output_pass_fail("Restarting", gear) do
-            out = ""
-            out << gear.stop_gear
-            out << gear.start_gear
-            out
+          syslog_pass_fail("Restarted", "Failed to restart", gear) do
+            output_pass_fail("Restarting", gear) do
+              out = ""
+              out << gear.stop_gear
+              out << gear.start_gear
+              out
+            end
           end
         end
       end
@@ -102,16 +109,20 @@ module OpenShift
 
       def idle
         p_runner(false) do |gear|
-          output_pass_fail("Idling", gear) do
-            gear.idle_gear
+          syslog_pass_fail("Idled", "Failed to idle", gear) do
+            output_pass_fail("Idling", gear) do
+              gear.idle_gear
+            end
           end
         end
       end
 
       def unidle
         p_runner(false) do |gear|
-          output_pass_fail("Unidling", gear) do
-            gear.unidle_gear
+          syslog_pass_fail("Restored", "Failed to restore", gear) do
+            output_pass_fail("Unidling", gear) do
+              gear.unidle_gear
+            end
           end
         end
       end
@@ -195,6 +206,25 @@ module OpenShift
         rv = collect_output
         @generator.join
         rv
+      end
+
+      # Private: Syslog status (passed/failed)
+      # Intended to wrap output_pass_fail and use its return code.
+      def syslog_pass_fail(pass_msg, fail_msg, gear)
+        rc = 0
+        if block_given?
+          rc = yield
+        end
+
+        Syslog.open('oo-admin-ctl-gears', 0, Syslog::LOG_LOCAL0)
+        if rc == 0
+          Syslog.log(Syslog::LOG_NOTICE, "#{pass_msg}: #{gear.uuid}")
+        else
+          Syslog.log(Syslog::LOG_WARNING, "#{fail_msg}: #{gear.uuid}")
+        end
+        Syslog.close()
+
+        rc
       end
 
       # Private: Respond with pass/fail status depending on whether an exception was raised.
