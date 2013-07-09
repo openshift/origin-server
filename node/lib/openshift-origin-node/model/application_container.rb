@@ -256,6 +256,30 @@ module OpenShift
         @container_plugin.stop
       end
 
+      #
+      # Kill processes belonging to this app container.
+      #
+      def kill_procs
+        # Give it a good try to delete all processes.
+        # This abuse is neccessary to release locks on polyinstantiated
+        #    directories by pam_namespace.
+        out = err = rc = nil
+        10.times do |i|
+          run_in_root_context(%{/usr/bin/pkill -9 -u #{uid}})
+          out,err,rc = run_in_root_context(%{/usr/bin/pgrep -u #{uid}})
+          break unless 0 == rc
+
+          logger.error "ERROR: attempt #{i}/10 there are running \"killed\" processes for #{uid}(#{rc}): stdout: #{out} stderr: #{err}"
+          sleep 0.5
+        end
+
+        # looks backwards but 0 implies processes still existed
+        if 0 == rc
+          out,err,rc = run_in_root_context("ps -u #{uid} -o state,pid,ppid,cmd")
+          logger.error "ERROR: failed to kill all processes for #{uid}(#{rc}): stdout: #{out} stderr: #{err}"
+        end
+      end
+
       # Public: Cleans up the gear, providing any installed
       # cartridges with the opportunity to perform their own
       # cleanup operations via the tidy hook.
