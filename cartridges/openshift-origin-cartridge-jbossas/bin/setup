@@ -12,3 +12,6 @@ mkdir -p ${OPENSHIFT_JBOSSAS_DIR}/{template,standalone/tmp,standalone/deployment
 # Copy the version specific files up to jbossas directory
 cp -r ${OPENSHIFT_JBOSSAS_DIR}/versions/${version}/standalone/configuration/* ${OPENSHIFT_JBOSSAS_DIR}/standalone/configuration
 cp ${OPENSHIFT_JBOSSAS_DIR}/versions/${version}/bin/* ${OPENSHIFT_JBOSSAS_DIR}/bin
+
+# Initialize the JBoss CLI history file
+[ -f ${OPENSHIFT_HOMEDIR}/.jboss-cli-history ] || touch ${OPENSHIFT_HOMEDIR}/.jboss-cli-history

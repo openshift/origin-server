@@ -2,6 +2,8 @@
 locked_files:
 - bin/
 - bin/*
+- tools/
+- tools/*
 - metadata/
 - metadata/*
 - env/
