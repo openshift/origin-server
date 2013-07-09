@@ -45,7 +45,7 @@ module OpenShift
     #
     # Note: This is the HAProxy implementation; other implementations may vary.
     class FrontendProxyServer
-      include Utils::ShellExec
+      include ::OpenShift::Runtime::Utils::ShellExec
       include NodeLogger
 
       def initialize
@@ -235,7 +235,7 @@ module OpenShift
           cmd = %{openshift-port-proxy-cfg setproxy}
           ports.each { |port| cmd << " #{port} delete" }
 
-          out, err, rc = Utils::oo_spawn(cmd)
+          out, err, rc = ::OpenShift::Runtime::Utils::oo_spawn(cmd)
           return out, err, rc
         else
           return 0, nil, nil
@@ -261,7 +261,7 @@ module OpenShift
           cmd = %{openshift-port-proxy-cfg setproxy}
           mappings.each { |mapping| cmd << %Q{ #{mapping[:proxy_port]} "#{mapping[:addr]}"} }
 
-          out, err, rc = Utils::oo_spawn(cmd)
+          out, err, rc = ::OpenShift::Runtime::Utils::oo_spawn(cmd)
           return out, err, rc
         else
           return 0, nil, nil
@@ -272,7 +272,7 @@ module OpenShift
       def system_proxy_show(proxy_port)
         raise "No proxy port specified" unless proxy_port != nil
 
-        target, err, rc = Utils::oo_spawn(%{openshift-port-proxy-cfg showproxy #{proxy_port} | awk '{ print $2 }'})
+        target, err, rc = ::OpenShift::Runtime::Utils::oo_spawn(%{openshift-port-proxy-cfg showproxy #{proxy_port} | awk '{ print $2 }'})
         target.chomp!
 
         return target.length > 0 ? target : nil

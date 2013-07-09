@@ -3,7 +3,7 @@ module OpenShift
     module ApplicationContainerExt
       module Snapshots
         def write_snapshot_archive(exclusions)
-          gear_env = Utils::Environ.for_gear(@container_dir)
+          gear_env = ::OpenShift::Runtime::Utils::Environ.for_gear(@container_dir)
 
           exclusions = exclusions.map { |x| "--exclude=./$OPENSHIFT_GEAR_UUID/#{x}" }.join(' ')
 
@@ -81,7 +81,7 @@ module OpenShift
         end
 
         def handle_scalable_snapshot
-          gear_env = Utils::Environ.for_gear(@container_dir)
+          gear_env = ::OpenShift::Runtime::Utils::Environ.for_gear(@container_dir)
 
           gear_groups = get_gear_groups(gear_env)
 
@@ -103,7 +103,7 @@ module OpenShift
         #
         # The operation invoked by this method write output to the client on STDERR.
         def restore(restore_git_repo)
-          gear_env = Utils::Environ.for_gear(@container_dir)
+          gear_env = ::OpenShift::Runtime::Utils::Environ.for_gear(@container_dir)
 
           scalable_restore = !!@cartridge_model.web_proxy
           gear_groups = nil

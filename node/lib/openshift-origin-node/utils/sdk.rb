@@ -20,7 +20,7 @@ module OpenShift
           stderr = self.translate_out_for_client(e.stderr, :error)
           rc     = rc_override || e.rc
 
-          ex = Utils::ShellExecutionException.new(e.message, rc, stdout, stderr)
+          ex = ::OpenShift::Runtime::Utils::ShellExecutionException.new(e.message, rc, stdout, stderr)
           ex.set_backtrace(e.backtrace)
           ex
         end
