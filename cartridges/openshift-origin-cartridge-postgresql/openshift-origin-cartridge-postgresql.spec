@@ -1,6 +1,8 @@
 %if 0%{?fedora}%{?rhel} <= 6
     %global scl postgresql92
     %global scl_prefix postgresql92-
+    %global scl_ruby ruby193
+    %global scl_prefix_ruby ruby193-
 %endif
 
 %global cartridgedir %{_libexecdir}/openshift/cartridges/postgresql
@@ -23,11 +25,6 @@ Requires:      postgresql-jdbc
 Requires:      postgresql < 9
 # PostgreSQL 9.2 with SCL
 Requires:      %{scl}
-%endif
-%if 0%{?fedora} >= 19
-Requires:      postgresql >= 9.2
-Requires:      postgresql < 9.3
-%endif
 Requires:      %{?scl:%scl_prefix}postgresql-server
 Requires:      %{?scl:%scl_prefix}postgresql-libs
 Requires:      %{?scl:%scl_prefix}postgresql-devel
@@ -35,6 +32,18 @@ Requires:      %{?scl:%scl_prefix}postgresql-contrib
 Requires:      %{?scl:%scl_prefix}postgresql-plperl
 Requires:      %{?scl:%scl_prefix}postgresql-plpython
 Requires:      %{?scl:%scl_prefix}postgresql-pltcl
+%endif
+%if 0%{?fedora} >= 19
+Requires:      postgresql >= 9.2
+Requires:      postgresql < 9.3
+%endif
+Requires:      postgresql-server
+Requires:      postgresql-libs
+Requires:      postgresql-devel
+Requires:      postgresql-contrib
+Requires:      postgresql-plperl
+Requires:      postgresql-plpython
+Requires:      postgresql-pltcl
 Requires:      PyGreSQL
 Requires:      perl-Class-DBI-Pg
 Requires:      perl-DBD-Pg
@@ -44,6 +53,7 @@ Requires:      php-pgsql
 Requires:      gdal
 Requires:      postgis
 Requires:      python-psycopg2
+Requires:      %{?scl_ruby:%scl_prefix_ruby}rubygem-pg
 Requires:      rhdb-utils
 Requires:      uuid-pgsql
 BuildArch:     noarch
