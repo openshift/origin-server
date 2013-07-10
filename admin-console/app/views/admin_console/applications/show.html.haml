@@ -1,0 +1,44 @@
+%h3
+  = "Application: #{@app.name} (#{@app.uuid})"
+- owner_login = @app.domain.owner.login
+%h4
+  Owned by
+  %a{:href => user_path(:id => owner_login)}
+    = owner_login
+%h4
+  Aliases:
+- if @app.aliases.any?
+  %ul
+    - @app.aliases.each do |a|
+      %li
+        = a.fqdn
+- else
+  %i
+    No aliases
+%h4
+  Distribution:
+%table.table
+  %thead
+    %tr
+      %th
+        Gear
+      %th
+        Node
+      %th
+        Cartridges
+  %tbody
+    - @app.group_instances.each do |group_instance|
+      - group_instance.gears.each do |gear|
+        %tr
+          %td
+            %a{:href => gear_path(:id => gear.uuid)}
+              = gear.uuid
+          %td
+            %a{:href => node_path(:id => gear.server_identity)}
+              = gear.server_identity
+          %td
+            %ul.unstyled
+              - cartridges = gear_group_cartridges(@app, group_instance)
+              - cartridges.each do |cartridge|
+                %li
+                  = cartridge[:name]

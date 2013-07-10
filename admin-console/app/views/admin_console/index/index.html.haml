@@ -1,0 +1,7 @@
+.tile.span2
+  - @nodes.each do |node|
+    = "Id: #{node[1][:id]}"
+    %div
+      Gear usage:
+      .usage
+        = "#{node[1][:gears_active_usage_pct]}%"
