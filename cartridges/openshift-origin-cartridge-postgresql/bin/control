@@ -172,11 +172,13 @@ function cleanup_dump {
 }
 
 function reload {
-  if _is_running; then
-    postgresql_context "pg_ctl reload"
-  else
-    client_message "'reload' is valid only when the database is running"
-  fi
+  postgresql_context "pg_ctl reload"
+}
+
+function force_reload {  
+  # TODO: client_result is semantically incorrect, but for now,
+  # we'll use it so that CLI can display it.
+  client_result "'reload' is valid only when the database is running"
 }
 
 function tidy {
@@ -209,6 +211,9 @@ case "$1" in
   ;;
   reload)
     reload
+  ;;
+  force-reload)
+    force_reload
   ;;
   tidy)
     tidy
