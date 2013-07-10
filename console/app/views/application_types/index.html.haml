@@ -101,6 +101,7 @@
         .span6
           %p Want to build your own cartridge? Get started with the DIY cart.
           .tile-dark
+            - excluded_tags = common_tags_for(@custom_types)
             - @custom_types.sort!.each do |type|
               = render :partial => 'tile', :locals => {:type => type, :excluded_tags => excluded_tags}
 
