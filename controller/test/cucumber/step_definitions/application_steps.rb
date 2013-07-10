@@ -251,6 +251,12 @@ Then /^the applications should( not)? be accessible?$/ do |negate|
   end
 end
 
+When /^the applications are destroyed$/ do
+  @apps.each do |app|
+    rhc_ctl_destroy(app)
+  end
+end
+
 Then /^the applications should be accessible via node\-web\-proxy$/ do
   @apps.each do |app|
     app.is_accessible?(false, 120, nil, 8000).should be_true
