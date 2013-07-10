@@ -19,7 +19,8 @@ function wait_for_stop {
 function update-configuration {
     case "$1" in
       1.9)
-        dirname $(scl enable ruby193 "which ruby") >$OPENSHIFT_RUBY_DIR/env/OPENSHIFT_RUBY_PATH_ELEMENT
+        echo -n "${GEM_HOME}/bin:" >$OPENSHIFT_RUBY_DIR/env/OPENSHIFT_RUBY_PATH_ELEMENT
+        dirname $(scl enable ruby193 "which ruby") >>$OPENSHIFT_RUBY_DIR/env/OPENSHIFT_RUBY_PATH_ELEMENT
 
         local ld_path=$(LD_LIBRARY_PATH="" scl enable ruby193 "printenv LD_LIBRARY_PATH")
         path_append $LD_LIBRARY_PATH $ld_path >$OPENSHIFT_RUBY_DIR/env/LD_LIBRARY_PATH
@@ -32,6 +33,7 @@ function update-configuration {
         rm -f $OPENSHIFT_RUBY_DIR/env/OPENSHIFT_RUBY_PATH_ELEMENT \
             $OPENSHIFT_RUBY_DIR/env/LD_LIBRARY_PATH \
             $OPENSHIFT_RUBY_DIR/env/MANPATH
+        echo -n "${GEM_HOME}/bin" > $OPENSHIFT_RUBY_DIR/env/OPENSHIFT_RUBY_PATH_ELEMENT
         ;;
     esac
 }
