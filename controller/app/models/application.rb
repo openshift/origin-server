@@ -443,7 +443,7 @@ class Application
       component_instances.each do |ci|
         ci_cart = ci.get_cartridge
         if ci_cart.original_name == cart.original_name
-          raise OpenShift::UserException.new("#{feature_name} cannot co-exist with application cartridge #{ci_cart.name}", 109)
+          raise OpenShift::UserException.new("#{feature_name} cannot co-exist with cartridge #{ci_cart.name} in your application", 109)
         end
       end
 
