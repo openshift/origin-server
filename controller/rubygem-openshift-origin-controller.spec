@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.11.6
+Version: 1.11.7
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -84,6 +84,31 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Wed Jul 10 2013 Adam Miller <admiller@redhat.com> 1.11.7-1
+- Changing error message to make it more clear (abhgupta@redhat.com)
+- Restore "application destroyed" step which was removed in
+  5fa8baf6c1781c0e1553d5c424688f461773710a (kraman@gmail.com)
+- Merge pull request #3024 from abhgupta/bug_980760
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3028 from rajatchopra/fix_970829
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3022 from kraman/libvirt-f19-2
+  (dmcphers+openshiftbot@redhat.com)
+- Fix for bug 980760  - Preventing multiple versions of a cartridge from being
+  added to the application (abhgupta@redhat.com)
+- use quarantine to not let the app delete operation in while upgrade is in
+  progress (rchopra@redhat.com)
+- Bug 979182 - Increase file limit for the gear in proportion to the filesystem
+  storage. (rpenta@redhat.com)
+- Updates to allow basic tests to pass on F19 (kraman@gmail.com)
+- Merge pull request #3018 from abhgupta/bug_982549
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3016 from pmorie/dev/fix_tests
+  (dmcphers+openshiftbot@redhat.com)
+- Fix for bug 982549  - Simplified regex to work with ruby 2.0 in Fedora 19
+  (abhgupta@redhat.com)
+- Fix upgrade functionality and associated tests (pmorie@gmail.com)
+
 * Tue Jul 09 2013 Adam Miller <admiller@redhat.com> 1.11.6-1
 - Merge pull request #3010 from pravisankar/dev/ravi/bug982172
   (dmcphers+openshiftbot@redhat.com)
