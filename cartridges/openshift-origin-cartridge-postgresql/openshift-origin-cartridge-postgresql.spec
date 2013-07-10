@@ -9,7 +9,7 @@
 
 Summary:       Provides embedded PostgreSQL support
 Name:          openshift-origin-cartridge-postgresql
-Version: 0.4.5
+Version: 0.4.6
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -101,6 +101,13 @@ Provides PostgreSQL cartridge support to OpenShift. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Wed Jul 10 2013 Adam Miller <admiller@redhat.com> 0.4.6-1
+- Merge pull request #3042 from BanzaiMan/dev/hasari/bz981528
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 981528 (asari.ruby@gmail.com)
+- Bug 979740 - Fix Postgres cartridge using $HOME (fotios@redhat.com)
+- Bug 981528 (asari.ruby@gmail.com)
+
 * Tue Jul 09 2013 Adam Miller <admiller@redhat.com> 0.4.5-1
 - Revert "No need for Ruby SCL here." (asari.ruby@gmail.com)
 - Bug 982377 (asari.ruby@gmail.com)
