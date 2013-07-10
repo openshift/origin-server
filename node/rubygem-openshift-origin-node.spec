@@ -16,7 +16,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.11.7
+Version: 1.11.8
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -286,6 +286,42 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Wed Jul 10 2013 Adam Miller <admiller@redhat.com> 1.11.8-1
+- Merge pull request #3051 from pmorie/bugs/981622
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3048 from BanzaiMan/cartridge_doc_update
+  (dmcphers+openshiftbot@redhat.com)
+- Fix bug 981622 (pmorie@gmail.com)
+- Document pre-repo-archive in the build lifecycle (asari.ruby@gmail.com)
+- Removing extra lsof dependency (bleanhar@redhat.com)
+- Merge pull request #3034 from fotioslindiakos/BZ913809
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3033 from BanzaiMan/dev/hasari/bz974983
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 913809 - Proper psql error handling (fotios@redhat.com)
+- Merge pull request #3032 from kraman/missing_cgroups
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3030 from rmillner/BZ980497
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3024 from abhgupta/bug_980760
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3022 from kraman/libvirt-f19-2
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 974983 (asari.ruby@gmail.com)
+- Fix config variable parsing. Split on comma before use of variable as array
+  (kraman@gmail.com)
+- Screen out cgroups variables that are missing on the system.
+  (rmillner@redhat.com)
+- Bug 980497 - Optimize these calls to oo-get-mcs-level. (rmillner@redhat.com)
+- Fix for bug 980760  - Preventing multiple versions of a cartridge from being
+  added to the application (abhgupta@redhat.com)
+- Fix gear env loading by using ApplicationContainer::from_uuid instead of
+  ApplicationContainer::new (kraman@gmail.com)
+- Updates to allow basic tests to pass on F19 (kraman@gmail.com)
+- Merge pull request #3016 from pmorie/dev/fix_tests
+  (dmcphers+openshiftbot@redhat.com)
+- Fix upgrade functionality and associated tests (pmorie@gmail.com)
+
 * Tue Jul 09 2013 Adam Miller <admiller@redhat.com> 1.11.7-1
 - Bug 982403 - Work around contexts where gear environment is incomplete.
   (rmillner@redhat.com)
