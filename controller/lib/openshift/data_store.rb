@@ -19,11 +19,13 @@ module OpenShift
     end
 
     def self.find(collection_name, query, selection)
-      db.collection(collection_name).find(query, selection) do |mcursor|
+      db_handle = db
+      db_handle.collection(collection_name).find(query, selection) do |mcursor|
         mcursor.each do |hash|
           yield hash
         end
       end
+      db_handle.connection.close if db_handle and db_handle.connection and db_handle.connection.connected?
     end
 
   end
