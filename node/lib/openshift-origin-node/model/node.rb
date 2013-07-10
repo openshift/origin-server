@@ -45,7 +45,10 @@ module OpenShift
               print "Loading #{cooked.name}-#{cooked.version}..." if oo_debug
 
               v1_manifest            = Marshal.load(Marshal.dump(cooked.manifest))
-              v1_manifest['Name']    = "#{cooked.name}-#{cooked.version}"
+              
+              # Appending the version to the name will be done in the common cartridge model 
+              #v1_manifest['Name']    = "#{cooked.name}-#{cooked.version}"
+              
               v1_manifest['Version'] = cooked.version
               carts.push OpenShift::Cartridge.new.from_descriptor(v1_manifest)
               print "OK\n" if oo_debug

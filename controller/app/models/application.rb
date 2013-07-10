@@ -414,9 +414,17 @@ class Application
   # @raise [OpenShift::UserException] Exception raised if there is any reason the feature/cartridge cannot be added into the Application
   def add_features(features, group_overrides=[], init_git_url=nil)
     ssl_endpoint = Rails.application.config.openshift[:ssl_endpoint]
+    cart_features_map = {}
 
     features.each do |feature_name|
       cart = CartridgeCache.find_cartridge(feature_name, self)
+      
+      # ensure that the user isn't trying to add multiple versions of the same cartridge
+      if cart_features_map.has_key?(cart.original_name)
+        raise OpenShift::UserException.new("#{cart.name} cannot co-exist with #{cart_features_map[cart.original_name]} in the same application", 109)
+      else
+        cart_features_map[cart.original_name] = cart.name
+      end
 
       # Make sure this is a valid cartridge
       if cart.nil?
@@ -428,6 +436,14 @@ class Application
           if ci.is_web_framework?
             raise OpenShift::UserException.new("You can only have one framework cartridge in your application '#{name}'.", 109)
           end
+        end
+      end
+
+      # check if the requested feature is provided by any existing/embedded application cartridge
+      component_instances.each do |ci|
+        ci_cart = ci.get_cartridge
+        if ci_cart.original_name == cart.original_name
+          raise OpenShift::UserException.new("#{feature_name} cannot co-exist with application cartridge #{ci_cart.name}", 109)
         end
       end
 
