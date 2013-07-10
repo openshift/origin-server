@@ -183,6 +183,30 @@ action "has_embedded_app", :description => "Does this server contain a specified
            :display_as => "Exit Code"
 end
 
+action "get_gear_envs", :description => "Returns the gear's env hash" do
+    display :always
+
+    input :uuid,
+        :prompt         => "Application uuid",
+        :description    => "Application uuid",
+        :type           => :string,
+        :validation     => '^[a-zA-Z0-9]+$',
+        :optional       => false,
+        :maxlength      => 32
+
+    output  :time,
+            :description => "The time as a message",
+            :display_as => "Time"
+
+    output  :output,
+            :description => "hash",
+            :display_as => "Output"
+
+    output :exitcode,
+           :description => "Exit code",
+           :display_as => "Exit Code"
+end
+
 action "has_uid_or_gid", :description => "Returns whether this system has already taken the uid or gid" do
     display :always
 
