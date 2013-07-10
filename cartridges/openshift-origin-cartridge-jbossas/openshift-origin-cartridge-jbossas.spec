@@ -4,7 +4,7 @@
 
 Summary:       Provides JBossAS7 support
 Name:          openshift-origin-cartridge-jbossas
-Version: 1.3.7
+Version: 1.3.8
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -92,6 +92,10 @@ cp -p %{cartridgedir}/versions/7/modules/postgresql_module.xml /etc/alternatives
 
 
 %changelog
+* Wed Jul 10 2013 Adam Miller <admiller@redhat.com> 1.3.8-1
+- Explicitly specify ERB files to process in jboss cartridges
+  (ironcladlou@gmail.com)
+
 * Mon Jun 24 2013 Adam Miller <admiller@redhat.com> 1.3.7-1
 - Bug 975794: Move oo-admin-cartridge operations to %%posttrans
   (ironcladlou@gmail.com)
