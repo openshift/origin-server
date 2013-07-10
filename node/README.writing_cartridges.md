@@ -1148,6 +1148,7 @@ During the `build` phase:
 
 1. The application is stopped.
 1. The primary cartridge `pre-receive` control action is executed.
+1. The primary cartridge `pre-repo-archive` control action is executed.
 1. The newly committed application source code is copied to `$OPENSHIFT_REPO_DIR`.
    **Note**: This step is the only time the application source code is copied by 
    OpenShift during this lifecycle.
