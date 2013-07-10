@@ -9,7 +9,7 @@
 
 Summary:       OpenShift plugin for mcollective service
 Name:          rubygem-%{gem_name}
-Version: 1.11.2
+Version: 1.11.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -80,6 +80,9 @@ cp %{buildroot}/%{gem_dir}/gems/%{gem_name}-%{version}/conf/openshift-origin-msg
 %attr(0644,-,-) %ghost /etc/mcollective/client.cfg
 
 %changelog
+* Wed Jul 10 2013 Adam Miller <admiller@redhat.com> 1.11.3-1
+- mcoll action for getting env vars for a gear (rchopra@redhat.com)
+
 * Tue Jul 02 2013 Adam Miller <admiller@redhat.com> 1.11.2-1
 - Handling cleanup of failed pending op using rollbacks (abhgupta@redhat.com)
 - Remove Online specific references: -Remove hard-coded cart name references.
