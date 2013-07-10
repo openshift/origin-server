@@ -62,7 +62,7 @@ unless uuid
 end
 
 begin
-  container = OpenShift::Runtime::ApplicationContainer.new(uuid, uuid)
+  container = OpenShift::Runtime::ApplicationContainer.from_uuid(uuid)
   container.remove_broker_auth
 rescue Exception => e
   $stderr.puts(e.message)

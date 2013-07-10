@@ -915,7 +915,7 @@ module MCollective
         cart_name = request[:cartridge]
 
         begin
-          container = OpenShift::Runtime::ApplicationContainer.new(app_uuid, gear_uuid)
+          container = OpenShift::Runtime::ApplicationContainer.from_uuid(gear_uuid)
           cartridge = container.get_cartridge(cart_name)
           reply[:output] = (not cartridge.nil?)
           reply[:exitcode] = 0

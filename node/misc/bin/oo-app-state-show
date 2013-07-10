@@ -64,7 +64,7 @@ unless container_uuid and app_uuid
 end
 
 begin
-  container = OpenShift::Runtime::ApplicationContainer.new(app_uuid, container_uuid)
+  container = OpenShift::Runtime::ApplicationContainer.from_uuid(container_uuid)
   print container.get_app_state()
 rescue Exception => e
   $stderr.puts(e.message)
