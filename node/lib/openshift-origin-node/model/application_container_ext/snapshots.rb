@@ -25,6 +25,7 @@ module OpenShift
           run_in_container_context(tar_cmd,
               env: gear_env,
               out: $stdout,
+              err: $stderr,
               chdir: @config.get('GEAR_BASE_DIR'),
               timeout: @hourglass.remaining,
               expected_exitstatus: 0)

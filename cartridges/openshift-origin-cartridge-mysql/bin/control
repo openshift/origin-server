@@ -38,10 +38,20 @@ function start {
 }
 
 function wait_for_mysqld_availability {
+  test_select=${1:-false}
+
   for i in {1..30}; do
-    is_running && return 0
+    if is_running; then
+      if $test_select; then
+        run_sql 'select 1' 2> /dev/null && return 0
+      else
+        return 0
+      fi
+    fi
+
     sleep 1
   done
+
   return 1
 }
 
@@ -83,8 +93,10 @@ function status {
 }
 
 function pre_snapshot {
-  # TODO: add support for scalable apps, where DB is not located on primary gear
   start
+  # The following call is necessary due to race conditions that can arise if mysql
+  # is recovering from a force-stop
+  wait_for_mysqld_availability true
 
   echo "$OPENSHIFT_MYSQL_DB_USERNAME" > $OPENSHIFT_DATA_DIR/mysql_db_username
   echo "$OPENSHIFT_MYSQL_DB_HOST" > $OPENSHIFT_DATA_DIR/mysql_db_host
