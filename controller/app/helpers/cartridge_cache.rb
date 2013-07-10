@@ -87,26 +87,48 @@ class CartridgeCache
     
     carts = self.cartridges
 
-    with_vendor_hash = {}
-    without_vendor_hash = {}
+
+
+
+
+
+
+    cartname_hash = {}
+    cartname_version_hash = {}
+    vendor_cartname_hash = {}
+    vendor_cartname_version_hash = {}
+    
     carts.each { |c|
-      without_vendor_hash[c.original_name] = [] if !without_vendor_hash[c.original_name]
-      without_vendor_hash[c.original_name] = (without_vendor_hash[c.original_name] << c)
+      cartname = c.original_name
+      cartname_hash[cartname] = [] if !cartname_hash[cartname]
+      cartname_hash[cartname] << c
+
+      cartname_version = c.original_name + "-" + c.version
+      cartname_version_hash[cartname_version] = [] if !cartname_version_hash[cartname_version]
+      cartname_version_hash[cartname_version] << c
+
       next if c.cartridge_vendor.to_s.empty?
-      vcartname = (c.cartridge_vendor + "-" + c.original_name)
-      with_vendor_hash[vcartname] = [] if !with_vendor_hash[vcartname]
-      with_vendor_hash[vcartname] = (with_vendor_hash[vcartname] << c)
+
+      vendor_cartname = c.cartridge_vendor + "-" + c.original_name
+      vendor_cartname_hash[vendor_cartname] = [] if !vendor_cartname_hash[vendor_cartname]
+      vendor_cartname_hash[vendor_cartname] << c
+
+      vendor_cartname_version = c.cartridge_vendor + "-" + c.original_name + "-" + c.version
+      vendor_cartname_version_hash[vendor_cartname_version] = [] if !vendor_cartname_version_hash[vendor_cartname_version]
+      vendor_cartname_version_hash[vendor_cartname_version] << c
     }
 
-    return with_vendor_hash[requested_feature] if with_vendor_hash[requested_feature]
-    return without_vendor_hash[requested_feature] if without_vendor_hash[requested_feature]
-
+    return cartname_hash[requested_feature] if cartname_hash[requested_feature]
+    return cartname_version_hash[requested_feature] if cartname_version_hash[requested_feature]
+    return vendor_cartname_hash[requested_feature] if vendor_cartname_hash[requested_feature]
+    return vendor_cartname_version_hash[requested_feature] if vendor_cartname_version_hash[requested_feature]
+    
     matching_carts = []
     
     carts.each do |cart|
       matching_carts << cart if cart.features.include?(requested_feature) 
     end
-    
+
     return matching_carts
   end
 
@@ -150,9 +172,10 @@ class CartridgeCache
       cooked = OpenShift::Runtime::Manifest.new(manifest_str, version)
       Rails.logger.debug("Loading #{cooked.name}-#{cooked.version}...")
       v1_manifest            = Marshal.load(Marshal.dump(cooked.manifest))
-      v1_manifest['Name']    = "#{cooked.name}-#{cooked.version}"
+      # Appending the version to the cartridge name is being done in the common cartridge model 
+      #v1_manifest['Name']    = "#{cooked.name}-#{cooked.version}"
       v1_manifest['Version'] = cooked.version
-      vendored_name =  v1_manifest["Cartridge-Vendor"].to_s.empty? ? v1_manifest["Name"] : "#{cooked.cartridge_vendor}-#{cooked.name}-#{cooked.version}"
+      vendored_name =  v1_manifest["Cartridge-Vendor"].to_s.empty? ? "#{cooked.name}-#{cooked.version}" : "#{cooked.cartridge_vendor}-#{cooked.name}-#{cooked.version}"
       yield v1_manifest,cooked.name,version,vendored_name
     end
   end
