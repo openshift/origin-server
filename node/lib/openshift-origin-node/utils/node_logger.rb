@@ -20,6 +20,7 @@ require 'openshift-origin-common/config'
 require 'openshift-origin-node/utils/logger/split_trace_logger'
 require 'openshift-origin-node/utils/logger/null_logger'
 require 'openshift-origin-node/utils/logger/stdout_logger'
+require 'openshift-origin-node/utils/logger/stderr_logger'
 
 module OpenShift
   module Runtime
@@ -105,6 +106,10 @@ module OpenShift
 
       def self.disable
         @logger = NullLogger.new
+      end
+
+      def self.stderr
+        @logger = StderrLogger.new
       end
 
       def logger
