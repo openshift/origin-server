@@ -884,6 +884,17 @@ module MCollective
       end
 
       #
+      # Returns the entire set of env variables for a given gear uuid
+      #
+      def get_gear_envs_action
+         validate :uuid, /^[a-zA-Z0-9]+$/
+         dir = OpenShift::Runtime::ApplicationContainer.from_uuid(request[:uuid].to_s).container_dir
+         env_hash = OpenShift::Runtime::Utils::Environ.for_gear(dir)
+         reply[:output] = env_hash
+         reply[:exitcode] = 0
+      end
+
+      #
       # Returns whether a uid or gid is already reserved on the system
       #
       def has_uid_or_gid_action
