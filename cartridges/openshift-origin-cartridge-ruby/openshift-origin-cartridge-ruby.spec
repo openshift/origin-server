@@ -14,6 +14,7 @@ License:       ASL 2.0
 URL:           https://www.openshift.com
 Source0:       http://mirror.openshift.com/pub/openshift-origin/source/%{name}/%{name}-%{version}.tar.gz
 Requires:      gcc-c++
+Requires:      gmp-devel
 Requires:      libev
 Requires:      libev-devel
 Requires:      libxml2
