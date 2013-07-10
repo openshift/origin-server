@@ -8,7 +8,7 @@
 
 Summary:       Common msg components for OpenShift broker and node
 Name:          openshift-origin-msg-common
-Version: 1.11.2
+Version: 1.11.3
 Release:       1%{?dist}
 License:       ASL 2.0
 URL:           http://www.openshift.com
@@ -42,6 +42,9 @@ chmod 644 %{buildroot}%{mco_root}validator/*
 %endif
 
 %changelog
+* Wed Jul 10 2013 Adam Miller <admiller@redhat.com> 1.11.3-1
+- mcoll action for getting env vars for a gear (rchopra@redhat.com)
+
 * Tue Jul 02 2013 Adam Miller <admiller@redhat.com> 1.11.2-1
 - Handling cleanup of failed pending op using rollbacks (abhgupta@redhat.com)
 - Rename migrate to upgrade in code (pmorie@gmail.com)
