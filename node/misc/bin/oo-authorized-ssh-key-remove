@@ -72,7 +72,7 @@ unless uuid and ssh_key
 end
 
 begin
-  container = OpenShift::Runtime::ApplicationContainer.new(uuid,uuid)
+  container = OpenShift::Runtime::ApplicationContainer.from_uuid(uuid)
   container.remove_ssh_key(ssh_key, comment)
 rescue Exception => e
   $stderr.puts(e.message)

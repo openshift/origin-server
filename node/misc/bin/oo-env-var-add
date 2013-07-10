@@ -71,7 +71,7 @@ unless container_uuid and app_uuid and key and value
 end
 
 begin
-  container = OpenShift::Runtime::ApplicationContainer.new(app_uuid, container_uuid)
+  container = OpenShift::Runtime::ApplicationContainer.from_uuid(container_uuid)
   container.add_env_var(key, value)
 rescue Exception => e
   $stderr.puts(e.message)

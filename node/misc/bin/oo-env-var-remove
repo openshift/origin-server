@@ -68,7 +68,7 @@ unless uuid and key
 end
 
 begin
-  container = OpenShift::Runtime::ApplicationContainer.new(uuid, uuid)
+  container = OpenShift::Runtime::ApplicationContainer.from_uuid(uuid)
   container.remove_env_var(key)
 rescue Exception => e
   $stderr.puts(e.message)

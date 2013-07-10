@@ -73,7 +73,7 @@ unless uuid and ssh_key
 end
 
 begin
-  container = OpenShift::Runtime::ApplicationContainer.new(uuid,uuid)
+  container = OpenShift::Runtime::ApplicationContainer.from_uuid(uuid)
   container.add_ssh_key(ssh_key, key_type, comment)
 rescue Exception => e
   $stderr.puts(e.message)
