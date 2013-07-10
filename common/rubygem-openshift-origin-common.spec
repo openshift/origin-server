@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Common
 Name:          rubygem-%{gem_name}
-Version: 1.11.4
+Version: 1.11.5
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -120,6 +120,10 @@ cp bin/man/*.8 %{buildroot}%{_mandir}/man8/
 %doc %{gem_docdir}
 
 %changelog
+* Wed Jul 10 2013 Adam Miller <admiller@redhat.com> 1.11.5-1
+- Fix for bug 980760  - Preventing multiple versions of a cartridge from being
+  added to the application (abhgupta@redhat.com)
+
 * Mon Jul 08 2013 Adam Miller <admiller@redhat.com> 1.11.4-1
 -  Revamp the cgroups and pam scripts to leverage the system setup for better
   performance and simplify the code. (rmillner@redhat.com)
