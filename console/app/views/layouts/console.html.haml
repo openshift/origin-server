@@ -59,4 +59,5 @@
       :controller => controller.controller_name,
       :action => controller.action_name,
       :event => @event ||= '',
-      :evar8 => @evar8 ||= '') if Rails.env.production?
+      :evar8 => @evar8 ||= '',
+      :google_conversion_label => @google_conversion_label ||= '') if Rails.env.production?
