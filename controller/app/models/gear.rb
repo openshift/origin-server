@@ -45,6 +45,14 @@ class Gear
     }
   end
   
+  def self.base_file_limit(gear_size)
+    CacheHelper.get_cached(gear_size + "_quota_files", :expires_in => 1.day) {
+      proxy = OpenShift::ApplicationContainerProxy.find_one(gear_size)
+      quota_files = Integer(proxy.get_quota_files)
+      quota_files
+    }
+  end
+  
   def self.gear_sizes_display_string
     # Ex: (small(default)|jumbo|exlarge|large|medium|micro)
     out = '('
@@ -254,8 +262,11 @@ class Gear
   end
   
   def set_addtl_fs_gb(additional_filesystem_gb, remote_job_handle, tag = "addtl-fs-gb")
-    total_fs_gb = additional_filesystem_gb + Gear.base_filesystem_gb(self.group_instance.gear_size)
-    RemoteJob.add_parallel_job(remote_job_handle, tag, self, get_proxy.get_update_gear_quota_job(self, total_fs_gb, ""))
+    base_filesystem_gb = Gear.base_filesystem_gb(self.group_instance.gear_size)
+    base_file_limit = Gear.base_file_limit(self.group_instance.gear_size)
+    total_fs_gb = additional_filesystem_gb + base_filesystem_gb
+    total_file_limit = (total_fs_gb * base_file_limit) / base_filesystem_gb
+    RemoteJob.add_parallel_job(remote_job_handle, tag, self, get_proxy.get_update_gear_quota_job(self, total_fs_gb, total_file_limit.to_i))
   end
 
   def server_identities
