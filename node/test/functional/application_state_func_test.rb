@@ -21,7 +21,7 @@ module OpenShift
   class ApplicationStateFunctionalTest < NodeTestCase
     def setup
       @uid     = 5907
-      @homedir = "/tmp/tests/#@uid"
+      @homedir = "/var/tmp-tests/#@uid"
       @runtime_dir = File.join(@homedir, %w{app-root runtime})
 
       # polyinstantiation makes creating the homedir a pain...
