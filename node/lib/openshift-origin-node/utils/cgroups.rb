@@ -8,6 +8,101 @@ module OpenShift
   module Runtime
     module Utils
       class Cgroups
+        # Subclass OpenShift::Config so we can split the values easily
+        class Config < ::OpenShift::Config
+          def get(key)
+            super(key.gsub('.','_'))
+          end
+        end
+
+        # Create our own hash class so we can implement comparable and change initialize
+        class Template < Hash
+          include Comparable
+
+          # Allow us to pass in default values and a block
+          #  - If a block is passed, it's used to create unknown values
+          #  - If vals are passed, they're used to populate the Template
+          #    - If the value is another Template, it copies the keys
+          #    - If the value is an array, it uses those as the keys
+          #    - If the value is a hash, use those values
+          def initialize(*vals, &block)
+            super(&block)
+
+            case (x = vals.first)
+            when Template
+              values_at(*(x.keys))
+            when Array
+              values_at(*x)
+            when Hash
+              merge!(hash_to_cgroups(x))
+            end
+
+            # Coerce all values into integers if we can
+            merge!(Hash[map{|k,v| [k, (Integer(v) rescue v)] }])
+          end
+
+          # Compare the values of a template
+          # NOTE: It will be considered greater if *any* values are greater
+          #       Or else it will then be considered less if *any* values are less
+          #       Or else, it will be considered equal
+          def <=>(obj)
+            vals = each_pair.map do |k,v|
+              v <=> obj[k]
+            end
+            # Find the most significant match
+            [1,-1,0].find{|x| vals.include?(x) }
+          end
+
+          protected
+          # Combine a hash of hashes by combining the keys using the separator
+          #  - Separator may be a string or Array
+          #   - A string will be used for all levels
+          #   - An array will be used in the order its given, when exhausted it will use the last value
+          def combine(hash, sep = '.')
+            sep = [*sep]
+            cur_sep = sep.shift || '.'
+            sep = [cur_sep] if sep.empty?
+
+            hash.inject({}) do |h,(k1,v)|
+              v = v.is_a?(Hash) ? combine(v,sep): {nil => [*v]}
+              v.inject(h) do |h,(k2,val)|
+                key = [k1,k2].compact.join(cur_sep)
+                if val.is_a?(Array) && val.length == 1
+                  val = val.first
+                end
+                h[key] = val
+                h
+              end
+            end
+          end
+
+          # Flatten our hash keys into the correct format
+          def hash_to_cgroups(hash)
+            combine(hash,['.','_'])
+          end
+        end
+
+        @@BOOST_VALUES = {
+          cpu: {
+            shares: 512,
+            cfs: {
+              quota_us:  50000,
+            }
+          }
+        }
+
+        def self.templates
+          @@TEMPLATES ||= (
+            {}.tap do |p|
+              p[:boosted] = Template.new(@@BOOST_VALUES)
+              p[:default] = Template.new(p[:boosted]) do |h,k|
+                h[k] = @@CGROUPS_CONFIG.get(k)
+              end
+              p[:frozen]  = Template.new({'freezer.state' => "FROZEN"})
+              p[:thawed]  = Template.new({'freezer.state' => "THAWED"})
+            end
+          )
+        end
 
         @@LOCKFILE='/var/lock/oo-cgroups'
 
@@ -18,6 +113,8 @@ module OpenShift
         @@DEFAULT_CGROUP_SUBSYSTEMS="cpu,cpuacct,memory,net_cls,freezer"
         @@DEFAULT_CGROUP_CONTROLLER_VARS="cpu.cfs_period_us,cpu.cfs_quota_us,cpu.rt_period_us,cpu.rt_runtime_us,cpu.shares,memory.limit_in_bytes,memory.memsw.limit_in_bytes,memory.soft_limit_in_bytes,memory.swappiness"
 
+        @@CGROUPS_CONFIG = ::OpenShift::Runtime::Utils::Cgroups::Config.new('/etc/openshift/resource_limits.conf')
+
         @@allowed_vars_cache = []
 
         class Attrs
@@ -25,6 +122,8 @@ module OpenShift
           @@RET_NO_USER = 82
           @@RET_NO_VARIABLE = 96
           @@RET_NO_CONTROLLER = 255
+
+          attr_reader :uuid
 
           def initialize(uuid)
             @uuid = uuid
@@ -38,11 +137,33 @@ module OpenShift
             end
           end
 
-          def fetch(key)
-            out, err, rc = ::OpenShift::Runtime::Utils::oo_spawn("cgget -n -v -r #{key} #{@cgpath}")
+          # Get the current values for any keys specified in the default template
+          def current_values
+            keys = Cgroups::templates[:default].keys
+            fetch(keys)
+          end
+
+          def usage
+            fetch(%w(cpuacct.usage cpu.stat))
+          end
+
+          # Fetch the values from the current cgroup
+          #   - If args is a single value, it will return the value
+          #   - If args is an array, it will return a Template of values
+          def fetch(*args)
+            # Join all keys into a string for use in cgget
+            keys = [*args].flatten
+            key = keys.flatten.map{|x| "-r #{x}" }.join(' ')
+            out, err, rc = ::OpenShift::Runtime::Utils::oo_spawn("cgget -n #{key} #{@cgpath}")
             case rc
             when 0
-              return out.strip
+              # Create a new template of the values so we can format them properly
+              t = Template.new(parse_cgget(out))
+              if (v = t.values).length > 1
+                t
+              else
+                v.first
+              end
             when @@RET_NO_USER
               raise RuntimeError, "User no longer exists in cgroups: #{@uuid}"
             when @@RET_NO_VARIABLE
@@ -54,20 +175,44 @@ module OpenShift
             end
           end
 
-          def store(key, value)
-            out, err, rc = ::OpenShift::Runtime::Utils::oo_spawn("cgset -r #{key}=#{value} #{@cgpath}")
-            case rc
-            when 0
-              return value
-            when @@RET_NO_USER
-              raise RuntimeError, "User no longer exists in cgroups: #{@uuid}"
-            when @@RET_NO_VARIABLE
-              raise KeyError, "Cgroups parameter missing or cannot be set to value: #{key} = #{value}"
-            when @@RET_NO_CONTROLLER
-              raise KeyError, "Cgroups controller not found for: #{key}"
-            else
-              raise RuntimeError, "Cgroups error: #{err}"
+          def parse_cgget(str)
+            h = {}
+            str.lines.each do |line|
+              parts = line.split(/:/)
+              if parts.length > 1
+                @key = parts.first.strip
+                h[@key] = parts.last.strip
+              else
+                unless (v = h[@key]).is_a?(Hash)
+                  h[@key] = Hash[[v.split]]
+                end
+                (k,v) = line.split
+                h[@key][k] = v
+              end
             end
+            h
+          end
+
+          def store(*args)
+            # TODO: If we're able to use multiple values for cgset, this will work
+            #vals = Hash[*args].map{|k,v| "-r %s" % [k,v].join('=') }
+            vals = Hash[*args]
+            cur = vals.map do |key,value|
+              out, err, rc = ::OpenShift::Runtime::Utils::oo_spawn("cgset -r #{key}=#{value} #{@cgpath}")
+              case rc
+              when 0
+                [key, value]
+              when @@RET_NO_USER
+                raise RuntimeError, "User no longer exists in cgroups: #{@uuid}"
+              when @@RET_NO_VARIABLE
+                raise KeyError, "Cgroups parameter missing or cannot be set to value: #{key} = #{value}"
+              when @@RET_NO_CONTROLLER
+                raise KeyError, "Cgroups controller not found for: #{key}"
+              else
+                raise RuntimeError, "Cgroups error: #{err}"
+              end
+            end
+            Hash[cur]
           end
 
           def [](key)
@@ -78,21 +223,56 @@ module OpenShift
             store(key, value)
           end
 
+          def boost
+            apply_profile(:boosted)
+          end
+
+          def restore
+            apply_profile(:default)
+          end
+
+          def freeze
+            apply_profile(:frozen)
+          end
+
+          def thaw
+            apply_profile(:thawed)
+          end
+
+          def apply_profile(type)
+            store(Cgroups::templates[type])
+          end
+
+          def profile
+            cur = current_values
+            # Search through known templates and compare them with our current values
+            (Cgroups::templates.find{|k,v| v == cur} || [:unknown]).first
+          end
+
+          def boosted?
+            profile == :boosted
+          end
+
+          # TODO: Is it possible to get this into profile
+          def frozen?
+            fetch("freezer.state") == "FROZEN"
+          end
+
+          def thawed?
+            fetch("freezer.state") == "THAWED"
+          end
         end
 
         def self.with_no_cpu_limits(uuid)
           r = nil
-          param = "cpu.cfs_quota_us"
           attrs = Attrs.new(uuid)
-          full_cpu = attrs["cpu.cfs_period_us"]
-          oldlimit = attrs[param]
           begin
-            attrs[param]=full_cpu
+            attrs.boost
             if block_given?
               r = yield
             end
           ensure
-            attrs[param]=oldlimit
+            attrs.restore
           end
           r
         end
@@ -138,6 +318,7 @@ module OpenShift
             "net_cls.classid" => net_cls(uid)
           }
 
+          # TODO: This can use @@CGROUPS_CONFIG
           resource = OpenShift::Config.new('/etc/openshift/resource_limits.conf')
           controller_vars.each do |cv|
             subsys = cv.split('.')[0]
@@ -208,16 +389,14 @@ module OpenShift
 
         def self.freeze(uuid)
           begin
-            attrs = Attrs.new(uuid)
-            attrs['freezer.state']='FROZEN'
+            Attrs.new(uuid).freeze
           rescue ArgumentError
           end
         end
 
         def self.thaw(uuid)
           begin
-            attrs = Attrs.new(uuid)
-            attrs['freezer.state']='THAWED'
+            Attrs.new(uuid).thaw
           rescue ArgumentError
           end
         end
@@ -465,7 +644,6 @@ module OpenShift
 
           r
         end
-
       end
     end
   end
