@@ -49,7 +49,6 @@ module OpenShift
 
           gem_home = PathUtils.join(homedir, ".gem")
           add_env_var "GEM_HOME", gem_home
-          add_env_var "OPENSHIFT_RUBYGEMS_PATH_ELEMENT", PathUtils.join(gem_home, "bin")
           FileUtils.mkdir_p(gem_home)
           FileUtils.chmod(0o0750, gem_home)
           set_rw_permission(gem_home)
