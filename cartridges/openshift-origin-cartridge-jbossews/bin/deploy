@@ -13,8 +13,7 @@ if [ -d $tmp ]; then
 fi
 
 if [ -d ${OPENSHIFT_REPO_DIR}/webapps ]; then
+  rsync -r --delete ${OPENSHIFT_REPO_DIR}/webapps/ ${OPENSHIFT_JBOSSEWS_DIR}/webapps/
+else
   rm -rf ${OPENSHIFT_JBOSSEWS_DIR}/webapps/*
-  shopt -s dotglob
-  mv ${OPENSHIFT_REPO_DIR}/webapps/* ${OPENSHIFT_JBOSSEWS_DIR}/webapps/
-  shopt -u dotglob
 fi
