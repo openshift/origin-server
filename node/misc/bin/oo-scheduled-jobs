@@ -22,13 +22,9 @@ function openshift_origin_users() {
     grep ":${GEAR_GECOS}:" /etc/passwd | cut -d: -f1 | tr '\n' ' '
 }
 
-function setup_user_vars {
+function daemon_as_user {
     uid=$(id -u "$uuid")
     mcs_level=`oo-get-mcs-level $uid`
-    export mcs_level
-}
-
-function daemon_as_user {
     daemon --user="$uuid" runcon -r system_r -t openshift_t -l $mcs_level "$@"
 }
 
@@ -67,7 +63,6 @@ function run_user_scheduled_jobs() {
       exit 22
    fi
    export uuid
-   setup_user_vars
 
    # Ensure cron jobs are enabled, there's a jobs dir and there's some jobs
    # to run.
