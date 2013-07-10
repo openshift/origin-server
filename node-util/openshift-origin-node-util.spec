@@ -1,6 +1,6 @@
 Summary:       Utility scripts for the OpenShift Origin broker
 Name:          openshift-origin-node-util
-Version: 1.11.5
+Version: 1.11.6
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -118,6 +118,18 @@ mv services/openshift-gears.service %{buildroot}/etc/systemd/system/openshift-ge
 /sbin/restorecon /usr/sbin/oo-restorer* || :
 
 %changelog
+* Wed Jul 10 2013 Adam Miller <admiller@redhat.com> 1.11.6-1
+- Merge pull request #3027 from kraman/bugfix
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3023 from rmillner/BZ958355
+  (dmcphers+openshiftbot@redhat.com)
+- Fix gear env loading by using ApplicationContainer::from_uuid instead of
+  ApplicationContainer::new (kraman@gmail.com)
+- Bug 982523 - add syslog to oo-admin-ctl-gears (rmillner@redhat.com)
+- Merge pull request #3019 from pmorie/bugs/981273
+  (dmcphers+openshiftbot@redhat.com)
+- Fix bug 981273 (pmorie@gmail.com)
+
 * Tue Jul 09 2013 Adam Miller <admiller@redhat.com> 1.11.5-1
 - Bug 981594 - ApplicationContainer used as an argument needed full module
   paths. (rmillner@redhat.com)
