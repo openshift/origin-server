@@ -1,0 +1,3 @@
+#!/bin/bash -eu
+
+cp $OPENSHIFT_JBOSSAS_DIR/standalone/deployments/ROOT.war $OPENSHIFT_REPO_DIR/deployments
