@@ -204,35 +204,16 @@ class ApplicationRepositoryFuncTest < OpenShift::NodeTestCase
   end
 
   def test_from_ssh_url
-    e = assert_raise(::OpenShift::Runtime::Utils::ShellExecutionException) do
-      repo = OpenShift::Runtime::ApplicationRepository.new(@container)
-      repo.destroy
-      repo.populate_from_url(@cartridge_name, 'git@github.com:jwhonce/origin-server.git')
-    end
-
-    assert_equal expected_path, repo.path
-    assert_bare_repository(repo)
-    assert_repo_reset(repo)
-  end
-
-  def test_from_ssh_url
-    expected_path = File.join(@container.container_dir, 'git', @container.application_name + '.git')
-
-    repo = OpenShift::Runtime::ApplicationRepository.new(@container)
-    repo.destroy
-    begin
-      repo.populate_from_url(@cartridge_name, 'git@github.com:openshift/downloadable-mock.git')
-    rescue OpenShift::Runtime::Utils::ShellExecutionException => e
-      puts %Q{
-        Failed to create git repo from cartridge template: rc(#{e.rc})
-        stdout ==> #{e.stdout}
-        stderr ==> #{e.stderr}
-           #{e.backtrace.join("\n")}}
-      raise
-    end    
-
-    assert_equal expected_path, repo.path
-    assert_bare_repository(repo)
+    skip "Restore this test using webmock"
+    #e = assert_raise(::OpenShift::Runtime::Utils::ShellExecutionException) do
+    #  repo = OpenShift::Runtime::ApplicationRepository.new(@container)
+    #  repo.destroy
+    #  repo.populate_from_url(@cartridge_name, 'git@github.com:jwhonce/origin-server.git')
+    #end
+    #
+    #assert_equal expected_path, repo.path
+    #assert_bare_repository(repo)
+    #assert_repo_reset(repo)
   end
 
   def test_from_ssh_url_with_reset
