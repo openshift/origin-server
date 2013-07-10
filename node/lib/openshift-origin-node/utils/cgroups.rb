@@ -100,7 +100,8 @@ module OpenShift
           config = OpenShift::Config.new
           root = (config.get("OPENSHIFT_CGROUP_ROOT") or @@DEFAULT_CGROUP_ROOT)
           subsystems = (config.get("OPENSHIFT_CGROUP_SUBSYSTEMS") or @@DEFAULT_CGROUP_SUBSYSTEMS)
-          controller_vars = (config.get("OPENSHIFT_CGROUP_CONTROLLER_VARS") or @@DEFAULT_CGROUP_CONTROLLER_VARS)
+          controller_vars = ((config.get("OPENSHIFT_CGROUP_CONTROLLER_VARS") or @@DEFAULT_CGROUP_CONTROLLER_VARS)).split(',')
+
           path = "#{root}/#{uuid}"
 
           if @@allowed_vars_cache.empty?
@@ -137,7 +138,7 @@ module OpenShift
           }
 
           resource = OpenShift::Config.new('/etc/openshift/resource_limits.conf')
-          controller_vars.split(',').each do |cv|
+          controller_vars.each do |cv|
             subsys = cv.split('.')[0]
             var = cv.gsub('.','_')
             res = resource.get(var)
