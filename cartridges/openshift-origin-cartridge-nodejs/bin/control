@@ -252,7 +252,7 @@ function post-deploy() {
     fi
 }
 
-function pre-build() {
+function pre-repo-archive() {
     rm -rf ${OPENSHIFT_NODEJS_DIR}/tmp/{node_modules,saved.node_modules}
 
     # If the node_modules/ directory exists, then "stash" it away for redeploy.
@@ -292,9 +292,9 @@ case "$1" in
     graceful-stop|stop)  stop        ;;
     status)              status      ;;
     build)               build       ;;
-    pre-build)           pre-build   ;;
     post-deploy)         post-deploy ;;
     tidy)                tidy        ;;
+    pre-repo-archive)    pre-repo-archive ;;
     *) exit 0;
 esac
 
