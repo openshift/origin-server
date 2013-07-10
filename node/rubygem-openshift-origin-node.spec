@@ -46,16 +46,15 @@ Requires:      cronie
 Requires:      crontabs
 Requires:      git
 Requires:      httpd
-Requires:      lsof
 Requires:      libcgroup-pam
 Requires:      libselinux-python
+Requires:      lsof
 Requires:      mercurial
 Requires:      mod_ssl
 Requires:      openshift-origin-node-proxy
 Requires:      pam_openshift
 Requires:      python
 Requires:      quota
-Requires:      lsof
 Requires:      rubygem(openshift-origin-common)
 %if 0%{?fedora}%{?rhel} <= 6
 Requires:      libcgroup
