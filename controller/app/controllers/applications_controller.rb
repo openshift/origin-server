@@ -127,6 +127,9 @@ class ApplicationsController < BaseController
   #
   # Action: DELETE
   def destroy
+    if @application.quarantined
+      return render_upgrade_in_progress
+    end
     id = params[:id].downcase if params[:id].presence
     begin
       result = @application.destroy_app
