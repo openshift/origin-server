@@ -70,6 +70,12 @@ class CartridgesControllerTest < ActionDispatch::IntegrationTest
     cart_count1 = body1["data"].length
     assert cart_count1 > 0
     
+    request_via_redirect(:get, "/rest/cartridges/redhat-php", {}, @headers)
+    assert_response :ok
+    body1 = JSON.parse(@response.body)
+    cart_count1 = body1["data"].length
+    assert cart_count1 > 0
+    
     request_via_redirect(:get, "/rest/cartridges/php", {}, @headers)
     assert_response :ok
     body1 = JSON.parse(@response.body)
