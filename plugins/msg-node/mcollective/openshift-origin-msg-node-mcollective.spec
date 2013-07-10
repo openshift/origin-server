@@ -10,7 +10,7 @@
 
 Summary:       M-Collective agent file for openshift-origin-msg-node-mcollective
 Name:          openshift-origin-msg-node-mcollective
-Version: 1.11.4
+Version: 1.11.5
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -51,6 +51,13 @@ cp -p facts/update_yaml.rb %{buildroot}/usr/libexec/mcollective/
 %attr(0700,-,-) %config(noreplace) /etc/cron.minutely/openshift-facts
 
 %changelog
+* Wed Jul 10 2013 Adam Miller <admiller@redhat.com> 1.11.5-1
+- Merge pull request #3031 from rajatchopra/master
+  (dmcphers+openshiftbot@redhat.com)
+- mcoll action for getting env vars for a gear (rchopra@redhat.com)
+- Fix gear env loading by using ApplicationContainer::from_uuid instead of
+  ApplicationContainer::new (kraman@gmail.com)
+
 * Fri Jul 05 2013 Adam Miller <admiller@redhat.com> 1.11.4-1
 - Routing plug-in for broker. Code base from github/miciah/broker-plugin-
   routing-activemq (miciah.masters@gmail.com)
