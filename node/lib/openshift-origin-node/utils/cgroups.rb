@@ -17,6 +17,8 @@ module OpenShift
         @@DEFAULT_CGROUP_SUBSYSTEMS="cpu,cpuacct,memory,net_cls,freezer"
         @@DEFAULT_CGROUP_CONTROLLER_VARS="cpu.cfs_period_us,cpu.cfs_quota_us,cpu.rt_period_us,cpu.rt_runtime_us,cpu.shares,memory.limit_in_bytes,memory.memsw.limit_in_bytes,memory.soft_limit_in_bytes,memory.swappiness"
 
+        @@allowed_vars_cache = []
+
         class Attrs
           @@DEFAULT_CGROUP_ROOT='/openshift'
           @@RET_NO_USER = 82
@@ -98,8 +100,22 @@ module OpenShift
           config = OpenShift::Config.new
           root = (config.get("OPENSHIFT_CGROUP_ROOT") or @@DEFAULT_CGROUP_ROOT)
           subsystems = (config.get("OPENSHIFT_CGROUP_SUBSYSTEMS") or @@DEFAULT_CGROUP_SUBSYSTEMS)
-          controller_vars = (config.get("OPENSHIFT_CGROUP_CONTROLLER_VARS") or @@DEFAULT_CGROUP_CONTROLLER_VARS)
+          controller_vars = ((config.get("OPENSHIFT_CGROUP_CONTROLLER_VARS") or @@DEFAULT_CGROUP_CONTROLLER_VARS)).split(',')
+
           path = "#{root}/#{uuid}"
+
+          if @@allowed_vars_cache.empty?
+            out, err, rc = ::OpenShift::Runtime::Utils::oo_spawn("cgget -a /")
+            if rc == 0
+              out.each_line do |l|
+                if l =~ /^([a-zA-Z0-9\-\_\.]+):/
+                  @@allowed_vars_cache << $~[1]
+                end
+              end
+            end
+          end
+
+          controller_vars.delete_if { |var| not @@allowed_vars_cache.include?(var) }
 
           if uid.nil?
             uid = Etc.getpwnam(uuid).uid
@@ -122,7 +138,7 @@ module OpenShift
           }
 
           resource = OpenShift::Config.new('/etc/openshift/resource_limits.conf')
-          controller_vars.split(',').each do |cv|
+          controller_vars.each do |cv|
             subsys = cv.split('.')[0]
             var = cv.gsub('.','_')
             res = resource.get(var)
