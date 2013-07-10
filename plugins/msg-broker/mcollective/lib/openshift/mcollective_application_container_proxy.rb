@@ -2217,6 +2217,26 @@ module OpenShift
         result
       end
 
+      # Returns a hash of env variables for a given gear uuid
+      #
+      # INPUTS:
+      # * gear_uuid: String
+      #
+      # RETURNS:
+      # * Hash
+      #
+      # NOTES:
+      # * uses rpc_exec
+      #
+      def get_gear_envs(gear_uuid)
+        MCollectiveApplicationContainerProxy.rpc_exec('openshift', @id) do |client|
+          client.get_gear_envs(:uuid => gear_uuid) do |response|
+            output = response[:body][:data][:output]
+            return output 
+          end
+        end
+      end
+
       protected
 
       #
