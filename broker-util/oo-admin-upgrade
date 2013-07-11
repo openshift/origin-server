@@ -652,6 +652,7 @@ Usage: #{$0}
   --app-name app_name                  App name of the gear to upgrade
   --upgrade-node server_identity       Server identity of the node to upgrade
   --upgrade-file file                  File containing the gears to upgrade
+  --version                            Target version number
   --num-upgraders num                  The total number of upgraders to be run.  Each upgrade-position will be a 
                                        upgrade-position of num-upgraders.  All positions must to taken to upgrade
                                        all gears.  Ex: If you are going to run 2 upgraders you would need to run:
@@ -661,7 +662,7 @@ Usage: #{$0}
   --max-threads num                    Indicates the number of processing queues
   --ignore-cartridge-version           Force cartridge upgrade even if cartridge versions match
   --continue                           Flag indicating to continue a previous upgrade
-
+  --help                               Show usage info
 USAGE
   exit 255
 end
