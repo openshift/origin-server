@@ -22,9 +22,7 @@ module SQLHelper
       '-d' => '$OPENSHIFT_APP_NAME' # always use proper db name
     }
 
-    # TODO: Need to explicitly use rhcsh to get the psql helper
-    #  - https://bugzilla.redhat.com/show_bug.cgi?id=955849
-    cmd = @psql_helper ? "rhcsh psql" : "/usr/bin/psql"
+    cmd = 'psql'
 
     # SCP the file so we don't have to worry about escaping SQL
     if @app.respond_to?(:scp_content)
