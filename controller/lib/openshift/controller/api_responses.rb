@@ -101,6 +101,10 @@ module OpenShift
           reply.messages.push(Message.new(:info, message)) if message
           reply.process_result_io(result) if result
           
+          reply.messages.each do |message|
+            message.field = :result if message.severity == :result
+          end if requested_api_version <= 1.5
+          
           log_args = get_log_args.merge(extra_log_args)
           
           if extra_messages.present?
