@@ -140,6 +140,14 @@ function psql() {
     extra_args+=" --set HISTFILE=$OPENSHIFT_DATA_DIR/.psql_history-$pgdatabase"
   fi
 
+  CMD=`which psql`
+  if [ $OPENSHIFT_POSTGRESQL_VERSION = '9.2' ]; then
+    which scl 2>&1 >/dev/null
+    if [ $? -eq 0 ]; then
+      CMD=`scl enable postgresql92 "which psql"`
+    fi
+  fi
+
   # Save command for evaluation
   cmd="\
   PGHOST=$pghost \
@@ -147,7 +155,7 @@ function psql() {
     PGUSER=$pguser \
     PGPASSWORD=$pgpassword \
     PGDATABASE=$pgdatabase \
-    `which psql` $extra_args "$@"
+    $CMD $extra_args "$@"
   "
 
   # Run command and store stderr, stdout passes through
