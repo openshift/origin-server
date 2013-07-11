@@ -222,7 +222,7 @@ class ApplicationRepositoryFuncTest < OpenShift::NodeTestCase
     repo = OpenShift::Runtime::ApplicationRepository.new(@container)
     repo.destroy
     begin
-      repo.populate_from_url(@cartridge_name, 'git@github.com:openshift/downloadable-mock.git#HEAD~1')
+      repo.populate_from_url(@cartridge_name, 'git://github.com/openshift/downloadable-mock.git#HEAD~1')
     rescue OpenShift::Runtime::Utils::ShellExecutionException => e
       puts %Q{
         Failed to create git repo from cartridge template: rc(#{e.rc})
