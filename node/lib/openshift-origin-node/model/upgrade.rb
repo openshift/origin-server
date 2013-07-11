@@ -479,8 +479,7 @@ module OpenShift
             problem, status = cart_model.gear_status
 
             if problem
-              progress.log "Problem detected with gear status:\n#{status}"
-              return
+              progress.log "Problem detected with gear status.  Post-upgrade status:\n#{status}"
             end
           end
 
