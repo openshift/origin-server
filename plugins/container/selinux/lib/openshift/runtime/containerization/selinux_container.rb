@@ -16,7 +16,7 @@ module OpenShift
         def initialize(application_container)
           @container  = application_container
           @config     = ::OpenShift::Config.new
-          @mcs_label  = ::OpenShift::Runtime::Utils::SELinux.get_mcs_label(@container.uid)
+          @mcs_label  = ::OpenShift::Runtime::Utils::SELinux.get_mcs_label(@container.uid) if @container.uid
           @gear_shell = @config.get("GEAR_SHELL")    || "/bin/bash"
         end
 
@@ -31,23 +31,45 @@ module OpenShift
         #
         # Returns nil on Success or raises on Failure
         def create
-          cmd = %{useradd -u #{@container.uid} \
-                  -d #{@container.container_dir} \
-                  -s #{@gear_shell} \
-                  -c '#{@container.gecos}' \
-                  -m \
-                  -k #{@container.skel_dir} \
-          #{@container.uuid}}
-          if @container.supplementary_groups != ""
-            cmd << %{ -G "#{@container.supplementary_groups}"}
-          end
-          out,err,rc = @container.run_in_root_context(cmd)
-          raise ::OpenShift::Runtime::UserCreationException.new(
-                    "ERROR: unable to create user account(#{rc}): #{cmd.squeeze(" ")} stdout: #{out} stderr: #{err}"
-                ) unless rc == 0
+          # Lock to prevent race condition on obtaining a UNIX user uid.
+          # When running without districts, there is a simple search on the
+          #   passwd file for the next available uid.
+          File.open("/var/lock/oo-create", File::RDWR|File::CREAT|File::TRUNC, 0o0600) do | uid_lock |
+            uid_lock.fcntl(Fcntl::F_SETFD, Fcntl::FD_CLOEXEC)
+            uid_lock.flock(File::LOCK_EX)
 
-          set_ro_permission(@container.container_dir)
-          FileUtils.chmod 0o0750, @container.container_dir
+            unless @container.uid
+              @container.uid = @container.gid = @container.next_uid
+            end
+
+            cmd = %{useradd -u #{@container.uid} \
+                    -d #{@container.container_dir} \
+                    -s #{@gear_shell} \
+                    -c '#{@container.gecos}' \
+                    -m \
+                    -k #{@container.skel_dir} \
+                    #{@container.uuid}}
+            if @container.supplementary_groups != ""
+              cmd << %{ -G "#{@container.supplementary_groups}"}
+            end
+            out,err,rc = @container.run_in_root_context(cmd)
+            raise ::OpenShift::Runtime::UserCreationException.new(
+                      "ERROR: unable to create user account(#{rc}): #{cmd.squeeze(" ")} stdout: #{out} stderr: #{err}"
+                  ) unless rc == 0
+
+            @mcs_label  = ::OpenShift::Runtime::Utils::SELinux.get_mcs_label(@container.uid)
+
+            set_ro_permission(@container.container_dir)
+            FileUtils.chmod 0o0750, @container.container_dir
+          end
+
+          enable_cgroups
+          enable_traffic_control
+
+          @container.initialize_homedir(@container.base_dir, @container.container_dir)
+
+          enable_fs_limits
+          delete_all_public_endpoints
         end
 
         # Public: Destroys a gear stopping all processes and removing all files
@@ -74,6 +96,7 @@ module OpenShift
           @container.kill_procs
           freeze_fs_limits
           freeze_cgroups
+          disable_traffic_control
           last_access_dir = @config.get("LAST_ACCESS_DIR")
           @container.run_in_root_context("rm -f #{last_access_dir}/#{@container.name} > /dev/null")
           @container.kill_procs
@@ -81,22 +104,10 @@ module OpenShift
           purge_sysvipc
           delete_all_public_endpoints
 
-          if @config.get("CREATE_APP_SYMLINKS").to_i == 1
-            Dir.foreach(File.dirname(@container.container_dir)) do |dent|
-              unobfuscate = File.join(File.dirname(@container.container_dir), dent)
-              if (File.symlink?(unobfuscate)) &&
-                  (File.readlink(unobfuscate) == File.basename(@container.container_dir))
-                File.unlink(unobfuscate)
-              end
-            end
-          end
-
           ::OpenShift::Runtime::FrontendHttpServer.new(@container).destroy
 
           dirs = list_home_dir(@container.container_dir)
           begin
-            user = Etc.getpwnam(@container.uuid)
-
             cmd = "userdel --remove -f \"#{@container.uuid}\""
             out,err,rc = @container.run_in_root_context(cmd)
             raise ::OpenShift::Runtime::UserDeletionException.new(
@@ -116,7 +127,7 @@ module OpenShift
 1st attempt to remove \'#{@container.container_dir}\' from filesystem failed.
 Dir(before)   #{@container.uuid}/#{@container.uid} => #{dirs}
 Dir(after)    #{@container.uuid}/#{@container.uid} => #{list_home_dir(@container.container_dir)}
-                        }
+            }
           end
 
           # release resources (cgroups thaw), this causes Zombies to get killed
@@ -130,6 +141,8 @@ Dir(after)    #{@container.uuid}/#{@container.uid} => #{list_home_dir(@container
             FileUtils.rm_rf(@container.container_dir)   # This is our last chance to nuke the polyinstantiated directories
             logger.warn("2nd attempt to remove \'#{@container.container_dir}\' from filesystem failed.") if File.exists?(@container.container_dir)
           end
+
+          [out,err,rc]
         end
 
         # Private: Kill all processes for a given gear
@@ -362,8 +375,6 @@ Dir(after)    #{@container.uuid}/#{@container.uid} => #{list_home_dir(@container
             end
           end
         end
-
-
       end
     end
   end
