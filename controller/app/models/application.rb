@@ -58,7 +58,6 @@ end
 class Application
   include Mongoid::Document
   include Mongoid::Timestamps
-  include UtilHelper
 
   # Maximum length of  a valid application name
   APP_NAME_MAX_LENGTH = 32
@@ -1189,7 +1188,7 @@ class Application
             ops, add_gear_count, rm_gear_count = update_requirements(features, group_overrides)
             try_reserve_gears(add_gear_count, rm_gear_count, op_group, ops)
           when :update_component_limits
-            updated_overrides = deep_copy(self.group_overrides || [])
+            updated_overrides = (self.group_overrides || []).deep_dup
             found = updated_overrides.find {|go| go["components"].include? op_group.args["comp_spec"] }
             group_override = found || {"components" => [op_group.args["comp_spec"]]}
             group_override["min_gears"] = op_group.args["min"] unless op_group.args["min"].nil?
@@ -2014,7 +2013,7 @@ class Application
   end
 
   def process_group_overrides(component_instances, group_overrides)
-    overrides = group_overrides ? deep_copy(group_overrides) : []
+    overrides = (group_overrides || []).deep_dup
     cleaned_overrides = []
 
     # Resolve additional group overrides from component_instances
@@ -2023,7 +2022,7 @@ class Application
       prof = cart.profile_for_feature(component_instance["comp"])
       prof = prof[0] if prof.is_a?(Array)
       comp = prof.get_component(component_instance["comp"])
-      overrides += deep_copy(prof.group_overrides)
+      overrides += prof.group_overrides.deep_dup
       component_go = {"components" => [{"cart" => cart.name, "comp" => comp.name}] }
       if !comp.is_singleton?
         component_go["min_gears"] = comp.scaling.min
@@ -2077,7 +2076,7 @@ class Application
     # work on cleaned_overrides only
     go_map = {}
     cleaned_overrides.each { |go|
-      merged_go = deep_copy(go)
+      merged_go = go.deep_dup
       go["components"].each { |comp|
         existing_go = go_map["#{comp["cart"]}/#{comp["comp"]}"]
         merged_go = merge_group_overrides(merged_go, existing_go) if existing_go
@@ -2090,9 +2089,8 @@ class Application
     component_instances.each { |ci|
       go = go_map["#{ci["cart"]}/#{ci["comp"]}"]
       next if go.nil?
-      processed_group_overrides << deep_copy(go) if !processed_group_overrides.include? go
+      processed_group_overrides << go.deep_dup if !processed_group_overrides.include? go
     }
-    # processed_group_overrides = deep_copy(go_map.values.uniq)
     return [processed_group_overrides, processed_group_overrides]
   end
 
@@ -2143,7 +2141,7 @@ class Application
   def elaborate(features, group_overrides = [])
     profiles = []
     added_cartridges = []
-    overrides = deep_copy(group_overrides)
+    overrides = group_overrides.deep_dup
 
     #calculate initial list based on user provided dependencies
     features.each do |feature|
@@ -2394,7 +2392,7 @@ class Application
   # Do not change the format of the key name, otherwise it may break key removal code on the node
   def get_updated_ssh_keys(user_id, keys)
     updated_keys_attrs = keys.map { |key|
-      key_attrs = deep_copy(key.to_key_hash)
+      key_attrs = key.to_key_hash.deep_dup
       case key.class
       when UserSshKey
         key_attrs["name"] = user_id.to_s + "-" + key_attrs["name"]
