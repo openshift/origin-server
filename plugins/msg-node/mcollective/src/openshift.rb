@@ -214,7 +214,7 @@ module MCollective
         Log.instance.info("upgrade_action call / action=#{request.action}, agent=#{request.agent}, data=#{request.data.pretty_inspect}")
         validate :uuid, /^[a-zA-Z0-9]+$/
         validate :version, /^.+$/
-        validate :namespace, /^.+$/  
+        validate :namespace, /^.+$/
         uuid = request[:uuid]
         namespace = request[:namespace]
         version = request[:version]
@@ -711,7 +711,7 @@ module MCollective
 
       def oo_deconfigure(args)
         cart_name = args['--cart-name']
-        
+
         with_container_from_args(args) do |container, output|
           output << container.deconfigure(cart_name)
         end
@@ -799,7 +799,7 @@ module MCollective
 
       def oo_status(args)
         cart_name = args['--cart-name']
-        
+
         with_container_from_args(args) do |container, output|
           output << container.status(cart_name)
         end
@@ -927,7 +927,7 @@ module MCollective
         validate :app_uuid, /^[a-zA-Z0-9]+$/
         validate :gear_uuid, /^[a-zA-Z0-9]+$/
         validate :cartridge, /\A[a-zA-Z0-9\.\-\/_]+\z/
-        
+
         app_uuid = request[:app_uuid].to_s if request[:app_uuid]
         gear_uuid = request[:gear_uuid].to_s if request[:gear_uuid]
         cart_name = request[:cartridge]
