@@ -76,9 +76,10 @@ class CartridgeRepositoryTest < OpenShift::NodeTestCase
   end
 
   def test_three_manifest
-    populate_manifest(["#{@path}/redhat-crtest/1.0/metadata/manifest.yml",
-                       "#{@path}/redhat-crtest/1.1/metadata/manifest.yml",
-                       "#{@path}/redhat-crtest/1.2/metadata/manifest.yml"])
+    paths = ["#{@path}/redhat-crtest/1.0/metadata/manifest.yml",
+             "#{@path}/redhat-crtest/1.1/metadata/manifest.yml",
+             "#{@path}/redhat-crtest/1.2/metadata/manifest.yml"]
+    populate_manifest(paths)
 
     cr = OpenShift::Runtime::CartridgeRepository.instance
     cr.load
