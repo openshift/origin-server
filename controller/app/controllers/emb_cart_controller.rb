@@ -44,6 +44,7 @@ class EmbCartController < BaseController
     additional_storage = Integer(params[:additional_storage].presence) rescue nil
 
     cart_urls = []
+    cmap = {}
     if params[:name].is_a? String
       name = params[:name]
     elsif params[:url].is_a? String
@@ -137,12 +138,20 @@ class EmbCartController < BaseController
       cartridge = get_embedded_rest_cartridge(@application, component_instance, @application.group_instances_with_scale, @application.group_overrides)
 
       return render_success(:created, "cartridge", cartridge, "Added #{name} to application #{@application.name}", result)
-    rescue OpenShift::GearLimitReachedException => e
-      return render_error(:unprocessable_entity, "Unable to add cartridge: #{e.message}", 104)
-    rescue OpenShift::UserException => e
-      return render_error(:unprocessable_entity, e.message, 109, "cartridge")
-    rescue Exception => e
-      return render_exception(e) 
+    rescue Exception => ex
+      # if this was a request to add a url based cart, remove the entry from downloaded_cart_map
+      unless cmap.empty?
+        @application.downloaded_cart_map.delete_if {|k, v| k == cmap.keys[0]}
+        @application.save
+      end
+      
+      if ex.kind_of? OpenShift::GearLimitReachedException
+        return render_error(:unprocessable_entity, "Unable to add cartridge: #{ex.message}", 104)
+      elsif ex.kind_of? OpenShift::UserException
+        return render_error(:unprocessable_entity, ex.message, 109, "cartridge")
+      else
+        return render_exception(ex)
+      end
     end
   end
 
