@@ -30,7 +30,7 @@ function update-configuration {
         ;;
 
       1.8)
-        rm -f $OPENSHIFT_RUBY_DIR/env/OPENSHIFT_RUBY_PATH_ELEMENT \
+        rm -f \
             $OPENSHIFT_RUBY_DIR/env/LD_LIBRARY_PATH \
             $OPENSHIFT_RUBY_DIR/env/MANPATH
         echo -n "${GEM_HOME}/bin" > $OPENSHIFT_RUBY_DIR/env/OPENSHIFT_RUBY_PATH_ELEMENT
