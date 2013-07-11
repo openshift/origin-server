@@ -57,7 +57,7 @@ function is_node_module_installed() {
 }
 
 function status() {
-    if [ is_node_service_running ]; then
+    if is_node_service_running; then
         client_result "Application is running"
     else
         client_result "Application is not running"
