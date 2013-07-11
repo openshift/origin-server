@@ -224,12 +224,11 @@ module OpenShift
                 end
 
                 if progress.incomplete? "#{name}_upgrade"
-                  progress.set_instruction('validate_gear')
-
                   if next_manifest.compatible_versions.include?(cartridge_version)
                     progress.log "Compatible upgrade of cartridge #{ident}"
                     compatible_upgrade(progress, cartridge_model, next_manifest, cartridge_path, container)
                   else
+                    progress.set_instruction('validate_gear')
                     stop_gear(progress, hostname, uuid) unless progress.has_instruction?('restart_gear')
                     progress.set_instruction('restart_gear')
 
