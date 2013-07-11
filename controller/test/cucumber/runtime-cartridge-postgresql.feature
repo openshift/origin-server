@@ -68,6 +68,7 @@ Feature: Postgres Application Sub-Cartridge
     Scenarios: RHEL
       | postgres_version |
       |       8.4        |
+      |       9.2        |
 
     @fedora-19-only
     Scenarios: Fedora-19
@@ -103,6 +104,7 @@ Feature: Postgres Application Sub-Cartridge
     Scenarios: RHEL
       | postgres_version |
       |       8.4        |
+      |       9.2        |
 
     @fedora-19-only
     Scenarios: Fedora-19
@@ -126,6 +128,7 @@ Feature: Postgres Application Sub-Cartridge
     Scenarios: RHEL
       | postgres_version |
       |       8.4        |
+      |       9.2        |
 
     @fedora-19-only
     Scenarios: Fedora-19
@@ -154,6 +157,7 @@ Feature: Postgres Application Sub-Cartridge
     Scenarios: RHEL
       | postgres_version |
       |       8.4        |
+      |       9.2        |
 
     @fedora-19-only
     Scenarios: Fedora-19
@@ -183,6 +187,7 @@ Feature: Postgres Application Sub-Cartridge
     Scenarios: RHEL
       | postgres_version |
       |       8.4        |
+      |       9.2        |
 
     @fedora-19-only
     Scenarios: Fedora-19
@@ -214,6 +219,7 @@ Feature: Postgres Application Sub-Cartridge
     Scenarios: RHEL
       | postgres_version |
       |       8.4        |
+      |       9.2        |
 
     @fedora-19-only
     Scenarios: Fedora-19
@@ -253,6 +259,7 @@ Feature: Postgres Application Sub-Cartridge
     Scenarios: RHEL
       | postgres_version |
       |       8.4        |
+      |       9.2        |
 
     @fedora-19-only
     Scenarios: Fedora-19
@@ -296,6 +303,7 @@ Feature: Postgres Application Sub-Cartridge
     Scenarios: RHEL
       | postgres_version |
       |       8.4        |
+      |       9.2        |
 
     @fedora-19-only
     Scenarios: Fedora-19
