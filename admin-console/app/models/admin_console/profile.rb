@@ -16,17 +16,30 @@ module AdminConsole
 
     protected
       def self.get_node_entries
-        nodes = OpenShift::MCollectiveApplicationContainerProxy.get_all_nodes_details
-        nodes.each do |node|
-          node = node[1]
+        nodes = OpenShift::ApplicationContainerProxy.get_details_for_all %w[
+          gears_usage_pct
+          gears_active_usage_pct
+          max_active_gears
+          gears_started_count
+          gears_idle_count
+          gears_stopped_count
+          gears_deploying_count
+          gears_unknown_count
+          gears_total_count
+          gears_active_count
+          node_profile
+          district_uuid
+          district_active
+        ]
+        nodes.each do |identity, facts|
           # convert from strings to relevant values if needed
-          node[:district_active] = node[:district_active] == 'true' ? true : false
+          facts[:district_active] = facts[:district_active] == 'true' ? true : false
           %w{ max_active_gears gears_started_count
               gears_idle_count gears_stopped_count gears_deploying_count
               gears_unknown_count gears_total_count gears_active_count
-            }.each {|fact| node[fact.to_sym] = node[fact.to_sym].to_i}
+            }.each {|fact| facts[fact.to_sym] = facts[fact.to_sym].to_i}
           %w{gears_usage_pct gears_active_usage_pct
-            }.each {|fact| node[fact.to_sym] = node[fact.to_sym].to_f}
+            }.each {|fact| facts[fact.to_sym] = facts[fact.to_sym].to_f}
         end
       end
 
