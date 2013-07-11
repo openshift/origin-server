@@ -1868,10 +1868,12 @@ class Application
       component_ops[config_order[idx]][:post_configures].each { |op| op.prereq += prereq_ids }
     end
 
-    execute_connection_op = nil
-    all_ops_ids = pending_ops.map{ |op| op._id.to_s }
-    execute_connection_op = PendingAppOp.new(op_type: :execute_connections, prereq: all_ops_ids)
-    pending_ops.push execute_connection_op
+    unless pending_ops.empty? or ((pending_ops.length == 1) and (pending_ops[0].op_type == :set_group_overrides))
+      execute_connection_op = nil
+      all_ops_ids = pending_ops.map{ |op| op._id.to_s }
+      execute_connection_op = PendingAppOp.new(op_type: :execute_connections, prereq: all_ops_ids)
+      pending_ops.push execute_connection_op
+    end
 
     # check to see if there are any deployable carts being configured
     # if so, then make sure that the post-configure op for it is executed at the end
