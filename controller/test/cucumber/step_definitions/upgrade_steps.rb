@@ -103,7 +103,7 @@ end
 Then /^the invocation markers from an? (compatible|incompatible) upgrade should exist$/ do |type|
   should_exist_markers = case type
   when 'compatible'
-    %w(control_status)
+    %w()
   when 'incompatible'
     %w(setup_called setup_succeed control_start control_status)
   end
