@@ -69,8 +69,9 @@ module OpenShift
       Dir["/etc/openshift/node-plugins.d/*.conf"].delete_if{ |x| x.end_with? "-dev.conf" }.map{|x| File.basename(x, ".conf")}.each {|plugin| require plugin}
 
       attr_reader :uuid, :application_uuid, :state, :container_name, :application_name, :namespace, :container_dir,
-                  :quota_blocks, :quota_files, :uid, :gid, :base_dir, :gecos, :skel_dir, :supplementary_groups,
+                  :quota_blocks, :quota_files, :base_dir, :gecos, :skel_dir, :supplementary_groups,
                   :cartridge_model, :build_model, :container_plugin, :hourglass
+      attr_accessor :uid, :gid
 
       def initialize(application_uuid, container_uuid, user_uid = nil, application_name = nil, container_name = nil,
                      namespace = nil, quota_blocks = nil, quota_files = nil, hourglass = nil)
@@ -153,32 +154,15 @@ module OpenShift
           uuid_lock.fcntl(Fcntl::F_SETFD, Fcntl::FD_CLOEXEC)
           uuid_lock.flock(File::LOCK_EX)
 
-          # Lock to prevent race condition on obtaining a UNIX user uid.
-          # When running without districts, there is a simple search on the
-          #   passwd file for the next available uid.
-          File.open("/var/lock/oo-create", File::RDWR|File::CREAT|File::TRUNC, 0o0600) do | uid_lock |
-            uid_lock.fcntl(Fcntl::F_SETFD, Fcntl::FD_CLOEXEC)
-            uid_lock.flock(File::LOCK_EX)
+          @container_plugin = @@container_plugin_class.new(self)
+          @container_plugin.create
 
-            unless @uid
-              @uid = @gid = next_uid
-            end
-            @container_plugin = @@container_plugin_class.new(self)
-
-            @container_plugin.create
-          end
           if @config.get("CREATE_APP_SYMLINKS").to_i == 1
             unobfuscated = PathUtils.join(File.dirname(@container_dir),"#{@container_name}-#{@namespace}")
             if not File.exists? unobfuscated
               FileUtils.ln_s File.basename(@container_dir), unobfuscated, :force=>true
             end
           end
-          @container_plugin.enable_cgroups
-          @container_plugin.enable_traffic_control
-
-          initialize_homedir(@base_dir, @container_dir)
-          @container_plugin.enable_fs_limits
-          @container_plugin.delete_all_public_endpoints
 
           uuid_lock.flock(File::LOCK_UN)
         end
@@ -201,27 +185,28 @@ module OpenShift
         end
 
         notify_endpoint_delete = ''
-        @cartridge_model.each_cartridge do |cart|
-          env = ::OpenShift::Runtime::Utils::Environ::for_gear(@container_dir)
-          cart.public_endpoints.each do |endpoint|
-            notify_endpoint_delete << "NOTIFY_ENDPOINT_DELETE: #{endpoint.public_port_name} #{@config.get('PUBLIC_IP')} #{env[endpoint.public_port_name]}\n"
-          end
-        end
-        # possible mismatch across cart model versions
-        output, errout, retcode = @cartridge_model.destroy(skip_hooks)
-
-        raise UserDeletionException.new("ERROR: unable to destroy user account #{@uuid}") if @uuid.nil?
+        output = ''
+        errout = ''
+        retcode = -1
 
         # Don't try to delete a gear that is being scaled-up|created|deleted
         uuid_lock_file = "/var/lock/oo-create.#{@uuid}"
         File.open(uuid_lock_file, File::RDWR|File::CREAT|File::TRUNC, 0o0600) do | lock |
           lock.fcntl(Fcntl::F_SETFD, Fcntl::FD_CLOEXEC)
           lock.flock(File::LOCK_EX)
-          FrontendHttpServer.new(self).destroy
-          @container_plugin.delete_all_public_endpoints
-          @container_plugin.disable_traffic_control
+
+          @cartridge_model.each_cartridge do |cart|
+            env = ::OpenShift::Runtime::Utils::Environ::for_gear(@container_dir)
+            cart.public_endpoints.each do |endpoint|
+              notify_endpoint_delete << "NOTIFY_ENDPOINT_DELETE: #{endpoint.public_port_name} #{@config.get('PUBLIC_IP')} #{env[endpoint.public_port_name]}\n"
+            end
+          end
+          # possible mismatch across cart model versions
+          output, errout, retcode = @cartridge_model.destroy(skip_hooks)
+
+          raise UserDeletionException.new("ERROR: unable to destroy user account #{@uuid}") if @uuid.nil?
+
           @container_plugin.destroy
-          @container_plugin.disable_fs_limits
 
           if @config.get("CREATE_APP_SYMLINKS").to_i == 1
             Dir.foreach(File.dirname(@container_dir)) do |dent|
@@ -232,9 +217,6 @@ module OpenShift
               end
             end
           end
-
-          last_access_dir = @config.get("LAST_ACCESS_DIR")
-          run_in_root_context("rm -f #{last_access_dir}/#{@uuid} > /dev/null")
 
           lock.flock(File::LOCK_UN)
         end
