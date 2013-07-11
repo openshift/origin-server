@@ -2,11 +2,11 @@
 snapshot_exclusions:
 - mongodb/*
 locked_files:
-- bin
+- bin/
 - bin/*
-- env
+- env/
 - env/*
-- metadata
+- metadata/
 - metadata/*
 - hooks/
 - hooks/*
