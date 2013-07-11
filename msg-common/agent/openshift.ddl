@@ -45,6 +45,20 @@ action "cartridge_do", :description => "run a cartridge action" do
            :display_as => "Exit Code"
 end
 
+action "get_fact_set", :description => "get a specific set of facts" do
+    display :always
+
+    input :facts,
+        :prompt         => "Facts",
+        :description    => "Array of facts that will be retrieved",
+        :type           => :any,
+        :optional       => false
+
+    output :output,
+        :description    => "A map of facts and their values",
+        :display_as     => "Facts"
+end
+
 action "execute_parallel", :description => "run commands in parallel" do
     display :always
     output  :output,

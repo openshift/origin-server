@@ -2127,6 +2127,32 @@ module OpenShift
       end
 
       #
+      # get details about a node
+      #
+      # RETURN:
+      # * Map: facts about the node
+      #
+      # NOTES:
+      # * calls rpc_get_fact_set_direct
+      #
+      def get_node_details(array_of_names)
+        rpc_get_fact_set_direct(array_of_names)
+      end
+
+      #
+      # get details about all nodes
+      #
+      # RETURN:
+      # * Map: facts about the nodes
+      #
+      # NOTES:
+      # * calls rpc_get_fact_set
+      #
+      def self.get_details_for_all_impl(array_of_names)
+        rpc_get_fact_set(array_of_names)
+      end
+
+      #
       # Execute an RPC call for the specified agent.
       # If a server is supplied, only execute for that server.
       #
@@ -3066,6 +3092,73 @@ module OpenShift
           end
 
           return value
+      end
+
+      #
+      # Given a known list of facts and node, get the facts directly.
+      # This is significantly faster then the get_facts method
+      # If multiple nodes of the same name exist, it will pick just one
+      #
+      # INPUTS:
+      # * facts: Array of Strings
+      #
+      # RETURNS:
+      # * Map of Fact to String
+      #
+      # RAISES:
+      # * OpenShift::NodeException
+      #
+      # NOTES
+      # * uses MCollectiveApplicationContainerProxxy.rpc_options
+      # * uses MCollective::RPC::Client
+      # 
+      def rpc_get_fact_set_direct(facts)
+          options = MCollectiveApplicationContainerProxy.rpc_options
+
+          rpc_client = MCollectiveApplicationContainerProxy.get_rpc_client('openshift', options)
+          begin
+            result = rpc_client.custom_request('get_fact_set', {:facts => facts}, @id, {'identity' => @id})[0]
+            if (result && defined? result.results && result.results.has_key?(:data))
+              value = result.results[:data][:output]
+            else
+              raise OpenShift::NodeException.new("Node execution failure (error getting facts).  If the problem persists please contact Red Hat support.", 143)
+            end
+          ensure
+            rpc_client.disconnect
+          end
+
+          return value
+      end
+
+      #
+      # Given a known list of facts, get the facts for all nodes.
+      #
+      # INPUTS:
+      # * facts: Array of Strings
+      #
+      # RETURNS:
+      # * Map of Fact to String
+      #
+      # RAISES:
+      # * OpenShift::NodeException
+      #
+      # NOTES
+      # * uses MCollectiveApplicationContainerProxxy.rpc_options
+      # * uses MCollective::RPC::Client
+      # 
+      def self.rpc_get_fact_set(facts)
+        node_fact_map = {}
+        rpc_exec('openshift', nil, true) do |client|
+          client.get_fact_set(:facts => facts) do |response|
+            if response[:body][:statuscode] == 0
+              fact_map = response[:body][:data][:output]
+              sender = response[:senderid]
+              fact_map[:id] = sender
+              node_fact_map[sender] = fact_map
+            end
+          end
+        end
+        return node_fact_map
       end
 
       #

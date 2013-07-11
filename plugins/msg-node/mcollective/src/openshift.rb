@@ -46,6 +46,13 @@ module MCollective
         arg.gsub(/(passwo?r?d\s*[:=]+\s*)\S+/i, '\\1[HIDDEN]').gsub(/(usern?a?m?e?\s*[:=]+\s*)\S+/i, '\\1[HIDDEN]')
       end
 
+      def get_fact_set_action
+        reply[:output] = {}
+        request[:facts].each do |fact|
+          reply[:output][fact.to_sym] = MCollective::Util.get_fact(fact)
+        end
+      end
+
       # Handles all incoming messages. Validates the input, executes the action, and constructs
       # a reply.
       def cartridge_do_action
