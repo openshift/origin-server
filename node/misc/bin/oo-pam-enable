@@ -27,8 +27,12 @@ def usage
 To enable pam for a gear with UUID:
 #{$0} --with-container-uuid UUID
 
+To enable pam for all gears:
+#{$0} --with-all-containers
+
 == List of arguments
   -c|--with-container-uuid  gear_uuid   Unique identifier for the gears
+  -a|--with-all-containers              Run on all gears
   -d|--debug                            Enable debug mode
   -h|--help                             Print this message
 
@@ -40,6 +44,7 @@ require 'rubygems'
 require 'openshift-origin-node'
 opts = GetoptLong.new(
     ["--with-container-uuid", "-c", GetoptLong::REQUIRED_ARGUMENT],
+    ["--with-all-containers", "-a", GetoptLong::NO_ARGUMENT],
     ["--debug",               "-d", GetoptLong::NO_ARGUMENT],
     ["--help",                "-?", GetoptLong::NO_ARGUMENT]
 )
@@ -55,6 +60,8 @@ begin
       usage
     when '--with-container-uuid'
       container_uuid = v
+    when '--with-all-containers'
+      all_containers = true
     when '--debug'
       $oo_debug = true
     else
@@ -70,7 +77,11 @@ unless all_containers or container_uuid
 end
 
 begin
-  OpenShift::Runtime::Node::init_pam_limits(container_uuid.to_s)
+  if all_containers
+    OpenShift::Runtime::Node::init_pam_limits_all
+  else
+    OpenShift::Runtime::Node::init_pam_limits(container_uuid.to_s)
+  end
 rescue Exception => e
   $stderr.puts(e.message)
   exit -1
