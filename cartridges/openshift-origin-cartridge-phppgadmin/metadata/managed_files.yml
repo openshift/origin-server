@@ -1,0 +1,12 @@
+---
+locked_files:
+- bin/
+- bin/*
+- metadata/
+- conf.d/
+- phpPgAdmin/
+- phpPgAdmin/*
+- env/
+- env/*
+processed_templates:
+- '**/*.erb'

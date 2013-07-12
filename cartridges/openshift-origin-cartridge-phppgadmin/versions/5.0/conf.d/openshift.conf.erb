@@ -1,0 +1,12 @@
+ServerRoot "<%= ENV['OPENSHIFT_PHPPGADMIN_DIR'] %>"
+Listen <%= ENV['OPENSHIFT_PHPPGADMIN_IP'] %>:<%= ENV['OPENSHIFT_PHPPGADMIN_PORT'] %>
+User <%= ENV['OPENSHIFT_GEAR_UUID'] %>
+Group <%= ENV['OPENSHIFT_GEAR_UUID'] %>
+<IfVersion >= 2.4>
+DefaultRuntimeDir "<%= "#{ENV['OPENSHIFT_PHPPGADMIN_DIR']}/run"%>"
+</IfVersion>
+
+ErrorLog "|/usr/sbin/rotatelogs <%= ENV['OPENSHIFT_PHPPGADMIN_DIR'] %>/logs/error_log-%Y%m%d-%H%M%S-%Z 86400"
+CustomLog "|/usr/sbin/rotatelogs <%= ENV['OPENSHIFT_PHPPGADMIN_DIR'] %>/logs/access_log-%Y%m%d-%H%M%S-%Z 86400" combined
+
+php_value include_path "."

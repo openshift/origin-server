@@ -1,0 +1,51 @@
+#!/bin/bash -e
+
+source $OPENSHIFT_CARTRIDGE_SDK_BASH
+
+export PHPRC="${OPENSHIFT_PHPPGADMIN_DIR}conf/php.ini"
+
+httpd_config=${OPENSHIFT_PHPPGADMIN_DIR}conf/httpd_nolog.conf
+httpd_pid_file=${OPENSHIFT_PHPPGADMIN_DIR}run/httpd.pid
+
+function start {
+  update_httpd_passenv $httpd_config
+  ensure_valid_httpd_process "$httpd_pid_file" "$httpd_config"
+  /usr/sbin/httpd -C "Include ${OPENSHIFT_PHPPGADMIN_DIR}conf.d/*.conf" -f $httpd_config -k start
+}
+
+function stop {
+  ensure_valid_httpd_process "$httpd_pid_file" "$httpd_config"
+  if [ -f "$httpd_pid_file" ]; then
+      httpd_pid=`cat "$httpd_pid_file" 2> /dev/null`
+  fi
+  /usr/sbin/httpd -C "Include ${OPENSHIFT_PHPPGADMIN_DIR}conf.d/*.conf" -f $httpd_config -k stop
+  wait_for_stop $httpd_pid
+}
+
+function restart {
+  update_httpd_passenv $httpd_config
+  /usr/sbin/httpd -C "Include ${OPENSHIFT_PHPPGADMIN_DIR}conf.d/*.conf" -f $httpd_config -k restart
+}
+
+function status {
+  if ps --no-headers --pid $(< $httpd_pid_file) > /dev/null; then
+    client_result 'phpPgAdmin is running'
+  else
+    client_result 'phpPgAdmin is either stopped or inaccessible'
+  fi
+}
+
+# Clean up any log files
+function tidy() {
+  client_message "Emptying log dir: $OPENSHIFT_PHPPGADMIN_LOG_DIR"
+  shopt -s dotglob
+  rm -rf $OPENSHIFT_PHPPGADMIN_LOG_DIR/*
+}
+
+case "$1" in
+  start) start ;;
+  stop) stop ;;
+  restart) restart ;;
+  status) status ;;
+  tidy) tidy ;;
+esac

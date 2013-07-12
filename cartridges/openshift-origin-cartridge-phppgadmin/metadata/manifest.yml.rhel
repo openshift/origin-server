@@ -1,0 +1,43 @@
+Name: phppgadmin
+Cartridge-Short-Name: PHPPGADMIN
+Display-Name: phpPgAdmin 5.0
+Description: "Web based PostgreSQL admin tool. Requires the PostgreSQL cartridge to be installed first."
+Version: 5.0
+License: GPLv2
+Vendor: Red Hat
+Cartridge-Version: 0.1.0
+Cartridge-Vendor: redhat
+Website: "http://www.phppgadmin.net/"
+Categories:
+  - embedded
+Cart-Data:
+  - Key: connection_url
+    Type: cart_data
+    Description: "phpPgAdmin connection URL"
+Provides:
+  - phppgadmin-5.0
+  - "phppgadmin"
+Publishes:
+  get-serve-info:
+    Type: "NET_TCP:db-config:url"
+Subscribes:
+  set-db-connection-info:
+    Type: "NET_TCP:db:connection-info"
+    Required: false
+  set-postgresql-connection-info:
+    Type: "NET_TCP:db:postgresql"
+    Required : true
+Scaling:
+  Min: 1
+  Max: 1
+Configure-Order:
+  - postgresql
+  - phppgadmin
+Endpoints:
+  - Private-IP-Name:   IP
+    Private-Port-Name: PORT
+    Private-Port:      8080
+    Public-Port-Name:  PROXY_PORT
+    Mappings:
+      - Frontend:      "/phppgadmin"
+        Backend:       "/phppgadmin"

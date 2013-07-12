@@ -1,0 +1,3 @@
+#!/bin/bash -e
+
+mkdir -p $OPENSHIFT_PHPPGADMIN_DIR/{logs,run,sessions,tmp,conf,conf.d}
