@@ -2,7 +2,7 @@
 
 Summary:       Mock cartridge for V2 Cartridge SDK
 Name:          openshift-origin-cartridge-mock
-Version: 0.6.2
+Version: 0.7.0
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
