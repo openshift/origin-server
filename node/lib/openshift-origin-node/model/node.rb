@@ -20,6 +20,7 @@ require 'openshift-origin-node/model/cartridge_repository'
 require 'openshift-origin-common'
 require 'systemu'
 require 'safe_yaml'
+require 'etc'
 
 SafeYAML::OPTIONS[:default_mode] = :unsafe
 
@@ -189,6 +190,20 @@ module OpenShift
         open('/var/log/messages') { |f| f.grep(regex) }.join("\n")
       end
 
+      def self.init_pam_limits_all
+        config = OpenShift::Config.new
+        gecos = (config.get("GEAR_GECOS") || "OO application container")
+
+        uuids=[]
+        Etc.passwd do |pwent|
+          uuids << pwent.name if pwent.gecos == gecos
+        end
+
+        uuids.each do |uuid|
+          init_pam_limits(uuid)
+        end
+      end
+
       def self.init_pam_limits(uuid, limits={})
         resource =OpenShift::Config.new('/etc/openshift/resource_limits.conf')
         limits_order = (resource.get('limits_order') or DEFAULT_PAM_LIMITS_ORDER)
@@ -252,6 +267,20 @@ module OpenShift
         limits = self.get_pam_limits(uuid)
         limits["nproc"]=0
         init_pam_limits(uuid, limits)
+      end
+
+      def self.remove_pam_limits_all
+        config = OpenShift::Config.new
+        gecos = (config.get("GEAR_GECOS") || "OO application container")
+
+        uuids=[]
+        Etc.passwd do |pwent|
+          uuids << pwent.name if pwent.gecos == gecos
+        end
+
+        uuids.each do |uuid|
+          remove_pam_limits(uuid)
+        end
       end
 
       def self.remove_pam_limits(uuid)
