@@ -1,6 +1,6 @@
 Summary:       Utility scripts for the OpenShift Origin broker
 Name:          openshift-origin-node-util
-Version: 1.11.6
+Version: 1.11.7
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -118,6 +118,10 @@ mv services/openshift-gears.service %{buildroot}/etc/systemd/system/openshift-ge
 /sbin/restorecon /usr/sbin/oo-restorer* || :
 
 %changelog
+* Fri Jul 12 2013 Adam Miller <admiller@redhat.com> 1.11.7-1
+- Bug 983780 - parse log files separately and compare timestamps on merge
+  (rmillner@redhat.com)
+
 * Wed Jul 10 2013 Adam Miller <admiller@redhat.com> 1.11.6-1
 - Merge pull request #3027 from kraman/bugfix
   (dmcphers+openshiftbot@redhat.com)
