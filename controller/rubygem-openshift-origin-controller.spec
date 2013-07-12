@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.11.7
+Version: 1.11.8
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -84,6 +84,26 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Fri Jul 12 2013 Adam Miller <admiller@redhat.com> 1.11.8-1
+- Merge pull request #3017 from lnader/master
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3068 from abhgupta/bug_980760
+  (dmcphers+openshiftbot@redhat.com)
+- Fix for bug 980760  - fixing error message on validation failure  - removing
+  downloaded cart manifest entry from app if adding a url based cart fails
+  (abhgupta@redhat.com)
+- Fix bug 983583: remove gear validation step for compatible upgrades
+  (pmorie@gmail.com)
+- Bug 980928 (lnader@redhat.com)
+- Fix up psql command usage in cucumber tests (asari.ruby@gmail.com)
+- Merge pull request #3057 from BanzaiMan/dev/hasari/c157
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3054 from abhgupta/bug_980760
+  (dmcphers+openshiftbot@redhat.com)
+- Add 9.2 for all remaining cucumber features (asari.ruby@gmail.com)
+- Closing mongo db connection to prevent connection pool from getting exhausted
+  (abhgupta@redhat.com)
+
 * Wed Jul 10 2013 Adam Miller <admiller@redhat.com> 1.11.7-1
 - Changing error message to make it more clear (abhgupta@redhat.com)
 - Restore "application destroyed" step which was removed in
