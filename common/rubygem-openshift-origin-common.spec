@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Common
 Name:          rubygem-%{gem_name}
-Version: 1.11.5
+Version: 1.11.6
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -120,6 +120,11 @@ cp bin/man/*.8 %{buildroot}%{_mandir}/man8/
 %doc %{gem_docdir}
 
 %changelog
+* Fri Jul 12 2013 Adam Miller <admiller@redhat.com> 1.11.6-1
+- Merge pull request #2979 from jwhonce/bug/980253
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 980253 - Validate version numbers from manifest (jhonce@redhat.com)
+
 * Wed Jul 10 2013 Adam Miller <admiller@redhat.com> 1.11.5-1
 - Fix for bug 980760  - Preventing multiple versions of a cartridge from being
   added to the application (abhgupta@redhat.com)
