@@ -9,7 +9,7 @@
 
 Summary:       OpenShift Origin Management Console
 Name:          rubygem-%{gem_name}
-Version: 1.11.3
+Version: 1.11.4
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -151,6 +151,9 @@ cp -a ./%{gem_dir}/* %{buildroot}%{gem_dir}/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Fri Jul 12 2013 Adam Miller <admiller@redhat.com> 1.11.4-1
+- Fix bug 983459 - typo in add ssh key text (jliggitt@redhat.com)
+
 * Wed Jul 10 2013 Adam Miller <admiller@redhat.com> 1.11.3-1
 - Fix bug 980953 - allow conversion tracking (jliggitt@redhat.com)
 - Updates to allow basic tests to pass on F19 (kraman@gmail.com)
