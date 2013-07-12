@@ -16,6 +16,7 @@
 #++
 
 require 'fileutils'
+require 'date'
 
 class LastAccessUpdater
   def initialize(app_root_dir, access_log_files)
@@ -89,19 +90,30 @@ class LastAccessUpdater
     # Ruby and we desperately need speed here.
     ignore_cond = [@hosts_ignore.map { |a| "$2 != \"#{a}\"" },
                    @addrs_ignore.map { |a| "$1 != \"#{a}\"" }].flatten.join(' && ')
-    zlog_files = [ @log_files ].flatten.join(' ')
-    output = %x[/bin/awk '{ if ( #{ignore_cond} ) h[$2]=$5" "$6 } END{ for ( i in h ) { printf("%s=%s\\n",i,h[i]) } }' #{zlog_files}]
-    output.each_line { |line|
-      parts = line.split("=")
-      timestamp = parts[1].delete("[").delete("]").strip
-      hostname = parts[0].strip
-      # puts "#{hostname}-->#{timestamp}"
-      # Virtual host is same as app dns
-      app_uuid = @all_apps_info[hostname]
-      if app_uuid
-        @last_access_data[app_uuid] = timestamp
+    awk_cmd = %Q[{ if ( #{ignore_cond} ) h[$2]=$5" "$6 } END{ for ( i in h ) { printf("%s=%s\\n",i,h[i]) } }]
+    # Pack separate log files one at a time so we can enforce the rule
+    # that most recent timestamp wins.
+    @log_files.each do |log_file|
+      IO::popen(['/bin/awk', awk_cmd, log_file]) do |output|
+        output.each do |line|
+          parts = line.split("=")
+          timestamp = parts[1].delete("[").delete("]").strip
+          hostname = parts[0].strip
+          # puts "#{hostname}-->#{timestamp}"
+          # Virtual host is same as app dns
+          app_uuid = @all_apps_info[hostname]
+          if app_uuid
+            # This structure of operations is optimized for getting an
+            # extremely large number of app_uuids only once and just a few
+            # twice.
+            if not (@last_access_data.has_key?(app_uuid) and
+                    ( DateTime.strptime(timestamp, "%d/%b/%Y:%H:%M:%S %Z") <= DateTime.strptime(@last_access_data[app_uuid], "%d/%b/%Y:%H:%M:%S %Z")))
+              @last_access_data[app_uuid] = timestamp
+            end
+          end
+        end
       end
-    }
+    end
   end
 
   def persist_last_access_data
@@ -152,7 +164,7 @@ single_instance do
   ENV["NODE_WEB_PROXY_ACCESS_LOG"] ||= "/var/log/node-web-proxy/access.log"
   ENV["LAST_ACCESS_DIR"]           ||= "/var/lib/openshift/.last_access"
 
-  logfiles = [ENV["APACHE_ACCESS_LOG"], ENV["NODE_WEB_PROXY_ACCESS_LOG"] ]
+  logfiles = [ENV["APACHE_ACCESS_LOG"], ENV["NODE_WEB_PROXY_ACCESS_LOG"]]
   l = LastAccessUpdater.new(ENV["GEAR_BASE_DIR"], logfiles)
   l.load_addrs_ignore
   l.load_apps_data
