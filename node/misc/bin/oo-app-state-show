@@ -65,7 +65,7 @@ end
 
 begin
   container = OpenShift::Runtime::ApplicationContainer.from_uuid(container_uuid)
-  print container.get_app_state()
+  print container.state.value
 rescue Exception => e
   $stderr.puts(e.message)
   exit -1
