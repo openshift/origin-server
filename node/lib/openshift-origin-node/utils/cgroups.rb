@@ -2,12 +2,13 @@ require 'openshift-origin-node/utils/shell_exec'
 require 'fileutils'
 require 'etc'
 
+$OPENSHIFT_RUNTIME_UTILS_CGROUPS_MUTEX = Mutex.new
+
 module OpenShift
   module Runtime
     module Utils
       class Cgroups
 
-        @@MUTEX=Mutex.new
         @@LOCKFILE='/var/lock/oo-cgroups'
 
         @@CGCONFIG="/etc/cgconfig.conf"
@@ -374,16 +375,19 @@ module OpenShift
         # Private: Serialize for editing the cgroups config files
         def self.with_cgroups_lock
           r = nil
-          @@MUTEX.synchronize do
+          $OPENSHIFT_RUNTIME_UTILS_CGROUPS_MUTEX.synchronize do
             File.open(@@LOCKFILE, File::RDWR|File::CREAT|File::TRUNC, 0o0600) do |lockfile|
               lockfile.sync=true
               lockfile.fcntl(Fcntl::F_SETFD, Fcntl::FD_CLOEXEC)
               lockfile.flock(File::LOCK_EX)
               lockfile.write("#{Process::pid}\n")
-              if block_given?
-                r = yield
+              begin
+                if block_given?
+                  r = yield
+                end
+              ensure
+                lockfile.flock(File::LOCK_UN)
               end
-              lockfile.flock(File::LOCK_UN)
             end
           end
           r
