@@ -1,7 +1,7 @@
 %global cartridgedir %{_libexecdir}/openshift/cartridges/perl
 
 Name:          openshift-origin-cartridge-perl
-Version: 0.7.0
+Version: 0.7.1
 Release:       1%{?dist}
 Summary:       Perl cartridge
 Group:         Development/Languages
@@ -74,6 +74,9 @@ rm %{buildroot}%{cartridgedir}/metadata/manifest.yml.*
 
 
 %changelog
+* Fri Jul 12 2013 Adam Miller <admiller@redhat.com> 0.7.1-1
+- bump_minor_versions for sprint 31 (admiller@redhat.com)
+
 * Tue Jul 02 2013 Adam Miller <admiller@redhat.com> 0.6.2-1
 - Bug 976921: Move cart installation to %%posttrans (ironcladlou@gmail.com)
 - Merge pull request #2958 from danmcp/master
