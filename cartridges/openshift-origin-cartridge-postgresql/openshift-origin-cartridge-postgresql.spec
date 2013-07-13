@@ -9,7 +9,7 @@
 
 Summary:       Provides embedded PostgreSQL support
 Name:          openshift-origin-cartridge-postgresql
-Version: 0.5.0
+Version: 0.5.1
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -101,6 +101,9 @@ Provides PostgreSQL cartridge support to OpenShift. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Fri Jul 12 2013 Adam Miller <admiller@redhat.com> 0.5.1-1
+- bump_minor_versions for sprint 31 (admiller@redhat.com)
+
 * Fri Jul 12 2013 Adam Miller <admiller@redhat.com> 0.4.7-1
 - Bug 983190 (asari.ruby@gmail.com)
 - Merge pull request #3052 from
