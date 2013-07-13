@@ -2,7 +2,7 @@
 
 Summary:       Provides Node.js support
 Name:          openshift-origin-cartridge-nodejs
-Version: 1.13.0
+Version: 1.13.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -64,6 +64,9 @@ fi
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Fri Jul 12 2013 Adam Miller <admiller@redhat.com> 1.13.1-1
+- bump_minor_versions for sprint 31 (admiller@redhat.com)
+
 * Fri Jul 12 2013 Adam Miller <admiller@redhat.com> 1.12.5-1
 - Bug BZ983545 - force_clean_build fails on NodeJS (fotios@redhat.com)
 - Bug 983374 - NodeJS status not being reported properly (fotios@redhat.com)
