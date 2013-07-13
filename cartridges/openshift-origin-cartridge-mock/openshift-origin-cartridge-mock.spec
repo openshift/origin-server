@@ -2,7 +2,7 @@
 
 Summary:       Mock cartridge for V2 Cartridge SDK
 Name:          openshift-origin-cartridge-mock
-Version: 0.7.0
+Version: 0.7.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -40,6 +40,9 @@ test platform functionality. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Fri Jul 12 2013 Adam Miller <admiller@redhat.com> 0.7.1-1
+- bump_minor_versions for sprint 31 (admiller@redhat.com)
+
 * Tue Jul 02 2013 Adam Miller <admiller@redhat.com> 0.6.2-1
 - Bug 976921: Move cart installation to %%posttrans (ironcladlou@gmail.com)
 - remove v2 folder from cart install (dmcphers@redhat.com)
