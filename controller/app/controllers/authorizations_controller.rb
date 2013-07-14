@@ -85,8 +85,4 @@ class AuthorizationsController < BaseController
       return render_exception(e) 
     end
   end
-  
-  def set_log_tag
-    @log_tag = get_log_tag_prepend + "AUTHORIZATION"
-  end
 end

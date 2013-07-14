@@ -9,8 +9,4 @@ class EnvironmentController < BaseController
     environment['download_cartridges_enabled'] = Rails.application.config.openshift[:download_cartridges_enabled]
     render_success(:ok, "environment", environment, "Showing broker environment")
   end
-  
-  def set_log_tag
-    @log_tag = get_log_tag_prepend + "ENVIRONMENT"
-  end
 end

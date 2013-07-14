@@ -28,8 +28,9 @@ class DnsResolvableController < BaseController
       render_error(:not_found, "Could not resolve DNS #{name}: #{e.message}", 170)
     end
   end
-  
-  def set_log_tag
-    @log_tag = "DNS_RESOLVABLE"
-  end
+
+  protected
+    def action_log_tag
+      "DNS_RESOLVABLE"
+    end
 end

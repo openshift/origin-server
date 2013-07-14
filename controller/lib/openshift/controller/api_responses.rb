@@ -30,11 +30,11 @@ module OpenShift
           reply = new_rest_reply(status)
           if messages.present?
             reply.messages.concat(messages)
-            log_action(@log_tag, !internal_error, msg, get_log_args, messages.map(&:text).join(', '))
+            log_action(action_log_tag, !internal_error, msg, get_log_args, messages.map(&:text).join(', '))
           else
             msg_type = :error unless msg_type
             reply.messages.push(Message.new(msg_type, msg, err_code, field)) if msg
-            log_action(@log_tag, !internal_error, msg, get_log_args)
+            log_action(action_log_tag, !internal_error, msg, get_log_args)
           end
           respond_with reply
         end
@@ -109,9 +109,9 @@ module OpenShift
           
           if extra_messages.present?
             reply.messages.concat(messages)
-            log_action(@log_tag, true, message, log_args, messages.map(&:text).join(', '))
+            log_action(action_log_tag, true, message, log_args, messages.map(&:text).join(', '))
           else
-            log_action(@log_tag, true, message, log_args)
+            log_action(action_log_tag, true, message, log_args)
           end
           respond_with reply
         end

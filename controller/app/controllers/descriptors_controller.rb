@@ -28,8 +28,4 @@ class DescriptorsController < BaseController
   def show
     render_success(:ok, "descriptor", @application.to_descriptor.to_yaml, "Show descriptor for application '#{@application.name}' for domain '#{@domain.namespace}'")
   end
-  
-  def set_log_tag
-    @log_tag = get_log_tag_prepend + "DESCRIPTOR"
-  end
 end

@@ -142,8 +142,4 @@ class ApplicationsController < BaseController
     status = requested_api_version <= 1.4 ? :no_content : :ok
     return render_success(status, nil, nil, "Application #{id} is deleted.", result)
   end
-
-  def set_log_tag
-    @log_tag = get_log_tag_prepend + "APPLICATION"
-  end
 end

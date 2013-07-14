@@ -10,7 +10,6 @@ module OpenShift
         attr :requested_api_version
 
         def check_version
-
           version = catch(:version) do
             (request.accept || "").split(',').each do |mime_type|
               values = mime_type.split(';').map(&:strip)
