@@ -57,15 +57,9 @@ class KeysController < BaseController
       return render_error(:conflict, "Given public key is already in use. Use different key or delete conflicting key and retry.", 121, "content")
     end
 
-    begin
-      result = @cloud_user.add_ssh_key(key)
-      ssh_key = RestKey.new(key, get_url, nolinks)
-      render_success(:created, "key", ssh_key, "Created SSH key #{name}", result, nil, 'IP' => request.remote_ip)
-    rescue OpenShift::LockUnavailableException => e
-      return render_error(:service_unavailable, "User is currently busy performing another operation. Please try again in a minute.", e.code)
-    rescue Exception => e
-      return render_exception(e)
-    end
+    result = @cloud_user.add_ssh_key(key)
+    ssh_key = RestKey.new(key, get_url, nolinks)
+    render_success(:created, "key", ssh_key, "Created SSH key #{name}", result, nil, 'IP' => request.remote_ip)
   end
 
   #PUT /user/keys/<id>
@@ -88,15 +82,9 @@ class KeysController < BaseController
       return render_error(:unprocessable_entity, nil, nil, nil, nil, messages)
     end
 
-    begin
-      result = @cloud_user.update_ssh_key(key)
-      ssh_key = RestKey.new(key, get_url, nolinks)
-      render_success(:ok, "key", ssh_key, "Updates SSH key #{id} for user #{@cloud_user.login}", result, nil, 'IP' => request.remote_ip)
-    rescue OpenShift::LockUnavailableException => e
-      return render_error(:service_unavailable, "User is currently busy performing another operation. Please try again in a minute.", e.code)
-    rescue Exception => e
-      return render_exception(e)
-    end
+    result = @cloud_user.update_ssh_key(key)
+    ssh_key = RestKey.new(key, get_url, nolinks)
+    render_success(:ok, "key", ssh_key, "Updates SSH key #{id} for user #{@cloud_user.login}", result, nil, 'IP' => request.remote_ip)
   end
 
   #DELETE /user/keys/<id>
@@ -108,15 +96,9 @@ class KeysController < BaseController
       return render_error(:not_found, "SSH key '#{id}' not found", 118)
     end
 
-    begin
-      result = @cloud_user.remove_ssh_key(id)
-      status = requested_api_version <= 1.4 ? :no_content : :ok
-      render_success(status, nil, nil, "Deleted SSH key #{id}", result)
-    rescue OpenShift::LockUnavailableException => e
-      return render_error(:service_unavailable, "User is currently busy performing another operation. Please try again in a minute.", e.code)
-    rescue Exception => e
-      return render_exception(e)
-    end
+    result = @cloud_user.remove_ssh_key(id)
+    status = requested_api_version <= 1.4 ? :no_content : :ok
+    render_success(status, nil, nil, "Deleted SSH key #{id}", result)
   end
   
   def set_log_tag

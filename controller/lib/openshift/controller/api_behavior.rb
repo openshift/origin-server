@@ -59,8 +59,6 @@ module OpenShift
 
         def check_nolinks
           nolinks
-        rescue => e
-          render_exception(e)
         end
           
         def get_bool(param_value)

@@ -107,10 +107,6 @@ class ApplicationsController < BaseController
     rescue OpenShift::ApplicationValidationException => e
       messages = get_error_messages(e.app)
       return render_error(:unprocessable_entity, nil, nil, nil, nil, messages)
-    rescue OpenShift::UserException => e
-      return render_error(:unprocessable_entity, e.message, e.code, e.field)
-    rescue Exception => e
-      return render_exception(e)
     end
     application.user_agent= request.headers['User-Agent']
 
@@ -131,13 +127,8 @@ class ApplicationsController < BaseController
       return render_upgrade_in_progress
     end
     id = params[:id].downcase if params[:id].presence
-    begin
-      result = @application.destroy_app
-    rescue OpenShift::LockUnavailableException => e
-      return render_error(:service_unavailable, "Application is currently busy performing another operation. Please try again in a minute.", e.code)
-    rescue Exception => e
-      return render_exception(e)
-    end
+
+    result = @application.destroy_app
 
     status = requested_api_version <= 1.4 ? :no_content : :ok
     return render_success(status, nil, nil, "Application #{id} is deleted.", result)

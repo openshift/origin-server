@@ -6,6 +6,8 @@ module OpenShift
       included do
         respond_to :json, :xml
         self.responder = OpenShift::Responder
+
+        rescue_from ::Exception, :with => :render_exception
       end
 
       protected
@@ -52,17 +54,29 @@ module OpenShift
 
         def render_exception(ex)
           Rails.logger.error "Reference ID: #{request.uuid} - #{ex.message}\n  #{ex.backtrace.join("\n  ")}"
-          error_code = ex.respond_to?('code') ? ex.code : 1
+          
+          error_code = ex.respond_to?(:code) ? ex.code : 1
           message = ex.message
-          if ex.kind_of? OpenShift::UserException
+          internal_error = true
+
+          case ex
+          when OpenShift::UserException
             status = :unprocessable_entity
-          elsif ex.kind_of? OpenShift::AccessDeniedException
+            internal_error = false
+
+          when OpenShift::AccessDeniedException
             status = :forbidden
-          elsif ex.kind_of? OpenShift::DNSException
+            internal_error = false
+
+          when OpenShift::DNSException
             status = :service_unavailable
-          elsif ex.kind_of? OpenShift::LockUnavailableException
+
+          when OpenShift::LockUnavailableException
             status = :service_unavailable
-          elsif ex.kind_of? OpenShift::NodeException
+            message ||= "Another operation is already in progress. Please try again in a minute."
+            internal_error = false
+
+          when OpenShift::NodeException
             status = :internal_server_error
             if ex.resultIO
               error_code = ex.resultIO.exitcode
@@ -73,12 +87,12 @@ module OpenShift
               message ||= ""
               message += "Unable to complete the requested operation due to: #{ex.message}.\nReference ID: #{request.uuid}"
             end
+
           else
             status = :internal_server_error
             message = "Unable to complete the requested operation due to: #{ex.message}.\nReference ID: #{request.uuid}"
           end
 
-          internal_error = status != :unprocessable_entity
           render_error(status, message, error_code, nil, nil, nil, internal_error)
         end
 

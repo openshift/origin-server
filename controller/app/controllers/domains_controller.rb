@@ -63,13 +63,8 @@ class DomainsController < BaseController
     end
 
     @domain_name = domain.namespace
-    begin
-      domain.save
-    rescue OpenShift::UserException => e
-      return render_error(:unprocessable_entity, e.message, e.code, e.field)
-    rescue Exception => e
-      return render_exception(e) 
-    end
+
+    domain.save
 
     render_success(:created, "domain", get_rest_domain(domain), "Created domain with namespace #{namespace}")
   end
@@ -116,14 +111,8 @@ class DomainsController < BaseController
     @domain_name = domain.namespace
     Rails.logger.debug "Updating domain #{domain.namespace} to #{new_namespace}"
 
-    begin
-      result = domain.update_namespace(new_namespace)
-      domain.save
-    rescue OpenShift::UserException => e
-      return render_error(:unprocessable_entity, e.message, e.code, e.field)
-    rescue Exception => e
-      return render_exception(e) 
-    end
+    result = domain.update_namespace(new_namespace)
+    domain.save
     
     render_success(:ok, "domain", get_rest_domain(domain), "Updated domain #{id} to #{new_namespace}", result)
   end
@@ -154,15 +143,11 @@ class DomainsController < BaseController
       end
     end
 
-    begin
-      # reload the domain so that MongoId does not see any applications
-      @domain.with(consistency: :strong).reload
-      result = @domain.delete
-      status = requested_api_version <= 1.4 ? :no_content : :ok
-      render_success(status, nil, nil, "Domain #{id} deleted.", result)
-    rescue Exception => e
-      return render_exception(e) 
-    end
+    # reload the domain so that MongoId does not see any applications
+    @domain.with(consistency: :strong).reload
+    result = @domain.delete
+    status = requested_api_version <= 1.4 ? :no_content : :ok
+    render_success(status, nil, nil, "Domain #{id} deleted.", result)
   end
 
   private
