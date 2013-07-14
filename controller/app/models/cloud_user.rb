@@ -19,7 +19,7 @@
 class CloudUser
   include Mongoid::Document
   include Mongoid::Timestamps
-  include UtilHelper
+
   alias_method :mongoid_save, :save
 
   DEFAULT_SSH_KEY_NAME = "default"
