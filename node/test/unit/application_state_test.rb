@@ -53,7 +53,6 @@ class ApplicationStateTest < OpenShift::NodeTestCase
   end
 
   def new_state(uuid)
-    OpenShift::Runtime::ApplicationContainer.stubs(:get_build_model).returns(:v2)
     Etc.stubs(:getpwnam).returns(
       OpenStruct.new(
         uid: @uid.to_i,
