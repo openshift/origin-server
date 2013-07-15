@@ -70,7 +70,7 @@ module OpenShift
 
       attr_reader :uuid, :application_uuid, :state, :container_name, :application_name, :namespace, :container_dir,
                   :quota_blocks, :quota_files, :base_dir, :gecos, :skel_dir, :supplementary_groups,
-                  :cartridge_model, :build_model, :container_plugin, :hourglass
+                  :cartridge_model, :container_plugin, :hourglass
       attr_accessor :uid, :gid
 
       def initialize(application_uuid, container_uuid, user_uid = nil, application_name = nil, container_name = nil,
