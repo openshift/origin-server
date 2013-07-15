@@ -17,6 +17,24 @@ class RestApiDomainTest < ActiveSupport::TestCase
     assert @domain.errors.empty?
   end
 
+  def test_domain_not_found
+    m = response_messages(RestApi::ResourceNotFound){ Domain.find("_missing!_", :as => @user) }
+    assert_messages 1, /domain/i, /_missing\!_/i, m
+
+    m = response_messages(RestApi::ResourceNotFound){ Domain.find("notreal", :as => @user) }
+    assert_messages 1, /domain/i, /notreal/i, m
+  end
+
+  def test_domain_app_not_found
+    setup_domain
+
+    m = response_messages{ @domain.find_application('_missing!_') }
+    assert_messages 1, /application/i, /_missing\!_/i, m
+
+    m = response_messages{ @domain.find_application('notreal') }
+    assert_messages 1, /application/i, /notreal/i, m
+  end
+
   def test_domains_get
     setup_domain
     domains = Domain.find :all, :as => @user
