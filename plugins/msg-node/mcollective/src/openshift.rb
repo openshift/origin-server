@@ -46,6 +46,13 @@ module MCollective
         arg.gsub(/(passwo?r?d\s*[:=]+\s*)\S+/i, '\\1[HIDDEN]').gsub(/(usern?a?m?e?\s*[:=]+\s*)\S+/i, '\\1[HIDDEN]')
       end
 
+      def get_facts_action
+        reply[:output] = {}
+        request[:facts].each do |fact|
+          reply[:output][fact.to_sym] = MCollective::Util.get_fact(fact)
+        end
+      end
+
       # Handles all incoming messages. Validates the input, executes the action, and constructs
       # a reply.
       def cartridge_do_action
@@ -207,7 +214,7 @@ module MCollective
         Log.instance.info("upgrade_action call / action=#{request.action}, agent=#{request.agent}, data=#{request.data.pretty_inspect}")
         validate :uuid, /^[a-zA-Z0-9]+$/
         validate :version, /^.+$/
-        validate :namespace, /^.+$/  
+        validate :namespace, /^.+$/
         uuid = request[:uuid]
         namespace = request[:namespace]
         version = request[:version]
@@ -704,7 +711,7 @@ module MCollective
 
       def oo_deconfigure(args)
         cart_name = args['--cart-name']
-        
+
         with_container_from_args(args) do |container, output|
           output << container.deconfigure(cart_name)
         end
@@ -792,7 +799,7 @@ module MCollective
 
       def oo_status(args)
         cart_name = args['--cart-name']
-        
+
         with_container_from_args(args) do |container, output|
           output << container.status(cart_name)
         end
@@ -920,7 +927,7 @@ module MCollective
         validate :app_uuid, /^[a-zA-Z0-9]+$/
         validate :gear_uuid, /^[a-zA-Z0-9]+$/
         validate :cartridge, /\A[a-zA-Z0-9\.\-\/_]+\z/
-        
+
         app_uuid = request[:app_uuid].to_s if request[:app_uuid]
         gear_uuid = request[:gear_uuid].to_s if request[:gear_uuid]
         cart_name = request[:cartridge]
