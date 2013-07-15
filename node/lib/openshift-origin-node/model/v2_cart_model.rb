@@ -275,7 +275,7 @@ module OpenShift
               process_erb_templates(c)
               output << cartridge_action(cartridge, 'install', software_version)
 
-	            actual_entries  = Dir.glob(PathUtils.join(@container.container_dir, '*'))
+              actual_entries  = Dir.glob(PathUtils.join(@container.container_dir, '*'))
               illegal_entries = actual_entries - expected_entries
               unless illegal_entries.empty?
                 raise RuntimeError.new(

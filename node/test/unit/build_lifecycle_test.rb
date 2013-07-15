@@ -44,7 +44,6 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
     @namespace = 'jwh201204301647'
     @gear_ip   = "127.0.0.1"
 
-    OpenShift::Runtime::ApplicationContainer.stubs(:get_build_model).returns(:v2)
     @cartridge_model = mock()
     OpenShift::Runtime::V2CartridgeModel.stubs(:new).returns(@cartridge_model)
 
@@ -60,7 +59,7 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
 
   def test_pre_receive_default_builder
     @cartridge_model.expects(:builder_cartridge).returns(nil)
-    
+
     @container.expects(:stop_gear).with(user_initiated: true, hot_deploy: nil, out: $stdout, err: $stderr)
 
     @container.pre_receive(out: $stdout, err: $stderr)
