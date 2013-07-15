@@ -1,0 +1,55 @@
+= Building OpenShift Origin RPMS from Source
+OpenShift Origin Documentation Project <dev@lists.openshift.redhat.com>
+v2.0, July 2013
+:data-uri:
+:icons:
+
+This guide will walk you through retrieving the OpenShift Origin source from GitHub and build local copies of the Origin RPMS.
+
+OpenShift Origin requires a Fedora 19, or RHEL 6.4 compatible system to build these packages. You should start with a minimal installation to perform the build.
+
+*1. Install basic dependencies (Requires root to install RPMs)*
+
+----
+yum install -y rubygem-thor git tito yum-plugin-priorities wget vim-enhanced \
+ruby-devel rubygems-devel rubygem-aws-sdk rubygem-parseconfig rubygem-yard rubygem-redcarpet \
+createrepo
+----
+
+*2. Clone the openshift-dev-tools repository*
+
+----
+git clone git://github.com/openshift/origin-dev-tools.git
+----
+    
+*3. Clone the OpenShift Origin sources*
+
+----
+# From origin-dev-tools's checkout
+export SKIP_SETUP=1
+./build/devenv clone_addtl_repos master
+----
+
+*4. Install package requirements (Requires root to install RPMs)*
+
+----
+# From origin-dev-tools's checkout
+# This step will install a lot of RPMs and will take a while
+./build/devenv install_required_packages
+----
+
+*5. Build RPMs (Requires root to install RPMs)*
+
+----
+# From origin-dev-tools's checkout
+./build/devenv local-build --skip-install
+----
+
+RPMs will be available in `origin-rpms` directory.
+
+*6. Create RPM metadata so that the directory can be accessed as a YUM repository*
+
+----
+# From the origin-rpms directory
+createrepo .
+----
