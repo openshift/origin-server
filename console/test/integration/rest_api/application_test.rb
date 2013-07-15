@@ -99,6 +99,35 @@ class RestApiApplicationTest < ActiveSupport::TestCase
     assert !cart.scales?
   end
 
+  def test_app_children_not_found_errors
+    app = with_app
+    opts = app.send(:child_options)
+
+    m = response_messages(RestApi::ResourceNotFound){ app.find_cartridge("_missing!_") }
+    assert_messages 1, /cartridge/i, /_missing\!_/i, m
+
+    m = response_messages(RestApi::ResourceNotFound){ app.find_cartridge("missing-cart") }
+    assert_messages 1, /cartridge/i, /missing-cart/i, m
+
+    m = response_messages(RestApi::ResourceNotFound){ Cartridge.new({:name => 'notfound', :application => app}, true).destroy }
+    assert_messages 1, /cartridge/i, /notfound/i, m
+
+    m = response_messages(RestApi::ResourceNotFound){ app.find_alias("notreal") }
+    assert_messages 1, /alias/i, /notreal/i, m
+
+    m = response_messages(RestApi::ResourceNotFound){ Alias.new({:id => 'notfound', :application => app}, true).destroy }
+    assert_messages 1, /alias/i, /notfound/i, m
+
+    m = response_messages(RestApi::ResourceNotFound){ app.post(:events, {:event => 'remove-alias', :alias => 'notfound'}) }
+    assert_messages 1, /alias/i, /notfound/i, m
+
+    m = response_messages(RestApi::ResourceNotFound){ GearGroup.find('_bad_id_', opts) }
+    assert_messages 1, /gear group/i, /_bad_id_/i, m
+
+    m = response_messages(RestApi::ResourceNotFound){ GearGroup.find('abc123', opts) }
+    assert_messages 1, /gear group/i, /abc123/i, m
+  end
+
   def test_create_multiple_cartridges
     with_configured_user
     setup_domain

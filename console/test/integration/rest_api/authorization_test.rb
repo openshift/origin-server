@@ -7,6 +7,11 @@ class RestApiAuthorizationTest < ActiveSupport::TestCase
     with_configured_user
   end
 
+  test 'authorization not found returns message' do 
+    m = response_messages(RestApi::ResourceNotFound){ Authorization.find("_missing!_", :as => @user) }
+    assert_messages 1, /authorization/i, /_missing\!_/i, m
+  end
+
   test 'create authorization' do
     assert a = Authorization.create(:as => @user)
     assert a.token.present?

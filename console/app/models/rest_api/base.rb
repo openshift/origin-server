@@ -357,6 +357,12 @@ module RestApi
       end
     end
 
+    def destroy
+      super
+    rescue ActiveResource::ResourceNotFound => e
+      raise ResourceNotFound.new(self.class.model_name, id, e.response)
+    end
+
     class << self
       def custom_id(name, mutable=false)
         raise "Name #{name.inspect} must be a symbol" unless name.is_a?(Symbol) && !name.is_a?(Class)
@@ -528,14 +534,8 @@ module RestApi
     end
 
     class Message < Struct.new(:exit_code, :field, :severity, :text)
-      def to_s
-        text
-      end
-    end
-
-    def messages
-      @messages ||= begin
-        Array(attributes[:messages]).map do |m|
+      def self.from_array(messages)
+        Array(messages).map do |m|
           Message.new(
             m['exit_code'].to_i,
             m['field'],
@@ -543,11 +543,22 @@ module RestApi
             m['text']
           ) if m['text'].present?
         end.compact
-      rescue
-        []
+      end
+
+      def to_s
+        text
       end
     end
-    def messages= messages
+
+    def self.messages_for(response)
+      Message.from_array(format.decode(response.body)['messages']) rescue []
+    end
+    
+    def messages
+      @messages ||= (Message.from_array(attributes[:messages]) rescue [])
+    end
+
+    def messages=(messages)
       @messages = nil
       if messages.present?
         attributes[:messages] = messages
@@ -606,6 +617,18 @@ module RestApi
     #
     def get(custom_method_name, options = {})
       self.class.send(:instantiate_collection, self.class.format.decode(connection.get(custom_method_element_url(custom_method_name, options), self.class.headers).body), as, prefix_options ) #changed
+    rescue ActiveResource::ResourceNotFound => e
+      raise ResourceNotFound.new(self.class.model_name, id, e.response)
+    end
+
+    [:post, :delete, :put, :patch].each do |sym|
+      define_method sym do |*args|
+        begin
+          super *args
+        rescue ActiveResource::ResourceNotFound => e
+          raise ResourceNotFound.new(self.class.model_name, id, e.response)
+        end
+      end
     end
 
     #
@@ -643,9 +666,13 @@ module RestApi
     class << self
       def get(custom_method_name, options = {}, call_options = {})
         connection(call_options).get(custom_method_collection_url(custom_method_name, options), headers)
+      rescue ActiveResource::ResourceNotFound => e
+        raise ResourceNotFound.new(self.model_name, id, e.response)
       end
       def delete(id, options = {})
         connection(options).delete(element_path(id, options)) #changed
+      rescue ActiveResource::ResourceNotFound => e
+        raise ResourceNotFound.new(self.model_name, id, e.response)
       end
 
       #

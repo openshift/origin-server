@@ -14,6 +14,14 @@ class RestApiKeyTest < ActiveSupport::TestCase
     super "#{uuid}%i"
   end
 
+  def test_key_not_found
+    m = response_messages(RestApi::ResourceNotFound){ Key.find("_missing!_", :as => @user) }
+    assert_messages 1, /ssh key/i, /_missing\!_/i, m
+
+    m = response_messages(RestApi::ResourceNotFound){ Key.find("missing", :as => @user) }
+    assert_messages 1, /ssh key/i, /missing/i, m
+  end
+
   def test_key_get_all
     assert Key.find :all, :as => @user
   end
