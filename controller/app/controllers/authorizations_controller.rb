@@ -45,16 +45,12 @@ class AuthorizationsController < BaseController
   def show
     auth = Authorization.with(consistency: :eventual).for_owner(current_user).any_of({:token => params[:id].to_s}, {:id => params[:id].to_s}).find_by
     render_success(:ok, "authorization", RestAuthorization.new(auth, get_url, nolinks), "Display authorization", nil, nil, 'TOKEN' => auth.token, 'IP' => request.remote_ip)
-  rescue Mongoid::Errors::DocumentNotFound
-    render_error(:not_found, "Authorization #{params[:id]} not found", 129)
   end
 
   def update
     auth = Authorization.for_owner(current_user).any_of({:token => params[:id].to_s}, {:id => params[:id].to_s}).find_by
     auth.update_attributes!(params.slice(:note))
     render_success(:ok, "authorization", RestAuthorization.new(auth, get_url, nolinks), "Change authorization", nil, nil, 'TOKEN' => auth.token, 'IP' => request.remote_ip)
-  rescue Mongoid::Errors::DocumentNotFound
-    render_error(:not_found, "Authorization #{params[:id]} not found", 129)
   end
 
   def destroy

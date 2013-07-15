@@ -68,9 +68,12 @@ class Application
 
   # This is the current regex for validations for new applications
   APP_NAME_REGEX = /\A[A-Za-z0-9]+\z/
-
-  # This is the regex that ensures backward compatibility for fetches
-  APP_NAME_COMPATIBILITY_REGEX = APP_NAME_REGEX
+  def self.check_name!(name)
+    if name.blank? or name !~ APP_NAME_REGEX
+      raise Mongoid::Errors::DocumentNotFound.new(Application, nil, [name]) 
+    end
+    name
+  end
 
   field :name, type: String
   field :canonical_name, type: String

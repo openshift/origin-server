@@ -2,10 +2,6 @@ class EmbCartController < BaseController
   include RestModelHelper
   before_filter :get_domain, :get_application
 
-  # This is the regex for cartridge names
-  # We need to ensure backward compatibility for fetches
-  CART_NAME_COMPATIBILITY_REGEX = /\A([\w\-]+(-)([\d]+(\.[\d]+)*)+)\z/
-    
   # GET /domains/[domain_id]/applications/[application_id]/cartridges
   def index
     cartridges = get_application_rest_cartridges(@application) 
@@ -17,18 +13,9 @@ class EmbCartController < BaseController
     id = params[:id].presence
     status_messages = !params[:include].nil? and params[:include].split(",").include?("status_messages")
     
-    # validate the cartridge name using regex to avoid a mongo call, if it is malformed
-    if id !~ CART_NAME_COMPATIBILITY_REGEX
-      return render_error(:not_found, "Cartridge '#{id}' not found for application '#{@application.name}'", 129)
-    end
-
-    begin
-      component_instance = @application.component_instances.find_by(cartridge_name: id)
-      cartridge = get_embedded_rest_cartridge(@application, component_instance, @application.group_instances_with_scale, @application.group_overrides, status_messages)
-      render_success(:ok, "cartridge", cartridge, "Showing cartridge #{id} for application #{@application.name} under domain #{@domain.namespace}")
-    rescue Mongoid::Errors::DocumentNotFound
-      render_error(:not_found, "Cartridge '#{id}' not found for application '#{@application.name}'", 129)
-    end
+    component_instance = @application.component_instances.find_by(cartridge_name: ComponentInstance.check_name!(id))
+    cartridge = get_embedded_rest_cartridge(@application, component_instance, @application.group_instances_with_scale, @application.group_overrides, status_messages)
+    render_success(:ok, "cartridge", cartridge, "Showing cartridge #{id} for application #{@application.name} under domain #{@domain.namespace}")
   end
 
   # POST /domains/[domain_id]/applications/[application_id]/cartridges
@@ -96,7 +83,7 @@ class EmbCartController < BaseController
         colocate_component_instance = @application.component_instances.find_by(cartridge_name: colocate_with)
         colocate_component_instance = colocate_component_instance.first if colocate_component_instance.class == Array
       rescue Mongoid::Errors::DocumentNotFound
-        return render_error(:unprocessable_entity, "Invalid colocation specified. No component matches #{colocate_with}", 109, "cartridge")      
+        return render_error(:unprocessable_entity, "Invalid colocation specified. No component matches #{colocate_with}", 109, "cartridge")
       end
     end
 
@@ -163,27 +150,18 @@ class EmbCartController < BaseController
 
     cartridge = params[:id].presence
 
-    # validate the cartridge name using regex to avoid a mongo call, if it is malformed
-    if cartridge !~ CART_NAME_COMPATIBILITY_REGEX
-      return render_error(:not_found, "Cartridge #{cartridge} not embedded within application #{@application.name}", 129)
-    end
+    comp = @application.component_instances.find_by(cartridge_name: ComponentInstance.check_name!(cartridge))
+    feature = comp.cartridge_name #@application.get_feature(comp.cartridge_name, comp.component_name)  
+    raise Mongoid::Errors::DocumentNotFound.new(ComponentInstance, nil, [cartridge]) if feature.nil?
+    result = @application.remove_features([feature])
+    status = requested_api_version <= 1.4 ? :no_content : :ok
 
-    begin
-      comp = @application.component_instances.find_by(cartridge_name: cartridge)
-      feature = comp.cartridge_name #@application.get_feature(comp.cartridge_name, comp.component_name)  
-      return render_error(:not_found, "Cartridge '#{cartridge}' not found for application '#{@application.name}'", 101, "REMOVE_CARTRIDGE") if feature.nil?   
-      result = @application.remove_features([feature])
-      status = requested_api_version <= 1.4 ? :no_content : :ok
-
-      render_success(status, nil, nil, "Removed #{cartridge} from application #{@application.name}", result)
-    rescue Mongoid::Errors::DocumentNotFound
-      render_error(:not_found, "Cartridge #{cartridge} not embedded within application #{@application.name}", 129)
-    end
+    render_success(status, nil, nil, "Removed #{cartridge} from application #{@application.name}", result)
   end
 
   # PUT /domains/[domain_id]/applications/[application_id]/cartridges/[id]
   def update
-    id = params[:id].presence
+    id = ComponentInstance.check_name!(params[:id].presence)
     scales_from = Integer(params[:scales_from].presence) rescue nil
     scales_to = Integer(params[:scales_to].presence) rescue nil
     additional_storage = params[:additional_gear_storage].presence
@@ -198,69 +176,56 @@ class EmbCartController < BaseController
       return render_error(:unprocessable_entity, "Invalid storage value provided.", 165, "additional_storage")
     end
     
-    # validate the cartridge name using regex to avoid a mongo call, if it is malformed
-    if id !~ CART_NAME_COMPATIBILITY_REGEX
-      return render_error(:not_found, "Cartridge #{id} not embedded within application #{@application.name}", 129)
+    if !@application.scalable and ((scales_from and scales_from != 1) or (scales_to and scales_to != 1 and scales_to != -1))
+      return render_error(:unprocessable_entity, "Application '#{@application.name}' is not scalable", 100, "name")
     end
 
-    begin
-      if !@application.scalable and ((scales_from and scales_from != 1) or (scales_to and scales_to != 1 and scales_to != -1))
-        return render_error(:unprocessable_entity, "Application '#{@application.name}' is not scalable", 100, "name")
-      end
-
-      if scales_from and scales_from < 1
-        return render_error(:unprocessable_entity, "Invalid scales_from factor #{scales_from} provided", 168, "scales_from") 
-      end
-
-      if scales_to and (scales_to == 0 or scales_to < -1)
-        return render_error(:unprocessable_entity, "Invalid scales_to factor #{scales_to} provided", 168, "scales_to") 
-      end
-
-      if scales_to and scales_from and scales_to >= 1 and scales_to < scales_from
-        return render_error(:unprocessable_entity, "Invalid scales_(from|to) factor provided", 168, "scales_to") 
-      end
-      
-      if @application.quarantined && (scales_from || scales_to)
-        return render_upgrade_in_progress            
-      end
-
-      begin
-        component_instance = @application.component_instances.find_by(cartridge_name: id)
-      rescue Mongoid::Errors::DocumentNotFound
-        return render_error(:not_found, "Cartridge #{id} not embedded within application #{@application.name}", 129)
-      end
-
-      if component_instance.nil?
-        return render_error(:unprocessable_entity, "Invalid cartridge #{id} for application #{@application.name}", 168, "PATCH_APP_CARTRIDGE", "cartridge")
-      end
-
-      if component_instance.is_singleton?
-        if scales_to and scales_to != 1
-          return render_error(:unprocessable_entity, "The cartridge #{id} cannot be scaled.", 168, "PATCH_APP_CARTRIDGE", "scales_to")
-        elsif scales_from and scales_from != 1
-          return render_error(:unprocessable_entity, "The cartridge #{id} cannot be scaled.", 168, "PATCH_APP_CARTRIDGE", "scales_from")
-        end
-      end
-      
-      group_instance = @application.group_instances_with_scale.select{ |go| go.all_component_instances.include? component_instance }[0]
-
-      if scales_to and scales_from.nil? and scales_to >= 1 and scales_to < group_instance.min
-        return render_error(:unprocessable_entity, "The scales_to factor currently provided cannot be lower than the scales_from factor previously provided. Please specify both scales_(from|to) factors together to override.", 168, "scales_to") 
-      end
-
-      if scales_from and scales_to.nil? and group_instance.max >= 1 and group_instance.max < scales_from
-        return render_error(:unprocessable_entity, "The scales_from factor currently provided cannot be higher than the scales_to factor previously provided. Please specify both scales_(from|to) factors together to override.", 168, "scales_from") 
-      end
-
-      result = @application.update_component_limits(component_instance, scales_from, scales_to, additional_storage)
-
-      component_instance = @application.component_instances.find_by(cartridge_name: id)
-      cartridge = get_embedded_rest_cartridge(@application, component_instance, @application.group_instances_with_scale, @application.group_overrides)
-
-      render_success(:ok, "cartridge", cartridge, "Showing cartridge #{id} for application #{@application.name} under domain #{@domain.namespace}", result)
-    rescue Mongoid::Errors::DocumentNotFound
-      render_error(:not_found, "cartridge '#{id}' not found for application '#{@application.name}'", 101)
+    if scales_from and scales_from < 1
+      return render_error(:unprocessable_entity, "Invalid scales_from factor #{scales_from} provided", 168, "scales_from") 
     end
+
+    if scales_to and (scales_to == 0 or scales_to < -1)
+      return render_error(:unprocessable_entity, "Invalid scales_to factor #{scales_to} provided", 168, "scales_to") 
+    end
+
+    if scales_to and scales_from and scales_to >= 1 and scales_to < scales_from
+      return render_error(:unprocessable_entity, "Invalid scales_(from|to) factor provided", 168, "scales_to") 
+    end
+    
+    if @application.quarantined && (scales_from || scales_to)
+      return render_upgrade_in_progress            
+    end
+
+    component_instance = @application.component_instances.find_by(cartridge_name: id)
+
+    if component_instance.nil?
+      return render_error(:unprocessable_entity, "Invalid cartridge #{id} for application #{@application.name}", 168, "PATCH_APP_CARTRIDGE", "cartridge")
+    end
+
+    if component_instance.is_singleton?
+      if scales_to and scales_to != 1
+        return render_error(:unprocessable_entity, "The cartridge #{id} cannot be scaled.", 168, "PATCH_APP_CARTRIDGE", "scales_to")
+      elsif scales_from and scales_from != 1
+        return render_error(:unprocessable_entity, "The cartridge #{id} cannot be scaled.", 168, "PATCH_APP_CARTRIDGE", "scales_from")
+      end
+    end
+    
+    group_instance = @application.group_instances_with_scale.select{ |go| go.all_component_instances.include? component_instance }[0]
+
+    if scales_to and scales_from.nil? and scales_to >= 1 and scales_to < group_instance.min
+      return render_error(:unprocessable_entity, "The scales_to factor currently provided cannot be lower than the scales_from factor previously provided. Please specify both scales_(from|to) factors together to override.", 168, "scales_to") 
+    end
+
+    if scales_from and scales_to.nil? and group_instance.max >= 1 and group_instance.max < scales_from
+      return render_error(:unprocessable_entity, "The scales_from factor currently provided cannot be higher than the scales_to factor previously provided. Please specify both scales_(from|to) factors together to override.", 168, "scales_from") 
+    end
+
+    result = @application.update_component_limits(component_instance, scales_from, scales_to, additional_storage)
+
+    component_instance = @application.component_instances.find_by(cartridge_name: id)
+    cartridge = get_embedded_rest_cartridge(@application, component_instance, @application.group_instances_with_scale, @application.group_overrides)
+
+    render_success(:ok, "cartridge", cartridge, "Showing cartridge #{id} for application #{@application.name} under domain #{@domain.namespace}", result)
   end
   
   def set_log_tag

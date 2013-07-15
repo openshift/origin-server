@@ -28,7 +28,7 @@ class DomainsController < BaseController
   # @param [String] id The namespace of the domain
   # @return [RestReply<RestDomain>] The requested domain
   def show
-    return render_success(:ok, "domain", get_rest_domain(@domain), "Found domain #{@domain.namespace}")
+    render_success(:ok, "domain", get_rest_domain(@domain), "Found domain #{@domain.namespace}")
   end
 
   # Create a new domain for the user
@@ -85,18 +85,9 @@ class DomainsController < BaseController
     
     return render_error(:unprocessable_entity, "Namespace is required and cannot be blank.",106, "id") if !new_namespace or new_namespace.empty?
 
-    # validate the domain name using regex to avoid a mongo call, if it is malformed
-    if id !~ Domain::DOMAIN_NAME_COMPATIBILITY_REGEX
-      return render_error(:not_found, "Domain #{id} not found", 127)
-    end
-
-    begin
-      domain = Domain.find_by(owner: @cloud_user, canonical_namespace: id)
-      existing_namespace = domain.namespace
-      @domain_name = domain.namespace
-    rescue Mongoid::Errors::DocumentNotFound
-      return render_error(:not_found, "Domain '#{id}' not found", 127)
-    end
+    domain = Domain.find_by(owner: @cloud_user, canonical_namespace: Domain.check_name!(id))
+    existing_namespace = domain.namespace
+    @domain_name = domain.namespace
 
     # set the new namespace for validation 
     domain.namespace = new_namespace

@@ -53,13 +53,51 @@ module OpenShift
         #    The exception to return to the user.
 
         def render_exception(ex)
-          Rails.logger.error "Reference ID: #{request.uuid} - #{ex.message}\n  #{ex.backtrace.join("\n  ")}"
-          
           error_code = ex.respond_to?(:code) ? ex.code : 1
           message = ex.message
           internal_error = true
+          field = ex.respond_to?(:field) ? ex.field : nil
 
           case ex
+          when Mongoid::Errors::DocumentNotFound
+            status = :not_found
+
+            target = ex.klass.to_s.underscore.humanize
+            case ex.klass
+            when ComponentInstance then target = 'Cartridge'
+            when GroupInstance then target = 'Gear group'
+            end
+            message = 
+              if ex.unmatched.length > 1
+                "The #{target.pluralize.downcase} with ids #{ex.unmatched.map{ |id| "'#{id}'"}.join(', ')} were not found."
+              elsif ex.unmatched.length == 1
+                "#{target} '#{ex.unmatched.first}' not found."
+              else
+                binding.pry
+                if name = (
+                  (Domain === ex.klass and ex.params[:canonical_namespace].presence) or
+                  (Application === ex.klass and ex.params[:canonical_name].presence) or
+                  (ComponentInstance === ex.klass and ex.params[:cartridge_name].presence) or
+                  (Alias === ex.klass and ex.params[:fqdn].presence)
+                )
+                  "#{target} '#{name}' not found."
+                else
+                  "The requested #{target.downcase} was not found."
+                end
+              end
+            error_code = 
+              case ex.klass
+              when Cartridge, ComponentInstance then 129
+              when SshKey        then 118
+              when GroupInstance then 101
+              when Authorization then 129
+              when Domain        then 127
+              when Alias         then 173
+              when Application   then 101
+              else code
+              end
+            internal_error = false
+
           when OpenShift::UserException
             status = :unprocessable_entity
             internal_error = false
@@ -93,7 +131,9 @@ module OpenShift
             message = "Unable to complete the requested operation due to: #{ex.message}.\nReference ID: #{request.uuid}"
           end
 
-          render_error(status, message, error_code, nil, nil, nil, internal_error)
+          Rails.logger.error "Reference ID: #{request.uuid} - #{ex.message}\n  #{ex.backtrace.join("\n  ")}" if internal_error
+
+          render_error(status, message, error_code, field, nil, nil, internal_error)
         end
 
         # Renders a REST response with for a successful request.
