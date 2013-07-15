@@ -1,7 +1,7 @@
 Rails.application.routes.draw do
-  id_with_format = OpenShift::Controller::Routing::ID_WITH_FORMAT 
-  
-  scope "/rest" do
+  id_with_format = OpenShift::Controller::Routing::ID_WITH_FORMAT
+
+  scope "/broker/rest" do
     resource :api, :only => :show, :controller => :api
     resource :environment, :only => [:show], :controller => :environment
     resource :user, :only => [:show, :destroy], :controller => :user do
