@@ -58,8 +58,6 @@ class ApplicationContainerTest < OpenShift::NodeTestCase
     @namespace = 'jwh201204301647'
     @gear_ip   = "127.0.0.1"
 
-    OpenShift::Runtime::ApplicationContainer.stubs(:get_build_model).returns(:v2)
-
     Etc.stubs(:getpwnam).returns(
       OpenStruct.new(
         uid: @user_uid.to_i,
