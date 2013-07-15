@@ -16,7 +16,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.11.9
+Version: 1.11.10
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -286,6 +286,9 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Mon Jul 15 2013 Adam Miller <admiller@redhat.com> 1.11.10-1
+- remove initial build from cgroups limits (dmcphers@redhat.com)
+
 * Fri Jul 12 2013 Adam Miller <admiller@redhat.com> 1.11.9-1
 - Add pam control scripts. (rmillner@redhat.com)
 - Merge pull request #3071 from ironcladlou/oo-state-show-fix
