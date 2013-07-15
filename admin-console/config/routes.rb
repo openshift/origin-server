@@ -7,4 +7,7 @@ AdminConsole::Engine.routes.draw do
   resources :applications, :only => [:show], :id => /.+/
   resources :gears, :only => [:show], :id => id_regex
   resources :nodes, :only => [:show], :id => id_regex
+  scope "/capacity" do
+    resources :profiles, :only => [:show], :id => id_regex
+  end
 end
