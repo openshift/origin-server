@@ -2,7 +2,7 @@
 # Entry point for the Broker REST API
 # @api REST
 class ApiController < BaseController
-  skip_before_filter :check_outage, :authenticate_user!, :check_controller_scopes!, :set_log_tag, :only => :show
+  skip_before_filter :check_outage, :authenticate_user!, :check_controller_scopes!, :only => :show
 
   ##
   # Returns an array of {http://en.wikipedia.org/wiki/HATEOAS HATEOAS} links describing the REST API. All REST replies

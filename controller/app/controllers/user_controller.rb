@@ -28,10 +28,4 @@ class UserController < BaseController
       return render_exception(e)
     end
   end
-
-  private
-
-  def set_log_tag
-    @log_tag = get_log_tag_prepend + "USER"
-  end
 end

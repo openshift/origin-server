@@ -1,6 +1,8 @@
 class AliasController < BaseController
   include RestModelHelper
   before_filter :get_domain, :get_application
+  action_log_tag_resource :alias
+
   def index
     begin
       rest_aliases = []
@@ -91,9 +93,5 @@ class AliasController < BaseController
     end
     status = requested_api_version <= 1.4 ? :no_content : :ok
     render_success(status, nil, nil, "Removed #{server_alias} from application #{@application.name}", result)
-  end
-  
-  def set_log_tag
-    @log_tag = get_log_tag_prepend + "ALIAS"
   end
 end

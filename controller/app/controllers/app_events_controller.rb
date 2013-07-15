@@ -4,6 +4,8 @@
 class AppEventsController < BaseController
   include RestModelHelper
   before_filter :get_domain, :get_application
+  action_log_tag_resource :application
+
   ##
   # API to perform manage an application
   # 
@@ -101,12 +103,12 @@ class AppEventsController < BaseController
     render_success(:ok, "application", app, msg, r)
   end
   
-  def set_log_tag
-    event = params[:event]
-    if event
-      @log_tag = "#{event.sub('-', '_').upcase}_APPLICATION"
-    else
-      @log_tag = "UNKNOWN_EVENT_APPLICATION"
+  protected
+    def action_log_tag_action
+      if event = params[:event].presence
+        event.underscore.upcase
+      else
+        "UNKNOWN_EVENT"
+      end
     end
-  end
 end

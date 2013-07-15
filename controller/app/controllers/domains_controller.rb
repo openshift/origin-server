@@ -164,10 +164,4 @@ class DomainsController < BaseController
       return render_exception(e) 
     end
   end
-
-  private
-  
-  def set_log_tag
-    @log_tag = get_log_tag_prepend + "DOMAIN"
-  end
 end

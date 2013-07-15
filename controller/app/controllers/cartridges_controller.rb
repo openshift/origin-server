@@ -48,8 +48,4 @@ class CartridgesController < BaseController
     rest_cartridges = cartridges.map { |c| get_rest_cartridge(c) }
     render_success(:ok, "cartridges", rest_cartridges, "List #{search.nil? ? 'all' : search} cartridges")
   end
-  
-  def set_log_tag
-    @log_tag = get_log_tag_prepend + "CARTRIDGE"
-  end
 end
