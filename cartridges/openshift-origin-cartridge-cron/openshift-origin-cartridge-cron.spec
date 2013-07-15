@@ -1,8 +1,8 @@
-%global cartridgedir %{_libexecdir}/openshift/cartridges/v2/cron
+%global cartridgedir %{_libexecdir}/openshift/cartridges/cron
 
 Summary:       Embedded cron support for OpenShift
 Name:          openshift-origin-cartridge-cron
-Version: 1.8.3
+Version: 1.10.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -28,7 +28,7 @@ Cron cartridge for openshift. (Cartridge Format V2)
 %__mkdir -p %{buildroot}%{cartridgedir}
 %__cp -r * %{buildroot}%{cartridgedir}
 
-%post
+%posttrans
 %{_sbindir}/oo-admin-cartridge --action install --source %{cartridgedir}
 
 %files
@@ -40,6 +40,27 @@ Cron cartridge for openshift. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Fri Jul 12 2013 Adam Miller <admiller@redhat.com> 1.10.1-1
+- bump_minor_versions for sprint 31 (admiller@redhat.com)
+
+* Wed Jul 10 2013 Adam Miller <admiller@redhat.com> 1.9.3-1
+- WIP Cartridge - bump cartridge versions (jhonce@redhat.com)
+
+* Tue Jul 02 2013 Adam Miller <admiller@redhat.com> 1.9.2-1
+- Bug 976921: Move cart installation to %%posttrans (ironcladlou@gmail.com)
+- Merge pull request #2958 from danmcp/master
+  (dmcphers+openshiftbot@redhat.com)
+- remove v2 folder from cart install (dmcphers@redhat.com)
+- Bug 977493 - Avoid leaking the lock file descriptor to child processes.
+  (rmillner@redhat.com)
+
+* Tue Jun 25 2013 Adam Miller <admiller@redhat.com> 1.9.1-1
+- bump_minor_versions for sprint 30 (admiller@redhat.com)
+
+* Fri Jun 21 2013 Adam Miller <admiller@redhat.com> 1.8.4-1
+- WIP Cartridge - Updated manifest.yml versions for compatibility
+  (jhonce@redhat.com)
+
 * Wed Jun 19 2013 Adam Miller <admiller@redhat.com> 1.8.3-1
 - Beef up cron cart README (asari.ruby@gmail.com)
 

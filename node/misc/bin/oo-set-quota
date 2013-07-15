@@ -50,7 +50,7 @@ if !uuid or (!blocks and !inodes)
 end
 
 begin
-  OpenShift::Node.set_quota(uuid, blocks, inodes)
+  OpenShift::Runtime::Node.set_quota(uuid, blocks, inodes)
 rescue Exception => e
   $stderr.puts(e.message)
   exit -1

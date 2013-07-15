@@ -67,7 +67,7 @@ unless container_uuid && app_uuid && cart_name
 end
 
 begin
-  container = OpenShift::ApplicationContainer.new(app_uuid, container_uuid)
+  container = OpenShift::Runtime::ApplicationContainer.from_uuid(container_uuid)
   container.delete_public_endpoints(cart_name)
 rescue Exception => e
   $stderr.puts(e.message)

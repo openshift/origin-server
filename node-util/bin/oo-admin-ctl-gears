@@ -21,370 +21,402 @@ require 'openshift-origin-node/utils/application_state'
 require 'openshift-origin-node/model/application_container'
 require 'openshift-origin-node/model/frontend_httpd'
 require 'openshift-origin-common/utils/file_needs_sync'
+require 'syslog'
 
 module OpenShift
-  class AdminGearsControl
-    @@RED = "\033[31m"
-    @@GREEN = "\033[32m"
-    @@NORMAL = "\033[0m"
+  module Runtime
+    class AdminGearsControl
+      @@RED = "\033[31m"
+      @@GREEN = "\033[32m"
+      @@NORMAL = "\033[0m"
 
-    @@DEFAULT_SLOTS = 5
-    @@DEFAULT_GEAR_TIMEOUT = 200
+      @@DEFAULT_SLOTS = 5
+      @@DEFAULT_GEAR_TIMEOUT = 200
 
-    def initialize(container_uuids=nil)
-      @uuids = container_uuids
-      
-      @nslots = @@DEFAULT_SLOTS
+      def initialize(container_uuids=nil)
+        @uuids = container_uuids
 
-      @gear_timeout = @@DEFAULT_GEAR_TIMEOUT
+        @nslots = @@DEFAULT_SLOTS
 
-      if container_uuids.nil?
-        NodeLogger.logger.debug("AdminGearsControl: initialized for all gears with #{@nslots} parallel")
-      else
-        NodeLogger.logger.debug("AdminGearsControl: initialized for gear(s) #{container_uuids.join(' ')}")
-      end
+        @gear_timeout = @@DEFAULT_GEAR_TIMEOUT
 
-      @readers_mutex = Mutex.new
-      @readers = Hash.new
-
-      @generator = nil
-    end
-
-    def start
-      p_runner do |gear|
-        output_pass_fail("Starting", gear) do
-          gear.start_gear
-        end
-      end
-    end
-
-    def stop
-      p_runner do |gear|
-        output_pass_fail("Stopping", gear) do
-          gear.stop_gear(user_initiated: false)
-        end
-      end
-    end
-
-    def restart
-      p_runner do |gear|
-        output_pass_fail("Restarting", gear) do
-          out = ""
-          out << gear.stop_gear
-          out << gear.start_gear
-          out
-        end
-      end
-    end
-
-    def status
-      p_runner(false) do |gear|
-        $stdout.puts("Checking application #{gear.container_name} (#{gear.uuid}) status:")
-        $stdout.puts("-----------------------------------------------")
-        begin
-          gear.cartridge_model.each_cartridge do |cart|
-            $stdout.puts("Cartridge: #{cart.name}...")
-            output = gear.status(cart)
-            output.gsub!(/^ATTR:.*$/, '')
-            output.gsub!(/^CLIENT_RESULT:\s+/, '')
-            output.strip!
-            $stdout.puts(output)
-            $stdout.puts("")
-          end
-        rescue => e
-          $stderr.puts("Gear #{gear.container_name} Exception: #{e}")
-          $stderr.puts("Gear #{gear.container_name} Backtrace: #{e.backtrace}")
-        end
-        $stdout.puts("")
-      end
-    end
-
-    def idle
-      p_runner(false) do |gear|
-        output_pass_fail("Idling", gear) do
-          gear.idle_gear
-        end
-      end
-    end
-
-    def unidle
-      p_runner(false) do |gear|
-        output_pass_fail("Unidling", gear) do
-          gear.unidle_gear
-        end
-      end
-    end
-
-    def p_runner(skip_stopped=true)
-      parallelize do |p|
-        gears(skip_stopped).each do |gear|
-          p.call do
-            if block_given?
-              yield(gear)
-            end
-          end
-        end
-      end
-    end
-
-    def gear_uuids(skip_stopped=true)
-      Enumerator.new do |yielder|
-        gears(skip_stopped).each do |gear|
-          yielder.yield(gear.uuid)
-        end
-      end
-    end
-
-
-    # Public: Enumerate all non-stopped gears.
-    def gears(skip_stopped=true)
-      Enumerator.new do |yielder|
-        gear_set = []
-        if @uuids
-          @uuids.each do |uuid|
-            gear = ApplicationContainer.from_uuid(uuid)
-            if skip_stopped & gear.stop_lock?
-              raise ArgumentError, "Gear is locked: #{uuid}"
-            end
-            gear_set << gear
-          end
+        if container_uuids.nil?
+          NodeLogger.logger.debug("AdminGearsControl: initialized for all gears with #{@nslots} parallel")
         else
-          gear_set = ApplicationContainer.all
+          NodeLogger.logger.debug("AdminGearsControl: initialized for gear(s) #{container_uuids.join(' ')}")
         end
-        gear_set.each do |gear|
+
+        @readers_mutex = Mutex.new
+        @readers = Hash.new
+
+        @generator = nil
+      end
+
+      def start
+        p_runner do |gear|
+          syslog_pass_fail("Started", "Failed to start", gear) do
+            output_pass_fail("Starting", gear) do
+              gear.start_gear
+            end
+          end
+        end
+      end
+
+      def stop
+        p_runner do |gear|
+          syslog_pass_fail("Stopped", "Failed to stop", gear) do
+            output_pass_fail("Stopping", gear) do
+              gear.stop_gear(user_initiated: false)
+            end
+          end
+        end
+      end
+
+      def restart
+        p_runner do |gear|
+          syslog_pass_fail("Restarted", "Failed to restart", gear) do
+            output_pass_fail("Restarting", gear) do
+              out = ""
+              out << gear.stop_gear
+              out << gear.start_gear
+              out
+            end
+          end
+        end
+      end
+
+      def status
+        p_runner(false) do |gear|
+          $stdout.puts("Checking application #{gear.container_name} (#{gear.uuid}) status:")
+          $stdout.puts("-----------------------------------------------")
           begin
-            if not (skip_stopped & gear.stop_lock?)
-              yielder.yield(gear)
+            gear.cartridge_model.each_cartridge do |cart|
+              $stdout.puts("Cartridge: #{cart.name}...")
+              output = gear.status(cart)
+              output.gsub!(/^ATTR:.*$/, '')
+              output.gsub!(/^CLIENT_RESULT:\s+/, '')
+              output.strip!
+              $stdout.puts(output)
+              $stdout.puts("")
             end
           rescue => e
-            NodeLogger.logger.error("Gear evaluation failed for: #{gear.uuid}")
-            NodeLogger.logger.error("Exception: #{e}")
-            NodeLogger.logger.error("#{e.backtrace}")
+            $stderr.puts("Gear #{gear.container_name} Exception: #{e}")
+            $stderr.puts("Gear #{gear.container_name} Backtrace: #{e.backtrace}")
+          end
+          $stdout.puts("")
+        end
+      end
+
+      def idle
+        p_runner(false) do |gear|
+          syslog_pass_fail("Idled", "Failed to idle", gear) do
+            output_pass_fail("Idling", gear) do
+              gear.idle_gear
+            end
           end
         end
       end
-    end
 
-    private
+      def unidle
+        p_runner(false) do |gear|
+          syslog_pass_fail("Restored", "Failed to restore", gear) do
+            output_pass_fail("Unidling", gear) do
+              gear.unidle_gear
+            end
+          end
+        end
+      end
 
-    # Private: yield a function which can be used to parallelize gear
-    # method calls.
-    def parallelize
-
-      # Re-deliver SIGUSR1 to all child processes.
-      Signal.trap("USR1") do
-        @readers_mutex.synchronize do
-          @readers.each_pair do |fileno, child_data|
-            if not child_data[:pid].nil?
-              begin
-                Process.kill("USR1", child_data[:pid])
-              rescue
+      def p_runner(skip_stopped=true)
+        parallelize do |p|
+          gears(skip_stopped).each do |gear|
+            p.call do
+              if block_given?
+                yield(gear)
               end
             end
           end
         end
       end
 
-      @generator = Thread.new do
-        if block_given?
-          yield(gen_background_task)
-        end
-      end
-
-      rv = collect_output
-      @generator.join
-      rv
-    end
-
-    # Private: Respond with pass/fail status depending on whether an exception was raised.
-    def output_pass_fail(message, gear)
-      rc = 0
-      @timeout_handlers << lambda { $stderr.puts "Timeout #{message} gear #{gear}...  [ #{@RED}FAILED#{@NORM} ]" }
-      begin
-        $stdout.write("#{message} gear #{gear.uuid}... ")
-        if block_given?
-          output = yield
-        end
-        NodeLogger.logger.info("#{message} gear #{gear.uuid}... [ OK ]")
-        $stdout.write("[ #{@GREEN}OK#{@NORM} ]\n")
-      rescue => e
-        NodeLogger.logger.debug("Gear: #{gear.uuid} Exception #{e.inspect}")
-        NodeLogger.logger.debug("Gear: #{gear.uuid} Backtrace #{e.backtrace}")
-        NodeLogger.logger.error("#{message} gear #{gear.uuid}: [ FAIL ]")
-        NodeLogger.logger.error("#{message} gear #{gear.uuid}: Error: #{e}")
-        $stdout.write("[ #{@RED}FAILED#{@NORM} ]\n")
-        e.to_s.lines.each do |el|
-          $stdout.write("      #{el}\n")
-        end
-        rc=254
-      end
-      rc
-    end
-
-    # Private: Generate a backgrounded task
-    def gen_background_task
-      lambda do |&block|
-
-        # Wait for a free slot before continuing
-        while true
-          nchildren = 0
-          @readers_mutex.synchronize do
-            nchildren = @readers.length
+      def gear_uuids(skip_stopped=true)
+        Enumerator.new do |yielder|
+          gears(skip_stopped).each do |gear|
+            yielder.yield(gear.uuid)
           end
-          break if nchildren < @nslots
-          Thread.stop
         end
+      end
 
-        reader, writer = IO::pipe
 
-        pid = Process.fork do
-          reader.close
-          rc = 0
-          begin
-            writer.sync
-            $stdin.reopen("/dev/null", 'r')
-            $stdout.reopen(writer)
-            $stdout.sync
-            $stderr.reopen(writer)
-            $stderr.sync
-
-            # Around 1/16 of the forked processes deadlock somewhere
-            # if we don't close FDs and reinitialize logging.
-            ObjectSpace.each_object(IO) do |i|
-              next if i.closed?
-              next if [$stdin, $stdout, $stderr, writer].map { |f| f.fileno }.include?(i.fileno)
-              i.close
-            end
-            NodeLogger.logger.reinitialize
-
-            # Signal USR1 causes us to report a timeout error and detach
-            @timeout_handlers = []
-            Signal.trap("USR1") do
-              NodeLogger.logger.debug("Received USR1, detaching from main process.")
-              @timeout_handlers.each do |block|
-                block.call
+      # Public: Enumerate all non-stopped gears.
+      def gears(skip_stopped=true)
+        Enumerator.new do |yielder|
+          gear_set = []
+          if @uuids
+            @uuids.each do |uuid|
+              gear = ApplicationContainer.from_uuid(uuid)
+              if skip_stopped & gear.stop_lock?
+                raise ArgumentError, "Gear is locked: #{uuid}"
               end
-              $stdout.reopen("/dev/null", "a")
-              $stderr.reopen("/dev/null", "a")
-              writer.close
-              Process.setsid
+              gear_set << gear
             end
-
-            if not block.nil?
-              rc = block.call
-            end
-
-          ensure
-            exit(rc.to_i)
+          else
+            gear_set = ApplicationContainer.all
           end
-        end
-
-        writer.close
-
-        # Add to the listener list
-        @readers_mutex.synchronize do
-          @readers[reader.fileno] = {:pid => pid, :reader => reader, :buf => "", :started => Time.now }
-        end
-
-      end
-    end
-
-    # Private: Collect output and status for children and send to stdout.
-    #
-    # Note: This will buffer stdout indefinitely to avoid slowing down
-    # the children.
-    #
-    # Note: to allow for new processes and a changing descriptor set,
-    # the set of file descriptors are re-checked every 0.1 seconds.
-    #
-    def collect_output
-      outbuf = ""
-      retcode = 0
-
-      begin
-        readers = []
-        @readers_mutex.synchronize do
-          @readers.each_pair do |k, v|
-            readers << v[:reader]
-          end
-        end
-
-        writers=[]
-        if not outbuf.empty?
-          writers=[$stdout]
-        end
-
-        fds = select(readers, writers, nil, 0.1)
-        next if fds.nil?
-        # Process waiting pipe reads
-        fds[0].uniq.each do |fd|
-          begin
-            buf = fd.read_nonblock(32768)
-            @readers_mutex.synchronize do
-              @readers[fd.fileno][:buf] << buf
-            end
-          rescue IO::WaitReadable
-          rescue EOFError
-            fileno = fd.fileno
-            @readers_mutex.synchronize do
-              outbuf << @readers[fileno][:buf]
-              @readers[fileno][:reader].close
-              @readers.delete(fileno)
-            end
+          gear_set.each do |gear|
             begin
-              @generator.wakeup
-            rescue ThreadError
-            end
-          end
-        end
-
-        # Process output to stdout
-        fds[1].each do |fd|
-          begin
-            outbytes = fd.write_nonblock(outbuf)
-            outbuf = outbuf[outbytes..-1]
-          rescue IO::WaitWritable
-          end
-        end
-
-        # Process exited children
-        begin
-          while true
-            cpid, status = Process.waitpid2(-1, Process::WNOHANG)
-            break if cpid.nil?
-            retcode |= status.exitstatus
-            NodeLogger.logger.debug("Finished: #{cpid} Status: #{status.exitstatus}")
-            @readers_mutex.synchronize do
-              @readers.each_pair do |k, v|
-                v.delete(:pid) if v[:pid] == cpid
+              if not (skip_stopped & gear.stop_lock?)
+                yielder.yield(gear)
               end
+            rescue => e
+              NodeLogger.logger.error("Gear evaluation failed for: #{gear.uuid}")
+              NodeLogger.logger.error("Exception: #{e}")
+              NodeLogger.logger.error("#{e.backtrace}")
             end
           end
-        rescue Errno::ECHILD
         end
+      end
 
-        # Process timeouts
-        @readers_mutex.synchronize do
-          @readers.each_pair do |k, v|
-            if not v[:pid].nil?
-              if (Time.now - v[:started]) > @gear_timeout
+      private
+
+      # Private: yield a function which can be used to parallelize gear
+      # method calls.
+      def parallelize
+
+        # Re-deliver SIGUSR1 to all child processes.
+        Signal.trap("USR1") do
+          @readers_mutex.synchronize do
+            @readers.each_pair do |fileno, child_data|
+              if not child_data[:pid].nil?
                 begin
-                  Process.kill("USR1", v[:pid])
+                  Process.kill("USR1", child_data[:pid])
                 rescue
                 end
-                v.delete(:pid)
               end
             end
           end
         end
 
-      end until (not @generator.alive?) and @readers.empty?
+        @generator = Thread.new do
+          if block_given?
+            yield(gen_background_task)
+          end
+        end
 
-      $stdout.write(outbuf)
+        rv = collect_output
+        @generator.join
+        rv
+      end
 
-      retcode
+      # Private: Syslog status (passed/failed)
+      # Intended to wrap output_pass_fail and use its return code.
+      def syslog_pass_fail(pass_msg, fail_msg, gear)
+        rc = 0
+        if block_given?
+          rc = yield
+        end
+
+        Syslog.open('oo-admin-ctl-gears', 0, Syslog::LOG_LOCAL0)
+        if rc == 0
+          Syslog.log(Syslog::LOG_NOTICE, "#{pass_msg}: #{gear.uuid}")
+        else
+          Syslog.log(Syslog::LOG_WARNING, "#{fail_msg}: #{gear.uuid}")
+        end
+        Syslog.close()
+
+        rc
+      end
+
+      # Private: Respond with pass/fail status depending on whether an exception was raised.
+      def output_pass_fail(message, gear)
+        rc = 0
+        @timeout_handlers << lambda { $stderr.puts "Timeout #{message} gear #{gear}...  [ #{@RED}FAILED#{@NORM} ]" }
+        begin
+          $stdout.write("#{message} gear #{gear.uuid}... ")
+          if block_given?
+            output = yield
+          end
+          NodeLogger.logger.info("#{message} gear #{gear.uuid}... [ OK ]")
+          $stdout.write("[ #{@GREEN}OK#{@NORM} ]\n")
+        rescue => e
+          NodeLogger.logger.debug("Gear: #{gear.uuid} Exception #{e.inspect}")
+          NodeLogger.logger.debug("Gear: #{gear.uuid} Backtrace #{e.backtrace}")
+          NodeLogger.logger.error("#{message} gear #{gear.uuid}: [ FAIL ]")
+          NodeLogger.logger.error("#{message} gear #{gear.uuid}: Error: #{e}")
+          $stdout.write("[ #{@RED}FAILED#{@NORM} ]\n")
+          e.to_s.lines.each do |el|
+            $stdout.write("      #{el}\n")
+          end
+          rc=254
+        end
+        rc
+      end
+
+      # Private: Generate a backgrounded task
+      def gen_background_task
+        lambda do |&block|
+
+          # Wait for a free slot before continuing
+          while true
+            nchildren = 0
+            @readers_mutex.synchronize do
+              nchildren = @readers.length
+            end
+            break if nchildren < @nslots
+            Thread.stop
+          end
+
+          reader, writer = IO::pipe
+
+          pid = Process.fork do
+            reader.close
+            rc = 0
+            begin
+              writer.sync
+              $stdin.reopen("/dev/null", 'r')
+              $stdout.reopen(writer)
+              $stdout.sync
+              $stderr.reopen(writer)
+              $stderr.sync
+
+              # Around 1/16 of the forked processes deadlock somewhere
+              # if we don't close FDs and reinitialize logging.
+              ObjectSpace.each_object(IO) do |i|
+                next if i.closed?
+                next if [$stdin, $stdout, $stderr, writer].map { |f| f.fileno }.include?(i.fileno)
+                i.close
+              end
+              NodeLogger.logger.reinitialize
+
+              # Signal USR1 causes us to report a timeout error and detach
+              @timeout_handlers = []
+              Signal.trap("USR1") do
+                NodeLogger.logger.debug("Received USR1, detaching from main process.")
+                @timeout_handlers.each do |block|
+                  block.call
+                end
+                $stdout.reopen("/dev/null", "a")
+                $stderr.reopen("/dev/null", "a")
+                writer.close
+                Process.setsid
+              end
+
+              if not block.nil?
+                rc = block.call
+              end
+
+            ensure
+              exit(rc.to_i)
+            end
+          end
+
+          writer.close
+
+          # Add to the listener list
+          @readers_mutex.synchronize do
+            @readers[reader.fileno] = {:pid => pid, :reader => reader, :buf => "", :started => Time.now }
+          end
+
+        end
+      end
+
+      # Private: Collect output and status for children and send to stdout.
+      #
+      # Note: This will buffer stdout indefinitely to avoid slowing down
+      # the children.
+      #
+      # Note: to allow for new processes and a changing descriptor set,
+      # the set of file descriptors are re-checked every 0.1 seconds.
+      #
+      def collect_output
+        outbuf = ""
+        retcode = 0
+
+        begin
+          readers = []
+          @readers_mutex.synchronize do
+            @readers.each_pair do |k, v|
+              readers << v[:reader]
+            end
+          end
+
+          writers=[]
+          if not outbuf.empty?
+            writers=[$stdout]
+          end
+
+          fds = select(readers, writers, nil, 0.1)
+          next if fds.nil?
+          # Process waiting pipe reads
+          fds[0].uniq.each do |fd|
+            begin
+              buf = fd.read_nonblock(32768)
+              @readers_mutex.synchronize do
+                @readers[fd.fileno][:buf] << buf
+              end
+            rescue IO::WaitReadable
+            rescue EOFError
+              fileno = fd.fileno
+              @readers_mutex.synchronize do
+                outbuf << @readers[fileno][:buf]
+                @readers[fileno][:reader].close
+                @readers.delete(fileno)
+              end
+              begin
+                @generator.wakeup
+              rescue ThreadError
+              end
+            end
+          end
+
+          # Process output to stdout
+          fds[1].each do |fd|
+            begin
+              outbytes = fd.write_nonblock(outbuf)
+              outbuf = outbuf[outbytes..-1]
+            rescue IO::WaitWritable
+            end
+          end
+
+          # Process exited children
+          begin
+            while true
+              cpid, status = Process.waitpid2(-1, Process::WNOHANG)
+              break if cpid.nil?
+              retcode |= status.exitstatus
+              NodeLogger.logger.debug("Finished: #{cpid} Status: #{status.exitstatus}")
+              @readers_mutex.synchronize do
+                @readers.each_pair do |k, v|
+                  v.delete(:pid) if v[:pid] == cpid
+                end
+              end
+            end
+          rescue Errno::ECHILD
+          end
+
+          # Process timeouts
+          @readers_mutex.synchronize do
+            @readers.each_pair do |k, v|
+              if not v[:pid].nil?
+                if (Time.now - v[:started]) > @gear_timeout
+                  begin
+                    Process.kill("USR1", v[:pid])
+                  rescue
+                  end
+                  v.delete(:pid)
+                end
+              end
+            end
+          end
+
+        end until (not @generator.alive?) and @readers.empty?
+
+        $stdout.write(outbuf)
+
+        retcode
+      end
+
     end
-
   end
 end
 
@@ -429,13 +461,13 @@ begin
         i.close
       end
       Process.setsid
-      OpenShift::NodeLogger.logger.reinitialize
+      OpenShift::Runtime::NodeLogger.logger.reinitialize
       exitval = lock_if_good do
-        OpenShift::AdminGearsControl.new.start
+        OpenShift::Runtime::AdminGearsControl.new.start
       end
       exit(exitval)
     end
-    OpenShift::NodeLogger.logger.info("Background start initiated - process id = #{cpid}")
+    OpenShift::Runtime::NodeLogger.logger.info("Background start initiated - process id = #{cpid}")
     $stdout.puts "Background start initiated - process id = #{cpid}"
     $stdout.puts "Check /var/log/openshift/node/platform.log for more details."
     $stdout.puts
@@ -446,67 +478,67 @@ begin
 
   when 'stopall'
     exitval = unlock_if_good {
-      OpenShift::AdminGearsControl.new.stop
+      OpenShift::Runtime::AdminGearsControl.new.stop
     }
 
   when 'restartall'
     exitval = lock_if_good {
-      OpenShift::AdminGearsControl.new.restart
+      OpenShift::Runtime::AdminGearsControl.new.restart
     }
 
   when 'condrestartall'
     if File.exists?($lockfile)
-      exitval = OpenShift::AdminGearsControl.new.restart
+      exitval = OpenShift::Runtime::AdminGearsControl.new.restart
     end
 
   when 'waited-startall'
     exitval = lock_if_good {
-      OpenShift::AdminGearsControl.new.start
+      OpenShift::Runtime::AdminGearsControl.new.start
     }
 
   when 'idleall'
-    exitval = OpenShift::AdminGearsControl.new(ARGV[1..-1]).idle
+    exitval = OpenShift::Runtime::AdminGearsControl.new(ARGV[1..-1]).idle
 
   when 'unidleall'
-    exitval = OpenShift::AdminGearsControl.new(ARGV[1..-1]).unidle
+    exitval = OpenShift::Runtime::AdminGearsControl.new(ARGV[1..-1]).unidle
 
   when 'status'
     $stdout.puts("Checking OpenShift Services: ")
     $stdout.puts("")
-    exitval = OpenShift::AdminGearsControl.new.status    
+    exitval = OpenShift::Runtime::AdminGearsControl.new.status
 
   when 'startgear'
     raise "Requires a gear uuid." if ARGV[1..-1].nil?
-    exitval = OpenShift::AdminGearsControl.new(ARGV[1..-1]).start
+    exitval = OpenShift::Runtime::AdminGearsControl.new(ARGV[1..-1]).start
 
   when 'stopgear'
     raise "Requires a gear uuid." if ARGV[1..-1].nil?
-    exitval = OpenShift::AdminGearsControl.new(ARGV[1..-1]).stop
+    exitval = OpenShift::Runtime::AdminGearsControl.new(ARGV[1..-1]).stop
     
   when 'restartgear'
     raise "Requires a gear uuid." if ARGV[1..-1].nil?
-    exitval = OpenShift::AdminGearsControl.new(ARGV[1..-1]).restart
+    exitval = OpenShift::Runtime::AdminGearsControl.new(ARGV[1..-1]).restart
 
   when 'statusgear'
     raise "Requires a gear uuid." if ARGV[1..-1].nil?
-    exitval = OpenShift::AdminGearsControl.new(ARGV[1..-1]).status
+    exitval = OpenShift::Runtime::AdminGearsControl.new(ARGV[1..-1]).status
 
   when 'idlegear'
     raise "Requires a gear uuid." if ARGV[1..-1].nil?
-    exitval = OpenShift::AdminGearsControl.new(ARGV[1..-1]).idle
+    exitval = OpenShift::Runtime::AdminGearsControl.new(ARGV[1..-1]).idle
 
   when 'unidlegear'
     raise "Requires a gear uuid." if ARGV[1..-1].nil?
-    exitval = OpenShift::AdminGearsControl.new(ARGV[1..-1]).unidle
+    exitval = OpenShift::Runtime::AdminGearsControl.new(ARGV[1..-1]).unidle
 
   when 'list'
-    OpenShift::AdminGearsControl.new.gear_uuids(false).each do |uuid|
+    OpenShift::Runtime::AdminGearsControl.new.gear_uuids(false).each do |uuid|
       $stdout.puts uuid
     end
 
   when 'listidle'
-    OpenShift::AdminGearsControl.new.gear_uuids(false).each do |uuid|
-      if OpenShift::FrontendHttpServer.new(uuid).idle?
+    OpenShift::Runtime::AdminGearsControl.new.gear_uuids(false).each do |uuid|
+      if OpenShift::Runtime::FrontendHttpServer.new(OpenShift::Runtime::ApplicationContainer.from_uuid(uuid)).idle?
         $stdout.puts "#{uuid} is idled"
       end
     end

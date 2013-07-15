@@ -57,7 +57,7 @@ function is_node_module_installed() {
 }
 
 function status() {
-    if [ is_node_service_running ]; then
+    if is_node_service_running; then
         client_result "Application is running"
     else
         client_result "Application is not running"
@@ -93,8 +93,8 @@ function start() {
     #  Ensure we have script file.
     node_app=${node_app:-"server.js"}
 
-    if [ ! -h "$OPENSHIFT_REPO_DIR/../node_modules" ]; then
-       ln -s ../../nodejs-0.6/node_modules $OPENSHIFT_REPO_DIR/../node_modules
+    if [ ! -h "$OPENSHIFT_NODEJS_DIR/node_modules" ]; then
+       ln -s $OPENSHIFT_HOMEDIR/.node_modules $OPENSHIFT_NODEJS_DIR/node_modules
     fi
 
     pushd "$OPENSHIFT_REPO_DIR" > /dev/null
@@ -187,11 +187,33 @@ function build() {
         rm -rf "${OPENSHIFT_NODEJS_DIR}/tmp/saved.node_modules"
     fi
 
-    if [ -f "${OPENSHIFT_REPO_DIR}/.openshift/markers/force_clean_build" ]; then
-        echo ".openshift/markers/force_clean_build found!  Recreating npm modules" 1>&2
-        rm -rf "${OPENSHIFT_NODEJS_DIR}"/node_modules/*
-        rm -rf "${OPENSHIFT_HOMEDIR}"/.npm/*
-        rm -rf "${OPENSHIFT_REPO_DIR}"node_modules/*
+    if marker_present "force_clean_build"; then
+      echo "force_clean_build marker found!  Recreating npm modules" 1>&2
+      # These are directories we want to remove modules from
+      clean_dirs=(
+        "${OPENSHIFT_NODEJS_DIR}/node_modules"
+        "${OPENSHIFT_HOMEDIR}/.npm"
+        "${OPENSHIFT_REPO_DIR}/node_modules"
+      )
+
+      for dir in "${clean_dirs[@]}"
+      do
+        if [ -d "${dir}" ]
+        then
+          pushd "${dir}" > /dev/null
+          # Only remove non-hidden directories that are not symlinks.
+          #   This lets us remove all installed modules except:
+          #     - Globally installed modules
+          #     - The regex prevents us from deleting hidden top level directories, including .bin
+          find . -maxdepth 1 -regex '^\.\/[^\.].*' -type d -exec rm -rf {} \;
+          # Clear out any missing symlinks from .bin (in case we removed the module)
+          if [ -d ".bin" ]
+          then
+            find .bin -type l -! -exec test -e {} \; -exec rm {} \;
+          fi
+          popd > /dev/null
+        fi
+      done
     fi
 
     #  Newer versions of Node set tmp to $HOME/tmp, which is not available
@@ -252,7 +274,7 @@ function post-deploy() {
     fi
 }
 
-function pre-build() {
+function pre-repo-archive() {
     rm -rf ${OPENSHIFT_NODEJS_DIR}/tmp/{node_modules,saved.node_modules}
 
     # If the node_modules/ directory exists, then "stash" it away for redeploy.
@@ -292,9 +314,9 @@ case "$1" in
     graceful-stop|stop)  stop        ;;
     status)              status      ;;
     build)               build       ;;
-    pre-build)           pre-build   ;;
     post-deploy)         post-deploy ;;
     tidy)                tidy        ;;
+    pre-repo-archive)    pre-repo-archive ;;
     *) exit 0;
 esac
 

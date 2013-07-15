@@ -128,3 +128,11 @@ Adding marker files to `.openshift/markers` will have the following effects:
     
     java7                Will run JBossAS with Java7 if present. If no marker is present
                          then the baseline Java version will be used (currently Java6)
+
+## JBoss CLI
+
+The `jbossas` cartridge provides an OpenShift compatible wrapper of the JBoss CLI tool on the gear `PATH`, located at
+`$OPENSHIFT_JBOSSAS_DIR/tools/jboss-cli.sh`. Use the following command to connect to the JBoss instance with the
+CLI tool:
+
+    jboss-cli.sh -c --controller=$OPENSHIFT_JBOSSAS_IP:9999

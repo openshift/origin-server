@@ -23,6 +23,7 @@ of use:
     OPENSHIFT_POSTGRESQL_DB_PID         PID of current Postgres server
     OPENSHIFT_POSTGRESQL_DB_SOCKET_DIR  Postgres socket location
     OPENSHIFT_POSTGRESQL_DB_URL         Full server URL of the form "postgresql://user:password@host:port"
+    OPENSHIFT_POSTGRESQL_VERSION        PostgreSQL version in the form `X.Y`
 
 For more information about environment variables, consult the
 [OpenShift Application Author Guide](https://github.com/openshift/origin-server/blob/master/node/README.writing_applications.md).

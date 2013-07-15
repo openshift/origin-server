@@ -1,4 +1,4 @@
-@runtime_extended_other2
+@runtime_extended2
 @runtime_extended
 @rhel-only
 @not-fedora-19
@@ -26,9 +26,6 @@ Feature: Cartridge Lifecycle JBossEWS1.0 Verification Tests
     Given an existing jbossews-1.0 application
     When I tidy the application
     Then the application should be accessible
-
-  Scenario: Application Snapshot
-    Given an existing jbossews-1.0 application, verify it can be snapshotted and restored
 
   Scenario: Application Destroying
     Given an existing jbossews-1.0 application

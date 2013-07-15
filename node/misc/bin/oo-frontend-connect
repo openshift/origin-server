@@ -163,12 +163,12 @@ end
 connect_args << connect_ent
 
 begin
-  frontend = OpenShift::FrontendHttpServer.new(container_uuid, container_name, namespace)
+  frontend = OpenShift::Runtime::FrontendHttpServer.new(OpenShift::Runtime::ApplicationContainer.from_uuid(container_uuid))
   frontend.connect(*connect_args)
-rescue OpenShift::FrontendHttpServerExecException => e
+rescue OpenShift::Runtime::FrontendHttpServerExecException => e
   $stderr.puts(e.message + e.stdout + e.stderr)
   exit e.rc
-rescue OpenShift::FrontendHttpServerException => e
+rescue OpenShift::Runtime::FrontendHttpServerException => e
   $stderr.puts(e.message)
   exit 129
 rescue Exception => e

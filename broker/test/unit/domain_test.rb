@@ -59,7 +59,7 @@ class DomainTest < ActiveSupport::TestCase
     @domain.save
     
     @app_name = "app#{@random}"
-    @app = Application.create_app(@app_name, [PHP_VERSION], @domain, "small")
+    @app = Application.create_app(@app_name, [PHP_VERSION], @domain)
     @app.save
     
     login1 = "user1#{@random}"
@@ -83,7 +83,7 @@ class DomainTest < ActiveSupport::TestCase
     @domain.save
     
     @app_name = "app#{@random}"
-    @app = Application.create_app(@app_name, [PHP_VERSION], @domain, "small")
+    @app = Application.create_app(@app_name, [PHP_VERSION], @domain)
     @app.save
     
     @domain = Domain.find_by(owner: @user, canonical_namespace: namespace)
@@ -111,7 +111,7 @@ class DomainTest < ActiveSupport::TestCase
     @domain.save
     
     @app_name = "app#{@random}"
-    @app = Application.create_app(@app_name, [PHP_VERSION], @domain, "small")
+    @app = Application.create_app(@app_name, [PHP_VERSION], @domain)
     @app.save
     
     @domain = Domain.find_by(owner: @user, canonical_namespace: namespace)
@@ -136,7 +136,7 @@ class DomainTest < ActiveSupport::TestCase
     @domain.save
     
     @app_name = "app#{@random}"
-    @app = Application.create_app(@app_name, [PHP_VERSION], @domain, "small")
+    @app = Application.create_app(@app_name, [PHP_VERSION], @domain)
     @app.save
     
     @domain = Domain.find_by(owner: @user, canonical_namespace: namespace)

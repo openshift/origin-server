@@ -16,14 +16,14 @@ module OpenShift
     
     def from_descriptor(profile, spec_hash = {})
       self.name = spec_hash["Name"] || profile.name
-      if spec_hash["Publishes"]
+      if spec_hash["Publishes"] and spec_hash["Publishes"].is_a?(Hash)
         spec_hash["Publishes"].each do |n, p|
           conn = Connector.new(n).from_descriptor(p)
           @publishes << conn
         end
       end
       
-      if spec_hash["Subscribes"]
+      if spec_hash["Subscribes"] and spec_hash["Subscribes"].is_a?(Hash)
         spec_hash["Subscribes"].each do |n,p|
           conn = Connector.new(n).from_descriptor(p)
           @subscribes << conn

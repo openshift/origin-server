@@ -1,14 +1,15 @@
 #!/bin/bash -ue
 
 source $OPENSHIFT_CARTRIDGE_SDK_BASH
+source "${OPENSHIFT_POSTGRESQL_DIR}/lib/util"
 
 function _pg_stop {
-  pg_ctl stop -w -t 30 "$@"
+  postgresql_context "pg_ctl stop -w -t 30 -m $1"
 }
 
 function _is_running {
   # Can't use pg_ctl status here because it doesn't mean the db is done starting up
-  psql -l -U postgres &> /dev/null
+  postgresql_context "psql -l -U postgres" &> /dev/null
   return $?
 }
 
@@ -24,7 +25,7 @@ function start {
   if ! _is_running; then
     echo "Starting Postgres"
 
-    pg_ctl start
+    postgresql_context "pg_ctl start"
     wait_for_postgres_availability || error "Could not start Postgres" 70
 
     echo "Postgres started"
@@ -36,9 +37,9 @@ function start {
 
 function stop {
   if _is_running; then
-    _pg_stop -m smart ||
-      _pg_stop -m fast ||
-      _pg_stop -m immediate ||
+    _pg_stop smart ||
+      _pg_stop fast ||
+      _pg_stop immediate ||
       pkill postgres
     if _is_running; then
       error "Could not stop Postgres" 70
@@ -71,7 +72,7 @@ function pre_snapshot {
 
   # Remove any statements that modify the postgres role
   local rexp="^\s*\(DROP\|CREATE\|ALTER\)\s*ROLE\s*postgres.*"
-  pg_dumpall -c -U postgres | \
+  postgresql_context "pg_dumpall -c -U postgres" | \
     sed "/$rexp/d;" | \
     gzip -9 > $OPENSHIFT_DATA_DIR/postgresql_dump_snapshot.gz
 
@@ -101,14 +102,14 @@ function post_restore {
     {
       echo "
       DROP DATABASE IF EXISTS \"${new_db}\";
-      " | psql -U postgres -d postgres
+      " | postgresql_context "psql -U postgres -d postgres"
     } || error "Failed to drop existing database" 187
 
     # Ensure any DROP DATABASE commands don't fail
     local rexp="s#\(DROP DATABASE\) \(.*\)#\\1 IF EXISTS \\2#g;"
 
     # Restore old postgres database
-    zcat $dump_file | sed "${rexp}" | psql -U postgres -d postgres &> /dev/null
+    zcat $dump_file | sed "${rexp}" | postgresql_context "psql -U postgres -d postgres" &> /dev/null
 
     if [ $? -ne 0 ]
     then
@@ -119,7 +120,7 @@ function post_restore {
     {
       echo "
       ALTER DATABASE \"${old_db}\" RENAME TO \"${new_db}\";
-      " | psql -U postgres -d postgres
+      " | postgresql_context "psql -U postgres -d postgres"
     } || error "Failed to rename database" 187
 
     {
@@ -129,7 +130,7 @@ function post_restore {
       do
         echo "
         ALTER DATABASE \"${db}\" OWNER TO \"${new_user}\";
-        " | psql -U postgres -d postgres
+        " | postgresql_context "psql -U postgres -d postgres"
       done
     } || error "Failed to change owner of imported database" 187
 
@@ -137,7 +138,7 @@ function post_restore {
     {
       echo "
       REASSIGN OWNED BY \"${old_user}\" TO \"${new_user}\";
-      " | psql -U postgres -d $new_db
+      " | postgresql_context "psql -U postgres -d $new_db"
     } || error "Failed to change owner of imported tables" 187
 
     # If the user names are different, drop the old role
@@ -147,7 +148,7 @@ function post_restore {
       {
         echo "
         DROP ROLE \"${old_user}\";
-        " | psql -U postgres -d postgres
+        " | postgresql_context "psql -U postgres -d postgres"
       } || error "Failed to remove old user" 187
     fi
 
@@ -171,12 +172,18 @@ function cleanup_dump {
 }
 
 function reload {
-  pg_ctl reload
+  if _is_running; then
+    postgresql_context "pg_ctl reload"
+  else
+    # TODO: client_result is semantically incorrect, but for now,
+    # we'll use it so that CLI can display it.
+    client_result "'reload' is valid only when the database is running"
+  fi
 }
 
 function tidy {
   truncate -s0 $OPENSHIFT_POSTGRESQL_DB_LOG_DIR/*
-  psql -c 'vacuum analyze;' -U postgres
+  postgresql_context "psql -c 'vacuum analyze;' -U postgres"
 }
 
 case "$1" in
@@ -202,7 +209,7 @@ case "$1" in
   post-restore)
     post_restore
   ;;
-  reload)
+  reload|force-reload)
     reload
   ;;
   tidy)

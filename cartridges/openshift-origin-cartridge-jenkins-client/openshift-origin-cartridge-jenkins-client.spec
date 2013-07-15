@@ -3,11 +3,11 @@
     %global scl_prefix ruby193-
 %endif
 
-%global cartridgedir %{_libexecdir}/openshift/cartridges/v2/jenkins-client
+%global cartridgedir %{_libexecdir}/openshift/cartridges/jenkins-client
 
 Summary:       Embedded jenkins client support for OpenShift 
 Name:          openshift-origin-cartridge-jenkins-client
-Version: 1.9.2
+Version: 1.11.1
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -40,7 +40,7 @@ Provides plugin jenkins client support. (Cartridge Format V2)
 %__mkdir -p %{buildroot}%{cartridgedir}
 %__cp -r * %{buildroot}%{cartridgedir}
 
-%post
+%posttrans
 %{_sbindir}/oo-admin-cartridge --action install --source %{cartridgedir}
 
 %files
@@ -52,6 +52,16 @@ Provides plugin jenkins client support. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Fri Jul 12 2013 Adam Miller <admiller@redhat.com> 1.11.1-1
+- bump_minor_versions for sprint 31 (admiller@redhat.com)
+
+* Tue Jul 02 2013 Adam Miller <admiller@redhat.com> 1.10.2-1
+- Bug 976921: Move cart installation to %%posttrans (ironcladlou@gmail.com)
+- remove v2 folder from cart install (dmcphers@redhat.com)
+
+* Tue Jun 25 2013 Adam Miller <admiller@redhat.com> 1.10.1-1
+- bump_minor_versions for sprint 30 (admiller@redhat.com)
+
 * Mon Jun 17 2013 Adam Miller <admiller@redhat.com> 1.9.2-1
 - First pass at removing v1 cartridges (dmcphers@redhat.com)
 

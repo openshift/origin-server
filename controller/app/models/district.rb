@@ -14,7 +14,6 @@ class District
 
   index({:name => 1}, {:unique => true})
   create_indexes
-#  attr_accessor :server_identities, :active_server_identities_size, :uuid, :creation_time, :available_capacity, :available_uids, :max_uid, :max_capacity, :externally_reserved_uids_size, :node_profile, :name
 
   def self.create_district(name, gear_size=nil)
     

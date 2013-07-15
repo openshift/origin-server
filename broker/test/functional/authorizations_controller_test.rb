@@ -1,7 +1,7 @@
 ENV["TEST_NAME"] = "functional_authorizations_controller_test"
 require 'test_helper'
 require 'openshift-origin-controller'
-require 'mocha'
+require 'mocha/setup'
 
 class AuthorizationsControllerTest < ActionController::TestCase
   

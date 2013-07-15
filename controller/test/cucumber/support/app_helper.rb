@@ -57,6 +57,14 @@ module AppHelper
       end
     end
 
+    def self.create_app_from_params(namespace, login, type, password, scalable=false)
+      chars = ("1".."9").to_a
+      # Generate a random name
+      name ||= random_string(8, chars)
+      app = TestApp.new(namespace, login, type, name, password, Process.pid, scalable)
+      return app
+    end
+
     def self.find_on_fs
       Dir.glob("#{$temp}/*.json").collect {|f| TestApp.from_file(f)}.select { |app| ( ( app.owner == Process.pid ) or app.owner.nil? ) }
     end
@@ -76,15 +84,9 @@ module AppHelper
     end
 
     def update_jenkins_info
-      if File.exists?("/var/lib/openshift/#{@uid}/.env/CARTRIDGE_VERSION_2")
-        @jenkins_user     = IO.read("/var/lib/openshift/#{@uid}/.env/JENKINS_USERNAME").chomp
-        @jenkins_password = IO.read("/var/lib/openshift/#{@uid}/.env/JENKINS_PASSWORD").chomp
-        @jenkins_url      = IO.read("/var/lib/openshift/#{@uid}/.env/JENKINS_URL").chomp
-      else
-        @jenkins_user     = `source /var/lib/openshift/#{@uid}/.env/JENKINS_USERNAME;echo $JENKINS_USERNAME`.chomp!
-        @jenkins_password = `source /var/lib/openshift/#{@uid}/.env/JENKINS_PASSWORD;echo $JENKINS_PASSWORD`.chomp!
-        @jenkins_url      = `source /var/lib/openshift/#{@uid}/.env/JENKINS_URL;echo $JENKINS_URL`.chomp!
-      end
+      @jenkins_user     = IO.read("/var/lib/openshift/#{@uid}/.env/JENKINS_USERNAME").chomp
+      @jenkins_password = IO.read("/var/lib/openshift/#{@uid}/.env/JENKINS_PASSWORD").chomp
+      @jenkins_url      = IO.read("/var/lib/openshift/#{@uid}/.env/JENKINS_URL").chomp
 
       @jenkins_job_url = "#{@jenkins_url}job/#{@name}-build/"
       @jenkins_build   = "curl -ksS -X GET #{@jenkins_job_url}api/json --user '#{@jenkins_user}:#{@jenkins_password}'"

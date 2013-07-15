@@ -1,7 +1,7 @@
-%global cartridgedir %{_libexecdir}/openshift/cartridges/v2/perl
+%global cartridgedir %{_libexecdir}/openshift/cartridges/perl
 
 Name:          openshift-origin-cartridge-perl
-Version: 0.5.4
+Version: 0.7.1
 Release:       1%{?dist}
 Summary:       Perl cartridge
 Group:         Development/Languages
@@ -60,7 +60,7 @@ mv %{buildroot}%{cartridgedir}/metadata/manifest.yml.f19 %{buildroot}%{cartridge
 %endif
 rm %{buildroot}%{cartridgedir}/metadata/manifest.yml.*
 
-%post
+%posttrans
 %{_sbindir}/oo-admin-cartridge --action install --source %{cartridgedir}
 
 %files
@@ -74,6 +74,20 @@ rm %{buildroot}%{cartridgedir}/metadata/manifest.yml.*
 
 
 %changelog
+* Fri Jul 12 2013 Adam Miller <admiller@redhat.com> 0.7.1-1
+- bump_minor_versions for sprint 31 (admiller@redhat.com)
+
+* Tue Jul 02 2013 Adam Miller <admiller@redhat.com> 0.6.2-1
+- Bug 976921: Move cart installation to %%posttrans (ironcladlou@gmail.com)
+- Merge pull request #2958 from danmcp/master
+  (dmcphers+openshiftbot@redhat.com)
+- remove v2 folder from cart install (dmcphers@redhat.com)
+- Bug 977950 - Copying the v1 descriptions back into the v2 versions of the
+  cartridge. (rmillner@redhat.com)
+
+* Tue Jun 25 2013 Adam Miller <admiller@redhat.com> 0.6.1-1
+- bump_minor_versions for sprint 30 (admiller@redhat.com)
+
 * Thu Jun 20 2013 Adam Miller <admiller@redhat.com> 0.5.4-1
 - Bug 975700 - check the httpd pid file for corruption and attempt to fix it.
   (rmillner@redhat.com)

@@ -1,6 +1,6 @@
 Summary:       Utility scripts for the OpenShift Origin broker
 Name:          openshift-origin-node-util
-Version: 1.10.3
+Version: 1.12.1
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -10,7 +10,9 @@ Requires:      oddjob
 Requires:      rng-tools
 Requires:      rubygem-openshift-origin-node
 Requires:      httpd
+Requires:      lsof
 Requires:      php >= 5.3.2
+Requires:      lsof
 BuildArch:     noarch
 
 %description
@@ -67,14 +69,10 @@ mv services/openshift-gears.service %{buildroot}/etc/systemd/system/openshift-ge
 %files
 %attr(0750,-,-) %{_sbindir}/oo-accept-node
 %attr(0750,-,-) %{_sbindir}/oo-admin-ctl-gears
-%attr(0750,-,-) %{_sbindir}/oo-app-idle
-%attr(0750,-,-) %{_sbindir}/oo-autoidler
 %attr(0750,-,-) %{_sbindir}/oo-auto-idler
-%attr(0750,-,-) %{_sbindir}/oo-idler
 %attr(0750,-,-) %{_sbindir}/oo-idler-stats
 %attr(0750,-,-) %{_sbindir}/oo-init-quota
 %attr(0750,-,-) %{_sbindir}/oo-last-access
-%attr(0750,-,-) %{_sbindir}/oo-list-stale
 %attr(0750,-,-) %{_sbindir}/oo-list-access
 %attr(0750,-,-) %{_sbindir}/oo-restorecon
 %attr(0750,-,-) %{_sbindir}/oo-restorer
@@ -94,13 +92,9 @@ mv services/openshift-gears.service %{buildroot}/etc/systemd/system/openshift-ge
 %doc README-Idler.md
 %{_mandir}/man8/oo-accept-node.8.gz
 %{_mandir}/man8/oo-admin-ctl-gears.8.gz
-%{_mandir}/man8/oo-app-idle.8.gz
-%{_mandir}/man8/oo-autoidler.8.gz
-%{_mandir}/man8/oo-idler.8.gz
 %{_mandir}/man8/oo-idler-stats.8.gz
 %{_mandir}/man8/oo-init-quota.8.gz
 %{_mandir}/man8/oo-last-access.8.gz
-%{_mandir}/man8/oo-list-stale.8.gz
 %{_mandir}/man8/oo-list-access.8.gz
 %{_mandir}/man8/oo-restorecon.8.gz
 %{_mandir}/man8/oo-restorer.8.gz
@@ -124,6 +118,68 @@ mv services/openshift-gears.service %{buildroot}/etc/systemd/system/openshift-ge
 /sbin/restorecon /usr/sbin/oo-restorer* || :
 
 %changelog
+* Fri Jul 12 2013 Adam Miller <admiller@redhat.com> 1.12.1-1
+- bump_minor_versions for sprint 31 (admiller@redhat.com)
+
+* Fri Jul 12 2013 Adam Miller <admiller@redhat.com> 1.11.7-1
+- Bug 983780 - parse log files separately and compare timestamps on merge
+  (rmillner@redhat.com)
+
+* Wed Jul 10 2013 Adam Miller <admiller@redhat.com> 1.11.6-1
+- Merge pull request #3027 from kraman/bugfix
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3023 from rmillner/BZ958355
+  (dmcphers+openshiftbot@redhat.com)
+- Fix gear env loading by using ApplicationContainer::from_uuid instead of
+  ApplicationContainer::new (kraman@gmail.com)
+- Bug 982523 - add syslog to oo-admin-ctl-gears (rmillner@redhat.com)
+- Merge pull request #3019 from pmorie/bugs/981273
+  (dmcphers+openshiftbot@redhat.com)
+- Fix bug 981273 (pmorie@gmail.com)
+
+* Tue Jul 09 2013 Adam Miller <admiller@redhat.com> 1.11.5-1
+- Bug 981594 - ApplicationContainer used as an argument needed full module
+  paths. (rmillner@redhat.com)
+- Make resolution for Utils module explicit (kraman@gmail.com)
+
+* Mon Jul 08 2013 Adam Miller <admiller@redhat.com> 1.11.4-1
+-  Revamp the cgroups and pam scripts to leverage the system setup for better
+  performance and simplify the code. (rmillner@redhat.com)
+
+* Tue Jul 02 2013 Adam Miller <admiller@redhat.com> 1.11.3-1
+- Merge pull request #2934 from kraman/libvirt-f19-2
+  (dmcphers+openshiftbot@redhat.com)
+- Changing File.join to PathUtils.join in node and common packages Uncommenting
+  cgroups Fixing signal handling in oo-gear-init (kraman@gmail.com)
+- Refactor code to use run_in_container_context/run_in_root_context calls
+  instead of generically calling oo_spawn and passing uid. Modify frontend
+  httpd/proxy classes to accept a container object instead of indivigual
+  properties (kraman@gmail.com)
+- Moving Node classes into Runtime namespace Removing UnixUser Moving
+  functionality into SELinux plugin class (kraman@gmail.com)
+
+* Tue Jul 02 2013 Adam Miller <admiller@redhat.com> 1.11.2-1
+- Rename migrate to upgrade in code (pmorie@gmail.com)
+- Remove unused scripts. (mrunalp@gmail.com)
+- Merge pull request #2957 from rmillner/BZ977493
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 977493 - Avoid leaking the lock file descriptor to child processes.
+  (rmillner@redhat.com)
+- Bug 978261 - find the external ethernet device rather than hard-code eth0
+  (rmillner@redhat.com)
+- Bug 979134 - the v1 cart version check was matching older versions of the v2
+  cart and is no longer necessary. (rmillner@redhat.com)
+- node-util: Fixing undefined local variable due to typo (mmahut@redhat.com)
+- Adding lsof dependency (kraman@gmail.com)
+- Remove V1 code and V2-specific stepdefs (pmorie@gmail.com)
+- removing v1 logic (dmcphers@redhat.com)
+
+* Tue Jun 25 2013 Adam Miller <admiller@redhat.com> 1.11.1-1
+- bump_minor_versions for sprint 30 (admiller@redhat.com)
+
+* Fri Jun 21 2013 Adam Miller <admiller@redhat.com> 1.10.4-1
+- Fix bug 971955: load users correctly from /etc/passwd (pmorie@gmail.com)
+
 * Tue Jun 18 2013 Adam Miller <admiller@redhat.com> 1.10.3-1
 - Bug 971176 - Catch cartridge repository issues. (rmillner@redhat.com)
 - Merge pull request #2867 from rmillner/misc_bugs

@@ -1,13 +1,12 @@
 #!/bin/bash -ue
 
 source $OPENSHIFT_CARTRIDGE_SDK_BASH
+source "${OPENSHIFT_POSTGRESQL_DIR}/lib/util"
 
 case "$1" in
   -v|--version)
     version="$2"
 esac
-
-echo "$version" > "$OPENSHIFT_POSTGRESQL_DIR/env/OPENSHIFT_POSTGRES_VERSION"
 
 echo "Installing postgres"
 
@@ -24,6 +23,8 @@ set_env_var 'OPENSHIFT_POSTGRESQL_DB_USERNAME' $username $env_dir
 set_env_var 'PGUSER' $username $env_dir
 set_env_var 'OPENSHIFT_POSTGRESQL_DB_PASSWORD' $password $env_dir
 
+set_env_var 'OPENSHIFT_POSTGRESQL_VERSION' $version $env_dir
+
 # TODO: This should be able to be in an erb file, but they're not sourced in the correct order
 set_env_var 'OPENSHIFT_POSTGRESQL_DB_URL' "postgresql://${username}:${password}@${OPENSHIFT_POSTGRESQL_DB_HOST}:${OPENSHIFT_POSTGRESQL_DB_PORT}" $env_dir
 
@@ -38,9 +39,11 @@ chmod 0700 $OPENSHIFT_POSTGRESQL_DB_SOCKET
 conf_dir="${OPENSHIFT_POSTGRESQL_DIR}/versions/$version/conf"
 cp $conf_dir/*.conf $OPENSHIFT_POSTGRESQL_DIR/data/
 
-cp $conf_dir/psqlrc $HOME/.psqlrc
-echo "*:*:*:${username}:${password}" > $HOME/.pgpass
-chmod 0600 $HOME/.pgpass
+cp $conf_dir/psqlrc $OPENSHIFT_HOMEDIR/.psqlrc
+echo "*:*:*:${username}:${password}" > $OPENSHIFT_HOMEDIR/.pgpass
+chmod 0600 $OPENSHIFT_HOMEDIR/.pgpass
+
+update-configuration $version
 
 conn_url='postgresql://$OPENSHIFT_POSTGRESQL_DB_HOST:$OPENSHIFT_POSTGRESQL_DB_PORT'
 

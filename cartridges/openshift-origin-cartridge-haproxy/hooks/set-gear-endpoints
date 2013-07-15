@@ -1,4 +1,5 @@
 #!/bin/bash
+source $OPENSHIFT_CARTRIDGE_SDK_BASH
 
 # Set ssh endpoints for all gears where the application framework is running.
 # Exit on any errors
@@ -33,7 +34,9 @@ function register_gear_endpoint() {
         flock 201
         echo "$3" >> "$HAPROXY_GEAR_REGISTRY"
         flock -u 201
-        $OPENSHIFT_HAPROXY_DIR/bin/deploy $2
+        local gears=("$2")
+        sync_gear_repos "true" "${gears[@]}"
+        [ $? -eq 0 ] || exit $?
     else
         unregister_gear_endpoint "$1"
         flock 201

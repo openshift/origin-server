@@ -26,20 +26,20 @@ class NodeTest < OpenShift::NodeTestCase
         returns(YAML.load(MANIFESTS[0]))
     File.stubs(:exist?).returns(true)
 
-    OpenShift::CartridgeRepository.
+    OpenShift::Runtime::CartridgeRepository.
         any_instance.
         stubs(:find_manifests).
         multiple_yields(["#{@path}/redhat-crtest/1.2/metadata/manifest.yml"])
 
-    OpenShift::CartridgeRepository.instance.clear
-    OpenShift::CartridgeRepository.instance.load
+    OpenShift::Runtime::CartridgeRepository.instance.clear
+    OpenShift::Runtime::CartridgeRepository.instance.load
   end
 
   def test_get_cartridge_list
-    buffer = OpenShift::Node.get_cartridge_list(true, true, true)
+    buffer = OpenShift::Runtime::Node.get_cartridge_list(true, true, true)
     refute_nil buffer
 
-    assert_equal %Q(CLIENT_RESULT: [\"---\\nName: crtest-0.1\\nDisplay-Name: crtest Unit Test\\nVersion: '0.1'\\nVersions:\\n- '0.1'\\n- '0.2'\\n- '0.3'\\nCartridge-Vendor: redhat\\nGroup-Overrides:\\n- components:\\n  - crtest-0.1\\n  - web_proxy\\n\",\"---\\nName: crtest-0.2\\nDisplay-Name: crtest Unit Test\\nVersion: '0.2'\\nVersions:\\n- '0.1'\\n- '0.2'\\n- '0.3'\\nCartridge-Vendor: redhat\\nGroup-Overrides:\\n- components:\\n  - crtest-0.2\\n  - web_proxy\\n\",\"---\\nName: crtest-0.3\\nDisplay-Name: crtest Unit Test\\nVersion: '0.3'\\nVersions:\\n- '0.1'\\n- '0.2'\\n- '0.3'\\nCartridge-Vendor: redhat\\nGroup-Overrides:\\n- components:\\n  - crtest-0.2\\n  - web_proxy\\n\"]),
+    assert_equal %Q(CLIENT_RESULT: [\"---\\nName: crtest\\nDisplay-Name: crtest Unit Test\\nVersion: '0.1'\\nVersions:\\n- '0.1'\\n- '0.2'\\n- '0.3'\\nCartridge-Vendor: redhat\\nGroup-Overrides:\\n- components:\\n  - crtest-0.1\\n  - web_proxy\\n\",\"---\\nName: crtest\\nDisplay-Name: crtest Unit Test\\nVersion: '0.2'\\nVersions:\\n- '0.1'\\n- '0.2'\\n- '0.3'\\nCartridge-Vendor: redhat\\nGroup-Overrides:\\n- components:\\n  - crtest-0.2\\n  - web_proxy\\n\",\"---\\nName: crtest\\nDisplay-Name: crtest Unit Test\\nVersion: '0.3'\\nVersions:\\n- '0.1'\\n- '0.2'\\n- '0.3'\\nCartridge-Vendor: redhat\\nGroup-Overrides:\\n- components:\\n  - crtest-0.2\\n  - web_proxy\\n\"]),
                  buffer
   end
 

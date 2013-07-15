@@ -2,8 +2,8 @@ Name: postgresql
 Namespace: POSTGRESQL
 Architecture: noarch
 Cartridge-Short-Name: POSTGRESQL
-Cartridge-Version:    '0.2.0'
-Cartridge-Versions:   [0.2.0]
+Cartridge-Version:    '0.3.0'
+Cartridge-Versions:   [0.3.0]
 Cartridge-Vendor:     redhat
 Display-Name: PostgreSQL Database 9.2
 Description: "PostgreSQL is an advanced Object-Relational database management system"
@@ -33,7 +33,8 @@ Cart-Data:
     Description: "PostgreSQL DB connection URL"
 Provides:
   - postgresql-9.2
-  - postgresql
+  - "postgresql"
+  - "postgresql(version) = 9.2"
 Conflicts:
   - mysql
   - mariadb

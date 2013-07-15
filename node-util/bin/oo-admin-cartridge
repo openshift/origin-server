@@ -19,64 +19,67 @@ require 'rubygems'
 require 'etc'
 require 'optparse'
 require 'ostruct'
+require 'openshift-origin-common'
 require 'openshift-origin-node/utils/shell_exec'
 require 'openshift-origin-node/model/cartridge_repository'
 
 module OpenShift
-  class AdminCartridgeCartridgeRepository
-    def apply(options)
-      repository = OpenShift::CartridgeRepository.instance
-      case options.action
-        when :install
-          dirs = if options.recursive
-                   Dir[File.join(options.source, '/*')].select { |d| File.directory?(d) }
-                 else
-                   [options.source]
-                 end
+  module Runtime
+    class AdminCartridgeCartridgeRepository
+      def apply(options)
+        repository = OpenShift::Runtime::CartridgeRepository.instance
+        case options.action
+          when :install
+            dirs = if options.recursive
+                     Dir[File.join(options.source, '/*')].select { |d| File.directory?(d) }
+                   else
+                     [options.source]
+                   end
 
-          dirs.each do |dir|
-            begin
-              repository.install(dir)
-            rescue OpenShift::Utils::ShellExecutionException => e
-              $stderr.puts "install failed for #{dir}: #{e.message}" if options.verbose
-              $stderr.puts e.backtrace.join("\n") if options.verbose
+            dirs.each do |dir|
+              begin
+                repository.install(dir)
+              rescue OpenShift::Runtime::Utils::ShellExecutionException => e
+                $stderr.puts "install failed for #{dir}: #{e.message}" if options.verbose
+                $stderr.puts e.backtrace.join("\n") if options.verbose
+              end
             end
-          end
-        when :list
-          return repository.to_s
-        when :erase
-          repository.erase(options.name, options.version, options.cartridge_version)
+          when :list
+            return repository.to_s
+          when :erase
+            repository.erase(options.name, options.version, options.cartridge_version)
+        end
+        'succeeded'
       end
-      'succeeded'
     end
-  end
 
-  class AdminCartridgeMcollective
-    def apply(options)
-      buffer = ''
-      case options.action
-        when :install
-          dirs = if options.recursive
-                   Dir[File.join(options.source, '/*')].select { |d| File.directory?(d) }
-                 else
-                   [options.source]
-                 end
+    class AdminCartridgeMcollective
+      def apply(options)
+        buffer = ''
+        case options.action
+          when :install
+            dirs = if options.recursive
+                     Dir[File.join(options.source, '/*')].select { |d| File.directory?(d) }
+                   else
+                     [options.source]
+                   end
 
-          dirs.each do |dir|
-            out, _, _ = Utils::oo_spawn("mco rpc -q openshift cartridge_repository action=install path=#{dir}")
-            buffer << out
-          end
-        when :list
-          buffer, _, _ = Utils::oo_spawn('mco rpc -q openshift cartridge_repository action=list',
-                                         expected_exitstatus: 0)
-        when :erase
-          command = %Q(mco rpc openshift cartridge_repository action=erase \
+            dirs.each do |dir|
+              out, _, _ = ::OpenShift::Runtime::Utils::oo_spawn("mco rpc -q openshift cartridge_repository action=install path=#{dir}")
+              buffer << out
+            end
+          when :list
+            buffer, _, _ = ::OpenShift::Runtime::Utils::oo_spawn('mco rpc -q openshift cartridge_repository action=list',
+                                           expected_exitstatus: 0)
+          when :erase
+            command = %Q(mco rpc openshift cartridge_repository action=erase \
                        name="#{options.name}" version="#{options.version}" cartridge_version="#{options.cartridge_version}")
-          buffer, _, _ = Utils::oo_spawn(command,
-                                         expected_exitstatus: 0)
-      end
+            buffer, _, _ = ::OpenShift::Runtime::Utils::oo_spawn(command,
+                                           expected_exitstatus: 0)
+        end
 
-      buffer.squeeze!("\n")
+        buffer.squeeze!("\n")
+      end
     end
   end
 end
@@ -126,15 +129,15 @@ end
 
 begin
   if options.mco
-    puts OpenShift::AdminCartridgeMcollective.new.apply(options)
+    puts OpenShift::Runtime::AdminCartridgeMcollective.new.apply(options)
   else
-    puts OpenShift::AdminCartridgeCartridgeRepository.new.apply(options)
+    puts OpenShift::Runtime::AdminCartridgeCartridgeRepository.new.apply(options)
 
     if [:install, :erase].include?(options.action)
-      OpenShift::Utils::oo_spawn('pkill -USR1 -f /usr/sbin/mcollectived')
+      OpenShift::Runtime::Utils::oo_spawn('pkill -USR1 -f /usr/sbin/mcollectived')
     end
   end
-rescue OpenShift::Utils::ShellExecutionException => e
+rescue OpenShift::Runtime::Utils::ShellExecutionException => e
   $stderr.puts "\nOperation failed: #{e.stdout}\n#{e.stderr}\n"
   $stderr.puts e.backtrace.join("\n") if options.verbose
   exit e.rc

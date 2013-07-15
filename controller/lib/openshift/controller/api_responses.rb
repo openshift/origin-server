@@ -30,13 +30,18 @@ module OpenShift
           reply = new_rest_reply(status)
           if messages.present?
             reply.messages.concat(messages)
-            log_action(@log_tag, !internal_error, msg, get_log_args, messages.map(&:text).join(', '))
+            log_action(action_log_tag, !internal_error, msg, get_log_args, messages.map(&:text).join(', '))
           else
             msg_type = :error unless msg_type
             reply.messages.push(Message.new(msg_type, msg, err_code, field)) if msg
-            log_action(@log_tag, !internal_error, msg, get_log_args)
+            log_action(action_log_tag, !internal_error, msg, get_log_args)
           end
           respond_with reply
+        end
+
+        # Renders a REST response for an application being upgraded.
+        def render_upgrade_in_progress
+          return render_error(:unprocessable_entity, "Your application is being upgraded and configuration changes can not be made at this time.  Please try again later.", 1)
         end
 
         # Renders a REST response for an exception.
@@ -54,6 +59,8 @@ module OpenShift
           elsif ex.kind_of? OpenShift::AccessDeniedException
             status = :forbidden
           elsif ex.kind_of? OpenShift::DNSException
+            status = :service_unavailable
+          elsif ex.kind_of? OpenShift::LockUnavailableException
             status = :service_unavailable
           elsif ex.kind_of? OpenShift::NodeException
             status = :internal_server_error
@@ -94,13 +101,17 @@ module OpenShift
           reply.messages.push(Message.new(:info, message)) if message
           reply.process_result_io(result) if result
           
+          reply.messages.each do |message|
+            message.field = :result if message.severity == :result
+          end if requested_api_version <= 1.5
+          
           log_args = get_log_args.merge(extra_log_args)
           
           if extra_messages.present?
             reply.messages.concat(messages)
-            log_action(@log_tag, true, message, log_args, messages.map(&:text).join(', '))
+            log_action(action_log_tag, true, message, log_args, messages.map(&:text).join(', '))
           else
-            log_action(@log_tag, true, message, log_args)
+            log_action(action_log_tag, true, message, log_args)
           end
           respond_with reply
         end

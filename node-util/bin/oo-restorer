@@ -46,5 +46,3 @@ then
 fi
 
 $(dirname -- "$0")/oo-admin-ctl-gears unidlegear "$uuid"
-
-/usr/bin/logger -p local0.notice -t oo_restorer "Restored: $uuid"

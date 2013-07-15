@@ -29,7 +29,6 @@ class Gear
     super(attrs, options)
     self._id = custom_id unless custom_id.nil?
     self.uuid = self._id.to_s if self.uuid=="" or self.uuid.nil?
-    #@TODO: Remove when typeless gears is completed
     if app_dns
       self.name = group_instance.application.name if self.name=="" or self.name.nil?
     else
@@ -43,6 +42,14 @@ class Gear
       quota_blocks = Integer(proxy.get_quota_blocks)
       # calculate the minimum storage in GB - blocks are 1KB each
       quota_blocks / 1024 / 1024
+    }
+  end
+  
+  def self.base_file_limit(gear_size)
+    CacheHelper.get_cached(gear_size + "_quota_files", :expires_in => 1.day) {
+      proxy = OpenShift::ApplicationContainerProxy.find_one(gear_size)
+      quota_files = Integer(proxy.get_quota_files)
+      quota_files
     }
   end
   
@@ -68,7 +75,7 @@ class Gear
   end
   
   def unreserve_uid
-    get_proxy.unreserve_uid(self.uid)
+    get_proxy.unreserve_uid(self.uid) if get_proxy
     self.set :server_identity, nil
     self.set :uid, nil
   end
@@ -120,7 +127,7 @@ class Gear
   #   success = 0
   # @raise [OpenShift::NodeException] on failure
   def add_component(component, init_git_url=nil)
-    result_io = get_proxy.configure_cartridge(self, component, init_git_url)
+    result_io = get_proxy.add_component(self, component, init_git_url)
     component.process_properties(result_io)
     app.process_commands(result_io, component._id)
     raise OpenShift::NodeException.new("Unable to add component #{component.cartridge_name}::#{component.component_name}", result_io.exitcode, result_io) if result_io.exitcode != 0
@@ -138,7 +145,7 @@ class Gear
   #   success = 0
   # @raise [OpenShift::NodeException] on failure
   def post_configure_component(component, init_git_url=nil)
-    result_io = get_proxy.post_configure_cartridge(self, component, init_git_url)
+    result_io = get_proxy.post_configure_component(self, component, init_git_url)
     component.process_properties(result_io)
     app.process_commands(result_io, component._id)
     raise OpenShift::NodeException.new("Unable to post-configure component #{component.cartridge_name}::#{component.component_name}", result_io.exitcode, result_io) if result_io.exitcode != 0
@@ -156,7 +163,7 @@ class Gear
   #   success = 0
   # @raise [OpenShift::NodeException] on failure
   def remove_component(component)
-    result_io = get_proxy.deconfigure_cartridge(self, component)
+    result_io = get_proxy.remove_component(self, component)
     app.process_commands(result_io)
     result_io
   end
@@ -255,8 +262,11 @@ class Gear
   end
   
   def set_addtl_fs_gb(additional_filesystem_gb, remote_job_handle, tag = "addtl-fs-gb")
-    total_fs_gb = additional_filesystem_gb + Gear.base_filesystem_gb(self.group_instance.gear_size)
-    RemoteJob.add_parallel_job(remote_job_handle, tag, self, get_proxy.get_update_gear_quota_job(self, total_fs_gb, ""))
+    base_filesystem_gb = Gear.base_filesystem_gb(self.group_instance.gear_size)
+    base_file_limit = Gear.base_file_limit(self.group_instance.gear_size)
+    total_fs_gb = additional_filesystem_gb + base_filesystem_gb
+    total_file_limit = (total_fs_gb * base_file_limit) / base_filesystem_gb
+    RemoteJob.add_parallel_job(remote_job_handle, tag, self, get_proxy.get_update_gear_quota_job(self, total_fs_gb, total_file_limit.to_i))
   end
 
   def server_identities

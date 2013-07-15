@@ -1,0 +1,3 @@
+#!/bin/bash -eu
+
+cp $OPENSHIFT_JBOSSEWS_DIR/webapps/ROOT.war $OPENSHIFT_REPO_DIR/webapps

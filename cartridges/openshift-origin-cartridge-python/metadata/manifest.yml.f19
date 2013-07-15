@@ -1,7 +1,7 @@
 Name: python
 Cartridge-Short-Name: PYTHON
 Display-Name: Python 2.7
-Description: "Python is a general-purpose server-side scripting language originally designed for Web development to produce dynamic Web pages. Popular development frameworks include: CakePython, Zend, Symfony, and Code Igniter."
+Description: "Python is a general-purpose, high-level programming language whose design philosophy emphasizes code readability. Popular development frameworks include: Django, Bottle, Pylons, Zope and TurboGears."
 Version: '2.7'
 Versions: ['2.7', '3.3']
 License: "The Python License, version 2.7"
@@ -24,10 +24,10 @@ Cart-Data:
   - Key: OPENSHIFT_REPO_DIR
     Type: environment
     Description: "Application root directory where application files reside. This directory is reset every time you do a git-push"
-  - Key: OPENSHIFT_PERL_PORT
+  - Key: OPENSHIFT_PYTHON_PORT
     Type: environment
     Description: "Internal port to which the web-framework binds to."
-  - Key: OPENSHIFT_PERL_IP
+  - Key: OPENSHIFT_PYTHON_IP
     Type: environment
     Description: "Internal IP to which the web-framework binds to."
   - Key: OPENSHIFT_APP_DNS

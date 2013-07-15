@@ -74,8 +74,8 @@ unless uuid and iv and token
 end
 
 begin
-  container = OpenShift::ApplicationContainer.new(uuid, uuid)
-  container.user.add_broker_auth(iv,token)
+  container = OpenShift::Runtime::ApplicationContainer.from_uuid(uuid)
+  container.add_broker_auth(iv,token)
 rescue Exception => e
   $stderr.puts(e.message)
   exit -1

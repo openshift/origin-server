@@ -1,8 +1,8 @@
-%global cartridgedir %{_libexecdir}/openshift/cartridges/v2/mock
+%global cartridgedir %{_libexecdir}/openshift/cartridges/mock
 
 Summary:       Mock cartridge for V2 Cartridge SDK
 Name:          openshift-origin-cartridge-mock
-Version: 0.5.2
+Version: 0.7.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -27,7 +27,7 @@ test platform functionality. (Cartridge Format V2)
 %__cp -r * %{buildroot}%{cartridgedir}
 %__cp .mock_hidden.erb %{buildroot}%{cartridgedir}
 
-%post
+%posttrans
 %{_sbindir}/oo-admin-cartridge --action install --source %{cartridgedir}
 
 %files
@@ -40,6 +40,16 @@ test platform functionality. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Fri Jul 12 2013 Adam Miller <admiller@redhat.com> 0.7.1-1
+- bump_minor_versions for sprint 31 (admiller@redhat.com)
+
+* Tue Jul 02 2013 Adam Miller <admiller@redhat.com> 0.6.2-1
+- Bug 976921: Move cart installation to %%posttrans (ironcladlou@gmail.com)
+- remove v2 folder from cart install (dmcphers@redhat.com)
+
+* Tue Jun 25 2013 Adam Miller <admiller@redhat.com> 0.6.1-1
+- bump_minor_versions for sprint 30 (admiller@redhat.com)
+
 * Mon Jun 17 2013 Adam Miller <admiller@redhat.com> 0.5.2-1
 - Add ssl_to_gear option. (mrunalp@gmail.com)
 

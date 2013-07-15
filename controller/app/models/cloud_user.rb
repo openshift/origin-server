@@ -19,7 +19,7 @@
 class CloudUser
   include Mongoid::Document
   include Mongoid::Timestamps
-  include UtilHelper
+
   alias_method :mongoid_save, :save
 
   DEFAULT_SSH_KEY_NAME = "default"
@@ -40,7 +40,7 @@ class CloudUser
   has_many :domains, class_name: Domain.name, dependent: :restrict, :foreign_key => 'owner_id'
   has_many :authorizations, class_name: Authorization.name, dependent: :restrict
 
-  validates :login, presence: true, login: true
+  validates :login, presence: true
   validates :capabilities, presence: true, capabilities: true
 
   scope :with_plan, any_of({:plan_id.ne => nil}, {:pending_plan_id.ne => nil}) 
@@ -171,12 +171,7 @@ class CloudUser
       self.with(consistency: :strong).reload
       self.run_jobs
     else
-      #TODO shouldn't << always work???
-      if self.ssh_keys.exists?
-        self.ssh_keys << key
-      else
-        self.ssh_keys = [key]
-      end
+      self.ssh_keys << key
     end
   end
   

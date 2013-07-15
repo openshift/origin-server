@@ -1,7 +1,7 @@
 ENV["TEST_NAME"] = "functional_cartridges_controller_test"
 require 'test_helper'
 require 'openshift-origin-controller'
-require 'mocha'
+require 'mocha/setup'
 
 class CartridgesControllerTest < ActionDispatch::IntegrationTest
 
@@ -65,6 +65,12 @@ class CartridgesControllerTest < ActionDispatch::IntegrationTest
     assert cart_count1 > 0
     
     request_via_redirect(:get, "/rest/cartridges/#{PHP_VERSION}", {}, @headers)
+    assert_response :ok
+    body1 = JSON.parse(@response.body)
+    cart_count1 = body1["data"].length
+    assert cart_count1 > 0
+    
+    request_via_redirect(:get, "/rest/cartridges/redhat-php", {}, @headers)
     assert_response :ok
     body1 = JSON.parse(@response.body)
     cart_count1 = body1["data"].length

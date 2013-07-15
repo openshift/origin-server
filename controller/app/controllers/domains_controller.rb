@@ -1,5 +1,6 @@
 # @api REST
 class DomainsController < BaseController
+  include RestModelHelper
   before_filter :get_domain, :only => [:show, :destroy]
   # Retuns list of domains for the current user
   # 
@@ -162,25 +163,5 @@ class DomainsController < BaseController
     rescue Exception => e
       return render_exception(e) 
     end
-  end
-
-  private
-
-  # Creates a new [RestDomain] or [RestDomain10] based on the requested API version.
-  #
-  # @param [Domain] domain The Domain object
-  # @param [CloudUser] owner of the Domain
-  # @return [RestDomain] REST object for API version > 1.0
-  # @return [RestDomain10] REST object for API version == 1.0
-  def get_rest_domain(domain)
-    if requested_api_version == 1.0
-      RestDomain10.new(domain, @cloud_user, get_url, nolinks)
-    else
-      RestDomain.new(domain, @cloud_user, get_url, nolinks)
-    end
-  end
-  
-  def set_log_tag
-    @log_tag = get_log_tag_prepend + "DOMAIN"
   end
 end

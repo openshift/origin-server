@@ -1,0 +1,378 @@
+= Administration Guide
+OpenShift Origin Documentation Project <dev@lists.openshift.redhat.com>
+v2.0, July 2013
+:data-uri:
+:toc2:
+:icons:
+:numbered:
+
+////
+Adapted from the OpenShift Enterprise Training - Lab Manual By Grant Shipley <gshipley@redhat.com>
+////
+
+OpenShift Origin provides developers and IT organizations an open source auto-scaling cloud application platform for quickly deploying new applications on secure and scalable resources with minimal configuration and management headaches. This means increased developer productivity and a faster pace in which IT can support innovation. This guide covers the basics of administering a private Platform-as-a-Service built with this awesome open source solution.
+
+TIP: *Installation is documented in the OpenShift Origin Deployment Guide.* If you don't have OpenShift Origin up and running, go there first.
+
+[float]
+=== Platform as a Service
+Platform as a Service is changing the way developers approach developing software. Developers typically use a local sandbox with their preferred application server and only deploy locally on that instance. Developers typically start JBoss locally using the startup.sh command and drop their .war or .ear file in the deployment directory and they are done. Developers have a hard time understanding why deploying to the production infrastructure is such a time consuming process.
+
+System Administrators understand the complexity of not only deploying the code, but procuring, provisioning and maintaining a production level system. They need to stay up to date on the latest security patches and errata, ensure the firewall is properly configured, maintain a consistent and reliable backup and restore plan, monitor the application and servers for CPU load, disk IO, HTTP requests, etc.
+
+[float]
+=== Managing an OpenShift Origin System
+This manual covers some of the most basic things that you will need to do to manage an OpenShift Origin instance. This guide does _not_ cover the management of some necessary support systems, including a messaging service like ActiveMQ and a MongoDB instance.
+
+== Adding Cartridges
+
+*Server used:*
+
+* node host
+* broker host
+
+*Tools used:*
+
+* yum
+* bundle
+
+By default, OpenShift Origin caches certain values for faster retrieval. Clearing this cache allows the retrieval of updated settings.
+
+For example, the first time MCollective retrieves the list of cartridges available on your nodes, the list is cached so that subsequent requests for this information are processed more quickly. If you install a new cartridge, it is unavailable to users until the cache is cleared and MCollective retrieves a new list of cartridges.
+
+This chapter will focus on installing cartridges to allow OpenShift Origin to create JBoss gears.
+
+=== List Available Cartridges
+For a complete list of all cartridges that are available to install, you can perform a search using the yum command that will output all OpenShift Origin cartridges.
+
+*Run the following command on the node host*:
+
+----
+# yum search origin-cartridge
+----
+
+You should see the following cartridges available to install:
+
+* openshift-origin-cartridge-abstract.noarch : OpenShift common cartridge components
+* openshift-origin-cartridge-cron-1.4.noarch : Embedded cron support for express
+* openshift-origin-cartridge-diy-0.1.noarch : Provides diy support
+* openshift-origin-cartridge-haproxy-1.4.noarch : Provides embedded haproxy-1.4 support
+* openshift-origin-cartridge-jbosseap-6.0.noarch : Provides JBossEAP6.0 support
+* openshift-origin-cartridge-jbossews-1.0.noarch : Provides JBossEWS1.0 support
+* openshift-origin-cartridge-jenkins-1.4.noarch : Provides jenkins-1.4 support
+* openshift-origin-cartridge-jenkins-client-1.4.noarch : Embedded jenkins client support for express
+* openshift-origin-cartridge-mysql-5.1.noarch : Provides embedded mysql support
+* openshift-origin-cartridge-perl-5.10.noarch : Provides mod_perl support
+* openshift-origin-cartridge-php-5.3.noarch : Provides php-5.3 support
+* openshift-origin-cartridge-postgresql-8.4.noarch : Provides embedded PostgreSQL support
+* openshift-origin-cartridge-python-2.6.noarch : Provides python-2.6 support
+* openshift-origin-cartridge-ruby-1.8.noarch : Provides ruby rack support running on Phusion Passenger
+* openshift-origin-cartridge-ruby-1.9-scl.noarch : Provides ruby rack support running on Phusion Passenger
+
+=== Install JBoss Support
+In order to enable consumers of the PaaS to create JBoss gears, we will need to install all of the necessary cartridges for the application server and supporting build systems. Perform the following command to install the required cartridges:
+
+*Execute the following on the node host*:
+
+----
+# yum install openshift-origin-cartridge-jbosseap-6.0.noarch openshift-origin-cartridge-jbossews-1.0.noarch openshift-origin-cartridge-jenkins-1.4.noarch openshift-origin-cartridge-jenkins-client-1.4.noarch
+----
+
+The above command will allow users to create JBoss EAP and JBoss EWS gears. We also installed support for the Jenkins continuous integration environment which we will cover in a later lab. At the time of this writing, the above command will download and install an additional 285 packages on your node host.
+
+NOTE: Depending on your connection and speed of your node host, this installation make take several minutes.
+
+=== Clear the Broker Application Cache
+At this point, you will notice if you try to create a JBoss based application via the web console that the application type is not available. This is because the broker host creates a cache of available gear types to increase performance. After adding a new cartridge, you need to clear this cache in order for the new gear type to be available to users.
+
+*Execute the following on the broker host*:
+
+----
+# cd /var/www/openshift/broker
+# bundle exec rake tmp:clear
+----
+
+It may take several minutes before you see the new cartridges available on the web console as it takes a few minutes for the cache to completely clear.
+
+=== Test the New Cartridges
+Open up your preferred browser and enter the following URL, using the correct host and domain name for your environment:
+
+----
+http://broker.example.com
+----
+
+You will be prompted to authenticate and then be presented with an application creation screen. After the cache has been cleared, and assuming you have added the new cartridges correctly, you should see a screen similar to the following:
+
+image:console-jboss.png[image]
+
+If you do not see the new cartridges available on the web console, check that the new cartridges are available by viewing the contents of the _/usr/libexec/openshift/cartridges_ directory:
+
+----
+# cd /usr/libexec/openshift/cartridges
+# ls
+----
+
+=== Install the PostgreSQL and DIY Cartridges
+Using the information presented in this chapter, perform the necessary commands to install both the PostgreSQL and DIY cartridges on your node host. Verify the success of the installation by ensuring that the DIY application type is available on the web console:
+
+image:console-diy.png[image]
+
+== Resource Management
+
+*Server used:*
+
+* node host
+* broker host
+
+*Tools used:*
+
+* text editor
+* oo-admin-ctl-user
+
+=== Set Default Gear Quotas and Sizes
+A users default gear size and quota is specified in the _/etc/openshift/broker.conf_ configuration file located on the broker host.
+
+The _VALID_GEAR_SIZES_ setting is not applied to users but specifies the gear sizes that the current OpenShift Origin PaaS installation supports.
+
+The _DEFAULT_MAX_GEARS_ settings specifies the number of gears to assign to all users upon user creation. This is the total number of gears that a user can create by default.
+
+The _DEFAULT_GEAR_SIZE_ setting is the size of gear that a newly created user has access to.
+
+Take a look at the _/etc/openshift/broker.conf_ configuration file to determine the current settings for your installation:
+
+*Execute the following on the broker host*:
+
+----
+# cat /etc/openshift/broker.conf
+----
+
+By default, OpenShift Origin sets the default gear size to small and the number of gears a user can create to 100.
+
+When changing the _/etc/openshift/broker.conf_ configuration file, keep in mind that the existing settings are cached until you restart the _openshift-broker_ service.
+
+=== Set the Number of Gears a Specific User Can Create
+There are often times when you want to increase or decrease the number of gears a particular user can consume without modifying the setting for all existing users. OpenShift Origin provides a command that will allow the administrator to configure settings for an individual user. To see all of the available options that can be performed on a specific user, enter the following command on the broker host:
+
+----
+# oo-admin-ctl-user
+----
+
+To see how many gears that our _demo_ user has consumed as well as how many gears the _demo_ user has access to create, you can provide the following switches to the _oo-admin-ctl-user_ command:
+
+----
+# oo-admin-ctl-user -l demo
+----
+
+Given the current state of our configuration for this training class, you should see the following output:
+
+----
+User demo:
+    consumed gears: 0
+    max gears: 100
+    gear sizes: small
+    
+----
+
+In order to change the number of gears that our _demo_ user has permission to create, you can pass the --setmaxgears switch to the command. For instance, if we only want to allow the _demo_ user to be able to create 25 gears, we would use the following command:
+
+----
+# oo-admin-ctl-user -l demo --setmaxgears 25
+----
+
+After entering the above command, you should see the following output:
+
+----
+Setting max_gears to 25... Done.
+User demo:
+  consumed gears: 0
+  max gears: 25
+  gear sizes: small
+  
+----
+
+=== Set the Type of Gears a Specific User Can Create
+In a production environment, a customer will typically have different gear sizes that are available for developers to consume. In this example, we will only create small gears. However, to add the ability to create medium size gears for the _demo_ user, you can pass the -addgearsize switch to the _oo-admin-ctl-user_ command.
+
+----
+# oo-admin-ctl-user -l demo --addgearsize medium
+----
+
+After entering the above command, you should see the following output:
+
+----
+Adding gear size medium for user demo... Done.
+User demo:
+  consumed gears: 0
+  max gears: 25
+  gear sizes: small, medium
+  
+----
+
+In order to remove the ability for a user to create a specific gear size, you can use the --removegearsize switch:
+
+----
+# oo-admin-ctl-user -l demo --removegearsize medium
+----
+
+== District Management
+
+*Server used:*
+
+* node host
+* broker host
+
+*Tools used:*
+
+* text editor
+* oo-admin-ctl-district
+
+Districts define a set of node hosts within which gears can be easily moved to load-balance the resource usage of those nodes. While not required for a basic OpenShift Origin installation, districts provide several administrative benefits and their use is recommended.
+
+Districts allow a gear to maintain the same UUID (and related IP addresses, MCS levels and ports) across any node within the district, so that applications continue to function normally when moved between nodes on the same district. All nodes within a district have the same profile, meaning that all the gears on those nodes are the same size (for example small or medium). There is a hard limit of 6000 gears per district.
+
+This means, for example, that developers who hard-code environment settings into their applications instead of using environment variables will not experience problems due to gear migrations between nodes. The application continues to function normally because exactly the same environment is reserved for the gear on every node in the district. This saves developers and administrators time and effort.
+
+=== Enable Districts
+To use districts, the broker's MCollective plugin must be configured to enable districts. Edit the _/etc/openshift/plugins.d/openshift-origin-msg-broker-mcollective.conf_ configuration file and confirm the following parameters are set:
+
+*Confirm the following on the broker host*:
+
+----
+DISTRICTS_ENABLED=true
+NODE_PROFILE_ENABLED=true
+----
+
+=== Create and Populate Districts
+To create a district that will support a gear type of small, we will use the _oo-admin-ctl-district_ command. After defining the district, we can add our node host (node.example.com) as the only node in that district.
+Execute the following commands to create a district named small_district which can only hold _small_ gear types:
+
+*Execute the following on the broker host*:
+
+----
+# oo-admin-ctl-district -c create -n small_district -p small
+----
+
+If the command was successful, you should see output similar to the following:
+
+----
+Successfully created district: 513b50508f9f44aeb90090f19d2fd940
+
+{"name"=>"small_district",
+ "externally_reserved_uids_size"=>0,
+ "active_server_identities_size"=>0,
+ "node_profile"=>"small",
+ "max_uid"=>6999,
+ "creation_time"=>"2013-01-15T17:18:28-05:00",
+ "max_capacity"=>6000,
+ "server_identities"=>{},
+ "uuid"=>"513b50508f9f44aeb90090f19d2fd940",
+ "available_uids"=>"<6000 uids hidden>",
+ "available_capacity"=>6000}
+----
+
+If you are familiar with JSON, you will understand the format of this output. What actually happened is a new document was created in the MongoDB database that we installed in a previous lab. To view this document inside of the database, execute the following:
+
+----
+# mongo
+----
+
+This will drop you into the mongo shell where you can perform commands against the database. The first thing we need to do is let MongoDB know which database we want to use:
+
+----
+> show dbs
+> use openshift_broker_dev
+----
+
+To list all of the available collections in the _openshift_broker_dev_ database, you can issue the following command:
+
+----
+> db.getCollectionNames()
+----
+
+You should see the following collections returned:
+
+----
+[ "district", "system.indexes", "system.users", "user" ]
+----
+
+We can now query the _district_ collection to verify the creation of our small district:
+
+----
+> db.district.find()
+----
+
+The output should be:
+
+----
+{
+	"_id": "513b50508f9f44aeb90090f19d2fd940",
+	"name": "small_district",
+	"externally_reserved_uids_size": 0,
+	"active_server_identities_size": 0,
+	"node_profile": "small",
+	"max_uid": 6999,
+	"creation_time": "2013-01-15T17:18:28-05:00",
+	"max_capacity": 6000,
+	"server_identities": [],
+	"uuid": "513b50508f9f44aeb90090f19d2fd940",
+	"available_uids": [1000, .........],
+	,
+	"available_capacity": 6000
+}
+----
+
+NOTE: The _server_identities_ array does not contain any data yet.
+
+Exit the Mongo shell by using the exit command:
+
+----
+> exit
+----
+
+Now we can add our node host, node.example.com, to the _small_district_ that we created above:
+
+----
+# oo-admin-ctl-district -c add-node -n small_district -i node.example.com
+----
+
+You should see the following output:
+
+----
+Success!
+
+{"available_capacity"=>6000,
+ "creation_time"=>"2013-01-15T17:18:28-05:00",
+ "available_uids"=>"<6000 uids hidden>",
+ "node_profile"=>"small",
+ "uuid"=>"513b50508f9f44aeb90090f19d2fd940",
+ "externally_reserved_uids_size"=>0,
+ "server_identities"=>{"node.example.com"=>{"active"=>true}},
+ "name"=>"small_district",
+ "max_capacity"=>6000,
+ "max_uid"=>6999,
+ "active_server_identities_size"=>1}
+ 
+----
+
+NOTE: If you see an error message indicating that you can't add this node to the district because the node already has applications on it, consult the troubleshooting section.
+
+Repeat the steps above to query the database for information about districts. Notice that the _server_identities_ array now contains the following information:
+
+----
+"server_identities" : [ { "name" : "node.example.com", "active" : true } ]
+----
+
+If you continued to add additional nodes to this district, the _server_identities_ array would show all the node hosts that are assigned to the district.
+
+OpenShift Origin also provides a command line tool to display information about a district. Simply enter the following command to view the JSON information that is stored in the MongoDB database:
+
+----
+# oo-admin-ctl-district
+----
+
+=== Manage District Capacity
+Districts and node hosts have a configured capacity for the number of gears allowed. For a node host, the default values configured in _/etc/openshift/resource_limits.conf_ are:
+
+* Maximum number of application per node : 100
+* Maximum number of active applications per node : 100
+

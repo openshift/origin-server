@@ -1,8 +1,8 @@
-%global cartridgedir %{_libexecdir}/openshift/cartridges/v2/mongodb
+%global cartridgedir %{_libexecdir}/openshift/cartridges/mongodb
 
 Summary:       Embedded mongodb support for OpenShift
 Name:          openshift-origin-cartridge-mongodb
-Version: 1.9.2
+Version: 1.11.1
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -31,7 +31,7 @@ Provides mongodb cartridge support to OpenShift
 %__mkdir -p %{buildroot}%{cartridgedir}
 %__cp -r * %{buildroot}%{cartridgedir}
 
-%post
+%posttrans
 %{_sbindir}/oo-admin-cartridge --action install --source %{cartridgedir}
 
 %files
@@ -44,6 +44,19 @@ Provides mongodb cartridge support to OpenShift
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Fri Jul 12 2013 Adam Miller <admiller@redhat.com> 1.11.1-1
+- bump_minor_versions for sprint 31 (admiller@redhat.com)
+
+* Fri Jul 12 2013 Adam Miller <admiller@redhat.com> 1.10.3-1
+- Add slashes to mongodb's managed_files.yml (miciah.masters@gmail.com)
+
+* Tue Jul 02 2013 Adam Miller <admiller@redhat.com> 1.10.2-1
+- Bug 976921: Move cart installation to %%posttrans (ironcladlou@gmail.com)
+- remove v2 folder from cart install (dmcphers@redhat.com)
+
+* Tue Jun 25 2013 Adam Miller <admiller@redhat.com> 1.10.1-1
+- bump_minor_versions for sprint 30 (admiller@redhat.com)
+
 * Mon Jun 17 2013 Adam Miller <admiller@redhat.com> 1.9.2-1
 - First pass at removing v1 cartridges (dmcphers@redhat.com)
 

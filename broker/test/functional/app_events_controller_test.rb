@@ -21,7 +21,7 @@ class AppEventsControllerTest < ActionController::TestCase
     @domain = Domain.new(namespace: @namespace, owner:@user)
     @domain.save
     @app_name = "app#{@random}"
-    @app = Application.create_app(@app_name, [PHP_VERSION], @domain, "small", true)
+    @app = Application.create_app(@app_name, [PHP_VERSION], @domain, nil, true)
     @app.save
   end
   
@@ -83,7 +83,7 @@ class AppEventsControllerTest < ActionController::TestCase
   test "thread-dump on a cartridge with threaddump hook" do
     #create an app with threaddump hook i.e. ruby-1.8 or jbossews-2.0
     app_name = "rubyapp#{@random}"
-    ruby_app = Application.create_app(app_name, [RUBY_VERSION], @domain, "small", true)
+    ruby_app = Application.create_app(app_name, [RUBY_VERSION], @domain, nil, true)
     ruby_app.save
     post :create, {"event" => "thread-dump", "domain_id" => @domain.namespace, "application_id" => ruby_app.name}
     assert_response :success

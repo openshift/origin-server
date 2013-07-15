@@ -10,7 +10,6 @@ module OpenShift
         attr :requested_api_version
 
         def check_version
-
           version = catch(:version) do
             (request.accept || "").split(',').each do |mime_type|
               values = mime_type.split(';').map(&:strip)
@@ -112,9 +111,6 @@ module OpenShift
           return render_error(:not_found, "Application '#{application_id}' not found for domain '#{@domain.namespace}'", 101) if application_id.nil? or application_id !~ Application::APP_NAME_COMPATIBILITY_REGEX
           begin
             @application = Application.find_by(domain: @domain, canonical_name: application_id)
-            unless @application.group_instances.length > 0 and @application.component_instances.length > 0 and @application.group_instances.select{|gi| gi.gears.length>0}.length>0
-              render_error(:not_found, "Application '#{application_id}' not found for domain '#{@domain.namespace}'", 101)
-            end
 
             @application_name = @application.name
             @application_uuid = @application.uuid

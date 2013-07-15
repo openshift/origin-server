@@ -1,0 +1,83 @@
+= OpenShift Origin Troubleshooting Guide
+OpenShift Origin Documentation Project <dev@lists.openshift.redhat.com>
+v2.0, July 2013
+:data-uri:
+:toc2:
+:icons:
+:numbered:
+
+This document is aimed at https://www.openshift.com/products/origin[OpenShift Origin] administrators; it contains a number of helpful tips for debugging an OpenShift Origin deployment. Contributions to this document based on your experience as an OpenShift Origin administrator are welcome! This document is maintained in http://asciidoc.org/[AsciiDoc] as part of the _origin-server_ code repository on https://github.com/openshift/origin-server/[GitHub].
+
+If you are running into trouble with an application _hosted_ on an OpenShift Origin system, then please take advantage of the OpenShift Origin community resources:
+
+* OpenShift Origin Home: http://openshift.github.io/
+* OpenShift FAQ: https://www.openshift.com/faq
+* OpenShift Forums: https://www.openshift.com/forums/
+
+== Diagnostics Script
+Installing and configuring an OpenShift Origin PaaS can often fail due to simple mistakes in configuration files. Fortunately, the OpenShift team provides an unsupported troubleshooting script that can diagnose most problems with an installation. The most updated version of this script is available at:
+
+----
+https://raw.github.com/openshift/origin-server/master/util/oo-diagnostics
+----
+
+This script can be run on any OpenShift Origin broker or node host. Once you have the script downloaded, change the permission to enable execution of the script:
+
+----
+# chmod +x oo-diagnostics
+----
+
+To run the command and check for errors, issue the following command:
+
+----
+# ./oo-diagnostics -v
+----
+
+[TIP]
+====
+Sometimes the script will fail at the first error and not continue processing. In order to run a full check on your node, add the _--abortok_ switch
+
+----
+# ./oo-diagnostics -v --abortok
+----
+====
+
+Under the covers, this script performs a lot of checks on your host as well as executing the existing _oo-accept-broker_ and _oo-accept-node_ commands on the respective host.
+
+== Recovering Failed Nodes
+A node host that fails catastrophically can be recovered if the gear directory /var/lib/openshift has been stored in a fault-tolerant way and can be recovered. In practice this scenario occurs rarely, especially when node hosts are virtual machines in a fault tolerant infrastructure rather than physical machines.
+
+WARNING: Do not start the MCollective service on the replacement node host until you have completed the following steps.
+
+Install a node host with the same hostname and IP address as the one that failed. The hostname DNS A record can be adjusted if the IP address must be different, but note that the application CNAME and database records all point to the hostname, and cannot be easily changed.
+
+Duplicate the old node host's configuration on the new node host, ensuring in particular that the gear profile is the same.
+
+Mount _/var/lib/openshift_ from the original, failed node host. SELinux contexts must have been stored on the _/var/lib/openshift_ volume and should be maintained.
+
+Recreate /etc/passwd entries for all the gears using the following steps:
+
+* Get the list of UUIDs from the directories in /var/lib/openshift.
+* Get the Unix UID and GID values from the group value of /var/lib/openshift/UUID.
+* Create the corresponding entries in /etc/passwd, using another node's /etc/passwd file for reference.
+
+Reboot the new node host to activate all changes, start the gears, and allow MCollective and other services to run.
+
+== Removing Applications from a Node
+While trying to add a node to a district, a common error is that the node already has user applications on it. In order to be able to add this node to a district, you will either need to move these applications to another node or delete the applications. Whether you choose to move or delete the applications will depend largely on your agreements with your end users regarding application persistence.
+
+In order to remove a users application, issue the following commands:
+
+----
+# oo-admin-ctl-app -l username -a appname -c stop
+# oo-admin-ctl-app -l username -a appname -c destroy
+----
+
+The above commands will stop the user's application and them remove the application from the node. If you want to preserve the application data, you should backup the application first using the snapshot tool that is part of the RHC command line tools.
+
+== Unknown Locale Error When Running _lokkit_
+If you get unknown locale error when running _lokkit_, run the following command to set the locale and then try your lokkit command again:
+
+----
+# export LC_CTYPE="en_US.UTF-8"
+----

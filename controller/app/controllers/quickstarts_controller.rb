@@ -28,8 +28,4 @@ class QuickstartsController < BaseController
     def file
       File.join(OpenShift::Config::CONF_DIR, 'quickstarts.json')
     end
-    
-    def set_log_tag
-      @log_tag = get_log_tag_prepend + "QUICKSTART"
-    end
 end

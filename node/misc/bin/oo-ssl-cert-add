@@ -98,13 +98,12 @@ begin
 
   passphrase='' if passphrase.nil?
 
-  frontend = OpenShift::FrontendHttpServer.new(container_uuid, container_name,
-                                               namespace)
+  frontend = OpenShift::Runtime::FrontendHttpServer.new(OpenShift::Runtime::ApplicationContainer.from_uuid(container_uuid))
   frontend.add_ssl_cert(ssl_cert_contents, priv_key_contents, server_alias, passphrase)
-rescue OpenShift::FrontendHttpServerExecException => e
+rescue OpenShift::Runtime::FrontendHttpServerExecException => e
   $stderr.puts(e.message + e.stdout + e.stderr)
   exit e.rc
-rescue OpenShift::FrontendHttpServerException => e
+rescue OpenShift::Runtime::FrontendHttpServerException => e
   $stderr.puts(e.message)
   exit 129
 rescue Exception => e

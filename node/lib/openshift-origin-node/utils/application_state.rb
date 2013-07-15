@@ -21,73 +21,73 @@ require 'openshift-origin-node/utils/shell_exec'
 require 'openshift-origin-node/utils/node_logger'
 
 module OpenShift
+  module Runtime
+    # Represents all possible application states
+    module State
+      BUILDING  = "building"
+      DEPLOYING = "deploying"
+      IDLE      = "idle"
+      NEW       = "new"
+      STARTED   = "started"
+      STOPPED   = "stopped"
+      UNKNOWN   = "unknown"
+    end
 
-  # Represents all possible application states
-  module State
-    BUILDING  = "building"
-    DEPLOYING = "deploying"
-    IDLE      = "idle"
-    NEW       = "new"
-    STARTED   = "started"
-    STOPPED   = "stopped"
-    UNKNOWN   = "unknown"
-  end
+    module Utils
+      # Class to maintain persistent application state
+      class ApplicationState
 
-  module Utils
-    # Class to maintain persistent application state
-    class ApplicationState
+        attr_reader :uuid
 
-      attr_reader :uuid
+        def initialize(container)
+          @container = container
+          @uuid = @container.uuid
 
-      def initialize(uuid)
-        @uuid = uuid
-
-        config      = OpenShift::Config.new
-        @state_file = File.join(config.get("GEAR_BASE_DIR"), uuid, "app-root", "runtime", ".state")
-      end
-
-      # Public: Sets the application state.
-      #
-      # @param [String]   new_state - From Openshift::State.
-      # @return [Object]  self for chaining calls
-      def value=(new_state)
-        new_state_val = nil
-        begin
-          new_state_val = OpenShift::State.const_get new_state.upcase.intern
-        rescue
-          raise ArgumentError, "Invalid state '#{new_state}' specified"
+          config      = ::OpenShift::Config.new
+          @state_file = File.join(@container.container_dir, "app-root", "runtime", ".state")
         end
 
-        File.open(@state_file, File::WRONLY|File::TRUNC|File::CREAT, 0640) { |file|
-          file.write "#{new_state_val}\n"
-        }
-
-        PathUtils.oo_chown(@uuid, @uuid, @state_file)
-        mcs_label = Utils::SELinux.get_mcs_label(@uuid)
-        Utils::SELinux.set_mcs_label(mcs_label, @state_file)
-        self
-      end
-
-
-      # Public: Fetch application state from gear.
-      #
-      # @return [String] application state or State::UNKNOWN on failure
-      def value
-        begin
-          File.open(@state_file) { |input| input.read.chomp }
-        rescue => e
-          msg = "Failed to get state: #{@uuid} [#{@state_file}]: "
-          case e
-          when SystemCallError
-            # This catches filesystem level errors
-            # We split the message because it contains the filename
-            msg << e.message.split(' - ').first
-          else
-            msg << e.message
+        # Public: Sets the application state.
+        #
+        # @param [String]   new_state - From Openshift::State.
+        # @return [Object]  self for chaining calls
+        def value=(new_state)
+          new_state_val = nil
+          begin
+            new_state_val = ::OpenShift::Runtime::State.const_get new_state.upcase.intern
+          rescue
+            raise ArgumentError, "Invalid state '#{new_state}' specified"
           end
-          NodeLogger.logger.info( msg )
 
-          State::UNKNOWN
+          File.open(@state_file, File::WRONLY|File::TRUNC|File::CREAT, 0640) { |file|
+            file.write "#{new_state_val}\n"
+          }
+
+          @container.set_rw_permission(@state_file)
+          self
+        end
+
+
+        # Public: Fetch application state from gear.
+        #
+        # @return [String] application state or State::UNKNOWN on failure
+        def value
+          begin
+            File.open(@state_file) { |input| input.read.chomp }
+          rescue => e
+            msg = "Failed to get state: #{@uuid} [#{@state_file}]: "
+            case e
+              when SystemCallError
+                # This catches filesystem level errors
+                # We split the message because it contains the filename
+                msg << e.message.split(' - ').first
+              else
+                msg << e.message
+            end
+            NodeLogger.logger.info( msg )
+
+            State::UNKNOWN
+          end
         end
       end
     end

@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.10.5
+Version: 1.12.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -84,6 +84,182 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Fri Jul 12 2013 Adam Miller <admiller@redhat.com> 1.12.1-1
+- Merge branch 'master' of github.com:openshift/origin-server
+  (admiller@redhat.com)
+- bump_minor_versions for sprint 31 (admiller@redhat.com)
+- Merge pull request #3070 from detiber/info2warn
+  (dmcphers+openshiftbot@redhat.com)
+- <controller> - Return client_message as warning instead of info
+  (jdetiber@redhat.com)
+
+* Fri Jul 12 2013 Adam Miller <admiller@redhat.com> 1.11.8-1
+- Merge pull request #3017 from lnader/master
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3068 from abhgupta/bug_980760
+  (dmcphers+openshiftbot@redhat.com)
+- Fix for bug 980760  - fixing error message on validation failure  - removing
+  downloaded cart manifest entry from app if adding a url based cart fails
+  (abhgupta@redhat.com)
+- Fix bug 983583: remove gear validation step for compatible upgrades
+  (pmorie@gmail.com)
+- Bug 980928 (lnader@redhat.com)
+- Fix up psql command usage in cucumber tests (asari.ruby@gmail.com)
+- Merge pull request #3057 from BanzaiMan/dev/hasari/c157
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3054 from abhgupta/bug_980760
+  (dmcphers+openshiftbot@redhat.com)
+- Add 9.2 for all remaining cucumber features (asari.ruby@gmail.com)
+- Closing mongo db connection to prevent connection pool from getting exhausted
+  (abhgupta@redhat.com)
+
+* Wed Jul 10 2013 Adam Miller <admiller@redhat.com> 1.11.7-1
+- Changing error message to make it more clear (abhgupta@redhat.com)
+- Restore "application destroyed" step which was removed in
+  5fa8baf6c1781c0e1553d5c424688f461773710a (kraman@gmail.com)
+- Merge pull request #3024 from abhgupta/bug_980760
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3028 from rajatchopra/fix_970829
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3022 from kraman/libvirt-f19-2
+  (dmcphers+openshiftbot@redhat.com)
+- Fix for bug 980760  - Preventing multiple versions of a cartridge from being
+  added to the application (abhgupta@redhat.com)
+- use quarantine to not let the app delete operation in while upgrade is in
+  progress (rchopra@redhat.com)
+- Bug 979182 - Increase file limit for the gear in proportion to the filesystem
+  storage. (rpenta@redhat.com)
+- Updates to allow basic tests to pass on F19 (kraman@gmail.com)
+- Merge pull request #3018 from abhgupta/bug_982549
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3016 from pmorie/dev/fix_tests
+  (dmcphers+openshiftbot@redhat.com)
+- Fix for bug 982549  - Simplified regex to work with ruby 2.0 in Fedora 19
+  (abhgupta@redhat.com)
+- Fix upgrade functionality and associated tests (pmorie@gmail.com)
+
+* Tue Jul 09 2013 Adam Miller <admiller@redhat.com> 1.11.6-1
+- Merge pull request #3010 from pravisankar/dev/ravi/bug982172
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 982172 - Do not try to unreserve_uid if we don't get valid container for
+  the gear. (rpenta@redhat.com)
+
+* Mon Jul 08 2013 Adam Miller <admiller@redhat.com> 1.11.5-1
+- Fixing runtime tests (dmcphers@redhat.com)
+- Increase jenkins start timeout (dmcphers@redhat.com)
+
+* Fri Jul 05 2013 Adam Miller <admiller@redhat.com> 1.11.4-1
+- Assign default gear size if not specified in applications_controller.rb
+  (rpenta@redhat.com)
+- Merge pull request #2987 from rajatchopra/routing_broker
+  (dmcphers+openshiftbot@redhat.com)
+- fix runtime extended tests (dmcphers@redhat.com)
+- Routing plug-in for broker. Code base from github/miciah/broker-plugin-
+  routing-activemq (miciah.masters@gmail.com)
+
+* Tue Jul 02 2013 Adam Miller <admiller@redhat.com> 1.11.3-1
+- Merge pull request #2934 from kraman/libvirt-f19-2
+  (dmcphers+openshiftbot@redhat.com)
+- Fixing class/module namespaces Fixing tests Fixing rebase errors Un-hardcode
+  context in step_definitions/cartridge-php_steps.rb Fixing paths that were
+  broken when going from File.join -> PathUtils.join (kraman@gmail.com)
+- Refactor code to use run_in_container_context/run_in_root_context calls
+  instead of generically calling oo_spawn and passing uid. Modify frontend
+  httpd/proxy classes to accept a container object instead of indivigual
+  properties (kraman@gmail.com)
+- Moving Node classes into Runtime namespace Removing UnixUser Moving
+  functionality into SELinux plugin class (kraman@gmail.com)
+
+* Tue Jul 02 2013 Adam Miller <admiller@redhat.com> 1.11.2-1
+- Moving scaled deploy into the platform (dmcphers@redhat.com)
+- Handling cleanup of failed pending op using rollbacks (abhgupta@redhat.com)
+- Merge pull request #2925 from BanzaiMan/dev/hasari/c157
+  (dmcphers+openshiftbot@redhat.com)
+- Add gear-level upgrade extensions (pmorie@gmail.com)
+- Merge pull request #2945 from pravisankar/dev/ravi/card7
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #2783 from genesarm/PULL_1844
+  (dmcphers+openshiftbot@redhat.com)
+- Remove Online specific references: -Remove hard-coded cart name references.
+  -Remove login validations from CloudUser model, login validation must be done
+  by authentication plugin. -Remove 'medium' gear size references -All 'small'
+  gear size references must be from configuration files. -Remove stale
+  application_observer.rb and its references -Remove stale 'abstract' cart
+  references -Remove duplicate code from rest controllers -Move all
+  get_rest_{user,domain,app,cart} methods in RestModelHelper module. -Cleanup
+  unnecessary TODO/FIXME comments in broker. (rpenta@redhat.com)
+- Updated platform-oo-admin.feature testing adding and removing domain wide env
+  variables (gsarmien@redhat.com)
+- PODO-61 Added tests for adding and removing domain wide environment variables
+  (gsarmien@redhat.com)
+- Added test for adding domain env variable (gsarmien@redhat.com)
+- oo-admin-ctl-usage fixes: Create index on 'gear_id'+'usage_type'+'created_at'
+  fields for usage_records mongo collection. (rpenta@redhat.com)
+- Card online_runtime_157 (asari.ruby@gmail.com)
+- Merge pull request #2927 from smarterclayton/bug_970257_support_git_at_urls
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #2967 from pmorie/dev/os_migrations
+  (dmcphers+openshiftbot@redhat.com)
+- Rename migrate to upgrade in code (pmorie@gmail.com)
+- Fix alias validation regex (kraman@gmail.com)
+- Remove unused scripts. (mrunalp@gmail.com)
+- Bug 977493 - Avoid leaking the lock file descriptor to child processes.
+  (rmillner@redhat.com)
+- Merge pull request #2827 from genesarm/PULL_2005
+  (dmcphers+openshiftbot@redhat.com)
+- Move core migration into origin-server (pmorie@gmail.com)
+- Merge pull request #2951 from BanzaiMan/mocha_deprecation_warning
+  (dmcphers@redhat.com)
+- Merge pull request #2952 from pmorie/fix-tests (dmcphers@redhat.com)
+- Avoid harmless but annoying deprecation warning (asari.ruby@gmail.com)
+- Fix mysql scaling tests (pmorie@gmail.com)
+- Merge pull request #2865 from BanzaiMan/dev/hasari/bz974632
+  (dmcphers+openshiftbot@redhat.com)
+- Tests pass fully (add initial_git_url for earlier api versions).  Control
+  what values of URI get persisted to DB (passwords and userinfo from clone
+  specs should not be) (ccoleman@redhat.com)
+- Merge remote-tracking branch 'origin/master' into
+  bug_970257_support_git_at_urls (ccoleman@redhat.com)
+- Merge pull request #2938 from rajatchopra/master
+  (dmcphers+openshiftbot@redhat.com)
+- fix bz977519 - for cases where v2 parsing succeeds but broker manifest
+  parsing fails (rchopra@redhat.com)
+- PULL_2005 Changed GEAR_SUPL_GRPS to GEAR_SUPPLEMENTARY_GROUPS in node and
+  tests (gsarmien@redhat.com)
+- PULL_2005 fixed code review bugs for adding supplementary groups to new gears
+  (gsarmien@redhat.com)
+- PULL_2005 added tests for adding supplementary groups when creating new gears
+  in a node (gsarmien@redhat.com)
+- Remove V1 code and V2-specific stepdefs (pmorie@gmail.com)
+- Merge pull request #2757 from tbielawa/acceptable_values
+  (dmcphers+openshiftbot@redhat.com)
+- Merge remote-tracking branch 'origin/master' into
+  bug_970257_support_git_at_urls (ccoleman@redhat.com)
+- Allow clients to pass an initial_git_url of "empty", which creates a bare
+  repo but does not add a commit.  When 'empty' is passed, the node will skip
+  starting the gear and also skip the initial build.  This allows clients that
+  want to send a local Git repository (one that isn't visible to OpenShift.com,
+  for example) to avoid having to push/merge/delete the initial commit, and
+  instead submit their own clean repo.  In this case, the user will get a
+  result indicating that their repository is empty. (ccoleman@redhat.com)
+- Merge pull request #2930 from abhgupta/abhgupta-dev
+  (dmcphers+openshiftbot@redhat.com)
+- <App creation error message> Clarify wording in error message
+  (tbielawa@redhat.com)
+- Reverting fix for bug 973718  - instead of not returning the broken apps, we
+  are relying on the CLI/console resilience to handle these broken apps for now
+  (abhgupta@redhat.com)
+- Bug 970257 - Allow git@ urls (ccoleman@redhat.com)
+- removing v1 logic (dmcphers@redhat.com)
+- Merge pull request #2923 from lnader/master
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 977037 (lnader@redhat.com)
+- Resurrect file permissions tests that existed for v1 PHP cartridge
+  (asari.ruby@gmail.com)
+
+* Tue Jun 25 2013 Adam Miller <admiller@redhat.com> 1.11.1-1
+- bump_minor_versions for sprint 30 (admiller@redhat.com)
+
 * Thu Jun 20 2013 Adam Miller <admiller@redhat.com> 1.10.5-1
 - Merge pull request #2908 from rajatchopra/master
   (dmcphers+openshiftbot@redhat.com)

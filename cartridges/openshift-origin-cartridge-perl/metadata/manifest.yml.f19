@@ -1,7 +1,7 @@
 Name: perl
 Cartridge-Short-Name: PERL
 Display-Name: Perl 5.16
-Description: "Perl is a general-purpose server-side scripting language originally designed for Web development to produce dynamic Web pages. Popular development frameworks include: CakePerl, Zend, Symfony, and Code Igniter."
+Description: "Perl is a high-level, general-purpose, interpreted, dynamic programming language. Dynamic content produced by Perl scripts can be served in response to incoming web requests."
 Version: '5.16'
 License: "GPL v2"
 License-Url: http://dev.perl.org/licenses/

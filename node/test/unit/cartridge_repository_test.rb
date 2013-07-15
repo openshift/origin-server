@@ -26,7 +26,7 @@ class CartridgeRepositoryTest < OpenShift::NodeTestCase
     FileSystem.clear
 
     @path = '/var/lib/openshift/.cartridge_repository'
-    OpenShift::CartridgeRepository.instance.clear
+    OpenShift::Runtime::CartridgeRepository.instance.clear
   end
 
   def teardown
@@ -43,7 +43,7 @@ class CartridgeRepositoryTest < OpenShift::NodeTestCase
   def test_one_manifest
     populate_manifest(%W(#{@path}/redhat-crtest/1.0/metadata/manifest.yml))
 
-    cr = OpenShift::CartridgeRepository.instance
+    cr = OpenShift::Runtime::CartridgeRepository.instance
     cr.load
     refute_nil cr
 
@@ -69,18 +69,19 @@ class CartridgeRepositoryTest < OpenShift::NodeTestCase
                        "#{@path}/redhat-crtest/1.1/metadata/manifest.yml",
                        "#{@path}/redhat-crtest/1.2/metadata/manifest.yml"])
 
-    cr = OpenShift::CartridgeRepository.instance
+    cr = OpenShift::Runtime::CartridgeRepository.instance
     cr.load
 
     assert_equal 3, cr.count
   end
 
   def test_three_manifest
-    populate_manifest(["#{@path}/redhat-crtest/1.0/metadata/manifest.yml",
-                       "#{@path}/redhat-crtest/1.1/metadata/manifest.yml",
-                       "#{@path}/redhat-crtest/1.2/metadata/manifest.yml"])
+    paths = ["#{@path}/redhat-crtest/1.0/metadata/manifest.yml",
+             "#{@path}/redhat-crtest/1.1/metadata/manifest.yml",
+             "#{@path}/redhat-crtest/1.2/metadata/manifest.yml"]
+    populate_manifest(paths)
 
-    cr = OpenShift::CartridgeRepository.instance
+    cr = OpenShift::Runtime::CartridgeRepository.instance
     cr.load
 
     e = cr.select('crtest')
@@ -88,7 +89,7 @@ class CartridgeRepositoryTest < OpenShift::NodeTestCase
     assert_equal '0.3', e.version
     assert_equal '1.2', e.cartridge_version
 
-    cr = OpenShift::CartridgeRepository.instance
+    cr = OpenShift::Runtime::CartridgeRepository.instance
     e  = cr.select('crtest', '0.3')
     refute_nil e
     assert_equal '0.3', e.version
@@ -99,7 +100,7 @@ class CartridgeRepositoryTest < OpenShift::NodeTestCase
     assert_equal '0.3', e.version
     assert_equal '1.2', e.cartridge_version
 
-    cr = OpenShift::CartridgeRepository.instance
+    cr = OpenShift::Runtime::CartridgeRepository.instance
     e  = cr['crtest', '0.3']
     refute_nil e
     assert_equal '0.3', e.version
@@ -111,7 +112,7 @@ class CartridgeRepositoryTest < OpenShift::NodeTestCase
                        "#{@path}/redhat-crtest/1.1/metadata/manifest.yml",
                        "#{@path}/redhat-crtest/1.2/metadata/manifest.yml"])
 
-    cr = OpenShift::CartridgeRepository.instance
+    cr = OpenShift::Runtime::CartridgeRepository.instance
     cr.load
 
     assert_raise(KeyError) do

@@ -2,11 +2,11 @@
     %global scl ruby193
     %global scl_prefix ruby193-
 %endif
-%global cartridgedir %{_libexecdir}/openshift/cartridges/v2/haproxy
+%global cartridgedir %{_libexecdir}/openshift/cartridges/haproxy
 
 Summary:       Provides HA Proxy
 Name:          openshift-origin-cartridge-haproxy
-Version: 0.5.3
+Version: 0.7.1
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -35,7 +35,7 @@ HAProxy cartridge for OpenShift. (Cartridge Format V2)
 %__mkdir -p %{buildroot}%{cartridgedir}
 %__cp -r * %{buildroot}%{cartridgedir}
 
-%post
+%posttrans
 %{_sbindir}/oo-admin-cartridge --action install --source %{cartridgedir}
 
 %files
@@ -48,6 +48,31 @@ HAProxy cartridge for OpenShift. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Fri Jul 12 2013 Adam Miller <admiller@redhat.com> 0.7.1-1
+- bump_minor_versions for sprint 31 (admiller@redhat.com)
+
+* Wed Jul 10 2013 Adam Miller <admiller@redhat.com> 0.6.4-1
+- WIP Cartridge - bump cartridge versions (jhonce@redhat.com)
+- Bug 982482 (mrunalp@gmail.com)
+
+* Wed Jul 03 2013 Adam Miller <admiller@redhat.com> 0.6.3-1
+- moving sync into the sdk (dmcphers@redhat.com)
+
+* Tue Jul 02 2013 Adam Miller <admiller@redhat.com> 0.6.2-1
+- Bug 976921: Move cart installation to %%posttrans (ironcladlou@gmail.com)
+- Merge pull request #2958 from danmcp/master
+  (dmcphers+openshiftbot@redhat.com)
+- remove v2 folder from cart install (dmcphers@redhat.com)
+- Bug 977493 - Avoid leaking the lock file descriptor to child processes.
+  (rmillner@redhat.com)
+
+* Tue Jun 25 2013 Adam Miller <admiller@redhat.com> 0.6.1-1
+- bump_minor_versions for sprint 30 (admiller@redhat.com)
+
+* Fri Jun 21 2013 Adam Miller <admiller@redhat.com> 0.5.4-1
+- WIP Cartridge - Updated manifest.yml versions for compatibility
+  (jhonce@redhat.com)
+
 * Thu Jun 20 2013 Adam Miller <admiller@redhat.com> 0.5.3-1
 - Bug 974786: Scaled gear hot deploy logic fix (ironcladlou@gmail.com)
 

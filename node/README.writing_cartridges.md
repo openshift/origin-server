@@ -873,6 +873,10 @@ system-provided environment variables but before your code is called.
 OpenShift-provided environment variables will be loaded and available
 to be used for all cartridge entry points.
 
+You cannot override system provided variables by creating new copies in your cartridge `env` directory.
+If you attempt to do so, when an application developer attempts to instantiate your cartridge the system
+will raise an exception and refuse to do so.
+
 ### System Provided Variables (Read Only) ###
 
 | Name                | Value                                                                                                                    |
@@ -1144,6 +1148,7 @@ During the `build` phase:
 
 1. The application is stopped.
 1. The primary cartridge `pre-receive` control action is executed.
+1. The primary cartridge `pre-repo-archive` control action is executed.
 1. The newly committed application source code is copied to `$OPENSHIFT_REPO_DIR`.
    **Note**: This step is the only time the application source code is copied by 
    OpenShift during this lifecycle.

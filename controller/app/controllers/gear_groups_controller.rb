@@ -34,8 +34,4 @@ class GearGroupsController < BaseController
       return render_error(:internal_server_error, "Failed to get gear group #{gear_group_id}  for application #{@application.name} due to: #{e.message}", 1)
     end
   end
-  
-  def set_log_tag
-    @log_tag = get_log_tag_prepend + "GEAR_GROUP"
-  end
 end

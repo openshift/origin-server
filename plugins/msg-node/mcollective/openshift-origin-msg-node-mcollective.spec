@@ -10,7 +10,7 @@
 
 Summary:       M-Collective agent file for openshift-origin-msg-node-mcollective
 Name:          openshift-origin-msg-node-mcollective
-Version: 1.10.3
+Version: 1.12.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -51,6 +51,42 @@ cp -p facts/update_yaml.rb %{buildroot}/usr/libexec/mcollective/
 %attr(0700,-,-) %config(noreplace) /etc/cron.minutely/openshift-facts
 
 %changelog
+* Fri Jul 12 2013 Adam Miller <admiller@redhat.com> 1.12.1-1
+- bump_minor_versions for sprint 31 (admiller@redhat.com)
+
+* Wed Jul 10 2013 Adam Miller <admiller@redhat.com> 1.11.5-1
+- Merge pull request #3031 from rajatchopra/master
+  (dmcphers+openshiftbot@redhat.com)
+- mcoll action for getting env vars for a gear (rchopra@redhat.com)
+- Fix gear env loading by using ApplicationContainer::from_uuid instead of
+  ApplicationContainer::new (kraman@gmail.com)
+
+* Fri Jul 05 2013 Adam Miller <admiller@redhat.com> 1.11.4-1
+- Routing plug-in for broker. Code base from github/miciah/broker-plugin-
+  routing-activemq (miciah.masters@gmail.com)
+
+* Tue Jul 02 2013 Adam Miller <admiller@redhat.com> 1.11.3-1
+- Merge pull request #2934 from kraman/libvirt-f19-2
+  (dmcphers+openshiftbot@redhat.com)
+- Fixing class/module namespaces Fixing tests Fixing rebase errors Un-hardcode
+  context in step_definitions/cartridge-php_steps.rb Fixing paths that were
+  broken when going from File.join -> PathUtils.join (kraman@gmail.com)
+- Refactor code to use run_in_container_context/run_in_root_context calls
+  instead of generically calling oo_spawn and passing uid. Modify frontend
+  httpd/proxy classes to accept a container object instead of indivigual
+  properties (kraman@gmail.com)
+- Moving Node classes into Runtime namespace Removing UnixUser Moving
+  functionality into SELinux plugin class (kraman@gmail.com)
+
+* Tue Jul 02 2013 Adam Miller <admiller@redhat.com> 1.11.2-1
+- Moving scaled deploy into the platform (dmcphers@redhat.com)
+- Handling cleanup of failed pending op using rollbacks (abhgupta@redhat.com)
+- Rename migrate to upgrade in code (pmorie@gmail.com)
+- Move core migration into origin-server (pmorie@gmail.com)
+
+* Tue Jun 25 2013 Adam Miller <admiller@redhat.com> 1.11.1-1
+- bump_minor_versions for sprint 30 (admiller@redhat.com)
+
 * Tue Jun 18 2013 Adam Miller <admiller@redhat.com> 1.10.3-1
 - Bug 972757 (asari.ruby@gmail.com)
 

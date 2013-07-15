@@ -35,16 +35,16 @@ module OpenShift
     def self.clean_upgrade(gear_home)
       return if !validate_gear_home(gear_home)
 
-      Dir.glob(File.join(gear_home, %w(app-root data .migration*))).each do |entry|
+      Dir.glob(File.join(gear_home, %w(app-root data .upgrade*))).each do |entry|
         puts "Removing #{entry}"
         FileUtils.rm_rf(entry)
       end
 
-      premigration_state_file = File.join(gear_home, %w(app-root runtime .premigration_state))
+      preupgrade_state_file = File.join(gear_home, %w(app-root runtime .preupgrade_state))
 
-      if File.exists?(premigration_state_file)
-        puts "Removing #{premigration_state_file}"
-        FileUtils.rm_f(premigration_state_file)
+      if File.exists?(preupgrade_state_file)
+        puts "Removing #{preupgrade_state_file}"
+        FileUtils.rm_f(preupgrade_state_file)
       end
     end
   end

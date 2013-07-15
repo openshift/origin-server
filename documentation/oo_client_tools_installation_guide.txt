@@ -1,0 +1,209 @@
+= Client Tools Installation Guide
+OpenShift Origin Documentation Project <dev@lists.openshift.redhat.com>
+v2.0, July 2013
+:data-uri:
+:toc2:
+:icons:
+:numbered:
+
+////
+Adapted from the OpenShift Enterprise Training - Lab Manual By Grant Shipley <gshipley@redhat.com>
+////
+
+The OpenShift Client tools, known as *rhc*, are built and packaged using the Ruby programming language. OpenShift Origin integrates with the Git version control system to provide powerful, decentralized version control for your application source code. OpenShift Origin client tools can be installed on any operating system with Ruby 1.8.7 or higher. Instructions for specific operating systems are provided below. It is assumed that you are running the commands from a command line window, such as Command Prompt, or Terminal.
+
+If you want to use https://rvm.io/[Ruby Version Manager (rvm)], no problem; see the instructions <<rvm_and_rhc,below>>.
+
+== Microsoft Windows
+Before you can use the rhc package on Microsoft Windows, you will first need to install a few supporting packages:
+
+* Ruby
+* git
+
+=== Install Ruby for Windows
+http://rubyinstaller.org/[RubyInstaller 1.9] provides the best experience for installing Ruby on Windows XP, Vista, and Windows 7. Download the newest version from the http://rubyinstaller.org/downloads/[download page] and launch the installer.
+
+IMPORTANT: During the installation you should accept all of the defaults, it is mandatory that you select the "Add Ruby executables to your PATH" check box in order to run Ruby from the command line.
+
+After the installation is complete, to verify that the installation is working run:
+
+----
+C:\Program Files\> ruby -e 'puts "Welcome to Ruby"'
+Welcome to Ruby
+----
+
+If the 'Welcome to Ruby' message does not display, the Ruby executable may not have been added to the path. Restart the installation process and ensure the "Add Ruby executables to your PATH" check box is selected.
+
+=== Install Git for Windows
+The next step is to install http://msysgit.github.com/[Git for Windows] so that you can synchronize your local application source and your OpenShift application. Git for Windows offers the easiest Git experience on the Windows operating system and is the recommended default - if you use another version of Git please ensure it can be executed from the command line and continue to the next section.
+
+Download and install the http://code.google.com/p/msysgit/downloads/list?q=full+installer+official+git[latest version of Git for Windows]. Ensure that Git is added to your PATH so that it can be run from the command line. After the installation has completed, verify that Git is correctly configured by running:
+
+----
+C:\Program Files\> git --version
+git version 1.7.11.msysgit.1
+----
+
+=== Install RHC for Windows
+After Ruby and Git are correctly installed, use the RubyGems package manager (included in Ruby) to install the OpenShift Origin client tools. Run:
+
+----
+C:\Program Files\> gem install rhc
+----
+
+RubyGems downloads and installs the rhc gem from www.rubygems.org/gems/rhc. The installation typically proceeds without errors. After the installation has completed, run:
+
+----
+C:\Program Files\> rhc
+----
+
+== Mac OS X
+Before you can use the rhc package on OS X, you will first need to install a few supporting packages:
+
+* Ruby
+* git
+
+=== Install Ruby for OS X
+From OS X Lion onwards, Ruby 1.8.7 is installed by default. On older Mac systems, Ruby is shipped as part of the
+https://developer.apple.com/xcode/[Xcode development suite] and can be installed from your installation CD. If you are familiar with Mac development, you can also use http://macruby.org/[MacRuby] or see the Ruby installation page for http://www.ruby-lang.org/en/downloads/[help installing with homebrew].
+
+To verify that Ruby is correctly installed run:
+
+----
+$ ruby -e 'puts "Welcome to Ruby"'
+Welcome to Ruby
+----
+
+=== Install Git for OS X
+There are a number of options on Mac OS X for Git. We recommend the Git for OS X installer - download and run the latest version of the dmg file on your system. To verify the http://code.google.com/p/git-osx-installer/[Git for OS X installation], run:
+
+----
+$ git --version
+git version 1.7.11.1
+----
+
+=== Install RHC for OS X
+With Ruby and Git installed, use the RubyGems library system to install and run the OpenShift Origin gem. Run:
+
+----
+$ sudo gem install rhc
+----
+
+After the installation has completed, run:
+
+----
+$ rhc -v
+----
+
+== Fedora
+To install on Fedora 16 or above, the most reliable solution is to use RubyGems.
+
+----
+$ sudo yum install rubygems
+----
+
+After installing RubyGems, use it to install the OpenShift Origin client tools:
+
+----
+$ sudo gem install rhc
+----
+
+You will also need to install Git if it is not already installed:
+
+----
+$ sudo yum install git
+----
+
+After the OpenShift Origin client tools have been installed, run the following command:
+
+----
+$ rhc -v
+----
+
+== Red Hat Enterprise Linux
+To install on Red Hat Enterprise Linux 6.2, 6.3, or 6.4, the most reliable solution is to use RubyGems. In order to install the RubyGems package, the _RHEL Optional_ channel must be enabled. There are two ways of doing this from the command line. If you are using the Certificate-Based RHN tooling, enter the following command:
+
+----
+$ sudo yum-config-manager --enable rhel-6-server-optional-rpms   
+----
+
+If you are using RHN-Classic, enter the following command:
+
+----
+$ sudo rhn-channel --add --channel=rhel-x86rhel-x86_64-server-optional-6
+----
+
+With the repository in place, you can now install RubyGems:
+
+----
+$ sudo yum install rubygems
+----
+
+After installing RubyGems, use it to install the OpenShift Origin client tools:
+
+----
+$ sudo gem install rhc
+----
+
+You will also need to install Git if it is not already installed:
+
+----
+$ sudo yum install git
+----
+
+After the OpenShift Origin client tools have been installed, run the following command:
+
+----
+$ rhc -v
+----
+
+== Ubuntu
+Use the apt-get command line package manager to install Ruby and Git before you install the OpenShift Origin command line tools. Run the following command:
+
+----
+$ sudo apt-get install ruby-full rubygems git-core
+----
+
+After you install both Ruby and Git, verify they can be accessed via the command line:
+
+----
+$ ruby -e 'puts "Welcome to Ruby"'
+$ git --version
+----
+
+If either program is not available from the command line, please add them to your PATH environment variable.
+
+With Ruby and Git correctly installed, you can now use the RubyGems package manager to install the OpenShift Origin client tools. From a command line, run the following command:
+
+----
+$ sudo gem install rhc
+----
+
+[[rvm_and_rhc]]
+== Ruby Version Manager and rhc
+https://rvm.io/[Ruby Version Manager (RVM)] is an alternate management system for Ruby and Ruby Gems that makes it easier for users to switch between ruby versions and to work with the latest gem versions. Because _rhc_ is itself a Ruby Gem, using it with RVM doesn't require any special magic. Once RVM is installed, use the _rvm use_ command to specify the ruby version / environment of your choice:
+
+----
+$ rvm use 1.9.3    # tells rvm to use a Ruby 1.93 environment
+$ rvm use system   # tells rvm to use the Ruby environment that is not managed by RVM
+----
+
+To set the persistent default environment, use the _--default_ flag:
+
+----
+$ rvm --default use 1.9.3
+Using /path/to/homedir/.rvm/gems/ruby-1.9.3-p286
+----
+
+Once you are working in your preferred environment, run the gem command as usual to install rhc:
+
+----
+$ gem install rhc
+----
+
+And confirm that you are going to be using the desired version of rhc using _which_:
+
+----
+$ which rhc
+/path/to/homedir/.rvm/gems/ruby-1.9.3-p286/bin/rhc
+----

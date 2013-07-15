@@ -96,11 +96,7 @@ begin
   #c << "-#{software_version}" if software_version
   output = ''
 
-  passwd = Etc.getpwnam(uuid)
-  env = OpenShift::Utils::Environ.for_gear(passwd.dir)
-  app_name = env['OPENSHIFT_APP_NAME']
-
-  container = OpenShift::ApplicationContainer.new(uuid, uuid, nil, app_name)
+  container = OpenShift::Runtime::ApplicationContainer.from_uuid(uuid)
   case action
     when 'add'
       output = container.configure(c, template_url)
@@ -111,7 +107,7 @@ begin
       usage
       raise NotImplementedError.new(action)
   end
-rescue OpenShift::Utils::ShellExecutionException => e
+rescue OpenShift::Runtime::Utils::ShellExecutionException => e
   $stderr.puts "Cartridge #{action} failed"
   $stderr.puts "#{e.message}: rc(#{e.rc}"
 

@@ -89,7 +89,7 @@ unless container_uuid
 end
 
 begin
-  frontend = OpenShift::FrontendHttpServer.new(container_uuid, container_name, namespace)
+  frontend = OpenShift::Runtime::FrontendHttpServer.new(OpenShift::Runtime::ApplicationContainer.from_uuid(container_uuid))
   connections = frontend.connections
   if $porcelain
     $stdout.puts connections.to_json
@@ -102,10 +102,10 @@ begin
       $stderr.write "\n"
     end
   end
-rescue OpenShift::FrontendHttpServerExecException => e
+rescue OpenShift::Runtime::FrontendHttpServerExecException => e
   $stderr.puts(e.message + e.stdout + e.stderr)
   exit e.rc
-rescue OpenShift::FrontendHttpServerException => e
+rescue OpenShift::Runtime::FrontendHttpServerException => e
   $stderr.puts(e.message)
   exit 129
 rescue Exception => e
