@@ -5,4 +5,3 @@ MOCK_STATE=$OPENSHIFT_DATA_DIR/.mock_cartridge_state
 
 touch $MOCK_STATE/action_hook_pre_start
 
-nohup $OPENSHIFT_MOCK_DIR/bin/mock_server.rb $OPENSHIFT_MOCK_EXAMPLE_IP1 $OPENSHIFT_REPO_DIR > $OPENSHIFT_MOCK_DIR/logs/server.log 2>&1 &
