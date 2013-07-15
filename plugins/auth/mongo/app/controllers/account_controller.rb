@@ -14,10 +14,5 @@ class AccountController < BaseController
 
     auth_service.register_user(username, password)
     render_success(:created, "account", RestAccount.new(username, Time.new), "User '#{username}' successfully registered")
-  end
-  
-  def set_log_tag
-    @log_tag = get_log_tag_prepend + "ACCOUNT"
-  end
-  
+  end 
 end

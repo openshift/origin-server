@@ -1,6 +1,7 @@
 class EmbCartController < BaseController
   include RestModelHelper
   before_filter :get_domain, :get_application
+  action_log_tag_resource :app_cartridge
 
   # This is the regex for cartridge names
   # We need to ensure backward compatibility for fetches
@@ -269,9 +270,5 @@ class EmbCartController < BaseController
     rescue Exception => e
       return render_exception(e)
     end
-  end
-  
-  def set_log_tag
-    @log_tag = get_log_tag_prepend + "APP_CARTRIDGE"
   end
 end
