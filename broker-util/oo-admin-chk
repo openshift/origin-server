@@ -124,7 +124,7 @@ end
 def check_consumed_gears(user_id)
   begin
     actual_gears = 0
-    user = CloudUser.with(consistency: :strong).find_by(:_id => user_id)
+    user = CloudUser.find_by(:_id => user_id)
     user.domains.each do |d|
       d.applications.each do |a|
         a.group_instances.each do |gi|

@@ -95,7 +95,7 @@ when "env_add"
   end
 
   domain.add_env_variables([{"key" => env_name, "value" => env_value}])
-  domain.with(consistency: :strong).reload
+  domain.reload
   domain.run_jobs
 when "env_del"
   if env_name.nil?
@@ -122,7 +122,7 @@ when "env_del"
   end
 
   domain.remove_env_variables([{"key" => env["key"], "value" => env["value"]}])
-  domain.with(consistency: :strong).reload
+  domain.reload
   domain.run_jobs
 when "create"
   if ssh_key.nil? || namespace.nil? || login.nil?

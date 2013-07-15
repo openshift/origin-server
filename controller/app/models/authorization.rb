@@ -46,7 +46,7 @@ class Authorization
   def self.authenticate(token)
     where(token: token).first
   rescue Mongoid::Errors::DocumentNotFound
-    where(token: token).with(consistency: :strong).first
+    where(token: token).first
   end
 
   def self.revoke_all_for(application_id, resource_owner)

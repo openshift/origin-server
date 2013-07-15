@@ -190,7 +190,7 @@ class AuthenticationTest < ActiveSupport::TestCase
 
   test 'should read secondary then primary for authorization tokens on authenticate' do
     qualifier = mock
-    qualifier.expects(:with).with(consistency: :strong).returns([true])
+    qualifier.expects(:with).returns([true])
     Authorization.expects(:where).twice.with(:token => 'foo').raises(Mongoid::Errors::DocumentNotFound.new(Authorization, nil, ['foo'])).
                   then.returns(qualifier)
 

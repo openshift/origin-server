@@ -53,10 +53,10 @@ class PendingUserOps
     # find the op index and do an atomic update
     op_index = self.cloud_user.pending_ops.index(self) 
     while retries < 5
-      retval = CloudUser.with(consistency: :strong).where({ "_id" => self.cloud_user._id, "pending_ops.#{op_index}._id" => self._id }).update({"$addToSet" => { "pending_ops.#{op_index}.completed_domain_ids" => domain._id }})
+      retval = CloudUser.where({ "_id" => self.cloud_user._id, "pending_ops.#{op_index}._id" => self._id }).update({"$addToSet" => { "pending_ops.#{op_index}.completed_domain_ids" => domain._id }})
 
       # the op needs to be reloaded to either set the :state or to find the updated index
-      reloaded_user = CloudUser.with(consistency: :strong).find_by(_id: self.cloud_user._id)
+      reloaded_user = CloudUser.find_by(_id: self.cloud_user._id)
       current_op = reloaded_user.pending_ops.find_by(_id: self._id)
       if retval["updatedExisting"]
         current_op.set(:state, :completed) if current_op.completed?
