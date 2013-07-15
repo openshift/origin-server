@@ -1,0 +1,46 @@
+= OpenShift Origin Documentation Site
+OpenShift Origin Documentation Project <dev@lists.openshift.redhat.com>
+v2.0, July 2013
+:data-uri:
+:icons:
+
+https://openshift.redhat.com/community/open-source[OpenShift Origin] is Red Hat's open source Platform as a Service (PaaS) offering. OpenShift Origin is an application platform where application developers and teams can build, test, deploy, and run their applications. OpenShift Origin also serves as the upstream code base upon which https://www.openshift.com/products/online[OpenShift Online] and https://www.openshift.com/products/enterprise[OpenShift Enterprise] are based.
+
+== General Overview
+
+* https://openshift.redhat.com/community/wiki/learning-openshift-origin[Learning OpenShift Origin]
+* https://openshift.redhat.com/community/wiki/architecture-overview[Architecture Overview]
+
+== Documentation
+
+* Installation Guides
+** link:oo_deployment_guide_comprehensive.html[Comprehensive Deployment Guide]
+** link:oo_deployment_guide_puppet.html[Puppet Deployment Guide]
+** link:oo_deployment_guide_vm.html[Virtual Machine Deployment Guide]
+** link:oo_client_tools_installation_guide.html[Client Tools Installation Guide]
+* link:oo_administration_guide.html[Administration Guide]
+* link:oo_troubleshooting_guide.html[Troubleshooting Guide]
+* link:oo_user_guide.html[User Guide]
+
+== OpenShift Origin Repositories
+
+OpenShift Origin sources are arranged into 5 repositories:
+
+* http://github.com/openshift/origin-dev-tools[origin-dev-tools]: This repository contains all the build tools necessary for building and testing a local or EC2 OpenShift Origin installation.
+* http://github.com/openshift/origin-server[origin-server]: This is the main repository that contains the source code for the Broker, Node and various plugins for DNS, Communication and Authentication. It also contains some of the core cartridges used by OpenShift installations.
+* http://github.com/openshift/origin-community-cartridges[origin-community-cartridges]: This repository contains additional cartridges used during the Fedora 19 installation.
+* http://github.com/openshift/rhc[rhc]: This repository contains command line tools used to access an OpenShift based PaaS.
+* http://github.com/openshift/puppet-openshift_origin[puppet-openshift_origin]: This repository contains puppet scripts for configuring OpenShift Origin.
+
+== Discussion Forums
+
+* https://plus.google.com/communities/114361859072744017486[OpenShift Origin Developers Google Plus group]
+* http://lists.openshift.redhat.com/[Mailing Lists]
+** http://lists.openshift.redhat.com/openshiftmm/listinfo/dev[For Developers]
+** http://lists.openshift.redhat.com/openshiftmm/listinfo/users[For Users]
+* Use http://webchat.freenode.net/?randomnick=1&channels=openshift&uio=d4[#openshift on the irc.freenode.net IRC server] for questions about the service
+* Use http://webchat.freenode.net/?randomnick=1&channels=openshift-dev&uio=d4[#openshift-dev on the irc.freenode.net IRC server] for discussion around development of OpenShift and the open source components.
+
+== Trademarks
+
+These are some of the projects that are used to create Red Hat's OpenShift Platform-as-a-Service (PaaS). Red Hat and OpenShift are trademarks of Red Hat, Inc., registered in the United States and other countries. Red Hat's offering of the code for downloading, use, modification, or distribution is not a grant of a trademark license to OpenShift or any other Red Hat trademark.

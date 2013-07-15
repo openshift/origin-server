@@ -1,4 +1,4 @@
-= OpenShift Origin Deployment Guide
+= OpenShift Origin Comprehensive Deployment Guide
 OpenShift Origin Documentation Project <dev@lists.openshift.redhat.com>
 v2.0, July 2013
 :data-uri:
@@ -17,6 +17,10 @@ Platform as a Service is changing the way developers approach developing softwar
 System Administrators understand the complexity of not only deploying the code, but procuring, provisioning and maintaining a production level system. They need to stay up to date on the latest security patches and errata, ensure the firewall is properly configured, maintain a consistent and reliable backup and restore plan, monitor the application and servers for CPU load, disk IO, HTTP requests, etc.
 
 OpenShift Origin provides developers and IT organizations an open source auto-scaling cloud application platform for quickly deploying new applications on secure and scalable resources with minimal configuration and management headaches. This means increased developer productivity and a faster pace in which IT can support innovation.
+
+[float]
+=== The _Comprehensive_ Deployment Guide
+This guide goes into excruciating details about deploying OpenShift Origin. You will become wise in the ways of OpenShift if you choose this path. However, if you are looking for a faster way to get up and running, consider the link:oo_deployment_guide_puppet.html[Puppet-based deployment] or the pre-built link:oo_deployment_guide_vm.html[OpenShift Origin virtual machine].
 
 [float]
 === Getting up and Running with OpenShift Origin
