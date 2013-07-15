@@ -2127,29 +2127,29 @@ module OpenShift
       end
 
       #
-      # get details about a node
+      # get details about instance's node
       #
       # RETURN:
-      # * Map: facts about the node
+      # * Map: name => values for one node
       #
       # NOTES:
-      # * calls rpc_get_fact_set_direct
+      # * calls rpc_get_facts_direct
       #
-      def get_node_details(array_of_names)
-        rpc_get_fact_set_direct(array_of_names)
+      def get_node_details(name_list)
+        rpc_get_facts_direct(name_list)
       end
 
       #
-      # get details about all nodes
+      # get details (in MCollective, facts) about all nodes that respond
       #
       # RETURN:
-      # * Map: facts about the nodes
+      # * Hash of hashes: node identity => fact map for each node
       #
       # NOTES:
-      # * calls rpc_get_fact_set
+      # * calls rpc_get_facts_for_all_nodes
       #
-      def self.get_details_for_all_impl(array_of_names)
-        rpc_get_fact_set(array_of_names)
+      def self.get_details_for_all_impl(name_list)
+        rpc_get_facts_for_all_nodes(name_list)
       end
 
       #
@@ -3095,15 +3095,15 @@ module OpenShift
       end
 
       #
-      # Given a known list of facts and node, get the facts directly.
-      # This is significantly faster then the get_facts method
-      # If multiple nodes of the same name exist, it will pick just one
+      # Given a list of facts, get the facts directly for instance's node.
+      # This is significantly faster then the get_facts method.
+      # If multiple nodes of the same name exist, it will pick just one.
       #
       # INPUTS:
-      # * facts: Array of Strings
+      # * facts: Enumerable of Strings (fact names)
       #
       # RETURNS:
-      # * Map of Fact to String
+      # * Map of fact name to fact value for this instance's node
       #
       # RAISES:
       # * OpenShift::NodeException
@@ -3112,12 +3112,12 @@ module OpenShift
       # * uses MCollectiveApplicationContainerProxy.rpc_options
       # * uses MCollective::RPC::Client
       #
-      def rpc_get_fact_set_direct(facts)
+      def rpc_get_facts_direct(facts)
           options = MCollectiveApplicationContainerProxy.rpc_options
 
           rpc_client = MCollectiveApplicationContainerProxy.get_rpc_client('openshift', options)
           begin
-            result = rpc_client.custom_request('get_fact_set', {:facts => facts}, @id, {'identity' => @id})[0]
+            result = rpc_client.custom_request('get_facts', {:facts => facts}, @id, {'identity' => @id})[0]
             if (result && defined? result.results && result.results.has_key?(:data))
               value = result.results[:data][:output]
             else
@@ -3131,10 +3131,10 @@ module OpenShift
       end
 
       #
-      # Given a known list of facts, get the facts for all nodes.
+      # Given a list of facts, get those facts for all nodes that respond.
       #
       # INPUTS:
-      # * facts: Array of Strings
+      # * facts: Enumerable of Strings (fact names)
       #
       # RETURNS:
       # * Map of Fact to String
@@ -3146,10 +3146,10 @@ module OpenShift
       # * uses MCollectiveApplicationContainerProxy.rpc_options
       # * uses MCollective::RPC::Client
       #
-      def self.rpc_get_fact_set(facts)
+      def self.rpc_get_facts_for_all_nodes(fact_list)
         node_fact_map = {}
         rpc_exec('openshift', nil, true) do |client|
-          client.get_fact_set(:facts => facts) do |response|
+          client.get_facts(:facts => fact_list) do |response|
             if response[:body][:statuscode] == 0
               fact_map = response[:body][:data][:output]
               sender = response[:senderid]

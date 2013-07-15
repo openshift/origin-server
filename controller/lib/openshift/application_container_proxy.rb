@@ -58,8 +58,8 @@ module OpenShift
       @proxy_provider.execute_parallel_jobs_impl(handle)
     end
 
-    def self.get_details_for_all(array_of_names)
-      @proxy_provider.get_details_for_all_impl(array_of_names)
+    def self.get_details_for_all(name_list)
+      @proxy_provider.get_details_for_all_impl(name_list)
     end
 
     attr_accessor :id
