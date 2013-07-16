@@ -6,7 +6,7 @@ def upgrade_gear(name, login, gear_uuid)
 end
 
 Then /^the upgrade metadata will be cleaned up$/ do 
-  assert Dir.glob(File.join($home_root, @app.uid, 'data', '.upgrade*')).empty?
+  assert Dir.glob(File.join($home_root, @app.uid, 'runtime', '.upgrade*')).empty?
   assert_file_not_exists File.join($home_root, @app.uid, 'app-root', 'runtime', '.preupgrade_state')
 end
 
@@ -24,6 +24,7 @@ end
 Given /^a compatible version of the mock cartridge$/ do
   tmp_cart_src = '/tmp/mock-cucumber-rewrite/compat'
   current_manifest = prepare_mock_for_rewrite(tmp_cart_src)
+  create_upgrade_script(tmp_cart_src)
 
   rewrite_and_install(current_manifest, tmp_cart_src) do |manifest, current_version|
     manifest['Compatible-Versions'] = [ current_version ]
@@ -33,6 +34,7 @@ end
 Given /^an incompatible version of the mock cartridge$/ do
   tmp_cart_src = '/tmp/mock-cucumber-rewrite/incompat'
   current_manifest = prepare_mock_for_rewrite(tmp_cart_src)
+  create_upgrade_script(tmp_cart_src)
 
   rewrite_and_install(current_manifest, tmp_cart_src)
 end
@@ -47,6 +49,21 @@ def prepare_mock_for_rewrite(target)
   %x(shopt -s dotglob; cp -ad #{cartridge.repository_path}/* #{target})
 
   cartridge
+end
+
+def create_upgrade_script(target)
+  upgrade_script_path = File.join(target, %w(bin upgrade))
+  upgrade_script = <<-EOF
+#!/bin/bash
+
+source $OPENSHIFT_CARTRIDGE_SDK_BASH
+source $OPENSHIFT_MOCK_DIR/mock.conf
+
+touch $MOCK_STATE/upgrade_invoked
+EOF
+
+  IO.write(upgrade_script_path, upgrade_script)
+  FileUtils.chmod('a=wrx,go=r', upgrade_script_path)
 end
 
 def rewrite_and_install(current_manifest, tmp_cart_src)
@@ -103,9 +120,9 @@ end
 Then /^the invocation markers from an? (compatible|incompatible) upgrade should exist$/ do |type|
   should_exist_markers = case type
   when 'compatible'
-    %w()
+    %w(upgrade_invoked)
   when 'incompatible'
-    %w(setup_called setup_succeed control_start control_status)
+    %w(upgrade_invoked setup_called setup_succeed control_start control_status)
   end
 
   should_not_exist_markers = case type

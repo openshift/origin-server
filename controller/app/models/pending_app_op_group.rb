@@ -39,7 +39,7 @@ class PendingAppOpGroup
     # reloading the op_group reloads the application and then incorrectly reloads (potentially)
     # the op_group based on its position within the :pending_op_groups list
     # hence, reloading the application, and then fetching the op_group using the _id
-    reloaded_app = Application.with(consistency: :strong).find_by(_id: application._id)
+    reloaded_app = Application.find_by(_id: application._id)
     op_group = reloaded_app.pending_op_groups.find_by(_id: self._id)
     self.pending_ops = op_group.pending_ops
     pending_ops.where(:state.in => [:completed, :queued]).select{|op| (pending_ops.where(:prereq => op._id.to_s, :state.in => [:completed, :queued]).count == 0)}
@@ -49,7 +49,7 @@ class PendingAppOpGroup
     # reloading the op_group reloads the application and then incorrectly reloads (potentially)
     # the op_group based on its position within the :pending_op_groups list
     # hence, reloading the application, and then fetching the op_group using the _id
-    reloaded_app = Application.with(consistency: :strong).find_by(_id: application._id)
+    reloaded_app = Application.find_by(_id: application._id)
     op_group = reloaded_app.pending_op_groups.find_by(_id: self._id)
     self.pending_ops = op_group.pending_ops
     pending_ops.where(:state.ne => :completed).select{|op| pending_ops.where(:_id.in => op.prereq, :state.ne => :completed).count == 0}
@@ -371,7 +371,7 @@ class PendingAppOpGroup
         end
       end
       unless self.parent_op_id.nil?
-        reloaded_domain = Domain.with(consistency: :strong).find_by(_id: self.application.domain_id)
+        reloaded_domain = Domain.find_by(_id: self.application.domain_id)
         reloaded_domain.pending_ops.find(self.parent_op_id).child_completed(self.application)
       end
     rescue Exception => e_orig

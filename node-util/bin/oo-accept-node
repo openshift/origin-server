@@ -758,7 +758,7 @@ def check_app_dirs
         break
       end
 
-      upgrade_markers_found = !Dir.glob(File.join(gear_home, %w(app-root data .upgrade*))).empty?
+      upgrade_markers_found = !Dir.glob(File.join(gear_home, %w(app-root runtime .upgrade*))).empty?
       preupgrade_state_found = File.exists?(File.join(gear_home, %w(app-root runtime .preupgrade_state)))
 
       if v1_cartridge_dirs_found

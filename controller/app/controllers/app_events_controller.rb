@@ -98,7 +98,7 @@ class AppEventsController < BaseController
       return render_exception(e)
     end
 
-    @application.with(consistency: :strong).reload
+    @application.reload
     app = get_rest_application(@application)
     render_success(:ok, "application", app, msg, r)
   end
