@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Common
 Name:          rubygem-%{gem_name}
-Version: 1.11.6
+Version: 1.11.7
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -120,6 +120,9 @@ cp bin/man/*.8 %{buildroot}%{_mandir}/man8/
 %doc %{gem_docdir}
 
 %changelog
+* Tue Jul 16 2013 Adam Miller <admiller@redhat.com> 1.11.7-1
+- Bug 980253 - Map illegal versions to 0.0.0 (jhonce@redhat.com)
+
 * Fri Jul 12 2013 Adam Miller <admiller@redhat.com> 1.11.6-1
 - Merge pull request #2979 from jwhonce/bug/980253
   (dmcphers+openshiftbot@redhat.com)
