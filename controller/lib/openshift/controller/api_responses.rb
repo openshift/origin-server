@@ -74,10 +74,11 @@ module OpenShift
                 "#{target} '#{ex.unmatched.first}' not found."
               else
                 if name = (
-                  (Domain === ex.klass and ex.params[:canonical_namespace].presence) or
-                  (Application === ex.klass and ex.params[:canonical_name].presence) or
-                  (ComponentInstance === ex.klass and ex.params[:cartridge_name].presence) or
-                  (Alias === ex.klass and ex.params[:fqdn].presence)
+                  (Domain >= ex.klass and ex.params[:canonical_namespace].presence) or
+                  (Application >= ex.klass and ex.params[:canonical_name].presence) or
+                  (ComponentInstance >= ex.klass and ex.params[:cartridge_name].presence) or
+                  (Alias >= ex.klass and ex.params[:fqdn].presence) or
+                  (SshKey >= ex.klass and ex.params[:name].presence)
                 )
                   "#{target} '#{name}' not found."
                 else

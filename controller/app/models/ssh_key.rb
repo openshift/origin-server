@@ -12,6 +12,13 @@ class SshKey
   
   # This is the current regex for validations for new ssh keys 
   KEY_NAME_REGEX = /\A[\w\.\-@+]+\z/
+  def self.check_name!(name)
+    if name.blank? or name !~ KEY_NAME_REGEX
+      raise Mongoid::Errors::DocumentNotFound.new(self, nil, [name]) 
+    end
+    name
+  end
+
   # This is the regex that ensures backward compatibility for fetches
   KEY_NAME_COMPATIBILITY_REGEX = KEY_NAME_REGEX
   # Maximum length of valid SSH key name
@@ -22,7 +29,7 @@ class SshKey
   VALID_SSH_KEY_TYPES = ['ssh-rsa', 'ssh-dss', 'ecdsa-sha2-nistp256-cert-v01@openssh.com', 'ecdsa-sha2-nistp384-cert-v01@openssh.com',
                          'ecdsa-sha2-nistp521-cert-v01@openssh.com', 'ssh-rsa-cert-v01@openssh.com', 'ssh-dss-cert-v01@openssh.com',
                          'ssh-rsa-cert-v00@openssh.com', 'ssh-dss-cert-v00@openssh.com', 'ecdsa-sha2-nistp256', 'ecdsa-sha2-nistp384', 'ecdsa-sha2-nistp521']
-  
+
   field :name, type: String
   field :type, type: String, default: "ssh-rsa"
   field :content, type: String

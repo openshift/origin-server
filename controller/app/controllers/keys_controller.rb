@@ -15,12 +15,7 @@ class KeysController < BaseController
   def show
     id = params[:id].presence
 
-    # validate the key name using regex to avoid a mongo call, if it is malformed
-    if id !~ SshKey::KEY_NAME_COMPATIBILITY_REGEX
-      return render_error(:not_found, "SSH key '#{id}' not found", 118)
-    end
-
-    key = @cloud_user.ssh_keys.find_by(name: id)
+    key = @cloud_user.ssh_keys.find_by(name: SshKey.check_name!(id))
     render_success(:ok, "key", RestKey.new(key, get_url, nolinks), "Found SSH key '#{id}'")
   end
 
@@ -66,11 +61,7 @@ class KeysController < BaseController
     
     Rails.logger.debug "Updating key name:#{id} type:#{type} for user #{@cloud_user.login}"
     
-    # validate the key name using regex to avoid a mongo call, if it is malformed
-    if id !~ SshKey::KEY_NAME_COMPATIBILITY_REGEX or @cloud_user.ssh_keys.where(name: id).count == 0
-      return render_error(:not_found, "SSH key '#{id}' not found", 118)
-    end
-    
+    @cloud_user.ssh_keys.find_by(name: SshKey.check_name!(id))
     
     key = UserSshKey.new(name: id, type: type, content: content)
     if key.invalid?
@@ -87,10 +78,7 @@ class KeysController < BaseController
   def destroy
     id = params[:id].presence
     
-    # validate the key name using regex to avoid a mongo call, if it is malformed
-    if id !~ SshKey::KEY_NAME_COMPATIBILITY_REGEX or @cloud_user.ssh_keys.where(name: id).count == 0
-      return render_error(:not_found, "SSH key '#{id}' not found", 118)
-    end
+    @cloud_user.ssh_keys.find_by(name: SshKey.check_name!(id))
 
     result = @cloud_user.remove_ssh_key(id)
     status = requested_api_version <= 1.4 ? :no_content : :ok
