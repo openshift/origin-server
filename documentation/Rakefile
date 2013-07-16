@@ -1,0 +1,11 @@
+require 'rake'
+
+task :build do
+  Dir.glob("*.txt").each do |file|
+    sh "asciidoctor --backend html5 --doctype article --safe-mode safe --template-dir './templates' -a stylesdir=./stylesheets,imagesdir=./images,stylesheet=foundation.css,linkcss\!,icons=font,idprefix=,idseparator=-,sectanchors #{file}"
+  end
+end
+
+task :clean do
+  sh "rm *.html"
+end
