@@ -40,6 +40,11 @@ then
 fi
 export PATH=$path
 
+for f in ~/.env/user_vars/*
+do
+  load_env $f
+done
+
 source /etc/openshift/node.conf
 
 function welcome {
