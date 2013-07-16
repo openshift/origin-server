@@ -6,23 +6,22 @@ module OpenShift
   module Runtime
     module Utils
       class UpgradeProgress
-        attr_reader :uuid
+        attr_reader :gear_home
 
-        def initialize(uuid)
-          @uuid = uuid
+        def initialize(gear_home)
+          @gear_home = gear_home
           @buffer = []
         end
 
-        def init_store()
-          # TODO: use GEAR_BASE_DIR from node config
-          data_dir = File.join('/var/lib/openshift', @uuid, %w(app-root data))
-          if !File.exists?(data_dir)
-            log "Creating data directory #{data_dir} for #{@uuid} because it does not exist"
-            FileUtils.mkpath(data_dir)
-            FileUtils.chmod_R(0o750, data_dir)
-            PathUtils.oo_chown_R(@uuid, @uuid, data_dir)
+        def init_store
+          runtime_dir = File.join(gear_home, %w(app-root runtime))
+          if !File.exists?(runtime_dir)
+            log "Creating data directory #{runtime_dir} for #{@gear_home} because it does not exist"
+            FileUtils.mkpath(runtime_dir)
+            FileUtils.chmod_R(0o750, runtime_dir)
+            PathUtils.oo_chown_R(@uuid, @uuid, runtime_dir)
             mcs_label = OpenShift::Runtime::Utils::SELinux::get_mcs_label(uuid)
-            OpenShift::Runtime::Utils::SELinux.set_mcs_label_R(mcs_label, data_dir)
+            OpenShift::Runtime::Utils::SELinux.set_mcs_label_R(mcs_label, runtime_dir)
           end
         end
 
@@ -52,18 +51,18 @@ module OpenShift
           globs = %w(.upgrade_complete* .upgrade_instruction*)
 
           globs.each do |glob|
-            Dir.glob(File.join('/var/lib/openshift', @uuid, 'app-root', 'data', glob)).each do |entry|
+            Dir.glob(File.join(gear_home, 'app-root', 'runtime', glob)).each do |entry|
               FileUtils.rm_f(entry)
             end
           end
         end
 
         def marker_path(marker)
-          File.join('/var/lib/openshift', @uuid, 'app-root', 'data', ".upgrade_complete_#{marker}")
+          File.join(gear_home, 'app-root', 'runtime', ".upgrade_complete_#{marker}")
         end
 
         def instruction_path(instruction)
-          File.join('/var/lib/openshift', @uuid, 'app-root', 'data', ".upgrade_instruction_#{instruction}")
+          File.join(gear_home, 'app-root', 'runtime', ".upgrade_instruction_#{instruction}")
         end
 
         def log(string)

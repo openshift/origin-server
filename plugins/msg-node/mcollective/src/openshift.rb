@@ -219,13 +219,16 @@ module MCollective
         namespace = request[:namespace]
         version = request[:version]
         ignore_cartridge_version = request[:ignore_cartridge_version] == 'true' ? true : false
+        hostname = Facter.value(:hostname)
+
         output = ''
         exitcode = 0
 
-        server_identify = Facter.value(:hostname)
         begin
           require 'openshift-origin-node/model/upgrade'
-          output, exitcode = OpenShift::Runtime::Upgrade::upgrade(uuid, namespace, version, server_identify, ignore_cartridge_version)
+
+          upgrader = OpenShift::Runtime::Upgrader.new(uuid, namespace, version, hostname, ignore_cartridge_version)
+          output, exitcode = upgrader.execute
         rescue LoadError => e
           exitcode = 127
           output += "upgrade not supported. #{e.message}\n"
@@ -236,6 +239,7 @@ module MCollective
           exitcode = 1
           output += "Gear failed to upgrade with exception: #{e.message}\n#{e.backtrace}\n"
         end
+
         Log.instance.info("upgrade_action (#{exitcode})\n------\n#{output}\n------)")
 
         reply[:output] = output
