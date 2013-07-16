@@ -2,7 +2,7 @@ require 'helpers/rest/api_v1'
 require 'restclient'
 require 'base64'
 
-REST_CALLS = [ 
+REST_CALLS = [
                REST_CALLS_V1
              ]
 
@@ -95,7 +95,7 @@ def http_call(api, internal_test=false)
       headers = {}
       headers["HTTP_ACCEPT"] = "application/json" + (api.version ? "; version=#{api.version}" : "")
       headers["HTTP_AUTHORIZATION"] = "Basic #{$credentials}"
-      request_via_redirect(method, "/rest" + api.uri, api.request, headers)
+      request_via_redirect(method, "/broker/rest" + api.uri, api.request, headers)
       return @response.body.strip
     end
   else
@@ -106,7 +106,7 @@ def http_call(api, internal_test=false)
     else
       headers["Accept"] = "application/json"
     end
-    request = RestClient::Request.new(:url => ($end_point + api.uri), :method => api.method, 
+    request = RestClient::Request.new(:url => ($end_point + api.uri), :method => api.method,
                                       :headers => headers, :payload => api.request, :timeout => timeout)
     begin
       response = request.execute
@@ -116,6 +116,6 @@ def http_call(api, internal_test=false)
     end
     return response
   end
-  
+
   return  nil
 end
