@@ -148,6 +148,7 @@ module OpenShift
                   :short_name,
                   :categories,
                   :version,
+                  :versions,
                   :manifest_path,
                   :install_build_required,
                   :source_url,
@@ -209,24 +210,41 @@ module OpenShift
           raise InvalidElementError.new(nil, 'Compatible-Versions')
         end
 
+        @versions = raw_versions.collect do |v|
+          valid_version_number(v) ? v : '0.0.0'
+        end
+
+        @cartridge_version =  @manifest['Cartridge-Version'].to_s
+        unless valid_version_number(@cartridge_version)
+          @cartridge_version = '0.0.0'
+        end
+
+        @compatible_versions = (@manifest['Compatible-Versions'] || []).collect do |v|
+          valid_version_number(v.to_s) ? v.to_s : '0.0.0'
+        end
+
         if version
           raise ArgumentError.new(
                     "Unsupported version #{version} from #{versions} for #{@manifest['Name']}"
                 ) unless versions.include?(version.to_s)
 
           @version = version.to_s
+
         else
           @version = @manifest['Version'].to_s
         end
 
+        unless valid_version_number(@version)
+          @version = '0.0.0'
+        end
+
         # If version overrides are present, merge them on top of the manifest
         if @manifest.has_key?('Version-Overrides')
-          vtree = @manifest['Version-Overrides'][@version]
+          vtree = @manifest['Version-Overrides'][version]
           @manifest.merge!(vtree) if vtree
         end
 
         @cartridge_vendor       = @manifest['Cartridge-Vendor']
-        @cartridge_version      = @manifest['Cartridge-Version'] && @manifest['Cartridge-Version'].to_s
         @name                   = @manifest['Name']
         @short_name             = @manifest['Cartridge-Short-Name']
         @categories             = @manifest['Categories'] || []
@@ -234,7 +252,6 @@ module OpenShift
         @is_web_proxy           = @categories.include?('web_proxy')
         @install_build_required = @manifest.has_key?('Install-Build-Required') ? @manifest['Install-Build-Required'] : false
 
-        @compatible_versions = (@manifest['Compatible-Versions'] || []).map { |v| v.to_s }
 
         #FIXME: reinstate code after manifests are updated
         #raise MissingElementError.new(nil, 'Cartridge-Vendor') unless @cartridge_vendor
@@ -247,16 +264,6 @@ module OpenShift
           validate_vendor_name
           validate_cartridge_name
           check_reserved_cartridge_name
-        end
-
-        raise InvalidElementError.new("Version number #{@version} is invalid", 'Version') unless validate_version_number(@version)
-        versions.each do |v|
-          raise InvalidElementError.new("Version number #{v} is invalid", 'Versions') unless validate_version_number(v)
-        end
-
-        raise InvalidElementError.new("Cartridge-Version number #{@cartridge_version} is invalid", 'Version') unless validate_version_number(@cartridge_version)
-        compatible_versions.each do |v|
-          raise InvalidElementError.new("Compatible-Version number #{v} is invalid", 'Compatible-Versions') unless validate_version_number(v)
         end
 
         if @manifest.has_key?('Source-Url')
@@ -280,7 +287,7 @@ module OpenShift
       end
 
       ## obtain all software versions covered in this manifest
-      def versions
+      def raw_versions
         seed = (@manifest['Versions'] || []).map { |v| v.to_s }
         seed << @manifest['Version'].to_s
         seed.uniq
@@ -361,7 +368,7 @@ module OpenShift
         end
       end
 
-      def validate_version_number(version)
+      def valid_version_number(version)
         version =~ /^\A(\d+\.*)+\Z/
       end
 
