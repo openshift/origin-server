@@ -48,7 +48,6 @@ module OpenShift
 
     # == Application Container
     class ApplicationContainer
-      include ::OpenShift::Runtime::Utils::ShellExec
       include ActiveModel::Observing
       include NodeLogger
       include ManagedFiles
@@ -247,8 +246,8 @@ module OpenShift
         #    directories by pam_namespace.
         out = err = rc = nil
         10.times do |i|
-          run_in_root_context(%{/usr/bin/pkill -9 -u #{uid}})
-          out,err,rc = run_in_root_context(%{/usr/bin/pgrep -u #{uid}})
+          ::OpenShift::Runtime::Utils::oo_spawn(%{/usr/bin/pkill -9 -u #{uid}})
+          out,err,rc = ::OpenShift::Runtime::Utils::oo_spawn(%{/usr/bin/pgrep -u #{uid}})
           break unless 0 == rc
 
           logger.error "ERROR: attempt #{i}/10 there are running \"killed\" processes for #{uid}(#{rc}): stdout: #{out} stderr: #{err}"
@@ -257,7 +256,7 @@ module OpenShift
 
         # looks backwards but 0 implies processes still existed
         if 0 == rc
-          out,err,rc = run_in_root_context("ps -u #{uid} -o state,pid,ppid,cmd")
+          out,err,rc = ::OpenShift::Runtime::Utils::oo_spawn("ps -u #{uid} -o state,pid,ppid,cmd")
           logger.error "ERROR: failed to kill all processes for #{uid}(#{rc}): stdout: #{out} stderr: #{err}"
         end
       end
@@ -557,37 +556,6 @@ module OpenShift
             end
           end
         end
-      end
-
-      # run_in_root_context(command, [, options]) -> [stdout, stderr, exit status]
-      #
-      # Executes specified command and return its stdout, stderr and exit status.
-      # Or, raise exceptions if certain conditions are not met.
-      #
-      # command: command line string which is passed to the standard shell
-      #
-      # options: hash
-      #   :env: hash
-      #     name => val : set the environment variable
-      #     name => nil : unset the environment variable
-      #   :unsetenv_others => true   : clear environment variables except specified by :env
-      #   :chdir => path             : set current directory when running command
-      #   :expected_exitstatus       : An Integer value for the expected return code of command
-      #                              : If not set spawn() returns exitstatus from command otherwise
-      #                              : raise an error if exitstatus is not expected_exitstatus
-      #   :timeout                   : Maximum number of seconds to wait for command to finish. default: 3600
-      #   :out                       : If specified, STDOUT from the child process will be redirected to the
-      #                                provided +IO+ object.
-      #   :err                       : If specified, STDERR from the child process will be redirected to the
-      #                                provided +IO+ object.
-      #
-      # NOTE: If the +out+ or +err+ options are specified, the corresponding return value from +oo_spawn+
-      # will be the incoming/provided +IO+ objects instead of the buffered +String+ output. It's the
-      # responsibility of the caller to correctly handle the resulting data type.
-      def run_in_root_context(command, options = {})
-        options.delete(:uid)
-        options.delete(:selinux_context)
-        ::OpenShift::Runtime::Utils::oo_spawn(command, options)
       end
 
       # run_in_container_context(command, [, options]) -> [stdout, stderr, exit status]
