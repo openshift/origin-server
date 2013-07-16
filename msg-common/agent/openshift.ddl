@@ -21,8 +21,70 @@ action "cartridge_do", :description => "run a cartridge action" do
     input :action,
         :prompt         => "Action",
         :description    => "Cartridge hook to run",
-        :type           => :string,
-        :validation     => '^(app-create|app-destroy|env-var-add|env-var-remove|broker-auth-key-add|broker-auth-key-remove|authorized-ssh-key-add|authorized-ssh-key-remove|authorized-ssh-keys-replace|app-state-show|cartridge-list|configure|post-configure|deconfigure|unsubscribe|tidy|deploy-httpd-proxy|remove-httpd-proxy|info|post-install|post-remove|pre-install|reload|restart|start|status|stop|force-stop|add-alias|remove-alias|threaddump|expose-port|conceal-port|show-port|frontend-backup|frontend-restore|frontend-create|frontend-destroy|frontend-update-name|frontend-connect|frontend-disconnect|frontend-connections|frontend-idle|frontend-unidle|frontend-check-idle|frontend-sts|frontend-no-sts|frontend-get-sts|aliases|ssl-cert-add|ssl-cert-remove|ssl-certs|frontend-to-hash|system-messages|connector-execute|get-quota|set-quota)$',
+        :type           => :list,
+        :list           => %w(
+                              add-alias
+                              aliases
+                              app-create
+                              app-destroy
+                              app-state-show
+                              authorized-ssh-key-add
+                              authorized-ssh-key-remove
+                              authorized-ssh-keys-replace
+                              broker-auth-key-add
+                              broker-auth-key-remove
+                              cartridge-list
+                              conceal-port
+                              configure
+                              connector-execute
+                              deconfigure
+                              deploy-httpd-proxy
+                              env-var-add
+                              env-var-remove
+                              expose-port
+                              force-stop
+                              frontend-backup
+                              frontend-check-idle
+                              frontend-connect
+                              frontend-connections
+                              frontend-create
+                              frontend-destroy
+                              frontend-disconnect
+                              frontend-get-sts
+                              frontend-idle
+                              frontend-no-sts
+                              frontend-restore
+                              frontend-sts
+                              frontend-to-hash
+                              frontend-unidle
+                              frontend-update-name
+                              get-quota
+                              info
+                              post-configure
+                              post-install
+                              post-remove
+                              pre-install
+                              reload
+                              remove-alias
+                              remove-httpd-proxy
+                              restart
+                              set-quota
+                              show-port
+                              ssl-cert-add
+                              ssl-cert-remove
+                              ssl-certs
+                              start
+                              status
+                              stop
+                              system-messages
+                              threaddump
+                              tidy
+                              user-var-add
+                              user-var-remove
+                              user-var-push
+                              user-var-list
+                              unsubscribe
+                              ),
         :optional       => false,
         :maxlength      => 64
 

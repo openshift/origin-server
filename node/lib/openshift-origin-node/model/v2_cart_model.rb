@@ -252,43 +252,45 @@ module OpenShift
                                  end
 
         ::OpenShift::Runtime::Utils::Cgroups.new(@container.uuid).boost do
-        create_cartridge_directory(cartridge, software_version)
-        # Note: the following if statement will check the following criteria long-term:
-        # 1. Is the app scalable?
-        # 2. Is this the head gear?
-        # 3. Is this the first time the platform has generated an ssh key?
-        #
-        # In the current state of things, the following check is sufficient to test all
-        # of these criteria, and we do not have a way to explicitly check the first two
-        # criteria.  However, it should be considered a TODO to add more explicit checks.
-        if cartridge.web_proxy?
-          output << generate_ssh_key(cartridge)
-        end
-
-        create_private_endpoints(cartridge)
-
-        Dir.chdir(PathUtils.join(@container.container_dir, cartridge.directory)) do
-          unlock_gear(cartridge) do |c|
-            expected_entries = Dir.glob(PathUtils.join(@container.container_dir, '*'))
-
-            output << cartridge_action(cartridge, 'setup', software_version, true)
-            process_erb_templates(c)
-            output << cartridge_action(cartridge, 'install', software_version)
-
-            actual_entries  = Dir.glob(PathUtils.join(@container.container_dir, '*'))
-            illegal_entries = actual_entries - expected_entries
-            unless illegal_entries.empty?
-              raise RuntimeError.new(
-                                     "Cartridge created the following directories in the gear home directory: #{illegal_entries.join(', ')}")
-            end
-
-            output << populate_gear_repo(c.directory, template_git_url) if cartridge.deployable?
+          create_cartridge_directory(cartridge, software_version)
+          # Note: the following if statement will check the following criteria long-term:
+          # 1. Is the app scalable?
+          # 2. Is this the head gear?
+          # 3. Is this the first time the platform has generated an ssh key?
+          #
+          # In the current state of things, the following check is sufficient to test all
+          # of these criteria, and we do not have a way to explicitly check the first two
+          # criteria.  However, it should be considered a TODO to add more explicit checks.
+          if cartridge.web_proxy?
+            # The BROKER_AUTH_KEY_ADD token does not use any arguments.  It tells the broker
+            # to enable this gear to make REST API calls on behalf of the user who owns this gear.
+            output << "BROKER_AUTH_KEY_ADD: \n"
           end
 
-          validate_cartridge(cartridge)
-        end
+          create_private_endpoints(cartridge)
 
-        connect_frontend(cartridge)
+          Dir.chdir(PathUtils.join(@container.container_dir, cartridge.directory)) do
+            unlock_gear(cartridge) do |c|
+              expected_entries = Dir.glob(PathUtils.join(@container.container_dir, '*'))
+
+              output << cartridge_action(cartridge, 'setup', software_version, true)
+              process_erb_templates(c)
+              output << cartridge_action(cartridge, 'install', software_version)
+
+              actual_entries  = Dir.glob(PathUtils.join(@container.container_dir, '*'))
+              illegal_entries = actual_entries - expected_entries
+              unless illegal_entries.empty?
+                raise RuntimeError.new(
+                          "Cartridge created the following directories in the gear home directory: #{illegal_entries.join(', ')}")
+              end
+
+              output << populate_gear_repo(c.directory, template_git_url) if cartridge.deployable?
+            end
+
+            validate_cartridge(cartridge)
+          end
+
+          connect_frontend(cartridge)
         end
 
         logger.info "configure output: #{Runtime::Utils.sanitize_credentials(output)}"
@@ -389,18 +391,18 @@ module OpenShift
 
         delete_private_endpoints(cartridge)
         ::OpenShift::Runtime::Utils::Cgroups.new(@container.uuid).boost do
-        begin
-          stop_cartridge(cartridge, user_initiated: true)
-          unlock_gear(cartridge, false) do |c|
-            teardown_output << cartridge_teardown(c.directory)
+          begin
+            stop_cartridge(cartridge, user_initiated: true)
+            unlock_gear(cartridge, false) do |c|
+              teardown_output << cartridge_teardown(c.directory)
+            end
+          rescue ::OpenShift::Runtime::Utils::ShellExecutionException => e
+            teardown_output << ::OpenShift::Runtime::Utils::Sdk::translate_out_for_client(e.stdout, :error)
+            teardown_output << ::OpenShift::Runtime::Utils::Sdk::translate_out_for_client(e.stderr, :error)
+          ensure
+            disconnect_frontend(cartridge)
+            delete_cartridge_directory(cartridge)
           end
-        rescue ::OpenShift::Runtime::Utils::ShellExecutionException => e
-          teardown_output << ::OpenShift::Runtime::Utils::Sdk::translate_out_for_client(e.stdout, :error)
-          teardown_output << ::OpenShift::Runtime::Utils::Sdk::translate_out_for_client(e.stderr, :error)
-        ensure
-          disconnect_frontend(cartridge)
-          delete_cartridge_directory(cartridge)
-        end
         end
 
         teardown_output
@@ -743,7 +745,7 @@ module OpenShift
           # Reuse previously allocated IPs of the same name. When recycling
           # an IP, double-check that it's not bound to the target port, and
           # bail if it's unexpectedly bound.
-          if !allocated_ips.has_key?(endpoint.private_ip_name)
+          unless allocated_ips.has_key?(endpoint.private_ip_name)
             if env.has_key?(endpoint.private_ip_name)
               allocated_ips[endpoint.private_ip_name] = env[endpoint.private_ip_name]
             else
@@ -1358,45 +1360,6 @@ module OpenShift
           File.new(stop_lock, File::CREAT|File::TRUNC|File::WRONLY, 0644).close()
           @container.set_rw_permission(stop_lock)
         end
-      end
-
-      ##
-      # Generate an RSA ssh key
-      def generate_ssh_key(cartridge)
-        ssh_dir        = PathUtils.join(@container.container_dir, '.openshift_ssh')
-        known_hosts    = PathUtils.join(ssh_dir, 'known_hosts')
-        ssh_config     = PathUtils.join(ssh_dir, 'config')
-        ssh_key        = PathUtils.join(ssh_dir, 'id_rsa')
-        ssh_public_key = ssh_key + '.pub'
-
-        FileUtils.mkdir_p(ssh_dir)
-        @container.set_rw_permission(ssh_dir)
-
-        @container.run_in_container_context("/usr/bin/ssh-keygen -N '' -f #{ssh_key}",
-            chdir:               @container.container_dir,
-            timeout:             @hourglass.remaining,
-            expected_exitstatus: 0)
-
-        FileUtils.touch(known_hosts)
-        FileUtils.touch(ssh_config)
-
-        @container.set_rw_permission_R(ssh_dir)
-
-        FileUtils.chmod(0750, ssh_dir)
-        FileUtils.chmod(0600, [ssh_key, ssh_public_key])
-        FileUtils.chmod(0660, [known_hosts, ssh_config])
-
-        @container.add_env_var('APP_SSH_KEY', ssh_key, true)
-        @container.add_env_var('APP_SSH_PUBLIC_KEY', ssh_public_key, true)
-
-        public_key_bytes = IO.read(ssh_public_key)
-        public_key_bytes.sub!(/^ssh-rsa /, '')
-
-        output = "APP_SSH_KEY_ADD: #{cartridge.directory}-#{@container.uuid} #{public_key_bytes}\n"
-        # The BROKER_AUTH_KEY_ADD token does not use any arguments.  It tells the broker
-        # to enable this gear to make REST API calls on behalf of the user who owns this gear.
-        output << "BROKER_AUTH_KEY_ADD: \n"
-        output
       end
 
       private
