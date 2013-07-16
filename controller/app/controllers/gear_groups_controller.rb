@@ -23,8 +23,4 @@ class GearGroupsController < BaseController
     group_instance = @application.group_instances.find(gear_group_id)
     render_success(:ok, "gear_group", RestGearGroup.new(group_instance, gear_states, @application, @domain, get_url, nolinks), "Showing gear group #{gear_group_id} for application '#{@application.name}' with domain '#{@domain.namespace}'")
   end
-  
-  def set_log_tag
-    @log_tag = get_log_tag_prepend + "GEAR_GROUP"
-  end
 end

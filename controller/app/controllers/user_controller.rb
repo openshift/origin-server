@@ -24,10 +24,4 @@ class UserController < BaseController
     status = requested_api_version <= 1.4 ? :no_content : :ok
     render_success(status, nil, nil, "User #{@cloud_user.login} deleted.", result)
   end
-
-  private
-
-  def set_log_tag
-    @log_tag = get_log_tag_prepend + "USER"
-  end
 end

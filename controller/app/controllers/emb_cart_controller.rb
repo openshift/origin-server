@@ -1,6 +1,7 @@
 class EmbCartController < BaseController
   include RestModelHelper
   before_filter :get_domain, :get_application
+  action_log_tag_resource :app_cartridge
 
   # GET /domains/[domain_id]/applications/[application_id]/cartridges
   def index
@@ -226,9 +227,5 @@ class EmbCartController < BaseController
     cartridge = get_embedded_rest_cartridge(@application, component_instance, @application.group_instances_with_scale, @application.group_overrides)
 
     render_success(:ok, "cartridge", cartridge, "Showing cartridge #{id} for application #{@application.name} under domain #{@domain.namespace}", result)
-  end
-  
-  def set_log_tag
-    @log_tag = get_log_tag_prepend + "APP_CARTRIDGE"
   end
 end

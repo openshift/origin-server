@@ -66,8 +66,4 @@ class AuthorizationsController < BaseController
     status = requested_api_version <= 1.4 ? :no_content : :ok
     render_success(status, nil, nil, "All authorizations for #{@cloud_user.id} are revoked.")
   end
-  
-  def set_log_tag
-    @log_tag = get_log_tag_prepend + "AUTHORIZATION"
-  end
 end

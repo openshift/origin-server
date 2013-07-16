@@ -100,8 +100,4 @@ class KeysController < BaseController
     status = requested_api_version <= 1.4 ? :no_content : :ok
     render_success(status, nil, nil, "Deleted SSH key #{id}", result)
   end
-  
-  def set_log_tag
-    @log_tag = get_log_tag_prepend + "KEY"
-  end
 end
