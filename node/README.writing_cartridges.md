@@ -275,7 +275,7 @@ snapshot_exclusions:
 restore_transforms:
 - s|${OPENSHIFT_GEAR_NAME}/data|app-root/data|
 process_templates:
-- **/*.erb
+- '**/*.erb'
 setup_rewritten:
 - conf/*
 ```
