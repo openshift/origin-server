@@ -135,4 +135,4 @@ The `jbossas` cartridge provides an OpenShift compatible wrapper of the JBoss CL
 `$OPENSHIFT_JBOSSAS_DIR/tools/jboss-cli.sh`. Use the following command to connect to the JBoss instance with the
 CLI tool:
 
-    jboss-cli.sh -c --controller=$OPENSHIFT_JBOSSAS_IP:9999
+    jboss-cli.sh -c --controller=${OPENSHIFT_JBOSSAS_IP}:${OPENSHIFT_JBOSSAS_MANAGEMENT_NATIVE_PORT}
