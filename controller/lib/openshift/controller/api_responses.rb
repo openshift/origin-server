@@ -93,7 +93,7 @@ module OpenShift
               when Domain        then 127
               when Alias         then 173
               when Application   then 101
-              else code
+              else error_code
               end
             internal_error = false
 
