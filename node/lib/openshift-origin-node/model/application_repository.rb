@@ -119,7 +119,7 @@ module OpenShift
         @commit           = commit
 
         begin
-          @container.run_in_root_context(ERB.new(GIT_URL_CLONE).result(binding),
+          ::OpenShift::Runtime::Utils::oo_spawn(ERB.new(GIT_URL_CLONE).result(binding),
               chdir:               git_path,
               expected_exitstatus: 0)
         rescue ::OpenShift::Runtime::Utils::ShellExecutionException => e
@@ -222,15 +222,15 @@ module OpenShift
         FileUtils.rm_r(template) if File.exist? template
 
         git_path = PathUtils.join(@container.container_dir, 'git')
-        @container.run_in_root_context("/bin/cp -ad #{path} #{git_path}",
+        ::OpenShift::Runtime::Utils::oo_spawn("/bin/cp -ad #{path} #{git_path}",
                        expected_exitstatus: 0)
 
-        @container.run_in_root_context(ERB.new(GIT_INIT).result(binding),
+        ::OpenShift::Runtime::Utils::oo_spawn(ERB.new(GIT_INIT).result(binding),
             chdir:               template,
             expected_exitstatus: 0)
         begin
           # trying to clone as the user proved to be painful as git managed to "lose" the selinux context
-          @container.run_in_root_context(ERB.new(GIT_LOCAL_CLONE).result(binding),
+          ::OpenShift::Runtime::Utils::oo_spawn(ERB.new(GIT_LOCAL_CLONE).result(binding),
               chdir:               git_path,
               expected_exitstatus: 0)
         rescue ShellExecutionException => e

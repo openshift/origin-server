@@ -52,7 +52,7 @@ module OpenShift
             if @container.supplementary_groups != ""
               cmd << %{ -G "#{@container.supplementary_groups}"}
             end
-            out,err,rc = @container.run_in_root_context(cmd)
+            out,err,rc = ::OpenShift::Runtime::Utils::oo_spawn(cmd)
             raise ::OpenShift::Runtime::UserCreationException.new(
                       "ERROR: unable to create user account(#{rc}): #{cmd.squeeze(" ")} stdout: #{out} stderr: #{err}"
                   ) unless rc == 0
@@ -98,7 +98,7 @@ module OpenShift
           freeze_cgroups
           disable_traffic_control
           last_access_dir = @config.get("LAST_ACCESS_DIR")
-          @container.run_in_root_context("rm -f #{last_access_dir}/#{@container.name} > /dev/null")
+          ::OpenShift::Runtime::Utils::oo_spawn("rm -f #{last_access_dir}/#{@container.name} > /dev/null")
           @container.kill_procs
 
           purge_sysvipc
@@ -109,7 +109,7 @@ module OpenShift
           dirs = list_home_dir(@container.container_dir)
           begin
             cmd = "userdel --remove -f \"#{@container.uuid}\""
-            out,err,rc = @container.run_in_root_context(cmd)
+            out,err,rc = ::OpenShift::Runtime::Utils::oo_spawn(cmd)
             raise ::OpenShift::Runtime::UserDeletionException.new(
                       "ERROR: unable to destroy user account(#{rc}): #{cmd} stdout: #{out} stderr: #{err}"
                   ) unless rc == 0
@@ -229,17 +229,17 @@ Dir(after)    #{@container.uuid}/#{@container.uid} => #{list_home_dir(@container
         end
 
         def enable_traffic_control
-          out,err,rc = @container.run_in_root_context("service openshift-tc status > /dev/null 2>&1")
+          out,err,rc = ::OpenShift::Runtime::Utils::oo_spawn("service openshift-tc status > /dev/null 2>&1")
           if rc == 0
-            out,err,rc = @container.run_in_root_context("/usr/sbin/oo-admin-ctl-tc startuser #{@container.uuid} > /dev/null")
+            out,err,rc = ::OpenShift::Runtime::Utils::oo_spawn("/usr/sbin/oo-admin-ctl-tc startuser #{@container.uuid} > /dev/null")
             raise ::OpenShift::Runtime::UserCreationException.new("Unable to setup tc for #{@container.uuid}") unless rc == 0
           end
         end
 
         def disable_traffic_control
-          out,err,rc = @container.run_in_root_context("service openshift-tc status > /dev/null 2>&1")
+          out,err,rc = ::OpenShift::Runtime::Utils::oo_spawn("service openshift-tc status > /dev/null 2>&1")
           if rc == 0
-            @container.run_in_root_context("/usr/sbin/oo-admin-ctl-tc deluser #{@container.uuid} > /dev/null")
+            ::OpenShift::Runtime::Utils::oo_spawn("/usr/sbin/oo-admin-ctl-tc deluser #{@container.uuid} > /dev/null")
           end
         end
 
@@ -364,13 +364,13 @@ Dir(after)    #{@container.uuid}/#{@container.uid} => #{list_home_dir(@container
         #
         def purge_sysvipc
           ['-m', '-q', '-s' ].each do |ipctype|
-            out,err,rc=@container.run_in_root_context(%{/usr/bin/ipcs -c #{ipctype} 2> /dev/null})
+            out,err,rc=::OpenShift::Runtime::Utils::oo_spawn(%{/usr/bin/ipcs -c #{ipctype} 2> /dev/null})
             out.lines do |ipcl|
               next unless ipcl=~/^\d/
               ipcent = ipcl.split
               if ipcent[2] == @container.uuid
                 # The ID may already be gone
-                @container.run_in_root_context(%{/usr/bin/ipcrm #{ipctype} #{ipcent[0]}})
+                ::OpenShift::Runtime::Utils::oo_spawn(%{/usr/bin/ipcrm #{ipctype} #{ipcent[0]}})
               end
             end
           end
