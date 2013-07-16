@@ -58,7 +58,7 @@ class ApplicationsTest < ActionDispatch::IntegrationTest #ActiveSupport::TestCas
 
     app.destroy_app
   end
-  
+
   test "threaddump application events" do
     @appname = "test"
     app = Application.create_app(@appname, [RUBY_VERSION, MYSQL_VERSION], @domain, nil, true)
@@ -135,9 +135,9 @@ class ApplicationsTest < ActionDispatch::IntegrationTest #ActiveSupport::TestCas
   test "user info through internal rest" do
     credentials = Base64.encode64("#{$user}:#{$password}")
     headers = {}
-    headers["HTTP_ACCEPT"] = "application/json" 
+    headers["HTTP_ACCEPT"] = "application/json"
     headers["HTTP_AUTHORIZATION"] = "Basic #{credentials}"
-    request_via_redirect(:get, "/rest/user", {}, headers)
+    request_via_redirect(:get, "/broker/rest/user", {}, headers)
     assert_equal @response.status, 200
   end
 
@@ -145,9 +145,9 @@ class ApplicationsTest < ActionDispatch::IntegrationTest #ActiveSupport::TestCas
     uri = "/domains/#{@namespace}/applications/#{@appname}" + resource
     credentials = Base64.encode64("#{$user}:#{$password}")
     headers = {}
-    headers["HTTP_ACCEPT"] = "application/json" 
+    headers["HTTP_ACCEPT"] = "application/json"
     headers["HTTP_AUTHORIZATION"] = "Basic #{credentials}"
-    request_via_redirect(method, "/rest" + uri, params, headers)
+    request_via_redirect(method, "/broker/rest" + uri, params, headers)
     @response
   end
 
