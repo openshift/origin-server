@@ -601,6 +601,12 @@ The scripts will be run directly from the home directory of the cartridge.
 They need to have the executable bit turned on, and they should have
 UNIX-friendly line endings (`\n`), not DOS ones (`\r\n`).
 
+To ensure that the excutable bit is on, run:
+
+```
+chmod +x bin/*
+```
+
 A cartridge must implement the following scripts:
 
 | Script Name | Usage  |
