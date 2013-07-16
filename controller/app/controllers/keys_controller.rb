@@ -20,12 +20,8 @@ class KeysController < BaseController
       return render_error(:not_found, "SSH key '#{id}' not found", 118)
     end
 
-    begin
-      key = @cloud_user.ssh_keys.find_by(name: id)
-      return render_success(:ok, "key", RestKey.new(key, get_url, nolinks), "Found SSH key '#{id}'")
-    rescue Mongoid::Errors::DocumentNotFound
-      return render_error(:not_found, "SSH key '#{id}' not found", 118)
-    end
+    key = @cloud_user.ssh_keys.find_by(name: id)
+    render_success(:ok, "key", RestKey.new(key, get_url, nolinks), "Found SSH key '#{id}'")
   end
 
   #POST /user/keys
