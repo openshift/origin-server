@@ -31,6 +31,12 @@ Run the following to install puppet and facter
 yum install -y puppet facter tar
 ----
 
+Create puppet module directory:
+
+----
+mkdir /etc/puppet/modules
+----
+
 Install the openshift puppet module:
 
 ----
@@ -59,7 +65,7 @@ The TSIG key should look like `CNk+wjszKi9da9nL/1gkMY7H+GuUng==`. We will use th
 
 If your machines hostname does not resolve to its public IP address, do the following:
 
-1. Add an entry in `/etc/hosts` mapping the machines hostname to its public IP. Eg:
+1. Add an entry in `/etc/hosts` mapping the machines hostname to its public IP; e.g.,
 
 ----
 127.0.0.1   localhost localhost.localdomain localhost4 localhost4.localdomain4
@@ -67,7 +73,7 @@ If your machines hostname does not resolve to its public IP address, do the foll
 10.211.55.3 thishost.thisdomain.com
 ----
 
-2. Update the `/etc/hostname` file. Eg:
+2. Update the `/etc/hostname` file; e.g.,
 
 ----
 echo "thishost.thisdomain.com" > /etc/hostname
@@ -78,7 +84,10 @@ hostname thishost.thisdomain.com
 
 In this configuration, the host will run the broker, node, active mq, mongodb and bind servers.
 
-Create a file `configure_origin.pp` with the following contents:
+Create a file `configure_origin.pp`, with the following template.
+Verify that `dns_servers` is usable. `8.8.8.8` is Google's public DNS server,
+and on EC2 instances, use `172.16.0.23`.
+Furthermore, TSIG key that we generated above should be inserted.
 
 ----
     class { 'openshift_origin' :
@@ -132,7 +141,9 @@ puppet apply --verbose configure_origin.pp
 
 In this configuration, the host will run the broker, active mq, mongodb and bind servers.
 
-Create a file `configure_origin.pp` with the following contents:
+Create a file `configure_origin.pp` with the following template.
+As with the all-in-one host configuration file, `dns_servers` and `named_tsig_priv_key` should be
+modified if necessary.
 
 ----
     class { 'openshift_origin' :
@@ -190,7 +201,9 @@ puppet apply --verbose configure_origin.pp
 
 In this configuration, the host will run only the node.
 
-Create a file `configure_origin.pp` with the following contents:
+Create a file `configure_origin.pp` with the following template.
+`dns_servers` should be usable. `named_ipaddress` and various `*_fqdn`
+values should be modified.
 
 ----
     class { 'openshift_origin' :
