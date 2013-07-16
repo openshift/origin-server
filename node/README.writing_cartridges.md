@@ -598,6 +598,9 @@ choose to create symlinks from these names to a name of your choosing.
 Your API is the scripts and their associated actions. The scripts will
 be run from the home directory of the cartridge.
 
+These scripts are invoked directly, so they need to have the executable
+bit turned on.
+
 A cartridge must implement the following scripts:
 
 | Script Name | Usage  |
