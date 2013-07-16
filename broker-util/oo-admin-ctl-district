@@ -45,7 +45,7 @@ end
 
 def get_district(uuid, name)
   if uuid
-    district = District.with(consistency: :strong).where(uuid: uuid).first
+    district = District.where(uuid: uuid).first
   else
     district = District.find_by_name(name)
   end
