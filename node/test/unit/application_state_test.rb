@@ -28,9 +28,7 @@ class ApplicationStateTest < OpenShift::NodeTestCase
       FileUtils.mkdir_p( dir )
     }
 
-    config    = mock('OpenShift::Config')
-    config.stubs(:get).returns(nil)
-    config.stubs(:get).with('GEAR_BASE_DIR').returns('/tmp')
+    @config.stubs(:get).with('GEAR_BASE_DIR').returns('/tmp')
 
     @good_state     = "building"
     @bad_state      = "asdf"
@@ -41,8 +39,6 @@ class ApplicationStateTest < OpenShift::NodeTestCase
     @app_name  = 'ApplicatioStateTestCase'
     @gear_name = @uuid
     @namespace = 'jwh201204301647'
-
-    OpenShift::Config.stubs(:new).returns(config)
   end
 
   # Called after every test method runs. Can be used to tear

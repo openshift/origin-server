@@ -26,8 +26,6 @@ module OpenShift
 
       @uid = 5996
 
-      @config = mock('::OpenShift::Config')
-      @config.stubs(:get).returns(nil)
       @config.stubs(:get).with("GEAR_BASE_DIR").returns(GEAR_BASE_DIR)
       @config.stubs(:get).with("GEAR_GECOS").returns('Functional Test')
       @config.stubs(:get).with("CREATE_APP_SYMLINKS").returns('0')
@@ -45,8 +43,6 @@ module OpenShift
       cart_base_path = File.join(script_dir, '..', '..', '..', 'cartridges')
       raise "Couldn't find cart base path at #{cart_base_path}" unless File.exists?(cart_base_path)
       @config.stubs(:get).with("CARTRIDGE_BASE_PATH").returns(cart_base_path)
-
-      ::OpenShift::Config.stubs(:new).returns(@config)
 
       @uuid = %x(uuidgen -r |sed -e s/-//g).chomp
 

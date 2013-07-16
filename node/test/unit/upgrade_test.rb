@@ -37,13 +37,10 @@ module OpenShift
 
         @uuid = '123'
 
-        @config = mock()
         @config.expects(:get).with('GEAR_BASE_DIR').returns('/test')
 
         @gear_env = mock()
         Utils::Environ.expects(:for_gear).with('/test/123').returns(@gear_env)
-
-        OpenShift::Config.expects(:new).returns(@config)
         ApplicationContainer.expects(:from_uuid).with(@uuid).returns(@container)
 
         @upgrader = Upgrader.new(@uuid, 'namespace', @version, 'hostname', false)

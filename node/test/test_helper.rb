@@ -39,6 +39,11 @@ module OpenShift
       log_config = mock()
       log_config.stubs(:get).with("PLATFORM_LOG_CLASS").returns("StdoutLogger")
       ::OpenShift::Runtime::NodeLogger.stubs(:load_config).returns(log_config)
+
+      @config = mock('OpenShift::Config')
+      @config.stubs(:get).returns(nil)
+      @config.stubs(:get).with("CONTAINERIZATION_PLUGIN").returns('openshift-origin-container-selinux')
+      OpenShift::Config.stubs(:new).returns(@config)
       super
     end
 

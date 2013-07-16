@@ -60,14 +60,10 @@ class CgroupsUtilsTest < OpenShift::NodeTestCase
     @resource_mock.stubs(:get).returns(nil)
     OpenShift::Config.stubs(:new).with("/etc/openshift/resource_limits.conf").returns(@resource_mock)
 
-
-    @config_mock = mock('OpenShift::Config')
-    @config_mock.stubs(:get).with("OPENSHIFT_CGROUP_ROOT").returns(@cgroup_root)
-    @config_mock.stubs(:get).with("OPENSHIFT_CGROUP_SUBSYSTEMS").returns(@cgroup_subsystems)
-    @config_mock.stubs(:get).with("OPENSHIFT_CGROUP_CONTROLLER_VARS").returns(@cgroup_controller_vars)
-    @config_mock.stubs(:get).with("GEAR_GECOS").returns(@gecos)
-    @config_mock.stubs(:get).returns(nil)
-    OpenShift::Config.stubs(:new).returns(@config_mock)
+    @config.stubs(:get).with("OPENSHIFT_CGROUP_ROOT").returns(@cgroup_root)
+    @config.stubs(:get).with("OPENSHIFT_CGROUP_SUBSYSTEMS").returns(@cgroup_subsystems)
+    @config.stubs(:get).with("OPENSHIFT_CGROUP_CONTROLLER_VARS").returns(@cgroup_controller_vars)
+    @config.stubs(:get).with("GEAR_GECOS").returns(@gecos)
 
     @passwd_mock = mock('Etc::Passwd')
     @passwd_mock.stubs(:name).returns(@uuid)
