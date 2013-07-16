@@ -4,8 +4,8 @@ Feature: Adding and deleting domain environment variable
   @domain_env_var_test_1
   Scenario: Add and remove new env variable after creating applications that are in the same namespace
     And a new client created mock-0.1 application named "mock01app1" in the namespace "randomNamespaceA"
-    And an additional client created ruby-1.9 application named "ruby19app2" in the namespace "randomNamespaceA"
-    And an additional client created scalable python-2.6 application named "python26app3" in the namespace "randomNamespaceA"
+    And an additional client created mock-0.1 application named "mock01app2" in the namespace "randomNamespaceA"
+    And an additional client created scalable mock-0.1 application named "mock01app3" in the namespace "randomNamespaceA"
 
     When the domain environment variable TEST_VAR_1 with value 'Foo' is added in the namespace "randomNamespaceA"
     Then the domain environment variable TEST_VAR_1 will equal 'Foo' for all the applications in the namespace "randomNamespaceA"
@@ -20,7 +20,7 @@ Feature: Adding and deleting domain environment variable
     And a new client created mock-0.1 application named "mock01app1" in the namespace "randomNamespaceA"
 
     When the domain environment variable TEST_VAR_1 with value 'Foo' is added in the namespace "randomNamespaceA"
-    And an additional client created ruby-1.9 application named "ruby19app2" in the namespace "randomNamespaceA"
+    And an additional client created mock-0.1 application named "mock01app2" in the namespace "randomNamespaceA"
 
     Then the domain environment variable TEST_VAR_1 will equal 'Foo' for all the applications in the namespace "randomNamespaceA"
 
@@ -32,7 +32,7 @@ Feature: Adding and deleting domain environment variable
   @domain_env_var_test_3
   Scenario: Adding a domain env variable in a first namespace should not update the new application created in another namespace
     And a new client created mock-0.1 application named "mock01app1" in the namespace "randomNamespaceA"
-    And an additional client created ruby-1.9 application named "ruby19app2" in the namespace "randomNamespaceA"
+    And an additional client created mock-0.1 application named "mock01app2" in the namespace "randomNamespaceA"
 
     When the domain environment variable TEST_VAR_1 with value 'Foo' is added in the namespace "randomNamespaceA"
     Then the domain environment variable TEST_VAR_1 will equal 'Foo' for all the applications in the namespace "randomNamespaceA"
@@ -52,7 +52,7 @@ Feature: Adding and deleting domain environment variable
 
     And a new client created mock-0.1 application named "mock01app1" in the namespace "randomNamespaceA"
     And a new client created mock-0.1 application named "mock02app2" in the namespace "randomNamespaceB"
-    And an additional client created ruby-1.9 application named "ruby19app3" in the namespace "randomNamespaceB"
+    And an additional client created mock-0.1 application named "mock01app3" in the namespace "randomNamespaceB"
 
     When the domain environment variable TEST_VAR_1 with value 'Foo' is added in the namespace "randomNamespaceB"
     Then the domain environment variable TEST_VAR_1 will equal 'Foo' for all the applications in the namespace "randomNamespaceB"
@@ -67,7 +67,7 @@ Feature: Adding and deleting domain environment variable
     And the domain environment variable TEST_VAR_1 with value 'Foo' is added in the namespace "randomNamespaceA"
     And an additional client created mock-0.1 application named "mock01app1" in the namespace "randomNamespaceA"
     And an additional client created mock-0.1 application named "mock02app2" in the namespace "randomNamespaceA" 
-    And a new client created mock-0.1 application named "ruby19app3" in the namespace "randomNamespaceB"
+    And a new client created mock-0.1 application named "mock01app3" in the namespace "randomNamespaceB"
 
     Then the domain environment variable TEST_VAR_1 will equal 'Foo' for all the applications in the namespace "randomNamespaceA"
-    And the domain environment variable TEST_VAR_1 will not exist for the application "ruby19app3"
+    And the domain environment variable TEST_VAR_1 will not exist for the application "mock01app3"
