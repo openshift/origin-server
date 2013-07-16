@@ -9,34 +9,34 @@ class SubUserTest < ActionDispatch::IntegrationTest
     @headers = {}
     @headers["HTTP_AUTHORIZATION"] = "Basic " + Base64.encode64("#{@username}:password")
     @headers["Accept"] = "application/json"
-    
+
     if File.exist?("/etc/openshift/plugins.d/openshift-origin-auth-mongo.conf")
       `oo-register-user -l admin -p admin --username #{@username} --userpass password`
     end
   end
 
   def test_normal_auth_success
-    get "rest/domains.json", nil, @headers
+    get "broker/rest/domains.json", nil, @headers
     assert_equal 200, status
   end
 
   def test_subaccount_role_failure_parent_user_missing
     @headers["X-Impersonate-User"] = "subuser#{@random}"
-    get "rest/domains.json", nil, @headers
+    get "broker/rest/domains.json", nil, @headers
     assert_equal 401, status
   end
 
   def test_subaccount_role_failure
-    get "rest/domains.json", nil, @headers
+    get "broker/rest/domains.json", nil, @headers
     assert_equal 200, status
 
     @headers["X-Impersonate-User"] = "subuser#{@random}"
-    get "rest/domains.json", nil, @headers
+    get "broker/rest/domains.json", nil, @headers
     assert_equal 401, status
   end
 
   def test_subaccount_role_success
-    get "rest/domains.json", nil, @headers
+    get "broker/rest/domains.json", nil, @headers
     assert_equal 200, status
 
     u = CloudUser.find_by login: @username
@@ -44,12 +44,12 @@ class SubUserTest < ActionDispatch::IntegrationTest
     u.save
 
     @headers["X-Impersonate-User"] = "subuser#{@random}"
-    get "rest/domains.json", nil, @headers
+    get "broker/rest/domains.json", nil, @headers
     assert_equal 200, status
   end
 
   def test_access_someone_elses_subaccount
-    get "rest/domains.json", nil, @headers
+    get "broker/rest/domains.json", nil, @headers
     assert_equal 200, status
 
     @headers2 = {}
@@ -58,8 +58,8 @@ class SubUserTest < ActionDispatch::IntegrationTest
     if File.exist?("/etc/openshift/plugins.d/openshift-origin-auth-mongo.conf")
       `oo-register-user -l admin -p admin --username "#{@username}x" --userpass password`
     end
-    
-    get "rest/domains.json", nil, @headers2
+
+    get "broker/rest/domains.json", nil, @headers2
     assert_equal 200, status
 
     u = CloudUser.find_by login: @username
@@ -71,19 +71,19 @@ class SubUserTest < ActionDispatch::IntegrationTest
     u.save
 
     @headers["X-Impersonate-User"] = "subuser#{@random}"
-    get "rest/domains.json", nil, @headers
+    get "broker/rest/domains.json", nil, @headers
     assert_equal 200, status
 
     @headers2["X-Impersonate-User"] = "subuser#{@random}"
-    get "rest/domains.json", nil, @headers2
+    get "broker/rest/domains.json", nil, @headers2
     assert_equal 401, status
   end
 
   def test_delete_subaccount
-    get "rest/domains.json", nil, @headers
+    get "broker/rest/domains.json", nil, @headers
     assert_equal 200, status
 
-    delete "rest/user.json", nil, @headers
+    delete "broker/rest/user.json", nil, @headers
     assert_equal 403, status
 
     u = CloudUser.find_by login: "#{@username}"
@@ -95,26 +95,26 @@ class SubUserTest < ActionDispatch::IntegrationTest
     @headers2["HTTP_AUTHORIZATION"] = "Basic " + Base64.encode64("#{@username}:password")
     @headers2["Accept"] = "application/json"
     @headers2["X-Impersonate-User"] = subaccount_user
-    
-    get "rest/domains.json", nil, @headers
+
+    get "broker/rest/domains.json", nil, @headers
     assert_equal 200, status
 
     domain_name = "namespace#{@random}"
-    post "rest/domains.json", { :id => domain_name }, @headers2
+    post "broker/rest/domains.json", { :id => domain_name }, @headers2
     assert_equal 201, status
 
-    delete "rest/user.json", nil, @headers2
+    delete "broker/rest/user.json", nil, @headers2
     assert_equal 422, status
 
-    delete "rest/domains/#{domain_name}.json", nil, @headers2
+    delete "broker/rest/domains/#{domain_name}.json", nil, @headers2
     assert_equal 200, status
 
-    delete "rest/user.json", nil, @headers2
+    delete "broker/rest/user.json", nil, @headers2
     assert_equal 200, status
   end
 
   def test_subaccount_inherit_gear_sizes
-    get "rest/domains.json", nil, @headers
+    get "broker/rest/domains.json", nil, @headers
     assert_equal 200, status
 
     u = CloudUser.find_by login: "#{@username}"
@@ -125,7 +125,7 @@ class SubUserTest < ActionDispatch::IntegrationTest
     assert_equal Rails.configuration.openshift[:gear_sizes].sort, user.get_capabilities['gear_sizes'].sort
 
     @headers["X-Impersonate-User"] = "subuser#{@random}"
-    get "rest/domains.json", nil, @headers
+    get "broker/rest/domains.json", nil, @headers
     assert_equal 200, status
 
     subuser = CloudUser.find_by(login: "subuser#{@random}")
