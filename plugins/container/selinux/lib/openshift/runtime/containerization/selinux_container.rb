@@ -326,7 +326,7 @@ Dir(after)    #{@container.uuid}/#{@container.uid} => #{list_home_dir(@container
         end
 
         def freeze_cgroups
-          ::OpenShift::Runtime::Utils::Cgroups.freeze(@container.uuid)
+          ::OpenShift::Runtime::Utils::Cgroups.freezer_burn(@container.uuid)
         end
 
         # release resources (cgroups thaw), this causes Zombies to get killed
