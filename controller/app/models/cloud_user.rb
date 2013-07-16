@@ -168,7 +168,7 @@ class CloudUser
     if self.domains.count > 0
       pending_op = PendingUserOps.new(op_type: :add_ssh_key, arguments: key.attributes.dup, state: :init, on_domain_ids: self.domains.map{|d|d._id.to_s}, created_at: Time.new)
       CloudUser.where(_id: self.id).update_all({ "$push" => { pending_ops: pending_op.serializable_hash_with_timestamp , ssh_keys: key.serializable_hash }})
-      self.with(consistency: :strong).reload
+      self.reload
       self.run_jobs
     else
       self.ssh_keys << key
@@ -189,7 +189,7 @@ class CloudUser
     if self.domains.count > 0
       pending_op = PendingUserOps.new(op_type: :delete_ssh_key, arguments: key.attributes.dup, state: :init, on_domain_ids: self.domains.map{|d|d._id.to_s}, created_at: Time.new)
       CloudUser.where(_id: self.id).update_all({ "$push" => { pending_ops: pending_op.serializable_hash_with_timestamp } , "$pull" => { ssh_keys: key.serializable_hash }})
-      self.with(consistency: :strong).reload
+      self.reload
       self.run_jobs      
     else
       key.delete
@@ -225,10 +225,10 @@ class CloudUser
   # Delete user and all its artifacts like domains, applications associated with the user 
   def force_delete
     # will need to read from the primary to make sure we get the latest data
-    while Domain.with(consistency: :strong).where(owner: self).count > 0
-      domain = Domain.with(consistency: :strong).where(owner: self).first
-      while Application.with(consistency: :strong).where(domain: domain).count > 0
-        app = Application.with(consistency: :strong).where(domain: domain).first
+    while Domain.where(owner: self).count > 0
+      domain = Domain.where(owner: self).first
+      while Application.where(domain: domain).count > 0
+        app = Application.where(domain: domain).first
         app.destroy_app
       end
       domain.delete
@@ -236,7 +236,7 @@ class CloudUser
     
     # will need to reload from primary to ensure that mongoid doesn't validate based on its cache
     # and prevent us from deleting this user because of the :dependent :restrict clause
-    self.with(consistency: :strong).reload
+    self.reload
     self.delete
   end
  
@@ -255,9 +255,9 @@ class CloudUser
 
         # try to do an update on the pending_op state and continue ONLY if successful
         op_index = self.pending_ops.index(op)
-        retval = CloudUser.with(consistency: :strong).where({ "_id" => self._id, "pending_ops.#{op_index}._id" => op._id, "pending_ops.#{op_index}.state" => "init" }).update({"$set" => { "pending_ops.#{op_index}.state" => "queued" }})
+        retval = CloudUser.where({ "_id" => self._id, "pending_ops.#{op_index}._id" => op._id, "pending_ops.#{op_index}.state" => "init" }).update({"$set" => { "pending_ops.#{op_index}.state" => "queued" }})
         unless retval["updatedExisting"]
-          self.with(consistency: :strong).reload
+          self.reload
           next
         end
 
@@ -271,7 +271,7 @@ class CloudUser
         # reloading the op reloads the cloud_user and then incorrectly reloads (potentially)
         # the op based on its position within the pending_ops list
         # hence, reloading the cloud_user, and then fetching the op using the op_id stored earlier
-        self.with(consistency: :strong).reload
+        self.reload
         op = self.pending_ops.find_by(_id: op_id)
         
         op.close_op
