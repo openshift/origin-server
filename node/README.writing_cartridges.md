@@ -595,11 +595,11 @@ the necessary code. For complex configurations or multi-version support,
 you may choose to write these scripts as shim code to setup the necessary
 environment before calling additional scripts you write. Or, you may
 choose to create symlinks from these names to a name of your choosing.
-Your API is the scripts and their associated actions. The scripts will
-be run from the home directory of the cartridge.
+Your API is the scripts and their associated actions.
 
-These scripts are invoked directly, so they need to have the executable
-bit turned on.
+The scripts will be run directly from the home directory of the cartridge.
+They need to have the executable bit turned on, and they should have
+UNIX-friendly line endings (`\n`), not DOS ones (`\r\n`).
 
 A cartridge must implement the following scripts:
 
