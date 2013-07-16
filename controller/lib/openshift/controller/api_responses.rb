@@ -73,7 +73,6 @@ module OpenShift
               elsif ex.unmatched.length == 1
                 "#{target} '#{ex.unmatched.first}' not found."
               else
-                binding.pry
                 if name = (
                   (Domain === ex.klass and ex.params[:canonical_namespace].presence) or
                   (Application === ex.klass and ex.params[:canonical_name].presence) or
