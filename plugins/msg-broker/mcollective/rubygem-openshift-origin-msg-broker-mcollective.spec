@@ -9,7 +9,7 @@
 
 Summary:       OpenShift plugin for mcollective service
 Name:          rubygem-%{gem_name}
-Version: 1.10.3
+Version: 1.11.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -80,6 +80,21 @@ cp %{buildroot}/%{gem_dir}/gems/%{gem_name}-%{version}/conf/openshift-origin-msg
 %attr(0644,-,-) %ghost /etc/mcollective/client.cfg
 
 %changelog
+* Tue Jul 02 2013 Adam Miller <admiller@redhat.com> 1.11.2-1
+- Handling cleanup of failed pending op using rollbacks (abhgupta@redhat.com)
+- Remove Online specific references: -Remove hard-coded cart name references.
+  -Remove login validations from CloudUser model, login validation must be done
+  by authentication plugin. -Remove 'medium' gear size references -All 'small'
+  gear size references must be from configuration files. -Remove stale
+  application_observer.rb and its references -Remove stale 'abstract' cart
+  references -Remove duplicate code from rest controllers -Move all
+  get_rest_{user,domain,app,cart} methods in RestModelHelper module. -Cleanup
+  unnecessary TODO/FIXME comments in broker. (rpenta@redhat.com)
+- Fix for bug 977224 (abhgupta@redhat.com)
+
+* Tue Jun 25 2013 Adam Miller <admiller@redhat.com> 1.11.1-1
+- bump_minor_versions for sprint 30 (admiller@redhat.com)
+
 * Tue Jun 18 2013 Adam Miller <admiller@redhat.com> 1.10.3-1
 - Merge pull request #2872 from pravisankar/dev/ravi/bug973918
   (dmcphers+openshiftbot@redhat.com)

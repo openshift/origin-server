@@ -1,9 +1,6 @@
 @postgres
 @v2
 Feature: Postgres Application Sub-Cartridge
-  Background:
-    Given a v2 default node
-
   @runtime_extended1
   Scenario Outline: Create/Delete one application with a Postgres database
     Given a new mock-0.1 type application
@@ -25,6 +22,7 @@ Feature: Postgres Application Sub-Cartridge
     Scenarios: RHEL
       | postgres_version |
       |       8.4        |
+      |       9.2        |
 
     @fedora-19-only
     Scenarios: Fedora-19

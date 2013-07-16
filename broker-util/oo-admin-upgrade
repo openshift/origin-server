@@ -1,0 +1,788 @@
+#!/usr/bin/env oo-ruby
+require 'rubygems'
+require 'pp'
+require 'thread'
+require 'getoptlong'
+require 'stringio'
+require 'set'
+
+$max_threads = 8
+WORK_DIR = '/tmp/oo-upgrade'
+ACTIVE_SUFFIX = '_active'
+
+# For each of these sets:  nil implies all and empty implies none
+MIGRATION_CART_TYPES = nil
+RESTART_CART_TYPES = [].to_set
+REDEPLOY_HTTPD_PROXY_CART_TYPES = [].to_set # Deploys on top of existing config.  Will not fixup renames.
+
+$all_cart_types = nil
+$restart_only_cart_types = nil
+if MIGRATION_CART_TYPES && RESTART_CART_TYPES && REDEPLOY_HTTPD_PROXY_CART_TYPES
+  $all_cart_types = Set.new
+  $all_cart_types = MIGRATION_CART_TYPES + RESTART_CART_TYPES + REDEPLOY_HTTPD_PROXY_CART_TYPES
+
+  $restart_only_cart_types = RESTART_CART_TYPES.dup
+  $restart_only_cart_types -= (MIGRATION_CART_TYPES + REDEPLOY_HTTPD_PROXY_CART_TYPES)
+end
+
+STDOUT.sync, STDERR.sync = true
+
+#
+#  upgrade the specified gear
+#
+def upgrade_gear(login, app_name, gear_uuid, version, ignore_cartridge_version=false)
+  total_upgrade_gear_start_time = (Time.now.to_f * 1000).to_i
+  upgrade_cmd = "#{__FILE__} --login '#{login}' --upgrade-gear '#{gear_uuid}' --app-name '#{app_name}' --version '#{version}' #{ignore_cartridge_version ? '--ignore-cartridge-version' : ''}"
+  out = StringIO.new
+  out << "Migrating gear on node with: #{upgrade_cmd}\n"
+  begin
+    user = nil
+    begin
+      user = CloudUser.with(consistency: :eventual).find_by(login: login)
+    rescue Mongoid::Errors::DocumentNotFound
+    end
+    if user
+      app, gear = Application.find_by_gear_uuid(gear_uuid)
+      if app
+        if gear
+          server_identity = gear.server_identity
+          # gear.node_profile = app.node_profile if gear.node_profile.nil?
+          begin
+            Timeout::timeout(420) do
+              output = ''
+              exit_code = 1
+              upgrade = MIGRATION_CART_TYPES.nil? 
+              cartridges = gear.group_instance.all_component_instances.map { |ci| ci.cartridge_name }.uniq
+              MIGRATION_CART_TYPES.each do |cart_name|
+                if cartridges.include?(cart_name)
+                  upgrade = true
+                  break
+                end
+              end unless upgrade
+
+              if upgrade
+                upgrade_on_node_start_time = (Time.now.to_f * 1000).to_i
+                out << "Upgrading on node...\n"
+                OpenShift::MCollectiveApplicationContainerProxy.rpc_exec('openshift', server_identity) do |client|
+                  client.upgrade(:uuid => gear_uuid,
+                                 :namespace => app.domain.namespace,
+                                 :version => version,
+                                 :ignore_cartridge_version => ignore_cartridge_version.to_s) do |response|
+                    exit_code = response[:body][:data][:exitcode]
+                    output = response[:body][:data][:output]
+                  end
+                end
+                upgrade_on_node_time = (Time.now.to_f * 1000).to_i - upgrade_on_node_start_time
+                out << "***time_upgrade_on_node_measured_from_broker=#{upgrade_on_node_time}***\n"
+              end
+              if (output.length > 0)
+                out << "Upgrade on node output:\n #{output}\n"
+              end
+              if upgrade && exit_code != 0
+                out << "Upgrade on node exit code: #{exit_code}\n"
+                raise "Failed upgrading gear. Rerun with: #{upgrade_cmd}"
+              else
+                redeploy_httpd_proxy = REDEPLOY_HTTPD_PROXY_CART_TYPES.nil?
+
+                if REDEPLOY_HTTPD_PROXY_CART_TYPES
+                  gear_cartridges = cartridges
+                  REDEPLOY_HTTPD_PROXY_CART_TYPES.each do |cart_name|
+                    redeploy_httpd_proxy = gear_cartridges.include?(cart_name)
+                    break if redeploy_httpd_proxy
+                  end unless redeploy_httpd_proxy
+                end
+
+                # Should call oo-frontend-destroy and re-build the
+                # application, including idle state from scratch if
+                # need to purge possibly stale configuration.
+                # remove_httpd_proxy(gear, out) if recreate_httpd_proxy
+
+                redeploy_httpd_proxy_start_time = (Time.now.to_f * 1000).to_i
+                redeploy_httpd_proxy(gear, out) if redeploy_httpd_proxy
+                redeploy_httpd_proxy_time = (Time.now.to_f * 1000).to_i - redeploy_httpd_proxy_start_time
+                out << "***time_redeploy_httpd_proxy=#{redeploy_httpd_proxy_time}***\n"
+                redeploy_aliases(gear, out) if redeploy_httpd_proxy
+
+                restart_start_time = (Time.now.to_f * 1000).to_i
+                cartridges.each do |gear_cart|
+                  restart = RESTART_CART_TYPES.nil?
+                  RESTART_CART_TYPES.each do |cart_name|
+                    if gear_cart == cart_name
+                      restart = true
+                      break
+                    end
+                  end unless restart
+                  if restart
+                    component = gear.group_instance.all_component_instances.to_a.find { |ci| ci.cartridge_name==gear_cart }
+                    restart_component(gear, component, out)
+                  end
+                end
+                restart_time = (Time.now.to_f * 1000).to_i - restart_start_time
+                out << "***time_restart=#{restart_time}***\n"
+              end
+            end
+          rescue Timeout::Error
+            raise "Command '#{upgrade_cmd}' timed out"
+          end
+          #gear.quarantined = false
+          #gear.save
+        else
+          out << "WARNING: Gear not found with uuid #{gear_uuid} for app '#{app_name}' and user '#{login}'\n"
+        end
+      else
+        out << "WARNING: App not found: #{app_name}\n"
+      end
+    else
+      raise "User not found: #{login}"
+    end
+  rescue Exception => e
+    raise "#{e.message}\n#{e.backtrace}\nOutput:\n#{out.string}"
+  end
+  total_upgrade_gear_time = (Time.now.to_f * 1000).to_i - total_upgrade_gear_start_time
+  out << "***time_total_upgrade_gear_measured_from_broker=#{total_upgrade_gear_time}***\n"
+  out.string
+end
+
+def restart_component(gear, component, out)
+  if component
+    leave_stopped = false
+    reply = gear.status(component)
+    reply.properties["attributes"][gear.uuid].each do |key, value|
+      if key == 'status'
+        case value
+        when "ALREADY_STOPPED"
+          leave_stopped = true
+        when "ALREADY_IDLED"
+          leave_stopped = true
+        end
+      end
+    end
+    unless leave_stopped
+      begin
+        out << "Stopping component '#{component.cartridge_name}' on gear with uuid '#{gear.uuid}' on node '#{gear.server_identity}'\n"
+        reply.append gear.stop(component.cartridge_name)
+      rescue Exception => e
+        out << "WARNING: Error stopping component '#{component.cartridge_name}' on gear with uuid '#{gear.uuid}' on node '#{gear.server_identity}': #{e.message}\n"
+      end
+      begin
+        out << "Force stopping component '#{component.cartridge_name}' on gear with uuid '#{gear.uuid}' on node '#{gear.server_identity}'\n"
+        reply.append gear.force_stop(component.cartridge_name)
+      rescue Exception => e
+        out << "WARNING: Error force stopping component '#{component.cartridge_name}' on gear with uuid '#{gear.uuid}' on node '#{gear.server_identity}': #{e.message}\n"
+      end
+      num_tries = 2
+      (1..num_tries).each do |i|
+        out << "Restarting component '#{component.cartridge_name}' on gear with uuid '#{gear.uuid}' on node '#{gear.server_identity}'\n"
+        begin
+          reply.append gear.restart(component.cartridge_name)
+          break
+        rescue Exception => e
+          if i == num_tries
+            out << "Failed to restart component '#{component.cartridge_name}' on gear with uuid '#{gear.uuid}' on node '#{gear.server_identity}' after #{num_tries} tries with exception: #{e.message}\n"
+            out << "***acceptable_error_restart_component={\"gear_uuid\":\"#{gear.uuid}\",\"component_name\":\"#{component.cartridge_name}\",\"server_identity\":\"#{gear.server_identity}\",\"login\":\"#{gear.app.domain.owner.login}\",\"app_name\":\"#{gear.app.name}\"}***\n"
+          end
+        end
+      end
+    else
+      out << "Leaving component stopped '#{component.cartridge_name}' on gear with uuid '#{gear.uuid}' on node '#{gear.server_identity}'\n"
+    end
+    out << "RESTART DEBUG OUTPUT:\n#{reply.debugIO.string}\n" unless reply.debugIO.string.empty?
+    out << "RESTART ERROR OUTPUT:\n#{reply.errorIO.string}\n" unless reply.errorIO.string.empty?
+  end
+end
+
+def redeploy_httpd_proxy(gear, out)
+  httpd_proxy_action(gear, 'deploy-httpd-proxy', out)
+end
+
+def remove_httpd_proxy(gear, out)
+  httpd_proxy_action(gear, 'remove-httpd-proxy', out)
+end
+
+def httpd_proxy_action(gear, action, out)
+  gear_cartridges = gear.group_instance.all_component_instances.map { |ci| ci.cartridge_name }.uniq
+  embedded_carts = CartridgeCache.cartridge_names('embedded')
+  gear_cartridges.each do |cart|
+    out << "#{action} for '#{cart}' on gear '#{gear.name}' with uuid '#{gear.uuid}' on node #{gear.server_identity}\n"
+    embedded = embedded_carts.include? cart
+    args = gear.get_proxy.send(:build_base_gear_args, gear)
+    reply = gear.get_proxy.send(:run_cartridge_command, (embedded ? "embedded/" : '') + cart, gear, action, args, false)
+
+    out << "DEPLOY_HTTP_PROXY DEBUG OUTPUT:\n#{reply.debugIO.string}\n" unless reply.debugIO.string.empty?
+    out << "DEPLOY_HTTP_PROXY ERROR OUTPUT:\n#{reply.errorIO.string}\n" unless reply.errorIO.string.empty?
+
+    if reply.exitcode != 0
+      out << "#{action} for cart: #{cart} on node exit code: #{reply.exitcode}\n"
+      raise "Failed deploying httpd proxy for gear '#{gear.name}' with uuid '#{gear.uuid}' on node '#{gear.server_identity}'"
+    end
+  end
+end
+
+def redeploy_aliases(gear, out)
+  unless gear.app.aliases.nil?
+    if gear.app_dns
+      gear.app.aliases.each do |server_alias|
+        out << "Adding alias '#{server_alias}' for '#{gear.name}' with uuid '#{gear.uuid}' on node #{gear.server_identity}\n"
+        reply = gear.add_alias(server_alias)
+        out << "ADD_ALIAS DEBUG OUTPUT:\n#{reply.debugIO.string}\n" unless reply.debugIO.string.empty?
+        out << "ADD_ALIAS ERROR OUTPUT:\n#{reply.errorIO.string}\n" unless reply.errorIO.string.empty?
+        if reply.exitcode != 0
+          out << "Add alias on node exit code: #{reply.exitcode}\n"
+          raise "Failed adding alias #{server_alias} for gear '#{gear.name}' with uuid '#{gear.uuid}' on node '#{gear.server_identity}'"
+        end
+      end
+    end
+  end
+end
+
+def add_to(stuffs, more_stuffs)
+  more_stuffs.each do |topic, stuff|
+    if stuffs[topic]
+      stuffs[topic] += stuff
+    else
+      stuffs[topic] = stuff
+    end
+  end
+end
+
+def upgrade(version, continue=false, ignore_cartridge_version=false, target_server_identity=nil, upgrade_position=1, num_upgraders=1)
+  start_time = (Time.now.to_f * 1000).to_i
+  logins_cnt = 0
+  gear_cnt = 0
+  node_to_gears = {}
+
+  puts "Getting all active gears..."
+  gather_active_gears_start_time = (Time.now.to_f * 1000).to_i
+  active_gears_map = OpenShift::ApplicationContainerProxy.get_all_active_gears
+  gather_active_gears_total_time = (Time.now.to_f * 1000).to_i - gather_active_gears_start_time
+
+  puts "Getting all logins..."
+  gather_users_start_time = (Time.now.to_f * 1000).to_i
+  query = {"group_instances.gears.0" => {"$exists" => true}}
+  options = {:fields => [ "uuid",
+              "domain_id",
+              "name",
+              "created_at",
+              "component_instances.cartridge_name",
+              "component_instances.group_instance_id",
+              "group_instances._id",
+              "group_instances.gears.uuid",
+              "group_instances.gears.server_identity",
+              "group_instances.gears.name"], 
+             :timeout => false}
+
+  ret = []
+  user_map = {}
+  OpenShift::DataStore.find(:cloud_users, {}, {:fields => ["_id", "uuid", "login"], :timeout => false}) do |hash|
+      logins_cnt += 1
+      user_uuid = hash['uuid']
+      user_login = hash['login']
+      user_map[hash['_id'].to_s] = [user_uuid, user_login]
+  end
+
+  domain_map = {}
+  OpenShift::DataStore.find(:domains, {}, {:fields => ["_id" , "owner_id"], :timeout => false}) do |hash|
+    domain_map[hash['_id'].to_s] = hash['owner_id'].to_s
+  end
+
+  OpenShift::DataStore.find(:applications, query, options) do |app|
+    print '.'
+    user_id = domain_map[app['domain_id'].to_s]
+    if user_id.nil?
+      relocated_domain = Domain.where(_id: Moped::BSON::ObjectId(app['domain_id'])).first
+      next if relocated_domain.nil?
+      user_id = relocated_domain.owner._id.to_s
+      user_uuid = user_id
+      user_login = relocated_domain.owner.login
+    else
+      if user_map.has_key? user_id
+        user_uuid,user_login = user_map[user_id]
+      else
+        relocated_user = CloudUser.where(_id: Moped::BSON::ObjectId(user_id)).first
+        next if relocated_user.nil?
+        user_uuid = relocated_user._id.to_s
+        user_login = relocated_user.login
+      end
+    end
+    group_cart_map = {}
+    app['component_instances'].each do |ci|
+      gid = ci['group_instance_id'].to_s
+      group_cart_map[gid] = [] if not group_cart_map.has_key? gid
+      group_cart_map[gid] << ci['cartridge_name']
+    end
+
+    app['group_instances'].each do |gi|
+      cart_names = group_cart_map[gi['_id'].to_s]
+      gi['gears'].each do |gear|
+        server_identity = gear['server_identity']
+        if server_identity && (!target_server_identity || (server_identity == target_server_identity))
+          cart_names.each do |cart_name|
+            if $all_cart_types.nil? || $all_cart_types.include?(cart_name)
+              node_to_gears[server_identity] = [] unless node_to_gears[server_identity]
+              if $restart_only_cart_types.nil? || !$restart_only_cart_types.include?(cart_name) || (active_gears_map.include?(server_identity) && active_gears_map[server_identity].include?(gear['uuid'])) 
+                node_to_gears[server_identity] << {:server_identity => server_identity, :uuid => gear['uuid'], :name => gear['name'], :app_name => app['name'], :login => user_login}
+                break
+              end
+            end
+          end
+        end
+      end if cart_names
+    end
+  end
+  gather_users_total_time = (Time.now.to_f * 1000).to_i - gather_users_start_time
+
+  puts "\nlogins.length: #{logins_cnt.to_s}"
+
+  position = upgrade_position - 1
+  upgrader_position_nodes = []
+  if num_upgraders > 1
+    server_identities = node_to_gears.keys.sort
+    server_identities.each_with_index do |server_identity, index|
+      if index == position
+        upgrader_position_nodes << server_identity
+        position += num_upgraders
+      else
+        node_to_gears.delete(server_identity)
+      end
+    end
+  end
+
+  active_node_queue = []
+  inactive_node_queue = []
+  node_to_gears.each do |server_identity, gears|
+    node_to_gears[server_identity] = nil
+    unless gears.empty?
+      active_gears = []
+      inactive_gears = []
+      gears.each do |gear|
+        if active_gears_map.include?(server_identity) && active_gears_map[server_identity].include?(gear[:uuid])
+          active_gears << gear  
+        else
+          inactive_gears << gear
+        end
+      end
+
+      unless active_gears.empty?
+        write_node_to_file(server_identity + ACTIVE_SUFFIX, active_gears, version, ignore_cartridge_version) unless continue
+        active_node_queue << {:server_identity => server_identity + ACTIVE_SUFFIX, :gears_length => active_gears.length}
+      end
+
+      unless inactive_gears.empty?
+        write_node_to_file(server_identity, inactive_gears, version, ignore_cartridge_version) unless continue
+        inactive_node_queue << {:server_identity => server_identity, :gears_length => inactive_gears.length}
+      end
+    end
+  end
+  node_to_gears.clear
+
+  # Process the largest nodes first
+  active_node_queue = active_node_queue.sort_by { |node| node[:gears_length] }.reverse
+  inactive_node_queue = inactive_node_queue.sort_by { |node| node[:gears_length] }.reverse
+  node_queue = active_node_queue + inactive_node_queue
+
+  puts "#####################################################"
+  if !upgrader_position_nodes.empty?
+    puts 'Nodes this upgrader is handling:'
+    puts upgrader_position_nodes.pretty_inspect
+  end
+  puts "#####################################################"
+
+  @failures = []
+  node_threads = []
+  gear_cnts = []
+  mutex = Mutex.new
+  timings = {}
+  acceptable_errors = {}
+  starting_nodes = node_queue.shift($max_threads)
+  starting_nodes.each_with_index do |node, index|
+    server_identity = node[:server_identity]
+    gear_cnts[index] = node[:gears_length]
+    gear_cnt += node[:gears_length]
+    node_threads << Thread.new do
+      node_timings, node_acceptable_errors = upgrade_node(server_identity, continue)
+      add_to(timings, node_timings)
+      add_to(acceptable_errors, node_acceptable_errors)
+      # Get the next available node to process
+      while !node_queue.empty? do
+        server_identity = nil
+        mutex.synchronize do
+          unless node_queue.empty?
+            node = node_queue.delete_at(0)
+            server_identity = node[:server_identity]
+            gear_cnts[index] += node[:gears_length]
+            gear_cnt += node[:gears_length]
+            puts "#####################################################"
+            puts "Remaining node queue:"
+            puts node_queue.pretty_inspect
+            puts "#####################################################"
+          end
+        end
+        if server_identity
+          node_timings, node_acceptable_errors = upgrade_node(server_identity, continue)
+          add_to(timings, node_timings)
+          add_to(acceptable_errors, node_acceptable_errors)
+        end
+      end
+    end
+  end
+
+  node_threads.each do |t|
+    t.join
+  end
+  
+  total_time = (Time.now.to_f * 1000).to_i - start_time
+
+  unless @failures.empty?
+    puts "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+    puts "Failures:"
+    @failures.each do |failure|
+      puts failure
+    end
+    puts "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+    puts ""
+  end
+
+  node_queue.each do |node|
+    server_identity = node[:server_identity]
+    f = upgrade_file_path(server_identity)
+    leftover_count = `wc -l #{f}`.to_i
+    if leftover_count > 0
+      puts "!!!!!!!!!!WARNING!!!!!!!!!!!!!WARNING!!!!!!!!!!!!WARNING!!!!!!!!!!"
+      puts "#{leftover_count} leftover gears found in upgrade file: #{f}"
+      puts "You can run with --continue to try again"
+      puts "!!!!!!!!!!WARNING!!!!!!!!!!!!!WARNING!!!!!!!!!!!!WARNING!!!!!!!!!!"
+      puts ""
+    end
+  end
+
+  unless acceptable_errors.empty?
+    puts "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+    puts "Acceptable Errors:"
+    pp acceptable_errors
+    puts "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+    puts ""
+  end
+
+  puts "#####################################################"
+  puts "Summary:"
+  puts "# of users: #{logins_cnt}"
+  puts "# of gears: #{gear_cnt}"
+  puts "# of failures: #{@failures.length}"
+  puts "Gear counts per thread: #{gear_cnts.pretty_inspect}"
+  puts "Nodes upgraded: #{upgrader_position_nodes.pretty_inspect}" if !upgrader_position_nodes.empty?
+  puts "Additional timings:"
+  timings.each do |topic, time_in_millis|
+    puts "    #{topic}=#{time_in_millis.to_f/1000}s"
+  end
+  puts "Time gathering users: #{gather_users_total_time.to_f/1000}s"
+  puts "Time gathering active gears: #{gather_active_gears_total_time.to_f/1000}s"
+  puts "Total execution time: #{total_time.to_f/1000}s"
+  puts "#####################################################"
+end
+
+def write_node_to_file(server_identity, gears, version, ignore_cartridge_version)
+  f = upgrade_file_path(server_identity)
+  puts "Writing #{gears.length} gears for node #{server_identity} to file #{f}"
+  FileUtils.mkdir_p WORK_DIR
+  FileUtils.rm_f f
+  FileUtils.touch f
+  gears.each_with_index do |gear, index|
+    upgrade_on_node_args = "#{gear[:server_identity]},#{gear[:uuid]},#{gear[:name]},#{gear[:app_name]},#{gear[:login]},#{version},#{ignore_cartridge_version.to_s}"
+    append_to_file(f, upgrade_on_node_args)
+  end
+end
+
+def error_file_path(server_identity)
+  "#{WORK_DIR}/upgrade_errors_#{server_identity}"
+end
+
+def log_file_path(server_identity)
+  "#{WORK_DIR}/upgrade_log_#{server_identity}"
+end
+
+def upgrade_file_path(server_identity)
+  "#{WORK_DIR}/upgrade_#{server_identity}"
+end
+
+def upgrade_node(server_identity, continue)
+  puts "Migrating gears on node #{server_identity}"
+  error_file = error_file_path(server_identity)
+  FileUtils.rm_f error_file unless continue
+  FileUtils.touch error_file
+  log_file = log_file_path(server_identity)
+  FileUtils.rm_f log_file unless continue
+  FileUtils.touch log_file
+  f = upgrade_file_path(server_identity)
+  upgrade_node_cmd = "#{__FILE__} --upgrade-file '#{f}'"
+  output, exit_code = execute_script(upgrade_node_cmd)
+  puts output
+  file = File.open(error_file, "r")
+  begin
+    while (line = file.readline)
+      @failures << line.chomp
+    end
+  rescue EOFError
+    file.close
+  end
+  file = File.open(log_file, "r")
+  timings = {}
+  acceptable_errors = {}
+  begin
+    while (line = file.readline)
+      if line =~ /\*\*\*time_(.*)=(\d+)\*\*\*/
+        timings[$1] = 0 unless timings[$1]
+        timings[$1] += $2.to_i
+      elsif line =~ /\*\*\*acceptable_error_(.*)=(.+)\*\*\*/
+        acceptable_errors[$1] = [] unless acceptable_errors[$1]
+        acceptable_errors[$1] << $2
+      end
+      print line
+    end
+  rescue EOFError
+    file.close
+  end
+  return timings, acceptable_errors
+end
+
+def upgrade_from_file(file)
+  while true
+    line = File.open(file, &:gets)
+    if line && !line.empty?
+      params = line.chomp.split(',')
+      server_identity = params[0] 
+      gear_uuid = params[1]
+      gear_name = params[2]
+      app_name = params[3]
+      login = params[4]
+      version = params[5]
+      ignore_cartridge_version = params[6] ? params[6] : 'false'
+      upgrade_on_node_cmd = "#{__FILE__} --login '#{login}' --upgrade-gear '#{gear_uuid}' --app-name '#{app_name}' --version '#{version}' #{ignore_cartridge_version == 'true' ? '--ignore-cartridge-version' : ''}"
+      base_path = server_identity
+      if File.basename(file) == File.basename(upgrade_file_path(server_identity) + ACTIVE_SUFFIX)
+        base_path += ACTIVE_SUFFIX
+      end
+      error_file = error_file_path(base_path)
+      log_file = log_file_path(base_path)
+      append_to_file(log_file,  "Migrating app '#{app_name}' gear '#{gear_name}' with uuid '#{gear_uuid}' on node '#{server_identity}' for user: #{login}")
+      num_tries = 2
+      (1..num_tries).each do |i|
+        begin
+          output = upgrade_gear(login, app_name, gear_uuid, version, ignore_cartridge_version)
+          append_to_file(log_file, output)
+          break
+        rescue Exception => e
+          if i == num_tries
+            append_to_file(log_file, "Failed to upgrade with cmd: '#{upgrade_on_node_cmd}' after #{num_tries} tries with exception: #{e.message}")
+            append_to_file(error_file, upgrade_on_node_cmd)
+            break
+          else
+            user = nil
+            begin
+              user = CloudUser.with(consistency: :eventual).find_by(login: login)
+            rescue Mongoid::Errors::DocumentNotFound
+            end
+            if user && Application.find(user, app_name)
+              sleep 4
+            else
+              append_to_file(log_file, "App '#{app_name}' no longer found in datastore with uuid '#{gear_uuid}'.  Ignoring...")
+              break
+            end
+          end
+        end
+      end
+      `sed -i '1,1d' #{file}`
+    else
+      break
+    end
+  end
+end
+
+def self.append_to_file(f, value)
+  file = File.open(f, 'a')
+  begin
+    file.puts value
+  ensure
+    file.close
+  end
+end
+
+def execute_script(cmd, num_tries=1, timeout=28800)
+  exitcode = nil
+  output = ''
+  (1..num_tries).each do |i|
+    pid = nil
+    begin
+      Timeout::timeout(timeout) do
+        read, write = IO.pipe
+        pid = fork {
+          # child
+          $stdout.reopen write
+          read.close
+          exec(cmd)
+        }
+        # parent
+        write.close
+        read.each do |line|
+          output << line
+        end
+        Process.waitpid(pid)
+        exitcode = $?.exitstatus
+      end
+      break
+    rescue Timeout::Error
+      begin
+        Process.kill("TERM", pid) if pid
+      rescue Exception => e
+        puts "execute_script: WARNING - Failed to kill cmd: '#{cmd}' with message: #{e.message}"
+      end
+      puts "Command '#{cmd}' timed out"
+      raise if i == num_tries
+    end
+  end
+  return output, exitcode
+end
+
+def p_usage
+  puts <<USAGE
+
+Usage: #{$0}
+
+  --login login_name                   User login
+  --upgrade-gear gear_uuid             Gear uuid of the single gear to upgrade
+  --app-name app_name                  App name of the gear to upgrade
+  --upgrade-node server_identity       Server identity of the node to upgrade
+  --upgrade-file file                  File containing the gears to upgrade
+  --num-upgraders num                  The total number of upgraders to be run.  Each upgrade-position will be a 
+                                       upgrade-position of num-upgraders.  All positions must to taken to upgrade
+                                       all gears.  Ex: If you are going to run 2 upgraders you would need to run:
+                                       ./rhc-admin-upgrade --version <version> --position 1 --num-upgraders 2
+                                       ./rhc-admin-upgrade --version <version> --position 2 --num-upgraders 2
+  --upgrade-position position          Postion of this upgrader (1 based) amongst the num of upgraders (--num_upgraders)
+  --max-threads num                    Indicates the number of processing queues
+  --ignore-cartridge-version           Force cartridge upgrade even if cartridge versions match
+  --continue                           Flag indicating to continue a previous upgrade
+
+USAGE
+  exit 255
+end
+
+begin
+  opts = GetoptLong.new(
+    ["--login", GetoptLong::REQUIRED_ARGUMENT],
+    ["--upgrade-gear", GetoptLong::REQUIRED_ARGUMENT],
+    ["--app-name", GetoptLong::REQUIRED_ARGUMENT],
+    ["--upgrade-node", GetoptLong::REQUIRED_ARGUMENT],
+    ["--upgrade-file", GetoptLong::REQUIRED_ARGUMENT],
+    ["--version", GetoptLong::REQUIRED_ARGUMENT],
+    ["--num-upgraders", GetoptLong::REQUIRED_ARGUMENT],
+    ["--upgrade-position", GetoptLong::REQUIRED_ARGUMENT],
+    ["--max-threads", GetoptLong::REQUIRED_ARGUMENT],
+    ["--ignore-cartridge-version", GetoptLong::NO_ARGUMENT],
+    ["--continue", GetoptLong::NO_ARGUMENT],
+    ["--help", "-h", GetoptLong::NO_ARGUMENT]
+  )
+  opt = {}
+  opts.each do |o, a|
+    opt[o[2..-1]] = a.to_s
+  end
+rescue Exception => e
+  p_usage
+end
+
+if opt['help']
+  p_usage
+end
+
+opt['ignore-cartridge-version'] = opt['ignore-cartridge-version'] ? true : false
+
+
+$:.unshift('/var/www/openshift/broker')
+require 'config/environment'
+# Disable analytics for admin scripts
+Rails.configuration.analytics[:enabled] = false
+Rails.configuration.msg_broker[:rpc_options][:disctimeout] = 20
+
+if opt['max-threads']
+  max_threads = opt['max-threads'].to_i
+  if max_threads < 50 && max_threads > 0
+    $max_threads = max_threads
+  else
+    puts "max-threads must be less than 50 and greater than 0"
+    exit 255
+  end
+end
+
+if opt['upgrade-file']
+  upgrade_from_file(opt['upgrade-file'])
+elsif opt['upgrade-gear']
+  if opt['login'] && opt['app-name'] && opt['version']
+    puts upgrade_gear(opt['login'], opt['app-name'], opt['upgrade-gear'], opt['version'], opt['ignore-cartridge-version'])
+  else
+    puts "--login, --app-name, and --version is required with --upgrade-gear"
+    exit 255
+  end
+elsif opt['upgrade-node']
+  if opt['version']
+    upgrade_file = upgrade_file_path(opt['upgrade-node'])
+    if opt['continue']
+      upgrade(opt['version'], true, opt['upgrade-node'])
+    elsif File.exists?(upgrade_file)
+        puts <<-WARNING
+!!!!!!!!!!!!!!!!!!!! EXISTING MIGRATION DATA FOUND !!!!!!!!!!!!!!!!!!!!
+Data from a previous upgrade exists at #{upgrade_file}.  You must 
+either move/remove (Ex: rm #{upgrade_file}) that data or pick up
+where it left off with '#{__FILE__} --upgrade-node #{opt['upgrade-node']} --version '#{opt['version']}'#{opt['ignore-cartridge-version'] ? ' --ignore-cartridge-version' : ''} --continue'.
+WARNING
+        exit 1
+    else
+      upgrade(opt['version'], false, opt['ignore-cartridge-version'], opt['upgrade-node'])
+    end
+  else
+    puts "--version is required with --upgrade-node"
+    exit 255
+  end
+else
+  if opt['version']
+    num_upgraders = opt['num-upgraders']
+    upgrade_position = opt['upgrade-position']
+    if num_upgraders || upgrade_position
+      unless num_upgraders
+        puts "--num-upgraders is required with --upgrade-position"
+        exit 255
+      end
+      unless upgrade_position
+        puts "--upgrade-position is required with --num-upgraders"
+        exit 255
+      end
+      num_upgraders = num_upgraders.to_i
+      upgrade_position = upgrade_position.to_i
+      unless upgrade_position > 0 && upgrade_position <= num_upgraders
+        puts "upgrade-position must be > 0 and <= num_upgraders"
+        exit 255
+      end
+      unless num_upgraders > 0
+        puts "num-upgraders must be > 0"
+        exit 255
+      end
+    else
+      num_upgraders = 1
+      upgrade_position = 1
+    end
+    if opt['continue']
+      upgrade(opt['version'], true, opt['ignore-cartridge-version'], nil, upgrade_position, num_upgraders)
+    elsif File.exists?(WORK_DIR)
+      puts <<-WARNING
+!!!!!!!!!!!!!!!!!!!! EXISTING MIGRATION DATA FOUND !!!!!!!!!!!!!!!!!!!!
+Data from a previous migration exists at #{WORK_DIR}.  You must 
+either move/remove (Ex: rm -rf #{WORK_DIR}) that data or pick up
+where it left off with '#{__FILE__} --continue'.
+WARNING
+      exit 1
+    else
+      upgrade(opt['version'], false, opt['ignore-cartridge-version'], nil, upgrade_position, num_upgraders)
+    end
+  else
+    puts "--version is required"
+    exit 255
+  end
+end

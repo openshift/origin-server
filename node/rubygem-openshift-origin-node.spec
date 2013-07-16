@@ -16,7 +16,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.10.5
+Version: 1.11.5
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -40,6 +40,7 @@ Requires:      cronie
 Requires:      crontabs
 Requires:      git
 Requires:      httpd
+Requires:      lsof
 Requires:      libcgroup-pam
 Requires:      libselinux-python
 Requires:      mercurial
@@ -48,6 +49,7 @@ Requires:      openshift-origin-node-proxy
 Requires:      pam_openshift
 Requires:      python
 Requires:      quota
+Requires:      lsof
 # non-scl open4 required for oo-cgroup-read bug 924556 until selinux fix for bug 912215 is available
 Requires:      rubygem(open4)
 Requires:      rubygem(openshift-origin-common)
@@ -173,6 +175,7 @@ mv httpd/openshift_route.include %{buildroot}/etc/httpd/conf.d/
 #%if 0%{?fedora}%{?rhel} <= 6
 mkdir -p %{buildroot}/etc/rc.d/init.d/
 cp %{buildroot}%{gem_instdir}/misc/init/openshift-cgroups %{buildroot}/etc/rc.d/init.d/
+cp %{buildroot}%{gem_instdir}/misc/init/openshift-tc %{buildroot}/etc/rc.d/init.d/
 #%else
 #mkdir -p %{buildroot}/etc/systemd/system
 #mv %{buildroot}%{gem_instdir}/misc/services/openshift-cgroups.service %{buildroot}/etc/systemd/system/openshift-cgroups.service
@@ -255,6 +258,7 @@ echo "/usr/bin/oo-trap-user" >> /etc/shells
 
 #%if 0%{?fedora}%{?rhel} <= 6
 %attr(0755,-,-)	/etc/rc.d/init.d/openshift-cgroups
+%attr(0755,-,-)	/etc/rc.d/init.d/openshift-tc
 #%else
 #%attr(0750,-,-) /etc/systemd/system
 #%endif
@@ -282,6 +286,108 @@ echo "/usr/bin/oo-trap-user" >> /etc/shells
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Fri Jul 05 2013 Adam Miller <admiller@redhat.com> 1.11.5-1
+- Merge pull request #2987 from rajatchopra/routing_broker
+  (dmcphers+openshiftbot@redhat.com)
+- Routing plug-in for broker. Code base from github/miciah/broker-plugin-
+  routing-activemq (miciah.masters@gmail.com)
+
+* Wed Jul 03 2013 Adam Miller <admiller@redhat.com> 1.11.4-1
+- Merge pull request #2980 from danmcp/master
+  (dmcphers+openshiftbot@redhat.com)
+- moving sync into the sdk (dmcphers@redhat.com)
+
+* Tue Jul 02 2013 Adam Miller <admiller@redhat.com> 1.11.3-1
+- Merge pull request #2934 from kraman/libvirt-f19-2
+  (dmcphers+openshiftbot@redhat.com)
+- Fixing class/module namespaces Fixing tests Fixing rebase errors Un-hardcode
+  context in step_definitions/cartridge-php_steps.rb Fixing paths that were
+  broken when going from File.join -> PathUtils.join (kraman@gmail.com)
+- Adding traffic control for selinux container (kraman@gmail.com)
+- Renamed package to Containerization instead of ApplicationContainerPlugin
+  Renamed OpenShift_ApplicationContainer_Class to container_plugin_class and
+  made it a class variable instead of global Moved run_in_root_context to
+  ApplicationContainer since it is not implementation specific Cleanup unused
+  variables (kraman@gmail.com)
+- Changing File.join to PathUtils.join in node and common packages Uncommenting
+  cgroups Fixing signal handling in oo-gear-init (kraman@gmail.com)
+- Fixing tests (assuming selinux container for now) (kraman@gmail.com)
+- Make port-forwarding container specific.   * SELinux container uses port-
+  proxy   * Libvirt container uses IP Tables (kraman@gmail.com)
+- Moving selinux and libvirt container plugins into seperate gem files Added
+  nsjoin which allows joining a running container Temporarily disabled cgroups
+  Moved gear dir to /var/lib/openshift/gears for libvirt container Moved shell
+  definition into container plugin rather than application container
+  (kraman@gmail.com)
+- Explicitly create a group for the gear user and fail if group cannot be
+  created. (kraman@gmail.com)
+- Refactor code to use run_in_container_context/run_in_root_context calls
+  instead of generically calling oo_spawn and passing uid. Modify frontend
+  httpd/proxy classes to accept a container object instead of indivigual
+  properties (kraman@gmail.com)
+- Refactor code to call set_ro_permission/set_rw_permission instead of calling
+  chown/chcon (kraman@gmail.com)
+- Moving Node classes into Runtime namespace Removing UnixUser Moving
+  functionality into SELinux plugin class (kraman@gmail.com)
+
+* Tue Jul 02 2013 Adam Miller <admiller@redhat.com> 1.11.2-1
+- Handling cleanup of failed pending op using rollbacks (abhgupta@redhat.com)
+- Merge pull request #2925 from BanzaiMan/dev/hasari/c157
+  (dmcphers+openshiftbot@redhat.com)
+- Add gear-level upgrade extensions (pmorie@gmail.com)
+- Card online_runtime_157 (asari.ruby@gmail.com)
+- Bug 977034 - Removing IDENT breaks destroy (jhonce@redhat.com)
+- Bug 977034 - Removing IDENT breaks deconfigure (jhonce@redhat.com)
+- Merge pull request #2927 from smarterclayton/bug_970257_support_git_at_urls
+  (dmcphers+openshiftbot@redhat.com)
+- Rename migrate to upgrade in code (pmorie@gmail.com)
+- Merge pull request #2958 from danmcp/master
+  (dmcphers+openshiftbot@redhat.com)
+- remove v2 folder from cart install (dmcphers@redhat.com)
+- Bug 977493 - Avoid leaking the lock file descriptor to child processes.
+  (rmillner@redhat.com)
+- Merge pull request #2827 from genesarm/PULL_2005
+  (dmcphers+openshiftbot@redhat.com)
+- Move core migration into origin-server (pmorie@gmail.com)
+- Merge pull request #2951 from BanzaiMan/mocha_deprecation_warning
+  (dmcphers@redhat.com)
+- Avoid harmless but annoying deprecation warning (asari.ruby@gmail.com)
+- Merge pull request #2865 from BanzaiMan/dev/hasari/bz974632
+  (dmcphers+openshiftbot@redhat.com)
+- Adding lsof dependency (kraman@gmail.com)
+- Merge remote-tracking branch 'origin/master' into
+  bug_970257_support_git_at_urls (ccoleman@redhat.com)
+- Merge pull request #2928 from BanzaiMan/dev/hasari/bz971622
+  (dmcphers+openshiftbot@redhat.com)
+- PULL_2005 Changed GEAR_SUPL_GRPS to GEAR_SUPPLEMENTARY_GROUPS in node and
+  tests (gsarmien@redhat.com)
+- Clean up the assertion (asari.ruby@gmail.com)
+- Test recursive case, too. (asari.ruby@gmail.com)
+- Generalize the file filtering somewhat (asari.ruby@gmail.com)
+- Process dot files, too. (asari.ruby@gmail.com)
+- Bug 976112 (asari.ruby@gmail.com)
+- Remove V1 code and V2-specific stepdefs (pmorie@gmail.com)
+- Merge remote-tracking branch 'origin/master' into
+  bug_970257_support_git_at_urls (ccoleman@redhat.com)
+- Allow clients to pass an initial_git_url of "empty", which creates a bare
+  repo but does not add a commit.  When 'empty' is passed, the node will skip
+  starting the gear and also skip the initial build.  This allows clients that
+  want to send a local Git repository (one that isn't visible to OpenShift.com,
+  for example) to avoid having to push/merge/delete the initial commit, and
+  instead submit their own clean repo.  In this case, the user will get a
+  result indicating that their repository is empty. (ccoleman@redhat.com)
+- Merge pull request #2931 from jwhonce/card/163
+  (dmcphers+openshiftbot@redhat.com)
+- Card origin_runtime_163 - Validate attempted Gear env var overrides
+  (jhonce@redhat.com)
+- Bug 970257 - Allow git@ urls (ccoleman@redhat.com)
+- removing v1 logic (dmcphers@redhat.com)
+- Bug 974983 (asari.ruby@gmail.com)
+- Bug 974632 (asari.ruby@gmail.com)
+
+* Tue Jun 25 2013 Adam Miller <admiller@redhat.com> 1.11.1-1
+- bump_minor_versions for sprint 30 (admiller@redhat.com)
+
 * Thu Jun 20 2013 Adam Miller <admiller@redhat.com> 1.10.5-1
 - Bug 976173 - oo-* scripts fail on node with ruby LoadError
   (bleanhar@redhat.com)

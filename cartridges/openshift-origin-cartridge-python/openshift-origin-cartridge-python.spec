@@ -1,7 +1,7 @@
-%global cartridgedir %{_libexecdir}/openshift/cartridges/v2/python
+%global cartridgedir %{_libexecdir}/openshift/cartridges/python
 
 Name:          openshift-origin-cartridge-python
-Version: 0.5.5
+Version: 0.6.2
 Release:       1%{?dist}
 Summary:       Python cartridge
 Group:         Development/Languages
@@ -74,7 +74,7 @@ mv %{buildroot}%{cartridgedir}/metadata/manifest.yml.rhel %{buildroot}%{cartridg
 mv %{buildroot}%{cartridgedir}/metadata/manifest.yml.f19 %{buildroot}%{cartridgedir}/metadata/manifest.yml
 %endif
 
-%post
+%posttrans
 %{_sbindir}/oo-admin-cartridge --action install --source %{cartridgedir}
 
 %files
@@ -91,6 +91,22 @@ mv %{buildroot}%{cartridgedir}/metadata/manifest.yml.f19 %{buildroot}%{cartridge
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Tue Jul 02 2013 Adam Miller <admiller@redhat.com> 0.6.2-1
+- Bug 976921: Move cart installation to %%posttrans (ironcladlou@gmail.com)
+- Merge pull request #2958 from danmcp/master
+  (dmcphers+openshiftbot@redhat.com)
+- remove v2 folder from cart install (dmcphers@redhat.com)
+- Bug 977950 - Copying the v1 descriptions back into the v2 versions of the
+  cartridge. (rmillner@redhat.com)
+
+* Tue Jun 25 2013 Adam Miller <admiller@redhat.com> 0.6.1-1
+- bump_minor_versions for sprint 30 (admiller@redhat.com)
+
+* Mon Jun 24 2013 Adam Miller <admiller@redhat.com> 0.5.6-1
+- Merge pull request #2921 from jwhonce/wip/cartridge_change_audit
+  (dmcphers+openshiftbot@redhat.com)
+- WIP Cartridge - Correct manifest.yml (jhonce@redhat.com)
+
 * Fri Jun 21 2013 Adam Miller <admiller@redhat.com> 0.5.5-1
 - WIP Cartridge - Updated manifest.yml versions for compatibility
   (jhonce@redhat.com)

@@ -212,13 +212,49 @@ def load_node_conf
 
     do_fail("No resource limits file: #{$RESOURCE_LIMITS_FILE}") unless File.exists? $RESOURCE_LIMITS_FILE
     source_file($RESOURCE_LIMITS_FILE)
+
+end
+
+
+def find_ext_net_dev
+  verbose("finding external network device")
+
+  begin
+    if ENV["EXTERNAL_ETH_DEV"].nil?
+      route_dev = nil
+      rlines = %x[/sbin/ip route show src #{ENV["PUBLIC_IP"]}]
+      rlines << %x[/sbin/ip route get #{ENV["PUBLIC_IP"]}]
+      rlines.lines do |r|
+        if r =~ /dev\s(\S*)\s*/
+          route_dev = $~[1]
+          if route_dev != "lo"
+            ENV["EXTERNAL_ETH_DEV"]=route_dev
+            break
+          end
+        end
+      end
+    end
+
+
+    if ENV["EXTERNAL_ETH_DEV"].nil?
+      do_fail("SEVERE: could not find a valid external ethernet device")
+    else
+      %x[/sbin/ip link show dev #{ENV["EXTERNAL_ETH_DEV"]}]
+      if not $?.success?
+        do_fail("SEVERE: not a valid ethernet device: #{ENV["EXTERNAL_ETH_DEV"]}")
+      end
+    end
+
+  rescue Errno::ENOENT
+    do_fail("SEVERE: could not find ip command (/sbin/ip).")
+  end
 end
 
 def load_users
   # Narrow the window where USERS, TC_DATA and ALL_QUOTAS can reflect
 # the system in different states.
   $START_TIME=Time.now
-  $TC_DATA = %x[/sbin/tc clas show dev eth0].split("\n").grep(/parent/)
+  $TC_DATA = %x[/sbin/tc clas show dev #{ENV["EXTERNAL_ETH_DEV"]}].split("\n").grep(/parent/)
   $ALL_QUOTAS = %x[/usr/sbin/repquota -a].split("\n")
   $USERS=[]
   Etc.passwd { |u| $USERS << u if u.gecos == ENV['GEAR_GECOS'] }
@@ -414,7 +450,7 @@ def check_cgroup_procs
         if (min_uid..max_uid).include?(uid)
             passwd_lines = $USERS.select { |u| u.uid == uid }
 
-          if paswd_lines.empty?
+          if passwd_lines.empty?
                 user_fail(uid, "Process #{pid} is owned by a gear that's no longer on the system, uid: #{uid}")
                 next
             end
@@ -462,18 +498,18 @@ def check_tc_config
     verbose("checking presence of tc qdisc")
     qdiscresponse="qdisc htb 1: root"
 
-    result = %x[/sbin/tc qdisc show dev eth0 | /bin/grep -q "#{qdiscresponse}"]
+    result = %x[/sbin/tc qdisc show dev #{ENV["EXTERNAL_ETH_DEV"]} | /bin/grep -q "#{qdiscresponse}"]
     if $?.exitstatus != 0
         do_fail("tc htb qdisc not configured")
         $TC_PASS=false
     else
         verbose("checking for cgroup filter")
-        if %x[/sbin/tc filter show dev eth0 | /bin/grep 'cgroup handle' | /usr/bin/uniq | /usr/bin/wc -l].strip.to_i < 1
+        if %x[/sbin/tc filter show dev #{ENV["EXTERNAL_ETH_DEV"]} | /bin/grep 'cgroup handle' | /usr/bin/uniq | /usr/bin/wc -l].strip.to_i < 1
             do_fail("no cgroup filter configured")
             $TC_PASS=false
         else
             verbose("checking presence of tc classes")
-            if %x[/sbin/tc class show dev eth0 | /bin/grep 'class htb' | /usr/bin/wc -l].strip.to_i < 1
+            if %x[/sbin/tc class show dev #{ENV["EXTERNAL_ETH_DEV"]} | /bin/grep 'class htb' | /usr/bin/wc -l].strip.to_i < 1
                 do_fail("no htb classes configured")
                 $TC_PASS=false
             end
@@ -632,23 +668,6 @@ def check_system_httpd_configs
           rescue
           end
         }
-
-        if is_framework && !has_websocket
-          hook = File.join(p, 'info', 'hooks', 'deploy-httpd-proxy')
-          deploy = File.join(p, 'info', 'bin', 'deploy_httpd_proxy.sh')
-          alt_deploy = File.join(ENV['CARTRIDGE_BASE_PATH'], 'abstract', 'info', 'bin', 'deploy_httpd_proxy.sh')
-          begin
-            hookcall = File.read(hook)
-            begin
-              hookcall += File.read(deploy)
-            rescue Errno::ENOENT
-              hookcall += File.read(alt_deploy)
-            end
-            hookcall.gsub!(/\#.*$/, '')
-            has_websocket |= hookcall.include?('--websocket')
-          rescue
-          end
-        end
       }
 
       if has_framework and not httpconfs['nodes.txt'].has_key?(fqdn)
@@ -739,19 +758,19 @@ def check_app_dirs
         break
       end
 
-      migration_markers_found = !Dir.glob(File.join(gear_home, %w(app-root data .migration*))).empty?
-      premigration_state_found = File.exists?(File.join(gear_home, %w(app-root runtime .premigration_state)))
+      upgrade_markers_found = !Dir.glob(File.join(gear_home, %w(app-root data .upgrade*))).empty?
+      preupgrade_state_found = File.exists?(File.join(gear_home, %w(app-root runtime .preupgrade_state)))
 
       if v1_cartridge_dirs_found
         user_fail(entry, "directory #{entry} contains a V1 cartridge directory")
       end
 
-      if migration_markers_found 
-        user_fail(entry, "directory #{entry} contains migration data")
+      if upgrade_markers_found 
+        user_fail(entry, "directory #{entry} contains upgrade data")
       end
 
-      if premigration_state_found
-        user_fail(entry, "directory #{entry} contains pre-migration state")
+      if preupgrade_state_found
+        user_fail(entry, "directory #{entry} contains pre-upgrade state")
       end
     end
 
@@ -791,9 +810,8 @@ def check_cartridge_repository
 
       matched_ct = nil
       dst_manifests.each do |dst_f, dst_m|
-        if (dst_m['Name'] == src_m['Name']) and
-            (not src_m['Cartridge-Version'].nil? and (src_m['Cartridge-Version'] == dst_m['Cartridge-Version'])) or
-            (src_m['Version'] == dst_m['Version'])
+        if ( (src_m['Name']              == dst_m['Name']) and
+             (src_m['Cartridge-Version'] == dst_m['Cartridge-Version']) )
           matched_ct = dst_ctimes[dst_f]
           break
         end
@@ -817,6 +835,7 @@ end
 if __FILE__ == $0
     $STATUS=0
     load_node_conf
+    find_ext_net_dev
     load_users
     validate_env
     check_node_public_resolution

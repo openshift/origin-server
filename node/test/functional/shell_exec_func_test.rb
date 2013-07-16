@@ -16,7 +16,7 @@
 require_relative '../test_helper'
 
 module OpenShift
-  class UtilsSpawnFunctionalTest < OpenShift::NodeTestCase
+  class UtilsSpawnFunctionalTest < NodeTestCase
 
     def setup
       @uid     = 5999
@@ -38,7 +38,7 @@ module OpenShift
     def test_run_as
       skip 'run_as tests require root permissions' if 0 != Process.uid
 
-      out, err, rc = Utils.oo_spawn("touch #{Process.pid}.b",
+      out, err, rc = ::OpenShift::Runtime::Utils.oo_spawn("touch #{Process.pid}.b",
                                     chdir: '/tmp',
                                     uid:   @uid)
       assert_equal 0, rc
@@ -56,7 +56,7 @@ module OpenShift
     def test_run_as_with_error
       skip 'run_as tests require root permissions' if 0 != Process.uid
 
-      _, _, rc = Utils.oo_spawn("/bin/false",
+      _, _, rc = ::OpenShift::Runtime::Utils.oo_spawn("/bin/false",
                                 chdir: @homedir,
                                 uid:   @uid)
       assert_equal 1, rc
@@ -65,7 +65,7 @@ module OpenShift
     def test_run_as_with_stderr
       skip 'run_as tests require root permissions' if 0 != Process.uid
 
-      out, err, rc = Utils.oo_spawn("/bin/echo 'Good bye, Cruel World' 1>&2; /bin/false",
+      out, err, rc = ::OpenShift::Runtime::Utils.oo_spawn("/bin/echo 'Good bye, Cruel World' 1>&2; /bin/false",
                                     chdir: @homedir,
                                     uid:   @uid)
       assert_equal 1, rc
@@ -76,8 +76,8 @@ module OpenShift
     def test_run_as_with_exitstatus
       skip 'run_as tests require root permissions' if 0 != Process.uid
 
-      assert_raise(Utils::ShellExecutionException) do
-        Utils.oo_spawn("/bin/false",
+      assert_raise(::OpenShift::Runtime::Utils::ShellExecutionException) do
+        ::OpenShift::Runtime::Utils.oo_spawn("/bin/false",
                        chdir:               @homedir,
                        uid:                 @uid,
                        expected_exitstatus: 0)
@@ -87,7 +87,7 @@ module OpenShift
     def test_run_as_stdout
       skip "run_as tests require root permissions" if 0 != Process.uid
 
-      out, err, rc = Utils.oo_spawn("echo Hello, World",
+      out, err, rc = ::OpenShift::Runtime::Utils.oo_spawn("echo Hello, World",
                                     uid: @uid)
       assert_equal 0, rc
       assert_empty err
@@ -95,7 +95,7 @@ module OpenShift
     end
 
     def test_expected_exitstatus_zero
-      out, err, rc = Utils.oo_spawn('/bin/true',
+      out, err, rc = ::OpenShift::Runtime::Utils.oo_spawn('/bin/true',
                                     chdir:               @homedir,
                                     expected_exitstatus: 0)
       assert_equal 0, rc
@@ -104,7 +104,7 @@ module OpenShift
     end
 
     def test_expected_exitstatus
-      out, err, rc = Utils.oo_spawn('/bin/false',
+      out, err, rc = ::OpenShift::Runtime::Utils.oo_spawn('/bin/false',
                                     chdir:               @homedir,
                                     expected_exitstatus: 1)
       assert_equal 1, rc
@@ -113,36 +113,36 @@ module OpenShift
     end
 
     def test_expected_exception
-      assert_raise(Utils::ShellExecutionException) do
-        Utils.oo_spawn('/bin/false',
+      assert_raise(::OpenShift::Runtime::Utils::ShellExecutionException) do
+        ::OpenShift::Runtime::Utils.oo_spawn('/bin/false',
                        chdir:               @homedir,
                        expected_exitstatus: 0)
       end
     end
 
     def test_timeout
-      assert_raises OpenShift::Utils::ShellExecutionException do
-        Utils.oo_spawn("sleep 15",
+      assert_raises ::OpenShift::Runtime::Utils::ShellExecutionException do
+        ::OpenShift::Runtime::Utils.oo_spawn("sleep 15",
                        timeout: 1)
       end
     end
 
     def test_stdout
-      out, err, rc = Utils.oo_spawn("echo Hello, World")
+      out, err, rc = ::OpenShift::Runtime::Utils.oo_spawn("echo Hello, World")
       assert_equal 0, rc
       assert_empty err
       assert_equal "Hello, World\n", out
     end
 
     def test_stderr
-      out, err, rc = Utils.oo_spawn("echo Hello, World 1>&2")
+      out, err, rc = ::OpenShift::Runtime::Utils.oo_spawn("echo Hello, World 1>&2")
       assert_equal 0, rc
       assert_empty out
       assert_equal "Hello, World\n", err
     end
 
     def test_chdir
-      out, err, rc = Utils.oo_spawn("touch #{Process.pid}.a",
+      out, err, rc = ::OpenShift::Runtime::Utils.oo_spawn("touch #{Process.pid}.a",
                                     chdir: @homedir)
       assert_equal 0, rc
       assert_empty err
@@ -154,7 +154,7 @@ module OpenShift
 
     def test_jailed_env
       refute_empty ENV['HOME']
-      out, err, rc = Utils.oo_spawn('echo ${HOME}xx',
+      out, err, rc = ::OpenShift::Runtime::Utils.oo_spawn('echo ${HOME}xx',
                                     env:             {},
                                     unsetenv_others: true)
       assert_equal 0, rc
@@ -164,7 +164,7 @@ module OpenShift
 
     def test_env
       refute_empty ENV['HOME']
-      out, err, rc = Utils.oo_spawn('echo ${HOME}xx')
+      out, err, rc = ::OpenShift::Runtime::Utils.oo_spawn('echo ${HOME}xx')
       assert_equal 0, rc
       assert_empty err
       assert_equal "#{ENV['HOME']}xx\n", out
@@ -172,7 +172,7 @@ module OpenShift
 
     def test_run_as_env
       refute_empty ENV['HOME']
-      out, err, rc = Utils.oo_spawn('echo ${HOME}xx',
+      out, err, rc = ::OpenShift::Runtime::Utils.oo_spawn('echo ${HOME}xx',
                                     uid: @uid)
       assert_equal 0, rc
       assert_empty err
@@ -182,7 +182,7 @@ module OpenShift
     def test_streaming_stdout
       msg = %q(Hello, World)
       StringIO.open("w") { |fd|
-        out, err, rc = Utils.oo_spawn("echo -n #{msg}",
+        out, err, rc = ::OpenShift::Runtime::Utils.oo_spawn("echo -n #{msg}",
                                       out:                 fd,
                                       expected_exitstatus: 0)
         assert_equal msg, out.string
@@ -194,7 +194,7 @@ module OpenShift
     def test_streaming_stderr
       msg = %q(Goodbye, Cruel World)
       StringIO.open("w") { |fd|
-        out, err, rc = Utils.oo_spawn("echo -n #{msg} 1>&2",
+        out, err, rc = ::OpenShift::Runtime::Utils.oo_spawn("echo -n #{msg} 1>&2",
                                       err:                 fd,
                                       expected_exitstatus: 0)
         assert_equal 0, out.size
@@ -210,7 +210,7 @@ module OpenShift
       IO.write("/tmp/#{Process.pid}", msg, 0)
       File.open("/tmp/#{Process.pid}", "r") { |stdin|
         StringIO.open("w") { |stdout|
-          out, err, rc = Utils.oo_spawn("cat",
+          out, err, rc = ::OpenShift::Runtime::Utils.oo_spawn("cat",
                                         in:                  stdin,
                                         out:                 stdout,
                                         expected_exitstatus: 0)
@@ -222,7 +222,7 @@ module OpenShift
     end
 
     def test_streaming
-      out, err, rc = Utils.oo_spawn("ls /tmp",
+      out, err, rc = ::OpenShift::Runtime::Utils.oo_spawn("ls /tmp",
                                     in:                  STDIN,
                                     out:                 STDOUT,
                                     err:                 STDERR,

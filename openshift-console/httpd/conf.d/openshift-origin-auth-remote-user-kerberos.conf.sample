@@ -13,6 +13,10 @@ RequestHeader set X-Remote-User "%{RU}e" env=RU
     AuthType Kerberos
     KrbMethodNegotiate On
     KrbMethodK5Passwd On
+    # The KrbLocalUserMapping enables conversion to local users, using
+    # auth_to_local rules in /etc/krb5.conf. By default it strips the
+    # @REALM part. See krb5.conf(5) for details how to set up specific rules.
+    KrbLocalUserMapping On
     KrbServiceName HTTP/www.example.com
     KrbAuthRealms EXAMPLE.COM
     Krb5KeyTab /var/www/openshift/broker/httpd/conf.d/http.keytab

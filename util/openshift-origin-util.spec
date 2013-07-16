@@ -13,6 +13,7 @@ Source0:       http://mirror.openshift.com/pub/openshift-origin/source/%{name}/%
 Requires:      bind-utils
 Requires:      %{?scl:%scl_prefix}ruby
 Requires:      %{?scl:%scl_prefix}rubygems
+Requires:      lsof
 BuildArch:     noarch
 
 %description

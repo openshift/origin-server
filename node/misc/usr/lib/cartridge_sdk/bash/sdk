@@ -389,3 +389,123 @@ function update_httpd_passenv {
   [ -s $updated ] || (client_error "HTTP Configuration for PassEnv failed: update corrupted $1, using old configuration" && return)
   mv $updated $1
 }
+
+# Sync repo to the other gears of this app
+#
+# $1 Flag to indicate whether this is a new gear
+# $2 An array of gears to sync
+#    Format:  (<gear_uuid>@<ip>:<deploy_cart_type>;<gear_name>-<namespace>.<openshift_domain> <gear_uuid>@<ip>:<deploy_cart_type>;<gear_name>-<namespace>.<openshift_domain>)
+#        Ex:  (e86e4bb0e37111e29c0112313d157058@10.85.127.166:php;e86e4bb0e37111e29c0112313d157058-myns.rhcloud.com 51d367f4af94b85214000005@10.85.127.166:php;51d367f4af94b85214000005-myns.rhcloud.com)
+# return the combined exit code of the sync operation (non-zero means something failed)
+function sync_gear_repos {
+  local new_gear="${1}"
+  shift
+  local gears=("${@}")
+
+  # Set the sync source base dir
+  local SYNC_BASE_DIR=$OPENSHIFT_PRIMARY_CARTRIDGE_DIR
+
+  export RSYNC_RSH="ssh"
+
+  local rsynccmd="rsync -v --delete-after -az"
+  if [ -f ${SYNC_BASE_DIR}/metadata/rsync.excludes ]; then
+      rsynccmd="rsync --exclude-from=${SYNC_BASE_DIR}metadata/rsync.excludes --delete-after -az"
+  fi
+
+  # Defaults for sync-gears.  Override these in .env from the configure script
+  if [ -z "$OPENSHIFT_SYNC_GEARS_DIRS" ]
+  then
+    local OPENSHIFT_SYNC_GEARS_DIRS=( "../app-root/repo" "node_modules" "virtenv" "../.m2" ".openshift" "deployments" "perl5lib" "phplib" )
+  fi
+  if [ -z "$OPENSHIFT_SYNC_GEARS_PRE" ]
+  then
+    local OPENSHIFT_SYNC_GEARS_PRE=('gear stop')
+
+    # Only respect hot deployment for initialized gears
+    if [ "$new_gear" = "false" ]; then
+      if hot_deploy_marker_is_present; then
+        echo "Application will not be stopped during gear sync to to presence of hot_deploy marker"
+        OPENSHIFT_SYNC_GEARS_PRE=()
+      fi
+    fi
+  fi
+  if [ -z "$OPENSHIFT_SYNC_GEARS_POST" ]
+  then
+    local remote_deploy_cmd="gear remotedeploy"
+
+    if [ "$new_gear" = "true" ]; then
+      remote_deploy_cmd="${remote_deploy_cmd} --init"
+    else
+      # Only respect hot deployment for initialized gears
+      if hot_deploy_marker_is_present; then
+        remote_deploy_cmd="${remote_deploy_cmd} --hot-deploy=true"
+      else
+        remote_deploy_cmd="${remote_deploy_cmd} --hot-deploy=false"
+      fi
+    fi
+
+    local OPENSHIFT_SYNC_GEARS_POST=("${remote_deploy_cmd}")
+  fi
+
+  local STDOUTS=()   # Set of outputs
+  local EXITCODES=() # Set of exit codes
+
+  for zinfo in "${gears[@]}"
+  do
+    local zarr=(${zinfo//;/ })
+    local gear=${zarr[0]}
+    local arr=(${gear//:/ })
+    local sshcmd="ssh ${arr[0]}"
+    echo "SSH_CMD: ${sshcmd}"
+    local output=$(mktemp "/tmp/sync_gears.output.XXXXXXXXXXXXXXXX")
+    STDOUTS+=("$output")
+    local exitcode=$(mktemp "/tmp/sync_gears.exit.XXXXXXXXXXXXXXXX")
+    EXITCODES+=("$exitcode")
+    (
+      (
+        set -x -e
+        echo "Syncing to gear: $gear @ " $(date)
+
+        # Prepare remote gear for new content
+        for rpccall in "${OPENSHIFT_SYNC_GEARS_PRE[@]}"
+        do
+          $sshcmd "$rpccall"
+        done
+
+        # Push content to remote gear
+        for subd in "${OPENSHIFT_SYNC_GEARS_DIRS[@]}"
+        do
+          if [ -d "${SYNC_BASE_DIR}/${subd}" ]
+          then
+            $rsynccmd "${SYNC_BASE_DIR}/${subd}/" "${gear}/${subd}/"
+          fi
+        done
+
+        # Post-sync calls & start
+        for rpccall in "${OPENSHIFT_SYNC_GEARS_POST[@]}"
+        do
+          $sshcmd "$rpccall"
+        done
+
+      )
+      echo $? > "$exitcode"
+    ) >"$output" 2>&1 &
+  done
+  wait
+
+  # Serialize outputs and exit codes for easier debugging
+  local exc=0
+  local slen=${#STDOUTS[@]}
+  for (( i=0; i<${slen}; i++ ))
+  do
+    cat "${STDOUTS[$i]}"
+    local pexc=$(cat "${EXITCODES[$i]}")
+    echo "Exit code: $pexc"
+    if [ "$pexc" != "0" ]; then
+      exc=128   # TODO: instead? exc=$(($exc | $pexc))
+    fi
+    rm -f "${STDOUTS[$i]}" "${EXITCODES[$i]}"
+  done
+
+  return $exc
+}

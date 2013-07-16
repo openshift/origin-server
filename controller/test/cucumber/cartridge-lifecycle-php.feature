@@ -1,4 +1,4 @@
-@runtime_extended_other2
+@runtime_extended2
 @runtime
 @not-enterprise
 Feature: Cartridge Lifecycle PHP Verification Tests
@@ -13,11 +13,6 @@ Feature: Cartridge Lifecycle PHP Verification Tests
     Given an existing <cart_name> application
     When the application is aliased
     Then the application should respond to the alias
-
-  #Given an existing <cart_name> application, verify submodules
-    When the submodule is added
-    Then the submodule should be deployed successfully
-    And the application should be accessible
 
   #Given an existing <cart_name> application, verify code updates
     When the application is changed
@@ -35,14 +30,6 @@ Feature: Cartridge Lifecycle PHP Verification Tests
   #Given an existing <cart_name> application, verify it can be tidied
     When I tidy the application
     Then the application should be accessible
-
-  #Given an existing <cart_name> application, verify it can be snapshotted and restored
-    When I snapshot the application
-    Then the application should be accessible
-    When a new file is added and pushed to the client-created application repo
-    When I restore the application
-    Then the application should be accessible
-    And the new file will not be present in the gear app-root repo
 
   #Given an existing <cart_name> application, verify it can be restarted
     When the application is restarted

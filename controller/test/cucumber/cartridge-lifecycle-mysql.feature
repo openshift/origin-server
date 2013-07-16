@@ -1,9 +1,6 @@
 @runtime_extended1
 @not-fedora-19
 Feature: MySQL Tests
-  Background:
-    Given a v2 default node
-
   Scenario: Snapshot/Restore an application with a MySQL database
     Given a new client created mock-0.1 application
     Given the embedded mysql-5.1 cartridge is added

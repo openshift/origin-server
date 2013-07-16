@@ -115,13 +115,56 @@ class RestApiApplicationTest < ActiveSupport::TestCase
     with_configured_user
     setup_domain
 
-    assert_create_app({:include => :cartridges, :initial_git_url => 'https://github.com/openshift/nodejs-example', :cartridges => ['nodejs-0.6']}, "Set initial git URL") do |app|
+    assert_create_app({:include => :cartridges, :initial_git_url => 'https://github.com/openshift/nodejs-example.git', :cartridges => ['nodejs-0.6']}, "Set initial git URL") do |app|
       assert_equal ['nodejs-0.6'], app.cartridges.map(&:name)
       loaded_app = Application.find(app.name, :params => {:domain_id => @domain.id}, :as => @user)
-      omit("No initial_git_url returned") unless loaded_app.initial_git_url
-      assert_equal "https://github.com/openshift/nodejs-example", loaded_app.initial_git_url
+      assert_equal "https://github.com/openshift/nodejs-example.git", loaded_app.initial_git_url
     end
   end
+
+  def test_create_app_with_empty_repo
+    with_configured_user
+    setup_domain
+
+    assert_create_app({:include => :cartridges, :initial_git_url => 'empty', :cartridges => ['nodejs-0.6']}, "Set initial git URL") do |app|
+      assert_equal ['nodejs-0.6'], app.cartridges.map(&:name), "node-js was not an installed cartridge"
+      assert app.messages.any?{ |m| m.to_s =~ /An empty Git repository has been created for your application/ }, "None of the app creation messages described the empty repo: #{app.messages.inspect}"
+      loaded_app = Application.find(app.name, :params => {:domain_id => @domain.id}, :as => @user)
+      assert loaded_app.initial_git_url.blank?
+    end
+  end
+
+  def test_create_app_with_initial_git_url_and_fragment
+    with_configured_user
+    setup_domain
+
+    assert_create_app({:include => :cartridges, :initial_git_url => 'git@github.com:openshift/nodejs-example.git#68e54e71e76dac92aa53e46e912cc8c03fa02c12', :cartridges => ['nodejs-0.6']}, "Set initial git URL") do |app|
+      assert_equal ['nodejs-0.6'], app.cartridges.map(&:name)
+      loaded_app = Application.find(app.name, :params => {:domain_id => @domain.id}, :as => @user)
+      assert_equal "git@github.com:openshift/nodejs-example.git#68e54e71e76dac92aa53e46e912cc8c03fa02c12", loaded_app.initial_git_url
+    end
+  end
+
+  def test_returns_errors_for_invalid_git_url
+    with_configured_user
+    setup_domain
+
+    [
+      'https://', 
+      'h', 
+      'https://localhost!', 
+      'file:///a/b',
+      'test://bar.com',
+      'git@bar',
+      'git!@bar.com',
+      'git@bar.com:',
+      'git@bar.com:bar',
+    ].each do |url|
+      assert_create_app_fails({:include => :cartridges, :initial_git_url => url, :cartridges => ['nodejs-0.6']}, "Set initial git URL") do |app|
+        assert_equal ['Invalid initial git URL'], app.errors[:initial_git_url], "Expected error when saving #{url}"
+      end
+    end
+  end  
 
   def assert_create_app(options, message="", &block)
     app = Application.new({:name => 'test', :domain => @domain}.merge(options))
@@ -133,6 +176,18 @@ class RestApiApplicationTest < ActiveSupport::TestCase
     end
     app
   end
+
+  def assert_create_app_fails(options, message="", &block)
+    app = Application.new({:name => 'test', :domain => @domain}.merge(options))
+    begin
+      assert !app.save, "#{app.name} was saved incorrectly"
+      assert !app.persisted?
+      yield app
+    ensure
+      puts "Unable to delete app" unless !app.persisted? || app.destroy
+    end
+    app
+  end  
 
   def test_retrieve_gear_groups
     app = with_app

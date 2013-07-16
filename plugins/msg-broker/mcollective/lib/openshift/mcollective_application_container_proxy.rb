@@ -58,11 +58,11 @@ module OpenShift
         capability_gear_sizes = user_capabilities['gear_sizes'] if user_capabilities.has_key?('gear_sizes')
 
         if user.auth_method == :broker_auth
-          return ["small", "medium"] | capability_gear_sizes
+          return Rails.configuration.openshift[:gear_sizes] | capability_gear_sizes
         elsif !capability_gear_sizes.nil? and !capability_gear_sizes.empty?
           return capability_gear_sizes
         else
-          return ["small"]
+          return Rails.configuration.openshift[:default_gear_capabilities]
         end
       end
 
@@ -653,134 +653,6 @@ module OpenShift
         parse_result(result, gear)
       end
 
-      #
-      # Install a cartridge in a gear.
-      # If the cart is a 'framework' cart, create the gear first.
-      #
-      # A 'framework' cart:
-      # * Runs a service which,
-      # * answers HTTP queries for content
-      # * gets a new DNS record
-      # * does not require an existing gear
-      # 
-      # An 'embedded' cart:
-      # * Requires an existing gear
-      # * depends on an existing framework cart
-      # * Interacts with the service from a framework cart
-      # * does not serve http *content* (can proxy)
-      # 
-      # INPUTS:
-      # * gear: a Gear object
-      # * component: a component_instance object
-      # * template_git_url: a url of a git repo containing a cart overlay
-      #
-      # RETURNS
-      # the result of either run_cartridge_command or add_component
-      #
-      # Framework carts just return result_io
-      # Embedded carts return an array [result_io, cart_data]
-      #
-      # NOTES:
-      # * should return consistant values
-      # * cart data request should be separate method?
-      # * create Gear should be a method on Node object
-      # * should not cause node side Gear side effect
-      # * should be a method on Gear object
-      # * should not include incoherent template install 
-      # * calls *either* run_cartridge_command or add_component
-      #
-      def configure_cartridge(gear, component, template_git_url=nil)
-        result_io = ResultIO.new
-        cart_data = nil
-
-        args = build_base_gear_args(gear)
-        args = build_base_component_args(component, args)
-
-        app = gear.app
-        downloaded_cart =  app.downloaded_cart_map.values.find { |c| c["versioned_name"]==component.cartridge_name}
-        if downloaded_cart
-          args['--with-cartridge-manifest'] = downloaded_cart["original_manifest"]
-          args['--with-software-version'] = downloaded_cart["version"]
-        end
-
-        if !template_git_url.nil?  && !template_git_url.empty?
-          args['--with-template-git-url'] = template_git_url
-        end
-
-        if framework_carts(app).include? component.cartridge_name
-          result_io = run_cartridge_command(component.cartridge_name, gear, "configure", args)
-        elsif embedded_carts(app).include? component.cartridge_name
-          result_io, cart_data = add_component(gear, component.cartridge_name, args)
-        else
-          #no-op
-        end
-
-        return result_io#, cart_data
-      end
-
-      #
-      # Post configuration for a cartridge on a gear.
-      #
-      # INPUTS:
-      # * gear: a Gear object
-      # * component: component_instance object
-      # * template_git_url: a url of a git repo containing a cart overlay
-      #
-      # RETURNS
-      # ResultIO: the result of running post-configuration on the cartridge
-      #
-      def post_configure_cartridge(gear, component, template_git_url=nil)
-        result_io = ResultIO.new
-        cart_data = nil
-        cart = component.cartridge_name
-
-        args = build_base_gear_args(gear)
-        args = build_base_component_args(component, args)
-
-        if !template_git_url.nil?  && !template_git_url.empty?
-          args['--with-template-git-url'] = template_git_url
-        end
-
-        if framework_carts(gear.app).include?(cart) or embedded_carts(gear.app).include?(cart)
-          result_io = run_cartridge_command(cart, gear, "post-configure", args)
-        else
-          #no-op
-        end
-
-        return result_io
-      end
-
-      #
-      # Remove a Gear and the last contained cartridge from a node
-      # 
-      # INPUTS
-      # * gear: a Gear object
-      # * component: a component_instance object
-      # 
-      # RETURNS:
-      # * result of run_cartridge_command 'deconfigure' OR remove_component
-      # * OR an empty result because the cartridge was invalid
-      #
-      # NOTES:
-      # * This is really two operations:
-      # ** remove_cartridge on Gear
-      # ** remove_gear on Node
-      # * should raise an exception for invalid gear?
-      # 
-      def deconfigure_cartridge(gear, component)
-        args = build_base_gear_args(gear)
-        cart = component.cartridge_name
-        args = build_base_component_args(component, args)
-
-        if framework_carts(gear.app).include? cart
-          run_cartridge_command(cart, gear, "deconfigure", args)
-        elsif embedded_carts(gear.app).include? cart
-          remove_component(gear,component)
-        else
-          ResultIO.new
-        end
-      end
-
       # <<accessor>>
       # Get the public hostname of a Node
       #
@@ -938,6 +810,121 @@ module OpenShift
       #
       def get_quota_files
         rpc_get_fact_direct('quota_files')
+      end
+
+      # 
+      # Add a component to an existing gear on the node
+      #
+      # INPUTS:
+      # * gear: a Gear object
+      # * cart: string representing cartridge name
+      #
+      # RETURNS:
+      # * Array [ResultIO, String]
+      #
+      # RAISES:
+      # * Exception
+      #
+      # CATCHES:
+      # * Exception
+      #
+      # NOTES:
+      # * uses run_cartridge_command
+      # * runs "configure" on a "component"
+      #
+      def add_component(gear, component, template_git_url=nil)
+        result_io = ResultIO.new
+        cart_data = nil
+
+        args = build_base_gear_args(gear)
+        args = build_base_component_args(component, args)
+
+        app = gear.app
+        downloaded_cart =  app.downloaded_cart_map.values.find { |c| c["versioned_name"]==component.cartridge_name}
+        if downloaded_cart
+          args['--with-cartridge-manifest'] = downloaded_cart["original_manifest"]
+          args['--with-software-version'] = downloaded_cart["version"]
+        end
+
+        if !template_git_url.nil?  && !template_git_url.empty?
+          args['--with-template-git-url'] = template_git_url
+        end
+
+        result_io = run_cartridge_command(component.cartridge_name, gear, "configure", args)
+
+        component_details = result_io.appInfoIO.string.empty? ? '' : result_io.appInfoIO.string
+        result_io.debugIO << "\n\n#{component.cartridge_name}: #{component_details}" unless component_details.blank?
+
+        return result_io
+      end
+
+      #
+      # Post configuration for a cartridge on a gear.
+      #
+      # INPUTS:
+      # * gear: a Gear object
+      # * component: component_instance object
+      # * template_git_url: a url of a git repo containing a cart overlay
+      #
+      # RETURNS
+      # ResultIO: the result of running post-configure on the cartridge
+      #
+      def post_configure_component(gear, component, template_git_url=nil)
+        result_io = ResultIO.new
+        cart_data = nil
+        cart = component.cartridge_name
+
+        args = build_base_gear_args(gear)
+        args = build_base_component_args(component, args)
+
+        if !template_git_url.nil?  && !template_git_url.empty?
+          args['--with-template-git-url'] = template_git_url
+        end
+
+        if framework_carts(gear.app).include?(cart) or embedded_carts(gear.app).include?(cart)
+          result_io = run_cartridge_command(cart, gear, "post-configure", args)
+        else
+          #no-op
+        end
+
+        component_details = result_io.appInfoIO.string.empty? ? '' : result_io.appInfoIO.string
+        result_io.debugIO << "#{cart}: #{component_details}" unless component_details.blank?
+
+        return result_io
+      end
+
+      #
+      # Remove a component from a gear
+      #
+      # INPUTS:
+      # * gear: a Gear object
+      # * component: String: a component name
+      #
+      # RETURNS:
+      # * ResultIO? String?
+      #
+      # NOTES
+      # * method on gear?
+      #
+      def remove_component(gear, component)
+        app = gear.app
+        args = build_base_gear_args(gear)
+        args = build_base_component_args(component, args)
+        cart = component.cartridge_name
+
+        Rails.logger.debug "DEBUG: Deconfiguring cartridge '#{cart}' in application '#{app.name}' on node '#{@id}'"
+
+        resultIO = ResultIO.new
+        begin 
+          resultIO = run_cartridge_command(cart, gear, 'deconfigure', args)
+        rescue OpenShift::NodeException => e
+          if has_app_cartridge?(app.uuid, gear.uuid, cart)
+            raise
+          else
+            Rails.logger.debug "DEBUG: Cartridge '#{cart}' not found on within application '#{app.name}/#{gear.uuid}'.  Continuing with deconfigure."
+          end
+        end
+        return resultIO
       end
 
       #
@@ -2306,114 +2293,6 @@ module OpenShift
         @embedded_carts ||= CartridgeCache.cartridge_names('embedded',app)
       end
 
-      # 
-      # Add a component to an existing gear on the node
-      #
-      # INPUTS:
-      # * gear: a Gear object
-      # * cart: string representing cartridge name
-      #
-      # RETURNS:
-      # * Array [ResultIO, String]
-      #
-      # RAISES:
-      # * Exception
-      #
-      # CATCHES:
-      # * Exception
-      #
-      # NOTES:
-      # * uses run_cartridge_command
-      # * runs "configure" on a "component" which used to be called "embedded"
-      #
-      def add_component(gear, cart, args)
-        app = gear.app
-        reply = ResultIO.new
-
-        begin
-          reply.append run_cartridge_command(cart, gear, 'configure', args)
-        rescue Exception => e
-          begin
-            Rails.logger.debug "DEBUG: Failed to embed '#{cart}' in '#{app.name}' for user '#{app.domain.owner.login}'"
-            reply.debugIO << "Failed to embed '#{cart} in '#{app.name}'"
-            reply.append run_cartridge_command(cart, gear, 'deconfigure', args)
-          ensure
-            raise
-          end
-        end
-
-        component_details = reply.appInfoIO.string.empty? ? '' : reply.appInfoIO.string
-        reply.debugIO << "\n\n#{cart}: #{component_details}"
-        [reply, component_details]
-      end
-
-      #
-      # Post configure a component on the gear
-      #
-      # INPUTS:
-      # * gear: a Gear object
-      # * component: String
-      #
-      # RETURNS:
-      # * Array [ResultIO, String]
-      #
-      # RAISES:
-      # * Exception
-      #
-      # CATCHES:
-      # * Exception
-      #
-      # NOTES:
-      # * uses run_cartridge_command
-      # * runs "post-configure" on a "component" which used to be called "embedded"
-      #
-      def post_configure_component(gear, component)
-        app = gear.app
-        reply = ResultIO.new
-        cart = component.cartridge_name
-
-        args = build_base_gear_args(gear)
-        args = build_base_component_args(component, args)
-
-        begin
-          reply.append run_cartridge_command(cart, gear, 'post-configure', args)
-        rescue Exception => e
-          begin
-            Rails.logger.debug "DEBUG: Failed to run post-configure on '#{cart}' in '#{app.name}' for user '#{app.domain.owner.login}'"
-            reply.debugIO << "Failed to run post-configure on '#{cart} in '#{app.name}'"
-          ensure
-            raise
-          end
-        end
-
-        component_details = reply.appInfoIO.string.empty? ? '' : reply.appInfoIO.string
-        reply.debugIO << "Embedded app details: #{component_details}"
-        [reply, component_details]
-      end
-
-      #
-      # Remove a component from a gear
-      #
-      # INPUTS:
-      # * gear: a Gear object
-      # * component: String: a component name
-      #
-      # RETURNS:
-      # * ResultIO? String?
-      #
-      # NOTES
-      # * method on gear?
-      #
-      def remove_component(gear, component)
-        app = gear.app
-        args = build_base_gear_args(gear)
-        args = build_base_component_args(component, args)
-        cart = component.cartridge_name
-
-        Rails.logger.debug "DEBUG: Deconfiguring embedded application '#{cart}' in application '#{app.name}' on node '#{@id}'"
-        return run_cartridge_command(cart, gear, 'deconfigure', args)
-      end
-
       #
       # Start a component service
       #
@@ -2678,6 +2557,7 @@ module OpenShift
       # NOTES:
       # * uses rpc_exec
       # * loops over all nodes
+      # * No longer being used
       #
       def has_app?(app_uuid, app_name)
         MCollectiveApplicationContainerProxy.rpc_exec('openshift', @id) do |client|
@@ -2701,6 +2581,7 @@ module OpenShift
       #
       # NOTES:
       # * uses rpc_exec
+      # * No longer being used
       #
       def has_embedded_app?(app_uuid, embedded_type)
         MCollectiveApplicationContainerProxy.rpc_exec('openshift', @id) do |client|
@@ -2728,6 +2609,28 @@ module OpenShift
         return false if uid.nil?
         MCollectiveApplicationContainerProxy.rpc_exec('openshift', @id) do |client|
           client.has_uid_or_gid(:uid => uid.to_s) do |response|
+            output = response[:body][:data][:output]
+            return output == true
+          end
+        end
+      end
+
+      #
+      # Returns whether this gear has the specified cartridge
+      #
+      # INPUTS:
+      # * gear_uuid: String
+      # * cartridge: String
+      #
+      # RETURNS:
+      # * Boolean
+      #
+      # NOTES:
+      # * uses rpc_exec
+      #
+      def has_app_cartridge?(app_uuid, gear_uuid, cart)
+        MCollectiveApplicationContainerProxy.rpc_exec('openshift', @id) do |client|
+          client.has_app_cartridge(:app_uuid => app_uuid, :gear_uuid => gear_uuid, :cartridge => cart) do |response|
             output = response[:body][:data][:output]
             return output == true
           end
@@ -2794,26 +2697,6 @@ module OpenShift
             else
               raise
             end
-          end
-        rescue OpenShift::NodeException => e
-          if command == 'deconfigure'
-            if framework.start_with?('embedded/')
-              if has_embedded_app?(app.uuid, framework[9..-1])
-                raise
-              else
-                Rails.logger.debug "DEBUG: Component '#{framework}' in application '#{app.name}' not found on node '#{@id}'.  Continuing with deconfigure."
-                resultIO = ResultIO.new
-              end
-            else
-              if has_app?(app.uuid, app.name)
-                raise
-              else
-                Rails.logger.debug "DEBUG: Application '#{app.name}' not found on node '#{@id}'.  Continuing with deconfigure."
-                resultIO = ResultIO.new
-              end
-            end
-          else
-            raise
           end
         end
 

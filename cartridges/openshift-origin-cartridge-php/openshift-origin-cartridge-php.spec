@@ -1,8 +1,8 @@
-%global cartridgedir %{_libexecdir}/openshift/cartridges/v2/php
-%global frameworkdir %{_libexecdir}/openshift/cartridges/v2/php
+%global cartridgedir %{_libexecdir}/openshift/cartridges/php
+%global frameworkdir %{_libexecdir}/openshift/cartridges/php
 
 Name:          openshift-origin-cartridge-php
-Version: 0.5.3
+Version: 0.6.3
 Release:       1%{?dist}
 Summary:       Php cartridge
 Group:         Development/Languages
@@ -67,8 +67,8 @@ mv %{buildroot}%{cartridgedir}/metadata/manifest.yml.fedora19 %{buildroot}%{cart
 %endif
 rm %{buildroot}%{cartridgedir}/metadata/manifest.yml.*
 
-%post
-%{_sbindir}/oo-admin-cartridge --action install --source /usr/libexec/openshift/cartridges/v2/php
+%posttrans
+%{_sbindir}/oo-admin-cartridge --action install --source /usr/libexec/openshift/cartridges/php
 
 %files
 %attr(0755,-,-) %{cartridgedir}/bin/
@@ -78,6 +78,22 @@ rm %{buildroot}%{cartridgedir}/metadata/manifest.yml.*
 
 
 %changelog
+* Tue Jul 02 2013 Adam Miller <admiller@redhat.com> 0.6.3-1
+- Merge pull request #2934 from kraman/libvirt-f19-2
+  (dmcphers+openshiftbot@redhat.com)
+- Moving selinux and libvirt container plugins into seperate gem files Added
+  nsjoin which allows joining a running container Temporarily disabled cgroups
+  Moved gear dir to /var/lib/openshift/gears for libvirt container Moved shell
+  definition into container plugin rather than application container
+  (kraman@gmail.com)
+
+* Tue Jul 02 2013 Adam Miller <admiller@redhat.com> 0.6.2-1
+- Bug 976921: Move cart installation to %%posttrans (ironcladlou@gmail.com)
+- remove v2 folder from cart install (dmcphers@redhat.com)
+
+* Tue Jun 25 2013 Adam Miller <admiller@redhat.com> 0.6.1-1
+- bump_minor_versions for sprint 30 (admiller@redhat.com)
+
 * Thu Jun 20 2013 Adam Miller <admiller@redhat.com> 0.5.3-1
 - Bug 975700 - check the httpd pid file for corruption and attempt to fix it.
   (rmillner@redhat.com)

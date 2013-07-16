@@ -1,0 +1,16 @@
+Before enabling this plug-in, you need to add a new user, topic, and
+queue to ActiveMQ.  Edit /etc/activemq/activemq.xml and add the
+following user:
+
+<authenticationUser username="routinginfo" password="routinginfopasswd" groups="routinginfo,everyone"/>
+
+Then add the following authorization entries:
+
+<authorizationEntry topic="routinginfo.>" write="routinginfo" read="routinginfo" admin="routinginfo" />
+<authorizationEntry queue="routinginfo.>" write="routinginfo" read="routinginfo" admin="routinginfo" />
+
+To enable the plug-in, copy the file
+/etc/openshift/plugins.d/routing-activemq.conf.example to
+/etc/openshift/plugins.d/routing-activemq.conf on your broker and edit
+the settings therein appropriately to point to your ActiveMQ server and
+to use the topic and credentials you have configured for ActiveMQ.

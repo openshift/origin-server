@@ -74,7 +74,7 @@ class DomiansControllerTest < ActionController::TestCase
     domain.save
     
     app_name = "app#{@random}"
-    app = Application.create_app(app_name, [PHP_VERSION], domain, "small")
+    app = Application.create_app(app_name, [PHP_VERSION], domain)
     app.save
     
     delete :destroy , {"id" => namespace}
@@ -90,7 +90,7 @@ class DomiansControllerTest < ActionController::TestCase
     domain.save
     
     app_name = "app#{@random}"
-    app = Application.create_app(app_name, [PHP_VERSION], domain, "small")
+    app = Application.create_app(app_name, [PHP_VERSION], domain)
     app.save
     
     new_namespace = "xns#{@random}"

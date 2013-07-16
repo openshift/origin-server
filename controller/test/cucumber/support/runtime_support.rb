@@ -199,7 +199,7 @@ module OpenShift
 
       # Create the container object for use in the event listener later
       begin
-        @container = OpenShift::ApplicationContainer.new(@app.uuid, @uuid, nil, @app.name, @app.name, @app.account.domain, nil, nil)
+        @container = OpenShift::Runtime::ApplicationContainer.new(@app.uuid, @uuid, nil, @app.name, @app.name, @app.account.domain, nil, nil)
       rescue Exception => e
         $logger.error("#{e.message}\n#{e.backtrace}")
         raise
@@ -220,8 +220,8 @@ module OpenShift
     # Adds an alias to the gear
     def add_alias(alias_name)
       $logger.info("Adding alias #{alias_name} to gear #{@uuid} of application #{@app.name}")
-      
-      frontend = OpenShift::FrontendHttpServer.new(@uuid, @app.name, @app.account.domain)
+
+      frontend = OpenShift::Runtime::FrontendHttpServer.new(OpenShift::Runtime::ApplicationContainer.from_uuid(@uuid))
       frontend.add_alias(alias_name)
     end
 
@@ -230,14 +230,14 @@ module OpenShift
     def remove_alias(alias_name)
       $logger.info("Adding alias #{alias_name} to gear #{@uuid} of application #{@app.name}")
 
-      frontend = OpenShift::FrontendHttpServer.new(@uuid, @app.name, @app.account.domain)
+      frontend = OpenShift::Runtime::FrontendHttpServer.new(OpenShift::Runtime::ApplicationContainer.from_uuid(@uuid))
       frontend.remove_alias(alias_name)
     end
 
     # List FrontendHttpServer proxy for the gear
     def list_http_proxy_paths
       $logger.info("Checking routes for gear #{@uuid} of application #{@app.name}")
-      frontend = OpenShift::FrontendHttpServer.new(@uuid, @app.name, @app.account.domain)
+      frontend = OpenShift::Runtime::FrontendHttpServer.new(OpenShift::Runtime::ApplicationContainer.from_uuid(@uuid))
       Hash[*frontend.connections.map { |path, uri, opts| [path, [uri, opts ] ] }.flatten(1)]
     end
 
@@ -347,7 +347,7 @@ module OpenShift
     def with_container
       begin
         yield @gear.container
-      rescue Utils::ShellExecutionException => e
+      rescue OpenShift::Runtime::Utils::ShellExecutionException => e
         $logger.error "Caught ShellExecutionException (#{e.rc}): #{e.message}; output: #{e.stdout} #{e.stderr}"
         $logger.error e.backtrace.join("\n")
         raise
@@ -390,7 +390,7 @@ module OpenShift
 
       def configure_hook_completed(args)
         if args.key?(:output) && ! args[:output].empty?
-          homedir = args[:cart].gear.container.user.homedir
+          homedir = args[:cart].gear.container.container_dir
  
           args[:output].split(/\n/).each { |line|
             case line

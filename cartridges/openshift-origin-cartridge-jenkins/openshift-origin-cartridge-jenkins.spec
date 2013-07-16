@@ -1,8 +1,8 @@
-%global cartridgedir %{_libexecdir}/openshift/cartridges/v2/jenkins
+%global cartridgedir %{_libexecdir}/openshift/cartridges/jenkins
 
 Summary:       Provides jenkins-1.4 support
 Name:          openshift-origin-cartridge-jenkins
-Version: 1.10.4
+Version: 1.11.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -34,6 +34,8 @@ Provides Jenkins cartridge to OpenShift. (Cartridge Format V2)
 %post
 service jenkins stop
 chkconfig jenkins off
+
+%posttrans
 %{_sbindir}/oo-admin-cartridge --action install --source %{cartridgedir}
 
 %files
@@ -45,6 +47,16 @@ chkconfig jenkins off
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Tue Jul 02 2013 Adam Miller <admiller@redhat.com> 1.11.2-1
+- Merge pull request #2974 from danmcp/master
+  (dmcphers+openshiftbot@redhat.com)
+- Moving scaled deploy into the platform (dmcphers@redhat.com)
+- Bug 976921: Move cart installation to %%posttrans (ironcladlou@gmail.com)
+- remove v2 folder from cart install (dmcphers@redhat.com)
+
+* Tue Jun 25 2013 Adam Miller <admiller@redhat.com> 1.11.1-1
+- bump_minor_versions for sprint 30 (admiller@redhat.com)
+
 * Fri Jun 21 2013 Adam Miller <admiller@redhat.com> 1.10.4-1
 - WIP Cartridge - Updated manifest.yml versions for compatibility
   (jhonce@redhat.com)

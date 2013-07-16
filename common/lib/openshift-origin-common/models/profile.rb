@@ -36,7 +36,7 @@ module OpenShift
       self.stop_order = [self.stop_order] if self.stop_order.class == String
       self.configure_order = [self.configure_order] if self.configure_order.class == String
       
-      if spec_hash.has_key?("Components")
+      if spec_hash.has_key?("Components") and spec_hash["Components"].is_a?(Hash)
         spec_hash["Components"].each do |cname, c|
          comp = Component.new.from_descriptor(self, c)
          comp.name = cname
@@ -51,14 +51,14 @@ module OpenShift
         @_component_name_map[c.name] = c
       end
       
-      if spec_hash.has_key?("Connections")
+      if spec_hash.has_key?("Connections") and spec_hash["Connections"].is_a?(Hash)
         spec_hash["Connections"].each do |n,c|
           connections << Connection.new(n).from_descriptor(c)
         end
       end
 
       self.group_overrides = [] if self.group_overrides.nil?
-      if spec_hash.has_key?("Group-Overrides")
+      if spec_hash.has_key?("Group-Overrides") and spec_hash["Group-Overrides"].is_a?(Array)
         spec_hash["Group-Overrides"].each do |go|
           group_overrides << go.dup
         end

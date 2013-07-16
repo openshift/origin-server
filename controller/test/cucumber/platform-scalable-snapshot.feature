@@ -1,7 +1,6 @@
 @runtime_extended1
 Feature: V2 SDK scalable snapshot and restore
   Scenario: Create, snapshot, and restore scalable application with plugin with client tools
-    Given a v2 default node
     And the libra client tools
     And a new client created scalable mock-0.1 application
     And the embedded mock-plugin-0.1 cartridge is added

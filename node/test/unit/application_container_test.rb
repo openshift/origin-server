@@ -53,15 +53,25 @@ class ApplicationContainerTest < OpenShift::NodeTestCase
     # Set up the container
     @gear_uuid = "5502"
     @user_uid  = "5502"
-    @app_name  = 'UnixUserTestCase'
+    @app_name  = 'ApplicatioContainerTestCase'
     @gear_name = @app_name
     @namespace = 'jwh201204301647'
     @gear_ip   = "127.0.0.1"
 
-    OpenShift::ApplicationContainer.stubs(:get_build_model).returns(:v2)
+    OpenShift::Runtime::ApplicationContainer.stubs(:get_build_model).returns(:v2)
 
-    @container = OpenShift::ApplicationContainer.new(@gear_uuid, @gear_uuid, @user_uid,
-        @app_name, @gear_uuid, @namespace, nil, nil)
+    Etc.stubs(:getpwnam).returns(
+      OpenStruct.new(
+        uid: @user_uid.to_i,
+        gid: @user_uid.to_i,
+        gecos: "OpenShift guest",
+        container_dir: "/var/lib/openshift/#{@gear_uuid}"
+      )
+    )
+
+    @container = OpenShift::Runtime::ApplicationContainer.new(@gear_uuid, @gear_uuid, @user_uid,
+        @app_name, @gear_uuid, @namespace, nil, nil, nil)
+
 
     @mock_manifest = %q{#
         Name: mock
@@ -133,48 +143,52 @@ class ApplicationContainerTest < OpenShift::NodeTestCase
   end
 
   def test_public_endpoints_create
-    OpenShift::Utils::Environ.stubs(:for_gear).returns({
+    OpenShift::Runtime::Utils::Environ.stubs(:for_gear).returns({
         "OPENSHIFT_MOCK_EXAMPLE_IP1" => "127.0.0.1",
         "OPENSHIFT_MOCK_EXAMPLE_IP2" => "127.0.0.2"
     })
 
-    proxy = mock('OpenShift::FrontendProxyServer')
-    OpenShift::FrontendProxyServer.stubs(:new).returns(proxy)
+    proxy = mock('OpenShift::Runtime::FrontendProxyServer')
+    OpenShift::Runtime::FrontendProxyServer.stubs(:new).returns(proxy)
 
-    proxy.expects(:add).with(@user_uid, "127.0.0.1", 8080).returns(@ports_begin)
-    proxy.expects(:add).with(@user_uid, "127.0.0.1", 8081).returns(@ports_begin+1)
-    proxy.expects(:add).with(@user_uid, "127.0.0.1", 8082).returns(@ports_begin+2)
-    proxy.expects(:add).with(@user_uid, "127.0.0.2", 9090).returns(@ports_begin+3)
+    proxy.expects(:add).with(@user_uid.to_i, "127.0.0.1", 8080).returns(@ports_begin)
+    proxy.expects(:add).with(@user_uid.to_i, "127.0.0.1", 8081).returns(@ports_begin+1)
+    proxy.expects(:add).with(@user_uid.to_i, "127.0.0.1", 8082).returns(@ports_begin+2)
+    proxy.expects(:add).with(@user_uid.to_i, "127.0.0.2", 9090).returns(@ports_begin+3)
 
-    @container.user.expects(:add_env_var).returns(nil).times(4)
+    @container.expects(:add_env_var).returns(nil).times(4)
 
     @container.create_public_endpoints(@mock_cartridge.name)
   end
 
   def test_public_endpoints_delete
-    OpenShift::Utils::Environ.stubs(:for_gear).returns({
+    OpenShift::Runtime::Utils::Environ.stubs(:for_gear).returns({
         "OPENSHIFT_MOCK_EXAMPLE_IP1" => "127.0.0.1",
         "OPENSHIFT_MOCK_EXAMPLE_IP2" => "127.0.0.2"
     })
 
-    proxy = mock('OpenShift::FrontendProxyServer')
-    OpenShift::FrontendProxyServer.stubs(:new).returns(proxy)
-
-    proxy.expects(:find_mapped_proxy_port).with(@user_uid, "127.0.0.1", 8080).returns(@ports_begin)
-    proxy.expects(:find_mapped_proxy_port).with(@user_uid, "127.0.0.1", 8081).returns(@ports_begin+1)
-    proxy.expects(:find_mapped_proxy_port).with(@user_uid, "127.0.0.1", 8082).returns(@ports_begin+2)
-    proxy.expects(:find_mapped_proxy_port).with(@user_uid, "127.0.0.2", 9090).returns(@ports_begin+3)
+    proxy = mock('OpenShift::Runtime::FrontendProxyServer')
+    OpenShift::Runtime::FrontendProxyServer.stubs(:new).returns(proxy)
+    OpenShift::Runtime::V2CartridgeModel.any_instance.expects(:list_proxy_mappings).returns([
+        {public_port_name: "Endpoint_1", proxy_port:       @ports_begin},
+        {public_port_name: "Endpoint_2", proxy_port:       @ports_begin+1},
+        {public_port_name: "Endpoint_3", proxy_port:       @ports_begin+2},
+        {public_port_name: "Endpoint_4", proxy_port:       @ports_begin+3}])
+    #proxy.expects(:find_mapped_proxy_port).with(@user_uid, "127.0.0.1", 8080).returns(@ports_begin)
+    #proxy.expects(:find_mapped_proxy_port).with(@user_uid, "127.0.0.1", 8081).returns(@ports_begin+1)
+    #proxy.expects(:find_mapped_proxy_port).with(@user_uid, "127.0.0.1", 8082).returns(@ports_begin+2)
+    #proxy.expects(:find_mapped_proxy_port).with(@user_uid, "127.0.0.2", 9090).returns(@ports_begin+3)
 
     delete_all_args = [@ports_begin, @ports_begin+1, @ports_begin+2, @ports_begin+3]
     proxy.expects(:delete_all).with(delete_all_args, true).returns(nil)
 
-    @container.user.expects(:remove_env_var).returns(nil).times(4)
+    @container.expects(:remove_env_var).returns(nil).times(4)
 
     @container.delete_public_endpoints(@mock_cartridge.name)
   end
 
   def test_tidy_success
-    OpenShift::Utils::Environ.stubs(:for_gear).returns(
+    OpenShift::Runtime::Utils::Environ.stubs(:for_gear).returns(
         {'OPENSHIFT_HOMEDIR' => '/foo', 'OPENSHIFT_APP_NAME' => 'app_name' })
 
     @container.stubs(:stop_gear)
@@ -189,7 +203,7 @@ class ApplicationContainerTest < OpenShift::NodeTestCase
   end
 
   def test_tidy_stop_gear_fails
-    OpenShift::Utils::Environ.stubs(:for_gear).returns(
+    OpenShift::Runtime::Utils::Environ.stubs(:for_gear).returns(
         {'OPENSHIFT_HOMEDIR' => '/foo', 'OPENSHIFT_APP_NAME' => 'app_name' })
 
     @container.stubs(:stop_gear).raises(Exception.new)
@@ -204,7 +218,7 @@ class ApplicationContainerTest < OpenShift::NodeTestCase
   end
 
   def test_tidy_gear_level_tidy_fails
-    OpenShift::Utils::Environ.stubs(:for_gear).returns(
+    OpenShift::Runtime::Utils::Environ.stubs(:for_gear).returns(
         {'OPENSHIFT_HOMEDIR' => '/foo', 'OPENSHIFT_APP_NAME' => 'app_name'})
 
     @container.expects(:stop_gear)
@@ -216,8 +230,8 @@ class ApplicationContainerTest < OpenShift::NodeTestCase
 
   def test_force_stop
     FileUtils.mkpath("/tmp/#@user_uid/app-root/runtime")
-    OpenShift::UnixUser.stubs(:kill_procs).with(@user_uid).returns(nil)
-    @container.state.expects(:value=).with(OpenShift::State::STOPPED)
+    OpenShift::Runtime::Containerization::SELinuxContainer.stubs(:kill_procs).with(@user_uid).returns(nil)
+    @container.state.expects(:value=).with(OpenShift::Runtime::State::STOPPED)
     @container.cartridge_model.expects(:create_stop_lock)
     @container.force_stop
   end
@@ -232,5 +246,35 @@ class ApplicationContainerTest < OpenShift::NodeTestCase
     @container.cartridge_model.expects(:connector_execute).with(cart_name, pub_cart_name, connector_type, connector, args)
 
     @container.connector_execute(cart_name, pub_cart_name, connector_type, connector, args)
+  end
+
+  # Tests a variety of UID/host ID to IP address conversions.
+  #
+  # TODO: Is there a way to do this algorithmically?
+  def test_get_ip_addr_success
+    scenarios = [
+        [501, 1, "127.0.250.129"],
+        [501, 10, "127.0.250.138"],
+        [501, 20, "127.0.250.148"],
+        [501, 100, "127.0.250.228"],
+        [540, 1, "127.1.14.1"],
+        [560, 7, "127.1.24.7"]
+    ]
+
+    scenarios.each do |s|
+      Etc.stubs(:getpwnam).returns(
+        OpenStruct.new(
+          uid: s[0].to_i,
+          gid: s[0].to_i,
+          gecos: "OpenShift guest",
+          container_dir: "/var/lib/openshift/gear_uuid"
+        )
+      )
+
+      container = OpenShift::Runtime::ApplicationContainer.new("gear_uuid", "gear_uuid", s[0],
+                                                                "app_name", "gear_uuid", "namespace", nil, nil, nil)
+
+      assert_equal container.get_ip_addr(s[1]), s[2]
+    end
   end
 end

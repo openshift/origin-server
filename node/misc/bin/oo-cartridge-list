@@ -19,7 +19,7 @@ require 'rubygems'
 require 'openshift-origin-node'
 require 'openshift-origin-common'
 
-OpenShift::NodeLogger.disable
+OpenShift::Runtime::NodeLogger.disable
 
 def usage
   puts <<USAGE
@@ -62,7 +62,7 @@ $oo_debug = true if args['--debug']
 $porcelain = args['--porcelain'] ? true : false
 
 begin
-  list = OpenShift::Node.get_cartridge_list(list_descriptors, $porcelain, $oo_debug)
+  list = OpenShift::Runtime::Node.get_cartridge_list(list_descriptors, $porcelain, $oo_debug)
   puts list
 rescue Exception => e
   $stderr.puts(e.message)

@@ -3,7 +3,7 @@ require File.expand_path('../coverage_helper.rb', __FILE__)
 ENV["RAILS_ENV"] = "test"
 require File.expand_path('../../config/environment', __FILE__)
 require 'rails/test_help'
-require 'mocha'
+require 'mocha/setup'
 
 manifest = YAML.load(File.open(Dir["/var/lib/openshift/.cartridge_repository/redhat-php/*/metadata/manifest.yml"].first))
 PHP_VERSION = "php-" + manifest['Version']
@@ -50,9 +50,9 @@ def stubber
   @container.stubs(:create).returns(ResultIO.new)
   @container.stubs(:destroy).returns(ResultIO.new)
   @container.stubs(:update_namespace).returns(ResultIO.new)
-  @container.stubs(:configure_cartridge).returns(ResultIO.new)
-  @container.stubs(:post_configure_cartridge).returns(ResultIO.new)
-  @container.stubs(:deconfigure_cartridge).returns(ResultIO.new)
+  @container.stubs(:add_component).returns(ResultIO.new)
+  @container.stubs(:post_configure_component).returns(ResultIO.new)
+  @container.stubs(:remove_component).returns(ResultIO.new)
   @container.stubs(:get_public_hostname).returns("node_dns")
   @container.stubs(:set_quota).returns(ResultIO.new)
   OpenShift::ApplicationContainerProxy.stubs(:execute_parallel_jobs)

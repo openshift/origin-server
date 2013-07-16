@@ -186,6 +186,10 @@ class CartridgeCache
        
        # TODO: check versions and create multiple of them
        self.foreach_cart_version(manifest_str) do |chash,name,version,vendored_name|
+         # do a trial parsing of the chash(v1 manifest) so that we do not store a manifest that will not get through elaborate later on
+         cart = OpenShift::Cartridge.new.from_descriptor(chash)
+
+         # all good, no exception above
          cmap[name] = { "versioned_name" => vendored_name, "url" => url, "original_manifest" => manifest_str, "version" => version}
          # no versioning support on downloaded cartridges yet.. use the default one
          break

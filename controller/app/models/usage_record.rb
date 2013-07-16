@@ -50,7 +50,7 @@ class UsageRecord
   validates :addtl_fs_gb, :presence => true, :if => :validate_addtl_fs_gb?
   validates :cart_name, :presence => true, :if => :validate_cart_name?
 
-  index({'gear_id' => 1})
+  index({'gear_id' => 1, 'usage_type' => 1, 'created_at' => 1})
   create_indexes
 
   def validate_gear_size?

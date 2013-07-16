@@ -1,7 +1,7 @@
 ENV["TEST_NAME"] = "functional_gear_groups_controller_test"
 require 'test_helper'
 require 'openshift-origin-controller'
-require 'mocha'
+require 'mocha/setup'
 
 class GearGroupsControllerTest < ActionController::TestCase
   
@@ -24,7 +24,7 @@ class GearGroupsControllerTest < ActionController::TestCase
     @domain = Domain.new(namespace: @namespace, owner:@user)
     @domain.save
     @app_name = "app#{@random}"
-    @app = Application.create_app(@app_name, [PHP_VERSION], @domain, "small")
+    @app = Application.create_app(@app_name, [PHP_VERSION], @domain)
     @app.save
   end
   

@@ -198,10 +198,14 @@ static int openshift_domain(pam_handle_t *pamh, struct passwd *pw) {
             cmpval = strcmp(context_type_get(parsed_context), comp_context);
             context_free(parsed_context);
             freecon(secontext);
+          } else {
+            return 0;
           }
           if (cmpval != 0) {
             return 0;
           }
+        } else {
+          return 0;
         }
 
 	if ((grp = pam_modutil_getgrnam (pamh, "wheel")) == NULL) {

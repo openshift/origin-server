@@ -11,12 +11,12 @@ require 'openshift-origin-node'
 
 debug=1
 
-OpenShift::UnixUser.all.each do |user|
-  mcs_label = OpenShift::Utils::SELinux.get_mcs_label(user.uid)
+OpenShift::Runtime::ApplicationContainer.all.each do |container|
+  mcs_label = OpenShift::Runtime::Utils::SELinux.get_mcs_label(container.uid)
 
   # Use case not a good match for the SELinux module's file methods
-  puts "restorecon -R #{user.homedir}" if debug
-  puts "chcon -l #{mcs_label} -R #{user.homedir}/*" if debug
-  %x[restorecon -R #{user.homedir} ]
-  %x[chcon -l #{mcs_label} -R #{user.homedir}/* ]
+  puts "restorecon -R #{container.container_dir}" if debug
+  puts "chcon -l #{mcs_label} -R #{container.container_dir}/*" if debug
+  %x[restorecon -R #{container.container_dir} ]
+  %x[chcon -l #{mcs_label} -R #{container.container_dir}/* ]
 end
