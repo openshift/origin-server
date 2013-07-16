@@ -63,7 +63,7 @@ def clean_app(a)
   delete_app = false
   dlist = []
   Application.run_in_application_lock(a) do
-    a.with(consistency: :strong).reload
+    a.reload
     a.pending_op_groups.each { |op| 
       if op.op_type.nil? 
         puts "ERROR in cleaning up application's op because the type is nil. App uuid - #{a.uuid}. Op - #{op.inspect}"
@@ -120,14 +120,14 @@ end
 $domain_count = 0
 def clean_domain(d)
   $domain_count += 1
-  d.with(consistency: :strong).reload
+  d.reload
   dlist = d.pending_ops.select { |op| op.op_type.nil? }
   dlist.each { |op| op.delete }
   d.pending_ops.delete_if { |op| op.nil? }
   d.pending_ops.each { |op| op.state = :init if op.state==:queued and (op.created_at.nil? or op.created_at < $t) }
   d.save
   d.run_jobs rescue nil
-  d.with(consistency: :strong).reload
+  d.reload
   dlist = d.pending_ops.select { |op| (op.created_at.nil? or op.created_at < $t) and op.completed? }
   dlist.each { |op| op.delete }
   d.pending_ops.each { |op|
@@ -143,14 +143,14 @@ end
 $user_count = 0
 def clean_user(u)
   $user_count += 1
-  u.with(consistency: :strong).reload
+  u.reload
   dlist = u.pending_ops.select { |op| op.op_type.nil? or op.pending_domains.empty? }
   dlist.each { |op| op.delete }
   u.pending_ops.delete_if { |op| op.nil? }
   u.pending_ops.each { |op| op.state = :init if op.state==:queued and (op.created_at.nil? or op.created_at < $t) }
   u.save
   u.run_jobs rescue nil
-  u.with(consistency: :strong).reload
+  u.reload
   dlist = u.pending_ops.select { |op| (op.created_at.nil? or op.created_at < $t) and op.completed? }
   dlist.each { |op| puts "Clearing op for user (#{u.login}) - #{op.inspect} " and op.delete }
   u.pending_ops.each { |op|

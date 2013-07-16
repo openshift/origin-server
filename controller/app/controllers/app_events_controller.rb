@@ -89,7 +89,7 @@ class AppEventsController < BaseController
                           126, "event")
     end
 
-    @application.with(consistency: :strong).reload
+    @application.reload
     app = get_rest_application(@application)
     render_success(:ok, "application", app, msg, r)
   end

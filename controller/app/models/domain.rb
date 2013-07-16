@@ -81,10 +81,10 @@ class Domain
   # new_namespace::
   #   The new namespace to use for the domain
   def update_namespace(new_namespace)
-    if Application.with(consistency: :strong).where(domain_id: self._id).count > 0
+    if Application.where(domain_id: self._id).count > 0
       raise OpenShift::UserException.new("Domain contains applications. Delete applications first before changing the domain namespace.", 128)
     end
-    if Domain.with(consistency: :strong).where(canonical_namespace: new_namespace.downcase).count > 0 
+    if Domain.where(canonical_namespace: new_namespace.downcase).count > 0 
       raise OpenShift::UserException.new("Namespace '#{new_namespace}' is already in use. Please choose another.", 103, "id") 
     end
     self.namespace = new_namespace
@@ -231,10 +231,10 @@ class Domain
 
         # try to do an update on the pending_op state and continue ONLY if successful
         op_index = self.pending_ops.index(op) 
-        retval = Domain.with(consistency: :strong).where({ "_id" => self._id, "pending_ops.#{op_index}._id" => op._id, "pending_ops.#{op_index}.state" => "init" }).update({"$set" => { "pending_ops.#{op_index}.state" => "queued" }})
+        retval = Domain.where({ "_id" => self._id, "pending_ops.#{op_index}._id" => op._id, "pending_ops.#{op_index}.state" => "init" }).update({"$set" => { "pending_ops.#{op_index}.state" => "queued" }})
         
         unless retval["updatedExisting"]
-          self.with(consistency: :strong).reload
+          self.reload
           next
         end
 
@@ -276,7 +276,7 @@ class Domain
         # reloading the op reloads the domain and then incorrectly reloads (potentially)
         # the op based on its position within the pending_ops list
         # hence, reloading the domain, and then fetching the op using the op_id stored earlier
-        self.with(consistency: :strong).reload
+        self.reload
         op = self.pending_ops.find_by(_id: op_id)
         
         op.close_op

@@ -336,7 +336,7 @@ Then /^the application should be assigned to the supplementary groups? "([^\"]*)
 end
 
 Then /^the application has the group "([^\"]*)" as a secondary group$/ do |supplementary_group|
- command = "ssh 2>/dev/null -o BatchMode=yes -o StrictHostKeyChecking=no -tt #{@app.uid}@#{@app.name}-#{@app.namespace}.dev.rhcloud.com " +  "groups"
+ command = "ssh 2>/dev/null -o BatchMode=yes -o StrictHostKeyChecking=no -tt #{@app.uid}@#{@app.name}-#{@app.namespace}.#{$domain} " +  "groups"
  $logger.info("About to execute command:'#{command}'")
  output_buffer=[]
  exit_code = run(command,output_buffer)
@@ -346,3 +346,72 @@ Then /^the application has the group "([^\"]*)" as a secondary group$/ do |suppl
  end
 end
 
+Then /^the haproxy-status page will( not)? be responding$/ do |negate|
+  expected_status = negate ? 1 : 0
+
+  command = "/usr/bin/curl -s -H 'Host: #{@app.name}-#{@app.namespace}.#{$domain}' -s 'http://localhost/haproxy-status/;csv' | /bin/grep -q -e '^stats,FRONTEND'"
+  exit_status = runcon command, 'unconfined_u', 'unconfined_r', 'unconfined_t'
+  exit_status.should == expected_status
+end
+
+Then /^the gear members will be (UP|DOWN)$/ do |state|
+  found = nil
+
+  OpenShift::timeout(120) do
+    while found != 0
+      found = gear_up?("#{@app.name}-#{@app.namespace}.#{$domain}", state)
+      sleep 1
+    end
+  end
+  assert_equal 0, found, "Could not find valid gear"
+end
+
+Then /^(at least )?(\d+) gears will be in the cluster$/ do |fuzzy, expected|
+  expected = expected.to_i
+  actual = 0
+
+  gear_test = lambda { | expected, actual| return actual != expected }
+
+  if fuzzy
+    gear_test = lambda { |expected, actual| return actual < expected }
+  end
+
+
+  host = "'Host: #{@app.name}-#{@app.namespace}.#{$domain}'"
+  OpenShift::timeout(300) do
+    while gear_test.call(expected, actual)
+      sleep 1
+
+      $logger.debug("============ GEAR CSV #{Process.pid} ============")
+      results = `/usr/bin/curl -s -H #{host} -s 'http://localhost/haproxy-status/;csv'`.chomp()
+      $logger.debug(results)
+      $logger.debug("============ GEAR CSV END ============")
+
+      actual = results.split("\n").find_all {|l| l.start_with?('express,gear')}.length() + results.split("\n").find_all {|l| l.start_with?('express,local')}.length()
+      $logger.debug("Gear count: waiting for #{actual} to be #{'at least ' if fuzzy}#{expected}")
+    end
+  end
+
+  assert_equal false, gear_test.call(expected, actual)
+end
+
+def gear_up?(hostname, state='UP')
+  csv = `/usr/bin/curl -s -H 'Host: #{hostname}' -s 'http://localhost/haproxy-status/;csv'`
+  assert $?.success?, "Failed to retrieve haproxy-status results: #{csv}"
+  $logger.debug("============ GEAR CSV #{Process.pid} ============")
+  $logger.debug(csv)
+  $logger.debug('============ GEAR CSV END ============')
+  found = 1
+  csv.split.each do | haproxy_worker |
+
+    worker_attrib_array = haproxy_worker.split(',')
+    if worker_attrib_array[17] and worker_attrib_array[1].to_s == "local-gear" and worker_attrib_array[17].to_s.start_with?(state)
+      $logger.debug("Found: #{worker_attrib_array[1]} - #{worker_attrib_array[17]}")
+      found = 0
+    elsif worker_attrib_array[17] and worker_attrib_array[1].to_s.start_with?('gear') and not worker_attrib_array[17].to_s.start_with?(state)
+      return 1
+    end
+  end
+  $logger.debug("No gears found")
+  return found
+end

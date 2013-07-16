@@ -30,7 +30,7 @@ module OpenShift
       end
       dlock_obj = nil
       begin
-        dlock_obj = with(consistency: :strong).where(filter).find_and_modify({"$set" => {owner_id: owner_id, type: type}}, 
+        dlock_obj = where(filter).find_and_modify({"$set" => {owner_id: owner_id, type: type}}, 
                                                   {:upsert => true, :new => true})
       rescue Moped::Errors::OperationFailure
       end
@@ -45,7 +45,7 @@ module OpenShift
       Rails.logger.debug "release_distributed_lock, type: #{type}, owner_id: #{owner_id}"
       filter = { "type" => type }
       filter["owner_id"] = owner_id if owner_id
-      with(consistency: :strong).where(filter).destroy
+      where(filter).destroy
     end
   end
 end

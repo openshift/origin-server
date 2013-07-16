@@ -35,7 +35,7 @@ module OpenShift
     def self.clean_upgrade(gear_home)
       return if !validate_gear_home(gear_home)
 
-      Dir.glob(File.join(gear_home, %w(app-root data .upgrade*))).each do |entry|
+      Dir.glob(File.join(gear_home, %w(app-root runtime .upgrade*))).each do |entry|
         puts "Removing #{entry}"
         FileUtils.rm_rf(entry)
       end

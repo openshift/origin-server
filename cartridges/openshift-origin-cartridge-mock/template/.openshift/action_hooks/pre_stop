@@ -4,4 +4,3 @@
 MOCK_STATE=$OPENSHIFT_DATA_DIR/.mock_cartridge_state
 touch $MOCK_STATE/action_hook_pre_stop
 
-pkill -9 mock_server.rb ||:

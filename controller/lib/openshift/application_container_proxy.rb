@@ -1,12 +1,12 @@
 module OpenShift
   class ApplicationContainerProxy
     @proxy_provider = OpenShift::ApplicationContainerProxy
-    
+
     def self.valid_gear_sizes(user)
       @proxy_provider.valid_gear_sizes_impl(user)
     end
-    
-    def self.valid_gear_sizes_impl(user)    
+
+    def self.valid_gear_sizes_impl(user)
       return Rails.configuration.openshift[:gear_sizes]
     end
 
@@ -45,7 +45,7 @@ module OpenShift
     def self.get_all_gears(opts = {})
       @proxy_provider.get_all_gears_impl(opts)
     end
-    
+
     def self.get_all_active_gears
       @proxy_provider.get_all_active_gears_impl
     end
@@ -56,6 +56,10 @@ module OpenShift
 
     def self.execute_parallel_jobs(handle)
       @proxy_provider.execute_parallel_jobs_impl(handle)
+    end
+
+    def self.get_details_for_all(name_list)
+      @proxy_provider.get_details_for_all_impl(name_list)
     end
 
     attr_accessor :id

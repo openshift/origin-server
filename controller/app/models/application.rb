@@ -316,7 +316,7 @@ class Application
       ssh_keys = []
 
       # reload the application to get the latest data
-      self.with(consistency: :strong).reload
+      self.reload
 
       # get the application keys
       ssh_keys |= self.app_ssh_keys.map {|k| k.to_key_hash}
@@ -510,7 +510,7 @@ class Application
     # adding this feature may have caused pending_ops to be created on the domain
     # for adding env vars and ssh keys
     # execute run_jobs on the domain to take care of those
-    domain.with(consistency: :strong).reload
+    domain.reload
     domain.run_jobs
     result_io
   end
@@ -568,7 +568,7 @@ class Application
     # removing this feature may have caused pending_ops to be created on the domain
     # for removing env vars and ssh keys
     # execute run_jobs on the domain to take care of those
-    domain.with(consistency: :strong).reload
+    domain.reload
     domain.run_jobs
     result_io
   end
@@ -1165,7 +1165,7 @@ class Application
   # True on success or False if unable to acquire the lock or no pending jobs.
   def run_jobs(result_io=nil)
     result_io = ResultIO.new if result_io.nil?
-    self.with(consistency: :strong).reload
+    self.reload
     return true if (self.pending_op_groups.count == 0)
     begin
       while self.pending_op_groups.count > 0
@@ -1274,7 +1274,7 @@ class Application
           op_group.execute(result_io)
           unreserve_gears(op_group.num_gears_removed)
           op_group.delete
-          self.with(consistency: :strong).reload
+          self.reload
         end
 
       end
@@ -1870,10 +1870,12 @@ class Application
       component_ops[config_order[idx]][:post_configures].each { |op| op.prereq += prereq_ids }
     end
 
-    execute_connection_op = nil
-    all_ops_ids = pending_ops.map{ |op| op._id.to_s }
-    execute_connection_op = PendingAppOp.new(op_type: :execute_connections, prereq: all_ops_ids)
-    pending_ops.push execute_connection_op
+    unless pending_ops.empty? or ((pending_ops.length == 1) and (pending_ops[0].op_type == :set_group_overrides))
+      execute_connection_op = nil
+      all_ops_ids = pending_ops.map{ |op| op._id.to_s }
+      execute_connection_op = PendingAppOp.new(op_type: :execute_connections, prereq: all_ops_ids)
+      pending_ops.push execute_connection_op
+    end
 
     # check to see if there are any deployable carts being configured
     # if so, then make sure that the post-configure op for it is executed at the end
@@ -1984,7 +1986,7 @@ class Application
       until Lock.lock_user(owner, self)
         sleep 1
       end
-      owner.with(consistency: :strong).reload
+      owner.reload
       owner_capabilities = owner.get_capabilities
       if owner.consumed_gears + num_gears_added > owner_capabilities["max_gears"] and num_gears_added > 0
         raise OpenShift::GearLimitReachedException.new("#{owner.login} is currently using #{owner.consumed_gears} out of #{owner_capabilities["max_gears"]} limit and this application requires #{num_gears_added} additional gears.")
@@ -2007,7 +2009,7 @@ class Application
       until Lock.lock_user(owner, self)
         sleep 1
       end
-      owner.with(consistency: :strong).reload
+      owner.reload
       owner.consumed_gears -= num_gears_removed
       owner.save
     ensure

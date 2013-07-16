@@ -29,7 +29,7 @@ When /^I configure a hello_world diy application with jenkins enabled$/ do
 
     job.should_not be_nil
     job['name'].should be == 'diy-build', "#{job['name']} not equal to diy-build"
-    job['color'].should be == 'grey', "job #{job['name']} has already been run."
+    assert (job['color'] == 'grey' or job['color'] == 'notbuilt'), "job #{job['name']} has already been run."
 end
 
 When /^I push an update to the diy application$/ do

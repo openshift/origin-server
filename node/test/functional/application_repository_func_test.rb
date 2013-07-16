@@ -107,7 +107,7 @@ class ApplicationRepositoryFuncTest < OpenShift::NodeTestCase
 
   def assert_repo_reset(repo)
     reflog = Dir.chdir(repo.path){ `git reflog | head -1` }
-    assert reflog.include?("reset: moving to HEAD~1"), "Repository was not reset or reflog was not enabled (#{reflog})"
+    assert reflog.include?("reset: moving to HEAD~1") || reflog.include?("HEAD~1: updating HEAD"), "Repository was not reset or reflog was not enabled (#{reflog})"
   end
 
   def test_new

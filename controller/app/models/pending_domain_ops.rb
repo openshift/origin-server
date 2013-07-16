@@ -42,7 +42,7 @@ class PendingDomainOps
   def close_op
     if completed?
       if not parent_op_id.nil?
-        user = CloudUser.with(consistency: :strong).find_by(_id: self.domain.owner_id)
+        user = CloudUser.find_by(_id: self.domain.owner_id)
         parent_op = user.pending_ops.find_by(_id: self.parent_op_id)
         parent_op.child_completed(self.domain)
       end
@@ -57,10 +57,10 @@ class PendingDomainOps
     # find the op index and do an atomic update
     op_index = self.domain.pending_ops.index(self) 
     while retries < 5
-      retval = Domain.with(consistency: :strong).where({ "_id" => self.domain._id, "pending_ops.#{op_index}._id" => self._id }).update({"$addToSet" => { "pending_ops.#{op_index}.completed_app_ids" => app._id }})
+      retval = Domain.where({ "_id" => self.domain._id, "pending_ops.#{op_index}._id" => self._id }).update({"$addToSet" => { "pending_ops.#{op_index}.completed_app_ids" => app._id }})
 
       # the op needs to be reloaded to either set the :state or to find the updated index
-      reloaded_domain = Domain.with(consistency: :strong).find_by(_id: self.domain._id)
+      reloaded_domain = Domain.find_by(_id: self.domain._id)
       current_op = reloaded_domain.pending_ops.find_by(_id: self._id)
       if retval["updatedExisting"]
         current_op.set(:state, :completed) if current_op.completed?
