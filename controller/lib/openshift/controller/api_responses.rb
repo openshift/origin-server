@@ -61,12 +61,14 @@ module OpenShift
           case ex
           when Mongoid::Errors::DocumentNotFound
             status = :not_found
+            model = ex.klass
 
-            target = ex.klass.to_s.underscore.humanize
-            case ex.klass
-            when ComponentInstance then target = 'Cartridge'
-            when GroupInstance then target = 'Gear group'
-            end
+            target = 
+              if    ComponentInstance >= model then target = 'Cartridge'
+              elsif GroupInstance     >= model then target = 'Gear group'
+              else  model.to_s.underscore.humanize
+              end
+
             message = 
               if ex.unmatched.length > 1
                 "The #{target.pluralize.downcase} with ids #{ex.unmatched.map{ |id| "'#{id}'"}.join(', ')} were not found."
@@ -74,11 +76,11 @@ module OpenShift
                 "#{target} '#{ex.unmatched.first}' not found."
               else
                 if name = (
-                  (Domain >= ex.klass and ex.params[:canonical_namespace].presence) or
-                  (Application >= ex.klass and ex.params[:canonical_name].presence) or
-                  (ComponentInstance >= ex.klass and ex.params[:cartridge_name].presence) or
-                  (Alias >= ex.klass and ex.params[:fqdn].presence) or
-                  (SshKey >= ex.klass and ex.params[:name].presence)
+                  (Domain >= model and ex.params[:canonical_namespace].presence) or
+                  (Application >= model and ex.params[:canonical_name].presence) or
+                  (ComponentInstance >= model and ex.params[:cartridge_name].presence) or
+                  (Alias >= model and ex.params[:fqdn].presence) or
+                  (SshKey >= model and ex.params[:name].presence)
                 )
                   "#{target} '#{name}' not found."
                 else
@@ -86,15 +88,15 @@ module OpenShift
                 end
               end
             error_code = 
-              case ex.klass
-              when Cartridge, ComponentInstance then 129
-              when SshKey        then 118
-              when GroupInstance then 101
-              when Authorization then 129
-              when Domain        then 127
-              when Alias         then 173
-              when Application   then 101
-              else error_code
+              if    Cartridge         >= model then 129
+              elsif ComponentInstance >= model then 129
+              elsif SshKey            >= model then 118
+              elsif GroupInstance     >= model then 101
+              elsif Authorization     >= model then 129
+              elsif Domain            >= model then 127
+              elsif Alias             >= model then 173
+              elsif Application       >= model then 101
+              else  error_code
               end
             internal_error = false
 
