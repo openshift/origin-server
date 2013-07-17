@@ -1,6 +1,6 @@
 Summary:       Utility scripts for the OpenShift Origin broker
 Name:          openshift-origin-node-util
-Version: 1.11.7
+Version: 1.11.8
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -118,6 +118,10 @@ mv services/openshift-gears.service %{buildroot}/etc/systemd/system/openshift-ge
 /sbin/restorecon /usr/sbin/oo-restorer* || :
 
 %changelog
+* Wed Jul 17 2013 Adam Miller <admiller@redhat.com> 1.11.8-1
+- Bug 985525: Skip invalid cartridges during recursive installation
+  (ironcladlou@gmail.com)
+
 * Fri Jul 12 2013 Adam Miller <admiller@redhat.com> 1.11.7-1
 - Bug 983780 - parse log files separately and compare timestamps on merge
   (rmillner@redhat.com)
