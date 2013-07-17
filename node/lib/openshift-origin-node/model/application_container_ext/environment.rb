@@ -172,7 +172,7 @@ module OpenShift
 
           ssh_dir = PathUtils.join(@container_dir, ".ssh")
           cmd = "restorecon -R #{ssh_dir}"
-          run_in_root_context(cmd)
+          ::OpenShift::Runtime::Utils::oo_spawn(cmd)
         end
 
         # Generate the command entry for the ssh key to be written into the authorized keys file
@@ -238,7 +238,7 @@ module OpenShift
                   end
               end
                 set_ro_permission(authorized_keys_file)
-                run_in_root_context("restorecon #{authorized_keys_file}")
+                ::OpenShift::Runtime::Utils::oo_spawn("restorecon #{authorized_keys_file}")
               ensure
                 lock.flock(File::LOCK_UN)
               end

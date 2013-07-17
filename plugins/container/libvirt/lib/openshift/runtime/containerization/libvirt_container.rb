@@ -5,7 +5,6 @@ module OpenShift
   module Runtime
     module Containerization
       class LibvirtContainer
-        include OpenShift::Runtime::Utils::ShellExec
         include OpenShift::Runtime::NodeLogger
         CONF_DIR = '/etc/openshift/'
         NODE_PLUGINS_DIR = File.join(CONF_DIR, 'node-plugins.d/')
@@ -43,7 +42,7 @@ module OpenShift
         def create
           cmd = %{groupadd -g #{@container.gid} \
           #{@container.uuid}}
-          out,err,rc = @container.run_in_root_context(cmd)
+          out,err,rc = ::OpenShift::Runtime::Utils::oo_spawn(cmd)
           raise ::OpenShift::Runtime::UserCreationException.new(
                     "ERROR: unable to create group for user account(#{rc}): #{cmd.squeeze(" ")} stdout: #{out} stderr: #{err}"
                 ) unless rc == 0
@@ -61,7 +60,7 @@ module OpenShift
           if @container.supplementary_groups != ""
             cmd << %{ -G "#{@container.supplementary_groups}"}
           end
-          out,err,rc = @container.run_in_root_context(cmd)
+          out,err,rc = ::OpenShift::Runtime::Utils::oo_spawn(cmd)
           raise ::OpenShift::Runtime::UserCreationException.new(
                     "ERROR: unable to create user account(#{rc}): #{cmd.squeeze(" ")} stdout: #{out} stderr: #{err}"
                 ) unless rc == 0
@@ -94,7 +93,7 @@ module OpenShift
                  "host-bind:/proc/meminfo=/proc/meminfo " +
               " -- " +
               "#{@container.uuid} /usr/sbin/oo-gear-init"
-          out, err, rc = @container.run_in_root_context(cmd)
+          out, err, rc = ::OpenShift::Runtime::Utils::oo_spawn(cmd)
           raise ::UserCreationException.new( "Failed to create lxc container. rc=#{rc}, out=#{out}, err=#{err}" ) if rc != 0
 
           container_link = File.join(@container.container_dir, @container.uuid)
@@ -122,9 +121,9 @@ module OpenShift
           if File.exist?("/etc/libvirt-sandbox/services/#{@uuid}.sandbox")
             container_stop if container_running?
 
-            out, _, _ = @container.run_in_root_context("/usr/bin/virt-sandbox-service list")
+            out, _, _ = ::OpenShift::Runtime::Utils::oo_spawn("/usr/bin/virt-sandbox-service list")
             if out.split("\n").include?(@uuid)
-              out, err, rc = @container.run_in_root_context("/usr/bin/virt-sandbox-service delete #{@uuid}")
+              out, err, rc = ::OpenShift::Runtime::Utils::oo_spawn("/usr/bin/virt-sandbox-service delete #{@uuid}")
               raise Exception.new( "Failed to delete lxc container. rc=#{rc}, out=#{out}, err=#{err}" ) if rc != 0
             end
 
@@ -143,7 +142,7 @@ module OpenShift
           freeze_cgroups
 
           last_access_dir = @config.get("LAST_ACCESS_DIR")
-          @container.run_in_root_context("rm -f #{last_access_dir}/#{@container.name} > /dev/null")
+          ::OpenShift::Runtime::Utils::oo_spawn("rm -f #{last_access_dir}/#{@container.name} > /dev/null")
           @container.kill_procs
 
           purge_sysvipc
@@ -166,7 +165,7 @@ module OpenShift
             user = Etc.getpwnam(@container.uuid)
 
             cmd = "userdel --remove -f \"#{@container.uuid}\""
-            out,err,rc = @container.run_in_root_context(cmd)
+            out,err,rc = ::OpenShift::Runtime::Utils::oo_spawn(cmd)
             raise ::OpenShift::Runtime::UserDeletionException.new(
                       "ERROR: unable to destroy user account(#{rc}): #{cmd} stdout: #{out} stderr: #{err}"
                   ) unless rc == 0
@@ -178,7 +177,7 @@ module OpenShift
             group = Etc.getgrnam(@container.uuid)
 
             cmd = "groupdel \"#{@container.uuid}\""
-            out,err,rc = @container.run_in_root_context(cmd)
+            out,err,rc = ::OpenShift::Runtime::Utils::oo_spawn(cmd)
             raise ::OpenShift::Runtime::UserDeletionException.new(
                       "ERROR: unable to destroy group of user account(#{rc}): #{cmd} stdout: #{out} stderr: #{err}"
                   ) unless rc == 0
@@ -227,12 +226,12 @@ Dir(after)    #{@container.uuid}/#{@container.uid} => #{list_home_dir(@container
         #
         def stop
           @container.kill_procs
-          out, err, rc = @container.run_in_root_context("/usr/bin/virt-sandbox-service stop #{@uuid}")
+          out, err, rc = ::OpenShift::Runtime::Utils::oo_spawn("/usr/bin/virt-sandbox-service stop #{@uuid}")
           raise Exception.new( "Failed to stop lxc container. rc=#{rc}, out=#{out}, err=#{err}" ) if rc != 0
         end
 
         def start
-          out, err, rc = @container.run_in_root_context("/usr/bin/virt-sandbox-service start #{@container.uuid} < /dev/null > /dev/null 2> /dev/null &")
+          out, err, rc = ::OpenShift::Runtime::Utils::oo_spawn("/usr/bin/virt-sandbox-service start #{@container.uuid} < /dev/null > /dev/null 2> /dev/null &")
           raise Exception.new( "Failed to start lxc container. rc=#{rc}, out=#{out}, err=#{err}" ) if rc != 0
 
           #Wait for container to become available
@@ -323,28 +322,28 @@ Dir(after)    #{@container.uuid}/#{@container.uid} => #{list_home_dir(@container
 
         #TODO: notes why disabled
         def enable_cgroups
-          #out,err,rc = @container.run_in_root_context("service cgconfig status > /dev/null 2>&1")
+          #out,err,rc = ::OpenShift::Runtime::Utils::oo_spawn("service cgconfig status > /dev/null 2>&1")
           #
           #if rc == 0
-          #  out,err,rc = @container.run_in_root_context("/usr/sbin/oo-admin-ctl-cgroups startuser #{@container.uuid} > /dev/null")
+          #  out,err,rc = ::OpenShift::Runtime::Utils::oo_spawn("/usr/sbin/oo-admin-ctl-cgroups startuser #{@container.uuid} > /dev/null")
           #  raise ::OpenShift::Runtime::UserCreationException.new("Unable to setup cgroups for #{@container.uuid}: stdout -- #{out} stderr --#{err}}") unless rc == 0
           #end
         end
 
         def stop_cgroups
-          #out,err,rc = @container.run_in_root_context("service cgconfig status > /dev/null 2>&1")
-          #@container.run_in_root_context("/usr/sbin/oo-admin-ctl-cgroups stopuser #{@container.uuid} > /dev/null") if rc == 0
+          #out,err,rc = ::OpenShift::Runtime::Utils::oo_spawn("service cgconfig status > /dev/null 2>&1")
+          #::OpenShift::Runtime::Utils::oo_spawn("/usr/sbin/oo-admin-ctl-cgroups stopuser #{@container.uuid} > /dev/null") if rc == 0
         end
 
         def enable_fs_limits
           cmd = "/bin/sh #{File.join('/usr/libexec/openshift/lib', "setup_pam_fs_limits.sh")} #{@container.uuid} #{@container.quota_blocks ? @container.quota_blocks : ''} #{@container.quota_files ? @container.quota_files : ''}"
-          out,err,rc = @container.run_in_root_context(cmd)
+          out,err,rc = ::OpenShift::Runtime::Utils::oo_spawn(cmd)
           raise ::OpenShift::Runtime::UserCreationException.new("Unable to setup pam/fs limits for #{@container.name}: stdout -- #{out} stderr -- #{err}") unless rc == 0
         end
 
         def disable_fs_limits
           cmd = "/bin/sh #{File.join("/usr/libexec/openshift/lib", "teardown_pam_fs_limits.sh")} #{@container.uuid}"
-          out,err,rc = @container.run_in_root_context(cmd)
+          out,err,rc = ::OpenShift::Runtime::Utils::oo_spawn(cmd)
           raise ::OpenShift::Runtime::UserCreationException.new("Unable to teardown pam/fs/nproc limits for #{@container.uuid}") unless rc == 0
         end
 
@@ -516,21 +515,21 @@ Dir(after)    #{@container.uuid}/#{@container.uid} => #{list_home_dir(@container
 
         def freeze_fs_limits
           cmd = "/bin/sh #{File.join('/usr/libexec/openshift/lib', "setup_pam_fs_limits.sh")} #{@container.uuid} 0 0 0"
-          out,err,rc = @container.run_in_root_context(cmd)
+          out,err,rc = ::OpenShift::Runtime::Utils::oo_spawn(cmd)
           raise ::OpenShift::Runtime::UserCreationException.new("Unable to setup pam/fs/nproc limits for #{@container.uuid}") unless rc == 0
         end
 
         def freeze_cgroups
-          #out,err,rc = @container.run_in_root_context("service cgconfig status > /dev/null")
+          #out,err,rc = ::OpenShift::Runtime::Utils::oo_spawn("service cgconfig status > /dev/null")
           #if rc == 0
-          #  @container.run_in_root_context("/usr/sbin/oo-admin-ctl-cgroups freezeuser #{@container.uuid} > /dev/null") if rc == 0
+          #  ::OpenShift::Runtime::Utils::oo_spawn("/usr/sbin/oo-admin-ctl-cgroups freezeuser #{@container.uuid} > /dev/null") if rc == 0
           #end
         end
 
         # release resources (cgroups thaw), this causes Zombies to get killed
         def unfreeze_cgroups
-          #out,err,rc = @container.run_in_root_context("service cgconfig status > /dev/null")
-          #@container.run_in_root_context("/usr/sbin/oo-admin-ctl-cgroups thawuser #{@container.uuid} > /dev/null") if rc == 0
+          #out,err,rc = ::OpenShift::Runtime::Utils::oo_spawn("service cgconfig status > /dev/null")
+          #::OpenShift::Runtime::Utils::oo_spawn("/usr/sbin/oo-admin-ctl-cgroups thawuser #{@container.uuid} > /dev/null") if rc == 0
         end
 
         # Private: list directories (cartridges) in home directory
@@ -563,13 +562,13 @@ Dir(after)    #{@container.uuid}/#{@container.uid} => #{list_home_dir(@container
         #
         def purge_sysvipc
           ['-m', '-q', '-s' ].each do |ipctype|
-            out,err,rc=@container.run_in_root_context(%{/usr/bin/ipcs -c #{ipctype} 2> /dev/null})
+            out,err,rc=::OpenShift::Runtime::Utils::oo_spawn(%{/usr/bin/ipcs -c #{ipctype} 2> /dev/null})
             out.lines do |ipcl|
               next unless ipcl=~/^\d/
               ipcent = ipcl.split
               if ipcent[2] == @container.uuid
                 # The ID may already be gone
-                @container.run_in_root_context(%{/usr/bin/ipcrm #{ipctype} #{ipcent[0]}})
+                ::OpenShift::Runtime::Utils::oo_spawn(%{/usr/bin/ipcrm #{ipctype} #{ipcent[0]}})
               end
             end
           end
@@ -628,7 +627,7 @@ Dir(after)    #{@container.uuid}/#{@container.uid} => #{list_home_dir(@container
                 "-j DNAT --to-destination #{container_ip}:#{public_port};" +
                 "firewall-cmd --direct --passthrough ipv4 -t filter -I FORWARD " +
                 "-p tcp --dport #{public_port} -d #{container_ip} -j ACCEPT"
-            @container.run_in_root_context(cmd)
+            ::OpenShift::Runtime::Utils::oo_spawn(cmd)
           end
 
           if action == :delete
@@ -648,7 +647,7 @@ Dir(after)    #{@container.uuid}/#{@container.uid} => #{list_home_dir(@container
                 "-j DNAT --to-destination #{container_ip}:#{public_port};" +
                 "firewall-cmd --direct --passthrough ipv4 -t filter -D FORWARD " +
                 "-p tcp --dport #{public_port} -d #{container_ip} -j ACCEPT"
-            @container.run_in_root_context(cmd)
+            ::OpenShift::Runtime::Utils::oo_spawn(cmd)
           end
         end
       end
