@@ -20,13 +20,6 @@
 require_relative '../test_helper'
 
 class SELinuxUtilsMCSLabelTest < OpenShift::NodeTestCase
-
-  def setup
-    @config_mock = mock('OpenShift::Config')
-    @config_mock.stubs(:get).returns(nil)
-    OpenShift::Config.stubs(:new).returns(@config_mock)
-  end
-
   def test_mcs_labels
     labelset = OpenShift::Runtime::Utils::SELinux.mcs_labels.to_a
     assert_equal 523776, labelset.length
@@ -86,9 +79,9 @@ end
 
 class SELinuxUtilsChconTest < OpenShift::NodeTestCase
     def setup
-    @config_mock = mock('OpenShift::Config')
-    @config_mock.stubs(:get).returns(nil)
-    OpenShift::Config.stubs(:new).returns(@config_mock)
+    @config = mock('OpenShift::Config')
+    @config.stubs(:get).returns(nil)
+    OpenShift::Config.stubs(:new).returns(@config)
 
     @test_paths = [ "foo", "bar", "baz", '*' ]
 
@@ -162,9 +155,9 @@ end
 class SELinuxUtilsSetMCSLabelTest < OpenShift::NodeTestCase
 
   def setup
-    @config_mock = mock('OpenShift::Config')
-    @config_mock.stubs(:get).returns(nil)
-    OpenShift::Config.stubs(:new).returns(@config_mock)
+    @config = mock('OpenShift::Config')
+    @config.stubs(:get).returns(nil)
+    OpenShift::Config.stubs(:new).returns(@config)
 
     @test_label = "s0:c0,c1,c2,c3,c4,c5,c6,c7,c8"
     @test_type  = "testtype_t"

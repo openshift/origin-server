@@ -4,7 +4,7 @@ require 'ipaddr'
 module OpenShift
   module Runtime
     module Containerization
-      class LibvirtContainer
+      class Plugin
         include OpenShift::Runtime::NodeLogger
         CONF_DIR = '/etc/openshift/'
         NODE_PLUGINS_DIR = File.join(CONF_DIR, 'node-plugins.d/')

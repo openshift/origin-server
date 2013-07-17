@@ -28,9 +28,6 @@ module OpenShift
 
     def setup
       # Set up the config
-      @config = mock('::OpenShift::Config')
-
-      @config.stubs(:get).returns(nil)
       @config.stubs(:get).with("GEAR_BASE_DIR").returns(GEAR_BASE_DIR)
 
       script_dir     = File.expand_path(File.dirname(__FILE__))
@@ -39,8 +36,6 @@ module OpenShift
       raise "Couldn't find cart base path at #{cart_base_path}" unless File.exists?(cart_base_path)
 
       @config.stubs(:get).with("CARTRIDGE_BASE_PATH").returns(cart_base_path)
-
-      ::OpenShift::Config.stubs(:new).returns(@config)
 
       # Set up the container
       @gear_uuid = "5501"
