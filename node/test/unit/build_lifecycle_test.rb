@@ -28,13 +28,7 @@ end
 class BuildLifecycleTest < OpenShift::NodeTestCase
 
   def setup
-    # Set up the config
-    @config = mock('OpenShift::Config')
-
-    @config.stubs(:get).returns(nil)
     @config.stubs(:get).with("GEAR_BASE_DIR").returns("/tmp")
-
-    OpenShift::Config.stubs(:new).returns(@config)
 
     # Set up the container
     @gear_uuid = "5503"

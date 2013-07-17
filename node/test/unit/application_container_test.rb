@@ -28,14 +28,10 @@ end
 class ApplicationContainerTest < OpenShift::NodeTestCase
 
   def setup
-    # Set up the config
-    @config = mock('OpenShift::Config')
-
     @ports_begin    = 35531
     @ports_per_user = 5
     @uid_begin      = 500
 
-    @config.stubs(:get).returns(nil)
     @config.stubs(:get).with("PORT_BEGIN").returns(@ports_begin.to_s)
     @config.stubs(:get).with("PORTS_PER_USER").returns(@ports_per_user.to_s)
     @config.stubs(:get).with("UID_BEGIN").returns(@uid_begin.to_s)
@@ -47,8 +43,7 @@ class ApplicationContainerTest < OpenShift::NodeTestCase
     raise "Couldn't find cart base path at #{cart_base_path}" unless File.exists?(cart_base_path)
 
     @config.stubs(:get).with("CARTRIDGE_BASE_PATH").returns(cart_base_path)
-
-    OpenShift::Config.stubs(:new).returns(@config)
+    #@config.stubs(:get).with("CONTAINERIZATION_PLUGIN").returns('openshift-origin-container-selinux')
 
     # Set up the container
     @gear_uuid = "5502"
@@ -228,7 +223,7 @@ class ApplicationContainerTest < OpenShift::NodeTestCase
 
   def test_force_stop
     FileUtils.mkpath("/tmp/#@user_uid/app-root/runtime")
-    OpenShift::Runtime::Containerization::SELinuxContainer.stubs(:kill_procs).with(@user_uid).returns(nil)
+    OpenShift::Runtime::Containerization::Plugin.stubs(:kill_procs).with(@user_uid).returns(nil)
     @container.state.expects(:value=).with(OpenShift::Runtime::State::STOPPED)
     @container.cartridge_model.expects(:create_stop_lock)
     @container.force_stop

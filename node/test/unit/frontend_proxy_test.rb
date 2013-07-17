@@ -27,18 +27,14 @@ module OpenShift; end
 class FrontendProxyTest < OpenShift::NodeTestCase
 
   def setup
-    config = mock('OpenShift::Config')
-
     @ports_begin = 35531
     @ports_per_user = 5
     @uid_begin = 500
     @wrap_uid  = 6501
 
-    config.stubs(:get).with("PORT_BEGIN").returns(@ports_begin.to_s)
-    config.stubs(:get).with("PORTS_PER_USER").returns(@ports_per_user.to_s)
-    config.stubs(:get).with("UID_BEGIN").returns(@uid_begin.to_s)
-
-    OpenShift::Config.stubs(:new).returns(config)
+    @config.stubs(:get).with("PORT_BEGIN").returns(@ports_begin.to_s)
+    @config.stubs(:get).with("PORTS_PER_USER").returns(@ports_per_user.to_s)
+    @config.stubs(:get).with("UID_BEGIN").returns(@uid_begin.to_s)
   end
 
   # Ensure that the wrapped UID is calculated properly

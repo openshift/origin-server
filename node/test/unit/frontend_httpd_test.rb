@@ -79,12 +79,9 @@ class FrontendHttpServerModelTest < OpenShift::NodeTestCase
     end
     Syslog.stubs(:new).returns(syslog_mock)
 
-    @config_mock = mock('OpenShift::Config')
-    @config_mock.stubs(:get).returns(nil)
-    @config_mock.stubs(:get).with("GEAR_BASE_DIR").returns(@gear_base_dir)
-    @config_mock.stubs(:get).with("OPENSHIFT_HTTP_CONF_DIR").returns(@http_conf_dir)
-    @config_mock.stubs(:get).with("CLOUD_DOMAIN").returns(@cloud_domain)
-    OpenShift::Config.stubs(:new).returns(@config_mock)
+    @config.stubs(:get).with("GEAR_BASE_DIR").returns(@gear_base_dir)
+    @config.stubs(:get).with("OPENSHIFT_HTTP_CONF_DIR").returns(@http_conf_dir)
+    @config.stubs(:get).with("CLOUD_DOMAIN").returns(@cloud_domain)
 
     @apache_db_nodes = FauxApacheDB.new
     @apache_db_nodes_full = { @fqdn => "#{@ip}:#{@port}" }
@@ -428,13 +425,9 @@ class TestApacheDB < OpenShift::NodeTestCase
     @gear_base_dir = "/tmp/apachedb_test"
     @http_conf_dir = "/tmp/apachedb_test/.httpd.d"
     
-    @config_mock = mock('OpenShift::Config')
-    @config_mock.stubs(:get).returns(nil)
-    @config_mock.stubs(:get).with("GEAR_BASE_DIR").returns(@gear_base_dir)
-    @config_mock.stubs(:get).with("OPENSHIFT_HTTP_CONF_DIR").returns(@http_conf_dir)
-    OpenShift::Config.stubs(:new).returns(@config_mock)
+    @config.stubs(:get).with("GEAR_BASE_DIR").returns(@gear_base_dir)
+    @config.stubs(:get).with("OPENSHIFT_HTTP_CONF_DIR").returns(@http_conf_dir)
     
-
     @apachedb_lockfiles = Hash[["nodes",
                                 "aliases",
                                 "idler",
