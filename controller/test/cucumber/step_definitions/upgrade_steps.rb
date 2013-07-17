@@ -14,8 +14,6 @@ Then /^no unprocessed ERB templates should exist$/ do
   assert Dir.glob(File.join($home_root, @app.uid, '**', '**', '*.erb')).empty?
 end
 
-# TODO: eliminate dependency on 0.0.1 version being hardcoded
-
 Given /^the expected version of the ([^ ]+)\-([\d\.]+) cartridge is installed$/ do |cart_name, component_version|
   cart_manifest_from_package = %x(/bin/rpm -ql openshift-origin-cartridge-#{cart_name} | /bin/grep 'manifest.yml$').strip
   if cart_manifest_from_package.empty?
@@ -35,11 +33,6 @@ Given /^the expected version of the ([^ ]+)\-([\d\.]+) cartridge is installed$/ 
   assert cart_repo.exist?(cart_name, manifest_from_package['Cartridge-Version'], manifest_from_package['Version']), "expected #{cart_name} version must exist"
 end
 
-# Given /^the expected version of the mock cartridge is installed$/ do
-#   cart_repo = OpenShift::Runtime::CartridgeRepository.instance
-#   assert cart_repo.exist?('mock', '0.0.1', '0.1'), 'expected mock version must exist'
-# end
-
 Given /^a compatible version of the ([^ ]+)\-([\d\.]+) cartridge$/ do |cart_name, component_version|
   tmp_cart_src = "/tmp/#{cart_name}-cucumber-rewrite/compat"
   current_manifest = prepare_cart_for_rewrite(tmp_cart_src, cart_name, component_version)
@@ -58,9 +51,6 @@ Given /^an incompatible version of the ([^ ]+)\-([\d\.]+) cartridge$/ do |cart_n
   rewrite_and_install(current_manifest, tmp_cart_src)
 end
 
-# def prepare_mock_for_rewrite(target)
-#   cart_repo = OpenShift::Runtime::CartridgeRepository.instance
-#   cartridge = cart_repo.select('mock', '0.1')
 def prepare_cart_for_rewrite(target, cart_name, component_version)
   cart_repo = OpenShift::Runtime::CartridgeRepository.instance
   cartridge = cart_repo.select(cart_name, component_version)
