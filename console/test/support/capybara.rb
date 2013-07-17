@@ -66,8 +66,12 @@ if defined? Capybara
           CAPYBARA_LOG.puts "BEGIN #{"#{self.class}#{__name__}".parameterize}_#{DateTime.now.strftime("%Y%m%d%H%M%S%L")}"
           CAPYBARA_LOG.puts
          end
+         Capybara.current_session.driver.reset!
       end
-      teardown{ save_screenshot("#{ENV['TEST_SCREENSHOT_DIR']}#{"#{self.class}#{__name__}".parameterize}_#{DateTime.now.strftime("%Y%m%d%H%M%S%L")}.png", :full => true) unless passed? }
+      teardown do
+        save_screenshot("#{ENV['TEST_SCREENSHOT_DIR']}#{"#{self.class}#{__name__}".parameterize}_#{DateTime.now.strftime("%Y%m%d%H%M%S%L")}.png", :full => true) unless passed?
+        Capybara.current_session.driver.reset!
+      end
     end
   end
 end

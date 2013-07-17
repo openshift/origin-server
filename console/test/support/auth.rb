@@ -130,20 +130,21 @@ class ActionDispatch::IntegrationTest
   # Helper to reuse session cookies (and avoid login) in
   # web sessions.
   #
-  def with_user_session(sym, &block)
+  def with_user_session(sym, cookie_url, &block)
     api_fetch(sym) do |cached|
       if cached
         set_user(cached[:user])
+        # Get on the correct domain for setting cookies
+        visit cookie_url
         cached[:cookies].each do |(name,c)|
           page.driver.remove_cookie(name)
-          page.driver.set_cookie(
-            name, 
-            c.value,
-            [:path, :expires].inject({}) do |h, sym| 
-              h[sym] = c.send(sym)
-              h
-            end
-          )
+          page.driver.set_cookie(name, c.value, {
+            :path     => c.path,
+            :expires  => c.expires,
+            :domain   => c.domain,
+            :httponly => c.httponly?,
+            :secure   => c.secure?
+          })
         end
         cached
       else
@@ -160,7 +161,7 @@ class ActionDispatch::IntegrationTest
   # Start a capybara session that reuses cookies
   #
   def with_logged_in_console_user
-    with_user_session(:logged_in_user_and_cookies) do
+    with_user_session(:logged_in_user_and_cookies, login_path) do
       with_unique_user
       visit_console_login
     end
