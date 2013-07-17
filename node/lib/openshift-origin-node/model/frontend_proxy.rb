@@ -45,7 +45,6 @@ module OpenShift
     #
     # Note: This is the HAProxy implementation; other implementations may vary.
     class FrontendProxyServer
-      include ::OpenShift::Runtime::Utils::ShellExec
       include NodeLogger
 
       def initialize
