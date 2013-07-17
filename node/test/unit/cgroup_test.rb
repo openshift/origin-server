@@ -19,7 +19,8 @@
 #
 require_relative '../test_helper'
 
-class CgroupsUtilsTest < OpenShift::NodeTestCase
+# class CgroupsUtilsTest < OpenShift::NodeTestCase
+class DEPRECATEDCgroupsUtilsTest
 
   def setup
 

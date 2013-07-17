@@ -251,7 +251,7 @@ module OpenShift
                                    CartridgeRepository.instance.select(name, software_version)
                                  end
 
-        ::OpenShift::Runtime::Utils::Cgroups::with_no_cpu_limits(@container.uuid) do
+        ::OpenShift::Runtime::Utils::Cgroups.new(@container.uuid).boost do
           create_cartridge_directory(cartridge, software_version)
           # Note: the following if statement will check the following criteria long-term:
           # 1. Is the app scalable?
@@ -329,7 +329,7 @@ module OpenShift
         name, software_version = map_cartridge_name(cartridge_name)
         cartridge              = get_cartridge(name)
 
-        ::OpenShift::Runtime::Utils::Cgroups::with_no_cpu_limits(@container.uuid) do
+        ::OpenShift::Runtime::Utils::Cgroups.new(@container.uuid).boost do
           if empty_repository?
             output << "CLIENT_MESSAGE: An empty Git repository has been created for your application.  Use 'git push' to add your code."
           else
@@ -388,7 +388,7 @@ module OpenShift
         end
 
         delete_private_endpoints(cartridge)
-        ::OpenShift::Runtime::Utils::Cgroups::with_no_cpu_limits(@container.uuid) do
+        ::OpenShift::Runtime::Utils::Cgroups.new(@container.uuid).boost do
           begin
             stop_cartridge(cartridge, user_initiated: true)
             unlock_gear(cartridge, false) do |c|

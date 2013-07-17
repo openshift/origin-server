@@ -326,7 +326,7 @@ module OpenShift
             stop_gear
           end
 
-          OpenShift::Runtime::Utils::Cgroups.with_no_cpu_limits(uuid) do
+          OpenShift::Runtime::Utils::Cgroups.new(uuid).boost do
             Dir.chdir(container.container_dir) do
               itinerary.each_cartridge do |cartridge_name, upgrade_type|
                 manifest = cartridge_model.get_cartridge(cartridge_name)
