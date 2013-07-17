@@ -30,7 +30,7 @@ module OpenShift
             env       = ::OpenShift::Runtime::Utils::Environ.for_gear(@container_dir)
 
             begin
-              ::OpenShift::Runtime::Utils::Cgroups::with_no_cpu_limits(@uuid) do
+              ::OpenShift::Runtime::Utils::Cgroups.new(@uuid).boost do
                 logger.info "Executing initial gear prereceive for #{@uuid}"
                 Utils.oo_spawn("gear prereceive >> #{build_log} 2>&1",
                                env:                 env,

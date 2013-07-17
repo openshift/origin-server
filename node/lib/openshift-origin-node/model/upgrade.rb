@@ -206,7 +206,7 @@ module OpenShift
         reset_quota, reset_block_quota, reset_inode_quota = relax_quota
 
         begin
-          OpenShift::Runtime::Utils::Cgroups.with_no_cpu_limits(uuid) do
+          OpenShift::Runtime::Utils::Cgroups.new(uuid).boost do
             Dir.chdir(container.container_dir) do
               cartridge_model.each_cartridge do |manifest|
                 cartridge_path = File.join(gear_home, manifest.directory)
