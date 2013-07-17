@@ -79,9 +79,11 @@ end
 
 begin
   if all_containers
-    OpenShift::Runtime::Utils::Cgroups::classify_all_procs
+    OpenShift::Runtime::ApplicationContainer.all.each do |c|
+      OpenShift::Runtime::Utils::Cgroups.new(c.uuid).classify_processes
+    end
   else
-    OpenShift::Runtime::Utils::Cgroups::classify_procs(container_uuid.to_s)
+    OpenShift::Runtime::Utils::Cgroups.new(container_uuid.to_s).classify_processes
   end
 rescue Exception => e
   $stderr.puts(e.message)

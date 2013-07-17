@@ -44,6 +44,22 @@ module OpenShift
       @config.stubs(:get).returns(nil)
       @config.stubs(:get).with("CONTAINERIZATION_PLUGIN").returns('openshift-origin-container-selinux')
       OpenShift::Config.stubs(:new).returns(@config)
+
+      @cgroups_mock = mock('OpenShift::Runtime::Utils::Cgroups')
+      OpenShift::Runtime::Utils::Cgroups.stubs(:new).returns(@cgroups_mock)
+      @cgroups_mock.stubs(:create)
+      @cgroups_mock.stubs(:delete)
+      @cgroups_mock.stubs(:boost).yields(:boosted)
+      @cgroups_mock.stubs(:freeze).yields(:frozen)
+      @cgroups_mock.stubs(:thaw).yields(:thawed)
+      @cgroups_mock.stubs(:processes).returns([])
+
+      @tc_mock = mock('OpenShift::Runtime::Utils::TC')
+      OpenShift::Runtime::Utils::TC.stubs(:new).returns(@tc_mock)
+      @tc_mock.stubs(:startuser)
+      @tc_mock.stubs(:stopuser)
+      @tc_mock.stubs(:deluser)
+
       super
     end
 
