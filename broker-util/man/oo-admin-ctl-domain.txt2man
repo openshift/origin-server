@@ -28,12 +28,8 @@ OPTIONS
 
   -t|--key_type sshkey_type
     User's SSH key type. Available types are ssh-rsa, ssh-dss, 
-    ecdsa-sha2-nistp256-cert-v01@openssh.com, 
-    ecdsa-sha2-nistp384-cert-v01@openssh.com,
-    ecdsa-sha2-nistp521-cert-v01@openssh.com,
     ssh-rsa-cert-v01@openssh.com, ssh-dss-cert-v01@openssh.com, 
     ssh-rsa-cert-v00@openssh.com, ssh-dss-cert-v00@openssh.com, 
-    ecdsa-sha2-nistp256, ecdsa-sha2-nistp384, ecdsa-sha2-nistp521
 
   -k|--key_name sshkey_name
     User's SSH key name.
