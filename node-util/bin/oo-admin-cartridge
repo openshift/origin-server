@@ -40,7 +40,10 @@ module OpenShift
               begin
                 repository.install(dir)
               rescue OpenShift::Runtime::Utils::ShellExecutionException => e
-                $stderr.puts "install failed for #{dir}: #{e.message}" if options.verbose
+                $stderr.puts "install failed for #{dir}: #{e.message}\nstdout: #{e.stdout}\nstderr: #{e.stderr}"
+                $stderr.puts e.backtrace.join("\n") if options.verbose
+              rescue => e
+                $stderr.puts "install failed for #{dir}: #{e.message}"
                 $stderr.puts e.backtrace.join("\n") if options.verbose
               end
             end
