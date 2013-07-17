@@ -24,16 +24,20 @@ def usage
 
 == Usage
 
-To enable cgroups for a gear with UUID:
-#{$0} --with-container-uuid UUID
+To set a cgroup template for a gear with UUID:
+#{$0} --with-container-uuid UUID --template TEMPLATE
 
-To enable cgroups for all gears:
-#{$0} --with-all-containers
+To set a cgroup template for all gears:
+#{$0} --with-all-containers --template TEMPLATE
 
+To list the available cgroup templates:
+#{$0} --templates
 
 == List of arguments
   -c|--with-container-uuid  gear_uuid   Unique identifier for the gears
   -a|--with-all-containers              Run on all gears
+  -t|--template template                Template to set
+  -t|--templates                        List templates
   -d|--debug                            Enable debug mode
   -h|--help                             Print this message
 
@@ -46,6 +50,8 @@ require 'openshift-origin-node'
 opts = GetoptLong.new(
     ["--with-container-uuid", "-c", GetoptLong::REQUIRED_ARGUMENT],
     ["--with-all-containers", "-a", GetoptLong::NO_ARGUMENT],
+    ["--template",            "-t", GetoptLong::REQUIRED_ARGUMENT],
+    ["--templates",                 GetoptLong::NO_ARGUMENT],
     ["--debug",               "-d", GetoptLong::NO_ARGUMENT],
     ["--help",                "-?", GetoptLong::NO_ARGUMENT]
 )
@@ -53,6 +59,8 @@ opts = GetoptLong.new(
 
 container_uuid = nil
 all_containers = false
+list_templates = false
+template = "default"
 
 begin
   opts.each do |k, v|
@@ -63,6 +71,10 @@ begin
       container_uuid = v
     when '--with-all-containers'
       all_containers = true
+    when '--templates'
+      list_templates = true
+    when '--template'
+      template = v
     when '--debug'
       $oo_debug = true
     else
@@ -73,17 +85,21 @@ rescue GetoptLong::Error => e
   usage
 end
 
-unless all_containers or container_uuid
+unless all_containers or container_uuid or list_templates
   usage
 end
 
 begin
-  if all_containers
-    OpenShift::Runtime::ApplicationContainer.each do |c|
-      OpenShift::Runtime::Utils::Cgroups.new(c.uuid).create
-    end
+  if list_templates
+    puts OpenShift::Runtime::Utils::Cgroups.show_templates.join("\n")
   else
-    OpenShift::Runtime::Utils::Cgroups.new(container_uuid.to_s).create
+    if all_containers
+      OpenShift::Runtime::ApplicationContainer.each do |c|
+        OpenShift::Runtime::Utils::Cgroups.new(c.uuid).apply_profile(template.to_sym)
+      end
+    else
+      OpenShift::Runtime::Utils::Cgroups.new(container_uuid.to_s).apply_profile(template.to_sym)
+    end
   end
 rescue Exception => e
   $stderr.puts(e.message)

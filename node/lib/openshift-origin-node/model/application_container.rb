@@ -30,6 +30,7 @@ require 'openshift-origin-node/utils/sdk'
 require 'openshift-origin-node/utils/node_logger'
 require 'openshift-origin-node/utils/hourglass'
 require 'openshift-origin-node/utils/cgroups'
+require 'openshift-origin-node/utils/tc'
 require 'openshift-origin-common'
 require 'yaml'
 require 'active_model'
@@ -336,7 +337,7 @@ module OpenShift
       #
       def unidle_gear(options={})
         output = ""
-        OpenShift::Runtime::Utils::Cgroups::with_no_cpu_limits(@uuid) do
+        OpenShift::Runtime::Utils::Cgroups.new(@uuid).boost do
           if stop_lock? and (state.value == State::IDLE)
             state.value = State::STARTED
             output      = start_gear
