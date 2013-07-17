@@ -151,9 +151,8 @@ end
 
 class RestUser_V1 < BaseObj_V1
   attr_accessor :login, :consumed_gears, :max_gears, :capabilities, :plan_id, :usage_account_id, :links
-  KEY_TYPES = ['ssh-rsa', 'ssh-dss', 'ecdsa-sha2-nistp256-cert-v01@openssh.com', 'ecdsa-sha2-nistp384-cert-v01@openssh.com',
-               'ecdsa-sha2-nistp521-cert-v01@openssh.com', 'ssh-rsa-cert-v01@openssh.com', 'ssh-dss-cert-v01@openssh.com',
-               'ssh-rsa-cert-v00@openssh.com', 'ssh-dss-cert-v00@openssh.com', 'ecdsa-sha2-nistp256', 'ecdsa-sha2-nistp384', 'ecdsa-sha2-nistp521']
+  KEY_TYPES = ['ssh-rsa', 'ssh-dss', 'ssh-rsa-cert-v01@openssh.com', 'ssh-dss-cert-v01@openssh.com',
+               'ssh-rsa-cert-v00@openssh.com', 'ssh-dss-cert-v00@openssh.com']
                                                                                                        
   def initialize
     self.login = nil
@@ -252,9 +251,8 @@ end
 
 class RestKey_V1 < BaseObj_V1
   attr_accessor :name, :content, :type, :links
-  KEY_TYPES = ['ssh-rsa', 'ssh-dss', 'ecdsa-sha2-nistp256-cert-v01@openssh.com', 'ecdsa-sha2-nistp384-cert-v01@openssh.com',
-               'ecdsa-sha2-nistp521-cert-v01@openssh.com', 'ssh-rsa-cert-v01@openssh.com', 'ssh-dss-cert-v01@openssh.com',
-               'ssh-rsa-cert-v00@openssh.com', 'ssh-dss-cert-v00@openssh.com', 'ecdsa-sha2-nistp256', 'ecdsa-sha2-nistp384', 'ecdsa-sha2-nistp521']
+  KEY_TYPES = ['ssh-rsa', 'ssh-dss', 'ssh-rsa-cert-v01@openssh.com', 'ssh-dss-cert-v01@openssh.com',
+               'ssh-rsa-cert-v00@openssh.com', 'ssh-dss-cert-v00@openssh.com']
 
   def initialize(name=nil, content=nil, type=nil)
     self.name = name

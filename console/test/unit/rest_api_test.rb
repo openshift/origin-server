@@ -674,10 +674,6 @@ class RestApiTest < ActiveSupport::TestCase
     assert_equal 'ssh-rsa', key.type
     assert_equal 'key', key.content
 
-    key = Key.new :raw_content => 'ecdsa-sha2-nistp52 key test'
-    assert_equal 'ecdsa-sha2-nistp52', key.type
-    assert_equal 'key', key.content
-
     key = Key.new :raw_content => 'ssh-dss key test'
     assert_equal 'ssh-dss', key.type
     assert_equal 'key', key.content
