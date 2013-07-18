@@ -74,7 +74,7 @@ module OpenShift
         raise ArgumentError.new("error loading #{containerization_plugin_gem}: #{e.message}")
       end
 
-      if !Containerization::Plugin.respond_to?(:container_dir)
+      if !::OpenShift::Runtime::Containerization::Plugin.respond_to?(:container_dir)
         raise ArgumentError.new('containerization plugin must respond to container_dir')
       end
       
