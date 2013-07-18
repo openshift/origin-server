@@ -622,12 +622,16 @@ git update-index --chmod=+x bin/*
 ```
 in the cartridge directory.
 
+### Mandatory Scripts
+
 A cartridge must implement the following scripts:
 
 | Script Name | Usage  |
 | ----------- | -----  |
 | setup       | prepare this instance of cartridge to be operational for the initial install and each upgrade |
 | control     | command cartridge to report or change state                                                   |
+
+### Optional Scripts
 
 A cartridge may implement the following scripts:
 
