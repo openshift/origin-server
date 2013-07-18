@@ -20,4 +20,7 @@ Gem::Specification.new do |s|
   s.add_dependency 'formtastic',          '~> 1.2.4'
   s.add_dependency 'net-http-persistent', '>= 2.7'
   s.add_dependency 'haml',                '~> 3.1.7'
+  s.add_dependency 'sass',        '~> 3.1.20' #required for haml
+  s.add_dependency 'openshift-origin-common'
+  s.add_dependency 'jquery-rails',        '~> 2.0.2'
 end

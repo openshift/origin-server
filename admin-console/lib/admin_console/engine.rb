@@ -1,3 +1,4 @@
+require 'jquery-rails'
 require 'haml'
 require 'formtastic'
 
