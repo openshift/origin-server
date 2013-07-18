@@ -1,4 +1,5 @@
 require 'openshift-origin-common/utils/path_utils'
+require 'sqlite3'
 
 require_relative 'selinux'
 
@@ -6,15 +7,18 @@ module OpenShift
   module Runtime
     module Utils
       class UpgradeProgress
-        attr_reader :gear_home
+        attr_reader :gear_home, :gear_base_dir
 
-        def initialize(gear_home)
+        def initialize(gear_base_dir, gear_home, uuid)
+          @gear_base_dir = gear_base_dir
           @gear_home = gear_home
+          @uuid = uuid
           @buffer = []
         end
 
         def init_store
           runtime_dir = File.join(gear_home, %w(app-root runtime))
+
           if !File.exists?(runtime_dir)
             log "Creating data directory #{runtime_dir} for #{@gear_home} because it does not exist"
             FileUtils.mkpath(runtime_dir)
@@ -23,6 +27,32 @@ module OpenShift
             mcs_label = OpenShift::Runtime::Utils::SELinux::get_mcs_label(uuid)
             OpenShift::Runtime::Utils::SELinux.set_mcs_label_R(mcs_label, runtime_dir)
           end
+
+          upgrade_db_path = File.join(gear_base_dir, '.upgrade_db')
+
+          if !File.exists?(upgrade_db_path)
+            @db = SQLite3::Database.new upgrade_db_path
+
+            # Create a database
+            rows = @db.execute <<-EOF
+              create table event (
+                event_id integer primary key asc autoincrement,
+                gear_uuid text not null,
+                name text not null,
+                type text check (type in ('EVENT','TRANS_BEGIN','TRANS_END','IRREGULAR_EXIT')),
+                timestamp datetime not null,
+                rc integer,
+                stdout varchar(1024),
+                stderr varchar(1024)
+              );
+            EOF
+          else 
+            @db = SQLite3::Database.new upgrade_db_path
+          end
+        end
+
+        def add_event(name, type = 'EVENT')
+          @db.execute("insert into event (gear_uuid, name, type, timestamp) values (?, ?, ?, datetime('now'))", @uuid, name, type)
         end
 
         def incomplete?(marker)
@@ -66,6 +96,7 @@ module OpenShift
         end
 
         def log(string)
+          add_event(string)
           @buffer << string
           string
         end
