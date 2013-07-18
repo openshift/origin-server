@@ -13,6 +13,10 @@ module OpenShift
     def is_singleton?
       self.scaling.max == 1
     end
+
+    def is_sparse?
+      self.scaling.multiplier!=1
+    end
     
     def from_descriptor(profile, spec_hash = {})
       self.name = spec_hash["Name"] || profile.name
