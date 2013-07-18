@@ -616,7 +616,7 @@ To ensure that the excutable bit is on, on UNIX-like systems, run:
 chmod +x bin/*
 ```
 
-On Windows, you can achieve this by:
+On Windows, you can achieve this by running:
 ```
 git update-index --chmod=+x bin/*
 ```
