@@ -11,23 +11,17 @@ class EmbCartEventsController < BaseController
     
     return render_error(:not_found, "Cartridge #{cartridge} not embedded within application #{@application.name}", 129) if !@application.requires.include?(cartridge)
 
-    begin
-      case event
-        when 'start'
-          result = @application.start(cartridge)      
-        when 'stop'
-          result = @application.stop(cartridge)      
-        when 'restart'
-          result = @application.restart(cartridge)          
-        when 'reload'
-          result = @application.reload_config(cartridge)
-        else
-          return render_error(:unprocessable_entity, "Invalid event '#{event}' for embedded cartridge #{cartridge} within application '#{@application.name}'", 126)
-      end
-    rescue OpenShift::LockUnavailableException => e
-      return render_error(:service_unavailable, "Application is currently busy performing another operation. Please try again in a minute.", e.code)
-    rescue Exception => e
-      return render_exception(e)
+    case event
+      when 'start'
+        result = @application.start(cartridge)      
+      when 'stop'
+        result = @application.stop(cartridge)      
+      when 'restart'
+        result = @application.restart(cartridge)          
+      when 'reload'
+        result = @application.reload_config(cartridge)
+      else
+        return render_error(:unprocessable_entity, "Invalid event '#{event}' for embedded cartridge #{cartridge} within application '#{@application.name}'", 126)
     end
 
     app = get_rest_application(@application)

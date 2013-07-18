@@ -63,7 +63,11 @@ class RestApiKeyTest < ActiveSupport::TestCase
       assert key.save, key.errors.inspect
     end
     assert_difference('Key.find(:all, :as => @user).length', -1) do
-      key.destroy
+      begin
+        key.destroy
+      rescue RestApi::ResourceNotFound
+        puts "WARNING: Double key deletion detected"
+      end
     end
   end
 

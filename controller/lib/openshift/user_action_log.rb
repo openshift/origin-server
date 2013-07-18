@@ -4,8 +4,7 @@ module OpenShift::UserActionLog
     Thread.current[:user_action_log_uuid] = request ? request.uuid : nil
   end
   def self.end_request
-    begin_request(nil)
-    with_user(nil, nil)
+    # Does not reset vars so that rescue_from handlers have access to the current log context
   end
   def self.with_user(id, login)
     Thread.current[:user_action_log_user_id] = id

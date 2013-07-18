@@ -12,8 +12,13 @@ class SshKey
   
   # This is the current regex for validations for new ssh keys 
   KEY_NAME_REGEX = /\A[\w\.\-@+]+\z/
-  # This is the regex that ensures backward compatibility for fetches
-  KEY_NAME_COMPATIBILITY_REGEX = KEY_NAME_REGEX
+  def self.check_name!(name)
+    if name.blank? or name !~ KEY_NAME_REGEX
+      raise Mongoid::Errors::DocumentNotFound.new(self, nil, [name]) 
+    end
+    name
+  end
+
   # Maximum length of valid SSH key name
   KEY_NAME_MAX_LENGTH = 256 unless defined? KEY_NAME_MAX_LENGTH
   # Minimum length of valid SSH key name  

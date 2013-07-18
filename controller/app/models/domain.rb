@@ -23,8 +23,12 @@ class Domain
 
   # This is the current regex for validations for new domains 
   DOMAIN_NAME_REGEX = /\A[A-Za-z0-9]+\z/
-  # This is the regex that ensures backward compatibility for fetches
-  DOMAIN_NAME_COMPATIBILITY_REGEX = DOMAIN_NAME_REGEX
+  def self.check_name!(name)
+    if name.blank? or name !~ DOMAIN_NAME_REGEX
+      raise Mongoid::Errors::DocumentNotFound.new(Domain, nil, [name]) 
+    end
+    name
+  end
   
   include Mongoid::Document
   include Mongoid::Timestamps

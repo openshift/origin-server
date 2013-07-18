@@ -9,7 +9,7 @@ class RestApiAuthorizationTest < ActiveSupport::TestCase
 
   test 'authorization not found returns message' do 
     m = response_messages(RestApi::ResourceNotFound){ Authorization.find("_missing!_", :as => @user) }
-    assert_messages 1, /authorization/i, /_missing\!_/i, m
+    assert_messages 1, /authorization/i, /not found/i, m
   end
 
   test 'create authorization' do
