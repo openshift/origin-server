@@ -58,6 +58,13 @@ module OpenShift
     class Upgrader
       PREUPGRADE_STATE = '.preupgrade_state'
 
+      @@gear_extension_present = false
+      gear_extension_path = OpenShift::Config.new.get('GEAR_UPGRADE_EXTENSION')
+      if gear_extension_path && File.exists?("#{gear_extension_path}.rb")
+        require gear_extension_path
+        @@gear_extension_present = true
+      end
+
       attr_reader :uuid, :namespace, :version, :hostname, :ignore_cartridge_version, :gear_home, :gear_env, :progress, :container, :gear_extension, :config
 
       def initialize(uuid, namespace, version, hostname, ignore_cartridge_version)
@@ -73,6 +80,7 @@ module OpenShift
         @gear_env = Utils::Environ.for_gear(gear_home)
         @progress = Utils::UpgradeProgress.new(gear_home)
         @container = ApplicationContainer.from_uuid(uuid)
+        @gear_extension = nil
       end
 
       def reload_gear_env
@@ -102,19 +110,23 @@ module OpenShift
         exitcode = 0
         progress.init_store
 
-        gear_extension_path = @config.get('GEAR_UPGRADE_EXTENSION')
-        @gear_extension = nil
+        if @@gear_extension_present
+          begin
+            if !OpenShift::GearUpgradeExtension.respond_to?(:version)
+              return "Gear upgrade extension must respond to version", 127
+            end
 
-        if gear_extension_path 
-          if !File.exists?("#{gear_extension_path}.rb")
-            return "Gear upgrade extension configured at #{gear_extension_path}, but ruby file does not exist.", 127
+            extension_version = OpenShift::GearUpgradeExtension.version
+
+            if version != extension_version
+              return "Version mismatch between supplied release version (#{version}) and extension version (#{extension_version}", 127
+            end
+          rescue NameError => e
+            return "Unable to resolve OpenShift::GearUpgradeExtension: #{e.message}", 127
           end
 
           begin
-            require gear_extension_path
-
             @gear_extension = OpenShift::GearUpgradeExtension.new(uuid, gear_home)
-            progress.log("Gear upgrade extension loaded from #{gear_extension_path}")
           rescue Exception => e
             progress.log "Caught an exception during upgrade: #{e.message}"
             progress.log e.backtrace.join("\n")
