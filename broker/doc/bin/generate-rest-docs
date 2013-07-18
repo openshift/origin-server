@@ -1,0 +1,373 @@
+#!/usr/bin/env ruby
+
+require 'rubygems'
+require 'optparse'
+require 'rest-client'
+require 'json'
+
+options = {
+    :version => 1.6,
+    :server => "localhost",
+    :username => "first.last@mycompany.com",
+    :password => "password"
+}
+
+optparse = OptionParser.new { |opts|
+  opts.banner = "\nUsage: generate-rest-docs [options]"
+
+  opts.on("-v", "--version", "API Version") do |v|
+    options[:version] = v
+  end
+  opts.on("-u", "--username", "Username to use for generating docs") do |u|
+    options[:username] = u
+  end
+  opts.on("-p", "--password", "Password for username") do |p|
+    options[:password] = p
+  end
+  opts.on("-s", "--server", "Server to use for generating docs") do |s|
+    options[:server] = s
+  end
+  opts.on('-h','--help', 'Print usage') { puts opts; exit 0 }
+}
+
+def send_request(request)
+  begin
+    response = request.execute
+  rescue RestClient::ExceptionWithResponse => e
+    process_error_response(e.response)
+  end
+end
+
+def process_response(response, resource)
+  begin
+    result = JSON.parse(response)
+  rescue => e
+    puts "Cannot parse response for resource #{resource}"
+    puts "Message: #{e.message}"
+    puts "Response: #{response}"
+    return
+  end
+  if resource == "API"
+    links = result["data"]
+  elsif result["data"].is_a? Array
+    links = nil
+  else
+    @replace << result["data"]["id"] if result["data"]["id"]
+    links = result["data"]["links"]
+  end
+
+    links.each do |key, value|
+      if key.include? "ADD"
+        new_resource = key.gsub("ADD_","")
+        puts "Adding............#{new_resource}.........."
+        payload = get_payload(new_resource, value)
+        request = RestClient::Request.new(:method => value["method"], :url => value["href"], :user => @user, :password => @password, :headers => @headers, :payload => payload)   
+        response = process_resource(request, new_resource)  
+        puts "Added............#{new_resource}.........."
+      elsif key == "GET" 
+        request = RestClient::Request.new(:method => value["method"], :url => value["href"], :user => @user, :password => @password, :headers => @headers, :payload => payload)
+        response = send_request(request)
+      elsif key == "UPDATE" 
+        puts "Updating............#{resource}.........."
+        payload = get_payload(resource, value)
+        request = RestClient::Request.new(:method => value["method"], :url => value["href"], :user => @user, :password => @password, :headers => @headers, :payload => payload)
+        response = send_request(request)
+        puts "Updated............#{resource}.........."
+      elsif key == "DELETE" 
+        puts "Deleting............#{resource}.........."
+        request = RestClient::Request.new(:method => value["method"], :url => value["href"], :user => @user, :password => @password, :headers => @headers, :payload => payload)
+        response = send_request(request)
+        puts "Deleted............#{resource}.........."
+      elsif key.include? "GET_" 
+        new_resource = key.gsub("GET_", "")
+        request = RestClient::Request.new(:method => value["method"], :url => value["href"], :user => @user, :password => @password, :headers => @headers, :payload => payload)
+        response = process_resource(request, new_resource)
+      elsif key.include? "SHOW_" or key.include? "QUICKSTART" or key.include? "SET_UNSET_ENVIRONMENT_VARIABLES"
+        #skip for now 
+        #TODO FIXME
+        next
+      else
+        payload = get_payload(resource, value)
+        request = RestClient::Request.new(:method => value["method"], :url => value["href"], :user => @user, :password => @password, :headers => @headers, :payload => payload)
+        response = send_request(request)
+      end
+      curl_command = "curl -u #{@user}:#{@password} #{value["href"]}"
+      curl_command = curl_command + " #{convert_payload_to_params(payload)}" if payload
+      value["curl"] = curl_command
+      
+      if payload and !payload.empty?
+        value["payload"] = JSON.pretty_generate(payload)
+      end
+      if response
+        r = JSON.parse(response)
+        value["response"] = JSON.pretty_generate(r)
+        short_response = r.each {|k,v| v.delete("links") if k == "data" and !v.nil? and v.is_a? Hash}
+        
+        if r["data"].is_a? Array
+          data_without_links = []
+          r["data"].each do |d|
+            data_without_links.push(d.each {|k,v| v.delete("links") if k == "data" and !v.nil? and v.is_a? Hash})
+          end
+          r["data"] = data_without_links
+          short_response = r
+        end
+          
+        value["response-without-links"] = JSON.pretty_generate(short_response)
+      end
+      
+      @link_map[resource] << {key => value}
+    end if links
+end
+
+def process_error_response(response)
+  messages = Array.new
+  begin 
+    result = JSON.parse(response)
+    messages = result['messages']
+    puts "#{messages}"
+    return nil
+  rescue Exception => e
+    puts "#{e.message}"
+  end
+end
+
+def get_payload(resource, link)
+  payload = {}
+  required_params = link["required_params"]
+  required_params.each do |param|
+    #handle special cases TODO move to yaml
+    if resource.downcase == "key" and param["name"] == "content"
+      payload[param["name"]] = File.read("../assets/ssh-key.txt")
+    elsif resource.downcase.include? "cartridge" and param["name"] == "name"
+      payload[param["name"]] = "mysql-5.1" 
+    elsif param["valid_options"] and !param["valid_options"].empty?
+      payload[param["name"]] = param["valid_options"][0]
+    elsif resource.downcase.include? "alias" 
+      if param["name"] == "ssl_certificate"
+        payload[param["name"]] = File.read("../assets/certificate.txt")
+      elsif param["name"] == "private_key"
+        payload[param["name"]] = File.read("../assets/private-key.txt")
+      elsif param["name"] == "pass_phrase"
+        payload[param["name"]] = "abcd"
+      else
+        payload[param["name"]] = "myalias"
+      end
+    elsif resource.downcase.include? "authorization" and param["name"] == "note"
+      payload[param["name"]] = "This is a note to myself"
+    elsif resource.downcase.include? "environment_variable" 
+      if param["name"] == "name"
+        payload[param["name"]] = "FOO"
+      elsif param["name"] == "value"
+        payload[param["name"]] = "bar"
+        payload[param["name"]] = "Xbar" if link["method"] == "PUT"
+      end
+    else
+      payload[param["name"]] = "my#{resource.downcase}" if param["type"].downcase == "string"
+      payload[param["name"]] = "my#{resource.downcase}X" if param["type"].downcase == "string" and link["method"] == "PUT"
+      payload[param["name"]] = rand(0..10) if param["type"].downcase == "integer"
+      payload[param["name"]] = false if param["type"].downcase == "boolean"
+    end
+    puts "REQUIRED: #{param["name"]}=#{payload[param["name"]]}"
+  end
+  
+  optional_params = link["optional_params"]
+  optional_params.each do |param|
+    #handle special cases
+    if resource.downcase.include? "application" and param["name"] == "cartridges"
+      payload[param["name"]] = "ruby-1.9"
+    elsif resource.downcase.include? "cartridge" and param["name"] == "additional_gear_storage"
+      payload[param["name"]] = 10
+    elsif resource.downcase.include? "alias" 
+      if param["name"] == "ssl_certificate"
+        payload[param["name"]] = File.read("../assets/certificate.txt")
+      elsif param["name"] == "private_key"
+        payload[param["name"]] = File.read("../assets/private-key.txt")
+      elsif param["name"] == "pass_phrase"
+        payload[param["name"]] = "abcd"
+      end
+    elsif resource.downcase.include? "application" and param["name"] == "scale"
+      payload[param["name"]] = "true"
+    elsif resource.downcase.include? "authorization" and param["name"] == "note"
+      payload[param["name"]] = "This is my UPDATED note to myself"
+    elsif resource.downcase.include? "member" and param["name"] == "login"
+      payload[param["name"]] = "team.member@mycompany.com"
+    elsif !param["default_value"].nil?
+      payload[param["name"]] = param["default_value"]
+    elsif param["valid_options"] and !param["valid_options"].empty?
+      payload[param["name"]] = param["valid_options"][0]
+    end
+    puts "OPTIONAL: #{param["name"]}=#{payload[param["name"]]}"
+  end
+  return payload
+end
+
+def convert_payload_to_params(payload)
+  params = ""
+  payload.each do |key, value|
+    params = params + " --data-urlencode #{key}=#{value} "
+  end
+  params
+end
+
+def process_resource(request, resource)
+  @link_map[resource] = [] if @link_map[resource].nil?
+  response = send_request(request)
+  process_response(response, resource)
+  return response
+end
+
+if __FILE__ == $0
+  
+  begin
+    optparse.parse!
+  rescue OptionParser::InvalidArgument => e
+    puts "\n ##### #{e.message} #####"
+    puts optparse.to_s
+    puts "\n ##### #{e.message} #####"
+    puts
+    exit 1
+  end
+
+
+  @link_map = {}
+  @replace = []
+  url = "https://#{options[:server]}/broker/rest/api"
+  @random = rand(0..100)
+  @user = options[:username]
+  @password = options[:password]
+  @version = options[:version]
+  
+  #add private cert capability
+  system("oo-admin-ctl-user -l #{@user} --allowprivatesslcertificates true --setmaxtrackedstorage 20") if options[:server]=="localhost"
+  if options[:version]
+    @headers = {:accept => "application/json; version=#{@version}"}
+  else
+    @headers = {:accept => "application/json"}
+  end
+  
+  @resources = ["API", "USER", "KEY", "AUTHORIZATION", "DOMAIN", "MEMBER", "APPLICATION", "CARTRIDGE", "ALIAS", "ENVIRONMENT_VARIABLE", "GEAR_GROUP", "DESCRIPTOR"]
+  @resources.each do |resource|
+    @link_map[resource] = []
+  end
+
+  request = RestClient::Request.new(:method => :get, :url => url, :user => @user, :password => @password, :headers => @headers)
+  response = send_request(request)
+  process_response(response, "API")
+  
+  final_map = {}
+  @link_map.each do |resource, links|
+    final_map[resource] = [] if final_map[resource].nil?
+    links.each do |link|
+      link.each do |key, value|
+        #move links like ADD_* from under parent resource to resource itself
+        if key.include? "_" and @link_map.keys.any? {|r| key[r]}
+          r = @link_map.keys.find {|k| key.include? k}
+          final_map[r] = [] if final_map[r].nil?
+          final_map[r] << {key => value}
+        else
+          final_map[resource] << {key => value}
+        end
+      end
+    end
+  end
+    
+  puts "ERROR: Missing resources in generated list: #{@resources - final_map.keys}" if (@resources - final_map.keys).length > 0
+  puts "WARNING: Discovered resources not documented: #{final_map.keys - @resources}" if (final_map.keys - @resources).length > 0
+  
+  unless File.directory?("../html")
+    FileUtils.mkdir_p("../html")
+  end
+  begin
+  doc_file = File.open("../html/rest-api-#{@version.to_s.gsub(".","-")}.html", "w")
+  doc_file.puts "<html>"
+  begin
+    file = File.new("../assets/header.txt", "r")
+    while (line = file.gets)
+      doc_file.puts "#{line}"
+    end
+  rescue => e
+    puts e.message
+  ensure
+    file.close if file
+  end
+  doc_file.puts "<body><section class=\"markdown-body\">"
+
+  doc_file.puts "<h1>REST API Documentation version #{@version}</h1>"
+  doc_file.puts "<h2>Resources</h2>"
+
+  @resources.each do |resource|
+    doc_file.puts "<a href='##{resource.downcase}'>#{resource.downcase.gsub("_", " ").capitalize}</a><br\>"
+  end
+  #puts final_map.keys.to_s
+
+  @resources.each do |resource|
+    links = final_map[resource]
+    doc_file.puts "<a NAME='#{resource.downcase}'></a>"
+    doc_file.puts "<h2>#{resource.downcase.gsub("_", " ").capitalize}</h2>"
+    begin
+      file = File.new("../assets/descriptions/#{resource.downcase}.html", "r")
+      while (line = file.gets)
+        doc_file.puts "#{line}"
+      end
+    rescue => e
+      puts e.message
+    ensure
+      file.close if file
+    end
+    links.each do |link|
+      link = link.values.first
+      doc_file.puts "<h4>#{link["rel"].capitalize}</h4>"
+      url = link["href"].gsub("https://localhost:8118","").gsub("https://localhost","").gsub("mydomain", ":name").gsub("myapplication", ":name").gsub("mykey", ":name").gsub("mysql-5.1", ":name")
+      @replace.each do |r|
+        url = url.gsub(r, ":id") unless r == "id"
+      end
+      doc_file.puts "<code>#{link["method"]} #{url}</code>"
+
+      if (link["required_params"] and !link["required_params"].empty?) or (link["optional_params"] and !link["optional_params"].empty?)
+        doc_file.puts "<h5>Request Parameters</h5>"
+        doc_file.puts "<table border=1>"
+        doc_file.puts "<tr><td>Name</td><td>Description</td><td>Required</td> <td>Valid Options</td><td>Default Value</td></tr>"
+        link["required_params"].each do |param|
+          if param["valid_options"].length > 4
+            description = "#{param["description"]}<br/><b>Note: Valid options may be different on your actual implementation of OpenShift.</b>"
+          end
+          doc_file.puts "<tr><td>#{param["name"]}</td><td>#{(description || param["description"]).gsub("\n", "<br/>")}</td><td>Yes</td><td>#{param["valid_options"].join(", ")}</td><td>N/A</td></tr>"
+        end
+        link["optional_params"].each do |param|
+          if param["valid_options"].length > 4
+            description = "#{param["description"]}<br/><b>Note: Valid options may be different on your actual implementation of OpenShift.</b>"
+          end
+          doc_file.puts "<tr><td>#{param["name"]}</td><td>#{(description || param["description"]).gsub("\n", "<br/>")}</td><td>No</td><td>#{param["valid_options"].join(", ")}</td><td>#{param["default_value"]}</td></tr>"
+        end
+        doc_file.puts "</table>"
+      end
+      if link["payload"]
+        doc_file.puts "<h5>Request</h5>"
+        doc_file.puts "<pre>#{link["payload"]}</pre>"
+      end
+      if link["response"]
+        file_name = "#{resource}-response-#{link["rel"].gsub(/\s+/, "")}-#{@version.to_s.gsub(".", "-")}.html".downcase
+        File.open("../html/#{file_name}", 'w') {|f| f.write("<html><body><pre>#{link["response"].gsub("localhost", "openshift.redhat.com")}</pre></body></html>") }
+        doc_file.puts "<h5>Response</h5>"
+        if link["response-without-links"] 
+          doc_file.puts "<pre>#{link["response-without-links"][0,2000].gsub("localhost", "openshift.redhat.com")}...<a target=\"_new\" href=\"#{file_name}\">click to see full response including links</a></pre>"
+        elsif link["response"].length <= 2000 
+          doc_file.puts "<pre>#{link["response"].gsub("localhost", "openshift.redhat.com")}</pre>" 
+        else
+          # if the response is too long write only the first 2000 chars and link to the rest 
+          doc_file.puts "<pre>#{link["response"][0,2000].gsub("localhost", "openshift.redhat.com")}...<a target=\"_new\" href=\"#{file_name}\">click to see full response including links</a></pre>"
+        end 
+      end
+      doc_file.puts "<h5>Example using curl command</h5>"
+      doc_file.puts "<pre class=\"terminal\">#{link["curl"].gsub("localhost", "openshift.redhat.com")}</pre>"
+      
+    end if links
+  end
+  doc_file.puts "</body></section></html>"
+  rescue => e
+    puts e.message
+  ensure
+    doc_file.close if doc_file
+  end
+end
+

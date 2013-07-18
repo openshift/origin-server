@@ -189,7 +189,7 @@ class RestEmbeddedCartridge < OpenShift::Model
               OptionalParam.new("scales_from", "integer", "Minimum number of gears having cartridge #{name}"),
               OptionalParam.new("scales_to", "integer", "Maximum number of gears having cartridge #{name}")
             ]),
-            "START" => Link.new("Start embedded cartridge", "POST", URI::join(url, "applications/#{app_id}/cartridges/#{name}/events"), [
+            "START" => Link.new("Start cartridge", "POST", URI::join(url, "applications/#{app_id}/cartridges/#{name}/events"), [
               Param.new("event", "string", "event", "start")
             ]),
             "STOP" => Link.new("Stop cartridge", "POST", URI::join(url, "applications/#{app_id}/cartridges/#{name}/events"), [

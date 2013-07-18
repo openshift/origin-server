@@ -1,0 +1,63 @@
+attributes:
+  -name: name
+    type: String
+    description: Application name
+  -name: framework
+    type: String 
+    description: Web framework that runs on this application
+  -name: creation_time
+    type: DateTime
+    description: Date and time the application was created
+  -name: uuid
+    type: String 
+    description: UUID for this application
+  -name: embedded
+    type: Array
+    description: Array of support cartridges running in this application
+  -name: aliases
+    type: Array
+    description: Array of DNS aliases assocaited with this application
+  -name: gear_count
+    type: Integer 
+    description: Number of gears used by this application
+  -name: domain_id
+    type: String 
+    description: Namespace associated with this application
+  -name: git_url
+    type: String 
+    description: {http://git-scm.com/ Git} URL to access code for this application
+  -name: app_url
+    type: String 
+    description: The FQDN to access this application
+  -name: ssh_url
+    type: String 
+    description: username and FQDN that can be used to ssh into the primary application gear
+  -name: gear_profile
+    type: String 
+    description: The default gear profile that will be used to create gears for this application
+  -name: scalable
+    type: Boolean Indicates if the application is scalable (uses multiple gears) or not (all cartridges on the same gear)
+  -name: health_check_path
+    type: String 
+    description: HTTP URI which can be used to determine if the application is up and serving requests.
+  -name: building_with
+    type: String 
+    description: Name of cartridge used to initiate CI builds
+  -name: building_app
+    type: String 
+    description: Name of Application on which builds are run
+  -name: build_job_url
+    type: String 
+    description: URI on the CI server which represents the build job
+  -name: initial_git_url
+    type: String 
+    description: URI which was used to initialize the GIT repository for this application
+  -name: cartridges
+    type: Array 
+    description: List of cartridges in application. Used only when requesting application and included cartridges.
+    
+defaults:
+  scale: true
+  cartridge: ruby-1.9
+  
+
