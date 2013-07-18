@@ -1,0 +1,32 @@
+%h3
+  = "User: #{@user.login}"
+%h4
+  Applications
+%ul
+  - @user.domains.each do |domain|
+    - domain.applications.each do |app|
+      %li
+        %a{:href=> application_path(:id => app.uuid)}
+          = "#{app.name}"
+        = " (#{app.uuid})"
+%h4
+  = "Gears: #{@user.consumed_gears} (used) of #{@user.max_gears} (max)"
+- @user.domains.each do |domain|
+  - domain.applications.each do |app|
+    - app.group_instances.each do |group_instance|
+      - cartridges = gear_group_cartridges(app, group_instance)
+      - group_instance.gears.each do |gear|
+        %div
+          %a{:href => gear_path(:id => gear.uuid)}
+            = gear.uuid
+        %ul
+          - cartridges.each do |cartridge|
+            %li
+              = cartridge[:name]
+
+%h4
+  Plan Details
+%div
+  = "Plan id: #{@user.plan_id}"
+%div
+  = "Plan state: #{@user.plan_state}"

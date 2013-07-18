@@ -1,0 +1,29 @@
+.capacity {
+  .profile {
+    border-top: solid 1px #333;
+    padding: 0 10px 10px;
+
+    &:hover {
+      background-color: #eee;
+      cursor: pointer;
+    }
+  }
+  .stat-table {
+    td {
+      white-space: nowrap;
+      padding-right: 10px;
+    }
+    .stat-name {
+      font-weight: bold;
+      text-align: right;
+    }
+
+    .stat-progress {
+      width: 100%;
+
+      .progress {
+        margin-bottom: 0;
+      }
+    }
+  }
+}
