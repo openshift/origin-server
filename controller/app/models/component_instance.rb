@@ -18,6 +18,15 @@ class ComponentInstance
   field :component_properties, type: Hash, default: {}
   field :group_instance_id, type: Moped::BSON::ObjectId
 
+  NAME_REGEX = /\A([\w\-]+(-)([\d]+(\.[\d]+)*)+)\z/
+  def self.check_name!(name)
+    if name.blank? or name !~ NAME_REGEX
+      raise Mongoid::Errors::DocumentNotFound.new(ComponentInstance, nil, [name]) 
+    end
+    name
+  end
+  
+
   # @return [Boolean] true if the component does not scale.
   def is_singleton?
     get_component.is_singleton?

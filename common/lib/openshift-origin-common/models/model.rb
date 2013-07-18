@@ -15,6 +15,7 @@ module OpenShift
     def attributes
       a = {}
       self.instance_variable_names.each do |name|
+        next if name == "@errors"
         a[name[1..-1]] = self.instance_variable_get(name)
       end
       a

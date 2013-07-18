@@ -58,8 +58,6 @@ module OpenShift
 
         def check_nolinks
           nolinks
-        rescue => e
-          render_exception(e)
         end
           
         def get_bool(param_value)
@@ -96,29 +94,21 @@ module OpenShift
         def get_domain
           domain_id = params[:domain_id] || params[:id] 
           domain_id = domain_id.downcase if domain_id
-          return render_error(:not_found, "Domain '#{domain_id}' not found", 127) if domain_id.nil? or domain_id !~ Domain::DOMAIN_NAME_COMPATIBILITY_REGEX           
-          begin
-            @domain = Domain.find_by(owner: @cloud_user, canonical_namespace: domain_id)
-            @domain_name = @domain.namespace
-            return @domain
-          rescue Mongoid::Errors::DocumentNotFound => e
-            return render_error(:not_found, "Domain '#{domain_id}' not found", 127)
-          end
+
+          @domain = Domain.find_by(owner: @cloud_user, canonical_namespace: Domain.check_name!(domain_id))
+          @domain_name = @domain.namespace
+          @domain
         end
+
         def get_application
           application_id = params[:application_id] || params[:id]
           application_id = application_id.downcase if application_id
-          return render_error(:not_found, "Application '#{application_id}' not found for domain '#{@domain.namespace}'", 101) if application_id.nil? or application_id !~ Application::APP_NAME_COMPATIBILITY_REGEX
-          begin
-            @application = Application.find_by(domain: @domain, canonical_name: application_id)
 
-            @application_name = @application.name
-            @application_uuid = @application.uuid
-          rescue Mongoid::Errors::DocumentNotFound
-            return render_error(:not_found, "Application '#{application_id}' not found for domain '#{@domain.namespace}'", 101)
-          end 
+          @application = Application.find_by(domain: @domain, canonical_name: Application.check_name!(application_id))
+          @application_name = @application.name
+          @application_uuid = @application.uuid
+          @application
         end
-        
     end
   end
 end

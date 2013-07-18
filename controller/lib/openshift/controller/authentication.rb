@@ -80,8 +80,6 @@ module OpenShift
 
         rescue OpenShift::AccessDeniedException => e
           render_error(:unauthorized, e.message, 1, "AUTHENTICATE")
-        rescue => e
-          render_exception(e)
         end
 
         #

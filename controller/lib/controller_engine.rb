@@ -13,6 +13,7 @@ module Mime
   end
 end
 
+raise "Rails has now implemented :patch support" if Rails.version.to_f >= 4.0
 # See https://github.com/rails/rails/issues/348
 module ActionDispatch
   class Request < Rack::Request
