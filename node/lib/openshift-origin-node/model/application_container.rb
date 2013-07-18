@@ -67,8 +67,17 @@ module OpenShift
 
       containerization_plugin_gem = ::OpenShift::Config.new.get('CONTAINERIZATION_PLUGIN') 
       containerization_plugin_gem ||= 'openshift-origin-container-selinux'
-      require containerization_plugin_gem
 
+      begin
+        require containerization_plugin_gem
+      rescue LoadError => e
+        raise ArgumentError.new("error loading #{containerization_plugin_gem}: #{e.message}")
+      end
+
+      if !Containerization::Plugin.respond_to?(:container_dir)
+        raise ArgumentError.new('containerization plugin must respond to container_dir')
+      end
+      
       def initialize(application_uuid, container_uuid, user_uid = nil, application_name = nil, container_name = nil,
                      namespace = nil, quota_blocks = nil, quota_files = nil, hourglass = nil)
         @config           = ::OpenShift::Config.new
