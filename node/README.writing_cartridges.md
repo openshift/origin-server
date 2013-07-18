@@ -610,7 +610,7 @@ git config --global core.autocrlf input # use `true` on Windows
 git config --global core.safecrlf true
 ```
 
-To ensure that the excutable bit is on, On UNIX-like systems, run:
+To ensure that the excutable bit is on, on UNIX-like systems, run:
 
 ```
 chmod +x bin/*
