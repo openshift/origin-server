@@ -77,3 +77,6 @@ cp %{buildroot}/%{gem_dir}/gems/%{gem_name}-%{version}/conf/openshift-origin-adm
 %defattr(-,root,apache,-)
 
 %changelog
+* Thu Jul 18 2013 Troy Dawson <tdawson@redhat.com> 0.0.1-1
+- new package built with tito
+
