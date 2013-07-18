@@ -25,8 +25,6 @@ class ApplicationRepositoryFuncTest < OpenShift::NodeTestCase
     super
     @uid = 5997
 
-    @config = mock('OpenShift::Config')
-    @config.stubs(:get).returns(nil)
     @config.stubs(:get).with("GEAR_BASE_DIR").returns(GEAR_BASE_DIR)
     @config.stubs(:get).with("GEAR_GECOS").returns('Functional Test')
     @config.stubs(:get).with("CREATE_APP_SYMLINKS").returns('0')
@@ -40,7 +38,6 @@ class ApplicationRepositoryFuncTest < OpenShift::NodeTestCase
     @config.stubs(:get).with("UID_BEGIN").returns(@uid)
     @config.stubs(:get).with("BROKER_HOST").returns('localhost')
     @config.stubs(:get).with("CARTRIDGE_BASE_PATH").returns('.')
-    OpenShift::Config.stubs(:new).returns(@config)
 
     @uuid = `uuidgen -r |sed -e s/-//g`.chomp
 

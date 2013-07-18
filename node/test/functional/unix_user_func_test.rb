@@ -43,13 +43,10 @@ class UnixUserModelFunctionalTest < OpenShift::NodeTestCase
     FileUtils.mkdir_p @user_homedir
     `useradd -u #{@user_uid} -d #{@user_homedir} #{@user_uid} 1>/dev/null 2>&1`
 
-    @config = mock('OpenShift::Config')
-    @config.stubs(:get).returns(nil)
     @config.stubs(:get).with("GEAR_BASE_DIR").returns("/tmp")
     @config.stubs(:get).with("CLOUD_DOMAIN").returns("rhcloud.com")
     @config.stubs(:get).with("OPENSHIFT_HTTP_CONF_DIR").returns("/tmp")
-    OpenShift::Config.stubs(:new).returns(@config)
-
+    
     @frontend = mock('OpenShift::Runtime::FrontendHttpServer')
     @frontend.stubs(:create)
     @frontend.stubs(:destroy)

@@ -1,0 +1,18 @@
+.stat
+  %h4
+    Applications
+  .stat-number
+    = @stats[:application][:total]
+  %h5
+    Applications per Domain
+  #apps_per_domain
+.stat
+  %h4
+    Users
+  .stat-number
+    = @stats[:user][:total]
+  %h5
+    Gears per User
+  #gears_per_user
+:javascript
+  LOAD_STATS_GRAPHS = true

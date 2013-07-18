@@ -16,9 +16,9 @@ module ActiveResource
   class PersistentConnection
 
     HTTP_FORMAT_HEADER_NAMES = {  :get => 'Accept',
-      :put => 'Content-Type',
-      :post => 'Content-Type',
-      :patch => 'Content-Type',
+      :put => ['Content-Type', 'Accept'],
+      :post => ['Content-Type', 'Accept'],
+      :patch => ['Content-Type', 'Accept'],
       :delete => 'Accept',
       :head => 'Accept'
     }
@@ -338,7 +338,8 @@ module ActiveResource
       end
 
       def http_format_header(http_method)
-        {HTTP_FORMAT_HEADER_NAMES[http_method] => format.mime_type}
+        v = format.mime_type
+        Array(HTTP_FORMAT_HEADER_NAMES[http_method]).inject({}){ |h,k| h[k] = v; h }
       end
 
       def legitimize_auth_type(auth_type)

@@ -37,13 +37,6 @@ class RestApiKeyTest < ActiveSupport::TestCase
     end
   end
 
-  def test_key_create_custom_type
-    assert_difference('Key.find(:all, :as => @user).length', 1) do
-      key = Key.new :type => 'ecdsa-sha2-nistp521', :name => unique_name, :content => unique_name, :as => @user
-      assert key.save
-    end
-  end
-
   def test_invalid_key_create
     assert_difference('Key.find(:all, :as => @user).length', 0) do
       key = Key.new :type => 'ssh-rsa', :name => "invalid%name#{uuid}", :content => uuid, :as => @user

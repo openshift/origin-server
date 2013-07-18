@@ -48,7 +48,6 @@ module OpenShift
 
     # == Application Container
     class ApplicationContainer
-      include ::OpenShift::Runtime::Utils::ShellExec
       include ActiveModel::Observing
       include NodeLogger
       include ManagedFiles
@@ -61,21 +60,26 @@ module OpenShift
       DEFAULT_SKEL_DIR = PathUtils.join(OpenShift::Config::CONF_DIR,"skel")
       $OpenShift_ApplicationContainer_SSH_KEY_MUTEX = Mutex.new
 
-      def self.container_plugin=(plugin)
-        @@container_plugin_class = plugin
-      end
-
-      # Load plugin gems.
-      Dir["/etc/openshift/node-plugins.d/*.conf"].delete_if{ |x| x.end_with? "-dev.conf" }.map{|x| File.basename(x, ".conf")}.each {|plugin| require plugin}
-
       attr_reader :uuid, :application_uuid, :state, :container_name, :application_name, :namespace, :container_dir,
                   :quota_blocks, :quota_files, :base_dir, :gecos, :skel_dir, :supplementary_groups,
                   :cartridge_model, :container_plugin, :hourglass
       attr_accessor :uid, :gid
 
+      containerization_plugin_gem = ::OpenShift::Config.new.get('CONTAINERIZATION_PLUGIN') 
+      containerization_plugin_gem ||= 'openshift-origin-container-selinux'
+
+      begin
+        require containerization_plugin_gem
+      rescue LoadError => e
+        raise ArgumentError.new("error loading #{containerization_plugin_gem}: #{e.message}")
+      end
+
+      if !Containerization::Plugin.respond_to?(:container_dir)
+        raise ArgumentError.new('containerization plugin must respond to container_dir')
+      end
+      
       def initialize(application_uuid, container_uuid, user_uid = nil, application_name = nil, container_name = nil,
                      namespace = nil, quota_blocks = nil, quota_files = nil, hourglass = nil)
-
         @config           = ::OpenShift::Config.new
         @uuid             = container_uuid
         @application_uuid = application_uuid
@@ -92,23 +96,21 @@ module OpenShift
         @hourglass        = hourglass || ::OpenShift::Runtime::Utils::Hourglass.new(3600)
 
         begin
-          user_info      = Etc.getpwnam(@uuid)
-          @uid           = user_info.uid
-          @gid           = user_info.gid
-          @gecos         = user_info.gecos
-          @container_dir = "#{user_info.dir}/"
-          @container_plugin = @@container_plugin_class.new(self)
+          user_info         = Etc.getpwnam(@uuid)
+          @uid              = user_info.uid
+          @gid              = user_info.gid
+          @gecos            = user_info.gecos
+          @container_dir    = "#{user_info.dir}/"
+          @container_plugin = Containerization::Plugin.new(self)
         rescue ArgumentError => e
-          @uid           = user_uid
-          @gid           = user_uid #user_gid || user_uid
-          @gecos         = @config.get("GEAR_GECOS") || "OO application container"
-          @container_dir = @@container_plugin_class.container_dir(self)
-
-          #will be instantiated when create() is called
+          @uid              = user_uid
+          @gid              = user_uid 
+          @gecos            = @config.get("GEAR_GECOS") || "OO application container"
+          @container_dir    = Containerization::Plugin.container_dir(self)
           @container_plugin = nil
         end
 
-        @state            = ::OpenShift::Runtime::Utils::ApplicationState.new(self)
+        @state           = ::OpenShift::Runtime::Utils::ApplicationState.new(self)
         @cartridge_model = V2CartridgeModel.new(@config, self, @state, @hourglass)
       end
 
@@ -120,16 +122,19 @@ module OpenShift
       def self.from_uuid(container_uuid, hourglass=nil)
         config = ::OpenShift::Config.new
         gecos  = config.get("GEAR_GECOS") || "OO application container"
-        pwent   = Etc.getpwnam(container_uuid)
+        pwent  = Etc.getpwnam(container_uuid)
+
         if pwent.gecos != gecos
           raise ArgumentError, "Not an OpenShift gear: #{container_uuid}"
         end
+
         env = ::OpenShift::Runtime::Utils::Environ.for_gear(pwent.dir)
         if env['OPENSHIFT_GEAR_DNS'] == nil
           namespace = nil
         else
           namespace = env['OPENSHIFT_GEAR_DNS'].sub(/\..*$/,"").sub(/^.*\-/,"")
         end
+
         ApplicationContainer.new(env["OPENSHIFT_APP_UUID"], container_uuid, pwent.uid, env["OPENSHIFT_APP_NAME"],
                                  env["OPENSHIFT_GEAR_NAME"], namespace, nil, nil, hourglass)
       end
@@ -154,7 +159,7 @@ module OpenShift
           uuid_lock.fcntl(Fcntl::F_SETFD, Fcntl::FD_CLOEXEC)
           uuid_lock.flock(File::LOCK_EX)
 
-          @container_plugin = @@container_plugin_class.new(self)
+          @container_plugin = Containerization::Plugin.new(self)
           @container_plugin.create
 
           if @config.get("CREATE_APP_SYMLINKS").to_i == 1
@@ -247,8 +252,8 @@ module OpenShift
         #    directories by pam_namespace.
         out = err = rc = nil
         10.times do |i|
-          run_in_root_context(%{/usr/bin/pkill -9 -u #{uid}})
-          out,err,rc = run_in_root_context(%{/usr/bin/pgrep -u #{uid}})
+          ::OpenShift::Runtime::Utils::oo_spawn(%{/usr/bin/pkill -9 -u #{uid}})
+          out,err,rc = ::OpenShift::Runtime::Utils::oo_spawn(%{/usr/bin/pgrep -u #{uid}})
           break unless 0 == rc
 
           logger.error "ERROR: attempt #{i}/10 there are running \"killed\" processes for #{uid}(#{rc}): stdout: #{out} stderr: #{err}"
@@ -257,7 +262,7 @@ module OpenShift
 
         # looks backwards but 0 implies processes still existed
         if 0 == rc
-          out,err,rc = run_in_root_context("ps -u #{uid} -o state,pid,ppid,cmd")
+          out,err,rc = ::OpenShift::Runtime::Utils::oo_spawn("ps -u #{uid} -o state,pid,ppid,cmd")
           logger.error "ERROR: failed to kill all processes for #{uid}(#{rc}): stdout: #{out} stderr: #{err}"
         end
       end
@@ -557,37 +562,6 @@ module OpenShift
             end
           end
         end
-      end
-
-      # run_in_root_context(command, [, options]) -> [stdout, stderr, exit status]
-      #
-      # Executes specified command and return its stdout, stderr and exit status.
-      # Or, raise exceptions if certain conditions are not met.
-      #
-      # command: command line string which is passed to the standard shell
-      #
-      # options: hash
-      #   :env: hash
-      #     name => val : set the environment variable
-      #     name => nil : unset the environment variable
-      #   :unsetenv_others => true   : clear environment variables except specified by :env
-      #   :chdir => path             : set current directory when running command
-      #   :expected_exitstatus       : An Integer value for the expected return code of command
-      #                              : If not set spawn() returns exitstatus from command otherwise
-      #                              : raise an error if exitstatus is not expected_exitstatus
-      #   :timeout                   : Maximum number of seconds to wait for command to finish. default: 3600
-      #   :out                       : If specified, STDOUT from the child process will be redirected to the
-      #                                provided +IO+ object.
-      #   :err                       : If specified, STDERR from the child process will be redirected to the
-      #                                provided +IO+ object.
-      #
-      # NOTE: If the +out+ or +err+ options are specified, the corresponding return value from +oo_spawn+
-      # will be the incoming/provided +IO+ objects instead of the buffered +String+ output. It's the
-      # responsibility of the caller to correctly handle the resulting data type.
-      def run_in_root_context(command, options = {})
-        options.delete(:uid)
-        options.delete(:selinux_context)
-        ::OpenShift::Runtime::Utils::oo_spawn(command, options)
       end
 
       # run_in_container_context(command, [, options]) -> [stdout, stderr, exit status]

@@ -14,16 +14,28 @@ Then /^no unprocessed ERB templates should exist$/ do
   assert Dir.glob(File.join($home_root, @app.uid, '**', '**', '*.erb')).empty?
 end
 
-# TODO: eliminate dependency on 0.0.1 version being hardcoded
+Given /^the expected version of the ([^ ]+)\-([\d\.]+) cartridge is installed$/ do |cart_name, component_version|
+  cart_manifest_from_package = %x(/bin/rpm -ql openshift-origin-cartridge-#{cart_name} | /bin/grep 'manifest.yml$').strip
+  if cart_manifest_from_package.empty?
+    cart_manifest_from_package = "/usr/libexec/openshift/cartridges/#{cart_name}/metadata/manifest.yml" 
+  end
+  manifest_from_package = YAML.load_file(cart_manifest_from_package)
 
-Given /^the expected version of the mock cartridge is installed$/ do
   cart_repo = OpenShift::Runtime::CartridgeRepository.instance
-  assert cart_repo.exist?('mock', '0.0.1', '0.1'), 'expected mock version must exist'
+
+  @packaged_carts ||= {}
+  @packaged_carts[cart_name] ||= {}
+  @packaged_carts[cart_name]['Version'] = manifest_from_package['Version']
+  @packaged_carts[cart_name]['Cartridge-Version'] = manifest_from_package['Cartridge-Version']
+
+  assert component_version = manifest_from_package['Version']
+
+  assert cart_repo.exist?(cart_name, manifest_from_package['Cartridge-Version'], manifest_from_package['Version']), "expected #{cart_name} version must exist"
 end
 
-Given /^a compatible version of the mock cartridge$/ do
-  tmp_cart_src = '/tmp/mock-cucumber-rewrite/compat'
-  current_manifest = prepare_mock_for_rewrite(tmp_cart_src)
+Given /^a compatible version of the ([^ ]+)\-([\d\.]+) cartridge$/ do |cart_name, component_version|
+  tmp_cart_src = "/tmp/#{cart_name}-cucumber-rewrite/compat"
+  current_manifest = prepare_cart_for_rewrite(tmp_cart_src, cart_name, component_version)
   create_upgrade_script(tmp_cart_src)
 
   rewrite_and_install(current_manifest, tmp_cart_src) do |manifest, current_version|
@@ -31,17 +43,17 @@ Given /^a compatible version of the mock cartridge$/ do
   end
 end
 
-Given /^an incompatible version of the mock cartridge$/ do
-  tmp_cart_src = '/tmp/mock-cucumber-rewrite/incompat'
-  current_manifest = prepare_mock_for_rewrite(tmp_cart_src)
+Given /^an incompatible version of the ([^ ]+)\-([\d\.]+) cartridge$/ do |cart_name, component_version|
+  tmp_cart_src = "/tmp/#{cart_name}-cucumber-rewrite/incompat"
+  current_manifest = prepare_cart_for_rewrite(tmp_cart_src, cart_name, component_version)
   create_upgrade_script(tmp_cart_src)
 
   rewrite_and_install(current_manifest, tmp_cart_src)
 end
 
-def prepare_mock_for_rewrite(target)
+def prepare_cart_for_rewrite(target, cart_name, component_version)
   cart_repo = OpenShift::Runtime::CartridgeRepository.instance
-  cartridge = cart_repo.select('mock', '0.1')
+  cartridge = cart_repo.select(cart_name, component_version)
 
   FileUtils.rm_rf target
   FileUtils.mkpath target
@@ -66,7 +78,8 @@ EOF
   FileUtils.chmod('a=wrx,go=r', upgrade_script_path)
 end
 
-def rewrite_and_install(current_manifest, tmp_cart_src)
+def rewrite_and_install(current_manifest, tmp_cart_src, new_hooks = nil)
+  cart_name = current_manifest.name
   cart_manifest = File.join(tmp_cart_src, %w(metadata manifest.yml))
 
   current_version = current_manifest.cartridge_version
@@ -78,16 +91,29 @@ def rewrite_and_install(current_manifest, tmp_cart_src)
   manifest['Cartridge-Version'] = next_version
 
   yield manifest, current_version if block_given?
+  if new_hooks
+    add_new_hooks tmp_cart_src, new_hooks
+  end
 
   IO.write(cart_manifest, manifest.to_yaml)
-  IO.write(File.join($home_root, @app.uid, %w(app-root data mock_test_version)), next_version)
+  if @app
+    IO.write(File.join($home_root, @app.uid, %W(app-root data #{cart_name}_test_version)), next_version)
+  end
 
-  assert_successful_install tmp_cart_src, next_version
+  assert_successful_install tmp_cart_src, next_version, current_manifest
 end
 
-def assert_successful_install(tmp_cart_src, next_version)
+def add_new_hooks(tmp_cart_src, new_hooks)
+  new_hooks.each do |hook|
+    hook_path = File.join(tmp_cart_src, "hooks", hook[:name])
+    IO.write(hook_path, hook[:content])
+    FileUtils.chmod(0755, hook_path)
+  end
+end
+
+def assert_successful_install(tmp_cart_src, next_version, current_manifest)
   OpenShift::Runtime::CartridgeRepository.instance.install(tmp_cart_src)
-  observed_latest_version = OpenShift::Runtime::CartridgeRepository.instance.select('mock', '0.1').cartridge_version
+  observed_latest_version = OpenShift::Runtime::CartridgeRepository.instance.select(current_manifest.name, current_manifest.version).cartridge_version
 
   $logger.info "Observed latest version: #{observed_latest_version}"
 
@@ -96,10 +122,10 @@ def assert_successful_install(tmp_cart_src, next_version)
   %x(pkill -USR1 -f /usr/sbin/mcollectived)
 end
 
-Then /^the mock cartridge version should be updated$/ do
-  new_version = IO.read(File.join($home_root, @app.uid, %w(app-root data mock_test_version))).chomp
+Then /^the ([^ ]+) cartridge version should be updated$/ do |cart_name|
+  new_version = IO.read(File.join($home_root, @app.uid, %W(app-root data #{cart_name}_test_version))).chomp
 
-  ident_path                 = Dir.glob(File.join($home_root, @app.uid, %w(mock env OPENSHIFT_*_IDENT))).first
+  ident_path                 = Dir.glob(File.join($home_root, @app.uid, %W(#{cart_name} env OPENSHIFT_*_IDENT))).first
   ident                      = IO.read(ident_path)
   _, _, _, cartridge_version = OpenShift::Runtime::Manifest.parse_ident(ident)
 

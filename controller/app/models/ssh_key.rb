@@ -19,9 +19,8 @@ class SshKey
   # Minimum length of valid SSH key name  
   KEY_NAME_MIN_LENGTH = 1 unless defined? KEY_NAME_MIN_LENGTH
   # List of valid SSH key types  
-  VALID_SSH_KEY_TYPES = ['ssh-rsa', 'ssh-dss', 'ecdsa-sha2-nistp256-cert-v01@openssh.com', 'ecdsa-sha2-nistp384-cert-v01@openssh.com',
-                         'ecdsa-sha2-nistp521-cert-v01@openssh.com', 'ssh-rsa-cert-v01@openssh.com', 'ssh-dss-cert-v01@openssh.com',
-                         'ssh-rsa-cert-v00@openssh.com', 'ssh-dss-cert-v00@openssh.com', 'ecdsa-sha2-nistp256', 'ecdsa-sha2-nistp384', 'ecdsa-sha2-nistp521']
+  VALID_SSH_KEY_TYPES = ['ssh-rsa', 'ssh-dss', 'ssh-rsa-cert-v01@openssh.com', 'ssh-dss-cert-v01@openssh.com',
+                         'ssh-rsa-cert-v00@openssh.com', 'ssh-dss-cert-v00@openssh.com']
   
   field :name, type: String
   field :type, type: String, default: "ssh-rsa"

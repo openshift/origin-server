@@ -1,8 +1,10 @@
+require 'asciidoctor'
 require 'rake'
 
 task :build do
   Dir.glob("*.txt").each do |file|
-    sh "asciidoctor --backend html5 --doctype article --safe-mode safe --template-dir './templates' -a stylesdir=./stylesheets,imagesdir=./images,stylesheet=foundation.css,linkcss\!,icons=font,idprefix=,idseparator=-,sectanchors #{file}"
+    puts "Processing #{file}"
+    Asciidoctor.render_file file, :in_place => true, :safe => :safe, :template_dir => './templates', :attributes => %w(stylesdir=./stylesheets imagesdir=./images stylesheet=foundation.css linkcss! icons=font idprefix= idseparator=- sectanchors)
   end
 end
 

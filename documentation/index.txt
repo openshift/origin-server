@@ -10,6 +10,7 @@ https://openshift.redhat.com/community/open-source[OpenShift Origin] is Red Hat'
 
 * https://openshift.redhat.com/community/wiki/learning-openshift-origin[Learning OpenShift Origin]
 * https://openshift.redhat.com/community/wiki/architecture-overview[Architecture Overview]
+* link:changelog.html[OpenShift Origin Change Log]
 
 == Documentation
 

@@ -222,6 +222,48 @@ module OpenShift
           end
         end
 
+        # Public: Kill processes in a cgroup leaving the cgroup frozen at the end.
+        def self.freezer_burn(uuid, uid=nil)
+          config = OpenShift::Config.new
+          subsystems = (config.get("OPENSHIFT_CGROUP_SUBSYSTEMS") or @@DEFAULT_CGROUP_SUBSYSTEMS)
+          root = (config.get("OPENSHIFT_CGROUP_ROOT") or @@DEFAULT_CGROUP_ROOT)
+          path = "#{root}/#{uuid}"
+
+          if not uid
+            uid = Etc.getpwnam(uuid).uid
+          end
+
+          begin
+            attrs = Attrs.new(uuid)
+            attrs['freezer.state']='FROZEN'
+
+            20.times do
+              pids = []
+              out, err, rc = ::OpenShift::Runtime::Utils::oo_spawn("ps -u 0,#{uid} -o pid,cgroup --no-headers")
+              out.each_line do |proc|
+                pid, cgroup = proc.strip.split
+                cg_path = cgroup.split(':')[1]
+                if cg_path == "#{path}"
+                  pids << pid.to_i
+                end
+              end
+
+              if pids.empty?
+                return
+              else
+                Process::Kill("KILL",*pids)
+                attrs['freezer.state']='THAWED'
+                sleep(0.05)
+                attrs['freezer.state']='FROZEN'
+              end
+
+            end
+          rescue ArgumentError
+          end
+
+          raise RuntimeError, "Cannot kill processes for cgroups for: #{uuid}"
+        end
+
         # Public: Distribute this user's processes into their cgroup
         def self.classify_procs(uuid, uid=nil)
           config = OpenShift::Config.new

@@ -1,0 +1,18 @@
+%h3
+  = "Node: #{@id}"
+%h4
+  Gears
+%div
+  = "Total: #{@node[:gears_total_count]}"
+%div
+  = "Active: #{@node[:gears_active_usage_pct]}% (#{@node[:gears_active_count]} active of #{@node[:max_active_gears]} max active)"
+%div
+  = "Started: #{@node[:gears_started_count]}"
+%div
+  = "Idle: #{@node[:gears_idle_count]}"
+%div
+  = "Stopped: #{@node[:gears_stopped_count]}"
+%div
+  = "Deploying: #{@node[:gears_deploying_count]}"
+%div
+  = "Unknown state: #{@node[:gears_unknown_count]}"
