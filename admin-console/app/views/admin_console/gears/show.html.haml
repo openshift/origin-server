@@ -1,0 +1,23 @@
+%h3
+  = "Gear: #{@gear.uuid}"
+%div
+  Owned by:
+  - owner_login = @app.domain.owner.login
+  %a{:href => user_path(:id => owner_login)}
+    = owner_login
+%div
+  Application:
+  %a{:href=> application_path(:id => @app.uuid)}
+    = "#{@app.name}"
+  = " (#{@app.uuid})"
+%div
+  Node:
+  %a{:href=> node_path(:id => @gear.server_identity)}
+    = @gear.server_identity
+%div
+  Cartridges:
+%ul
+  - cartridges = gear_group_cartridges(@app, @gear.group_instance)
+  - cartridges.each do |cartridge|
+    %li
+      = cartridge[:name]

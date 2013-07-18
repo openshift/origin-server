@@ -1,0 +1,7 @@
+#identity.pull-right.right
+  Logged in with:
+  %span.username
+    = session_user.login
+  .server
+    On: 
+    = RestApi::Base.site.host

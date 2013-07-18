@@ -1,0 +1,24 @@
+:css
+  h1 span {
+    font-size: 16px;
+    color: #888;
+    color: rgb(136, 136, 136);
+    text-shadow: none;
+  }
+
+- content_for :page_title, @message || 'Page not found'
+
+%h1= @message || 'Page not found <small>404</small>'.html_safe
+
+%section
+  - unless @message
+    %h2 The page you requested was not found or may no longer exist
+
+  - if @alternatives.present?
+    %p Were you looking for any of the following?
+    %ul
+      - @alternatives.each do |alt|
+        %li= link_to alt[0], alt[1], alt[2] || {}
+
+  - if @reference_id
+    %p.error-reference Reference ##{@reference_id}
