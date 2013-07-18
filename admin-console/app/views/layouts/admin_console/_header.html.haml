@@ -1,0 +1,30 @@
+.navbar
+  .navbar-inner
+    .brand
+      = #link_to root_path do
+      = product_branding
+
+      %span.headline 
+        Admin Console
+
+    .nav-collapse.collapse
+      = navigation_tabs do
+        = navigation_tab :index, :action => :index, :name => "Overview"
+        = navigation_tab :search, :action => :index, :name => "Search"
+        = navigation_tab :stats, :action => :index, :name => "Stats"
+
+    %form{:class => "navbar-search pull-right", :method => "GET", :action => search_path}
+      %div{:class => "input-append input-prepend"}
+        %select{:name => "scope"}
+          %option{:value => "user"}
+            User
+          %option{:value => "application"}
+            Application
+          %option{:value => "node"}
+            Node
+          %option{:value => "gear"}
+            Gear
+
+        %input{:type => "text", :class => "search-query", :placeholder => "search by id", :name => "query"}
+        %button{:type => "submit", :class => "btn"}
+          %span{:class => "icon-search"}

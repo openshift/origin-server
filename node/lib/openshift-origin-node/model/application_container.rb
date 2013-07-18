@@ -60,21 +60,26 @@ module OpenShift
       DEFAULT_SKEL_DIR = PathUtils.join(OpenShift::Config::CONF_DIR,"skel")
       $OpenShift_ApplicationContainer_SSH_KEY_MUTEX = Mutex.new
 
-      def self.container_plugin=(plugin)
-        @@container_plugin_class = plugin
-      end
-
-      # Load plugin gems.
-      Dir["/etc/openshift/node-plugins.d/*.conf"].delete_if{ |x| x.end_with? "-dev.conf" }.map{|x| File.basename(x, ".conf")}.each {|plugin| require plugin}
-
       attr_reader :uuid, :application_uuid, :state, :container_name, :application_name, :namespace, :container_dir,
                   :quota_blocks, :quota_files, :base_dir, :gecos, :skel_dir, :supplementary_groups,
                   :cartridge_model, :container_plugin, :hourglass
       attr_accessor :uid, :gid
 
+      containerization_plugin_gem = ::OpenShift::Config.new.get('CONTAINERIZATION_PLUGIN') 
+      containerization_plugin_gem ||= 'openshift-origin-container-selinux'
+
+      begin
+        require containerization_plugin_gem
+      rescue LoadError => e
+        raise ArgumentError.new("error loading #{containerization_plugin_gem}: #{e.message}")
+      end
+
+      if !Containerization::Plugin.respond_to?(:container_dir)
+        raise ArgumentError.new('containerization plugin must respond to container_dir')
+      end
+      
       def initialize(application_uuid, container_uuid, user_uid = nil, application_name = nil, container_name = nil,
                      namespace = nil, quota_blocks = nil, quota_files = nil, hourglass = nil)
-
         @config           = ::OpenShift::Config.new
         @uuid             = container_uuid
         @application_uuid = application_uuid
@@ -91,23 +96,21 @@ module OpenShift
         @hourglass        = hourglass || ::OpenShift::Runtime::Utils::Hourglass.new(3600)
 
         begin
-          user_info      = Etc.getpwnam(@uuid)
-          @uid           = user_info.uid
-          @gid           = user_info.gid
-          @gecos         = user_info.gecos
-          @container_dir = "#{user_info.dir}/"
-          @container_plugin = @@container_plugin_class.new(self)
+          user_info         = Etc.getpwnam(@uuid)
+          @uid              = user_info.uid
+          @gid              = user_info.gid
+          @gecos            = user_info.gecos
+          @container_dir    = "#{user_info.dir}/"
+          @container_plugin = Containerization::Plugin.new(self)
         rescue ArgumentError => e
-          @uid           = user_uid
-          @gid           = user_uid #user_gid || user_uid
-          @gecos         = @config.get("GEAR_GECOS") || "OO application container"
-          @container_dir = @@container_plugin_class.container_dir(self)
-
-          #will be instantiated when create() is called
+          @uid              = user_uid
+          @gid              = user_uid 
+          @gecos            = @config.get("GEAR_GECOS") || "OO application container"
+          @container_dir    = Containerization::Plugin.container_dir(self)
           @container_plugin = nil
         end
 
-        @state            = ::OpenShift::Runtime::Utils::ApplicationState.new(self)
+        @state           = ::OpenShift::Runtime::Utils::ApplicationState.new(self)
         @cartridge_model = V2CartridgeModel.new(@config, self, @state, @hourglass)
       end
 
@@ -119,16 +122,19 @@ module OpenShift
       def self.from_uuid(container_uuid, hourglass=nil)
         config = ::OpenShift::Config.new
         gecos  = config.get("GEAR_GECOS") || "OO application container"
-        pwent   = Etc.getpwnam(container_uuid)
+        pwent  = Etc.getpwnam(container_uuid)
+
         if pwent.gecos != gecos
           raise ArgumentError, "Not an OpenShift gear: #{container_uuid}"
         end
+
         env = ::OpenShift::Runtime::Utils::Environ.for_gear(pwent.dir)
         if env['OPENSHIFT_GEAR_DNS'] == nil
           namespace = nil
         else
           namespace = env['OPENSHIFT_GEAR_DNS'].sub(/\..*$/,"").sub(/^.*\-/,"")
         end
+
         ApplicationContainer.new(env["OPENSHIFT_APP_UUID"], container_uuid, pwent.uid, env["OPENSHIFT_APP_NAME"],
                                  env["OPENSHIFT_GEAR_NAME"], namespace, nil, nil, hourglass)
       end
@@ -153,7 +159,7 @@ module OpenShift
           uuid_lock.fcntl(Fcntl::F_SETFD, Fcntl::FD_CLOEXEC)
           uuid_lock.flock(File::LOCK_EX)
 
-          @container_plugin = @@container_plugin_class.new(self)
+          @container_plugin = Containerization::Plugin.new(self)
           @container_plugin.create
 
           if @config.get("CREATE_APP_SYMLINKS").to_i == 1

@@ -2,6 +2,7 @@
 
 require 'rubygems'
 require 'daemons'
+require 'fileutils'
 
 options = {
     :backgrace => true,
@@ -15,4 +16,6 @@ options = {
     
 }
 
+FileUtils.touch("#{ENV['OPENSHIFT_HAPROXY_LOG_DIR']}/validate_config.log")
+FileUtils.touch("#{ENV['OPENSHIFT_HAPROXY_LOG_DIR']}/scale_events.log")
 Daemons.run("#{ENV['OPENSHIFT_HAPROXY_DIR']}/usr/bin/haproxy_ctld.rb", options)

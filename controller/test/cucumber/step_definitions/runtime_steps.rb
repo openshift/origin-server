@@ -488,6 +488,7 @@ When /^a simple update is pushed to the application repo$/ do
   record_measure("Runtime Benchmark: Pushing random change to app repo at #{@app.git_repo}") do
     Dir.chdir(@app.git_repo) do
       # Make a change to the app repo
+      ENV['X_SCLS'] = nil
       run "echo $RANDOM >> cucumber_update_test"
       run "git add ."
       run "git commit -m 'Test change'"

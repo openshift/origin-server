@@ -30,7 +30,6 @@ module OpenShift
       @runtime_dir = File.join(@gear_dir, 'app-root', 'runtime')
       @logs_dir    = File.join(@gear_dir, 'app-root', 'logs')
 
-
       @env = ::OpenShift::Runtime::Utils::Environ.load('/etc/openshift/env')
       FileUtils.mkpath(@runtime_dir)
       FileUtils.mkpath(@logs_dir)

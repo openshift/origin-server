@@ -421,16 +421,16 @@ class Application
     features.each do |feature_name|
       cart = CartridgeCache.find_cartridge(feature_name, self)
       
+      # Make sure this is a valid cartridge
+      if cart.nil?
+        raise OpenShift::UserException.new("Invalid cartridge '#{feature_name}' specified.", 109)
+      end
+
       # ensure that the user isn't trying to add multiple versions of the same cartridge
       if cart_name_map.has_key?(cart.original_name)
         raise OpenShift::UserException.new("#{cart.name} cannot co-exist with #{cart_name_map[cart.original_name]} in the same application", 109)
       else
         cart_name_map[cart.original_name] = cart.name
-      end
-
-      # Make sure this is a valid cartridge
-      if cart.nil?
-        raise OpenShift::UserException.new("Invalid cartridge '#{feature_name}' specified.", 109)
       end
 
       if cart.is_web_framework?

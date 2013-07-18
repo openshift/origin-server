@@ -3,9 +3,9 @@
 @singleton
 Feature: Cartridge upgrades
   Scenario: Upgrade from compatible version
-    Given the expected version of the mock cartridge is installed
+    Given the expected version of the mock-0.1 cartridge is installed
     And a new client created mock-0.1 application
-    And a compatible version of the mock cartridge
+    And a compatible version of the mock-0.1 cartridge
     And the mock invocation markers are cleared
     And a gear level upgrade extension exists
 
@@ -18,9 +18,9 @@ Feature: Cartridge upgrades
     And the application should be accessible
 
   Scenario: Upgrade from incompatible version
-    Given the expected version of the mock cartridge is installed
+    Given the expected version of the mock-0.1 cartridge is installed
     And a new client created mock-0.1 application
-    And an incompatible version of the mock cartridge
+    And an incompatible version of the mock-0.1 cartridge
     And the mock invocation markers are cleared
     And a gear level upgrade extension exists
 

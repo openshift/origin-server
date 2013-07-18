@@ -3,13 +3,13 @@ require 'openshift-origin-node/utils/node_logger'
 module OpenShift
   module Runtime
     module Containerization
-      class SELinuxContainer
+      class Plugin
         include OpenShift::Runtime::NodeLogger
 
         attr_reader :gear_shell, :mcs_label
 
         def self.container_dir(container)
-          File.join(container.base_dir,container.uuid)
+          File.join(container.base_dir, container.uuid)
         end
 
         def initialize(application_container)
