@@ -1,5 +1,5 @@
 def upgrade_gear(name, login, gear_uuid)
-  current_version = '2.0.29' #OpenShiftMigration.current_version
+  current_version = 'expected'
   output = `oo-admin-upgrade --app-name #{@app.name} --login #{@app.login} --upgrade-gear #{gear_uuid} --version #{current_version}`
   $logger.info("Upgrade output: #{output}")
   assert_equal 0, $?.exitstatus
@@ -175,6 +175,10 @@ Given /^a gear level upgrade extension exists$/ do
   gear_upgrade_content = <<-EOF
 module OpenShift
   class GearUpgradeExtension
+    def self.version
+      'expected'
+    end
+
     def initialize(uuid, gear_home)
       @uuid = uuid
       @gear_home = gear_home
