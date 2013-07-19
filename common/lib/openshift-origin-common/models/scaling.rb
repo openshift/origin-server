@@ -9,12 +9,12 @@ module OpenShift
       self.multiplier = 1
     end
 
-    def multiplier
-      if self.max==1
-        return -1
-      end
-      @multiplier
-    end
+# def multiplier
+#      if self.max==1
+#        return -1
+#      end
+#      @multiplier
+#    end
 
     def generated
       self.min == 1 && self.max == -1 && self.min_managed == 1 && self.multiplier == 1
