@@ -18,6 +18,7 @@ class Gear
   field :quarantined, type: Boolean, default: false
   field :host_singletons, type: Boolean, default: false
   field :app_dns, type: Boolean, default: false
+  field :sparse_carts, type: Array, default: []
 
   # Initializes the gear
   def initialize(attrs = nil, options = nil)
@@ -131,6 +132,7 @@ class Gear
     component.process_properties(result_io)
     app.process_commands(result_io, component._id)
     raise OpenShift::NodeException.new("Unable to add component #{component.cartridge_name}::#{component.component_name}", result_io.exitcode, result_io) if result_io.exitcode != 0
+    self.sparse_carts << component._id if component.is_sparse?
     result_io
   end
   
@@ -165,6 +167,7 @@ class Gear
   def remove_component(component)
     result_io = get_proxy.remove_component(self, component)
     app.process_commands(result_io)
+    self.sparse_carts.delete(component._id) if component.is_sparse?
     result_io
   end
   

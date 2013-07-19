@@ -212,10 +212,12 @@ class PendingAppOpGroup
             application.save
           when :add_component
             result_io.append gear.add_component(component_instance, op.args["init_git_url"])
+            gear.save if component_instance.is_sparse?
           when :post_configure_component
             result_io.append gear.post_configure_component(component_instance, op.args["init_git_url"])
           when :remove_component
             result_io.append gear.remove_component(component_instance)          
+            gear.save if component_instance.is_sparse?
           when :create_gear
             result_io.append gear.create_gear
             raise OpenShift::NodeException.new("Unable to create gear", result_io.exitcode, result_io) if result_io.exitcode != 0

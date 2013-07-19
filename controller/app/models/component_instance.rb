@@ -28,8 +28,8 @@ class ComponentInstance
   
 
   # @return [Boolean] true if the component does not scale.
-  def is_singleton?
-    get_component.is_singleton?
+  def is_sparse?
+    get_component.is_sparse?
   end
   
   def is_plugin?

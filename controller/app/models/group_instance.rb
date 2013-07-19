@@ -36,15 +36,23 @@ class GroupInstance
   end
   
   def component_instances
-    all_component_instances.select{|c| !c.is_singleton?}
+    all_component_instances.select{|c| !c.is_sparse?}
   end
   
-  def singleton_instances
-    all_component_instances.select{|c| c.is_singleton?}
+  def sparse_instances
+    all_component_instances.select{|c| c.is_sparse?}
   end
   
   def all_component_instances
     application.component_instances.where(group_instance_id: self._id)
+  end
+
+  def get_gears(component_instance=nil)
+    if component_instance.nil? or not component_instance.is_sparse?
+      return gears
+    else
+      return gears.select { |g| g.sparse_carts.include? component_instance._id }
+    end
   end
   
   def gear_size

@@ -1663,7 +1663,7 @@ module OpenShift
         source_container = gear.get_proxy
         start_order.each do |cinst|
           next if not gear_components.include? cinst
-          next if cinst.is_singleton? and (not gear.host_singletons)
+          next if cinst.is_sparse? and (not gear.sparse_carts.include? cinst._id)
           cart = cinst.cartridge_name
           idle, leave_stopped = state_map[cart]
           unless leave_stopped
@@ -1712,7 +1712,7 @@ module OpenShift
         start_order,stop_order = app.calculate_component_orders
         stop_order.each { |cinst|
           next if not gi_comps.include? cinst
-          next if cinst.is_singleton? and (not gear.host_singletons)
+          next if cinst.is_sparse? and (not gear.sparse_carts.include? cinst._id)
           cart = cinst.cartridge_name
           idle, leave_stopped = state_map[cart]
           # stop the cartridge if it needs to
@@ -1801,7 +1801,7 @@ module OpenShift
         idle, leave_stopped, quota_blocks, quota_files = get_app_status(app)
         gi = gear.group_instance
         gi.all_component_instances.each do |cinst|
-          next if cinst.is_singleton? and (not gear.host_singletons)
+          next if cinst.is_sparse? and (not gear.sparse_carts.include? cinst._id)
           state_map[cinst.cartridge_name] = [idle, leave_stopped]
         end
 
@@ -1821,7 +1821,7 @@ module OpenShift
             gi_comps = gear.group_instance.all_component_instances.to_a
             start_order.each do |cinst|
               next if not gi_comps.include? cinst
-              next if cinst.is_singleton? and (not gear.host_singletons)
+              next if cinst.is_sparse? and (not gear.sparse_carts.include? cinst._id)
               cart = cinst.cartridge_name
               idle, leave_stopped = state_map[cart]
 
@@ -1858,7 +1858,7 @@ module OpenShift
             # remove-httpd-proxy of destination
             log_debug "DEBUG: Moving failed.  Rolling back gear '#{gear.name}' '#{app.name}' with remove-httpd-proxy on '#{destination_container.id}'"
             gi.all_component_instances.each do |cinst|
-              next if cinst.is_singleton? and (not gear.host_singletons)
+              next if cinst.is_sparse? and (not gear.sparse_carts.include? cinst._id)
               cart = cinst.cartridge_name
               if framework_carts(app).include? cart
                 begin
@@ -1882,7 +1882,7 @@ module OpenShift
             # start source
             start_order.each do |cinst|
               next if not gi_comps.include? cinst
-              next if cinst.is_singleton? and (not gear.host_singletons)
+              next if cinst.is_sparse? and (not gear.sparse_carts.include? cinst._id)
               cart = cinst.cartridge_name
               idle, leave_stopped = state_map[cart]
               if not leave_stopped
