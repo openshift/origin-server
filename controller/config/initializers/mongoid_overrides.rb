@@ -3,7 +3,7 @@
 # API error responses.
 #
 
-raise "Verify Mongoid::Errors::DocumentNotFound is unchanged" if Mongoid::VERSION.to_f >= 3.1
+raise "Verify Mongoid::Errors::DocumentNotFound is unchanged" if Mongoid::VERSION.to_f >= 3.2
 
 Mongoid::Errors::DocumentNotFound #force load
 module Mongoid
