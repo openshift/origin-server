@@ -28,7 +28,7 @@ Requires:      httpd
 Requires:      mod_ssl
 Requires:      %{?scl:%scl_prefix}mod_passenger
 %if 0%{?scl:1}
-Requires:      ruby193-ruby-wrapper
+Requires:      %{?scl:%scl_prefix}ruby-wrapper
 Requires:      openshift-origin-util-scl
 %else
 Requires:      openshift-origin-util
