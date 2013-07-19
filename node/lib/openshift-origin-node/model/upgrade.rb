@@ -78,7 +78,7 @@ module OpenShift
         gear_base_dir = @config.get('GEAR_BASE_DIR')
         @gear_home = PathUtils.join(gear_base_dir, uuid)
         @gear_env = Utils::Environ.for_gear(gear_home)
-        @progress = Utils::UpgradeProgress.new(gear_home)
+        @progress = Utils::UpgradeProgress.new(gear_base_dir, gear_home, uuid)
         @container = ApplicationContainer.from_uuid(uuid)
         @gear_extension = nil
       end
