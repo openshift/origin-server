@@ -410,10 +410,6 @@ module OpenShift
             f_in.close
           end
 
-          begin
-            FileUtils.ln(filename, filename+"~", :force => true)
-          rescue Errno::ENOENT
-          end
           FileUtils.mv(filename+"-", filename, :force => true)
           SELinux::chcon(filename)
 
