@@ -2036,6 +2036,9 @@ class Application
                 # ignore
               end
             end
+            unless is_valid
+              is_valid = true if ci_cart.categories.include?(comp_spec["comp"])
+            end
           end
           is_valid
         }

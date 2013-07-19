@@ -73,10 +73,6 @@ Subscribes:
 Scaling:
   Min: 1
   Max: -1
-Group-Overrides:
-  - components:
-    - python-2.7
-    - web_proxy
 Endpoints:
   - Private-IP-Name:   IP
     Private-Port-Name: PORT
@@ -97,8 +93,4 @@ Version-Overrides:
        - python-3.3
        - "python"
        - "python(version) = 3.3"
-     Group-Overrides:
-       - components:
-         - python-3.3
-         - web_proxy
 Install-Build-Required: false
