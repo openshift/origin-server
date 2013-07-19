@@ -1,0 +1,28 @@
+#!/bin/bash
+
+# Start the application httpd instance
+
+# Exit on any errors
+set -e
+
+function print_help {
+    echo "Usage: $0 app-name namespace uuid"
+    echo "Start a running application"
+
+    echo "$0 $@" | logger -p local0.notice -t openshift_origin_httpd_start
+    exit 1
+}
+
+while getopts 'd' OPTION
+do
+    case $OPTION in
+        d) set -x
+        ;;
+        ?) print_help
+        ;;
+    esac
+done
+
+[ $# -eq 3 ] || print_help
+
+echo ${OPENSHIFT_GEAR_DNS}:${OPENSHIFT_AEROGEAR_PUSH_CLUSTER_PROXY_PORT}

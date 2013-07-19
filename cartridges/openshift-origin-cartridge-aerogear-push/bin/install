@@ -1,0 +1,26 @@
+#!/bin/bash -eu
+
+source $OPENSHIFT_AEROGEAR_PUSH_DIR/bin/util
+
+case "$1" in
+  -v|--version)
+    version="$2"
+esac
+
+echo "$version" > "$OPENSHIFT_AEROGEAR_PUSH_DIR/env/OPENSHIFT_AEROGEAR_PUSH_VERSION"
+
+ln -s ${OPENSHIFT_AEROGEAR_PUSH_DIR}/standalone/log ${OPENSHIFT_AEROGEAR_PUSH_DIR}/logs
+
+# Install the UnifiedPush Server WAR
+cp ${OPENSHIFT_AEROGEAR_PUSH_DIR}/versions/${version}/standalone/deployments/ag-push.war $OPENSHIFT_AEROGEAR_PUSH_DIR/standalone/deployments/ROOT.war
+
+JBOSS_HOME=/etc/alternatives/jbossas-7
+pushd $OPENSHIFT_AEROGEAR_PUSH_DIR 1> /dev/null
+  ln -s ${JBOSS_HOME}/jboss-modules.jar
+  ln -s ${JBOSS_HOME}/modules
+popd 1> /dev/null
+
+touch ${OPENSHIFT_AEROGEAR_PUSH_DIR}/env/OPENSHIFT_AEROGEAR_PUSH_CLUSTER
+touch ${OPENSHIFT_AEROGEAR_PUSH_DIR}/env/OPENSHIFT_AEROGEAR_PUSH_CLUSTER_REMOTING
+
+update-configuration java7

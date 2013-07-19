@@ -1,0 +1,15 @@
+---
+locked_files:
+- bin/
+- bin/*
+- metadata/
+- metadata/*
+- env/
+- env/OPENSHIFT_AEROGEAR_PUSH_DIR
+- env/OPENSHIFT_AEROGEAR_PUSH_LOG_DIR
+- env/OPENSHIFT_AEROGEAR_PUSH_JDK*
+- env/OPENSHIFT_AEROGEAR_PUSH_VERSION
+- env/M2_HOME
+- standalone/deployments/*
+processed_templates:
+- '**/*.erb'

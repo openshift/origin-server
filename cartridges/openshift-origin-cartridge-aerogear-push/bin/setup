@@ -1,0 +1,14 @@
+#!/bin/bash -eu
+
+case "$1" in
+  -v|--version)
+    version="$2"
+esac
+
+# Create additional directories required by JBOSSAS
+mkdir -p ${OPENSHIFT_HOMEDIR}/.m2
+mkdir -p ${OPENSHIFT_AEROGEAR_PUSH_DIR}/{standalone/tmp,standalone/deployments,standalone/configuration,standalone/log,standalone/data}
+
+# Copy the version specific files up to jbossas directory
+cp -r ${OPENSHIFT_AEROGEAR_PUSH_DIR}/versions/${version}/standalone/configuration/* ${OPENSHIFT_AEROGEAR_PUSH_DIR}/standalone/configuration
+cp ${OPENSHIFT_AEROGEAR_PUSH_DIR}/versions/${version}/bin/* ${OPENSHIFT_AEROGEAR_PUSH_DIR}/bin

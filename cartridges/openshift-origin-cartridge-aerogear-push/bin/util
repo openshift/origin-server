@@ -1,0 +1,15 @@
+#!/bin/bash -eu
+
+source $OPENSHIFT_CARTRIDGE_SDK_BASH
+
+function update-configuration() {
+  if marker_present java7 || [ ${1:-undefined} == java7 ]
+  then
+    export JAVA_HOME=$OPENSHIFT_AEROGEAR_PUSH_JDK7
+  else
+    export JAVA_HOME=$OPENSHIFT_AEROGEAR_PUSH_JDK6
+  fi
+
+  echo $JAVA_HOME > $OPENSHIFT_AEROGEAR_PUSH_DIR/env/JAVA_HOME
+  echo "$JAVA_HOME/bin:$M2_HOME/bin" > $OPENSHIFT_AEROGEAR_PUSH_DIR/env/OPENSHIFT_AEROGEAR_PUSH_PATH_ELEMENT
+}

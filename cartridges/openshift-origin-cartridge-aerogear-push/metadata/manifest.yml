@@ -1,0 +1,129 @@
+Name: aerogear-push
+Cartridge-Short-Name: AEROGEAR_PUSH
+Display-Name: AeroGear UnifiedPush Server 0.8.0
+Description: "AeroGear UnifiedPush Server is a server that allows native push notifications to be sent to different mobile operating systems. Runs on top of JBoss Application Server 7."
+Version: 0.8.0
+License: LGPL
+License-Url: http://www.gnu.org/copyleft/lesser.txt
+Vendor: Red Hat
+Cartridge-Version: 0.0.1
+Cartridge-Vendor: redhat
+Categories:
+  - service
+  - web_framework
+  - java
+  - jboss
+  - jee_full_profile
+Website: http://aerogear.org
+Help-Topics:
+  "Developer Center": https://www.openshift.com/developers
+Cart-Data:
+  - Key: OPENSHIFT_AEROGEAR_PUSH_LOG_DIR
+    Type: environment
+    Description: "Directory to store application log files."
+  - Key: OPENSHIFT_TMP_DIR
+    Type: environment
+    Description: "Directory to store application temporary files."
+  - Key: OPENSHIFT_REPO_DIR
+    Type: environment
+    Description: "Application root directory where application files reside. This directory is reset every time you do a git-push"
+  - Key: OPENSHIFT_AEROGEAR_PUSH_HTTP_PORT
+    Type: environment
+    Description: "Internal port to which the web-framework binds to."
+  - Key: OPENSHIFT_AEROGEAR_PUSH_IP
+    Type: environment
+    Description: "Internal IP to which the web-framework binds to."
+  - Key: OPENSHIFT_APP_DNS
+    Type: environment
+    Description: "Fully qualified domain name for the application."
+  - Key: OPENSHIFT_APP_NAME
+    Type: environment
+    Description: "Application name"
+  - Key: OPENSHIFT_DATA_DIR
+    Type: environment
+    Description: "Directory to store application data files. Preserved across git-pushes. Not shared across gears."
+  - Key: OPENSHIFT_APP_UUID
+    Type: environment
+    Description: "Unique ID which identified the application. Does not change between gears."
+  - Key: OPENSHIFT_GEAR_UUID
+    Type: environment
+    Description: "Unique ID which identified the gear. This value changes between gears."
+Provides:
+  - jbossas-7
+  - "jbossas"
+  - "jbossas(version) = 7.1"
+  - "jbossas(version) >= 7.1"
+  - "jboss-as7"
+  - jbossas-standalone
+  - jboss-as7-standalone
+Publishes:
+  publish-http-url:
+    Type: "NET_TCP:httpd-proxy-info"
+  publish-gear-endpoint:
+    Type: "NET_TCP:gear-endpoint-info"
+  publish-jboss-cluster:
+    Type: "NET_TCP:jbossas-cluster-info"
+  publish-jboss-remoting:
+    Type: "NET_TCP:jbossas-remoting-info"
+Subscribes:
+  set-db-connection-info:
+    Type: "ENV:NET_TCP:db:connection-info"
+    Required: false
+    Required: false
+  set-mysql-connection-info:
+    Type: "NET_TCP:db:mysql"
+    Required : false
+  set-postgres-connection-info:
+    Type: "NET_TCP:db:postgres"
+    Required : false
+  set-nosql-db-connection-info:
+    Type: "ENV:NET_TCP:nosqldb:connection-info"
+    Required : false
+  set-doc-url:
+    Type: "STRING:urlpath"
+    Required : false
+  set-jboss-cluster:
+    Type: "NET_TCP:jbossas-cluster-info"
+  set-jboss-remoting:
+    Type: "NET_TCP:jbossas-remoting-info"
+  set-generic-java:
+    Type: "ENV:NET_TCP:generic-java"
+Scaling:
+  Min: 1
+  Max: -1
+Group-Overrides:
+  - components:
+    - jbossas-7
+    - web_proxy
+Endpoints:
+  - Private-IP-Name:     IP
+    Private-Port-Name:   HTTP_PORT
+    Private-Port:        8080
+    Public-Port-Name:    HTTP_PROXY_PORT
+    WebSocket-Port-Name: WEBSOCKET_PORT
+    WebSocket-Port:      8676
+    Mappings:
+      - Frontend:      ""
+        Backend:       ""
+        Options:       { "websocket": 1}
+      - Frontend:      "/health"
+        Backend:       ""
+        Options:       { health: true }
+  - Private-IP-Name:   IP
+    Private-Port-Name: CLUSTER_PORT
+    Private-Port:      7600
+    Public-Port-Name:  CLUSTER_PROXY_PORT
+  - Private-IP-Name:   IP
+    Private-Port-Name: MESSAGING_PORT
+    Private-Port:      5445
+    Public-Port-Name:  MESSAGING_PROXY_PORT
+  - Private-IP-Name:   IP
+    Private-Port-Name: MESSAGING_THROUGHPUT_PORT
+    Private-Port:      5455
+    Public-Port-Name:  MESSAGING_THROUGHPUT_PROXY_PORT
+  - Private-IP-Name:   IP
+    Private-Port-Name: REMOTING_PORT
+    Private-Port:      4447
+    Public-Port-Name:  REMOTING_PROXY_PORT
+Additional-Control-Actions:
+    - threaddump

@@ -1,0 +1,173 @@
+#!/bin/bash -e
+
+source $OPENSHIFT_CARTRIDGE_SDK_BASH
+
+JBOSSAS_BIN_DIR=${OPENSHIFT_AEROGEAR_PUSH_DIR}/bin
+JBOSSAS_PID_FILE=${OPENSHIFT_HOMEDIR}/app-root/runtime/aerogear_push.pid
+
+source $JBOSSAS_BIN_DIR/util
+
+cartridge_type="aerogear-push"
+
+# Check if the jbossas process is running
+function isrunning() {
+
+    # Check for running app
+    if [ -f "$JBOSSAS_PID_FILE" ]; then
+      jbpid=$(cat $JBOSSAS_PID_FILE);
+      if /bin/ps --pid $jbpid 1>&2 >/dev/null;
+      then
+        return 0
+      fi
+    fi
+
+    return 1
+}
+
+# Kill the process given by $1 and its children
+killtree() {
+    local _pid=$1
+    for _child in $(ps -o pid --no-headers --ppid ${_pid}); do
+        killtree ${_child}
+    done
+
+    local should_be_gone_pid=$(ps -o pid -p ${_pid} --no-headers)
+    if [ -z "$should_be_gone_pid" ]; then
+        return
+    else
+        kill -TERM ${_pid}
+    fi
+
+    local count=0
+    while [ ${count} -lt 15 ]
+    do
+        local should_be_gone_pid=$(ps -o pid -p ${_pid} --no-headers)
+        if [ -z "$should_be_gone_pid" ]; then
+                return
+        else
+                sleep 2
+                let count=${count}+1
+        fi
+    done
+
+    local should_be_gone_pid=$(ps -o pid -p ${_pid} --no-headers)
+    if [ ! -z $should_be_gone_pid ]
+    then
+        kill -9 ${_pid}
+    fi
+}
+
+# Check if the server http port is up
+function ishttpup() {
+
+    let count=0
+    while [ ${count} -lt 48 ]
+    do
+        if /usr/sbin/lsof -P -n -i "@${OPENSHIFT_AEROGEAR_PUSH_IP}:${OPENSHIFT_AEROGEAR_PUSH_HTTP_PORT}" | grep "(LISTEN)" > /dev/null; then
+            echo "Found ${OPENSHIFT_AEROGEAR_PUSH_IP}:${OPENSHIFT_AEROGEAR_PUSH_HTTP_PORT} listening port"
+            return 0
+        fi
+        let count=${count}+1
+
+        sleep 2
+    done
+
+    return 1
+}
+
+function start() {
+  echo "Starting $cartridge_type cart"
+
+  if marker_present "enable_jpda"
+  then
+    export ENABLE_JPDA=1
+  fi
+
+  # Check for running app
+  if isrunning; then
+      echo "Application is already running"
+  else    
+    ${JBOSSAS_BIN_DIR}/standalone.sh > ${OPENSHIFT_TMP_DIR}/${cartridge_type}.log 2>&1 &
+    PROCESS_ID=$!
+    echo "$PROCESS_ID" > ${JBOSSAS_PID_FILE}
+    if ! ishttpup; then
+        echo "Timed out waiting for http listening port"
+        exit 1
+    fi
+  fi
+}
+
+
+function stop() {
+  echo "Stopping $cartridge_type cart"
+
+  if isrunning; then
+    if [ -f "$JBOSSAS_PID_FILE" ]; then
+      pid=$(cat $JBOSSAS_PID_FILE);
+      echo "Sending SIGTERM to jboss:$pid ..." 1>&2
+      killtree $pid
+    else
+      echo "Failed to locate JBOSS PID File" 1>&2
+    fi
+  fi
+}
+
+function restart() {
+    echo "Restarting $cartridge_type cart"
+
+    stop
+
+    start
+}
+
+function status() {
+   if isrunning
+   then
+      client_result "Application is running"
+   else
+      client_result "Application is either stopped or inaccessible"
+   fi
+}
+
+function reload() {
+    echo "Reloading $cartridge_type cart"
+    restart
+}
+
+# Clean up any log files
+function tidy() {
+  client_message "Emptying log dir: $OPENSHIFT_AEROGEAR_PUSH_LOG_DIR"
+  shopt -s dotglob
+  rm -rf $OPENSHIFT_AEROGEAR_PUSH_LOG_DIR/*
+}
+
+function threaddump() {
+  echo "Thread dump for $cartridge_type cart"
+
+    if ! isrunning; then
+        echo "Application is stopped"
+        exit 1
+    elif [ -f "$JBOSSAS_PID_FILE" ]; then
+        pid=$(cat $JBOSSAS_PID_FILE);
+        java_pid=$(ps h --ppid $pid -o '%p')
+        kill -3 $java_pid
+        client_result "Success"
+        client_result ""
+        client_result "The thread dump file will be available via: rhc tail $OPENSHIFT_APP_NAME -f ${OPENSHIFT_TMP_DIR}${cartridge_type}.log -o '-n 250'"
+    else 
+        echo "Failed to locate JBOSS PID File"
+    fi
+}
+
+case "$1" in
+  start)           start ;;
+  stop)            stop ;;
+  restart)         restart ;;
+  status)          status ;;
+  reload)          reload ;;
+  tidy)            tidy ;;
+  threaddump)      threaddump ;;
+  update-configuration) update-configuration;;
+  *)               exit 0
+esac
+
