@@ -1015,9 +1015,7 @@ class Application
         pub_cart_name = from["cart"]
         tag = sub_inst._id.to_s
 
-        sub_ginst.gears.each_index do |idx|
-          break if (sub_inst.is_singleton? && idx > 0)
-          gear = sub_ginst.gears[idx]
+        sub_ginst.get_gears(sub_inst).each do |gear|
           job = gear.get_unsubscribe_job(sub_inst, pub_cart_name)
           RemoteJob.add_parallel_job(handle, tag, gear, job)
         end
@@ -1046,9 +1044,7 @@ class Application
         pub_ginst = self.group_instances.find(pub_inst.group_instance_id)
         tag = conn._id.to_s
 
-        pub_ginst.gears.each_index do |idx|
-          break if (pub_inst.is_singleton? && idx > 0)
-          gear = pub_ginst.gears[idx]
+        pub_ginst.get_gears(pub_inst).each do |gear|
           input_args = [gear.name, self.domain.namespace, gear.uuid]
           job = gear.get_execute_connector_job(pub_inst, conn.from_connector_name, conn.connection_type, input_args)
           RemoteJob.add_parallel_job(handle, tag, gear, job)
@@ -1085,10 +1081,7 @@ class Application
           end
 
           Rails.logger.debug "Output of publisher - '#{pub_out}'"
-          sub_ginst.gears.each_index do |idx|
-            break if (sub_inst.is_singleton? && idx > 0)
-            gear = sub_ginst.gears[idx]
-
+          sub_ginst.get_gears(sub_inst).each do |gear|
             input_args = [gear.name, self.domain.namespace, gear.uuid, input_to_subscriber]
             job = gear.get_execute_connector_job(sub_inst, conn.to_connector_name, conn.connection_type, input_args, pub_inst.cartridge_name)
             RemoteJob.add_parallel_job(handle, tag, gear, job)
@@ -1439,7 +1432,7 @@ class Application
     pending_ops
   end
 
-  def calculate_gear_create_ops(ginst_id, gear_ids, singleton_gear_id, comp_specs, component_ops, additional_filesystem_gb, gear_size, ginst_op_id=nil, is_scale_up=false, hosts_app_dns=false, init_git_url=nil)
+  def calculate_gear_create_ops(ginst_id, gear_ids, deploy_gear_id, comp_specs, component_ops, additional_filesystem_gb, gear_size, ginst_op_id=nil, is_scale_up=false, hosts_app_dns=false, init_git_url=nil)
     pending_ops = []
 
     a_ssh_keys = self.app_ssh_keys.map{|k| k.attributes}
@@ -1454,13 +1447,13 @@ class Application
     gear_id_prereqs = {}
     maybe_notify_app_create_op = []
     gear_ids.each do |gear_id|
-      host_singletons = (gear_id == singleton_gear_id)
+      host_singletons = (gear_id == deploy_gear_id)
       app_dns = (host_singletons && hosts_app_dns)
 
       if app_dns
         notify_app_create_op = PendingAppOp.new(op_type: :notify_app_create)
         pending_ops.push(notify_app_create_op) 
-        maybe_notify_app_create_op = [notify_app_create_op]
+        maybe_notify_app_create_op = [notify_app_create_op._id.to_s]
       end
 
       init_gear_op = PendingAppOp.new(op_type: :init_gear,   args: {"group_instance_id"=> ginst_id, "gear_id" => gear_id, "host_singletons" => host_singletons, "app_dns" => app_dns}, prereq: maybe_notify_app_create_op)
@@ -1496,7 +1489,7 @@ class Application
     ops = calculate_update_new_configuration_ops({"add_keys_attrs" => ssh_keys, "add_env_vars" => env_vars}, ginst_id, gear_id_prereqs)
     pending_ops.push(*ops)
 
-    ops = calculate_add_component_ops(comp_specs, ginst_id, gear_id_prereqs, singleton_gear_id, component_ops, is_scale_up, ginst_op_id, init_git_url)
+    ops = calculate_add_component_ops(comp_specs, ginst_id, deploy_gear_id, gear_id_prereqs, component_ops, is_scale_up, ginst_op_id, init_git_url)
     pending_ops.push(*ops)
     pending_ops
   end
@@ -1542,13 +1535,26 @@ class Application
     pending_ops
   end
 
-  def calculate_add_component_ops(comp_specs, group_instance_id, gear_id_prereqs, singleton_gear_id, component_ops, is_scale_up, new_group_instance_op_id, init_git_url=nil)
+  def valid_sparse_resident(group_instance_id, index, cartridge, comp_spec)
+    cur_gears = self.group_instances.find_by(_id: group_instance_id).gears.length rescue 0
+    gear_index = cur_gears + index
+
+    comp = cartridge.get_component(comp_spec["comp"])
+    is_sparse = comp.is_sparse?
+    return true if not is_sparse
+    return true if gear_index==0
+    total_sparse_cart_count = gear_index/comp.scaling.multiplier
+    return false if total_sparse_cart_count > comp.scaling.max
+    return true if gear_index%comp.scaling.multiplier==0 
+    return false
+  end
+
+  def calculate_add_component_ops(comp_specs, group_instance_id, deploy_gear_id, gear_id_prereqs, component_ops, is_scale_up, new_group_instance_op_id, init_git_url=nil)
     ops = []
 
     comp_specs.each do |comp_spec|
       component_ops[comp_spec] = {new_component: nil, adds: [], post_configures: []} if component_ops[comp_spec].nil?
       cartridge = CartridgeCache.find_cartridge(comp_spec["cart"], self)
-      is_singleton = cartridge.get_component(comp_spec["comp"]).is_singleton?
 
       new_component_op_id = []
       unless is_scale_up
@@ -1558,47 +1564,26 @@ class Application
         ops.push new_component_op
       end
 
-      if is_singleton
-        if gear_id_prereqs.keys.include?(singleton_gear_id)
-          prereq_id = gear_id_prereqs[singleton_gear_id]
-          git_url = nil
-          git_url = init_git_url if cartridge.is_deployable?
-          add_component_op = PendingAppOp.new(op_type: :add_component, args: {"group_instance_id"=> group_instance_id, "gear_id" => singleton_gear_id, "comp_spec" => comp_spec, "init_git_url" => git_url}, prereq: new_component_op_id + [prereq_id])
-          ops.push add_component_op
-          component_ops[comp_spec][:adds].push add_component_op
-          usage_op_prereq = [add_component_op._id.to_s]
+      gear_id_prereqs.each_with_index do |prereq, index|
+        gear_id, prereq_id = prereq
+        next if not valid_sparse_resident(group_instance_id, index, cartridge, comp_spec)
+        git_url = nil
+        git_url = init_git_url if gear_id == deploy_gear_id && cartridge.is_deployable?
+        add_component_op = PendingAppOp.new(op_type: :add_component, args: {"group_instance_id"=> group_instance_id, "gear_id" => gear_id, "comp_spec" => comp_spec, "init_git_url" => git_url}, prereq: new_component_op_id + [prereq_id])
+        ops.push add_component_op
+        component_ops[comp_spec][:adds].push add_component_op
+        usage_op_prereq = [add_component_op._id.to_s]
 
-          # if its a singleton, then it cannot be a scaleup,
-          # hence no need to check whether its a deployable cart and scaleup case
-          post_configure_op = PendingAppOp.new(op_type: :post_configure_component, args: {"group_instance_id"=> group_instance_id, "gear_id" => singleton_gear_id, "comp_spec" => comp_spec, "init_git_url" => git_url}, prereq: [add_component_op._id.to_s] + [prereq_id])
+        unless is_scale_up and cartridge.is_deployable?
+          post_configure_op = PendingAppOp.new(op_type: :post_configure_component, args: {"group_instance_id"=> group_instance_id, "gear_id" => gear_id, "comp_spec" => comp_spec, "init_git_url" => git_url}, prereq: [add_component_op._id.to_s] + [prereq_id])
           ops.push post_configure_op
           component_ops[comp_spec][:post_configures].push post_configure_op
           usage_op_prereq = [post_configure_op._id.to_s]
-
-          ops.push(PendingAppOp.new(op_type: :track_usage, args: {"user_id" => self.domain.owner._id, "parent_user_id" => self.domain.owner.parent_user_id,
-            "app_name" => self.name, "gear_ref" => singleton_gear_id, "event" => UsageRecord::EVENTS[:begin],
-            "usage_type" => UsageRecord::USAGE_TYPES[:premium_cart], "cart_name" => comp_spec["cart"]}, prereq: usage_op_prereq)) if cartridge.is_premium?
         end
-      else
-        gear_id_prereqs.each do |gear_id, prereq_id|
-          git_url = nil
-          git_url = init_git_url if gear_id == singleton_gear_id && cartridge.is_deployable?
-          add_component_op = PendingAppOp.new(op_type: :add_component, args: {"group_instance_id"=> group_instance_id, "gear_id" => gear_id, "comp_spec" => comp_spec, "init_git_url" => git_url}, prereq: new_component_op_id + [prereq_id])
-          ops.push add_component_op
-          component_ops[comp_spec][:adds].push add_component_op
-          usage_op_prereq = [add_component_op._id.to_s]
 
-          unless is_scale_up and cartridge.is_deployable?
-            post_configure_op = PendingAppOp.new(op_type: :post_configure_component, args: {"group_instance_id"=> group_instance_id, "gear_id" => gear_id, "comp_spec" => comp_spec, "init_git_url" => git_url}, prereq: [add_component_op._id.to_s] + [prereq_id])
-            ops.push post_configure_op
-            component_ops[comp_spec][:post_configures].push post_configure_op
-            usage_op_prereq = [post_configure_op._id.to_s]
-          end
-
-          ops.push(PendingAppOp.new(op_type: :track_usage, args: {"user_id" => self.domain.owner._id, "parent_user_id" => self.domain.owner.parent_user_id,
-            "app_name" => self.name, "gear_ref" => gear_id, "event" => UsageRecord::EVENTS[:begin],
-            "usage_type" => UsageRecord::USAGE_TYPES[:premium_cart], "cart_name" => comp_spec["cart"]}, prereq: usage_op_prereq)) if cartridge.is_premium?
-        end
+        ops.push(PendingAppOp.new(op_type: :track_usage, args: {"user_id" => self.domain.owner._id, "parent_user_id" => self.domain.owner.parent_user_id,
+          "app_name" => self.name, "gear_ref" => gear_id, "event" => UsageRecord::EVENTS[:begin],
+          "usage_type" => UsageRecord::USAGE_TYPES[:premium_cart], "cart_name" => comp_spec["cart"]}, prereq: usage_op_prereq)) if cartridge.is_premium?
       end
     end
 
@@ -1648,10 +1633,7 @@ class Application
   end
 
   def add_component_ops(op_type, component_instance, ops)
-    count = 0
-    component_instance.group_instance.gears.each do |gear|
-      break if component_instance.is_singleton? and count > 0
-      count += 1
+    component_instance.group_instance.get_gears(component_instance).each do |gear|
       op = PendingAppOp.new(op_type: op_type, args: {'group_instance_id' => component_instance.group_instance._id, 'gear_id' => gear._id, 'comp_spec' => {'cart' => component_instance.cartridge_name, 'comp' => component_instance.component_name}})
       ops.push op
     end
@@ -1674,26 +1656,18 @@ class Application
     comp_op_type
   end
 
-  def calculate_remove_component_ops(comp_specs, group_instance, singleton_gear)
+  def calculate_remove_component_ops(comp_specs, group_instance)
     ops = []
     comp_specs.each do |comp_spec|
       component_instance = self.component_instances.find_by(cartridge_name: comp_spec["cart"], component_name: comp_spec["comp"])
       cartridge = CartridgeCache.find_cartridge(comp_spec["cart"], self)
       if component_instance.is_plugin? || (!self.scalable && component_instance.is_embeddable?)
-        if component_instance.is_singleton?
-          op = PendingAppOp.new(op_type: :remove_component, args: {"group_instance_id"=> group_instance._id.to_s, "gear_id" => singleton_gear._id.to_s, "comp_spec" => comp_spec})
+        group_instance.get_gears(component_instance).each do |gear|
+          op = PendingAppOp.new(op_type: :remove_component, args: {"group_instance_id"=> group_instance._id.to_s, "gear_id" => gear._id, "comp_spec" => comp_spec})
           ops.push op
           ops.push(PendingAppOp.new(op_type: :track_usage, args: {"user_id" => self.domain.owner._id, "parent_user_id" => self.domain.owner.parent_user_id,
-            "app_name" => self.name, "gear_ref" => singleton_gear._id.to_s, "event" => UsageRecord::EVENTS[:end],
+            "app_name" => self.name, "gear_ref" => gear._id.to_s, "event" => UsageRecord::EVENTS[:end],
             "usage_type" => UsageRecord::USAGE_TYPES[:premium_cart], "cart_name" => comp_spec["cart"]}, prereq: [op._id.to_s])) if cartridge.is_premium?
-        else
-          group_instance.gears.each do |gear|
-            op = PendingAppOp.new(op_type: :remove_component, args: {"group_instance_id"=> group_instance._id.to_s, "gear_id" => gear._id, "comp_spec" => comp_spec})
-            ops.push op
-            ops.push(PendingAppOp.new(op_type: :track_usage, args: {"user_id" => self.domain.owner._id, "parent_user_id" => self.domain.owner.parent_user_id,
-              "app_name" => self.name, "gear_ref" => gear._id.to_s, "event" => UsageRecord::EVENTS[:end],
-              "usage_type" => UsageRecord::USAGE_TYPES[:premium_cart], "cart_name" => comp_spec["cart"]}, prereq: [op._id.to_s])) if cartridge.is_premium?
-          end
         end
       end
       remove_ssh_keys = self.app_ssh_keys.find_by(component_id: component_instance._id) rescue []
@@ -1758,12 +1732,12 @@ class Application
       end
 
       if app_dns_ginst
-        singleton_gear_id = gear_ids[0] = self._id.to_s
+        deploy_gear_id = gear_ids[0] = self._id.to_s
       else
-        singleton_gear_id = gear_ids[0]
+        deploy_gear_id = gear_ids[0]
       end
 
-      ops = calculate_gear_create_ops(ginst_id, gear_ids, singleton_gear_id, comp_specs, component_ops, additional_filesystem_gb, gear_size, ginst_op._id.to_s, false, app_dns_ginst,init_git_url)
+      ops = calculate_gear_create_ops(ginst_id, gear_ids, deploy_gear_id, comp_specs, component_ops, additional_filesystem_gb, gear_size, ginst_op._id.to_s, false, app_dns_ginst,init_git_url)
       pending_ops.push *ops
     end
 
@@ -1793,13 +1767,13 @@ class Application
             scale_change += (change[:to_scale][:current] - change[:from_scale][:current])
           end
 
-          singleton_gear = group_instance.gears.find_by(host_singletons: true)
-          ops = calculate_remove_component_ops(change[:removed], group_instance, singleton_gear)
+          deploy_gear_id = group_instance.gears.find_by(app_dns: true)._id.to_s rescue nil
+          ops = calculate_remove_component_ops(change[:removed], group_instance)
           pending_ops.push(*ops)
 
           gear_id_prereqs = {}
           group_instance.gears.each{|g| gear_id_prereqs[g._id.to_s] = []}
-          ops = calculate_add_component_ops(change[:added], change[:from], gear_id_prereqs, singleton_gear._id.to_s, component_ops, false, nil)
+          ops = calculate_add_component_ops(change[:added], change[:from], deploy_gear_id, gear_id_prereqs, component_ops, false, nil)
           pending_ops.push(*ops)
 
           changed_additional_filesystem_gb = nil
@@ -1837,12 +1811,12 @@ class Application
           if scale_change > 0
             add_gears += scale_change
             comp_specs = self.component_instances.where(group_instance_id: group_instance._id).map{|c| c.to_hash}
-            singleton_gear = group_instance.gears.find_by(host_singletons: true)
+            deploy_gear_id = group_instance.gears.find_by(app_dns: true)._id.to_s
             gear_ids = (1..scale_change).map {|idx| Moped::BSON::ObjectId.new.to_s}
             additional_filesystem_gb = changed_additional_filesystem_gb || group_instance.addtl_fs_gb
             gear_size = change[:to_scale][:gear_size] || group_instance.gear_size
 
-            ops = calculate_gear_create_ops(change[:from], gear_ids, singleton_gear._id.to_s, comp_specs, component_ops, additional_filesystem_gb, gear_size, nil, true)
+            ops = calculate_gear_create_ops(change[:from], gear_ids, deploy_gear_id, comp_specs, component_ops, additional_filesystem_gb, gear_size, nil, true)
             pending_ops.push *ops
           end
 
@@ -2029,7 +2003,7 @@ class Application
       comp = prof.get_component(component_instance["comp"])
       overrides += prof.group_overrides.deep_dup
       component_go = {"components" => [{"cart" => cart.name, "comp" => comp.name}] }
-      if !comp.is_singleton?
+      if !comp.is_sparse?
         component_go["min_gears"] = comp.scaling.min
         component_go["max_gears"] = comp.scaling.max
       end

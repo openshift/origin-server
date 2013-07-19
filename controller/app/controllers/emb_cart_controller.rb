@@ -203,7 +203,7 @@ class EmbCartController < BaseController
       return render_error(:unprocessable_entity, "Invalid cartridge #{id} for application #{@application.name}", 168, "PATCH_APP_CARTRIDGE", "cartridge")
     end
 
-    if component_instance.is_singleton?
+    if component_instance.is_sparse?
       if scales_to and scales_to != 1
         return render_error(:unprocessable_entity, "The cartridge #{id} cannot be scaled.", 168, "PATCH_APP_CARTRIDGE", "scales_to")
       elsif scales_from and scales_from != 1
@@ -216,7 +216,7 @@ class EmbCartController < BaseController
     if scales_to and scales_from.nil? and scales_to >= 1 and scales_to < group_instance.min
       return render_error(:unprocessable_entity, "The scales_to factor currently provided cannot be lower than the scales_from factor previously provided. Please specify both scales_(from|to) factors together to override.", 168, "scales_to") 
     end
-
+      
     if scales_from and scales_to.nil? and group_instance.max >= 1 and group_instance.max < scales_from
       return render_error(:unprocessable_entity, "The scales_from factor currently provided cannot be higher than the scales_to factor previously provided. Please specify both scales_(from|to) factors together to override.", 168, "scales_from") 
     end
