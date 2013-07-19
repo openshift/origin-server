@@ -51,7 +51,7 @@ class GroupInstance
     if component_instance.nil? or not component_instance.is_sparse?
       return gears
     else
-      return gears.select { |g| g.sparse_carts.include? component_instance._id }
+      return gears.select { |g| g.sparse_carts.include? component_instance._id or g.host_singletons }
     end
   end
   
