@@ -1,0 +1,248 @@
+= OpenShift Origin System Architecture Guide
+OpenShift Origin Documentation Project <dev@lists.openshift.redhat.com>
+v2.0, July 2013
+:data-uri:
+:toc2:
+:icons:
+:numbered:
+
+OpenShift Origin enables you to create, deploy and manage applications within the cloud. It provides disk space, CPU resources, memory, network connectivity, and an Apache or JBoss server. Depending on the type of application being deployed, a template file system layout is provided (for example, PHP, Python, and Ruby/Rails). It also manages a limited DNS for the application.
+
+== Platform Overview ==
+
+image:platform_overview.png[Platform Overview]
+
+The two basic functional units of the platform are the Broker, which provides the interface, and Cartridges, which provide application frameworks.
+
+* The *Broker* is the single point of contact for all application management activities. It is responsible for managing user logins, DNS, application state, and general orchestration of the application. Customers don't contact the broker directly; instead they use the Web console, CLI tools, or JBoss tools to interact with Broker over a REST based API.
+* *Cartridges* provide the actual functionality necessary to run the user application. We currently have many language cartridges to support JBoss, PHP, Ruby, etc., as well as many DB cartridges such as Postgres, Mysql, Mongo, etc.
+
+=== System Resources and Application Containers ===
+
+image:platform_containers.png[Gears and Nodes]
+
+The system resources and security containers provided by the platform are _gears_ and _nodes_.
+
+* *Gear*: Gears provide a resource-constrained container to run one or more cartridges. They limit the amount of RAM and disk space available to a cartridge.
+* *Node*: To enable us to share resources, multiple gears run on a single physical or virtual machine. We refer to this machine as a node. Gears are generally over-allocated on nodes since not all applications are active at the same time.
+
+=== Applications ===
+
+image:application_overview.png[Applications]
+
+* Domain: The domain is not directly related to DNS; instead it provides a unique namespace for all the applications of a specific user. The domain name is appended to the application name to form the final application URL.
+* Application Name: Identifies the name of the application. The final URL to access the application is of the form: `https://[APPNAME]-[DOMAIN].rhcloud.com`
+* Aliases: Users can provide their own DNS names for the application by registering an alias with the platform.
+* Application dependencies: Users specify the cartridges required to run their applications. There are currently 2 types of cartridges:
+** Framework cartridges are the primary cartridges responsible for serving up web pages. All applications must have a framework cartridge.
+** Embedded cartridges are support cartridges such as DBs or DB web interfaces. Many embedded cartridges can be added to a single application.
+* Application GIT repository: Each application gets a GIT repository. Users can modify code in the repository and then perform a git push to deploy their code.
+
+NOTE: In the near future, we will be removing the concept of embedded vs. framework cartridge in favor of describing which cartridges must be co-located and scaled together. See section about application and cartridge descriptors.
+
+== Primary user interactions ==
+
+=== Simple application creation ===
+
+This flow describes the case of creating and deploying a simple PHP application.
+
+image:simple_application_creation.png[Simple app creation]
+
+=== Application deployment using Jenkins ===
+
+OpenShift Origin also provides a Jenkins-based build workflow for all applications. The Jenkins server runs as a separate application that uses one of the user gears. The Jenkins builder agent also runs as a separate application that uses SSH/REST APIs to interact with the broker and the application being built.
+
+image:jenkins_build.png[Jenkins Build]
+
+=== Horizontal scaling (Beta) ===
+
+Horizontal scaling for applications is accomplished using HAProxy as a load-balancer and git deployment end point for the application. When a web request comes to HAProxy, it is forwarded on to the gear running the web tier of the application. Deployments are also handled through the HAProxy cartridge. When the customer performs a git push to deploy code to the HAProxy gear, it in turn does a git push to each of the other web gears.
+
+image:scaled_application.png[Scaled Application]
+
+=== Describing an application using descriptors ===
+
+Application descriptors provide a declarative way of building an application. The descriptor is a YAML file which includes attributes such as name, version, dependencies, etc., and also includes the desired architecture of the application. The broker/controller can use the descriptor YAML to create or modify the application and also provide many utility REST APIs to manipulate fields within the descriptor. Application and cartridge descriptors are discussed in detail in the following sections of this document.
+
+image:descriptors_and_gears.png[Descriptiors and Gears]
+
+To build an application from a descriptor, broker interprets the descriptor and resolves its dependencies. Each dependency is satisfied by a cartridge which includes a cartridge descriptor. Similar to the application descriptor, the cartridge descriptor defines the components and features supported by the cartridge.
+
+Using the application and cartridge descriptors, the broker is able to group components together and decide which gears they are instantiated on.
+
+== Logical Views ==
+
+image:architecture_overview.png[Architecture Overview]
+
+=== Packaging Structure ===
+
+Take a look at the https://www.openshift.com/wiki/packaging[packaging structure] documents for information about the package dependencies and plugin selections.
+
+=== StickShift ===
+
+StickShift is the core API part of the OpenShift Origin platform. It provides all the basic API support necessary for creating a PaaS platform and developing cartridges. It consists of 3 parts:
+
+1. *Controller* is a Rails Engine (plugin) which includes a REST API, business logic and state management for the PaaS platform. It also includes a set of plugin APIs for DNS management, authentication, data/state storage, and broker-node communications.
+2. *Node* includes the basic set of APIs needed to manage gears and applications component life cycles.
+3. *Common* includes data structures that are used by the controller and node components.
+
+=== Proxy Ports ===
+
+image:port_proxy.png[Proxy Ports]
+
+Proxy ports allow gears to expose internal services for the purposes of load balancing or providing its services to related application gears.
+
+Each gear can allocate up to 5 proxy ports. These are exposed on a routable address so that a related gear can connect to them even if that gear exists on a separate node.
+
+Proxy ports are enabled by HAProxy running as a system service and configured to proxy raw TCP connections; as opposed to the HAProxy cartridge which provides web load balancing sevice. In the future, they will be the underlying mechanism which is used to provide TCP connections described by Application Descriptors.
+
+Proxy ports are not directly accessible from outside the collection of nodes.
+
+=== Gear Filesystem Layout ===
+
+----
+.                                               
+├── git
+# Gears git repository. Initially populated by the web-framework cartridge
+│   └── [APP_NAME].git
+|       |
+# The hook directory is the only one owned by root to prevent users from modifying it
+│       ├── hooks								 
+|       |   |                                   
+|       |   |                                   
+│       │   └── pre-receive
+# Post receive hook invokes the build and deployment
+│       └── ... other git directories           
+└── [APP_NAME]
+# CI directory is used by Jenkins to clone and build the application.
+    ├── ci				
+# Control script to start/stop application when node is restarted						
+    ├── kraman3a_ctl.sh
+    ├── <cartridge name>                        
+    │   └── <cartridge specific configuration>  
+    ├── data                                    
+    │   └── ... ephemeral data storage          
+    ├── run                                     
+    │   └── ... PID files for processes         
+    ├── logs                                    
+    │   └── ... log files for all cartridges    
+    ├── sessions                                
+    │   └── ... application session information 
+    ├── tmp                                     
+    │   └── ... application temporary data      
+    ├── repo -> runtime/repo                    
+    └── runtime                                 
+        └── repo      
+# Platform support for dependency management for cartridges such as php which dont have their own
+            ├── deplist.txt						
+            |                                   
+            ├── ... deployed application code   
+            └── README
+----
+
+== Descriptors ==
+
+=== Application Descriptors ===
+
+This section describes how a user constructs an application descriptor to define the dependencies, scaling architecture, and connections for their applications.
+
+*Terms*:
+
+* Name: The name of the application (required)
+* Version: The version of the application (optional)
+* Requires: A list of dependencies. Either cartridge names or capabilities
+* Cartridge: A packaged set of components that work together to provide a certain capability
+* Component: Smallest piece of a software package which provides some functionality. Users don’t see below this level.
+* Connections: Specify that two components needs to talk to each other. Eg: PHP and MySQL are not directly related but need to talk to each other.
+* Group Override: Used to specify that user wants unrelated cartridges to be grouped on the same gear. In essence, embedding them together. These components will scale together.
+* Gear: A unit of CPU, memory, and disk-space on which components can run.
+
+*Simple descriptor*:
+
+----
+Name: myapp
+Version: 1.0
+Requires: php-1.0, mysql, mongodb
+Connections:
+  - php-1.0, mysql
+  - php-1.0, mongodb
+Group override:
+  - php-1.0, mysql
+----
+
+The descriptor above describes an application named “myapp” which depends on php-1.0, mysql and mongodb. PHP, MySQL and PHP, MongoDP need to communicate with each other. PHP and MySQL run embedded on the same set of gears while MongoDB runs on its own set of gears.
+
+=== Cartridge descriptors ===
+
+This section describes how a partner/cartridge developer uses descriptors to specify the capabilities of their cartridge. Their view into the system is different from an application developer and they are exposed to more advanced features.
+
+*Terms*:
+
+* Version, Vendor, License: Informational metadata fields not used by the system directly.
+* Requires native: Native/Platform-specific package dependencies (RPM)
+* Provides: A list of capabilities provided by the cartridge
+* Profile: The cartridge can group components into profiles to provide different architectures for the same piece of software. Eg: MySQL may provide a master-master and master-slave profile.
+* Publishers: List of connection endpoint hooks which can be invoked to obtain information from the component. E.g. the mysql cartridge could provide a JDBC endpoint which when invoked would provide a JDBC connection string.
+* Subscribers: List of connection endpoint hooks which can be invoked to provide information to the component. E.g. jboss cartridge could subscribe to a JDBC endpoint which when invoked and provided with a JDBC string would configure a datasource.
+* Connection types: Publishers and subscribers specify a connection type based on how they are linked to each other. The Cloud-SDK provides a few built-in types NET:TCP, NET:UNIX, FILESYSTEM, etc.
+* Groups: Components are organized in groups for provisioning. Each group is provisioned with a consistent gear type. All components within a group will be placed on the same set of gears.
+* ComponentRef: An entry under the groups which specified which components are part of the group.
+* Configure-Order: A configure order can be specified for the components in the cartridge and its dependencies.
+* Start-Order: A start order can be specified for the components in the cartridge and its dependencies.
+
+*Sample Descriptor*:
+
+----
+Name: mysql-server
+Version: 1.0
+Native-Requires: mysql-server
+Provides: mysql
+Profiles:
+  simple:
+    Components:
+      master:
+        Provides:
+          jdbc-uri:
+            Type: NET:TCP:JDBC
+  master-master:
+    ...
+----
+
+The descriptor above describes an cartridge named “mysql-server” which provides the mysql capability. It depends on the mysql-server RPM to install and run. It provides two profiles: simple and master-master. The simple profile has one component named “master” which provides a publisher of type “NET:TCP:JDBC”.
+
+==== Connector Types ====
+
+Each connection (publisher and subscriber) must specify a connection type. This type is a : separated string that indicates the data that will be provided or consumed. Cloud-SDK has some predefined types that can be subclassed to provide other new types.
+
+* NET:TCP - Provides hostname, port
+* NET:UNIX - Provides path to unix socket
+* FILESYSTEM - Provides path to resource on local filesystem
+* FILESYSTEM:SHARED - provides path to resource on cluster filesystem.
+
+==== Connector Establishment ====
+
+While configuring, starting and stopping components, the publisher connector hooks are invoked and the information for each component on each gear is passed to the subscribing connectors. Component to gear assignment: When the cartridge is used by an application, its components may be placed on the same or different set of gears depending on a few factors:
+
+* Components will be placed on the same gear if they are part of the same cartridge and the cartridge descriptor requires them to be in the same group.
+* Components will be placed on the same set of gears if a connection is established between them that is of type NET:UNIX, FILESYSTEM or NET:TCP:INTERNAL
+* Components will be placed on the same set of gears if the cartridge or application descriptor has an entry in the group overrides field that requires them to be colocated.
+
+=== Runtime resolution of application/cartridge descriptors ===
+
+This section describes the details of how the Cloud-SDK uses descriptors to assemble an application and dependencies and assign them to gears.
+
+*Terms* (Runtime state storage on broker): The runtime hierarchy is built during the elaboration phase using information from the application descriptor and cartridge descriptors.
+
+* Component Instance - A component instance is created for each component described in the cartridges and application descriptors. It keeps account of the cartridge, profile and component name it is created from.
+* Group Instance - Similar to component instances, a group instance is created for each group described in the cartridge and application descriptors. It keeps track of the original cartridge and profile it came from. It also keeps track of cartridge instances and gears that are part of the group. All gears within the group are running the same set of components.
+* Gear -
+
+*Terms* (Runtime models on node):
+
+* ApplicationContainer: Represents a gear on the node side of the Cloud-SDK.
+* UnixUser: Represents a unix user on the node side of the Cloud-SDK.
+
+*Descriptor Elaboration*: Descriptor elaboration happens in 2 basic steps. These steps may be combined if it is efficient to do so.
+
+* Resolve all dependencies and create the runtime structure of Component instances and Group instances.
+* Combine groups based on connections and grouping overrides.
