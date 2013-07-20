@@ -36,7 +36,7 @@ install -D -m 755 oo-namespace-init %{buildroot}/%{_sbindir}/oo-namespace-init
 %attr(0755,root,root) /%{_lib}/security/pam_openshift.so
 %attr(0755,root,root) /%{_lib}/security/pam_libra.so
 %attr(0644,root,root) %{_mandir}/man8/pam_openshift.8.gz
-%attr(0755,root,root) %{_sbindir}/oo-namespace-init
+%attr(0750,root,root) %{_sbindir}/oo-namespace-init
 
 %changelog
 * Fri Jul 12 2013 Adam Miller <admiller@redhat.com> 1.8.1-1
