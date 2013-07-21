@@ -1,11 +1,11 @@
 .capacity
   %h1
     Capacity
-  - @summary_for_profile.each do |profile|
-    .profile{:onclick => "javascript:window.location.href = '" + profile_path(:id => profile[0]) + "';"}
+  - @summary_for_profile.each do |profile,profile_data|
+    .profile{:onclick => "javascript:window.location.href = '" + profile_path(:id => profile) + "';"}
       %h3
-        = profile[0]
-      - profile_data = profile[1]
+        = profile
+      - profile_data
       %table.stat-table
         %tbody
           %tr
