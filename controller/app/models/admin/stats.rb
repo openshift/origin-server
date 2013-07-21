@@ -67,9 +67,13 @@ class Admin::Stats
     r = {
       :timings_msecs => @time,                             #timing hash
       :node_entries => @entry_for_node.values,             #array of node hashes from mcollective
+      :node_entries_hash => @entry_for_node,               #hash of identity => node hashes from mcollective
       :district_entries => @entry_for_district.values,     #array of district hashes from DB
+      :district_entries_hash => @entry_for_district,       #hash of name => district hashes from DB
       :district_summaries => @summary_for_district.values, #array of district summary hashes
+      :district_summaries_hash => @summary_for_district,   #hash of name => district summary hashes
       :profile_summaries => @summary_for_profile.values,   #array of profile summary hashes
+      :profile_summaries_hash => @summary_for_profile,     #hash of name => profile summary hashes
       # remember, unless --db option is present, the db is not scanned for apps/gears/carts
       # in that case, only data from the nodes and districts are included
       :count_all => @count_all,                            #overall summary hash
