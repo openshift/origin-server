@@ -73,10 +73,6 @@ Subscribes:
 Scaling:
   Min: 1
   Max: -1
-Group-Overrides:
-  - components:
-    - python-2.6
-    - web_proxy
 Endpoints:
   - Private-IP-Name:   IP
     Private-Port-Name: PORT
@@ -97,10 +93,6 @@ Version-Overrides:
        - python-2.7
        - "python"
        - "python(version) = 2.7"
-     Group-Overrides:
-       - components:
-         - python-2.7
-         - web_proxy
   '3.3':
      Display-Name: Python 3.3
      License: "The Python License, version 3.3"
@@ -108,7 +100,3 @@ Version-Overrides:
        - python-3.3
        - "python"
        - "python(version) = 3.3"
-     Group-Overrides:
-       - components:
-         - python-3.3
-         - web_proxy

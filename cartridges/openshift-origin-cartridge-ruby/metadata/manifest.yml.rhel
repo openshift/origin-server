@@ -72,10 +72,6 @@ Provides:
   - ruby-1.9
   - "ruby"
   - "ruby(version) = 1.9"
-Group-Overrides:
-  - components:
-    - ruby-1.9
-    - web_proxy
 Endpoints:
   - Private-IP-Name:   IP
     Private-Port-Name: PORT
@@ -97,7 +93,3 @@ Version-Overrides:
       - ruby-1.8
       - "ruby"
       - "ruby(version) = 1.8"
-    Group-Overrides:
-      - components:
-        - ruby-1.8
-        - web_proxy
