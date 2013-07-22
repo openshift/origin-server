@@ -22,6 +22,7 @@ Requires:      %{?scl:%scl_prefix}ruby(abi) >= %{rubyabi}
 %endif
 Requires:      %{?scl:%scl_prefix}rubygems
 Requires:      %{?scl:%scl_prefix}rubygem(json)
+Requires:      %{?scl:%scl_prefix}rubygem(sass-twitter-bootstrap)
 Requires:      rubygem(openshift-origin-common)
 Requires:      mcollective-client
 Requires:      openshift-origin-broker

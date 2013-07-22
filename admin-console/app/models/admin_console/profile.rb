@@ -6,7 +6,7 @@ module AdminConsole
     end
 
     def self.all
-      Stats.systems_summaries[:profile_summaries_hash]
+      AdminConsole::Stats.systems_summaries[:profile_summaries_hash]
     end
 
   end

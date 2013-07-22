@@ -1,32 +1,98 @@
-%h3
-  = "User: #{@user.login}"
-%h4
-  Applications
-%ul
-  - @user.domains.each do |domain|
-    - domain.applications.each do |app|
-      %li
-        %a{:href=> application_path(:id => app.uuid)}
-          = "#{app.name}"
-        = " (#{app.uuid})"
-%h4
-  = "Gears: #{@user.consumed_gears} (used) of #{@user.max_gears} (max)"
-- @user.domains.each do |domain|
-  - domain.applications.each do |app|
-    - app.group_instances.each do |group_instance|
-      - cartridges = gear_group_cartridges(app, group_instance)
-      - group_instance.gears.each do |gear|
+%section
+  .row
+    .span4
+      %h1
+        = image_tag "admin_console/user.svg", :class => "icon"
+        = "User #{@user.login}"
+        
+    .span4
+      %h4
+        Plan
+      %table.table-horizontal
+        %tbody
+          %tr
+            %th
+              = "Plan ID:"
+            %td
+              = @user.plan_id
+          %tr
+            %th
+              = "Plan State:"
+            %td
+              = @user.plan_state
+          %tr
+            %th
+              = "Gears:"
+            %td
+              = "#{@user.consumed_gears} of #{@user.max_gears}"
+    .span4
+      %h4
+        Namespace
+      - @user.domains.each do |domain|
         %div
-          %a{:href => gear_path(:id => gear.uuid)}
-            = gear.uuid
-        %ul
-          - cartridges.each do |cartridge|
-            %li
-              = cartridge[:name]
+          = domain.namespace
 
 %h4
-  Plan Details
-%div
-  = "Plan id: #{@user.plan_id}"
-%div
-  = "Plan state: #{@user.plan_state}"
+  Applications
+- @user.domains.each do |domain|
+  - domain.applications.each do |app|
+    %section.application
+      %div
+        %span.large
+          %a{:href=> application_path(:id => app.uuid)}
+            = "#{app.fqdn}"
+        - cartridges = []
+        - gear_count = {};
+        - app.group_instances.each do |group_instance|
+          - cartridges.concat gear_group_cartridges(@app, group_instance)
+          - gear_count[group_instance.gear_size] = 0 unless gear_count[group_instance.gear_size].present?
+          - gear_count[group_instance.gear_size] += group_instance.gears.count
+        %table.table-horizontal
+          %tbody
+            %tr
+              %th
+                = "ID:"
+              %td
+                = app.uuid
+            %tr
+              %th
+                = "Domain:"
+              %td
+                = domain.namespace
+            %tr
+              %th
+                = "Cartridges:"
+              %td
+                - cartridges.each_with_index do |cartridge, count|
+                  = "#{cartridge[:display_name]}#{count < cartridges.size - 1 ? ',' : ''}"
+            %tr
+              %th
+                = "Gears:"
+              %td
+                - gear_count.each_with_index do |size, ind|
+                  = "#{size[1]} #{size[0]}#{ind < gear_count.size - 1 ? ',' : ''}"
+
+
+      / %table.table.table-nohover.table-box
+      /   %thead
+      /     %tr
+      /       %th
+      /         Cartridges
+      /       %th
+      /         Gears
+      /       %th
+      /         Nodes
+      /   %tbody
+      /     - app.group_instances.each do |group_instance|
+      /       - group_instance.gears.each do |gear|
+      /         %tr
+      /           %td
+      /             - cartridges = gear_group_cartridges(@app, group_instance)
+      /             - cartridges.each_with_index do |cartridge, count|
+      /               = "#{cartridge[:name]}#{count < cartridges.size - 1 ? ',' : ''}"
+      /           %td
+      /             %a{:href => gear_path(:id => gear.uuid)}
+      /               = gear.uuid
+      /           %td
+      /             %a{:href => node_path(:id => gear.server_identity)}
+      /               = gear.server_identity

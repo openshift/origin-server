@@ -20,6 +20,8 @@ module AdminConsole
           node_profile
           district_uuid
           district_active
+          public_ip
+          public_hostname
         ]
     end
 

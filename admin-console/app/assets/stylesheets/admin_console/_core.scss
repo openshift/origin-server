@@ -16,3 +16,36 @@ a.skip-navigation {
   font-size: 52px;
   margin: 20px 0;
 }
+
+.extra-large {
+  font-size: $extraLargeFontSize;
+}
+
+.large {
+  font-size: $largeFontSize;
+}
+
+.column-content section {
+    margin-bottom: 25px;
+}
+
+.header.rcue .container .brand {
+  height: 10px;
+  width: 100%;
+  background: url($brandLogo) no-repeat scroll 0 center transparent;
+  margin: 0;
+}
+
+section.application {
+  margin: 20px 0 40px 0;
+}
+
+h1 .icon {
+    height: 30px;
+}
+
+.header-bar {
+    -moz-box-sizing: border-box;
+    background: none repeat scroll 0 0 #CCC;
+    padding-left: 20px;
+}
