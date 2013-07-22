@@ -1536,12 +1536,22 @@ class Application
   end
 
   def valid_sparse_resident(group_instance_id, index, cartridge, comp_spec)
-    cur_gears = self.group_instances.find_by(_id: group_instance_id).gears.length rescue 0
+    gi = self.group_instances.find_by(_id: group_instance_id) rescue nil
+    cur_gears = gi.gears.length rescue 0
     gear_index = cur_gears + index
 
     comp = cartridge.get_component(comp_spec["comp"])
     is_sparse = comp.is_sparse?
-    return true if not is_sparse
+    if not is_sparse
+      if gi and gi.max 
+        if gear_index > gi.max
+          return false
+        end
+      elsif gear_index > comp.scaling.max and comp.scaling.max!=-1 
+        return false
+      end
+      return true
+    end
     return true if gear_index==0
     total_sparse_cart_count = gear_index/comp.scaling.multiplier
     return false if total_sparse_cart_count > comp.scaling.max
