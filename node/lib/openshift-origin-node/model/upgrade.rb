@@ -56,6 +56,8 @@ end
 module OpenShift
   module Runtime
     class Upgrader
+      include OpenShift::Runtime::Utils::UpgradeProgress::EventType
+
       PREUPGRADE_STATE = '.preupgrade_state'
 
       @@gear_extension_present = false
@@ -78,7 +80,7 @@ module OpenShift
         gear_base_dir = @config.get('GEAR_BASE_DIR')
         @gear_home = PathUtils.join(gear_base_dir, uuid)
         @gear_env = Utils::Environ.for_gear(gear_home)
-        @progress = Utils::UpgradeProgress.new(gear_home)
+        @progress = Utils::UpgradeProgress.new(gear_base_dir, gear_home, uuid, hostname, version)
         @container = ApplicationContainer.from_uuid(uuid)
         @gear_extension = nil
       end
@@ -128,14 +130,13 @@ module OpenShift
           begin
             @gear_extension = OpenShift::GearUpgradeExtension.new(uuid, gear_home)
           rescue Exception => e
-            progress.log "Caught an exception during upgrade: #{e.message}"
-            progress.log e.backtrace.join("\n")
+            progress.log "Caught an exception during upgrade: #{e.message}\n#{e.backtrace.join("\n")}", type: IRREGULAR_EXIT
             return "Unable to instantiate gear upgrade extension.  Progress report: #{progress.report}", 127
           end
         end
 
         begin
-          progress.log "Beginning #{version} upgrade for #{uuid}"
+          progress.log "Beginning #{version} upgrade"
 
           inspect_gear_state
           gear_pre_upgrade
@@ -153,13 +154,12 @@ module OpenShift
           end
 
           total_time = timestamp - start_time
-          progress.log "***time_upgrade_on_node_measured_from_node=#{total_time}***"
+          progress.log "Total upgrade time on node (ms): #{total_time}"
         rescue OpenShift::Runtime::Utils::ShellExecutionException => e
-          progress.log %Q(#{e.message} stdout => \n #{e.stdout} stderr => \n #{e.stderr})
+          progress.log "Caught an exception during upgrade: #{e.message}", type: IRREGULAR_EXIT, rc: e.rc, stdout: e.stdout, stderr: e.stderr
           exitcode = 1
         rescue Exception => e
-          progress.log "Caught an exception during upgrade: #{e.message}"
-          progress.log e.backtrace.join("\n")
+          progress.log "Caught an exception during upgrade: #{e.message}\n#{e.backtrace.join("\n")}", type: IRREGULAR_EXIT
           exitcode = 1
         end
 
@@ -277,7 +277,7 @@ module OpenShift
             restart_start_time = timestamp
             start_gear
             restart_time = timestamp - restart_start_time
-            progress.log "***time_restart=#{restart_time}***"
+            progress.log "Gear restart time (ms): #{restart_time}"
           end
         ensure
           if reset_quota
@@ -369,7 +369,8 @@ module OpenShift
           cart_model.secure_cartridge(next_manifest.short_name, container.uid, container.gid, target)
 
           if progress.incomplete? "#{name}_setup"
-            progress.log cart_model.cartridge_action(m, 'setup', version, true)
+            setup_output = cart_model.cartridge_action(m, 'setup', version, true)
+            progress.log "Executed setup for #{name}", stdout: setup_output
             progress.mark_complete("#{name}_setup")
           end
 
@@ -419,7 +420,7 @@ module OpenShift
                                          uid: container.uid,
                                          gid: container.gid)
 
-          progress.log "Ran upgrade script for #{name}:\nout:#{out}\nerr:#{err}\nrc:#{rc}"
+          progress.log "Ran upgrade script for #{name}", rc: rc, stdout: out, stderr: err
 
           return if rc != 0
 
@@ -457,7 +458,7 @@ module OpenShift
       # Stop the gear as the platform and kill gear user processes.
       #
       def stop_gear
-        progress.log "Stopping gear with uuid '#{uuid}' on node '#{hostname}'"
+        progress.log "Stopping gear on node '#{hostname}'"
 
         if progress.incomplete? 'stop_gear'
           begin
@@ -476,7 +477,7 @@ module OpenShift
       # Start the gear as the platform.
       #
       def start_gear
-        progress.log "Starting gear with uuid '#{uuid}' on node '#{hostname}'"
+        progress.log "Starting gear on node '#{hostname}'"
 
         if progress.incomplete? 'start_gear'
           container = OpenShift::Runtime::ApplicationContainer.from_uuid(uuid)
@@ -486,7 +487,6 @@ module OpenShift
             progress.log "Start gear output: #{output}"
           rescue Exception => e
             progress.log "Start gear failed with an exception: #{e.message}"
-            #raise
           end
 
           progress.mark_complete('start_gear')
@@ -500,7 +500,7 @@ module OpenShift
       # up even under success conditions.
       #
       def validate_gear
-        progress.log "Validating gear #{uuid} post-upgrade"
+        progress.log "Validating gear post-upgrade"
 
         if progress.incomplete? 'validate_gear'
           preupgrade_state = OpenShift::Runtime::Utils::UpgradeApplicationState.new(container, PREUPGRADE_STATE)
@@ -544,7 +544,7 @@ module OpenShift
             problem, status = cart_model.gear_status
 
             if problem
-              progress.log "Problem detected with gear status.  Post-upgrade status:\n#{status}"
+              progress.log "Problem detected with gear status.  Post-upgrade status: #{status}"
             end
           end
 
