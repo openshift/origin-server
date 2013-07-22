@@ -3,7 +3,7 @@
 
 Summary:       Provides the AeroGear UnifiedPush Server on top of JBossAS7
 Name:          openshift-origin-cartridge-aerogear-push
-Version: 1.0.0
+Version: 1.0.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -89,5 +89,8 @@ ln -fs %{cartridgedir}/versions/0.8.0/modules/org/jboss/aerogear/simplepush/main
 
 
 %changelog
+* Mon Jul 22 2013 Paul Morie <pmorie@gmail.com> 1.0.1-1
+- new package built with tito
+
 
 
