@@ -141,7 +141,6 @@ In OpenShift Origin, name resolution is used primarily for communication between
 
 To proceed, ensure that bind and the bind utilities have been installed on the broker host:
 
-[source]
 ----
 # yum install bind bind-utils
 ----
