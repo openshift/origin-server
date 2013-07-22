@@ -2225,9 +2225,20 @@ class Application
   # {ComponentInstance} objects ordered by calculated configure order
   def calculate_configure_order(comp_specs)
     configure_order = ComponentOrder.new
+
+    existing_categories = {}
+    self.component_instances.each do |comp_inst|
+      cart = CartridgeCache.find_cartridge(comp_inst.cartridge_name, self)
+      prof = cart.get_profile_for_component(comp_inst.component_name)
+
+      [[comp_inst.cartridge_name],cart.categories,cart.provides,prof.provides].flatten.each do |cat|
+        existing_categories[cat] = [] if existing_categories[cat].nil?
+        existing_categories[cat] << comp_inst.to_hash
+      end
+    end
+
     comps = []
     categories = {}
-
     comp_specs.each do |comp_inst|
       cart = CartridgeCache.find_cartridge(comp_inst["cart"], self)
       prof = cart.get_profile_for_component(comp_inst["comp"])
@@ -2242,6 +2253,11 @@ class Application
 
     #use the map to build DAG for order calculation
     comps.each do |comp_spec|
+      comp_spec[:prof].configure_order.each do |dep_cart|
+        if !categories[dep_cart] and !existing_categories[dep_cart]
+          raise OpenShift::UserException.new("Cartridge '#{comp_spec[:cart].name}' can not be added with out cartridge '#{dep_cart}'.", 185)
+        end
+      end 
       configure_order.add_component_order(comp_spec[:prof].configure_order.map{|c| categories[c]}.flatten)
     end
 
