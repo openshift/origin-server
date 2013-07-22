@@ -71,6 +71,7 @@ cp man/*.8 %{buildroot}%{_mandir}/man8/
 %attr(0750,-,-) %{_sbindir}/oo-stats
 
 %{_mandir}/man8/oo-admin-chk.8.gz
+%{_mandir}/man8/oo-admin-clear-pending-ops.8.gz
 %{_mandir}/man8/oo-admin-repair.8.gz
 %{_mandir}/man8/oo-admin-ctl-app.8.gz
 %{_mandir}/man8/oo-admin-ctl-district.8.gz

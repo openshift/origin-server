@@ -1,0 +1,38 @@
+NAME
+  oo-admin-clear-pending-ops
+  
+SYNOPSIS
+  oo-admin-clear-pending-ops [ --time HOURS ] [ --uuid UUID ] [ --help ]
+
+DESCRIPTION
+
+This administrative utility fixes occasional problems with user
+application operations such as start/stop/add cartridges, which are queued
+under pending_op_groups inside each application. In the case of certain
+bugs, a particular pending_op_group may fail and become stuck at the head
+of the queue; the broker will keep operating on it and cannot continue
+to process any other operations for that application. This may result
+in users being denied all broker operations for that particular app.
+
+This script clears stale entries from the pending op queues of applications.
+  
+OPTIONS
+  -h|--help  
+    Display a simple usage page.
+  -t|--time HOURS  
+    Age in hours (default 1) to delete; pending ops older than this will be deleted.
+  -u|--uuid UUID  
+    Specific app uuid where the pruning operation will be done; if not given, all apps will be pruned.
+  
+EXAMPLE
+  $ oo-admin-clear-pending-ops -t 1
+  
+HINTS
+  The above example might make sense to run with cron if this is encountered frequently.
+  
+SEE ALSO
+  oo-admin-ctl-district(8), oo-admin-move(8), oo-admin-chk(8),
+  oo-accept-broker(8), oo-admin-ctl-app(8),
+  oo-admin-ctl-domain(8), oo-admin-ctl-user(8), oo-register-dns(8)
+AUTHOR
+  Luke Meyer <lmeyer@redhat.com> - man page written for OpenShift Origin 
