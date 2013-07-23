@@ -84,6 +84,16 @@ class Admin::Stats
     }
   end
 
+  # enable removing Hash default blocks for serialization
+  def deep_clear_default!(obj)
+    if obj.is_a? Hash
+      obj.default = nil
+      obj.each {|k,v| deep_clear_default!(v)}
+    elsif obj.is_a? Array
+      obj.each {|v| deep_clear_default!(v)}
+    end
+  end
+
   # get the node statistics by querying the facts on every node
   def get_node_entries
     entry_for_node = {}

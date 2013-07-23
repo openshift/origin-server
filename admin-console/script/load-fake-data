@@ -1,0 +1,210 @@
+#!/usr/bin/env oo-ruby
+
+# if running with broker source, set BROKER_SOURCE variable e.g.:
+# export BROKER_SOURCE=/home/you/git/origin-server/broker
+
+class FakeData
+
+  def self.instance(options = {})
+    @instance ||= self.new(options)
+  end
+  def self.get_node_entries
+    self.instance.get_node_entries
+  end
+
+  def initialize(options = {})
+    @options = { # default if none given
+      num_districts: 10,
+      num_nodes: 80,
+      node_inactive_pct: 10,
+      max_active_gears: 100,
+      avg_active_pct: 50,
+    }.merge options
+    load_broker_rails_env
+  end
+
+  # Load the broker rails environment so we can leverage its tools
+  def load_broker_rails_env
+    begin
+      require "#{ENV['BROKER_SOURCE'] || '/var/www/openshift/broker'}/config/environment"
+      # Disable analytics for admin scripts
+      Rails.configuration.analytics[:enabled] = false
+      #monkey-patch the stats module to return fake node data
+      Admin::Stats.class_eval { def get_node_entries; FakeData.get_node_entries; end}
+    rescue Exception => e
+      puts <<-"FAIL"
+        Broker application failed to load; aborting.
+        The error was: #{e.message}
+      FAIL
+      exit 1
+    end
+  end
+
+  def wipe_data
+    District.all.delete
+    @nodes = Hash.new
+  end
+
+  def create_districts
+    @options[:num_districts].times do |index|
+      gear_size = Rails.application.config.openshift[:gear_sizes].sample
+      d = District.create_district("<fake>_#{gear_size}_district#{index}", gear_size)
+      d.save!
+    end
+  end
+
+  def create_districted_nodes
+    districts = District.all
+    #districts.each {|d| d.initialize}
+    @options[:num_nodes].times do |index|
+      dist = districts.sample
+      identity = "node#{index}.#{dist.gear_size.tr('^A-Za-z0-9','')}size.fake.example.com"
+      active = rand() * 100 > @options[:node_inactive_pct]
+      node = { "name" => identity, "active" => active}
+      add_node_to_district(node, dist)
+      add_fake_node_data(node: node, district: dist)
+    end
+  end
+
+  # node = { "name" => identity, "active" => true/false}
+  def add_node_to_district(node, dist)
+    dist.active_server_identities_size += 1
+    dist.server_identities << node
+    dist.save!
+  end
+
+  # create a node entry for stats mcollective facts,
+  # either from supplied parameters or from randomized values
+  #
+  # param hash:
+  #   node: node hash { name: "hostname", active: true/false }
+  #   district: (optional) District object
+  #   district_uuid: (used if not districted)
+  #   node_profile: gear size (used if not districted)
+  #   avg_active_pct: (optional) target percentage of gears to make active
+  #   # randomized if not specified:
+  #   :gears_active_count :gears_unknown_count :gears_deploying_count
+  #   :gears_started_count :gears_idle_count :gears_stopped_count
+  def add_fake_node_data(p)
+    dist = p[:district]
+    node = {
+      id: p[:node]["name"],
+      name: p[:node]["name"].split('.')[0],
+      max_active_gears: p[:max_active_gears] || @options[:max_active_gears],
+      node_profile: dist ? dist.gear_size :
+                    (p[:node_profile] || Rails.application.config.openshift[:default_gear_size]),
+      district_uuid: dist ? dist.uuid : p[:district_uuid]
+    }
+    # fill fake statistics about gear states on the node
+    active_pct = randomize_with_limit(total: 100, limit: 100, radius_pct: 5,
+                                          target_pct: p[:avg_active_pct] || @options[:avg_active_pct])
+
+    # create the total pool of gears for this node
+    node[:gears_total_count] = p[:gears_total_count] ||
+      (node[:max_active_gears] * 100.0 / (active_pct + 10 * rand - 5)).round
+    if dist
+      # cap the total size at the number of uids remaining in the district
+      node[:gears_total_count] = [node[:gears_total_count], dist.available_uids.size].min
+      # remove that many uids from the district
+      dist.available_uids.shift(node[:gears_total_count])
+      dist.save!
+    end
+
+    # use or randomize statistics for active gears
+    node[:gears_active_count] = p[:gears_active_count] || randomize_with_limit(
+      total: node[:gears_total_count], limit: node[:max_active_gears],
+      target_pct: active_pct, radius_pct: 5)
+    active = node[:gears_active_count]
+    inactive = node[:gears_total_count] - active
+    active -= node[:gears_unknown_count] = p[:gears_unknown_count] || randomize_with_limit(
+      total: node[:gears_total_count], limit: active, target_pct: -5, radius_pct: 6)
+    active -= node[:gears_deploying_count] = p[:gears_deploying_count] || randomize_with_limit(
+      total: node[:gears_total_count], limit: active, target_pct: -5, radius_pct: 7)
+    node[:gears_started_count] = p[:gears_started_count] || active
+
+    # use or randomize statistics for inactive gears
+    inactive -= node[:gears_idle_count] = p[:gears_idle_count] || randomize_with_limit(
+      total: node[:gears_total_count], limit: inactive, target_pct: -5, radius_pct: 7)
+    node[:gears_stopped_count] = p[:gears_stopped_count] || inactive
+
+    # calculate percentages from previous values
+    node[:gears_active_usage_pct] = 100.0 * node[:gears_active_count] / node[:max_active_gears]
+    # TODO: look up what this is actually for:
+    node[:gears_usage_pct] = 100.0 * node[:gears_total_count] / node[:max_active_gears]
+    @nodes[p[:node]["name"]] = node
+  end
+
+  # this is to return fake entries to match the format of Admin::Stats.get_node_entries
+  def get_node_entries
+    @nodes
+  end
+
+  # From a total pool,
+  # get a random amount that is within a radius of target percent,
+  # but without exceeding the remaining pool capacity.
+  # param hash:
+  #  total, limit, target_pct, radius_pct
+  def randomize_with_limit(p)
+    # create value randomly within the radius
+    val = (2 * p[:radius_pct] * rand() - p[:radius_pct] + p[:target_pct]) / 100.0 * p[:total]
+    # must be between 0 and limit
+    val = [[0, val.round].max, p[:limit]].min
+  end
+
+end
+
+############ EXECUTION ##########
+#
+# If this script is running directly, gather the information and display.
+# In a different context (e.g. irb) just load the class and don't run anything.
+
+if __FILE__ == $0
+
+  #
+  # Options parsing...
+  #
+  require 'optparse'
+  options = {
+      num_districts: 10,
+      num_nodes: 80,
+  }
+  optparse = OptionParser.new { |opts|
+    opts.banner = <<-"USAGE"
+      #{$0}: Create a bunch of fake nodes and districts for development and testing purposes.
+
+      Usage: #{$0} [switches]
+      Example: #{$0}              # load standard randomized data set
+      Example: #{$0} --clear --nodes 20 --districts 4
+
+      Switches:
+    USAGE
+
+    opts.on('-c','--clear', "DELETE existing districts and nodes first") { |t| options[:clear] = t }
+    opts.on('-n','--nodes NUMBER', Integer, <<NUM) { |n| options[:num_nodes] = n }
+Number of fake nodes to create (default: 80)
+NUM
+    opts.on('-d','--districts NUMBER', Integer, <<NUM) { |n| options[:num_districts] = n }
+Number of fake districts to create (default: 80)
+NUM
+    opts.on('-h','--help', 'Print usage') { puts opts; exit 0 }
+  }
+
+  begin
+    optparse.parse!
+  rescue OptionParser::InvalidArgument => e
+    puts "\n ##### #{e.message} #####"
+    puts optparse.to_s
+    puts "\n ##### #{e.message} #####"
+    puts
+    exit 1
+  end
+
+  #
+  # execution
+  #
+  o = FakeData.instance(options)
+  o.wipe_data if options[:clear]
+  o.create_districts
+  o.create_districted_nodes
+  AdminConsole::Stats.systems_summaries(true) if defined?(AdminConsole)
+end
