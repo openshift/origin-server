@@ -26,7 +26,7 @@ opts = GetoptLong.new(
     ['--uuid'  , '-c', GetoptLong::REQUIRED_ARGUMENT],
     ['--blocks', '-b', GetoptLong::REQUIRED_ARGUMENT],
     ['--inodes', '-i', GetoptLong::REQUIRED_ARGUMENT],
-    ['--help'  , '-?', GetoptLong::NO_ARGUMENT]
+    ['--help'  , '-h', GetoptLong::NO_ARGUMENT]
 )
 
 args = {}
