@@ -7,7 +7,6 @@
     
     <dependencies>
         <module name="javax.api"/>
-        <module name="org.jboss.aerogear.simplepush"/>
         <module name="org.jboss.staxmapper"/>
         <module name="org.jboss.as.controller"/>
         <module name="org.jboss.as.server"/>
@@ -18,5 +17,14 @@
         <module name="org.jboss.logging"/>
         <module name="org.jboss.vfs"/>
         <module name="org.slf4j"/>
+        <module name="javax.persistence.api"/>
+        <module name="org.hibernate"/>
+        <module name="org.hibernate.validator" services="import"/>
+        <module name="org.hibernate.envers"/>
+        <module name="org.jboss.aerogear.simplepush" services="import">
+            <imports>
+                <include path="META-INF"/>
+            </imports>
+        </module>
     </dependencies>
 </module>

@@ -52,9 +52,7 @@
 
     <profile>
         <subsystem xmlns="urn:org.jboss.aerogear.netty:1.0">
-            <netty>
-                <server name="simplepush-server" socket-binding="simplepush" factoryClass="org.jboss.aerogear.simplepush.netty.SimplePushBootstrapFactory"/>
-            </netty>
+            <server name="simplepush-server" socket-binding="simplepush" factory-class="org.jboss.aerogear.simplepush.netty.SimplePushBootstrapFactory"/>
         </subsystem>
         <subsystem xmlns="urn:jboss:domain:logging:1.1">
             <!--console-handler name="CONSOLE">
@@ -120,6 +118,21 @@
                 	<pool>
 						<flush-strategy>IdleConnections</flush-strategy>
 					</pool>
+                </datasource>
+                <datasource jndi-name="java:jboss/datasources/SimplePushDS" enabled="${mysql.enabled}" use-java-context="true" pool-name="SimplePushDS" use-ccm="true">
+                    <connection-url>jdbc:mysql://${env.OPENSHIFT_MYSQL_DB_HOST}:${env.OPENSHIFT_MYSQL_DB_PORT}/${env.OPENSHIFT_APP_NAME}</connection-url>
+                    <driver>mysql</driver>
+                    <security>
+                      <user-name>${env.OPENSHIFT_MYSQL_DB_USERNAME}</user-name>
+                      <password>${env.OPENSHIFT_MYSQL_DB_PASSWORD}</password>
+                    </security>
+                    <validation>
+                        <check-valid-connection-sql>SELECT 1</check-valid-connection-sql>
+                        <background-validation>true</background-validation>
+                    </validation>
+                    <pool>
+                        <flush-strategy>IdleConnections</flush-strategy>
+                    </pool>
                 </datasource>
                 <datasource jndi-name="java:jboss/datasources/PostgreSQLDS" enabled="${postgresql.enabled}" use-java-context="true" pool-name="PostgreSQLDS" use-ccm="true">
                     <connection-url>jdbc:postgresql://${env.OPENSHIFT_POSTGRESQL_DB_HOST}:${env.OPENSHIFT_POSTGRESQL_DB_PORT}/${env.OPENSHIFT_APP_NAME}</connection-url>
