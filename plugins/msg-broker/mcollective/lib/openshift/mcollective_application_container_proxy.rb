@@ -53,9 +53,8 @@ module OpenShift
       # * Uses only operations and attributes of user
       #
       def self.valid_gear_sizes_impl(user)
-        user_capabilities = user.get_capabilities
-        capability_gear_sizes = []
-        capability_gear_sizes = user_capabilities['gear_sizes'] if user_capabilities.has_key?('gear_sizes')
+        caps = user.capabilities
+        capability_gear_sizes = Array(caps['gear_sizes'])
 
         if user.auth_method == :broker_auth
           return Rails.configuration.openshift[:gear_sizes] | capability_gear_sizes

@@ -271,6 +271,10 @@ class Application
     super
   end
 
+  def capabilities
+    @capabilities ||= domain.owner.capabilities.deep_dup rescue (raise OpenShift::UserException, "The application cannot be changed at this time.  Contact support.")
+  end
+
   ##
   # Adds the given ssh key to the application.
   # @param user_id [String] The ID of the user associated with the keys. If the user ID is nil, then the key is assumed to be a system generated key
@@ -1963,9 +1967,8 @@ class Application
         sleep 1
       end
       owner.reload
-      owner_capabilities = owner.get_capabilities
-      if owner.consumed_gears + num_gears_added > owner_capabilities["max_gears"] and num_gears_added > 0
-        raise OpenShift::GearLimitReachedException.new("#{owner.login} is currently using #{owner.consumed_gears} out of #{owner_capabilities["max_gears"]} limit and this application requires #{num_gears_added} additional gears.")
+      if owner.consumed_gears + num_gears_added > owner.max_gears and num_gears_added > 0
+        raise OpenShift::GearLimitReachedException.new("#{owner.login} is currently using #{owner.consumed_gears} out of #{owner.max_gears} limit and this application requires #{num_gears_added} additional gears.")
       end
       owner.consumed_gears += num_gears_added
       op_group.pending_ops.push ops

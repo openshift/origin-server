@@ -42,7 +42,7 @@ class CloudUser
   has_many :authorizations, class_name: Authorization.name, dependent: :restrict
 
   validates :login, presence: true
-  validates :capabilities, presence: true, capabilities: true
+  validates :capabilities, presence: true
 
   scope :with_plan, any_of({:plan_id.ne => nil}, {:pending_plan_id.ne => nil}) 
   index({:login => 1}, {:unique => true})
@@ -84,23 +84,6 @@ class CloudUser
   # def current_identity!(provider, uid)
   #  self.current_identity = identities.select{ |i| i.provider == provider && i.uid == uid }.first
   # end
-
-  # Convenience method to get the max_gears capability
-  def max_gears
-    get_capabilities["max_gears"]
-  end
-  def max_gears=(m)
-    user_capabilities = get_capabilities
-    user_capabilities["max_gears"] = m
-    set_capabilities(user_capabilities)
-  end
-
-  def max_storage
-    user_capabilities = get_capabilities
-    max_untracked_storage = user_capabilities["max_untracked_addtl_storage_per_gear"] || 0
-    max_tracked_storage = user_capabilities["max_tracked_addtl_storage_per_gear"] || 0
-    (max_untracked_storage + max_tracked_storage)
-  end
 
   def save(options = {})
     res = false
@@ -213,19 +196,62 @@ class CloudUser
   def inherited_capabilities
     @inherited_capabilities ||= begin
         if self.parent_user_id
-          caps = CloudUser.find_by(_id: self.parent_user_id).get_capabilities
-          caps.slice(*Array(caps['inherit_on_subaccounts']))
+          caps = CloudUser.find_by(_id: self.parent_user_id).capabilities
+          caps.slice(*Array(caps['inherit_on_subaccounts'])).freeze
         end
       rescue Mongoid::Errors::DocumentNotFound
-      end || {}
+      end || {}.freeze
   end
 
-  def get_capabilities
-    self.capabilities.deep_dup.merge!(inherited_capabilities)
+  class CapabilityProxy < SimpleDelegator
+    def initialize(base, inherited)
+      @inherited = inherited
+      super base
+    end
+    def [](key)
+      @inherited[key] || super
+    end
   end
 
-  def set_capabilities(caps=nil)
-    self.capabilities = caps.presence || default_capabilities
+  #
+  # The capabilities object should always return inherited properties if they are
+  # set (and inheritable from the parent account), otherwise it should return
+  # the stored capabilities.  If the parent user is changed, the underlying
+  # capability should be returned.
+  #
+  # Note: Mongoid handles dirty tracking on hashes whenever the accessor is called,
+  #       therefore each call to capabilities must invoke the underlying object.
+  #
+  alias_method :_capabilities, :capabilities
+  def capabilities
+    if caps = _capabilities
+      @capability_proxy = nil if caps != @capability_proxy
+      @capability_proxy ||= CapabilityProxy.new(caps, inherited_capabilities)
+    end
+  end
+
+  def max_gears
+    capabilities["max_gears"]
+  end
+
+  def max_gears=(m)
+    capabilities["max_gears"] = m
+  end
+
+  def allowed_gear_sizes
+    capabilities["gear_sizes"]
+  end
+
+  def max_storage
+    (max_tracked_additional_storage + max_untracked_additional_storage)
+  end
+
+  def max_untracked_additional_storage
+    capabilities['max_untracked_addtl_storage_per_gear'] || 0
+  end
+
+  def max_tracked_additional_storage
+    capabilities['max_tracked_addtl_storage_per_gear'] || 0
   end
 
   # Delete user and all its artifacts like domains, applications associated with the user 

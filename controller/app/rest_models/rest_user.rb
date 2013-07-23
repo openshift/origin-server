@@ -43,8 +43,8 @@ class RestUser < OpenShift::Model
   def initialize(cloud_user, url, nolinks=false)
     [:id, :login, :consumed_gears, :plan_id, :plan_state, :usage_account_id, :created_at].each{ |sym| self.send("#{sym}=", cloud_user.send(sym)) }
 
-    self.capabilities = cloud_user.get_capabilities
-    self.max_gears = capabilities["max_gears"]
+    self.capabilities = cloud_user.capabilities.deep_dup
+    self.max_gears = cloud_user.max_gears
     self.capabilities.delete("max_gears")
 
     if self.capabilities["max_tracked_addtl_storage_per_gear"] or self.capabilities["max_untracked_addtl_storage_per_gear"]

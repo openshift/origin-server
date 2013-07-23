@@ -239,7 +239,7 @@ module OpenShift
           other = request.headers["X-Impersonate-User"]
           return user unless other.present?
 
-          unless user.get_capabilities && user.get_capabilities['subaccounts'] == true
+          unless user.capabilities['subaccounts'] == true
             log_action_for(user.login, user.id, "IMPERSONATE", true, "Failed to impersonate", {'SUBJECT' => other, 'IP' => request.remote_ip, 'FORBID' => 'no_subaccount_capability'})
             raise OpenShift::AccessDeniedException, "Insufficient privileges to access user #{other}"
           end
