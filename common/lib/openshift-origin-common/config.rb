@@ -41,7 +41,8 @@ module OpenShift
           exit 253
         end
       else
-        @conf = default
+        @conf = ParseConfig.new
+        @conf.params = default
       end
     end
 
@@ -65,6 +66,14 @@ module OpenShift
       else
         self.class.new(nil, default)
       end
+    end
+
+    def params
+      @conf.get_params
+    end
+
+    def groups
+      @conf.get_groups
     end
 
   end
