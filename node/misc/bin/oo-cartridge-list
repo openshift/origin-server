@@ -43,7 +43,7 @@ opts = GetoptLong.new(
     ['--with-descriptors',  '-a', GetoptLong::NO_ARGUMENT],
     ['--porcelain',         '-q', GetoptLong::NO_ARGUMENT],
     ['--debug',             '-d', GetoptLong::NO_ARGUMENT],
-    ['--help',              '-?', GetoptLong::NO_ARGUMENT]
+    ['--help',              '-h', GetoptLong::NO_ARGUMENT]
 )
 
 args = {}
