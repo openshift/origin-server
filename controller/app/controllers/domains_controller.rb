@@ -7,16 +7,14 @@ class DomainsController < BaseController
   # URL: /domains
   #
   # Action: GET
+  #
+  # @param [String] owner The id of an owner to show the domains for.  Special values: 
+  #                         @self - returns the current user.
   # 
   # @return [RestReply<Array<RestDomain>>] List of domains
   def index
-    rest_domains = Array.new
-    Rails.logger.debug "Getting domains for user #{@cloud_user.login}"
-    domains = Domain.where(owner: @cloud_user)
-    domains.each do |domain|
-      rest_domains.push get_rest_domain(domain)
-    end
-    render_success(:ok, "domains", rest_domains)
+    return render_error(:bad_request, "Only @self is supported for the 'owner' argument.") if params[:owner] && params[:owner] != "@self"
+    render_success(:ok, "domains", Domain.where(owner: current_user).sort_by(&Domain.sort_by_original(current_user)).map{ |d| get_rest_domain(d) })
   end
 
   # Retuns domain for the current user that match the given parameters.
