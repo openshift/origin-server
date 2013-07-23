@@ -25,10 +25,15 @@ class ApiController < BaseController
         "GET_USER" => Link.new("Get user information", "GET", URI::join(get_url, "user")),      
         "LIST_DOMAINS" => Link.new("List domains", "GET", URI::join(get_url, "domains")),
         "ADD_DOMAIN" => Link.new("Create new domain", "POST", URI::join(get_url, "domains"), [
-          Param.new("id", "string", "Name of the domain",nil,blacklisted_words)
+          Param.new(requested_api_version <= 1.5 ? "id" : "name", "string", "Name of the domain",nil,blacklisted_words)
         ]),
         "LIST_CARTRIDGES" => Link.new("List cartridges", "GET", URI::join(get_url, "cartridges")),
       }
+        
+      links.merge!({
+        "LIST_APPLICATIONS" => Link.new("List application", "GET", URI::join(get_url, "applications"))
+      }) unless requested_api_version <= 1.5
+      
       links.merge!({
         "LIST_AUTHORIZATIONS" => Link.new("List authorizations", "GET", URI::join(get_url, "user/authorizations")),
         "SHOW_AUTHORIZATION"  => Link.new("Retrieve authorization :id", "GET", URI::join(get_url, "user/authorization/:id"), [
