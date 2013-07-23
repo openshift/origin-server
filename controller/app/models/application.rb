@@ -1553,6 +1553,7 @@ class Application
       return true
     end
     return true if gear_index==0
+    return false if comp.scaling.multiplier <= 0
     total_sparse_cart_count = gear_index/comp.scaling.multiplier
     return false if total_sparse_cart_count > comp.scaling.max
     return true if gear_index%comp.scaling.multiplier==0 
