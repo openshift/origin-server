@@ -14,7 +14,8 @@ class EmbCartController < BaseController
     id = params[:id].presence
     status_messages = !params[:include].nil? and params[:include].split(",").include?("status_messages")
     
-    component_instance = @application.component_instances.find_by(cartridge_name: ComponentInstance.check_name!(id))
+    cartname = CartridgeCache.find_cartridge(id, @application).name rescue id
+    component_instance = @application.component_instances.find_by(cartridge_name: ComponentInstance.check_name!(cartname))
     cartridge = get_embedded_rest_cartridge(@application, component_instance, @application.group_instances_with_scale, @application.group_overrides, status_messages)
     render_success(:ok, "cartridge", cartridge, "Showing cartridge #{id} for application #{@application.name} under domain #{@domain.namespace}")
   end
