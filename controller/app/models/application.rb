@@ -1734,7 +1734,7 @@ class Application
       if app_dns_ginst
         deploy_gear_id = gear_ids[0] = self._id.to_s
       else
-        deploy_gear_id = gear_ids[0]
+        deploy_gear_id = nil
       end
 
       ops = calculate_gear_create_ops(ginst_id, gear_ids, deploy_gear_id, comp_specs, component_ops, additional_filesystem_gb, gear_size, ginst_op._id.to_s, false, app_dns_ginst,init_git_url)
@@ -1811,7 +1811,7 @@ class Application
           if scale_change > 0
             add_gears += scale_change
             comp_specs = self.component_instances.where(group_instance_id: group_instance._id).map{|c| c.to_hash}
-            deploy_gear_id = group_instance.gears.find_by(app_dns: true)._id.to_s
+            deploy_gear_id = group_instance.gears.find_by(app_dns: true)._id.to_s rescue nil
             gear_ids = (1..scale_change).map {|idx| Moped::BSON::ObjectId.new.to_s}
             additional_filesystem_gb = changed_additional_filesystem_gb || group_instance.addtl_fs_gb
             gear_size = change[:to_scale][:gear_size] || group_instance.gear_size
