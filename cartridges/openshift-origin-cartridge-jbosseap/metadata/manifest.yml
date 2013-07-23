@@ -90,10 +90,6 @@ Subscribes:
 Scaling:
   Min: 1
   Max: -1
-Group-Overrides:
-  - components:
-    - jbosseap-6.0
-    - web_proxy
 Endpoints:
   - Private-IP-Name:   IP
     Private-Port-Name: HTTP_PORT

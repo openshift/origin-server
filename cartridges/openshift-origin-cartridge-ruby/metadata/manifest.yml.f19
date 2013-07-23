@@ -72,10 +72,6 @@ Provides:
   - ruby-2.0
   - "ruby"
   - "ruby(version) = 2.0"
-Group-Overrides:
-  - components:
-    - ruby-2.0
-    - web_proxy
 Endpoints:
   - Private-IP-Name:   IP
     Private-Port-Name: PORT

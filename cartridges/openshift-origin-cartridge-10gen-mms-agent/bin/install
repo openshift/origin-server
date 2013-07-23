@@ -2,14 +2,6 @@
 
 source $OPENSHIFT_CARTRIDGE_SDK_BASH
 
-if [ ${OPENSHIFT_MONGODB_DB_HOST:-'Not Installed'} == 'Not Installed' ]
-then
-  client_error ""
-  client_error "MongoDB must be added before the 10-gen-mms-agent."
-  client_error ""
-  exit 137
-fi
-
 #
 # Checking if the user has added the settings.py file in the git repo
 #
