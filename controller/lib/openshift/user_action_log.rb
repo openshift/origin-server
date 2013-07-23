@@ -22,7 +22,7 @@ module OpenShift::UserActionLog
     time = time_obj.strftime("%H:%M:%S")
 
     message = "#{result} DATE=#{date} TIME=#{time} ACTION=#{action} REQ_ID=#{Thread.current[:user_action_log_uuid]}"
-    auth = " USER_ID=#{Thread.current[:user_action_log_user_id].to_s} LOGIN=#{Thread.current[:user_action_log_identity_id].to_s}"
+    auth = " USER_ID=#{Thread.current[:user_action_log_user_id]} LOGIN=#{Thread.current[:user_action_log_identity_id]}"
     extra = args.map{|k,v| " #{k}=#{v}"}.join
 
     # We are not logging the detailed multi-line logs in the user action logger 

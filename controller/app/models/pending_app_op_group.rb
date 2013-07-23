@@ -27,7 +27,7 @@ class PendingAppOpGroup
   
   def initialize(attrs = nil, options = nil)
     parent_opid = nil
-    if !attrs.nil? and attrs.has_key?(:parent_op)
+    if !attrs.nil? and attrs[:parent_op]
       parent_opid = attrs[:parent_op]._id 
       attrs.delete(:parent_op)
     end

@@ -116,7 +116,7 @@ class AliasControllerTest < ActionController::TestCase
   
   test "no user capability" do
     @user.capabilities["private_ssl_certificates"] = false
-    @user.save
+    @user.save!
     server_alias = "as.#{@random}"
     post :create, {"id" => server_alias, "domain_id" => @domain.namespace, "application_id" => @app.name, 
       "ssl_certificate" => @ssl_certificate, "private_key" => @private_key, "pass_phrase" => @pass_phrase}

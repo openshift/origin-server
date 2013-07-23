@@ -46,7 +46,7 @@ class AliasController < BaseController
     result = @application.update_alias(server_alias, ssl_certificate, private_key, pass_phrase)
     al1as = @application.aliases.find_by(fqdn: server_alias)
     rest_alias = get_rest_alias(al1as)
-    render_success(:ok, "alias", rest_alias, "Added #{server_alias} to application #{@application.name}", result)
+    render_success(:ok, "alias", rest_alias, "Updated #{server_alias} to application #{@application.name}", result)
   end
   
   def destroy

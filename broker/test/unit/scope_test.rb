@@ -60,22 +60,27 @@ class ScopeTest < ActiveSupport::TestCase
     assert_equal [scope], Scope.list!('session')
     assert_equal [scope], Scope.list!(' session ')
   end
+
+  test 'validates parameterized object id scope' do
+    assert_raise(Moped::Errors::InvalidObjectId){ Scope.for!('application/a/scale') }
+  end
+
   test 'find parameterized scope' do
-    assert scope = Scope.for!('application/a/scale')
+    assert scope = Scope.for!('application/51ed4adbb8c2e70a72000294/scale')
     assert_equal :scale, scope.app_scope
-    assert_equal 'a', scope.id
-    assert_equal 'application/a/scale', scope.to_s
-    assert scope2 = Scope::Application.new(:id => 'a', :app_scope => 'scale')
-    assert_equal 'application/a/scale', scope2.to_s
+    assert_equal Moped::BSON::ObjectId.from_string('51ed4adbb8c2e70a72000294'), scope.id
+    assert_equal 'application/51ed4adbb8c2e70a72000294/scale', scope.to_s
+    assert scope2 = Scope::Application.new(:id => '51ed4adbb8c2e70a72000294', :app_scope => 'scale')
+    assert_equal 'application/51ed4adbb8c2e70a72000294/scale', scope2.to_s
 
     assert !scope.equal?(scope2)
     assert scope == scope2
     assert_equal 0, scope <=> scope2
 
-    assert_raise(Scope::Invalid){ Scope.list!('application/a/b') }
+    assert_raise(Scope::Invalid){ Scope.list!('application/51ed4adbb8c2e70a72000294/b') }
     assert_raise(Scope::Invalid){ Scope::Application.new({}) }
-    assert_raise(Scope::Invalid){ Scope::Application.new(:id => 1) }
-    assert_raise(Scope::Invalid){ Scope::Application.new(:id => 1, :app_scope => nil) }
+    assert_raise(Scope::Invalid){ Scope::Application.new(:id => '51ed4adbb8c2e70a72000294') }
+    assert_raise(Scope::Invalid){ Scope::Application.new(:id => '51ed4adbb8c2e70a72000294', :app_scope => nil) }
   end
 
   test 'default permissions' do
@@ -89,8 +94,8 @@ class ScopeTest < ActiveSupport::TestCase
     controller.expects(:is_a?).with(AuthorizationsController).returns(true)
     assert !Scope::Read.new.allows_action?(controller)
 
-    assert  Scope::Application.new(:id => 1, :app_scope => :scale).allows_action?(nil)
-    assert  Scope::Application.new(:id => 1, :app_scope => :build).allows_action?(nil)
+    assert  Scope::Application.new(:id => '51ed4adbb8c2e70a72000294', :app_scope => :scale).allows_action?(nil)
+    assert  Scope::Application.new(:id => '51ed4adbb8c2e70a72000294', :app_scope => :build).allows_action?(nil)
 
     assert !Scope::Userinfo.new.allows_action?(nil)
     assert !Scope::Userinfo.new.allows_action?(UserController.new)

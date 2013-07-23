@@ -581,7 +581,7 @@ def upgrade_from_file(file)
               user = CloudUser.with(consistency: :eventual).find_by(login: login)
             rescue Mongoid::Errors::DocumentNotFound
             end
-            if user && Application.find(user, app_name)
+            if user && Application.find_by_user(user, app_name)
               sleep 4
             else
               append_to_file(log_file, "App '#{app_name}' no longer found in datastore with uuid '#{gear_uuid}'.  Ignoring...")

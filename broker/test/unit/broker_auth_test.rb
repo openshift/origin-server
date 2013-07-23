@@ -28,7 +28,7 @@ class BrokerAuthTest < Test::Unit::TestCase
 
     domain.expects(:owner).returns(user)
 
-    app.expects(:uuid).at_least_once.returns("1")
+    app.expects(:uuid).at_least_once.returns("51ed4adbb8c2e70a72000294")
     app.expects(:name).at_least_once.returns("foo")
     app.expects(:canonical_name).at_least_once.returns("foo")
     app.expects(:domain).returns(domain)
@@ -41,7 +41,7 @@ class BrokerAuthTest < Test::Unit::TestCase
     assert auth = svc.validate_broker_key(iv,token)
     assert_equal user, auth[:user]
     assert_equal :broker_auth, auth[:auth_method]
-    assert_equal [Scope::Application.new(:id => '1', :app_scope => :scale), Scope::Application.new(:id => '1', :app_scope => :build)], auth[:scopes]
+    assert_equal [Scope::Application.new(:id => '51ed4adbb8c2e70a72000294', :app_scope => :scale), Scope::Application.new(:id => '51ed4adbb8c2e70a72000294', :app_scope => :build)], auth[:scopes]
   end
 
   def test_authenticate_request_passes_through

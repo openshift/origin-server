@@ -119,14 +119,10 @@ class DomainsController < BaseController
     id = params[:id].downcase if params[:id].presence
     force = get_bool(params[:force])
     if force
-      apps = Application.where(domain_id: @domain._id)
-      while apps.count > 0
-        apps.each do |app|
-          app.destroy_app
-        end
-        apps = Application.where(domain_id: @domain._id)
+      while (apps = Application.where(domain_id: @domain._id)).present?
+        apps.each(&:destroy_app)
       end
-    elsif Application.where(domain_id: @domain._id).count > 0
+    elsif Application.where(domain_id: @domain._id).present?
       if requested_api_version <= 1.3
         return render_error(:bad_request, "Domain contains applications. Delete applications first or set force to true.", 128)
       else

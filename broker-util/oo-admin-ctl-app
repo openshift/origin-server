@@ -75,7 +75,7 @@ unless user
   puts "User #{login} not found."
   exit 1
 end
-app = Application.find(user, app_name)
+app = Application.find_by_user(user, app_name)
 unless app
   puts "Application #{app_name} for user #{login} not found."
   exit 1
