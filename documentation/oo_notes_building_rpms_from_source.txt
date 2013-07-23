@@ -4,6 +4,8 @@ v2.0, July 2013
 :data-uri:
 :icons:
 
+include::_navigation.adoc[]
+
 This guide will walk you through retrieving the OpenShift Origin source from GitHub and build local copies of the Origin RPMS.
 
 OpenShift Origin requires a Fedora 19, or RHEL 6.4 compatible system to build these packages. You should start with a minimal installation to perform the build.

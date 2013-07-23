@@ -6,13 +6,15 @@ v2.0, July 2013
 :icons:
 :numbered:
 
-////
-Adapted from the OpenShift Enterprise Training - Lab Manual By Grant Shipley <gshipley@redhat.com>
-////
+include::_navigation.adoc[]
 
 OpenShift Origin provides developers and IT organizations an open source auto-scaling cloud application platform for quickly deploying new applications on secure and scalable resources with minimal configuration and management headaches. This means increased developer productivity and a faster pace in which IT can support innovation. This guide covers the basics of administering a private Platform-as-a-Service built with this awesome open source solution.
 
-TIP: *Installation is documented in the OpenShift Origin Deployment Guide.* If you don't have OpenShift Origin up and running, go there first.
+[TIP]
+====
+*Installation is documented in the link:oo_deployment_guide_comprehensive.html[OpenShift Origin Deployment Guide].* +
+If you don't have OpenShift Origin up and running, go there first.
+====
 
 [float]
 === Platform as a Service

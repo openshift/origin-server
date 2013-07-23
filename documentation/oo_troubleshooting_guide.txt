@@ -6,6 +6,8 @@ v2.0, July 2013
 :icons:
 :numbered:
 
+include::_navigation.adoc[]
+
 This document is aimed at https://www.openshift.com/products/origin[OpenShift Origin] administrators; it contains a number of helpful tips for debugging an OpenShift Origin deployment. Contributions to this document based on your experience as an OpenShift Origin administrator are welcome! This document is maintained in http://asciidoc.org/[AsciiDoc] as part of the _origin-server_ code repository on https://github.com/openshift/origin-server/[GitHub].
 
 If you are running into trouble with an application _hosted_ on an OpenShift Origin system, then please take advantage of the OpenShift Origin community resources:

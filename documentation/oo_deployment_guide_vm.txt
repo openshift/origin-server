@@ -6,4 +6,6 @@ v2.0, July 2013
 :icons:
 :numbered:
 
+include::_navigation.adoc[]
+
 This document has not been written yet. Check back soon.
