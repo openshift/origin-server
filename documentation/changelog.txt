@@ -4,4 +4,9 @@ v2.0, July 2013
 :data-uri:
 :toc2:
 :icons:
-:numbered:
+
+include::_navigation.adoc[]
+
+== Version 2.0
+
+Documentation not yet available.

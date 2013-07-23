@@ -9,5 +9,9 @@ task :build do
 end
 
 task :clean do
-  sh "rm *.html"
+  sh "rm *.html" do |ok,res|
+    if ! ok
+      puts "Nothing to clean."
+    end
+  end
 end

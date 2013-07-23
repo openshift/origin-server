@@ -1,0 +1,6 @@
+[sidebar]
+.Document Site Navigation
+--
+* link:index.html[*Documentation Home*]
+* http://openshift.github.io/[*OpenShift Origin Home*]
+--

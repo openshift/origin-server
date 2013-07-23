@@ -6,9 +6,7 @@ v2.0, July 2013
 :icons:
 :numbered:
 
-////
-Adapted from the OpenShift Enterprise Training - Lab Manual By Grant Shipley <gshipley@redhat.com>
-////
+include::_navigation.adoc[]
 
 [float]
 == Overview
