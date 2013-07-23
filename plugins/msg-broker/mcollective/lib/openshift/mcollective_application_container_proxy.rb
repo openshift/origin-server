@@ -1855,21 +1855,6 @@ module OpenShift
           rescue Exception => e
             gear.server_identity = source_container.id
             gear.group_instance.gear_size = source_container.get_node_profile
-            # remove-httpd-proxy of destination
-            log_debug "DEBUG: Moving failed.  Rolling back gear '#{gear.name}' '#{app.name}' with remove-httpd-proxy on '#{destination_container.id}'"
-            gi.all_component_instances.each do |cinst|
-              next if cinst.is_sparse? and (not gear.sparse_carts.include? cinst._id) and (not gear.host_singletons)
-              cart = cinst.cartridge_name
-              if framework_carts(app).include? cart
-                begin
-                  args = build_base_gear_args(gear)
-                  args = build_base_component_args(cinst, args)
-                  reply.append destination_container.send(:run_cartridge_command, cart, gear, "remove-httpd-proxy", args, false)
-                rescue Exception => e
-                  log_debug "DEBUG: Remove httpd proxy with cart '#{cart}' failed on '#{destination_container.id}'  - gear: '#{gear.name}', app: '#{app.name}'"
-                end
-              end
-            end
             # destroy destination
             log_debug "DEBUG: Moving failed.  Rolling back gear '#{gear.name}' in '#{app.name}' with destroy on '#{destination_container.id}'"
             reply.append destination_container.destroy(gear, !district_changed, nil, true)
