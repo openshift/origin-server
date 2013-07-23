@@ -33,6 +33,9 @@ To set a cgroup template for all gears:
 To list the available cgroup templates:
 #{$0} --templates
 
+To list the template for a gear with UUID:
+#{$0} --with-container-uuid UUID
+
 == List of arguments
   -c|--with-container-uuid  gear_uuid   Unique identifier for the gears
   -a|--with-all-containers              Run on all gears
@@ -60,7 +63,7 @@ opts = GetoptLong.new(
 container_uuid = nil
 all_containers = false
 list_templates = false
-template = "default"
+template = nil
 
 begin
   opts.each do |k, v|
@@ -94,11 +97,18 @@ begin
     puts OpenShift::Runtime::Utils::Cgroups.show_templates.join("\n")
   else
     if all_containers
-      OpenShift::Runtime::ApplicationContainer.all.each do |c|
-        OpenShift::Runtime::Utils::Cgroups.new(c.uuid).apply_profile(template.to_sym)
-      end
+      containers = OpenShift::Runtime::ApplicationContainer.all.map { |c| c.uuid }
     else
-      OpenShift::Runtime::Utils::Cgroups.new(container_uuid.to_s).apply_profile(template.to_sym)
+      containers = [container_uuid.to_s]
+    end
+
+    containers.each do |uuid|
+      c = OpenShift::Runtime::Utils::Cgroups.new(uuid)
+      if template
+        c.apply_profile(template.to_sym)
+      else
+        puts "#{uuid}: #{c.profile}"
+      end
     end
   end
 rescue Exception => e
