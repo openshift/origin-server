@@ -326,44 +326,42 @@ module OpenShift
             stop_gear
           end
 
-          OpenShift::Runtime::Utils::Cgroups.new(uuid).boost do
-            Dir.chdir(container.container_dir) do
-              itinerary.each_cartridge do |cartridge_name, upgrade_type|
-                manifest = cartridge_model.get_cartridge(cartridge_name)
-                cartridge_path = File.join(gear_home, manifest.directory)
+          Dir.chdir(container.container_dir) do
+            itinerary.each_cartridge do |cartridge_name, upgrade_type|
+              manifest = cartridge_model.get_cartridge(cartridge_name)
+              cartridge_path = File.join(gear_home, manifest.directory)
 
-                if !File.directory?(cartridge_path)
-                  progress.log "Skipping upgrade for #{manifest.name}: cartridge manifest does not match gear layout: #{cartridge_path} is not a directory"
-                  next
+              if !File.directory?(cartridge_path)
+                progress.log "Skipping upgrade for #{manifest.name}: cartridge manifest does not match gear layout: #{cartridge_path} is not a directory"
+                next
+              end
+
+              ident_path                               = Dir.glob(File.join(cartridge_path, 'env', 'OPENSHIFT_*_IDENT')).first
+              ident                                    = IO.read(ident_path)
+              vendor, name, version, cartridge_version = OpenShift::Runtime::Manifest.parse_ident(ident)
+              next_manifest                            = cartridge_repository.select(name, version)
+
+              progress.step "#{name}_upgrade" do |context, errors|
+                context[:cartridge] = name.downcase
+
+                if upgrade_type == UpgradeType::COMPATIBLE
+                  progress.log "Compatible upgrade of cartridge #{ident}"
+                  context[:compatible] = true
+                  compatible_upgrade(cartridge_model, cartridge_version, next_manifest, cartridge_path)
+                else
+                  progress.log "Incompatible upgrade of cartridge #{ident}"
+                  context[:compatible] = false
+                  incompatible_upgrade(cartridge_model, cartridge_version, next_manifest, version, cartridge_path)
                 end
+              end
 
-                ident_path                               = Dir.glob(File.join(cartridge_path, 'env', 'OPENSHIFT_*_IDENT')).first
-                ident                                    = IO.read(ident_path)
-                vendor, name, version, cartridge_version = OpenShift::Runtime::Manifest.parse_ident(ident)
-                next_manifest                            = cartridge_repository.select(name, version)
-
-                progress.step "#{name}_upgrade" do |context, errors|
-                  context[:cartridge] = name.downcase
-
-                  if upgrade_type == UpgradeType::COMPATIBLE
-                    progress.log "Compatible upgrade of cartridge #{ident}"
-                    context[:compatible] = true
-                    compatible_upgrade(cartridge_model, cartridge_version, next_manifest, cartridge_path)
-                  else
-                    progress.log "Incompatible upgrade of cartridge #{ident}"
-                    context[:compatible] = false
-                    incompatible_upgrade(cartridge_model, cartridge_version, next_manifest, version, cartridge_path)
-                  end
-                end
-
-                progress.step "#{name}_rebuild_ident" do |context, errors|
-                  context[:cartridge] = name.downcase
-                  next_ident = OpenShift::Runtime::Manifest.build_ident(manifest.cartridge_vendor,
-                                                                        manifest.name,
-                                                                        manifest.version,
-                                                                        next_manifest.cartridge_version)
-                  IO.write(ident_path, next_ident, 0, mode: 'w', perms: 0666)
-                end
+              progress.step "#{name}_rebuild_ident" do |context, errors|
+                context[:cartridge] = name.downcase
+                next_ident = OpenShift::Runtime::Manifest.build_ident(manifest.cartridge_vendor,
+                                                                      manifest.name,
+                                                                      manifest.version,
+                                                                      next_manifest.cartridge_version)
+                IO.write(ident_path, next_ident, 0, mode: 'w', perms: 0666)
               end
             end
           end

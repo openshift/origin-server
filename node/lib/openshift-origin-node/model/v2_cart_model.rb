@@ -251,45 +251,43 @@ module OpenShift
                                    CartridgeRepository.instance.select(name, software_version)
                                  end
 
-        ::OpenShift::Runtime::Utils::Cgroups.new(@container.uuid).boost do
-          create_cartridge_directory(cartridge, software_version)
-          # Note: the following if statement will check the following criteria long-term:
-          # 1. Is the app scalable?
-          # 2. Is this the head gear?
-          # 3. Is this the first time the platform has generated an ssh key?
-          #
-          # In the current state of things, the following check is sufficient to test all
-          # of these criteria, and we do not have a way to explicitly check the first two
-          # criteria.  However, it should be considered a TODO to add more explicit checks.
-          if cartridge.web_proxy?
-            output << generate_ssh_key(cartridge)
-          end
+        create_cartridge_directory(cartridge, software_version)
+        # Note: the following if statement will check the following criteria long-term:
+        # 1. Is the app scalable?
+        # 2. Is this the head gear?
+        # 3. Is this the first time the platform has generated an ssh key?
+        #
+        # In the current state of things, the following check is sufficient to test all
+        # of these criteria, and we do not have a way to explicitly check the first two
+        # criteria.  However, it should be considered a TODO to add more explicit checks.
+        if cartridge.web_proxy?
+          output << generate_ssh_key(cartridge)
+        end
 
-          create_private_endpoints(cartridge)
+        create_private_endpoints(cartridge)
 
-          Dir.chdir(PathUtils.join(@container.container_dir, cartridge.directory)) do
-            unlock_gear(cartridge) do |c|
-              expected_entries = Dir.glob(PathUtils.join(@container.container_dir, '*'))
+        Dir.chdir(PathUtils.join(@container.container_dir, cartridge.directory)) do
+          unlock_gear(cartridge) do |c|
+            expected_entries = Dir.glob(PathUtils.join(@container.container_dir, '*'))
 
-              output << cartridge_action(cartridge, 'setup', software_version, true)
-              process_erb_templates(c)
-              output << cartridge_action(cartridge, 'install', software_version)
+            output << cartridge_action(cartridge, 'setup', software_version, true)
+            process_erb_templates(c)
+            output << cartridge_action(cartridge, 'install', software_version)
 
-              actual_entries  = Dir.glob(PathUtils.join(@container.container_dir, '*'))
-              illegal_entries = actual_entries - expected_entries
-              unless illegal_entries.empty?
-                raise RuntimeError.new(
-                          "Cartridge created the following directories in the gear home directory: #{illegal_entries.join(', ')}")
-              end
-
-              output << populate_gear_repo(c.directory, template_git_url) if cartridge.deployable?
+            actual_entries  = Dir.glob(PathUtils.join(@container.container_dir, '*'))
+            illegal_entries = actual_entries - expected_entries
+            unless illegal_entries.empty?
+              raise RuntimeError.new(
+                                     "Cartridge created the following directories in the gear home directory: #{illegal_entries.join(', ')}")
             end
 
-            validate_cartridge(cartridge)
+            output << populate_gear_repo(c.directory, template_git_url) if cartridge.deployable?
           end
 
-          connect_frontend(cartridge)
+          validate_cartridge(cartridge)
         end
+
+        connect_frontend(cartridge)
 
         logger.info "configure output: #{output}"
         return output
@@ -329,14 +327,12 @@ module OpenShift
         name, software_version = map_cartridge_name(cartridge_name)
         cartridge              = get_cartridge(name)
 
-        ::OpenShift::Runtime::Utils::Cgroups.new(@container.uuid).boost do
-          if empty_repository?
-            output << "CLIENT_MESSAGE: An empty Git repository has been created for your application.  Use 'git push' to add your code."
-          else
-            output << start_cartridge('start', cartridge, user_initiated: true)
-          end
-          output << cartridge_action(cartridge, 'post_install', software_version)
+        if empty_repository?
+          output << "CLIENT_MESSAGE: An empty Git repository has been created for your application.  Use 'git push' to add your code."
+        else
+          output << start_cartridge('start', cartridge, user_initiated: true)
         end
+        output << cartridge_action(cartridge, 'post_install', software_version)
 
         logger.info("post-configure output: #{output}")
         output
@@ -388,19 +384,17 @@ module OpenShift
         end
 
         delete_private_endpoints(cartridge)
-        ::OpenShift::Runtime::Utils::Cgroups.new(@container.uuid).boost do
-          begin
-            stop_cartridge(cartridge, user_initiated: true)
-            unlock_gear(cartridge, false) do |c|
-              teardown_output << cartridge_teardown(c.directory)
-            end
-          rescue ::OpenShift::Runtime::Utils::ShellExecutionException => e
-            teardown_output << ::OpenShift::Runtime::Utils::Sdk::translate_out_for_client(e.stdout, :error)
-            teardown_output << ::OpenShift::Runtime::Utils::Sdk::translate_out_for_client(e.stderr, :error)
-          ensure
-            disconnect_frontend(cartridge)
-            delete_cartridge_directory(cartridge)
+        begin
+          stop_cartridge(cartridge, user_initiated: true)
+          unlock_gear(cartridge, false) do |c|
+            teardown_output << cartridge_teardown(c.directory)
           end
+        rescue ::OpenShift::Runtime::Utils::ShellExecutionException => e
+          teardown_output << ::OpenShift::Runtime::Utils::Sdk::translate_out_for_client(e.stdout, :error)
+          teardown_output << ::OpenShift::Runtime::Utils::Sdk::translate_out_for_client(e.stderr, :error)
+        ensure
+          disconnect_frontend(cartridge)
+          delete_cartridge_directory(cartridge)
         end
 
         teardown_output
