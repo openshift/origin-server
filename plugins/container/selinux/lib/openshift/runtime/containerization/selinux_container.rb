@@ -220,25 +220,25 @@ Dir(after)    #{@container.uuid}/#{@container.uid} => #{list_home_dir(@container
         end
 
         def enable_cgroups
-          ::OpenShift::Runtime::Utils::Cgroups.enable(@container.uuid)
+          ::OpenShift::Runtime::Utils::Cgroups.new(@container.uuid).create
         end
 
         def stop_cgroups
-          ::OpenShift::Runtime::Utils::Cgroups.disable(@container.uuid)
+          ::OpenShift::Runtime::Utils::Cgroups.new(@container.uuid).delete
         end
 
         def enable_traffic_control
-          out,err,rc = ::OpenShift::Runtime::Utils::oo_spawn("service openshift-tc status > /dev/null 2>&1")
-          if rc == 0
-            out,err,rc = ::OpenShift::Runtime::Utils::oo_spawn("/usr/sbin/oo-admin-ctl-tc startuser #{@container.uuid} > /dev/null")
-            raise ::OpenShift::Runtime::UserCreationException.new("Unable to setup tc for #{@container.uuid}") unless rc == 0
+          begin
+            ::OpenShift::Runtime::Utils::TC.new.startuser(@container.uuid)
+          rescue RuntimeError, ArgumentError => e
+            raise ::OpenShift::Runtime::UserCreationException.new("Unable to setup tc for #{@container.uuid}")
           end
         end
 
         def disable_traffic_control
-          out,err,rc = ::OpenShift::Runtime::Utils::oo_spawn("service openshift-tc status > /dev/null 2>&1")
-          if rc == 0
-            ::OpenShift::Runtime::Utils::oo_spawn("/usr/sbin/oo-admin-ctl-tc deluser #{@container.uuid} > /dev/null")
+          begin
+            ::OpenShift::Runtime::Utils::TC.new.deluser(@container.uuid)
+          rescue RuntimeError, ArgumentError => e
           end
         end
 
@@ -325,12 +325,30 @@ Dir(after)    #{@container.uuid}/#{@container.uid} => #{list_home_dir(@container
         end
 
         def freeze_cgroups
-          ::OpenShift::Runtime::Utils::Cgroups.freezer_burn(@container.uuid)
+          begin
+            cg = ::OpenShift::Runtime::Utils::Cgroups.new(@container.uuid)
+            cg.freeze
+            20.times do
+              pids = cg.processes
+              if pids.empty?
+                return
+              else
+                Process::Kill("KILL",*pids)
+                cg.thaw
+                sleep(0.1)
+                cg.freeze
+              end
+            end
+          rescue
+          end
         end
 
         # release resources (cgroups thaw), this causes Zombies to get killed
         def unfreeze_cgroups
-          ::OpenShift::Runtime::Utils::Cgroups.thaw(@container.uuid)
+          begin
+            ::OpenShift::Runtime::Utils::Cgroups.new(@container.uuid).thaw
+          rescue
+          end
         end
 
         # Private: list directories (cartridges) in home directory
