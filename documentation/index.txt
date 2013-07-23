@@ -8,8 +8,13 @@ https://openshift.redhat.com/community/open-source[OpenShift Origin] is Red Hat'
 
 == General Overview
 
+////
+TODO: Retire
+https://openshift.redhat.com/community/wiki/architecture-overview
+////
+
 * https://openshift.redhat.com/community/wiki/learning-openshift-origin[Learning OpenShift Origin]
-* https://openshift.redhat.com/community/wiki/architecture-overview[Architecture Overview]
+* link:oo_system_architecture_guide.html[Architecture Overview]
 * link:changelog.html[OpenShift Origin Change Log]
 
 == Documentation
