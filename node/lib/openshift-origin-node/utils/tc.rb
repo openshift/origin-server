@@ -71,9 +71,6 @@ module OpenShift
           # Then create for each user a qdesc and limit it to a small fraction of
           # the total bandwidth
           #
-          # Name of the traffic control command.
-          @TC="/sbin/tc"
-          @IP="/sbin/ip"
 
           # The network interface we're planning on limiting bandwidth.
           @tc_if=(@config.get('EXTERNAL_ETH_DEV') or "eth0")
@@ -101,7 +98,7 @@ module OpenShift
         end
 
         def get_interface_mtu(iface)
-          out, err, rc = ::OpenShift::Runtime::Utils.oo_spawn(%Q[#{@IP} link show dev #{iface}], :chdir=>"/")
+          out, err, rc = ::OpenShift::Runtime::Utils.oo_spawn(%Q[ip link show dev #{iface}], :chdir=>"/")
           if rc != 0
             raise RuntimeError, "Unable to determine external network interface IP address."
           end
@@ -141,7 +138,7 @@ module OpenShift
             end
             f.fsync
             # Can't directly send the file to TC in stdin due to selinux domains.
-            out, err, rc = ::OpenShift::Runtime::Utils.oo_spawn("cat #{f.path} | #{@TC} -force -batch", :chdir=>"/")
+            out, err, rc = ::OpenShift::Runtime::Utils.oo_spawn("cat #{f.path} | tc -force -batch", :chdir=>"/")
             if rc != 0
               raise RuntimeError, err
             end
@@ -182,7 +179,7 @@ module OpenShift
         end
 
         def with_tc_loaded
-          out, err, rc = ::OpenShift::Runtime::Utils.oo_spawn("#{@TC} qdisc show dev #{@tc_if}", :chdir=>"/")
+          out, err, rc = ::OpenShift::Runtime::Utils.oo_spawn("tc qdisc show dev #{@tc_if}", :chdir=>"/")
           if out.include?("qdisc htb 1:")
             if block_given?
               yield
@@ -193,7 +190,7 @@ module OpenShift
         end
 
         def statususer(uuid, pwent, netclass)
-          out, err, rc = ::OpenShift::Runtime::Utils.oo_spawn("#{@TC} -s class show dev #{@tc_if} classid 1:#{netclass}", :chdir=>"/")
+          out, err, rc = ::OpenShift::Runtime::Utils.oo_spawn("tc -s class show dev #{@tc_if} classid 1:#{netclass}", :chdir=>"/")
           if out.empty?
             raise ArgumentError, "tc not configured for user #{uuid}"
           else
@@ -350,9 +347,9 @@ module OpenShift
                 statususer(uuid, pwent, netclass)
               end
             else
-              out, err, rc = ::OpenShift::Runtime::Utils.oo_spawn("#{@TC} -s qdisc show dev #{@tc_if}", :chdir=>"/")
+              out, err, rc = ::OpenShift::Runtime::Utils.oo_spawn("tc -s qdisc show dev #{@tc_if}", :chdir=>"/")
               @output << out
-              out, err, rc = ::OpenShift::Runtime::Utils.oo_spawn("#{@TC} -s class show dev #{@tc_if}", :chdir=>"/")
+              out, err, rc = ::OpenShift::Runtime::Utils.oo_spawn("tc -s class show dev #{@tc_if}", :chdir=>"/")
               @output << out
             end
           end
