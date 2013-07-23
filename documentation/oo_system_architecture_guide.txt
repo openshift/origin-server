@@ -21,7 +21,7 @@ Numerous system topologies are supported by the Broker and Node servers:
 
 * All components on one host
 * One Broker + ActiveMQ host, multiple Node hosts
-* Load-balanced Brokers, standalone ActiveMQ host, multiple Node hosts
+* Load-balanced Brokers, standalone ActiveMQ host, separate replicated MongoDB servers, multiple Node hosts
 
 == Broker
 The Broker manages all application control, user authentication, and DNS updates within the Origin PaaS. Users interact with the Broker via the following means, which all leverage the Broker's REST API:
@@ -94,12 +94,8 @@ image:application_overview.png[Applications]
 * Domain: The domain is not directly related to DNS; instead it provides a unique namespace for all the applications of a specific user. The domain name is appended to the application name to form the final application URL.
 * Application Name: Identifies the name of the application. The final URL to access the application is of the form: `https://[APPNAME]-[DOMAIN].rhcloud.com`
 * Aliases: Users can provide their own DNS names for the application by registering an alias with the platform.
-* Application dependencies: Users specify the cartridges required to run their applications. There are currently 2 types of cartridges:
-** Framework cartridges are the primary cartridges responsible for serving up web pages. All applications must have a framework cartridge.
-** Embedded cartridges are support cartridges such as DBs or DB web interfaces. Many embedded cartridges can be added to a single application.
-* Application GIT repository: Each application gets a GIT repository. Users can modify code in the repository and then perform a git push to deploy their code.
-
-NOTE: In the near future, we will be removing the concept of embedded vs. framework cartridge in favor of describing which cartridges must be co-located and scaled together. See section about application and cartridge descriptors.
+* Dependencies: Users specify the cartridges required to run their applications.
+* git repository: Each application gets a git repository. Users can modify code in the repository and then perform a git push to deploy their code.
 
 === Simple application creation
 
