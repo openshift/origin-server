@@ -64,8 +64,6 @@ module OpenShift
           @impl.delete
         end
 
-        # TODO: Move template defs to resource_limits.conf
-        #       Raise an exception if the default template does not have a value for every other template?
         def templates
           if not @@templates_cache
             res = Config.new('/etc/openshift/resource_limits.conf')
@@ -132,7 +130,6 @@ module OpenShift
         end
 
         # Public: Infer the current profile based on current values.
-        # TODO: This probably needs to be fixed based on the changes to templates
         def profile
           cur = current_values
           # Search through known templates and compare them with our current values
