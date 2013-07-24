@@ -92,6 +92,7 @@ mv services/openshift-gears.service %{buildroot}/etc/systemd/system/openshift-ge
 %doc README-Idler.md
 %{_mandir}/man8/oo-accept-node.8.gz
 %{_mandir}/man8/oo-admin-ctl-gears.8.gz
+%{_mandir}/man8/oo-auto-idler.8.gz
 %{_mandir}/man8/oo-idler-stats.8.gz
 %{_mandir}/man8/oo-init-quota.8.gz
 %{_mandir}/man8/oo-last-access.8.gz

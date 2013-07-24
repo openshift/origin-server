@@ -1,0 +1,51 @@
+NAME
+  oo-auto-idler 
+  
+SYNOPSIS
+  oo-auto-idler [-hvt] idle [--interval] [--list] [--verbose]
+
+DESCRIPTION
+  The OpenShift auto-idler automates the process of listing and idling gears that
+  have been inactive. This replaces the oo-last-access and oo-idler scripts, doing the
+  same job more efficiently in a single script.
+
+OPTIONS
+  -h|--help  
+    Display a simple help menu.
+
+  -v|--verbose  
+    Provide verbose output.
+
+  -t|--trace  
+    Provide backtrace should an error occur.
+  
+COMMANDS
+  idle  
+   The idle command causes stale gears to be idled. Options for the idle command are:
+
+  --interval HOURS  
+    Hours since last access, after which gears will be considered stale. Default: 240
+
+  --list  
+    Only list the stale gears that would be idled; do not idle them.
+
+  --verbose  
+    Print debug information.
+  
+CONFIGURATION
+  /etc/openshift/node/idler_ignorelist.conf  
+  Gears may be exempted from idling by placing their UUIDs in this file.
+  
+EXAMPLE
+  $ oo-auto-idler idle --interval 12  
+    Idles all gears stale for 12 hours
+  $ oo-auto-idler idle --interval 12 --list  
+    List all gears stale for 12 hours, but do not idle them.
+  
+SEE ALSO
+  oo-accept-node(8), oo-admin-ctl-gears(8), oo-idler-stats(8),
+  oo-init-quota(8), oo-last-access(8), oo-restorer(8),
+  oo-restorer-wrapper.sh(8), oo-setup-node(8), rhc-list-ports(8)
+
+AUTHOR
+  Luke Meyer <lmeyer@redhat.com> - man page written for OpenShift Origin 
