@@ -34,6 +34,10 @@
   padding: 0 20px;
 }
 
+.navbar .nav {
+  margin-left: -20px;
+}
+
 /* Pull in some missing bootstrap navbar styles from 2.3.0 */
 .navbar-inner:before, .navbar-inner:after {
     content: "";
@@ -51,18 +55,19 @@
     line-height: 0;
 }
 
-.nav-collapse.collapse {
-  overflow: visible;
-}
-
 .navbar-search {
+  margin-top: 4px;
+
   .btn {
     margin-top: 0;
   }
 
-  select {
+  .input-prepend.input-append select {
     height: 32px;
     line-height: 32px;
+    padding-top: 5px;
+    font-size: 13px;
+    border-radius: 4px 0 0 4px;
   }
 
   .search-query {
@@ -75,6 +80,36 @@
       background: white;
       color: #555;
     }
+  }
+}
+
+@media (max-width: 540px) {
+  .navbar-search {
+    .input-prepend.input-append select {
+      display: block;
+      margin-bottom: 5px;
+      border-radius: 4px;
+    }
+
+    .input-prepend.input-append input[type="text"] {
+      border-radius: 4px 0 0 4px;
+    }
+  }
+}
+
+@media (max-width: 979px) {
+  .navbar-search.pull-right {
+    margin-right: 0;
+  }
+
+  .navbar-search {
+    .input-prepend.input-append select {
+      height: 31px;
+    }
+  }
+
+  .header.rcue .navbar .container .brand {
+    margin-left: 20px;
   }
 }
 
