@@ -149,6 +149,7 @@ class DomainsController < BaseController
       else
         return render_error(:unprocessable_entity, "Domain contains applications. Delete applications first or set force to true.", 128)
       end
+    end
     # reload the domain so that MongoId does not see any applications
     @domain.reload
     result = @domain.delete
