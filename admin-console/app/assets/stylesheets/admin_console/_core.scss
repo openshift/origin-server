@@ -44,8 +44,10 @@ h1 .icon {
     height: 30px;
 }
 
-.header-bar {
-    -moz-box-sizing: border-box;
-    background: none repeat scroll 0 0 #CCC;
-    padding-left: 20px;
+.indent10 {
+  margin-left: 10px;
+}
+
+h1 + .table-metadata {
+  margin-top: -7px;
 }

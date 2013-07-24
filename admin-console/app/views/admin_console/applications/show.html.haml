@@ -33,11 +33,11 @@
 - @app.group_instances.each do |group_instance|
   - cartridges = gear_group_cartridges(@app, group_instance)
   %section
-    %h3.header-bar
-      = "Gear Group:"
+    %h3
+      = "Gear Group for"
       - cartridges.each_with_index do |cartridge, count|
         = "#{cartridge[:display_name]}#{count < cartridges.size - 1 ? ',' : ''}"
-    %table.table.table-condensed
+    %table.table.table-condensed.indent10
       %thead
         %tr
           %th

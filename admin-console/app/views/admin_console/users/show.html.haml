@@ -4,6 +4,20 @@
       %h1
         = image_tag "admin_console/user.svg", :class => "icon"
         = "User #{@user.login}"
+      %table.table-horizontal.table-metadata
+        %tbody
+          %tr
+            %th
+              = "Gears:"
+            %td
+              = "#{@user.consumed_gears} of #{@user.max_gears}"
+          %tr
+            %th
+              = "Gear sizes:"
+            %td
+              - gear_sizes = @user.capabilities["gear_sizes"]
+              - gear_sizes.each_with_index do |size, count|
+                = "#{size}#{count < gear_sizes.size - 1 ? ',' : ''}"
         
     .span4
       %h4
@@ -12,7 +26,12 @@
         %tbody
           %tr
             %th
-              = "Plan ID:"
+              = "Usage Account ID:"
+            %td
+              = @user.usage_account_id.nil? ? "none" : @user.usage_account_id
+          %tr
+            %th
+              = "Plan:"
             %td
               = @user.plan_id
           %tr
@@ -20,11 +39,7 @@
               = "Plan State:"
             %td
               = @user.plan_state
-          %tr
-            %th
-              = "Gears:"
-            %td
-              = "#{@user.consumed_gears} of #{@user.max_gears}"
+
     .span4
       %h4
         Namespace

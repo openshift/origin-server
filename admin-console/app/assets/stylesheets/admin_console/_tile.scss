@@ -1,0 +1,48 @@
+.tile {
+  padding: 9px 35px 10px 21px;
+  margin-bottom: 12px;
+  background-color: #eee;
+  color: #000;
+}
+
+a.tile {
+  display: block;
+
+  &.tile-click {
+    text-decoration: none;
+  }
+}
+
+.tile-click {
+  cursor: pointer;
+  
+  h3 {
+    margin-right: 10px;
+  }
+
+  &:hover, &:active {
+    background-color: #bebebe;
+
+    h3 {
+      color: black;
+    }
+
+    .font-icon, [class*="icon-"] {
+      color: black;
+    }
+  }
+}
+
+.tile-compact {
+  padding-right: 35px;
+  h3 {
+    display: inline-block;
+    margin-right: 10px;
+    margin-bottom: 0;
+  }
+  a.label {
+    display: inline-block;
+    vertical-align: middle;
+    margin-top: -5px;
+  }
+}
