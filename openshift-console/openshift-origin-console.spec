@@ -42,19 +42,23 @@ Requires:      gcc-c++
 %if 0%{?fedora}%{?rhel} <= 6
 BuildRequires:  ruby193-build
 BuildRequires:  scl-utils-build
-BuildRequires: %{?scl:%scl_prefix}rubygem(rails)
-BuildRequires: %{?scl:%scl_prefix}rubygem(compass-rails)
-BuildRequires: %{?scl:%scl_prefix}rubygem(test-unit)
-BuildRequires: %{?scl:%scl_prefix}rubygem(ci_reporter)
-BuildRequires: %{?scl:%scl_prefix}rubygem(sprockets)
-BuildRequires: %{?scl:%scl_prefix}rubygem(rdiscount)
-BuildRequires: %{?scl:%scl_prefix}rubygem(formtastic)
-BuildRequires: %{?scl:%scl_prefix}rubygem(net-http-persistent)
-BuildRequires: %{?scl:%scl_prefix}rubygem(haml)
-BuildRequires: %{?scl:%scl_prefix}rubygem(therubyracer)
-BuildRequires: %{?scl:%scl_prefix}rubygem(minitest)
 %endif
+BuildRequires: %{?scl:%scl_prefix}rubygem-rails
+BuildRequires: %{?scl:%scl_prefix}rubygem-compass-rails
+BuildRequires: %{?scl:%scl_prefix}rubygem-test-unit
+BuildRequires: %{?scl:%scl_prefix}rubygem-ci_reporter
+BuildRequires: %{?scl:%scl_prefix}rubygem-sprockets
+BuildRequires: %{?scl:%scl_prefix}rubygem-rdiscount
+BuildRequires: %{?scl:%scl_prefix}rubygem-formtastic
+BuildRequires: %{?scl:%scl_prefix}rubygem-net-http-persistent
+BuildRequires: %{?scl:%scl_prefix}rubygem-haml
+BuildRequires: %{?scl:%scl_prefix}rubygem-therubyracer
+BuildRequires: %{?scl:%scl_prefix}rubygem-minitest
 BuildRequires: %{?scl:%scl_prefix}rubygems-devel
+BuildRequires: %{?scl:%scl_prefix}rubygem-coffee-rails
+BuildRequires: %{?scl:%scl_prefix}rubygem-jquery-rails
+BuildRequires: %{?scl:%scl_prefix}rubygem-uglifier
+
 %if 0%{?fedora} >= 19
 BuildRequires: ruby(release)
 %else
