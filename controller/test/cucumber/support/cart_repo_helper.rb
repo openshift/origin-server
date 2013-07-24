@@ -15,7 +15,7 @@ def clean_cart_repo
     $logger.info('Erasing test-generated version mock-0.1')
     cart_repo.erase('mock', '0.1', '0.0.2')
 
-    %x(pkill -USR1 -f /usr/sbin/mcollectived)
+    %x(pkill -HUP -f /usr/sbin/mcollectived)
   end
 
   cart_repo.clear

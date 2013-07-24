@@ -137,7 +137,7 @@ begin
     puts OpenShift::Runtime::AdminCartridgeCartridgeRepository.new.apply(options)
 
     if [:install, :erase].include?(options.action)
-      OpenShift::Runtime::Utils::oo_spawn('pkill -USR1 -f /usr/sbin/mcollectived')
+      OpenShift::Runtime::Utils::oo_spawn('pkill -HUP -f /usr/sbin/mcollectived')
     end
   end
 rescue OpenShift::Runtime::Utils::ShellExecutionException => e

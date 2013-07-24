@@ -92,6 +92,14 @@ module OpenShift
         @path = CARTRIDGE_REPO_DIR
 
         FileUtils.mkpath(@path) unless File.exist? @path
+        reload_index
+      end
+
+      def lazy_reload_index
+        @require_reload_index = true
+      end
+
+      def reload_index
         clear
         load @path
       end
@@ -120,6 +128,7 @@ module OpenShift
             # we check the vendor and cartridge names only when loading via URL
             c = insert(Manifest.new(manifest_path, nil, @path, load_via_url))
             logger.debug { "Loaded cartridge (#{c.name}, #{c.version}, #{c.cartridge_version})" }
+            @require_reload_index = false
           end
         end
 
@@ -156,6 +165,7 @@ module OpenShift
           raise KeyError.new("key not found: (#{cartridge_name}, #{version}, #{cartridge_version})")
         end
 
+        reload_index if @require_reload_index
         @index[cartridge_name][version][cartridge_version]
       end
 
@@ -204,6 +214,7 @@ module OpenShift
           # find a "template" entry
           entry = select(cartridge_name, version, cartridge_version)
 
+          reload_index if @require_reload_index
           # Now go back and find all occurrences of the "template"
           @index[cartridge_name].each_key do |k2|
             @index[cartridge_name][k2].each_pair do |k3, v3|
@@ -228,6 +239,7 @@ module OpenShift
       #
       #   CartridgeRepository.instance.erase('cobol', '2002', '1.0') #=> false
       def exist?(cartridge_name, cartridge_version, version)
+        reload_index if @require_reload_index
         @index.key?(cartridge_name) &&
             @index[cartridge_name].key?(version) &&
             @index[cartridge_name][version].key?(cartridge_version)
@@ -261,6 +273,7 @@ module OpenShift
       #
       #   CartridgeRepository.instance.remove('php', '5.3', '1.0') -> Cartridge
       def remove(cartridge_name, version, cartridge_version) # :nodoc:
+        reload_index if @require_reload_index
         @index[cartridge_name][version].delete(cartridge_version)
         @index[cartridge_name].delete(version) if  @index[cartridge_name][version].empty?
         @index.delete(cartridge_name) if  @index[cartridge_name].empty?
@@ -274,6 +287,7 @@ module OpenShift
       #
       #   CartridgeRepository.instance.insert(cartridge) -> Cartridge
       def insert(cartridge) # :nodoc:
+        reload_index if @require_reload_index
         cartridge.versions.each do |version|
           @index[cartridge.name][version][cartridge.cartridge_version] = cartridge
           @index[cartridge.name][version]['_']                         = cartridge
@@ -292,6 +306,7 @@ module OpenShift
         return to_enum(:each) unless block_given?
 
         cartridges = Set.new
+        reload_index if @require_reload_index
         @index.each_pair do |_, sw_hash|
           sw_hash.each_pair do |_, cart_hash|
             cart_hash.each_pair do |_, cartridge|
@@ -306,6 +321,7 @@ module OpenShift
 
       def latest_versions
         cartridges = Set.new
+        reload_index if @require_reload_index
         @index.each_pair do |_, sw_hash|
           sw_hash.each_pair do |_, cart_version_hash|
             latest_version = Manifest.sort_versions(cart_version_hash.keys).last.to_s
@@ -322,6 +338,7 @@ module OpenShift
 
       ## print out all index entries in a table
       def inspect
+        reload_index if @require_reload_index
         @index.inject("<CartridgeRepository:\n") do |memo, (name, sw_hash)|
           sw_hash.inject(memo) do |memo, (sw_ver, cart_hash)|
             cart_hash.inject(memo) do |memo, (cart_ver, cartridge)|
