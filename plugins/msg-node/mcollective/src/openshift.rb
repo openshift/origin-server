@@ -11,6 +11,11 @@ require 'shellwords'
 require 'facter'
 require 'openshift-origin-common/utils/file_needs_sync'
 
+Signal.trap("SIGHUP") {
+  cartridge_repository = ::OpenShift::Runtime::CartridgeRepository.instance
+  cartridge_repository.lazy_reload_index
+}
+
 module MCollective
   module Agent
     class Openshift<RPC::Agent
