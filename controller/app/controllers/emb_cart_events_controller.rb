@@ -1,7 +1,8 @@
 class EmbCartEventsController < BaseController
   include RestModelHelper
-  before_filter :get_domain, :get_application
+  before_filter :get_application
   action_log_tag_resource :cartridge
+  before_filter :get_application
 
   # POST /domain/[domain_id]/applications/[application_id]/cartridges/[cartridge_id]/events
   def create

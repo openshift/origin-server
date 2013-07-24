@@ -33,7 +33,7 @@ class EmbCartEventsControllerTest < ActionController::TestCase
     end
   end
   
-  test "cartridge events" do
+  test "cartridge events by domain and app name" do
     post :create, {"event" => "stop", "domain_id" => @domain.namespace, "application_id" => @app.name, "cartridge_id" => @cartridge_id}
     assert_response :success
     post :create, {"event" => "start", "domain_id" => @domain.namespace, "application_id" => @app.name, "cartridge_id" => @cartridge_id}
@@ -44,17 +44,32 @@ class EmbCartEventsControllerTest < ActionController::TestCase
     assert_response :success
   end
   
-  test "no app domain or cartridge id" do
+  test "cartridge events" do
+    post :create, {"event" => "stop", "application_id" => @app.id, "cartridge_id" => @cartridge_id}
+    assert_response :success
+    post :create, {"event" => "start", "application_id" => @app.id, "cartridge_id" => @cartridge_id}
+    assert_response :success
+    post :create, {"event" => "restart", "application_id" => @app.id, "cartridge_id" => @cartridge_id}
+    assert_response :success
+    post :create, {"event" => "reload", "application_id" => @app.id, "cartridge_id" => @cartridge_id}
+    assert_response :success
+  end
+  
+  test "no app domain or cartridge name and no app id" do
     post :create, {"event" => "stop", "application_id" => @app.name, "cartridge_id" => @cartridge_id}
     assert_response :not_found
     post :create, {"event" => "stop", "domain_id" => @domain.namespace, "cartridge_id" => @cartridge_id}
     assert_response :not_found
     post :create, {"event" => "stop", "domain_id" => @domain.namespace, "application_id" => @app.name}
     assert_response :not_found
+    post :create, {"event" => "stop", "cartridge_id" => @cartridge_id}
+    assert_response :not_found
   end
   
   test "wrong event type" do
     post :create, {"event" => "bogus", "domain_id" => @domain.namespace, "application_id" => @app.name, "cartridge_id" => @cartridge_id}
+    assert_response :unprocessable_entity
+    post :create, {"event" => "bogus", "application_id" => @app.id, "cartridge_id" => @cartridge_id}
     assert_response :unprocessable_entity
   end
 end

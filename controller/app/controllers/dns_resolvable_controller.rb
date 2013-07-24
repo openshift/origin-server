@@ -3,7 +3,7 @@ require 'dnsruby'
 ##
 # @api REST
 class DnsResolvableController < BaseController
-  before_filter :get_domain, :get_application
+  before_filter :get_application
   ##
   # Support API to check if application DNS entry is available
   #

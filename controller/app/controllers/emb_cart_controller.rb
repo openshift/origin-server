@@ -1,6 +1,6 @@
 class EmbCartController < BaseController
   include RestModelHelper
-  before_filter :get_domain, :get_application
+  before_filter :get_application
   action_log_tag_resource :app_cartridge
 
   # GET /domains/[domain_id]/applications/[application_id]/cartridges

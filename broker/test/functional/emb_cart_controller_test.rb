@@ -32,7 +32,7 @@ class EmbCartControllerTest < ActionController::TestCase
     end
   end
   
-  test "embedded cartridge create show list and destory" do
+  test "embedded cartridge create show list and destory by domain and app name" do
     name = MYSQL_VERSION
     post :create, {"name" => name, "domain_id" => @domain.namespace, "application_id" => @app.name}
     assert_response :created
@@ -44,7 +44,19 @@ class EmbCartControllerTest < ActionController::TestCase
     assert_response :success
   end
   
-  test "no app id" do
+  test "embedded cartridge create show list and destory by app id" do
+    name = MYSQL_VERSION
+    post :create, {"name" => name, "application_id" => @app.id}
+    assert_response :created
+    get :show, {"id" => name, "application_id" => @app.id}
+    assert_response :success
+    get :index , {"application_id" => @app.id}
+    assert_response :success
+    delete :destroy , {"id" => name, "application_id" => @app.id}
+    assert_response :success
+  end
+  
+  test "no app name" do
     name = MYSQL_VERSION
     post :create, {"name" => name, "domain_id" => @domain.namespace}
     assert_response :not_found
@@ -55,6 +67,20 @@ class EmbCartControllerTest < ActionController::TestCase
     get :index , {"id" => name, "domain_id" => @domain.namespace}
     assert_response :not_found
     delete :destroy , {"id" => name, "domain_id" => @domain.namespace}
+    assert_response :not_found
+  end
+  
+  test "no app id" do
+    name = MYSQL_VERSION
+    post :create, {"name" => name}
+    assert_response :not_found
+    get :show, {"id" => name}
+    assert_response :not_found
+    put :update, {"id" => name, "additional_gear_storage" => 10}
+    assert_response :not_found
+    get :index , {"id" => name}
+    assert_response :not_found
+    delete :destroy , {"id" => name}
     assert_response :not_found
   end
   
@@ -72,7 +98,7 @@ class EmbCartControllerTest < ActionController::TestCase
     assert_response :not_found
   end
   
-  test "no cartridge id" do
+  test "no cartridge id by domain and app name" do
     post :create, {"domain_id" => @domain.namespace, "application_id" => @app.name}
     assert_response :unprocessable_entity
     get :show, {"domain_id" => @domain.namespace, "application_id" => @app.name}
@@ -83,8 +109,21 @@ class EmbCartControllerTest < ActionController::TestCase
     assert_response :not_found
   end
   
+  test "no cartridge id by app id" do
+    post :create, {"application_id" => @app.id}
+    assert_response :unprocessable_entity
+    get :show, {"application_id" => @app.id}
+    assert_response :not_found
+    put :update, {"application_id" => @app.id, "additional_gear_storage" => 10}
+    assert_response :not_found
+    delete :destroy , {"application_id" => @app.id}
+    assert_response :not_found
+  end
+  
   test "destroy web_framework cartridge" do
     delete :destroy , {"id" => PHP_VERSION, "domain_id" => @domain.namespace, "application_id" => @app.name}
+    assert_response :unprocessable_entity
+    delete :destroy , {"id" => PHP_VERSION, "application_id" => @app.id}
     assert_response :unprocessable_entity
   end
   
