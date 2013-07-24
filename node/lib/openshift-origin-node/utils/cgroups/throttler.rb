@@ -9,6 +9,8 @@ module OpenShift
     module Utils
       class Cgroups
         class Throttler
+          attr_reader :wanted_keys, :uuids, :running_apps
+
           def initialize(*args)
             # Make sure we create a MonitoredGear for the root OpenShift cgroup
             # Keys for information we want from cgroups
@@ -64,7 +66,7 @@ module OpenShift
             Thread.new do
               loop do
                 vals = get_usage
-                vals = Hash[vals.map{|uuid,hash| [uuid,hash.select{|k,v| @wanted_keys.include?k}]}]
+                vals = Hash[vals.map{|uuid,hash| [uuid,hash.select{|k,v| wanted_keys.include?k}]}]
 
                 update(vals)
 
@@ -77,7 +79,8 @@ module OpenShift
           def update(vals)
             # Synchronize this in case uuids are deleted
             @mutex.synchronize do
-              threads = vals.select{|k,v| @uuids.include?(k) }.map do |uuid,data|
+              _uuids = uuids
+              threads = vals.select{|k,v| _uuids.include?(k) }.map do |uuid,data|
                 Thread.new do
                   begin
                     @running_apps[uuid].update(data)
@@ -99,11 +102,11 @@ module OpenShift
               # Set the uuids of running gears
               @uuids = new_uuids
               # Delete any missing gears to free up memory
-              @running_apps.select!{|k,v| @uuids.include?(k) }
+              @running_apps.select!{|k,v| uuids.include?(k) }
             end
           end
 
-          def utilization(apps = @running_apps)
+          def utilization(apps = running_apps)
             utilization = {}
             @mutex.synchronize do
               threads = apps.map do |k,v|
@@ -120,7 +123,7 @@ module OpenShift
             options = args.pop if args.last.is_a?(Hash)
 
             apps = args.shift
-            apps ||= @running_apps.clone
+            apps ||= running_apps.clone
 
             cur_util = utilization
             if (usage = options[:usage])
@@ -152,7 +155,7 @@ module OpenShift
             (bad_gears, cur_util) = find(args)
             # If this is our first run, make sure we find any previously throttled gears
             # NOTE: There is a corner case where we won't find non-running throttled applications
-            @old_bad_gears ||= find(@running_apps, state: :throttled).first
+            @old_bad_gears ||= find(running_apps, state: :throttled).first
 
             # Separate the good and bad gears
             (@old_bad_gears, good_gears) = @old_bad_gears.partition{|k,v| bad_gears.has_key?(k) }.map{|a| Hash[a] }
