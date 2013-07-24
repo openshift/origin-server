@@ -20,7 +20,7 @@ Requires:      %{?scl:%scl_prefix}rubygems
 Requires:      %{?scl:%scl_prefix}rubygem-open4
 Requires:      %{?scl:%scl_prefix}rubygem-json
 Requires:      rubygem-openshift-origin-node
-Requires:      mcollective
+Requires:      %{?scl:%scl_prefix}mcollective
 Requires:      %{?scl:%scl_prefix}facter
 Requires:      openshift-origin-msg-common
 BuildArch:     noarch
