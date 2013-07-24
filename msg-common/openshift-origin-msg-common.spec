@@ -8,7 +8,7 @@
 
 Summary:       Common msg components for OpenShift broker and node
 Name:          openshift-origin-msg-common
-Version: 1.12.1
+Version: 1.12.2
 Release:       1%{?dist}
 License:       ASL 2.0
 URL:           http://www.openshift.com
@@ -42,6 +42,13 @@ chmod 644 %{buildroot}%{mco_root}validator/*
 %endif
 
 %changelog
+* Wed Jul 24 2013 Adam Miller <admiller@redhat.com> 1.12.2-1
+- Merge pull request #3069 from sosiouxme/admin-console-mcollective
+  (dmcphers+openshiftbot@redhat.com)
+- <container proxy> adjust naming for getting facts (lmeyer@redhat.com)
+- <mcollective> adding call to retrieve set of facts for admin-console
+  (lmeyer@redhat.com)
+
 * Fri Jul 12 2013 Adam Miller <admiller@redhat.com> 1.12.1-1
 - bump_minor_versions for sprint 31 (admiller@redhat.com)
 
