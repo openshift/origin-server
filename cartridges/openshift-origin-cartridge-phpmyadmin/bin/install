@@ -12,24 +12,11 @@ cp -r ${OPENSHIFT_PHPMYADMIN_DIR}/versions/$version/conf/* ${OPENSHIFT_PHPMYADMI
 cp -r ${OPENSHIFT_PHPMYADMIN_DIR}/versions/$version/conf.d/* ${OPENSHIFT_PHPMYADMIN_DIR}/conf.d/
 cp -r ${OPENSHIFT_PHPMYADMIN_DIR}/versions/$version/phpMyAdmin/* ${OPENSHIFT_PHPMYADMIN_DIR}/phpMyAdmin/
 
-# check that mysql is installed
-
-if [ -z "$OPENSHIFT_MYSQL_DB_USERNAME" ]; then
-  client_error ""
-  client_error "MySQL must be embedded before phpMyAdmin"
-  client_error ""
-  exit 137
-fi
-
 ln -s /usr/lib64/httpd/modules ${OPENSHIFT_PHPMYADMIN_DIR}modules
 ln -s /etc/httpd/conf/magic ${OPENSHIFT_PHPMYADMIN_DIR}conf/magic
 
 client_result ""
-client_result "phpMyAdmin added.  Please make note of these MySQL credentials again:"
-client_result ""
-client_result "   Root User: $OPENSHIFT_MYSQL_DB_USERNAME"
-client_result "   Root Password: $OPENSHIFT_MYSQL_DB_PASSWORD"
-client_result ""
+client_result "phpMyAdmin added successfully."
 client_result "URL: https://$OPENSHIFT_GEAR_DNS/phpmyadmin/"
 
 cart_props "connection_url=https://$OPENSHIFT_GEAR_DNS/phpmyadmin/"

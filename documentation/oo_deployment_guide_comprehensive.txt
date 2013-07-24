@@ -6,9 +6,7 @@ v2.0, July 2013
 :icons:
 :numbered:
 
-////
-Adapted from the OpenShift Enterprise Training - Lab Manual By Grant Shipley <gshipley@redhat.com>
-////
+include::_navigation.adoc[]
 
 [float]
 == Overview
@@ -103,10 +101,18 @@ OpenShift Origin requires NTP to synchronize the system and hardware clocks. Thi
 MCollective will drop messages. Every MCollective request (discussed in a later chapter) includes a time stamp, provided by the sending host's clock. If a sender's clock is substantially behind a recipient's clock,
 the recipient drops the message. This is often referred to as clock skew and is a common problem that users encounter when they fail to sync all of the system clocks.
 
+.RHEL6
 ----
 # ntpdate clock.redhat.com
 # chkconfig ntpd on
 # service ntpd start
+----
+
+.Fedora
+----
+# ntpdate clock.redhat.com
+# systemctl enable ntpd.service
+# systemctl start  ntpd.service
 ----
 
 === DNS
@@ -337,9 +343,17 @@ nameserver 127.0.0.1
 
 We also need to make sure that _named_ starts on boot and that the firewall is configured to pass through DNS traffic:
 
+.RHEL6
 ----
 # lokkit --service=dns
 # chkconfig named on
+----
+
+.Fedora
+----
+# firewall-cmd --add-service=dns
+# firewall-cmd --permanent --add-service=dns
+# systemctl enable named.service
 ----
 
 NOTE: If you get unknown locale error when running _lokkit_, consult the troubleshooting section at the end of this manual.
@@ -347,8 +361,14 @@ NOTE: If you get unknown locale error when running _lokkit_, consult the trouble
 ==== Start the _named_ service
 Now you are ready to start up your new DNS server and add some updates.
 
+.RHEL6
 ----
 # service named start
+----
+
+.Fedora
+----
+# systemctl start named.service
 ----
 
 You should see a confirmation message that the service was started correctly. If you do not see an OK message, run through the above steps again and ensure that the output of each command matches the contents of this document. If you are still having trouble after trying the steps again, refer to your help options.
@@ -413,23 +433,34 @@ supersede domain-name "example.com";
 Ensure that you do not have any typos. Command errors include forgetting a semicolon, putting in the node's IP address instead of the broker's, or typing "server" instead of "servers."
 
 ==== Set the host name for your server
-You need to set the hostname of your broker host. In order to accomplish
-this task, edit the _/etc/sysconfig/network_ file and locate the section
-labeled _HOSTNAME_. The line that you want to replace should look like
-this:
+You need to set the hostname of your broker host.  We need to change this to 
+reflect the new hostname that we are going to apply to this server. For this 
+chapter, we will be using broker.example.com.
+
+.RHEL6
+====
+In order to accomplish this task, edit the _/etc/sysconfig/network_ file 
+and locate the section labeled _HOSTNAME_. The line that you want to 
+replace should look like this:
 
 ----
 HOSTNAME=localhost.localdomain
 ----
 
-We need to change this to reflect the new hostname that we are going to
-apply to this server. For this chapter, we will be using broker.example.com.
 Change the _/etc/sysconfig/network_ file to reflect the following
 change:
 
 ----
 HOSTNAME=broker.example.com
 ----
+====
+
+.Fedora
+====
+----
+# echo "broker.example.com" > /etc/hostname
+----
+====
 
 Now that we have configured our hostname, we also need to set it for our
 current session by using the following command:
@@ -494,20 +525,38 @@ will store in it. It is not absolutely necessary to set _smallfiles=true_. For a
 === Set _mongod_ to Start on Boot
 MongoDB is an essential part of the OpenShift Origin platform. Because of this, you must ensure that mongod is configured to start on system boot:
 
+.RHEL6
 ----
 # chkconfig mongod on
 ----
 
+.Fedora
+----
+# systemctl enable mongod.service
+----
+
 By default, when you install _mongod_ via the yum command, the service is not started. You can verify this with the following:
 
+.RHEL6
 ----
 # service mongod status
 ----
 
+.Fedora
+----
+# systemctl status mongod.service
+----
+
 This should return "_mongod is stopped_". In order to start the service, simply issue:
 
+.RHEL6
 ----
 # service mongod start
+----
+
+.Fedora
+----
+# systemctl start mongod.service
 ----
 
 Now verify that mongod was installed and configured correctly. To do this, use the `mongo` shell client tool. If you are familiar with MySQL or Postgres, this is similar to the mysql client's interactive SQL shell. However,  because MongoDB is a NoSQL database, it does not respond to traditional SQL-style commands.
@@ -603,8 +652,15 @@ The second change is to provide your own credentials for authentication. The aut
 === Firewall Rules / Start on Boot
 The broker host firewall rules must be adjusted to allow MCollective to communicate on port 61613:
 
+.RHEL6
 ----
 # lokkit --port=61613:tcp
+----
+
+.Fedora
+----
+# firewall-cmd --add-port=61613/tcp
+# firewall-cmd --permanent --add-port=61613/tcp
 ----
 
 Finally, you need to enable the ActiveMQ service to start on boot as well as start the service for the first time.
@@ -613,6 +669,7 @@ Finally, you need to enable the ActiveMQ service to start on boot as well as sta
 # chkconfig activemq on
 # service activemq start
 ----
+Note: activemq server has not transitioned to systemd startup scripts yet.
 
 === Verify that ActiveMQ is Working
 Now that ActiveMQ has been installed, configured, and started, verify that the web console is working as expected. The ActiveMQ web console should be running and listening on port 8161. In order to verify that
@@ -634,8 +691,15 @@ For example, the following command adds a rule to your firewall to allow connect
 
 *Execute the following on the broker host.*
 
+.RHEL6
 ----
 # lokkit --port=8161:tcp
+----
+
+.Fedora
+----
+# firewall-cmd --add-port=8161/tcp
+# firewall-cmd --permanent --add-port=8161/tcp
 ----
 
 Alternatively, the following command creates a SSH tunnel, so that if you connect to port 8161 on your local host, the connection will be forwarded to port 8161 on the remote host, where the the ActiveMQ console is listening.
@@ -725,18 +789,37 @@ NOTE: Depending on your connection and speed of your broker host, this installat
 === Configure the Firewall and Enable Service at Boot
 The broker application requires a number of services to be running in order to function properly. Configure them to start at boot time:
 
+.RHEL6
 ----
 # chkconfig httpd on
 # chkconfig network on
 # chkconfig sshd on
 ----
 
+.Fedora
+----
+# systemctl enable httpd.service
+# systemctl enable network.service
+# systemctl enable sshd.service
+----
+
 Additionally, modify the firewall rules to ensure that the traffic for these services is accepted:
 
+.RHEL6
 ----
 # lokkit --service=ssh
 # lokkit --service=https
 # lokkit --service=http
+----
+
+.Fedora
+----
+# firewall-cmd --add-service=ssh
+# firewall-cmd --add-service=http
+# firewall-cmd --add-service=https
+# firewall-cmd --permanent --add-service=ssh
+# firewall-cmd --permanent --add-service=http
+# firewall-cmd --permanent --add-service=https
 ----
 
 === Generate access keys
@@ -1004,15 +1087,28 @@ Your bundle is complete! Use `bundle show [gemname]` to see where a bundled gem 
 === Set Services to Start on Boot
 The last step in configuring our broker application is to ensure that all of the necessary services are started and that they are configured to start upon system boot.
 
+.RHEL6
 ----
 # chkconfig openshift-broker on
 ----
 
+.Fedora
+----
+# systemctl enable openshift-broker.service
+----
+
 This will ensure that the broker starts upon next system boot. However, you also need to start the broker application to run now.
 
+.RHEL6
 ----
 # service httpd start
 # service openshift-broker start
+----
+
+.Fedora
+----
+# systemctl start httpd.service
+# systemctl start openshift-broker.service
 ----
 
 === Verify the Broker REST API
@@ -1141,9 +1237,16 @@ in the _/var/www/openshift/console/httpd/conf.d_ directory. For this reference c
 === Set Console to Start on Boot
 Start the service and ensure it starts on boot:
 
+.RHEL6
 ----
-# service openshift-console start
 # chkconfig openshift-console on
+# service openshift-console start
+----
+
+.Fedora
+----
+# systemctl enable openshift-console.service
+# systemctl start openshift-console.service
 ----
 
 Once completed, the console will prompt the user to provide their login credentials as specified in the _/etc/openshift/htpasswd_ file.
@@ -1183,10 +1286,18 @@ OpenShift Origin requires NTP to synchronize the system and hardware clocks. Thi
 
 *Execute the following on the node host*:
 
+.RHEL6
 ----
 # ntpdate clock.redhat.com
 # chkconfig ntpd on
 # service ntpd start
+----
+
+.Fedora
+----
+# ntpdate clock.redhat.com
+# systemctl enable ntpd.service
+# systemctl start  ntpd.service
 ----
 
 === Register a DNS entry for the Node Host
@@ -1266,11 +1377,22 @@ supersede host-name "node";
 supersede domain-name "example.com";
 ----
 
-Now set the hostname for node host to correctly reflect node.example.com. Edit the _/etc/sysconfig/network_ file and change the _HOSTNAME_ entry to the following:
+Now set the hostname for node host to correctly reflect node.example.com. 
 
+.RHEL6
+====
+Edit the _/etc/sysconfig/network_ file and change the _HOSTNAME_ entry to the following:
 ----
 HOSTNAME=node.example.com
 ----
+====
+
+.Fedora
+====
+----
+# echo "broker.example.com" > /etc/hostname
+----
+====
 
 Finally, set the hostname for your current session by issuing the hostname command at the command prompt.
 
@@ -1343,9 +1465,16 @@ NOTE: STOMP, or the Simple (or Streaming) Text Orientated Messaging Protocol, is
 
 Now ensure that MCollective is set to start on boot and also start the service for our current session.
 
+.RHEL6
 ----
 # chkconfig mcollective on
 # service mcollective start
+----
+
+.Fedora
+----
+# systemctl enable mcollective.service
+# systemctl start mcollective.service
 ----
 
 At this point, MCollective on the node host should be able to communicate with the broker application host. You can verify this by running the _mco ping_ command on the broker.example.com host.
@@ -1447,6 +1576,7 @@ OpenShift Origin cartridges.
 === Start Required Services
 The node host will need to allow HTTP, HTTPS, and SSH traffic to flow through the firewall. We also want to ensure that the httpd, network, and sshd services are set to start on boot.
 
+.RHEL6
 ----
 # lokkit --service=ssh
 # lokkit --service=https
@@ -1454,6 +1584,19 @@ The node host will need to allow HTTP, HTTPS, and SSH traffic to flow through th
 # chkconfig httpd on
 # chkconfig network on
 # chkconfig sshd on
+----
+
+.Fedora
+----
+# firewall-cmd --add-service=ssh
+# firewall-cmd --add-service=http
+# firewall-cmd --add-service=https
+# firewall-cmd --permanent --add-service=ssh
+# firewall-cmd --permanent --add-service=http
+# firewall-cmd --permanent --add-service=https
+# systemctl enable httpd.service
+# systemctl enable network.service
+# systemctl enable sshd.service
 ----
 
 == Configuring Multi-Tenancy on the Node Host
@@ -1500,12 +1643,26 @@ Run the following commands to configure cgroups for OpenShift Origin.
 # restorecon -v /etc/cgconfig.conf
 # mkdir /cgroup
 # restorecon -v /cgroup
+----
+
+.RHEL6
+----
 # chkconfig cgconfig on
 # chkconfig cgred on
 # chkconfig openshift-cgroups on
 # service cgconfig restart
 # service cgred restart
 # service openshift-cgroups start
+----
+
+.Fedora
+----
+# systemctl enable cgconfig.service
+# systemctl enable cgred.service
+# systemctl enable openshift-cgroups.service
+# systemctl start cgconfig.service
+# systemctl start cgred.service
+# systemctl start openshift-cgroups.service
 ----
 
 In order for cgroups to work correctly, you need to ensure that services are started in the correct order.
@@ -1655,16 +1812,31 @@ When a developer pushes a change up to their OpenShift Origin gear, an SSH conne
 ==== Configuring the Port Proxy
 Multiple application gears can and will reside on the same node host. In order for these applications to receive HTTP requests to the node, you need to configure a proxy that will pass traffic to the gear application that is listening for connections on the loopback address. To do this, you need to open up a range of ports that the node can accept traffic on as well as ensure the port-proxy is started on boot.
 
+.RHEL6
 ----
 # lokkit --port=35531-65535:tcp
 # chkconfig openshift-port-proxy on
 # service openshift-port-proxy start
 ----
 
+.Fedora
+----
+# firewall-cmd --add-port=35531-65535/tcp
+# firewall-cmd --permanent --add-port=35531-65535/tcp
+# systemctl enable openshift-port-proxy.service
+# systemctl restart  openshift-port-proxy.service
+----
+
 If a node is restarted, you want to ensure that the gear applications are also restarted. OpenShift Origin provides a script to accomplish this task, but you need to configure the service to start on boot.
 
+.RHEL6
 ----
 # chkconfig openshift-gears on
+----
+
+.Fedora
+----
+# systemctl enable openshift-gears.service
 ----
 
 ==== Configuring Node Settings for Domain Name

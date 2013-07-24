@@ -7,7 +7,7 @@ class RestApiCustomCartTest < ActiveSupport::TestCase
     with_configured_user
     setup_domain
 
-    assert_create_app({:include => :cartridges, :initial_git_url => 'empty', :cartridges => ['php-5.3', 'https://rediscart-claytondev.rhcloud.com']}, "Create an app with Redis") do |app|
+    assert_create_app({:include => :cartridges, :initial_git_url => 'empty', :cartridges => ['php-5.3', {:url => 'https://rediscart-claytondev.rhcloud.com'}]}, "Create an app with Redis") do |app|
       loaded_app = Application.find(app.name, :params => {:domain_id => @domain.id}, :as => @user)
       assert loaded_app.cartridges.map(&:name).one?{ |s| s =~ /smarterclayton-redis-/ }
     end
@@ -17,7 +17,7 @@ class RestApiCustomCartTest < ActiveSupport::TestCase
     with_configured_user
     setup_domain
 
-    assert_create_app({:include => :cartridges, :initial_git_url => 'empty', :cartridges => ['php-5.3', 'https://cdk-claytondev.rhcloud.com']}, "Create an app based on the CDK") do |app|
+    assert_create_app({:include => :cartridges, :initial_git_url => 'empty', :cartridges => [{:url => 'https://cdk-claytondev.rhcloud.com'}]}, "Create an app based on the CDK") do |app|
       loaded_app = Application.find(app.name, :params => {:domain_id => @domain.id}, :as => @user)
       assert loaded_app.cartridges.map(&:name).one?{ |s| s =~ /smarterclayton-cdk-/ }
     end
@@ -29,7 +29,7 @@ class RestApiCustomCartTest < ActiveSupport::TestCase
     begin
       yield app
     ensure
-      puts "Unable to delete app" unless app.destroy
+      (app.destroy rescue puts "Unable to delete app" if app.persisted?)
     end
     app
   end
@@ -41,7 +41,7 @@ class RestApiCustomCartTest < ActiveSupport::TestCase
       assert !app.persisted?
       yield app
     ensure
-      puts "Unable to delete app" unless !app.persisted? || app.destroy
+      (app.destroy rescue puts "Unable to delete app") if app.persisted? 
     end
     app
   end  

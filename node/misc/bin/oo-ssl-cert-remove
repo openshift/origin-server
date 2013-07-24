@@ -24,22 +24,13 @@ def usage
 
 == Usage
 
-#{$0} --with-container-uuid UUID \\
-               --with-ssl-cert SSL_CERT_FILE_NAME \\
-               --with-priv-key PRIV_KEY_FILE_NAME \\
-               --with-container-name NAME \\
-               --with-namespace NAMESPACE \\
-               --with-alias-name ALIAS
+#{$0} --with-container-uuid UUID
+                            --with-alias-name ALIAS
 
 == List of arguments
-  -s|--with-ssl-cert-name   ssl_cert    Name of the SSL certificate file to be removed
-  -k|--with-priv-key-name   priv_key    Name of the private key to be removed
   -a|--with-alias-name      alias       Alias from which cert/key are to be removed
   -c|--with-container-uuid  gear_uuid   Unique identifier for the gear(required)
-    |--with-namespace       namespace   Namespace of the application (required)
-    |--with-container-name  gear_name   Name of the gear
   -n|--dry-run                          Don't make changes, just do a dry run.
-  -q|--porcelain                        TODO: what does this do?
   -d|--debug                            Enable debug mode
   -h|--help                             Print this message
 
@@ -52,12 +43,9 @@ require 'openshift-origin-node'
 opts = GetoptLong.new(
     ["--with-alias-name",     "-a", GetoptLong::REQUIRED_ARGUMENT],
     ["--with-container-uuid", "-c", GetoptLong::REQUIRED_ARGUMENT],
-    ["--with-namespace",            GetoptLong::REQUIRED_ARGUMENT],
-    ["--with-container-name",       GetoptLong::REQUIRED_ARGUMENT],
     ["--dry-run",             "-n", GetoptLong::NO_ARGUMENT],
-    ["--porcelain",           "-q", GetoptLong::NO_ARGUMENT],
     ["--debug",               "-d", GetoptLong::NO_ARGUMENT],
-    ["--help",                "-?", GetoptLong::NO_ARGUMENT]
+    ["--help",                "-h", GetoptLong::NO_ARGUMENT]
 )
 
 args = {}
@@ -72,8 +60,6 @@ if args["--help"]
 end
 
 container_uuid = args['--with-container-uuid']
-container_name = args['--with-container-name']
-namespace      = args['--with-namespace']
 
 server_alias  = args['--with-alias-name']
 

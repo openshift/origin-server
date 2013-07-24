@@ -1,0 +1,116 @@
+= OpenShift Origin System Architecture Guide
+OpenShift Origin Documentation Project <dev@lists.openshift.redhat.com>
+v2.0, July 2013
+:data-uri:
+:toc2:
+:icons:
+:numbered:
+
+include::_navigation.adoc[]
+
+OpenShift Origin enables you to create, deploy and manage applications within the cloud. It provides disk space, CPU resources, memory, network connectivity, and an Apache or JBoss server. Depending on the type of application being deployed, a template file system layout is provided (for example, PHP, Python, and Ruby/Rails). It also manages a limited DNS for the application.
+
+== System Overview
+The two basic functional units of the platform are the _Broker_ and _Node_ servers.
+
+* The *Broker* is the single point of contact for all application management activities. It is responsible for managing user logins, DNS, application state, and general orchestration of the applications. Customers don't contact the broker directly; instead they use the Web console, CLI tools, or JBoss tools to interact with Broker over a REST based API.
+* The *Node* server hosts the _Cartridges_ that will be made available to to users and the _Gears_ where user applications will actually be stored and served.
+* Additionally, In order for the Broker and Node to communicate, OpenShift Origin also requires a messaging service like https://activemq.apache.org/[ActiveMQ^].
+
+Numerous system topologies are supported by the Broker and Node servers:
+
+* All components on one host
+* One Broker + ActiveMQ host, multiple Node hosts
+* Load-balanced Brokers, standalone ActiveMQ host, separate replicated MongoDB servers, multiple Node hosts
+
+== Broker
+The Broker manages all application control, user authentication, and DNS updates within the Origin PaaS. Users interact with the Broker via the following means, which all leverage the Broker's REST API:
+
+* The OpenShift Origin web console (this is installed with the Broker)
+* The https://rubygems.org/gems/rhc[rhc^] command-line utility (which can run on any ruby-capable host)
+* The http://www.eclipse.org/[Eclipse^] IDE (via https://www.openshift.com/blogs/getting-started-with-eclipse-paas-integration[JBoss Tools^])
+
+The Broker uses a http://www.mongodb.org/[MongoDB^] database to keep a record of users and their applications. The Broker manages user authentication and DNS changes through the use of provided link:oo_deployment_guide_comprehensive.html#broker-plugins-and-mongodb-user-accounts[plugins].
+
+== Nodes
+Node servers are the systems that host user applications. In order to do this, the Node servers are configured to support the following Origin components:
+
+* *Gears*: A gear represents the slice of the Node's CPU, RAM and base storage that is made available to each application. An application can never use more of these resources than is allocated to the gear, with the exception of storage footnote:[Storage quotas are administrator-configurable and can be increased to administrator-specified limits.]. OpenShift Origin supports multiple gear configurations, enabling users to choose from the various gear sizes at application setup time. When an application is created, the Broker instructs a Node server to create a new gear to contain it.
+* Built-In *Cartridges*: Cartridges represent pluggable components that can be combined within a single application. These include programming languages, database engines, and various management tools. Users can choose from built-in cartridges that are served directly through OpenShift Origin, or from community cartridges that can be imported from a git repository. The built-in cartridges require the associated languages and database engines to be installed on every Node server.
+
+== Gears
+Gears combine the partitioning capabilities of control groups with the security features of SELinux. In this manner, OpenShift Origin can serve user applications without (additional) virtual machine overhead. Whenever a new Gear is created on a Node server, CPU and RAM "shares" are allocated for it and a directory structure is created as below.
+
+=== Directory Structure
+----
+.
+├── .env <1>
+├── app-root
+│   ├── data <2>
+│   ├── repo -> runtime/repo
+│   └── runtime
+│       ├── data
+│       └── repo <3>
+│           ├── deplist.txt <4>
+│           ├── README
+│           └── ...deployed application code
+├── git
+│   └── [APP_NAME].git
+│       ├── hooks <5>
+│       │   ├── post-receive <6>
+|       |   ├── pre-receive
+|       |   └── ... sample hooks
+│       └── ... other git directories           
+└── ...cartridge directories
+----
+<1> Environment variable value storage
+<2> The persistent data directory available from $OPENSHIFT_DATA_DIR
+<3> The repo directory available from $OPENSHIFT_REPO_DIR
+<4> Platform support for dependency management (for cartridges such as php which don't have their own)
+<5> The hooks directory is owned by root to prevent users from modifying it
+<6> The post-receive hook invokes the build and deployment
+
+=== Proxy Ports
+image:port_proxy.png[Proxy Ports]
+
+Proxy ports allow Gears to expose internal services for the purposes of load balancing or providing its services to related application Gears.
+
+Each gear can allocate up to 5 proxy ports. These are exposed on a routable address so that a related gear can connect to them even if that gear exists on a separate node.
+
+Proxy ports are enabled by HAProxy running as a system service and configured to proxy raw TCP connections; as opposed to the HAProxy cartridge which provides web load balancing sevice. In the future, they will be the underlying mechanism which is used to provide TCP connections described by Application Descriptors.
+
+Proxy ports are not directly accessible from outside the collection of nodes.
+
+== Cartridges
+As described above, Cartridges represent pluggable components that can be combined within a single application. At a minimum, an application needs a language or environment cartridge (like PHP or JBoss). Most applications will also need a database cartridge.
+
+OpenShift Origin supports several "built-in" cartridges based on the most popular app development languages and databases. In order for these to work, the underlying technology must be installed on every Node server in an Origin system. This process is described in detail in the link:oo_deployment_guide_comprehensive.html#select-and-install-built-in-cartridges-to-be-supported[Comprehensive Deployment Guide].
+
+Additional cartridges can be developed and distributed independently of the rest of the Origin system. The Origin web console and the rhc utility enable users to add cartridges from a git repository. See the https://www.openshift.com/developers/cartridge-authors-guide[Cartridge Author's Guide] for more information on this.
+
+== Applications
+image:application_overview.png[Applications]
+
+* Domain: The domain is not directly related to DNS; instead it provides a unique namespace for all the applications of a specific user. The domain name is appended to the application name to form the final application URL.
+* Application Name: Identifies the name of the application. The final URL to access the application is of the form: `https://[APPNAME]-[DOMAIN].rhcloud.com`
+* Aliases: Users can provide their own DNS names for the application by registering an alias with the platform.
+* Dependencies: Users specify the cartridges required to run their applications.
+* git repository: Each application gets a git repository. Users can modify code in the repository and then perform a git push to deploy their code.
+
+=== Simple application creation
+
+This flow describes the case of creating and deploying a simple PHP application.
+
+image:simple_application_creation.png[Simple app creation]
+
+=== Application deployment using Jenkins
+
+OpenShift Origin also provides a Jenkins-based build workflow for all applications. The Jenkins server runs as a separate application that uses one of the user gears. The Jenkins builder agent also runs as a separate application that uses SSH/REST APIs to interact with the broker and the application being built.
+
+image:jenkins_build.png[Jenkins Build]
+
+=== Horizontal scaling
+
+Horizontal scaling for applications is accomplished using HAProxy as a load-balancer and git deployment end point for the application. When a web request comes to HAProxy, it is forwarded on to the gear running the web tier of the application. Deployments are also handled through the HAProxy cartridge. When the customer performs a git push to deploy code to the HAProxy gear, it in turn does a git push to each of the other web gears.
+
+image:scaled_application.png[Scaled Application]

@@ -71,8 +71,8 @@ Publishes:
   publish-gear-endpoint:
     Type: "NET_TCP:gear-endpoint-info"
 Subscribes:
-  set-db-connection-info:
-    Type: "ENV:NET_TCP:db:connection-info"
+  set-env:
+    Type: "ENV:*"
     Required: false
   set-mysql-connection-info:
     Type: "NET_TCP:db:mysql"
@@ -80,13 +80,6 @@ Subscribes:
   set-postgres-connection-info:
     Type: "NET_TCP:db:postgres"
     Required : false
-  set-nosql-db-connection-info:
-    Type: "ENV:NET_TCP:nosqldb:connection-info"
-    Required : false
-Group-Overrides:
-  - components:
-    - nodejs-0.6
-    - web_proxy
 Endpoints:
   - Private-IP-Name:   IP
     Private-Port-Name: PORT

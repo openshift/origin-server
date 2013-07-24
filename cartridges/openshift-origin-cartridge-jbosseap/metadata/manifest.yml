@@ -66,11 +66,8 @@ Publishes:
   publish-jboss-remoting:
     Type: "NET_TCP:jbosseap-remoting-info"
 Subscribes:
-  set-db-connection-info:
-    Type: "ENV:NET_TCP:db:connection-info"
-    Required: false
-  set-nosql-db-connection-info:
-    Type: "ENV:NET_TCP:nosqldb:connection-info"
+  set-env:
+    Type: "ENV:*"
     Required: false
   set-mysql-connection-info:
     Type: "NET_TCP:db:mysql"
@@ -85,15 +82,9 @@ Subscribes:
     Type: "NET_TCP:jbosseap-cluster-info"
   set-jboss-remoting:
     Type: "NET_TCP:jbosseap-remoting-info"
-  set-generic-java:
-    Type: "ENV:NET_TCP:generic-java"
 Scaling:
   Min: 1
   Max: -1
-Group-Overrides:
-  - components:
-    - jbosseap-6.0
-    - web_proxy
 Endpoints:
   - Private-IP-Name:   IP
     Private-Port-Name: HTTP_PORT

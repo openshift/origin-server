@@ -19,9 +19,9 @@ If you want to quickly clean up all of the generated HTML files, run:
 
     bundle exec rake clean
 
-## Manual Authoring with LivePreview ##
+## Editing with LivePreview ##
 
-For ease of authoring in AsciiDoc and checking the results in a web browser, a live preview environment has been set up using [Guard](http://guardgem.org/) and [LiveReload](http://livereload.com/).
+For ease of editing in AsciiDoc and checking the results in a web browser, a live preview environment has been set up using [Guard](http://guardgem.org/) and [LiveReload](http://livereload.com/).
 
 To begin, install the LiveReload extension in your web browser (Firefox, Chrome and Safari are supported). Then build the docs following the [Building the Manuals] instructions.
 
@@ -32,6 +32,27 @@ Next, start the guard process:
 Now open the _html_ version of a local file that you are working with in your browser and enable the LivePreview add-on for that file.
 
 At this point, you can begin editing the AsciiDoc version of the file in your text editor. Every time you save the AsciiDoc file, you will see output from the guard process as it detects the change and regenerates the HTML file. The LivePreview browser add-on detects the updated file and automatically reloads it into the browser.
- 
+
+## Creating New Documents ##
+The build environment is configured to process any file with a ".txt" extension as an AsciiDoc file. At a minimum, the first several lines of a new document must follow this pattern:
+
+    = Document Title
+    Author Name <author.name@example.com>
+    vN.N, Month YYYY
+    :data-uri:
+    :toc2:
+    :icons:
+    :numbered:
+    
+    include::_navigation.adoc[]
+    
+    Start writing your content here.
+
+* The `_navigation.adoc` file contains a common sidebar of navigation links that will enable a user to get back to the index page from your document.
+* If you do not want the sections of the new document to be auto-numbered, remove the `:numbered:` line.
+* Be sure to add a link to your document in `index.html` or an appropriate referencing document.
+
+For the rest of the document, make sure that you are following proper [AsciiDoc syntax](http://asciidoctor.org/docs/asciidoc-writers-guide/) and preview your document before submitting a pull request. There's no magic in how the documentation is built, so if it doesn't look right in your sandbox, it won't look right on the documentation site.
+
 ## Old Manuals ##
 The `archive` subdirectory contains older manuals that were written in Markdown. Over time, the contents of these files will be updated to AsciiDoc and assimilated into the documents in this directory.

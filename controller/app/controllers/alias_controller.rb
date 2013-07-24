@@ -1,6 +1,6 @@
 class AliasController < BaseController
   include RestModelHelper
-  before_filter :get_domain, :get_application
+  before_filter :get_application
   action_log_tag_resource :alias
 
   def index

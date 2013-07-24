@@ -275,7 +275,7 @@ snapshot_exclusions:
 restore_transforms:
 - s|${OPENSHIFT_GEAR_NAME}/data|app-root/data|
 process_templates:
-- **/*.erb
+- '**/*.erb'
 setup_rewritten:
 - conf/*
 ```
@@ -595,8 +595,34 @@ the necessary code. For complex configurations or multi-version support,
 you may choose to write these scripts as shim code to setup the necessary
 environment before calling additional scripts you write. Or, you may
 choose to create symlinks from these names to a name of your choosing.
-Your API is the scripts and their associated actions. The scripts will
-be run from the home directory of the cartridge.
+Your API is the scripts and their associated actions.
+
+### Notes on Execution of the Scripts
+The scripts will be run directly from the home directory of the cartridge.
+They need to have the executable bit turned on, and they should have
+UNIX-friendly line endings (`\n`), not DOS ones (`\r\n`).
+
+To ensure this, consider setting the following `git` options (just once)
+so that the files have correct line endings in the git repository:
+
+```
+git config --global core.autocrlf input # use `true` on Windows
+git config --global core.safecrlf true
+```
+
+To ensure that the excutable bit is on, on UNIX-like systems, run:
+
+```
+chmod +x bin/*
+```
+
+On Windows, you can achieve this by running:
+```
+git update-index --chmod=+x bin/*
+```
+in the cartridge directory.
+
+### Mandatory Scripts
 
 A cartridge must implement the following scripts:
 
@@ -604,6 +630,8 @@ A cartridge must implement the following scripts:
 | ----------- | -----  |
 | setup       | prepare this instance of cartridge to be operational for the initial install and each upgrade |
 | control     | command cartridge to report or change state                                                   |
+
+### Optional Scripts
 
 A cartridge may implement the following scripts:
 

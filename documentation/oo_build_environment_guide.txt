@@ -1,0 +1,29 @@
+= OpenShift Origin Build Environment Guide
+OpenShift Origin Documentation Project <dev@lists.openshift.redhat.com>
+v2.0, July 2013
+:data-uri:
+:toc2:
+:icons:
+:numbered:
+
+include::_navigation.adoc[]
+
+Origin builds are driven by an http://originci-openshift.rhcloud.com/[OpenShift-hosted Jenkins system] that uses a series of jobs to create a reference Origin system atop Fedora and RHEL base images. Additional jobs test the generated images and generate the Origin documentation. The full list of Jenkins jobs and their specific functions are described below, listed in their order of operation.
+
+== Origin Fedora 19 Base Image / Origin RHEL Base Image
+
+== origin-server change build trigger
+
+== origin_ami / origin_ami_rhel
+
+== broker_extended / broker_extended_rhel
+
+== rhc_extended / rhc_extended_rhel
+
+== runtime_extended / runtime_extended_rhel
+
+== process_pull_requests
+
+== test_pull_requests
+
+== origin_docs

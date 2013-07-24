@@ -65,16 +65,16 @@
 # @!attribute [r] ssh_url
 #   @return [String] username and FQDN that can be used to ssh into the this gear
 class RestGearGroup < OpenShift::Model
-  attr_accessor :uuid, :name, :gear_profile, :cartridges, :gears, :scales_from, :scales_to, :base_gear_storage, :additional_gear_storage
+  attr_accessor :id, :name, :gear_profile, :cartridges, :gears, :scales_from, :scales_to, :base_gear_storage, :additional_gear_storage
 
-  def initialize(group_instance, gear_states = {}, app, domain, url, nolinks)
-    self.uuid         = group_instance._id.to_s
-    self.name         = self.uuid
+  def initialize(group_instance, gear_states = {}, app, url, nolinks)
+    self.id         = group_instance._id.to_s
+    self.name         = self.id
     self.gear_profile = group_instance.gear_size
     self.gears        = group_instance.gears.map{ |gear| 
       { :id => gear.uuid, 
         :state => gear_states[gear.uuid] || 'unknown', 
-        :ssh_url => "ssh://#{app.ssh_uri(domain, gear.app_dns ? nil: gear.uuid)}"
+        :ssh_url => "ssh://#{app.ssh_uri(app.domain, gear.app_dns ? nil: gear.uuid)}"
       } 
     }
     

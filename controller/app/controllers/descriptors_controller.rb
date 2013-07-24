@@ -2,7 +2,7 @@
 # Application descriptor API
 # @api REST
 class DescriptorsController < BaseController
-  before_filter :get_domain, :get_application
+  before_filter :get_application
   ##
   # Retrieve application descriptor
   # 

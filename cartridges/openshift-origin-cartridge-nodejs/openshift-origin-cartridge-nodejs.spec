@@ -19,6 +19,7 @@ Requires:      nodejs-mysql
 Requires:      nodejs-node-static
 Requires:      nodejs-pg
 Requires:      nodejs-supervisor
+Requires:      nodejs-options
 %if 0%{?fedora} >= 19
 Requires:      npm
 %endif

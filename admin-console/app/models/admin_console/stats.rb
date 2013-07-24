@@ -22,7 +22,10 @@ module AdminConsole
       stats = Admin::Stats.new
       stats.gather_statistics
       results = stats.results.except(:node_entries, :district_entries, :district_summaries, :profile_summaries)
-      Rails.cache.write('admin_console_system_statistics', results, {:expires_in => 1.hour})
+      # remove hashes with default blocks so we can cache them
+      # See: http://stackoverflow.com/questions/6391855/rails-cache-error-in-rails-3-1-typeerror-cant-dump-hash-with-default-proc
+      stats.deep_clear_default!(results)
+      Rails.cache.write('admin_console_system_statistics', results.clone, {:expires_in => 1.hour})
       # TODO: make cache expiration configurable
       results
      end

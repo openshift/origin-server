@@ -6,13 +6,15 @@ v2.0, July 2013
 :icons:
 :numbered:
 
-////
-Adapted from the OpenShift Enterprise Training - Lab Manual By Grant Shipley <gshipley@redhat.com>
-////
+include::_navigation.adoc[]
 
 OpenShift Origin provides developers and IT organizations an open source auto-scaling cloud application platform for quickly deploying new applications on secure and scalable resources with minimal configuration and management headaches. This means increased developer productivity and a faster pace in which IT can support innovation. This guide covers the basics of administering a private Platform-as-a-Service built with this awesome open source solution.
 
-TIP: *Installation is documented in the OpenShift Origin Deployment Guide.* If you don't have OpenShift Origin up and running, go there first.
+[TIP]
+====
+*Installation is documented in the link:oo_deployment_guide_comprehensive.html[OpenShift Origin Deployment Guide].* +
+If you don't have OpenShift Origin up and running, go there first.
+====
 
 [float]
 === Platform as a Service
@@ -80,7 +82,7 @@ In order to enable consumers of the PaaS to create JBoss gears, we will need to 
 
 The above command will allow users to create JBoss EAP and JBoss EWS gears. We also installed support for the Jenkins continuous integration environment which we will cover in a later lab. At the time of this writing, the above command will download and install an additional 285 packages on your node host.
 
-NOTE: Depending on your connection and speed of your node host, this installation make take several minutes.
+NOTE: Depending on your connection and speed of your node host, this installation may take several minutes.
 
 === Clear the Broker Application Cache
 At this point, you will notice if you try to create a JBoss based application via the web console that the application type is not available. This is because the broker host creates a cache of available gear types to increase performance. After adding a new cartridge, you need to clear this cache in order for the new gear type to be available to users.

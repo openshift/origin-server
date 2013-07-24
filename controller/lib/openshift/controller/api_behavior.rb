@@ -3,8 +3,8 @@ module OpenShift
     module ApiBehavior
       extend ActiveSupport::Concern
 
-      API_VERSION = 1.5
-      SUPPORTED_API_VERSIONS = [1.0, 1.1, 1.2, 1.3, 1.4, 1.5]
+      API_VERSION = 1.6
+      SUPPORTED_API_VERSIONS = [1.0, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6]
 
       protected
         attr :requested_api_version
@@ -92,23 +92,34 @@ module OpenShift
           return tag
         end 
         
-        def get_domain
-          domain_id = params[:domain_id] || params[:id] 
+        def get_domain(domain_id=nil)
+          #get domain_id from url if domain_id is nil
+          domain_id = params[:domain_id] if domain_id.nil?
           domain_id = domain_id.downcase if domain_id
-
           @domain = Domain.find_by(owner: @cloud_user, canonical_namespace: Domain.check_name!(domain_id))
-          @domain_name = @domain.namespace
           @domain
         end
 
         def get_application
+          domain_id = params[:domain_id].presence
           application_id = params[:application_id] || params[:id]
           application_id = application_id.downcase if application_id
+          application_name = params[:application_name] || params[:name]
+          application_name = application_name.downcase if application_name
+          return render_error(:not_found, "Application ID cannot be null", 101) if application_id.nil?
 
-          @application = Application.find_by(domain: @domain, canonical_name: Application.check_name!(application_id))
-          @application_name = @application.name
-          @application_uuid = @application.uuid
-          @application
+          # if domain_id is nil then assume that retrieving application by ID
+          if domain_id.nil?
+            @application = Application.find_by(uuid: application_id) rescue nil 
+            @domain = @application.domain if @application
+            #if user is not the owner then return 404
+            return render_error(:not_found, "Application '#{application_id}' not found", 101) if @domain and @domain.owner.id != @cloud_user.id
+          end
+          # if not application then lookup by domain and app name
+          if @application.nil?  
+            get_domain() 
+            @application = Application.find_by(domain: @domain, canonical_name: Application.check_name!(application_id)) if @domain
+          end
         end
     end
   end

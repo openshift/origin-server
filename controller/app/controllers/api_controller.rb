@@ -31,7 +31,7 @@ class ApiController < BaseController
         Param.new(":name", "string", "Unique name of the domain", nil, [])
       ]),
       "ADD_DOMAIN" => Link.new("Create new domain", "POST", URI::join(get_url, "domains"), [
-        Param.new("id", "string", "Name of the domain",nil,blacklisted_words)
+        Param.new(requested_api_version <= 1.5 ? "id" : "name", "string", "Name of the domain",nil,blacklisted_words)
       ]),
       "SHOW_APPLICATION_BY_DOMAIN"  => Link.new("Retrieve an application by its name and domain", "GET", URI::join(get_url, "domain/:domain_name/application/:name"), [
         Param.new(":domain_name", "string", "Unique name of the domain", nil, []),
@@ -39,6 +39,11 @@ class ApiController < BaseController
       ]),      
       "LIST_CARTRIDGES" => Link.new("List cartridges", "GET", URI::join(get_url, "cartridges")),
     }
+
+    links.merge!({
+      "LIST_APPLICATIONS" => Link.new("List application", "GET", URI::join(get_url, "applications"))
+    }) if requested_api_version >= 1.5
+      
     
     links.merge!({
       "LIST_AUTHORIZATIONS" => Link.new("List authorizations", "GET", URI::join(get_url, "user/authorizations")),

@@ -24,7 +24,11 @@ def usage
   puts <<USAGE
 == Synopsis
 
-#{$0}: Check all user applications and delete all pending_op_groups that were created before a given time
+#{$0}: Check user applications and delete all pending_op_groups that were created before a given time.
+
+User operations (start/stop/add cart/etc.) are queued per-app; occasionally one may get stuck, unable
+to operate and holding up the queue so that no other operations can proceed on that application.
+This tool removes stale operations from the application queue.
 
 == Usage
 
@@ -32,7 +36,7 @@ def usage
 
 Options:
 -t|--time
-    Time in hours where the pending ops older than this age will get deleted (default 1)
+    Age in hours (default 1) to delete; pending ops older than this will be deleted.
 -u|--uuid
     Specific app's uuid where the pruning operation will be done - if not given all apps, domains and users will be screened
 -h|--help

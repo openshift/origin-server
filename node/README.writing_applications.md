@@ -73,6 +73,11 @@ control to the process.
 Unless otherwise documented, OpenShift generally imposes no implementation requirement
 on action hooks other than they be executable files.
 
+These scripts will be exeucted by the system directly.
+See [Notes on Execution of the Scripts](README.writing_cartridges.md#notes-on-execution-of-the-scripts)
+in the [Cartridge Author Guide](README.writing_cartridges.md)
+for more information.
+
 #### Cartridge Control Action Hooks
 
 Cartridges implement a standard set of named control actions which allow them to

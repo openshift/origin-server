@@ -274,10 +274,10 @@ GIT_DIR=./<%= @application_name %>.git git repack;
 
       GIT_URL_CLONE = %q{\
 set -xe;
-git clone --bare --no-hardlinks <%= @url %> <%= @application_name %>.git;
+git clone --bare --no-hardlinks '<%= OpenShift::Runtime::Utils.sanitize_url_argument(@url) %>' <%= @application_name %>.git;
 GIT_DIR=./<%= @application_name %>.git git config core.logAllRefUpdates true;
 <% if @commit && !@commit.empty? %>
-GIT_DIR=./<%= @application_name %>.git git reset --soft '<%= @commit %>';
+GIT_DIR=./<%= @application_name %>.git git reset --soft '<%= OpenShift::Runtime::Utils.sanitize_argument(@commit) %>';
 <% end %>
 GIT_DIR=./<%= @application_name %>.git git repack;
 }

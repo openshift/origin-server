@@ -47,7 +47,21 @@ class AliasControllerTest < ActionController::TestCase
     assert_response :ok
   end
   
-  test "no or non-existent app id" do
+  test "alias create show list update and destory by app id" do
+    server_alias = "as.#{@random}"
+    post :create, {"id" => server_alias, "application_id" => @app.id}
+    assert_response :created
+    get :show, {"id" => server_alias, "application_id" => @app.id}
+    assert_response :success
+    put :update, {"id" => server_alias, "application_id" => @app.id}
+    assert_response :success
+    get :index , {"application_id" => @app.id}
+    assert_response :success
+    delete :destroy , {"id" => server_alias, "application_id" => @app.id}
+    assert_response :ok
+  end
+  
+  test "no or non-existent app name" do
     server_alias = "as.#{@random}"
     get :show, {"id" => server_alias, "domain_id" => @domain.namespace}
     assert_response :not_found
@@ -61,6 +75,23 @@ class AliasControllerTest < ActionController::TestCase
     put :update, {"id" => server_alias, "domain_id" => @domain.namespace, "application_id" => "bogus"}
     assert_response :not_found
     delete :destroy , {"id" => server_alias, "domain_id" => @domain.namespace, "application_id" => "bogus"}
+    assert_response :not_found
+  end
+  
+  test "no or non-existent app id" do
+    server_alias = "as.#{@random}"
+    get :show, {"id" => server_alias}
+    assert_response :not_found
+    put :update, {"id" => server_alias}
+    assert_response :not_found
+    delete :destroy , {"id" => server_alias}
+    assert_response :not_found
+    
+    get :show, {"id" => server_alias, "application_id" => "bogus"}
+    assert_response :not_found
+    put :update, {"id" => server_alias, "application_id" => "bogus"}
+    assert_response :not_found
+    delete :destroy , {"id" => server_alias, "application_id" => "bogus"}
     assert_response :not_found
   end
   
@@ -89,7 +120,7 @@ class AliasControllerTest < ActionController::TestCase
     assert_response :not_found
   end
   
-  test "no or non-existent alias id" do
+  test "no or non-existent alias id using domain and app name" do
     post :create, {"domain_id" => @domain.namespace, "application_id" => @app.name}
     assert_response :unprocessable_entity
     get :show, {"domain_id" => @domain.namespace, "application_id" => @app.name}
@@ -107,14 +138,35 @@ class AliasControllerTest < ActionController::TestCase
     assert_response :not_found
   end
   
+  test "no or non-existent alias id using app id" do
+    post :create, {"application_id" => @app.id}
+    assert_response :unprocessable_entity
+    get :show, {"application_id" => @app.id}
+    assert_response :not_found
+    put :update, {"application_id" => @app.id}
+    assert_response :not_found
+    delete :destroy , {"application_id" => @app.id}
+    assert_response :not_found
+    
+    get :show, {"application_id" => @app.id, "id" => "bogus"}
+    assert_response :not_found
+    put :update, {"application_id" => @app.id, "id" => "bogus"}
+    assert_response :not_found
+    delete :destroy , {"application_id" => @app.id, "id" => "bogus"}
+    assert_response :not_found
+  end
+  
   test "no private key" do
     server_alias = "as.#{@random}"
     post :create, {"id" => server_alias, "domain_id" => @domain.namespace, "application_id" => @app.name, 
       "ssl_certificate" => @ssl_certificate}
     assert_response :unprocessable_entity
+    post :create, {"id" => server_alias, "application_id" => @app.id, 
+      "ssl_certificate" => @ssl_certificate}
+    assert_response :unprocessable_entity
   end
   
-  test "no user capability" do
+  test "no user capability by domain and app name" do
     @user.capabilities["private_ssl_certificates"] = false
     @user.save!
     server_alias = "as.#{@random}"
@@ -126,6 +178,22 @@ class AliasControllerTest < ActionController::TestCase
     assert_response :created
     
     put :update, {"id" => server_alias, "domain_id" => @domain.namespace, "application_id" => @app.name, 
+      "ssl_certificate" => @ssl_certificate, "private_key" => @private_key, "pass_phrase" => @pass_phrase}
+    assert_response :forbidden
+  end
+  
+  test "no user capability by app id" do
+    @user.capabilities["private_ssl_certificates"] = false
+    @user.save
+    server_alias = "as.#{@random}"
+    post :create, {"id" => server_alias, "application_id" => @app.id, 
+      "ssl_certificate" => @ssl_certificate, "private_key" => @private_key, "pass_phrase" => @pass_phrase}
+    assert_response :forbidden
+    
+    post :create, {"id" => server_alias, "application_id" => @app.id}
+    assert_response :created
+    
+    put :update, {"id" => server_alias, "application_id" => @app.id, 
       "ssl_certificate" => @ssl_certificate, "private_key" => @private_key, "pass_phrase" => @pass_phrase}
     assert_response :forbidden
   end

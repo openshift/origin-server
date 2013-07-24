@@ -19,21 +19,14 @@ Cart-Data:
   - Key: OPENSHIFT_MOCK_EXAMPLE
     Type: environment
     Description: "An example environment variable using ERB processing"
-Group-Overrides:
-  - components:
-    - mock-0.1
-    - web_proxy
 Publishes:
   publish-http-url:
     Type: "NET_TCP:httpd-proxy-info"
   publish-gear-endpoint:
     Type: "NET_TCP:gear-endpoint-info"
 Subscribes:
-  set-db-connection-info:
-    Type: "ENV:NET_TCP:db:connection-info"
-    Required: false
-  set-nosql-db-connection-info:
-    Type: "ENV:NET_TCP:nosqldb:connection-info"
+  set-env:
+    Type: "ENV:*"
     Required: false
 Endpoints:
   - Private-IP-Name:   EXAMPLE_IP1
@@ -76,7 +69,3 @@ Version-Overrides:
     Provides:
       - mock-0.2
       - "mock"
-    Group-Overrides:
-      - components:
-        - mock-0.2
-        - web_proxy

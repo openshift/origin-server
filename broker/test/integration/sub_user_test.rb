@@ -100,7 +100,8 @@ class SubUserTest < ActionDispatch::IntegrationTest
     assert_equal 200, status
 
     domain_name = "namespace#{@random}"
-    post "broker/rest/domains.json", { :id => domain_name }, @headers2
+    
+    post "broker/rest/domains.json", { :name => domain_name }, @headers2
     assert_equal 201, status
 
     delete "broker/rest/user.json", nil, @headers2

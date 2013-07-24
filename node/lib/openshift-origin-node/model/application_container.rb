@@ -248,7 +248,7 @@ module OpenShift
       #
       def kill_procs
         # Give it a good try to delete all processes.
-        # This abuse is neccessary to release locks on polyinstantiated
+        # This abuse is necessary to release locks on polyinstantiated
         #    directories by pam_namespace.
         out = err = rc = nil
         10.times do |i|
