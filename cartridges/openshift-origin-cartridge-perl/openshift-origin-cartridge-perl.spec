@@ -1,7 +1,7 @@
 %global cartridgedir %{_libexecdir}/openshift/cartridges/perl
 
 Name:          openshift-origin-cartridge-perl
-Version: 0.7.1
+Version: 0.7.2
 Release:       1%{?dist}
 Summary:       Perl cartridge
 Group:         Development/Languages
@@ -74,6 +74,14 @@ rm %{buildroot}%{cartridgedir}/metadata/manifest.yml.*
 
 
 %changelog
+* Wed Jul 24 2013 Adam Miller <admiller@redhat.com> 0.7.2-1
+- <application.rb> Add feature to carts to handle wildcard ENV variable
+  subscriptions (jolamb@redhat.com)
+- Allow plugin carts to reside either on web-framework or non web-framework
+  carts. HA-proxy cart manifest will say it will reside with web-framework
+  (earlier it was done in the reverse order). (rpenta@redhat.com)
+- <perl cart> bug 977914 remove broken symlinks (lmeyer@redhat.com)
+
 * Fri Jul 12 2013 Adam Miller <admiller@redhat.com> 0.7.1-1
 - bump_minor_versions for sprint 31 (admiller@redhat.com)
 
