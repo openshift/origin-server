@@ -140,7 +140,7 @@ module OpenShift
             end
 
             if (state = options[:state])
-              apps.select!{|k,v| v.profile == state}
+              apps.select!{|k,v| v.gear.profile == state}
             end
             # Return current utilization with the apps for logging
             [apps, cur_util]
@@ -161,12 +161,12 @@ module OpenShift
 
             # Restore all of the good gears
             good_gears.each do |uuid,g|
-              g.restore
+              g.gear.restore
             end
 
             # Throttle all of the bad gears
             bad_gears.each do |uuid,g|
-              g.throttle
+              g.gear.throttle
             end
 
             retval = {
