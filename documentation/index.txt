@@ -24,6 +24,9 @@ https://openshift.redhat.com/community/wiki/architecture-overview
 ** link:oo_deployment_guide_puppet.html[Puppet Deployment Guide]
 ** link:oo_deployment_guide_vm.html[Virtual Machine Deployment Guide]
 ** link:oo_client_tools_installation_guide.html[Client Tools Installation Guide]
+* Developer Guides
+** link:oo_cartridge_developers_guide.html[Cartridge Developers Guide]
+** link:oo_application_developers_guide.html[Application Developers Guide]
 * link:oo_administration_guide.html[Administration Guide]
 * link:oo_troubleshooting_guide.html[Troubleshooting Guide]
 * link:oo_user_guide.html[User Guide]
