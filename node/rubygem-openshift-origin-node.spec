@@ -16,7 +16,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.12.1
+Version: 1.12.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -286,6 +286,44 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Wed Jul 24 2013 Adam Miller <admiller@redhat.com> 1.12.2-1
+- spelling fix (dmcphers@redhat.com)
+- Double protect URL arguments in gear (users can't break gear deployment)
+  (ccoleman@redhat.com)
+- Merge pull request #3090 from BanzaiMan/writing_cart_doc
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 907410 (dmcphers@redhat.com)
+- Bug 907410 (dmcphers@redhat.com)
+- Bug 983923 - Add "-h" as an argument to get help. (rmillner@redhat.com)
+- Merge pull request #3119 from kraman/bugs/984575
+  (dmcphers+openshiftbot@redhat.com)
+- Minor tweak in wording (asari.ruby@gmail.com)
+- Add sections for readability (asari.ruby@gmail.com)
+- A typo (asari.ruby@gmail.com)
+- Application's action hooks follow the same semantics as cartridge control
+  scripts (asari.ruby@gmail.com)
+- Add Windows-friendly instructions (asari.ruby@gmail.com)
+- Remove recursive requires node -> container plugin -> node
+  https://bugzilla.redhat.com/show_bug.cgi?id=984575 (kraman@gmail.com)
+- Mention chmod. (asari.ruby@gmail.com)
+- Mention EOL chacacters (asari.ruby@gmail.com)
+- bin/* needs to be executable (asari.ruby@gmail.com)
+- process_templates need to be String literals (asari.ruby@gmail.com)
+- Add version check for gear upgrade extension (pmorie@gmail.com)
+- Add error handling to AppContainer plugin loading (pmorie@gmail.com)
+- WIP: configure containerization plugin in node.conf (pmorie@gmail.com)
+- Merge pull request #3099 from ironcladlou/dev/node-fixes
+  (dmcphers+openshiftbot@redhat.com)
+- Use oo_spawn for all root scoped shell commands (ironcladlou@gmail.com)
+- Bug 984609 - fix a narrow condition where sshd leaves a root owned process in
+  the frozen gear cgroup causing gear delete to fail and stale processes/
+  (rmillner@redhat.com)
+- Add support for upgrade script to be called during cartridge upgrades.
+  (pmorie@gmail.com)
+- Making assert_repo_reset test more resilient to git versions.
+  (kraman@gmail.com)
+- remove initial build from cgroups limits (dmcphers@redhat.com)
+
 * Fri Jul 12 2013 Adam Miller <admiller@redhat.com> 1.12.1-1
 - Merge pull request #3077 from rmillner/cgfixes
   (dmcphers+openshiftbot@redhat.com)
