@@ -1,10 +1,14 @@
-%h1.pull-right
-  = image_tag "admin_console/user.svg", :class => "icon"
-  - owner_login = @app.domain.owner.login
-  = link_to owner_login, user_path(:id => owner_login)
-%h1
-  = image_tag "admin_console/web-stack-lg.svg", :class => "icon"
-  = "Application #{@app.name}"
+.row
+  .span10
+    %h1
+      = image_tag "admin_console/web-stack-lg.svg", :class => "icon"
+      = "Application #{@app.name}"
+  .span2.pull-right
+    %h1
+      = image_tag "admin_console/user.svg", :class => "icon"
+      - owner_login = @app.domain.owner.login
+      = link_to owner_login, user_path(:id => owner_login)
+
 %section
   %table.table-horizontal
     %tbody
@@ -32,7 +36,7 @@
           = @app.domain.namespace
 - @app.group_instances.each do |group_instance|
   - cartridges = gear_group_cartridges(@app, group_instance)
-  %section
+  %section.gear-group
     %h3
       = "Gear Group for"
       - cartridges.each_with_index do |cartridge, count|

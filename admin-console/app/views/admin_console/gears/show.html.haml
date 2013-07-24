@@ -1,12 +1,15 @@
-%h1.pull-right
-  = image_tag "admin_console/user.svg", :class => "icon"
-  - owner_login = @app.domain.owner.login
-  = link_to owner_login, user_path(:id => owner_login)
-%h1
-  = image_tag "admin_console/gear-lg.svg", :class => "icon"
-  %span.lighter
-    Gear
-  = @gear.uuid
+.row
+  .span10
+    %h1
+      = image_tag "admin_console/gear-lg.svg", :class => "icon"
+      %span.lighter
+        Gear
+      = @gear.uuid
+  .span2.pull-right
+    %h1
+      = image_tag "admin_console/user.svg", :class => "icon"
+      - owner_login = @app.domain.owner.login
+      = link_to owner_login, user_path(:id => owner_login)
 %table.table-horizontal
   %tbody
     %tr

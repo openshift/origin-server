@@ -61,6 +61,10 @@ h6 {
   h3 {font-size: 16.5px;}
   h4 {font-size: 14px;}
   h5 {font-size: 13px;}
+
+  h4.no-shrink {
+    font-size: $h4FontSize;
+  }
 }
 
 // Links

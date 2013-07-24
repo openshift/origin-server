@@ -19,33 +19,17 @@
     .section-console#content{:class => content_for?(:dark_layout) ? '' : 'section-console-light', :role => 'main'}
       .container
         .row-console
-          - if content_for? :full_layout
-            .row.row-flush-right
-              .grid-wrapper.banner-ribbon
-                .span12.span-flush-right
-                  - if content_for? :breadcrumbs
-                    %nav
-                      = yield :breadcrumbs
-              = yield :top
-              .grid-wrapper.section-body
-                .span12
-                  = flashes
-                = yield
-
-          - else
-            .row.row-flush-right
-              .grid-wrapper.banner-ribbon
-                .span12.span-flush-right
-                  - if content_for? :breadcrumbs
-                    %nav
-                      = yield :breadcrumbs
-                  - else
-                    &nbsp;
-              = yield :top
-              .column-content.grid-wrapper
-                .span12
-                  = flashes
-                  = yield
+          .row
+            .span12
+              - if content_for? :breadcrumbs
+                %nav
+                  = yield :breadcrumbs
+              - else
+                &nbsp;
+            = yield :top
+            .span12
+              = flashes
+              = yield
 
     = render 'layouts/admin_console/javascripts'
 
