@@ -12,7 +12,7 @@ module OpenShift
           def initialize(*args)
             # Make sure we create a MonitoredGear for the root OpenShift cgroup
             # Keys for information we want from cgroups
-            @wanted_keys = %w(usage throttled_time nr_periods cfs_quota_us cfs_period_us).map(&:to_sym)
+            @wanted_keys = %w(usage throttled_time nr_periods cfs_quota_us).map(&:to_sym)
             # Allow us to synchronize destructive operations to @running_apps
             @mutex = Mutex.new
             @uuids = []
@@ -57,7 +57,7 @@ module OpenShift
           end
 
           def get_usage
-            parse_usage(`grep -H "" /cgroup/all/openshift/{,*/}{cpu.stat,cpuacct.usage,cpu.cfs_quota_us} 2> /dev/null`)
+            parse_usage(`grep -H "" /cgroup/all/openshift/*/{cpu.stat,cpuacct.usage,cpu.cfs_quota_us} 2> /dev/null`)
           end
 
           def start
