@@ -9,7 +9,7 @@
 
 Summary:       OpenShift plugin adding an administrative console to the broker
 Name:          rubygem-%{gem_name}
-Version: 0.0.2
+Version: 0.0.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -77,10 +77,6 @@ cp %{buildroot}/%{gem_dir}/gems/%{gem_name}-%{version}/conf/openshift-origin-adm
 %defattr(-,root,apache,-)
 
 %changelog
-* Wed Jul 24 2013 Adam Miller <admiller@redhat.com> 0.0.2-1
-- <admin-console> create script to load fake data (lmeyer@redhat.com)
-- <admin-console> reuse admin stats library (lmeyer@redhat.com)
-
 * Thu Jul 18 2013 Troy Dawson <tdawson@redhat.com> 0.0.1-1
 - new package built with tito
 
