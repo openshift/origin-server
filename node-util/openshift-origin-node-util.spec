@@ -1,6 +1,6 @@
 Summary:       Utility scripts for the OpenShift Origin broker
 Name:          openshift-origin-node-util
-Version: 1.12.1
+Version: 1.12.2
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -119,6 +119,14 @@ mv services/openshift-gears.service %{buildroot}/etc/systemd/system/openshift-ge
 /sbin/restorecon /usr/sbin/oo-restorer* || :
 
 %changelog
+* Wed Jul 24 2013 Adam Miller <admiller@redhat.com> 1.12.2-1
+- <oo-auto-idler> add man page (lmeyer@redhat.com)
+- Bug 960355 - Fix file permissions. (rmillner@redhat.com)
+- Bug 985525: Skip invalid cartridges during recursive installation
+  (ironcladlou@gmail.com)
+- Add support for upgrade script to be called during cartridge upgrades.
+  (pmorie@gmail.com)
+
 * Fri Jul 12 2013 Adam Miller <admiller@redhat.com> 1.12.1-1
 - bump_minor_versions for sprint 31 (admiller@redhat.com)
 
