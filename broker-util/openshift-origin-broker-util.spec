@@ -6,7 +6,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin broker
 Name:          openshift-origin-broker-util
-Version: 1.12.1
+Version: 1.12.2
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -88,6 +88,29 @@ cp man/*.8 %{buildroot}%{_mandir}/man8/
 %{_mandir}/man8/oo-stats.8.gz
 
 %changelog
+* Wed Jul 24 2013 Adam Miller <admiller@redhat.com> 1.12.2-1
+- Merge pull request #3151 from pravisankar/dev/ravi/ctl-usage-fixes
+  (dmcphers+openshiftbot@redhat.com)
+- oo-admin-ctl-usage: Process billing and non-billing usage records separately
+  (rpenta@redhat.com)
+- <oo-admin-clear-pending-ops> man page added (lmeyer@redhat.com)
+- <oo-stats> splitting into first admin library class (lmeyer@redhat.com)
+- Merge pull request #2759 from Miciah/oo-admin-ctl-domain-use-
+  CloudUser.find_or_create_by_id (dmcphers+openshiftbot@redhat.com)
+- Remove ecdsa ssh key type from supported list. Rationale: Due to patent
+  concerns, ECC support is not bundled in fedora/rhel(needed for ecdsa key
+  generation).            So even if someone has a valid ecdsa keys, sshd
+  server on our node won't be able to authenticate the user.
+  (rpenta@redhat.com)
+- Merge pull request #3083 from smarterclayton/strong_consistency_is_default
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3072 from pravisankar/dev/ravi/bug969876
+  (dmcphers+openshiftbot@redhat.com)
+- Strong consistency is the default for mongoid (ccoleman@redhat.com)
+- Bug 982994 - Minor: add version/help options to usage info
+  (rpenta@redhat.com)
+- oo-admin-ctl-domain: don't use CloudUser.new (miciah.masters@gmail.com)
+
 * Fri Jul 12 2013 Adam Miller <admiller@redhat.com> 1.12.1-1
 - bump_minor_versions for sprint 31 (admiller@redhat.com)
 

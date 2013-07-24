@@ -9,7 +9,7 @@
 
 Summary:       OpenShift Origin Management Console
 Name:          rubygem-%{gem_name}
-Version: 1.12.1
+Version: 1.12.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -151,6 +151,40 @@ cp -a ./%{gem_dir}/* %{buildroot}%{gem_dir}/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Wed Jul 24 2013 Adam Miller <admiller@redhat.com> 1.12.2-1
+- Correctly create custom apps (ccoleman@redhat.com)
+- Merge remote-tracking branch 'origin/master' into
+  handle_global_exceptions_properly (ccoleman@redhat.com)
+- API version is not locked when using PUT/POST/DELETE due to only Content-Type
+  being sent (ccoleman@redhat.com)
+- Merge pull request #3095 from smarterclayton/custom_cart_test
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3111 from pravisankar/dev/ravi/bug983038
+  (dmcphers+openshiftbot@redhat.com)
+- Reset capybara between tests, restore cached cookies with correct domain
+  (jliggitt@redhat.com)
+- Remove ecdsa ssh key type from supported list. Rationale: Due to patent
+  concerns, ECC support is not bundled in fedora/rhel(needed for ecdsa key
+  generation).            So even if someone has a valid ecdsa keys, sshd
+  server on our node won't be able to authenticate the user.
+  (rpenta@redhat.com)
+- Convert keys_controller - work around double deletion bug in console code
+  (ccoleman@redhat.com)
+- Merge remote-tracking branch 'origin/master' into
+  handle_global_exceptions_properly (ccoleman@redhat.com)
+- Merge remote-tracking branch 'origin/master' into
+  handle_global_exceptions_properly (ccoleman@redhat.com)
+- Test custom cart creation (ccoleman@redhat.com)
+- Merge pull request #3037 from Miciah/console-application_types-custom_types-
+  fix (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3082 from smarterclayton/formtastic_cant_be_too_new
+  (dmcphers+openshiftbot@redhat.com)
+- Authorizations will not return specific id messages (ccoleman@redhat.com)
+- Add test cases for not_found messages and behavior (ccoleman@redhat.com)
+- Formtastic can't be newer than 1.2.x (ccoleman@redhat.com)
+- Add test cases for not_found messages and behavior (ccoleman@redhat.com)
+- Console: Make sure excluded_tags is set (miciah.masters@gmail.com)
+
 * Fri Jul 12 2013 Adam Miller <admiller@redhat.com> 1.12.1-1
 - bump_minor_versions for sprint 31 (admiller@redhat.com)
 

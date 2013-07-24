@@ -2,7 +2,7 @@
 
 Summary:       Provides Node.js support
 Name:          openshift-origin-cartridge-nodejs
-Version: 1.13.1
+Version: 1.13.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -65,6 +65,16 @@ fi
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Wed Jul 24 2013 Adam Miller <admiller@redhat.com> 1.13.2-1
+- <application.rb> Add feature to carts to handle wildcard ENV variable
+  subscriptions (jolamb@redhat.com)
+- Merge pull request #3148 from kraman/bugfix
+  (dmcphers+openshiftbot@redhat.com)
+- Adding missing nodejs dependency (kraman@gmail.com)
+- Allow plugin carts to reside either on web-framework or non web-framework
+  carts. HA-proxy cart manifest will say it will reside with web-framework
+  (earlier it was done in the reverse order). (rpenta@redhat.com)
+
 * Fri Jul 12 2013 Adam Miller <admiller@redhat.com> 1.13.1-1
 - bump_minor_versions for sprint 31 (admiller@redhat.com)
 

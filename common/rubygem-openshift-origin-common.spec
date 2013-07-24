@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Common
 Name:          rubygem-%{gem_name}
-Version: 1.12.1
+Version: 1.12.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -120,6 +120,15 @@ cp bin/man/*.8 %{buildroot}%{_mandir}/man8/
 %doc %{gem_docdir}
 
 %changelog
+* Wed Jul 24 2013 Adam Miller <admiller@redhat.com> 1.12.2-1
+- make haproxy a sparse cart (rchopra@redhat.com)
+- support for sparse cartridges (multiple haproxy) (rchopra@redhat.com)
+- Merge remote-tracking branch 'origin/master' into
+  handle_global_exceptions_properly (ccoleman@redhat.com)
+- Bug 980253 - Map illegal versions to 0.0.0 (jhonce@redhat.com)
+- Move most DocumentNotFound handling to ApiResponse#render_exception
+  (ccoleman@redhat.com)
+
 * Fri Jul 12 2013 Adam Miller <admiller@redhat.com> 1.12.1-1
 - bump_minor_versions for sprint 31 (admiller@redhat.com)
 

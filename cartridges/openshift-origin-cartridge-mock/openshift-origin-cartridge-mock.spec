@@ -2,7 +2,7 @@
 
 Summary:       Mock cartridge for V2 Cartridge SDK
 Name:          openshift-origin-cartridge-mock
-Version: 0.7.1
+Version: 0.7.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -40,6 +40,14 @@ test platform functionality. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Wed Jul 24 2013 Adam Miller <admiller@redhat.com> 0.7.2-1
+- <application.rb> Add feature to carts to handle wildcard ENV variable
+  subscriptions (jolamb@redhat.com)
+- Allow plugin carts to reside either on web-framework or non web-framework
+  carts. HA-proxy cart manifest will say it will reside with web-framework
+  (earlier it was done in the reverse order). (rpenta@redhat.com)
+- Make idler test use mock instead of scenario table (pmorie@gmail.com)
+
 * Fri Jul 12 2013 Adam Miller <admiller@redhat.com> 0.7.1-1
 - bump_minor_versions for sprint 31 (admiller@redhat.com)
 

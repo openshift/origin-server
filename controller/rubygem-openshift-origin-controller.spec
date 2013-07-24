@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.12.1
+Version: 1.12.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -84,6 +84,119 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Wed Jul 24 2013 Adam Miller <admiller@redhat.com> 1.12.2-1
+- fix bz987773, make max calculation use a floating point (rchopra@redhat.com)
+- <application.rb> Add feature to carts to handle wildcard ENV variable
+  subscriptions (jolamb@redhat.com)
+- Merge pull request #3088 from lnader/card-25
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3147 from rajatchopra/master
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 987268 (lnader@redhat.com)
+- origin_broker_25 (lnader@redhat.com)
+- Merge pull request #3146 from sosiouxme/fake-data
+  (dmcphers+openshiftbot@redhat.com)
+- fix scaling issue (rchopra@redhat.com)
+- Bug 971265 (dmcphers@redhat.com)
+- Merge pull request #3137 from rajatchopra/ha
+  (dmcphers+openshiftbot@redhat.com)
+- check max limits for non-sparse carts too; fix for bz976734
+  (rchopra@redhat.com)
+- <admin-console> create script to load fake data (lmeyer@redhat.com)
+- Merge pull request #3138 from rajatchopra/master
+  (dmcphers+openshiftbot@redhat.com)
+- fix issues with move code for multiple haproxy cases (rchopra@redhat.com)
+- Check cartridge configure order dependency in the broker (rpenta@redhat.com)
+- Allow plugin carts to reside either on web-framework or non web-framework
+  carts. HA-proxy cart manifest will say it will reside with web-framework
+  (earlier it was done in the reverse order). (rpenta@redhat.com)
+- <admin-console> reuse admin stats library (lmeyer@redhat.com)
+- <oo-stats> splitting into first admin library class (lmeyer@redhat.com)
+- Merge pull request #3125 from rajatchopra/ha
+  (dmcphers+openshiftbot@redhat.com)
+- make haproxy a sparse cart (rchopra@redhat.com)
+- Merge pull request #3121 from rajatchopra/ha
+  (dmcphers+openshiftbot@redhat.com)
+- support for sparse cartridges (multiple haproxy) (rchopra@redhat.com)
+- Verified that Mongoid::Errors::DocumentNotFound has not been changed.
+  Updating test so that class loads in F19 (kraman@gmail.com)
+- Merge pull request #3118 from pmorie/dev/upgrades
+  (dmcphers+openshiftbot@redhat.com)
+- Add version check for gear upgrade extension (pmorie@gmail.com)
+- Merge remote-tracking branch 'origin/master' into
+  handle_global_exceptions_properly (ccoleman@redhat.com)
+- Merge pull request #3112 from kraman/rhel_fixes
+  (dmcphers+openshiftbot@redhat.com)
+- Clearing SCL cache environment before invoking scripts since scripts may load
+  different scl envs. (kraman@gmail.com)
+- Merge pull request #3110 from dobbymoodge/platform_upgrade-refactor
+  (dmcphers+openshiftbot@redhat.com)
+- <cucumber> Cleaning up commented code blocks (jolamb@redhat.com)
+- Remove ecdsa ssh key type from supported list. Rationale: Due to patent
+  concerns, ECC support is not bundled in fedora/rhel(needed for ecdsa key
+  generation).            So even if someone has a valid ecdsa keys, sshd
+  server on our node won't be able to authenticate the user.
+  (rpenta@redhat.com)
+- <cucumber> Refactoring upgrade_steps.rb to be cart-agnostic
+  (jolamb@redhat.com)
+- Handle nested subclasses in error responses (ccoleman@redhat.com)
+- Merge remote-tracking branch 'origin/master' into
+  handle_global_exceptions_properly (ccoleman@redhat.com)
+- Convert keys_controller - work around double deletion bug in console code
+  (ccoleman@redhat.com)
+- Merge pull request #3085 from sosiouxme/admin-console-broker
+  (dmcphers+openshiftbot@redhat.com)
+- Fix failing test in api_responses (ccoleman@redhat.com)
+- Merge remote-tracking branch 'origin/master' into
+  handle_global_exceptions_properly (ccoleman@redhat.com)
+- Missed a rescue of Mongoid::Errors::DocumentNotFound (ccoleman@redhat.com)
+- Merge remote-tracking branch 'origin/master' into
+  handle_global_exceptions_properly (ccoleman@redhat.com)
+- Remove binding.pry, causing failures (ccoleman@redhat.com)
+- Merge pull request #3091 from pmorie/dev/upgrades
+  (dmcphers+openshiftbot@redhat.com)
+- <broker> re-base the broker URI from /broker => / (lmeyer@redhat.com)
+- Add support for upgrade script to be called during cartridge upgrades.
+  (pmorie@gmail.com)
+- Merge pull request #3083 from smarterclayton/strong_consistency_is_default
+  (dmcphers+openshiftbot@redhat.com)
+- Authorization test case was wrong (ccoleman@redhat.com)
+- Merge pull request #3074 from kraman/bugfix2
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3069 from sosiouxme/admin-console-mcollective
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3072 from pravisankar/dev/ravi/bug969876
+  (dmcphers+openshiftbot@redhat.com)
+- Fixes for F19 runtime extended tests * Fix platform-oo-admin.feature to use
+  mock instead of ruby and python * Fix cloud domain used in
+  application_steps.rb * Add missing haproxy/scaled gear steps * Fix jenkins
+  test to understand different api versions    - Old api returns color of build
+  - new api returns string (notbuilt, built, etc) (kraman@gmail.com)
+- <container proxy> adjust naming for getting facts (lmeyer@redhat.com)
+- <mcollective> whitespace + typo fixes (lmeyer@redhat.com)
+- Make idler test use mock instead of scenario table (pmorie@gmail.com)
+- Merge pull request #3080 from smarterclayton/action_log_should_be_lazy
+  (dmcphers+openshiftbot@redhat.com)
+- Strong consistency is the default for mongoid (ccoleman@redhat.com)
+- Move most DocumentNotFound handling to ApiResponse#render_exception
+  (ccoleman@redhat.com)
+- Merge pull request #3079 from smarterclayton/make_pry_console_available
+  (dmcphers+openshiftbot@redhat.com)
+- Generic exceptions should always be handled with rescue_from Don't return on
+  the last line of controller methods rescue_from handlers should have proper
+  access to user info set via UserActionLog filter (ccoleman@redhat.com)
+- Merge pull request #3058 from smarterclayton/use_deep_dup
+  (dmcphers+openshiftbot@redhat.com)
+- Make set_log_tag lazy, so that all controllers have a default behavior Allow
+  controllers to override log tag on their class, not on the instance Make
+  allowances for legacy behavior (ccoleman@redhat.com)
+- Make Pry console available when ENV['PRY']=1 (ccoleman@redhat.com)
+- Remove UtilHelper.deep_copy for Rails deep_dup (ccoleman@redhat.com)
+- Bug 969876 - Don't run execute_connections if there are no add/remove
+  component ops (rpenta@redhat.com)
+- <mcollective> adding call to retrieve set of facts for admin-console
+  (lmeyer@redhat.com)
+
 * Fri Jul 12 2013 Adam Miller <admiller@redhat.com> 1.12.1-1
 - Merge branch 'master' of github.com:openshift/origin-server
   (admiller@redhat.com)

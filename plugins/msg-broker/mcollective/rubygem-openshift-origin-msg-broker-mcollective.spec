@@ -9,7 +9,7 @@
 
 Summary:       OpenShift plugin for mcollective service
 Name:          rubygem-%{gem_name}
-Version: 1.12.1
+Version: 1.12.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -80,6 +80,16 @@ cp %{buildroot}/%{gem_dir}/gems/%{gem_name}-%{version}/conf/openshift-origin-msg
 %attr(0644,-,-) %ghost /etc/mcollective/client.cfg
 
 %changelog
+* Wed Jul 24 2013 Adam Miller <admiller@redhat.com> 1.12.2-1
+- fix issues with move code for multiple haproxy cases (rchopra@redhat.com)
+- support for sparse cartridges (multiple haproxy) (rchopra@redhat.com)
+- Merge pull request #3069 from sosiouxme/admin-console-mcollective
+  (dmcphers+openshiftbot@redhat.com)
+- <container proxy> adjust naming for getting facts (lmeyer@redhat.com)
+- <mcollective> whitespace + typo fixes (lmeyer@redhat.com)
+- <mcollective> adding call to retrieve set of facts for admin-console
+  (lmeyer@redhat.com)
+
 * Fri Jul 12 2013 Adam Miller <admiller@redhat.com> 1.12.1-1
 - bump_minor_versions for sprint 31 (admiller@redhat.com)
 
