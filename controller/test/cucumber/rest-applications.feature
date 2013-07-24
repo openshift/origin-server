@@ -9,7 +9,7 @@ Feature: applications
     #Given a new user, create a php-<php_version> application using <format> format and verify application list API
     Given a new user
     And I accept "<format>"
-    When I send a POST request to "/domains" with the following:"id=api<random>"
+    When I send a POST request to "/domains" with the following:"name=api<random>"
     Then the response should be "201"
     When I send a POST request to "/domains/api<random>/applications" with the following:"name=app&cartridge=php-<php_version>"
     Then the response should be "201"
@@ -35,7 +35,7 @@ Feature: applications
     #Given a new user, create a php-<php_version> application using <format> format and verify application creation API
     Given a new user
     And I accept "<format>"
-    When I send a POST request to "/domains" with the following:"id=api<random>"
+    When I send a POST request to "/domains" with the following:"name=api<random>"
     Then the response should be "201"
     When I send a POST request to "/domains/api<random>/applications" with the following:"name=app&cartridge=php-<php_version>"
     Then the response should be "201"
@@ -60,7 +60,7 @@ Feature: applications
     #Given a new user, create a php-<php_version> application with phpmyadmin-<phpmyadmin_version> using <format> format and verify application creation API
     Given a new user
     And I accept "<format>"
-    When I send a POST request to "/domains" with the following:"id=api<random>"
+    When I send a POST request to "/domains" with the following:"name=api<random>"
     Then the response should be "201"
     When I send a POST request to "/domains/api<random>/applications" with the following:"name=app&cartridges=php-<php_version>&cartridges=<database>&cartridges=phpmyadmin-<phpmyadmin_version>&initial_git_url=https://github.com/openshift/wordpress-example"
     Then the response should be "201"
@@ -84,7 +84,7 @@ Feature: applications
     #Given a new user, create an invalid application with php-<php_version>, ruby-1.9, mysql-5.1, phpmyadmin-<phpmyadmin_version> using <format> format and verify application creation API
     Given a new user
     And I accept "<format>"
-    When I send a POST request to "/domains" with the following:"id=api<random>"
+    When I send a POST request to "/domains" with the following:"name=api<random>"
     Then the response should be "201"
     When I send a POST request to "/domains/api<random>/applications" with the following:"name=app&cartridges=<database>&cartridges=phpmyadmin-<phpmyadmin_version>"
     Then the response should be "422"
@@ -108,7 +108,7 @@ Feature: applications
     #Given a new user, create a php-<php_version> application using <format> format with blank, missing, too long and invalid name and verify application creation API
     Given a new user
     And I accept "<format>"
-    When I send a POST request to "/domains" with the following:"id=api<random>"
+    When I send a POST request to "/domains" with the following:"name=api<random>"
     Then the response should be "201"
     When I send a POST request to "/domains/api<random>/applications" with the following:"name=&cartridge=php-<php_version>"
     Then the response should be "422"
@@ -139,7 +139,7 @@ Feature: applications
     #Given a new user, create a php-<php_version> application using <format> format verify retrieving application details
     Given a new user
     And I accept "<format>"
-    When I send a POST request to "/domains" with the following:"id=api<random>"
+    When I send a POST request to "/domains" with the following:"name=api<random>"
     Then the response should be "201"
     When I send a POST request to "/domains/api<random>/applications" with the following:"name=app&cartridge=php-<php_version>"
     Then the response should be "201"
@@ -165,7 +165,7 @@ Feature: applications
     #Given a new user, create a php-<php_version> application using <format> format verify application <event> API
     Given a new user
     And I accept "<format>"
-    When I send a POST request to "/domains" with the following:"id=api<random>"
+    When I send a POST request to "/domains" with the following:"name=api<random>"
     Then the response should be "201"
     When I send a POST request to "/domains/api<random>/applications" with the following:"name=app&cartridge=php-<php_version>"
     Then the response should be "201"
@@ -202,7 +202,7 @@ Feature: applications
     #Given a new user, create a php-<php_version> application using <format> format verify adding and removing application aliases
     Given a new user
     And I accept "<format>"
-    When I send a POST request to "/domains" with the following:"id=api<random>"
+    When I send a POST request to "/domains" with the following:"name=api<random>"
     Then the response should be "201"
     When I send a POST request to "/domains/api<random>/applications" with the following:"name=app&cartridge=php-<php_version>"
     Then the response should be "201"
@@ -229,7 +229,7 @@ Feature: applications
     #Given a new user, create a php-<php_version> application using <format> format verify application deletion
     Given a new user
     And I accept "<format>"
-    When I send a POST request to "/domains" with the following:"id=api<random>"
+    When I send a POST request to "/domains" with the following:"name=api<random>"
     Then the response should be "201"
     When I send a POST request to "/domains/api<random>/applications" with the following:"name=app&cartridge=php-<php_version>"
     Then the response should be "201"
@@ -254,7 +254,7 @@ Feature: applications
     #Given a new user, create a php-<php_version> application using <format> format verify that duplicate application creation fails
     Given a new user
     And I accept "<format>"
-    When I send a POST request to "/domains" with the following:"id=api<random>"
+    When I send a POST request to "/domains" with the following:"name=api<random>"
     Then the response should be "201"
     When I send a POST request to "/domains/api<random>/applications" with the following:"name=app&cartridge=php-<php_version>"
     Then the response should be "201"
@@ -279,7 +279,7 @@ Feature: applications
   Scenario Outline: Create application with invalid, blank or missing cartridge
     Given a new user
     And I accept "<format>"
-    When I send a POST request to "/domains" with the following:"id=api<random>"
+    When I send a POST request to "/domains" with the following:"name=api<random>"
     Then the response should be "201"
     When I send a POST request to "/domains/api<random>/applications" with the following:"name=app&cartridge=bogus"
     Then the response should be "422"
@@ -301,7 +301,7 @@ Feature: applications
   Scenario Outline: Retrieve or delete a non-existent application
     Given a new user
     And I accept "<format>"
-    When I send a POST request to "/domains" with the following:"id=api<random>"
+    When I send a POST request to "/domains" with the following:"name=api<random>"
     Then the response should be "201"
     When I send a GET request to "/domains/api<random>/applications/app"
     Then the response should be "404"
@@ -319,7 +319,7 @@ Feature: applications
     #Given a new user, create a php-<php_version> application using <format> format verify the application descriptor API
     Given a new user
     And I accept "<format>"
-    When I send a POST request to "/domains" with the following:"id=api<random>"
+    When I send a POST request to "/domains" with the following:"name=api<random>"
     Then the response should be "201"
     When I send a POST request to "/domains/api<random>/applications" with the following:"name=app&cartridge=php-<php_version>"
     Then the response should be "201"
@@ -345,7 +345,7 @@ Feature: applications
   Scenario Outline: Stop and Start embedded cartridge
     Given a new user
     And I accept "<format>"
-    When I send a POST request to "/domains" with the following:"id=api<random>"
+    When I send a POST request to "/domains" with the following:"name=api<random>"
     Then the response should be "201"
     When I send a POST request to "/domains/api<random>/applications" with the following:"name=app&cartridge=diy-0.1"
     Then the response should be "201"
@@ -375,7 +375,7 @@ Feature: applications
   Scenario Outline: Restart embedded cartridge
     Given a new user
     And I accept "<format>"
-    When I send a POST request to "/domains" with the following:"id=api<random>"
+    When I send a POST request to "/domains" with the following:"name=api<random>"
     Then the response should be "201"
     When I send a POST request to "/domains/api<random>/applications" with the following:"name=app&cartridge=diy-0.1"
     Then the response should be "201"
@@ -405,7 +405,7 @@ Feature: applications
   Scenario Outline: Remove embedded cartridge
     Given a new user
     And I accept "<format>"
-    When I send a POST request to "/domains" with the following:"id=api<random>"
+    When I send a POST request to "/domains" with the following:"name=api<random>"
     Then the response should be "201"
     When I send a POST request to "/domains/api<random>/applications" with the following:"name=app&cartridge=diy-0.1"
     Then the response should be "201"
@@ -435,7 +435,7 @@ Feature: applications
   Scenario Outline: Scale-up and scale-down as application that is not scalable
     Given a new user
     And I accept "<format>"
-    When I send a POST request to "/domains" with the following:"id=api<random>"
+    When I send a POST request to "/domains" with the following:"name=api<random>"
     Then the response should be "201"
     When I send a POST request to "/domains/api<random>/applications" with the following:"name=app&cartridge=diy-0.1"
     Then the response should be "201"
@@ -469,7 +469,7 @@ Feature: applications
   Scenario Outline: Resolve application dns
     Given a new user
     And I accept "<format>"
-    When I send a POST request to "/domains" with the following:"id=api<random>"
+    When I send a POST request to "/domains" with the following:"name=api<random>"
     Then the response should be "201"
     When I send a POST request to "/domains/api<random>/applications" with the following:"name=app&cartridge=diy-0.1"
     Then the response should be "201"
@@ -484,7 +484,7 @@ Feature: applications
   Scenario Outline: threaddump an application with threaddump action available
     Given a new user
     And I accept "<format>"
-    When I send a POST request to "/domains" with the following:"id=api<random>"
+    When I send a POST request to "/domains" with the following:"name=api<random>"
     Then the response should be "201"
     When I send a POST request to "/domains/api<random>/applications" with the following:"name=app&cartridge=ruby-<ruby_version>"
     Then the response should be "201"

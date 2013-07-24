@@ -129,6 +129,7 @@ module OpenShift
             end
 
           else
+            Rails.logger.error "#{ex.message}:#{ex.backtrace}"
             status = :internal_server_error
             message = "Unable to complete the requested operation due to: #{ex.message}.\nReference ID: #{request.uuid}"
           end
@@ -201,9 +202,9 @@ module OpenShift
         #
         def get_log_args
           args = {}
-          args["APP"] = @application_name if @application_name
-          args["DOMAIN"] = @domain_name if @domain_name
-          args["APP_UUID"] = @application_uuid if @application_uuid
+          args["APP"] = @application.name if @application and @application.respond_to? (:name)
+          args["DOMAIN"] = @domain.namespace if @domain and @domain.respond_to? (:namespace)
+          args["APP_UUID"] = @application.uuid if @application.respond_to? (:uuid)
           return args
         end
     end

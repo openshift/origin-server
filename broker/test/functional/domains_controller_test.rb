@@ -29,10 +29,10 @@ class DomiansControllerTest < ActionController::TestCase
   
   test "domain create show list and destory" do
     namespace = "ns#{@random}"
-    post :create, {"id" => namespace}
+    post :create, {"name" => namespace}
     assert_response :created
 
-    get :show, {"id" => namespace}
+    get :show, {"name" => namespace}
     assert_response :success
     assert json = JSON.parse(response.body)
     assert link = json['data']['links']['ADD_APPLICATION']
@@ -41,30 +41,30 @@ class DomiansControllerTest < ActionController::TestCase
     get :index , {}
     assert_response :success
     new_namespace = "xns#{@random}"
-    put :update, {"existing_id" => namespace, "id" => new_namespace}
+    put :update, {"existing_name" => namespace, "name" => new_namespace}
     assert_response :success
-    delete :destroy , {"id" => new_namespace}
+    delete :destroy , {"name" => new_namespace}
     assert_response :ok
   end
   
   
-  test "no or non-existent domain id" do
+  test "no or non-existent domain name" do
     post :create, {}
     assert_response :unprocessable_entity
     get :show, {}
     assert_response :not_found
     new_namespace = "xns#{@random}"
-    put :update , {"id" => new_namespace}
+    put :update , {"name" => new_namespace}
     assert_response :not_found
     delete :destroy , {}
     assert_response :not_found
     
-    get :show, {"id" => "bogus"}
+    get :show, {"name" => "bogus"}
     assert_response :not_found
     new_namespace = "xns#{@random}"
-    put :update , {"existing_id" => "bogus", "id" => new_namespace}
+    put :update , {"existing_name" => "bogus", "name" => new_namespace}
     assert_response :not_found
-    delete :destroy , {"id" => "bogus"}
+    delete :destroy , {"name" => "bogus"}
     assert_response :not_found
   end
   
@@ -77,10 +77,10 @@ class DomiansControllerTest < ActionController::TestCase
     app = Application.create_app(app_name, [PHP_VERSION], domain)
     app.save
     
-    delete :destroy , {"id" => namespace}
+    delete :destroy , {"name" => namespace}
     assert_response :unprocessable_entity
     
-    delete :destroy , {"id" => namespace, "force" => true}
+    delete :destroy , {"name" => namespace, "force" => true}
     assert_response :ok
   end
   
@@ -94,14 +94,14 @@ class DomiansControllerTest < ActionController::TestCase
     app.save
     
     new_namespace = "xns#{@random}"
-    put :update, {"existing_id" => namespace, "id" => new_namespace}
+    put :update, {"existing_name" => namespace, "name" => new_namespace}
     assert_response :unprocessable_entity
     
     app.destroy_app
     
-    put :update, {"existing_id" => namespace, "id" => new_namespace}
+    put :update, {"existing_name" => namespace, "name" => new_namespace}
     assert_response :success
-    get :show, {"id" => new_namespace}
+    get :show, {"name" => new_namespace}
     assert_response :success
   end
 end

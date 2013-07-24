@@ -3,7 +3,7 @@
 # Application CRUD REST API
 class ApplicationsController < BaseController
   include RestModelHelper
-  before_filter :get_domain
+  before_filter :get_domain, :only => [:create]
   before_filter :get_application, :only => [:show, :destroy, :update]
   ##
   # List all applications
@@ -15,9 +15,31 @@ class ApplicationsController < BaseController
   # @return [RestReply<Array<RestApplication>>] List of applications within the domain
   def index
     include_cartridges = (params[:include] == "cartridges")
-    apps = @domain.applications
+    domain_id = params[:domain_id].presence
+    domain_id = domain_id.downcase if domain_id
+    apps = []
+    if domain_id
+      #only get apps for this domain
+      begin
+        @domain = Domain.find_by(owner: @cloud_user, canonical_namespace: domain_id)
+      rescue Mongoid::Errors::DocumentNotFound => e
+        return render_error(:not_found, "Domain '#{domain_id}' not found", 127)
+      end
+      @domain.applications.each do |app|
+        apps.push(app)
+      end if @domain
+    elsif @domain.nil?
+      #get all apps for all domains
+      domains = Domain.find_by(owner: @cloud_user)
+      domains = [domains] if domains.is_a? Domain
+      domains.each do |domain|
+        domain.applications.each do |app|
+          apps.push(app)
+        end
+      end
+    end    
     rest_apps = apps.map { |application| get_rest_application(application, include_cartridges, apps) }
-    render_success(:ok, "applications", rest_apps, "Found #{rest_apps.length} applications for domain '#{@domain.namespace}'")
+    render_success(:ok, "applications", rest_apps, "Found #{rest_apps.length} applications.")
   end
 
   ##
@@ -98,22 +120,20 @@ class ApplicationsController < BaseController
     begin
       result = ResultIO.new
       scalable = get_bool(params[:scale])
-      application = Application.create_app(app_name, features, @domain, default_gear_size, scalable, result, [], init_git_url, request.headers['User-Agent'], downloaded_cart_urls)
+      @application = Application.create_app(app_name, features, @domain, default_gear_size, scalable, result, [], init_git_url, request.headers['User-Agent'], downloaded_cart_urls)
 
-      @application_name = application.name
-      @application_uuid = application.uuid
     rescue OpenShift::UnfulfilledRequirementException => e
       return render_error(:unprocessable_entity, "Unable to create application for #{e.feature}", 109, "cartridges")
     rescue OpenShift::ApplicationValidationException => e
       messages = get_error_messages(e.app)
       return render_error(:unprocessable_entity, nil, nil, nil, nil, messages)
     end
-    application.user_agent= request.headers['User-Agent']
+    @application.user_agent= request.headers['User-Agent']
 
     include_cartridges = (params[:include] == "cartridges")
 
-    app = get_rest_application(application, include_cartridges)
-    render_success(:created, "application", app, "Application #{application.name} was created.", result)
+    app = get_rest_application(@application, include_cartridges)
+    render_success(:created, "application", app, "Application #{@application.name} was created.", result)
   end
 
   ##

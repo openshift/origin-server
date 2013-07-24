@@ -95,7 +95,7 @@
 #   @return [Array<String>] Status messages returned back from the cartridge
 # @!attribute [r] usage_rates
 #   @return [Array<Object>]
-class RestEmbeddedCartridge < OpenShift::Model
+class RestEmbeddedCartridge15 < OpenShift::Model
   attr_accessor :type, :name, :version, :license, :license_url, :tags, :website, :url,
     :help_topics, :links, :properties, :display_name, :description, :scales_from,
     :scales_to, :current_scale, :supported_scales_from, :supported_scales_to,
@@ -180,28 +180,29 @@ class RestEmbeddedCartridge < OpenShift::Model
     self.help_topics = cart.help_topics
 
     if app and !nolinks
-      app_id = app.id
-      if not app_id.nil? 
+      domain_id = app.domain.namespace
+      app_id = app.name
+      if not app_id.nil? and not domain_id.nil?
         self.links = {
-            "GET" => Link.new("Get cartridge", "GET", URI::join(url, "applications/#{app_id}/cartridges/#{name}")),
-            "UPDATE" => Link.new("Update cartridge configuration", "PUT", URI::join(url, "applications/#{app_id}/cartridges/#{name}"), nil, [
+            "GET" => Link.new("Get cartridge", "GET", URI::join(url, "domains/#{domain_id}/applications/#{app_id}/cartridges/#{name}")),
+            "UPDATE" => Link.new("Update cartridge configuration", "PUT", URI::join(url, "domains/#{domain_id}/applications/#{app_id}/cartridges/#{name}"), nil, [
               OptionalParam.new("additional_gear_storage", "integer", "Additional filesystem storage in gigabytes on each gear having cartridge #{name}"),
               OptionalParam.new("scales_from", "integer", "Minimum number of gears having cartridge #{name}"),
               OptionalParam.new("scales_to", "integer", "Maximum number of gears having cartridge #{name}")
             ]),
-            "START" => Link.new("Start embedded cartridge", "POST", URI::join(url, "applications/#{app_id}/cartridges/#{name}/events"), [
+            "START" => Link.new("Start embedded cartridge", "POST", URI::join(url, "domains/#{domain_id}/applications/#{app_id}/cartridges/#{name}/events"), [
               Param.new("event", "string", "event", "start")
             ]),
-            "STOP" => Link.new("Stop cartridge", "POST", URI::join(url, "applications/#{app_id}/cartridges/#{name}/events"), [
+            "STOP" => Link.new("Stop cartridge", "POST", URI::join(url, "domains/#{domain_id}/applications/#{app_id}/cartridges/#{name}/events"), [
               Param.new("event", "string", "event", "stop")
             ]),
-            "RESTART" => Link.new("Restart cartridge", "POST", URI::join(url, "applications/#{app_id}/cartridges/#{name}/events"), [
+            "RESTART" => Link.new("Restart cartridge", "POST", URI::join(url, "domains/#{domain_id}/applications/#{app_id}/cartridges/#{name}/events"), [
               Param.new("event", "string", "event", "restart")
             ]),
-            "RELOAD" => Link.new("Reload cartridge", "POST", URI::join(url, "applications/#{app_id}/cartridges/#{name}/events"), [
+            "RELOAD" => Link.new("Reload cartridge", "POST", URI::join(url, "domains/#{domain_id}/applications/#{app_id}/cartridges/#{name}/events"), [
               Param.new("event", "string", "event", "reload")
             ]),
-            "DELETE" => Link.new("Delete cartridge", "DELETE", URI::join(url, "applications/#{app_id}/cartridges/#{name}"))
+            "DELETE" => Link.new("Delete cartridge", "DELETE", URI::join(url, "domains/#{domain_id}/applications/#{app_id}/cartridges/#{name}"))
           }
       end
     end
