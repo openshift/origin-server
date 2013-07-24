@@ -9,11 +9,11 @@ gemspec
 gem "jquery-rails"
 
 group :test, :development do
-  gem 'sass-twitter-bootstrap', :git => 'git@github.com:jwforres/sass-twitter-bootstrap.git', :tag => 'backport_v2.0.1'
+  gem 'sass-twitter-bootstrap', '2.0.1'
 end
 
 group :assets do
-  gem 'sass-twitter-bootstrap', '~> 2.0.1'
+  gem 'sass-twitter-bootstrap', '2.0.1'
 end
 
 # Declare any dependencies that are still in development here instead of in
