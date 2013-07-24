@@ -62,13 +62,15 @@ end
 require "/var/www/openshift/broker/config/environment"
 # Disable analytics for admin scripts
 Rails.configuration.analytics[:enabled] = false
-# Indicates how many records to gather for reporting usage in bulk.
-$bulk_recs_threshold = 20
+# Indicates how many records to gather for bulk processing of usage records with billing accounts
+$bulk_billing_recs_threshold = 1000
+# Indicates how many records to gather for bulk processing of usage records with-out billing accounts
+$bulk_non_billing_recs_threshold = 1000
 $billing_api = OpenShift::BillingService.instance
+$cur_time = Time.now.utc
 # User -> billing account# cache
 $user_info_cache = {}
 $session = nil
-$cur_time = nil
 $user_srecs = [] # user usage summary records
 if $enable_logger
   $billing_api.set_logger($log_file)
@@ -98,20 +100,19 @@ end
 
 def set_user_info(urec)
   user_id = urec['user_id'].to_s
-  unless $user_info_cache[user_id]
-    user_obj = $session[:cloud_users].find(_id: user_id).select(login: 1, usage_account_id: 1, plan_history: 1).first
-    if user_obj
-      $user_info_cache[user_id] = { 'login' => user_obj['login'], 'acct_no' => user_obj['usage_account_id'],
-                                         'plan_history' => user_obj['plan_history'] }
-    end
-  end
   if $user_info_cache[user_id]
     urec['login'] = $user_info_cache[user_id]['login']
     urec['acct_no'] = $user_info_cache[user_id]['acct_no']
     urec['plan_history'] = $user_info_cache[user_id]['plan_history']
   else
-    $billing_api.print_warning "Can NOT find user from cloud_users collection for user_id, '#{user_id}'"
+    user_obj = $session[:cloud_users].find(_id: urec['user_id']).select(login: 1).first
+    unless user_obj
+      $billing_api.print_error "Can NOT find user from cloud_users collection for user_id, '#{user_id}'."\
+                               "Investigate this record: #{urec.inspect}"
+    end
+    return false
   end
+  return true
 end
 
 # Print usage to terminal
@@ -160,7 +161,7 @@ def sanitize_usage_records(urecs)
   return urecs if urecs.empty?
   if urecs.length > 2
     $billing_api.print_error "Found more than 2 usage records, We expect only begin/continue and end records."\
-                             "Ivestigate these records: #{urecs.inspect}"
+                             "Investigate these records: #{urecs.inspect}"
     end_rec = nil
     continue_rec = nil
     begin_rec = nil
@@ -187,7 +188,7 @@ def sanitize_usage_records(urecs)
     elsif end_rec
       new_urecs = []
     else
-      $billing_api.print_error "Unexpected behavior found. Ivestigate these records: #{urecs.inspect}"
+      $billing_api.print_error "Unexpected behavior found. Investigate these records: #{urecs.inspect}"
       urecs = []
       return urecs # Ignore processing these records
     end
@@ -202,9 +203,9 @@ def sanitize_usage_records(urecs)
     if (urecs.first['event'] == UsageRecord::EVENTS[:end]) or !urecs.first['time']
       if !urecs.first['time']
         $billing_api.print_error "Event time not set for begin/continue usage record."\
-                  "Unexpected behavior found. Ivestigate these records: #{urecs.inspect}"
+                  "Unexpected behavior found. Investigate these records: #{urecs.inspect}"
       else
-        $billing_api.print_error "Found usage records with no begin/continue marker. Ivestigate these records: #{urecs.inspect}"
+        $billing_api.print_error "Found usage records with no begin/continue marker. Investigate these records: #{urecs.inspect}"
       end
       # Delete this set of records
       $session.with(safe:true)[:usage_records].find(_id: urecs.first['_id']).remove
@@ -215,7 +216,7 @@ def sanitize_usage_records(urecs)
     return urecs if urecs.length == 1
 
     if urecs.last['event'] != UsageRecord::EVENTS[:end]
-      $billing_api.print_error "Found 2 usage records with no end marker. Ivestigate these records: #{urecs.inspect}"
+      $billing_api.print_error "Found 2 usage records with no end marker. Investigate these records: #{urecs.inspect}"
       # Keep last continue or first begin and delete the other record.
       if urecs.last['event'] == UsageRecord::EVENTS[:continue]
         $session.with(safe:true)[:usage_records].find(_id: urecs.first['_id']).remove
@@ -231,7 +232,7 @@ def sanitize_usage_records(urecs)
     end
     if !urecs.last['time']
       $billing_api.print_error "Event time not set for end usage record."\
-                  "Unexpected behavior found. Ivestigate these records: #{urecs.inspect}"
+                  "Unexpected behavior found. Investigate these records: #{urecs.inspect}"
       urecs.last['time'] = urecs.first['time']
     end
   end
@@ -265,7 +266,6 @@ end
 # Process given chunk of usage recrods
 def process_user_usage_records(user_urecs)
   return if user_urecs.empty?
-  $cur_time = Time.now.utc
 
   begin
     utype_recs = [] # user usage type records
@@ -296,18 +296,23 @@ def process_user_usage_records(user_urecs)
 end
 
 # Get usage records from mongo and process them in small chunks
-def process_usage_records
+def process_usage_records(billing_accounts)
   user_urecs = []
   cur_urec_count = 0
   prev_gear_id = nil
-
-  # Populate user info cache
-  populate_user_info
+  if billing_accounts
+    threshold = $bulk_billing_recs_threshold 
+  else
+    threshold = $bulk_non_billing_recs_threshold 
+  end
 
   # usage_records collection is indexed by 'gear_id', 'usage_type' and 'created_at' fields
   $session[:usage_records].find.sort({:gear_id => 1, :usage_type => 1, :created_at => 1}).no_timeout.each do |urec|
-    set_user_info(urec)
-    if cur_urec_count < $bulk_recs_threshold
+    next if urec['created_at'] > $cur_time
+    next unless set_user_info(urec)
+    next if (billing_accounts and !urec['acct_no']) or (!billing_accounts and urec['acct_no'])
+
+    if cur_urec_count < threshold
       user_urecs << urec
       cur_urec_count += 1
       prev_gear_id = urec['gear_id']
@@ -340,9 +345,12 @@ if $list or $sync
     $billing_api.log.info "\n---------- STARTED ----------\n"
     begin
       $session = get_mongo_session
-      $billing_api.pre_sync_usage($session)
-      process_usage_records
-      $billing_api.post_sync_usage($session)
+      # Populate user info cache
+      populate_user_info
+      $billing_api.pre_sync_usage($session) if $sync
+      process_usage_records(true)
+      process_usage_records(false)
+      $billing_api.post_sync_usage($session) if $sync
     rescue Exception => e
       $billing_api.print_error e.message
       $billing_api.log.error e.backtrace.inspect
