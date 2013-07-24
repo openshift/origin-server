@@ -42,16 +42,17 @@ module OpenShift
   module Runtime
     module Utils
       class Cgroups
-        class MonitoredGear < Attrs
+        class MonitoredGear
           @@intervals = [10.seconds, 30.seconds]
           @@delay = nil
           @@max = nil
           @@_delay = nil
 
           attr_accessor :thread, :times
+          attr_reader :gear
 
-          def initialize(*args)
-            super
+          def initialize(uuid)
+            @gear = OpenShift::Runtime::Utils::Cgroups.new(uuid)
             @times = {}
           end
 
