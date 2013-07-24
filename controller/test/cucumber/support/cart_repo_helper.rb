@@ -11,12 +11,20 @@ end
 def clean_cart_repo
   cart_repo = OpenShift::Runtime::CartridgeRepository.instance
 
-  if cart_repo.exist?('mock', '0.0.2', '0.1')
-    $logger.info('Erasing test-generated version mock-0.1')
-    cart_repo.erase('mock', '0.1', '0.0.2')
+  check_carts = ['mock', 'mock-plugin']
 
-    %x(pkill -USR1 -f /usr/sbin/mcollectived)
+  restart_mcollectived = false
+
+  check_carts.each do |cart|
+    if cart_repo.exist?(cart, '0.0.2', '0.1')
+      $logger.info('Erasing test-generated version mock-0.1')
+      cart_repo.erase(cart, '0.1', '0.0.2')
+
+      restart_mcollectived = true
+    end
   end
+
+  %x(pkill -USR1 -f /usr/sbin/mcollectived) if restart_mcollectived
 
   cart_repo.clear
   cart_repo.load

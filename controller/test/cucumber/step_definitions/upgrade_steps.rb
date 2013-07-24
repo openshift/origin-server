@@ -15,7 +15,9 @@ Then /^no unprocessed ERB templates should exist$/ do
 end
 
 Given /^the expected version of the ([^ ]+)\-([\d\.]+) cartridge is installed$/ do |cart_name, component_version|
+  # Try to discover the packaged version of manifest.yml using rpm
   cart_manifest_from_package = %x(/bin/rpm -ql openshift-origin-cartridge-#{cart_name} | /bin/grep 'manifest.yml$').strip
+  # Fall back to semi-hardcoded "where it should be" path
   if cart_manifest_from_package.empty?
     cart_manifest_from_package = "/usr/libexec/openshift/cartridges/#{cart_name}/metadata/manifest.yml" 
   end
@@ -23,11 +25,14 @@ Given /^the expected version of the ([^ ]+)\-([\d\.]+) cartridge is installed$/ 
 
   cart_repo = OpenShift::Runtime::CartridgeRepository.instance
 
+  # This might be useful info - stash it
   @packaged_carts ||= {}
   @packaged_carts[cart_name] ||= {}
   @packaged_carts[cart_name]['Version'] = manifest_from_package['Version']
   @packaged_carts[cart_name]['Cartridge-Version'] = manifest_from_package['Cartridge-Version']
 
+  # Make sure the package we've found provides the version of the
+  # cartridge component we're looking for
   assert component_version = manifest_from_package['Version']
 
   assert cart_repo.exist?(cart_name, manifest_from_package['Cartridge-Version'], manifest_from_package['Version']), "expected #{cart_name} version must exist"
