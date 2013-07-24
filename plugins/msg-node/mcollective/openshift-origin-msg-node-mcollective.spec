@@ -10,7 +10,7 @@
 
 Summary:       M-Collective agent file for openshift-origin-msg-node-mcollective
 Name:          openshift-origin-msg-node-mcollective
-Version: 1.12.1
+Version: 1.12.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -51,6 +51,16 @@ cp -p facts/update_yaml.rb %{buildroot}/usr/libexec/mcollective/
 %attr(0700,-,-) %config(noreplace) /etc/cron.minutely/openshift-facts
 
 %changelog
+* Wed Jul 24 2013 Adam Miller <admiller@redhat.com> 1.12.2-1
+- Add support for upgrade script to be called during cartridge upgrades.
+  (pmorie@gmail.com)
+- Merge pull request #3069 from sosiouxme/admin-console-mcollective
+  (dmcphers+openshiftbot@redhat.com)
+- <container proxy> adjust naming for getting facts (lmeyer@redhat.com)
+- <mcollective> whitespace + typo fixes (lmeyer@redhat.com)
+- <mcollective> adding call to retrieve set of facts for admin-console
+  (lmeyer@redhat.com)
+
 * Fri Jul 12 2013 Adam Miller <admiller@redhat.com> 1.12.1-1
 - bump_minor_versions for sprint 31 (admiller@redhat.com)
 
