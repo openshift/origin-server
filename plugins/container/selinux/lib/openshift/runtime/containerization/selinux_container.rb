@@ -110,7 +110,7 @@ module OpenShift
             cmd = "userdel --remove -f \"#{@container.uuid}\""
             out,err,rc = ::OpenShift::Runtime::Utils::oo_spawn(cmd)
             raise ::OpenShift::Runtime::UserDeletionException.new(
-                      "ERROR: unable to destroy user account(#{rc}): #{cmd} stdout: #{out} stderr: #{err}"
+                      "ERROR: unable to delete user account(#{rc}): #{cmd} stdout: #{out} stderr: #{err}"
                   ) unless rc == 0
           rescue ArgumentError => e
             logger.debug("user does not exist. ignore.")
