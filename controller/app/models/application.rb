@@ -1560,7 +1560,8 @@ class Application
     end
     return true if gear_index==0
     return false if comp.scaling.multiplier <= 0
-    total_sparse_cart_count = gear_index/comp.scaling.multiplier
+    # we need the total_sparse_cart_count to be a floating point number
+    total_sparse_cart_count = gear_index/(1.0*comp.scaling.multiplier)
     return false if total_sparse_cart_count > comp.scaling.max
     return true if gear_index%comp.scaling.multiplier==0 
     return false
