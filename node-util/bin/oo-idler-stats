@@ -131,20 +131,20 @@ def get_app_type(app_path, app_name="unknown"):
     if 0 == len(installed):
         return "unknown"
 
-    candidates = set(["diy-0.1", "jbossas-7", "jbosseap-6.0", "nodejs-0.6", "perl-5.10", "perl-5.16"\
-        "php-5.3", "php-5.4", "python-2.6", "ruby-1.8", "ruby-1.9", "zend-5.6"]).intersection(installed)
+    candidates = set(["diy", "jbossas", "jbosseap", "jbossews", "nodejs", "perl", \
+        "php", "python", "ruby", "zend"]).intersection(installed)
     if 0 < len(candidates):
-        return candidates.pop().rsplit('-', 1)[0]
+        return candidates.pop()
 
-    candidates = set(["mongodb-2.0", "mysql-5.1", "postgresql-8.4", "postgresql-9.2"\
-        "jenkins-1.4"]).intersection(installed)
+    candidates = set(["mongodb", "mysql", "postgresql", "switchyard", \
+        "jenkins"]).intersection(installed)
     if 0 < len(candidates):
-        return candidates.pop().rsplit('-', 1)[0]
+        return candidates.pop()
 
-    candidates = set(["metrics-0.1", "rockmongo-1.1", "10gen-mms-agent-0.1", \
-        "cron-1.4", "haproxy-1.4", "jenkins-client-1.4", "phpmyadmin-3.4", "phpmyadmin-3.5"]).intersection(installed)
+    candidates = set(["metrics", "rockmongo", "10gen-mms-agent", \
+        "cron", "haproxy", "jenkins-client", "phpmyadmin"]).intersection(installed)
     if 0 < len(candidates):
-        return candidates.pop().rsplit('-', 1)[0]
+        return candidates.pop()
 
     return "unknown"
 
@@ -154,12 +154,12 @@ def validate(uuid):
 
     # Is there a /git directory?
     if not os.path.isdir(app_path+"/git"):
-        return "Path /var/openshift/%s/git not found." % uuid
+        return "Path %s/git not found." % app_path
 
     # Is there something inside the /git directory?
     dirs = os.listdir(app_path+"/git")
     if len(dirs) == 0:
-        return "Path /var/lib/openshift/%s/git is empty." % uuid
+        return "Path %s/git is empty." % app_path
 
     # Under /git should be appname.git
     app_name = None
@@ -170,7 +170,7 @@ def validate(uuid):
     # Is there stuff inside git/appname.git?
     gitfiles = os.listdir(app_path+"/git/"+app_name+".git")
     if len(gitfiles) == 0:
-        return "Path /var/lib/openshift/%s/git/%s.git is empty." % (uuid, app_name)
+        return "Path %s/git/%s.git is empty." % (app_path, app_name)
 
     # Chances are good that this is a git repo. What's the last commit?
     last_commit = run('git show HEAD | grep Date | sed "s/Date:   //"',
