@@ -119,15 +119,12 @@ module OpenShift
             Hash[utilization.sort]
           end
 
-          def find(*args)
-            options = args.pop if args.last.is_a?(Hash)
-
-            apps = args.shift
-            apps ||= running_apps.clone
+          def find(options)
+            apps = running_apps.clone
 
             cur_util = utilization
             if (usage = options[:usage])
-              period = options[:period]
+              period = options[:period] || MonitoredGear.intervals.first
               # Find any utilization values with the correct period
               with_period = cur_util.inject({}) do |h,(k,v)|
                 if (vals = (v.find{|k,v| k == period} || []).last)
@@ -150,12 +147,10 @@ module OpenShift
           end
 
           def throttle(args)
-            args[:period] ||= MonitoredGears.intervals.first
-
             (bad_gears, cur_util) = find(args)
             # If this is our first run, make sure we find any previously throttled gears
             # NOTE: There is a corner case where we won't find non-running throttled applications
-            @old_bad_gears ||= find(running_apps, state: :throttled).first
+            @old_bad_gears ||= find(state: :throttled).first
 
             # Separate the good and bad gears
             (@old_bad_gears, good_gears) = @old_bad_gears.partition{|k,v| bad_gears.has_key?(k) }.map{|a| Hash[a] }
