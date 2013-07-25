@@ -162,6 +162,7 @@ Dir(after)    #{@container.uuid}/#{@container.uid} => #{list_home_dir(@container
         end
 
         def start
+          restore_cgroups
         end
 
         # Deterministically constructs an IP address for the given UID based on the given
@@ -347,6 +348,13 @@ Dir(after)    #{@container.uuid}/#{@container.uid} => #{list_home_dir(@container
         def unfreeze_cgroups
           begin
             ::OpenShift::Runtime::Utils::Cgroups.new(@container.uuid).thaw
+          rescue
+          end
+        end
+
+        def restore_cgroups
+          begin
+            ::OpenShift::Runtime::Utils::Cgroups.new(@container.uuid).restore
           rescue
           end
         end
