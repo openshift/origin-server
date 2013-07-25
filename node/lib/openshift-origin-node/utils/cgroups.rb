@@ -90,10 +90,6 @@ module OpenShift
           fetch(keys)
         end
 
-        def usage
-          fetch(%w(cpuacct.usage cpu.stat))
-        end
-
         # Public: Fetch the values from the current cgroup
         #   - If args is a single value, it will return the value
         #   - If args is an array, it will return a Template of values
