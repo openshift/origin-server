@@ -13,14 +13,14 @@ class FakeData
   end
 
   def initialize(options = {})
+    load_broker_rails_env
     @options = { # default if none given
       num_districts: 10,
       num_nodes: 80,
       node_inactive_pct: 10,
       max_active_gears: 100,
-      avg_active_pct: 50,
+      avg_active_pct:  Rails.application.config.admin_console[:expected_active_pct],
     }.merge options
-    load_broker_rails_env
   end
 
   # Load the broker rails environment so we can leverage its tools
