@@ -35,7 +35,6 @@ a|link:oo_administration_guide.html[Administration Guide] +
 link:oo_troubleshooting_guide.html[Troubleshooting Guide]
 
 a|link:oo_cartridge_developers_guide.html[Cartridge Developers Guide] +
-link:oo_application_developers_guide.html[Application Developers Guide] +
 link:oo_user_guide.html[User Guide]
 |===
 
