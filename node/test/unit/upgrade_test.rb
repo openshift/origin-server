@@ -8,6 +8,7 @@ module OpenShift
 
       def setup
         @progress = mock()
+        @progress.stubs(:log).with(kind_of(String), kind_of(Hash))
         @progress.stubs(:log).with(kind_of(String))
         @progress.stubs(:report)
         Utils::UpgradeProgress.expects(:new).returns(@progress)
@@ -75,17 +76,14 @@ module OpenShift
         cart_model.expects(:unlock_gear).with(next_manifest).yields(next_manifest)
         cart_model.expects(:secure_cartridge).with('mock', container.uid, container.gid, target)
 
-        progress.expects(:incomplete?).with('mock_setup').returns(true)
+        progress.expects(:step).with('mock_setup').yields({}, [])
         cart_model.expects(:cartridge_action).with(next_manifest, 'setup', version, true).returns('yay')
-        progress.expects(:mark_complete).with('mock_setup')
 
-        progress.expects(:incomplete?).with('mock_erb').returns(true)
+        progress.expects(:step).with('mock_erb').yields({}, [])
         cart_model.expects(:process_erb_templates).with(next_manifest)
-        progress.expects(:mark_complete).with('mock_erb')
 
-        progress.expects(:incomplete?).with('mock_connect_frontend').returns(true)
+        progress.expects(:step).with('mock_connect_frontend').yields({}, [])
         cart_model.expects(:connect_frontend).with(next_manifest)
-        progress.expects(:mark_complete).with('mock_connect_frontend')
 
         upgrader.expects(:execute_cartridge_upgrade_script).with(target, current_version, next_manifest)
 
@@ -107,16 +105,14 @@ module OpenShift
         cart_model.expects(:unlock_gear).with(next_manifest).yields(next_manifest)
         cart_model.expects(:secure_cartridge).with('mock', container.uid, container.gid, target)
 
-        progress.expects(:incomplete?).with('mock_setup').returns(false)
+        progress.expects(:step).with('mock_setup')
         cart_model.expects(:cartridge_action).never()
 
-        progress.expects(:incomplete?).with('mock_erb').returns(true)
+        progress.expects(:step).with('mock_erb').yields({}, [])
         cart_model.expects(:process_erb_templates).with(next_manifest)
-        progress.expects(:mark_complete).with('mock_erb')
 
-        progress.expects(:incomplete?).with('mock_connect_frontend').returns(true)
+        progress.expects(:step).with('mock_connect_frontend').yields({}, [])
         cart_model.expects(:connect_frontend).with(next_manifest)
-        progress.expects(:mark_complete).with('mock_connect_frontend')
 
         upgrader.expects(:execute_cartridge_upgrade_script).with(target, current_version, next_manifest)
 
@@ -138,15 +134,14 @@ module OpenShift
         cart_model.expects(:unlock_gear).with(next_manifest).yields(next_manifest)
         cart_model.expects(:secure_cartridge).with('mock', container.uid, container.gid, target)
 
-        progress.expects(:incomplete?).with('mock_setup').returns(false)
+        progress.expects(:step).with('mock_setup')
         cart_model.expects(:cartridge_action).never()
 
-        progress.expects(:incomplete?).with('mock_erb').returns(false)
+        progress.expects(:step).with('mock_erb')
         cart_model.expects(:process_erb_templates).never()
 
-        progress.expects(:incomplete?).with('mock_connect_frontend').returns(true)
+        progress.expects(:step).with('mock_connect_frontend').yields({}, [])
         cart_model.expects(:connect_frontend).with(next_manifest)
-        progress.expects(:mark_complete).with('mock_connect_frontend')
 
         upgrader.expects(:execute_cartridge_upgrade_script).with(target, current_version, next_manifest)
 
@@ -168,13 +163,13 @@ module OpenShift
         cart_model.expects(:unlock_gear).with(next_manifest).yields(next_manifest)
         cart_model.expects(:secure_cartridge).with('mock', container.uid, container.gid, target)
 
-        progress.expects(:incomplete?).with('mock_setup').returns(false)
+        progress.expects(:step).with('mock_setup')
         cart_model.expects(:cartridge_action).never()
 
-        progress.expects(:incomplete?).with('mock_erb').returns(false)
+        progress.expects(:step).with('mock_erb')
         cart_model.expects(:process_erb_templates).never()
 
-        progress.expects(:incomplete?).with('mock_connect_frontend').returns(false)
+        progress.expects(:step).with('mock_connect_frontend')
         cart_model.expects(:connect_frontend).never()
 
         upgrader.expects(:execute_cartridge_upgrade_script).with(target, current_version, next_manifest)
