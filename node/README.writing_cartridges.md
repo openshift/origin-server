@@ -1275,7 +1275,6 @@ There are two types of cartridge upgrade process: compatible and incompatible.  
 The upgrade itinerary is computed as follows for each cartridge in a gear:
 
 1.  Read in the current IDENT of the cartridge.
-1.  If the vendor is not 'redhat', skip the cartridge.
 1.  Select the name and software version of the cartridge from the cartridge repository; this will
     yield the manifest for the latest version of the cartridge.  If the manifest does not exist in the cartridge repository or does not include the software version, skip the cartridge.
 1.  If the latest manifest is for the same cartridge version as that currently installed in the
@@ -1308,6 +1307,7 @@ The incompatible upgrade process for a cartridge is as follows:
 1.  The erb templates for the cartridge are processed.
 1.  If the cartridge provides an `upgrade` script, that script is executed.
 1.  The cartridge directory is locked.
+1.  New endpoints for the cartridge are created.
 1.  The frontend is connected.
 
 ### Cartridge Upgrade Script

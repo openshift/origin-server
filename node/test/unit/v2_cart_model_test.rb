@@ -158,6 +158,8 @@ module OpenShift
 
       @model.expects(:addresses_bound?).returns(false)
 
+      Runtime::Utils::Environ.expects(:for_gear).with(@container.container_dir, is_a(String)).returns({})
+
       @container.expects(:add_env_var).with("OPENSHIFT_MOCK_EXAMPLE_IP1", ip1)
       @container.expects(:add_env_var).with("OPENSHIFT_MOCK_EXAMPLE_PORT1", 8080)
       @container.expects(:add_env_var).with("OPENSHIFT_MOCK_EXAMPLE_PORT2", 8081)
@@ -165,6 +167,31 @@ module OpenShift
       @container.expects(:add_env_var).with("OPENSHIFT_MOCK_EXAMPLE_IP2", ip2)
       @container.expects(:add_env_var).with("OPENSHIFT_MOCK_EXAMPLE_PORT4", 9090)
       @container.expects(:add_env_var).with("OPENSHIFT_MOCK_EXAMPLE_PORT5", 9091)
+
+      @model.create_private_endpoints(@mock_cartridge)
+    end
+
+    def test_private_endpoint_recreate
+      ip1 = "127.0.250.1"
+      ip2 = "127.0.250.2"
+
+      @model.expects(:find_open_ip).with(8080).returns(ip1)
+      @model.expects(:find_open_ip).with(9090).returns(ip2)
+
+      @model.expects(:addresses_bound?).returns(false)
+
+      env = {
+        "OPENSHIFT_MOCK_EXAMPLE_PORT5" => '3'
+      }
+
+      Runtime::Utils::Environ.expects(:for_gear).with(@container.container_dir, is_a(String)).returns(env)
+
+      @container.expects(:add_env_var).with("OPENSHIFT_MOCK_EXAMPLE_IP1", ip1)
+      @container.expects(:add_env_var).with("OPENSHIFT_MOCK_EXAMPLE_PORT1", 8080)
+      @container.expects(:add_env_var).with("OPENSHIFT_MOCK_EXAMPLE_PORT2", 8081)
+      @container.expects(:add_env_var).with("OPENSHIFT_MOCK_EXAMPLE_PORT3", 8082)
+      @container.expects(:add_env_var).with("OPENSHIFT_MOCK_EXAMPLE_IP2", ip2)
+      @container.expects(:add_env_var).with("OPENSHIFT_MOCK_EXAMPLE_PORT4", 9090)
 
       @model.create_private_endpoints(@mock_cartridge)
     end
@@ -188,6 +215,8 @@ module OpenShift
 
       @model.expects(:find_open_ip).with(8080).returns(ip1)
       @model.expects(:find_open_ip).with(9090).returns(ip2)
+
+      Runtime::Utils::Environ.expects(:for_gear).with(@container.container_dir, is_a(String)).returns({})
 
       @container.expects(:add_env_var).times(7)
 

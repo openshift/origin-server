@@ -736,6 +736,7 @@ module OpenShift
 
         logger.info "Creating #{cartridge.endpoints.length} private endpoints for #{@container.uuid}/#{cartridge.directory}"
 
+        env           = ::OpenShift::Runtime::Utils::Environ.for_gear(@container.container_dir, PathUtils.join(@container.container_dir, cartridge.directory))
         allocated_ips = {}
 
         cartridge.endpoints.each do |endpoint|
@@ -758,6 +759,8 @@ module OpenShift
 
           private_ip = allocated_ips[endpoint.private_ip_name]
 
+          next if env[endpoint.private_port_name]
+
           @container.add_env_var(endpoint.private_port_name, endpoint.private_port)
 
           # Create the environment variable for WebSocket Port if it is specified
@@ -765,7 +768,6 @@ module OpenShift
           if endpoint.websocket_port_name && endpoint.websocket_port
             @container.add_env_var(endpoint.websocket_port_name, endpoint.websocket_port)
           end
-
 
           logger.info("Created private endpoint for cart #{cartridge.name} in gear #{@container.uuid}: "\
           "[#{endpoint.private_ip_name}=#{private_ip}, #{endpoint.private_port_name}=#{endpoint.private_port}]")
