@@ -34,7 +34,7 @@ class CgroupsUtilsTest < OpenShift::NodeBareTestCase
     }
 
     @template_set_methods = {
-      :restore => :default,
+      :default => :default,
       :boost => :boosted,
       :throttle => :throttled,
       :freeze => :frozen,
@@ -60,14 +60,19 @@ class CgroupsUtilsTest < OpenShift::NodeBareTestCase
     @cgroups = @cls.new(@uuid)
   end
 
+  def call_set_call(meth, templ)
+    assert @cgroups.methods.include?(meth), "Failed to define_method for #{meth}"
+    if @cgroups.methods.include?(meth)
+      @clsany.expects(:apply_profile).with(templ)
+      @cgroups.send(meth)
+    end
+  end
+
   def test_template_set_calls
     @template_set_methods.each do |meth, templ|
-      assert @cgroups.methods.include?(meth), "Failed to define_method for #{meth}"
-      if @cgroups.methods.include?(meth)
-        @clsany.expects(:apply_profile).with(templ)
-        @cgroups.send(meth)
-      end
+      call_set_call(meth, templ)
     end
+    call_set_call(:restore, @template_set_methods[:default])
   end
 
   def test_template_compare_calls

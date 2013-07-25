@@ -32,7 +32,7 @@ module OpenShift
 
 
         @@TEMPLATE_SET = {
-          :default => [ :restore, :default? ],
+          :default => [ :default, :default? ],
           :boosted => [ :boost, :boosted? ],
           :throttled => [ :throttle, :throttled?],
           :frozen => [ :freeze, :frozen?],
@@ -47,6 +47,10 @@ module OpenShift
           define_method(calls[1]) do
             profile == templ
           end
+        end
+
+        def restore(&blk)
+          apply_profile(:default, &blk)
         end
 
         @@templates_cache = nil
