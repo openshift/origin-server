@@ -24,7 +24,10 @@ require_relative '../lib/openshift-origin-node'
 require_relative '../lib/openshift-origin-node/utils/logger/stdout_logger'
 
 module OpenShift
-  class NodeTestCase < MiniTest::Unit::TestCase
+
+  # A bare test case class for tests which need to start
+  # without any previous stubs or setup
+  class NodeBareTestCase < MiniTest::Unit::TestCase
     alias assert_raise assert_raises
 
     def assert_path_exist(path, message=nil)
@@ -34,7 +37,9 @@ module OpenShift
     def refute_path_exist(path, message=nil)
       assert (not File.exists?(path)), "#{path} expected to not exist #{message}"
     end
+  end
 
+  class NodeTestCase < NodeBareTestCase
     def before_setup
       log_config = mock()
       log_config.stubs(:get).with("PLATFORM_LOG_CLASS").returns("StdoutLogger")
