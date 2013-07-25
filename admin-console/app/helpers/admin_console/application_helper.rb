@@ -21,6 +21,8 @@ module AdminConsole
       end
        
       component_instance.component_properties.merge({
+        :is_sparse => component_instance.is_sparse?,
+        :id => component_instance.id,
         :name => cart.name, 
         :display_name => cart.display_name,
         :tags => cart.categories

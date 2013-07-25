@@ -11,7 +11,6 @@
     = render "layouts/admin_console/stylesheets"
 
   %body{ :class => "admin_console #{controller.controller_name} #{controller.action_name}" }
-
     %a.skip-navigation{:href => '#content', :accesskey => '2'} Skip to main content
 
     %header
@@ -20,38 +19,17 @@
     .section-console#content{:class => content_for?(:dark_layout) ? '' : 'section-console-light', :role => 'main'}
       .container
         .row-console
-          - if content_for? :full_layout
-            .row.row-flush-right
-              .grid-wrapper.banner-ribbon
-                .span12.span-flush-right
-                  - if content_for? :breadcrumbs
-                    %nav
-                      = yield :breadcrumbs
-              = yield :top
-              .grid-wrapper.section-body
-                .span12
-                  = flashes
-                = yield
-
-          - else
-            .row.row-flush-right
-              .grid-wrapper.banner-ribbon
-                .span12.span-flush-right
-                  - if content_for? :breadcrumbs
-                    %nav
-                      = yield :breadcrumbs
-                  - else
-                    &nbsp;
-              = yield :top
-              .column-content.grid-wrapper
-                .span12
-                  = flashes
-                  = yield
-
-    %footer
-      = yield :footer
-
-      = render 'layouts/footer'
+          .row
+            .span12
+              - if content_for? :breadcrumbs
+                %nav
+                  = yield :breadcrumbs
+              - else
+                &nbsp;
+            = yield :top
+            .span12
+              = flashes
+              = yield
 
     = render 'layouts/admin_console/javascripts'
 
