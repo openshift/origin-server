@@ -9,9 +9,11 @@ module OpenShift
     module Utils
       class Cgroups
         class Throttler
-          attr_reader :wanted_keys, :uuids, :running_apps
+          attr_reader :wanted_keys, :uuids, :running_apps, :threshold, :interval
 
-          def initialize(*args)
+          @@conf_file = '/etc/openshift/resource_limits.conf'
+
+          def initialize
             # Make sure we create a MonitoredGear for the root OpenShift cgroup
             # Keys for information we want from cgroups
             @wanted_keys = %w(usage throttled_time nr_periods cfs_quota_us).map(&:to_sym)
@@ -19,13 +21,17 @@ module OpenShift
             @mutex = Mutex.new
             @uuids = []
 
-            # Go through any arguments passed to us
-            Hash[*args].each do |k,v|
-              case k
-              when :intervals, :delay
-                MonitoredGear.send("#{k}=",v)
-              end
-            end
+            throttler_config = ::OpenShift::Runtime::Utils::Cgroups::Config.new(@@conf_file).get_group('cg_template_throttled')
+
+            # Set the interval to save
+            @interval = throttler_config.get('apply_period').to_i rescue nil
+            # The threshold to query against
+            @threshold = throttler_config.get('apply_threshold').to_i rescue nil
+
+            raise ArgumentError, "#{@@conf_file} requires 'apply_period' in '[cg_template_throttled]' group" if @interval.nil?
+            raise ArgumentError, "#{@@conf_file} requires 'apply_threshold' in '[cg_template_throttled]' group" if @threshold.nil?
+
+            MonitoredGear.intervals = [@interval]
 
             # Allow us to lazy initialize MonitoredGears
             @running_apps = Hash.new do |h,k|

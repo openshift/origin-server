@@ -9,6 +9,17 @@ class ThrottlerTest < OpenShift::NodeTestCase
     @@mg   = OpenShift::Runtime::Utils::Cgroups::MonitoredGear
     @@cg   = OpenShift::Runtime::Utils::Cgroups
     @@impl.stubs(:start).returns(nil)
+
+    @resources = mock().tap do |x|
+      x.stubs(:get).with('apply_period').returns(10)
+      x.stubs(:get).with('apply_threshold').returns(10)
+    end
+
+    @mock_config = mock('OpenShift::Runtime::Utils::Cgroups::Config')
+    @mock_config.stubs(:get_group).returns(@resources)
+
+    OpenShift::Runtime::Utils::Cgroups::Config.stubs(:new).with('/etc/openshift/resource_limits.conf').returns(@mock_config)
+
     @throttler = @@impl.new
 
     @mock_usage = {
@@ -33,12 +44,21 @@ class ThrottlerTest < OpenShift::NodeTestCase
     }
   end
 
+  # Correct usage
   def test_init
-    @@mg.expects("intervals=").with([5])
-    @@mg.expects("delay=").with(10)
+    period = 9999
+    threshold = 5555
+
+    @resources.expects(:get).with('apply_period').returns(period)
+    @resources.expects(:get).with('apply_threshold').returns(threshold)
+
+    @@mg.expects("intervals=").with([period])
     @@impl.any_instance.expects(:start).once
 
-    @@impl.new(intervals: [5], delay: 10)
+    throttler = @@impl.new
+
+    assert_equal period, throttler.interval
+    assert_equal threshold, throttler.threshold
   end
 
   def test_parse_usage
@@ -101,16 +121,6 @@ class ThrottlerTest < OpenShift::NodeTestCase
 
     @throttler.expects(:running_apps).never
     @throttler.utilization(@mock_apps)
-  end
-
-  def test_find_errors
-    assert_raise(ArgumentError) do
-      @throttler.find()
-    end
-
-    assert_raise(ArgumentError) do
-      @throttler.find({})
-    end
   end
 
   def test_find
