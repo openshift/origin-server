@@ -53,7 +53,7 @@ module OpenShift
             @cgroup_path = "#{@cgroup_root}/#{@uuid}"
 
             if not @@subsystems_cache
-              @@subsystems_cache = (@config.get("OPENSHIFT_CGROUP_SUBSYSTEMS") or @@DEFAULT_CGROUP_SUBSYSTEMS).strip.split(',')
+              @@subsystems_cache = (@config.get("OPENSHIFT_CGROUP_SUBSYSTEMS") or @@DEFAULT_CGROUP_SUBSYSTEMS).strip.split(',').freeze
             end
             @subsystems = @@subsystems_cache
 
@@ -63,7 +63,7 @@ module OpenShift
               if rc != 0
                 raise RuntimeError, "Could not determine Cgroup parameters"
               end
-              @@parameters_cache = parse_cgget(out).keys.sort
+              @@parameters_cache = parse_cgget(out).keys.sort.freeze
             end
             @parameters = @@parameters_cache
 

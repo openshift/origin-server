@@ -75,6 +75,7 @@ module OpenShift
                 @@templates_cache[templ]=Template.new(param_cfg(res.get_group("cg_template_#{templ}")))
               end
             end
+            @@templates_cache.freeze
           end
           @@templates_cache
         end
@@ -148,7 +149,7 @@ module OpenShift
 
         # Public: List the templates available to this gear
         def show_templates
-          self.class.templates
+          @@TEMPLATE_SET.keys
         end
 
         # Public: List the templates available in the implementation
