@@ -1,7 +1,7 @@
 #!/usr/bin/env oo-ruby
 
 require_relative '../test_helper'
-require_relative '../../lib/openshift-origin-node/utils/cgroups/monitored_gear'
+require          'openshift-origin-node/utils/cgroups/monitored_gear'
 
 # This will sanity test some Array math helpers
 class ArrayTest < OpenShift::NodeTestCase
@@ -48,53 +48,79 @@ class ArrayTest < OpenShift::NodeTestCase
   end
 end
 
+# This will allow us to clear module variables on every run
+class OpenShift::Runtime::Utils::Cgroups::MonitoredGear
+  class << self
+    def __clear
+      @@intervals = [10.seconds, 30.seconds]
+      @@delay = nil
+      @@max = nil
+      @@_delay = nil
+    end
+  end
+end
+
 class MonitoredGearInstanceTest < OpenShift::NodeTestCase
   def setup
-    @@impl = ::OpenShift::Runtime::Utils::Cgroups::MonitoredGear
-    @@impl.intervals = [10, 30]
+    @@impl = OpenShift::Runtime::Utils::Cgroups::MonitoredGear
+    @@impl.__clear
   end
 
-  def test_default_values
-    assert_equal [10, 30], @@impl.intervals
-    # Make sure that this caches the values
-    @@impl.expects(:intervals).twice.returns([10,30])
-    # Run this twice, it should only check intervals the first time
-    2.times do
-      assert_equal 5, @@impl.delay
-      assert_equal 40, @@impl.max
-    end
-    @@impl.unstub(:intervals)
+  def test_max
+    @@impl.expects(:delay).once.returns(10)
+    @@impl.expects(:intervals).once.returns([50,100])
 
-    @@impl.intervals = [20,40]
-    assert_equal [20, 40], @@impl.intervals
-    # Make sure that this caches the values
-    @@impl.expects(:intervals).twice.returns([20,40])
-    # Run this twice, it should only check intervals the first time
-    2.times do
-      assert_equal 10, @@impl.delay
-      assert_equal 60, @@impl.max
-    end
-    @@impl.unstub(:intervals)
+    # Max should be (intervals.max + (delay * 2))
+    assert_equal 120, @@impl.max
+  end
 
-    @@impl.delay = 1
-    # Make sure we never use the intervals
+  def test_delay
+    @@impl.expects(:intervals).once.returns([50,100])
+
+    # Delay should be (intervals.min / 2)
+    assert_equal 25, @@impl.delay
+  end
+
+  def test_explicit_delay
+    # Set the interval to something unreasonable
+    @@impl.intervals = [Math::PI]
+    # Delay values should be nil
+    assert_nil @@impl.class_eval('@@delay')
+    assert_nil @@impl.class_eval('@@_delay')
+
+    # This should use the explicit value
+    @@impl.delay = 10
     @@impl.expects(:intervals).never
+    assert_equal 10, @@impl.delay
+  end
 
-    # Make sure this doesn't change our intervals
-    @@impl.intervals = [20,40]
-    assert_equal 1, @@impl.delay
+  def test_module_variable_caching
+    # Each call to should hit intervals
+    @@impl.expects(:intervals).twice.returns([10, 30])
+    @@impl.delay
+    @@impl.max
+
+    # The values should be cached
+    @@impl.expects(:intervals).never
+    @@impl.delay
+    @@impl.max
+
+    # This should clear the values
+    @@impl.intervals = [10]
+    assert_nil @@impl.class_eval('@@max')
+    assert_nil @@impl.class_eval('@@delay')
   end
 end
 
 class MonitoredGearTest < OpenShift::NodeTestCase
   def setup
-    @@impl = ::OpenShift::Runtime::Utils::Cgroups::MonitoredGear
+    @@impl = OpenShift::Runtime::Utils::Cgroups::MonitoredGear
+    @@impl.__clear
     @uuid = 1234
-    ::OpenShift::Runtime::Utils.stubs(:oo_spawn).with("cgget -a /openshift/#{@uuid} >/dev/null").returns(['','',0])
+    @gear = @@impl.new(@uuid)
   end
 
   def test_collapse_hashes
-    gear = @@impl.new(@uuid)
     hash = [
       {
         foo: "foo_a",
@@ -114,11 +140,10 @@ class MonitoredGearTest < OpenShift::NodeTestCase
       baz: %w(baz_a),
       zing: %w(zing_b)
     }
-    assert_equal correct, gear.collapse_hashes(hash)
+    assert_equal correct, @gear.collapse_hashes(hash)
   end
 
   def test_calculate_difference
-    gear = @@impl.new(@uuid)
     hash = {
       a: [1,2,3,4,5],
       b: [0,0,0,0,0],
@@ -131,12 +156,11 @@ class MonitoredGearTest < OpenShift::NodeTestCase
       c: [2,2,2,3]
     }
 
-    assert_equal correct, gear.calculate_differences(hash)
+    assert_equal correct, @gear.calculate_differences(hash)
   end
 
   def test_value_storage
-    gear = @@impl.new(@uuid)
-    assert_empty gear.times
+    assert_empty @gear.times
     val_1 = {:foo => 1}
     val_2 = {:foo => 2}
     val_3 = {:foo => 3}
@@ -153,53 +177,52 @@ class MonitoredGearTest < OpenShift::NodeTestCase
 
     # The first update should only include that value
     with_time(times[0]) do |now|
-      gear.update(val_1)
-      assert_equal [val_1], gear.times.values
-      assert_equal gear.oldest, now
-      assert_equal gear.newest, now
+      @gear.update(val_1)
+      assert_equal [val_1], @gear.times.values
+      assert_equal @gear.oldest, now
+      assert_equal @gear.newest, now
     end
 
     # The second update should include both values
     with_time(times[1]) do |now|
-      gear.update(val_2)
-      assert_equal [val_1, val_2], gear.times.values
-      assert_equal gear.oldest, times[0]
-      assert_equal gear.newest, now
+      @gear.update(val_2)
+      assert_equal [val_1, val_2], @gear.times.values
+      assert_equal @gear.oldest, times[0]
+      assert_equal @gear.newest, now
     end
 
     # After the max, this should drop the first value
     with_time(times[2]) do |now|
-      gear.update(val_3)
-      assert_equal [val_2, val_3], gear.times.values
-      assert_equal gear.oldest, times[1]
-      assert_equal gear.newest, now
+      @gear.update(val_3)
+      assert_equal [val_2, val_3], @gear.times.values
+      assert_equal @gear.oldest, times[1]
+      assert_equal @gear.newest, now
     end
 
     # The last update should be so far in advance that it is the only value
     with_time(times[3]) do |now|
-      gear.update(val_4)
-      assert_equal [val_4], gear.times.values
-      assert_equal gear.oldest, now
-      assert_equal gear.newest, now
+      @gear.update(val_4)
+      assert_equal [val_4], @gear.times.values
+      assert_equal @gear.oldest, now
+      assert_equal @gear.newest, now
     end
   end
 
   def test_age
-    gear = @@impl.new(@uuid)
     @@impl.stubs(:max).returns(10)
     with_time(0) do
-      gear.update({})
+      @gear.update({})
     end
 
     with_time(10) do
-      gear.update({})
-      assert_equal 10, gear.age
+      @gear.update({})
+      assert_equal 10, @gear.age
     end
 
     # Not entirely realistic, but this shows that the values are rotated properly
     with_time(11) do
-      gear.update({})
-      assert_equal 1, gear.age
+      @gear.update({})
+      assert_equal 1, @gear.age
     end
   ensure
     @@impl.unstub(:max)
@@ -287,51 +310,44 @@ class MonitoredGearTest < OpenShift::NodeTestCase
   end
 
   def test_utilization_cache
-    gear = @@impl.new(@uuid)
     # Ensure update_utilization is cached
-    @@impl.any_instance.expects(:update_utilization).once.returns({})
+    @gear.expects(:update_utilization).once.returns({})
     2.times do
-      gear.utilization
+      @gear.utilization
     end
 
-    @@impl.unstub(:update_utilization)
-
-    @@impl.any_instance.expects(:update_utilization).once.returns({})
+    @gear.expects(:update_utilization).once.returns({})
     # Updating the value should clear the cache and force an update
-    gear.update({})
+    @gear.update({})
     2.times do
-      gear.utilization
+      @gear.utilization
     end
-  ensure
-    @@impl.unstub(:update_utilization)
   end
 
   def test_update_utilization
-    gear = @@impl.new(@uuid)
     @@impl.intervals = [10, 20]
     @@impl.delay = 5
 
     # Since we don't have enough values, we should not have any stats
     with_values(5) do
-      assert_empty gear.update_utilization
+      assert_empty @gear.update_utilization
     end
 
     # This should only return stats for the 10 second interval
     with_values(10) do
-      assert_equal 1, gear.update_utilization.length
+      assert_equal 1, @gear.update_utilization.length
     end
 
     # These should both return values for both intervals
     [20, 50].each do |i|
       with_values(i) do
-        assert_equal 2, gear.update_utilization.length
+        assert_equal 2, @gear.update_utilization.length
       end
     end
   end
 
   def check_elapsed_usage(hashes, expected)
-    gear = @@impl.new(@uuid)
-    elapsed = gear.elapsed_usage(hashes)
+    elapsed = @gear.elapsed_usage(hashes)
     assert_equal expected, elapsed
   end
 
@@ -350,10 +366,8 @@ class MonitoredGearTest < OpenShift::NodeTestCase
       h
     end
 
-    @@impl.any_instance.expects(:times).at_least(1).returns(times)
+    @gear.expects(:times).at_least(1).returns(times)
     yield
-  ensure
-    @@impl.any_instance.unstub(:times)
   end
 
   def with_time(t)
