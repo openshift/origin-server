@@ -53,7 +53,7 @@ following steps take place:
    (Git for source code and rsync for existing libraries).
 6. The cartridge-specific build Shell Task is executed.
 7. Jenkins archives build artifacts for later reference
-8. After 15 minutes of idle time, the 'build app' will be destroyed and will
+8. After 15 minutes of idle time, the 'build app' will be deleted and will
    no longer show up with the 'rhc domain show' command.  The build artifacts
    however, will still exist in Jenkins and can be viewed there.
 

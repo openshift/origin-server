@@ -56,7 +56,7 @@ class District
 
   def delete()
     if not server_identities.empty?
-      raise OpenShift::OOException.new("Couldn't destroy district '#{name}' because it still contains nodes")
+      raise OpenShift::OOException.new("Couldn't delete district '#{name}' because it still contains nodes")
     end
     super
   end
