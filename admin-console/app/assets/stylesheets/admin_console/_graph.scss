@@ -63,3 +63,33 @@
     width: 100%;
   }
 }
+
+@media (max-width: 640px) {
+  .histogram {
+    width: 385px;
+
+    .histogram-bar {
+      width: 35px;
+    }
+
+    .histogram-label {
+      width: 35px;
+      vertical-align: top;
+      line-height: 13px;
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .histogram {
+    width: 250px;
+
+    .histogram-bar {
+      width: 20px;
+    }
+
+    .histogram-label {
+      width: 20px;
+    }
+  }
+}
