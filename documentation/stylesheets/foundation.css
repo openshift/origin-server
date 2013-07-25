@@ -567,3 +567,12 @@ div.unbreakable { page-break-inside: avoid; }
 .conum:empty { display: none; }
 
 pre .comment .conum { left: -20px; }
+
+/* Missing alignment styles */
+.halign-left { text-align: left }
+.halign-center { text-align: center }
+.halign-right { text-align: right }
+
+.valign-top { vertical-align: top }
+.valign-middle { vertical-align: middle }
+.valign-bottom { vertical-align: bottom }

@@ -12,16 +12,16 @@ This guide will walk you through configuring a basic puppet script to install Op
 
 The OpenShift Origin RPMs can be available from:
 
-* Your local repository link:oo_building_rpms_from_source.html[Building OpenShift Origin RPMs]
+* Your local repository - link:oo_notes_building_rpms_from_source.html[Building OpenShift Origin RPMs]
 * OpenShift Origin nightly mirrors repository.
-** https://mirror.openshift.com/pub/origin-server/nightly/fedora-19/latest/x86_64[Fedora 19 repository]
-** https://mirror.openshift.com/pub/origin-server/nightly/rhel-6/latest/x86_64/[RHEL 6.4 repository]
+** https://mirror.openshift.com/pub/origin-server/nightly/fedora-19/latest/x86_64[Fedora 19 repository^]
+** https://mirror.openshift.com/pub/origin-server/nightly/rhel-6/latest/x86_64/[RHEL 6.4 repository^]
 
 NOTE: For OpenShift Origin broker/nodes to be configured properly you will need the host to be configured with a DNS resolvable hostname and static IP Address.
 
 == Installing Puppet
 
-NOTE: For RHEL systems you will need to include the http://fedoraproject.org/wiki/EPEL[EPEL repository] to install puppet. To do so install the latest `epel-release` package found http://download.fedoraproject.org/pub/epel/6/i386/repoview/epel-release.html[here]
+NOTE: For RHEL systems you will need to include the http://fedoraproject.org/wiki/EPEL[EPEL repository] to install puppet. To do so install the latest http://download.fedoraproject.org/pub/epel/6/i386/repoview/epel-release.html[epel-release package].
 
 ----
 yum install -y --nogpgcheck ${url_of_the_latest_epel-release_rpm}
