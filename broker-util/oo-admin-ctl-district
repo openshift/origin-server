@@ -154,12 +154,12 @@ begin
     unless bypass
       puts <<-WARNING
 !!!! WARNING !!!! WARNING !!!! WARNING !!!!
-You are about to destroy the #{uuid ? uuid : name} district.
+You are about to delete the #{uuid ? uuid : name} district.
 
 This is NOT reversible, all remote data for this district will be removed.
 WARNING
   
-      print "Do you want to destroy this district (y/n): "
+      print "Do you want to delete this district (y/n): "
       begin
         agree = gets.chomp
         if agree != 'y'
@@ -173,7 +173,7 @@ WARNING
     end
 
     district.delete
-    reply.resultIO << "Successfully destroyed district: #{uuid ? uuid : name}" if reply.resultIO.string.empty?
+    reply.resultIO << "Successfully deleted district: #{uuid ? uuid : name}" if reply.resultIO.string.empty?
   
   else
     if district

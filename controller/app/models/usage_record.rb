@@ -101,7 +101,7 @@ class UsageRecord
             usage_record.save!
           end
         else
-          Rails.logger.error "Can NOT find begin/continue usage_record for user_id:#{user_id}, gear:#{gear_id}, usage_type:#{usage_type}. This can happen if gear was created with usage_tracking disabled and gear was destroyed with usage_tracking enabled or some bug in usage workflow."
+          Rails.logger.error "Can NOT find begin/continue usage_record for user_id:#{user_id}, gear:#{gear_id}, usage_type:#{usage_type}. This can happen if gear was created with usage_tracking disabled and gear was deleted with usage_tracking enabled or some bug in usage workflow."
           return
         end
       end
