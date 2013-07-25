@@ -1,4 +1,5 @@
-#!/bin/sh
+#!/usr/bin/env oo-ruby
+# -*- ruby -*-
 #--
 # Copyright 2010 Red Hat, Inc.
 #
@@ -17,310 +18,56 @@
 
 # CAVEAT: if the policy is changed, must run these by hand (release ticket)
 
-lockfile=/var/lock/subsys/openshift-cgroups
+require 'rubygems'
+require 'openshift-origin-node/utils/tc'
 
-if [ -f /etc/openshift/node.conf ]
-then
-    . /etc/openshift/node.conf
-fi
+tc = ::OpenShift::Runtime::Utils::TC.new
 
-if [ -f /etc/openshift/resource_limits.conf ]
-then
-    . /etc/openshift/resource_limits.conf
-fi
+begin
+  case ARGV[0]
+  when "start"
+    tc.start
 
-# ============================================================================
-#  Functions for setting the net class
-# ============================================================================
+  when "stop"
+    tc.stop
 
-# Get a user's UID
-function uid() {
-    grep -e "^$1:" /etc/passwd | cut -d: -f3
-}
+  when "restart"
+    tc.restart
 
-function netclass() {
-    # major = 1, minor = UID
-    printf "%04x" $1
-}
+  when "startuser"
+    tc.startuser(ARGV[1])
 
-# List the OpenShift guest users
-#
-openshift_users() {
-    GEAR_GECOS=${GEAR_GECOS:='OpenShift guest'}
-    grep "$GEAR_GECOS" /etc/passwd | cut -d: -f1
-}
+  when "stopuser"
+    tc.stopuser(ARGV[1])
 
-# Report an error if the user is invalid
-with_valid_user() {
-    if ! id -u $1 &>/dev/null
-    then
-        echo -n "User $1 does not exist"
-        echo "[ERROR]"
-        echo
-        return 1
-    fi
-    return 0
-}
+  when "restartuser"
+    tc.restartuser(ARGV[1])
 
+  when "throttleuser"
+    tc.throttleuser(ARGV[1])
 
-#
-#  tc uses the following units when passed as a parameter.
-#  kbps: Kilobytes per second
-#  mbps: Megabytes per second
-#  kbit: Kilobits per second
-#  mbit: Megabits per second
-#  bps: Bytes per second
-#       Amounts of data can be specified in:
-#       kb or k: Kilobytes
-#       mb or m: Megabytes
-#       mbit: Megabits
-#       kbit: Kilobits
-#  To get the byte figure from bits, divide the number by 8 bit
-#
+  when "nothrottleuser"
+    tc.nothrottleuser(ARGV[1])
 
-# Create a openshift parent qdesc and limit it to a large percentage of the
-# bandwidth of the interface (leaving some for the OS)
-#
-# Then create for each user a qdesc and limit it to a small fraction of
-# the total bandwidth
-#
-# Name of the traffic control command.
-TC=/sbin/tc
+  when "deluser"
+    tc.deluser(ARGV[1])
 
-# The network interface we're planning on limiting bandwidth.
-tc_if=$EXTERNAL_ETH_DEV
-tc_if=${tc_if:="eth0"}             # Interface
-tc_if_mtu=$( ip link show dev $tc_if | sed -n -e '/mtu / { s/.*mtu \([0-9]*\).*/\1/; p }' )
-tc_min_quantum=${tc_min_quantum:=$tc_if_mtu}
-tc_max_quantum=${tc_max_quantum:=100000}
+  when "status"
+    tc.status(ARGV[1])
 
-tc_max_openshift=${tc_max_openshift:=800}             # 800 mbit/s
+  when "show"
+    tc.show(ARGV[1])
 
-# Normal bandwidths are in Mbit/s
-tc_user_share=${tc_user_share:=2}             #   8 mbit/s normal gear rate (*100 gears = tc_max_openshift)
-tc_user_limit=${tc_user_limit:=$tc_max_openshift} #     Full burst by default
-tc_user_quantum=${tc_user_quantum:=$tc_max_quantum}
+  else
+    $stderr.puts "Usage: $0 {start|stop|restart|status [username]|startuser <username>|stopuser <username>|restartuser <username>|throttleuser <username>|nothrottleuser <username>|deluser <username>}"
+    exit(1)
+  end
 
-# Throttles are in kbit/s
-tc_throttle_user_share=${tc_throttle_user_share:=128}    # 128 kbits/s with no borrow
-tc_throttle_user_limit=${tc_throttle_user_limit:=$tc_throttle_user_share}
-tc_throttle_user_quantum=${tc_throttle_user_quantum:=$tc_min_quantum}
+rescue RuntimeError, ArgumentError => e
+  puts "#{tc.output.join("\n")} [FAIL]"
+  puts e
+  exit(1)
+end
 
-# Where we keep track of throttled/high users
-tc_user_dir=${tc_user_dir:="${GEAR_BASE_DIR}/.tc_user_dir"}
-
-
-start() {
-
-# We'll use Hierarchical Token Bucket (HTB) to shape bandwidth.
-# For detailed configuration options, please consult Linux man
-# page.
-    echo -n "Starting bandwidth shaping: "
-
-    cat <<EOF | ${NOOP} $TC -force -batch
-qdisc add dev $tc_if root handle 1: htb
-class add dev $tc_if parent 1: classid 1:1 htb rate ${tc_max_openshift}mbit
-filter add dev $tc_if parent 1: protocol ip prio 10 handle 1: cgroup
-EOF
-    if [ $? -eq 0 ]
-    then
-        echo "[OK]"
-    else
-        echo "[FAILED]"
-    fi
-    echo
-
-    for USERNAME in `openshift_users`
-    do
-	startuser $USERNAME
-    done
-
-}
-
-stop() {
-    echo -n "Stopping bandwidth shaping: "
-    ${NOOP} $TC qdisc del dev $tc_if root
-
-    if [ $? -eq 0 ]
-    then
-        echo "[OK]"
-    else
-        echo "[ERROR]"
-    fi
-    echo
-}
-
-startuser() {
-    # USERNAME=$1
-    echo -n "Starting tc for $1: "
-    USERID=`uid $1`
-    NETCLASS=`netclass $USERID`
-
-    # Select what type of user.  Note that a user can high bandwidth
-    # normally but throttled for a specific and temporary reason.
-    if [ -e "${tc_user_dir}/${1}_throttle" ]
-    then
-        echo -n "throttled"
-        this_user_share="${tc_throttle_user_share}kbit"
-        this_user_limit="${tc_throttle_user_limit}kbit"
-        this_user_quantum=$tc_throttle_user_quantum
-    else
-        echo -n "normal"
-        this_user_share="${tc_user_share}mbit"
-        this_user_limit="${tc_user_limit}mbit"
-        this_user_quantum=$tc_user_quantum
-    fi
-
-    cat <<EOF | ${NOOP} $TC -force -batch
-# Overall class for the gear
-class add dev $tc_if parent 1:1 classid 1:$NETCLASS htb rate ${this_user_share} ceil ${this_user_limit} quantum ${this_user_quantum}
-
-# Specific constraints within the gear's limit
-qdisc add dev $tc_if parent 1:$NETCLASS handle ${NETCLASS}: htb default 0
-class add dev $tc_if parent ${NETCLASS}: classid ${NETCLASS}:2 htb rate 128kbit ceil 256kbit quantum ${tc_min_quantum}
-class add dev $tc_if parent ${NETCLASS}: classid ${NETCLASS}:3 htb rate  12kbit ceil  24kbit quantum ${tc_min_quantum}
-filter add dev $tc_if parent ${NETCLASS}: protocol ip prio 10 u32 match ip dport 587 0xffff flowid ${NETCLASS}:2
-filter add dev $tc_if parent ${NETCLASS}: protocol ip prio 10 u32 match ip dport  25 0xffff flowid ${NETCLASS}:3
-filter add dev $tc_if parent ${NETCLASS}: protocol ip prio 10 u32 match ip dport 465 0xffff flowid ${NETCLASS}:3
-EOF
-
-    if [ $? -eq 0 ]
-    then
-        echo "[OK]"
-    else
-        echo "[ERROR]"
-    fi
-    echo
-}
-
-stopuser() {
-    # USERNAME=$1
-
-    echo -n "Stopping tc for $1: "
-    USERID=`uid $1`
-    NETCLASS=`netclass $USERID`
-    ${NOOP} $TC class del dev $tc_if parent 1:1 classid 1:$NETCLASS
-
-    if [ $? -eq 0 ]
-    then
-        echo "[OK]"
-    else
-        echo "[ERROR]"
-    fi
-    echo
-}
-
-
-throttleuser() {
-    touch "${tc_user_dir}/${1}_throttle"
-    restartuser $1
-}
-
-nothrottleuser() {
-    rm -f "${tc_user_dir}/${1}_throttle"
-    restartuser $1
-}
-
-deluser() {
-    rm -f "${tc_user_dir}/${1}_throttle"
-    stopuser $1
-}
-
-restartuser() {
-    stopuser $1
-    startuser $1
-}
-
-restart() {
-    stop
-    sleep 1
-    start
-
-}
-
-status() {
-    # USERNAME=$1
-
-    if $TC qdisc show dev eth0 | grep "qdisc htb 1:" > /dev/null
-    then
-        # Display status of traffic control status.
-	if [ -z "$1" ]
-	then
-	    $TC -s qdisc show dev $tc_if
-	    $TC -s class show dev $tc_if
-	else
-	    USERID=`uid $1`
-	    NETCLASS=`netclass $USERID`
-	    if test `$TC -s class show dev $tc_if classid 1:${NETCLASS} |  wc -l` -gt 0
-            then
-		$TC -s class show dev $tc_if classid 1:${NETCLASS}
-	    else
-		echo "tc not configured for user $1"
-		exit 1
-	    fi
-	fi
-	exit 0
-    else
-	echo "no htb qdisc on $tc_if" >&2
-	exit 1
-    fi
-
-}
-
-case "$1" in
-
-    start)
-	start
-	;;
-
-    stop)
-	stop
-	;;
-
-    startuser)
-	with_valid_user $2 && startuser $2
-	;;
-
-    stopuser)
-	stopuser $2
-	;;
-
-    restartuser)
-	with_valid_user $2 && restartuser $2
-	;;
-
-    throttleuser)
-	with_valid_user $2 && throttleuser $2
-	;;
-
-    nothrottleuser)
-	with_valid_user $2 && nothrottleuser $2
-	;;
-
-    deluser)
-        deluser $2
-        ;;
-
-    restart)
-
-	echo "Restarting bandwidth shaping: "
-	restart
-	echo "done"
-	;;
-
-    show|status)
-
-	echo "Bandwidth shaping status for $tc_if:"
-	status $2
-	echo ""
-	;;
-
-    *)
-
-	pwd=$(pwd)
-	echo "Usage: $0 {start|stop|restart|status [username]|startuser <username>|stopuser <username>|restartuser <username>|throttleuser <username>|nothrottleuser <username>|deluser <username>}"
-	;;
-
-esac
-
-exit 0
+puts "#{tc.output.join("\n")} [OK]"
+exit(0)

@@ -176,6 +176,7 @@ def source_file(file)
     # TODO: do something sane and make it consistent everywhere without breaking anything
     parser = ParseConfig.new(file)
     parser.get_params.each do |key|
+      next if parser.groups.include?(key)
       val = parser[key]
       next if val.nil?
       val.gsub!(/\\:/,":") if not val.nil?

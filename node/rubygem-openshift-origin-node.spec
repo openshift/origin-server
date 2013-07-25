@@ -48,6 +48,7 @@ Requires:      git
 Requires:      httpd
 Requires:      libcgroup-pam
 Requires:      libselinux-python
+Requires:      iproute
 Requires:      lsof
 Requires:      mercurial
 Requires:      mod_ssl

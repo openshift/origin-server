@@ -31,9 +31,11 @@ mkdir -p %{buildroot}%{_bindir}
 cp bin/oo-* %{buildroot}%{_sbindir}/
 rm %{buildroot}%{_sbindir}/oo-snapshot
 rm %{buildroot}%{_sbindir}/oo-restore
+rm %{buildroot}%{_sbindir}/oo-config-eval
 cp bin/rhc-* %{buildroot}%{_bindir}/
 cp bin/oo-snapshot %{buildroot}%{_bindir}/
 cp bin/oo-restore %{buildroot}%{_bindir}/
+cp bin/oo-config-eval %{buildroot}%{_bindir}/
 cp bin/unidle_gear.sh %{buildroot}%{_bindir}/
 
 %if 0%{?fedora} >= 18
@@ -87,6 +89,7 @@ mv services/openshift-gears.service %{buildroot}/etc/systemd/system/openshift-ge
 %attr(0755,-,-) %{_bindir}/oo-snapshot
 %attr(0755,-,-) %{_bindir}/oo-restore
 %attr(0755,-,-) %{_bindir}/unidle_gear.sh
+%attr(0755,-,-) %{_bindir}/oo-config-eval
 
 %doc LICENSE
 %doc README-Idler.md

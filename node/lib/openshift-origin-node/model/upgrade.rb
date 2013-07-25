@@ -206,69 +206,67 @@ module OpenShift
         reset_quota, reset_block_quota, reset_inode_quota = relax_quota
 
         begin
-          OpenShift::Runtime::Utils::Cgroups.with_no_cpu_limits(uuid) do
-            Dir.chdir(container.container_dir) do
-              cartridge_model.each_cartridge do |manifest|
-                cartridge_path = File.join(gear_home, manifest.directory)
+          Dir.chdir(container.container_dir) do
+            cartridge_model.each_cartridge do |manifest|
+              cartridge_path = File.join(gear_home, manifest.directory)
 
-                if !File.directory?(cartridge_path)
-                  progress.log "Skipping upgrade for #{manifest.name}: cartridge manifest does not match gear layout: #{cartridge_path} is not a directory"
+              if !File.directory?(cartridge_path)
+                progress.log "Skipping upgrade for #{manifest.name}: cartridge manifest does not match gear layout: #{cartridge_path} is not a directory"
+                next
+              end
+
+              ident_path                               = Dir.glob(File.join(cartridge_path, 'env', 'OPENSHIFT_*_IDENT')).first
+              ident                                    = IO.read(ident_path)
+              vendor, name, version, cartridge_version = OpenShift::Runtime::Manifest.parse_ident(ident)
+
+              unless vendor == 'redhat'
+                progress.log "No upgrade available for cartridge #{ident}, #{vendor} not supported."
+                next
+              end
+
+              next_manifest = cartridge_repository.select(name, version)
+              unless next_manifest
+                progress.log "No upgrade available for cartridge #{ident}, cartridge not found in repository."
+                next
+              end
+
+              unless next_manifest.versions.include?(version)
+                progress.log "No upgrade available for cartridge #{ident}, version #{version} not in #{next_manifest.versions}"
+                next
+              end
+
+              if next_manifest.cartridge_version == cartridge_version
+                if ignore_cartridge_version
+                  progress.log "Refreshing cartridge #{ident}, ignoring cartridge version."
+                else
+                  progress.log "No upgrade required for cartridge #{ident}, already at latest version #{cartridge_version}."
                   next
                 end
+              end
 
-                ident_path                               = Dir.glob(File.join(cartridge_path, 'env', 'OPENSHIFT_*_IDENT')).first
-                ident                                    = IO.read(ident_path)
-                vendor, name, version, cartridge_version = OpenShift::Runtime::Manifest.parse_ident(ident)
+              if progress.incomplete? "#{name}_upgrade"
+                if next_manifest.compatible_versions.include?(cartridge_version)
+                  progress.log "Compatible upgrade of cartridge #{ident}"
+                  compatible_upgrade(cartridge_model, cartridge_version, next_manifest, cartridge_path)
+                else
+                  progress.set_instruction('validate_gear')
+                  stop_gear unless progress.has_instruction?('restart_gear')
+                  progress.set_instruction('restart_gear')
 
-                unless vendor == 'redhat'
-                  progress.log "No upgrade available for cartridge #{ident}, #{vendor} not supported."
-                  next
+                  progress.log "Incompatible upgrade of cartridge #{ident}"
+                  incompatible_upgrade(cartridge_model, cartridge_version, next_manifest, version, cartridge_path)
                 end
 
-                next_manifest = cartridge_repository.select(name, version)
-                unless next_manifest
-                  progress.log "No upgrade available for cartridge #{ident}, cartridge not found in repository."
-                  next
-                end
+                progress.mark_complete("#{name}_upgrade")
+              end
 
-                unless next_manifest.versions.include?(version)
-                  progress.log "No upgrade available for cartridge #{ident}, version #{version} not in #{next_manifest.versions}"
-                  next
-                end
-
-                if next_manifest.cartridge_version == cartridge_version
-                  if ignore_cartridge_version
-                    progress.log "Refreshing cartridge #{ident}, ignoring cartridge version."
-                  else
-                    progress.log "No upgrade required for cartridge #{ident}, already at latest version #{cartridge_version}."
-                    next
-                  end
-                end
-
-                if progress.incomplete? "#{name}_upgrade"
-                  if next_manifest.compatible_versions.include?(cartridge_version)
-                    progress.log "Compatible upgrade of cartridge #{ident}"
-                    compatible_upgrade(cartridge_model, cartridge_version, next_manifest, cartridge_path)
-                  else
-                    progress.set_instruction('validate_gear')
-                    stop_gear unless progress.has_instruction?('restart_gear')
-                    progress.set_instruction('restart_gear')
-
-                    progress.log "Incompatible upgrade of cartridge #{ident}"
-                    incompatible_upgrade(cartridge_model, cartridge_version, next_manifest, version, cartridge_path)
-                  end
-
-                  progress.mark_complete("#{name}_upgrade")
-                end
-
-                if progress.incomplete? "#{name}_rebuild_ident"
-                  next_ident = OpenShift::Runtime::Manifest.build_ident(manifest.cartridge_vendor,
-                                                                        manifest.name,
-                                                                        manifest.version,
-                                                                        next_manifest.cartridge_version)
-                  IO.write(ident_path, next_ident, 0, mode: 'w', perms: 0666)
-                  progress.mark_complete("#{manifest.name}_update_ident")
-                end
+              if progress.incomplete? "#{name}_rebuild_ident"
+                next_ident = OpenShift::Runtime::Manifest.build_ident(manifest.cartridge_vendor,
+                                                                      manifest.name,
+                                                                      manifest.version,
+                                                                      next_manifest.cartridge_version)
+                IO.write(ident_path, next_ident, 0, mode: 'w', perms: 0666)
+                progress.mark_complete("#{manifest.name}_update_ident")
               end
             end
           end
