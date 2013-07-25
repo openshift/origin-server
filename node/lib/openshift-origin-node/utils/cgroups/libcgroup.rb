@@ -72,7 +72,10 @@ module OpenShift
           # Public: Create a cgroup namespace for the gear
           def create(defaults={})
             uid = Etc.getpwnam(@uuid).uid  
-            newcfg = Hash.new {|h,k| h[k]={}}
+
+            newcfg = Hash["perm", {}, *@subsystems.map { |s| [s,{}] }.flatten]
+            to_store = Hash.new
+
             newcfg["perm"] = {
               "task" => {   # These must be numeric to avoid confusion in libcgroup.
                 "uid" => uid,
@@ -84,18 +87,16 @@ module OpenShift
               }
             }
 
-            newcfg["net_cls"] = {
-              "net_cls.classid" => net_cls
-            }
-
-            to_store = Hash.new
+            newcfg["net_cls"]["net_cls.classid"] = net_cls
             to_store["net_cls.classid"] = newcfg["net_cls"]["net_cls.classid"]
 
             defaults.each do |k,v|
               if @parameters.include?(k)
                 subsys = k.split('.')[0]
-                newcfg[subsys][k]=v
-                to_store[k]=v
+                if @subsystems.include?(subsys)
+                  newcfg[subsys][k]=v
+                  to_store[k]=v
+                end
               end
             end
 
@@ -299,16 +300,14 @@ module OpenShift
           def gen_cgconfig(data)
             rbuf = ""
             if data.respond_to? :each_pair
-              if not data.empty?
-                rbuf << " {"
-                data.each_pair do |k,v|
-                  rbuf << " #{k}"
-                  rbuf << gen_cgconfig(v)
-                end
-                rbuf << " }"
+              rbuf << "{"
+              data.each_pair do |k,v|
+                rbuf << " #{k} "
+                rbuf << gen_cgconfig(v)
               end
+              rbuf << "}"
             else
-              rbuf << " = #{data};"
+              rbuf << "= #{data}; "
             end
             rbuf
           end
