@@ -21,10 +21,17 @@ Requires:      ruby(release)
 Requires:      %{?scl:%scl_prefix}ruby(abi) >= %{rubyabi}
 %endif
 Requires:      %{?scl:%scl_prefix}rubygems
-Requires:      %{?scl:%scl_prefix}rubygem(json)
-Requires:      %{?scl:%scl_prefix}rubygem(sass-twitter-bootstrap)
-Requires:      rubygem(openshift-origin-common)
-Requires:      rubygem(openshift-origin-controller)
+Requires:      %{?scl:%scl_prefix}rubygem-sass-twitter-bootstrap
+Requires:      rubygem-openshift-origin-common
+Requires:      rubygem-openshift-origin-controller
+Requires:      %{?scl:%scl_prefix}rubygem-rails
+Requires:      %{?scl:%scl_prefix}rubygem-formtastic
+Requires:      %{?scl:%scl_prefix}rubygem-net-http-persistent
+Requires:      %{?scl:%scl_prefix}rubygem-haml
+Requires:      %{?scl:%scl_prefix}rubygem-sass
+Requires:      %{?scl:%scl_prefix}rubygem-jquery-rails
+Requires:      %{?scl:%scl_prefix}rubygem-json
+
 Requires:      mcollective-client
 Requires:      openshift-origin-broker
 %if 0%{?fedora}%{?rhel} <= 6
