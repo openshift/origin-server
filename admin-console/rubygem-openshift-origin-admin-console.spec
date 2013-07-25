@@ -21,17 +21,21 @@ Requires:      ruby(release)
 Requires:      %{?scl:%scl_prefix}ruby(abi) >= %{rubyabi}
 %endif
 Requires:      %{?scl:%scl_prefix}rubygems
-Requires:      %{?scl:%scl_prefix}rubygem-sass-twitter-bootstrap
-Requires:      rubygem-openshift-origin-common
-Requires:      rubygem-openshift-origin-controller
-Requires:      %{?scl:%scl_prefix}rubygem-rails
-Requires:      %{?scl:%scl_prefix}rubygem-formtastic
-Requires:      %{?scl:%scl_prefix}rubygem-net-http-persistent
-Requires:      %{?scl:%scl_prefix}rubygem-haml
-Requires:      %{?scl:%scl_prefix}rubygem-sass
-Requires:      %{?scl:%scl_prefix}rubygem-jquery-rails
-Requires:      %{?scl:%scl_prefix}rubygem-json
-
+Requires:      %{?scl:%scl_prefix}rubygem(json)
+Requires:      %{?scl:%scl_prefix}rubygem(sass-twitter-bootstrap)
+Requires:      %{?scl:%scl_prefix}rubygem(rails)
+Requires:      %{?scl:%scl_prefix}rubygem(formtastic)
+Requires:      %{?scl:%scl_prefix}rubygem(net-http-persistent)
+Requires:      %{?scl:%scl_prefix}rubygem(sass-twitter-bootstrap)
+Requires:      %{?scl:%scl_prefix}rubygem(haml)
+Requires:      %{?scl:%scl_prefix}rubygem(jquery-rails)
+Requires:      %{?scl:%scl_prefix}rubygem(compass-rails)
+Requires:      %{?scl:%scl_prefix}rubygem(coffee-rails)
+Requires:      %{?scl:%scl_prefix}rubygem(sass-rails)
+Requires:      %{?scl:%scl_prefix}rubygem(uglifier)
+Requires:      %{?scl:%scl_prefix}rubygem(therubyracer)
+Requires:      rubygem(openshift-origin-common)
+Requires:      rubygem(openshift-origin-controller)
 Requires:      mcollective-client
 Requires:      openshift-origin-broker
 %if 0%{?fedora}%{?rhel} <= 6
@@ -45,6 +49,22 @@ BuildRequires: %{?scl:%scl_prefix}ruby(abi) >= %{rubyabi}
 %endif
 BuildRequires: %{?scl:%scl_prefix}rubygems
 BuildRequires: %{?scl:%scl_prefix}rubygems-devel
+BuildRequires: %{?scl:%scl_prefix}rubygems
+BuildRequires: %{?scl:%scl_prefix}rubygem(json)
+BuildRequires: %{?scl:%scl_prefix}rubygem(sass-twitter-bootstrap)
+BuildRequires: %{?scl:%scl_prefix}rubygem(rails)
+BuildRequires: %{?scl:%scl_prefix}rubygem(formtastic)
+BuildRequires: %{?scl:%scl_prefix}rubygem(net-http-persistent)
+BuildRequires: %{?scl:%scl_prefix}rubygem(sass-twitter-bootstrap)
+BuildRequires: %{?scl:%scl_prefix}rubygem(haml)
+BuildRequires: %{?scl:%scl_prefix}rubygem(jquery-rails)
+BuildRequires: %{?scl:%scl_prefix}rubygem(compass-rails)
+BuildRequires: %{?scl:%scl_prefix}rubygem(coffee-rails)
+BuildRequires: %{?scl:%scl_prefix}rubygem(sass-rails)
+BuildRequires: %{?scl:%scl_prefix}rubygem(uglifier)
+BuildRequires: %{?scl:%scl_prefix}rubygem(therubyracer)
+BuildRequires: rubygem(openshift-origin-common)
+BuildRequires: rubygem(openshift-origin-controller)
 BuildArch:     noarch
 
 %description
