@@ -29,6 +29,7 @@ program :name, "OpenShift Gear Control"
 program :version, "1.0.0"
 program :description, "An assortment of gear utilities"
 
+# Don't buffer output to the client
 STDOUT.sync = true
 STDERR.sync = true
 
@@ -44,15 +45,36 @@ def gear_cartridge_names
   cartridge_names
 end
 
-def file_in_commit?(sha1, fn, status)
+##
+# Walks through the commits between +old_rev+ and +new_rev+ in reverse chrono order,
+# returning the latest detected status for the given +filename+. Status will be one
+# of the values returned by Git's +diff-filter+ option, or +nil+ if +filename+ does
+# not appear in the commits list.
+def latest_status(old_rev, new_rev, filename)
+  latest = nil
+
   Dir.chdir(@repo.path) do
-    return (not `git show --pretty="format:" --name-only --diff-filter=[#{status}] #{sha1} -- #{fn}`.chomp.strip.empty?)
+    commits = `git rev-list #{old_rev}..#{new_rev}`.split("\n")
+    commits.each do |commit|
+      # extract an array [status, filename] from the commit
+      object = `git show --pretty="format:" --name-status --diff-filter=[AD] #{commit} -- #{filename}`.chomp.strip.split("\t")
+      
+      if object.length > 0
+        latest = object[0]
+        break
+      end
+    end
   end
+
+  latest
 end
 
-def file_committed?(fn)
+##
+# Returns +true+ if the given +filename+ is committed to the +master+ branch of the
+# repository, otherwise +false+.
+def file_committed?(filename)
   Dir.chdir(@repo.path) do
-    return (not `git ls-tree master -- #{fn}`.chomp.strip.empty?)
+    return (not `git ls-tree master -- #{filename}`.chomp.strip.empty?)
   end
 end
 
@@ -68,15 +90,15 @@ def do_command(command, options)
     rescue OpenShift::Runtime::Utils::ShellExecutionException => e
       $stderr.puts "An error occurred executing 'gear #{command.name}' (exit code: #{e.rc})"
       $stderr.puts "Error message: #{e.message}" if e.message.is_a? String
-    $stderr.puts "stdout: #{e.stdout}" if e.stdout.is_a? String 
-    $stderr.puts "stderr: #{e.stderr}" if e.stderr.is_a? String
-    $stderr.puts ""
-    if options.trace
-      $stderr.puts e.backtrace.join("\n")
-    else
-      $stderr.puts "For more details about the problem, try running the command again with the '--trace' option."
-    end
-    exit -1
+      $stderr.puts "stdout: #{e.stdout}" if e.stdout.is_a? String 
+      $stderr.puts "stderr: #{e.stderr}" if e.stderr.is_a? String
+      $stderr.puts ""
+      if options.trace
+        $stderr.puts e.backtrace.join("\n")
+      else
+        $stderr.puts "For more details about the problem, try running the command again with the '--trace' option."
+      end
+      exit -1
   rescue Exception => e
     $stderr.puts e.message
     exit -1
@@ -106,8 +128,12 @@ command :prereceive do |c|
         ref_type = refs[1] # tags || heads (branch)
         ref_name = refs[2] # develop, 1.4 etc.
 
-        marker_added   = file_in_commit?(new_rev, HOT_DEPLOY_MARKER, 'A')
-        marker_deleted = file_in_commit?(new_rev, HOT_DEPLOY_MARKER, 'D')
+        case latest_status(old_rev, new_rev, HOT_DEPLOY_MARKER)
+        when "A"
+          marker_added = true
+        when "D"
+          marker_deleted = true
+        end
       end
 
       hot_deploy = marker_added || (marker_committed && !marker_deleted)
