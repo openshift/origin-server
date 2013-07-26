@@ -15,13 +15,17 @@ Gem::Specification.new do |s|
   s.files = Dir["{app,conf,config,db,lib}/**/*"] + ["LICENSE", "Rakefile", "README.md"]
   s.test_files = Dir["test/**/*"]
 
-  s.add_dependency "rails", "~> 3.2.8"
-  s.add_dependency 'formtastic',          '~> 1.2.3'
-  s.add_dependency 'net-http-persistent', '>= 2.7'
-  s.add_dependency 'haml',                '~> 3.1.7'
-  s.add_dependency 'sass',                '~> 3.2.5' #required for haml
+  s.add_dependency "rails",                  '~> 3.2.8'
+  s.add_dependency 'formtastic',             '~> 1.2.3'
+  s.add_dependency 'jquery-rails',           '~> 2.0.2'
+  s.add_dependency 'compass-rails',          '~> 1.0.3'
+  s.add_dependency 'coffee-rails',           '~> 3.2.2'
+  s.add_dependency 'sass-rails',             '~> 3.2.5'
+  s.add_dependency 'haml',                   '~> 3.1.7'
+  s.add_dependency 'uglifier',               '>= 1.2.6'
+  s.add_dependency 'therubyracer',           '>= 0.10'
+  s.add_dependency 'net-http-persistent',    '>= 2.7'
+  s.add_dependency 'sass-twitter-bootstrap', '~> 2.0.1'
   s.add_dependency 'openshift-origin-common'
   s.add_dependency 'openshift-origin-controller'
-  s.add_dependency 'jquery-rails',        '~> 2.0.2'
-  s.add_dependency 'sass-twitter-bootstrap',        '~> 2.0.1'
 end
