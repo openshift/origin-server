@@ -6,7 +6,7 @@
 
 Summary:       Provides HA Proxy
 Name:          openshift-origin-cartridge-haproxy
-Version: 0.7.2
+Version: 0.7.3
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -48,6 +48,11 @@ HAProxy cartridge for OpenShift. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Fri Jul 26 2013 Adam Miller <admiller@redhat.com> 0.7.3-1
+- Merge pull request #2981 from Miciah/haproxy_ctld_daemon.rb-fix-typo-
+  backgrace (dmcphers+openshiftbot@redhat.com)
+- haproxy_ctld_daemon.rb: Fix backtrace option (miciah.masters@gmail.com)
+
 * Wed Jul 24 2013 Adam Miller <admiller@redhat.com> 0.7.2-1
 - Allow plugin carts to reside either on web-framework or non web-framework
   carts. HA-proxy cart manifest will say it will reside with web-framework
