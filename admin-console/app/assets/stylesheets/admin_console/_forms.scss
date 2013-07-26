@@ -74,6 +74,8 @@
   .btn:last-child {
     margin-left: -1px;
     @include border-radius(0 $inputBorderRadius $inputBorderRadius 0);
+    float: left;
+    display: block;
   }
   .btn-group:first-child {
     margin-left: 0;
@@ -104,11 +106,16 @@
       margin-bottom: 5px;
       display: block;
       float: none;
-      border-radius: 4px;
+      @include border-radius($inputBorderRadius $inputBorderRadius $inputBorderRadius $inputBorderRadius);
     }
 
     input[type="text"] {
-      border-radius: 4px 0 0 4px;
+      @include border-radius($inputBorderRadius 0 0 $inputBorderRadius);
+      float: none;
+    }
+
+    .btn:last-child {
+      display: inline-block;
       float: none;
     }
   }

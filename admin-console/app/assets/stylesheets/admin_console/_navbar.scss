@@ -58,8 +58,16 @@
 .navbar-search {
   margin-top: 4px;
 
-  .btn {
-    margin-top: 0;
+  .input-prepend.input-append {
+    .add-on:last-child,
+    .btn:last-child {
+      display: inline-block;
+      float: none;
+    }
+
+    .btn {
+      margin-top: 0;
+    }    
   }
 
   .input-prepend.input-append select {
@@ -67,7 +75,7 @@
     line-height: 32px;
     padding-top: 5px;
     font-size: 13px;
-    border-radius: 4px 0 0 4px;
+    @include border-radius($inputBorderRadius 0 0 $inputBorderRadius);
   }
 
   .search-query {
@@ -88,11 +96,11 @@
     .input-prepend.input-append select {
       display: block;
       margin-bottom: 5px;
-      border-radius: 4px;
+      @include border-radius($inputBorderRadius $inputBorderRadius $inputBorderRadius $inputBorderRadius);
     }
 
     .input-prepend.input-append input[type="text"] {
-      border-radius: 4px 0 0 4px;
+      @include border-radius($inputBorderRadius 0 0 $inputBorderRadius);
     }
   }
 }
