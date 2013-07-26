@@ -59,11 +59,11 @@ module OpenShift
 
             if not @@parameters_cache
               subsys = @subsystems.map { |subsys| "-g #{subsys}" }.join(' ')
-              out, err, rc = ::OpenShift::Runtime::Utils::oo_spawn("cgget #{subsys} /", :chdir=>"/")
+              out, err, rc = ::OpenShift::Runtime::Utils::oo_spawn("cgget -n #{subsys} #{@cgroup_root}", :chdir=>"/")
               if rc != 0
                 raise RuntimeError, "Could not determine Cgroup parameters"
               end
-              @@parameters_cache = parse_cgget(out).keys.sort.freeze
+              @@parameters_cache = parse_cgget(out).freeze
             end
             @parameters = @@parameters_cache
 
@@ -162,25 +162,37 @@ module OpenShift
           end
 
           def store(*args)
-            # TODO: If we're able to use multiple values for cgset, this will work
-            #vals = Hash[*args].map{|k,v| "-r %s" % [k,v].join('=') }
             vals = Hash[*args]
-            cur = vals.map do |key,value|
-              out, err, rc = ::OpenShift::Runtime::Utils::oo_spawn("cgset -r #{key}=#{value} #{@cgroup_path}", :chdir=>"/")
-              case rc
-              when 0
-                [key, value]
-              when 95
-                raise RuntimeError, "User or parameter does not exist in cgroups: #{@uuid} #{key}"
-              when 96
-                raise KeyError, "Cgroups parameter cannot be set to value: #{key} = #{value}"
-              when 84
-                raise KeyError, "Cgroups controller not found for: #{key}"
-              else
-                raise RuntimeError, "Cgroups error: #{err}"
+            oldvals = {}
+            cur = {}
+            rc = 0
+
+            # Parameter ordermatters.  Keep retrying as long as some
+            # sets are successful, the proper order will eventually
+            # work its way through.
+            while oldvals != vals
+              oldvals = vals.clone
+              vals.each do |key,value|
+                out, err, rc = ::OpenShift::Runtime::Utils::oo_spawn("cgset -r #{key}=#{value} #{@cgroup_path}", :chdir=>"/")
+                if rc == 0
+                  cur[key]=value
+                  vals.delete(key)
+                end
               end
             end
-            Hash[cur]
+
+            case rc
+            when 0
+            when 95
+              raise RuntimeError, "User or parameter does not exist in cgroups: #{@uuid} #{key}"
+            when 96
+              raise KeyError, "Cgroups parameter cannot be set to value: #{key} = #{value}"
+            when 84
+              raise KeyError, "Cgroups controller not found for: #{key}"
+            else
+              raise RuntimeError, "Cgroups error: #{err}"
+            end
+            cur
           end
 
           # Public: Distribute this user's processes into their cgroup

@@ -40,7 +40,7 @@ To list the template for a gear with UUID:
   -c|--with-container-uuid  gear_uuid   Unique identifier for the gears
   -a|--with-all-containers              Run on all gears
   -t|--template template                Template to set
-  -t|--templates                        List templates
+  -s|--templates                        List templates
   -d|--debug                            Enable debug mode
   -h|--help                             Print this message
 
@@ -54,7 +54,7 @@ opts = GetoptLong.new(
     ["--with-container-uuid", "-c", GetoptLong::REQUIRED_ARGUMENT],
     ["--with-all-containers", "-a", GetoptLong::NO_ARGUMENT],
     ["--template",            "-t", GetoptLong::REQUIRED_ARGUMENT],
-    ["--templates",                 GetoptLong::NO_ARGUMENT],
+    ["--templates",           "-s", GetoptLong::NO_ARGUMENT],
     ["--debug",               "-d", GetoptLong::NO_ARGUMENT],
     ["--help",                "-?", GetoptLong::NO_ARGUMENT]
 )

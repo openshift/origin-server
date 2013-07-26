@@ -42,17 +42,19 @@ class CgroupsUtilsTest < OpenShift::NodeBareTestCase
     }
 
     @templates = {
-      :default => { "foo" => 1, "bar" => 2, "baz" => 3 },
-      :throttled => { "baz" => 4 },
-      :boosted => { "baz" => 11 },
+      :default => { "foo" => "1", "bar" => "2", "baz" => "3", "a" => "c" },
+      :throttled => { "baz" => "4" },
+      :boosted => { "baz" => "11" },
       :frozen => { "a" => "b" },
       :thawed => { "a" => "c" }
     }
 
+    @parameters = @templates[:default]
+
     @pids=[ 9999999, 8888888, 7777777, 6666666 ]
 
     @libcgroup_mock = mock('OpenShift::Runtime::Utils::Cgroups::Libcgroup')
-    @libcgroup_mock.stubs(:parameters).returns(@templates.map { |k,v| v.keys }.flatten.uniq)
+    @libcgroup_mock.stubs(:parameters).returns(@parameters)
     OpenShift::Runtime::Utils::Cgroups::Libcgroup.expects(:new).with(@uuid).returns(@libcgroup_mock)
 
     @cls = OpenShift::Runtime::Utils::Cgroups
@@ -124,8 +126,10 @@ class CgroupsUtilsTest < OpenShift::NodeBareTestCase
   end
 
   def test_current_values
+    all_keys = @templates.map { |k,v| v.keys }.flatten.uniq
+
     @clsany.expects(:templates).returns(@templates)
-    @clsany.expects(:fetch).with(@templates[:default].keys).returns(@templates[:default])
+    @clsany.expects(:fetch).with(*all_keys).returns(@templates[:default])
     assert_equal @cgroups.current_values, @templates[:default]
   end
 
@@ -186,7 +190,7 @@ class CgroupsUtilsTest < OpenShift::NodeBareTestCase
   end
 
   def call_profile(profile, values)
-    @clsany.expects(:templates).returns(@templates)
+    @clsany.stubs(:templates).returns(@templates).at_least_once
     @clsany.expects(:current_values).returns(values)
 
     assert_equal profile, @cgroups.profile, "Failed to match profile #{profile}"
