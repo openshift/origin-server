@@ -25,7 +25,7 @@ function openshift_origin_users() {
 function daemon_as_user {
     uid=$(id -u "$uuid")
     mcs_level=`oo-get-mcs-level $uid`
-    daemon --user="$uuid" runcon -r system_r -t openshift_t -l $mcs_level "$@"
+    daemon --user="$uuid" runcon -u unconfined_u -r system_r -t openshift_t -l $mcs_level "$@"
 }
 
 function openshift_origin_cron_users() {
