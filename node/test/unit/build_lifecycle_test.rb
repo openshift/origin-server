@@ -169,7 +169,7 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
 
     output = @container.deploy(out: $stdout, err: $stderr)
 
-    assert_equal "start_gear|deploy|start_gear|post-deploy", output
+    assert_equal "Starting application ApplicationContainerTestCase\nstart_gear|deploy|start_gear|post-deploy", output
   end
 
   def test_deploy_web_proxy_success
@@ -210,7 +210,7 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
 
     output = @container.deploy(out: $stdout, err: $stderr)
 
-    assert_equal "start_gear|deploy|deploy|start_gear|post-deploy", output
+    assert_equal "Starting application ApplicationContainerTestCase\nstart_gear|deploy|deploy|start_gear|post-deploy", output
   end
 
 
