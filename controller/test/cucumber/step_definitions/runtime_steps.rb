@@ -443,7 +443,9 @@ When /^the application is prepared for git pushes$/ do
   run "git clone ssh://#{@gear.uuid}@#{@app.name}-#{@account.domain}.#{$cloud_domain}/~/git/#{@app.name}.git #{@app.git_repo}"
 
   Dir.chdir(@app.git_repo) do
-    run "git config --global push.default simple"
+    if `git --version`.match("git version 1.8")
+      run "git config --global push.default simple"
+    end
     run "git config --global user.name 'Cucumber'"
     run "git config --global user.email 'cucumber@example.com'"
   end
