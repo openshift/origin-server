@@ -94,7 +94,7 @@ class AppEventsController < BaseController
     
     if !r.errorIO.string.empty?     
       return render_error(r.hasUserActionableError ? :unprocessable_entity : :internal_server_error, "Error occured while processing event '#{event}':#{r.errorIO.string.chomp}",
-                          r.exit_code)
+                          r.exitcode)
     end
     render_success(:ok, "application", app, msg, r)
   end
