@@ -1535,29 +1535,88 @@ class Application
     pending_ops
   end
 
-  def valid_sparse_resident(group_instance_id, index, cartridge, comp_spec)
-    gi = self.group_instances.find_by(_id: group_instance_id) rescue nil
-    cur_gears = gi.gears.length rescue 0
-    gear_index = cur_gears + index
+  def get_sparse_scaledown_gears(ginst, scale_down_factor)
+    scaled_gears = ginst.gears.select { |g| g.app_dns==false }
+    sparse_components = ginst.component_instances.select { |ci| ci.is_sparse? }
+    gears = []
+    if sparse_components.length > 0
+      (scale_down_factor...0).each { |i|
+        # iterate through sparse components to see which ones need a definite scale-down
+        relevant_sparse_components = sparse_components.select { |ci|
+          min = ci.min rescue ci.get_component.scaling.min
+          multiplier = ci.multiplier rescue ci.get_component.scaling.multiplier
+          cur_sparse_gears = (gi.get_gears(ci) - gears)
+          cur_total_gears = (gi.gears - gears)
+          status = false
+          if cur_sparse_gears <= min or multiplier<=0
+            status = false
+          else
+            status = cur_total_gears/(cur_sparse_gears*1.0)>multiplier ? false : true
+          end
+          status
+        }
+        # each of relevant_sparse_components want a gear removed that has them contained in the gear
+        # if its empty, then remove a gear which does not have any of sparse_components in them (non-sparse gears)
+        if relevant_sparse_components.length > 0
+          relevant_sparse_comp_ids = relevant_sparse_components.map { |sp_ci| ci._id }
+          gear = scaled_gears.find { |g| 
+             (relevant_sparse_comp_ids - g.sparse_carts).empty?
+          }
+        else
+          gear = scaled_gears.find { |g| g.sparse_carts.empty? }
+        end
+        if gear.nil? 
+          gear = scaled_gears.last
+        end
+        gears << gear
+        scaled_gears.delete(gear)
+      }
+    else
+      gears = scaled_gears[(scaled_gears.length + scale_down_factor)..-1]
+    end
+    return gears
+  end
 
+  def add_sparse_cart?(group_instance_id, index, sparse_carts_added_count, cartridge, comp_spec, is_scale_up)
     comp = cartridge.get_component(comp_spec["comp"])
+    gi = self.group_instances.find_by(_id: group_instance_id) rescue nil
+    ci = self.component_instances.find_by(cartridge_name: comp_spec['cart'], component_name: comp_spec['comp']) rescue nil
+    cur_gears =0
+    if is_scale_up
+      cur_gears = gi.get_gears(ci).length rescue 0
+    end
+    cur_gears += sparse_carts_added_count
+    cur_total_gears =0
+    if is_scale_up
+      cur_total_gears = gi.gears.length rescue 0
+    end
+    cur_total_gears += (index+1)
+
     is_sparse = comp.is_sparse?
     if not is_sparse
       if gi and gi.max 
-        if gear_index > gi.max
+        if cur_total_gears > gi.max and gi.max>0
           return false
         end
-      elsif gear_index > comp.scaling.max and comp.scaling.max!=-1 
+      elsif cur_total_gears > comp.scaling.max and comp.scaling.max!=-1 
         return false
       end
       return true
     end
-    return true if gear_index==0
-    return false if comp.scaling.multiplier <= 0
-    # we need the total_sparse_cart_count to be a floating point number
-    total_sparse_cart_count = gear_index/(1.0*comp.scaling.multiplier)
-    return false if total_sparse_cart_count > comp.scaling.max
-    return true if gear_index%comp.scaling.multiplier==0 
+    multiplier = ci.multiplier rescue comp.scaling.multiplier
+    min = ci.min rescue comp.scaling.min
+    max = ci.max rescue comp.scaling.max
+
+    # check on min first
+    return true if cur_gears<min
+
+    # if min is met, but multiplier is infinite, return false
+    return false if multiplier <= 0 
+
+    # for max, and cases where multiplier has been changed in apps mid-life
+    should_be_sparse_cart_count = [cur_total_gears/multiplier, (max==-1 ? (cur_total_gears/multiplier) : max)].min
+    return true if cur_gears < should_be_sparse_cart_count 
+
     return false
   end
 
@@ -1576,9 +1635,11 @@ class Application
         ops.push new_component_op
       end
 
+      sparse_carts_added_count =0
       gear_id_prereqs.each_with_index do |prereq, index|
         gear_id, prereq_id = prereq
-        next if not valid_sparse_resident(group_instance_id, index, cartridge, comp_spec)
+        next if not add_sparse_cart?(group_instance_id, index, sparse_carts_added_count, cartridge, comp_spec, is_scale_up)
+        sparse_carts_added_count += 1
         git_url = nil
         git_url = init_git_url if gear_id == deploy_gear_id && cartridge.is_deployable?
         add_component_op = PendingAppOp.new(op_type: :add_component, args: {"group_instance_id"=> group_instance_id, "gear_id" => gear_id, "comp_spec" => comp_spec, "init_git_url" => git_url}, prereq: new_component_op_id + [prereq_id])
@@ -1835,8 +1896,8 @@ class Application
           if scale_change < 0
             remove_gears += -scale_change
             ginst = self.group_instances.find(change[:from])
-            scaled_gears = ginst.gears.select { |g| g.app_dns==false }
-            gears = scaled_gears[(scaled_gears.length + scale_change)..-1]
+            gears = get_sparse_scaledown_gears(ginst, scale_change)
+            # gears = scaled_gears[(scaled_gears.length + scale_change)..-1]
             remove_ids = gears.map{|g| g._id.to_s}
             ops = calculate_gear_destroy_ops(ginst._id.to_s, remove_ids, ginst.addtl_fs_gb)
             pending_ops.push(*ops)
