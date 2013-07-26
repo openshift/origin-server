@@ -81,3 +81,16 @@ and not been accessed.
 
 Note also that scaled applications are not supported by the `threaddump`
 command.
+
+## Markers
+
+Adding marker files to `.openshift/markers` will have the following effects:
+
+    force_clean_build     Will remove all previous perl deps and start installing
+                          required deps from scratch
+
+    hot_deploy            Will prevent the apache process from being restarted during
+                          build/deployment
+
+    disable_auto_scaling  Will prevent scalable applications from scaling up 
+                          or down according to application load.
