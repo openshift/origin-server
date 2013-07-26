@@ -16,7 +16,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.12.2
+Version: 1.12.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -286,6 +286,26 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Fri Jul 26 2013 Adam Miller <admiller@redhat.com> 1.12.3-1
+- Bug 985035: Add missing requires to frontend_httpd (ironcladlou@gmail.com)
+- Merge pull request #3175 from pmorie/dev/upgrade_endpoints
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3173 from rmillner/BZ988519
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3172 from ironcladlou/bz/987836
+  (dmcphers+openshiftbot@redhat.com)
+- Add endpoint handling to upgrades (pmorie@gmail.com)
+- Bug 988519 - Ensure that the gear task runs as unconfined_u.
+  (rmillner@redhat.com)
+- Bug 987836: Refactor hot deploy marker detection (ironcladlou@gmail.com)
+- Merge pull request #3170 from pmorie/dev/upgrade_analysis
+  (dmcphers+openshiftbot@redhat.com)
+- Upgrade enhancements (ironcladlou@gmail.com)
+- Merge pull request #3160 from pravisankar/dev/ravi/card78
+  (dmcphers+openshiftbot@redhat.com)
+- For consistency, rest api response must display 'delete' instead 'destroy'
+  for user/domain/app (rpenta@redhat.com)
+
 * Wed Jul 24 2013 Adam Miller <admiller@redhat.com> 1.12.2-1
 - spelling fix (dmcphers@redhat.com)
 - Double protect URL arguments in gear (users can't break gear deployment)
