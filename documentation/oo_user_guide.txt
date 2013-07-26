@@ -8,7 +8,7 @@ v2.0, July 2013
 
 include::_navigation.adoc[]
 
-Platform as a Service is changing the way developers approach developing software. Developers typically use a local sandbox with their preferred application server and only deploy locally on that instance. Developers typically start JBoss locally using the startup.sh command and drop their .war or .ear file in the deployment directory and they are done. Developers have a hard time understanding why deploying to the production infrastructure is such a time consuming process.
+Platform as a Service is changing the way developers approach developing software. Developers typically use a local sandbox with their preferred application server and only deploy locally on that instance. For instance, developers typically start JBoss EAP locally using the startup.sh command and drop their .war or .ear file in the deployment directory and they are done. Developers have a hard time understanding why deploying to the production infrastructure is such a time consuming process.
 
 System Administrators understand the complexity of not only deploying the code, but procuring, provisioning and maintaining a production level system. They need to stay up to date on the latest security patches and errata, ensure the firewall is properly configured, maintain a consistent and reliable backup and restore plan, monitor the application and servers for CPU load, disk IO, HTTP requests, etc.
 
@@ -846,15 +846,15 @@ http://firstphp-ose.example.com
 If the restore process worked correctly, you should see the restored application running just as it was before the delete operation that you performed earlier in this lab.
 
 === View a Thread Dump
-This can be performed on Ruby and JBoss application types.
+This can be performed on Ruby and JBoss EAP / JBoss EWS application types.
 
-You can trigger a thread dump for Ruby and JBoss applications using the _rhc threaddump_ command. A thread dump is a snapshot of the state of all threads that are part of the runtime process. If an application appears to have stalled or is running out of resources, a thread dump can help reveal the state of the runtime, identify what might be causing any issues and ultimately to help resolve the problem. To trigger a thread dump execute the following command:
+You can trigger a thread dump for Ruby and JBoss EAP / JBoss EWS applications using the _rhc threaddump_ command. A thread dump is a snapshot of the state of all threads that are part of the runtime process. If an application appears to have stalled or is running out of resources, a thread dump can help reveal the state of the runtime, identify what might be causing any issues and ultimately to help resolve the problem. To trigger a thread dump execute the following command:
 
 ----
 $ rhc threaddump -a ApplicationName
 ----
 
-After running this command for a JBoss or Ruby application, you will be given a log file that you can view in order to see the details of the thread dump. Issue the following command, substituting the correct log file:
+After running this command for a JBoss EAP, JBoss EWS or Ruby application, you will be given a log file that you can view in order to see the details of the thread dump. Issue the following command, substituting the correct log file:
 
 ----
 $ rhc tail ApplicationName -f ruby-1.9/logs/error_log-20130104-000000-EST -o '-n 250'
@@ -1556,7 +1556,7 @@ If you recall from a previous lab, we discussed the way that OpenShift Origin al
 * enable_jpda - Will enable the JPDA socket based transport on the JVM running the JBoss EAP application server. This enables you to remotely debug code running inside of the JBoss application server.
 * skip_maven_build - Maven build step will be skipped
 * force_clean_build - Will start the build process by removing all non essential Maven dependencies. Any current dependencies specified in your pom.xml file will then be re-downloaded.
-* hot_deploy - Will prevent a JBoss container restart during build/deployment. Newly built archives will be re-deployed automatically by the JBoss HDScanner component.
+* hot_deploy - Will prevent a JBoss EAP container restart during build/deployment. Newly built archives will be re-deployed automatically by the JBoss HDScanner component.
 * java7 - Will run JBoss EAP with Java7 if present. If no marker is present then the baseline Java version will be used (currently Java6)
 
 === Deployment Directory
@@ -2151,7 +2151,7 @@ image:jenkins7.png[image]
 
 For more information about the current build, you can click on the build to manage and view details, including the console output, for the build.
 
-== JBoss Tools
+== JBoss Tools IDE
 
 *Server used:*
 

@@ -8,12 +8,12 @@ v2.0, July 2013
 
 include::_navigation.adoc[]
 
-OpenShift Origin enables you to create, deploy and manage applications within the cloud. It provides disk space, CPU resources, memory, network connectivity, and an Apache or JBoss server. Depending on the type of application being deployed, a template file system layout is provided (for example, PHP, Python, and Ruby/Rails). It also manages a limited DNS for the application.
+OpenShift Origin enables you to create, deploy and manage applications within the cloud. It provides disk space, CPU resources, memory, network connectivity, and an Apache or JBoss EAP server. Depending on the type of application being deployed, a template file system layout is provided (for example, PHP, Python, and Ruby/Rails). It also manages a limited DNS for the application.
 
 == System Overview
 The two basic functional units of the platform are the _Broker_ and _Node_ servers. Communication between the Broker and Nodes is done through a message queuing service.
 
-* The *Broker* is the single point of contact for all application management activities. It is responsible for managing user logins, DNS, application state, and general orchestration of the applications. Customers don't contact the broker directly; instead they use the Web console, CLI tools, or JBoss tools to interact with Broker over a REST based API. The Broker uses an http://docs.puppetlabs.com/mcollective/[MCollective] client to send instructions to the systems that actually host user applications, the Nodes.
+* The *Broker* is the single point of contact for all application management activities. It is responsible for managing user logins, DNS, application state, and general orchestration of the applications. Customers don't contact the broker directly; instead they use the Web console, CLI tools, or the JBoss Tools IDE to interact with Broker over a REST based API. The Broker uses an http://docs.puppetlabs.com/mcollective/[MCollective] client to send instructions to the systems that actually host user applications, the Nodes.
 * The *Node* servers host the built-in _Cartridges_ that will be made available to users and the _Gears_ where user applications will actually be stored and served. An MCollective client running on each Node is responsible for receiving and performing the actions requested by the Broker.
 
 [NOTE]
@@ -86,7 +86,7 @@ Proxy ports are enabled by HAProxy running as a system service and configured to
 Proxy ports are not directly accessible from outside the collection of nodes.
 
 == Cartridges
-As described above, Cartridges represent pluggable components that can be combined within a single application. At a minimum, an application needs a language or environment cartridge (like PHP or JBoss). Most applications will also need a database cartridge.
+As described above, Cartridges represent pluggable components that can be combined within a single application. At a minimum, an application needs a language or environment cartridge (like PHP or JBoss EAP). Most applications will also need a database cartridge.
 
 OpenShift Origin supports several "built-in" cartridges based on the most popular app development languages and databases. In order for these to work, the underlying technology must be installed on every Node server in an Origin system. This process is described in detail in the link:oo_deployment_guide_comprehensive.html#select-and-install-built-in-cartridges-to-be-supported[Comprehensive Deployment Guide].
 
