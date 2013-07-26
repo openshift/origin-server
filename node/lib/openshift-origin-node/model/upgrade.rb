@@ -479,6 +479,11 @@ module OpenShift
           execute_cartridge_upgrade_script(target, current_version, next_manifest)
         end
 
+        progress.step "#{name}_create_endpoints" do |context, errors|
+          context[:cartridge] = name.downcase
+          cart_model.create_private_endpoints(next_manifest)
+        end
+
         progress.step "#{name}_connect_frontend" do |context, errors|
           context[:cartridge] = name.downcase
           cart_model.connect_frontend(next_manifest)
