@@ -2,7 +2,7 @@
     <resources>
         <resource-root path="netty-subsystem-1.0.0-SNAPSHOT.jar"/>
         <resource-root path="netty-subsystem-api-1.0.0-SNAPSHOT.jar"/>
-        <resource-root path="netty-all-4.0.0.CR10-SNAPSHOT.jar"/>
+        <resource-root path="netty-all-4.0.5.Final-SNAPSHOT.jar"/>
     </resources>
     
     <dependencies>
@@ -12,6 +12,7 @@
         <module name="org.jboss.as.server"/>
         <module name="org.jboss.as.network"/>
         <module name="org.jboss.as.threads"/>
+        <module name="org.jboss.as.jpa"/>
         <module name="org.jboss.modules"/>
         <module name="org.jboss.msc"/>
         <module name="org.jboss.logging"/>
