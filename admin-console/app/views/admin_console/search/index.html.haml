@@ -1,32 +1,48 @@
 %form{:method => "GET", :action => search_path}
-  %div{:class => "input-append input-prepend"}
-    %span{:class => "add-on"}
-      User
-    %input{:type => "hidden", :name => "scope", :value => "user"}
-    %input{:type => "text", :class => "search-query", :placeholder => "search by login", :name => "query"}
-    %button{:type => "submit", :class => "btn"}
-      %span{:class => "icon-search"}
+  .control-group{ :class => @scope == "user" ? "error" : ""}
+    .input-append.input-prepend
+      %span.add-on
+        User
+      %input{:type => "hidden", :name => "scope", :value => "user"}
+      %input.search-query{:type => "text", :placeholder => "search by login", :name => "query"}
+      %button{:type => "submit", :class => "btn"}
+        %span{:class => "icon-search"}
+    - if @scope == "user"
+      .help-inline
+        No search query was provided
 %form{:method => "GET", :action => search_path}
-  %div{:class => "input-append input-prepend"}
-    %span{:class => "add-on"}
-      Application
-    %input{:type => "hidden", :name => "scope", :value => "application"}
-    %input{:type => "text", :class => "search-query", :placeholder => "search by uuid", :name => "query"}
-    %button{:type => "submit", :class => "btn"}
-      %span{:class => "icon-search"}
+  .control-group{ :class => @scope == "application" ? "error" : ""}
+    .input-append.input-prepend
+      %span.add-on
+        Application
+      %input{:type => "hidden", :name => "scope", :value => "application"}
+      %input.search-query{:type => "text", :placeholder => "search by uuid", :name => "query"}
+      %button{:type => "submit", :class => "btn"}
+        %span{:class => "icon-search"}
+    - if @scope == "application"
+      .help-inline
+        No search query was provided
 %form{:method => "GET", :action => search_path}
-  %div{:class => "input-append input-prepend"}
-    %span{:class => "add-on"}
-      Node
-    %input{:type => "hidden", :name => "scope", :value => "node"}
-    %input{:type => "text", :class => "search-query", :placeholder => "search by uuid", :name => "query"}
-    %button{:type => "submit", :class => "btn"}
-      %span{:class => "icon-search"}
+  .control-group{ :class => @scope == "node" ? "error" : ""}
+    .input-append.input-prepend
+      %span.add-on
+        Node
+      %input{:type => "hidden", :name => "scope", :value => "node"}
+      %input.search-query{:type => "text", :placeholder => "search by uuid", :name => "query"}
+      %button{:type => "submit", :class => "btn"}
+        %span{:class => "icon-search"}
+    - if @scope == "node"
+      .help-inline
+        No search query was provided
 %form{:method => "GET", :action => search_path}
-  %div{:class => "input-append input-prepend"}
-    %span{:class => "add-on"}
-      Gear
-    %input{:type => "hidden", :name => "scope", :value => "gear"}
-    %input{:type => "text", :class => "search-query", :placeholder => "search by uuid", :name => "query"}
-    %button{:type => "submit", :class => "btn"}
-      %span{:class => "icon-search"}
+  .control-group{ :class => @scope == "gear" ? "error" : ""}
+    .input-append.input-prepend
+      %span.add-on
+        Gear
+      %input{:type => "hidden", :name => "scope", :value => "gear"}
+      %input.search-query{:type => "text", :placeholder => "search by uuid", :name => "query"}
+      %button{:type => "submit", :class => "btn"}
+        %span{:class => "icon-search"}
+    - if @scope == "gear"
+      .help-inline
+        No search query was provided
