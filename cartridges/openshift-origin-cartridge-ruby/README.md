@@ -81,3 +81,12 @@ and not been accessed.
 
 Note also that scaled applications are not supported by the `threaddump`
 command.
+
+## Markers
+
+Adding marker files to `.openshift/markers` will have the following effects:
+
+    force_clean_build    Will trigger a clean re-bundle during the build cycle.
+
+    hot_deploy           Will prevent shutdown and startup of the application during builds. The
+                         Passenger `restart.txt` file will be used to reload the application.
