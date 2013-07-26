@@ -152,6 +152,21 @@ jenkins_build    = #{@jenkins_build}
       end
     end
 
+    def get_pom_file
+      case @type.gsub(/-.*/,'')
+        when "jbossas"  then "pom.xml"
+        when "jbosseap" then "pom.xml"
+        when "jbossews" then "pom.xml"
+      end
+    end
+
+    def get_standalone_config
+      case @type.gsub(/-.*/,'')
+        when "jbossas"  then ".openshift/config/standalone.xml"
+        when "jbosseap" then ".openshift/config/standalone.xml"
+      end
+    end
+
     def get_mysql_file
       if @type.start_with?("php-5")
         File.expand_path("../misc/php/db_test.php", File.expand_path(File.dirname(__FILE__)))
@@ -237,15 +252,15 @@ jenkins_build    = #{@jenkins_build}
       File.exists? "/var/lib/openshift/.last_access/#{uid}"
     end
 
-    def connect(use_https=false, max_retries=30)
+    def connect(use_https=false, max_retries=30, timeout=1, path="")
       prefix = use_https ? "https://" : "http://"
-      url = prefix + hostname
+      url = prefix + hostname + path
 
       $logger.info("Connecting to #{url}")
       beginning_time = Time.now
 
       max_retries.times do |i|
-        code, body = curl(url, 1)
+        code, body = curl(url, timeout)
 
         if code == 0
           @response_code = code.to_i

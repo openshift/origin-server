@@ -134,4 +134,4 @@ The `jbosseap` cartridge provides an OpenShift compatible wrapper of the JBoss C
 `$OPENSHIFT_JBOSSEAP_DIR/tools/jboss-cli.sh`. Use the following command to connect to the JBoss instance with the
 CLI tool:
 
-    jboss-cli.sh -c --controller=$OPENSHIFT_JBOSSEAP_IP:9999
+    jboss-cli.sh -c --controller=${OPENSHIFT_JBOSSEAP_IP}:${OPENSHIFT_JBOSSEAP_MANAGEMENT_NATIVE_PORT}

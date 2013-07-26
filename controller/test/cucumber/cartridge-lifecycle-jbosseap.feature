@@ -9,10 +9,30 @@ Feature: Cartridge Lifecycle JBossEAP Verification Tests
   Scenario: Application Creation
     Given the libra client tools
     When 1 jbosseap-6.0 applications are created
-    Then the applications should be accessible
+    Then the applications should display default content on first attempt
+
+  #Scenario: Multiartifact 
+    Given an existing jbosseap-6.0 application
+    When the jboss application is changed to multiartifact
+    Then the application should display default content for all artifacts on first attempt
+
+  #Scenario: Deployment Scanner Modification
+    When the jboss application deployment-scanner is changed to archive only
+    Then only archive artifacts should be deployed
+    When the jboss application deployment-scanner is changed to exploded only
+    Then only exploded artifacts should be deployed
+    When the jboss application deployment-scanner is changed to none
+    Then no artifacts should be deployed
+    When the jboss application deployment-scanner is changed to disabled
+    Then deployment verification should be skipped with scanner disabled message
+    When the jboss application deployment-scanner is changed to all
+    Then all artifacts should be deployed
+
+  #Scenario: Management Interface Unavailable
+    When the jboss management interface is disabled
+    Then deployment verification should be skipped with management unavailable message
 
   #Scenario: Application Modification
-    Given an existing jbosseap-6.0 application
     When the application is changed
     Then it should be updated successfully
     And the application should be accessible

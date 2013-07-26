@@ -6,7 +6,7 @@ Version: '6.0'
 License: LGPL
 License-Url: http://www.gnu.org/copyleft/lesser.txt
 Vendor: Red Hat
-Cartridge-Version: '0.0.3'
+Cartridge-Version: '0.0.4'
 Cartridge-Vendor: redhat
 Categories:
   - service
@@ -113,5 +113,11 @@ Endpoints:
     Private-Port-Name: REMOTING_PORT
     Private-Port:      4447
     Public-Port-Name:  REMOTING_PROXY_PORT
+  - Private-IP-Name:   IP
+    Private-Port-Name: MANAGEMENT_NATIVE_PORT
+    Private-Port:      9999
+  - Private-IP-Name:   IP
+    Private-Port-Name: MANAGEMENT_HTTP_PORT
+    Private-Port:      9990
 Additional-Control-Actions:
     - threaddump
