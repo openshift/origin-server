@@ -123,11 +123,6 @@ class CgroupsUtilsTest < OpenShift::NodeBareTestCase
     assert_equal @templates, @cgroups.templates
   end
 
-  def test_usage
-    @clsany.expects(:fetch).with(%w(cpuacct.usage cpu.stat))
-    @cgroups.usage
-  end
-
   def test_current_values
     @clsany.expects(:templates).returns(@templates)
     @clsany.expects(:fetch).with(@templates[:default].keys).returns(@templates[:default])
