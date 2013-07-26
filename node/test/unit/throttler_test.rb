@@ -21,7 +21,6 @@ class ThrottlerTest < OpenShift::NodeTestCase
     OpenShift::Runtime::Utils::Cgroups::Config.stubs(:new).with('/etc/openshift/resource_limits.conf').returns(@mock_config)
 
     @throttler = @@impl.new
-
     @mock_usage = {
       "good" => {
         usage: 1,
@@ -36,6 +35,8 @@ class ThrottlerTest < OpenShift::NodeTestCase
         cfs_quota_us: 8
       }
     }
+
+    @mock_usage_str = fake_usage(@mock_usage)
 
     @mock_apps = {
       "A" => mock(@@mg.to_s),
@@ -62,11 +63,8 @@ class ThrottlerTest < OpenShift::NodeTestCase
   end
 
   def test_parse_usage
-    correct = Hash[*(@mock_usage.first)]
-    uuid = correct.keys.first
-    usage_str = fake_usage(uuid, correct[uuid])
-    usage = @throttler.parse_usage(usage_str)
-    assert_equal correct, usage
+    usage = @throttler.parse_usage(@mock_usage_str)
+    assert_equal @mock_usage, usage
   end
 
   def test_update
@@ -289,37 +287,6 @@ class ThrottlerTest < OpenShift::NodeTestCase
     end
   end
 
-  def test_get_util
-    mock_utilization = {
-      "A" => {
-        utilization: {
-          10  => {
-            usage_percent: 1.0
-          },
-        }
-      },
-      "B" => {
-        utilization: {
-          10  => {
-            usage_percent: 2.0
-          },
-        }
-      },
-      "C" => { },
-    }
-
-    correct = {
-      "A" => 1.0,
-      "C" => "???"
-    }
-
-    with_mock_apps(mock_utilization) do |mock_apps, mock_util|
-      wanted_apps = mock_apps.select{|k,v| correct.keys.include?(k) }
-      retval = @throttler.get_util(wanted_apps, mock_util)
-      assert_equal correct, retval
-    end
-  end
-
   protected
   def with_mock_apps(args)
     mock_util = {}
@@ -341,17 +308,21 @@ class ThrottlerTest < OpenShift::NodeTestCase
     yield mock_apps, mock_util
   end
 
-  def fake_usage(uuid, *args)
-    opts = Hash[*args].merge(uuid: uuid)
-    usage_template % opts
+  def fake_usage(gears)
+    gears.inject("") do |a,(uuid,vals)|
+      v = vals.clone
+      v[:uuid] = uuid
+      str = usage_template % v
+      a << str
+    end.lines.map(&:strip).join("\n")
   end
 
   def usage_template
     <<-STR
-/cgroup/all/openshift/%<uuid>s/cpuacct.usage:%<usage>d
-/cgroup/all/openshift/%<uuid>s/cpu.stat:throttled_time %<throttled_time>d
-/cgroup/all/openshift/%<uuid>s/cpu.stat:nr_periods %<nr_periods>d
-/cgroup/all/openshift/%<uuid>s/cpu.cfs_quota_us:%<cfs_quota_us>d
+      %<uuid>s/cpuacct.usage:%<usage>d
+      %<uuid>s/cpu.stat:throttled_time %<throttled_time>d
+      %<uuid>s/cpu.stat:nr_periods %<nr_periods>d
+      %<uuid>s/cpu.cfs_quota_us:%<cfs_quota_us>d
     STR
   end
 end
