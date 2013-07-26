@@ -1,9 +1,10 @@
-class OpenShift::GearLimitReachedException < OpenShift::OOException; end
+class OpenShift::GearLimitReachedException < OpenShift::UserException; end
 
-class OpenShift::ScaleConflictException < OpenShift::OOException
+class OpenShift::ScaleConflictException < OpenShift::UserException
   attr_accessor :cart, :comp, :requested_min, :requested_max, :comp_min, :comp_max
   
-  def initialize(cart, comp, requested_min, requested_max, comp_min, comp_max)
+  def initialize(msg, cart, comp, requested_min, requested_max, comp_min, comp_max)
+    super(msg)
     self.cart = cart
     self.comp = comp
     self.requested_min = requested_min
