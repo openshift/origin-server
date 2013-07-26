@@ -9,7 +9,7 @@
 
 Summary:       OpenShift plugin adding an administrative console to the broker
 Name:          rubygem-%{gem_name}
-Version: 0.0.3
+Version: 0.0.4
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -129,6 +129,9 @@ cp %{buildroot}/%{gem_dir}/gems/%{gem_name}-%{version}/conf/openshift-origin-adm
 %defattr(-,root,apache,-)
 
 %changelog
+* Fri Jul 26 2013 Adam Miller <admiller@redhat.com> 0.0.4-1
+- fix tito tags round 2, someone put the already tagged version in DistGit
+
 * Fri Jul 26 2013 Adam Miller <admiller@redhat.com> 0.0.3-1
 - fix tito tags
 
