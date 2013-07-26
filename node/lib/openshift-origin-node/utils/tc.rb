@@ -110,7 +110,7 @@ module OpenShift
         end
 
         def parse_valid_user(uuid)
-          pwent = Etc.getpwnam(uuid)
+          pwent = Etc.getpwnam(uuid.to_s)
           if block_given?
             yield(uuid, pwent, pwent.uid.to_s(16))
           end
