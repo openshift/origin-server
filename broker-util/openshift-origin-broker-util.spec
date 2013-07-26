@@ -6,7 +6,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin broker
 Name:          openshift-origin-broker-util
-Version: 1.12.2
+Version: 1.12.3
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -88,6 +88,15 @@ cp man/*.8 %{buildroot}%{_mandir}/man8/
 %{_mandir}/man8/oo-stats.8.gz
 
 %changelog
+* Fri Jul 26 2013 Adam Miller <admiller@redhat.com> 1.12.3-1
+- Merge pull request #3170 from pmorie/dev/upgrade_analysis
+  (dmcphers+openshiftbot@redhat.com)
+- Upgrade enhancements (ironcladlou@gmail.com)
+- Merge pull request #3160 from pravisankar/dev/ravi/card78
+  (dmcphers+openshiftbot@redhat.com)
+- For consistency, rest api response must display 'delete' instead 'destroy'
+  for user/domain/app (rpenta@redhat.com)
+
 * Wed Jul 24 2013 Adam Miller <admiller@redhat.com> 1.12.2-1
 - Merge pull request #3151 from pravisankar/dev/ravi/ctl-usage-fixes
   (dmcphers+openshiftbot@redhat.com)
