@@ -8,7 +8,7 @@ v2.0, July 2013
 
 include::_navigation.adoc[]
 
-OpenShift cartridges provide the necessary command and control for the functionality of software that is running users' applications. OpenShift currently has many language cartridges (JBoss, PHP, Ruby, Rails, etc.) as well as many DB cartridges (Postgres, Mysql, Mongo, etc.). Before writing your own cartridge, you should search the current list of https://openshift.redhat.com[Red Hat] and https://www.openshift.com/community[OpenShift Community] provided cartridges.
+OpenShift cartridges provide the necessary command and control for the functionality of software that is running users' applications. OpenShift currently has many language cartridges (JBoss EAP, JBoss EWS, PHP, Ruby, Rails, etc.) as well as many DB cartridges (Postgres, Mysql, Mongo, etc.). Before writing your own cartridge, you should search the current list of https://openshift.redhat.com[Red Hat] and https://www.openshift.com/community[OpenShift Community] provided cartridges.
 
 Cartridge configuration and setup is convention based, with an emphasis on minimizing external dependencies in your cartridge code.
 
