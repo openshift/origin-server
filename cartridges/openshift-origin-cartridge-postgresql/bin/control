@@ -69,6 +69,7 @@ function pre_snapshot {
   echo $OPENSHIFT_POSTGRESQL_DB_USERNAME > $OPENSHIFT_DATA_DIR/postgresql_db_username
   echo $OPENSHIFT_APP_NAME > $OPENSHIFT_DATA_DIR/postgresql_db_dbname
   echo $OPENSHIFT_GEAR_UUID > $OPENSHIFT_DATA_DIR/postgresql_db_uuid
+  echo $OPENSHIFT_POSTGRESQL_VERSION > $OPENSHIFT_DATA_DIR/postgresql_version
 
   # Remove any statements that modify the postgres role
   local rexp="^\s*\(DROP\|CREATE\|ALTER\)\s*ROLE\s*postgres.*"
@@ -94,6 +95,28 @@ function post_restore {
 
   local new_db=$OPENSHIFT_APP_NAME
   local old_db=$(< $OPENSHIFT_DATA_DIR/postgresql_db_dbname)
+
+  local old_version=""
+
+  if [ ! -f $OPENSHIFT_DATA_DIR/postgresql_version ]
+  then
+    if [ "$OPENSHIFT_POSTGRESQL_VERSION" != "8.4" ]
+    then
+      warning "WARNING: Postgresql snapshot must have a file named postgresql_version containing software version in app-root/data"
+      return
+    else
+      old_version="8.4"
+    fi
+  else
+    old_version=$(< $OPENSHIFT_DATA_DIR/postgresql_version)
+  fi
+
+  if [ "$old_version" != "$OPENSHIFT_POSTGRESQL_VERSION" ]
+  then
+    warning "WARNING: Postgresql restore to version $OPENSHIFT_POSTGRESQL_VERSION attempted from another version: $old_version.  Skipping restore."
+    start
+    return
+  fi
 
   if [ -f $dump_file ]
   then
@@ -164,6 +187,7 @@ function cleanup_dump {
     postgresql_dump_snapshot.gz
     postgresql_db_username
     postgresql_db_dbname
+    postgresql_version
   )
   for file in "${dumpfiles[@]}"
   do
