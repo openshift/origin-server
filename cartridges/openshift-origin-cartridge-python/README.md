@@ -49,3 +49,16 @@ deps at git push time.
 
 For more information about environment variables, consult the
 [OpenShift Application Author Guide](https://github.com/openshift/origin-server/blob/master/node/README.writing_applications.md).
+
+## Markers
+
+Adding marker files to `.openshift/markers` will have the following effects:
+
+    force_clean_build     Will remove all previous perl deps and start installing
+                          required deps from scratch
+
+    hot_deploy            Will prevent the apache process from being restarted during
+                          build/deployment
+
+    disable_auto_scaling  Will prevent scalable applications from scaling up 
+                          or down according to application load.
