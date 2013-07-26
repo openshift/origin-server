@@ -3,6 +3,7 @@
 require 'active_support/core_ext/numeric/time'
 require 'openshift-origin-node/utils/cgroups'
 require 'openshift-origin-node/utils/shell_exec'
+require 'syslog'
 require_relative 'monitored_gear'
 
 module OpenShift
@@ -13,6 +14,7 @@ module OpenShift
           attr_reader :wanted_keys, :uuids, :running_apps, :threshold, :interval
 
           @@conf_file = '/etc/openshift/resource_limits.conf'
+          @@cgroups_dir = Libcgroup.cgroup_path
 
           def initialize
             # Make sure we create a MonitoredGear for the root OpenShift cgroup
@@ -39,49 +41,45 @@ module OpenShift
               h[k] = MonitoredGear.new(k)
             end
 
+            Syslog.open(File.basename($0), Syslog::LOG_PID, Syslog::LOG_DAEMON) unless Syslog.opened?
+            Syslog.info("Starting throttler => threshold: #{@threshold.to_f}%%/#{@interval}s, check_interval: #{MonitoredGear.delay}")
+
             # Start our collector thread
             start
           end
 
           # Loop through all lines from grep and contruct a hash
+          # TODO: Should this be moved into libcgroup?
           def parse_usage(info)
-            info.lines.map(&:strip).inject(Hash.new{|h,k| h[k] = {}}) do |h,line|
-              # Split the output into the file and data
-              (file,info) = line.split(':')
-              # Create a path out of the filename and extract the uuid
-              uuid = File.dirname(file).split('/').last
-              # Create a key out of the filename
-              key = File.basename(file).split('.').last
-              # Get the value out of the data
-              parts = info.split
-              val = parts.last.to_i
-              # Some of the files have multiple lines, so we use that as the key instead
-              if parts.length == 2
-                key = parts.first
-              end
-              # Save the value
-              h[uuid][key.to_sym] = val
+            info.lines.to_a.inject(Hash.new{|h,k| h[k] = {}} ) do |h,line|
+              (uuid, key, val) = line.split(/\W/).values_at(0,-2,-1)
+              h[uuid][key.to_sym] = val.to_i
               h
             end
           end
 
+          # TODO: Should this be moved into libcgroup?
           def get_usage
-            cmd = 'grep -H "" /cgroup/all/openshift/*/{cpu.stat,cpuacct.usage,cpu.cfs_quota_us} 2> /dev/null'
-            out, err, rc = ::OpenShift::Runtime::Utils::oo_spawn(cmd)
+            cmd = 'grep -H "" */{cpu.stat,cpuacct.usage,cpu.cfs_quota_us} 2> /dev/null'
+            out = ::OpenShift::Runtime::Utils::oo_spawn(cmd, :chdir => @@cgroups_dir).first
             out
           end
 
           def start
             Thread.new do
               loop do
-                vals = get_usage
-                vals = Hash[vals.map{|uuid,hash| [uuid,hash.select{|k,v| wanted_keys.include?k}]}]
-
-                update(vals)
-
-                sleep MonitoredGear::delay
+                tick
+                sleep MonitoredGear.delay
               end
             end
+          end
+
+          def tick
+            usage = get_usage
+            vals = parse_usage(usage)
+            vals = Hash[vals.map{|uuid,hash| [uuid,hash.select{|k,v| wanted_keys.include?k}]}]
+
+            update(vals)
           end
 
           # Update our MonitoredGears based on new data
@@ -166,33 +164,32 @@ module OpenShift
             # Only throttle bad gears that aren't throttled
             (@old_bad_gears, bad_gears) = bad_gears.partition{|k,v| @old_bad_gears.has_key?(k) }.map{|a| Hash[a] }
 
-            # Restore all of the good gears
-            good_gears.each do |uuid,g|
-              g.gear.restore
-            end
-
-            # Throttle all of the bad gears
-            bad_gears.each do |uuid,g|
-              g.gear.throttle
-            end
-
-            retval = {
-              "Throttled"       => get_util(bad_gears, cur_util),
-              "Restored"        => get_util(good_gears, cur_util),
-              "Over Threshold"  => get_util(@old_bad_gears, cur_util)
-            }
+            apply_action({
+              :restore => good_gears,
+              :throttle => bad_gears,
+              nil => @old_bad_gears
+            }, cur_util)
 
             @old_bad_gears.merge!(bad_gears)
-
-            retval
           end
 
-          def get_util(gears, util)
-            gears.keys.inject({}) do |h,uuid|
-              val = util[uuid].values.first[:usage_percent] rescue "???"
-              h[uuid] = val
+          def apply_action(hash, cur_util)
+            util = cur_util.inject({}) do |h,(uuid,vals)|
+              h[uuid] = (vals.map{|k,v| v[:usage_percent] }.first || '???')
               h
             end
+
+            hash.each do |action, gears|
+              str = action || "over_threshold"
+              gears.each do |uuid, g|
+                g.gear.send(action) if action
+                log_action(str, uuid, util[uuid])
+              end
+            end
+          end
+
+          def log_action(action, uuid, value)
+            Syslog.info("Throttler: #{action} => #{uuid} (#{value})")
           end
         end
       end
