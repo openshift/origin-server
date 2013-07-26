@@ -18,7 +18,7 @@ If you don't have OpenShift Origin up and running, go there first.
 
 [float]
 === Platform as a Service
-Platform as a Service is changing the way developers approach developing software. Developers typically use a local sandbox with their preferred application server and only deploy locally on that instance. Developers typically start JBoss locally using the startup.sh command and drop their .war or .ear file in the deployment directory and they are done. Developers have a hard time understanding why deploying to the production infrastructure is such a time consuming process.
+Platform as a Service is changing the way developers approach developing software. Developers typically use a local sandbox with their preferred application server and only deploy locally on that instance. For instance, developers typically start JBoss EAP locally using the startup.sh command and drop their .war or .ear file in the deployment directory and they are done. Developers have a hard time understanding why deploying to the production infrastructure is such a time consuming process.
 
 System Administrators understand the complexity of not only deploying the code, but procuring, provisioning and maintaining a production level system. They need to stay up to date on the latest security patches and errata, ensure the firewall is properly configured, maintain a consistent and reliable backup and restore plan, monitor the application and servers for CPU load, disk IO, HTTP requests, etc.
 
@@ -71,8 +71,8 @@ You should see the following cartridges available to install:
 * openshift-origin-cartridge-ruby-1.8.noarch : Provides ruby rack support running on Phusion Passenger
 * openshift-origin-cartridge-ruby-1.9-scl.noarch : Provides ruby rack support running on Phusion Passenger
 
-=== Install JBoss Support
-In order to enable consumers of the PaaS to create JBoss gears, we will need to install all of the necessary cartridges for the application server and supporting build systems. Perform the following command to install the required cartridges:
+=== Install JBoss EAP and JBoss EWS Support
+In order to enable consumers of the PaaS to create JBoss EAP / JBoss EWS gears, we will need to install all of the necessary cartridges for the application server and supporting build systems. Perform the following command to install the required cartridges:
 
 *Execute the following on the node host*:
 
@@ -85,7 +85,7 @@ The above command will allow users to create JBoss EAP and JBoss EWS gears. We a
 NOTE: Depending on your connection and speed of your node host, this installation may take several minutes.
 
 === Clear the Broker Application Cache
-At this point, you will notice if you try to create a JBoss based application via the web console that the application type is not available. This is because the broker host creates a cache of available gear types to increase performance. After adding a new cartridge, you need to clear this cache in order for the new gear type to be available to users.
+At this point, you will notice if you try to create a JBoss EAP or JBoss EWS based application via the web console that the application type is not available. This is because the broker host creates a cache of available gear types to increase performance. After adding a new cartridge, you need to clear this cache in order for the new gear type to be available to users.
 
 *Execute the following on the broker host*:
 
