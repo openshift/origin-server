@@ -2,6 +2,7 @@
 
 require 'active_support/core_ext/numeric/time'
 require 'openshift-origin-node/utils/cgroups'
+require 'openshift-origin-node/utils/shell_exec'
 require_relative 'monitored_gear'
 
 module OpenShift
@@ -65,7 +66,9 @@ module OpenShift
           end
 
           def get_usage
-            parse_usage(`grep -H "" /cgroup/all/openshift/*/{cpu.stat,cpuacct.usage,cpu.cfs_quota_us} 2> /dev/null`)
+            cmd = 'grep -H "" /cgroup/all/openshift/*/{cpu.stat,cpuacct.usage,cpu.cfs_quota_us} 2> /dev/null'
+            out, err, rc = ::OpenShift::Runtime::Utils::oo_spawn(cmd)
+            out
           end
 
           def start
