@@ -170,8 +170,8 @@ module OpenShift
 
       # Load the cartridge's local manifest from the Broker token 'name-version'
       def get_cartridge_fallback(cart_name)
-        directory = cartridge_directory(cart_name)
-        _, version  = map_cartridge_name(cart_name)
+        directory  = cartridge_directory(cart_name)
+        _, version = map_cartridge_name(cart_name)
 
         raise "Directory name is required" if (directory == nil || directory.empty?)
 
@@ -332,12 +332,12 @@ module OpenShift
         cartridge              = get_cartridge(name)
 
         ::OpenShift::Runtime::Utils::Cgroups.new(@container.uuid).boost do
-        if empty_repository?
-          output << "CLIENT_MESSAGE: An empty Git repository has been created for your application.  Use 'git push' to add your code."
-        else
-          output << start_cartridge('start', cartridge, user_initiated: true)
-        end
-        output << cartridge_action(cartridge, 'post_install', software_version)
+          if empty_repository?
+            output << "CLIENT_MESSAGE: An empty Git repository has been created for your application.  Use 'git push' to add your code."
+          else
+            output << start_cartridge('start', cartridge, user_initiated: true)
+          end
+          output << cartridge_action(cartridge, 'post_install', software_version)
         end
 
         logger.info("post-configure output: #{output}")
@@ -446,7 +446,7 @@ module OpenShift
             @container.set_rw_permission(entry)
           rescue Exception => e
             raise FileUnlockError.new("Failed to unlock file system entry [#{entry}]: #{e}",
-                                                 entry)
+                                      entry)
           end
         end
 
@@ -474,7 +474,7 @@ module OpenShift
             @container.set_ro_permission(entry)
           rescue Exception => e
             raise OpenShift::Runtime::FileLockError.new("Failed to lock file system entry [#{entry}]: #{e}",
-                                               entry)
+                                                        entry)
           end
         end
 
@@ -482,7 +482,7 @@ module OpenShift
           @container.set_ro_permission(@container.container_dir)
         rescue Exception => e
           raise OpenShift::Runtime::FileLockError.new("Failed to lock gear home [#{@container.container_dir}]: #{e}",
-                                             @container.container_dir)
+                                                      @container.container_dir)
         end
       end
 
@@ -639,10 +639,10 @@ module OpenShift
 
         action << " --version #{software_version}"
         out, _, _ = @container.run_in_container_context(action,
-            env:                 cartridge_env,
-            chdir:               cartridge_home,
-            timeout:             @hourglass.remaining,
-            expected_exitstatus: 0)
+                                                        env:                 cartridge_env,
+                                                        chdir:               cartridge_home,
+                                                        timeout:             @hourglass.remaining,
+                                                        expected_exitstatus: 0)
         logger.info("Ran #{action} for #{@container.uuid}/#{cartridge.directory}\n#{Runtime::Utils.sanitize_credentials(out)}")
         out
       end
@@ -656,10 +656,10 @@ module OpenShift
         erbs.each do |file|
           begin
             @container.run_in_container_context(%Q{/usr/bin/oo-erb -S 2 -- #{file} > #{file.chomp('.erb')}},
-                env:                 env,
-                chdir:               @container.container_dir,
-                timeout:             @hourglass.remaining,
-                expected_exitstatus: 0)
+                                                env:                 env,
+                                                chdir:               @container.container_dir,
+                                                timeout:             @hourglass.remaining,
+                                                expected_exitstatus: 0)
           rescue ::OpenShift::Runtime::Utils::ShellExecutionException => e
             logger.info("Failed to render ERB #{file}: #{e.stderr}")
           else
@@ -685,10 +685,10 @@ module OpenShift
 
         # FIXME: Will anyone retry if this reports error, or should we remove from disk no matter what?
         buffer, err, _ = @container.run_in_container_context(teardown,
-            env:                 env,
-            chdir:               cartridge_home,
-            timeout:             @hourglass.remaining,
-            expected_exitstatus: 0)
+                                                             env:                 env,
+                                                             chdir:               cartridge_home,
+                                                             timeout:             @hourglass.remaining,
+                                                             expected_exitstatus: 0)
 
         buffer << err
 
@@ -711,16 +711,16 @@ module OpenShift
 
       def list_proxy_mappings
         proxied_ports = []
-        gear_env = ::OpenShift::Runtime::Utils::Environ.for_gear(@container.container_dir)
+        gear_env      = ::OpenShift::Runtime::Utils::Environ.for_gear(@container.container_dir)
         each_cartridge do |cartridge|
           cartridge.endpoints.each do |endpoint|
             next if gear_env[endpoint.public_port_name].nil?
             proxied_ports << {
-              :private_ip_name  => endpoint.private_ip_name,
-              :public_port_name => endpoint.public_port_name,
-              :private_ip   => gear_env[endpoint.private_ip_name],
-              :private_port => endpoint.private_port,
-              :proxy_port   => gear_env[endpoint.public_port_name],
+                :private_ip_name  => endpoint.private_ip_name,
+                :public_port_name => endpoint.public_port_name,
+                :private_ip       => gear_env[endpoint.private_ip_name],
+                :private_port     => endpoint.private_port,
+                :proxy_port       => gear_env[endpoint.public_port_name],
             }
           end
         end
@@ -1040,7 +1040,7 @@ module OpenShift
         end
 
         cartridge_home = PathUtils.join(@container.container_dir, cartridge.directory)
-        script = PathUtils.join(cartridge_home, 'hooks', conn.name)
+        script         = PathUtils.join(cartridge_home, 'hooks', conn.name)
 
         unless File.executable?(script)
           if env_var_hook
@@ -1053,9 +1053,9 @@ module OpenShift
 
         command      = script << " " << args
         out, err, rc = @container.run_in_container_context(command,
-            env:             env,
-            chdir:           cartridge_home,
-            timeout:         @hourglass.remaining)
+                                                           env:     env,
+                                                           chdir:   cartridge_home,
+                                                           timeout: @hourglass.remaining)
         if 0 == rc
           logger.info("(#{rc})\n------\n#{Runtime::Utils.sanitize_credentials(out)}\n------)")
           return out
@@ -1120,11 +1120,11 @@ module OpenShift
             command = ['set -e'] | command
 
             out, err, rc = @container.run_in_container_context(command.join('; '),
-                env:             cartridge_env,
-                chdir:           path,
-                timeout:         @hourglass.remaining,
-                out:             options[:out],
-                err:             options[:err])
+                                                               env:     cartridge_env,
+                                                               chdir:   path,
+                                                               timeout: @hourglass.remaining,
+                                                               out:     options[:out],
+                                                               err:     options[:err])
 
             buffer << out if out.is_a?(String)
             buffer << err if err.is_a?(String)
@@ -1159,11 +1159,11 @@ module OpenShift
 
         if File.executable?(action_hook)
           out, err, rc = @container.run_in_container_context(action_hook,
-              env:             env,
-              chdir:           @container.container_dir,
-              timeout:         @hourglass.remaining,
-              out:             options[:out],
-              err:             options[:err])
+                                                             env:     env,
+                                                             chdir:   @container.container_dir,
+                                                             timeout: @hourglass.remaining,
+                                                             out:     options[:out],
+                                                             err:     options[:err])
           raise ::OpenShift::Runtime::Utils::ShellExecutionException.new(
                     "Failed to execute action hook '#{action}' for #{@container.uuid} application #{@container.application_name}",
                     rc, out, err
@@ -1373,10 +1373,10 @@ module OpenShift
           # For the long-term, then, figure out a way to reliably
           # determine the IP address from Ruby.
           out, err, status = @container.run_in_container_context('facter ipaddress',
-              env:                 cartridge_env,
-              chdir:               @container.container_dir,
-              timeout:             @hourglass.remaining,
-              expected_exitstatus: 0)
+                                                                 env:                 cartridge_env,
+                                                                 chdir:               @container.container_dir,
+                                                                 timeout:             @hourglass.remaining,
+                                                                 expected_exitstatus: 0)
           private_ip       = out.chomp
         rescue
           require 'socket'

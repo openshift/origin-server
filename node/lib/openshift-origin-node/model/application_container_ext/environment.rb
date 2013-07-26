@@ -256,7 +256,7 @@ module OpenShift
           directory = PathUtils.join(@container_dir, '.env', 'user_vars')
           FileUtils.mkpath(directory) unless File.directory?(directory)
 
-          if (Dir.entries(directory).size - 2 + variables.size) >= USER_VARIABLE_MAX_COUNT
+          if (Dir.entries(directory).size - 2 + variables.size) > USER_VARIABLE_MAX_COUNT
             return 127, "CLIENT_ERROR: User Variables maximum of #{USER_VARIABLE_MAX_COUNT} exceeded"
           end
 
