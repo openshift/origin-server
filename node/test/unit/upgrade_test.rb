@@ -82,6 +82,9 @@ module OpenShift
         progress.expects(:step).with('mock_erb').yields({}, [])
         cart_model.expects(:process_erb_templates).with(next_manifest)
 
+        progress.expects(:step).with('mock_create_endpoints').yields({}, [])
+        cart_model.expects(:create_private_endpoints).with(next_manifest)
+
         progress.expects(:step).with('mock_connect_frontend').yields({}, [])
         cart_model.expects(:connect_frontend).with(next_manifest)
 
@@ -110,6 +113,9 @@ module OpenShift
 
         progress.expects(:step).with('mock_erb').yields({}, [])
         cart_model.expects(:process_erb_templates).with(next_manifest)
+
+        progress.expects(:step).with('mock_create_endpoints').yields({}, [])
+        cart_model.expects(:create_private_endpoints).with(next_manifest)
 
         progress.expects(:step).with('mock_connect_frontend').yields({}, [])
         cart_model.expects(:connect_frontend).with(next_manifest)
@@ -140,6 +146,9 @@ module OpenShift
         progress.expects(:step).with('mock_erb')
         cart_model.expects(:process_erb_templates).never()
 
+        progress.expects(:step).with('mock_create_endpoints').yields({}, [])
+        cart_model.expects(:create_private_endpoints).with(next_manifest)
+
         progress.expects(:step).with('mock_connect_frontend').yields({}, [])
         cart_model.expects(:connect_frontend).with(next_manifest)
 
@@ -168,6 +177,9 @@ module OpenShift
 
         progress.expects(:step).with('mock_erb')
         cart_model.expects(:process_erb_templates).never()
+
+        progress.expects(:step).with('mock_create_endpoints')
+        cart_model.expects(:create_private_endpoints).never()
 
         progress.expects(:step).with('mock_connect_frontend')
         cart_model.expects(:connect_frontend).never()
