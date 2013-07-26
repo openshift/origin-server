@@ -16,7 +16,6 @@
 require 'openshift-origin-common/config'
 
 require_relative 'cgroups/libcgroup'
-require_relative 'cgroups/template'
 
 module OpenShift
   module Runtime
@@ -71,14 +70,16 @@ module OpenShift
         def templates
           if not @@templates_cache
             res = Config.new('/etc/openshift/resource_limits.conf')
-            @@templates_cache={}
+            @@templates_cache={ :default => {} }
+
             @@TEMPLATE_SET.each do |templ, calls|
-              if templ == :default
-                @@templates_cache[templ]=Template.new(param_cfg(res))
-              else
-                @@templates_cache[templ]=Template.new(param_cfg(res.get_group("cg_template_#{templ}")))
+              if templ != :default
+                t = param_cfg(res.get_group("cg_template_#{templ}"))
+                @@templates_cache[templ] = t
+                @@templates_cache[:default].update(Hash[*(t.map { |k,v| [k, @impl.parameters[k]] }.flatten)])
               end
             end
+            @@templates_cache[:default].update(param_cfg(res))
             @@templates_cache.freeze
           end
           @@templates_cache
@@ -86,19 +87,19 @@ module OpenShift
 
         # Get the current values for any keys specified in the default template
         def current_values
-          keys = templates[:default].keys
-          fetch(keys)
+          keys = templates.map { |k,v| v.keys }.flatten.uniq
+          fetch(*keys)
         end
 
         # Public: Fetch the values from the current cgroup
         #   - If args is a single value, it will return the value
         #   - If args is an array, it will return a Template of values
         def fetch(*args)
-          t = Template.new(@impl.fetch(*args))
-          if (v = t.values).length > 1
+          t = @impl.fetch(*args)
+          if t.length > 1
             t
           else
-            v.first
+            t.values.first
           end
         end
 
@@ -133,8 +134,17 @@ module OpenShift
         # Public: Infer the current profile based on current values.
         def profile
           cur = current_values
-          # Search through known templates and compare them with our current values
-          (templates.find{|k,v| v == cur} || [:unknown]).first
+          tmpls = templates.map { |k,v| [ k, v.length ] }.sort { |a,b| a[1]  <=> b[1] }.map { |ent| ent[0] }
+
+          # Return the most specific match to all the current values or unknown
+          prof = :unknown
+          tmpls.each do |tmpl|
+            cmpvals = cur.select { |k,v| templates[tmpl].keys.include? k }
+            if cmpvals == templates[tmpl]
+              prof = tmpl
+            end
+          end
+          prof
         end
 
         # Public: List the process ids which are a member of this gear's cgroup.
@@ -161,7 +171,7 @@ module OpenShift
 
         # Private: Extract parameters from the configuration
         def param_cfg(res)
-          Hash[ *(@impl.parameters.map { |k| [k, res.get(k)] }.select { |ent| ent[1] }.flatten) ]
+          Hash[ *(@impl.parameters.map { |k,v| [k, res.get(k)] }.select { |ent| ent[1] }.flatten) ]
         end
 
       end
