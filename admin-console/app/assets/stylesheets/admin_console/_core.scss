@@ -58,10 +58,30 @@ h1 + .table-metadata {
   margin-top: -7px;
 }
 
+.user {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
+  &.right{
+    text-align: right;
+  }
+}
+
+.header {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (max-width: 767px) {
+  .user.right {
+    text-align: left;
+  }
+}
 
 
-
-@media (max-width: 760px) {
+@media (max-width: 767px) {
   .gear-group {
     .indent10 {
       margin-left: 0;

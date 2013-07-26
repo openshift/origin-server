@@ -2,7 +2,7 @@
   .row
     .span4
       %section
-        %h1
+        %h1.header{:title => "User #{@user.login}"}
           = image_tag "admin_console/user.svg", :class => "icon"
           = "User #{@user.login}"
         %table.table-horizontal.table-metadata
