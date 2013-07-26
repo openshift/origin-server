@@ -15,6 +15,7 @@
 #++
 
 require 'openshift-origin-node/utils/sdk'
+require 'openshift-origin-node/utils/node_logger'
 require 'openshift-origin-common/models/manifest'
 require 'openshift-origin-node/model/cartridge_repository'
 require 'openshift-origin-common'
@@ -131,6 +132,12 @@ module OpenShift
       end
 
       def self.get_quota(uuid)
+        begin
+          Etc.getpwnam(uuid)
+        rescue ArgumentError
+          raise NodeCommandException.new "Error: Unable to obtain quota user #{uuid} does not exist"
+        end
+
         cmd = %&quota --always-resolve -w #{uuid} | awk '/^.*\\/dev/ {print $1":"$2":"$3":"$4":"$5":"$6":"$7}'; exit ${PIPESTATUS[0]}&
         st, out, errout = systemu cmd
         if st.exitstatus == 0 || st.exitstatus == 1
@@ -159,13 +166,30 @@ module OpenShift
       end
 
       def self.set_quota(uuid, blocksmax, inodemax)
-        if inodemax.to_s.empty?
+        current_quota, current_inodes, cur_quota = 0, 0, nil
+
+        begin
           cur_quota = get_quota(uuid)
-          inodemax = cur_quota[6]
+        rescue NodeCommandException
+          # keep defaults
         end
 
-        mountpoint = self.get_gear_mountpoint
-        cmd = "setquota --always-resolve -u #{uuid} 0 #{blocksmax} 0 #{inodemax} -a #{mountpoint}"
+        unless nil == cur_quota
+          current_quota  = cur_quota[1].to_s.to_i
+          current_inodes = cur_quota[4].to_s.to_i
+          inodemax       = cur_quota[6].to_s.to_i if inodemax.to_s.empty?
+        end
+
+        if current_quota > blocksmax.to_i
+          raise NodeCommandException.new "Error: Current usage #{current_quota} exceeds requested quota #{blocksmax}"
+        end
+
+        if current_inodes > inodemax.to_i
+          raise NodeCommandException.new "Error: Current inodes #{current_inodes} exceeds requested inodes #{inodemax}"
+        end
+
+        mountpoint      = self.get_gear_mountpoint
+        cmd             = "setquota --always-resolve -u #{uuid} 0 #{blocksmax} 0 #{inodemax} -a #{mountpoint}"
         st, out, errout = systemu cmd
         raise NodeCommandException.new "Error: #{errout} executing command #{cmd}" unless st.exitstatus == 0
       end
