@@ -97,3 +97,19 @@
 .form-search .input-prepend .btn {
   @include border-radius(14px 0 0 14px);
 }
+
+@media (max-width: 480px) {
+  .input-prepend.input-append {
+    .add-on:first-child {
+      margin-bottom: 5px;
+      display: block;
+      float: none;
+      border-radius: 4px;
+    }
+
+    input[type="text"] {
+      border-radius: 4px 0 0 4px;
+      float: none;
+    }
+  }
+}
