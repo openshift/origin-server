@@ -63,8 +63,6 @@ BuildRequires: %{?scl:%scl_prefix}rubygem-coffee-rails
 BuildRequires: %{?scl:%scl_prefix}rubygem-sass-rails
 BuildRequires: %{?scl:%scl_prefix}rubygem-uglifier
 BuildRequires: %{?scl:%scl_prefix}rubygem-therubyracer
-BuildRequires: rubygem-openshift-origin-common
-BuildRequires: rubygem-openshift-origin-controller
 BuildArch:     noarch
 
 %description
