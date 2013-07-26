@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.12.2
+Version: 1.12.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -84,6 +84,32 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Fri Jul 26 2013 Adam Miller <admiller@redhat.com> 1.12.3-1
+- Ensure that git version is 1.8.* before setting push.default simple
+  (kraman@gmail.com)
+- Merge pull request #3174 from lnader/master
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3141 from detiber/jbaws
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 982921 (lnader@redhat.com)
+- Bug 982107 (lnader@redhat.com)
+- Bug 987799 (lnader@redhat.com)
+- Merge pull request #3172 from ironcladlou/bz/987836
+  (dmcphers+openshiftbot@redhat.com)
+- JBoss Deployment verification (jdetiber@redhat.com)
+- Bug 987836: Refactor hot deploy marker detection (ironcladlou@gmail.com)
+- Merge pull request #3164 from pmorie/bugs/mco_bounce
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3160 from pravisankar/dev/ravi/card78
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3156 from kraman/bugfix3
+  (dmcphers+openshiftbot@redhat.com)
+- Use service script instead of SIGUSR to reload mcollective (pmorie@gmail.com)
+- For consistency, rest api response must display 'delete' instead 'destroy'
+  for user/domain/app (rpenta@redhat.com)
+- Adding Fedora vs RHEL cases for idler. Ruby 2.0 in F19 runs as ruby-mri vs
+  ruby in RHEL (kraman@gmail.com)
+
 * Wed Jul 24 2013 Adam Miller <admiller@redhat.com> 1.12.2-1
 - fix bz987773, make max calculation use a floating point (rchopra@redhat.com)
 - <application.rb> Add feature to carts to handle wildcard ENV variable
