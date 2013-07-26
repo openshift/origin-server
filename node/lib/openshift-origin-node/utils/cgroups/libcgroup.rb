@@ -49,7 +49,7 @@ module OpenShift
             @uuid = uuid
 
             @config = OpenShift::Config.new
-            @cgroup_root = (@config.get("OPENSHIFT_CGROUP_ROOT") or @@DEFAULT_CGROUP_ROOT)
+            @cgroup_root = self.class.cgroup_root
             @cgroup_path = "#{@cgroup_root}/#{@uuid}"
 
             if not @@subsystems_cache
@@ -67,6 +67,19 @@ module OpenShift
             end
             @parameters = @@parameters_cache
 
+          end
+
+          def self.cgroup_root
+            OpenShift::Config.new.get("OPENSHIFT_CGROUP_ROOT") or @@DEFAULT_CGROUP_ROOT
+          end
+
+          def self.cgroup_mount
+            cmd = "cat /proc/mounts | grep cgroup | awk '{print $2}'"
+            ::OpenShift::Runtime::Utils::oo_spawn(cmd).first.strip
+          end
+
+          def self.cgroup_path
+            File.join(cgroup_mount, cgroup_root)
           end
 
           # Public: Create a cgroup namespace for the gear
