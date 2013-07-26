@@ -15,7 +15,7 @@ module AdminConsole
                 redirect_to gear_path :id => @query
               when "application"
                 redirect_to application_path :id => @query
-              end
+              end unless @query.nil? || @query.empty?
       #otherwise just render the search form
     end
   end
