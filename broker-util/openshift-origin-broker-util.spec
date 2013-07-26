@@ -24,11 +24,6 @@ Requires:      mongodb
 Requires:      bind-utils
 # For oo-admin-broker-auth
 Requires:      mcollective-client
-%if 0%{?fedora} >= 17
-BuildRequires: %{?scl:%scl_prefix}rubygems-devel
-%else
-BuildRequires: %{?scl:%scl_prefix}rubygems
-%endif
 BuildArch:     noarch
 
 %description
