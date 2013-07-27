@@ -5,15 +5,17 @@ v2.0, July 2013
 :toc2:
 :icons:
 :numbered:
+:toclevels: 3
 
 include::_navigation.adoc[]
 
 This document describes the process of setting up a VM running an
 OpenShift development environment inside VirtualBox.
 
-You need to have VirtuaBox installed on your workstation and you will
-need at least 5GB of free disk space.  The compressed download is 1.3GB
-and when you unpack it the resulting image file is almost 4GB.
+You need to have a virtualization application such as KVM, or VirtuaBox installed on your
+workstation and you will need at least 25GB of free disk space. The compressed download is 
+about 1.3GB and when you unpack it the resulting image file is almost 4GB vmdk file or 20 GB
+uncompressed RAW disk file (Linux only).
 
 == Download VM
 
@@ -43,7 +45,118 @@ openshift-origin.vmdk
 openshift-origin.vmx
 ----
 
-== Create VirtualBox instance
+== Configure mDNS
+
+The VM image is configured to use link:http://en.wikipedia.org/wiki/MDNS[mDNS] to provide DNS name resolution so that
+your browser and RHC client can resolve the URL of the broker and applications running on the VM. mDNS services are built-in
+on MacOSX (bonjour) and Windows (zeroconf) system and require a few addition steps on Fedora 19 or other linux based systems.
+
+Install the mdns resolver RPM:
+
+----
+yum install -y nss-mdns
+----
+
+Edit your _/etc/nsswitch.conf_ file. Search for a list beginning with *"hosts:"* and add *mdns4* to the end of the line. 
+After the edit, it should look like:
+
+----
+hosts:      files mdns4_minimal [NOTFOUND=return] dns myhostname mdns4
+----
+
+This will allow your browser and RHC client to properly resolve the hostname and application URLs.
+
+== Set up the Virtual Machine
+
+The base VM image is distributed as a VMDK file and will run on a variety of virtualization
+technologies.
+
+=== KVM
+
+==== Installing KVM Tools
+
+Start by installing the KVM/libvirt RPMs:
+
+----
+yum install -y virt-manager libvirt
+----
+
+NOTE: This step may take a while depending on the speed of your internet connection.
+
+==== Convert The Image
+
+KVM requires a RAW disk image file. We can use _qemu-img_ command to convert the VMDK image to RAW format.
+
+Install the _qemu-img_ RPM:
+
+----
+yum install -y qemu-img
+----
+
+Run _qemu-img_ to convert the image file and then copy it into the libvirt directory.
+
+----
+qemu-img -O raw openshift-origin.vmdk openshift-origin.dsk
+mv openshift-origin.dsk /var/lib/libvirt/images/
+----
+
+==== Create New VM
+
+Ensure that _libvirt_ is running:
+
+----
+service libvirtd start
+----
+
+Start virt-manager on the command line:
+
+----
+virt-manager
+----
+
+Once virt-manager starts, click on the "Create a new virtual machine" icon or right click on localhost and select _New_.
+
+image:virt_manager_start.png[image]
+
+Enter "openshift_origin" as the name of the virtual machine, select "Import existing disk image" and click "Forward".
+
+image:virt_manager_step_1.png[image]
+
+==== Select VM Disk Image
+
+Select "Linux" as the "OS Type" and "Fedora 19" as the version then click "Browse..." to select the disk image.
+
+image:virt_manager_step_2.png[image]
+
+Select the "openshift-origin.dsk" image and click "Choose Volume"
+
+image:virt_manager_select_image.png[image]
+
+Once you are back to the setup screen, click "Forward".
+
+==== Set VM Memory Size
+
+Set the memory size to something reasonably large. 1GB should be a good start. Click the "Forward" button.
+
+image:virt_manager_step_3.png[image]
+
+==== Set VM Memory Size
+
+Select "Virtual Network 'default': NAT" network and click Finish to start the VM.
+
+image:virt_manager_step_4.png[image]
+
+==== Starting the VM
+
+When the VM has finished booting. It will go through some initialization:
+
+image:virt_manager_vm_starting.png[image]
+
+And then present you with the URL and credentials to connect to your OpenShift Origin VM.
+
+image:virt_manager_vm_running.png[image]
+
+=== VirtualBox
 
 You can start VirtualBox either by clicking on the desktop item in the
 startup menus or from the command line:
@@ -53,7 +166,7 @@ $ virtualbox &
 ----
 
 
-=== Create New VM
+==== Create New VM
 
 When you start VirtualBox and you should see the welcome page. Click
 the New button in the upper left to begin the process of creating
@@ -65,7 +178,7 @@ Fill in the name. It feels like VirtualBox knows that things called
 "OpenShift" will be Linux, but you should change the version to
 Fedora (64 bit) and click Next.
 
-=== Set VM Memory Size
+==== Set VM Memory Size
 
 VirtualBox gives some of your computer's memory to the virtual
 machine. You want it to be large enough so that the machine runs well,
@@ -76,7 +189,7 @@ good start.  Click the Next button.
 
 image:deployment_guide_vm/virtualbox_memsize.png[image]
 
-=== Select VM "Hard Drive" Image
+==== Select VM "Hard Drive" Image
 
 Normally Virtualbox will create a new virtual hard drive for you.  In
 this case you want to select the virtual disk image which contains the
@@ -103,7 +216,7 @@ the stopped virtual machine and present the VM manager display.
 
 image:deployment_guide_vm/virtualbox_vm_prestart.png[image]
 
-=== Select Bridged Networking
+==== Select Bridged Networking
 
 By default VirtualBox uses Network Address Translation (NAT) to create a
 virtual network interface for your virtual machines. NAT will not let
