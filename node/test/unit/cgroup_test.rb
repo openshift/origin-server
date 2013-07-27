@@ -15,108 +15,221 @@
 # limitations under the License.
 #++
 #
-# Test the OpenShift selinux utilities
+# Test the OpenShift Cgroup utilities
 #
 require_relative '../test_helper'
 
-class CgroupsUtilsTest < OpenShift::NodeTestCase
+class CgroupsUtilsTest < OpenShift::NodeBareTestCase
 
   def setup
+    @uid  = 1234
+    @uuid = "nosuchuser"
 
-    @resources = {
-      "a" => {
-        "a.i" => 1,
-        "a.ii" => 2,
-        "a.iii" => 3,
-        "a.iv" => 4,
-        "a.v" => 5
-      },
-      "b" => {
-        "b.vi" => 6
-      },
-      "c" => {
-        "c.vii" => 7
-      },
-      "d" => {
-        "d.viii" => 8
-      }
+    @template_query_methods = {
+      :default? => :default,
+      :boosted? => :boosted,
+      :throttled? => :throttled,
+      :frozen? => :frozen,
+      :thawed? => :thawed
     }
 
-    @cgroup_root = "cgroup_root"
-    @cgroup_subsystems = @resources.keys.join(",")
-    @cgroup_controller_vars = @resources.map { |k,v| v.map { |k,v| k } }.flatten.join(",")
+    @template_set_methods = {
+      :default => :default,
+      :boost => :boosted,
+      :throttle => :throttled,
+      :freeze => :frozen,
+      :thaw => :thawed
+    }
 
-    @uid=123456789
-    @uuid="987654321"
-    @gecos="blah blah blah"
+    @templates = {
+      :default => { "foo" => "1", "bar" => "2", "baz" => "3", "a" => "c" },
+      :throttled => { "baz" => "4" },
+      :boosted => { "baz" => "11" },
+      :frozen => { "a" => "b" },
+      :thawed => { "a" => "c" }
+    }
 
-    @resource_mock = mock('OpenShift::Config')
-    @resources.each do |k,v|
-      v.each do |k,v|
-        limit = "limit_" + k.gsub('.','-')
-        @resource_mock.stubs(:get).with(limit).returns(v)
+    @parameters = @templates[:default]
+
+    @pids=[ 9999999, 8888888, 7777777, 6666666 ]
+
+    @libcgroup_mock = mock('OpenShift::Runtime::Utils::Cgroups::Libcgroup')
+    @libcgroup_mock.stubs(:parameters).returns(@parameters)
+    OpenShift::Runtime::Utils::Cgroups::Libcgroup.expects(:new).with(@uuid).returns(@libcgroup_mock)
+
+    @cls = OpenShift::Runtime::Utils::Cgroups
+    @clsany = @cls.any_instance
+    @cgroups = @cls.new(@uuid)
+  end
+
+  def call_set_call(meth, templ)
+    assert @cgroups.methods.include?(meth), "Failed to define_method for #{meth}"
+    if @cgroups.methods.include?(meth)
+      @clsany.expects(:apply_profile).with(templ)
+      @cgroups.send(meth)
+    end
+  end
+
+  def test_template_set_calls
+    @template_set_methods.each do |meth, templ|
+      call_set_call(meth, templ)
+    end
+    call_set_call(:restore, @template_set_methods[:default])
+  end
+
+  def test_template_compare_calls
+    @template_query_methods.each do |meth, templ|
+      assert @cgroups.methods.include?(meth), "Failed to define_method for #{meth}"
+      if @cgroups.methods.include?(meth)
+        @clsany.expects(:profile).twice.returns(templ).then.returns(:unknown)
+        assert @cgroups.send(meth), "Comparison with wrong profile."
+        assert (not @cgroups.send(meth)), "Comparison with wrong profile should have failed."
       end
     end
-    @resource_mock.stubs(:get).returns(nil)
-    OpenShift::Config.stubs(:new).with("/etc/openshift/resource_limits.conf").returns(@resource_mock)
-
-    @config.stubs(:get).with("OPENSHIFT_CGROUP_ROOT").returns(@cgroup_root)
-    @config.stubs(:get).with("OPENSHIFT_CGROUP_SUBSYSTEMS").returns(@cgroup_subsystems)
-    @config.stubs(:get).with("OPENSHIFT_CGROUP_CONTROLLER_VARS").returns(@cgroup_controller_vars)
-    @config.stubs(:get).with("GEAR_GECOS").returns(@gecos)
-
-    @passwd_mock = mock('Etc::Passwd')
-    @passwd_mock.stubs(:name).returns(@uuid)
-    @passwd_mock.stubs(:uid).returns(@uid)
-    @passwd_mock.stubs(:gecos).returns(@gecos)
-
-    @etc_mock = mock('Etc')
-    @etc_mock.stubs(:getpwnam).with(@uuid).returns(@passwd_mock)
-    @etc_mock.stubs(:passwd).yields(@passwd_mock)
-
-    @attrs_mock = mock('OpenShift::Runtime::Utils::Cgroups::Attrs')
-    OpenShift::Runtime::Utils::Cgroups::Attrs.stubs(:new).returns(@attrs_mock)
-
   end
 
-  def test_with_no_cpu_limits
-    @attrs_mock.expects(:[]).with('cpu.cfs_quota_us').returns("foo")
-    @attrs_mock.expects(:[]).with("cpu.cfs_period_us").returns("bar")
-
-    quota_calls = sequence('quota_calls')
-    @attrs_mock.expects(:[]=).with('cpu.cfs_quota_us', "bar").in_sequence(quota_calls)
-    @attrs_mock.expects(:[]=).with('cpu.cfs_quota_us', "foo").in_sequence(quota_calls)
-
-    r = OpenShift::Runtime::Utils::Cgroups::with_no_cpu_limits(@uuid) { "yielded value" }
-    assert_equal "yielded value", r, "Did not yield properly"
+  def test_create
+    @clsany.expects(:templates).returns(@templates)
+    @libcgroup_mock.expects(:create).with(@templates[:default])
+    @cgroups.create
   end
 
-  def test_gen_cgconfig
-    assert_equal " = 1;", OpenShift::Runtime::Utils::Cgroups::gen_cgconfig(1)
-    assert_equal " = foo;", OpenShift::Runtime::Utils::Cgroups::gen_cgconfig("foo")
-    assert_equal "", OpenShift::Runtime::Utils::Cgroups::gen_cgconfig({})
-    assert_equal " { foo = bar; }", OpenShift::Runtime::Utils::Cgroups::gen_cgconfig({ "foo" => "bar" })
-    assert_equal " { baz = 1; }", OpenShift::Runtime::Utils::Cgroups::gen_cgconfig({ "baz" => 1 })
-    assert_equal " { foo { bar = 1; baz = 2; } }", OpenShift::Runtime::Utils::Cgroups::gen_cgconfig({ "foo" => { "bar" => 1, "baz" => 2 }})
+  def test_delete
+    @libcgroup_mock.expects(:delete)
+    @cgroups.delete
   end
 
-  def test_net_cls
-    assert_equal 0x10001,OpenShift::Runtime::Utils::Cgroups::net_cls(1)
-    assert_equal 0x10F0F,OpenShift::Runtime::Utils::Cgroups::net_cls(0xF0F)
-    assert_equal 0x1FFFF,OpenShift::Runtime::Utils::Cgroups::net_cls(0xFFFF)
+  def test_templates
+    resconf = mock('OpenShift::Runtime::Utils::Cgroups::Config')
+    resconf.stubs(:get).returns(nil)
+    resconf.stubs(:get_group).returns({})
 
-    assert_raises RuntimeError do
-      OpenShift::Runtime::Utils::Cgroups::net_cls(0x1FFFF)
+    @templates[:default].each do |k, v|
+      resconf.stubs(:get).with(k).returns(v)
     end
 
-    assert_raises RuntimeError do
-      OpenShift::Runtime::Utils::Cgroups::net_cls("blah")
+    @templates.each do |templ, ent|
+      next if templ == :default
+      m = mock('OpenShift::Runtime::Utils::Cgroups::Config templ')
+      m.stubs(:get).returns(nil)
+      m.stubs(:get_group).returns({})
+
+      ent.each do |k, v|
+        m.stubs(:get).with(k).returns(v)
+      end
+      resconf.stubs(:get_group).with("cg_template_#{templ}").returns(m)
     end
 
-    assert_raises RuntimeError do
-      OpenShift::Runtime::Utils::Cgroups::net_cls(nil)
+    OpenShift::Runtime::Utils::Cgroups::Config.expects(:new).with('/etc/openshift/resource_limits.conf').returns(resconf)
+
+    assert_equal @templates, @cgroups.templates
+  end
+
+  def test_current_values
+    all_keys = @templates.map { |k,v| v.keys }.flatten.uniq
+
+    @clsany.expects(:templates).returns(@templates)
+    @clsany.expects(:fetch).with(*all_keys).returns(@templates[:default])
+    assert_equal @cgroups.current_values, @templates[:default]
+  end
+
+  def test_fetch
+    @libcgroup_mock.expects(:fetch).with(@templates[:default].keys).returns(@templates[:default])
+    assert_equal @templates[:default], @cgroups.fetch(@templates[:default].keys)
+  end
+
+  def test_store
+    @libcgroup_mock.expects(:store).with(@templates[:default])
+    @cgroups.store(@templates[:default])
+  end
+
+  def test_store_empty
+    @libcgroup_mock.stubs(:store).never
+    @cgroups.store
+  end
+
+  def test_apply_profile
+    profile = :throttled
+
+    @clsany.expects(:templates).returns(@templates)
+    @clsany.expects(:store).with(@templates[profile]).returns(@templates[profile])
+    @clsany.expects(:store).with(@templates[:default]).never
+
+    @cgroups.apply_profile(profile)
+  end
+
+  def test_apply_profile_with_block
+    profile = :throttled
+
+    @clsany.expects(:templates).returns(@templates).twice
+    @clsany.expects(:store).with(@templates[profile]).returns(@templates[profile])
+    @clsany.expects(:store).with(@templates[:default]).returns(@templates[:default])
+
+    block_ran = false
+    @cgroups.apply_profile(profile) do
+      block_ran = true
     end
 
+    assert block_ran, "Did not call the block."
+  end
+
+  def test_apply_profile_unknown_template
+    profile = :unknown
+
+    @clsany.expects(:templates).returns(@templates)
+    @clsany.expects(:store).never
+
+    block_ran = false
+    assert_raise ArgumentError do
+      @cgroups.apply_profile(profile) do
+        block_ran = true
+      end
+    end
+
+    assert (not block_ran), "called the block."
+  end
+
+  def call_profile(profile, values)
+    @clsany.stubs(:templates).returns(@templates).at_least_once
+    @clsany.expects(:current_values).returns(values)
+
+    assert_equal profile, @cgroups.profile, "Failed to match profile #{profile}"
+  end
+
+  def test_profile_default
+    call_profile(:default, @templates[:default])
+  end
+
+  def test_profile_throttled
+    call_profile(:throttled, @templates[:throttled])
+  end
+
+  def test_profile_unknown
+    call_profile(:unknown, {})
+  end
+
+  def test_processes
+    @libcgroup_mock.expects(:processes).returns(@pids)
+    assert_equal @pids, @cgroups.processes
+  end
+
+  def test_classify_processes
+    @libcgroup_mock.expects(:classify_processes)
+    @cgroups.classify_processes
+  end
+
+  def test_class_show_templates
+    t = OpenShift::Runtime::Utils::Cgroups.show_templates
+    @templates.keys.each do |tname|
+      assert t.include?(tname), "Template is missing #{tname}"
+    end
+  end
+
+  def test_show_templates
+    t = @cgroups.show_templates
+    @templates.keys.each do |tname|
+      assert t.include?(tname), "Template is missing #{tname}"
+    end
   end
 
 end

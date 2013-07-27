@@ -176,11 +176,13 @@ def source_file(file)
     # TODO: do something sane and make it consistent everywhere without breaking anything
     parser = ParseConfig.new(file)
     parser.get_params.each do |key|
+      next if parser.groups.include?(key)
       val = parser[key]
       next if val.nil?
       val.gsub!(/\\:/,":") if not val.nil?
       val.gsub!(/[ \t]*#[^\n]*/,"") if not val.nil?
       val = val[1..-2] if not val.nil? and val.start_with? "\""
+      val = val[1..-2] if not val.nil? and val.start_with? "\'"
       ENV[key] = val
     end
 end
