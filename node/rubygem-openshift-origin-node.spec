@@ -16,7 +16,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.11.11
+Version: 1.11.12
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -286,6 +286,10 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Fri Jul 26 2013 Adam Miller <admiller@redhat.com> 1.11.12-1
+- Bug 988519 - Ensure that the gear task runs as unconfined_u.
+  (rmillner@redhat.com)
+
 * Mon Jul 22 2013 Adam Miller <admiller@redhat.com> 1.11.11-1
 - Bug 986380 - the backup file is unnecessarily paranoid and causing problems
   by being in the wrong context. (rmillner@redhat.com)
