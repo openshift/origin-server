@@ -5,7 +5,317 @@ v2.0, July 2013
 :toc2:
 :icons:
 :numbered:
+:toclevels: 3
 
 include::_navigation.adoc[]
 
-This document has not been written yet. Check back soon.
+This document describes the process of setting up a VM running an
+OpenShift development environment inside VirtualBox.
+
+You need to have a virtualization application such as KVM, or VirtuaBox installed on your
+workstation and you will need at least 25GB of free disk space. The compressed download is 
+about 1.3GB and when you unpack it the resulting image file is almost 4GB vmdk file or 20 GB
+uncompressed RAW disk file (Linux only).
+
+== Download VM
+
+Download the VM from the OpenShift "mirrors" site:
+
+----
+wget https://mirror.openshift.com/pub/openshift/images/<baseos>/openshift-origin.latest.tbz2
+----
+
+== Unpack VM files
+
+The download package is a bzip2 compressed tar archive. Unpack it with tar:
+
+----
+tar -xjvf openshift-origin.tbz2
+----
+
+This can take quite a while.  The files being uncompressed are pretty
+large.  The result will be the creation of four additional files:
+
+----
+$ ls -1t
+openshift-origin.tbz2
+openshift-origin.ovf
+openshift-origin.tdl
+openshift-origin.vmdk
+openshift-origin.vmx
+----
+
+== Configure mDNS
+
+The VM image is configured to use link:http://en.wikipedia.org/wiki/MDNS[mDNS] to provide DNS name resolution so that
+your browser and RHC client can resolve the URL of the broker and applications running on the VM. mDNS services are built-in
+on MacOSX (bonjour) and Windows (zeroconf) system and require a few addition steps on Fedora 19 or other linux based systems.
+
+Install the mdns resolver RPM:
+
+----
+yum install -y nss-mdns
+----
+
+Edit your _/etc/nsswitch.conf_ file. Search for a list beginning with *"hosts:"* and add *mdns4* to the end of the line. 
+After the edit, it should look like:
+
+----
+hosts:      files mdns4_minimal [NOTFOUND=return] dns myhostname mdns4
+----
+
+This will allow your browser and RHC client to properly resolve the hostname and application URLs.
+
+== Set up the Virtual Machine
+
+The base VM image is distributed as a VMDK file and will run on a variety of virtualization
+technologies.
+
+=== KVM
+
+==== Installing KVM Tools
+
+Start by installing the KVM/libvirt RPMs:
+
+----
+yum install -y virt-manager libvirt
+----
+
+NOTE: This step may take a while depending on the speed of your internet connection.
+
+==== Convert The Image
+
+KVM requires a RAW disk image file. We can use _qemu-img_ command to convert the VMDK image to RAW format.
+
+Install the _qemu-img_ RPM:
+
+----
+yum install -y qemu-img
+----
+
+Run _qemu-img_ to convert the image file and then copy it into the libvirt directory.
+
+----
+qemu-img -O raw openshift-origin.vmdk openshift-origin.dsk
+mv openshift-origin.dsk /var/lib/libvirt/images/
+----
+
+==== Create New VM
+
+Ensure that _libvirt_ is running:
+
+----
+service libvirtd start
+----
+
+Start virt-manager on the command line:
+
+----
+virt-manager
+----
+
+Once virt-manager starts, click on the "Create a new virtual machine" icon or right click on localhost and select _New_.
+
+image:virt_manager_start.png[image]
+
+Enter "openshift_origin" as the name of the virtual machine, select "Import existing disk image" and click "Forward".
+
+image:virt_manager_step_1.png[image]
+
+==== Select VM Disk Image
+
+Select "Linux" as the "OS Type" and "Fedora 19" as the version then click "Browse..." to select the disk image.
+
+image:virt_manager_step_2.png[image]
+
+Select the "openshift-origin.dsk" image and click "Choose Volume"
+
+image:virt_manager_select_image.png[image]
+
+Once you are back to the setup screen, click "Forward".
+
+==== Set VM Memory Size
+
+Set the memory size to something reasonably large. 1GB should be a good start. Click the "Forward" button.
+
+image:virt_manager_step_3.png[image]
+
+==== Set VM Memory Size
+
+Select "Virtual Network 'default': NAT" network and click Finish to start the VM.
+
+image:virt_manager_step_4.png[image]
+
+==== Starting the VM
+
+When the VM has finished booting. It will go through some initialization:
+
+image:virt_manager_vm_starting.png[image]
+
+And then present you with the URL and credentials to connect to your OpenShift Origin VM.
+
+image:virt_manager_vm_running.png[image]
+
+=== VirtualBox
+
+You can start VirtualBox either by clicking on the desktop item in the
+startup menus or from the command line:
+
+----
+$ virtualbox &
+----
+
+
+==== Create New VM
+
+When you start VirtualBox and you should see the welcome page. Click
+the New button in the upper left to begin the process of creating
+creating a new VM and importing the OpenShift virtual disk.
+
+image:deployment_guide_vm/virtualbox_new_vm.png[image]
+
+Fill in the name. It feels like VirtualBox knows that things called
+"OpenShift" will be Linux, but you should change the version to
+Fedora (64 bit) and click Next.
+
+==== Set VM Memory Size
+
+VirtualBox gives some of your computer's memory to the virtual
+machine. You want it to be large enough so that the machine runs well,
+but not so large that it consumes all of your computer's memory. 
+
+Set the memory size to something reasonably large.  1GB should be a
+good start.  Click the Next button.
+
+image:deployment_guide_vm/virtualbox_memsize.png[image]
+
+==== Select VM "Hard Drive" Image
+
+Normally Virtualbox will create a new virtual hard drive for you.  In
+this case you want to select the virtual disk image which contains the
+OpenShift Origin virtual machine.
+
+Check the radio button labeled
+"Use an existing virtual hard drive file" and click the little folder
+icon with the green circumflex in the lower right corner.
+
+image:deployment_guide_vm/virtualbox_select_vhd.png[image]
+
+VirtualBox will present a file selection dialog. Browse to find the
+"openshift-origin.vmdk" file and select it.  Press the button labeled 
+"Open".
+
+image:deployment_guide_vm/virtualbox_select_vhd_dialog.png[image]
+
+Press the button labeled "Open".
+
+image:deployment_guide_vm/virtualbox_select_vhd_create.png[image]
+
+When the disk has been selected click "Create". VirtualBox will create
+the stopped virtual machine and present the VM manager display.
+
+image:deployment_guide_vm/virtualbox_vm_prestart.png[image]
+
+==== Select Bridged Networking
+
+By default VirtualBox uses Network Address Translation (NAT) to create a
+virtual network interface for your virtual machines. NAT will not let
+you connect back into your virtual machine.  You need to change the
+network adaptor configuration to use Bridged networking.  Then your
+virtual machine will get an IP address from your DHCP server, and you
+will be able to use that address to browse or log in.
+
+Highlight the OpenShift virtual machine (if it's the only one, it will
+be already) and click the Settings icon (shaped like a gear) in the
+upper left corner.
+
+image:deployment_guide_vm/virtualbox_config_network_dialog.png[image]
+
+Each system may have different names for the network adaptor.  Find
+yours in the pulldown menu labeled "Attached to:".  Select it and
+press the OK button.  You'll return to the main display ready to start
+the VM.
+
+Highlight the OpenShift Origin VM in the left hand column and click
+the "Start" button.  VirtualBox will display the VM console as a black
+window and you can observe the boot process.
+
+Virtualbox may show several informational dialog messages during
+startup about "Auto capture keyboard" and "mouse pointer
+integration". It is safe to click them away and to check the "don't
+show me again" box when you do.
+
+When the VM has completed booting VirtualBox will display the access
+information for the VM and prompt you to start a root console.
+
+image:deployment_guide_vm/virtualbox_console_banner.png[image]
+
+The first line shows the URL you can use from your local browser to
+reach the OpenShift console. The username and password are on the next
+two lines. The next group shows the access information to the VM using
+SSH to get a command line shell on the VM. Note these values as you
+will need them to access the VM.
+
+When you press any key the console shell will start.
+
+image:deployment_guide_vm/virtualbox_console_shell.png[image]
+
+== Accessing the Virtual Machine
+
+When the VM is running it is accessable from the host machine either
+using the OpenShift console via a web browser or on a command line
+interface using SSH.  The web interface is useful for easily managing
+applications while the CLI allows the user to write and test
+applications and components.  The web browser will also be used to
+verify the test applications during development.
+
+=== Using a browser to view the OpenShift Console
+
+When the VM is running you can use the OpenShift Console to create and
+manage applications in the VM.  Enter the URL from the CLI boot
+console into your browser.  Enter the username and password when
+prompted.
+
+image:deployment_guide_vm/virtualbox_oo_console.png[image]
+
+See the OpenShift Console user documentation [LINK] to proceed.
+
+=== Using SSH to log into the VM
+
+Most of the OpenShift workflow for application development is done
+from the command line.  The OpenShift VM has an account created and
+populated with the tools needed to create, manage and develop apps for
+demonstration purposes.
+
+The user reaches the command line on the VM using SSH from the host.
+
+----
+$ ssh openshift@10.18.17.190
+The authenticity of host '10.18.17.190 (10.18.17.190)' can't be established.
+RSA key fingerprint is 75:f9:6d:2f:2c:d3:43:73:88:09:67:71:a4:a2:c7:06.
+Are you sure you want to continue connecting (yes/no)? yes
+Warning: Permanently added '10.18.17.190' (RSA) to the list of known hosts.
+openshift@10.18.17.190's password: 
+[openshift@broker ~]$ ls
+[openshift@broker ~]$ pwd
+/home/openshift
+[openshift@broker ~]$
+----
+
+At this point the user has access to the `rhc` command line tools for
+managing OpenShift.
+
+=== Viewing applications with the browser
+
+When new applications are created on the VM OpenShift service they
+will be accessable from a web browser on the host.
+
+
+== Summary
+
+The steps above allow a user to download and run a self-contained
+OpenShift service for development or demonstration purposes.  The
+service runs in a VirtualBox virtual machine and is accessable to the
+user on the host machine using the VirtualBox graphical console, by
+SSH or with a local web browser to the OpenShift console and to any
+applications that are created within the OpenShift service.
