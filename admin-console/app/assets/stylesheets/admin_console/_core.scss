@@ -16,3 +16,114 @@ a.skip-navigation {
   font-size: 52px;
   margin: 20px 0;
 }
+
+.extra-large {
+  font-size: $extraLargeFontSize;
+}
+
+.large {
+  font-size: $largeFontSize;
+}
+
+.container section {
+    margin-bottom: 25px;
+}
+
+.header.rcue .container .brand {
+  height: 10px;
+  width: 269px;
+  background: url($brandLogo) no-repeat scroll 0 center transparent;
+  margin: 0;
+}
+
+section.application {
+  margin: 20px 0 40px 0;
+}
+
+h1 .icon {
+    height: 30px;
+}
+
+@media (max-width: 480px) {
+  h1 .icon {
+      height: 20px;
+  }
+}
+
+.indent10 {
+  margin-left: 10px;
+}
+
+h1 + .table-metadata {
+  margin-top: -7px;
+}
+
+.user {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
+  &.right{
+    text-align: right;
+  }
+}
+
+.header {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (max-width: 767px) {
+  .user.right {
+    text-align: left;
+  }
+}
+
+
+@media (max-width: 767px) {
+  .gear-group {
+    .indent10 {
+      margin-left: 0;
+    }
+    
+    /* Based on http://css-tricks.com/responsive-data-tables/ */
+    /* Force table to not be like tables anymore */
+    table, thead, tbody, th, td, tr { 
+      display: block; 
+    }
+    
+    /* Hide table headers (but not display: none;, for accessibility) */
+    thead tr { 
+      position: absolute;
+      top: -9999px;
+      left: -9999px;
+    }
+    
+    tr { border: 1px solid #ccc; }
+    
+    td { 
+      /* Behave  like a "row" */
+      border: none;
+      border-bottom: 1px solid #eee; 
+      position: relative;
+      padding-left: 35%; 
+      overflow: hidden;
+    }
+    
+    td:before { 
+      /* Now like a table header */
+      position: absolute;
+      /* Top/left values mimic padding */
+      top: 6px;
+      left: 6px;
+      width: 30%; 
+      padding-right: 10px; 
+      white-space: nowrap;
+    }
+
+    td:nth-of-type(1):before { content: "Gear"; }
+    td:nth-of-type(2):before { content: "Cartridges"; }
+    td:nth-of-type(3):before { content: "Node"; }
+  }
+}

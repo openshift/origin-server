@@ -13,5 +13,5 @@ AdminConsole::Engine.routes.draw do
 end
 # integrate admin-console routes into the broker routes.
 Rails.application.routes.draw do
-      mount AdminConsole::Engine => "/admin-console"
+      mount AdminConsole::Engine => Rails.application.config.admin_console[:mount_uri]
 end

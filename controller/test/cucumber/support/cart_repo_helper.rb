@@ -24,7 +24,9 @@ def clean_cart_repo
     end
   end
 
-  %x(pkill -USR1 -f /usr/sbin/mcollectived) if restart_mcollectived
+  %x(service mcollective restart) if restart_mcollectived
+
+  sleep 5
 
   cart_repo.clear
   cart_repo.load

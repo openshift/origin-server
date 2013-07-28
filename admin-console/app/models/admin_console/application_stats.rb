@@ -3,6 +3,8 @@ module AdminConsole
     include StatisticGenerator
 
     def self.apps_per_domain_binning
+      return binning_from_mongo_aggregate([{"_id" => 0, "count" => Domain.count}]) unless Application.count > 0
+
       binning_from_mongo_aggregate(collection.aggregate(
         {
           "$group" => {

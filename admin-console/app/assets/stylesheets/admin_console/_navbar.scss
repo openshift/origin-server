@@ -1,9 +1,126 @@
+.header.rcue {
+  .navbar-inner {
+    background-color: #232323;
+  }
+
+  .utility .navbar-inner {
+    border-bottom-color: #777;
+  }
+
+  .primary .navbar-inner {
+    background-image: linear-gradient(to bottom, #4F4F4F, #3F3F3F);
+  }
+
+  .navbar.primary .nav {
+    &> .active > a, &> .active > a:hover, &> .active > a:focus, &> .open > a, &> .open > a:hover, &> .open > a:focus {
+      border-top-color: #929292;
+      background: rgba(255, 255, 255, 0.15);
+    }
+  }
+
+}
+
 .navbar-search {
   .input-append, .input-prepend {
     margin-bottom: 0;
+  }
+
+  &.pull-right {
+    margin-right: 20px;
   }
 }
 
 .navbar .brand {
   padding: 0 20px;
+}
+
+.navbar .nav {
+  margin-left: -20px;
+}
+
+/* Pull in some missing bootstrap navbar styles from 2.3.0 */
+.navbar-inner:before, .navbar-inner:after {
+    content: "";
+    display: table;
+    line-height: 0;
+}
+
+.navbar-inner:after {
+    clear: both;
+}
+
+.navbar-inner:before, .navbar-inner:after {
+    content: "";
+    display: table;
+    line-height: 0;
+}
+
+.navbar-search {
+  margin-top: 4px;
+
+  .input-prepend.input-append {
+    .add-on:last-child,
+    .btn:last-child {
+      display: inline-block;
+      float: none;
+    }
+
+    .btn {
+      margin-top: 0;
+    }    
+  }
+
+  .input-prepend.input-append select {
+    height: 32px;
+    line-height: 32px;
+    padding-top: 5px;
+    font-size: 13px;
+    @include border-radius($inputBorderRadius 0 0 $inputBorderRadius);
+  }
+
+  .search-query {
+    border: 1px solid #CCC;
+    float: none;
+    background: white;
+    color: #555;
+
+    &:focus, &:hover {
+      background: white;
+      color: #555;
+    }
+  }
+}
+
+@media (max-width: 540px) {
+  .navbar-search {
+    .input-prepend.input-append select {
+      display: block;
+      margin-bottom: 5px;
+      @include border-radius($inputBorderRadius $inputBorderRadius $inputBorderRadius $inputBorderRadius);
+    }
+
+    .input-prepend.input-append input[type="text"] {
+      @include border-radius($inputBorderRadius 0 0 $inputBorderRadius);
+    }
+  }
+}
+
+@media (max-width: 979px) {
+  .navbar-search.pull-right {
+    margin-right: 0;
+  }
+
+  .navbar-search {
+    .input-prepend.input-append select {
+      height: 31px;
+    }
+  }
+
+  .header.rcue .navbar .container .brand {
+    margin-left: 20px;
+  }
+}
+
+.navbar.primary .container .nav-collapse {
+  margin-left: -20px;
 }

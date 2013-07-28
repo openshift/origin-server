@@ -49,3 +49,11 @@ deps at git push time.
 
 For more information about environment variables, consult the
 [OpenShift Application Author Guide](https://github.com/openshift/origin-server/blob/master/node/README.writing_applications.md).
+
+## Markers
+
+Adding marker files to `.openshift/markers` will have the following effects:
+
+    force_clean_build    Will cause virtualenv to recreated during builds.
+
+    hot_deploy           Will prevent shutdown and startup of the application during builds.

@@ -124,7 +124,9 @@ def assert_successful_install(tmp_cart_src, next_version, current_manifest)
 
   assert_equal next_version, observed_latest_version
 
-  %x(pkill -USR1 -f /usr/sbin/mcollectived)
+  %x(service mcollective restart)
+
+  sleep 5
 end
 
 Then /^the ([^ ]+) cartridge version should be updated$/ do |cart_name|

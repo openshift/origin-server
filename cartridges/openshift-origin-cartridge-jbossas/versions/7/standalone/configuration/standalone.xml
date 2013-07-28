@@ -144,7 +144,7 @@
             </datasources>
         </subsystem>
         <subsystem xmlns="urn:jboss:domain:deployment-scanner:1.1">
-            <deployment-scanner path="deployments" relative-to="jboss.server.base.dir" scan-interval="5000" deployment-timeout="300"/>
+            <deployment-scanner path="deployments" relative-to="jboss.server.base.dir" scan-interval="5000" deployment-timeout="300" auto-deploy-exploded="true"/>
         </subsystem>
         <subsystem xmlns="urn:jboss:domain:ee:1.0"/>
         <subsystem xmlns="urn:jboss:domain:ejb3:1.2">
@@ -243,7 +243,7 @@
         </subsystem>
         <subsystem xmlns="urn:jboss:domain:jaxr:1.0">
             <connection-factory jndi-name="java:jboss/jaxr/ConnectionFactory"/>
-            <juddi-server publish-url="http://${env.OPENSHIFT_JBOSSAS_IP}:8080/juddi/publish" query-url="http://${env.OPENSHIFT_JBOSSAS_IP}:8080/juddi/query"/>
+            <juddi-server publish-url="http://${env.OPENSHIFT_JBOSSAS_IP}:${env.OPENSHIFT_JBOSSAS_HTTP_PORT}/juddi/publish" query-url="http://${env.OPENSHIFT_JBOSSAS_IP}:${env.OPENSHIFT_JBOSSAS_HTTP_PORT}/juddi/query"/>
         </subsystem>
         <subsystem xmlns="urn:jboss:domain:jaxrs:1.0"/>
         <subsystem xmlns="urn:jboss:domain:jca:1.1">
@@ -270,7 +270,7 @@
                 <transport type="TCP" socket-binding="jgroups-tcp"> 
                 	<property name="external_addr">${env.OPENSHIFT_GEAR_DNS}</property>
                     <property name="external_port">${env.OPENSHIFT_JBOSSAS_CLUSTER_PROXY_PORT}</property>
-                    <property name="bind_port">7600</property>
+                    <property name="bind_port">${env.OPENSHIFT_JBOSSAS_CLUSTER_PORT}</property>
                     <property name="bind_addr">${env.OPENSHIFT_JBOSSAS_IP}</property>
                     <property name="defer_client_bind_addr">true</property>
                 </transport>
@@ -526,16 +526,16 @@
     </interfaces>
 
     <socket-binding-group name="standard-sockets" default-interface="public" port-offset="0">
-        <socket-binding name="http" port="8080"/>
+        <socket-binding name="http" port="${env.OPENSHIFT_JBOSSAS_HTTP_PORT}"/>
         <socket-binding name="jacorb" interface="unsecure" port="3528"/>
         <socket-binding name="jacorb-ssl" interface="unsecure" port="3529"/>
-        <socket-binding name="jgroups-tcp" port="7600"/>
-        <socket-binding name="management-native" interface="management" port="9999"/>
-        <socket-binding name="management-http" interface="management" port="9990"/>
-        <socket-binding name="messaging" port="5445"/>
-        <socket-binding name="messaging-throughput" port="5455"/>
+        <socket-binding name="jgroups-tcp" port="${env.OPENSHIFT_JBOSSAS_CLUSTER_PORT}"/>
+        <socket-binding name="management-native" interface="management" port="${env.OPENSHIFT_JBOSSAS_MANAGEMENT_NATIVE_PORT}"/>
+        <socket-binding name="management-http" interface="management" port="${env.OPENSHIFT_JBOSSAS_MANAGEMENT_HTTP_PORT}"/>
+        <socket-binding name="messaging" port="${env.OPENSHIFT_JBOSSAS_MESSAGING_PORT}"/>
+        <socket-binding name="messaging-throughput" port="${env.OPENSHIFT_JBOSSAS_MESSAGING_THROUGHPUT_PORT}"/>
         <socket-binding name="osgi-http" interface="management" port="8090"/>
-        <socket-binding name="remoting" port="4447"/>
+        <socket-binding name="remoting" port="${env.OPENSHIFT_JBOSSAS_REMOTING_PORT}"/>
         <socket-binding name="txn-recovery-environment" port="4712"/>
         <socket-binding name="txn-status-manager" port="4713"/>
         <outbound-socket-binding name="mail-smtp">

@@ -5,6 +5,7 @@ require 'thread'
 require 'getoptlong'
 require 'stringio'
 require 'set'
+require 'json'
 
 $max_threads = 8
 WORK_DIR = '/tmp/oo-upgrade'
@@ -41,100 +42,99 @@ def upgrade_gear(login, app_name, gear_uuid, version, ignore_cartridge_version=f
       user = CloudUser.with(consistency: :eventual).find_by(login: login)
     rescue Mongoid::Errors::DocumentNotFound
     end
-    if user
-      app, gear = Application.find_by_gear_uuid(gear_uuid)
-      if app
-        if gear
-          server_identity = gear.server_identity
-          # gear.node_profile = app.node_profile if gear.node_profile.nil?
-          begin
-            Timeout::timeout(420) do
-              output = ''
-              exit_code = 1
-              upgrade = MIGRATION_CART_TYPES.nil? 
-              cartridges = gear.group_instance.all_component_instances.map { |ci| ci.cartridge_name }.uniq
-              MIGRATION_CART_TYPES.each do |cart_name|
-                if cartridges.include?(cart_name)
-                  upgrade = true
-                  break
-                end
-              end unless upgrade
 
-              if upgrade
-                upgrade_on_node_start_time = (Time.now.to_f * 1000).to_i
-                out << "Upgrading on node...\n"
-                OpenShift::MCollectiveApplicationContainerProxy.rpc_exec('openshift', server_identity) do |client|
-                  client.upgrade(:uuid => gear_uuid,
-                                 :namespace => app.domain.namespace,
-                                 :version => version,
-                                 :ignore_cartridge_version => ignore_cartridge_version.to_s) do |response|
-                    exit_code = response[:body][:data][:exitcode]
-                    output = response[:body][:data][:output]
-                  end
-                end
-                upgrade_on_node_time = (Time.now.to_f * 1000).to_i - upgrade_on_node_start_time
-                out << "***time_upgrade_on_node_measured_from_broker=#{upgrade_on_node_time}***\n"
-              end
-              if (output.length > 0)
-                out << "Upgrade on node output:\n #{output}\n"
-              end
-              if upgrade && exit_code != 0
-                out << "Upgrade on node exit code: #{exit_code}\n"
-                raise "Failed upgrading gear. Rerun with: #{upgrade_cmd}"
-              else
-                redeploy_httpd_proxy = REDEPLOY_HTTPD_PROXY_CART_TYPES.nil?
+    raise "User not found: #{login}" unless user
 
-                if REDEPLOY_HTTPD_PROXY_CART_TYPES
-                  gear_cartridges = cartridges
-                  REDEPLOY_HTTPD_PROXY_CART_TYPES.each do |cart_name|
-                    redeploy_httpd_proxy = gear_cartridges.include?(cart_name)
-                    break if redeploy_httpd_proxy
-                  end unless redeploy_httpd_proxy
-                end
+    app, gear = Application.find_by_gear_uuid(gear_uuid)
 
-                # Should call oo-frontend-destroy and re-build the
-                # application, including idle state from scratch if
-                # need to purge possibly stale configuration.
-                # remove_httpd_proxy(gear, out) if recreate_httpd_proxy
+    out << "WARNING: App not found: #{app_name}\n" unless app
+    out << "WARNING: Gear not found with uuid #{gear_uuid} for app '#{app_name}' and user '#{login}'\n" unless gear
+    
+    if app && gear
+      server_identity = gear.server_identity
 
-                redeploy_httpd_proxy_start_time = (Time.now.to_f * 1000).to_i
-                redeploy_httpd_proxy(gear, out) if redeploy_httpd_proxy
-                redeploy_httpd_proxy_time = (Time.now.to_f * 1000).to_i - redeploy_httpd_proxy_start_time
-                out << "***time_redeploy_httpd_proxy=#{redeploy_httpd_proxy_time}***\n"
-                redeploy_aliases(gear, out) if redeploy_httpd_proxy
-
-                restart_start_time = (Time.now.to_f * 1000).to_i
-                cartridges.each do |gear_cart|
-                  restart = RESTART_CART_TYPES.nil?
-                  RESTART_CART_TYPES.each do |cart_name|
-                    if gear_cart == cart_name
-                      restart = true
-                      break
-                    end
-                  end unless restart
-                  if restart
-                    component = gear.group_instance.all_component_instances.to_a.find { |ci| ci.cartridge_name==gear_cart }
-                    restart_component(gear, component, out)
-                  end
-                end
-                restart_time = (Time.now.to_f * 1000).to_i - restart_start_time
-                out << "***time_restart=#{restart_time}***\n"
-              end
-            end
-          rescue Timeout::Error
-            raise "Command '#{upgrade_cmd}' timed out"
+      Timeout::timeout(420) do
+        output = ''
+        exit_code = 1
+        upgrade = MIGRATION_CART_TYPES.nil? 
+        cartridges = gear.group_instance.all_component_instances.map { |ci| ci.cartridge_name }.uniq
+        MIGRATION_CART_TYPES.each do |cart_name|
+          if cartridges.include?(cart_name)
+            upgrade = true
+            break
           end
-          #gear.quarantined = false
-          #gear.save
-        else
-          out << "WARNING: Gear not found with uuid #{gear_uuid} for app '#{app_name}' and user '#{login}'\n"
+        end unless upgrade
+
+        json_data = nil
+
+        if upgrade
+          upgrade_on_node_start_time = (Time.now.to_f * 1000).to_i
+          out << "Upgrading on node...\n"
+          OpenShift::MCollectiveApplicationContainerProxy.rpc_exec('openshift', server_identity) do |client|
+            client.upgrade(:uuid => gear_uuid,
+                           :namespace => app.domain.namespace,
+                           :version => version,
+                           :ignore_cartridge_version => ignore_cartridge_version.to_s) do |response|
+              exit_code = response[:body][:data][:exitcode]
+              output = response[:body][:data][:output]
+              json_data = response[:body][:data][:json_data]
+            end
+          end
+          upgrade_on_node_time = (Time.now.to_f * 1000).to_i - upgrade_on_node_start_time
+          out << "***time_upgrade_on_node_measured_from_broker=#{upgrade_on_node_time}***\n"
         end
-      else
-        out << "WARNING: App not found: #{app_name}\n"
+
+        if (output.length > 0)
+          out << "Upgrade on node output:\n #{output}\n"
+        end
+
+        if upgrade && exit_code != 0
+          out << "Upgrade on node exit code: #{exit_code}\n"
+          raise "Failed upgrading gear. Rerun with: #{upgrade_cmd}"
+        end
+
+        redeploy_httpd_proxy = REDEPLOY_HTTPD_PROXY_CART_TYPES.nil?
+
+        if REDEPLOY_HTTPD_PROXY_CART_TYPES
+          gear_cartridges = cartridges
+          REDEPLOY_HTTPD_PROXY_CART_TYPES.each do |cart_name|
+            redeploy_httpd_proxy = gear_cartridges.include?(cart_name)
+            break if redeploy_httpd_proxy
+          end unless redeploy_httpd_proxy
+        end
+
+        # Should call oo-frontend-destroy and re-build the
+        # application, including idle state from scratch if
+        # need to purge possibly stale configuration.
+        # remove_httpd_proxy(gear, out) if recreate_httpd_proxy
+
+        redeploy_httpd_proxy_start_time = (Time.now.to_f * 1000).to_i
+        redeploy_httpd_proxy(gear, out) if redeploy_httpd_proxy
+        redeploy_httpd_proxy_time = (Time.now.to_f * 1000).to_i - redeploy_httpd_proxy_start_time
+        out << "***time_redeploy_httpd_proxy=#{redeploy_httpd_proxy_time}***\n"
+        redeploy_aliases(gear, out) if redeploy_httpd_proxy
+
+        restart_start_time = (Time.now.to_f * 1000).to_i
+        cartridges.each do |gear_cart|
+          restart = RESTART_CART_TYPES.nil?
+          RESTART_CART_TYPES.each do |cart_name|
+            if gear_cart == cart_name
+              restart = true
+              break
+            end
+          end unless restart
+          if restart
+            component = gear.group_instance.all_component_instances.to_a.find { |ci| ci.cartridge_name==gear_cart }
+            restart_component(gear, component, out)
+          end
+        end
+
+        restart_time = (Time.now.to_f * 1000).to_i - restart_start_time
+        out << "***time_restart=#{restart_time}***\n"
       end
-    else
-      raise "User not found: #{login}"
     end
+  rescue Timeout::Error
+    raise "Command '#{upgrade_cmd}' timed out\n#{e.backtrace}\nOutput:\n#{out.string}"
   rescue Exception => e
     raise "#{e.message}\n#{e.backtrace}\nOutput:\n#{out.string}"
   end
@@ -245,7 +245,28 @@ def add_to(stuffs, more_stuffs)
   end
 end
 
-def upgrade(version, continue=false, ignore_cartridge_version=false, target_server_identity=nil, upgrade_position=1, num_upgraders=1)
+def upgrade(args={})
+  defaults = {
+    version: nil,
+    continue: false,
+    ignore_cartridge_version: false,
+    target_server_identity: nil,
+    upgrade_position: 1,
+    num_upgraders: 1,
+    rerun: false
+  }
+  opts = defaults.merge(args) {|k, default, arg| arg.nil? ? default : arg}
+
+  puts "Performing upgrade with options: #{opts.inspect}"
+
+  version = opts[:version]
+  continue = opts[:continue]
+  ignore_cartridge_version = opts[:ignore_cartridge_version]
+  target_server_identity = opts[:target_server_identity]
+  upgrade_position = opts[:upgrade_position]
+  num_upgraders = opts[:num_upgraders]
+  rerun = opts[:rerun]
+
   start_time = (Time.now.to_f * 1000).to_i
   logins_cnt = 0
   gear_cnt = 0
@@ -362,14 +383,21 @@ def upgrade(version, continue=false, ignore_cartridge_version=false, target_serv
         end
       end
 
+      # If continue is specified, re-use the existing upgrade file without writing
+      # a new one from the node gears. If rerun is specified, convert the rerun file
+      # into the upgrade file.
       unless active_gears.empty?
-        write_node_to_file(server_identity + ACTIVE_SUFFIX, active_gears, version, ignore_cartridge_version) unless continue
+        write_node_to_file(server_identity + ACTIVE_SUFFIX, active_gears, version, ignore_cartridge_version) unless (continue || rerun)
         active_node_queue << {:server_identity => server_identity + ACTIVE_SUFFIX, :gears_length => active_gears.length}
+
+        prepare_rerun(server_identity + ACTIVE_SUFFIX) if rerun
       end
 
       unless inactive_gears.empty?
-        write_node_to_file(server_identity, inactive_gears, version, ignore_cartridge_version) unless continue
+        write_node_to_file(server_identity, inactive_gears, version, ignore_cartridge_version) unless (continue || rerun)
         inactive_node_queue << {:server_identity => server_identity, :gears_length => inactive_gears.length}
+
+        prepare_rerun(server_identity) if rerun
       end
     end
   end
@@ -480,6 +508,16 @@ def upgrade(version, continue=false, ignore_cartridge_version=false, target_serv
   puts "#####################################################"
 end
 
+def prepare_rerun(server_identity)
+  rerun_file = rerun_file_path(server_identity)
+  upgrade_file = upgrade_file_path(server_identity)
+  if File.exists?(rerun_file)
+    puts "Preparing upgrade file #{upgrade_file} from rerun file #{rerun_file} for server #{server_identity}"
+    FileUtils.rm_f(upgrade_file) if File.exists?(upgrade_file)
+    FileUtils.mv(rerun_file, upgrade_file)
+  end
+end
+
 def write_node_to_file(server_identity, gears, version, ignore_cartridge_version)
   f = upgrade_file_path(server_identity)
   puts "Writing #{gears.length} gears for node #{server_identity} to file #{f}"
@@ -502,6 +540,10 @@ end
 
 def upgrade_file_path(server_identity)
   "#{WORK_DIR}/upgrade_#{server_identity}"
+end
+
+def rerun_file_path(server_identity)
+  "#{WORK_DIR}/upgrade_rerun_#{server_identity}"
 end
 
 def upgrade_node(server_identity, continue)
@@ -535,6 +577,14 @@ def upgrade_node(server_identity, continue)
       elsif line =~ /\*\*\*acceptable_error_(.*)=(.+)\*\*\*/
         acceptable_errors[$1] = [] unless acceptable_errors[$1]
         acceptable_errors[$1] << $2
+      elsif line =~/gear_upgrade_json=(.*)/
+        begin
+          gear_json = JSON.load($1)
+          gear_json['times'].each_pair do |k, v|
+            timings[k] = v.to_i
+          end
+        rescue
+        end
       end
       print line
     end
@@ -562,6 +612,7 @@ def upgrade_from_file(file)
         base_path += ACTIVE_SUFFIX
       end
       error_file = error_file_path(base_path)
+      rerun_file = rerun_file_path(base_path)
       log_file = log_file_path(base_path)
       append_to_file(log_file,  "Migrating app '#{app_name}' gear '#{gear_name}' with uuid '#{gear_uuid}' on node '#{server_identity}' for user: #{login}")
       num_tries = 2
@@ -574,6 +625,7 @@ def upgrade_from_file(file)
           if i == num_tries
             append_to_file(log_file, "Failed to upgrade with cmd: '#{upgrade_on_node_cmd}' after #{num_tries} tries with exception: #{e.message}")
             append_to_file(error_file, upgrade_on_node_cmd)
+            append_to_file(rerun_file, line)
             break
           else
             user = nil
@@ -680,6 +732,7 @@ begin
     ["--max-threads", GetoptLong::REQUIRED_ARGUMENT],
     ["--ignore-cartridge-version", GetoptLong::NO_ARGUMENT],
     ["--continue", GetoptLong::NO_ARGUMENT],
+    ["--rerun", GetoptLong::NO_ARGUMENT],
     ["--help", "-h", GetoptLong::NO_ARGUMENT]
   )
   opt = {}
@@ -695,6 +748,7 @@ if opt['help']
 end
 
 opt['ignore-cartridge-version'] = opt['ignore-cartridge-version'] ? true : false
+opt['rerun'] = opt['rerun'] ? true : false
 
 
 $:.unshift('/var/www/openshift/broker')
@@ -726,8 +780,8 @@ elsif opt['upgrade-node']
   if opt['version']
     upgrade_file = upgrade_file_path(opt['upgrade-node'])
     if opt['continue']
-      upgrade(opt['version'], true, opt['upgrade-node'])
-    elsif File.exists?(upgrade_file)
+      upgrade(version: opt['version'], continue: true, ignore_cartridge_version: opt['ignore-cartridge-version'], target_server_identity: opt['upgrade-node'])
+    elsif !opt['rerun'] && File.exists?(upgrade_file)
         puts <<-WARNING
 !!!!!!!!!!!!!!!!!!!! EXISTING MIGRATION DATA FOUND !!!!!!!!!!!!!!!!!!!!
 Data from a previous upgrade exists at #{upgrade_file}.  You must 
@@ -736,7 +790,7 @@ where it left off with '#{__FILE__} --upgrade-node #{opt['upgrade-node']} --vers
 WARNING
         exit 1
     else
-      upgrade(opt['version'], false, opt['ignore-cartridge-version'], opt['upgrade-node'])
+      upgrade(version: opt['version'], continue: false, ignore_cartridge_version: opt['ignore-cartridge-version'], target_server_identity: opt['upgrade-node'], rerun: opt['rerun'])
     end
   else
     puts "--version is required with --upgrade-node"
@@ -770,8 +824,8 @@ else
       upgrade_position = 1
     end
     if opt['continue']
-      upgrade(opt['version'], true, opt['ignore-cartridge-version'], nil, upgrade_position, num_upgraders)
-    elsif File.exists?(WORK_DIR)
+      upgrade(version: opt['version'], continue: true, ignore_cartridge_version: opt['ignore-cartridge-version'], upgrade_position: upgrade_position, num_upgraders: num_upgraders)
+    elsif !opt['rerun'] && File.exists?(WORK_DIR)
       puts <<-WARNING
 !!!!!!!!!!!!!!!!!!!! EXISTING MIGRATION DATA FOUND !!!!!!!!!!!!!!!!!!!!
 Data from a previous migration exists at #{WORK_DIR}.  You must 
@@ -780,7 +834,7 @@ where it left off with '#{__FILE__} --continue'.
 WARNING
       exit 1
     else
-      upgrade(opt['version'], false, opt['ignore-cartridge-version'], nil, upgrade_position, num_upgraders)
+      upgrade(version: opt['version'], continue: false, ignore_cartridge_version: opt['ignore-cartridge-version'], upgrade_position: upgrade_position, num_upgraders: num_upgraders, rerun: opt['rerun'])
     end
   else
     puts "--version is required"

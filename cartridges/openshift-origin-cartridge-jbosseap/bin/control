@@ -4,10 +4,103 @@ source $OPENSHIFT_CARTRIDGE_SDK_BASH
 
 JBOSSEAP_BIN_DIR=${OPENSHIFT_JBOSSEAP_DIR}/bin
 JBOSSEAP_PID_FILE=${OPENSHIFT_HOMEDIR}/app-root/runtime/jbosseap.pid
+JBOSSEAP_DEPLOYMENTS_DIR=${OPENSHIFT_JBOSSEAP_DIR}/standalone/deployments
+SCANCONFIG=""
 
 source $JBOSSEAP_BIN_DIR/util
 
 cartridge_type="jbosseap"
+
+# Return the deployment-scanner configuration
+function getscanconfig() {
+    count=0
+    while [ ${count} -lt 4 ]; do
+      controller="${OPENSHIFT_JBOSSEAP_IP}:${OPENSHIFT_JBOSSEAP_MANAGEMENT_NATIVE_PORT}"
+      scanconfig=`jboss-cli.sh -c --controller=${controller} "/subsystem=deployment-scanner/:read-resource(recursive=true)" 2>&1 || :`
+      if [[ $scanconfig =~ '"outcome" => "success"' ]] ; then
+        SCANCONFIG=$scanconfig
+        return
+      fi
+      let count+=1
+
+      sleep 2
+    done
+}
+
+# Verify that the deployment scanner has finished running
+function waitondeployments() {
+    if ! ismgmtup; then
+        client_message "Timed out waiting for management listening port"
+    fi
+
+    getscanconfig
+
+    if [ "$SCANCONFIG" == "" ]; then
+      client_message "Could not connect to JBoss management interface, skipping deployment verification"
+    elif [[ $SCANCONFIG =~ '"scan-enabled" => true' ]]; then
+      pushd $JBOSSEAP_DEPLOYMENTS_DIR
+
+      artifacts=()
+      while read -r -d $'\0'; do
+        artifacts+=("$REPLY")
+      done < <(find . -iregex '.*\.\([ejrsw]ar\|zip\)$' -print0)
+
+      deployexploded=false
+      if [[ $SCANCONFIG =~ '"auto-deploy-exploded" => true' ]]; then
+        deployexploded=true
+      fi
+      deployarchive=false
+      if [[ $SCANCONFIG =~ '"auto-deploy-zipped" => true' ]]; then
+        deployarchive=true
+      fi
+
+      artifactsdeployed=()
+      artifactsfailed=()
+      artifactsskipped=()
+      artifactsunknown=()
+      for artifact in ${artifacts[*]}; do
+        if ( [ -f $artifact ] && $deployarchive ) || ( [ -d $artifact ] && $deployexploded ); then
+          # TODO triple check this logic, add a timeout 
+          while [ -f ${artifact}.isdeploying ]; do
+            client_message "Artifact: ${artifact} is still deploying"
+            sleep 10
+          done
+
+          if [ -f ${artifact}.deployed ]; then
+            artifactsdeployed+=($artifact)
+          elif [ -f ${artifact}.failed ]; then
+            artifactsfailed+=($artifact)
+          else
+            artifactsunknown+=($artifact)
+          fi
+
+        else
+          # artifact skipped because of deployment scanner config
+          artifactsskipped+=($artifact)
+        fi
+      done
+
+      popd
+
+      if [ ${#artifactsskipped[@]} -gt 0 ]; then
+        client_message "Artifacts skipped because of deployment-scanner configuration: ${artifactsskipped[*]}"
+      fi
+
+      if [ ${#artifactsfailed[@]} -gt 0 ]; then
+        client_message "Failed deployments: ${artifactsfailed[*]}"
+      fi
+
+      if [ ${#artifactsdeployed[@]} -gt 0 ]; then
+        client_message "Artifacts deployed: ${artifactsdeployed[*]}"
+      fi
+
+      if [ ${#artifactsunknown[@]} -gt 0 ]; then
+        client_message "Artifacts in an unknown state: ${artifactsunknown[*]}"
+      fi
+    else
+        client_message "Deployment scanner disabled, skipping deployment verification"
+    fi
+}
 
 # Check if the jbossas process is running
 function isrunning() {
@@ -65,6 +158,23 @@ function ishttpup() {
     do
         if /usr/sbin/lsof -P -n -i "@${OPENSHIFT_JBOSSEAP_IP}:${OPENSHIFT_JBOSSEAP_HTTP_PORT}" | grep "(LISTEN)" > /dev/null; then
             echo "Found ${OPENSHIFT_JBOSSEAP_IP}:${OPENSHIFT_JBOSSEAP_HTTP_PORT} listening port"
+            return 0
+        fi
+        let count=${count}+1
+
+        sleep 2
+    done
+
+    return 1
+}
+
+# Check if the server mgmt port is up
+function ismgmtup() {
+    let count=0
+    while [ ${count} -lt 10 ]
+    do
+        if /usr/sbin/lsof -P -n -i "@${OPENSHIFT_JBOSSEAP_IP}:${OPENSHIFT_JBOSSEAP_MANAGEMENT_NATIVE_PORT}" | grep "(LISTEN)" > /dev/null; then
+            echo "Found ${OPENSHIFT_JBOSSEAP_IP}:${OPENSHIFT_JBOSSEAP_MANAGEMENT_NATIVE_PORT} listening port"
             return 0
         fi
         let count=${count}+1
@@ -152,9 +262,10 @@ function deploy() {
   echo "Deploying JBoss"
 
   if [ "$(ls ${OPENSHIFT_REPO_DIR}/deployments)" ]; then
-    rsync -r --delete --exclude ".*" ${OPENSHIFT_REPO_DIR}/deployments/ ${OPENSHIFT_JBOSSEAP_DIR}/standalone/deployments/
+    rsync -r --delete --exclude ".*" ${OPENSHIFT_REPO_DIR}/deployments/ $JBOSSEAP_DEPLOYMENTS_DIR
   else
     rm -rf ${OPENSHIFT_JBOSSEAP_DIR}/standalone/deployments/*
+    rm -rf ${JBOSSEAP_DEPLOYMENTS_DIR}/*
   fi
 }
 
@@ -172,10 +283,13 @@ function start() {
     ${JBOSSEAP_BIN_DIR}/standalone.sh > ${OPENSHIFT_TMP_DIR}/${cartridge_type}.log 2>&1 &
     PROCESS_ID=$!
     echo "$PROCESS_ID" > ${JBOSSEAP_PID_FILE}
+
     if ! ishttpup; then
       echo "Timed out waiting for http listening port"
       exit 1
     fi
+
+    waitondeployments
   fi
 }
 

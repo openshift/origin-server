@@ -911,12 +911,12 @@ class Application
         (server_alias =~ /^\d+\.\d+\.\d+\.\d+$/) or
         (server_alias =~ /\A[\S]+(\.(json|xml|yml|yaml|html|xhtml))\z/) or
         (not server_alias.match(/\A[a-z0-9]+([\.]?[\-a-z0-9]+)+\z/))
-      raise OpenShift::UserException.new("Invalid Server Alias '#{server_alias}' specified", 105)
+      raise OpenShift::UserException.new("Invalid Server Alias '#{server_alias}' specified", 105, "id")
     end
     validate_certificate(ssl_certificate, private_key, pass_phrase)
 
     Application.run_in_application_lock(self) do
-      raise OpenShift::UserException.new("Alias #{server_alias} is already registered", 140) if Application.where("aliases.fqdn" => server_alias).count > 0
+      raise OpenShift::UserException.new("Alias #{server_alias} is already registered", 140, "id") if Application.where("aliases.fqdn" => server_alias).count > 0
       op_group = PendingAppOpGroup.new(op_type: :add_alias, args: {"fqdn" => server_alias}, user_agent: self.user_agent)
       self.pending_op_groups.push op_group
       if ssl_certificate and !ssl_certificate.empty?

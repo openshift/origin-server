@@ -4,7 +4,7 @@
 
 Summary:       Provides JBossEAP6.0 support
 Name:          openshift-origin-cartridge-jbosseap
-Version: 2.6.2
+Version: 2.6.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -88,6 +88,9 @@ cp -p %{cartridgedir}/versions/6.0/modules/postgresql_module.xml /etc/alternativ
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Fri Jul 26 2013 Adam Miller <admiller@redhat.com> 2.6.3-1
+- JBoss Deployment verification (jdetiber@redhat.com)
+
 * Wed Jul 24 2013 Adam Miller <admiller@redhat.com> 2.6.2-1
 - <application.rb> Add feature to carts to handle wildcard ENV variable
   subscriptions (jolamb@redhat.com)

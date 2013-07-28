@@ -2,6 +2,7 @@
 OpenShift Origin Documentation Project <dev@lists.openshift.redhat.com>
 v2.0, July 2013
 :data-uri:
+:toc2:
 :icons:
 
 https://openshift.redhat.com/community/open-source[OpenShift Origin] is Red Hat's open source Platform as a Service (PaaS) offering. OpenShift Origin is an application platform where application developers and teams can build, test, deploy, and run their applications. OpenShift Origin also serves as the upstream code base upon which https://www.openshift.com/products/online[OpenShift Online] and https://www.openshift.com/products/enterprise[OpenShift Enterprise] are based.
@@ -19,24 +20,48 @@ https://openshift.redhat.com/community/wiki/architecture-overview
 
 == Documentation
 
-* Installation Guides
-** link:oo_deployment_guide_comprehensive.html[Comprehensive Deployment Guide]
-** link:oo_deployment_guide_puppet.html[Puppet Deployment Guide]
-** link:oo_deployment_guide_vm.html[Virtual Machine Deployment Guide]
-** link:oo_client_tools_installation_guide.html[Client Tools Installation Guide]
-* link:oo_administration_guide.html[Administration Guide]
-* link:oo_troubleshooting_guide.html[Troubleshooting Guide]
-* link:oo_user_guide.html[User Guide]
+[cols="3*<.<1d",options="header"]
+|===
+|Installation Guides
+|Admin Guides
+|Developer Guides
 
-== OpenShift Origin Repositories
+a|link:oo_deployment_guide_comprehensive.html[Comprehensive Deployment Guide] +
+link:oo_deployment_guide_puppet.html[Puppet Deployment Guide] +
+link:oo_deployment_guide_vm.html[Virtual Machine Deployment Guide] +
+link:oo_client_tools_installation_guide.html[Client Tools Installation Guide]
+
+a|link:oo_administration_guide.html[Administration Guide] +
+link:oo_troubleshooting_guide.html[Troubleshooting Guide]
+
+a|link:oo_cartridge_developers_guide.html[Cartridge Developers Guide] +
+link:oo_user_guide.html[User Guide]
+|===
+
+== Source Code Repositories
 
 OpenShift Origin sources are arranged into 5 repositories:
 
-* http://github.com/openshift/origin-dev-tools[origin-dev-tools]: This repository contains all the build tools necessary for building and testing a local or EC2 OpenShift Origin installation.
-* http://github.com/openshift/origin-server[origin-server]: This is the main repository that contains the source code for the Broker, Node and various plugins for DNS, Communication and Authentication. It also contains some of the core cartridges used by OpenShift installations.
-* http://github.com/openshift/origin-community-cartridges[origin-community-cartridges]: This repository contains additional cartridges used during the Fedora 19 installation.
-* http://github.com/openshift/rhc[rhc]: This repository contains command line tools used to access an OpenShift based PaaS.
-* http://github.com/openshift/puppet-openshift_origin[puppet-openshift_origin]: This repository contains puppet scripts for configuring OpenShift Origin.
+[cols="1,3",options="header"]
+|===
+|Repository
+|Description
+
+|http://github.com/openshift/origin-dev-tools[origin-dev-tools]
+|Contains all the build tools necessary for building and testing a local or EC2 OpenShift Origin installation.
+
+|http://github.com/openshift/origin-server[origin-server]
+|The main repository that contains the source code for the Broker, Node and various plugins for DNS, Communication and Authentication. It also contains some of the core cartridges used by OpenShift installations.
+
+|http://github.com/openshift/origin-community-cartridges[origin-community-cartridges]
+|Contains additional cartridges used during the Fedora 19 installation.
+
+|http://github.com/openshift/rhc[rhc]
+|Contains command line tools used to access an OpenShift-based PaaS.
+
+|http://github.com/openshift/puppet-openshift_origin[puppet-openshift_origin]
+|This repository contains puppet scripts for configuring OpenShift Origin.
+|===
 
 == Discussion Forums
 

@@ -185,9 +185,19 @@ class CartridgeCache
     # raise OpenShift::UserException.new("Invalid manifest file from url '#{url}' - no structural directives allowed.") if str.include?("---")
     begin
       chash = OpenShift::Runtime::Manifest.manifest_from_yaml(str) 
+      manifest = OpenShift::Runtime::Manifest.new(str)
     rescue Exception=>e
       raise OpenShift::UserException.new("Invalid manifest file from url '#{url}'")
     end
+
+    # check if Cartridge-Vendor is reserved
+    begin
+      manifest.check_reserved_vendor_name
+    rescue OpenShift::InvalidElementError => iee
+      # cloaking it as a UserException until Manifest starts raising subclasses of OOException 
+      raise OpenShift::UserException.new(iee.message, 109)
+    end
+       
     chash
   end
 
@@ -196,16 +206,7 @@ class CartridgeCache
     return cmap if urls.nil?
     urls.each do |url|
        manifest_str = download_from_url(url)
-       chash = validate_yaml(url, manifest_str)
-       
-       # check if Cartridge-Vendor is reserved
-       manifest = OpenShift::Runtime::Manifest.new(manifest_str)
-       begin
-         manifest.check_reserved_vendor_name
-       rescue OpenShift::InvalidElementError => iee
-         # cloaking it as a UserException until Manifest starts raising subclasses of OOException 
-         raise OpenShift::UserException.new(iee.message, 109)
-       end
+       validate_yaml(url, manifest_str)
        
        # TODO: check versions and create multiple of them
        self.foreach_cart_version(manifest_str) do |chash,name,version,vendored_name|

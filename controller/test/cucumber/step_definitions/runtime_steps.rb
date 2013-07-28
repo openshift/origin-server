@@ -441,6 +441,14 @@ end
 When /^the application is prepared for git pushes$/ do
   @app.git_repo = "#{$temp}/#{@account.name}-#{@app.name}-clone"
   run "git clone ssh://#{@gear.uuid}@#{@app.name}-#{@account.domain}.#{$cloud_domain}/~/git/#{@app.name}.git #{@app.git_repo}"
+
+  Dir.chdir(@app.git_repo) do
+    if `git --version`.match("git version 1.8")
+      run "git config --global push.default simple"
+    end
+    run "git config --global user.name 'Cucumber'"
+    run "git config --global user.email 'cucumber@example.com'"
+  end
 end
 
 
@@ -487,11 +495,44 @@ end
 When /^a simple update is pushed to the application repo$/ do
   record_measure("Runtime Benchmark: Pushing random change to app repo at #{@app.git_repo}") do
     Dir.chdir(@app.git_repo) do
-      # Make a change to the app repo
-      ENV['X_SCLS'] = nil
-      run "echo $RANDOM >> cucumber_update_test"
-      run "git add ."
-      run "git commit -m 'Test change'"
+      commit_simple_change
+      push_output = `git push`
+      $logger.info("Push output:\n#{push_output}")
+    end
+  end
+end
+
+When /^a simple update is committed to the application repo$/ do
+  record_measure("Runtime Benchmark: Committing random change to app repo at #{@app.git_repo}") do
+    commit_simple_change
+  end
+end
+
+When /^the hot_deploy marker is (added to|removed from) the application repo$/ do |op|
+  Dir.chdir(@app.git_repo) do
+    marker_file = File.join(@app.git_repo, '.openshift', 'markers', 'hot_deploy')
+    marker_dir = File.dirname(marker_file)
+    FileUtils.mkdir_p(marker_dir) if not Dir.exists?(marker_dir)
+    ENV['X_SCLS'] = nil
+    
+    if op == "added to"
+      if !File.exists?(marker_file)
+        run "touch #{marker_file}"
+        run "git add ."
+        run "git commit -m 'Add hot_deploy marker'"
+      end
+    else
+      if File.exists?(marker_file)
+        run "git rm -f #{marker_file}"
+        run "git commit -m 'Remove hot_deploy marker'"
+      end
+    end
+  end
+end
+
+When /^the application git repository is pushed$/ do
+  record_measure("Runtime Benchmark: Pushing app repo at #{@app.git_repo}") do
+    Dir.chdir(@app.git_repo) do
       push_output = `git push`
       $logger.info("Push output:\n#{push_output}")
     end
@@ -668,6 +709,18 @@ def check_var_name(var_file_path, expected = nil, negate = false)
     end
   end
 
+end
+
+def commit_simple_change
+  record_measure("Runtime Benchmark: Committing random change to app repo at #{@app.git_repo}") do
+    Dir.chdir(@app.git_repo) do
+      # Make a change to the app repo
+      ENV['X_SCLS'] = nil
+      run "echo $RANDOM >> cucumber_update_test"
+      run "git add ."
+      run "git commit -m 'Test change'"
+    end
+  end
 end
 
 # Used to control the runtime state of the current application.

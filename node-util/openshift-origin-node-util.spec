@@ -1,6 +1,6 @@
 Summary:       Utility scripts for the OpenShift Origin broker
 Name:          openshift-origin-node-util
-Version: 1.12.2
+Version: 1.12.3
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -119,6 +119,15 @@ mv services/openshift-gears.service %{buildroot}/etc/systemd/system/openshift-ge
 /sbin/restorecon /usr/sbin/oo-restorer* || :
 
 %changelog
+* Fri Jul 26 2013 Adam Miller <admiller@redhat.com> 1.12.3-1
+- Merge pull request #3167 from kraman/bugfix
+  (dmcphers+openshiftbot@redhat.com)
+- Workaround for F19 mcollective issue where it goes into inf. loop and 100%%
+  cpu usage. Using mcollctive restart instead of mcollective reload.
+  (kraman@gmail.com)
+- <oo-idler-stats> Bug 977293 - Fix get_app_type for v2 carts
+  (jdetiber@redhat.com)
+
 * Wed Jul 24 2013 Adam Miller <admiller@redhat.com> 1.12.2-1
 - <oo-auto-idler> add man page (lmeyer@redhat.com)
 - Bug 960355 - Fix file permissions. (rmillner@redhat.com)

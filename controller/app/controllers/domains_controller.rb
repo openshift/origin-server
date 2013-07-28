@@ -133,7 +133,7 @@ class DomainsController < BaseController
   #
   # Action: DELETE
   #
-  # @param [Boolean] force If true, broker will destroy all application within the domain and then destroy the domain
+  # @param [Boolean] force If true, broker will delete all applications within the domain and then delete the domain
   def destroy
     name = params[:name] || params[:id]
     name = name.downcase if name.presence

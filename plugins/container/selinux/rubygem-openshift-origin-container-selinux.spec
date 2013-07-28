@@ -9,7 +9,7 @@
 
 Summary:       OpenShift plugin for SELinux based containers
 Name:          rubygem-%{gem_name}
-Version: 0.1.2
+Version: 0.1.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -77,6 +77,12 @@ cp %{buildroot}/%{gem_instdir}/conf/openshift-origin-container-selinux.conf.exam
 /etc/openshift/node-plugins.d/
 
 %changelog
+* Fri Jul 26 2013 Adam Miller <admiller@redhat.com> 0.1.3-1
+- Merge pull request #3160 from pravisankar/dev/ravi/card78
+  (dmcphers+openshiftbot@redhat.com)
+- For consistency, rest api response must display 'delete' instead 'destroy'
+  for user/domain/app (rpenta@redhat.com)
+
 * Wed Jul 24 2013 Adam Miller <admiller@redhat.com> 0.1.2-1
 - Remove recursive requires node -> container plugin -> node
   https://bugzilla.redhat.com/show_bug.cgi?id=984575 (kraman@gmail.com)

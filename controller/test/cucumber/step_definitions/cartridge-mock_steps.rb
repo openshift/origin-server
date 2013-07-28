@@ -35,8 +35,7 @@ When /^a new file is added and pushed to the client-created application repo$/ d
     run "echo 'foo' >> cucumber_test_file"
     run 'git add .'
     run "git commit -m 'Test Change'"
-    push_output = `git push`
-    $logger.info("Push output:\n#{push_output}")
+    run("git push >> " + @app.get_log("git_push") + " 2>&1")
   end
 end
 

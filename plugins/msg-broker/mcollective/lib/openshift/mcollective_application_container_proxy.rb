@@ -1870,7 +1870,7 @@ module OpenShift
               end
             end
             # destroy destination
-            log_debug "DEBUG: Moving failed.  Rolling back gear '#{gear.name}' in '#{app.name}' with destroy on '#{destination_container.id}'"
+            log_debug "DEBUG: Moving failed.  Rolling back gear '#{gear.name}' in '#{app.name}' with delete on '#{destination_container.id}'"
             reply.append destination_container.destroy(gear, !district_changed, nil, true)
             raise
           end

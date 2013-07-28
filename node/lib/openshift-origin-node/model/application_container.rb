@@ -184,7 +184,7 @@ module OpenShift
         notify_observers(:before_container_destroy)
 
         if @uid.nil? or (@container_dir.nil? or !File.directory?(@container_dir.to_s))
-          # gear seems to have been destroyed already... suppress any error
+          # gear seems to have been deleted already... suppress any error
           # TODO : remove remaining stuff if it exists, e.g. .httpd/#{uuid}* etc
           return ['', '', 0]
         end
@@ -209,7 +209,7 @@ module OpenShift
           # possible mismatch across cart model versions
           output, errout, retcode = @cartridge_model.destroy(skip_hooks)
 
-          raise UserDeletionException.new("ERROR: unable to destroy user account #{@uuid}") if @uuid.nil?
+          raise UserDeletionException.new("ERROR: unable to delete user account #{@uuid}") if @uuid.nil?
 
           @container_plugin.destroy
 

@@ -1,23 +1,33 @@
-%h3
-  = "Gear: #{@gear.uuid}"
-%div
-  Owned by:
-  - owner_login = @app.domain.owner.login
-  %a{:href => user_path(:id => owner_login)}
-    = owner_login
-%div
-  Application:
-  %a{:href=> application_path(:id => @app.uuid)}
-    = "#{@app.name}"
-  = " (#{@app.uuid})"
-%div
-  Node:
-  %a{:href=> node_path(:id => @gear.server_identity)}
-    = @gear.server_identity
-%div
-  Cartridges:
-%ul
-  - cartridges = gear_group_cartridges(@app, @gear.group_instance)
-  - cartridges.each do |cartridge|
-    %li
-      = cartridge[:name]
+.row
+  .span7
+    %h1.header{:title => "Gear #{@gear.uuid}"}
+      = image_tag "admin_console/gear-lg.svg", :class => "icon"
+      %span.lighter
+        Gear
+      = @gear.uuid
+  .span5
+    - owner_login = @app.domain.owner.login
+    %h1.user.right{:title => "Owner #{owner_login}"}
+      = image_tag "admin_console/user.svg", :class => "icon"
+      = link_to owner_login, user_path(:id => owner_login)
+%table.table-horizontal
+  %tbody
+    %tr
+      %th
+        Node
+      %td
+        = link_to @gear.server_identity, node_path(:id => @gear.server_identity)
+    %tr
+      %th
+        Application
+      %td
+        = link_to @app.fqdn, application_path(:id => @app.uuid)
+    %tr
+      %th
+        Cartridges
+      %td
+        %ul.unstyled
+          - cartridges = gear_group_cartridges(@app, @gear.group_instance)
+          - cartridges.each do |cartridge|
+            %li
+              = cartridge[:display_name]

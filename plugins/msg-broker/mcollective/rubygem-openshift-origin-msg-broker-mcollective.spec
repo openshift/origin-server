@@ -9,7 +9,7 @@
 
 Summary:       OpenShift plugin for mcollective service
 Name:          rubygem-%{gem_name}
-Version: 1.12.2
+Version: 1.12.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -80,6 +80,12 @@ cp %{buildroot}/%{gem_dir}/gems/%{gem_name}-%{version}/conf/openshift-origin-msg
 %attr(0644,-,-) %ghost /etc/mcollective/client.cfg
 
 %changelog
+* Fri Jul 26 2013 Adam Miller <admiller@redhat.com> 1.12.3-1
+- Merge pull request #3160 from pravisankar/dev/ravi/card78
+  (dmcphers+openshiftbot@redhat.com)
+- For consistency, rest api response must display 'delete' instead 'destroy'
+  for user/domain/app (rpenta@redhat.com)
+
 * Wed Jul 24 2013 Adam Miller <admiller@redhat.com> 1.12.2-1
 - fix issues with move code for multiple haproxy cases (rchopra@redhat.com)
 - support for sparse cartridges (multiple haproxy) (rchopra@redhat.com)

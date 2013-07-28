@@ -1,18 +1,81 @@
-%h3
-  = "Node: #{@id}"
-%h4
-  Gears
-%div
-  = "Total: #{@node[:gears_total_count]}"
-%div
-  = "Active: #{@node[:gears_active_usage_pct]}% (#{@node[:gears_active_count]} active of #{@node[:max_active_gears]} max active)"
-%div
-  = "Started: #{@node[:gears_started_count]}"
-%div
-  = "Idle: #{@node[:gears_idle_count]}"
-%div
-  = "Stopped: #{@node[:gears_stopped_count]}"
-%div
-  = "Deploying: #{@node[:gears_deploying_count]}"
-%div
-  = "Unknown state: #{@node[:gears_unknown_count]}"
+%h1.header{:title => "Node #{@id}"}
+  = image_tag "admin_console/gear-group.svg", :class => "icon"
+  %span.lighter
+    Node
+  = @id
+- if @node[:district_uuid] != "NONE"
+  %section
+    %h3
+      District
+    %table.table-horizontal
+      %tbody
+        %tr
+          %th
+            = "UUID:"
+          %td
+            = @node[:district_uuid]
+        %tr
+          %th
+            = "State:"
+          %td
+            = "#{@node[:district_active] == 'true' ? 'active' : 'inactive'}"
+%section
+  %h3
+    Public Access
+  %table.table-horizontal
+    %tbody
+      %tr
+        %th
+          = "Hostname:"
+        %td
+          = @node[:public_hostname]
+      %tr
+        %th
+          = "IP:"
+        %td
+          = @node[:public_ip]
+%section
+  %h3
+    Gears
+  %table.table-horizontal
+    %tbody
+      %tr
+        %th
+          = "Profile:"
+        %td
+          = @node[:node_profile]
+      %tr
+        %th
+          = "Total:"
+        %td
+          = @node[:gears_total_count]
+      %tr
+        %th
+          = "Active:"
+        %td
+          = "#{@node[:gears_active_usage_pct]}% (#{@node[:gears_active_count]} active of #{@node[:max_active_gears]} max active)"
+      %tr
+        %th
+          = "Started:"
+        %td
+          = @node[:gears_started_count]
+      %tr
+        %th
+          = "Idle:"
+        %td
+          = @node[:gears_idle_count]
+      %tr
+        %th
+          = "Stopped:"
+        %td
+          = @node[:gears_stopped_count]
+      %tr
+        %th
+          = "Deploying:"
+        %td
+          = @node[:gears_deploying_count]
+      %tr
+        %th
+          = "Unknown state:"
+        %td
+          = @node[:gears_unknown_count]

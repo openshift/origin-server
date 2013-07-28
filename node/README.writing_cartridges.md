@@ -1249,3 +1249,73 @@ authors should take care to be as conservative as possible.
 [erb_processing]: #erb-processing
 [erb]: http://ruby-doc.org/stdlib-1.9.3/libdoc/erb/rdoc/ERB.html
 [locking_ruby]: http://www.ruby-doc.org/docs/ProgrammingRuby/html/taint.html).
+
+## OpenShift Upgrades
+
+The OpenShift runtime contains an upgrade system used to upgrade the cartridges in a gear to the latest available version and to apply gear-scoped changes which are orthogonal to cartridges to a gear.  The `oo-admin-upgrade` command provides the CLI for the upgrade system and can be used to upgrade all gears in an OpenShift environment, all gears on a node, or a single gear.  This command queries the openshift broker to determine the locations of the indicated gears to migrate and makes mcollective calls to trigger the upgrade for a gear.
+
+During upgrades, OpenShift follows the following high-level process to upgrade a gear:
+
+1.  Load the gear upgrade extension, if configured.
+1.  Inspect the gear state.
+1.  Run the gear extension's pre-upgrade method, if it exists.
+1.  Compute the upgrade itinerary for the gear.
+1.  If the itinerary contains an incompatible upgrade, stop the gear.
+1.  Upgrade the cartridges in the gear according to the itinerary.
+1.  Run the gear extension's post-upgrade method, if it exists.
+1.  If the itinerary contains an incompatible upgrade, restart and validate the gear.
+1.  Clean up after the upgrade by deleting pre-upgrade state and upgrade metadata.
+
+### Upgrade Itinerary
+
+The upgrade process must be re-entrant; if it fails or times out, a subsequent upgrade operation must pick up where the last one left off without losing any data about which operations must be performed to fully upgrade a gear.  The upgrade itinerary stores information about which cartridges in a gear must be upgraded and which type of upgrade to perform.
+
+There are two types of cartridge upgrade process: compatible and incompatible.  Whether an upgrade from version X to version Y is compatible is driven by the presence of version X in version Y's `Compatible-Versions` manifest element.  Though compatible and incompatible upgrades differ in various ways, the chief difference is that when an incompatible upgrade is to be applied to any cartridge in a gear, that gear is stopped before the cartridge upgrades are performed and restarted after all cartridges have been upgraded.
+
+The upgrade itinerary is computed as follows for each cartridge in a gear:
+
+1.  Read in the current IDENT of the cartridge.
+1.  Select the name and software version of the cartridge from the cartridge repository; this will
+    yield the manifest for the latest version of the cartridge.  If the manifest does not exist in the cartridge repository or does not include the software version, skip the cartridge.
+1.  If the latest manifest is for the same cartridge version as that currently installed in the
+    gear, skip the cartridge unless the `ignore_cartridge_version` parameter is set.  If the `ignore_cartridge_version` parameter is set, record an incompatible upgrade for the cartridge in the itinerary.  (TODO: case where manifest declares itself as compatible version).
+1.  If the latest manifest includes the current cartridge version in the `Compatible-Versions`
+    element, record a compatible upgrade for the cartridge in the itinerary.  Otherwise, record an incompatible upgrade for the cartridge in the itinerary.
+
+### Compatible Upgrades
+
+The compatible upgrade process for a cartridge is as follows:
+
+1.  The new version of the cartridge is overlaid in the gear.
+1.  The files declared in the `Processed-Templates` section of the cartridge's `managed-files.yml`
+    are removed.
+1.  The cartridge directory is unlocked.
+1.  The cartridge directory is secured.
+1.  If the cartridge provides an `upgrade` script, that script is executed.
+1.  The cartridge directory is locked.
+
+### Incompatible Upgrades
+
+The incompatible upgrade process for a cartridge is as follows:
+
+1.  The files and directories declared in the `Setup-Rewritten` section of the cartridge's 
+    `managed_files.yml` are removed.
+1.  The new version of the cartridge is overlaid in the gear.
+1.  The cartridge directory is unlocked.
+1.  The cartridge directory is secured.
+1.  The cartridge `setup` script is run.
+1.  The erb templates for the cartridge are processed.
+1.  If the cartridge provides an `upgrade` script, that script is executed.
+1.  The cartridge directory is locked.
+1.  New endpoints for the cartridge are created.
+1.  The frontend is connected.
+
+### Cartridge Upgrade Script
+
+A cartridge may provide an `upgrade` script in the `bin` directory which will be executed during the upgrade process.  The purpose of this script is to allow for arbitrary actions to occur during the upgrade process which are not accounted for by the compatible or incompatible processes.  If the `upgrade` script is provided, it will be passed the following arguments:
+
+1.  The software version of the cartridge.
+1.  The current cartridge version.
+1.  The cartridge version being upgraded to.
+
+A non-zero exit code from this script will result in the upgrade operation failing until the exit code is corrected.

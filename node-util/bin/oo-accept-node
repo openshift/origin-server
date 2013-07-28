@@ -41,9 +41,9 @@ optparse = OptionParser.new { |opts|
       $OPTIONS[:timeout] = timeout
     }
 
-    $OPTIONS[:'include-upgrade-checks'] = false
-    opts.on('--include-upgrade-checks', 'Enable checks for upgrade consistency') { |checks|
-      $OPTIONS[:'include-upgrade-checks'] = checks
+    $OPTIONS[:'run-upgrade-checks'] = false
+    opts.on('--run-upgrade-checks', 'Perform only checks for upgrade consistency') { |checks|
+      $OPTIONS[:'run-upgrade-checks'] = checks
     }
   }
 optparse.parse!
@@ -742,44 +742,57 @@ def check_app_dirs
          user_fail(entry, "directory #{entry} doesn't have a #{dotdir} directory") unless File.directory? File.join(gear_home,dotdir)
     end
 
-    if $OPTIONS[:'include-upgrade-checks']
-      v1_cartridge_dirs_found = false
-
-      Dir.foreach(gear_home) do |gear_entry|
-        next if gear_entry[0,1] == "."
-
-        gear_entry_full = File.join(gear_home, gear_entry)
-
-        next if File.symlink? gear_entry_full
-        next unless File.directory? gear_entry_full
-        next unless V1_DIRECTORIES.include?(gear_entry)
-
-        v1_cartridge_dirs_found = true
-        break
-      end
-
-      upgrade_markers_found = !Dir.glob(File.join(gear_home, %w(app-root runtime .upgrade*))).empty?
-      preupgrade_state_found = File.exists?(File.join(gear_home, %w(app-root runtime .preupgrade_state)))
-
-      if v1_cartridge_dirs_found
-        user_fail(entry, "directory #{entry} contains a V1 cartridge directory")
-      end
-
-      if upgrade_markers_found 
-        user_fail(entry, "directory #{entry} contains upgrade data")
-      end
-
-      if preupgrade_state_found
-        user_fail(entry, "directory #{entry} contains pre-upgrade state")
-      end
-    end
-
     if copy_all_users.select { |u| u.name == entry }.empty?
       user_fail(entry, "directory #{entry} doesn't have an associated user")
     else
       copy_all_users.delete_if { |u| u.name == entry }
     end
+  end
+end
 
+def check_upgrades
+  verbose("running upgrade checks")
+  copy_all_users = $USERS.dup
+
+  Dir.foreach($GEAR_BASE_DIR) do |entry|
+    next if entry[0,1] == "."
+    next if entry == 'lost+found'
+    next if entry == 'last_access.log'
+
+    gear_home = File.join($GEAR_BASE_DIR, entry)
+
+    next if File.symlink? gear_home
+    next unless File.directory? gear_home
+
+    v1_cartridge_dirs_found = false
+
+    Dir.foreach(gear_home) do |gear_entry|
+      next if gear_entry[0,1] == "."
+
+      gear_entry_full = File.join(gear_home, gear_entry)
+
+      next if File.symlink? gear_entry_full
+      next unless File.directory? gear_entry_full
+      next unless V1_DIRECTORIES.include?(gear_entry)
+
+      v1_cartridge_dirs_found = true
+      break
+    end
+
+    upgrade_markers_found = !Dir.glob(File.join(gear_home, %w(app-root runtime .upgrade*))).empty?
+    preupgrade_state_found = File.exists?(File.join(gear_home, %w(app-root runtime .preupgrade_state)))
+
+    if v1_cartridge_dirs_found
+      user_fail(entry, "directory #{entry} contains a V1 cartridge directory")
+    end
+
+    if upgrade_markers_found 
+      user_fail(entry, "directory #{entry} contains upgrade data")
+    end
+
+    if preupgrade_state_found
+      user_fail(entry, "directory #{entry} contains pre-upgrade state")
+    end
   end
 end
 
@@ -837,26 +850,32 @@ if __FILE__ == $0
     load_node_conf
     find_ext_net_dev
     load_users
-    validate_env
-    check_node_public_resolution
-    check_selinux
-    check_packages
-    check_services
-    check_service_contexts
-    check_semaphores
-    check_cgroup_config
-    check_cgroup_procs
-    check_tc_config if $TC_CHECK
-    check_quotas
-    check_users
-    check_app_dirs
-    check_system_httpd_configs
-    check_cartridge_repository
+
+    if $OPTIONS[:'run-upgrade-checks']
+      check_upgrades
+    else
+      validate_env
+      check_node_public_resolution
+      check_selinux
+      check_packages
+      check_services
+      check_service_contexts
+      check_semaphores
+      check_cgroup_config
+      check_cgroup_procs
+      check_tc_config if $TC_CHECK
+      check_quotas
+      check_users
+      check_app_dirs
+      check_system_httpd_configs
+      check_cartridge_repository
+    end
 
     if $STATUS == 0
         puts "PASS"
     else
         eputs "#{$STATUS} ERRORS"
     end
+
     exit($STATUS)
 end

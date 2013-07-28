@@ -1,44 +1,68 @@
-%h3
-  = "Application: #{@app.name} (#{@app.uuid})"
-- owner_login = @app.domain.owner.login
-%h4
-  Owned by
-  %a{:href => user_path(:id => owner_login)}
-    = owner_login
-%h4
-  Aliases:
-- if @app.aliases.any?
-  %ul
-    - @app.aliases.each do |a|
-      %li
-        = a.fqdn
-- else
-  %i
-    No aliases
-%h4
-  Distribution:
-%table.table
-  %thead
-    %tr
-      %th
-        Gear
-      %th
-        Node
-      %th
-        Cartridges
-  %tbody
-    - @app.group_instances.each do |group_instance|
-      - group_instance.gears.each do |gear|
-        %tr
-          %td
-            %a{:href => gear_path(:id => gear.uuid)}
-              = gear.uuid
-          %td
-            %a{:href => node_path(:id => gear.server_identity)}
-              = gear.server_identity
-          %td
-            %ul.unstyled
-              - cartridges = gear_group_cartridges(@app, group_instance)
-              - cartridges.each do |cartridge|
+.row
+  .span7
+    %h1.header{:title => "Application #{@app.name}"}
+      = image_tag "admin_console/web-stack-lg.svg", :class => "icon"
+      = "Application #{@app.name}"
+  .span5
+    - owner_login = @app.domain.owner.login
+    %h1.user.right{:title => "Owner #{owner_login}"}
+      = image_tag "admin_console/user.svg", :class => "icon"
+      = link_to owner_login, user_path(:id => owner_login)
+
+%section
+  %table.table-horizontal
+    %tbody
+      %tr
+        %th
+          ="URL:"
+        %td
+          %ul.unstyled
+            %li
+              = link_to @app.fqdn, "http://#{@app.fqdn}", :target => "blank"
+            - if @app.aliases.any?
+              - @app.aliases.each do |a|
                 %li
-                  = cartridge[:name]
+                  = link_to a.fqdn, "http://#{a.fqdn}", :target => "blank"
+                  = "(alias)"
+      %tr
+        %th
+          = "ID:"
+        %td
+          = @app.uuid
+      %tr
+        %th
+          = "Domain:"
+        %td
+          = @app.domain.namespace
+- @app.group_instances.each do |group_instance|
+  - cartridges = gear_group_cartridges(@app, group_instance)
+  %section.gear-group
+    %h3
+      = "Gear Group for"
+      - cartridges.each_with_index do |cartridge, count|
+        = "#{cartridge[:display_name]}#{count < cartridges.size - 1 ? ',' : ''}"
+    %table.table.table-condensed.indent10
+      %thead
+        %tr
+          %th
+            Gear
+          %th
+            Cartridges
+          %th
+            Node
+      %tbody
+        - group_instance.gears.each do |gear|
+          %tr
+            %td
+              %a{:href => gear_path(:id => gear.uuid)}
+                = gear.uuid
+            %td
+              - cartridges.each_with_index do |cartridge, count|
+                - if cartridge[:is_sparse]
+                  - if gear.sparse_carts.include?(cartridge[:id])
+                    = "#{cartridge[:display_name]}#{count < cartridges.size - 1 ? ',' : ''}"
+                - else
+                  = "#{cartridge[:display_name]}#{count < cartridges.size - 1 ? ',' : ''}"
+            %td
+              %a{:href => node_path(:id => gear.server_identity)}
+                = gear.server_identity

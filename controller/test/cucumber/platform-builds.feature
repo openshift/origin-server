@@ -17,7 +17,13 @@ Feature: V2 SDK Mock Cartridge Build Tests
     When the mock control_start marker is removed
     And the mock control_stop marker is removed
     And the mock control_build marker is removed
-    And the application hot deploy marker is added
+    And the hot_deploy marker is added to the application repo
+    And a simple update is committed to the application repo
+    And the hot_deploy marker is removed from the application repo
+    And a simple update is committed to the application repo
+    And the hot_deploy marker is added to the application repo
+    And a simple update is committed to the application repo
+    And the application git repository is pushed
     Then the mock control_stop marker will not exist
     Then the mock control_start marker will not exist
     And the mock control_build marker will exist
@@ -28,7 +34,9 @@ Feature: V2 SDK Mock Cartridge Build Tests
     Then the mock control_start marker will not exist
 
     When the mock control_build marker is removed
-    And the application hot deploy marker is removed
+    And the hot_deploy marker is removed from the application repo
+    And a simple update is committed to the application repo
+    And the application git repository is pushed
     Then the mock control_stop marker will exist
     Then the mock control_start marker will exist
     And the mock control_build marker will exist

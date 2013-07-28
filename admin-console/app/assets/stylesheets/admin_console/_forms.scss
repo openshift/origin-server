@@ -1,0 +1,122 @@
+// Allow us to put symbols and text within the input field for a cleaner look
+.input-append,
+.input-prepend {
+  display: inline-block;
+  margin-bottom: $baseLineHeight / 2;
+  vertical-align: middle;
+  font-size: 0; // white space collapse hack
+  white-space: nowrap; // Prevent span and input from separating
+
+  // Reset the white space collapse hack
+  input,
+  select,
+  .uneditable-input,
+  .dropdown-menu,
+  .popover {
+    font-size: $baseFontSize;
+  }
+
+  input,
+  select,
+  .uneditable-input {
+    position: relative; // placed here by default so that on :focus we can place the input above the .add-on for full border and box-shadow goodness
+    margin-bottom: 0; // prevent bottom margin from screwing up alignment in stacked forms
+    *margin-left: 0;
+    vertical-align: top;
+    @include border-radius(0 $inputBorderRadius $inputBorderRadius 0);
+    // Make input on top when focused so blue border and shadow always show
+    &:focus {
+      z-index: 2;
+    }
+  }
+  .add-on {
+    display: inline-block;
+    width: auto;
+    height: $baseLineHeight;
+    min-width: 16px;
+    padding: 4px 5px;
+    font-size: $baseFontSize;
+    font-weight: normal;
+    line-height: $baseLineHeight;
+    text-align: center;
+    text-shadow: 0 1px 0 $white;
+    background-color: $grayLighter;
+    border: 1px solid #ccc;
+  }
+  .add-on,
+  .btn,
+  .btn-group > .dropdown-toggle {
+    vertical-align: top;
+    @include border-radius(0);
+  }
+  .active {
+    background-color: lighten($green, 30);
+    border-color: $green;
+  }
+}
+
+// Remove all border-radius for inputs with both prepend and append
+.input-prepend.input-append {
+  input,
+  select,
+  .uneditable-input {
+    @include border-radius(0);
+    + .btn-group .btn {
+      @include border-radius(0 $inputBorderRadius $inputBorderRadius 0);
+    }
+  }
+  .add-on:first-child,
+  .btn:first-child {
+    margin-right: -1px;
+    @include border-radius($inputBorderRadius 0 0 $inputBorderRadius);
+  }
+  .add-on:last-child,
+  .btn:last-child {
+    margin-left: -1px;
+    @include border-radius(0 $inputBorderRadius $inputBorderRadius 0);
+    float: left;
+    display: block;
+  }
+  .btn-group:first-child {
+    margin-left: 0;
+  }
+}
+
+/* Allow for input prepend/append in search forms */
+.form-search .input-append .search-query,
+.form-search .input-prepend .search-query {
+  @include border-radius(0); // Override due to specificity
+}
+.form-search .input-append .search-query {
+  @include border-radius(14px 0 0 14px);
+}
+.form-search .input-append .btn {
+  @include border-radius(0 14px 14px 0);
+}
+.form-search .input-prepend .search-query {
+  @include border-radius(0 14px 14px 0);
+}
+.form-search .input-prepend .btn {
+  @include border-radius(14px 0 0 14px);
+}
+
+@media (max-width: 480px) {
+  .input-prepend.input-append {
+    .add-on:first-child {
+      margin-bottom: 5px;
+      display: block;
+      float: none;
+      @include border-radius($inputBorderRadius $inputBorderRadius $inputBorderRadius $inputBorderRadius);
+    }
+
+    input[type="text"] {
+      @include border-radius($inputBorderRadius 0 0 $inputBorderRadius);
+      float: none;
+    }
+
+    .btn:last-child {
+      display: inline-block;
+      float: none;
+    }
+  }
+}
