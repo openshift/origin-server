@@ -4,7 +4,7 @@ require 'rake'
 task :build do
   Dir.glob("*.txt").each do |file|
     puts "Processing #{file}"
-    Asciidoctor.render_file file, :in_place => true, :safe => :safe, :template_dir => './templates', :attributes => %w(source-highlighter=coderay coderay-css=style stylesdir=./stylesheets imagesdir=./images stylesheet=foundation.css linkcss! icons=font idprefix= idseparator=- sectanchors)
+    Asciidoctor.render_file file, :in_place => true, :safe => :safe, :template_dir => './templates', :attributes => %w(source-highlighter=coderay coderay-css=style stylesdir=./stylesheets imagesdir=./images stylesheet=origin.css linkcss! icons=font idprefix= idseparator=- sectanchors)
   end
 end
 
