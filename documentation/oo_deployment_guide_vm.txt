@@ -68,10 +68,22 @@ This will allow your browser and RHC client to properly resolve the hostname and
 
 == Set up the Virtual Machine
 
-The base VM image is distributed as a VMDK file and will run on a variety of virtualization
-technologies.
+The base VM image is distributed as a VMDK file and will run on a
+variety of virtualization technologies. Specific setup instructions
+are included below. Skip down to the one you intend to use.
 
+* xref:kvm[libvirt/KVM] - Kernel Virtual Machine (Linux)
+* xref:virtualbox[VirtualBox] - Process based virtualization (Linux, Windows, MacOS)
+
+
+
+[[kvm]]
 === KVM
+
+KVM or "Kernel Virtual Machine" (aka libvirt) is a Linux native
+virtualization mechanism.  With KVM/libvirt installed on a Linux host
+you can run virtual machines for any Ix86 or x86_64 based operating
+system.
 
 ==== Installing KVM Tools
 
@@ -156,7 +168,11 @@ And then present you with the URL and credentials to connect to your OpenShift O
 
 image:virt_manager_vm_running.png[image]
 
+[[virtualbox]]
 === VirtualBox
+
+
+VirtualBox is a process based virtual machine system.
 
 You can start VirtualBox either by clicking on the desktop item in the
 startup menus or from the command line:
@@ -164,7 +180,6 @@ startup menus or from the command line:
 ----
 $ virtualbox &
 ----
-
 
 ==== Create New VM
 
@@ -269,6 +284,29 @@ applications while the CLI allows the user to write and test
 applications and components.  The web browser will also be used to
 verify the test applications during development.
 
+=== User Accounts
+
+There are two user accounts which are used to access the OpenShift
+Origin VM.  Both are displayed on the VM console when it boots as
+shown in the examples above. 
+
+The first one is the OpenShift service account.  This is used to
+access the web console and to run the `rhc` CLI commands as a
+developer.  
+
+* Username: admin 
+* Password: admin
+
+The second account is the developer account.  This is a UNIX account
+which is used to log into the OpenShift VM via SSH. It provides a work space
+for exploring the CLI and development environment of OpenShift Origin.
+
+* Username: openshift
+* Password: openshift
+
+If you try logging in with one of thse and it fails, try using the
+other.
+
 === Using a browser to view the OpenShift Console
 
 When the VM is running you can use the OpenShift Console to create and
@@ -277,8 +315,6 @@ console into your browser.  Enter the username and password when
 prompted.
 
 image:deployment_guide_vm/virtualbox_oo_console.png[image]
-
-See the OpenShift Console user documentation [LINK] to proceed.
 
 === Using SSH to log into the VM
 
@@ -290,13 +326,12 @@ demonstration purposes.
 The user reaches the command line on the VM using SSH from the host.
 
 ----
-$ ssh openshift@10.18.17.190
-The authenticity of host '10.18.17.190 (10.18.17.190)' can't be established.
-RSA key fingerprint is 75:f9:6d:2f:2c:d3:43:73:88:09:67:71:a4:a2:c7:06.
+$ ssh openshift@broker.openshift.local
+The authenticity of host 'broker.openshift.local (10.18.17.93)' can't be established.
+RSA key fingerprint is 4f:bd:75:14:c2:27:83:2d:9b:e0:a6:1a:00:d4:7b:f1.
 Are you sure you want to continue connecting (yes/no)? yes
-Warning: Permanently added '10.18.17.190' (RSA) to the list of known hosts.
-openshift@10.18.17.190's password: 
-[openshift@broker ~]$ ls
+Warning: Permanently added 'broker.openshift.local,10.18.17.93' (RSA) to the list of known hosts.
+openshift@broker.openshift.local's password: 
 [openshift@broker ~]$ pwd
 /home/openshift
 [openshift@broker ~]$
@@ -305,11 +340,7 @@ openshift@10.18.17.190's password:
 At this point the user has access to the `rhc` command line tools for
 managing OpenShift.
 
-=== Viewing applications with the browser
-
-When new applications are created on the VM OpenShift service they
-will be accessable from a web browser on the host.
-
+See the link:oo_user_guide.txt[OpenShift User's Guide]
 
 == Summary
 
