@@ -1,6 +1,6 @@
 class CapabilitiesValidator < ActiveModel::Validator
   def validate(record)
-    user_capabilities = record.get_capabilities
+    user_capabilities = record.capabilities
     if user_capabilities.nil?
       record.errors.add(:capabilities, {:message => "User capabilities is nil", :exit_code => -1})
     else

@@ -132,8 +132,7 @@ keys_put_v1.request.merge!({ 'content' => ncontent, 'type' => nktype })
 keys_put_v1.response = RestKey_V1.new(kname, ncontent, nktype) 
 keys_put_v1.response_type = "key"
 
-manifest = YAML.load(File.open(Dir["/var/lib/openshift/.cartridge_repository/redhat-php/*/metadata/manifest.yml"].first))
-php_cart = "php-" + manifest['Version']
+php_cart = PHP_VERSION
 app_post_v1 = RestApi_V1.new("/domains/#{dom_id}/applications", "POST")
 app_name, app_type, app_scale, app_timeout = 'app1', php_cart, true, 180
 app_post_v1.request.merge!({ 'name' => app_name, 'cartridge' => app_type, 'scale' => app_scale })

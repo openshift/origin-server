@@ -27,7 +27,7 @@ class PendingAppOpGroup
   
   def initialize(attrs = nil, options = nil)
     parent_opid = nil
-    if !attrs.nil? and attrs.has_key?(:parent_op)
+    if !attrs.nil? and attrs[:parent_op]
       parent_opid = attrs[:parent_op]._id 
       attrs.delete(:parent_op)
     end
@@ -104,7 +104,7 @@ class PendingAppOpGroup
             storage_usage_type = (op.args["usage_type"] == UsageRecord::USAGE_TYPES[:addtl_fs_gb])
             tracked_storage = nil
             if storage_usage_type
-              max_untracked_storage = (application.domain.owner.get_capabilities['max_untracked_addtl_storage_per_gear'] || 0)
+              max_untracked_storage = application.domain.owner.max_untracked_additional_storage
               tracked_storage = op.args["additional_filesystem_gb"] - max_untracked_storage
             end
             if !storage_usage_type or (tracked_storage > 0)
@@ -227,7 +227,7 @@ class PendingAppOpGroup
               storage_usage_type = (op.args["usage_type"] == UsageRecord::USAGE_TYPES[:addtl_fs_gb])
               tracked_storage = nil
               if storage_usage_type
-                max_untracked_storage = (application.domain.owner.get_capabilities['max_untracked_addtl_storage_per_gear'] || 0)
+                max_untracked_storage = application.domain.owner.max_untracked_additional_storage
                 tracked_storage = op.args["additional_filesystem_gb"] - max_untracked_storage
               end
               if !storage_usage_type or (tracked_storage > 0)

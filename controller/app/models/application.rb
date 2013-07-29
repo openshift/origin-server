@@ -230,7 +230,9 @@ class Application
   # @param user [CloudUser] The owner of the application
   # @param app_name [String] The application name
   # @return [Application, nil] The application object or nil if no application matches
-  def self.find(user, app_name)
+  #
+  # FIXME: Remove this call pattern and replace with a differently named scope
+  def self.find_by_user(user, app_name)
     user.domains.each { |d| d.applications.each { |a| return a if a.canonical_name == app_name.downcase } }
     return nil
   end
@@ -267,6 +269,10 @@ class Application
   def name=(app_name)
     self.canonical_name = app_name.downcase
     super
+  end
+
+  def capabilities
+    @capabilities ||= domain.owner.capabilities.deep_dup rescue (raise OpenShift::UserException, "The application cannot be changed at this time.  Contact support.")
   end
 
   ##
@@ -2034,9 +2040,8 @@ class Application
         sleep 1
       end
       owner.reload
-      owner_capabilities = owner.get_capabilities
-      if owner.consumed_gears + num_gears_added > owner_capabilities["max_gears"] and num_gears_added > 0
-        raise OpenShift::GearLimitReachedException.new("#{owner.login} is currently using #{owner.consumed_gears} out of #{owner_capabilities["max_gears"]} limit and this application requires #{num_gears_added} additional gears.")
+      if owner.consumed_gears + num_gears_added > owner.max_gears and num_gears_added > 0
+        raise OpenShift::GearLimitReachedException.new("#{owner.login} is currently using #{owner.consumed_gears} out of #{owner.max_gears} limit and this application requires #{num_gears_added} additional gears.")
       end
       owner.consumed_gears += num_gears_added
       op_group.pending_ops.push ops
@@ -2592,5 +2597,4 @@ class Application
       end
     end
   end
-
 end

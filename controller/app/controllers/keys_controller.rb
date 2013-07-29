@@ -40,11 +40,11 @@ class KeysController < BaseController
       return render_error(:unprocessable_entity, nil, nil, nil, nil, messages)
     end
     
-    if @cloud_user.ssh_keys.where(name: name).count > 0
+    if current_user.ssh_keys.where(name: name).present?
       return render_error(:conflict, "SSH key with name #{name} already exists. Use a different name or delete conflicting key and retry.", 120, "name")
     end
     
-    if @cloud_user.ssh_keys.where(content: content).count > 0
+    if current_user.ssh_keys.where(content: content).present?
       return render_error(:conflict, "Given public key is already in use. Use different key or delete conflicting key and retry.", 121, "content")
     end
 
@@ -59,7 +59,7 @@ class KeysController < BaseController
     content = params[:content].presence
     type = params[:type].presence
     
-    Rails.logger.debug "Updating key name:#{id} type:#{type} for user #{@cloud_user.login}"
+    Rails.logger.debug "Updating key name:#{id} type:#{type} for user #{current_user.login}"
     
     @cloud_user.ssh_keys.find_by(name: SshKey.check_name!(id))
     

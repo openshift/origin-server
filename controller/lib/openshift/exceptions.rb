@@ -32,3 +32,6 @@ class OpenShift::ApplicationValidationException < OpenShift::OOException
     super()
   end
 end
+
+class OpenShift::OperationForbidden < OpenShift::AccessDeniedException
+end

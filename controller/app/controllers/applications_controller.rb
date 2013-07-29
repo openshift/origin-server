@@ -90,8 +90,7 @@ class ApplicationsController < BaseController
                           216, "initial_git_url") unless repo_spec
     end
 
-    default_gear_size = params[:gear_profile].presence
-    default_gear_size = Rails.application.config.openshift[:default_gear_size] if default_gear_size.nil?
+    default_gear_size = params[:gear_size].presence || params[:gear_profile].presence || Rails.application.config.openshift[:default_gear_size]
     default_gear_size.downcase! if default_gear_size
 
     return render_error(:unprocessable_entity, "Application name is required and cannot be blank",
@@ -101,12 +100,13 @@ class ApplicationsController < BaseController
     return render_error(:unprocessable_entity, "Invalid size: #{default_gear_size}. Acceptable values are: #{valid_sizes.join(",")}",
                         134, "gear_profile") if default_gear_size and !valid_sizes.include?(default_gear_size)
 
-    if Application.where(domain: @domain, canonical_name: app_name.downcase).count > 0
+    if Application.where(domain: @domain, canonical_name: app_name.downcase).present?
       return render_error(:unprocessable_entity, "The supplied application name '#{app_name}' already exists", 100, "name")
     end
 
     Rails.logger.debug "Checking to see if user limit for number of apps has been reached"
-    return render_error(:unprocessable_entity, "#{@cloud_user.login} has already reached the gear limit of #{@cloud_user.max_gears}",
+    return render_error(:unprocessable_entity, 
+                        "#{@cloud_user.login} has already reached the gear limit of #{@cloud_user.max_gears}",
                         104) if (@cloud_user.consumed_gears >= @cloud_user.max_gears)
 
     download_cartridges_enabled = Rails.application.config.openshift[:download_cartridges_enabled]

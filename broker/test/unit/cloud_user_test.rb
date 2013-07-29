@@ -97,6 +97,29 @@ class CloudUserTest < ActiveSupport::TestCase
     end
   end
 
+  test "capabilities proxy" do
+    c = CloudUser.new(login: @login)
+    c.save
+
+    assert caps = c.capabilities
+    assert caps['max_gears']
+
+    assert caps2 = c.capabilities
+    assert_same caps, caps2
+
+    c.capabilities = nil
+    assert_nil c.capabilities
+    assert_nil c.capabilities
+
+    a = {}
+    c.capabilities = a
+    assert caps3 = c.capabilities
+    assert_not_same caps, caps3
+    assert_not_same caps2, caps3
+    assert_not_equal a.object_id, c.capabilities.object_id
+    assert a === c.capabilities
+  end
+
   test "user ssh keys" do
     ssh = "AAAAB3NzaC1yc2EAAAABIwAAAQEAvzdpZ/3+PUi3SkYQc3j8v5W8+PUNqWe7p3xd9r1y4j60IIuCS4aaVqorVPhwrOCPD5W70aeLM/B3oO3QaBw0FJYfYBWvX3oi+FjccuzSmMoyaYweXCDWxyPi6arBqpsSf3e8YQTEkL7fwOQdaZWtW7QHkiDCfcB/LIUZCiaArm2taIXPvaoz/hhHnqB2s3W/zVP2Jf5OkQHsVOTxYr/Hb+/gV3Zrjy+tE9+z2ivL+2M0iTIoSVsUcz0d4g4XpgM8eG9boq1YGzeEhHe1BeliHmAByD8PwU74tOpdpzDnuKf8E9Gnwhsp2yqwUUkkBUoVcv1LXtimkEyIl0dSeRRcMw=="
     user = CloudUser.new(login: @login)

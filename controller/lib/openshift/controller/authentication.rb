@@ -65,7 +65,7 @@ module OpenShift
           raise "Service did not set the user login attribute" unless user.login.present?
 
           user.auth_method = info[:auth_method] || :login
-          @current_user_scopes = scopes
+          user.scopes = @current_user_scopes = scopes
           @cloud_user = user
           log_actions_as(user)
 
@@ -79,7 +79,7 @@ module OpenShift
           user
 
         rescue OpenShift::AccessDeniedException => e
-          render_error(:unauthorized, e.message, 1, "AUTHENTICATE")
+          render_error(:unauthorized, e.message, 1)
         end
 
         #
@@ -126,10 +126,10 @@ module OpenShift
 
         def check_controller_scopes
           if current_user_scopes.empty?
-            render_error(:forbidden, "You are not authorized to perform any operations.", 1, "AUTHORIZE")
+            render_error(:forbidden, "You are not authorized to perform any operations.", 1)
             false
           elsif !current_user_scopes.any?{ |s| s.allows_action?(self) }
-            render_error(:forbidden, "This action is not allowed with your current authorization.", 1, "AUTHORIZE")
+            render_error(:forbidden, "This action is not allowed with your current authorization.", 1)
             false
           else
             true
@@ -239,7 +239,7 @@ module OpenShift
           other = request.headers["X-Impersonate-User"]
           return user unless other.present?
 
-          unless user.get_capabilities && user.get_capabilities['subaccounts'] == true
+          unless user.capabilities['subaccounts'] == true
             log_action_for(user.login, user.id, "IMPERSONATE", true, "Failed to impersonate", {'SUBJECT' => other, 'IP' => request.remote_ip, 'FORBID' => 'no_subaccount_capability'})
             raise OpenShift::AccessDeniedException, "Insufficient privileges to access user #{other}"
           end

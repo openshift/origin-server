@@ -72,15 +72,14 @@ class String
 end
 
 def set_max_gears(user, maxgears)
-    user_capabilities = user.get_capabilities
-    if user_capabilities["max_gears"] == maxgears
+    caps = user.capabilities
+    if caps["max_gears"] == maxgears
         puts "User already has max_gears set to #{user.max_gears}"
         return
     end
 
     print "Setting max_gears to #{maxgears}... "
-    user_capabilities["max_gears"]=maxgears
-    user.set_capabilities(user_capabilities)
+    caps["max_gears"] = maxgears
     if user.save
         puts "Done."
     else
@@ -90,15 +89,14 @@ def set_max_gears(user, maxgears)
 end
 
 def set_max_tracked_storage(user, maxtrackedstorage)
-    user_capabilities = user.get_capabilities
-    if user_capabilities["max_tracked_addtl_storage_per_gear"] == maxtrackedstorage
-        puts "User already has max_tracked_addtl_storage_per_gear set to #{user_capabilities['max_tracked_addtl_storage_per_gear']}"
+    caps = user.capabilities
+    if caps["max_tracked_addtl_storage_per_gear"] == maxtrackedstorage
+        puts "User already has max_tracked_addtl_storage_per_gear set to #{caps['max_tracked_addtl_storage_per_gear']}"
         return
     end
 
     print "Setting max_tracked_addtl_storage_per_gear to #{maxtrackedstorage}... "
-    user_capabilities["max_tracked_addtl_storage_per_gear"]=maxtrackedstorage
-    user.set_capabilities(user_capabilities)
+    caps["max_tracked_addtl_storage_per_gear"] = maxtrackedstorage
     if user.save
         puts "Done."
     else
@@ -108,15 +106,14 @@ def set_max_tracked_storage(user, maxtrackedstorage)
 end
 
 def set_max_untracked_storage(user, maxuntrackedstorage)
-    user_capabilities = user.get_capabilities
-    if user_capabilities["max_untracked_addtl_storage_per_gear"] == maxuntrackedstorage
-        puts "User already has max_untracked_addtl_storage_per_gear set to #{user_capabilities['max_untracked_addtl_storage_per_gear']}"
+    caps = user.capabilities
+    if caps["max_untracked_addtl_storage_per_gear"] == maxuntrackedstorage
+        puts "User already has max_untracked_addtl_storage_per_gear set to #{caps['max_untracked_addtl_storage_per_gear']}"
         return
     end
 
     print "Setting max_untracked_addtl_storage_per_gear to #{maxuntrackedstorage}... "
-    user_capabilities["max_untracked_addtl_storage_per_gear"]=maxuntrackedstorage
-    user.set_capabilities(user_capabilities)
+    caps["max_untracked_addtl_storage_per_gear"] = maxuntrackedstorage
     if user.save
         puts "Done."
     else
@@ -143,15 +140,14 @@ end
 
 def allow_sub_accounts(user, allow)
     # user.capabilities_will_change!
-    user_capabilities = user.get_capabilities
-    if user_capabilities['subaccounts'] == allow
+    caps = user.capabilities
+    if caps['subaccounts'] == allow
         puts "User already has allowsubaccounts set to #{allow}"
         return
     end
 
     print "Setting subaccounts capability to #{allow} for user #{user.login}... "
-    user_capabilities['subaccounts'] = allow
-    user.set_capabilities(user_capabilities)
+    caps['subaccounts'] = allow
     if user.save
         puts "Done."
     else
@@ -162,15 +158,14 @@ end
 
 def allow_private_ssl_certificates(user, allow)
     # user.capabilities_will_change!
-    user_capabilities = user.get_capabilities
-    if user_capabilities['private_ssl_certificates'] == allow
+    caps = user.capabilities
+    if caps['private_ssl_certificates'] == allow
         puts "User already has allow private_ssl_certificates set to #{allow}"
         return
     end
 
     print "Setting private_ssl_certificates capability to #{allow} for user #{user.login}... "
-    user_capabilities['private_ssl_certificates'] = allow
-    user.set_capabilities(user_capabilities)
+    caps['private_ssl_certificates'] = allow
     if user.save
         puts "Done."
     else
@@ -180,15 +175,14 @@ def allow_private_ssl_certificates(user, allow)
 end
 
 def allow_plan_upgrade(user, allow)
-    user_capabilities = user.get_capabilities
-    if user_capabilities['plan_upgrade_enabled'] == allow
+    caps = user.capabilities
+    if caps['plan_upgrade_enabled'] == allow
         puts "User already has plan_upgrade_enabled set to #{allow}"
         return
     end
 
     print "Setting plan_upgraded_enabled capability to #{allow} for user #{user.login}... "
-    user_capabilities['plan_upgrade_enabled'] = allow
-    user.set_capabilities(user_capabilities)
+    caps['plan_upgrade_enabled'] = allow
     if user.save
         puts "Done."
     else
@@ -198,8 +192,8 @@ def allow_plan_upgrade(user, allow)
 end
 
 def add_sub_account(user, subaccount_login)
-    user_capabilities = user.get_capabilities
-    unless user_capabilities['subaccounts']
+    caps = user.capabilities
+    unless caps['subaccounts']
         puts "User #{user.login} does not have the capability to manage sub accounts"
         return
     end
@@ -234,8 +228,8 @@ def add_sub_account(user, subaccount_login)
 end
 
 def remove_sub_account(user, subaccount_login)
-    user_capabilities = user.get_capabilities
-    unless user_capabilities['subaccounts']
+    caps = user.capabilities
+    unless caps['subaccounts']
         puts "User #{user.login} does not have the capability to manage sub accounts"
         return
     end
@@ -263,7 +257,7 @@ def remove_sub_account(user, subaccount_login)
 end
 
 def add_gear_size(user, gear_size)
-    user_capabilities = user.get_capabilities
+    caps = user.capabilities
     print "Adding gear size #{gear_size} for user #{user.login}... "
 
     available_sizes = Rails.configuration.openshift[:gear_sizes]
@@ -272,41 +266,56 @@ def add_gear_size(user, gear_size)
       exit 1
     end
 
-    gear_sizes = Array(user_capabilities['gear_sizes'])
-    if gear_sizes.include?(gear_size)
-        puts "User #{user.login} already has gear size #{gear_size} in its capabilities."
-        return
-    end
-
-    user_capabilities['gear_sizes'] = (gear_sizes << gear_size)
-    user.set_capabilities(user_capabilities)
-    if user.save
-        puts "Done."
-    else
+    caps['gear_sizes'] << gear_size
+    if !user.save
         puts "An error occurred adding the gear size #{gear_size} to user #{user.login}."
         exit 6
     end
+    puts "Done."
+
+    print "Adding gear size #{gear_size} for domains of user #{user.login}... "
+    user.domains.each do |d|
+        d.allowed_gear_sizes << gear_size
+        if !d.save
+            puts "An error occurred adding the gear size #{gear_size} to domain #{d.namespace} for user #{user.login}."
+            exit 7
+        end
+    end
+    puts "Done."    
 end
 
 def remove_gear_size(user, gear_size)
     print "Removing gear size #{gear_size} for user #{user.login}... "
     
-    user_capabilities = user.get_capabilities
-    unless user_capabilities["gear_sizes"].include?(gear_size)
+    caps = user.capabilities
+    unless caps["gear_sizes"].include?(gear_size)
         puts "User #{user.login} does not have gear size #{gear_size} in its capabilities."
         return
     end
     
-    user_capabilities["gear_sizes"].delete(gear_size)
-    user.set_capabilities(user_capabilities)
-    user.save
-end
+    caps["gear_sizes"].delete(gear_size)
+    if !user.save
+        puts "An error occurred removing the gear size #{gear_size} from user #{user.login}."
+        exit 6
+    end
+    puts "Done."
+
+    print "Removing gear size #{gear_size} for domains of user #{user.login}... "
+    user.domains.each do |d|
+        d.allowed_gear_sizes.delete(gear_size)
+        if !d.save
+            puts "An error occurred removing the gear size #{gear_size} from domain #{d.namespace} for user #{user.login}."
+            exit 7
+        end
+    end
+    puts "Done."    
+end    
 
 def inherit_on_subaccounts(user, allow, capability, cap_name)
-    user_capabilities = user.get_capabilities
-    user_capabilities['inherit_on_subaccounts'] = [] unless user_capabilities.has_key?('inherit_on_subaccounts')
+    caps = user.capabilities
+    caps['inherit_on_subaccounts'] ||= []
  
-    if user_capabilities['inherit_on_subaccounts'].include?(capability) == allow
+    if caps['inherit_on_subaccounts'].include?(capability) == allow
         puts "User already has #{cap_name} inheritance set to #{allow}"
         return
     end
@@ -314,12 +323,11 @@ def inherit_on_subaccounts(user, allow, capability, cap_name)
     # user.capabilities_will_change!
     print "Setting #{cap_name} inheritance to #{allow} for user #{user.login}... "
     if allow
-      user_capabilities['inherit_on_subaccounts'].push(capability)
+      caps['inherit_on_subaccounts'].push(capability)
     else
-      user_capabilities['inherit_on_subaccounts'].delete(capability)
+      caps['inherit_on_subaccounts'].delete(capability)
     end
     
-    user.set_capabilities(user_capabilities)
     if user.save
         puts "Done."
     else
@@ -484,19 +492,19 @@ if changed_user
     puts
 end
 
-user_capabilities = user.get_capabilities
+caps = user.capabilities
 
 # print out the user's current settings
 puts "User #{user.login}:"
 puts "                  consumed gears: #{user.consumed_gears}"
-puts "                       max gears: #{user_capabilities['max_gears']}"
-puts "    max tracked storage per gear: #{user_capabilities['max_tracked_addtl_storage_per_gear'] || 0}"
-puts "  max untracked storage per gear: #{user_capabilities['max_untracked_addtl_storage_per_gear'] || 0}"
-puts "            plan upgrade enabled: #{user_capabilities['plan_upgrade_enabled']}"
-puts "                      gear sizes: #{user_capabilities['gear_sizes'].join(', ')}" if user_capabilities.has_key?('gear_sizes')
-puts "            sub accounts allowed: #{user_capabilities['subaccounts']}" if user_capabilities.has_key?('subaccounts')
-puts "private SSL certificates allowed: #{user_capabilities['private_ssl_certificates']}" if user_capabilities.has_key?('private_ssl_certificates')
-puts "              inherit gear sizes: #{user_capabilities['inherit_on_subaccounts'].include?('gear_sizes')}" if user_capabilities.has_key?('inherit_on_subaccounts')
+puts "                       max gears: #{caps['max_gears']}"
+puts "    max tracked storage per gear: #{caps['max_tracked_addtl_storage_per_gear'] || 0}"
+puts "  max untracked storage per gear: #{caps['max_untracked_addtl_storage_per_gear'] || 0}"
+puts "            plan upgrade enabled: #{caps['plan_upgrade_enabled']}"
+puts "                      gear sizes: #{caps['gear_sizes'].join(', ')}" if caps.has_key?('gear_sizes')
+puts "            sub accounts allowed: #{caps['subaccounts']}" if caps.has_key?('subaccounts')
+puts "private SSL certificates allowed: #{caps['private_ssl_certificates']}" if caps.has_key?('private_ssl_certificates')
+puts "              inherit gear sizes: #{caps['inherit_on_subaccounts'].include?('gear_sizes')}" if caps.has_key?('inherit_on_subaccounts')
 puts 
 if args["--listsubaccounts"] and (not subaccount_list.nil?) and (not subaccount_list.empty?)
     puts "Sub Accounts: #{subaccount_list.length}"

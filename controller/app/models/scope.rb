@@ -1,3 +1,12 @@
+#
+# A scope represents a constraint on an authenticated user's access to the system.
+# The actions a given authenticated user can perform are the union of actions that
+# the active scopes allow - for instance, a client with the "read" scope and the
+# "domain/<id>/admin" scope has read access to all resources visible to the active 
+# user, and full administrative access on the identified domain.  If the active
+# user is himself limited to a set of actions on that domain, the scope does not
+# grant any more actions than he has normally.
+#
 module Scope
 
   Invalid = Class.new(StandardError)
@@ -64,12 +73,42 @@ module Scope
   end
 
   def self.describe_all
-    scopes.map{ |k,v| v unless k.nil? }.compact.map(&:describe).concat(scopes[nil].map(&:describe)).flatten(1)
+    scopes.map{ |k,v| v unless k.nil? }.compact.map(&:describe).compact.concat(scopes[nil].map(&:describe)).flatten(1)
   end
 
   class Base
+    #
+    # Return true if the controller action is allowed. A request action
+    # is forbidden unless at least scope allows it.
+    #
     def allows_action?(controller)
       false
+    end
+
+    #
+    # Return true if the user action is authorized. A user action is
+    # forbidden unless at least one scope allows it.
+    #
+    def authorize_action?(permission, resource, other_resources, user)
+      false
+    end
+
+    #
+    # Given a Mongoid query criteria, apply a set of restrictions to
+    # the query object.  Since many scopes may be queried, set the
+    # following options on the criteria to allow post processing
+    #
+    #   :for_ids - a list of IDs that are allowed to be viewed by this
+    #              scope.  If set, no other IDs are returned.
+    #   :visible - set to true if any results should be visible, or 
+    #              ||= false if the scope does not grant access
+    #
+    # The caller is responsible for limiting the Mongoid criteria
+    # appropriately for the user's access.
+    #
+    def limits_access(criteria)
+      criteria.options[:visible] ||= false
+      criteria
     end
 
     def default_expiration
@@ -189,6 +228,18 @@ module Scope
     def to_s
       join(' ')
     end
+
+    def authorize_action?(permission, resource, other_resources, user)
+      any?{ |s| s.authorize_action?(permission, resource, other_resources, user) }
+    end
+
+    def limit_access(criteria, *args)
+      c = inject(criteria){ |c, s| s.limits_access(c) }
+      c = c.for_ids(c.options.delete(:for_ids)) if c.options[:for_ids]
+      c = c.where(1 => 0) if c.options.delete(:visible) == false
+      c
+    end
+
     def default_expiration
       map(&:default_expiration).min
     end

@@ -2,9 +2,9 @@ module Role
   def self.valid?(sym)
   end
 
-  def self.role?(sym, to)
-    if i = ROLES.index_of(sym)
-      i > ROLES.index_of(to)
+  def self.in?(given, has)
+    if i = ROLES.index(has)
+      given && i >= ROLES.index(given)
     end
   end
 

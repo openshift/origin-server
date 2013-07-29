@@ -56,6 +56,10 @@ class Domain
   def self.validation_map
     {namespace: 106}
   end
+
+  def self.sort_by_original(user)
+    lambda{ |d| [user._id == d.owner_id ? 0 : 1, d.created_at] }
+  end  
   
   def initialize(attrs = nil, options = nil)
     super
