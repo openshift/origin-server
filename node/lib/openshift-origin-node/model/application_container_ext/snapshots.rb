@@ -211,6 +211,11 @@ module OpenShift
           secondary_groups = get_secondary_gear_groups(gear_groups)
 
           secondary_groups.each do |type, group|
+            if !File.exists?(PathUtils.join(container_dir, %W(app-root data #{type}.tar.gz)))
+              $stderr.puts "Unable to restore #{type} because it appears there is no snapshot for that type"
+              next
+            end
+
             $stderr.puts "Restoring snapshot for #{type} gear"
 
             ssh_coords = group['gears'][0]['ssh_url'].sub(/^ssh:\/\//, '')
