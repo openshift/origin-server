@@ -2,12 +2,15 @@
 locked_files:
 - bin/
 - bin/*
-- conf/
+- etc/
+- etc/conf.d/
+- etc/conf.d/*
+- hooks/
+- hooks/*
 - metadata/
 - metadata/*
 - env/
 - env/OPENSHIFT_PYTHON_DIR
 - env/OPENSHIFT_PYTHON_LOG_DIR
-- etc/
 processed_templates:
 - '**/*.erb'
