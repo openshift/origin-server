@@ -227,6 +227,7 @@ oo-admin-ctl-tc status  >/dev/null 2>&1 || oo-admin-ctl-tc restart
 
 %preun
 if [ $1 -eq 0 ]
+then
 oo-admin-ctl-tc stop >/dev/null 2>&1 || :
 
 %if 0%{?fedora} >= 16 || 0%{?rhel} >= 7
