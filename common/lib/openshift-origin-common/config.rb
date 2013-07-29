@@ -20,7 +20,7 @@ require 'openshift-origin-common/utils/path_utils'
 
 module OpenShift
   class Config
-    CONF_DIR = '/etc/openshift/'
+    CONF_DIR = ENV['OPENSHIFT_CONF_DIR'] || '/etc/openshift/'
     PLUGINS_DIR = PathUtils.join(CONF_DIR, 'plugins.d/')
     NODE_CONF_FILE = PathUtils.join(CONF_DIR, 'node.conf')
 
