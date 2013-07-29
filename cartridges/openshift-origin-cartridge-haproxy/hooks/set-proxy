@@ -107,9 +107,8 @@ local_ep=$local_ip:$local_port
 
 # Enable local endpoint based on number of serving gears.
 if [ $(grep -E "server\s*gear" /tmp/haproxy.cfg.$$ | wc -l) -le 1 ]; then
-    # re-add local-gear with maxconn 2.
     sed -i "/\s*server\s*local-gear\s.*/d" /tmp/haproxy.cfg.$$
-    echo "    server local-gear $local_ep maxconn 2 check fall 2 rise 3 inter 2000 cookie local-$OPENSHIFT_GEAR_UUID" >> /tmp/haproxy.cfg.$$
+    echo "    server local-gear $local_ep check fall 2 rise 3 inter 2000 cookie local-$OPENSHIFT_GEAR_UUID" >> /tmp/haproxy.cfg.$$
 fi
 
 cat /tmp/haproxy.cfg.$$ > "$haproxy_cfg"
