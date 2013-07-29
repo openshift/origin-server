@@ -9,7 +9,7 @@
 
 Summary:       OpenShift Origin Management Console
 Name:          rubygem-%{gem_name}
-Version: 1.12.2
+Version: 1.12.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -151,6 +151,20 @@ cp -a ./%{gem_dir}/* %{buildroot}%{gem_dir}/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Mon Jul 29 2013 Adam Miller <admiller@redhat.com> 1.12.3-1
+- Add omit method for functional and integration tests (jliggitt@redhat.com)
+- Merge remote-tracking branch 'origin/master' into changes_for_membership
+  (ccoleman@redhat.com)
+- Merge remote-tracking branch 'origin/master' into changes_for_membership
+  (ccoleman@redhat.com)
+- WebMock causes errors in Net::HTTP::Persistent, disable except when needed
+  (ccoleman@redhat.com)
+- Support LIST_DOMAINS_BY_OWNER, SHOW_DOMAIN, and SHOW_APPLICATION_BY_DOMAIN
+  (ccoleman@redhat.com)
+- Support running broker tests directly Force scopes to use checked ids and
+  avoid symbolizing arbitrary strings Use .present? instead of .count > 0 (for
+  performance) Handle ValidationExceptions globally (ccoleman@redhat.com)
+
 * Wed Jul 24 2013 Adam Miller <admiller@redhat.com> 1.12.2-1
 - Correctly create custom apps (ccoleman@redhat.com)
 - Merge remote-tracking branch 'origin/master' into
