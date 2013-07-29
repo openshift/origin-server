@@ -339,7 +339,11 @@ module OpenShift
         # Returns the combined output of all actions as a +String+.
         #
         def deploy(options={})
-          buffer = ''
+          buffer = "Starting application #{application_name}\n"
+
+          if options[:out]
+            options[:out].puts(buffer)
+          end
 
           buffer << start_gear(secondary_only: true,
               user_initiated: true,
