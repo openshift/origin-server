@@ -235,8 +235,13 @@ class PendingAppOpGroup
                                         op.args["gear_size"], tracked_storage, op.args["cart_name"])
               end
             end
-          when :register_dns          
-            gear.register_dns
+          when :register_dns
+            begin 
+              gear.register_dns
+            rescue OpenShift::DNSLoginException => e
+              op.set(:state, :rolledback)
+              raise
+            end
           when :deregister_dns          
             gear.deregister_dns          
           when :destroy_gear
