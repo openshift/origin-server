@@ -6,7 +6,7 @@
 %global cartridgedir %{_libexecdir}/openshift/cartridges/ruby
 
 Name:          openshift-origin-cartridge-ruby
-Version: 0.7.3
+Version: 0.7.4
 Release:       1%{?dist}
 Summary:       Ruby cartridge
 Group:         Development/Languages
@@ -186,6 +186,9 @@ Ruby cartridge for OpenShift. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Mon Jul 29 2013 Adam Miller <admiller@redhat.com> 0.7.4-1
+- Bug 982738 (dmcphers@redhat.com)
+
 * Fri Jul 26 2013 Adam Miller <admiller@redhat.com> 0.7.3-1
 - Bug 968252: Add missing marker docs (ironcladlou@gmail.com)
 
