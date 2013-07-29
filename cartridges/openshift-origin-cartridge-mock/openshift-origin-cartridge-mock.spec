@@ -27,9 +27,6 @@ test platform functionality. (Cartridge Format V2)
 %__cp -r * %{buildroot}%{cartridgedir}
 %__cp .mock_hidden.erb %{buildroot}%{cartridgedir}
 
-%posttrans
-%{_sbindir}/oo-admin-cartridge --action install --source %{cartridgedir}
-
 %files
 %dir %{cartridgedir}
 %attr(0755,-,-) %{cartridgedir}/bin/
