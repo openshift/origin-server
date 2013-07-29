@@ -34,6 +34,7 @@ class CloudUser
   field :plan_history, type: Array, default: []
   field :usage_account_id, type: String
   field :consumed_gears, type: Integer, default: 0
+
   embeds_many :ssh_keys, class_name: UserSshKey.name
   embeds_many :pending_ops, class_name: PendingUserOps.name
   # embeds_many :identities, class_name: Identity.name, cascade_callbacks: true
@@ -41,7 +42,7 @@ class CloudUser
   has_many :authorizations, class_name: Authorization.name, dependent: :restrict
 
   validates :login, presence: true
-  validates :capabilities, presence: true, capabilities: true
+  validates :capabilities, presence: true
 
   scope :with_plan, any_of({:plan_id.ne => nil}, {:pending_plan_id.ne => nil}) 
   index({:login => 1}, {:unique => true})
@@ -69,6 +70,13 @@ class CloudUser
   # This is a transient attribute and is not persisted
   attr_accessor :auth_method
 
+  # The set of scopes that are currently present on this user.  Scopes limit
+  # the available actions on an account to the union of the actions permitted
+  # by the supplied scope.  All other actions are forbidden.  Type is Scopes
+  #
+  # This is a transient attribute and is not persisted
+  attr_accessor :scopes
+
   # Identity support will add the following:
   #
   # # This is a transient attribute and is not persisted
@@ -76,23 +84,6 @@ class CloudUser
   # def current_identity!(provider, uid)
   #  self.current_identity = identities.select{ |i| i.provider == provider && i.uid == uid }.first
   # end
-
-  # Convenience method to get the max_gears capability
-  def max_gears
-    get_capabilities["max_gears"]
-  end
-  def max_gears=(m)
-    user_capabilities = get_capabilities
-    user_capabilities["max_gears"] = m
-    set_capabilities(user_capabilities)
-  end
-
-  def max_storage
-    user_capabilities = get_capabilities
-    max_untracked_storage = user_capabilities["max_untracked_addtl_storage_per_gear"] || 0
-    max_tracked_storage = user_capabilities["max_tracked_addtl_storage_per_gear"] || 0
-    (max_untracked_storage + max_tracked_storage)
-  end
 
   def save(options = {})
     res = false
@@ -165,13 +156,12 @@ class CloudUser
   # Used to add an ssh-key to the user. Use this instead of ssh_keys= so that the key can be propagated to the
   # domains/application that the user has access to.
   def add_ssh_key(key)
-    if self.domains.count > 0
+    if persisted?
       pending_op = PendingUserOps.new(op_type: :add_ssh_key, arguments: key.attributes.dup, state: :init, on_domain_ids: self.domains.map{|d|d._id.to_s}, created_at: Time.new)
       CloudUser.where(_id: self.id).update_all({ "$push" => { pending_ops: pending_op.serializable_hash_with_timestamp , ssh_keys: key.serializable_hash }})
-      self.reload
-      self.run_jobs
+      reload.run_jobs
     else
-      self.ssh_keys << key
+      ssh_keys << key
     end
   end
   
@@ -185,14 +175,13 @@ class CloudUser
   # Used to remove an ssh-key from the user. Use this instead of ssh_keys= so that the key removal can be propagated to the
   # domains/application that the user has access to.
   def remove_ssh_key(name)
-    key = self.ssh_keys.find_by(name: name)
-    if self.domains.count > 0
+    if persisted?
+      key = self.ssh_keys.find_by(name: name)
       pending_op = PendingUserOps.new(op_type: :delete_ssh_key, arguments: key.attributes.dup, state: :init, on_domain_ids: self.domains.map{|d|d._id.to_s}, created_at: Time.new)
       CloudUser.where(_id: self.id).update_all({ "$push" => { pending_ops: pending_op.serializable_hash_with_timestamp } , "$pull" => { ssh_keys: key.serializable_hash }})
-      self.reload
-      self.run_jobs      
+      reload.run_jobs
     else
-      key.delete
+      ssh_keys.delete_if{ |k| k.name == name }
     end
   end
 
@@ -207,28 +196,68 @@ class CloudUser
   def inherited_capabilities
     @inherited_capabilities ||= begin
         if self.parent_user_id
-          caps = CloudUser.find_by(_id: self.parent_user_id).get_capabilities
-          caps.slice(*Array(caps['inherit_on_subaccounts']))
+          caps = CloudUser.find_by(_id: self.parent_user_id).capabilities
+          caps.slice(*Array(caps['inherit_on_subaccounts'])).freeze
         end
       rescue Mongoid::Errors::DocumentNotFound
-      end || {}
+      end || {}.freeze
   end
 
-  def get_capabilities
-    self.capabilities.deep_dup.merge!(inherited_capabilities)
+  class CapabilityProxy < SimpleDelegator
+    def initialize(base, inherited)
+      @inherited = inherited
+      super base
+    end
+    def [](key)
+      @inherited[key] || super
+    end
   end
 
-  def set_capabilities(caps=nil)
-    self.capabilities = caps.presence || default_capabilities
+  #
+  # The capabilities object should always return inherited properties if they are
+  # set (and inheritable from the parent account), otherwise it should return
+  # the stored capabilities.  If the parent user is changed, the underlying
+  # capability should be returned.
+  #
+  # Note: Mongoid handles dirty tracking on hashes whenever the accessor is called,
+  #       therefore each call to capabilities must invoke the underlying object.
+  #
+  alias_method :_capabilities, :capabilities
+  def capabilities
+    if caps = _capabilities
+      @capability_proxy = nil if caps != @capability_proxy
+      @capability_proxy ||= CapabilityProxy.new(caps, inherited_capabilities)
+    end
+  end
+
+  def max_gears
+    capabilities["max_gears"]
+  end
+
+  def max_gears=(m)
+    capabilities["max_gears"] = m
+  end
+
+  def allowed_gear_sizes
+    capabilities["gear_sizes"]
+  end
+
+  def max_storage
+    (max_tracked_additional_storage + max_untracked_additional_storage)
+  end
+
+  def max_untracked_additional_storage
+    capabilities['max_untracked_addtl_storage_per_gear'] || 0
+  end
+
+  def max_tracked_additional_storage
+    capabilities['max_tracked_addtl_storage_per_gear'] || 0
   end
 
   # Delete user and all its artifacts like domains, applications associated with the user 
   def force_delete
-    # will need to read from the primary to make sure we get the latest data
-    while Domain.where(owner: self).count > 0
-      domain = Domain.where(owner: self).first
-      while Application.where(domain: domain).count > 0
-        app = Application.where(domain: domain).first
+    while domain = Domain.where(owner: self).first
+      while app = Application.where(domain: domain).first
         app.destroy_app
       end
       domain.delete
@@ -236,8 +265,7 @@ class CloudUser
     
     # will need to reload from primary to ensure that mongoid doesn't validate based on its cache
     # and prevent us from deleting this user because of the :dependent :restrict clause
-    self.reload
-    self.delete
+    self.reload.delete
   end
  
   # Runs all jobs in :init phase and stops at the first failure.

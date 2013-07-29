@@ -59,6 +59,14 @@ module OpenShift
           field = ex.respond_to?(:field) ? ex.field : nil
 
           case ex
+          when Mongoid::Errors::Validations
+            field_map = 
+              case ex.document
+              when Domain then {"namespace" => "id"}
+              end
+            messages = get_error_messages(ex.document, field_map || {})
+            return render_error(:unprocessable_entity, nil, nil, nil, nil, messages)
+
           when Mongoid::Errors::DocumentNotFound
             status = :not_found
             model = ex.klass

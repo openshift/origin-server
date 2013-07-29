@@ -1,6 +1,7 @@
 ENV["TEST_NAME"] = "unit_application_test"
 require 'test_helper'
 require 'openshift-origin-controller'
+require 'helpers/rest/api'
 
 #module Rails
   #def self.logger
@@ -69,9 +70,9 @@ class ApplicationsTest < ActionDispatch::IntegrationTest #ActiveSupport::TestCas
 
   test "scaling and storage events on application" do
     @appname = "test"
+
     app = Application.create_app(@appname, [PHP_VERSION, MYSQL_VERSION], @domain, nil, true)
     app = Application.find_by(canonical_name: @appname.downcase, domain_id: @domain._id) rescue nil
-
     @user.capabilities["max_untracked_addtl_storage_per_gear"] = 5
     @user.save
     app.reload

@@ -172,7 +172,7 @@ class AuthenticationTest < ActiveSupport::TestCase
     token.expects(:user).returns(user)
     Authorization.expects(:authenticate).with('foo').returns(token)
 
-    controller.expects(:render_error).with(:forbidden, 'This action is not allowed with your current authorization.', 1, 'AUTHORIZE')
+    controller.expects(:render_error).with(:forbidden, 'This action is not allowed with your current authorization.', 1)
     controller.authenticate_user!
   end
 
@@ -184,7 +184,7 @@ class AuthenticationTest < ActiveSupport::TestCase
     token.expects(:user).returns(user)
     Authorization.expects(:authenticate).with('foo').returns(token)
 
-    controller.expects(:render_error).with(:forbidden, 'This action is not allowed with your current authorization.', 1, 'AUTHORIZE')
+    controller.expects(:render_error).with(:forbidden, 'This action is not allowed with your current authorization.', 1)
     controller.authenticate_user!
   end
 

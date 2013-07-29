@@ -66,7 +66,7 @@ module Console
           source = config
           Builtin[config]
         when config == :external
-          source = '~/.openshift/console.conf'
+          source = ENV['CONSOLE_CONFIG_FILE'].presence || '~/.openshift/console.conf'
           api_config_from(Console::ConfigFile.new(source))
         when config.respond_to?(:[])
           source = 'object in config'

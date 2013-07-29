@@ -7,16 +7,14 @@ class DomainsController < BaseController
   # URL: /domains
   #
   # Action: GET
+  #
+  # @param [String] owner The id of an owner to show the domains for.  Special values: 
+  #                         @self - returns the current user.
   # 
   # @return [RestReply<Array<RestDomain>>] List of domains
   def index
-    rest_domains = Array.new
-    Rails.logger.debug "Getting domains for user #{@cloud_user.login}"
-    domains = Domain.where(owner: @cloud_user)
-    domains.each do |domain|
-      rest_domains.push get_rest_domain(domain)
-    end
-    render_success(:ok, "domains", rest_domains)
+    return render_error(:bad_request, "Only @self is supported for the 'owner' argument.") if params[:owner] && params[:owner] != "@self"
+    render_success(:ok, "domains", Domain.where(owner: current_user).sort_by(&Domain.sort_by_original(current_user)).map{ |d| get_rest_domain(d) })
   end
 
   # Retuns domain for the current user that match the given parameters.
@@ -141,28 +139,22 @@ class DomainsController < BaseController
     name = name.downcase if name.presence
     get_domain(name)
     force = get_bool(params[:force])
-    if @domain
-      if force
-        apps = Application.where(domain_id: @domain._id)
-        while apps.count > 0
-          apps.each do |app|
-            app.destroy_app
-          end
-          apps = Application.where(domain_id: @domain._id)
-        end
-      elsif Application.where(domain_id: @domain._id).count > 0
-        if requested_api_version <= 1.3
-          return render_error(:bad_request, "Domain contains applications. Delete applications first or set force to true.", 128)
-        else
-          return render_error(:unprocessable_entity, "Domain contains applications. Delete applications first or set force to true.", 128)
-        end
+    if force
+      while (apps = Application.where(domain_id: @domain._id)).present?
+        apps.each(&:destroy_app)
       end
-      # reload the domain so that MongoId does not see any applications
-      @domain.reload
-      result = @domain.delete
-      status = requested_api_version <= 1.4 ? :no_content : :ok
-      render_success(status, nil, nil, "Domain #{name} deleted.", result)
+    elsif Application.where(domain_id: @domain._id).present?
+      if requested_api_version <= 1.3
+        return render_error(:bad_request, "Domain contains applications. Delete applications first or set force to true.", 128)
+      else
+        return render_error(:unprocessable_entity, "Domain contains applications. Delete applications first or set force to true.", 128)
+      end
     end
+    # reload the domain so that MongoId does not see any applications
+    @domain.reload
+    result = @domain.delete
+    status = requested_api_version <= 1.4 ? :no_content : :ok
+    render_success(status, nil, nil, "Domain #{name} deleted.", result)
   end
 
   private

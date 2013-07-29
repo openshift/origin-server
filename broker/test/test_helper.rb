@@ -5,27 +5,32 @@ require File.expand_path('../../config/environment', __FILE__)
 require 'rails/test_help'
 require 'mocha/setup'
 
-manifest = YAML.load(File.open(Dir["/var/lib/openshift/.cartridge_repository/redhat-php/*/metadata/manifest.yml"].first))
-PHP_VERSION = "php-" + manifest['Version']
+begin
+  manifest = YAML.load(File.open(Dir["/var/lib/openshift/.cartridge_repository/redhat-php/*/metadata/manifest.yml"].first))
+  PHP_VERSION = "php-" + manifest['Version']
 
-manifest = YAML.load(File.open(Dir["/var/lib/openshift/.cartridge_repository/redhat-ruby/*/metadata/manifest.yml"].first))
-RUBY_VERSION = "ruby-" + manifest['Version']
+  manifest = YAML.load(File.open(Dir["/var/lib/openshift/.cartridge_repository/redhat-ruby/*/metadata/manifest.yml"].first))
+  RUBY_VERSION = "ruby-" + manifest['Version']
 
-if File.exist?("/var/lib/openshift/.cartridge_repository/redhat-mysql")
-  manifest = YAML.load(File.open(Dir["/var/lib/openshift/.cartridge_repository/redhat-mysql/*/metadata/manifest.yml"].first))
-  MYSQL_VERSION = "mysql-" + manifest['Version']
-end
+  if File.exist?("/var/lib/openshift/.cartridge_repository/redhat-mysql")
+    manifest = YAML.load(File.open(Dir["/var/lib/openshift/.cartridge_repository/redhat-mysql/*/metadata/manifest.yml"].first))
+    MYSQL_VERSION = "mysql-" + manifest['Version']
+  end
 
-if File.exist?("/var/lib/openshift/.cartridge_repository/redhat-mariadb")
-  manifest = YAML.load(File.open(Dir["/var/lib/openshift/.cartridge_repository/redhat-mariadb/*/metadata/manifest.yml"].first))
-  MYSQL_VERSION = "mariadb-" + manifest['Version']
+  if File.exist?("/var/lib/openshift/.cartridge_repository/redhat-mariadb")
+    manifest = YAML.load(File.open(Dir["/var/lib/openshift/.cartridge_repository/redhat-mariadb/*/metadata/manifest.yml"].first))
+    MYSQL_VERSION = "mariadb-" + manifest['Version']
+  end
+rescue => e
+  puts "Unable to set PHP/RUBY/MYSQL versions, #{e.backtrace.join("\n")}"
+  [:PHP_VERSION, :MYSQL_VERSION, :RUBY_VERSION].each{ |sym| Kernel.const_set(sym, ENV[sym.to_s]) }
 end
 
 def gen_uuid
   %x[/usr/bin/uuidgen].gsub('-', '').strip 
 end
 
-def register_user(login, password)
+def register_user(login=nil, password=nil)
   if ENV['REGISTER_USER']
     accnt = UserAccount.new(user: login, password: password)
     accnt.save

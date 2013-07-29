@@ -123,14 +123,14 @@ class SubUserTest < ActionDispatch::IntegrationTest
     u.save
 
     user = CloudUser.find_by(login: @username)
-    assert_equal Rails.configuration.openshift[:gear_sizes].sort, user.get_capabilities['gear_sizes'].sort
+    assert_equal Rails.configuration.openshift[:gear_sizes].sort, user.capabilities['gear_sizes'].sort
 
     @headers["X-Impersonate-User"] = "subuser#{@random}"
     get "broker/rest/domains.json", nil, @headers
     assert_equal 200, status
 
     subuser = CloudUser.find_by(login: "subuser#{@random}")
-    capabilities = subuser.get_capabilities
+    capabilities = subuser.capabilities
     assert_equal Rails.configuration.openshift[:gear_sizes].sort, capabilities["gear_sizes"].sort
 
     u = CloudUser.find_by login: "#{@username}"
@@ -138,7 +138,7 @@ class SubUserTest < ActionDispatch::IntegrationTest
     u.save
 
     subuser = CloudUser.find_by(login: "subuser#{@random}")
-    capabilities = subuser.get_capabilities
+    capabilities = subuser.capabilities
     assert_equal Rails.configuration.openshift[:default_gear_capabilities].sort, capabilities["gear_sizes"].sort
 
     u = CloudUser.find_by login: "#{@username}"
@@ -146,7 +146,7 @@ class SubUserTest < ActionDispatch::IntegrationTest
     u.save
 
     subuser = CloudUser.find_by(login: "subuser#{@random}")
-    capabilities = subuser.get_capabilities
+    capabilities = subuser.capabilities
     assert_equal 1, capabilities["gear_sizes"].size
     assert_equal Rails.configuration.openshift[:default_gear_size], capabilities["gear_sizes"][0]
   end

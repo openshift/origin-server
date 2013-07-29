@@ -53,8 +53,9 @@ class ActiveSupport::TestCase
 
   def cleanup_domain
     if cleanup_domain? 
-      @domain.destroy_recursive if @domain
+      @domain.destroy_recursive if @domain 
     end
+  rescue RestApi::ResourceNotFound
   end
 
   def with_unique_domain

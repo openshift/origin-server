@@ -42,6 +42,17 @@ class RestApiDomainTest < ActiveSupport::TestCase
     assert_equal "#{uuid}", domains[0].name
   end
 
+  def test_domains_get_by_owner
+    assert RestApi.info.link('LIST_DOMAINS_BY_OWNER')
+    setup_domain
+    domains = Domain.find :all, :as => @user
+    owned_domains = Domain.find :all, :params => {:owner => '@self'}, :as => @user
+    assert_equal 1, domains.length
+    assert_equal domains, owned_domains
+
+    assert_raises(ActiveResource::BadRequest, "Other filters are now supported"){ Domain.find :all, :params => {:owner => 'other'}, :as => @user }
+  end
+
   def test_domains_first
     setup_domain
     domain = Domain.find :one, :as => @user
