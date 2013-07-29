@@ -28,7 +28,7 @@ def usage
                             --with-alias-name ALIAS
 
 == List of arguments
-  -a|--with-alias-name      alias       Alias from which cert/key are to be removed
+  -a|--with-alias-name      alias       Alias from which cert/key are to be removed(required)
   -c|--with-container-uuid  gear_uuid   Unique identifier for the gear(required)
   -n|--dry-run                          Don't make changes, just do a dry run.
   -d|--debug                            Enable debug mode
@@ -68,6 +68,7 @@ $oo_debug = true if args['--debug']
 $porcelain = args['--porcelain'] ? true : false
 
 if container_uuid.nil? or server_alias.nil?
+  puts "container-uuid and alias-name are required!"
   usage
 end
 
@@ -81,7 +82,7 @@ rescue OpenShift::Runtime::FrontendHttpServerException => e
   $stderr.puts(e.message)
   exit 129
 rescue Exception => e
-  $stderr.puts(e.message)
-  exit -1
+  $stderr.puts e.message
+  exit 1
 end
 exit 0
