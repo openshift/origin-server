@@ -27,17 +27,13 @@ def usage
 #{$0} --with-container-uuid UUID \\
                --with-ssl-cert SSL_CERT_PATH \\
                --with-priv-key PRIV_KEY_PATH \\
-               --with-container-name NAME \\
-               --with-namespace NAMESPACE \\
                --with-alias-name ALIAS
 
 == List of arguments
-  -s|--with-ssl-cert        ssl_cert    SSL certificate to add to the gear
-  -k|--with-priv-key        priv_key    Private key for the SSL certificate
-  -a|--with-alias-name      alias       Alias for which cert/key are added
+  -s|--with-ssl-cert        ssl_cert    SSL certificate file to add to the gear(required)
+  -k|--with-priv-key        priv_key    Private key file for the SSL certificate(required)
+  -a|--with-alias-name      alias       Alias for which cert/key are added(required)
   -c|--with-container-uuid  gear_uuid   Unique identifier for the gear(required)
-    |--with-namespace       namespace   Namespace of the application (required)
-    |--with-container-name  gear_name   Name of the gear
     |--with-passphrase      passphrase  Optional passphrase for the private key
   -n|--dry-run                          Don't make changes, just do a dry run
   -q|--porcelain                        TODO: what does this do?
@@ -55,8 +51,6 @@ opts = GetoptLong.new(
     ["--with-priv-key",       "-k", GetoptLong::REQUIRED_ARGUMENT],
     ["--with-alias-name",     "-a", GetoptLong::REQUIRED_ARGUMENT],
     ["--with-container-uuid", "-c", GetoptLong::REQUIRED_ARGUMENT],
-    ["--with-namespace",            GetoptLong::REQUIRED_ARGUMENT],
-    ["--with-container-name",       GetoptLong::REQUIRED_ARGUMENT],
     ["--with-passphrase",           GetoptLong::REQUIRED_ARGUMENT],
     ["--dry-run",             "-n", GetoptLong::NO_ARGUMENT],
     ["--porcelain",           "-q", GetoptLong::NO_ARGUMENT],
@@ -76,8 +70,6 @@ if args["--help"]
 end
 
 container_uuid = args['--with-container-uuid']
-container_name = args['--with-container-name']
-namespace      = args['--with-namespace']
 
 ssl_cert      = args['--with-ssl-cert']
 priv_key      = args['--with-priv-key']
@@ -88,8 +80,19 @@ $dry_run = true if args['--dry-run']
 $oo_debug = true if args['--debug']
 $porcelain = args['--porcelain'] ? true : false
 
-if container_uuid.nil? or server_alias.nil?
+if container_uuid.nil? or server_alias.nil? or ssl_cert.nil? or priv_key.nil?
+  puts "container-uuid, alias-name, ssl-cert, and priv-key are all required!"
   usage
+end
+
+unless File.exists? ssl_cert
+  puts "File not found: #{ssl_cert}"
+  exit 255
+end
+
+unless File.exists? priv_key
+  puts "File not found: #{priv_key}"
+  exit 255
 end
 
 begin
@@ -107,7 +110,7 @@ rescue OpenShift::Runtime::FrontendHttpServerException => e
   $stderr.puts(e.message)
   exit 129
 rescue Exception => e
-  $stderr.puts(e.message)
-  exit -1
+  $stderr.puts e.message
+  exit 1
 end
 exit 0
