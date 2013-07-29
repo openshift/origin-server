@@ -7,6 +7,11 @@ source "${OPENSHIFT_RUBY_DIR}/lib/ruby_context"
 HTTPD_CFG_FILE=$OPENSHIFT_RUBY_DIR/etc/conf/httpd_nolog.conf
 HTTPD_PID_FILE=$OPENSHIFT_RUBY_DIR/run/httpd.pid
 
+export LC_ALL=en_US.UTF-8
+export LANG=en_US.UTF-8
+export LANGUAGE=en_US.UTF-8
+
+
 function start() {
     echo "Starting Ruby cart"
     update_httpd_passenv $HTTPD_CFG_FILE
