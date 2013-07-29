@@ -2482,7 +2482,7 @@ module OpenShift
         begin
           Rails.logger.debug "DEBUG: rpc_client.custom_request('cartridge_do', #{mc_args.inspect}, #{@id}, {'identity' => #{@id}}) (Request ID: #{Thread.current[:user_action_log_uuid]})"
           result = rpc_client.custom_request('cartridge_do', mc_args, @id, {'identity' => @id})
-          Rails.logger.debug "DEBUG: #{result.inspect} (Request ID: #{Thread.current[:user_action_log_uuid]})" if log_debug_output
+          Rails.logger.debug "DEBUG: #{mask_user_creds(result.inspect)} (Request ID: #{Thread.current[:user_action_log_uuid]})" if log_debug_output
         rescue => e
           Rails.logger.error("Error processing custom_request for action #{action}: #{e.message}")
           Rails.logger.error(e.backtrace)
@@ -3303,6 +3303,12 @@ module OpenShift
           end
           Rails.logger.debug "DEBUG: MCollective Response Time (execute_parallel): #{Time.new - start_time}s  (Request ID: #{Thread.current[:user_action_log_uuid]})"
         end
+      end
+
+      private
+ 
+      def mask_user_creds(str)
+        str.gsub(/(User: |Password: |username=|password=).*/, '\1[HIDDEN]')
       end
     end
 end
