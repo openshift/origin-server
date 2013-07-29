@@ -1381,7 +1381,7 @@ module OpenShift
         public_key_bytes = IO.read(ssh_public_key)
         public_key_bytes.sub!(/^ssh-rsa /, '')
 
-        output = "APP_SSH_KEY_ADD: #{cartridge.directory} #{public_key_bytes}\n"
+        output = "APP_SSH_KEY_ADD: #{cartridge.directory}-#{@container.uuid} #{public_key_bytes}\n"
         # The BROKER_AUTH_KEY_ADD token does not use any arguments.  It tells the broker
         # to enable this gear to make REST API calls on behalf of the user who owns this gear.
         output << "BROKER_AUTH_KEY_ADD: \n"
