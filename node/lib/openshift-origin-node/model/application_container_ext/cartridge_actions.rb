@@ -30,23 +30,21 @@ module OpenShift
             env       = ::OpenShift::Runtime::Utils::Environ.for_gear(@container_dir)
 
             begin
-              ::OpenShift::Runtime::Utils::Cgroups::with_no_cpu_limits(@uuid) do
-                logger.info "Executing initial gear prereceive for #{@uuid}"
-                Utils.oo_spawn("gear prereceive >> #{build_log} 2>&1",
-                               env:                 env,
-                               chdir:               @container_dir,
-                               uid:                 @uid,
-                               timeout:             @hourglass.remaining,
-                               expected_exitstatus: 0)
+              logger.info "Executing initial gear prereceive for #{@uuid}"
+              Utils.oo_spawn("gear prereceive >> #{build_log} 2>&1",
+                             env:                 env,
+                             chdir:               @container_dir,
+                             uid:                 @uid,
+                             timeout:             @hourglass.remaining,
+                             expected_exitstatus: 0)
 
-                logger.info "Executing initial gear postreceive for #{@uuid}"
-                Utils.oo_spawn("gear postreceive >> #{build_log} 2>&1",
-                               env:                 env,
-                               chdir:               @container_dir,
-                               uid:                 @uid,
-                               timeout:             @hourglass.remaining,
-                               expected_exitstatus: 0)
-              end
+              logger.info "Executing initial gear postreceive for #{@uuid}"
+              Utils.oo_spawn("gear postreceive >> #{build_log} 2>&1",
+                             env:                 env,
+                             chdir:               @container_dir,
+                             uid:                 @uid,
+                             timeout:             @hourglass.remaining,
+                             expected_exitstatus: 0)
             rescue ::OpenShift::Runtime::Utils::ShellExecutionException => e
               max_bytes = 10 * 1024
               out, _, _ = Utils.oo_spawn("tail -c #{max_bytes} #{build_log} 2>&1",

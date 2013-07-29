@@ -48,6 +48,7 @@ Requires:      git
 Requires:      httpd
 Requires:      libcgroup-pam
 Requires:      libselinux-python
+Requires:      iproute
 Requires:      lsof
 Requires:      mercurial
 Requires:      mod_ssl
@@ -114,6 +115,7 @@ mkdir -p %{buildroot}/usr/bin
 mkdir -p %{buildroot}/usr/sbin
 mkdir -p %{buildroot}/etc/httpd/conf.d
 mkdir -p %{buildroot}%{appdir}/.httpd.d
+mkdir -p %{buildroot}%{appdir}/.tc_user_dir
 ln -sf %{appdir}/.httpd.d %{buildroot}/etc/httpd/conf.d/openshift
 
 # Create empty route database files
@@ -173,13 +175,13 @@ mv httpd/000001_openshift_origin_node.conf %{buildroot}/etc/httpd/conf.d/
 mv httpd/000001_openshift_origin_node_servername.conf %{buildroot}/etc/httpd/conf.d/
 mv httpd/openshift_route.include %{buildroot}/etc/httpd/conf.d/
 
-#%if 0%{?fedora}%{?rhel} <= 6
+%if 0%{?fedora}%{?rhel} <= 6
 mkdir -p %{buildroot}/etc/rc.d/init.d/
 cp %{buildroot}%{gem_instdir}/misc/init/openshift-tc %{buildroot}/etc/rc.d/init.d/
-#%else
-#mkdir -p %{buildroot}/etc/systemd/system
-#mv %{buildroot}%{gem_instdir}/misc/services/openshift-cgroups.service %{buildroot}/etc/systemd/system/openshift-cgroups.service
-#%endif
+%else
+mkdir -p %{buildroot}/etc/systemd/system
+mv %{buildroot}%{gem_instdir}/misc/services/openshift-tc.service %{buildroot}/etc/systemd/system/openshift-tc.service
+%endif
 
 # Don't install or package what's left in the misc directory
 rm -rf %{buildroot}%{gem_instdir}/misc
@@ -215,11 +217,26 @@ fi
 # Start the cron service so that each gear gets its cron job run, if they're enabled
 %if 0%{?fedora} >= 16 || 0%{?rhel} >= 7
   systemctl restart  crond.service || :
+  systemctl enable openshift-tc.service || :
 %else
+  /sbin/chkconfig --add openshift-tc || :
   service crond restart || :
 %endif
 
+oo-admin-ctl-tc status  >/dev/null 2>&1 || oo-admin-ctl-tc restart
+
 %preun
+if [ $1 -eq 0 ]
+oo-admin-ctl-tc stop >/dev/null 2>&1 || :
+
+%if 0%{?fedora} >= 16 || 0%{?rhel} >= 7
+  systemctl disable openshift-tc.service || :
+%else
+  chkconfig --del openshift-tc || :
+%endif
+
+fi
+
 
 %files
 %doc LICENSE COPYRIGHT
@@ -256,12 +273,13 @@ fi
 %attr(0750,root,apache) %config(noreplace) %{appdir}/.httpd.d/aliases.db
 %attr(0750,root,apache) %config(noreplace) %{appdir}/.httpd.d/idler.db
 %attr(0750,root,apache) %config(noreplace) %{appdir}/.httpd.d/sts.db
+%dir %attr(0750,-,-) %{appdir}/.tc_user_dir
 
-#%if 0%{?fedora}%{?rhel} <= 6
+%if 0%{?fedora}%{?rhel} <= 6
 %attr(0755,-,-)	/etc/rc.d/init.d/openshift-tc
-#%else
-#%attr(0750,-,-) /etc/systemd/system
-#%endif
+%else
+%attr(0750,-,-) /etc/systemd/system/openshift-tc.service
+%endif
 
 %if 0%{?fedora} >= 15
 /etc/tmpfiles.d/openshift-run.conf
