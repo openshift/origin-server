@@ -1,0 +1,2 @@
+#!/bin/bash -e
+sed -i 's/maxconn 2 check/check/g' $OPENSHIFT_HAPROXY_DIR/conf/haproxy.cfg
