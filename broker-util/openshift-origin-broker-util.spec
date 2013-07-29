@@ -6,7 +6,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin broker
 Name:          openshift-origin-broker-util
-Version: 1.12.3
+Version: 1.12.4
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -88,6 +88,19 @@ cp man/*.8 %{buildroot}%{_mandir}/man8/
 %{_mandir}/man8/oo-stats.8.gz
 
 %changelog
+* Mon Jul 29 2013 Adam Miller <admiller@redhat.com> 1.12.4-1
+- Merge remote-tracking branch 'origin/master' into changes_for_membership
+  (ccoleman@redhat.com)
+- Merge remote-tracking branch 'origin/master' into changes_for_membership
+  (ccoleman@redhat.com)
+- Merge remote-tracking branch 'origin/master' into changes_for_membership
+  (ccoleman@redhat.com)
+- Simplify capabilities to be more model like, and support clean proxying of
+  inherited properties (ccoleman@redhat.com)
+- Support running broker tests directly Force scopes to use checked ids and
+  avoid symbolizing arbitrary strings Use .present? instead of .count > 0 (for
+  performance) Handle ValidationExceptions globally (ccoleman@redhat.com)
+
 * Fri Jul 26 2013 Adam Miller <admiller@redhat.com> 1.12.3-1
 - Merge pull request #3170 from pmorie/dev/upgrade_analysis
   (dmcphers+openshiftbot@redhat.com)
