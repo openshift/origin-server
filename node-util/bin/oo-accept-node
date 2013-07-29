@@ -74,7 +74,7 @@ rescue LoadError => e
   verbose("using default accept-node extensions")
 end
 
-$TC_CHECK=false
+$TC_CHECK=true
 
 $CONF_DIR="/etc/openshift"
 $NODE_CONF_FILE=File.join($CONF_DIR, "/node.conf")
