@@ -58,6 +58,7 @@ module OpenShift
             @subsystems = @@subsystems_cache
 
             if not @@parameters_cache
+              ::OpenShift::Runtime::Utils::oo_spawn("cgcreate -g #{@subsystems.join(',')}:#{@cgroup_root}", :chdir=>"/")
               subsys = @subsystems.map { |subsys| "-g #{subsys}" }.join(' ')
               out, err, rc = ::OpenShift::Runtime::Utils::oo_spawn("cgget -n #{subsys} #{@cgroup_root}", :chdir=>"/")
               if rc != 0
