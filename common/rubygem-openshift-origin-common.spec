@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Common
 Name:          rubygem-%{gem_name}
-Version: 1.12.2
+Version: 1.12.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -120,6 +120,14 @@ cp bin/man/*.8 %{buildroot}%{_mandir}/man8/
 %doc %{gem_docdir}
 
 %changelog
+* Mon Jul 29 2013 Adam Miller <admiller@redhat.com> 1.12.3-1
+- Merge pull request #3192 from rmillner/origin_runtime_183_and_191_merge
+  (dmcphers+openshiftbot@redhat.com)
+- Origin uses single quotes in config files. (rmillner@redhat.com)
+- Separate out libcgroup based functionality and add configurable templates.
+  (rmillner@redhat.com)
+- Bug 980376 (lnader@redhat.com)
+
 * Wed Jul 24 2013 Adam Miller <admiller@redhat.com> 1.12.2-1
 - make haproxy a sparse cart (rchopra@redhat.com)
 - support for sparse cartridges (multiple haproxy) (rchopra@redhat.com)
