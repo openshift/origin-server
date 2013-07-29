@@ -9,7 +9,7 @@
 
 Summary:       OpenShift plugin adding an administrative console to the broker
 Name:          rubygem-%{gem_name}
-Version: 0.0.4
+Version: 0.0.5
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -129,6 +129,23 @@ cp %{buildroot}/%{gem_dir}/gems/%{gem_name}-%{version}/conf/openshift-origin-adm
 %defattr(-,root,apache,-)
 
 %changelog
+* Mon Jul 29 2013 Adam Miller <admiller@redhat.com> 0.0.5-1
+- Merge pull request #3184 from
+  jwforres/bug_988740_admin_console_empty_search_query
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3185 from
+  jwforres/bug_988733_admin_console_headers_overflow
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3182 from
+  jwforres/bug_988282_admin_console_stats_no_apps_failure
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 988740 - code review fixes (jforrest@redhat.com)
+- Bug 988733 - admin console page headers overflow (jforrest@redhat.com)
+- Bug 988740 - admin console routing error on empty search query
+  (jforrest@redhat.com)
+- Bug 988282 - admin console stats page histograms fail with no apps
+  (jforrest@redhat.com)
+
 * Fri Jul 26 2013 Adam Miller <admiller@redhat.com> 0.0.4-1
 - fix tito tags round 2, someone put the already tagged version in DistGit
 
