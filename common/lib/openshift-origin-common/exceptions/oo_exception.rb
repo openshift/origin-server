@@ -30,20 +30,18 @@ module OpenShift
 
   class UserException < OpenShift::OOException
     attr_accessor :field
-    def initialize(msg=nil, code=nil, field=nil, resultIO=nil)
-      super(msg)
-      @code = code
-      @resultIO = resultIO
+    def initialize(msg, code=nil, field=nil, resultIO=nil)
+      super(msg, code, resultIO)
       @field = field
     end
   end
-  class UserKeyException < OpenShift::OOException; end
+  #Not used removing class UserKeyException < OpenShift::OOException; end
   class AuthServiceException < OpenShift::OOException; end
   class UserValidationException < OpenShift::OOException; end
   class AccessDeniedException < UserValidationException; end
   class DNSException < OpenShift::OOException; end
   class DNSAlreadyExistsException < DNSException; end
   class DNSNotFoundException < DNSException; end
-  class EstimatesException < OpenShift::OOException; end
+  # not used removing class EstimatesException < OpenShift::OOException; end
   class LockUnavailableException < OpenShift::OOException; end
 end
