@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.12.3
+Version: 1.12.4
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -84,6 +84,39 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Mon Jul 29 2013 Adam Miller <admiller@redhat.com> 1.12.4-1
+- Bug 982738 (dmcphers@redhat.com)
+- Merge pull request #3134 from smarterclayton/changes_for_membership
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3194 from rajatchopra/ha
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3183 from lnader/master
+  (dmcphers+openshiftbot@redhat.com)
+- Merge remote-tracking branch 'origin/master' into changes_for_membership
+  (ccoleman@redhat.com)
+- redo sparse cart addition/deletion as user can override their scaling factors
+  (rchopra@redhat.com)
+- Bug 982921 (lnader@redhat.com)
+- Merge pull request #3180 from rajatchopra/fix_bz984481
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 980376 (lnader@redhat.com)
+- fix bz984481 (rchopra@redhat.com)
+- Merge remote-tracking branch 'origin/master' into changes_for_membership
+  (ccoleman@redhat.com)
+- Typo during merge (ccoleman@redhat.com)
+- Merge remote-tracking branch 'origin/master' into changes_for_membership
+  (ccoleman@redhat.com)
+- Merge remote-tracking branch 'origin/master' into changes_for_membership
+  (ccoleman@redhat.com)
+- Return creation_time on domains (ccoleman@redhat.com)
+- Simplify capabilities to be more model like, and support clean proxying of
+  inherited properties (ccoleman@redhat.com)
+- Support LIST_DOMAINS_BY_OWNER, SHOW_DOMAIN, and SHOW_APPLICATION_BY_DOMAIN
+  (ccoleman@redhat.com)
+- Support running broker tests directly Force scopes to use checked ids and
+  avoid symbolizing arbitrary strings Use .present? instead of .count > 0 (for
+  performance) Handle ValidationExceptions globally (ccoleman@redhat.com)
+
 * Fri Jul 26 2013 Adam Miller <admiller@redhat.com> 1.12.3-1
 - Ensure that git version is 1.8.* before setting push.default simple
   (kraman@gmail.com)
