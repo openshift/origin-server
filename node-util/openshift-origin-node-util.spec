@@ -1,6 +1,6 @@
 Summary:       Utility scripts for the OpenShift Origin broker
 Name:          openshift-origin-node-util
-Version: 1.12.3
+Version: 1.12.4
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -122,6 +122,15 @@ mv services/openshift-gears.service %{buildroot}/etc/systemd/system/openshift-ge
 /sbin/restorecon /usr/sbin/oo-restorer* || :
 
 %changelog
+* Mon Jul 29 2013 Adam Miller <admiller@redhat.com> 1.12.4-1
+- Origin uses single quotes in config files. (rmillner@redhat.com)
+- Separate out libcgroup based functionality and add configurable templates.
+  (rmillner@redhat.com)
+- Merge pull request #3187 from pmorie/bugs/988949
+  (dmcphers+openshiftbot@redhat.com)
+- Fix bug 988949: make upgrade checks run exclusively when enabled
+  (pmorie@gmail.com)
+
 * Fri Jul 26 2013 Adam Miller <admiller@redhat.com> 1.12.3-1
 - Merge pull request #3167 from kraman/bugfix
   (dmcphers+openshiftbot@redhat.com)
