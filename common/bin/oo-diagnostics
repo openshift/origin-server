@@ -1132,25 +1132,40 @@ class OODiag
     http = Net::HTTP.new(url.host, url.port)
     http.use_ssl = true
 
-    # Retrieve the SSL cert from Apache
-    certfile = Tempfile.new('oodiag')
-    certfile.write `echo "" | openssl s_client -connect #{url.host}:#{url.port} -prexit 2>/dev/null | sed -n -e '/BEGIN\ CERTIFICATE/,/END\ CERTIFICATE/ p'`
-    certfile.flush
-
-    # Use the server certificate retrieved above to verify the peer certificate
-    # This allows us to verify self-signed certs as well as CA issued certs without 
-    # having to verify the certificate chain
-    http.ca_file = certfile.path
-
     # Force verification of the server SSL certificate
     http.verify_mode = OpenSSL::SSL::VERIFY_PEER
-    begin
-      request = Net::HTTP::Get.new(url.path)
-      response = http.request(request)
-    rescue OpenSSL::SSL::SSLError => e
-      do_warn "There was an error verifying the Broker SSL cert: #{e.message}"
-    ensure
-      certfile.close!
+
+    request = Net::HTTP::Get.new(url.path)
+    error = nil
+    # We try various CA files; nil means to try the peer's cert as self-signed one
+    [ '/etc/pki/tls/certs/ca-bundle.crt', nil ].each do |p|
+      if p.nil?
+        # Retrieve the SSL cert from Apache
+        certfile = Tempfile.new('oodiag')
+        certfile.write `echo "" | openssl s_client -connect #{url.host}:#{url.port} -prexit 2>/dev/null | sed -n -e '/BEGIN\ CERTIFICATE/,/END\ CERTIFICATE/ p'`
+        certfile.flush
+
+        # Use the server certificate retrieved above to verify the peer certificate
+        # This allows us to verify self-signed certs
+        http.ca_file = certfile.path
+      else
+        http.ca_file = p
+      end
+
+      begin
+        response = http.request(request)
+        return
+      rescue OpenSSL::SSL::SSLError => e
+        error = "There was an error verifying the Broker SSL cert: #{e.message}"
+        do_warn error
+      ensure
+        if p.nil?
+          certfile.close!
+        end
+      end
+    end
+    if error
+      do_warn error
     end
   end
 
