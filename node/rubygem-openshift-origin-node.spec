@@ -16,7 +16,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.12.3
+Version: 1.12.4
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -305,6 +305,25 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Mon Jul 29 2013 Adam Miller <admiller@redhat.com> 1.12.4-1
+- Forgot the "then" for bash. (rmillner@redhat.com)
+- Merge pull request #3194 from rajatchopra/ha
+  (dmcphers+openshiftbot@redhat.com)
+- redo sparse cart addition/deletion as user can override their scaling factors
+  (rchopra@redhat.com)
+- Did not properly deal with the freeze and thaw templates.
+  (rmillner@redhat.com)
+- Added helper to find cgroups_paths and throttler fixes. (fotios@redhat.com)
+- Add the systemd tc configuration on Origin. (rmillner@redhat.com)
+- Use oo_spawn to run grep in throttler (fotios@redhat.com)
+- Origin uses single quotes in config files. (rmillner@redhat.com)
+- Make throttling values configurable, and fixes. (fotios@redhat.com)
+- Cgroup module unit tests and bug fixes. (rmillner@redhat.com)
+- Reworked throttler code to work with new cgroups (fotios@redhat.com)
+- Separate out libcgroup based functionality and add configurable templates.
+  (rmillner@redhat.com)
+- Add template and throttler support to cgroups (fotios@redhat.com)
+
 * Fri Jul 26 2013 Adam Miller <admiller@redhat.com> 1.12.3-1
 - Bug 985035: Add missing requires to frontend_httpd (ironcladlou@gmail.com)
 - Merge pull request #3175 from pmorie/dev/upgrade_endpoints
