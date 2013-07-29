@@ -51,6 +51,8 @@ function _stop_haproxy_ctld_daemon() {
 }
 
 function _start_haproxy_ctld_daemon() {
+    # Start auto-scaling only on the head-gear
+    [ "${OPENSHIFT_GEAR_DNS}" != "${OPENSHIFT_APP_DNS}" ] && return 0
     disable_as="${OPENSHIFT_REPO_DIR}/.openshift/markers/disable_auto_scaling"
     [ -f "$disable_as" ]  &&  return 0
     _stop_haproxy_ctld_daemon  ||  :
