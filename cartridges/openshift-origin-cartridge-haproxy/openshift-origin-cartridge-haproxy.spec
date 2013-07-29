@@ -6,7 +6,7 @@
 
 Summary:       Provides HA Proxy
 Name:          openshift-origin-cartridge-haproxy
-Version: 0.7.3
+Version: 0.7.4
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -48,6 +48,9 @@ HAProxy cartridge for OpenShift. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Mon Jul 29 2013 Adam Miller <admiller@redhat.com> 0.7.4-1
+- Bug 982738 (dmcphers@redhat.com)
+
 * Fri Jul 26 2013 Adam Miller <admiller@redhat.com> 0.7.3-1
 - Merge pull request #2981 from Miciah/haproxy_ctld_daemon.rb-fix-typo-
   backgrace (dmcphers+openshiftbot@redhat.com)
