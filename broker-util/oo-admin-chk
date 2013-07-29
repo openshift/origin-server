@@ -27,7 +27,7 @@ Rails.configuration.msg_broker[:rpc_options][:timeout] = 600
 
 def usage_additional_plugins
   usage_info = ""
-  if Rails.configuration.respond_to?('billing')
+  if $billing_enabled
     billing_api = OpenShift::BillingService.instance
     usage_info += billing_api.display_check_help.to_s
   end
@@ -140,12 +140,16 @@ def check_consumed_gears(user_id)
 end
 
 def get_premium_carts
+  return $premium_carts unless $premium_carts.nil?
+  
   premium_carts = []
   all_carts = CartridgeCache.cartridges
   all_carts.each do |cart|
     premium_carts.push(cart.name) if cart.is_premium?
   end
-  premium_carts
+  $premium_carts = premium_carts
+  
+  return $premium_carts
 end
 
 def assign_usage_hash(urec, gear_hash, storage_hash, cart_hash, summary, verbose)
@@ -172,6 +176,11 @@ end
 
 FALSE_POSITIVE_CHECK_LIMIT = 4000
 $false_positive_check_cnt = 0
+$premium_carts = nil
+$districts_enabled = Rails.configuration.msg_broker[:districts][:enabled]
+$billing_enabled = Rails.configuration.respond_to?('billing')
+$first_district_uid = Rails.configuration.msg_broker[:districts][:first_uid]
+
 summary = []
 
 datastore_hash = {}
@@ -223,7 +232,7 @@ if level >= 1
   end 
 end
 
-if level >= 1 and Rails.configuration.msg_broker[:districts][:enabled]
+if level >= 1 and $districts_enabled
   OpenShift::DataStore.find(:districts, {}, {:timeout => false}) do |district|
     si_list =  district["server_identities"].map {|si| si["name"]}
     si_list.delete_if {|si| si.nil?}
@@ -239,7 +248,8 @@ end
 app_selection = {:fields => ["name", "uuid", "created_at", "domain_id", "group_instances.gears._id",
                              "group_instances.gears.uuid", "group_instances.gears.uid", "group_instances.gears.server_identity",
                              "group_instances._id", "component_instances._id", "component_instances.cartridge_name",
-                             "component_instances.group_instance_id", "group_overrides", "app_ssh_keys.name", "app_ssh_keys.content"],
+                             "component_instances.group_instance_id", "app_ssh_keys.name", "app_ssh_keys.content",
+                             "group_overrides.additional_filesystem_gb", "group_overrides.components.cart"],
                  :timeout => false}
 app_query = {"group_instances.gears.0" => {"$exists" => true}}
 OpenShift::DataStore.find(:applications, app_query, app_selection) do |app|
@@ -297,7 +307,7 @@ OpenShift::DataStore.find(:applications, app_query, app_selection) do |app|
       gear_count += 1
       datastore_hash[gear['uuid'].to_s] = [login, creation_time, gear['uid'], gear['server_identity'], app["uuid"], app_ssh_keys ]
       
-      if level >= 1 and Rails.configuration.msg_broker[:districts][:enabled]
+      if level >= 1 and $districts_enabled
         # record all used uid values for each node to match later with the district
         gear_uid_hash[gear['server_identity']] = [] unless gear_uid_hash.has_key?(gear['server_identity'])
         gear_uid_hash[gear['server_identity']] << gear['uid'].to_i
@@ -306,8 +316,7 @@ OpenShift::DataStore.find(:applications, app_query, app_selection) do |app|
   end
   user_hash[owner_id]["domains"][domain_id] += gear_count if level >= 1 and user_hash[owner_id]
 
-  if level >= 1 and Rails.configuration.respond_to?('billing') and
-     owner_id and user_hash[owner_id] and !user_hash[owner_id]['parent_user_id']
+  if level >= 1 and $billing_enabled and owner_id and user_hash[owner_id] and !user_hash[owner_id]['parent_user_id']
     gi_hash = {}
     app['group_instances'].each do |gi|
       gid = gi['_id'].to_s
@@ -544,7 +553,7 @@ if level >= 1
     summary << "User with Id #{user['_id']} has a null, empty, or missing login."
   end
 
-  if Rails.configuration.msg_broker[:districts][:enabled]
+  if $districts_enabled
     # check for any unreserved uid in the district
     # these are uids that gears are using but are still present in the district's available_uids
     puts "Checking for unreserved UIDs in the district:" if verbose
@@ -628,7 +637,7 @@ if level >= 1
   end
 end
 
-if level >= 1 and Rails.configuration.respond_to?('billing')
+if level >= 1 and $billing_enabled
   usage_gear_hash = {}
   usage_storage_hash = {}
   usage_cart_hash = {}
