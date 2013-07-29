@@ -2,7 +2,7 @@
 
 Summary:       Provides JBossEWS2.0 support
 Name:          openshift-origin-cartridge-jbossews
-Version: 0.7.2
+Version: 0.7.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -79,6 +79,9 @@ alternatives --set jbossews-2.0 /usr/share/tomcat7
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Mon Jul 29 2013 Adam Miller <admiller@redhat.com> 0.7.3-1
+- Bug 982738 (dmcphers@redhat.com)
+
 * Wed Jul 24 2013 Adam Miller <admiller@redhat.com> 0.7.2-1
 - <application.rb> Add feature to carts to handle wildcard ENV variable
   subscriptions (jolamb@redhat.com)
