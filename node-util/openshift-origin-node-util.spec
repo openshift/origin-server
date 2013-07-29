@@ -1,4 +1,10 @@
-Summary:       Utility scripts for the OpenShift Origin broker
+%if 0%{?fedora} >= 16 || 0%{?rhel} >= 7
+%global with_systemd 1
+%else
+%global with_systemd 0
+%endif
+
+Summary:       Utility scripts for the OpenShift Origin node
 Name:          openshift-origin-node-util
 Version: 1.12.3
 Release:       1%{?dist}
@@ -10,14 +16,17 @@ Requires:      oddjob
 Requires:      rng-tools
 Requires:      rubygem-openshift-origin-node
 Requires:      httpd
-Requires:      lsof
 Requires:      php >= 5.3.2
 Requires:      lsof
+%if %{with_systemd}
+Requires:      systemd-units
+BuildRequires: systemd-units
+%endif
 BuildArch:     noarch
 
 %description
-This package contains a set of utility scripts for a node.  They must be
-run on a node instance.
+This package contains a set of utility scripts for a OpenShift node.
+They must be run on a OpenShift node instance.
 
 %prep
 %setup -q
@@ -28,13 +37,13 @@ run on a node instance.
 mkdir -p %{buildroot}%{_sbindir}
 mkdir -p %{buildroot}%{_bindir}
 
-cp bin/oo-* %{buildroot}%{_sbindir}/
+cp -p bin/oo-* %{buildroot}%{_sbindir}/
 rm %{buildroot}%{_sbindir}/oo-snapshot
 rm %{buildroot}%{_sbindir}/oo-restore
-cp bin/rhc-* %{buildroot}%{_bindir}/
-cp bin/oo-snapshot %{buildroot}%{_bindir}/
-cp bin/oo-restore %{buildroot}%{_bindir}/
-cp bin/unidle_gear.sh %{buildroot}%{_bindir}/
+cp -p bin/rhc-* %{buildroot}%{_bindir}/
+cp -p bin/oo-snapshot %{buildroot}%{_bindir}/
+cp -p bin/oo-restore %{buildroot}%{_bindir}/
+cp -p bin/unidle_gear.sh %{buildroot}%{_bindir}/
 
 %if 0%{?fedora} >= 18
   mv %{buildroot}%{_sbindir}/oo-httpd-singular.apache-2.4 %{buildroot}%{_sbindir}/oo-httpd-singular
@@ -50,23 +59,38 @@ mkdir -p %{buildroot}%{_sysconfdir}/dbus-1/system.d/
 mkdir -p %{buildroot}/%{_localstatedir}/www/html/
 mkdir -p %{buildroot}%{_mandir}/man8/
 
-cp conf/oddjob/openshift-restorer.conf %{buildroot}%{_sysconfdir}/dbus-1/system.d/
-cp conf/oddjob/oddjobd-restorer.conf %{buildroot}%{_sysconfdir}/oddjobd.conf.d/
-cp www/html/restorer.php %{buildroot}/%{_localstatedir}/www/html/
-cp www/html/health.txt %{buildroot}/%{_localstatedir}/www/html/
+cp -p conf/oddjob/openshift-restorer.conf %{buildroot}%{_sysconfdir}/dbus-1/system.d/
+cp -p conf/oddjob/oddjobd-restorer.conf %{buildroot}%{_sysconfdir}/oddjobd.conf.d/
+cp -p www/html/restorer.php %{buildroot}/%{_localstatedir}/www/html/
+cp -p www/html/health.txt %{buildroot}/%{_localstatedir}/www/html/
 
-cp man8/*.8 %{buildroot}%{_mandir}/man8/
+cp -p man8/*.8 %{buildroot}%{_mandir}/man8/
 
-
-%if 0%{?fedora}%{?rhel} <= 6
-mkdir -p %{buildroot}%{_initddir}
-cp init.d/openshift-gears %{buildroot}%{_initddir}/
-%else
+%if %{with_systemd}
 mkdir -p %{buildroot}/etc/systemd/system
 mv services/openshift-gears.service %{buildroot}/etc/systemd/system/openshift-gears.service
+%else
+mkdir -p %{buildroot}%{_initddir}
+cp -p init.d/openshift-gears %{buildroot}%{_initddir}/
 %endif
 
+%post
+/sbin/restorecon /usr/sbin/oo-restorer* || :
+%if %{with_systemd}
+%systemd_post openshift-gears.service
+
+%preun
+%systemd_preun openshift-gears.service
+
+%postun
+%systemd_postun_with_restart openshift-gears.service
+%endif
+
+
 %files
+%doc LICENSE
+%doc README-Idler.md
+
 %attr(0750,-,-) %{_sbindir}/oo-accept-node
 %attr(0750,-,-) %{_sbindir}/oo-admin-ctl-gears
 %attr(0750,-,-) %{_sbindir}/oo-auto-idler
@@ -88,8 +112,6 @@ mv services/openshift-gears.service %{buildroot}/etc/systemd/system/openshift-ge
 %attr(0755,-,-) %{_bindir}/oo-restore
 %attr(0755,-,-) %{_bindir}/unidle_gear.sh
 
-%doc LICENSE
-%doc README-Idler.md
 %{_mandir}/man8/oo-accept-node.8.gz
 %{_mandir}/man8/oo-admin-ctl-gears.8.gz
 %{_mandir}/man8/oo-auto-idler.8.gz
@@ -109,14 +131,12 @@ mv services/openshift-gears.service %{buildroot}/etc/systemd/system/openshift-ge
 %{_localstatedir}/www/html/restorer.php
 %{_localstatedir}/www/html/health.txt
 
-%if 0%{?fedora}%{?rhel} <= 6
-%attr(0750,-,-) %{_initddir}/openshift-gears
+%if %{with_systemd}
+%attr(0755,-,-) /etc/systemd/system/openshift-gears.service
 %else
-%attr(0750,-,-) /etc/systemd/system/openshift-gears.service
+%attr(0755,-,-) %{_initddir}/openshift-gears
 %endif
 
-%post
-/sbin/restorecon /usr/sbin/oo-restorer* || :
 
 %changelog
 * Fri Jul 26 2013 Adam Miller <admiller@redhat.com> 1.12.3-1
