@@ -5,10 +5,15 @@ locked_files:
 - bin/*
 - configuration/
 - configuration/etc/
+- configuration/etc/php.ini
+- configuration/etc/conf.d/
+- configuration/etc/conf.d/*
 - metadata/
 - metadata/*
 - env/
 - env/*
+- hooks/
+- hooks/*
 - conf/
 processed_templates:
 - '**/*.erb'

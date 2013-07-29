@@ -6,6 +6,8 @@ locked_files:
 - tools/*
 - metadata/
 - metadata/*
+- hooks/
+- hooks/*
 - env/
 - env/OPENSHIFT_JBOSSAS_DIR
 - env/OPENSHIFT_JBOSSAS_LOG_DIR
