@@ -17,6 +17,7 @@ To build it:
 @import "components/asciidoc";
 @import "components/awesome-icons";
 
+
 nav.global {
 	background: #222;
 	width: 100%;
@@ -34,9 +35,20 @@ nav.global {
 		padding: .5em 1em;
 		font-family: Overpass;
 		font-size: 1.1em;
-		color: #ef2e32;
+		color: white;
+
+		&:hover {
+			color: #ef2e32;
+		}
+		
+		img {
+			margin-top: .25em;
+			height: 2.75em;
+		
+		}
 	}
 }
+
 
 #header > h1 {
 	border: none;
