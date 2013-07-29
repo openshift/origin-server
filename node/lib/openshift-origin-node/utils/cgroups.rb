@@ -1,469 +1,177 @@
-require 'openshift-origin-node/utils/shell_exec'
-require 'fileutils'
-require 'etc'
+#--
+# Copyright 2013 Red Hat, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#++
+require 'openshift-origin-common/config'
 
-$OPENSHIFT_RUNTIME_UTILS_CGROUPS_MUTEX = Mutex.new
+require_relative 'cgroups/libcgroup'
 
 module OpenShift
   module Runtime
     module Utils
       class Cgroups
 
-        @@LOCKFILE='/var/lock/oo-cgroups'
-
-        @@CGCONFIG="/etc/cgconfig.conf"
-        @@CGRULES="/etc/cgrules.conf"
-
-        @@DEFAULT_CGROUP_ROOT='/openshift'
-        @@DEFAULT_CGROUP_SUBSYSTEMS="cpu,cpuacct,memory,net_cls,freezer"
-        @@DEFAULT_CGROUP_CONTROLLER_VARS="cpu.cfs_period_us,cpu.cfs_quota_us,cpu.rt_period_us,cpu.rt_runtime_us,cpu.shares,memory.limit_in_bytes,memory.memsw.limit_in_bytes,memory.soft_limit_in_bytes,memory.swappiness"
-
-        @@allowed_vars_cache = []
-
-        class Attrs
-          @@DEFAULT_CGROUP_ROOT='/openshift'
-          @@RET_NO_USER = 82
-          @@RET_NO_VARIABLE = 96
-          @@RET_NO_CONTROLLER = 255
-
-          def initialize(uuid)
-            @uuid = uuid
-
-            root = (OpenShift::Config.new.get("OPENSHIFT_CGROUP_ROOT") or @@DEFAULT_CGROUP_ROOT)
-            @cgpath = "#{root}/#{uuid}"
-
-            out, err, rc = ::OpenShift::Runtime::Utils::oo_spawn("cgget -a #{@cgpath} >/dev/null")
-            if rc != 0
-              raise ArgumentError, "User does not exist in cgroups: #{@uuid}"
-            end
+        # Subclass OpenShift::Config so we can split the values easily
+        class Config < ::OpenShift::Config
+          def get(key)
+            super(key.gsub('.','_'))
           end
-
-          def fetch(key)
-            out, err, rc = ::OpenShift::Runtime::Utils::oo_spawn("cgget -n -v -r #{key} #{@cgpath}")
-            case rc
-            when 0
-              return out.strip
-            when @@RET_NO_USER
-              raise RuntimeError, "User no longer exists in cgroups: #{@uuid}"
-            when @@RET_NO_VARIABLE
-              raise KeyError, "Cgroups parameter not found: #{key}"
-            when @@RET_NO_CONTROLLER
-              raise KeyError, "Cgroups controller not found for: #{key}"
-            else
-              raise RuntimeError, "Cgroups error: #{err}"
-            end
-          end
-
-          def store(key, value)
-            out, err, rc = ::OpenShift::Runtime::Utils::oo_spawn("cgset -r #{key}=#{value} #{@cgpath}")
-            case rc
-            when 0
-              return value
-            when @@RET_NO_USER
-              raise RuntimeError, "User no longer exists in cgroups: #{@uuid}"
-            when @@RET_NO_VARIABLE
-              raise KeyError, "Cgroups parameter missing or cannot be set to value: #{key} = #{value}"
-            when @@RET_NO_CONTROLLER
-              raise KeyError, "Cgroups controller not found for: #{key}"
-            else
-              raise RuntimeError, "Cgroups error: #{err}"
-            end
-          end
-
-          def [](key)
-            fetch(key)
-          end
-
-          def []=(key, value)
-            store(key, value)
-          end
-
         end
 
-        def self.with_no_cpu_limits(uuid)
-          r = nil
-          param = "cpu.cfs_quota_us"
-          attrs = Attrs.new(uuid)
-          full_cpu = attrs["cpu.cfs_period_us"]
-          oldlimit = attrs[param]
-          begin
-            attrs[param]=full_cpu
-            if block_given?
-              r = yield
+
+        @@TEMPLATE_SET = {
+          :default => [ :default, :default? ],
+          :boosted => [ :boost, :boosted? ],
+          :throttled => [ :throttle, :throttled?],
+          :frozen => [ :freeze, :frozen?],
+          :thawed => [ :thaw, :thawed?]
+        }
+
+        # Define template set and test methods
+        @@TEMPLATE_SET.each do |templ, calls|
+          define_method(calls[0]) do |&blk|
+            apply_profile(templ, &blk)
+          end
+          define_method(calls[1]) do
+            profile == templ
+          end
+        end
+
+        def restore(&blk)
+          apply_profile(:default, &blk)
+        end
+
+        @@templates_cache = nil
+
+        def initialize(uuid)
+          # TODO: Make this configurable and move libcgroup impl to a stand-alone plugin gem.
+          @impl = ::OpenShift::Runtime::Utils::Cgroups::Libcgroup.new(uuid)
+        end
+
+        def create
+          @impl.create(templates[:default])
+        end
+
+        def delete
+          @impl.delete
+        end
+
+        def templates
+          if not @@templates_cache
+            res = Config.new('/etc/openshift/resource_limits.conf')
+            @@templates_cache={ :default => {} }
+
+            @@TEMPLATE_SET.each do |templ, calls|
+              if templ != :default
+                t = param_cfg(res.get_group("cg_template_#{templ}"))
+                @@templates_cache[templ] = t
+                @@templates_cache[:default].update(Hash[*(t.map { |k,v| [k, @impl.parameters[k]] }.flatten)])
+              end
             end
-          ensure
-            attrs[param]=oldlimit
+            @@templates_cache[:default].update(param_cfg(res))
+            @@templates_cache.freeze
+          end
+          @@templates_cache
+        end
+
+        # Get the current values for any keys specified in the default template
+        def current_values
+          keys = templates.map { |k,v| v.keys }.flatten.uniq
+          fetch(*keys)
+        end
+
+        # Public: Fetch the values from the current cgroup
+        #   - If args is a single value, it will return the value
+        #   - If args is an array, it will return a Template of values
+        def fetch(*args)
+          t = @impl.fetch(*args)
+          if t.length > 1
+            t
+          else
+            t.values.first
+          end
+        end
+
+        # Public: Store cgroups configuration in the gear
+        def store(*args)
+          if not args.empty?
+            @impl.store(*args)
+          end
+        end
+
+        # Public: Apply a cgroups template to a gear.  If called with
+        #  a block, the default will be restored after the block is
+        #  completed and return the value of the block.
+        def apply_profile(type, &blk)
+          t = templates[type]
+
+          if t == nil
+            raise ArgumentError, "Unknown template: #{type}"
+          end
+
+          r = store(t)
+          if blk
+            begin
+              r = blk.call(type)
+            ensure
+              store(templates[:default])
+            end
           end
           r
         end
 
-        def self.enable(uuid, uid=nil)
-          config = OpenShift::Config.new
-          root = (config.get("OPENSHIFT_CGROUP_ROOT") or @@DEFAULT_CGROUP_ROOT)
-          subsystems = (config.get("OPENSHIFT_CGROUP_SUBSYSTEMS") or @@DEFAULT_CGROUP_SUBSYSTEMS)
-          controller_vars = ((config.get("OPENSHIFT_CGROUP_CONTROLLER_VARS") or @@DEFAULT_CGROUP_CONTROLLER_VARS)).split(',')
+        # Public: Infer the current profile based on current values.
+        def profile
+          cur = current_values
+          tmpls = templates.map { |k,v| [ k, v.length ] }.sort { |a,b| a[1]  <=> b[1] }.map { |ent| ent[0] }
 
-          path = "#{root}/#{uuid}"
-
-          if @@allowed_vars_cache.empty?
-            out, err, rc = ::OpenShift::Runtime::Utils::oo_spawn("cgget -a /")
-            if rc == 0
-              out.each_line do |l|
-                if l =~ /^([a-zA-Z0-9\-\_\.]+):/
-                  @@allowed_vars_cache << $~[1]
-                end
-              end
+          # Return the most specific match to all the current values or unknown
+          prof = :unknown
+          tmpls.each do |tmpl|
+            cmpvals = cur.select { |k,v| templates[tmpl].keys.include? k }
+            if cmpvals == templates[tmpl]
+              prof = tmpl
             end
           end
-
-          controller_vars.delete_if { |var| not @@allowed_vars_cache.include?(var) }
-
-          if uid.nil?
-            uid = Etc.getpwnam(uuid).uid
-          end
-
-          newcfg = Hash.new {|h,k| h[k]={}}
-          newcfg["perm"] = {
-            "task" => {   # These must be numeric to avoid confusion in libcgroup.
-              "uid" => uid,
-              "gid" => uid,
-            },
-            "admin" => {  # These must be "root", as "0" confuses libcgroup.
-              "uid" => "root",
-              "gid" => "root",
-            }
-          }
-
-          newcfg["net_cls"] = {
-            "net_cls.classid" => net_cls(uid)
-          }
-
-          resource = OpenShift::Config.new('/etc/openshift/resource_limits.conf')
-          controller_vars.each do |cv|
-            subsys = cv.split('.')[0]
-            var = cv.gsub('.','_')
-            res = resource.get(var)
-            if not res.nil?
-              newcfg[subsys][cv]=res
-            end
-          end
-
-          with_cgroups_lock do
-            update_cgconfig(path, newcfg)
-            update_cgrules(uuid, subsystems, path)
-            cgcreate(uuid)
-            reload_cgred
-          end
-
-          attrs = Attrs.new(uuid)
-          newcfg.select { |k,v| k!="perm" }.map { |k,v| v.each {|cv,res| attrs[cv]=res }}
-
-          classify_procs(uuid, uid)
+          prof
         end
 
-        def self.enable_all
-          config = OpenShift::Config.new
-          gecos = (config.get("GEAR_GECOS") or "OO guest")
-
-          pwents=[]
-          Etc.passwd do |pwent|
-            if pwent.gecos == gecos
-              pwents << pwent
-            end
-          end
-
-          pwents.each do |pwent|
-            enable(pwent.name, pwent.uid)
-          end
-        end
-
-        def self.disable(uuid)
-          config = OpenShift::Config.new
-          root = (config.get("OPENSHIFT_CGROUP_ROOT") or @@DEFAULT_CGROUP_ROOT)
-          path = "#{root}/#{uuid}"
-
-          with_cgroups_lock do
-            update_cgconfig(path)
-            update_cgrules(uuid)
-            reload_cgred
-          end
-          cgdelete(uuid)
-        end
-
-        def self.disable_all
-          config = OpenShift::Config.new
-          gecos = (config.get("GEAR_GECOS") or "OO guest")
-
-          pwents=[]
-          Etc.passwd do |pwent|
-            if pwent.gecos == gecos
-              pwents << pwent
-            end
-          end
-
-          pwents.each do |pwent|
-            disable(pwent.name)
-          end
-        end
-
-        def self.freeze(uuid)
-          begin
-            attrs = Attrs.new(uuid)
-            attrs['freezer.state']='FROZEN'
-          rescue ArgumentError
-          end
-        end
-
-        def self.thaw(uuid)
-          begin
-            attrs = Attrs.new(uuid)
-            attrs['freezer.state']='THAWED'
-          rescue ArgumentError
-          end
-        end
-
-        # Public: Kill processes in a cgroup leaving the cgroup frozen at the end.
-        def self.freezer_burn(uuid, uid=nil)
-          config = OpenShift::Config.new
-          subsystems = (config.get("OPENSHIFT_CGROUP_SUBSYSTEMS") or @@DEFAULT_CGROUP_SUBSYSTEMS)
-          root = (config.get("OPENSHIFT_CGROUP_ROOT") or @@DEFAULT_CGROUP_ROOT)
-          path = "#{root}/#{uuid}"
-
-          if not uid
-            uid = Etc.getpwnam(uuid).uid
-          end
-
-          begin
-            attrs = Attrs.new(uuid)
-            attrs['freezer.state']='FROZEN'
-
-            20.times do
-              pids = []
-              out, err, rc = ::OpenShift::Runtime::Utils::oo_spawn("ps -u 0,#{uid} -o pid,cgroup --no-headers")
-              out.each_line do |proc|
-                pid, cgroup = proc.strip.split
-                cg_path = cgroup.split(':')[1]
-                if cg_path == "#{path}"
-                  pids << pid.to_i
-                end
-              end
-
-              if pids.empty?
-                return
-              else
-                Process::Kill("KILL",*pids)
-                attrs['freezer.state']='THAWED'
-                sleep(0.05)
-                attrs['freezer.state']='FROZEN'
-              end
-
-            end
-          rescue ArgumentError
-          end
-
-          raise RuntimeError, "Cannot kill processes for cgroups for: #{uuid}"
+        # Public: List the process ids which are a member of this gear's cgroup.
+        def processes
+          @impl.processes
         end
 
         # Public: Distribute this user's processes into their cgroup
-        def self.classify_procs(uuid, uid=nil)
-          config = OpenShift::Config.new
-          subsystems = (config.get("OPENSHIFT_CGROUP_SUBSYSTEMS") or @@DEFAULT_CGROUP_SUBSYSTEMS)
-          root = (config.get("OPENSHIFT_CGROUP_ROOT") or @@DEFAULT_CGROUP_ROOT)
-          path = "#{root}/#{uuid}"
-
-          if not uid
-            uid = Etc.getpwnam(uuid).uid
-          end
-
-          pids=[]
-          out, err, rc = ::OpenShift::Runtime::Utils::oo_spawn("ps -u #{uid} -o pid,cgroup --no-headers")
-          out.each_line do |proc|
-            pid, cgroup = proc.strip.split
-            cg_path = cgroup.split(':')[1]
-            if cg_path != "#{path}"
-              pids << pid
-            end
-          end
-
-          while not pids.empty?
-            pidout = pids.shift(25).join(' ')
-            out, err, rc = ::OpenShift::Runtime::Utils::oo_spawn("cgclassify -g #{subsystems}:#{path} #{pidout}")
-          end
+        def classify_processes
+          @impl.classify_processes
         end
 
-        # Public: Distribute all processes into their appropriate cgroups
-        #
-        # Note: There could be thousands of users and thousands of
-        #       processes.  This function is designed for minimal
-        #       passes through each list at the cost of memory.
-        #
-        def self.classify_all_procs
-          config = OpenShift::Config.new
-          subsystems = (config.get("OPENSHIFT_CGROUP_SUBSYSTEMS") or @@DEFAULT_CGROUP_SUBSYSTEMS)
-          root = (config.get("OPENSHIFT_CGROUP_ROOT") or @@DEFAULT_CGROUP_ROOT)
-          gecos = (config.get("GEAR_GECOS") or "OO guest")
-
-          users = {}
-          Etc.passwd do |pwent|
-            if pwent.gecos == gecos
-              users[pwent.uid.to_s]="#{root}/#{pwent.name}"
-            end
-          end
-
-          cgroups = Hash.new {|h,k| h[k]=[]}
-          out, err, rc = ::OpenShift::Runtime::Utils::oo_spawn("ps -e -o uid,pid,cgroup --no-headers")
-          out.each_line do |proc|
-            uid, pid, cgroup = proc.strip.split
-            cg_path = cgroup.split(':')[1]
-            if (users[uid] != nil) and (users[uid] != cg_path)
-              cgroups[users[uid]] << pid
-            end
-          end
-
-          cgroups.each do |cg_path, pids|
-            while not pids.empty?
-              pidout = pids.shift(25).join(' ')
-              out, err, rc = ::OpenShift::Runtime::Utils::oo_spawn("cgclassify -g #{subsystems}:#{cg_path} #{pidout}")
-            end
-          end
+        # Public: List the templates available to this gear
+        def show_templates
+          @@TEMPLATE_SET.keys
         end
 
-        private
-
-        def self.gen_cgconfig(data)
-          rbuf = ""
-          if data.respond_to? :each_pair
-            if not data.empty?
-              rbuf << " {"
-              data.each_pair do |k,v|
-                rbuf << " #{k}"
-                rbuf << gen_cgconfig(v)
-              end
-              rbuf << " }"
-            end
-          else
-            rbuf << " = #{data};"
-          end
-          rbuf
+        # Public: List the templates available in the implementation
+        def self.show_templates
+          @@TEMPLATE_SET.keys
         end
 
-        def self.update_cgrules(uuid, subsystems=nil, path=nil)
-          overwrite_with_safe_swap(@@CGRULES) do |f_in, f_out|
-            f_in.each do |l|
-              if not l=~/^#{uuid}\s/
-                f_out.puts(l)
-              end
-            end
-            if subsystems and path
-              f_out.puts("#{uuid}\t#{subsystems}\t#{path}")
-            end
-          end
-        end
+        protected
 
-        def self.update_cgconfig(path, newconfig=nil)
-          overwrite_with_safe_swap(@@CGCONFIG) do |f_in, f_out|
-            f_in.each do |l|
-              if not l=~/^group #{path}\s/
-                f_out.puts(l)
-              end
-            end
-            if newconfig
-              f_out.write("group #{path} ")
-              f_out.write(gen_cgconfig(newconfig))
-              f_out.write("\n")
-            end
-          end
-        end
-
-        # Compute the network class id
-        # Major = 1
-        # Minor = UID
-        # Caveat: 0 <= Minor <= 0xFFFF (65535)
-        def self.net_cls(uid)
-          major = 1
-          if (uid.to_i < 1) or (uid.to_i > 0xFFFF)
-            raise RuntimeError, "Cannot assign network class id for: #{uid}"
-          end
-          (major << 16) + uid.to_i
-        end
-
-        def self.cgcreate(uuid)
-          config = OpenShift::Config.new
-          root = (config.get("OPENSHIFT_CGROUP_ROOT") or @@DEFAULT_CGROUP_ROOT)
-          subsystems = (config.get("OPENSHIFT_CGROUP_SUBSYSTEMS") or @@DEFAULT_CGROUP_SUBSYSTEMS)
-
-          out, err, rc = ::OpenShift::Runtime::Utils::oo_spawn("cgcreate -t #{uuid}:#{uuid} -g #{subsystems}:#{root}/#{uuid}")
-          case rc
-          when 0
-            return nil
-          else
-            raise RuntimeError, "Cgroups error: #{err}"
-          end
-        end
-
-        def self.cgdelete(uuid)
-          config = OpenShift::Config.new
-          root = (config.get("OPENSHIFT_CGROUP_ROOT") or @@DEFAULT_CGROUP_ROOT)
-          subsystems = (config.get("OPENSHIFT_CGROUP_SUBSYSTEMS") or @@DEFAULT_CGROUP_SUBSYSTEMS)
-
-          out, err, rc = ::OpenShift::Runtime::Utils::oo_spawn("cgdelete #{subsystems}:#{root}/#{uuid}")
-          nil
-        end
-
-        def self.reload_cgred
-          ::OpenShift::Runtime::Utils::oo_spawn("pkill -USR2 cgrulesengd")
-        end
-
-        # Private: Serialize for editing the cgroups config files
-        def self.with_cgroups_lock
-          r = nil
-          $OPENSHIFT_RUNTIME_UTILS_CGROUPS_MUTEX.synchronize do
-            File.open(@@LOCKFILE, File::RDWR|File::CREAT|File::TRUNC, 0o0600) do |lockfile|
-              lockfile.sync=true
-              lockfile.fcntl(Fcntl::F_SETFD, Fcntl::FD_CLOEXEC)
-              lockfile.flock(File::LOCK_EX)
-              lockfile.write("#{Process::pid}\n")
-              begin
-                if block_given?
-                  r = yield
-                end
-              ensure
-                lockfile.flock(File::LOCK_UN)
-              end
-            end
-          end
-          r
-        end
-
-        # Private: Open and safely swap the file if it changed
-        def self.overwrite_with_safe_swap(filename)
-          r=nil
-
-          begin
-            f_in=File.open(filename, File::RDONLY)
-          rescue Errno::ENOENT
-            f_in=File.open('/dev/null', File::RDONLY)
-          end
-
-          begin
-            File.open(filename+"-", File::RDWR|File::CREAT|File::TRUNC, 0o0644) do |f_out|
-              if block_given?
-                r=yield(f_in, f_out)
-              end
-              f_out.fsync()
-            end
-          ensure
-            f_in.close
-          end
-
-          begin
-            FileUtils.ln(filename, filename+"~", :force => true)
-          rescue Errno::ENOENT
-          end
-          FileUtils.mv(filename+"-", filename, :force => true)
-          SELinux::chcon(filename)
-
-          r
+        # Private: Extract parameters from the configuration
+        def param_cfg(res)
+          Hash[ *(@impl.parameters.map { |k,v| [k, res.get(k)] }.select { |ent| ent[1] }.flatten) ]
         end
 
       end
