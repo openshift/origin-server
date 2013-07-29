@@ -2,7 +2,7 @@
 
 Summary:       Provides Node.js support
 Name:          openshift-origin-cartridge-nodejs
-Version: 1.13.2
+Version: 1.13.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -65,6 +65,9 @@ fi
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Mon Jul 29 2013 Adam Miller <admiller@redhat.com> 1.13.3-1
+- Bug 982738 (dmcphers@redhat.com)
+
 * Wed Jul 24 2013 Adam Miller <admiller@redhat.com> 1.13.2-1
 - <application.rb> Add feature to carts to handle wildcard ENV variable
   subscriptions (jolamb@redhat.com)
