@@ -7,7 +7,7 @@ esac
 
 echo "$version" > "$OPENSHIFT_HAPROXY_DIR/env/OPENSHIFT_HAPROXY_VERSION"
 
-mkdir -p $OPENSHIFT_HAPROXY_DIR/{conf,conf.d,logs,run,sessions}
+mkdir -p $OPENSHIFT_HAPROXY_DIR/{conf,logs,run,sessions}
 
 if [ ! -f "$OPENSHIFT_HAPROXY_DIR/conf/haproxy.cfg" ]; then
     cp ${OPENSHIFT_HAPROXY_DIR}/versions/$version/configuration/haproxy.cfg.erb $OPENSHIFT_HAPROXY_DIR/conf/

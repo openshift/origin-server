@@ -4,10 +4,14 @@ locked_files:
 - bin/*
 - metadata/
 - metadata/*
+- hooks/
+- hooks/*
+- etc/
+- etc/conf.d/
+- etc/conf.d/*
 - env/
 - env/OPENSHIFT_RUBY_DIR
 - env/OPENSHIFT_RUBY_LOG_DIR
-- etc/
 processed_templates:
 - 'etc/conf.d/openshift.conf.erb'
 - 'metadata/jenkins_shell_command.erb'
