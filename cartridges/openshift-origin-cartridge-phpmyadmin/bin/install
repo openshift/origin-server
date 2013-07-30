@@ -18,6 +18,8 @@ ln -s /etc/httpd/conf/magic ${OPENSHIFT_PHPMYADMIN_DIR}conf/magic
 client_result ""
 client_result "phpMyAdmin added successfully."
 client_result "URL: https://$OPENSHIFT_GEAR_DNS/phpmyadmin/"
+client_result "  username: $OPENSHIFT_MYSQL_DB_USERNAME"
+client_result "  password: $OPENSHIFT_MYSQL_DB_PASSWORD"
 
 cart_props "connection_url=https://$OPENSHIFT_GEAR_DNS/phpmyadmin/"
 
