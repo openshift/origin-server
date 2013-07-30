@@ -47,7 +47,7 @@ class Alias < RestApi::Base
 
   def recreate_ssl_certificate
     if !@certificate_file.nil?
-      self.ssl_certificate = @certificate_file
+      self.ssl_certificate = @certificate_file.strip
       self.ssl_certificate << "\n" << @certificate_chain_file unless @certificate_chain_file.nil?
     end
   end
