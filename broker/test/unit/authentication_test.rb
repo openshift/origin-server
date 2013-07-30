@@ -36,8 +36,8 @@ class AuthenticationTest < ActiveSupport::TestCase
     end
     def assert_log_action?(action, message=nil)
       assert a = @log_actions.find{ |a| a[3] == action }
-      assert a[5].include?(message) if message.is_a?(String)
-      assert message.match(a[5]) if message.is_a?(Regexp)
+      assert a[6].include?(message) if message.is_a?(String)
+      assert message.match(a[6]) if message.is_a?(Regexp)
     end
 
     attr_writer :auth_service

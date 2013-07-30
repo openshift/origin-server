@@ -143,7 +143,7 @@ class CloudUser
     begin
       user.with(safe: true).save
       Lock.create_lock(user)
-      OpenShift::UserActionLog.action("CREATE_USER", true, "Creating user", 'USER' => user.id, 'LOGIN' => login, 'PROVIDER' => provider)
+      OpenShift::UserActionLog.action("CREATE_USER", nil, true, "Creating user", 'USER' => user.id, 'LOGIN' => login, 'PROVIDER' => provider)
       user
     rescue Moped::Errors::OperationFailure
       user = find_by_identity(nil, login)
