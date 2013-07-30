@@ -30,6 +30,7 @@ module OpenShift
             env       = ::OpenShift::Runtime::Utils::Environ.for_gear(@container_dir)
 
             begin
+              ::OpenShift::Runtime::Utils::Cgroups.new(@uuid).boost do
               logger.info "Executing initial gear prereceive for #{@uuid}"
               Utils.oo_spawn("gear prereceive >> #{build_log} 2>&1",
                              env:                 env,
@@ -45,6 +46,7 @@ module OpenShift
                              uid:                 @uid,
                              timeout:             @hourglass.remaining,
                              expected_exitstatus: 0)
+              end
             rescue ::OpenShift::Runtime::Utils::ShellExecutionException => e
               max_bytes = 10 * 1024
               out, _, _ = Utils.oo_spawn("tail -c #{max_bytes} #{build_log} 2>&1",

@@ -326,6 +326,7 @@ module OpenShift
             stop_gear
           end
 
+          OpenShift::Runtime::Utils::Cgroups.new(uuid).boost do
           Dir.chdir(container.container_dir) do
             itinerary.each_cartridge do |cartridge_name, upgrade_type|
               manifest = cartridge_model.get_cartridge(cartridge_name)
@@ -364,6 +365,7 @@ module OpenShift
                 IO.write(ident_path, next_ident, 0, mode: 'w', perms: 0666)
               end
             end
+          end
           end
 
           if itinerary.has_incompatible_upgrade?
