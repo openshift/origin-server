@@ -28,7 +28,7 @@ class BrokerAuthTest < Test::Unit::TestCase
 
     domain.expects(:owner).returns(user)
 
-    app.expects(:uuid).at_least_once.returns("51ed4adbb8c2e70a72000294")
+    app.expects(:_id).at_least_once.returns("51ed4adbb8c2e70a72000294")
     app.expects(:name).at_least_once.returns("foo")
     app.expects(:canonical_name).at_least_once.returns("foo")
     app.expects(:domain).returns(domain)
