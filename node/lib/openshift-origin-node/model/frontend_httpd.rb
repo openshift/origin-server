@@ -623,6 +623,9 @@ module OpenShift
       # Returns nil on Success or raises on Failure
       def add_alias(name)
         dname = clean_server_name(name)
+        while dname.end_with?('.')
+          dname.chomp!('.')
+        end
 
         # Broker checks for global uniqueness
         ApacheDBAliases.open(ApacheDBAliases::WRCREAT) do |d|
