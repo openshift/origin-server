@@ -123,6 +123,10 @@ module OpenShift
       def self.context
         @context ||= {}
       end
+
+      def self.set_logger(logger)
+        @logger = logger
+      end
     end
   end
 end
