@@ -13,4 +13,11 @@ namespace :test do
       'test/functional_ext/rest_api_nolinks_test.rb'
     ]
   end
+
+  Rake::TestTask.new :admin_console_functionals => ['test:prepare'] do |t|
+    t.libs << 'test'
+    t.test_files = FileList[
+      '../admin-console/test/functional/**/*_test.rb'
+    ]
+  end
 end

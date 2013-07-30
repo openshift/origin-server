@@ -7,9 +7,9 @@
     .navbar-inner
       .container
         = navigation_tabs do
-          = navigation_tab :index, :action => :index, :name => "Overview"
-          = navigation_tab :search, :action => :index, :name => "Search"
-          = navigation_tab :stats, :action => :index, :name => "Stats"
+          = navigation_tab 'admin_console/index', :action => :index, :name => "Overview"
+          = navigation_tab 'admin_console/search', :action => :index, :name => "Search"
+          = navigation_tab 'admin_console/stats', :action => :index, :name => "Stats"
 
         %form{:class => "navbar-search pull-right", :method => "GET", :action => search_path}
           %div{:class => "input-append input-prepend"}
