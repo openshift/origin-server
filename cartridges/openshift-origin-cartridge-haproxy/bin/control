@@ -157,9 +157,9 @@ function force-reload() {
 
 function status() {
     if isrunning; then
-        client_message "HAProxy instance is running"
+        client_result "HAProxy instance is running"
     else
-        client_message "HAProxy instance is stopped"
+        client_result "HAProxy instance is stopped"
     fi
     print_user_running_processes `id -u`
 }
