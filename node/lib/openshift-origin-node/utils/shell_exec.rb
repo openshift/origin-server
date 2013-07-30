@@ -74,6 +74,7 @@ module OpenShift
       #                                provided +IO+ object.
       #   :err                       : If specified, STDERR from the child process will be redirected to the
       #                                provided +IO+ object.
+      #   :quiet                     : If specified, the output from the command will not be logged
       #
       # NOTE: If the +out+ or +err+ options are specified, the corresponding return value from +oo_spawn+
       # will be the incoming/provided +IO+ objects instead of the buffered +String+ output. It's the
@@ -123,7 +124,7 @@ module OpenShift
               write_stderr.close
 
               out, err, status = read_results(pid, read_stdout, read_stderr, options)
-              NodeLogger.logger.debug { "Shell command '#{command}' ran. rc=#{status.exitstatus} out=#{out}" }
+              NodeLogger.logger.debug { "Shell command '#{command}' ran. rc=#{status.exitstatus} out=#{options[:quiet] ? "[SILENCED]" : out}" }
 
               if (!options[:expected_exitstatus].nil?) && (status.exitstatus != options[:expected_exitstatus])
                 raise ::OpenShift::Runtime::Utils::ShellExecutionException.new(

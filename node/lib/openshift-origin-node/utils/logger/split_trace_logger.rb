@@ -36,18 +36,18 @@ module OpenShift
       #
       class SplitTraceLogger
         PROFILES = {
-            :standard => {
-                file_config:   'PLATFORM_LOG_FILE',
+          :standard => {
+            file_config:   'PLATFORM_LOG_FILE',
             level_config:  'PLATFORM_LOG_LEVEL',
             default_file:  File.join(File::SEPARATOR, %w{var log openshift node platform.log}),
             default_level: Logger::DEBUG
-        },
-            :trace    => {
+          },
+          :trace    => {
             file_config:   'PLATFORM_TRACE_LOG_FILE',
             level_config:  'PLATFORM_TRACE_LOG_LEVEL',
             default_file:  File.join(File::SEPARATOR, %w{var log openshift node platform-trace.log}),
             default_level: Logger::INFO
-        }
+          }
         }
 
         def initialize(config, context)
