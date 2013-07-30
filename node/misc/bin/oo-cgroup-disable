@@ -79,7 +79,7 @@ end
 begin
   if all_containers
     OpenShift::Runtime::ApplicationContainer.all.each do |c|
-      OpenShift::Runtime::Utils::Cgroups.new(uuid).delete
+      OpenShift::Runtime::Utils::Cgroups.new(c.uuid).delete
     end
   else
     OpenShift::Runtime::Utils::Cgroups.new(container_uuid.to_s).delete
