@@ -5,8 +5,6 @@ v2.0, July 2013
 :toc2:
 :icons:
 
-include::_navigation.adoc[]
-
 == Version 2.0
 
 Documentation not yet available.

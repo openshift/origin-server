@@ -6,8 +6,6 @@ v2.0, July 2013
 :icons:
 :numbered:
 
-include::_navigation.adoc[]
-
 OpenShift Origin provides developers and IT organizations an open source auto-scaling cloud application platform for quickly deploying new applications on secure and scalable resources with minimal configuration and management headaches. This means increased developer productivity and a faster pace in which IT can support innovation. This guide covers the basics of administering a private Platform-as-a-Service built with this awesome open source solution.
 
 [TIP]

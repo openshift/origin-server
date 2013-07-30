@@ -7,8 +7,6 @@ v2.0, July 2013
 :numbered:
 :toclevels: 3
 
-include::_navigation.adoc[]
-
 This document describes the process of setting up a VM running an
 OpenShift development environment inside VirtualBox.
 
