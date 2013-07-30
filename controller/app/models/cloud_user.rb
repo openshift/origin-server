@@ -42,7 +42,7 @@ class CloudUser
   has_many :authorizations, class_name: Authorization.name, dependent: :restrict
 
   validates :login, presence: true
-  validates :capabilities, presence: true
+  validates :capabilities, presence: true, capabilities: true
 
   scope :with_plan, any_of({:plan_id.ne => nil}, {:pending_plan_id.ne => nil}) 
   index({:login => 1}, {:unique => true})
