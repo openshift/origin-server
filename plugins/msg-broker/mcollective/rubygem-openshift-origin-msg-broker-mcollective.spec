@@ -9,7 +9,7 @@
 
 Summary:       OpenShift plugin for mcollective service
 Name:          rubygem-%{gem_name}
-Version: 1.12.4
+Version: 1.12.5
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -80,6 +80,13 @@ cp %{buildroot}/%{gem_dir}/gems/%{gem_name}-%{version}/conf/openshift-origin-msg
 %attr(0644,-,-) %ghost /etc/mcollective/client.cfg
 
 %changelog
+* Tue Jul 30 2013 Adam Miller <admiller@redhat.com> 1.12.5-1
+- Bug 917790 - Do not log user credentials in broker development.log
+  (rpenta@redhat.com)
+- Merge pull request #3140 from Miciah/move_gear-fix-rollback-drop-remove-
+  httpd-proxy (dmcphers+openshiftbot@redhat.com)
+- move_gear: drop outdated rollback code (miciah.masters@gmail.com)
+
 * Mon Jul 29 2013 Adam Miller <admiller@redhat.com> 1.12.4-1
 - Merge remote-tracking branch 'origin/master' into changes_for_membership
   (ccoleman@redhat.com)
