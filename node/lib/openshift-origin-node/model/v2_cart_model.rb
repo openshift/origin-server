@@ -737,18 +737,22 @@ module OpenShift
           # Reuse previously allocated IPs of the same name. When recycling
           # an IP, double-check that it's not bound to the target port, and
           # bail if it's unexpectedly bound.
-          unless allocated_ips.has_key?(endpoint.private_ip_name)
-            # Allocate a new IP for the endpoint
-            private_ip = find_open_ip(endpoint.private_port)
+          if !allocated_ips.has_key?(endpoint.private_ip_name)
+            if env.has_key?(endpoint.private_ip_name)
+              allocated_ips[endpoint.private_ip_name] = env[endpoint.private_ip_name]
+            else
+              # Allocate a new IP for the endpoint
+              private_ip = find_open_ip(endpoint.private_port)
 
-            if private_ip.nil?
-              raise "No IP was available to create endpoint for cart #{cartridge.name} in gear #{@container.uuid}: "\
-              "#{endpoint.private_ip_name}(#{endpoint.private_port})"
+              if private_ip.nil?
+                raise "No IP was available to create endpoint for cart #{cartridge.name} in gear #{@container.uuid}: "\
+                "#{endpoint.private_ip_name}(#{endpoint.private_port})"
+              end
+
+              @container.add_env_var(endpoint.private_ip_name, private_ip)
+
+              allocated_ips[endpoint.private_ip_name] = private_ip
             end
-
-            @container.add_env_var(endpoint.private_ip_name, private_ip)
-
-            allocated_ips[endpoint.private_ip_name] = private_ip
           end
 
           private_ip = allocated_ips[endpoint.private_ip_name]
