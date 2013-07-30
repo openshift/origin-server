@@ -613,3 +613,12 @@ code { font-family: source_code_pro; }
 .admonitionblock td.icon .icon-tip:before { color: #cc6; text-shadow: none; }
 
 #footer { background-image: url("images/panda.png"); background-position: right bottom; background-repeat: no-repeat; }
+
+/* Alignment Styles */
+.halign-left { text-align: left }
+.halign-center { text-align: center }
+.halign-right { text-align: right }
+
+.valign-top { vertical-align: top }
+.valign-middle { vertical-align: middle }
+.valign-bottom { vertical-align: bottom }
