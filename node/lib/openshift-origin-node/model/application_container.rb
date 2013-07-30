@@ -337,6 +337,7 @@ module OpenShift
       #
       def unidle_gear(options={})
         output = ""
+        OpenShift::Runtime::Utils::Cgroups.new(@uuid).boost do
         if stop_lock? and (state.value == State::IDLE)
           state.value = State::STARTED
           output      = start_gear
@@ -345,6 +346,7 @@ module OpenShift
         frontend = FrontendHttpServer.new(self)
         if frontend.idle?
           frontend.unidle
+        end
         end
         output
       end
