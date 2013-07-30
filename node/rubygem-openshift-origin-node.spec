@@ -16,7 +16,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.12.4
+Version: 1.12.5
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -305,6 +305,22 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Tue Jul 30 2013 Adam Miller <admiller@redhat.com> 1.12.5-1
+- Fix bug 981584: skip restore for secondary gear group in scalable app if
+  there is no appropriate snapshot (pmorie@gmail.com)
+- On Fedora, there are cgroups which return EIO instead of ENOENT.
+  (rmillner@redhat.com)
+- Use the newer cgroup_paths. (rmillner@redhat.com)
+- Logging the spawn command was causing too much output and swamping logs.  Use
+  direct access instead. (rmillner@redhat.com)
+- Bug 896366 (dmcphers@redhat.com)
+- Merge pull request #3198 from pmorie/bugs/952460
+  (dmcphers+openshiftbot@redhat.com)
+- Fix bug 952460: add output during deploy indicating that cartridges are
+  started (pmorie@gmail.com)
+- Origin was not getting the /openshift cgroup created early, always try when
+  enumerating parameters. (rmillner@redhat.com)
+
 * Mon Jul 29 2013 Adam Miller <admiller@redhat.com> 1.12.4-1
 - Forgot the "then" for bash. (rmillner@redhat.com)
 - Merge pull request #3194 from rajatchopra/ha
