@@ -496,12 +496,6 @@ begin
       OpenShift::Runtime::AdminGearsControl.new.start
     }
 
-  when 'idleall'
-    exitval = OpenShift::Runtime::AdminGearsControl.new(ARGV[1..-1]).idle
-
-  when 'unidleall'
-    exitval = OpenShift::Runtime::AdminGearsControl.new(ARGV[1..-1]).unidle
-
   when 'status'
     $stdout.puts("Checking OpenShift Services: ")
     $stdout.puts("")
@@ -514,7 +508,7 @@ begin
   when 'stopgear'
     raise "Requires a gear uuid." if ARGV[1..-1].nil?
     exitval = OpenShift::Runtime::AdminGearsControl.new(ARGV[1..-1]).stop
-    
+
   when 'restartgear'
     raise "Requires a gear uuid." if ARGV[1..-1].nil?
     exitval = OpenShift::Runtime::AdminGearsControl.new(ARGV[1..-1]).restart
@@ -545,7 +539,7 @@ begin
 
 
   else
-    raise "Usage: #{$0} {startall|stopall|status|restartall|condrestartall|idleall|unidleall|startgear [uuid]|stopgear [uuid]|restartgear [uuid]|idlegear [gear]|unidlegear [gear]|list|listidle}"
+    raise "Usage: #{$0} {startall|stopall|status|restartall|condrestartall|startgear [uuid]|stopgear [uuid]|restartgear [uuid]|idlegear [gear]|unidlegear [gear]|list|listidle}"
   end
 
 rescue => e
