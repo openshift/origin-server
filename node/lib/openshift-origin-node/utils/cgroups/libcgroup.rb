@@ -124,7 +124,7 @@ module OpenShift
                 }.each do |p|
                   begin
                     @@parameters_cache[p]=parse_cgparam(File.read(File.join(path, p)))
-                  rescue Errno::EINVAL, Errno::ENOENT
+                  rescue
                   end
                 end
               end
@@ -238,7 +238,7 @@ module OpenShift
                 end
               rescue Errno::ENOENT
                 raise KeyError, "Cgroups controller or parameter not found for: #{param}"
-              rescue Errno::EINVAL
+              rescue Errno::EINVAL, Errno::EIO
                 raise KeyError, "Cgroups parameter cannot be set to value: #{param} = #{val}"
               end
             end
