@@ -223,7 +223,7 @@ fi
   service crond restart || :
 %endif
 
-oo-admin-ctl-tc status  >/dev/null 2>&1 || oo-admin-ctl-tc restart
+( oo-admin-ctl-tc status || oo-admin-ctl-tc restart || : ) >/dev/null 2>&1
 
 %preun
 if [ $1 -eq 0 ]
