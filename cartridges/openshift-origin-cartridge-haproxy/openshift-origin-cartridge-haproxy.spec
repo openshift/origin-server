@@ -6,7 +6,7 @@
 
 Summary:       Provides HA Proxy
 Name:          openshift-origin-cartridge-haproxy
-Version: 0.7.4
+Version: 0.7.5
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -48,6 +48,21 @@ HAProxy cartridge for OpenShift. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Tue Jul 30 2013 Adam Miller <admiller@redhat.com> 0.7.5-1
+- Merge pull request #3214 from mrunalp/bugs/rhc_ext_sca_test
+  (dmcphers+openshiftbot@redhat.com)
+- Fix. (mrunalp@gmail.com)
+- Enable auto-scaling only on head gear. (mrunalp@gmail.com)
+- Merge pull request #3207 from mrunalp/bugs/982615
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3205 from rajatchopra/ha
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3203 from mrunalp/bugs/haproxy_maxconn
+  (dmcphers+openshiftbot@redhat.com)
+- Use client_message instead of client_result. (mrunalp@gmail.com)
+- haproxy should use gear's uuid, and not app's uuid (rchopra@redhat.com)
+- Fix for maxconn set to 2 for local gear. (mrunalp@gmail.com)
+
 * Mon Jul 29 2013 Adam Miller <admiller@redhat.com> 0.7.4-1
 - Bug 982738 (dmcphers@redhat.com)
 
