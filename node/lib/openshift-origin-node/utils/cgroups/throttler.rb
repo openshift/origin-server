@@ -14,7 +14,7 @@ module OpenShift
           attr_reader :wanted_keys, :uuids, :running_apps, :threshold, :interval
 
           @@conf_file = '/etc/openshift/resource_limits.conf'
-          @@cgroups_dir = Libcgroup.cgroup_path
+          @@cgroups_dir = Libcgroup.cgroup_paths["cpu"]
 
           def initialize
             # Make sure we create a MonitoredGear for the root OpenShift cgroup

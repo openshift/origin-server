@@ -40,54 +40,110 @@ module OpenShift
 
           @@subsystems_cache = nil
           @@parameters_cache = nil
-
-          attr_reader :subsystems, :parameters
+          @@cgroup_root_cache = nil
+          @@cgroup_mounts_cache = nil
+          @@cgroup_paths_cache = nil
 
           def initialize(uuid)
             raise ArgumentError, "Invalid uuid" if uuid.to_s == ""
 
             @uuid = uuid
 
-            @config = OpenShift::Config.new
             @cgroup_root = self.class.cgroup_root
             @cgroup_path = "#{@cgroup_root}/#{@uuid}"
-
-            if not @@subsystems_cache
-              @@subsystems_cache = (@config.get("OPENSHIFT_CGROUP_SUBSYSTEMS") or @@DEFAULT_CGROUP_SUBSYSTEMS).strip.split(',').freeze
-            end
-            @subsystems = @@subsystems_cache
-
-            if not @@parameters_cache
-              ::OpenShift::Runtime::Utils::oo_spawn("cgcreate -g #{@subsystems.join(',')}:#{@cgroup_root}", :chdir=>"/")
-              subsys = @subsystems.map { |subsys| "-g #{subsys}" }.join(' ')
-              out, err, rc = ::OpenShift::Runtime::Utils::oo_spawn("cgget -n #{subsys} #{@cgroup_root}", :chdir=>"/")
-              if rc != 0
-                raise RuntimeError, "Could not determine Cgroup parameters"
-              end
-              @@parameters_cache = parse_cgget(out).freeze
-            end
-            @parameters = @@parameters_cache
-
           end
 
           def self.cgroup_root
-            OpenShift::Config.new.get("OPENSHIFT_CGROUP_ROOT") or @@DEFAULT_CGROUP_ROOT
+            if not @@cgroup_root_cache
+              @@cgroup_root_cache = (OpenShift::Config.new.get("OPENSHIFT_CGROUP_ROOT") or @@DEFAULT_CGROUP_ROOT)
+            end
+            @@cgroup_root_cache
           end
 
-          def self.cgroup_mount
-            cmd = "cat /proc/mounts | grep cgroup | awk '{print $2}'"
-            ::OpenShift::Runtime::Utils::oo_spawn(cmd).first.strip
+          def self.subsystems
+            if not @@subsystems_cache
+              @@subsystems_cache = (OpenShift::Config.new.get("OPENSHIFT_CGROUP_SUBSYSTEMS") or @@DEFAULT_CGROUP_SUBSYSTEMS).strip.split(',').freeze
+            end
+            @@subsystems_cache
           end
 
-          def self.cgroup_path
-            File.join(cgroup_mount, cgroup_root)
+          def subsystems
+            self.class.subsystems
+          end
+
+          def self.cgroup_mounts
+            if not @@cgroup_mounts_cache
+              @@cgroup_mounts_cache = {}
+              File.open("/proc/mounts") do |mounts|
+                mounts.each do |mntpt|
+                  fs_spec, fs_file, fs_vtype, fs_mntops, fs_freq, fs_passno = mntpt.split
+                  fs_mntops = fs_mntops.split(',')
+                  if fs_vtype == "cgroup"
+                    subsystems.each do |subsys|
+                      @@cgroup_mounts_cache[subsys]=fs_file if fs_mntops.include?(subsys)
+                    end
+                  end
+                end
+              end
+              @@cgroup_mounts_cache.freeze
+            end
+            @@cgroup_mounts_cache
+          end
+
+          def self.cgroup_paths
+            if not @@cgroup_paths_cache
+              @@cgroup_paths_cache = {}
+              cgroup_mounts.each do |subsys, mntpt|
+                p = File.join(mntpt, cgroup_root)
+                Dir.mkdir(p, 0755) unless File.exist?(p)
+                @@cgroup_paths_cache[subsys]=p
+              end
+              @@cgroup_paths_cache.freeze
+            end
+            @@cgroup_paths_cache
+          end
+
+          def cgroup_paths
+            Hash[ *(self.class.cgroup_paths.map { |subsys, path| [ subsys, File.join(path, @uuid) ] }.flatten ) ]
+          end
+
+          # Public: List the available parameters for the implementation
+          #         and their default values.
+          #
+          # Note: This will only list parameters that have a specific
+          #       controller associated with them and will not list
+          #       general cgroups parameters.
+          def self.parameters
+            if not @@parameters_cache
+              @@parameters_cache = {}
+              cgroup_paths.each do |subsys, path|
+                Dir.entries(path).select { |p|
+                  p.start_with?("#{subsys}.")
+                }.sort { |a,b|
+                  a.count('.') <=> b.count('.')   # "memory.foo" must be set before "memory.memsw.foo"
+                }.each do |p|
+                  begin
+                    @@parameters_cache[p]=parse_cgparam(File.read(File.join(path, p)))
+                  rescue
+                  end
+                end
+              end
+              @@parameters_cache.freeze
+            end
+            @@parameters_cache
+          end
+
+          def parameters
+            self.class.parameters
+          end
+
+          def uid
+            @uid_cache ||= Etc.getpwnam(@uuid).uid
           end
 
           # Public: Create a cgroup namespace for the gear
           def create(defaults={})
-            uid = Etc.getpwnam(@uuid).uid  
-
-            newcfg = Hash["perm", {}, *@subsystems.map { |s| [s,{}] }.flatten]
+            newcfg = Hash["perm", {}, *(subsystems.map { |s| [s,{}] }.flatten)]
             to_store = Hash.new
 
             newcfg["perm"] = {
@@ -104,10 +160,13 @@ module OpenShift
             newcfg["net_cls"]["net_cls.classid"] = net_cls
             to_store["net_cls.classid"] = newcfg["net_cls"]["net_cls.classid"]
 
-            defaults.each do |k,v|
-              if @parameters.include?(k)
+            # Parameter order matters and its implicitly defined in
+            # parameters
+            parameters.each_key do |k|
+              v = defaults[k]
+              if v
                 subsys = k.split('.')[0]
-                if @subsystems.include?(subsys)
+                if subsystems.include?(subsys)
                   newcfg[subsys][k]=v
                   to_store[k]=v
                 end
@@ -147,89 +206,79 @@ module OpenShift
           # Public: Fetch parameters for a specific uuid, or a hash
           # of key=>value for all parametetrs for the gear.
           def fetch(*args)
-            keys = [*args].flatten
-            key = keys.flatten.map{|x| "-r #{x}" }.join(' ')
-            out, err, rc = ::OpenShift::Runtime::Utils::oo_spawn("cgget -n #{key} #{@cgroup_path}", :chdir=>"/")
-            case rc
-            when 0
-              parse_cgget(out)
-            when 82
-              raise RuntimeError, "User does not exist in cgroups: #{@uuid}"
-            when 96
-              raise KeyError, "Cgroups parameter not found: #{key}"
-            else
-              raise RuntimeError, "Cgroups error: #{err}"
+            keys = [*args].flatten.flatten
+            vals = {}
+
+            # Parameter order matters and is implicitly defined in the
+            # parameters variable.
+            parameters.select { |k,v| keys.include?(k) }.each do |param, defval|
+              path = cgroup_paths[param.split('.')[0]]
+              raise RuntimeError, "User does not exist in cgroups: #{@uuid}" unless (path and File.exist?(path))
+              begin
+                val = File.read(File.join(path, param))
+                vals[param] = parse_cgparam(val)
+              rescue Errno::ENOENT
+                raise KeyError, "Cgroups parameter not found: #{param}"
+              end
             end
+            vals
           end
 
           def store(*args)
             vals = Hash[*args]
-            oldvals = {}
-            cur = {}
-            rc = 0
 
-            # Parameter ordermatters.  Keep retrying as long as some
-            # sets are successful, the proper order will eventually
-            # work its way through.
-            while oldvals != vals
-              oldvals = vals.clone
-              vals.each do |key,value|
-                out, err, rc = ::OpenShift::Runtime::Utils::oo_spawn("cgset -r #{key}=#{value} #{@cgroup_path}", :chdir=>"/")
-                if rc == 0
-                  cur[key]=value
-                  vals.delete(key)
+            # Parameter order matters and is implicitly defined in the
+            # parameters variable.
+            parameters.map { |k, v| [k, vals[k]] }.select { |ent| ent[1] }.each do |param, val|
+              path = cgroup_paths[param.split('.')[0]]
+              raise RuntimeError, "User does not exist in cgroups: #{@uuid}" unless (path and File.exist?(path))
+              begin
+                File.open(File.join(path, param), File::WRONLY | File::SYNC) do |t|
+                  t.syswrite("#{val}\n")
                 end
+              rescue Errno::ENOENT
+                raise KeyError, "Cgroups controller or parameter not found for: #{param}"
+              rescue Errno::EINVAL, Errno::EIO
+                raise KeyError, "Cgroups parameter cannot be set to value: #{param} = #{val}"
               end
             end
-
-            case rc
-            when 0
-            when 95
-              raise RuntimeError, "User or parameter does not exist in cgroups: #{@uuid} #{key}"
-            when 96
-              raise KeyError, "Cgroups parameter cannot be set to value: #{key} = #{value}"
-            when 84
-              raise KeyError, "Cgroups controller not found for: #{key}"
-            else
-              raise RuntimeError, "Cgroups error: #{err}"
-            end
-            cur
+            vals
           end
 
           # Public: Distribute this user's processes into their cgroup
           def classify_processes
-            uid = Etc.getpwnam(@uuid).uid
-
-            pids=[]
-            out, err, rc = ::OpenShift::Runtime::Utils::oo_spawn("ps -u #{uid} -o pid,cgroup --no-headers", :chdir=>"/")
-            out.each_line do |proc|
-              pid, cgroup = proc.strip.split
-              cg_path = cgroup.split(':')[1]
-              if cg_path != "#{@cgroup_path}"
-                pids << pid
+            procs = []
+            processes_foreach do |pid, name, puid, pgid|
+              if puid == uid
+                procs << pid
               end
             end
 
-            subsys = @subsystems.join(',')
-            while not pids.empty?
-              pidout = pids.shift(25).join(' ')
-              out, err, rc = ::OpenShift::Runtime::Utils::oo_spawn("cgclassify -g #{subsys}:#{@cgroup_path} #{pidout}", :chdir=>"/")
+            cgroup_paths.each do |subsys, path|
+              begin
+                File.open(File.join(path, "tasks"), File::WRONLY | File::SYNC) do |t|
+                  procs.each do |pid|
+                    begin
+                      t.syswrite "#{pid}\n"
+                    rescue
+                    end
+                  end
+                end
+              rescue Errno::ENOENT
+              end
             end
-
           end
 
           # Public: List processes in a cgroup regardless of what UID owns them
           def processes
             pids = []
-
-            out, err, rc = ::OpenShift::Runtime::Utils::oo_spawn("ps -o pid,cgroup --no-headers", :chdir=>"/")
-            out.each_line do |proc|
-              pid, cgroup = proc.strip.split
-              if cgroup.end_with?(":#{@cgroup_path}")
-                pids << pid.to_i
+            cgroup_paths.each do |subsys, path|
+              begin
+                pids << File.read(File.join(path, "tasks")).split.map { |pid| pid.to_i }
+              rescue Errno::ENOENT
               end
             end
-            pids
+            pids.flatten.uniq
           end
 
 
@@ -240,49 +289,81 @@ module OpenShift
           # Minor = UID
           # Caveat: 0 <= Minor <= 0xFFFF (65535)
           def net_cls
-            uid = Etc.getpwnam(@uuid).uid
-
             major = 1
-            if (uid.to_i < 1) or (uid.to_i > 0xFFFF)
+            if (uid < 1) or (uid > 0xFFFF)
               raise RuntimeError, "Cannot assign network class id for: #{uid}"
             end
-            (major << 16) + uid.to_i
+            (major << 16) + uid
           end
 
-          # Private: Parse the output of cgget
-          def parse_cgget(str)
-            h = {}
-            str.lines.each do |line|
-              parts = line.split(/:/)
-              if parts.length > 1
-                @key = parts.first.strip
-                h[@key] = parts.last.strip
-              else
-                unless (v = h[@key]).is_a?(Hash)
-                  h[@key] = Hash[[v.split]]
-                end
-                (k,v) = line.split
-                h[@key][k] = v
-              end
+
+          # Private: Parse the contents of a cgroups entry
+          def self.parse_cgparam(val)
+            pval = val.split(/\n/).map { |v| [*v.split] }
+            if pval.flatten.length == 1
+              pval.flatten.first
+            elsif pval.flatten.first.length == 1
+              pval.flatten
+            else
+              Hash[*(pval.map { |l| [l.shift, l.join(' ')] }.flatten)]
             end
-            h
           end
 
+          def parse_cgparam(*args)
+            self.class.parse_cgparam(*args)
+          end
 
           # Private: Call the low level cgroups creation
           def cgcreate
-            out, err, rc = ::OpenShift::Runtime::Utils::oo_spawn("cgcreate -t #{@uuid}:#{@uuid} -g #{@subsystems.join(',')}:#{@cgroup_path}", :chdir=>"/")
-            case rc
-            when 0
-              return nil
-            else
-              raise RuntimeError, "Cgroups error: #{err}"
+            cgroup_paths.each do |subsys, path|
+              Dir.mkdir(path, 0755) unless File.exist?(path)
+              File.chown(uid, uid, File.join(path, "tasks"))
+            end
+          end
+
+          # Private: List of processes and threads on the system
+          def processes_foreach
+            Dir.foreach('/proc') do |procent|
+              begin
+                pid = procent.to_i
+                uid = 0
+                gid = 0
+                name = ""
+
+                File.open(File.join('/proc', procent, "status")) do |f|
+                  f.each do |l|
+                    token, values = l.split(':')
+                    case token
+                    when 'Name'
+                      name = values.strip
+                    when 'Uid'
+                      uid = values.strip.split[0].to_i
+                    when 'Gid'
+                      gid = values.strip.split[0].to_i
+                    end
+                  end
+                end
+                yield(pid, name, uid, gid)
+              rescue
+              end
             end
           end
 
           # Private: Call the low level cgroups deletion
           def cgdelete
-            out, err, rc = ::OpenShift::Runtime::Utils::oo_spawn("cgdelete #{@subsystems.join(',')}:#{@cgroup_path}", :chdir=>"/")
+            cgroup_paths.each do |subsys, path|
+              while File.exist?(path)
+                begin
+                  Dir.rmdir(path)
+                rescue Errno::EBUSY
+                  File.open(File.join(path, "..", "tasks"), File::WRONLY | File::SYNC) do |t|
+                    File.read(File.join(path, "tasks")).split.each do |pid|
+                      t.syswrite("#{pid}\n")
+                    end
+                  end
+                end
+              end
+            end
             nil
           end
 
@@ -297,10 +378,10 @@ module OpenShift
                 end
               end
               if recreate
-                f_out.puts("#{@uuid}\t#{@subsystems.join(',')}\t#{@cgroup_path}")
+                f_out.puts("#{@uuid}\t#{subsystems.join(',')}\t#{@cgroup_path}")
               end
             end
-            ::OpenShift::Runtime::Utils::oo_spawn("pkill -USR2 cgrulesengd", :chdir=>"/")
+            processes_foreach { |pid, name| Process.kill("USR2", pid) if name == "cgrulesengd" }
           end
 
           # Private: Update the cgconfig.conf file.  This removes
