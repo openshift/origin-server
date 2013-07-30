@@ -455,7 +455,7 @@ function check_selinux_booleans() {
     return
   fi
 
-  SELINUX_BOOLEANS='httpd_unified httpd_can_network_connect httpd_can_network_relay httpd_run_stickshift'
+  SELINUX_BOOLEANS='httpd_execmem httpd_unified httpd_can_network_connect httpd_can_network_relay httpd_run_stickshift'
   for bool in $SELINUX_BOOLEANS
   do
     if getsebool "$bool" | grep -e '--> on' >/dev/null
