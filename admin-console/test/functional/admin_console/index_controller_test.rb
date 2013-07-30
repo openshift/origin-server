@@ -1,7 +1,7 @@
-require 'test_helper'
+require File.expand_path('../../../test_helper', __FILE__)
 
 module AdminConsole
-  class AdminConsoleIndexControllerTest < ActionController::TestCase
+  class IndexControllerTest < ActionController::TestCase
     test "should get index" do
       get :index
       assert_response :success
