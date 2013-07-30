@@ -6,7 +6,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin node
 Name:          openshift-origin-node-util
-Version: 1.12.4
+Version: 1.12.5
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -141,6 +141,15 @@ cp -p init.d/openshift-gears %{buildroot}%{_initddir}/
 %endif
 
 %changelog
+* Tue Jul 30 2013 Adam Miller <admiller@redhat.com> 1.12.5-1
+- Merge pull request #3224 from danmcp/master
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 990090 (dmcphers@redhat.com)
+- cleanup / fedoraize openshift-origin-node-util.spec (tdawson@redhat.com)
+- Merge pull request #3202 from rmillner/misc_bugs
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 988948 - Enable TC checks. (rmillner@redhat.com)
+
 * Mon Jul 29 2013 Adam Miller <admiller@redhat.com> 1.12.4-1
 - Origin uses single quotes in config files. (rmillner@redhat.com)
 - Separate out libcgroup based functionality and add configurable templates.
