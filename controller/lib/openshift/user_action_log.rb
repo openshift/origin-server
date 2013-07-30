@@ -20,12 +20,17 @@ module OpenShift::UserActionLog
     time_obj = Time.new
     date = time_obj.strftime("%Y-%m-%d")
     time = time_obj.strftime("%H:%M:%S")
+    timestamp = time_obj.to_i.to_s
 
-    message = "#{result} DATE=#{date} TIME=#{time} ACTION=#{action} REQ_ID=#{Thread.current[:user_action_log_uuid]}"
+    message = "STATUS=#{result} TIMESTAMP=#{timestamp} DATE=#{date} TIME=#{time} ACTION=#{action} REQ_ID=#{Thread.current[:user_action_log_uuid]}"
     auth = " USER_ID=#{Thread.current[:user_action_log_user_id]} LOGIN=#{Thread.current[:user_action_log_identity_id]}"
     extra = args.map{|k,v| " #{k}=#{v}"}.join
 
-    # We are not logging the detailed multi-line logs in the user action logger 
+    # We are not logging the error description in the user action logs in case of failure
+    # The description has the potential to be a multi-line stack trace
+    # Either ways, the reference/request ID can be used to look up the error details in the broker Rails logs 
+    description = "" unless success
+    
     logger.info("#{message}#{auth}#{extra} #{description}")
 
     unless Rails.env.production?
