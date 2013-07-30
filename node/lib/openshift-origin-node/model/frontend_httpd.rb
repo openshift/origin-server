@@ -819,10 +819,15 @@ module OpenShift
       # RFC 1123 and RFC 952.  Additionally, OpenShift does not allow
       # names/aliases to be an IP address.
       def clean_server_name(name)
-        dname = name.downcase
+        dname = name.downcase.chomp('.')
 
         if not dname =~ /^[a-z0-9]/
           raise FrontendHttpServerNameException.new("Invalid start character", @container_uuid, \
+                                                     @container_name, @namespace, dname )
+        end
+
+        if not dname =~ /[a-z0-9]$/
+          raise FrontendHttpServerNameException.new("Invalid end character", @container_uuid, \
                                                      @container_name, @namespace, dname )
         end
 
