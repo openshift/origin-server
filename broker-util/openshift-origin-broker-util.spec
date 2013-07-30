@@ -6,7 +6,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin broker
 Name:          openshift-origin-broker-util
-Version: 1.12.4
+Version: 1.12.5
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -83,6 +83,19 @@ cp man/*.8 %{buildroot}%{_mandir}/man8/
 %{_mandir}/man8/oo-stats.8.gz
 
 %changelog
+* Tue Jul 30 2013 Adam Miller <admiller@redhat.com> 1.12.5-1
+- Merge pull request #3213 from abhgupta/abhgupta-scheduler
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3219 from tdawson/tdawson/spec-cleanup/2013-07
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3064 from Miciah/oo-accept-broker-check_selinux_booleans-
+  check-httpd_execmem (dmcphers+openshiftbot@redhat.com)
+- cleanup / fedoraize openshift-origin-node-util.spec (tdawson@redhat.com)
+- Fix for bug 989650, bug 988115, and added additional check in oo-admin-chk
+  (abhgupta@redhat.com)
+- Fix for bug 985496 (abhgupta@redhat.com)
+- oo-accept-broker: check httpd_execmem (miciah.masters@gmail.com)
+
 * Mon Jul 29 2013 Adam Miller <admiller@redhat.com> 1.12.4-1
 - Merge remote-tracking branch 'origin/master' into changes_for_membership
   (ccoleman@redhat.com)
