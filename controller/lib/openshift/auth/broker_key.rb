@@ -73,7 +73,7 @@ module OpenShift
         app = Application.find_by_user(user, app_name) #FIXME should be app id
 
         raise OpenShift::AccessDeniedException, "No such application exists #{app_name} or invalid token time" if app.nil? or (Time.parse(creation_time) - app.created_at).abs > 1.0
-        {:user => user, :auth_method => :broker_auth, :scopes => Scope::Scopes([Scope::Application.new(:id => app.uuid, :app_scope => :scale), Scope::Application.new(:id => app.uuid, :app_scope => :build)])}
+        {:user => user, :auth_method => :broker_auth, :scopes => Scope::Scopes([Scope::Application.new(:id => app._id.to_s, :app_scope => :scale), Scope::Application.new(:id => app._id.to_s, :app_scope => :build)])}
       end
 
       private
