@@ -54,7 +54,9 @@ Provides JBossAS support to OpenShift. (Cartridge Format V2)
 alternatives --install /etc/alternatives/maven-3.0 maven-3.0 /usr/share/java/apache-maven-3.0.3 100
 alternatives --set maven-3.0 /usr/share/java/apache-maven-3.0.3
 
-alternatives --remove jbossas-7 /opt/jboss-as-%{oldjbossver}
+if [ `alternatives --display jbossas-7 | grep jboss-as-%{oldjbossver} | wc -l` -gt 0 ]; then
+  alternatives --remove jbossas-7 /opt/jboss-as-%{oldjbossver}
+fi
 alternatives --install /etc/alternatives/jbossas-7 jbossas-7 /opt/jboss-as-%{jbossver} 102
 alternatives --set jbossas-7 /opt/jboss-as-%{jbossver}
 %endif
@@ -79,6 +81,19 @@ cp -p %{cartridgedir}/versions/7/modules/postgresql_module.xml /etc/alternatives
 %posttrans
 %{_sbindir}/oo-admin-cartridge --action install --source %{cartridgedir}
 
+%postun
+# Cleanup alternatives if uninstall only
+# This is run after %post so we do not want to remove if an upgrade
+# Don't uninstall the maven alternative, since it is also used by jbosseap and jbossews carts
+if [ $1 -eq 0 ]; then
+  %if 0%{?rhel}
+    alternatives --remove jbossas-7 /opt/jboss-as-%{jbossver}
+  %endif
+
+  %if 0%{?fedora}
+    alternatives --remove jbossas-7 /usr/share/jboss-as
+  %endif
+fi
 
 %files
 %dir %{cartridgedir}
