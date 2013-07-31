@@ -14,6 +14,7 @@
 # limitations under the License.
 #++
 require 'openshift-origin-common/config'
+require 'openshift-origin-node/utils/node_logger'
 
 require_relative 'cgroups/libcgroup'
 
@@ -48,6 +49,8 @@ module OpenShift
           end
         end
 
+        @@class = ::OpenShift::Runtime::Utils::Cgroups::Libcgroup
+
         def restore(&blk)
           apply_profile(:default, &blk)
         end
@@ -56,7 +59,7 @@ module OpenShift
 
         def initialize(uuid)
           # TODO: Make this configurable and move libcgroup impl to a stand-alone plugin gem.
-          @impl = ::OpenShift::Runtime::Utils::Cgroups::Libcgroup.new(uuid)
+          @impl = @@class.new(uuid)
         end
 
         def create
@@ -167,13 +170,20 @@ module OpenShift
           @@TEMPLATE_SET.keys
         end
 
+        def logger
+          @logger ||= Cgroups.logger
+        end
+
+        def self.logger
+          @@logger ||= @@class.logger
+        end
+
         protected
 
         # Private: Extract parameters from the configuration
         def param_cfg(res)
           Hash[ *(@impl.parameters.map { |k,v| [k, res.get(k)] }.select { |ent| ent[1] }.flatten) ]
         end
-
       end
     end
   end

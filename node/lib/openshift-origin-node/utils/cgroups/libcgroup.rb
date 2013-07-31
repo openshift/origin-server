@@ -452,7 +452,6 @@ module OpenShift
             r
           end
 
-
           # Private: Open and safely swap the file if it changed
           def overwrite_with_safe_swap(filename)
             r=nil
@@ -478,6 +477,22 @@ module OpenShift
             SELinux::chcon(filename)
 
             r
+          end
+
+          def logger
+            @logger ||= Libcgroup.logger
+          end
+
+          def self.logger
+            @@logger ||= build_logger
+          end
+
+          def self.build_logger
+            config = OpenShift::Config.new(nil,{
+              'PLATFORM_LOG_FILE' => File.join(File::SEPARATOR, %w{var log openshift node cgroups.log}),
+              'PLATFORM_TRACE_LOG_FILE' => File.join(File::SEPARATOR, %w{var log openshift node cgroups-trace.log}),
+            })
+            OpenShift::Runtime::NodeLogger::SplitTraceLogger.new(config, OpenShift::Runtime::NodeLogger.context)
           end
         end
       end
