@@ -114,6 +114,13 @@ enabled=1
 EOF
 ----
 
+For RHEL systems you will need to include the http://fedoraproject.org/wiki/EPEL[EPEL repository] to install puppet. To do so install the latest http://download.fedoraproject.org/pub/epel/6/i386/repoview/epel-release.html[epel-release package].
+
+.RHEL
+----
+yum install -y --nogpgcheck ${url_of_the_latest_epel-release_rpm}
+----
+
 === Updates and NTP
 The hosts should be running the latest Fedora packages, and should be configured to use NTP for clock synchronization.
 
@@ -166,6 +173,35 @@ ntpdate clock.redhat.com
 systemctl enable ntpd.service
 systemctl start  ntpd.service
 ----
+
+==== Setting up the Ruby Environment
+
+If you are running on a RHEL system, you will need to install and setup https://access.redhat.com/site/documentation/en-US/Red_Hat_Developer_Toolset/1/html-single/Software_Collections_Guide/index.html[SCL]
+Ruby193. This will provide you with a Ruby 1.9.3 environment which we will use for the rest of the setup.
+
+NOTE: Fedora installations should skip this section.
+
+.RHEL
+----
+yum install -y ruby193
+
+cat <<EOF > /etc/profile.d/scl193.sh
+# Setup PATH, LD_LIBRARY_PATH and MANPATH for ruby-1.9
+ruby19_dir=$(dirname `scl enable ruby193 "which ruby"`)
+export PATH=$ruby19_dir:$PATH
+
+ruby19_ld_libs=$(scl enable ruby193 "printenv LD_LIBRARY_PATH")
+export LD_LIBRARY_PATH=$ruby19_ld_libs:$LD_LIBRARY_PATH
+
+ruby19_manpath=$(scl enable ruby193 "printenv MANPATH")
+export MANPATH=$ruby19_manpath:$MANPATH
+EOF
+
+cp -f /etc/profile.d/scl193.sh /etc/sysconfig/mcollective
+chmod 0644 /etc/profile.d/scl193.sh /etc/sysconfig/mcollective
+----
+
+Log out and log back into the machine to pick up the new Ruby environment.
 
 == Preparing the Broker Host System
 
@@ -653,7 +689,6 @@ Enable MongoDB access on the firewall.
 .RHEL6
 ----
 lokkit --port=27017:tcp
-chkconfig named on
 ----
 
 .Fedora
@@ -923,13 +958,14 @@ yum install -y mcollective-client
 === Configuration
 Replace the contents of the _/etc/mcollective/client.cfg_ with the following information:
 
+.Fedora
 ----
 cat <<EOF > /etc/mcollective/client.cfg
 topicprefix = /topic/
 main_collective = mcollective
 collectives = mcollective
 libdir = /usr/libexec/mcollective
-logfile = /var/log/mcollective-client.log
+#logfile = /var/log/mcollective-client.log
 loglevel = debug
 
 # Plugins
@@ -944,6 +980,30 @@ plugin.activemq.pool.1.user = mcollective
 plugin.activemq.pool.1.password = marionette
 EOF
 ----
+
+.RHEL
+----
+cat <<EOF > /etc/mcollective/client.cfg
+topicprefix = /topic/
+main_collective = mcollective
+collectives = mcollective
+libdir =/opt/rh/ruby193/root/usr/libexec/mcollective
+#logfile = /var/log/mcollective-client.log
+loglevel = debug
+
+# Plugins
+securityprovider = psk
+plugin.psk = unset
+
+connector = activemq
+plugin.activemq.pool.size = 1
+plugin.activemq.pool.1.host = localhost
+plugin.activemq.pool.1.port = 61613
+plugin.activemq.pool.1.user = mcollective
+plugin.activemq.pool.1.password = marionette
+EOF
+----
+
 
 Update the _plugin.activemq.pool.1.password_ password to match what you set up in the active configuration.
 
@@ -971,10 +1031,14 @@ Now you have configured the MCollective client to connect to ActiveMQ running on
 In order for users to interact with the OpenShift Origin platform, they will typically use client tools or the web console. These tools communicate with the broker via a REST API that is also accessible for writing third party applications and tools. In order to use the broker application, we need to install several packages from the OpenShift Origin repository.
 
 ----
-yum install -y openshift-origin-broker openshift-origin-broker-util rubygem-openshift-origin-auth-remote-user \
-              rubygem-openshift-origin-auth-mongo rubygem-openshift-origin-msg-broker-mcollective \
-              rubygem-openshift-origin-dns-avahi rubygem-openshift-origin-dns-nsupdate \
-              rubygem-openshift-origin-dns-route53 rubygem-passenger mod_passenger 
+yum install -y openshift-origin-broker openshift-origin-broker-util \
+              rubygem-openshift-origin-auth-remote-user \
+              rubygem-openshift-origin-auth-mongo \
+              rubygem-openshift-origin-msg-broker-mcollective \
+              rubygem-openshift-origin-dns-avahi \
+              rubygem-openshift-origin-dns-nsupdate \
+              rubygem-openshift-origin-dns-route53 \
+              rubygem-passenger mod_passenger 
 ----
 
 NOTE: Depending on your connection and speed of your broker host, this installation make take several minutes.
@@ -1749,6 +1813,7 @@ NOTE: Depending on your connection and speed of your broker host, this installat
 === Configure MCollective
 Configure the MCollective client to communicate with the broker application service. In order to accomplish this, replace the contents of the MCollective server.cfg configuration file to point to your correct stomp host. Edit the _/etc/mcollective/server.cfg_ file and add the following information. If you used a different hostname for your broker application host, ensure that you provide the correct stomp host. You also need to ensure that you use the same username and password that you specified in your ActiveMQ configuration.
 
+.Fedora
 ----
 cat <<EOF >/etc/mcollective/server.cfg
 topicprefix = /topic/
@@ -1758,7 +1823,37 @@ libdir = /usr/libexec/mcollective
 logfile = /var/log/mcollective.log
 loglevel = debug
 daemonize = 0
-direct_addressing = n
+direct_addressing = 1
+registerinterval = 30
+
+# Plugins
+securityprovider = psk
+plugin.psk = unset
+
+connector = activemq
+plugin.activemq.pool.size = 1
+plugin.activemq.pool.1.host = localhost
+plugin.activemq.pool.1.port = 61613
+plugin.activemq.pool.1.user = mcollective
+plugin.activemq.pool.1.password = marionette
+
+# Facts
+factsource = yaml
+plugin.yaml = /etc/mcollective/facts.yaml
+EOF
+----
+
+.RHEL
+----
+cat <<EOF >/etc/mcollective/server.cfg
+topicprefix = /topic/
+main_collective = mcollective
+collectives = mcollective
+libdir = /opt/rh/ruby193/root/usr/libexec/mcollective
+logfile = /var/log/mcollective.log
+loglevel = debug
+daemonize = 1
+direct_addressing = 1
 registerinterval = 30
 
 # Plugins
@@ -1783,6 +1878,7 @@ Update the _plugin.activemq.pool.1.password_ password to match what you set up i
 On Fedora 19, Update the systemd service file to manage only the mcollective process. This prevents gears spawned from the process from being shut down if you have to restart mcollective. 
 Update the mcollective service file:
 
+.Fedora
 ----
 cat <<EOF > /usr/lib/systemd/system/mcollective.service
 [Unit]
@@ -1860,8 +1956,11 @@ The following packages are required for your node host to work correctly:
 Installing these packages can be performed in one yum install command.
 
 ----
-yum install -y rubygem-openshift-origin-node rubygem-passenger-native openshift-origin-port-proxy \
-               openshift-origin-node-util rubygem-openshift-origin-container-selinux
+yum install -y rubygem-openshift-origin-node \
+               rubygem-passenger-native \
+               openshift-origin-port-proxy \
+               openshift-origin-node-util \
+               rubygem-openshift-origin-container-selinux
 ----
 
 NOTE: Depending on your connection and speed of your broker host, this installation make take several minutes.
@@ -1898,11 +1997,23 @@ For database and other system related functionality, OpenShift Origin provides t
 The only required cartridge is the openshift-origin-cartridge-cron package.
 
 NOTE: If you are installing a multi-node configuration, it is important to remember that each node host _must_ have the same cartridges installed.
+
 Start by installing the cron package, which is required for all OpenShift Origin deployments.
 
 ----
 yum install -y openshift-origin-cartridge-cron
 ----
+
+If you are planning to install the openshift-origin-cartridge-jenkins* packages. You will first need to configure and install jenkins:
+
+.Jenkins
+----
+curl -o /etc/yum.repos.d/jenkins.repo http://pkg.jenkins-ci.org/redhat/jenkins.repo
+rpm --import http://pkg.jenkins-ci.org/redhat/jenkins-ci.org.key
+yum install -y jenkins-1.510
+----
+
+NOTE: The OpenShift Jenkins plugin currently requires jenkins-1.510. You may need to downgrade your jenkins installation for it to work. "yum downgrade -y jenkins-1.510"
 
 As an example, this additional command will install the cartridges needed for scalable PHP applications that can connect to MySQL:
 
@@ -1924,13 +2035,17 @@ OpenShift Origin cartridges.
 # yum search origin-cartridge
 ----
 
-To install all cartridges run:
+To install all cartridges RPMs run:
 
 ----
 yum install -y openshift-origin-cartridge-\*
 ----
 
-NOTE: The OpenShift Jenkins plugin currently requires jenkins-1.510. You may need to downgrade your jenkins installation for it to work. "yum downgrade -y jenkins-1.510"
+Finally run the following to install the cartridges
+
+----
+/usr/sbin/oo-admin-cartridge --recursive -a install -s /usr/libexec/openshift/cartridges/
+----
 
 === Start Required Services
 The node host will need to allow HTTP, HTTPS, and SSH traffic to flow through the firewall. We also want to ensure that the httpd, network, and sshd services are set to start on boot.
