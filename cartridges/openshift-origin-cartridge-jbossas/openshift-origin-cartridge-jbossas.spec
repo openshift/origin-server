@@ -78,9 +78,6 @@ mkdir -p /etc/alternatives/jbossas-7/modules/org/postgresql/jdbc/main
 ln -fs /usr/share/java/postgresql-jdbc3.jar /etc/alternatives/jbossas-7/modules/org/postgresql/jdbc/main
 cp -p %{cartridgedir}/versions/7/modules/postgresql_module.xml /etc/alternatives/jbossas-7/modules/org/postgresql/jdbc/main/module.xml
 
-%posttrans
-%{_sbindir}/oo-admin-cartridge --action install --source %{cartridgedir}
-
 %postun
 # Cleanup alternatives if uninstall only
 # This is run after %post so we do not want to remove if an upgrade

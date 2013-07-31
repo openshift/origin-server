@@ -39,37 +39,34 @@ Given /^the expected version of the ([^ ]+)\-([\d\.]+) cartridge is installed$/ 
 end
 
 Given /^a compatible version of the ([^ ]+)\-([\d\.]+) cartridge$/ do |cart_name, component_version|
-  tmp_cart_src = "/tmp/#{cart_name}-cucumber-rewrite/compat"
-  current_manifest = prepare_cart_for_rewrite(tmp_cart_src, cart_name, component_version)
-  create_upgrade_script(tmp_cart_src)
+  current_manifest = prepare_cart_for_rewrite(cart_name, component_version)
+  create_upgrade_script(@upgrade_script_path)
 
-  rewrite_and_install(current_manifest, tmp_cart_src) do |manifest, current_version|
+  rewrite_and_install(current_manifest, @manifest_path) do |manifest, current_version|
     manifest['Compatible-Versions'] = [ current_version ]
   end
 end
 
 Given /^an incompatible version of the ([^ ]+)\-([\d\.]+) cartridge$/ do |cart_name, component_version|
-  tmp_cart_src = "/tmp/#{cart_name}-cucumber-rewrite/incompat"
-  current_manifest = prepare_cart_for_rewrite(tmp_cart_src, cart_name, component_version)
-  create_upgrade_script(tmp_cart_src)
+  current_manifest = prepare_cart_for_rewrite(cart_name, component_version)
+  create_upgrade_script(@upgrade_script_path)
 
-  rewrite_and_install(current_manifest, tmp_cart_src)
+  rewrite_and_install(current_manifest, @manifest_path)
 end
 
-def prepare_cart_for_rewrite(target, cart_name, component_version)
+def prepare_cart_for_rewrite(cart_name, component_version)
+  @cartridge_path       = File.join('/usr/libexec/openshift/cartridges', cart_name)
+  @manifest_path        = File.join(@cartridge_path, 'metadata', 'manifest.yml')
+  @manifest_backup_path = @manifest_path + '~'
+  @upgrade_script_path  = File.join(@cartridge_path, 'bin', 'upgrade')
+  @hooks_path           = File.join(@cartridge_path, 'bin', 'hooks')
+
+  FileUtils.copy(@manifest_path, @manifest_backup_path)
   cart_repo = OpenShift::Runtime::CartridgeRepository.instance
-  cartridge = cart_repo.select(cart_name, component_version)
-
-  FileUtils.rm_rf target
-  FileUtils.mkpath target
-
-  %x(shopt -s dotglob; cp -ad #{cartridge.repository_path}/* #{target})
-
-  cartridge
+  cart_repo.select(cart_name, component_version)
 end
 
 def create_upgrade_script(target)
-  upgrade_script_path = File.join(target, %w(bin upgrade))
   upgrade_script = <<-EOF
 #!/bin/bash
 
@@ -79,46 +76,45 @@ source $OPENSHIFT_MOCK_DIR/mock.conf
 touch $MOCK_STATE/upgrade_invoked
 EOF
 
-  IO.write(upgrade_script_path, upgrade_script)
-  FileUtils.chmod('a=wrx,go=r', upgrade_script_path)
+  IO.write(target, upgrade_script, 0, mode: 'w', perm: 0744)
 end
 
-def rewrite_and_install(current_manifest, tmp_cart_src, new_hooks = nil)
+def rewrite_and_install(current_manifest, path, new_hooks = nil)
   cart_name = current_manifest.name
-  cart_manifest = File.join(tmp_cart_src, %w(metadata manifest.yml))
-
+  manifest = YAML.load_file(@manifest_path)
+  
   current_version = current_manifest.cartridge_version
   current_version =~ /(\d+)$/
   current_minor_version = $1.to_i
   next_version = current_version.sub(/\d+$/, (current_minor_version + 1).to_s)
 
-  manifest = YAML.load_file(cart_manifest)
   manifest['Cartridge-Version'] = next_version
 
   yield manifest, current_version if block_given?
   if new_hooks
-    add_new_hooks tmp_cart_src, new_hooks
+    add_new_hooks @hooks_path, new_hooks
   end
 
-  IO.write(cart_manifest, manifest.to_yaml)
+  IO.write(@manifest_path, manifest.to_yaml)
   if @app
     IO.write(File.join($home_root, @app.uid, %W(app-root data #{cart_name}_test_version)), next_version)
   end
 
-  assert_successful_install tmp_cart_src, next_version, current_manifest
+  assert_successful_install next_version, current_manifest
 end
 
-def add_new_hooks(tmp_cart_src, new_hooks)
+def add_new_hooks(path, new_hooks)
   new_hooks.each do |hook|
-    hook_path = File.join(tmp_cart_src, "hooks", hook[:name])
-    IO.write(hook_path, hook[:content])
-    FileUtils.chmod(0755, hook_path)
+    hook_path = File.join(path, hook[:name])
+    IO.write(hook_path, hook[:content], 0, write: 'w', perm: 0755)
   end
 end
 
-def assert_successful_install(tmp_cart_src, next_version, current_manifest)
-  OpenShift::Runtime::CartridgeRepository.instance.install(tmp_cart_src)
-  observed_latest_version = OpenShift::Runtime::CartridgeRepository.instance.select(current_manifest.name, current_manifest.version).cartridge_version
+def assert_successful_install(next_version, current_manifest)
+  OpenShift::Runtime::CartridgeRepository.instance.install(@cartridge_path)
+  observed_latest_version = OpenShift::Runtime::CartridgeRepository.instance.
+      select(current_manifest.name, current_manifest.version).
+      cartridge_version
 
   $logger.info "Observed latest version: #{observed_latest_version}"
 

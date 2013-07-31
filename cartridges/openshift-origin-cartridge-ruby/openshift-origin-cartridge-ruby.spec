@@ -172,10 +172,6 @@ Ruby cartridge for OpenShift. (Cartridge Format V2)
 %__rm -f %{buildroot}%{cartridgedir}/lib/ruby_context.*
 %__rm -f %{buildroot}%{cartridgedir}/metadata/manifest.yml.*
 
-%posttrans
-%{_sbindir}/oo-admin-cartridge --action install --source %{cartridgedir}
-
-
 %files
 %dir %{cartridgedir}
 %attr(0755,-,-) %{cartridgedir}/bin/
