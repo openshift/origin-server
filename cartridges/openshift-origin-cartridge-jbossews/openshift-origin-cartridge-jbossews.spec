@@ -2,7 +2,7 @@
 
 Summary:       Provides JBossEWS2.0 support
 Name:          openshift-origin-cartridge-jbossews
-Version: 0.7.3
+Version: 0.7.4
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -75,6 +75,14 @@ alternatives --set jbossews-2.0 /usr/share/tomcat7
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Wed Jul 31 2013 Adam Miller <admiller@redhat.com> 0.7.4-1
+- Merge pull request #3244 from danmcp/master
+  (dmcphers+openshiftbot@redhat.com)
+- Pulled cartridge READMEs into Cartridge Guide (hripps@redhat.com)
+- Bug 975792 (dmcphers@redhat.com)
+- Bug 985514 - Update CartridgeRepository when mcollectived restarted
+  (jhonce@redhat.com)
+
 * Mon Jul 29 2013 Adam Miller <admiller@redhat.com> 0.7.3-1
 - Bug 982738 (dmcphers@redhat.com)
 
