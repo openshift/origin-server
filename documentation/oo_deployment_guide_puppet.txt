@@ -61,25 +61,24 @@ cat /var/named/Kexample.com.*.key  | awk '{print $8}'
 
 The TSIG key should look like `CNk+wjszKi9da9nL/1gkMY7H+GuUng==`. We will use this in the following steps.
 
-== Add /etc/hosts entry (optional)
+== Update the Machines Hostname
 
-If your machines hostname does not resolve to its public IP address, do the following:
-
-1. Add an entry in `/etc/hosts` mapping the machines hostname to its public IP; e.g.,
-
+.Fedora
 ----
-127.0.0.1   localhost localhost.localdomain localhost4 localhost4.localdomain4
-::1         localhost localhost.localdomain localhost6 localhost6.localdomain6
-10.211.55.3 thishost.thisdomain.com
+echo "broker.example.com" > /etc/hostname
+hostname broker.example.com
 ----
 
-2. Update the `/etc/hostname` file; e.g.,
+.RHEL
+----
+cat<<EOF>/etc/sysconfig/network
+NETWORKING=yes
+HOSTNAME=broker.example.com
+EOF
 
+hostname broker.example.com
 ----
-echo "thishost.thisdomain.com" > /etc/hostname
-hostname thishost.thisdomain.com
-----
-  
+
 == Configuring an all-in-one host
 
 In this configuration, the host will run the broker, node, active mq, mongodb and bind servers.
@@ -92,7 +91,7 @@ Furthermore, TSIG key that we generated above should be inserted.
 ----
     class { 'openshift_origin' :
       #The DNS resolvable hostname of this host
-      node_fqdn                  => "thishost.thisdomain.com",
+      node_fqdn                  => "broker.example.com",
       
       #The domain under which application should be created. Eg: <app>-<namespace>.example.com
       cloud_domain               => 'example.com',
@@ -125,7 +124,13 @@ Furthermore, TSIG key that we generated above should be inserted.
       #install_repo               => 'file:///root/origin-rpms',
       
       #If using BIND, let the broker know what TSIG key to use
-      named_tsig_priv_key         => '<tsig key>'
+      named_tsig_priv_key         => '<tsig key>',
+      
+      #If using an external ethernet device other than eth0
+      #eth_device                 => '<ethernet device name, eg: enp0s5>',
+      
+      #If using with GDM, or have users with UID 500 or greater, add to this list
+      #os_unmanaged_users         => ['gdm'],
     }
 ----
 
@@ -148,7 +153,7 @@ modified if necessary.
 ----
     class { 'openshift_origin' :
       #The DNS resolvable hostname of this host
-      node_fqdn                  => "thishost.thisdomain.com",
+      node_fqdn                  => "broker.example.com",
       
       #The domain under which application should be created. Eg: <app>-<namespace>.example.com
       cloud_domain               => 'example.com',
@@ -187,7 +192,13 @@ modified if necessary.
       #install_repo               => 'file:///root/origin-rpms',
       
       #If using BIND, let the broker know what TSIG key to use
-      named_tsig_priv_key         => '<tsig key>'
+      named_tsig_priv_key         => '<tsig key>',
+      
+      #If using an external ethernet device other than eth0
+      #eth_device                 => '<ethernet device name, eg: enp0s5>',
+      
+      #If using with GDM, or have users with UID 500 or greater, add to this list
+      #os_unmanaged_users         => ['gdm'],
     }
 ----
 
@@ -208,7 +219,7 @@ values should be modified.
 ----
     class { 'openshift_origin' :
       #The DNS resolvable hostname of this host
-      node_fqdn                  => "thishost.thisdomain.com",
+      node_fqdn                  => "node.example.com",
       
       #The domain under which application should be created. Eg: <app>-<namespace>.example.com
       cloud_domain               => 'example.com',
@@ -249,6 +260,12 @@ values should be modified.
       
       #If installing from a local build, specify the path for Origin RPMs
       #install_repo               => 'file:///root/origin-rpms',
+      
+      #If using an external ethernet device other than eth0
+      #eth_device                 => '<ethernet device name, eg: enp0s5>',
+      
+      #If using with GDM, or have users with UID 500 or greater, add to this list
+      #os_unmanaged_users         => ['gdm'],
     }
 ----
 
