@@ -9,7 +9,7 @@
 
 Summary:       OpenShift plugin for SELinux based containers
 Name:          rubygem-%{gem_name}
-Version: 0.1.4
+Version: 0.1.5
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -77,6 +77,10 @@ cp %{buildroot}/%{gem_instdir}/conf/openshift-origin-container-selinux.conf.exam
 /etc/openshift/node-plugins.d/
 
 %changelog
+* Wed Jul 31 2013 Adam Miller <admiller@redhat.com> 0.1.5-1
+- Bug 988410 - Allow the userdel to safely fail if the user is already gone.
+  (rmillner@redhat.com)
+
 * Mon Jul 29 2013 Adam Miller <admiller@redhat.com> 0.1.4-1
 - Cgroup module unit tests and bug fixes. (rmillner@redhat.com)
 - Separate out libcgroup based functionality and add configurable templates.
