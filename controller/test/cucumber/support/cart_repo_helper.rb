@@ -20,7 +20,7 @@ def clean_cart_repo
     manifest_backup_path = manifest_path + '~'
 
     if cart_repo.exist?(cart, '0.0.2', '0.1')
-      $logger.info('Erasing test-generated version mock-0.1 (0.0.2)')
+      $logger.info("Erasing test-generated version #{cart}-0.1 (0.0.2)")
       cart_repo.erase(cart, '0.1', '0.0.2')
 
       if File.exist?(manifest_backup_path)

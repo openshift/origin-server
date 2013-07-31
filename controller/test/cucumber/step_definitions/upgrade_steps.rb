@@ -59,7 +59,7 @@ def prepare_cart_for_rewrite(cart_name, component_version)
   @manifest_path        = File.join(@cartridge_path, 'metadata', 'manifest.yml')
   @manifest_backup_path = @manifest_path + '~'
   @upgrade_script_path  = File.join(@cartridge_path, 'bin', 'upgrade')
-  @hooks_path           = File.join(@cartridge_path, 'bin', 'hooks')
+  @hooks_path           = File.join(@cartridge_path, 'hooks')
 
   FileUtils.copy(@manifest_path, @manifest_backup_path)
   cart_repo = OpenShift::Runtime::CartridgeRepository.instance
@@ -104,9 +104,12 @@ def rewrite_and_install(current_manifest, path, new_hooks = nil)
 end
 
 def add_new_hooks(path, new_hooks)
+  FileUtils.mkpath(path) unless File.exist?(path)
+
   new_hooks.each do |hook|
     hook_path = File.join(path, hook[:name])
-    IO.write(hook_path, hook[:content], 0, write: 'w', perm: 0755)
+    n = IO.write(hook_path, hook[:content], 0, mode: 'w', perm: 0755)
+    $logger.info "Created hook: #{hook_path}(#{n})"
   end
 end
 

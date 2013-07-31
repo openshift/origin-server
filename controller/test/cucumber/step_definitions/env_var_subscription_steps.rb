@@ -1,5 +1,4 @@
 Given /^a version of the ([^ ]+)\-([\d\.]+) cartridge with additional published ENV vars is installed$/ do |cart_name, component_version|
-  tmp_cart_src = "/tmp/#{cart_name}-cucumber-rewrite/publish"
   # Add a new hook that publishes an unique marker variable we can then check for
   garbage_hook_content = <<-EOF
 #!/bin/bash
@@ -8,8 +7,8 @@ EOF
   new_hooks = [ { :name => "publish-garbage-info",
                   :content => garbage_hook_content } ]
 
-  current_manifest = prepare_cart_for_rewrite(tmp_cart_src, cart_name, component_version)
-  rewrite_and_install(current_manifest, tmp_cart_src, new_hooks) do |manifest, current_version|
+  current_manifest = prepare_cart_for_rewrite(cart_name, component_version)
+  rewrite_and_install(current_manifest, @manifest_path, new_hooks) do |manifest, current_version|
     # Advertise unique marker in publishing manifest
     manifest['Publishes']['publish-garbage-info'] = {'Type' => 'ENV:NET_TCP:garbage:info'}
     manifest['Compatible-Versions'] = [ current_version ]
@@ -18,9 +17,8 @@ EOF
 end
 
 Given /^a version of the ([^ ]+)\-([\d\.]+) cartridge with(out)? wildcard ENV subscription is installed$/ do |cart_name, component_version, negate|
-  tmp_cart_src = "/tmp/#{cart_name}-cucumber-rewrite/#{negate ? 'dont' : 'do'}-publish"
-  current_manifest = prepare_cart_for_rewrite(tmp_cart_src, cart_name, component_version)
-  rewrite_and_install(current_manifest, tmp_cart_src) do |manifest, current_version|
+  current_manifest = prepare_cart_for_rewrite(cart_name, component_version)
+  rewrite_and_install(current_manifest, @manifest_path) do |manifest, current_version|
     manifest['Compatible-Versions'] = [ current_version ]
     if negate
       # Remove wildcard ENV var subscription if it exists
