@@ -60,6 +60,22 @@ class CgroupsUtilsTest < OpenShift::NodeBareTestCase
     @cls = OpenShift::Runtime::Utils::Cgroups
     @clsany = @cls.any_instance
     @cgroups = @cls.new(@uuid)
+
+    @mock_usage = {
+      "good" => {
+        usage: 1,
+        throttled_time: 2,
+        nr_periods: 3,
+        cfs_quota_us: 4
+      },
+      "bad" => {
+        usage: 5,
+        throttled_time: 6,
+        nr_periods: 7,
+        cfs_quota_us: 8
+      }
+    }
+    @mock_usage_str = fake_usage(@mock_usage)
   end
 
   def call_set_call(meth, templ)
@@ -232,4 +248,27 @@ class CgroupsUtilsTest < OpenShift::NodeBareTestCase
     end
   end
 
+  def test_parse_usage
+    usage = OpenShift::Runtime::Utils::Cgroups::Libcgroup.parse_usage(@mock_usage_str)
+    assert_equal @mock_usage, usage
+  end
+
+  protected
+  def fake_usage(gears)
+    gears.inject("") do |a,(uuid,vals)|
+      v = vals.clone
+      v[:uuid] = uuid
+      str = usage_template % v
+      a << str
+    end.lines.map(&:strip).join("\n")
+  end
+
+  def usage_template
+    <<-STR
+      %<uuid>s/cpuacct.usage:%<usage>d
+      %<uuid>s/cpu.stat:throttled_time %<throttled_time>d
+      %<uuid>s/cpu.stat:nr_periods %<nr_periods>d
+      %<uuid>s/cpu.cfs_quota_us:%<cfs_quota_us>d
+    STR
+  end
 end

@@ -36,8 +36,6 @@ class ThrottlerTest < OpenShift::NodeTestCase
       }
     }
 
-    @mock_usage_str = fake_usage(@mock_usage)
-
     @mock_apps = {
       "A" => mock(@@mg.to_s),
       "B" => mock(@@mg.to_s),
@@ -60,11 +58,6 @@ class ThrottlerTest < OpenShift::NodeTestCase
 
     assert_equal period, throttler.interval
     assert_equal threshold, throttler.threshold
-  end
-
-  def test_parse_usage
-    usage = @throttler.parse_usage(@mock_usage_str)
-    assert_equal @mock_usage, usage
   end
 
   def test_update
@@ -306,23 +299,5 @@ class ThrottlerTest < OpenShift::NodeTestCase
     end
 
     yield mock_apps, mock_util
-  end
-
-  def fake_usage(gears)
-    gears.inject("") do |a,(uuid,vals)|
-      v = vals.clone
-      v[:uuid] = uuid
-      str = usage_template % v
-      a << str
-    end.lines.map(&:strip).join("\n")
-  end
-
-  def usage_template
-    <<-STR
-      %<uuid>s/cpuacct.usage:%<usage>d
-      %<uuid>s/cpu.stat:throttled_time %<throttled_time>d
-      %<uuid>s/cpu.stat:nr_periods %<nr_periods>d
-      %<uuid>s/cpu.cfs_quota_us:%<cfs_quota_us>d
-    STR
   end
 end

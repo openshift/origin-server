@@ -2,7 +2,6 @@
 
 require 'active_support/core_ext/numeric/time'
 require 'openshift-origin-node/utils/cgroups'
-require 'openshift-origin-node/utils/shell_exec'
 require 'syslog'
 require_relative 'monitored_gear'
 
@@ -11,10 +10,10 @@ module OpenShift
     module Utils
       class Cgroups
         class Throttler
+
           attr_reader :wanted_keys, :uuids, :running_apps, :threshold, :interval
 
           @@conf_file = '/etc/openshift/resource_limits.conf'
-          @@cgroups_dir = Libcgroup.cgroup_paths["cpu"]
 
           def initialize
             # Make sure we create a MonitoredGear for the root OpenShift cgroup
@@ -50,20 +49,6 @@ module OpenShift
 
           # Loop through all lines from grep and contruct a hash
           # TODO: Should this be moved into libcgroup?
-          def parse_usage(info)
-            info.lines.to_a.inject(Hash.new{|h,k| h[k] = {}} ) do |h,line|
-              (uuid, key, val) = line.split(/\W/).values_at(0,-2,-1)
-              h[uuid][key.to_sym] = val.to_i
-              h
-            end
-          end
-
-          # TODO: Should this be moved into libcgroup?
-          def get_usage
-            cmd = 'grep -H "" */{cpu.stat,cpuacct.usage,cpu.cfs_quota_us} 2> /dev/null'
-            out = ::OpenShift::Runtime::Utils::oo_spawn(cmd, :chdir => @@cgroups_dir).first
-            out
-          end
 
           def start
             Thread.new do
@@ -75,8 +60,7 @@ module OpenShift
           end
 
           def tick
-            usage = get_usage
-            vals = parse_usage(usage)
+            vals = Libcgroup.usage
             vals = Hash[vals.map{|uuid,hash| [uuid,hash.select{|k,v| wanted_keys.include?k}]}]
 
             update(vals)

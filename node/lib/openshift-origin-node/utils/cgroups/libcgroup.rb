@@ -25,9 +25,7 @@ module OpenShift
   module Runtime
     module Utils
       class Cgroups
-
         class Libcgroup
-
           @@DEFAULT_CGROUP_ROOT='/openshift'
           @@DEFAULT_CGROUP_SUBSYSTEMS='cpu,cpuacct,memory,net_cls,freezer'
 
@@ -139,6 +137,20 @@ module OpenShift
 
           def uid
             @uid_cache ||= Etc.getpwnam(@uuid).uid
+          end
+
+          def self.usage
+            cmd = 'grep -H "" */{cpu.stat,cpuacct.usage,cpu.cfs_quota_us} 2> /dev/null'
+            (out, err, rc) = ::OpenShift::Runtime::Utils::oo_spawn(cmd, :chdir => cgroup_paths['cpu'], :expected_exitstatus => 0, :quiet => true)
+            parse_usage(out)
+          end
+
+          def self.parse_usage(info)
+            info.lines.to_a.inject(Hash.new{|h,k| h[k] = {}} ) do |h,line|
+              (uuid, key, val) = line.split(/\W/).values_at(0,-2,-1)
+              h[uuid][key.to_sym] = val.to_i
+              h
+            end
           end
 
           # Public: Create a cgroup namespace for the gear
@@ -467,8 +479,6 @@ module OpenShift
 
             r
           end
-
-
         end
       end
     end
