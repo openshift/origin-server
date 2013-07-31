@@ -4,7 +4,8 @@ Display-Name: Jenkins Client 1.4
 Description: "The Jenkins client connects to your Jenkins application and enables builds and testing of your application. Requires the Jenkins Application to be created via the new application page."
 Version: '1.4'
 License: ASL 2.0
-Cartridge-Version: 0.0.1
+Cartridge-Version: 0.0.2
+Compatible-Versions: [0.0.1]
 Cartridge-Vendor: redhat
 Categories:
   - ci_builder
