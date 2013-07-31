@@ -42,7 +42,7 @@ isrunning() {
 # Check if the server http port is up
 function ishttpup() {
     let count=0
-    while [ ${count} -lt 48 ]
+    while [ ${count} -lt 64 ]
     do
         if /usr/sbin/lsof -P -n -i "@${OPENSHIFT_JBOSSEWS_IP}:${OPENSHIFT_JBOSSEWS_HTTP_PORT}" | grep "(LISTEN)" > /dev/null; then
             echo "Found ${OPENSHIFT_JBOSSEWS_IP}:${OPENSHIFT_JBOSSEWS_HTTP_PORT} listening port"
@@ -63,10 +63,10 @@ function start_app() {
         export CATALINA_HOME=$OPENSHIFT_JBOSSEWS_DIR
         export CATALINA_BASE=$OPENSHIFT_JBOSSEWS_DIR
         export CATALINA_TMPDIR=${OPENSHIFT_JBOSSEWS_DIR}/tmp
-        
+
         ${OPENSHIFT_JBOSSEWS_DIR}/bin/tomcat start > ${OPENSHIFT_JBOSSEWS_DIR}/logs/jbossews.log 2>&1 &
         PROCESS_ID=$!
-        
+
         echo $PROCESS_ID > $JBOSS_PID_FILE
         if ! ishttpup; then
             echo "Timed out waiting for http listening port"
