@@ -141,7 +141,7 @@ module OpenShift
 
           def self.usage
             cmd = 'grep -H "" */{cpu.stat,cpuacct.usage,cpu.cfs_quota_us} 2> /dev/null'
-            (out, err, rc) = ::OpenShift::Runtime::Utils::oo_spawn(cmd, :chdir => cgroup_paths['cpu'], :expected_exitstatus => 0, :quiet => true)
+            (out, err, rc) = ::OpenShift::Runtime::Utils::oo_spawn(cmd, :chdir => cgroup_paths['cpu'], :quiet => true)
             parse_usage(out)
           end
 
