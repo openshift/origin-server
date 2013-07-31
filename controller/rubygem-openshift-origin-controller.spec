@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.12.6
+Version: 1.12.7
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -84,6 +84,21 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Wed Jul 31 2013 Adam Miller <admiller@redhat.com> 1.12.7-1
+- Merge pull request #3250 from jwhonce/wip/extended_tests
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3245 from rajatchopra/master
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3247 from lnader/master
+  (dmcphers+openshiftbot@redhat.com)
+- WIP Node Platform - Restored env_var_subscription_steps.rb
+  (jhonce@redhat.com)
+- Merge pull request #3246 from pmorie/bugs/971120
+  (dmcphers+openshiftbot@redhat.com)
+- fix bz990341 (rchopra@redhat.com)
+- Bug 989856 - fix for embedded carts (lnader@redhat.com)
+- Bug 971120: refactor openshift-node.feature (pmorie@gmail.com)
+
 * Wed Jul 31 2013 Adam Miller <admiller@redhat.com> 1.12.6-1
 - Merge pull request #3225 from lnader/master
   (dmcphers+openshiftbot@redhat.com)
