@@ -104,8 +104,9 @@ class EmbCartController < BaseController
                             109, "cartridge")
       end
 
-      prof = cart.profile_for_feature(name)
-      comp = prof.components.first
+      profs = cart.profile_for_feature(name)
+      profile = (profs.is_a? Array) ? profs.first : profs
+      comp = profile.components.first
       comp_spec = {"cart" => cart.name, "comp" => comp.name}
 
       unless colocate_component_instance.nil?
