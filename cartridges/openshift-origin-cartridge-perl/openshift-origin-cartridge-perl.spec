@@ -1,7 +1,7 @@
 %global cartridgedir %{_libexecdir}/openshift/cartridges/perl
 
 Name:          openshift-origin-cartridge-perl
-Version: 0.7.4
+Version: 0.7.5
 Release:       1%{?dist}
 Summary:       Perl cartridge
 Group:         Development/Languages
@@ -71,6 +71,9 @@ rm %{buildroot}%{cartridgedir}/metadata/manifest.yml.*
 
 
 %changelog
+* Wed Jul 31 2013 Adam Miller <admiller@redhat.com> 0.7.5-1
+- Update cartridge versions for Sprint 31 (jhonce@redhat.com)
+
 * Wed Jul 31 2013 Adam Miller <admiller@redhat.com> 0.7.4-1
 - Pulled cartridge READMEs into Cartridge Guide (hripps@redhat.com)
 - Bug 985514 - Update CartridgeRepository when mcollectived restarted
