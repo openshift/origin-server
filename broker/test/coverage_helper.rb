@@ -30,7 +30,6 @@ SimpleCov.add_filter StringFilter.new("openshift-origin-billing")
 SimpleCov.add_filter StringFilter.new("openshift-origin-dns")
 SimpleCov.add_filter StringFilter.new("openshift-origin-auth")
 SimpleCov.add_filter StringFilter.new("openshift-origin-admin-console")
-SimpleCov.add_filter StringFilter.new("/models/admin/")
 
 SimpleCov.start 'rails' do
   coverage_dir 'test/coverage/'
