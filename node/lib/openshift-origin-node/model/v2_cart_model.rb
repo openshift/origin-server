@@ -291,7 +291,7 @@ module OpenShift
         connect_frontend(cartridge)
         end
 
-        logger.info "configure output: #{output}"
+        logger.info "configure output: #{Runtime::Utils.sanitize_credentials(output)}"
         return output
       rescue ::OpenShift::Runtime::Utils::ShellExecutionException => e
         rc_override = e.rc < 100 ? 157 : e.rc
@@ -641,7 +641,7 @@ module OpenShift
             chdir:               cartridge_home,
             timeout:             @hourglass.remaining,
             expected_exitstatus: 0)
-        logger.info("Ran #{action} for #{@container.uuid}/#{cartridge.directory}\n#{out}")
+        logger.info("Ran #{action} for #{@container.uuid}/#{cartridge.directory}\n#{Runtime::Utils.sanitize_credentials(out)}")
         out
       end
 
