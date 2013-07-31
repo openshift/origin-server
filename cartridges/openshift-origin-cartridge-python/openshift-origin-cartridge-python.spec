@@ -1,7 +1,7 @@
 %global cartridgedir %{_libexecdir}/openshift/cartridges/python
 
 Name:          openshift-origin-cartridge-python
-Version: 0.7.5
+Version: 0.7.6
 Release:       1%{?dist}
 Summary:       Python cartridge
 Group:         Development/Languages
@@ -88,6 +88,9 @@ mv %{buildroot}%{cartridgedir}/metadata/manifest.yml.f19 %{buildroot}%{cartridge
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Wed Jul 31 2013 Adam Miller <admiller@redhat.com> 0.7.6-1
+- Update cartridge versions for Sprint 31 (jhonce@redhat.com)
+
 * Wed Jul 31 2013 Adam Miller <admiller@redhat.com> 0.7.5-1
 - Pulled cartridge READMEs into Cartridge Guide (hripps@redhat.com)
 - Bug 985514 - Update CartridgeRepository when mcollectived restarted
