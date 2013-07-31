@@ -6,7 +6,7 @@ Version: 0.6
 License: ASL 2.0
 Vendor: Red Hat
 Cartridge-Version: 0.0.3
-Cartridge-Version: [0.0.2]
+Compatible-Versions: [0.0.2]
 Cartridge-Vendor: redhat
 Categories:
   - embedded
