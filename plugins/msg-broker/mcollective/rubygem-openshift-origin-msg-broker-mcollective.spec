@@ -9,7 +9,7 @@
 
 Summary:       OpenShift plugin for mcollective service
 Name:          rubygem-%{gem_name}
-Version: 1.12.5
+Version: 1.12.6
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -80,6 +80,9 @@ cp %{buildroot}/%{gem_dir}/gems/%{gem_name}-%{version}/conf/openshift-origin-msg
 %attr(0644,-,-) %ghost /etc/mcollective/client.cfg
 
 %changelog
+* Wed Jul 31 2013 Adam Miller <admiller@redhat.com> 1.12.6-1
+- Bug 988255 (lnader@redhat.com)
+
 * Tue Jul 30 2013 Adam Miller <admiller@redhat.com> 1.12.5-1
 - Bug 917790 - Do not log user credentials in broker development.log
   (rpenta@redhat.com)
