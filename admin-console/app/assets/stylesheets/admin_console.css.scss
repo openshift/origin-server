@@ -52,6 +52,7 @@
 // Components: Misc
 @import "twitter/thumbnails";
 @import "twitter/progress-bars";
+@import "admin_console/progress-bars";
 @import "twitter/accordion";
 @import "twitter/carousel";
 @import "twitter/hero-unit";
@@ -60,6 +61,7 @@
 @import "twitter/utilities"; // Has to be last to override when necessary
 
 @import "twitter/responsive";
+@import "admin_console/responsive-utilities";
 
 @import "admin_console/capacity";
 @import "admin_console/core";

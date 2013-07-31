@@ -1,3 +1,9 @@
+- content_for :javascripts do
+  :javascript
+    $(function() {
+      create_apps_per_domain_histogram();
+      create_gears_per_user_histogram();
+    });
 .stat
   %h4
     Applications
@@ -14,5 +20,3 @@
   %h5
     Gears per User
   #gears_per_user
-:javascript
-  LOAD_STATS_GRAPHS = true

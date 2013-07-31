@@ -1,33 +1,107 @@
+- content_for :javascripts do
+  :javascript
+    $(function() {
+      $('.districts').click(function() {
+        window.location.href = $(this).attr('profile_url');
+      });
+
+      $('.nodes').click(function() {
+        window.location.href = $(this).attr('profile_url');
+      });
+    });
 .capacity
+  - active_warning_threshold = @config[:warn][:node_active_remaining]
   %h1
-    Capacity
-  - @summary_for_profile.each do |profile,profile_data|
-    .profile{:onclick => "javascript:window.location.href = '" + profile_path(:id => profile) + "';"}
-      %h3
-        = profile
-      - profile_data
-      %table.stat-table
-        %tbody
-          %tr
-            %td.stat-name
-              Gears
-            - gears_total_count = profile_data[:gears_total_count]
-            - district_capacity = profile_data[:district_capacity]
-            - district_capacity = district_capacity == 0 ? 6000 : district_capacity
-            - uuid_usage_pct = (gears_total_count.to_f / district_capacity.to_f) * 100
-            %td.stat-usage
-              = "#{gears_total_count} of #{district_capacity}"
-            %td.stat-progress
-              .progress
-                .bar{ :style => "width: " + uuid_usage_pct.to_s + "%;"}
-          %tr
-            %td.stat-name
-              Active Gears
-            - active_gears = profile_data[:gears_active_count]
-            - total_active_gears = profile_data[:gears_active_count] + profile_data[:available_active_gears]
-            - active_pct = (active_gears.to_f / total_active_gears.to_f) * 100
-            %td.stat-usage
-              = "#{active_gears} of #{total_active_gears}"
-            %td.stat-progress
-              .progress
-                .bar{ :style => "width: " + active_pct.to_s + "%;"}
+    System Capacity
+  .row  
+    - @summary_for_profile.each do |profile_name,profile|
+      - show_districts = Rails.configuration.msg_broker[:districts][:enabled] && (profile[:districts].size > 1 || profile[:districts][0][:name] != "(NONE)")
+      .span6
+        .profile
+          %h3
+            = "#{profile_name.capitalize} gears"
+          %table{:class => show_districts ? nil : "nodes-only"}
+            %tbody
+              %tr.districts{:profile_url => show_districts ? profile_path(:id => profile_name) : profile_nodes_path(:id => profile_name)}
+                %td
+                  - if show_districts
+                    .stat-label
+                      districts
+                    .stat-number-large
+                      = profile[:district_count]
+                    .hover-action.hidden-mobile
+                      = link_to "Details...", profile_path(:id => profile_name)
+                  - else
+                    .stat-label
+                      nodes
+                    .stat-number-large
+                      = profile[:nodes_count]
+                %td
+                  - gears_total_count = profile[:gears_total_count]
+                  - district_capacity = profile[:district_capacity]
+                  - district_capacity = district_capacity == 0 ? 6000 : district_capacity
+                  - uuid_usage_pct = (gears_total_count.to_f / district_capacity.to_f) * 100
+                  .pull-left
+                    .stat-label
+                      gears
+                    .stat-number
+                      = number_with_delimiter(gears_total_count)
+                  .pull-right.muted.text-right
+                    .stat-label
+                      max gears
+                    .stat-number
+                      = number_with_delimiter(district_capacity)
+                  = progress_bar(uuid_usage_pct, ["progress-inverse"])
+                  - if show_districts
+                    .heat-map-line
+                      .bar
+                        - profile[:districts].each do |district|
+                          .district.tickmark{:style => "left: #{district[:dist_usage_pct]}%;"}
+                      .end-point-left
+                        = "0%"
+                      .label
+                        = "usage by district"
+                      .end-point-right
+                        = "100%"
+              %tr.nodes{:profile_url => profile_nodes_path(:id => profile_name)}
+                %td
+                  - if show_districts
+                    .stat-label
+                      nodes
+                    .stat-number-large
+                      = profile[:nodes_count]
+                  .hover-action.hidden-mobile
+                    = link_to "Details...", profile_nodes_path(:id => profile_name)
+                %td
+                  - active_gears = profile[:gears_active_count]
+                  - total_active_gears = profile[:gears_active_count] + profile[:available_active_gears]
+                  - active_pct = (active_gears.to_f / total_active_gears.to_f) * 100
+                  - active_warn_pct = threshold_pct(active_warning_threshold, total_active_gears)
+                  .pull-left
+                    .stat-label
+                      active 
+                      %br.hidden
+                      gears
+                    .stat-number
+                      = number_with_delimiter(active_gears)
+                  .pull-right.muted.text-right
+                    .stat-label
+                      max active
+                      %br.hidden
+                      gears
+                    .stat-number
+                      = number_with_delimiter(total_active_gears)
+                  = progress_bar_with_thresholds(active_pct, active_warn_pct, Float::INFINITY)
+                  .heat-map-line
+                    .bar
+                      - profile[:districts].each do |district|
+                        - district[:nodes].each do |node|
+                          - node_active_warn_pct = threshold_pct(active_warning_threshold, node[:max_active_gears])
+                          - tickmark_class = node[:gears_active_usage_pct] < node_active_warn_pct ? 'tickmark-success' : node[:gears_active_usage_pct] < 100 ? 'tickmark-warning' : 'tickmark-danger';
+                          .node.tickmark{:class => tickmark_class, :style => "left: #{[100, node[:gears_active_usage_pct] / 110 * 100].min}%;"}
+                    .end-point-left
+                      = "0%"
+                    .label
+                      = "usage by node"
+                    .end-point-right
+                      = "> 110%"

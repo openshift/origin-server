@@ -17,6 +17,10 @@ a.skip-navigation {
   margin: 20px 0;
 }
 
+.nowrap {
+  white-space: nowrap;
+}
+
 .extra-large {
   font-size: $extraLargeFontSize;
 }
@@ -42,6 +46,10 @@ section.application {
 
 h1 .icon {
     height: 30px;
+}
+
+h3 .icon {
+    height: 17px;
 }
 
 @media (max-width: 480px) {

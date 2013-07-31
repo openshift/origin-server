@@ -116,10 +116,3 @@ function compress_long_tail_bins(bins) {
 
   return new_bins;
 }
-
-$(document).ready(function () {
-  if (typeof LOAD_STATS_GRAPHS != "undefined" && LOAD_STATS_GRAPHS) {
-    create_apps_per_domain_histogram();
-    create_gears_per_user_histogram();
-  }
-});
