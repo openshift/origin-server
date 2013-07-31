@@ -81,7 +81,7 @@ module OpenShift
       # * an MCollectiveApplicationContainerProxy
       #
       # RAISES:
-      # * OpenShift::NodeException
+      # * OpenShift::NodeUnavailableException
       #
       # NOTES:
       # * a class method on Node?
@@ -100,7 +100,7 @@ module OpenShift
           current_server, current_capacity, preferred_district = rpc_find_available(node_profile, district_uuid, least_preferred_server_identities, true, gear_exists_in_district, required_uid)
         end
         district = preferred_district if preferred_district
-        raise OpenShift::NodeException.new("No nodes available.", 140) unless current_server
+        raise OpenShift::NodeUnavailableException.new("No nodes available.", 140) unless current_server
         Rails.logger.debug "DEBUG: find_available_impl: current_server: #{current_server}: #{current_capacity}"
 
         MCollectiveApplicationContainerProxy.new(current_server, district)
@@ -122,7 +122,7 @@ module OpenShift
         current_server = rpc_find_one(node_profile)
         current_server, capacity, district = rpc_find_available(node_profile) unless current_server
 
-        raise OpenShift::NodeException.new("No nodes found.", 140) unless current_server
+        raise OpenShift::NodeUnavailableException.new("No nodes available.", 140) unless current_server
         Rails.logger.debug "DEBUG: find_one_impl: current_server: #{current_server}"
 
         MCollectiveApplicationContainerProxy.new(current_server)
@@ -222,10 +222,10 @@ module OpenShift
             exitcode = mcoll_result.results[:data][:exitcode]
             raise OpenShift::NodeException.new("Failed to get quota for user: #{output}", 143) unless exitcode == 0
           else
-            raise OpenShift::NodeException.new("Node execution failure (error getting result from node).  If the problem persists please contact Red Hat support.", 143)
+            raise OpenShift::NodeException.new("Node execution failure (error getting result from node).", 143)
           end
         else
-          raise OpenShift::NodeException.new("Node execution failure (error getting result from node).  If the problem persists please contact Red Hat support.", 143)
+          raise OpenShift::NodeException.new("Node execution failure (error getting result from node).", 143)
         end
         output
       end
@@ -268,10 +268,10 @@ module OpenShift
             exitcode = mcoll_result.results[:data][:exitcode]
             raise OpenShift::NodeException.new("Failed to set quota for user: #{output}", 143) unless exitcode == 0
           else
-            raise OpenShift::NodeException.new("Node execution failure (error getting result from node).  If the problem persists please contact Red Hat support.", 143)
+            raise OpenShift::NodeException.new("Node execution failure (error getting result from node).", 143)
           end
         else
-          raise OpenShift::NodeException.new("Node execution failure (error getting result from node).  If the problem persists please contact Red Hat support.", 143)
+          raise OpenShift::NodeException.new("Node execution failure (error getting result from node).", 143)
         end
       end
 
@@ -2191,7 +2191,7 @@ module OpenShift
           rpc_client.disconnect
         end
 
-        raise OpenShift::NodeException.new("Node execution failure (error getting result from node).  If the problem persists please contact Red Hat support.", 143) unless result
+        raise OpenShift::NodeException.new("Node execution failure (error getting result from node).", 143) unless result
 
         result
       end
@@ -2524,9 +2524,9 @@ module OpenShift
         else
           server_identity = app ? MCollectiveApplicationContainerProxy.find_app(app.uuid, app.name) : nil
           if server_identity && @id != server_identity
-            raise OpenShift::InvalidNodeException.new("Node execution failure (invalid  node).  If the problem persists please contact Red Hat support.", 143, nil, server_identity)
+            raise OpenShift::InvalidNodeException.new("Node execution failure (invalid  node).", 143, nil, server_identity)
           else
-            raise OpenShift::NodeException.new("Node execution failure (error getting result from node).  If the problem persists please contact Red Hat support.", 143)
+            raise OpenShift::NodeException.new("Node execution failure (error getting result from node).", 143)
           end
         end
 
@@ -2539,7 +2539,7 @@ module OpenShift
           if result.hasUserActionableError
             raise OpenShift::UserException.new(result.errorIO.string, result.exitcode, nil, result)
           else
-            raise OpenShift::NodeException.new("Node execution failure (invalid exit code from node).  If the problem persists please contact Red Hat support.", 143, result)
+            raise OpenShift::NodeException.new("Node execution failure (invalid exit code from node).", 143, result)
           end
         end
 
@@ -2862,7 +2862,7 @@ module OpenShift
           end
         end
         if require_district && server_infos.empty?
-          raise OpenShift::NodeException.new("No district nodes available.", 140)
+          raise OpenShift::NodeUnavailableException.new("No district nodes available.", 140)
         end
         unless server_infos.empty?
           # Remove the least preferred servers from the list, ensuring there is at least one server remaining
@@ -2912,7 +2912,7 @@ module OpenShift
       # * String: server name?
       #
       # RAISES:
-      # * OpenShift::NodeException
+      # * OpenShift::NodeUnavailableException
       #
       # NOTES:
       # * Query facters from every node and filter on server side
@@ -2937,7 +2937,7 @@ module OpenShift
         rpc_client = MCollectiveApplicationContainerProxy.get_rpc_client('rpcutil', options)
         begin
           rpc_client.get_fact(:fact => 'public_hostname') do |response|
-            raise OpenShift::NodeException.new("No nodes found.  If the problem persists please contact Red Hat support.", 140) unless Integer(response[:body][:statuscode]) == 0
+            raise OpenShift::NodeUnavailableExceptionn.new("No nodes available.", 140) unless Integer(response[:body][:statuscode]) == 0
             current_server = response[:senderid]
           end
         ensure
@@ -3069,7 +3069,7 @@ module OpenShift
             if (result && defined? result.results && result.results.has_key?(:data))
               value = result.results[:data][:value]
             else
-              raise OpenShift::NodeException.new("Node execution failure (error getting fact).  If the problem persists please contact Red Hat support.", 143)
+              raise OpenShift::NodeException.new("Node execution failure (error getting fact).", 143)
             end
           ensure
             rpc_client.disconnect
@@ -3105,7 +3105,7 @@ module OpenShift
             if (result && defined? result.results && result.results.has_key?(:data))
               value = result.results[:data][:output]
             else
-              raise OpenShift::NodeException.new("Node execution failure (error getting facts).  If the problem persists please contact Red Hat support.", 143)
+              raise OpenShift::NodeException.new("Node execution failure (error getting facts).", 143)
             end
           ensure
             rpc_client.disconnect
@@ -3163,15 +3163,15 @@ module OpenShift
       # * Uses MCollective::RPC::Client
       #
       def self.get_rpc_client(agent, options)
-          flags = { :options => options, :exit_on_failure => false }
-
-          begin
-            rpc_client = rpcclient(agent, flags)
-          rescue Exception => e
-            raise OpenShift::NodeException.new(e)
-      end
-
-          return rpc_client
+        flags = { :options => options, :exit_on_failure => false }
+        begin
+          rpc_client = rpcclient(agent, flags)
+        rescue Exception => e
+          Rails.logger.error "Exception raised by rpcclient:#{e.message}"
+          Rails.logger.error (e.backtrace)
+          raise OpenShift::NodeException.new(e)
+        end
+        return rpc_client
       end
 
       #
