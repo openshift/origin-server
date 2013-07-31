@@ -73,12 +73,12 @@ module OpenShift
             end
           when :list
             buffer, _, _ = ::OpenShift::Runtime::Utils::oo_spawn('mco rpc -q openshift cartridge_repository action=list',
-                                           expected_exitstatus: 0)
+                                                                 expected_exitstatus: 0)
           when :erase
-            command = %Q(mco rpc openshift cartridge_repository action=erase \
+            command      = %Q(mco rpc openshift cartridge_repository action=erase \
                        name="#{options.name}" version="#{options.version}" cartridge_version="#{options.cartridge_version}")
             buffer, _, _ = ::OpenShift::Runtime::Utils::oo_spawn(command,
-                                           expected_exitstatus: 0)
+                                                                 expected_exitstatus: 0)
         end
 
         buffer.squeeze!("\n")
@@ -93,17 +93,17 @@ parser  = OptionParser.new do |opts|
   opts.separator ''
   opts.separator 'Options:'
 
-  opts.on('-a', '--action ACTION', 'one of <install|list|erase>')         { |o| options.action = o.to_sym }
+  opts.on('-a', '--action ACTION', 'one of <install|list|erase>') { |o| options.action = o.to_sym }
   opts.on('-s', '--source path', 'Directory of the cartridge to install') { |o| options.source = File.expand_path(o) }
-  opts.on('--mco', 'Issue action via mcollective agent')                  { |o| options.mco    = o }
+  opts.on('--mco', 'Issue action via mcollective agent') { |o| options.mco = o }
 
   opts.on('-R', '--recursive', 'Source is assumed to point to a directory containing cartridge directories') do |o|
     options.recursive = true
   end
 
-  opts.on('-l', '--list', 'List cartridges in repository')                      { options.action              ||= :list }
-  opts.on('-n', '--name NAME', 'Name of cartridge to erase')                    { |o| options.name              = o }
-  opts.on('-v', '--version VERSION', 'Version of packaged software to erase')   { |o| options.version           = o }
+  opts.on('-l', '--list', 'List cartridges in repository') { options.action ||= :list }
+  opts.on('-n', '--name NAME', 'Name of cartridge to erase') { |o| options.name = o }
+  opts.on('-v', '--version VERSION', 'Version of packaged software to erase') { |o| options.version = o }
   opts.on('-c', '--cartridge_version VERSION', 'Version of cartridge to erase') { |o| options.cartridge_version = o }
 
   opts.on_tail('-d', '--debug', 'enable additional output') { options.verbose = true }
@@ -135,14 +135,13 @@ begin
     puts OpenShift::Runtime::AdminCartridgeMcollective.new.apply(options)
   else
     puts OpenShift::Runtime::AdminCartridgeCartridgeRepository.new.apply(options)
-
-    if [:install, :erase].include?(options.action)
-      if File.exist?("/etc/fedora-release")
-        OpenShift::Runtime::Utils::oo_spawn('service mcollective restart')
-        sleep(5) #wait for mcollective to be stable again
-      else
-        OpenShift::Runtime::Utils::oo_spawn('pkill -USR1 -f /usr/sbin/mcollectived')
-      end
+  end
+  if [:install, :erase].include?(options.action)
+    if File.exist?("/etc/fedora-release")
+      OpenShift::Runtime::Utils::oo_spawn('service mcollective restart')
+      sleep(5) #wait for mcollective to be stable again
+    else
+      OpenShift::Runtime::Utils::oo_spawn('pkill -USR1 -f /usr/sbin/mcollectived')
     end
   end
 rescue OpenShift::Runtime::Utils::ShellExecutionException => e

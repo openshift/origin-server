@@ -41,10 +41,6 @@ alternatives --remove switchyard-0.6 /usr/share/switchyard
 alternatives --install /etc/alternatives/switchyard-0.6 switchyard-0 /usr/share/switchyard 102
 alternatives --set switchyard-0.6 /usr/share/switchyard
 
-%posttrans
-%{_sbindir}/oo-admin-cartridge --action install --source %{cartridgedir}
-
-
 %files
 %dir %{cartridgedir}
 %attr(0755,-,-) %{cartridgedir}/bin/

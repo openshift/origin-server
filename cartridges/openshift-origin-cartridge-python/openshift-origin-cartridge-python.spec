@@ -74,9 +74,6 @@ mv %{buildroot}%{cartridgedir}/metadata/manifest.yml.rhel %{buildroot}%{cartridg
 mv %{buildroot}%{cartridgedir}/metadata/manifest.yml.f19 %{buildroot}%{cartridgedir}/metadata/manifest.yml
 %endif
 
-%posttrans
-%{_sbindir}/oo-admin-cartridge --action install --source %{cartridgedir}
-
 %files
 %dir %{cartridgedir}
 %attr(0755,-,-) %{cartridgedir}/bin/

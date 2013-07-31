@@ -74,9 +74,6 @@ mkdir -p /etc/alternatives/jbosseap-6.0/modules/org/postgresql/jdbc/main
 ln -fs /usr/share/java/postgresql-jdbc3.jar /etc/alternatives/jbosseap-6.0/modules/org/postgresql/jdbc/main
 cp -p %{cartridgedir}/versions/6.0/modules/postgresql_module.xml /etc/alternatives/jbosseap-6.0/modules/org/postgresql/jdbc/main/module.xml
 
-%posttrans
-%{_sbindir}/oo-admin-cartridge --action install --source %{cartridgedir}
-
 %files
 %dir %{cartridgedir}
 %attr(0755,-,-) %{cartridgedir}/bin/

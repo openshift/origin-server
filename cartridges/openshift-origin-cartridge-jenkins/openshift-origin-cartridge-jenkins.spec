@@ -35,9 +35,6 @@ Provides Jenkins cartridge to OpenShift. (Cartridge Format V2)
 service jenkins stop
 chkconfig jenkins off
 
-%posttrans
-%{_sbindir}/oo-admin-cartridge --action install --source %{cartridgedir}
-
 %files
 %dir %{cartridgedir}
 %attr(0755,-,-) %{cartridgedir}/bin/
