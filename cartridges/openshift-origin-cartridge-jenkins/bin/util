@@ -1,0 +1,9 @@
+#!/bin/bash -ex
+
+function obfuscate_password {
+    local password="$1"
+    local acegi_security_path=`find ${OPENSHIFT_DATA_DIR}/war/WEB-INF/lib/ -name acegi-security-*.jar`
+    local commons_codec_path=`find ${OPENSHIFT_DATA_DIR}/war/WEB-INF/lib/ -name commons-codec-*.jar`
+
+    java -classpath "${acegi_security_path}:${commons_codec_path}:${OPENSHIFT_JENKINS_DIR}usr/lib/password-encoder.jar" com.redhat.openshift.PasswordEncoder $password
+}

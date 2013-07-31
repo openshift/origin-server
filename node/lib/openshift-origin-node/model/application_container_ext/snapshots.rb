@@ -23,12 +23,12 @@ module OpenShift
           $stderr.puts 'Creating and sending tar.gz'
 
           run_in_container_context(tar_cmd,
-              env: gear_env,
-              out: $stdout,
-              err: $stderr,
-              chdir: @config.get('GEAR_BASE_DIR'),
-              timeout: @hourglass.remaining,
-              expected_exitstatus: 0)
+                                   env: gear_env,
+                                   out: $stdout,
+                                   err: $stderr,
+                                   chdir: @config.get('GEAR_BASE_DIR'),
+                                   timeout: @hourglass.remaining,
+                                   expected_exitstatus: 0)
         end
 
         ##
@@ -57,9 +57,9 @@ module OpenShift
             @cartridge_model.do_control('pre-snapshot',
                                         cartridge,
                                         err: $stderr,
-                pre_action_hooks_enabled: false,
-                post_action_hooks_enabled: false,
-                prefix_action_hooks:      false,)
+                                        pre_action_hooks_enabled: false,
+                                        post_action_hooks_enabled: false,
+                                        prefix_action_hooks:      false,)
           end
 
           exclusions = []
@@ -74,8 +74,8 @@ module OpenShift
             @cartridge_model.do_control('post-snapshot',
                                         cartridge,
                                         err: $stderr,
-                pre_action_hooks_enabled: false,
-                post_action_hooks_enabled: false)
+                                        pre_action_hooks_enabled: false,
+                                        post_action_hooks_enabled: false)
           end
 
           start_gear
@@ -91,11 +91,11 @@ module OpenShift
 
             ssh_coords = group['gears'][0]['ssh_url'].sub(/^ssh:\/\//, '')
             run_in_container_context("#{::OpenShift::Runtime::ApplicationContainer::GEAR_TO_GEAR_SSH} #{ssh_coords} 'snapshot' > #{type}.tar.gz",
-                env: gear_env,
-                chdir: gear_env['OPENSHIFT_DATA_DIR'],
-                err: $stderr,
-                timeout: @hourglass.remaining,
-                expected_exitstatus: 0)
+                                     env: gear_env,
+                                     chdir: gear_env['OPENSHIFT_DATA_DIR'],
+                                     err: $stderr,
+                                     timeout: @hourglass.remaining,
+                                     expected_exitstatus: 0)
           end
         end
 
@@ -123,8 +123,9 @@ module OpenShift
             @cartridge_model.do_control('pre-restore',
                                         cartridge,
                                         pre_action_hooks_enabled: false,
-                post_action_hooks_enabled: false,
-                err: $stderr)
+                                        post_action_hooks_enabled: false,
+                                        err: $stderr,
+                                        out: $stdout)
           end
 
           prepare_for_restore(restore_git_repo, gear_env)
@@ -144,8 +145,9 @@ module OpenShift
             @cartridge_model.do_control('post-restore',
                                         cartridge,
                                         pre_action_hooks_enabled: false,
-                post_action_hooks_enabled: false,
-                err: $stderr)
+                                        post_action_hooks_enabled: false,
+                                        err: $stderr,
+                                        out: $stdout)
           end
 
           if restore_git_repo
@@ -194,15 +196,15 @@ module OpenShift
           tar_cmd = %Q{/bin/tar --strip=2 --overwrite -xmz #{includes} #{transforms} #{excludes} 1>&2}
 
           run_in_container_context(tar_cmd,
-              env: gear_env,
-              out: $stdout,
-              err: $stderr,
-              in: $stdin,
-              chdir: @container_dir,
-              timeout: @hourglass.remaining,
-              expected_exitstatus: 0)
+                                   env: gear_env,
+                                   out: $stdout,
+                                   err: $stderr,
+                                   in: $stdin,
+                                   chdir: @container_dir,
+                                   timeout: @hourglass.remaining,
+                                   expected_exitstatus: 0)
 
-          FileUtils.cd PathUtils.join(@container_dir, 'app-root', 'runtime') do
+            FileUtils.cd PathUtils.join(@container_dir, 'app-root', 'runtime') do
             FileUtils.ln_s('../data', 'data')
           end
         end
@@ -220,11 +222,11 @@ module OpenShift
 
             ssh_coords = group['gears'][0]['ssh_url'].sub(/^ssh:\/\//, '')
             run_in_container_context("cat #{type}.tar.gz | #{::OpenShift::Runtime::ApplicationContainer::GEAR_TO_GEAR_SSH} #{ssh_coords} 'restore'",
-                env: gear_env,
-                chdir: gear_env['OPENSHIFT_DATA_DIR'],
-                err: $stderr,
-                timeout: @hourglass.remaining,
-                expected_exitstatus: 0)
+                                      env: gear_env,
+                                      chdir: gear_env['OPENSHIFT_DATA_DIR'],
+                                      err: $stderr,
+                                      timeout: @hourglass.remaining,
+                                      expected_exitstatus: 0)
           end
         end
       end
