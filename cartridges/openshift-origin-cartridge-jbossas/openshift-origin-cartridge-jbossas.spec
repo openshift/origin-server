@@ -4,7 +4,7 @@
 
 Summary:       Provides JBossAS7 support
 Name:          openshift-origin-cartridge-jbossas
-Version: 1.5.4
+Version: 1.5.5
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -104,6 +104,25 @@ fi
 
 
 %changelog
+* Wed Jul 31 2013 Adam Miller <admiller@redhat.com> 1.5.5-1
+- Merge pull request #3244 from danmcp/master
+  (dmcphers+openshiftbot@redhat.com)
+- Pulled cartridge READMEs into Cartridge Guide (hripps@redhat.com)
+- Bug 975792 (dmcphers@redhat.com)
+- Merge pull request #3235 from detiber/noExplodedWars
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 985514 - Update CartridgeRepository when mcollectived restarted
+  (jhonce@redhat.com)
+- Revert back to not deploying exploded wars by default in JBoss cartridges
+  (jdetiber@redhat.com)
+- Merge pull request #3220 from detiber/bz989765
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3055 from Miciah/update-CART_DIR-in-standalone.conf
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 989765 - Fix output when old jboss not present in alternatives
+  (jdetiber@redhat.com)
+- Use OPENSHIFT_*_DIR in standalone.conf (miciah.masters@gmail.com)
+
 * Mon Jul 29 2013 Adam Miller <admiller@redhat.com> 1.5.4-1
 - Bug 982738 (dmcphers@redhat.com)
 
