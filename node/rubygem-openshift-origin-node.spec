@@ -16,7 +16,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.12.5
+Version: 1.12.6
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -305,6 +305,28 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Wed Jul 31 2013 Adam Miller <admiller@redhat.com> 1.12.6-1
+- Merge pull request #3242 from fotioslindiakos/Bug989706
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3239 from BanzaiMan/dev/hasari/bz989467
+  (dmcphers+openshiftbot@redhat.com)
+- Consolidated docs for admin/mgmt consoles, cartridges (hripps@redhat.com)
+- Bug 989706: Throttler dies if no cgroups are present (fotios@redhat.com)
+- Bug 989467 (asari.ruby@gmail.com)
+- Adding missing activemq config templates Fixing console spec to require gems
+  Additional fixes to comprehensive deployment guide (kraman@gmail.com)
+- Merge pull request #3221 from fotioslindiakos/Bug989706
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 989706: Quiet extra output from Libcgroup.usage (fotios@redhat.com)
+- Merge pull request #3236 from rmillner/cgroups_fixes
+  (dmcphers+openshiftbot@redhat.com)
+- Reinstate boosting certain gear operations. (rmillner@redhat.com)
+- Fix bug 989695: do not reallocate existing IPs during incompatible upgrade
+  (pmorie@gmail.com)
+- Merge pull request #3226 from rmillner/BZ989831
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 989831 - Fix incorrect variable. (rmillner@redhat.com)
+
 * Tue Jul 30 2013 Adam Miller <admiller@redhat.com> 1.12.5-1
 - Fix bug 981584: skip restore for secondary gear group in scalable app if
   there is no appropriate snapshot (pmorie@gmail.com)
