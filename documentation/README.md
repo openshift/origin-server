@@ -44,13 +44,10 @@ The build environment is configured to process any file with a ".txt" extension 
     :icons:
     :numbered:
     
-    include::_navigation.adoc[]
-    
     Start writing your content here.
 
-* The `_navigation.adoc` file contains a common sidebar of navigation links that will enable a user to get back to the index page from your document.
 * If you do not want the sections of the new document to be auto-numbered, remove the `:numbered:` line.
-* Be sure to add a link to your document in `index.html` or an appropriate referencing document.
+* Be sure to add a link to your document in `index.txt` or an appropriate referencing document.
 
 For the rest of the document, make sure that you are following proper [AsciiDoc syntax](http://asciidoctor.org/docs/asciidoc-writers-guide/) and preview your document before submitting a pull request. There's no magic in how the documentation is built, so if it doesn't look right in your sandbox, it won't look right on the documentation site.
 

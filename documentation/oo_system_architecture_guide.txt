@@ -6,8 +6,6 @@ v2.0, July 2013
 :icons:
 :numbered:
 
-include::_navigation.adoc[]
-
 OpenShift Origin enables you to create, deploy and manage applications within the cloud. It provides disk space, CPU resources, memory, network connectivity, and an Apache or JBoss EAP server. Depending on the type of application being deployed, a template file system layout is provided (for example, PHP, Python, and Ruby/Rails). It also manages a limited DNS for the application.
 
 == System Overview

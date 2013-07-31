@@ -6,8 +6,6 @@ v2.0, July 2013
 :icons:
 :numbered:
 
-include::_navigation.adoc[]
-
 The OpenShift Client tools, known as *rhc*, are built and packaged using the Ruby programming language. OpenShift Origin integrates with the Git version control system to provide powerful, decentralized version control for your application source code. OpenShift Origin client tools can be installed on any operating system with Ruby 1.8.7 or higher. Instructions for specific operating systems are provided below. It is assumed that you are running the commands from a command line window, such as Command Prompt, or Terminal.
 
 If you want to use https://rvm.io/[Ruby Version Manager (rvm)], no problem; see the instructions <<rvm_and_rhc,below>>.

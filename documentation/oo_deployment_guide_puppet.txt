@@ -6,8 +6,6 @@ v2.0, July 2013
 :icons:
 :numbered:
 
-include::_navigation.adoc[]
-
 This guide will walk you through configuring a basic puppet script to install OpenShift Origin from RPMs.
 
 The OpenShift Origin RPMs can be available from:
