@@ -2,7 +2,7 @@
 
 Summary:       phpMyAdmin support for OpenShift
 Name:          openshift-origin-cartridge-phpmyadmin
-Version: 1.12.3
+Version: 1.12.4
 Release:       1%{?dist}
 Group:         Applications/Internet
 License:       ASL 2.0
@@ -58,6 +58,13 @@ ln -sf %{cartridgedir}/versions/shared/phpMyAdmin/config.inc.php %{_sysconfdir}/
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Wed Jul 31 2013 Adam Miller <admiller@redhat.com> 1.12.4-1
+- Pulled cartridge READMEs into Cartridge Guide (hripps@redhat.com)
+- Bug 985514 - Update CartridgeRepository when mcollectived restarted
+  (jhonce@redhat.com)
+- Fail gracefully when 'mysql' is not present (asari.ruby@gmail.com)
+- Bug 989863 (asari.ruby@gmail.com)
+
 * Mon Jul 29 2013 Adam Miller <admiller@redhat.com> 1.12.3-1
 - Bug 982738 (dmcphers@redhat.com)
 
