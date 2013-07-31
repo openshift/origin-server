@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.12.5
+Version: 1.12.6
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -84,6 +84,27 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Wed Jul 31 2013 Adam Miller <admiller@redhat.com> 1.12.6-1
+- Merge pull request #3225 from lnader/master
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3237 from abhgupta/abhgupta-scheduler
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 988255 (lnader@redhat.com)
+- Bug 989856 (lnader@redhat.com)
+- Merge pull request #3238 from jwhonce/bug/985514
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3228 from pravisankar/dev/ravi/bug984005
+  (dmcphers+openshiftbot@redhat.com)
+- Fix for bug 989650 (abhgupta@redhat.com)
+- Merge pull request #3229 from rajatchopra/master
+  (dmcphers+openshiftbot@redhat.com)
+- Set 'register_dns' op to 'rolledback' state in case of DNSLoginException.
+  (rpenta@redhat.com)
+- Bug 985514 - Update CartridgeRepository when mcollectived restarted
+  (jhonce@redhat.com)
+- fix in scope for scaling issues (rchopra@redhat.com)
+- Capabilities validator should still be called (ccoleman@redhat.com)
+
 * Tue Jul 30 2013 Adam Miller <admiller@redhat.com> 1.12.5-1
 - Fix for bug 989650, bug 988115, and added additional check in oo-admin-chk
   (abhgupta@redhat.com)
