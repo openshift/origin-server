@@ -257,16 +257,14 @@ def remove_sub_account(user, subaccount_login)
 end
 
 def add_gear_size(user, gear_size)
-    caps = user.capabilities
     print "Adding gear size #{gear_size} for user #{user.login}... "
 
-    available_sizes = Rails.configuration.openshift[:gear_sizes]
-    if ! available_sizes.include? gear_size
-      puts "Size #{gear_size} is not defined. Defined sizes are: #{available_sizes.join ', '}."
+    begin
+      user.add_gear_size(gear_size)
+    rescue Exception=>e
+      puts e.message
       exit 1
     end
-
-    caps['gear_sizes'] << gear_size
     if !user.save
         puts "An error occurred adding the gear size #{gear_size} to user #{user.login}."
         exit 6
@@ -277,13 +275,12 @@ end
 def remove_gear_size(user, gear_size)
     print "Removing gear size #{gear_size} for user #{user.login}... "
     
-    caps = user.capabilities
-    unless caps["gear_sizes"].include?(gear_size)
-        puts "User #{user.login} does not have gear size #{gear_size} in its capabilities."
-        return
+    begin
+      user.remove_gear_size(gear_size)
+    rescue Exception => e
+      puts e.message
+      exit 6
     end
-    
-    caps["gear_sizes"].delete(gear_size)
     if !user.save
         puts "An error occurred removing the gear size #{gear_size} from user #{user.login}."
         exit 6

@@ -242,6 +242,24 @@ class CloudUser
     capabilities["gear_sizes"]
   end
 
+  def add_gear_size(gear_size)
+    available_sizes = Rails.configuration.openshift[:gear_sizes]
+    if ! available_sizes.include? gear_size
+      raise Exception.new("Size #{gear_size} is not defined. Defined sizes are: #{available_sizes.join ', '}.")
+    end
+    self.capabilities['gear_sizes'] << gear_size if not self.capabilities['gear_sizes'].include? gear_size
+  end
+
+  def remove_gear_size(gear_size)
+    caps = self.capabilities
+    unless caps["gear_sizes"].include?(gear_size)
+        puts "User #{self.login} does not have gear size #{gear_size} in its capabilities."
+        return
+    end
+
+    caps["gear_sizes"].delete(gear_size)
+  end
+
   def max_storage
     (max_tracked_additional_storage + max_untracked_additional_storage)
   end
