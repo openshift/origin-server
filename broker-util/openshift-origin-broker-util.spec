@@ -6,7 +6,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin broker
 Name:          openshift-origin-broker-util
-Version: 1.12.7
+Version: 1.12.8
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -84,6 +84,12 @@ cp man/*.8 %{buildroot}%{_mandir}/man8/
 %{_mandir}/man8/oo-stats.8.gz
 
 %changelog
+* Wed Jul 31 2013 Adam Miller <admiller@redhat.com> 1.12.8-1
+- Merge pull request #3248 from danmcp/master
+  (dmcphers+openshiftbot@redhat.com)
+- Admin script cleanup (dmcphers@redhat.com)
+- Remove old logic from oo-admin-upgrade (dmcphers@redhat.com)
+
 * Wed Jul 31 2013 Adam Miller <admiller@redhat.com> 1.12.7-1
 - Merge pull request #3245 from rajatchopra/master
   (dmcphers+openshiftbot@redhat.com)
