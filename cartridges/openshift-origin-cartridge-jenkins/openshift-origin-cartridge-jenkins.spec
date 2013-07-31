@@ -2,7 +2,7 @@
 
 Summary:       Provides jenkins-1.4 support
 Name:          openshift-origin-cartridge-jenkins
-Version: 1.12.2
+Version: 1.12.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -44,6 +44,14 @@ chkconfig jenkins off
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Wed Jul 31 2013 Adam Miller <admiller@redhat.com> 1.12.3-1
+- Merge pull request #3244 from danmcp/master
+  (dmcphers+openshiftbot@redhat.com)
+- Pulled cartridge READMEs into Cartridge Guide (hripps@redhat.com)
+- Bug 975792 (dmcphers@redhat.com)
+- Bug 985514 - Update CartridgeRepository when mcollectived restarted
+  (jhonce@redhat.com)
+
 * Fri Jul 26 2013 Adam Miller <admiller@redhat.com> 1.12.2-1
 - For consistency, rest api response must display 'delete' instead 'destroy'
   for user/domain/app (rpenta@redhat.com)
