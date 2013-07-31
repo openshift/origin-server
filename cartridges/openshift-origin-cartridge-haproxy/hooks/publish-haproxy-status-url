@@ -1,0 +1,5 @@
+#!/bin/bash -e
+
+# Publish gear haproxy status URL.
+
+echo http://${OPENSHIFT_GEAR_DNS}/haproxy-status/

@@ -1,0 +1,33 @@
+#!/bin/bash -e
+# Update the list of non-local haproxy status URLs meant to be used by the
+# auto scaler.
+source $OPENSHIFT_CARTRIDGE_SDK_BASH
+
+# Parse the arguments to populate the status URLs list.
+list=
+kvargs=$(echo "${@:4}" | tr -d "\n" )
+for arg in $kvargs; do
+    surl=$(echo "$arg" | cut -f 2 -d '=' | tr -d "'")
+    # Do not add an entry for the local gear.
+    if [[ ! $surl =~ $OPENSHIFT_GEAR_DNS ]]; then
+        if [ -z "$list" ]; then
+            list="$surl"
+        else
+            list="$list\n$surl"
+        fi
+    fi
+done
+
+# Update the configuration file using the populated list.
+HAPROXY_STATUS_URLS_CONF=$OPENSHIFT_HAPROXY_DIR/conf/app_haproxy_status_urls.conf
+if [[ -z $list ]]; then
+    # Delete the file if the list is empty to handle the case where we remove
+    # haproxys from the application.
+    rm -f $HAPROXY_STATUS_URLS_CONF
+else
+    # Update the file with the list of all non-local haproxy status URLs.
+    echo -e $list > $HAPROXY_STATUS_URLS_CONF
+fi
+
+# Restart the auto scaler to pick up the updated status URL list.
+$OPENSHIFT_HAPROXY_DIR/usr/bin/haproxy_ctld_daemon restart
