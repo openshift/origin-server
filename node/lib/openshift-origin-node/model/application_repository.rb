@@ -105,8 +105,15 @@ module OpenShift
       def populate_from_url(cartridge_name, url)
         return nil if exists?
 
-        repo_spec, commit = ::OpenShift::Git.safe_clone_spec(url, ::OpenShift::Git::ALLOWED_NODE_SCHEMES) rescue raise ::OpenShift::Runtime::Utils::ShellExecutionException.new("CLIENT_ERROR: The provided source code repository URL is not valid (#{$!.message})", 130)
-        raise ::OpenShift::Runtime::Utils::ShellExecutionException.new("CLIENT_ERROR: Source code repository URL protocol must be one of: #{::OpenShift::Git::ALLOWED_NODE_SCHEMES.join(', ')}", 130) unless repo_spec
+        repo_spec, commit = ::OpenShift::Git.safe_clone_spec(url, ::OpenShift::Git::ALLOWED_NODE_SCHEMES) rescue \
+          raise ::OpenShift::Runtime::Utils::ShellExecutionException.new(
+            "CLIENT_ERROR: The provided source code repository URL is not valid (#{$!.message})",
+            130)
+        unless repo_spec
+          raise ::OpenShift::Runtime::Utils::ShellExecutionException.new(
+            "CLIENT_ERROR: Source code repository URL protocol must be one of: #{::OpenShift::Git::ALLOWED_NODE_SCHEMES.join(', ')}",
+            130)
+        end
 
         git_path = PathUtils.join(@container.container_dir, 'git')
         FileUtils.mkpath(git_path)
@@ -123,10 +130,12 @@ module OpenShift
               chdir:               git_path,
               expected_exitstatus: 0)
         rescue ::OpenShift::Runtime::Utils::ShellExecutionException => e
-          raise ::OpenShift::Runtime::Utils::ShellExecutionException.new(
-                    "CLIENT_ERROR: Source Code repository could not be cloned: '#{url}'.  Please verify the repository is correct and contact support.",
-                    131
-                )
+          if ssh_like? url
+            msg = "CLIENT_ERROR: Source code repository could not be cloned: '#{url}'. Please verify the repository is correct and try a non-SSH URL such as HTTP."
+          else
+            msg = "CLIENT_ERROR: Source code repository could not be cloned: '#{url}'. Please verify the repository is correct and contact support."
+          end
+          raise ::OpenShift::Runtime::Utils::ShellExecutionException.new(msg, 131)
         end
 
         configure
@@ -245,6 +254,12 @@ module OpenShift
       end
 
       private
+      def ssh_like?(url)
+        # HTTP,SSH, and FTP URLs may contain '@' to delimit "user:password" before the host name
+        url_s = url.to_s.downcase
+        (url_s.include?('@') && ! url_s.include?('//')) || (url_s.start_with? 'ssh:')
+      end
+
       #-- ERB Templates -----------------------------------------------------------
 
       COUNT_GIT_OBJECTS = 'find objects -type f 2>/dev/null | wc -l'
