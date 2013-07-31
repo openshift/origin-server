@@ -2278,7 +2278,8 @@ class Application
     #calculate component instances
     component_instances = []
     profiles.each do |data|
-      data[:profile].components.each do |component|
+      profile = (data[:profile].is_a? Array) ? data[:profile].first : data[:profile]
+      profile.components.each do |component|
         component_instances << {
           cartridge: data[:cartridge],
           component: component
