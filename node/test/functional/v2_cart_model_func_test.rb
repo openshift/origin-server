@@ -73,6 +73,7 @@ module OpenShift
     end
 
     def after_teardown
+      %x(restorecon -rv #{@container.container_dir})
       @container.destroy
     end
 

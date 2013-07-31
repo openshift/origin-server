@@ -1630,7 +1630,7 @@ scp /etc/openshift/rsync_id_rsa.pub root@node.example.com:/root/.ssh
 
 .All-In-One Setup
 ----
-cp /etc/openshift/rsync_id_rsa.pub /root/.ssh/
+cp -f /etc/openshift/rsync_id_rsa.pub /root/.ssh/
 ----
 
 Once you enter that command, you will be prompted to authenticate to the node host.
@@ -1759,7 +1759,7 @@ collectives = mcollective
 libdir = /usr/libexec/mcollective
 logfile = /var/log/mcollective.log
 loglevel = debug
-daemonize = 1
+daemonize = 0
 direct_addressing = n
 registerinterval = 30
 
@@ -1782,10 +1782,27 @@ EOF
 
 Update the _plugin.activemq.pool.1.password_ password to match what you set up in the active configuration.
 
-On Fedora 19, Update the systemd service file to manage only the mcollective process. This prevents gears spawned from the process from being shut down if you have to restart mcollective. Edit /usr/lib/systemd/system/mcollective.service and add the following under the *[Service]* section:
+On Fedora 19, Update the systemd service file to manage only the mcollective process. This prevents gears spawned from the process from being shut down if you have to restart mcollective. 
+Update the mcollective service file:
 
 ----
+cat <<EOF > /usr/lib/systemd/system/mcollective.service
+[Unit]
+Description=The Marionette Collective
+After=network.target
+
+[Service]
+Type=simple
+StandardOutput=syslog
+StandardError=syslog
+ExecStart=/usr/sbin/mcollectived --config=/etc/mcollective/server.cfg --pidfile=/var/run/mcollective.pid
+ExecReload=/bin/kill -USR1 $MAINPID
+PIDFile=/var/run/mcollective.pid
 KillMode=process
+
+[Install]
+WantedBy=multi-user.target
+EOF
 ----
 
 Reload the Systemd service files:
@@ -1925,9 +1942,13 @@ The node host will need to allow HTTP, HTTPS, and SSH traffic to flow through th
 lokkit --service=ssh
 lokkit --service=https
 lokkit --service=http
+lokkit --port=8000:tcp
+lokkit --port=8443:tcp
 chkconfig httpd on
 chkconfig network on
 chkconfig sshd on
+chkconfig oddjobd on
+chkconfig openshift-node-web-proxy on
 ----
 
 .Fedora
@@ -1935,11 +1956,17 @@ chkconfig sshd on
 firewall-cmd --add-service=ssh
 firewall-cmd --add-service=http
 firewall-cmd --add-service=https
+firewall-cmd --add-port=8000/tcp
+firewall-cmd --add-service=8443/tcp
 firewall-cmd --permanent --add-service=ssh
 firewall-cmd --permanent --add-service=http
 firewall-cmd --permanent --add-service=https
+firewall-cmd --permanent --add-port=8000/tcp
+firewall-cmd --permanent --add-port=8443/tcp
 systemctl enable network.service
 systemctl enable sshd.service
+systemctl enable oddjobd.service
+systemctl enable openshift-node-web-proxy.service
 ----
 
 == Configuring Multi-Tenancy on the Node Host
@@ -2026,6 +2053,20 @@ set /files/etc/pam.d/system-auth-ac/01/module pam_namespace.so
 set /files/etc/pam.d/system-auth-ac/01/argument[1] no_unmount_on_close
 set /files/etc/pam.d/system-auth-ac/01/#comment 'Managed by openshift_origin'
 save
+EOF
+----
+
+----
+cat <<EOF > /etc/security/namespace.d/sandbox.conf
+# /sandbox        \$HOME/.sandbox/      user:iscript=/usr/sbin/oo-namespace-init       root,adm,apache
+EOF
+
+cat <<EOF > /etc/security/namespace.d/tmp.conf
+/tmp        \$HOME/.tmp/      user:iscript=/usr/sbin/oo-namespace-init root,adm,apache
+EOF
+
+cat <<EOF > /etc/security/namespace.d/vartmp.conf
+/var/tmp    \$HOME/.tmp/   user:iscript=/usr/sbin/oo-namespace-init root,adm,apache
 EOF
 ----
 
@@ -2140,16 +2181,12 @@ restorecon -rv /var/lib/openshift /etc/openshift/node.conf /etc/httpd/conf.d/ope
 You will need to modify the _/etc/sysctl.conf_ configuration file to increase the number of kernel semaphores (to allow many httpd processes), increase the number ephemeral ports, and to also increase the connection tracking table size. Edit the file in your favorite text editor and add the following lines to the bottom of the file:
 
 ----
-cat <<EOF >/etc/sysctl.conf
-# System default settings live in /usr/lib/sysctl.d/00-system.conf.
-# To override those settings, enter new settings here, or in an /etc/sysctl.d/<name>.conf file
-#
-# For more information, see sysctl.conf(5) and sysctl.d(5).
-# Added for OpenShift Origin
-kernel.sem = 250  32000 32  4096
-net.ipv4.ip_local_port_range = 15000 35530
-net.netfilter.nf_conntrack_max = 1048576
-EOF  
+cat <<EOF | augtool
+set /files/etc/sysctl.conf/kernel.sem "250  32000 32  4096"
+set /files/etc/sysctl.conf/net.ipv4.ip_local_port_range "15000 35530"
+set /files/etc/sysctl.conf/net.netfilter.nf_conntrack_max "1048576"
+save
+EOF
 ----
 
 Once the changes have been made, reload the configuration file.
@@ -2193,6 +2230,20 @@ save
 EOF
 ----
 
+=== Initialize Traffic Control
+
+Configure traffic control to measure and control the amount of outgoing and incoming traffic used by each gear:
+
+.RHEL6
+----
+chkconfig openshift-tc on
+----
+
+.Fedora
+----
+systemctl enable openshift-tc.service
+----
+
 ==== Configuring the Port Proxy
 Multiple application gears can and will reside on the same node host. In order for these applications to receive HTTP requests to the node, you need to configure a proxy that will pass traffic to the gear application that is listening for connections on the loopback address. To do this, you need to open up a range of ports that the node can accept traffic on as well as ensure the port-proxy is started on boot.
 
@@ -2228,16 +2279,32 @@ Edit the _/etc/openshift/node.conf_ file and *specify the correct settings for y
 
 .Seperate Broker and Node Setup
 ----
-PUBLIC_HOSTNAME="node.example.com"       # The node host's public hostname
-PUBLIC_IP="10.4.59.y"                                      # The node host's public IP address
-BROKER_HOST="broker.example.com"              # IP or DNS name of broker host for REST API----
+PUBLIC_HOSTNAME="node.example.com"            # The node host's public hostname
+PUBLIC_IP="10.4.59.y"                         # The node host's public IP address
+BROKER_HOST="broker.example.com"              # IP or DNS name of broker host for REST API
+EXTERNAL_ETH_DEV='enp0s5'					  # Update to match name of external network device
 ----
 
 .All-In-One Setup
 ----
-PUBLIC_HOSTNAME="broker.example.com"       # The node host's public hostname
-PUBLIC_IP="10.4.59.x"                                      # The node host's public IP address
+PUBLIC_HOSTNAME="broker.example.com"          # The node host's public hostname
+PUBLIC_IP="10.4.59.x"                         # The node host's public IP address
 BROKER_HOST="broker.example.com"              # IP or DNS name of broker host for REST API
+EXTERNAL_ETH_DEV='enp0s5'					  # Update to match name of external network device
+----
+
+NOTE: Ensure that EXTERNAL_ETH_DEV and PUBLIC_IP have accurate values or node will be unable to create gears
+
+=== Update login.defs
+
+Update the minimum UID and GID for the machine to match GEAR_MIN_UID from node.conf. This value is 500 by default.
+
+----
+cat <<EOF | augtool
+set /files/etc/login.defs/UID_MIN 500
+set /files/etc/login.defs/GID_MIN 500
+save
+EOF
 ----
 
 === Update the _facter_ Database
@@ -2246,6 +2313,27 @@ Facter generates metadata files for MCollective and is normally run by cron. Run
 ----
 /etc/cron.minutely/openshift-facts
 ----
+
+=== Setup Routes for All-In-One setup
+
+Create broker and console routes in the node re-write map:
+
+----
+cat <<EOF > /tmp/nodes.broker_routes.txt
+__default__ REDIRECT:/console
+__default__/console TOHTTPS:127.0.0.1:8118/console               
+__default__/broker TOHTTPS:127.0.0.1:8080/broker
+EOF
+
+cat /etc/httpd/conf.d/openshift/nodes.txt /tmp/nodes.broker_routes.txt > /etc/httpd/conf.d/openshift/nodes.txt.new
+mv -f /etc/httpd/conf.d/openshift/nodes.txt.new /etc/httpd/conf.d/openshift/nodes.txt
+httxt2dbm -f DB -i /etc/httpd/conf.d/openshift/nodes.txt -o /etc/httpd/conf.d/openshift/nodes.db.new
+chown root:apache /etc/httpd/conf.d/openshift/nodes.txt /etc/httpd/conf.d/openshift/nodes.db.new
+chmod 750 /etc/httpd/conf.d/openshift/nodes.txt /etc/httpd/conf.d/openshift/nodes.db.new
+mv -f /etc/httpd/conf.d/openshift/nodes.db.new /etc/httpd/conf.d/openshift/nodes.db
+----
+
+NOTE: Skip this section if you are setting up broker and node on separate machines.
 
 === Reboot the Node Host
 In order to verify that all services were installed and configured correctly, restart the node to ensure that all
