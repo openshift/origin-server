@@ -2497,8 +2497,9 @@ class Application
     features.each do |feature|
       cart = CartridgeCache.find_cartridge(feature, self)
       next if cart.categories.include? "web_framework"
-      prof = cart.profile_for_feature(feature)
-      components = prof.components
+      profs = cart.profile_for_feature(feature)
+      profile = (profs.is_a? Array) ? profs.first : profs
+      components = profile.components
       group_overrides += components.map { |comp|
         {
           "components" => [
