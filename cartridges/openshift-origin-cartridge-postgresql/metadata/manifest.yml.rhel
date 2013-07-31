@@ -2,8 +2,8 @@ Name: postgresql
 Namespace: POSTGRESQL
 Architecture: noarch
 Cartridge-Short-Name: POSTGRESQL
-Cartridge-Version:    '0.3.0'
-Cartridge-Versions:   [0.3.0]
+Cartridge-Version:    '0.3.1'
+Compatible-Versions:   [0.3.0]
 Cartridge-Vendor:     redhat
 Display-Name: PostgreSQL Database 9.2
 Description: "PostgreSQL is an advanced Object-Relational database management system"

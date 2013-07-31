@@ -6,7 +6,8 @@ Version: '5.3'
 License: "The PHP License, version 3.0"
 License-Url: http://www.php.net/license/3_0.txt
 Vendor: php.net
-Cartridge-Version: 0.0.2
+Cartridge-Version: 0.0.3
+Compatible-Versions: [0.0.2]
 Cartridge-Vendor: redhat
 Categories:
   - service

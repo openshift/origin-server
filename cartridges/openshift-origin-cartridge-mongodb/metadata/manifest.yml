@@ -6,7 +6,8 @@ Display-Name: MongoDB NoSQL Database 2.2
 Description: "MongoDB is a scalable, high-performance, open source NoSQL database."
 Version: '2.2'
 Versions: [2.2]
-Cartridge-Version: 0.2.0
+Cartridge-Version: 0.2.1
+Compatible-Versions: [0.2.0]
 Cartridge-Vendor: redhat
 License: ASL 2.0
 Vendor: 10gen
