@@ -154,7 +154,7 @@ killtree() {
 function ishttpup() {
 
     let count=0
-    while [ ${count} -lt 48 ]
+    while [ ${count} -lt 64 ]
     do
         if /usr/sbin/lsof -P -n -i "@${OPENSHIFT_JBOSSEAP_IP}:${OPENSHIFT_JBOSSEAP_HTTP_PORT}" | grep "(LISTEN)" > /dev/null; then
             echo "Found ${OPENSHIFT_JBOSSEAP_IP}:${OPENSHIFT_JBOSSEAP_HTTP_PORT} listening port"

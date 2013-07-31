@@ -153,7 +153,7 @@ killtree() {
 # Check if the server http port is up
 function ishttpup() {
     let count=0
-    while [ ${count} -lt 48 ]
+    while [ ${count} -lt 64 ]
     do
         if /usr/sbin/lsof -P -n -i "@${OPENSHIFT_JBOSSAS_IP}:${OPENSHIFT_JBOSSAS_HTTP_PORT}" | grep "(LISTEN)" > /dev/null; then
             echo "Found ${OPENSHIFT_JBOSSAS_IP}:${OPENSHIFT_JBOSSAS_HTTP_PORT} listening port"
