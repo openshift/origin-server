@@ -10,6 +10,7 @@ module OpenShift
   end
 
   class NodeException < OpenShift::OOException; end
+  class NodeUnavailableException < NodeException; end
   class InvalidNodeException < NodeException
     attr_accessor :server_identity
 

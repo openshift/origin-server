@@ -124,21 +124,33 @@ module OpenShift
             status = :service_unavailable
             message ||= "Another operation is already in progress. Please try again in a minute."
             internal_error = false
-
-          when OpenShift::NodeException
-            status = :internal_server_error
+            
+          when OpenShift::NodeUnavailableException
+            Rails.logger.error "Got Node Unavailable Exception"
+            status = :service_unavailable
+            message = ""
             if ex.resultIO
               error_code = ex.resultIO.exitcode
-              message = ""
               if ex.resultIO.errorIO && ex.resultIO.errorIO.length > 0
                 message = ex.resultIO.errorIO.string.strip
               end
-              message ||= ""
-              message += "Unable to complete the requested operation due to: #{ex.message}.\nReference ID: #{request.uuid}"
+              Rail.logger.error "message: #{message}"
             end
+            message ||= ""
+            message += "Unable to complete the requested operation because the system is unavailable. If the problem persists please contact Red Hat support. \nReference ID: #{request.uuid}"
 
+          when OpenShift::NodeException
+            status = :internal_server_error
+            message = ""
+            if ex.resultIO
+              error_code = ex.resultIO.exitcode
+              if ex.resultIO.errorIO && ex.resultIO.errorIO.length > 0
+                message = ex.resultIO.errorIO.string.strip
+              end
+            end
+            message ||= ""
+            message += "Unable to complete the requested operation due to: #{ex.message}.\nReference ID: #{request.uuid}"
           else
-            Rails.logger.error "#{ex.message}:#{ex.backtrace}"
             status = :internal_server_error
             message = "Unable to complete the requested operation due to: #{ex.message}.\nReference ID: #{request.uuid}"
           end
