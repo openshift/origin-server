@@ -64,6 +64,7 @@ cp man/*.8 %{buildroot}%{_mandir}/man8/
 %attr(0750,-,-) %{_sbindir}/oo-accept-broker
 %attr(0750,-,-) %{_sbindir}/oo-accept-systems
 %attr(0750,-,-) %{_sbindir}/oo-stats
+%attr(0750,-,-) %{_sbindir}/oo-quarantine
 
 %{_mandir}/man8/oo-admin-chk.8.gz
 %{_mandir}/man8/oo-admin-clear-pending-ops.8.gz
