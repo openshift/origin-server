@@ -1,0 +1,75 @@
+#!/usr/bin/env oo-ruby
+
+def quarantine_action(quarantine=true)
+  begin
+    db = OpenShift::DataStore.db(:primary)
+
+    # Mark all the gears as an update in progress
+    gi_count = 0
+    gi_search_count = 1
+    while gi_search_count > 0 do
+      gear_count = 0
+      gear_search_count = 1
+      while gear_search_count > 0
+        filter = {"group_instances.#{gi_count}.gears.#{gear_count}" => {"$exists" => true}}
+        update_query = {'$set' => {"group_instances.#{gi_count}.gears.#{gear_count}.quarantined" => quarantine}}
+        db["applications"].update(filter, update_query, { :multi => true })
+        gear_count += 1
+        gear_search_count = db["applications"].find({"group_instances.#{gi_count}.gears.#{gear_count}" => {"$exists" => true}}).count
+      end
+      gi_count += 1
+      gi_search_count = db["applications"].find({"group_instances.#{gi_count}.gears.0" => {"$exists" => true}}).count
+    end
+
+  rescue Exception => e
+    puts e.message
+    puts e.backtrace
+    exit 1
+  end
+end
+
+def p_usage
+  puts <<USAGE
+
+Usage: #{$0}
+
+  --quarantine-all                     Quarantine all gears
+  --unquarantine-all                   Unquarantine all gears
+  --help                               Show usage info
+USAGE
+  exit 255
+end
+
+begin
+  opts = GetoptLong.new(
+    ["--quarantine-all", GetoptLong::NO_ARGUMENT],
+    ["--unquarantine-all", GetoptLong::NO_ARGUMENT],
+    ["--help", "-h", GetoptLong::NO_ARGUMENT]
+  )
+  opt = {}
+  opts.each do |o, a|
+    opt[o[2..-1]] = a.to_s
+  end
+rescue Exception => e
+  p_usage
+end
+
+if opt['help']
+  p_usage
+end
+
+unless opt['quarantine-all'] || opt['unquarantine-all']
+  puts "quarantine-all or unquarantine-all is required!"
+  p_usage
+end
+
+$:.unshift('/var/www/openshift/broker')
+require 'config/environment'
+
+if opt['quarantine-all']
+  quarantine_action
+elsif opt['unquarantine-all']
+  quarantine_action(false)
+end
+
+puts "Done!"
