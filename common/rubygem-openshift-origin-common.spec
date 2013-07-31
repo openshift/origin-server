@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Common
 Name:          rubygem-%{gem_name}
-Version: 1.12.3
+Version: 1.12.4
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -120,6 +120,11 @@ cp bin/man/*.8 %{buildroot}%{_mandir}/man8/
 %doc %{gem_docdir}
 
 %changelog
+* Wed Jul 31 2013 Adam Miller <admiller@redhat.com> 1.12.4-1
+- Bug 988255 (lnader@redhat.com)
+- Set 'register_dns' op to 'rolledback' state in case of DNSLoginException.
+  (rpenta@redhat.com)
+
 * Mon Jul 29 2013 Adam Miller <admiller@redhat.com> 1.12.3-1
 - Merge pull request #3192 from rmillner/origin_runtime_183_and_191_merge
   (dmcphers+openshiftbot@redhat.com)
