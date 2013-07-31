@@ -16,7 +16,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.12.6
+Version: 1.12.7
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -305,6 +305,12 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Wed Jul 31 2013 Adam Miller <admiller@redhat.com> 1.12.7-1
+- Merge pull request #3191 from jwhonce/bug/986838
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 986838 - Prevent quotas from being lowered beyond usage
+  (jhonce@redhat.com)
+
 * Wed Jul 31 2013 Adam Miller <admiller@redhat.com> 1.12.6-1
 - Merge pull request #3242 from fotioslindiakos/Bug989706
   (dmcphers+openshiftbot@redhat.com)
