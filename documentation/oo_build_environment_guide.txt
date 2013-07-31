@@ -6,8 +6,6 @@ v2.0, July 2013
 :icons:
 :numbered:
 
-include::_navigation.adoc[]
-
 Origin builds are driven by an http://originci-openshift.rhcloud.com/[OpenShift-hosted Jenkins system] that uses a series of jobs to create a reference Origin system atop Fedora and RHEL base images. Additional jobs test the generated images and generate the Origin documentation. The full list of Jenkins jobs and their specific functions are described below, listed in their order of operation.
 
 == Origin Fedora 19 Base Image / Origin RHEL Base Image

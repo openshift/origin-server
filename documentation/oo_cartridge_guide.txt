@@ -1,0 +1,1101 @@
+= OpenShift Origin Cartridge Guide
+OpenShift Origin Documentation Project <dev@lists.openshift.redhat.com>
+v2.0, July 2013
+:data-uri:
+:toc2:
+:icons:
+:numbered:
+
+This guide documents all of the cartridges that are distributed with OpenShift Origin. You can learn about creating your own cartridges by referring to the link:oo_cartridge_developers_guide.html[Cartridge Developers Guide].
+
+[float]
+== Environment Variables
+Some of the cartridges described below will register their own environment variables for use with your application. For general information about environment variables, consult the link:oo_user_guide.html#environment-variables[Users Guide].
+
+[[10gen-mms-agent]]
+== 10gen MMS Agent
+This cartridge provides the https://www.10gen.com/products/mongodb-monitoring-service[10gen MMS agent] on OpenShift.
+
+[[cron]]
+== Cron
+This cartridge adds periodic job execution functionality to your OpenShift application.
+
+=== Installation
+To add this cartridge to your application, you can either add it when you create your application:
+    
+----
+rhc app create <APP> ruby-1.9 cron
+----
+
+Or add it to your existing application:
+    
+----
+rhc cartridge add cron -a <APP>
+----
+
+=== Creating a job
+The jobs are organized in `.openshift/cron` directory of your application's source. Depending on how often you would like to execute the job, you place them in `minutely`, `hourly`, `daily`, `monthly`, `monthly`.
+
+The jobs are executed directly. If it is a script, use the "shebang" line to specify the interpreter to execute it.
+
+----
+#! /bin/bash
+date > $OPENSHIFT_RUBY_LOG_DIR/last_date_cron_ran
+----
+
+[NOTE]
+====
+The jobs need to be executable:
+----
+chmod +x .openshift/cron/minutely/awesome_job
+----
+====
+
+=== Installing the job
+Once you have created the job, add it to your application repository, commit and push.
+
+----
+git add .openshift/cron/minutely/awesome_job
+git commit -m 'Execute bit set for cron job'
+git push
+----
+
+=== Execution timing
+The jobs are run by the node's `cron` at a specified frequency, however the exact timing is not guaranteed.
+If this unpredictability is not desirable, you can instrument your job to inspect the date and/or time when your job runs.
+
+For example, the following `minutely` job would do anything useful only at 12 minutes after the hour.
+
+----
+#!/bin/bash
+minute=$(date '+%M')
+if [ $minute != 12 ]; then
+    exit
+fi
+# rest of the script
+----
+
+=== See also
+https://www.openshift.com/blogs/getting-started-with-cron-jobs-on-openshift[Getting Started with Cron Jobs on OpenShift]
+
+=== Notice of Export Control Law
+This software distribution includes cryptographic software that is subject to the U.S. Export Administration Regulations (the "*EAR*") and other U.S. and foreign laws and may not be exported, re-exported or transferred (a) to any country listed in Country Group E:1 in Supplement No. 1 to part 740 of the EAR (currently, Cuba, Iran, North Korea, Sudan & Syria); (b) to any prohibited destination or to any end user who has been prohibited from participating in U.S. export transactions by any federal agency of the U.S. government; or (c) for use in connection with the design, development or production of nuclear, chemical or biological weapons, or rocket systems, space launch vehicles, or sounding rockets, or unmanned air vehicle systems.You may not download this software or technical information if you are located in one of these countries or otherwise subject to these restrictions. You may not provide this software or technical information to individuals or entities located in one of these countries or otherwise subject to these restrictions. You are also responsible for compliance with foreign law requirements applicable to the import, export and use of this software and technical information.
+
+
+[[diy]]
+== DIY
+The `diy` cartridge provides a minimal, free-form scaffolding which leaves all details of the cartridge to the application developer.
+
+=== Get started
+. Add framework of choice to your repo.
+. Modify `.openshift/action_hooks/start` to start your application. The application is required to bind to `$OPENSHIFT_DIY_IP:$OPENSHIFT_DIY_PORT`.
+. Modify `.openshift/action_hooks/stop` to stop your application.
+. Commit and push your changes.
+
+=== Repo layout
+----
+static/           Externally exposed static content goes here
+.openshift/
+    action_hooks/ See the Action Hooks documentation <1>
+        start     Custom action hook used to start your application
+        stop      Custom action hook to stop your application
+----
+<1> link:oo_user_guide.html#action-hooks[Action Hooks] documentation
+
+NOTE: Please leave the `static` directory in place (alter but do not delete) but feel free to create additional directories if needed.
+
+Every time you push, everything in your remote repo dir gets recreated. Please store long term items (like an sqlite database) in the OpenShift data directory, which will persist between pushes of your repo. The OpenShift data directory is accessible via `$OPENSHIFT_DATA_DIR`.
+
+=== Environment Variables
+The `diy` cartridge provides the following environment variables to reference for ease of use:
+
+OPENSHIFT_DIY_IP:: The IP address assigned to the application
+OPENSHIFT_DIY_PORT:: The port assigned to the the application
+
+For more information about environment variables, consult the link:oo_user_guide.html#environment-variables[Users Guide]
+
+[[jbossas]]
+== JBossAS
+Provides the JBossAS application server on OpenShift.
+
+=== Template Repository Layout
+----
+deployments/       Location for built WARs (details below)
+src/               Example Maven source structure
+pom.xml            Example Maven build file
+.openshift/        Location for OpenShift specific files
+    config/          location for configuration files such as standalone.xml
+    action_hooks/    See the Action Hooks documentation <1>
+    markers/         See the Markers section below
+----
+<1> link:oo_user_guide.html#action-hooks[Action Hooks] documentation
+
+[NOTE]
+====
+Every time you push, everything in your remote repo directory is recreated.
+Please store long term items (like an sqlite database) in the OpenShift
+data directory, which will persist between pushes of your repo.
+The OpenShift data directory is accessible via an environment variable `OPENSHIFT_DATA_DIR`.
+====
+
+=== Layout and Deployment Options
+There are two options for deploying content to the JBoss Application Server within OpenShift. Both options
+can be used together (i.e. build one archive from source and others pre-built)
+
+[NOTE]
+====
+Under most circumstances the .dodeploy file markers should not be added to the deployments directory.
+These lifecycle files will be created in the runtime deployments directory (can be seen by SSHing into the application),
+but should not be added to the git repo.
+====
+
+*Method 1 (Preferred)* +
+You can upload your content in a Maven src structure as is this sample project and on 
+git push have the application built and deployed.  For this to work you'll need your pom.xml at the 
+root of your repository and a maven-war-plugin like in this sample to move the output from the build
+to the deployments directory.  By default the warName is ROOT within pom.xml.  This will cause the 
+webapp contents to be rendered at http://app_name-namespace.rhcloud.com/.  If you change the warName in 
+pom.xml to app_name, your base url would then become http://app_name-namespace.rhcloud.com/app_name.
+
+NOTE: If you are building locally you'll also want to add any output wars/ears under deployments  from the build to your .gitignore file.
+
+NOTE: If you are running scaled AS7 then you need an application deployed to the root context (i.e. http://app_name-namespace.rhcloud.com/) for the HAProxy load-balancer to recognize that the AS7 instance is active.
+
+*Method 2* +
+You can git push pre-built wars into `deployments/`.  To do this with the default repo you'll want to first run `git rm -r src/ pom.xml` from the root of your repo.
+
+Basic workflows for deploying pre-built content (each operation will require associated git add/commit/push operations to take effect):
+
+. Add new zipped content and deploy it: `cp target/example.war deployments/`
+. Add new unzipped/exploded content and deploy it:
+.. `cp -r target/example.war/ deployments/`
+.. edit `.openshift/config/standalone.xml` and replace
++
+....
+<deployment-scanner path="deployments" relative-to="jboss.server.base.dir" scan-interval="5000" deployment-timeout="300"/>
+....
++
+with
++
+....
+<deployment-scanner path="deployments" relative-to="jboss.server.base.dir" scan-interval="5000" deployment-timeout="300" auto-deploy-exploded="true"/>
+....
+. Undeploy currently deployed content: `git rm deployments/example.war`
+. Replace currently deployed zipped content with a new version and deploy it: `cp target/example.war deployments/`
+.Replace currently deployed unzipped content with a new version and deploy it:
+.. `git rm -rf deployments/example.war/`
+.. `cp -r target/example.war/ deployments/`
+
+NOTE: You can get the information in the uri above from running 'rhc domain show'
+
+If you have already committed large files to your git repo, you rewrite or reset the history of those files in git
+to an earlier point in time and then 'git push --force' to apply those changes on the remote OpenShift server.  A 
+git gc on the remote OpenShift repo can be forced with (Note: tidy also does other cleanup including clearing log
+files and tmp dirs):
+
+----
+rhc app tidy -a appname
+----
+
+Whether you choose option 1) or 2) the end result will be the application 
+deployed into the deployments directory. The deployments directory in the 
+JBoss Application Server distribution is the location end users can place 
+their deployment content (e.g. war, ear, jar, sar files) to have it 
+automatically deployed into the server runtime.
+
+=== Environment Variables
+
+The `jbossas` cartridge provides several environment variables to reference for ease of use:
+
+[options="header"]
+|===
+|Variable |Description
+
+|OPENSHIFT_JBOSSAS_IP
+|The IP address used to bind JBossAS
+
+|OPENSHIFT_JBOSSAS_HTTP_PORT
+|The JBossAS listening port
+
+|OPENSHIFT_JBOSSAS_CLUSTER_PORT
+|TODO
+
+|OPENSHIFT_JBOSSAS_MESSAGING_PORT
+|TODO
+
+|OPENSHIFT_JBOSSAS_MESSAGING_THROUGHPUT_PORT
+|TODO
+
+|OPENSHIFT_JBOSSAS_REMOTING_PORT
+|TODO
+|===
+
+For more information about environment variables, consult the link:oo_user_guide.html#environment-variables[Users Guide]
+
+=== Markers
+Adding marker files to `.openshift/markers` will have the following effects:
+
+[cols="1,3",options="header"]
+|===
+|Marker |Effect
+
+|enable_jpda
+|Will enable the JPDA socket based transport on the java virtual machine running the JBoss AS 7 application server. This enables you to remotely debug code running inside the JBoss AS 7 application server.
+    
+|skip_maven_build
+|Maven build step will be skipped
+
+|force_clean_build
+|Will start the build process by removing all non-essential Maven dependencies.  Any current dependencies specified in your pom.xml file will then be re-downloaded.
+
+|hot_deploy
+|Will prevent a JBoss container restart during build/deployment. Newly build archives will be re-deployed automatically by the JBoss HDScanner component.
+    
+|java7
+|Will run JBossAS with Java7 if present. If no marker is present then the baseline Java version will be used (currently Java6)
+|===
+
+=== JBoss CLI
+
+The `jbossas` cartridge provides an OpenShift compatible wrapper of the JBoss CLI tool on the gear `PATH`, located at
+`$OPENSHIFT_JBOSSAS_DIR/tools/jboss-cli.sh`. Use the following command to connect to the JBoss instance with the
+CLI tool:
+
+----
+jboss-cli.sh -c --controller=${OPENSHIFT_JBOSSAS_IP}:${OPENSHIFT_JBOSSAS_MANAGEMENT_NATIVE_PORT}
+----
+
+[[jbosseap]]
+== JBossEAP
+Provides the JBossEAP application server on OpenShift.
+
+=== Template Repository Layout
+----
+    deployments/       Location for built WARs (details below)
+    src/               Example Maven source structure
+    pom.xml            Example Maven build file
+    .openshift/        Location for OpenShift specific files
+      config/          location for configuration files such as standalone.xml
+      action_hooks/    See the Action Hooks documentation <1>
+      markers/         See the Markers section below
+----
+<1> link:oo_user_guide.html#action-hooks[Action Hooks] documentation
+
+[NOTE]
+====
+Every time you push, everything in your remote repo directory is recreated.
+Please store long term items (like an sqlite database) in the OpenShift
+data directory, which will persist between pushes of your repo.
+The OpenShift data directory is accessible via an environment variable `OPENSHIFT_DATA_DIR`.
+====
+
+=== Layout and Deployment Options
+There are two options for deploying content to the JBoss Application Server within OpenShift. Both options
+can be used together (i.e. build one archive from source and others pre-built)
+
+[NOTE]
+====
+Under most circumstances the .dodeploy file markers should not be added to the deployments directory.
+These lifecycle files will be created in the runtime deployments directory (can be seen by SSHing into the application),
+but should not be added to the git repo.
+====
+
+*Method 1 (Preferred)* +
+You can upload your content in a Maven src structure as is this sample project and on 
+git push have the application built and deployed.  For this to work you'll need your pom.xml at the 
+root of your repository and a maven-war-plugin like in this sample to move the output from the build
+to the deployments directory.  By default the warName is ROOT within pom.xml.  This will cause the 
+webapp contents to be rendered at http://app_name-namespace.rhcloud.com/.  If you change the warName in 
+pom.xml to app_name, your base url would then become http://app_name-namespace.rhcloud.com/app_name.
+
+NOTE: If you are building locally you'll also want to add any output wars/ears under deployments from the build to your .gitignore file.
+
+NOTE: If you are running scaled EAP6.0 then you need an application deployed to the root context (i.e. http://app_name-namespace.rhcloud.com/) for the HAProxy load-balancer to recognize that the EAP6.0 instance  is active.
+
+*Method 2* +
+You can git push pre-built wars into `deployments/`. To do this with the default repo you'll want to first run `git rm -r src/ pom.xml` from the root of your repo.
+
+Basic workflows for deploying pre-built content (each operation will require associated git add/commit/push operations to take effect):
+
+. Add new zipped content and deploy it: `cp target/example.war deployments/`
+. Add new unzipped/exploded content and deploy it:
+.. cp -r target/example.war/ deployments/
+.. edit .openshift/config/standalone.xml and replace
++
+....
+<deployment-scanner path="deployments" relative-to="jboss.server.base.dir" scan-interval="5000" deployment-timeout="300"/>
+....
++
+with
++
+....
+<deployment-scanner path="deployments" relative-to="jboss.server.base.dir" scan-interval="5000" deployment-timeout="300" auto-deploy-exploded="true"/>
+....
+. Undeploy currently deployed content: `git rm deployments/example.war`
+. Replace currently deployed zipped content with a new version and deploy it: `cp target/example.war deployments/`
+. Replace currently deployed unzipped content with a new version and deploy it:
+.. git rm -rf deployments/example.war/
+.. cp -r target/example.war/ deployments/
+
+NOTE: You can get the information in the uri above from running 'rhc domain show'
+
+If you have already committed large files to your git repo, you rewrite or reset the history of those files in git
+to an earlier point in time and then 'git push --force' to apply those changes on the remote OpenShift server.  A 
+git gc on the remote OpenShift repo can be forced with (Note: tidy also does other cleanup including clearing log
+files and tmp dirs):
+
+----
+rhc app tidy -a appname
+----
+
+Whether you choose option 1) or 2) the end result will be the application 
+deployed into the deployments directory. The deployments directory in the 
+JBoss Application Server distribution is the location end users can place 
+their deployment content (e.g. war, ear, jar, sar files) to have it 
+automatically deployed into the server runtime.
+
+=== Environment Variables
+
+The `jbosseap` cartridge provides several environment variables to reference for ease
+of use:
+
+[options="header"]
+|===
+|Variable |Description
+
+|OPENSHIFT_JBOSSEAP_IP
+|The IP address used to bind JBossAS
+
+|OPENSHIFT_JBOSSEAP_HTTP_PORT
+|The JBossAS listening port
+
+|OPENSHIFT_JBOSSEAP_CLUSTER_PORT
+|TODO
+
+|OPENSHIFT_JBOSSEAP_MESSAGING_PORT
+|TODO
+
+|OPENSHIFT_JBOSSEAP_MESSAGING_THROUGHPUT_PORT
+|TODO
+
+|OPENSHIFT_JBOSSEAP_REMOTING_PORT
+|TODO
+|===
+
+For more information about environment variables, consult the link:oo_user_guide.html#environment-variables[Users Guide].
+
+=== Markers
+Adding marker files to `.openshift/markers` will have the following effects:
+
+[cols="1,3",options="header"]
+|===
+|Marker |Effect
+
+|enable_jpda
+|Will enable the JPDA socket based transport on the java virtual machine running the JBoss AS 7 application server. This enables you to remotely debug code running inside the JBoss AS 7 application server.
+    
+|skip_maven_build
+|Maven build step will be skipped
+
+|force_clean_build
+|Will start the build process by removing all non-essential Maven dependencies.  Any current dependencies specified in your pom.xml file will then be re-downloaded.
+
+|hot_deploy
+|Will prevent a JBoss container restart during build/deployment. Newly build archives will be re-deployed automatically by the JBoss HDScanner component.
+    
+|java7
+|Will run JBossEAP with Java7 if present. If no marker is present then the baseline Java version will be used (currently Java6)
+|===
+
+=== JBoss CLI
+The `jbosseap` cartridge provides an OpenShift compatible wrapper of the JBoss CLI tool on the gear `PATH`, located at
+`$OPENSHIFT_JBOSSEAP_DIR/tools/jboss-cli.sh`. Use the following command to connect to the JBoss instance with the
+CLI tool:
+
+----
+jboss-cli.sh -c --controller=${OPENSHIFT_JBOSSEAP_IP}:${OPENSHIFT_JBOSSEAP_MANAGEMENT_NATIVE_PORT}
+----
+
+[[tomcat]]
+== Tomcat (JBossEWS)
+The `jbossews` cartridge provides Tomcat on OpenShift via the JBoss EWS package. This cartridge has special functionality to enable integration with OpenShift and with other cartridges. See the link:#tomcat-cartridge-integrations[Cartridge Integrations] and
+link:#tomcat-environment-variable-replacement-support[Environment Variable Replacement Support] sections for details.
+
+=== Template Repository Layout
+----
+webapps/           Location for built WARs (details below)
+src/               Example Maven source structure
+pom.xml            Example Maven build file
+.openshift/        Location for OpenShift specific files
+    config/          Location for configuration files such as server.xml
+    action_hooks/    See the Action Hooks documentation <1>
+    markers/         See the Markers section below
+----
+<1> link:oo_user_guide.html#action-hooks[Action Hooks] documentation
+
+[NOTE]
+====
+Every time you push, everything in your remote repo directory is recreated.
+Please store long term items (like an sqlite database) in the OpenShift
+data directory, which will persist between pushes of your repo.
+The OpenShift data directory is accessible via an environment variable `OPENSHIFT_DATA_DIR`.
+====
+
+=== Layout and Deployment Options
+There are two options for deploying content to the Tomcat Server within OpenShift. Both options
+can be used together (i.e. build one archive from source and others pre-built)
+
+*Method 1 (Preferred)* +
+You can upload your content in a Maven src structure as is this sample project and on 
+Git push have the application built and deployed.  For this to work you'll need your pom.xml at the 
+root of your repository and a maven-war-plugin like in this sample to move the output from the build
+to the webapps directory.  By default the warName is ROOT within pom.xml.  This will cause the 
+webapp contents to be rendered at `http://app_name-namespace.rhcloud.com/`.  If you change the warName in 
+`pom.xml` to app_name, your base url would then become `http://app_name-namespace.rhcloud.com/app_name`.
+
+NOTE: If you are building locally you'll also want to add any output wars under webapps from the build to your `.gitignore` file.
+
+NOTE: If you are running scaled EWS then you need an application deployed to the root context (i.e. http://app_name-namespace.rhcloud.com/) for the HAProxy load-balancer to recognize that the EWS instance is active.
+
+*Method 2* +
+You can commit pre-built wars into `webapps`. To do this with the default repo, first run `git rm -r src/ pom.xml` from the root of your repo.
+
+Basic workflows for deploying pre-built content (each operation will require associated Git add/commit/push operations to take effect):
+
+. Add new zipped content and deploy it: `cp target/example.war webapps/`
+. Undeploy currently deployed content: `git rm webapps/example.war`
+. Replace currently deployed zipped content with a new version and deploy it: `cp target/example.war webapps/`
+
+NOTE: You can get the information in the uri above from running `rhc domain show`
+
+If you have already committed large files to your Git repo, you rewrite or reset the history of those files in Git
+to an earlier point in time and then `git push --force` to apply those changes on the remote OpenShift server.  A 
+`git gc` on the remote OpenShift repo can be forced with (Note: tidy also does other cleanup including clearing log
+files and tmp dirs):
+
+----
+rhc app tidy -a appname
+----
+
+Whether you choose option 1) or 2) the end result will be the application 
+deployed into the `webapps` directory. The `webapps` directory in the 
+Tomcat distribution is the location end users can place 
+their deployment content (e.g. war, ear, jar, sar files) to have it 
+automatically deployed into the server runtime.
+
+=== Environment Variables
+
+The Tomcat cartridge provides several environment variables to reference for ease of use:
+
+OPENSHIFT_JBOSSEWS_IP:: The IP address used to bind EWS
+OPENSHIFT_JBOSSEWS_HTTP_PORT:: The EWS listening port
+OPENSHIFT_JBOSSEWS_JPDA_PORT:: The EWS JPDA listening port
+
+For more information about environment variables, consult the link:oo_user_guide.html#environment-variables[Users Guide].
+
+[[tomcat-environment-variable-replacement-support]]
+.Environment Variable Replacement Support
+****
+The `jbossews` cart provides special environment variable replacement functionality for some of the Tomcat configuration files. For the following configuration files:
+
+* `.openshift/config/server.xml`
+* `.openshift/config/context.xml`
+
+Ant-style environment replacements are supported for all `OPENSHIFT_`-prefixed environment variables in the application. For example, the following replacements are valid in `server.xml`:
+
+----
+<Connector address="${OPENSHIFT_JBOSSEWS_IP}"
+           port="${OPENSHIFT_JBOSSEWS_HTTP_PORT}"
+           protocol="HTTP/1.1"
+           connectionTimeout="20000"
+           redirectPort="8443" />
+----
+
+During server startup, the configuration files in the source repository are processed to replace `OPENSHIFT_*` values, and the resulting processed file is copied to the live Tomcat configuration directory.
+****
+
+[[tomcat-cartridge-integrations]]
+=== Cartridge Integrations
+The `jbossews` cart has out-of-the-box integration support with the RedHat `postgresql` and `mysql` cartridges. The default
+`context.xml` contains two basic JDBC `Resource` definitions, `jdbc/MysqlDS` and `jdbc/PostgreSQLDS`, which will be automatically
+configured to work with their respective cartridges if installed into your application.
+
+=== Markers
+Adding marker files to `.openshift/markers` will have the following effects:
+
+[cols="1,3",options="header"]
+|===
+|Marker |Effect
+
+|enable_jpda
+|Will enable the JPDA socket based transport on the java virtual machine running the Tomcat server. This enables you to remotely debug code running inside Tomcat.
+    
+|skip_maven_build
+|Maven build step will be skipped
+
+|force_clean_build
+|Will start the build process by removing all non-essential Maven dependencies.  Any current dependencies specified in your pom.xml file will then be re-downloaded.
+
+|hot_deploy
+|Will prevent a JBoss container restart during build/deployment. Newly build archives will be re-deployed automatically by the JBoss HDScanner component.
+    
+|java7
+|Will run Tomcat with Java7 if present. If no marker is present then the baseline Java version will be used (currently Java6)
+|===
+
+
+[[jenkins]]
+== Jenkins
+The `jenkins` cartridge provides the Jenkins continuous integration server on OpenShift.
+
+=== Template Repository Layout
+----
+    .openshift/        Location for OpenShift specific files
+      action_hooks/    See the Action Hooks documentation <1>
+      markers/         See the Markers section below
+----
+<1> link:oo_user_guide.html#action-hooks[Action Hooks] documentation
+
+=== Quickstart
+Jenkins integrates with other OpenShift applications.  To use start building against Jenkins, embed the `jenkins-client` into an existing application. The below example will cause app `myapp` to start building against Jenkins.
+
+----
+$ rhc cartridge add -a myapp -c jenkins-client-1.4
+----
+
+From then on, running a `git push` will cause the build process to happen inside a Jenkins builder instead of inside your normal application compute space.
+
+Benefits:
+
+* Archived build information
+* No application downtime during the build process
+* Failed builds do not get deployed (leaving the previous working version in place). 
+* Jenkins builders have additional resources like memory and storage
+* A large community of Jenkins plugins
+
+=== Building with Jenkins
+
+Building with Jenkins uses dedicated application space that can be larger
+then the application runtime space.  Because the build happens in its own
+dedicated jail, the running application is not shutdown or changed in any way
+until after the build is a success.  If it is not, the current active running
+application will continue to run.  However, a failure in the deploy process may
+still leave the app partially deployed or inaccessible.  During a build the
+following steps take place:
+
+. User issues a git push
+. Jenkins is notified a new push is ready.
+. A dedicated Jenkins slave (builder) is created.  It can be seen by using the `rhc domain show` command. The app name will be the same as the originating app plus "bldr" tagged onto the end.
++
+NOTE: This requires the first 28 chars of app name be unique or builders will be shared (can cause issues).
+. Jenkins runs the build
+. Content from originating app is downloaded to the builder app through git and rsync (Git for source code and rsync for existing libraries).
+. The cartridge-specific build Shell Task is executed.
+. Jenkins archives build artifacts for later reference
+. After 15 minutes of idle time, the `build app` will be deleted and will no longer show up with the `rhc domain show` command.  The build artifacts however, will still exist in Jenkins and can be viewed there.
+
+Users can look at the build job by clicking on it in the Jenkins interface and
+going to "configure".  It is the Jenkins' build job to stop, sync and start the
+application once a build is complete.
+
+For a detailed overview of the OpenShift build/deploy process, consult the link:oo_cartridge_developers_guide.html#openshift-builds[OpenShift Builds] documentation.
+
+=== Markers
+Adding marker files to `.openshift/markers` will have the following effects:
+
+[cols="1,3",options="header"]
+|===
+|Marker |Effect
+
+|enable_debugging
+|See 'Debugging Jenkins' below
+|===
+
+=== Debugging Jenkins
+The Jenkins server can be configured to accept remote debugger connections. To enable
+debugging, create a file `.openshift/markers/enable_debugging` in the Jenkins app
+Git repository and restart Jenkins. The debug server will listen on port `7600` for
+connections.
+
+Use SSH port forwarding to start a remote debugging session on the server.
+The `rhc` command is helpful for this. For example, in a sample Jenkins application
+named `jenkins` containing the `enable_debugging` marker, the following command
+will automatically enable SSH port forwarding:
+
+----
+    $ rhc port-forward -a jenkins
+    Checking available ports...
+    Forwarding ports
+      Service Connect to            Forward to
+      ==== ================ ==== ================
+      java 127.0.251.1:7600  =>  127.0.251.1:7600
+      java 127.0.251.1:8080  =>  127.0.251.1:8080
+    Press CTRL-C to terminate port forwarding
+----
+
+The local debugger can now be attached to `127.0.251.1:7600`.
+
+[[jenkins-client]]
+== Jenkins Client
+The `jenkins-client` cartridge works with the link:#jenkins[Jenkins Cartridge] to provide Jenkins integration for OpenShift applications. Consult the link:#jenkins[Jenkins] cartridge documentation for more information.
+
+[[mariadb]]
+== MariaDB
+The `mariadb` cartridge provides http://mariadb.org/[MariaDB] on OpenShift.
+
+=== Environment Variables
+The `mariadb` cartridge provides several environment variables to reference for ease of use:
+
+OPENSHIFT_MARIADB_DB_HOST:: The MySQL IP address
+OPENSHIFT_MARIADB_DB_PORT:: The MySQL port
+OPENSHIFT_MARIADB_DB_LOG_DIR:: The path to the MySQL log directory
+
+
+[[mongodb]]
+== MongoDB
+The `mongodb` cartridge provides http://www.mongodb.org/[MongoDB] on OpenShift.
+
+=== Environment Variables
+The `mongodb` cartridge provides several environment variables to reference for ease of use:
+
+OPENSHIFT_MONGODB_DB_HOST:: The MongoDB IP address
+OPENSHIFT_MONGODB_DB_PORT:: The MongoDB port
+OPENSHIFT_MONGODB_DB_LOG_DIR:: The path to the MongoDB log directory
+
+
+[[mysql]]
+== MySQL
+The `mysql` cartridge provides [MySQL](http://www.mysql.com/) on OpenShift.
+
+=== Environment Variables
+The `mysql` cartridge provides several environment variables to reference for ease of use:
+
+OPENSHIFT_MYSQLDB_DB_HOST:: The MySQL IP address
+OPENSHIFT_MYSQLDB_DB_PORT:: The MySQL port
+OPENSHIFT_MYSQLDB_DB_LOG_DIR:: The path to the MySQL log directory
+
+
+[[nodejs]]
+== NodeJS
+The `nodejs` cartridge provides http://nodejs.org/[Node.JS] on OpenShift.
+
+The cartridge provides a short list of Node.js modules by default. The list is available in `$OPENSHIFT_NODEJS_DIR/versions/0.6/configuration/npm_global_module_list`.
+You can also see the file `versions/0.6/configuration/npm_global_module_list` under this directory.
+
+=== Template Repository Layout
+----
+node_modules/            Any Node modules packaged with the app <1>
+deplist.txt              Deprecated.
+package.json             npm package descriptor.
+.openshift/              Location for OpenShift specific files
+    action_hooks/        See the Action Hooks documentation <2>
+    markers/             See the Markers section below
+----
+<1> See link:#nodejs-node_modules-directory[`node_modules`]
+<2> link:oo_user_guide.html#action-hooks[Action Hooks] documentation
+
+==== Layout Notes
+Please leave the `node_modules` and `.openshift` directories but feel free to
+create additional directories if needed.
+
+[NOTE]
+====
+Every time you push, everything in your remote repo dir gets recreated
+please store long term items (like an sqlite database) in the OpenShift
+data directory, which will persist between pushes of your repo.
+The OpenShift data directory is accessible relative to the remote repo
+directory (`../data`) or via an environment variable `$OPENSHIFT_DATA_DIR`.
+====
+
+[[nodejs-node_modules-directory]]
+==== `node_modules` directory
+The `node_modules` directory allows you to package any Node module on which your application depends along with your application.
+
+If you just wish to install module(s) from the npm registry (https://npmjs.org/[npmjs.org]), you can specify the module name(s) and versions in your application's `package.json` file.
+
+==== deplist.txt
+This functionality has been deprecated and will soon go away. `package.json` is the preferred method to add dependencies.
+
+==== package.json
+npm package descriptor - run `npm help json` for more details.
+
+[NOTE]
+====
+Among other things, this file contains a list of dependencies
+(node modules) to install alongside your application and is processed
+every time you `git push` to your OpenShift application.
+====
+
+=== Environment Variables
+The Node.JS cartridge provides several environment variables to reference for ease of use:
+
+OPENSHIFT_NODEJS_IP:: The IP address used to bind Node.js
+OPENSHIFT_NODEJS_PORT:: The Node.js listening port
+
+=== Markers
+Adding marker files to `.openshift/markers` will have the following effects:
+
+[cols="1,3",options="header"]
+|===
+|Marker |Effect
+
+|hot_deploy
+|Disable app restarting during git pushes (see 'Development Mode')
+|===
+
+=== Development Mode
+When you push your code changes to OpenShift, if you want dynamic reloading
+of your javascript files in "development" mode, you can either use the
+`hot_deploy` marker or add the following to `package.json`:
+   
+[source,json]
+----
+"scripts": { "start": "supervisor <relative-path-from-repo-to>/server.js" },
+----
+
+This will run Node.JS with https://npmjs.org/package/supervisor[Supervisor].
+
+=== Local Development + Testing
+You can also develop and test your Node application locally on your machine
+(workstation). In order to do this, you will need to perform some
+basic setup - install Node + the npm modules that OpenShift has globally
+installed:
+
+. Collect some information about the environment on OpenShift.
+.. Get Node.js version information:
++
+....
+$ ssh $uuid@$appdns node -v
+....
++
+.. Get list of globally install npm modules
++
+....
+$ ssh $uuid@$appdns npm list -g
+....
++
+. Ensure that an appropriate version of Node is installed locally. This depends on your application. Using the same version would be preferable in most cases but your mileage may vary with newer versions.
+. Install the versions of the Node modules you got in step 1.a. Use -g if you want to install them globally, the better alternative though is to install them in the home directory of the currently logged user on your local machine/workstation.
++
+....
+# pushd ~
+# npm install [-g] $module_name@$version
+# popd
+....
++
+. Once you have completed the above setup, you can then run your application locally by using any one of these commands:
++
+....
+node server.js
+npm start -d
+supervisor server.js
+....
+
+And then iterate on developing+testing your application.
+
+[[perl]]
+== Perl
+The `perl` cartridge provides http://www.perl.org/[Perl] on OpenShift.
+
+=== Template Repository Layout
+----
+perl/                 For not-externally exposed perl code
+libs/                 Additional libraries
+misc/                 For not-externally exposed perl code
+.openshift/           Location for OpenShift specific files
+    action_hooks/     See the Action Hooks documentation <1>
+    markers/          See the Markers section below
+----
+<1> link:oo_user_guide.html#action-hooks[Action Hooks] documentation
+
+Please leave the `perl`, `libs` and `data` directories but feel free to create additional directories if needed.
+
+[NOTE]
+====
+Every time you push, everything in your remote repo dir gets
+recreated. Please store long term items (like an sqlite database) in
+`OPENSHIFT_DATA_DIR` which will persist between pushes of your repo.
+====
+
+=== Cartridge Layout
+----
+run/                  Various run configs (like httpd pid)
+env/                  Environment variables
+logs/                 Log data (like httpd access/error logs)
+lib/                  Various libraries
+bin/setup             The script to setup the cartridge
+bin/build             Default build script
+bin/teardown          Called at cartridge destruction
+bin/control           Init script to start/stop httpd
+versions/             Version data to support multiple perl versions (copied into place by setup)
+----
+
+=== Markers
+Adding marker files to `.openshift/markers` will have the following effects:
+
+[cols="1,3",options="header"]
+|===
+|Marker |Effect
+
+|force_clean_build
+|Will remove all previous perl deps and start installing required deps from scratch
+
+|enable_cpan_tests
+|Will install all the cpan packages and run their tests
+
+|hot_deploy
+|Will prevent the apache process from being restarted during build/deployment
+
+|disable_auto_scaling
+|Will prevent scalable applications from scaling up or down according to application load.
+|===
+
+
+[[php]]
+== PHP
+The `php` cartridge provides http://www.php.net[PHP] on OpenShift.
+
+=== Template Repository Layout
+----
+php/                   Externally exposed PHP code goes here
+libs/                  Additional libraries
+misc/                  For PHP code that should not be accessible by end users
+deplist.txt            List of pears to install <1>
+.openshift/            Location for OpenShift specific files
+    action_hooks/      See the Action Hooks documentation <2>
+    markers/           See the Markers section below
+----
+<1> A list of pears to install, line by line on the server. This will happen when the user git pushes.
+<2> link:oo_user_guide.html#action-hooks[Action Hooks] documentation
+
+OpenShift will look for the `php` and `libs` directories when serving your 
+application. index.php will handle requests to the root URL of your 
+application. You can create new directories as needed.
+
+[NOTE]
+====
+Every time you push, everything in your remote repo dir is recreated.
+Please store long term items (like an sqlite database) in the OpenShift
+data directory, which will persist between pushes of your repo.
+The OpenShift data directory is accessible relative to the remote repo
+directory (../data) or via an environment variable `OPENSHIFT_DATA_DIR`.
+====
+
+=== Markers
+Adding marker files to `.openshift/markers` will have the following effects:
+
+[cols="1,3",options="header"]
+|===
+|Marker |Effect
+
+|force_clean_build
+|Will remove all previous deps and start installing required deps from scratch
+
+|hot_deploy
+|Will prevent the apache process from being restarted during build/deployment
+
+|disable_auto_scaling
+|Will prevent scalable applications from scaling up or down according to application load.
+|===
+
+
+[[phpmyadmin]]
+== phpMyAdmin
+The `phpmyadmin` cartridge provides http://www.phpmyadmin.net[phpMyAdmin] on OpenShift. In order to add this cartridge to an application, the link:#mysql[MySQL] cartridge must already be present. Once installed, phpMyAdmin can be used by navigating to http://_app_-_domain_.rhcloud.com/phpmyadmin with the MySQL login credentials.
+
+
+[[postgresql]]
+== PostgreSQL
+The `postgresql` cartridge provides http://www.postgresql.com/[PostgreSQL] on OpenShift.
+
+=== Template Repository Layout
+----
+sql/     SQL data or scripts.
+----
+
+NOTE: Please leave `sql` and `data` directories but feel free to create additional directories if needed.
+
+=== Environment Variables
+The `postgresql` cartridge provides several environment variables to reference for ease of use:
+
+[options="header"]
+|===
+|Variable |Description
+
+|OPENSHIFT_POSTGRESQL_DB_HOST
+|Numeric host address
+
+|OPENSHIFT_POSTGRESQL_DB_PORT
+|Port
+
+|OPENSHIFT_POSTGRESQL_DB_USERNAME
+|DB Username
+
+|OPENSHIFT_POSTGRESQL_DB_PASSWORD
+|DB Password
+
+|OPENSHIFT_POSTGRESQL_DB_LOG_DIR
+|Directory for log files
+
+|OPENSHIFT_POSTGRESQL_DB_PID
+|PID of current Postgres server
+
+|OPENSHIFT_POSTGRESQL_DB_SOCKET_DIR
+|Postgres socket location
+
+|OPENSHIFT_POSTGRESQL_DB_URL
+|Full server URL of the form "postgresql://user:password@host:port"
+
+|OPENSHIFT_POSTGRESQL_VERSION
+|PostgreSQL version in the form `X.Y`
+|===
+
+
+[[python]]
+== Python
+The `python` cartridge provides http://www.python.org/[Python] on OpenShift.
+
+=== Template Repository Layout
+----
+wsgi/                  Externally exposed wsgi code goes
+wsgi/static/           Public static content gets served here
+libs/                  Additional libraries
+data/                  For not-externally exposed wsgi code
+setup.py               Standard setup.py, specify deps here <1>
+.openshift/            Location for OpenShift specific files
+    action_hooks/      See the Action Hooks documentation <2>
+    markers/           See the Markers section below
+----
+<1> Adding deps to the `install_requires` will cause the cartirdge to install those deps at git push time.
+<2> link:oo_user_guide.html#action-hooks[Action Hooks] documentation
+
+Please leave the `wsgi`, `libs` and `data` directories but feel free to create additional directories if needed.
+
+[NOTE]
+====
+Every time you push, everything in your remote repo dir gets recreated, please
+store long term items (like an sqlite database) in the OpenShift data
+directory, which will persist between pushes of your repo.
+The OpenShift data directory is accessible relative to the remote repo via an
+environment variable `OPENSHIFT_DATA_DIR`.
+====
+
+=== Cartridge Layout
+----
+run/           Various run configs (like httpd pid)
+env/           Environment variables
+logs/          Log data (like httpd access/error logs)
+lib/           Various libraries
+bin/setup      The script to setup the cartridge
+bin/build      Default build script
+bin/teardown   Called at cartridge descruction
+bin/control    Init script to start/stop httpd
+versions/      Version data to support multiple python versions (copied into place by setup
+----
+
+=== Markers
+Adding marker files to `.openshift/markers` will have the following effects:
+
+[cols="1,3",options="header"]
+|===
+|Marker |Effect
+
+|force_clean_build
+|Will cause virtualenv to recreated during builds.
+
+|hot_deploy
+|Will prevent shutdown and startup of the application during builds.
+|===
+
+
+[[ruby]]
+== Ruby
+The `ruby` cartridge provides a bare metal http://rack.github.io[Rack] application with http://www.ruby-lang.org[Ruby].
+
+=== Template Repository Layout
+----
+tmp/               Temporary storage
+public/            Content (images, css, etc. available to the public)
+config.ru          This file is used by Rack-based servers to start the application.
+.openshift/        Location for OpenShift specific files
+    action_hooks/  See the Action Hooks documentation <1>
+    markers/       See the Markers section below
+----
+<1> link:oo_user_guide.html#action-hooks[Action Hooks] documentation
+
+[NOTE]
+====
+Every time you push, everything in your remote repo dir gets recreated, please
+store long term items (like an sqlite database) in the OpenShift data
+directory, which will persist between pushes of your repo.
+The OpenShift data directory is accessible relative to the remote repo
+directory (../data) or via an environment variable `OPENSHIFT_DATA_DIR`.
+====
+
+=== Ruby Mirror
+OpenShift is mirroring rubygems.org at http://mirror1.ops.rhcloud.com/mirror/ruby/
+This mirror is on the same network as your application, and your gem download should be faster.
+
+To use the OpenShift mirror:
+
+. Edit your Gemfile and replace
++
+....
+source 'http://rubygems.org'
+....
++
+with
++
+....
+source 'http://mirror1.ops.rhcloud.com/mirror/ruby/'
+....
+. Edit your Gemfile.lock and replace
++
+....
+remote: http://rubygems.org/
+....
++
+with
++
+....
+remote: http://mirror1.ops.rhcloud.com/mirror/ruby/
+....
+
+=== Rails 3.0
+There are two options for deploying a Rails application to OpenShift.
+
+*Method 1 (Recommended)* +
+`git push` your application `Gemfile/Gemfile.lock`. This will cause the remote OpenShift node to run `bundle install --deployment` to download and install your dependencies.  Each subsequent git push will use the previously downloaded dependencies as a starting point, so additional downloads will be a delta.
+
+*Method 2* +
+`git add` your `.bundle` and `vendor/bundle` directories after running `bundle install --deployment` locally. Be sure to exclude any gems that have native code or ensure they can run on RHEL x86_64.
+
+=== Environment Variables
+The `ruby` cartridge provides several environment variables to reference for ease of use:
+
+OPENSHIFT_RUBY_LOGDIR:: Log files go here.
+OPENSHIFT_RUBY_VERSION:: The Ruby language version. The valid values are `1.8` and `1.9`.
+
+=== `threaddump` command
+OpenShift's CLI tool, https://rubygems.org/gems/rhc[`rhc`], has a subcommand `threaddump`. Applications created by this cartridge respond to this command by looking
+for the appropriate `Rack` process, and sending `ABRT` signal to it. As explained in the http://www.modrails.com/documentation/Users%20guide%20Apache.html#debugging_frozen[Passenger User Guide], this signal will dump the current thread backtraces but also terminates the processes.
+
+[NOTE]
+====
+* The `Rack` process may not exist if the application has just started and has not been accessed.
+* Scaled applications are not supported by the `threaddump` command.
+====
+
+=== Markers
+Adding marker files to `.openshift/markers` will have the following effects:
+
+[cols="1,3",options="header"]
+|===
+|Marker |Effect
+
+|force_clean_build
+|Will trigger a clean re-bundle during the build cycle.
+
+|hot_deploy
+|Will prevent shutdown and startup of the application during builds. The Passenger `restart.txt` file will be used to reload the application.
+|===

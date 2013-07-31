@@ -9,11 +9,6 @@ https://openshift.redhat.com/community/open-source[OpenShift Origin] is Red Hat'
 
 == General Overview
 
-////
-TODO: Retire
-https://openshift.redhat.com/community/wiki/architecture-overview
-////
-
 * https://openshift.redhat.com/community/wiki/learning-openshift-origin[Learning OpenShift Origin]
 * link:oo_system_architecture_guide.html[Architecture Overview]
 * link:changelog.html[OpenShift Origin Change Log]
@@ -32,6 +27,7 @@ link:oo_deployment_guide_vm.html[Virtual Machine Deployment Guide] +
 link:oo_client_tools_installation_guide.html[Client Tools Installation Guide]
 
 a|link:oo_administration_guide.html[Administration Guide] +
+link:oo_cartridge_guide.html[Cartridge Guide] +
 link:oo_troubleshooting_guide.html[Troubleshooting Guide]
 
 a|link:oo_cartridge_developers_guide.html[Cartridge Developers Guide] +
