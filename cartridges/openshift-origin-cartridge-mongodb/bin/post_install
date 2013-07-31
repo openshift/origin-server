@@ -2,21 +2,27 @@
 
 source $OPENSHIFT_CARTRIDGE_SDK_BASH
 
-password=$OPENSHIFT_MONGODB_DB_PASSWORD
-echo "use admin
-      db.addUser(\"admin\", \"${password}\")
-      db.auth(\"admin\", \"${password}\")
+adminuser=$OPENSHIFT_MONGODB_DB_ADMIN_USERNAME
+adminpassword=$OPENSHIFT_MONGODB_DB_ADMIN_PASSWORD
+appuser=$OPENSHIFT_MONGODB_DB_USERNAME
+apppassword=$OPENSHIFT_MONGODB_DB_PASSWORD
+echo "use $adminuser
+      db.addUser(\"${adminuser}\", \"${adminpassword}\")
+      db.auth(\"${adminuser}\", \"${adminpassword}\")
       db.system.users.find()
-      use $OPENSHIFT_APP_NAME
+      use $OPENSHIFT_MONGODB_DB_USERNAME
       db.openshift.save({application: \"$OPENSHIFT_APP_NAME\", dbhost: \"$OPENSHIFT_MONGODB_DB_HOST\" })
-      db.addUser(\"admin\", \"${password}\")
+      db.addUser(\"${appuser}\", \"${apppassword}\")
       exit
      "  | mongo $OPENSHIFT_MONGODB_DB_HOST
 rm -f /tmp/.dbshell
 
-cart_props "connection_url=mongodb://\$OPENSHIFT_MONGODB_DB_HOST:\$OPENSHIFT_MONGODB_DB_PORT/"
-cart_props "username=admin"
-cart_props "password=${password}"
+cart_props "connection_url=$OPENSHIFT_MONGODB_DB_URL"
+cart_props "username=${appuser}"
+cart_props "password=${apppassword}"
+cart_props "admin_connection_url=$OPENSHIFT_MONGODB_DB_ADMIN_URL"
+cart_props "admin_username=${adminuser}"
+cart_props "admin_password=${adminpassword}"
 cart_props "database_name=$OPENSHIFT_APP_NAME"
 
 set_app_info "Connection URL: mongodb://\$OPENSHIFT_MONGODB_DB_HOST:\$OPENSHIFT_MONGODB_DB_PORT/"

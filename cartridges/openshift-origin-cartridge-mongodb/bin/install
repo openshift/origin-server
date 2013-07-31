@@ -7,20 +7,29 @@ esac
 
 source $OPENSHIFT_CARTRIDGE_SDK_BASH
 
-# generate password and setup env vars
-echo 'Generating username and password'
+# generate admin password and setup env vars
+echo 'Generating admin username and password'
+adminuser="admin"
+adminpassword=$(generate_password)
+echo $adminuser > $OPENSHIFT_MONGODB_DIR/env/OPENSHIFT_MONGODB_DB_ADMIN_USERNAME
+echo "$adminpassword" > $OPENSHIFT_MONGODB_DIR/env/OPENSHIFT_MONGODB_DB_ADMIN_PASSWORD
+echo "mongodb://$adminuser:$adminpassword@$OPENSHIFT_MONGODB_DB_HOST:$OPENSHIFT_MONGODB_DB_PORT/$adminuser" > $OPENSHIFT_MONGODB_DIR/env/OPENSHIFT_MONGODB_DB_ADMIN_URL
 
-password=$(generate_password)
-
-echo "admin" > $OPENSHIFT_MONGODB_DIR/env/OPENSHIFT_MONGODB_DB_USERNAME
-echo "$password" > $OPENSHIFT_MONGODB_DIR/env/OPENSHIFT_MONGODB_DB_PASSWORD
-echo "mongodb://admin:$password@$OPENSHIFT_MONGODB_DB_HOST:$OPENSHIFT_MONGODB_DB_PORT/" > $OPENSHIFT_MONGODB_DIR/env/OPENSHIFT_MONGODB_DB_URL
+# generate app password and setup env vars
+echo 'Generating app username and password'
+appuser=$OPENSHIFT_APP_NAME
+apppassword=$(generate_password)
+echo "$appuser" > $OPENSHIFT_MONGODB_DIR/env/OPENSHIFT_MONGODB_DB_USERNAME
+echo "$apppassword" > $OPENSHIFT_MONGODB_DIR/env/OPENSHIFT_MONGODB_DB_PASSWORD
+echo "mongodb://$appuser:$apppassword@$OPENSHIFT_MONGODB_DB_HOST:$OPENSHIFT_MONGODB_DB_PORT/$appuser" > $OPENSHIFT_MONGODB_DIR/env/OPENSHIFT_MONGODB_DB_URL
 
 client_result ""
 client_result "MongoDB ${version} database added.  Please make note of these credentials:"
 client_result ""
-client_result "   Root User:     admin"
-client_result "   Root Password: $password"
-client_result "   Database Name: $OPENSHIFT_APP_NAME"
+client_result "   Admin User:     $adminuser"
+client_result "   Admin Password: $adminpassword"
+client_result "   Application Database: $OPENSHIFT_APP_NAME"
+client_result "   App DB User:     $appuser"
+client_result "   App DB Password: $apppassword"
 client_result ""
 client_result 'Connection URL: mongodb://$OPENSHIFT_MONGODB_DB_HOST:$OPENSHIFT_MONGODB_DB_PORT/'

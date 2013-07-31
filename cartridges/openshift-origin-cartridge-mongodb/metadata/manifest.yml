@@ -2,11 +2,11 @@ Name: mongodb
 Namespace: MONGODB
 Cartridge-Short-Name: MONGODB
 Architecture: noarch
-Display-Name: MongoDB NoSQL Database 2.2 
+Display-Name: MongoDB Database 2.2 
 Description: "MongoDB is a scalable, high-performance, open source NoSQL database."
 Version: '2.2'
 Versions: [2.2]
-Cartridge-Version: 0.2.0
+Cartridge-Version: 0.2.2
 Cartridge-Vendor: redhat
 License: ASL 2.0
 Vendor: 10gen
@@ -21,16 +21,25 @@ Help-Topics:
 Cart-Data:
   - Key: "username"
     Type: cart_data
-    Description: "Root user on mongo database"
+    Description: "Application user on MongoDB"
   - Key: "password"
     Type: cart_data
-    Description: "Password for root user on mongo database"
-  - Key: database_name
+    Description: "Password for application user on MongoDB"
+  - Key: "database_name"
     Type: cart_data
-    Description: "Mongo DB name"
-  - Key: connection_url
+    Description: "MongoDB application database name"
+  - Key: "connection_url"
     Type: cart_data
-    Description: "Mongo DB connection URL"
+    Description: "MongoDB application connection URL"
+  - Key: "admin_username"
+    Type: cart_data
+    Description: "Admin user on MongoDB"
+  - Key: "admin_password"
+    Type: cart_data
+    Description: "Password for admin user on MongoDB"
+  - Key: "admin_connection_url"
+    Type: cart_data
+    Description: "MongoDB admin connection URL"
 Suggests:
   - 10gen-mms-agent-0.1
   - rockmongo
