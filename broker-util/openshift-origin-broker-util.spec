@@ -6,7 +6,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin broker
 Name:          openshift-origin-broker-util
-Version: 1.12.6
+Version: 1.12.7
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -83,6 +83,11 @@ cp man/*.8 %{buildroot}%{_mandir}/man8/
 %{_mandir}/man8/oo-stats.8.gz
 
 %changelog
+* Wed Jul 31 2013 Adam Miller <admiller@redhat.com> 1.12.7-1
+- Merge pull request #3245 from rajatchopra/master
+  (dmcphers+openshiftbot@redhat.com)
+- fix bz990341 (rchopra@redhat.com)
+
 * Wed Jul 31 2013 Adam Miller <admiller@redhat.com> 1.12.6-1
 - oo-admin-ctl-user shouldn't be setting allowed_gear_sizes on domain yet
   (ccoleman@redhat.com)
