@@ -11,10 +11,11 @@ module OpenShift::UserActionLog
     Thread.current[:user_action_log_identity_id] = login
   end
 
-  def self.action(action, success=true, description=nil, args={}, detailed_description=nil)
+  def self.action(action, status=nil, success=true, description=nil, args={}, detailed_description=nil)
     return unless logger
 
     result = success ? "SUCCESS" : "FAILURE"
+    status = status.nil? ? "unknown" : status.to_s
     description = (description || "").strip
     detailed_description = (detailed_description || "").strip
     time_obj = Time.new
@@ -22,14 +23,14 @@ module OpenShift::UserActionLog
     time = time_obj.strftime("%H:%M:%S")
     timestamp = time_obj.to_i.to_s
 
-    message = "STATUS=#{result} TIMESTAMP=#{timestamp} DATE=#{date} TIME=#{time} ACTION=#{action} REQ_ID=#{Thread.current[:user_action_log_uuid]}"
+    message = "RESULT=#{result} STATUS=#{status} TIMESTAMP=#{timestamp} DATE=#{date} TIME=#{time} ACTION=#{action} REQ_ID=#{Thread.current[:user_action_log_uuid]}"
     auth = " USER_ID=#{Thread.current[:user_action_log_user_id]} LOGIN=#{Thread.current[:user_action_log_identity_id]}"
     extra = args.map{|k,v| " #{k}=#{v}"}.join
 
-    # We are not logging the error description in the user action logs in case of failure
     # The description has the potential to be a multi-line stack trace
+    # So, we are including only the first line
     # Either ways, the reference/request ID can be used to look up the error details in the broker Rails logs 
-    description = "" unless success
+    description = description.to_s.lines.first.strip if description.to_s.lines.count > 1
     
     logger.info("#{message}#{auth}#{extra} #{description}")
 
