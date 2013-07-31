@@ -109,9 +109,21 @@ module OpenShift
           begin
             cmd = "userdel --remove -f \"#{@container.uuid}\""
             out,err,rc = ::OpenShift::Runtime::Utils::oo_spawn(cmd)
-            raise ::OpenShift::Runtime::UserDeletionException.new(
-                      "ERROR: unable to delete user account(#{rc}): #{cmd} stdout: #{out} stderr: #{err}"
-                  ) unless rc == 0
+            # Ref man userdel(8) for exit codes.
+            case rc
+            when 0
+            when 6
+              logger.debug("Userdel: user does not exist: #{@container.uuid}")
+            when 12
+              logger.debug("Userdel: could not remove home directory, we will retry: #{@container.uuid}")
+            else
+              # 1 == cannot update password file.
+              # 2 == invalid command syntax.
+              # 8 == currently logged in, should not be possible after we kill the pids.
+              # 10 == can't update group file
+              msg = "ERROR: unable to delete user account(#{rc}): #{cmd} stdout: #{out} stderr: #{err}"
+              raise ::OpenShift::Runtime::UserDeletionException.new(msg)
+            end
           rescue ArgumentError => e
             logger.debug("user does not exist. ignore.")
           end
