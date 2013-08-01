@@ -37,6 +37,10 @@ chmod 0755 %{buildroot}%{_bindir}/*
 
 
 %changelog
+* Thu Aug 01 2013 Krishna Raman <kraman@gmail.com> 1.10.2.1-1
+- Bumping version #s for origin release 2 (kraman@gmail.com)
+- Adding lsof dependency (kraman@gmail.com)
+
 * Tue Jun 11 2013 Troy Dawson <tdawson@redhat.com> 1.10.2-1
 - <util> remove oo-diagnostics from spec file (lmeyer@redhat.com)
 - Revert "<util> removing legacy package" - Fedora Origin is using
