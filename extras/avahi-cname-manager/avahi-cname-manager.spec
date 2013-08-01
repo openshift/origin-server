@@ -1,6 +1,6 @@
 Summary:       Daemon to create and maintain CNAME records for Avahi MDNS service
 Name:          avahi-cname-manager
-Version:       0.0.2
+Version:       0.0.2.1
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0

@@ -10,7 +10,7 @@
 
 Summary:       M-Collective agent file for openshift-origin-msg-node-mcollective
 Name:          openshift-origin-msg-node-mcollective
-Version: 1.13.0
+Version: 1.13.0.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0

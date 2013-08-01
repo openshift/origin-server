@@ -1,6 +1,6 @@
 Summary:       Utility scripts for the OpenShift Origin broker and node
 Name:          openshift-origin-util-scl
-Version: 1.4.1
+Version: 1.4.1.1
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0

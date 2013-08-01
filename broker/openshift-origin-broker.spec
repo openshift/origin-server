@@ -16,7 +16,7 @@
 
 Summary:       OpenShift Origin broker components
 Name:          openshift-origin-broker
-Version:       1.10.2
+Version:       1.10.2.1
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0

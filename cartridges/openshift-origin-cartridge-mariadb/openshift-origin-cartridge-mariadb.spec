@@ -2,7 +2,7 @@
 
 Summary:       Provides embedded mariadb support
 Name:          openshift-origin-cartridge-mariadb
-Version:       0.0.2
+Version:       0.0.2.1
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
