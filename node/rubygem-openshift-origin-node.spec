@@ -305,6 +305,10 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Thu Aug 01 2013 Krishna Raman <kraman@gmail.com> 1.13.0.1-1
+- Bumping version #s for origin release 2 (kraman@gmail.com)
+- bump_minor_versions for sprint 32 (admiller@redhat.com)
+
 * Wed Jul 31 2013 Adam Miller <admiller@redhat.com> 1.12.7-1
 - Merge pull request #3191 from jwhonce/bug/986838
   (dmcphers+openshiftbot@redhat.com)
