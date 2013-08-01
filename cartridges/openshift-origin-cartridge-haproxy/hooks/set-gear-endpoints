@@ -34,6 +34,7 @@ function register_gear_endpoint() {
         flock 201
         echo "$3" >> "$HAPROXY_GEAR_REGISTRY"
         flock -u 201
+        [ "${OPENSHIFT_GEAR_DNS}" != "${OPENSHIFT_APP_DNS}" ] && return 0
         local gears=("$2")
         sync_gear_repos "true" "${gears[@]}"
         [ $? -eq 0 ] || exit $?
