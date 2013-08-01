@@ -75,6 +75,10 @@ rm %{buildroot}%{cartridgedir}/metadata/manifest.yml.*
 
 
 %changelog
+* Thu Aug 01 2013 Krishna Raman <kraman@gmail.com> 0.8.0.1-1
+- Bumping version #s for origin release 2 (kraman@gmail.com)
+- bump_minor_versions for sprint 32 (admiller@redhat.com)
+
 * Wed Jul 31 2013 Adam Miller <admiller@redhat.com> 0.7.5-1
 - Update cartridge versions for Sprint 31 (jhonce@redhat.com)
 
