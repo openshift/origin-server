@@ -744,6 +744,10 @@ def check_app_dirs
          user_fail(entry, "directory #{entry} doesn't have a #{dotdir} directory") unless File.directory? File.join(gear_home,dotdir)
     end
 
+    if Dir.glob(File.join(gear_home, %w(* metadata manifest.yml))).size == 0
+      user_fail(entry, "directory #{entry} doesn't have a cartridge directory")
+    end
+
     if copy_all_users.select { |u| u.name == entry }.empty?
       user_fail(entry, "directory #{entry} doesn't have an associated user")
     else
