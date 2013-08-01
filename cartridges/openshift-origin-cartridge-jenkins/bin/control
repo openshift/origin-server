@@ -1,6 +1,7 @@
 #!/bin/bash -e
 
 source $OPENSHIFT_CARTRIDGE_SDK_BASH
+source $OPENSHIFT_JENKINS_DIR/bin/util
 
 cartridge_type="jenkins"
 
@@ -126,14 +127,25 @@ function tidy() {
   rm -rf $OPENSHIFT_JENKINS_LOG_DIR/*
 }
 
+# Update the broker host and current system builder credentials
+# in the Jenkins configuration files
+function post_restore() {
+  echo "Rewriting Jenkins broker and system_builder configs" 1>&2
+
+  local openshift_server=`echo "${OPENSHIFT_BROKER_HOST}" | sed -e "s/\/*$//"`
+  sed -r -i "s/<brokerHost>(.*)<\/brokerHost>/<brokerHost>$openshift_server<\/brokerHost>/g" ${OPENSHIFT_DATA_DIR}/config.xml
+
+  local password_hash=`obfuscate_password $JENKINS_PASSWORD`
+  sed -r -i "s/<passwordHash>(.*)<\/passwordHash>/<passwordHash>$password_hash<\/passwordHash>/g" ${OPENSHIFT_DATA_DIR}/users/system_builder/config.xml
+}
 
 case "$1" in
-  start)     	start ;;
-  stop)      	stop ;;
-  restart)   	restart ;;
-  status)    	status ;;
-  reload)    	reload ;;
-  tidy)      	tidy ;;
-  *)         	exit 0
+  start)         start ;;
+  stop)          stop ;;
+  restart)       restart ;;
+  status)        status ;;
+  reload)        reload ;;
+  tidy)          tidy ;;
+  post-restore)  post_restore ;;
+  *)             exit 0
 esac
-
