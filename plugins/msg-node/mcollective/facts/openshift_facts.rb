@@ -1,6 +1,18 @@
 require 'rubygems'
 require 'parseconfig'
 
+# This method was taken from openshift-origin-node/utils/cgroups/config.rb
+# It will parse any human-readable values into numeric values
+def parse_value(val)
+  # Convert prefixed byte values to bytes
+  factors = { k: 1, m: 2, g: 3, t: 4 }
+  val.match(/^(\d+)(#{factors.keys.join('|')})b?/i) do |mg|
+    (num,unit) = mg[1,2]
+    val = num.to_i * ((2**10)**factors[unit.downcase.to_sym])
+  end
+  val
+end
+
 def get_node_config_value(key, default)
   config_file = ParseConfig.new('/etc/openshift/node.conf')
   val = config_file[key]
@@ -43,7 +55,7 @@ max_active_gears = nil
 if File.exists?('/etc/openshift/resource_limits.conf')
   config_file = ParseConfig.new('/etc/openshift/resource_limits.conf')
   node_profile = config_file['node_profile'] || 'small'
-  quota_blocks = config_file['quota_blocks'] || '1048576'
+  quota_blocks = parse_value(config_file['quota_blocks'] || '1048576')
   quota_files = config_file['quota_files'] || '40000'
   # use max_{active_,}gears if set in resource limits, or fall back to old "apps" names
   max_active_gears = config_file['max_active_gears'] ||

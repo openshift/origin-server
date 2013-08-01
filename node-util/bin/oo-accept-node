@@ -183,8 +183,20 @@ def source_file(file)
       val.gsub!(/[ \t]*#[^\n]*/,"") if not val.nil?
       val = val[1..-2] if not val.nil? and val.start_with? "\""
       val = val[1..-2] if not val.nil? and val.start_with? "\'"
-      ENV[key] = val
+      ENV[key] = "#{parse_value(val)}"
     end
+end
+
+# This method was taken from openshift-origin-node/utils/cgroups/config.rb
+# It will parse any human-readable values into numeric values
+def parse_value(val)
+  # Convert prefixed byte values to bytes
+  factors = { k: 1, m: 2, g: 3, t: 4 }
+  val.match(/^(\d+)(#{factors.keys.join('|')})b?/i) do |mg|
+    (num,unit) = mg[1,2]
+    val = num.to_i * ((2**10)**factors[unit.downcase.to_sym])
+  end
+  val
 end
 
 ###############################
@@ -881,3 +893,5 @@ if __FILE__ == $0
 
     exit($STATUS)
 end
+
+# vim: ft=ruby
