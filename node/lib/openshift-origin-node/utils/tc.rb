@@ -20,6 +20,8 @@ require 'tempfile'
 require 'fileutils'
 require 'etc'
 
+require_relative 'cgroups/config'
+
 $OPENSHIFT_RUNTIME_UTILS_TC_MUTEX = Mutex.new
 
 module OpenShift
@@ -44,7 +46,7 @@ module OpenShift
           @output = []
 
           @config    = ::OpenShift::Config.new('/etc/openshift/node.conf')
-          @resources = ::OpenShift::Config.new('/etc/openshift/resource_limits.conf')
+          @resources = ::OpenShift::Runtime::Utils::Cgroups::Config.new
 
           # ============================================================================
           #  Functions for setting the net class

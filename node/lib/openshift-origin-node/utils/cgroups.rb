@@ -13,23 +13,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #++
-require 'openshift-origin-common/config'
 
+require_relative 'cgroups/config'
 require_relative 'cgroups/libcgroup'
 
 module OpenShift
   module Runtime
     module Utils
       class Cgroups
-
-        # Subclass OpenShift::Config so we can split the values easily
-        class Config < ::OpenShift::Config
-          def get(key)
-            super(key.gsub('.','_'))
-          end
-        end
-
-
         @@TEMPLATE_SET = {
           :default => [ :default, :default? ],
           :boosted => [ :boost, :boosted? ],
@@ -69,7 +60,7 @@ module OpenShift
 
         def templates
           if not @@templates_cache
-            res = Config.new('/etc/openshift/resource_limits.conf')
+            res = Cgroups::Config.new
             @@templates_cache={ :default => {} }
 
             @@TEMPLATE_SET.each do |templ, calls|
