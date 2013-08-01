@@ -76,6 +76,10 @@ touch %{buildroot}%{_var}/lib/avahi-cname-manager/aliases
 %doc README
 
 %changelog
+* Thu Aug 01 2013 Krishna Raman <kraman@gmail.com> 0.0.2.1-1
+- Bumping version #s for origin release 2 (kraman@gmail.com)
+- Bug 928675 (asari.ruby@gmail.com)
+
 * Sat Apr 13 2013 Krishna Raman <kraman@gmail.com> 0.0.2-1
 - Fix for add_alias on avahi-cname-manager (kraman@gmail.com)
 
