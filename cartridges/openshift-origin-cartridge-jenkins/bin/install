@@ -6,14 +6,7 @@ case "$1" in
 esac
 
 source $OPENSHIFT_CARTRIDGE_SDK_BASH
-
-function obfuscate_password {
-    password="$1"
-    acegi_security_path=`find ${OPENSHIFT_DATA_DIR}/war/WEB-INF/lib/ -name acegi-security-*.jar`
-    commons_codec_path=`find ${OPENSHIFT_DATA_DIR}/war/WEB-INF/lib/ -name commons-codec-*.jar`
-
-    java -classpath "${acegi_security_path}:${commons_codec_path}:${OPENSHIFT_JENKINS_DIR}usr/lib/password-encoder.jar" com.redhat.openshift.PasswordEncoder $password
-}
+source $OPENSHIFT_JENKINS_DIR/bin/util
 
 function generate_ssh_keys {
     mkdir -p ${OPENSHIFT_DATA_DIR}/.ssh/
