@@ -1,4 +1,5 @@
 #!/usr/bin/env oo-ruby
+require 'getoptlong'
 
 def quarantine_action(quarantine=true)
   begin
@@ -42,8 +43,8 @@ end
 
 begin
   opts = GetoptLong.new(
-    ["--quarantine-all", GetoptLong::NO_ARGUMENT],
-    ["--unquarantine-all", GetoptLong::NO_ARGUMENT],
+    ["--quarantine-all", "-q", GetoptLong::NO_ARGUMENT],
+    ["--unquarantine-all", "-u", GetoptLong::NO_ARGUMENT],
     ["--help", "-h", GetoptLong::NO_ARGUMENT]
   )
   opt = {}
@@ -58,11 +59,6 @@ if opt['help']
   p_usage
 end
 
-unless opt['quarantine-all'] || opt['unquarantine-all']
-  puts "quarantine-all or unquarantine-all is required!"
-  p_usage
-end
-
 $:.unshift('/var/www/openshift/broker')
 require 'config/environment'
 
@@ -70,6 +66,9 @@ if opt['quarantine-all']
   quarantine_action
 elsif opt['unquarantine-all']
   quarantine_action(false)
+else
+  puts "quarantine-all or unquarantine-all is required!"
+  p_usage
 end
 
 puts "Done!"
