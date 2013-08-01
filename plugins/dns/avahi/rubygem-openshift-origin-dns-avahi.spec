@@ -76,6 +76,9 @@ cp %{buildroot}/%{gem_dir}/gems/%{gem_name}-%{version}/conf/openshift-origin-dns
 
 
 %changelog
+* Thu Aug 01 2013 Krishna Raman <kraman@gmail.com> 1.10.2.1-1
+- Bumping version #s for origin release 2 (kraman@gmail.com)
+
 * Tue Jun 11 2013 Troy Dawson <tdawson@redhat.com> 1.10.2-1
 - Bug 928675 (asari.ruby@gmail.com)
 
