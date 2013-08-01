@@ -89,7 +89,7 @@ end
 
 options = OpenStruct.new(verbose: false, recursive: false)
 parser  = OptionParser.new do |opts|
-  opts.banner = 'Usage: --action ACTION [--recursive] [--mco] [--source directory] [--name NAME --version VERSION --cartridge-version VERSION]'
+  opts.banner = 'Usage: --action ACTION [--recursive] [--mco] [--source directory] [--name NAME --version VERSION --cartridge_version VERSION]'
   opts.separator ''
   opts.separator 'Options:'
 
