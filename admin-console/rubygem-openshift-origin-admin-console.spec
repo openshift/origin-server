@@ -129,6 +129,10 @@ cp %{buildroot}/%{gem_dir}/gems/%{gem_name}-%{version}/conf/openshift-origin-adm
 %defattr(-,root,apache,-)
 
 %changelog
+* Thu Aug 01 2013 Krishna Raman <kraman@gmail.com> 0.1.0.1-1
+- Bumping version #s for origin release 2 (kraman@gmail.com)
+- bump_minor_versions for sprint 32 (admiller@redhat.com)
+
 * Wed Jul 31 2013 Adam Miller <admiller@redhat.com> 0.0.6-1
 - Consolidated docs for admin/mgmt consoles, cartridges (hripps@redhat.com)
 - Admin console test framework and initial functional tests
