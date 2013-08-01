@@ -31,7 +31,7 @@ function restart() {
 
 # Is the packaged software really running?
 function status() {
-  if ps --no-headers --pid $(< $HTTPD_PID_FILE) > /dev/null
+  if [ -f "$HTTPD_PID_FILE" ] && ps --no-headers --pid $(< $HTTPD_PID_FILE) > /dev/null
   then
     client_result 'Perl is running'
   else
