@@ -63,7 +63,7 @@ def upgrade_gear(login, app_name, gear_uuid, version, ignore_cartridge_version=f
           out << "Upgrade on node output:\n #{output}\n"
         end
 
-        if upgrade && exit_code != 0
+        if exit_code != 0
           out << "Upgrade on node exit code: #{exit_code}\n"
           raise "Failed upgrading gear. Rerun with: #{upgrade_cmd}"
         end
@@ -214,7 +214,7 @@ def upgrade(args={})
       inactive_gears = []
       gears.each do |gear|
         if active_gears_map.include?(server_identity) && active_gears_map[server_identity].include?(gear[:uuid])
-          active_gears << gear  
+          active_gears << gear
         else
           inactive_gears << gear
         end
@@ -436,14 +436,14 @@ def upgrade_from_file(file)
     line = File.open(file, &:gets)
     if line && !line.empty?
       params = line.chomp.split(',')
-      server_identity = params[0] 
+      server_identity = params[0]
       gear_uuid = params[1]
       gear_name = params[2]
       app_name = params[3]
       login = params[4]
       version = params[5]
-      ignore_cartridge_version = params[6] ? params[6] : 'false'
-      upgrade_on_node_cmd = "#{__FILE__} --login '#{login}' --upgrade-gear '#{gear_uuid}' --app-name '#{app_name}' --version '#{version}' #{ignore_cartridge_version == 'true' ? '--ignore-cartridge-version' : ''}"
+      ignore_cartridge_version = params[6] == 'true' ? true : false
+      upgrade_on_node_cmd = "#{__FILE__} --login '#{login}' --upgrade-gear '#{gear_uuid}' --app-name '#{app_name}' --version '#{version}' #{ignore_cartridge_version ? '--ignore-cartridge-version' : ''}"
       base_path = server_identity
       if File.basename(file) == File.basename(upgrade_file_path(server_identity) + ACTIVE_SUFFIX)
         base_path += ACTIVE_SUFFIX
