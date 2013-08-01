@@ -271,6 +271,90 @@ chcon -R -t httpd_var_run_t %{brokerdir}/httpd/run
 /sbin/restorecon -R -v /var/run
 
 %changelog
+* Thu Aug 01 2013 Krishna Raman <kraman@gmail.com> 1.10.2.1-1
+- Bumping version #s for origin release 2 (kraman@gmail.com)
+- Merge pull request #3227 from kraman/docs (dmcphers+openshiftbot@redhat.com)
+- Adding missing activemq config templates Fixing console spec to require gems
+  Additional fixes to comprehensive deployment guide (kraman@gmail.com)
+- Fix for bug 989650 (abhgupta@redhat.com)
+- Merge pull request #3229 from rajatchopra/master
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3233 from jwforres/admin_console_testcase_coverage
+  (dmcphers+openshiftbot@redhat.com)
+- fix in scope for scaling issues (rchopra@redhat.com)
+- Admin console test framework and initial functional tests
+  (jforrest@redhat.com)
+- Bug 956859 (dmcphers@redhat.com)
+- Merge pull request #3210 from
+  jwforres/admin_console_testcase_coverage_exclusion
+  (dmcphers+openshiftbot@redhat.com)
+- Exclude admin console from test coverage for now (jforrest@redhat.com)
+- Merge remote-tracking branch 'origin/master' into changes_for_membership
+  (ccoleman@redhat.com)
+- Adding missing rubygem requires to broker, console and admin-console packages
+  (kraman@gmail.com)
+- <admin-console> broker proxy RPP change + filling in README
+  (lmeyer@redhat.com)
+- Merge remote-tracking branch 'origin/master' into changes_for_membership
+  (ccoleman@redhat.com)
+- <broker> Add mocking for Cartridge.categories in unit test
+  (jolamb@redhat.com)
+- <application.rb> Add feature to carts to handle wildcard ENV variable
+  subscriptions (jolamb@redhat.com)
+- origin_broker_25 (lnader@redhat.com)
+- Simplify capabilities to be more model like, and support clean proxying of
+  inherited properties (ccoleman@redhat.com)
+- Support running broker tests directly Force scopes to use checked ids and
+  avoid symbolizing arbitrary strings Use .present? instead of .count > 0 (for
+  performance) Handle ValidationExceptions globally (ccoleman@redhat.com)
+- Bug 985656 - minor improvement for consistency in broker and console spec
+  files (bleanhar@redhat.com)
+- Admin console framework (jforrest@redhat.com)
+- Merge pull request #3111 from pravisankar/dev/ravi/bug983038
+  (dmcphers+openshiftbot@redhat.com)
+- Remove ecdsa ssh key type from supported list. Rationale: Due to patent
+  concerns, ECC support is not bundled in fedora/rhel(needed for ecdsa key
+  generation).            So even if someone has a valid ecdsa keys, sshd
+  server on our node won't be able to authenticate the user.
+  (rpenta@redhat.com)
+- <broker> make parallel passenger baseuri change in SCL conf file
+  (lmeyer@redhat.com)
+- <broker> fix tests against broker base URI change (lmeyer@redhat.com)
+- <broker> re-base the broker URI from /broker => / (lmeyer@redhat.com)
+- Merge pull request #3083 from smarterclayton/strong_consistency_is_default
+  (dmcphers+openshiftbot@redhat.com)
+- Authorization test case was wrong (ccoleman@redhat.com)
+- Bug 973796 - PassengerPreStart points at root which logs errors
+  (bleanhar@redhat.com)
+- Strong consistency is the default for mongoid (ccoleman@redhat.com)
+- Merge pull request #3044 from brenton/BZ973796
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 973796 - PassengerPreStart points at root which logs errors
+  (bleanhar@redhat.com)
+- Changing error message to make it more clear (abhgupta@redhat.com)
+- Handling cleanup of failed pending op using rollbacks (abhgupta@redhat.com)
+- Remove Online specific references: -Remove hard-coded cart name references.
+  -Remove login validations from CloudUser model, login validation must be done
+  by authentication plugin. -Remove 'medium' gear size references -All 'small'
+  gear size references must be from configuration files. -Remove stale
+  application_observer.rb and its references -Remove stale 'abstract' cart
+  references -Remove duplicate code from rest controllers -Move all
+  get_rest_{user,domain,app,cart} methods in RestModelHelper module. -Cleanup
+  unnecessary TODO/FIXME comments in broker. (rpenta@redhat.com)
+- Merge pull request #2927 from smarterclayton/bug_970257_support_git_at_urls
+  (dmcphers+openshiftbot@redhat.com)
+- Avoid harmless but annoying deprecation warning (asari.ruby@gmail.com)
+- Merge pull request #2946 from maxamillion/dev/maxamillion/enable_rhcl
+  (dmcphers+openshiftbot@redhat.com)
+- Tests pass fully (add initial_git_url for earlier api versions).  Control
+  what values of URI get persisted to DB (passwords and userinfo from clone
+  specs should not be) (ccoleman@redhat.com)
+- Broker source mode should reload classes, only load plugins in
+  broker_plugins.rb (ccoleman@redhat.com)
+- enable rhscl repos - add wrapper (admiller@redhat.com)
+- bz969696 - download cart settings (rchopra@redhat.com)
+- First pass at removing v1 cartridges (dmcphers@redhat.com)
+
 * Tue Jun 11 2013 Troy Dawson <tdawson@redhat.com> 1.10.2-1
 - <broker.conf> default to usage db tracking on (lmeyer@redhat.com)
 - Print warning instead of failing tests if there is an unknown auth plugin
