@@ -9,7 +9,7 @@
 
 Summary:       OpenShift plugin adding an administrative console to the broker
 Name:          rubygem-%{gem_name}
-Version: 0.0.6
+Version: 0.1.0
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0

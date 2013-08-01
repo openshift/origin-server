@@ -6,7 +6,7 @@
 %global cartridgedir %{_libexecdir}/openshift/cartridges/ruby
 
 Name:          openshift-origin-cartridge-ruby
-Version: 0.7.6
+Version: 0.8.0
 Release:       1%{?dist}
 Summary:       Ruby cartridge
 Group:         Development/Languages

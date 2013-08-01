@@ -2,7 +2,7 @@
 
 Summary:       DIY cartridge
 Name:          openshift-origin-cartridge-diy
-Version: 0.7.5
+Version: 0.8.0
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
