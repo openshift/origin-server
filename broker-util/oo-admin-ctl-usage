@@ -148,7 +148,7 @@ def sync_usage
   end
   $billing_api.delete_ended_urecs($session, srecs)
 
-  continue_user_ids = srecs.map {|rec| rec['_id'] unless rec['ended']}
+  continue_user_ids = srecs.map {|rec| rec['_id'] unless rec['ended']}.compact
   update_query = {"$set" => {event: UsageRecord::EVENTS[:continue], time: $cur_time, sync_time: nil}}
   $session.with(safe:true)[:usage_records].find({_id: {"$in" => continue_user_ids}}).update_all(update_query) unless continue_user_ids.empty?
 
@@ -328,6 +328,9 @@ def process_usage_records(billing_accounts)
       user_urecs = [urec]
       cur_urec_count = 1
       prev_gear_id = urec['gear_id']
+    else
+      user_urecs << urec
+      cur_urec_count += 1
     end
   end
   process_user_usage_records(user_urecs) unless user_urecs.empty?
