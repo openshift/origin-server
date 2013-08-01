@@ -93,6 +93,13 @@ cp conf/openshift-origin-auth-kerberos.conf.example %{buildroot}/etc/openshift/p
 %doc %{gem_docdir}
 
 %changelog
+* Thu Aug 01 2013 Krishna Raman <kraman@gmail.com> 1.10.2.1-1
+- Bumping version #s for origin release 2 (kraman@gmail.com)
+- <broker> re-base the broker URI from /broker => / (lmeyer@redhat.com)
+- Make set_log_tag lazy, so that all controllers have a default behavior Allow
+  controllers to override log tag on their class, not on the instance Make
+  allowances for legacy behavior (ccoleman@redhat.com)
+
 * Tue Jun 11 2013 Troy Dawson <tdawson@redhat.com> 1.10.2-1
 - Bump up version (tdawson@redhat.com)
 - General REST API clean up - centralizing log tags and getting common objects
