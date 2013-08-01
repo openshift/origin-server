@@ -42,6 +42,10 @@ chmod 644 %{buildroot}%{mco_root}validator/*
 %endif
 
 %changelog
+* Thu Aug 01 2013 Krishna Raman <kraman@gmail.com> 1.13.0.1-1
+- Bumping version #s for origin release 2 (kraman@gmail.com)
+- bump_minor_versions for sprint 32 (admiller@redhat.com)
+
 * Wed Jul 24 2013 Adam Miller <admiller@redhat.com> 1.12.2-1
 - Merge pull request #3069 from sosiouxme/admin-console-mcollective
   (dmcphers+openshiftbot@redhat.com)
