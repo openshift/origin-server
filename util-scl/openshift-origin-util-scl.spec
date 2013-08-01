@@ -27,6 +27,9 @@ cp oo-* %{buildroot}%{_bindir}/
 
 
 %changelog
+* Thu Aug 01 2013 Krishna Raman <kraman@gmail.com> 1.4.1.1-1
+- Bumping version #s for origin release 2 (kraman@gmail.com)
+
 * Thu Apr 25 2013 Adam Miller <admiller@redhat.com> 1.4.1-1
 - Bug 928675 (asari.ruby@gmail.com)
 - bump_minor_versions for sprint 2.0.26 (tdawson@redhat.com)
