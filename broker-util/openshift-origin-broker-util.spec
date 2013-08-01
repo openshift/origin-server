@@ -84,6 +84,12 @@ cp man/*.8 %{buildroot}%{_mandir}/man8/
 %{_mandir}/man8/oo-stats.8.gz
 
 %changelog
+* Thu Aug 01 2013 Krishna Raman <kraman@gmail.com> 1.13.0.1-1
+- Bumping version #s for origin release 2 (kraman@gmail.com)
+- Bug 989642 - Fix generating usage record chunks in oo-admin-ctl-usage script
+  (rpenta@redhat.com)
+- bump_minor_versions for sprint 32 (admiller@redhat.com)
+
 * Wed Jul 31 2013 Adam Miller <admiller@redhat.com> 1.12.8-1
 - Merge pull request #3248 from danmcp/master
   (dmcphers+openshiftbot@redhat.com)
