@@ -2,7 +2,7 @@
 
 Summary:       Provides jenkins-1.4 support
 Name:          openshift-origin-cartridge-jenkins
-Version: 1.12.3
+Version: 1.12.4
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -44,6 +44,10 @@ chkconfig jenkins off
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Thu Aug 01 2013 Adam Miller <admiller@redhat.com> 1.12.4-1
+- Bug 839581: Reset system_builder credentials on jenkins restore
+  (ironcladlou@gmail.com)
+
 * Wed Jul 31 2013 Adam Miller <admiller@redhat.com> 1.12.3-1
 - Merge pull request #3244 from danmcp/master
   (dmcphers+openshiftbot@redhat.com)
