@@ -42,6 +42,7 @@ Requires:      %{?scl:%scl_prefix}rubygem(poltergeist)
 Requires:      %{?scl:%scl_prefix}rubygem(konacha)
 Requires:      %{?scl:%scl_prefix}rubygem(minitest)
 Requires:      %{?scl:%scl_prefix}rubygem(rspec-core)
+Requires:      %{?scl:%scl_prefix}rubygem(sass-twitter-bootstrap)
 
 BuildRequires: %{?scl:%scl_prefix}build
 BuildRequires: scl-utils-build
@@ -66,6 +67,7 @@ BuildRequires: %{?scl:%scl_prefix}rubygem(poltergeist)
 BuildRequires: %{?scl:%scl_prefix}rubygem(konacha)
 BuildRequires: %{?scl:%scl_prefix}rubygem(minitest)
 BuildRequires: %{?scl:%scl_prefix}rubygem(rspec-core)
+BuildRequires: %{?scl:%scl_prefix}rubygem(sass-twitter-bootstrap)
 
 %endif
 BuildRequires: %{?scl:%scl_prefix}rubygems-devel
