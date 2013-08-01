@@ -16,7 +16,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.12.7
+Version: 1.12.8
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -305,6 +305,10 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Thu Aug 01 2013 Adam Miller <admiller@redhat.com> 1.12.8-1
+- Bug 839581: Reset system_builder credentials on jenkins restore
+  (ironcladlou@gmail.com)
+
 * Wed Jul 31 2013 Adam Miller <admiller@redhat.com> 1.12.7-1
 - Merge pull request #3191 from jwhonce/bug/986838
   (dmcphers+openshiftbot@redhat.com)
