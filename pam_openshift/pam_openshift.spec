@@ -39,6 +39,10 @@ install -D -m 755 oo-namespace-init %{buildroot}/%{_sbindir}/oo-namespace-init
 %attr(0750,root,root) %{_sbindir}/oo-namespace-init
 
 %changelog
+* Thu Aug 01 2013 Krishna Raman <kraman@gmail.com> 1.9.0.1-1
+- Bumping version #s for origin release 2 (kraman@gmail.com)
+- bump_minor_versions for sprint 32 (admiller@redhat.com)
+
 * Wed Jul 24 2013 Adam Miller <admiller@redhat.com> 1.8.2-1
 - Bug 960355 - Fix file permissions. (rmillner@redhat.com)
 
