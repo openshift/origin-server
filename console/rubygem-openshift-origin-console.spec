@@ -153,6 +153,13 @@ cp -a ./%{gem_dir}/* %{buildroot}%{gem_dir}/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Thu Aug 01 2013 Krishna Raman <kraman@gmail.com> 1.13.0.1-1
+- Bumping version #s for origin release 2 (kraman@gmail.com)
+- Card 57 - Fix typo (jforrest@redhat.com)
+- Card 57 - gemify bootstrap, use sass-twitter-bootstrap gem
+  (jforrest@redhat.com)
+- bump_minor_versions for sprint 32 (admiller@redhat.com)
+
 * Wed Jul 31 2013 Adam Miller <admiller@redhat.com> 1.12.4-1
 - Consolidated docs for admin/mgmt consoles, cartridges (hripps@redhat.com)
 - Bug 985952 - should not touch certificate if chain was not provided
