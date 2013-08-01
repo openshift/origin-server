@@ -551,6 +551,7 @@ Usage: #{$0}
   --max-threads num                    Indicates the number of processing queues
   --ignore-cartridge-version           Force cartridge upgrade even if cartridge versions match
   --continue                           Flag indicating to continue a previous upgrade
+  --rerun                              Re-upgrade gears which fail upgrade
   --help                               Show usage info
 USAGE
   exit 255
