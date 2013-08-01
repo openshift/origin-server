@@ -104,6 +104,10 @@ fi
 
 
 %changelog
+* Thu Aug 01 2013 Krishna Raman <kraman@gmail.com> 1.6.0.1-1
+- Bumping version #s for origin release 2 (kraman@gmail.com)
+- bump_minor_versions for sprint 32 (admiller@redhat.com)
+
 * Wed Jul 31 2013 Adam Miller <admiller@redhat.com> 1.5.5-1
 - Merge pull request #3244 from danmcp/master
   (dmcphers+openshiftbot@redhat.com)
