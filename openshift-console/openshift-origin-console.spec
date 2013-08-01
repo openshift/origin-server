@@ -109,7 +109,7 @@ rm -f Gemfile.lock
 bundle install --local
 
 mkdir -p %{buildroot}%{_var}/log/openshift/console/
-mkdir -m 770 %{buildroot}%{_var}/log/openshift/console/httpd/
+mkdir -p -m 770 %{buildroot}%{_var}/log/openshift/console/httpd/
 touch %{buildroot}%{_var}/log/openshift/console/production.log
 chmod 0666 %{buildroot}%{_var}/log/openshift/console/production.log
 
