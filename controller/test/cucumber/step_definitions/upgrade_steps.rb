@@ -154,7 +154,8 @@ Then /^the invocation markers from an? (compatible|incompatible) upgrade should 
   when 'compatible'
     %w(upgrade_invoked)
   when 'incompatible'
-    %w(upgrade_invoked setup_called setup_succeed control_start control_status)
+    # upgrade_invoked is not in this list because the mock cartridge setup clears the state directory
+    %w(setup_called setup_succeed control_start control_status)
   end
 
   should_not_exist_markers = case type
