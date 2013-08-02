@@ -11,17 +11,19 @@ Feature: Cartridge Lifecycle JBossAS Verification Tests
     Then the applications should display default content on first attempt
     Given an existing jbossas-7 application
     When the jboss application is changed to multiartifact
-    Then the application should display default content for all artifacts on first attempt
-    When the jboss application deployment-scanner is changed to archive only
-    Then only archive artifacts should be deployed
+    Then the application should display default content for deployed artifacts on first attempt
+    And default artifacts should be deployed
+    When the jboss application deployment-scanner is changed to all
+    Then the application should display default content for deployed artifacts on first attempt
+    And all artifacts should be deployed
     When the jboss application deployment-scanner is changed to exploded only
     Then only exploded artifacts should be deployed
     When the jboss application deployment-scanner is changed to none
     Then no artifacts should be deployed
     When the jboss application deployment-scanner is changed to disabled
     Then deployment verification should be skipped with scanner disabled message
-    When the jboss application deployment-scanner is changed to all
-    Then all artifacts should be deployed
+    When the jboss application deployment-scanner is changed to archive only
+    Then only archive artifacts should be deployed
     When the jboss management interface is disabled
     Then deployment verification should be skipped with management unavailable message
     When the application is changed

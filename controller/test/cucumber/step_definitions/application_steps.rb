@@ -411,16 +411,7 @@ Then /^the application should display default content on first attempt$/ do
   body.should match(/Welcome to OpenShift/)
 end
 
-Then /^the application should display default content for all artifacts on first attempt$/ do
-  result = run("grep 'Failed deployments:' " + @app.get_log("git_push_multiartifact"))
-  result.should_not == 0
-
-  result = run("grep 'Artifacts in an unknown state:' " + @app.get_log("git_push_multiartifact"))
-  result.should_not == 0
-
-  result = run("grep 'Artifacts skipped because of deployment-scanner configuration:' " + @app.get_log("git_push_multiartifact"))
-  result.should_not == 0
-
+Then /^the application should display default content for deployed artifacts on first attempt$/ do
   output=[]
   result = run("grep 'Artifacts deployed:' " + @app.get_log("git_push_multiartifact"), output)
   result.should == 0
@@ -458,7 +449,7 @@ Then /^deployment verification should be skipped with (scanner disabled|manageme
   run("grep 'Artifacts deployed:' " + logfile).should_not == 0
 end
 
-Then /^(only exploded|only archive|no|all) artifacts should be deployed$/ do |scanner_config|
+Then /^(only exploded|only archive|no|all|default) artifacts should be deployed$/ do |scanner_config|
   case scanner_config
   when 'no'
     log_postfix = "none"
@@ -468,6 +459,8 @@ Then /^(only exploded|only archive|no|all) artifacts should be deployed$/ do |sc
     log_postfix = "exploded"
   when 'only archive'
     log_postfix = "archive"
+  when 'default'
+    log_postfix = "multiartifact"
   end
 
   logfile = @app.get_log("git_push_scanner_config_#{log_postfix}")
