@@ -19,6 +19,7 @@ require 'timeout'
 require 'open4'
 
 require_relative '../utils/node_logger'
+require_relative 'sanitize'
 
 module OpenShift
   module Runtime
@@ -124,7 +125,7 @@ module OpenShift
               write_stderr.close
 
               out, err, status = read_results(pid, read_stdout, read_stderr, options)
-              NodeLogger.logger.debug { "Shell command '#{command}' ran. rc=#{status.exitstatus} out=#{options[:quiet] ? "[SILENCED]" : out}" }
+              NodeLogger.logger.debug { "Shell command '#{command}' ran. rc=#{status.exitstatus} out=#{options[:quiet] ? "[SILENCED]" : Runtime::Utils.sanitize_credentials(out)}" }
 
               if (!options[:expected_exitstatus].nil?) && (status.exitstatus != options[:expected_exitstatus])
                 raise ::OpenShift::Runtime::Utils::ShellExecutionException.new(
@@ -173,7 +174,7 @@ module OpenShift
                     partial = fd.readpartial(options[:buffer_size])
                     buffer << partial
 
-                    NodeLogger.logger.trace { "oo_spawn buffer(#{fd.fileno}/#{fd.pid}) #{partial}" }
+                    NodeLogger.logger.trace { "oo_spawn buffer(#{fd.fileno}/#{fd.pid}) #{Runtime::Utils.sanitize_credentials(partial)}" }
                   rescue Errno::EAGAIN, Errno::EINTR
                   rescue EOFError
                     readers.delete(fd)
