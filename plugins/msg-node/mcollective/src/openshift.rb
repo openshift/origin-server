@@ -879,11 +879,16 @@ module MCollective
       # Returns whether an app is on a server
       #
       def has_app_action
+        has_gear_action
+      end
+
+      #
+      # Returns whether a gear is on a server
+      #
+      def has_gear_action
         validate :uuid, /^[a-zA-Z0-9]+$/
-        validate :application, /^[a-zA-Z0-9]+$/
-        uuid = request[:uuid].to_s if request[:uuid]
-        app_name = request[:application]
-        if File.exist?("/var/lib/openshift/#{uuid}/#{app_name}")
+        uuid = request[:uuid].to_s
+        if File.exist?("/var/lib/openshift/#{uuid}")
           reply[:output] = true
         else
           reply[:output] = false
