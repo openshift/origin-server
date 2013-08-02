@@ -10,7 +10,7 @@
 
 Summary:       M-Collective agent file for openshift-origin-msg-node-mcollective
 Name:          openshift-origin-msg-node-mcollective
-Version: 1.12.5
+Version: 1.12.6
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -51,6 +51,9 @@ cp -p facts/update_yaml.rb %{buildroot}/usr/libexec/mcollective/
 %attr(0700,-,-) %config(noreplace) /etc/cron.minutely/openshift-facts
 
 %changelog
+* Fri Aug 02 2013 Adam Miller <admiller@redhat.com> 1.12.6-1
+- Fixing has_app method in mcollective (abhgupta@redhat.com)
+
 * Wed Jul 31 2013 Adam Miller <admiller@redhat.com> 1.12.5-1
 - Bug 985514 - Update CartridgeRepository when mcollectived restarted
   (jhonce@redhat.com)
