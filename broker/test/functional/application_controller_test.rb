@@ -52,6 +52,7 @@ class ApplicationControllerTest < ActionController::TestCase
     assert json = JSON.parse(response.body)
     assert link = json['data']['id']
     app_id =  json['data']['id']
+    
     get :show, {"id" => app_id}
     assert_response :success
     assert json = JSON.parse(response.body)
@@ -60,13 +61,25 @@ class ApplicationControllerTest < ActionController::TestCase
 
     get :index 
     assert_response :success
+    
     delete :destroy , {"id" => app_id}
     assert_response :ok
   end
   
-  test "no app name or id" do
+  test "invalid or empty app name or id" do
+    # no name
     post :create, {"domain_id" => @domain.namespace}
     assert_response :unprocessable_entity
+    # name with dashes
+    post :create, {"domain_id" => @domain.namespace, "name" => "abcd-1234", "cartridge" => PHP_VERSION}
+    assert_response :unprocessable_entity
+    # name already exists
+    @app_name = "app#{@random}"
+    post :create, {"name" => @app_name, "cartridge" => PHP_VERSION, "domain_id" => @domain.namespace}
+    assert_response :created
+    post :create, {"name" => @app_name, "cartridge" => PHP_VERSION, "domain_id" => @domain.namespace}
+    assert_response :unprocessable_entity
+    
     get :show, {"domain_id" => @domain.namespace}
     assert_response :not_found
     get :show
