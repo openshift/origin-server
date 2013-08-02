@@ -48,7 +48,7 @@ class DomiansControllerTest < ActionController::TestCase
   end
   
   
-  test "no or non-existent domain name" do
+  test "invalid empty or non-existent domain name" do
     post :create, {}
     assert_response :unprocessable_entity
     get :show, {}
@@ -66,6 +66,30 @@ class DomiansControllerTest < ActionController::TestCase
     assert_response :not_found
     delete :destroy , {"name" => "bogus"}
     assert_response :not_found
+    #try name with a "-"
+    namespace = "ns-#{@random}"
+    post :create, {"name" => namespace}
+    assert_response :unprocessable_entity
+    #try name with a "."
+    namespace = "ns.#{@random}"
+    post :create, {"name" => namespace}
+    assert_response :unprocessable_entity
+    #try name that exists
+    namespace = "ns#{@random}"
+    post :create, {"name" => namespace}
+    assert_response :created
+    post :create, {"name" => namespace}
+    assert_response :unprocessable_entity
+    
+    #try update to invalid name
+    put :update , {"existing_name" => namespace, "name" => "ns#{@random}"}
+    assert_response :unprocessable_entity
+    
+    #try more than one domain
+    namespace = "ns#{@random}X"
+    post :create, {"name" => namespace}
+    assert_response :conflict
+    
   end
   
   test "delete domain with apps" do
