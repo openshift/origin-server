@@ -21,7 +21,6 @@ class Admin::Stats
   def initialize(options = nil)
     @options = options || {}
     @time = {}
-    # Get a read-only DB connection (to a secondary if possible)
   end
 
   # Currently only option is :db_stats which table scans the DB and is kind of expensive
@@ -29,6 +28,7 @@ class Admin::Stats
   def set_option(options)
     @options.merge! options
   end
+
 
   # use to time an operation in milliseconds
   def time_msecs
@@ -39,7 +39,6 @@ class Admin::Stats
 
   # gather all statistics and analyze
   def gather_statistics
-    @db = OpenShift::DataStore.db
     # read method comments about the structures they return
     @time[:get_node_entries] = time_msecs { @entry_for_node = get_node_entries }
     @time[:get_district_entries] = time_msecs { @entry_for_district = get_district_entries }
@@ -58,7 +57,6 @@ class Admin::Stats
     @count_all[:nodes] = @entry_for_node.size
     @count_all[:districts] = @entry_for_district.size
     @count_all[:profiles] = @summary_for_profile.size
-    @db = nil
     return @time
   end
 
@@ -122,7 +120,7 @@ class Admin::Stats
     #   "node2.example.com" => ...
     # }
     detail_names = %w[
-      node_profile district_uuid
+      node_profile district_uuid district_active
       max_active_gears gears_started_count
       gears_idle_count gears_stopped_count gears_deploying_count
       gears_unknown_count gears_total_count gears_active_count
@@ -333,7 +331,7 @@ class Admin::Stats
     #      :available_active_gears => 173, # how many more active gears the nodes will support
     #
     #      # the following are usage numbers according to the DB, if collected
-    #      :total_db_gears        => 27,  # gears recorded with this profile in the DB
+    #      :total_gears_in_db_records => 27,  # gears recorded with this profile in the DB
     #      :total_apps            => 20,  # apps recorded with this profile in the DB
     #      :cartridges            => { cartridge counts as in get_db_stats }
     #      :cartridges_short      => { cartridge short name counts as in get_db_stats }
@@ -500,7 +498,8 @@ class Admin::Stats
         app['component_instances'].each do |comp|
           carts_for_group[gid = comp['group_instance_id']] << (cart = comp['cartridge_name'])
           # from "foo-bar-1.1" we want "foo-bar" for the short name
-          short_carts_for_group[gid] << cart.match(/^  ([-\w]+)  -  [\d.]+  $/x)[1]
+          cart.match(/^  ([-\w]+)  -  [\d.]+  $/x)
+          short_carts_for_group[gid] << ($1 || cart)
         end
         # now walk the gears and count up everything.
         # group_instances contain arrays of like-minded gears.
@@ -536,13 +535,14 @@ class Admin::Stats
     return count_all, count_for_profile, count_for_user
   end
 
-  def _with_each_record(collection_name, query, selection)
-    coll = @db.collection(collection_name)
-    coll.find(query, selection) do |mcursor|
-      mcursor.each do |hash|
-        yield hash
+  def _with_each_record(collection_name, query, selection, &block)
+    OpenShift::DataStore.db.
+      collection(collection_name).
+      find(query, selection) do |mcursor|
+        mcursor.each do |hash|
+          block.call(hash)
+        end
       end
-    end
   end
 
 end #class OpenShift::Admin::Stats
