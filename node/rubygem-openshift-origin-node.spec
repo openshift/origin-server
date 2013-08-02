@@ -16,7 +16,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.12.8
+Version: 1.12.9
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -305,6 +305,14 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Fri Aug 02 2013 Adam Miller <admiller@redhat.com> 1.12.9-1
+- Merge pull request #3281 from fotioslindiakos/Bug991480_stg
+  (dmcphers+openshiftbot@redhat.com)
+- Handle race condition when trying to throttle gears that no longer exist
+  (fotios@redhat.com)
+- Bug 991225: upgrade script should be run before setup during incompatible
+  upgrade (pmorie@gmail.com)
+
 * Thu Aug 01 2013 Adam Miller <admiller@redhat.com> 1.12.8-1
 - Bug 839581: Reset system_builder credentials on jenkins restore
   (ironcladlou@gmail.com)
