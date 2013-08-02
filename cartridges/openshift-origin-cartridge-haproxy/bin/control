@@ -165,6 +165,7 @@ function status() {
 }
 
 function deploy() {
+    [ "${OPENSHIFT_GEAR_DNS}" != "${OPENSHIFT_APP_DNS}" ] && return 0
     # Fix to get name of haproxy cartridge from environment
     HAPROXY_CONF_DIR=$OPENSHIFT_HAPROXY_DIR/conf
     HAPROXY_GEAR_REGISTRY=$HAPROXY_CONF_DIR/gear-registry.db
