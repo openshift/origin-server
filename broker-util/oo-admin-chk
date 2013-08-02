@@ -852,18 +852,17 @@ if level >= 1 and $billing_enabled
     end
   end
   usage_hash = {}
-  selection = {:fields => ["gear_id", "begin_time", "end_time"], :timeout => false}
-  OpenShift::DataStore.find(:usage, {}, selection) do |urec|
+  selection = {:fields => ["gear_id"], :timeout => false}
+  OpenShift::DataStore.find(:usage, {"end_time" => nil}, selection) do |urec|
     gear_id = urec['gear_id'].to_s
-    usage_hash[gear_id] = {'num_begin_events' => 0, 'num_end_events' => 0} unless usage_hash[gear_id]
-    usage_hash[gear_id]['num_begin_events'] += 1 if urec['begin_time']
-    usage_hash[gear_id]['num_end_events'] += 1 if urec['end_time']
+    usage_hash[gear_id] = {'num_unended_events' => 0} unless usage_hash[gear_id]
+    usage_hash[gear_id]['num_unended_events'] += 1
   end
   usage_record_gear_ids = usage_records_hash.keys
   usage_gear_ids = usage_hash.keys
-  missing_urecs = (usage_record_gear_ids - usage_gear_ids) + (usage_gear_ids - usage_record_gear_ids)
+  missing_urecs = (usage_gear_ids - usage_record_gear_ids)
   (usage_record_gear_ids & usage_gear_ids).each do |gear_id|
-    if usage_records_hash[gear_id]['num_unended_events'] != (usage_hash[gear_id]['num_begin_events'] - usage_hash[gear_id]['num_end_events'])
+    if usage_records_hash[gear_id]['num_unended_events'] != usage_hash[gear_id]['num_unended_events']
       missing_urecs << gear_id
     end
   end
