@@ -120,6 +120,28 @@ class EmbCartControllerTest < ActionController::TestCase
     assert_response :not_found
   end
   
+  test "invalid cartridge id by domain and app name" do
+    post :create, {"domain_id" => @domain.namespace, "application_id" => @app.name, "name" => "bogus"}
+    assert_response :unprocessable_entity
+    get :show, {"domain_id" => @domain.namespace, "application_id" => @app.name}
+    assert_response :not_found
+    put :update, {"domain_id" => @domain.namespace, "application_id" => @app.name, "additional_gear_storage" => 10}
+    assert_response :not_found
+    delete :destroy , {"domain_id" => @domain.namespace, "application_id" => @app.name}
+    assert_response :not_found
+  end
+  
+  test "invalid cartridge id by app id" do
+    post :create, {"application_id" => @app.id}
+    assert_response :unprocessable_entity
+    get :show, {"application_id" => @app.id}
+    assert_response :not_found
+    put :update, {"application_id" => @app.id, "additional_gear_storage" => 10}
+    assert_response :not_found
+    delete :destroy , {"application_id" => @app.id}
+    assert_response :not_found
+  end
+  
   test "destroy web_framework cartridge" do
     delete :destroy , {"id" => PHP_VERSION, "domain_id" => @domain.namespace, "application_id" => @app.name}
     assert_response :unprocessable_entity
