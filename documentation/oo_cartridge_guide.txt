@@ -8,9 +8,12 @@ v2.0, July 2013
 
 This guide documents all of the cartridges that are distributed with OpenShift Origin. You can learn about creating your own cartridges by referring to the link:oo_cartridge_developers_guide.html[Cartridge Developers Guide].
 
-[float]
-== Environment Variables
-Some of the cartridges described below will register their own environment variables for use with your application. For general information about environment variables, consult the link:oo_user_guide.html#environment-variables[Users Guide].
+[WARNING]
+====
+*Cartridges and Persistent Storage*: Every time you push, everything in your remote repo directory is recreated.
+Store long term items (like an sqlite database) in the OpenShift data directory, which will persist between pushes of your repo.
+The OpenShift data directory can be found via the environment variable `$OPENSHIFT_DATA_DIR`.
+====
 
 [[10gen-mms-agent]]
 == 10gen MMS Agent
@@ -78,10 +81,6 @@ fi
 === See also
 https://www.openshift.com/blogs/getting-started-with-cron-jobs-on-openshift[Getting Started with Cron Jobs on OpenShift]
 
-=== Notice of Export Control Law
-This software distribution includes cryptographic software that is subject to the U.S. Export Administration Regulations (the "*EAR*") and other U.S. and foreign laws and may not be exported, re-exported or transferred (a) to any country listed in Country Group E:1 in Supplement No. 1 to part 740 of the EAR (currently, Cuba, Iran, North Korea, Sudan & Syria); (b) to any prohibited destination or to any end user who has been prohibited from participating in U.S. export transactions by any federal agency of the U.S. government; or (c) for use in connection with the design, development or production of nuclear, chemical or biological weapons, or rocket systems, space launch vehicles, or sounding rockets, or unmanned air vehicle systems.You may not download this software or technical information if you are located in one of these countries or otherwise subject to these restrictions. You may not provide this software or technical information to individuals or entities located in one of these countries or otherwise subject to these restrictions. You are also responsible for compliance with foreign law requirements applicable to the import, export and use of this software and technical information.
-
-
 [[diy]]
 == DIY
 The `diy` cartridge provides a minimal, free-form scaffolding which leaves all details of the cartridge to the application developer.
@@ -103,8 +102,6 @@ static/           Externally exposed static content goes here
 <1> link:oo_user_guide.html#action-hooks[Action Hooks] documentation
 
 NOTE: Please leave the `static` directory in place (alter but do not delete) but feel free to create additional directories if needed.
-
-Every time you push, everything in your remote repo dir gets recreated. Please store long term items (like an sqlite database) in the OpenShift data directory, which will persist between pushes of your repo. The OpenShift data directory is accessible via `$OPENSHIFT_DATA_DIR`.
 
 === Environment Variables
 The `diy` cartridge provides the following environment variables to reference for ease of use:
@@ -129,14 +126,6 @@ pom.xml            Example Maven build file
     markers/         See the Markers section below
 ----
 <1> link:oo_user_guide.html#action-hooks[Action Hooks] documentation
-
-[NOTE]
-====
-Every time you push, everything in your remote repo directory is recreated.
-Please store long term items (like an sqlite database) in the OpenShift
-data directory, which will persist between pushes of your repo.
-The OpenShift data directory is accessible via an environment variable `OPENSHIFT_DATA_DIR`.
-====
 
 === Layout and Deployment Options
 There are two options for deploying content to the JBoss Application Server within OpenShift. Both options
@@ -281,14 +270,6 @@ Provides the JBossEAP application server on OpenShift.
 ----
 <1> link:oo_user_guide.html#action-hooks[Action Hooks] documentation
 
-[NOTE]
-====
-Every time you push, everything in your remote repo directory is recreated.
-Please store long term items (like an sqlite database) in the OpenShift
-data directory, which will persist between pushes of your repo.
-The OpenShift data directory is accessible via an environment variable `OPENSHIFT_DATA_DIR`.
-====
-
 === Layout and Deployment Options
 There are two options for deploying content to the JBoss Application Server within OpenShift. Both options
 can be used together (i.e. build one archive from source and others pre-built)
@@ -432,14 +413,6 @@ pom.xml            Example Maven build file
     markers/         See the Markers section below
 ----
 <1> link:oo_user_guide.html#action-hooks[Action Hooks] documentation
-
-[NOTE]
-====
-Every time you push, everything in your remote repo directory is recreated.
-Please store long term items (like an sqlite database) in the OpenShift
-data directory, which will persist between pushes of your repo.
-The OpenShift data directory is accessible via an environment variable `OPENSHIFT_DATA_DIR`.
-====
 
 === Layout and Deployment Options
 There are two options for deploying content to the Tomcat Server within OpenShift. Both options
@@ -698,15 +671,6 @@ package.json             npm package descriptor.
 Please leave the `node_modules` and `.openshift` directories but feel free to
 create additional directories if needed.
 
-[NOTE]
-====
-Every time you push, everything in your remote repo dir gets recreated
-please store long term items (like an sqlite database) in the OpenShift
-data directory, which will persist between pushes of your repo.
-The OpenShift data directory is accessible relative to the remote repo
-directory (`../data`) or via an environment variable `$OPENSHIFT_DATA_DIR`.
-====
-
 [[nodejs-node_modules-directory]]
 ==== `node_modules` directory
 The `node_modules` directory allows you to package any Node module on which your application depends along with your application.
@@ -810,13 +774,6 @@ misc/                 For not-externally exposed perl code
 
 Please leave the `perl`, `libs` and `data` directories but feel free to create additional directories if needed.
 
-[NOTE]
-====
-Every time you push, everything in your remote repo dir gets
-recreated. Please store long term items (like an sqlite database) in
-`OPENSHIFT_DATA_DIR` which will persist between pushes of your repo.
-====
-
 === Cartridge Layout
 ----
 run/                  Various run configs (like httpd pid)
@@ -871,15 +828,6 @@ deplist.txt            List of pears to install <1>
 OpenShift will look for the `php` and `libs` directories when serving your 
 application. index.php will handle requests to the root URL of your 
 application. You can create new directories as needed.
-
-[NOTE]
-====
-Every time you push, everything in your remote repo dir is recreated.
-Please store long term items (like an sqlite database) in the OpenShift
-data directory, which will persist between pushes of your repo.
-The OpenShift data directory is accessible relative to the remote repo
-directory (../data) or via an environment variable `OPENSHIFT_DATA_DIR`.
-====
 
 === Markers
 Adding marker files to `.openshift/markers` will have the following effects:
@@ -971,15 +919,6 @@ setup.py               Standard setup.py, specify deps here <1>
 
 Please leave the `wsgi`, `libs` and `data` directories but feel free to create additional directories if needed.
 
-[NOTE]
-====
-Every time you push, everything in your remote repo dir gets recreated, please
-store long term items (like an sqlite database) in the OpenShift data
-directory, which will persist between pushes of your repo.
-The OpenShift data directory is accessible relative to the remote repo via an
-environment variable `OPENSHIFT_DATA_DIR`.
-====
-
 === Cartridge Layout
 ----
 run/           Various run configs (like httpd pid)
@@ -1022,15 +961,6 @@ config.ru          This file is used by Rack-based servers to start the applicat
     markers/       See the Markers section below
 ----
 <1> link:oo_user_guide.html#action-hooks[Action Hooks] documentation
-
-[NOTE]
-====
-Every time you push, everything in your remote repo dir gets recreated, please
-store long term items (like an sqlite database) in the OpenShift data
-directory, which will persist between pushes of your repo.
-The OpenShift data directory is accessible relative to the remote repo
-directory (../data) or via an environment variable `OPENSHIFT_DATA_DIR`.
-====
 
 === Ruby Mirror
 OpenShift is mirroring rubygems.org at http://mirror1.ops.rhcloud.com/mirror/ruby/
