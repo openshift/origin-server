@@ -78,7 +78,7 @@ In order to enable consumers of the PaaS to create JBoss EAP / JBoss EWS gears, 
 # yum install openshift-origin-cartridge-jbosseap-6.0.noarch openshift-origin-cartridge-jbossews-1.0.noarch openshift-origin-cartridge-jenkins-1.4.noarch openshift-origin-cartridge-jenkins-client-1.4.noarch
 ----
 
-The above command will allow users to create JBoss EAP and JBoss EWS gears. We also installed support for the Jenkins continuous integration environment which we will cover in a later lab. At the time of this writing, the above command will download and install an additional 285 packages on your node host.
+The above command will allow users to create JBoss EAP and JBoss EWS gears. This also installs support for the Jenkins continuous integration environment, which is discussed in detail in the link:oo_user_guide.html#jenkins-continuous-integration[OpenShift Origin User's Guide]. At the time of this writing, the above command will download and install an additional 285 packages on your node host.
 
 NOTE: Depending on your connection and speed of your node host, this installation may take several minutes.
 
@@ -157,33 +157,33 @@ There are often times when you want to increase or decrease the number of gears 
 # oo-admin-ctl-user
 ----
 
-To see how many gears that our _demo_ user has consumed as well as how many gears the _demo_ user has access to create, you can provide the following switches to the _oo-admin-ctl-user_ command:
+To see how many gears that a given user has consumed as well as how many gears they have access to create, you can provide the following switches to the _oo-admin-ctl-user_ command:
 
 ----
-# oo-admin-ctl-user -l demo
+# oo-admin-ctl-user -l <username>
 ----
 
-Given the current state of our configuration for this training class, you should see the following output:
+You should see something similar to this:
 
 ----
-User demo:
+User <username>:
     consumed gears: 0
     max gears: 100
     gear sizes: small
     
 ----
 
-In order to change the number of gears that our _demo_ user has permission to create, you can pass the --setmaxgears switch to the command. For instance, if we only want to allow the _demo_ user to be able to create 25 gears, we would use the following command:
+In order to change the number of gears that the user has permission to create, you can pass the --setmaxgears switch to the command. For instance, if we only want to allow a user to be able to create 25 gears, we would use the following command:
 
 ----
-# oo-admin-ctl-user -l demo --setmaxgears 25
+# oo-admin-ctl-user -l <username> --setmaxgears 25
 ----
 
-After entering the above command, you should see the following output:
+After entering the above command, you should see output like this:
 
 ----
 Setting max_gears to 25... Done.
-User demo:
+User <username>:
   consumed gears: 0
   max gears: 25
   gear sizes: small
@@ -191,17 +191,17 @@ User demo:
 ----
 
 === Set the Type of Gears a Specific User Can Create
-In a production environment, a customer will typically have different gear sizes that are available for developers to consume. In this example, we will only create small gears. However, to add the ability to create medium size gears for the _demo_ user, you can pass the -addgearsize switch to the _oo-admin-ctl-user_ command.
+In a production environment, a customer will typically have different gear sizes that are available for developers to consume. In this example, we will only create small gears. However, to add the ability to create medium size gears for a given user, you can pass the -addgearsize switch to the _oo-admin-ctl-user_ command.
 
 ----
-# oo-admin-ctl-user -l demo --addgearsize medium
+# oo-admin-ctl-user -l <username> --addgearsize medium
 ----
 
-After entering the above command, you should see the following output:
+After entering the above command, you should see output like:
 
 ----
-Adding gear size medium for user demo... Done.
-User demo:
+Adding gear size medium for user <username>... Done.
+User <username>:
   consumed gears: 0
   max gears: 25
   gear sizes: small, medium
@@ -211,7 +211,7 @@ User demo:
 In order to remove the ability for a user to create a specific gear size, you can use the --removegearsize switch:
 
 ----
-# oo-admin-ctl-user -l demo --removegearsize medium
+# oo-admin-ctl-user -l <username> --removegearsize medium
 ----
 
 == District Management
@@ -270,7 +270,7 @@ Successfully created district: 513b50508f9f44aeb90090f19d2fd940
  "available_capacity"=>6000}
 ----
 
-If you are familiar with JSON, you will understand the format of this output. What actually happened is a new document was created in the MongoDB database that we installed in a previous lab. To view this document inside of the database, execute the following:
+If you are familiar with JSON, you will understand the format of this output. What actually happened is a new document was created in the link:oo_system_architecture_guide.html#broker[broker]'s MongoDB database. To view this document inside of the database, execute the following:
 
 ----
 # mongo
