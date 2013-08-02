@@ -498,7 +498,8 @@ class Admin::Stats
         app['component_instances'].each do |comp|
           carts_for_group[gid = comp['group_instance_id']] << (cart = comp['cartridge_name'])
           # from "foo-bar-1.1" we want "foo-bar" for the short name
-          short_carts_for_group[gid] << cart.match(/^  ([-\w]+)  -  [\d.]+  $/x)[1]
+          cart.match(/^  ([-\w]+)  -  [\d.]+  $/x)
+          short_carts_for_group[gid] << ($1 || cart)
         end
         # now walk the gears and count up everything.
         # group_instances contain arrays of like-minded gears.
