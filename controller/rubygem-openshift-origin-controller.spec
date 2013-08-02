@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.12.7
+Version: 1.12.8
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -84,6 +84,10 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Fri Aug 02 2013 Adam Miller <admiller@redhat.com> 1.12.8-1
+- Bug 991225: upgrade script should be run before setup during incompatible
+  upgrade (pmorie@gmail.com)
+
 * Wed Jul 31 2013 Adam Miller <admiller@redhat.com> 1.12.7-1
 - Merge pull request #3250 from jwhonce/wip/extended_tests
   (dmcphers+openshiftbot@redhat.com)
