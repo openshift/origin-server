@@ -36,8 +36,8 @@ module OpenShift
             MonitoredGear.intervals = [@interval]
 
             # Allow us to lazy initialize MonitoredGears
-            @running_apps = Hash.new do |h,k|
-              h[k] = MonitoredGear.new(k)
+            @running_apps = Hash.new do |h,uuid|
+              h[uuid] = MonitoredGear.new(uuid)
             end
 
             Syslog.open(File.basename($0), Syslog::LOG_PID, Syslog::LOG_DAEMON) unless Syslog.opened?
@@ -46,9 +46,6 @@ module OpenShift
             # Start our collector thread
             start
           end
-
-          # Loop through all lines from grep and contruct a hash
-          # TODO: Should this be moved into libcgroup?
 
           def start
             Thread.new do
@@ -131,7 +128,14 @@ module OpenShift
             end
 
             if (state = options[:state])
-              apps.select!{|k,v| v.gear.profile == state}
+              apps.select! do |k,v|
+                begin
+                  v.gear.profile == state
+                rescue RuntimeError
+                  # There's the possibility that this gear no longer exists, so just ignore it
+                  false
+                end
+              end
             end
             # Return current utilization with the apps for logging
             [apps, cur_util]
@@ -153,8 +157,6 @@ module OpenShift
               :throttle => bad_gears,
               nil => @old_bad_gears
             }, cur_util)
-
-            @old_bad_gears.merge!(bad_gears)
           end
 
           def apply_action(hash, cur_util)
@@ -166,14 +168,28 @@ module OpenShift
             hash.each do |action, gears|
               str = action || "over_threshold"
               gears.each do |uuid, g|
-                g.gear.send(action) if action
-                log_action(str, uuid, util[uuid])
+                begin
+                  g.gear.send(action) if action
+                  if action == :throttle
+                    @old_bad_gears[uuid] = g
+                  end
+                  log_action(str, uuid, util[uuid])
+                rescue RuntimeError => e
+                  log_action("FAILED #{action}", uuid, e.message, :warning)
+                end
               end
             end
           end
 
-          def log_action(action, uuid, value)
-            Syslog.info("Throttler: #{action} => #{uuid} (#{value})")
+          def log_action(action, uuid, value, level = :info)
+            msg = "Throttler: #{action} => #{uuid} (#{value})"
+            log_level = case level
+                        when :warning
+                          Syslog::LOG_WARNING
+                        else
+                          Syslog::LOG_INFO
+                        end
+            Syslog.log(log_level, msg)
           end
         end
       end
