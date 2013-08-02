@@ -342,7 +342,7 @@ module OpenShift
               vendor, name, version, cartridge_version = OpenShift::Runtime::Manifest.parse_ident(ident)
               next_manifest                            = cartridge_repository.select(name, version)
 
-              progress.step "#{name}_upgrade" do |context, errors|
+              progress.step "#{name}_upgrade_cart" do |context, errors|
                 context[:cartridge] = name.downcase
 
                 if upgrade_type == UpgradeType::COMPATIBLE
@@ -463,6 +463,8 @@ module OpenShift
 
         cart_model.unlock_gear(next_manifest) do |m|
           cart_model.secure_cartridge(next_manifest.short_name, container.uid, container.gid, target)
+          
+          execute_cartridge_upgrade_script(target, current_version, next_manifest)
 
           progress.step "#{name}_setup" do |context, errors|
             setup_output = cart_model.cartridge_action(m, 'setup', version, true)
@@ -475,8 +477,6 @@ module OpenShift
             context[:cartridge] = name.downcase
             cart_model.process_erb_templates(m)
           end
-
-          execute_cartridge_upgrade_script(target, current_version, next_manifest)
         end
 
         progress.step "#{name}_create_endpoints" do |context, errors|
