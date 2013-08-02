@@ -135,7 +135,9 @@ module OpenShift
         begin
           Etc.getpwnam(uuid)
         rescue ArgumentError
-          raise NodeCommandException.new "Error: Unable to obtain quota user #{uuid} does not exist"
+          raise NodeCommandException.new(
+                    Utils::Sdk.translate_out_for_client("Unable to obtain quota user #{uuid} does not exist",
+                                                        :error))
         end
 
         cmd = %&quota --always-resolve -w #{uuid} | awk '/^.*\\/dev/ {print $1":"$2":"$3":"$4":"$5":"$6":"$7}'; exit ${PIPESTATUS[0]}&
@@ -176,16 +178,21 @@ module OpenShift
 
         unless nil == cur_quota
           current_quota  = cur_quota[1].to_s.to_i
+          blocksmax      = cur_quota[3].to_s.to_i if blocksmax.to_s.empty?
           current_inodes = cur_quota[4].to_s.to_i
           inodemax       = cur_quota[6].to_s.to_i if inodemax.to_s.empty?
         end
 
         if current_quota > blocksmax.to_i
-          raise NodeCommandException.new "Error: Current usage #{current_quota} exceeds requested quota #{blocksmax}"
+          raise NodeCommandException.new(
+                    Utils::Sdk.translate_out_for_client("Current usage #{current_quota} exceeds requested quota #{blocksmax}",
+                                                        :error))
         end
 
         if current_inodes > inodemax.to_i
-          raise NodeCommandException.new "Error: Current inodes #{current_inodes} exceeds requested inodes #{inodemax}"
+          raise NodeCommandException.new(
+                    Utils::Sdk.translate_out_for_client("CLIENT_ERROR: Current inodes #{current_inodes} exceeds requested inodes #{inodemax}",
+                                                        :error))
         end
 
         mountpoint      = self.get_gear_mountpoint
