@@ -133,6 +133,31 @@ action "set_district", :description => "run a cartridge action" do
            :display_as => "Exit Code"
 end
 
+action "has_gear", :description => "Does this server contain a specified gear?" do
+    display :always
+
+    input :uuid,
+        :prompt         => "Gear uuid",
+        :description    => "Gear uuid",
+        :type           => :string,
+        :validation     => '^[a-zA-Z0-9]+$',
+        :optional       => false,
+        :maxlength      => 32
+
+    output  :time,
+            :description => "The time as a message",
+            :display_as => "Time"
+
+    output  :output,
+            :description => "true or false",
+            :display_as => "Output"
+
+    output :exitcode,
+           :description => "Exit code",
+           :display_as => "Exit Code"
+end
+
+
 action "has_app", :description => "Does this server contain a specified app?" do
     display :always
 

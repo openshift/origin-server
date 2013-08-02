@@ -2509,7 +2509,7 @@ module OpenShift
       # * OpenShift::UserException
       #
       # NOTES:
-      # * uses find_app
+      # * uses find_gear
       # * uses sanitize_result
       #
       def parse_result(mcoll_reply, gear=nil, command=nil)
@@ -2522,7 +2522,7 @@ module OpenShift
           output = mcoll_result.results[:data][:output]
           result.exitcode = mcoll_result.results[:data][:exitcode]
         else
-          server_identity = app ? MCollectiveApplicationContainerProxy.find_app(app.uuid, app.name) : nil
+          server_identity = app ? MCollectiveApplicationContainerProxy.find_gear(gear.uuid) : nil
           if server_identity && @id != server_identity
             raise OpenShift::InvalidNodeException.new("Node execution failure (invalid  node).", 143, nil, server_identity)
           else
@@ -2547,24 +2547,22 @@ module OpenShift
       end
 
       #
-      # Returns the server identity of the specified app
+      # Returns the server identity of the specified gear
       #
       # INPUTS:
-      # * app_uuid: String
-      # * app_name: String
+      # * gear_uuid: String
       #
       # RETURNS:
-      # * server identity (string?)
+      # * server identity (string)
       #
       # NOTES:
       # * uses rpc_exec
       # * loops over all nodes
       #
-      def self.find_app(app_uuid, app_name)
+      def self.find_gear(gear_uuid)
         server_identity = nil
         rpc_exec('openshift') do |client|
-          client.has_app(:uuid => app_uuid,
-                         :application => app_name) do |response|
+          client.has_gear(:uuid => gear_uuid) do |response|
             output = response[:body][:data][:output]
             if output == true
               server_identity = response[:senderid]
@@ -2589,10 +2587,9 @@ module OpenShift
       # * loops over all nodes
       # * No longer being used
       #
-      def has_app?(app_uuid, app_name)
+      def has_gear?(gear_uuid)
         MCollectiveApplicationContainerProxy.rpc_exec('openshift', @id) do |client|
-          client.has_app(:uuid => app_uuid,
-                         :application => app_name) do |response|
+          client.has_gear(:uuid => gear_uuid) do |response|
             output = response[:body][:data][:output]
             return output == true
           end
