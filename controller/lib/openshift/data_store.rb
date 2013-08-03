@@ -5,10 +5,15 @@ module OpenShift
       hosts = config['hosts']
       ssl = config['options']['ssl']
       if hosts.length > 1
-        con = MongoReplicaSetClient.new(hosts, :read => read_preference, :ssl => ssl)
+        con = defined?(MongoReplicaSetClient) \
+          ? MongoReplicaSetClient.new(hosts, :read => read_preference, :ssl => ssl)
+          # compatibility with mongo 1.6 API
+          : Mongo::ReplSetConnection.new(hosts, :read => read_preference, :ssl => ssl)
       else
         host_port = hosts[0].split(':')
-        con = Mongo::MongoClient.new(host_port[0], host_port[1].to_i, :ssl => ssl)
+        con = defined?(MongoClient) ? MongoClient.new(host_port[0], host_port[1].to_i, :ssl => ssl)
+                                    # compatibility with mongo 1.6 API
+                                    : Mongo::Connection.new(host_port[0], host_port[1].to_i, :ssl => ssl)
       end
       db = con.db(config['database'])
       db.authenticate(config['username'], config['password'])
