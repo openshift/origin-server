@@ -1286,13 +1286,12 @@ class Application
       begin
         op_group.execute_rollback(result_io)
         op_group.delete
+        num_gears_recovered = op_group.num_gears_added - op_group.num_gears_created + op_group.num_gears_rolled_back + op_group.num_gears_destroyed
+        unreserve_gears(num_gears_recovered)
       rescue Exception => e_rollback
         Rails.logger.error "Error during rollback"
         Rails.logger.error e_rollback.message
         Rails.logger.error e_rollback.backtrace.inspect
-      ensure
-        num_gears_recovered = op_group.num_gears_added - op_group.num_gears_created + op_group.num_gears_rolled_back + op_group.num_gears_destroyed
-        unreserve_gears(num_gears_recovered)
       end
       raise e_orig
     end
