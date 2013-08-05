@@ -242,7 +242,7 @@ snapshot_exclusions:
 - mydir/*
 restore_transforms:
 - s|${OPENSHIFT_GEAR_NAME}/data|app-root/data|
-process_templates:
+processed_templates:
 - '**/*.erb'
 setup_rewritten:
 - conf/*
@@ -279,7 +279,7 @@ a|link:#backing-up-and-restoring-your-cartridge[Backing up and Restoring your Ca
 |File Pattern
 a|link:#binsetup[bin/setup]
 
-|process_templates
+|processed_templates
 |File Pattern
 a|link:#erb-processing[ERB Processing]
 |===
@@ -574,7 +574,7 @@ In order to provide flexible configuration and environment variables, you may pr
 Your templates will be rendered at http://www.ruby-doc.org/docs/ProgrammingRuby/html/taint.html).[`safe_level 2`] and are processed in 2 passes.
 
 1.  The first pass processes any entries in your `env` directory. This pass happens before `bin/setup` is called and is mandatory.
-2.  The second pass processes any entries specified in the `process_templates` entry of `metadata/managed_files.yml`. This pass happens after `bin/setup` but before `bin/install`. This allows `bin/setup` to create or modify ERB templates if needed. It also allows for `bin/install` to use these values or processed files.
+2.  The second pass processes any entries specified in the `processed_templates` entry of `metadata/managed_files.yml`. This pass happens after `bin/setup` but before `bin/install`. This allows `bin/setup` to create or modify ERB templates if needed. It also allows for `bin/install` to use these values or processed files.
 
 .ERB Examples
 ====
