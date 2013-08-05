@@ -65,19 +65,21 @@ alternatives --set maven-3.0 /usr/share/maven
 %endif
 
 alternatives --remove jbosseap-6.0 /usr/share/jbossas
-alternatives --install /etc/alternatives/jbosseap-6.0 jbosseap-6.0 /usr/share/jbossas 102
-alternatives --set jbosseap-6.0 /usr/share/jbossas
+alternatives --remove jbosseap-6 /usr/share/jbossas
+alternatives --install /etc/alternatives/jbosseap-6 jbosseap-6 /usr/share/jbossas 102
+alternatives --set jbosseap-6 /usr/share/jbossas
 #
 # Temp placeholder to add a postgresql datastore -- keep this until the
 # the postgresql module is added to jboss eap 6.0.* upstream.
-mkdir -p /etc/alternatives/jbosseap-6.0/modules/org/postgresql/jdbc/main
-ln -fs /usr/share/java/postgresql-jdbc3.jar /etc/alternatives/jbosseap-6.0/modules/org/postgresql/jdbc/main
-cp -p %{cartridgedir}/versions/6.0/modules/postgresql_module.xml /etc/alternatives/jbosseap-6.0/modules/org/postgresql/jdbc/main/module.xml
+mkdir -p /etc/alternatives/jbosseap-6/modules/org/postgresql/jdbc/main
+ln -fs /usr/share/java/postgresql-jdbc3.jar /etc/alternatives/jbosseap-6/modules/org/postgresql/jdbc/main
+# cp -p %{cartridgedir}/versions/6.0/modules/postgresql_module.xml /etc/alternatives/jbosseap-6.0/modules/org/postgresql/jdbc/main/module.xml
+cp -p %{cartridgedir}/versions/shared/modules/postgresql_module.xml /etc/alternatives/jbosseap-6/modules/org/postgresql/jdbc/main/module.xml
 
 %files
 %dir %{cartridgedir}
 %attr(0755,-,-) %{cartridgedir}/bin/
-%attr(0755,-,-) %{cartridgedir}/versions/6.0/bin/
+%attr(0755,-,-) %{cartridgedir}/versions/shared/bin/
 %attr(0755,-,-) %{cartridgedir}/hooks/
 %{cartridgedir}
 %doc %{cartridgedir}/README.md

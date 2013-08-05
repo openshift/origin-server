@@ -1,9 +1,9 @@
 Name: jenkins
 Vendor: Jenkins CI
 Cartridge-Short-Name: JENKINS
-Display-Name: Jenkins Server 1.4
+Display-Name: Jenkins Server 1
 Description: "Jenkins is a continuous integration (CI) build server that is deeply integrated into OpenShift. See the Jenkins info page for more."
-Version: '1.4'
+Version: '1'
 License: MIT license
 License-Url: http://jenkinsci.org/mitlicense
 Cartridge-Version: 0.0.3
@@ -55,8 +55,10 @@ Cart-Data:
     Description: "Admin user's password for jenkins server"
 Provides:
   - jenkins-1.4
+  - jenkins-1
   - "jenkins"
   - "jenkins(version) = 1.4"
+  - "jenkins(version) >= 1"
 Publishes:
 Endpoints:
   - Private-IP-Name:   IP

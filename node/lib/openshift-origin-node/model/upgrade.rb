@@ -254,6 +254,19 @@ module OpenShift
       end
 
       #
+      # Map IDENT info from old manifest values to new manifest values
+      #
+      def gear_map_ident(ident)
+        if !gear_extension.nil? && gear_extension.respond_to?(:map_ident)
+          progress.step 'map_ident' do
+            gear_extension.map_ident(progress, ident)
+          end
+        else
+          OpenShift::Runtime::Manifest.parse_ident(ident)
+        end
+      end
+
+      #
       # Compute the upgrade itinerary for the gear
       #
       def compute_itinerary
@@ -273,7 +286,8 @@ module OpenShift
 
             ident_path                               = Dir.glob(File.join(cartridge_path, 'env', 'OPENSHIFT_*_IDENT')).first
             ident                                    = IO.read(ident_path)
-            vendor, name, version, cartridge_version = OpenShift::Runtime::Manifest.parse_ident(ident)
+            # vendor, name, version, cartridge_version = OpenShift::Runtime::Manifest.parse_ident(ident)
+            vendor, name, version, cartridge_version = gear_map_ident(ident)
 
             unless vendor == 'redhat'
               progress.log "No upgrade available for cartridge #{ident}, #{vendor} not supported."
@@ -371,9 +385,9 @@ module OpenShift
 
               progress.step "#{name}_rebuild_ident" do |context, errors|
                 context[:cartridge] = name.downcase
-                next_ident = OpenShift::Runtime::Manifest.build_ident(manifest.cartridge_vendor,
-                                                                      manifest.name,
-                                                                      manifest.version,
+                next_ident = OpenShift::Runtime::Manifest.build_ident(next_manifest.cartridge_vendor,
+                                                                      next_manifest.name,
+                                                                      next_manifest.version,
                                                                       next_manifest.cartridge_version)
                 IO.write(ident_path, next_ident, 0, mode: 'w', perms: 0666)
               end
