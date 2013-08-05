@@ -35,7 +35,7 @@ module OpenShift
       # Note: File IO for the underlying loggers is synchronous.
       #
       class SplitTraceLogger
-        PROFILES = {
+        @@DEFAULT_PROFILES = {
           :standard => {
             file_config:   'PLATFORM_LOG_FILE',
             level_config:  'PLATFORM_LOG_LEVEL',
@@ -50,16 +50,17 @@ module OpenShift
           }
         }
 
-        def initialize(config, context)
+        def initialize(config, context, profiles = nil)
           @config = config
           @context = context
+          @profiles = profiles || @@DEFAULT_PROFILES
 
           reinitialize
         end
 
         def reinitialize
-          @logger = build_logger(PROFILES[:standard])
-          @trace_logger = build_logger(PROFILES[:trace])
+          @logger = build_logger(@profiles[:standard])
+          @trace_logger = build_logger(@profiles[:trace])
         end
 
         def info(*args, &block)
