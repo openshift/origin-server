@@ -80,11 +80,7 @@ class RestApplication10 < OpenShift::Model
   def initialize(app, url, nolinks=false, applications=nil)
     self.embedded = {}
     app.requires(true).each do |feature|
-      cart = CartridgeCache.find_cartridge(feature, app)
-
-      # raise an exception in case the application cartridge is not found
-      raise OpenShift::OOException.new("The application '#{app.name}' requires '#{feature}' but a matching cartridge could not be found") if cart.nil?
-
+      cart = CartridgeCache.find_cartridge_or_raise_exception(feature, app)
       if cart.categories.include? "web_framework"
         self.framework = cart.name
       else
@@ -121,7 +117,7 @@ class RestApplication10 < OpenShift::Model
     self.build_job_url = nil
 
     app.component_instances.each do |component_instance|
-      cart = CartridgeCache::find_cartridge(component_instance.cartridge_name, app)
+      cart = CartridgeCache::find_cartridge_or_raise_exception(component_instance.cartridge_name, app)
       # add the builder properties if this is a builder component
       if cart.categories.include?("ci_builder")
         self.building_with = cart.name
@@ -148,7 +144,7 @@ class RestApplication10 < OpenShift::Model
         apps = applications || app.domain.applications
         apps.each do |domain_app|
           domain_app.component_instances.each do |component_instance|
-            cart = CartridgeCache::find_cartridge(component_instance.cartridge_name, domain_app)
+            cart = CartridgeCache::find_cartridge_or_raise_exception(component_instance.cartridge_name, domain_app)
             if cart.categories.include?("ci")
               self.building_app = domain_app.name
               break
