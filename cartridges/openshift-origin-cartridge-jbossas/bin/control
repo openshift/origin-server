@@ -30,75 +30,75 @@ function getscanconfig() {
 # Verify that the deployment scanner has finished running
 function waitondeployments() {
     if ! ismgmtup; then
-        client_message "Timed out waiting for management listening port"
-    fi
+      client_message "Timed out waiting for management listening port"
+    else 
+      getscanconfig
 
-    getscanconfig
+      if [ "$SCANCONFIG" == "" ]; then
+        client_message "Could not connect to JBoss management interface, skipping deployment verification"
+      elif [[ $SCANCONFIG =~ '"scan-enabled" => true' ]]; then
+        pushd $JBOSSAS_DEPLOYMENTS_DIR
 
-    if [ "$SCANCONFIG" == "" ]; then
-      client_message "Could not connect to JBoss management interface, skipping deployment verification"
-    elif [[ $SCANCONFIG =~ '"scan-enabled" => true' ]]; then
-      pushd $JBOSSAS_DEPLOYMENTS_DIR
+        artifacts=()
+        while read -r -d $'\0'; do
+          artifacts+=("$REPLY")
+        done < <(find . -iregex '.*\.\([ejrsw]ar\|zip\)$' -print0)
 
-      artifacts=()
-      while read -r -d $'\0'; do
-        artifacts+=("$REPLY")
-      done < <(find . -iregex '.*\.\([ejrsw]ar\|zip\)$' -print0)
-
-      deployexploded=false
-      if [[ $SCANCONFIG =~ '"auto-deploy-exploded" => true' ]]; then
-        deployexploded=true
-      fi
-      deployarchive=false
-      if [[ $SCANCONFIG =~ '"auto-deploy-zipped" => true' ]]; then
-        deployarchive=true
-      fi 
-
-      artifactsdeployed=()
-      artifactsfailed=()
-      artifactsskipped=()
-      artifactsunknown=()
-      for artifact in ${artifacts[*]}; do
-        if ( [ -f $artifact ] && $deployarchive ) || ( [ -d $artifact ] && $deployexploded ); then         
-          # TODO triple check this logic, add a timeout 
-          while [ -f ${artifact}.isdeploying ]; do
-            client_message "Artifact: ${artifact} is still deploying"
-            sleep 10
-          done
-
-          if [ -f ${artifact}.deployed ]; then
-            artifactsdeployed+=($artifact)
-          elif [ -f ${artifact}.failed ]; then
-            artifactsfailed+=($artifact)
-          else
-            artifactsunknown+=($artifact)
-          fi
-
-        else
-          # artifact skipped because of deployment scanner config
-          artifactsskipped+=($artifact)
+        deployexploded=false
+        if [[ $SCANCONFIG =~ '"auto-deploy-exploded" => true' ]]; then
+          deployexploded=true
         fi
-      done
+        deployarchive=false
+        if [[ $SCANCONFIG =~ '"auto-deploy-zipped" => true' ]]; then
+          deployarchive=true
+        fi 
 
-      popd
+        artifactsdeployed=()
+        artifactsfailed=()
+        artifactsskipped=()
+        artifactsunknown=()
+        for artifact in ${artifacts[*]}; do
+          if ( [ -f $artifact ] && $deployarchive ) || ( [ -d $artifact ] && $deployexploded ); then         
+            # TODO triple check this logic, add a timeout 
+            while [ -f ${artifact}.isdeploying ]; do
+              client_message "Artifact: ${artifact} is still deploying"
+              sleep 10
+            done
 
-      if [ ${#artifactsskipped[@]} -gt 0 ]; then
-        client_message "Artifacts skipped because of deployment-scanner configuration: ${artifactsskipped[*]}"
+            if [ -f ${artifact}.deployed ]; then
+              artifactsdeployed+=($artifact)
+            elif [ -f ${artifact}.failed ]; then
+              artifactsfailed+=($artifact)
+            else
+              artifactsunknown+=($artifact)
+            fi
+
+          else
+            # artifact skipped because of deployment scanner config
+            artifactsskipped+=($artifact)
+          fi
+        done
+
+        popd
+
+        if [ ${#artifactsskipped[@]} -gt 0 ]; then
+          client_message "Artifacts skipped because of deployment-scanner configuration: ${artifactsskipped[*]}"
+        fi
+  
+        if [ ${#artifactsfailed[@]} -gt 0 ]; then
+          client_message "Failed deployments: ${artifactsfailed[*]}"
+        fi
+  
+        if [ ${#artifactsdeployed[@]} -gt 0 ]; then
+          client_message "Artifacts deployed: ${artifactsdeployed[*]}"
+        fi
+  
+        if [ ${#artifactsunknown[@]} -gt 0 ]; then
+          client_message "Artifacts in an unknown state: ${artifactsunknown[*]}"
+        fi
+      else
+          client_message "Deployment scanner disabled, skipping deployment verification"
       fi
-
-      if [ ${#artifactsfailed[@]} -gt 0 ]; then
-        client_message "Failed deployments: ${artifactsfailed[*]}"
-      fi
-
-      if [ ${#artifactsdeployed[@]} -gt 0 ]; then
-        client_message "Artifacts deployed: ${artifactsdeployed[*]}"
-      fi
-
-      if [ ${#artifactsunknown[@]} -gt 0 ]; then
-        client_message "Artifacts in an unknown state: ${artifactsunknown[*]}"
-      fi
-    else
-        client_message "Deployment scanner disabled, skipping deployment verification"
     fi
 }
 
