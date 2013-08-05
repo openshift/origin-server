@@ -44,7 +44,7 @@ class Authorization
   scope :not_expired, lambda{ where(:expires_at.gt => DateTime.now, :revoked_at => nil) }
 
   def self.authenticate(token)
-    with(consistency: :eventual).where(token: token).first
+    with(consistency: :eventual).where(token: token).find_by
   rescue Mongoid::Errors::DocumentNotFound
     where(token: token).first
   end
