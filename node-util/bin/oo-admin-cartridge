@@ -72,11 +72,11 @@ module OpenShift
                    end
 
             dirs.each do |dir|
-              out, _, _ = ::OpenShift::Runtime::Utils.oo_spawn("mco rpc -q openshift cartridge_repository action=install path=#{dir}")
+              out, _, _ = ::OpenShift::Runtime::Utils.oo_spawn("oo-mco rpc -q openshift cartridge_repository action=install path=#{dir}")
               buffer << out
             end
           when :list
-            buffer, _, _ = ::OpenShift::Runtime::Utils.oo_spawn('mco rpc -q openshift cartridge_repository action=list',
+            buffer, _, _ = ::OpenShift::Runtime::Utils.oo_spawn('oo-mco rpc -q openshift cartridge_repository action=list',
                                                                  expected_exitstatus: 0)
           when :erase
             command      = %Q(mco rpc openshift cartridge_repository action=erase \

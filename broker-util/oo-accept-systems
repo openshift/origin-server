@@ -214,7 +214,7 @@ if __FILE__ == $0
   load_rails_env
   check_nodes_public_hostname
   if !$NODES_EXIST
-    do_fail "No node hosts responded. Run 'mco ping' and troubleshoot if this is unexpected."
+    do_fail "No node hosts responded. Run 'oo-mco ping' and troubleshoot if this is unexpected."
   else
     check_nodes_public_ip
     check_nodes_cartridges
