@@ -20,7 +20,7 @@ uncompressed RAW disk file (Linux only).
 Download the VM from the OpenShift "mirrors" site:
 
 ----
-wget https://mirror.openshift.com/pub/openshift/images/<baseos>/openshift-origin.latest.tbz2
+wget https://mirror.openshift.com/pub/origin-server/release/2/images/openshift-origin.zip
 ----
 
 == Unpack VM files
