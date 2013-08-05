@@ -23,7 +23,7 @@ $OPENSHIFT_RUNTIME_UTILS_CGROUPS_LIBCGROUP_MUTEX = Mutex.new
 
 module OpenShift
   module Runtime
-    module Utils
+    module Containerization
       class Cgroups
         class Libcgroup
           @@DEFAULT_CGROUP_ROOT='/openshift'

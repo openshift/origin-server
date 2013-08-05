@@ -1,13 +1,14 @@
 require 'openshift-origin-node/utils/node_logger'
 require 'ipaddr'
+require_relative 'libvirt_resource_manager'
 
+::OpenShift::Runtime::Utils::Cgroups.implementation_class = ::OpenShift::Runtime::Containerization::Cgroups::LibvirtResourceManager
 module OpenShift
   module Runtime
     module Containerization
       class Plugin
         include OpenShift::Runtime::NodeLogger
         CONF_DIR = '/etc/openshift/'
-        NODE_PLUGINS_DIR = File.join(CONF_DIR, 'node-plugins.d/')
 
         attr_reader :gear_shell, :mcs_label
 
@@ -15,12 +16,25 @@ module OpenShift
           File.join(container.base_dir,'gear',container.uuid)
         end
 
+        ##
+        # Public: Initialize a LibVirt Sandbox based container plugin
+        #
+        # Configuration for this container is kept in /etc/openshift/container-libvirt.conf.
+        # Config variables:
+        #   LIBVIRT_PRIVATE_IP_RANGE:
+        #     IP range to use when assigning container IP addresses. Eg: 172.16.0.0/12
+        #   LIBVIRT_PRIVATE_IP_ROUTE:
+        #     Default route for the container. Eg: 172.16.0.0/12
+        #   LIBVIRT_PRIVATE_IP_GW:
+        #     The gateway IP address. This is the IP of the host machine on the VLan. Eg: 172.16.0.1
+        #
+        # @param [ApplicationContainer] application_container The parent container object for this plugin.
         def initialize(application_container)
           @container  = application_container
           @config     = OpenShift::Config.new
-          @container_config     = OpenShift::Config.new(File.join(NODE_PLUGINS_DIR, "openshift-origin-container-libvirt.conf"))
-          @gear_shell = "/usr/bin/nsjoin"
-          @mcs_label  = OpenShift::Runtime::Utils::SELinux.get_mcs_label(@container.gid)
+          @container_config     = OpenShift::Config.new(File.join(CONF_DIR, "container-libvirt.conf"))
+          @gear_shell = "/usr/bin/virt-login-shell"
+          @mcs_label  = OpenShift::Runtime::Utils::SELinux.get_mcs_label(@container.gid) if @container.uid
 
           @port_begin = (@config.get("PORT_BEGIN") || "35531").to_i
           @ports_per_user = (@config.get("PORTS_PER_USER") || "5").to_i
@@ -28,18 +42,19 @@ module OpenShift
           @container_metadata = File.join(@container.base_dir, ".container", @container.uuid)
         end
 
-
-        # Public: Create an empty gear.
+        ##
+        # Public: Creates a new new POSIX user and group. Initialized a new LibVirt Sandbox based container and
+        # creates the basic layout of a OpenShift gear. The container will be started at the before this method
+        # returns. You can query the list of available containers with:
+        #   virsh -c lxc:/// list --all
         #
-        # Examples
-        #
-        #   create
-        #   # => nil
-        #   # a user
-        #   # Setup permissions
-        #
-        # Returns nil on Success or raises on Failure
+        # If the container is not passed a UID, we attempt to generate a UID/GID.
         def create
+          unless @container.uid
+            @container.uid = @container.gid = @container.next_uid
+            @mcs_label  = OpenShift::Runtime::Utils::SELinux.get_mcs_label(@container.gid)
+          end
+
           cmd = %{groupadd -g #{@container.gid} \
           #{@container.uuid}}
           out,err,rc = ::OpenShift::Runtime::Utils::oo_spawn(cmd)
@@ -57,8 +72,10 @@ module OpenShift
                   -N \
                   -k #{@container.skel_dir} \
           #{@container.uuid}}
-          if @container.supplementary_groups != ""
-            cmd << %{ -G "#{@container.supplementary_groups}"}
+          if @container.supplementary_groups
+            cmd << %{ -G "openshift,#{@container.supplementary_groups}" }
+          else
+            cmd << %{ -G "openshift" }
           end
           out,err,rc = ::OpenShift::Runtime::Utils::oo_spawn(cmd)
           raise ::OpenShift::Runtime::UserCreationException.new(
@@ -77,75 +94,100 @@ module OpenShift
           end
           set_ro_permission_R(@container_metadata)
 
+          tmp_dir = File.join(@container.container_dir, ".tmp")
+          FileUtils.mkdir_p(tmp_dir)
+          set_rw_permission_R(tmp_dir)
+          FileUtils.chmod(0o1777, tmp_dir)
+
           security_field = "static,label=unconfined_u:system_r:openshift_t:#{@mcs_label}"
           external_ip_addr = "#{get_nat_ip_address}/#{get_nat_ip_mask}"
           external_ip_mask = get_nat_ip_mask
           route            = @container_config.get('LIBVIRT_PRIVATE_IP_ROUTE')
           gw               = @container_config.get('LIBVIRT_PRIVATE_IP_GW')
 
-          cmd = "/usr/bin/virt-sandbox-service create " +
+          cmd = "create " +
               "-U #{@container.uid} -G #{@container.gid} " +
-              "-p #{File.join(@container.base_dir,'gears')} -s #{security_field} " +
-              "-N address=#{external_ip_addr}/#{external_ip_mask}," +
+              "-p #{File.join(@container.base_dir,'gear')} -s #{security_field} " +
+              "-N address=#{external_ip_addr}," +
               "route=#{route}%#{gw} " +
               "-f openshift_var_lib_t " +
               "-m host-bind:/dev/container-id=#{@container_metadata}/container-id " +
                  "host-bind:/proc/meminfo=/proc/meminfo " +
+                 "host-bind:/tmp=#{tmp_dir} " +
+                 "host-bind:/var/tmp=#{tmp_dir} " +
               " -- " +
               "#{@container.uuid} /usr/sbin/oo-gear-init"
-          out, err, rc = ::OpenShift::Runtime::Utils::oo_spawn(cmd)
-          raise ::UserCreationException.new( "Failed to create lxc container. rc=#{rc}, out=#{out}, err=#{err}" ) if rc != 0
+          out, err, rc = virt_sandbox_command(cmd)
+          raise ::OpenShift::Runtime::UserCreationException.new( "Failed to create lxc container. rc=#{rc}, out=#{out}, err=#{err}" ) if rc != 0
 
           container_link = File.join(@container.container_dir, @container.uuid)
-          FileUtils.ln_s("/var/lib/openshift/gears", container_link)
+          FileUtils.ln_s(File.join(@container.base_dir,'gear'), container_link)
           set_ro_permission(container_link)
+
+          @container.initialize_homedir(@container.base_dir, @container.container_dir)
+
+          @container.add_env_var("OPENSHIFT_PROXY_IP", @config.get('PUBLIC_IP'))
 
           start
         end
 
-        # Public: Destroys a gear stopping all processes and removing all files
+        ##
+        # Public: Starts the LibVirt Sandbox based container and re-initialized the forwarding rules and proxy mappings.
+        # This is the equavalent of unidling the container.
         #
-        # The order of the calls and gyrations done in this code is to prevent
-        #   pam_namespace from locking polyinstantiated directories during
-        #   their deletion. If you see "broken" gears, i.e. ~uuid/.tmp and
-        #    ~/uuid/.sandbox after #destroy has been called, this method is broken.
-        # See Bug 853582 for history.
-        #
-        # Examples
-        #
-        #   destroy
-        #   # => nil
-        #
-        # Returns nil on Success or raises on Failure
-        def destroy
-          if File.exist?("/etc/libvirt-sandbox/services/#{@uuid}.sandbox")
-            container_stop if container_running?
+        # If the container is already running, this method will reload the network mappings for the container.
+        def start(options={})
+          return if File.exists?("/dev/container-id")
 
-            out, _, _ = ::OpenShift::Runtime::Utils::oo_spawn("/usr/bin/virt-sandbox-service list")
-            if out.split("\n").include?(@uuid)
-              out, err, rc = ::OpenShift::Runtime::Utils::oo_spawn("/usr/bin/virt-sandbox-service delete #{@uuid}")
-              raise Exception.new( "Failed to delete lxc container. rc=#{rc}, out=#{out}, err=#{err}" ) if rc != 0
+          was_running = container_running?
+
+          unless was_running
+            out, err, rc = virt_command("start #{@container.uuid}")
+            raise Exception.new( "Failed to start lxc container. rc=#{rc}, out=#{out}, err=#{err}" ) if rc != 0
+          end
+
+          if (not was_running) || (options.has_key?(:from_libvirt_hook) && options[:from_libvirt_hook])
+            #Wait for container to become available
+            for i in 1..10
+              begin
+                if not container_running?
+                  sleep 1
+                  next
+                end
+                _,_,rc = run_in_container_context("echo 0")
+                break if  rc == 0
+                sleep 1
+              rescue => e
+                #ignore
+              end
             end
+
+            _,_,rc = run_in_container_context("echo 0")
+            raise Exception.new( "Failed to start lxc container. rc=#{rc}" ) if rc != 0
+
+            reload_network
+
+            #fix tmp permissions
+            run_in_container_root_context("chmod a+rwxt /tmp /var/tmp")
+          end
+        end
+
+        ##
+        # Public: Destroys the LibVirt Sandbox based container and deletes the associated POSIX user and group.
+        # If the container is running, it will be stopped and all processed killed before it is destroyed.
+        # This method will also clean up firewalld forwarding rules and HTTP proxy mappings.
+        def destroy
+          if container_exists?
+            stop() if container_running?
+
+            out, err, rc = virt_sandbox_command("delete #{@container.uuid}")
+            raise Exception.new( "Failed to delete lxc container. rc=#{rc}, out=#{out}, err=#{err}" ) if rc != 0
 
             FileUtils.rm_rf @container_metadata
           end
 
-
-          # These calls and their order is designed to release pam_namespace's
-          #   locks on .tmp and .sandbox. Change then at your peril.
-          #
-          # 1. Kill off the easy processes
-          # 2. Lock down the user from creating new processes (cgroups freeze, nprocs 0)
-          # 3. Attempt to move any processes that didn't die into state 'D' (re: cgroups freeze)
-          @container.kill_procs
-          freeze_fs_limits
-          freeze_cgroups
-
           last_access_dir = @config.get("LAST_ACCESS_DIR")
           ::OpenShift::Runtime::Utils::oo_spawn("rm -f #{last_access_dir}/#{@container.name} > /dev/null")
-          @container.kill_procs
-
-          purge_sysvipc
           delete_all_public_endpoints
 
           if @config.get("CREATE_APP_SYMLINKS").to_i == 1
@@ -198,11 +240,6 @@ Dir(after)    #{@container.uuid}/#{@container.uid} => #{list_home_dir(@container
                         }
           end
 
-          # release resources (cgroups thaw), this causes Zombies to get killed
-          unfreeze_cgroups
-          stop_cgroups
-          disable_fs_limits
-
           # try one last time...
           if File.exists?(@container.container_dir)
             sleep(5)                    # don't fear the reaper
@@ -211,53 +248,37 @@ Dir(after)    #{@container.uuid}/#{@container.uid} => #{list_home_dir(@container
           end
         end
 
-        # Private: Kill all processes for a given gear
-        #
-        # Kill all processes owned by the uid or uuid.
-        # No reason for graceful shutdown first, the directories and user are going
-        #   to be removed from the system.
-        #
-        # Examples:
-        # kill_gear_procs
-        #    => true
-        #    pkill -u id
-        #
-        # Raises exception on error.
-        #
-        def stop
-          @container.kill_procs
-          out, err, rc = ::OpenShift::Runtime::Utils::oo_spawn("/usr/bin/virt-sandbox-service stop #{@uuid}")
+        ##
+        # Public: Stops the LibVirt Sandbox based container but does not destroy it. This is the equavalent of
+        # Idling the container.
+        def stop(option={})
+          return if File.exists?("/dev/container-id")
+
+          out, err, rc = virt_command("shutdown #{@container.uuid}")
           raise Exception.new( "Failed to stop lxc container. rc=#{rc}, out=#{out}, err=#{err}" ) if rc != 0
         end
 
-        def start
-          out, err, rc = ::OpenShift::Runtime::Utils::oo_spawn("/usr/bin/virt-sandbox-service start #{@container.uuid} < /dev/null > /dev/null 2> /dev/null &")
-          raise Exception.new( "Failed to start lxc container. rc=#{rc}, out=#{out}, err=#{err}" ) if rc != 0
-
-          #Wait for container to become available
-          for i in 1..10
-            sleep 1
-            begin
-              _,_,rc = run_in_container_context("echo 0")
-              break if  rc == 0
-            rescue => e
-              #ignore
-            end
-          end
-
-          _,_,rc = run_in_container_context("echo 0")
-          raise Exception.new( "Failed to start lxc container. rc=#{rc}, out=#{out}, err=#{err}" ) if rc != 0
-
-          reload_network
+        def idle(options={})
+          stop(options)
         end
 
-        # Deterministically constructs an IP address for the given UID based on the given
+        def unidle(options={})
+          start(options)
+        end
+
+        def boost(&block)
+          yield block
+        end
+
+        ##
+        # Public: Deterministically constructs an IP address for the given UID based on the given
         # host identifier (LSB of the IP). The host identifier must be a value between 1-127
         # inclusive.
         #
         # The global user IP range begins at 0x7F000000.
         #
-        # Returns an IP address string in dotted-quad notation.
+        # @param [Integer] host_id A unique numberic ID for a cartridge mapping
+        # @return an IP address string in dotted-quad notation.
         def get_ip_addr(host_id)
           raise "Invalid host_id specified" unless host_id && host_id.is_a?(Integer)
 
@@ -267,96 +288,61 @@ Dir(after)    #{@container.uuid}/#{@container.uid} => #{list_home_dir(@container
           "169.254.169." + host_id.to_s
         end
 
-        def create_public_endpoint(private_ip, private_port)
-          container_ip   = get_nat_ip_address
+        ##
+        # Public: Given a private IP and port within the container, creates iptables/firewall rules to forward
+        # traffic to the external IP of the host machine.
+        #
+        # @param private_ip [String] Container internal IP that the service is bound to in dotted quad notation.
+        # @param private_port [String] Port number that the service is bound to in dotted quad notation.
+        # @return [Integer] public port number that the service has been forwarded to.
+        def create_public_endpoint(cartridge, endpoint)
+          container_endpoint_ip, container_endpoint_port = get_container_cartridge_endpoint(cartridge, endpoint)
+
+          env = ::OpenShift::Runtime::Utils::Environ.for_gear(@container.container_dir)
+          container_internal_ip   = env[endpoint.private_ip_name]
+          container_internal_port = endpoint.private_port
+
           public_port    = get_open_proxy_port
           node_ip        = @config.get('PUBLIC_IP')
 
-          create_iptables_rules(:add, public_port, container_ip, node_ip, private_ip, private_port)
+          iptables_rules(:add, node_ip, public_port, container_endpoint_ip, container_endpoint_port, container_internal_ip, container_internal_port)
 
           public_port
         end
 
+        ##
+        # Public: Given a list of proxy mappings, removes any iptables/firewall rules that are forwarding traffic.
+        #
+        # @param proxy_mappings [Array] Array of proxy mappings
         def delete_public_endpoints(proxy_mappings)
           proxy_mappings.each do |mapping|
-            public_port  = mapping[:proxy_port]
-            container_ip = get_nat_ip_address
             node_ip      = @config.get('PUBLIC_IP')
-            private_ip   = mapping[:private_ip]
-            private_port = mapping[:private_port]
+            public_port  = mapping[:proxy_port]
+            container_endpoint_ip = mapping[:container_endpoint_ip]
+            container_endpoint_port = mapping[:container_endpoint_port]
+            container_internal_ip   = mapping[:private_ip]
+            container_internal_port = mapping[:private_port]
 
-            create_iptables_rules(:delete, public_port, container_ip, node_ip, private_ip, private_port)
+            iptables_rules(:delete, node_ip, public_port, container_endpoint_ip, container_endpoint_port, container_internal_ip, container_internal_port)
           end
         end
 
-        # Public: Initialize OpenShift Port Proxy for this gear
-        #
-        # The port proxy range is determined by configuration and must
-        # produce identical results to the abstract cartridge provided
-        # range.
-        #
-        # Examples:
-        # reset_openshift_port_proxy
-        #    => true
-        #    service openshift_port_proxy setproxy 35000 delete 35001 delete etc...
-        #
-        # Returns:
-        #    true   - port proxy could be initialized properly
-        #    false  - port proxy could not be initialized properly
+        ##
+        # Public: Removes all iptables/firewall rules that are forwarding traffic for this container
         def delete_all_public_endpoints
           delete_public_endpoints(@container.list_proxy_mappings)
         end
 
-        def recreate_all_public_endpoints
-          delete_all_public_endpoints
-          proxy_mappings.each do |mapping|
-            public_port  = mapping[:proxy_port]
-            container_ip = get_nat_ip_address
-            node_ip      = @config.get('PUBLIC_IP')
-            private_ip   = mapping[:private_ip]
-            private_port = mapping[:private_port]
-
-            create_iptables_rules(:add, public_port, container_ip, node_ip, private_ip, private_port)
-          end
-        end
-
-        #TODO: notes why disabled
-        def enable_cgroups
-          #out,err,rc = ::OpenShift::Runtime::Utils::oo_spawn("service cgconfig status > /dev/null 2>&1")
-          #
-          #if rc == 0
-          #  out,err,rc = ::OpenShift::Runtime::Utils::oo_spawn("/usr/sbin/oo-admin-ctl-cgroups startuser #{@container.uuid} > /dev/null")
-          #  raise ::OpenShift::Runtime::UserCreationException.new("Unable to setup cgroups for #{@container.uuid}: stdout -- #{out} stderr --#{err}}") unless rc == 0
-          #end
-        end
-
-        def stop_cgroups
-          #out,err,rc = ::OpenShift::Runtime::Utils::oo_spawn("service cgconfig status > /dev/null 2>&1")
-          #::OpenShift::Runtime::Utils::oo_spawn("/usr/sbin/oo-admin-ctl-cgroups stopuser #{@container.uuid} > /dev/null") if rc == 0
-        end
-
-        def enable_fs_limits
-          cmd = "/bin/sh #{File.join('/usr/libexec/openshift/lib', "setup_pam_fs_limits.sh")} #{@container.uuid} #{@container.quota_blocks ? @container.quota_blocks : ''} #{@container.quota_files ? @container.quota_files : ''}"
-          out,err,rc = ::OpenShift::Runtime::Utils::oo_spawn(cmd)
-          raise ::OpenShift::Runtime::UserCreationException.new("Unable to setup pam/fs limits for #{@container.name}: stdout -- #{out} stderr -- #{err}") unless rc == 0
-        end
-
-        def disable_fs_limits
-          cmd = "/bin/sh #{File.join("/usr/libexec/openshift/lib", "teardown_pam_fs_limits.sh")} #{@container.uuid}"
-          out,err,rc = ::OpenShift::Runtime::Utils::oo_spawn(cmd)
-          raise ::OpenShift::Runtime::UserCreationException.new("Unable to teardown pam/fs/nproc limits for #{@container.uuid}") unless rc == 0
-        end
-
-        # run_in_container_context(command, [, options]) -> [stdout, stderr, exit status]
+        ##
+        # Public: Executes specified command inside the container and return its stdout, stderr and exit status or,
+        # raise exceptions if certain conditions are not met. If executed from within a container, it does not
+        # attempt to re-enter container context.
         #
-        # Executes specified command and return its stdout, stderr and exit status.
-        # Or, raise exceptions if certain conditions are not met.
-        # The command is as container user in a SELinux context using runuser/runcon.
-        # The environment variables are cleared and mys be specified by :env.
+        # The command is run within the container and is automiatically constrainged by SELinux context.
+        # The environment variables are cleared and may be specified by :env.
         #
-        # command: command line string which is passed to the standard shell
-        #
-        # options: hash
+        # @param [String] command command line string which is passed to the standard shell
+        # @param [Hash] options
         #   :env: hash
         #     name => val : set the environment variable
         #     name => nil : unset the environment variable
@@ -371,21 +357,27 @@ Dir(after)    #{@container.uuid}/#{@container.uid} => #{list_home_dir(@container
         #   :err                       : If specified, STDERR from the child process will be redirected to the
         #                                provided +IO+ object.
         #
+        # @return [Array] stdout, stderr, exit status
+        #
         # NOTE: If the +out+ or +err+ options are specified, the corresponding return value from +oo_spawn+
         # will be the incoming/provided +IO+ objects instead of the buffered +String+ output. It's the
         # responsibility of the caller to correctly handle the resulting data type.
         def run_in_container_context(command, options = {})
           require 'openshift-origin-node/utils/selinux'
           options[:unsetenv_others] = true
+          options[:force_selinux_context] = false
 
           if options[:env].nil? or options[:env].empty?
             options[:env] = ::OpenShift::Runtime::Utils::Environ.for_gear(@container.container_dir)
           end
 
-          if not File.exist?("/dev/container-id")
+          if not File.exists?("/dev/container-id")
+            #options[:cgroup] = "/machine/#{@container.uuid}.libvirt-lxc"
             command = "cd #{options[:chdir]} ; #{command}" if options[:chdir]
-            command = "/usr/bin/nsjoin #{@container.uuid} \"#{command}\""
-            OpenShift::Runtime::Utils::oo_spawn(command, options)
+            options.delete :uid
+
+            command = %Q{execute #{@container.uuid} -- /sbin/runuser -s /bin/bash #{@container.uuid} -c "#{command}"}
+            virt_sandbox_command(command, options)
           else
             options[:uid] = @container.uid
             OpenShift::Runtime::Utils::oo_spawn(command, options)
@@ -420,6 +412,52 @@ Dir(after)    #{@container.uuid}/#{@container.uid} => #{list_home_dir(@container
         def set_rw_permission(*paths)
           PathUtils.oo_chown(@container.uid, @container.gid, paths)
           OpenShift::Runtime::Utils::SELinux.set_mcs_label(@mcs_label, paths)
+        end
+
+        ##
+        # Maps a given endpoint to the container IP and port where it is avaible.
+        #
+        # @param [Cartridge] cartridge the endpoint belongs to
+        # @param [Endpoint] endpoint to map to ip and host
+        # @return [String] Mapped endpoint in "IP:Port" format
+        def get_container_cartridge_endpoint(cartridge, endpoint)
+          env = ::OpenShift::Runtime::Utils::Environ.for_gear(@container.container_dir)
+          [get_nat_ip_address, env["OPENSHIFT_INT_" + endpoint.private_port_name]]
+        end
+
+        ##
+        # Maps a
+        def create_container_cartridge_endpoint(cartridge, endpoint, private_ip)
+          private_port = endpoint.private_port
+          container_port = get_open_container_proxy_port
+          container_ip = get_nat_ip_address
+          @container.add_env_var("OPENSHIFT_INT_" + endpoint.private_port_name, container_port)
+
+          command = "iptables -t nat -A PREROUTING " +
+              "-d #{container_ip} -p tcp --dport=#{container_port} " +
+              "-j DNAT --to-destination #{private_ip}:#{private_port};" +
+              #"iptables -t nat -A OUTPUT " +
+              #"-d #{container_ip} -p tcp --dport=#{container_port} " +
+              #"-j DNAT --to-destination #{private_ip}:#{private_port};" +
+              "iptables-save > #{@container.container_dir}/.iptables;"
+          run_in_container_root_context(command)
+          [container_ip, container_port]
+        end
+
+        def delete_container_cartridge_endpoint(cartridge, endpoint, private_ip)
+          private_port = endpoint.private_port
+          container_port = get_open_container_proxy_port
+          container_ip = get_nat_ip_address
+          @container.remove_env_var("OPENSHIFT_INT_" + endpoint.private_port_name, container_port)
+
+          command = "iptables -t nat -D PREROUTING " +
+              "-d #{container_ip} -p tcp --dport=#{container_port} " +
+              "-j DNAT --to-destination #{private_ip}:#{private_port};" +
+              #"iptables -t nat -D OUTPUT " +
+              #"-d #{container_ip} -p tcp --dport=#{container_port} " +
+              #"-j DNAT --to-destination #{private_ip}:#{private_port};" +
+              "iptables-save > #{@container.container_home}/.iptables;"
+          run_in_container_root_context(command)
         end
 
         private
@@ -465,40 +503,31 @@ Dir(after)    #{@container.uuid}/#{@container.uid} => #{list_home_dir(@container
           nil
         end
 
+        def get_open_container_proxy_port
+          env = ::OpenShift::Runtime::Utils::Environ.for_gear(@container.container_dir)
+
+          used_ports = []
+          env.each do |name, val|
+            used_ports << val.to_i if name.start_with? "OPENSHIFT_INT_"
+          end
+
+          (1025..65536).each do |port|
+            return port unless used_ports.include? port
+          end
+          nil
+        end
+
         def reload_network
           set_default_route
           define_dummy_iface
+          recreate_all_container_endpoints
+          recreate_all_public_endpoints
         end
 
-        # run_in_container_root_context(command, [, options]) -> [stdout, stderr, exit status]
-        #
-        # Executes specified command and return its stdout, stderr and exit status.
-        # Or, raise exceptions if certain conditions are not met.
-        # The command is run as root within the container.
-        # The environment variables are cleared and may be specified by :env.
-        #
-        # command: command line string which is passed to the standard shell
-        #
-        # options: hash
-        #   :env: hash
-        #     name => val : set the environment variable
-        #     name => nil : unset the environment variable
-        #   :chdir => path             : set current directory when running command
-        #   :expected_exitstatus       : An Integer value for the expected return code of command
-        #                              : If not set spawn() returns exitstatus from command otherwise
-        #                              : raise an error if exitstatus is not expected_exitstatus
-        #   :timeout                   : Maximum number of seconds to wait for command to finish. default: 3600
-        #                              : stdin for the command is /dev/null
-        #   :out                       : If specified, STDOUT from the child process will be redirected to the
-        #                                provided +IO+ object.
-        #   :err                       : If specified, STDERR from the child process will be redirected to the
-        #                                provided +IO+ object.
-        #
-        # NOTE: If the +out+ or +err+ options are specified, the corresponding return value from +oo_spawn+
-        # will be the incoming/provided +IO+ objects instead of the buffered +String+ output. It's the
-        # responsibility of the caller to correctly handle the resulting data type.
         def run_in_container_root_context(command, options = {})
           options[:unsetenv_others] = true
+          options[:force_selinux_context] = false
+          options[:cgroup] = "/machine/#{@container.uuid}.libvirt-lxc"
 
           if options[:env].nil? or options[:env].empty?
             options[:env] = ::OpenShift::Runtime::Utils::Environ.for_gear(@container.container_dir)
@@ -506,30 +535,11 @@ Dir(after)    #{@container.uuid}/#{@container.uid} => #{list_home_dir(@container
 
           if not File.exist?("/dev/container-id")
             command = "cd #{options[:chdir]} ; #{command}" if options[:chdir]
-            command = "/usr/bin/virt-sandbox-service execute #{@container.uuid} -- /bin/bash -c '#{command}'"
-            OpenShift::Runtime::Utils::oo_spawn(command, options)
+            command = "execute #{@container.uuid} -- /bin/bash -c '#{command}'"
+            virt_sandbox_command(command, options)
           else
             OpenShift::Runtime::Utils::oo_spawn(command, options)
           end
-        end
-
-        def freeze_fs_limits
-          cmd = "/bin/sh #{File.join('/usr/libexec/openshift/lib', "setup_pam_fs_limits.sh")} #{@container.uuid} 0 0 0"
-          out,err,rc = ::OpenShift::Runtime::Utils::oo_spawn(cmd)
-          raise ::OpenShift::Runtime::UserCreationException.new("Unable to setup pam/fs/nproc limits for #{@container.uuid}") unless rc == 0
-        end
-
-        def freeze_cgroups
-          #out,err,rc = ::OpenShift::Runtime::Utils::oo_spawn("service cgconfig status > /dev/null")
-          #if rc == 0
-          #  ::OpenShift::Runtime::Utils::oo_spawn("/usr/sbin/oo-admin-ctl-cgroups freezeuser #{@container.uuid} > /dev/null") if rc == 0
-          #end
-        end
-
-        # release resources (cgroups thaw), this causes Zombies to get killed
-        def unfreeze_cgroups
-          #out,err,rc = ::OpenShift::Runtime::Utils::oo_spawn("service cgconfig status > /dev/null")
-          #::OpenShift::Runtime::Utils::oo_spawn("/usr/sbin/oo-admin-ctl-cgroups thawuser #{@container.uuid} > /dev/null") if rc == 0
         end
 
         # Private: list directories (cartridges) in home directory
@@ -546,34 +556,6 @@ Dir(after)    #{@container.uuid}/#{@container.uid} => #{list_home_dir(@container
           results.join(', ')
         end
 
-        # Private: Purge IPC entities for a given gear
-        #
-        # Enumerate and remove all IPC entities for a given user ID or
-        # user name.
-        #
-        # Examples:
-        # purge_sysvipc
-        #    => true
-        #    ipcs -c
-        #    ipcrm -s id
-        #    ipcrm -m id
-        #
-        # Raises exception on error.
-        #
-        def purge_sysvipc
-          ['-m', '-q', '-s' ].each do |ipctype|
-            out,err,rc=::OpenShift::Runtime::Utils::oo_spawn(%{/usr/bin/ipcs -c #{ipctype} 2> /dev/null})
-            out.lines do |ipcl|
-              next unless ipcl=~/^\d/
-              ipcent = ipcl.split
-              if ipcent[2] == @container.uuid
-                # The ID may already be gone
-                ::OpenShift::Runtime::Utils::oo_spawn(%{/usr/bin/ipcrm #{ipctype} #{ipcent[0]}})
-              end
-            end
-          end
-        end
-
         def dotted_to_cidr(mask)
           IPAddr.new(mask, Socket::AF_INET).to_i.to_s(2).count('1')
         end
@@ -586,19 +568,16 @@ Dir(after)    #{@container.uuid}/#{@container.uid} => #{list_home_dir(@container
           iprange = @container_config.get('LIBVIRT_PRIVATE_IP_RANGE')
 
           valid_ips = IPAddr.new(iprange).to_range
+          first_ip = valid_ips.first.to_i + 1
+          last_ip  = valid_ips.first.to_i
+          gw_ip    = IPAddr.new(@container_config.get('LIBVIRT_PRIVATE_IP_GW')).to_i
+
           uid_offset = @container.uid.to_i - @uid_begin
-          gw_ip = @container_config.get('LIBVIRT_PRIVATE_IP_GW')
+          nat_ip = first_ip + uid_offset
 
-          #offset to skip address ending in .0
-          nat_ip = valid_ips.first(uid_offset + 2).last.to_s
-          if( nat_ip == gw_ip )
-            nat_ip = valid_ips.first(uid_offset + 3).last.to_s
-          end
+          nat_ip += 1 if( nat_ip >= gw_ip )
 
-          mask = iprange.split('/')[1]
-          mask = dotted_to_cidr(mask) if mask.match('\.')
-
-          nat_ip
+          IPAddr.new(nat_ip, Socket::AF_INET).to_s
         end
 
         def get_nat_ip_mask
@@ -609,46 +588,120 @@ Dir(after)    #{@container.uuid}/#{@container.uid} => #{list_home_dir(@container
           mask
         end
 
-        def create_iptables_rules(action, public_port, container_ip, node_ip, private_ip, private_port)
+        def recreate_all_container_endpoints
+          run_in_container_root_context("iptables-restore < #{@container.container_dir}/.iptables")
+        end
+
+        ##
+        # Private: Delete and recreate all iptables/firewall rules for this container.
+        # This is useful when restarting or restoring a LibVirt Sandbox based container.
+        def recreate_all_public_endpoints
+          proxy_mappings = @container.list_proxy_mappings
+          delete_public_endpoints(proxy_mappings)
+          proxy_mappings.each do |mapping|
+            node_ip      = @config.get('PUBLIC_IP')
+            public_port  = mapping[:proxy_port]
+            container_endpoint_ip = mapping[:container_endpoint_ip]
+            container_endpoint_port = mapping[:container_endpoint_port]
+            container_internal_ip = mapping[:private_ip]
+            container_internal_port = mapping[:private_port]
+
+            iptables_rules(:add, node_ip, public_port, container_endpoint_ip, container_endpoint_port, container_internal_ip, container_internal_port)
+          end
+        end
+
+        def iptables_rules(action, node_ip, public_port, container_endpoint_ip, container_endpoint_port, container_internal_ip, container_internal_port)
           if action == :add
             cmd = "iptables -t nat -A PREROUTING " +
-                "-d #{container_ip} -p tcp --dport=#{public_port} " +
-                "-j DNAT --to-destination #{private_ip}:#{private_port};" +
+                "-d #{node_ip} -p tcp --dport=#{public_port} " +
+                "-j DNAT --to-destination #{container_endpoint_ip}:#{container_endpoint_port};" +
                 "iptables -t nat -A OUTPUT " +
-                "-d #{container_ip} -p tcp --dport=#{public_port} " +
-                "-j DNAT --to-destination #{private_ip}:#{private_port};"
-            run_in_container_root_context(cmd)
-
-            cmd = "firewall-cmd --direct --passthrough ipv4 -t nat -A PREROUTING " +
                 "-d #{node_ip} -p tcp --dport=#{public_port} " +
-                "-j DNAT --to-destination #{container_ip}:#{public_port};" +
-                "firewall-cmd --direct --passthrough ipv4 -t nat -A OUTPUT " +
-                "-d #{node_ip} -p tcp --dport=#{public_port} " +
-                "-j DNAT --to-destination #{container_ip}:#{public_port};" +
-                "firewall-cmd --direct --passthrough ipv4 -t filter -I FORWARD " +
-                "-p tcp --dport #{public_port} -d #{container_ip} -j ACCEPT"
+                "-j DNAT --to-destination #{container_endpoint_ip}:#{container_endpoint_port};" +
+                "iptables -t filter -I FORWARD " +
+                "-p tcp --dport #{container_endpoint_port} -d #{container_endpoint_ip} -j ACCEPT"
+            #cmd = "firewall-cmd --zone=public --add-forward-port=port=#{public_port}:proto=tcp:toaddr=#{container_endpoint_ip}:toport=#{container_endpoint_port}"
             ::OpenShift::Runtime::Utils::oo_spawn(cmd)
+
+            cmd = "iptables -t nat -I OUTPUT -d #{node_ip} -p tcp -m tcp --dport #{public_port} " +
+                    "-j DNAT --to-destination #{container_internal_ip}:#{container_internal_port};" +
+                  "iptables-save > #{@container.container_dir}/.iptables;"
+            run_in_container_root_context(cmd)
           end
 
           if action == :delete
             cmd = "iptables -t nat -D PREROUTING " +
-                "-d #{container_ip} -p tcp --dport=#{public_port} " +
-                "-j DNAT --to-destination #{private_ip}:#{private_port};" +
+                "-d #{node_ip} -p tcp --dport=#{public_port} " +
+                "-j DNAT --to-destination #{container_endpoint_ip}:#{container_endpoint_port};" +
                 "iptables -t nat -D OUTPUT " +
-                "-d #{container_ip} -p tcp --dport=#{public_port} " +
-                "-j DNAT --to-destination #{private_ip}:#{private_port};"
-            run_in_container_root_context(cmd)
-
-            cmd = "firewall-cmd --direct --passthrough ipv4 -t nat -D PREROUTING " +
                 "-d #{node_ip} -p tcp --dport=#{public_port} " +
-                "-j DNAT --to-destination #{container_ip}:#{public_port};" +
-                "firewall-cmd --direct --passthrough ipv4 -t nat -D OUTPUT " +
-                "-d #{node_ip} -p tcp --dport=#{public_port} " +
-                "-j DNAT --to-destination #{container_ip}:#{public_port};" +
-                "firewall-cmd --direct --passthrough ipv4 -t filter -D FORWARD " +
-                "-p tcp --dport #{public_port} -d #{container_ip} -j ACCEPT"
+                "-j DNAT --to-destination #{container_endpoint_ip}:#{container_endpoint_port};" +
+                "iptables -t filter -D FORWARD " +
+                "-p tcp --dport #{container_endpoint_port} -d #{container_endpoint_ip} -j ACCEPT"
+            #cmd = "firewall-cmd --zone=public --remove-forward-port=port=#{public_port}:proto=tcp:toaddr=#{container_endpoint_ip}:toport=#{container_endpoint_port}"
             ::OpenShift::Runtime::Utils::oo_spawn(cmd)
+            cmd = "iptables -t nat -D OUTPUT -d #{node_ip} -p tcp -m tcp --dport #{public_port} " +
+                "-j DNAT --to-destination #{container_internal_ip}:#{container_internal_port};" +
+                "iptables-save > #{@container.container_dir}/.iptables;"
+            run_in_container_root_context(cmd)
           end
+        end
+
+        def container_list
+          out, _, _ = virt_command("list --all")
+          out.split("\n")[2..-1].map! do |m|
+            m = m.split(" ")
+            {
+              name:  m[1],
+              state: m[2..-1].join(" "),
+            }
+          end
+        end
+
+        def container_exists?
+          return false unless File.exist?("/etc/libvirt-sandbox/services/#{@container.uuid}")
+          container_list.each do |m|
+            return true if m[:name] == @container.uuid
+          end
+          return false
+        end
+
+        def container_running?
+          container_list.each do |m|
+            return true if m[:name] == @container.uuid and m[:state] == "running"
+          end
+          return false
+        end
+
+        def virt_command(cmd, options={})
+          virt_lock_file = "/var/lock/oo-virt"
+          out, err, rc = 0
+          File.open(virt_lock_file, File::RDWR|File::CREAT|File::TRUNC, 0o0600) do | virt_lock |
+            virt_lock.fcntl(Fcntl::F_SETFD, Fcntl::FD_CLOEXEC)
+            virt_lock.flock(File::LOCK_EX)
+
+            out, err, rc = ::OpenShift::Runtime::Utils::oo_spawn("/usr/bin/virsh -c lxc:/// #{cmd}", options)
+
+            virt_lock.flock(File::LOCK_UN)
+          end
+
+          [out, err, rc]
+        end
+
+        def virt_sandbox_command(cmd, options={})
+          virt_lock_file = "/var/lock/oo-virt"
+          out, err, rc = 0
+
+          File.open(virt_lock_file, File::RDWR|File::CREAT|File::TRUNC, 0o0600) do | virt_lock |
+            virt_lock.fcntl(Fcntl::F_SETFD, Fcntl::FD_CLOEXEC)
+            virt_lock.flock(File::LOCK_EX)
+
+            out, err, rc = ::OpenShift::Runtime::Utils::oo_spawn("/usr/bin/virt-sandbox-service #{cmd}", options)
+
+            virt_lock.flock(File::LOCK_UN)
+          end
+
+          [out, err, rc]
         end
       end
     end

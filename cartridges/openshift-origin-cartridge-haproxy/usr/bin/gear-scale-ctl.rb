@@ -5,6 +5,7 @@ require 'rest-client'
 require 'openshift-origin-node'
 require 'pp'
 require 'json'
+require 'etc'
 
 #$create_url='curl -k -X POST -H "Accept: application/xml" --user "%s:%s" https://%s/broker/rest/domains/%s/applications'
 #$scale_url="#{$create_url}/%s/events"
@@ -29,10 +30,12 @@ class Gear_scale_ctl
     @action = action
     @opts = opts
 
+    u = Etc.getpwnam(opts['uuid'])
+
     base_url = "#{$base_url % opts["server"]}#{$scale_url % [opts['namespace'], opts['app']]}"
     params = {
-        'broker_auth_key' => File.read("/var/lib/openshift/#{opts['uuid']}/.auth/token"),
-        'broker_auth_iv' => File.read("/var/lib/openshift/#{opts['uuid']}/.auth/iv")
+        'broker_auth_key' => File.read("#{u.dir}/.auth/token"),
+        'broker_auth_iv' => File.read("#{u.dir}/.auth/iv")
     }
     return if not check_scalability(params, action, opts)
 
@@ -142,8 +145,8 @@ class Gear_scale_ctl
   def load_env(opts)
     env = {}
     # Load environment variables into a hash
-    
-    Dir["/var/lib/openshift/#{opts['uuid']}/.env/*"].each { | f |
+    u = Etc.getpwnam(opts['uuid'])
+    Dir["#{u.dir}/.env/*"].each { | f |
       next if File.directory?(f)
       contents = nil
       File.open(f) { |input| contents = input.read.chomp }

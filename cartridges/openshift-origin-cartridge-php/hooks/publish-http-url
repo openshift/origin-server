@@ -6,7 +6,13 @@
 set -e
 
 # Get gear ip address.
-if ! gip=$(facter ipaddress); then
+gip=$OPENSHIFT_PROXY_IP
+
+if [ -z "$gip" ]; then
+  gip=$(facter ipaddress)
+fi
+
+if [ -z "$gip" ]; then
    gip=$(python -c "import socket; print socket.gethostbyname('$(hostname)')")
 fi
 

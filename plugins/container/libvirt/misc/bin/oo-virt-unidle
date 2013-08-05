@@ -1,0 +1,49 @@
+#!/usr/bin/env oo-ruby
+#--
+# Copyright 2013 Red Hat, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#++
+
+require 'pp'
+require 'rubygems'
+require 'openshift-origin-node/model/application_container'
+require 'openshift-origin-node/utils/node_logger'
+require 'openshift-origin-node/utils/environ'
+require 'openshift-origin-node/utils/shell_exec'
+name="#{__FILE__}"
+
+def get_user_procs(user)
+  ::OpenShift::Runtime::Utils::oo_spawn("ps -u #{user.uid} -o state,pid,ppid,cmd")
+end
+
+if(ARGV[1]=="started")
+  container_id = ARGV[0]
+  user = Etc.getpwnam(container_id)
+  container_dir = user.dir
+  Process.daemon
+
+  gear_env = ::OpenShift::Runtime::Utils::Environ.for_gear(container_dir)
+  container = OpenShift::Runtime::ApplicationContainer.new(gear_env['OPENSHIFT_APP_UUID'],
+      gear_env['OPENSHIFT_GEAR_UUID'], user.uid, gear_env['OPENSHIFT_APP_NAME'], gear_env['OPENSHIFT_GEAR_NAME'],
+      gear_env['OPENSHIFT_NAMESPACE'])
+
+  out, err, rc = get_user_procs(user)
+  while out.split("\n").count == 1
+    sleep 0.5
+    out, err, rc = get_user_procs(user)
+  end
+  sleep 3
+
+  container.start_gear({user_initiated: false, from_libvirt_hook: true})
+end

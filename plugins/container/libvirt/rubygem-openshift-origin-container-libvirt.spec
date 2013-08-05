@@ -22,7 +22,9 @@ Requires:      ruby(release)
 Requires:      %{?scl:%scl_prefix}ruby(abi) >= %{rubyabi}
 %endif
 Requires:      %{?scl:%scl_prefix}rubygems
-Requires:      rubygem(openshift-origin-node)
+Requires:      rubygem-openshift-origin-node
+Requires:      rubygem-ruby-libvirt
+Requires:      rubygem-pry
 Requires:      selinux-policy-targeted
 Requires:      policycoreutils-python
 Requires:      libvirt-sandbox
@@ -71,21 +73,26 @@ mkdir -p %{buildroot}%{gem_dir}
 cp -a ./%{gem_dir}/* %{buildroot}%{gem_dir}/
 
 #move the shell binaries into proper location
-#mkdir -p %{buildroot}/usr/bin
+mkdir -p %{buildroot}/usr/bin
 mkdir -p %{buildroot}/usr/sbin
-#mv %{buildroot}%{gem_instdir}/bin/* %{buildroot}/usr/bin/
+mv %{buildroot}%{gem_instdir}/misc/bin/* %{buildroot}/usr/bin/
 mv ./gear-init/* %{buildroot}/usr/sbin/
 
-mkdir -p %{buildroot}/etc/openshift/node-plugins.d
-cp %{buildroot}/%{gem_instdir}/conf/openshift-origin-container-libvirt.conf.example %{buildroot}/etc/openshift/node-plugins.d/
+mkdir -p %{buildroot}/etc/libvirt/hooks
+mv %{buildroot}%{gem_instdir}/misc/libvirt-hooks/lxc %{buildroot}/etc/libvirt/hooks/
+
+mkdir -p %{buildroot}/etc/openshift/
+cp %{buildroot}/%{gem_instdir}/conf/container-libvirt.conf %{buildroot}/etc/openshift/
 
 %files
 %attr(0755,-,-) /usr/sbin/*
+%attr(0755,-,-) /usr/bin/*
+%attr(0755,-,-) /etc/libvirt/hooks/lxc
 %doc %{gem_docdir}
 %{gem_instdir}
 %{gem_spec}
 %{gem_cache}
-/etc/openshift/node-plugins.d/
+%config(noreplace) /etc/openshift/container-libvirt.conf
 
 %changelog
 

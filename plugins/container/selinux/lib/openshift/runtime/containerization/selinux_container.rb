@@ -1,4 +1,6 @@
 require 'openshift-origin-node/utils/node_logger'
+require_relative 'libcgroup'
+::OpenShift::Runtime::Utils::Cgroups.implementation_class = ::OpenShift::Runtime::Containerization::Cgroups::Libcgroup
 
 module OpenShift
   module Runtime
@@ -177,6 +179,18 @@ Dir(after)    #{@container.uuid}/#{@container.uid} => #{list_home_dir(@container
           restore_cgroups
         end
 
+        def idle(options={})
+          stop(options)
+        end
+
+        def unidle(options={})
+          start(options)
+        end
+
+        def boost(&block)
+          ::OpenShift::Runtime::Utils::Cgroups.new(@container.uuid).boost(&block)
+        end
+
         # Deterministically constructs an IP address for the given UID based on the given
         # host identifier (LSB of the IP). The host identifier must be a value between 1-127
         # inclusive.
@@ -202,7 +216,10 @@ Dir(after)    #{@container.uuid}/#{@container.uid} => #{list_home_dir(@container
           "#{ip >> 24}.#{ip >> 16 & 0xFF}.#{ip >> 8 & 0xFF}.#{ip & 0xFF}"
         end
 
-        def create_public_endpoint(private_ip, private_port)
+        def create_public_endpoint(cartridge, endpoint)
+          env = ::OpenShift::Runtime::Utils::Environ.for_gear(@container.container_dir)
+          private_ip = env[endpoint.private_ip_name]
+          private_port = endpoint.private_port
           proxy = ::OpenShift::Runtime::FrontendProxyServer.new
           # Add the public-to-private endpoint-mapping to the port proxy
           public_port = proxy.add(@container.uid, private_ip, private_port)
@@ -329,6 +346,16 @@ Dir(after)    #{@container.uuid}/#{@container.uid} => #{list_home_dir(@container
         def set_rw_permission(paths)
           PathUtils.oo_chown(@container.uid, @container.gid, paths)
           ::OpenShift::Runtime::Utils::SELinux.set_mcs_label(@mcs_label, paths)
+        end
+
+        def get_container_cartridge_endpoint(cartridge, endpoint)
+          return [endpoint.private_ip, endpoint.private_port]
+        end
+
+        def create_container_cartridge_endpoint(cartridge, endpoint, private_ip)
+          gear_env = ::OpenShift::Runtime::Utils::Environ.for_gear(@container.container_dir)
+
+          [get_nat_ip_address, ]
         end
 
         private

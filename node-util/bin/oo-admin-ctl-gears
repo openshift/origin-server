@@ -525,6 +525,9 @@ begin
     raise "Requires a gear uuid." if ARGV[1..-1].nil?
     exitval = OpenShift::Runtime::AdminGearsControl.new(ARGV[1..-1]).unidle
 
+  when 'idleall'
+    exitval = OpenShift::Runtime::AdminGearsControl.new.idle
+
   when 'list'
     OpenShift::Runtime::AdminGearsControl.new.gear_uuids(false).each do |uuid|
       $stdout.puts uuid

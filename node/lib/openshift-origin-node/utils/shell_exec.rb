@@ -81,7 +81,6 @@ module OpenShift
       # will be the incoming/provided +IO+ objects instead of the buffered +String+ output. It's the
       # responsibility of the caller to correctly handle the resulting data type.
       def self.oo_spawn(command, options = {})
-
         options[:env]         ||= (options[:env] || {})
         options[:timeout]     ||= 3600
         options[:buffer_size] ||= 32768
@@ -98,17 +97,22 @@ module OpenShift
             opts[:err] = write_stderr
 
             if options[:uid]
-              # lazy init otherwise we end up with a cyclic require...
-              require 'openshift-origin-node/utils/selinux'
+              if options[:force_selinux_context] == true or options[:force_selinux_context].nil?
+                # lazy init otherwise we end up with a cyclic require...
+                require 'openshift-origin-node/utils/selinux'
 
-              current_context  = SELinux.getcon
-              target_context   = SELinux.context_from_defaults(SELinux.get_mcs_label(options[:uid]))
+                current_context  = SELinux.getcon
+                target_context   = SELinux.context_from_defaults(SELinux.get_mcs_label(options[:uid]))
+
+                if (current_context != target_context)
+                  command        = %Q{exec /usr/bin/runcon '#{target_context}' /bin/sh -c \\"#{command}\\"}
+                end
+              end
 
               # Only switch contexts if necessary
-              if (current_context != target_context) || (Process.uid != options[:uid])
+              if (Process.uid != options[:uid])
                 target_name = Etc.getpwuid(options[:uid]).name
-                exec        = %Q{exec /usr/bin/runcon '#{target_context}' /bin/sh -c \\"#{command}\\"}
-                command     = %Q{/sbin/runuser -s /bin/sh #{target_name} -c "#{exec}"}
+                command     = %Q{/sbin/runuser -s /bin/sh #{target_name} -c "#{command}"}
               end
             end
 

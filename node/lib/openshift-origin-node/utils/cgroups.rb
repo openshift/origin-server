@@ -15,7 +15,7 @@
 #++
 require 'openshift-origin-common/config'
 
-require_relative 'cgroups/libcgroup'
+#require_relative 'cgroups/libcgroup'
 
 module OpenShift
   module Runtime
@@ -53,10 +53,15 @@ module OpenShift
         end
 
         @@templates_cache = nil
+        @@implementation_class = nil
+
+        def self.implementation_class=(clazz)
+          @@implementation_class = clazz
+        end
 
         def initialize(uuid)
           # TODO: Make this configurable and move libcgroup impl to a stand-alone plugin gem.
-          @impl = ::OpenShift::Runtime::Utils::Cgroups::Libcgroup.new(uuid)
+          @impl = @@implementation_class.new(uuid)
         end
 
         def create

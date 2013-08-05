@@ -100,24 +100,24 @@ module OpenShift
 
             if private_ip == nil
               raise "Missing private IP #{endpoint.private_ip_name} for cart #{cart.name} in gear #{@uuid}, "\
-            "required to create public endpoint #{endpoint.public_port_name}"
+                "required to create public endpoint #{endpoint.public_port_name}"
             end
 
-            public_port = create_public_endpoint(private_ip, endpoint.private_port)
+            public_port = create_public_endpoint(cart, endpoint)
             add_env_var(endpoint.public_port_name, public_port)
 
             config = ::OpenShift::Config.new
             output << "NOTIFY_ENDPOINT_CREATE: #{endpoint.public_port_name} #{config.get('PUBLIC_IP')} #{public_port} #{private_ip} #{endpoint.private_port}\n" 
 
             logger.info("Created public endpoint for cart #{cart.name} in gear #{@uuid}: "\
-          "[#{endpoint.public_port_name}=#{public_port}]")
+              "[#{endpoint.public_port_name}=#{public_port}]")
           end
 
           output
         end
 
-        def create_public_endpoint(private_ip, private_port)
-          @container_plugin.create_public_endpoint(private_ip, private_port)
+        def create_public_endpoint(cartridge, endpoint)
+          @container_plugin.create_public_endpoint(cartridge, endpoint)
         end
 
         # Deletes all public endpoints for the given cart. Public port mappings are

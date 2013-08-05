@@ -61,6 +61,7 @@ module OpenShift
             FileUtils.rm_f env_file_path
             status = status ? true : (File.exists?(env_file_path) ? false : true)
           end
+
           status
         end
 

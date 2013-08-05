@@ -1,5 +1,6 @@
 [Unit]
 Description=OpenShift Gears
+After=libvirtd.service
 
 [Service]
 Type=forking

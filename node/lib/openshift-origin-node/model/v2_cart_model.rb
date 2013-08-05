@@ -390,6 +390,7 @@ module OpenShift
         end
 
         delete_private_endpoints(cartridge)
+
         ::OpenShift::Runtime::Utils::Cgroups.new(@container.uuid).boost do
           begin
             stop_cartridge(cartridge, user_initiated: true)
@@ -706,8 +707,8 @@ module OpenShift
       #
       # Returns nil on success, or raises an exception if any errors occur: all errors
       # here are considered fatal.
-      def create_public_endpoint(cartridge, endpoint, private_ip)
-        public_port = @container.create_public_endpoint(private_ip, endpoint.private_port)
+      def create_public_endpoint(cartridge, endpoint, container_endpoint_ip, container_endpoint_port)
+        public_port = @container.create_public_endpoint(cartridge, endpoint)
         @container.add_env_var(endpoint.public_port_name, public_port)
 
         logger.info("Created public endpoint for cart #{cartridge.name} in gear #{@container.uuid}: "\
@@ -720,12 +721,16 @@ module OpenShift
         each_cartridge do |cartridge|
           cartridge.endpoints.each do |endpoint|
             next if gear_env[endpoint.public_port_name].nil?
+            container_endpoint_ip, container_endpoint_port = @container.get_container_cartridge_endpoint(cartridge, endpoint)
+
             proxied_ports << {
-                :private_ip_name  => endpoint.private_ip_name,
-                :public_port_name => endpoint.public_port_name,
-                :private_ip       => gear_env[endpoint.private_ip_name],
-                :private_port     => endpoint.private_port,
-                :proxy_port       => gear_env[endpoint.public_port_name],
+              :private_ip_name  => endpoint.private_ip_name,
+              :public_port_name => endpoint.public_port_name,
+              :private_ip   => gear_env[endpoint.private_ip_name],
+              :private_port => endpoint.private_port,
+              :proxy_port   => gear_env[endpoint.public_port_name],
+              :container_endpoint_ip => container_endpoint_ip,
+              :container_endpoint_port => container_endpoint_port,
             }
           end
         end
@@ -786,10 +791,12 @@ module OpenShift
           logger.info("Created private endpoint for cart #{cartridge.name} in gear #{@container.uuid}: "\
           "[#{endpoint.private_ip_name}=#{private_ip}, #{endpoint.private_port_name}=#{endpoint.private_port}]")
 
+          endpoint_ip, endpoint_port = @container.create_container_cartridge_endpoint(cartridge, endpoint, private_ip)
+
           # Expose the public endpoint if ssl_to_gear option is set
           if endpoint.options and endpoint.options["ssl_to_gear"]
             logger.info("ssl_to_gear option set for the endpoint")
-            create_public_endpoint(cartridge, endpoint, private_ip)
+            create_public_endpoint(cartridge, endpoint, endpoint_ip, endpoint_port)
           end
         end
 
@@ -910,8 +917,9 @@ module OpenShift
           # TODO: exception handling
           cartridge.endpoints.each do |endpoint|
             endpoint.mappings.each do |mapping|
-              private_ip  = gear_env[endpoint.private_ip_name]
-              backend_uri = "#{private_ip}:#{endpoint.private_port}#{mapping.backend}"
+              mapped_ip, mapped_port = @container.get_container_cartridge_endpoint(cartridge, endpoint)
+              backend_uri = "#{mapped_ip}:#{mapped_port}#{mapping.backend}"
+
               options     = mapping.options ||= {}
 
               if endpoint.websocket_port
@@ -1363,6 +1371,7 @@ module OpenShift
       ##
       # Writes the +stop_lock+ file and changes its ownership to the gear user.
       def create_stop_lock
+        logger.debug
         unless stop_lock?
           mcs_label = ::OpenShift::Runtime::Utils::SELinux.get_mcs_label(@container.uid)
           File.new(stop_lock, File::CREAT|File::TRUNC|File::WRONLY, 0644).close()

@@ -64,7 +64,7 @@ module OpenShift
 
       attr_reader :uuid, :application_uuid, :state, :container_name, :application_name, :namespace, :container_dir,
                   :quota_blocks, :quota_files, :base_dir, :gecos, :skel_dir, :supplementary_groups,
-                  :cartridge_model, :container_plugin, :hourglass
+                  :cartridge_model, :container_plugin, :hourglass, :container_plugin, :env
       attr_accessor :uid, :gid
 
       containerization_plugin_gem = ::OpenShift::Config.new.get('CONTAINERIZATION_PLUGIN') 
@@ -333,15 +333,23 @@ module OpenShift
       # Idles the gear if there is no stop lock and state is not already +STOPPED+.
       #
       def idle_gear(options={})
-        if not stop_lock? and (state.value != State::STOPPED)
-          frontend = FrontendHttpServer.new(self)
-          frontend.idle
-          begin
-            output = stop_gear
-          ensure
-            state.value = State::IDLE
+        begin
+          if not stop_lock? and (state.value != State::STOPPED)
+            frontend = FrontendHttpServer.new(self)
+            frontend.idle
+            begin
+              output = stop_gear
+            ensure
+              state.value = State::IDLE
+            end
+            output
           end
-          output
+        ensure
+          begin
+            @container_plugin.idle
+          rescue => e
+            logger.debug(e.to_s)
+          end
         end
       end
 
@@ -350,16 +358,17 @@ module OpenShift
       #
       def unidle_gear(options={})
         output = ""
+        @container_plugin.unidle(options)
         OpenShift::Runtime::Utils::Cgroups.new(@uuid).boost do
-        if stop_lock? and (state.value == State::IDLE)
-          state.value = State::STARTED
-          output      = start_gear
-        end
+          if stop_lock? and (state.value == State::IDLE)
+            state.value = State::STARTED
+            output      = start_gear
+          end
 
-        frontend = FrontendHttpServer.new(self)
-        if frontend.idle?
-          frontend.unidle
-        end
+          frontend = FrontendHttpServer.new(self)
+          if frontend.idle?
+            frontend.unidle
+          end
         end
         output
       end
@@ -368,6 +377,7 @@ module OpenShift
       # Sets the application state to +STARTED+ and starts the gear. Gear state implementation
       # is model specific, but +options+ is provided to the implementation.
       def start_gear(options={})
+        @container_plugin.start(options)
         @cartridge_model.start_gear(options)
       end
 
@@ -535,6 +545,18 @@ module OpenShift
 
       def list_proxy_mappings
         @cartridge_model.list_proxy_mappings
+      end
+
+      def get_container_cartridge_endpoint(cartridge, endpoint)
+        @container_plugin.get_container_cartridge_endpoint(cartridge, endpoint)
+      end
+
+      def create_container_cartridge_endpoint(cartridge, endpoint, private_ip)
+        @container_plugin.create_container_cartridge_endpoint(cartridge, endpoint, private_ip)
+      end
+
+      def delete_container_cartridge_endpoint(cartridge, endpoint, private_ip)
+        @container_plugin.delete_container_cartridge_endpoint(cartridge, endpoint, private_ip)
       end
 
       #

@@ -66,15 +66,11 @@ gem install -V \
 mkdir -p %{buildroot}%{gem_dir}
 cp -a ./%{gem_dir}/* %{buildroot}%{gem_dir}/
 
-mkdir -p %{buildroot}/etc/openshift/node-plugins.d
-cp %{buildroot}/%{gem_instdir}/conf/openshift-origin-container-selinux.conf.example %{buildroot}/etc/openshift/node-plugins.d/
-
 %files
 %doc %{gem_docdir}
 %{gem_instdir}
 %{gem_spec}
 %{gem_cache}
-/etc/openshift/node-plugins.d/
 
 %changelog
 * Thu Aug 08 2013 Adam Miller <admiller@redhat.com> 0.2.1-1
