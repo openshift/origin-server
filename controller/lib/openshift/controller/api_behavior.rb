@@ -44,6 +44,12 @@ module OpenShift
             respond_with reply
           end
         end
+        
+        def check_user_plan_state
+          if (@cloud_user.plan_state == :deactivated or @cloud_user.plan_state == :canceled ) and request.method == "POST"
+            render_error(:forbidden, "Your plan has been deactivated.  You cannot create any new assets or control existing assets until your account has been restored.  You can only delete assets." )
+          end
+        end
 
         def get_url
           @rest_url ||= "#{rest_url}/"

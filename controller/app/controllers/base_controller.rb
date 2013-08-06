@@ -10,4 +10,6 @@ class BaseController < ActionController::Base
                 :check_version,
                 :check_outage,
                 :authenticate_user!
+                :check_user_plan_state
+                
 end

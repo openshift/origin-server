@@ -445,6 +445,44 @@ module OpenShift
         end
         return result_io
       end
+      
+      #
+      # Deactivate a gear from a node
+      #
+      # INPUTS:
+      # * gear: a Gear object
+      #
+      # RETURNS:
+      # * STDOUT from the remote command
+      #
+      # NOTES:
+      # * uses execute_direct
+      #
+      def deactivate(gear)
+        args = build_base_gear_args(gear)
+        result = execute_direct(@@C_CONTROLLER, 'gear-deactivate', args)
+        result_io = parse_result(result, gear)
+        return result_io
+      end
+      
+      #
+      # Reactivate a gear from a node
+      #
+      # INPUTS:
+      # * gear: a Gear object
+      #
+      # RETURNS:
+      # * STDOUT from the remote command
+      #
+      # NOTES:
+      # * uses execute_direct
+      #
+      def reactivate(gear)
+        args = build_base_gear_args(gear)
+        result = execute_direct(@@C_CONTROLLER, 'gear-reactivate', args)
+        result_io = parse_result(result, gear)
+        return result_io
+      end
 
       # Add an SSL certificate to a gear on the remote node and associate it with
       # a server name.

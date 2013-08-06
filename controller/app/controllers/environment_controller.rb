@@ -1,6 +1,6 @@
 class EnvironmentController < BaseController
 
-  skip_before_filter :authenticate_user!
+  skip_before_filter :authenticate_user!, :check_user_plan_state
 
   # GET /environment 
   def show
