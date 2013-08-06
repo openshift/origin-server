@@ -10,7 +10,7 @@
 # @!attribute [r] connection_type
 #   @return [String] The connection type
 class ConnectionInstance
- 
+
   attr_accessor :from_comp_inst_id, :to_comp_inst_id, :from_connector_name, :to_connector_name, :connection_type, :_id
 
   def initialize(from_comp_inst_id, to_comp_inst_id, from_connector_name, to_connector_name, connection_type)
@@ -21,7 +21,7 @@ class ConnectionInstance
     self.connection_type = connection_type
     self._id = BSON::ObjectId.new
   end
-  
+
   def to_hash(app)
     {
       "from_comp_inst" => app.component_instances.find(from_comp_inst_id).to_hash,

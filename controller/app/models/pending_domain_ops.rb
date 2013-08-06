@@ -19,9 +19,9 @@
 class PendingDomainOps
   include Mongoid::Document
   include Mongoid::Timestamps
-  
+
   embedded_in :domain, class_name: Domain.name
-  
+
   field :op_type,   type: Symbol
   field :arguments, type: Hash
   field :parent_op_id, type: Moped::BSON::ObjectId
@@ -29,16 +29,16 @@ class PendingDomainOps
   has_and_belongs_to_many :on_apps, class_name: Application.name, inverse_of: nil
   has_and_belongs_to_many :completed_apps, class_name: Application.name, inverse_of: nil
   field :on_completion_method, type: Symbol
-  
+
   def pending_apps
     pending_apps = on_apps - completed_apps
     pending_apps
   end
-  
+
   def completed?
     (self.state == :completed) || ((on_apps.length - completed_apps.length) == 0)
   end
-  
+
   def close_op
     if completed?
       if not parent_op_id.nil?
@@ -71,13 +71,13 @@ class PendingDomainOps
         retries += 1
       end
     end
-    
+
     # log the details in case we cannot update the pending_op
     unless success
       Rails.logger.error "Failed to add application #{app._id} to the completed_apps for pending_op #{self._id} for domain #{self.domain.namespace}"
-    end  
+    end
   end
-  
+
   def serializable_hash_with_timestamp
     s_hash = self.serializable_hash
     t = Time.zone.now

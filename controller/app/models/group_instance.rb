@@ -17,9 +17,9 @@ class GroupInstance
   include Mongoid::Document
   embedded_in :application, class_name: Application.name
   embeds_many :gears, class_name: Gear.name
-  
+
   attr_accessor :min, :max
-  
+
   # Initializes the application
   #
   # == Parameters:
@@ -34,15 +34,15 @@ class GroupInstance
     super(attrs, options)
     self._id = custom_id unless custom_id.nil?
   end
-  
+
   def component_instances
     all_component_instances.select{|c| !c.is_sparse?}
   end
-  
+
   def sparse_instances
     all_component_instances.select{|c| c.is_sparse?}
   end
-  
+
   def all_component_instances
     application.component_instances.where(group_instance_id: self._id)
   end
@@ -54,7 +54,7 @@ class GroupInstance
       return gears.select { |g| g.sparse_carts.include? component_instance._id or g.host_singletons }
     end
   end
-  
+
   def gear_size
     get_group_override("gear_size") || application.default_gear_size
   end
@@ -92,7 +92,7 @@ class GroupInstance
   def self.update_configuration(add_keys=[], remove_keys=[], add_envs=[], remove_envs=[], gears=nil)
     handle = RemoteJob.create_parallel_job
     tag = ""
-    
+
     RemoteJob.run_parallel_on_gears(gears, handle) do |exec_handle, gear|
       add_keys.each     { |ssh_key| RemoteJob.add_parallel_job(exec_handle, tag, gear, gear.get_proxy.get_add_authorized_ssh_key_job(gear, ssh_key["content"], ssh_key["type"], ssh_key["name"])) } unless add_keys.nil?
       remove_keys.each  { |ssh_key| RemoteJob.add_parallel_job(exec_handle, tag, gear, gear.get_proxy.get_remove_authorized_ssh_key_job(gear, ssh_key["content"], ssh_key["name"])) } unless remove_keys.nil?
@@ -135,7 +135,7 @@ class GroupInstance
     end
     return nil 
   end
- 
+
   def set_group_override(key, value)
     return unless key
     group_override = get_group_override(key)
@@ -155,7 +155,7 @@ class GroupInstance
   end
 
   protected
-  
+
   # Run an operation on a list of gears on this group instance.
   #
   # == Parameters:

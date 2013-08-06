@@ -1,6 +1,6 @@
 class ResultIO
   attr_accessor :debugIO, :resultIO, :messageIO, :errorIO, :appInfoIO, :exitcode, :data, :cart_commands, :properties, :hasUserActionableError
-  
+
   def initialize(exitcode=nil, output=nil, gear_id=nil)
     @debugIO = StringIO.new
     @resultIO = StringIO.new
@@ -9,20 +9,20 @@ class ResultIO
     @appInfoIO = StringIO.new
     @data = ""
     @hasUserActionableError = false
-    
+
     @exitcode = exitcode || 0
     @cart_commands = []
     @hasUserActionableError = false
     @properties = {}
     parse_output(output, gear_id) unless output.nil?
   end
-  
+
   def set_cart_property(gear_id, category, key, value)
     self.properties[category] = {} if self.properties[category].nil?
     self.properties[category][gear_id] = {} if self.properties[category][gear_id].nil?
     self.properties[category][gear_id][key] = value
   end
-  
+
   # Append a {ResultIO} to the current instance.
   # @note the last non-zero exitcode is retained
   def append(resultIO)
@@ -31,7 +31,7 @@ class ResultIO
     self.messageIO << resultIO.messageIO.string
     self.errorIO << resultIO.errorIO.string
     self.appInfoIO << resultIO.appInfoIO.string
-    
+
     if resultIO.exitcode != 0
       if resultIO.hasUserActionableError
         unless (!self.hasUserActionableError) && self.exitcode != 0
@@ -41,11 +41,11 @@ class ResultIO
         self.hasUserActionableError = false
       end
     end
-    
+
     self.cart_commands += resultIO.cart_commands
 
     self.data += resultIO.data
-    
+
     resultIO.properties.each do |category, cat_props|
       self.properties[category] = {} if self.properties[category].nil?
       self.properties[category] = self.properties[category].merge(cat_props) unless cat_props.nil?
@@ -64,7 +64,7 @@ class ResultIO
 
     self
   end
-  
+
   # Returns the output of this {ResultIO} object as a string. Primarily used for debug output.
   def to_s
     str = "--DEBUG--\n#{@debugIO.string}\n" +
@@ -95,7 +95,7 @@ class ResultIO
     reply.to_json(*args)
   end
 =end
-  
+
   def parse_output(output, gear_id)
     if output && !output.empty?
       output.each_line do |line|
