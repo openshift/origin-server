@@ -225,11 +225,12 @@ command :'authorized-ssh-key-remove' do |c|
   c.description = 'Removes an authorized ssh key from the application'
 
   c.option '-k', '--with-ssh-key KEY', 'User provided ssh for application'
+  c.option '-T', '--with-ssh-key-type TYPE', 'User provided ssh type'
   c.option '-m', '--with-ssh-key-comment COMMENT', 'User provided ssh comment'
   c.action do |args, options|
-    if  options.with_ssh_key && options.with_ssh_key_comment
+    if  options.with_ssh_key && options.with_ssk_key_type && options.with_ssh_key_comment
       container = new_container(options.with_container_uuid, c)
-      execute { container.remove_ssh_key(options.with_ssh_key, options.with_ssh_key_comment) }
+      execute { container.remove_ssh_key(options.with_ssh_key, options.with_ssh_key_type, options.with_ssh_key_comment) }
     else
       usage(c.syntax)
     end

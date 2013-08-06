@@ -1,7 +1,13 @@
+require 'openshift-origin-node/model/application_container_ext/ssh_authorized_keys'
+require 'openshift-origin-node/model/application_container_ext/kerberos'
+
 module OpenShift
   module Runtime
     module ApplicationContainerExt
       module Environment
+
+        include Kerberos
+        include SecureShell
 
         USER_VARIABLE_MAX_COUNT      = 25
         USER_VARIABLE_NAME_MAX_SIZE  = 128
@@ -104,97 +110,102 @@ module OpenShift
           File.exists?(broker_auth_dir) ? false : true
         end
 
-        # Public: Append an SSH key to a users authorized_keys file
+
         #
-        # key - The String value of the ssh key.
-        # key_type - The String value of the key type ssh-(rsa|dss)).
-        # comment - The String value of the comment to append to the key.
+        # Four functions for managing gear access through SSH
+        #  add/remove a single key value
+        #  replace all keys
+        #  validate the form of a set of keys in an array
         #
+        # Keys can be SSH Authorized Keys or Kerberos 5 principal strings.
+        # 
+
+        # Public: Add user access by SSH to a gear
+        # 
         # Examples
+        #   container.add_ssh_key("alongstring", "ssh-rsa", "a users key")
         #
-        #   add_ssh_key('AAAAB3NzaC1yc2EAAAADAQABAAABAQDE0DfenPIHn5Bq/...',
-        #               'ssh-rsa',
-        #               'example@example.com')
-        #   # => nil
+        #   container.add_ssh_key("testuser@EXAMPLE.COM", "krb5-principal")
         #
-        # Returns nil on Success or raises on Failure
-        def add_ssh_key(key, key_type=nil, comment=nil)
-          comment = "" unless comment
-          self.class.notify_observers(:before_add_ssh_key, self, key)
+        # Returns: nil
+        #
+        def add_ssh_key(key_string, key_type=nil, comment=nil)
+          if key_type == "krb5-principal"
+            # create a K5login object and add it
 
-          ssh_comment, cmd_entry = get_ssh_key_cmd_entry(key, key_type, comment)
+            self.class.notify_observers(:before_add_krb5_principal, 
+                                        self, key_string)
+            K5login.new(self).add_principal(key_string, comment)
+            self.class.notify_observers(:after_add_krb5_principal,
+                                        self, key_string)
 
-          modify_ssh_keys do |keys|
-            keys[ssh_comment] = cmd_entry
+          else
+            # create an SshAuthorizedKeys file object and add to it.
+            self.class.notify_observers(:before_add_ssh_key, self, key_string)
+            AuthorizedKeysFile.new(self).add_key(key_string, key_type, comment)
+            self.class.notify_observers(:after_add_ssh_key, self, key_string)
           end
-
-          self.class.notify_observers(:after_add_ssh_key, self, key)
         end
 
-        # Public: Remove an SSH key from a users authorized_keys file.
-        #
-        # key - The String value of the ssh key.
-        # comment - The String value of the comment associated with the key.
+        # Public: remove user access by SSH to a gear
         #
         # Examples
+        #   container.remove_ssh_key("alongstring", "ssh-rsa", "a users key")
         #
-        #   remove_ssh_key('AAAAB3NzaC1yc2EAAAADAQABAAABAQDE0DfenPIHn5Bq/...',
-        #               'example@example.com')
-        #   # => nil
+        #   container.remove_ssh_key("testuser@EXAMPLE.COM", "krb5-principal")
         #
-        # Returns nil on Success or raises on Failure
-        def remove_ssh_key(key, comment=nil)
-          self.class.notify_observers(:before_remove_ssh_key, self, key)
+        # Returns: nil
+        #
+        def remove_ssh_key(key_string, key_type=nil, comment=nil)
+          if key_type == "krb5-principal"
+            # create a K5login object and add it
 
-          modify_ssh_keys do |keys|
-            if comment
-              keys.delete_if{ |k, v| v.include?(comment) }
-            else
-              keys.delete_if{ |k,v| v.include?(key) }
-            end
+            self.class.notify_observers(:before_remove_krb5_principal, 
+                                        self, key_string)
+            K5login.new(self).remove_principal(key_string, comment)
+            self.class.notify_observers(:after_remove_krb5_principal,
+                                        self, key_string)
+
+          else
+            # create an SshAuthorizedKeys file object and add to it.
+            self.class.notify_observers(:before_remove_ssh_key, 
+                                        self, 
+                                        key_string)
+            AuthorizedKeysFile.new(self).remove_key(key_string, key_type, comment)
+            self.class.notify_observers(:after_remove_ssh_key, self, key_string)
           end
-
-          self.class.notify_observers(:after_remove_ssh_key, self, key)
         end
 
-        # Public: Remove all existing SSH keys and add the new ones to a users authorized_keys file.
+        # Public: replace all user access by SSH to a gear
         #
-        # ssh_keys - The Array of ssh keys.
+        # Examples:
+        # 
+        # Replace all of the existing keys with one SSH and one Kerberos key
         #
-        # Examples
+        # a = [{'key' => 'ansshkeystring', 
+        #       'type' => 'ssh-rsa', 
+        #       'comment' => "app-user-name" },
+        #      {'key' => 'testuser@EXAMPLE.COM',
+        #       'type' => 'krb5-principal',
+        #       'comment' => 'app-user-name2"}
+        #     ]
         #
-        #   replace_ssh_keys([{'key' => AAAAB3NzaC1yc2EAAAADAQABAAABAQDE0DfenPIHn5Bq/...', 'type' => 'ssh-rsa', 'name' => 'key1'}])
-        #   # => nil
+        # container.replace_ssh_keys(a)
         #
-        # Returns nil on Success or raises on Failure
+        # Returns: nil
         def replace_ssh_keys(ssh_keys)
+
           raise Exception.new('The provided ssh keys do not have the required attributes') unless validate_ssh_keys(ssh_keys)
 
-          self.class.notify_observers(:before_replace_ssh_keys, self)
+          # sort the keys into 
+          authorized_keys = ssh_keys.select {|k| k['type'] != 'krb5-principal'}
+          krb5_principals = ssh_keys.select {|k| k['type'] == 'krb5-principal'}
 
-          modify_ssh_keys do |keys|
-            keys.delete_if{ |k, v| true }
-
-            ssh_keys.each do |key|
-              ssh_comment, cmd_entry = get_ssh_key_cmd_entry(key['key'], key['type'], key['comment'])
-              keys[ssh_comment] = cmd_entry
-            end
-          end
-
-          ssh_dir = PathUtils.join(@container_dir, ".ssh")
-          cmd = "restorecon -R #{ssh_dir}"
-          ::OpenShift::Runtime::Utils::oo_spawn(cmd)
-        end
-
-        # Generate the command entry for the ssh key to be written into the authorized keys file
-        def get_ssh_key_cmd_entry(key, key_type, comment)
-          key_type    = "ssh-rsa" if key_type.to_s.strip.length == 0
-          cloud_name  = "OPENSHIFT"
-          ssh_comment = "#{cloud_name}-#{@uuid}-#{comment}"
-          shell       = @container_plugin.gear_shell || "/bin/bash"
-          cmd_entry   = "command=\"#{shell}\",no-X11-forwarding #{key_type} #{key} #{ssh_comment}"
-
-          [ssh_comment, cmd_entry]
+          self.class.notify_observers(:before_replace_ssh_keys, self) 
+          AuthorizedKeysFile.new(self).replace_keys(authorized_keys) if authorized_keys.count > 0
+          K5login.new(self).replace_principals(krb5_principals) if krb5_principals.count > 0
+          self.class.notify_observers(:after_replace_ssh_keys, self)
+          
         end
 
         # validate the ssh keys to check for the required attributes
@@ -211,52 +222,6 @@ module OpenShift
           return true
         end
 
-        # private: Modify ssh authorized_keys file
-        #
-        # @yields [Hash] authorized keys with the comment field as the key which will save if modified.
-        # @return [Hash] authorized keys with the comment field as the key
-        # private: Modify ssh authorized_keys file
-        #
-        # @yields [Hash] authorized keys with the comment field as the key which will save if modified.
-        # @return [Hash] authorized keys with the comment field as the key
-        def modify_ssh_keys
-          authorized_keys_file = PathUtils.join(@container_dir, ".ssh", "authorized_keys")
-          keys = Hash.new
-
-          $OpenShift_ApplicationContainer_SSH_KEY_MUTEX.synchronize do
-            File.open("/var/lock/oo-modify-ssh-keys.#{@uuid}", File::RDWR|File::CREAT|File::TRUNC, 0600) do | lock |
-              lock.fcntl(Fcntl::F_SETFD, Fcntl::FD_CLOEXEC)
-              lock.flock(File::LOCK_EX)
-              begin
-                File.open(authorized_keys_file, File::RDWR|File::CREAT, 0440) do |file|
-                  file.each_line do |line|
-                    begin
-                      keys[line.split[-1].chomp] = line.chomp
-                    rescue
-                    end
-                  end
-
-                  if block_given?
-                    old_keys = keys.clone
-
-                    yield keys
-
-                    if old_keys != keys
-                      file.seek(0, IO::SEEK_SET)
-                      file.write(keys.values.join("\n")+"\n")
-                      file.truncate(file.tell)
-                    end
-                  end
-                end
-                set_ro_permission(authorized_keys_file)
-                ::OpenShift::Runtime::Utils::oo_spawn("restorecon #{authorized_keys_file}")
-              ensure
-                lock.flock(File::LOCK_UN)
-              end
-            end
-          end
-          keys
-        end
 
         # Add user environment variable(s)
         def user_var_add(variables, gears = [])
