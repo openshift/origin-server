@@ -29,7 +29,7 @@ class Domain
     end
     name
   end
-  
+
   include Mongoid::Document
   include Mongoid::Timestamps
   alias_method :mongoid_save, :save
@@ -42,12 +42,12 @@ class Domain
   field :user_ids, type: Array, default: []
   has_many :applications, class_name: Application.name, dependent: :restrict
   embeds_many :pending_ops, class_name: PendingDomainOps.name
-  
+
   index({:canonical_namespace => 1}, {:unique => true})
   index({:owner_id => 1})
   index({:user_ids => 1})
   create_indexes
-  
+
   validates :namespace,
     presence: {message: "Namespace is required and cannot be blank."},
     format:   {with: DOMAIN_NAME_REGEX, message: "Invalid namespace. Namespace must only contain alphanumeric characters."},
@@ -59,13 +59,13 @@ class Domain
 
   def self.sort_by_original(user)
     lambda{ |d| [user._id == d.owner_id ? 0 : 1, d.created_at] }
-  end  
-  
+  end
+
   def initialize(attrs = nil, options = nil)
     super
     self.user_ids << owner._id if owner
   end
-  
+
   def save(options = {})
     notify = !self.persisted?
     res = mongoid_save(options)
@@ -76,9 +76,9 @@ class Domain
   # Setter for domain namespace - sets the namespace and the canonical_namespace
   def namespace=(domain_name)
     self.canonical_namespace = domain_name.downcase
-    super 
+    super
   end
-  
+
   # Change the namespace for this Domain if there are no applications under it. 
   #
   # == Parameters:
@@ -112,7 +112,7 @@ class Domain
       end
     end
   end
-  
+
   # Removes a user from the access list for this domain.
   #
   # == Parameters:
@@ -128,7 +128,7 @@ class Domain
       end
     end
   end
-  
+
   # Support operation to add additional ssh keys for a user
   #
   # == Parameters:
@@ -150,7 +150,7 @@ class Domain
       pending_parent_op.child_completed(self) if pending_parent_op
     end
   end
-  
+
   # Support operation to remove specific ssh keys for a user
   #
   # == Parameters:
@@ -172,7 +172,7 @@ class Domain
       pending_parent_op.child_completed(self) if pending_parent_op
     end
   end
-  
+
   def add_system_ssh_keys(ssh_keys)
     keys_attrs = ssh_keys.map{|k| k.attributes.dup}
     pending_op = PendingDomainOps.new(op_type: :add_domain_ssh_keys, arguments: { "keys_attrs" => keys_attrs }, on_apps: applications, created_at: Time.now, state: "init")
@@ -228,7 +228,7 @@ class Domain
     begin
       while self.pending_ops.where(state: "init").count > 0
         op = self.pending_ops.where(state: "init").first
-        
+
         # store the op._id to load it later after a reload
         # this is required to prevent a reload from replacing it with another one based on position
         op_id = op._id
@@ -236,7 +236,7 @@ class Domain
         # try to do an update on the pending_op state and continue ONLY if successful
         op_index = self.pending_ops.index(op) 
         retval = Domain.where({ "_id" => self._id, "pending_ops.#{op_index}._id" => op._id, "pending_ops.#{op_index}.state" => "init" }).update({"$set" => { "pending_ops.#{op_index}.state" => "queued" }})
-        
+
         unless retval["updatedExisting"]
           self.reload
           next
@@ -282,7 +282,7 @@ class Domain
         # hence, reloading the domain, and then fetching the op using the op_id stored earlier
         self.reload
         op = self.pending_ops.find_by(_id: op_id)
-        
+
         op.close_op
         op.delete if op.completed?
       end

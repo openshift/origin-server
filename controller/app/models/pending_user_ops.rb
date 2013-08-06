@@ -16,7 +16,7 @@
 class PendingUserOps
   include Mongoid::Document
   include Mongoid::Timestamps
-  
+
   embedded_in :cloud_user, class_name: CloudUser.name
   field :op_type,   type: Symbol
   field :state,    type: Symbol, :default => :init
@@ -24,7 +24,7 @@ class PendingUserOps
   has_and_belongs_to_many :on_domains, class_name: Domain.name, inverse_of: nil
   has_and_belongs_to_many :completed_domains, class_name: Domain.name, inverse_of: nil
   field :on_completion_method, type: Symbol
-  
+
   # List of domains that are still pending
   #
   # == Returns:
@@ -33,14 +33,14 @@ class PendingUserOps
     pending_domains = on_domains - completed_domains
     pending_domains
   end
-  
+
   # Returns true if all domains have been processed
   def completed?
     (self.state == :completed) || (on_domains.length == completed_domains.length)
   end
-  
+
   def close_op
-    if completed? 
+    if completed?
       cloud_user.user.send(on_completion_method, self) unless on_completion_method.nil?
     end
   end
@@ -67,13 +67,13 @@ class PendingUserOps
         retries += 1
       end
     end
-    
+
     # log the details in case we cannot update the pending_op
     unless success
       Rails.logger.error "Failed to add domain #{domain._id} to the completed_domains for pending_op #{self._id} for user #{self.cloud_user.login}"
-    end  
+    end
   end
-  
+
   def serializable_hash_with_timestamp
     s_hash = self.serializable_hash
     t = Time.zone.now

@@ -41,7 +41,7 @@ function is_up() {
 }
 
 function start() {
- 	echo "Starting $cartridge_type cart"
+  echo "Starting $cartridge_type cart"
 
   if isrunning
   then
@@ -57,9 +57,9 @@ function start() {
   if [ -f "${OPENSHIFT_REPO_DIR}/.openshift/markers/enable_debugging" ]; then
       JENKINS_CMD="${JENKINS_CMD} -Xdebug -Xrunjdwp:server=y,transport=dt_socket,address=${OPENSHIFT_JENKINS_IP}:7600,suspend=n"
   fi
-  
+
   if [ -z "$JENKINS_WAR_PATH" ]; then
-	 JENKINS_WAR_PATH=/usr/lib/jenkins/jenkins.war
+    JENKINS_WAR_PATH=/usr/lib/jenkins/jenkins.war
   fi
 
   JENKINS_CMD="${JENKINS_CMD} ${JENKINS_OPTS} -DJENKINS_HOME=$OPENSHIFT_DATA_DIR \
@@ -88,8 +88,8 @@ function start() {
 }
 
 function stop() {
- 	echo "Stopping $cartridge_type cart"
- 	
+  echo "Stopping $cartridge_type cart"
+
   if isrunning
   then
     kill -TERM $pid > /dev/null 2>&1
@@ -107,17 +107,17 @@ function restart() {
 }
 
 function status() {
-   if isrunning
-   then
-      client_result "Application is running"
-   else
-      client_result "Application is either stopped or inaccessible"
-   fi
+  if isrunning
+  then
+    client_result "Application is running"
+  else
+    client_result "Application is either stopped or inaccessible"
+  fi
 }
 
 function reload() {
-    echo "Reloading $cartridge_type cart"
-    restart
+  echo "Reloading $cartridge_type cart"
+  restart
 }
 
 # Clean up any log files

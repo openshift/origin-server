@@ -7,7 +7,7 @@
 #   @return [Array[String]] arguments to pass to the action hook
 class RemoteJob < OpenShift::Model
   attr_accessor :cartridge, :action, :args
-  
+
   # Creates a new RemoteJob
   #
   # == Parameters:
@@ -22,7 +22,7 @@ class RemoteJob < OpenShift::Model
     self.action = action
     self.args = args
   end
-  
+
   # Creates a new Parallel job handle
   #
   # == Returns:
@@ -55,7 +55,7 @@ class RemoteJob < OpenShift::Model
     }
     execute_parallel_jobs(handle)
   end
-  
+
   # Executes all jobs in the parallel job handle
   #
   # == Parameters:
@@ -69,7 +69,7 @@ class RemoteJob < OpenShift::Model
       Rails.logger.error e.inspect
       Rails.logger.error e.backtrace.inspect        
       raise e
-    end    
+    end
   end
 
   # Add a new job to the parallel job handle

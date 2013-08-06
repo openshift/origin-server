@@ -20,11 +20,11 @@
 class UsageRecord
   include Mongoid::Document
   include Mongoid::Timestamps
-  
+
   EVENTS = { :begin => "begin",
              :end => "end",
              :continue => "continue" }
-             
+
   USAGE_TYPES = { :gear_usage => "GEAR_USAGE",
                   :addtl_fs_gb => "ADDTL_FS_GB",
                   :premium_cart => "PREMIUM_CART" }
@@ -35,8 +35,8 @@ class UsageRecord
   field :event, type: String
   field :time, type: Time
   field :sync_time, type: Time
-  field :usage_type, type: String  
-  field :gear_size, type: String  
+  field :usage_type, type: String
+  field :gear_size, type: String
   field :addtl_fs_gb, type: Integer
   field :cart_name, type: String
 

@@ -85,15 +85,15 @@ function waitondeployments() {
         if [ ${#artifactsskipped[@]} -gt 0 ]; then
           client_message "Artifacts skipped because of deployment-scanner configuration: ${artifactsskipped[*]}"
         fi
-  
+
         if [ ${#artifactsfailed[@]} -gt 0 ]; then
           client_message "Failed deployments: ${artifactsfailed[*]}"
         fi
-  
+
         if [ ${#artifactsdeployed[@]} -gt 0 ]; then
           client_message "Artifacts deployed: ${artifactsdeployed[*]}"
         fi
-  
+
         if [ ${#artifactsunknown[@]} -gt 0 ]; then
           client_message "Artifacts in an unknown state: ${artifactsunknown[*]}"
         fi

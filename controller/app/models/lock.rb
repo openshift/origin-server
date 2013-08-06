@@ -7,12 +7,12 @@
 #   @return [Boolean] repesenting if the user is locked
 class Lock
   include Mongoid::Document
-  
+
   belongs_to :user, class_name: CloudUser.name
   field :locked, type: Boolean, default: false
   field :timeout, type: Integer, default: 0
   field :app_ids, type: Hash, default: {}
-    
+
   index({:user_id => 1})
   create_indexes
 
@@ -25,15 +25,15 @@ class Lock
   #
   # == Returns:
   # True if the lock was successful.
-  
+
   def self.create_lock(user)
     lock = Lock.find_or_create_by( :user_id => user._id )
   end
-  
+
   def self.delete_lock(user)
     lock = Lock.delete( :user_id => user._id )
   end
- 
+
   # Attempts to lock the {CloudUser}. 
   # NOTE: User lock is available only for user apps with application lock.
   def self.lock_user(user, app, timeout=1800)
@@ -48,7 +48,7 @@ class Lock
       return false
     end
   end
-  
+
   # Attempts to unlock the {CloudUser}.
   #
   # == Parameters:
@@ -67,7 +67,7 @@ class Lock
       return false
     end
   end
-  
+
   # Attempts to lock an {Application}. Once locked, no other threads can obtain a lock on the {Application} or the {CloudUser} that owns it.
   # This lock is denied if the owning {CloudUser} is locked or the {Application} has been locked by another thread.
   #
@@ -88,7 +88,7 @@ class Lock
       else
         user_id = application.domain.owner_id
       end
-      
+
       app_id = application._id.to_s
       now = Time.now.to_i
       query = { :user_id => user_id, "$or" => [{"app_ids.#{app_id}" => {"$exists" => false}}, {"app_ids.#{app_id}" => {"$lt" => now}}] }
@@ -100,7 +100,7 @@ class Lock
       return false
     end
   end
-  
+
   # Attempts to unlock an {Application}.
   #
   # == Parameters:
