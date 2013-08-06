@@ -16,7 +16,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.12.9
+Version: 1.12.10
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -305,6 +305,10 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Tue Aug 06 2013 Adam Miller <admiller@redhat.com> 1.12.10-1
+- Bug 991824: Make watchman logging configurable via node.conf
+  (ironcladlou@gmail.com)
+
 * Fri Aug 02 2013 Adam Miller <admiller@redhat.com> 1.12.9-1
 - Merge pull request #3281 from fotioslindiakos/Bug991480_stg
   (dmcphers+openshiftbot@redhat.com)
