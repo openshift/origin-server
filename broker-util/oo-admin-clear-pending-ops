@@ -74,7 +74,7 @@ def clean_app(a)
         next
       end
       puts "WARNING : Application #{a.uuid} has created_at field nil for op - #{op.inspect}" if op.created_at.nil?
-    
+
       if op.created_at.nil? or op.created_at < $t 
         puts
         puts "Executing op for app (#{a.uuid}) - #{op.inspect} "
@@ -108,7 +108,7 @@ def clean_app(a)
   end # end of lock
   if not delete_app
     a.save
-    a.pending_op_groups.each { |op| 
+    a.pending_op_groups.each { |op|
       if op.created_at.nil? or op.created_at < $t 
         next if op.op_type.nil?
         puts
@@ -184,15 +184,15 @@ if uuid.nil?
   }
   Domain.no_timeout.lt("pending_ops.created_at" => $t).each { |d| 
     begin
-      clean_domain(d) 
-    rescue Exception=>e 
+      clean_domain(d)
+    rescue Exception=>e
       puts e.message
       puts e.backtrace
     end
   }
   CloudUser.no_timeout.lt("pending_ops.created_at" => $t).each { |u| 
     begin
-      clean_user(u) 
+      clean_user(u)
     rescue Exception=>e
       puts e.message
       puts e.backtrace
