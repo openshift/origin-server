@@ -65,6 +65,7 @@ Endpoints:
     Mappings:
       - Frontend:      ""
         Backend:       ""
+        Options:       { tohttps: true }
       - Frontend:      "/health"
         Backend:       ""
         Options:       { health: true }
