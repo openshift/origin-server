@@ -1,0 +1,5 @@
+command="/bin/false",no-X11-fowarding ssh-rsa aabbccddeeffgg0011223344556677889900 OPENSHIFT-testuser1-keyid1
+command="/bin/false",no-X11-fowarding ssh-rsa aabbccddeeffgg0011223344556677889900 OPENSHIFT-testuser1-keyid2
+command="/bin/false",no-X11-fowarding ssh-rsa aabbccddeeffgg0011223344556677889900 OPENSHIFT-testuser1-keyid3
+command="/bin/false",no-X11-fowarding ssh-rsa 0011223344556677889900aabbccddeeffgg OPENSHIFT-testuser1-keyid4
+command="/bin/false",no-X11-fowarding ssh-rsa 0011223344556677889900aabbccddeeffgg OPENSHIFT-testuser1-keyid5
