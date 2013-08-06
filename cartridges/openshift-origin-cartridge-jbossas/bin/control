@@ -31,6 +31,7 @@ function getscanconfig() {
 function waitondeployments() {
     if ! ismgmtup; then
       client_message "Timed out waiting for management listening port"
+      client_message "Could not connect to JBoss management interface, skipping deployment verification"
     else 
       getscanconfig
 
