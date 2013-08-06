@@ -703,7 +703,7 @@ class Application
 
   ##
   # Returns the application descriptor as a Hash. The descriptor contains all the metadata
-  # necessary to descript the application.
+  # necessary to describe the application.
   # @requires [Hash]
   def to_descriptor
     h = {
