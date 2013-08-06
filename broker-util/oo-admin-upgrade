@@ -6,676 +6,999 @@ require 'getoptlong'
 require 'stringio'
 require 'set'
 require 'json'
+require 'thor'
 
-$max_threads = 12
-WORK_DIR = '/tmp/oo-upgrade'
-ACTIVE_SUFFIX = '_active'
+module OpenShift
+  module Upgrader
+    ##
+    # A simple base class for objects which are likely to be marshalled to and
+    # from JSON files. Allows for consistent construction with both symbol-based
+    # option hashes and JSON-derived hashes with string keys.
+    #
+    class UpgradePersistable
+      def initialize(args)
+        args.each{|k, v| send("#{k.to_s}=", v)}
+      end
 
-STDOUT.sync, STDERR.sync = true
+      def jsonish_self
+        hash = {}
+        instance_variables.each {|v| hash[v.to_s[1..-1]] = instance_variable_get(v)}
+        hash
+      end
 
-#
-#  upgrade the specified gear
-#
-def upgrade_gear(login, app_name, gear_uuid, version, ignore_cartridge_version=false)
-  total_upgrade_gear_start_time = (Time.now.to_f * 1000).to_i
-  upgrade_cmd = "#{__FILE__} --login '#{login}' --upgrade-gear '#{gear_uuid}' --app-name '#{app_name}' --version '#{version}' #{ignore_cartridge_version ? '--ignore-cartridge-version' : ''}"
-  out = StringIO.new
-  out << "Migrating gear on node with: #{upgrade_cmd}\n"
-  begin
-    user = nil
-    begin
-      user = CloudUser.with(consistency: :eventual).find_by(login: login)
-    rescue Mongoid::Errors::DocumentNotFound
-    end
+      def to_json
+        JSON.dump(jsonish_self)
+      end
 
-    raise "User not found: #{login}" unless user
+      def self.from_json(json)
+        self.new(JSON.load(json))
+      end
 
-    app, gear = Application.find_by_gear_uuid(gear_uuid)
+      def self.from_json_file(file)
+        self.new(JSON.parse(IO.read(file)))
+      end
 
-    out << "WARNING: App not found: #{app_name}\n" unless app
-    out << "WARNING: Gear not found with uuid #{gear_uuid} for app '#{app_name}' and user '#{login}'\n" unless gear
-
-    if app && gear
-      server_identity = gear.server_identity
-
-      Timeout::timeout(420) do
-        output = ''
-        exit_code = 1
-
-        json_data = nil
-
-        upgrade_on_node_start_time = (Time.now.to_f * 1000).to_i
-        out << "Upgrading on node...\n"
-        OpenShift::MCollectiveApplicationContainerProxy.rpc_exec('openshift', server_identity) do |client|
-          client.upgrade(:uuid => gear_uuid,
-                         :namespace => app.domain.namespace,
-                         :version => version,
-                         :ignore_cartridge_version => ignore_cartridge_version.to_s) do |response|
-            exit_code = response[:body][:data][:exitcode]
-            output = response[:body][:data][:output]
-            json_data = response[:body][:data][:json_data]
-          end
+      def self.entries_from_json_array_file(file)
+        entries = []
+        File.readlines(file).each do |json|
+          entries << self.from_json(json)
         end
-        upgrade_on_node_time = (Time.now.to_f * 1000).to_i - upgrade_on_node_start_time
-        out << "***time_upgrade_on_node_measured_from_broker=#{upgrade_on_node_time}***\n"
-
-        if (output.length > 0)
-          out << "Upgrade on node output:\n #{output}\n"
-        end
-
-        if exit_code != 0
-          out << "Upgrade on node exit code: #{exit_code}\n"
-          raise "Failed upgrading gear. Rerun with: #{upgrade_cmd}"
-        end
-
+        entries
       end
     end
-  rescue Timeout::Error
-    raise "Command '#{upgrade_cmd}' timed out\n#{e.backtrace}\nOutput:\n#{out.string}"
-  rescue Exception => e
-    raise "#{e.message}\n#{e.backtrace}\nOutput:\n#{out.string}"
-  end
-  total_upgrade_gear_time = (Time.now.to_f * 1000).to_i - total_upgrade_gear_start_time
-  out << "***time_total_upgrade_gear_measured_from_broker=#{total_upgrade_gear_time}***\n"
-  out.string
-end
 
-def add_to(stuffs, more_stuffs)
-  more_stuffs.each do |topic, stuff|
-    if stuffs[topic]
-      stuffs[topic] += stuff
-    else
-      stuffs[topic] = stuff
+    ##
+    # High level metadata about the portion of the cluster
+    # being upgraded by this upgrader (e.g. the subset of 
+    # nodes to be upgraded).
+    #
+    class ClusterMetadata < UpgradePersistable
+      attr_accessor :logins_count,
+                    :upgrader_position_nodes,
+                    :times
+
+      def initialize(args = {})
+        super(args)
+
+        @logins_count ||= 0
+        @times ||= {}
+        @upgrader_position_nodes ||= []
+      end
+    end
+
+    ##
+    # An individual node queue entry representing a specific
+    # node on which an upgrade should be performed.
+    #
+    class NodeQueueEntry < UpgradePersistable
+      attr_accessor :server_identity,
+                    :ignore_cartridge_version,
+                    :active_gear_length,
+                    :inactive_gear_length,
+                    :gears_length,
+                    :version
+
+      def initialize(args)
+        super(args)
+
+        @gears_length ||= 0
+        @active_gear_length ||= 0
+        @inactive_gear_length ||= 0
+      end
+    end
+
+    ##
+    # An individual gear queue entry representing a specific
+    # gear on a node to be upgraded, and all the metadata
+    # necessary to feed back into a separate Upgrader instance
+    # to execute the work.
+    #
+    class GearQueueEntry < UpgradePersistable
+      attr_accessor :server_identity,
+                    :version,
+                    :ignore_cartridge_version,
+                    :gear_uuid,
+                    :gear_name,
+                    :app_name,
+                    :login,
+                    :active
+
+      def initialize(args)
+        super(args)
+      end
+    end
+
+    ##
+    # A summary object containing the overall cluster upgrade
+    # result metadata across all nodes for a given upgrade
+    # attempt.
+    #
+    class ClusterUpgradeResult < UpgradePersistable
+      attr_accessor :times,
+                    :gear_count,
+                    :gear_counts,
+                    :cluster_metadata,
+                    :starting_node_queue,
+                    :incomplete_node_queue
+
+      def initialize(args = {})
+        super(args)
+
+        @times ||= {}
+        @gear_count ||= 0
+        @gear_counts ||= []
+        @starting_node_queue ||= []
+        @incomplete_node_queue ||= []
+      end
+    end
+
+    ##
+    # A summary object containing the upgrade result metadata
+    # from a single gear upgrade attempt.
+    #
+    class GearUpgradeResult < UpgradePersistable
+      attr_accessor :login,
+                    :app_name,
+                    :gear_uuid,
+                    :version,
+                    :errors,
+                    :warnings,
+                    :times,
+                    :remote_upgrade_result,
+                    :remote_exit_code
+
+      def initialize(args = {})
+        super(args)
+
+        @errors ||= []
+        @warnings ||= []
+        @times ||= {}
+      end
     end
   end
 end
 
-def upgrade(args={})
-  defaults = {
-    version: nil,
-    continue: false,
-    ignore_cartridge_version: false,
-    target_server_identity: nil,
-    upgrade_position: 1,
-    num_upgraders: 1,
-    rerun: false
-  }
-  opts = defaults.merge(args) {|k, default, arg| arg.nil? ? default : arg}
+class Upgrader
+  WORK_DIR = '/tmp/oo-upgrade'
 
-  puts "Performing upgrade with options: #{opts.inspect}"
+  ##
+  # The primary upgrade method. Executes cluster-wide upgrades using the following process:
+  #
+  # 1. Create or reuses an node queue representing the ordered list of nodes in the cluster to upgrade,
+  #    as well as high level metadata about the cluster.
+  #
+  #    Part of the node queue creation includes the creation of gear queues for each node containing
+  #    gears to upgrade.
+  #
+  # 2. Create worker threads to process each node in the node queue. These workers process gear queues
+  #    to perform the actual gear upgrades. Results are written to files on disk per node. Errors are
+  #    written to a different file, and also to a re-run gear queue.
+  #
+  # 3. Recreate the node queue with any incompletely upgraded nodes. A node upgrade is considered incomplete
+  #    if any gearss in the node's gear queue weren't processed at all, or if any of the processed gears
+  #    resulted in errors.
+  #
+  # 4. Generate reports based on all output and emit them to stdout.
+  #
+  # The upgrade process is meant to be re-entrant. If an existing node queue exists, existing gear queues
+  # for those nodes will continue processing. If only rerun gear queues exist, processing will proceed using
+  # the rerun queues (effectively re-running the errors from the previous run). If no gear queues at all exist
+  # for the node, the upgrade for that node is considered complete and no processing will occur for the node.
+  #
+  # The upgrade is considered a success if there are no nodes left in the node queue.
+  #
+  # Expects an argument hash:
+  #
+  #  :version                  - The target upgrade version.
+  #
+  #  :ignore_cartridge_version - Passed through to gear level upgrades; if +true+, upgrades
+  #                              will be performed regardless of the source and target versions.
+  #                              Default is +false+.
+  #
+  #  :target_server_identity   - If present, the node queue will be forced to contain only the
+  #                              specified node regardless of any computations.
+  #
+  #  :num_upgraders            - The total number of upgrader processes intended to be run. Must be used in
+  #                              conjunction with +upgrade_position+; +num_upgraders+ defines the number of
+  #                              slots which each upgrader process must assign itself to. All positions must
+  #                              be taken to upgrade.
+  #
+  #  :upgrade_position         - Postion of this upgrader (1 based) amongst the num of upgraders (+num_upgraders+)
+  #
+  #  :max_threads              - The maximum numbers of threads to use when processing nodes from the node queue.
+  #                              Default is +12+.
+  #
+  # Returns a +ClusterUpgradeResult+ containing information about this upgrade execution.
+  #
+  def upgrade(args={})
+    defaults = {
+      version: nil,
+      ignore_cartridge_version: false,
+      target_server_identity: nil,
+      upgrade_position: 1,
+      num_upgraders: 1,
+      max_threads: 12,
+      gear_whitelist: []
+    }
+    opts = defaults.merge(args) {|k, default, arg| arg.nil? ? default : arg}
 
-  version = opts[:version]
-  continue = opts[:continue]
-  ignore_cartridge_version = opts[:ignore_cartridge_version]
-  target_server_identity = opts[:target_server_identity]
-  upgrade_position = opts[:upgrade_position]
-  num_upgraders = opts[:num_upgraders]
-  rerun = opts[:rerun]
+    version = opts[:version]
+    ignore_cartridge_version = opts[:ignore_cartridge_version]
+    target_server_identity = opts[:target_server_identity]
+    upgrade_position = opts[:upgrade_position]
+    num_upgraders = opts[:num_upgraders]
+    max_threads = opts[:max_threads]
+    gear_whitelist = opts[:gear_whitelist]
 
-  start_time = (Time.now.to_f * 1000).to_i
-  logins_cnt = 0
-  gear_cnt = 0
-  node_to_gears = {}
+    puts "Upgrader started with options: #{opts.inspect}"
 
-  puts "Getting all active gears..."
-  gather_active_gears_start_time = (Time.now.to_f * 1000).to_i
-  active_gears_map = OpenShift::ApplicationContainerProxy.get_all_active_gears
-  gather_active_gears_total_time = (Time.now.to_f * 1000).to_i - gather_active_gears_start_time
+    FileUtils.mkdir_p WORK_DIR if not Dir.exists?(WORK_DIR)
 
-  puts "Getting all logins..."
-  gather_users_start_time = (Time.now.to_f * 1000).to_i
-  query = {"group_instances.gears.0" => {"$exists" => true}}
-  options = {:fields => [ "uuid",
-              "domain_id",
-              "name",
-              "created_at",
-              "component_instances.cartridge_name",
-              "component_instances.group_instance_id",
-              "group_instances._id",
-              "group_instances.gears.uuid",
-              "group_instances.gears.server_identity",
-              "group_instances.gears.name"], 
-             :timeout => false}
+    upgrade_result = OpenShift::Upgrader::ClusterUpgradeResult.new
 
-  ret = []
-  user_map = {}
-  OpenShift::DataStore.find(:cloud_users, {}, {:fields => ["_id", "uuid", "login"], :timeout => false}) do |hash|
-      logins_cnt += 1
+    start_time = (Time.now.to_f * 1000).to_i
+
+    # only rebuild the queues and meta if none exists
+    if File.exists?(cluster_metadata_path)
+      puts "Reusing existing queues and cluster metadata"
+    else
+      puts "Building new upgrade queues and cluster metadata"
+      create_upgrade_queues(target_server_identity: target_server_identity,
+                            upgrade_position: upgrade_position,
+                            num_upgraders: num_upgraders,
+                            version: version,
+                            ignore_cartridge_version: ignore_cartridge_version,
+                            gear_whitelist: gear_whitelist)
+    end
+
+    raise "Couldn't find node queue at #{node_queue_path}" unless File.exists?(node_queue_path)
+    raise "Couldn't find cluster metadata at #{cluster_metadata_path}" unless File.exists?(cluster_metadata_path)
+    
+    puts "Loading cluster metadata from #{cluster_metadata_path}"
+    metadata = OpenShift::Upgrader::ClusterMetadata.from_json_file(cluster_metadata_path)
+
+    puts "Loading node queue from #{node_queue_path}"
+    node_queue = OpenShift::Upgrader::NodeQueueEntry.entries_from_json_array_file(node_queue_path)
+
+    # Bail out if there's nothing to do
+    if node_queue.empty?
+      puts "Node queue is empty; there's nothing for the upgrader to do. Exiting."
+      return upgrade_result
+    end
+
+    upgrade_result.starting_node_queue = OpenShift::Upgrader::NodeQueueEntry.entries_from_json_array_file(node_queue_path)
+    upgrade_result.cluster_metadata = metadata
+
+    if !metadata.upgrader_position_nodes.empty?
+      puts "#####################################################"
+      puts 'Nodes this upgrader is handling:'
+      puts metadata.upgrader_position_nodes.pretty_inspect
+      puts "#####################################################"
+    end
+
+    node_threads = []
+    mutex = Mutex.new
+    starting_nodes = node_queue.shift(max_threads)
+    starting_nodes.each_with_index do |node, index|
+      server_identity = node.server_identity
+      upgrade_result.gear_counts[index] = node.gears_length
+      upgrade_result.gear_count += node.gears_length
+      node_threads << Thread.new do
+        # perform the node upgrade
+        begin
+          upgrade_node(server_identity)
+        rescue => e
+          puts e.message
+          puts e.backtrace.join("\n")
+        end
+
+        upgrade_result.incomplete_node_queue << node if node_has_remaining_work?(server_identity)
+
+        # get the next available node to process
+        while !node_queue.empty? do
+          server_identity = nil
+          mutex.synchronize do
+            unless node_queue.empty?
+              node = node_queue.delete_at(0)
+              server_identity = node.server_identity
+              upgrade_result.gear_counts[index] += node.gears_length
+              upgrade_result.gear_count += node.gears_length
+              puts "#####################################################"
+              puts "Remaining node queue:"
+              puts node_queue.pretty_inspect
+              puts "#####################################################"
+            end
+          end
+          # perform the node upgrade
+          if server_identity
+            begin
+              upgrade_node(server_identity)
+            rescue => e
+              puts e.message
+              puts e.backtrace
+            end
+
+            upgrade_result.incomplete_node_queue << node if node_has_remaining_work?(server_identity)
+          end
+        end
+      end
+    end
+
+    # wait for all the threads to finish
+    node_threads.each do |t|
+      t.join
+    end
+
+    # rewrite the node queue with any leftover work
+    puts "Writing updated node queue to #{node_queue_path}"
+    incomplete_node_queue = upgrade_result.incomplete_node_queue + node_queue
+
+    timestamp = Time.now.strftime("%Y-%m-%d-%H%M%S")
+    FileUtils.mv(node_queue_path, "#{node_queue_path}-#{timestamp}")
+    FileUtils.touch node_queue_path
+    incomplete_node_queue.each do |node|
+      append_to_file(node_queue_path, node.to_json)
+    end
+
+    upgrade_result.times["total"] = (Time.now.to_f * 1000).to_i - start_time
+
+    # print a report
+    puts build_text_summary(upgrade_result)
+
+    upgrade_result
+  end
+
+  ##
+  # Returns +true+ if the given node has any outstanding gear queues.
+  #
+  def node_has_remaining_work?(server_identity)
+    return File.exists?(gear_queue_path(server_identity)) || File.exists?(gear_rerun_queue_path(server_identity))
+  end
+
+  ##
+  # Finds all the nodes containing gears to be upgraded, and writes:
+  #
+  #   1. A JSON dump of a +ClusterMetadata+ instance
+  #
+  #   2. A node queue file where each line contains JSON dump of a +NodeQueueEntry+ representing
+  #      the ordered list of nodes to be upgraded
+  #
+  #   3. A gear queue file per node, where each line in the queue file is a JSON dump of a
+  #      +GearQueueEntry+ represnting a gear to be upgraded.
+  #
+  # Expects an argument hash with data to store along with each node queue entry used to construct
+  # the gear level node queues. Each argument is typically just passed through from +upgrade+; see
+  # that method for details.
+  #
+  #  :version
+  #  :ignore_cartridge_version
+  #  :target_server_itentity
+  #  :upgrade_position
+  #  :num_upgraders
+  #  :max_threads
+  #
+  def create_upgrade_queues(opts)
+    raise "Node queue file already exists at #{node_queue_path}" if File.exists?(node_queue_path)
+
+    target_server_identity = opts[:target_server_identity]
+    upgrade_position = opts[:upgrade_position]
+    num_upgraders = opts[:num_upgraders]
+    version = opts[:version]
+    ignore_cartridge_version = opts[:ignore_cartridge_version]
+    gear_whitelist = opts[:gear_whitelist]
+
+    metadata = OpenShift::Upgrader::ClusterMetadata.new
+
+    puts "Getting all active gears..."
+    gather_active_gears_start_time = (Time.now.to_f * 1000).to_i
+    active_gears_map = OpenShift::ApplicationContainerProxy.get_all_active_gears
+    metadata.times["gather_active_gears_total_time"] = (Time.now.to_f * 1000).to_i - gather_active_gears_start_time
+
+    puts "Getting all logins..."
+    gather_users_start_time = (Time.now.to_f * 1000).to_i
+    query = {"group_instances.gears.0" => {"$exists" => true}}
+    options = {:fields => [ "uuid",
+                "domain_id",
+                "name",
+                "created_at",
+                "component_instances.cartridge_name",
+                "component_instances.group_instance_id",
+                "group_instances._id",
+                "group_instances.gears.uuid",
+                "group_instances.gears.server_identity",
+                "group_instances.gears.name"], 
+               :timeout => false}
+
+    ret = []
+    user_map = {}
+    OpenShift::DataStore.find(:cloud_users, {}, {:fields => ["_id", "uuid", "login"], :timeout => false}) do |hash|
+      metadata.logins_count += 1
       user_uuid = hash['uuid']
       user_login = hash['login']
       user_map[hash['_id'].to_s] = [user_uuid, user_login]
-  end
+    end
 
-  domain_map = {}
-  OpenShift::DataStore.find(:domains, {}, {:fields => ["_id" , "owner_id"], :timeout => false}) do |hash|
-    domain_map[hash['_id'].to_s] = hash['owner_id'].to_s
-  end
+    domain_map = {}
+    OpenShift::DataStore.find(:domains, {}, {:fields => ["_id" , "owner_id"], :timeout => false}) do |hash|
+      domain_map[hash['_id'].to_s] = hash['owner_id'].to_s
+    end
 
-  OpenShift::DataStore.find(:applications, query, options) do |app|
-    print '.'
-    user_id = domain_map[app['domain_id'].to_s]
-    if user_id.nil?
-      relocated_domain = Domain.where(_id: Moped::BSON::ObjectId(app['domain_id'])).first
-      next if relocated_domain.nil?
-      user_id = relocated_domain.owner._id.to_s
-      user_uuid = user_id
-      user_login = relocated_domain.owner.login
-    else
-      if user_map.has_key? user_id
-        user_uuid,user_login = user_map[user_id]
+    node_to_gears = {}
+    OpenShift::DataStore.find(:applications, query, options) do |app|
+      user_id = domain_map[app['domain_id'].to_s]
+      if user_id.nil?
+        relocated_domain = Domain.where(_id: Moped::BSON::ObjectId(app['domain_id'])).first
+        next if relocated_domain.nil?
+        user_id = relocated_domain.owner._id.to_s
+        user_uuid = user_id
+        user_login = relocated_domain.owner.login
       else
-        relocated_user = CloudUser.where(_id: Moped::BSON::ObjectId(user_id)).first
-        next if relocated_user.nil?
-        user_uuid = relocated_user._id.to_s
-        user_login = relocated_user.login
+        if user_map.has_key? user_id
+          user_uuid,user_login = user_map[user_id]
+        else
+          relocated_user = CloudUser.where(_id: Moped::BSON::ObjectId(user_id)).first
+          next if relocated_user.nil?
+          user_uuid = relocated_user._id.to_s
+          user_login = relocated_user.login
+        end
       end
-    end
-    group_cart_map = {}
-    app['component_instances'].each do |ci|
-      gid = ci['group_instance_id'].to_s
-      group_cart_map[gid] = [] if not group_cart_map.has_key? gid
-      group_cart_map[gid] << ci['cartridge_name']
-    end
 
-    app['group_instances'].each do |gi|
-      gi['gears'].each do |gear|
-        server_identity = gear['server_identity']
-        if server_identity && (!target_server_identity || (server_identity == target_server_identity))
-          node_to_gears[server_identity] = [] unless node_to_gears[server_identity] 
-          node_to_gears[server_identity] << {:server_identity => server_identity, :uuid => gear['uuid'], :name => gear['name'], :app_name => app['name'], :login => user_login}
+      app['group_instances'].each do |gi|
+        gi['gears'].each do |gear|
+          server_identity = gear['server_identity']
+          if server_identity && (!target_server_identity || (server_identity == target_server_identity))
+            node_to_gears[server_identity] = [] unless node_to_gears[server_identity] 
+            node_to_gears[server_identity] << {:server_identity => server_identity, :uuid => gear['uuid'], :name => gear['name'], :app_name => app['name'], :login => user_login}
+          end
         end
       end
     end
-  end
-  gather_users_total_time = (Time.now.to_f * 1000).to_i - gather_users_start_time
 
-  puts "\nlogins.length: #{logins_cnt.to_s}"
+    metadata.times["gather_users_total_time"] = (Time.now.to_f * 1000).to_i - gather_users_start_time
 
-  position = upgrade_position - 1
-  upgrader_position_nodes = []
-  if num_upgraders > 1
-    server_identities = node_to_gears.keys.sort
-    server_identities.each_with_index do |server_identity, index|
-      if index == position
-        upgrader_position_nodes << server_identity
-        position += num_upgraders
-      else
-        node_to_gears.delete(server_identity)
+    position = upgrade_position - 1
+    if num_upgraders > 1
+      server_identities = node_to_gears.keys.sort
+      server_identities.each_with_index do |server_identity, index|
+        if index == position
+          metadata.upgrader_position_nodes << server_identity
+          position += num_upgraders
+        else
+          node_to_gears.delete(server_identity)
+        end
       end
     end
-  end
 
-  active_node_queue = []
-  inactive_node_queue = []
-  node_to_gears.each do |server_identity, gears|
-    node_to_gears[server_identity] = nil
-    unless gears.empty?
+    # populate the node queue and for persistence
+    node_queue = []
+    node_to_gears.each do |server_identity, gears|
+      node_to_gears[server_identity] = nil
+      break if gears.empty?
+
+      # build the node for the queue with just metadata about the
+      # node and gears
+      node = OpenShift::Upgrader::NodeQueueEntry.new({
+        server_identity: server_identity,
+        version: version,
+        ignore_cartridge_version: ignore_cartridge_version,
+        active_gear_length: 0,
+        inactive_gear_length: 0
+      })
+
+      # sort gears by active/inactive
       active_gears = []
       inactive_gears = []
+
       gears.each do |gear|
+        if gear_whitelist && gear_whitelist.length > 0
+          puts "Gear #{gear[:uuid]} is not in the whitelist and will be skipped"
+          next unless gear_whitelist.include?(gear[:uuid])
+        end
+
         if active_gears_map.include?(server_identity) && active_gears_map[server_identity].include?(gear[:uuid])
+          gear[:active] = true
           active_gears << gear
         else
+          gear[:active] = false
           inactive_gears << gear
         end
       end
 
-      # If continue is specified, re-use the existing upgrade file without writing
-      # a new one from the node gears. If rerun is specified, convert the rerun file
-      # into the upgrade file.
-      unless active_gears.empty?
-        write_node_to_file(server_identity + ACTIVE_SUFFIX, active_gears, version, ignore_cartridge_version) unless (continue || rerun)
-        active_node_queue << {:server_identity => server_identity + ACTIVE_SUFFIX, :gears_length => active_gears.length}
+      node.active_gear_length = active_gears.length
+      node.inactive_gear_length = inactive_gears.length
+      node.gears_length = gears.length
 
-        prepare_rerun(server_identity + ACTIVE_SUFFIX) if rerun
-      end
+      node_queue << node
 
-      unless inactive_gears.empty?
-        write_node_to_file(server_identity, inactive_gears, version, ignore_cartridge_version) unless (continue || rerun)
-        inactive_node_queue << {:server_identity => server_identity, :gears_length => inactive_gears.length}
-
-        prepare_rerun(server_identity) if rerun
-      end
+      # ensure we can process active gears first
+      write_gear_queue(node, active_gears) unless active_gears.empty?
+      write_gear_queue(node, inactive_gears) unless inactive_gears.empty?
     end
+    node_to_gears.clear
+
+    # process the largest nodes first
+    node_queue = node_queue.sort_by { |node| node.active_gear_length }
+
+    puts "Writing node queue to #{node_queue_path}"
+    node_queue.each do |node|
+      append_to_file(node_queue_path, node.to_json)
+    end
+
+    puts "Writing cluster metadata to #{cluster_metadata_path}"
+    append_to_file(cluster_metadata_path, metadata.to_json)
   end
-  node_to_gears.clear
 
-  # Process the largest nodes first
-  active_node_queue = active_node_queue.sort_by { |node| node[:gears_length] }.reverse
-  inactive_node_queue = inactive_node_queue.sort_by { |node| node[:gears_length] }.reverse
-  node_queue = active_node_queue + inactive_node_queue
 
-  puts "#####################################################"
-  if !upgrader_position_nodes.empty?
-    puts 'Nodes this upgrader is handling:'
-    puts upgrader_position_nodes.pretty_inspect
-  end
-  puts "#####################################################"
-
-  @failures = []
-  node_threads = []
-  gear_cnts = []
-  mutex = Mutex.new
-  timings = {}
-  acceptable_errors = {}
-  starting_nodes = node_queue.shift($max_threads)
-  starting_nodes.each_with_index do |node, index|
-    server_identity = node[:server_identity]
-    gear_cnts[index] = node[:gears_length]
-    gear_cnt += node[:gears_length]
-    node_threads << Thread.new do
-      node_timings, node_acceptable_errors = upgrade_node(server_identity, continue)
-      add_to(timings, node_timings)
-      add_to(acceptable_errors, node_acceptable_errors)
-      # Get the next available node to process
-      while !node_queue.empty? do
-        server_identity = nil
-        mutex.synchronize do
-          unless node_queue.empty?
-            node = node_queue.delete_at(0)
-            server_identity = node[:server_identity]
-            gear_cnts[index] += node[:gears_length]
-            gear_cnt += node[:gears_length]
-            puts "#####################################################"
-            puts "Remaining node queue:"
-            puts node_queue.pretty_inspect
-            puts "#####################################################"
-          end
-        end
-        if server_identity
-          node_timings, node_acceptable_errors = upgrade_node(server_identity, continue)
-          add_to(timings, node_timings)
-          add_to(acceptable_errors, node_acceptable_errors)
-        end
-      end
+  ##
+  # Writes a gear queue to a file in a consolidated format containing
+  # one line per gear queue entry, where each line is a JSON dump of
+  # a +GearQueueEntry+ instance.
+  #
+  def write_gear_queue(node, gears)
+    gear_queue_file = gear_queue_path(node.server_identity)
+    puts "Writing #{gears.length} entries to gear queue for node #{node.server_identity} at #{gear_queue_file}"
+    
+    gears.each do |gear|
+      queue_entry = OpenShift::Upgrader::GearQueueEntry.new({
+        server_identity: node.server_identity,
+        version: node.version,
+        ignore_cartridge_version: node.ignore_cartridge_version,
+        gear_uuid: gear[:uuid],
+        gear_name: gear[:name],
+        app_name: gear[:app_name],
+        login: gear[:login],
+        active: gear[:active]
+      })
+      append_to_file(gear_queue_file, queue_entry.to_json)
     end
   end
 
-  node_threads.each do |t|
-    t.join
-  end
+  ##
+  # Performs the a node upgrade of the specified +server_identity+ by setting up the output
+  # files and forking a call back to +upgrade_node_from_gear_queue_file+.
+  #
+  # The upgrade logic will continue or retry failures depending on the presence of the appropriate
+  # gear queue files, and will do nothing if there are no queues to process.
+  #
+  def upgrade_node(server_identity)
+    raise "No server identity specified" unless server_identity
 
-  total_time = (Time.now.to_f * 1000).to_i - start_time
+    gear_queue_file = gear_queue_path(server_identity)
+    rerun_queue_file = gear_rerun_queue_path(server_identity)
+    error_file = error_file_path(server_identity)
 
-  unless @failures.empty?
-    puts "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
-    puts "Failures:"
-    @failures.each do |failure|
-      puts failure
+    # if there's no queue of any sort, there's nothing to do on this node
+    unless File.exists?(gear_queue_file) || File.exists?(rerun_queue_file)
+      puts "Nothing to migrate for node #{server_identity}; no gear queue or rerun queue files exist"
+      return
     end
-    puts "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
-    puts ""
-  end
 
-  node_queue.each do |node|
-    server_identity = node[:server_identity]
-    f = upgrade_file_path(server_identity)
-    leftover_count = `wc -l #{f}`.to_i
-    if leftover_count > 0
-      puts "!!!!!!!!!!WARNING!!!!!!!!!!!!!WARNING!!!!!!!!!!!!WARNING!!!!!!!!!!"
-      puts "#{leftover_count} leftover gears found in upgrade file: #{f}"
-      puts "You can run with --continue to try again"
-      puts "!!!!!!!!!!WARNING!!!!!!!!!!!!!WARNING!!!!!!!!!!!!WARNING!!!!!!!!!!"
-      puts ""
+    if File.exists?(gear_queue_file)
+      puts "Upgrading node #{server_identity} from gear queue file at #{gear_queue_file}"
+    elsif File.exists?(rerun_queue_file)
+      puts "Re-running failures from previous upgrade of node #{server_identity} from rerun gear queue at #{rerun_queue_file}"
+      
+      timestamp = Time.now.strftime("%Y-%m-%d-%H%M%S")
+      archive_error_file = "#{error_file}_#{timestamp}"
+      puts "Archiving previous error file from #{error_file} to #{archive_error_file}"
+      FileUtils.mv error_file, archive_error_file
+
+      # convert the rerun queue into the new normal queue
+      FileUtils.mv rerun_queue_file, gear_queue_file
     end
+
+    # fork the call to +upgrade_node_from_gear_queue_file+ (TODO: revisit this later; the
+    # fork is apparently used to work around long-forgotten MCollective threading issues)
+    upgrade_node_cmd = "#{__FILE__} upgrade-from-file --upgrade-file '#{gear_queue_file}'"
+    execute_script(upgrade_node_cmd)
   end
 
-  unless acceptable_errors.empty?
-    puts "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
-    puts "Acceptable Errors:"
-    pp acceptable_errors
-    puts "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
-    puts ""
-  end
+  ##
+  # Processes JSON-serialized +GearQueueEntry+, one per line in the given gear queue +file+.
+  #
+  # Successful upgrade results are written as JSON dumps of +GearUpgradeResult+ instances
+  # to +results_file+.
+  #
+  # Results containing errors are written as JSON dumps of +GearUpgradeResult+ instances to
+  # +error_file+ only after two retries have been attempted. In addition, when a result
+  # contains errors, the source +GearQueueEntry+ is written as JSON to +gear_rerun_queue_path+
+  # to facilitate reruns of past errors.
+  #
+  # Each time an result is written to disk, the source line from +file+ is deleted. When
+  # all lines are processed, the input file is deleted.
+  #
+  # This method returns nothing; callers must inspect the result file contents for
+  # upgrade details.
+  #
+  def upgrade_node_from_gear_queue_file(file)
+    while true
+      queue_entry_json = File.open(file, &:gets)
+      break if queue_entry_json.nil? || queue_entry_json.empty?
 
-  puts "#####################################################"
-  puts "Summary:"
-  puts "# of users: #{logins_cnt}"
-  puts "# of gears: #{gear_cnt}"
-  puts "# of failures: #{@failures.length}"
-  puts "Gear counts per thread: #{gear_cnts.pretty_inspect}"
-  puts "Nodes upgraded: #{upgrader_position_nodes.pretty_inspect}" if !upgrader_position_nodes.empty?
-  puts "Additional timings:"
-  timings.each do |topic, time_in_millis|
-    puts "    #{topic}=#{time_in_millis.to_f/1000}s"
-  end
-  puts "Time gathering users: #{gather_users_total_time.to_f/1000}s"
-  puts "Time gathering active gears: #{gather_active_gears_total_time.to_f/1000}s"
-  puts "Total execution time: #{total_time.to_f/1000}s"
-  puts "#####################################################"
-end
+      gear = OpenShift::Upgrader::GearQueueEntry.from_json(queue_entry_json)
 
-def prepare_rerun(server_identity)
-  rerun_file = rerun_file_path(server_identity)
-  upgrade_file = upgrade_file_path(server_identity)
-  if File.exists?(rerun_file)
-    puts "Preparing upgrade file #{upgrade_file} from rerun file #{rerun_file} for server #{server_identity}"
-    FileUtils.rm_f(upgrade_file) if File.exists?(upgrade_file)
-    FileUtils.mv(rerun_file, upgrade_file)
-  end
-end
+      log_file = log_file_path(gear.server_identity)
+      results_file = results_file_path(gear.server_identity)
+      error_file = error_file_path(gear.server_identity)
+      rerun_file = gear_rerun_queue_path(gear.server_identity)
 
-def write_node_to_file(server_identity, gears, version, ignore_cartridge_version)
-  f = upgrade_file_path(server_identity)
-  puts "Writing #{gears.length} gears for node #{server_identity} to file #{f}"
-  FileUtils.mkdir_p WORK_DIR
-  FileUtils.rm_f f
-  FileUtils.touch f
-  gears.each_with_index do |gear, index|
-    upgrade_on_node_args = "#{gear[:server_identity]},#{gear[:uuid]},#{gear[:name]},#{gear[:app_name]},#{gear[:login]},#{version},#{ignore_cartridge_version.to_s}"
-    append_to_file(f, upgrade_on_node_args)
-  end
-end
+      append_to_file(log_file, "Migrating app '#{gear.app_name}' gear '#{gear.gear_name}' with uuid '#{gear.gear_uuid}' on node '#{gear.server_identity}' for user: #{gear.login}")
 
-def error_file_path(server_identity)
-  "#{WORK_DIR}/upgrade_errors_#{server_identity}"
-end
-
-def log_file_path(server_identity)
-  "#{WORK_DIR}/upgrade_log_#{server_identity}"
-end
-
-def upgrade_file_path(server_identity)
-  "#{WORK_DIR}/upgrade_#{server_identity}"
-end
-
-def rerun_file_path(server_identity)
-  "#{WORK_DIR}/upgrade_rerun_#{server_identity}"
-end
-
-def upgrade_node(server_identity, continue)
-  puts "Migrating gears on node #{server_identity}"
-  error_file = error_file_path(server_identity)
-  FileUtils.rm_f error_file unless continue
-  FileUtils.touch error_file
-  log_file = log_file_path(server_identity)
-  FileUtils.rm_f log_file unless continue
-  FileUtils.touch log_file
-  f = upgrade_file_path(server_identity)
-  upgrade_node_cmd = "#{__FILE__} --upgrade-file '#{f}'"
-  output, exit_code = execute_script(upgrade_node_cmd)
-  puts output
-  file = File.open(error_file, "r")
-  begin
-    while (line = file.readline)
-      @failures << line.chomp
-    end
-  rescue EOFError
-    file.close
-  end
-  file = File.open(log_file, "r")
-  timings = {}
-  acceptable_errors = {}
-  begin
-    while (line = file.readline)
-      if line =~ /\*\*\*time_(.*)=(\d+)\*\*\*/
-        timings[$1] = 0 unless timings[$1]
-        timings[$1] += $2.to_i
-      elsif line =~ /\*\*\*acceptable_error_(.*)=(.+)\*\*\*/
-        acceptable_errors[$1] = [] unless acceptable_errors[$1]
-        acceptable_errors[$1] << $2
-      elsif line =~/gear_upgrade_json=(.*)/
-        begin
-          gear_json = JSON.load($1)
-          gear_json['times'].each_pair do |k, v|
-            timings[k] = v.to_i
-          end
-        rescue
-        end
-      end
-      print line
-    end
-  rescue EOFError
-    file.close
-  end
-  return timings, acceptable_errors
-end
-
-def upgrade_from_file(file)
-  while true
-    line = File.open(file, &:gets)
-    if line && !line.empty?
-      params = line.chomp.split(',')
-      server_identity = params[0]
-      gear_uuid = params[1]
-      gear_name = params[2]
-      app_name = params[3]
-      login = params[4]
-      version = params[5]
-      ignore_cartridge_version = params[6] == 'true' ? true : false
-      upgrade_on_node_cmd = "#{__FILE__} --login '#{login}' --upgrade-gear '#{gear_uuid}' --app-name '#{app_name}' --version '#{version}' #{ignore_cartridge_version ? '--ignore-cartridge-version' : ''}"
-      base_path = server_identity
-      if File.basename(file) == File.basename(upgrade_file_path(server_identity) + ACTIVE_SUFFIX)
-        base_path += ACTIVE_SUFFIX
-      end
-      error_file = error_file_path(base_path)
-      rerun_file = rerun_file_path(base_path)
-      log_file = log_file_path(base_path)
-      append_to_file(log_file,  "Migrating app '#{app_name}' gear '#{gear_name}' with uuid '#{gear_uuid}' on node '#{server_identity}' for user: #{login}")
+      # start the upgrades in a retry loop
       num_tries = 2
       (1..num_tries).each do |i|
-        begin
-          output = upgrade_gear(login, app_name, gear_uuid, version, ignore_cartridge_version)
-          append_to_file(log_file, output)
+        # perform the upgrade
+        gear_result = upgrade_gear(gear.login, gear.app_name, gear.gear_uuid, gear.version, gear.ignore_cartridge_version)
+
+        # write the results if all is well
+        if gear_result.errors.empty?
+          append_to_file(results_file, gear_result.to_json)
           break
-        rescue Exception => e
-          if i == num_tries
-            append_to_file(log_file, "Failed to upgrade with cmd: '#{upgrade_on_node_cmd}' after #{num_tries} tries with exception: #{e.message}")
-            append_to_file(error_file, upgrade_on_node_cmd)
-            append_to_file(rerun_file, line)
-            break
-          else
-            user = nil
-            begin
-              user = CloudUser.with(consistency: :eventual).find_by(login: login)
-            rescue Mongoid::Errors::DocumentNotFound
+        end
+
+        # dump the error to disk if the retry limit is hit and we're still failing
+        if i == num_tries
+          gear_result.errors << "Failed upgrade after #{num_tries} tries"
+          append_to_file(error_file, gear_result.to_json)
+          append_to_file(rerun_file, gear.to_json)
+          break
+        end
+
+        # verify the user still exists
+        user = nil
+        begin
+          user = CloudUser.with(consistency: :eventual).find_by(login: gear.login)
+        rescue Mongoid::Errors::DocumentNotFound
+        end
+
+        # if not, throw a warning and move on
+        unless user && Application.find_by_user(user, gear.app_name)
+          gear_result[:warnings] << "App '#{gear.app_name}' no longer found in datastore with uuid '#{gear.gear_uuid}'.  Ignoring..." 
+          append_to_file(results_file, gear_result.to_json)
+          break
+        end
+
+        # if so, we're ready for a retry
+        sleep 4
+      end
+
+      # the gear has been processed; delete the entry from the file
+      `sed -i '1,1d' #{file}`
+    end
+
+    # double-check to ensure all lines were processed, and remove
+    # the input file if we're all done.
+    FileUtils.rm_f file if `wc -l #{file}`.to_i == 0
+  end
+
+
+  ##
+  # Performs a gear upgrade via an RPC call to MCollective on a remote node.
+  #
+  # Returns a +GearUpgradeResult+, which also including the (decoded) remote
+  # upgrade JSON containing the gear level upgrade details.
+  #
+  # NOTE: All exceptions are trapped and added to the +GearUpgradeResult.errors+.
+  # This method should always return the hash and should never bubble exceptions.
+  #
+  def upgrade_gear(login, app_name, gear_uuid, version, ignore_cartridge_version=false)
+    gear_result = OpenShift::Upgrader::GearUpgradeResult.new({
+      login: login,
+      app_name: app_name,
+      gear_uuid: gear_uuid,
+      version: version
+    })
+
+    total_upgrade_gear_start_time = (Time.now.to_f * 1000).to_i
+
+    begin
+      user = nil
+      begin
+        user = CloudUser.with(consistency: :eventual).find_by(login: login)
+      rescue Mongoid::Errors::DocumentNotFound
+      end
+
+      raise "User not found: #{login}" unless user
+
+      app, gear = Application.find_by_gear_uuid(gear_uuid)
+
+      gear_result.warnings << "App '#{app_name}' not found" unless app
+      gear_result.warnings << "Gear not found with uuid #{gear_uuid} for app '#{app_name}' and user '#{login}'" unless gear
+
+      if app && gear
+        server_identity = gear.server_identity
+
+        Timeout::timeout(420) do
+          output = ''
+          exit_code = 1
+          remote_result_json = nil
+
+          upgrade_on_node_start_time = (Time.now.to_f * 1000).to_i
+
+          OpenShift::MCollectiveApplicationContainerProxy.rpc_exec('openshift', server_identity) do |client|
+            client.upgrade(:uuid => gear_uuid,
+                           :namespace => app.domain.namespace,
+                           :version => version,
+                           :ignore_cartridge_version => ignore_cartridge_version.to_s) do |response|
+              exit_code = response[:body][:data][:exitcode]
+              remote_result_json = response[:body][:data][:upgrade_result_json]
             end
-            if user && Application.find_by_user(user, app_name)
-              sleep 4
-            else
-              append_to_file(log_file, "App '#{app_name}' no longer found in datastore with uuid '#{gear_uuid}'.  Ignoring...")
-              break
-            end
+          end
+
+          gear_result.remote_upgrade_result = JSON.load(remote_result_json)
+          gear_result.remote_exit_code = exit_code
+
+          unless gear_result.remote_upgrade_result['upgrade_complete']
+            gear_result.errors << "Gear upgrade result is marked incomplete"
+          end
+
+          upgrade_on_node_time = (Time.now.to_f * 1000).to_i - upgrade_on_node_start_time
+
+          gear_result.times["time_upgrade_on_node_measured_from_broker"] = upgrade_on_node_time
+
+          if exit_code != 0
+            raise "Remote upgrade returned nonzero exit code: #{exit_code}"
           end
         end
       end
-      `sed -i '1,1d' #{file}`
-    else
-      break
+    rescue Timeout::Error => e
+      gear_result.errors << "Remote upgrade timed out"
+    rescue => e
+      gear_result.errors << "Upgrade failed: #{e.message}\n#{e.backtrace.join("\n")}"
     end
-  end
-end
 
-def self.append_to_file(f, value)
-  file = File.open(f, 'a')
-  begin
-    file.puts value
-  ensure
-    file.close
-  end
-end
+    total_upgrade_gear_time = (Time.now.to_f * 1000).to_i - total_upgrade_gear_start_time
+    gear_result.times["time_total_upgrade_gear_measured_from_broker"] = total_upgrade_gear_start_time
 
-def execute_script(cmd, num_tries=1, timeout=28800)
-  exitcode = nil
-  output = ''
-  (1..num_tries).each do |i|
-    pid = nil
-    begin
-      Timeout::timeout(timeout) do
-        read, write = IO.pipe
-        pid = fork {
-          # child
-          $stdout.reopen write
-          read.close
-          exec(cmd)
-        }
-        # parent
-        write.close
-        read.each do |line|
-          output << line
+    gear_result
+  end
+
+  ##
+  # Builds a simply textual summary of a +ClusterUpgradeResult+.
+  #
+  # Returns the report as a string.
+  #
+  def build_text_summary(upgrade_result)
+    buf = []
+
+    leftover_gears_per_node = {}
+    failed_gears_per_node = {}
+
+    upgrade_result.starting_node_queue.each do |node|
+      server_identity = node.server_identity
+      gear_queue_file = gear_queue_path(server_identity)
+      gear_rerun_queue_file = gear_rerun_queue_path(server_identity)
+
+      if File.exists?(gear_queue_file)
+        leftover_gears_per_node[server_identity] = `wc -l #{gear_queue_file}`.to_i
+      end
+
+      if File.exists?(gear_rerun_queue_file)
+        failed_gears_per_node[server_identity] = `wc -l #{gear_rerun_queue_file}`.to_i
+      end
+    end
+
+    failed_gears_total = failed_gears_per_node.values.inject(0, :+)
+    leftover_gears_total = leftover_gears_per_node.values.inject(0, :+)
+
+    if leftover_gears_per_node.length > 0 || failed_gears_per_node.length > 0
+      buf << "!!!!!!!!!!WARNING!!!!!!!!!!!!!WARNING!!!!!!!!!!!!WARNING!!!!!!!!!!"
+      buf << "The upgrade was incomplete due to unprocessed or failed gears"
+      buf << "remaining in node gear queues:"
+      unless leftover_gears_per_node.empty?
+        buf << ""
+        buf << "#{leftover_gears_total} unprocessed gears:"
+        leftover_gears_per_node.each do |server_identity, count|
+          buf << "  #{server_identity}: #{count}"
         end
-        Process.waitpid(pid)
-        exitcode = $?.exitstatus
       end
-      break
-    rescue Timeout::Error
+
+      unless failed_gears_per_node.empty?
+        buf << ""
+        buf << "#{failed_gears_total} failed gears:"
+        failed_gears_per_node.each do |server_identity, count|
+          buf << "  #{server_identity}: #{count}"
+        end
+      end
+      buf << ""
+      buf << "You can run the upgrade again with the same arguments to continue."
+      buf << "!!!!!!!!!!WARNING!!!!!!!!!!!!!WARNING!!!!!!!!!!!!WARNING!!!!!!!!!!"
+    end
+
+    upgrader_position_nodes = upgrade_result.cluster_metadata.upgrader_position_nodes
+
+    buf << "#####################################################"
+    buf << "Summary:"
+    buf << "# of users: #{upgrade_result.cluster_metadata.logins_count}"
+    buf << "# of gears: #{upgrade_result.gear_count}"
+    buf << "# of failures: #{failed_gears_total}"
+    buf << "# of leftovers: #{leftover_gears_total}"
+    buf << "Gear counts per thread: #{upgrade_result.gear_counts.pretty_inspect}"
+    buf << "Nodes upgraded: #{upgrader_position_nodes.pretty_inspect}" if !upgrader_position_nodes.empty?
+    buf << "Timings:"
+    upgrade_result.times.each do |topic, time_in_millis|
+      buf << "    #{topic}=#{time_in_millis.to_f/1000}s"
+    end
+    buf << "Additional timings:"
+    upgrade_result.cluster_metadata.times.each do |topic, time_in_millis|
+      buf << "    #{topic}=#{time_in_millis.to_f/1000}s"
+    end
+    buf << "#####################################################"
+
+    buf.join("\n")
+  end
+
+  def log_file_path(server_identity)
+    "#{WORK_DIR}/upgrade_log_#{server_identity}"
+  end
+
+  def gear_queue_path(server_identity)
+    "#{WORK_DIR}/gear_queue_#{server_identity}"
+  end
+
+  def gear_rerun_queue_path(server_identity)
+    "#{WORK_DIR}/gear_rerun_queue_#{server_identity}"
+  end
+
+  def results_file_path(server_identity)
+    "#{WORK_DIR}/upgrade_results_#{server_identity}"
+  end
+
+  def error_file_path(server_identity)
+    "#{WORK_DIR}/upgrade_errors_#{server_identity}"
+  end
+
+  def node_queue_path
+    "#{WORK_DIR}/node_queue"
+  end
+
+  def cluster_metadata_path
+    "#{WORK_DIR}/cluster_metadata"
+  end
+
+  ##
+  # Appends +value+ to +filename+.
+  #
+  def append_to_file(filename, value)
+    FileUtils.touch filename unless File.exists?(filename)
+
+    file = File.open(filename, 'a')
+    begin
+      file.puts value
+    ensure
+      file.close
+    end
+  end
+
+  ##
+  # Executes +cmd+ up to +num_tries+ times waiting for a zero exitcode up with
+  # a timeout of +timeout+.
+  #
+  # Returns [+output+, +exitcode+] of the process.
+  #
+  def execute_script(cmd, num_tries=1, timeout=28800)
+    exitcode = nil
+    output = ''
+    (1..num_tries).each do |i|
+      pid = nil
       begin
-        Process.kill("TERM", pid) if pid
-      rescue Exception => e
-        puts "execute_script: WARNING - Failed to kill cmd: '#{cmd}' with message: #{e.message}"
+        Timeout::timeout(timeout) do
+          read, write = IO.pipe
+          pid = fork {
+            # child
+            $stdout.reopen write
+            read.close
+            exec(cmd)
+          }
+          # parent
+          write.close
+          read.each do |line|
+            output << line
+          end
+          Process.waitpid(pid)
+          exitcode = $?.exitstatus
+        end
+        break
+      rescue Timeout::Error
+        begin
+          Process.kill("TERM", pid) if pid
+        rescue Exception => e
+          puts "execute_script: WARNING - Failed to kill cmd: '#{cmd}' with message: #{e.message}"
+        end
+        puts "Command '#{cmd}' timed out"
+        raise if i == num_tries
       end
-      puts "Command '#{cmd}' timed out"
-      raise if i == num_tries
+    end
+    return output, exitcode
+  end
+end
+
+class UpgraderCli < Thor
+  no_tasks do
+    def with_upgrader
+      STDOUT.sync, STDERR.sync = true
+
+      # Disable analytics for admin scripts
+      require '/var/www/openshift/broker/config/environment'
+      Rails.configuration.analytics[:enabled] = false
+      Rails.configuration.msg_broker[:rpc_options][:disctimeout] = 20
+
+      begin
+        upgrader = Upgrader.new
+        yield upgrader
+      rescue => e
+        puts e.message
+        puts e.backtrace.join("\n")
+        raise
+      end
     end
   end
-  return output, exitcode
-end
 
-def p_usage
-  puts <<USAGE
-
-Usage: #{$0}
-
-  --login login_name                   User login
-  --upgrade-gear gear_uuid             Gear uuid of the single gear to upgrade
-  --app-name app_name                  App name of the gear to upgrade
-  --upgrade-node server_identity       Server identity of the node to upgrade
-  --upgrade-file file                  File containing the gears to upgrade
-  --version                            Target version number
-  --num-upgraders num                  The total number of upgraders to be run.  Each upgrade-position will be a 
-                                       upgrade-position of num-upgraders.  All positions must to taken to upgrade
-                                       all gears.  Ex: If you are going to run 2 upgraders you would need to run:
-                                       ./rhc-admin-upgrade --version <version> --position 1 --num-upgraders 2
-                                       ./rhc-admin-upgrade --version <version> --position 2 --num-upgraders 2
-  --upgrade-position position          Postion of this upgrader (1 based) amongst the num of upgraders (--num_upgraders)
-  --max-threads num                    Indicates the number of processing queues
-  --ignore-cartridge-version           Force cartridge upgrade even if cartridge versions match
-  --continue                           Flag indicating to continue a previous upgrade
-  --rerun                              Re-upgrade gears which fail upgrade
-  --help                               Show usage info
-USAGE
-  exit 255
-end
-
-begin
-  opts = GetoptLong.new(
-    ["--login", GetoptLong::REQUIRED_ARGUMENT],
-    ["--upgrade-gear", GetoptLong::REQUIRED_ARGUMENT],
-    ["--app-name", GetoptLong::REQUIRED_ARGUMENT],
-    ["--upgrade-node", GetoptLong::REQUIRED_ARGUMENT],
-    ["--upgrade-file", GetoptLong::REQUIRED_ARGUMENT],
-    ["--version", GetoptLong::REQUIRED_ARGUMENT],
-    ["--num-upgraders", GetoptLong::REQUIRED_ARGUMENT],
-    ["--upgrade-position", GetoptLong::REQUIRED_ARGUMENT],
-    ["--max-threads", GetoptLong::REQUIRED_ARGUMENT],
-    ["--ignore-cartridge-version", GetoptLong::NO_ARGUMENT],
-    ["--continue", GetoptLong::NO_ARGUMENT],
-    ["--rerun", GetoptLong::NO_ARGUMENT],
-    ["--help", "-h", GetoptLong::NO_ARGUMENT]
-  )
-  opt = {}
-  opts.each do |o, a|
-    opt[o[2..-1]] = a.to_s
-  end
-rescue Exception => e
-  p_usage
-end
-
-if opt['help']
-  p_usage
-end
-
-opt['ignore-cartridge-version'] = opt['ignore-cartridge-version'] ? true : false
-opt['rerun'] = opt['rerun'] ? true : false
-
-
-$:.unshift('/var/www/openshift/broker')
-require 'config/environment'
-# Disable analytics for admin scripts
-Rails.configuration.analytics[:enabled] = false
-Rails.configuration.msg_broker[:rpc_options][:disctimeout] = 20
-
-if opt['max-threads']
-  max_threads = opt['max-threads'].to_i
-  if max_threads < 100 && max_threads > 0
-    $max_threads = max_threads
-  else
-    puts "max-threads must be less than 100 and greater than 0"
-    exit 255
-  end
-end
-
-if opt['upgrade-file']
-  upgrade_from_file(opt['upgrade-file'])
-elsif opt['upgrade-gear']
-  if opt['login'] && opt['app-name'] && opt['version']
-    puts upgrade_gear(opt['login'], opt['app-name'], opt['upgrade-gear'], opt['version'], opt['ignore-cartridge-version'])
-  else
-    puts "--login, --app-name, and --version is required with --upgrade-gear"
-    exit 255
-  end
-elsif opt['upgrade-node']
-  if opt['version']
-    upgrade_file = upgrade_file_path(opt['upgrade-node'])
-    if opt['continue']
-      upgrade(version: opt['version'], continue: true, ignore_cartridge_version: opt['ignore-cartridge-version'], target_server_identity: opt['upgrade-node'])
-    elsif !opt['rerun'] && File.exists?(upgrade_file)
-        puts <<-WARNING
-!!!!!!!!!!!!!!!!!!!! EXISTING MIGRATION DATA FOUND !!!!!!!!!!!!!!!!!!!!
-Data from a previous upgrade exists at #{upgrade_file}.  You must 
-either move/remove (Ex: rm #{upgrade_file}) that data or pick up
-where it left off with '#{__FILE__} --upgrade-node #{opt['upgrade-node']} --version '#{opt['version']}'#{opt['ignore-cartridge-version'] ? ' --ignore-cartridge-version' : ''} --continue'.
-WARNING
-        exit 1
+  desc "archive", "Archives existing upgrade data in order to begin a completely new upgrade attempt"
+  def archive
+    files = Dir.glob(File.join(Upgrader::WORK_DIR, '*')).select{|fn| File.file?(fn)}
+    if files.empty?
+      puts "No upgrade files found to archive at #{Upgrader::WORK_DIR}"
     else
-      upgrade(version: opt['version'], continue: false, ignore_cartridge_version: opt['ignore-cartridge-version'], target_server_identity: opt['upgrade-node'], rerun: opt['rerun'])
+      timestamp = Time.now.strftime("%Y-%m-%d-%H%M%S")
+      archive_dir = File.join(Upgrader::WORK_DIR, "archive_#{timestamp}")
+      FileUtils.mkdir(archive_dir)
+      puts "Archiving upgrade output to #{archive_dir}"
+      FileUtils.mv files, archive_dir
     end
-  else
-    puts "--version is required with --upgrade-node"
-    exit 255
   end
-else
-  if opt['version']
-    num_upgraders = opt['num-upgraders']
-    upgrade_position = opt['upgrade-position']
-    if num_upgraders || upgrade_position
-      unless num_upgraders
-        puts "--num-upgraders is required with --upgrade-position"
-        exit 255
-      end
-      unless upgrade_position
-        puts "--upgrade-position is required with --num-upgraders"
-        exit 255
-      end
-      num_upgraders = num_upgraders.to_i
-      upgrade_position = upgrade_position.to_i
-      unless upgrade_position > 0 && upgrade_position <= num_upgraders
-        puts "upgrade-position must be > 0 and <= num_upgraders"
-        exit 255
-      end
-      unless num_upgraders > 0
-        puts "num-upgraders must be > 0"
-        exit 255
-      end
-    else
-      num_upgraders = 1
-      upgrade_position = 1
+
+  desc "upgrade-gear", "Upgrades only the specified gear"
+  method_option :login, :type => :string, :required => true, :desc => "User login"
+  method_option :app_name, :type => :string, :required => true, :desc => "App name of the gear to upgrade"
+  method_option :upgrade_gear, :type => :string, :required => true, :desc => "Gear uuid of the single gear to upgrade"
+  method_option :version, :type => :string, :required => true, :desc => "Target version number"
+  method_option :ignore_cartridge_version, :type => :boolean, :default => false, :desc => "Force cartridge upgrade even if cartridge versions match"
+  def upgrade_gear
+    with_upgrader do |upgrader|
+      gear_result = upgrader.upgrade_gear(options.login, options.app_name, options.upgrade_gear, options.version, options.ignore_cartridge_version?)
+      puts gear_result.to_json
     end
-    if opt['continue']
-      upgrade(version: opt['version'], continue: true, ignore_cartridge_version: opt['ignore-cartridge-version'], upgrade_position: upgrade_position, num_upgraders: num_upgraders)
-    elsif !opt['rerun'] && File.exists?(WORK_DIR)
-      puts <<-WARNING
-!!!!!!!!!!!!!!!!!!!! EXISTING MIGRATION DATA FOUND !!!!!!!!!!!!!!!!!!!!
-Data from a previous migration exists at #{WORK_DIR}.  You must 
-either move/remove (Ex: rm -rf #{WORK_DIR}) that data or pick up
-where it left off with '#{__FILE__} --continue'.
-WARNING
+  end
+
+  desc "upgrade-from-file", "Upgrades gears from a gear queue file"
+  method_option :upgrade_file, :type => :string, :required => true, :desc => "The gear queue file to upgrade from"
+  def upgrade_from_file
+    with_upgrader do |upgrader|
+      upgrader.upgrade_node_from_gear_queue_file(options.upgrade_file)
+    end
+  end
+
+  desc "upgrade-node", "Upgrades one or all nodes to the specified version"
+  method_option :version, :type => :string, :required => true, :desc => "Target version number"
+  method_option :ignore_cartridge_version, :type => :boolean, :default => false, :desc => "Force cartridge upgrade even if cartridge versions match"
+  method_option :upgrade_node, :type => :string, :required => false, :desc => "Server identity of the node to upgrade"
+  method_option :upgrade_position, :type => :numeric, :required => false, :desc => "Postion of this upgrader (1 based) amongst the num of upgraders"
+  method_option :num_upgraders, :type => :numeric, :required => false, :desc => "The total number of upgraders to be run.  Each upgrade-position will be a "\
+                                                                                "upgrade-position of num-upgraders.  All positions must to taken to upgrade "\
+                                                                                "all gears."
+  method_option :gear_whitelist, :type => :array, :required => false, :desc => "Upgrade only the specified gear UUIDs"
+  method_option :max_threads, :type => :numeric, :required => false, :desc =>  "Indicates the number of processing queues"
+  def upgrade_node
+    if (options.num_upgraders && !options.upgrade_position) || (options.upgrade_position && !options.num_upgraders)
+      puts "--num-upgraders and --upgrade-position must be specified together"
       exit 1
-    else
-      upgrade(version: opt['version'], continue: false, ignore_cartridge_version: opt['ignore-cartridge-version'], upgrade_position: upgrade_position, num_upgraders: num_upgraders, rerun: opt['rerun'])
     end
-  else
-    puts "--version is required"
-    exit 255
+
+    with_upgrader do |upgrader|
+      args = {
+        version: options.version,
+        ignore_cartridge_version: options.ignore_cartridge_version?,
+        target_server_identity: options.upgrade_node,
+        upgrade_position: options.upgrade_position,
+        num_upgraders: options.num_upgraders,
+        max_threads: options.max_threads,
+        gear_whitelist: options.gear_whitelist
+      }
+
+      upgrader.upgrade(args)
+    end
   end
 end
+
+UpgraderCli.start if __FILE__ == $0

@@ -41,7 +41,30 @@ Given /^a new client created( scalable)? (.+) application$/ do |scalable, type|
   end
   raise "Could not create domain: #{@app.create_domain_code}" unless @app.create_domain_code == 0
   raise "Could not create application #{@app.create_app_code}" unless @app.create_app_code == 0
+
+  @test_apps_hash ||= {}
+  @test_apps_hash[@app.name] = @app
 end
+
+Given /^a new client created( scalable)? (.+) application named (.+)$/ do |scalable, type, app_name|
+  @app = TestApp.create_unique(type, nil, scalable)
+  @apps ||= []
+  @apps << @app.name
+  register_user(@app.login, @app.password) if $registration_required
+  if rhc_create_domain(@app)
+    if scalable
+      rhc_create_app(@app, true, '-s')
+    else
+      rhc_create_app(@app)
+    end
+  end
+  raise "Could not create domain: #{@app.create_domain_code}" unless @app.create_domain_code == 0
+  raise "Could not create application #{@app.create_app_code}" unless @app.create_app_code == 0
+
+  @test_apps_hash ||= {}
+  @test_apps_hash[app_name] = @app
+end
+
 
 Then /^creating a new client( scalable)? (.+) application should fail$/ do |scalable, type|
   @app = TestApp.create_unique(type, nil, scalable)
@@ -399,8 +422,22 @@ Then /^the submodule should be deployed successfully$/ do
 end
 
 Then /^the application should be accessible$/ do
-  @app.is_accessible?.should be_true
-  @app.is_accessible?(true).should be_true
+  assert_application_accessible(@app)
+end
+
+Then /^the (.+) application should (not )?be accessible$/ do |app_name, negate|
+  app = @test_apps_hash[app_name]
+  assert_application_accessible(app, negate)
+end
+
+def assert_application_accessible(app, negate=false)
+  if negate
+    app.is_accessible?(false, 1).should be_false
+    app.is_accessible?(true, 1).should be_false
+  else
+    app.is_accessible?.should be_true
+    app.is_accessible?(true).should be_true
+  end
 end
 
 Then /^the application should display default content on first attempt$/ do
