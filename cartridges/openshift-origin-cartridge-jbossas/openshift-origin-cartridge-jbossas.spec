@@ -4,7 +4,7 @@
 
 Summary:       Provides JBossAS7 support
 Name:          openshift-origin-cartridge-jbossas
-Version: 1.5.5
+Version: 1.5.6
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -104,6 +104,9 @@ fi
 
 
 %changelog
+* Tue Aug 06 2013 Adam Miller <admiller@redhat.com> 1.5.6-1
+- Update JBoss cartridges control script (jdetiber@redhat.com)
+
 * Wed Jul 31 2013 Adam Miller <admiller@redhat.com> 1.5.5-1
 - Merge pull request #3244 from danmcp/master
   (dmcphers+openshiftbot@redhat.com)
