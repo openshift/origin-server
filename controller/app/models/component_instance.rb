@@ -25,28 +25,28 @@ class ComponentInstance
     end
     name
   end
-  
+
 
   # @return [Boolean] true if the component does not scale.
   def is_sparse?
     get_component.is_sparse?
   end
-  
+
   def is_plugin?
     cart = CartridgeCache.find_cartridge(cartridge_name, self.application)
     cart.is_plugin?
   end
-  
+
   def is_embeddable?
     cart = CartridgeCache.find_cartridge(cartridge_name, self.application)
     cart.is_embeddable?
   end
-  
+
   def is_web_proxy?
     cart = CartridgeCache.find_cartridge(cartridge_name, self.application)
     cart.is_web_proxy?
   end
-  
+
   def is_web_framework?
     cart = CartridgeCache.find_cartridge(cartridge_name, self.application)
     cart.is_web_framework?

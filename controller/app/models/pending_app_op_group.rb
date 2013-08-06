@@ -11,20 +11,20 @@ class PendingAppOpGroup
   include Mongoid::Document
   include Mongoid::Timestamps
   include TSort
-  
-  embedded_in :application, class_name: Application.name  
+
+  embedded_in :application, class_name: Application.name
   field :op_type,           type: Symbol
   field :args,              type: Hash
   field :parent_op_id, type: Moped::BSON::ObjectId
   embeds_many :pending_ops, class_name: PendingAppOp.name
   field :num_gears_added,   type: Integer, default: 0
   field :num_gears_removed, type: Integer, default: 0
-  
+
   field :num_gears_created, type: Integer, default: 0
   field :num_gears_destroyed, type: Integer, default: 0
   field :num_gears_rolled_back, type: Integer, default: 0
   field :user_agent, type: String, default: ""
-  
+
   def initialize(attrs = nil, options = nil)
     parent_opid = nil
     if !attrs.nil? and attrs[:parent_op]
@@ -34,7 +34,7 @@ class PendingAppOpGroup
     super
     self.parent_op_id = parent_opid 
   end
-  
+
   def eligible_rollback_ops
     # reloading the op_group reloads the application and then incorrectly reloads (potentially)
     # the op_group based on its position within the :pending_op_groups list
@@ -44,7 +44,7 @@ class PendingAppOpGroup
     self.pending_ops = op_group.pending_ops
     pending_ops.where(:state.in => [:completed, :queued]).select{|op| (pending_ops.where(:prereq => op._id.to_s, :state.in => [:completed, :queued]).count == 0)}
   end
-  
+
   def eligible_ops
     # reloading the op_group reloads the application and then incorrectly reloads (potentially)
     # the op_group based on its position within the :pending_op_groups list
@@ -54,14 +54,14 @@ class PendingAppOpGroup
     self.pending_ops = op_group.pending_ops
     pending_ops.where(:state.ne => :completed).select{|op| pending_ops.where(:_id.in => op.prereq, :state.ne => :completed).count == 0}
   end
-  
+
   def execute_rollback(result_io=nil)
     result_io = ResultIO.new if result_io.nil?
-    
+
     while(pending_ops.where(:state => :completed).count > 0) do
       handle = RemoteJob.create_parallel_job
       parallel_job_ops = []
-      
+
       eligible_rollback_ops.each do|op|
         use_parallel_job = false
         Rails.logger.debug "Rollback #{op.op_type}"
@@ -140,14 +140,14 @@ class PendingAppOpGroup
           #TODO: Can't be undone since we do not store certificate info we cannot add it back in
           #result_io.append gear.add_ssl_cert("abstract", op.args["fqdn"])
         end
-        
-        if use_parallel_job 
+
+        if use_parallel_job
           parallel_job_ops.push op
         else
           op.set(:state, :rolledback)
         end
       end
-      
+
       if parallel_job_ops.length > 0
         RemoteJob.execute_parallel_jobs(handle)
         parallel_job_ops.each{ |op| op.state = :rolledback }
@@ -155,15 +155,15 @@ class PendingAppOpGroup
       end
     end
   end
-  
+
   def execute(result_io=nil)
-    result_io = ResultIO.new if result_io.nil?    
-    
+    result_io = ResultIO.new if result_io.nil?
+
     begin
       while(pending_ops.where(:state.ne => :completed).count > 0) do
         handle = RemoteJob.create_parallel_job
         parallel_job_ops = []
-        
+
         eligible_ops.each do|op|
           use_parallel_job = false
           group_instance = application.group_instances.find(op.args["group_instance_id"]) unless op.args["group_instance_id"].nil? or op.op_type == :create_group_instance
@@ -179,10 +179,10 @@ class PendingAppOpGroup
           end
 
           Rails.logger.debug "Execute #{op.op_type}"
-          
+
           # set the pending_op state to queued
           op.set(:state, :queued)
-          
+
           case op.op_type
           when :create_group_instance
             application.group_instances.push(GroupInstance.new(custom_id: op.args["group_instance_id"]))
@@ -333,7 +333,7 @@ class PendingAppOpGroup
           when :notify_app_delete
             OpenShift::RoutingService.notify_delete_application application
           end
-          
+
           if use_parallel_job 
             parallel_job_ops.push op
           elsif result_io.exitcode != 0
@@ -347,7 +347,7 @@ class PendingAppOpGroup
             op.set(:state, :completed)
           end
         end
-      
+
         if parallel_job_ops.length > 0
           RemoteJob.execute_parallel_jobs(handle)
           failed_ops = []
@@ -387,7 +387,7 @@ class PendingAppOpGroup
       raise e_orig
     end
   end
-  
+
   def get_group_instance_for_rollback(op)
     application.group_instances.find(op.args["group_instance_id"]) 
   end
@@ -407,7 +407,7 @@ class PendingAppOpGroup
     end
     component_instance
   end
-  
+
   def serializable_hash_with_timestamp
     s_hash = self.serializable_hash
     t = Time.zone.now

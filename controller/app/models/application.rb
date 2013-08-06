@@ -426,7 +426,7 @@ class Application
 
     features.each do |feature_name|
       cart = CartridgeCache.find_cartridge(feature_name, self)
-      
+
       # Make sure this is a valid cartridge
       if cart.nil?
         raise OpenShift::UserException.new("Invalid cartridge '#{feature_name}' specified.", 109)

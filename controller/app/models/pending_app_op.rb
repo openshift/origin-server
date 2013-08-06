@@ -36,12 +36,12 @@ class PendingAppOp
   def parent_op=(op)
     self.parent_op_id = op._id unless op.nil?
   end
-  
+
   # @return [PendingDomainOps] Domain level operation that spawned this operation.  
   def parent_op
     self.application.domain.pending_ops.find(self.parent_op_id) unless parent_op_id.nil?
   end
-  
+
   # Marks the operation as completed on the parent operation.
   def completed
     self.state = :completed

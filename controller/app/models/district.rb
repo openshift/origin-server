@@ -16,7 +16,7 @@ class District
   create_indexes
 
   def self.create_district(name, gear_size=nil)
-    
+
     profile = gear_size ? gear_size : Rails.application.config.openshift[:default_gear_size]
     if District.where(name: name).count > 0
       raise OpenShift::OOException.new("District by name #{name} already exists")
@@ -27,7 +27,7 @@ class District
   def self.find_by_name(name)
     return District.where(name: name)[0]
   end
-  
+
   def initialize(attrs = nil, options = nil)
     super
 
@@ -49,7 +49,7 @@ class District
     valid_district = District.where(:available_capacity.gt => 0, :gear_size => gear_size, :active_server_identities_size.gt => 0).desc(:available_capacity).first
     valid_district
   end
-  
+
   def self.find_all()
     District.where(nil).find_all.to_a
   end
@@ -97,7 +97,7 @@ class District
     server_identities.each { |server_identity_info| sih[server_identity_info["name"]] = { "active" => server_identity_info["active"]} }
     sih
   end
-  
+
   def remove_node(server_identity)
     server_map = server_identities_hash
     if server_map.has_key?(server_identity)
@@ -120,7 +120,7 @@ class District
       raise OpenShift::OOException.new("Node with server identity: #{server_identity} doesn't belong to district: #{uuid}")
     end
   end
-  
+
   def reserve_given_uid(uid)
     District.where(:uuid => self.uuid, :available_uids => uid).update( {"$pull" => { "available_uids" => uid }, "$inc" => { "available_capacity" => -1 }})
     self.reload
@@ -142,7 +142,7 @@ class District
       raise OpenShift::OOException.new("Node with server identity: #{server_identity} doesn't belong to district: #{uuid}")
     end
   end
-  
+
   def activate_node(server_identity)
     server_map = server_identities_hash
     if server_map.has_key?(server_identity)
@@ -174,7 +174,7 @@ class District
   def self.unreserve_uid(uuid, uid)
     District.where(:uuid => uuid, :available_uids.nin => [uid]).update({"$push" => { "available_uids" => uid}, "$inc" => { "available_capacity" => 1 }})
   end
-  
+
   def add_capacity(num_uids)
     if num_uids > 0
       # shuffle the additional UIDs and add them atomically
@@ -184,18 +184,18 @@ class District
       if update_result.nil? or (not update_result["updatedExisting"])
         raise OpenShift::OOException.new("Could not add capacity to district: #{uuid}")
       end
-      
+
       return self.reload
     else
       raise OpenShift::OOException.new("You must supply a positive number of uids to add")
     end
   end
-  
+
   def remove_capacity(num_uids)
     if num_uids > 0
       subtractions = []
       subtractions.fill(0, num_uids) {|i| i + max_uid - num_uids + 1}
-      
+
       # check if the UIDs being removed are available
       if (subtractions & available_uids).length == subtractions.length
         update_result = District.where(:uuid => uuid, :available_uids => { "$all" => subtractions }).update({"$pullAll" => { "available_uids" => subtractions}, "$inc" => { :available_capacity => -num_uids, :max_capacity => -num_uids, :max_uid => -num_uids }})
@@ -205,7 +205,7 @@ class District
       else
         raise OpenShift::OOException.new("Specified number of UIDs not found in order in available_uids.  Can not continue!")
       end
-      
+
       return self.reload
     else
       raise OpenShift::OOException.new("You must supply a positive number of uids to remove")

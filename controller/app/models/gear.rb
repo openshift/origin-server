@@ -26,7 +26,7 @@ class Gear
     attrs.delete(:custom_id)
     group_instance = attrs[:group_instance]
     attrs.delete(:group_instance)
-    
+
     super(attrs, options)
     self._id = custom_id unless custom_id.nil?
     self.uuid = self._id.to_s if self.uuid=="" or self.uuid.nil?
@@ -45,7 +45,7 @@ class Gear
       quota_blocks / 1024 / 1024
     }
   end
-  
+
   def self.base_file_limit(gear_size)
     CacheHelper.get_cached(gear_size + "_quota_files", :expires_in => 1.day) {
       proxy = OpenShift::ApplicationContainerProxy.find_one(gear_size)
@@ -53,7 +53,7 @@ class Gear
       quota_files
     }
   end
-  
+
   def self.gear_sizes_display_string
     # Ex: (small(default)|jumbo|exlarge|large|medium|micro)
     out = '('
@@ -64,7 +64,7 @@ class Gear
     end
     out += ')'
   end
-  
+
   def self.valid_gear_size?(gear_size)
     Rails.configuration.openshift[:gear_sizes].include?(gear_size)
   end
@@ -74,25 +74,25 @@ class Gear
     self.set :server_identity, @container.id
     self.set :uid, @container.reserve_uid
   end
-  
+
   def unreserve_uid
     get_proxy.unreserve_uid(self.uid) if get_proxy
     self.set :server_identity, nil
     self.set :uid, nil
   end
-  
+
   def create_gear
     result_io = get_proxy.create(self)
     app.process_commands(result_io)
     result_io
   end
-  
+
   def destroy_gear(keep_uid=false)
     result_io = get_proxy.destroy(self, keep_uid)
     app.process_commands(result_io)
     result_io
   end
-  
+
   def register_dns
     dns = OpenShift::DnsService.instance
     begin
@@ -102,7 +102,7 @@ class Gear
       dns.close
     end  
   end
-  
+
   def deregister_dns
     dns = OpenShift::DnsService.instance
     begin
@@ -112,11 +112,11 @@ class Gear
       dns.close
     end
   end
-  
+
   def status(component_instance)
     @container.status(self, component_instance)
   end
-  
+
   # Installs the specified component on the gear.
   #
   # == Parameters:
@@ -135,7 +135,7 @@ class Gear
     self.sparse_carts << component._id if component.is_sparse?
     result_io
   end
-  
+
   # Performs the post-configuration steps for the specified component on the gear.
   #
   # == Parameters:
@@ -153,7 +153,7 @@ class Gear
     raise OpenShift::NodeException.new("Unable to post-configure component #{component.cartridge_name}::#{component.component_name}", result_io.exitcode, result_io) if result_io.exitcode != 0
     result_io
   end
-  
+
   # Uninstalls the specified component from the gear.
   #
   # == Parameters:
@@ -170,14 +170,14 @@ class Gear
     self.sparse_carts.delete(component._id) if component.is_sparse?
     result_io
   end
-  
+
   # Used for identify methods like start/stop etc. which can be handled transparently by an {OpenShift::ApplicationContainerProxy}
   # @see Object::respond_to?
   # @see http://ruby-doc.org/core-1.9.3/Object.html#method-i-respond_to-3F
   def respond_to?(sym, include_private=false)
     get_proxy.respond_to?(sym, include_private) || super
   end
-  
+
   # Used for handle methods like start/stop etc. which can be handled transparently by an {OpenShift::ApplicationContainerProxy}
   # @see BasicObject::method_missing
   # @see http://www.ruby-doc.org/core-1.9.3/BasicObject.html
@@ -187,21 +187,21 @@ class Gear
     return get_proxy.send(sym, *new_args) if get_proxy.respond_to?(sym, false)
     super(sym, *args, &block)
   end
-  
+
   # Gets the public hostname for the Node this gear is hosted on
   # == Returns:
   # @return [String] Public hostname of the node the gear is hosted on.
   def public_hostname
     get_proxy.get_public_hostname
   end
-  
+
   # Gets the public IP address for the Node this gear is hosted on
   # == Returns:
   # @return [String] Public IP address of the node the gear is hosted on.
   def get_public_ip_address
     get_proxy.get_public_ip_address
   end
-  
+
   # Given a set of gears, retrieve the state of the gear
   #
   # == Parameters:
@@ -251,10 +251,10 @@ class Gear
     remove_keys = args["remove_keys_attrs"]
     add_envs = args["add_env_vars"]
     remove_envs = args["remove_env_vars"]
-    
+
     add_keys.each     { |ssh_key| RemoteJob.add_parallel_job(remote_job_handle, tag, self, get_proxy.get_add_authorized_ssh_key_job(self, ssh_key["content"], ssh_key["type"], ssh_key["name"])) } unless add_keys.nil?      
     remove_keys.each  { |ssh_key| RemoteJob.add_parallel_job(remote_job_handle, tag, self, get_proxy.get_remove_authorized_ssh_key_job(self, ssh_key["content"], ssh_key["name"])) } unless remove_keys.nil?                 
-                                                                                           
+
     add_envs.each     {|env|      RemoteJob.add_parallel_job(remote_job_handle, tag, self, get_proxy.get_env_var_add_job(self, env["key"],env["value"]))} unless add_envs.nil?                                                   
     remove_envs.each  {|env|      RemoteJob.add_parallel_job(remote_job_handle, tag, self, get_proxy.get_env_var_remove_job(self, env["key"]))} unless remove_envs.nil?
   end
@@ -263,7 +263,7 @@ class Gear
   def app
     @app ||= group_instance.application
   end
-  
+
   def set_addtl_fs_gb(additional_filesystem_gb, remote_job_handle, tag = "addtl-fs-gb")
     base_filesystem_gb = Gear.base_filesystem_gb(self.group_instance.gear_size)
     base_file_limit = Gear.base_file_limit(self.group_instance.gear_size)

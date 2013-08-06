@@ -164,7 +164,7 @@ class CloudUser
       ssh_keys << key
     end
   end
-  
+
   # Used to update an ssh-key on the user. Use this instead of ssh_keys= so that the key update can be propagated to the
   # domains/application that the user has access to.
   def update_ssh_key(key)
@@ -280,12 +280,12 @@ class CloudUser
       end
       domain.delete
     end
-    
+
     # will need to reload from primary to ensure that mongoid doesn't validate based on its cache
     # and prevent us from deleting this user because of the :dependent :restrict clause
     self.reload.delete
   end
- 
+
   # Runs all jobs in :init phase and stops at the first failure.
   #
   # == Returns:
@@ -319,7 +319,7 @@ class CloudUser
         # hence, reloading the cloud_user, and then fetching the op using the op_id stored earlier
         self.reload
         op = self.pending_ops.find_by(_id: op_id)
-        
+
         op.close_op
         op.delete if op.completed?
       end
