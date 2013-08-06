@@ -14,9 +14,10 @@ how run-parts executes your scripts/jobs.
                    scripts that exist in this directory are ignored).
 
 The principles of jobs.deny and jobs.allow are the same as those of cron.deny
-and cron.allow and are described in detail at:
+and cron.allow and are described in detail at: 
    http://docs.redhat.com/docs/en-US/Red_Hat_Enterprise_Linux/6/html/Deployment_Guide/ch-Automating_System_Tasks.html#s2-autotasks-cron-access
 
 See: man crontab or above link for more details and see the the weekly/
      directory for an example.
 
+PLEASE NOTE: The Cron cartridge must be installed in order to run the configured jobs.
