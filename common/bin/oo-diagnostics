@@ -970,15 +970,15 @@ class OODiag
           sed -i '/VirtualHost/,/VirtualHost/ d' /etc/httpd/conf.d/ssl.conf
       REMOVE
     end
-    bname = name_for_file['000000_openshift_origin_broker_proxy']
+    bname = name_for_file['000002_openshift_origin_broker_proxy']
     nname = name_for_file['000001_openshift_origin_node']
     if bname && nname && bname != nname
       # broker and node both installed, node may be stealing traffic
       do_warn <<-CONFLICT
-        /etc/httpd/conf.d/000001_openshift_origin_node.conf defines a *:443 VirtualHost
-        with ServerName #{nname} which may intercept requests by that name
-        intended for the broker. Please reconfigure this vhost with the same ServerName
-        as the one in /etc/httpd/conf.d/000000_openshift_origin_broker_proxy.conf
+        /etc/httpd/conf.d/000001_openshift_origin_node_servername.conf defines a 
+        ServerName #{nname} which may cause the node intercept requests by that name
+        intended for the broker. Please reconfigure with the same ServerName as the 
+        one in /etc/httpd/conf.d/000002_openshift_origin_broker_servername.conf
       CONFLICT
     end
   end
@@ -1120,37 +1120,39 @@ class OODiag
 
   def test_broker_certificate
     skip_test unless @is_broker
-
-    require 'net/http'
-    require 'net/https'
-    require 'uri'
-    require 'openssl'
     require 'socket'
-    require 'tempfile'
-
-    url = URI.parse "https://#{Socket.gethostname}/"
-    http = Net::HTTP.new(url.host, url.port)
-    http.use_ssl = true
 
     # Retrieve the SSL cert from Apache
-    certfile = Tempfile.new('oodiag')
-    certfile.write `echo "" | openssl s_client -connect #{url.host}:#{url.port} -prexit 2>/dev/null | sed -n -e '/BEGIN\ CERTIFICATE/,/END\ CERTIFICATE/ p'`
-    certfile.flush
+    response = `curl -k -s -v https://#{Socket.gethostname} -o /dev/null 2>&1`
+    issuer = response.slice(/^\*\s*issuer: .*$/).gsub(/^\*\s*issuer: /,"")
+    subject = response.slice(/^\*\s*subject: .*$/).gsub(/^\*\s*subject: /,"")
+    commonname = response.slice(/^\*\s*common name: .*$/).gsub(/^\*\s*common name: /,"")
+    if subject == issuer
+      do_warn "Using a self-signed certificate for the broker"
+    end
 
-    # Use the server certificate retrieved above to verify the peer certificate
-    # This allows us to verify self-signed certs as well as CA issued certs without 
-    # having to verify the certificate chain
-    http.ca_file = certfile.path
+    apacheconfig = `httpd -S 2> /dev/null`.slice(/^\*:443.*\*:80/m)
+    servername = apacheconfig.scan(/(?:(?:default server )|(?:port 443 namevhost ))(\S+) \((?:[^:]+)/)
+    badnames = []
+    servername.each do |sn|
+      # does the certificate common name match ServerName
+      if commonname != sn[0] and commonname != sn[0].gsub(/^[^.]*/,"*")
+        badnames << sn[0]
+      end
+    end
 
-    # Force verification of the server SSL certificate
-    http.verify_mode = OpenSSL::SSL::VERIFY_PEER
-    begin
-      request = Net::HTTP::Get.new(url.path)
-      response = http.request(request)
-    rescue OpenSSL::SSL::SSLError => e
-      do_warn "There was an error verifying the Broker SSL cert: #{e.message}"
-    ensure
-      certfile.close!
+    if badnames.size > 0
+      badnames.uniq.each do |badname|
+        config_files = `grep -l -e "^[[:blank:]]*ServerName[[:blank:]]*#{badname}" /etc/httpd/conf.d/*`
+        config_files.each_line do |config_file|
+          do_warn <<-CONFLICT
+            #{config_file.chomp} 
+            defines ServerName as #{badname}.  This does not match the certificate common name of 
+            #{commonname}.  
+            This can cause errors when client tools try to connect to the broker.
+          CONFLICT
+        end
+      end
     end
   end
 
