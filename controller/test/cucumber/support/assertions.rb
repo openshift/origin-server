@@ -22,28 +22,28 @@ end
 
 ## Provide far more meaninful messages than 'assert File.exists?(...)'
 
-def assert_directory_exists(filename, msg = nil)
+def assert_directory_exist(filename, msg = nil)
   full_message = build_message(msg, "Directory ? should have been found.", filename)
   assert_block(full_message) do
     File.directory?(filename)
   end
 end
 
-def assert_directory_not_exists(filename, msg = nil)
+def refute_directory_exist(filename, msg = nil)
   full_message = build_message(msg, "Directory ? should not have been found.", filename)
   assert_block(full_message) do
     ! File.directory?(filename)
   end
 end
 
-def assert_file_exists(filename, msg = nil)
+def assert_file_exist(filename, msg = nil)
   full_message = build_message(msg, "File ? should have been found.", filename)
   assert_block(full_message) do
     File.exists?(filename)
   end
 end
 
-def assert_file_not_exists(filename, msg = nil)
+def refute_file_exist(filename, msg = nil)
   full_message = build_message(msg, "File ? should not have been found.", filename)
   assert_block(full_message) do
     ! File.exists?(filename)

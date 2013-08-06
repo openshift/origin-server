@@ -16,9 +16,9 @@ Then /^the postgresql configuration file will( not)? exist$/ do |negate|
   pgsql_config_file = "#{pgsql_user_root}/data/postgresql.conf"
 
   if negate
-    assert_file_not_exists pgsql_config_file
+    refute_file_exist pgsql_config_file
   else
-    assert_file_exists pgsql_config_file
+    assert_file_exist pgsql_config_file
   end
 end
 

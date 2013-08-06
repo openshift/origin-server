@@ -10,6 +10,10 @@ Feature: Cartridge Lifecycle JBossAS Verification Tests
     When 1 jbossas-7 applications are created
     Then the applications should display default content on first attempt
     Given an existing jbossas-7 application
+    And JAVA_OPTS_EXT is available
+    When the application is restarted
+    Then the application should be accessible
+    And the jvm is using JAVA_OPTS_EXT
     When the jboss application is changed to multiartifact
     Then the application should display default content for deployed artifacts on first attempt
     And default artifacts should be deployed
@@ -29,8 +33,6 @@ Feature: Cartridge Lifecycle JBossAS Verification Tests
     When the application is changed
     Then it should be updated successfully
     And the application should be accessible
-    When the application is restarted
-    Then the application should be accessible
     When I tidy the application
     Then the application should be accessible
     When I snapshot the application
