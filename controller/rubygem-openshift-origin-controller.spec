@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.12.8
+Version: 1.12.9
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -84,6 +84,11 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Tue Aug 06 2013 Adam Miller <admiller@redhat.com> 1.12.9-1
+- Fix for bug 982855 (abhgupta@redhat.com)
+- Bug 992464 - Authorization token needs to raise when checking eventual
+  consistency (ccoleman@redhat.com)
+
 * Fri Aug 02 2013 Adam Miller <admiller@redhat.com> 1.12.8-1
 - Bug 991225: upgrade script should be run before setup during incompatible
   upgrade (pmorie@gmail.com)
