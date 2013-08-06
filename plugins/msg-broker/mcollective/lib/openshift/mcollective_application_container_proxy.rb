@@ -2559,9 +2559,9 @@ module OpenShift
       # * uses rpc_exec
       # * loops over all nodes
       #
-      def self.find_gear(gear_uuid)
+      def self.find_gear(gear_uuid, servers = nil)
         server_identity = nil
-        rpc_exec('openshift') do |client|
+        rpc_exec('openshift', servers) do |client|
           client.has_gear(:uuid => gear_uuid) do |response|
             output = response[:body][:data][:output]
             if output == true
