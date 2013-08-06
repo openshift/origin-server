@@ -19,6 +19,7 @@ require 'openshift-origin-node/utils/shell_exec'
 require 'openshift-origin-node/utils/node_logger'
 require 'openshift-origin-common/models/manifest'
 require 'openshift-origin-node/model/cartridge_repository'
+require 'openshift-origin-node/model/application_container'
 require 'openshift-origin-common'
 require 'safe_yaml'
 require 'etc'
@@ -37,6 +38,21 @@ module OpenShift
 
       DEFAULT_QUOTA            = { 'quota_files' => 1000, 'quota_blocks' => 128 * 1024 }
       DEFAULT_PAM_LIMITS       = { 'nproc' => 100 }
+
+      DEFAULT_NODE_PROFILE         = 'small'
+      DEFUALT_QUOTA_BLOCKS         = '1048576'
+      DEFAULT_QUOTA_FILES          = '40000'
+      DEFAULT_NO_OVERCOMMIT_ACTIVE = false
+      DEFAULT_MAX_ACTIVE_GEARS     = 0
+
+      @@resource_limits_cache = nil
+
+      def self.resource_limits
+        if not @@resource_limits_cache
+          @@resource_limits_cache = OpenShift::Config.new('/etc/openshift/resource_limits.conf')
+        end
+        @@resource_limits_cache
+      end
 
       def self.get_cartridge_list(list_descriptors = false, porcelain = false, oo_debug = false)
         carts = []
@@ -202,7 +218,7 @@ module OpenShift
       end
 
       def self.init_quota(uuid, blocksmax=nil, inodemax=nil)
-        resource = OpenShift::Config.new('/etc/openshift/resource_limits.conf')
+        resource = resource_limits
         blocksmax = (blocksmax or resource.get('quota_blocks') or DEFAULT_QUOTA['quota_blocks'])
         inodemax  = (inodemax  or resource.get('quota_files')  or DEFAULT_QUOTA['quota_files'])
         self.set_quota(uuid, blocksmax.to_i, inodemax.to_i)
@@ -236,7 +252,7 @@ module OpenShift
       end
 
       def self.init_pam_limits(uuid, limits={})
-        resource =OpenShift::Config.new('/etc/openshift/resource_limits.conf')
+        resource = resource_limits
         limits_order = (resource.get('limits_order') or DEFAULT_PAM_LIMITS_ORDER)
         limits_file = PathUtils.join(DEFAULT_PAM_LIMITS_DIR, "#{limits_order}-#{uuid}.conf")
 
@@ -270,7 +286,7 @@ module OpenShift
       end
 
       def self.get_pam_limits(uuid)
-        resource = OpenShift::Config.new('/etc/openshift/resource_limits.conf')
+        resource = resource_limits
         limits_order = (resource.get('limits_order') or DEFAULT_PAM_LIMITS_ORDER)
         limits_file = PathUtils.join(DEFAULT_PAM_LIMITS_DIR, "#{limits_order}-#{uuid}.conf")
 
@@ -315,7 +331,7 @@ module OpenShift
       end
 
       def self.remove_pam_limits(uuid)
-        resource = OpenShift::Config.new('/etc/openshift/resource_limits.conf')
+        resource = resource_limits
         limits_order = (resource.get('limits_order') or DEFAULT_PAM_LIMITS_ORDER)
         limits_file = PathUtils.join(DEFAULT_PAM_LIMITS_DIR, "#{limits_order}-#{uuid}.conf")
         begin
@@ -324,6 +340,55 @@ module OpenShift
         end
       end
 
+      def self.node_utilization
+        res = Hash.new(nil)
+
+        resource = resource_limits
+        res['node_profile'] = resource.get('node_profile', DEFAULT_NODE_PROFILE)
+        res['quota_blocks'] = resource.get('quota_blocks', DEFUALT_QUOTA_BLOCKS)
+        res['quota_files'] = resource.get('quota_files', DEFAULT_QUOTA_FILES)
+        res['no_overcommit_active'] = resource.get_bool('no_overcommit_active', DEFAULT_NO_OVERCOMMIT_ACTIVE)
+
+        # use max_{active_,}gears if set in resource limits, or fall back to old "apps" names
+        res['max_active_gears'] = (resource.get('max_active_gears') or resource.get('max_active_apps') or DEFAULT_MAX_ACTIVE_GEARS)
+
+        #
+        # Count number of git repos and gear status counts
+        #
+        res['git_repos_count'] = 0
+        res['gears_total_count'] = 0
+        res['gears_idled_count'] = 0
+        res['gears_stopped_count'] = 0
+        res['gears_started_count'] = 0
+        res['gears_deploying_count'] = 0
+        res['gears_unknown_count'] = 0
+        OpenShift::Runtime::ApplicationContainer.all.each do |app|
+          res['git_repos_count'] += 1 if ApplicationRepository.new(app).exists?
+          res['gears_total_count'] += 1
+
+          case app.state.value
+          # expected values: building, deploying, started, idle, new, stopped, or unknown
+          when 'idle'
+            res['gears_idled_count'] += 1
+          when 'stopped'
+            res['gears_stopped_count'] += 1
+          when 'started'
+            res['gears_started_count'] += 1
+          when *%w[new building deploying]
+            res['gears_deploying_count'] += 1
+          else # literally 'unknown' or something else
+            res['gears_unknown_count'] += 1
+          end
+        end
+
+        # consider a gear active unless explicitly not
+        res['gears_active_count'] = res['gears_total_count'] - res['gears_idled_count'] - res['gears_stopped_count']
+        res['gears_usage_pct'] = begin res['gears_total_count'] * 100.0 / res['max_active_gears'].to_f; rescue; 0.0; end
+        res['gears_active_usage_pct'] = begin res['gears_active_count'] * 100.0 / res['max_active_gears'].to_f; rescue; 0.0; end
+        res['capacity'] = res['gears_usage_pct'].to_s
+        res['active_capacity'] = res['gears_active_usage_pct'].to_s
+        return res
+      end
     end
   end
 end

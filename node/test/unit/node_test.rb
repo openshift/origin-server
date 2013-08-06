@@ -76,4 +76,202 @@ class NodeTest < OpenShift::NodeTestCase
     
     assert buffer == %Q(CLIENT_RESULT: [\"---\\nName: crtest\\nDisplay-Name: crtest Unit Test\\nVersion: '0.3'\\nVersions:\\n- '0.1'\\n- '0.2'\\n- '0.3'\\nCartridge-Vendor: redhat\\nGroup-Overrides:\\n- components:\\n  - crtest-0.3\\n  - web_proxy\\n\",\"---\\nName: crtest\\nDisplay-Name: crtest Unit Test\\nVersion: '0.2'\\nVersions:\\n- '0.1'\\n- '0.2'\\n- '0.3'\\nCartridge-Vendor: redhat\\nGroup-Overrides:\\n- components:\\n  - crtest-0.2\\n  - web_proxy\\n\",\"---\\nName: crtest\\nDisplay-Name: crtest Unit Test\\nVersion: '0.1'\\nVersions:\\n- '0.1'\\n- '0.2'\\n- '0.3'\\nCartridge-Vendor: redhat\\nGroup-Overrides:\\n- components:\\n  - crtest-0.1\\n  - web_proxy\\n\"])
   end
+
+  def test_node_utilization
+    scenarios = [
+        {:node_profile => 'small', :quota_blocks => '1048576', :quota_files => '40000', :max_active_gears => '80', 
+         :max_active_apps => nil, :no_overcommit_active => false},
+        {:node_profile => 'medium', :quota_blocks => '2097152', :quota_files => '80000', :max_active_gears => nil, 
+         :max_active_apps => '40', :no_overcommit_active => false},
+        {:node_profile => 'large', :quota_blocks => '4194304', :quota_files => '160000', :max_active_gears => '20', 
+         :max_active_apps => nil, :no_overcommit_active => true},
+    ]
+
+    scenarios.each do |scenario|
+      @config.stubs(:get).with("GEAR_BASE_DIR", anything()).returns('/var/lib/openshift')
+      @config.stubs(:get).with("node_profile", anything()).returns(scenario[:node_profile])
+      @config.stubs(:get).with("quota_blocks", anything()).returns(scenario[:quota_blocks])
+      @config.stubs(:get).with("quota_files", anything()).returns(scenario[:quota_files])
+      @config.stubs(:get).with("max_active_gears", anything()).returns(scenario[:max_active_gears])
+      @config.stubs(:get).with("max_active_apps", anything()).returns(scenario[:max_active_apps])
+      @config.stubs(:get_bool).with("no_overcommit_active", anything()).returns(scenario[:no_overcommit_active])
+      OpenShift::Runtime::Utils::SELinux.stubs(:set_mcs_label).returns nil
+
+      appuids = (501...(501+ (scenario[:max_active_gears].nil? ? scenario[:max_active_apps].to_i : scenario[:max_active_gears].to_i)))
+
+      apps = Array.new
+      appuids.each do |uid|
+        Etc.stubs(:getpwnam).returns(
+          OpenStruct.new(
+            uid:   uid,
+            gid:   uid,
+            gecos: "OpenShift guest",
+            dir:   "/var/lib/openshift/#{uid}"
+          )
+        )
+
+        app = OpenShift::Runtime::ApplicationContainer.new(uid.to_s, uid.to_s, uid, uid.to_s, uid.to_s, uid.to_s)
+        FileUtils.mkdir_p(File.join(app.container_dir, "app-root", "runtime"))
+        FileUtils.mkdir_p(PathUtils.join(app.container_dir, 'git', "#{app.application_name}.git"))
+        app.state.value= 'started'
+        apps << app
+      end
+
+      OpenShift::Runtime::ApplicationContainer.stubs(:all).returns(apps)
+
+      node_utilization = OpenShift::Runtime::Node.node_utilization
+
+      assert_equal scenario[:node_profile], node_utilization['node_profile']
+      assert_equal scenario[:quota_blocks], node_utilization['quota_blocks']
+      assert_equal scenario[:quota_files], node_utilization['quota_files']
+      assert_equal scenario[:no_overcommit_active], node_utilization['no_overcommit_active'] 
+      if scenario[:max_active_gears].nil?
+        assert_equal scenario[:max_active_apps], node_utilization['max_active_gears']
+      else
+        assert_equal scenario[:max_active_gears], node_utilization['max_active_gears']
+      end
+
+      # All apps were created in a started state initially
+      assert_equal apps.count, node_utilization['gears_total_count']
+      assert_equal apps.count, node_utilization['gears_started_count']
+      assert_equal apps.count, node_utilization['git_repos_count']
+      assert_equal apps.count, node_utilization['gears_active_count']
+      assert_equal 0, node_utilization['gears_idled_count']
+      assert_equal 0, node_utilization['gears_stopped_count']
+      assert_equal 0, node_utilization['gears_deploying_count']
+      assert_equal 0, node_utilization['gears_unknown_count']
+      assert_equal 100.0, node_utilization['gears_usage_pct']
+      assert_equal 100.0, node_utilization['gears_active_usage_pct']
+      assert_equal "100.0", node_utilization['capacity']
+      assert_equal "100.0", node_utilization['active_capacity']
+
+      #idle a quarter of the apps
+      apps.each_index do |idx|
+        if idx < (apps.count / 4)
+          apps[idx].state.value= 'idle'
+        end
+      end
+
+      node_utilization = OpenShift::Runtime::Node.node_utilization
+      assert_equal apps.count, node_utilization['gears_total_count']
+      assert_equal (apps.count-apps.count/4), node_utilization['gears_started_count']
+      assert_equal apps.count, node_utilization['git_repos_count']
+      assert_equal (apps.count-apps.count/4), node_utilization['gears_active_count']
+      assert_equal apps.count/4, node_utilization['gears_idled_count']
+      assert_equal 0, node_utilization['gears_stopped_count']
+      assert_equal 0, node_utilization['gears_deploying_count']
+      assert_equal 0, node_utilization['gears_unknown_count']
+      assert_equal 100.0, node_utilization['gears_usage_pct']
+      assert_equal 75.0, node_utilization['gears_active_usage_pct']
+      assert_equal "100.0", node_utilization['capacity']
+      assert_equal "75.0", node_utilization['active_capacity']
+
+      #stop a quarter of the apps
+      apps.each_index do |idx|
+        if idx >= (apps.count / 4) and idx < (apps.count / 2)
+          apps[idx].state.value= 'stopped'
+        end
+      end
+
+      node_utilization = OpenShift::Runtime::Node.node_utilization
+      assert_equal apps.count, node_utilization['gears_total_count']
+      assert_equal apps.count/2, node_utilization['gears_started_count'] # 1/4 idled, 1/4 stopped
+      assert_equal apps.count, node_utilization['git_repos_count']
+      assert_equal apps.count/2, node_utilization['gears_active_count'] # 1/4 idled, 1/4 stopped
+      assert_equal apps.count/4, node_utilization['gears_idled_count']
+      assert_equal apps.count/4, node_utilization['gears_stopped_count']
+      assert_equal 0, node_utilization['gears_deploying_count']
+      assert_equal 0, node_utilization['gears_unknown_count']
+      assert_equal 100.0, node_utilization['gears_usage_pct']
+      assert_equal 50.0, node_utilization['gears_active_usage_pct']
+      assert_equal "100.0", node_utilization['capacity']
+      assert_equal "50.0", node_utilization['active_capacity']
+
+      #change 1/4 of the apps to each of the deploying states
+      ['new', 'deploying', 'building'].each do |state|
+        apps.each_index do |idx|
+          if idx >= (apps.count / 2) and idx < (apps.count - apps.count / 4)
+            apps[idx].state.value= state
+          end
+        end
+
+        node_utilization = OpenShift::Runtime::Node.node_utilization
+        assert_equal apps.count, node_utilization['gears_total_count']
+        assert_equal apps.count/4, node_utilization['gears_started_count'] # 1/4 idled, 1/4 stopped, 1/4 deploying
+        assert_equal apps.count, node_utilization['git_repos_count']
+        assert_equal apps.count/2, node_utilization['gears_active_count'] # 1/4 idled, 1/4 stopped, deploying counts as active
+        assert_equal apps.count/4, node_utilization['gears_idled_count']
+        assert_equal apps.count/4, node_utilization['gears_stopped_count']
+        assert_equal apps.count/4, node_utilization['gears_deploying_count']
+        assert_equal 0, node_utilization['gears_unknown_count']
+        assert_equal 100.0, node_utilization['gears_usage_pct']
+        assert_equal 50.0, node_utilization['gears_active_usage_pct']
+        assert_equal "100.0", node_utilization['capacity']
+        assert_equal "50.0", node_utilization['active_capacity']
+      end
+
+      #change 1/4 of the apps to unknown
+      apps.each_index do |idx|
+        if idx >= (apps.count - apps.count / 4) and idx < (apps.count)
+          apps[idx].state.value= 'unknown'
+        end
+      end
+
+      node_utilization = OpenShift::Runtime::Node.node_utilization
+      assert_equal apps.count, node_utilization['gears_total_count']
+      assert_equal 0, node_utilization['gears_started_count'] # 1/4 idled, 1/4 stopped, 1/4 deploying, 1/4 unknown
+      assert_equal apps.count, node_utilization['git_repos_count']
+      assert_equal apps.count/2, node_utilization['gears_active_count'] # 1/4 idled, 1/4 stopped, deploying and unknown counts as active
+      assert_equal apps.count/4, node_utilization['gears_idled_count']
+      assert_equal apps.count/4, node_utilization['gears_stopped_count']
+      assert_equal apps.count/4, node_utilization['gears_deploying_count']
+      assert_equal apps.count/4, node_utilization['gears_unknown_count']
+      assert_equal 100.0, node_utilization['gears_usage_pct']
+      assert_equal 50.0, node_utilization['gears_active_usage_pct']
+      assert_equal "100.0", node_utilization['capacity']
+      assert_equal "50.0", node_utilization['active_capacity']
+
+
+      # Remove half the apps (the deploying/unknown apps)
+      apps = apps.first(apps.count/2)
+      OpenShift::Runtime::ApplicationContainer.stubs(:all).returns(apps)
+
+      node_utilization = OpenShift::Runtime::Node.node_utilization
+      assert_equal apps.count, node_utilization['gears_total_count']
+      assert_equal 0, node_utilization['gears_started_count'] # 1/2 idled, 1/2 stopped
+      assert_equal apps.count, node_utilization['git_repos_count']
+      assert_equal 0, node_utilization['gears_active_count'] # 1/2 idled, 1/2 stopped
+      assert_equal apps.count/2, node_utilization['gears_idled_count']
+      assert_equal apps.count/2, node_utilization['gears_stopped_count']
+      assert_equal 0, node_utilization['gears_deploying_count']
+      assert_equal 0, node_utilization['gears_unknown_count']
+      assert_equal 50.0, node_utilization['gears_usage_pct']
+      assert_equal 0.0, node_utilization['gears_active_usage_pct']
+      assert_equal "50.0", node_utilization['capacity']
+      assert_equal "0.0", node_utilization['active_capacity']
+
+      # Remove git repos from half of the remaining apps
+      apps.each_index do |idx|
+        if idx < apps.count / 2
+          FileUtils.rm_rf(PathUtils.join(apps[idx].container_dir, 'git', "#{apps[idx].application_name}.git"))
+        end
+      end
+
+      node_utilization = OpenShift::Runtime::Node.node_utilization
+      print node_utilization.pretty_inspect # DEBUG
+      assert_equal apps.count, node_utilization['gears_total_count']
+      assert_equal 0, node_utilization['gears_started_count'] # 1/2 idled, 1/2 stopped
+      assert_equal apps.count/2, node_utilization['git_repos_count']
+      assert_equal 0, node_utilization['gears_active_count'] # 1/2 idled, 1/2 stopped
+      assert_equal apps.count/2, node_utilization['gears_idled_count']
+      assert_equal apps.count/2, node_utilization['gears_stopped_count']
+      assert_equal 0, node_utilization['gears_deploying_count']
+      assert_equal 0, node_utilization['gears_unknown_count']
+      assert_equal 50.0, node_utilization['gears_usage_pct']
+      assert_equal 0.0, node_utilization['gears_active_usage_pct']
+      assert_equal "50.0", node_utilization['capacity']
+      assert_equal "0.0", node_utilization['active_capacity']
+
+    end
+  end
 end

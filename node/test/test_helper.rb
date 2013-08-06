@@ -48,6 +48,7 @@ module OpenShift
       @config = mock('OpenShift::Config')
       @config.stubs(:get).returns(nil)
       @config.stubs(:get).with("CONTAINERIZATION_PLUGIN").returns('openshift-origin-container-selinux')
+      @config.stubs(:get_bool).with("no_overcommit_active", false).returns(false)
       OpenShift::Config.stubs(:new).returns(@config)
 
       @cgroups_mock = mock('OpenShift::Runtime::Utils::Cgroups')
