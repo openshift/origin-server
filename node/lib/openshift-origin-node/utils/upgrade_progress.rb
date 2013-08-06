@@ -6,7 +6,7 @@ module OpenShift
   module Runtime
     module Utils
       class UpgradeProgress
-        attr_reader :gear_home, :gear_base_dir, :uuid, :steps
+        attr_reader :gear_home, :gear_base_dir, :uuid, :steps, :buffer
 
         def initialize(gear_base_dir, gear_home, uuid)
           @gear_base_dir = gear_base_dir
@@ -74,13 +74,9 @@ module OpenShift
           File.join(gear_home, 'app-root', 'runtime', ".upgrade_complete_#{marker}")
         end
 
-        def log(string, event_args = {})
-          if event_args.has_key?(:rc) || event_args.has_key?(:stdout) || event_args.has_key?(:stderr)
-            string = "#{string}\nrc: #{event_args[:rc]}\nstdout: #{event_args[:stdout]}\nstderr: #{event_args[:stderr]}"
-          end
-
-          @buffer << string
-          string
+        def log(message)
+          @buffer << message
+          message
         end
 
         def report

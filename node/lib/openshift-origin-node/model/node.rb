@@ -41,23 +41,18 @@ module OpenShift
       def self.get_cartridge_list(list_descriptors = false, porcelain = false, oo_debug = false)
         carts = []
         CartridgeRepository.instance.latest_versions do |cartridge|
-          cartridge.versions.each do |version|
-            begin
-              cooked = Runtime::Manifest.new(cartridge.manifest_path, version, :file, cartridge.repository_path)
-              print "Loading #{cooked.name}-#{cooked.version}..." if oo_debug
+          begin
+            print "Loading #{cartridge.name}-#{cartridge.version}..." if oo_debug
 
-              v1_manifest            = Marshal.load(Marshal.dump(cooked.manifest))
-              
-              # Appending the version to the name will be done in the common cartridge model 
-              #v1_manifest['Name']    = "#{cooked.name}-#{cooked.version}"
-              
-              v1_manifest['Version'] = cooked.version
-              carts.push OpenShift::Cartridge.new.from_descriptor(v1_manifest)
-              print "OK\n" if oo_debug
-            rescue Exception => e
-              print "ERROR\n" if oo_debug
-              print "#{e.message}\n#{e.backtrace.inspect}\n" unless porcelain
-            end
+            # Deep copy is necessary here because OpenShift::Cartridge makes destructive changes
+            # to the hash passed to from_descriptor
+            v1_manifest            = Marshal.load(Marshal.dump(cartridge.manifest))
+            v1_manifest['Version'] = cartridge.version
+            carts.push OpenShift::Cartridge.new.from_descriptor(v1_manifest)
+            print "OK\n" if oo_debug
+          rescue Exception => e
+            print "ERROR\n" if oo_debug
+            print "#{e.message}\n#{e.backtrace.inspect}\n" unless porcelain
           end
         end
 
