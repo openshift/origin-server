@@ -46,6 +46,15 @@ information on the community process and how you can get involved.
 Also see our [Contributor Guidelines](CONTRIBUTING.md).
 
 
+Mirrors
+----------------------
+
+The OpenShift Origin content is mirrored on
+[mirror.openshift.com](http://mirror.openshift.com/). This content is also
+available through other mirrors worldwide.
+
+* http://mirror.digmia.com/openshift/ (SK, Europe)
+
 Copyright
 ----------------------
 
