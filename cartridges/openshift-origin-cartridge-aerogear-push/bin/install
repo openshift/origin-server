@@ -14,14 +14,6 @@ ln -s ${OPENSHIFT_AEROGEAR_PUSH_DIR}/standalone/log ${OPENSHIFT_AEROGEAR_PUSH_DI
 # Install the UnifiedPush Server WAR
 cp ${OPENSHIFT_AEROGEAR_PUSH_DIR}/versions/${version}/standalone/deployments/ag-push.war $OPENSHIFT_AEROGEAR_PUSH_DIR/standalone/deployments/ROOT.war
 
-# Add the AeroGear netty module
-mkdir -p ${OPENSHIFT_AEROGEAR_PUSH_DIR}/usr/modules/org/jboss/aerogear/netty/main
-ln -s ${OPENSHIFT_AEROGEAR_PUSH_DIR}/versions/${version}/modules/org/jboss/aerogear/netty/main/* ${OPENSHIFT_AEROGEAR_PUSH_DIR}/usr/modules/org/jboss/aerogear/netty/main
-
-# Add the AeroGear SimplePush module
-mkdir -p ${OPENSHIFT_AEROGEAR_PUSH_DIR}/usr/modules/org/jboss/aerogear/simplepush/main
-ln -s ${OPENSHIFT_AEROGEAR_PUSH_DIR}/versions/${version}/modules/org/jboss/aerogear/simplepush/main/* ${OPENSHIFT_AEROGEAR_PUSH_DIR}/usr/modules/org/jboss/aerogear/simplepush/main
-
 JBOSS_HOME=/etc/alternatives/jbossas-7
 pushd $OPENSHIFT_AEROGEAR_PUSH_DIR 1> /dev/null
   ln -s ${JBOSS_HOME}/jboss-modules.jar
