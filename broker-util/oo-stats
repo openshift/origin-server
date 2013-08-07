@@ -118,9 +118,9 @@ class OOStats
     r = results
     case @options[:format] 
     when :yaml
-      puts r.to_yaml
+      puts (@options[:keep_classes] ? r : @stats.deep_clear_subclasses(r)).to_yaml
     when :xml
-      puts r.to_xml
+      puts (@options[:keep_classes] ? r : @stats.deep_clear_subclasses(r)).to_xml
     when :json
       puts r.to_json
     when :tsv
@@ -138,7 +138,8 @@ class OOStats
       # Disable analytics for admin scripts
       Rails.configuration.analytics[:enabled] = false
       # Wait this long for answers from node hosts
-      Rails.configuration.msg_broker[:rpc_options][:disctimeout] = @options[:wait]
+      #Rails.configuration.msg_broker[:rpc_options][:disctimeout] = @options[:wait]
+      #Admin::Stats handles this directly
       # Get a read-only DB connection (to a secondary if possible)
       @db = OpenShift::DataStore.db
     rescue Exception => e
@@ -368,6 +369,7 @@ if __FILE__ == $0
     :wait => 2,
     :level => :profile,
     :format => :text,
+    :keep_classes => false,
   }
   optparse = OptionParser.new { |opts|
     opts.banner = <<-"USAGE"
@@ -393,6 +395,11 @@ Gather and include MongoDB usage stats.
 USER
     opts.on('-f','--format FORMAT', [:json, :xml, :yaml, :tsv, :text],
             'Choose output format (json, tsv, xml, yaml, default: text)') { |x| options[:format] = x }
+    opts.on('-k','--keep-classes', <<KEEP) {|x| options[:keep_classes] = x }
+When writing YAML or XML, normally the results are written as ordinary hashes
+so the data can be consumed without needing Admin::Stats loaded.
+With this option, results will keep the subclasses that Admin::Stats gives them.
+KEEP
     opts.on('-l','--level LEVEL', [:profile, :district, :node], <<LEVEL) { |l| options[:level] = l }
 For text format, print statistical summary at this level:
 \tprofile: profile and district summary statistics (default)

@@ -39,30 +39,37 @@ class Admin::Stats
 
   # gather all statistics and analyze
   def gather_statistics
-    # read method comments about the structures they return
-    @time[:get_node_entries] = time_msecs { @entry_for_node = get_node_entries }
-    @time[:get_district_entries] = time_msecs { @entry_for_district = get_district_entries }
-    if @options[:db_stats] # don't gather this data unless requested with --db
-      @time[:get_db_stats] = time_msecs do
-        @count_all, @count_for_profile, @count_for_user = get_db_stats
+    rpc_opts = Rails.configuration.msg_broker[:rpc_options]
+    prev_timeout = rpc_opts[:disctimeout]
+    rpc_opts[:disctimeout] = @options[:wait] || prev_timeout
+    begin
+      # read method comments about the structures they return
+      @time[:get_node_entries] = time_msecs { @entry_for_node = get_node_entries }
+      @time[:get_district_entries] = time_msecs { @entry_for_district = get_district_entries }
+      if @options[:db_stats] # don't gather this data unless requested with --db
+        @time[:get_db_stats] = time_msecs do
+          @count_all, @count_for_profile, @count_for_user = get_db_stats
+        end
       end
+      @time[:summarize_districts] = time_msecs do
+        @summary_for_district = summarize_districts(@entry_for_district, @entry_for_node)
+      end
+      @time[:summarize_profiles] = time_msecs do
+        @summary_for_profile = summarize_profiles(@summary_for_district, @count_for_profile)
+      end
+      @count_all ||= {} # db count may not have occurred
+      @count_all[:nodes] = @entry_for_node.size
+      @count_all[:districts] = @entry_for_district.size
+      @count_all[:profiles] = @summary_for_profile.size
+    ensure
+      rpc_opts[:disctimeout] = prev_timeout
     end
-    @time[:summarize_districts] = time_msecs do
-      @summary_for_district = summarize_districts(@entry_for_district, @entry_for_node)
-    end
-    @time[:summarize_profiles] = time_msecs do
-      @summary_for_profile = summarize_profiles(@summary_for_district, @count_for_profile)
-    end
-    @count_all ||= {} # db count may not have occurred
-    @count_all[:nodes] = @entry_for_node.size
-    @count_all[:districts] = @entry_for_district.size
-    @count_all[:profiles] = @summary_for_profile.size
     return @time
   end
 
   # Bundle up the statistics results in a hash
   def results
-    r = {
+    r = Results.new.merge({
       :timings_msecs => @time,                             #timing hash
       :node_entries => @entry_for_node.values,             #array of node hashes from mcollective
       :node_entries_hash => @entry_for_node,               #hash of identity => node hashes from mcollective
@@ -79,25 +86,49 @@ class Admin::Stats
       :db_count_for_profile => @count_for_profile,
       # if db counts were gathered, array of users with app/gear counts
       :db_count_per_user => @count_for_user ? @count_for_user.values : nil,
-    }
+    })
   end
 
-  # enable removing Hash default blocks for serialization
-  def deep_clear_default!(obj)
-    if obj.is_a? Hash
-      obj.default = nil
-      obj.each {|k,v| deep_clear_default!(v)}
-    elsif obj.is_a? Array
-      obj.each {|v| deep_clear_default!(v)}
+  # want these as class or instance methods
+  module CleanResults
+    # remove Hash default blocks for serialization (changes original!)
+    def deep_clear_default!(obj)
+      if obj.is_a? Hash
+        obj.default = nil
+        obj.each {|k,v| deep_clear_default!(v)}
+      elsif obj.is_a? Array
+        obj.each {|v| deep_clear_default!(v)}
+      end
+    end
+
+    # Convert Hash/Array subclasses into plain hashes for YAML/XML dump.
+    # Assumptions:
+    #   Hash keys will be simple objects - don't need to clear them
+    #   No custom objects with Hash/Array subclass members
+    def deep_clear_subclasses(obj, dedup = {})
+      case obj
+      when Hash
+        return dedup[obj] if dedup.has_key? obj
+        dedup[obj] = copy = {}
+        obj.each {|k,v| copy[k] = deep_clear_subclasses(v, dedup)}
+        copy
+      when Array
+        return dedup[obj] if dedup.has_key? obj
+        obj.inject(dedup[obj] = []) {|a,v| a << deep_clear_subclasses(v,dedup)}
+      else
+        obj # not going to operate on other kinds of objects
+      end
     end
   end
+  include CleanResults
+  extend CleanResults
 
   # get the node statistics by querying the facts on every node
   def get_node_entries
     entry_for_node = {}
     # Which comes out looking like:
     # {
-    #   "node1.example.com" => {
+    #   "node1.example.com" => {  # a NodeEntry, actually
     #      :id              => "node1.example.com", # hostname
     #      :name            => "node1", # for short
     #      :node_profile    => "small", # node/gear profile
@@ -116,6 +147,7 @@ class Admin::Stats
     #      :gears_unknown_count => 0,  # state not one of the above, shouldn't happen
     #      :gears_total_count   => 200,
     #      :gears_active_count  => 20, # all gears except idle and stopped are "active"
+    #      :gears_active_pct    => 10.0, # percentage of total gears that are active
     #   },
     #   "node2.example.com" => ...
     # }
@@ -127,7 +159,7 @@ class Admin::Stats
       gears_usage_pct gears_active_usage_pct
     ]
     OpenShift::ApplicationContainerProxy.get_details_for_all(detail_names).each do |host,details|
-      node = {}
+      node = NodeEntry.new
       # convert from strings to relevant values if needed
       %w{node_profile district_uuid}.each {|key| node[key.to_sym] = details[key.to_sym]}
       node[:district_active] = details[:district_active] == 'true' ? true : false
@@ -137,6 +169,8 @@ class Admin::Stats
         }.each {|key| node[key.to_sym] = details[key.to_sym].to_i}
       %w{gears_usage_pct gears_active_usage_pct
         }.each {|key| node[key.to_sym] = details[key.to_sym].to_f}
+      node[:gears_active_pct] = (node[:gears_total_count] == 0) ? 100.0
+           : 100.0 * node[:gears_active_count] / node[:gears_total_count]
 
       # record that hash for this node host
       node[:id] = host
@@ -152,7 +186,7 @@ class Admin::Stats
     entry_for_district = {}
     # Which looks like:
     # {
-    #   "2dfca730b863428da9af176160138651" => {
+    #   "2dfca730b863428da9af176160138651" => { # actually a DistrictEntry
     #        :profile            => "small",        # gear profile (aka "size")
     #        :name               => "small_district", #user-friendly name
     #        :uuid               => "2dfca730b863428da9af176160138651", #unique ID
@@ -168,8 +202,8 @@ class Admin::Stats
     # }
 
     fields = %w[uuid name gear_size server_identities max_capacity available_capacity available_uids]
-    _with_each_record(:districts, {}, {:fields => fields }) do |dist|
-      entry_for_district[dist['uuid']] = {
+    with_each_record(:districts, {}, {:fields => fields }) do |dist|
+      entry_for_district[dist['uuid']] = DistrictEntry.new.merge({
         :profile             => dist['gear_size'],
         :name                => dist['name'],
         :uuid                => dist['uuid'],
@@ -177,7 +211,7 @@ class Admin::Stats
         :district_capacity   => dist['max_capacity'],
         :dist_avail_capacity => dist['available_capacity'],
         :dist_avail_uids     => dist['available_uids'].length,
-      }
+      })
     end
     return entry_for_district
   end
@@ -195,9 +229,9 @@ class Admin::Stats
   end
 
   def summarize_districts(entry_for_district, entry_for_node)
-    # Returned hash looks like:
+    # Returned hash with DistrictSummary values looks like:
     # {
-    #   "2dfca730b863428da9af176160138651" => {
+    #   "2dfca730b863428da9af176160138651" => { # a DistrictSummary
     #         :uuid               => "2dfca730b863428da9af176160138651", # unique ID for district
     #         :name               => "small_district", # user-friendly name for district
     #         :profile            => "small", # gear profile ("size") for district
@@ -222,6 +256,7 @@ class Admin::Stats
     #         :gears_unknown_count => 0,  # state not one of the above, shouldn't happen
     #         :gears_total_count   => 200,
     #         :gears_active_count  => 20, # gears not idled or stopped are "active"
+    #         :gears_active_pct    => 10.0, # percentage of total gears that are active
     #           # available capacity numbers
     #         :available_active_gears => 173, # how many more active gears the nodes will support
     #         :effective_available_gears => 173, # lower of available_active_gears, dist_avail_capacity
@@ -247,7 +282,7 @@ class Admin::Stats
     ].collect {|key| [key.to_sym, 0]}]
 
     # may need a unique "NONE" district per profile for nodes that are not in a district
-    none_district = Hash.new do |h,profile|
+    none_district = DistrictSummary.new do |h,profile|
       h[profile] = {
         :name    => "(NONE)",
         :uuid    => "NONE profile=#{profile}",
@@ -263,7 +298,7 @@ class Admin::Stats
     # hash to store the summaries per district
     summary_for_district = {}
     entry_for_district.each do |uuid,dist|
-      summary_for_district[uuid] = dist.merge(starter_stats).
+      summary_for_district[uuid] = DistrictSummary.new.merge(dist).merge(starter_stats).
         merge(:missing_nodes => dist[:nodes].clone, :nodes => [])
     end
 
@@ -295,14 +330,16 @@ class Admin::Stats
       sum[:effective_available_gears] = [sum[:available_active_gears], sum[:dist_avail_capacity]].min
       # convert :missing nodes to array
       sum[:missing_nodes] = sum[:missing_nodes].keys
+      sum[:gears_active_pct] = (sum[:gears_total_count] == 0) ? 100.0
+           : 100.0 * sum[:gears_active_count] / sum[:gears_total_count]
     end
     return summary_for_district
   end
 
   def summarize_profiles(summary_for_district, count_for_profile)
-    # Returned hash looks like: (a lot like the district summaries)
+    # Returned hash with ProfileSummary values looks like: (a lot like the district summaries)
     # {
-    #   "small" => {
+    #   "small" => { # ProfileSummary
     #      :profile   => "small",
     #      :districts => [ array of summaries from summary_of_district that have this profile ],
     #      :district_count => 1, # number of districts with this profile (may include 1 "NONE" district)
@@ -328,6 +365,7 @@ class Admin::Stats
     #      :gears_stopped_count => 5,
     #      :gears_unknown_count => 0,  # state not one of the above, shouldn't happen
     #      :gears_total_count   => 200,
+    #      :gears_active_pct    => 10.0, # percentage of total gears that are active
     #      :available_active_gears => 173, # how many more active gears the nodes will support
     #
     #      # the following are usage numbers according to the DB, if collected
@@ -347,18 +385,18 @@ class Admin::Stats
     #
 
     # these values will accumulate as we go
-    starter_stats = Hash[ %w[
+    starter_stats = ProfileSummary[ %w[
        nodes_count nodes_active nodes_inactive gears_active_count gears_idle_count
        gears_stopped_count gears_unknown_count gears_total_count available_active_gears
        effective_available_gears avg_active_usage_pct district_capacity
        dist_avail_capacity dist_avail_uids avg_dist_usage_pct
     ].collect {|key| [key.to_sym, 0]}]
     summary_for_profile = Hash.new do |sum,p|
-      sum[p] = {
+      sum[p] = starter_stats.merge({
         :profile => p,
         :districts => [],
         :missing_nodes => [],
-      }.merge starter_stats
+      })
     end
     summary_for_district.each do |uuid,dist|
       sum = summary_for_profile[dist[:profile]]
@@ -373,6 +411,8 @@ class Admin::Stats
     end
     summary_for_profile.each do |profile,sum|
       sum[:district_count] = sum[:districts].size
+      sum[:gears_active_pct] = (sum[:gears_total_count] == 0) ? 100.0
+           : 100.0 * sum[:gears_active_count] / sum[:gears_total_count]
       sum[:avg_active_usage_pct] /= sum[:nodes_count] if sum[:nodes_count] > 0
       sum[:lowest_active_usage_pct] = sum[:districts].map{|d| d[:lowest_active_usage_pct]}.min || 0.0
       sum[:highest_active_usage_pct] = sum[:districts].map{|d| d[:highest_active_usage_pct]}.max || 0.0
@@ -394,16 +434,16 @@ class Admin::Stats
   # get statistics from the DB about users/apps/gears/cartridges
   def get_db_stats
     # initialize the things we will count for the entire installation
-    count_all = {
+    count_all = DbSummary.new.merge({
         :apps => 0,
         :gears => 0,
         :cartridges => Hash.new {|h,k| h[k] = 0},
         :cartridges_short => Hash.new {|h,k| h[k] = 0},
         :users_with_num_apps => Hash.new {|h,k| h[k] = 0},
         :users_with_num_gears => Hash.new {|h,k| h[k] = 0},
-      }
+      })
     # which ends up looking like:
-    # {
+    # { # A DbSummary
     #   :apps  => 21,
     #   :gears => 39,
     #   :cartridges=> {
@@ -464,13 +504,13 @@ class Admin::Stats
 
     # read all user records and their logins from DB
     login_for_id = {}
-    _with_each_record(:cloud_users, {}, {:fields => %w[consumed_gears login], :timeout => false}) do |user|
+    with_each_record(:cloud_users, {}, {:fields => %w[consumed_gears login], :timeout => false}) do |user|
       login_for_id[user["_id"]] = login = user["login"]
       count_for_user[login][:login] = login # creates a count hash for every user
     end
     # read all domain records and map to user's hash of counts
     count_for_domain = {}
-    _with_each_record(:domains, {}, {:fields => ["owner_id"], :timeout => false}) do |domain|
+    with_each_record(:domains, {}, {:fields => ["owner_id"], :timeout => false}) do |domain|
       count_for_domain[domain["_id"]] = count_for_user[login_for_id[domain["owner_id"]]]
     end
     query = {"group_instances.gears.0" => {"$exists" => true}}
@@ -482,7 +522,7 @@ class Admin::Stats
                              group_instances._id
                              group_instances.gears.server_identity
                             ], :timeout => false}
-    _with_each_record(:applications, query, selection) do |app|
+    with_each_record(:applications, query, selection) do |app|
         # record global stats
         count_all[:apps] += 1
         # record stats by gear profile (size)
@@ -535,7 +575,9 @@ class Admin::Stats
     return count_all, count_for_profile, count_for_user
   end
 
-  def _with_each_record(collection_name, query, selection, &block)
+  private
+
+  def with_each_record(collection_name, query, selection, &block)
     OpenShift::DataStore.db.
       collection(collection_name).
       find(query, selection) do |mcursor|
@@ -545,5 +587,26 @@ class Admin::Stats
       end
   end
 
-end #class OpenShift::Admin::Stats
+  # Helper hash subclass with two purposes:
+  # 1. Give a type to the objects returned, rather than just being Hashes.
+  # 2. Provide attribute readers that fail if the key is missing, to detect mistakes faster.
+  class HashWithReaders < Hash
+    class NoSuchKey < StandardError; end
+    def method_missing(sym)
+      return self[sym] if self.has_key? sym
+      return self[sym.to_s] if self.has_key?(sym.to_s)
+      raise NoSuchKey.new("#{self.class} has no key #{sym}: #{self.inspect}")
+    end
+    # easily identify class in output
+    def to_s; "#{self.class} #{super}"; end
+    def inspect; "#{self.class} #{super}"; end
+    def pretty_inspect; "#{self.class} #{super}"; end
+  end
+  class DistrictSummary < HashWithReaders; end
+  class ProfileSummary < HashWithReaders; end
+  class DistrictEntry < HashWithReaders; end
+  class NodeEntry < HashWithReaders; end
+  class DbSummary < HashWithReaders; end
+  class Results < HashWithReaders; end
+end #class Admin::Stats
 
