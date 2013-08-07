@@ -16,7 +16,7 @@ Categories:
   - embedded
 Website: http://www.mysql.com
 Help-Topics:
-  - "Building with MySQL" : http://docs.redhat.com/docs/en-US/OpenShift/2.0/html/User_Guide/sect-User_Guide-Working_With_Database_Cartridges.html
+  "Building with MySQL" : http://docs.redhat.com/docs/en-US/OpenShift/2.0/html/User_Guide/sect-User_Guide-Working_With_Database_Cartridges.html
 Cart-Data:
   - Key: "username"
     Type: cart_data

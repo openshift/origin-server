@@ -93,10 +93,10 @@ Endpoints:
     Mappings:
       - Frontend:      ""
         Backend:       ""
-        Options:       { "websocket": 1}
+        Options:       { "websocket": true}
       - Frontend:      "/health"
         Backend:       ""
-        Options:       { "health": 1}
+        Options:       { "health": true}
   - Private-IP-Name:   IP
     Private-Port-Name: CLUSTER_PORT
     Private-Port:      7600

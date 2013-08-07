@@ -1,4 +1,5 @@
 Name: cron
+Vendor: Red Hat
 Cartridge-Short-Name: CRON
 Version: 1.4
 Architecture: noarch
