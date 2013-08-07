@@ -1118,9 +1118,9 @@ The incompatible upgrade process for a cartridge is as follows:
 . The new version of the cartridge is overlaid in the gear.
 . The cartridge directory is unlocked.
 . The cartridge directory is secured.
+. If the cartridge provides an `upgrade` script, that script is executed.
 . The cartridge `setup` script is run.
 . The erb templates for the cartridge are processed.
-. If the cartridge provides an `upgrade` script, that script is executed.
 . The cartridge directory is locked.
 . New endpoints for the cartridge are created.
 . The frontend is connected.
