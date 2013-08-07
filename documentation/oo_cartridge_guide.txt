@@ -217,6 +217,9 @@ The `jbossas` cartridge provides several environment variables to reference for 
 
 |OPENSHIFT_JBOSSAS_REMOTING_PORT
 |TODO
+
+|JAVA_OPTS_EXT
+|Appended to JAVA_OPTS prior to invoking the Java VM.
 |===
 
 For more information about environment variables, consult the link:oo_user_guide.html#environment-variables[Users Guide]
@@ -361,6 +364,9 @@ of use:
 
 |OPENSHIFT_JBOSSEAP_REMOTING_PORT
 |TODO
+
+|JAVA_OPTS_EXT
+|Appended to JAVA_OPTS prior to invoking the Java VM.
 |===
 
 For more information about environment variables, consult the link:oo_user_guide.html#environment-variables[Users Guide].
@@ -463,6 +469,7 @@ The Tomcat cartridge provides several environment variables to reference for eas
 OPENSHIFT_JBOSSEWS_IP:: The IP address used to bind EWS
 OPENSHIFT_JBOSSEWS_HTTP_PORT:: The EWS listening port
 OPENSHIFT_JBOSSEWS_JPDA_PORT:: The EWS JPDA listening port
+JAVA_OPTS_EXT:: Appended to JAVA_OPTS prior to invoking the Java VM.
 
 For more information about environment variables, consult the link:oo_user_guide.html#environment-variables[Users Guide].
 
