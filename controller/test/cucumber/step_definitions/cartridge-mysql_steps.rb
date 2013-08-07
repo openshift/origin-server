@@ -11,9 +11,9 @@ Then /^the mysql configuration file will( not)? exist$/ do |negate|
   mysql_config_file = "#{mysql_user_root}/etc/my.cnf"
 
   if negate
-    assert_file_not_exists mysql_config_file
+    refute_file_exist mysql_config_file
   else
-    assert_file_exists mysql_config_file
+    assert_file_exist mysql_config_file
   end
 end
 

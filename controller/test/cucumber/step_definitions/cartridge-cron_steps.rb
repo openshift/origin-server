@@ -61,9 +61,9 @@ Given /^cron is (running|stopped)$/ do | status |
   end
 
   if 'running' == status
-    assert_file_exists jobs_enabled_file
+    assert_file_exist jobs_enabled_file
   else
-    assert_file_not_exists jobs_enabled_file
+    refute_file_exist jobs_enabled_file
   end
 end
 
@@ -75,8 +75,8 @@ Then /^cron jobs will( not)? be enabled$/ do | negate |
 
   $logger.info("Checking for cron jobs marker at #{jobs_enabled_file}")
   if negate
-    assert_file_not_exists jobs_enabled_file
+    refute_file_exist jobs_enabled_file
   else
-    assert_file_exists jobs_enabled_file
+    assert_file_exist jobs_enabled_file
   end
 end

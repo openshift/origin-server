@@ -45,6 +45,10 @@ if [ -z "$JAVA_OPTS" ]; then
    fi
 fi
 
+if [ -n "$JAVA_OPTS_EXT" ]; then
+    JAVA_OPTS="$JAVA_OPTS $JAVA_OPTS_EXT"
+fi
+
 JAVACMD=$JAVA_HOME/bin/java
 
 # CLASSPATH munging

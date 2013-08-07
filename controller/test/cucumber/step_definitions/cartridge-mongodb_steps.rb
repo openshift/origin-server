@@ -47,8 +47,8 @@ Then /^the mongodb configuration file will( not)? exist$/ do |negate|
   config_file = "#{user_root}/etc/mongodb.conf"
 
   if negate
-    assert_file_not_exists config_file
+    refute_file_exist config_file
   else
-    assert_file_exists config_file
+    assert_file_exist config_file
   end
 end
