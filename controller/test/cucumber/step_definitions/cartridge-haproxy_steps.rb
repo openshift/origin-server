@@ -22,8 +22,8 @@ Then /^the haproxy configuration file will( not)? exist$/ do |negate|
   haproxy_config_file = "#{haproxy_user_root}/conf/haproxy.cfg.template"
 
   if negate
-    assert_file_not_exists haproxy_config_file
+    refute_file_exist haproxy_config_file
   else
-    assert_file_exists haproxy_config_file
+    assert_file_exist haproxy_config_file
   end
 end

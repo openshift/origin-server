@@ -41,7 +41,7 @@ When /^I push an update to the diy application$/ do
 
     git_dir = "/tmp/rhc/diy_jenkins"
     FileUtils.rm_rf git_dir if File.exists? git_dir
-    assert_directory_not_exists git_dir
+    refute_directory_exist git_dir
 
     exit_code = run "git clone #{@diy_git_url} #{git_dir}"
     assert_equal 0, exit_code, "Failed to clone diy repo"

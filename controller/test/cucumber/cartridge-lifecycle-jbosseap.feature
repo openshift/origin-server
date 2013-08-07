@@ -13,9 +13,11 @@ Feature: Cartridge Lifecycle JBossEAP Verification Tests
 
   #Scenario: Multiartifact 
     Given an existing jbosseap-6.0 application
+    And JAVA_OPTS_EXT is available
     When the jboss application is changed to multiartifact
     Then the application should display default content for deployed artifacts on first attempt
     And default artifacts should be deployed
+    And the jvm is using JAVA_OPTS_EXT
 
   #Scenario: Deployment Scanner Modification
     When the jboss application deployment-scanner is changed to all

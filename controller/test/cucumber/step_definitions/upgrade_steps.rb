@@ -7,7 +7,7 @@ end
 
 Then /^the upgrade metadata will be cleaned up$/ do 
   assert Dir.glob(File.join($home_root, @app.uid, 'runtime', '.upgrade*')).empty?
-  assert_file_not_exists File.join($home_root, @app.uid, 'app-root', 'runtime', '.preupgrade_state')
+  refute_file_exist File.join($home_root, @app.uid, 'app-root', 'runtime', '.preupgrade_state')
 end
 
 Then /^no unprocessed ERB templates should exist$/ do
@@ -169,12 +169,12 @@ Then /^the invocation markers from an? (compatible|incompatible) upgrade should 
 
   should_exist_markers.each do |marker|
     marker_file = File.join($home_root, @app.uid, 'app-root', 'data', '.mock_cartridge_state', marker)
-    assert_file_exists marker_file
+    assert_file_exist marker_file
   end
 
   should_not_exist_markers.each do |marker|
     marker_file = File.join($home_root, @app.uid, 'app-root', 'data', '.mock_cartridge_state', marker)
-    assert_file_not_exists marker_file
+    refute_file_exist marker_file
   end    
 end
 
@@ -214,6 +214,6 @@ EOF
 end
 
 Then /^the invocation markers from the gear upgrade should exist$/ do
-  assert_file_exists File.join($home_root, @app.uid, %w(app-root data .gear_upgrade_pre))
-  assert_file_exists File.join($home_root, @app.uid, %w(app-root data .gear_upgrade_post))
+  assert_file_exist File.join($home_root, @app.uid, %w(app-root data .gear_upgrade_pre))
+  assert_file_exist File.join($home_root, @app.uid, %w(app-root data .gear_upgrade_post))
 end

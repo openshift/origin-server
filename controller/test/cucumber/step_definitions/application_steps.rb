@@ -284,7 +284,7 @@ When /^I snapshot the application$/ do
 end
 
 When "I preserve the current snapshot" do
-  assert_file_exists @app.snapshot
+  assert_file_exist @app.snapshot
   tmpdir = Dir.mktmpdir
 
   @saved_snapshot = File.join(tmpdir,File.basename(@app.snapshot))
@@ -303,7 +303,7 @@ When /^I restore the application( from a preserved snapshot)?$/ do |preserve|
   if preserve
     @app.snapshot = @saved_snapshot
   end
-  assert_file_exists @app.snapshot
+  assert_file_exist @app.snapshot
   File.size(@app.snapshot).should > 0
 
   file_list = `tar ztf #{@app.snapshot}`
@@ -624,4 +624,17 @@ def gear_up?(hostname, state='UP')
   end
   $logger.debug("No gears found")
   return found
+end
+
+When /^JAVA_OPTS_EXT is available$/ do
+  user_vars =  File.join($home_root, @app.uid, '.env', 'user_vars')
+  FileUtils.mkpath(user_vars)
+  env = File.join(user_vars, 'JAVA_OPTS_EXT')
+
+  IO.write(env, '-Dcucumber=true', 0, mode: 'w', perm: 0644)
+end
+
+When /^the jvm is using JAVA_OPTS_EXT$/ do
+  %x(pgrep -fl 'java.*Dcucumber=true')
+  assert_equal(0, $?.exitstatus, 'JAVA_OPTS_EXT is not being used')
 end

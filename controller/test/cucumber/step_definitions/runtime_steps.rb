@@ -188,9 +188,9 @@ Then /^the application git repo will( not)? exist$/ do | negate |
 
   $logger.info("Checking for #{negate} git repo at #{git_repo}")
   if negate
-    assert_directory_not_exists git_repo
+    refute_directory_exist git_repo
   else
-    assert_directory_exists git_repo
+    assert_directory_exist git_repo
   end
 end
 
@@ -205,9 +205,9 @@ Then /^the application source tree will( not)? exist$/ do | negate |
 
   $logger.info("Checking for app root at #{app_root}")
   if negate
-    assert_directory_not_exists app_root
+    refute_directory_exist app_root
   else
-    assert_directory_exists app_root
+    assert_directory_exist app_root
   end
 end
 
@@ -242,9 +242,9 @@ Then /^the embedded ([^ ]+) cartridge directory will( not)? exist$/ do | cart_na
 
   $logger.info("Checking for #{negate} cartridge root dir at #{user_root}")
   if negate
-    assert_directory_not_exists user_root
+    refute_directory_exist user_root
   else
-    assert_directory_exists user_root
+    assert_directory_exist user_root
   end
 end
 
@@ -257,9 +257,9 @@ Then /^the embedded ([^ ]+) cartridge log files will( not)? exist$/ do | cart_na
 
   $logger.info("Checking for #{negate} cartridge log dir at #{log_dir_path}")
   if negate
-    assert_directory_not_exists log_dir_path
+    refute_directory_exist log_dir_path
   else
-    assert_directory_exists log_dir_path
+    assert_directory_exist log_dir_path
   end
 end
 
@@ -271,9 +271,9 @@ Then /^the embedded ([^ ]+) cartridge subdirectory named ([^ ]+) will( not)? exi
 
   $logger.info("Checking for #{negate} cartridge subdirectory at #{dir_path}")
   if negate
-    assert_directory_not_exists dir_path
+    refute_directory_exist dir_path
   else
-    assert_directory_exists dir_path
+    assert_directory_exist dir_path
   end
 end
 
@@ -290,9 +290,9 @@ Then /^the embedded ([^ ]+)\-([\d\.]+) cartridge control script will( not)? exis
 
   $logger.info("Checking for #{negate} cartridge control script at #{startup_file}")
   if negate
-    assert_file_not_exists startup_file
+    refute_file_exist startup_file
   else
-    assert_file_exists startup_file
+    assert_file_exist startup_file
   end
 end
 
@@ -557,7 +557,7 @@ end
 
 # Asserts the 'cucumber_update_test' file exists after an update
 Then /^the application repo has been updated$/ do
-  assert_file_exists File.join($home_root,
+  assert_file_exist File.join($home_root,
                               @gear.uuid,
                               'app-root',
                               'runtime',
@@ -633,24 +633,24 @@ def ssh_command(command)
   "ssh 2>/dev/null -o BatchMode=yes -o StrictHostKeyChecking=no -tt #{@gear.uuid}@#{@app.name}-#{@account.domain}.#{$cloud_domain} " + command
 end
 
-def app_env_var_will_exist(var_name, prefix = true)
+def assert_app_env_var(var_name, prefix = true)
   if prefix
     var_name = "OPENSHIFT_#{var_name}"
   end
 
   var_file_path = File.join($home_root, @gear.uuid, '.env', var_name)
 
-  assert_file_exists var_file_path
+  assert_file_exist var_file_path
 end
 
-def app_env_var_will_not_exist(var_name, prefix = true)
+def refute_app_env_var(var_name, prefix = true)
   if prefix
     var_name = "OPENSHIFT_#{var_name}"
   end
 
   var_file_path = File.join($home_root, @gear.uuid, '.env', var_name)
 
-  assert_file_not_exists var_file_path
+  refute_file_exist var_file_path
 end
 
 def get_app_from_hash_with_given_namespace(namespace_key)
@@ -699,9 +699,9 @@ end
 
 def check_var_name(var_file_path, expected = nil, negate = false)
   if negate
-    assert_file_not_exists var_file_path
+    refute_file_exist var_file_path
   else
-    assert_file_exists var_file_path
+    assert_file_exist var_file_path
     assert((File.stat(var_file_path).size > 0), "#{var_file_path} is empty")
     if expected
       file_content = File.read(var_file_path).chomp
@@ -737,9 +737,9 @@ Then /^the "(.*)" content does( not)? exist(s)? for ([^ ]+)$/ do |path, negate, 
   entry = File.join($home_root, @gear.uuid, path)
 
   if negate
-    assert_file_not_exists entry
+    refute_file_exist entry
   else
-    assert_file_exists entry
+    assert_file_exist entry
   end
 end
 
@@ -753,9 +753,9 @@ Then /^the ([^ ]+) cartridge instance directory will( not)? exist$/ do |cartridg
   cartridge_dir = File.join($home_root, @gear.uuid, cartridge.directory)
 
   if negate
-    assert_directory_not_exists cartridge_dir
+    refute_directory_exist cartridge_dir
   else
-    assert_directory_exists cartridge_dir
+    assert_directory_exist cartridge_dir
   end
 end
 
@@ -768,17 +768,17 @@ Then /^the ([^ ]+) ([^ ]+) env entry will equal '([^\']+)'$/ do |cartridge_name,
 end
 
 Then /^the platform-created default environment variables will exist$/ do
-  app_env_var_will_exist('APP_DNS')
-  app_env_var_will_exist('APP_NAME')
-  app_env_var_will_exist('APP_UUID')
-  app_env_var_will_exist('DATA_DIR')
-  app_env_var_will_exist('REPO_DIR')
-  app_env_var_will_exist('GEAR_DNS')
-  app_env_var_will_exist('GEAR_NAME')
-  app_env_var_will_exist('GEAR_UUID')
-  app_env_var_will_exist('TMP_DIR')
-  app_env_var_will_exist('HOMEDIR')
-  app_env_var_will_exist('HISTFILE', false)
+  assert_app_env_var('APP_DNS')
+  assert_app_env_var('APP_NAME')
+  assert_app_env_var('APP_UUID')
+  assert_app_env_var('DATA_DIR')
+  assert_app_env_var('REPO_DIR')
+  assert_app_env_var('GEAR_DNS')
+  assert_app_env_var('GEAR_NAME')
+  assert_app_env_var('GEAR_UUID')
+  assert_app_env_var('TMP_DIR')
+  assert_app_env_var('HOMEDIR')
+  assert_app_env_var('HISTFILE', false)
 end
 
 
@@ -855,11 +855,11 @@ Then /^the ([^ ]+) cartridge private endpoints will be (exposed|concealed)$/ do 
                  "for cartridge #{cart_name}")
     case action
     when 'exposed'
-      app_env_var_will_exist(endpoint.private_ip_name, false)
-      app_env_var_will_exist(endpoint.private_port_name, false)
+      assert_app_env_var(endpoint.private_ip_name, false)
+      assert_app_env_var(endpoint.private_port_name, false)
     when 'concealed'
-      app_env_var_will_not_exist(endpoint.private_ip_name, false)
-      app_env_var_will_not_exist(endpoint.private_port_name, false)
+      refute_app_env_var(endpoint.private_ip_name, false)
+      refute_app_env_var(endpoint.private_port_name, false)
     end
   end
 end
@@ -873,9 +873,9 @@ Then /^the ([^ ]+) cartridge endpoints with ssl to gear option will be (exposed|
                    "#{endpoint.public_port_name} for cartridge #{cart_name}")
       case action
       when 'exposed'
-        app_env_var_will_exist(endpoint.public_port_name, false)
+        assert_app_env_var(endpoint.public_port_name, false)
       when 'concealed'
-        app_env_var_will_not_exist(endpoint.public_port_name, false)
+        refute_app_env_var(endpoint.public_port_name, false)
       end
     end
   end
@@ -904,9 +904,9 @@ Then /^the application stoplock should( not)? be present$/ do |negate|
   stop_lock = File.join($home_root, @gear.uuid, 'app-root', 'runtime', '.stop_lock')
 
   if negate
-    assert_file_not_exists stop_lock
+    refute_file_exist stop_lock
   else
-    assert_file_exists stop_lock
+    assert_file_exist stop_lock
   end 
 end
 
@@ -1003,3 +1003,5 @@ When /^I (start|stop) the application using ctl_all via rhcsh$/ do |action|
 
   $logger.debug "Output: #{output}"
 end
+
+

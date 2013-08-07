@@ -277,9 +277,9 @@ Then /^an account PAM limits file should( not)? exist$/ do |negate|
   pamfile = "#{limits_dir}/84-#{@account['accountname']}.conf"
 
   if negate
-    assert_file_not_exists pamfile
+    refute_file_exist pamfile
   else
-    assert_file_exists pamfile
+    assert_file_exist pamfile
   end
 end
 

@@ -13,9 +13,11 @@ Feature: Cartridge Lifecycle JBossEWS2.0 Verification Tests
 
   Scenario: Application Modification
     Given an existing jbossews-2.0 application
+    And JAVA_OPTS_EXT is available
     When the application is changed
     Then it should be updated successfully
     And the application should be accessible
+    And the jvm is using JAVA_OPTS_EXT
 
   Scenario: Application Restarting
     Given an existing jbossews-2.0 application
