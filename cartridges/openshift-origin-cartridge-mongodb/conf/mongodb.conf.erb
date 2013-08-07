@@ -14,7 +14,7 @@ dbpath=<%= ENV['OPENSHIFT_MONGODB_DIR'] %>data/
 pidfilepath=<%= ENV['OPENSHIFT_MONGODB_DIR'] %>pid/mongodb.pid
 
 # Enables periodic logging of CPU utilization and I/O wait
-cpu = false
+#cpu = false
 
 # Turn on/off security.  Off is currently the default
 #noauth = true
@@ -86,6 +86,11 @@ noprealloc = true
 # Automatically resync if slave data is stale
 #autoresync
 # Custom size for replication operation log.
-oplogSize = 10
+#oplogSize = 10
 # Size limit for in-memory storage of op ids.
 #opIdMem = <bytes>
+
+# Specific configuration for openshift cartridge
+smallfiles = true
+quiet = true
+

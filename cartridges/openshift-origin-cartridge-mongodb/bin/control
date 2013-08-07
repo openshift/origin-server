@@ -18,8 +18,8 @@ function isrunning() {
 
 function _wait_for_mongod_to_startup() {
     i=0
-    while ( (! echo "exit" | mongo $IP > /dev/null 2>&1) ||  \
-            [ ! -f ${OPENSHIFT_MONGODB_DIR}/pid/mongodb.pid ]) && [ $i -lt 20 ]; do
+    while (! echo "exit" | mongo $OPENSHIFT_MONGODB_DB_HOST > /dev/null 2>&1) \
+             && [ $i -lt 20 ]; do
         sleep 1
         i=$(($i + 1))
     done
@@ -31,7 +31,7 @@ function _repair_mongod() {
         client_result "Attempting to repair MongoDB ..."
         tmp_config="/tmp/mongodb.repair.conf"
         grep -ve "fork\s*=\s*true" $OPENSHIFT_MONGODB_DIR/conf/mongodb.conf > $tmp_config
-        /usr/bin/mongod $authopts --nojournal --smallfiles -f $tmp_config  \
+        /usr/bin/mongod $authopts -f $tmp_config  \
                                   --repair
         client_result "MongoDB repair status = $?"
         rm -f $tmp_config
@@ -42,12 +42,12 @@ function _repair_mongod() {
 
 function _start_mongod() {
     authopts=${1:-"--auth"}
-    /usr/bin/mongod $authopts --nojournal --smallfiles --quiet  \
+    /usr/bin/mongod $authopts \
                     -f $OPENSHIFT_MONGODB_DIR/conf/mongodb.conf run >/dev/null 2>&1 &
     _wait_for_mongod_to_startup
     if ! isrunning; then
        _repair_mongod "$authopts"
-       /usr/bin/mongod $authopts --nojournal --smallfiles --quiet  \
+       /usr/bin/mongod $authopts \
                        -f $OPENSHIFT_MONGODB_DIR/conf/mongodb.conf run >/dev/null 2>&1 &
        _wait_for_mongod_to_startup
     fi
