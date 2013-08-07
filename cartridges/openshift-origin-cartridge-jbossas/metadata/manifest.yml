@@ -97,7 +97,7 @@ Endpoints:
     Mappings:
       - Frontend:      ""
         Backend:       ""
-        Options:       { "websocket": 1}
+        Options:       { "websocket": true}
       - Frontend:      "/health"
         Backend:       ""
         Options:       { health: true }

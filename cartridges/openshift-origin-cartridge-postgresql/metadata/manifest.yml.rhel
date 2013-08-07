@@ -1,5 +1,4 @@
 Name: postgresql
-Namespace: POSTGRESQL
 Architecture: noarch
 Cartridge-Short-Name: POSTGRESQL
 Cartridge-Version:    '0.3.1'
@@ -17,7 +16,7 @@ Categories:
   - database
   - embedded
 Help-Topics:
-  - "Building with PostGreSQL" : http://docs.redhat.com/docs/en-US/OpenShift/2.0/html/User_Guide/sect-User_Guide-Working_With_Database_Cartridges.html
+  "Building with PostGreSQL" : http://docs.redhat.com/docs/en-US/OpenShift/2.0/html/User_Guide/sect-User_Guide-Working_With_Database_Cartridges.html
 Cart-Data:
   - Key: "username"
     Type: cart_data
