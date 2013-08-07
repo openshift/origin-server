@@ -189,6 +189,7 @@ class OODiag
     @project_is = {}
     # It's OpenShift Enterprise if there are any el6op RPMs on the system.
     @project_is[:enterprise] = @rpms.values.select {|rpm| rpm[:release].include? 'el6op'}.length > 0
+    @scl_prefix = @project_is[:enterprise] ? "ruby193-" : ""
     # It's OpenShift Online if certain RPMs are present
     @project_is[:online] = @rpms['rhc-common'] && true
     # It's OpenShift Origin otherwise...
@@ -722,7 +723,7 @@ class OODiag
       broker error_log: this problem indicates mcollective client logging is failing:
         #{out}
       Please fix this issue with the following commands:
-        # chown apache:root /var/log/mcollective-client.log
+        # chown apache:root /var/log/#{@scl_prefix}-mcollective-client.log
         # service openshift-broker restart
     FIXLOG
     #
@@ -847,9 +848,9 @@ class OODiag
     #
     # create a tmp file with all of the unique log statements after most recent mcollective start
     tmpfile = Tempfile.new("oodiag-mco-#{$$}").path
-    system %Q! sed -n 'H; /INFO.*The Marionette Collective.*started logging/h; ${g;p;}' /var/log/mcollective.log | sed 's|^\w, \[[^]]*\]||' | sort -u > #{tmpfile} !
+    system %Q! sed -n 'H; /INFO.*The Marionette Collective.*started logging/h; ${g;p;}' /var/log/#{@scl_prefix}mcollective.log | sed 's|^\w, \[[^]]*\]||' | sort -u > #{tmpfile} !
     # if no restart seen, just use the whole thing
-    system %Q! sort -u /var/log/mcollective.log > #{tmpfile} ! unless File.exists? tmpfile
+    system %Q! sort -u /var/log/#{@scl_prefix}mcollective.log > #{tmpfile} ! unless File.exists? tmpfile
     return unless File.exists? tmpfile
     #
     # Look for the mco timeout warning
@@ -912,7 +913,7 @@ class OODiag
       fail_without += %w{httpd network sshd openshift-port-proxy openshift-gears
                         cgconfig cgred crond openshift-node-web-proxy}
       scl_prefix = @project_is[:enterprise] ? "ruby193-" : ""
-      fail_without << scl_prefix + "mcollective"
+      fail_without << @scl_prefix + "mcollective"
 
       warn_without += %w{ntpd oddjobd messagebus}
     end
