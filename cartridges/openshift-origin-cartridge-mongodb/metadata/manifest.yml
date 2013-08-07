@@ -1,5 +1,4 @@
 Name: mongodb
-Namespace: MONGODB
 Cartridge-Short-Name: MONGODB
 Architecture: noarch
 Display-Name: MongoDB NoSQL Database 2.2 
@@ -18,7 +17,7 @@ Categories:
   - embedded
 Website: http://www.10gen.com
 Help-Topics:
-  - "Building with MongoDB" : https://www.openshift.com/developers/mongodb
+  "Building with MongoDB" : https://www.openshift.com/developers/mongodb
 Cart-Data:
   - Key: "username"
     Type: cart_data

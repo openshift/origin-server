@@ -23,7 +23,7 @@ Cart-Data:
     Type: environment
     Description: "Directory to store application temporary files."
   - Key: OPENSHIFT_REPO_DIR
-    Type: environemnt
+    Type: environment
     Description: "Application root directory where application files reside. This directory is reset every time you do a git-push"
   - Key: OPENSHIFT_DIY_PORT
     Type: environment
