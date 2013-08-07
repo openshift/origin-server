@@ -24,6 +24,7 @@ module MCollective
                :timeout     => 360
 
       activate_when do
+        @@config               = ::OpenShift::Config.new
         @@cartridge_repository = ::OpenShift::Runtime::CartridgeRepository.instance
         @@cartridge_repository.clear
 
@@ -141,6 +142,7 @@ module MCollective
 
         # Do the action execution
         exitcode, output           = execute_action(action, args)
+        report_quota(output, args['--with-container-uuid']) if args['--with-container-uuid']
 
         reply[:exitcode] = exitcode
         reply[:output]   = output
@@ -188,6 +190,21 @@ module MCollective
         return exitcode, output
       end
 
+      # report approaching quota overage.
+      #
+      def report_quota(buffer, uuid)
+        quota = ::OpenShift::Runtime::Node.get_quota(uuid)
+        watermark = @@config.get('QUOTA_WARNING_PERCENT', '90.0').to_f
+
+        usage = (quota[1].to_s.to_i / quota[3].to_s.to_f) * 100.0
+        buffer << "CLIENT_MESSAGE: Warning gear #{uuid} is using #{usage} of disk quota\n" if watermark < usage
+
+        usage = (quota[4].to_s.to_i / quota[6].to_s.to_f) * 100.0
+        buffer << "CLIENT_MESSAGE: Warning gear #{uuid} is using #{usage} of inodes allowed\n" if watermark < usage
+      rescue Exception => e
+        # do nothing
+      end
+
       # Executes a list of jobs sequentially, adding the exitcode and output
       # from execute_action to each job following the execution.
       #
@@ -199,8 +216,8 @@ module MCollective
       def execute_parallel_action
         Log.instance.info("execute_parallel_action call / action: #{request.action}, agent=#{request.agent}, data=#{request.data.pretty_inspect}")
 
+        quota_reported = false
         joblist = request[config.identity]
-
         joblist.each do |parallel_job|
             job = parallel_job[:job]
 
@@ -209,6 +226,10 @@ module MCollective
             args      = job[:args]
 
             exitcode, output = execute_action(action, args)
+            if args['--with-container-uuid'] && ! quota_reported
+              report_quota(output, args['--with-container-uuid'])
+              quota_reported = true
+            end
 
             parallel_job[:result_exit_code] = exitcode
             parallel_job[:result_stdout]    = output
