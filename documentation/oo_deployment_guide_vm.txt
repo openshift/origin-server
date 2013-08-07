@@ -106,7 +106,7 @@ yum install -y qemu-img
 Run _qemu-img_ to convert the image file and then copy it into the libvirt directory.
 
 ----
-qemu-img -O raw openshift-origin.vmdk openshift-origin.dsk
+qemu-img convert -O raw openshift-origin.vmdk openshift-origin.dsk
 mv openshift-origin.dsk /var/lib/libvirt/images/
 ----
 
