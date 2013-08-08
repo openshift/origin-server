@@ -376,8 +376,12 @@ module OpenShift
           end
         ensure
           if reset_quota
-            progress.log "Resetting quota blocks: #{reset_block_quota}  inodes: #{reset_inode_quota}"
-            OpenShift::Runtime::Node.set_quota(uuid, reset_block_quota, reset_inode_quota)
+            begin
+              progress.log "Resetting quota blocks: #{reset_block_quota}  inodes: #{reset_inode_quota}"
+              OpenShift::Runtime::Node.set_quota(uuid, reset_block_quota, reset_inode_quota)
+            rescue NodeCommandException => e
+              progress.log e.message
+            end
           end
         end
 
@@ -396,20 +400,20 @@ module OpenShift
       # reset, and the block and inode quotas to reset to.
       #
       def relax_quota
-        filesystem, quota, quota_soft, quota_hard, inodes, inodes_soft, inodes_hard = OpenShift::Runtime::Node.get_quota(uuid)
+        quota             = OpenShift::Runtime::Node.get_quota(uuid)
         reset_block_quota = false
         reset_inode_quota = false
-        new_block_quota = quota_hard.to_i
-        new_inode_quota = inodes_hard.to_i
+        new_block_quota   = quota[:blocks_limit]
+        new_inode_quota   = quota[:inodes_limit]
 
-        if ((quota.to_i * 2) > quota_hard.to_i)
+        if ((quota[:blocks_used] * 2) > quota[:blocks_limit])
           reset_block_quota = true
-          new_block_quota = quota_hard.to_i * 2
+          new_block_quota   = quota[:blocks_limit] * 2
         end
 
-        if ((inodes.to_i * 2) > inodes_hard.to_i)
+        if ((quota[:inodes_used] * 2) > quota[:inodes_limit])
           reset_inode_quota = true
-          new_inode_quota = inodes_hard.to_i * 2
+          new_inode_quota   = quota[:inodes_limit] * 2
         end
 
         if reset_block_quota || reset_inode_quota
@@ -417,7 +421,7 @@ module OpenShift
           OpenShift::Runtime::Node.set_quota(uuid, new_block_quota, new_inode_quota)
         end
 
-        return [ reset_block_quota | reset_inode_quota, quota_hard.to_i, inodes_hard.to_i ]
+        return [reset_block_quota | reset_inode_quota, quota[:blocks_limit], quota[:inodes_limit]]
       end
 
       #
