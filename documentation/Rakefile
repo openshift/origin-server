@@ -1,4 +1,6 @@
 require 'asciidoctor'
+require 'pandoc-ruby'
+require 'pathname'
 require 'rake'
 
 task :build do
@@ -8,8 +10,61 @@ task :build do
   end
 end
 
+task :build_peps do
+  PandocRuby.allow_file_paths = true
+
+  pep_files = []
+
+  Dir.glob("../../openshift-pep/openshift-pep-*.md").each do |file|
+    # Markdown => AsciiDoc
+    asciidoc_txt = PandocRuby.markdown(file, 'no-wrap').to_asciidoc
+
+    # Target filename
+    file_base = File.basename(Pathname.new(file).basename, '.*')
+    output_file = "#{file_base}.html"
+
+    # PEP info; this will break if the template / naming convention changes too much
+    pep_number = file_base.split("-")[2]
+    pep_title = asciidoc_txt.match(/Title\:\ (.*)\ \+\n/)[1]
+    pep_files << "#{pep_number}: link:#{output_file}[#{pep_title}]"
+
+    # Prepend AsciiDoc header info
+    input_text = ["= OpenShift PEP #{pep_number}: #{pep_title}",
+                  "OpenShift Origin Documentation Project <dev@lists.openshift.redhat.com>",
+                  ":data-uri:",
+                  ":toc2:",
+                  ":icons:",
+                  "",
+                  asciidoc_txt,
+                 ].join("\n")
+
+    # AsciiDoc => HTML
+    output_html = Asciidoctor.render input_text, :header_footer => true, :safe => :safe, :template_dir => './templates', :attributes => %w(source-highlighter=coderay coderay-css=style stylesdir=./stylesheets imagesdir=./images stylesheet=origin.css linkcss! icons=font idprefix= idseparator=- sectanchors)
+
+    # Write it to disk
+    File.open(output_file, 'w') {|f| f.write(output_html)}
+  end
+
+  # Write the index to be included in the Documentation Home page
+  peps_list = pep_files.join(" +\n")
+  peps_text = ['[cols="1",options="header"]',
+               "|===",
+               "|OpenShift PEPs",
+               "",
+               "a|#{peps_list}",
+               "",
+               "|===",
+              ].join("\n")
+
+  # Write it to disk
+  File.open('_pep_list.adoc', 'w') {|f| f.write(peps_text)}
+
+  # Fire off the regular build task
+  Rake::Task['build'].execute
+end
+
 task :clean do
-  sh "rm *.html" do |ok,res|
+  sh "rm _pep_list.adoc *.html" do |ok,res|
     if ! ok
       puts "Nothing to clean."
     end
