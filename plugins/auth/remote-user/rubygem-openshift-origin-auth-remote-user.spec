@@ -11,7 +11,7 @@
 
 Summary:       OpenShift plugin for remote-user authentication
 Name:          rubygem-%{gem_name}
-Version: 1.13.0
+Version: 1.13.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -105,6 +105,9 @@ then
 fi
 
 %changelog
+* Thu Aug 08 2013 Adam Miller <admiller@redhat.com> 1.13.1-1
+- bump_minor_versions for sprint 32 (admiller@redhat.com)
+
 * Tue Jul 30 2013 Adam Miller <admiller@redhat.com> 1.12.3-1
 - Merge pull request #2941 from Miciah/fix-plugins-auth-remote-user-post-
   scriptlet (dmcphers+openshiftbot@redhat.com)
