@@ -1,7 +1,7 @@
 %global cartridgedir %{_libexecdir}/openshift/cartridges/perl
 
 Name:          openshift-origin-cartridge-perl
-Version: 0.8.0
+Version: 0.8.1
 Release:       1%{?dist}
 Summary:       Perl cartridge
 Group:         Development/Languages
@@ -71,6 +71,12 @@ rm %{buildroot}%{cartridgedir}/metadata/manifest.yml.*
 
 
 %changelog
+* Thu Aug 08 2013 Adam Miller <admiller@redhat.com> 0.8.1-1
+- Merge pull request #3021 from rvianello/readme_cron (dmcphers@redhat.com)
+- Fix bug 990864: status check for stopped perl app (pmorie@gmail.com)
+- bump_minor_versions for sprint 32 (admiller@redhat.com)
+- added a note about the required cron cartridge. (riccardo.vianello@gmail.com)
+
 * Wed Jul 31 2013 Adam Miller <admiller@redhat.com> 0.7.5-1
 - Update cartridge versions for Sprint 31 (jhonce@redhat.com)
 
