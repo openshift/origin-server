@@ -70,10 +70,12 @@
 #   @return [String] URI which was used to initialize the GIT repository for this application
 # @!attribute [r] cartridges
 #   @return [Array<RestCartridge>] List of cartridges in application. Used only when requesting application and included cartridges.
+# @!attribute [r] environment_variables
+#   @return [Hash<String,String>] One or more environment variables in application. Used only when requesting application and included environment variables.
 #   @see [ApplicationsController#index]
 class RestApplication < OpenShift::Model
   attr_accessor :framework, :creation_time, :id, :embedded, :aliases, :name, :gear_count, :links, :domain_id, :git_url, :app_url, :ssh_url,
-      :gear_profile, :scalable, :health_check_path, :building_with, :building_app, :build_job_url, :cartridges, :initial_git_url
+      :gear_profile, :scalable, :health_check_path, :building_with, :building_app, :build_job_url, :cartridges, :initial_git_url, :environment_variables
 
   def initialize(app, url, nolinks=false, applications=nil)
     self.embedded = {}
@@ -195,6 +197,7 @@ class RestApplication < OpenShift::Model
             OptionalParam.new("scales_to", "integer", "Maximum number of gears to run the component on."),
             OptionalParam.new("additional_storage", "integer", "Additional GB of space to request on all gears running this component."),
             (OptionalParam.new("url", "string", "A URL to a downloadable cartridge.") if Rails.application.config.openshift[:download_cartridges_enabled]),
+            OptionalParam.new("environment_variables", "hash", "Add environment variables to the application, e.g.: {'FOO':'123', 'BAR':'abc'}")
           ].compact
         ),
         "LIST_CARTRIDGES" => Link.new("List embedded cartridges", "GET", URI::join(url, "applications/#{@id}/cartridges")),
@@ -205,6 +208,14 @@ class RestApplication < OpenShift::Model
             OptionalParam.new("private_key", "string", "Private key for the certificate.  Required if adding a certificate"), 
             OptionalParam.new("pass_phrase", "string", "Optional passphrase for the private key")]),
         "LIST_ALIASES" => Link.new("List application aliases", "GET", URI::join(url, "applications/#{@id}/aliases")),
+        "SET_ENVIRONMENT_VARIABLES" => Link.new("Add or Update one or more environment variables", "POST", URI::join(url, "applications/#{@id}/events"),[
+          Param.new("event", "string", "event", "set-environment-variables"),
+          Param.new("environment_variables", "hash", "Environment variables, e.g.: {'FOO':'123', 'BAR':'abc'}")
+        ]),
+        "UNSET_ENVIRONMENT_VARIABLES" => Link.new("Delete one or more environment variables", "POST", URI::join(url, "applications/#{@id}/events"),[
+          Param.new("event", "string", "event", "unset-environment-variables"),
+          Param.new("environment_variables", "array", "Environment variable names, e.g.: ['FOO','BAR']")
+        ])
       }
     end
   end

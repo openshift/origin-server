@@ -24,15 +24,26 @@ class AppEventsController < BaseController
   #   * thread-dump: Retrieve a list of all threads running on all gears of the application
   #   * tidy: Trigger garbage collection and cleanup of logs, git revisions
   #   * reload: Restart all application cartridges
+  #   * set-environment-variables: Add or Update one or more user environment variables for the applicatoin. Requires *environment_variables* parameter
+  #   * unset-environment-variables: Delete one or more user environment variables for the application. Requires *environment_variables* parameter
   # @param [String] alias DNS alias for the application. Only applicable to add-alias and remove-alias events
+  # @param [Hash<String, String>] environment_variables user environment variables for the application. Only applicable to set-environment-variables
+  # @param [Array<String>] environment_variables user environment variable names for the application. Only applicable to unset-environment-variables
   # 
   # @return [RestReply<RestApplication>] Application object on which the event operates and messages returned for the event.
   def create
     event = params[:event].presence
     server_alias = params[:alias].presence
+    user_env_vars = params[:environment_variables].presence
 
     return render_error(:unprocessable_entity, "Alias must be specified for adding or removing application alias.", 126,
-                        "event") if ['add-alias', 'remove-alias'].include?(event) && (server_alias.nil? or server_alias.to_s.empty?)
+                        "alias") if ['add-alias', 'remove-alias'].include?(event) && (server_alias.nil? or server_alias.to_s.empty?)
+
+    if ((event == 'set-environment-variables') && !user_env_vars.is_a?(Hash)) or
+       ((event == 'unset-environment-variables') && !user_env_vars.is_a?(Array))
+      return render_error(:unprocessable_entity, "Invalid environment variables specified for the application.", 186, "environment_variables")
+    end
+
     return render_error(:unprocessable_entity, "Reached gear limit of #{@cloud_user.max_gears}", 104) if (event == 'scale-up') && (@cloud_user.consumed_gears >= @cloud_user.max_gears)
     
     if @application.quarantined && ['scale-up', 'scale-down'].include?(event)
@@ -84,6 +95,12 @@ class AppEventsController < BaseController
     when 'reload'
       r = @application.reload_config
       msg = "Application #{@application.name} called reload"
+    when 'set-environment-variables'
+      r = @application.set_user_env_variables(user_env_vars)
+      msg = "Application #{@application.name} has added/updated environment variables"
+    when 'unset-environment-variables'
+      r = @application.unset_user_env_variables(user_env_vars)
+      msg = "Application #{@application.name} has deleted environment variables"
     else
       return render_error(:unprocessable_entity, "Invalid application event '#{event}' specified",
                           126, "event")
