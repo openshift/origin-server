@@ -4,7 +4,7 @@
 
 Summary:       Provides JBossAS7 support
 Name:          openshift-origin-cartridge-jbossas
-Version: 1.6.0
+Version: 1.6.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -104,6 +104,23 @@ fi
 
 
 %changelog
+* Thu Aug 08 2013 Adam Miller <admiller@redhat.com> 1.6.1-1
+- Cartridge - Clean up manifests (jhonce@redhat.com)
+- Merge pull request #3307 from jwhonce/wip/java_opt_ext
+  (dmcphers+openshiftbot@redhat.com)
+- Card origin_runtime_148 - append JAVA_OPT_EXT to JAVA_OPT (jhonce@redhat.com)
+- Various cleanup (dmcphers@redhat.com)
+- Merge pull request #3302 from detiber/fixJBawsTests
+  (dmcphers+openshiftbot@redhat.com)
+- Fix runtime extended tests (jdetiber@redhat.com)
+- Merge pull request #3300 from danmcp/master
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3021 from rvianello/readme_cron (dmcphers@redhat.com)
+- cleanup (dmcphers@redhat.com)
+- Update JBoss cartridges control script (jdetiber@redhat.com)
+- bump_minor_versions for sprint 32 (admiller@redhat.com)
+- added a note about the required cron cartridge. (riccardo.vianello@gmail.com)
+
 * Wed Jul 31 2013 Adam Miller <admiller@redhat.com> 1.5.5-1
 - Merge pull request #3244 from danmcp/master
   (dmcphers+openshiftbot@redhat.com)
