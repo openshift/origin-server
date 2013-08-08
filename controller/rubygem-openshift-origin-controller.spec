@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.13.0
+Version: 1.13.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -84,6 +84,25 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Thu Aug 08 2013 Adam Miller <admiller@redhat.com> 1.13.1-1
+- Merge pull request #3307 from jwhonce/wip/java_opt_ext
+  (dmcphers+openshiftbot@redhat.com)
+- Card origin_runtime_148 - append JAVA_OPT_EXT to JAVA_OPT (jhonce@redhat.com)
+- Various cleanup (dmcphers@redhat.com)
+- cleanup (dmcphers@redhat.com)
+- Fix for bug 982855 (abhgupta@redhat.com)
+- <mongo> allow db access with mongo client 1.6 (lmeyer@redhat.com)
+- Merge pull request #3274 from pmorie/bugs/991225
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3276 from detiber/fixtests
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 991225: upgrade script should be run before setup during incompatible
+  upgrade (pmorie@gmail.com)
+- Fix runtime-extended tests for jboss cartridges (jdetiber@redhat.com)
+- <admin/stats> should fix oo-stats bug 988554 (lmeyer@redhat.com)
+- <admin/stats> add unit tests, fix a bug (lmeyer@redhat.com)
+- bump_minor_versions for sprint 32 (admiller@redhat.com)
+
 * Wed Jul 31 2013 Adam Miller <admiller@redhat.com> 1.12.7-1
 - Merge pull request #3250 from jwhonce/wip/extended_tests
   (dmcphers+openshiftbot@redhat.com)
