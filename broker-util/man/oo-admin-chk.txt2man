@@ -10,10 +10,9 @@ DESCRIPTION
 
 OPTIONS
   -l
-    Specify the level [0, 1, 2] of the checks to be performed. 
+    Specify the level [0, 1] of the checks to be performed. 
       Level '0' is default, and checks to see if any gears are present in mongo but don't exist on the nodes and vice-versa.
-      Level '1' performs extra checks such as integrity of consumed_gears count.
-      Level '2' additionally performs checks for application data integrity in mongo and checks for unused and unreserved gear UIDs.
+      Level '1' performs checks for consumed_gears count mismatches, application data integrity in mongo, and checks for unused and unreserved gear UIDs
   -h  
     Display a simple help dialog.
   -v  
