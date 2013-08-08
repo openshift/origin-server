@@ -128,7 +128,7 @@ module OpenShift
 
       manifest = Tempfile.new("manifest-#{Process.pid}")
       IO.write(manifest, @mock_manifest, 0)
-      @mock_cartridge = Runtime::Manifest.new(manifest, nil, '/tmp')
+      @mock_cartridge = Runtime::Manifest.new(manifest, nil, :file, '/tmp')
       @model.stubs(:get_cartridge).with('mock-0.1').returns(@mock_cartridge)
     end
 
@@ -142,7 +142,7 @@ module OpenShift
 
       local_model = Runtime::V2CartridgeModel.new(@config, @container, mock(), hourglass)
 
-      YAML.stubs(:load_file).with("#{@homedir}/redhat-crtest/metadata/manifest.yml").raises(ArgumentError.new('bla'))
+      YAML.stubs(:safe_load_file).with("#{@homedir}/redhat-crtest/metadata/manifest.yml").raises(ArgumentError.new('bla'))
 
       assert_raise(RuntimeError, "Failed to load cart manifest from #{@homedir}/redhat-crtest/metadata/manifest.yml for cart mock in gear : bla") do
         local_model.get_cartridge("mock-0.1")

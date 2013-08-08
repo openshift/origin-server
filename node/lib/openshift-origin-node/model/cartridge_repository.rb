@@ -118,7 +118,7 @@ module OpenShift
           find_manifests(directory || @path) do |manifest_path|
             logger.debug { "Loading cartridge from #{manifest_path}" }
             # we check the vendor and cartridge names only when loading via URL
-            c = insert(Manifest.new(manifest_path, nil, @path, load_via_url))
+            c = insert(Manifest.new(manifest_path, nil, :file, @path, load_via_url))
             logger.debug { "Loaded cartridge (#{c.name}, #{c.version}, #{c.cartridge_version})" }
           end
         end
@@ -177,7 +177,7 @@ module OpenShift
 
         entry = nil
         $OpenShift_CartridgeRepository_SEMAPHORE.synchronize do
-          entry = insert(Manifest.new(manifest_path, nil, @path))
+          entry = insert(Manifest.new(manifest_path, nil, :file, @path))
 
           FileUtils.rm_r(entry.repository_path) if File.exist?(entry.repository_path)
           FileUtils.mkpath(entry.repository_path)

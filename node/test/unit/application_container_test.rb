@@ -131,7 +131,7 @@ class ApplicationContainerTest < OpenShift::NodeTestCase
 
     manifest = "/tmp/manifest-#{Process.pid}"
     IO.write(manifest, @mock_manifest, 0)
-    @mock_cartridge = OpenShift::Runtime::Manifest.new(manifest)
+    @mock_cartridge = OpenShift::Runtime::Manifest.new(manifest, nil, :file)
     @container.cartridge_model.stubs(:get_cartridge).with("mock").returns(@mock_cartridge)
   end
 
