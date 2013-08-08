@@ -81,7 +81,6 @@ action "cartridge_do", :description => "run a cartridge action" do
                               tidy
                               user-var-add
                               user-var-remove
-                              user-var-push
                               user-var-list
                               unsubscribe
                               ),

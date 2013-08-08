@@ -304,7 +304,7 @@ module OpenShift
           output, gear_dns, threads = '', '', {}
           target  = PathUtils.join('.env', 'user_vars').freeze
           source  = PathUtils.join(@container_dir, target).freeze
-          return 0, '' unless File.directory?(source)
+          return 0, '' unless File.directory?(source) and !(Dir.entries(source) - %w{. ..}).empty?
 
           begin
             gears.each do |gear|
@@ -313,8 +313,9 @@ module OpenShift
                 gear_dns = fqdn
                 retries  = 2
                 begin
-                  command = "/usr/bin/rsync -arvO --delete -e 'ssh -i #{@container_dir}/.openshift_ssh/id_rsa' #{source}/ #{fqdn}:#{target}"
-                  ::OpenShift::Runtime::Utils::oo_spawn(command, expected_exitstatus: 0)
+                  command = "/usr/bin/rsync -arvO --delete -e ssh #{source}/ #{fqdn}:#{target}"
+                  env = OpenShift::Runtime::Utils::Environ.for_gear(Etc.getpwnam(@uuid).dir)
+                  ::OpenShift::Runtime::Utils::oo_spawn(command, expected_exitstatus: 0, uid: @uid, env: env)
                 rescue Exception => e
                   NodeLogger.logger.debug { "Push #{retries} #{source} exception #{e.message}" }
                   Thread.current[:exception] = e

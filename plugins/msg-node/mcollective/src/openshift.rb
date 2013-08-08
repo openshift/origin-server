@@ -368,49 +368,43 @@ module MCollective
       end
 
       def oo_user_var_add(args)
-        unless args['--with-variables']
-          return -1, "In #{__method__} no user environment variables provided for #{args['--with-app-name']}"
+        variables, gears = {}, []
+        args['--with-variables'].split(' ').each { |a| token = a.split('='); variables[token.first] = token.last } if args['--with-variables']
+        gears = args['--with-gears'].split(';') if args['--with-gears']
+
+        if variables.empty? and gears.empty?
+          return -1, "In #{__method__} at least user environment variables or gears must be provided for #{args['--with-app-name']}"
         end
 
-        variables = JSON.parse(args['--with-variables'])
-        gears     = args['--with-gears'] ? args['--with-gears'].split(';') : []
-
+        rc, output = 0, ''
         with_container_from_args(args) do |container|
-          container.user_var_add(variables, gears)
+          rc, output = container.user_var_add(variables, gears)
         end
+        return rc, output
       end
 
       def oo_user_var_remove(args)
         unless args['--with-keys']
-          return -1, "In #{__method__} no user environment variables provided for #{args['--with-app-name']}"
+          return -1, "In #{__method__} no user environment variable names provided for #{args['--with-app-name']}"
         end
 
-        variables = args['--with-keys'].split(';')
-        gears     = args['--with-gears'] ? args['--with-gears'].split(';') : []
+        keys  = args['--with-keys'].split(' ')
+        gears = args['--with-gears'] ? args['--with-gears'].split(';') : []
 
+        rc, output = 0, ''
         with_container_from_args(args) do |container|
-          container.user_var_remove(variables, gears)
+          rc, output = container.user_var_remove(keys, gears)
         end
-      end
-
-      def oo_user_var_push(args)
-        unless args['--with-gears']
-          return -1, "In #{__method__} no secondary gears provided for #{args['--with-app-name']}"
-        end
-
-        gears = args['--with-gears'].split(';')
-        with_container_from_args(args) do |container|
-          container.user_var_remove(variables, gears)
-        end
+        return rc, output
       end
 
       def oo_user_var_list(args)
-        variables = args['--with-keys'] ? args['--with-keys'].split(';') : []
+        keys = args['--with-keys'] ? args['--with-keys'].split(' ') : []
 
         output = ''
         begin
           container = get_app_container_from_args(args)
-          list      = container.user_var_list(variables)
+          list      = container.user_var_list(keys)
           output    = 'CLIENT_RESULT: ' + list.to_json
         rescue Exception => e
           Log.instance.info "#{e.message}\n#{e.backtrace}"
