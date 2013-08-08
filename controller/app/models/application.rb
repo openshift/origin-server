@@ -144,7 +144,8 @@ class Application
   # @param user_agent [String] user agent string of browser used for this rest API request
   # @return [Application] Application object
   # @raise [OpenShift::ApplicationValidationException] Exception to indicate a validation error
-  def self.create_app(application_name, features, domain, default_gear_size = nil, scalable=false, result_io=ResultIO.new, group_overrides=[], init_git_url=nil, user_agent=nil, community_cart_urls=[])
+  def self.create_app(application_name, features, domain, default_gear_size = nil, scalable=false, result_io=ResultIO.new, group_overrides=[],
+                      init_git_url=nil, user_agent=nil, community_cart_urls=[], user_env_vars=nil)
     default_gear_size =  Rails.application.config.openshift[:default_gear_size] if default_gear_size.nil?
     cmap = CartridgeCache.fetch_community_carts(community_cart_urls)
     app = Application.new(domain: domain, name: application_name, default_gear_size: default_gear_size, scalable: scalable, app_ssh_keys: [], pending_op_groups: [], downloaded_cart_map: cmap)
@@ -173,7 +174,7 @@ class Application
         elsif framework_cartridges.length > 1
           raise OpenShift::UserException.new("Each application must contain only one web cartridge.  Please include a single web cartridge from this list: #{framework_carts.to_sentence}.", 109, "cartridge")
         end
-        add_feature_result = app.add_features(features, group_overrides, init_git_url)
+        add_feature_result = app.add_features(features, group_overrides, init_git_url, user_env_vars)
         result_io.append add_feature_result
       rescue Exception => e
         if (app.group_instances.nil? or app.group_instances.empty?) and (app.component_instances.nil? or app.component_instances.empty?)
@@ -372,6 +373,43 @@ class Application
   end
 
   ##
+  # Add or Update user defined environment variables to all gears on the application.
+  # @param vars [Hash<String, String>] One or more user environment variables. Each entry must contain key and value
+  # @return [ResultIO] Output from node platform
+  def set_user_env_variables(vars)
+    Application.run_in_application_lock(self) do
+      op_group = PendingAppOpGroup.new(op_type: :set_user_env_vars, args: {"user_env_vars" => vars}, user_agent: self.user_agent)
+      self.pending_op_groups.push op_group
+      result_io = ResultIO.new
+      self.run_jobs(result_io)
+      result_io
+    end
+  end
+
+  ##
+  # Remove user defined environment variables from all gears on the application.
+  # @param vars [Array<String>] List of user environment variable names. Each entry must contain key
+  # @return [ResultIO] Output from node platform
+  def unset_user_env_variables(vars)
+    Application.run_in_application_lock(self) do
+      op_group = PendingAppOpGroup.new(op_type: :unset_user_env_vars, args: {"user_env_vars" => vars}, user_agent: self.user_agent)
+      self.pending_op_groups.push op_group
+      result_io = ResultIO.new
+      self.run_jobs(result_io)
+      result_io
+    end
+  end
+
+  ##
+  # List all or selected user defined environment variables in the application.
+  # @param vars [Array<String>] Selected user environment variable names. Each entry must contain key
+  # @return [String] Environment variables in the application.
+  def list_user_env_variables(vars=[])
+    result_io = get_app_dns_gear.list_user_env_vars(vars)
+    result_io.resultIO.string
+  end
+
+  ##
   # Returns the total number of gears currently used by this application
   # @return [Integer] number of gears
   def num_gears
@@ -420,7 +458,7 @@ class Application
   # @param init_git_url [String] URL to git repository to retrieve application code
   # @return [ResultIO] Output from cartridges
   # @raise [OpenShift::UserException] Exception raised if there is any reason the feature/cartridge cannot be added into the Application
-  def add_features(features, group_overrides=[], init_git_url=nil)
+  def add_features(features, group_overrides=[], init_git_url=nil, user_env_vars=nil)
     ssl_endpoint = Rails.application.config.openshift[:ssl_endpoint]
     cart_name_map = {}
 
@@ -509,7 +547,8 @@ class Application
 
     result_io = ResultIO.new
     Application.run_in_application_lock(self) do
-      self.pending_op_groups.push PendingAppOpGroup.new(op_type: :add_features, args: {"features" => features, "group_overrides" => group_overrides, "init_git_url"=>init_git_url}, user_agent: self.user_agent)
+      self.pending_op_groups.push PendingAppOpGroup.new(op_type: :add_features, args: {"features" => features, "group_overrides" => group_overrides, "init_git_url" => init_git_url,
+                                                        "user_env_vars" => user_env_vars}, user_agent: self.user_agent)
       self.run_jobs(result_io)
     end
 
@@ -1101,6 +1140,40 @@ class Application
 
   #private
 
+  ##
+  # Retrieve the gear with application dns.
+  # @return [Gear] gear object 
+  def get_app_dns_gear
+    self.group_instances.each do |group_instance|
+      if group_instance.gears.where(app_dns: true).count > 0
+        return group_instance.gears.find_by(app_dns: true)
+      end
+    end
+    raise OpenShift::UserException.new("Gear containing application dns not found")
+  end
+
+  ##
+  # Retrieve list of dns endpoint for all gears in the application.
+  #
+  # == Parameters:
+  # exclude_app_dns: when set, it will ignore app dns
+  # domain: application domain object
+  # == Returns:
+  # @return [Array<String>] List of dns for all gears
+  def get_gears_dns(exclude_app_dns=false, domain=nil) 
+    gears_dns = []
+    self.group_instances.each do |group_instance|
+      group_instance.gears.each do |gear|
+        if gear.app_dns
+          gears_dns << "#{gear.uuid}@#{fqdn(domain)}" unless exclude_app_dns
+        else
+          gears_dns << "#{gear.uuid}@#{fqdn(domain, gear.name)}"
+        end
+      end
+    end
+    gears_dns
+  end
+
   # Processes directives returned by component hooks to add/remove domain ssh keys, app ssh keys, env variables, broker keys etc
   # @note {#run_jobs} must be called in order to perform the updates
   #
@@ -1180,7 +1253,7 @@ class Application
             #need rollback
             features = self.requires + op_group.args["features"]
             group_overrides = (self.group_overrides || []) + (op_group.args["group_overrides"] || [])
-            ops, add_gear_count, rm_gear_count = update_requirements(features, group_overrides, op_group.args["init_git_url"])
+            ops, add_gear_count, rm_gear_count = update_requirements(features, group_overrides, op_group.args["init_git_url"], op_group.args["user_env_vars"])
             try_reserve_gears(add_gear_count, rm_gear_count, op_group, ops)
           when :remove_features
             #need rollback
@@ -1246,6 +1319,8 @@ class Application
                 break
               end
             end
+          when :set_user_env_vars, :unset_user_env_vars
+            op_group.pending_ops.push(PendingAppOp.new(op_type: op_group.op_type, args: op_group.args.dup))
           when :add_broker_auth_key, :remove_broker_auth_key
             ops = []
             args = op_group.args.dup
@@ -1330,14 +1405,14 @@ class Application
     ops
   end
 
-  def update_requirements(features, group_overrides, init_git_url=nil)
+  def update_requirements(features, group_overrides, init_git_url=nil, user_env_vars=nil)
     group_overrides = (group_overrides + gen_non_scalable_app_overrides(features)).uniq unless self.scalable
 
     connections, new_group_instances, cleaned_group_overrides = elaborate(features, group_overrides)
     current_group_instance = self.group_instances.map { |gi| gi.to_hash }
     changes, moves = compute_diffs(current_group_instance, new_group_instances)
 
-    calculate_ops(changes, moves, connections, cleaned_group_overrides,init_git_url)
+    calculate_ops(changes, moves, connections, cleaned_group_overrides, init_git_url, user_env_vars)
   end
 
   def calculate_update_existing_configuration_ops(args, prereqs={})
@@ -1437,7 +1512,8 @@ class Application
     pending_ops
   end
 
-  def calculate_gear_create_ops(ginst_id, gear_ids, deploy_gear_id, comp_specs, component_ops, additional_filesystem_gb, gear_size, ginst_op_id=nil, is_scale_up=false, hosts_app_dns=false, init_git_url=nil)
+  def calculate_gear_create_ops(ginst_id, gear_ids, deploy_gear_id, comp_specs, component_ops, additional_filesystem_gb, gear_size,
+                                ginst_op_id=nil, is_scale_up=false, hosts_app_dns=false, init_git_url=nil, user_env_vars=nil)
     pending_ops = []
 
     a_ssh_keys = self.app_ssh_keys.map{|k| k.attributes}
@@ -1493,6 +1569,11 @@ class Application
 
     ops = calculate_update_new_configuration_ops({"add_keys_attrs" => ssh_keys, "add_env_vars" => env_vars}, ginst_id, gear_id_prereqs)
     pending_ops.push(*ops)
+
+    # Add and/or push user env vars when this is not an app create or user_env_vars are specified
+    if maybe_notify_app_create_op.empty? || (user_env_vars && !user_env_vars.empty?)
+      pending_ops.push(PendingAppOp.new(op_type: :set_user_env_vars, args: {"user_env_vars" => user_env_vars}, prereq: [pending_ops.last._id.to_s]))
+    end
 
     ops = calculate_add_component_ops(comp_specs, ginst_id, deploy_gear_id, gear_id_prereqs, component_ops, is_scale_up, ginst_op_id, init_git_url)
     pending_ops.push(*ops)
@@ -1775,7 +1856,7 @@ class Application
   #
   # connections::
   #   An array of connections. (Output of {#elaborate})
-  def calculate_ops(changes,moves=[],connections=nil,group_overrides=nil,init_git_url=nil)
+  def calculate_ops(changes, moves=[], connections=nil, group_overrides=nil, init_git_url=nil, user_env_vars=nil)
     app_dns_ginst_found = false
     add_gears = 0
     remove_gears = 0
@@ -1815,7 +1896,8 @@ class Application
         deploy_gear_id = nil
       end
 
-      ops = calculate_gear_create_ops(ginst_id, gear_ids, deploy_gear_id, comp_specs, component_ops, additional_filesystem_gb, gear_size, ginst_op._id.to_s, false, app_dns_ginst,init_git_url)
+      ops = calculate_gear_create_ops(ginst_id, gear_ids, deploy_gear_id, comp_specs, component_ops, additional_filesystem_gb,
+                                      gear_size, ginst_op._id.to_s, false, app_dns_ginst, init_git_url, user_env_vars)
       pending_ops.push *ops
     end
 
@@ -1823,6 +1905,14 @@ class Application
       #ops.push(PendingAppOps.new(op_type: :move_component, args: move, flag_req_change: true))
     end
 
+    if user_env_vars and !user_env_vars.empty?
+      changes.each do |change|
+        unless change[:from].nil? or change[:added].empty?
+          pending_ops.push(PendingAppOp.new(op_type: :set_user_env_vars, args: {"user_env_vars" => user_env_vars}))
+          break
+        end
+      end
+    end
 
     changes.each do |change|
       unless change[:from].nil?
@@ -1894,7 +1984,8 @@ class Application
             additional_filesystem_gb = changed_additional_filesystem_gb || group_instance.addtl_fs_gb
             gear_size = change[:to_scale][:gear_size] || group_instance.gear_size
 
-            ops = calculate_gear_create_ops(change[:from], gear_ids, deploy_gear_id, comp_specs, component_ops, additional_filesystem_gb, gear_size, nil, true)
+            ops = calculate_gear_create_ops(change[:from], gear_ids, deploy_gear_id, comp_specs, component_ops,
+                                            additional_filesystem_gb, gear_size, nil, true, false, nil, user_env_vars)
             pending_ops.push *ops
           end
 

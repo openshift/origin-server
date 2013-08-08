@@ -1258,6 +1258,78 @@ module OpenShift
       end
 
       #
+      # Add or Update user environment variables to all gears in the app
+      #
+      # INPUTS:
+      # * gear: a Gear object
+      # * env_vars: Hash of environment variables, e.g.:{'FOO'=>'123', 'BAR'=>'abc'}
+      # * gear_dns_list: list of gear dns
+      #
+      # RETURNS:
+      # * String: stdout from a command
+      #
+      # NOTES:
+      # * calls execute_direct
+      # * executes the 'user-var-add' action on the node
+      #
+      def set_user_env_vars(gear, env_vars, gear_dns_list)
+        args = build_base_gear_args(gear)
+        if env_vars && !env_vars.empty?
+          vars_str = ""
+          env_vars.each { |k,v| vars_str += " #{k}=#{v}" }
+          vars_str.lstrip!
+          args['--with-variables'] = vars_str
+        end
+        args['--with-gears'] = gear_dns_list.join(';') if gear_dns_list && !gear_dns_list.empty?
+        result = execute_direct(@@C_CONTROLLER, 'user-var-add', args)
+        parse_result(result)
+      end
+
+      #
+      # Remove user environment variables from all gears in the app
+      #
+      # INPUTS:
+      # * gear: a Gear object
+      # * env_var_names: list of environment variable names
+      # * gear_dns_list: list of gear dns
+      #
+      # RETURNS:
+      # * String: stdout from a command
+      #
+      # NOTES:
+      # * calls execute_direct
+      # * executes the 'user-var-remove' action on the node
+      #
+      def unset_user_env_vars(gear, env_var_names, gear_dns_list)
+        args = build_base_gear_args(gear)
+        args['--with-keys'] = env_var_names.join(' ')
+        args['--with-gears'] = gear_dns_list.join(';') if gear_dns_list && !gear_dns_list.empty?
+        result = execute_direct(@@C_CONTROLLER, 'user-var-remove', args)
+        parse_result(result)
+      end
+
+      #
+      # List all or selected  user environment variables for the app
+      #
+      # INPUTS:
+      # * gear: a Gear object
+      # * env_var_names: list of environment variable names
+      #
+      # RETURNS:
+      # * String: stdout from a command
+      #
+      # NOTES:
+      # * calls execute_direct
+      # * executes the 'user-var-list' action on the node
+      #
+      def list_user_env_vars(gear, env_var_names)
+        args = build_base_gear_args(gear)
+        args['--with-keys'] = env_var_names.join(' ') if env_var_names && !env_var_names.empty?
+        result = execute_direct(@@C_CONTROLLER, 'user-var-list', args)
+        parse_result(result)
+      end
+
+      #
       # Extracts the frontend httpd server configuration from a gear.
       #
       # INPUTS:

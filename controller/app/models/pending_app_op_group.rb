@@ -132,6 +132,12 @@ class PendingAppOpGroup
         when :remove_alias
           gear = get_gear_for_rollback(op)
           result_io.append gear.add_alias("abstract", op.args["fqdn"])
+        when :set_user_env_vars
+          if op.args["user_env_vars"] && !op.args["user_env_vars"].empty?
+            result_io.append application.get_app_dns_gear.unset_user_env_vars(op.args["user_env_vars"].keys, application.get_gears_dns(true))
+          end
+          user_env_vars = op.saved_values
+          result_io.append application.get_app_dns_gear.set_user_env_vars(user_env_vars, application.get_gears_dns(true)) unless user_env_vars.empty?
         when :add_ssl_cert
           gear = get_gear_for_rollback(op)
           result_io.append gear.remove_ssl_cert("abstract", op.args["fqdn"])
@@ -323,6 +329,17 @@ class PendingAppOpGroup
             a.has_private_ssl_certificate = false
             a.certificate_added_at = nil
             self.application.save
+          when :set_user_env_vars
+            if op.args["user_env_vars"] and !op.args["user_env_vars"].empty?
+              existing_user_env_vars = JSON.parse(application.list_user_env_variables)
+              overlapped_user_env_keys = existing_user_env_vars.keys & op.args["user_env_vars"].keys
+              saved_user_env_vars = {}
+              overlapped_user_env_keys.each {|key| saved_user_env_vars[key] = existing_user_env_vars[key]}
+              op.set(:saved_values, saved_user_env_vars) unless saved_user_env_vars.empty?
+            end
+            result_io.append application.get_app_dns_gear.set_user_env_vars(op.args["user_env_vars"], application.get_gears_dns(true))
+          when :unset_user_env_vars
+            result_io.append application.get_app_dns_gear.unset_user_env_vars(op.args["user_env_vars"], application.get_gears_dns(true))
           when :replace_all_ssh_keys
             tag = { "op_id" => op._id.to_s }
             job = gear.get_fix_authorized_ssh_keys_job(op.args["keys_attrs"])
