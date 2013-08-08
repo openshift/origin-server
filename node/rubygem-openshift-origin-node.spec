@@ -16,7 +16,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.13.0
+Version: 1.13.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -305,6 +305,35 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Thu Aug 08 2013 Adam Miller <admiller@redhat.com> 1.13.1-1
+- Merge pull request #3318 from jwhonce/bug/980820
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3317 from pmorie/bugs/987155
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 980820 - Cartridge Overriding PATH (jhonce@redhat.com)
+- Bug 987155 (pmorie@gmail.com)
+- Fix error message (jhonce@redhat.com)
+- Card origin_runtime_175 - Report quota on 90%% usage (jhonce@redhat.com)
+- Bug 991824: Make watchman logging configurable via node.conf
+  (ironcladlou@gmail.com)
+- Merge pull request #3243 from fotioslindiakos/Bug989782
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 989782: Node platform should not log user sensitive login name and
+  password credentials (fotios@redhat.com)
+- Merge pull request #3280 from fotioslindiakos/Bug991480
+  (dmcphers+openshiftbot@redhat.com)
+- Handle race condition when trying to throttle gears that no longer exist
+  (fotios@redhat.com)
+- Bug 991225: upgrade script should be run before setup during incompatible
+  upgrade (pmorie@gmail.com)
+- Merge pull request #3268 from jwhonce/bug/986838
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 986838 - Prevent quotas from being lowered beyond usage
+  (jhonce@redhat.com)
+- Bug 839581: Reset system_builder credentials on jenkins restore
+  (ironcladlou@gmail.com)
+- bump_minor_versions for sprint 32 (admiller@redhat.com)
+
 * Wed Jul 31 2013 Adam Miller <admiller@redhat.com> 1.12.7-1
 - Merge pull request #3191 from jwhonce/bug/986838
   (dmcphers+openshiftbot@redhat.com)
