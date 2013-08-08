@@ -24,8 +24,7 @@ class NodeTest < OpenShift::NodeTestCase
   def setup
     super
 
-    YAML.stubs(:load_file).
-        returns(YAML.load(MANIFESTS[0]))
+    YAML.stubs(:safe_load_file).returns(YAML.load(MANIFESTS[0]))
     File.stubs(:exist?).returns(true)
 
     OpenShift::Runtime::CartridgeRepository.

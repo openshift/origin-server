@@ -192,14 +192,13 @@ module OpenShift
       #
       #   Cartridge.new('/var/lib/openshift/.cartridge_repository/php/1.0/metadata/manifest.yml', '3.5', '.../.cartridge_repository') -> Cartridge
       #   Cartridge.new('Name: ...', '3.5') -> Cartridge
-      def initialize(manifest, version=nil, repository_base_path='', check_names=true)
-
-        if File.exist? manifest
-          @manifest      = YAML.load_file(manifest)
-          @manifest_path = manifest
-        else
-          @manifest      = YAML.load(manifest)
+      def initialize(manifest, version=nil, type=:url, repository_base_path='', check_names=true)
+        if type == :url
+          @manifest = YAML.safe_load(manifest)
           @manifest_path = :url
+        else
+          @manifest = YAML.safe_load_file(manifest)
+          @manifest_path = manifest
         end
 
         # Validate and use the provided version, defaulting to the manifest Version key
