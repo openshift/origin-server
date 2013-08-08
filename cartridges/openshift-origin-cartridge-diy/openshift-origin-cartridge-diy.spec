@@ -2,7 +2,7 @@
 
 Summary:       DIY cartridge
 Name:          openshift-origin-cartridge-diy
-Version: 0.8.0
+Version: 0.8.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -38,6 +38,12 @@ DIY cartridge for openshift. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Thu Aug 08 2013 Adam Miller <admiller@redhat.com> 0.8.1-1
+- Cartridge - Clean up manifests (jhonce@redhat.com)
+- Merge pull request #3021 from rvianello/readme_cron (dmcphers@redhat.com)
+- bump_minor_versions for sprint 32 (admiller@redhat.com)
+- added a note about the required cron cartridge. (riccardo.vianello@gmail.com)
+
 * Wed Jul 31 2013 Adam Miller <admiller@redhat.com> 0.7.5-1
 - Update cartridge versions for Sprint 31 (jhonce@redhat.com)
 
