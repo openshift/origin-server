@@ -4,7 +4,7 @@
 
 Summary:       Provides JBossEAP6.0 support
 Name:          openshift-origin-cartridge-jbosseap
-Version: 2.7.0
+Version: 2.7.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -85,6 +85,20 @@ cp -p %{cartridgedir}/versions/6.0/modules/postgresql_module.xml /etc/alternativ
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Thu Aug 08 2013 Adam Miller <admiller@redhat.com> 2.7.1-1
+- Cartridge - Clean up manifests (jhonce@redhat.com)
+- Card origin_runtime_148 - append JAVA_OPT_EXT to JAVA_OPT (jhonce@redhat.com)
+- Merge pull request #3302 from detiber/fixJBawsTests
+  (dmcphers+openshiftbot@redhat.com)
+- Fix runtime extended tests (jdetiber@redhat.com)
+- Merge pull request #3300 from danmcp/master
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3021 from rvianello/readme_cron (dmcphers@redhat.com)
+- cleanup (dmcphers@redhat.com)
+- Update JBoss cartridges control script (jdetiber@redhat.com)
+- bump_minor_versions for sprint 32 (admiller@redhat.com)
+- added a note about the required cron cartridge. (riccardo.vianello@gmail.com)
+
 * Wed Jul 31 2013 Adam Miller <admiller@redhat.com> 2.6.5-1
 - Merge pull request #3244 from danmcp/master
   (dmcphers+openshiftbot@redhat.com)
