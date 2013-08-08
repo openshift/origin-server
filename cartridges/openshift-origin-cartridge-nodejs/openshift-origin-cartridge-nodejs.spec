@@ -2,7 +2,7 @@
 
 Summary:       Provides Node.js support
 Name:          openshift-origin-cartridge-nodejs
-Version: 1.14.0
+Version: 1.14.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -62,6 +62,13 @@ fi
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Thu Aug 08 2013 Adam Miller <admiller@redhat.com> 1.14.1-1
+- Merge pull request #3313 from jwhonce/wip/manifest_lint
+  (dmcphers+openshiftbot@redhat.com)
+- Cartridge - Clean up manifests (jhonce@redhat.com)
+- Bug 994424 (asari.ruby@gmail.com)
+- bump_minor_versions for sprint 32 (admiller@redhat.com)
+
 * Wed Jul 31 2013 Adam Miller <admiller@redhat.com> 1.13.5-1
 - Update cartridge versions for Sprint 31 (jhonce@redhat.com)
 
