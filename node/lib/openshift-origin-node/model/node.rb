@@ -191,7 +191,7 @@ module OpenShift
 
         if current_inodes > inodemax.to_i
           raise NodeCommandException.new(
-                    Utils::Sdk.translate_out_for_client("CLIENT_ERROR: Current inodes #{current_inodes} exceeds requested inodes #{inodemax}",
+                    Utils::Sdk.translate_out_for_client("Current inodes #{current_inodes} exceeds requested inodes #{inodemax}",
                                                         :error))
         end
 
