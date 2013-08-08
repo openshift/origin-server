@@ -2,7 +2,7 @@
 
 Summary:       Embedded mongodb support for OpenShift
 Name:          openshift-origin-cartridge-mongodb
-Version: 1.12.0
+Version: 1.12.1
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -41,6 +41,16 @@ Provides mongodb cartridge support to OpenShift
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Thu Aug 08 2013 Adam Miller <admiller@redhat.com> 1.12.1-1
+- Merge pull request #3313 from jwhonce/wip/manifest_lint
+  (dmcphers+openshiftbot@redhat.com)
+- Made scripts executable. (sridhar@broker.example.com)
+- Enable mongodb journaling (sridhar@10gen.com)
+- Change 1 - Consolidate config options into the config file except for --auth
+  (sridhar@10gen.com)
+- Cartridge - Clean up manifests (jhonce@redhat.com)
+- bump_minor_versions for sprint 32 (admiller@redhat.com)
+
 * Wed Jul 31 2013 Adam Miller <admiller@redhat.com> 1.11.3-1
 - Update cartridge versions for Sprint 31 (jhonce@redhat.com)
 
