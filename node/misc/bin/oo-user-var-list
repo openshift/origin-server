@@ -25,7 +25,8 @@ def usage
 == Usage
 
 #{$0}  --with-app-uuid APP_UUID \\
-                --with-container-uuid UUID
+       --with-container-uuid UUID \\
+       --with-keys "KEY0 KEY1"
 
 Options:
 -h|--help:
@@ -43,9 +44,10 @@ require 'openshift-origin-node/utils/shell_exec'
 opts = GetoptLong.new(
     ['--with-app-uuid', '-a', GetoptLong::REQUIRED_ARGUMENT],
     ['--with-container-uuid', '-c', GetoptLong::REQUIRED_ARGUMENT],
+    ['--with-keys', '-k', GetoptLong::OPTIONAL_ARGUMENT]
 )
 
-container_uuid, app_uuid, gears = '', '', []
+container_uuid, app_uuid, keys = '', '', []
 begin
   opts.each do |opt, arg|
     case opt
@@ -53,6 +55,8 @@ begin
         app_uuid = arg
       when '--with-container-uuid'
         container_uuid = arg
+      when '--with-keys'
+        keys = arg.split(' ')
       when '--help'
         usage
     end
@@ -67,7 +71,7 @@ end
 
 begin
   container = OpenShift::Runtime::ApplicationContainer.from_uuid(container_uuid)
-  variables = container.user_var_list
+  variables = container.user_var_list(keys)
   variables.each_pair {|k, v| $stdout.puts("#{k}=#{v}")}
 rescue OpenShift::Runtime::Utils::ShellExecutionException => e
   $stderr.puts("#{e.message}\n#{e.stderr}")

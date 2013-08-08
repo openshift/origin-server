@@ -25,9 +25,9 @@ def usage
 == Usage
 
 #{$0}  --with-app-uuid APP_UUID \\
-                --with-container-uuid UUID \\
-                [--with-gears GEAR_DNS;GEAR_DNS]
-                "KEY0=VALUE0" "KEY1=VALUE1"
+       --with-container-uuid UUID \\
+       [--with-variables "KEY0=VALUE0 KEY1=VALUE1"] \\
+       [--with-gears GEAR_DNS;GEAR_DNS]
 
 Options:
 -h|--help:
@@ -36,7 +36,7 @@ Options:
 UUID: Unique identifier for the application
 GEAR_DNS: secondary gears to be updated after adding user variables
 KEY VALUE pairs
-
+At least --with-variables or --with-gears must be specified
 USAGE
   exit 1
 end
@@ -48,10 +48,11 @@ require 'openshift-origin-node/utils/shell_exec'
 opts = GetoptLong.new(
     ['--with-app-uuid', '-a', GetoptLong::REQUIRED_ARGUMENT],
     ['--with-container-uuid', '-c', GetoptLong::REQUIRED_ARGUMENT],
-    ['--with-gears', '-g', GetoptLong::OPTIONAL_ARGUMENT],
+    ['--with-variables', '-v', GetoptLong::OPTIONAL_ARGUMENT],
+    ['--with-gears', '-g', GetoptLong::OPTIONAL_ARGUMENT]
 )
 
-container_uuid, app_uuid, gears = '', '', []
+container_uuid, app_uuid, variables, gears = '', '', {}, []
 begin
   opts.each do |opt, arg|
     case opt
@@ -59,6 +60,8 @@ begin
         app_uuid = arg
       when '--with-container-uuid'
         container_uuid = arg
+      when '--with-variables'
+        arg.split(' ').each { |a| token = a.split('='); variables[token.first] = token.last }
       when '--with-gears'
         gears = arg.split(';')
       when '--help'
@@ -69,10 +72,7 @@ rescue GetoptLong::Error => e
   usage
 end
 
-variables = {}
-ARGV.each { |a| token = a.split('='); variables[token.first] = token.last }
-
-if container_uuid.empty? or app_uuid.empty? or variables.empty?
+if container_uuid.empty? or app_uuid.empty? or (variables.empty? and gears.empty?)
   usage
 end
 
