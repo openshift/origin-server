@@ -1100,6 +1100,7 @@ module OpenShift
         process_cartridges(cartridge_dir) { |path|
           # Make sure this cartridge's env directory overrides that of other cartridge envs
           cartridge_local_env = ::OpenShift::Runtime::Utils::Environ.load(PathUtils.join(path, 'env'))
+          cartridge_local_env.delete('PATH')
 
           ident                            = cartridge_local_env.keys.grep(/^OPENSHIFT_.*_IDENT/)
           _, software, software_version, _ = Runtime::Manifest.parse_ident(cartridge_local_env[ident.first])
