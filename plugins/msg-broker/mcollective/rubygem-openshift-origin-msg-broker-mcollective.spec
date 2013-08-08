@@ -9,7 +9,7 @@
 
 Summary:       OpenShift plugin for mcollective service
 Name:          rubygem-%{gem_name}
-Version: 1.13.0
+Version: 1.13.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -80,6 +80,15 @@ cp %{buildroot}/%{gem_dir}/gems/%{gem_name}-%{version}/conf/openshift-origin-msg
 %attr(0644,-,-) %ghost /etc/mcollective/client.cfg
 
 %changelog
+* Thu Aug 08 2013 Adam Miller <admiller@redhat.com> 1.13.1-1
+- Merge pull request #3304 from abhgupta/abhgupta-scheduler
+  (dmcphers+openshiftbot@redhat.com)
+- Adding option to specify server list for find_gear (abhgupta@redhat.com)
+- Remove add_authorized_ssh_key and remove_authorized_ssh_key which were likely
+  replaced by the job based mechanism. (jpazdziora@redhat.com)
+- Fixing has_app method in mcollective (abhgupta@redhat.com)
+- bump_minor_versions for sprint 32 (admiller@redhat.com)
+
 * Wed Jul 31 2013 Adam Miller <admiller@redhat.com> 1.12.6-1
 - Bug 988255 (lnader@redhat.com)
 
