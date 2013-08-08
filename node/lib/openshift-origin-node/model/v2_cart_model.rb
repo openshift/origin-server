@@ -163,7 +163,7 @@ module OpenShift
 
           _, _, version, _ = Runtime::Manifest.parse_ident(IO.read(ident_path))
 
-          @cartridges[directory] = Manifest.new(manifest_path, version, @container.container_dir)
+          @cartridges[directory] = Manifest.new(manifest_path, version, :file, @container.container_dir)
         end
         @cartridges[directory]
       end
@@ -180,7 +180,7 @@ module OpenShift
 
         raise "Cartridge manifest not found: #{manifest_path} missing" unless File.exists?(manifest_path)
 
-        Manifest.new(manifest_path, version, @container.container_dir)
+        Manifest.new(manifest_path, version, :file, @container.container_dir)
       end
 
       # destroy(skip_hooks = false) -> [buffer, '', 0]

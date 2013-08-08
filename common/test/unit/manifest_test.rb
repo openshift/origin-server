@@ -27,10 +27,10 @@ class ManifestTest < Test::Unit::TestCase
   end
 
   def test_manifest_no_overrides
-    YAML.stubs(:load_file).with('mock_manifest').returns(YAML.load(MANIFEST))
+    YAML.stubs(:safe_load_file).with('mock_manifest').returns(YAML.load(MANIFEST))
     File.stubs(:exist?).with('mock_manifest').returns(true)
 
-    cart       = OpenShift::Runtime::Manifest.new('mock_manifest')
+    cart       = OpenShift::Runtime::Manifest.new('mock_manifest', nil, :file)
     components = cart.manifest['Group-Overrides'].first['components']
 
     assert_equal 'mock', cart.name
@@ -42,10 +42,10 @@ class ManifestTest < Test::Unit::TestCase
   end
 
   def test_manifest_overrides
-    YAML.stubs(:load_file).with('mock_manifest').returns(YAML.load(MANIFEST))
+    YAML.stubs(:safe_load_file).with('mock_manifest').returns(YAML.load(MANIFEST))
     File.stubs(:exist?).with('mock_manifest').returns(true)
 
-    cart       = OpenShift::Runtime::Manifest.new('mock_manifest', '0.2')
+    cart       = OpenShift::Runtime::Manifest.new('mock_manifest', '0.2', :file)
     components = cart.manifest['Group-Overrides'].first['components']
 
     assert_equal 'mock',      cart.name
