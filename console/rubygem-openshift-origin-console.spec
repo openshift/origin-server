@@ -9,7 +9,7 @@
 
 Summary:       OpenShift Origin Management Console
 Name:          rubygem-%{gem_name}
-Version: 1.13.0
+Version: 1.13.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -153,6 +153,12 @@ cp -a ./%{gem_dir}/* %{buildroot}%{gem_dir}/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Thu Aug 08 2013 Adam Miller <admiller@redhat.com> 1.13.1-1
+- Card 57 - Fix typo (jforrest@redhat.com)
+- Card 57 - gemify bootstrap, use sass-twitter-bootstrap gem
+  (jforrest@redhat.com)
+- bump_minor_versions for sprint 32 (admiller@redhat.com)
+
 * Wed Jul 31 2013 Adam Miller <admiller@redhat.com> 1.12.4-1
 - Consolidated docs for admin/mgmt consoles, cartridges (hripps@redhat.com)
 - Bug 985952 - should not touch certificate if chain was not provided
