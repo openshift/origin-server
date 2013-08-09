@@ -977,6 +977,17 @@ class Application
     end
   end
 
+  def run_connection_hooks
+    Application.run_in_application_lock(self) do
+      op_group = PendingAppOpGroup.new(op_type: :execute_connections)
+      self.pending_op_groups.push op_group
+
+      result_io = ResultIO.new
+      self.run_jobs(result_io)
+      result_io
+    end
+  end
+
   def set_connections(connections)
     conns = []
     self.connections = [] if connections.nil? or connections.empty?
@@ -1266,6 +1277,8 @@ class Application
           when :start_component, :stop_component, :restart_component, :reload_component_config
             ops = calculate_ctl_component_ops(op_group.op_type, op_group.args['comp_spec'])
             op_group.pending_ops.push(*ops)
+          when :execute_connections
+            op_group.pending_ops.push PendingAppOp.new(op_type: :execute_connections)
           end
         end
 
