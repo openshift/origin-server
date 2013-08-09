@@ -2,7 +2,7 @@
 
 Summary:       Provides jenkins-1.4 support
 Name:          openshift-origin-cartridge-jenkins
-Version: 1.13.1
+Version: 1.13.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -44,6 +44,9 @@ chkconfig jenkins off
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Fri Aug 09 2013 Adam Miller <admiller@redhat.com> 1.13.2-1
+- Bug 969940 (dmcphers@redhat.com)
+
 * Thu Aug 08 2013 Adam Miller <admiller@redhat.com> 1.13.1-1
 - Cartridge - Clean up manifests (jhonce@redhat.com)
 - Various cleanup (dmcphers@redhat.com)
