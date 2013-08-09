@@ -142,20 +142,14 @@ module OpenShift
           end
 
           def throttle(args)
-            (bad_gears, cur_util) = find(args)
+            (@bad_gears, cur_util) = find(args)
             # If this is our first run, make sure we find any previously throttled gears
             # NOTE: There is a corner case where we won't find non-running throttled applications
             @old_bad_gears ||= find(state: :throttled).first
 
-            # Separate the good and bad gears
-            (@old_bad_gears, good_gears) = @old_bad_gears.partition{|k,v| bad_gears.has_key?(k) }.map{|a| Hash[a] }
-            # Only throttle bad gears that aren't throttled
-            (@old_bad_gears, bad_gears) = bad_gears.partition{|k,v| @old_bad_gears.has_key?(k) }.map{|a| Hash[a] }
-
             apply_action({
-              :restore => good_gears,
-              :throttle => bad_gears,
-              nil => @old_bad_gears
+              :restore => @old_bad_gears,
+              :throttle => @bad_gears,
             }, cur_util)
           end
 
@@ -166,14 +160,28 @@ module OpenShift
             end
 
             hash.each do |action, gears|
-              str = action || "over_threshold"
               gears.each do |uuid, g|
                 begin
-                  g.gear.send(action) if action
+                  case action
+                  when :throttle
+                    if @old_bad_gears.has_key?(uuid)
+                      log_action("REFUSED #{action}", uuid, "gear already throttled", :warning)
+                      next
+                    elsif g.gear.boosted?
+                      log_action("REFUSED #{action}", uuid, "gear is boosted", :warning)
+                      next
+                    end
+                  when :restore
+                    if @bad_gears.has_key?(uuid)
+                      log_action("REFUSED #{action}", uuid, "still over threshold", :warning)
+                      next
+                    end
+                  end
+                  g.gear.send(action)
                   if action == :throttle
                     @old_bad_gears[uuid] = g
                   end
-                  log_action(str, uuid, util[uuid])
+                  log_action(action, uuid, util[uuid])
                 rescue RuntimeError => e
                   log_action("FAILED #{action}", uuid, e.message, :warning)
                 end
