@@ -16,7 +16,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.13.1
+Version: 1.13.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -305,6 +305,10 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Fri Aug 09 2013 Adam Miller <admiller@redhat.com> 1.13.2-1
+- Bug 995233 - Use oo_spawn in place of systemu (jhonce@redhat.com)
+- Bug 903106 - Update rhcsh help to reflect gear script (jhonce@redhat.com)
+
 * Thu Aug 08 2013 Adam Miller <admiller@redhat.com> 1.13.1-1
 - Merge pull request #3318 from jwhonce/bug/980820
   (dmcphers+openshiftbot@redhat.com)
