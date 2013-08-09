@@ -63,7 +63,7 @@ module OpenShift
             status = :unprocessable_entity
             field_map = 
               case ex.document
-              when Domain then {"namespace" => "id"}
+              when Domain then requested_api_version <= 1.5 ? {"namespace" => "id"} : {"namespace" => "name"}
               end
             messages = get_error_messages(ex.document, field_map || {})
             return render_error(:unprocessable_entity, nil, nil, nil, nil, messages)
@@ -89,6 +89,8 @@ module OpenShift
                   (Application >= model and ex.params[:canonical_name].presence) or
                   (ComponentInstance >= model and ex.params[:cartridge_name].presence) or
                   (Alias >= model and ex.params[:fqdn].presence) or
+                  (CloudUser >= model and ex.params[:login].presence) or
+                  (CloudUser >= model and ex.params[:_id].presence) or
                   (SshKey >= model and ex.params[:name].presence)
                 )
                   "#{target} '#{name}' not found."
@@ -223,10 +225,9 @@ module OpenShift
         #
         def get_log_args
           args = {}
-          args["APP"] = @application.name if @application and @application.respond_to? (:name)
-          args["DOMAIN"] = @domain.namespace if @domain and @domain.respond_to? (:namespace)
-          args["APP_UUID"] = @application.uuid if @application.respond_to? (:uuid)
-          return args
+          args["APP_UUID"] = @application.uuid if @application
+          args["DOMAIN"] = (@application.domain_namespace if @application) || (@domain.namespace if @domain)
+          args
         end
     end
   end

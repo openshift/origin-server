@@ -67,8 +67,8 @@ class ScopeTest < ActiveSupport::TestCase
 
   test 'find parameterized scope' do
     assert scope = Scope.for!('application/51ed4adbb8c2e70a72000294/scale')
-    assert_equal :scale, scope.app_scope
-    assert_equal Moped::BSON::ObjectId.from_string('51ed4adbb8c2e70a72000294'), scope.id
+    assert_equal :scale, scope.send(:app_scope)
+    assert_equal Moped::BSON::ObjectId.from_string('51ed4adbb8c2e70a72000294'), scope.send(:id)
     assert_equal 'application/51ed4adbb8c2e70a72000294/scale', scope.to_s
     assert scope2 = Scope::Application.new(:id => '51ed4adbb8c2e70a72000294', :app_scope => 'scale')
     assert_equal 'application/51ed4adbb8c2e70a72000294/scale', scope2.to_s
@@ -135,6 +135,19 @@ class ScopeTest < ActiveSupport::TestCase
 
   test 'application describe' do
     # scopes are currently empty
-    assert_equal [], Scope::Application.describe
+    assert_present s = Scope::Application.describe[0]
+    assert_equal 'application/:id/view', s[0]
+    assert s[1] =~ /Grant read-only/
+    assert s[2].is_a? Numeric
+    assert s[3].is_a? Numeric
   end
+
+  test 'domain describe' do
+    # scopes are currently empty
+    assert_present s = Scope::Domain.describe[0]
+    assert_equal 'domain/:id/view', s[0]
+    assert s[1] =~ /Grant read-only/
+    assert s[2].is_a? Numeric
+    assert s[3].is_a? Numeric
+  end  
 end

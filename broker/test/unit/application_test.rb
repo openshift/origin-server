@@ -3,16 +3,6 @@ require 'test_helper'
 require 'openshift-origin-controller'
 require 'helpers/rest/api'
 
-#module Rails
-  #def self.logger
-    #l = Mocha::Mock.new("logger")
-    #l.stubs(:debug)
-    #l.stubs(:info)
-    #l.stubs(:add)
-    #l
-  #end
-#end
-
 class ApplicationsTest < ActionDispatch::IntegrationTest #ActiveSupport::TestCase
   def setup
     #setup test user auth on the mongo db

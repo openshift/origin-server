@@ -62,7 +62,7 @@ class DomainsControllerTest < ActionController::TestCase
     assert !domain.errors.empty?
     assert domain.errors[:name].present?, domain.errors.inspect
     assert !domain.errors[:name].nil?
-    assert domain.errors[:name].include? 'Namespace is required and cannot be blank.' 
+    assert domain.errors[:name].include? 'Must be a minimum of 1 and maximum of 16 characters.' 
     assert_template :new
   end
 
@@ -149,7 +149,7 @@ class DomainsControllerTest < ActionController::TestCase
     assert !domain.errors.empty?
     assert domain.errors[:name].present?, domain.errors.inspect
     assert !domain.errors[:name].nil?
-    assert domain.errors[:name].include? 'Namespace is required and cannot be blank.'
+    assert domain.errors[:name].include? 'Must be a minimum of 1 and maximum of 16 characters.' 
     assert_template :edit
   end
 

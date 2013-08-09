@@ -16,21 +16,23 @@ module RestModelHelper
   # @return [RestDomain10] REST object for API version == 1.0
   def get_rest_domain(domain)
     if requested_api_version == 1.0
-      RestDomain10.new(domain, @cloud_user, get_url, nolinks)
+      RestDomain10.new(domain, get_url, nolinks)
+    elsif requested_api_version <= 1.5
+      RestDomain15.new(domain, get_url, nolinks)
     else
-      RestDomain.new(domain, @cloud_user, get_url, nolinks)
+      RestDomain.new(domain, get_url, nolinks)
     end
-  end
+  end  
 
   def get_rest_application(application, include_cartridges=false, applications=nil)
     if requested_api_version == 1.0
-        app = RestApplication10.new(application, get_url, nolinks, applications)
+      app = RestApplication10.new(application, get_url, nolinks, applications)
     elsif requested_api_version <= 1.3
-        app = RestApplication13.new(application, get_url, nolinks, applications)
+      app = RestApplication13.new(application, get_url, nolinks, applications)
     elsif requested_api_version <= 1.5
-        app = RestApplication15.new(application, get_url, nolinks, applications)
+      app = RestApplication15.new(application, get_url, nolinks, applications)
     else
-        app = RestApplication.new(application, get_url, nolinks, applications)
+      app = RestApplication.new(application, get_url, nolinks, applications)
     end
     if include_cartridges
       app.cartridges = get_application_rest_cartridges(application)
@@ -80,11 +82,10 @@ module RestModelHelper
  
   def get_rest_cartridge(cartridge)
     if requested_api_version == 1.0
-      cart = RestCartridge10.new(cartridge)
+      RestCartridge10.new(cartridge)
     else
-      cart = RestCartridge.new(cartridge)
+      RestCartridge.new(cartridge)
     end
-    cart
   end
  
   def get_rest_alias(al1as)

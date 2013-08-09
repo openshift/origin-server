@@ -39,39 +39,47 @@ class AppEventsController < BaseController
       return render_upgrade_in_progress            
     end
       
-
     msg = "Sent #{event} to application #{@application.name}"
 
     case event
     when "start"
+      authorize! :change_state, @application
       r = @application.start
       msg = "Application #{@application.name} has started"
     when "stop"
+      authorize! :change_state, @application
       r = @application.stop
       msg = "Application #{@application.name} has stopped"
     when "force-stop"
+      authorize! :change_state, @application
       r = @application.stop(nil, true)
       msg = "Application #{@application.name} has forcefully stopped"
     when "restart"
+      authorize! :change_state, @application
       r = @application.restart
       msg = "Application #{@application.name} has restarted"
     when "show-port", "expose-port", "conceal-port"
       return render_error(:gone, "This event (#{event}) is no longer supported.", 112)
     when "add-alias"
+      authorize! :create_alias, @application
       r = @application.add_alias(server_alias)
       msg = "Application #{@application.name} has added alias"
     when "remove-alias"
+      authorize! :destroy_alias, @application
       r = @application.remove_alias(server_alias)
       msg = "Application #{@application.name} has removed alias"
     when "scale-up"
+      authorize! :scale_cartridge, @application
       web_framework_component_instance = @application.component_instances.select{ |c| CartridgeCache.find_cartridge(c.cartridge_name,@application).categories.include?("web_framework") }.first
       r = @application.scale_by(web_framework_component_instance.group_instance_id, 1)
       msg = "Application #{@application.name} has scaled up"
     when "scale-down"
+      authorize! :scale_cartridge, @application
       web_framework_component_instance = @application.component_instances.select{ |c| CartridgeCache.find_cartridge(c.cartridge_name,@application).categories.include?("web_framework") }.first
       r = @application.scale_by(web_framework_component_instance.group_instance_id, -1)
       msg = "Application #{@application.name} has scaled down"
     when "thread-dump"
+      authorize! :view_code_details, @application
       r = @application.threaddump
       if r.nil?
         msg = ""
@@ -79,9 +87,11 @@ class AppEventsController < BaseController
         msg = !r.errorIO.string.empty? ? r.errorIO.string.chomp : ''
       end
     when 'tidy'
+      authorize! :change_cartridge_state, @application
       r = @application.tidy
       msg = "Application #{@application.name} called tidy"
     when 'reload'
+      authorize! :change_cartridge_state, @application
       r = @application.reload_config
       msg = "Application #{@application.name} called reload"
     else

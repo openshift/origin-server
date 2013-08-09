@@ -1,6 +1,7 @@
 class Authorization
   include Mongoid::Document
   include Mongoid::Timestamps
+  include AccessControlled
 
   belongs_to :user, class_name: CloudUser.name
   field :identity_id, :type => String

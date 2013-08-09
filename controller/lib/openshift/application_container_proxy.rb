@@ -2,12 +2,20 @@ module OpenShift
   class ApplicationContainerProxy
     @proxy_provider = OpenShift::ApplicationContainerProxy
 
-    def self.valid_gear_sizes(user)
-      @proxy_provider.valid_gear_sizes_impl(user)
+    def self.valid_gear_sizes
+      @proxy_provider.valid_gear_sizes_impl
     end
 
-    def self.valid_gear_sizes_impl(user)
+    def self.valid_gear_sizes_impl
       return Rails.configuration.openshift[:gear_sizes]
+    end
+
+    def self.max_user_domains(user)
+      @proxy_provider.max_user_domains_impl(user)
+    end
+
+    def self.max_user_domains_impl(user)
+      [user.max_gears || 1, Rails.configuration.openshift[:max_domains_per_user]].max
     end
 
     def self.provider=(provider_class)

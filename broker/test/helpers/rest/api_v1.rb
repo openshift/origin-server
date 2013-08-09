@@ -8,6 +8,9 @@ class RestApi_V1 < RestApi
   end
 
   def compare(hash)
+    raise_ex("Response 'status' incorrect " +
+             "expected:#{self.response_status}, got:#{hash['status']} for " +
+             "#{self.method} #{self.uri}") if hash['status'] != self.response_status
     raise_ex("Response 'type' Not found for " +
              "#{self.method} #{self.uri}") if !defined?(hash['type'])
     raise_ex("Response 'type' mismatch " +
@@ -16,9 +19,6 @@ class RestApi_V1 < RestApi
     raise_ex("Response 'version' mismatch " +
              "expected:#{self.version}, got:#{hash['version']} for " +
              "#{self.method} #{self.uri}") if hash['version'] != self.version
-    raise_ex("Response 'status' incorrect " +
-             "expected:#{self.response_status}, got:#{hash['status']} for " +
-             "#{self.method} #{self.uri}") if hash['status'] != self.response_status
 
     data = hash['data']
     case hash['type']

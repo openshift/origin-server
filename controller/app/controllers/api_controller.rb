@@ -23,7 +23,7 @@ class ApiController < BaseController
       "API" => Link.new("API entry point", "GET", URI::join(get_url, "api")),
       "GET_ENVIRONMENT" => Link.new("Get environment information", "GET", URI::join(get_url, "environment")),
       "GET_USER" => Link.new("Get user information", "GET", URI::join(get_url, "user")),      
-      "LIST_DOMAINS" => Link.new("List domains", "GET", URI::join(get_url, "domains")),
+      "LIST_DOMAINS" => Link.new("List all domains you have access to", "GET", URI::join(get_url, "domains")),
       "LIST_DOMAINS_BY_OWNER" => Link.new("List domains", "GET", URI::join(get_url, "domains"), [
         Param.new("owner", "string", "Return only the domains owned by the specified user id or identity.  Use @self to refer to the current user.", ['@self', '*'], [])
         ]),
@@ -41,7 +41,10 @@ class ApiController < BaseController
     }
 
     links.merge!({
-      "LIST_APPLICATIONS" => Link.new("List application", "GET", URI::join(get_url, "applications"))
+      "LIST_APPLICATIONS" => Link.new("List application", "GET", URI::join(get_url, "applications")),
+      "SHOW_APPLICATION" => Link.new("List application", "GET", URI::join(get_url, "application/:id"), [
+        Param.new(":id", "string", "Unique identifier of the application", nil, [])
+      ])
     }) if requested_api_version >= 1.5
       
     

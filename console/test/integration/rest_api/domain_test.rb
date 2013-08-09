@@ -64,9 +64,9 @@ class RestApiDomainTest < ActiveSupport::TestCase
     domain = Domain.find :one, :as => @user
     domain2 = Domain.new :name => domain.name, :as => @user
     assert !domain2.save
-    assert domain2.errors[:name].is_a?(Array), domain2.errors.inspect
-    assert domain2.errors[:name][0].is_a?(String), domain2.errors.inspect
-    assert domain2.errors[:name][0].include?('Name'), domain2.errors[:name][0]
+    assert domain2.errors[:base].is_a?(Array), domain2.errors.inspect
+    assert domain2.errors[:base][0].is_a?(String), domain2.errors.inspect
+    assert domain2.errors[:base][0].include?('You may not have more than 1 domain'), domain2.errors.to_hash.inspect
   end
 
   def test_domains_update

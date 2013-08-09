@@ -29,7 +29,7 @@ class ApplicationControllerTest < ActionController::TestCase
     end
   end
   
-  test "app create show list and destory by domain and app name" do
+  test "app create show list and destroy by domain and app name" do
     @app_name = "app#{@random}"
     post :create, {"name" => @app_name, "cartridge" => PHP_VERSION, "domain_id" => @domain.namespace}
     assert_response :created
@@ -45,7 +45,7 @@ class ApplicationControllerTest < ActionController::TestCase
     assert_response :ok
   end
   
-  test "app create show list and destory by app id" do
+  test "app create show list and destroy by app id" do
     @app_name = "app#{@random}"
     post :create, {"name" => @app_name, "cartridge" => PHP_VERSION, "domain_id" => @domain.namespace}
     assert_response :created
@@ -66,6 +66,55 @@ class ApplicationControllerTest < ActionController::TestCase
     assert_response :ok
   end
   
+  test "attempt to create without create_application permission" do
+    @app_name = "app#{@random}"
+    scopes = Scope::Scopes.new
+    CloudUser.any_instance.stubs(:scopes).returns(scopes << Scope::Read.new)
+    post :create, {"name" => @app_name, "cartridge" => PHP_VERSION, "domain_id" => @domain.namespace}
+    assert_response :forbidden
+
+    @app_name = "app#{@random}"
+    scope = Scope::Session.new
+    scope.expects(:authorize_action?).at_least(3).returns(false)
+    scopes.clear << scope
+
+    post :create, {"name" => @app_name, "cartridge" => PHP_VERSION, "domain_id" => @domain.namespace}
+    assert_response :forbidden
+
+    scopes.clear << Scope::Session.new
+    @domain.members.find(@user).role = :view
+    @domain.save; @domain.run_jobs
+
+    post :create, {"name" => @app_name, "cartridge" => PHP_VERSION, "domain_id" => @domain.namespace}    
+    assert_response :forbidden
+
+    @domain.members.find(@user).role = :edit
+    @domain.save; @domain.run_jobs
+
+    post :create, {"name" => @app_name, "cartridge" => PHP_VERSION, "domain_id" => @domain.namespace}    
+    assert_response :success    
+  end
+
+  test "attempt to create with only build scope" do
+    @app_name = "app#{@random}"
+    post :create, {"name" => @app_name, "cartridge" => PHP_VERSION, "domain_id" => @domain.namespace}
+    assert_response :created
+    app = assigns(:application)
+
+    CloudUser.any_instance.stubs(:scopes).returns(Scope::Scopes.new << Scope::Application.new(:id => app._id, :app_scope => :build))
+
+    # prohibits non matching cartridges
+    @app_name = "appx#{@random}"
+    post :create, {"name" => @app_name, "cartridge" => RUBY_VERSION, "domain_id" => @domain.namespace}
+    assert_response :forbidden
+
+    # allows creation of the same builder type
+    @app_name = "appx#{@random}"
+    post :create, {"name" => @app_name, "cartridge" => PHP_VERSION, "domain_id" => @domain.namespace}
+    $g = 1
+    assert_response :created    
+  end
+
   test "invalid or empty app name or id" do
     # no name
     post :create, {"domain_id" => @domain.namespace}

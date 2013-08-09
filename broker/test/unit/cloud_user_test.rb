@@ -2,16 +2,6 @@ require File.expand_path('../../test_helper', __FILE__)
 require 'openshift-origin-controller'
 require 'mocha/setup'
 
-module Rails
-  def self.logger
-    l = Mocha::Mock.new("logger")
-    l.stubs(:debug)
-    l.stubs(:info)
-    l.stubs(:add)
-    l
-  end
-end
-
 class CloudUserTest < ActiveSupport::TestCase
   def setup
     #setup test user auth on the mongo db
@@ -60,7 +50,18 @@ class CloudUserTest < ActiveSupport::TestCase
     updated_cu = CloudUser.find_by(login: login)
     assert_equal(orig_cu.consumed_gears, updated_cu.consumed_gears)
   end
-  
+
+  test "cloud user is equivalent" do
+    c = CloudUser.new
+    assert c._id
+    assert !(c === 'a')
+    assert !(c === 1)
+    assert c === c._id
+    assert c === c._id.to_s
+    assert c === c
+    assert !(c === nil)
+  end
+
   test "delete cloud user" do
     login = "user_" + gen_uuid
     orig_cu = CloudUser.new(login: login)

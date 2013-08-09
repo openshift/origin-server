@@ -32,7 +32,7 @@ class EmbCartControllerTest < ActionController::TestCase
     end
   end
   
-  test "embedded cartridge create show list and destory by domain and app name" do
+  test "embedded cartridge create show list and destroy by domain and app name" do
     name = MYSQL_VERSION
     post :create, {"name" => name, "domain_id" => @domain.namespace, "application_id" => @app.name}
     assert_response :created
@@ -44,7 +44,7 @@ class EmbCartControllerTest < ActionController::TestCase
     assert_response :success
   end
   
-  test "embedded cartridge create show list and destory by app id" do
+  test "embedded cartridge create show list and destroy by app id" do
     name = MYSQL_VERSION
     post :create, {"name" => name, "application_id" => @app.id}
     assert_response :created

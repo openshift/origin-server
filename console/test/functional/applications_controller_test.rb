@@ -44,7 +44,7 @@ class ApplicationsControllerTest < ActionController::TestCase
     assert !app.errors.empty?
     assert app.errors[:domain_name].present?, app.errors.inspect
     assert !app.errors[:domain_name].nil?
-    assert app.errors[:domain_name][0].include? 'Namespace is required and cannot be blank.'
+    assert app.errors[:domain_name].include?('Must be a minimum of 1 and maximum of 16 characters.')
   end
 
   test "should assign errors on empty name" do

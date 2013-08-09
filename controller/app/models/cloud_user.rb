@@ -19,13 +19,15 @@
 class CloudUser
   include Mongoid::Document
   include Mongoid::Timestamps
+  include AccessControllable
+  include AccessControlled
 
   alias_method :mongoid_save, :save
 
   DEFAULT_SSH_KEY_NAME = "default"
 
   field :login, type: String
-  field :capabilities, type: Hash, default: ->{ default_capabilities }
+  field :capabilities, as: :_capabilities, type: Hash, default: ->{ default_capabilities }
   field :parent_user_id, type: Moped::BSON::ObjectId
   field :plan_id, type: String
   field :plan_state, type: String
@@ -38,8 +40,12 @@ class CloudUser
   embeds_many :ssh_keys, class_name: UserSshKey.name
   embeds_many :pending_ops, class_name: PendingUserOps.name
   # embeds_many :identities, class_name: Identity.name, cascade_callbacks: true
-  has_many :domains, class_name: Domain.name, dependent: :restrict, :foreign_key => 'owner_id'
+
+  has_many :domains, class_name: Domain.name, dependent: :restrict, foreign_key: :owner_id
   has_many :authorizations, class_name: Authorization.name, dependent: :restrict
+  has_many :owned_applications, class_name: Application.name, foreign_key: :owner_id, inverse_of: :owner
+
+  member_as :user
 
   validates :login, presence: true
   validates :capabilities, presence: true, capabilities: true
@@ -84,6 +90,18 @@ class CloudUser
   # def current_identity!(provider, uid)
   #  self.current_identity = identities.select{ |i| i.provider == provider && i.uid == uid }.first
   # end
+
+  def ===(other)
+    super || (!other.is_a?(Mongoid::Document) ? _id === other : false)
+  end
+
+  def inherit_membership
+    [as_member]
+  end
+
+  def name
+    login
+  end
 
   def save(options = {})
     res = false
@@ -150,6 +168,18 @@ class CloudUser
       raise unless user
       yield user, login if block_given?
       user
+    end
+  end
+
+  def self.with_ids_or_logins(ids, logins)
+    if ids.present?
+      if logins.present?
+        self.or({:_id.in => ids}, {:login.in => logins})
+      else
+        self.in(_id: ids)
+      end
+    else
+      self.in(login: logins)
     end
   end
 
@@ -309,9 +339,9 @@ class CloudUser
 
         case op.op_type
         when :add_ssh_key
-          op.pending_domains.each { |domain| domain.add_ssh_key(self._id, UserSshKey.new.to_obj(op.arguments), op) }
+          Application.accessible(self).each{ |app| app.add_ssh_keys(self._id, [UserSshKey.new.to_obj(op.arguments)], nil) }
         when :delete_ssh_key
-          op.pending_domains.each { |domain| domain.remove_ssh_key(self._id, UserSshKey.new.to_obj(op.arguments), op) }
+          Application.accessible(self).each{ |app| app.remove_ssh_keys(self._id, [UserSshKey.new.to_obj(op.arguments)], nil) }
         end
 
         # reloading the op reloads the cloud_user and then incorrectly reloads (potentially)
