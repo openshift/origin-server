@@ -1,0 +1,6 @@
+%h1 Domains
+- @domains.each do |domain|
+  %section
+    %h2= domain.name
+    %pre= domain.inspect
+    = link_to "View domain details for #{domain.name}", domain_path(domain.name)

@@ -1,0 +1,18 @@
+%h1= "Domain #{@domain.name}"
+
+%section
+  %h2 Applications
+  - @domain.applications.each do |application|
+    %h3.name= application.name
+    = link_to "Manage #{application.name}", application_path(application)
+    |
+    = link_to application.web_url, application.web_url
+
+%section
+  %h2 Members
+  - @domain.members.each do |member|
+    %p= "#{member['name']} (owner: #{!!member['owner']}, role: #{member['role']}, from: #{member['from']})"
+
+%section
+  %pre
+    = @domain.inspect

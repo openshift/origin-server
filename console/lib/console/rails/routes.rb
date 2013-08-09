@@ -51,7 +51,7 @@ module ActionDispatch::Routing
         end
         resource :settings, :only => :show
 
-        resource :domain, :id => id_regex, :only => [:new, :create, :edit, :update]
+        resources :domains, :id => id_regex, :only => [:new, :create, :edit, :update, :index, :show], :singular_resource => true
         resources :keys, :id => id_regex, :only => [:new, :create, :destroy], :singular_resource => true
 
         resources :authorizations, :id => id_regex, :except => :index, :singular_resource => true
