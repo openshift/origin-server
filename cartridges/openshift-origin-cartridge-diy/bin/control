@@ -12,17 +12,16 @@ function run_hook() {
 }
 
 function start() {
-    echo "Starting DIY cart"
+    echo "Starting DIY cartridge"
     run_hook start
 }
 
 function stop() {
-    echo "Stopping DIY cart"
+    echo "Stopping DIY cartridge"
     run_hook stop
 }
 
 function restart() {
-    echo "Restarting DIY cart"
     stop
     start
 }

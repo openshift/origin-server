@@ -50,6 +50,7 @@ function tidy() {
 }
 
 function build() {
+    echo "Building PHP cartridge"
     if [ -f "${OPENSHIFT_REPO_DIR}/.openshift/markers/force_clean_build" ]
     then
         echo ".openshift/markers/force_clean_build found!  Recreating pear libs" 1>&2
@@ -78,10 +79,10 @@ function build() {
 }
 
 case "$1" in
-  start)           apache start ;;
-  stop)            stop ;;
-  restart)         apache restart ;;
-  reload|graceful) apache graceful ;;
+  start)           echo "Starting PHP cartridge";   apache start ;;
+  stop)            echo "Stopping PHP cartridge";   stop ;;
+  restart)         echo "Restarting PHP cartridge"; apache restart ;;
+  reload|graceful) echo "Reloading PHP cartridge";  apache graceful ;;
   status)          status ;;
   configtest)      configtest ;;
   tidy)            tidy ;;

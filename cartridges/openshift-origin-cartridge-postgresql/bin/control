@@ -23,7 +23,7 @@ function wait_for_postgres_availability {
 
 function start {
   if ! _is_running; then
-    echo "Starting Postgres"
+    echo "Starting Postgres cartridge"
 
     postgresql_context "pg_ctl start"
     wait_for_postgres_availability || error "Could not start Postgres" 70
@@ -44,8 +44,8 @@ function stop {
     if _is_running; then
       error "Could not stop Postgres" 70
     else
+      echo "Stopping Postgres cartridge"
       truncate -s0 $OPENSHIFT_POSTGRESQL_DB_PID
-      echo "Postgres stopped"
     fi
   else
     echo "Postgres already stopped"
