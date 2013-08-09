@@ -74,7 +74,6 @@ function start() {
       --logfile=$OPENSHIFT_JENKINS_DIR/logs/jenkins.log \
       --daemon \
       --httpPort=8080 \
-      --debug=5 \
       --handlerCountMax=45 \
       --handlerCountMaxIdle=20 \
       --httpListenAddress=$OPENSHIFT_JENKINS_IP"
