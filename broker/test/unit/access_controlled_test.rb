@@ -282,7 +282,9 @@ class AccessControlledTest < ActiveSupport::TestCase
     assert_nil Application.accessible(u2).first
     assert_nil Application.accessible(u3).first
 
-    a.add_members(u2)
+    a.add_members(u2, :view)
+
+    assert_equal [u], CloudUser.members_of(a){ |m| Ability.has_permission?(m._id, :ssh_to_gears, Application, m.role, a) }
 
     d.add_members(u2)
     d.add_members(u3)

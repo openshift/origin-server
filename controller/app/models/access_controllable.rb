@@ -23,12 +23,14 @@ module AccessControllable
       @member_as
     end
 
-    def members_of(acl)
+    def members_of(acl, &block)
       self.in(
         _id:
           if Membership === acl
             acl.members.inject([]) do |a, m|
-              a << m._id if @member_as == m._type
+              next a unless member_type == m._type
+              (next a unless yield m) if block_given?
+              a << m._id
               a
             end
           else

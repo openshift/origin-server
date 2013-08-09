@@ -360,7 +360,7 @@ class Application
 
       ssh_keys = self.app_ssh_keys.map {|k| k.to_key_hash }
       ssh_keys |= get_updated_ssh_keys(nil, self.domain.system_ssh_keys)
-      ssh_keys |= CloudUser.members_of(self).map{ |u| get_updated_ssh_keys(u._id, u.ssh_keys) }.flatten(1)
+      ssh_keys |= CloudUser.members_of(self){ |m| Ability.has_permission?(m._id, :ssh_to_gears, Application, m.role, self) }.map{ |u| get_updated_ssh_keys(u._id, u.ssh_keys) }.flatten(1)
 
       op_group = PendingAppOpGroup.new(op_type: :replace_all_ssh_keys,  args: {"keys_attrs" => ssh_keys}, user_agent: self.user_agent)
       self.pending_op_groups.push op_group
