@@ -196,10 +196,10 @@ module MCollective
         quota = ::OpenShift::Runtime::Node.get_quota(uuid)
         watermark = @@config.get('QUOTA_WARNING_PERCENT', '90.0').to_f
 
-        usage = (quota[1].to_s.to_i / quota[3].to_s.to_f) * 100.0
+        usage = (quota[:blocks_used] / quota[:blocks_limit].to_f) * 100.0
         buffer << "CLIENT_MESSAGE: Warning gear #{uuid} is using #{usage} of disk quota\n" if watermark < usage
 
-        usage = (quota[4].to_s.to_i / quota[6].to_s.to_f) * 100.0
+        usage = (quota[:inodes_used] / quota[:inodes_limit].to_f) * 100.0
         buffer << "CLIENT_MESSAGE: Warning gear #{uuid} is using #{usage} of inodes allowed\n" if watermark < usage
       rescue Exception => e
         # do nothing
@@ -455,9 +455,14 @@ module MCollective
       def oo_get_quota(args)
         uuid = args['--uuid'].to_s if args['--uuid']
 
-        output = ""
+        output = ''
         begin
-          output = OpenShift::Runtime::Node.get_quota(uuid)
+          q      = OpenShift::Runtime::Node.get_quota(uuid)
+          output = [
+            q[:device],
+            q[:blocks_used].to_s, q[:blocks_quota].to_s, q[:blocks_limit].to_s,
+            q[:inodes_used].to_s, q[:inodes_quota].to_s, q[:inodes_limit].to_s
+          ]
         rescue Exception => e
           Log.instance.info e.message
           Log.instance.info e.backtrace
