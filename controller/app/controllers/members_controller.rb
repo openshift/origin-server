@@ -8,7 +8,7 @@ class MembersController < BaseController
     authorize! :change_members, membership
 
     ids, logins = {}, {}
-    (params[:members].presence || [params[:member].presence] || []).compact.each do |m| 
+    (params[:members] || [params[:member]].compact.presence || [params.slice(:id, :login, :role)]).compact.each do |m| 
       return render_error(:unprocessable_entity, "You must provide a member with an id and role.") unless m.is_a? Hash
       role = Role.for(m[:role])
       return render_error(:unprocessable_entity, "You must provide a role for each member out of #{Role.all.join(', ')}.") unless role

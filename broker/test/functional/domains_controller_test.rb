@@ -31,6 +31,10 @@ class DomainsControllerTest < ActionController::TestCase
     post :create, {"name" => namespace}
     assert_response :created
 
+    assert domain = assigns(:domain)
+    assert_equal 1, domain.members.length
+    assert_equal :admin, domain.members.first.role
+
     get :show, {"name" => namespace}
     assert_response :success
     assert json = JSON.parse(response.body)
