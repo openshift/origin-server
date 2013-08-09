@@ -96,6 +96,8 @@ function ctl_all() {
       echo "Starting services"
       gear start
     ;;
+    *) gear --help
+    ;;
   esac
 }
 
@@ -219,8 +221,14 @@ function rm {
                 then
                     if ! [ -O "$f" ]
                     then
-                        echo "ERROR: Refusing unsafe deletion: $f" >&2
-                        return 254
+                      echo "ERROR: Refusing unsafe deletion: $f" >&2
+                      return 254
+                    fi
+
+                    if [[ "$f" =~ ^OPENSHIFT_.*_IDENT$ || "$f" =~ metadata/manifest.yml$ ]]
+                    then
+                      echo "ERROR: Refusing unsafe deletion: $f" >&2
+                      return 254
                     fi
                 fi
             done
@@ -232,13 +240,14 @@ function rm {
     /usr/bin/env rm "$@"
 }
 
+
 function help {
     cat <<EOF
 Help menu: The following commands are available to help control your openshift
 application and environment.
 
-ctl_app         control your application (start, stop, restart, etc)
-ctl_all         control application and deps like mysql in one command
+gear            control your application (start, stop, restart, etc)
+                or deps with --cart      (gear start --cart mysql-5.1)
 tail_all        tail all log files
 export          list available environment variables
 rm              remove files / directories
@@ -250,6 +259,9 @@ mongo           interactive MongoDB shell
 psql            interactive PostgreSQL shell
 quota           list disk usage
 
+Deprecated:
+ctl_app         control your application (start, stop, restart, etc)
+ctl_all         control application and deps like mysql in one command
 EOF
 
 }
