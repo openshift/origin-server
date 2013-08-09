@@ -3,7 +3,7 @@
 
 Summary:       Provides the AeroGear UnifiedPush Server on top of JBossAS7
 Name:          openshift-origin-cartridge-aerogear-push
-Version: 1.0.7
+Version: 1.0.8
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -90,6 +90,43 @@ ln -fs %{cartridgedir}/versions/0.8.0/modules/org/jboss/aerogear/simplepush/main
 
 
 %changelog
+* Fri Aug 09 2013 Paul Morie <pmorie@gmail.com> 1.0.8-1
+- Installing the AeroGear and Netty modules in the spec file instead of in
+  bin/install. (fjuma@redhat.com)
+- Updating to the following versions: (fjuma@redhat.com)
+- Automatic commit of package [openshift-origin-cartridge-aerogear-push]
+  release [1.0.7-1]. (pmorie@gmail.com)
+- Updating to the latest SimplePush, UnifiedPush, and 0.0.2 version of the
+  AdminUI. (fjuma@redhat.com)
+- Automatic commit of package [openshift-origin-cartridge-aerogear-push]
+  release [1.0.6-1]. (pmorie@gmail.com)
+- Automatic commit of package [openshift-origin-cartridge-aerogear-push]
+  release [1.0.5-1]. (pmorie@gmail.com)
+- Updating to the latest UnifiedPush, SimplePush, and Netty subsystem with
+  datasource dependency support. (fjuma@redhat.com)
+- Temporarily installing the AeroGear SimplePush and Netty modules in
+  bin/install instead of the spec file to make it easier to remove the spec
+  file for the downloadable cartridge. (fjuma@redhat.com)
+- Automatic commit of package [openshift-origin-cartridge-aerogear-push]
+  release [1.0.4-1]. (pmorie@gmail.com)
+- Updating to the latest SimplePush and to the latest UnifiedPush WAR that
+  contains a fix for the AdminUI. (fjuma@redhat.com)
+- Automatic commit of package [openshift-origin-cartridge-aerogear-push]
+  release [1.0.3-1]. (pmorie@gmail.com)
+- Updating to the latest SimplePush and Netty modules and to the latest
+  UnifiedPush WAR that contains the initial AdminUI. (fjuma@redhat.com)
+- Updating the modules and subsystem configuration for SimplePush and adding a
+  datasource for SimplePush. (fjuma@redhat.com)
+- Updating to the latest UnifiedPush Server WAR file and modifying the
+  UnifiedPush datasource name. (fjuma@redhat.com)
+- Automatic commit of package [openshift-origin-cartridge-aerogear-push]
+  release [1.0.2-1]. (pmorie@gmail.com)
+- Automatic commit of package [openshift-origin-cartridge-aerogear-push]
+  release [1.0.1-1]. (pmorie@gmail.com)
+- Changing the port for the SimplePush socket binding to 8676.
+  (fjuma@redhat.com)
+- Initial import from fjuma (pmorie@gmail.com)
+
 * Tue Aug 06 2013 Paul Morie <pmorie@gmail.com> 1.0.7-1
 - Updating to the latest SimplePush, UnifiedPush, and 0.0.2 version of the
   AdminUI. (fjuma@redhat.com)
