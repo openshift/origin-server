@@ -539,7 +539,7 @@ begin
 
 
   else
-    raise "Usage: #{$0} {startall|stopall|status|restartall|condrestartall|startgear [uuid]|stopgear [uuid]|restartgear [uuid]|idlegear [gear]|unidlegear [gear]|list|listidle}"
+    raise "Usage: #{$0} {startall|stopall|status|restartall|waited-startall|condrestartall|startgear [uuid]|stopgear [uuid]|restartgear [uuid]|idlegear [gear]|unidlegear [gear]|list|listidle}"
   end
 
 rescue => e
