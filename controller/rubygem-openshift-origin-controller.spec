@@ -84,6 +84,11 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Mon Aug 12 2013 Krishna Raman <kraman@gmail.com> 1.13.0.2-1
+- Bumping package versions (kraman@gmail.com)
+- New admin command to call connection hooks on an application.
+  (kraman@gmail.com)
+
 * Thu Aug 01 2013 Krishna Raman <kraman@gmail.com> 1.13.0.1-1
 - Bumping version #s for origin release 2 (kraman@gmail.com)
 - bump_minor_versions for sprint 32 (admiller@redhat.com)
