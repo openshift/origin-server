@@ -61,7 +61,7 @@ class AccessControlledTest < ActiveSupport::TestCase
     assert_equal :view, m.explicit_role
 
     assert m.remove_grant
-    assert m.remove_grant
+    assert m.remove_grant # verify that removing a user twice is still true
   end
 
   def test_member_merge_explicit
