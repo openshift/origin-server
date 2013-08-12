@@ -136,7 +136,7 @@
 #aliases li > a {
   @include truncate();
   max-width: 65%;
-  display: inline-block;
+  //display: inline-block; // makes empty array unbalanced
 }
 
 @media (max-width: 480px) {

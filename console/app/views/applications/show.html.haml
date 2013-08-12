@@ -141,9 +141,9 @@
               %span.icon-lock.font-icon-size-12.font-icon-white.pull-left{'aria-hidden' => true, :title => 'SSL certificate attached'}
             - else
               %span.icon-unlock.font-icon-size-12.font-icon-grey.pull-left{'aria-hidden' => true, :title => 'No SSL certificate'}
-            = link_to a.name, edit_application_alias_path(@application, a)
+            = link_to a.name, edit_application_alias_path(@application, a.name)
             .pull-right.icon-pencil.font-icon-grey
-              = link_to 'edit', edit_application_alias_path(@application, a)
+              = link_to 'edit', edit_application_alias_path(@application, a.name)
 
     - if @application.initial_git_url.present?
       %h5 Based On
