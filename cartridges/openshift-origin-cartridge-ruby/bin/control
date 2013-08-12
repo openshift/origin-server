@@ -49,7 +49,6 @@ function tidy() {
 }
 
 function pre-repo-archive() {
-  # set -x
   rm -rf ${OPENSHIFT_RUBY_DIR}/tmp/.bundle ${OPENSHIFT_RUBY_DIR}/tmp/vendor
 
   # If the previous and current commits didn't upload .bundle and you have .bundle and vendor/bundle already deployed then store away for redeploy
@@ -69,8 +68,7 @@ function pre-repo-archive() {
 }
 
 function pre-build() {
-  # empty
-  true
+  rails_app_name_check
 }
 
 function build() {
@@ -185,6 +183,22 @@ function _threaddump() {
       echo "Failed to signal application. Please retry after restarting application and access it by its URL (http://${OPENSHIFT_GEAR_DNS})"
     fi
   fi
+}
+
+function rails_app_name_check() {
+  # Rails does not work if the application name starts with a number
+  pushd ${OPENSHIFT_REPO_DIR} >/dev/null
+  if [ -f Gemfile.lock ]; then
+    grep 'rails' Gemfile.lock 2>&1 >/dev/null
+    if [ $? -eq 0 ]; then
+      echo "$OPENSHIFT_APP_NAME" | grep '^[0-9]' >/dev/null
+      if [ $? -eq 0 ]; then
+        client_error "Invalid Rails application name. Please delete this applicatin and re-create it with a name which does not start with numbers"
+        exit 1
+      fi
+    fi
+  fi
+  popd > /dev/null
 }
 
 case "$1" in
