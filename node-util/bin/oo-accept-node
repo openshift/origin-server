@@ -210,6 +210,8 @@ def load_node_conf
     $GEAR_BASE_DIR=ENV['GEAR_BASE_DIR']
     do_fail("GEAR_BASE_DIR does not exist or is not a directory: #{$GEAR_BASE_DIR}") unless File.exists? $GEAR_BASE_DIR
 
+    ENV['EXTERNAL_ETH_DEV'] ||= 'eth0'
+
     verbose("loading resource limit file #{$RESOURCE_LIMITS_FILE}")
 
     do_fail("No resource limits file: #{$RESOURCE_LIMITS_FILE}") unless File.exists? $RESOURCE_LIMITS_FILE
@@ -222,31 +224,10 @@ def find_ext_net_dev
   verbose("finding external network device")
 
   begin
-    if ENV["EXTERNAL_ETH_DEV"].nil?
-      route_dev = nil
-      rlines = %x[/sbin/ip route show src #{ENV["PUBLIC_IP"]}]
-      rlines << %x[/sbin/ip route get #{ENV["PUBLIC_IP"]}]
-      rlines.lines do |r|
-        if r =~ /dev\s(\S*)\s*/
-          route_dev = $~[1]
-          if route_dev != "lo"
-            ENV["EXTERNAL_ETH_DEV"]=route_dev
-            break
-          end
-        end
-      end
+    %x[/sbin/ip link show dev #{ENV["EXTERNAL_ETH_DEV"]}]
+    if not $?.success?
+      do_fail("SEVERE: not a valid ethernet device: #{ENV["EXTERNAL_ETH_DEV"]}")
     end
-
-
-    if ENV["EXTERNAL_ETH_DEV"].nil?
-      do_fail("SEVERE: could not find a valid external ethernet device")
-    else
-      %x[/sbin/ip link show dev #{ENV["EXTERNAL_ETH_DEV"]}]
-      if not $?.success?
-        do_fail("SEVERE: not a valid ethernet device: #{ENV["EXTERNAL_ETH_DEV"]}")
-      end
-    end
-
   rescue Errno::ENOENT
     do_fail("SEVERE: could not find ip command (/sbin/ip).")
   end
