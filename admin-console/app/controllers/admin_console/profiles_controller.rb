@@ -6,6 +6,28 @@ module AdminConsole
     def show
       @id = params[:id]
       @profile = Profile.find @id
+      return page_not_found unless @profile.present?
+
+      setup_additional_information_for_show
+    end
+
+    def index
+      respond_with Profile.all
+    end
+
+    def show_nodes
+      @show_nodes = true
+      @id = params[:id]
+      @profile = Profile.find @id
+      return page_not_found unless @profile.present?
+
+      setup_additional_information_for_show
+      render :show
+    end
+
+    protected
+
+    def setup_additional_information_for_show
       @config = Rails.application.config.admin_console 
 
       @districts_exist = Rails.configuration.msg_broker[:districts][:enabled] && 
@@ -25,17 +47,10 @@ module AdminConsole
       end
     end
 
-    def index
-      respond_with Profile.all
+    def page_not_found(e=nil, message=nil, alternatives=nil)
+      message = "Gear profile #{@id} not found"
+      super(e, message, alternatives)
     end
-
-    def show_nodes
-      @show_nodes = true
-      show
-      render :show
-    end
-
-    protected
 
     def sort_nodes(x, y)
       if @active_sort_direction == 'desc'

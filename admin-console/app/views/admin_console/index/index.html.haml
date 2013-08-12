@@ -56,7 +56,7 @@
                     .heat-map-line
                       .bar
                         - profile[:districts].each do |district|
-                          .district.tickmark{:style => "left: #{district[:dist_usage_pct]}%;"}
+                          .district.tickmark{:style => "left: #{[0, district[:dist_usage_pct]].max}%;"}
                       .end-point-left
                         = "0%"
                       .label

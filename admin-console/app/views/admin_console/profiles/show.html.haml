@@ -22,8 +22,15 @@
     :javascript
       $(function() {
         var filter_nodes_by_district = function(district_uuid, on_pop) {
+          var nodes_visible = false;
           var nodes = $(".node").each(function(idx, node) {
-            node.style.display = ($(this).attr("district_uuid") == district_uuid || district_uuid == "") ? "" : "none";
+            var visible = $(this).attr("district_uuid") == district_uuid || district_uuid == "";
+            nodes_visible |= visible;
+            node.style.display = visible ? "" : "none";
+          });
+
+          $(".no_nodes").each(function(idx, no_nodes_row) {
+            no_nodes_row.style.display = nodes_visible ? "none" : "";
           });
         };
 
@@ -123,7 +130,7 @@
               .heat-map-line
                 .bar
                   - @profile[:districts].each do |district|
-                    .tickmark{:style => "left: #{district[:dist_usage_pct]}%;"}
+                    .tickmark{:style => "left: #{[0, district[:dist_usage_pct]].max}%;"}
                 .end-point-left
                   = "0%"
                 .label
@@ -197,7 +204,9 @@
                 %i{:class => @active_sort_direction == 'asc' ? 'icon-chevron-up' : 'icon-chevron-down'}
           %th
       %tbody
+        - nodes_visible = false
         - @nodes.each do |node|
+          - nodes_visible |= @district_uuid_filter.blank? || @district_uuid_filter == node[:district_uuid]
           %tr.node{:district_uuid => node[:district_uuid], 
                     :node_url => node_path(:id => node[:id]), 
                     :style => "display: #{(@district_uuid_filter.blank? || @district_uuid_filter == node[:district_uuid]) ? '' : 'none'};"}
@@ -209,6 +218,10 @@
               = progress_bar_with_thresholds(node[:gears_active_usage_pct] / 110 * 100, active_warn_pct / 110 * 100, 100.to_f / 110 * 100)
             %td.nowrap
               = "#{node[:gears_active_usage_pct].round(0)}% (#{number_with_delimiter(node[:gears_active_count])})"
+        %tr.no_nodes{:style => nodes_visible ? "display: none;" : nil}
+          %td{:colspan => 2}
+            %em
+              = "There are no nodes to display."
   - else
     %table.table
       %thead

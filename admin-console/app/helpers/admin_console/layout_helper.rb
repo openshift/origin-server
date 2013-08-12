@@ -31,6 +31,9 @@ module AdminConsole
     end
 
     def progress_bar_with_thresholds(percent, warning, error)
+      percent = 0.25 if percent < 0.25 #make bar always visible
+      warning = 0.25 if warning < 0.25 #make bar always visible
+      error = 0.25 if error < 0.25 #make bar always visible
       bars = []
       bars << content_tag(:div, "", :class => "bar bar-success", :style=> "width: #{[percent,warning].min}%;")
       bars << content_tag(:div, "", :class => "bar bar-warning", :style=> "width: #{[percent - warning, error - warning].min}%;") unless percent < warning
