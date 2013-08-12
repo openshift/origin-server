@@ -1,7 +1,7 @@
 Name: mongodb
 Cartridge-Short-Name: MONGODB
 Architecture: noarch
-Display-Name: MongoDB NoSQL Database 2.2 
+Display-Name: MongoDB 2.2 
 Description: "MongoDB is a scalable, high-performance, open source NoSQL database."
 Version: '2.2'
 Versions: [2.2]
