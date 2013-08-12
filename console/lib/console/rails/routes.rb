@@ -47,6 +47,7 @@ module ActionDispatch::Routing
           member do
             get :delete
             get :get_started
+            post :upload_key
           end
         end
         resource :settings, :only => :show

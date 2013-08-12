@@ -17,6 +17,11 @@ class Application < RestApi::Base
     name
   end
 
+  def to_param
+    #{}"#{uuid}-#{name}".parameterize
+    name.parameterize
+  end
+
   singular_resource
 
   belongs_to :domain
@@ -27,6 +32,7 @@ class Application < RestApi::Base
   has_many :cartridges
   has_many :gears
   has_many :gear_groups
+  has_many :members
   has_one  :embedded, :class_name => as_indifferent_hash
 
   attr_accessible :name, :scale, :gear_profile, :cartridges, :cartridge_names, :initial_git_url, :initial_git_branch
@@ -72,7 +78,7 @@ class Application < RestApi::Base
   end
 
   def aliases
-    Alias.find :all, child_options
+    attributes[:aliases] ||= persisted? ? Alias.find(:all, child_options) : []
   end
   def find_alias(id)
     Alias.find id, child_options
@@ -116,6 +122,14 @@ class Application < RestApi::Base
 
   def embedded
     @attributes[:embedded]
+  end
+
+  def members
+    attributes[:members] || []
+  end
+
+  def owner?(user)
+    user === (members || []).find{ |m| m.owner? }
   end
 
   def scales?

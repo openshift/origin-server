@@ -4,13 +4,18 @@
 
 .application-info {
 	position: relative;
+
+  a:hover, a:active {
+    color: white;
+    opacity: 1;
+    text-decoration: none;
+  }
 	
   &.warning {
   	border-left: 2px dashed #bb161c;
 	}
 	
   .name {
-    text-transform: capitalize;
     display: inline-block;
     margin-bottom: 5px;
     vertical-align: middle;
@@ -23,6 +28,37 @@
     white-space: nowrap;
     vertical-align: middle;
     font-size: $smallFontSize;
+  }
+
+  .cartridges { margin-top: -10px; }
+
+  .domain { position: absolute; top: 1px; }
+
+  .gear { 
+    opacity: 0.8; 
+    > .gear-icon:before {
+      opacity: 0.4;
+    }
+  }
+
+  .url {
+    opacity: 0.4;    
+  }
+
+  .flow-block {
+    a:visited, a:link {
+      color: inherit;
+    }
+    
+    > .gear { 
+      display: inline-block;
+      margin-right: 30px;
+      min-width: 60px;
+      //text-align: left;
+      white-space: nowrap;
+      position: relative;
+    }
+    > .url { margin-right: 30px }
   }
 
 	.gear-numbers {
@@ -38,6 +74,23 @@
   		margin-right: 7px;
 		  vertical-align: middle;
   	}
+  }
+}
+
+.gauge-vertical {
+  line-height: 8px;
+  position: absolute;
+  top: -4px;
+  right: -6px;
+  font-size: 36px;
+  width: 1px;
+  white-space: normal;
+
+  > .empty { 
+    opacity: 0.5;
+  }
+  > .fill  { 
+    opacity: 1.0;
   }
 }
 

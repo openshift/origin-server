@@ -91,6 +91,18 @@ class Cartridge < RestApi::Base
     end
   end
 
+  def has_scale_range?
+    scales? && scales_from != scales_to
+  end
+
+  def can_scale_up?
+    scales_to == -1 || current_scale < scales_to
+  end
+
+  def can_scale_down?
+    current_scale > scales_from
+  end
+
   #
   # The build attributes are used for view manipulation only
   #

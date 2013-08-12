@@ -1,0 +1,28 @@
+- breadcrumb_for_application @application, 'Add a public key'
+- content_for :title, "Add a public key"
+
+%h1.invisible Add a Public Key
+
+%section
+  %p.lead Will you be changing the code of this application? 
+
+%section.row.row-position
+  .span7
+    %h2 Yes, add a public key
+    %p
+      Before you can upload and download code, you need to upload a <strong>public key</strong>
+      to identify you to our servers. If this is your first time creating a public key 
+      #{link_to "read more about SSH keys and remote access", ssh_keys_help_path}.
+    = render :partial => 'keys/simple_form', :locals => { :key => @key, :input_class => 'span6', :to => upload_key_application_path(@application) }
+
+  .span5.center
+    %h2= link_to "No, continue", get_started_application_path(@application, :ssh => 'no', :wizard => @wizard)
+    %p.larger I'll set a key later
+
+%section
+  %p 
+    OpenShift uses the #{link_to "Git version control system", git_homepage_url}
+    to manage the code of your application. Each application has a single Git 
+    <strong>repository</strong>. When you <strong>push</strong> a change to your Git 
+    repository we'll automatically deploy your code and restart your application if 
+    necessary.

@@ -11,7 +11,7 @@ module SshkeyAware
       logger.debug "  User has cached keys"
       @has_keys = session[:has_sshkey]
     else
-      key = Key.first :as => current_user
+      key = Key.first :as => current_user rescue nil
       @has_keys = key ? true : false
       session[:has_sshkey] = @has_keys
     end

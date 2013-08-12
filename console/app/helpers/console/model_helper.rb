@@ -31,6 +31,11 @@ module Console::ModelHelper
     end
   end
 
+  def application_gear_count(application)
+    return 'None' if application.gear_count == 0
+    "#{application.gear_count} #{application.gear_profile.to_s.humanize.downcase}"
+  end
+
   def cartridge_gear_group_count(group)
     return 'None' if group.gears.empty?
     "#{group.gears.length} #{group.gear_profile.to_s.humanize.downcase}"

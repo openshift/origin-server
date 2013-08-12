@@ -30,7 +30,7 @@
               = yield :top
               .grid-wrapper.section-body
                 .span12
-                  = flashes
+                  = flashes unless @noflash
                 = yield
 
           - else
@@ -45,7 +45,7 @@
               = yield :top
               .column-content.grid-wrapper
                 .span12
-                  = flashes
+                  = flashes unless @noflash
                   = yield
 
     %footer

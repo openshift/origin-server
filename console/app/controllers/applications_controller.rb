@@ -16,8 +16,8 @@ class ApplicationsFilter
     @filtered
   end
 
-  def present?
-    !(name.nil? or name.blank?) or !(type.nil? or type.blank?)
+  def blank?
+    name.blank? and type.blank?
   end
 
   def apply(applications)
@@ -76,11 +76,74 @@ class ApplicationsController < ConsoleController
     # replace domains with Applications.find :all, :as => current_user
     # in the future
     #domain = Domain.find :one, :as => current_user rescue nil
+    if params[:test]
+      @applications_filter = ApplicationsFilter.new params[:applications_filter]
+      @applications = [
+        Application.new({
+          :name => 'widgetsprod', :app_url => "http://widgetsprod-widgets.rhcloud.com", :uuid => '1', :domain_id => 'widgets', :gear_profile => 'small', :gear_count => 2, 
+          :cartridges => [
+            Cartridge.new(:name => 'php-5.3',   :gear_profile => 'small', :current_scale => 1, :scales_from => 1, :scales_to => 1),
+            Cartridge.new(:name => 'mysql-5.1', :gear_profile => 'small', :current_scale => 1, :scales_from => 1, :scales_to => 1),
+          ], 
+          :aliases => [Alias.new(:name => 'www.widgets.com'), Alias.new(:name => 'widgets.com')], 
+          :members => [Member.new(:id => '1', :role => 'admin', :name => 'Alice', :owner => true)],
+        }, true),
+        Application.new({
+          :name => 'widgets', :app_url => "http://widgets-widgets.rhcloud.com",:uuid => '2', :domain_id => 'widgets', :gear_profile => 'small', :gear_count => 1, 
+          :cartridges => [
+            Cartridge.new(:name => 'php-5.3',   :gear_profile => 'small', :current_scale => 1, :scales_from => 1, :scales_to => 1, :colocated_with => ['mysql-5.1']),
+            Cartridge.new(:name => 'mysql-5.1', :gear_profile => 'small', :current_scale => 1, :scales_from => 1, :scales_to => 1, :colocated_with => ['php-5.3']),
+          ], 
+          :aliases => [], 
+          :members => [Member.new(:id => '1', :role => 'admin', :name => 'Alice', :owner => true)]
+        }, true),
+        Application.new({
+          :name => 'status', :app_url => "http://status-bobdev.rhcloud.com", :uuid => '3', :domain_id => 'bobdev', :gear_profile => 'small', :gear_count => 1, 
+          :cartridges => [
+            Cartridge.new(:name => 'ruby-1.9',   :gear_profile => 'small', :current_scale => 1, :scales_from => 1, :scales_to => 1, :colocated_with => []),
+          ], 
+          :aliases => [], 
+          :members => [Member.new(:id => '1', :role => 'admin', :name => 'Alice', :owner => true)]
+        }, true),
+        Application.new({
+          :name => 'statusp', :app_url => "http://statusp-bobdev.rhcloud.com",:uuid => '4', :domain_id => 'bobdev', :gear_profile => 'medium', :gear_count => 10, 
+          :cartridges => [
+            Cartridge.new(:name => 'ruby-1.9',   :gear_profile => 'medium', :current_scale => 9, :scales_from => 5, :scales_to => 10, :supported_scales_from => 1, :supported_scales_to => -1, :colocated_with => ['haproxy-1.4']),
+            Cartridge.new(:name => 'haproxy-1.4', :gear_profile => 'small', :current_scale => 1, :scales_from => 1, :scales_to => 1, :colocated_with => ['ruby-1.9']),
+          ], 
+          :aliases => [], 
+          :members => [Member.new(:id => '1', :role => 'admin', :name => 'Alice', :owner => true)]
+        }, true),
+        Application.new({
+          :name => 'prodmybars', :app_url => "http://prodmybars-barco.rhcloud.com", :uuid => '5', :domain_id => 'barco', :gear_profile => 'small', :gear_count => 4, 
+          :cartridges => [
+            Cartridge.new(:name => 'python-2.7',   :gear_profile => 'small', :current_scale => 1, :scales_from => 1, :scales_to => -1, :supported_scales_from => 1, :supported_scales_to => -1, :colocated_with => ['haproxy-1.4']),
+            Cartridge.new(:name => 'mongodb-2.2', :gear_profile => 'large', :current_scale => 3, :scales_from => 3, :scales_to => 3),
+            Cartridge.new(:name => 'haproxy-1.4', :gear_profile => 'small', :current_scale => 1, :scales_from => 1, :scales_to => 1, :colocated_with => ['python-2.7']),
+          ], 
+          :aliases => [Alias.new(:name => 'api.mybars.com')], 
+          :members => [Member.new(:id => '2', :role => 'admin', :name => 'Bob', :owner => true), Member.new(:id => '1', :role => 'edit', :name => 'Alice', :owner => false)]
+        }, true),
+        Application.new({
+          :name => 'jenkins', :app_url => "http://jenkins-bobdev.rhcloud.com", :uuid => '3', :domain_id => 'bobdev', :gear_profile => 'small', :gear_count => 1, 
+          :cartridges => [
+            Cartridge.new(:name => 'jenkins-1.4',   :gear_profile => 'small', :current_scale => 1, :scales_from => 1, :scales_to => 1, :colocated_with => []),
+          ], 
+          :aliases => [], 
+          :members => [Member.new(:id => '1', :role => 'admin', :name => 'Alice', :owner => true)]
+        }, true),
+      ]
+      return
+    end
+
     user_default_domain rescue nil
-    return redirect_to application_types_path, :notice => 'Create your first application now!' if @domain.nil? || @domain.applications.empty?
+    #return redirect_to application_types_path, :notice => 'Create your first application now!' if @domain.nil? || @domain.applications.empty?
 
     @applications_filter = ApplicationsFilter.new params[:applications_filter]
-    @applications = @applications_filter.apply(@domain.applications)
+    @applications = @domain ? @applications_filter.apply(@domain.applications) : []
+    if @applications.empty? && @applications_filter.blank?
+      render :first_steps
+    end
   end
 
   def destroy
@@ -182,6 +245,25 @@ class ApplicationsController < ConsoleController
     @application = @domain.find_application params[:id]
 
     @wizard = !params[:wizard].nil?
-    sshkey_uploaded?
+    if !sshkey_uploaded? && !params[:ssh]
+      @noflash = true; flash.keep
+      @key = Key.new
+      render :upload_key and return
+    end
+  end
+
+  def upload_key
+    user_default_domain
+    @application = @domain.find_application params[:id]
+    @noflash = true; flash.keep
+
+    @key ||= Key.new params[:key]
+    @key.as = current_user
+
+    if @key.save
+      redirect_to get_started_application_path(@application, :ssh => 'no', :wizard => @wizard)
+    else
+      render :upload_key
+    end
   end
 end

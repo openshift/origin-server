@@ -241,7 +241,6 @@ module RestApi
         value = attributes.delete(from)
         send("#{to}=", value) unless value.nil?
       end
-
       attributes.each do |key, value|
         if !known.include? key.to_s and !calculated.include? key and self.class.method_defined?("#{key}=")
           send("#{key}=", value)

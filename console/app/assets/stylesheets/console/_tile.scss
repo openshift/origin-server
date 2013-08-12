@@ -103,16 +103,13 @@
       .tile-target {
         color: #f0f0f0;
       }
-      .font-icon.tile-arrow {
+      .tile-arrow {
         color: $buttonBlueHover;
+        visibility: visible;
       }
     }
-    .font-icon.tile-arrow {
-      position: absolute;
-      font-size: 13.5px;
-      position: absolute;
-      right: 25px;
-      top: 25px;
+    .tile-arrow {
+      visibility: hidden;
     }
     .font-icon-block {
       position: absolute;
@@ -140,3 +137,11 @@
 }
 
 
+.flow {
+  display: table;
+  width: 100%;
+
+  > .flow-block {
+    display: table-cell;
+  }
+}
