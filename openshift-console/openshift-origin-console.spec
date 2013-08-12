@@ -260,6 +260,10 @@ _EOF
 /sbin/fixfiles -R %{?scl:%scl_prefix}mod_passenger restore
 /sbin/restorecon -R -v /var/run
 %changelog
+* Mon Aug 12 2013 Krishna Raman <kraman@gmail.com> 1.10.2.2-1
+- Bumping package versions (kraman@gmail.com)
+- Fixing gem version requirement on sass-twitter-bootstrap (kraman@gmail.com)
+
 * Thu Aug 01 2013 Krishna Raman <kraman@gmail.com> 1.10.2.1-1
 - Bumping version #s for origin release 2 (kraman@gmail.com)
 - Adding missing activemq config templates Fixing console spec to require gems
