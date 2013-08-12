@@ -3,6 +3,12 @@
 STOPTIMEOUT=10
 FMT="%a %b %d %Y %H:%M:%S GMT%z (%Z)"
 
+function check_hot_deploy_marker() {
+  if marker_present "hot_deploy"; then
+    echo "hot_deploy marker found. Switching to using supervisor. Subsequent pushes won't require restart until the marker is removed."
+  fi
+}
+
 function print_missing_package_json_warning() {
        cat <<DEPRECATED
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -266,6 +272,8 @@ function is_supervisor_running() {
 }  #  End of function  is_supervisor_running.
 
 function post-deploy() {
+    check_hot_deploy_marker
+
     if marker_present "hot_deploy"; then
         # Check if supervisor is already running. If not do a restart.
         if ! is_supervisor_running ; then
@@ -275,6 +283,8 @@ function post-deploy() {
 }
 
 function pre-repo-archive() {
+    check_hot_deploy_marker
+
     rm -rf ${OPENSHIFT_NODEJS_DIR}/tmp/{node_modules,saved.node_modules}
 
     # If the node_modules/ directory exists, then "stash" it away for redeploy.
