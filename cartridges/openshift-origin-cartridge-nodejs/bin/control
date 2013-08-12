@@ -118,7 +118,7 @@ function start() {
         executor_cmdline="node $node_opts $node_app $node_app_args"
     fi
 
-    if [ -f "$OPENSHIFT_REPO_DIR/.openshift/markers/hot_deploy" ]; then
+    if marker_present "hot_deploy"; then
         nohup supervisor -e 'node|js|coffee' -- $script_n_opts  >> $logf 2>&1 &
     else
         nohup $executor_cmdline >> $logf 2>&1 &
@@ -266,7 +266,7 @@ function is_supervisor_running() {
 }  #  End of function  is_supervisor_running.
 
 function post-deploy() {
-    if [ -f "$OPENSHIFT_REPO_DIR/.openshift/markers/hot_deploy" ]; then
+    if marker_present "hot_deploy"; then
         # Check if supervisor is already running. If not do a restart.
         if ! is_supervisor_running ; then
             restart
