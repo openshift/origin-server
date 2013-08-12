@@ -58,7 +58,7 @@ module OpenShift
 
         if user.auth_method == :broker_auth
           return Rails.configuration.openshift[:gear_sizes] | capability_gear_sizes
-        elsif !capability_gear_sizes.nil? and !capability_gear_sizes.empty?
+        elsif capability_gear_sizes.present?
           return capability_gear_sizes
         else
           return Rails.configuration.openshift[:default_gear_capabilities]
@@ -794,7 +794,7 @@ module OpenShift
           args['--with-software-version'] = downloaded_cart["version"]
         end
 
-        if !template_git_url.nil?  && !template_git_url.empty?
+        if template_git_url.present?
           args['--with-template-git-url'] = template_git_url
         end
 
@@ -825,7 +825,7 @@ module OpenShift
         args = build_base_gear_args(gear)
         args = build_base_component_args(component, args)
 
-        if !template_git_url.nil?  && !template_git_url.empty?
+        if template_git_url.present?
           args['--with-template-git-url'] = template_git_url
         end
 
@@ -1274,13 +1274,13 @@ module OpenShift
       #
       def set_user_env_vars(gear, env_vars, gear_dns_list)
         args = build_base_gear_args(gear)
-        if env_vars && !env_vars.empty?
+        if env_vars.present?
           vars_str = ""
           env_vars.each { |k,v| vars_str += " #{k}=#{v}" }
           vars_str.lstrip!
           args['--with-variables'] = vars_str
         end
-        args['--with-gears'] = gear_dns_list.join(';') if gear_dns_list && !gear_dns_list.empty?
+        args['--with-gears'] = gear_dns_list.join(';') if gear_dns_list.present?
         result = execute_direct(@@C_CONTROLLER, 'user-var-add', args)
         parse_result(result)
       end
@@ -1303,7 +1303,7 @@ module OpenShift
       def unset_user_env_vars(gear, env_var_names, gear_dns_list)
         args = build_base_gear_args(gear)
         args['--with-keys'] = env_var_names.join(' ')
-        args['--with-gears'] = gear_dns_list.join(';') if gear_dns_list && !gear_dns_list.empty?
+        args['--with-gears'] = gear_dns_list.join(';') if gear_dns_list.present?
         result = execute_direct(@@C_CONTROLLER, 'user-var-remove', args)
         parse_result(result)
       end
@@ -1324,7 +1324,7 @@ module OpenShift
       #
       def list_user_env_vars(gear, env_var_names)
         args = build_base_gear_args(gear)
-        args['--with-keys'] = env_var_names.join(' ') if env_var_names && !env_var_names.empty?
+        args['--with-keys'] = env_var_names.join(' ') if env_var_names.present?
         result = execute_direct(@@C_CONTROLLER, 'user-var-list', args)
         parse_result(result)
       end
@@ -3299,7 +3299,7 @@ module OpenShift
       # * uses MCollective::RPC::Client
       #
       def self.execute_parallel_jobs_impl(handle)
-        if handle && !handle.empty?
+        if handle.present?
           start_time = Time.new
           begin
             options = MCollectiveApplicationContainerProxy.rpc_options

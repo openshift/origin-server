@@ -177,7 +177,7 @@ class Application
         add_feature_result = app.add_features(features, group_overrides, init_git_url, user_env_vars)
         result_io.append add_feature_result
       rescue Exception => e
-        if (app.group_instances.nil? or app.group_instances.empty?) and (app.component_instances.nil? or app.component_instances.empty?)
+        unless app.group_instances.present? or app.component_instances.present?
           app.delete
         end
         raise e
@@ -750,8 +750,8 @@ class Application
       "Requires" => self.requires(true)
     }
 
-    h["Start-Order"] = @start_order unless @start_order.nil? || @start_order.empty?
-    h["Stop-Order"] = @stop_order unless @stop_order.nil? || @stop_order.empty?
+    h["Start-Order"] = @start_order if @start_order.present?
+    h["Stop-Order"] = @stop_order if @stop_order.present?
     h["Group-Overrides"] = self.group_overrides unless self.group_overrides.empty?
 
     h
@@ -958,7 +958,7 @@ class Application
       raise OpenShift::UserException.new("Alias #{server_alias} is already registered", 140, "id") if Application.where("aliases.fqdn" => server_alias).count > 0
       op_group = PendingAppOpGroup.new(op_type: :add_alias, args: {"fqdn" => server_alias}, user_agent: self.user_agent)
       self.pending_op_groups.push op_group
-      if ssl_certificate and !ssl_certificate.empty?
+      if ssl_certificate.present?
         op_group = PendingAppOpGroup.new(op_type: :add_ssl_cert, args: {"fqdn" => server_alias, "ssl_certificate" => ssl_certificate, "private_key" => private_key, "pass_phrase" => pass_phrase}, user_agent: self.user_agent)
         self.pending_op_groups.push op_group
       end
@@ -1005,7 +1005,7 @@ class Application
          self.pending_op_groups.push op_group
       end
       #add new certificate
-      if ssl_certificate and !ssl_certificate.empty?
+      if ssl_certificate.present?
         op_group = PendingAppOpGroup.new(op_type: :add_ssl_cert, args: {"fqdn" => fqdn, "ssl_certificate" => ssl_certificate, "private_key" => private_key, "pass_phrase" => pass_phrase}, user_agent: self.user_agent)
         self.pending_op_groups.push op_group
       end
@@ -1018,7 +1018,7 @@ class Application
 
   def set_connections(connections)
     conns = []
-    self.connections = [] if connections.nil? or connections.empty?
+    self.connections = [] unless connections.present?
     connections.each do |conn_info|
       from_comp_inst = self.component_instances.find_by(cartridge_name: conn_info["from_comp_inst"]["cart"], component_name: conn_info["from_comp_inst"]["comp"])
       to_comp_inst = self.component_instances.find_by(cartridge_name: conn_info["to_comp_inst"]["cart"], component_name: conn_info["to_comp_inst"]["comp"])
@@ -1571,7 +1571,7 @@ class Application
     pending_ops.push(*ops)
 
     # Add and/or push user env vars when this is not an app create or user_env_vars are specified
-    if maybe_notify_app_create_op.empty? || (user_env_vars && !user_env_vars.empty?)
+    if maybe_notify_app_create_op.empty? || user_env_vars.present?
       pending_ops.push(PendingAppOp.new(op_type: :set_user_env_vars, args: {"user_env_vars" => user_env_vars}, prereq: [pending_ops.last._id.to_s]))
     end
 
@@ -1905,7 +1905,7 @@ class Application
       #ops.push(PendingAppOps.new(op_type: :move_component, args: move, flag_req_change: true))
     end
 
-    if user_env_vars and !user_env_vars.empty?
+    if user_env_vars.present?
       changes.each do |change|
         unless change[:from].nil? or change[:added].empty?
           pending_ops.push(PendingAppOp.new(op_type: :set_user_env_vars, args: {"user_env_vars" => user_env_vars}))
@@ -2665,7 +2665,7 @@ class Application
   end
 
   def validate_certificate(ssl_certificate, private_key, pass_phrase)
-    if ssl_certificate and !ssl_certificate.empty?
+    if ssl_certificate.present?
       raise OpenShift::UserException.new("Private key is required", 172, "private_key") if private_key.nil?
       #validate certificate
       begin

@@ -97,7 +97,7 @@ class ResultIO
 =end
 
   def parse_output(output, gear_id)
-    if output && !output.empty?
+    if output.present?
       output.each_line do |line|
         if line =~ /^CLIENT_(MESSAGE|RESULT|DEBUG|ERROR|INTERNAL_ERROR): /
           case $1

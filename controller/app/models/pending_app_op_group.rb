@@ -133,7 +133,7 @@ class PendingAppOpGroup
           gear = get_gear_for_rollback(op)
           result_io.append gear.add_alias("abstract", op.args["fqdn"])
         when :set_user_env_vars
-          if op.args["user_env_vars"] && !op.args["user_env_vars"].empty?
+          if op.args["user_env_vars"].present?
             result_io.append application.get_app_dns_gear.unset_user_env_vars(op.args["user_env_vars"].keys, application.get_gears_dns(true))
           end
           user_env_vars = op.saved_values
@@ -330,7 +330,7 @@ class PendingAppOpGroup
             a.certificate_added_at = nil
             self.application.save
           when :set_user_env_vars
-            if op.args["user_env_vars"] and !op.args["user_env_vars"].empty?
+            if op.args["user_env_vars"].present?
               existing_user_env_vars = JSON.parse(application.list_user_env_variables)
               overlapped_user_env_keys = existing_user_env_vars.keys & op.args["user_env_vars"].keys
               saved_user_env_vars = {}
