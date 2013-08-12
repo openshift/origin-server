@@ -28,9 +28,9 @@
             %h2.flow
               - if application.aliases.present?
                 = link_to application_path(application), :class => 'tile-target flow-block' do
-                  = application.aliases.first.name
-                  = '/'
                   = application.name
+                  = '-'
+                  %span.alias= application.aliases.first.name
                   -# if application.aliases.length > 1
                     %span{:title => "Also aliased to #{application.aliases[1..-1].map(&:name).to_sentence}"} ...
               - else
@@ -40,23 +40,28 @@
                 %span.gear{:title => application_gear_count(application)}
                   = application.gear_count
                   %span.gear-icon{'aria-hidden'=>"true", 'data-icon' => "\ue014"}
-                  - if (scales = application.cartridges.select(&:has_scale_range?)) and scales.present?
+                  - if (scales = application.cartridges.select(&:scales?)) and scales.present?
                     .gauge-vertical>
-                      -# binding.pry
-                      - if scales.none?(&:can_scale_up?)
-                        %span.gauge-tick.fill>  .
-                        %span.gauge-tick.fill>  .
-                        %span.gauge-tick.fill>  .
-                      - elsif scales.none?(&:can_scale_down?)
-                        %span.gauge-tick.empty> .
-                        %span.gauge-tick.empty> .
-                        %span.gauge-tick.fill>  .
+                      - if scales.any?(&:has_scale_range?)
+                        - if scales.none?(&:can_scale_up?)
+                          %span.gauge-tick.fill>  .
+                          %span.gauge-tick.fill>  .
+                          %span.gauge-tick.fill>  .
+                        - elsif scales.none?(&:can_scale_down?)
+                          %span.gauge-tick.empty> .
+                          %span.gauge-tick.empty> .
+                          %span.gauge-tick.fill>  .
+                        - else
+                          %span.gauge-tick.empty> .
+                          %span.gauge-tick.fill>  .
+                          %span.gauge-tick.fill>  .
                       - else
                         %span.gauge-tick.empty> .
-                        %span.gauge-tick.fill>  .
-                        %span.gauge-tick.fill>  .
+                        %span.gauge-tick.empty> .
+                        %span.gauge-tick.empty> .
 
-                = link_to ' ', application.web_url, :target => '_blank', 'aria-hidden'=>"true", 'data-icon' => "\uee26", :class => 'url', :title => "Go to the application's web page"
+                = link_to application.web_url, :target => '_blank', :class => 'url', :title => "Go to the application's web page" do
+                  %span.url-icon{'aria-hidden'=>"true", 'data-icon' => "\ue002"} 
                 %span.tile-arrow{"aria-hidden" => "true", "data-icon" => "\ue007"}
 
             .cartridges= application.cartridges.map(&:display_name).join(', ')

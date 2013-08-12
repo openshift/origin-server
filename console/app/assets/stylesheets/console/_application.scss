@@ -42,7 +42,7 @@
   }
 
   .url {
-    opacity: 0.4;    
+    opacity: 0.4;
   }
 
   .flow-block {
@@ -54,11 +54,17 @@
       display: inline-block;
       margin-right: 30px;
       min-width: 60px;
-      //text-align: left;
       white-space: nowrap;
       position: relative;
     }
-    > .url { margin-right: 30px }
+    > .url { 
+      margin-right: 30px;
+      position: relative;
+      > .url-icon {
+        position: relative;
+        bottom: -4px;
+      }
+    }
   }
 
 	.gear-numbers {

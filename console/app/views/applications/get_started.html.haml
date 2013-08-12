@@ -19,7 +19,7 @@
     -# git/setup
     %h2 Making code changes
     - unless @has_keys
-      .alert.alert-info You must #{link_to "upload a public key", new_key_path} to access application source code
+      .alert.alert-info You must #{link_to "upload a public key", new_key_path} before you can access application source code.
 
     %p Install the Git client for your operating system, and from your command line run
     %pre.cli
@@ -75,15 +75,12 @@
     %p.larger= link_to "→ See all cartridges", application_cartridge_types_path(@application)
 
 %section.row
-  .span7
-
-%section.row
   .span12
     -# client
-    %h2 Managing your application
+    %h2 Other ways to manage this application
+    
   .span6
-
-    %h3 From the Command-Line
+    %h3 Command-Line
 
     %p
       Most of the capabilities of OpenShift are exposed through our command line tool, 
@@ -95,7 +92,7 @@
       #{link_to "on how to manage your application from the command line in our User Guide", user_guide_url }.
 
   .span6
-    %h3 From JBoss Developer Studio
+    %h3 JBoss Developer Studio
 
     %p
       The JBoss Developer Studio is a full featured IDE with OpenShift integration built in.

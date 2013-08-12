@@ -82,8 +82,9 @@ class ApplicationsController < ConsoleController
         Application.new({
           :name => 'widgetsprod', :app_url => "http://widgetsprod-widgets.rhcloud.com", :uuid => '1', :domain_id => 'widgets', :gear_profile => 'small', :gear_count => 2, 
           :cartridges => [
-            Cartridge.new(:name => 'php-5.3',   :gear_profile => 'small', :current_scale => 1, :scales_from => 1, :scales_to => 1),
+            Cartridge.new(:name => 'php-5.3',   :gear_profile => 'small', :current_scale => 1, :scales_from => 1, :scales_to => 1, :supported_scales_from => 1, :supported_scales_to => -1),
             Cartridge.new(:name => 'mysql-5.1', :gear_profile => 'small', :current_scale => 1, :scales_from => 1, :scales_to => 1),
+            Cartridge.new(:name => 'haproxy-1.4', :gear_profile => 'small', :current_scale => 1, :scales_from => 1, :scales_to => 1, :colocated_with => ['php-5.3']),
           ], 
           :aliases => [Alias.new(:name => 'www.widgets.com'), Alias.new(:name => 'widgets.com')], 
           :members => [Member.new(:id => '1', :role => 'admin', :name => 'Alice', :owner => true)],
@@ -243,8 +244,8 @@ class ApplicationsController < ConsoleController
   def get_started
     user_default_domain
     @application = @domain.find_application params[:id]
-
-    @wizard = !params[:wizard].nil?
+    @wizard = params[:wizard].present?
+    
     if !sshkey_uploaded? && !params[:ssh]
       @noflash = true; flash.keep
       @key = Key.new
@@ -256,6 +257,7 @@ class ApplicationsController < ConsoleController
     user_default_domain
     @application = @domain.find_application params[:id]
     @noflash = true; flash.keep
+    @wizard = params[:wizard].present?
 
     @key ||= Key.new params[:key]
     @key.as = current_user

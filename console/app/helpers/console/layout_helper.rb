@@ -118,7 +118,7 @@ module Console::LayoutHelper
       :link => 'application_types_path'
     },
     {
-      :name => 'Configure and deploy the application'
+      :name => 'Configure the application'
     },
     {
       :name => 'Next steps'
