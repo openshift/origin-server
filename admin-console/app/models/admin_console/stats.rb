@@ -28,6 +28,7 @@ module AdminConsole
         stats.deep_clear_default!(results)
         Rails.cache.write('admin_console_system_statistics', results.clone, {:expires_in => expires})
       end
+      results
     end
 
   end
