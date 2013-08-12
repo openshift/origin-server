@@ -84,6 +84,11 @@ cp man/*.8 %{buildroot}%{_mandir}/man8/
 %{_mandir}/man8/oo-stats.8.gz
 
 %changelog
+* Mon Aug 12 2013 Krishna Raman <kraman@gmail.com> 1.13.0.2-1
+- Bumping package versions (kraman@gmail.com)
+- New admin command to call connection hooks on an application.
+  (kraman@gmail.com)
+
 * Thu Aug 01 2013 Krishna Raman <kraman@gmail.com> 1.13.0.1-1
 - Bumping version #s for origin release 2 (kraman@gmail.com)
 - Bug 989642 - Fix generating usage record chunks in oo-admin-ctl-usage script
