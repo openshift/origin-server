@@ -1,7 +1,7 @@
 <module xmlns="urn:jboss:module:1.0" name="org.jboss.aerogear.netty">
     <resources>
-        <resource-root path="netty-subsystem-1.0.0-SNAPSHOT.jar"/>
-        <resource-root path="netty-subsystem-api-1.0.0-SNAPSHOT.jar"/>
+        <resource-root path="netty-subsystem-0.8.0-SNAPSHOT.jar"/>
+        <resource-root path="netty-subsystem-api-0.8.0-SNAPSHOT.jar"/>
         <resource-root path="netty-all-4.0.5.Final-SNAPSHOT.jar"/>
     </resources>
     
