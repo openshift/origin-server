@@ -51,6 +51,7 @@ of use:
 
     OPENSHIFT_AEROGEAR_PUSH_IP                         The IP address used to bind JBossAS
     OPENSHIFT_AEROGEAR_PUSH_HTTP_PORT                  The JBossAS listening port
+    OPENSHIFT_AEROGEAR_PUSH_TOKEN_KEY                  The token key for the SimplePush Server
     OPENSHIFT_AEROGEAR_PUSH_CLUSTER_PORT               
     OPENSHIFT_AEROGEAR_PUSH_MESSAGING_PORT             
     OPENSHIFT_AEROGEAR_PUSH_MESSAGING_THROUGHPUT_PORT  
