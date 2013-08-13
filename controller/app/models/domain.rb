@@ -19,11 +19,11 @@ class Domain
   NAMESPACE_MAX_LENGTH = 16 unless defined? NAMESPACE_MAX_LENGTH
   NAMESPACE_MIN_LENGTH = 1 unless defined? NAMESPACE_MIN_LENGTH
 
-  # This is the current regex for validations for new domains 
+  # This is the current regex for validations for new domains
   DOMAIN_NAME_REGEX = /\A[A-Za-z0-9]+\z/
   def self.check_name!(name)
     if name.blank? or name !~ DOMAIN_NAME_REGEX
-      raise Mongoid::Errors::DocumentNotFound.new(Domain, nil, [name]) 
+      raise Mongoid::Errors::DocumentNotFound.new(Domain, nil, [name])
     end
     name
   end
@@ -40,7 +40,7 @@ class Domain
   belongs_to :owner, class_name: CloudUser.name
   has_many :applications, class_name: Application.name, dependent: :restrict
   embeds_many :pending_ops, class_name: PendingDomainOps.name
-  
+
   has_members default_role: :admin
 
   index({:canonical_namespace => 1}, {:unique => true})
@@ -202,7 +202,7 @@ class Domain
         op_id = op._id
 
         # try to do an update on the pending_op state and continue ONLY if successful
-        op_index = self.pending_ops.index(op) 
+        op_index = self.pending_ops.index(op)
         retval = Domain.where({ "_id" => self._id, "pending_ops.#{op_index}._id" => op._id, "pending_ops.#{op_index}.state" => "init" }).update({"$set" => { "pending_ops.#{op_index}.state" => "queued" }})
 
         unless retval["updatedExisting"]
@@ -220,9 +220,9 @@ class Domain
               a.save!
               a.run_jobs # FIXME this needs to recover and continue
             end
-          end      
+          end
           op.set(:state, :completed)
-          
+
         when :add_domain_ssh_keys
           ssh_keys = op.arguments["keys_attrs"].map{|k| SystemSshKey.new.to_obj(k)}
           op.pending_apps.each { |app| app.add_ssh_keys(nil, ssh_keys, op) }
@@ -233,6 +233,14 @@ class Domain
           op.pending_apps.each { |app| app.add_env_variables(op.arguments["variables"], op) }
         when :remove_env_variables
           op.pending_apps.each { |app| app.remove_env_variables(op.arguments["variables"], op) }
+
+        # DEPRECATED: These jobs will be replaced with no-op statements after sprint 32
+        when :add_ssh_key
+          ssh_keys = op.arguments["key_attrs"].map{|k| UserSshKey.new.to_obj(k)}
+          op.pending_apps.each { |app| app.add_ssh_keys(op.arguments["user_id"], ssh_keys, op) }
+        when :delete_ssh_key
+          ssh_keys = op.arguments["key_attrs"].map{|k| UserSshKey.new.to_obj(k)}
+          op.pending_apps.each { |app| app.remove_ssh_keys(op.arguments["user_id"], ssh_keys, op) }
         end
 
         # reloading the op reloads the domain and then incorrectly reloads (potentially)

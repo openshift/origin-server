@@ -93,6 +93,9 @@ class ApplicationsController < BaseController
     return render_error(:unprocessable_entity, "Application name is required and cannot be blank",
                         105, "name") if !app_name or app_name.empty?
 
+    return render_error(:forbidden, "The owner of the domain #{@domain.namespace} has disabled all gear sizes from being created.  You will not be able to create an application in this domain.",
+                        134) if valid_sizes.empty?
+
     return render_error(:unprocessable_entity, "Invalid size: #{default_gear_size}. Acceptable values are: #{valid_sizes.join(",")}",
                         134, "gear_profile") if default_gear_size and !valid_sizes.include?(default_gear_size)
 
