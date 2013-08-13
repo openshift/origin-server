@@ -433,14 +433,18 @@ module RestApi
 
         case from = options[:from]
         when Symbol
-          instantiate_record(get(from, options[:params]))
+          response = connection(call_options).get(custom_method_collection_url(from, options[:params]), headers)
+          hashified = format.decode(response.body)
+          instantiate_record(Formats.remove_root(hashified), as, nil, response)
         when String
           path = "#{from}#{query_string(options[:params])}"
-          instantiate_record(format.decode(connection(options).get(path, headers).body), as) #changed
+          response = connection(options).get(path, headers)
+          instantiate_record(format.decode(response.body), as, nil, response) #changed
         when nil #begin add
           prefix_options, query_options = split_options(options[:params])
           path = element_path(nil, prefix_options, query_options)
-          instantiate_record(format.decode(connection(options).get(path, headers).body), as) #end add
+          response = connection(options).get(path, headers)
+          instantiate_record(format.decode(response.body), as, nil, response) #end add
         end
       rescue ActiveResource::ResourceNotFound => e
         raise ResourceNotFound.new(self.model_name, nil, e.response)
@@ -615,7 +619,8 @@ module RestApi
     # Override method from CustomMethods to handle body objects
     #
     def get(custom_method_name, options = {})
-      self.class.send(:instantiate_collection, self.class.format.decode(connection.get(custom_method_element_url(custom_method_name, options), self.class.headers).body), as, prefix_options ) #changed
+      response = connection(options).get(custom_method_element_url(custom_method_name, options), self.class.headers)
+      self.class.send(:instantiate_collection, self.class.format.decode(response.body), as, prefix_options, response) #changed
     rescue ActiveResource::ResourceNotFound => e
       raise ResourceNotFound.new(self.class.model_name, id, e.response)
     end
@@ -664,9 +669,12 @@ module RestApi
 
     class << self
       def get(custom_method_name, options = {}, call_options = {})
-        connection(call_options).get(custom_method_collection_url(custom_method_name, options), headers)
+        response = connection(call_options).get(custom_method_collection_url(custom_method_name, options), headers)
+        hashified = format.decode(response.body)
+        derooted  = Formats.remove_root(hashified)
+        derooted.is_a?(Array) ? derooted.map { |e| Formats.remove_root(e) } : derooted
       rescue ActiveResource::ResourceNotFound => e
-        raise ResourceNotFound.new(self.model_name, id, e.response)
+        raise ResourceNotFound.new(self.model_name, nil, e.response)
       end
       def delete(id, options = {})
         connection(options).delete(element_path(id, options)) #changed
@@ -701,7 +709,8 @@ module RestApi
         def find_single(scope, options)
           prefix_options, query_options = split_options(options[:params])
           path = element_path(scope, prefix_options, query_options)
-          instantiate_record(format.decode(connection(options).get(path, headers).body), options[:as], prefix_options) #changed
+          response = connection(options).get(path, headers)
+          instantiate_record(format.decode(response.body), options[:as], prefix_options, response) #changed
         rescue ActiveResource::ResourceNotFound => e
           raise ResourceNotFound.new(self.model_name, scope, e.response)
         end
@@ -711,14 +720,17 @@ module RestApi
             as = options[:as]
             case from = options[:from]
             when Symbol
-              instantiate_collection(format.decode(get(from, options[:params], options).body), as) #changed
+              response = get(from, options[:params], options)
+              instantiate_collection(format.decode(response.body), as, nil, response) #changed
             when String
               path = "#{from}#{query_string(options[:params])}"
-              instantiate_collection(format.decode(connection(options).get(path, headers).body) || [], as) #changed
+              response = connection(options).get(path, headers)
+              instantiate_collection(format.decode(response.body) || [], as, nil, response) #changed
             else
               prefix_options, query_options = split_options(options[:params])
               path = collection_path(prefix_options, query_options)
-              instantiate_collection(format.decode(connection(options).get(path, headers).body) || [], as, prefix_options ) #changed
+              response = connection(options).get(path, headers)
+              instantiate_collection(format.decode(response.body) || [], as, prefix_options, response ) #changed
             end
           rescue ActiveResource::ResourceNotFound => e
             rescue_parent_missing(e, options)
@@ -747,14 +759,15 @@ module RestApi
           connection
         end
 
-        def instantiate_collection(collection, as, prefix_options = {}) #changed
-          collection.collect! { |record| instantiate_record(record, as, prefix_options) } #changed
+        def instantiate_collection(collection, as, prefix_options = {}, response = nil) #changed
+          collection.collect! { |record| instantiate_record(record, as, prefix_options, response) } #changed
         end
 
-        def instantiate_record(record, as, prefix_options = {}) #changed
+        def instantiate_record(record, as, prefix_options = {}, response = nil) #changed
           record[:as] = as # changed - called before new so that nested resources are created
           new(record, true).tap do |resource| #changed for persisted flag
             resource.prefix_options = prefix_options
+            resource.load_headers(response) if resource.respond_to?(:load_headers)
           end
         end
     end
@@ -784,7 +797,12 @@ module RestApi
       self
     end
 
+    def load_headers(response)
+      self.api_identity_id = response['X-OpenShift-Identity-Id']
+    end
+
     protected
+      attr_accessor :api_identity_id
 
       # Support patch
       def update
@@ -798,6 +816,7 @@ module RestApi
             (response['Content-Length'].nil? || response['Content-Length'] != "0") &&
             !response.body.nil? && response.body.strip.size > 0)
           load(prefix_options.merge(self.class.format.decode(response.body)), true)
+          load_headers(response) if respond_to?(:load_headers)
           @persisted = true
         end
       end

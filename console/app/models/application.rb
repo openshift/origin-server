@@ -128,8 +128,8 @@ class Application < RestApi::Base
     attributes[:members] || []
   end
 
-  def owner?(user)
-    user === (members || []).find{ |m| m.owner? }
+  def owner?
+    (members || []).find{ |m| m.id == api_identity_id && m.owner? } if api_identity_id
   end
 
   def scales?

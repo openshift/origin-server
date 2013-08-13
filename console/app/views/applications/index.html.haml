@@ -19,12 +19,13 @@
           .span12.domain{:style => 'padding: 2px 10px; margin-bottom: 8px;'}
             Domain
             = link_to domain_id, domain_path(domain_id)
-            - if owner = apps.first.members.find(&:owner)
+            - if apps.first.owner?
+            - elsif owner = apps.first.members.find(&:owner)
               (#{owner.name})
 
       - apps.each do |application|
         .grid-wrapper.tile-click
-          .span12.application-info{ :class => application.owner?(current_user) ? 'application-owned' : nil }
+          .span12.application-info{ :class => application.owner? ? 'application-owned' : nil }
             %h2.flow
               - if application.aliases.present?
                 = link_to application_path(application), :class => 'tile-target flow-block' do
