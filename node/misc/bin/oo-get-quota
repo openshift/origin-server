@@ -46,16 +46,15 @@ end
 
 
 begin
-  quota_info = OpenShift::Runtime::Node.get_quota(uuid)
-  filesystem, quota, quota_soft, quota_hard, inodes, inodes_soft, inodes_hard = quota_info
+  quota = OpenShift::Runtime::Node.get_quota(uuid)
   puts "Quota information for uuid: #{uuid}"
-  puts "Filesystem: #{filesystem}"
-  puts "Blocks used: #{quota}"
-  puts "Soft limit for blocks: #{quota_soft}"
-  puts "Hard limit for blocks: #{quota_hard}"
-  puts "Inodes used: #{inodes}"
-  puts "Soft limit for inodes: #{inodes_soft}"
-  puts "Hard limit for inodes: #{inodes_hard}"
+  puts "Filesystem: #{quota[:device]}"
+  puts "Blocks used: #{quota[:blocks_used]}"
+  puts "Soft limit for blocks: #{quota[:blocks_quota]}"
+  puts "Hard limit for blocks: #{quota[:blocks_limit]}"
+  puts "Inodes used: #{quota[:inodes_used]}"
+  puts "Soft limit for inodes: #{quota[:inodes_quota]}"
+  puts "Hard limit for inodes: #{quota[:inodes_limit]}"
 rescue Exception => e
   $stderr.puts(e.message)
   exit -1
