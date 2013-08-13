@@ -6,7 +6,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin node
 Name:          openshift-origin-node-util
-Version: 1.13.2
+Version: 1.13.3
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -141,6 +141,9 @@ cp -p init.d/openshift-gears %{buildroot}%{_initddir}/
 %endif
 
 %changelog
+* Tue Aug 13 2013 Adam Miller <admiller@redhat.com> 1.13.3-1
+- Bug 957442 (dmcphers@redhat.com)
+
 * Fri Aug 09 2013 Adam Miller <admiller@redhat.com> 1.13.2-1
 - Bug 957442 (dmcphers@redhat.com)
 
