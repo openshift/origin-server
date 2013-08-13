@@ -29,7 +29,7 @@ module OpenShift
           [".tmp", ".sandbox"].each do |poly_dir|
             full_poly_dir = PathUtils.join(homedir, poly_dir)
             FileUtils.mkdir_p full_poly_dir
-            FileUtils.chmod(0o0000, full_poly_dir)
+            FileUtils.chmod(0000, full_poly_dir)
           end
 
           # Polydir runs before the marker is created so set up sandbox by hand
@@ -39,18 +39,23 @@ module OpenShift
 
           env_dir = PathUtils.join(homedir, ".env")
           FileUtils.mkdir_p(env_dir)
-          FileUtils.chmod(0o0750, env_dir)
+          FileUtils.chmod(0750, env_dir)
           set_ro_permission(env_dir)
+
+          user_env_dir = PathUtils.join(homedir, '.env', 'user_vars')
+          FileUtils.mkdir_p(user_env_dir)
+          FileUtils.chmod(0770, user_env_dir)
+          set_ro_permission(user_env_dir)
 
           ssh_dir = PathUtils.join(homedir, ".ssh")
           FileUtils.mkdir_p(ssh_dir)
-          FileUtils.chmod(0o0750, ssh_dir)
+          FileUtils.chmod(0750, ssh_dir)
           set_ro_permission(ssh_dir)
 
           gem_home = PathUtils.join(homedir, ".gem")
           add_env_var "GEM_HOME", gem_home
           FileUtils.mkdir_p(gem_home)
-          FileUtils.chmod(0o0750, gem_home)
+          FileUtils.chmod(0750, gem_home)
           set_rw_permission(gem_home)
 
           geardir = PathUtils.join(homedir, @container_name) + "/"
@@ -68,14 +73,14 @@ module OpenShift
           }
           add_env_var("HISTFILE", PathUtils.join(data_dir, ".bash_history"))
           profile = PathUtils.join(data_dir, ".bash_profile")
-          File.open(profile, File::WRONLY|File::TRUNC|File::CREAT, 0o0600) {|file|
+          File.open(profile, File::WRONLY|File::TRUNC|File::CREAT, 0600) {|file|
           file.write %Q{
 # Warning: Be careful with modifications to this file,
 #          Your changes may cause your application to fail.
 }
           }
           set_rw_permission(profile)
-          set_rw_permission_R(data_dir);
+          set_rw_permission_R(data_dir)
 
           add_env_var("GEAR_DNS",
                       "#{@container_name}-#{@namespace}.#{@config.get("CLOUD_DOMAIN")}",
@@ -104,23 +109,58 @@ module OpenShift
 
           # Update all directory entries ~/app-root/*
           Dir[gearappdir + "/*"].entries.reject{|e| [".", ".."].include? e}.each {|e|
-            FileUtils.chmod_R(0o0750, e, :verbose => @debug)
+            FileUtils.chmod_R(0750, e, :verbose => @debug)
             set_rw_permission_R(e)
           }
           set_ro_permission(gearappdir)
           raise "Failed to instantiate gear: missing application directory (#{gearappdir})" unless File.exist?(gearappdir)
 
           state_file = PathUtils.join(gearappdir, "runtime", ".state")
-          File.open(state_file, File::WRONLY|File::TRUNC|File::CREAT, 0o0660) {|file|
+          File.open(state_file, File::WRONLY|File::TRUNC|File::CREAT, 0660) {|file|
             file.write "new\n"
-
-          set_rw_permission(state_file)          }
+            set_rw_permission(state_file)
+          }
 
           ::OpenShift::Runtime::FrontendHttpServer.new(self).create
 
           # Fix SELinux context for cart dirs
           set_rw_permission(profile)
           reset_permission_R(homedir)
+        end
+
+        ##
+        # Generate an RSA ssh key
+        def generate_ssh_key()
+          ssh_dir        = PathUtils.join(@container_dir, '.openshift_ssh')
+          known_hosts    = PathUtils.join(ssh_dir, 'known_hosts')
+          ssh_config     = PathUtils.join(ssh_dir, 'config')
+          ssh_key        = PathUtils.join(ssh_dir, 'id_rsa')
+          ssh_public_key = ssh_key + '.pub'
+
+          FileUtils.mkdir_p(ssh_dir)
+          set_rw_permission(ssh_dir)
+
+          run_in_container_context("/usr/bin/ssh-keygen -N '' -f #{ssh_key}",
+                                   chdir:               @container_dir,
+                                   timeout:             @hourglass.remaining,
+                                   expected_exitstatus: 0)
+
+          FileUtils.touch(known_hosts)
+          FileUtils.touch(ssh_config)
+
+          set_rw_permission_R(ssh_dir)
+
+          FileUtils.chmod(0750, ssh_dir)
+          FileUtils.chmod(0600, [ssh_key, ssh_public_key])
+          FileUtils.chmod(0660, [known_hosts, ssh_config])
+
+          add_env_var('APP_SSH_KEY', ssh_key, true)
+          add_env_var('APP_SSH_PUBLIC_KEY', ssh_public_key, true)
+
+          public_key_bytes = IO.read(ssh_public_key)
+          public_key_bytes.sub!(/^ssh-rsa /, '')
+
+          "APP_SSH_KEY_ADD: #{@uuid} #{public_key_bytes}\n"
         end
 
         # Private: Determine next available user id.  This is usually determined

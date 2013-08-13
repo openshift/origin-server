@@ -82,7 +82,7 @@ module OpenShift
       # responsibility of the caller to correctly handle the resulting data type.
       def self.oo_spawn(command, options = {})
 
-        options[:env]         ||= {}
+        options[:env]         ||= (options[:env] || {})
         options[:timeout]     ||= 3600
         options[:buffer_size] ||= 32768
 

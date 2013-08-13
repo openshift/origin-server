@@ -46,24 +46,24 @@ class ApplicationContainerTest < OpenShift::NodeTestCase
     #@config.stubs(:get).with("CONTAINERIZATION_PLUGIN").returns('openshift-origin-container-selinux')
 
     # Set up the container
-    @gear_uuid = "5502"
-    @user_uid  = "5502"
+    @gear_uuid = '5504'
+    @user_uid  = '5504'
     @app_name  = 'ApplicatioContainerTestCase'
     @gear_name = @app_name
     @namespace = 'jwh201204301647'
-    @gear_ip   = "127.0.0.1"
+    @gear_ip   = '127.0.0.1'
 
     Etc.stubs(:getpwnam).returns(
-      OpenStruct.new(
-        uid: @user_uid.to_i,
-        gid: @user_uid.to_i,
-        gecos: "OpenShift guest",
-        container_dir: "/var/lib/openshift/#{@gear_uuid}"
-      )
+        OpenStruct.new(
+            uid:   @user_uid.to_i,
+            gid:   @user_uid.to_i,
+            gecos: "OpenShift guest",
+            dir:   "/var/lib/openshift/#{@gear_uuid}"
+        )
     )
 
     @container = OpenShift::Runtime::ApplicationContainer.new(@gear_uuid, @gear_uuid, @user_uid,
-        @app_name, @gear_uuid, @namespace, nil, nil, nil)
+                                                              @app_name, @gear_uuid, @namespace, nil, nil, nil)
 
 
     @mock_manifest = %q{#
@@ -135,11 +135,15 @@ class ApplicationContainerTest < OpenShift::NodeTestCase
     @container.cartridge_model.stubs(:get_cartridge).with("mock").returns(@mock_cartridge)
   end
 
+  def teardown
+    FileUtils.rm_rf @container.container_dir
+  end
+
   def test_public_endpoints_create
     OpenShift::Runtime::Utils::Environ.stubs(:for_gear).returns({
-        "OPENSHIFT_MOCK_EXAMPLE_IP1" => "127.0.0.1",
-        "OPENSHIFT_MOCK_EXAMPLE_IP2" => "127.0.0.2"
-    })
+                                                                    "OPENSHIFT_MOCK_EXAMPLE_IP1" => "127.0.0.1",
+                                                                    "OPENSHIFT_MOCK_EXAMPLE_IP2" => "127.0.0.2"
+                                                                })
 
     proxy = mock('OpenShift::Runtime::FrontendProxyServer')
     OpenShift::Runtime::FrontendProxyServer.stubs(:new).returns(proxy)
@@ -156,17 +160,17 @@ class ApplicationContainerTest < OpenShift::NodeTestCase
 
   def test_public_endpoints_delete
     OpenShift::Runtime::Utils::Environ.stubs(:for_gear).returns({
-        "OPENSHIFT_MOCK_EXAMPLE_IP1" => "127.0.0.1",
-        "OPENSHIFT_MOCK_EXAMPLE_IP2" => "127.0.0.2"
-    })
+                                                                    "OPENSHIFT_MOCK_EXAMPLE_IP1" => "127.0.0.1",
+                                                                    "OPENSHIFT_MOCK_EXAMPLE_IP2" => "127.0.0.2"
+                                                                })
 
     proxy = mock('OpenShift::Runtime::FrontendProxyServer')
     OpenShift::Runtime::FrontendProxyServer.stubs(:new).returns(proxy)
     OpenShift::Runtime::V2CartridgeModel.any_instance.expects(:list_proxy_mappings).returns([
-        {public_port_name: "Endpoint_1", proxy_port:       @ports_begin},
-        {public_port_name: "Endpoint_2", proxy_port:       @ports_begin+1},
-        {public_port_name: "Endpoint_3", proxy_port:       @ports_begin+2},
-        {public_port_name: "Endpoint_4", proxy_port:       @ports_begin+3}])
+                                                                                                {public_port_name: "Endpoint_1", proxy_port: @ports_begin},
+                                                                                                {public_port_name: "Endpoint_2", proxy_port: @ports_begin+1},
+                                                                                                {public_port_name: "Endpoint_3", proxy_port: @ports_begin+2},
+                                                                                                {public_port_name: "Endpoint_4", proxy_port: @ports_begin+3}])
     #proxy.expects(:find_mapped_proxy_port).with(@user_uid, "127.0.0.1", 8080).returns(@ports_begin)
     #proxy.expects(:find_mapped_proxy_port).with(@user_uid, "127.0.0.1", 8081).returns(@ports_begin+1)
     #proxy.expects(:find_mapped_proxy_port).with(@user_uid, "127.0.0.1", 8082).returns(@ports_begin+2)
@@ -182,7 +186,7 @@ class ApplicationContainerTest < OpenShift::NodeTestCase
 
   def test_tidy_success
     OpenShift::Runtime::Utils::Environ.stubs(:for_gear).returns(
-        {'OPENSHIFT_HOMEDIR' => '/foo', 'OPENSHIFT_APP_NAME' => 'app_name' })
+        {'OPENSHIFT_HOMEDIR' => '/foo', 'OPENSHIFT_APP_NAME' => 'app_name'})
 
     @container.stubs(:stop_gear)
     @container.stubs(:gear_level_tidy_tmp).with('/foo/.tmp')
@@ -197,7 +201,7 @@ class ApplicationContainerTest < OpenShift::NodeTestCase
 
   def test_tidy_stop_gear_fails
     OpenShift::Runtime::Utils::Environ.stubs(:for_gear).returns(
-        {'OPENSHIFT_HOMEDIR' => '/foo', 'OPENSHIFT_APP_NAME' => 'app_name' })
+        {'OPENSHIFT_HOMEDIR' => '/foo', 'OPENSHIFT_APP_NAME' => 'app_name'})
 
     @container.stubs(:stop_gear).raises(Exception.new)
     @container.stubs(:gear_level_tidy_tmp).with('/foo/.tmp')
@@ -230,11 +234,11 @@ class ApplicationContainerTest < OpenShift::NodeTestCase
   end
 
   def test_connector_execute
-    cart_name = 'mock-0.1'
-    pub_cart_name = 'mock-plugin-0.1'
+    cart_name      = 'mock-0.1'
+    pub_cart_name  = 'mock-plugin-0.1'
     connector_type = 'ENV:NET_TCP'
-    connector = 'set-db-connection-info'
-    args = 'foo'
+    connector      = 'set-db-connection-info'
+    args           = 'foo'
 
     @container.cartridge_model.expects(:connector_execute).with(cart_name, pub_cart_name, connector_type, connector, args)
 
@@ -256,18 +260,73 @@ class ApplicationContainerTest < OpenShift::NodeTestCase
 
     scenarios.each do |s|
       Etc.stubs(:getpwnam).returns(
-        OpenStruct.new(
-          uid: s[0].to_i,
-          gid: s[0].to_i,
-          gecos: "OpenShift guest",
-          container_dir: "/var/lib/openshift/gear_uuid"
-        )
+          OpenStruct.new(
+              uid:   s[0].to_i,
+              gid:   s[0].to_i,
+              gecos: "OpenShift guest",
+              dir:   "/var/lib/openshift/gear_uuid"
+          )
       )
 
       container = OpenShift::Runtime::ApplicationContainer.new("gear_uuid", "gear_uuid", s[0],
-                                                                "app_name", "gear_uuid", "namespace", nil, nil, nil)
+                                                               "app_name", "gear_uuid", "namespace", nil, nil, nil)
 
       assert_equal container.get_ip_addr(s[1]), s[2]
     end
+  end
+
+  def test_user_var_add()
+    target   = ".env/user_vars"
+    source   = "/var/lib/openshift/#{@gear_uuid}/#{target}"
+    filename = "#{source}/UNIT_TEST"
+    gears    = ['unit_test.example.com']
+
+    @container.expects(:user_var_push).with(gears)
+
+    @container.user_var_add({'UNIT_TEST' => 'true'}, gears)
+
+    assert_path_exist filename
+  end
+
+  def test_user_var_remove()
+    path  = "/var/lib/openshift/#{@gear_uuid}/.env/user_vars/UNIT_TEST"
+    gears = ['unit_test.example.com']
+
+    @container.expects(:user_var_push).with(gears).twice
+
+    @container.user_var_add({'UNIT_TEST' => 'true'}, gears)
+    assert_path_exist path
+
+    @container.user_var_remove(['UNIT_TEST'], gears)
+    refute_path_exist path
+  end
+
+  def test_user_var_list()
+    @container.user_var_remove(['UNIT_TEST', 'FUNC_TEST'])
+    assert_equal({}, @container.user_var_list())
+
+    @container.user_var_add({'UNIT_TEST' => 'true'})
+    actual = @container.user_var_list()
+    assert_equal({'UNIT_TEST' => 'true'}, actual)
+
+    @container.user_var_add({'FUNC_TEST' => 'false'})
+    actual = @container.user_var_list(['FUNC_TEST'])
+    assert_equal({'FUNC_TEST' => 'false'}, actual)
+  end
+
+  def test_bad_user_var()
+    env = {'OPENSHIFT_TEST_IDENT'            => 'x:x:x:x',
+           'OPENSHIFT_NAMESPACE'             => 'namespace',
+           'OPENSHIFT_PRIMARY_CARTRIDGE_DIR' => 'mine'}
+
+    env.each do |key, value|
+      rc, msg = @container.user_var_add({key => value})
+      assert_equal 127, rc, "#{key} should have failed."
+      assert_equal "CLIENT_ERROR: #{key} cannot be overridden", msg
+    end
+
+    rc, msg = @container.user_var_add({'TOO_BIG' => '*' * 513})
+    assert_equal 127, rc
+    assert_equal 'CLIENT_ERROR: TOO_BIG value exceeds maximum size of 512b', msg
   end
 end

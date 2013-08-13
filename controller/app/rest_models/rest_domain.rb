@@ -25,7 +25,7 @@ class RestDomain < OpenShift::Model
   
   def initialize(domain, owner, url, nolinks=false)
     self.name = domain.namespace
-    self.suffix = Rails.application.config.openshift[:domain_suffix] 
+    self.suffix = Rails.application.config.openshift[:domain_suffix]
     self.creation_time = domain.created_at
     
     unless nolinks      
@@ -43,6 +43,7 @@ class RestDomain < OpenShift::Model
           OptionalParam.new("gear_profile", "string", "The size of the gear", valid_sizes, valid_sizes[0]),
           OptionalParam.new("initial_git_url", "string", "A URL to a Git source code repository that will be the basis for this application.", ['*', OpenShift::Git::EMPTY_CLONE_SPEC]),
           (OptionalParam.new("cartridges[][url]", "string", "A URL to a downloadable cartridge. You may specify an multiple urls via {'cartridges' : [{'url':'http://...'}, ...]}") if Rails.application.config.openshift[:download_cartridges_enabled]),
+          OptionalParam.new("environment_variables", "hash", "Add environment variables to the application, e.g.: {'FOO':'123', 'BAR':'abc'}")
         ].compact),
         "UPDATE" => Link.new("Update domain", "PUT", URI::join(url, "domains/#{name}"),[
           Param.new("name", "string", "Name of the domain")

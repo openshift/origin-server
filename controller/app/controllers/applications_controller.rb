@@ -9,12 +9,13 @@ class ApplicationsController < BaseController
   # List all applications
   #
   # URL: /domains/:domain_id/applications
-  # @param [String] include Comma separated list of sub-objects to include in reply. Only "cartridges" is supported at the moment.
+  # @param [String] include Comma separated list of sub-objects to include in reply. Only "cartridges" and "environment_variables" are supported at the moment.
   #
   # Action: GET
   # @return [RestReply<Array<RestApplication>>] List of applications within the domain
   def index
     include_cartridges = (params[:include] == "cartridges")
+    include_environment_variables = (params[:include] == "environment_variables")
     domain_id = params[:domain_id].presence
     domain_id = domain_id.downcase if domain_id
     apps = []
@@ -38,7 +39,7 @@ class ApplicationsController < BaseController
         end
       end
     end    
-    rest_apps = apps.map { |application| get_rest_application(application, include_cartridges, apps) }
+    rest_apps = apps.map { |application| get_rest_application(application, include_cartridges, apps, include_environment_variables) }
     render_success(:ok, "applications", rest_apps, "Found #{rest_apps.length} applications.")
   end
 
@@ -51,7 +52,8 @@ class ApplicationsController < BaseController
   # @return [RestReply<RestApplication>] Application object
   def show
     include_cartridges = (params[:include] == "cartridges")
-    render_success(:ok, "application", get_rest_application(@application, include_cartridges), "Application '#{@application.name}' found")
+    include_environment_variables = (params[:include] == "environment_variables")
+    render_success(:ok, "application", get_rest_application(@application, include_cartridges, nil, include_environment_variables), "Application '#{@application.name}' found")
   end
 
   ##
@@ -65,6 +67,7 @@ class ApplicationsController < BaseController
   # @param [Boolean] scalable Create a scalable application. Defaults to false.
   # @param [String] init_git_url {http://git-scm.com Git} URI to use as a template when creating the application
   # @param [String] gear_profile Gear profile to use for gears when creating the application
+  # @param [Hash<String,String>] environment_variables One or more user environment variables for the application.
   #
   # @return [RestReply<RestApplication>] Application object
   def create
@@ -82,9 +85,14 @@ class ApplicationsController < BaseController
       else
         features << c
       end  
-    end 
+    end
 
-    if init_git_url = params[:initial_git_url].presence
+    user_env_vars = params[:environment_variables].presence
+    return render_error(:unprocessable_entity, "Invalid environment variables specified for the application.",
+                        186, "environment_variables") if user_env_vars && !user_env_vars.is_a?(Hash)
+
+    init_git_url = params[:initial_git_url].presence
+    if init_git_url
       repo_spec, _ = (OpenShift::Git.safe_clone_spec(init_git_url) rescue nil)
       return render_error(:unprocessable_entity, "Invalid initial git URL",
                           216, "initial_git_url") unless repo_spec
@@ -120,7 +128,7 @@ class ApplicationsController < BaseController
     begin
       result = ResultIO.new
       scalable = get_bool(params[:scale])
-      @application = Application.create_app(app_name, features, @domain, default_gear_size, scalable, result, [], init_git_url, request.headers['User-Agent'], downloaded_cart_urls)
+      @application = Application.create_app(app_name, features, @domain, default_gear_size, scalable, result, [], init_git_url, request.headers['User-Agent'], downloaded_cart_urls, user_env_vars)
 
     rescue OpenShift::UnfulfilledRequirementException => e
       return render_error(:unprocessable_entity, "Unable to create application for #{e.feature}", 109, "cartridges")

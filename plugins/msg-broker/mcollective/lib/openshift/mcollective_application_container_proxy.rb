@@ -58,7 +58,7 @@ module OpenShift
 
         if user.auth_method == :broker_auth
           return Rails.configuration.openshift[:gear_sizes] | capability_gear_sizes
-        elsif !capability_gear_sizes.nil? and !capability_gear_sizes.empty?
+        elsif capability_gear_sizes.present?
           return capability_gear_sizes
         else
           return Rails.configuration.openshift[:default_gear_capabilities]
@@ -794,7 +794,7 @@ module OpenShift
           args['--with-software-version'] = downloaded_cart["version"]
         end
 
-        if !template_git_url.nil?  && !template_git_url.empty?
+        if template_git_url.present?
           args['--with-template-git-url'] = template_git_url
         end
 
@@ -825,7 +825,7 @@ module OpenShift
         args = build_base_gear_args(gear)
         args = build_base_component_args(component, args)
 
-        if !template_git_url.nil?  && !template_git_url.empty?
+        if template_git_url.present?
           args['--with-template-git-url'] = template_git_url
         end
 
@@ -1254,6 +1254,78 @@ module OpenShift
         args = build_base_gear_args(gear)
         args['--with-alias-name']=server_alias
         result = execute_direct(@@C_CONTROLLER, 'remove-alias', args)
+        parse_result(result)
+      end
+
+      #
+      # Add or Update user environment variables to all gears in the app
+      #
+      # INPUTS:
+      # * gear: a Gear object
+      # * env_vars: Hash of environment variables, e.g.:{'FOO'=>'123', 'BAR'=>'abc'}
+      # * gear_dns_list: list of gear dns
+      #
+      # RETURNS:
+      # * String: stdout from a command
+      #
+      # NOTES:
+      # * calls execute_direct
+      # * executes the 'user-var-add' action on the node
+      #
+      def set_user_env_vars(gear, env_vars, gear_dns_list)
+        args = build_base_gear_args(gear)
+        if env_vars.present?
+          vars_str = ""
+          env_vars.each { |k,v| vars_str += " #{k}=#{v}" }
+          vars_str.lstrip!
+          args['--with-variables'] = vars_str
+        end
+        args['--with-gears'] = gear_dns_list.join(';') if gear_dns_list.present?
+        result = execute_direct(@@C_CONTROLLER, 'user-var-add', args)
+        parse_result(result)
+      end
+
+      #
+      # Remove user environment variables from all gears in the app
+      #
+      # INPUTS:
+      # * gear: a Gear object
+      # * env_var_names: list of environment variable names
+      # * gear_dns_list: list of gear dns
+      #
+      # RETURNS:
+      # * String: stdout from a command
+      #
+      # NOTES:
+      # * calls execute_direct
+      # * executes the 'user-var-remove' action on the node
+      #
+      def unset_user_env_vars(gear, env_var_names, gear_dns_list)
+        args = build_base_gear_args(gear)
+        args['--with-keys'] = env_var_names.join(' ')
+        args['--with-gears'] = gear_dns_list.join(';') if gear_dns_list.present?
+        result = execute_direct(@@C_CONTROLLER, 'user-var-remove', args)
+        parse_result(result)
+      end
+
+      #
+      # List all or selected  user environment variables for the app
+      #
+      # INPUTS:
+      # * gear: a Gear object
+      # * env_var_names: list of environment variable names
+      #
+      # RETURNS:
+      # * String: stdout from a command
+      #
+      # NOTES:
+      # * calls execute_direct
+      # * executes the 'user-var-list' action on the node
+      #
+      def list_user_env_vars(gear, env_var_names)
+        args = build_base_gear_args(gear)
+        args['--with-keys'] = env_var_names.join(' ') if env_var_names.present?
+        result = execute_direct(@@C_CONTROLLER, 'user-var-list', args)
         parse_result(result)
       end
 
@@ -3227,7 +3299,7 @@ module OpenShift
       # * uses MCollective::RPC::Client
       #
       def self.execute_parallel_jobs_impl(handle)
-        if handle && !handle.empty?
+        if handle.present?
           start_time = Time.new
           begin
             options = MCollectiveApplicationContainerProxy.rpc_options

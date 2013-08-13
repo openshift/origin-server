@@ -22,7 +22,7 @@ module RestModelHelper
     end
   end
 
-  def get_rest_application(application, include_cartridges=false, applications=nil)
+  def get_rest_application(application, include_cartridges=false, applications=nil, include_environment_variables=false)
     if requested_api_version == 1.0
         app = RestApplication10.new(application, get_url, nolinks, applications)
     elsif requested_api_version <= 1.3
@@ -34,6 +34,9 @@ module RestModelHelper
     end
     if include_cartridges
       app.cartridges = get_application_rest_cartridges(application)
+    end
+    if include_environment_variables
+      app.environment_variables = application.list_user_env_variables 
     end
     app
   end
