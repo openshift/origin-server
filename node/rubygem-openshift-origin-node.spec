@@ -16,7 +16,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.13.2
+Version: 1.13.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -305,6 +305,14 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Tue Aug 13 2013 Adam Miller <admiller@redhat.com> 1.13.3-1
+- Node Platform - Update oo-get-quota for new interface (jhonce@redhat.com)
+- Bug 980820 - Ensure bogus PATH doesn't stop cartridge operations
+  (jhonce@redhat.com)
+- Merge pull request #3328 from fotioslindiakos/Bug995550
+  (dmcphers+openshiftbot@redhat.com)
+- Ensure boosted gears are not throttled (fotios@redhat.com)
+
 * Fri Aug 09 2013 Adam Miller <admiller@redhat.com> 1.13.2-1
 - Bug 995233 - Use oo_spawn in place of systemu (jhonce@redhat.com)
 - Bug 903106 - Update rhcsh help to reflect gear script (jhonce@redhat.com)
