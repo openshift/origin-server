@@ -193,7 +193,7 @@ function rails_app_name_check() {
     if [ $? -eq 0 ]; then
       echo "$OPENSHIFT_APP_NAME" | grep '^[0-9]' >/dev/null
       if [ $? -eq 0 ]; then
-        client_error "Invalid Rails application name. Please delete this applicatin and re-create it with a name which does not start with numbers"
+        client_error "Invalid Rails application name. Please delete this application and re-create it with a name which does not start with numbers"
         exit 1
       fi
     fi
