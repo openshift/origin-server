@@ -241,6 +241,7 @@ module OpenShift
         if @manifest.has_key?('Version-Overrides')
           vtree = @manifest['Version-Overrides'][version]
           @manifest.merge!(vtree) if vtree
+          @manifest['Version'] = version
         end
 
         @cartridge_vendor       = @manifest['Cartridge-Vendor']
@@ -369,6 +370,10 @@ module OpenShift
 
       def valid_version_number(version)
         version =~ /^\A(\d+\.*)+\Z/
+      end
+
+      def project_version_overrides(version, repository_base_path)
+        Runtime::Manifest.new(manifest_path, version, :file, repository_base_path)
       end
 
       # Sort an array of "string" version numbers
