@@ -16,22 +16,22 @@ may be used to control and check the status of the OpenShift gears hosted on thi
 The following commands are understood:
 .TP
 .B "startall"
-start all gears and their component cartridges on this node.
+start all gears and their cartridges on this node.
 This command uses multiple threads to start the gears as quickly as possible.
 The results are recorded in a log file while the threads run in the background.
 Control is returned to the terminal before the gears have been started.
 .TP
 .B "stopall"
-stop all gears and their component cartridges on this node
+stop all gears and their cartridges on this node
 .TP
 .B "restartall"
-restart all gears and their component cartridges on this node
+restart all gears and their cartridges on this node
 .TP
 .B "condrestartall"
 start all gears if they have not already been started
 .TP
 .B "waited-startall"
-start all gears  and their components in the foreground.
+start all gears and their components in the foreground.
 Control will only be returned to the terminal after all the gears have been started.
 .TP
 .B "status"
@@ -41,13 +41,22 @@ shows a cartridge dependent status for each cartridge in each gear
 list all the gears hosted on the node
 .TP
 .BI "startgear" " gear uuid"
-start given gear's component cartridges
+start given gear's cartridges
 .TP
 .BI "stopgear" " gear uuid"
-stop given gear's component cartridges
+stop given gear's cartridges
 .TP
 .BI "restartgear" " gear uuid"
-restart given gear's component cartridges
+restart given gear's cartridges
+.TP
+.BI "idlegear" " gear uuid"
+idle given gear's cartridges
+.TP
+.BI "unidlegear" " gear uuid"
+unidle given gear's cartridges
+.TP
+.BI "listidle"
+list the idle gears on the node
 .SH EXIT STATUS
 On success 0 is returned, a non-zero failure code otherwise.
 .SH FILES

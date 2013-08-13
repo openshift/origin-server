@@ -628,11 +628,16 @@ module OpenShift
         gear_env           = ::OpenShift::Runtime::Utils::Environ.for_gear(@container.container_dir)
         cartridge_env_home = PathUtils.join(cartridge_home, 'env')
 
-        cartridge_env = gear_env.merge(Utils::Environ.load(cartridge_env_home))
+        cartridge_env = Utils::Environ.load(cartridge_env_home)
+        cartridge_env.delete('PATH')
+        cartridge_env = gear_env.merge(cartridge_env)
         if render_erbs
           erbs = Dir.glob(cartridge_env_home + '/*.erb', File::FNM_DOTMATCH).select { |f| File.file?(f) }
           render_erbs(cartridge_env, erbs)
-          cartridge_env = gear_env.merge(Utils::Environ.load(cartridge_env_home))
+
+          cartridge_env = Utils::Environ.load(cartridge_env_home)
+          cartridge_env.delete('PATH')
+          cartridge_env = gear_env.merge(cartridge_env)
         end
 
         action << " --version #{software_version}"
