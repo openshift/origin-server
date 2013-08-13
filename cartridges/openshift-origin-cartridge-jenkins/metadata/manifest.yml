@@ -54,11 +54,8 @@ Cart-Data:
     Type: environment
     Description: "Admin user's password for jenkins server"
 Provides:
-  - jenkins-1.4
   - jenkins-1
   - "jenkins"
-  - "jenkins(version) = 1.4"
-  - "jenkins(version) >= 1"
 Publishes:
 Endpoints:
   - Private-IP-Name:   IP

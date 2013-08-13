@@ -16,7 +16,6 @@ Website: http://haproxy.1wt.eu/
 Provides:
   - haproxy-1.4
   - haproxy
-  - "haproxy(version) = 1.4"
   - web_proxy
 Components:
   web_proxy:

@@ -18,7 +18,6 @@ Website: http://www.jboss.org/switchyard
 Help-Topics:
   "Developer Center": https://openshift.redhat.com/community/developers
 Provides:
-  - switchyard-0.6
   - switchyard-0
   - "switchyard"
 Endpoints:

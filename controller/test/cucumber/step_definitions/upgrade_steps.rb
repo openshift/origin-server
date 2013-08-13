@@ -87,6 +87,25 @@ Given /^a rigged version of the ([^ ]+)\-([\d\.]+) cartridge set to fail (\d) ti
   rewrite_and_install(current_manifest, @manifest_path)
 end
 
+Given /^a compatible version of the ([^ ]+)\-([\d\.]+) cartridge with different software version$/ do |cart_name, component_version|
+  current_manifest = prepare_cart_for_rewrite(cart_name, component_version)
+  create_upgrade_script(@upgrade_script_path)
+
+  rewrite_and_install(current_manifest, @manifest_path) do |manifest, current_version|
+    manifest['Compatible-Versions'] = [ current_version ]
+    manifest['Version'] = '99'
+  end
+end
+
+Given /^an incompatible version of the ([^ ]+)\-([\d\.]+) cartridge with different software version$/ do |cart_name, component_version|
+  current_manifest = prepare_cart_for_rewrite(cart_name, component_version)
+  create_upgrade_script(@upgrade_script_path)
+
+  rewrite_and_install(current_manifest, @manifest_path) do |manifest, current_version|
+    manifest['Version'] = '99'
+  end
+end
+
 def prepare_cart_for_rewrite(cart_name, component_version)
   @cartridge_path       = File.join('/usr/libexec/openshift/cartridges', cart_name)
   @manifest_path        = File.join(@cartridge_path, 'metadata', 'manifest.yml')
@@ -220,6 +239,15 @@ def assert_cart_version_updated(cart_name, app, negate=false)
   end
 end
 
+Then /^the ([^ ]+) cartridge software version should be updated$/ do |cart_name|
+  new_version = '99'
+  ident_path                = Dir.glob(File.join($home_root, @app.uid, %W(#{cart_name} env OPENSHIFT_*_IDENT))).first
+  ident                     = IO.read(ident_path)
+  _, _, software_version, _ = OpenShift::Runtime::Manifest.parse_ident(ident)
+
+  assert_equal new_version, software_version
+end
+
 When /^the ([^ ]+) invocation markers are cleared$/ do |cartridge_name|
   clear_invocation_markers(cartridge_name, @app)
 end
@@ -324,6 +352,55 @@ module OpenShift
 end
 EOF
 
+  IO.write('/tmp/gear_upgrade.rb', gear_upgrade_content)
+  `echo 'GEAR_UPGRADE_EXTENSION=/tmp/gear_upgrade' >> /etc/openshift/node.conf`
+end
+
+Given /^a gear level upgrade extension to map the updated software version exists$/ do
+  gear_upgrade_content = <<-EOF
+module OpenShift
+  class GearUpgradeExtension
+
+    VERSION_MAP = { 
+      'mock-0.1'      => '99',
+    }
+
+    def self.version
+      'expected'
+    end
+
+    def initialize(uuid, gear_home)
+      @uuid = uuid
+      @gear_home = gear_home
+    end
+
+    def pre_upgrade(progress)
+      progress.log("Creating pre-upgrade marker")
+      touch_marker('pre')
+    end
+
+    def post_upgrade(progress)
+      progress.log("Creating post-upgrade marker")
+      touch_marker('post')
+    end
+
+    def touch_marker(name)
+      marker_name = ".gear_upgrade_\#{name}"
+      marker_path = File.join(@gear_home, 'app-root', 'data', marker_name)
+      FileUtils.touch(marker_path)
+    end
+
+    def map_ident(progress, ident)
+      vendor, name, version, cartridge_version = OpenShift::Runtime::Manifest.parse_ident(ident)
+      progress.log "In map_ident; parse_ident output - vendor: \#{vendor}, name: \#{name}, version: \#{version}, cartridge_version: \#{cartridge_version}"
+      name_version = "\#{name}-\#{version}"
+      progress.log "Mapping version \#{version} to \#{VERSION_MAP[name_version]} for cartridge \#{name}" if VERSION_MAP[name_version]
+      version = VERSION_MAP[name_version] || version
+      return vendor, name, version, cartridge_version
+    end
+  end
+end
+EOF
   IO.write('/tmp/gear_upgrade.rb', gear_upgrade_content)
   `echo 'GEAR_UPGRADE_EXTENSION=/tmp/gear_upgrade' >> /etc/openshift/node.conf`
 end

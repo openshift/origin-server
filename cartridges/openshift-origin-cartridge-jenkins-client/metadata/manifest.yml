@@ -18,9 +18,7 @@ Website: http://www.jenkins-ci.org
 Help-Topics:
   "Developer Center": https://www.openshift.com/developers
 Provides:
-  - "jenkins-client-1.4"
   - "jenkins-client-1"
-  - "jenkins-client(version) >= 1"
   - "jenkins-client"
 Publishes:
 Subscribes:

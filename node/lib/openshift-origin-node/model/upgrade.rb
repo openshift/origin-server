@@ -258,9 +258,7 @@ module OpenShift
       #
       def gear_map_ident(ident)
         if !gear_extension.nil? && gear_extension.respond_to?(:map_ident)
-          progress.step 'map_ident' do
-            gear_extension.map_ident(progress, ident)
-          end
+          gear_extension.map_ident(progress, ident)
         else
           OpenShift::Runtime::Manifest.parse_ident(ident)
         end
@@ -286,7 +284,6 @@ module OpenShift
 
             ident_path                               = Dir.glob(File.join(cartridge_path, 'env', 'OPENSHIFT_*_IDENT')).first
             ident                                    = IO.read(ident_path)
-            # vendor, name, version, cartridge_version = OpenShift::Runtime::Manifest.parse_ident(ident)
             vendor, name, version, cartridge_version = gear_map_ident(ident)
 
             unless vendor == 'redhat'

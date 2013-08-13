@@ -73,7 +73,6 @@ alternatives --set jbosseap-6 /usr/share/jbossas
 # the postgresql module is added to jboss eap 6.0.* upstream.
 mkdir -p /etc/alternatives/jbosseap-6/modules/org/postgresql/jdbc/main
 ln -fs /usr/share/java/postgresql-jdbc3.jar /etc/alternatives/jbosseap-6/modules/org/postgresql/jdbc/main
-# cp -p %{cartridgedir}/versions/6.0/modules/postgresql_module.xml /etc/alternatives/jbosseap-6.0/modules/org/postgresql/jdbc/main/module.xml
 cp -p %{cartridgedir}/versions/shared/modules/postgresql_module.xml /etc/alternatives/jbosseap-6/modules/org/postgresql/jdbc/main/module.xml
 
 %files
