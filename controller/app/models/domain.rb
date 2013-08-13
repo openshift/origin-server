@@ -190,6 +190,9 @@ class Domain
 
   # Runs all jobs in "init" phase and stops at the first failure.
   #
+  # IMPORTANT: When changing jobs, be sure to leave old jobs runnable so that pending_ops
+  #   that are inserted during a running upgrade can continue to complete.
+  #
   # == Returns:
   # True on success or false on failure
   def run_jobs

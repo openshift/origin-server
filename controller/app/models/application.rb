@@ -1185,10 +1185,15 @@ class Application
     nil
   end
 
-  # Acquires an application level lock and runs all pending jobs and stops at the first failure.
+  # Runs all pending jobs and stops at the first failure.
+  #
+  # IMPORTANT: Callers should take the application lock prior to calling run_jobs
+  #
+  # IMPORTANT: When changing jobs, be sure to leave old jobs runnable so that pending_ops
+  #   that are inserted during a running upgrade can continue to complete.
   #
   # == Returns:
-  # True on success or False if unable to acquire the lock or no pending jobs.
+  # True on success or False if no pending jobs.
   def run_jobs(result_io=nil)
     result_io = ResultIO.new if result_io.nil?
     self.reload
