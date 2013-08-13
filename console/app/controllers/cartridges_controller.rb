@@ -6,9 +6,7 @@ class CartridgesController < ConsoleController
   end
 
   def show
-    @domain = user_default_domain
-
-    @application = @domain.find_application params[:application_id]
+    @application = Application.find(params[:application_id], :as => current_user)
     @application_type = ApplicationType.find @application.framework
     @cartridge = @application.find_cartridge params[:id]
   end
@@ -17,8 +15,7 @@ class CartridgesController < ConsoleController
     name = (params[:cartridge] || {})[:name].presence
     url = (params[:cartridge] || {})[:url].presence
     
-    @domain = user_default_domain
-    @application = @domain.find_application params[:application_id]
+    @application = Application.find(params[:application_id], :as => current_user)
     @cartridge_type = url ? CartridgeType.for_url(url) : CartridgeType.find(name)
     @cartridge = Cartridge.new(:url => url, :name => url ? nil : name, :as => current_user, :application => @application)
 

@@ -137,19 +137,18 @@ class ApplicationsController < ConsoleController
       return
     end
 
-    user_default_domain rescue nil
-    #return redirect_to application_types_path, :notice => 'Create your first application now!' if @domain.nil? || @domain.applications.empty?
-
+    @applications = Application.find :all, :as => current_user
+    #return redirect_to application_types_path, :notice => 'Create your first application now!' unless @applications.present?
     @applications_filter = ApplicationsFilter.new params[:applications_filter]
-    @applications = @domain ? @applications_filter.apply(@domain.applications) : []
+    @applications = @applications_filter.apply(@applications)
+
     if @applications.empty? && @applications_filter.blank?
       render :first_steps
     end
   end
 
   def destroy
-    @domain = Domain.find :one, :as => current_user
-    @application = @domain.find_application params[:id]
+    @application = Application.find(params[:id], :as => current_user)
     if @application.destroy
       redirect_to applications_path, :flash => {:success => "The application '#{@application.name}' has been deleted"}
     else
@@ -158,9 +157,7 @@ class ApplicationsController < ConsoleController
   end
 
   def delete
-    #@domain = Domain.find :one, :as => current_user
-    user_default_domain
-    @application = @domain.find_application params[:id]
+    @application = Application.find(params[:id], :as => current_user)
 
     @referer = application_path(@application)
   end
@@ -231,8 +228,8 @@ class ApplicationsController < ConsoleController
     @domain = user_default_domain
     app_id = params[:id].to_s
 
-    async{ @application = Application.find(app_id, :as => current_user, :params => {:include => :cartridges, :domain_id => @domain.id}) }
-    async{ @gear_groups_with_state = GearGroup.all(:as => current_user, :params => {:application_name => app_id, :domain_id => @domain.id}) }
+    async{ @application = Application.find(app_id, :as => current_user, :params => {:include => :cartridges}) }
+    async{ @gear_groups_with_state = GearGroup.all(:as => current_user, :params => {:application_id => app_id}) }
     async{ sshkey_uploaded? }
 
     join!(30)
@@ -242,8 +239,7 @@ class ApplicationsController < ConsoleController
   end
 
   def get_started
-    user_default_domain
-    @application = @domain.find_application params[:id]
+    @application = Application.find(params[:id], :as => current_user)
     @wizard = params[:wizard].present?
     
     if !sshkey_uploaded? && !params[:ssh]
@@ -254,8 +250,7 @@ class ApplicationsController < ConsoleController
   end
 
   def upload_key
-    user_default_domain
-    @application = @domain.find_application params[:id]
+    @application = Application.find(params[:id], :as => current_user)
     @noflash = true; flash.keep
     @wizard = params[:wizard].present?
 

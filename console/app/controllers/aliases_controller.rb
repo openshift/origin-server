@@ -1,26 +1,23 @@
 class AliasesController < ConsoleController
 
   def new
-    user_default_domain
     @capabilities = user_capabilities
-    @application = @domain.find_application params[:application_id]
+    @application = Application.find(params[:application_id], :as => current_user)
     @alias = Alias.new({ :application => @application, :as => current_user })
     @user = User.find :one, :as => current_user
     @private_ssl_certificates_supported = @user.capabilities["private_ssl_certificates"]
   end
 
   def edit
-    user_default_domain
     @capabilities = user_capabilities
-    @application = @domain.find_application params[:application_id]
+    @application = Application.find(params[:application_id], :as => current_user)
     @user = User.find :one, :as => current_user
     @private_ssl_certificates_supported = @user.capabilities["private_ssl_certificates"]
     @alias = @application.find_alias params[:id]
   end
 
   def create
-    user_default_domain
-    @application = @domain.find_application(params[:application_id])
+    @application = Application.find(params[:application_id], :as => current_user)
     @user = User.find :one, :as => current_user
     @private_ssl_certificates_supported = @user.capabilities["private_ssl_certificates"]
 
@@ -40,14 +37,12 @@ class AliasesController < ConsoleController
   end
 
   def delete
-    user_default_domain
-    @application = @domain.find_application params[:application_id]
+    @application = Application.find(params[:application_id], :as => current_user)
     @alias = params[:id]
   end
 
   def destroy
-    @domain = Domain.find :one, :as => current_user
-    @application = @domain.find_application params[:application_id]
+    @application = Application.find(params[:application_id], :as => current_user)
     @alias = @application.find_alias params[:id]
     if @alias.destroy
       message = "Alias '#{params[:id]}' has been removed"
@@ -58,8 +53,7 @@ class AliasesController < ConsoleController
   end
 
   def update
-    user_default_domain
-    @application = @domain.find_application params[:application_id]
+    @application = Application.find(params[:application_id], :as => current_user)
     @user = User.find :one, :as => current_user
     @private_ssl_certificates_supported = @user.capabilities["private_ssl_certificates"]
     @alias = @application.find_alias params[:id]

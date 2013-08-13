@@ -1,28 +1,24 @@
 class ScalingController < ConsoleController
 
   def show
-    user_default_domain
-    @application = @domain.find_application params[:application_id]
+    @application = Application.find(params[:application_id], :as => current_user)
     @cartridges = @application.cartridges
     @user = User.find :one, :as => current_user
     redirect_to new_application_scaling_path(@application) unless @application.scales?
   end
 
   def new
-    user_default_domain
-    @application = @domain.find_application params[:application_id]
+    @application = Application.find(params[:application_id], :as => current_user)
   end
 
   def delete
-    user_default_domain
-    @application = @domain.find_application params[:application_id]
+    @application = Application.find(params[:application_id], :as => current_user)
     redirect_to new_application_scaling_path(@application) unless @application.scales?
   end
 
   def update
-    user_default_domain
     @user = User.find :one, :as => current_user
-    @application = @domain.find_application params[:application_id]
+    @application = Application.find(params[:application_id], :as => current_user)
     @cartridges = @application.cartridges
     @cartridge = @cartridges.find{ |c| c.name == params[:id] } or raise RestApi::ResourceNotFound.new(Cartridge.model_name, params[:id])
 

@@ -1,14 +1,12 @@
 class BuildingController < ConsoleController
 
   def show
-    user_default_domain
-    @application = @domain.find_application params[:application_id]
+    @application = Application.find(params[:application_id], :as => current_user)
     redirect_to new_application_building_path(@application) unless @application.builds?
   end
 
   def new
-    user_default_domain
-    @application = @domain.find_application params[:application_id]
+    @application = Application.find(params[:application_id], :as => current_user)
     @jenkins_server = if @application.building_app
         @domain.find_application(@application.building_app) if @application.building_app
       else
@@ -19,8 +17,7 @@ class BuildingController < ConsoleController
   end
 
   def create
-    @domain = Domain.find :one, :as => current_user
-    @application = @domain.find_application(params[:application_id])
+    @application = Application.find(params[:application_id], :as => current_user)
     @jenkins_server = @domain.find_application(@application.building_app) if @application.building_app
     @cartridge_type = CartridgeType.cached.all.find{ |c| c.tags.include? :ci_builder }
     @cartridge = Cartridge.new :name => @cartridge_type.name
@@ -64,14 +61,12 @@ class BuildingController < ConsoleController
   end
 
   def delete
-    user_default_domain
-    @application = @domain.find_application params[:application_id]
+    @application = Application.find(params[:application_id], :as => current_user)
     redirect_to new_application_building_path(@application) unless @application.builds?
   end
 
   def destroy
-    @domain = Domain.find :one, :as => current_user
-    @application = @domain.find_application params[:application_id]
+    @application = Application.find(params[:application_id], :as => current_user)
     if @application.destroy_build_cartridge
       redirect_to application_path(@application), :flash => {:success => "#{@application.name} is no longer building through Jenkins."}
     else

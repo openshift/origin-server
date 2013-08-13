@@ -4,7 +4,7 @@
 class Application < RestApi::Base
   schema do
     string :name, :creation_time
-    string :uuid, :domain_id
+    string :id, :domain_id
     string :git_url, :app_url, :initial_git_url, :initial_git_branch
     string :server_identity
     string :gear_profile, :scale
@@ -12,14 +12,30 @@ class Application < RestApi::Base
     string :framework
   end
 
-  custom_id :name
-  def id #FIXME provided as legacy support for accessing .name via .id
-    name
+  # Override to append the name to UI urls
+  def to_param
+    "#{id}-#{name}".parameterize
   end
 
-  def to_param
-    #{}"#{uuid}-#{name}".parameterize
-    name.parameterize
+  # Override to use the ID-only when calling the REST API
+  def element_path(options = nil)
+    self.class.element_path(id, options || prefix_options)
+  end
+
+  # Helper method to extract the ID from an ID param containing the name as well
+  def self.id_from_param(param)
+    pre = param
+    post = param.to_s.gsub(/-.*/, '') if param
+    puts "Changed #{pre} to #{post}" if pre != post
+    post
+  end
+
+  # Override to extract the real ID from the pretty ID before searching
+  def self.find(*args)
+    if args.first.is_a?(String)
+      args[0] = id_from_param(args[0])
+    end
+    super(*args)
   end
 
   singular_resource
@@ -168,7 +184,7 @@ class Application < RestApi::Base
     end
 
     def child_options
-      { :params => { :domain_id => domain_id, :application_name => self.name},
+      { :params => { :application_id => self.id},
         :as => as }
     end
 

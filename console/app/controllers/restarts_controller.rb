@@ -1,13 +1,11 @@
 class RestartsController < ConsoleController
 
   def show
-    user_default_domain
-    @application = @domain.find_application params[:application_id]
+    @application = Application.find(params[:application_id], :as => current_user)
   end
 
   def update
-    user_default_domain
-    @application = @domain.find_application params[:application_id]
+    @application = Application.find(params[:application_id], :as => current_user)
 
     @application.restart!
     

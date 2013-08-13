@@ -27,7 +27,7 @@ class StorageController < ConsoleController
   end
 
   def application_information
-    @application = @domain.find_application params[:application_id]
+    @application = Application.find(params[:application_id], :as => current_user)
     @gear_groups = @application.cartridge_gear_groups
   end
 end

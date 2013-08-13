@@ -1,6 +1,6 @@
 class Member < RestApi::Base
   schema do
-    string :id, :type
+    string :id, :name, :role, :type
     boolean :owner
   end  
 

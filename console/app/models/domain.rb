@@ -23,6 +23,8 @@ class Domain < RestApi::Base
     Application.find name, { :params => { :domain_id => self.id }, :as => as}.deep_merge!(opts)
   end
 
+  has_many :members
+
   #FIXME should have an observer pattern that clears cached associations on reload
   def reload
     @applications = nil
