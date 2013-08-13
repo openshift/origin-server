@@ -154,7 +154,7 @@ if start_timeframe.nil? && end_timeframe && end_timeframe > current_time.at_begi
 end
 
 if start_timeframe && end_timeframe && start_timeframe > end_timeframe
-  puts "The end time cannot be greater than the start time"
+  puts "The start time cannot be greater than the end time"
   show_usage
 end
 
