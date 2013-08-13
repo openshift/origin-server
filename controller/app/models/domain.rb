@@ -212,14 +212,16 @@ class Domain
 
         case op.op_type
         when :change_members
-          self.applications.each do |app|
-            app.with_lock do |a|
-              a.change_member_roles(Array(op.args['changed']), [:domain])
-              a.remove_members(Array(op.args['removed']), [:domain])
-              a.add_members(Array(op.args['added']).map{ |m| self.class.to_member(m) }, [:domain])
+          self.applications.select do |a|
+            a.change_member_roles(Array(op.args['changed']), [:domain])
+            a.remove_members(Array(op.args['removed']), [:domain])
+            a.add_members(Array(op.args['added']).map{ |m| self.class.to_member(m) }, [:domain])
+            if a.changed?
               a.save!
-              a.run_jobs # FIXME this needs to recover and continue
             end
+          end.each do |app|
+            # only run jobs on applications that had changes
+            app.with_lock{ |a| a.run_jobs }
           end
           op.set(:state, :completed)
 
