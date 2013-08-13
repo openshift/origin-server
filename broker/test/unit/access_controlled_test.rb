@@ -7,6 +7,23 @@ class AccessControlledTest < ActiveSupport::TestCase
     Lock.stubs(:unlock_application).returns(true)
   end
 
+  def with_membership(&block)
+    with_config(:membership_enabled, true, &block)
+  end
+
+  def without_membership(&block)
+    with_config(:membership_enabled, false, &block)
+  end
+
+  def with_config(sym, value, base=:openshift, &block)
+    c = Rails.configuration.send(base)
+    @old =  c[sym]
+    c[sym] = value
+    yield
+  ensure
+    c[sym] = @old
+  end
+
   def test_member_equivalent
     assert_equal Member.new(_id: 'a'), Member.new(_id: 'a')
     assert_equal Member.new(_id: 'a'), CloudUser.new{ |u| u._id = 'a' }
@@ -155,7 +172,7 @@ class AccessControlledTest < ActiveSupport::TestCase
 
   def test_scopes_restricts_access
     u = CloudUser.find_or_create_by(:login => 'scope_test')
-    t = Authorization.create(:expires_in => 100){ |token| token.user = u }
+    Authorization.create(:expires_in => 100){ |token| token.user = u }
 
     #u2 = CloudUser.find_or_create_by(:login => 'scope_test_other')
     Domain.where(:namespace => 'test').delete
@@ -175,7 +192,8 @@ class AccessControlledTest < ActiveSupport::TestCase
 
     u.scopes = Scope.list!("application/#{a._id}/view")
     assert_equal [a._id], Application.accessible(u).map(&:_id)
-    assert_equal [d._id], Domain.accessible(u).map(&:_id)
+    with_membership{ assert_equal [d._id], Domain.accessible(u).map(&:_id) }
+    without_membership{ assert_equal [d._id], Domain.accessible(u).map(&:_id) }
     assert CloudUser.accessible(u).empty?
     assert Authorization.accessible(u).empty?
 
@@ -183,8 +201,9 @@ class AccessControlledTest < ActiveSupport::TestCase
     assert_equal [d2._id], Domain.accessible(u).map(&:_id)
 
     u.scopes = Scope.list!("application/#{Moped::BSON::ObjectId.new}/view")
-    assert Application.accessible(u).empty?
-    assert_raises(Mongoid::Errors::DocumentNotFound){ Domain.accessible(u).empty? }
+    with_membership{ assert Application.accessible(u).empty? }
+    without_membership{ assert Application.accessible(u).empty? } # test the legacy rendering path
+    assert Domain.accessible(u).empty?
     assert CloudUser.accessible(u).empty?
     assert Authorization.accessible(u).empty?
 
@@ -294,14 +313,26 @@ class AccessControlledTest < ActiveSupport::TestCase
     assert_equal 3, d.members.length
 
     assert Domain.accessible(u).first
-    assert Domain.accessible(u2).first
-    assert Domain.accessible(u3).first
-    
+    with_membership do
+      assert Domain.accessible(u2).first
+      assert Domain.accessible(u3).first
+    end
+    without_membership do
+      assert_equal [], Domain.accessible(u2)
+      assert_equal [], Domain.accessible(u3)
+    end
+
     d.run_jobs
 
     assert Application.accessible(u).first
-    assert Application.accessible(u2).first
-    assert Application.accessible(u3).first
+    with_membership do
+      assert Application.accessible(u2).first
+      assert Application.accessible(u3).first
+    end
+    without_membership do
+      assert_equal [], Application.accessible(u2)
+      assert_equal [], Application.accessible(u3)
+    end
 
     assert jobs = d.applications.first.pending_op_groups
     assert jobs.length == 1
@@ -324,8 +355,14 @@ class AccessControlledTest < ActiveSupport::TestCase
     assert_equal 1, d.members.length
 
     assert Application.accessible(u).first
-    assert Application.accessible(u2).first
-    assert Application.accessible(u3).first
+    with_membership do
+      assert Application.accessible(u2).first
+      assert Application.accessible(u3).first
+    end
+    without_membership do
+      assert_equal [], Application.accessible(u2)
+      assert_equal [], Application.accessible(u3)
+    end
 
     d.run_jobs
 

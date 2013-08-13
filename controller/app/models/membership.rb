@@ -69,11 +69,11 @@ module Membership
   #
   # FIXME
   # does not handle _id collisions across types.  May or may not want to resolve.
-  # 
+  #
   def changing_members(&block)
     _assigning do
       ids = member_ids
-      instance_eval &block
+      instance_eval(&block)
       new_ids = member_ids
 
       added, removed = (new_ids - ids), (ids - new_ids)
@@ -171,7 +171,7 @@ module Membership
     # Overrides AccessControlled#accessible
     #
     def accessible(to)
-      criteria = 
+      criteria =
         if Rails.configuration.openshift[:membership_enabled]
           where(:'members._id' => to.is_a?(String) ? to : to._id)
         elsif respond_to? :legacy_accessible
@@ -179,18 +179,15 @@ module Membership
         else
           queryable
         end
-      if to.respond_to?(:scopes) && (scopes = to.scopes)
-        criteria = scopes.limit_access(criteria)
-      end
-      criteria
-    end    
+      scope_limited(to, criteria)
+    end
 
     def to_member(arg)
-      if Member === arg 
+      if Member === arg
         arg
       else
-        if arg.respond_to?(:as_member) 
-          arg.as_member 
+        if arg.respond_to?(:as_member)
+          arg.as_member
         elsif arg.is_a?(Array)
           Member.new{ |m| m._id = arg[0]; m.role = arg[1]; m._type = arg[2]; m.name = arg[3] }
         else

@@ -6,7 +6,7 @@
 #   @return [Array[Hash]] List of domain wide environment variables to be created on all {Application}s under the domain.
 #     @see {Domain#add_env_variables}, {Domain#remove_env_variables}
 # @!attribute [r] system_ssh_keys
-#   @return [Array[SystemSshKey]] List of SSH keys to be made available on all {Application}s under the domain. 
+#   @return [Array[SystemSshKey]] List of SSH keys to be made available on all {Application}s under the domain.
 #     These keys are used when applications need to push code to each other. Eg: Jenkins
 #     @see {Domain#add_domain_ssh_keys}, {Domain#remove_domain_ssh_key}
 # @!attribute [r] owner
@@ -63,7 +63,7 @@ class Domain
       valid_gear_sizes = OpenShift::ApplicationContainerProxy.valid_gear_sizes & (d.has_owner? and d.owner.allowed_gear_sizes or [])
       invalid_gear_sizes = new_gear_sizes - valid_gear_sizes
       if invalid_gear_sizes.present?
-        d.errors.add :allowed_gear_sizes, "The following gear sizes are invalid: #{invalid_gear_sizes.to_sentence}" 
+        d.errors.add :allowed_gear_sizes, "The following gear sizes are invalid: #{invalid_gear_sizes.to_sentence}"
       else
         d.allowed_gear_sizes = new_gear_sizes.uniq
       end
@@ -105,8 +105,8 @@ class Domain
     self.canonical_namespace = namespace.present? ? namespace.downcase : nil
     if has_owner?
       self.allowed_gear_sizes = owner.allowed_gear_sizes if owner_id_changed? || !persisted?
-    end    
-  end  
+    end
+  end
 
   # Defend against namespace changes after creation.
   before_update do
@@ -138,7 +138,7 @@ class Domain
   end
 
   def self.legacy_accessible(to)
-    to.respond_to?(:domains) ? to.domains : where(owner: to)
+    scope_limited(to, to.respond_to?(:domains) ? to.domains.scoped : where(owner: to))
   end
 
   def add_system_ssh_keys(ssh_keys)

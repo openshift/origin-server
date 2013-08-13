@@ -281,8 +281,8 @@ class Application
   end
 
   def self.legacy_accessible(to)
-    self.in(domain: Domain.legacy_accessible(to).map(&:_id))
-  end  
+    scope_limited(to, self.in(domain: Domain.legacy_accessible(to).map(&:_id)))
+  end
 
   ##
   # Constructor. Should not be used directly. Use {Application#create_app} instead.
