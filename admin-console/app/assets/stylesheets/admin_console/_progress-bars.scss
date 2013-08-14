@@ -53,7 +53,7 @@
      @include gradient-vertical(#0480be, #149bdf);
 
     .bar {
-      @include gradient-vertical(lighten(#CCC, 15%), #CCC);
+      @include gradient-vertical(lighten(#C1C1C1, 15%), #C1C1C1);
     }
   }
 

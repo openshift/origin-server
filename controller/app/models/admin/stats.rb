@@ -377,7 +377,7 @@ class Admin::Stats
     # these values will accumulate as we go
     starter_stats = ProfileSummary[ %w[
        nodes_count nodes_active nodes_inactive gears_active_count gears_idle_count
-       gears_stopped_count gears_unknown_count gears_total_count available_active_gears
+       gears_stopped_count gears_unknown_count gears_total_count available_active_gears available_active_gears_with_negatives
        effective_available_gears avg_active_usage_pct district_capacity
        dist_avail_capacity dist_avail_uids avg_dist_usage_pct
     ].collect {|key| [key, 0]}]
@@ -392,8 +392,8 @@ class Admin::Stats
       sum = summary_for_profile[dist['profile']]
       sum['districts'] << dist
       %w[ gears_active_count gears_idle_count gears_stopped_count gears_unknown_count
-        gears_total_count available_active_gears effective_available_gears nodes_count
-        nodes_active nodes_inactive missing_nodes district_capacity
+        gears_total_count available_active_gears available_active_gears_with_negatives effective_available_gears
+        nodes_count nodes_active nodes_inactive missing_nodes district_capacity
         dist_avail_capacity dist_avail_uids
       ].each {|key| sum[key] += dist[key]}
       sum['avg_active_usage_pct'] += dist['avg_active_usage_pct'] * dist['nodes_count']
