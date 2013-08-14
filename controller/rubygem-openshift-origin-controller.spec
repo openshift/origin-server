@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.13.1
+Version: 1.13.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -84,6 +84,33 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Wed Aug 14 2013 Adam Miller <admiller@redhat.com> 1.13.2-1
+- Merge pull request #3322 from smarterclayton/origin_ui_73_membership_model
+  (dmcphers+openshiftbot@redhat.com)
+- save exposed port interfaces of a gear (rchopra@redhat.com)
+- Merge pull request #3290 from
+  smarterclayton/bug_992464_not_raising_on_not_found_token
+  (dmcphers+openshiftbot@redhat.com)
+- Check denormalization in oo-admin-chk (ccoleman@redhat.com)
+- Only schedule domain jobs on applications that actually need it
+  (ccoleman@redhat.com)
+- Default to test mode membership off (ccoleman@redhat.com)
+- Review comments (ccoleman@redhat.com)
+- Bug 995371 - Direct parameters to members were ignored (ccoleman@redhat.com)
+- Ensure only users with ssh access are added with keys (ccoleman@redhat.com)
+- * Implement a membership model for OpenShift that allows an efficient query
+  of user access based on each resource. * Implement scope limitations that
+  correspond to specific permissions * Expose membership info via the REST API
+  (disableable via config) * Allow multiple domains per user, controlled via a
+  configuration flag * Support additional information per domain
+  (application_count and gear_counts) to improve usability * Let domains
+  support the allowed_gear_sizes option, which limits the gear sizes available
+  to apps in that domain * Simplify domain update interactions - redundant
+  validation removed, and behavior of responses differs slightly. * Implement
+  migration script to enable data (ccoleman@redhat.com)
+- Bug 992464 - Authorization token needs to raise when checking eventual
+  consistency (ccoleman@redhat.com)
+
 * Thu Aug 08 2013 Adam Miller <admiller@redhat.com> 1.13.1-1
 - Merge pull request #3307 from jwhonce/wip/java_opt_ext
   (dmcphers+openshiftbot@redhat.com)
