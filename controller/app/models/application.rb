@@ -26,8 +26,6 @@ end
 #   @return [Array<PendingAppOpGroup>] List of pending operations to be performed on this application
 # @!attribute [r] domain
 #   @return [Domain] Domain that this application is part of.
-# @!attribute [r] user_ids
-#   @return [Array<Moped::BSON::ObjectId>] Array of IDs of users that have access to this application.
 # @!attribute [rw] component_start_order
 #   @return [Array<String>] Normally start order computed based on order specified by each component's manifest.
 #     This attribute is used to overrides the start order
@@ -58,6 +56,7 @@ end
 class Application
   include Mongoid::Document
   include Mongoid::Timestamps
+  include Membership
 
   # Maximum length of  a valid application name
   APP_NAME_MAX_LENGTH = 32
@@ -81,9 +80,11 @@ class Application
   field :group_overrides, type: Array, default: []
   embeds_many :pending_op_groups, class_name: PendingAppOpGroup.name
 
-  belongs_to :domain
+  belongs_to :domain, inverse_of: :applications
+  field :domain_namespace, type: String # denormalized canonical namespace
+  belongs_to :owner, class_name: CloudUser.name, inverse_of: :owned_applications
+
   field :downloaded_cart_map, type: Hash, default: {}
-  field :user_ids, type: Array, default: []
   field :component_start_order, type: Array, default: []
   field :component_stop_order, type: Array, default: []
   field :component_configure_order, type: Array, default: []
@@ -96,6 +97,8 @@ class Application
   embeds_many :app_ssh_keys, class_name: ApplicationSshKey.name
   embeds_many :aliases, class_name: Alias.name
 
+  has_members through: :domain, default_role: :admin
+
   index({'group_instances.gears.uuid' => 1}, {:unique => true, :sparse => true})
   index({'domain_id' => 1})
   create_indexes
@@ -104,6 +107,27 @@ class Application
   attr_accessor :user_agent
   attr_accessor :downloaded_cartridges
   attr_accessor :connections
+
+  #
+  # Return a count of the gears for each application identified by the current query.  Returns
+  # an array of hashes including:
+  #
+  #   '_id': application id
+  #   'domain_id': domain id
+  #   'gears': hash of gear size strings to counts
+  #
+  def self.with_gear_counts
+    only(:_id, :domain_id, :default_gear_size, :"group_instances.gears.uuid", :"group_instances.gear_size").all.query.find.to_a.each do |a| 
+      a['gears'] = (a['group_instances'] || []).inject({}) do |h, i|
+        p = i['gear_size'] || a['default_gear_size']
+        h[p] ||= 0
+        h[p] += i['gears'].length
+        h
+      end
+      a.delete 'group_instances'
+      a.delete 'default_gear_size'
+    end
+  end
 
   validates :name,
     presence: {message: "Application name is required and cannot be blank."},
@@ -116,6 +140,14 @@ class Application
   # * 105: Invalid application name
   def self.validation_map
     {name: 105}
+  end
+
+  # Denormalize the domain namespace and the owner id
+  before_save prepend: true do 
+    if has_domain?
+      self.domain_namespace = domain.canonical_namespace if domain_namespace.blank? || domain_id_changed?
+      self.owner_id = domain.owner_id if owner_id.blank? || domain_id_changed?
+    end
   end
 
   # Hook to prevent accidental deletion of MongoID model before all related {Gear}s are removed
@@ -231,10 +263,8 @@ class Application
   # @param app_name [String] The application name
   # @return [Application, nil] The application object or nil if no application matches
   #
-  # FIXME: Remove this call pattern and replace with a differently named scope
   def self.find_by_user(user, app_name)
-    user.domains.each { |d| d.applications.each { |a| return a if a.canonical_name == app_name.downcase } }
-    return nil
+    Application.in(domain: user.domains).where(canonical_name: app_name.downcase).first
   end
 
   ##
@@ -250,6 +280,10 @@ class Application
     return [app, gear]
   end
 
+  def self.legacy_accessible(to)
+    scope_limited(to, self.in(domain: Domain.legacy_accessible(to).map(&:_id)))
+  end
+
   ##
   # Constructor. Should not be used directly. Use {Application#create_app} instead.
   # @note side-effect: Saves application object in mongo
@@ -258,7 +292,7 @@ class Application
     @downloaded_cartridges = {}
     self.uuid = self._id.to_s if self.uuid=="" or self.uuid.nil?
     self.app_ssh_keys = []
-    self.pending_op_groups = []
+    #self.pending_op_groups = []
     self.analytics = {} if self.analytics.nil?
     self.save
   end
@@ -281,10 +315,11 @@ class Application
   # @param keys [Array<SshKey>] Array of keys to add to the application.
   # @param parent_op [PendingDomainOps] object used to track this operation at a domain level
   # @return [ResultIO] Output from cartridges
-  def add_ssh_keys(user_id, keys, parent_op)
+  def add_ssh_keys(user_id, keys, parent_op=nil)
     return if keys.empty?
     keys_attrs = get_updated_ssh_keys(user_id, keys)
     Application.run_in_application_lock(self) do
+      return unless Ability.has_permission?(user_id, :ssh_to_gears, Application, role_for(user_id), self)
       op_group = PendingAppOpGroup.new(op_type: :update_configuration,  args: {"add_keys_attrs" => keys_attrs}, parent_op: parent_op, user_agent: self.user_agent)
       self.pending_op_groups.push op_group
       result_io = ResultIO.new
@@ -304,6 +339,7 @@ class Application
     return if keys.empty?
     keys_attrs = get_updated_ssh_keys(user_id, keys)
     Application.run_in_application_lock(self) do
+      return unless Ability.has_permission?(user_id, :ssh_to_gears, Application, role_for(user_id), self)
       op_group = PendingAppOpGroup.new(op_type: :update_configuration, args: {"remove_keys_attrs" => keys_attrs}, parent_op: parent_op, user_agent: self.user_agent)
       self.pending_op_groups.push op_group
       result_io = ResultIO.new
@@ -317,21 +353,14 @@ class Application
   # @param user_id [String] The ID of the user associated with the keys. If the user ID is nil, then the key is assumed to be a system generated key
   # @param keys [Array<SshKey>] Array of keys to add to the application.
   # @return [ResultIO] Output from cartridges
-  def fix_gear_ssh_keys()
+  def fix_gear_ssh_keys
     Application.run_in_application_lock(self) do
-      ssh_keys = []
-
       # reload the application to get the latest data
       self.reload
 
-      # get the application keys
-      ssh_keys |= self.app_ssh_keys.map {|k| k.to_key_hash}
-
-      # get the domain ssh keys
+      ssh_keys = self.app_ssh_keys.map {|k| k.to_key_hash }
       ssh_keys |= get_updated_ssh_keys(nil, self.domain.system_ssh_keys)
-
-      # get the user ssh keys
-      ssh_keys |= get_updated_ssh_keys(self.domain.owner_id, self.domain.owner.ssh_keys)
+      ssh_keys |= CloudUser.members_of(self){ |m| Ability.has_permission?(m._id, :ssh_to_gears, Application, m.role, self) }.map{ |u| get_updated_ssh_keys(u._id, u.ssh_keys) }.flatten(1)
 
       op_group = PendingAppOpGroup.new(op_type: :replace_all_ssh_keys,  args: {"keys_attrs" => ssh_keys}, user_agent: self.user_agent)
       self.pending_op_groups.push op_group
@@ -654,7 +683,7 @@ class Application
   def scale_by(group_instance_id, scale_by)
     raise OpenShift::UserException.new("Application #{self.name} is not scalable") if !self.scalable
 
-    ginst = group_instances_with_scale.select {|gi| gi._id == group_instance_id}.first
+    ginst = group_instances_with_scale.select {|gi| gi._id === group_instance_id}.first
     raise OpenShift::UserException.new("Cannot scale below minimum gear requirements.", 168) if scale_by < 0 && ginst.gears.length <= ginst.min
     raise OpenShift::UserException.new("Cannot scale up beyond maximum gear limit in app #{self.name}.", 168) if scale_by > 0 && ginst.gears.length >= ginst.max and ginst.max > 0
 
@@ -669,26 +698,24 @@ class Application
   ##
   # Returns the fully qualified DNS name for an application gear (unless specified, the primary)
   # @return [String]
-  def fqdn(domain=nil, gear_name = nil)
-    domain = domain || self.domain
-    appname = gear_name || self.name
-    "#{appname}-#{domain.namespace}.#{Rails.configuration.openshift[:domain_suffix]}"
+  def fqdn(gear_name = nil)
+    "#{gear_name || canonical_name}-#{domain_namespace}.#{Rails.configuration.openshift[:domain_suffix]}"
   end
 
   ##
   # Returns the SSH URI for an application gear (unless specified, the primary)
   # @return [String]
-  def ssh_uri(domain=nil, gear_uuid=nil)
+  def ssh_uri(gear_uuid=nil)
     self.group_instances.each do |group_instance|
       if gear_uuid # specific gear_uuid requested
         if group_instance.gears.where(uuid: gear_uuid).count > 0
           gear = group_instance.gears.find_by(uuid: gear_uuid)
-          return "#{gear_uuid}@#{fqdn(domain,gear.name)}"
+          return "#{gear_uuid}@#{fqdn(gear.name)}"
         end
       elsif group_instance.gears.where(app_dns: true).count > 0
         # get the gear_uuid of head gear
         gear = group_instance.gears.find_by(app_dns: true)
-        return "#{gear.uuid}@#{fqdn(domain)}"
+        return "#{gear.uuid}@#{fqdn}"
       end
     end
     ""
@@ -1160,21 +1187,40 @@ class Application
     nil
   end
 
-  # Acquires an application level lock and runs all pending jobs and stops at the first failure.
+  # Runs all pending jobs and stops at the first failure.
+  #
+  # IMPORTANT: Callers should take the application lock prior to calling run_jobs
+  #
+  # IMPORTANT: When changing jobs, be sure to leave old jobs runnable so that pending_ops
+  #   that are inserted during a running upgrade can continue to complete.
   #
   # == Returns:
-  # True on success or False if unable to acquire the lock or no pending jobs.
+  # True on success or False if no pending jobs.
   def run_jobs(result_io=nil)
     result_io = ResultIO.new if result_io.nil?
     self.reload
-    return true if (self.pending_op_groups.count == 0)
     begin
       while self.pending_op_groups.count > 0
         op_group = self.pending_op_groups.first
         self.user_agent = op_group.user_agent
-        op_group.pending_ops
+
         if op_group.pending_ops.count == 0
           case op_group.op_type
+          when :change_members
+            added = Array(op_group.args['added']).select{ |id| (role = role_for(id)) and Ability.has_permission?(id, :ssh_to_gears, Application, role, self) } 
+            removed = Array(op_group.args['removed']).dup
+            Array(op_group.args['changed']).each do |(id, from, to)|
+              was = Ability.has_permission?(id, :ssh_to_gears, Application, from || default_role, self) 
+              is =  Ability.has_permission?(id, :ssh_to_gears, Application, to || default_role, self) 
+              next if is == was
+              (is ? added : removed) << id
+            end
+            ops = calculate_update_existing_configuration_ops({
+              # FIXME this is an unbounded operation, all keys for all users added and removed to each gear.  need to optimize
+              'add_keys_attrs' => CloudUser.members_of(added).map{ |u| get_updated_ssh_keys(u._id, u.ssh_keys) }.flatten(1),
+              'remove_keys_attrs' => CloudUser.members_of(removed).map{ |u| get_updated_ssh_keys(u._id, u.ssh_keys) }.flatten(1),
+            })
+            op_group.pending_ops.push(*ops)
           when :update_configuration
             ops = calculate_update_existing_configuration_ops(op_group.args)
             op_group.pending_ops.push(*ops)
@@ -1299,6 +1345,10 @@ class Application
     end
   end
 
+  def with_lock(&block)
+    self.class.run_in_application_lock(self, &block)
+  end
+
   def self.run_in_application_lock(application, &block)
     got_lock = false
     num_retries = 10
@@ -1313,7 +1363,7 @@ class Application
     end
     if got_lock
       begin
-        yield block
+        block.arity == 1 ? block.call(application) : yield
       ensure
         Lock.unlock_application(application)
       end
@@ -1442,15 +1492,6 @@ class Application
   def calculate_gear_create_ops(ginst_id, gear_ids, deploy_gear_id, comp_specs, component_ops, additional_filesystem_gb, gear_size, ginst_op_id=nil, is_scale_up=false, hosts_app_dns=false, init_git_url=nil)
     pending_ops = []
 
-    a_ssh_keys = self.app_ssh_keys.map{|k| k.attributes}
-    d_ssh_keys = get_updated_ssh_keys(nil, self.domain.system_ssh_keys)
-    o_ssh_keys = get_updated_ssh_keys(self.domain.owner._id, self.domain.owner.ssh_keys)
-    u_ssh_keys = CloudUser.find(self.domain.user_ids).map{|u| get_updated_ssh_keys(u._id, u.ssh_keys)}.flatten
-
-    ssh_keys = a_ssh_keys + d_ssh_keys + o_ssh_keys + u_ssh_keys
-    env_vars = self.domain.env_vars
-    init_git_url = nil unless hosts_app_dns
-
     gear_id_prereqs = {}
     maybe_notify_app_create_op = []
     gear_ids.each do |gear_id|
@@ -1492,6 +1533,12 @@ class Application
 
       gear_id_prereqs[gear_id] = register_dns_op._id.to_s
     end
+
+    ssh_keys = self.app_ssh_keys.map{|k| k.to_key_hash } #FIXME Why am i not a standard key class?
+    ssh_keys |= get_updated_ssh_keys(nil, self.domain.system_ssh_keys)
+    ssh_keys |= CloudUser.members_of(self).map{ |u| get_updated_ssh_keys(u._id, u.ssh_keys) }.flatten(1)
+
+    env_vars = self.domain.env_vars
 
     ops = calculate_update_new_configuration_ops({"add_keys_attrs" => ssh_keys, "add_env_vars" => env_vars}, ginst_id, gear_id_prereqs)
     pending_ops.push(*ops)
@@ -2517,6 +2564,9 @@ class Application
 
   # The ssh key names are used as part of the ssh key comments on the application's gears
   # Do not change the format of the key name, otherwise it may break key removal code on the node
+  #
+  # FIXME why are we not using uuids and hashes to guarantee key uniqueness on the nodes?
+  #
   def get_updated_ssh_keys(user_id, keys)
     updated_keys_attrs = keys.map { |key|
       key_attrs = key.to_key_hash.deep_dup

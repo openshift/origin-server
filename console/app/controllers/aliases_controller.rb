@@ -35,12 +35,9 @@ class AliasesController < ConsoleController
       render :new
     end
   rescue ActiveResource::ResetConnectionError => e
-    if Rails.env.test? || Rails.env.devenv? || Rails.env.development?
-      @alias = @application.find_alias params[:alias][:id]
-      redirect_to @application, :flash => {:success => "Alias '#{@alias.id}' has been created"}
-    else
-      raise ActiveResource::ConnectionError.new(e.message)
-    end
+    raise unless Rails.env.test? || Rails.env.devenv? || Rails.env.development?
+    @alias = @application.find_alias params[:alias][:id]
+    redirect_to @application, :flash => {:success => "Alias '#{@alias.id}' has been created"}
   end
 
   def delete

@@ -27,7 +27,7 @@ class KeysControllerTest < ActionController::TestCase
     end
   end
   
-  test "key create show list update and destory" do
+  test "key create show list update and destroy" do
     key_name = "key#{@random}"
     post :create, {"name" => key_name, "type" => "ssh-rsa", "content" => "ABCD1234"}
     assert_response :created

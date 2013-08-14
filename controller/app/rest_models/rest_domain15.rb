@@ -21,14 +21,22 @@
 # @!attribute [r] suffix
 #   @return [String] DNS suffix under which the application is created. Eg: rhcloud.com
 class RestDomain15 < OpenShift::Model
-  attr_accessor :id, :suffix, :links
+  attr_accessor :id, :suffix, :members, :allowed_gear_sizes, :creation_time, :links
   
-  def initialize(domain, owner, url, nolinks=false)
+  def initialize(domain, url, nolinks=false)
     self.id = domain.namespace
     self.suffix = Rails.application.config.openshift[:domain_suffix] 
+    self.creation_time = domain.created_at
+    self.members = domain.members.map{ |m| RestMember.new(m, domain.owner_id == m._id, url, nolinks) }
+    self.allowed_gear_sizes = domain.allowed_gear_sizes
     
+    if not domain.application_count.nil?
+      @application_count = domain.application_count
+      @gear_counts = domain.gear_counts || {}
+    end
+
     unless nolinks      
-      valid_sizes = OpenShift::ApplicationContainerProxy.valid_gear_sizes(owner)
+      valid_sizes = domain.allowed_gear_sizes
       blacklisted_words = OpenShift::ApplicationContainerProxy.get_blacklisted
       carts = CartridgeCache.cartridge_names("web_framework")
 
@@ -48,7 +56,13 @@ class RestDomain15 < OpenShift::Model
         ]),
         "DELETE" => Link.new("Delete domain", "DELETE", URI::join(url, "domains/#{id}"),nil,[
           OptionalParam.new("force", "boolean", "Force delete domain.  i.e. delete any applications under this domain", [true, false], false)
-        ])
+        ]),
+        "LIST_MEMBERS" => Link.new("List members of this domain", "GET", URI::join(url, "domains/#{id}/members")),
+        "ADD_MEMBER" => Link.new("Add one or more members to this domain", "POST", URI::join(url, "domains/#{id}/members"), 
+          [Param.new("role", "string", "The role the user should have on the domain", Role.all)], 
+          [OptionalParam.new("id", "string", "Unique identifier of the user"),
+          OptionalParam.new("login", "string", "The user's login attribute")]
+        ),        
       }
     end
   end

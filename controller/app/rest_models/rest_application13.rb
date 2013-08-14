@@ -21,14 +21,14 @@ class RestApplication13 < OpenShift::Model
       self.aliases << a.fqdn
     end
     self.gear_count = app.num_gears
-    self.domain_id = app.domain.namespace
+    self.domain_id = app.domain_namespace
 
     self.gear_profile = app.default_gear_size
     self.scalable = app.scalable
 
-    self.git_url = "ssh://#{app.ssh_uri(app.domain)}/~/git/#{@name}.git/"
-    self.app_url = "http://#{app.fqdn(app.domain)}/"
-    self.ssh_url = "ssh://#{app.ssh_uri(app.domain)}"
+    self.git_url = "ssh://#{app.ssh_uri}/~/git/#{@name}.git/"
+    self.app_url = "http://#{app.fqdn}/"
+    self.ssh_url = "ssh://#{app.ssh_uri}"
     self.health_check_path = app.health_check_path
 
     self.building_with = nil

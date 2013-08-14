@@ -3,13 +3,15 @@ class AuthorizationsController < BaseController
   # Display only non-revoked tokens (includes expired tokens).
   #
   def index
-    authorizations = Authorization.with(consistency: :eventual).for_owner(current_user).not_expired.
+    authorizations = Authorization.with(consistency: :eventual).for_owner(current_user).not_expired.accessible(current_user).
                      order_by([:created_at, :desc]).
                      map{ |auth| RestAuthorization.new(auth, get_url, nolinks) }
     render_success(:ok, "authorizations", authorizations, 'List authorizations', nil, nil, 'IP' => request.remote_ip)
   end
 
   def create
+    authorize! :create_authorization, current_user
+
     scopes = if s = params[:scope] || params[:scopes]
         Scope.list!(s) rescue (
           return render_error(:unprocessable_entity, "One or more of the scopes you provided are not allowed. Valid scopes are #{Scope.describe_all.map(&:first).to_sentence}.",
@@ -25,7 +27,7 @@ class AuthorizationsController < BaseController
       end || scopes.default_expiration
 
     if params[:reuse]
-      token = Authorization.for_owner(current_user).
+      token = Authorization.for_owner(current_user).accessible(current_user).
         matches_details(params[:note], scopes).
         order_by([:created_at, :desc]).
         limit(10).detect{ |i| i.expires_in_seconds > [10.minute.seconds, expires_in / 4].min }
@@ -43,18 +45,20 @@ class AuthorizationsController < BaseController
   end
 
   def show
-    auth = Authorization.with(consistency: :eventual).for_owner(current_user).any_of({:token => params[:id].to_s}, {:id => params[:id].to_s}).find_by
+    auth = Authorization.with(consistency: :eventual).for_owner(current_user).any_of({:token => params[:id].to_s}, {:id => params[:id].to_s}).accessible(current_user).find_by
     render_success(:ok, "authorization", RestAuthorization.new(auth, get_url, nolinks), "Display authorization", nil, nil, 'TOKEN' => auth.token, 'IP' => request.remote_ip)
   end
 
   def update
-    auth = Authorization.for_owner(current_user).any_of({:token => params[:id].to_s}, {:id => params[:id].to_s}).find_by
+    authorize! :update_authorization, current_user
+    auth = Authorization.for_owner(current_user).any_of({:token => params[:id].to_s}, {:id => params[:id].to_s}).accessible(current_user).find_by
     auth.update_attributes!(params.slice(:note))
     render_success(:ok, "authorization", RestAuthorization.new(auth, get_url, nolinks), "Change authorization", nil, nil, 'TOKEN' => auth.token, 'IP' => request.remote_ip)
   end
 
   def destroy
-    Authorization.for_owner(current_user).any_of({:token => params[:id].to_s}, {:id => params[:id].to_s}).delete_all
+    authorize! :destroy_authorization, current_user
+    Authorization.for_owner(current_user).any_of({:token => params[:id].to_s}, {:id => params[:id].to_s}).accessible(current_user).delete_all
     status = requested_api_version <= 1.4 ? :no_content : :ok
     render_success(status, nil, nil, "Authorization #{params[:id]} is revoked.")
   rescue Mongoid::Errors::DocumentNotFound
@@ -62,7 +66,8 @@ class AuthorizationsController < BaseController
   end
 
   def destroy_all
-    Authorization.for_owner(current_user).delete_all
+    authorize! :destroy_authorization, current_user
+    Authorization.for_owner(current_user).accessible(current_user).delete_all
     status = requested_api_version <= 1.4 ? :no_content : :ok
     render_success(status, nil, nil, "All authorizations for #{@cloud_user.id} are revoked.")
   end

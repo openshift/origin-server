@@ -103,9 +103,35 @@ class RestApiTest < ActiveSupport::TestCase
     assert_raise(ActiveResource::ResourceInvalid){ Domain.new(:id => 'a', :as => @user).save! }
 
     ActiveResource::HttpMock.respond_to do |mock|
+      mock.post '/broker/rest/domains.json', json_header(true), {:messages => [{:field => 'foo', :exit_code => 1, 'text' => 'bar'}], :data => nil}.to_json, 403
+    end
+    assert !(d = Domain.new(:id => 'a', :as => @user)).save
+    assert_equal ['bar'], d.errors[:foo]
+    assert_raise(ActiveResource::ResourceInvalid){ Domain.new(:id => 'a', :as => @user).save! }
+
+    ActiveResource::HttpMock.respond_to do |mock|
+      mock.post '/broker/rest/domains.json', json_header(true), {:messages => [{:field => 'foo', :exit_code => 1, 'text' => 'bar'}], :data => nil}.to_json, 409
+    end
+    assert !(d = Domain.new(:id => 'a', :as => @user)).save
+    assert_equal ['bar'], d.errors[:foo]
+    assert_raise(ActiveResource::ResourceInvalid){ Domain.new(:id => 'a', :as => @user).save! }
+
+    ActiveResource::HttpMock.respond_to do |mock|
       mock.post '/broker/rest/domains.json', json_header(true), {:messages => [{:field => 'foo', :exit_code => 103, 'text' => 'bar'}], :data => nil}.to_json, 500
     end
     assert_raise(Domain::AlreadyExists){ Domain.new(:id => 'a', :as => @user).save! }
+  end
+
+  def test_unhandled_exceptions
+    ActiveResource::HttpMock.respond_to do |mock|
+      mock.post '/broker/rest/domains.json', json_header(true), {:messages => [{:field => 'foo', :exit_code => 1, 'text' => 'bar'}], :data => nil}.to_json, 401
+    end
+    assert_raise(ActiveResource::UnauthorizedAccess){ Domain.new(:id => 'a', :as => @user).save }
+
+    Domain.stubs(:unhandled_exceptions).returns([])
+    assert !Domain.new(:id => 'a', :as => @user).save
+
+    assert_raise(ActiveResource::UnauthorizedAccess){ Domain.new(:id => 'a', :as => @user).save_without_validation }
   end
 
   def test_has_exit_code_real

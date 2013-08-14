@@ -5,7 +5,7 @@ class RestAlias15 < OpenShift::Model
     self.id = al1as.fqdn
     self.has_private_ssl_certificate = al1as["has_private_ssl_certificate"]
     self.certificate_added_at = al1as["certificate_added_at"]
-    domain_id = app.domain.namespace
+    domain_id = app.domain_namespace
     app_id = app.name
     unless nolinks      
       self.links = {

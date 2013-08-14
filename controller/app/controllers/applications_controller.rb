@@ -3,7 +3,7 @@
 # Application CRUD REST API
 class ApplicationsController < BaseController
   include RestModelHelper
-  before_filter :get_domain, :only => [:create]
+  before_filter :get_domain, :only => :create
   before_filter :get_application, :only => [:show, :destroy, :update]
   ##
   # List all applications
@@ -16,30 +16,12 @@ class ApplicationsController < BaseController
   def index
     include_cartridges = (params[:include] == "cartridges")
     domain_id = params[:domain_id].presence
-    domain_id = domain_id.downcase if domain_id
-    apps = []
-    if domain_id
-      #only get apps for this domain
-      begin
-        @domain = Domain.find_by(owner: @cloud_user, canonical_namespace: domain_id)
-      rescue Mongoid::Errors::DocumentNotFound => e
-        return render_error(:not_found, "Domain '#{domain_id}' not found", 127)
-      end
-      @domain.applications.each do |app|
-        apps.push(app)
-      end if @domain
-    elsif @domain.nil?
-      #get all apps for all domains
-      domains = Domain.find_by(owner: @cloud_user)
-      domains = [domains] if domains.is_a? Domain
-      domains.each do |domain|
-        domain.applications.each do |app|
-          apps.push(app)
-        end
-      end
-    end    
-    rest_apps = apps.map { |application| get_rest_application(application, include_cartridges, apps) }
-    render_success(:ok, "applications", rest_apps, "Found #{rest_apps.length} applications.")
+
+    by = domain_id.present? ? {domain_namespace: Domain.check_name!(domain_id)} : {}
+    apps = Application.includes(:domain).accessible(current_user).where(by).map { |app| get_rest_application(app, include_cartridges) }
+    Domain.find_by(canonical_namespace: domain_id) if apps.empty? && domain_id.present? # check for a missing domain
+
+    render_success(:ok, "applications", apps, "Found #{apps.length} applications.")
   end
 
   ##
@@ -68,6 +50,7 @@ class ApplicationsController < BaseController
   #
   # @return [RestReply<RestApplication>] Application object
   def create
+
     app_name = params[:name].downcase if params[:name].presence
     features = []
     downloaded_cart_urls = []
@@ -92,11 +75,27 @@ class ApplicationsController < BaseController
 
     default_gear_size = params[:gear_size].presence || params[:gear_profile].presence || Rails.application.config.openshift[:default_gear_size]
     default_gear_size.downcase! if default_gear_size
+    valid_sizes = OpenShift::ApplicationContainerProxy.valid_gear_sizes & @domain.allowed_gear_sizes & @domain.owner.allowed_gear_sizes
+
+    if not authorized?(:create_application, @domain)
+      if authorized?(:create_builder_application, @domain, {
+            :cartridges => cart_params, 
+            :gear_size => default_gear_size, 
+            :valid_gear_sizes => valid_sizes,
+            :domain_id => @domain._id
+          })
+        # TODO: record this as a builder
+      else
+        authorize! :create_application, @domain # raise the proper error
+      end
+    end
 
     return render_error(:unprocessable_entity, "Application name is required and cannot be blank",
                         105, "name") if !app_name or app_name.empty?
 
-    valid_sizes = OpenShift::ApplicationContainerProxy.valid_gear_sizes(@domain.owner)
+    return render_error(:forbidden, "The owner of the domain #{@domain.namespace} has disabled all gear sizes from being created.  You will not be able to create an application in this domain.",
+                        134) if valid_sizes.empty?
+
     return render_error(:unprocessable_entity, "Invalid size: #{default_gear_size}. Acceptable values are: #{valid_sizes.join(",")}",
                         134, "gear_profile") if default_gear_size and !valid_sizes.include?(default_gear_size)
 
@@ -146,6 +145,9 @@ class ApplicationsController < BaseController
     if @application.quarantined
       return render_upgrade_in_progress
     end
+
+    authorize! :destroy, @application
+
     id = params[:id].downcase if params[:id].presence
 
     result = @application.destroy_app

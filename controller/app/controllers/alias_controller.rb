@@ -5,18 +5,20 @@ class AliasController < BaseController
 
   def index
     rest_aliases = @application.aliases.map{ |a| get_rest_alias(a) }
-    render_success(:ok, "aliases", rest_aliases, "Listing aliases for application #{@application.name} under domain #{@domain.namespace}")
+    render_success(:ok, "aliases", rest_aliases, "Listing aliases for application #{@application.name} under domain #{@application.domain_namespace}")
   end
   
   def show   
     id = params[:id].downcase if params[:id].presence
 
     al1as = @application.aliases.find_by(fqdn: id)
-    render_success(:ok, "alias", get_rest_alias(al1as), "Showing alias #{id} for application #{@application.name} under domain #{@domain.namespace}")
+    render_success(:ok, "alias", get_rest_alias(al1as), "Showing alias #{id} for application #{@application.name} under domain #{@application.domain_namespace}")
   end
   
 
   def create
+    authorize! :create_alias, @application
+
     server_alias = params[:id].presence || params[:alias].presence
     ssl_certificate = params[:ssl_certificate].presence
     private_key = params[:private_key].presence
@@ -34,6 +36,8 @@ class AliasController < BaseController
   end
   
   def update
+    authorize! :update_alias, @application
+
     server_alias = params[:id].downcase if params[:id].presence
     ssl_certificate = params[:ssl_certificate].presence
     private_key = params[:private_key].presence
@@ -50,6 +54,8 @@ class AliasController < BaseController
   end
   
   def destroy
+    authorize! :destroy_alias, @application
+
     server_alias = params[:id].downcase if params[:id].presence
     result = @application.remove_alias(server_alias)
     status = requested_api_version <= 1.4 ? :no_content : :ok

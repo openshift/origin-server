@@ -4,4 +4,9 @@ class Scope::Read < Scope::Simple
   def allows_action?(controller)
     controller.request.method == "GET" && !controller.is_a?(AuthorizationsController)
   end
+
+  def limits_access(criteria)
+    criteria.options[:visible] ||= !(Authorization === criteria.klass)
+    criteria
+  end  
 end

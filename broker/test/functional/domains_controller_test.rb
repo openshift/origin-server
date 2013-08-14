@@ -1,9 +1,9 @@
 ENV["TEST_NAME"] = "functional_domains_controller_test"
-require 'test_helper'
-class DomiansControllerTest < ActionController::TestCase
+require_relative '../test_helper'
+class DomainsControllerTest < ActionController::TestCase
   
   def setup
-    @controller = DomainsController.new
+    @controller = allow_multiple_execution(DomainsController.new)
     
     @random = rand(1000000000)
     @login = "user#{@random}"
@@ -17,7 +17,6 @@ class DomiansControllerTest < ActionController::TestCase
     @request.env['HTTP_AUTHORIZATION'] = "Basic " + Base64.encode64("#{@login}:#{@password}")
     @request.env['HTTP_ACCEPT'] = "application/json"
     stubber
-
   end
   
   def teardown
@@ -27,16 +26,29 @@ class DomiansControllerTest < ActionController::TestCase
     end
   end
   
-  test "domain create show list and destory" do
+  test "domain create show list and destroy" do
     namespace = "ns#{@random}"
     post :create, {"name" => namespace}
     assert_response :created
 
+    assert domain = assigns(:domain)
+    assert_equal 1, domain.members.length
+    assert_equal :admin, domain.members.first.role
+
     get :show, {"name" => namespace}
     assert_response :success
     assert json = JSON.parse(response.body)
+    assert_nil json['data']['application_count']
+    assert_nil json['data']['gear_counts']
     assert link = json['data']['links']['ADD_APPLICATION']
     assert_equal Rails.configuration.openshift[:download_cartridges_enabled], link['optional_params'].one?{ |p| p['name'] == 'cartridges[][url]' }
+
+    get :show, {"name" => namespace, "include" => 'application_info'}
+    assert_response :success
+    assert json = JSON.parse(response.body)
+    assert_equal 0, json['data']['application_count']
+    assert (gears = json['data']['gear_counts']).is_a?(Hash)
+    assert gears.empty?
 
     get :index , {}
     assert_response :success
@@ -81,15 +93,35 @@ class DomiansControllerTest < ActionController::TestCase
     post :create, {"name" => namespace}
     assert_response :unprocessable_entity
     
-    #try update to invalid name
+    # update to the same name, must provide at least one change
     put :update , {"existing_name" => namespace, "name" => "ns#{@random}"}
     assert_response :unprocessable_entity
     
+    OpenShift::ApplicationContainerProxy.stubs(:max_user_domains).returns(1)
+
     #try more than one domain
     namespace = "ns#{@random}X"
     post :create, {"name" => namespace}
     assert_response :conflict
-    
+  end
+
+  test "user can create multiple domains" do
+    OpenShift::ApplicationContainerProxy.stubs(:max_user_domains).returns(2)
+
+    assert_difference("Domain.count", 1) do
+      post :create, {"name" => "ns1#{@random}"}
+      assert_response :success
+    end
+
+    assert_difference("Domain.count", 1) do
+      post :create, {"name" => "ns2#{@random}"}
+      assert_response :success
+    end
+
+    assert_difference("Domain.count", 0) do
+      post :create, {"name" => "ns3#{@random}"}
+      assert_response :conflict
+    end
   end
   
   test "delete domain with apps" do
@@ -116,7 +148,15 @@ class DomiansControllerTest < ActionController::TestCase
     app_name = "app#{@random}"
     app = Application.create_app(app_name, [PHP_VERSION], domain)
     app.save
-    
+
+    get :show, {"name" => namespace, "include" => 'application_info'}
+    assert_response :success
+    assert json = JSON.parse(response.body)
+    assert_equal 1, json['data']['application_count']
+    assert (gears = json['data']['gear_counts']).is_a?(Hash)
+    assert_equal 1, gears['small']
+
+
     new_namespace = "xns#{@random}"
     put :update, {"existing_name" => namespace, "name" => new_namespace}
     assert_response :unprocessable_entity
