@@ -34,7 +34,7 @@ if ENV['BROKER_SOURCE']
   gem 'netrc' # rest-client has an undeclared prereq on netrc
 
   # Load broker plugins according to local file
-  load File.expand_path(ENV['BROKER_PLUGINS_FILE'] || '~/.openshift/broker_plugins.rb')
+  eval((IO.read(File.expand_path(ENV['BROKER_PLUGINS_FILE'] || '~/.openshift/broker_plugins.rb')) rescue ''))
 else
   gem 'openshift-origin-controller'
 
@@ -45,11 +45,11 @@ else
               map {|file| File.basename(file, ".conf") }
   # in development, load if there is a -dev.conf file, even if no prod.conf
   group :development do
-    plugins.map! {|name| name.sub(/-dev$/, '')}
+    plugins.map!{ |name| name.sub(/-dev$/, '') }
   end
   # otherwise, ignore presence of -dev.conf files
   group :test, :production do
-    plugins.reject! {|name| name.match /-dev$/}
+    plugins.reject!{ |name| name.match(/-dev$/) }
   end
   plugins.sort.uniq.each {|name| gem name}
 end
