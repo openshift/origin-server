@@ -1,11 +1,21 @@
 .histogram {
-  width: 520px;
+  width: 522px;
 
   .histogram-bars {
     display: inline-block;
-    background-color: #eee;
+    border-left: 1px solid #CCC;
+    border-right: 1px solid #CCC;
     height: 200px;
+    position: relative;
   }
+
+  .histogram-line {
+    border-bottom: 1px solid #CCCCCC;
+    position: absolute;
+    width: 100%;
+    z-index: -1;
+  }
+
 
   .histogram-force-height {
     display: inline-block;
@@ -13,7 +23,7 @@
   }
 
   .histogram-bar {
-    background-color: #333;
+    background-color: #43A043;
     display: inline-block;
     margin: 0 2px;
     width: 50px;
@@ -66,7 +76,7 @@
 
 @media (max-width: 640px) {
   .histogram {
-    width: 385px;
+    width: 387px;
 
     .histogram-bar {
       width: 35px;
@@ -82,7 +92,7 @@
 
 @media (max-width: 480px) {
   .histogram {
-    width: 250px;
+    width: 252px;
 
     .histogram-bar {
       width: 20px;
