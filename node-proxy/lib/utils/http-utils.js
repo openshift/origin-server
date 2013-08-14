@@ -28,6 +28,7 @@ exports.createProtocolServer = function(protocol, opts) {
       break;
     case 'https':
       var ssl_opts  = { };
+      ssl_opts.ca  =  fs.readFileSync(opts.ca);
       ssl_opts.cert = fs.readFileSync(opts.certificate);
       ssl_opts.key  = fs.readFileSync(opts.private_key);
       proto_handler = https.createServer(ssl_opts);
