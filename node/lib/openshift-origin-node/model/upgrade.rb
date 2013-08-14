@@ -98,54 +98,59 @@ module OpenShift
       # harmless changes the 2-n times around.
       #
       def execute
-        start_time = timestamp
-        
-        unless File.directory?(gear_home) && !File.symlink?(gear_home)
-          return "Application not found to upgrade: #{gear_home}\n", 127
+        result = {
+          gear_uuid: @uuid,
+          hostname: @hostname,
+          steps: [],
+          upgrade_complete: false,
+          errors: [],
+          warnings: [],
+          itinerary: {},
+          times: {},
+          log: nil
+        }
+
+        if !File.directory?(gear_home) || File.symlink?(gear_home)
+          result[:errors] << "Application not found to upgrade: #{gear_home}"
+          return result
         end
 
         gear_env = OpenShift::Runtime::Utils::Environ.for_gear(gear_home)
         unless gear_env.key?('OPENSHIFT_GEAR_NAME') && gear_env.key?('OPENSHIFT_APP_NAME')
-          return "***acceptable_error_env_vars_not_found={\"gear_uuid\":\"#{uuid}\"}***\n", 0
-        end
-
-        exitcode = 0
-        restart_time = 0
-        errors = []
-        upgrade_complete = false
-
-        initialize_metadata_store
-
-        if @@gear_extension_present
-          begin
-            if !OpenShift::GearUpgradeExtension.respond_to?(:version)
-              return "Gear upgrade extension must respond to version", 127
-            end
-
-            extension_version = OpenShift::GearUpgradeExtension.version
-
-            if version != extension_version
-              return "Version mismatch between supplied release version (#{version}) and extension version (#{extension_version}", 127
-            end
-          rescue NameError => e
-            return "Unable to resolve OpenShift::GearUpgradeExtension: #{e.message}", 127
-          end
-
-          begin
-            @gear_extension = OpenShift::GearUpgradeExtension.new(uuid, gear_home)
-          rescue Exception => e
-            progress.log "Caught an exception during upgrade: #{e.message}\n#{e.backtrace.join("\n")}"
-            return "Unable to instantiate gear upgrade extension.  Progress report: #{progress.report}", 127
-          end
+          result[:warnings] << "Missing OPENSHIFT_GEAR_NAME and OPENSHIFT_APP_NAME variables"
+          result[:upgrade_complete] = true
+          return result
         end
 
         begin
+          load_gear_extension
+        rescue => e
+          result[:errors] << e.message
+          return result
+        end
+
+        begin
+          initialize_metadata_store
+        rescue => e
+          result[:errors] << "Error initializing metadata store: #{e.message}"
+          return result
+        end
+
+        begin
+          start_time = timestamp
+          restart_time = 0
+
           progress.log "Beginning #{version} upgrade for #{uuid}"
 
           inspect_gear_state
           gear_pre_upgrade
+          
           itinerary = compute_itinerary
+          result[:itinerary] = itinerary.entries
+
           restart_time = upgrade_cartridges(itinerary)
+          result[:times][:restart] = restart_time
+
           gear_post_upgrade
 
           if itinerary.has_incompatible_upgrade?
@@ -158,48 +163,56 @@ module OpenShift
             cleanup
           end
 
-          upgrade_complete = true
+          result[:upgrade_complete] = true
         rescue OpenShift::Runtime::Utils::ShellExecutionException => e
-          progress.log "Caught an exception during upgrade: #{e.message}", rc: e.rc, stdout: e.stdout, stderr: e.stderr
-          errors << {
+          progress.log "Caught an exception during upgrade: #{e.message}"
+          result[:errors] << {
             :rc => e.rc,
             :stdout => e.stdout,
             :stderr => e.stderr,
             :message => e.message,
             :backtrace => e.backtrace.join("\n")
           }
-
-          exitcode = 1
         rescue Exception => e
-          progress.log "Caught an exception during upgrade: #{e.message}\n#{e.backtrace.join("\n")}"
-          errors << {
+          progress.log "Caught an exception during upgrade: #{e.message}"
+          result[:errors] << {
             :message => e.message,
             :backtrace => e.backtrace.join("\n")
           }
-
-          exitcode = 1
         ensure
           total_time = timestamp - start_time
           progress.log "Total upgrade time on node (ms): #{total_time}"
+          result[:times][:upgrade_on_node_measured_from_node] = total_time
         end
 
-        data = {
-          :gear_uuid => @uuid,
-          :hostname => @hostname,
-          :steps => progress.steps,
-          :upgrade_complete => upgrade_complete,
-          :errors => errors,
-          :itinerary_entries => itinerary ? itinerary.entries : {},
-          :times => {
-            :upgrade_on_node_measured_from_node => total_time,
-            :restart => restart_time
-          }
-        }
+        result[:steps] = progress.steps
+        result[:log] = progress.buffer
 
-        # currently, higher level consumers of this output don't have access to the response structure
-        # in all cases, so package the JSON in the string output as well
-        output = "#{progress.report}\ngear_upgrade_json=#{JSON.dump(data)}\n"
-        [output, exitcode, JSON.dump(data)]
+        result
+      end
+
+      def load_gear_extension
+        return unless @@gear_extension_present
+        
+        begin
+          if !OpenShift::GearUpgradeExtension.respond_to?(:version)
+            raise "Gear upgrade extension must respond to version"
+          end
+
+          extension_version = OpenShift::GearUpgradeExtension.version
+
+          if version != extension_version
+            raise "Version mismatch between supplied release version (#{version}) and extension version (#{extension_version}"
+          end
+        rescue NameError => e
+          raise "Unable to resolve OpenShift::GearUpgradeExtension: #{e.message}"
+        end
+
+        begin
+          @gear_extension = OpenShift::GearUpgradeExtension.new(uuid, gear_home)
+        rescue Exception => e
+          raise "Unable to instantiate gear upgrade extension: #{e.message}\n#{e.backtrace}"
+        end
       end
 
       #
@@ -472,7 +485,7 @@ module OpenShift
 
           progress.step "#{name}_setup" do |context, errors|
             setup_output = cart_model.cartridge_action(m, 'setup', version, true)
-            progress.log "Executed setup for #{name}", stdout: setup_output
+            progress.log "Executed setup for #{name}"
             context[:cartridge] = name.downcase
             context[:stdout] = setup_output
           end
@@ -520,7 +533,7 @@ module OpenShift
                                          uid: container.uid,
                                          gid: container.gid)
 
-          progress.log "Ran upgrade script for #{name}", rc: rc, stdout: out, stderr: err
+          progress.log "Ran upgrade script for #{name}"
 
           context[:cartridge] = name.downcase
           context[:rc] = rc
