@@ -79,7 +79,20 @@
     = control_group(e.has_key?(:name) || e.has_key?(:domain_name), :important => true) do
       %h3.control-label Public URL
       .controls.first
-        = render :partial => 'applications/name', :locals => {:form => f, :application => @application}
+        - mine = @domains.select(&:owner?).first
+        - shared = @domains.reject(&:owner?).first
+
+        - [false, true].each do |can_create|
+          - [[], [mine], [mine,mine]].each do |my_domains|
+            - [[], [shared], [shared, shared]].each do |shared_domains|
+              - default_domain = my_domains.first
+              - domains = my_domains + shared_domains
+              - ([nil] + [my_domains.first, shared_domains.first, Domain.new(:name => 'x')].compact.map(&:name)).each do |current_value|
+                %div= "mine=#{my_domains.length}, shared=#{shared_domains.length}, can_create=#{can_create}, current_value=#{current_value.inspect}"
+                %div
+                  = render :partial => 'applications/name', :locals => {:form => f, :application => @application, :default_domain => default_domain, :can_create => can_create, :domains => domains, :current_value => current_value}
+
+        /= render :partial => 'applications/name', :locals => {:form => f, :application => @application}
         = f.inline_errors_for :name
         = f.inline_errors_for :domain_name
       .controls

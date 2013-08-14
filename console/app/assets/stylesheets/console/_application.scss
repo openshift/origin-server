@@ -251,6 +251,13 @@
   }
 }
 
+#new_application .controls {
+  select.domain_name {
+    height: 38px;
+    vertical-align: middle;
+  }
+}
+
 @media (max-width: 479px) {
 
   #new_application .controls {
