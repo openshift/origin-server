@@ -3,7 +3,7 @@
 <server xmlns="urn:jboss:domain:1.1">
 
     <extensions>
-        <extension module="org.jboss.aerogear.netty"/>
+        <extension module="org.jboss.aerogear.simplepush"/>
         <extension module="org.jboss.as.clustering.infinispan"/>
         <extension module="org.jboss.as.clustering.jgroups"/>
         <extension module="org.jboss.as.cmp"/>
@@ -51,8 +51,8 @@
     </management>
 
     <profile>
-        <subsystem xmlns="urn:org.jboss.aerogear.netty:1.0">
-            <server name="simplepush-server" socket-binding="simplepush" factory-class="org.jboss.aerogear.simplepush.netty.SimplePushBootstrapFactory" datasource-jndi-name="java:jboss/datasources/SimplePushDS" token-key="${env.OPENSHIFT_AEROGEAR_PUSH_TOKEN_KEY}"/>
+        <subsystem xmlns="urn:org.jboss.aerogear.simplepush:1.0">
+            <server name="simplepush-server" socket-binding="simplepush" factory-class="org.jboss.aerogear.simplepush.subsystem.SimplePushBootstrapFactory" datasource-jndi-name="java:jboss/datasources/SimplePushDS" token-key="${env.OPENSHIFT_AEROGEAR_PUSH_TOKEN_KEY}"/>
         </subsystem>
         <subsystem xmlns="urn:jboss:domain:logging:1.1">
             <!--console-handler name="CONSOLE">
