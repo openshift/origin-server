@@ -161,7 +161,6 @@ function status() {
     else
         client_result "HAProxy instance is stopped"
     fi
-    print_user_running_processes `id -u`
 }
 
 function deploy() {
