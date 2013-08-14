@@ -33,13 +33,25 @@ if ENV['BROKER_SOURCE']
   gem 'openshift-origin-controller', :path => '../controller'
   gem 'netrc' # rest-client has an undeclared prereq on netrc
 
-  # Optionally load plugins from source
-  eval((IO.read(File.expand_path('~/.openshift/broker_plugins.rb')) rescue ''))
+  # Load broker plugins according to local file
+  load File.expand_path(ENV['BROKER_PLUGINS_FILE'] || '~/.openshift/broker_plugins.rb')
 else
   gem 'openshift-origin-controller'
-  
-  # Load plugin gems.
-  Dir["/etc/openshift/plugins.d/*.conf"].delete_if{ |x| x.end_with? "-dev.conf" }.map{|x| File.basename(x, ".conf")}.each {|plugin| gem plugin}
+
+  # Load broker plugin gems specified by .conf files in plugins.d/
+  # Load if either .conf or -dev.conf is present;
+  # Plugins use -dev.conf only in development mode.
+  plugins = Dir[(ENV['OPENSHIFT_CONF_DIR'] || "/etc/openshift") + '/plugins.d/*.conf'].
+              map {|file| File.basename(file, ".conf") }
+  # in development, load if there is a -dev.conf file, even if no prod.conf
+  group :development do
+    plugins.map! {|name| name.sub(/-dev$/, '')}
+  end
+  # otherwise, ignore presence of -dev.conf files
+  group :test, :production do
+    plugins.reject! {|name| name.match /-dev$/}
+  end
+  plugins.sort.uniq.each {|name| gem name}
 end
 
 # Bundle edge Rails instead:
