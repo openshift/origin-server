@@ -84,9 +84,9 @@
 }
 
 .gauge-vertical {
-  line-height: 8px;
+  line-height: 7px;
   position: absolute;
-  top: -4px;
+  top: -3px;
   right: -6px;
   font-size: 36px;
   width: 1px;
@@ -184,7 +184,7 @@
       text-overflow: ellipsis;
       overflow: hidden;
       white-space: nowrap;
-      max-width: 375px;
+      //max-width: 375px;
     }
   }
 }
@@ -196,7 +196,7 @@
       text-overflow: ellipsis;
       overflow: hidden;
       white-space: nowrap;
-      max-width: 475px;
+      //max-width: 475px;
     }
   }
 }

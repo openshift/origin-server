@@ -17,10 +17,19 @@
           #restart-popover.hide
             = render 'restarts/form'
 
-      %h1.name= @application.name
-      .url
-        %strong @
-        = link_to @application.web_url, @application.web_url
+      %h1.name
+        = @application.name
+        .url{style: 'opacity: 1.0; font-size: 26px; display: inline;'}
+          = '/'
+          - if @application.aliases.length > 1
+            = link_to @application.aliases.first.name, URI::HTTP.new('http', nil, 'www.foo.com', nil, nil, nil, nil, nil, nil).to_s, style: 'color: #ccc'
+            = link_to pluralize(@application.aliases.length - 1, 'alias'), application_path(@application), style: 'font-size: 15px'
+          - elsif @application.aliases.present?
+            = link_to @application.aliases.first.name, URI::HTTP.new('http', nil, 'www.foo.com', nil, nil, nil, nil, nil, nil).to_s, style: 'color: #ccc'
+            = link_to 'change', application_path(@application), style: 'font-size: 15px'
+          - else
+            = link_to URI.parse(@application.web_url).hostname, @application.web_url, style: 'color: #ccc'
+            = link_to "change", new_application_alias_path(@application), style: 'font-size: 15px'
 
 %section#app-specifics
 %section#app-cartridges.span9
@@ -43,7 +52,41 @@
         .cartridge-block
           .cartridge-border
             .cartridge-inset
-              .clearfix
+              %h2.flow
+                %span{:title => cartridge.name}= cartridge.display_name
+
+                %span.flow-block.right
+                  = link_to cartridge_storage(cartridge), application_storage_path(@application), style: 'margin-right: 10px; opacity: 0.4; color: white;'
+                  %span.gear-states{style: 'margin-right: 10px; opacity: 0.4;'}= gear_group_state(group.states)
+
+                  - if c == 0
+                    %span.gear{:title => gear_group_count_title(group.gears.length)}
+                      = group.gears.length
+                      %span.gear-icon{'aria-hidden'=>"true", 'data-icon' => "\ue014", style: 'opacity: 0.25'}
+                      - if cartridge.scales?
+                        .gauge-vertical>
+                          - if cartridge.has_scale_range?
+                            - if cartridge.can_scale_up?
+                              %span.gauge-tick.fill>  .
+                              %span.gauge-tick.fill>  .
+                              %span.gauge-tick.fill>  .
+                            - elsif cartridge.can_scale_down?
+                              %span.gauge-tick.empty> .
+                              %span.gauge-tick.empty> .
+                              %span.gauge-tick.fill>  .
+                            - else
+                              %span.gauge-tick.empty> .
+                              %span.gauge-tick.fill>  .
+                              %span.gauge-tick.fill>  .
+                          - else
+                            %span.gauge-tick.fill> .
+                            %span.gauge-tick.fill> .
+                            %span.gauge-tick.fill> .
+                  - else
+                    %span.gear{:title => gear_group_count_title(group.gears.length)}
+                      %span.gear-icon{'aria-hidden'=>"true", 'data-icon' => "\ue014", style: 'opacity: 0.25'}
+
+              -#.clearfix
                 %ul.pull-right.unstyled-flat.bits
                   - if c == 0
                     %li
@@ -62,37 +105,10 @@
                       %h6 Gears
                       %span.data{:title => 'This cartridge shares resources with the other cartridges it is grouped with.'} Shared
 
-                %h2{:title => cartridge.name}= cartridge.display_name
+                -#%h2{:title => cartridge.name}= cartridge.display_name
 
               - if cartridge.custom?
                 %p Created from #{link_to cartridge.url, cartridge.url}
-
-              - if cartridge.git_url
-                - if @has_keys
-                  %h6 
-                    Git Repository
-                  %p
-                    %input#application_git_url.git-url{:readonly => 'readonly', :value => cartridge.git_url, :title => 'The code for your application will be available through this Git repository.'}
-                    - content_for :javascripts do
-                      :javascript
-                        $('#application_git_url').focus(function() {this.select()});
-
-                  %h6= link_to 'Want to log in to your application?', '#', :'data-unhide' => '.ssh.hidden'
-                  .ssh.hidden
-                    %p 
-                      The command below will open a Secure Shell (SSH) session to your application on most 
-                      operating systems.  See our #{link_to 'SSH help page', ssh_help_url} for information 
-                      about connecting with Windows, Mac, and Linux computers.
-                    %p
-                      %input#application_ssh_url.git-url{:readonly => 'readonly', :value => "ssh #{cartridge.ssh_string}", :title => 'Cut and paste this command into a command shell to access your OpenShift application.'}
-                      - content_for :javascripts do
-                        :javascript
-                          $('#application_ssh_url').focus(function() {this.select()});
-
-                - else
-                  %p
-                    You must #{link_to "add an SSH public key to your account", new_key_path}
-                    before you can upload code or remotely access your application.
 
               - if cartridge.scales? || cartridge.buildable?
                 .embedded
@@ -101,25 +117,54 @@
                       - if cartridge.current_scale == 1
                         = link_to "Scaling with HAProxy x1", application_scaling_path(@application), :title => 'Your web cartridge will automatically scale up when we detect you are receiving more web traffic'
                       - else
-                        = link_to "Scaled up with HAProxy x#{cartridge.current_scale}", 
-                                  application_scaling_path(@application), 
+                        = link_to "Scaled up with HAProxy x#{cartridge.current_scale}",
+                                  application_scaling_path(@application),
                                   :title => web_cartridge_scale_title(cartridge)
                   - if cartridge.builds?
-                    .embedded-cart 
+                    .embedded-cart
                       =link_to 'See Jenkins Build jobs', @application.build_job_url, :title=> 'Jenkins is currently running builds for your application'
                       =link_to '(configure)', application_building_path(@application), :title => 'Remove or change your Jenkins configuration'
                   - elsif cartridge.buildable?
                     .embedded-cart= link_to "Enable Jenkins builds", application_building_path(@application), :title => 'Jenkins helps you run builds, tests, and deployment steps when you push changes to your application.'
 
 
-  .right.btn-toolbar
-    = link_to application_cartridge_types_path(@application), :class => 'btn btn-primary btn-large' do
-      Add
-      %strong Cartridge
-      %i.icon-add
+  %section.gutter{style: 'margin-top: 10px;'}
+    - carts = CartridgeType.cached.embedded.clone
+    -#%h4 Add additional capabilities to this application
+    .row-fluid
+      - if @application.cartridges.none?(&:database?)
+        .span3
+          %h5 Databases
+          %ul.unstyled
+            - CartridgeType.suggest!(carts, :database?, 3).each do |c|
+              %li
+                %span{:'data-icon' => "\uee09"}
+                = link_to c.display_name, application_cartridge_type_path(@application, c)
+      - unless @application.builds?
+        .span5
+          %h5 Continuous Integration
+          - jenkins, builders = CartridgeType.suggest!(carts, :builder?).partition(&:jenkins_client?)
+          %ul.unstyled
+            - if jenkins.present?
+              %li
+                %span{:'data-icon' => "\ue023"}
+                = link_to "Enable Jenkins", application_building_path(@application)
+            - builders.each do |c|
+              %li= link_to c.display_name, application_cartridge_type_path(@application, c)
+
+      - if (useful = CartridgeType.suggest_useful!(@application, carts)).present?
+        .span4
+          %h5 Tools and Support
+          %ul.unstyled
+            - useful.each do |c|
+              %li
+                %span{:'data-icon' => "\ue021"}
+                = link_to c.display_name, application_cartridge_type_path(@application, c)
+
+    %p.larger= link_to "Or, see the entire list of cartridges you can add", application_cartridge_types_path(@application)
 
 %aside#app-unique-info.span3
-  %section#aliases.sidebar
+  -#%section#aliases.sidebar
     %header.clearfix.header-bar
       %h5
         Aliases
@@ -127,10 +172,10 @@
         = link_to new_application_alias_path(@application) do
           %span.header-btn-title add alias
           %span.font-icon{"aria-hidden" => "true", "data-icon" => "\uee16"}
-          
+
     %ul.unstyled
       - if @application.aliases.empty?
-        %li 
+        %li
           %span No aliases set.
           = link_to('Set one now', new_application_alias_path(@application))
       - else
@@ -150,7 +195,47 @@
       %ul.unstyled
         %li= link_to @application.initial_git_url, @application.initial_git_url
 
-  #assistance
+  #source-code
+  - if @has_keys
+    %h5 Source Code
+    %p.small
+      The app code is located in Git at:
+      %input#application_git_url.git-url{:readonly => 'readonly', :value => @application.git_url, :title => 'The code for your application will be available through this Git repository.', :style => 'with: 100%; width: -moz-available;'}
+      - content_for :javascripts do
+        :javascript
+          $('#application_git_url').focus(function() {this.select()});
+    %p.small
+      Pass this URL to 'git clone' to copy the repository locally.
+
+    %h5 Remote Access
+    %ul.unstyled
+      %li= link_to 'Want to log in to your application?', '#', :'data-unhide' => '.ssh.hidden'
+      %li.ssh.hidden
+        %p
+          The command below will open a Secure Shell (SSH) session to your application on most operating systems.  See our #{link_to 'SSH help page', ssh_help_url} for information about connecting with Windows, Mac, and Linux computers.
+        %p
+          %input#application_ssh_url.git-url{:readonly => 'readonly', :value => "ssh #{@application.ssh_string}", :title => 'Cut and paste this command into a command shell to access your OpenShift application.'}
+          - content_for :javascripts do
+            :javascript
+              $('#application_ssh_url').focus(function() {this.select()});
+
+  - else
+    %h5 Source Code
+    %p.small
+      You must #{link_to "add an SSH public key to your account", get_started_application_path(@application)}
+      before you can upload code or remotely access your application.
+
+    %h5 Remote Access
+    %p.small
+      Requires a public key.
+
+    -#
+      %h5 Need Help?
+      %ul.unstyled
+        %li= link_to 'OpenShift User Guide', user_guide_url
+        %li= link_to 'Sync your OpenShift repo with an existing Git repo', sync_git_with_remote_repo_knowledge_base_url 
+
+  -##assistance
     %h5 New to OpenShift?
     %ul.unstyled
       %li= link_to 'See the getting started tips for this app →', get_started_application_path(@application)

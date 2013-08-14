@@ -83,6 +83,19 @@ class CartridgeType < RestApi::Base
     @attributes[:tags] = tags
   end
 
+  def database?
+    tags.include?(:database)
+  end
+  def web_framework?
+    tags.include?(:web_framework)
+  end
+  def builder?
+    tags.include?(:ci_builder)
+  end
+  def jenkins_client?
+    builder? && name_prefix == 'jenkins-client'
+  end
+
   def conflicts
     @conflicts || []
   end
@@ -107,6 +120,24 @@ class CartridgeType < RestApi::Base
     self.attributes['supported_scales_to'] != self.attributes['supported_scales_from']
   end
   alias_method :scalable?, :scalable
+
+  def name_parts
+    @name_parts ||= begin
+      n, v = /\A(.+)-(\d+(?:\.\d+)+)\Z/.match(name).values_at(1,2)
+      [n, v.split('.').map(&:to_i)]
+    end
+  end
+
+  def name_prefix
+    name_parts[0]
+  end
+  def name_version
+    name_parts[1]
+  end
+
+  def newer_than(other)
+    other.name_prefix == name_prefix && (other.name_version <=> name_version) == -1
+  end
 
   def ==(o)
     to_param == o.to_param
@@ -136,6 +167,30 @@ class CartridgeType < RestApi::Base
 
   def self.standalone(*arguments)
     all(*arguments).select(&:standalone?)
+  end
+
+  def self.suggest!(*arguments)
+    limit = arguments.pop if arguments.last.is_a? Numeric
+    source = arguments.shift if arguments.length > 1
+    arr = []
+    arr =
+      if source.is_a?(Array)
+        source.delete_if{ |c| arr << c if arguments.any?{ |sym| c.send(sym) } }
+        arr
+      else
+        send(source || :all).select{ |c| arguments.any?{ |sym| c.send(sym) } }
+      end
+    arr.delete_if{ |c| arr.any?{ |other| other.newer_than(c) } } # remove older versions of the same cart
+    arr.sort!
+    arr = arr.first(limit) if limit
+    arr
+  end
+
+  def self.suggest_useful!(app, carts, *filters)
+    carts = carts.select{ filters.any?{ |sym| c.send(sym) } } if filters.present?
+    requires = app.cartridges.inject([]){ |arr, cart| arr.concat(carts.select{ |c| c.requires.include?(cart.name) }) }
+    carts.delete_if{ |c| requires.include?(c) }
+    requires
   end
 
   def self.matches(s, opts=nil)

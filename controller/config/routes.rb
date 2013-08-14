@@ -35,6 +35,7 @@ Rails.application.routes.draw do
     match "domain/:existing_id" => "domains#update", :via => :put, :existing_id => id_with_format
     resources :domains, :only => [:index, :show, :create, :update, :destroy], :constraints => { :id => id_with_format }, :singular_resource => true, :expose_legacy_api => true do
       resources :members, :only => [:index, :create, :update, :destroy], :controller => :domain_members, :constraints => { :id => id_with_format }, :singular_resource => true
+      match 'members' => 'domain_members#create', :via => :patch
       match 'members' => 'domain_members#destroy_all', :via => :delete
       resources :applications, :controller => :applications, :only => [:index, :show, :create, :destroy], :constraints => { :id => id_with_format }, :singular_resource => true do
         resource :descriptor, :only => :show

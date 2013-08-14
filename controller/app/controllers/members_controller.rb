@@ -7,9 +7,14 @@ class MembersController < BaseController
   def create
     authorize! :change_members, membership
 
-    ids, logins = {}, {}
+    ids, logins, remove = {}, {}, []
     (params[:members] || [params[:member]].compact.presence || [params.slice(:id, :login, :role)]).compact.each do |m| 
       return render_error(:unprocessable_entity, "You must provide a member with an id and role.") unless m.is_a? Hash
+      if m[:role] == "none"
+        return render_error(:unprocessable_entity, "You must provide an id for each member with role 'none'.") unless m[:id]
+        remove << m[:id].to_s
+        next
+      end
       role = Role.for(m[:role])
       return render_error(:unprocessable_entity, "You must provide a role for each member out of #{Role.all.join(', ')}.") unless role
       if m[:id].present?
@@ -28,6 +33,7 @@ class MembersController < BaseController
     end
     return render_error(:unprocessable_entity, "You must provide at least a single member.") if new_members.blank?
 
+    membership.remove_members(remove) if remove.present?
     membership.add_members(new_members)
 
     if save_membership(membership)
