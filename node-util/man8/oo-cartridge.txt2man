@@ -1,0 +1,46 @@
+NAME
+  oo-cartridge
+  
+SYNOPSIS
+  oo-cartridge OPTIONS --with-container-uuid LOGIN --action add --with-cartridge-name NAME
+  oo-cartridge OPTIONS --with-container-uuid LOGIN --action delete --with-cartridge-name NAME
+
+DESCRIPTION
+  oo-cartridge provides OpenShift Operators the ability to add or remove a cartridge from a gear.
+
+  This command is used for repair and development work.  
+
+OPTIONS
+  -u| --with-template-url
+    Optional URL to provide a different template application. 
+
+  -h|--help  
+    Display a simple help menu.
+
+  -d|--debug  
+    Provide additional output.
+
+COMMANDS
+  -c| --with-container-uuid LOGIN
+    The gear login to take action against. 
+    
+  -a| --action ACTION  
+    add     add named cartridge to provided gear login
+    delete  remove named cartridge from provided gear login
+
+  -n| --with-cartridge-name NAME
+    cartridge to be added or removed
+    
+
+CONFIGURATION
+  
+EXAMPLE
+  # oo-cartridge --with-container-uuid 11223345 --action add --with-cartridge-name mock-0.1
+    Add mock-0.1 cartridge to gear 11223345
+  # oo-cartridge --with-container-uuid 11223345 --action remove --with-cartridge-name mock-0.1
+    Remove mock-0.1 cartridge from gear 11223345
+  
+SEE ALSO
+
+AUTHOR
+  Jhon Honce <jhonce@redhat.com> - man page written for OpenShift Origin 
