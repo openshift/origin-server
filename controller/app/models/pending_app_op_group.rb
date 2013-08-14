@@ -359,7 +359,17 @@ class PendingAppOpGroup
                 # application.component_instances.find(component_instance_id).process_properties(ResultIO.new(status, output, gear_id))
                 component_instance = application.component_instances.find(component_instance_id)
                 component_instance.process_properties(result)
-                application.process_commands(result, component_instance)
+                process_gear = nil
+                application.group_instances.each { |gi| 
+                  gi.gears.each { |g| 
+                    if g.uuid.to_s==gear_id
+                      process_gear = g
+                      break
+                    end
+                  }
+                  break if process_gear
+                }
+                application.process_commands(result, component_instance, process_gear)
               end
             else
               result_io.append ResultIO.new(status, output, gear_id)

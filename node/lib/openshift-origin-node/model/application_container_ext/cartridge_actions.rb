@@ -107,7 +107,7 @@ module OpenShift
             add_env_var(endpoint.public_port_name, public_port)
 
             config = ::OpenShift::Config.new
-            output << "NOTIFY_ENDPOINT_CREATE: #{endpoint.public_port_name} #{config.get('PUBLIC_IP')} #{public_port}\n" 
+            output << "NOTIFY_ENDPOINT_CREATE: #{endpoint.public_port_name} #{config.get('PUBLIC_IP')} #{public_port} #{private_ip} #{endpoint.private_port}\n" 
 
             logger.info("Created public endpoint for cart #{cart.name} in gear #{@uuid}: "\
           "[#{endpoint.public_port_name}=#{public_port}]")

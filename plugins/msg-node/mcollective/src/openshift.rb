@@ -950,6 +950,25 @@ module MCollective
       end
 
       #
+      # Returns the public endpoints of all cartridges on the gear
+      #
+      def get_gear_endpoints
+         validate :uuid, /^[a-zA-Z0-9]+$/
+         cont = OpenShift::Runtime::ApplicationContainer.from_uuid(request[:uuid].to_s)
+         env = OpenShift::Runtime::Utils::Environ::for_gear(cont.container_dir)
+         config = OpenShift::Config.new
+         pub_ip = config.get('PUBLIC_IP')
+         endpoints = []
+         cont.cartridge_model.each_cartridge do |cart|
+           cart.public_endpoints.each do |ep|
+             endpoints << { "cartridge_name" => cart.name+'-'+cart.version, "external_ip" => pub_ip, "external_port" => env[ep.public_port_name], "internal_ip" => env[ep.private_ip_name], "internal_port" => ep.private_port }
+           end
+         end
+         reply[:output] = endpoints
+         reply[:exitcode] = 0
+      end
+
+      #
       # Returns whether a uid or gid is already reserved on the system
       #
       def has_uid_or_gid_action
