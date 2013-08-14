@@ -16,7 +16,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.13.3
+Version: 1.13.4
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -305,6 +305,26 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Wed Aug 14 2013 Adam Miller <admiller@redhat.com> 1.13.4-1
+- Merge pull request #3352 from danmcp/master
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3322 from smarterclayton/origin_ui_73_membership_model
+  (dmcphers+openshiftbot@redhat.com)
+- remove oo-cart-version Bug 980296 (dmcphers@redhat.com)
+- save exposed port interfaces of a gear (rchopra@redhat.com)
+- Merge remote-tracking branch 'origin/master' into
+  origin_ui_73_membership_model (ccoleman@redhat.com)
+- * Implement a membership model for OpenShift that allows an efficient query
+  of user access based on each resource. * Implement scope limitations that
+  correspond to specific permissions * Expose membership info via the REST API
+  (disableable via config) * Allow multiple domains per user, controlled via a
+  configuration flag * Support additional information per domain
+  (application_count and gear_counts) to improve usability * Let domains
+  support the allowed_gear_sizes option, which limits the gear sizes available
+  to apps in that domain * Simplify domain update interactions - redundant
+  validation removed, and behavior of responses differs slightly. * Implement
+  migration script to enable data (ccoleman@redhat.com)
+
 * Tue Aug 13 2013 Adam Miller <admiller@redhat.com> 1.13.3-1
 - Node Platform - Update oo-get-quota for new interface (jhonce@redhat.com)
 - Bug 980820 - Ensure bogus PATH doesn't stop cartridge operations
