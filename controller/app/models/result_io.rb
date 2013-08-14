@@ -127,9 +127,9 @@ class ResultIO
         elsif line =~ /^NOTIFY_ENDPOINT_(CREATE|DELETE): /
           # 'NOTIFY_ENDPOINT_CREATE: ' and 'NOTIFY_ENDPOINT_DELETE: '
           # both have length 24.
-          endpoint,address,port = line[23..-1].chomp.split(' ')
+          endpoint,address,port,internal_addr,internal_port = line[23..-1].chomp.split(' ')
           if line =~ /^NOTIFY_ENDPOINT_CREATE: /
-            self.cart_commands.push({:command => "NOTIFY_ENDPOINT_CREATE", :args => [endpoint,address,port]})
+            self.cart_commands.push({:command => "NOTIFY_ENDPOINT_CREATE", :args => [endpoint,address,port,internal_addr,internal_port]})
           else
             self.cart_commands.push({:command => "NOTIFY_ENDPOINT_DELETE", :args => [endpoint,address,port]})
           end

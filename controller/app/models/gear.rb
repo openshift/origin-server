@@ -19,6 +19,7 @@ class Gear
   field :host_singletons, type: Boolean, default: false
   field :app_dns, type: Boolean, default: false
   field :sparse_carts, type: Array, default: []
+  embeds_many :port_interfaces, class_name: PortInterface.name
 
   # Initializes the gear
   def initialize(attrs = nil, options = nil)
@@ -83,13 +84,13 @@ class Gear
 
   def create_gear
     result_io = get_proxy.create(self)
-    app.process_commands(result_io)
+    app.process_commands(result_io, nil, self)
     result_io
   end
 
   def destroy_gear(keep_uid=false)
     result_io = get_proxy.destroy(self, keep_uid)
-    app.process_commands(result_io)
+    app.process_commands(result_io, nil, self)
     result_io
   end
 
@@ -130,7 +131,7 @@ class Gear
   def add_component(component, init_git_url=nil)
     result_io = get_proxy.add_component(self, component, init_git_url)
     component.process_properties(result_io)
-    app.process_commands(result_io, component._id)
+    app.process_commands(result_io, component._id, self)
     raise OpenShift::NodeException.new("Unable to add component #{component.cartridge_name}::#{component.component_name}", result_io.exitcode, result_io) if result_io.exitcode != 0
     self.sparse_carts << component._id if component.is_sparse?
     result_io
@@ -149,7 +150,7 @@ class Gear
   def post_configure_component(component, init_git_url=nil)
     result_io = get_proxy.post_configure_component(self, component, init_git_url)
     component.process_properties(result_io)
-    app.process_commands(result_io, component._id)
+    app.process_commands(result_io, component._id, self)
     raise OpenShift::NodeException.new("Unable to post-configure component #{component.cartridge_name}::#{component.component_name}", result_io.exitcode, result_io) if result_io.exitcode != 0
     result_io
   end
@@ -166,7 +167,7 @@ class Gear
   # @raise [OpenShift::NodeException] on failure
   def remove_component(component)
     result_io = get_proxy.remove_component(self, component)
-    app.process_commands(result_io)
+    app.process_commands(result_io, component._id, self)
     self.sparse_carts.delete(component._id) if component.is_sparse?
     result_io
   end

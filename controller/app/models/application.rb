@@ -1107,7 +1107,7 @@ class Application
   # == Parameters:
   # result_io::
   #   {ResultIO} object with directives from cartridge hooks
-  def process_commands(result_io, component_id=nil)
+  def process_commands(result_io, component_id=nil, gear=nil)
     commands = result_io.cart_commands
     add_ssh_keys = []
 
@@ -1135,8 +1135,10 @@ class Application
         pending_op = PendingAppOpGroup.new(op_type: :remove_broker_auth_key, args: { }, user_agent: self.user_agent)
         Application.where(_id: self._id).update_all({ "$push" => { pending_op_groups: pending_op.serializable_hash_with_timestamp } })
       when "NOTIFY_ENDPOINT_CREATE"
+        gear.port_interfaces.push(PortInterface.create_port_interface(gear, component_id, *command_item[:args])) if gear and component_id
         OpenShift::RoutingService.notify_create_public_endpoint self, *command_item[:args]
       when "NOTIFY_ENDPOINT_DELETE"
+        PortInterface.remove_port_interface(gear, component_id, *command_item[:args]) if gear and component_id
         OpenShift::RoutingService.notify_delete_public_endpoint self, *command_item[:args]
       end
     end
