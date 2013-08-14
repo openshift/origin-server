@@ -121,15 +121,11 @@ module OpenShift
       # Caveat: the quota information will not be populated.
       #
       def self.from_uuid(container_uuid, hourglass=nil)
-        config = ::OpenShift::Config.new
-        gecos  = config.get("GEAR_GECOS") || "OO application container"
-        pwent  = Etc.getpwnam(container_uuid)
 
-        if pwent.gecos != gecos
-          raise ArgumentError, "Not an OpenShift gear: #{container_uuid}"
-        end
+        pwent = passwd_for(container_uuid)
 
         env = ::OpenShift::Runtime::Utils::Environ.for_gear(pwent.dir)
+
         if env['OPENSHIFT_GEAR_DNS'] == nil
           namespace = nil
         else
@@ -138,6 +134,18 @@ module OpenShift
 
         ApplicationContainer.new(env["OPENSHIFT_APP_UUID"], container_uuid, pwent.uid, env["OPENSHIFT_APP_NAME"],
                                  env["OPENSHIFT_GEAR_NAME"], namespace, nil, nil, hourglass)
+      end
+
+      def self.passwd_for(container_uuid)
+        config = ::OpenShift::Config.new
+        gecos  = config.get("GEAR_GECOS") || "OO application container"
+        pwent  = Etc.getpwnam(container_uuid)
+        raise ArgumentError, "Not an OpenShift gear: #{container_uuid}" if pwent.gecos != gecos
+        pwent
+      end
+
+      def self.exists?(container_uuid)
+        passwd_for(container_uuid) rescue false
       end
 
       def name
