@@ -5,14 +5,9 @@ source "/usr/lib/openshift/cartridge_sdk/bash/sdk"
 
 # Constants.
 DOP=5  # Degree of Parallelism.
-CART_FORMAT=`oo-cart-version -c show | cut -d\  -f5`
 
-if [ "$CART_FORMAT" == "v2" ]
-then
-   CART_DIRNAME="cron"
-else
-   CART_DIRNAME="cron-1.4"
-fi
+
+CART_DIRNAME="cron"
 
 function usage() {
    echo "Usage: $0 {run | run-user <uid>} <frequency>"
@@ -75,12 +70,8 @@ function run_user_scheduled_jobs() {
    # Ensure scripts are executable
    chmod +x -R "$GEAR_BASE_DIR/$uuid/app-root/repo/.openshift/cron/$freq/"
 
-   if [ "$CART_FORMAT" == "v2" ]
-   then
-      cron_runjob="$USER_CRON_INSTANCE_DIR/bin/cron_runjobs.sh"
-   else
-      cron_runjob="$USER_CRON_INSTANCE_DIR/cron_runjobs.sh"
-   fi
+
+   cron_runjob="$USER_CRON_INSTANCE_DIR/bin/cron_runjobs.sh"
    cmd="$cron_runjob $freq"
 
    # Ensure cron's embedded in the app.
