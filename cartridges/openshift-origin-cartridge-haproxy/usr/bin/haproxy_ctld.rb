@@ -210,7 +210,7 @@ class Haproxy
         end
 
         @log.debug("Got stats from #{num_remote_proxies} remote proxies.")
-        @sessions_per_gear = @sessions.to_f / @gear_count * (num_remote_proxies + 1)
+        @sessions_per_gear = @sessions.to_f / (@gear_count * (num_remote_proxies + 1))
         @session_capacity_pct = (@sessions_per_gear / MAX_SESSIONS_PER_GEAR ) * 100
     end
 
