@@ -6,7 +6,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin broker
 Name:          openshift-origin-broker-util
-Version: 1.13.2
+Version: 1.13.3
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -84,6 +84,26 @@ cp man/*.8 %{buildroot}%{_mandir}/man8/
 %{_mandir}/man8/oo-stats.8.gz
 
 %changelog
+* Wed Aug 14 2013 Adam Miller <admiller@redhat.com> 1.13.3-1
+- Fix for bug 990927 (abhgupta@redhat.com)
+- Merge pull request #3322 from smarterclayton/origin_ui_73_membership_model
+  (dmcphers+openshiftbot@redhat.com)
+- Fix for bug 989908 (abhgupta@redhat.com)
+- Fix for bug 990927 (abhgupta@redhat.com)
+- Check denormalization in oo-admin-chk (ccoleman@redhat.com)
+- Merge remote-tracking branch 'origin/master' into
+  origin_ui_73_membership_model (ccoleman@redhat.com)
+- * Implement a membership model for OpenShift that allows an efficient query
+  of user access based on each resource. * Implement scope limitations that
+  correspond to specific permissions * Expose membership info via the REST API
+  (disableable via config) * Allow multiple domains per user, controlled via a
+  configuration flag * Support additional information per domain
+  (application_count and gear_counts) to improve usability * Let domains
+  support the allowed_gear_sizes option, which limits the gear sizes available
+  to apps in that domain * Simplify domain update interactions - redundant
+  validation removed, and behavior of responses differs slightly. * Implement
+  migration script to enable data (ccoleman@redhat.com)
+
 * Fri Aug 09 2013 Adam Miller <admiller@redhat.com> 1.13.2-1
 - Fix for bug 990956 (abhgupta@redhat.com)
 
