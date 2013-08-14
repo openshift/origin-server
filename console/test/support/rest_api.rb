@@ -9,6 +9,7 @@ class ActiveSupport::TestCase
 
   def set_domain(domain)
     @domain = domain
+    @domains = [@domain]
   end
 
   def setup_domain

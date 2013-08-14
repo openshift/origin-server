@@ -48,8 +48,9 @@ class Application < RestApi::Base
   has_many :cartridges
   has_many :gears
   has_many :gear_groups
-  has_many :members
   has_one  :embedded, :class_name => as_indifferent_hash
+
+  include Membership
 
   attr_accessible :name, :scale, :gear_profile, :cartridges, :cartridge_names, :initial_git_url, :initial_git_branch
 
@@ -140,29 +141,7 @@ class Application < RestApi::Base
     @attributes[:embedded]
   end
 
-  def members
-    attributes[:members] || []
-  end
 
-  def owner?
-    members.find{ |m| m.id == api_identity_id && m.owner? } if api_identity_id
-  end
-
-  def admin?
-    has_role('admin')
-  end
-
-  def editor?
-    has_role('admin','edit')
-  end
-
-  def readonly?
-    has_role('read')
-  end
-
-  def has_role?(*roles)
-    roles.present? and api_identity_id and members.find{ |m| m.id == api_identity_id && roles.include?(m.role) }
-  end
 
   def scales?
     scale
