@@ -2,7 +2,7 @@
 
 Summary:       Provides Node.js support
 Name:          openshift-origin-cartridge-nodejs
-Version: 1.14.1
+Version: 1.14.9
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -41,15 +41,30 @@ Provides Node.js support to OpenShift. (Cartridge Format V2)
 %__mkdir -p %{buildroot}%{cartridgedir}
 %__cp -r * %{buildroot}%{cartridgedir}
 
-echo "NodeJS version is `/usr/bin/node -v`"
-if [[ $(/usr/bin/node -v) == v0.6* ]]; then
-%__rm -rf %{buildroot}%{cartridgedir}/versions/0.10
-%__mv %{buildroot}%{cartridgedir}/metadata/manifest.yml.0.6 %{buildroot}%{cartridgedir}/metadata/manifest.yml;
-fi
+echo "NPM installed Node version is `/usr/local/n/versions/0.10.15/bin/node -v`"
 
-if [[ $(/usr/bin/node -v) == v0.10* ]]; then
-%__rm -rf %{buildroot}%{cartridgedir}/versions/0.6
-%__mv %{buildroot}%{cartridgedir}/metadata/manifest.yml.0.10 %{buildroot}%{cartridgedir}/metadata/manifest.yml;
+echo "NodeJS version is `/usr/bin/node -v`"
+
+if [ -f /usr/local/n/versions/*/bin/node ]; then
+        echo "USING NPM VERSION ON SERVER"
+        if [[ $(/usr/local/n/versions/*/bin/node -v) == v0.6* ]]; then
+                %__rm -rf %{buildroot}%{cartridgedir}/versions/0.10
+                %__mv %{buildroot}%{cartridgedir}/metadata/manifest.yml.0.6 %{buildroot}%{cartridgedir}/metadata/manifest.yml;
+        fi
+        if [[ $(/usr/local/n/versions/*/bin/node -v) == v0.10* ]]; then
+                %__rm -rf %{buildroot}%{cartridgedir}/versions/0.6
+                %__mv %{buildroot}%{cartridgedir}/metadata/manifest.yml.0.10 %{buildroot}%{cartridgedir}/metadata/manifest.yml;
+        fi
+else
+        if [[ $(/usr/bin/node -v) == v0.6* ]]; then
+                %__rm -rf %{buildroot}%{cartridgedir}/versions/0.10
+                %__mv %{buildroot}%{cartridgedir}/metadata/manifest.yml.0.6 %{buildroot}%{cartridgedir}/metadata/manifest.yml;
+        fi
+        if [[ $(/usr/bin/node -v) == v0.10* ]]; then
+                %__rm -rf %{buildroot}%{cartridgedir}/versions/0.6
+                %__mv %{buildroot}%{cartridgedir}/metadata/manifest.yml.0.10 %{buildroot}%{cartridgedir}/metadata/manifest.yml;
+        fi
+        echo "USING NODE VERSION ON SERVER"
 fi
 
 %files
@@ -62,6 +77,33 @@ fi
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Wed Aug 14 2013 cbritz <britztopher@gmail.com> 1.14.9-1
+- added logic for use with npm n module (britztopher@gmail.com)
+
+* Wed Aug 14 2013 cbritz <britztopher@gmail.com> 1.14.8-1
+- forgot to add the r option to rm (root@broker.openshift.local)
+
+* Wed Aug 14 2013 Unknown name 1.14.7-1
+- added change to say OR in parens (root@broker.openshift.local)
+
+* Tue Aug 13 2013 Unknown name 1.14.6-1
+- 
+
+* Tue Aug 13 2013 Unknown name 1.14.5-1
+- added a case that if using node binary manager module 'n' that installs node
+  into /usr/local/n/versions/0.10.15/bin/node instead of /usr/bin/node it will
+  use the 'n' path instead (root@broker.openshift.local)
+
+* Tue Aug 13 2013 Unknown name 1.14.4-1
+- 
+
+* Tue Aug 13 2013 Unknown name 1.14.3-1
+- made a change to delete the version 10 directory if version 6 is installed on
+  machine (root@broker.openshift.local)
+
+* Tue Aug 13 2013 Unknown name 1.14.2-1
+- new package built with tito
+
 * Thu Aug 08 2013 Adam Miller <admiller@redhat.com> 1.14.1-1
 - Merge pull request #3313 from jwhonce/wip/manifest_lint
   (dmcphers+openshiftbot@redhat.com)
