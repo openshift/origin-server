@@ -9,18 +9,27 @@ rescue
 end
 
 AfterConfiguration do |config|
-  SetupHelper::setup  
+  SetupHelper::setup
 end
 
 Before do 
- if !(@test_apps_hash.nil?)
-     @test_apps_hash.each do |app_name_key, app|
-         rhc_ctl_destroy(app)
-     end
- else
-    $logger.info("No apps to delete. The hash of TestApps is empty")
- end
- @test_apps_hash = {}
- @unique_namespace_apps_hash = {}
+  clean_shared_hashes
+end
 
+After do
+  clean_shared_hashes
+end
+
+def clean_shared_hashes
+  if !(@test_apps_hash.nil?)
+    @test_apps_hash.each do |app_name_key, app|
+      $logger.info("Destroying app #{app_name_key}")
+      rhc_ctl_destroy(app)
+    end
+  else
+    $logger.info("No apps to delete. The hash of TestApps is empty")
+  end
+
+  @test_apps_hash = {}
+  @unique_namespace_apps_hash = {}
 end

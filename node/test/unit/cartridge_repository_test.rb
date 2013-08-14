@@ -40,77 +40,174 @@ class CartridgeRepositoryTest < OpenShift::NodeTestCase
     end
   end
 
-  def test_one_manifest
-    populate_manifest(%W(#{@path}/redhat-crtest/1.0/metadata/manifest.yml))
+  def populate_manifest_special(manifests = {})
+    manifests.each_pair do |manifest_file, manifest|
+      FileUtils.mkpath File.dirname(manifest_file)
+      File.open(manifest_file, 'w') { |file| file << manifest }
+    end
+  end
+
+  def test_insert
+    populate_manifest(%W(#{@path}/redhat-crtest/0.0.1/metadata/manifest.yml))
 
     cr = OpenShift::Runtime::CartridgeRepository.instance
     cr.load
     refute_nil cr
 
-    e = cr.select('crtest', '0.1', '1.0')
+    assert cr.exist?('crtest', '0.1', '0.0.1')
+    assert !cr.exist?('crtest', '0.2', '0.0.1')
+
+    e = cr.select('crtest', '0.1', '0.0.1')
     refute_nil e
     assert_equal '0.1', e.version
-    assert_equal "#{@path}/redhat-crtest/1.0", e.repository_path
     assert_equal 'redhat', e.cartridge_vendor
+    assert_equal '0.0.1', e.cartridge_version
+    assert_equal "#{@path}/redhat-crtest/0.0.1", e.repository_path
 
     e = cr.select('crtest', '0.1')
     refute_nil e
     assert_equal '0.1', e.version
-
-    e = cr.select('crtest')
-    refute_nil e
-    assert_equal '0.1', e.version
-
-    assert_equal "#{@path}/redhat-crtest/1.0", e.repository_path
+    assert_equal '0.0.1', e.cartridge_version
   end
 
-  def test_each
-    populate_manifest(["#{@path}/redhat-crtest/1.0/metadata/manifest.yml",
-                       "#{@path}/redhat-crtest/1.1/metadata/manifest.yml",
-                       "#{@path}/redhat-crtest/1.2/metadata/manifest.yml"])
-
-    cr = OpenShift::Runtime::CartridgeRepository.instance
-    cr.load
-
-    assert_equal 3, cr.count
-  end
-
-  def test_three_manifest
-    paths = ["#{@path}/redhat-crtest/1.0/metadata/manifest.yml",
-             "#{@path}/redhat-crtest/1.1/metadata/manifest.yml",
-             "#{@path}/redhat-crtest/1.2/metadata/manifest.yml"]
+  def test_version_overrides
+    paths = ["#{@path}/redhat-crtest/0.0.1/metadata/manifest.yml",
+             "#{@path}/redhat-crtest/0.0.2/metadata/manifest.yml"]
     populate_manifest(paths)
 
     cr = OpenShift::Runtime::CartridgeRepository.instance
     cr.load
 
-    e = cr.select('crtest')
+    assert cr.exist?('crtest', '0.1', '0.0.2')
+    assert cr.exist?('crtest', '0.2', '0.0.2')
+
+    e = cr.select('crtest', '0.1')
     refute_nil e
-    assert_equal '0.3', e.version
-    assert_equal '1.2', e.cartridge_version
+    assert_equal 'crtest', e.name
+    assert_equal 'crtest', e.manifest['Name']
+    assert_equal 'crtest', e.manifest['Display-Name']
+    assert_equal '0.1', e.version
+    assert_equal '0.0.2', e.cartridge_version
+    assert e.categories.include?('service')
+    assert e.versions.include?('0.1')
+    assert e.manifest['Group-Overrides'][0]['components'].include?('crtest-0.1')
+
+    e = cr.select('crtest', '0.2')
+    refute_nil e
+    assert_equal 'crtest', e.name
+    assert_equal 'crtest', e.manifest['Name']
+    assert_equal 'crtest2', e.manifest['Display-Name']
+    assert_equal '0.2', e.version
+    assert_equal '0.0.2', e.cartridge_version
+    assert_empty e.categories
+    assert e.manifest['Group-Overrides'][0]['components'].include?('crtest-0.2')
+  end
+
+  def test_erase
+    paths = ["#{@path}/redhat-crtest/0.0.1/metadata/manifest.yml",
+             "#{@path}/redhat-crtest/0.0.2/metadata/manifest.yml"]
+    populate_manifest(paths)
 
     cr = OpenShift::Runtime::CartridgeRepository.instance
+    cr.load
+
+    assert cr.exist?('crtest', '0.1', '0.0.2')
+    assert cr.exist?('crtest', '0.2', '0.0.2')
+
+    cr.erase('crtest', '0.2', '0.0.2')
+
+    refute cr.exist?('crtest', '0.2', '0.0.2')
+
+    assert_raise(KeyError) do
+      cr.select('crtest', '0.2', '0.0.2')
+    end
+
+    assert_raise(KeyError) do
+      cr.select('crtest', '0.2')
+    end
+
+    e = cr.select('crtest', '0.1')
+    assert_equal '0.0.1', e.cartridge_version
+
+    cr.erase('crtest', '0.1', '0.0.1')
+
+    refute cr.exist?('crtest', '0.1', '0.0.1')
+
+    assert_raise(KeyError) do
+      cr.select('crtest', '0.1', '0.0.1')
+    end
+
+    assert_raise(KeyError) do
+      cr.select('crtest', '0.1')
+    end
+  end
+
+  def test_each
+    populate_manifest(["#{@path}/redhat-crtest/0.0.1/metadata/manifest.yml",
+                       "#{@path}/redhat-crtest/0.0.2/metadata/manifest.yml",
+                       "#{@path}/redhat-crtest/0.0.3/metadata/manifest.yml"])
+
+    cr = OpenShift::Runtime::CartridgeRepository.instance
+    cr.load
+
+    assert_equal 5, cr.count
+  end
+
+  def test_latest_versions
+    paths = ["#{@path}/redhat-crtest/0.0.1/metadata/manifest.yml",
+             "#{@path}/redhat-crtest/0.0.2/metadata/manifest.yml",
+             "#{@path}/redhat-crtest/0.0.3/metadata/manifest.yml"]
+    populate_manifest(paths)
+
+    cr = OpenShift::Runtime::CartridgeRepository.instance
+    cr.load
+    
+    e = cr.select('crtest', '0.1')
+    refute_nil e
+    assert_equal '0.1', e.version
+    assert_equal '0.0.2', e.cartridge_version
+
+    assert_raise(KeyError) do
+      cr.select('crtest', '0.1', '0.0.3')
+    end
+
+    e = cr.select('crtest', '0.2')
+    refute_nil e
+    assert_equal '0.2', e.version
+    assert_equal '0.0.3', e.cartridge_version
+    assert e.manifest['Group-Overrides'][0]['components'].include?('crtest-0.2')
+    
     e  = cr.select('crtest', '0.3')
     refute_nil e
     assert_equal '0.3', e.version
-    assert_equal '1.2', e.cartridge_version
+    assert_equal '0.0.3', e.cartridge_version
+    assert e.manifest['Group-Overrides'][0]['components'].include?('crtest-0.3')
 
-    e = cr['crtest']
-    refute_nil e
-    assert_equal '0.3', e.version
-    assert_equal '1.2', e.cartridge_version
-
-    cr = OpenShift::Runtime::CartridgeRepository.instance
     e  = cr['crtest', '0.3']
     refute_nil e
     assert_equal '0.3', e.version
-    assert_equal '1.2', e.cartridge_version
+    assert_equal '0.0.3', e.cartridge_version
+
+    lookup = {'0.1' => '0.0.2', '0.2' => '0.0.3', '0.3' => '0.0.3'}
+
+    latest = cr.latest_versions
+
+    latest.each do |cart|
+      assert_equal 'crtest', cart.name
+      assert_equal 'crtest', cart.manifest['Name']
+    end
+
+    latest.delete_if do |cart|
+      cart.cartridge_version == lookup[cart.version]
+    end
+
+    assert latest.empty?
   end
 
   def test_not_found
-    populate_manifest(["#{@path}/redhat-crtest/1.0/metadata/manifest.yml",
-                       "#{@path}/redhat-crtest/1.1/metadata/manifest.yml",
-                       "#{@path}/redhat-crtest/1.2/metadata/manifest.yml"])
+    populate_manifest(["#{@path}/redhat-crtest/0.0.1/metadata/manifest.yml",
+                       "#{@path}/redhat-crtest/0.0.2/metadata/manifest.yml",
+                       "#{@path}/redhat-crtest/0.0.3/metadata/manifest.yml"])
 
     cr = OpenShift::Runtime::CartridgeRepository.instance
     cr.load
@@ -120,32 +217,111 @@ class CartridgeRepositoryTest < OpenShift::NodeTestCase
     end
   end
 
+  def test_insane_node_func_case
+    manifest = %q{#
+        Name: crtest
+        Display-Name: crtest Unit Test
+        Cartridge-Short-Name: CRTEST
+        Version: '0.3'
+        Versions: ['0.1', '0.2', '0.3']
+        Cartridge-Version: '0.0.1'
+        Cartridge-Vendor: redhat
+        Group-Overrides:
+          - components:
+            - crtest-0.3
+            - web_proxy
+        Version-Overrides:
+          '0.1':
+            Group-Overrides:
+              - components:
+                - crtest-0.1
+                - web_proxy
+          '0.2':
+            Group-Overrides:
+              - components:
+                - crtest-0.2
+                - web_proxy
+      }
+
+    populate_manifest_special({"#{@path}/redhat-crtest/0.0.1/metadata/manifest.yml" => manifest})
+
+    cr = OpenShift::Runtime::CartridgeRepository.instance
+    cr.load
+
+    e = cr.select('crtest', '0.1')
+    refute_nil e
+    assert_equal 'crtest', e.name
+    assert_equal '0.1', e.version
+    assert_equal '0.0.1', e.cartridge_version
+    assert e.manifest['Group-Overrides'][0]['components'].include?('crtest-0.1')
+
+    e = cr.select('crtest', '0.2')
+    refute_nil e
+    assert_equal 'crtest', e.name
+    assert_equal '0.2', e.version
+    assert_equal '0.0.1', e.cartridge_version
+    assert e.manifest['Group-Overrides'][0]['components'].include?('crtest-0.2')
+
+    e = cr.select('crtest', '0.3')
+    refute_nil e
+    assert_equal 'crtest', e.name
+    assert_equal '0.3', e.version
+    assert_equal '0.0.1', e.cartridge_version
+    assert e.manifest['Group-Overrides'][0]['components'].include?('crtest-0.3')
+  end
+
   MANIFESTS = [
       %q{#
         Name: crtest
         Cartridge-Short-Name: crtest
         Version: '0.1'
         Versions: ['0.1']
-        Cartridge-Version: '1.0'
+        Cartridge-Version: '0.0.1'
         Compatible-Versions: ['1.0']
         Cartridge-Vendor: redhat
       },
       %q{#
         Name: crtest
         Cartridge-Short-Name: crtest
+        Display-Name: crtest2
         Version: '0.2'
         Versions: ['0.1', '0.2']
-        Cartridge-Version: '1.1'
-        Compatible-Versions: ['1.0', '1.1']
+        Cartridge-Version: '0.0.2'
+        Compatible-Versions: ['0.0.1']
         Cartridge-Vendor: redhat
+        Source-Url: http://example.com
+        Group-Overrides:
+          - components:
+            - crtest-0.2
+            - web_proxy
+        Version-Overrides:
+          '0.1':
+            Display-Name: crtest
+            Categories:
+              - service
+            Versions: ['0.2']
+            Group-Overrides:
+              - components:
+                - crtest-0.1
+                - web_proxy
       },
       %q{#
         Name: crtest
         Cartridge-Short-Name: crtest
         Version: '0.3'
-        Versions: ['0.1', '0.2', '0.3']
-        Cartridge-Version: '1.2'
+        Versions: ['0.2', '0.3']
+        Cartridge-Version: '0.0.3'
         Cartridge-Vendor: redhat
+        Group-Overrides:
+          - components:
+            - crtest-0.3
+            - web_proxy
+        Version-Overrides:
+          '0.2':
+            Group-Overrides:
+              - components:
+                - crtest-0.2
+                - web_proxy
       },
   ]
 end
