@@ -145,7 +145,23 @@ class Application < RestApi::Base
   end
 
   def owner?
-    (members || []).find{ |m| m.id == api_identity_id && m.owner? } if api_identity_id
+    members.find{ |m| m.id == api_identity_id && m.owner? } if api_identity_id
+  end
+
+  def admin?
+    has_role('admin')
+  end
+
+  def editor?
+    has_role('admin','edit')
+  end
+
+  def readonly?
+    has_role('read')
+  end
+
+  def has_role?(*roles)
+    roles.present? and api_identity_id and members.find{ |m| m.id == api_identity_id && roles.include?(m.role) }
   end
 
   def scales?
