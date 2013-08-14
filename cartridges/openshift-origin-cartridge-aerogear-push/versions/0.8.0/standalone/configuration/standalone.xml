@@ -37,6 +37,7 @@
     
     <system-properties>
        <property name="org.apache.coyote.http11.Http11Protocol.COMPRESSION" value="on"/>
+       <property name="jsse.enableSNIExtension" value="false"/>
     </system-properties>
 
     <management>
