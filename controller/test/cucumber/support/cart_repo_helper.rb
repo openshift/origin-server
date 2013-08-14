@@ -19,9 +19,14 @@ def clean_cart_repo
     manifest_path        = File.join(%W(/ usr libexec openshift cartridges #{cart} metadata manifest.yml))
     manifest_backup_path = manifest_path + '~'
 
-    if cart_repo.exist?(cart, '0.0.2', '0.1')
+    if cart_repo.exist?(cart, '0.1', '0.0.2')
       $logger.info("Erasing test-generated version #{cart}-0.1 (0.0.2)")
       cart_repo.erase(cart, '0.1', '0.0.2')
+
+      if cart_repo.exist?(cart, '0.2', '0.0.2')
+        $logger.info("Erasing test-generated version #{cart}-0.2 (0.0.2)")
+        cart_repo.erase(cart, '0.2', '0.0.2')
+      end
 
       if File.exist?(manifest_backup_path)
         $logger.info("Restoring #{cart} #{manifest_path}")

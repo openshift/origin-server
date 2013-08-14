@@ -101,7 +101,7 @@ module OpenShift
       FileUtils.rm_rf(@test_home)
     end
 
-    def test_install_remove
+    def test_install_erase
       cr = ::OpenShift::Runtime::CartridgeRepository.instance
       cr.clear
       cr.install(@source_dir)
@@ -121,10 +121,6 @@ module OpenShift
 
       # Will raise exception if missing...
       cr.erase(@name, '0.3', '1.2')
-
-      assert_raise(KeyError) do
-        cr.select(@name)
-      end
 
       bin_path = @repo_dir + '/1.2'
       assert(!File.directory?(bin_path), "Directory not deleted: #{bin_path}")
@@ -369,10 +365,6 @@ module OpenShift
       name = "crftest_#{@uuid}"
       cr   = ::OpenShift::Runtime::CartridgeRepository.instance
       cr.clear
-
-      cr.install(@source_dir + '/1')
-      m = cr.select(name)
-      assert_equal '0.0.1', m.cartridge_version
 
       cr.install(@source_dir + '/2')
       m = cr.select(name, '0.3')

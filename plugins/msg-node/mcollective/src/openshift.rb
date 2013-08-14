@@ -261,7 +261,7 @@ module MCollective
           require 'openshift-origin-node/model/upgrade'
 
           upgrader = OpenShift::Runtime::Upgrader.new(uuid, namespace, version, hostname, ignore_cartridge_version)
-          output, exitcode, json_data = upgrader.execute
+          result = upgrader.execute
         rescue LoadError => e
           exitcode = 127
           output += "upgrade not supported. #{e.message}\n"
@@ -277,7 +277,7 @@ module MCollective
 
         reply[:output] = output
         reply[:exitcode] = exitcode
-        reply[:json_data] = json_data
+        reply[:upgrade_result_json] = JSON.dump(result)
         reply.fail! "upgrade_action failed #{exitcode}.  Output #{output}" unless exitcode == 0
       end
 
