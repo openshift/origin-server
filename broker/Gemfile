@@ -28,13 +28,13 @@ end
 # the mongo rubygem:
 gem 'mongo'
 
-if ENV['BROKER_SOURCE']
+if ENV['BROKER_SOURCE'] || ENV['BROKER_PLUGINS_FILE']
   gem 'openshift-origin-common', :path => '../common'
   gem 'openshift-origin-controller', :path => '../controller'
   gem 'netrc' # rest-client has an undeclared prereq on netrc
 
-  # Load broker plugins according to local file
-  load File.expand_path(ENV['BROKER_PLUGINS_FILE'] || '~/.openshift/broker_plugins.rb')
+  # Load broker plugins according to local file, but keep paths relative to ./
+  eval IO.read(File.expand_path(ENV['BROKER_PLUGINS_FILE'] || '~/.openshift/broker_plugins.rb'))
 else
   gem 'openshift-origin-controller'
 
