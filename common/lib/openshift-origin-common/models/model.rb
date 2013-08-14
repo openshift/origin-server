@@ -20,6 +20,10 @@ module OpenShift
       end
       a
     end
+
+    def attribute(name)
+      instance_variable_get("@#{name}")
+    end
     
     def to_xml(options = {})
       to_xml_opts = {:skip_types => true}

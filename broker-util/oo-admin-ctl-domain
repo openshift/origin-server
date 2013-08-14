@@ -45,6 +45,7 @@ opts = GetoptLong.new(
     ["--key_name",         "-k", GetoptLong::REQUIRED_ARGUMENT],
     ["--env_name",         "-e", GetoptLong::REQUIRED_ARGUMENT],
     ["--env_value",        "-v", GetoptLong::REQUIRED_ARGUMENT],
+    ["--new_namespace"         , GetoptLong::REQUIRED_ARGUMENT],    
     ["--help",             "-h", GetoptLong::NO_ARGUMENT]
 )
 
@@ -61,6 +62,7 @@ ssh_key = args["--ssh_key"]
 ssh_type = args["--key_type"]
 ssh_name = args["--key_name"]
 namespace = args["--namespace"]
+new_namespace = args["--new_namespace"]
 env_name = args["--env_name"]
 env_value = args["--env_value"]
 
@@ -169,50 +171,31 @@ when "update"
   end
   
   if namespace
-    if namespace.empty?
-      puts "Namespace cannot be blank."
+    if new_namespace.blank?
+      puts "New namespace cannot be blank."
       exit 1
     else
       d = nil
       if user.domains.empty?
-        d = Domain.new(namespace: namespace, owner: user)
+        d = Domain.new(namespace: new_namespace, owner: user)
         if not d.valid?
           puts "Namespace is not valid"
           exit 1
         end
-        d.save!
+        d.save_with_duplicate_check!
         reply.resultIO << "Successfully added domain.\n"
       else
-        d = user.domains.first
-        unless d.canonical_namespace == namespace.downcase
-          begin
-            Domain.with(consistency: :eventual).find_by(canonical_namespace: namespace.downcase)
-            puts "Domain #{namespace.downcase} already exists.  Please choose another."
-            exit 1
-          rescue Mongoid::Errors::DocumentNotFound
-          end
-
-          # Validate the namespace being updated
-          orig_namespace = d.namespace
-          d.namespace = namespace
-          if not d.valid?
-            puts "Namespace is not valid"
-            exit 1
-          end
-
-          # reset the original namespace back for updating
-          d.namespace = orig_namespace
-          begin
-            d.update_namespace(namespace)
-            d.save!
-            reply.resultIO << "Successfully updated domain.\n"
-          rescue OpenShift::UserException => e
-             puts "#{e.message}"
-             exit e.code
-          rescue Exception => e
-             puts "#{e.message}"
-             exit 1
-          end
+        begin
+          d = user.domains.find_by(canonical_namespace: namespace)
+          d.namespace = new_namespace
+          d.save_with_duplicate_check!
+          reply.resultIO << "Successfully updated domain.\n"
+        rescue OpenShift::UserException => e
+           puts "#{e.message}"
+           exit e.code
+        rescue Exception => e
+           puts "#{e.message}"
+           exit 1
         end
       end
     end

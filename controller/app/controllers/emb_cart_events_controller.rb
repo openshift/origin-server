@@ -12,6 +12,8 @@ class EmbCartEventsController < BaseController
     
     return render_error(:not_found, "Cartridge #{cartridge} not embedded within application #{@application.name}", 129) if !@application.requires.include?(cartridge)
 
+    authorize! :change_cartridge_state, @application
+
     case event
       when 'start'
         result = @application.start(cartridge)      

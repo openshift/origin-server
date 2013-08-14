@@ -1,13 +1,7 @@
 class KeysController < BaseController
   #GET /user/keys
   def index
-    ssh_keys = Array.new
-    unless @cloud_user.ssh_keys.nil? 
-      @cloud_user.ssh_keys.each do |key|
-        ssh_key = RestKey.new(key, get_url, nolinks)
-        ssh_keys.push(ssh_key)
-      end
-    end
+    ssh_keys = current_user.ssh_keys.accessible(current_user).map{ |key| RestKey.new(key, get_url, nolinks) }
     render_success(:ok, "keys", ssh_keys, "Found #{ssh_keys.length} ssh keys")
   end
 
@@ -15,7 +9,7 @@ class KeysController < BaseController
   def show
     id = params[:id].presence
 
-    key = @cloud_user.ssh_keys.find_by(name: SshKey.check_name!(id))
+    key = @cloud_user.ssh_keys.accessible(current_user).find_by(name: SshKey.check_name!(id))
     render_success(:ok, "key", RestKey.new(key, get_url, nolinks), "Found SSH key '#{id}'")
   end
 
@@ -25,7 +19,7 @@ class KeysController < BaseController
     name = params[:name].presence
     type = params[:type].presence
     
-    Rails.logger.debug "Creating key name:#{name} type:#{type} for user #{@cloud_user.login}"
+    Rails.logger.debug "Creating key name:#{name} type:#{type} for user #{current_user.login}"
     
     # key should should not end with a format, else URLs in response links will fail
     # blocking additional formats in case we decide to support them in the future
@@ -35,6 +29,8 @@ class KeysController < BaseController
     end
 
     key = UserSshKey.new(name: name, type: type, content: content)
+    authorize! :create_key, current_user
+
     if key.invalid?
       messages = get_error_messages(key)
       return render_error(:unprocessable_entity, nil, nil, nil, nil, messages)
@@ -61,9 +57,11 @@ class KeysController < BaseController
     
     Rails.logger.debug "Updating key name:#{id} type:#{type} for user #{current_user.login}"
     
-    @cloud_user.ssh_keys.find_by(name: SshKey.check_name!(id))
+    @cloud_user.ssh_keys.accessible(current_user).find_by(name: SshKey.check_name!(id))
     
     key = UserSshKey.new(name: id, type: type, content: content)
+    authorize! :update_key, current_user
+
     if key.invalid?
       messages = get_error_messages(key)
       return render_error(:unprocessable_entity, nil, nil, nil, nil, messages)
@@ -78,7 +76,9 @@ class KeysController < BaseController
   def destroy
     id = params[:id].presence
     
-    @cloud_user.ssh_keys.find_by(name: SshKey.check_name!(id))
+    authorize! :destroy_key, current_user
+
+    @cloud_user.ssh_keys.accessible(current_user).find_by(name: SshKey.check_name!(id))
 
     result = @cloud_user.remove_ssh_key(id)
     status = requested_api_version <= 1.4 ? :no_content : :ok

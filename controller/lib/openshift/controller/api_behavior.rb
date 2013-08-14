@@ -6,6 +6,10 @@ module OpenShift
       API_VERSION = 1.6
       SUPPORTED_API_VERSIONS = [1.0, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6]
 
+      included do
+        before_filter ->{ Mongoid.identity_map_enabled = true }
+      end
+
       protected
         attr :requested_api_version
 
@@ -72,6 +76,36 @@ module OpenShift
           end
           raise OpenShift::OOException.new("Invalid value '#{param_value}'. Valid options: [true, false]", 167)
         end
+
+        def get_includes
+          @includes ||=
+            if params[:include].is_a? String
+              params[:include].split(',')
+            elsif params[:include].is_a? Array
+              params[:include].map(&:to_s)
+            else
+              []
+            end
+        end
+
+        def if_included(sym, default=nil, &block)
+          if get_includes.any?{ |i| i == sym.to_s }
+            block_given? ? yield : true
+          else
+            default
+          end
+        end
+
+        def pre_and_post_condition(pre, post, run, fails)
+          return false if !pre.call
+          run.call
+          if post.call
+            true
+          else
+            fails.call
+            false
+          end
+        end
         
         def get_log_tag_prepend
           tag = "UNKNOWN"
@@ -92,34 +126,37 @@ module OpenShift
           return tag
         end 
         
-        def get_domain(domain_id=nil)
-          #get domain_id from url if domain_id is nil
-          domain_id = params[:domain_id] if domain_id.nil?
-          domain_id = domain_id.downcase if domain_id
-          @domain = Domain.find_by(owner: @cloud_user, canonical_namespace: Domain.check_name!(domain_id))
-          @domain
+        def get_domain(id=nil)
+          id ||= params[:domain_id].presence
+          @domain = Domain.accessible(current_user).find_by(canonical_namespace: Domain.check_name!(id.presence).downcase)
         end
 
         def get_application
-          domain_id = params[:domain_id].presence
-          application_id = params[:application_id] || params[:id]
-          application_id = application_id.downcase if application_id
-          application_name = params[:application_name] || params[:name]
-          application_name = application_name.downcase if application_name
-          return render_error(:not_found, "Application ID cannot be null", 101) if application_id.nil?
+          domain_id = params[:domain_id].presence || params[:domain_name].presence
+          domain_id = domain_id.to_s.downcase if domain_id
+          application_id = params[:application_id].presence || params[:id].presence || params[:application_name].presence || params[:name].presence
+          application_id = application_id.to_s if application_id
 
-          # if domain_id is nil then assume that retrieving application by ID
-          if domain_id.nil?
-            @application = Application.find_by(uuid: application_id) rescue nil 
-            @domain = @application.domain if @application
-            #if user is not the owner then return 404
-            return render_error(:not_found, "Application '#{application_id}' not found", 101) if @domain and @domain.owner.id != @cloud_user.id
-          end
-          # if not application then lookup by domain and app name
-          if @application.nil?  
-            get_domain() 
-            @application = Application.find_by(domain: @domain, canonical_name: Application.check_name!(application_id)) if @domain
-          end
+          @application = 
+            if domain_id.nil? 
+              Application.accessible(current_user).find_by(uuid: application_id)
+            else 
+              domain_id = Domain.check_name!(domain_id).downcase
+              begin
+                Application.accessible(current_user).find_by(domain_namespace: domain_id, canonical_name: Application.check_name!(application_id).downcase)
+              rescue Mongoid::Errors::DocumentNotFound
+                # ensure a domain not found exception is raised
+                Domain.accessible(current_user).find_by(canonical_namespace: domain_id)
+                raise
+              end
+            end
+        end
+        
+        def authorize!(permission, resource, *resources)
+          Ability.authorize!(current_user, current_user.scopes, permission, resource, *resources)
+        end
+        def authorized?(permissions, resource, *resources)
+          Ability.authorized?(current_user, current_user.scopes, permissions, resource, *resources)
         end
     end
   end

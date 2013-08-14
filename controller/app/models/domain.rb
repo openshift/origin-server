@@ -6,13 +6,11 @@
 #   @return [Array[Hash]] List of domain wide environment variables to be created on all {Application}s under the domain.
 #     @see {Domain#add_env_variables}, {Domain#remove_env_variables}
 # @!attribute [r] system_ssh_keys
-#   @return [Array[SystemSshKey]] List of SSH keys to be made available on all {Application}s under the domain. 
+#   @return [Array[SystemSshKey]] List of SSH keys to be made available on all {Application}s under the domain.
 #     These keys are used when applications need to push code to each other. Eg: Jenkins
 #     @see {Domain#add_domain_ssh_keys}, {Domain#remove_domain_ssh_key}
 # @!attribute [r] owner
 #   @return [CloudUser] The {CloudUser} that owns this domain.
-# @!attribute [r] user_ids
-#   @return [Array[Moped::BSON::ObjectId]] List of IDs of {CloudUser}s that have access to {Application}s within this domain.
 # @!attribute [r] applications
 #   @return [Array[Application]] List of {Application}s under the domain.
 # @!attribute [r] pending_ops
@@ -21,56 +19,100 @@ class Domain
   NAMESPACE_MAX_LENGTH = 16 unless defined? NAMESPACE_MAX_LENGTH
   NAMESPACE_MIN_LENGTH = 1 unless defined? NAMESPACE_MIN_LENGTH
 
-  # This is the current regex for validations for new domains 
+  # This is the current regex for validations for new domains
   DOMAIN_NAME_REGEX = /\A[A-Za-z0-9]+\z/
   def self.check_name!(name)
     if name.blank? or name !~ DOMAIN_NAME_REGEX
-      raise Mongoid::Errors::DocumentNotFound.new(Domain, nil, [name]) 
+      raise Mongoid::Errors::DocumentNotFound.new(Domain, nil, [name])
     end
     name
   end
 
   include Mongoid::Document
   include Mongoid::Timestamps
-  alias_method :mongoid_save, :save
+  include Membership
 
   field :namespace, type: String
   field :canonical_namespace, type: String
   field :env_vars, type: Array, default: []
+  field :allowed_gear_sizes, type: Array, default: []
   embeds_many :system_ssh_keys, class_name: SystemSshKey.name
   belongs_to :owner, class_name: CloudUser.name
-  field :user_ids, type: Array, default: []
   has_many :applications, class_name: Application.name, dependent: :restrict
   embeds_many :pending_ops, class_name: PendingDomainOps.name
 
+  has_members default_role: :admin
+
   index({:canonical_namespace => 1}, {:unique => true})
   index({:owner_id => 1})
-  index({:user_ids => 1})
   create_indexes
 
+  # non-persisted fields used to store info about the applications in this domain
+  attr_accessor :application_count
+  attr_accessor :gear_counts
+
   validates :namespace,
-    presence: {message: "Namespace is required and cannot be blank."},
-    format:   {with: DOMAIN_NAME_REGEX, message: "Invalid namespace. Namespace must only contain alphanumeric characters."},
+    #presence: {message: "Namespace is required and cannot be blank."},
+    format:   {with: DOMAIN_NAME_REGEX, message: "Invalid namespace. Namespace must only contain alphanumeric characters.", allow_blank: true},
     length:   {maximum: NAMESPACE_MAX_LENGTH, minimum: NAMESPACE_MIN_LENGTH, message: "Must be a minimum of #{NAMESPACE_MIN_LENGTH} and maximum of #{NAMESPACE_MAX_LENGTH} characters."},
     blacklisted: {message: "Namespace is not allowed.  Please choose another."}
+
+  validate do |d|
+    if d.allowed_gear_sizes_changed?
+      new_gear_sizes = Array(d.allowed_gear_sizes).map{ |g| g.to_s.presence }.compact
+      valid_gear_sizes = OpenShift::ApplicationContainerProxy.valid_gear_sizes & (d.has_owner? and d.owner.allowed_gear_sizes or [])
+      invalid_gear_sizes = new_gear_sizes - valid_gear_sizes
+      if invalid_gear_sizes.present?
+        d.errors.add :allowed_gear_sizes, "The following gear sizes are invalid: #{invalid_gear_sizes.to_sentence}"
+      else
+        d.allowed_gear_sizes = new_gear_sizes.uniq
+      end
+    end
+  end
+
   def self.validation_map
-    {namespace: 106}
+    {namespace: 106, allowed_gear_sizes: 110}
   end
 
   def self.sort_by_original(user)
     lambda{ |d| [user._id == d.owner_id ? 0 : 1, d.created_at] }
   end
 
-  def initialize(attrs = nil, options = nil)
-    super
-    self.user_ids << owner._id if owner
+  def self.with_gear_counts(domains=queryable.to_a)
+    info_by_domain = Application.in(domain_id: domains.map(&:_id)).with_gear_counts.group_by{ |a| a['domain_id'] }
+    domains.each do |d|
+      if info = info_by_domain[d._id]
+        d.application_count = info.length
+        d.gear_counts = info.inject({}) do |h, v|
+          v['gears'].each_pair do |size,count|
+            h[size] ||= 0
+            h[size] += count
+          end
+          h
+        end
+      else
+        d.application_count = 0
+        d.gear_counts = {}
+      end
+    end
   end
 
-  def save(options = {})
-    notify = !self.persisted?
-    res = mongoid_save(options)
-    notify_observers(:domain_create_success) if notify
-    res
+  def with_gear_counts
+    self.class.with_gear_counts([self]).first
+  end
+
+  before_save prepend: true do
+    self.canonical_namespace = namespace.present? ? namespace.downcase : nil
+    if has_owner?
+      self.allowed_gear_sizes = owner.allowed_gear_sizes if owner_id_changed? || !persisted?
+    end
+  end
+
+  # Defend against namespace changes after creation.
+  before_update do
+    if namespace_changed? && Application.where(domain_id: _id).present?
+      raise OpenShift::UserException.new("Domain contains applications. Delete applications first before changing the domain namespace.", 128)
+    end
   end
 
   # Setter for domain namespace - sets the namespace and the canonical_namespace
@@ -79,98 +121,24 @@ class Domain
     super
   end
 
-  # Change the namespace for this Domain if there are no applications under it. 
-  #
-  # == Parameters:
-  # new_namespace::
-  #   The new namespace to use for the domain
-  def update_namespace(new_namespace)
-    if Application.where(domain_id: self._id).count > 0
-      raise OpenShift::UserException.new("Domain contains applications. Delete applications first before changing the domain namespace.", 128)
-    end
-    if Domain.where(canonical_namespace: new_namespace.downcase).count > 0 
-      raise OpenShift::UserException.new("Namespace '#{new_namespace}' is already in use. Please choose another.", 103, "id") 
-    end
-    self.namespace = new_namespace
-    self.save
-    notify_observers(:domain_update_success)
-  end
 
-  # Adds a user to the access list for this domain.
-  #
-  # == Parameters:
-  # user::
-  #  The user to add to the access list for this domain.
-  def add_user(user)
-    unless self.user_ids.include? user._id
-      self.user_ids.push user._id
-      self.save
-      if self.applications.count > 0
-        pending_op = PendingDomainOps.new(op_type: :add_user, arguments: {user_id: user._id}, parent_op: nil, on_apps: applications)
-        self.pending_ops.push pending_op
-        self.run_jobs
-      end
-    end
-  end
-
-  # Removes a user from the access list for this domain.
-  #
-  # == Parameters:
-  # user::
-  #  The user to remove from the access list for this domain.
-  def remove_user(user)
-    if self.user_ids.delete user._id
-      self.save
-      if self.applications.count > 0
-        pending_op = PendingDomainOps.new(op_type: :remove_user, arguments: {user_id: user._id}, parent_op: nil, on_apps: applications)
-        self.pending_ops.push pending_op
-        self.run_jobs
-      end
-    end
-  end
-
-  # Support operation to add additional ssh keys for a user
-  #
-  # == Parameters:
-  # user_id::
-  #   The ID of the user who owns the ssh key
-  # key_attr::
-  #   SSH key attributes
-  # pending_parent_op::
-  #   Parent operation which tracks the key additions
+  # Invoke save! with a rescue for a duplicate exception
   #
   # == Returns:
-  #  The domain operation which tracks the sshkey addition
-  def add_ssh_key(user_id, ssh_key, pending_parent_op)
-    return if pending_ops.where(parent_op_id: pending_parent_op._id).count > 0
-    if((owner._id == user_id || user_ids.include?(user_id)) && self.applications.count > 0)
-      self.pending_ops.push(PendingDomainOps.new(op_type: :add_ssh_key, arguments: { "user_id" => user_id, "key_attrs" => [ssh_key.attributes] }, parent_op_id: pending_parent_op._id, on_apps: self.applications, state: "init"))
-      self.run_jobs
-    else
-      pending_parent_op.child_completed(self) if pending_parent_op
-    end
+  #   True if the domain was saved.
+  def save_with_duplicate_check!
+    self.save!
+  rescue Moped::Errors::OperationFailure => e
+    raise OpenShift::UserException.new("Namespace '#{namespace}' is already in use. Please choose another.", 103, "id") if [11000, 11001].include?(e.details['code'])
+    raise
   end
 
-  # Support operation to remove specific ssh keys for a user
-  #
-  # == Parameters:
-  # user_id::
-  #   The ID of the user who owns the ssh key
-  # key_attr::
-  #   SSH key attributes
-  # pending_parent_op::
-  #   Parent operation which tracks the key removals
-  #
-  # == Returns:
-  #  The domain operation which tracks the sshkey removal
-  def remove_ssh_key(user_id, ssh_key, pending_parent_op)
-    return if pending_ops.where(parent_op_id: pending_parent_op._id).count > 0    
-    if(self.applications.count > 0)
-      self.pending_ops.push PendingDomainOps.new(op_type: :delete_ssh_key, arguments: { "user_id" => user_id, "key_attrs" => [ssh_key.attributes] }, parent_op_id: pending_parent_op._id, on_apps: self.applications, state: "init")
-      self.run_jobs
-    else
-      pending_parent_op.child_completed(self) if pending_parent_op
-    end
+  def inherit_membership
+    members.clone
+  end
+
+  def self.legacy_accessible(to)
+    scope_limited(to, to.respond_to?(:domains) ? to.domains.scoped : where(owner: to))
   end
 
   def add_system_ssh_keys(ssh_keys)
@@ -222,6 +190,9 @@ class Domain
 
   # Runs all jobs in "init" phase and stops at the first failure.
   #
+  # IMPORTANT: When changing jobs, be sure to leave old jobs runnable so that pending_ops
+  #   that are inserted during a running upgrade can continue to complete.
+  #
   # == Returns:
   # True on success or false on failure
   def run_jobs
@@ -234,7 +205,7 @@ class Domain
         op_id = op._id
 
         # try to do an update on the pending_op state and continue ONLY if successful
-        op_index = self.pending_ops.index(op) 
+        op_index = self.pending_ops.index(op)
         retval = Domain.where({ "_id" => self._id, "pending_ops.#{op_index}._id" => op._id, "pending_ops.#{op_index}.state" => "init" }).update({"$set" => { "pending_ops.#{op_index}.state" => "queued" }})
 
         unless retval["updatedExisting"]
@@ -243,28 +214,20 @@ class Domain
         end
 
         case op.op_type
-        when :add_user
-          user = nil
-          begin
-            user = CloudUser.find(op.arguments["user_id"])
-          rescue Mongoid::Errors::DocumentNotFound
-            #ignore
+        when :change_members
+          self.applications.select do |a|
+            a.change_member_roles(Array(op.args['changed']), [:domain])
+            a.remove_members(Array(op.args['removed']), [:domain])
+            a.add_members(Array(op.args['added']).map{ |m| self.class.to_member(m) }, [:domain])
+            if a.changed?
+              a.save!
+            end
+          end.each do |app|
+            # only run jobs on applications that had changes
+            app.with_lock{ |a| a.run_jobs }
           end
-          op.pending_apps.each { |app| app.add_ssh_keys(user._id, user.ssh_keys, op) } if user
-        when :remove_user
-          user = nil
-          begin
-            user = CloudUser.find(op.arguments["user_id"])
-          rescue Mongoid::Errors::DocumentNotFound
-            #ignore
-          end
-          op.pending_apps.each { |app| app.remove_ssh_keys(user._id, user.ssh_keys, op) } if user
-        when :add_ssh_key
-          ssh_keys = op.arguments["key_attrs"].map{|k| UserSshKey.new.to_obj(k)}
-          op.pending_apps.each { |app| app.add_ssh_keys(op.arguments["user_id"], ssh_keys, op) }
-        when :delete_ssh_key
-          ssh_keys = op.arguments["key_attrs"].map{|k| UserSshKey.new.to_obj(k)}
-          op.pending_apps.each { |app| app.remove_ssh_keys(op.arguments["user_id"], ssh_keys, op) }
+          op.set(:state, :completed)
+
         when :add_domain_ssh_keys
           ssh_keys = op.arguments["keys_attrs"].map{|k| SystemSshKey.new.to_obj(k)}
           op.pending_apps.each { |app| app.add_ssh_keys(nil, ssh_keys, op) }
@@ -275,6 +238,14 @@ class Domain
           op.pending_apps.each { |app| app.add_env_variables(op.arguments["variables"], op) }
         when :remove_env_variables
           op.pending_apps.each { |app| app.remove_env_variables(op.arguments["variables"], op) }
+
+        # DEPRECATED: These jobs will be replaced with no-op statements after sprint 32
+        when :add_ssh_key
+          ssh_keys = op.arguments["key_attrs"].map{|k| UserSshKey.new.to_obj(k)}
+          op.pending_apps.each { |app| app.add_ssh_keys(op.arguments["user_id"], ssh_keys, op) }
+        when :delete_ssh_key
+          ssh_keys = op.arguments["key_attrs"].map{|k| UserSshKey.new.to_obj(k)}
+          op.pending_apps.each { |app| app.remove_ssh_keys(op.arguments["user_id"], ssh_keys, op) }
         end
 
         # reloading the op reloads the domain and then incorrectly reloads (potentially)

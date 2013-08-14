@@ -89,7 +89,9 @@ module Scope
     # Return true if the user action is authorized. A user action is
     # forbidden unless at least one scope allows it.
     #
-    def authorize_action?(permission, resource, other_resources, user)
+    # The actor may be either a CloudUser object or an id of a CloudUser
+    #
+    def authorize_action?(permission, resource, other_resources, actor_or_id)
       false
     end
 

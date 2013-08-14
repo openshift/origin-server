@@ -26,6 +26,6 @@ class DescriptorsController < BaseController
   #   ```
   # @return [RestReply<YAML>] Application Descriptor in YAML format
   def show
-    render_success(:ok, "descriptor", @application.to_descriptor.to_yaml, "Show descriptor for application '#{@application.name}' for domain '#{@domain.namespace}'")
+    render_success(:ok, "descriptor", @application.to_descriptor.to_yaml, "Show descriptor for application '#{@application.name}' for domain '#{@application.domain_namespace}'")
   end
 end

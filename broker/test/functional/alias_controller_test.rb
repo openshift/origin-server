@@ -33,7 +33,7 @@ class AliasControllerTest < ActionController::TestCase
     end
   end
   
-  test "alias create show list update and destory" do
+  test "alias create show list update and destroy" do
     server_alias = "as.#{@random}"
     post :create, {"id" => server_alias, "domain_id" => @domain.namespace, "application_id" => @app.name}
     assert_response :created
@@ -47,7 +47,7 @@ class AliasControllerTest < ActionController::TestCase
     assert_response :ok
   end
   
-  test "alias create show list update and destory by app id" do
+  test "alias create show list update and destroy by app id" do
     server_alias = "as.#{@random}"
     post :create, {"id" => server_alias, "application_id" => @app.id}
     assert_response :created
@@ -169,6 +169,7 @@ class AliasControllerTest < ActionController::TestCase
   test "no user capability by domain and app name" do
     @user.capabilities["private_ssl_certificates"] = false
     @user.save!
+
     server_alias = "as.#{@random}"
     post :create, {"id" => server_alias, "domain_id" => @domain.namespace, "application_id" => @app.name, 
       "ssl_certificate" => @ssl_certificate, "private_key" => @private_key, "pass_phrase" => @pass_phrase}

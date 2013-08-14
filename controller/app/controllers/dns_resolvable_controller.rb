@@ -13,7 +13,7 @@ class DnsResolvableController < BaseController
   #
   # @return [RestReply<Boolean>] Returns true when DNS entry is resolvable
   def show
-    name = "#{@application.name}-#{@domain.namespace}.#{Rails.configuration.openshift[:domain_suffix]}" 
+    name = @application.fqdn
     begin
      nameservers = NameServerCache.get_name_servers
     rescue Exception => e

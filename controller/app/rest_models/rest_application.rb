@@ -73,7 +73,7 @@
 #   @see [ApplicationsController#index]
 class RestApplication < OpenShift::Model
   attr_accessor :framework, :creation_time, :id, :embedded, :aliases, :name, :gear_count, :links, :domain_id, :git_url, :app_url, :ssh_url,
-      :gear_profile, :scalable, :health_check_path, :building_with, :building_app, :build_job_url, :cartridges, :initial_git_url
+      :gear_profile, :scalable, :health_check_path, :building_with, :building_app, :build_job_url, :cartridges, :initial_git_url, :members
 
   def initialize(app, url, nolinks=false, applications=nil)
     self.embedded = {}
@@ -94,20 +94,22 @@ class RestApplication < OpenShift::Model
       self.aliases << RestAlias.new(app, a, url, nolinks)
     end
     self.gear_count = app.num_gears
-    self.domain_id = app.domain.namespace
+    self.domain_id = app.domain_namespace
 
     self.gear_profile = app.default_gear_size
     self.scalable = app.scalable
 
-    self.git_url = "ssh://#{app.ssh_uri(app.domain)}/~/git/#{@name}.git/"
-    self.app_url = "http://#{app.fqdn(app.domain)}/"
-    self.ssh_url = "ssh://#{app.ssh_uri(app.domain)}"
+    self.git_url = "ssh://#{app.ssh_uri}/~/git/#{@name}.git/"
+    self.app_url = "http://#{app.fqdn}/"
+    self.ssh_url = "ssh://#{app.ssh_uri}"
     self.health_check_path = app.health_check_path
 
     self.building_with = nil
     self.building_app = nil
     self.build_job_url = nil
     self.initial_git_url = app.init_git_url
+
+    self.members = app.members.map{ |m| RestMember.new(m, app.owner_id == m._id, url, nolinks) }
 
     app.component_instances.each do |component_instance|
       cart = CartridgeCache::find_cartridge(component_instance.cartridge_name, app)
@@ -155,7 +157,7 @@ class RestApplication < OpenShift::Model
 
       self.links = {
         "GET" => Link.new("Get application", "GET", URI::join(url, "applications/#{@id}")),
-        "GET_BY_NAME" => Link.new("Get application by name", "GET", URI::join(url, "domains/#{app.domain.namespace}/applications/#{@name}")),
+        "GET_BY_NAME" => Link.new("Get application by name", "GET", URI::join(url, "domains/#{app.domain_namespace}/applications/#{@name}")),
         "GET_DESCRIPTOR" => Link.new("Get application descriptor", "GET", URI::join(url, "applications/#{@id}/descriptor")),
         #"GET_GEARS" => Link.new("Get application gears", "GET", URI::join(url, "applications/#{@id}/gears")),
         "GET_GEAR_GROUPS" => Link.new("Get application gear groups", "GET", URI::join(url, "applications/#{@id}/gear_groups")),
@@ -205,6 +207,7 @@ class RestApplication < OpenShift::Model
             OptionalParam.new("private_key", "string", "Private key for the certificate.  Required if adding a certificate"), 
             OptionalParam.new("pass_phrase", "string", "Optional passphrase for the private key")]),
         "LIST_ALIASES" => Link.new("List application aliases", "GET", URI::join(url, "applications/#{@id}/aliases")),
+        "LIST_MEMBERS" => Link.new("List members of this application", "GET", URI::join(url, "applications/#{@id}/members")),
       }
     end
   end

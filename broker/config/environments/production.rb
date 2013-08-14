@@ -81,6 +81,9 @@ Broker::Application.configure do
     :scope_expirations => OpenShift::Controller::Configuration.parse_expiration(conf.get('AUTH_SCOPE_TIMEOUTS'), 1.day),
     :download_cartridges_enabled => conf.get_bool("DOWNLOAD_CARTRIDGES_ENABLED", "false"),    
     :ssl_endpoint => conf.get("SSL_ENDPOINT", "allow"),
+    :membership_enabled => conf.get_bool("MEMBERSHIP_ENABLED", "false"),
+    :max_members_per_resource => conf.get('MAX_MEMBERS_PER_RESOURCE', '100').to_i,
+    :max_domains_per_user => conf.get('MAX_DOMAINS_PER_USER', '1').to_i,
   }
 
   config.auth = {
