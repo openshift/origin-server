@@ -100,25 +100,6 @@ class Admin::Stats
         obj.each {|v| deep_clear_default!(v)}
       end
     end
-
-    # Convert Hash/Array subclasses into plain hashes for YAML/XML dump.
-    # Assumptions:
-    #   Hash keys will be simple objects - don't need to clear them
-    #   No custom objects with Hash/Array subclass members
-    def deep_clear_subclasses(obj, dedup = {})
-      case obj
-      when Hash
-        return dedup[obj] if dedup.has_key? obj
-        dedup[obj] = copy = {}
-        obj.each {|k,v| copy[k] = deep_clear_subclasses(v, dedup)}
-        copy
-      when Array
-        return dedup[obj] if dedup.has_key? obj
-        obj.inject(dedup[obj] = []) {|a,v| a << deep_clear_subclasses(v,dedup)}
-      else
-        obj # not going to operate on other kinds of objects
-      end
-    end
   end
   include CleanResults
   extend CleanResults
@@ -587,26 +568,12 @@ class Admin::Stats
       end
   end
 
-  # Helper hash subclass with two purposes:
-  # 1. Give a type to the objects returned, rather than just being Hashes.
-  # 2. Provide attribute readers that fail if the key is missing, to detect mistakes faster.
-  class HashWithReaders < Hash
-    class NoSuchKey < StandardError; end
-    def method_missing(sym)
-      return self[sym] if self.has_key? sym
-      return self[sym.to_s] if self.has_key?(sym.to_s)
-      raise NoSuchKey.new("#{self.class} has no key #{sym}: #{self.inspect}")
-    end
-    # easily identify class in output
-    def to_s; "#{self.class} #{super}"; end
-    def inspect; "#{self.class} #{super}"; end
-    def pretty_inspect; "#{self.class} #{super}"; end
-  end
-  class DistrictSummary < HashWithReaders; end
-  class ProfileSummary < HashWithReaders; end
-  class DistrictEntry < HashWithReaders; end
-  class NodeEntry < HashWithReaders; end
-  class DbSummary < HashWithReaders; end
-  class Results < HashWithReaders; end
+  require 'openshift/hash_with_readers'
+  class DistrictSummary < OpenShift::HashWithReaders; end
+  class ProfileSummary < OpenShift::HashWithReaders; end
+  class DistrictEntry < OpenShift::HashWithReaders; end
+  class NodeEntry < OpenShift::HashWithReaders; end
+  class DbSummary < OpenShift::HashWithReaders; end
+  class Results < OpenShift::HashWithReaders; end
 end #class Admin::Stats
 

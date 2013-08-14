@@ -97,21 +97,32 @@ class AdminStatsTest < ActiveSupport::TestCase
     @stats.gather_statistics
     r = @stats.results
     assert_kind_of Admin::Stats::Results, r, "should be a subclass: #{r.class}"
-    assert_raises(Admin::Stats::HashWithReaders::NoSuchKey) {r.no_such_key}
+    assert_raises(OpenShift::HashWithReaders::NoSuchKey) {r.no_such_key}
     assert_kind_of Admin::Stats::ProfileSummary, r.profile_summaries.first
     assert_kind_of Admin::Stats::DistrictSummary, r.district_summaries.first
     assert_kind_of Admin::Stats::DistrictEntry, r.district_entries_hash.first[1]
     assert_kind_of Admin::Stats::NodeEntry, r.node_entries_hash.first[1]
 
-    # need to be able to covert back to non-subclass hashes for YAML dump
-    r = Admin::Stats.deep_clear_subclasses(r)
-    refute_kind_of Admin::Stats::HashWithReaders, r, "should be a hash: #{r.class}"
-    refute_kind_of Admin::Stats::HashWithReaders, r[:profile_summaries].first
-    refute_kind_of Admin::Stats::HashWithReaders, r[:district_summaries].first
-    refute_kind_of Admin::Stats::HashWithReaders, r[:district_entries_hash].first[1]
-    refute_kind_of Admin::Stats::HashWithReaders, r[:node_entries_hash].first[1]
+    # need to be able to convert back to non-subclass hashes for YAML dump
+    r = OpenShift::HashWithReaders.deep_clear_subclasses(r)
+    refute_kind_of OpenShift::HashWithReaders, r, "should be a hash: #{r.class}"
+    refute_kind_of OpenShift::HashWithReaders, r[:profile_summaries].first
+    refute_kind_of OpenShift::HashWithReaders, r[:district_summaries].first
+    refute_kind_of OpenShift::HashWithReaders, r[:district_entries_hash].first[1]
+    refute_kind_of OpenShift::HashWithReaders, r[:node_entries_hash].first[1]
     deduped = r[:profile_summaries].first
     assert_same deduped, r[:profile_summaries_hash][deduped[:profile]],
+      "instances in the results in multiple places should not have different copies"
+
+    # need to be able to convert back to HashWithReader from plain hash dump
+    r = OpenShift::HashWithReaders.deep_convert_hashes(r)
+    assert_kind_of OpenShift::HashWithReaders, r, "should be converted: #{r.class}"
+    assert_kind_of OpenShift::HashWithReaders, r[:profile_summaries].first
+    assert_kind_of OpenShift::HashWithReaders, r[:district_summaries].first
+    assert_kind_of OpenShift::HashWithReaders, r[:district_entries_hash].first[1]
+    assert_kind_of OpenShift::HashWithReaders, r[:node_entries_hash].first[1]
+    deduped = r.profile_summaries.first
+    assert_same deduped, r.profile_summaries_hash[deduped.profile],
       "instances in the results in multiple places should not have different copies"
   end
 
