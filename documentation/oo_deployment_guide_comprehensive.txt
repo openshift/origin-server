@@ -1030,6 +1030,19 @@ Now you have configured the MCollective client to connect to ActiveMQ running on
 === Install Necessary Packages
 In order for users to interact with the OpenShift Origin platform, they will typically use client tools or the web console. These tools communicate with the broker via a REST API that is also accessible for writing third party applications and tools. In order to use the broker application, we need to install several packages from the OpenShift Origin repository.
 
+.RHEL6
+----
+yum install -y openshift-origin-broker openshift-origin-broker-util \
+              rubygem-openshift-origin-auth-remote-user \
+              rubygem-openshift-origin-auth-mongo \
+              rubygem-openshift-origin-msg-broker-mcollective \
+              rubygem-openshift-origin-dns-avahi \
+              rubygem-openshift-origin-dns-nsupdate \
+              rubygem-openshift-origin-dns-route53 \
+              ruby193-rubygem-passenger ruby193-mod_passenger
+----
+
+.Fedora
 ----
 yum install -y openshift-origin-broker openshift-origin-broker-util \
               rubygem-openshift-origin-auth-remote-user \
@@ -1131,6 +1144,14 @@ setsebool -P  httpd_unified=on httpd_can_network_connect=on httpd_can_network_re
 
 You will also need to set several files and directories with the proper SELinux contexts. Issue the following commands:
 
+.RHEL
+----
+fixfiles -R ruby193-rubygem-passenger restore
+fixfiles -R ruby193-mod_passenger restore
+restorecon -rv /var/run
+----
+
+.Fedora
 ----
 fixfiles -R rubygem-passenger restore
 fixfiles -R mod_passenger restore
