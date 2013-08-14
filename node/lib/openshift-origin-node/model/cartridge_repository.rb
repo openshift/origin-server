@@ -127,18 +127,14 @@ module OpenShift
       end
 
       # :call-seq:
-      #   CartridgeRepository.instance.select(cartridge_name)                             -> Cartridge
       #   CartridgeRepository.instance.select(cartridge_name, version)                    -> Cartridge
       #   CartridgeRepository.instance.select(cartridge_name, version, cartridge_version) -> Cartridge
-      #   CartridgeRepository.instance[cartridge_name]                                    -> Cartridge
       #   CartridgeRepository.instance[cartridge_name, version]                           -> Cartridge
       #   CartridgeRepository.instance[cartridge_name, version, cartridge_version]        -> Cartridge
       #
-      # Select a cartridge from repository
+      # Select a software version for a cartridge from the repository.
       #
-      # Each version parameter you provide narrows the search to the exact revision of the Cartridge you are requesting.
       # If you do not provide _cartridge_version_ then the latest is assumed, for _version_ and _cartridge_name_.
-      # If you do not provide _cartridge_version_ and _version_, then the latest _cartridge_name_ will be returned.
       #
       # Latest is determined from the _Version_ elements provided in the cartridge's manifest, when the cartridge is
       # loaded.
@@ -146,13 +142,11 @@ module OpenShift
       # Assuming PHP, 3.5 and 0.1 are all the latest each of these calls would return the same cartridge.
       #   CartridgeRepository.instance.select('php', '3.5', '0.1')  #=> Cartridge
       #   CartridgeRepository.instance.select('php', '3.5')         #=> Cartridge
-      #   CartridgeRepository.instance.select('php')                #=> Cartridge
       #   CartridgeRepository.instance['php', '3.5', '0.1']         #=> Cartridge
       #   CartridgeRepository.instance['php', '3.5']                #=> Cartridge
-      #   CartridgeRepository.instance['php']                       #=> Cartridge
-                      #
-      def select(cartridge_name, version = '_', cartridge_version = '_')
-        unless exist?(cartridge_name, cartridge_version, version)
+      #
+      def select(cartridge_name, version, cartridge_version = '_')
+        unless exist?(cartridge_name, version, cartridge_version)
           raise KeyError.new("key not found: (#{cartridge_name}, #{version}, #{cartridge_version})")
         end
 
@@ -191,11 +185,11 @@ module OpenShift
       # :call-seq:
       #   CartridgeRepository.instance.erase(cartridge_name, version, cartridge_version) -> Cartridge
       #
-      # Erase given version of a cartridge from the cartridge repository and remove from index. This cannot be undone.
+      # Erase all software versions for the given cartridge version from the repository. This cannot be undone.
       #
       #   CartridgeRepository.instance.erase('php', '3.5', '1.0') #=> Cartridge
       def erase(cartridge_name, version, cartridge_version)
-        unless exist?(cartridge_name, cartridge_version, version)
+        unless exist?(cartridge_name, version, cartridge_version)
           raise KeyError.new("key not found: (#{cartridge_name}, #{version}, #{cartridge_version})")
         end
 
@@ -204,13 +198,8 @@ module OpenShift
           # find a "template" entry
           entry = select(cartridge_name, version, cartridge_version)
 
-          # Now go back and find all occurrences of the "template"
-          @index[cartridge_name].each_key do |k2|
-            @index[cartridge_name][k2].each_pair do |k3, v3|
-              if v3.eql?(entry)
-                remove(cartridge_name, k2, k3)
-              end
-            end
+          entry.versions.each do |software_version|
+            remove(cartridge_name, software_version, cartridge_version)
           end
 
           FileUtils.rm_r(entry.repository_path)
@@ -222,12 +211,12 @@ module OpenShift
       end
 
       # :call-seq:
-      #   CartridgeRepository.instance.exists?(cartridge_name, cartridge_version, version)  -> true or false
+      #   CartridgeRepository.instance.exist?(cartridge_name, cartridge_version, version)  -> true or false
       #
       # Is there an entry in the repository for this tuple?
       #
-      #   CartridgeRepository.instance.erase('cobol', '2002', '1.0') #=> false
-      def exist?(cartridge_name, cartridge_version, version)
+      #   CartridgeRepository.instance.exist?('cobol', '2002', '1.0') #=> false
+      def exist?(cartridge_name, version, cartridge_version)
         @index.key?(cartridge_name) &&
             @index[cartridge_name].key?(version) &&
             @index[cartridge_name][version].key?(cartridge_version)
@@ -257,29 +246,83 @@ module OpenShift
       # :call-seq:
       #   CartridgeRepository.instance.remove(cartridge_name, version, cartridge_version) -> Cartridge
       #
-      # Remove index entry for this tuple
+      # Remove index entry for this tuple, ensuring that default entries for the latest
+      # cartridge version maintain integrity
       #
       #   CartridgeRepository.instance.remove('php', '5.3', '1.0') -> Cartridge
       def remove(cartridge_name, version, cartridge_version) # :nodoc:
-        @index[cartridge_name][version].delete(cartridge_version)
-        @index[cartridge_name].delete(version) if  @index[cartridge_name][version].empty?
-        @index.delete(cartridge_name) if  @index[cartridge_name].empty?
+        recompute_cartridge_version = false
+
+        unless exist?(cartridge_name, version, cartridge_version)
+          raise KeyError.new("key not found: (#{cartridge_name}, #{version}, #{cartridge_version})")
+        end
+
+        logger.debug "Removing (#{cartridge_name}, #{version}, #{cartridge_version}) from index"
+
+        slice = @index[cartridge_name]
+
+        if latest_version?(slice[version], cartridge_version)
+          recompute_cartridge_version = true
+        end
+
+        slice[version].delete(cartridge_version)
+        real_cart_versions = slice[version].keys
+        real_cart_versions.delete('_')
+
+        if real_cart_versions.empty?
+          logger.debug("No more cartridge versions for (#{cartridge_name}, #{version}), deleting from index")
+          slice.delete(version)
+          recompute_cartridge_version = false
+
+          if slice.empty?
+            logger.debug "No more versions left for #{cartridge_name}, deleting from index"
+            @index.delete(cartridge_name)
+          end
+        end
+
+        if @index.key?(cartridge_name) && recompute_cartridge_version
+          latest_cartridge_version = latest_version(slice[version])
+
+          if latest_cartridge_version
+            manifest = @index[cartridge_name][version][latest_cartridge_version]
+            @index[cartridge_name][version]['_'] = manifest
+          end
+        end
       end
 
 
       # :call-seq:
       #   CartridgeRepository.instance.insert(cartridge) -> Cartridge
       #
-      # Insert cartridge into index
+      # All cartridge versions represented by this manifest into the index
       #
       #   CartridgeRepository.instance.insert(cartridge) -> Cartridge
       def insert(cartridge) # :nodoc:
-        cartridge.versions.each do |version|
-          @index[cartridge.name][version][cartridge.cartridge_version] = cartridge
-          @index[cartridge.name][version]['_']                         = cartridge
-          @index[cartridge.name]['_']['_']                             = cartridge
+        name = cartridge.name
+        cartridge_version = cartridge.cartridge_version
+
+        cartridge.versions.sort.each do |version|
+          projected_cartridge = cartridge.project_version_overrides(version, @path)
+
+          @index[name][version][cartridge_version] = projected_cartridge
+          @index[name][version]['_']               = projected_cartridge
         end
+
         cartridge
+      end
+
+      #
+      # Determine whether the latest version present in the index slice is the latest one
+      #
+      def latest_version?(index_slice, version)
+        latest_version(index_slice) == version
+      end
+
+      #
+      # Determine the latest version present in a slice of the index
+      #
+      def latest_version(index_slice)
+        index_slice.keys.delete_if {|v| v == '_'}.sort.last
       end
 
       # :call-seq:
@@ -304,12 +347,19 @@ module OpenShift
         self
       end
 
+      # :call-seq:
+      #   CartridgeRepository.instance.each_latest -> Cartridge
+      #
+      # Process each latest version of each software version of each cartridge
+      #
+      #   CartridgeRepository.instance.each_latest {|c| puts c.name}
       def latest_versions
         cartridges = Set.new
-        @index.each_pair do |_, sw_hash|
-          sw_hash.each_pair do |_, cart_version_hash|
-            latest_version = Manifest.sort_versions(cart_version_hash.keys).last.to_s
-            cartridges.add(cart_version_hash[latest_version]) unless cart_version_hash[latest_version].instance_of?(Hash)
+
+        @index.each_key do |cart_name|
+          @index[cart_name].each_key do |software_version|
+            latest = @index[cart_name][software_version]['_']
+            cartridges.add(latest) unless latest.instance_of?(Hash)
           end
         end
 
