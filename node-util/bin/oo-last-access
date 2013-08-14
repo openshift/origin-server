@@ -17,6 +17,7 @@
 
 require 'fileutils'
 require 'date'
+require 'openshift-origin-common/config'
 
 class LastAccessUpdater
   def initialize(app_root_dir, access_log_files)
@@ -135,17 +136,10 @@ class LastAccessUpdater
 end
 
 def source_file(file)
-    IO.foreach(file) { |line|
-        next if line =~ /^#/
-        next if line =~ /^$/
-        if line.include?"#"
-            name,value = line.split("#")[0].split("=")
-        else
-            name,value = line.strip.split[0].split("=")
-        end
-        next if name.nil? or value.nil?
-        ENV["#{name}"]=value.gsub('"','').strip
-    }
+  config = OpenShift::Config.new
+  config.params.each do |p|
+    ENV["#{p}"] = config.get(p)
+  end
 end
 
 # Cool trick from ruby-forum
