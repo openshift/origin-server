@@ -9,7 +9,7 @@
 
 Summary:       OpenShift Origin Management Console
 Name:          rubygem-%{gem_name}
-Version: 1.13.1
+Version: 1.13.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -153,6 +153,20 @@ cp -a ./%{gem_dir}/* %{buildroot}%{gem_dir}/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Wed Aug 14 2013 Adam Miller <admiller@redhat.com> 1.13.2-1
+- Default to test mode membership off (ccoleman@redhat.com)
+- Catch more exceptions from broker (ccoleman@redhat.com)
+- * Implement a membership model for OpenShift that allows an efficient query
+  of user access based on each resource. * Implement scope limitations that
+  correspond to specific permissions * Expose membership info via the REST API
+  (disableable via config) * Allow multiple domains per user, controlled via a
+  configuration flag * Support additional information per domain
+  (application_count and gear_counts) to improve usability * Let domains
+  support the allowed_gear_sizes option, which limits the gear sizes available
+  to apps in that domain * Simplify domain update interactions - redundant
+  validation removed, and behavior of responses differs slightly. * Implement
+  migration script to enable data (ccoleman@redhat.com)
+
 * Thu Aug 08 2013 Adam Miller <admiller@redhat.com> 1.13.1-1
 - Card 57 - Fix typo (jforrest@redhat.com)
 - Card 57 - gemify bootstrap, use sass-twitter-bootstrap gem
