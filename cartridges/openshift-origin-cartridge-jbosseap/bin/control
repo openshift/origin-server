@@ -83,19 +83,19 @@ function waitondeployments() {
         popd
 
         if [ ${#artifactsskipped[@]} -gt 0 ]; then
-          client_message "Artifacts skipped because of deployment-scanner configuration: ${artifactsskipped[*]}"
+          client_result "Artifacts skipped because of deployment-scanner configuration: ${artifactsskipped[*]}"
         fi
 
         if [ ${#artifactsfailed[@]} -gt 0 ]; then
-          client_message "Failed deployments: ${artifactsfailed[*]}"
+          client_result "Failed deployments: ${artifactsfailed[*]}"
         fi
 
         if [ ${#artifactsdeployed[@]} -gt 0 ]; then
-          client_message "Artifacts deployed: ${artifactsdeployed[*]}"
+          client_result "Artifacts deployed: ${artifactsdeployed[*]}"
         fi
 
         if [ ${#artifactsunknown[@]} -gt 0 ]; then
-          client_message "Artifacts in an unknown state: ${artifactsunknown[*]}"
+          client_result "Artifacts in an unknown state: ${artifactsunknown[*]}"
         fi
       else
           client_message "Deployment scanner disabled, skipping deployment verification"
