@@ -18,10 +18,10 @@
 
 
 require 'rubygems'
+require 'openshift-origin-common'
 require 'optparse'
 require 'socket'
 require 'json'
-require 'parseconfig'
 require 'etc'
 require 'safe_yaml'
 
@@ -143,7 +143,7 @@ def user_fail(uuid, msg)
   end
 
   if not pw_ent.nil?
-    if pw_ent.gecos != ENV['GEAR_GECOS']
+    if pw_ent.gecos != $CONF.get('GEAR_GECOS')
       pw_ent = nil
     end
   end
@@ -171,30 +171,11 @@ def do_fail(msg)
     $STATUS += 1
 end
 
-def source_file(file)
-    # for some reason, we use ParseConfig to parse this, and then hack it up with cargo-cult code.
-    # TODO: do something sane and make it consistent everywhere without breaking anything
-    parser = ParseConfig.new(file)
-    parser.get_params.each do |key|
-      next if parser.groups.include?(key)
-      val = parser[key]
-      next if val.nil?
-      val.gsub!(/\\:/,":") if not val.nil?
-      val.gsub!(/[ \t]*#[^\n]*/,"") if not val.nil?
-      val = val[1..-2] if not val.nil? and val.start_with? "\""
-      val = val[1..-2] if not val.nil? and val.start_with? "\'"
-      ENV[key] = val
-    end
-end
-
 ###############################
 
 def load_node_conf
-    verbose("loading node configuration file #{$NODE_CONF_FILE}")
-    do_fail("FAIL: No configuration file: #{$NODE_CONF_FILE}") unless File.exists? $NODE_CONF_FILE
-
-    #Source it in bash, grep it in ruby
-    source_file($NODE_CONF_FILE)
+    verbose("loading node configuration file #{OpenShift::Config::NODE_CONF_FILE}")
+    $CONF = OpenShift::Config.new OpenShift::Config::NODE_CONF_FILE
 
     # make sure required values are set in the conf file
     %w[
@@ -203,18 +184,18 @@ def load_node_conf
       PROXY_MIN_PORT_NUM PROXY_PORTS_PER_GEAR OPENSHIFT_HTTP_CONF_DIR
       CLOUD_DOMAIN BROKER_HOST PUBLIC_IP PUBLIC_HOSTNAME
     ].each do |value|
-      next unless ENV[value].nil? || ENV[value].empty?
-      do_fail("SEVERE: in #{$NODE_CONF_FILE}, #{value} not defined")
+      next unless $CONF.get(value).nil? || $CONF.get(value).empty?
+      do_fail("SEVERE: in #{OpenShift::Config::NODE_CONF_FILE}, #{value} not defined")
     end
 
-    $GEAR_BASE_DIR=ENV['GEAR_BASE_DIR']
+    $GEAR_BASE_DIR = $CONF.get('GEAR_BASE_DIR')
     do_fail("GEAR_BASE_DIR does not exist or is not a directory: #{$GEAR_BASE_DIR}") unless File.exists? $GEAR_BASE_DIR
 
+    $EXTERNAL_ETH_DEV = ($CONF.get('EXTERNAL_ETH_DEV') or 'eth0')
+
     verbose("loading resource limit file #{$RESOURCE_LIMITS_FILE}")
-
     do_fail("No resource limits file: #{$RESOURCE_LIMITS_FILE}") unless File.exists? $RESOURCE_LIMITS_FILE
-    source_file($RESOURCE_LIMITS_FILE)
-
+    $RESOURCE_LIMITS = OpenShift::Config.new $RESOURCE_LIMITS_FILE
 end
 
 
@@ -222,31 +203,10 @@ def find_ext_net_dev
   verbose("finding external network device")
 
   begin
-    if ENV["EXTERNAL_ETH_DEV"].nil?
-      route_dev = nil
-      rlines = %x[/sbin/ip route show src #{ENV["PUBLIC_IP"]}]
-      rlines << %x[/sbin/ip route get #{ENV["PUBLIC_IP"]}]
-      rlines.lines do |r|
-        if r =~ /dev\s(\S*)\s*/
-          route_dev = $~[1]
-          if route_dev != "lo"
-            ENV["EXTERNAL_ETH_DEV"]=route_dev
-            break
-          end
-        end
-      end
+    %x[/sbin/ip link show dev #{$EXTERNAL_ETH_DEV}]
+    if not $?.success?
+      do_fail("SEVERE: not a valid ethernet device: #{$EXTERNAL_ETH_DEV}")
     end
-
-
-    if ENV["EXTERNAL_ETH_DEV"].nil?
-      do_fail("SEVERE: could not find a valid external ethernet device")
-    else
-      %x[/sbin/ip link show dev #{ENV["EXTERNAL_ETH_DEV"]}]
-      if not $?.success?
-        do_fail("SEVERE: not a valid ethernet device: #{ENV["EXTERNAL_ETH_DEV"]}")
-      end
-    end
-
   rescue Errno::ENOENT
     do_fail("SEVERE: could not find ip command (/sbin/ip).")
   end
@@ -256,10 +216,10 @@ def load_users
   # Narrow the window where USERS, TC_DATA and ALL_QUOTAS can reflect
 # the system in different states.
   $START_TIME=Time.now
-  $TC_DATA = %x[/sbin/tc clas show dev #{ENV["EXTERNAL_ETH_DEV"]}].split("\n").grep(/parent/)
+  $TC_DATA = %x[/sbin/tc clas show dev #{$EXTERNAL_ETH_DEV}].split("\n").grep(/parent/)
   $ALL_QUOTAS = %x[/usr/sbin/repquota -a].split("\n")
   $USERS=[]
-  Etc.passwd { |u| $USERS << u if u.gecos == ENV['GEAR_GECOS'] }
+  Etc.passwd { |u| $USERS << u if u.gecos == $CONF.get('GEAR_GECOS') }
 end
 
 def validate_env
@@ -299,9 +259,9 @@ def check_node_public_resolution
     verbose("checking node public hostname resolution")
 
     localhost = %w[127.0.0.1 ::1]
-    pubhost = ENV["PUBLIC_HOSTNAME"]
-    pubip = ENV["PUBLIC_IP"]
-    broker = ENV["BROKER_HOST"]
+    pubhost = $CONF.get("PUBLIC_HOSTNAME")
+    pubip = $CONF.get("PUBLIC_IP")
+    broker = $CONF.get("BROKER_HOST")
 
     # check that the broker host resolves to an external IP
     begin
@@ -441,8 +401,8 @@ def check_cgroup_procs
     verbose("checking cgroups processes")
 
     ### Gather current procs running ###
-    min_uid = ENV['GEAR_MIN_UID']
-    max_uid = ENV['GEAR_MAX_UID']
+    min_uid = $CONF.get('GEAR_MIN_UID')
+    max_uid = $CONF.get('GEAR_MAX_UID')
 
     all_user_procs = %x[/bin/ps -e -o uid,pid | /bin/egrep "^\s+[0-9]{4}"].split("\n")
     ps_procs = Hash.new(Array.new)
@@ -500,18 +460,18 @@ def check_tc_config
     verbose("checking presence of tc qdisc")
     qdiscresponse="qdisc htb 1: root"
 
-    result = %x[/sbin/tc qdisc show dev #{ENV["EXTERNAL_ETH_DEV"]} | /bin/grep -q "#{qdiscresponse}"]
+    result = %x[/sbin/tc qdisc show dev #{$EXTERNAL_ETH_DEV} | /bin/grep -q "#{qdiscresponse}"]
     if $?.exitstatus != 0
         do_fail("tc htb qdisc not configured")
         $TC_PASS=false
     else
         verbose("checking for cgroup filter")
-        if %x[/sbin/tc filter show dev #{ENV["EXTERNAL_ETH_DEV"]} | /bin/grep 'cgroup handle' | /usr/bin/uniq | /usr/bin/wc -l].strip.to_i < 1
+        if %x[/sbin/tc filter show dev #{$EXTERNAL_ETH_DEV} | /bin/grep 'cgroup handle' | /usr/bin/uniq | /usr/bin/wc -l].strip.to_i < 1
             do_fail("no cgroup filter configured")
             $TC_PASS=false
         else
             verbose("checking presence of tc classes")
-            if %x[/sbin/tc class show dev #{ENV["EXTERNAL_ETH_DEV"]} | /bin/grep 'class htb' | /usr/bin/wc -l].strip.to_i < 1
+            if %x[/sbin/tc class show dev #{$EXTERNAL_ETH_DEV} | /bin/grep 'class htb' | /usr/bin/wc -l].strip.to_i < 1
                 do_fail("no htb classes configured")
                 $TC_PASS=false
             end
@@ -589,7 +549,7 @@ def check_system_httpd_configs
   verbose("checking system httpd configs")
   ['aliases.db', 'idler.db', 'nodes.db', 'sts.db'].each do |db|
     begin
-      File.open(File.join(ENV['OPENSHIFT_HTTP_CONF_DIR'], db))
+      File.open(File.join($CONF.get('OPENSHIFT_HTTP_CONF_DIR'), db))
     rescue => e
       do_fail("#{e}")
     end
@@ -599,7 +559,7 @@ def check_system_httpd_configs
   ['aliases.txt', 'idler.txt', 'nodes.txt', 'sts.txt'].each do |db|
     httpconfs[db]=Hash.new
     begin
-      File.open(File.join(ENV['OPENSHIFT_HTTP_CONF_DIR'], db)) do |f|
+      File.open(File.join($CONF.get('OPENSHIFT_HTTP_CONF_DIR'), db)) do |f|
         f.each do |l|
           path, dest = l.strip.split
           if (not path.nil?) and (not dest.nil?)
@@ -614,7 +574,7 @@ def check_system_httpd_configs
 
   ['routes.json', 'geardb.json'].each do |db|
     begin
-      File.open(File.join(ENV['OPENSHIFT_HTTP_CONF_DIR'], db)) do |f|
+      File.open(File.join($CONF.get('OPENSHIFT_HTTP_CONF_DIR'), db)) do |f|
         httpconfs[db] = JSON.parse(f.read)
       end
     rescue => e
@@ -651,7 +611,7 @@ def check_system_httpd_configs
         File.basename(p)
       }.map { |p|
         cpath = nil
-        [ File.join(ENV['CARTRIDGE_BASE_PATH'], p), File.join(ENV['CARTRIDGE_BASE_PATH'], 'v2', p)].each { |cp|
+        [ File.join($CONF.get('CARTRIDGE_BASE_PATH'), p), File.join($CONF.get('CARTRIDGE_BASE_PATH'), 'v2', p)].each { |cp|
           cpath = cp if File.exists?(cp)
         }
         cpath
@@ -717,7 +677,7 @@ def check_system_httpd_configs
     do_fail("httpd config references DNS name without associated gear: '#{k}'")
   end
 
-  Dir.foreach(ENV['OPENSHIFT_HTTP_CONF_DIR']) { |cfile|
+  Dir.foreach($CONF.get('OPENSHIFT_HTTP_CONF_DIR')) { |cfile|
     next if cfile[0,1] == "."
     next if cfile[-5,5] != ".conf"
     if $USERS.select { |u| u.name == cfile[0..cfile.index('_')-1]}.empty?
@@ -807,7 +767,7 @@ def check_cartridge_repository
 
   SafeYAML::OPTIONS[:default_mode] = :safe
 
-  dst_glob = "#{ENV['GEAR_BASE_DIR']}/.cartridge_repository/*/*/metadata/manifest.yml"
+  dst_glob = "#{$CONF.get('GEAR_BASE_DIR')}/.cartridge_repository/*/*/metadata/manifest.yml"
   dst_ctimes = {}
   dst_manifests = {}
   Dir.glob(dst_glob).each do |f|
@@ -821,7 +781,7 @@ def check_cartridge_repository
     end
   end
 
-  src_glob = "#{ENV['CARTRIDGE_BASE_PATH']}/{v2,}/*/{info,metadata}/manifest.yml"
+  src_glob = "#{$CONF.get('CARTRIDGE_BASE_PATH')}/{v2,}/*/{info,metadata}/manifest.yml"
   Dir.glob(src_glob).each do |f|
     begin
       src_m = YAML.load(File.read(f))
