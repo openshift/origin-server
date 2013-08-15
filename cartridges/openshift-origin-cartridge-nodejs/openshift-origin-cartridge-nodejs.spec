@@ -2,7 +2,7 @@
 
 Summary:       Provides Node.js support
 Name:          openshift-origin-cartridge-nodejs
-Version: 1.14.2
+Version: 1.14.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -62,6 +62,10 @@ fi
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Thu Aug 15 2013 Adam Miller <admiller@redhat.com> 1.14.3-1
+- Bug 968280 - Ensure Stopping/Starting messages during git push Bug 983014 -
+  Unnecessary messages from mongodb cartridge (jhonce@redhat.com)
+
 * Wed Aug 14 2013 Adam Miller <admiller@redhat.com> 1.14.2-1
 - Bug 994922 (asari.ruby@gmail.com)
 - Use marker_present for conformity (asari.ruby@gmail.com)
