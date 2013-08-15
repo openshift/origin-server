@@ -99,5 +99,17 @@ class GearGroupsControllerTest < ActionController::TestCase
     get :show, {"id" => "bogus", "application_id" => @app.id}
     assert_response :not_found
   end
+  
+  test "get gear groups in all versions" do
+    get :index , {"domain_id" => @domain.namespace, "application_id" => @app.name}
+    assert_response :success
+    assert json = JSON.parse(response.body)
+    assert supported_api_versions = json['supported_api_versions']
+    supported_api_versions.each do |version|
+      @request.env['HTTP_ACCEPT'] = "application/json; version=#{version}"
+      get :show, {"id" => json["data"][0]["id"], "domain_id" => @domain.namespace, "application_id" => @app.name}
+      assert_response :ok, "Getting gear groups for version #{version} failed"
+    end
+  end
 
 end

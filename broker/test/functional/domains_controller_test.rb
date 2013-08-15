@@ -168,4 +168,18 @@ class DomainsControllerTest < ActionController::TestCase
     get :show, {"name" => new_namespace}
     assert_response :success
   end
+  
+    
+  test "get domain in all version" do
+    namespace = "ns#{@random}"
+    post :create, {"name" => namespace}
+    assert_response :created
+    assert json = JSON.parse(response.body)
+    assert supported_api_versions = json['supported_api_versions']
+    supported_api_versions.each do |version|
+      @request.env['HTTP_ACCEPT'] = "application/json; version=#{version}"
+      get :show, {"name" => namespace}
+      assert_response :ok, "Getting domain for version #{version} failed"
+    end
+  end
 end
