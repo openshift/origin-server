@@ -5,7 +5,6 @@ class Scope::Application < Scope::Parameterized
   APP_SCOPES = {
     :view => 'Grant read-only access to a single application.',
     :scale => nil,
-    :build => nil,
     :edit => 'Grant edit access to a single application.',
     :admin => 'Grant full administrative access to a single application.',
   }.freeze
@@ -57,14 +56,6 @@ class Scope::Application < Scope::Parameterized
           #:destroy,
           #:change_members,
         ].include?(permission)
-    when :build
-      return false unless resource === Domain && :create_builder_application == permission && other_resources[0]
-      params = other_resources[0]
-      app = Application.find(app_id)
-      framework = app.requires(true).each{ |feature| cart = CartridgeCache.find_cartridge(feature, app); break cart if cart.categories.include? 'web_framework' }
-      if framework && [framework.name] == params[:cartridges] && app.domain_id === params[:domain_id]
-        true
-      end
     when :scale
       resource === Application && resource._id === app_id && :scale_cartridge == permission
     end

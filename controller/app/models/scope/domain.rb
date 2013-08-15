@@ -52,7 +52,7 @@ class Scope::Domain < Scope::Parameterized
     DOMAIN_SCOPES.map{ |k,v| s = with_params(nil, k); [s, v, default_expiration(s), maximum_expiration(s)] unless v.nil? }.compact
   end
 
-  private
+  protected
     def id=(s)
       s = s.to_s
       raise Scope::Invalid, "id must be less than 40 characters" unless s.length < 40

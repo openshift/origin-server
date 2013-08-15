@@ -83,6 +83,8 @@ class Application
   belongs_to :domain, inverse_of: :applications
   field :domain_namespace, type: String # denormalized canonical namespace
   belongs_to :owner, class_name: CloudUser.name, inverse_of: :owned_applications
+  belongs_to :builder, class_name: Application.name, inverse_of: :built_applications
+  has_many :built_applications, class_name: Application.name
 
   field :downloaded_cart_map, type: Hash, default: {}
   field :component_start_order, type: Array, default: []
@@ -176,10 +178,10 @@ class Application
   # @param user_agent [String] user agent string of browser used for this rest API request
   # @return [Application] Application object
   # @raise [OpenShift::ApplicationValidationException] Exception to indicate a validation error
-  def self.create_app(application_name, features, domain, default_gear_size = nil, scalable=false, result_io=ResultIO.new, group_overrides=[], init_git_url=nil, user_agent=nil, community_cart_urls=[])
+  def self.create_app(application_name, features, domain, default_gear_size = nil, scalable=false, result_io=ResultIO.new, group_overrides=[], init_git_url=nil, user_agent=nil, community_cart_urls=[], builder_id=nil)
     default_gear_size =  Rails.application.config.openshift[:default_gear_size] if default_gear_size.nil?
     cmap = CartridgeCache.fetch_community_carts(community_cart_urls)
-    app = Application.new(domain: domain, name: application_name, default_gear_size: default_gear_size, scalable: scalable, app_ssh_keys: [], pending_op_groups: [], downloaded_cart_map: cmap)
+    app = Application.new(domain: domain, name: application_name, default_gear_size: default_gear_size, scalable: scalable, app_ssh_keys: [], pending_op_groups: [], downloaded_cart_map: cmap, builder_id: builder_id)
     app.user_agent = user_agent
     app.init_git_url = OpenShift::Git.persistable_clone_spec(init_git_url)
     app.analytics['user_agent'] = user_agent
@@ -319,7 +321,7 @@ class Application
     return if keys.empty?
     keys_attrs = get_updated_ssh_keys(user_id, keys)
     Application.run_in_application_lock(self) do
-      return unless Ability.has_permission?(user_id, :ssh_to_gears, Application, role_for(user_id), self)
+      return unless user_id.nil? || Ability.has_permission?(user_id, :ssh_to_gears, Application, role_for(user_id), self)
       op_group = PendingAppOpGroup.new(op_type: :update_configuration,  args: {"add_keys_attrs" => keys_attrs}, parent_op: parent_op, user_agent: self.user_agent)
       self.pending_op_groups.push op_group
       result_io = ResultIO.new
@@ -339,7 +341,7 @@ class Application
     return if keys.empty?
     keys_attrs = get_updated_ssh_keys(user_id, keys)
     Application.run_in_application_lock(self) do
-      return unless Ability.has_permission?(user_id, :ssh_to_gears, Application, role_for(user_id), self)
+      return unless user_id.nil? || Ability.has_permission?(user_id, :ssh_to_gears, Application, role_for(user_id), self)
       op_group = PendingAppOpGroup.new(op_type: :update_configuration, args: {"remove_keys_attrs" => keys_attrs}, parent_op: parent_op, user_agent: self.user_agent)
       self.pending_op_groups.push op_group
       result_io = ResultIO.new
@@ -1536,7 +1538,7 @@ class Application
 
     ssh_keys = self.app_ssh_keys.map{|k| k.to_key_hash } #FIXME Why am i not a standard key class?
     ssh_keys |= get_updated_ssh_keys(nil, self.domain.system_ssh_keys)
-    ssh_keys |= CloudUser.members_of(self).map{ |u| get_updated_ssh_keys(u._id, u.ssh_keys) }.flatten(1)
+    ssh_keys |= CloudUser.members_of(self){ |m| Ability.has_permission?(m._id, :ssh_to_gears, Application, m.role, self) }.map{ |u| get_updated_ssh_keys(u._id, u.ssh_keys) }.flatten(1)
 
     env_vars = self.domain.env_vars
 
