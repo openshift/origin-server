@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.13.2
+Version: 1.13.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -84,6 +84,13 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Thu Aug 15 2013 Adam Miller <admiller@redhat.com> 1.13.3-1
+- Merge pull request #3359 from rajatchopra/master
+  (dmcphers+openshiftbot@redhat.com)
+- migration helpers and rest interface for port information of gears
+  (rchopra@redhat.com)
+- Upgrade tool enhancements (ironcladlou@gmail.com)
+
 * Wed Aug 14 2013 Adam Miller <admiller@redhat.com> 1.13.2-1
 - Merge pull request #3322 from smarterclayton/origin_ui_73_membership_model
   (dmcphers+openshiftbot@redhat.com)
