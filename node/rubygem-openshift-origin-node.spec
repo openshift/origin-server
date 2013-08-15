@@ -16,7 +16,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.12.10
+Version: 1.12.11
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -305,6 +305,9 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Thu Aug 15 2013 Troy Dawson <tdawson@redhat.com> 1.12.11-1
+- Ensure boosted gears are not throttled (fotios@redhat.com)
+
 * Tue Aug 06 2013 Adam Miller <admiller@redhat.com> 1.12.10-1
 - Bug 991824: Make watchman logging configurable via node.conf
   (ironcladlou@gmail.com)
