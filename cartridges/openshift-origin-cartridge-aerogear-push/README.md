@@ -62,6 +62,7 @@ of use:
     OPENSHIFT_AEROGEAR_PUSH_MESSAGING_PORT             
     OPENSHIFT_AEROGEAR_PUSH_MESSAGING_THROUGHPUT_PORT  
     OPENSHIFT_AEROGEAR_PUSH_REMOTING_PORT              
+    JAVA_OPTS_EXT                                      Appended to JAVA_OPTS prior to invoking the Java VM
 
 For more information about environment variables, consult the
 [OpenShift Application Author Guide](https://github.com/openshift/origin-server/blob/master/node/README.writing_applications.md).
