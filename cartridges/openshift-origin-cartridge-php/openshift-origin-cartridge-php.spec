@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/openshift/cartridges/php
 
 Name:          openshift-origin-cartridge-php
-Version: 0.8.1
+Version: 0.8.2
 Release:       1%{?dist}
 Summary:       Php cartridge
 Group:         Development/Languages
@@ -75,6 +75,10 @@ rm %{buildroot}%{cartridgedir}/metadata/manifest.yml.*
 
 
 %changelog
+* Thu Aug 15 2013 Adam Miller <admiller@redhat.com> 0.8.2-1
+- Bug 968280 - Ensure Stopping/Starting messages during git push Bug 983014 -
+  Unnecessary messages from mongodb cartridge (jhonce@redhat.com)
+
 * Thu Aug 08 2013 Adam Miller <admiller@redhat.com> 0.8.1-1
 - Merge pull request #3021 from rvianello/readme_cron (dmcphers@redhat.com)
 - bump_minor_versions for sprint 32 (admiller@redhat.com)
