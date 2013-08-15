@@ -952,20 +952,29 @@ module MCollective
       #
       # Returns the public endpoints of all cartridges on the gear
       #
-      def get_gear_endpoints
+      def get_all_gears_endpoints_action
          validate :uuid, /^[a-zA-Z0-9]+$/
-         cont = OpenShift::Runtime::ApplicationContainer.from_uuid(request[:uuid].to_s)
-         env = OpenShift::Runtime::Utils::Environ::for_gear(cont.container_dir)
-         config = OpenShift::Config.new
-         pub_ip = config.get('PUBLIC_IP')
-         endpoints = []
-         cont.cartridge_model.each_cartridge do |cart|
-           cart.public_endpoints.each do |ep|
-             endpoints << { "cartridge_name" => cart.name+'-'+cart.version, "external_ip" => pub_ip, "external_port" => env[ep.public_port_name], "internal_ip" => env[ep.private_ip_name], "internal_port" => ep.private_port }
+        gear_map = {}
+
+        dir = "/var/lib/openshift/"
+        Dir.foreach(dir) do |gear_file|
+          if File.directory?(dir + gear_file) and not File.symlink?(dir + gear_file) and not gear_file[0] == '.'
+           gear_uuid = gear_file
+           cont = OpenShift::Runtime::ApplicationContainer.from_uuid(gear_uuid)
+           env = OpenShift::Runtime::Utils::Environ::for_gear(cont.container_dir)
+           config = OpenShift::Config.new
+           pub_ip = config.get('PUBLIC_IP')
+           endpoints = []
+           cont.cartridge_model.each_cartridge do |cart|
+             cart.public_endpoints.each do |ep|
+               endpoints << { "cartridge_name" => cart.name+'-'+cart.version, "external_ip" => pub_ip, "external_port" => env[ep.public_port_name], "internal_ip" => env[ep.private_ip_name], "internal_port" => ep.private_port }
+             end
            end
+           gear_map[gear_uuid] = endpoints.dup if endpoints.length > 0
          end
-         reply[:output] = endpoints
-         reply[:exitcode] = 0
+       end
+       reply[:output] = gear_map
+       reply[:exitcode] = 0
       end
 
       #

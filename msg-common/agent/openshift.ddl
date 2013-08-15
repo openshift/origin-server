@@ -70,6 +70,17 @@ action "execute_parallel", :description => "run commands in parallel" do
            :display_as => "Exit Code"
 end
 
+action "get_all_gears_endpoints", :description => "get ports info about all gears" do
+    display :always
+    output  :output,
+            :description => "Gear external ports information",
+            :display_as => "Output"
+
+    output :exitcode,
+           :description => "Exit code",
+           :display_as => "Exit Code"
+end
+
 action "get_all_gears", :description => "get info about all gears" do
     display :always
     output  :output,

@@ -74,7 +74,8 @@ class RestGearGroup15 < OpenShift::Model
     self.gears        = group_instance.gears.map{ |gear| 
       { :id => gear.uuid, 
         :state => gear_states[gear.uuid] || 'unknown', 
-        :ssh_url => "ssh://#{app.ssh_uri(gear.app_dns ? nil: gear.uuid)}"
+        :ssh_url => "ssh://#{app.ssh_uri(gear.app_dns ? nil: gear.uuid)}",
+        :port_interfaces => gear.port_interfaces
       } 
     }
     
