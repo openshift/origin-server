@@ -10,7 +10,7 @@
 
 Summary:       M-Collective agent file for openshift-origin-msg-node-mcollective
 Name:          openshift-origin-msg-node-mcollective
-Version: 1.13.3
+Version: 1.13.4
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -51,6 +51,13 @@ cp -p facts/update_yaml.rb %{buildroot}/usr/libexec/mcollective/
 %attr(0700,-,-) %config(noreplace) /etc/cron.minutely/openshift-facts
 
 %changelog
+* Thu Aug 15 2013 Adam Miller <admiller@redhat.com> 1.13.4-1
+- Merge pull request #3359 from rajatchopra/master
+  (dmcphers+openshiftbot@redhat.com)
+- migration helpers and rest interface for port information of gears
+  (rchopra@redhat.com)
+- Upgrade tool enhancements (ironcladlou@gmail.com)
+
 * Wed Aug 14 2013 Adam Miller <admiller@redhat.com> 1.13.3-1
 - save exposed port interfaces of a gear (rchopra@redhat.com)
 
