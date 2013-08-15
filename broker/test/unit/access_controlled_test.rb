@@ -218,6 +218,8 @@ class AccessControlledTest < ActiveSupport::TestCase
     assert_equal [d2._id], Domain.accessible(u).map(&:_id)
     assert CloudUser.accessible(u).empty?
     assert Authorization.accessible(u).empty?
+
+    assert Application.find_by_user(u, 'scopetest2')
   end
 
   def test_domain_model_consistent
