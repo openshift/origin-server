@@ -264,7 +264,7 @@ class Application
   # @return [Application, nil] The application object or nil if no application matches
   #
   def self.find_by_user(user, app_name)
-    Application.in(domain: user.domains).where(canonical_name: app_name.downcase).first
+    Application.in(domain: user.domains.map(&:_id)).where(canonical_name: app_name.downcase).first
   end
 
   ##
