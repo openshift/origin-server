@@ -162,6 +162,14 @@
 
       + form {
         padding-top: 17px;
+
+        select {
+          vertical-align: baseline;
+
+          optgroup:last-child {
+            border-top: 1px solid #CCC;
+          }
+        }
       }
 
       td.bars {

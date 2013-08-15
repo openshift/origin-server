@@ -16,6 +16,8 @@
   .row  
     - @summary_for_profile.each do |profile_name,profile|
       - show_districts = Rails.configuration.msg_broker[:districts][:enabled] && (profile[:districts].size > 1 || profile[:districts][0][:name] != "(NONE)")
+      - undistricted_nodes_exist = profile[:districts].any? {|district| district[:name] == "(NONE)"}
+      - show_districts = Rails.configuration.msg_broker[:districts][:enabled] && (profile[:districts].size > 1 || !undistricted_nodes_exist)
       .span6
         .profile
           %h3
@@ -28,7 +30,7 @@
                     .stat-label
                       districts
                     .stat-number-large
-                      = profile[:district_count]
+                      = undistricted_nodes_exist ? profile[:district_count] - 1 : profile[:district_count]
                     .hover-action.hidden-mobile
                       = link_to "Details...", profile_path(:id => profile_name)
                   - else

@@ -104,7 +104,7 @@
               .stat-label
                 districts
               .stat-number-large
-                = @profile[:district_count]
+                = @undistricted_nodes_exist ? @profile[:district_count] - 1 : @profile[:district_count]
             - else
               .stat-label
                 nodes
@@ -180,14 +180,15 @@
     - if @districts_exist
       %form.form-inline{:action => profile_path(:id => @profile[:profile])}
         %label{:for => "node_district_scope"}
-          = "Show only nodes in:"
+          = "Show:"
         %select#node_district_scope{:name => "district"}
-          %option{:value => ""}
-            Choose district
+          - grouped_options = [[nil, [["all nodes", ""], ["nodes not in a district", "NONE"]]]]
+          - district_options = []
           - districts_by_name = @profile[:districts].sort{ |x, y| x[:name] <=> y[:name]}
           - districts_by_name.each do |district|
-            %option{:value => district[:uuid], :selected => @district_uuid_filter == district[:uuid] ? "true" : nil}
-              = district[:name]
+            - district_options << [district[:name], district[:uuid]] unless district[:uuid] == "NONE profile=#{@profile[:profile]}"
+          - grouped_options << [nil, district_options]
+          = grouped_options_for_select(grouped_options, @district_uuid_filter)
         %noscript
           %input{:type => "hidden", :name => "nodes", :value => "true"}
           = submit_tag 'View', :class => 'btn', :name => nil
@@ -245,26 +246,27 @@
           %th
       %tbody
         - @districts.each do |district|
-          %tr.district
-            %td
-              = district[:name]
-            %td.bar
-              - district_usage_pct = (district[:district_capacity] - district[:dist_avail_capacity]) / district[:district_capacity].to_f * 100
-              = progress_bar(district_usage_pct, ["progress-inverse"])
-            %td
-              = "#{number_with_delimiter(district[:dist_avail_capacity])}"
-            - is_over_dist = district[:effective_available_gears] < active_warning_threshold
-            %td.bar
-              .over-under-scale
-                .line
-                - opacity = (0.8 / district[:nodes].size) + 0.2
-                - district[:nodes].each do |node|
-                  - is_over = node[:max_active_gears] - node[:gears_active_count] < active_warning_threshold
-                  - log_percent = log_scale_percentage(active_warning_threshold, node[:max_active_gears] - node[:gears_active_count], :log_base => 90, :max_pct => 50)
-                  .bar{:class => is_over ? 'bar-over' : 'bar-under', :style => "width: #{log_percent}%; opacity: #{opacity};"}
-                .center-point
-            %td
-              %strong{:class => is_over_dist ? 'text-error' : 'text-success'}
-                = "#{is_over_dist ? '+' : '-'} #{(active_warning_threshold - district[:available_active_gears_with_negatives]).abs}"
-            %td
-              = link_to pluralize(district[:nodes].size, 'node'), profile_nodes_path(:id => @profile[:profile], :district => district[:uuid])
+          - unless district[:name] == "(NONE)"
+            %tr.district
+              %td
+                = district[:name]
+              %td.bar
+                - district_usage_pct = (district[:district_capacity] - district[:dist_avail_capacity]) / district[:district_capacity].to_f * 100
+                = progress_bar(district_usage_pct, ["progress-inverse"])
+              %td
+                = "#{number_with_delimiter(district[:dist_avail_capacity])}"
+              - is_over_dist = district[:effective_available_gears] < active_warning_threshold
+              %td.bar
+                .over-under-scale
+                  .line
+                  - opacity = (0.8 / district[:nodes].size) + 0.2
+                  - district[:nodes].each do |node|
+                    - is_over = node[:max_active_gears] - node[:gears_active_count] < active_warning_threshold
+                    - log_percent = log_scale_percentage(active_warning_threshold, node[:max_active_gears] - node[:gears_active_count], :log_base => 90, :max_pct => 50)
+                    .bar{:class => is_over ? 'bar-over' : 'bar-under', :style => "width: #{log_percent}%; opacity: #{opacity};"}
+                  .center-point
+              %td
+                %strong{:class => is_over_dist ? 'text-error' : 'text-success'}
+                  = "#{is_over_dist ? '+' : '-'} #{(active_warning_threshold - district[:available_active_gears_with_negatives]).abs}"
+              %td
+                = link_to pluralize(district[:nodes].size, 'node'), profile_nodes_path(:id => @profile[:profile], :district => district[:uuid])

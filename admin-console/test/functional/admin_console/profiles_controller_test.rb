@@ -12,6 +12,7 @@ module AdminConsole
       assert assigns(:profile)
       assert assigns(:districts)
       assert !assigns(:show_nodes)
+      assert !assigns(:undistricted_nodes_exist)
       assert_response :success
     end
 
@@ -43,6 +44,16 @@ module AdminConsole
       assert assigns(:show_nodes)
       assert_response :success
     end
+
+    test "should get profile with both districted and undistricted nodes" do
+      Rails.application.config.admin_console[:debug_profile_data] = "#{ActiveSupport::TestCase.fixture_path}admin_console/district_with_node_and_undistricted_node.json"
+      get :show, :id => "small"
+      assert assigns(:profile)
+      assert assigns(:districts)
+      assert !assigns(:show_nodes)
+      assert assigns(:undistricted_nodes_exist)
+      assert_response :success
+    end    
     
   end
 end

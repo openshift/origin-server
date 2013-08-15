@@ -30,8 +30,9 @@ module AdminConsole
     def setup_additional_information_for_show
       @config = Rails.application.config.admin_console 
 
+      @undistricted_nodes_exist = @profile[:districts].any? {|district| district[:name] == "(NONE)"}
       @districts_exist = Rails.configuration.msg_broker[:districts][:enabled] && 
-                        (@profile[:districts].size > 1 || @profile[:districts][0][:name] != "(NONE)")
+                        (@profile[:districts].size > 1 || !@undistricted_nodes_exist)
       @show_nodes |= !@districts_exist
 
       @active_sort = params[:sk].nil? ? (@show_nodes ? 'active' : 'total') : params[:sk]
