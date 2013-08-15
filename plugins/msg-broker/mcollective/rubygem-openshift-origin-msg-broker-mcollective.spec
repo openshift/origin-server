@@ -9,7 +9,7 @@
 
 Summary:       OpenShift plugin for mcollective service
 Name:          rubygem-%{gem_name}
-Version: 1.13.2
+Version: 1.13.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -80,6 +80,12 @@ cp %{buildroot}/%{gem_dir}/gems/%{gem_name}-%{version}/conf/openshift-origin-msg
 %attr(0644,-,-) %ghost /etc/mcollective/client.cfg
 
 %changelog
+* Thu Aug 15 2013 Adam Miller <admiller@redhat.com> 1.13.3-1
+- Merge pull request #3359 from rajatchopra/master
+  (dmcphers+openshiftbot@redhat.com)
+- migration helpers and rest interface for port information of gears
+  (rchopra@redhat.com)
+
 * Wed Aug 14 2013 Adam Miller <admiller@redhat.com> 1.13.2-1
 - * Implement a membership model for OpenShift that allows an efficient query
   of user access based on each resource. * Implement scope limitations that
