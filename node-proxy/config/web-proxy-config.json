@@ -119,6 +119,7 @@
       "ports"          : [ 8443 ],
       "protocol"       : "https",
       "ssl"            : {
+        "ca"         : "/etc/pki/tls/certs/localhost.crt",
         "certificate": "/etc/pki/tls/certs/localhost.crt",
         "private_key": "/etc/pki/tls/private/localhost.key"
       }
