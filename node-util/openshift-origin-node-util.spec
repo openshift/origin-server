@@ -6,7 +6,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin node
 Name:          openshift-origin-node-util
-Version: 1.13.4
+Version: 1.13.5
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -143,6 +143,19 @@ cp -p init.d/openshift-gears %{buildroot}%{_initddir}/
 %endif
 
 %changelog
+* Thu Aug 15 2013 Adam Miller <admiller@redhat.com> 1.13.5-1
+- Merge pull request #3335 from Miciah/oo-accept-node-use-Config-class
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3364 from jwhonce/bug/977928
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 977928 - node-util scripts missing man pages (jhonce@redhat.com)
+- Merge pull request #3360 from brenton/BZ997129
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 997129 - oo-last-access script chokes on /etc/openshift/node.conf with
+  only space in configuration line (bleanhar@redhat.com)
+- oo-accept-node: Use OpenShift::Config (miciah.masters@gmail.com)
+- oo-accept-node: Simplify find_ext_net_dev (miciah.masters@gmail.com)
+
 * Wed Aug 14 2013 Adam Miller <admiller@redhat.com> 1.13.4-1
 - Merge pull request #3352 from danmcp/master
   (dmcphers+openshiftbot@redhat.com)
