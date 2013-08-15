@@ -3,11 +3,13 @@
 source $OPENSHIFT_MOCK_PLUGIN_DIR/mock-plugin.conf
 
 function start {
+  echo "Starting Mock-Plugin cartridge"
   touch $MOCK_STATE/control_start
   touch $MOCK_STATE/mock_process
 }
 
 function stop {
+  echo "Stopping Mock-Plugin cartridge"
   touch $MOCK_STATE/control_stop
   rm -f $MOCK_STATE/mock_process
 }

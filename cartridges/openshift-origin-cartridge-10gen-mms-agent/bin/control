@@ -14,7 +14,7 @@ function status() {
 }
 
 function start() {
-
+    echo "Starting $cartridge_type cartridge"
     if ps -ef | grep ${OPENSHIFT_GEAR_UUID}_agent.py | grep -qv grep > /dev/null 2>&1; then
         exit 0
     fi
@@ -50,6 +50,7 @@ function start() {
 function stop() {
     if [ -f ${OPENSHIFT_10GENMMSAGENT_DIR}/run/mms-agent.pid ]
     then
+        echo "Stopping $cartridge_type cartridge"
         mms_agent_pid=`cat ${OPENSHIFT_10GENMMSAGENT_DIR}/run/mms-agent.pid 2> /dev/null`
         kill -9 $mms_agent_pid > /dev/null || :
         rm -f ${OPENSHIFT_10GENMMSAGENT_DIR}/run/mms-agent.pid > /dev/null
@@ -69,7 +70,6 @@ function restart() {
 }
 
 function reload() {
-    echo "Reloading $cartridge_type cart"
     restart
 }
 

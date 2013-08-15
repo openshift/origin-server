@@ -30,6 +30,7 @@ function is_running {
 # Start mysqld and block until it comes up.
 function start {
   if ! is_running; then
+    echo "Starting MySQL cartridge"
     /usr/bin/mysqld_safe --defaults-file=$OPENSHIFT_MYSQL_DIR/conf/my.cnf > /dev/null 2>&1 &    
     wait_for_mysqld_availability
   else
@@ -60,6 +61,7 @@ function stop {
     pidfile=$OPENSHIFT_MYSQL_DIR/pid/mysql.pid
 
     if [ -f $pidfile ]; then
+      echo "Stopping MySQL cartridge"
       pid=$( /bin/cat $pidfile )
       /bin/kill $pid
       ret=$?

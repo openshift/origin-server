@@ -8,14 +8,14 @@ HTTPD_CFG_FILE=$OPENSHIFT_RUBY_DIR/etc/conf/httpd_nolog.conf
 HTTPD_PID_FILE=$OPENSHIFT_RUBY_DIR/run/httpd.pid
 
 function start() {
-    echo "Starting Ruby cart"
+    echo "Starting Ruby cartridge"
     update_httpd_passenv $HTTPD_CFG_FILE
     ensure_valid_httpd_process "$HTTPD_PID_FILE" "$HTTPD_CFG_FILE"
     ruby_context "/usr/sbin/httpd -C 'Include $OPENSHIFT_RUBY_DIR/etc/conf.d/*.conf' -f $HTTPD_CFG_FILE -k start"
 }
 
 function stop() {
-    echo "Stopping Ruby cart"
+    echo "Stopping Ruby cartridge"
     ensure_valid_httpd_process "$HTTPD_PID_FILE" "$HTTPD_CFG_FILE"
     if [ -f "$HTTPD_PID_FILE" ]; then
         httpd_pid=`cat "$HTTPD_PID_FILE" 2> /dev/null`
@@ -72,7 +72,7 @@ function pre-build() {
 }
 
 function build() {
-    echo "Running build on Ruby cart"
+    echo "Building Ruby cartridge"
     update-configuration $OPENSHIFT_RUBY_VERSION
 
     USED_BUNDLER=false

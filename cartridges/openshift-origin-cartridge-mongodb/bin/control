@@ -36,7 +36,7 @@ function _repair_mongod() {
         client_result "MongoDB repair status = $?"
         rm -f $tmp_config
     else
-        client_result "MongoDB already running - not running repair"
+        echo "MongoDB already running - not running repair"
     fi
 }
 
@@ -56,9 +56,10 @@ function _start_mongod() {
 function start() {
     if ! isrunning
     then
+        echo "Starting MongoDB cartridge"
         _start_mongod  "$1"
     else
-        client_result "MongoDB already running"
+        echo "MongoDB already running"
     fi
 }
 
@@ -70,6 +71,7 @@ function stop() {
     fi
 
     if [ -n "$pid" ]; then
+        echo "Stopping MongoDB cartridge"
         set +e
         /bin/kill $pid 2>/dev/null
         set -e
@@ -88,9 +90,9 @@ function stop() {
     else
         if `pgrep -x mongod > /dev/null 2>&1`
         then
-                client_result "Warning: MongoDB process exists without a pid file.  Use force-stop to kill."
+            client_result "Warning: MongoDB process exists without a pid file.  Use force-stop to kill."
         else
-            client_result "MongoDB already stopped"
+            echo "MongoDB already stopped"
         fi
      fi
 }

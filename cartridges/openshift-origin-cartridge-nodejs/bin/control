@@ -90,6 +90,8 @@ NODE_EOF
 
 
 function start() {
+    echo "Starting NodeJS cartridge"
+ 
     envf="$OPENSHIFT_NODEJS_DIR/configuration/node.env"
     logf="$OPENSHIFT_NODEJS_LOG_DIR/node.log"
 
@@ -144,6 +146,7 @@ function start() {
 
 
 function stop() {
+    echo "Stopping NodeJS cartridge"
     if [ -f $OPENSHIFT_NODEJS_PID_DIR/node.pid ]; then
         node_pid=$( cat $OPENSHIFT_NODEJS_PID_DIR/node.pid 2> /dev/null )
     fi
@@ -184,6 +187,7 @@ function restart() {
 }  #  End of function  restart.
 
 function build() {
+    echo "Building NodeJS cartridge"
     if [ -d "${OPENSHIFT_NODEJS_DIR}/tmp/saved.node_modules" ]; then
         node_modules_dir="${OPENSHIFT_REPO_DIR}node_modules/"
         for d in `ls -a ${OPENSHIFT_NODEJS_DIR}/tmp/saved.node_modules`; do

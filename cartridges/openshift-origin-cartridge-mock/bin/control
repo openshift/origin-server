@@ -4,12 +4,14 @@ source $OPENSHIFT_CARTRIDGE_SDK_BASH
 source $OPENSHIFT_MOCK_DIR/mock.conf
 
 function start {
+  echo "Starting Mock cartridge"
   touch $MOCK_STATE/control_start
   touch $MOCK_STATE/mock_process
   $OPENSHIFT_MOCK_DIR/bin/mock_server.rb $OPENSHIFT_MOCK_EXAMPLE_IP1 $OPENSHIFT_REPO_DIR > $OPENSHIFT_MOCK_DIR/logs/server.log 2>&1 &
 }
 
 function stop {
+  echo "Stopping Mock cartridge"
   touch $MOCK_STATE/control_stop
   rm -f $MOCK_STATE/mock_process
   pkill -9 -f mock_server.rb ||:
@@ -28,7 +30,7 @@ function status {
 }
 
 function build {
-  echo "Mock building..."
+  echo "Building Mock cartridge"
   touch $MOCK_STATE/control_build
   echo "Mock successfully built."
 }
