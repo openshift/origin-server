@@ -109,7 +109,7 @@ function pre_snapshot {
   local db_port=$OPENSHIFT_MYSQL_DB_PORT
 
   {
-    /usr/bin/mysqldump --extended-insert --quick -h $db_host -P $db_port -u $OPENSHIFT_MYSQL_DB_USERNAME --password="$OPENSHIFT_MYSQL_DB_PASSWORD" --all-databases --add-drop-table | /bin/gzip > $dump_file
+    /usr/bin/mysqldump --extended-insert --quick -h $db_host -P $db_port -u $OPENSHIFT_MYSQL_DB_USERNAME --password="$OPENSHIFT_MYSQL_DB_PASSWORD" --all-databases --events --triggers --routines --add-drop-table | /bin/gzip > $dump_file
   } ||
   {
     warning "Couldn't not dump mysql! Continuing anyway"
