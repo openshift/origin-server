@@ -1,14 +1,11 @@
-require 'test_helper'
+require 'unit/helpers/admin_stats_helper'
 
 class AdminStatsTest < ActiveSupport::TestCase
   def setup
     super
     @stats = Admin::Stats.new
     @dist_uuid = "1234"
-    @node_details = {
-      node_profile: "test",
-      district_uuid: @dist_uuid,
-      district_active: "true",
+    @node_details = faux_node_entry("test", @dist_uuid, "true").merge({
       max_active_gears: 10,
       gears_started_count: 7,
       gears_idle_count: 10,
@@ -19,48 +16,27 @@ class AdminStatsTest < ActiveSupport::TestCase
       gears_active_count: 10,
       gears_usage_pct: 230,
       gears_active_usage_pct: 100,
-    }
+    })
     @node_name = "test-node.example.com"
     @short_name = "test-node"
-    OpenShift::ApplicationContainerProxy.stubs(:get_details_for_all).returns({
+    @nodes_hash = {
       @node_name => @node_details,
       "clone.example.com" => @node_details.merge(district_uuid: "NONE"),
-    })
+    }
 
-    @db = Class.new do # mock what :_with_each_record needs
-      def collection(name, &block); @name = name; @block = block; self; end
-      def find(*args, &block); block.call(self); end
-      def each(&block)
-        coll = {
-          :districts => [{
-                          'gear_size' => "test",
-                          'name' => "1234_district",
-                          'uuid' => '1234',
-                          'server_identities' => [ {'name' => "test-node.example.com",
-                                                    'active' => true },
-                                                   {'name' => "missing.example.com",
-                                                    'active' => true }
-                                                 ],
-                          'max_capacity' => 6000,
-                          'available_capacity' => 3,
-                          'available_uids' => [1,2,3,4,5],
-                       }],
-          # the other ones are too complex to stub...
-          :cloud_users => [],
-          :domains => [],
-          :applications => [],
-        }
-        coll[@name].each {|hash| block.call(hash) }
-      end
-    end
-    @db = @db.new
-    OpenShift::DataStore.stubs(:db).returns(@db)
+    @district=faux_mongo_district({
+      @node_name            => @node_details,
+      "missing.example.com" => @node_details,
+    }).merge({
+      'available_capacity' => 3,
+      'available_uids' => [1,2,3,4,5],
+    })
+    admin_stats_stubber(@nodes_hash, faux_db_with([@district]))
   end
 
   def teardown
     super
-    OpenShift::ApplicationContainerProxy.unstub(:get_details_for_all)
-    OpenShift::DataStore.unstub(:db)
+    admin_stats_unstubber
   end
 
   test "fetch and return list of node details" do
@@ -115,6 +91,39 @@ class AdminStatsTest < ActiveSupport::TestCase
     assert_raise(TypeError) {Marshal.dump(results)}
     @stats.deep_clear_default!(results)
     assert_nothing_raised { Marshal.dump(results) }
+  end
+
+  test "using HashWithReaders subclasses" do
+    @stats.gather_statistics
+    r = @stats.results
+    assert_kind_of Admin::Stats::Results, r, "should be a subclass: #{r.class}"
+    assert_raises(OpenShift::HashWithReaders::NoSuchKey) {r.no_such_key}
+    assert_kind_of Admin::Stats::ProfileSummary, r.profile_summaries.first
+    assert_kind_of Admin::Stats::DistrictSummary, r.district_summaries.first
+    assert_kind_of Admin::Stats::DistrictEntry, r.district_entries_hash.first[1]
+    assert_kind_of Admin::Stats::NodeEntry, r.node_entries_hash.first[1]
+
+    # need to be able to convert back to non-subclass hashes for YAML dump
+    r = OpenShift::HashWithReaders.deep_clear_subclasses(r)
+    refute_kind_of OpenShift::HashWithReaders, r, "should be a hash: #{r.class}"
+    refute_kind_of OpenShift::HashWithReaders, r[:profile_summaries].first
+    refute_kind_of OpenShift::HashWithReaders, r[:district_summaries].first
+    refute_kind_of OpenShift::HashWithReaders, r[:district_entries_hash].first[1]
+    refute_kind_of OpenShift::HashWithReaders, r[:node_entries_hash].first[1]
+    deduped = r[:profile_summaries].first
+    assert_same deduped, r[:profile_summaries_hash][deduped[:profile]],
+      "instances in the results in multiple places should not have different copies"
+
+    # need to be able to convert back to HashWithReader from plain hash dump
+    r = OpenShift::HashWithReaders.deep_convert_hashes(r)
+    assert_kind_of OpenShift::HashWithReaders, r, "should be converted: #{r.class}"
+    assert_kind_of OpenShift::HashWithReaders, r[:profile_summaries].first
+    assert_kind_of OpenShift::HashWithReaders, r[:district_summaries].first
+    assert_kind_of OpenShift::HashWithReaders, r[:district_entries_hash].first[1]
+    assert_kind_of OpenShift::HashWithReaders, r[:node_entries_hash].first[1]
+    deduped = r.profile_summaries.first
+    assert_same deduped, r.profile_summaries_hash[deduped.profile],
+      "instances in the results in multiple places should not have different copies"
   end
 
   test "summarize profile details without db stats" do
