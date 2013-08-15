@@ -257,7 +257,7 @@ fi
 %dir /etc/openshift
 %config(noreplace) /etc/openshift/node.conf
 %config(noreplace) /etc/openshift/env/*
-%config(noreplace) /etc/openshift/resource_limits.conf
+%attr(0640,-,-) %config(noreplace) /etc/openshift/resource_limits.conf
 %attr(0750,-,-) /etc/httpd/conf.d/openshift
 %config(noreplace) /etc/httpd/conf.d/000001_openshift_origin_node.conf
 %config(noreplace) /etc/httpd/conf.d/000001_openshift_origin_node_servername.conf
