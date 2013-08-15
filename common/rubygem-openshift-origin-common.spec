@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Common
 Name:          rubygem-%{gem_name}
-Version: 1.13.2
+Version: 1.13.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -120,6 +120,9 @@ cp bin/man/*.8 %{buildroot}%{_mandir}/man8/
 %doc %{gem_docdir}
 
 %changelog
+* Thu Aug 15 2013 Adam Miller <admiller@redhat.com> 1.13.3-1
+- Upgrade tool enhancements (ironcladlou@gmail.com)
+
 * Wed Aug 14 2013 Adam Miller <admiller@redhat.com> 1.13.2-1
 - Merge pull request #3322 from smarterclayton/origin_ui_73_membership_model
   (dmcphers+openshiftbot@redhat.com)
