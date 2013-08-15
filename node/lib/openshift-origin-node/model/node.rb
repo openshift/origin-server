@@ -19,6 +19,7 @@ require 'openshift-origin-node/utils/shell_exec'
 require 'openshift-origin-node/utils/node_logger'
 require 'openshift-origin-common/models/manifest'
 require 'openshift-origin-node/model/cartridge_repository'
+require 'openshift-origin-node/utils/cgroups/config'
 require 'openshift-origin-common'
 require 'safe_yaml'
 require 'etc'
@@ -202,7 +203,7 @@ module OpenShift
       end
 
       def self.init_quota(uuid, blocksmax=nil, inodemax=nil)
-        resource = OpenShift::Config.new('/etc/openshift/resource_limits.conf')
+        resource = ::OpenShift::Runtime::Utils::Cgroups::Config.new
         blocksmax = (blocksmax or resource.get('quota_blocks') or DEFAULT_QUOTA['quota_blocks'])
         inodemax  = (inodemax  or resource.get('quota_files')  or DEFAULT_QUOTA['quota_files'])
         self.set_quota(uuid, blocksmax.to_i, inodemax.to_i)
@@ -236,7 +237,7 @@ module OpenShift
       end
 
       def self.init_pam_limits(uuid, limits={})
-        resource =OpenShift::Config.new('/etc/openshift/resource_limits.conf')
+        resource = ::OpenShift::Runtime::Utils::Cgroups::Config.new
         limits_order = (resource.get('limits_order') or DEFAULT_PAM_LIMITS_ORDER)
         limits_file = PathUtils.join(DEFAULT_PAM_LIMITS_DIR, "#{limits_order}-#{uuid}.conf")
 
@@ -270,7 +271,7 @@ module OpenShift
       end
 
       def self.get_pam_limits(uuid)
-        resource = OpenShift::Config.new('/etc/openshift/resource_limits.conf')
+        resource = ::OpenShift::Runtime::Utils::Cgroups::Config.new
         limits_order = (resource.get('limits_order') or DEFAULT_PAM_LIMITS_ORDER)
         limits_file = PathUtils.join(DEFAULT_PAM_LIMITS_DIR, "#{limits_order}-#{uuid}.conf")
 
@@ -315,7 +316,7 @@ module OpenShift
       end
 
       def self.remove_pam_limits(uuid)
-        resource = OpenShift::Config.new('/etc/openshift/resource_limits.conf')
+        resource = ::OpenShift::Runtime::Utils::Cgroups::Config.new
         limits_order = (resource.get('limits_order') or DEFAULT_PAM_LIMITS_ORDER)
         limits_file = PathUtils.join(DEFAULT_PAM_LIMITS_DIR, "#{limits_order}-#{uuid}.conf")
         begin

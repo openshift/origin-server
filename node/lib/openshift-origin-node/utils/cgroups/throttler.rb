@@ -4,6 +4,7 @@ require 'active_support/core_ext/numeric/time'
 require 'openshift-origin-node/utils/cgroups'
 require 'syslog'
 require_relative 'monitored_gear'
+require_relative 'config'
 
 module OpenShift
   module Runtime
@@ -13,8 +14,6 @@ module OpenShift
 
           attr_reader :wanted_keys, :uuids, :running_apps, :threshold, :interval
 
-          @@conf_file = '/etc/openshift/resource_limits.conf'
-
           def initialize
             # Make sure we create a MonitoredGear for the root OpenShift cgroup
             # Keys for information we want from cgroups
@@ -23,7 +22,9 @@ module OpenShift
             @mutex = Mutex.new
             @uuids = []
 
-            throttler_config = ::OpenShift::Runtime::Utils::Cgroups::Config.new(@@conf_file).get_group('cg_template_throttled')
+            @config = Cgroups::Config.new
+
+            throttler_config = @config.get_group('cg_template_throttled')
 
             # Set the interval to save
             @interval = throttler_config.get('apply_period').to_i rescue nil
