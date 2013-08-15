@@ -3126,6 +3126,20 @@ module OpenShift
         return [gear_map, sender_map]
       end
 
+      def self.get_all_gears_endpoints_impl(opts)
+        gear_map = {}
+        rpc_exec('openshift', nil, true) do |client|
+          client.get_all_gears_endpoints(opts) do |response|
+            if response[:body][:statuscode] == 0
+              sub_gear_map = response[:body][:data][:output]
+              # sender = response[:senderid]
+              gear_map.merge!(sub_gear_map)
+            end
+          end
+        end
+        return gear_map
+      end
+
       #
       # Retrieve all active gears (implementation)
       #

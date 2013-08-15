@@ -18,7 +18,6 @@ class PortInterface
   field :external_port, type: String, default: ""
   field :internal_address, type: String
   field :internal_port, type: String, default: ""
-  field :port_type, type: String, default: "http"
 
   # Initializes the port interface
   def initialize(attrs = nil, options = nil)
@@ -34,8 +33,7 @@ class PortInterface
     end
 
     comp = gear.app.component_instances.find_by(_id: component_id)
-    port_type = (ep_name.downcase.include? "PROXY") ? "http" : "custom"
-    PortInterface.new(cartridge_name: comp.cartridge_name, external_port: public_port.to_s, external_address: pub_ip, internal_port: internal_port.to_s, internal_address: internal_addr, port_type: port_type)
+    PortInterface.new(cartridge_name: comp.cartridge_name, external_port: public_port.to_s, external_address: pub_ip, internal_port: internal_port.to_s, internal_address: internal_addr)
   end
 
   def self.remove_port_interface(gear, component_id, ep_name, pub_ip, public_port) 

@@ -50,6 +50,10 @@ module OpenShift
       false
     end
 
+    def self.get_all_gears_endpoints(opts = {})
+      @proxy_provider.get_all_gears_endpoints_impl(opts)
+    end
+
     def self.get_all_gears(opts = {})
       @proxy_provider.get_all_gears_impl(opts)
     end
