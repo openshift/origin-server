@@ -16,7 +16,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.13.4
+Version: 1.13.5
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -305,6 +305,9 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Thu Aug 15 2013 Adam Miller <admiller@redhat.com> 1.13.5-1
+- Upgrade tool enhancements (ironcladlou@gmail.com)
+
 * Wed Aug 14 2013 Adam Miller <admiller@redhat.com> 1.13.4-1
 - Merge pull request #3352 from danmcp/master
   (dmcphers+openshiftbot@redhat.com)
