@@ -71,14 +71,14 @@ Feature: applications
     @rhel-only
     Scenarios: RHEL scenarios
       | format | php_version | phpmyadmin_version | database  |
-      | JSON   |     5.3     |        3.4         | mysql-5.1 |
-      | XML    |     5.3     |        3.4         | mysql-5.1 |
+      | JSON   |     5.3     |        3           | mysql-5.1 |
+      | XML    |     5.3     |        3           | mysql-5.1 |
 
     @fedora-19-only
     Scenarios: Fedora 19 scenarios
       | format | php_version | phpmyadmin_version | database    |
-      | JSON   |     5.5     |        3.5         | mariadb-5.5 |
-      | XML    |     5.5     |        3.5         | mariadb-5.5 |
+      | JSON   |     5.5     |        3           | mariadb-5.5 |
+      | XML    |     5.5     |        3           | mariadb-5.5 |
 
   Scenario Outline: Create application with invalid cartridge combinations
     #Given a new user, create an invalid application with php-<php_version>, ruby-1.9, mysql-5.1, phpmyadmin-<phpmyadmin_version> using <format> format and verify application creation API
@@ -94,14 +94,14 @@ Feature: applications
     @rhel-only
     Scenarios: RHEL scenarios
       | format | php_version | phpmyadmin_version | database  | ruby_version |
-      | JSON   |     5.3     |        3.4         | mysql-5.1 |      1.9     |
-      | XML    |     5.3     |        3.4         | mysql-5.1 |      1.9     |
+      | JSON   |     5.3     |        3           | mysql-5.1 |      1.9     |
+      | XML    |     5.3     |        3           | mysql-5.1 |      1.9     |
 
     @fedora-19-only
     Scenarios: Fedora 19 scenarios
       | format | php_version | phpmyadmin_version | database    | ruby_version |
-      | JSON   |     5.5     |        3.5         | mariadb-5.5 |      2.0     |
-      | XML    |     5.5     |        3.5         | mariadb-5.5 |      2.0     |
+      | JSON   |     5.5     |        3           | mariadb-5.5 |      2.0     |
+      | XML    |     5.5     |        3           | mariadb-5.5 |      2.0     |
 
 
   Scenario Outline: Create application with blank, missing, too long and invalid name

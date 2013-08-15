@@ -4,7 +4,7 @@ Feature: phpMyAdmin Embedded Cartridge
 
   @rhel-only
   Scenario Outline: Add Remove phpMyAdmin to one application
-    #Given a mock application, verify addition and removal of v2 phpmyadmin-3.4
+    #Given a mock application, verify addition and removal of v2 phpmyadmin-3
     Given a new mock-0.1 type application
 
     When I embed a <database> cartridge into the application
@@ -27,9 +27,9 @@ Feature: phpMyAdmin Embedded Cartridge
     @rhel-only
     Scenarios: RHEL
       | phpmyadmin_version | database  |
-      |        3.4         | mysql-5.1 |
+      |        3           | mysql-5.1 |
 
     @fedora-19-only
     Scenarios: Fedora 19
       | phpmyadmin_version | database    |
-      |        3.5         | mariadb-5.5 |
+      |        3           | mariadb-5.5 |

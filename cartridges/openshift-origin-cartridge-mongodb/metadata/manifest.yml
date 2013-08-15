@@ -37,7 +37,6 @@ Suggests:
 Provides:
   - mongodb-2.2
   - "mongodb"
-  - "mongodb(version) = 2.2.0"
   - mongodb-basic-mode
 Publishes:
   publish-nosql-db-connection-info:

@@ -54,8 +54,6 @@ Cart-Data:
 Provides:
   - "jbossews-2.0"
   - "jbossews"
-  - "jbossews(version) = 2.0.0"
-  - "jbossews(version) >= 2.0"
   - "jboss-ews-2.0"
   - "jboss-ews-2.0.0"
 Publishes:

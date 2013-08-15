@@ -33,7 +33,7 @@ client_result ""
 
 client_result 'Connection URL: mysql://$OPENSHIFT_MARIADB_DB_HOST:$OPENSHIFT_MARIADB_DB_PORT/'
 client_result ""
-client_result "You can manage your new MySQL database by also embedding phpmyadmin-3.4."
+client_result "You can manage your new MySQL database by also embedding phpmyadmin-3."
 client_result "The phpmyadmin username and password will be the same as the MySQL credentials above."
 
 cart_props 'connection_url=mysql://$OPENSHIFT_MARIADB_DB_HOST:$OPENSHIFT_MARIADB_DB_PORT/'
