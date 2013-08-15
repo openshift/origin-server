@@ -61,7 +61,7 @@ class Scope::Domain < Scope::Parameterized
     end
 
     def domain_scope=(s)
-      raise Scope::Invalid, "'#{s}' is not a valid domain scope" unless DOMAIN_SCOPES.keys.any?{ |k| k.to_s == s }
+      raise Scope::Invalid, "'#{s}' is not a valid domain scope" unless DOMAIN_SCOPES.keys.any?{ |k| k.to_s == s.to_s }
       @domain_scope = s.to_sym
     end
 end
