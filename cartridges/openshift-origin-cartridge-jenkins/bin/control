@@ -41,7 +41,7 @@ function is_up() {
 }
 
 function start() {
-  echo "Starting $cartridge_type cart"
+  echo "Starting $cartridge_type cartridge"
 
   if isrunning
   then
@@ -87,7 +87,7 @@ function start() {
 }
 
 function stop() {
-  echo "Stopping $cartridge_type cart"
+  echo "Stopping $cartridge_type cartridge"
 
   if isrunning
   then
@@ -99,8 +99,6 @@ function stop() {
 }
 
 function restart() {
-  echo "Restarting $cartridge_type cart"
-
   stop
   start
 }
@@ -115,7 +113,6 @@ function status() {
 }
 
 function reload() {
-  echo "Reloading $cartridge_type cart"
   restart
 }
 

@@ -8,12 +8,14 @@ httpd_config=${OPENSHIFT_PHPMYADMIN_DIR}conf/httpd_nolog.conf
 httpd_pid_file=${OPENSHIFT_PHPMYADMIN_DIR}run/httpd.pid
 
 function start {
+  echo "Starting PHPMyAdmin cartridge"
   update_httpd_passenv $httpd_config
   ensure_valid_httpd_process "$httpd_pid_file" "$httpd_config"
   /usr/sbin/httpd -C "Include ${OPENSHIFT_PHPMYADMIN_DIR}conf.d/*.conf" -f $httpd_config -k start
 }
 
 function stop {
+  echo "Stopping PHPMyAdmin cartridge"
   ensure_valid_httpd_process "$httpd_pid_file" "$httpd_config"
   if [ -f "$httpd_pid_file" ]; then
       httpd_pid=`cat "$httpd_pid_file" 2> /dev/null`
@@ -23,6 +25,7 @@ function stop {
 }
 
 function restart {
+  echo "Restarting PHPMyAdmin cartridge"
   update_httpd_passenv $httpd_config
   /usr/sbin/httpd -C "Include ${OPENSHIFT_PHPMYADMIN_DIR}conf.d/*.conf" -f $httpd_config -k restart
 }

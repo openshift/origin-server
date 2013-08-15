@@ -8,14 +8,14 @@ HTTPD_PID_FILE=$OPENSHIFT_PYTHON_DIR/run/httpd.pid
 export APPDIR=$OPENSHIFT_PYTHON_DIR
 
 function start() {
-    echo "Starting PYTHON cart"
+    echo "Starting Python cartridge"
     update_httpd_passenv $HTTPD_CFG_FILE
     ensure_valid_httpd_process "$HTTPD_PID_FILE" "$HTTPD_CFG_FILE"
     /usr/sbin/httpd -C "Include $OPENSHIFT_PYTHON_DIR/etc/conf.d/*.conf" -f $HTTPD_CFG_FILE -k start
 }
 
 function stop() {
-    echo "Stopping PYTHON cart"
+    echo "Stopping Python cartridge"
     ensure_valid_httpd_process "$HTTPD_PID_FILE" "$HTTPD_CFG_FILE"
     if [ -f "$HTTPD_PID_FILE" ]; then
         httpd_pid=`cat "$HTTPD_PID_FILE" 2> /dev/null`
@@ -25,7 +25,7 @@ function stop() {
 }
 
 function restart() {
-   echo "Restarting PYTHON cart"
+   echo "Restarting Python cartridge"
    update_httpd_passenv $HTTPD_CFG_FILE
     /usr/sbin/httpd -C "Include $OPENSHIFT_PYTHON_DIR/etc/conf.d/*.conf" -f $HTTPD_CFG_FILE -k restart
 }
@@ -53,6 +53,7 @@ function tidy() {
 }
 
 function build() {
+    echo "Building Python cartridge"
     VIRTENV=$OPENSHIFT_PYTHON_DIR/virtenv
 
     if `echo $OPENSHIFT_GEAR_DNS | egrep -qe "\.rhcloud\.com"`

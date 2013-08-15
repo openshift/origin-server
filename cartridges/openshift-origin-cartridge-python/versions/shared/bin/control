@@ -27,6 +27,7 @@ function _start_service() {
       echo "$cartridge_type application is already running" 1>&2
       return 0
    fi
+   echo "Starting Python cartridge"
 
    pushd $OPENSHIFT_REPO_DIR > /dev/null
    source "$pycart_dir/bin/activate_virtenv"
@@ -48,6 +49,8 @@ function _stop_service() {
       echo "$cartridge_type application is already stopped!" 1>&2
       return 0
    fi
+
+   echo "Stopping Python cartridge"
 
    if [ -f "$pycart_dir/run/appserver.pid" ]; then
       zpid=$(cat "$pycart_dir/run/appserver.pid" 2> /dev/null)
@@ -88,6 +91,7 @@ function status() {
 }
 
 function build() {
+   echo "Building Python cartridge"
    $OPENSHIFT_PYTHON_DIR/versions/$OPENSHIFT_PYTHON_VERSION/bin/build
 }
 
