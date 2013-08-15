@@ -237,7 +237,7 @@ module OpenShift
           next unless entries && !entries.empty?
 
           Manifest.sort_versions(entries).each do |version|
-            filename = PathUtils.join(path, version.to_s, 'metadata', 'manifest.yml')
+            filename = PathUtils.join(path, version, 'metadata', 'manifest.yml')
             yield filename if File.exist?(filename)
           end
         end
@@ -284,6 +284,7 @@ module OpenShift
           latest_cartridge_version = latest_version(slice[version])
 
           if latest_cartridge_version
+            logger.debug("Resetting default for (#{cartridge_name}, #{version}) to #{latest_cartridge_version}")
             manifest = @index[cartridge_name][version][latest_cartridge_version]
             @index[cartridge_name][version]['_'] = manifest
           end
@@ -301,7 +302,7 @@ module OpenShift
         name = cartridge.name
         cartridge_version = cartridge.cartridge_version
 
-        cartridge.versions.sort.each do |version|
+        Manifest.sort_versions(cartridge.versions).each do |version|
           projected_cartridge = cartridge.project_version_overrides(version, @path)
 
           @index[name][version][cartridge_version] = projected_cartridge
@@ -322,7 +323,10 @@ module OpenShift
       # Determine the latest version present in a slice of the index
       #
       def latest_version(index_slice)
-        index_slice.keys.delete_if {|v| v == '_'}.sort.last
+        real_versions = index_slice.keys
+        real_versions.delete_if { |v| v == '_' }
+
+        Manifest.sort_versions(real_versions).last
       end
 
       # :call-seq:
