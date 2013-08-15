@@ -2,7 +2,7 @@
 
 Summary:       Embedded mongodb support for OpenShift
 Name:          openshift-origin-cartridge-mongodb
-Version: 1.12.1
+Version: 1.12.2
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -41,6 +41,10 @@ Provides mongodb cartridge support to OpenShift
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Thu Aug 15 2013 Adam Miller <admiller@redhat.com> 1.12.2-1
+- Bug 968280 - Ensure Stopping/Starting messages during git push Bug 983014 -
+  Unnecessary messages from mongodb cartridge (jhonce@redhat.com)
+
 * Thu Aug 08 2013 Adam Miller <admiller@redhat.com> 1.12.1-1
 - Merge pull request #3313 from jwhonce/wip/manifest_lint
   (dmcphers+openshiftbot@redhat.com)
