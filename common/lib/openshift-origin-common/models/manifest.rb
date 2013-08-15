@@ -380,9 +380,15 @@ module OpenShift
 
       # Sort an array of "string" version numbers
       def self.sort_versions(array)
+        results = []
+
         copy = Marshal.load(Marshal.dump(array))
         copy.delete_if {|v| v == '_'}
-        copy.collect {|v| Gem::Version.new(v)}.sort
+        copy.collect {|v| Gem::Version.new(v)}.sort.each do |version|
+          results << version.to_s
+        end
+
+        results
       end
 
     end
