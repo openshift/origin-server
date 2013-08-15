@@ -6,7 +6,7 @@
 %global cartridgedir %{_libexecdir}/openshift/cartridges/ruby
 
 Name:          openshift-origin-cartridge-ruby
-Version: 0.8.2
+Version: 0.8.3
 Release:       1%{?dist}
 Summary:       Ruby cartridge
 Group:         Development/Languages
@@ -182,6 +182,10 @@ Ruby cartridge for OpenShift. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Thu Aug 15 2013 Adam Miller <admiller@redhat.com> 0.8.3-1
+- Bug 968280 - Ensure Stopping/Starting messages during git push Bug 983014 -
+  Unnecessary messages from mongodb cartridge (jhonce@redhat.com)
+
 * Tue Aug 13 2013 Adam Miller <admiller@redhat.com> 0.8.2-1
 - Follow up fix for Bug 970150 (asari.ruby@gmail.com)
 - Fix typo (asari.ruby@gmail.com)
