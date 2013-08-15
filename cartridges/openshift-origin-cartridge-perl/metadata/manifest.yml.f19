@@ -47,7 +47,6 @@ Cart-Data:
 Provides:
   - perl-5.16
   - "perl"
-  - "perl(version) = 5.16"
 Publishes:
   publish-http-url:
     Type: "NET_TCP:httpd-proxy-info"

@@ -31,7 +31,7 @@ Cart-Data:
     Type: cart_data
     Description: "MySQL DB connection URL"
 Suggests:
-  - phpmyadmin-3.4
+  - phpmyadmin-3
 Provides:
   - mysql-5.1
   - mysql 

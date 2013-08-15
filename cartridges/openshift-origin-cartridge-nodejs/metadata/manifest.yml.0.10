@@ -51,8 +51,6 @@ Cart-Data:
 Provides:
   - nodejs-0.10
   - "nodejs"
-  - "nodejs (version) = 0.10.6"
-  - "nodejs (version) = 0.10"
 Scaling:
   Min: 1
   Max: -1

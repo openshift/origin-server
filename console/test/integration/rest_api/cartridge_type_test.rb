@@ -84,7 +84,7 @@ class RestApiCartridgeTypeTest < ActiveSupport::TestCase
     php = CartridgeType.find 'php-5.3'
     mongo = CartridgeType.find 'mongodb-2.2'
     cron = CartridgeType.find 'cron-1.4'
-    jenkins = CartridgeType.find 'jenkins-client-1.4'
+    jenkins = CartridgeType.find 'jenkins-client-1'
 
     assert ruby18 > ruby
     assert ruby < ruby18

@@ -1,8 +1,8 @@
 Name: phpmyadmin
 Cartridge-Short-Name: PHPMYADMIN
-Display-Name: phpMyAdmin 3.5
+Display-Name: phpMyAdmin 3
 Description: "Web based MySQL admin tool. Requires the MySQL cartridge to be installed first."
-Version: 3.5
+Version: 3
 License: GPLv2
 Vendor: Red Hat
 Cartridge-Version: 0.0.3
@@ -16,7 +16,7 @@ Cart-Data:
     Type: cart_data
     Description: "phpMyAdmin connection URL"
 Provides:
-  - phpmyadmin-3.5
+  - phpmyadmin-3
   - "phpmyadmin"
 Publishes:
   get-serve-info:

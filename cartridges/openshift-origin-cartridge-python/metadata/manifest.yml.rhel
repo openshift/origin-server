@@ -48,7 +48,6 @@ Cart-Data:
 Provides:
   - python-2.6
   - "python"
-  - "python(version) = 2.6"
 Publishes:
   publish-http-url:
     Type: "NET_TCP:httpd-proxy-info"
