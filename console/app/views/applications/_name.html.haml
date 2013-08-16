@@ -9,6 +9,8 @@
     :placeholder => 'Application name', 
     :class => "application_name span3 #{'error' if application.errors.include? :name}"
 
+  - here = URI(request.original_url).path
+
   - if domains.length == 1 and (can_create == false or domains.first.owner?)
     / Readonly
     %span.add-on> -#{domains.first.name}.#{RestApi.application_domain_suffix}
@@ -16,7 +18,7 @@
 
     - if can_create
       %p.help-block
-        %span= "You can also #{link_to "create a new domain", "javascript:;"}"
+        %span= "You can also #{link_to "create a new namespace", new_domain_path({:then => here})}"
 
   - elsif domains.present?
     / Select
@@ -29,23 +31,23 @@
 
     - if can_create
       %p.help-block
-        %span= "You can also #{link_to "create a new domain", new_domain_path}".html_safe
+        %span= "You can also #{link_to "create a new namespace", new_domain_path({:then => here})}".html_safe
 
   - elsif can_create
     / Text
     %span.add-on.middle> &ndash;
     = form.text_field :domain_name, 
       :value => "#{current_value}", 
-      :placeholder => 'Domain', 
+      :placeholder => 'Namespace', 
       :size => nil, 
       :class => "domain_name span3 #{'error' if application.errors.include? :domain_name}"
     %span.add-on>= ".#{RestApi.application_domain_suffix}"
 
     %p.help-block
-      %span.text-warning Because this is your first application, you need to provide a domain name under which your applications will be grouped
+      %span.text-warning Because this is your first application, you need to provide a namespace under which your applications will be grouped
   - else
     / Error
-    %span.add-on> Error, can't create domain
+    %span.add-on> Error, can't create namespace
 
 
 

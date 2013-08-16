@@ -9,14 +9,17 @@ class DomainsController < ConsoleController
 
   def new
     @domain = Domain.new
+    @referrer = valid_referrer(params[:then] || params[:redirectUrl] || request.referrer)
   end
 
   def create
     @domain = Domain.new params[:domain]
     @domain.as = current_user
 
+    @referrer = valid_referrer(params[:then] || params[:redirectUrl])
+
     if @domain.save
-      redirect_to settings_path, :flash => {:success => 'Your domain has been created'}
+      redirect_to @referrer || settings_path, :flash => {:success => 'Your domain has been created'}
     else
       render :new
     end
