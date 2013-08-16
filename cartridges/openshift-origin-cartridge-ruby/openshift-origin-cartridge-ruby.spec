@@ -6,7 +6,7 @@
 %global cartridgedir %{_libexecdir}/openshift/cartridges/ruby
 
 Name:          openshift-origin-cartridge-ruby
-Version: 0.8.3
+Version: 0.8.4
 Release:       1%{?dist}
 Summary:       Ruby cartridge
 Group:         Development/Languages
@@ -183,6 +183,17 @@ Ruby cartridge for OpenShift. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Fri Aug 16 2013 Adam Miller <admiller@redhat.com> 0.8.4-1
+- Bug 997825 - Fail to install gems with Gemfile & Gemfile.lock for ruby apps
+  (mfojtik@redhat.com)
+- Merge pull request #3376 from brenton/BZ986300_BZ981148
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3354 from dobbymoodge/origin_runtime_219
+  (dmcphers+openshiftbot@redhat.com)
+- <cartridges> Additional cart version and test fixes (jolamb@redhat.com)
+- Bug 981148 - missing facter dependency for cartridge installation
+  (bleanhar@redhat.com)
+
 * Thu Aug 15 2013 Adam Miller <admiller@redhat.com> 0.8.3-1
 - Bug 968280 - Ensure Stopping/Starting messages during git push Bug 983014 -
   Unnecessary messages from mongodb cartridge (jhonce@redhat.com)
