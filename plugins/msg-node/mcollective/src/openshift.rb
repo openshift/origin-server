@@ -24,17 +24,24 @@ module MCollective
                :timeout     => 360
 
       activate_when do
-        @@config               = ::OpenShift::Config.new
-        @@cartridge_repository = ::OpenShift::Runtime::CartridgeRepository.instance
-        @@cartridge_repository.clear
+        @@config = ::OpenShift::Config.new
 
-        Dir.glob(PathUtils.join('/usr/libexec/openshift/cartridges', '*')).each do |path|
-          begin
-            manifest = @@cartridge_repository.install(path)
-            Log.instance.info("Installed cartridge (#{manifest.cartridge_vendor}, #{manifest.name}, #{manifest.version}, #{manifest.cartridge_version}) from #{path}")
-          rescue Exception => e
-            Log.instance.warn("Failed to install cartridge from #{path}. #{e.message}")
+        File.open('/var/lock/oo-cartridge-repository', File::RDWR|File::CREAT|File::TRUNC, 0600) do |lock|
+          lock.fcntl(Fcntl::F_SETFD, Fcntl::FD_CLOEXEC)
+          lock.flock(File::LOCK_EX)
+
+          @@cartridge_repository = ::OpenShift::Runtime::CartridgeRepository.instance
+          @@cartridge_repository.clear
+
+          Dir.glob(PathUtils.join('/usr/libexec/openshift/cartridges', '*')).each do |path|
+            begin
+              manifest = @@cartridge_repository.install(path)
+              Log.instance.info("Installed cartridge (#{manifest.cartridge_vendor}, #{manifest.name}, #{manifest.version}, #{manifest.cartridge_version}) from #{path}")
+            rescue Exception => e
+              Log.instance.warn("Failed to install cartridge from #{path}. #{e.message}")
+            end
           end
+          lock.flock(File::LOCK_UN)
         end
 
         Log.instance.info(
