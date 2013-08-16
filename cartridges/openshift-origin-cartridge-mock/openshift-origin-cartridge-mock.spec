@@ -2,7 +2,7 @@
 
 Summary:       Mock cartridge for V2 Cartridge SDK
 Name:          openshift-origin-cartridge-mock
-Version: 0.8.2
+Version: 0.8.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -38,6 +38,10 @@ test platform functionality. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Fri Aug 16 2013 Adam Miller <admiller@redhat.com> 0.8.3-1
+- Bug 981148 - missing facter dependency for cartridge installation
+  (bleanhar@redhat.com)
+
 * Thu Aug 15 2013 Adam Miller <admiller@redhat.com> 0.8.2-1
 - Bug 968280 - Ensure Stopping/Starting messages during git push Bug 983014 -
   Unnecessary messages from mongodb cartridge (jhonce@redhat.com)
