@@ -8,7 +8,7 @@
 
 Summary:       Common msg components for OpenShift broker and node
 Name:          openshift-origin-msg-common
-Version: 1.13.2
+Version: 1.13.3
 Release:       1%{?dist}
 License:       ASL 2.0
 URL:           http://www.openshift.com
@@ -42,6 +42,10 @@ chmod 644 %{buildroot}%{mco_root}validator/*
 %endif
 
 %changelog
+* Fri Aug 16 2013 Adam Miller <admiller@redhat.com> 1.13.3-1
+- Removing has_app mcollective method since its no longer used
+  (abhgupta@redhat.com)
+
 * Thu Aug 15 2013 Adam Miller <admiller@redhat.com> 1.13.2-1
 - migration helpers and rest interface for port information of gears
   (rchopra@redhat.com)
