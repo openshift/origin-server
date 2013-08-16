@@ -53,7 +53,7 @@ class Domain
 
   validates :namespace,
     #presence: {message: "Namespace is required and cannot be blank."},
-    format:   {with: DOMAIN_NAME_REGEX, message: "Invalid namespace. Namespace must only contain alphanumeric characters.", allow_blank: true},
+    format:   {with: DOMAIN_NAME_REGEX, message: "Invalid namespace. Namespace must only contain alphanumeric characters.", allow_nil: true},
     length:   {maximum: NAMESPACE_MAX_LENGTH, minimum: NAMESPACE_MIN_LENGTH, message: "Must be a minimum of #{NAMESPACE_MIN_LENGTH} and maximum of #{NAMESPACE_MAX_LENGTH} characters."},
     blacklisted: {message: "Namespace is not allowed.  Please choose another."}
 
