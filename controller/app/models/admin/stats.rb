@@ -263,8 +263,8 @@ class Admin::Stats
     ].collect {|key| [key.to_sym, 0]}]
 
     # may need a unique "NONE" district per profile for nodes that are not in a district
-    none_district = DistrictSummary.new do |h,profile|
-      h[profile] = {
+    none_district = Hash.new do |h,profile|
+      h[profile] = DistrictSummary.new.merge({
         :name    => "(NONE)",
         :uuid    => "NONE profile=#{profile}",
         :profile => profile,
@@ -273,7 +273,7 @@ class Admin::Stats
         :dist_avail_uids     => 0,
         :nodes               => [],
         :missing_nodes       => {},
-      }.merge starter_stats
+      }.merge starter_stats)
     end
 
     # hash to store the summaries per district
