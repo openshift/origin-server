@@ -8,11 +8,11 @@
 Feature: Cartridge Lifecycle JBossEAP Verification Tests
   Scenario: Application Creation
     Given the libra client tools
-    When 1 jbosseap-6.0 applications are created
+    When 1 jbosseap-6 applications are created
     Then the applications should display default content on first attempt
 
   #Scenario: Multiartifact 
-    Given an existing jbosseap-6.0 application
+    Given an existing jbosseap-6 application
     And JAVA_OPTS_EXT is available
     When the jboss application is changed to multiartifact
     Then the application should display default content for deployed artifacts on first attempt
