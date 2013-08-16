@@ -15,11 +15,11 @@ rhc app create <APP> aerogear-push mysql-5.1
 
 ### Getting started with the AeroGear UnifiedPush Server
 
-#### Admin UI
+#### Administration Console
 
-Once the server is running access it via ```http://{APP}-{NAMESPACE}-rhcloud.com``` From there you can use the Admin UI. 
+Once the server is running access it via ```http://{APP}-{NAMESPACE}-rhcloud.com```. Check the Administration console [user guide](http://aerogear.org/docs/guides/AdminConsoleGuide/) for more information on using the console.
 
-**NOTE:** Besides the _Admin UI_, the server can be accessed over RESTful APIs, as explained in the _AeroGear UnifiedPush Server_ [README](https://github.com/aerogear/aerogear-unified-push-server/blob/master/README.md). When executing the curl commands specified, you'll need to replace all instances of ```http://localhost:8080/ag-push``` with your OpenShift application URL ```http://{APP}-{NAMESPACE}-rhcloud.com```. 
+**NOTE:** Besides the __Administration console_, the server can be accessed over RESTful APIs, as explained in the _AeroGear UnifiedPush Server_ [README](https://github.com/aerogear/aerogear-unified-push-server/blob/master/README.md). When executing the curl commands specified, you'll need to replace all instances of ```http://localhost:8080/ag-push``` with your OpenShift application URL ```http://{APP}-{NAMESPACE}-rhcloud.com```. 
 
 #### Login
 
