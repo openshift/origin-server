@@ -2,7 +2,7 @@
 
 Summary:       Provides embedded mysql support
 Name:          openshift-origin-cartridge-mysql
-Version: 0.7.2
+Version: 0.7.3
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -39,6 +39,14 @@ Provides mysql cartridge support to OpenShift. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Fri Aug 16 2013 Adam Miller <admiller@redhat.com> 0.7.3-1
+- Merge pull request #3379 from pmorie/bugs/997593
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3354 from dobbymoodge/origin_runtime_219
+  (dmcphers+openshiftbot@redhat.com)
+- <cartridges> Additional cart version and test fixes (jolamb@redhat.com)
+- Fix bug 997593 (pmorie@gmail.com)
+
 * Thu Aug 15 2013 Adam Miller <admiller@redhat.com> 0.7.2-1
 - Bug 968280 - Ensure Stopping/Starting messages during git push Bug 983014 -
   Unnecessary messages from mongodb cartridge (jhonce@redhat.com)
