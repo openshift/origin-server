@@ -2,7 +2,7 @@
 
 Summary:       Provides jenkins-1.4 support
 Name:          openshift-origin-cartridge-jenkins
-Version: 1.13.3
+Version: 1.13.4
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -44,6 +44,15 @@ chkconfig jenkins off
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Fri Aug 16 2013 Adam Miller <admiller@redhat.com> 1.13.4-1
+- Merge pull request #3354 from dobbymoodge/origin_runtime_219
+  (dmcphers+openshiftbot@redhat.com)
+- <cartridges> Additional cart version and test fixes (jolamb@redhat.com)
+- <cart version> origin_runtime_219, Update carts and manifests with new
+  versions, handle version change in upgrade code
+  https://trello.com/c/evcTYKdn/219-3-adjust-out-of-date-cartridge-versions
+  (jolamb@redhat.com)
+
 * Thu Aug 15 2013 Adam Miller <admiller@redhat.com> 1.13.3-1
 - Bug 968280 - Ensure Stopping/Starting messages during git push Bug 983014 -
   Unnecessary messages from mongodb cartridge (jhonce@redhat.com)
