@@ -6,7 +6,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin broker
 Name:          openshift-origin-broker-util
-Version: 1.13.4
+Version: 1.13.5
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -84,6 +84,16 @@ cp man/*.8 %{buildroot}%{_mandir}/man8/
 %{_mandir}/man8/oo-stats.8.gz
 
 %changelog
+* Fri Aug 16 2013 Adam Miller <admiller@redhat.com> 1.13.5-1
+- Merge pull request #3371 from
+  smarterclayton/bug_997374_fix_man_for_oo_admin_ctl_domain
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3358 from sosiouxme/oo-stats-mods
+  (dmcphers+openshiftbot@redhat.com)
+- <oo-stats> ability to read results from file; more (lmeyer@redhat.com)
+- <Admin::Stats> refactor classes and tests (lmeyer@redhat.com)
+- Bug 997374 - Fix man page for oo-admin-ctl-domain (ccoleman@redhat.com)
+
 * Thu Aug 15 2013 Adam Miller <admiller@redhat.com> 1.13.4-1
 - Upgrade tool enhancements (ironcladlou@gmail.com)
 
