@@ -1,0 +1,8 @@
+#!/bin/bash
+
+source "${OPENSHIFT_PYTHON_DIR}/usr/versions/${OPENSHIFT_PYTHON_VERSION}/lib/utils"
+
+#  Create (or update if exists) and activate the virtualenv.
+create_virtualenv
+activate_virtualenv
+
