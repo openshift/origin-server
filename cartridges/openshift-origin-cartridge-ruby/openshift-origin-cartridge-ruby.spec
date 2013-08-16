@@ -13,6 +13,7 @@ Group:         Development/Languages
 License:       ASL 2.0
 URL:           https://www.openshift.com
 Source0:       http://mirror.openshift.com/pub/openshift-origin/source/%{name}/%{name}-%{version}.tar.gz
+Requires:      facter
 Requires:      gcc-c++
 Requires:      gmp-devel
 Requires:      libev

@@ -170,6 +170,9 @@ cp conf/broker.conf %{buildroot}%{_sysconfdir}/openshift/broker-dev.conf
 cp conf/quickstarts.json %{buildroot}%{_sysconfdir}/openshift/quickstarts.json
 cp conf/plugins.d/README %{buildroot}%{_sysconfdir}/openshift/plugins.d/README
 
+# BZ986300
+rm -rf %{buildroot}%{brokerdir}/conf
+
 %if 0%{?fedora} >= 18
 mv %{buildroot}%{brokerdir}/httpd/httpd.conf.apache-2.4 %{buildroot}%{brokerdir}/httpd/httpd.conf
 %else
