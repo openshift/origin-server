@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.13.3
+Version: 1.13.4
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -84,6 +84,29 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Fri Aug 16 2013 Adam Miller <admiller@redhat.com> 1.13.4-1
+- Merge pull request #3390 from pmorie/dev/fix_tests
+  (dmcphers+openshiftbot@redhat.com)
+- Fix several tests that now use incorrect versions (pmorie@gmail.com)
+- Merge pull request #3370 from
+  smarterclayton/bug_997246_prohibit_blank_domains
+  (dmcphers+openshiftbot@redhat.com)
+- fix bz997078 (rchopra@redhat.com)
+- Merge pull request #3375 from smarterclayton/convert_scope_to_string
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3358 from sosiouxme/oo-stats-mods
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3354 from dobbymoodge/origin_runtime_219
+  (dmcphers+openshiftbot@redhat.com)
+- <cartridges> Additional cart version and test fixes (jolamb@redhat.com)
+- Merge pull request #3368 from smarterclayton/find_by_user_broken_on_app
+  (dmcphers+openshiftbot@redhat.com)
+- <oo-stats> ability to read results from file; more (lmeyer@redhat.com)
+- <Admin::Stats> refactor classes and tests (lmeyer@redhat.com)
+- Treat domain_scope= the same as app_scope= (ccoleman@redhat.com)
+- Bug 997246 - Prohibit blank domains (ccoleman@redhat.com)
+- Unable to scale up or snapshot an app (ccoleman@redhat.com)
+
 * Thu Aug 15 2013 Adam Miller <admiller@redhat.com> 1.13.3-1
 - Merge pull request #3359 from rajatchopra/master
   (dmcphers+openshiftbot@redhat.com)
