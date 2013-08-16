@@ -29,6 +29,7 @@ ln -s pam_openshift.so %{buildroot}/%{_lib}/security/pam_libra.so
 install -D -m 644 pam_openshift.8 %{buildroot}/%{_mandir}/man8/pam_openshift.8
 
 install -D -m 755 oo-namespace-init %{buildroot}/%{_sbindir}/oo-namespace-init
+install -D -m 644 oo-namespace-init.8 %{buildroot}/%{_mandir}/man8/oo-namespace-init.8
 
 
 %files
@@ -36,6 +37,7 @@ install -D -m 755 oo-namespace-init %{buildroot}/%{_sbindir}/oo-namespace-init
 %attr(0755,root,root) /%{_lib}/security/pam_openshift.so
 %attr(0755,root,root) /%{_lib}/security/pam_libra.so
 %attr(0644,root,root) %{_mandir}/man8/pam_openshift.8.gz
+%attr(0644,root,root) %{_mandir}/man8/oo-namespace-init.8.gz
 %attr(0750,root,root) %{_sbindir}/oo-namespace-init
 
 %changelog
