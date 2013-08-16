@@ -1,0 +1,13 @@
+#!/bin/bash -eu
+
+python_version="$1"
+
+upgrade_script="$OPENSHIFT_PYTHON_DIR/usr/versions/$python_version/bin/upgrade"
+
+
+if [ -e "$upgrade_script" ]
+then
+    exec "$upgrade_script" "$@"
+fi
+
+exit 0

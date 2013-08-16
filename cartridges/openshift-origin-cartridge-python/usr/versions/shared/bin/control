@@ -1,0 +1,148 @@
+#!/bin/bash -e
+
+source $OPENSHIFT_CARTRIDGE_SDK_BASH
+source "${OPENSHIFT_PYTHON_DIR}/usr/versions/${OPENSHIFT_PYTHON_VERSION}/lib/create-virtenv"
+
+HTTPD_CFG_FILE=$OPENSHIFT_PYTHON_DIR/etc/conf/httpd_nolog.conf
+HTTPD_PID_FILE=$OPENSHIFT_PYTHON_DIR/run/httpd.pid
+
+# For backwards compatibility
+export APPDIR=$OPENSHIFT_PYTHON_DIR
+
+
+function start_app() {
+    cd "$OPENSHIFT_REPO_DIR"
+    nohup python -u app.py > "$OPENSHIFT_PYTHON_DIR/logs/appserver.log" 2>&1 &
+    echo $! > $OPENSHIFT_PYTHON_DIR/run/appserver.pid
+}
+
+function start_apache() {
+    update_httpd_passenv $HTTPD_CFG_FILE
+    ensure_valid_httpd_process "$HTTPD_PID_FILE" "$HTTPD_CFG_FILE"
+    /usr/sbin/httpd -C "Include $OPENSHIFT_PYTHON_DIR/etc/conf.d/*.conf" -f $HTTPD_CFG_FILE -k start
+}
+
+function start() {
+    echo "Starting PYTHON cart"
+    if [ -f "$OPENSHIFT_REPO_DIR/app.py" ]
+    then
+        start_app
+    else
+        start_apache
+    fi
+}
+
+function stop_app() {
+    if [ -s $OPENSHIFT_PYTHON_DIR/run/appserver.pid ]
+    then
+        kpid=$(cat $OPENSHIFT_PYTHON_DIR/run/appserver.pid)
+        iters=0
+        while kill $kpid >/dev/null 2>&1
+        do
+            iters=$(($iters + 1))
+            [ $iters -gt 10 ] && break
+            sleep 1
+        done
+        kill -KILL $kpid >/dev/null 2>&1 || :
+        rm -f $OPENSHIFT_PYTHON_DIR/run/appserver.pid
+    fi
+}
+
+function stop_apache() {
+    ensure_valid_httpd_process "$HTTPD_PID_FILE" "$HTTPD_CFG_FILE"
+    if [ -f "$HTTPD_PID_FILE" ]; then
+        httpd_pid=`cat "$HTTPD_PID_FILE" 2> /dev/null`
+        /usr/sbin/httpd -C "Include $OPENSHIFT_PYTHON_DIR/etc/conf.d/*.conf" -f $HTTPD_CFG_FILE -k stop
+        wait_for_stop $httpd_pid
+    fi
+}
+
+function stop() {
+    echo "Stopping PYTHON cart"
+
+    # Do both in case the last commit transitioned from one to the
+    # other or there was a problem.
+    stop_apache
+    stop_app
+}
+
+
+function restart() {
+   echo "Restarting PYTHON cart"
+    if [ -f "$OPENSHIFT_REPO_DIR/app.py" ]
+    then
+        stop
+        start
+    else
+        stop_app
+        update_httpd_passenv $HTTPD_CFG_FILE
+        /usr/sbin/httpd -C "Include $OPENSHIFT_PYTHON_DIR/etc/conf.d/*.conf" -f $HTTPD_CFG_FILE -k restart
+    fi
+}
+
+function status() {
+    if [ -f "$OPENSHIFT_REPO_DIR/app.py" ]
+    then
+        output=$(curl -m 30 http://$OPENSHIFT_PYTHON_IP:$OPENSHIFT_PYTHON_PORT/ &> /dev/null)
+        res=$?
+    else
+        output=$(curl -m 30 http://$OPENSHIFT_PYTHON_IP:$OPENSHIFT_PYTHON_PORT/server-status?auto 2>&1 )
+        res=$?
+    fi
+    if [ $res -eq 0 ]
+    then
+        client_result "Application is running"
+        client_result "$output"
+    else
+        client_result "Application is either stopped or inaccessible"
+    fi
+}
+
+function reload() {
+    echo "Reloading PYTHON cart"
+    restart
+}
+
+# Clean up any log files
+function tidy() {
+  client_message "Emptying log dir: $OPENSHIFT_PYTHON_LOG_DIR"
+  shopt -s dotglob
+  rm -rf $OPENSHIFT_PYTHON_LOG_DIR/*
+}
+
+function build() {
+    if `echo $OPENSHIFT_GEAR_DNS | egrep -qe "\.rhcloud\.com"`
+    then
+        OPENSHIFT_PYTHON_MIRROR="-i http://mirror1.ops.rhcloud.com/mirror/python/web/simple"
+    fi
+
+    if [ -f "${OPENSHIFT_REPO_DIR}/.openshift/markers/force_clean_build" -o ! -f $VIRTUAL_ENV/bin/python ]
+    then
+        echo "Recreating virtenv" 1>&2
+        rm -rf $VIRTUAL_ENV/*
+        create-virtenv
+    fi
+
+    if [ -f ${OPENSHIFT_REPO_DIR}/setup.py ]
+    then
+        ( cd $VIRTUAL_ENV; python ${OPENSHIFT_REPO_DIR}/setup.py develop $OPENSHIFT_PYTHON_MIRROR )
+    fi
+
+    relative-virtenv
+}
+
+function deploy() {
+    relative-virtenv
+}
+
+case "$1" in
+  start)     start ;;
+  stop)      stop ;;
+  restart)   restart ;;
+  status)    status ;;
+  reload)    reload ;;
+  tidy)      tidy ;;
+  build)     build ;;
+  deploy)    deploy ;;
+  *)         exit 0
+esac

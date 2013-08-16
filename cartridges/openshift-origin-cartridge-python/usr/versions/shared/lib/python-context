@@ -1,0 +1,12 @@
+#!/bin/bash
+
+# Utility function to execute in the installing python context ahead
+# of any updates to PATH and LD_LIBRARY_PATH.
+
+function python-context {
+    bash -c "$@"
+}
+
+function python-context-stdin {
+    bash -
+}

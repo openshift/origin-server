@@ -1,0 +1,17 @@
+#!/bin/bash -eu
+
+version="$1"
+
+# Copy the version specific files to python directory
+shopt -s dotglob
+cp -r $OPENSHIFT_PYTHON_DIR/usr/versions/$version/etc/* $OPENSHIFT_PYTHON_DIR/etc
+
+# The virtual environment is assumed to exist going forward
+if [ ! -f $OPENSHIFT_PYTHON_DIR/virtenv/bin/python ]
+then
+    source $OPENSHIFT_PYTHON_DIR/usr/versions/$version/lib/python-context
+    python-context-stdin <<EOF
+source $OPENSHIFT_PYTHON_DIR/usr/versions/$version/lib/create-virtenv
+create-virtenv
+EOF
+fi

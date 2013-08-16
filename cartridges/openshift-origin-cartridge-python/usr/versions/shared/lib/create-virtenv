@@ -1,0 +1,23 @@
+#!/bin/bash
+
+# Utility function to create virtual environments
+
+function relative-virtenv {
+    # Clean the lib64->lib symlink
+    virtualenv --quiet --never-download --relocatable $OPENSHIFT_PYTHON_DIR/virtenv
+    symlinks -r -c -s $OPENSHIFT_PYTHON_DIR/virtenv >/dev/null
+}
+
+function create-virtenv {
+    # Initialize the virtual environment
+    mkdir -p $OPENSHIFT_PYTHON_DIR/virtenv
+    virtualenv --quiet --never-download --system-site-packages $OPENSHIFT_PYTHON_DIR/virtenv
+
+    # Bug 995284
+    versions=( $(python -c 'import sys; print "%d %d.%d" % (sys.version_info[0], sys.version_info[0], sys.version_info[1])') )
+    for vers in "${versions[@]}"; do
+        [ -L $OPENSHIFT_PYTHON_DIR/virtenv/bin/python$vers ] || ln -s python $OPENSHIFT_PYTHON_DIR/virtenv/bin/python$vers
+    done
+
+    relative-virtenv
+}

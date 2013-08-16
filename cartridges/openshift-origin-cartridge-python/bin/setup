@@ -1,9 +1,17 @@
 #!/bin/bash -eu
 
+source $OPENSHIFT_CARTRIDGE_SDK_BASH
+
 case "$1" in
     -v|--version)
       version="$2"
 esac
+
 mkdir -p $OPENSHIFT_PYTHON_DIR/etc
+
+# Update environment
+source $OPENSHIFT_PYTHON_DIR/usr/versions/$version/lib/update-configuration
+update-configuration
+
 # Call the version specific setup script
-exec $OPENSHIFT_PYTHON_DIR/versions/$version/bin/setup $version
+exec $OPENSHIFT_PYTHON_DIR/usr/versions/$version/bin/setup $version
