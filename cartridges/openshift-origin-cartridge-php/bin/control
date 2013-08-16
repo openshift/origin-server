@@ -72,6 +72,8 @@ function build() {
             else
                 echo "Extension already installed in the system: $f"
             fi
+            # Remove gear-specific absolute paths from the generated PEAR files
+            find ${OPENSHIFT_PHP_DIR}phplib/pear/pear/ -type f ! -name '.*' -exec sed -i "s|${OPENSHIFT_HOMEDIR}|~/|g" {} \;
         done
     fi
     return 0
