@@ -1,7 +1,7 @@
 %global cartridgedir %{_libexecdir}/openshift/cartridges/python
 
 Name:          openshift-origin-cartridge-python
-Version: 0.8.2
+Version: 0.8.3
 Release:       1%{?dist}
 Summary:       Python cartridge
 Group:         Development/Languages
@@ -114,6 +114,22 @@ Python cartridge for OpenShift. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Fri Aug 16 2013 Adam Miller <admiller@redhat.com> 0.8.3-1
+- Bug 997861 - Report presence of the force_client_build marker for Python apps
+  (mfojtik@redhat.com)
+- Merge pull request #3376 from brenton/BZ986300_BZ981148
+  (dmcphers+openshiftbot@redhat.com)
+- SCL based Python 2.7 cartridge. (rmillner@redhat.com)
+- Make python update-configuration compatible with scl (vvitek@redhat.com)
+- Enable python27 SCL functionality (vvitek@redhat.com)
+- Remove python 2.7-community (vvitek@redhat.com)
+- Install python27 SCL packages (vvitek@redhat.com)
+- Merge pull request #3354 from dobbymoodge/origin_runtime_219
+  (dmcphers+openshiftbot@redhat.com)
+- <cartridges> Additional cart version and test fixes (jolamb@redhat.com)
+- Bug 981148 - missing facter dependency for cartridge installation
+  (bleanhar@redhat.com)
+
 * Thu Aug 15 2013 Adam Miller <admiller@redhat.com> 0.8.2-1
 - Bug 968280 - Ensure Stopping/Starting messages during git push Bug 983014 -
   Unnecessary messages from mongodb cartridge (jhonce@redhat.com)
