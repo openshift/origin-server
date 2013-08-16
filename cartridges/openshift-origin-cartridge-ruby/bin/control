@@ -189,8 +189,7 @@ function rails_app_name_check() {
   # Rails does not work if the application name starts with a number
   pushd ${OPENSHIFT_REPO_DIR} >/dev/null
   if [ -f Gemfile.lock ]; then
-    grep 'rails' Gemfile.lock 2>&1 >/dev/null
-    if [ $? -eq 0 ]; then
+    if grep -q ' rails ' Gemfile.lock; then
       if $(echo "$OPENSHIFT_APP_NAME" | grep '^[0-9]' >/dev/null); then
         client_error "Invalid Rails application name. Please delete this application and re-create it with a name which does not start with numbers"
         exit 1
