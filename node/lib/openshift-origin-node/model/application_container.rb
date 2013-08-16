@@ -184,7 +184,7 @@ module OpenShift
       def destroy(skip_hooks=false)
         notify_observers(:before_container_destroy)
 
-        if @uid.nil? or (@container_dir.nil? or !File.directory?(@container_dir.to_s))
+        if @uid.nil? or (@container_plugin.nil? or !File.directory?(@container_dir.to_s))
           # gear seems to have been deleted already... suppress any error
           # TODO : remove remaining stuff if it exists, e.g. .httpd/#{uuid}* etc
           return ['', '', 0]
