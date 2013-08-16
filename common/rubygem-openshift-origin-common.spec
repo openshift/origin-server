@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Common
 Name:          rubygem-%{gem_name}
-Version: 1.13.3
+Version: 1.13.4
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -120,6 +120,12 @@ cp bin/man/*.8 %{buildroot}%{_mandir}/man8/
 %doc %{gem_docdir}
 
 %changelog
+* Fri Aug 16 2013 Adam Miller <admiller@redhat.com> 1.13.4-1
+- Merge pull request #3373 from pmorie/bugs/997158
+  (dmcphers+openshiftbot@redhat.com)
+- Fix bug 997158: always sort cartridge versions using Manifest.sort_versions
+  (pmorie@gmail.com)
+
 * Thu Aug 15 2013 Adam Miller <admiller@redhat.com> 1.13.3-1
 - Upgrade tool enhancements (ironcladlou@gmail.com)
 
