@@ -116,11 +116,14 @@ function build() {
         OPENSHIFT_PYTHON_MIRROR="-i http://mirror1.ops.rhcloud.com/mirror/python/web/simple"
     fi
 
-    if [ -f "${OPENSHIFT_REPO_DIR}/.openshift/markers/force_clean_build" -o ! -f $VIRTUAL_ENV/bin/python ]
-    then
-        echo "Recreating virtenv" 1>&2
+    if marker_present 'force_clean_build'; then
+        echo ".openshift/markers/force_clean_build found!" 1>&2
         rm -rf $VIRTUAL_ENV/*
-        create-virtenv
+    fi
+
+    if [ ! -f $VIRTUAL_ENV/bin/python ]; then
+      echo "Recreating virtenv" 1>&2
+      create-virtenv
     fi
 
     if [ -f ${OPENSHIFT_REPO_DIR}/setup.py ]
