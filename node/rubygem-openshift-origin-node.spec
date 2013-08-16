@@ -16,7 +16,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.13.5
+Version: 1.13.6
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -305,6 +305,22 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Fri Aug 16 2013 Adam Miller <admiller@redhat.com> 1.13.6-1
+- Merge pull request #3380 from rmillner/BZ996296
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3354 from dobbymoodge/origin_runtime_219
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3373 from pmorie/bugs/997158
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 996296 - resource_limits.conf should be mode 640. (rmillner@redhat.com)
+- <cartridges> Additional cart version and test fixes (jolamb@redhat.com)
+- Fix bug 997158: always sort cartridge versions using Manifest.sort_versions
+  (pmorie@gmail.com)
+- <cart version> origin_runtime_219, Update carts and manifests with new
+  versions, handle version change in upgrade code
+  https://trello.com/c/evcTYKdn/219-3-adjust-out-of-date-cartridge-versions
+  (jolamb@redhat.com)
+
 * Thu Aug 15 2013 Adam Miller <admiller@redhat.com> 1.13.5-1
 - Upgrade tool enhancements (ironcladlou@gmail.com)
 
