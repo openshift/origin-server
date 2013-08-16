@@ -1709,9 +1709,7 @@ While on the broker application host, you need to copy the SSH key that you prev
 If you have not done so already, create a .ssh directory for the root user on the node host:
 
 ----
-$ cd /root
-$ mkdir .ssh
-$ chmod 700 .ssh
+$ mkdir -m 0700 -p /root/.ssh
 ----
 ====
 
