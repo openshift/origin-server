@@ -9,7 +9,7 @@
 
 Summary:       OpenShift Origin Management Console
 Name:          rubygem-%{gem_name}
-Version: 1.13.2
+Version: 1.13.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -153,6 +153,9 @@ cp -a ./%{gem_dir}/* %{buildroot}%{gem_dir}/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Fri Aug 16 2013 Adam Miller <admiller@redhat.com> 1.13.3-1
+- <cartridges> Additional cart version and test fixes (jolamb@redhat.com)
+
 * Wed Aug 14 2013 Adam Miller <admiller@redhat.com> 1.13.2-1
 - Default to test mode membership off (ccoleman@redhat.com)
 - Catch more exceptions from broker (ccoleman@redhat.com)
