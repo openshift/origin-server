@@ -168,39 +168,6 @@ action "has_gear", :description => "Does this server contain a specified gear?" 
            :display_as => "Exit Code"
 end
 
-
-action "has_app", :description => "Does this server contain a specified app?" do
-    display :always
-
-    input :uuid,
-        :prompt         => "Application uuid",
-        :description    => "Application uuid",
-        :type           => :string,
-        :validation     => '^[a-zA-Z0-9]+$',
-        :optional       => false,
-        :maxlength      => 32
-
-    input :application,
-        :prompt         => "Application Name",
-        :description    => "Name of an application to search for",
-        :type           => :string,
-        :validation     => '^[a-zA-Z0-9]+$',
-        :optional       => false,
-        :maxlength      => 32
-
-    output  :time,
-            :description => "The time as a message",
-            :display_as => "Time"
-
-    output  :output,
-            :description => "true or false",
-            :display_as => "Output"
-
-    output :exitcode,
-           :description => "Exit code",
-           :display_as => "Exit Code"
-end
-
 action "has_embedded_app", :description => "Does this server contain a specified embedded app?" do
     display :always
 

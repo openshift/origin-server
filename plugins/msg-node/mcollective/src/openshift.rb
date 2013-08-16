@@ -902,13 +902,6 @@ module MCollective
       end
 
       #
-      # Returns whether an app is on a server
-      #
-      def has_app_action
-        has_gear_action
-      end
-
-      #
       # Returns whether a gear is on a server
       #
       def has_gear_action
