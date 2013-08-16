@@ -2,7 +2,7 @@
 
 Summary:       Provides embedded switchyard support
 Name:          openshift-origin-cartridge-switchyard
-Version: 0.6.1
+Version: 0.6.2
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -50,6 +50,13 @@ alternatives --set switchyard-0.6 /usr/share/switchyard
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Fri Aug 16 2013 Adam Miller <admiller@redhat.com> 0.6.2-1
+- <cartridges> Additional cart version and test fixes (jolamb@redhat.com)
+- <cart version> origin_runtime_219, Update carts and manifests with new
+  versions, handle version change in upgrade code
+  https://trello.com/c/evcTYKdn/219-3-adjust-out-of-date-cartridge-versions
+  (jolamb@redhat.com)
+
 * Thu Aug 08 2013 Adam Miller <admiller@redhat.com> 0.6.1-1
 - bump_minor_versions for sprint 32 (admiller@redhat.com)
 
