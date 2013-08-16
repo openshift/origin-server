@@ -4,7 +4,7 @@
 
 Summary:       Provides JBossEAP6.0 support
 Name:          openshift-origin-cartridge-jbosseap
-Version: 2.7.2
+Version: 2.7.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -86,6 +86,19 @@ cp -p %{cartridgedir}/versions/shared/modules/postgresql_module.xml /etc/alterna
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Fri Aug 16 2013 Adam Miller <admiller@redhat.com> 2.7.3-1
+- Merge pull request #3279 from detiber/clientresult
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3354 from dobbymoodge/origin_runtime_219
+  (dmcphers+openshiftbot@redhat.com)
+- <cartridges> Additional cart version and test fixes (jolamb@redhat.com)
+- <JBoss Cartridges> - Move deployment verification to client_result
+  (jdetiber@redhat.com)
+- <cart version> origin_runtime_219, Update carts and manifests with new
+  versions, handle version change in upgrade code
+  https://trello.com/c/evcTYKdn/219-3-adjust-out-of-date-cartridge-versions
+  (jolamb@redhat.com)
+
 * Thu Aug 15 2013 Adam Miller <admiller@redhat.com> 2.7.2-1
 - Bug 968280 - Ensure Stopping/Starting messages during git push Bug 983014 -
   Unnecessary messages from mongodb cartridge (jhonce@redhat.com)
