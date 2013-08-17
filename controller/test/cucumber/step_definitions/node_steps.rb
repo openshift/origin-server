@@ -186,21 +186,12 @@ end
 
 Then /^an account password entry should( not)? exist$/ do |negate|
   # use @app['uuid'] for account name
-  
-  begin
-    @pwent = `grep #{@account['uid']} /etc/passwd`
-  rescue
-    nil
-  end
 
-  if @pwent.empty?
-    @pwent = nil
-  end
-
+  @pwent = `grep ':#{@account['uid']}:' /etc/passwd`
   if negate
-    @pwent.should be_nil      
+    assert_empty @pwent
   else
-    @pwent.should_not be_nil
+    refute_empty @pwent
   end
 end
 
