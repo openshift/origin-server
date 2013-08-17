@@ -363,7 +363,7 @@ module OpenShift
 
               ident_path                               = Dir.glob(File.join(cartridge_path, 'env', 'OPENSHIFT_*_IDENT')).first
               ident                                    = IO.read(ident_path)
-              vendor, name, version, cartridge_version = OpenShift::Runtime::Manifest.parse_ident(ident)
+              vendor, name, version, cartridge_version = gear_map_ident(ident)
               next_manifest                            = cartridge_repository.select(name, version)
 
               progress.step "#{name}_upgrade_cart" do |context, errors|
