@@ -222,6 +222,64 @@ class AccessControlledTest < ActiveSupport::TestCase
     assert Application.find_by_user(u, 'scopetest2')
   end
 
+  def test_broker_key_auth_scopes
+    u = CloudUser.find_or_create_by(:login => 'scope_test')
+
+    #u2 = CloudUser.find_or_create_by(:login => 'scope_test_other')
+    Domain.where(:namespace => 'test').delete
+    d = Domain.find_or_create_by(:namespace => 'test', :owner => u)
+    Domain.where(:namespace => 'test2').delete
+    d2 = Domain.find_or_create_by(:namespace => 'test2', :owner => u)
+
+    Application.where(:name => 'scopetest2').delete
+    assert a2 = Application.create(:name => 'scopetest2', :domain => d2)
+
+    Application.where(:name => 'scopetestjenkins').delete
+    assert j = Application.create(:name => 'scopetestjenkins', :domain => d)
+    Application.where(:name => 'scopetestbuilder').delete
+    assert b = Application.create(:name => 'scopetestbuilder', :builder_id => j._id, :domain => d)
+    Application.where(:name => 'scopetestapp').delete
+    assert a = Application.create(:name => 'scopetestapp', :domain => d)
+
+    apps = [a,j,b]
+
+    s = Scope::Scopes([Scope::DomainBuilder.new(j), Scope::Application.new(:id => j._id, :app_scope => :scale)])
+    u.scopes = s
+    with_membership do
+      assert_equal ['scopetestbuilder', 'scopetestjenkins'], Application.accessible(u).map(&:name).sort
+
+      allows = {
+        :change_gear_quota => [false, false, true],
+        :ssh_to_gears      => [false, false, true],
+        :scale_cartridge   => [false, true,  true],
+      }
+      allows.each_pair do |p, expect|
+        apps.zip(expect).each do |(a, bool)|
+          assert_equal bool, s.authorize_action?(p, a, [], u), "Expected #{bool} for authorize_action on #{a.name} for #{p}"
+        end
+      end
+    end
+    without_membership do
+      assert_equal ['scopetestapp', 'scopetestbuilder', 'scopetestjenkins'], Application.accessible(u).map(&:name).sort
+
+      allows = {
+        :change_gear_quota => [true, true, true],
+        :ssh_to_gears      => [true, true, true],
+        :scale_cartridge   => [true, true, true],
+      }
+      allows.each_pair do |p, expect|
+        apps.zip(expect).each do |(a, bool)|
+          assert_equal bool, s.authorize_action?(p, a, [], u), "Expected #{bool} for authorize_action on #{a.name} for #{p}"
+        end
+      end
+    end
+
+    assert  s.authorize_action?(:create_builder_application, d, [{:domain_id => d._id}], u)
+    assert !s.authorize_action?(:create_builder_application, d, [{:domain_id => d2._id}], u)
+    assert !s.authorize_action?(:create_builder_application, d, [{}], u)
+    assert !s.authorize_action?(:create_builder_application, d2, [], u)
+  end
+
   def test_domain_model_consistent
     CloudUser.where(:login => 'propagate_test').delete
     Domain.where(:namespace => 'test').delete

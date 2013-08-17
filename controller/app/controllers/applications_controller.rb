@@ -50,7 +50,6 @@ class ApplicationsController < BaseController
   #
   # @return [RestReply<RestApplication>] Application object
   def create
-
     app_name = params[:name].downcase if params[:name].presence
     features = []
     downloaded_cart_urls = []
@@ -76,6 +75,7 @@ class ApplicationsController < BaseController
     default_gear_size = params[:gear_size].presence || params[:gear_profile].presence || Rails.application.config.openshift[:default_gear_size]
     default_gear_size.downcase! if default_gear_size
     valid_sizes = OpenShift::ApplicationContainerProxy.valid_gear_sizes & @domain.allowed_gear_sizes & @domain.owner.allowed_gear_sizes
+    builder_id = nil
 
     if not authorized?(:create_application, @domain)
       if authorized?(:create_builder_application, @domain, {
@@ -84,7 +84,9 @@ class ApplicationsController < BaseController
             :valid_gear_sizes => valid_sizes,
             :domain_id => @domain._id
           })
-        # TODO: record this as a builder
+        if scope = current_user.scopes.find{ |s| s.respond_to?(:builder_id) }
+          builder_id = scope.builder_id
+        end
       else
         authorize! :create_application, @domain # raise the proper error
       end
@@ -119,7 +121,7 @@ class ApplicationsController < BaseController
     begin
       result = ResultIO.new
       scalable = get_bool(params[:scale])
-      @application = Application.create_app(app_name, features, @domain, default_gear_size, scalable, result, [], init_git_url, request.headers['User-Agent'], downloaded_cart_urls)
+      @application = Application.create_app(app_name, features, @domain, default_gear_size, scalable, result, [], init_git_url, request.headers['User-Agent'], downloaded_cart_urls, builder_id)
 
     rescue OpenShift::UnfulfilledRequirementException => e
       return render_error(:unprocessable_entity, "Unable to create application for #{e.feature}", 109, "cartridges")

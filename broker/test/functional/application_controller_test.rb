@@ -101,17 +101,16 @@ class ApplicationControllerTest < ActionController::TestCase
     assert_response :created
     app = assigns(:application)
 
-    CloudUser.any_instance.stubs(:scopes).returns(Scope::Scopes.new << Scope::Application.new(:id => app._id, :app_scope => :build))
+    CloudUser.any_instance.stubs(:scopes).returns(Scope::Scopes.new << Scope::DomainBuilder.new(app))
 
-    # prohibits non matching cartridges
-    @app_name = "appx#{@random}"
-    post :create, {"name" => @app_name, "cartridge" => RUBY_VERSION, "domain_id" => @domain.namespace}
-    assert_response :forbidden
-
-    # allows creation of the same builder type
+    # allows creation of a builder
     @app_name = "appx#{@random}"
     post :create, {"name" => @app_name, "cartridge" => PHP_VERSION, "domain_id" => @domain.namespace}
     assert_response :created
+    builder_app = assigns(:application)
+    # records that the builder is associated
+    assert_equal builder_app.builder_id, app._id
+    assert_equal builder_app.builder, app
   end
 
   test "attempt to create when all gear sizes are disabled" do
