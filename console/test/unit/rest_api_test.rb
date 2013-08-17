@@ -1392,8 +1392,8 @@ class RestApiTest < ActiveSupport::TestCase
     assert_equal 'https://test/test', a.build_job_url
     assert !a.builds?
 
-    a = Application.new :building_with => "jenkins-client-1.4"
-    assert_equal 'jenkins-client-1.4', a.building_with
+    a = Application.new :building_with => "jenkins-client-1"
+    assert_equal 'jenkins-client-1', a.building_with
     assert a.builds?
 
     a = Application.new :embedded => {}
@@ -1505,7 +1505,7 @@ class RestApiTest < ActiveSupport::TestCase
     mock_types
 
     gear1 = Gear.new :id => 1, :state => 'started'
-    cart_build = Cartridge.new :name => 'jenkins-client-1.4'
+    cart_build = Cartridge.new :name => 'jenkins-client-1'
     cart_web = Cartridge.new :name => 'php-5.3'
     group1 = GearGroup.new({:name => 'group1', :gears => [gear1], :cartridges => [cart_build]}, :as => @user)
 
