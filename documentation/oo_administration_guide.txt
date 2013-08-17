@@ -53,21 +53,19 @@ For a complete list of all cartridges that are available to install, you can per
 
 You should see the following cartridges available to install:
 
-* openshift-origin-cartridge-abstract.noarch : OpenShift common cartridge components
-* openshift-origin-cartridge-cron-1.4.noarch : Embedded cron support for express
-* openshift-origin-cartridge-diy-0.1.noarch : Provides diy support
-* openshift-origin-cartridge-haproxy-1.4.noarch : Provides embedded haproxy-1.4 support
-* openshift-origin-cartridge-jbosseap-6.0.noarch : Provides JBossEAP6.0 support
-* openshift-origin-cartridge-jbossews-1.0.noarch : Provides JBossEWS1.0 support
-* openshift-origin-cartridge-jenkins-1.4.noarch : Provides jenkins-1.4 support
-* openshift-origin-cartridge-jenkins-client-1.4.noarch : Embedded jenkins client support for express
-* openshift-origin-cartridge-mysql-5.1.noarch : Provides embedded mysql support
-* openshift-origin-cartridge-perl-5.10.noarch : Provides mod_perl support
-* openshift-origin-cartridge-php-5.3.noarch : Provides php-5.3 support
-* openshift-origin-cartridge-postgresql-8.4.noarch : Provides embedded PostgreSQL support
-* openshift-origin-cartridge-python-2.6.noarch : Provides python-2.6 support
-* openshift-origin-cartridge-ruby-1.8.noarch : Provides ruby rack support running on Phusion Passenger
-* openshift-origin-cartridge-ruby-1.9-scl.noarch : Provides ruby rack support running on Phusion Passenger
+* openshift-origin-cartridge-cron.noarch : Embedded cron support for express
+* openshift-origin-cartridge-diy.noarch : Provides diy support
+* openshift-origin-cartridge-haproxy.noarch : Provides embedded haproxy-1.4 support
+* openshift-origin-cartridge-jbosseap.noarch : Provides JBossEAP6.0 support
+* openshift-origin-cartridge-jbossews.noarch : Provides JBossEWS1.0 support
+* openshift-origin-cartridge-jenkins.noarch : Provides jenkins-1 support
+* openshift-origin-cartridge-jenkins-client.noarch : Embedded jenkins client support for express
+* openshift-origin-cartridge-mysql.noarch : Provides embedded mysql support
+* openshift-origin-cartridge-perl.noarch : Provides mod_perl support
+* openshift-origin-cartridge-php.noarch : Provides php-5.3 support
+* openshift-origin-cartridge-postgresql.noarch : Provides embedded PostgreSQL support
+* openshift-origin-cartridge-python.noarch : Provides python-2.6 support
+* openshift-origin-cartridge-ruby.noarch : Provides ruby rack support running on Phusion Passenger
 
 === Install JBoss EAP and JBoss EWS Support
 In order to enable consumers of the PaaS to create JBoss EAP / JBoss EWS gears, we will need to install all of the necessary cartridges for the application server and supporting build systems. Perform the following command to install the required cartridges:
@@ -75,7 +73,7 @@ In order to enable consumers of the PaaS to create JBoss EAP / JBoss EWS gears, 
 *Execute the following on the node host*:
 
 ----
-# yum install openshift-origin-cartridge-jbosseap-6.0.noarch openshift-origin-cartridge-jbossews-1.0.noarch openshift-origin-cartridge-jenkins-1.4.noarch openshift-origin-cartridge-jenkins-client-1.4.noarch
+# yum install openshift-origin-cartridge-jbosseap.noarch openshift-origin-cartridge-jbossews.noarch openshift-origin-cartridge-jenkins.noarch openshift-origin-cartridge-jenkins-client.noarch
 ----
 
 The above command will allow users to create JBoss EAP and JBoss EWS gears. This also installs support for the Jenkins continuous integration environment, which is discussed in detail in the link:oo_user_guide.html#jenkins-continuous-integration[OpenShift Origin User's Guide]. At the time of this writing, the above command will download and install an additional 285 packages on your node host.

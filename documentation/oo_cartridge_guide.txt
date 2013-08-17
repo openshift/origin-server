@@ -540,7 +540,7 @@ The `jenkins` cartridge provides the Jenkins continuous integration server on Op
 Jenkins integrates with other OpenShift applications.  To use start building against Jenkins, embed the `jenkins-client` into an existing application. The below example will cause app `myapp` to start building against Jenkins.
 
 ----
-$ rhc cartridge add -a myapp -c jenkins-client-1.4
+$ rhc cartridge add -a myapp -c jenkins-client-1
 ----
 
 From then on, running a `git push` will cause the build process to happen inside a Jenkins builder instead of inside your normal application compute space.

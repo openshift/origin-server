@@ -532,7 +532,7 @@ Below is the output of the commands running on my desktop:
     Run 'rhc app create' to create your first application.
     
       Do-It-Yourself                 rhc app create <app name> diy-0.1
-      Jenkins Server 1.4             rhc app create <app name> jenkins-1.4
+      Jenkins Server 1               rhc app create <app name> jenkins-1
       Node.js 0.6                    rhc app create <app name> nodejs-0.6
       PHP 5.4                        rhc app create <app name> php-5.4
       Perl 5.16                      rhc app create <app name> perl-5.16
