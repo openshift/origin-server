@@ -73,7 +73,7 @@ module OpenShift
           current_server, current_capacity, preferred_district = rpc_find_available(node_profile, district_uuid, least_preferred_server_identities, true, gear_exists_in_district, required_uid)
         end
         district = preferred_district if preferred_district
-        raise OpenShift::NodeUnavailableException.new("No nodes available.", 140) unless current_server
+        raise OpenShift::NodeUnavailableException.new("No nodes available", 140) unless current_server
         Rails.logger.debug "DEBUG: find_available_impl: current_server: #{current_server}: #{current_capacity}"
 
         MCollectiveApplicationContainerProxy.new(current_server, district)
@@ -95,7 +95,7 @@ module OpenShift
         current_server = rpc_find_one(node_profile)
         current_server, capacity, district = rpc_find_available(node_profile) unless current_server
 
-        raise OpenShift::NodeUnavailableException.new("No nodes available.", 140) unless current_server
+        raise OpenShift::NodeUnavailableException.new("No nodes available", 140) unless current_server
         Rails.logger.debug "DEBUG: find_one_impl: current_server: #{current_server}"
 
         MCollectiveApplicationContainerProxy.new(current_server)
@@ -2781,7 +2781,7 @@ module OpenShift
           end
         end
         if require_district && server_infos.empty?
-          raise OpenShift::NodeUnavailableException.new("No district nodes available.", 140)
+          raise OpenShift::NodeUnavailableException.new("No district nodes available", 140)
         end
         unless server_infos.empty?
           # Remove the least preferred servers from the list, ensuring there is at least one server remaining
@@ -2856,7 +2856,7 @@ module OpenShift
         rpc_client = MCollectiveApplicationContainerProxy.get_rpc_client('rpcutil', options)
         begin
           rpc_client.get_fact(:fact => 'public_hostname') do |response|
-            raise OpenShift::NodeUnavailableExceptionn.new("No nodes available.", 140) unless Integer(response[:body][:statuscode]) == 0
+            raise OpenShift::NodeUnavailableExceptionn.new("No nodes available", 140) unless Integer(response[:body][:statuscode]) == 0
             current_server = response[:senderid]
           end
         ensure
