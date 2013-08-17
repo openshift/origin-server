@@ -1883,9 +1883,9 @@ SSH to your node host and verify that you have the Jenkins cartridges installed:
 
 You should see the following four packages installed:
 
-* openshift-origin-cartridge-jenkins-1.4-1.0.1-1.el6op.noarch
+* openshift-origin-cartridge-jenkins-1.0.1-1.el6op.noarch
 * jenkins-1.488-2.el6op.noarch
-* openshift-origin-cartridge-jenkins-client-1.4-1.0.1-1.el6op.noarch
+* openshift-origin-cartridge-jenkins-client-1.0.1-1.el6op.noarch
 * jenkins-plugin-openshift-0.6.5-0.el6op.x86_64
 
 If you do not have the above RPM packages installed on your node host, follow the directions in the Comprehensive Deployment Guide to link:oo_deployment_guide_comprehensive.html#select-and-install-built-in-cartridges-to-be-supported[install the Jenkins packages]. Make sure to clear the cache on the broker host after installing the new packages.
@@ -1925,7 +1925,7 @@ ssh://4437d81168c94baf9268f0592bbe31a9@jenkins-ose.example.com/~/git/jenkins.git
     Created   = 2:05 PM
   Cartridges
   ==========
-    jenkins-1.4
+    jenkins-1
 
 RESULT:
 Application jenkins was created.
@@ -1951,9 +1951,9 @@ $ rhc cartridge add -a todo -c jenkins-client
 The output should be the following:
 
 ----
-Adding 'jenkins-client-1.4' to application 'todo'
+Adding 'jenkins-client-1' to application 'todo'
 Success
-jenkins-client-1.4
+jenkins-client-1
 ==================
   Properties
   ==========
@@ -1971,9 +1971,9 @@ At the bottom of the output, you should see the following information:
 ----
   Cartridges
   ==========
-    jenkins-client-1.4 = https://jenkins-ose.example.com/job/todo-build/
+    jenkins-client-1 = https://jenkins-ose.example.com/job/todo-build/
     postgresql-8.4     = postgresql://127.1.248.129:5432/
-    jbosseap-6.0
+    jbosseap-6
     
 ----
 
@@ -2107,7 +2107,7 @@ ssh://ffee273344bd404e99e59ba070512d0b@todobldr-ose.example.com/~/git/todobldr.g
       Created   = 2:48 PM
     Cartridges
     ==========
-      jbosseap-6.0
+      jbosseap-6
       
 ----
 

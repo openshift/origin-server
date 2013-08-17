@@ -1,6 +1,6 @@
 %global cartridgedir %{_libexecdir}/openshift/cartridges/jenkins
 
-Summary:       Provides jenkins-1.4 support
+Summary:       Provides jenkins-1.x support
 Name:          openshift-origin-cartridge-jenkins
 Version: 1.13.4
 Release:       1%{?dist}
