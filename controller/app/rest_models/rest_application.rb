@@ -79,7 +79,7 @@ class RestApplication < OpenShift::Model
     self.embedded = {}
     app.requires(true).each do |feature|
       cart = CartridgeCache.find_cartridge(feature, app)
-      if cart.categories.include? "web_framework"
+      if cart.is_web_framework?
         self.framework = cart.name
       else
         self.embedded[cart.name] = {info: ""}

@@ -30,8 +30,7 @@ module OpenShift
         cipher.encrypt
         cipher.key = cipher_key
         cipher.iv = iv = cipher.random_iv
-        token = {:app_name => app.name,
-                 token_login_key => app.domain.owner.login,
+        token = {:app_id => app._id,
                  :creation_time => app.created_at}
         encrypted_token = cipher.update(token.to_json)
         encrypted_token << cipher.final
@@ -62,18 +61,33 @@ module OpenShift
 
         token = JSON.parse(json_token)
         user_login = token[token_login_key.to_s]
-        app_name = token['app_name']           #FIXME should be app id
         creation_time = token['creation_time']
 
-        user = begin
-                 CloudUser.find_by_identity(nil, user_login)
-               rescue Mongoid::Errors::DocumentNotFound
-                 raise OpenShift::AccessDeniedException, "No such user exists with login #{user_login}"
-               end
-        app = Application.find_by_user(user, app_name) #FIXME should be app id
+        if app_name = token['app_name']
+          # DEPRECATED, kept for backwards compatibility
+          user = begin
+                   CloudUser.find_by_identity(nil, user_login)
+                 rescue Mongoid::Errors::DocumentNotFound
+                   raise OpenShift::AccessDeniedException, "No such user exists with login #{user_login}"
+                 end
+          app = Application.find_by_user(user, app_name)
+        elsif app_id = token['app_id']
+          app = Application.find(app_id)
+          user = begin
+                   app.owner
+                 rescue Mongoid::Errors::DocumentNotFound
+                   raise OpenShift::AccessDeniedException, "The owner #{app.owner_id} does not exist"
+                 end
+        end
 
-        raise OpenShift::AccessDeniedException, "No such application exists #{app_name} or invalid token time" if app.nil? or (Time.parse(creation_time) - app.created_at).abs > 1.0
-        {:user => user, :auth_method => :broker_auth, :scopes => Scope::Scopes([Scope::Application.new(:id => app._id.to_s, :app_scope => :scale), Scope::Application.new(:id => app._id.to_s, :app_scope => :build)])}
+        raise OpenShift::AccessDeniedException, "No such application exists #{app_name || app_id} or invalid token time" if app.nil? or (Time.parse(creation_time) - app.created_at).abs > 1.0
+
+        scopes = [Scope::Application.new(:id => app._id.to_s, :app_scope => :scale)]
+        if app.requires(true).any?{ |feature| (c = CartridgeCache.find_cartridge(feature, app)) && c.is_ci_server? }
+          scopes << Scope::DomainBuilder.new(app)
+        end
+
+        {:user => user, :auth_method => :broker_auth, :scopes => Scope::Scopes(scopes)}
       end
 
       private

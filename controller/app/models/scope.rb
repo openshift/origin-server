@@ -2,7 +2,7 @@
 # A scope represents a constraint on an authenticated user's access to the system.
 # The actions a given authenticated user can perform are the union of actions that
 # the active scopes allow - for instance, a client with the "read" scope and the
-# "domain/<id>/admin" scope has read access to all resources visible to the active 
+# "domain/<id>/admin" scope has read access to all resources visible to the active
 # user, and full administrative access on the identified domain.  If the active
 # user is himself limited to a set of actions on that domain, the scope does not
 # grant any more actions than he has normally.
@@ -102,7 +102,7 @@ module Scope
     #
     #   :for_ids - a list of IDs that are allowed to be viewed by this
     #              scope.  If set, no other IDs are returned.
-    #   :visible - set to true if any results should be visible, or 
+    #   :visible - set to true if any results should be visible, or
     #              ||= false if the scope does not grant access
     #
     # The caller is responsible for limiting the Mongoid criteria
@@ -236,9 +236,18 @@ module Scope
     end
 
     def limit_access(criteria, *args)
-      c = inject(criteria){ |c, s| s.limits_access(c) }
-      c = c.for_ids(c.options.delete(:for_ids)) if c.options[:for_ids]
-      c = c.where(1 => 0) if c.options.delete(:visible) == false
+      c = inject(criteria){ |crit, s| s.limits_access(crit) }
+
+      other = c.options.delete(:conditions) || []
+      if for_ids = c.options.delete(:for_ids)
+        other << {:_id => {'$in' => for_ids}}
+      end
+
+      if c.options.delete(:visible) == false
+        c = c.where(1 => 0)
+      else
+        c = c.or(*other) if other.present?
+      end
       c
     end
 

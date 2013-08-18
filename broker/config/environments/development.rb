@@ -91,9 +91,9 @@ Broker::Application.configure do
 
   config.auth = {
     :salt => conf.get("AUTH_SALT", ""),
-    :privkeyfile => conf.get("AUTH_PRIVKEYFILE", "/var/www/openshift/broker/config/server_priv.pem"),
-    :privkeypass => conf.get("AUTH_PRIVKEYPASS", ""),
-    :pubkeyfile  => conf.get("AUTH_PUBKEYFILE", "/var/www/openshift/broker/config/server_pub.pem"),
+    :privkeyfile => conf.get("AUTH_PRIV_KEY_FILE", "/var/www/openshift/broker/config/server_priv.pem"),
+    :privkeypass => conf.get("AUTH_PRIV_KEY_PASS", ""),
+    :pubkeyfile  => conf.get("AUTH_PUB_KEY_FILE", "/var/www/openshift/broker/config/server_pub.pem"),
     :rsync_keyfile => conf.get("AUTH_RSYNC_KEY_FILE", "/etc/openshift/rsync_id_rsa")
   }
 
