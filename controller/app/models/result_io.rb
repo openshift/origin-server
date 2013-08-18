@@ -79,23 +79,6 @@ class ResultIO
           "--USER ACTIONABLE--\n#{@hasUserActionableError}\n"
   end
 
-=begin
-  # Returns the output of this {ResultIO} object as a JSON string. Used by {LegacyReply}
-  def to_json(*args)
-    reply = LegacyReply.new
-    reply.debug = @debugIO.string
-    reply.messages = @messageIO.string
-    if !@errorIO.string.empty?
-      reply.result = @errorIO.string
-    else
-      reply.result = @resultIO.string
-    end
-    reply.data = @data
-    reply.exit_code = @exitcode
-    reply.to_json(*args)
-  end
-=end
-
   def parse_output(output, gear_id)
     if output && !output.empty?
       output.each_line do |line|

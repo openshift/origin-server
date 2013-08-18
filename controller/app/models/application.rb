@@ -590,7 +590,13 @@ class Application
             if ucart.is_ci_builder?
               Application.run_in_application_lock(uapp) do
                 uapp.pending_op_groups.push PendingAppOpGroup.new(op_type: :remove_features, args: {"features" => [feature_name], "group_overrides" => uapp.group_overrides}, user_agent: uapp.user_agent)
-                uapp.run_jobs(result_io)
+                client_result_io = ResultIO.new
+                uapp.run_jobs(client_result_io)
+                if client_result_io.exitcode == 0
+                  client_result_io.resultIO.string = "Removed corresponding client: #{feature_name}"
+                end
+                result_io.append(client_result_io)
+                result_io
               end
             end
           end

@@ -63,8 +63,8 @@ class ApplicationsController < BaseController
         end
       else
         features << c
-      end  
-    end 
+      end
+    end
 
     if init_git_url = params[:initial_git_url].presence
       repo_spec, _ = (OpenShift::Git.safe_clone_spec(init_git_url) rescue nil)
