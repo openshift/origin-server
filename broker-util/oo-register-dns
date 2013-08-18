@@ -18,6 +18,7 @@
 require 'rubygems'
 require 'parseconfig'
 require 'getoptlong'
+require 'ipaddr'
 
 def usage
   puts <<USAGE
@@ -73,10 +74,12 @@ if args["--help"] || (ip.nil? || ip.empty? || node_hostname.nil? || node_hostnam
   usage
 end
 
+rectype = IPAddr.new(ip).ipv6? ? "AAAA" : "A"
+
 command =<<-EOF
 server #{server}
-update delete #{node_hostname}.#{node_domain} A
-update add #{node_hostname}.#{node_domain} 180 A #{ip}
+update delete #{node_hostname}.#{node_domain} #{rectype}
+update add #{node_hostname}.#{node_domain} 180 #{rectype} #{ip}
 send
 EOF
 
