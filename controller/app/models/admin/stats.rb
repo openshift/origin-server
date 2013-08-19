@@ -259,7 +259,8 @@ class Admin::Stats
     starter_stats = Hash[%w[
        nodes_count nodes_active gears_started_count nodes_inactive gears_idle_count
        gears_stopped_count gears_deploying_count gears_unknown_count gears_total_count
-       gears_active_count available_active_gears avg_active_usage_pct
+       gears_active_count avg_active_usage_pct
+       available_active_gears effective_available_gears
     ].collect {|key| [key.to_sym, 0]}]
 
     # may need a unique "NONE" district per profile for nodes that are not in a district
@@ -296,7 +297,10 @@ class Admin::Stats
         :gears_unknown_count, :gears_total_count, :gears_active_count
       ].each {|key| sum[key] += node[key]}
       # active gears can actually get higher than max; count that as 0 available, not negative
-      sum[:available_active_gears] += [0, node[:max_active_gears] - node[:gears_active_count]].max
+      available = [0, node[:max_active_gears] - node[:gears_active_count]].max
+      sum[:available_active_gears] += available
+      sum[:effective_available_gears] += available if node[:district_active] ||
+                                                      node[:district_uuid] == "NONE"
       sum[:avg_active_usage_pct] += node[:gears_active_usage_pct]
     end
 
@@ -308,7 +312,10 @@ class Admin::Stats
       sum[:lowest_active_usage_pct] = sum[:nodes].map{|node| node[:gears_active_usage_pct]}.min || 0.0
       sum[:highest_active_usage_pct] = sum[:nodes].map{|node| node[:gears_active_usage_pct]}.max || 0.0
       # effective gears available are limited by district capacity
-      sum[:effective_available_gears] = [sum[:available_active_gears], sum[:dist_avail_capacity]].min
+      sum[:effective_available_gears] = [
+        sum[:effective_available_gears],
+        sum[:dist_avail_capacity]
+      ].min unless uuid =~ /^NONE/ # except in the NONE-district
       # convert :missing nodes to array
       sum[:missing_nodes] = sum[:missing_nodes].keys
       sum[:gears_active_pct] = (sum[:gears_total_count] == 0) ? 100.0

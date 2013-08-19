@@ -19,13 +19,15 @@ class AdminStatsTest < ActiveSupport::TestCase
     })
     @node_name = "test-node.example.com"
     @short_name = "test-node"
+    # mcollective returns two nodes, one districted, one not
     @nodes_hash = {
       @node_name => @node_details,
-      "clone.example.com" => @node_details.merge(district_uuid: "NONE"),
+      "nodist.example.com" => @node_details.merge(district_uuid: "NONE"),
     }
 
     @district=faux_mongo_district({
       @node_name            => @node_details,
+      # the missing node is districted in mongo but mco doesn't report on it:
       "missing.example.com" => @node_details,
     }).merge({
       'available_capacity' => 3,
@@ -65,6 +67,22 @@ class AdminStatsTest < ActiveSupport::TestCase
     assert_equal 0, sum_hash[@dist_uuid][:effective_available_gears]
     assert_equal 1, sum_hash[@dist_uuid][:missing_nodes].size,
       "missing.example.com should be missing"
+  end
+
+  test "effective avail gears excludes district-inactive nodes" do
+    @node_details[:max_active_gears] = 20 # leaving 10 available
+    @nodes_hash["nodist.example.com"][:max_active_gears] = 20 # also 10 in undistricted
+    # add inactive node to the district
+    @nodes_hash["inactive.example.com"] = @node_details.merge(district_active: "false")
+    @district['available_capacity'] = 1000  # plenty of district capacity
+    admin_stats_stubber(@nodes_hash, faux_db_with([@district]))
+    sum_hash = @stats.summarize_districts(@stats.get_district_entries, @stats.get_node_entries)
+    assert_equal 20, sum_hash[@dist_uuid][:available_active_gears]
+    assert_equal 10, sum_hash[@dist_uuid][:effective_available_gears],
+      "inactive node shouldn't be counted in effective available"
+    assert_equal 10, sum_hash['NONE profile=test'][:available_active_gears]
+    assert_equal 10, sum_hash['NONE profile=test'][:effective_available_gears],
+      "NONE district counts all as effectively available"
   end
 
   test "getting db stats" do
