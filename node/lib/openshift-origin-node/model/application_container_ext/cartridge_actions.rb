@@ -241,7 +241,10 @@ module OpenShift
             deploy(options)
           end
 
-          report_build_analytics
+          # Allow to disable reporting build analytics to avoid call to Origin when
+          # the Broker does not implement this functionality (see BZ#976185)
+          #
+          report_build_analytics unless @config.is_disabled? 'REPORT_BUILD_ANALYTICS'
         end
 
         #
