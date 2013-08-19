@@ -9,7 +9,7 @@
 
 Summary:       OpenShift Origin Management Console
 Name:          rubygem-%{gem_name}
-Version: 1.13.3
+Version: 1.13.4
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -153,6 +153,15 @@ cp -a ./%{gem_dir}/* %{buildroot}%{gem_dir}/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Mon Aug 19 2013 Adam Miller <admiller@redhat.com> 1.13.4-1
+- Merge pull request #3382 from smarterclayton/builder_scope_incorrect
+  (dmcphers+openshiftbot@redhat.com)
+- additional version changes (dmcphers@redhat.com)
+- <cartridge versions> origin_runtime_219, fix up cart references for renamed
+  cart https://trello.com/c/evcTYKdn/219-3-adjust-out-of-date-cartridge-
+  versions (jolamb@redhat.com)
+- Fix builder scope by introducing a domain builder scope (ccoleman@redhat.com)
+
 * Fri Aug 16 2013 Adam Miller <admiller@redhat.com> 1.13.3-1
 - <cartridges> Additional cart version and test fixes (jolamb@redhat.com)
 
