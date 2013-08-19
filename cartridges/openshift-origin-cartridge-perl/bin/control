@@ -29,6 +29,7 @@ function stop() {
 function restart() {
   echo "Restarting Perl cartridge"
   update_httpd_passenv $HTTPD_CFG_FILE
+  ensure_httpd_restart_succeed "$HTTPD_PID_FILE" "$HTTPD_CFG_FILE"
   /usr/sbin/httpd -C "Include $OPENSHIFT_PERL_DIR/etc/conf.d/*.conf" -f $HTTPD_CFG_FILE -k restart
 }
 
