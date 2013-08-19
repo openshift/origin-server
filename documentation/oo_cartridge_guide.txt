@@ -970,7 +970,7 @@ config.ru          This file is used by Rack-based servers to start the applicat
 <1> link:oo_user_guide.html#action-hooks[Action Hooks] documentation
 
 === Ruby Mirror
-OpenShift is mirroring rubygems.org at http://mirror1.ops.rhcloud.com/mirror/ruby/
+OpenShift is mirroring rubygems.org at http://mirror.openshift.com/mirror/ruby/
 This mirror is on the same network as your application, and your gem download should be faster.
 
 To use the OpenShift mirror:
@@ -984,7 +984,7 @@ source 'http://rubygems.org'
 with
 +
 ....
-source 'http://mirror1.ops.rhcloud.com/mirror/ruby/'
+source 'http://mirror.openshift.com/mirror/ruby/'
 ....
 . Edit your Gemfile.lock and replace
 +
@@ -995,7 +995,7 @@ remote: http://rubygems.org/
 with
 +
 ....
-remote: http://mirror1.ops.rhcloud.com/mirror/ruby/
+remote: http://mirror.openshift.com/mirror/ruby/
 ....
 
 === Rails 3.0
