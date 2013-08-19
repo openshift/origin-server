@@ -6,7 +6,7 @@
 %global cartridgedir %{_libexecdir}/openshift/cartridges/ruby
 
 Name:          openshift-origin-cartridge-ruby
-Version: 0.8.4
+Version: 0.8.5
 Release:       1%{?dist}
 Summary:       Ruby cartridge
 Group:         Development/Languages
@@ -183,6 +183,10 @@ Ruby cartridge for OpenShift. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Mon Aug 19 2013 Adam Miller <admiller@redhat.com> 0.8.5-1
+- Updated 'restart' operation for all HTTPD based cartridges to use
+  'httpd_restart_action' (mfojtik@redhat.com)
+
 * Fri Aug 16 2013 Adam Miller <admiller@redhat.com> 0.8.4-1
 - Bug 997825 - Fail to install gems with Gemfile & Gemfile.lock for ruby apps
   (mfojtik@redhat.com)
