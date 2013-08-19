@@ -1,7 +1,7 @@
 %global cartridgedir %{_libexecdir}/openshift/cartridges/python
 
 Name:          openshift-origin-cartridge-python
-Version: 0.8.3
+Version: 0.8.4
 Release:       1%{?dist}
 Summary:       Python cartridge
 Group:         Development/Languages
@@ -114,6 +114,10 @@ Python cartridge for OpenShift. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Mon Aug 19 2013 Adam Miller <admiller@redhat.com> 0.8.4-1
+- Updated 'restart' operation for all HTTPD based cartridges to use
+  'httpd_restart_action' (mfojtik@redhat.com)
+
 * Fri Aug 16 2013 Adam Miller <admiller@redhat.com> 0.8.3-1
 - Bug 997861 - Report presence of the force_client_build marker for Python apps
   (mfojtik@redhat.com)
