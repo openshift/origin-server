@@ -78,74 +78,14 @@ module MCollective
       def cartridge_do_action
         Log.instance.info("cartridge_do_action call / action: #{request.action}, agent=#{request.agent}, data=#{request.data.pretty_inspect}")
         Log.instance.info("cartridge_do_action validation = #{request[:cartridge]} #{request[:action]} #{request[:args]}")
-        validate :cartridge, /\A[a-zA-Z0-9\.\-\/_]+\z/
         validate :cartridge, :shellsafe
-        valid_actions = %w(
-          app-create
-          app-destroy
-          env-var-add
-          env-var-remove
-          broker-auth-key-add
-          broker-auth-key-remove
-          authorized-ssh-key-add
-          authorized-ssh-key-remove
-          ssl-cert-add
-          ssl-cert-remove
-          configure
-          post-configure
-          deconfigure
-          unsubscribe
-          tidy
-          deploy-httpd-proxy
-          remove-httpd-proxy
-          restart-httpd-proxy
-          info
-          post-install
-          post-remove
-          pre-install
-          reload
-          restart
-          start
-          status
-          stop
-          force-stop
-          add-alias
-          remove-alias
-          threaddump
-          cartridge-list
-          expose-port
-          frontend-backup
-          frontend-restore
-          frontend-create
-          frontend-destroy
-          frontend-update-name
-          frontend-connect
-          frontend-disconnect
-          frontend-connections
-          frontend-idle
-          frontend-unidle
-          frontend-check-idle
-          frontend-sts
-          frontend-no-sts
-          frontend-get-sts
-          aliases
-          ssl-cert-add
-          ssl-cert-remove
-          ssl-certs
-          frontend-to-hash
-          system-messages
-          connector-execute
-          get-quota
-          set-quota
-        )
-        validate :action, /\A#{valid_actions.join("|")}\Z/
         validate :action, :shellsafe
         cartridge                  = request[:cartridge]
         action                     = request[:action]
         args                       = request[:args] ||= {}
         pid, stdin, stdout, stderr = nil, nil, nil, nil
         rc                         = nil
-        output                     = ""
+        output                     = ''
 
         # Do the action execution
         exitcode, output           = execute_action(action, args)
@@ -337,7 +277,7 @@ module MCollective
         output = ""
         begin
           container = get_app_container_from_args(args)
-          container.create
+          output = container.create
         rescue OpenShift::Runtime::UserCreationException => e
           Log.instance.info e.message
           Log.instance.info e.backtrace
@@ -431,6 +371,53 @@ module MCollective
 
         with_container_from_args(args) do |container|
           container.remove_env_var(key)
+        end
+      end
+
+      def oo_user_var_add(args)
+        variables, gears = {}, []
+        args['--with-variables'].split(' ').each { |a| token = a.split('='); variables[token.first] = token.last } if args['--with-variables']
+        gears = args['--with-gears'].split(';') if args['--with-gears']
+
+        if variables.empty? and gears.empty?
+          return -1, "In #{__method__} at least user environment variables or gears must be provided for #{args['--with-app-name']}"
+        end
+
+        rc, output = 0, ''
+        with_container_from_args(args) do |container|
+          rc, output = container.user_var_add(variables, gears)
+        end
+        return rc, output
+      end
+
+      def oo_user_var_remove(args)
+        unless args['--with-keys']
+          return -1, "In #{__method__} no user environment variable names provided for #{args['--with-app-name']}"
+        end
+
+        keys  = args['--with-keys'].split(' ')
+        gears = args['--with-gears'] ? args['--with-gears'].split(';') : []
+
+        rc, output = 0, ''
+        with_container_from_args(args) do |container|
+          rc, output = container.user_var_remove(keys, gears)
+        end
+        return rc, output
+      end
+
+      def oo_user_var_list(args)
+        keys = args['--with-keys'] ? args['--with-keys'].split(' ') : []
+
+        output = ''
+        begin
+          container = get_app_container_from_args(args)
+          list      = container.user_var_list(keys)
+          output    = 'CLIENT_RESULT: ' + list.to_json
+        rescue Exception => e
+          Log.instance.info "#{e.message}\n#{e.backtrace}"
+          return -1, e.message
+        else
+          return 0, output
         end
       end
 
