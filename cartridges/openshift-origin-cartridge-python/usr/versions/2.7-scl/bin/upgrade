@@ -27,6 +27,7 @@ case "$old_cart_version" in
         # is a failure but retry is possible.
 	rm -rf $OPENSHIFT_PYTHON_DIR/opt
 	rm -rf $OPENSHIFT_PYTHON_DIR/versions
+        rm -rf $OPENSHIFT_PYTHON_DIR/upstream-repo
 	rm -rf $OPENSHIFT_PYTHON_DIR/virtenv/*
 
         # Need the environment ERBs rendered at this point
