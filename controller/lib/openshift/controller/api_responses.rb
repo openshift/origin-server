@@ -139,7 +139,7 @@ module OpenShift
               Rail.logger.error "message: #{message}"
             end
             message ||= ""
-            message += "Unable to complete the requested operation because the system is unavailable. If the problem persists please contact Red Hat support. \nReference ID: #{request.uuid}"
+            message += "Unable to complete the requested operation due to: #{ex.message}. If the problem persists please contact Red Hat support. \nReference ID: #{request.uuid}"
 
           when OpenShift::NodeException
             status = :internal_server_error
