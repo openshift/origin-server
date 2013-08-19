@@ -1,3 +1,7 @@
+- # application
+- # domains: list of existing domain objects
+- # can_create: true or false
+
 .input-prepend.input-append
   %span.add-on http://
 
@@ -9,7 +13,7 @@
     :placeholder => 'Application name', 
     :class => "application_name span3 #{'error' if application.errors.include? :name}"
 
-  - here = URI(request.original_url).path
+  - here = application_type_path(@application_type.id, params)
 
   - if domains.length == 1 and (can_create == false or domains.first.owner?)
     / Readonly
@@ -18,14 +22,14 @@
 
     - if can_create
       %p.help-block
-        %span= "You can also #{link_to "create a new namespace", new_domain_path({:then => here})}"
+        %span= "You can also #{link_to "create a new namespace", new_domain_path({:then => here})}".html_safe
 
   - elsif domains.present?
     / Select
     %span.add-on.middle> &ndash;
     = form.select :domain_name,
       domains.map(&:name).sort,
-      {:include_blank => true, :selected => current_value.presence || (default_domain.name if default_domain)},
+      {:include_blank => true},
       {:class => "domain_name #{'error' if application.errors.include? :domain_name}"}
     %span.add-on>= ".#{RestApi.application_domain_suffix}"
 
@@ -37,7 +41,6 @@
     / Text
     %span.add-on.middle> &ndash;
     = form.text_field :domain_name, 
-      :value => "#{current_value}", 
       :placeholder => 'Namespace', 
       :size => nil, 
       :class => "domain_name span3 #{'error' if application.errors.include? :domain_name}"

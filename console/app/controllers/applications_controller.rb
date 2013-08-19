@@ -193,26 +193,44 @@ class ApplicationsController < ConsoleController
       @disabled = @missing_cartridges.present? || @cartridges.blank?
     end
 
+    @user_default_domain = user_default_domain rescue nil
+    @user_writeable_domains = user_writeable_domains
+
     flash.now[:error] = "You have no free gears.  You'll need to scale down or delete another application first." unless @capabilities.gears_free?
 
     # opened bug 789763 to track simplifying this block - with domain_name submission we would
     # only need to check that domain_name is set (which it should be by the show form)
-    @domain = Domain.find :first, :as => current_user
-    unless @domain
-      @domain = Domain.create :name => domain_name, :as => current_user
-      unless @domain.persisted?
-        logger.debug "Unable to create domain, #{@domain.errors.to_hash.inspect}"
-        @application.valid? # set any errors on the application object
-        #FIXME: Ideally this should be inferred via associations between @domain and @application
-        @domain.errors.values.flatten.uniq.each {|e| @application.errors.add(:domain_name, e) }
+    valid = true
+    if domain_name.blank?
+      @application.errors.add(:domain_name, 'Namespace is required')
+      valid = false
+    else
+      begin
+        @domain = Domain.find domain_name, :as => current_user
+        if @domain.editor?
+          @application.domain = @domain
+        else
+          @application.errors.add(:domain_name, "You cannot create applications in the '#{domain_name}' namespace")
+          valid = false
+        end
+      rescue RestApi::ResourceNotFound
+        @domain = Domain.create :name => domain_name, :as => current_user
+        if @domain.persisted?
+          @application.domain = @domain
+        else
+          logger.debug "Unable to create domain, #{@domain.errors.to_hash.inspect}"
+          @application.valid? # set any errors on the application object
+          #FIXME: Ideally this should be inferred via associations between @domain and @application
+          @domain.errors.values.flatten.uniq.each {|e| @application.errors.add(:domain_name, e) }
 
-        return render 'application_types/show'
+          return render 'application_types/show'
+        end
       end
     end
-    @application.domain = @domain
+
 
     begin
-      if @application.save
+      if valid and @application.save
         messages = @application.remote_results
         redirect_to get_started_application_path(@application, :wizard => true), :flash => {:info_pre => messages}
       else

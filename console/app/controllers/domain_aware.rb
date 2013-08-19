@@ -5,6 +5,9 @@ module DomainAware
     around_filter DomainSessionSweeper
   end
 
+  # trigger synchronous module load 
+  [Domain, Member] if Rails.env.development?
+
   def user_domains
     @domains ||= Rails.cache.fetch([current_user.login, :domains], :expires_in => 5.minutes) do
       Domain.find(:all, :as => current_user)
