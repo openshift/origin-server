@@ -11,7 +11,7 @@ CONFIG_VALIDATION_CHECK_INTERVAL = 300
 FLAP_PROTECTION_TIME_SECONDS = 600
 HAPROXY_CONF_DIR=File.join(ENV['OPENSHIFT_HAPROXY_DIR'], "conf")
 HAPROXY_RUN_DIR=File.join(ENV['OPENSHIFT_HAPROXY_DIR'], "run")
-GEAR_REGISTRY_DB=File.join(HAPROXY_CONF_DIR, "gear-registry.db")
+GEAR_REGISTRY_DB=File.join(ENV['OPENSHIFT_HOMEDIR'], "gear_registry.txt")
 HAPROXY_CONFIG=File.join(HAPROXY_CONF_DIR, "haproxy.cfg")
 HAPROXY_STATUS_URLS_CONFIG=File.join(HAPROXY_CONF_DIR, "app_haproxy_status_urls.conf")
 
@@ -26,10 +26,8 @@ end
 class HAProxyUtils
     @@log = Logger.new("#{ENV['OPENSHIFT_HAPROXY_LOG_DIR']}/validate_config.log")
     def self.parse_gear_registry_info(ginfo)
-        gbits = ginfo.split(";")
-        uuid = gbits[0].split("@")[0]
-        ipaddr = gbits[0].split("@")[1].split(":")[0]
-        return [gbits[1], uuid, ipaddr]
+        uuid, namespace, gear_dns, private_ip, proxy_port = ginfo.split(",")
+        return [gear_dns, uuid, private_ip]
     end
 
     def self.get_gear_ipaddress(gdns, ipaddr)
@@ -49,7 +47,8 @@ class HAProxyUtils
       File.open(GEAR_REGISTRY_DB+".lock", "w") do |lockfile|
         lockfile.flock(File::LOCK_EX)
         cfgdata = File.readlines(GEAR_REGISTRY_DB)
-        cfgdata.map! {|line| line.gsub(/#{uuid}\@[0-9.]+:/, "#{uuid}@#{newipaddr}:") }
+        # uuid, namespace, gear dns, private ip, proxy port
+        cfgdata.map! {|line| line.gsub(/^#{uuid},([^,]+),([^,]+),[^,]+,(.+)$/, "#{uuid},\\1,\\2,#{newipaddr},\\3") }
         File.open(GEAR_REGISTRY_DB, "w") {|file| file.puts cfgdata }
         lockfile.flock(File::LOCK_UN)
       end
@@ -86,6 +85,7 @@ class HAProxyUtils
         end
 
         if repaired
+          gear_registry.update(new_registry)
             @@log.info("GEAR_INFO - validate: Configuration was modified, reloading haproxy")
             ENV["CARTRIDGE_TYPE"] = "haproxy-1.4"
             cpid = fork do

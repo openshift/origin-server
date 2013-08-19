@@ -170,15 +170,17 @@ module OpenShift
         configure
       end
 
-      def archive
+      def archive(destination, branch)
         return unless exist?
 
         # expose variables for ERB processing
         @application_name = @container.application_name
-        @target_dir       = PathUtils.join(@container.container_dir, 'app-root', 'runtime', 'repo')
+        @target_dir       = destination
 
         FileUtils.rm_rf Dir.glob(PathUtils.join(@target_dir, '*'))
         FileUtils.rm_rf Dir.glob(PathUtils.join(@target_dir, '.[^\.]*'))
+
+        @deployment_branch = branch
 
         @container.run_in_container_context(ERB.new(GIT_ARCHIVE).result(binding),
             chdir:               @path,
@@ -303,7 +305,7 @@ shopt -s dotglob;
 if [ "$(#{COUNT_GIT_OBJECTS})" -eq "0" ]; then
   exit 0;
 fi
-git archive --format=tar HEAD | (cd <%= @target_dir %> && tar --warning=no-timestamp -xf -);
+git archive --format=tar <%= @deployment_branch %> | (cd <%= @target_dir %> && tar --warning=no-timestamp -xf -);
 }
 
       GIT_DESCRIPTION = %q{

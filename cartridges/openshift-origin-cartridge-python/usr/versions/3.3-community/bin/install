@@ -17,6 +17,12 @@ cp -r $OPENSHIFT_PYTHON_DIR/usr/versions/$version/template/* $OPENSHIFT_PYTHON_D
 # Source in the utility functions.
 source "${OPENSHIFT_PYTHON_DIR}/usr/versions/$version/lib/utils"
 
+# create the virtualenv symlink
+pushd $OPENSHIFT_PYTHON_DIR > /dev/null
+mkdir -p $OPENSHIFT_DEPENDENCIES_DIR/virtenv
+ln -s $OPENSHIFT_DEPENDENCIES_DIR/virtenv virtenv
+popd > /dev/null
+
 # Create the virtualenv.
 create_virtualenv
 

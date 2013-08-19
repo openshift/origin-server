@@ -44,8 +44,9 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
     @state = mock()
     OpenShift::Runtime::Utils::ApplicationState.stubs(:new).returns(@state)
 
+    @hourglass = mock()
     @container = OpenShift::Runtime::ApplicationContainer.new(@gear_uuid, @gear_uuid, @user_uid,
-        @app_name, @gear_uuid, @namespace, nil, nil)
+        @app_name, @gear_uuid, @namespace, nil, nil, @hourglass)
 
     @frontend = mock('OpenShift::Runtime::FrontendHttpServer')
     OpenShift::Runtime::FrontendHttpServer.stubs(:new).returns(@frontend)
@@ -54,12 +55,12 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
   def test_pre_receive_default_builder
     @cartridge_model.expects(:builder_cartridge).returns(nil)
 
-    @container.expects(:stop_gear).with(user_initiated: true, hot_deploy: nil, out: $stdout, err: $stderr)
+    @container.expects(:stop_gear).with(user_initiated: true, hot_deploy: nil, exclude_web_proxy: true, out: $stdout, err: $stderr)
 
     @container.pre_receive(out: $stdout, err: $stderr)
   end
 
-  def test_post_receive_default_builder
+  def test_post_receive_default_builder_nonscaled
     repository = mock()
 
     OpenShift::Runtime::ApplicationRepository.expects(:new).returns(repository)
@@ -76,13 +77,90 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
                                                 pre_action_hooks_enabled:  false,
                                                 post_action_hooks_enabled: false)
 
-    repository.expects(:archive)
+    deployment_datetime = "abc"
+    @container.expects(:create_deployment_dir).returns(deployment_datetime)
 
-    @container.expects(:build).with(out: $stdout, err: $stderr)
-    @container.expects(:deploy).with(out: $stdout, err: $stderr)
+    repository.expects(:archive).with(PathUtils.join(@container.container_dir, 'app-deployments', deployment_datetime, 'repo'), 'master')
+
+    @container.expects(:build).with(out: $stdout, err: $stderr, deployment_datetime: deployment_datetime)
+    @container.expects(:prepare).with(out: $stdout, err: $stderr, deployment_datetime: deployment_datetime)
+    @cartridge_model.expects(:web_proxy).returns(false)
+    @container.expects(:distribute).never
+    @container.expects(:activate_many).never
+    @container.expects(:activate).with(out: $stdout, err: $stderr, deployment_datetime: deployment_datetime)
+
     @container.expects(:report_build_analytics)
 
     @container.post_receive(out: $stdout, err: $stderr)
+  end
+
+  def test_post_receive_default_builder_scaled
+    repository = mock()
+
+    OpenShift::Runtime::ApplicationRepository.expects(:new).returns(repository)
+
+    @cartridge_model.expects(:builder_cartridge).returns(nil)
+
+    primary = mock()
+    @cartridge_model.stubs(:primary_cartridge).returns(primary)
+
+    @cartridge_model.expects(:do_control).with('pre-repo-archive',
+                                                primary,
+                                                out:                       $stdout,
+                                                err:                       $stderr,
+                                                pre_action_hooks_enabled:  false,
+                                                post_action_hooks_enabled: false)
+
+    deployment_datetime = "abc"
+    @container.expects(:create_deployment_dir).returns(deployment_datetime)
+
+    repository.expects(:archive).with(PathUtils.join(@container.container_dir, 'app-deployments', deployment_datetime, 'repo'), 'master')
+
+    @container.expects(:build).with(out: $stdout, err: $stderr, deployment_datetime: deployment_datetime)
+    @container.expects(:prepare).with(out: $stdout, err: $stderr, deployment_datetime: deployment_datetime)
+    @cartridge_model.expects(:web_proxy).returns(true)
+    @container.expects(:distribute).with(out: $stdout, err: $stderr, deployment_datetime: deployment_datetime)
+    @container.expects(:activate_many).with(out: $stdout, err: $stderr, deployment_datetime: deployment_datetime)
+    @container.expects(:activate).with(out: $stdout, err: $stderr, deployment_datetime: deployment_datetime)
+
+    @container.expects(:report_build_analytics)
+
+    @container.post_receive(out: $stdout, err: $stderr)
+  end
+
+  def test_post_receive_default_hot_deploy
+    repository = mock()
+
+    OpenShift::Runtime::ApplicationRepository.expects(:new).returns(repository)
+
+    @cartridge_model.expects(:builder_cartridge).returns(nil)
+
+    primary = mock()
+    @cartridge_model.stubs(:primary_cartridge).returns(primary)
+
+    @cartridge_model.expects(:do_control).with('pre-repo-archive',
+                                                primary,
+                                                out:                       $stdout,
+                                                err:                       $stderr,
+                                                pre_action_hooks_enabled:  false,
+                                                post_action_hooks_enabled: false)
+
+    deployment_datetime = "abc"
+    @container.expects(:current_deployment_datetime).returns(deployment_datetime)
+    @container.expects(:create_deployment_dir).never
+
+    repository.expects(:archive).with(PathUtils.join(@container.container_dir, 'app-deployments', deployment_datetime, 'repo'), 'master')
+
+    @container.expects(:build).with(out: $stdout, err: $stderr, deployment_datetime: deployment_datetime, hot_deploy: true)
+    @container.expects(:prepare).with(out: $stdout, err: $stderr, deployment_datetime: deployment_datetime, hot_deploy: true)
+    @cartridge_model.expects(:web_proxy).returns(false)
+    @container.expects(:distribute).never
+    @container.expects(:activate_many).never
+    @container.expects(:activate).with(out: $stdout, err: $stderr, deployment_datetime: deployment_datetime, hot_deploy: true)
+
+    @container.expects(:report_build_analytics)
+
+    @container.post_receive(out: $stdout, err: $stderr, hot_deploy: true)
   end
 
   def test_pre_receive_builder_cart
@@ -108,15 +186,21 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
   def test_build_success
     @state.expects(:value=).with(OpenShift::Runtime::State::BUILDING)
 
+    deployment_datetime = "abc"
+    @container.expects(:update_dependencies_symlink).with(deployment_datetime)
+
     primary = mock()
     @cartridge_model.expects(:primary_cartridge).returns(primary).times(3)
+
+    env_overrides = {'OPENSHIFT_REPO_DIR' => PathUtils.join(@container.container_dir, 'app-deployments', deployment_datetime, 'repo') + "/"}
 
     @cartridge_model.expects(:do_control).with('update-configuration',
                                                primary,
                                                pre_action_hooks_enabled:  false,
                                                post_action_hooks_enabled: false,
                                                out:                       $stdout,
-                                               err:                       $stderr)
+                                               err:                       $stderr,
+                                               env_overrides:             env_overrides)
                                           .returns('update-configuration|')
 
     @cartridge_model.expects(:do_control).with('pre-build',
@@ -124,7 +208,8 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
                                                pre_action_hooks_enabled: false,
                                                prefix_action_hooks:      false,
                                                out:                      $stdout,
-                                               err:                      $stderr)
+                                               err:                      $stderr,
+                                               env_overrides:            env_overrides)
                                           .returns('pre-build|')
 
     @cartridge_model.expects(:do_control).with('build',
@@ -132,92 +217,19 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
                                                pre_action_hooks_enabled: false,
                                                prefix_action_hooks:      false,
                                                out:                      $stdout,
-                                               err:                      $stderr)
+                                               err:                      $stderr,
+                                               env_overrides:            env_overrides)
                                            .returns('build')
 
-    output = @container.build(out: $stdout, err: $stderr)
+    output = @container.build(out: $stdout, err: $stderr, deployment_datetime: deployment_datetime)
 
     assert_equal "update-configuration|pre-build|build", output
   end
 
-  def test_deploy_no_web_proxy_success
-    @state.expects(:value=).with(OpenShift::Runtime::State::DEPLOYING)
-
-    primary = mock()
-    @cartridge_model.stubs(:primary_cartridge).returns(primary)
-    @cartridge_model.stubs(:web_proxy).returns(nil)
-
-    @container.expects(:start_gear).with(secondary_only: true, user_initiated: true, hot_deploy: nil, out: $stdout, err: $stderr).returns('start_gear|')
-
-    @cartridge_model.expects(:do_control).with('deploy',
-                                               primary,
-                                               pre_action_hooks_enabled: false,
-                                               prefix_action_hooks:      false,
-                                               out:                      $stdout,
-                                               err:                      $stderr)
-                                           .returns('deploy|')
-
-    @container.expects(:start_gear).with(primary_only: true, user_initiated: true, hot_deploy: nil, out: $stdout, err: $stderr).returns('start_gear|')
-
-    @cartridge_model.expects(:do_control).with('post-deploy',
-                                               primary,
-                                               pre_action_hooks_enabled: false,
-                                               prefix_action_hooks:      false,
-                                               out:                      $stdout,
-                                               err:                      $stderr)
-                                           .returns('post-deploy')
-
-    output = @container.deploy(out: $stdout, err: $stderr)
-
-    assert_equal "Starting application ApplicationContainerTestCase\nstart_gear|deploy|start_gear|post-deploy", output
-  end
-
-  def test_deploy_web_proxy_success
-    @state.expects(:value=).with(OpenShift::Runtime::State::DEPLOYING)
-
-    primary = mock()
-    @cartridge_model.stubs(:primary_cartridge).returns(primary)
-    proxy = mock()
-    @cartridge_model.stubs(:web_proxy).returns(proxy)
-
-    @container.expects(:start_gear).with(secondary_only: true, user_initiated: true, hot_deploy: nil, out: $stdout, err: $stderr).returns("start_gear|")
-
-    @cartridge_model.expects(:do_control).with('deploy',
-                                               proxy,
-                                               pre_action_hooks_enabled: false,
-                                               prefix_action_hooks:      false,
-                                               out:                      $stdout,
-                                               err:                      $stderr)
-                                           .returns('deploy|')
-
-    @cartridge_model.expects(:do_control).with('deploy',
-                                               primary,
-                                               pre_action_hooks_enabled: false,
-                                               prefix_action_hooks:      false,
-                                               out:                      $stdout,
-                                               err:                      $stderr)
-                                           .returns('deploy|')
-
-    @container.expects(:start_gear).with(primary_only: true, user_initiated: true, hot_deploy: nil, out: $stdout, err: $stderr).returns("start_gear|")
-
-    @cartridge_model.expects(:do_control).with('post-deploy',
-                                               primary,
-                                               pre_action_hooks_enabled: false,
-                                               prefix_action_hooks:      false,
-                                               out:                      $stdout,
-                                               err:                      $stderr)
-                                           .returns('post-deploy')
-
-    output = @container.deploy(out: $stdout, err: $stderr)
-
-    assert_equal "Starting application ApplicationContainerTestCase\nstart_gear|deploy|deploy|start_gear|post-deploy", output
-  end
-
-
   def test_remote_deploy_success
     primary = mock()
     @cartridge_model.expects(:primary_cartridge).returns(primary)
-    
+
     @cartridge_model.expects(:do_control).with('update-configuration',
                                                primary,
                                                pre_action_hooks_enabled:  false,
@@ -226,8 +238,755 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
                                                err:                       $stderr)
                                           .returns('')
 
-    @container.expects(:deploy).with(out: $stdout, err: $stderr)
+    deployment_datetime = "now"
 
-    @container.remote_deploy(out: $stdout, err: $stderr)
+    [:prepare, :distribute, :activate].each do |method|
+      @container.expects(method).with(out: $stdout, err: $stderr, deployment_datetime: deployment_datetime)
+    end
+
+    @container.remote_deploy(out: $stdout, err: $stderr, deployment_datetime: deployment_datetime)
+  end
+
+  def test_configure_defaults
+    cart_name = 'mock-0.1'
+    latest_deployment_datetime = "now"
+    @container.expects(:latest_deployment_datetime).returns(latest_deployment_datetime)
+    @container.expects(:update_dependencies_symlink).with(latest_deployment_datetime)
+    @cartridge_model.expects(:configure).with(cart_name, nil, nil)
+    @container.configure(cart_name)
+  end
+
+  def test_configure_with_args
+    cart_name = 'mock-0.1'
+    template_git_url = 'url'
+    manifest = 'manifest'
+    latest_deployment_datetime = "now"
+    @container.expects(:latest_deployment_datetime).returns(latest_deployment_datetime)
+    @container.expects(:update_dependencies_symlink).with(latest_deployment_datetime)
+    @cartridge_model.expects(:configure).with(cart_name, template_git_url, manifest)
+    @container.configure(cart_name, template_git_url, manifest)
+  end
+
+  # new gear
+  # no git template url specified
+  # cartridge doesn't require build on install
+  # not already DEPLOYED
+  # not web proxy
+  def test_post_configure_defaults
+    cart_name = 'mock-0.1'
+    cartridge = mock()
+    @cartridge_model.expects(:get_cartridge).with(cart_name).returns(cartridge)
+    cartridge.expects(:install_build_required).returns(false)
+    latest_deployment_datetime = "now"
+    @container.expects(:latest_deployment_datetime).returns(latest_deployment_datetime)
+    @container.expects(:read_deployment_metadata).with(latest_deployment_datetime, 'state').returns(nil)
+    cartridge.expects(:web_proxy?).returns(false)
+    @container.expects(:prepare).with(deployment_datetime: latest_deployment_datetime)
+    @container.expects(:update_repo_symlink).with(latest_deployment_datetime)
+    @container.expects(:write_deployment_metadata).with(latest_deployment_datetime, 'state', 'DEPLOYED')
+    @container.expects(:set_rw_permission_R).with(File.join(@container.container_dir, 'app-deployments'))
+    @container.expects(:reset_permission_R).with(File.join(@container.container_dir, 'app-deployments'))
+    @cartridge_model.expects(:post_configure).with(cart_name)
+
+    @container.post_configure(cart_name)
+  end
+
+  # new gear
+  # empty git template url - should keep build from happening
+  # not already DEPLOYED
+  # not web proxy
+  def test_post_configure_empty_clone_spec_prevents_build
+    cart_name = 'mock-0.1'
+    cartridge = mock()
+    @cartridge_model.expects(:get_cartridge).with(cart_name).returns(cartridge)
+    latest_deployment_datetime = "now"
+    @container.expects(:latest_deployment_datetime).returns(latest_deployment_datetime)
+    @container.expects(:read_deployment_metadata).with(latest_deployment_datetime, 'state').returns(nil)
+    cartridge.expects(:web_proxy?).returns(false)
+    @container.expects(:prepare).with(deployment_datetime: latest_deployment_datetime)
+    @container.expects(:update_repo_symlink).with(latest_deployment_datetime)
+    @container.expects(:write_deployment_metadata).with(latest_deployment_datetime, 'state', 'DEPLOYED')
+    @container.expects(:set_rw_permission_R).with(File.join(@container.container_dir, 'app-deployments'))
+    @container.expects(:reset_permission_R).with(File.join(@container.container_dir, 'app-deployments'))
+    @cartridge_model.expects(:post_configure).with(cart_name)
+
+    @container.post_configure(cart_name, 'empty')
+  end
+
+  # new gear
+  # cartridge requires build on install
+  def test_post_configure_cartridge_build_on_install_does_build
+    cart_name = 'mock-0.1'
+    cartridge = mock()
+    @cartridge_model.expects(:get_cartridge).with(cart_name).returns(cartridge)
+    cartridge.expects(:install_build_required).returns(true)
+    cartridge.expects(:buildable?).returns(true)
+    gear_env = {a: 1, b: 2}
+    OpenShift::Runtime::Utils::Environ.expects(:for_gear).with(@container.container_dir).returns(gear_env)
+    cgroups = mock()
+    OpenShift::Runtime::Utils::Cgroups.expects(:new).returns(cgroups)
+    cgroups.expects(:boost).yields()
+    @hourglass.expects(:remaining).twice.returns(100, 50)
+    OpenShift::Runtime::Utils.expects(:oo_spawn).with("gear prereceive >> /tmp/initial-build.log 2>&1",
+                                                      env:                 gear_env,
+                                                      chdir:               @container.container_dir,
+                                                      uid:                 @container.uid,
+                                                      timeout:             100,
+                                                      expected_exitstatus: 0)
+
+    OpenShift::Runtime::Utils.expects(:oo_spawn).with("gear postreceive >> /tmp/initial-build.log 2>&1",
+                                                      env:                 gear_env,
+                                                      chdir:               @container.container_dir,
+                                                      uid:                 @container.uid,
+                                                      timeout:             50,
+                                                      expected_exitstatus: 0)
+
+    @cartridge_model.expects(:post_configure).with(cart_name)
+
+    @container.post_configure(cart_name)
+  end
+
+  # new gear
+  # cartridge does NOT require build on install
+  # template git url passed in
+  def test_post_configure_template_build_url_does_build
+    cart_name = 'mock-0.1'
+    cartridge = mock()
+    @cartridge_model.expects(:get_cartridge).with(cart_name).returns(cartridge)
+    cartridge.expects(:install_build_required).returns(false)
+    cartridge.expects(:buildable?).returns(true)
+
+    gear_env = {a: 1, b: 2}
+    OpenShift::Runtime::Utils::Environ.expects(:for_gear).with(@container.container_dir).returns(gear_env)
+    cgroups = mock()
+    OpenShift::Runtime::Utils::Cgroups.expects(:new).returns(cgroups)
+    cgroups.expects(:boost).yields()
+    @hourglass.expects(:remaining).twice.returns(100, 50)
+    OpenShift::Runtime::Utils.expects(:oo_spawn).with("gear prereceive >> /tmp/initial-build.log 2>&1",
+                                                 env:                 gear_env,
+                                                 chdir:               @container.container_dir,
+                                                 uid:                 @container.uid,
+                                                 timeout:             100,
+                                                 expected_exitstatus: 0)
+
+    OpenShift::Runtime::Utils.expects(:oo_spawn).with("gear postreceive >> /tmp/initial-build.log 2>&1",
+                                                 env:                 gear_env,
+                                                 chdir:               @container.container_dir,
+                                                 uid:                 @container.uid,
+                                                 timeout:             50,
+                                                 expected_exitstatus: 0)
+
+    @cartridge_model.expects(:post_configure).with(cart_name)
+
+    @container.post_configure(cart_name, 'url')
+  end
+
+  # new gear
+  # cartridge does NOT require build on install
+  # template git url passed in
+  def test_post_configure_rescues_build_exception
+    cart_name = 'mock-0.1'
+    cartridge = mock()
+    @cartridge_model.expects(:get_cartridge).with(cart_name).returns(cartridge)
+    cartridge.expects(:install_build_required).returns(false)
+    cartridge.expects(:buildable?).returns(true)
+    gear_env = {a: 1, b: 2}
+    OpenShift::Runtime::Utils::Environ.expects(:for_gear).with(@container.container_dir).returns(gear_env)
+    cgroups = mock()
+    OpenShift::Runtime::Utils::Cgroups.expects(:new).returns(cgroups)
+    cgroups.expects(:boost).yields()
+    @hourglass.expects(:remaining).twice.returns(100, 50)
+    OpenShift::Runtime::Utils.expects(:oo_spawn).with("gear prereceive >> /tmp/initial-build.log 2>&1",
+                                                      env:                 gear_env,
+                                                      chdir:               @container.container_dir,
+                                                      uid:                 @container.uid,
+                                                      timeout:             100,
+                                                      expected_exitstatus: 0)
+                                                .raises(OpenShift::Runtime::Utils::ShellExecutionException.new('my error', 1))
+
+    OpenShift::Runtime::Utils.expects(:oo_spawn).with("tail -c 10240 /tmp/initial-build.log 2>&1",
+                                                      env:                 gear_env,
+                                                      chdir:               @container.container_dir,
+                                                      uid:                 @container.uid,
+                                                      timeout:             50)
+                                                .returns("some output")
+
+    assert_raises(RuntimeError, "CLIENT_ERROR: The initial build for the application failed: my error\nCLIENT_ERROR: \nCLIENT_ERROR: .Last 10 kB of build output:\nCLIENT_ERROR: some output\n") { @container.post_configure(cart_name, 'url') }
+  end
+
+  # new gear
+  # no git template url specified
+  # cartridge doesn't require build on install
+  # already DEPLOYED
+  def test_post_configure_already_deployed
+    cart_name = 'mock-0.1'
+    cartridge = mock()
+    @cartridge_model.expects(:get_cartridge).with(cart_name).returns(cartridge)
+    cartridge.expects(:install_build_required).returns(false)
+    latest_deployment_datetime = "now"
+    @container.expects(:latest_deployment_datetime).returns(latest_deployment_datetime)
+    @container.expects(:read_deployment_metadata).with(latest_deployment_datetime, 'state').returns('DEPLOYED')
+    @container.expects(:prepare).never
+    @container.expects(:update_repo_symlink).never
+    @container.expects(:write_deployment_metadata).never
+    @container.expects(:set_rw_permission_R).never
+    @container.expects(:reset_permission_R).never
+    @cartridge_model.expects(:post_configure).with(cart_name)
+
+    @container.post_configure(cart_name)
+  end
+
+  # new gear
+  # no git template url specified
+  # cartridge doesn't require build on install
+  # not DEPLOYED
+  # web proxy
+  def test_post_configure_web_proxy
+    cart_name = 'mock-0.1'
+    cartridge = mock()
+    @cartridge_model.expects(:get_cartridge).with(cart_name).returns(cartridge)
+    cartridge.expects(:install_build_required).returns(false)
+    latest_deployment_datetime = "now"
+    @container.expects(:latest_deployment_datetime).returns(latest_deployment_datetime)
+    @container.expects(:read_deployment_metadata).with(latest_deployment_datetime, 'state').returns(nil)
+    cartridge.expects(:web_proxy?).returns(true)
+    @container.expects(:prepare).never
+    @container.expects(:update_repo_symlink).never
+    @container.expects(:write_deployment_metadata).never
+    @container.expects(:set_rw_permission_R).never
+    @container.expects(:reset_permission_R).never
+    @cartridge_model.expects(:post_configure).with(cart_name)
+
+    @container.post_configure(cart_name)
+  end
+
+  def test_prepare_without_file
+    deployment_datetime = 'now'
+
+    gear_env = {}
+    OpenShift::Runtime::Utils::Environ.expects(:for_gear).with(@container.container_dir).returns(gear_env)
+
+    @cartridge_model.expects(:do_action_hook).with('prepare',
+                                                   {'OPENSHIFT_REPO_DIR' => File.join(@container.container_dir, 'app-deployments', deployment_datetime, 'repo')},
+                                                   {deployment_datetime: deployment_datetime})
+                                             .returns("output from prepare hook\n")
+
+    deployment_id = 'abcd1234'  
+    @container.expects(:calculate_deployment_id).with(deployment_datetime).returns(deployment_id)
+
+    FileUtils.expects(:cd).with(File.join(@container.container_dir, 'app-deployments', 'by-id')).yields
+    FileUtils.expects(:ln_s).with(File.join('..', deployment_datetime), deployment_id)
+    @container.expects(:write_deployment_metadata).with(deployment_datetime, 'id', deployment_id)
+
+    prepare_options = {deployment_datetime: deployment_datetime}
+    output = @container.prepare(prepare_options)
+
+    assert_equal deployment_id, prepare_options[:deployment_id]
+    assert_equal "output from prepare hook\nPrepared deployment artifacts in #{File.join(@container.container_dir, 'app-deployments', deployment_datetime)}\nDeployment id is #{deployment_id}", output
+  end
+
+  def test_prepare_with_valid_file
+    deployment_datetime = 'now'
+    filename = 'test.tar.gz'
+    file_path = File.join(@container.container_dir, 'app-archives', filename)
+    prepare_options = {deployment_datetime: deployment_datetime, file: filename}
+
+    gear_env = {}
+    OpenShift::Runtime::Utils::Environ.expects(:for_gear).with(@container.container_dir).returns(gear_env)
+
+    File.expects(:exist?).with(file_path).returns(true)
+    @container.expects(:run_in_container_context).with("tar xf #{file_path}",
+                                                       env: gear_env,
+                                                       chdir: File.join(@container.container_dir, 'app-deployments', deployment_datetime),
+                                                       expected_exitstatus: 0)
+
+    gear_env_with_repo_dir_override = {'OPENSHIFT_REPO_DIR' => File.join(@container.container_dir, 'app-deployments', deployment_datetime, 'repo')}
+    @cartridge_model.expects(:do_action_hook).with('prepare',
+                                                   gear_env_with_repo_dir_override,
+                                                   prepare_options)
+                                             .returns("output from prepare hook\n")
+
+    deployment_id = 'abcd1234'  
+    @container.expects(:calculate_deployment_id).with(deployment_datetime).returns(deployment_id)
+
+    FileUtils.expects(:cd).with(File.join(@container.container_dir, 'app-deployments', 'by-id')).yields
+    FileUtils.expects(:ln_s).with(File.join('..', deployment_datetime), deployment_id)
+    @container.expects(:write_deployment_metadata).with(deployment_datetime, 'id', deployment_id)
+
+    output = @container.prepare(prepare_options)
+
+    assert_equal deployment_id, prepare_options[:deployment_id]
+    assert_equal "output from prepare hook\nPrepared deployment artifacts in #{File.join(@container.container_dir, 'app-deployments', deployment_datetime)}\nDeployment id is #{deployment_id}", output
+  end
+
+  def test_prepare_with_missing_file
+    deployment_datetime = 'now'
+    filename = 'test.tar.gz'
+
+    gear_env = {}
+    OpenShift::Runtime::Utils::Environ.expects(:for_gear).with(@container.container_dir).returns(gear_env)
+
+    File.expects(:exist?).with(File.join(@container.container_dir, 'app-archives', filename)).returns(false)
+
+    prepare_options = {deployment_datetime: deployment_datetime, file: filename}
+    assert_raises(RuntimeError, 'TODO') { @container.prepare(prepare_options) }
+  end
+
+  def test_child_gear_ssh_urls_no_web_proxy
+    @cartridge_model.expects(:web_proxy).returns(nil)
+    assert_empty @container.child_gear_ssh_urls
+  end
+
+  def test_child_gear_ssh_urls_web_proxy
+    @cartridge_model.expects(:web_proxy).returns(1)
+    gear_registry = mock()
+    ::OpenShift::Runtime::GearRegistry.expects(:new).with(@container).returns(gear_registry)
+    gear_registry.expects(:ssh_urls).returns(%w(5503@localhost 5504@localhost))
+    assert_equal ['5504@localhost'], @container.child_gear_ssh_urls
+  end
+
+  def test_distribute_no_child_gears
+    @container.expects(:child_gear_ssh_urls).returns([])
+    @container.expects(:get_deployment_datetime_for_deployment_id).never
+    OpenShift::Runtime::Utils::Environ.expects(:for_gear).never
+    @container.expects(:run_in_container_context).never
+    @container.distribute()
+  end
+
+  def test_distribute_defaults_to_child_gears
+    deployment_id = 'abcd1234'
+    deployment_datetime = 'now'
+    deployment_dir = File.join(@container.container_dir, 'app-deployments', deployment_datetime)
+    gears = %w(1234@localhost 2345@localhost)
+
+    @container.expects(:child_gear_ssh_urls).returns(gears)
+    @container.expects(:get_deployment_datetime_for_deployment_id).with(deployment_id).returns(deployment_datetime)
+    gear_env = {'key' => 'value'}
+    OpenShift::Runtime::Utils::Environ.expects(:for_gear).with(@container.container_dir).returns(gear_env)
+    gears.each do |g|
+      @container.expects(:run_in_container_context).with("rsync -axvz --rsh=/usr/bin/oo-ssh ./ #{g}:app-deployments/#{deployment_datetime}/",
+                                                         env: gear_env,
+                                                         chdir: deployment_dir,
+                                                         expected_exitstatus: 0)
+                                                   .returns("rsync1 from #{g}\n")
+
+      @container.expects(:run_in_container_context).with("rsync -axvz --rsh=/usr/bin/oo-ssh #{deployment_id} #{g}:app-deployments/by-id/#{deployment_id}",
+                                                         env: gear_env,
+                                                         chdir: File.join(@container.container_dir, 'app-deployments', 'by-id'),
+                                                         expected_exitstatus: 0)
+                                                   .returns("rsync2 from #{g}\n")
+    end
+
+    output = @container.distribute(deployment_id: deployment_id)
+
+    assert_equal "rsync1 from 1234@localhost\nrsync2 from 1234@localhost\nrsync1 from 2345@localhost\nrsync2 from 2345@localhost\n", output
+  end
+
+  def test_distribute_uses_specified_gears
+    deployment_id = 'abcd1234'
+    deployment_datetime = 'now'
+    deployment_dir = File.join(@container.container_dir, 'app-deployments', deployment_datetime)
+    gears = %w(1234@localhost 2345@localhost)
+
+    @container.expects(:child_gear_ssh_urls).never
+    @container.expects(:get_deployment_datetime_for_deployment_id).with(deployment_id).returns(deployment_datetime)
+    gear_env = {'key' => 'value'}
+    OpenShift::Runtime::Utils::Environ.expects(:for_gear).with(@container.container_dir).returns(gear_env)
+    gears.each do |g|
+      @container.expects(:run_in_container_context).with("rsync -axvz --rsh=/usr/bin/oo-ssh ./ #{g}:app-deployments/#{deployment_datetime}/",
+                                                         env: gear_env,
+                                                         chdir: deployment_dir,
+                                                         expected_exitstatus: 0)
+                                                   .returns("rsync1 from #{g}\n")
+
+      @container.expects(:run_in_container_context).with("rsync -axvz --rsh=/usr/bin/oo-ssh #{deployment_id} #{g}:app-deployments/by-id/#{deployment_id}",
+                                                         env: gear_env,
+                                                         chdir: File.join(@container.container_dir, 'app-deployments', 'by-id'),
+                                                         expected_exitstatus: 0)
+                                                   .returns("rsync2 from #{g}\n")
+    end
+
+    output = @container.distribute(gears: gears, deployment_id: deployment_id)
+
+    assert_equal "rsync1 from 1234@localhost\nrsync2 from 1234@localhost\nrsync1 from 2345@localhost\nrsync2 from 2345@localhost\n", output
+  end
+
+  def test_activate_many_no_child_gears
+    @container.expects(:child_gear_ssh_urls).returns([])
+    OpenShift::Runtime::Utils::Environ.expects(:for_gear).never
+    @container.expects(:run_in_container_context).never
+    @container.activate_many()
+  end
+
+  def test_activate_many_defaults_to_child_gears
+    deployment_id = 'abcd1234'
+
+    gears = %w(1234@localhost 2345@localhost)
+    @container.expects(:child_gear_ssh_urls).returns(gears)
+
+    gear_env = {'key' => 'value'}
+    OpenShift::Runtime::Utils::Environ.expects(:for_gear).with(@container.container_dir).returns(gear_env)
+
+    gears.each do |g|
+      @container.expects(:run_in_container_context).with("/usr/bin/oo-ssh #{g} gear activate #{deployment_id} --no-hot-deploy",
+                                                         env: gear_env,
+                                                         expected_exitstatus: 0)
+                                                   .returns("out from #{g}\n")
+    end
+
+    output = @container.activate_many(deployment_id: deployment_id)
+
+    assert_equal "Activating gear 1234, deployment id: abcd1234, --no-hot-deploy,\nout from 1234@localhost\nActivating gear 2345, deployment id: abcd1234, --no-hot-deploy,\nout from 2345@localhost\n", output
+  end
+
+  def test_activate_many_uses_specified_gears
+    deployment_id = 'abcd1234'
+
+    gears = %w(1234@localhost 2345@localhost)
+    @container.expects(:child_gear_ssh_urls).never
+
+    gear_env = {'key' => 'value'}
+    OpenShift::Runtime::Utils::Environ.expects(:for_gear).with(@container.container_dir).returns(gear_env)
+
+    gears.each do |g|
+      @container.expects(:run_in_container_context).with("/usr/bin/oo-ssh #{g} gear activate #{deployment_id} --no-hot-deploy",
+                                                         env: gear_env,
+                                                         expected_exitstatus: 0)
+                                                   .returns("out from #{g}\n")
+    end
+
+    output = @container.activate_many(gears: gears, deployment_id: deployment_id)
+
+    assert_equal "Activating gear 1234, deployment id: abcd1234, --no-hot-deploy,\nout from 1234@localhost\nActivating gear 2345, deployment id: abcd1234, --no-hot-deploy,\nout from 2345@localhost\n", output
+  end
+
+  def test_activate_many_hot_deploy
+    deployment_id = 'abcd1234'
+
+    gears = %w(1234@localhost 2345@localhost)
+    @container.expects(:child_gear_ssh_urls).never
+
+    gear_env = {'key' => 'value'}
+    OpenShift::Runtime::Utils::Environ.expects(:for_gear).with(@container.container_dir).returns(gear_env)
+
+    gears.each do |g|
+      @container.expects(:run_in_container_context).with("/usr/bin/oo-ssh #{g} gear activate #{deployment_id} --hot-deploy",
+                                                         env: gear_env,
+                                                         expected_exitstatus: 0)
+                                                   .returns("out from #{g}\n")
+    end
+
+    output = @container.activate_many(gears: gears, deployment_id: deployment_id, hot_deploy: true)
+
+    assert_equal "Activating gear 1234, deployment id: abcd1234, --hot-deploy,\nout from 1234@localhost\nActivating gear 2345, deployment id: abcd1234, --hot-deploy,\nout from 2345@localhost\n", output
+  end
+
+  def test_activate_many_init
+    deployment_id = 'abcd1234'
+
+    gears = %w(1234@localhost 2345@localhost)
+    @container.expects(:child_gear_ssh_urls).never
+
+    gear_env = {'key' => 'value'}
+    OpenShift::Runtime::Utils::Environ.expects(:for_gear).with(@container.container_dir).returns(gear_env)
+
+    gears.each do |g|
+      @container.expects(:run_in_container_context).with("/usr/bin/oo-ssh #{g} gear activate #{deployment_id} --no-hot-deploy --init",
+                                                         env: gear_env,
+                                                         expected_exitstatus: 0)
+                                                   .returns("out from #{g}\n")
+    end
+
+    output = @container.activate_many(gears: gears, deployment_id: deployment_id, init: true)
+
+    assert_equal "Activating gear 1234, deployment id: abcd1234, --no-hot-deploy, --init\nout from 1234@localhost\nActivating gear 2345, deployment id: abcd1234, --no-hot-deploy, --init\nout from 2345@localhost\n", output
+  end
+
+  def test_activate_stops_started_gear
+    deployment_id = 'abcd1234'
+    deployment_datetime = 'now'
+    deployment_dir = File.join(@container.container_dir, 'app-deployments', deployment_datetime)
+    activate_options = {deployment_id: deployment_id, hot_deploy: true}
+
+    @container.expects(:get_deployment_datetime_for_deployment_id).with(deployment_id).returns(deployment_datetime)
+
+    gear_env = {'key' => 'value'}
+    OpenShift::Runtime::Utils::Environ.expects(:for_gear).with(@container.container_dir).returns(gear_env)
+
+    @container.state.expects(:value).returns(::OpenShift::Runtime::State::STARTED)
+    @container.expects(:stop_gear).with(activate_options.merge(exclude_web_proxy: true)).returns("stop\n")
+    @container.expects(:update_repo_symlink).with(deployment_datetime)
+    @container.expects(:update_dependencies_symlink).with(deployment_datetime)
+    primary_cartridge = mock()
+    @cartridge_model.expects(:primary_cartridge).times(3).returns(primary_cartridge)
+    @cartridge_model.expects(:do_control).with('update-configuration',
+                                               primary_cartridge,
+                                               pre_action_hooks_enabled: false,
+                                               post_action_hooks_enabled: false,
+                                               out: nil,
+                                               err: nil)
+
+    @container.expects(:start_gear).with(secondary_only: true,
+                                         user_initiated: true,
+                                         exclude_web_proxy: true,
+                                         hot_deploy: true,
+                                         out: nil,
+                                         err: nil)
+                                   .returns("start secondary\n")
+
+    @container.state.expects(:value=).with(::OpenShift::Runtime::State::DEPLOYING)
+
+    @cartridge_model.expects(:do_control).with('deploy',
+                                               primary_cartridge,
+                                               pre_action_hooks_enabled: false,
+                                               prefix_action_hooks: false,
+                                               out: nil,
+                                               err:nil)
+                                         .returns("deploy\n")
+
+    @container.expects(:start_gear).with(primary_only: true,
+                                         user_initiated: true,
+                                         exclude_web_proxy: true,
+                                         hot_deploy: true,
+                                         out: nil,
+                                         err: nil)
+                                   .returns("start primary\n")
+
+    @cartridge_model.expects(:do_control).with('post-deploy',
+                                               primary_cartridge,
+                                               pre_action_hooks_enabled: false,
+                                               prefix_action_hooks: false,
+                                               out: nil,
+                                               err:nil)
+                                         .returns("post-deploy\n")
+
+    @container.expects(:write_deployment_metadata).with(deployment_datetime, 'state', 'DEPLOYED')
+    @container.expects(:clean_up_deployments_before).with(deployment_datetime)
+
+    output = @container.activate(activate_options)
+
+    assert_equal "stop\nStarting application ApplicationContainerTestCase\nstart secondary\ndeploy\nstart primary\npost-deploy\n", output
+  end
+
+  def test_activate_doesnt_call_stop_if_already_stopped
+    deployment_id = 'abcd1234'
+    deployment_datetime = 'now'
+    deployment_dir = File.join(@container.container_dir, 'app-deployments', deployment_datetime)
+    activate_options = {deployment_id: deployment_id}
+
+    @container.expects(:get_deployment_datetime_for_deployment_id).with(deployment_id).returns(deployment_datetime)
+
+    gear_env = {'key' => 'value'}
+    OpenShift::Runtime::Utils::Environ.expects(:for_gear).with(@container.container_dir).returns(gear_env)
+
+    @container.state.expects(:value).returns(::OpenShift::Runtime::State::STOPPED)
+    @container.expects(:stop_gear).never
+    @container.expects(:update_repo_symlink).with(deployment_datetime)
+    @container.expects(:update_dependencies_symlink).with(deployment_datetime)
+    primary_cartridge = mock()
+    @cartridge_model.expects(:primary_cartridge).times(3).returns(primary_cartridge)
+    @cartridge_model.expects(:do_control).with('update-configuration',
+                                               primary_cartridge,
+                                               pre_action_hooks_enabled: false,
+                                               post_action_hooks_enabled: false,
+                                               out: nil,
+                                               err: nil)
+
+    @container.expects(:start_gear).with(secondary_only: true,
+                                         user_initiated: true,
+                                         exclude_web_proxy: true,
+                                         hot_deploy: nil,
+                                         out: nil,
+                                         err: nil)
+                                   .returns("start secondary\n")
+
+    @container.state.expects(:value=).with(::OpenShift::Runtime::State::DEPLOYING)
+
+    @cartridge_model.expects(:do_control).with('deploy',
+                                               primary_cartridge,
+                                               pre_action_hooks_enabled: false,
+                                               prefix_action_hooks: false,
+                                               out: nil,
+                                               err:nil)
+                                         .returns("deploy\n")
+
+    @container.expects(:start_gear).with(primary_only: true,
+                                         user_initiated: true,
+                                         exclude_web_proxy: true,
+                                         hot_deploy: nil,
+                                         out: nil,
+                                         err: nil)
+                                   .returns("start primary\n")
+
+    @cartridge_model.expects(:do_control).with('post-deploy',
+                                               primary_cartridge,
+                                               pre_action_hooks_enabled: false,
+                                               prefix_action_hooks: false,
+                                               out: nil,
+                                               err:nil)
+                                         .returns("post-deploy\n")
+
+    @container.expects(:write_deployment_metadata).with(deployment_datetime, 'state', 'DEPLOYED')
+    @container.expects(:clean_up_deployments_before).with(deployment_datetime)
+
+    output = @container.activate(activate_options)
+
+    assert_equal "Starting application ApplicationContainerTestCase\nstart secondary\ndeploy\nstart primary\npost-deploy\n", output
+  end
+
+  def test_activate_with_init_option
+    deployment_id = 'abcd1234'
+    deployment_datetime = 'now'
+    deployment_dir = File.join(@container.container_dir, 'app-deployments', deployment_datetime)
+    activate_options = {deployment_id: deployment_id, init: true}
+
+    @container.expects(:get_deployment_datetime_for_deployment_id).with(deployment_id).returns(deployment_datetime)
+
+    gear_env = {'key' => 'value'}
+    OpenShift::Runtime::Utils::Environ.expects(:for_gear).with(@container.container_dir).returns(gear_env)
+
+    @container.state.expects(:value).returns(::OpenShift::Runtime::State::STARTED)
+    @container.expects(:stop_gear).with(activate_options.merge(exclude_web_proxy: true)).returns("stop\n")
+    @container.expects(:update_repo_symlink).with(deployment_datetime)
+    @container.expects(:update_dependencies_symlink).with(deployment_datetime)
+    primary_cartridge = mock()
+    @cartridge_model.expects(:primary_cartridge).times(5).returns(primary_cartridge)
+    @cartridge_model.expects(:do_control).with('update-configuration',
+                                               primary_cartridge,
+                                               pre_action_hooks_enabled: false,
+                                               post_action_hooks_enabled: false,
+                                               out: nil,
+                                               err: nil)
+
+    @container.expects(:start_gear).with(secondary_only: true,
+                                         user_initiated: true,
+                                         exclude_web_proxy: true,
+                                         hot_deploy: nil,
+                                         out: nil,
+                                         err: nil)
+                                   .returns("start secondary\n")
+
+    @container.state.expects(:value=).with(::OpenShift::Runtime::State::DEPLOYING)
+
+    @cartridge_model.expects(:do_control).with('deploy',
+                                               primary_cartridge,
+                                               pre_action_hooks_enabled: false,
+                                               prefix_action_hooks: false,
+                                               out: nil,
+                                               err:nil)
+                                         .returns("deploy\n")
+
+    @container.expects(:start_gear).with(primary_only: true,
+                                         user_initiated: true,
+                                         exclude_web_proxy: true,
+                                         hot_deploy: nil,
+                                         out: nil,
+                                         err: nil)
+                                   .returns("start primary\n")
+
+    @cartridge_model.expects(:do_control).with('post-deploy',
+                                               primary_cartridge,
+                                               pre_action_hooks_enabled: false,
+                                               prefix_action_hooks: false,
+                                               out: nil,
+                                               err:nil)
+                                         .returns("post-deploy\n")
+
+    primary_cartridge_directory = 'primarycartdir'
+    primary_cartridge.expects(:directory).returns(primary_cartridge_directory)
+    primary_cart_env_dir = File.join(@container.container_dir, primary_cartridge_directory, 'env')
+    primary_cart_env = {'OPENSHIFT_XYZ_IDENT' => 'redhat:mock:0.1:0.1'}
+    ::OpenShift::Runtime::Utils::Environ.expects(:load).with(primary_cart_env_dir).returns(primary_cart_env)
+
+    @cartridge_model.expects(:post_install).with(primary_cartridge,
+                                                 '0.1',
+                                                 out: nil,
+                                                 err: nil)
+
+    @container.expects(:write_deployment_metadata).with(deployment_datetime, 'state', 'DEPLOYED')
+    @container.expects(:clean_up_deployments_before).with(deployment_datetime)
+
+    output = @container.activate(activate_options)
+
+    assert_equal "stop\nStarting application ApplicationContainerTestCase\nstart secondary\ndeploy\nstart primary\npost-deploy\n", output
+  end
+
+  def test_rollback_many_no_child_gears
+    @container.expects(:child_gear_ssh_urls).returns([])
+    OpenShift::Runtime::Utils::Environ.expects(:for_gear).never
+    @container.expects(:run_in_container_context).never
+    @container.rollback_many()
+  end
+
+  def test_rollback_many_defaults_to_child_gears
+    gears = %w(1234@localhost 2345@localhost)
+    @container.expects(:child_gear_ssh_urls).returns(gears)
+
+    gear_env = {'key' => 'value'}
+    OpenShift::Runtime::Utils::Environ.expects(:for_gear).with(@container.container_dir).returns(gear_env)
+
+    gears.each do |g|
+      @container.expects(:run_in_container_context).with("/usr/bin/oo-ssh #{g} gear rollback",
+                                                         env: gear_env,
+                                                         expected_exitstatus: 0)
+                                                   .returns("out from #{g}\n")
+    end
+
+    output = @container.rollback_many()
+
+    assert_equal "Rolling back gear 1234\nout from 1234@localhost\nRolling back gear 2345\nout from 2345@localhost\n", output
+  end
+
+  def test_rollback_many_uses_specified_gears
+    gears = %w(1234@localhost 2345@localhost)
+    @container.expects(:child_gear_ssh_urls).never
+
+    gear_env = {'key' => 'value'}
+    OpenShift::Runtime::Utils::Environ.expects(:for_gear).with(@container.container_dir).returns(gear_env)
+
+    gears.each do |g|
+      @container.expects(:run_in_container_context).with("/usr/bin/oo-ssh #{g} gear rollback",
+                                                         env: gear_env,
+                                                         expected_exitstatus: 0)
+                                                   .returns("out from #{g}\n")
+    end
+
+    output = @container.rollback_many(gears: gears)
+
+    assert_equal "Rolling back gear 1234\nout from 1234@localhost\nRolling back gear 2345\nout from 2345@localhost\n", output
+  end
+
+  def test_rollback_stops_started_app
+    deployment_id = 'abcd1234'
+    deployment_datetime1 = '2013-08-16_13-36-36.880'
+    deployment_datetime2 = '2013-08-16_14-36-36.880'
+    deployment_datetime3 = '2013-08-16_15-36-36.881'
+    deployments_dir = File.join(@container.container_dir, 'app-deployments')
+    rollback_options = {}
+
+    @container.expects(:latest_deployment_datetime).returns(deployment_datetime3)
+    Dir.expects(:[]).with("#{deployments_dir}/*").returns([deployment_datetime2, deployment_datetime3, deployment_datetime1, 'by-id'])
+    @container.expects(:read_deployment_metadata).with(deployment_datetime2, 'state').returns(nil)
+    @container.expects(:read_deployment_metadata).with(deployment_datetime1, 'state').returns("DEPLOYED\n")
+
+    @container.state.expects(:value).returns(::OpenShift::Runtime::State::STARTED)
+    @container.expects(:stop_gear).with(rollback_options.merge(exclude_web_proxy: true)).returns("stop gear output\n")
+
+    @container.expects(:delete_deployment).with(deployment_datetime3)
+
+    @container.expects(:read_deployment_metadata).with(deployment_datetime1, 'id').returns("a1b2c3d4\n")
+    @container.expects(:activate).with(rollback_options.merge(deployment_id: 'a1b2c3d4')).returns("activate output\n")
+
+    output = @container.rollback()
+    assert_equal "Looking up previous deployment\nStopping gear\nstop gear output\nDeleting current deployment\nRolling back to deployment ID a1b2c3d4\nactivate output\n", output
+  end
+
+  def test_rollback_raises_when_no_previous_deployment_exists
+    deployment_datetime = '2013-08-16_15-36-36.881'
+    @container.expects(:latest_deployment_datetime).returns(deployment_datetime)
+    deployments_dir = File.join(@container.container_dir, 'app-deployments')
+    Dir.expects(:[]).with("#{deployments_dir}/*").returns([deployment_datetime, 'by-id'])
+
+    assert_raises(RuntimeError, 'No prior deployments exist - unable to roll back') { @container.rollback }
   end
 end

@@ -125,11 +125,10 @@ class GearScaleCtl
       end
     end
 
-    haproxy_conf_dir=File.join(env['OPENSHIFT_HOMEDIR'], "haproxy", "conf")
-    gear_registry_db=File.join(haproxy_conf_dir, "gear-registry.db")
+    gear_registry_db=File.join(env['OPENSHIFT_HOMEDIR'], "gear_registry.txt")
     current_gear_count = `wc -l #{gear_registry_db}`
 
-    # adding 1 for local gear, which is not listed in the gear-registry.db
+    # adding 1 for local gear, which is not listed in the gear_registry.txt
     current_gear_count = 1 + current_gear_count.split(' ')[0].to_i
     if action=='add-gear' and current_gear_count == max
       $stderr.puts "Cannot add gear because max limit '#{max}' reached."

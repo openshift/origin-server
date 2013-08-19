@@ -19,6 +19,7 @@ require 'openshift-origin-node/model/application_repository'
 require 'openshift-origin-node/model/cartridge_repository'
 require 'openshift-origin-common/models/manifest'
 require 'openshift-origin-node/model/pub_sub_connector'
+require 'openshift-origin-node/model/gear_registry'
 require 'openshift-origin-node/utils/shell_exec'
 require 'openshift-origin-node/utils/selinux'
 require 'openshift-origin-node/utils/node_logger'
@@ -596,7 +597,7 @@ module OpenShift
         end
 
         if repo.exist?
-          repo.archive
+          repo.archive(PathUtils.join(@container.container_dir, 'app-deployments', @container.latest_deployment_datetime, "repo"), 'master')
         end
         ""
       end
@@ -1047,7 +1048,7 @@ module OpenShift
 
         if conn.reserved?
           begin
-            return send(conn.action_name)
+            return send(conn.action_name, cartridge, args)
           rescue NoMethodError => e
             logger.debug "#{e.message}; falling back to script"
           end
@@ -1096,6 +1097,8 @@ module OpenShift
       #                                        +nil+ (the default), output is logged.
       #   :err                               : An +IO+ object to which control script STDERR should be directed. If
       #                                        +nil+ (the default), output is logged.
+      #   :env_overrides                     : environment variable overrides
+      #
       def do_control_with_directory(action, options={})
         cartridge_dir             = options[:cartridge_dir]
         pre_action_hooks_enabled  = options.has_key?(:pre_action_hooks_enabled) ? options[:pre_action_hooks_enabled] : true
@@ -1105,7 +1108,8 @@ module OpenShift
         logger.debug { "#{@container.uuid} #{action} against '#{cartridge_dir}'" }
         buffer       = ''
         gear_env     = ::OpenShift::Runtime::Utils::Environ.for_gear(@container.container_dir)
-        action_hooks = PathUtils.join(@container.container_dir, %w{app-root runtime repo .openshift action_hooks})
+        gear_env.merge!(options[:env_overrides]) if options[:env_overrides]
+        action_hooks = PathUtils.join(gear_env['OPENSHIFT_REPO_DIR'], %w{.openshift action_hooks})
 
         if pre_action_hooks_enabled
           pre_action_hook = prefix_action_hooks ? "pre_#{action}" : action
@@ -1167,7 +1171,7 @@ module OpenShift
       def do_action_hook(action, env, options)
         action = action.gsub(/-/, '_')
 
-        action_hooks_dir = PathUtils.join(@container.container_dir, %w{app-root runtime repo .openshift action_hooks})
+        action_hooks_dir = PathUtils.join(env['OPENSHIFT_REPO_DIR'], %w{.openshift action_hooks})
         action_hook      = PathUtils.join(action_hooks_dir, action)
         buffer           = ''
 
@@ -1208,12 +1212,14 @@ module OpenShift
       # in the gear.
       #
       # +options+: hash
-      #   :user_initiated => [boolean]  : Indicates whether the operation was user initated.
-      #                                   Default is +true+.
-      #   :out                          : An +IO+ object to which control script STDOUT should be directed. If
-      #                                   +nil+ (the default), output is logged.
-      #   :err                          : An +IO+ object to which control script STDERR should be directed. If
-      #                                   +nil+ (the default), output is logged.
+      #   :user_initiated => [boolean]    : Indicates whether the operation was user initated.
+      #                                     Default is +true+.
+      #   :exclude_web_proxy => [boolean] : Indicates whether to exclude stopping the web proxy cartridge.
+      #                                     Default is +false+
+      #   :out                            : An +IO+ object to which control script STDOUT should be directed. If
+      #                                     +nil+ (the default), output is logged.
+      #   :err                            : An +IO+ object to which control script STDERR should be directed. If
+      #                                     +nil+ (the default), output is logged.
       #
       # Returns the combined output of all +stop+ action executions as a +String+.
       def stop_gear(options={})
@@ -1222,6 +1228,8 @@ module OpenShift
         buffer = ''
 
         each_cartridge do |cartridge|
+          next if options[:exclude_web_proxy] and cartridge.web_proxy?
+
           buffer << stop_cartridge(cartridge, options)
         end
 
@@ -1236,16 +1244,18 @@ module OpenShift
       # to be started is configurable via +options+.
       #
       # +options+: hash
-      #   :primary_only   => [boolean]  : If +true+, only the primary cartridge will be started.
-      #                                   Mutually exclusive with +secondary_only+.
-      #   :secondary_only => [boolean]  : If +true+, all cartridges except the primary cartridge
-      #                                   will be started. Mutually exclusive with +primary_only+.
-      #   :user_initiated => [boolean]  : Indicates whether the operation was user initated.
-      #                                   Default is +true+.
-      #   :out                          : An +IO+ object to which control script STDOUT should be directed. If
-      #                                   +nil+ (the default), output is logged.
-      #   :err                          : An +IO+ object to which control script STDERR should be directed. If
-      #                                   +nil+ (the default), output is logged.
+      #   :primary_only   => [boolean]    : If +true+, only the primary cartridge will be started.
+      #                                     Mutually exclusive with +secondary_only+.
+      #   :secondary_only => [boolean]    : If +true+, all cartridges except the primary cartridge
+      #                                     will be started. Mutually exclusive with +primary_only+.
+      #   :user_initiated => [boolean]    : Indicates whether the operation was user initated.
+      #                                     Default is +true+.
+      #   :exclude_web_proxy => [boolean] : Indicates whether to exclude stopping the web proxy cartridge.
+      #                                     Default is +false+
+      #   :out                            : An +IO+ object to which control script STDOUT should be directed. If
+      #                                     +nil+ (the default), output is logged.
+      #   :err                            : An +IO+ object to which control script STDERR should be directed. If
+      #                                     +nil+ (the default), output is logged.
       #
       # Returns the combined output of all +start+ action executions as a +String+.
       def start_gear(options={})
@@ -1256,10 +1266,12 @@ module OpenShift
         end
 
         buffer = ''
+
         if options[:primary_only] || options[:secondary_only]
           each_cartridge do |cartridge|
             next if options[:primary_only] and cartridge.name != primary_cartridge.name
             next if options[:secondary_only] and cartridge.name == primary_cartridge.name
+            next if options[:exclude_web_proxy] and cartridge.web_proxy?
 
             buffer << start_cartridge('start', cartridge, options)
           end
@@ -1386,7 +1398,103 @@ module OpenShift
 
       private
       ## special methods that are handled especially by the platform
-      def publish_gear_endpoint
+      def publish_gear_endpoint(cartridge, args)
+        begin
+          # TODO:
+          # There is some concern about how well-behaved Facter is
+          # when it is require'd.
+          # Instead, we use run_in_container_context here to avoid it altogether.
+          # For the long-term, then, figure out a way to reliably
+          # determine the IP address from Ruby.
+          out, err, status = @container.run_in_container_context('facter ipaddress',
+              env:                 cartridge_env,
+              chdir:               @container.container_dir,
+              timeout:             @hourglass.remaining,
+              expected_exitstatus: 0)
+          private_ip       = out.chomp
+        rescue
+          require 'socket'
+          addrinfo     = Socket.getaddrinfo(Socket.gethostname, 80) # 80 is arbitrary
+          private_addr = addrinfo.select { |info|
+            info[3] !~ /^127/
+          }.first
+          private_ip   = private_addr[3]
+        end
+
+        env = ::OpenShift::Runtime::Utils::Environ::for_gear(@container.container_dir)
+
+        output = "#{env['OPENSHIFT_GEAR_UUID']},#{private_ip},#{env['OPENSHIFT_GEAR_DNS']},#{env['OPENSHIFT_LOAD_BALANCER_PORT']}"
+        logger.debug output
+        output
+      end
+
+      # Receives input from publish_gear_endpoint
+      def set_gear_endpoints(cartridge, args)
+        env = ::OpenShift::Runtime::Utils::Environ::for_gear(@container.container_dir)
+        gear_registry = ::OpenShift::Runtime::GearRegistry.new(@container)
+
+        registry_updates = {}
+
+        # args has the following format:
+        # gear_name namespace gear_uuid output_from_publishers...
+
+        # ignore the first 3 args and convert output_from_publishers to what we need
+        _, _, _, *real_args = args.split
+        for arg in real_args
+          # each arg looks something like this:
+          #
+          # \\'816247190463844743905280\\'\\=\\'816247190463844743905280,10.36.103.2,a-agoldste.dev.rhcloud.com,35536\\'
+          #
+          # the format is:
+          #
+          # gear_uuid=gear_uuid,private_ip,gear_dns,proxy_port
+          #
+          # the arg comes after being run through Shellwords::shellescape, so the 2 gsubs below
+          # remove \ and ' from the string - hopefully this is sufficient
+          _, rest = arg.gsub(/\\/, '').gsub(/'/, '').split('=')
+          uuid, private_ip, dns, proxy_port = rest.split(',')
+
+          # add the entry to the temp hash of registry updates
+          registry_updates[uuid] = ::OpenShift::Runtime::GearRegistry::Entry.new(uuid: uuid,
+                                                                                 namespace: @container.namespace,
+                                                                                 dns: dns,
+                                                                                 private_ip: private_ip,
+                                                                                 proxy_port: proxy_port)
+        end
+
+        # registry_updates now contains what should be the full gear registry and it should
+        # replace the existing file on disk
+
+        gear_env = ::OpenShift::Runtime::Utils::Environ::for_gear(@container.container_dir)
+
+        # update the gear registry
+        # returns a list of new gears added with this update
+        new_gears = gear_registry.update(registry_updates)
+
+        # exclude the current gear - no need to do any work on it
+        new_gears.delete_if { |k,v| k.uuid == @container.uuid }
+
+        # convert the new gears to the format uuid@gear_dns
+        new_gears.map! { |e| "#{e.uuid}@#{e.dns}" }
+
+        # sync from this gear (load balancer) to all new gears
+        # copy app-deployments and make all the new gears look just like it (i.e., use --delete)
+        new_gears.each do |gear|
+          out, err, rc = @container.run_in_container_context("rsync -axvz --delete --rsh=/usr/bin/oo-ssh app-deployments/ #{gear}:app-deployments/",
+                                                             env: gear_env,
+                                                             chdir: @container.container_dir,
+                                                             expected_exitstatus: 0)
+        end
+
+        # activate the current deployment on all the new gears
+        deployment_id = @container.read_deployment_metadata(@container.current_deployment_datetime, 'id').chomp
+        # since the gears are new, set init to true and hot_deploy to false
+        @container.activate_many(gears: new_gears, deployment_id: deployment_id, init: true, hot_deploy: false)
+
+        # TODO disable local gear like in set-registry script
+      end
+
+      def publish_http_url(cartridge, args)
         begin
           # TODO:
           # There is some concern about how well-behaved Facter is
@@ -1411,7 +1519,7 @@ module OpenShift
 
         env = ::OpenShift::Runtime::Utils::Environ::for_gear(@container.container_dir)
 
-        output = "#{env['OPENSHIFT_GEAR_UUID']}@#{private_ip}:#{primary_cartridge.name};#{env['OPENSHIFT_GEAR_DNS']}"
+        output = "#{env['OPENSHIFT_GEAR_DNS']}|#{private_ip}:#{env['OPENSHIFT_LOAD_BALANCER_PORT']}"
         logger.debug output
         output
       end

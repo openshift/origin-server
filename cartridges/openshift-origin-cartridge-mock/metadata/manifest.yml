@@ -37,6 +37,8 @@ Endpoints:
   Private-Port-Name: EXAMPLE_PORT1
   Private-Port: 8080
   Public-Port-Name: EXAMPLE_PUBLIC_PORT1
+  Options:
+    primary: true
   Mappings:
   - Frontend: ''
     Backend: ''

@@ -5,6 +5,10 @@ case "$1" in
     version="$2"
 esac
 
+# Create dependencies symlink
+mkdir -p $OPENSHIFT_DEPENDENCIES_DIR/.cpanm
+ln -sf ${OPENSHIFT_DEPENDENCIES_DIR}.cpanm ${OPENSHIFT_HOMEDIR}.cpanm
+
 # Copy the version specific files to perl directory
 shopt -s dotglob
 mkdir -p $OPENSHIFT_PERL_DIR/etc
@@ -12,7 +16,5 @@ cp -r $OPENSHIFT_PERL_DIR/versions/$version/etc/* $OPENSHIFT_PERL_DIR/etc
 
 # Create/truncate Apache PassEnv configuration file
 echo > $OPENSHIFT_PERL_DIR/etc/conf.d/passenv.conf
-
-mkdir -p $OPENSHIFT_HOMEDIR/.cpanm
 
 echo $version >$OPENSHIFT_PERL_DIR/env/OPENSHIFT_PERL_VERSION

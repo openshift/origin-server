@@ -27,10 +27,12 @@ function isrunning() {
 
 function ping_server_gears() {
     #  Ping the server gears and wake 'em up on startup.
-    gear_registry=$OPENSHIFT_HAPROXY_DIR/conf/gear-registry.db
-    for geardns in $(cut -f 2 -d ';' "$gear_registry"); do
-        [ -z "$geardns" ]  ||  curl "http://$geardns/" > /dev/null 2>&1  ||  :
-    done
+    gear_registry=$OPENSHIFT_HOMEDIR/gear_registry.txt
+    if [ -f $gear_registry ]; then
+      for geardns in $(cut -f 3 -d ',' "$gear_registry"); do
+          [ -z "$geardns" ]  ||  curl "http://$geardns/" > /dev/null 2>&1  ||  :
+      done
+    fi
 }
 
 function wait_to_start() {
@@ -163,16 +165,6 @@ function status() {
     fi
 }
 
-function deploy() {
-    [ "${OPENSHIFT_GEAR_DNS}" != "${OPENSHIFT_APP_DNS}" ] && return 0
-    # Fix to get name of haproxy cartridge from environment
-    HAPROXY_CONF_DIR=$OPENSHIFT_HAPROXY_DIR/conf
-    HAPROXY_GEAR_REGISTRY=$HAPROXY_CONF_DIR/gear-registry.db
-    local gears=($(< "${HAPROXY_GEAR_REGISTRY}"))
-    sync_gear_repos "false" "${gears[@]}"
-    [ $? -eq 0 ] || exit $?
-}
-
 #
 # main():
 #
@@ -192,5 +184,4 @@ case "$1" in
     reload)       reload        ;;
     force-reload) force-reload  ;;
     status)       status        ;;
-    deploy)       deploy        ;;
 esac

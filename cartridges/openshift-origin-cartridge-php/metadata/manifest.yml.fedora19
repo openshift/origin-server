@@ -75,6 +75,8 @@ Endpoints:
   Private-Port-Name: PORT
   Private-Port: 8080
   Public-Port-Name: PROXY_PORT
+  Options:
+    primary: true
   Mappings:
   - Frontend: ''
     Backend: ''

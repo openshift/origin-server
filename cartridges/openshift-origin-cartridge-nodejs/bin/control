@@ -112,10 +112,6 @@ function start() {
     #  Ensure we have script file.
     node_app=${node_app:-"server.js"}
 
-    if [ ! -h "$OPENSHIFT_NODEJS_DIR/node_modules" ]; then
-       ln -s $OPENSHIFT_HOMEDIR/.node_modules $OPENSHIFT_NODEJS_DIR/node_modules
-    fi
-
     pushd "$OPENSHIFT_REPO_DIR" > /dev/null
     {
         echo "`date +"$FMT"`: Starting application '$OPENSHIFT_APP_NAME' ..."

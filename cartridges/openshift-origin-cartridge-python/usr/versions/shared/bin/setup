@@ -14,6 +14,12 @@ echo > $OPENSHIFT_PYTHON_DIR/etc/conf.d/passenv.conf
 rm -f $OPENSHIFT_PYTHON_DIR/modules ; ln -s /usr/lib64/httpd/modules $OPENSHIFT_PYTHON_DIR
 rm -f $OPENSHIFT_PYTHON_DIR/etc/magic ; ln -s /etc/httpd/conf/magic $OPENSHIFT_PYTHON_DIR/etc/magic
 
+# Create the virtenv symlink
+pushd $OPENSHIFT_PYTHON_DIR > /dev/null
+mkdir -p $OPENSHIFT_DEPENDENCIES_DIR/virtenv
+ln -s $OPENSHIFT_DEPENDENCIES_DIR/virtenv virtenv
+popd > /dev/null
+
 # The virtual environment is assumed to exist going forward
 if [ ! -f $OPENSHIFT_PYTHON_DIR/virtenv/bin/python ]
 then

@@ -441,6 +441,8 @@ function sync_gear_repos {
   # Set the sync source base dir
   local SYNC_BASE_DIR=$OPENSHIFT_PRIMARY_CARTRIDGE_DIR
 
+  local deployment_id=`cat ../app-root/runtime/repo/../metadata/id`
+
   export RSYNC_RSH="ssh"
 
   local rsynccmd="rsync -v --delete-after -az"
@@ -451,7 +453,8 @@ function sync_gear_repos {
   # Defaults for sync-gears.  Override these in .env from the configure script
   if [ -z "$OPENSHIFT_SYNC_GEARS_DIRS" ]
   then
-    local OPENSHIFT_SYNC_GEARS_DIRS=( "../app-root/repo" "node_modules" "virtenv" "../.m2" ".openshift" "deployments" "perl5lib" "phplib" )
+    #local OPENSHIFT_SYNC_GEARS_DIRS=( "../app-root/repo" "node_modules" "virtenv" "../.m2" ".openshift" "deployments" "perl5lib" "phplib" )
+    local OPENSHIFT_SYNC_GEARS_DIRS=( "../app-deployments/" "../app-dependencies/" )
   fi
   if [ -z "$OPENSHIFT_SYNC_GEARS_PRE" ]
   then
@@ -467,7 +470,7 @@ function sync_gear_repos {
   fi
   if [ -z "$OPENSHIFT_SYNC_GEARS_POST" ]
   then
-    local remote_deploy_cmd="gear remotedeploy"
+    local remote_deploy_cmd="gear activate $deployment_id --child"
 
     if [ "$new_gear" = "true" ]; then
       remote_deploy_cmd="${remote_deploy_cmd} --init"
@@ -513,7 +516,7 @@ function sync_gear_repos {
         do
           if [ -d "${SYNC_BASE_DIR}/${subd}" ]
           then
-            $rsynccmd "${SYNC_BASE_DIR}/${subd}/" "${gear}/${subd}/"
+            $rsynccmd "${SYNC_BASE_DIR}/${subd}" "${gear}/${subd}"
           fi
         done
 

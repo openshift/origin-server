@@ -19,7 +19,9 @@ module OpenShift
     class PubSubConnector
       attr_reader :name, :connection_type
       RESERVED = {
-          "publish-gear-endpoint" => 'NET_TCP:gear-endpoint-info'
+          "publish-gear-endpoint" => 'NET_TCP:gear-endpoint-info',
+          "publish-http-url" =>  'NET_TCP:httpd-proxy-info',
+          "set-gear-endpoints" => 'NET_TCP:gear-endpoint-info'
       }
 
       def initialize(connection_type, name)

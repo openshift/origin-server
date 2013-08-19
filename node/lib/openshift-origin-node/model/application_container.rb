@@ -19,11 +19,13 @@ require 'openshift-origin-node/model/frontend_proxy'
 require 'openshift-origin-node/model/frontend_httpd'
 require 'openshift-origin-node/model/v2_cart_model'
 require 'openshift-origin-node/model/node'
+require 'openshift-origin-node/model/gear_registry'
 require 'openshift-origin-common/models/manifest'
 require 'openshift-origin-node/model/application_container_ext/environment'
 require 'openshift-origin-node/model/application_container_ext/setup'
 require 'openshift-origin-node/model/application_container_ext/snapshots'
 require 'openshift-origin-node/model/application_container_ext/cartridge_actions'
+require 'openshift-origin-node/model/application_container_ext/deployments'
 require 'openshift-origin-node/utils/shell_exec'
 require 'openshift-origin-node/utils/application_state'
 require 'openshift-origin-node/utils/environ'
@@ -60,6 +62,7 @@ module OpenShift
       include ApplicationContainerExt::Setup
       include ApplicationContainerExt::Snapshots
       include ApplicationContainerExt::CartridgeActions
+      include ApplicationContainerExt::Deployments
 
       GEAR_TO_GEAR_SSH = "/usr/bin/ssh -q -o 'BatchMode=yes' -o 'StrictHostKeyChecking=no' -i $OPENSHIFT_APP_SSH_KEY "
       DEFAULT_SKEL_DIR = PathUtils.join(OpenShift::Config::CONF_DIR,"skel")

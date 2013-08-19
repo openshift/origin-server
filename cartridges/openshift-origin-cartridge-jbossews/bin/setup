@@ -23,7 +23,10 @@ if $migrate_webapps; then
   rm -f ${OPENSHIFT_JBOSSEWS_DIR}/webapps
 fi
 
-mkdir -p ${OPENSHIFT_JBOSSEWS_DIR}/{run,tmp,conf,logs,webapps}
+mkdir -p ${OPENSHIFT_DEPENDENCIES_DIR}webapps
+ln -sf ${OPENSHIFT_DEPENDENCIES_DIR}webapps webapps
+
+mkdir -p ${OPENSHIFT_JBOSSEWS_DIR}/{run,tmp,conf,logs}
 mkdir -p ${OPENSHIFT_HOMEDIR}/.m2
 
 # Set up the config directory in the user repository template

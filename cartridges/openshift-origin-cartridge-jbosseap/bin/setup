@@ -7,7 +7,10 @@ esac
 
 # Create additional directories required by JBOSSEAP
 mkdir -p ${OPENSHIFT_HOMEDIR}/.m2
-mkdir -p ${OPENSHIFT_JBOSSEAP_DIR}/{bin,template,standalone/tmp,standalone/deployments,standalone/configuration,standalone/log,standalone/data}
+mkdir -p ${OPENSHIFT_JBOSSEAP_DIR}/{bin,template,standalone/tmp,standalone/configuration,standalone/log,standalone/data}
+
+mkdir -p ${OPENSHIFT_DEPENDENCIES_DIR}deployments
+ln -sf ${OPENSHIFT_DEPENDENCIES_DIR}deployments standalone/deployments
 
 # Copy the version specific files up to jbosseap directory
 cp -r ${OPENSHIFT_JBOSSEAP_DIR}/versions/${version}/standalone/configuration/* ${OPENSHIFT_JBOSSEAP_DIR}/standalone/configuration

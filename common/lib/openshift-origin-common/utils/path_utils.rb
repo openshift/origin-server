@@ -52,6 +52,17 @@ module PathUtils
 
   module_function :oo_chown_R
 
+  ##
+  # Created to mimic oo_chown, but symbolic links are *NOT* dereferenced.
+  def oo_lchown(user, group, *list)
+    user  = pu_get_uid(user)
+    group = pu_get_gid(group)
+
+    File.lchown(user, group, *list)
+  end
+
+  module_function :oo_lchown
+
   # PathUtils.join(string, ...)  ->  path
   #
   # Returns a new string formed by joining the strings using

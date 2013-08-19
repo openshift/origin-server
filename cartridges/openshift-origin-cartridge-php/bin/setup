@@ -11,8 +11,14 @@ shopt -s dotglob
 mkdir -p $OPENSHIFT_PHP_DIR/configuration/etc/
 cp -Hr $OPENSHIFT_PHP_DIR/versions/shared/configuration/etc/* $OPENSHIFT_PHP_DIR/configuration/etc/
 
+
 # Create/truncate Apache PassEnv configuration file
 echo > $OPENSHIFT_PHP_DIR/configuration/etc/conf.d/passenv.conf
+
+# Create dependencies symlink
+mkdir -p $OPENSHIFT_DEPENDENCIES_DIR/phplib
+ln -sf ${OPENSHIFT_DEPENDENCIES_DIR}phplib phplib
+
 
 # Create additional directories required by PHP
 mkdir -p $OPENSHIFT_PHP_DIR/phplib/pear/{docs,ext,php,cache,cfg,data,download,temp,tests,www}

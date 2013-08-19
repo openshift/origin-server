@@ -13,7 +13,7 @@ parse_args $@
 shopt -s dotglob
 for dir in etc; do
     mkdir -p $OPENSHIFT_RUBY_DIR/$dir
-    cp -Lr $OPENSHIFT_RUBY_DIR/versions/$version/$dir/* $OPENSHIFT_RUBY_DIR/$dir 
+    cp -Lr $OPENSHIFT_RUBY_DIR/versions/$version/$dir/* $OPENSHIFT_RUBY_DIR/$dir
 done
 
 # Create/truncate Apache PassEnv configuration file
