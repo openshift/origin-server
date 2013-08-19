@@ -33,7 +33,8 @@ case "$old_cart_version" in
         for f in $OPENSHIFT_PYTHON_DIR/env/*.erb; do
             if [ -f "$f" ]; then
                 d=$(basename "$f" .erb)
-                /usr/bin/oo-erb -S 2 -- "$f" > "$d"
+                p=$(dirname "$f")
+                /usr/bin/oo-erb -S 2 -- "$f" > "$p/$d"
                 rm -f "$f"
             fi
         done
