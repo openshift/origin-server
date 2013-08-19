@@ -13,6 +13,13 @@ function apache() {
     return $?
 }
 
+function restart() {
+    update_httpd_passenv $HTTPD_CFG_FILE
+    ensure_httpd_restart_action "$HTTPD_PID_FILE" "$HTTPD_CFG_FILE"
+    /usr/sbin/httpd -C "Include $HTTPD_CFG_DIR/*.conf" -f $HTTPD_CFG_FILE -k restart
+    return $?
+}
+
 function stop() {
     ensure_valid_httpd_process "$HTTPD_PID_FILE" "$HTTPD_CFG_FILE"
     if [ -f "$HTTPD_PID_FILE" ]; then
@@ -83,7 +90,7 @@ function build() {
 case "$1" in
   start)           echo "Starting PHP cartridge";   apache start ;;
   stop)            echo "Stopping PHP cartridge";   stop ;;
-  restart)         echo "Restarting PHP cartridge"; apache restart ;;
+  restart)         echo "Restarting PHP cartridge"; restart ;;
   reload|graceful) echo "Reloading PHP cartridge";  apache graceful ;;
   status)          status ;;
   configtest)      configtest ;;
