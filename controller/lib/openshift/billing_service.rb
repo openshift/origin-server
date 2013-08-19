@@ -97,7 +97,7 @@ module OpenShift
         session.with(safe:true)[:usage].find(_id: usage['_id']).update({"$set" => {end_time: srec['end_time']}})
       end
     end
- 
+
     # For ended usage records: delete from mongo
     def delete_ended_urecs(session, srecs)
       return if srecs.empty?

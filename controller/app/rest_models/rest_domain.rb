@@ -22,7 +22,7 @@
 #   @return [String] DNS suffix under which the application is created. Eg: rhcloud.com
 class RestDomain < OpenShift::Model
   attr_accessor :name, :suffix, :members, :allowed_gear_sizes, :creation_time, :links
-  
+
   def initialize(domain, url, nolinks=false)
     self.name = domain.namespace
     self.suffix = Rails.application.config.openshift[:domain_suffix] 
@@ -34,7 +34,7 @@ class RestDomain < OpenShift::Model
       @application_count = domain.application_count
       @gear_counts = domain.gear_counts || {}
     end
-    
+
     unless nolinks      
       blacklisted_words = OpenShift::ApplicationContainerProxy.get_blacklisted
       carts = CartridgeCache.cartridge_names("web_framework")
@@ -58,15 +58,15 @@ class RestDomain < OpenShift::Model
           OptionalParam.new("force", "boolean", "Force delete domain.  i.e. delete any applications under this domain", [true, false], false)
         ]),
         "LIST_MEMBERS" => Link.new("List members of this domain", "GET", URI::join(url, "domains/#{name}/members")),
-        "ADD_MEMBER" => Link.new("Add one or more members to this domain", "POST", URI::join(url, "domains/#{name}/members"), 
-          [Param.new("role", "string", "The role the user should have on the domain", Role.all)], 
+        "ADD_MEMBER" => Link.new("Add one or more members to this domain", "POST", URI::join(url, "domains/#{name}/members"),
+          [Param.new("role", "string", "The role the user should have on the domain", Role.all)],
           [OptionalParam.new("id", "string", "Unique identifier of the user"),
           OptionalParam.new("login", "string", "The user's login attribute")]
         ),
       }
     end
   end
-  
+
   def to_xml(options={})
     options[:tag_name] = "domain"
     super(options)

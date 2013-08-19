@@ -129,7 +129,7 @@ class RestApplication10 < OpenShift::Model
       else
         unless cart.categories.include? "web_framework"
           self.embedded[cart.name] = component_instance.component_properties
-          
+
           # if the component has a connection_url property, add it as "info" for backward compatibility
           if component_instance.component_properties.has_key?("connection_url")
             self.embedded[cart.name]["info"] = "Connection URL: #{component_instance.component_properties['connection_url']}"
@@ -189,11 +189,11 @@ class RestApplication10 < OpenShift::Model
         "SCALE_DOWN" => Link.new("Scale down application", "POST", URI::join(url, "domains/#{@domain_id}/applications/#{@name}/events"), [
           Param.new("event", "string", "event", "scale-down")
         ]),
-        "TIDY" => Link.new("Tidy the application framework", "POST", URI::join(url, "domains/#{@domain_id}/applications/#{@name}/events"), [                                                                                                                                       
-          Param.new("event", "string", "event", "tidy")                                                                                                                                                                                                                            
+        "TIDY" => Link.new("Tidy the application framework", "POST", URI::join(url, "domains/#{@domain_id}/applications/#{@name}/events"), [
+          Param.new("event", "string", "event", "tidy")
         ]), 
-        "RELOAD" => Link.new("Reload the application", "POST", URI::join(url, "domains/#{@domain_id}/applications/#{@name}/events"), [                                                                                                                                             
-          Param.new("event", "string", "event", "reload")                                                                                                                                                                                                                          
+        "RELOAD" => Link.new("Reload the application", "POST", URI::join(url, "domains/#{@domain_id}/applications/#{@name}/events"), [
+          Param.new("event", "string", "event", "reload")
         ]),
         "THREAD_DUMP" => Link.new("Trigger thread dump", "POST", URI::join(url, "domains/#{@domain_id}/applications/#{@name}/events"), [
           Param.new("event", "string", "event", "thread-dump")
