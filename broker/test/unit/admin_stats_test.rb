@@ -53,7 +53,7 @@ class AdminStatsTest < ActiveSupport::TestCase
     dist_hash = @stats.get_district_entries
     assert_equal 1, dist_hash.size, "should be 1 district in db: #{dist_hash}"
     assert dist_hash.has_key?(@dist_uuid),
-      "expecting to see #{@dist_uuid} in district hash"
+      "expecting to see #{@dist_uuid} in district hash #{dist_hash}"
     assert_equal 5, dist_hash[@dist_uuid][:dist_avail_uids]
     assert dist_hash[@dist_uuid][:nodes].has_key?(@node_name),
       "expecting to see #{@node_name} in the node list for district #{@dist_uuid}"
@@ -124,12 +124,12 @@ class AdminStatsTest < ActiveSupport::TestCase
     # need to be able to convert back to non-subclass hashes for YAML dump
     r = OpenShift::HashWithReaders.deep_clear_subclasses(r)
     refute_kind_of OpenShift::HashWithReaders, r, "should be a hash: #{r.class}"
-    refute_kind_of OpenShift::HashWithReaders, r[:profile_summaries].first
-    refute_kind_of OpenShift::HashWithReaders, r[:district_summaries].first
-    refute_kind_of OpenShift::HashWithReaders, r[:district_entries_hash].first[1]
-    refute_kind_of OpenShift::HashWithReaders, r[:node_entries_hash].first[1]
-    deduped = r[:profile_summaries].first
-    assert_same deduped, r[:profile_summaries_hash][deduped[:profile]],
+    refute_kind_of OpenShift::HashWithReaders, r['profile_summaries'].first
+    refute_kind_of OpenShift::HashWithReaders, r['district_summaries'].first
+    refute_kind_of OpenShift::HashWithReaders, r['district_entries_hash'].first[1]
+    refute_kind_of OpenShift::HashWithReaders, r['node_entries_hash'].first[1]
+    deduped = r['profile_summaries'].first
+    assert_same deduped, r['profile_summaries_hash'][deduped['profile']],
       "instances in the results in multiple places should not have different copies"
 
     # need to be able to convert back to HashWithReader from plain hash dump

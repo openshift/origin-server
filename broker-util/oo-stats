@@ -421,11 +421,9 @@ class OOStats
           @results = OpenShift::HashWithReaders.deep_convert_hashes(@results)
         end
       when /(json|jsn|js)$/
-        #require 'json'
-        #@results = JSON.parse( IO.read(file) )
-        #@results = OpenShift::HashWithReaders.deep_convert_hashes(@results)
-        puts "Can't use JSON; it does not preserve symbols"
-        exit(1)
+        require 'json'
+        @results = JSON.parse( IO.read(file) )
+        @results = OpenShift::HashWithReaders.deep_convert_hashes(@results)
       else
         puts "Don't know how to parse file '#{file}'"
         puts "Please change extension to .yaml"
