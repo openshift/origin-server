@@ -1702,7 +1702,18 @@ dig @127.0.0.1 node.example.com
 This should resolve to the 10.4.59.y IP address that you specified for the node host in the _oo-register-node_ command.
 
 === Configure SSH Key Authentication
-While on the broker application host, you need to copy the SSH key that you previously created over to the node. This will enable operations to work from inside of OpenShift Origin without requiring a password. Once you connect to the broker host, copy the key with the following command:
+While on the broker application host, you need to copy the SSH key that you previously created over to the node. This will enable operations to work from inside of OpenShift Origin without requiring a password.
+
+[NOTE]
+====
+If you have not done so already, create a .ssh directory for the root user on the node host:
+
+----
+$ mkdir -m 0700 -p /root/.ssh
+----
+====
+
+Once you connect to the broker host, copy the key with the following command:
 
 *Execute the following on the broker host*:
 
