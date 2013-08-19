@@ -81,7 +81,7 @@ Each gear can allocate up to 5 proxy ports. These are exposed on a routable addr
 
 Proxy ports are enabled by HAProxy running as a system service and configured to proxy raw TCP connections; as opposed to the HAProxy cartridge which provides web load balancing sevice. In the future, they will be the underlying mechanism which is used to provide TCP connections described by Application Descriptors.
 
-Proxy ports are not directly accessible from outside the collection of nodes.
+NOTE: In OpenShift Online, proxy ports are not directly accessible from outside the collection of nodes. In OpenShift Origin and OpenShift Enterprise this restriction does not exist unless implemented by the system administrator.
 
 == Cartridges
 As described above, Cartridges represent pluggable components that can be combined within a single application. At a minimum, an application needs a language or environment cartridge (like PHP or JBoss EAP). Most applications will also need a database cartridge.
