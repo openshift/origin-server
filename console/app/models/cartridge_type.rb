@@ -123,8 +123,12 @@ class CartridgeType < RestApi::Base
 
   def name_parts
     @name_parts ||= begin
-      n, v = /\A(.+)-(\d+(?:\.\d+)+)\Z/.match(name).values_at(1,2)
-      [n, v.split('.').map(&:to_i)]
+      if match = /\A(.+)-(\d+(?:\.\d+)+)\Z/.match(name)
+        n, v = match.values_at(1,2)
+        [n, v.split('.').map(&:to_i)]
+      else
+        [name, '0']
+      end
     end
   end
 
