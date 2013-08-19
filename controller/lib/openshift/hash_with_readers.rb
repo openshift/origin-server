@@ -15,27 +15,46 @@
 #++
 
 module OpenShift
-  # Helper hash subclass with two purposes:
+  # Helper hash subclass with three purposes:
   # 1. Give a type to the objects returned, rather than just being Hashes.
   # 2. Provide attribute readers that fail if the key is missing,
   #    to help detect mistakes faster.
+  # 3. Simplify serialization by making all keys strings, not symbols, but
+  #    still allowing key access by symbol.
   class HashWithReaders < Hash
     class NoSuchKey < StandardError; end
+
+    # Keys switched from symbols to strings -
+    # so, translate for any code already accessing by symbol.
+    def [](key); super(key.to_s); end
+    def []=(key, *args); super(key.to_s, *args); end
+    def has_key?(key); super(key.to_s); end
+    def merge(hash); self.clone.merge! hash; end
+    def merge!(hash)
+      hash.each {|k,v| self[k] = v} #ah, but now keys are converted to string.
+      self
+    end
+
+    # provide readers for keys
     def method_missing(sym, *args)
       # don't screen other things that operate via method_missing
       return super if [:to_ary, :to_json, :to_yaml, :to_xml].include? sym
-      return self[sym] if self.has_key? sym
-      return self[sym.to_s] if self.has_key?(sym.to_s)
+      key = sym.to_s
+      return self[key] if self.has_key? key
       raise NoSuchKey.new("#{self.class} has no key #{sym}: #{self.inspect}")
     end
-    # easily identify class in output
+    def respond_to?(sym, *args)
+      has_key?(sym) || super
+    end
+
+    # make classes easily identified in output
     def to_s; "#{self.class} #{super}"; end
     def inspect; "#{self.class} #{super}"; end
     def pretty_inspect; "#{self.class} #{super}"; end
 
     # Convert Hash subclasses into plain hashes for YAML/XML dump.
     # Assumptions:
-    #   Hash keys will be simple objects - don't need to clear them
+    #   Hash keys will be strings - don't need to clear them
     #   No custom objects with Hash subclass contents
     def self.deep_clear_subclasses(obj)
       deep_convert(obj, {}, lambda { Hash.new })
@@ -43,7 +62,7 @@ module OpenShift
 
     # Convert plain hashes into HashWithReaders
     # Assumptions:
-    #   Hash keys will be simple objects - don't need to convert them
+    #   Hash keys will be strings - don't need to convert them
     #   No custom objects with Hash subclass contents
     def self.deep_convert_hashes(obj)
       deep_convert(obj, {}, lambda { HashWithReaders.new })
@@ -56,7 +75,7 @@ module OpenShift
       when Hash
         return dedup[id] if dedup.has_key? id
         dedup[id] = copy = new_lambda.call
-        obj.each {|k,v| copy[k] = deep_convert(v, dedup, new_lambda)}
+        obj.each {|k,v| copy[k.to_s] = deep_convert(v, dedup, new_lambda)}
         copy
       when Array
         return dedup[id] if dedup.has_key? id
