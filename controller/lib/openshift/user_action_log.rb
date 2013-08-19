@@ -31,7 +31,7 @@ module OpenShift::UserActionLog
     # So, we are including only the first line
     # Either ways, the reference/request ID can be used to look up the error details in the broker Rails logs 
     description = description.to_s.lines.first.strip if description.to_s.lines.count > 1
-    
+
     logger.info("#{message}#{auth}#{extra} #{description}")
 
     unless Rails.env.production?

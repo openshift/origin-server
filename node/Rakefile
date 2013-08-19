@@ -33,7 +33,7 @@ Rake::TestTask.new(:test) do |t|
   t.libs << File.expand_path('../lib', __FILE__)
   t.libs << File.expand_path('../../common/lib', __FILE__)
   t.pattern = 'test/**/*_test.rb'
-end                                                          
+end
 
 desc "Generate RDoc"
 task :doc do

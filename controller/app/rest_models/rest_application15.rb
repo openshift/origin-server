@@ -125,7 +125,7 @@ class RestApplication15 < OpenShift::Model
       else
         unless cart.categories.include? "web_framework"
           self.embedded[cart.name] = component_instance.component_properties
-          
+
           # if the component has a connection_url property, add it as "info" for backward compatibility
           # make sure it is a hash, because copy-pasting the app document in mongo (using rockmongo UI) can convert hashes into arrays 
           if component_instance.component_properties.is_a?(Hash) and component_instance.component_properties.has_key?("connection_url")

@@ -197,7 +197,7 @@ class PendingAppOpGroup
           when :reserve_uid
             gear.reserve_uid
           when :unreserve_uid
-            gear.unreserve_uid          
+            gear.unreserve_uid
           when :expose_port
             job = gear.get_expose_port_job(component_instance)
             tag = { "expose-ports" => component_instance._id.to_s, "op_id" => op._id.to_s }
@@ -216,7 +216,7 @@ class PendingAppOpGroup
           when :post_configure_component
             result_io.append gear.post_configure_component(component_instance, op.args["init_git_url"])
           when :remove_component
-            result_io.append gear.remove_component(component_instance)          
+            result_io.append gear.remove_component(component_instance)
             gear.save! if component_instance.is_sparse?
           when :create_gear
             result_io.append gear.create_gear
@@ -236,14 +236,14 @@ class PendingAppOpGroup
               end
             end
           when :register_dns
-            begin 
+            begin
               gear.register_dns
             rescue OpenShift::DNSLoginException => e
               op.set(:state, :rolledback)
               raise
             end
-          when :deregister_dns          
-            gear.deregister_dns          
+          when :deregister_dns
+            gear.deregister_dns
           when :destroy_gear
             result_io.append gear.destroy_gear(true)
           when :start_component

@@ -225,14 +225,14 @@ module OpenShift
             @cartridge_model.do_control('post-receive',
                                         builder_cartridge,
                                         out: options[:out],
-                err: options[:err])
+                                        err: options[:err])
           else
             @cartridge_model.do_control('pre-repo-archive',
                                         @cartridge_model.primary_cartridge,
                                         out:                       options[:out],
-                err:                       options[:err],
-                pre_action_hooks_enabled:  false,
-                post_action_hooks_enabled: false)
+                                        err:                       options[:err],
+                                        pre_action_hooks_enabled:  false,
+                                        post_action_hooks_enabled: false)
 
             ApplicationRepository.new(self).archive
 
@@ -246,7 +246,7 @@ module OpenShift
 
         #
         # A deploy variant intended for use by builder cartridges. This method is useful when
-        # the build has already occured elsewhere, and the gear now needs a local deployment.
+        # the build has already occurred elsewhere, and the gear now needs a local deployment.
         #
         #   1. Runs the primary cartridge +update-configuration+ control action
         #   2. Executes +deploy+

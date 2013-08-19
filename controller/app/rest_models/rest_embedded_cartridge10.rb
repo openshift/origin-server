@@ -41,7 +41,7 @@ class RestEmbeddedCartridge10 < OpenShift::Model
     self.properties = {}
     if app
       self.properties = cinst.component_properties
-      
+
       domain_id = app.domain_namespace
       app_id = app.name
       if type == "embedded" and not app_id.nil? and not domain_id.nil?

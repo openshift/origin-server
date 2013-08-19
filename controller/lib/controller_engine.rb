@@ -20,14 +20,14 @@ module ActionDispatch
     def patch?
       HTTP_METHOD_LOOKUP[request_method] == :patch
     end
-    
+
     delegate :patch, :to => :request
   end
-  
+
   module Routing
     self.send(:remove_const, "HTTP_METHODS")
     HTTP_METHODS = [:get, :head, :post, :put, :delete, :options, :patch]
-    
+
     class Mapper
       def patch(*args, &block)
         map_method(:patch, *args, &block)

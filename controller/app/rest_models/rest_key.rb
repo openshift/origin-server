@@ -23,7 +23,7 @@
 #   @return [String] Type of the ssh-key. Eg: ssh-rsa
 class RestKey < OpenShift::Model
   attr_accessor :name, :content, :type, :links
-  
+
   def initialize(key, url, nolinks=false)
     self.name= key.name
     self.content = key.content
@@ -38,7 +38,7 @@ class RestKey < OpenShift::Model
       "DELETE" => Link.new("Delete SSH key", "DELETE", URI::join(url, "user/keys/#{name}"))
     } unless nolinks
   end
-  
+
   def to_xml(options={})
     options[:tag_name] = "key"
     super(options)

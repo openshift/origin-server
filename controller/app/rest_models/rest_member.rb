@@ -26,7 +26,7 @@ class RestMember < OpenShift::Model
     } unless nolinks
 =end
   end
-  
+
   def to_type(type)
     case type
     when 'team' then 'team'

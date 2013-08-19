@@ -64,7 +64,7 @@ module OpenShift
         def check_nolinks
           nolinks
         end
-          
+
         def get_bool(param_value)
           return false unless param_value
           if param_value.is_a? TrueClass or param_value.is_a? FalseClass
@@ -106,7 +106,7 @@ module OpenShift
             false
           end
         end
-        
+
         def get_log_tag_prepend
           tag = "UNKNOWN"
           case request.method
@@ -124,8 +124,8 @@ module OpenShift
             tag = "DELETE_"
           end
           return tag
-        end 
-        
+        end
+
         def get_domain(id=nil)
           id ||= params[:domain_id].presence
           @domain = Domain.accessible(current_user).find_by(canonical_namespace: Domain.check_name!(id.presence).downcase)
@@ -137,8 +137,8 @@ module OpenShift
           application_id = params[:application_id].presence || params[:id].presence || params[:application_name].presence || params[:name].presence
           application_id = application_id.to_s if application_id
 
-          @application = 
-            if domain_id.nil? 
+          @application =
+            if domain_id.nil?
               Application.accessible(current_user).find_by(uuid: application_id)
             else 
               domain_id = Domain.check_name!(domain_id).downcase
@@ -151,7 +151,7 @@ module OpenShift
               end
             end
         end
-        
+
         def authorize!(permission, resource, *resources)
           Ability.authorize!(current_user, current_user.scopes, permission, resource, *resources)
         end

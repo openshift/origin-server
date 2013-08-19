@@ -16,7 +16,7 @@ module OpenShift::Controller::ActionLog
       define_method :action_log_tag_resource do
         s
       end
-    end    
+    end
   end
 
   protected
