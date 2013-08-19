@@ -131,8 +131,8 @@ when "env_del"
   domain.reload
   domain.run_jobs
 when "create"
-  if ssh_key.nil? || namespace.nil? || login.nil?
-    print "Please provide login, ssh key and namespace to create the user\n"
+  if namespace.nil? || login.nil?
+    print "Please provide login and namespace to create the user\n"
     exit 1
   end
   user = nil
@@ -151,8 +151,13 @@ when "create"
   end
   
   user = CloudUser.find_or_create_by_identity(provider, login)
-  user.add_ssh_key(UserSshKey.new(name: ssh_name, content: ssh_key, type: ssh_type))
-  user.save!
+
+  # Add the ssh key if it is provided
+  if ssh_key
+    user.add_ssh_key(UserSshKey.new(name: ssh_name, content: ssh_key, type: ssh_type))
+    user.save!
+  end
+  
   Lock.create_lock(user)
   reply.resultIO << "Successfully created user.\n"
 
