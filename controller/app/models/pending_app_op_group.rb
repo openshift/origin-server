@@ -132,6 +132,10 @@ class PendingAppOpGroup
         when :remove_alias
           gear = get_gear_for_rollback(op)
           result_io.append gear.add_alias("abstract", op.args["fqdn"])
+        when :patch_user_env_vars
+          set_vars, unset_vars = Application.sanitize_user_env_variables(op.args["user_env_vars"])
+          result_io.append application.get_app_dns_gear.unset_user_env_vars(set_vars, application.get_gears_ssh_endpoint(true)) if set_vars.present?
+          result_io.append application.get_app_dns_gear.set_user_env_vars(op.saved_values, application.get_gears_ssh_endpoint(true)) if op.saved_values.present?
         when :add_ssl_cert
           gear = get_gear_for_rollback(op)
           result_io.append gear.remove_ssl_cert("abstract", op.args["fqdn"])
@@ -323,6 +327,19 @@ class PendingAppOpGroup
             a.has_private_ssl_certificate = false
             a.certificate_added_at = nil
             self.application.save
+          when :patch_user_env_vars
+            set_vars, unset_vars = Application.sanitize_user_env_variables(op.args["user_env_vars"])
+            if op.args["user_env_vars"].present?
+              # save overlapped user env vars for rollback
+              existing_vars = application.list_user_env_variables
+              new_keys = op.args["user_env_vars"].map {|ev| ev['name']}.compact
+              overlapped_keys = existing_vars.keys & new_keys
+              saved_vars = []
+              overlapped_keys.each {|key| saved_vars << {'name' => key, 'value' => existing_vars[key]}}
+              op.set(:saved_values, saved_vars) unless saved_vars.empty?
+            end
+            result_io.append application.get_app_dns_gear.unset_user_env_vars(unset_vars, application.get_gears_ssh_endpoint(true)) if unset_vars.present?
+            result_io.append application.get_app_dns_gear.set_user_env_vars(set_vars, application.get_gears_ssh_endpoint(true)) if set_vars.present? or op.args["push"]
           when :replace_all_ssh_keys
             tag = { "op_id" => op._id.to_s }
             job = gear.get_fix_authorized_ssh_keys_job(op.args["keys_attrs"])

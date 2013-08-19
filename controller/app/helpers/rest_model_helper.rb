@@ -95,7 +95,15 @@ module RestModelHelper
       RestAlias.new(@application, al1as, get_url, nolinks)
     end
   end
-  
+ 
+  def get_rest_environment_variable(env_var)
+    if requested_api_version <= 1.5
+      RestEnvironmentVariable15.new(@application, env_var, get_url, nolinks)
+    else
+      RestEnvironmentVariable.new(@application, env_var, get_url, nolinks)
+    end
+  end
+ 
   def get_rest_gear_group(group_inst, gear_states, application, get_url, nolinks)
     if requested_api_version <= 1.5
       RestGearGroup15.new(group_inst, gear_states, application, get_url, nolinks)

@@ -767,7 +767,7 @@ module OpenShift
           args['--with-software-version'] = downloaded_cart["version"]
         end
 
-        if !template_git_url.nil?  && !template_git_url.empty?
+        if template_git_url.present?
           args['--with-template-git-url'] = template_git_url
         end
 
@@ -798,7 +798,7 @@ module OpenShift
         args = build_base_gear_args(gear)
         args = build_base_component_args(component, args)
 
-        if !template_git_url.nil?  && !template_git_url.empty?
+        if template_git_url.present?
           args['--with-template-git-url'] = template_git_url
         end
 
@@ -1227,6 +1227,75 @@ module OpenShift
         args = build_base_gear_args(gear)
         args['--with-alias-name']=server_alias
         result = execute_direct(@@C_CONTROLLER, 'remove-alias', args)
+        parse_result(result)
+      end
+
+      #
+      # Add or Update user environment variables to all gears in the app
+      #
+      # INPUTS:
+      # * gear: a Gear object
+      # * env_vars: Array of environment variables, e.g.:[{'name'=>'FOO','value'=>'123'}, {'name'=>'BAR','value'=>'abc'}]
+      # * gears_ssh_endpoint: list of ssh gear endpoints
+      #
+      # RETURNS:
+      # * String: stdout from a command
+      #
+      # NOTES:
+      # * calls execute_direct
+      # * executes the 'user-var-add' action on the node
+      #
+      def set_user_env_vars(gear, env_vars, gears_ssh_endpoint)
+        args = build_base_gear_args(gear)
+        if env_vars.present?
+          args['--with-variables'] = env_vars.map {|ev| "#{ev['name']}=#{ev['value']}"}.join(' ')
+        end
+        args['--with-gears'] = gears_ssh_endpoint.join(';') if gears_ssh_endpoint.present?
+        result = execute_direct(@@C_CONTROLLER, 'user-var-add', args)
+        parse_result(result)
+      end
+
+      #
+      # Remove user environment variables from all gears in the app
+      #
+      # INPUTS:
+      # * gear: a Gear object
+      # * env_vars: Array of environment variable names, e.g.:[{'name'=>'FOO'}, {'name'=>'BAR'}]
+      # * gears_ssh_endpoint: list of ssh gear endpoints
+      #
+      # RETURNS:
+      # * String: stdout from a command
+      #
+      # NOTES:
+      # * calls execute_direct
+      # * executes the 'user-var-remove' action on the node
+      #
+      def unset_user_env_vars(gear, env_vars, gears_ssh_endpoint)
+        args = build_base_gear_args(gear)
+        args['--with-keys'] = env_vars.map {|ev| ev['name']}.join(' ')
+        args['--with-gears'] = gears_ssh_endpoint.join(';') if gears_ssh_endpoint.present?
+        result = execute_direct(@@C_CONTROLLER, 'user-var-remove', args)
+        parse_result(result)
+      end
+
+      #
+      # List all or selected  user environment variables for the app
+      #
+      # INPUTS:
+      # * gear: a Gear object
+      # * env_var_names: List of environment variable names, e.g.:['FOO', 'BAR']
+      #
+      # RETURNS:
+      # * String: stdout from a command
+      #
+      # NOTES:
+      # * calls execute_direct
+      # * executes the 'user-var-list' action on the node
+      #
+      def list_user_env_vars(gear, env_var_names)
+        args = build_base_gear_args(gear)
+        args['--with-keys'] = env_var_names.join(' ') if env_var_names.present?
+        result = execute_direct(@@C_CONTROLLER, 'user-var-list', args)
         parse_result(result)
       end
 
@@ -3214,7 +3283,7 @@ module OpenShift
       # * uses MCollective::RPC::Client
       #
       def self.execute_parallel_jobs_impl(handle)
-        if handle && !handle.empty?
+        if handle.present?
           start_time = Time.new
           begin
             options = MCollectiveApplicationContainerProxy.rpc_options

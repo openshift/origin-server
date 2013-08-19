@@ -153,15 +153,18 @@ module OpenShift
       # - model/unix_user.rb
       # context: root
       def create
+        output = ''
         notify_observers(:before_container_create)
         # lock to prevent race condition between create and delete of gear
         uuid_lock_file = "/var/lock/oo-create.#{@uuid}"
-        File.open(uuid_lock_file, File::RDWR|File::CREAT|File::TRUNC, 0o0600) do | uuid_lock |
+        File.open(uuid_lock_file, File::RDWR|File::CREAT|File::TRUNC, 0600) do | uuid_lock |
           uuid_lock.fcntl(Fcntl::F_SETFD, Fcntl::FD_CLOEXEC)
           uuid_lock.flock(File::LOCK_EX)
 
           @container_plugin = Containerization::Plugin.new(self)
           @container_plugin.create
+
+          output = generate_ssh_key
 
           if @config.get("CREATE_APP_SYMLINKS").to_i == 1
             unobfuscated = PathUtils.join(File.dirname(@container_dir),"#{@container_name}-#{@namespace}")
@@ -174,6 +177,7 @@ module OpenShift
         end
 
         notify_observers(:after_container_create)
+        output
       end
 
       # Destroy gear
@@ -197,7 +201,7 @@ module OpenShift
 
         # Don't try to delete a gear that is being scaled-up|created|deleted
         uuid_lock_file = "/var/lock/oo-create.#{@uuid}"
-        File.open(uuid_lock_file, File::RDWR|File::CREAT|File::TRUNC, 0o0600) do | lock |
+        File.open(uuid_lock_file, File::RDWR|File::CREAT|File::TRUNC, 0600) do | lock |
           lock.fcntl(Fcntl::F_SETFD, Fcntl::FD_CLOEXEC)
           lock.flock(File::LOCK_EX)
 

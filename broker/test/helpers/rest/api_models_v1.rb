@@ -240,6 +240,7 @@ class RestDomain_V1 < BaseObj_V1
          OptionalParam_V1.new("scale", "boolean", [true, false], false),
          OptionalParam_V1.new("gear_profile", "string"),
          OptionalParam_V1.new("initial_git_url", "string", ["*", "empty"]),
+         OptionalParam_V1.new("environment_variables", "array")
         ]),
       "UPDATE" => Link_V1.new("PUT", "domains/#{id}",
         [ Param_V1.new("id", "string") ]),
@@ -315,7 +316,8 @@ class RestApplication_V1 < BaseObj_V1
         [ Param_V1.new("event", "string", "reload") ]),
       "DELETE" => Link_V1.new("DELETE", "domains/#{domain_id}/applications/#{name}"),
       "ADD_CARTRIDGE" => Link_V1.new("POST", "domains/#{domain_id}/applications/#{name}/cartridges",
-        [ Param_V1.new("cartridge", "string") ]),
+        [ Param_V1.new("cartridge", "string") ],
+        [ OptionalParam_V1.new("environment_variables", "array") ]),
       "LIST_CARTRIDGES" => Link_V1.new("GET", "domains/#{domain_id}/applications/#{name}/cartridges")
     } unless $nolinks
   end
