@@ -53,7 +53,7 @@ class ActionDispatch::Routing::Mapper
         @options[:singular_resource] && !expose_legacy_api ? "#{singular}/:#{singular}_id" : "#{path}/:#{singular}_id"
       end
     end
-    
+
     def resources(*resources, &block)
       options = resources.extract_options!.dup
 
@@ -77,7 +77,7 @@ class ActionDispatch::Routing::Mapper
       if (@scope[:expose_legacy_api])
         _resources_body(resources_copy, options_copy, true, &block)
       end
-      
+
       # The regular route generation path, if the resource has :singular_resource
       # then this is the path that will create the new singular routes
       if !expose_legacy_api_set

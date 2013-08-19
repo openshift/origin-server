@@ -41,7 +41,7 @@
 #   @return [String] Default option value
 class OptionalParam < OpenShift::Model
   attr_accessor :name, :type, :description, :valid_options, :default_value
-  
+
   def initialize(name=nil, type=nil, description=nil, valid_options=nil, default_value=nil)
     self.name = name
     self.type = type

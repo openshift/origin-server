@@ -144,7 +144,7 @@ module OpenShift
 
           inspect_gear_state
           gear_pre_upgrade
-          
+
           itinerary = compute_itinerary
           result[:itinerary] = itinerary.entries
 
@@ -193,7 +193,7 @@ module OpenShift
 
       def load_gear_extension
         return unless @@gear_extension_present
-        
+
         begin
           if !OpenShift::GearUpgradeExtension.respond_to?(:version)
             raise "Gear upgrade extension must respond to version"
@@ -491,7 +491,7 @@ module OpenShift
 
         cart_model.unlock_gear(next_manifest) do |m|
           cart_model.secure_cartridge(next_manifest.short_name, container.uid, container.gid, target)
-          
+
           execute_cartridge_upgrade_script(target, current_version, next_manifest)
 
           progress.step "#{name}_setup" do |context, errors|

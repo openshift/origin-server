@@ -144,14 +144,14 @@ class RestEmbeddedCartridge15 < OpenShift::Model
 
     unless comp.nil?
       self.supported_scales_from = comp.scaling.min
-      
+
       if app && !app.scalable && comp.scaling.max == -1
         self.supported_scales_to = 1
       else
         self.supported_scales_to = comp.scaling.max
       end
     end
-    
+
     self.properties = []
     if app.nil?
       #self.provides = cart.features

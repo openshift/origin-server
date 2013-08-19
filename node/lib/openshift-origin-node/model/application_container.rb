@@ -78,7 +78,7 @@ module OpenShift
       if !::OpenShift::Runtime::Containerization::Plugin.respond_to?(:container_dir)
         raise ArgumentError.new('containerization plugin must respond to container_dir')
       end
-      
+
       def initialize(application_uuid, container_uuid, user_uid = nil, application_name = nil, container_name = nil,
                      namespace = nil, quota_blocks = nil, quota_files = nil, hourglass = nil)
         @config           = ::OpenShift::Config.new

@@ -63,7 +63,7 @@ class RestUser10 < OpenShift::Model
       ]) if cloud_user.parent_user_id
     end
   end
-  
+
   def to_xml(options={})
     options[:tag_name] = "user"
     super(options)

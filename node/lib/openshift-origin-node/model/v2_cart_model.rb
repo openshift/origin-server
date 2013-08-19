@@ -306,11 +306,11 @@ module OpenShift
       def validate_cartridge(manifest)
         illegal_overrides = ::OpenShift::Runtime::Utils::Environ.load(PathUtils.join(@container.container_dir, '.env')).keys &
             ::OpenShift::Runtime::Utils::Environ.load(PathUtils.join(@container.container_dir, manifest.directory, 'env')).keys
-  
+
         # Older gears may have these and cartridges are allowed to override them
         illegal_overrides.delete('LD_LIBRARY_PATH')
         illegal_overrides.delete('PATH')
-  
+
         unless illegal_overrides.empty?
           raise RuntimeError.new(
                     "Cartridge attempted to override the following gear environment variables: #{illegal_overrides.join(', ')}")

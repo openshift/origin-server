@@ -22,14 +22,14 @@
 #   @return [String] DNS suffix under which the application is created. Eg: rhcloud.com
 class RestDomain15 < OpenShift::Model
   attr_accessor :id, :suffix, :members, :allowed_gear_sizes, :creation_time, :links
-  
+
   def initialize(domain, url, nolinks=false)
     self.id = domain.namespace
     self.suffix = Rails.application.config.openshift[:domain_suffix] 
     self.creation_time = domain.created_at
     self.members = domain.members.map{ |m| RestMember.new(m, domain.owner_id == m._id, url, nolinks) }
     self.allowed_gear_sizes = domain.allowed_gear_sizes
-    
+
     if not domain.application_count.nil?
       @application_count = domain.application_count
       @gear_counts = domain.gear_counts || {}
@@ -62,11 +62,11 @@ class RestDomain15 < OpenShift::Model
           [Param.new("role", "string", "The role the user should have on the domain", Role.all)], 
           [OptionalParam.new("id", "string", "Unique identifier of the user"),
           OptionalParam.new("login", "string", "The user's login attribute")]
-        ),        
+        ),
       }
     end
   end
-  
+
   def to_xml(options={})
     options[:tag_name] = "domain"
     super(options)

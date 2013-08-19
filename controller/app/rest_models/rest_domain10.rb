@@ -22,12 +22,12 @@
 #   @return [String] DNS suffix under which the application is created. Eg: rhcloud.com
 class RestDomain10 < OpenShift::Model
   attr_accessor :id, :suffix, :links
-  
+
   def initialize(domain, url, nolinks=false)
     self.id = domain.namespace
     self.suffix = Rails.application.config.openshift[:domain_suffix] 
-    
-    unless nolinks      
+
+    unless nolinks
       valid_sizes = domain.allowed_gear_sizes
       blacklisted_words = OpenShift::ApplicationContainerProxy.get_blacklisted
       carts = CartridgeCache.cartridge_names("web_framework")
@@ -51,10 +51,10 @@ class RestDomain10 < OpenShift::Model
       }
     end
   end
-  
+
   def to_xml(options={})
     options[:tag_name] = "domain"
     super(options)
   end
-  
+
 end

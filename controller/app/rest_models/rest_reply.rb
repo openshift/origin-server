@@ -29,7 +29,7 @@
 # @attr [Array<String>] supported_api_versions Other supported REST API versions
 class RestReply < OpenShift::Model
   attr_accessor :version, :status, :type, :data, :messages, :supported_api_versions, :api_version
-  
+
   def initialize(requested_api_version, status=nil, type=nil, data=nil)
     self.status = status
     self.type = type
@@ -39,7 +39,7 @@ class RestReply < OpenShift::Model
     self.api_version = requested_api_version
     self.supported_api_versions = OpenShift::Controller::ApiBehavior::SUPPORTED_API_VERSIONS
   end
-  
+
   def process_result_io(result_io)
     unless result_io.nil?
       if result_io.is_a? Array
@@ -55,7 +55,7 @@ class RestReply < OpenShift::Model
       end
     end
   end
-  
+
   def to_xml(options={})
     options[:tag_name] = "response"
     unless self.data.kind_of? Enumerable

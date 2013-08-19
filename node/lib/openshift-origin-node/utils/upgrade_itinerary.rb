@@ -5,25 +5,25 @@ module OpenShift
       INCOMPATIBLE = 'incompatible'
     end
 
-  	class UpgradeItinerary
+    class UpgradeItinerary
       attr_reader :entries
 
-  	  def initialize(gear_home, entries = {}, has_incompatible = false)
-  	  	@gear_home = gear_home
+      def initialize(gear_home, entries = {}, has_incompatible = false)
+        @gear_home = gear_home
         @entries = entries || {}
         @has_incompatible = has_incompatible
-  	  end
+      end
 
       def create_entry(cartridge_name, upgrade_type)
-      	@entries[cartridge_name] = upgrade_type
+        @entries[cartridge_name] = upgrade_type
 
-      	if upgrade_type == UpgradeType::INCOMPATIBLE
-      	  @has_incompatible = true
-      	end
+        if upgrade_type == UpgradeType::INCOMPATIBLE
+          @has_incompatible = true
+        end
       end
 
       def has_incompatible_upgrade?
-      	@has_incompatible
+        @has_incompatible
       end
 
       def each_cartridge
@@ -33,7 +33,7 @@ module OpenShift
       end
 
       def persist
-      	jsonish_self = { entries: @entries, has_incompatible: @has_incompatible}
+        jsonish_self = { entries: @entries, has_incompatible: @has_incompatible}
         IO.write(self.class.itinerary_file(@gear_home), JSON.dump(jsonish_self))
       end
 
@@ -50,6 +50,6 @@ module OpenShift
       def self.remove_from(gear_home)
         FileUtils.rm_f(itinerary_file(gear_home))
       end
-  	end
+    end
   end
 end

@@ -49,7 +49,7 @@ class RestApplication13 < OpenShift::Model
       else
         unless cart.categories.include? "web_framework"
           self.embedded[cart.name] = component_instance.component_properties
-          
+
           # if the component has a connection_url property, add it as "info" for backward compatibility
           if component_instance.component_properties.has_key?("connection_url")
             self.embedded[cart.name]["info"] = "Connection URL: #{component_instance.component_properties['connection_url']}"
