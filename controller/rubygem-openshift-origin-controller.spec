@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.13.4
+Version: 1.13.5
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -84,6 +84,17 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Mon Aug 19 2013 Adam Miller <admiller@redhat.com> 1.13.5-1
+- Fixing typos (dmcphers@redhat.com)
+- Bug 997785 (dmcphers@redhat.com)
+- Merge pull request #3382 from smarterclayton/builder_scope_incorrect
+  (dmcphers+openshiftbot@redhat.com)
+- <cartridge versions> origin_runtime_219, fix up cart references for renamed
+  cart https://trello.com/c/evcTYKdn/219-3-adjust-out-of-date-cartridge-
+  versions (jolamb@redhat.com)
+- Node Platform - Fixed grep in node_step.rb (jhonce@redhat.com)
+- Fix builder scope by introducing a domain builder scope (ccoleman@redhat.com)
+
 * Fri Aug 16 2013 Adam Miller <admiller@redhat.com> 1.13.4-1
 - Merge pull request #3390 from pmorie/dev/fix_tests
   (dmcphers+openshiftbot@redhat.com)
