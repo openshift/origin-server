@@ -185,7 +185,7 @@ NOTE: Fedora installations should skip this section.
 ----
 yum install -y ruby193
 
-cat <<EOF > /etc/profile.d/scl193.sh
+cat <<'EOF' > /etc/profile.d/scl193.sh
 # Setup PATH, LD_LIBRARY_PATH and MANPATH for ruby-1.9
 ruby19_dir=$(dirname `scl enable ruby193 "which ruby"`)
 export PATH=$ruby19_dir:$PATH
