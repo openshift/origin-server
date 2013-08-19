@@ -16,7 +16,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.13.6
+Version: 1.13.7
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -305,6 +305,17 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Mon Aug 19 2013 Adam Miller <admiller@redhat.com> 1.13.7-1
+- Added 'httpd_restart_action' function to Bash SDK (mfojtik@redhat.com)
+- Fixing typos (dmcphers@redhat.com)
+- Merge pull request #3397 from danmcp/master
+  (dmcphers+openshiftbot@redhat.com)
+- patch upgrade.rb to use gear_map_ident for upgrade_cartridges ident
+  resolution (jolamb@redhat.com)
+- Bug 989225 - the logic changed so that @container_dir is always set and
+  @container_plugin is nil if the container no longer exists.
+  (rmillner@redhat.com)
+
 * Fri Aug 16 2013 Adam Miller <admiller@redhat.com> 1.13.6-1
 - Merge pull request #3380 from rmillner/BZ996296
   (dmcphers+openshiftbot@redhat.com)
