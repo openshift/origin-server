@@ -725,11 +725,15 @@ class Upgrader
             end
           end
 
-          gear_result.remote_upgrade_result = JSON.load(remote_result_json)
+          gear_result.remote_upgrade_result = JSON.load(remote_result_json) if remote_result_json
           gear_result.remote_exit_code = exit_code
 
-          unless gear_result.remote_upgrade_result['upgrade_complete']
-            gear_result.errors << "Gear upgrade result is marked incomplete"
+          if gear_result.remote_upgrade_result
+            unless gear_result.remote_upgrade_result['upgrade_complete']
+              gear_result.errors << "Gear upgrade result is marked incomplete"
+            end
+          else
+            gear_result.errors << "Gear upgrade response absent from MCollective reply"
           end
 
           upgrade_on_node_time = (Time.now.to_f * 1000).to_i - upgrade_on_node_start_time
