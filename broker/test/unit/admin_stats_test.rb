@@ -19,13 +19,15 @@ class AdminStatsTest < ActiveSupport::TestCase
     })
     @node_name = "test-node.example.com"
     @short_name = "test-node"
+    # mcollective returns two nodes, one districted, one not
     @nodes_hash = {
       @node_name => @node_details,
-      "clone.example.com" => @node_details.merge(district_uuid: "NONE"),
+      "nodist.example.com" => @node_details.merge(district_uuid: "NONE"),
     }
 
     @district=faux_mongo_district({
       @node_name            => @node_details,
+      # the missing node is districted in mongo but mco doesn't report on it:
       "missing.example.com" => @node_details,
     }).merge({
       'available_capacity' => 3,
@@ -51,7 +53,7 @@ class AdminStatsTest < ActiveSupport::TestCase
     dist_hash = @stats.get_district_entries
     assert_equal 1, dist_hash.size, "should be 1 district in db: #{dist_hash}"
     assert dist_hash.has_key?(@dist_uuid),
-      "expecting to see #{@dist_uuid} in district hash"
+      "expecting to see #{@dist_uuid} in district hash #{dist_hash}"
     assert_equal 5, dist_hash[@dist_uuid][:dist_avail_uids]
     assert dist_hash[@dist_uuid][:nodes].has_key?(@node_name),
       "expecting to see #{@node_name} in the node list for district #{@dist_uuid}"
@@ -65,6 +67,22 @@ class AdminStatsTest < ActiveSupport::TestCase
     assert_equal 0, sum_hash[@dist_uuid][:effective_available_gears]
     assert_equal 1, sum_hash[@dist_uuid][:missing_nodes].size,
       "missing.example.com should be missing"
+  end
+
+  test "effective avail gears excludes district-inactive nodes" do
+    @node_details[:max_active_gears] = 20 # leaving 10 available
+    @nodes_hash["nodist.example.com"][:max_active_gears] = 20 # also 10 in undistricted
+    # add inactive node to the district
+    @nodes_hash["inactive.example.com"] = @node_details.merge(district_active: "false")
+    @district['available_capacity'] = 1000  # plenty of district capacity
+    admin_stats_stubber(@nodes_hash, faux_db_with([@district]))
+    sum_hash = @stats.summarize_districts(@stats.get_district_entries, @stats.get_node_entries)
+    assert_equal 20, sum_hash[@dist_uuid][:available_active_gears]
+    assert_equal 10, sum_hash[@dist_uuid][:effective_available_gears],
+      "inactive node shouldn't be counted in effective available"
+    assert_equal 10, sum_hash['NONE profile=test'][:available_active_gears]
+    assert_equal 10, sum_hash['NONE profile=test'][:effective_available_gears],
+      "NONE district counts all as effectively available"
   end
 
   test "getting db stats" do
@@ -106,12 +124,12 @@ class AdminStatsTest < ActiveSupport::TestCase
     # need to be able to convert back to non-subclass hashes for YAML dump
     r = OpenShift::HashWithReaders.deep_clear_subclasses(r)
     refute_kind_of OpenShift::HashWithReaders, r, "should be a hash: #{r.class}"
-    refute_kind_of OpenShift::HashWithReaders, r[:profile_summaries].first
-    refute_kind_of OpenShift::HashWithReaders, r[:district_summaries].first
-    refute_kind_of OpenShift::HashWithReaders, r[:district_entries_hash].first[1]
-    refute_kind_of OpenShift::HashWithReaders, r[:node_entries_hash].first[1]
-    deduped = r[:profile_summaries].first
-    assert_same deduped, r[:profile_summaries_hash][deduped[:profile]],
+    refute_kind_of OpenShift::HashWithReaders, r['profile_summaries'].first
+    refute_kind_of OpenShift::HashWithReaders, r['district_summaries'].first
+    refute_kind_of OpenShift::HashWithReaders, r['district_entries_hash'].first[1]
+    refute_kind_of OpenShift::HashWithReaders, r['node_entries_hash'].first[1]
+    deduped = r['profile_summaries'].first
+    assert_same deduped, r['profile_summaries_hash'][deduped['profile']],
       "instances in the results in multiple places should not have different copies"
 
     # need to be able to convert back to HashWithReader from plain hash dump

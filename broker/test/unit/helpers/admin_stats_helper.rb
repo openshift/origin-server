@@ -33,7 +33,7 @@ def faux_mongo_district(nodes_hash={})
   {
     'gear_size' => profile,
     'uuid' => uuid,
-    'name' => uuid + "_district",
+    'name' => "#{uuid}_district",
     'server_identities' => servers,
     'max_capacity' => 6000,
     'available_capacity' => 6000-used,
