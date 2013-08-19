@@ -200,9 +200,11 @@ class Haproxy
           raise ShouldRetry, "Failed to get information from haproxy"
         end
 
+        @log.debug("Local sessions #{@sessions}")
         num_remote_proxies = 0
         @status_urls.each do |surl|
           num_sessions = get_remote_sessions_count(surl)
+          @log.debug("Remote sessions #{surl} #{num_sessions}")
           if num_sessions >= 0
             @sessions += num_sessions
             num_remote_proxies += 1
@@ -210,7 +212,7 @@ class Haproxy
         end
 
         @log.debug("Got stats from #{num_remote_proxies} remote proxies.")
-        @sessions_per_gear = @sessions.to_f / (@gear_count * (num_remote_proxies + 1))
+        @sessions_per_gear = @sessions.to_f / @gear_count
         @session_capacity_pct = (@sessions_per_gear / MAX_SESSIONS_PER_GEAR ) * 100
     end
 
