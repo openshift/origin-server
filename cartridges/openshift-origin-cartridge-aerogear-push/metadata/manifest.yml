@@ -51,8 +51,6 @@ Cart-Data:
 Provides:
   - jbossas-7
   - "jbossas"
-  - "jbossas(version) = 7.1"
-  - "jbossas(version) >= 7.1"
   - "jboss-as7"
   - jbossas-standalone
   - jboss-as7-standalone
@@ -66,18 +64,14 @@ Publishes:
   publish-jboss-remoting:
     Type: "NET_TCP:jbossas-remoting-info"
 Subscribes:
-  set-db-connection-info:
-    Type: "ENV:NET_TCP:db:connection-info"
-    Required: false
+  set-env:
+    Type: "ENV:*"
     Required: false
   set-mysql-connection-info:
     Type: "NET_TCP:db:mysql"
     Required : false
   set-postgres-connection-info:
     Type: "NET_TCP:db:postgres"
-    Required : false
-  set-nosql-db-connection-info:
-    Type: "ENV:NET_TCP:nosqldb:connection-info"
     Required : false
   set-doc-url:
     Type: "STRING:urlpath"
@@ -91,10 +85,6 @@ Subscribes:
 Scaling:
   Min: 1
   Max: -1
-Group-Overrides:
-  - components:
-    - jbossas-7
-    - web_proxy
 Endpoints:
   - Private-IP-Name:     IP
     Private-Port-Name:   HTTP_PORT
@@ -105,7 +95,7 @@ Endpoints:
     Mappings:
       - Frontend:      ""
         Backend:       ""
-        Options:       { "websocket": 1}
+        Options:       { "websocket": true}
       - Frontend:      "/health"
         Backend:       ""
         Options:       { health: true }
@@ -125,5 +115,12 @@ Endpoints:
     Private-Port-Name: REMOTING_PORT
     Private-Port:      4447
     Public-Port-Name:  REMOTING_PROXY_PORT
+  - Private-IP-Name:   IP
+    Private-Port-Name: MANAGEMENT_NATIVE_PORT
+    Private-Port:      9999
+  - Private-IP-Name:   IP
+    Private-Port-Name: MANAGEMENT_HTTP_PORT
+    Private-Port:      9990
+    
 Additional-Control-Actions:
     - threaddump

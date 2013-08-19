@@ -70,8 +70,20 @@ mkdir -p %{cartridgedir}/usr/modules/org/jboss/aerogear/simplepush/main
 ln -fs %{cartridgedir}/versions/0.8.0/modules/org/jboss/aerogear/simplepush/main/* %{cartridgedir}/usr/modules/org/jboss/aerogear/simplepush/main
 
 
-%posttrans
-%{_sbindir}/oo-admin-cartridge --action install --source %{cartridgedir}
+%postun
+# Cleanup alternatives if uninstall only
+# This is run after %post so we do not want to remove if an upgrade
+# Don't uninstall the maven alternative, since it is also used by jbosseap and jbossews carts
+if [ $1 -eq 0 ]; then
+  %if 0%{?rhel}
+    alternatives --remove jbossas-7 /opt/jboss-as-%{jbossver}
+  %endif
+ 
+  %if 0%{?fedora}
+    alternatives --remove jbossas-7 /usr/share/jboss-as
+  %endif
+fi
+
 
 
 %files

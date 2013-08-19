@@ -4,10 +4,104 @@ source $OPENSHIFT_CARTRIDGE_SDK_BASH
 
 JBOSSAS_BIN_DIR=${OPENSHIFT_AEROGEAR_PUSH_DIR}/bin
 JBOSSAS_PID_FILE=${OPENSHIFT_HOMEDIR}/app-root/runtime/aerogear_push.pid
+JBOSSAS_DEPLOYMENTS_DIR=${OPENSHIFT_AEROGEAR_PUSH_DIR}/standalone/deployments
+SCANCONFIG=""
 
 source $JBOSSAS_BIN_DIR/util
 
 cartridge_type="aerogear-push"
+
+# Return the deployment-scanner configuration
+function getscanconfig() {
+    count=0
+    while [ ${count} -lt 4 ]; do
+      controller="${OPENSHIFT_AEROGEAR_PUSH_IP}:${OPENSHIFT_AEROGEAR_PUSH_MANAGEMENT_NATIVE_PORT}"
+      scanconfig=`jboss-cli.sh -c --controller=${controller} "/subsystem=deployment-scanner/:read-resource(recursive=true)" 2>&1 || :`
+      if [[ $scanconfig =~ '"outcome" => "success"' ]] ; then
+        SCANCONFIG=$scanconfig
+        return
+      fi
+      let count+=1
+
+      sleep 2
+    done
+}
+
+# Verify that the deployment scanner has finished running
+function waitondeployments() {
+    if ! ismgmtup; then
+      client_message "Timed out waiting for management listening port"
+      client_message "Could not connect to JBoss management interface, skipping deployment verification"
+    else 
+      getscanconfig
+
+      if [ "$SCANCONFIG" == "" ]; then
+        client_message "Could not connect to JBoss management interface, skipping deployment verification"
+      elif [[ $SCANCONFIG =~ '"scan-enabled" => true' ]]; then
+        pushd $JBOSSAS_DEPLOYMENTS_DIR
+
+        artifacts=()
+        while read -r -d $'\0'; do
+          artifacts+=("$REPLY")
+        done < <(find . -iregex '.*\.\([ejrsw]ar\|zip\)$' -print0)
+
+        deployexploded=false
+        if [[ $SCANCONFIG =~ '"auto-deploy-exploded" => true' ]]; then
+          deployexploded=true
+        fi
+        deployarchive=false
+        if [[ $SCANCONFIG =~ '"auto-deploy-zipped" => true' ]]; then
+          deployarchive=true
+        fi 
+
+        artifactsdeployed=()
+        artifactsfailed=()
+        artifactsskipped=()
+        artifactsunknown=()
+        for artifact in ${artifacts[*]}; do
+          if ( [ -f $artifact ] && $deployarchive ) || ( [ -d $artifact ] && $deployexploded ); then         
+            # TODO triple check this logic, add a timeout 
+            while [ -f ${artifact}.isdeploying ]; do
+              client_message "Artifact: ${artifact} is still deploying"
+              sleep 10
+            done
+
+            if [ -f ${artifact}.deployed ]; then
+              artifactsdeployed+=($artifact)
+            elif [ -f ${artifact}.failed ]; then
+              artifactsfailed+=($artifact)
+            else
+              artifactsunknown+=($artifact)
+            fi
+
+          else
+            # artifact skipped because of deployment scanner config
+            artifactsskipped+=($artifact)
+          fi
+        done
+
+        popd
+
+        if [ ${#artifactsskipped[@]} -gt 0 ]; then
+          client_result "Artifacts skipped because of deployment-scanner configuration: ${artifactsskipped[*]}"
+        fi
+
+        if [ ${#artifactsfailed[@]} -gt 0 ]; then
+          client_result "Failed deployments: ${artifactsfailed[*]}"
+        fi
+
+        if [ ${#artifactsdeployed[@]} -gt 0 ]; then
+          client_result "Artifacts deployed: ${artifactsdeployed[*]}"
+        fi
+
+        if [ ${#artifactsunknown[@]} -gt 0 ]; then
+          client_result "Artifacts in an unknown state: ${artifactsunknown[*]}"
+        fi
+      else
+          client_message "Deployment scanner disabled, skipping deployment verification"
+      fi
+    fi
+}
 
 # Check if the jbossas process is running
 function isrunning() {
@@ -61,7 +155,7 @@ killtree() {
 function ishttpup() {
 
     let count=0
-    while [ ${count} -lt 48 ]
+    while [ ${count} -lt 64 ]
     do
         if /usr/sbin/lsof -P -n -i "@${OPENSHIFT_AEROGEAR_PUSH_IP}:${OPENSHIFT_AEROGEAR_PUSH_HTTP_PORT}" | grep "(LISTEN)" > /dev/null; then
             echo "Found ${OPENSHIFT_AEROGEAR_PUSH_IP}:${OPENSHIFT_AEROGEAR_PUSH_HTTP_PORT} listening port"
@@ -75,8 +169,26 @@ function ishttpup() {
     return 1
 }
 
+# Check if the server mgmt port is up
+function ismgmtup() {
+    let count=0
+    while [ ${count} -lt 10 ]
+    do
+        if /usr/sbin/lsof -P -n -i "@${OPENSHIFT_AEROGEAR_PUSH_IP}:${OPENSHIFT_AEROGEAR_PUSH_MANAGEMENT_NATIVE_PORT}" | grep "(LISTEN)" > /dev/null; then
+            echo "Found ${OPENSHIFT_AEROGEAR_PUSH_IP}:${OPENSHIFT_AEROGEAR_PUSH_MANAGEMENT_NATIVE_PORT} listening port"
+            return 0
+        fi
+        let count=${count}+1
+ 
+        sleep 2
+    done
+
+    return 1
+}
+
+
 function start() {
-  echo "Starting $cartridge_type cart"
+  echo "Starting $cartridge_type cartridge"
 
   if marker_present "enable_jpda"
   then
@@ -90,16 +202,19 @@ function start() {
     ${JBOSSAS_BIN_DIR}/standalone.sh > ${OPENSHIFT_TMP_DIR}/${cartridge_type}.log 2>&1 &
     PROCESS_ID=$!
     echo "$PROCESS_ID" > ${JBOSSAS_PID_FILE}
+
     if ! ishttpup; then
         echo "Timed out waiting for http listening port"
         exit 1
     fi
+
+    waitondeployments
   fi
 }
 
 
 function stop() {
-  echo "Stopping $cartridge_type cart"
+  echo "Stopping $cartridge_type cartridge"
 
   if isrunning; then
     if [ -f "$JBOSSAS_PID_FILE" ]; then
@@ -113,10 +228,7 @@ function stop() {
 }
 
 function restart() {
-    echo "Restarting $cartridge_type cart"
-
     stop
-
     start
 }
 
@@ -130,7 +242,6 @@ function status() {
 }
 
 function reload() {
-    echo "Reloading $cartridge_type cart"
     restart
 }
 
@@ -142,7 +253,7 @@ function tidy() {
 }
 
 function threaddump() {
-  echo "Thread dump for $cartridge_type cart"
+  echo "Thread dump for $cartridge_type cartridge"
 
     if ! isrunning; then
         echo "Application is stopped"

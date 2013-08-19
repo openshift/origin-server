@@ -12,3 +12,6 @@ mkdir -p ${OPENSHIFT_AEROGEAR_PUSH_DIR}/{standalone/tmp,standalone/deployments,s
 # Copy the version specific files up to jbossas directory
 cp -r ${OPENSHIFT_AEROGEAR_PUSH_DIR}/versions/${version}/standalone/configuration/* ${OPENSHIFT_AEROGEAR_PUSH_DIR}/standalone/configuration
 cp ${OPENSHIFT_AEROGEAR_PUSH_DIR}/versions/${version}/bin/* ${OPENSHIFT_AEROGEAR_PUSH_DIR}/bin
+
+# Initialize the JBoss CLI history file
+[ -f ${OPENSHIFT_HOMEDIR}/.jboss-cli-history ] || touch ${OPENSHIFT_HOMEDIR}/.jboss-cli-history
