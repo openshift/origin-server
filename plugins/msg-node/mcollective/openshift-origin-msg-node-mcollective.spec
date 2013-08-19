@@ -10,7 +10,7 @@
 
 Summary:       M-Collective agent file for openshift-origin-msg-node-mcollective
 Name:          openshift-origin-msg-node-mcollective
-Version: 1.13.5
+Version: 1.13.6
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -51,6 +51,9 @@ cp -p facts/update_yaml.rb %{buildroot}/usr/libexec/mcollective/
 %attr(0700,-,-) %config(noreplace) /etc/cron.minutely/openshift-facts
 
 %changelog
+* Mon Aug 19 2013 Adam Miller <admiller@redhat.com> 1.13.6-1
+- Bug 995599 - Add lock when building cartridge repository (jhonce@redhat.com)
+
 * Fri Aug 16 2013 Adam Miller <admiller@redhat.com> 1.13.5-1
 - Removing has_app mcollective method since its no longer used
   (abhgupta@redhat.com)
