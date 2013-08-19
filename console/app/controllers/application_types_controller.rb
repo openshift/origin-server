@@ -66,7 +66,7 @@ class ApplicationTypesController < ConsoleController
 
     @application = (@application_type >> Application.new(:as => current_user)).assign_attributes(app_params)
     @application.gear_profile = @capabilities.gear_sizes.first unless @capabilities.gear_sizes.include?(@application.gear_profile)
-    @application.domain_name = app_params[:domain_name].presence || app_params[:domain_id].presence || @user_default_domain.name.presence
+    @application.domain_name = app_params[:domain_name] || app_params[:domain_id] || @user_default_domain.name
 
     unless @unlock_cartridges
       begin

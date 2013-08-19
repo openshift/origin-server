@@ -1,6 +1,7 @@
 - # application
 - # domains: list of existing domain objects
 - # can_create: true or false
+- # create_domain_url: nil or url to create and return to the current page with params embedded
 
 .input-prepend.input-append
   %span.add-on http://
@@ -13,32 +14,30 @@
     :placeholder => 'Application name', 
     :class => "application_name span3 #{'error' if application.errors.include? :name}"
 
-  - here = application_type_path(@application_type.id, params)
-
   - if domains.length == 1 and (can_create == false or domains.first.owner?)
-    / Readonly
+    -# Readonly
     %span.add-on> -#{domains.first.name}.#{RestApi.application_domain_suffix}
     = form.hidden_field :domain_name, :value => domains.first.name
 
-    - if can_create
+    - if can_create and create_domain_url
       %p.help-block
-        %span= "You can also #{link_to "create a new namespace", new_domain_path({:then => here})}".html_safe
+        %span= "You can also #{link_to "create a new namespace", create_domain_url, :data => {:submit_domain => true}}".html_safe
 
   - elsif domains.present?
-    / Select
+    -# Select
     %span.add-on.middle> &ndash;
     = form.select :domain_name,
       domains.map(&:name).sort,
-      {:include_blank => true},
+      {:include_blank => !domains.find {|d| d.name == application.domain_name }},
       {:class => "domain_name #{'error' if application.errors.include? :domain_name}"}
     %span.add-on>= ".#{RestApi.application_domain_suffix}"
 
-    - if can_create
+    - if can_create and create_domain_url
       %p.help-block
-        %span= "You can also #{link_to "create a new namespace", new_domain_path({:then => here})}".html_safe
+        %span= "You can also #{link_to "create a new namespace", create_domain_url, :data => {:submit_domain => true}}".html_safe
 
   - elsif can_create
-    / Text
+    -# Text
     %span.add-on.middle> &ndash;
     = form.text_field :domain_name, 
       :placeholder => 'Namespace', 
@@ -49,27 +48,5 @@
     %p.help-block
       %span.text-warning Because this is your first application, you need to provide a namespace under which your applications will be grouped
   - else
-    / Error
+    -# Error
     %span.add-on> Error, can't create namespace
-
-
-
-  -# If the user has a domain, use it, otherwise prompt them for that field
-/   - if domain and domain.persisted?
-
-/     %span.add-on> -#{domain.name}.#{RestApi.application_domain_suffix}
-
-/   - else
-
-/     %span.add-on.middle> &ndash;
-/     %label.invisible{:for => 'application_domain_name'} Domain
-/     = form.text_field :domain_name, 
-/       :value => "#{application.domain_name}", 
-/       :placeholder => 'Domain', 
-/       :size => nil, 
-/       :class => "domain_name span3 #{'error' if application.errors.include? :domain_name}"
-/     %span.add-on>= ".#{RestApi.application_domain_suffix}"
-
-/ - unless domain and domain.persisted?
-/   %p.help-block
-/     %span.text-warning Because this is your first application, you need to provide a domain name under which your applications will be grouped

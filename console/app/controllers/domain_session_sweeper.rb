@@ -7,7 +7,7 @@ class DomainSessionSweeper < ActiveModel::Observer
   end
   def self.after(controller)
     if self.domain_changes?
-      controller.session[:domain] = nil
+      Rails.cache.delete([controller.current_user.login, :domains])
       Rails.logger.debug "Session domain is reset"
     end
   end

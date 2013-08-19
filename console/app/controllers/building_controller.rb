@@ -8,7 +8,7 @@ class BuildingController < ConsoleController
   def new
     @application = Application.find(params[:application_id], :as => current_user)
     @jenkins_server = if @application.building_app
-        @domain.find_application(@application.building_app) if @application.building_app
+        @application.domain.find_application(@application.building_app) if @application.building_app
       else
         Application.new({:name => 'jenkins'}, false)
       end
