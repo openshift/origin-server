@@ -27,13 +27,15 @@ case "$old_cart_version" in
         # is a failure but retry is possible.
 	rm -rf $OPENSHIFT_PYTHON_DIR/opt
 	rm -rf $OPENSHIFT_PYTHON_DIR/versions
+        rm -rf $OPENSHIFT_PYTHON_DIR/upstream-repo
 	rm -rf $OPENSHIFT_PYTHON_DIR/virtenv/*
 
         # Need the environment ERBs rendered at this point
         for f in $OPENSHIFT_PYTHON_DIR/env/*.erb; do
             if [ -f "$f" ]; then
                 d=$(basename "$f" .erb)
-                /usr/bin/oo-erb -S 2 -- "$f" > "$d"
+                p=$(dirname "$f")
+                /usr/bin/oo-erb -S 2 -- "$f" > "$p/$d"
                 rm -f "$f"
             fi
         done
