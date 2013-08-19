@@ -327,6 +327,19 @@ function hot_deploy_marker_is_present() {
     marker_present hot_deploy
 }
 
+# return 'start' instead of restart if the HTTPD pid file is corrupted and the
+# HTTPD is not running
+function ensure_httpd_restart_succeed() {
+    local pid_file="$1"
+    local cfg_file="$2"
+
+    if process_running 'httpd' $pid_file; then
+      ensure_valid_httpd_pid_file "$pid_file" "$cfg_file"
+    else
+      rm -f $pid_file 2>/dev/null
+    fi
+}
+
 # report the primary cartridge name for this gear
 function primary_cartridge_name() {
   awk -F: '{printf "%s-%s", $2, $3}' $OPENSHIFT_PRIMARY_CARTRIDGE_DIR/env/OPENSHIFT_*_IDENT
