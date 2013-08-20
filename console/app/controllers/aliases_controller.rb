@@ -64,13 +64,12 @@ class AliasesController < ConsoleController
     @private_ssl_certificates_supported = @user.capabilities["private_ssl_certificates"]
     @alias = @application.find_alias params[:id]
 
-    result =
-      if params[:alias]
-        @alias.certificate_file = params[:alias][:certificate_file]
-        @alias.certificate_private_key_file = params[:alias][:certificate_private_key_file]
-        @alias.certificate_pass_phrase = params[:alias][:certificate_pass_phrase]
-        redirect_to @application and return if @alias.certificate.nil?
-      end
+    if params[:alias]
+      @alias.certificate_file = params[:alias][:certificate_file]
+      @alias.certificate_private_key_file = params[:alias][:certificate_private_key_file]
+      @alias.certificate_pass_phrase = params[:alias][:certificate_pass_phrase]
+      redirect_to @application and return if @alias.certificate.nil?
+    end
 
     if @alias.save
       redirect_to @application, :flash => {:success => "Alias '#{@alias.id}' has been updated"}
