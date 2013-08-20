@@ -1,7 +1,7 @@
 %global cartridgedir %{_libexecdir}/openshift/cartridges/perl
 
 Name:          openshift-origin-cartridge-perl
-Version: 0.8.4
+Version: 0.8.5
 Release:       1%{?dist}
 Summary:       Perl cartridge
 Group:         Development/Languages
@@ -72,6 +72,9 @@ rm %{buildroot}%{cartridgedir}/metadata/manifest.yml.*
 
 
 %changelog
+* Tue Aug 20 2013 Adam Miller <admiller@redhat.com> 0.8.5-1
+- fix old mirror url (tdawson@redhat.com)
+
 * Mon Aug 19 2013 Adam Miller <admiller@redhat.com> 0.8.4-1
 - Updated 'restart' operation for all HTTPD based cartridges to use
   'httpd_restart_action' (mfojtik@redhat.com)
