@@ -337,7 +337,7 @@ module OpenShift
       'expected'
     end
 
-    def initialize(uuid, gear_home)
+    def initialize(uuid, gear_home, container)
       @uuid = uuid
       @gear_home = gear_home
     end
@@ -378,7 +378,7 @@ module OpenShift
       'expected'
     end
 
-    def initialize(uuid, gear_home)
+    def initialize(uuid, gear_home, container)
       @uuid = uuid
       @gear_home = gear_home
     end
