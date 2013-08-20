@@ -38,7 +38,7 @@ GEAR_DNS: secondary gears to be updated after adding user variables
 KEY VALUE pairs
 At least --with-variables or --with-gears must be specified
 USAGE
-  exit 1
+  exit(255)
 end
 
 require 'rubygems'
