@@ -9,7 +9,7 @@
 
 Summary:       OpenShift plugin for mcollective service
 Name:          rubygem-%{gem_name}
-Version: 1.13.3
+Version: 1.13.4
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -80,6 +80,12 @@ cp %{buildroot}/%{gem_dir}/gems/%{gem_name}-%{version}/conf/openshift-origin-msg
 %attr(0644,-,-) %ghost /etc/mcollective/client.cfg
 
 %changelog
+* Tue Aug 20 2013 Adam Miller <admiller@redhat.com> 1.13.4-1
+- Merge pull request #3398 from detiber/bz994445
+  (dmcphers+openshiftbot@redhat.com)
+- Added User environment variables support in broker (rpenta@redhat.com)
+- Bug 99445 - Better error message for No nodes available (jdetiber@redhat.com)
+
 * Thu Aug 15 2013 Adam Miller <admiller@redhat.com> 1.13.3-1
 - Merge pull request #3359 from rajatchopra/master
   (dmcphers+openshiftbot@redhat.com)
