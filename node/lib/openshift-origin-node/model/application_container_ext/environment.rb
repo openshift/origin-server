@@ -290,7 +290,7 @@ module OpenShift
             set_ro_permission(path)
           end
 
-          return user_var_push(gears) unless gears.empty?
+          return user_var_push(gears, true) unless gears.empty?
           return 0, ''
         end
 
@@ -307,11 +307,12 @@ module OpenShift
         end
 
         # update user environment variable(s) on other gears
-        def user_var_push(gears)
+        def user_var_push(gears, env_add=false)
           output, gear_dns, threads = '', '', {}
           target  = PathUtils.join('.env', 'user_vars').freeze
           source  = PathUtils.join(@container_dir, target).freeze
-          return 0, '' unless File.directory?(source) and !(Dir.entries(source) - %w{. ..}).empty?
+          return 0, '' unless File.directory?(source)
+          return 0, '' if env_add and (Dir.entries(source) - %w{. ..}).empty?
 
           begin
             gears.each do |gear|
