@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/openshift/cartridges/php
 
 Name:          openshift-origin-cartridge-php
-Version: 0.8.4
+Version: 0.8.5
 Release:       1%{?dist}
 Summary:       Php cartridge
 Group:         Development/Languages
@@ -76,6 +76,11 @@ rm %{buildroot}%{cartridgedir}/metadata/manifest.yml.*
 
 
 %changelog
+* Tue Aug 20 2013 Adam Miller <admiller@redhat.com> 0.8.5-1
+- Merge pull request #2984 from VojtechVitek/pear_path
+  (dmcphers+openshiftbot@redhat.com)
+- Add PEAR bin dir to the PATH variable (vvitek@redhat.com)
+
 * Mon Aug 19 2013 Adam Miller <admiller@redhat.com> 0.8.4-1
 - Updated 'restart' operation for all HTTPD based cartridges to use
   'httpd_restart_action' (mfojtik@redhat.com)
