@@ -611,9 +611,8 @@ def check_system_httpd_configs
         File.basename(p)
       }.map { |p|
         cpath = nil
-        [ File.join($CONF.get('CARTRIDGE_BASE_PATH'), p), File.join($CONF.get('CARTRIDGE_BASE_PATH'), 'v2', p)].each { |cp|
-          cpath = cp if File.exists?(cp)
-        }
+        cp = File.join($CONF.get('CARTRIDGE_BASE_PATH'), p)
+        cpath = cp if File.exists?(cp)
         cpath
       }.select { |p|
         not p.nil?
@@ -784,7 +783,7 @@ def check_cartridge_repository
     end
   end
 
-  src_glob = "#{$CONF.get('CARTRIDGE_BASE_PATH')}/{v2,}/*/{info,metadata}/manifest.yml"
+  src_glob = "#{$CONF.get('CARTRIDGE_BASE_PATH')}/*/metadata/manifest.yml"
   Dir.glob(src_glob).each do |f|
     begin
       src_m = YAML.safe_load_file(f)
