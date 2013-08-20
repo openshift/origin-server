@@ -144,10 +144,10 @@ module MCollective
         watermark = @@config.get('QUOTA_WARNING_PERCENT', '90.0').to_f
 
         usage = (quota[:blocks_used] / quota[:blocks_limit].to_f) * 100.0
-        buffer << "CLIENT_MESSAGE: Warning gear #{uuid} is using #{usage} of disk quota\n" if watermark < usage
+        buffer << "\nCLIENT_MESSAGE: Warning gear #{uuid} is using #{usage} of disk quota\n" if watermark < usage
 
         usage = (quota[:inodes_used] / quota[:inodes_limit].to_f) * 100.0
-        buffer << "CLIENT_MESSAGE: Warning gear #{uuid} is using #{usage} of inodes allowed\n" if watermark < usage
+        buffer << "\nCLIENT_MESSAGE: Warning gear #{uuid} is using #{usage} of inodes allowed\n" if watermark < usage
       rescue Exception => e
         # do nothing
       end
