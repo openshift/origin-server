@@ -31,7 +31,6 @@ class AliasesController < ConsoleController
     if @alias.save
       redirect_to @application, :flash => {:success => "Alias '#{@alias.id}' has been created"}
     else
-      flash.now[:error] = "Unable to create alias '#{@alias.name}'"
       render :new
     end
   rescue ActiveResource::ResetConnectionError => e
@@ -54,7 +53,6 @@ class AliasesController < ConsoleController
       message = "Alias '#{params[:id]}' has been removed"
       redirect_to @application, :flash => {:success => message.to_s}
     else
-      flash.now[:error] = "Unable to delete alias '#{alias_name}'"
       render :edit
     end
   end
@@ -66,20 +64,18 @@ class AliasesController < ConsoleController
     @private_ssl_certificates_supported = @user.capabilities["private_ssl_certificates"]
     @alias = @application.find_alias params[:id]
 
-    if params[:alias]
-      @alias.certificate_file = params[:alias][:certificate_file]
-      @alias.certificate_private_key_file = params[:alias][:certificate_private_key_file]
-      @alias.certificate_pass_phrase = params[:alias][:certificate_pass_phrase]
-      @alias.save if !@alias.certificate.nil?
-    else
-      @alias.save
-    end
+    result =
+      if params[:alias]
+        @alias.certificate_file = params[:alias][:certificate_file]
+        @alias.certificate_private_key_file = params[:alias][:certificate_private_key_file]
+        @alias.certificate_pass_phrase = params[:alias][:certificate_pass_phrase]
+        redirect_to @application and return if @alias.certificate.nil?
+      end
 
-    if @alias.errors.empty?
+    if @alias.save
       redirect_to @application, :flash => {:success => "Alias '#{@alias.id}' has been updated"}
     else
-      flash.now[:error] = "Unable to update alias '#{@alias.name}'"
-      render :edit and return
+      render :edit
     end
   end
 end
