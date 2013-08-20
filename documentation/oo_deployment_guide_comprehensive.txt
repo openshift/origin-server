@@ -1185,9 +1185,6 @@ CLOUD_DOMAIN="example.com"
 Edit the mongo variables to connect to the Mongo DB server
 
 ----
-#Set to true if MongoDB is set up in replica set mode
-MONGO_REPLICA_SETS=false
-
 # Comma seperated list of replica set servers. Eg: "<host-1>:<port-1>,<host-2>:<port-2>,..."
 MONGO_HOST_PORT="<mongodb server FQDN>:27017"
 
