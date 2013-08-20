@@ -42,7 +42,7 @@ class RestUser10 < OpenShift::Model
     self.login = cloud_user.login
     self.consumed_gears = cloud_user.consumed_gears
 
-    self.capabilities = cloud_user.capabilities.deep_dup
+    self.capabilities = cloud_user.capabilities.serializable_hash
     self.max_gears = self.capabilities["max_gears"]
     self.capabilities.delete("max_gears")
 
