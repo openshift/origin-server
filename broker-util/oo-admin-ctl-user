@@ -270,11 +270,21 @@ def add_gear_size(user, gear_size)
         exit 6
     end
     puts "Done."
+
+    print "Adding gear size #{gear_size} for domains of user #{user.login}... "
+    user.domains.each do |d|
+        d.allowed_gear_sizes << gear_size
+        if !d.save
+            puts "An error occurred adding the gear size #{gear_size} to domain #{d.namespace} for user #{user.login}."
+            exit 7
+        end
+    end
+    puts "Done."
 end
 
 def remove_gear_size(user, gear_size)
     print "Removing gear size #{gear_size} for user #{user.login}... "
-    
+
     begin
       user.remove_gear_size(gear_size)
     rescue Exception => e
@@ -286,7 +296,7 @@ def remove_gear_size(user, gear_size)
         exit 6
     end
     puts "Done."
-end    
+end
 
 def inherit_on_subaccounts(user, allow, capability, cap_name)
     caps = user.capabilities
