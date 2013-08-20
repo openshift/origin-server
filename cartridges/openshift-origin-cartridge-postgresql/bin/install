@@ -43,7 +43,7 @@ cp $conf_dir/psqlrc $OPENSHIFT_HOMEDIR/.psqlrc
 echo "*:*:*:${username}:${password}" > $OPENSHIFT_HOMEDIR/.pgpass
 chmod 0600 $OPENSHIFT_HOMEDIR/.pgpass
 
-update-configuration $version
+update_configuration $version
 
 conn_url='postgresql://$OPENSHIFT_POSTGRESQL_DB_HOST:$OPENSHIFT_POSTGRESQL_DB_PORT'
 
