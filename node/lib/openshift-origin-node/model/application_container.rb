@@ -18,6 +18,7 @@ require 'rubygems'
 require 'openshift-origin-node/model/frontend_proxy'
 require 'openshift-origin-node/model/frontend_httpd'
 require 'openshift-origin-node/model/v2_cart_model'
+require 'openshift-origin-node/model/node'
 require 'openshift-origin-common/models/manifest'
 require 'openshift-origin-node/model/application_container_ext/environment'
 require 'openshift-origin-node/model/application_container_ext/setup'
@@ -563,6 +564,19 @@ module OpenShift
             end
           end
         end
+      end
+
+      ##
+      # Returns +true+ if the user's disk block usage meets or exceeds +max_percent+ of
+      # the configured block limit, otherwise +false+.
+      def disk_usage_exceeds?(max_percent)
+        raise "Percent must be between 1-100 (inclusive)" unless (1..100).member?(max_percent)
+
+        quota = OpenShift::Runtime::Node.get_quota(@uuid)
+
+        used_percent = ((quota[:blocks_used].to_f / quota[:blocks_limit].to_f) * 100.00).to_i
+
+        return used_percent >= max_percent
       end
 
       # run_in_container_context(command, [, options]) -> [stdout, stderr, exit status]

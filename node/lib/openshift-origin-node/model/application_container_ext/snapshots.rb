@@ -38,6 +38,11 @@ module OpenShift
         # The operations invoked by this method write user-facing output to the
         # client on STDERR.
         def snapshot
+          if disk_usage_exceeds?(90)
+            $stderr.puts "WARNING: The application's disk usage is very close to the quota limit. The snapshot may fail unexpectedly"
+            $stderr.puts "depending on the amount of data present and the snapshot procedure used by your application's cartridges."
+          end
+
           stop_gear
 
           scalable_snapshot = !!@cartridge_model.web_proxy
@@ -104,6 +109,11 @@ module OpenShift
         #
         # The operation invoked by this method write output to the client on STDERR.
         def restore(restore_git_repo)
+          if disk_usage_exceeds?(90)
+            $stderr.puts "WARNING: The application's disk usage is very close to the quota limit. The restore may fail unexpectedly"
+            $stderr.puts "depending on the amount of data to be restored and the restore procedure used by your application's cartridges."
+          end
+
           gear_env = ::OpenShift::Runtime::Utils::Environ.for_gear(@container_dir)
 
           scalable_restore = !!@cartridge_model.web_proxy
