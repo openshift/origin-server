@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Common
 Name:          rubygem-%{gem_name}
-Version: 1.13.4
+Version: 1.13.5
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -120,6 +120,15 @@ cp bin/man/*.8 %{buildroot}%{_mandir}/man8/
 %doc %{gem_docdir}
 
 %changelog
+* Tue Aug 20 2013 Adam Miller <admiller@redhat.com> 1.13.5-1
+- Merge pull request #3435 from
+  smarterclayton/bug_997848_capabilities_not_shown_via_api
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3327 from Miciah/oo-diagnostics-add-
+  test_node_containerization_plugin (dmcphers+openshiftbot@redhat.com)
+- Bug 997848 - Inherited capabilities not in REST API (ccoleman@redhat.com)
+- oo-diagnostics: test_node_containerization_plugin (miciah.masters@gmail.com)
+
 * Fri Aug 16 2013 Adam Miller <admiller@redhat.com> 1.13.4-1
 - Merge pull request #3373 from pmorie/bugs/997158
   (dmcphers+openshiftbot@redhat.com)
