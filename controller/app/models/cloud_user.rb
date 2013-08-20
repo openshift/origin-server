@@ -241,6 +241,15 @@ class CloudUser
     def [](key)
       @inherited[key] || super
     end
+    def deep_dup
+      __getobj__.deep_dup.merge!(@inherited.deep_dup)
+    end
+    def to_hash
+      deep_dup
+    end
+    def serializable_hash
+      to_hash
+    end
   end
 
   #

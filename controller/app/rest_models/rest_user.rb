@@ -43,7 +43,7 @@ class RestUser < OpenShift::Model
   def initialize(cloud_user, url, nolinks=false)
     [:id, :login, :consumed_gears, :plan_id, :plan_state, :usage_account_id, :created_at].each{ |sym| self.send("#{sym}=", cloud_user.send(sym)) }
 
-    self.capabilities = cloud_user.capabilities.deep_dup
+    self.capabilities = cloud_user.capabilities.serializable_hash
     self.max_gears = cloud_user.max_gears
     self.capabilities.delete("max_gears")
 

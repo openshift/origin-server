@@ -10,8 +10,8 @@ module OpenShift
     self.include_root_in_json = false
     include ActiveModel::Serializers::Xml
     include ActiveModel::AttributeMethods
-    include ActiveModel::Observing    
-    
+    include ActiveModel::Observing
+
     def attributes
       a = {}
       self.instance_variable_names.each do |name|
@@ -24,7 +24,7 @@ module OpenShift
     def attribute(name)
       instance_variable_get("@#{name}")
     end
-    
+
     def to_xml(options = {})
       to_xml_opts = {:skip_types => true}
       to_xml_opts.merge!(options.slice(:builder, :skip_instruct))
