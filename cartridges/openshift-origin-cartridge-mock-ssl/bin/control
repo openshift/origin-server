@@ -1,0 +1,58 @@
+#!/bin/bash -eu
+
+source $OPENSHIFT_CARTRIDGE_SDK_BASH
+source $OPENSHIFT_MOCK_SSL_DIR/mock-ssl.conf
+
+function start {
+  echo "Starting MOCK_SSL cartridge"
+  touch $MOCK_SSL_STATE/control_start
+  touch $MOCK_SSL_STATE/mock_ssl_process
+  oo-ruby $OPENSHIFT_MOCK_SSL_DIR/bin/mock_ssl_server.rb $OPENSHIFT_MOCK_SSL_EXAMPLE_IP1 $OPENSHIFT_REPO_DIR> $OPENSHIFT_MOCK_SSL_DIR/logs/server.log 2>&1 &
+}
+
+function stop {
+  echo "Stopping MOCK_SSL cartridge"
+  touch $MOCK_SSL_STATE/control_stop
+  rm -f $MOCK_SSL_STATE/mock_ssl_process
+  pkill -9 -f mock_ssl_server.rb ||:
+}
+
+function restart {
+  touch $MOCK_SSL_STATE/control_restart
+  stop
+  start
+}
+
+function status {
+  client_result "This is client status output from the MOCK_SSL cartridge"
+  touch $MOCK_SSL_STATE/control_status
+  [ -f $MOCK_SSL_STATE/mock_ssl_process ]
+}
+
+function build {
+  echo "Building MOCK_SSL cartridge"
+  touch $MOCK_SSL_STATE/control_build
+  echo "MOCK_SSL successfully built."
+}
+
+case "$1" in
+  start)                start ;;
+  stop)                 stop ;;
+  restart)              restart ;;
+  status)               status ;;
+  reload)               touch $MOCK_SSL_STATE/control_reload ;;
+  tidy)                 touch $MOCK_SSL_STATE/control_tidy ;;
+  pre-build)            touch $MOCK_SSL_STATE/control_pre_build ;;
+  build)                build ;;
+  deploy)               touch $MOCK_SSL_STATE/control_deploy ;;
+  post-deploy)          touch $MOCK_SSL_STATE/control_post_deploy ;;
+  pre-snapshot)         touch $MOCK_SSL_STATE/control_pre_snapshot ;;
+  post-snapshot)        touch $MOCK_SSL_STATE/control_post_snapshot ;;
+  pre-restore)          touch $MOCK_SSL_STATE/control_pre_restore ;;
+  post-restore)         touch $MOCK_SSL_STATE/control_post_restore ;;
+  pre-repo-archive)     touch $MOCK_SSL_STATE/control_pre_repo_archive ;;
+  update-configuration) touch $MOCK_SSL_STATE/control_update_configuration ;;
+  *)           exit 0
+esac
+
+exit 0

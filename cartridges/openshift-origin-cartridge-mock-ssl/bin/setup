@@ -1,0 +1,35 @@
+#!/bin/bash -e
+
+# MOCK_SSL cartridge for testing and verifying node platform code. This is
+# not an example of how to write a well-formed cartridge.
+
+case "$1" in
+  -v|--version)
+    version="$2"
+esac
+
+source $OPENSHIFT_MOCK_SSL_DIR/mock-ssl.conf
+
+rm -rf $MOCK_SSL_STATE/
+mkdir -p $MOCK_SSL_STATE
+touch $MOCK_SSL_STATE/setup_called
+
+function error_exit {
+  echo -e "$1\nexit $2" >$MOCK_SSL_STATE/setup_failure
+  echo -e $1 1>&2
+  exit $2
+}
+
+mkdir -p $OPENSHIFT_MOCK_SSL_DIR/logs
+
+if [[ -n "$version" ]]; then
+  echo "Creating version marker for $version"
+  echo "$version" > $MOCK_SSL_STATE/setup_version
+  echo "$version" > $OPENSHIFT_MOCK_SSL_DIR/env/OPENSHIFT_MOCK_SSL_VERSION
+else
+  echo "Skipping version creation marker."
+fi
+
+touch $MOCK_SSL_STATE/setup_succeed
+
+exit 0

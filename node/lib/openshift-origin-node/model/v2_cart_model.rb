@@ -806,6 +806,7 @@ module OpenShift
 
           # Expose the public endpoint if ssl_to_gear option is set
           if endpoint.options and endpoint.options["ssl_to_gear"]
+            @container.add_env_var("SSL_TO_GEAR",1)
             logger.info("ssl_to_gear option set for the endpoint")
             create_public_endpoint(cartridge, endpoint, private_ip)
           end

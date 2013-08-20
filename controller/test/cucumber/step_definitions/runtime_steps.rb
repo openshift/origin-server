@@ -1005,3 +1005,48 @@ When /^I (start|stop) the application using ctl_all via rhcsh$/ do |action|
 end
 
 
+Then /^the Apache nodes DB file will contain ([^ ]+) for the ssl_to_gear endpoint$/ do |option|
+  file = File.join($home_root,".httpd.d","nodes.txt")
+  assert_file_exist file
+  option_found = false
+  File.read(file).each_line do |line|
+    if line[/#{@app.name}[^ ]+\s#{option}/]
+      option_found = true
+      line.match(/#{option}:([0-9\.]+):([0-9]+)/) do |match|
+        assert_equal match[1], File.read(File.join($home_root,@app.uid,".env","OPENSHIFT_HAPROXY_IP"))
+        assert_equal match[2], File.read(File.join($home_root,@app.uid,".env","OPENSHIFT_HAPROXY_PORT"))
+      end
+    end
+  end
+  assert option_found
+end
+
+Then /^the haproxy.cfg file will( not)? be configured to proxy SSL to the backend gear$/ do |negate|
+  file = File.join($home_root,@app.uid,"haproxy","conf","haproxy.cfg")
+  assert_file_exist file
+  content = File.read(file)
+  assert_not_nil content.match(/mode tcp\n/)
+  assert_not_nil content.match(/option ssl-hello-chk\n/)
+  assert_not_nil content.match(/option tcplog\n/)
+end
+
+When /^I send an (https?) request to the app$/ do |protocol|
+  uri = URI("#{protocol}://#{@app.name}-#{@app.namespace}.dev.rhcloud.com")
+  http = Net::HTTP.new(uri.host, uri.port)
+  if protocol == "https"
+    http.use_ssl = true
+    http.verify_mode = OpenSSL::SSL::VERIFY_NONE
+  end
+  request = Net::HTTP::Get.new(uri.request_uri)
+  @response = http.request(request)
+end
+
+Then /^It will return ([^ ]+)($|\s.*)$/ do |check, value|
+  if check == "redirect"
+    assert_equal "https://#{@app.hostname}", @response["location"]
+  elsif check == "content"
+    assert value, @response.body
+  end
+end
+
+
