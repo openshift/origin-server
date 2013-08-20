@@ -29,7 +29,7 @@ module OpenShift
         @current_manifest.stubs(:cartridge_version).returns(current_version)
 
         @version = '1.1'
-        @target = mock()
+        @target = 'foo'
 
         @container = mock()
         @container.stubs(:uid).returns('123')
@@ -51,7 +51,9 @@ module OpenShift
         CartridgeRepository.expects(:overlay_cartridge).with(next_manifest, target)
 
         container.expects(:processed_templates).with(next_manifest).returns(%w(a b c))
+        Dir.expects(:glob).with(PathUtils.join(target, 'env', '*.erb')).returns(%w(d e))
         FileUtils.expects(:rm_f).with(%w(a b c))
+        FileUtils.expects(:rm_f).with(%w(d e))
         
         cart_model.expects(:unlock_gear).with(next_manifest).yields(next_manifest)
         cart_model.expects(:secure_cartridge).with('mock', container.uid, container.gid, target)
