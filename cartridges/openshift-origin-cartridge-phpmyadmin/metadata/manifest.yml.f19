@@ -1,6 +1,6 @@
 Name: phpmyadmin
 Cartridge-Short-Name: PHPMYADMIN
-Display-Name: phpMyAdmin 3
+Display-Name: phpMyAdmin 3.5
 Description: "Web based MySQL admin tool. Requires the MySQL cartridge to be installed first."
 Version: 3
 License: GPLv2
