@@ -13,7 +13,9 @@ module AdminConsole
     end
 
     def self.systems_summaries(force_reload = false)
-      (force_reload ? nil : Rails.cache.read('admin_console_system_statistics')) || gather_systems_statistics
+      Rails.cache.fetch('admin_console_system_statistics', :expires_in => Rails.application.config.admin_console[:node_data_cache_timeout], :force => force_reload) do
+        gather_systems_statistics
+      end
     end
 
     protected
@@ -22,12 +24,9 @@ module AdminConsole
       stats = Admin::Stats.new
       stats.gather_statistics
       results = stats.results.except(:node_entries, :district_entries, :district_summaries, :profile_summaries)
-      if expires = Rails.application.config.admin_console[:node_data_cache_timeout]
-        # remove hashes with default blocks so we can cache them
-        # See: http://stackoverflow.com/questions/6391855/rails-cache-error-in-rails-3-1-typeerror-cant-dump-hash-with-default-proc
-        stats.deep_clear_default!(results)
-        Rails.cache.write('admin_console_system_statistics', results.clone, {:expires_in => expires})
-      end
+      # remove hashes with default blocks so we can cache them
+      # See: http://stackoverflow.com/questions/6391855/rails-cache-error-in-rails-3-1-typeerror-cant-dump-hash-with-default-proc
+      stats.deep_clear_default!(results)
       results
     end
 
