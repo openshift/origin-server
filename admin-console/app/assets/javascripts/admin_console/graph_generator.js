@@ -41,7 +41,9 @@ function histogram_from_bins(bins, node, xlbl, ylbl) {
         yaxis.className = "histogram-y-axis";
       for (var i = 10; i <= 100; i+=10) {
         var pct = 100-i;
-        var value = (total * pct) / 100;
+        var value = Math.round((total * pct) / 100);
+        if (pct != 0 && value == 0)
+          value = ''; // don't show fractional labels
         var lbl = document.createElement("span");
           lbl.className = "histogram-label";
           lbl.appendChild(document.createTextNode(value));
@@ -69,6 +71,12 @@ function histogram_from_bins(bins, node, xlbl, ylbl) {
           lbl.appendChild(document.createTextNode(bin.bin));
         xaxis.appendChild(lbl);
       }
+      for (var i = 0; i <= 100; i+=10) {
+        var line = document.createElement("div");
+          line.className = "histogram-line";
+          line.style.top = i + "%";
+        bars.appendChild(line);
+      }      
       var xlable = document.createElement("div");
         xlable.className = "histogram-x-label";
         xlable.appendChild(document.createTextNode(xlbl));
@@ -116,10 +124,3 @@ function compress_long_tail_bins(bins) {
 
   return new_bins;
 }
-
-$(document).ready(function () {
-  if (typeof LOAD_STATS_GRAPHS != "undefined" && LOAD_STATS_GRAPHS) {
-    create_apps_per_domain_histogram();
-    create_gears_per_user_histogram();
-  }
-});

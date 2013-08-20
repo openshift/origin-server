@@ -8,7 +8,8 @@ AdminConsole::Engine.routes.draw do
   resources :gears, :only => [:show], :id => id_regex
   resources :nodes, :only => [:show], :id => id_regex
   scope "/capacity" do
-    resources :profiles, :only => [:show], :id => id_regex
+    resources :profiles, :only => [:show, :index], :id => id_regex
+    get "profiles/:id/nodes", to: "profiles#show_nodes", :id => id_regex, :as => "profile_nodes"
   end
 end
 # integrate admin-console routes into the broker routes.

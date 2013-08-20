@@ -261,7 +261,7 @@ class Admin::Stats
        nodes_count nodes_active gears_started_count nodes_inactive gears_idle_count
        gears_stopped_count gears_deploying_count gears_unknown_count gears_total_count
        gears_active_count avg_active_usage_pct
-       available_active_gears effective_available_gears
+       available_active_gears available_active_gears_with_negatives effective_available_gears
     ].collect {|key| [key, 0]}]
 
     # may need a unique "NONE" district per profile for nodes that are not in a district
@@ -300,6 +300,7 @@ class Admin::Stats
       # active gears can actually get higher than max; count that as 0 available, not negative
       available = [0, node['max_active_gears'] - node['gears_active_count']].max
       sum['available_active_gears'] += available
+      sum['available_active_gears_with_negatives'] += node['max_active_gears'] - node['gears_active_count']
       sum['effective_available_gears'] += available if node['district_active'] ||
                                                       node['district_uuid'] == "NONE"
       sum['avg_active_usage_pct'] += node['gears_active_usage_pct']
@@ -376,7 +377,7 @@ class Admin::Stats
     # these values will accumulate as we go
     starter_stats = ProfileSummary[ %w[
        nodes_count nodes_active nodes_inactive gears_active_count gears_idle_count
-       gears_stopped_count gears_unknown_count gears_total_count available_active_gears
+       gears_stopped_count gears_unknown_count gears_total_count available_active_gears available_active_gears_with_negatives
        effective_available_gears avg_active_usage_pct district_capacity
        dist_avail_capacity dist_avail_uids avg_dist_usage_pct
     ].collect {|key| [key, 0]}]
@@ -391,8 +392,8 @@ class Admin::Stats
       sum = summary_for_profile[dist['profile']]
       sum['districts'] << dist
       %w[ gears_active_count gears_idle_count gears_stopped_count gears_unknown_count
-        gears_total_count available_active_gears effective_available_gears nodes_count
-        nodes_active nodes_inactive missing_nodes district_capacity
+        gears_total_count available_active_gears available_active_gears_with_negatives effective_available_gears
+        nodes_count nodes_active nodes_inactive missing_nodes district_capacity
         dist_avail_capacity dist_avail_uids
       ].each {|key| sum[key] += dist[key]}
       sum['avg_active_usage_pct'] += dist['avg_active_usage_pct'] * dist['nodes_count']

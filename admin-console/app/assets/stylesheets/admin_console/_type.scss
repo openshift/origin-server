@@ -1,3 +1,9 @@
+// Definition Lists
+dd {
+    margin-bottom: 10px;
+    margin-top: 2px;
+}
+
 // HEADINGS
 // --------
 h1, h2, h3, h4, h5, h6 {
@@ -118,3 +124,30 @@ a {
 td > ul.unstyled {
   margin-bottom: 0;
 }
+
+
+// Utility classes
+// Bootstrap 2.3.0
+.muted { color: $grayLight; }
+a.muted:hover,
+a.muted:focus { color: darken($grayLight, 10%); }
+
+.text-warning { color: $warningText; }
+a.text-warning:hover,
+a.text-warning:focus { color: darken($warningText, 10%); }
+
+.text-error { color: $errorText; }
+a.text-error:hover,
+a.text-error:focus { color: darken($errorText, 10%); }
+
+.text-info { color: $infoText; }
+a.text-info:hover,
+a.text-info:focus { color: darken($infoText, 10%); }
+
+.text-success { color: $successText; }
+a.text-success:hover,
+a.text-success:focus { color: darken($successText, 10%); }
+
+.text-left { text-align: left; }
+.text-right { text-align: right; }
+.text-center { text-align: center; }

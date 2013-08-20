@@ -23,10 +23,10 @@ Broker::Application.configure do
       mount_uri: conf.get("MOUNT_URI", "/admin-console"),
       node_data_cache_timeout: eval(conf.get("NODE_DATA_CACHE_TIMEOUT", "1.hour")),
       expected_active_pct: conf.get("EXPECTED_ACTIVE_PERCENT", 100.0).to_f,
-      warning_limits: {
-        profile_active_usage: conf.get("WARNING_PROFILE_ACTIVE_USAGE", 80.0).to_f,
-        profile_total_usage: conf.get("WARNING_PROFILE_TOTAL_USAGE", 80.0).to_f,
+      warn: {
+        node_active_remaining: conf.get("WARNING_NODE_ACTIVE_REMAINING", 0).to_i,
       },
+      debug_profile_data: conf.get("DEBUG_PROFILE_DATA_FILE", nil),
     }
   end
 end

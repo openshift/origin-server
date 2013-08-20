@@ -17,12 +17,20 @@ a.skip-navigation {
   margin: 20px 0;
 }
 
+.nowrap {
+  white-space: nowrap;
+}
+
 .extra-large {
   font-size: $extraLargeFontSize;
 }
 
 .large {
   font-size: $largeFontSize;
+}
+
+.clear {
+  clear: both;
 }
 
 .container section {
@@ -36,12 +44,21 @@ a.skip-navigation {
   margin: 0;
 }
 
+.hero-unit .brand {
+  height: 20px;
+  vertical-align: middle;
+}
+
 section.application {
   margin: 20px 0 40px 0;
 }
 
 h1 .icon {
     height: 30px;
+}
+
+h3 .icon {
+    height: 17px;
 }
 
 @media (max-width: 480px) {
