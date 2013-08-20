@@ -53,7 +53,7 @@ module Console::CommunityHelper
   end
 
   def origin_server_srpm_url
-   "http://mirror.openshift.com/pub/origin-server/fedora-16/SRPMS/"
+   "http://mirror.openshift.com/pub/openshift-origin/nightly/fedora-latest/latest/SRPMS/"
   end
 
   def openshift_github_project_url(project)
