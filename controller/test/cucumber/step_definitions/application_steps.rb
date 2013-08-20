@@ -46,7 +46,7 @@ Given /^a new client created( scalable)? (.+) application$/ do |scalable, type|
   @test_apps_hash[@app.name] = @app
 end
 
-Given /^a new client created( scalable)? (.+) application named (.+)$/ do |scalable, type, app_name|
+Given /^a new client created( scalable)? (.+) application named ([^\s]+)$/ do |scalable, type, app_name|
   @app = TestApp.create_unique(type, nil, scalable)
   @apps ||= []
   @apps << @app.name
