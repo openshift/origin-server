@@ -16,7 +16,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.13.7
+Version: 1.13.8
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -305,6 +305,23 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Tue Aug 20 2013 Adam Miller <admiller@redhat.com> 1.13.8-1
+- BZ#990382: Return error message and code when wrong gear id is given to oo-
+  pam-(enable|disable) (mfojtik@redhat.com)
+- Merge pull request #3410 from pravisankar/dev/ravi/card86
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3409 from rmillner/trailing_dot
+  (dmcphers+openshiftbot@redhat.com)
+- Node Platform - make user variable rsync more reliable (jhonce@redhat.com)
+- User vars node changes:  - Use 'user-var-add' mcollective call for *add*
+  and/or *push* user vars. This will reduce unnecessary additional
+  code/complexity.  - Add some more reserved var names: PATH, IFS, USER, SHELL,
+  HOSTNAME, LOGNAME  - Do not attempt rsync when .env/user_vars dir is empty  -
+  Misc bug fixes (rpenta@redhat.com)
+- WIP Node Platform - Add support for settable user variables
+  (jhonce@redhat.com)
+- Remove trailing dot from the fqdn if there is one. (rmillner@redhat.com)
+
 * Mon Aug 19 2013 Adam Miller <admiller@redhat.com> 1.13.7-1
 - Added 'httpd_restart_action' function to Bash SDK (mfojtik@redhat.com)
 - Fixing typos (dmcphers@redhat.com)
