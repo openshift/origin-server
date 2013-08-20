@@ -29,6 +29,10 @@ a.skip-navigation {
   font-size: $largeFontSize;
 }
 
+.clear {
+  clear: both;
+}
+
 .container section {
     margin-bottom: 25px;
 }
@@ -38,6 +42,11 @@ a.skip-navigation {
   width: 269px;
   background: url($brandLogo) no-repeat scroll 0 center transparent;
   margin: 0;
+}
+
+.hero-unit .brand {
+  height: 20px;
+  vertical-align: middle;
 }
 
 section.application {

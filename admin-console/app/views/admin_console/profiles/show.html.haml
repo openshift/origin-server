@@ -133,7 +133,7 @@
                     .tickmark{:style => "left: #{[0, district[:dist_usage_pct]].max}%;"}
                 .end-point-left
                   = "0%"
-                .label
+                .label-center
                   = "usage by district"
                 .end-point-right
                   = "100%"
@@ -170,7 +170,7 @@
                     .tickmark{:class => tickmark_class, :style => "left: #{[100, node[:gears_active_usage_pct] / 110 * 100].min}%;"}
               .end-point-left
                 = "0%"
-              .label
+              .label-center
                 = "usage by node"
               .label-point-right{:style => "right: #{100 - (100.to_f / 110 * 100)}%"}
                 = "100%"

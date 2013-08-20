@@ -186,6 +186,23 @@
         }
       }
     }
+
+    &.sample {
+      border: dashed 1px #999;
+      padding: 5px 5px 0;
+
+      .districts:hover {
+        background: none;
+        border: 1px solid rgba(255, 0, 0, 0);
+        cursor: default;
+      }
+
+      .nodes:hover {
+        background: none;
+        border: 1px solid rgba(255, 0, 0, 0);
+        cursor: default;
+      }
+    }
   }
 
   .node td.bar {
