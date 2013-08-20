@@ -8,11 +8,11 @@ class SingularResourcesIntegrationTest < ActionDispatch::IntegrationTest
 
     path = console_path
     path += "/" unless path.end_with? "/"
-    get path + "application/#{app.name}", nil, user_env
+    get path + "application/#{app.to_param}", nil, user_env
 
     assert_response :success
 
-    assert_select "h1.name", :text => app.name
+    assert_select "h1.name", :text => /#{app.name}/
 
   end
 

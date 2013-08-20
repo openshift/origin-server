@@ -18,7 +18,7 @@ class BuildingController < ConsoleController
 
   def create
     @application = Application.find(params[:application_id], :as => current_user)
-    @jenkins_server = @domain.find_application(@application.building_app) if @application.building_app
+    @jenkins_server = @application.domain.find_application(@application.building_app) if @application.building_app
     @cartridge_type = CartridgeType.cached.all.find{ |c| c.tags.include? :ci_builder }
     @cartridge = Cartridge.new :name => @cartridge_type.name
 
@@ -27,7 +27,7 @@ class BuildingController < ConsoleController
       @jenkins_server = Application.new(
         :name => params[:application][:name],
         :cartridge => framework.name,
-        :domain => @domain,
+        :domain => @application.domain,
         :as => current_user)
 
       if @jenkins_server.save

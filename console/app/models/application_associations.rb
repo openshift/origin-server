@@ -7,51 +7,50 @@ module ApplicationAssociations
       end
 
       def self.prefix(p)
-        p = {} unless p
+        check_prefix_options(p)
+        p = HashWithIndifferentAccess.new(p)
         if p[:application_id]
-          retval = "#{RestApi::Base.prefix}application/#{p[:application_id]}/"
-          puts "Custom prefix of #{retval}"
+          retval = "#{RestApi::Base.prefix}application/#{Application.id_from_param(p[:application_id])}/"
+          # puts "Custom prefix of #{retval}"
         elsif p[:domain_id] and p[:application_name]
-          retval = "#{RestApi::Base.prefix}domain/#{v[:domain_id]}/application/#{v[:application_name]}/"
-          puts "Custom prefix of #{retval}"
+          retval = "#{RestApi::Base.prefix}domain/#{p[:domain_id]}/application/#{p[:application_name]}/"
+          # puts "Custom prefix of #{retval}"
         else
           retval = RestApi::Base.prefix
         end
         retval
       end
 
-      def self.adjust_parameters(prefix_parameters, query_parameters)
-        puts "Turning #{prefix_parameters.inspect}, #{query_parameters.inspect}"
-        params = [:application_id, :application_name, :domain_id]
-        prefix_parameters.merge!(query_parameters.slice(*params))
-        query_parameters.delete_if {|k| params.include?(k) }
-        prefix_parameters[:application_id] = Application.id_from_param(prefix_parameters[:application_id]) if prefix_parameters[:application_id]
-        puts "\t into #{prefix_parameters.inspect}, #{query_parameters.inspect}"
+      def self.prefix_parameters
+        [:domain_id, :application_name, :application_id]
       end
 
-      def self.element_path(id, prefix_parameters={}, query_parameters=nil)
-        prefix_parameters={} unless prefix_parameters
-        query_parameters={} unless query_parameters
-        adjust_parameters(prefix_parameters, query_parameters)
-        super(id, prefix_parameters, query_parameters)
+      def self.check_prefix_options(prefix_options)
+        p = HashWithIndifferentAccess.new(prefix_options)
+        return if p[:domain_id] and p[:application_name]
+        return if p[:application_id]
+        raise(ActiveResource::MissingPrefixParam, ":domain_id/:application_name or :application_id prefix_option is missing")
       end
 
-      def self.collection_path(prefix_parameters={}, query_parameters={})
-        prefix_parameters={} unless prefix_parameters
-        query_parameters={} unless query_parameters
-        adjust_parameters(prefix_parameters, query_parameters)
-        super(prefix_parameters, query_parameters)
+      def split_options(*args)
+        (prefix_parameters, query_parameters) = super
+        if prefix_parameters and prefix_parameters[:application_id]
+          old = prefix_parameters[:application_id]
+          prefix_parameters[:application_id] = Application.id_from_param(prefix_parameters[:application_id])
+          puts "Changed #{old} to #{prefix_parameters[:application_id]}" if old != prefix_parameters[:application_id]
+        end
+        [prefix_parameters, query_parameters]
       end
 
       def application_id=(id)
         if self.prefix_options[:application_id].nil?
           self.prefix_options[:application_id] = id
         else
-          super
+          super rescue nil
         end
       end
       def application_id
-        super or self.prefix_options[:application_id]
+        (super rescue nil) or self.prefix_options[:application_id]
       end
 
       def application_name=(name)
@@ -62,13 +61,13 @@ module ApplicationAssociations
         end
       end
       def application_name
-        super or self.prefix_options[:application_name]
+        (super rescue nil) or self.prefix_options[:application_name]
       end
       def domain_id=(id)
         self.prefix_options[:domain_id] = id
       end
       def domain_id
-        super or self.prefix_options[:domain_id]
+        (super rescue nil) or self.prefix_options[:domain_id]
       end
       def application
         if application_id.present?

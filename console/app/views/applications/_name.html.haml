@@ -21,7 +21,7 @@
 
     - if can_create and create_domain_url
       %p.help-block
-        %span= "You can also #{link_to "create a new namespace", create_domain_url, :data => {:submit_domain => true}}".html_safe
+        %span= "You can also #{link_to "create a new namespace", create_domain_url, :data => {:submit_domain => true}}.".html_safe
 
   - elsif domains.present?
     -# Select
@@ -34,7 +34,7 @@
 
     - if can_create and create_domain_url
       %p.help-block
-        %span= "You can also #{link_to "create a new namespace", create_domain_url, :data => {:submit_domain => true}}".html_safe
+        %span= "You can also #{link_to "create a new namespace", create_domain_url, :data => {:submit_domain => true}}.".html_safe
 
   - elsif can_create
     -# Text

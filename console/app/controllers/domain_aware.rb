@@ -8,8 +8,12 @@ module DomainAware
   # trigger synchronous module load 
   [Domain, Member] if Rails.env.development?
 
+  def domains_cache_key
+    [current_user.login, :domains]
+  end
+
   def user_domains
-    @domains ||= Rails.cache.fetch([current_user.login, :domains], :expires_in => 5.minutes) do
+    @domains ||= Rails.cache.fetch(domains_cache_key, :expires_in => 5.minutes) do
       Domain.find(:all, :as => current_user)
     end
   end
@@ -27,7 +31,7 @@ module DomainAware
   def domain_is_missing
     @domain = nil
     @domains = nil
-    Rails.cache.delete([current_user.login, :domains])
+    Rails.cache.delete(domains_cache_key)
   end
 end
 RestApi::Base.observers << DomainSessionSweeper

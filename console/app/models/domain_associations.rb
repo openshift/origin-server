@@ -4,35 +4,29 @@ module DomainAssociations
     klass.class_eval do
 
       def self.prefix(p)
-        p = {} unless p
+        check_prefix_options(p)
+        p = HashWithIndifferentAccess.new(p)
         if p[:domain_id]
           retval = "#{RestApi::Base.prefix}domain/#{p[:domain_id]}/"
-          puts "Custom prefix of #{retval}"
+          # puts "Custom prefix of #{retval}"
         else
           retval = RestApi::Base.prefix
         end
         retval
       end
 
-      def self.adjust_parameters(prefix_parameters, query_parameters)
-        puts "Turning #{prefix_parameters.inspect}, #{query_parameters.inspect}"
-        prefix_parameters.merge!(query_parameters.slice(:domain_id))
-        query_parameters.delete(:domain_id)
-        puts "\t into #{prefix_parameters.inspect}, #{query_parameters.inspect}"
+      def self.prefix_parameters
+        [:domain_id]
       end
 
-      def self.element_path(id, prefix_parameters={}, query_parameters=nil)
-        prefix_parameters={} unless prefix_parameters
-        query_parameters={} unless query_parameters
-        adjust_parameters(prefix_parameters, query_parameters)
-        super(id, prefix_parameters, query_parameters)
+      def self.check_prefix_options(prefix_options)
+        # No-op
       end
 
-      def self.collection_path(prefix_parameters={}, query_parameters={})
-        prefix_parameters={} unless prefix_parameters
-        query_parameters={} unless query_parameters
-        adjust_parameters(prefix_parameters, query_parameters)
-        super(prefix_parameters, query_parameters)
+      def split_options(*args)
+        (prefix_parameters, query_parameters) = super
+        # puts "domain association split to \n\t#{prefix_parameters.inspect}\n\n\t#{query_parameters.inspect}"
+        [prefix_parameters, query_parameters]
       end
 
       # domain_id overlaps with the attribute returned by the server

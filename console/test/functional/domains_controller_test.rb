@@ -46,13 +46,13 @@ class DomainsControllerTest < ActionController::TestCase
   end
 
   test "should clear domain session cache" do
-    session[:domain] = 'foo'
+    Rails.cache.write(@controller.domains_cache_key, [])
     post :create, {:domain => get_post_form}
 
     assert domain = assigns(:domain)
     assert domain.errors.empty?, domain.errors.inspect
     assert_redirected_to settings_path
-    assert_nil session[:domain]
+    assert_nil Rails.cache.read(@controller.domains_cache_key)
   end
 
   test "should assign errors on empty name" do
@@ -130,14 +130,14 @@ class DomainsControllerTest < ActionController::TestCase
 
   test "should update domain and clear session cache" do
     with_particular_user
-    session[:domain] = 'foo'
+    Rails.cache.write(@controller.domains_cache_key, [])
 
     put :update, {:domain => {:name => unique_name}}
 
     assert domain = assigns(:domain)
     assert domain.errors.empty?, domain.errors.inspect
     assert_redirected_to settings_path
-    assert_nil session[:domain]
+    assert_nil Rails.cache.read(@controller.domains_cache_key)
   end
 
   test "update should assign errors on empty name" do

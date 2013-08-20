@@ -5,13 +5,12 @@ class CartridgeTypesControllerTest < ActionController::TestCase
   test "should show index" do
     RestApi.stubs(:download_cartridges_enabled?).returns(true)
 
-    get :index, :application_id => with_app.name
+    get :index, :application_id => with_app.to_param
     assert_response :success
 
     assert app = assigns(:application)
     assert_equal with_app.name, app.name
-    assert domain = assigns(:domain)
-    assert_equal with_app.domain_id, domain.id
+    assert_equal with_app.domain_id, app.domain_id
 
     assert types = assigns(:installed)
     assert_equal 0, types.length
@@ -33,24 +32,22 @@ class CartridgeTypesControllerTest < ActionController::TestCase
 
   test "should show type page" do
     t = CartridgeType.embedded.first
-    get :show, :application_id => with_app.name, :id => t.name
+    get :show, :application_id => with_app.to_param, :id => t.name
     assert_response :success
     assert type = assigns(:cartridge_type)
     assert_equal t.name, type.name
     assert assigns(:cartridge)
     assert assigns(:application)
-    assert assigns(:domain)
   end
 
   test "should show custom url page" do
-    get :show, :application_id => with_app.name, :id => 'custom', :url => 'https://foo.com#bar'
+    get :show, :application_id => with_app.id, :id => 'custom', :url => 'https://foo.com#bar'
 
     assert_response :success
     assert type = assigns(:cartridge_type)
     assert_equal 'https://foo.com#bar', type.url
     assert assigns(:cartridge)
     assert assigns(:application)
-    assert assigns(:domain)
 
     assert_select 'h3', 'bar'
     assert_select 'p', /This cartridge will be downloaded/
@@ -62,7 +59,7 @@ class CartridgeTypesControllerTest < ActionController::TestCase
   test "should not raise on missing type" do
     # We allow arbitrary cartridges, but we may want to change that
     #assert_raise(StandardError) do
-      get :show, :application_id => with_app.name, :id => 'missing_cartridge_type'
+      get :show, :application_id => with_app.to_param, :id => 'missing_cartridge_type'
       assert_response :success
     #end
   end

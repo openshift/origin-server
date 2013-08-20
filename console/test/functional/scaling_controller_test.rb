@@ -9,10 +9,10 @@ class ScalingControllerTest < ActionController::TestCase
     {:id => 'test'}
   end
   def app_without_scaling
-    {:name => 'test', :framework => 'php-5.3', :git_url => 'ssh://foo@bar-domain.rhcloud.com/~/something/repo.git'}
+    {:id => 'testid', :name => 'test', :domain_id => 'test', :framework => 'php-5.3', :git_url => 'ssh://foo@bar-domain.rhcloud.com/~/something/repo.git'}
   end
   def app_with_scaling
-    {:name => 'test', :framework => 'php-5.3', :git_url => 'ssh://foo@bar-domain.rhcloud.com/~/something/repo.git', :scale => true}
+    {:id => 'testid', :name => 'test', :domain_id => 'test', :framework => 'php-5.3', :git_url => 'ssh://foo@bar-domain.rhcloud.com/~/something/repo.git', :scale => true}
   end
 
   def cartridges_without_scaling
@@ -37,12 +37,12 @@ class ScalingControllerTest < ActionController::TestCase
     ActiveResource::HttpMock.respond_to(false) do |mock|
       mock.get '/broker/rest/cartridges.json', anonymous_json_header, [].to_json
       mock.get '/broker/rest/user.json', json_header, {:max_gears => 16}.to_json
-      mock.get '/broker/rest/domains.json', json_header, [mock_domain].to_json
-      mock.get '/broker/rest/domain/test/application/test.json', json_header, app.to_json
+      mock.get '/broker/rest/domain/test.json', json_header, mock_domain.to_json
+      mock.get '/broker/rest/application/testid.json', json_header, app.to_json
       mock.get '/broker/rest/domain/test/applications.json', json_header, [app].compact.to_json
-      mock.get '/broker/rest/domain/test/application/test/cartridges.json', json_header, cartridges.to_json
+      mock.get '/broker/rest/application/testid/cartridges.json', json_header, cartridges.to_json
     end
-    {:application_id => 'test'}
+    {:application_id => 'testid-test'}
   end
 
   def without_scaling
@@ -126,21 +126,18 @@ class ScalingControllerTest < ActionController::TestCase
     test "should get redirected from show without scaling #{'(mock)' if mock}" do
       get :show, mock ? without_scaling : {:application_id => with_app.to_param}
       assert app = assigns(:application)
-      assert assigns(:domain)
       assert_redirected_to new_application_scaling_path(app)
     end
 
     test "should get redirected from delete without scaling #{'(mock)' if mock}" do
       get :delete, mock ? without_scaling : {:application_id => with_app.to_param}
       assert app = assigns(:application)
-      assert assigns(:domain)
       assert_redirected_to new_application_scaling_path(app)
     end
 
     test "should see new page without scaling #{'(mock)' if mock}" do
       get :new, mock ? without_scaling : {:application_id => with_app.to_param}
       assert app = assigns(:application)
-      assert assigns(:domain)
       assert_response :success
     end
 
@@ -148,7 +145,6 @@ class ScalingControllerTest < ActionController::TestCase
       get :show, mock ? with_scaling : {:application_id => with_scalable_app.to_param}
       assert app = assigns(:application), @response.pretty_inspect
       assert app.ssh_string
-      assert assigns(:domain)
       assert_response :success
     end
   end

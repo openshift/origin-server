@@ -4,7 +4,7 @@ class AliasesControllerTest < ActionController::TestCase
 
   setup :with_configured_user
   setup do 
-    with_app.aliases.each {|a| a.destroy }
+    with_app.aliases(true).each {|a| a.destroy }
   end
 
   def unique_name_format
@@ -24,14 +24,13 @@ class AliasesControllerTest < ActionController::TestCase
   end
 
   test "should show alias creation form" do
-    get :new, :application_id => with_app.name
+    get :new, :application_id => with_app
     assert_response :success
     assert_template :new
 
     assert app = assigns(:application)
     assert_equal with_app.name, app.name
-    assert domain = assigns(:domain)
-    assert_equal with_app.domain_id, domain.id
+    assert_equal with_app.domain_id, app.domain_id
 
     assert a = assigns(:alias)
     assert_nil a.id
@@ -42,7 +41,7 @@ class AliasesControllerTest < ActionController::TestCase
 
   test "should create alias without cert" do
     app = with_app
-    post :create, {:alias => get_post_form_without_certificate, :application_id => app.name}
+    post :create, {:alias => get_post_form_without_certificate, :application_id => app}
 
     assert a = assigns(:alias)
     assert_equal a.id, test_alias
@@ -66,7 +65,7 @@ class AliasesControllerTest < ActionController::TestCase
     test "should assign error with #{files[:name]}" do
       app = with_app
 
-      post :create, {:alias => get_post_form_with_certificate(files[:cert], files[:key], files[:chain]), :application_id => app.name}
+      post :create, {:alias => get_post_form_with_certificate(files[:cert], files[:key], files[:chain]), :application_id => app}
 
       assert a = assigns(:alias)
       assert !a.errors.empty?
@@ -79,7 +78,7 @@ class AliasesControllerTest < ActionController::TestCase
     @ssl_test_alias = "www.example#{uuid}.com"
     
     assert_difference('Alias.find(:all, :as => @user, :params => {:application_name => app.name, :domain_id => app.domain_id}).length', 1) do
-      post :create, {:alias => get_post_form_with_certificate("cert.crt", "cert_key_rsa", nil), :application_id => app.name}
+      post :create, {:alias => get_post_form_with_certificate("cert.crt", "cert_key_rsa", nil), :application_id => app}
     end
 
     assert a = assigns(:alias)
@@ -98,7 +97,7 @@ class AliasesControllerTest < ActionController::TestCase
     a.application = app
     a.save!
 
-    post :destroy, {:id => a.id, :application_id => app.name}
+    post :destroy, {:id => a.id, :application_id => app}
 
     assert_redirected_to application_path(app)
     assert flash[:success] =~ /removed/, "Expected a success message"
@@ -108,7 +107,7 @@ class AliasesControllerTest < ActionController::TestCase
     app = with_app
     an_alias = app.aliases.first || (Alias.create :as => @user, :application_name => app.name, :id => test_alias, :domain_id => app.domain_id)
     an_alias.reload
-    get :edit, :application_id=>app.name, :id=>an_alias.id
+    get :edit, :application_id=>app, :id=>an_alias.id
     assert loaded_app = assigns(:application)
     assert_equal loaded_app.name, app.name
     assert loaded_alias = assigns(:alias)
@@ -122,7 +121,7 @@ class AliasesControllerTest < ActionController::TestCase
     a.application = app
     a.save!
 
-    post :update, {:alias => get_post_form_with_certificate("empty.crt", nil, nil), :id => test_alias, :application_id => app.name}
+    post :update, {:alias => get_post_form_with_certificate("empty.crt", nil, nil), :id => test_alias, :application_id => app}
 
     assert a = assigns(:alias)
     assert !a.errors.empty?
@@ -131,7 +130,7 @@ class AliasesControllerTest < ActionController::TestCase
 
   test "should assign errors with empty id" do
     app = with_app
-    post :create, {:alias => {:id => ''}, :application_id => app.name}
+    post :create, {:alias => {:id => ''}, :application_id => app}
 
     assert a = assigns(:alias)
     assert !a.errors.empty?

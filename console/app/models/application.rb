@@ -14,20 +14,29 @@ class Application < RestApi::Base
 
   # Override to append the name to UI urls
   def to_param
-    "#{id}-#{name}".parameterize
+    "#{id}-#{name}".parameterize if id.present?
   end
 
-  # Override to use the ID-only when calling the REST API
+  # Override the instance method to use the ID-only when calling the REST API, instead of to_param
   def element_path(options = nil)
     self.class.element_path(id, options || prefix_options)
   end
 
+  # Override the class method to not use the :domain_id prefix option when searching by id
+  def self.element_path(id, prefix_options = {}, query_options = nil)
+    if id
+      prefix_options = prefix_options.dup.reject {|k| k == :domain_id } if prefix_options
+      super
+    elsif query_options and query_options[:name] and prefix_options and prefix_options[:domain_id]
+      super(query_options.delete(:name), prefix_options, query_options)
+    else
+      super
+    end
+  end
+
   # Helper method to extract the ID from an ID param containing the name as well
   def self.id_from_param(param)
-    pre = param
-    post = param.to_s.gsub(/-.*/, '') if param
-    puts "Changed #{pre} to #{post}" if pre != post
-    post
+    param.to_s.gsub(/-.*/, '') if param
   end
 
   # Override to extract the real ID from the pretty ID before searching
@@ -36,6 +45,16 @@ class Application < RestApi::Base
       args[0] = id_from_param(args[0])
     end
     super(*args)
+  end
+
+  def valid?
+    valid = super
+    if id.blank? and domain_name.blank? and errors[:domain_name].blank?
+      errors.add(:domain_name, 'Namespace is required')
+      false
+    else
+      valid
+    end
   end
 
   singular_resource
@@ -94,8 +113,14 @@ class Application < RestApi::Base
     true
   end
 
-  def aliases
-    attributes[:aliases] ||= persisted? ? Alias.find(:all, child_options) : []
+  def aliases(skip_cache=false)
+    attributes[:aliases] = begin
+      if skip_cache or !attributes[:aliases]
+        persisted? ? Alias.find(:all, child_options) : []
+      else
+        attributes[:aliases]
+      end
+    end
   end
   def find_alias(id)
     Alias.find id, child_options
@@ -178,9 +203,12 @@ class Application < RestApi::Base
       []
     end
 
+    def child_prefix_options
+      {:application_id => id}
+    end
+
     def child_options
-      { :params => { :application_id => self.id},
-        :as => as }
+      { :params => child_prefix_options, :as => as }
     end
 
     def self.rescue_parent_missing(e, options=nil)
