@@ -6,7 +6,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin broker
 Name:          openshift-origin-broker-util
-Version: 1.13.6
+Version: 1.13.7
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -84,6 +84,19 @@ cp man/*.8 %{buildroot}%{_mandir}/man8/
 %{_mandir}/man8/oo-stats.8.gz
 
 %changelog
+* Tue Aug 20 2013 Adam Miller <admiller@redhat.com> 1.13.7-1
+- Merge pull request #3423 from rajatchopra/master
+  (dmcphers+openshiftbot@redhat.com)
+- bz998355 oo-admint-ctl-app fix for sparse components (rchopra@redhat.com)
+- Merge pull request #3421 from pravisankar/dev/ravi/bug997352
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 997352 - Added usage_record -> usage inconsistency checks
+  (rpenta@redhat.com)
+- Merge pull request #3417 from abhgupta/abhgupta-scheduler
+  (dmcphers+openshiftbot@redhat.com)
+- Fix for bug 991398 (abhgupta@redhat.com)
+- <Admin::Stats> use only strings for hash keys (lmeyer@redhat.com)
+
 * Mon Aug 19 2013 Adam Miller <admiller@redhat.com> 1.13.6-1
 - Handle lack of JSON reply from gear upgrades (ironcladlou@gmail.com)
 
