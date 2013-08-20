@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.13.5
+Version: 1.13.6
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -84,6 +84,29 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Tue Aug 20 2013 Adam Miller <admiller@redhat.com> 1.13.6-1
+- Merge pull request #3435 from
+  smarterclayton/bug_997848_capabilities_not_shown_via_api
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 997848 - Inherited capabilities not in REST API (ccoleman@redhat.com)
+- Fix cucumber step ambiguity (ironcladlou@gmail.com)
+- Merge pull request #3398 from detiber/bz994445
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3413 from sosiouxme/admin-stats-fixes
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3410 from pravisankar/dev/ravi/card86
+  (dmcphers+openshiftbot@redhat.com)
+- <Admin::Stats> use only strings for hash keys (lmeyer@redhat.com)
+- <Admin::Stats> exclude inactive nodes from eff avail gears
+  (lmeyer@redhat.com)
+- <Admin::Stats> fix minor bug - NONE district should be HashWithReaders
+  (lmeyer@redhat.com)
+- Added REST api support for user environment variables (rpenta@redhat.com)
+- Added User environment variables support in broker (rpenta@redhat.com)
+- WIP Node Platform - Add support for settable user variables
+  (jhonce@redhat.com)
+- Bug 99445 - Better error message for No nodes available (jdetiber@redhat.com)
+
 * Mon Aug 19 2013 Adam Miller <admiller@redhat.com> 1.13.5-1
 - Fixing typos (dmcphers@redhat.com)
 - Bug 997785 (dmcphers@redhat.com)
