@@ -134,7 +134,7 @@ class Haproxy
         end
 
         @last_scale_up_time=Time.now
-        @flap_protection_time_seconds = 120 # number of seconds to ignore gear remove events since last up event
+        @flap_protection_time_seconds = 600 # number of seconds to ignore gear remove events since last up event
         @remove_count_threshold = 20
         @remove_count = 0
         self.populate_status_urls
