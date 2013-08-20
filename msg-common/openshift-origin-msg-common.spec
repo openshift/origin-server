@@ -8,7 +8,7 @@
 
 Summary:       Common msg components for OpenShift broker and node
 Name:          openshift-origin-msg-common
-Version: 1.13.3
+Version: 1.13.4
 Release:       1%{?dist}
 License:       ASL 2.0
 URL:           http://www.openshift.com
@@ -42,6 +42,15 @@ chmod 644 %{buildroot}%{mco_root}validator/*
 %endif
 
 %changelog
+* Tue Aug 20 2013 Adam Miller <admiller@redhat.com> 1.13.4-1
+- User vars node changes:  - Use 'user-var-add' mcollective call for *add*
+  and/or *push* user vars. This will reduce unnecessary additional
+  code/complexity.  - Add some more reserved var names: PATH, IFS, USER, SHELL,
+  HOSTNAME, LOGNAME  - Do not attempt rsync when .env/user_vars dir is empty  -
+  Misc bug fixes (rpenta@redhat.com)
+- WIP Node Platform - Add support for settable user variables
+  (jhonce@redhat.com)
+
 * Fri Aug 16 2013 Adam Miller <admiller@redhat.com> 1.13.3-1
 - Removing has_app mcollective method since its no longer used
   (abhgupta@redhat.com)
