@@ -6,7 +6,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin node
 Name:          openshift-origin-node-util
-Version: 1.13.6
+Version: 1.13.7
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -143,6 +143,13 @@ cp -p init.d/openshift-gears %{buildroot}%{_initddir}/
 %endif
 
 %changelog
+* Tue Aug 20 2013 Adam Miller <admiller@redhat.com> 1.13.7-1
+- Merge pull request #3419 from danmcp/master
+  (dmcphers+openshiftbot@redhat.com)
+- removing v2 specific logic (dmcphers@redhat.com)
+- Bug 998683 - oo-accept-node failed to read manifests from source
+  (jhonce@redhat.com)
+
 * Fri Aug 16 2013 Adam Miller <admiller@redhat.com> 1.13.6-1
 - Merge pull request #3381 from mrunalp/bugs/970939
   (dmcphers+openshiftbot@redhat.com)
