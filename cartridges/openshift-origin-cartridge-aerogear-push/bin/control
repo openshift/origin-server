@@ -16,10 +16,16 @@ function getscanconfig() {
     count=0
     while [ ${count} -lt 4 ]; do
       controller="${OPENSHIFT_AEROGEAR_PUSH_IP}:${OPENSHIFT_AEROGEAR_PUSH_MANAGEMENT_NATIVE_PORT}"
-      scanconfig=`jboss-cli.sh -c --controller=${controller} "/subsystem=deployment-scanner/:read-resource(recursive=true)" 2>&1 || :`
-      if [[ $scanconfig =~ '"outcome" => "success"' ]] ; then
-        SCANCONFIG=$scanconfig
-        return
+
+      # Make sure the deployment-scanner subsystem has been registered before executing
+      # read-resource to prevent an error from being logged in the server.log file
+      scanaddress=`jboss-cli.sh -c --controller=${controller} "/:validate-address(value=[{subsystem=>deployment-scanner}])" 2>&1 || :`
+      if [[ $scanaddress =~ '"outcome" => "success"' && $scanaddress =~ '"valid" => true' ]] ; then
+         scanconfig=`jboss-cli.sh -c --controller=${controller} "/subsystem=deployment-scanner/:read-resource(recursive=true)" 2>&1 || :`
+         if [[ $scanconfig =~ '"outcome" => "success"' ]] ; then
+              SCANCONFIG=$scanconfig
+              return
+         fi
       fi
       let count+=1
 
