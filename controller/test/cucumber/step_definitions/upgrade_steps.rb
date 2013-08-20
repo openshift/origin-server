@@ -77,7 +77,16 @@ Given /^an incompatible version of the ([^ ]+)\-([\d\.]+) cartridge$/ do |cart_n
   current_manifest = prepare_cart_for_rewrite(cart_name, component_version)
   create_upgrade_script(@upgrade_script_path)
 
-  rewrite_and_install(current_manifest, @manifest_path)
+  new_endpoint = { 'Private-IP-Name' => 'EXAMPLE_IP1', 'Private-Port-Name' => 'EXAMPLE_PUBLIC_PORT4', 'Private-Port' => 8083 }
+
+  rewrite_and_install(current_manifest, @manifest_path) do |manifest, current_version|
+    manifest['Endpoints'] << new_endpoint
+  end
+end
+
+Then /^a new port will be exposed$/ do
+  port_env_file = File.join($home_root, @app.uid, '.env', 'OPENSHIFT_MOCK_EXAMPLE_PUBLIC_PORT4')
+  assert_file_exist port_env_file
 end
 
 Given /^a rigged version of the ([^ ]+)\-([\d\.]+) cartridge set to fail (\d) times$/ do |cart_name, component_version, max_failures|

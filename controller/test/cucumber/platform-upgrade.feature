@@ -26,6 +26,7 @@ Feature: Cartridge upgrades
 
     When the application is upgraded to the new cartridge versions
     Then the upgrade metadata will be cleaned up
+    And a new port will be exposed
     And the mock cartridge version should be updated
     And no unprocessed ERB templates should exist
     And the invocation markers from an incompatible upgrade should exist

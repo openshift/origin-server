@@ -178,8 +178,6 @@ module OpenShift
       @model.expects(:find_open_ip).with(8080).returns(ip1)
       @model.expects(:find_open_ip).with(9090).returns(ip2)
 
-      @model.expects(:addresses_bound?).returns(false)
-
       env = {
         "OPENSHIFT_MOCK_EXAMPLE_PORT5" => '3'
       }
@@ -192,6 +190,8 @@ module OpenShift
       @container.expects(:add_env_var).with("OPENSHIFT_MOCK_EXAMPLE_PORT3", 8082)
       @container.expects(:add_env_var).with("OPENSHIFT_MOCK_EXAMPLE_IP2", ip2)
       @container.expects(:add_env_var).with("OPENSHIFT_MOCK_EXAMPLE_PORT4", 9090)
+
+      @model.expects(:addresses_bound?).with(responds_with(:size, 4)).returns(false)
 
       @model.create_private_endpoints(@mock_cartridge)
     end

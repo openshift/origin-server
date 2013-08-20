@@ -745,6 +745,7 @@ module OpenShift
 
         env           = ::OpenShift::Runtime::Utils::Environ.for_gear(@container.container_dir, PathUtils.join(@container.container_dir, cartridge.directory))
         allocated_ips = {}
+        allocated_endpoints = []
 
         cartridge.endpoints.each do |endpoint|
           # Reuse previously allocated IPs of the same name. When recycling
@@ -772,6 +773,8 @@ module OpenShift
 
           next if env[endpoint.private_port_name]
 
+          allocated_endpoints << endpoint
+
           @container.add_env_var(endpoint.private_port_name, endpoint.private_port)
 
           # Create the environment variable for WebSocket Port if it is specified
@@ -792,10 +795,10 @@ module OpenShift
 
         # Validate all the allocations to ensure they aren't already bound. Batch up the initial check
         # for efficiency, then do individual checks to provide better reporting before we fail.
-        address_list = cartridge.endpoints.map { |e| {ip: allocated_ips[e.private_ip_name], port: e.private_port} }
+        address_list = allocated_endpoints.map { |e| {ip: allocated_ips[e.private_ip_name], port: e.private_port} }
         if !address_list.empty? && addresses_bound?(address_list)
           failures = ''
-          cartridge.endpoints.each do |endpoint|
+          allocated_endpoints.each do |endpoint|
             if address_bound?(allocated_ips[endpoint.private_ip_name], endpoint.private_port)
               failures << "#{endpoint.private_ip_name}(#{endpoint.private_port})=#{allocated_ips[endpoint.private_ip_name]};"
             end
