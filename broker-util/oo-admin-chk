@@ -158,18 +158,43 @@ def assign_usage_hash(urec, gear_hash, storage_hash, cart_hash, summary, verbose
     summary << "Found record in usage_records collection with invalid event '#{urec['event']}' for gear Id '#{gear_id}'."
     return
   end
+
+  hash = nil
   case urec['usage_type']
   when UsageRecord::USAGE_TYPES[:gear_usage]
-    gear_hash[gear_id] = { 'app_name' => urec['app_name'] }
+    hash = gear_hash
   when UsageRecord::USAGE_TYPES[:addtl_fs_gb]
-    storage_hash[gear_id] = { 'app_name' => urec['app_name'] }
+    hash = storage_hash
   when UsageRecord::USAGE_TYPES[:premium_cart]
-    unless cart_hash[gear_id]
-      cart_hash[gear_id] = {}
-      cart_hash[gear_id]['app_name'] = urec['app_name']
-      cart_hash[gear_id]['cart_name'] = []
+    hash = cart_hash
+  else
+    puts "FAIL" if verbose
+    summary << "Found invalid usage type '#{urec['usage_type']}' in usage_records collection for gear Id '#{gear_id}'."
+    return
+  end
+
+  unless hash[gear_id]
+    hash[gear_id] = {}
+    hash[gear_id]['num_begin_recs'] = 0
+    hash[gear_id]['num_end_recs'] = 0
+  end
+  hash[gear_id]['app_name'] = urec['app_name']
+  if urec['event'] == UsageRecord::EVENTS[:end]
+    hash[gear_id]['num_end_recs'] += 1
+  else
+    hash[gear_id]['num_begin_recs'] += 1
+  end 
+  if urec['cart_name']
+    hash[gear_id]['cart_name'] = [] unless hash[gear_id]['cart_name']
+    hash[gear_id]['cart_name'] << urec['cart_name']
+  end
+end
+
+def process_usage_hash(gear_hash, storage_hash, cart_hash)
+  [gear_hash, storage_hash, cart_hash].each do |hash|
+    hash.delete_if do |gear_id, gear_info|
+      gear_info['num_begin_recs'] == gear_info['num_end_recs']
     end
-    cart_hash[gear_id]['cart_name'] << urec['cart_name']
   end
 end
 
@@ -690,27 +715,12 @@ if level >= 1 and $billing_enabled
   usage_storage_hash = {}
   usage_cart_hash = {}
   # Populate usage hash: Only for un-ended usage records
-  selection = {:fields => ["user_id", "app_name", "gear_id", "event", "usage_type", "cart_name"],
-               :sort => [["gear_id", 1], ["usage_type", 1], ["time", 1]], :timeout => false}
-  prev = nil
+  selection = {:fields => ["app_name", "gear_id", "event", "usage_type", "cart_name"],
+               :sort => [["time", 1]], :timeout => false}
   OpenShift::DataStore.find(:usage_records, {}, selection) do |urec|
-    if urec['event'] == UsageRecord::EVENTS[:end]
-      if prev
-        unless (prev['gear_id'] == urec['gear_id']) and (prev['usage_type'] == urec['usage_type']) and (prev['user_id'] == urec['user_id'])
-          assign_usage_hash(prev, usage_gear_hash, usage_storage_hash, usage_cart_hash, summary, verbose)
-        end
-        prev = nil
-      end
-    elsif !prev
-      prev = urec
-    else 
-      unless (prev['gear_id'] == urec['gear_id']) and (prev['usage_type'] == urec['usage_type']) and (prev['user_id'] == urec['user_id'])
-        assign_usage_hash(prev, usage_gear_hash, usage_storage_hash, usage_cart_hash, summary, verbose)
-        prev = urec
-      end
-    end
+    assign_usage_hash(urec, usage_gear_hash, usage_storage_hash, usage_cart_hash, summary, verbose)
   end
-  assign_usage_hash(prev, usage_gear_hash, usage_storage_hash, usage_cart_hash, summary, verbose) if prev
+  process_usage_hash(usage_gear_hash, usage_storage_hash, usage_cart_hash)
 
   # Find application gears that does not have usage records and viceversa.
   usage_gear_ids = usage_gear_hash.keys
@@ -888,7 +898,7 @@ if level >= 1 and $billing_enabled
   end
   usage_record_gear_ids = usage_records_hash.keys
   usage_gear_ids = usage_hash.keys
-  missing_urecs = (usage_gear_ids - usage_record_gear_ids)
+  missing_urecs = (usage_gear_ids - usage_record_gear_ids) + (usage_record_gear_ids - usage_gear_ids)
   (usage_record_gear_ids & usage_gear_ids).each do |gear_id|
     if usage_records_hash[gear_id]['num_unended_events'] != usage_hash[gear_id]['num_unended_events']
       missing_urecs << gear_id
@@ -910,13 +920,7 @@ if level >= 1 and $billing_enabled
     end
     usage_record_unended_events = usage_record_begin_events - usage_record_end_events
 
-    usage_begin_events = 0
-    usage_end_events = 0
-    OpenShift::DataStore.find(:usage, {'gear_id' => BSON::ObjectId(gear_id)}, {:fields => ["begin_time", "end_time"], :timeout => false}) do |urec|
-      usage_begin_events += 1 if urec['begin_time']
-      usage_end_events += 1 if urec['end_time']
-    end
-    usage_unended_events = usage_begin_events - usage_end_events
+    usage_unended_events = Usage.where({'gear_id' => Moped::BSON::ObjectId(gear_id), 'end_time' => nil}).count
 
     if usage_record_unended_events == usage_unended_events
       # Ignore, false alarm
