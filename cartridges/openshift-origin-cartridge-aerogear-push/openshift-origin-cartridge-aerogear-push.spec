@@ -3,7 +3,7 @@
 
 Summary:       Provides the AeroGear UnifiedPush Server on top of JBossAS7
 Name:          openshift-origin-cartridge-aerogear-push
-Version: 1.0.9
+Version: 1.0.10
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -98,6 +98,79 @@ fi
 
 
 %changelog
+* Tue Aug 20 2013 Paul Morie <pmorie@gmail.com> 1.0.10-1
+- Incorporating recent jbossas cartridge changes (starting from commit
+  https://github.com/openshift/origin-
+  server/commit/d9779f49d9caf0df433ed47a95486dd4bf97d3c9 up until
+  https://github.com/openshift/origin-
+  server/commit/c2e53f5b5d7cc99b8d1ea89c1ab9581aee9b94dc). (fjuma@redhat.com)
+- Update list of locked files. (fjuma@redhat.com)
+- Fixing URL in usr/template/README.md (fjuma@redhat.com)
+- add link to the admin console guide. (cvasilak@gmail.com)
+- Updating to the 0.8.0 version of SimplePush: (fjuma@redhat.com)
+- Updating to the 0.8.0 version of UnifiedPush: (fjuma@redhat.com)
+- Appending JAVA_OPTS_EXT to JAVA_OPTS. (fjuma@redhat.com)
+- Updating to the following SimplePush version: (fjuma@redhat.com)
+- Updating to the following UnifiedPush version that adds HSTS support:
+  (fjuma@redhat.com)
+- Fixed URL to cartridge documentation. (fjuma@redhat.com)
+- Adding information about idle OpenShift applications and WebSocket requests
+  (AEROGEAR-1296) to the cartridge README. (fjuma@redhat.com)
+- AGPUSH-284 Setting the jsse.enableSNIExtension system property to false.
+  (fjuma@redhat.com)
+- Updating to the following SimplePush version and setting 'endpoint-tls' to
+  true: (fjuma@redhat.com)
+- Updating UnifiedPush to the following version: (fjuma@redhat.com)
+- Updating to the following SimplePush version that removes the netty subsystem
+  and uses a SimplePush specific subsystem instead. Updating the standalone.xml
+  file accordingly and no longer adding the netty module. (fjuma@redhat.com)
+- Adding the token key for SimplePush to the list of environment variables.
+  (fjuma@redhat.com)
+- Modifying the descriptions in the manifest. (fjuma@redhat.com)
+- Generating a value for the SimplePush 'token-key' and updating to the
+  following versions: (fjuma@redhat.com)
+- Updating UnifiedPush to the following version: (fjuma@redhat.com)
+- Updating the cartridge documentation. (fjuma@redhat.com)
+- Automatic commit of package [openshift-origin-cartridge-aerogear-push]
+  release [1.0.9-1]. (pmorie@gmail.com)
+- Automatic commit of package [openshift-origin-cartridge-aerogear-push]
+  release [1.0.8-1]. (pmorie@gmail.com)
+- Installing the AeroGear and Netty modules in the spec file instead of in
+  bin/install. (fjuma@redhat.com)
+- Updating to the following versions: (fjuma@redhat.com)
+- Automatic commit of package [openshift-origin-cartridge-aerogear-push]
+  release [1.0.7-1]. (pmorie@gmail.com)
+- Updating to the latest SimplePush, UnifiedPush, and 0.0.2 version of the
+  AdminUI. (fjuma@redhat.com)
+- Automatic commit of package [openshift-origin-cartridge-aerogear-push]
+  release [1.0.6-1]. (pmorie@gmail.com)
+- Automatic commit of package [openshift-origin-cartridge-aerogear-push]
+  release [1.0.5-1]. (pmorie@gmail.com)
+- Updating to the latest UnifiedPush, SimplePush, and Netty subsystem with
+  datasource dependency support. (fjuma@redhat.com)
+- Temporarily installing the AeroGear SimplePush and Netty modules in
+  bin/install instead of the spec file to make it easier to remove the spec
+  file for the downloadable cartridge. (fjuma@redhat.com)
+- Automatic commit of package [openshift-origin-cartridge-aerogear-push]
+  release [1.0.4-1]. (pmorie@gmail.com)
+- Updating to the latest SimplePush and to the latest UnifiedPush WAR that
+  contains a fix for the AdminUI. (fjuma@redhat.com)
+- Automatic commit of package [openshift-origin-cartridge-aerogear-push]
+  release [1.0.3-1]. (pmorie@gmail.com)
+- Updating to the latest SimplePush and Netty modules and to the latest
+  UnifiedPush WAR that contains the initial AdminUI. (fjuma@redhat.com)
+- Updating the modules and subsystem configuration for SimplePush and adding a
+  datasource for SimplePush. (fjuma@redhat.com)
+- Updating to the latest UnifiedPush Server WAR file and modifying the
+  UnifiedPush datasource name. (fjuma@redhat.com)
+- Automatic commit of package [openshift-origin-cartridge-aerogear-push]
+  release [1.0.2-1]. (pmorie@gmail.com)
+- Automatic commit of package [openshift-origin-cartridge-aerogear-push]
+  release [1.0.1-1]. (pmorie@gmail.com)
+- Changing the port for the SimplePush socket binding to 8676.
+  (fjuma@redhat.com)
+- Initial import from fjuma (pmorie@gmail.com)
+
 * Mon Aug 12 2013 Paul Morie <pmorie@gmail.com> 1.0.9-1
 - Automatic commit of package [openshift-origin-cartridge-aerogear-push]
   release [1.0.8-1]. (pmorie@gmail.com)
