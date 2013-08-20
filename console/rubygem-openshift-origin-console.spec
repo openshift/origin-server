@@ -9,7 +9,7 @@
 
 Summary:       OpenShift Origin Management Console
 Name:          rubygem-%{gem_name}
-Version: 1.13.4
+Version: 1.13.5
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -153,6 +153,15 @@ cp -a ./%{gem_dir}/* %{buildroot}%{gem_dir}/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Tue Aug 20 2013 Adam Miller <admiller@redhat.com> 1.13.5-1
+- Merge pull request #3415 from tdawson/tdawson/mirrorfixes/2013-08
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 997080 - chrome input fields - turn of break word (jforrest@redhat.com)
+- fix old mirror url (tdawson@redhat.com)
+- Merge pull request #3408 from abhgupta/abhgupta-scheduler
+  (dmcphers+openshiftbot@redhat.com)
+- Fix for bug 995034 (abhgupta@redhat.com)
+
 * Mon Aug 19 2013 Adam Miller <admiller@redhat.com> 1.13.4-1
 - Merge pull request #3382 from smarterclayton/builder_scope_incorrect
   (dmcphers+openshiftbot@redhat.com)
