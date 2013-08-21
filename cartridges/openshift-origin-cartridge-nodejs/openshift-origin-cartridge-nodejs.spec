@@ -2,7 +2,7 @@
 
 Summary:       Provides Node.js support
 Name:          openshift-origin-cartridge-nodejs
-Version: 1.14.4
+Version: 1.14.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -42,15 +42,20 @@ Provides Node.js support to OpenShift. (Cartridge Format V2)
 %__mkdir -p %{buildroot}%{cartridgedir}
 %__cp -r * %{buildroot}%{cartridgedir}
 
-echo "NodeJS version is `/usr/bin/node -v`"
-if [[ $(/usr/bin/node -v) == v0.6* ]]; then
-%__rm -f %{buildroot}%{cartridgedir}/versions/0.10
-%__mv %{buildroot}%{cartridgedir}/metadata/manifest.yml.0.6 %{buildroot}%{cartridgedir}/metadata/manifest.yml;
+if [ -f /usr/local/n/versions/*/bin/node ]; then
+    echo "USING NPM VERSION ON SERVER"
+    export PATH=$/usr/local/n/versions/*/bin:$PATH
+else		   
+     echo "USING NODE VERSION ON SERVER"	
 fi
-
-if [[ $(/usr/bin/node -v) == v0.10* ]]; then
-%__rm -f %{buildroot}%{cartridgedir}/versions/0.6
-%__mv %{buildroot}%{cartridgedir}/metadata/manifest.yml.0.10 %{buildroot}%{cartridgedir}/metadata/manifest.yml;
+ 
+if [[ $(node -v) == v0.6* ]]; then
+    %__rm -rf %{buildroot}%{cartridgedir}/versions/0.10
+	%__mv %{buildroot}%{cartridgedir}/metadata/manifest.yml.0.6 %{buildroot}%{cartridgedir}/metadata/manifest.yml;
+fi
+if [[ $(node -v) == v0.10* ]]; then
+    %__rm -rf %{buildroot}%{cartridgedir}/versions/0.6
+	%__mv %{buildroot}%{cartridgedir}/metadata/manifest.yml.0.10 %{buildroot}%{cartridgedir}/metadata/manifest.yml;
 fi
 
 %files
@@ -63,23 +68,6 @@ fi
 %doc %{cartridgedir}/LICENSE
 
 %changelog
-* Fri Aug 16 2013 Adam Miller <admiller@redhat.com> 1.14.4-1
-- Merge pull request #3376 from brenton/BZ986300_BZ981148
-  (dmcphers+openshiftbot@redhat.com)
-- Merge pull request #3354 from dobbymoodge/origin_runtime_219
-  (dmcphers+openshiftbot@redhat.com)
-- <cartridges> Additional cart version and test fixes (jolamb@redhat.com)
-- Bug 981148 - missing facter dependency for cartridge installation
-  (bleanhar@redhat.com)
-
-* Thu Aug 15 2013 Adam Miller <admiller@redhat.com> 1.14.3-1
-- Bug 968280 - Ensure Stopping/Starting messages during git push Bug 983014 -
-  Unnecessary messages from mongodb cartridge (jhonce@redhat.com)
-
-* Wed Aug 14 2013 Adam Miller <admiller@redhat.com> 1.14.2-1
-- Bug 994922 (asari.ruby@gmail.com)
-- Use marker_present for conformity (asari.ruby@gmail.com)
-
 * Thu Aug 08 2013 Adam Miller <admiller@redhat.com> 1.14.1-1
 - Merge pull request #3313 from jwhonce/wip/manifest_lint
   (dmcphers+openshiftbot@redhat.com)
