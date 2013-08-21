@@ -15,6 +15,7 @@
 #++
 
 require 'time'
+require 'openshift/data_store'
 
 class Admin::Stats
 
@@ -23,8 +24,12 @@ class Admin::Stats
     @time = {}
   end
 
-  # Currently only option is :db_stats which table scans the DB and is kind of expensive
   # e.g. set_option :db_stats => true
+  # Current options:
+  #   :db_stats - table scans the DB and is kind of expensive
+  #   :read_file - read results from a file instead of generating
+  #   :wait - time (in seconds, can be float) to wait for all of
+  #           the nodes to respond to MCollective.
   def set_option(options)
     @options.merge! options
   end
@@ -39,6 +44,7 @@ class Admin::Stats
 
   # gather all statistics and analyze
   def gather_statistics
+    return self.load_from_file if @options[:read_file]
     rpc_opts = Rails.configuration.msg_broker[:rpc_options]
     prev_timeout = rpc_opts[:disctimeout]
     rpc_opts[:disctimeout] = @options[:wait] || prev_timeout
@@ -67,9 +73,28 @@ class Admin::Stats
     return @time
   end
 
+  # alternative to gather_statistics - "gathers" from a file instead
+  def load_from_file(file = nil)
+    case file ||= @options[:read_file]
+    when nil
+      raise "No file given"
+    when /(yaml|yml)$/
+      unless (@file_results = YAML.load_file file).is_a? OpenShift::HashWithReaders
+        @file_results = OpenShift::HashWithReaders.deep_convert_hashes(@file_results)
+      end
+    when /(json|jsn|js)$/
+      @file_results = JSON.parse( IO.read(file) )
+      @file_results = OpenShift::HashWithReaders.deep_convert_hashes(@file_results)
+    else
+      raise "Don't know how to load file '#{file}'\n" +
+            "Please use a file with .yaml or .json extension."
+    end
+    return @file_results[:timings_msecs] || {}
+  end
+
   # Bundle up the statistics results in a hash
   def results
-    r = Results.new.merge({
+    @file_results || Results.new.merge(deep_clear_default!({
       'timings_msecs' => @time,                             #timing hash
       'node_entries' => @entry_for_node.values,             #array of node hashes from mcollective
       'node_entries_hash' => @entry_for_node,               #hash of identity => node hashes from mcollective
@@ -86,12 +111,13 @@ class Admin::Stats
       'db_count_for_profile' => @count_for_profile,
       # if db counts were gathered, array of users with app/gear counts
       'db_count_per_user' => @count_for_user ? @count_for_user.values : nil,
-    })
+    }))
   end
 
   # want these as class or instance methods
   module CleanResults
     # remove Hash default blocks for serialization (changes original!)
+    # See: http://stackoverflow.com/questions/6391855/rails-cache-error-in-rails-3-1-typeerror-cant-dump-hash-with-default-proc
     def deep_clear_default!(obj)
       if obj.is_a? Hash
         obj.default = nil
@@ -99,6 +125,7 @@ class Admin::Stats
       elsif obj.is_a? Array
         obj.each {|v| deep_clear_default!(v)}
       end
+      obj
     end
   end
   include CleanResults
