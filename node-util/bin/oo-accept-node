@@ -554,7 +554,10 @@ def check_user_cgroups(username)
 end
 
 def check_system_httpd_configs
+  return unless $CONF.get('OPENSHIFT_FRONTEND_HTTP_PLUGINS').split(',').include?('openshift-origin-frontend-apache-mod-rewrite')
+  return unless $CONF.get('OPENSHIFT_FRONTEND_HTTP_PLUGINS').split(',').include?('openshift-origin-frontend-nodejs-websocket')
   verbose("checking system httpd configs")
+
   ['aliases.db', 'idler.db', 'nodes.db', 'sts.db'].each do |db|
     begin
       File.open(File.join($CONF.get('OPENSHIFT_HTTP_CONF_DIR'), db))
