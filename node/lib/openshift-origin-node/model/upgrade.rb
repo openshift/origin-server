@@ -63,8 +63,8 @@ module OpenShift
       @@gear_extension_present = false
       gear_extension_path = OpenShift::Config.new.get('GEAR_UPGRADE_EXTENSION')
       if gear_extension_path && File.exists?("#{gear_extension_path}.rb")
-        require gear_extension_path
-        @@gear_extension_present = true
+        @@gear_extension_present = require gear_extension_path
+        raise "#{gear_extension_path} exists and failed to load" unless @@gear_extension_present
       end
 
       attr_reader :uuid, :namespace, :version, :hostname, :ignore_cartridge_version, :gear_home, :gear_env, :progress, :container, :gear_extension, :config
@@ -209,7 +209,7 @@ module OpenShift
         end
 
         begin
-          @gear_extension = OpenShift::GearUpgradeExtension.new(uuid, gear_home)
+          @gear_extension = OpenShift::GearUpgradeExtension.new(uuid, gear_home, container)
         rescue Exception => e
           raise "Unable to instantiate gear upgrade extension: #{e.message}\n#{e.backtrace}"
         end
