@@ -1,6 +1,6 @@
 [Unit]
 Description=OpenShift Traffic Control
-After=runlevel3.target
+After=network.target
 
 [Service]
 Type=forking
