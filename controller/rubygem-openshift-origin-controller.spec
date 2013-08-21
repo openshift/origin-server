@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.13.7
+Version: 1.13.8
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -84,6 +84,12 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Wed Aug 21 2013 Adam Miller <admiller@redhat.com> 1.13.8-1
+- Merge pull request #3451 from
+  smarterclayton/bug_997567_alias_error_message_vague
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 997567 - The alias error message is too vague (ccoleman@redhat.com)
+
 * Wed Aug 21 2013 Adam Miller <admiller@redhat.com> 1.13.7-1
 - Merge pull request #3441 from jwhonce/wip/user_vars
   (dmcphers+openshiftbot@redhat.com)
