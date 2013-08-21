@@ -376,7 +376,7 @@ module MCollective
 
       def oo_user_var_add(args)
         variables, gears = {}, []
-        args['--with-variables'].split(' ').each { |a| token = a.split('='); variables[token.first] = token.last } if args['--with-variables']
+        args['--with-variables'].split(' ').each { |a| token = a.split('=', 2); variables[token.first] = token.last } if args['--with-variables']
         gears = args['--with-gears'].split(';') if args['--with-gears']
 
         if variables.empty? and gears.empty?
