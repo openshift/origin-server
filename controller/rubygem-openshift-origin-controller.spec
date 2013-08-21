@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.13.6
+Version: 1.13.7
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -84,6 +84,23 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Wed Aug 21 2013 Adam Miller <admiller@redhat.com> 1.13.7-1
+- Merge pull request #3441 from jwhonce/wip/user_vars
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3326 from kraman/admin_command_connection_hooks
+  (dmcphers+openshiftbot@redhat.com)
+- origin_broker_77 (lnader@redhat.com)
+- Merge pull request #3439 from pravisankar/dev/ravi/user-env-bugs
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 998794 - Allow blank value for a user environment variable
+  (rpenta@redhat.com)
+- Node Platform - Add .env/user_vars during upgrade (jhonce@redhat.com)
+- Merge pull request #3436 from pmorie/dev/upgrades
+  (dmcphers+openshiftbot@redhat.com)
+- Fix creating new endpoints during incompatible upgrades (pmorie@gmail.com)
+- New admin command to call connection hooks on an application.
+  (kraman@gmail.com)
+
 * Tue Aug 20 2013 Adam Miller <admiller@redhat.com> 1.13.6-1
 - Merge pull request #3435 from
   smarterclayton/bug_997848_capabilities_not_shown_via_api
