@@ -460,6 +460,7 @@ module OpenShift
         OpenShift::Runtime::CartridgeRepository.overlay_cartridge(next_manifest, target)
 
         FileUtils.rm_f container.processed_templates(next_manifest)
+        FileUtils.rm_f Dir.glob(PathUtils.join(target, 'env', '*.erb'))
         progress.log "Removed ERB templates for #{next_manifest.name}"
 
         cart_model.unlock_gear(next_manifest) do |m|
