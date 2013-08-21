@@ -154,6 +154,11 @@ cp -a ./%{gem_dir}/* %{buildroot}%{gem_dir}/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Wed Aug 21 2013 Krishna Raman <kraman@gmail.com> 1.13.0.2-1
+- Bumping package versions (kraman@gmail.com)
+- Fixing console RPM spec to install ruby dependencies on Fedora 19
+  (kraman@gmail.com)
+
 * Thu Aug 01 2013 Krishna Raman <kraman@gmail.com> 1.13.0.1-1
 - Bumping version #s for origin release 2 (kraman@gmail.com)
 - Card 57 - Fix typo (jforrest@redhat.com)
