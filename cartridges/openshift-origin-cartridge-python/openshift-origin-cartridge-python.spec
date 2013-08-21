@@ -1,7 +1,7 @@
 %global cartridgedir %{_libexecdir}/openshift/cartridges/python
 
 Name:          openshift-origin-cartridge-python
-Version: 0.8.5
+Version: 0.8.6
 Release:       1%{?dist}
 Summary:       Python cartridge
 Group:         Development/Languages
@@ -114,6 +114,10 @@ Python cartridge for OpenShift. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Wed Aug 21 2013 Adam Miller <admiller@redhat.com> 0.8.6-1
+- Bug 998926 - setup needs a reentrant version of creating the Apache symlinks
+  (rmillner@redhat.com)
+
 * Tue Aug 20 2013 Adam Miller <admiller@redhat.com> 0.8.5-1
 - Merge pull request #3415 from tdawson/tdawson/mirrorfixes/2013-08
   (dmcphers+openshiftbot@redhat.com)
