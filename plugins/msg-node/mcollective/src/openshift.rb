@@ -942,9 +942,16 @@ module MCollective
       def get_all_gears_endpoints_action
         gear_map = {}
 
+        uid_map          = {}
+        uids             = IO.readlines("/etc/passwd").map { |line|
+          uid               = line.split(":")[2]
+          username          = line.split(":")[0]
+          uid_map[username] = uid
+        }
         dir = "/var/lib/openshift/"
         Dir.foreach(dir) do |gear_file|
           if File.directory?(dir + gear_file) and not File.symlink?(dir + gear_file) and not gear_file[0] == '.'
+           next if not uid_map.has_key?(gear_file)
            gear_uuid = gear_file
            cont = OpenShift::Runtime::ApplicationContainer.from_uuid(gear_uuid)
            env = OpenShift::Runtime::Utils::Environ::for_gear(cont.container_dir)
