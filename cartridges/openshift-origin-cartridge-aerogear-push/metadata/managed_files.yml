@@ -1,0 +1,21 @@
+---
+locked_files:
+- bin/
+- bin/*
+- tools/
+- tools/*
+- metadata/
+- metadata/*
+- hooks/
+- hooks/*
+- env/
+- env/OPENSHIFT_AEROGEAR_PUSH_DIR
+- env/OPENSHIFT_AEROGEAR_PUSH_LOG_DIR
+- env/OPENSHIFT_AEROGEAR_PUSH_JDK*
+- env/OPENSHIFT_AEROGEAR_PUSH_VERSION
+- env/OPENSHIFT_AEROGEAR_PUSH_TOKEN_KEY
+- env/M2_HOME
+- standalone/deployments/*
+processed_templates:
+- 'metadata/jenkins_shell_command.erb'
+- 'metadata/jenkins_artifacts_glob.erb'

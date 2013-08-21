@@ -1,0 +1,20 @@
+#!/bin/bash
+
+# Exit on any errors
+set -e
+
+source $OPENSHIFT_CARTRIDGE_SDK_BASH
+
+list=
+kvargs=$(echo "${@:4}" | tr -d "\n" )
+for arg in $kvargs; do
+    ip=$(echo "$arg" | cut -f 2 -d '=' | tr -d "'")
+    ip=$(echo "$ip" | sed "s/:/[/g")
+    if [ -z "$list" ]; then
+        list="$ip]"
+    else
+        list="$list,$ip]"
+    fi
+done
+
+echo $list > $OPENSHIFT_AEROGEAR_PUSH_DIR/env/OPENSHIFT_AEROGEAR_PUSH_CLUSTER

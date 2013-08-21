@@ -1,0 +1,3 @@
+#!/bin/bash -eu
+
+rm -rf ${OPENSHIFT_HOMEDIR}/.m2
