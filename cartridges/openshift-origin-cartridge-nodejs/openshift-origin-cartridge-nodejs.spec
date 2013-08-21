@@ -42,7 +42,7 @@ Provides Node.js support to OpenShift. (Cartridge Format V2)
 %__mkdir -p %{buildroot}%{cartridgedir}
 %__cp -r * %{buildroot}%{cartridgedir}
 
-if [ -f /usr/local/3n/versions/*/bin/node ]; then
+if [ -f /usr/local/n/versions/*/bin/node ]; then
     echo "USING NPM VERSION ON SERVER"
     export PATH=$/usr/local/n/versions/*/bin:$PATH
 else		   
