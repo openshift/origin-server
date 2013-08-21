@@ -14,20 +14,20 @@ class BuildingControllerTest < ActionController::TestCase
     {:name => 'test', :framework => 'php-5.3', :building_app => 'jenkins'}
   end
   def app_with_builds
-    {:name => 'test', :framework => 'php-5.3', :building_with => 'jenkins-client-1.4', :build_job_url => 'Job URL: http://foo/builds', :building_app => 'jenkins'}
+    {:name => 'test', :framework => 'php-5.3', :building_with => 'jenkins-client-1', :build_job_url => 'Job URL: http://foo/builds', :building_app => 'jenkins'}
   end
   def jenkins_app
-    {:name => 'jenkins', :framework => 'jenkins-1.4'}
+    {:name => 'jenkins', :framework => 'jenkins-1'}
   end
 
   def with_app(other_app=nil, app=app_without_builds)
     with_unique_user
 
     ActiveResource::HttpMock.respond_to(false) do |mock|
-      mock.delete '/broker/rest/domain/test/application/test/cartridge/jenkins-client-1.4.json', json_header, {}.to_json
+      mock.delete '/broker/rest/domain/test/application/test/cartridge/jenkins-client-1.json', json_header, {}.to_json
       mock.get '/broker/rest/cartridges.json', anonymous_json_header, [
-        {:name => 'jenkins-client-1.4', :tags => ['ci_builder']},
-        {:name => 'jenkins-1.4', :tags => ['ci']},
+        {:name => 'jenkins-client-1', :tags => ['ci_builder']},
+        {:name => 'jenkins-1', :tags => ['ci']},
       ].to_json
       mock.get '/broker/rest/domains.json', json_header, [domain].to_json
       mock.get '/broker/rest/domain/test/application/test.json', json_header, app.to_json
@@ -89,7 +89,7 @@ class BuildingControllerTest < ActionController::TestCase
   test "should redraw if destroy fails" do
     args = with_builds
     ActiveResource::HttpMock.respond_to(false) do |mock|
-      mock.delete '/broker/rest/domain/test/application/test/cartridge/jenkins-client-1.4.json', json_header, {:messages => [{:text => 'unable to delete'}]}.to_json, 422
+      mock.delete '/broker/rest/domain/test/application/test/cartridge/jenkins-client-1.json', json_header, {:messages => [{:text => 'unable to delete'}]}.to_json, 422
     end
 
     delete :destroy, args
@@ -134,7 +134,7 @@ class BuildingControllerTest < ActionController::TestCase
     args = with_app(jenkins_app, app_can_build)
 
     ActiveResource::HttpMock.respond_to(false) do |mock|
-      mock.post '/broker/rest/domain/test/application/test/cartridges.json', json_header(true), { :name => 'jenkins-client-1.4' }.to_json, 422
+      mock.post '/broker/rest/domain/test/application/test/cartridges.json', json_header(true), { :name => 'jenkins-client-1' }.to_json, 422
     end
 
     # Simulate the POST
@@ -148,8 +148,8 @@ class BuildingControllerTest < ActionController::TestCase
     args = with_app(nil, app_without_builds)
 
     ActiveResource::HttpMock.respond_to(false) do |mock|
-      mock.post '/broker/rest/domain/test/application/test/cartridges.json', json_header(true), { :name => 'jenkins-client-1.4' }.to_json, 201
-      mock.post '/broker/rest/domain/test/applications.json', json_header(true), { :name => 'jenkins2', :framework => 'jenkins-1.4', :messages => [{:severity => 'result', :text => 'App remote message'}] }.to_json, 201
+      mock.post '/broker/rest/domain/test/application/test/cartridges.json', json_header(true), { :name => 'jenkins-client-1' }.to_json, 201
+      mock.post '/broker/rest/domain/test/applications.json', json_header(true), { :name => 'jenkins2', :framework => 'jenkins-1', :messages => [{:severity => 'result', :text => 'App remote message'}] }.to_json, 201
     end
 
     post :create, args.merge({:application => {:name => 'jenkins2'}})
@@ -162,7 +162,7 @@ class BuildingControllerTest < ActionController::TestCase
     args = with_app(nil, app_without_builds)
 
     ActiveResource::HttpMock.respond_to(false) do |mock|
-      mock.post '/broker/rest/domain/test/applications.json', json_header(true), { :name => 'jenkins2', :framework => 'jenkins-1.4', :messages => [{:field => 'base', :text => 'App remote error'}] }.to_json, 422
+      mock.post '/broker/rest/domain/test/applications.json', json_header(true), { :name => 'jenkins2', :framework => 'jenkins-1', :messages => [{:field => 'base', :text => 'App remote error'}] }.to_json, 422
     end
 
     post :create, args.merge({:application => {:name => 'jenkins2'}})
@@ -176,14 +176,14 @@ class BuildingControllerTest < ActionController::TestCase
     args = with_app(nil, app_without_builds)
 
     ActiveResource::HttpMock.respond_to(false) do |mock|
-      mock.post '/broker/rest/domain/test/application/test/cartridges.json', json_header(true), { :name => 'jenkins-client-1.4' }.to_json, 422
-      mock.post '/broker/rest/domain/test/applications.json', json_header(true), { :name => 'jenkins2', :framework => 'jenkins-1.4', :messages => [{:severity => 'result', :text => 'App remote message'}] }.to_json, 201
+      mock.post '/broker/rest/domain/test/application/test/cartridges.json', json_header(true), { :name => 'jenkins-client-1' }.to_json, 422
+      mock.post '/broker/rest/domain/test/applications.json', json_header(true), { :name => 'jenkins2', :framework => 'jenkins-1', :messages => [{:severity => 'result', :text => 'App remote message'}] }.to_json, 201
     end
 
     post :create, args.merge({:application => {:name => 'jenkins2'}})
 
     body = mock_body_for{ |r| /applications.json/ =~ r.path }
-    assert_equal 'jenkins-1.4', body['cartridge']
+    assert_equal 'jenkins-1', body['cartridge']
     assert_equal 'jenkins2', body['name']
 
     assert_response :success

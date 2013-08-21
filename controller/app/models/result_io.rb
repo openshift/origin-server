@@ -79,25 +79,8 @@ class ResultIO
           "--USER ACTIONABLE--\n#{@hasUserActionableError}\n"
   end
 
-=begin
-  # Returns the output of this {ResultIO} object as a JSON string. Used by {LegacyReply}
-  def to_json(*args)
-    reply = LegacyReply.new
-    reply.debug = @debugIO.string
-    reply.messages = @messageIO.string
-    if !@errorIO.string.empty?
-      reply.result = @errorIO.string
-    else
-      reply.result = @resultIO.string
-    end
-    reply.data = @data
-    reply.exit_code = @exitcode
-    reply.to_json(*args)
-  end
-=end
-
   def parse_output(output, gear_id)
-    if output && !output.empty?
+    if output.present?
       output.each_line do |line|
         if line =~ /^CLIENT_(MESSAGE|RESULT|DEBUG|ERROR|INTERNAL_ERROR): /
           case $1
@@ -127,9 +110,9 @@ class ResultIO
         elsif line =~ /^NOTIFY_ENDPOINT_(CREATE|DELETE): /
           # 'NOTIFY_ENDPOINT_CREATE: ' and 'NOTIFY_ENDPOINT_DELETE: '
           # both have length 24.
-          endpoint,address,port = line[23..-1].chomp.split(' ')
+          endpoint,address,port,internal_addr,internal_port = line[23..-1].chomp.split(' ')
           if line =~ /^NOTIFY_ENDPOINT_CREATE: /
-            self.cart_commands.push({:command => "NOTIFY_ENDPOINT_CREATE", :args => [endpoint,address,port]})
+            self.cart_commands.push({:command => "NOTIFY_ENDPOINT_CREATE", :args => [endpoint,address,port,internal_addr,internal_port]})
           else
             self.cart_commands.push({:command => "NOTIFY_ENDPOINT_DELETE", :args => [endpoint,address,port]})
           end

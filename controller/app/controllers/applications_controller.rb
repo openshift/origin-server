@@ -47,10 +47,10 @@ class ApplicationsController < BaseController
   # @param [Boolean] scalable Create a scalable application. Defaults to false.
   # @param [String] init_git_url {http://git-scm.com Git} URI to use as a template when creating the application
   # @param [String] gear_profile Gear profile to use for gears when creating the application
+  # @param [Array<Hash>] environment_variables One or more user environment variables for the application.
   #
   # @return [RestReply<RestApplication>] Application object
   def create
-
     app_name = params[:name].downcase if params[:name].presence
     features = []
     downloaded_cart_urls = []
@@ -65,9 +65,13 @@ class ApplicationsController < BaseController
       else
         features << c
       end  
-    end 
+    end
 
-    if init_git_url = params[:initial_git_url].presence
+    user_env_vars = params[:environment_variables].presence
+    Application.validate_user_env_variables(user_env_vars, true)
+
+    init_git_url = params[:initial_git_url].presence
+    if init_git_url
       repo_spec, _ = (OpenShift::Git.safe_clone_spec(init_git_url) rescue nil)
       return render_error(:unprocessable_entity, "Invalid initial git URL",
                           216, "initial_git_url") unless repo_spec
@@ -76,6 +80,7 @@ class ApplicationsController < BaseController
     default_gear_size = params[:gear_size].presence || params[:gear_profile].presence || Rails.application.config.openshift[:default_gear_size]
     default_gear_size.downcase! if default_gear_size
     valid_sizes = OpenShift::ApplicationContainerProxy.valid_gear_sizes & @domain.allowed_gear_sizes & @domain.owner.allowed_gear_sizes
+    builder_id = nil
 
     if not authorized?(:create_application, @domain)
       if authorized?(:create_builder_application, @domain, {
@@ -84,7 +89,9 @@ class ApplicationsController < BaseController
             :valid_gear_sizes => valid_sizes,
             :domain_id => @domain._id
           })
-        # TODO: record this as a builder
+        if scope = current_user.scopes.find{ |s| s.respond_to?(:builder_id) }
+          builder_id = scope.builder_id
+        end
       else
         authorize! :create_application, @domain # raise the proper error
       end
@@ -92,6 +99,9 @@ class ApplicationsController < BaseController
 
     return render_error(:unprocessable_entity, "Application name is required and cannot be blank",
                         105, "name") if !app_name or app_name.empty?
+
+    return render_error(:forbidden, "The owner of the domain #{@domain.namespace} has disabled all gear sizes from being created.  You will not be able to create an application in this domain.",
+                        134) if valid_sizes.empty?
 
     return render_error(:unprocessable_entity, "Invalid size: #{default_gear_size}. Acceptable values are: #{valid_sizes.join(",")}",
                         134, "gear_profile") if default_gear_size and !valid_sizes.include?(default_gear_size)
@@ -116,7 +126,7 @@ class ApplicationsController < BaseController
     begin
       result = ResultIO.new
       scalable = get_bool(params[:scale])
-      @application = Application.create_app(app_name, features, @domain, default_gear_size, scalable, result, [], init_git_url, request.headers['User-Agent'], downloaded_cart_urls)
+      @application = Application.create_app(app_name, features, @domain, default_gear_size, scalable, result, [], init_git_url, request.headers['User-Agent'], downloaded_cart_urls, builder_id, user_env_vars)
 
     rescue OpenShift::UnfulfilledRequirementException => e
       return render_error(:unprocessable_entity, "Unable to create application for #{e.feature}", 109, "cartridges")

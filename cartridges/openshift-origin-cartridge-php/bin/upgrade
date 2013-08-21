@@ -1,0 +1,9 @@
+#!/bin/bash -eu
+
+php_version=$1
+curr=$2
+next=$3
+
+if [[ $curr =~ 0.0.[1-3] ]]; then
+  pear -c "$OPENSHIFT_HOMEDIR"/.pearrc config-get bin_dir > "$OPENSHIFT_PHP_DIR/env/OPENSHIFT_PHP_PATH_ELEMENT"
+fi

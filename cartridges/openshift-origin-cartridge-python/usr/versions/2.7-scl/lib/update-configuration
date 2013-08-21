@@ -1,0 +1,23 @@
+#!/bin/bash
+
+# Utility function to update cartridge configuration
+
+function update-configuration {
+    # SCL installs of python 2.7
+    sclpath=$(dirname $(scl enable python27 "which python"))
+    echo "$OPENSHIFT_PYTHON_DIR/virtenv/bin:$OPENSHIFT_PYTHON_DIR/bin:${sclpath}" > $OPENSHIFT_PYTHON_DIR/env/OPENSHIFT_PYTHON_PATH_ELEMENT
+
+    local ld_path=$(LD_LIBRARY_PATH="" scl enable python27 "printenv LD_LIBRARY_PATH")
+    path_append ${LD_LIBRARY_PATH:-:} ${ld_path:-:} > $OPENSHIFT_PYTHON_DIR/env/LD_LIBRARY_PATH
+
+    local man_path=$(MANPATH="" scl enable python27 "printenv MANPATH")
+    path_append ${MANPATH:-:} ${man_path:-:} > $OPENSHIFT_PYTHON_DIR/env/MANPATH
+
+    local xdg_data_dirs=$(XDG_DATA_DIRS="" scl enable python27 "printenv XDG_DATA_DIRS")
+    path_append ${XDG_DATA_DIRS:-:} ${xdg_data_dirs:-:} > $OPENSHIFT_PYTHON_DIR/env/XDG_DATA_DIRS
+
+    local pkg_config_path=$(PKG_CONFIG_PATH="" scl enable python27 "printenv PKG_CONFIG_PATH")
+    path_append ${PKG_CONFIG_PATH:-:} ${pkg_config_path:-:} > $OPENSHIFT_PYTHON_DIR/env/PKG_CONFIG_PATH
+
+    echo "$OPENSHIFT_PYTHON_DIR/virtenv" > $OPENSHIFT_PYTHON_DIR/env/VIRTUAL_ENV
+}

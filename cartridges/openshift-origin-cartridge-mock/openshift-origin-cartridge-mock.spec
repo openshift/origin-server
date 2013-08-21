@@ -2,12 +2,13 @@
 
 Summary:       Mock cartridge for V2 Cartridge SDK
 Name:          openshift-origin-cartridge-mock
-Version: 0.8.1
+Version: 0.8.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
 URL:           https://www.openshift.com
 Source0:       http://mirror.openshift.com/pub/openshift-origin/source/%{name}/%{name}-%{version}.tar.gz
+Requires:      facter
 Requires:      rubygem(openshift-origin-node)
 Requires:      openshift-origin-node-util
 BuildArch:     noarch
@@ -37,6 +38,14 @@ test platform functionality. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Fri Aug 16 2013 Adam Miller <admiller@redhat.com> 0.8.3-1
+- Bug 981148 - missing facter dependency for cartridge installation
+  (bleanhar@redhat.com)
+
+* Thu Aug 15 2013 Adam Miller <admiller@redhat.com> 0.8.2-1
+- Bug 968280 - Ensure Stopping/Starting messages during git push Bug 983014 -
+  Unnecessary messages from mongodb cartridge (jhonce@redhat.com)
+
 * Thu Aug 08 2013 Adam Miller <admiller@redhat.com> 0.8.1-1
 - bump_minor_versions for sprint 32 (admiller@redhat.com)
 

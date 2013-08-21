@@ -32,7 +32,7 @@ class RemoteJob < OpenShift::Model
   end
 
   # Calls the provided block to generate RemoteJob entries for each gear and executes those jobs in parallel.
-  # This method provides a convinient way to combine {RemoteJob#add_parallel_job} and {RemoteJob#execute_parallel_jobs}
+  # This method provides a convenient way to combine {RemoteJob#add_parallel_job} and {RemoteJob#execute_parallel_jobs}
   #
   # == Parameters:
   # gears::
@@ -67,7 +67,7 @@ class RemoteJob < OpenShift::Model
     rescue Exception=>e
       Rails.logger.error e.message
       Rails.logger.error e.inspect
-      Rails.logger.error e.backtrace.inspect        
+      Rails.logger.error e.backtrace.inspect
       raise e
     end
   end

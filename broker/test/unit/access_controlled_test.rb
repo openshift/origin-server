@@ -7,6 +7,23 @@ class AccessControlledTest < ActiveSupport::TestCase
     Lock.stubs(:unlock_application).returns(true)
   end
 
+  def with_membership(&block)
+    with_config(:membership_enabled, true, &block)
+  end
+
+  def without_membership(&block)
+    with_config(:membership_enabled, false, &block)
+  end
+
+  def with_config(sym, value, base=:openshift, &block)
+    c = Rails.configuration.send(base)
+    @old =  c[sym]
+    c[sym] = value
+    yield
+  ensure
+    c[sym] = @old
+  end
+
   def test_member_equivalent
     assert_equal Member.new(_id: 'a'), Member.new(_id: 'a')
     assert_equal Member.new(_id: 'a'), CloudUser.new{ |u| u._id = 'a' }
@@ -61,7 +78,7 @@ class AccessControlledTest < ActiveSupport::TestCase
     assert_equal :view, m.explicit_role
 
     assert m.remove_grant
-    assert m.remove_grant
+    assert m.remove_grant # verify that removing a user twice is still true
   end
 
   def test_member_merge_explicit
@@ -155,7 +172,7 @@ class AccessControlledTest < ActiveSupport::TestCase
 
   def test_scopes_restricts_access
     u = CloudUser.find_or_create_by(:login => 'scope_test')
-    t = Authorization.create(:expires_in => 100){ |token| token.user = u }
+    Authorization.create(:expires_in => 100){ |token| token.user = u }
 
     #u2 = CloudUser.find_or_create_by(:login => 'scope_test_other')
     Domain.where(:namespace => 'test').delete
@@ -175,7 +192,8 @@ class AccessControlledTest < ActiveSupport::TestCase
 
     u.scopes = Scope.list!("application/#{a._id}/view")
     assert_equal [a._id], Application.accessible(u).map(&:_id)
-    assert_equal [d._id], Domain.accessible(u).map(&:_id)
+    with_membership{ assert_equal [d._id], Domain.accessible(u).map(&:_id) }
+    without_membership{ assert_equal [d._id], Domain.accessible(u).map(&:_id) }
     assert CloudUser.accessible(u).empty?
     assert Authorization.accessible(u).empty?
 
@@ -183,8 +201,9 @@ class AccessControlledTest < ActiveSupport::TestCase
     assert_equal [d2._id], Domain.accessible(u).map(&:_id)
 
     u.scopes = Scope.list!("application/#{Moped::BSON::ObjectId.new}/view")
-    assert Application.accessible(u).empty?
-    assert_raises(Mongoid::Errors::DocumentNotFound){ Domain.accessible(u).empty? }
+    with_membership{ assert Application.accessible(u).empty? }
+    without_membership{ assert Application.accessible(u).empty? } # test the legacy rendering path
+    assert Domain.accessible(u).empty?
     assert CloudUser.accessible(u).empty?
     assert Authorization.accessible(u).empty?
 
@@ -199,6 +218,66 @@ class AccessControlledTest < ActiveSupport::TestCase
     assert_equal [d2._id], Domain.accessible(u).map(&:_id)
     assert CloudUser.accessible(u).empty?
     assert Authorization.accessible(u).empty?
+
+    assert Application.find_by_user(u, 'scopetest2')
+  end
+
+  def test_broker_key_auth_scopes
+    u = CloudUser.find_or_create_by(:login => 'scope_test')
+
+    #u2 = CloudUser.find_or_create_by(:login => 'scope_test_other')
+    Domain.where(:namespace => 'test').delete
+    d = Domain.find_or_create_by(:namespace => 'test', :owner => u)
+    Domain.where(:namespace => 'test2').delete
+    d2 = Domain.find_or_create_by(:namespace => 'test2', :owner => u)
+
+    Application.where(:name => 'scopetest2').delete
+    assert a2 = Application.create(:name => 'scopetest2', :domain => d2)
+
+    Application.where(:name => 'scopetestjenkins').delete
+    assert j = Application.create(:name => 'scopetestjenkins', :domain => d)
+    Application.where(:name => 'scopetestbuilder').delete
+    assert b = Application.create(:name => 'scopetestbuilder', :builder_id => j._id, :domain => d)
+    Application.where(:name => 'scopetestapp').delete
+    assert a = Application.create(:name => 'scopetestapp', :domain => d)
+
+    apps = [a,j,b]
+
+    s = Scope::Scopes([Scope::DomainBuilder.new(j), Scope::Application.new(:id => j._id, :app_scope => :scale)])
+    u.scopes = s
+    with_membership do
+      assert_equal ['scopetestbuilder', 'scopetestjenkins'], Application.accessible(u).map(&:name).sort
+
+      allows = {
+        :change_gear_quota => [false, false, true],
+        :ssh_to_gears      => [false, false, true],
+        :scale_cartridge   => [false, true,  true],
+      }
+      allows.each_pair do |p, expect|
+        apps.zip(expect).each do |(a, bool)|
+          assert_equal bool, s.authorize_action?(p, a, [], u), "Expected #{bool} for authorize_action on #{a.name} for #{p}"
+        end
+      end
+    end
+    without_membership do
+      assert_equal ['scopetestapp', 'scopetestbuilder', 'scopetestjenkins'], Application.accessible(u).map(&:name).sort
+
+      allows = {
+        :change_gear_quota => [true, true, true],
+        :ssh_to_gears      => [true, true, true],
+        :scale_cartridge   => [true, true, true],
+      }
+      allows.each_pair do |p, expect|
+        apps.zip(expect).each do |(a, bool)|
+          assert_equal bool, s.authorize_action?(p, a, [], u), "Expected #{bool} for authorize_action on #{a.name} for #{p}"
+        end
+      end
+    end
+
+    assert  s.authorize_action?(:create_builder_application, d, [{:domain_id => d._id}], u)
+    assert !s.authorize_action?(:create_builder_application, d, [{:domain_id => d2._id}], u)
+    assert !s.authorize_action?(:create_builder_application, d, [{}], u)
+    assert !s.authorize_action?(:create_builder_application, d2, [], u)
   end
 
   def test_domain_model_consistent
@@ -294,14 +373,26 @@ class AccessControlledTest < ActiveSupport::TestCase
     assert_equal 3, d.members.length
 
     assert Domain.accessible(u).first
-    assert Domain.accessible(u2).first
-    assert Domain.accessible(u3).first
-    
+    with_membership do
+      assert Domain.accessible(u2).first
+      assert Domain.accessible(u3).first
+    end
+    without_membership do
+      assert_equal [], Domain.accessible(u2)
+      assert_equal [], Domain.accessible(u3)
+    end
+
     d.run_jobs
 
     assert Application.accessible(u).first
-    assert Application.accessible(u2).first
-    assert Application.accessible(u3).first
+    with_membership do
+      assert Application.accessible(u2).first
+      assert Application.accessible(u3).first
+    end
+    without_membership do
+      assert_equal [], Application.accessible(u2)
+      assert_equal [], Application.accessible(u3)
+    end
 
     assert jobs = d.applications.first.pending_op_groups
     assert jobs.length == 1
@@ -324,8 +415,14 @@ class AccessControlledTest < ActiveSupport::TestCase
     assert_equal 1, d.members.length
 
     assert Application.accessible(u).first
-    assert Application.accessible(u2).first
-    assert Application.accessible(u3).first
+    with_membership do
+      assert Application.accessible(u2).first
+      assert Application.accessible(u3).first
+    end
+    without_membership do
+      assert_equal [], Application.accessible(u2)
+      assert_equal [], Application.accessible(u3)
+    end
 
     d.run_jobs
 

@@ -47,6 +47,7 @@ module OpenShift
           @@delay = nil
           @@max = nil
           @@_delay = nil
+          MIN_DELAY = 5
 
           attr_accessor :thread, :times
           attr_reader :gear
@@ -162,11 +163,17 @@ module OpenShift
             end
 
             def delay
-              @@delay ||= (@@_delay || intervals.min.to_f / 2)
+              @@delay ||= (@@_delay || new_delay)
             end
 
             def intervals
               @@intervals
+            end
+
+            protected
+            def new_delay
+              new_delay = intervals.min.to_f / 4
+              [new_delay, MIN_DELAY].max
             end
           end
 

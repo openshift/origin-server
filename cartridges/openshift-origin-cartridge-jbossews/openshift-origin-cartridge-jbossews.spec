@@ -2,12 +2,13 @@
 
 Summary:       Provides JBossEWS2.0 support
 Name:          openshift-origin-cartridge-jbossews
-Version: 0.8.1
+Version: 0.8.4
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
 URL:           http://www.openshift.com
 Source0:       http://mirror.openshift.com/pub/openshift-origin/source/%{name}/%{name}-%{version}.tar.gz
+Requires:      facter
 Requires:      rubygem(openshift-origin-node)
 Requires:      openshift-origin-node-util
 Requires:      tomcat6
@@ -75,6 +76,22 @@ alternatives --set jbossews-2.0 /usr/share/tomcat7
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Tue Aug 20 2013 Adam Miller <admiller@redhat.com> 0.8.4-1
+- fix old mirror url (tdawson@redhat.com)
+
+* Fri Aug 16 2013 Adam Miller <admiller@redhat.com> 0.8.3-1
+- Merge pull request #3376 from brenton/BZ986300_BZ981148
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3354 from dobbymoodge/origin_runtime_219
+  (dmcphers+openshiftbot@redhat.com)
+- <cartridges> Additional cart version and test fixes (jolamb@redhat.com)
+- Bug 981148 - missing facter dependency for cartridge installation
+  (bleanhar@redhat.com)
+
+* Thu Aug 15 2013 Adam Miller <admiller@redhat.com> 0.8.2-1
+- Bug 968280 - Ensure Stopping/Starting messages during git push Bug 983014 -
+  Unnecessary messages from mongodb cartridge (jhonce@redhat.com)
+
 * Thu Aug 08 2013 Adam Miller <admiller@redhat.com> 0.8.1-1
 - Card origin_runtime_148 - append JAVA_OPT_EXT to JAVA_OPT (jhonce@redhat.com)
 - Merge pull request #3021 from rvianello/readme_cron (dmcphers@redhat.com)

@@ -2,7 +2,7 @@ class OpenShift::GearLimitReachedException < OpenShift::UserException; end
 
 class OpenShift::ScaleConflictException < OpenShift::UserException
   attr_accessor :cart, :comp, :requested_min, :requested_max, :comp_min, :comp_max
-  
+
   def initialize(msg, cart, comp, requested_min, requested_max, comp_min, comp_max)
     super(msg)
     self.cart = cart
@@ -17,7 +17,7 @@ end
 
 class OpenShift::UnfulfilledRequirementException < OpenShift::OOException
   attr_accessor :feature
-  
+
   def initialize(feature)
     self.feature = feature
     super
@@ -26,7 +26,7 @@ end
 
 class OpenShift::ApplicationValidationException < OpenShift::OOException
   attr_accessor :app
-  
+
   def initialize(app)
     self.app = app
     super()

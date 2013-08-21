@@ -4,7 +4,7 @@
 # @!attribute [r] user
 #   @return {CloudUser} owner of the lock
 # @!attribute [r] locked
-#   @return [Boolean] repesenting if the user is locked
+#   @return [Boolean] representing if the user is locked
 class Lock
   include Mongoid::Document
 

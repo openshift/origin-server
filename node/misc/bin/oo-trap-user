@@ -50,12 +50,7 @@ def load_env(directory):
 
         with open(entry, 'r') as file:
             contents = file.read().rstrip()
-
-            if contents.startswith('export '):
-                value = contents.split('=')[1].strip('\'"')
-                os.environ[env] = value
-            else:
-                os.environ[env] = contents
+            os.environ[env] = contents
 
 
 def gear_env():
@@ -87,6 +82,7 @@ def gear_env():
 
     os.environ['PATH'] = ':'.join(elements)
 
+    load_env('~/.env/user_vars')
 
 # Calling oo-get-mcs-level gets into trouble due to BZ 957257.  Use an
 # internal call which produces the same logic.

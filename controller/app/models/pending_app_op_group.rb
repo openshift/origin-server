@@ -132,6 +132,10 @@ class PendingAppOpGroup
         when :remove_alias
           gear = get_gear_for_rollback(op)
           result_io.append gear.add_alias("abstract", op.args["fqdn"])
+        when :patch_user_env_vars
+          set_vars, unset_vars = Application.sanitize_user_env_variables(op.args["user_env_vars"])
+          result_io.append application.get_app_dns_gear.unset_user_env_vars(set_vars, application.get_gears_ssh_endpoint(true)) if set_vars.present?
+          result_io.append application.get_app_dns_gear.set_user_env_vars(op.saved_values, application.get_gears_ssh_endpoint(true)) if op.saved_values.present?
         when :add_ssl_cert
           gear = get_gear_for_rollback(op)
           result_io.append gear.remove_ssl_cert("abstract", op.args["fqdn"])
@@ -197,7 +201,7 @@ class PendingAppOpGroup
           when :reserve_uid
             gear.reserve_uid
           when :unreserve_uid
-            gear.unreserve_uid          
+            gear.unreserve_uid
           when :expose_port
             job = gear.get_expose_port_job(component_instance)
             tag = { "expose-ports" => component_instance._id.to_s, "op_id" => op._id.to_s }
@@ -216,7 +220,7 @@ class PendingAppOpGroup
           when :post_configure_component
             result_io.append gear.post_configure_component(component_instance, op.args["init_git_url"])
           when :remove_component
-            result_io.append gear.remove_component(component_instance)          
+            result_io.append gear.remove_component(component_instance)
             gear.save! if component_instance.is_sparse?
           when :create_gear
             result_io.append gear.create_gear
@@ -236,14 +240,14 @@ class PendingAppOpGroup
               end
             end
           when :register_dns
-            begin 
+            begin
               gear.register_dns
             rescue OpenShift::DNSLoginException => e
               op.set(:state, :rolledback)
               raise
             end
-          when :deregister_dns          
-            gear.deregister_dns          
+          when :deregister_dns
+            gear.deregister_dns
           when :destroy_gear
             result_io.append gear.destroy_gear(true)
           when :start_component
@@ -323,6 +327,19 @@ class PendingAppOpGroup
             a.has_private_ssl_certificate = false
             a.certificate_added_at = nil
             self.application.save
+          when :patch_user_env_vars
+            set_vars, unset_vars = Application.sanitize_user_env_variables(op.args["user_env_vars"])
+            if op.args["user_env_vars"].present?
+              # save overlapped user env vars for rollback
+              existing_vars = application.list_user_env_variables
+              new_keys = op.args["user_env_vars"].map {|ev| ev['name']}.compact
+              overlapped_keys = existing_vars.keys & new_keys
+              saved_vars = []
+              overlapped_keys.each {|key| saved_vars << {'name' => key, 'value' => existing_vars[key]}}
+              op.set(:saved_values, saved_vars) unless saved_vars.empty?
+            end
+            result_io.append application.get_app_dns_gear.unset_user_env_vars(unset_vars, application.get_gears_ssh_endpoint(true)) if unset_vars.present?
+            result_io.append application.get_app_dns_gear.set_user_env_vars(set_vars, application.get_gears_ssh_endpoint(true)) if set_vars.present? or op.args["push"]
           when :replace_all_ssh_keys
             tag = { "op_id" => op._id.to_s }
             job = gear.get_fix_authorized_ssh_keys_job(op.args["keys_attrs"])
@@ -359,7 +376,17 @@ class PendingAppOpGroup
                 # application.component_instances.find(component_instance_id).process_properties(ResultIO.new(status, output, gear_id))
                 component_instance = application.component_instances.find(component_instance_id)
                 component_instance.process_properties(result)
-                application.process_commands(result, component_instance)
+                process_gear = nil
+                application.group_instances.each { |gi| 
+                  gi.gears.each { |g| 
+                    if g.uuid.to_s==gear_id
+                      process_gear = g
+                      break
+                    end
+                  }
+                  break if process_gear
+                }
+                application.process_commands(result, component_instance, process_gear)
               end
             else
               result_io.append ResultIO.new(status, output, gear_id)

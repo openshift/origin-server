@@ -10,9 +10,9 @@ class Scope::Domain < Scope::Parameterized
 
   def allows_action?(controller)
     case domain_scope
-    when :view 
+    when :view
       controller.request.method == "GET"
-    else 
+    else
       true
     end
   end
@@ -24,7 +24,7 @@ class Scope::Domain < Scope::Parameterized
       when Domain
         resource._id === id
       when Application
-        return false unless resource.domain_id === id 
+        return false unless resource.domain_id === id
         Scope::Application.authorize_action?(resource._id, :admin, permission, resource, other_resources, user)
       end
     when :edit
@@ -32,10 +32,10 @@ class Scope::Domain < Scope::Parameterized
       when Domain
         resource._id === id && [:create_application, :create_builder_application].include?(permission)
       when Application
-        return false unless resource.domain_id === id 
+        return false unless resource.domain_id === id
         return true if permission == :destroy
         Scope::Application.authorize_action?(resource._id, :edit, permission, resource, other_resources, user)
-      end      
+      end
     end
   end
 
@@ -52,7 +52,7 @@ class Scope::Domain < Scope::Parameterized
     DOMAIN_SCOPES.map{ |k,v| s = with_params(nil, k); [s, v, default_expiration(s), maximum_expiration(s)] unless v.nil? }.compact
   end
 
-  private
+  protected
     def id=(s)
       s = s.to_s
       raise Scope::Invalid, "id must be less than 40 characters" unless s.length < 40
@@ -61,7 +61,7 @@ class Scope::Domain < Scope::Parameterized
     end
 
     def domain_scope=(s)
-      raise Scope::Invalid, "'#{s}' is not a valid domain scope" unless DOMAIN_SCOPES.keys.any?{ |k| k.to_s == s }
+      raise Scope::Invalid, "'#{s}' is not a valid domain scope" unless DOMAIN_SCOPES.keys.any?{ |k| k.to_s == s.to_s }
       @domain_scope = s.to_sym
     end
 end

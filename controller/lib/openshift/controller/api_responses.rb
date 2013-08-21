@@ -126,7 +126,7 @@ module OpenShift
             status = :service_unavailable
             message ||= "Another operation is already in progress. Please try again in a minute."
             internal_error = false
-            
+
           when OpenShift::NodeUnavailableException
             Rails.logger.error "Got Node Unavailable Exception"
             status = :service_unavailable
@@ -139,7 +139,7 @@ module OpenShift
               Rail.logger.error "message: #{message}"
             end
             message ||= ""
-            message += "Unable to complete the requested operation because the system is unavailable. If the problem persists please contact Red Hat support. \nReference ID: #{request.uuid}"
+            message += "Unable to complete the requested operation due to: #{ex.message}. If the problem persists please contact Red Hat support. \nReference ID: #{request.uuid}"
 
           when OpenShift::NodeException
             status = :internal_server_error
@@ -214,7 +214,7 @@ module OpenShift
           end if object && object.errors && object.errors.keys
           messages
         end
-        
+
         def new_rest_reply(*arguments)
           RestReply.new(requested_api_version, *arguments)
         end

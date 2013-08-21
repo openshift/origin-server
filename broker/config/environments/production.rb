@@ -76,7 +76,7 @@ Broker::Application.configure do
     :gear_sizes => conf.get("VALID_GEAR_SIZES", "small").split(","),
     :default_gear_capabilities => conf.get("DEFAULT_GEAR_CAPABILITIES", "small").split(","),
     :community_quickstarts_url => conf.get("COMMUNITY_QUICKSTARTS_URL"),
-    :scopes => ['Scope::Session', 'Scope::Read', 'Scope::Application', 'Scope::Userinfo'],
+    :scopes => ['Scope::Session', 'Scope::Read', 'Scope::Domain', 'Scope::Application', 'Scope::Userinfo'],
     :default_scope => 'userinfo',
     :scope_expirations => OpenShift::Controller::Configuration.parse_expiration(conf.get('AUTH_SCOPE_TIMEOUTS'), 1.day),
     :download_cartridges_enabled => conf.get_bool("DOWNLOAD_CARTRIDGES_ENABLED", "false"),    
@@ -88,9 +88,9 @@ Broker::Application.configure do
 
   config.auth = {
     :salt => conf.get("AUTH_SALT", ""),
-    :privkeyfile => conf.get("AUTH_PRIVKEYFILE", "/var/www/openshift/broker/config/server_priv.pem"),
-    :privkeypass => conf.get("AUTH_PRIVKEYPASS", ""),
-    :pubkeyfile  => conf.get("AUTH_PUBKEYFILE", "/var/www/openshift/broker/config/server_pub.pem"),
+    :privkeyfile => conf.get("AUTH_PRIV_KEY_FILE", "/var/www/openshift/broker/config/server_priv.pem"),
+    :privkeypass => conf.get("AUTH_PRIV_KEY_PASS", ""),
+    :pubkeyfile  => conf.get("AUTH_PUB_KEY_FILE", "/var/www/openshift/broker/config/server_pub.pem"),
     :rsync_keyfile => conf.get("AUTH_RSYNC_KEY_FILE", "/etc/openshift/rsync_id_rsa")
   }
 

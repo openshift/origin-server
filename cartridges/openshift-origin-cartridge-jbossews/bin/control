@@ -59,6 +59,7 @@ function start_app() {
     if isrunning; then
         echo "The jbossews cartridge is already running" 1>&2
     else
+        echo "Starting jbossews cartridge"
         # Start
         export CATALINA_HOME=$OPENSHIFT_JBOSSEWS_DIR
         export CATALINA_BASE=$OPENSHIFT_JBOSSEWS_DIR
@@ -79,6 +80,7 @@ function stop_app() {
     if ! isrunning; then
         echo "The jbossews cartridge is already stopped" 1>&2
     elif [ -f "$JBOSS_PID_FILE" ]; then
+        echo "Stopping jbossews cartridge"
         pid=$(cat $JBOSS_PID_FILE);
         echo "Sending SIGTERM to jboss:$pid ..." 1>&2
         killtree $pid

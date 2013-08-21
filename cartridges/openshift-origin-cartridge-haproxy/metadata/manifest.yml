@@ -16,13 +16,14 @@ Website: http://haproxy.1wt.eu/
 Provides:
   - haproxy-1.4
   - haproxy
-  - "haproxy(version) = 1.4"
   - web_proxy
 Components:
   web_proxy:
     Publishes:
       get-balancer-connection-info:
         Type: "NET_TCP:http:http"
+      publish-haproxy-status-url:
+        Type: "NET_TCP:haproxy-status-info"
     Subscribes:
       set-proxy:
         Type: "NET_TCP:httpd-proxy-info"
@@ -33,6 +34,8 @@ Components:
       set-db-connection-info:
         Type: "NET_TCP:db:connection-info"
         Required: false
+      set-haproxy-status-url:
+        Type: "NET_TCP:haproxy-status-info"
     Scaling:
       Min: 1
       Max: 1

@@ -228,7 +228,7 @@ module OpenShift
                 ) unless versions.include?(version.to_s)
 
           @version = version.to_s
-
+          @manifest['Version'] = @version
         else
           @version = @manifest['Version'].to_s
         end
@@ -239,8 +239,11 @@ module OpenShift
 
         # If version overrides are present, merge them on top of the manifest
         if @manifest.has_key?('Version-Overrides')
-          vtree = @manifest['Version-Overrides'][version]
-          @manifest.merge!(vtree) if vtree
+          vtree = @manifest['Version-Overrides'][@version]
+
+          if vtree
+            @manifest.merge!(vtree) 
+          end
         end
 
         @cartridge_vendor       = @manifest['Cartridge-Vendor']
@@ -371,11 +374,21 @@ module OpenShift
         version =~ /^\A(\d+\.*)+\Z/
       end
 
+      def project_version_overrides(version, repository_base_path)
+        Runtime::Manifest.new(manifest_path, version, :file, repository_base_path)
+      end
+
       # Sort an array of "string" version numbers
       def self.sort_versions(array)
+        results = []
+
         copy = Marshal.load(Marshal.dump(array))
         copy.delete_if {|v| v == '_'}
-        copy.collect {|v| Gem::Version.new(v)}.sort
+        copy.collect {|v| Gem::Version.new(v)}.sort.each do |version|
+          results << version.to_s
+        end
+
+        results
       end
 
     end

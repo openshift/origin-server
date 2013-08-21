@@ -5,6 +5,7 @@ This repo contains AsciiDoc versions of the OpenShift Origin manuals. The includ
 ## Building the Manuals ##
 The manuals themselves are .txt files written in [AsciiDoc](http://asciidoc.org/), so they are easily human-readable. However, they are intended to be published in various formats, notably HTML. 
 
+### build ###
 To generate the HTML document set, first install the necessary gems:
 
     bundle install
@@ -15,6 +16,27 @@ Then run the "build" rake task:
 
 This will create html files from the AsciiDoc files, including an index.html.
 
+Note that you may see the following error:
+
+    Processing index.txt
+    asciidoctor: WARNING: line N: include file not found: /path/to/origin-server/documentation/_pep_list.adoc
+	
+If you are not working with the `openshift-pep` repository, you can ignore this.
+
+### build_peps ###
+When the documentation is deployed to [openshift.github.io](http://openshift.github.io/documentation/), this build environment collects and builds the PEPs from the [openshift-pep](https://github.com/openshift/openshift-pep) repository for publication as well.
+
+To make this work in your local build environment, first ensure that you have cloned the openshift-pep repository into the same directory as your clone of the origin-server repository. Then you can run:
+
+    bundle exec rake build_peps
+
+This task does the following:
+
+* Converts the Markdown-based PEPs to HTML via AsciiDoc and writes the generated HTML to the documentation directory.
+* Creates a listing of those files in an AsciiDoc "partial" called `_pep_list.adoc`.
+* Calls the regular `build` task to generate the rest of the doc set and include the PEP list in the documentation home page. 
+
+### clean ###
 If you want to quickly clean up all of the generated HTML files, run:
 
     bundle exec rake clean

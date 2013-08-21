@@ -170,6 +170,18 @@ cp conf/broker.conf %{buildroot}%{_sysconfdir}/openshift/broker-dev.conf
 cp conf/quickstarts.json %{buildroot}%{_sysconfdir}/openshift/quickstarts.json
 cp conf/plugins.d/README %{buildroot}%{_sysconfdir}/openshift/plugins.d/README
 
+# BZ986300
+rm -f %{buildroot}%{brokerdir}/COPYRIGHT
+rm -f %{buildroot}%{brokerdir}/.gitignore
+rm -f %{buildroot}%{brokerdir}/LICENSE
+rm -f %{buildroot}%{brokerdir}/openshift-origin-broker.spec
+rm -f %{buildroot}%{brokerdir}/tmp/cache/.gitkeep
+rm -rf %{buildroot}%{brokerdir}/conf
+rm -rf %{buildroot}%{brokerdir}/doc
+rm -rf %{buildroot}%{brokerdir}/init.d
+rm -rf %{buildroot}%{brokerdir}/lib
+rm -rf %{buildroot}%{brokerdir}/test
+
 %if 0%{?fedora} >= 18
 mv %{buildroot}%{brokerdir}/httpd/httpd.conf.apache-2.4 %{buildroot}%{brokerdir}/httpd/httpd.conf
 %else
@@ -185,6 +197,7 @@ rm %{buildroot}%{brokerdir}/httpd/broker-scl-ruby193.conf
 %endif
 
 %files
+%doc LICENSE COPYRIGHT
 %defattr(0640,apache,apache,0750)
 %attr(0750,-,-) %{_var}/log/openshift/broker
 %attr(0750,-,-) %{_var}/log/openshift/broker/httpd
@@ -222,9 +235,6 @@ rm %{buildroot}%{brokerdir}/httpd/broker-scl-ruby193.conf
 %attr(0750,-,-) %{_initddir}/openshift-broker
 %endif
 
-
-%doc %{brokerdir}/COPYRIGHT
-%doc %{brokerdir}/LICENSE
 
 %post
 %if %{with_systemd}

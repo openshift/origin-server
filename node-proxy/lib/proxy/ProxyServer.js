@@ -112,6 +112,11 @@ function _setProxyRequestHeaders(proxy_req, orig_req) {
   var proto = orig_req.connection.encrypted? 'https' : 'http';
   httputils.addHeader(proxy_req.headers, 'X-Forwarded-Proto', proto);
 
+  /* Set X-Forwarded-Host HTTP extension header. */
+  var hostport = orig_req.headers.host;
+  httputils.addHeader(proxy_req.headers, 'X-Forwarded-Host', hostport.split(':')[0]);
+  httputils.addHeader(proxy_req.headers, 'X-Forwarded-Port', hostport.split(':')[1]);
+
   if (orig_req.httpVersion < 1.1) {
      httputils.addHeader(proxy_req.headers, 'Connection', 'close');
   }

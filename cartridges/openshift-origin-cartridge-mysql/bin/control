@@ -30,6 +30,7 @@ function is_running {
 # Start mysqld and block until it comes up.
 function start {
   if ! is_running; then
+    echo "Starting MySQL cartridge"
     /usr/bin/mysqld_safe --defaults-file=$OPENSHIFT_MYSQL_DIR/conf/my.cnf > /dev/null 2>&1 &    
     wait_for_mysqld_availability
   else
@@ -60,6 +61,7 @@ function stop {
     pidfile=$OPENSHIFT_MYSQL_DIR/pid/mysql.pid
 
     if [ -f $pidfile ]; then
+      echo "Stopping MySQL cartridge"
       pid=$( /bin/cat $pidfile )
       /bin/kill $pid
       ret=$?
@@ -107,7 +109,7 @@ function pre_snapshot {
   local db_port=$OPENSHIFT_MYSQL_DB_PORT
 
   {
-    /usr/bin/mysqldump --extended-insert --quick -h $db_host -P $db_port -u $OPENSHIFT_MYSQL_DB_USERNAME --password="$OPENSHIFT_MYSQL_DB_PASSWORD" --all-databases --add-drop-table | /bin/gzip > $dump_file
+    /usr/bin/mysqldump --extended-insert --quick -h $db_host -P $db_port -u $OPENSHIFT_MYSQL_DB_USERNAME --password="$OPENSHIFT_MYSQL_DB_PASSWORD" --all-databases --events --triggers --routines --add-drop-table | /bin/gzip > $dump_file
   } ||
   {
     warning "Couldn't not dump mysql! Continuing anyway"

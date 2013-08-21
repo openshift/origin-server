@@ -2,6 +2,14 @@ module OpenShift
   module Runtime
     module ApplicationContainerExt
       module Environment
+
+        USER_VARIABLE_MAX_COUNT = 25
+        USER_VARIABLE_MAX_SIZE = 512
+        RESERVED_VARIABLE_NAMES = [
+                                   'OPENSHIFT_PRIMARY_CARTRIDGE_DIR', 'OPENSHIFT_NAMESPACE', 'PATH',
+                                   'IFS', 'USER', 'SHELL', 'HOSTNAME', 'LOGNAME'
+                                  ]
+
         # Public: Add an environment variable to a given gear.
         #
         # key - The String value of target environment variable.
@@ -80,8 +88,8 @@ module OpenShift
           end
 
           set_rw_permission_R(broker_auth_dir)
-          FileUtils.chmod(0o0750, broker_auth_dir)
-          FileUtils.chmod(0o0640, Dir.glob("#{broker_auth_dir}/*"))
+          FileUtils.chmod(0750, broker_auth_dir)
+          FileUtils.chmod(0640, Dir.glob("#{broker_auth_dir}/*"))
         end
 
         # Public: Remove broker authentication keys from gear.
@@ -217,11 +225,11 @@ module OpenShift
           keys = Hash.new
 
           $OpenShift_ApplicationContainer_SSH_KEY_MUTEX.synchronize do
-            File.open("/var/lock/oo-modify-ssh-keys.#{@uuid}", File::RDWR|File::CREAT|File::TRUNC, 0o0600) do | lock |
+            File.open("/var/lock/oo-modify-ssh-keys.#{@uuid}", File::RDWR|File::CREAT|File::TRUNC, 0600) do | lock |
               lock.fcntl(Fcntl::F_SETFD, Fcntl::FD_CLOEXEC)
               lock.flock(File::LOCK_EX)
               begin
-                File.open(authorized_keys_file, File::RDWR|File::CREAT, 0o0440) do |file|
+                File.open(authorized_keys_file, File::RDWR|File::CREAT, 0440) do |file|
                   file.each_line do |line|
                     begin
                       keys[line.split[-1].chomp] = line.chomp
@@ -240,7 +248,7 @@ module OpenShift
                       file.truncate(file.tell)
                     end
                   end
-              end
+                end
                 set_ro_permission(authorized_keys_file)
                 ::OpenShift::Runtime::Utils::oo_spawn("restorecon #{authorized_keys_file}")
               ensure
@@ -250,6 +258,124 @@ module OpenShift
           end
           keys
         end
+
+        # Add user environment variable(s)
+        def user_var_add(variables, gears = [])
+          directory = PathUtils.join(@container_dir, '.env', 'user_vars')
+          FileUtils.mkpath(directory) unless File.directory?(directory)
+
+          if (Dir.entries(directory).size - 2 + variables.size) > USER_VARIABLE_MAX_COUNT
+            return 127, "CLIENT_ERROR: User Variables maximum of #{USER_VARIABLE_MAX_COUNT} exceeded"
+          end
+
+          variables.each_pair do |name, value|
+            path = PathUtils.join(@container_dir, '.env', name)
+
+            if File.exists?(path) ||
+                name =~ /\AOPENSHIFT_.*_IDENT\Z/ ||
+                RESERVED_VARIABLE_NAMES.include?(name)
+              return 127, "CLIENT_ERROR: #{name} cannot be overridden"
+            end
+
+            if value.to_s.length > USER_VARIABLE_MAX_SIZE
+              return 127, "CLIENT_ERROR: #{name} value exceeds maximum size of #{USER_VARIABLE_MAX_SIZE}b"
+            end
+          end
+
+          variables.each_pair do |name, value|
+            path = PathUtils.join(directory, name)
+            File.open(path, 'w', 0440) do |f|
+              f.write(value)
+            end
+            set_ro_permission(path)
+          end
+
+          return user_var_push(gears, true) unless gears.empty?
+          return 0, ''
+        end
+
+        # Remove user environment variable(s)
+        def user_var_remove(variables, gears = [])
+          directory = PathUtils.join(@container_dir, '.env', 'user_vars')
+          variables.each do |name|
+            path = PathUtils.join(directory, name)
+            FileUtils.rm_f(path)
+          end
+
+          return user_var_push(gears) unless gears.empty?
+          return 0, ''
+        end
+
+        # update user environment variable(s) on other gears
+        def user_var_push(gears, env_add=false)
+          output, gear_dns, threads = '', '', {}
+          target  = PathUtils.join('.env', 'user_vars').freeze
+          source  = PathUtils.join(@container_dir, target).freeze
+          return 0, '' unless File.directory?(source)
+          return 0, '' if env_add and (Dir.entries(source) - %w{. ..}).empty?
+
+          begin
+            gears.each do |gear|
+              logger.debug("Updating #{gear} from #{source}")
+              threads[gear] = Thread.new(gear) do |fqdn|
+                gear_dns = fqdn
+                retries  = 2
+                begin
+                  command = "/usr/bin/rsync -rp0 --delete -e 'ssh -o StrictHostKeyChecking=no' #{source}/ #{fqdn}:#{target}"
+                  env = OpenShift::Runtime::Utils::Environ.for_gear(Etc.getpwnam(@uuid).dir)
+                  ::OpenShift::Runtime::Utils::oo_spawn(command, expected_exitstatus: 0, uid: @uid, env: env)
+                rescue Exception => e
+                  NodeLogger.logger.debug { "Push #{retries} #{source} exception #{e.message}" }
+                  Thread.current[:exception] = e
+                  retries                    -= 1
+                  sleep(0.5)
+                  retry if 0 < retries
+                end
+              end
+            end
+          rescue Exception => e
+            logger.warn("Failed to update #{gear_dns} from #{@container_dir}/#{source}. #{e.message}")
+            return 127, "CLIENT_ERROR: #{e.message}"
+          ensure
+            loop do
+              threads.each_pair do |id, thread|
+                case thread.status
+                  when false
+                    thread.join
+                    if thread[:exception]
+                      if thread[:exception].is_a?(::OpenShift::Runtime::Utils::ShellExecutionException)
+                        output << "CLIENT_ERROR: Sync for #{id} user variables failed.\n"
+                        output << thread[:exception].stderr.split("\n").map { |l| "CLIENT_ERROR: #{l}" }.join("\n")
+                      else
+                        output << "CLIENT_ERROR: Sync for #{id} user variables failed #{thread[:exception].message}\n"
+                      end
+                    end
+                    threads.delete(id)
+                  when nil
+                    threads.delete(id)
+                end
+              end
+              sleep(0.5)
+              break if threads.empty?
+            end
+          end
+
+          return output.empty? ? 0 : 127, output
+        end
+
+        # Retrieve user environment variable(s)
+        def user_var_list(variables = [])
+          directory = PathUtils.join(@container_dir, '.env', 'user_vars')
+          return {} unless File.directory?(directory)
+
+          env = ::OpenShift::Runtime::Utils::Environ::load(directory)
+          return env if !variables || variables.empty?
+
+          variables.each_with_object({}) do |name, memo|
+            memo[name] = env[name]
+          end
+        end
+
       end
     end
   end

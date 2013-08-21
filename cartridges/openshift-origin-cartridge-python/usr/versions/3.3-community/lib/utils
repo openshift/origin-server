@@ -1,0 +1,165 @@
+#!/bin/bash
+cartridge_type="python-3.3"
+distribute_setup_uri="http://python-distribute.org/distribute_setup.py"
+
+#  Setup variables.
+python33_dir=${OPENSHIFT_PYTHON_DIR}
+python33_binary="$python33_dir/opt/bin/python3.3"
+pyvenv33_script="$python33_dir/opt/bin/pyvenv-3.3"
+venv_dir=$python33_dir/virtenv/venv
+
+
+#  Add the python3.3 shared library to the load path.
+export LD_LIBRARY_PATH="${python33_dir}/opt/lib:${LD_LIBRARY_PATH}"
+
+
+#
+#  Utility functions to install setup tools, create/update, delete, activate
+#  and make relocatable the python-3.3 virtual env.
+#
+
+function install_setup_tools() {
+   pushd "$venv_dir" > /dev/null
+
+   # Activate virtual env, dowload distribute_setup and run it.
+   source bin/activate
+   curl -L -O "$distribute_setup_uri"
+   python distribute_setup.py
+
+   # Activate virtual env so as to get access to easy_install and install pip.
+   source bin/activate
+   easy_install pip
+
+   popd > /dev/null
+
+   make_virtualenv_relocatable
+
+}  #  End of function  install_setup_tools.
+
+
+function create_virtualenv() {
+   run_setup_in_background=$1
+   if [ ! -d "$venv_dir" ]  ||  ! $(ls "$venv_dir" > /dev/null 2>&1); then
+      venv_opts="--system-site-packages"
+      "$python33_binary" "$pyvenv33_script" $venv_opts --clear "$venv_dir"
+   fi
+
+   setup_binaries=("$venv_dir/bin/easy_install" "$venv_dir/bin/pip")
+   if ! $(ls ${setup_binaries[@]} > /dev/null 2>&1); then
+      if [ -n "$run_setup_in_background" ]; then
+         install_setup_tools > /tmp/install.log 2>&1 &
+      else
+         install_setup_tools
+      fi
+   fi
+
+}  #  End of function  create_virtualenv.
+
+
+function delete_virtualenv() {
+   rm -rf $python33_dir/virtenv/venv
+
+}  #  End of function  delete_virtualenv.
+
+
+function activate_virtualenv() {
+   source "$python33_dir/bin/activate_virtenv"
+
+}  #  End of function  activate_virtualenv.
+
+
+function make_virtualenv_relocatable() {
+   pushd "$venv_dir" > /dev/null
+
+   vdir=$(cd "${python33_dir}/virtenv"  &&  pwd)
+   for zf in $(grep -l -r "#\!$vdir/venv/bin/" . ); do
+      sed --follow-symlinks -i "s;#\!$vdir/venv/bin/;#\!/usr/bin/env ;" "$zf"
+   done
+
+   symlinks -r -c -s . >/dev/null
+
+   popd > /dev/null
+
+}  #  End of function  make_virtualenv_relocatable.
+
+
+#
+#  Misc functions - add/remove environment variables and extract package files.
+#
+
+function _extract_files() {
+   pkgdir=${1:-"."}
+   destdir=${2:-"."}
+
+   [ -d "$pkgdir" ]  ||  return 1
+ 
+   #  In place extract the tarball files -- supports .tgz, .tar.gz, .tar and
+   #  zip files and in that order.
+   mkdir -p "$destdir"
+   pushd "$destdir" > /dev/null
+
+   for f in `ls $pkgdir/*.tgz $pkgdir/*.tar.gz 2> /dev/null`; do
+      tar -zxf "$f"
+   done
+
+   for f in `ls $pkgdir/*.tar 2> /dev/null`; do
+      tar -xf "$f"
+   done
+
+   for f in `ls $pkgdir/*.zip 2> /dev/null`; do
+      unzip "$f"
+   done
+
+   popd > /dev/null
+
+}  #  End of function  _extract_files.
+
+
+function get_distro_name_and_release() {
+   distro=$(uname |  tr '[:upper:]' '[:lower:]')
+   version=$(uname -r)
+   if [ "$distro" = "linux" ]; then
+      if [ -f "/etc/redhat-release" ]; then
+         if grep "Red Hat" /etc/redhat-release > /dev/null 2>&1; then
+            distro="rhel"
+         else
+            if grep "Fedora" /etc/redhat-release > /dev/null 2>&1; then
+               distro="fedora"
+            fi
+         fi
+         version=$(lsb_release -r | awk '{print $2}')
+     fi
+   fi
+
+   echo "$distro:$version"
+
+}  #  End of function  get_distro_name_and_release.
+
+
+function extract_package_files() {
+   #  Try the distro name + version + machine specific packages first and
+   #  then the distro + machine specific package and then the top level
+   #  packages.
+   name_and_release=$(get_distro_name_and_release)
+   distro=$(echo "$name_and_release" | cut -f 1 -d ':')
+   version=$(echo "$name_and_release" | cut -f 2 -d ':')
+   #_extract_files "$1/$distro/$version/$(uname -m)" "$2"
+   _extract_files "$1/$distro/$(uname -m)" "$2"
+   #_extract_files "$1/$distro" "$2"
+   #_extract_files "$1" "$2"
+
+}  #  End of function  extract_package_files.
+
+function create_virtenv_activate_file() {
+   #  Write a file that can be sourced for setting the LD_LIBRARY_PATH and
+   #  activating the virtualenv on the shell.
+   cat > "${OPENSHIFT_PYTHON_DIR}/bin/activate_virtenv"  <<AVEOF
+#  Set the library path so that the python shared library can be found.
+export LD_LIBRARY_PATH="\${OPENSHIFT_PYTHON_DIR}/opt/lib:\${LD_LIBRARY_PATH}" 
+export LIBRARY_PATH="\${OPENSHIFT_PYTHON_DIR}/opt/lib:\${LIBRARY_PATH}" 
+source \${OPENSHIFT_PYTHON_DIR}/virtenv/venv/bin/activate
+AVEOF
+
+   chmod 555 "${OPENSHIFT_PYTHON_DIR}/bin/activate_virtenv"
+} # End of function create_virtenv_activate_file()
+

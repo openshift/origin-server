@@ -69,7 +69,6 @@ Scaling:
 Provides:
   - ruby-2.0
   - "ruby"
-  - "ruby(version) = 2.0"
 Endpoints:
   - Private-IP-Name:   IP
     Private-Port-Name: PORT

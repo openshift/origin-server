@@ -1,5 +1,7 @@
 #!/bin/bash -eu
 
+echo "Building Perl cartridge"
+
 if [ -f ${OPENSHIFT_REPO_DIR}.openshift/markers/force_clean_build ]
 then
     echo ".openshift/markers/force_clean_build found!  Rebuilding perl modules" 1>&2
@@ -12,7 +14,7 @@ MIRROR="--mirror http://search.cpan.org/CPAN"
 
 if [[ "$LINUX_DISTRO" =~ $RED_HAT_DISTRO_NAME* && $OPENSHIFT_GEAR_DNS =~ .*\.rhcloud\.com$ ]]
 then
-  MIRROR="--mirror http://mirror1.ops.rhcloud.com/mirror/perl/CPAN/ $MIRROR"
+  MIRROR="--mirror http://mirror.openshift.com/mirror/perl/CPAN/ $MIRROR"
 fi
 
 if [ -f ${OPENSHIFT_REPO_DIR}deplist.txt ]

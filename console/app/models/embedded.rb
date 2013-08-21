@@ -5,7 +5,7 @@ class Embedded < RestApi::Base
 
   #FIXME: Bug 820651 should make this cleaner to retrieve
   def jenkins_build_url
-    client = info('jenkins-client-1.4')
+    client = info('jenkins-client-1')
     ((client || '').chomp)[/Job URL: ([^\s]*)\s*/, 1]
   end
 end

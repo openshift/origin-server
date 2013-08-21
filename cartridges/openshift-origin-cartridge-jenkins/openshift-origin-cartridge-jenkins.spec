@@ -1,8 +1,8 @@
 %global cartridgedir %{_libexecdir}/openshift/cartridges/jenkins
 
-Summary:       Provides jenkins-1.4 support
+Summary:       Provides jenkins-1.x support
 Name:          openshift-origin-cartridge-jenkins
-Version: 1.13.1
+Version: 1.13.6
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -44,6 +44,30 @@ chkconfig jenkins off
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Wed Aug 21 2013 Adam Miller <admiller@redhat.com> 1.13.6-1
+- <cartridge versions> origin_runtime_219, Fix up Display-Name: field in
+  manifests https://trello.com/c/evcTYKdn/219-3-adjust-out-of-date-cartridge-
+  versions (jolamb@redhat.com)
+
+* Mon Aug 19 2013 Adam Miller <admiller@redhat.com> 1.13.5-1
+- additional version changes (dmcphers@redhat.com)
+
+* Fri Aug 16 2013 Adam Miller <admiller@redhat.com> 1.13.4-1
+- Merge pull request #3354 from dobbymoodge/origin_runtime_219
+  (dmcphers+openshiftbot@redhat.com)
+- <cartridges> Additional cart version and test fixes (jolamb@redhat.com)
+- <cart version> origin_runtime_219, Update carts and manifests with new
+  versions, handle version change in upgrade code
+  https://trello.com/c/evcTYKdn/219-3-adjust-out-of-date-cartridge-versions
+  (jolamb@redhat.com)
+
+* Thu Aug 15 2013 Adam Miller <admiller@redhat.com> 1.13.3-1
+- Bug 968280 - Ensure Stopping/Starting messages during git push Bug 983014 -
+  Unnecessary messages from mongodb cartridge (jhonce@redhat.com)
+
+* Fri Aug 09 2013 Adam Miller <admiller@redhat.com> 1.13.2-1
+- Bug 969940 (dmcphers@redhat.com)
+
 * Thu Aug 08 2013 Adam Miller <admiller@redhat.com> 1.13.1-1
 - Cartridge - Clean up manifests (jhonce@redhat.com)
 - Various cleanup (dmcphers@redhat.com)

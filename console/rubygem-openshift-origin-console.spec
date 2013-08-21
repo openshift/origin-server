@@ -9,7 +9,7 @@
 
 Summary:       OpenShift Origin Management Console
 Name:          rubygem-%{gem_name}
-Version: 1.13.1
+Version: 1.13.6
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -153,6 +153,48 @@ cp -a ./%{gem_dir}/* %{buildroot}%{gem_dir}/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Wed Aug 21 2013 Adam Miller <admiller@redhat.com> 1.13.6-1
+- Merge pull request #3437 from smarterclayton/alias_overzealous_messaging
+  (dmcphers+openshiftbot@redhat.com)
+- Review comments (ccoleman@redhat.com)
+- Aliases are writing too many flashes when errors are present
+  (ccoleman@redhat.com)
+
+* Tue Aug 20 2013 Adam Miller <admiller@redhat.com> 1.13.5-1
+- Merge pull request #3415 from tdawson/tdawson/mirrorfixes/2013-08
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 997080 - chrome input fields - turn of break word (jforrest@redhat.com)
+- fix old mirror url (tdawson@redhat.com)
+- Merge pull request #3408 from abhgupta/abhgupta-scheduler
+  (dmcphers+openshiftbot@redhat.com)
+- Fix for bug 995034 (abhgupta@redhat.com)
+
+* Mon Aug 19 2013 Adam Miller <admiller@redhat.com> 1.13.4-1
+- Merge pull request #3382 from smarterclayton/builder_scope_incorrect
+  (dmcphers+openshiftbot@redhat.com)
+- additional version changes (dmcphers@redhat.com)
+- <cartridge versions> origin_runtime_219, fix up cart references for renamed
+  cart https://trello.com/c/evcTYKdn/219-3-adjust-out-of-date-cartridge-
+  versions (jolamb@redhat.com)
+- Fix builder scope by introducing a domain builder scope (ccoleman@redhat.com)
+
+* Fri Aug 16 2013 Adam Miller <admiller@redhat.com> 1.13.3-1
+- <cartridges> Additional cart version and test fixes (jolamb@redhat.com)
+
+* Wed Aug 14 2013 Adam Miller <admiller@redhat.com> 1.13.2-1
+- Default to test mode membership off (ccoleman@redhat.com)
+- Catch more exceptions from broker (ccoleman@redhat.com)
+- * Implement a membership model for OpenShift that allows an efficient query
+  of user access based on each resource. * Implement scope limitations that
+  correspond to specific permissions * Expose membership info via the REST API
+  (disableable via config) * Allow multiple domains per user, controlled via a
+  configuration flag * Support additional information per domain
+  (application_count and gear_counts) to improve usability * Let domains
+  support the allowed_gear_sizes option, which limits the gear sizes available
+  to apps in that domain * Simplify domain update interactions - redundant
+  validation removed, and behavior of responses differs slightly. * Implement
+  migration script to enable data (ccoleman@redhat.com)
+
 * Thu Aug 08 2013 Adam Miller <admiller@redhat.com> 1.13.1-1
 - Card 57 - Fix typo (jforrest@redhat.com)
 - Card 57 - gemify bootstrap, use sass-twitter-bootstrap gem

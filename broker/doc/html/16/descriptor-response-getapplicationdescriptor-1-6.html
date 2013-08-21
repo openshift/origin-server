@@ -1,0 +1,24 @@
+<html><body><pre>{
+  "api_version": 1.6,
+  "data": "---\nName: myapplication\nRequires:\n- ruby-1.9\n- haproxy-1.4\nGroup-Overrides:\n- components:\n  - comp: ruby-1.9\n    cart: ruby-1.9\n  - comp: web_proxy\n    cart: haproxy-1.4\n  min_gears: 1\n  max_gears: -1\n",
+  "messages": [
+    {
+      "exit_code": 0,
+      "field": null,
+      "severity": "info",
+      "text": "Show descriptor for application 'myapplication' for domain 'mydomain'"
+    }
+  ],
+  "status": "ok",
+  "supported_api_versions": [
+    1.0,
+    1.1,
+    1.2,
+    1.3,
+    1.4,
+    1.5,
+    1.6
+  ],
+  "type": "descriptor",
+  "version": "1.6"
+}</pre></body></html>

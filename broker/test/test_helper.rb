@@ -81,6 +81,8 @@ def stubber
   @container.stubs(:remove_component).returns(ResultIO.new)
   @container.stubs(:get_public_hostname).returns("node_dns")
   @container.stubs(:set_quota).returns(ResultIO.new)
+  @container.stubs(:set_user_env_vars).returns(ResultIO.new)
+  @container.stubs(:unset_user_env_vars).returns(ResultIO.new)
   OpenShift::ApplicationContainerProxy.stubs(:execute_parallel_jobs)
   RemoteJob.stubs(:get_parallel_run_results)
   OpenShift::ApplicationContainerProxy.stubs(:find_available).returns(@container)

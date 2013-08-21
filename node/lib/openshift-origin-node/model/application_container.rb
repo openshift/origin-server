@@ -18,6 +18,7 @@ require 'rubygems'
 require 'openshift-origin-node/model/frontend_proxy'
 require 'openshift-origin-node/model/frontend_httpd'
 require 'openshift-origin-node/model/v2_cart_model'
+require 'openshift-origin-node/model/node'
 require 'openshift-origin-common/models/manifest'
 require 'openshift-origin-node/model/application_container_ext/environment'
 require 'openshift-origin-node/model/application_container_ext/setup'
@@ -78,7 +79,7 @@ module OpenShift
       if !::OpenShift::Runtime::Containerization::Plugin.respond_to?(:container_dir)
         raise ArgumentError.new('containerization plugin must respond to container_dir')
       end
-      
+
       def initialize(application_uuid, container_uuid, user_uid = nil, application_name = nil, container_name = nil,
                      namespace = nil, quota_blocks = nil, quota_files = nil, hourglass = nil)
         @config           = ::OpenShift::Config.new
@@ -121,15 +122,11 @@ module OpenShift
       # Caveat: the quota information will not be populated.
       #
       def self.from_uuid(container_uuid, hourglass=nil)
-        config = ::OpenShift::Config.new
-        gecos  = config.get("GEAR_GECOS") || "OO application container"
-        pwent  = Etc.getpwnam(container_uuid)
 
-        if pwent.gecos != gecos
-          raise ArgumentError, "Not an OpenShift gear: #{container_uuid}"
-        end
+        pwent = passwd_for(container_uuid)
 
         env = ::OpenShift::Runtime::Utils::Environ.for_gear(pwent.dir)
+
         if env['OPENSHIFT_GEAR_DNS'] == nil
           namespace = nil
         else
@@ -138,6 +135,18 @@ module OpenShift
 
         ApplicationContainer.new(env["OPENSHIFT_APP_UUID"], container_uuid, pwent.uid, env["OPENSHIFT_APP_NAME"],
                                  env["OPENSHIFT_GEAR_NAME"], namespace, nil, nil, hourglass)
+      end
+
+      def self.passwd_for(container_uuid)
+        config = ::OpenShift::Config.new
+        gecos  = config.get("GEAR_GECOS") || "OO application container"
+        pwent  = Etc.getpwnam(container_uuid)
+        raise ArgumentError, "Not an OpenShift gear: #{container_uuid}" if pwent.gecos != gecos
+        pwent
+      end
+
+      def self.exists?(container_uuid)
+        passwd_for(container_uuid) rescue false
       end
 
       def name
@@ -153,15 +162,18 @@ module OpenShift
       # - model/unix_user.rb
       # context: root
       def create
+        output = ''
         notify_observers(:before_container_create)
         # lock to prevent race condition between create and delete of gear
         uuid_lock_file = "/var/lock/oo-create.#{@uuid}"
-        File.open(uuid_lock_file, File::RDWR|File::CREAT|File::TRUNC, 0o0600) do | uuid_lock |
+        File.open(uuid_lock_file, File::RDWR|File::CREAT|File::TRUNC, 0600) do | uuid_lock |
           uuid_lock.fcntl(Fcntl::F_SETFD, Fcntl::FD_CLOEXEC)
           uuid_lock.flock(File::LOCK_EX)
 
           @container_plugin = Containerization::Plugin.new(self)
           @container_plugin.create
+
+          output = generate_ssh_key
 
           if @config.get("CREATE_APP_SYMLINKS").to_i == 1
             unobfuscated = PathUtils.join(File.dirname(@container_dir),"#{@container_name}-#{@namespace}")
@@ -174,6 +186,7 @@ module OpenShift
         end
 
         notify_observers(:after_container_create)
+        output
       end
 
       # Destroy gear
@@ -184,7 +197,7 @@ module OpenShift
       def destroy(skip_hooks=false)
         notify_observers(:before_container_destroy)
 
-        if @uid.nil? or (@container_dir.nil? or !File.directory?(@container_dir.to_s))
+        if @uid.nil? or (@container_plugin.nil? or !File.directory?(@container_dir.to_s))
           # gear seems to have been deleted already... suppress any error
           # TODO : remove remaining stuff if it exists, e.g. .httpd/#{uuid}* etc
           return ['', '', 0]
@@ -197,7 +210,7 @@ module OpenShift
 
         # Don't try to delete a gear that is being scaled-up|created|deleted
         uuid_lock_file = "/var/lock/oo-create.#{@uuid}"
-        File.open(uuid_lock_file, File::RDWR|File::CREAT|File::TRUNC, 0o0600) do | lock |
+        File.open(uuid_lock_file, File::RDWR|File::CREAT|File::TRUNC, 0600) do | lock |
           lock.fcntl(Fcntl::F_SETFD, Fcntl::FD_CLOEXEC)
           lock.flock(File::LOCK_EX)
 
@@ -563,6 +576,19 @@ module OpenShift
             end
           end
         end
+      end
+
+      ##
+      # Returns +true+ if the user's disk block usage meets or exceeds +max_percent+ of
+      # the configured block limit, otherwise +false+.
+      def disk_usage_exceeds?(max_percent)
+        raise "Percent must be between 1-100 (inclusive)" unless (1..100).member?(max_percent)
+
+        quota = OpenShift::Runtime::Node.get_quota(@uuid)
+
+        used_percent = ((quota[:blocks_used].to_f / quota[:blocks_limit].to_f) * 100.00).to_i
+
+        return used_percent >= max_percent
       end
 
       # run_in_container_context(command, [, options]) -> [stdout, stderr, exit status]

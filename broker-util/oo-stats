@@ -50,8 +50,12 @@ class OOStats
       :format => :text,
     }
     @time = {}
-    @time[:load_broker_environment] = time_msecs { load_broker_rails_env }
-    @stats = Admin::Stats.new(@options)
+    if @options[:read_file]
+      @stats = OOStats::Reader.new(@options)
+    else
+      @time[:load_broker_environment] = time_msecs { load_broker_rails_env }
+      @stats = Admin::Stats.new(@options)
+    end
     set_initial_columns
   end
 
@@ -81,8 +85,8 @@ class OOStats
           gears_active_count available_active_gears effective_available_gears
         }.map{|k| k.to_sym},
      :district_table =>
-        %w{name nodes_count dist_avail_capacity
-          gears_active_count effective_available_gears avg_active_usage_pct
+        %w{name nodes_count dist_avail_capacity gears_active_count
+           effective_available_gears lowest_active_usage_pct avg_active_usage_pct
         }.map{|k| k.to_sym},
      :district_summary =>
         %w{profile district_capacity dist_avail_capacity dist_avail_uids
@@ -116,13 +120,17 @@ class OOStats
   # Print results to stdout according to current options
   def display_results
     r = results
+    classless = OpenShift::HashWithReaders.deep_clear_subclasses(r)
     case @options[:format] 
     when :yaml
-      puts r.to_yaml
+      require 'yaml'
+      puts (@options[:keep_classes] ? r : classless ).to_yaml
     when :xml
-      puts r.to_xml
+      # rails supplies this one
+      puts (@options[:keep_classes] ? r : classless ).to_xml
     when :json
-      puts r.to_json
+      require 'json'
+      puts classless.to_json
     when :tsv
       display_results_tsv r
     else # :text
@@ -138,7 +146,8 @@ class OOStats
       # Disable analytics for admin scripts
       Rails.configuration.analytics[:enabled] = false
       # Wait this long for answers from node hosts
-      Rails.configuration.msg_broker[:rpc_options][:disctimeout] = @options[:wait]
+      #Rails.configuration.msg_broker[:rpc_options][:disctimeout] = @options[:wait]
+      #Admin::Stats handles this directly
       # Get a read-only DB connection (to a secondary if possible)
       @db = OpenShift::DataStore.db
     rescue Exception => e
@@ -195,7 +204,7 @@ class OOStats
           outline "Profile '#{profile[:profile]}' summary:"
           text_legendize profile, @columns_for[:profile_summary]
           puts "\nDistricts:"
-          text_tableize profile[:districts].sort_by {|a| a[:name]}, @columns_for[:district_table]
+          text_tableize profile[:districts].sort_by {|a| a[:dist_avail_capacity]}, @columns_for[:district_table]
           unless profile[:missing_nodes].empty?
             puts "\nWARNING: the following districted node(s) in this profile DID NOT respond:"
             puts profile[:missing_nodes].join ", "
@@ -324,7 +333,7 @@ class OOStats
     max_size = []
     order.each {|key| max_size << (humanized[key] = key.to_s.humanize).length }
     max_size = max_size.max.to_s
-    order.each {|key| printf " %#{max_size}s : %s\n", humanized[key], hash[key].to_s unless hash[key].nil? }
+    order.each {|key| printf " %#{max_size}s : %s\n", humanized[key], to_text(hash[key]) unless hash[key].nil? }
   end
 
   # display data in a nicely formatted table
@@ -337,8 +346,15 @@ class OOStats
         gsub(/Count$/, '').
         gsub(/Total$/, '').
         gsub(/Total/, '#').
-        gsub(/Available/, 'Avail')
-      size = (rows.map {|row| row[col].to_s.length} + [name.length]).sort[-1]
+        gsub(/Effective/, 'Eff').
+        gsub(/Available/, 'Avail').
+        gsub(/Active/, 'Actv').
+        gsub(/Usage/, 'Usg').
+        gsub(/Capacity/, 'Cap').
+        gsub(/Lowest/, 'Lo').
+        gsub(/Highest/, 'Hi').
+        gsub(/Average/, 'Avg')
+      size = (rows.map {|row| to_text(row[col]).length} + [name.length]).max
       show_for_col[col] = {:name => name, :size => size}
     end
     # print table header and divider
@@ -346,9 +362,81 @@ class OOStats
     puts cols.map {|col| '-' * show_for_col[col][:size] }.join ' '
     # print table contents
     rows.each do |row|
-      puts cols.map {|col| sprintf "%#{show_for_col[col][:size]}s", row[col].to_s}.join ' '
+      puts cols.map {|col| sprintf "%#{show_for_col[col][:size]}s", to_text(row[col])}.join ' '
     end
   end
+
+  def to_text(x)
+    case x
+    when nil
+      ""
+    when Float
+      x.round(1).to_s
+    when Integer
+      x.to_s.reverse.gsub(/(\d{3})\B/, '\1,').reverse
+    else
+      x.to_s
+    end
+  end
+
+  # stats mock that reads dataset from a file instead.
+
+  class Reader
+    #
+    # some ugly hackish things to avoid loading the entire broker
+    #
+    require 'rubygems'
+    gem 'activesupport'
+    require 'active_support/inflector'
+    gem 'openshift-origin-controller'
+    require 'openshift/hash_with_readers'
+    module ::Admin
+      class Stats
+        class DistrictSummary < OpenShift::HashWithReaders; end
+        class ProfileSummary < OpenShift::HashWithReaders; end
+        class DistrictEntry < OpenShift::HashWithReaders; end
+        class NodeEntry < OpenShift::HashWithReaders; end
+        class DbSummary < OpenShift::HashWithReaders; end
+        class Results < OpenShift::HashWithReaders; end
+      end
+    end
+
+    def initialize(options = {})
+      @options = options
+      @results = nil
+    end
+
+    def set_option(options)
+      @options.merge! options
+    end
+
+    # read the file given
+    def gather_statistics
+      case file = @options[:read_file]
+      when nil
+        raise "No file given"
+      when /(yml|yaml)$/
+        require 'yaml'
+        unless (@results = YAML.load_file file).is_a? OpenShift::HashWithReaders
+          @results = OpenShift::HashWithReaders.deep_convert_hashes(@results)
+        end
+      when /(json|jsn|js)$/
+        require 'json'
+        @results = JSON.parse( IO.read(file) )
+        @results = OpenShift::HashWithReaders.deep_convert_hashes(@results)
+      else
+        puts "Don't know how to parse file '#{file}'"
+        puts "Please change extension to .yaml"
+        exit(1)
+      end
+      return @results[:timings_msecs] || {}
+    end
+
+    def results
+      @results
+    end
+  end # class Reader
+
 
 end #class OOStats
 
@@ -368,6 +456,7 @@ if __FILE__ == $0
     :wait => 2,
     :level => :profile,
     :format => :text,
+    :keep_classes => false,
   }
   optparse = OptionParser.new { |opts|
     opts.banner = <<-"USAGE"
@@ -376,7 +465,8 @@ if __FILE__ == $0
       Usage: #{$0} [switches]
       Example: #{$0}              # standard text display
       Example: #{$0} --wait 10    # for slower node responses
-      Example: #{$0} --format xml
+      Example: #{$0} --format yaml
+      Example: #{$0} --read-file saved.yaml
 
       Switches:
     USAGE
@@ -393,6 +483,11 @@ Gather and include MongoDB usage stats.
 USER
     opts.on('-f','--format FORMAT', [:json, :xml, :yaml, :tsv, :text],
             'Choose output format (json, tsv, xml, yaml, default: text)') { |x| options[:format] = x }
+    opts.on('-k','--keep-classes', <<KEEP) {|x| options[:keep_classes] = x }
+\t\tWhen writing YAML or XML, normally the results are written as ordinary hashes
+\t\tso the data can be consumed without needing Admin::Stats loaded.
+\t\tWith this option, results will keep the subclasses that Admin::Stats gives them.
+KEEP
     opts.on('-l','--level LEVEL', [:profile, :district, :node], <<LEVEL) { |l| options[:level] = l }
 For text format, print statistical summary at this level:
 \tprofile: profile and district summary statistics (default)
@@ -402,6 +497,9 @@ LEVEL
     opts.on('-u','--only-user', <<FORMAT) { |x| options[:db_stats] = options[:only] = x }
 With text format, show ONLY per-user usage summary (implies --db)
 FORMAT
+    opts.on('-r','--read-file FILE', String, <<READ) { |x| options[:read_file] = x }
+Don't actually get data from the system; read it from the YAML file given.
+READ
     opts.on('-h','--help', 'Print usage') { puts opts; exit 0 }
   }
 

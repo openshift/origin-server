@@ -1,6 +1,6 @@
 Summary:       Openshift PAM module
 Name:          pam_openshift
-Version: 1.9.1
+Version: 1.9.2
 Release:       1%{?dist}
 Group:         System Environment/Base
 License:       GPLv2
@@ -29,6 +29,7 @@ ln -s pam_openshift.so %{buildroot}/%{_lib}/security/pam_libra.so
 install -D -m 644 pam_openshift.8 %{buildroot}/%{_mandir}/man8/pam_openshift.8
 
 install -D -m 755 oo-namespace-init %{buildroot}/%{_sbindir}/oo-namespace-init
+install -D -m 644 oo-namespace-init.8 %{buildroot}/%{_mandir}/man8/oo-namespace-init.8
 
 
 %files
@@ -36,9 +37,14 @@ install -D -m 755 oo-namespace-init %{buildroot}/%{_sbindir}/oo-namespace-init
 %attr(0755,root,root) /%{_lib}/security/pam_openshift.so
 %attr(0755,root,root) /%{_lib}/security/pam_libra.so
 %attr(0644,root,root) %{_mandir}/man8/pam_openshift.8.gz
+%attr(0644,root,root) %{_mandir}/man8/oo-namespace-init.8.gz
 %attr(0750,root,root) %{_sbindir}/oo-namespace-init
 
 %changelog
+* Fri Aug 16 2013 Adam Miller <admiller@redhat.com> 1.9.2-1
+- Bug 977936 - /usr/sbin/oo-namespace-init needs a man page
+  (bleanhar@redhat.com)
+
 * Thu Aug 08 2013 Adam Miller <admiller@redhat.com> 1.9.1-1
 - bump_minor_versions for sprint 32 (admiller@redhat.com)
 

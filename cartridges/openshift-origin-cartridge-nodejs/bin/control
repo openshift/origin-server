@@ -3,6 +3,12 @@
 STOPTIMEOUT=10
 FMT="%a %b %d %Y %H:%M:%S GMT%z (%Z)"
 
+function check_hot_deploy_marker() {
+  if marker_present "hot_deploy"; then
+    echo "hot_deploy marker found. Switching to using supervisor. Subsequent pushes won't require restart until the marker is removed."
+  fi
+}
+
 function print_missing_package_json_warning() {
        cat <<DEPRECATED
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -84,6 +90,8 @@ NODE_EOF
 
 
 function start() {
+    echo "Starting NodeJS cartridge"
+ 
     envf="$OPENSHIFT_NODEJS_DIR/configuration/node.env"
     logf="$OPENSHIFT_NODEJS_LOG_DIR/node.log"
 
@@ -118,7 +126,7 @@ function start() {
         executor_cmdline="node $node_opts $node_app $node_app_args"
     fi
 
-    if [ -f "$OPENSHIFT_REPO_DIR/.openshift/markers/hot_deploy" ]; then
+    if marker_present "hot_deploy"; then
         nohup supervisor -e 'node|js|coffee' -- $script_n_opts  >> $logf 2>&1 &
     else
         nohup $executor_cmdline >> $logf 2>&1 &
@@ -138,6 +146,7 @@ function start() {
 
 
 function stop() {
+    echo "Stopping NodeJS cartridge"
     if [ -f $OPENSHIFT_NODEJS_PID_DIR/node.pid ]; then
         node_pid=$( cat $OPENSHIFT_NODEJS_PID_DIR/node.pid 2> /dev/null )
     fi
@@ -178,6 +187,7 @@ function restart() {
 }  #  End of function  restart.
 
 function build() {
+    echo "Building NodeJS cartridge"
     if [ -d "${OPENSHIFT_NODEJS_DIR}/tmp/saved.node_modules" ]; then
         node_modules_dir="${OPENSHIFT_REPO_DIR}node_modules/"
         for d in `ls -a ${OPENSHIFT_NODEJS_DIR}/tmp/saved.node_modules`; do
@@ -266,7 +276,9 @@ function is_supervisor_running() {
 }  #  End of function  is_supervisor_running.
 
 function post-deploy() {
-    if [ -f "$OPENSHIFT_REPO_DIR/.openshift/markers/hot_deploy" ]; then
+    check_hot_deploy_marker
+
+    if marker_present "hot_deploy"; then
         # Check if supervisor is already running. If not do a restart.
         if ! is_supervisor_running ; then
             restart
@@ -275,6 +287,8 @@ function post-deploy() {
 }
 
 function pre-repo-archive() {
+    check_hot_deploy_marker
+
     rm -rf ${OPENSHIFT_NODEJS_DIR}/tmp/{node_modules,saved.node_modules}
 
     # If the node_modules/ directory exists, then "stash" it away for redeploy.

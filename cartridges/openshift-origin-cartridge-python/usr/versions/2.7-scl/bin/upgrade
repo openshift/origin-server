@@ -1,0 +1,61 @@
+#!/bin/bash -eu
+
+source $OPENSHIFT_CARTRIDGE_SDK_BASH
+
+python_version="$1"
+old_cart_version="$2"
+new_cart_version="$3"
+
+source $OPENSHIFT_PYTHON_DIR/usr/versions/$python_version/lib/update-configuration
+source $OPENSHIFT_PYTHON_DIR/usr/versions/$python_version/lib/python-context
+
+# Switch to SCL environment
+case "$old_cart_version" in
+    '0.0.0'|'0.0.1'|'0.0.2'|'0.0.3')
+
+        # Construct a listing of the old virtual env as an aid in
+        # reconstruction if there is a problem.  Two steps to allow
+        # a complete re-do if there's a failure.
+        if ! [ -e "$OPENSHIFT_PYTHON_DIR/old-virtenv-files.txt.gz" ]
+        then
+            (cd $OPENSHIFT_PYTHON_DIR/virtenv; find -print) | \
+                gzip -9 -c > $OPENSHIFT_PYTHON_DIR/old-virtenv-files.txt.gz.new
+            mv -f $OPENSHIFT_PYTHON_DIR/old-virtenv-files.txt.gz.new $OPENSHIFT_PYTHON_DIR/old-virtenv-files.txt.gz
+        fi
+
+        # Past this point, the application is not functional if there
+        # is a failure but retry is possible.
+	rm -rf $OPENSHIFT_PYTHON_DIR/opt
+	rm -rf $OPENSHIFT_PYTHON_DIR/versions
+        rm -rf $OPENSHIFT_PYTHON_DIR/upstream-repo
+	rm -rf $OPENSHIFT_PYTHON_DIR/virtenv/*
+
+        # Need the environment ERBs rendered at this point
+        for f in $OPENSHIFT_PYTHON_DIR/env/*.erb; do
+            if [ -f "$f" ]; then
+                d=$(basename "$f" .erb)
+                p=$(dirname "$f")
+                /usr/bin/oo-erb -S 2 -- "$f" > "$p/$d"
+                rm -f "$f"
+            fi
+        done
+
+        # Update gear configuration
+        update-configuration
+
+        # Rebuild the virtenv
+        python-context-stdin <<EOF
+source $OPENSHIFT_PYTHON_DIR/usr/versions/$python_version/lib/create-virtenv
+create-virtenv
+EOF
+
+        # Rebuild the application using the new gear environment
+        oo-trap-user <<EOF
+        $OPENSHIFT_PYTHON_DIR/bin/control build
+        $OPENSHIFT_PYTHON_DIR/bin/control deploy
+EOF
+
+        ;;
+esac
+
+exit 0

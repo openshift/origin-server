@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Common
 Name:          rubygem-%{gem_name}
-Version: 1.13.1
+Version: 1.13.5
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -120,6 +120,39 @@ cp bin/man/*.8 %{buildroot}%{_mandir}/man8/
 %doc %{gem_docdir}
 
 %changelog
+* Tue Aug 20 2013 Adam Miller <admiller@redhat.com> 1.13.5-1
+- Merge pull request #3435 from
+  smarterclayton/bug_997848_capabilities_not_shown_via_api
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3327 from Miciah/oo-diagnostics-add-
+  test_node_containerization_plugin (dmcphers+openshiftbot@redhat.com)
+- Bug 997848 - Inherited capabilities not in REST API (ccoleman@redhat.com)
+- oo-diagnostics: test_node_containerization_plugin (miciah.masters@gmail.com)
+
+* Fri Aug 16 2013 Adam Miller <admiller@redhat.com> 1.13.4-1
+- Merge pull request #3373 from pmorie/bugs/997158
+  (dmcphers+openshiftbot@redhat.com)
+- Fix bug 997158: always sort cartridge versions using Manifest.sort_versions
+  (pmorie@gmail.com)
+
+* Thu Aug 15 2013 Adam Miller <admiller@redhat.com> 1.13.3-1
+- Upgrade tool enhancements (ironcladlou@gmail.com)
+
+* Wed Aug 14 2013 Adam Miller <admiller@redhat.com> 1.13.2-1
+- Merge pull request #3322 from smarterclayton/origin_ui_73_membership_model
+  (dmcphers+openshiftbot@redhat.com)
+- <broker> improve Gemfile loading + bug 993250 (lmeyer@redhat.com)
+- * Implement a membership model for OpenShift that allows an efficient query
+  of user access based on each resource. * Implement scope limitations that
+  correspond to specific permissions * Expose membership info via the REST API
+  (disableable via config) * Allow multiple domains per user, controlled via a
+  configuration flag * Support additional information per domain
+  (application_count and gear_counts) to improve usability * Let domains
+  support the allowed_gear_sizes option, which limits the gear sizes available
+  to apps in that domain * Simplify domain update interactions - redundant
+  validation removed, and behavior of responses differs slightly. * Implement
+  migration script to enable data (ccoleman@redhat.com)
+
 * Thu Aug 08 2013 Adam Miller <admiller@redhat.com> 1.13.1-1
 - Bug 987155 (pmorie@gmail.com)
 - <oo-diagnostics> - Fixes for checks related to apache config

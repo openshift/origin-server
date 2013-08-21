@@ -36,7 +36,7 @@ class RestApiCartridgeTypeTest < ActiveSupport::TestCase
     assert type.requires.find{ |r| r.starts_with?('mysql-') }, type.requires.inspect
     assert type.tags.include? :administration
     assert_not_equal type.name, type.display_name
-    
+
     assert type = types.find{ |t| t.name.starts_with?('rockmongo-') }
     assert type.requires.find{ |r| r.starts_with?('mongodb-') }, type.requires.inspect
     assert type.tags.include? :administration
@@ -84,7 +84,7 @@ class RestApiCartridgeTypeTest < ActiveSupport::TestCase
     php = CartridgeType.find 'php-5.3'
     mongo = CartridgeType.find 'mongodb-2.2'
     cron = CartridgeType.find 'cron-1.4'
-    jenkins = CartridgeType.find 'jenkins-client-1.4'
+    jenkins = CartridgeType.find 'jenkins-client-1'
 
     assert ruby18 > ruby
     assert ruby < ruby18

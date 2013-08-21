@@ -34,6 +34,9 @@ class EmbCartController < BaseController
     scales_to = Integer(params[:scales_to].presence) rescue nil
     additional_storage = Integer(params[:additional_storage].presence) rescue nil
 
+    user_env_vars = params[:environment_variables].presence
+    Application.validate_user_env_variables(user_env_vars, true)
+
     cart_urls = []
     cmap = {}
     if params[:name].is_a? String
@@ -122,7 +125,7 @@ class EmbCartController < BaseController
         group_overrides << group_override
       end
 
-      result = @application.add_features([name], group_overrides)
+      result = @application.add_features([name], group_overrides, nil, user_env_vars)
 
       component_instance = @application.component_instances.find_by(cartridge_name: cart.name, component_name: comp.name)
       cartridge = get_embedded_rest_cartridge(@application, component_instance, @application.group_instances_with_scale, @application.group_overrides)

@@ -15,11 +15,11 @@
 #++
 
 require 'openshift-origin-node/utils/sdk'
+require 'openshift-origin-node/utils/shell_exec'
 require 'openshift-origin-node/utils/node_logger'
 require 'openshift-origin-common/models/manifest'
 require 'openshift-origin-node/model/cartridge_repository'
 require 'openshift-origin-common'
-require 'systemu'
 require 'safe_yaml'
 require 'etc'
 
@@ -41,23 +41,18 @@ module OpenShift
       def self.get_cartridge_list(list_descriptors = false, porcelain = false, oo_debug = false)
         carts = []
         CartridgeRepository.instance.latest_versions do |cartridge|
-          cartridge.versions.each do |version|
-            begin
-              cooked = Runtime::Manifest.new(cartridge.manifest_path, version, :file, cartridge.repository_path)
-              print "Loading #{cooked.name}-#{cooked.version}..." if oo_debug
+          begin
+            print "Loading #{cartridge.name}-#{cartridge.version}..." if oo_debug
 
-              v1_manifest            = Marshal.load(Marshal.dump(cooked.manifest))
-              
-              # Appending the version to the name will be done in the common cartridge model 
-              #v1_manifest['Name']    = "#{cooked.name}-#{cooked.version}"
-              
-              v1_manifest['Version'] = cooked.version
-              carts.push OpenShift::Cartridge.new.from_descriptor(v1_manifest)
-              print "OK\n" if oo_debug
-            rescue Exception => e
-              print "ERROR\n" if oo_debug
-              print "#{e.message}\n#{e.backtrace.inspect}\n" unless porcelain
-            end
+            # Deep copy is necessary here because OpenShift::Cartridge makes destructive changes
+            # to the hash passed to from_descriptor
+            v1_manifest            = Marshal.load(Marshal.dump(cartridge.manifest))
+            v1_manifest['Version'] = cartridge.version
+            carts.push OpenShift::Cartridge.new.from_descriptor(v1_manifest)
+            print "OK\n" if oo_debug
+          rescue Exception => e
+            print "ERROR\n" if oo_debug
+            print "#{e.message}\n#{e.backtrace.inspect}\n" unless porcelain
           end
         end
 
@@ -140,15 +135,20 @@ module OpenShift
                                                         :error))
         end
 
-        cmd = %&quota --always-resolve -w #{uuid} | awk '/^.*\\/dev/ {print $1":"$2":"$3":"$4":"$5":"$6":"$7}'; exit ${PIPESTATUS[0]}&
-        st, out, errout = systemu cmd
-        if st.exitstatus == 0 || st.exitstatus == 1
-          arr = out.strip.split(":")
-          raise NodeCommandException.new "Error: #{errout} executing command #{cmd}" unless arr.length == 7
-          arr
-        else
-          raise NodeCommandException.new "Error: #{errout} executing command #{cmd}"
+        stdout, _, _ = Utils.oo_spawn("quota --always-resolve -w #{uuid}")
+        results      = stdout.split("\n").grep(%r(^.*/dev/))
+        if results.empty?
+          raise NodeCommandException.new(
+                    Utils::Sdk.translate_out_for_client("Unable to obtain quota for user #{uuid}",
+                                                        :error))
         end
+
+        results = results.first.strip.split(' ')
+
+        {device:      results[0],
+         blocks_used: results[1].to_i, blocks_quota: results[2].to_i, blocks_limit: results[3].to_i,
+         inodes_used: results[4].to_i, inodes_quota: results[5].to_i, inodes_limit: results[6].to_i
+        }
       end
 
       def self.get_gear_mountpoint
@@ -177,10 +177,10 @@ module OpenShift
         end
 
         unless nil == cur_quota
-          current_quota  = cur_quota[1].to_s.to_i
-          blocksmax      = cur_quota[3].to_s.to_i if blocksmax.to_s.empty?
-          current_inodes = cur_quota[4].to_s.to_i
-          inodemax       = cur_quota[6].to_s.to_i if inodemax.to_s.empty?
+          current_quota  = cur_quota[:blocks_used]
+          blocksmax      = cur_quota[:blocks_limit] if blocksmax.to_s.empty?
+          current_inodes = cur_quota[:inodes_used]
+          inodemax       = cur_quota[:inodes_limit] if inodemax.to_s.empty?
         end
 
         if current_quota > blocksmax.to_i
@@ -197,8 +197,8 @@ module OpenShift
 
         mountpoint      = self.get_gear_mountpoint
         cmd             = "setquota --always-resolve -u #{uuid} 0 #{blocksmax} 0 #{inodemax} -a #{mountpoint}"
-        st, out, errout = systemu cmd
-        raise NodeCommandException.new "Error: #{errout} executing command #{cmd}" unless st.exitstatus == 0
+        _, stderr, rc = Utils.oo_spawn(cmd)
+        raise NodeCommandException.new "Error: #{stderr} executing command #{cmd}" unless rc == 0
       end
 
       def self.init_quota(uuid, blocksmax=nil, inodemax=nil)

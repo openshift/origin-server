@@ -37,10 +37,11 @@ module OpenShift
 
           # Load environment variables under subdirectories in ~/.env
           Dir[PathUtils.join(gear_dir, '.env', '*')].each do |entry|
-            if File.directory?(entry)
-              env.merge!(load(entry))
-            end
+            next if entry.end_with?('user_vars')
+
+            env.merge!(load(entry)) if File.directory?(entry)
           end
+
 
           # If we have a primary cartridge make sure it's the last loaded in the environment
           primary = if env.has_key? 'OPENSHIFT_PRIMARY_CARTRIDGE_DIR'
@@ -63,6 +64,9 @@ module OpenShift
           elements << system_path if system_path
 
           env['PATH'] = elements.join(':')
+
+          user_vars = PathUtils.join(gear_dir, '.env', 'user_vars')
+          env.merge!(load(user_vars)) if File.exist?(user_vars)
           env
         end
 
@@ -81,7 +85,6 @@ module OpenShift
 
               begin
                 contents = IO.read(file).chomp
-                next if contents.empty?
 
                 if contents.start_with? 'export '
                   index           = contents.index('=')

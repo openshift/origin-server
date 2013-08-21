@@ -80,10 +80,14 @@ begin
   if all_containers
     OpenShift::Runtime::Node::init_pam_limits_all
   else
-    OpenShift::Runtime::Node::init_pam_limits(container_uuid.to_s)
+    if OpenShift::Runtime::ApplicationContainer.exists?(container_uuid.to_s)
+      OpenShift::Runtime::Node::init_pam_limits(container_uuid.to_s)
+    else
+      raise "ERROR: Unable to find specified container (#{container_uuid})"
+    end
   end
 rescue Exception => e
   $stderr.puts(e.message)
-  exit -1
+  exit(-1)
 end
 exit 0

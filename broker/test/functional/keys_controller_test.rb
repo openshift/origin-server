@@ -88,4 +88,17 @@ class KeysControllerTest < ActionController::TestCase
     post :create, {"name" => key_name + ".json", "type" => "ssh-rsa", "content" => "ABCD1234"}
     assert_response :unprocessable_entity
   end
+  
+  test "get keys in all versions" do
+    key_name = "key#{@random}"
+    post :create, {"name" => key_name, "type" => "ssh-rsa", "content" => "ABCD1234"}
+    assert_response :created
+    assert json = JSON.parse(response.body)
+    assert supported_api_versions = json['supported_api_versions']
+    supported_api_versions.each do |version|
+      @request.env['HTTP_ACCEPT'] = "application/json; version=#{version}"
+      get :show, {"id" => key_name}
+      assert_response :ok, "Getting key for version #{version} failed"
+    end
+  end
 end

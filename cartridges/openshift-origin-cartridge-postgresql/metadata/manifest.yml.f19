@@ -33,7 +33,6 @@ Cart-Data:
 Provides:
   - postgresql-9.2
   - "postgresql"
-  - "postgresql(version) = 9.2"
 Conflicts:
   - mysql
   - mariadb

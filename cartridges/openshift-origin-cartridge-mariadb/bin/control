@@ -25,10 +25,11 @@ function is_running {
 # Start mysqld and block until it comes up.
 function start {
   if ! is_running; then
+    echo "Starting MariaDB cartridge"
     /usr/bin/mysqld_safe --defaults-file=$OPENSHIFT_MARIADB_DIR/conf/my.cnf > /dev/null 2>&1 &    
     wait_for_mariadbd_availability
   else
-    echo "MySQL already running" 1>&2
+    echo "MariaDB already running" 1>&2
   fi
 }
 
@@ -52,6 +53,7 @@ function touch_mariadbd {
 
 function stop {
   if is_running; then
+    echo "Stopping MariaDB cartridge"
     pidfile=$OPENSHIFT_MARIADB_DIR/pid/mariadb.pid
 
     if [ -f $pidfile ]; then

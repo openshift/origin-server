@@ -50,7 +50,11 @@ module OpenShift
           when :list
             return repository.to_s
           when :erase
-            repository.erase(options.name, options.version, options.cartridge_version)
+            begin
+              repository.erase(options.name, options.version, options.cartridge_version)
+            rescue KeyError => e
+              abort "requested cartridge does not exists (#{e.message})"
+            end
         end
         'succeeded'
       end

@@ -43,7 +43,7 @@ EXAMPLE
   
   List the usage for the user within a specified timeframe:
   
-    $ oo-admin-usage -l bob@redhat.com -s 1360790232 -e 1360793832
+    $ oo-admin-usage -l bob@redhat.com -s 2013-08-01 -e 2013-08-15
   
 SEE ALSO
   oo-admin-ctl-district(8), oo-admin-move(8),

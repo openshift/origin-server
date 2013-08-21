@@ -6,13 +6,14 @@
 %global cartridgedir %{_libexecdir}/openshift/cartridges/ruby
 
 Name:          openshift-origin-cartridge-ruby
-Version: 0.8.1
+Version: 0.8.5
 Release:       1%{?dist}
 Summary:       Ruby cartridge
 Group:         Development/Languages
 License:       ASL 2.0
 URL:           https://www.openshift.com
 Source0:       http://mirror.openshift.com/pub/openshift-origin/source/%{name}/%{name}-%{version}.tar.gz
+Requires:      facter
 Requires:      gcc-c++
 Requires:      gmp-devel
 Requires:      libev
@@ -182,6 +183,30 @@ Ruby cartridge for OpenShift. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Mon Aug 19 2013 Adam Miller <admiller@redhat.com> 0.8.5-1
+- Updated 'restart' operation for all HTTPD based cartridges to use
+  'httpd_restart_action' (mfojtik@redhat.com)
+
+* Fri Aug 16 2013 Adam Miller <admiller@redhat.com> 0.8.4-1
+- Bug 997825 - Fail to install gems with Gemfile & Gemfile.lock for ruby apps
+  (mfojtik@redhat.com)
+- Merge pull request #3376 from brenton/BZ986300_BZ981148
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3354 from dobbymoodge/origin_runtime_219
+  (dmcphers+openshiftbot@redhat.com)
+- <cartridges> Additional cart version and test fixes (jolamb@redhat.com)
+- Bug 981148 - missing facter dependency for cartridge installation
+  (bleanhar@redhat.com)
+
+* Thu Aug 15 2013 Adam Miller <admiller@redhat.com> 0.8.3-1
+- Bug 968280 - Ensure Stopping/Starting messages during git push Bug 983014 -
+  Unnecessary messages from mongodb cartridge (jhonce@redhat.com)
+
+* Tue Aug 13 2013 Adam Miller <admiller@redhat.com> 0.8.2-1
+- Follow up fix for Bug 970150 (asari.ruby@gmail.com)
+- Fix typo (asari.ruby@gmail.com)
+- Bug 970150 (asari.ruby@gmail.com)
+
 * Thu Aug 08 2013 Adam Miller <admiller@redhat.com> 0.8.1-1
 - Merge pull request #3021 from rvianello/readme_cron (dmcphers@redhat.com)
 - bump_minor_versions for sprint 32 (admiller@redhat.com)

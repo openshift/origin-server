@@ -293,9 +293,14 @@ figure {
 }
 
 body {
-  /* WebKit only, allows links to break */
+  /* WebKit only, allows links and other stuff to break */
   word-break: break-word;
   word-wrap: break-word;
+
+  input {
+    word-break: normal;
+    word-wrap: normal;
+  }
 }
 
 

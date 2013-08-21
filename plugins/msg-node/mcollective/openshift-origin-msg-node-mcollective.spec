@@ -10,7 +10,7 @@
 
 Summary:       M-Collective agent file for openshift-origin-msg-node-mcollective
 Name:          openshift-origin-msg-node-mcollective
-Version: 1.13.1
+Version: 1.13.8
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -51,6 +51,46 @@ cp -p facts/update_yaml.rb %{buildroot}/usr/libexec/mcollective/
 %attr(0700,-,-) %config(noreplace) /etc/cron.minutely/openshift-facts
 
 %changelog
+* Wed Aug 21 2013 Adam Miller <admiller@redhat.com> 1.13.8-1
+- fix bug 999144 - check gear_file against uid map (rchopra@redhat.com)
+- Bug 998794 - Allow blank value for a user environment variable
+  (rpenta@redhat.com)
+
+* Tue Aug 20 2013 Adam Miller <admiller@redhat.com> 1.13.7-1
+- Merge pull request #3418 from lnader/master
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 994419 (lnader@redhat.com)
+- Merge pull request #3410 from pravisankar/dev/ravi/card86
+  (dmcphers+openshiftbot@redhat.com)
+- User vars node changes:  - Use 'user-var-add' mcollective call for *add*
+  and/or *push* user vars. This will reduce unnecessary additional
+  code/complexity.  - Add some more reserved var names: PATH, IFS, USER, SHELL,
+  HOSTNAME, LOGNAME  - Do not attempt rsync when .env/user_vars dir is empty  -
+  Misc bug fixes (rpenta@redhat.com)
+- WIP Node Platform - Add support for settable user variables
+  (jhonce@redhat.com)
+
+* Mon Aug 19 2013 Adam Miller <admiller@redhat.com> 1.13.6-1
+- Bug 995599 - Add lock when building cartridge repository (jhonce@redhat.com)
+
+* Fri Aug 16 2013 Adam Miller <admiller@redhat.com> 1.13.5-1
+- Removing has_app mcollective method since its no longer used
+  (abhgupta@redhat.com)
+- fix parameter names and validation (rchopra@redhat.com)
+
+* Thu Aug 15 2013 Adam Miller <admiller@redhat.com> 1.13.4-1
+- Merge pull request #3359 from rajatchopra/master
+  (dmcphers+openshiftbot@redhat.com)
+- migration helpers and rest interface for port information of gears
+  (rchopra@redhat.com)
+- Upgrade tool enhancements (ironcladlou@gmail.com)
+
+* Wed Aug 14 2013 Adam Miller <admiller@redhat.com> 1.13.3-1
+- save exposed port interfaces of a gear (rchopra@redhat.com)
+
+* Fri Aug 09 2013 Adam Miller <admiller@redhat.com> 1.13.2-1
+- Bug 995233 - Use oo_spawn in place of systemu (jhonce@redhat.com)
+
 * Thu Aug 08 2013 Adam Miller <admiller@redhat.com> 1.13.1-1
 - Card origin_runtime_175 - Report quota on 90%% usage (jhonce@redhat.com)
 - Fixing has_app method in mcollective (abhgupta@redhat.com)

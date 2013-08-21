@@ -189,7 +189,7 @@ module RestApi
         resource.as = @as
       end
     end
-   
+
     #
     # Ensure Fixnums and booleans can be cloned
     #
@@ -304,6 +304,33 @@ module RestApi
       save || raise_on_invalid
     end
 
+    def save_with_exception_handling(options={})
+      save_without_exception_handling(options)
+
+    rescue ActiveResource::ConnectionError => error
+      raise if self.class.unhandled_exceptions.any?{ |c| c === error }
+
+      # If the server returns a body that has messages, filter them through
+      # the error handler.  If one or more errors were set, assume that the message
+      # is more useful than the exception and return false. Special case is "server under
+      # maintenance" where we raise even having messages, to be able to logout with
+      # :cause => :server_unavailable. As an improvement the broker could return an exit_code
+      # for us to handle on translate_api_error. Otherwise throw as ActiveResource would.
+      server_unavailable = error.response.present? &&
+        error.response.respond_to?(:code) &&
+        error.response.code.to_i == 503
+
+      remote_errors = set_remote_errors(error, true)
+
+      if server_unavailable
+        raise ServerUnavailable.new(error.response)
+      elsif !remote_errors
+        raise
+      end
+      false
+    end
+    alias_method_chain :save, :exception_handling
+
     def save_with_change_tracking(*args, &block)
       save_without_change_tracking(*args, &block).tap do |valid|
         if valid
@@ -311,30 +338,14 @@ module RestApi
           @changed_attributes.clear
         end
       end
-
-    rescue ActiveResource::ForbiddenAccess, ActiveResource::UnauthorizedAccess
-      # Aggressively raise the error - TODO, parse codes or specialize
-      raise
-    rescue ActiveResource::ConnectionError => error
-      # If the server returns a body that has messages, filter them through
-      # the error handler.  If one or more errors were set, assume that the message
-      # is more useful than the exception and return false. Special case is "server under
-      # maintenance" where we raise even having messages, to be able to logout with 
-      # :cause => :server_unavailable. As an improvement the broker could return an exit_code
-      # for us to handle on translate_api_error. Otherwise throw as ActiveResource would.
-      server_unavailable = error.response.present? && 
-        error.response.respond_to?(:code) && 
-        error.response.code.to_i == 503
-
-      remote_errors = set_remote_errors(error, true)
-
-      if server_unavailable 
-        raise ServerUnavailable.new(error.response)
-      elsif !remote_errors 
-        raise
-      end
     end
     alias_method_chain :save, :change_tracking
+
+    class << self
+      def unhandled_exceptions
+        [ActiveResource::UnauthorizedAccess]
+      end
+    end
 
     # Copy calculated attribute errors
     def valid?

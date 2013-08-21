@@ -78,16 +78,16 @@ Broker::Application.configure do
     :scope_expirations => OpenShift::Controller::Configuration.parse_expiration("session=1.days|2.days", 1.month),
     :download_cartridges_enabled => conf.get_bool("DOWNLOAD_CARTRIDGES_ENABLED", "true"),
     :ssl_endpoint => conf.get("SSL_ENDPOINT", "allow"),
-    :membership_enabled => conf.get_bool("MEMBERSHIP_ENABLED", "true"),
+    :membership_enabled => conf.get_bool("MEMBERSHIP_ENABLED", "false"),
     :max_members_per_resource => conf.get('MAX_MEMBERS_PER_RESOURCE', '100').to_i,
     :max_domains_per_user => conf.get('MAX_DOMAINS_PER_USER', '1').to_i,
   }
 
   config.auth = {
     :salt => conf.get("AUTH_SALT", ""),
-    :privkeyfile => conf.get("AUTH_PRIVKEYFILE", "/var/www/openshift/broker/config/server_priv.pem"),
-    :privkeypass => conf.get("AUTH_PRIVKEYPASS", ""),
-    :pubkeyfile  => conf.get("AUTH_PUBKEYFILE", "/var/www/openshift/broker/config/server_pub.pem"),
+    :privkeyfile => conf.get("AUTH_PRIV_KEY_FILE", "/var/www/openshift/broker/config/server_priv.pem"),
+    :privkeypass => conf.get("AUTH_PRIV_KEY_PASS", ""),
+    :pubkeyfile  => conf.get("AUTH_PUB_KEY_FILE", "/var/www/openshift/broker/config/server_pub.pem"),
     :rsync_keyfile => conf.get("AUTH_RSYNC_KEY_FILE", "/etc/openshift/rsync_id_rsa")
   }
 

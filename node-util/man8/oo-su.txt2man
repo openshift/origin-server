@@ -1,0 +1,42 @@
+NAME
+  oo-su
+  
+SYNOPSIS
+  oo-su  [OPTION] USER [--command COMMAND [ARG]]
+
+DESCRIPTION
+  oo-su provides OpenShift Operators the ability to log or run a command in a gear's context as that gear's user.
+
+  If no command is provided a bash shell will be started.
+
+OPTIONS
+  -h|--help  
+    Display a simple help menu.
+
+  -d|--debug  
+    Provide additional output.
+
+  --c| --command [ARG]
+    If provided, the command will be run in the provided gear's context
+
+COMMANDS
+  USER
+    The login id of the gear who's context should be used
+
+CONFIGURATION
+  /etc/openshift/env
+  /var/lib/openshift/{login id}/.env
+  /var/lib/openshift/{login id}/{cartridge}/env
+  /etc/password
+  
+EXAMPLE
+  # oo-su de3b20abc93f4d4098ba4ba8c5e99e90
+    Start a bash shell as gear de3b20abc93f4d4098ba4ba8c5e99e90
+  # oo-su de3b20abc93f4d4098ba4ba8c5e99e90 -c ls
+    List home directory of gear de3b20abc93f4d4098ba4ba8c5e99e90 as gear de3b20abc93f4d4098ba4ba8c5e99e90
+  
+SEE ALSO
+  su(1), semanage(8)
+
+AUTHOR
+  Jhon Honce <jhonce@redhat.com> - man page written for OpenShift Origin 

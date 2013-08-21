@@ -178,7 +178,7 @@ class CartridgeCache
       chash = OpenShift::Runtime::Manifest.manifest_from_yaml(str) 
       manifest = OpenShift::Runtime::Manifest.new(str)
     rescue Exception=>e
-      raise OpenShift::UserException.new("Invalid manifest file from url '#{url}'")
+      raise OpenShift::UserException.new("Invalid manifest file from url '#{url}' - #{e.message}")
     end
 
     # check if Cartridge-Vendor is reserved

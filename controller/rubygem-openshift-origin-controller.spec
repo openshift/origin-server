@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.13.1
+Version: 1.13.7
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -84,6 +84,114 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Wed Aug 21 2013 Adam Miller <admiller@redhat.com> 1.13.7-1
+- Merge pull request #3441 from jwhonce/wip/user_vars
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3326 from kraman/admin_command_connection_hooks
+  (dmcphers+openshiftbot@redhat.com)
+- origin_broker_77 (lnader@redhat.com)
+- Merge pull request #3439 from pravisankar/dev/ravi/user-env-bugs
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 998794 - Allow blank value for a user environment variable
+  (rpenta@redhat.com)
+- Node Platform - Add .env/user_vars during upgrade (jhonce@redhat.com)
+- Merge pull request #3436 from pmorie/dev/upgrades
+  (dmcphers+openshiftbot@redhat.com)
+- Fix creating new endpoints during incompatible upgrades (pmorie@gmail.com)
+- New admin command to call connection hooks on an application.
+  (kraman@gmail.com)
+
+* Tue Aug 20 2013 Adam Miller <admiller@redhat.com> 1.13.6-1
+- Merge pull request #3435 from
+  smarterclayton/bug_997848_capabilities_not_shown_via_api
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 997848 - Inherited capabilities not in REST API (ccoleman@redhat.com)
+- Fix cucumber step ambiguity (ironcladlou@gmail.com)
+- Merge pull request #3398 from detiber/bz994445
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3413 from sosiouxme/admin-stats-fixes
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3410 from pravisankar/dev/ravi/card86
+  (dmcphers+openshiftbot@redhat.com)
+- <Admin::Stats> use only strings for hash keys (lmeyer@redhat.com)
+- <Admin::Stats> exclude inactive nodes from eff avail gears
+  (lmeyer@redhat.com)
+- <Admin::Stats> fix minor bug - NONE district should be HashWithReaders
+  (lmeyer@redhat.com)
+- Added REST api support for user environment variables (rpenta@redhat.com)
+- Added User environment variables support in broker (rpenta@redhat.com)
+- WIP Node Platform - Add support for settable user variables
+  (jhonce@redhat.com)
+- Bug 99445 - Better error message for No nodes available (jdetiber@redhat.com)
+
+* Mon Aug 19 2013 Adam Miller <admiller@redhat.com> 1.13.5-1
+- Fixing typos (dmcphers@redhat.com)
+- Bug 997785 (dmcphers@redhat.com)
+- Merge pull request #3382 from smarterclayton/builder_scope_incorrect
+  (dmcphers+openshiftbot@redhat.com)
+- <cartridge versions> origin_runtime_219, fix up cart references for renamed
+  cart https://trello.com/c/evcTYKdn/219-3-adjust-out-of-date-cartridge-
+  versions (jolamb@redhat.com)
+- Node Platform - Fixed grep in node_step.rb (jhonce@redhat.com)
+- Fix builder scope by introducing a domain builder scope (ccoleman@redhat.com)
+
+* Fri Aug 16 2013 Adam Miller <admiller@redhat.com> 1.13.4-1
+- Merge pull request #3390 from pmorie/dev/fix_tests
+  (dmcphers+openshiftbot@redhat.com)
+- Fix several tests that now use incorrect versions (pmorie@gmail.com)
+- Merge pull request #3370 from
+  smarterclayton/bug_997246_prohibit_blank_domains
+  (dmcphers+openshiftbot@redhat.com)
+- fix bz997078 (rchopra@redhat.com)
+- Merge pull request #3375 from smarterclayton/convert_scope_to_string
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3358 from sosiouxme/oo-stats-mods
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3354 from dobbymoodge/origin_runtime_219
+  (dmcphers+openshiftbot@redhat.com)
+- <cartridges> Additional cart version and test fixes (jolamb@redhat.com)
+- Merge pull request #3368 from smarterclayton/find_by_user_broken_on_app
+  (dmcphers+openshiftbot@redhat.com)
+- <oo-stats> ability to read results from file; more (lmeyer@redhat.com)
+- <Admin::Stats> refactor classes and tests (lmeyer@redhat.com)
+- Treat domain_scope= the same as app_scope= (ccoleman@redhat.com)
+- Bug 997246 - Prohibit blank domains (ccoleman@redhat.com)
+- Unable to scale up or snapshot an app (ccoleman@redhat.com)
+
+* Thu Aug 15 2013 Adam Miller <admiller@redhat.com> 1.13.3-1
+- Merge pull request #3359 from rajatchopra/master
+  (dmcphers+openshiftbot@redhat.com)
+- migration helpers and rest interface for port information of gears
+  (rchopra@redhat.com)
+- Upgrade tool enhancements (ironcladlou@gmail.com)
+
+* Wed Aug 14 2013 Adam Miller <admiller@redhat.com> 1.13.2-1
+- Merge pull request #3322 from smarterclayton/origin_ui_73_membership_model
+  (dmcphers+openshiftbot@redhat.com)
+- save exposed port interfaces of a gear (rchopra@redhat.com)
+- Merge pull request #3290 from
+  smarterclayton/bug_992464_not_raising_on_not_found_token
+  (dmcphers+openshiftbot@redhat.com)
+- Check denormalization in oo-admin-chk (ccoleman@redhat.com)
+- Only schedule domain jobs on applications that actually need it
+  (ccoleman@redhat.com)
+- Default to test mode membership off (ccoleman@redhat.com)
+- Review comments (ccoleman@redhat.com)
+- Bug 995371 - Direct parameters to members were ignored (ccoleman@redhat.com)
+- Ensure only users with ssh access are added with keys (ccoleman@redhat.com)
+- * Implement a membership model for OpenShift that allows an efficient query
+  of user access based on each resource. * Implement scope limitations that
+  correspond to specific permissions * Expose membership info via the REST API
+  (disableable via config) * Allow multiple domains per user, controlled via a
+  configuration flag * Support additional information per domain
+  (application_count and gear_counts) to improve usability * Let domains
+  support the allowed_gear_sizes option, which limits the gear sizes available
+  to apps in that domain * Simplify domain update interactions - redundant
+  validation removed, and behavior of responses differs slightly. * Implement
+  migration script to enable data (ccoleman@redhat.com)
+- Bug 992464 - Authorization token needs to raise when checking eventual
+  consistency (ccoleman@redhat.com)
+
 * Thu Aug 08 2013 Adam Miller <admiller@redhat.com> 1.13.1-1
 - Merge pull request #3307 from jwhonce/wip/java_opt_ext
   (dmcphers+openshiftbot@redhat.com)

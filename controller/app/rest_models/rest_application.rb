@@ -79,7 +79,7 @@ class RestApplication < OpenShift::Model
     self.embedded = {}
     app.requires(true).each do |feature|
       cart = CartridgeCache.find_cartridge(feature, app)
-      if cart.categories.include? "web_framework"
+      if cart.is_web_framework?
         self.framework = cart.name
       else
         self.embedded[cart.name] = {info: ""}
@@ -125,7 +125,7 @@ class RestApplication < OpenShift::Model
       else
         unless cart.categories.include? "web_framework"
           self.embedded[cart.name] = component_instance.component_properties
-          
+
           # if the component has a connection_url property, add it as "info" for backward compatibility
           # make sure it is a hash, because copy-pasting the app document in mongo (using rockmongo UI) can convert hashes into arrays 
           if component_instance.component_properties.is_a?(Hash) and component_instance.component_properties.has_key?("connection_url")
@@ -157,9 +157,7 @@ class RestApplication < OpenShift::Model
 
       self.links = {
         "GET" => Link.new("Get application", "GET", URI::join(url, "applications/#{@id}")),
-        "GET_BY_NAME" => Link.new("Get application by name", "GET", URI::join(url, "domains/#{app.domain_namespace}/applications/#{@name}")),
         "GET_DESCRIPTOR" => Link.new("Get application descriptor", "GET", URI::join(url, "applications/#{@id}/descriptor")),
-        #"GET_GEARS" => Link.new("Get application gears", "GET", URI::join(url, "applications/#{@id}/gears")),
         "GET_GEAR_GROUPS" => Link.new("Get application gear groups", "GET", URI::join(url, "applications/#{@id}/gear_groups")),
         "START" => Link.new("Start application", "POST", URI::join(url, "applications/#{@id}/events"), [
           Param.new("event", "string", "event", "start")
@@ -167,11 +165,11 @@ class RestApplication < OpenShift::Model
         "STOP" => Link.new("Stop application", "POST", URI::join(url, "applications/#{@id}/events"), [
           Param.new("event", "string", "event", "stop")
         ]),
-        "RESTART" => Link.new("Restart application", "POST", URI::join(url, "applications/#{@id}/events"), [
-          Param.new("event", "string", "event", "restart")
-        ]),
         "FORCE_STOP" => Link.new("Force stop application", "POST", URI::join(url, "applications/#{@id}/events"), [
           Param.new("event", "string", "event", "force-stop")
+        ]),
+        "RESTART" => Link.new("Restart application", "POST", URI::join(url, "applications/#{@id}/events"), [
+          Param.new("event", "string", "event", "restart")
         ]),
         "SCALE_UP" => Link.new("Scale up application", "POST", URI::join(url, "applications/#{@id}/events"), [
           Param.new("event", "string", "event", "scale-up")
@@ -188,26 +186,37 @@ class RestApplication < OpenShift::Model
         "THREAD_DUMP" => Link.new("Trigger thread dump", "POST", URI::join(url, "applications/#{@id}/events"), [
           Param.new("event", "string", "event", "thread-dump")
         ]),
-        "DELETE" => Link.new("Delete application", "DELETE", URI::join(url, "applications/#{@id}")),
         "ADD_CARTRIDGE" => Link.new("Add embedded cartridge", "POST", URI::join(url, "applications/#{@id}/cartridges"),[
-            Param.new("name", "string", "framework-type, e.g.: mongodb-2.0", carts)
+            Param.new("name", "string", "Name of the cartridge, e.g. mongodb-2.2", carts)
           ],[
             OptionalParam.new("colocate_with", "string", "The component to colocate with", app.component_instances.map{|c| c.cartridge_name}),
             OptionalParam.new("scales_from", "integer", "Minimum number of gears to run the component on."),
             OptionalParam.new("scales_to", "integer", "Maximum number of gears to run the component on."),
             OptionalParam.new("additional_storage", "integer", "Additional GB of space to request on all gears running this component."),
             (OptionalParam.new("url", "string", "A URL to a downloadable cartridge.") if Rails.application.config.openshift[:download_cartridges_enabled]),
+            OptionalParam.new("environment_variables", "array", "Add or Update application environment variables, e.g.:[{'name':'FOO', 'value':'123'}, {'name':'BAR', 'value':'abc'}]")
           ].compact
         ),
         "LIST_CARTRIDGES" => Link.new("List embedded cartridges", "GET", URI::join(url, "applications/#{@id}/cartridges")),
         "DNS_RESOLVABLE" => Link.new("Resolve DNS", "GET", URI::join(url, "applications/#{@id}/dns_resolvable")),
-        "ADD_ALIAS" => Link.new("Create new alias", "POST", URI::join(url, "applications/#{@id}/aliases"), 
-          [Param.new("id", "string", "Alias for application")], 
-          [OptionalParam.new("ssl_certificate", "string", "Content of SSL Certificate"), 
-            OptionalParam.new("private_key", "string", "Private key for the certificate.  Required if adding a certificate"), 
+        "ADD_ALIAS" => Link.new("Create new alias", "POST", URI::join(url, "applications/#{@id}/aliases"),
+          [Param.new("id", "string", "Alias for application")],
+          [OptionalParam.new("ssl_certificate", "string", "Content of SSL Certificate"),
+            OptionalParam.new("private_key", "string", "Private key for the certificate.  Required if adding a certificate"),
             OptionalParam.new("pass_phrase", "string", "Optional passphrase for the private key")]),
         "LIST_ALIASES" => Link.new("List application aliases", "GET", URI::join(url, "applications/#{@id}/aliases")),
         "LIST_MEMBERS" => Link.new("List members of this application", "GET", URI::join(url, "applications/#{@id}/members")),
+        "SET_UNSET_ENVIRONMENT_VARIABLES" => Link.new("Add/Update/Delete one or more environment variables", "POST", URI::join(url, "applications/#{@id}/environment-variables"), nil, [
+          OptionalParam.new("name", "string", "Name of the environment variable to add/update"),
+          OptionalParam.new("value", "string", "Value of the environment variable"),
+          OptionalParam.new("environment_variables", "array", "Add/Update/Delete application environment variables, e.g. Add/Update: [{'name':'FOO', 'value':'123'}, {'name':'BAR', 'value':'abc'}], Delete: [{'name':'FOO'}, {'name':'BAR'}]")
+        ]),
+        "ADD_ENVIRONMENT_VARIABLE" => Link.new("Add an environment variable", "POST", URI::join(url, "applications/#{@id}/environment-variables"), [
+          Param.new("name", "string", "Name of the environment variable"),
+          Param.new("value", "string", "Value of the environment variable")
+        ]),
+        "LIST_ENVIRONMENT_VARIABLES" => Link.new("List all environment variables", "GET", URI::join(url, "applications/#{@id}/environment-variables")),
+        "DELETE" => Link.new("Delete application", "DELETE", URI::join(url, "applications/#{@id}"))
       }
     end
   end

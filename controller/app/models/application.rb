@@ -83,6 +83,8 @@ class Application
   belongs_to :domain, inverse_of: :applications
   field :domain_namespace, type: String # denormalized canonical namespace
   belongs_to :owner, class_name: CloudUser.name, inverse_of: :owned_applications
+  belongs_to :builder, class_name: Application.name, inverse_of: :built_applications
+  has_many :built_applications, class_name: Application.name
 
   field :downloaded_cart_map, type: Hash, default: {}
   field :component_start_order, type: Array, default: []
@@ -176,10 +178,11 @@ class Application
   # @param user_agent [String] user agent string of browser used for this rest API request
   # @return [Application] Application object
   # @raise [OpenShift::ApplicationValidationException] Exception to indicate a validation error
-  def self.create_app(application_name, features, domain, default_gear_size = nil, scalable=false, result_io=ResultIO.new, group_overrides=[], init_git_url=nil, user_agent=nil, community_cart_urls=[])
+  def self.create_app(application_name, features, domain, default_gear_size = nil, scalable=false, result_io=ResultIO.new, group_overrides=[],
+                      init_git_url=nil, user_agent=nil, community_cart_urls=[], builder_id=nil, user_env_vars=nil)
     default_gear_size =  Rails.application.config.openshift[:default_gear_size] if default_gear_size.nil?
     cmap = CartridgeCache.fetch_community_carts(community_cart_urls)
-    app = Application.new(domain: domain, name: application_name, default_gear_size: default_gear_size, scalable: scalable, app_ssh_keys: [], pending_op_groups: [], downloaded_cart_map: cmap)
+    app = Application.new(domain: domain, name: application_name, default_gear_size: default_gear_size, scalable: scalable, app_ssh_keys: [], pending_op_groups: [], downloaded_cart_map: cmap, builder_id: builder_id)
     app.user_agent = user_agent
     app.init_git_url = OpenShift::Git.persistable_clone_spec(init_git_url)
     app.analytics['user_agent'] = user_agent
@@ -205,10 +208,10 @@ class Application
         elsif framework_cartridges.length > 1
           raise OpenShift::UserException.new("Each application must contain only one web cartridge.  Please include a single web cartridge from this list: #{framework_carts.to_sentence}.", 109, "cartridge")
         end
-        add_feature_result = app.add_features(features, group_overrides, init_git_url)
+        add_feature_result = app.add_features(features, group_overrides, init_git_url, user_env_vars)
         result_io.append add_feature_result
       rescue Exception => e
-        if (app.group_instances.nil? or app.group_instances.empty?) and (app.component_instances.nil? or app.component_instances.empty?)
+        unless app.group_instances.present? or app.component_instances.present?
           app.delete
         end
         raise e
@@ -264,7 +267,7 @@ class Application
   # @return [Application, nil] The application object or nil if no application matches
   #
   def self.find_by_user(user, app_name)
-    Application.in(domain: user.domains).where(canonical_name: app_name.downcase).first
+    Application.in(domain: user.domains.map(&:_id)).where(canonical_name: app_name.downcase).first
   end
 
   ##
@@ -281,8 +284,8 @@ class Application
   end
 
   def self.legacy_accessible(to)
-    self.in(domain: Domain.legacy_accessible(to).map(&:_id))
-  end  
+    scope_limited(to, self.in(domain: Domain.legacy_accessible(to).map(&:_id)))
+  end
 
   ##
   # Constructor. Should not be used directly. Use {Application#create_app} instead.
@@ -319,7 +322,7 @@ class Application
     return if keys.empty?
     keys_attrs = get_updated_ssh_keys(user_id, keys)
     Application.run_in_application_lock(self) do
-      return unless Ability.has_permission?(user_id, :ssh_to_gears, Application, role_for(user_id), self)
+      return unless user_id.nil? || Ability.has_permission?(user_id, :ssh_to_gears, Application, role_for(user_id), self)
       op_group = PendingAppOpGroup.new(op_type: :update_configuration,  args: {"add_keys_attrs" => keys_attrs}, parent_op: parent_op, user_agent: self.user_agent)
       self.pending_op_groups.push op_group
       result_io = ResultIO.new
@@ -339,7 +342,7 @@ class Application
     return if keys.empty?
     keys_attrs = get_updated_ssh_keys(user_id, keys)
     Application.run_in_application_lock(self) do
-      return unless Ability.has_permission?(user_id, :ssh_to_gears, Application, role_for(user_id), self)
+      return unless user_id.nil? || Ability.has_permission?(user_id, :ssh_to_gears, Application, role_for(user_id), self)
       op_group = PendingAppOpGroup.new(op_type: :update_configuration, args: {"remove_keys_attrs" => keys_attrs}, parent_op: parent_op, user_agent: self.user_agent)
       self.pending_op_groups.push op_group
       result_io = ResultIO.new
@@ -401,6 +404,29 @@ class Application
   end
 
   ##
+  # Add or Update or Delete user defined environment variables to all gears on the application.
+  # @param vars [Array<Hash>] User environment variables. Each entry contains name and/or value
+  # @return [ResultIO] Output from node platform
+  def patch_user_env_variables(vars)
+    Application.run_in_application_lock(self) do
+      op_group = PendingAppOpGroup.new(op_type: :patch_user_env_vars, args: {"user_env_vars" => vars}, user_agent: self.user_agent)
+      self.pending_op_groups.push op_group
+      result_io = ResultIO.new
+      self.run_jobs(result_io)
+      result_io
+    end
+  end
+
+  ##
+  # List all or selected user defined environment variables in the application.
+  # @param vars [Array<String>] Selected user environment variable names. Each entry must contain name
+  # @return [Hash] Environment variables in the application.
+  def list_user_env_variables(vars=[])
+    result_io = get_app_dns_gear.list_user_env_vars(vars)
+    JSON.parse(result_io.resultIO.string)
+  end
+
+  ##
   # Returns the total number of gears currently used by this application
   # @return [Integer] number of gears
   def num_gears
@@ -449,7 +475,7 @@ class Application
   # @param init_git_url [String] URL to git repository to retrieve application code
   # @return [ResultIO] Output from cartridges
   # @raise [OpenShift::UserException] Exception raised if there is any reason the feature/cartridge cannot be added into the Application
-  def add_features(features, group_overrides=[], init_git_url=nil)
+  def add_features(features, group_overrides=[], init_git_url=nil, user_env_vars=nil)
     ssl_endpoint = Rails.application.config.openshift[:ssl_endpoint]
     cart_name_map = {}
 
@@ -538,7 +564,8 @@ class Application
 
     result_io = ResultIO.new
     Application.run_in_application_lock(self) do
-      self.pending_op_groups.push PendingAppOpGroup.new(op_type: :add_features, args: {"features" => features, "group_overrides" => group_overrides, "init_git_url"=>init_git_url}, user_agent: self.user_agent)
+      self.pending_op_groups.push PendingAppOpGroup.new(op_type: :add_features, args: {"features" => features, "group_overrides" => group_overrides, "init_git_url" => init_git_url,
+                                                        "user_env_vars" => user_env_vars}, user_agent: self.user_agent)
       self.run_jobs(result_io)
     end
 
@@ -588,7 +615,13 @@ class Application
             if ucart.is_ci_builder?
               Application.run_in_application_lock(uapp) do
                 uapp.pending_op_groups.push PendingAppOpGroup.new(op_type: :remove_features, args: {"features" => [feature_name], "group_overrides" => uapp.group_overrides}, user_agent: uapp.user_agent)
-                uapp.run_jobs(result_io)
+                client_result_io = ResultIO.new
+                uapp.run_jobs(client_result_io)
+                if client_result_io.exitcode == 0
+                  client_result_io.resultIO.string = "Removed corresponding client: #{feature_name}"
+                end
+                result_io.append(client_result_io)
+                result_io
               end
             end
           end
@@ -738,8 +771,8 @@ class Application
       "Requires" => self.requires(true)
     }
 
-    h["Start-Order"] = @start_order unless @start_order.nil? || @start_order.empty?
-    h["Stop-Order"] = @stop_order unless @stop_order.nil? || @stop_order.empty?
+    h["Start-Order"] = @start_order if @start_order.present?
+    h["Stop-Order"] = @stop_order if @stop_order.present?
     h["Group-Overrides"] = self.group_overrides unless self.group_overrides.empty?
 
     h
@@ -946,7 +979,7 @@ class Application
       raise OpenShift::UserException.new("Alias #{server_alias} is already registered", 140, "id") if Application.where("aliases.fqdn" => server_alias).count > 0
       op_group = PendingAppOpGroup.new(op_type: :add_alias, args: {"fqdn" => server_alias}, user_agent: self.user_agent)
       self.pending_op_groups.push op_group
-      if ssl_certificate and !ssl_certificate.empty?
+      if ssl_certificate.present?
         op_group = PendingAppOpGroup.new(op_type: :add_ssl_cert, args: {"fqdn" => server_alias, "ssl_certificate" => ssl_certificate, "private_key" => private_key, "pass_phrase" => pass_phrase}, user_agent: self.user_agent)
         self.pending_op_groups.push op_group
       end
@@ -993,7 +1026,7 @@ class Application
          self.pending_op_groups.push op_group
       end
       #add new certificate
-      if ssl_certificate and !ssl_certificate.empty?
+      if ssl_certificate.present?
         op_group = PendingAppOpGroup.new(op_type: :add_ssl_cert, args: {"fqdn" => fqdn, "ssl_certificate" => ssl_certificate, "private_key" => private_key, "pass_phrase" => pass_phrase}, user_agent: self.user_agent)
         self.pending_op_groups.push op_group
       end
@@ -1004,9 +1037,20 @@ class Application
     end
   end
 
+  def run_connection_hooks
+    Application.run_in_application_lock(self) do
+      op_group = PendingAppOpGroup.new(op_type: :execute_connections)
+      self.pending_op_groups.push op_group
+
+      result_io = ResultIO.new
+      self.run_jobs(result_io)
+      result_io
+    end
+  end
+
   def set_connections(connections)
     conns = []
-    self.connections = [] if connections.nil? or connections.empty?
+    self.connections = [] unless connections.present?
     connections.each do |conn_info|
       from_comp_inst = self.component_instances.find_by(cartridge_name: conn_info["from_comp_inst"]["cart"], component_name: conn_info["from_comp_inst"]["comp"])
       to_comp_inst = self.component_instances.find_by(cartridge_name: conn_info["to_comp_inst"]["cart"], component_name: conn_info["to_comp_inst"]["comp"])
@@ -1128,13 +1172,42 @@ class Application
 
   #private
 
+  ##
+  # Retrieve the gear with application dns.
+  # @return [Gear] gear object 
+  def get_app_dns_gear
+    self.group_instances.each do |group_instance|
+      if group_instance.gears.where(app_dns: true).count > 0
+        return group_instance.gears.find_by(app_dns: true)
+      end
+    end
+    raise OpenShift::UserException.new("Gear containing application dns not found")
+  end
+
+  ##
+  # Retrieve list of internal ssh endpoint for all gears in the application.
+  #
+  # == Parameters:
+  # exclude_app_dns: when set, it will ignore app dns gear
+  # == Returns:
+  # @return [Array<String>] List of internal ssh endpoint for all gears
+  def get_gears_ssh_endpoint(exclude_app_dns=false) 
+    gears_endpoint = []
+    self.group_instances.each do |group_instance|
+      group_instance.gears.each do |gear|
+        gears_endpoint << "#{gear.uuid}@#{gear.server_identity}" unless gear.app_dns and exclude_app_dns
+      end
+    end
+    gears_endpoint
+  end
+
   # Processes directives returned by component hooks to add/remove domain ssh keys, app ssh keys, env variables, broker keys etc
   # @note {#run_jobs} must be called in order to perform the updates
   #
   # == Parameters:
   # result_io::
   #   {ResultIO} object with directives from cartridge hooks
-  def process_commands(result_io, component_id=nil)
+  def process_commands(result_io, component_id=nil, gear=nil)
     commands = result_io.cart_commands
     add_ssh_keys = []
 
@@ -1162,8 +1235,10 @@ class Application
         pending_op = PendingAppOpGroup.new(op_type: :remove_broker_auth_key, args: { }, user_agent: self.user_agent)
         Application.where(_id: self._id).update_all({ "$push" => { pending_op_groups: pending_op.serializable_hash_with_timestamp } })
       when "NOTIFY_ENDPOINT_CREATE"
+        gear.port_interfaces.push(PortInterface.create_port_interface(gear, component_id, *command_item[:args])) if gear and component_id
         OpenShift::RoutingService.notify_create_public_endpoint self, *command_item[:args]
       when "NOTIFY_ENDPOINT_DELETE"
+        PortInterface.remove_port_interface(gear, component_id, *command_item[:args]) if gear and component_id
         OpenShift::RoutingService.notify_delete_public_endpoint self, *command_item[:args]
       end
     end
@@ -1185,10 +1260,15 @@ class Application
     nil
   end
 
-  # Acquires an application level lock and runs all pending jobs and stops at the first failure.
+  # Runs all pending jobs and stops at the first failure.
+  #
+  # IMPORTANT: Callers should take the application lock prior to calling run_jobs
+  #
+  # IMPORTANT: When changing jobs, be sure to leave old jobs runnable so that pending_ops
+  #   that are inserted during a running upgrade can continue to complete.
   #
   # == Returns:
-  # True on success or False if unable to acquire the lock or no pending jobs.
+  # True on success or False if no pending jobs.
   def run_jobs(result_io=nil)
     result_io = ResultIO.new if result_io.nil?
     self.reload
@@ -1196,7 +1276,6 @@ class Application
       while self.pending_op_groups.count > 0
         op_group = self.pending_op_groups.first
         self.user_agent = op_group.user_agent
-
         if op_group.pending_ops.count == 0
           case op_group.op_type
           when :change_members
@@ -1221,7 +1300,7 @@ class Application
             #need rollback
             features = self.requires + op_group.args["features"]
             group_overrides = (self.group_overrides || []) + (op_group.args["group_overrides"] || [])
-            ops, add_gear_count, rm_gear_count = update_requirements(features, group_overrides, op_group.args["init_git_url"])
+            ops, add_gear_count, rm_gear_count = update_requirements(features, group_overrides, op_group.args["init_git_url"], op_group.args["user_env_vars"])
             try_reserve_gears(add_gear_count, rm_gear_count, op_group, ops)
           when :remove_features
             #need rollback
@@ -1287,6 +1366,8 @@ class Application
                 break
               end
             end
+          when :patch_user_env_vars
+            op_group.pending_ops.push(PendingAppOp.new(op_type: op_group.op_type, args: op_group.args.dup))
           when :add_broker_auth_key, :remove_broker_auth_key
             ops = []
             args = op_group.args.dup
@@ -1307,6 +1388,8 @@ class Application
           when :start_component, :stop_component, :restart_component, :reload_component_config
             ops = calculate_ctl_component_ops(op_group.op_type, op_group.args['comp_spec'])
             op_group.pending_ops.push(*ops)
+          when :execute_connections
+            op_group.pending_ops.push PendingAppOp.new(op_type: :execute_connections)
           end
         end
 
@@ -1375,14 +1458,14 @@ class Application
     ops
   end
 
-  def update_requirements(features, group_overrides, init_git_url=nil)
+  def update_requirements(features, group_overrides, init_git_url=nil, user_env_vars=nil)
     group_overrides = (group_overrides + gen_non_scalable_app_overrides(features)).uniq unless self.scalable
 
     connections, new_group_instances, cleaned_group_overrides = elaborate(features, group_overrides)
     current_group_instance = self.group_instances.map { |gi| gi.to_hash }
     changes, moves = compute_diffs(current_group_instance, new_group_instances)
 
-    calculate_ops(changes, moves, connections, cleaned_group_overrides,init_git_url)
+    calculate_ops(changes, moves, connections, cleaned_group_overrides, init_git_url, user_env_vars)
   end
 
   def calculate_update_existing_configuration_ops(args, prereqs={})
@@ -1482,7 +1565,8 @@ class Application
     pending_ops
   end
 
-  def calculate_gear_create_ops(ginst_id, gear_ids, deploy_gear_id, comp_specs, component_ops, additional_filesystem_gb, gear_size, ginst_op_id=nil, is_scale_up=false, hosts_app_dns=false, init_git_url=nil)
+  def calculate_gear_create_ops(ginst_id, gear_ids, deploy_gear_id, comp_specs, component_ops, additional_filesystem_gb, gear_size,
+                                ginst_op_id=nil, is_scale_up=false, hosts_app_dns=false, init_git_url=nil, user_env_vars=nil)
     pending_ops = []
 
     gear_id_prereqs = {}
@@ -1529,14 +1613,22 @@ class Application
 
     ssh_keys = self.app_ssh_keys.map{|k| k.to_key_hash } #FIXME Why am i not a standard key class?
     ssh_keys |= get_updated_ssh_keys(nil, self.domain.system_ssh_keys)
-    ssh_keys |= CloudUser.members_of(self).map{ |u| get_updated_ssh_keys(u._id, u.ssh_keys) }.flatten(1)
+    ssh_keys |= CloudUser.members_of(self){ |m| Ability.has_permission?(m._id, :ssh_to_gears, Application, m.role, self) }.map{ |u| get_updated_ssh_keys(u._id, u.ssh_keys) }.flatten(1)
 
     env_vars = self.domain.env_vars
 
     ops = calculate_update_new_configuration_ops({"add_keys_attrs" => ssh_keys, "add_env_vars" => env_vars}, ginst_id, gear_id_prereqs)
     pending_ops.push(*ops)
 
-    ops = calculate_add_component_ops(comp_specs, ginst_id, deploy_gear_id, gear_id_prereqs, component_ops, is_scale_up, ginst_op_id, init_git_url)
+    # Add and/or push user env vars when this is not an app create or user_env_vars are specified
+    user_vars_op_id = nil
+    if maybe_notify_app_create_op.empty? || user_env_vars.present?
+      op = PendingAppOp.new(op_type: :patch_user_env_vars, args: {"user_env_vars" => user_env_vars, "push" => true}, prereq: [pending_ops.last._id.to_s])
+      pending_ops.push(op)
+      user_vars_op_id = op._id.to_s
+    end
+
+    ops = calculate_add_component_ops(comp_specs, ginst_id, deploy_gear_id, gear_id_prereqs, component_ops, is_scale_up, (user_vars_op_id || ginst_op_id), init_git_url)
     pending_ops.push(*ops)
     pending_ops
   end
@@ -1667,7 +1759,7 @@ class Application
     return false
   end
 
-  def calculate_add_component_ops(comp_specs, group_instance_id, deploy_gear_id, gear_id_prereqs, component_ops, is_scale_up, new_group_instance_op_id, init_git_url=nil)
+  def calculate_add_component_ops(comp_specs, group_instance_id, deploy_gear_id, gear_id_prereqs, component_ops, is_scale_up, prereq_id, init_git_url=nil)
     ops = []
 
     comp_specs.each do |comp_spec|
@@ -1676,7 +1768,7 @@ class Application
 
       new_component_op_id = []
       unless is_scale_up
-        new_component_op = PendingAppOp.new(op_type: :new_component, args: {"group_instance_id"=> group_instance_id, "comp_spec" => comp_spec, "cartridge_vendor" => cartridge.cartridge_vendor, "version" => cartridge.version}, prereq: [new_group_instance_op_id])
+        new_component_op = PendingAppOp.new(op_type: :new_component, args: {"group_instance_id"=> group_instance_id, "comp_spec" => comp_spec, "cartridge_vendor" => cartridge.cartridge_vendor, "version" => cartridge.version}, prereq: [prereq_id])
         component_ops[comp_spec][:new_component] = new_component_op
         new_component_op_id = [new_component_op._id.to_s]
         ops.push new_component_op
@@ -1817,7 +1909,7 @@ class Application
   #
   # connections::
   #   An array of connections. (Output of {#elaborate})
-  def calculate_ops(changes,moves=[],connections=nil,group_overrides=nil,init_git_url=nil)
+  def calculate_ops(changes, moves=[], connections=nil, group_overrides=nil, init_git_url=nil, user_env_vars=nil)
     app_dns_ginst_found = false
     add_gears = 0
     remove_gears = 0
@@ -1857,7 +1949,8 @@ class Application
         deploy_gear_id = nil
       end
 
-      ops = calculate_gear_create_ops(ginst_id, gear_ids, deploy_gear_id, comp_specs, component_ops, additional_filesystem_gb, gear_size, ginst_op._id.to_s, false, app_dns_ginst,init_git_url)
+      ops = calculate_gear_create_ops(ginst_id, gear_ids, deploy_gear_id, comp_specs, component_ops, additional_filesystem_gb,
+                                      gear_size, ginst_op._id.to_s, false, app_dns_ginst, init_git_url, user_env_vars)
       pending_ops.push *ops
     end
 
@@ -1865,6 +1958,17 @@ class Application
       #ops.push(PendingAppOps.new(op_type: :move_component, args: move, flag_req_change: true))
     end
 
+    user_vars_op_id = nil
+    if user_env_vars.present?
+      changes.each do |change|
+        unless change[:from].nil? or change[:added].empty?
+          op = PendingAppOp.new(op_type: :patch_user_env_vars, args: {"user_env_vars" => user_env_vars})
+          pending_ops.push(op)
+          user_vars_op_id = op._id.to_s
+          break
+        end
+      end
+    end
 
     changes.each do |change|
       unless change[:from].nil?
@@ -1893,7 +1997,7 @@ class Application
 
           gear_id_prereqs = {}
           group_instance.gears.each{|g| gear_id_prereqs[g._id.to_s] = []}
-          ops = calculate_add_component_ops(change[:added], change[:from], deploy_gear_id, gear_id_prereqs, component_ops, false, nil)
+          ops = calculate_add_component_ops(change[:added], change[:from], deploy_gear_id, gear_id_prereqs, component_ops, false, user_vars_op_id, nil)
           pending_ops.push(*ops)
 
           changed_additional_filesystem_gb = nil
@@ -1936,7 +2040,8 @@ class Application
             additional_filesystem_gb = changed_additional_filesystem_gb || group_instance.addtl_fs_gb
             gear_size = change[:to_scale][:gear_size] || group_instance.gear_size
 
-            ops = calculate_gear_create_ops(change[:from], gear_ids, deploy_gear_id, comp_specs, component_ops, additional_filesystem_gb, gear_size, nil, true)
+            ops = calculate_gear_create_ops(change[:from], gear_ids, deploy_gear_id, comp_specs, component_ops,
+                                            additional_filesystem_gb, gear_size, nil, true, false, nil, user_env_vars)
             pending_ops.push *ops
           end
 
@@ -2618,8 +2723,45 @@ class Application
     web_cart
   end
 
+  def self.validate_user_env_variables(user_env_vars, no_delete=false)
+    if user_env_vars.present?
+      if !user_env_vars.is_a?(Array) or !user_env_vars[0].is_a?(Hash)
+        raise OpenShift::UserException.new("Invalid environment variables: expected array of hashes", 186, "environment_variables")
+      end
+      keys = {}
+      user_env_vars.each do |ev|
+        name = ev['name']
+        unless name and (ev.keys - ['name', 'value']).empty?
+          raise OpenShift::UserException.new("Invalid environment variable #{ev}. Valid keys 'name'(required), 'value'", 187, "environment_variables")
+        end
+        raise OpenShift::UserException.new("Invalid environment variable name #{name}: specified multiple times", 188, "environment_variables") if keys[name]
+        keys[name] = true
+      end
+      if no_delete
+        set_vars, unset_vars = sanitize_user_env_variables(user_env_vars)
+        raise OpenShift::UserException.new("Environment variable deletion not allowed for this operation", 193, "environment_variables") unless unset_vars.empty?
+      end
+    end
+  end
+
+  def self.sanitize_user_env_variables(user_env_vars)
+    set_vars = []
+    unset_vars = []
+    if user_env_vars.present?
+      # separate add/update and delete user env vars
+      user_env_vars.each do |ev|
+        if ev['name'] && ev['value']
+          set_vars << ev
+        else
+          unset_vars << ev
+        end
+      end
+    end
+    return set_vars, unset_vars
+  end
+
   def validate_certificate(ssl_certificate, private_key, pass_phrase)
-    if ssl_certificate and !ssl_certificate.empty?
+    if ssl_certificate.present?
       raise OpenShift::UserException.new("Private key is required", 172, "private_key") if private_key.nil?
       #validate certificate
       begin

@@ -105,7 +105,7 @@ class RestApiAuthorizationTest < ActiveSupport::TestCase
     assert auth = Authorization.create(:scopes => 'read', :as => @user)
     assert_equal ['read'], auth.scopes
     assert Domain.all :as => @user
-    assert_raises(ActiveResource::ForbiddenAccess){ Domain.new(:id => new_uuid, :as => auth).save! }
+    assert_raises(ActiveResource::ResourceInvalid){ Domain.new(:id => new_uuid, :as => auth).save! }
     assert_raises(ActiveResource::ForbiddenAccess){ Authorization.all :as => auth }
   end
 

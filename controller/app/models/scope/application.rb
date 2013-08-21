@@ -5,16 +5,15 @@ class Scope::Application < Scope::Parameterized
   APP_SCOPES = {
     :view => 'Grant read-only access to a single application.',
     :scale => nil,
-    :build => nil,
     :edit => 'Grant edit access to a single application.',
     :admin => 'Grant full administrative access to a single application.',
   }.freeze
 
   def allows_action?(controller)
     case app_scope
-    when :view 
+    when :view
       controller.request.method == "GET"
-    else 
+    else
       true
     end
   end
@@ -26,7 +25,8 @@ class Scope::Application < Scope::Parameterized
   def limits_access(criteria)
     case criteria.klass
     when Application then (criteria.options[:for_ids] ||= []) << @id
-    when Domain then (criteria.options[:for_ids] ||= []) << Application.only(:domain_id).find(@id).domain_id
+    when Domain
+      (criteria.options[:for_ids] ||= []) << Application.only(:domain_id).find(@id).domain_id rescue criteria.options[:visible] ||= false
     else criteria.options[:visible] ||= false
     end
     criteria
@@ -38,16 +38,16 @@ class Scope::Application < Scope::Parameterized
 
   def self.authorize_action?(app_id, app_scope, permission, resource, other_resources, user)
     case app_scope
-    when :admin 
+    when :admin
       resource === Application && resource._id === app_id
-    when :edit 
+    when :edit
       resource === Application && resource._id === app_id && [
-          :change_state, 
+          :change_state,
           :change_cartridge_state,
           :scale_cartridge,
           :view_code_details,
           :change_gear_quota,
-          :create_cartridge, 
+          :create_cartridge,
           :destroy_cartridge,
           :create_alias,
           :update_alias,
@@ -56,15 +56,7 @@ class Scope::Application < Scope::Parameterized
           #:destroy,
           #:change_members,
         ].include?(permission)
-    when :build 
-      return false unless resource === Domain && :create_builder_application == permission && other_resources[0]
-      params = other_resources[0]
-      app = Application.find(app_id)
-      framework = app.requires(true).each{ |feature| cart = CartridgeCache.find_cartridge(feature, app); break cart if cart.categories.include? 'web_framework' }
-      if framework && [framework.name] == params[:cartridges] && app.domain_id === params[:domain_id]
-        true
-      end
-    when :scale 
+    when :scale
       resource === Application && resource._id === app_id && :scale_cartridge == permission
     end
   end

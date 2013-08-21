@@ -125,7 +125,7 @@ class RestApplication15 < OpenShift::Model
       else
         unless cart.categories.include? "web_framework"
           self.embedded[cart.name] = component_instance.component_properties
-          
+
           # if the component has a connection_url property, add it as "info" for backward compatibility
           # make sure it is a hash, because copy-pasting the app document in mongo (using rockmongo UI) can convert hashes into arrays 
           if component_instance.component_properties.is_a?(Hash) and component_instance.component_properties.has_key?("connection_url")
@@ -189,13 +189,14 @@ class RestApplication15 < OpenShift::Model
         ]),
         "DELETE" => Link.new("Delete application", "DELETE", URI::join(url, "domains/#{@domain_id}/applications/#{@name}")),
         "ADD_CARTRIDGE" => Link.new("Add embedded cartridge", "POST", URI::join(url, "domains/#{@domain_id}/applications/#{@name}/cartridges"),[
-            Param.new("name", "string", "framework-type, e.g.: mongodb-2.0", carts)
+            Param.new("name", "string", "framework-type, e.g.: mongodb-2.2", carts)
           ],[
             OptionalParam.new("colocate_with", "string", "The component to colocate with", app.component_instances.map{|c| c.cartridge_name}),
             OptionalParam.new("scales_from", "integer", "Minimum number of gears to run the component on."),
             OptionalParam.new("scales_to", "integer", "Maximum number of gears to run the component on."),
             OptionalParam.new("additional_storage", "integer", "Additional GB of space to request on all gears running this component."),
             (OptionalParam.new("url", "string", "A URL to a downloadable cartridge.") if Rails.application.config.openshift[:download_cartridges_enabled]),
+            OptionalParam.new("environment_variables", "array", "Add or Update application environment variables, e.g.:[{'name':'FOO', 'value':'123'}, {'name':'BAR', 'value':'abc'}]")
           ].compact
         ),
         "LIST_CARTRIDGES" => Link.new("List embedded cartridges", "GET", URI::join(url, "domains/#{@domain_id}/applications/#{@name}/cartridges")),
@@ -207,6 +208,12 @@ class RestApplication15 < OpenShift::Model
             OptionalParam.new("pass_phrase", "string", "Optional passphrase for the private key")]),
         "LIST_ALIASES" => Link.new("List application aliases", "GET", URI::join(url, "domains/#{@domain_id}/applications/#{@name}/aliases")),
         "LIST_MEMBERS" => Link.new("List members of this application", "GET", URI::join(url, "domains/#{@domain_id}/applications/#{@name}/members")),
+        "SET_UNSET_ENVIRONMENT_VARIABLES" => Link.new("Add/Update/Delete one or more environment variables", "POST", URI::join(url, "domains/#{@domain_id}/applications/#{@name}/environment-variables"), nil, [
+          OptionalParam.new("name", "string", "Name of the environment variable to add/update"),
+          OptionalParam.new("value", "string", "Value of the environment variable"),
+          OptionalParam.new("environment_variables", "array", "Add/Update/Delete application environment variables, e.g. Add/Update: [{'name':'FOO', 'value':'123'}, {'name':'BAR', 'value':'abc'}], Delete: [{'name':'FOO'}, {'name':'BAR'}]")
+        ]),
+        "LIST_ENVIRONMENT_VARIABLES" => Link.new("List all environment variables", "GET", URI::join(url, "domains/#{@domain_id}/applications/#{@name}/environment-variables"))
       }
     end
   end

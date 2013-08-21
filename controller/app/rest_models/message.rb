@@ -11,7 +11,7 @@
 #   @return [String] (Optional) field that this message applies to. Usually for validation failures.
 class Message < OpenShift::Model
   attr_accessor :severity, :text, :exit_code, :field
-  
+
   def initialize(severity=:info, text=nil, exit_code=0, field=nil)
     self.severity = severity
     self.text = text

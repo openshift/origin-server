@@ -63,6 +63,7 @@ class ScopeTest < ActiveSupport::TestCase
 
   test 'validates parameterized object id scope' do
     assert_raise(Moped::Errors::InvalidObjectId){ Scope.for!('application/a/scale') }
+    assert_raise(Moped::Errors::InvalidObjectId){ Scope.for!('domain/a/admin') }
   end
 
   test 'find parameterized scope' do
@@ -81,6 +82,8 @@ class ScopeTest < ActiveSupport::TestCase
     assert_raise(Scope::Invalid){ Scope::Application.new({}) }
     assert_raise(Scope::Invalid){ Scope::Application.new(:id => '51ed4adbb8c2e70a72000294') }
     assert_raise(Scope::Invalid){ Scope::Application.new(:id => '51ed4adbb8c2e70a72000294', :app_scope => nil) }
+
+    assert_raise(Scope::Invalid){ Scope::Domain.new(:id => '51ed4adbb8c2e70a72000294', :domain_scope => nil) }
   end
 
   test 'default permissions' do
@@ -95,7 +98,8 @@ class ScopeTest < ActiveSupport::TestCase
     assert !Scope::Read.new.allows_action?(controller)
 
     assert  Scope::Application.new(:id => '51ed4adbb8c2e70a72000294', :app_scope => :scale).allows_action?(nil)
-    assert  Scope::Application.new(:id => '51ed4adbb8c2e70a72000294', :app_scope => :build).allows_action?(nil)
+
+    assert  Scope::Domain.new(:id => '51ed4adbb8c2e70a72000001', :domain_scope => :admin).allows_action?(nil)
 
     assert !Scope::Userinfo.new.allows_action?(nil)
     assert !Scope::Userinfo.new.allows_action?(UserController.new)

@@ -1,10 +1,10 @@
 ENV["TEST_NAME"] = "functional_domains_controller_test"
 require_relative '../test_helper'
 class DomainsControllerTest < ActionController::TestCase
-  
+
   def setup
     @controller = allow_multiple_execution(DomainsController.new)
-    
+
     @random = rand(1000000000)
     @login = "user#{@random}"
     @password = "password"
@@ -13,19 +13,19 @@ class DomainsControllerTest < ActionController::TestCase
     @user.save
     Lock.create_lock(@user)
     register_user(@login, @password)
-    
+
     @request.env['HTTP_AUTHORIZATION'] = "Basic " + Base64.encode64("#{@login}:#{@password}")
     @request.env['HTTP_ACCEPT'] = "application/json"
     stubber
   end
-  
+
   def teardown
     begin
       @user.force_delete
     rescue
     end
   end
-  
+
   test "domain create show list and destroy" do
     namespace = "ns#{@random}"
     post :create, {"name" => namespace}
@@ -58,8 +58,8 @@ class DomainsControllerTest < ActionController::TestCase
     delete :destroy , {"name" => new_namespace}
     assert_response :ok
   end
-  
-  
+
+
   test "invalid empty or non-existent domain name" do
     post :create, {}
     assert_response :unprocessable_entity
@@ -70,7 +70,7 @@ class DomainsControllerTest < ActionController::TestCase
     assert_response :not_found
     delete :destroy , {}
     assert_response :not_found
-    
+
     get :show, {"name" => "bogus"}
     assert_response :not_found
     new_namespace = "xns#{@random}"
@@ -92,11 +92,14 @@ class DomainsControllerTest < ActionController::TestCase
     assert_response :created
     post :create, {"name" => namespace}
     assert_response :unprocessable_entity
-    
+
+    post :create, {"name" => " "}
+    assert_response :unprocessable_entity
+
     # update to the same name, must provide at least one change
     put :update , {"existing_name" => namespace, "name" => "ns#{@random}"}
     assert_response :unprocessable_entity
-    
+
     OpenShift::ApplicationContainerProxy.stubs(:max_user_domains).returns(1)
 
     #try more than one domain
@@ -123,28 +126,28 @@ class DomainsControllerTest < ActionController::TestCase
       assert_response :conflict
     end
   end
-  
+
   test "delete domain with apps" do
     namespace = "ns#{@random}"
     domain = Domain.new(namespace: namespace, owner:@user)
     domain.save
-    
+
     app_name = "app#{@random}"
     app = Application.create_app(app_name, [PHP_VERSION], domain)
     app.save
-    
+
     delete :destroy , {"name" => namespace}
     assert_response :unprocessable_entity
-    
+
     delete :destroy , {"name" => namespace, "force" => true}
     assert_response :ok
   end
-  
+
   test "update domain with apps" do
     namespace = "ns#{@random}"
     domain = Domain.new(namespace: namespace, owner:@user)
     domain.save
-    
+
     app_name = "app#{@random}"
     app = Application.create_app(app_name, [PHP_VERSION], domain)
     app.save
@@ -160,12 +163,26 @@ class DomainsControllerTest < ActionController::TestCase
     new_namespace = "xns#{@random}"
     put :update, {"existing_name" => namespace, "name" => new_namespace}
     assert_response :unprocessable_entity
-    
+
     app.destroy_app
-    
+
     put :update, {"existing_name" => namespace, "name" => new_namespace}
     assert_response :success
     get :show, {"name" => new_namespace}
     assert_response :success
+  end
+  
+    
+  test "get domain in all version" do
+    namespace = "ns#{@random}"
+    post :create, {"name" => namespace}
+    assert_response :created
+    assert json = JSON.parse(response.body)
+    assert supported_api_versions = json['supported_api_versions']
+    supported_api_versions.each do |version|
+      @request.env['HTTP_ACCEPT'] = "application/json; version=#{version}"
+      get :show, {"name" => namespace}
+      assert_response :ok, "Getting domain for version #{version} failed"
+    end
   end
 end

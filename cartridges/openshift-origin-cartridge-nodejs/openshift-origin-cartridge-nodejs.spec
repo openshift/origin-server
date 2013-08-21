@@ -2,13 +2,14 @@
 
 Summary:       Provides Node.js support
 Name:          openshift-origin-cartridge-nodejs
-Version: 1.14.1
+Version: 1.14.4
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
 URL:           http://www.openshift.com
 Source0:       http://mirror.openshift.com/pub/openshift-origin/source/%{name}/%{name}-%{version}.tar.gz
 BuildRequires: nodejs >= 0.6
+Requires:      facter
 Requires:      rubygem(openshift-origin-node)
 Requires:      openshift-origin-node-util
 Requires:      nodejs-async
@@ -62,6 +63,23 @@ fi
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Fri Aug 16 2013 Adam Miller <admiller@redhat.com> 1.14.4-1
+- Merge pull request #3376 from brenton/BZ986300_BZ981148
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3354 from dobbymoodge/origin_runtime_219
+  (dmcphers+openshiftbot@redhat.com)
+- <cartridges> Additional cart version and test fixes (jolamb@redhat.com)
+- Bug 981148 - missing facter dependency for cartridge installation
+  (bleanhar@redhat.com)
+
+* Thu Aug 15 2013 Adam Miller <admiller@redhat.com> 1.14.3-1
+- Bug 968280 - Ensure Stopping/Starting messages during git push Bug 983014 -
+  Unnecessary messages from mongodb cartridge (jhonce@redhat.com)
+
+* Wed Aug 14 2013 Adam Miller <admiller@redhat.com> 1.14.2-1
+- Bug 994922 (asari.ruby@gmail.com)
+- Use marker_present for conformity (asari.ruby@gmail.com)
+
 * Thu Aug 08 2013 Adam Miller <admiller@redhat.com> 1.14.1-1
 - Merge pull request #3313 from jwhonce/wip/manifest_lint
   (dmcphers+openshiftbot@redhat.com)

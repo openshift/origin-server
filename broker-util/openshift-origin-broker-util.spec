@@ -6,7 +6,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin broker
 Name:          openshift-origin-broker-util
-Version: 1.13.1
+Version: 1.13.8
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -84,6 +84,69 @@ cp man/*.8 %{buildroot}%{_mandir}/man8/
 %{_mandir}/man8/oo-stats.8.gz
 
 %changelog
+* Wed Aug 21 2013 Adam Miller <admiller@redhat.com> 1.13.8-1
+- Merge pull request #3442 from smarterclayton/oo_admin_user_not_setting_domain
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3326 from kraman/admin_command_connection_hooks
+  (dmcphers+openshiftbot@redhat.com)
+- fix 998355, last gear of a cart cannot be removed (rchopra@redhat.com)
+- oo-admin-ctl-user should update child domains when new gear size added
+  (ccoleman@redhat.com)
+- New admin command to call connection hooks on an application.
+  (kraman@gmail.com)
+
+* Tue Aug 20 2013 Adam Miller <admiller@redhat.com> 1.13.7-1
+- Merge pull request #3423 from rajatchopra/master
+  (dmcphers+openshiftbot@redhat.com)
+- bz998355 oo-admint-ctl-app fix for sparse components (rchopra@redhat.com)
+- Merge pull request #3421 from pravisankar/dev/ravi/bug997352
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 997352 - Added usage_record -> usage inconsistency checks
+  (rpenta@redhat.com)
+- Merge pull request #3417 from abhgupta/abhgupta-scheduler
+  (dmcphers+openshiftbot@redhat.com)
+- Fix for bug 991398 (abhgupta@redhat.com)
+- <Admin::Stats> use only strings for hash keys (lmeyer@redhat.com)
+
+* Mon Aug 19 2013 Adam Miller <admiller@redhat.com> 1.13.6-1
+- Handle lack of JSON reply from gear upgrades (ironcladlou@gmail.com)
+
+* Fri Aug 16 2013 Adam Miller <admiller@redhat.com> 1.13.5-1
+- Merge pull request #3371 from
+  smarterclayton/bug_997374_fix_man_for_oo_admin_ctl_domain
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3358 from sosiouxme/oo-stats-mods
+  (dmcphers+openshiftbot@redhat.com)
+- <oo-stats> ability to read results from file; more (lmeyer@redhat.com)
+- <Admin::Stats> refactor classes and tests (lmeyer@redhat.com)
+- Bug 997374 - Fix man page for oo-admin-ctl-domain (ccoleman@redhat.com)
+
+* Thu Aug 15 2013 Adam Miller <admiller@redhat.com> 1.13.4-1
+- Upgrade tool enhancements (ironcladlou@gmail.com)
+
+* Wed Aug 14 2013 Adam Miller <admiller@redhat.com> 1.13.3-1
+- Fix for bug 990927 (abhgupta@redhat.com)
+- Merge pull request #3322 from smarterclayton/origin_ui_73_membership_model
+  (dmcphers+openshiftbot@redhat.com)
+- Fix for bug 989908 (abhgupta@redhat.com)
+- Fix for bug 990927 (abhgupta@redhat.com)
+- Check denormalization in oo-admin-chk (ccoleman@redhat.com)
+- Merge remote-tracking branch 'origin/master' into
+  origin_ui_73_membership_model (ccoleman@redhat.com)
+- * Implement a membership model for OpenShift that allows an efficient query
+  of user access based on each resource. * Implement scope limitations that
+  correspond to specific permissions * Expose membership info via the REST API
+  (disableable via config) * Allow multiple domains per user, controlled via a
+  configuration flag * Support additional information per domain
+  (application_count and gear_counts) to improve usability * Let domains
+  support the allowed_gear_sizes option, which limits the gear sizes available
+  to apps in that domain * Simplify domain update interactions - redundant
+  validation removed, and behavior of responses differs slightly. * Implement
+  migration script to enable data (ccoleman@redhat.com)
+
+* Fri Aug 09 2013 Adam Miller <admiller@redhat.com> 1.13.2-1
+- Fix for bug 990956 (abhgupta@redhat.com)
+
 * Thu Aug 08 2013 Adam Miller <admiller@redhat.com> 1.13.1-1
 - cleanup (dmcphers@redhat.com)
 - Fix for bug 985496 (abhgupta@redhat.com)

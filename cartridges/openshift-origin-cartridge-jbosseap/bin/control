@@ -83,19 +83,19 @@ function waitondeployments() {
         popd
 
         if [ ${#artifactsskipped[@]} -gt 0 ]; then
-          client_message "Artifacts skipped because of deployment-scanner configuration: ${artifactsskipped[*]}"
+          client_result "Artifacts skipped because of deployment-scanner configuration: ${artifactsskipped[*]}"
         fi
 
         if [ ${#artifactsfailed[@]} -gt 0 ]; then
-          client_message "Failed deployments: ${artifactsfailed[*]}"
+          client_result "Failed deployments: ${artifactsfailed[*]}"
         fi
 
         if [ ${#artifactsdeployed[@]} -gt 0 ]; then
-          client_message "Artifacts deployed: ${artifactsdeployed[*]}"
+          client_result "Artifacts deployed: ${artifactsdeployed[*]}"
         fi
 
         if [ ${#artifactsunknown[@]} -gt 0 ]; then
-          client_message "Artifacts in an unknown state: ${artifactsunknown[*]}"
+          client_result "Artifacts in an unknown state: ${artifactsunknown[*]}"
         fi
       else
           client_message "Deployment scanner disabled, skipping deployment verification"
@@ -187,6 +187,7 @@ function ismgmtup() {
 }
 
 function build() {
+  echo "Building $cartridge_type cartridge"
 
   CONFIG_DIR="${OPENSHIFT_JBOSSEAP_DIR}/standalone/configuration"
   OPENSHIFT_MAVEN_MIRROR="${CONFIG_DIR}/settings.base.xml"
@@ -260,7 +261,7 @@ function build() {
 }
 
 function deploy() {
-  echo "Deploying JBoss"
+  echo "Deploying $cartridge_type cartridge"
 
   if [ "$(ls ${OPENSHIFT_REPO_DIR}/deployments)" ]; then
     rsync -r --delete --exclude ".*" ${OPENSHIFT_REPO_DIR}/deployments/ $JBOSSEAP_DEPLOYMENTS_DIR
@@ -271,8 +272,6 @@ function deploy() {
 }
 
 function start() {
-    echo "Starting $cartridge_type cart"
-
   if marker_present "enable_jpda"; then
     export ENABLE_JPDA=1
   fi
@@ -281,6 +280,8 @@ function start() {
   if isrunning; then
     echo "Application is already running"
   else
+    echo "Starting $cartridge_type cartridge"
+
     ${JBOSSEAP_BIN_DIR}/standalone.sh > ${OPENSHIFT_TMP_DIR}/${cartridge_type}.log 2>&1 &
     PROCESS_ID=$!
     echo "$PROCESS_ID" > ${JBOSSEAP_PID_FILE}
@@ -296,24 +297,18 @@ function start() {
 
 
 function stop() {
-  echo "Stopping $cartridge_type cart"
-
-  if isrunning; then
     if [ -f "$JBOSSEAP_PID_FILE" ]; then
+      echo "Stopping $cartridge_type cartridge"
       pid=$(cat $JBOSSEAP_PID_FILE);
       echo "Sending SIGTERM to jboss:$pid ..." 1>&2
       killtree $pid
     else 
       echo "Failed to locate JBOSS PID File" 1>&2
     fi
-  fi
 }
 
 function restart() {
-    echo "Restarting $cartridge_type cart"
-
     stop
-
     start
 }
 
@@ -327,7 +322,6 @@ function status() {
 }
 
 function reload() {
-    echo "Reloading $cartridge_type cart"
     restart
 }
 
@@ -339,7 +333,7 @@ function tidy() {
 }
 
 function threaddump() {
-  echo "Thread dump for $cartridge_type cart"
+  echo "Thread dump for $cartridge_type cartridge"
 
     if ! isrunning; then
         echo "Application is stopped"

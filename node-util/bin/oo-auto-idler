@@ -155,7 +155,7 @@ def idle_gears(interval, list_only)
 end
 
 command :idle do |c|
-  c.syntax = "#{name} idle"
+  c.syntax = "#{name} idle [options]"
   c.description = "List the gears ready to be idled"
   c.option "--interval HOURS", Integer, "Hours for which gears have been idle"
   c.option "--list", "Only list the stale gears"

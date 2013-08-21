@@ -83,19 +83,19 @@ function waitondeployments() {
         popd
 
         if [ ${#artifactsskipped[@]} -gt 0 ]; then
-          client_message "Artifacts skipped because of deployment-scanner configuration: ${artifactsskipped[*]}"
+          client_result "Artifacts skipped because of deployment-scanner configuration: ${artifactsskipped[*]}"
         fi
 
         if [ ${#artifactsfailed[@]} -gt 0 ]; then
-          client_message "Failed deployments: ${artifactsfailed[*]}"
+          client_result "Failed deployments: ${artifactsfailed[*]}"
         fi
 
         if [ ${#artifactsdeployed[@]} -gt 0 ]; then
-          client_message "Artifacts deployed: ${artifactsdeployed[*]}"
+          client_result "Artifacts deployed: ${artifactsdeployed[*]}"
         fi
 
         if [ ${#artifactsunknown[@]} -gt 0 ]; then
-          client_message "Artifacts in an unknown state: ${artifactsunknown[*]}"
+          client_result "Artifacts in an unknown state: ${artifactsunknown[*]}"
         fi
       else
           client_message "Deployment scanner disabled, skipping deployment verification"
@@ -269,7 +269,7 @@ function deploy() {
 }
 
 function start() {
-  echo "Starting $cartridge_type cart"
+  echo "Starting $cartridge_type cartridge"
 
   if marker_present "enable_jpda"
   then
@@ -295,7 +295,7 @@ function start() {
 
 
 function stop() {
-  echo "Stopping $cartridge_type cart"
+  echo "Stopping $cartridge_type cartridge"
 
   if isrunning; then
     if [ -f "$JBOSSAS_PID_FILE" ]; then
@@ -309,10 +309,7 @@ function stop() {
 }
 
 function restart() {
-    echo "Restarting $cartridge_type cart"
-
     stop
-
     start
 }
 
@@ -326,7 +323,6 @@ function status() {
 }
 
 function reload() {
-    echo "Reloading $cartridge_type cart"
     restart
 }
 
@@ -338,7 +334,7 @@ function tidy() {
 }
 
 function threaddump() {
-  echo "Thread dump for $cartridge_type cart"
+  echo "Thread dump for $cartridge_type cartridge"
 
     if ! isrunning; then
         echo "Application is stopped"

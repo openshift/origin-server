@@ -149,4 +149,17 @@ class EmbCartControllerTest < ActionController::TestCase
     assert_response :unprocessable_entity
   end
   
+  test "get embedded cartridge in all versions" do
+     name = MYSQL_VERSION
+    post :create, {"name" => name, "domain_id" => @domain.namespace, "application_id" => @app.name}
+    assert_response :created
+    assert json = JSON.parse(response.body)
+    assert supported_api_versions = json['supported_api_versions']
+    supported_api_versions.each do |version|
+      @request.env['HTTP_ACCEPT'] = "application/json; version=#{version}"
+      get :show, {"id" => name, "domain_id" => @domain.namespace, "application_id" => @app.name}
+      assert_response :ok, "Getting embedded cartridge for version #{version} failed"
+    end
+  end
+  
 end

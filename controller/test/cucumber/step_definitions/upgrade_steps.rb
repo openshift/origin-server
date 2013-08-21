@@ -1,17 +1,43 @@
 def upgrade_gear(name, login, gear_uuid)
   current_version = 'expected'
-  output = `oo-admin-upgrade --app-name #{@app.name} --login #{@app.login} --upgrade-gear #{gear_uuid} --version #{current_version}`
+  cmd = "oo-admin-upgrade upgrade-gear --app-name='#{@app.name}' --login='#{@app.login}' --upgrade-gear=#{gear_uuid} --version='#{current_version}'"
+  $logger.info("Upgrading with command: #{cmd}")
+  output = `#{cmd}`
   $logger.info("Upgrade output: #{output}")
   assert_equal 0, $?.exitstatus
 end
 
 Then /^the upgrade metadata will be cleaned up$/ do 
-  assert Dir.glob(File.join($home_root, @app.uid, 'runtime', '.upgrade*')).empty?
-  refute_file_exist File.join($home_root, @app.uid, 'app-root', 'runtime', '.preupgrade_state')
+  assert_metadata_cleaned(@app)
+end
+
+Then /^the upgrade metadata will be cleaned up in (.+)$/ do |app_name|
+  app = @test_apps_hash[app_name]
+  assert_metadata_cleaned(app)
+end
+
+def assert_metadata_cleaned(app)
+  assert Dir.glob(File.join($home_root, app.uid, 'runtime', '.upgrade*')).empty?
+  refute_file_exist File.join($home_root, app.uid, 'app-root', 'runtime', '.preupgrade_state')
 end
 
 Then /^no unprocessed ERB templates should exist$/ do
-  assert Dir.glob(File.join($home_root, @app.uid, '**', '**', '*.erb')).empty?
+  assert_unprocessed_erbs(true, @app)
+end
+
+Then /^(no )?unprocessed ERB templates should exist in (.+)$/ do |negate, app_name|
+  app = @test_apps_hash[app_name]
+  assert_unprocessed_erbs(negate, app)
+end
+
+def assert_unprocessed_erbs(negate, app)
+  glob = Dir.glob(File.join($home_root, app.uid, '**', '**', '*.erb'))
+  
+  if negate
+    assert glob.empty?
+  else
+    assert !glob.empty?
+  end
 end
 
 Given /^the expected version of the ([^ ]+)\-([\d\.]+) cartridge is installed$/ do |cart_name, component_version|
@@ -35,7 +61,7 @@ Given /^the expected version of the ([^ ]+)\-([\d\.]+) cartridge is installed$/ 
   # cartridge component we're looking for
   assert component_version = manifest_from_package['Version']
 
-  assert cart_repo.exist?(cart_name, manifest_from_package['Cartridge-Version'], manifest_from_package['Version']), "expected #{cart_name} version must exist"
+  assert cart_repo.exist?(cart_name, manifest_from_package['Version'], manifest_from_package['Cartridge-Version']), "expected #{cart_name} version must exist"
 end
 
 Given /^a compatible version of the ([^ ]+)\-([\d\.]+) cartridge$/ do |cart_name, component_version|
@@ -51,7 +77,42 @@ Given /^an incompatible version of the ([^ ]+)\-([\d\.]+) cartridge$/ do |cart_n
   current_manifest = prepare_cart_for_rewrite(cart_name, component_version)
   create_upgrade_script(@upgrade_script_path)
 
+  new_endpoint = { 'Private-IP-Name' => 'EXAMPLE_IP1', 'Private-Port-Name' => 'EXAMPLE_PUBLIC_PORT4', 'Private-Port' => 8083 }
+
+  rewrite_and_install(current_manifest, @manifest_path) do |manifest, current_version|
+    manifest['Endpoints'] << new_endpoint
+  end
+end
+
+Then /^a new port will be exposed$/ do
+  port_env_file = File.join($home_root, @app.uid, '.env', 'OPENSHIFT_MOCK_EXAMPLE_PUBLIC_PORT4')
+  assert_file_exist port_env_file
+end
+
+Given /^a rigged version of the ([^ ]+)\-([\d\.]+) cartridge set to fail (\d) times$/ do |cart_name, component_version, max_failures|
+  current_manifest = prepare_cart_for_rewrite(cart_name, component_version)
+  create_rigged_upgrade_script(@upgrade_script_path, max_failures)
+
   rewrite_and_install(current_manifest, @manifest_path)
+end
+
+Given /^a compatible version of the ([^ ]+)\-([\d\.]+) cartridge with different software version$/ do |cart_name, component_version|
+  current_manifest = prepare_cart_for_rewrite(cart_name, component_version)
+  create_upgrade_script(@upgrade_script_path)
+
+  rewrite_and_install(current_manifest, @manifest_path) do |manifest, current_version|
+    manifest['Compatible-Versions'] = [ current_version ]
+    manifest['Version'] = '99'
+  end
+end
+
+Given /^an incompatible version of the ([^ ]+)\-([\d\.]+) cartridge with different software version$/ do |cart_name, component_version|
+  current_manifest = prepare_cart_for_rewrite(cart_name, component_version)
+  create_upgrade_script(@upgrade_script_path)
+
+  rewrite_and_install(current_manifest, @manifest_path) do |manifest, current_version|
+    manifest['Version'] = '99'
+  end
 end
 
 def prepare_cart_for_rewrite(cart_name, component_version)
@@ -74,6 +135,42 @@ source $OPENSHIFT_CARTRIDGE_SDK_BASH
 source $OPENSHIFT_MOCK_DIR/mock.conf
 
 touch $MOCK_STATE/upgrade_invoked
+EOF
+
+  IO.write(target, upgrade_script, 0, mode: 'w', perm: 0744)
+end
+
+def create_rigged_upgrade_script(target, max_failures = 1)
+  upgrade_script = <<-EOF
+#!/bin/bash
+
+source $OPENSHIFT_CARTRIDGE_SDK_BASH
+source $OPENSHIFT_MOCK_DIR/mock.conf
+
+version=$1
+current_software_version=$2
+next_software_version=$3
+max_failures=#{max_failures}
+
+if [ -f $MOCK_STATE/upgrade_script_failure_count ]; then
+  num_failures=$(<$MOCK_STATE/upgrade_script_failure_count)
+else
+  num_failures=0
+fi
+
+echo "version: $version, max_failures: $max_failures, num_failures=$num_failures"
+
+if [ "$version" == "0.1" ]; then
+  if [ $num_failures -lt $max_failures ]; then
+    echo -n $(expr $num_failures + 1) > $MOCK_STATE/upgrade_script_failure_count
+    echo "rigged upgrade script is failing"
+    exit 1
+  fi
+fi
+
+touch $MOCK_STATE/upgrade_invoked
+
+exit 0
 EOF
 
   IO.write(target, upgrade_script, 0, mode: 'w', perm: 0744)
@@ -129,18 +226,49 @@ def assert_successful_install(next_version, current_manifest)
 end
 
 Then /^the ([^ ]+) cartridge version should be updated$/ do |cart_name|
+  assert_cart_version_updated(cart_name, @app)
+end
+
+Then /^the ([^ ]+) cartridge version should (not )?be updated in (.+)$/ do |cart_name, negate, app_name|
+  app = @test_apps_hash[app_name]
+  assert_cart_version_updated(cart_name, app, negate)
+end
+
+def assert_cart_version_updated(cart_name, app, negate=false)
   new_version = IO.read(File.join($home_root, @app.uid, %W(app-root data #{cart_name}_test_version))).chomp
 
-  ident_path                 = Dir.glob(File.join($home_root, @app.uid, %W(#{cart_name} env OPENSHIFT_*_IDENT))).first
+  ident_path                 = Dir.glob(File.join($home_root, app.uid, %W(#{cart_name} env OPENSHIFT_*_IDENT))).first
   ident                      = IO.read(ident_path)
   _, _, _, cartridge_version = OpenShift::Runtime::Manifest.parse_ident(ident)
 
-  assert_equal new_version, cartridge_version
+  if negate
+    assert_not_equal new_version, cartridge_version
+  else
+    assert_equal new_version, cartridge_version
+  end
+end
+
+Then /^the ([^ ]+) cartridge software version should be updated$/ do |cart_name|
+  new_version = '99'
+  ident_path                = Dir.glob(File.join($home_root, @app.uid, %W(#{cart_name} env OPENSHIFT_*_IDENT))).first
+  ident                     = IO.read(ident_path)
+  _, _, software_version, _ = OpenShift::Runtime::Manifest.parse_ident(ident)
+
+  assert_equal new_version, software_version
 end
 
 When /^the ([^ ]+) invocation markers are cleared$/ do |cartridge_name|
+  clear_invocation_markers(cartridge_name, @app)
+end
+
+When /^the ([^ ]+) invocation markers are cleared in (.+)$/ do |cartridge_name, app_name|
+  app = @test_apps_hash[app_name]
+  clear_invocation_markers(cartridge_name, app)
+end
+
+def clear_invocation_markers(cartridge_name, app)
   state_dir_name = ".#{cartridge_name.sub('-', '_')}_cartridge_state"
-  Dir.glob(File.join($home_root, @app.uid, 'app-root', 'data', state_dir_name, '*')).each { |x| 
+  Dir.glob(File.join($home_root, app.uid, 'app-root', 'data', state_dir_name, '*')).each { |x| 
     FileUtils.rm_f(x) unless x.end_with?('_process')
   }
 end
@@ -150,6 +278,15 @@ When /^the application is upgraded to the new cartridge versions$/ do
 end
 
 Then /^the invocation markers from an? (compatible|incompatible) upgrade should exist$/ do |type|
+  assert_invocation_markers_exist(type, false, @app)
+end
+
+Then /^the invocation markers from an? (compatible|incompatible) upgrade should (not )?exist in (.+)$/ do |type, negate, app_name|
+  app = @test_apps_hash[app_name]
+  assert_invocation_markers_exist(type, negate, app)
+end
+
+def assert_invocation_markers_exist(type, negate, app)
   should_exist_markers = case type
   when 'compatible'
     %w(upgrade_invoked)
@@ -167,15 +304,29 @@ Then /^the invocation markers from an? (compatible|incompatible) upgrade should 
     %w(setup_failure control_stop)
   end
 
-  should_exist_markers.each do |marker|
-    marker_file = File.join($home_root, @app.uid, 'app-root', 'data', '.mock_cartridge_state', marker)
-    assert_file_exist marker_file
-  end
+  if negate
+    all_markers_exist = true
 
-  should_not_exist_markers.each do |marker|
-    marker_file = File.join($home_root, @app.uid, 'app-root', 'data', '.mock_cartridge_state', marker)
-    refute_file_exist marker_file
-  end    
+    should_exist_markers.each do |marker|
+      marker_file = File.join($home_root, app.uid, 'app-root', 'data', '.mock_cartridge_state', marker)
+      if !File.exists? marker_file
+        all_markers_exist = false
+        break
+      end
+    end
+
+    assert !all_markers_exist
+  else
+    should_exist_markers.each do |marker|
+      marker_file = File.join($home_root, app.uid, 'app-root', 'data', '.mock_cartridge_state', marker)
+      assert_file_exist marker_file
+    end
+
+    should_not_exist_markers.each do |marker|
+      marker_file = File.join($home_root, app.uid, 'app-root', 'data', '.mock_cartridge_state', marker)
+      refute_file_exist marker_file
+    end
+  end
 end
 
 Given /^a gear level upgrade extension exists$/ do
@@ -186,7 +337,7 @@ module OpenShift
       'expected'
     end
 
-    def initialize(uuid, gear_home)
+    def initialize(uuid, gear_home, container)
       @uuid = uuid
       @gear_home = gear_home
     end
@@ -209,6 +360,56 @@ module OpenShift
   end
 end
 EOF
+
+  IO.write('/tmp/gear_upgrade.rb', gear_upgrade_content)
+  `echo 'GEAR_UPGRADE_EXTENSION=/tmp/gear_upgrade' >> /etc/openshift/node.conf`
+end
+
+Given /^a gear level upgrade extension to map the updated software version exists$/ do
+  gear_upgrade_content = <<-EOF
+module OpenShift
+  class GearUpgradeExtension
+
+    VERSION_MAP = { 
+      'mock-0.1'      => '99',
+    }
+
+    def self.version
+      'expected'
+    end
+
+    def initialize(uuid, gear_home, container)
+      @uuid = uuid
+      @gear_home = gear_home
+    end
+
+    def pre_upgrade(progress)
+      progress.log("Creating pre-upgrade marker")
+      touch_marker('pre')
+    end
+
+    def post_upgrade(progress)
+      progress.log("Creating post-upgrade marker")
+      touch_marker('post')
+    end
+
+    def touch_marker(name)
+      marker_name = ".gear_upgrade_\#{name}"
+      marker_path = File.join(@gear_home, 'app-root', 'data', marker_name)
+      FileUtils.touch(marker_path)
+    end
+
+    def map_ident(progress, ident)
+      vendor, name, version, cartridge_version = OpenShift::Runtime::Manifest.parse_ident(ident)
+      progress.log "In map_ident; parse_ident output - vendor: \#{vendor}, name: \#{name}, version: \#{version}, cartridge_version: \#{cartridge_version}"
+      name_version = "\#{name}-\#{version}"
+      progress.log "Mapping version \#{version} to \#{VERSION_MAP[name_version]} for cartridge \#{name}" if VERSION_MAP[name_version]
+      version = VERSION_MAP[name_version] || version
+      return vendor, name, version, cartridge_version
+    end
+  end
+end
+EOF
   IO.write('/tmp/gear_upgrade.rb', gear_upgrade_content)
   `echo 'GEAR_UPGRADE_EXTENSION=/tmp/gear_upgrade' >> /etc/openshift/node.conf`
 end
@@ -216,4 +417,22 @@ end
 Then /^the invocation markers from the gear upgrade should exist$/ do
   assert_file_exist File.join($home_root, @app.uid, %w(app-root data .gear_upgrade_pre))
   assert_file_exist File.join($home_root, @app.uid, %w(app-root data .gear_upgrade_post))
+end
+
+When /^the gears on the node are upgraded with oo-admin-upgrade?$/ do
+  uuid_whitelist = @test_apps_hash.values.collect {|app| app.uid}
+
+  upgrade_cmd = "oo-admin-upgrade upgrade-node --version expected --gear-whitelist #{uuid_whitelist.join(' ')}"
+
+  $logger.info("Executing upgrade cmd: #{upgrade_cmd}")
+  output = `#{upgrade_cmd}`
+
+  $logger.info("Upgrade output: #{output}")
+  assert_equal 0, $?.exitstatus
+end
+
+Then /^existing oo-admin-upgrade output is archived$/ do
+  output = `oo-admin-upgrade archive`
+  assert_equal 0, $?.exitstatus
+  $logger.info("Archive output: #{output}")
 end

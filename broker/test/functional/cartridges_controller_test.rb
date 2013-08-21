@@ -83,5 +83,17 @@ class CartridgesControllerTest < ActionDispatch::IntegrationTest
     assert cart_count1 > 0
 
   end
+  
+  test "get cartridge in all versions" do
+    request_via_redirect(:get, "/broker/rest/cartridges/redhat-#{PHP_VERSION}", {}, @headers)
+    assert_response :ok
+    assert json = JSON.parse(response.body)
+    assert supported_api_versions = json['supported_api_versions']
+    supported_api_versions.each do |version|
+      @headers["HTTP_ACCEPT"] = "application/json; version=#{version}"
+      request_via_redirect(:get, "/broker/rest/cartridges/redhat-#{PHP_VERSION}", {}, @headers)
+      assert_response :ok, "Getting cartridge for version #{version} failed"
+    end
+  end
 
 end

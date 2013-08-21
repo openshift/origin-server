@@ -1,6 +1,6 @@
 class RestAlias < OpenShift::Model
   attr_accessor :id, :has_private_ssl_certificate, :certificate_added_at, :links
-  
+
   def initialize(app, al1as, url, nolinks=false)
     self.id = al1as.fqdn
     self.has_private_ssl_certificate = al1as["has_private_ssl_certificate"]
@@ -17,7 +17,7 @@ class RestAlias < OpenShift::Model
       }
     end
   end
-  
+
   def to_xml(options={})
     options[:tag_name] = "alias"
     super(options)

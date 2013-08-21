@@ -1,18 +1,23 @@
 %global cartridgedir %{_libexecdir}/openshift/cartridges/python
 
 Name:          openshift-origin-cartridge-python
-Version: 0.8.1
+Version: 0.8.6
 Release:       1%{?dist}
 Summary:       Python cartridge
 Group:         Development/Languages
 License:       ASL 2.0
 URL:           https://www.openshift.com
 Source0:       http://mirror.openshift.com/pub/openshift-origin/source/%{name}/%{name}-%{version}.tar.gz
+Requires:      facter
 Requires:      rubygem(openshift-origin-node)
 Requires:      openshift-origin-node-util
 %if 0%{?fedora}%{?rhel} <= 6
 Requires:      python >= 2.6
 Requires:      python < 2.7
+Requires:      scl-utils
+BuildRequires: scl-utils-build
+#FIXME: Use %scl_require macro to properly define dependencies
+Requires:      python27
 Requires:      mod_wsgi >= 3.2
 Requires:      mod_wsgi < 3.4
 Requires:      httpd < 2.4
@@ -32,6 +37,12 @@ Requires:      pymongo-gridfs
 Requires:      python-psycopg2
 Requires:      python-virtualenv
 Requires:      python-magic
+%if 0%{?fedora}%{?rhel} <= 6
+Requires:      python27-MySQL-python
+Requires:      python27-python-psycopg2
+Requires:      python27-mod_wsgi
+Requires:      python27-python-pip-virtualenv
+%endif
 Requires:      libjpeg
 Requires:      libjpeg-devel
 Requires:      libcurl
@@ -64,30 +75,81 @@ Python cartridge for OpenShift. (Cartridge Format V2)
 %__mkdir -p %{buildroot}%{cartridgedir}
 %__cp -r * %{buildroot}%{cartridgedir}
 
+%__mkdir -p %{buildroot}%{cartridgedir}/env
+
 %if 0%{?fedora}%{?rhel} <= 6
-%__mv %{buildroot}%{cartridgedir}/versions/native %{buildroot}%{cartridgedir}/versions/2.6
-mv %{buildroot}%{cartridgedir}/metadata/manifest.yml.rhel %{buildroot}%{cartridgedir}/metadata/manifest.yml
+%__mv %{buildroot}%{cartridgedir}/metadata/manifest.yml.rhel %{buildroot}%{cartridgedir}/metadata/manifest.yml
 %endif
 %if 0%{?fedora} == 19
-%__rm -rf %{buildroot}%{cartridgedir}/versions/2.7
-%__mv %{buildroot}%{cartridgedir}/versions/native %{buildroot}%{cartridgedir}/versions/2.7
-mv %{buildroot}%{cartridgedir}/metadata/manifest.yml.f19 %{buildroot}%{cartridgedir}/metadata/manifest.yml
+%__mv %{buildroot}%{cartridgedir}/metadata/manifest.yml.f19 %{buildroot}%{cartridgedir}/metadata/manifest.yml
 %endif
+%__rm -f %{buildroot}%{cartridgedir}/metadata/manifest.yml.*
+
+
+%__mkdir -p %{buildroot}%{cartridgedir}/usr/versions/{2.6,2.7}
+%if 0%{?fedora}%{?rhel} <= 6
+%__cp -anv %{buildroot}%{cartridgedir}/usr/versions/2.7-scl/* %{buildroot}%{cartridgedir}/usr/versions/2.7/
+%endif
+%__cp -anv %{buildroot}%{cartridgedir}/usr/versions/shared/* %{buildroot}%{cartridgedir}/usr/versions/2.6/
+%__cp -anv %{buildroot}%{cartridgedir}/usr/versions/shared/* %{buildroot}%{cartridgedir}/usr/versions/2.7/
+
+%__rm -rf %{buildroot}%{cartridgedir}/usr/versions/shared
+%__rm -rf %{buildroot}%{cartridgedir}/usr/versions/2.7-scl
+
+%__mv %{buildroot}%{cartridgedir}/usr/versions/3.3-community %{buildroot}%{cartridgedir}/usr/versions/3.3/
 
 %files
 %dir %{cartridgedir}
 %attr(0755,-,-) %{cartridgedir}/bin/
 %if 0%{?fedora}%{?rhel} <= 6
-%attr(0755,-,-) %{cartridgedir}/versions/2.6/bin/
+%attr(0755,-,-) %{cartridgedir}/usr/versions/2.6/bin/
+%attr(0755,-,-) %{cartridgedir}/usr/versions/2.6/bin/*
 %endif
-%attr(0755,-,-) %{cartridgedir}/versions/shared/bin/
-%attr(0755,-,-) %{cartridgedir}/hooks/
+%attr(0755,-,-) %{cartridgedir}/usr/versions/2.7/bin/*
+%attr(0755,-,-) %{cartridgedir}/usr/versions/3.3/bin/*
+%attr(0755,-,-) %{cartridgedir}/hooks
 %{cartridgedir}
 %doc %{cartridgedir}/README.md
 %doc %{cartridgedir}/COPYRIGHT
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Wed Aug 21 2013 Adam Miller <admiller@redhat.com> 0.8.6-1
+- Bug 998926 - setup needs a reentrant version of creating the Apache symlinks
+  (rmillner@redhat.com)
+
+* Tue Aug 20 2013 Adam Miller <admiller@redhat.com> 0.8.5-1
+- Merge pull request #3415 from tdawson/tdawson/mirrorfixes/2013-08
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 998444 - Jenkins fixes. (rmillner@redhat.com)
+- The upstream-repo is no longer necessary. (rmillner@redhat.com)
+- fix old mirror url (tdawson@redhat.com)
+- Writing env ERB files in the wrong location. (rmillner@redhat.com)
+
+* Mon Aug 19 2013 Adam Miller <admiller@redhat.com> 0.8.4-1
+- Updated 'restart' operation for all HTTPD based cartridges to use
+  'httpd_restart_action' (mfojtik@redhat.com)
+
+* Fri Aug 16 2013 Adam Miller <admiller@redhat.com> 0.8.3-1
+- Bug 997861 - Report presence of the force_client_build marker for Python apps
+  (mfojtik@redhat.com)
+- Merge pull request #3376 from brenton/BZ986300_BZ981148
+  (dmcphers+openshiftbot@redhat.com)
+- SCL based Python 2.7 cartridge. (rmillner@redhat.com)
+- Make python update-configuration compatible with scl (vvitek@redhat.com)
+- Enable python27 SCL functionality (vvitek@redhat.com)
+- Remove python 2.7-community (vvitek@redhat.com)
+- Install python27 SCL packages (vvitek@redhat.com)
+- Merge pull request #3354 from dobbymoodge/origin_runtime_219
+  (dmcphers+openshiftbot@redhat.com)
+- <cartridges> Additional cart version and test fixes (jolamb@redhat.com)
+- Bug 981148 - missing facter dependency for cartridge installation
+  (bleanhar@redhat.com)
+
+* Thu Aug 15 2013 Adam Miller <admiller@redhat.com> 0.8.2-1
+- Bug 968280 - Ensure Stopping/Starting messages during git push Bug 983014 -
+  Unnecessary messages from mongodb cartridge (jhonce@redhat.com)
+
 * Thu Aug 08 2013 Adam Miller <admiller@redhat.com> 0.8.1-1
 - Merge pull request #3021 from rvianello/readme_cron (dmcphers@redhat.com)
 - bump_minor_versions for sprint 32 (admiller@redhat.com)

@@ -71,29 +71,30 @@ class RestGearGroup < OpenShift::Model
     self.id         = group_instance._id.to_s
     self.name         = self.id
     self.gear_profile = group_instance.gear_size
-    self.gears        = group_instance.gears.map{ |gear| 
+    self.gears        = group_instance.gears.map{ |gear|
       { :id => gear.uuid, 
-        :state => gear_states[gear.uuid] || 'unknown', 
-        :ssh_url => "ssh://#{app.ssh_uri(gear.app_dns ? nil: gear.uuid)}"
-      } 
+        :state => gear_states[gear.uuid] || 'unknown',
+        :ssh_url => "ssh://#{app.ssh_uri(gear.app_dns ? nil: gear.uuid)}",
+        :port_interfaces => gear.port_interfaces
+      }
     }
-    
+
     self.cartridges   = group_instance.all_component_instances.map { |component_instance| 
       cart = CartridgeCache.find_cartridge(component_instance.cartridge_name, app)
-      
+
       # Handling the case when component_properties is an empty array
       # This can happen if the mongo document is copied and pasted back and saved using a UI tool
       if component_instance.component_properties.nil? or component_instance.component_properties.is_a? Array
         component_instance.component_properties = {}
       end
-       
+
       component_instance.component_properties.merge({
         :name => cart.name, 
         :display_name => cart.display_name,
         :tags => cart.categories
-      }) 
+      })
     }
-    
+
     self.scales_from    = group_instance.min
     self.scales_to    = group_instance.max
     self.base_gear_storage = Gear.base_filesystem_gb(self.gear_profile)

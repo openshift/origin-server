@@ -16,7 +16,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.13.1
+Version: 1.13.9
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -257,7 +257,7 @@ fi
 %dir /etc/openshift
 %config(noreplace) /etc/openshift/node.conf
 %config(noreplace) /etc/openshift/env/*
-%config(noreplace) /etc/openshift/resource_limits.conf
+%attr(0640,-,-) %config(noreplace) /etc/openshift/resource_limits.conf
 %attr(0750,-,-) /etc/httpd/conf.d/openshift
 %config(noreplace) /etc/httpd/conf.d/000001_openshift_origin_node.conf
 %config(noreplace) /etc/httpd/conf.d/000001_openshift_origin_node_servername.conf
@@ -305,6 +305,124 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Wed Aug 21 2013 Adam Miller <admiller@redhat.com> 1.13.9-1
+- Merge pull request #3449 from pmorie/bugs/999189
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3440 from pmorie/bugs/999013
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3427 from ironcladlou/bz/996491
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3441 from jwhonce/wip/user_vars
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3429 from mfojtik/bugzilla/988662
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3426 from mfojtik/bugzilla/998420
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3425 from mfojtik/bugzilla/998363
+  (dmcphers+openshiftbot@redhat.com)
+- Fix bug 999189: gear upgrade extension is a no-op if release version doesn't
+  match supplied version (pmorie@gmail.com)
+- Fix bug 999013: always remove unprocessed env/*.erb files from cartridge dir
+  during compatible upgrade (pmorie@gmail.com)
+- Merge pull request #3439 from pravisankar/dev/ravi/user-env-bugs
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3443 from fotioslindiakos/throttler
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 998794 - Allow blank value for a user environment variable
+  (rpenta@redhat.com)
+- Node Platform - Add .env/user_vars during upgrade (jhonce@redhat.com)
+- Merge pull request #3436 from pmorie/dev/upgrades
+  (dmcphers+openshiftbot@redhat.com)
+- Force throttler to only restore applications under a certain threshold
+  (fotios@redhat.com)
+- Fix creating new endpoints during incompatible upgrades (pmorie@gmail.com)
+- Bug 988662 - Add exit(255) to the usage() methods for oo-user-var scripts
+  (mfojtik@redhat.com)
+- Bug 996491: Show warning when using snapshot and near disk quota
+  (ironcladlou@gmail.com)
+- Bug 998420 - Fixed typo in the --help option for oo-cgroup-template
+  (mfojtik@redhat.com)
+- Bug 998363 - Add --help option to GetoptLong list (mfojtik@redhat.com)
+
+* Tue Aug 20 2013 Adam Miller <admiller@redhat.com> 1.13.8-1
+- BZ#990382: Return error message and code when wrong gear id is given to oo-
+  pam-(enable|disable) (mfojtik@redhat.com)
+- Merge pull request #3410 from pravisankar/dev/ravi/card86
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3409 from rmillner/trailing_dot
+  (dmcphers+openshiftbot@redhat.com)
+- Node Platform - make user variable rsync more reliable (jhonce@redhat.com)
+- User vars node changes:  - Use 'user-var-add' mcollective call for *add*
+  and/or *push* user vars. This will reduce unnecessary additional
+  code/complexity.  - Add some more reserved var names: PATH, IFS, USER, SHELL,
+  HOSTNAME, LOGNAME  - Do not attempt rsync when .env/user_vars dir is empty  -
+  Misc bug fixes (rpenta@redhat.com)
+- WIP Node Platform - Add support for settable user variables
+  (jhonce@redhat.com)
+- Remove trailing dot from the fqdn if there is one. (rmillner@redhat.com)
+
+* Mon Aug 19 2013 Adam Miller <admiller@redhat.com> 1.13.7-1
+- Added 'httpd_restart_action' function to Bash SDK (mfojtik@redhat.com)
+- Fixing typos (dmcphers@redhat.com)
+- Merge pull request #3397 from danmcp/master
+  (dmcphers+openshiftbot@redhat.com)
+- patch upgrade.rb to use gear_map_ident for upgrade_cartridges ident
+  resolution (jolamb@redhat.com)
+- Bug 989225 - the logic changed so that @container_dir is always set and
+  @container_plugin is nil if the container no longer exists.
+  (rmillner@redhat.com)
+
+* Fri Aug 16 2013 Adam Miller <admiller@redhat.com> 1.13.6-1
+- Merge pull request #3380 from rmillner/BZ996296
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3354 from dobbymoodge/origin_runtime_219
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3373 from pmorie/bugs/997158
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 996296 - resource_limits.conf should be mode 640. (rmillner@redhat.com)
+- <cartridges> Additional cart version and test fixes (jolamb@redhat.com)
+- Fix bug 997158: always sort cartridge versions using Manifest.sort_versions
+  (pmorie@gmail.com)
+- <cart version> origin_runtime_219, Update carts and manifests with new
+  versions, handle version change in upgrade code
+  https://trello.com/c/evcTYKdn/219-3-adjust-out-of-date-cartridge-versions
+  (jolamb@redhat.com)
+
+* Thu Aug 15 2013 Adam Miller <admiller@redhat.com> 1.13.5-1
+- Upgrade tool enhancements (ironcladlou@gmail.com)
+
+* Wed Aug 14 2013 Adam Miller <admiller@redhat.com> 1.13.4-1
+- Merge pull request #3352 from danmcp/master
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3322 from smarterclayton/origin_ui_73_membership_model
+  (dmcphers+openshiftbot@redhat.com)
+- remove oo-cart-version Bug 980296 (dmcphers@redhat.com)
+- save exposed port interfaces of a gear (rchopra@redhat.com)
+- Merge remote-tracking branch 'origin/master' into
+  origin_ui_73_membership_model (ccoleman@redhat.com)
+- * Implement a membership model for OpenShift that allows an efficient query
+  of user access based on each resource. * Implement scope limitations that
+  correspond to specific permissions * Expose membership info via the REST API
+  (disableable via config) * Allow multiple domains per user, controlled via a
+  configuration flag * Support additional information per domain
+  (application_count and gear_counts) to improve usability * Let domains
+  support the allowed_gear_sizes option, which limits the gear sizes available
+  to apps in that domain * Simplify domain update interactions - redundant
+  validation removed, and behavior of responses differs slightly. * Implement
+  migration script to enable data (ccoleman@redhat.com)
+
+* Tue Aug 13 2013 Adam Miller <admiller@redhat.com> 1.13.3-1
+- Node Platform - Update oo-get-quota for new interface (jhonce@redhat.com)
+- Bug 980820 - Ensure bogus PATH doesn't stop cartridge operations
+  (jhonce@redhat.com)
+- Merge pull request #3328 from fotioslindiakos/Bug995550
+  (dmcphers+openshiftbot@redhat.com)
+- Ensure boosted gears are not throttled (fotios@redhat.com)
+
+* Fri Aug 09 2013 Adam Miller <admiller@redhat.com> 1.13.2-1
+- Bug 995233 - Use oo_spawn in place of systemu (jhonce@redhat.com)
+- Bug 903106 - Update rhcsh help to reflect gear script (jhonce@redhat.com)
+
 * Thu Aug 08 2013 Adam Miller <admiller@redhat.com> 1.13.1-1
 - Merge pull request #3318 from jwhonce/bug/980820
   (dmcphers+openshiftbot@redhat.com)

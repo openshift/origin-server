@@ -2,7 +2,7 @@
 
 Summary:       phpMyAdmin support for OpenShift
 Name:          openshift-origin-cartridge-phpmyadmin
-Version: 1.13.1
+Version: 1.13.4
 Release:       1%{?dist}
 Group:         Applications/Internet
 License:       ASL 2.0
@@ -58,6 +58,24 @@ ln -sf %{cartridgedir}/versions/shared/phpMyAdmin/config.inc.php %{_sysconfdir}/
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Wed Aug 21 2013 Adam Miller <admiller@redhat.com> 1.13.4-1
+- <cartridge versions> origin_runtime_219, Fix up Display-Name: field in
+  manifests https://trello.com/c/evcTYKdn/219-3-adjust-out-of-date-cartridge-
+  versions (jolamb@redhat.com)
+
+* Fri Aug 16 2013 Adam Miller <admiller@redhat.com> 1.13.3-1
+- Merge pull request #3354 from dobbymoodge/origin_runtime_219
+  (dmcphers+openshiftbot@redhat.com)
+- <cartridges> Additional cart version and test fixes (jolamb@redhat.com)
+- <cart version> origin_runtime_219, Update carts and manifests with new
+  versions, handle version change in upgrade code
+  https://trello.com/c/evcTYKdn/219-3-adjust-out-of-date-cartridge-versions
+  (jolamb@redhat.com)
+
+* Thu Aug 15 2013 Adam Miller <admiller@redhat.com> 1.13.2-1
+- Bug 968280 - Ensure Stopping/Starting messages during git push Bug 983014 -
+  Unnecessary messages from mongodb cartridge (jhonce@redhat.com)
+
 * Thu Aug 08 2013 Adam Miller <admiller@redhat.com> 1.13.1-1
 - bump_minor_versions for sprint 32 (admiller@redhat.com)
 

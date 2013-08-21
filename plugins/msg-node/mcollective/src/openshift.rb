@@ -24,17 +24,24 @@ module MCollective
                :timeout     => 360
 
       activate_when do
-        @@config               = ::OpenShift::Config.new
-        @@cartridge_repository = ::OpenShift::Runtime::CartridgeRepository.instance
-        @@cartridge_repository.clear
+        @@config = ::OpenShift::Config.new
 
-        Dir.glob(PathUtils.join('/usr/libexec/openshift/cartridges', '*')).each do |path|
-          begin
-            manifest = @@cartridge_repository.install(path)
-            Log.instance.info("Installed cartridge (#{manifest.cartridge_vendor}, #{manifest.name}, #{manifest.version}, #{manifest.cartridge_version}) from #{path}")
-          rescue Exception => e
-            Log.instance.warn("Failed to install cartridge from #{path}. #{e.message}")
+        File.open('/var/lock/oo-cartridge-repository', File::RDWR|File::CREAT|File::TRUNC, 0600) do |lock|
+          lock.fcntl(Fcntl::F_SETFD, Fcntl::FD_CLOEXEC)
+          lock.flock(File::LOCK_EX)
+
+          @@cartridge_repository = ::OpenShift::Runtime::CartridgeRepository.instance
+          @@cartridge_repository.clear
+
+          Dir.glob(PathUtils.join('/usr/libexec/openshift/cartridges', '*')).each do |path|
+            begin
+              manifest = @@cartridge_repository.install(path)
+              Log.instance.info("Installed cartridge (#{manifest.cartridge_vendor}, #{manifest.name}, #{manifest.version}, #{manifest.cartridge_version}) from #{path}")
+            rescue Exception => e
+              Log.instance.warn("Failed to install cartridge from #{path}. #{e.message}")
+            end
           end
+          lock.flock(File::LOCK_UN)
         end
 
         Log.instance.info(
@@ -71,74 +78,14 @@ module MCollective
       def cartridge_do_action
         Log.instance.info("cartridge_do_action call / action: #{request.action}, agent=#{request.agent}, data=#{request.data.pretty_inspect}")
         Log.instance.info("cartridge_do_action validation = #{request[:cartridge]} #{request[:action]} #{request[:args]}")
-        validate :cartridge, /\A[a-zA-Z0-9\.\-\/_]+\z/
         validate :cartridge, :shellsafe
-        valid_actions = %w(
-          app-create
-          app-destroy
-          env-var-add
-          env-var-remove
-          broker-auth-key-add
-          broker-auth-key-remove
-          authorized-ssh-key-add
-          authorized-ssh-key-remove
-          ssl-cert-add
-          ssl-cert-remove
-          configure
-          post-configure
-          deconfigure
-          unsubscribe
-          tidy
-          deploy-httpd-proxy
-          remove-httpd-proxy
-          restart-httpd-proxy
-          info
-          post-install
-          post-remove
-          pre-install
-          reload
-          restart
-          start
-          status
-          stop
-          force-stop
-          add-alias
-          remove-alias
-          threaddump
-          cartridge-list
-          expose-port
-          frontend-backup
-          frontend-restore
-          frontend-create
-          frontend-destroy
-          frontend-update-name
-          frontend-connect
-          frontend-disconnect
-          frontend-connections
-          frontend-idle
-          frontend-unidle
-          frontend-check-idle
-          frontend-sts
-          frontend-no-sts
-          frontend-get-sts
-          aliases
-          ssl-cert-add
-          ssl-cert-remove
-          ssl-certs
-          frontend-to-hash
-          system-messages
-          connector-execute
-          get-quota
-          set-quota
-        )
-        validate :action, /\A#{valid_actions.join("|")}\Z/
         validate :action, :shellsafe
         cartridge                  = request[:cartridge]
         action                     = request[:action]
         args                       = request[:args] ||= {}
         pid, stdin, stdout, stderr = nil, nil, nil, nil
         rc                         = nil
-        output                     = ""
+        output                     = ''
 
         # Do the action execution
         exitcode, output           = execute_action(action, args)
@@ -196,11 +143,11 @@ module MCollective
         quota = ::OpenShift::Runtime::Node.get_quota(uuid)
         watermark = @@config.get('QUOTA_WARNING_PERCENT', '90.0').to_f
 
-        usage = (quota[1].to_s.to_i / quota[3].to_s.to_f) * 100.0
-        buffer << "CLIENT_MESSAGE: Warning gear #{uuid} is using #{usage} of disk quota\n" if watermark < usage
+        usage = (quota[:blocks_used] / quota[:blocks_limit].to_f) * 100.0
+        buffer << "\nCLIENT_MESSAGE: Warning gear #{uuid} is using #{usage} of disk quota\n" if watermark < usage
 
-        usage = (quota[4].to_s.to_i / quota[6].to_s.to_f) * 100.0
-        buffer << "CLIENT_MESSAGE: Warning gear #{uuid} is using #{usage} of inodes allowed\n" if watermark < usage
+        usage = (quota[:inodes_used] / quota[:inodes_limit].to_f) * 100.0
+        buffer << "\nCLIENT_MESSAGE: Warning gear #{uuid} is using #{usage} of inodes allowed\n" if watermark < usage
       rescue Exception => e
         # do nothing
       end
@@ -261,7 +208,7 @@ module MCollective
           require 'openshift-origin-node/model/upgrade'
 
           upgrader = OpenShift::Runtime::Upgrader.new(uuid, namespace, version, hostname, ignore_cartridge_version)
-          output, exitcode, json_data = upgrader.execute
+          result = upgrader.execute
         rescue LoadError => e
           exitcode = 127
           output += "upgrade not supported. #{e.message}\n"
@@ -277,7 +224,7 @@ module MCollective
 
         reply[:output] = output
         reply[:exitcode] = exitcode
-        reply[:json_data] = json_data
+        reply[:upgrade_result_json] = JSON.dump(result)
         reply.fail! "upgrade_action failed #{exitcode}.  Output #{output}" unless exitcode == 0
       end
 
@@ -330,7 +277,7 @@ module MCollective
         output = ""
         begin
           container = get_app_container_from_args(args)
-          container.create
+          output = container.create
         rescue OpenShift::Runtime::UserCreationException => e
           Log.instance.info e.message
           Log.instance.info e.backtrace
@@ -427,6 +374,53 @@ module MCollective
         end
       end
 
+      def oo_user_var_add(args)
+        variables, gears = {}, []
+        args['--with-variables'].split(' ').each { |a| token = a.split('=', 2); variables[token.first] = token.last } if args['--with-variables']
+        gears = args['--with-gears'].split(';') if args['--with-gears']
+
+        if variables.empty? and gears.empty?
+          return -1, "In #{__method__} at least user environment variables or gears must be provided for #{args['--with-app-name']}"
+        end
+
+        rc, output = 0, ''
+        with_container_from_args(args) do |container|
+          rc, output = container.user_var_add(variables, gears)
+        end
+        return rc, output
+      end
+
+      def oo_user_var_remove(args)
+        unless args['--with-keys']
+          return -1, "In #{__method__} no user environment variable names provided for #{args['--with-app-name']}"
+        end
+
+        keys  = args['--with-keys'].split(' ')
+        gears = args['--with-gears'] ? args['--with-gears'].split(';') : []
+
+        rc, output = 0, ''
+        with_container_from_args(args) do |container|
+          rc, output = container.user_var_remove(keys, gears)
+        end
+        return rc, output
+      end
+
+      def oo_user_var_list(args)
+        keys = args['--with-keys'] ? args['--with-keys'].split(' ') : []
+
+        output = ''
+        begin
+          container = get_app_container_from_args(args)
+          list      = container.user_var_list(keys)
+          output    = 'CLIENT_RESULT: ' + list.to_json
+        rescue Exception => e
+          Log.instance.info "#{e.message}\n#{e.backtrace}"
+          return -1, e.message
+        else
+          return 0, output
+        end
+      end
+
       def oo_cartridge_list(args)
         list_descriptors = true if args['--with-descriptors']
         porcelain = true if args['--porcelain']
@@ -455,9 +449,14 @@ module MCollective
       def oo_get_quota(args)
         uuid = args['--uuid'].to_s if args['--uuid']
 
-        output = ""
+        output = ''
         begin
-          output = OpenShift::Runtime::Node.get_quota(uuid)
+          q      = OpenShift::Runtime::Node.get_quota(uuid)
+          output = [
+            q[:device],
+            q[:blocks_used].to_s, q[:blocks_quota].to_s, q[:blocks_limit].to_s,
+            q[:inodes_used].to_s, q[:inodes_quota].to_s, q[:inodes_limit].to_s
+          ]
         rescue Exception => e
           Log.instance.info e.message
           Log.instance.info e.backtrace
@@ -897,13 +896,6 @@ module MCollective
       end
 
       #
-      # Returns whether an app is on a server
-      #
-      def has_app_action
-        has_gear_action
-      end
-
-      #
       # Returns whether a gear is on a server
       #
       def has_gear_action
@@ -942,6 +934,40 @@ module MCollective
          env_hash = OpenShift::Runtime::Utils::Environ.for_gear(dir)
          reply[:output] = env_hash
          reply[:exitcode] = 0
+      end
+
+      #
+      # Returns the public endpoints of all cartridges on the gear
+      #
+      def get_all_gears_endpoints_action
+        gear_map = {}
+
+        uid_map          = {}
+        uids             = IO.readlines("/etc/passwd").map { |line|
+          uid               = line.split(":")[2]
+          username          = line.split(":")[0]
+          uid_map[username] = uid
+        }
+        dir = "/var/lib/openshift/"
+        Dir.foreach(dir) do |gear_file|
+          if File.directory?(dir + gear_file) and not File.symlink?(dir + gear_file) and not gear_file[0] == '.'
+           next if not uid_map.has_key?(gear_file)
+           gear_uuid = gear_file
+           cont = OpenShift::Runtime::ApplicationContainer.from_uuid(gear_uuid)
+           env = OpenShift::Runtime::Utils::Environ::for_gear(cont.container_dir)
+           config = OpenShift::Config.new
+           pub_ip = config.get('PUBLIC_IP')
+           endpoints = []
+           cont.cartridge_model.each_cartridge do |cart|
+             cart.public_endpoints.each do |ep|
+               endpoints << { "cartridge_name" => cart.name+'-'+cart.version, "external_address" => pub_ip, "external_port" => env[ep.public_port_name], "internal_address" => env[ep.private_ip_name], "internal_port" => ep.private_port }
+             end
+           end
+           gear_map[gear_uuid] = endpoints.dup if endpoints.length > 0
+         end
+       end
+       reply[:output] = gear_map
+       reply[:exitcode] = 0
       end
 
       #

@@ -4,7 +4,7 @@
 
 Summary:       Provides JBossAS7 support
 Name:          openshift-origin-cartridge-jbossas
-Version: 1.6.1
+Version: 1.6.4
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -104,6 +104,22 @@ fi
 
 
 %changelog
+* Tue Aug 20 2013 Adam Miller <admiller@redhat.com> 1.6.4-1
+- fix old mirror url (tdawson@redhat.com)
+
+* Fri Aug 16 2013 Adam Miller <admiller@redhat.com> 1.6.3-1
+- Merge pull request #3279 from detiber/clientresult
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3354 from dobbymoodge/origin_runtime_219
+  (dmcphers+openshiftbot@redhat.com)
+- <cartridges> Additional cart version and test fixes (jolamb@redhat.com)
+- <JBoss Cartridges> - Move deployment verification to client_result
+  (jdetiber@redhat.com)
+
+* Thu Aug 15 2013 Adam Miller <admiller@redhat.com> 1.6.2-1
+- Bug 968280 - Ensure Stopping/Starting messages during git push Bug 983014 -
+  Unnecessary messages from mongodb cartridge (jhonce@redhat.com)
+
 * Thu Aug 08 2013 Adam Miller <admiller@redhat.com> 1.6.1-1
 - Cartridge - Clean up manifests (jhonce@redhat.com)
 - Merge pull request #3307 from jwhonce/wip/java_opt_ext

@@ -2,13 +2,14 @@
 %global frameworkdir %{_libexecdir}/openshift/cartridges/php
 
 Name:          openshift-origin-cartridge-php
-Version: 0.8.1
+Version: 0.8.6
 Release:       1%{?dist}
 Summary:       Php cartridge
 Group:         Development/Languages
 License:       ASL 2.0
 URL:           https://www.openshift.com
 Source0:       http://mirror.openshift.com/pub/openshift-origin/source/%{name}/%{name}-%{version}.tar.gz
+Requires:      facter
 Requires:      rubygem(openshift-origin-node)
 %if 0%{?fedora}%{?rhel} <= 6
 Requires:      php >= 5.3.2
@@ -75,6 +76,31 @@ rm %{buildroot}%{cartridgedir}/metadata/manifest.yml.*
 
 
 %changelog
+* Wed Aug 21 2013 Adam Miller <admiller@redhat.com> 0.8.6-1
+- Merge pull request #3424 from mfojtik/bugzilla/998789 (dmcphers@redhat.com)
+- Bug 998789 - Fixed a typo in PHP cartridge control script
+  (mfojtik@redhat.com)
+
+* Tue Aug 20 2013 Adam Miller <admiller@redhat.com> 0.8.5-1
+- Merge pull request #2984 from VojtechVitek/pear_path
+  (dmcphers+openshiftbot@redhat.com)
+- Add PEAR bin dir to the PATH variable (vvitek@redhat.com)
+
+* Mon Aug 19 2013 Adam Miller <admiller@redhat.com> 0.8.4-1
+- Updated 'restart' operation for all HTTPD based cartridges to use
+  'httpd_restart_action' (mfojtik@redhat.com)
+
+* Fri Aug 16 2013 Adam Miller <admiller@redhat.com> 0.8.3-1
+- Merge pull request #3342 from VojtechVitek/pear_jenkins
+  (dmcphers+openshiftbot@redhat.com)
+- fix PEAR on scaled gears & jenkins builder (vvitek@redhat.com)
+- Bug 981148 - missing facter dependency for cartridge installation
+  (bleanhar@redhat.com)
+
+* Thu Aug 15 2013 Adam Miller <admiller@redhat.com> 0.8.2-1
+- Bug 968280 - Ensure Stopping/Starting messages during git push Bug 983014 -
+  Unnecessary messages from mongodb cartridge (jhonce@redhat.com)
+
 * Thu Aug 08 2013 Adam Miller <admiller@redhat.com> 0.8.1-1
 - Merge pull request #3021 from rvianello/readme_cron (dmcphers@redhat.com)
 - bump_minor_versions for sprint 32 (admiller@redhat.com)

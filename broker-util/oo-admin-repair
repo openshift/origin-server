@@ -39,7 +39,7 @@ Options:
 -v|--verbose
     Print information about each check being performed
 -r|--report-only
-    Only report the mismatches, don't fix them 
+    Only report the mismatches, don't fix them
 --consumed-gears
     Fix  mismatch in user's consumed gears vs actual gears in mongo
 --ssh-keys
@@ -97,7 +97,7 @@ def lock_user_without_app(user_id, timeout=30)
     return false
   end
 end
-  
+
 def unlock_user_without_app(user_id)
   begin
     query = {:user_id => user_id, :locked => true}

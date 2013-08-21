@@ -1,0 +1,23 @@
+This chapter provides information on API resources to add, view, and manage authorization tokens. An authorization token is a secret value that allows access to an OpenShift account without having to supply login information each time. An authorization token can also be used to grant another user access to your account. Authorization tokens use scopes to determine the type of access a user is granted and what they can do with that token; for example full access versus limited access.
+Authorization tokens are easily managed, and offer better security because you are not repeatedly supplying your login credentials. For example, if your password is ever compromised, the password must be reset. If a secret authorization token is compromised, that token can be revoked and another one created.
+The table below describes each parameter associated with an OpenShift authorization token. 
+
+<table border=1>
+<tr><td>Name</td><td>Description</td></tr>
+<tr><td>id</td><td>Unique OpenShift login that created this authorization token.</td></tr>
+<tr><td>scope</td><td>Scope of the authorization token to determine type of access. Scopes that are supported by a server are described in the ADD_AUTHORIZATION resource link and may be different for each server.</td></tr>
+<tr><td>note</td><td>A reminder description of what the authorization is for.</td></tr>
+<tr><td>expires_in</td><td>Total time in seconds before this authorization expires. Out of range values will be set to the maximum allowed time.</td></tr>
+<tr><td>expires_in_seconds</td><td>Remaining time in seconds before this authorization expires.</td></tr>
+<tr><td>reuse</td><td>Attempt to locate and reuse an authorization that matches the scope and note and has not yet expired.</td></tr>
+<tr><td>token</td><td>Authorization string that contains user credentials. </td></tr>
+</table>
+
+The table below describes the available scope options that determine the type of access a user is granted with an authorization.
+
+<table border=1>
+<tr><td>Name</td><td>Description</td></tr>
+<tr><td>session</td><td>Equivalent of logging into an account with normal login credentials such as user name and password.</td></tr>
+<tr><td>read</td><td>Access to the API is read-only, while authorization endpoints cannot be read.</td></tr>
+<tr><td>userinfo</td><td>Only read access to the /user API resource is provided. </td></tr>
+</table>

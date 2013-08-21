@@ -7,7 +7,10 @@ module AccessControlled
 
   module ClassMethods
     def accessible(to)
-      criteria = queryable
+      scope_limited(to)
+    end
+
+    def scope_limited(to, criteria=queryable)
       if to.respond_to?(:scopes) && (scopes = to.scopes)
         criteria = scopes.limit_access(criteria)
       end
