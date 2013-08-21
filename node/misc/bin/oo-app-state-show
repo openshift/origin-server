@@ -42,7 +42,8 @@ require 'openshift-origin-node'
 require 'openshift-origin-node/utils/shell_exec'
 opts = GetoptLong.new(
     ["--with-app-uuid",       "-a", GetoptLong::REQUIRED_ARGUMENT],
-    ["--with-container-uuid", "-c", GetoptLong::REQUIRED_ARGUMENT]
+    ["--with-container-uuid", "-c", GetoptLong::REQUIRED_ARGUMENT],
+    ["--help",                '-h', GetoptLong::NO_ARGUMENT]
 )
 
 args = {}
@@ -68,7 +69,7 @@ begin
   print container.state.value
 rescue Exception => e
   $stderr.puts(e.message)
-  exit -1
+  exit(-1)
 else
   exit 0
 end
