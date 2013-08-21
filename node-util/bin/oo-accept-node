@@ -135,10 +135,12 @@ def user_fail(uuid, msg)
   rescue ArgumentError
   end
 
+  # Testing if we were fed a uid instead of a uuid.
   if pw_ent.nil?
     begin
       pw_ent = Etc.getpwuid(uuid.to_i)
     rescue ArgumentError
+    rescue RangeError
     end
   end
 
