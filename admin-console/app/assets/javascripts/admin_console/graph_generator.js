@@ -29,6 +29,8 @@ function histogram_from_bins(bins, node, xlbl, ylbl) {
   var total = 0;
   for (var i = 0; i < bins.length; i++)
     total += bins[i].count;
+  //make the total evenly divisble by ten for whole number marker lines
+  total += 10 - total % 10
   var div = document.createElement("div");
     div.className = "histogram";
     var ylabel = document.createElement("div");
@@ -42,8 +44,6 @@ function histogram_from_bins(bins, node, xlbl, ylbl) {
       for (var i = 10; i <= 100; i+=10) {
         var pct = 100-i;
         var value = Math.round((total * pct) / 100);
-        if (pct != 0 && value == 0)
-          value = ''; // don't show fractional labels
         var lbl = document.createElement("span");
           lbl.className = "histogram-label";
           lbl.appendChild(document.createTextNode(value));
