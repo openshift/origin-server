@@ -1,30 +1,33 @@
+---
 Name: mock-plugin
 Cartridge-Short-Name: MOCK_PLUGIN
 Display-Name: Mock Plugin Cartridge 0.1
-Description: "A mock plugin cartridge for development use only."
+Description: A mock plugin cartridge for development use only.
 Version: '0.1'
 License: ASL 2.0
 Vendor: Red Hat
-Cartridge-Version: 0.0.1
+Cartridge-Version: 0.0.2
 Cartridge-Vendor: redhat
 Categories:
-  - service
-  - database
-  - embedded
+- service
+- database
+- embedded
 Provides:
-  - mock-plugin-0.1
-  - mock-plugin
+- mock-plugin-0.1
+- mock-plugin
 Scaling:
   Min: 1
   Max: 1
 Group-Overrides:
-  - components:
-    - mock-plugin
+- components:
+  - mock-plugin
 Publishes:
   publish-db-connection-info:
-    Type: "ENV:NET_TCP:db:connection-info"
+    Type: ENV:NET_TCP:db:connection-info
 Endpoints:
-  - Private-IP-Name:   EXAMPLE_IP1
-    Private-Port-Name: EXAMPLE_PORT1
-    Private-Port:      8080
-    Public-Port-Name:  EXAMPLE_PUBLIC_PORT1
+- Private-IP-Name: EXAMPLE_IP1
+  Private-Port-Name: EXAMPLE_PORT1
+  Private-Port: 8080
+  Public-Port-Name: EXAMPLE_PUBLIC_PORT1
+Compatible-Versions:
+- 0.0.1
