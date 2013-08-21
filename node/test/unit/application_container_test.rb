@@ -334,6 +334,6 @@ class ApplicationContainerTest < OpenShift::NodeTestCase
 
     rc, msg = @container.user_var_add({'TOO_BIG' => '*' * 513})
     assert_equal 127, rc
-    assert_equal 'CLIENT_ERROR: TOO_BIG value exceeds maximum size of 512b', msg
+    assert_equal "CLIENT_ERROR: 'TOO_BIG' value exceeds maximum size of 512b", msg
   end
 end

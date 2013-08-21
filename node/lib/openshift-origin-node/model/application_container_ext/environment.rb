@@ -4,7 +4,8 @@ module OpenShift
       module Environment
 
         USER_VARIABLE_MAX_COUNT = 25
-        USER_VARIABLE_MAX_SIZE = 512
+        USER_VARIABLE_NAME_MAX_SIZE = 128
+        USER_VARIABLE_VALUE_MAX_SIZE = 512
         RESERVED_VARIABLE_NAMES = [
                                    'OPENSHIFT_PRIMARY_CARTRIDGE_DIR', 'OPENSHIFT_NAMESPACE', 'PATH',
                                    'IFS', 'USER', 'SHELL', 'HOSTNAME', 'LOGNAME'
@@ -277,8 +278,11 @@ module OpenShift
               return 127, "CLIENT_ERROR: #{name} cannot be overridden"
             end
 
-            if value.to_s.length > USER_VARIABLE_MAX_SIZE
-              return 127, "CLIENT_ERROR: #{name} value exceeds maximum size of #{USER_VARIABLE_MAX_SIZE}b"
+            if name.to_s.length > USER_VARIABLE_NAME_MAX_SIZE
+              return 127, "CLIENT_ERROR: name '#{name}' exceeds maximum size of #{USER_VARIABLE_NAME_MAX_SIZE}b"
+            end
+            if value.to_s.length > USER_VARIABLE_VALUE_MAX_SIZE
+              return 127, "CLIENT_ERROR: '#{name}' value exceeds maximum size of #{USER_VARIABLE_VALUE_MAX_SIZE}b"
             end
           end
 

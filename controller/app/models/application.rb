@@ -2736,6 +2736,8 @@ class Application
         end
         raise OpenShift::UserException.new("Invalid environment variable name #{name}: specified multiple times", 188, "environment_variables") if keys[name]
         keys[name] = true
+        match = /\A([a-zA-Z_][\w]*)\z/.match(name)
+        raise OpenShift::UserException.new("Name can only contain letters, digits and underscore and can't begin with a digit.", 194, "name") if match.nil?
       end
       if no_delete
         set_vars, unset_vars = sanitize_user_env_variables(user_env_vars)
