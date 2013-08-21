@@ -971,7 +971,7 @@ class Application
         (server_alias =~ /^\d+\.\d+\.\d+\.\d+$/) or
         (server_alias =~ /\A[\S]+(\.(json|xml|yml|yaml|html|xhtml))\z/) or
         (not server_alias.match(/\A[a-z0-9]+([\.]?[\-a-z0-9]+)+\z/))
-      raise OpenShift::UserException.new("Invalid Server Alias '#{server_alias}' specified", 105, "id")
+      raise OpenShift::UserException.new("The specified alias is not allowed: '#{server_alias}'", 105, "id")
     end
     validate_certificate(ssl_certificate, private_key, pass_phrase)
 
