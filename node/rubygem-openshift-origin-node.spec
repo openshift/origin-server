@@ -16,7 +16,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.13.8
+Version: 1.13.9
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -305,6 +305,45 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Wed Aug 21 2013 Adam Miller <admiller@redhat.com> 1.13.9-1
+- Merge pull request #3449 from pmorie/bugs/999189
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3440 from pmorie/bugs/999013
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3427 from ironcladlou/bz/996491
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3441 from jwhonce/wip/user_vars
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3429 from mfojtik/bugzilla/988662
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3426 from mfojtik/bugzilla/998420
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3425 from mfojtik/bugzilla/998363
+  (dmcphers+openshiftbot@redhat.com)
+- Fix bug 999189: gear upgrade extension is a no-op if release version doesn't
+  match supplied version (pmorie@gmail.com)
+- Fix bug 999013: always remove unprocessed env/*.erb files from cartridge dir
+  during compatible upgrade (pmorie@gmail.com)
+- Merge pull request #3439 from pravisankar/dev/ravi/user-env-bugs
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3443 from fotioslindiakos/throttler
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 998794 - Allow blank value for a user environment variable
+  (rpenta@redhat.com)
+- Node Platform - Add .env/user_vars during upgrade (jhonce@redhat.com)
+- Merge pull request #3436 from pmorie/dev/upgrades
+  (dmcphers+openshiftbot@redhat.com)
+- Force throttler to only restore applications under a certain threshold
+  (fotios@redhat.com)
+- Fix creating new endpoints during incompatible upgrades (pmorie@gmail.com)
+- Bug 988662 - Add exit(255) to the usage() methods for oo-user-var scripts
+  (mfojtik@redhat.com)
+- Bug 996491: Show warning when using snapshot and near disk quota
+  (ironcladlou@gmail.com)
+- Bug 998420 - Fixed typo in the --help option for oo-cgroup-template
+  (mfojtik@redhat.com)
+- Bug 998363 - Add --help option to GetoptLong list (mfojtik@redhat.com)
+
 * Tue Aug 20 2013 Adam Miller <admiller@redhat.com> 1.13.8-1
 - BZ#990382: Return error message and code when wrong gear id is given to oo-
   pam-(enable|disable) (mfojtik@redhat.com)
