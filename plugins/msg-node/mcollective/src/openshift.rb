@@ -193,9 +193,11 @@ module MCollective
       def upgrade_action
         Log.instance.info("upgrade_action call / action=#{request.action}, agent=#{request.agent}, data=#{request.data.pretty_inspect}")
         validate :uuid, /^[a-zA-Z0-9]+$/
+        validate :app_uuid, /^[a-zA-Z0-9]+$/
         validate :version, /^.+$/
         validate :namespace, /^.+$/
         uuid = request[:uuid]
+        application_uuid = request[:app_uuid]
         namespace = request[:namespace]
         version = request[:version]
         ignore_cartridge_version = request[:ignore_cartridge_version] == 'true' ? true : false
@@ -207,7 +209,7 @@ module MCollective
         begin
           require 'openshift-origin-node/model/upgrade'
 
-          upgrader = OpenShift::Runtime::Upgrader.new(uuid, namespace, version, hostname, ignore_cartridge_version)
+          upgrader = OpenShift::Runtime::Upgrader.new(uuid, application_uuid, namespace, version, hostname, ignore_cartridge_version)
           result = upgrader.execute
         rescue LoadError => e
           exitcode = 127

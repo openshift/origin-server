@@ -456,7 +456,7 @@ unless fix_ssh_keys.nil? or report_only or error_ssh_keys_app_uuids.length == 0
   error_ssh_keys_app_uuids.each do |uuid|
     begin
       print "Fixing ssh keys for application: #{uuid}...\t" if verbose
-      app = Application.find_by(:uuid => uuid)
+      app = Application.find(uuid)
       app.fix_gear_ssh_keys()
       puts "OK" if verbose
       fixed_app_count += 1

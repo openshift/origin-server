@@ -718,6 +718,7 @@ class Upgrader
           OpenShift::MCollectiveApplicationContainerProxy.rpc_exec('openshift', server_identity) do |client|
             client.upgrade(:uuid => gear_uuid,
                            :namespace => app.domain.namespace,
+                           :app_uuid => app._id.to_s,
                            :version => version,
                            :ignore_cartridge_version => ignore_cartridge_version.to_s) do |response|
               exit_code = response[:body][:data][:exitcode]

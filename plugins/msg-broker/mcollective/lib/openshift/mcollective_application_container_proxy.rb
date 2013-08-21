@@ -310,7 +310,7 @@ module OpenShift
       def build_base_gear_args(gear, quota_blocks=nil, quota_files=nil)
         app = gear.app
         args = Hash.new
-        args['--with-app-uuid'] = app.uuid
+        args['--with-app-uuid'] = app._id.to_s
         args['--with-app-name'] = app.name
         args['--with-container-uuid'] = gear.uuid
         args['--with-container-name'] = gear.name
@@ -839,7 +839,7 @@ module OpenShift
         begin
           resultIO = run_cartridge_command(cart, gear, 'deconfigure', args)
         rescue OpenShift::NodeException => e
-          if has_app_cartridge?(app.uuid, gear.uuid, cart)
+          if has_app_cartridge?(app._id.to_s, gear.uuid, cart)
             raise
           else
             Rails.logger.debug "DEBUG: Cartridge '#{cart}' not found on within application '#{app.name}/#{gear.uuid}'.  Continuing with deconfigure."

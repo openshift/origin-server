@@ -75,7 +75,7 @@ class Application
 
   field :name, type: String
   field :canonical_name, type: String
-  field :uuid, type: String, default: ""
+  #field :uuid, type: String, default: ""
   field :domain_requires, type: Array, default: []
   field :group_overrides, type: Array, default: []
   embeds_many :pending_op_groups, class_name: PendingAppOpGroup.name
@@ -298,6 +298,11 @@ class Application
     #self.pending_op_groups = []
     self.analytics = {} if self.analytics.nil?
     self.save
+  end
+
+  def uuid
+    Rails.logger.error "DEPRECATED: Access to Application#uuid has been removed, call ._id.to_s instead"
+    _id.to_s
   end
 
   ##
