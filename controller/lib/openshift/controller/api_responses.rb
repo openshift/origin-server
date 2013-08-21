@@ -68,6 +68,11 @@ module OpenShift
             messages = get_error_messages(ex.document, field_map || {})
             return render_error(:unprocessable_entity, nil, nil, nil, nil, messages)
 
+          when Mongoid::Errors::InvalidFind
+            status = :not_found
+            message = "No resource was requested."
+            internal_error = false
+
           when Mongoid::Errors::DocumentNotFound
             status = :not_found
             model = ex.klass

@@ -293,7 +293,6 @@ class Application
   def initialize(attrs = nil, options = nil)
     super
     @downloaded_cartridges = {}
-    self.uuid = self._id.to_s if self.uuid=="" or self.uuid.nil?
     self.app_ssh_keys = []
     #self.pending_op_groups = []
     self.analytics = {} if self.analytics.nil?
@@ -301,7 +300,7 @@ class Application
   end
 
   def uuid
-    Rails.logger.error "DEPRECATED: Access to Application#uuid has been removed, call ._id.to_s instead"
+    Rails.logger.error "DEPRECATED: Access to Application#uuid has been removed\n  #{caller.join("\n  ")}"
     _id.to_s
   end
 
