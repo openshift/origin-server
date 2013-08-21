@@ -77,8 +77,14 @@ class MonitoredGearInstanceTest < OpenShift::NodeTestCase
   def test_delay
     @@impl.expects(:intervals).once.returns([50,100])
 
-    # Delay should be (intervals.min / 2)
-    assert_equal 25, @@impl.delay
+    # Delay should be (intervals.min / 4)
+    assert_equal 12.5, @@impl.delay
+  end
+
+  def test_min_delay
+    @@impl.expects(:intervals).once.returns([1])
+
+    assert_equal @@impl::MIN_DELAY, @@impl.delay
   end
 
   def test_explicit_delay
