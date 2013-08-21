@@ -1247,9 +1247,7 @@ module OpenShift
       #
       def set_user_env_vars(gear, env_vars, gears_ssh_endpoint)
         args = build_base_gear_args(gear)
-        if env_vars.present?
-          args['--with-variables'] = env_vars.map {|ev| "#{ev['name']}=#{ev['value']}"}.join(' ')
-        end
+        args['--with-variables'] = env_vars.to_json if env_vars.present?
         args['--with-gears'] = gears_ssh_endpoint.join(';') if gears_ssh_endpoint.present?
         result = execute_direct(@@C_CONTROLLER, 'user-var-add', args)
         parse_result(result)
