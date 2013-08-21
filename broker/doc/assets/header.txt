@@ -1,0 +1,21 @@
+<head>
+<!-- link href="//netdna.bootstrapcdn.com/twitter-bootstrap/2.3.2/css/bootstrap-combined.no-icons.min.css" rel="stylesheet" -->
+<link href="https://github.com/assets/github.css" media="all" rel="stylesheet" type="text/css" />
+<link href="https://github.com/assets/github2.css" media="all" rel="stylesheet" type="text/css" />
+<script src="https://github.global.ssl.fastly.net/assets/frameworks-eae23340ab2a6ba722166712e699c87aaf60ad8f.js" type="text/javascript"></script>
+<script src="https://github.global.ssl.fastly.net/assets/github-a9163d83d307392f83a9e5e521d11f0fea5fd274.js" type="text/javascript"></script>
+<style type="text/css">
+
+pre.terminal {
+  color: #ddd;
+  border-radius: 0;
+  border: none;
+  background-image: none;
+}
+
+body {
+  margin: 50px;
+}
+
+</style>
+</head>

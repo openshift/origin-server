@@ -189,7 +189,7 @@ class RestApplication15 < OpenShift::Model
         ]),
         "DELETE" => Link.new("Delete application", "DELETE", URI::join(url, "domains/#{@domain_id}/applications/#{@name}")),
         "ADD_CARTRIDGE" => Link.new("Add embedded cartridge", "POST", URI::join(url, "domains/#{@domain_id}/applications/#{@name}/cartridges"),[
-            Param.new("name", "string", "framework-type, e.g.: mongodb-2.0", carts)
+            Param.new("name", "string", "framework-type, e.g.: mongodb-2.2", carts)
           ],[
             OptionalParam.new("colocate_with", "string", "The component to colocate with", app.component_instances.map{|c| c.cartridge_name}),
             OptionalParam.new("scales_from", "integer", "Minimum number of gears to run the component on."),

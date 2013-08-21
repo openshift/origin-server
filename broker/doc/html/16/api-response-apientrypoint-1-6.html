@@ -1,0 +1,444 @@
+<html><body><pre>{
+  "api_version": 1.6,
+  "data": {
+    "API": {
+      "href": "https://openshift.redhat.com/broker/rest/api",
+      "method": "GET",
+      "optional_params": [
+
+      ],
+      "rel": "API entry point",
+      "required_params": [
+
+      ]
+    },
+    "GET_ENVIRONMENT": {
+      "href": "https://openshift.redhat.com/broker/rest/environment",
+      "method": "GET",
+      "optional_params": [
+
+      ],
+      "rel": "Get environment information",
+      "required_params": [
+
+      ]
+    },
+    "GET_USER": {
+      "href": "https://openshift.redhat.com/broker/rest/user",
+      "method": "GET",
+      "optional_params": [
+
+      ],
+      "rel": "Get user information",
+      "required_params": [
+
+      ]
+    },
+    "ADD_DOMAIN": {
+      "href": "https://openshift.redhat.com/broker/rest/domains",
+      "method": "POST",
+      "optional_params": [
+
+      ],
+      "rel": "Create new domain",
+      "required_params": [
+        {
+          "description": "Name of the domain",
+          "invalid_options": [
+            "amentra",
+            "aop",
+            "apiviz",
+            "arquillian",
+            "blacktie",
+            "boxgrinder",
+            "byteman",
+            "cirras",
+            "cloud",
+            "cloudforms",
+            "cygwin",
+            "davcache",
+            "dogtag",
+            "drools",
+            "drools",
+            "ejb3",
+            "errai",
+            "esb",
+            "fedora",
+            "freeipa",
+            "gatein",
+            "git",
+            "gfs",
+            "gravel",
+            "guvnor",
+            "hibernate",
+            "hornetq",
+            "iiop",
+            "infinispan",
+            "ironjacamar",
+            "javassist",
+            "jbcaa",
+            "jbcd",
+            "jboss",
+            "jbpm",
+            "jdcom",
+            "jgroups",
+            "jmx",
+            "jopr",
+            "jrunit",
+            "jsfunit",
+            "kosmos",
+            "liberation",
+            "makara",
+            "mass",
+            "maven",
+            "metajizer",
+            "metamatrix",
+            "mobicents",
+            "mod_cluster",
+            "modeshape",
+            "mugshot",
+            "mysql",
+            "netty",
+            "openshift",
+            "osgi",
+            "overlord",
+            "ovirt",
+            "penrose",
+            "picketbox",
+            "picketlink",
+            "portletbridge",
+            "portletswap",
+            "posse",
+            "pressgang",
+            "qumranet",
+            "railo",
+            "redhat",
+            "resteasy",
+            "rhca",
+            "rhcds",
+            "rhce",
+            "rhcsa",
+            "rhcss",
+            "rhct",
+            "rhcva",
+            "rhel",
+            "rhev",
+            "rhq",
+            "rhx",
+            "richfaces",
+            "riftsaw",
+            "savara",
+            "scribble",
+            "seam",
+            "shadowman",
+            "shotoku",
+            "shrinkwrap",
+            "snowdrop",
+            "solidice",
+            "spacewalk",
+            "spice",
+            "steamcannon",
+            "stormgrind",
+            "switchyard",
+            "tattletale",
+            "teiid",
+            "tohu",
+            "torquebox",
+            "weld",
+            "wise",
+            "xnio"
+          ],
+          "name": "name",
+          "type": "string",
+          "valid_options": [
+
+          ]
+        }
+      ]
+    },
+    "LIST_DOMAINS": {
+      "href": "https://openshift.redhat.com/broker/rest/domains",
+      "method": "GET",
+      "optional_params": [
+
+      ],
+      "rel": "List all domains you have access to",
+      "required_params": [
+
+      ]
+    },
+    "LIST_DOMAINS_BY_OWNER": {
+      "href": "https://openshift.redhat.com/broker/rest/domains",
+      "method": "GET",
+      "optional_params": [
+
+      ],
+      "rel": "List domains",
+      "required_params": [
+        {
+          "description": "Return only the domains owned by the specified user id or identity.  Use @self to refer to the current user.",
+          "invalid_options": [
+
+          ],
+          "name": "owner",
+          "type": "string",
+          "valid_options": [
+            "@self",
+            "*"
+          ]
+        }
+      ]
+    },
+    "SHOW_DOMAIN": {
+      "href": "https://openshift.redhat.com/broker/rest/domain/:name",
+      "method": "GET",
+      "optional_params": [
+
+      ],
+      "rel": "Retrieve a domain by its name",
+      "required_params": [
+        {
+          "description": "Unique name of the domain",
+          "invalid_options": [
+
+          ],
+          "name": ":name",
+          "type": "string",
+          "valid_options": [
+
+          ]
+        }
+      ]
+    },
+    "SHOW_APPLICATION_BY_DOMAIN": {
+      "href": "https://openshift.redhat.com/broker/rest/domain/:domain_name/application/:name",
+      "method": "GET",
+      "optional_params": [
+
+      ],
+      "rel": "Retrieve an application by its name and domain",
+      "required_params": [
+        {
+          "description": "Unique name of the domain",
+          "invalid_options": [
+
+          ],
+          "name": ":domain_name",
+          "type": "string",
+          "valid_options": [
+
+          ]
+        },
+        {
+          "description": "Name of the application",
+          "invalid_options": [
+
+          ],
+          "name": ":name",
+          "type": "string",
+          "valid_options": [
+
+          ]
+        }
+      ]
+    },
+    "LIST_CARTRIDGES": {
+      "href": "https://openshift.redhat.com/broker/rest/cartridges",
+      "method": "GET",
+      "optional_params": [
+
+      ],
+      "rel": "List cartridges",
+      "required_params": [
+
+      ]
+    },
+    "LIST_APPLICATIONS": {
+      "href": "https://openshift.redhat.com/broker/rest/applications",
+      "method": "GET",
+      "optional_params": [
+
+      ],
+      "rel": "List application",
+      "required_params": [
+
+      ]
+    },
+    "SHOW_APPLICATION": {
+      "href": "https://openshift.redhat.com/broker/rest/application/:id",
+      "method": "GET",
+      "optional_params": [
+
+      ],
+      "rel": "List application",
+      "required_params": [
+        {
+          "description": "Unique identifier of the application",
+          "invalid_options": [
+
+          ],
+          "name": ":id",
+          "type": "string",
+          "valid_options": [
+
+          ]
+        }
+      ]
+    },
+    "LIST_AUTHORIZATIONS": {
+      "href": "https://openshift.redhat.com/broker/rest/user/authorizations",
+      "method": "GET",
+      "optional_params": [
+
+      ],
+      "rel": "List authorizations",
+      "required_params": [
+
+      ]
+    },
+    "SHOW_AUTHORIZATION": {
+      "href": "https://openshift.redhat.com/broker/rest/user/authorization/:id",
+      "method": "GET",
+      "optional_params": [
+
+      ],
+      "rel": "Retrieve authorization :id",
+      "required_params": [
+        {
+          "description": "Unique identifier of the authorization",
+          "invalid_options": [
+
+          ],
+          "name": ":id",
+          "type": "string",
+          "valid_options": [
+
+          ]
+        }
+      ]
+    },
+    "ADD_AUTHORIZATION": {
+      "href": "https://openshift.redhat.com/broker/rest/user/authorizations",
+      "method": "POST",
+      "optional_params": [
+        {
+          "default_value": "userinfo",
+          "description": "Select one or more scopes that this authorization will grant access to:\n\n*  session\n   Grants a client the authority to perform all API actions against your account. Valid for 1 day.\n*  read\n   Allows the client to access resources you own without making changes. Does not allow access to view authorization tokens. Valid for about 1 month.\n*  userinfo\n   Allows a client to view your login name, unique id, and your user capabilities. Valid for about 1 month.\n*  domain/:id/view\n   Grant read-only access to a single domain. Valid for about 1 month.\n*  domain/:id/edit\n   Grant edit access to a single domain and all its applications. Valid for about 1 month.\n*  domain/:id/admin\n   Grant full administrative access to a single domain and all its applications. Valid for about 1 month.\n*  application/:id/view\n   Grant read-only access to a single application. Valid for about 1 month.\n*  application/:id/edit\n   Grant edit access to a single application. Valid for about 1 month.\n*  application/:id/admin\n   Grant full administrative access to a single application. Valid for about 1 month.",
+          "name": "scope",
+          "type": "string",
+          "valid_options": [
+            "session",
+            "read",
+            "userinfo",
+            "domain/:id/view",
+            "domain/:id/edit",
+            "domain/:id/admin",
+            "application/:id/view",
+            "application/:id/edit",
+            "application/:id/admin"
+          ]
+        },
+        {
+          "default_value": null,
+          "description": "A description to remind you what this authorization is for.",
+          "name": "note",
+          "type": "string",
+          "valid_options": [
+
+          ]
+        },
+        {
+          "default_value": -1,
+          "description": "The number of seconds before this authorization expires. Out of range values will be set to the maximum allowed time.",
+          "name": "expires_in",
+          "type": "integer",
+          "valid_options": [
+
+          ]
+        },
+        {
+          "default_value": false,
+          "description": "Attempt to locate and reuse an authorization that matches the scope and note and has not yet expired.",
+          "name": "reuse",
+          "type": "boolean",
+          "valid_options": [
+            true,
+            false
+          ]
+        }
+      ],
+      "rel": "Add new authorization",
+      "required_params": [
+
+      ]
+    },
+    "LIST_QUICKSTARTS": {
+      "href": "https://openshift.redhat.com:8118/api/v1/quickstarts/promoted.json",
+      "method": "GET",
+      "optional_params": [
+
+      ],
+      "rel": "List quickstarts",
+      "required_params": [
+
+      ]
+    },
+    "SHOW_QUICKSTART": {
+      "href": "https://openshift.redhat.com:8118/api/v1/quickstarts/:id",
+      "method": "GET",
+      "optional_params": [
+
+      ],
+      "rel": "Retrieve quickstart with :id",
+      "required_params": [
+        {
+          "description": "Unique identifier of the quickstart",
+          "invalid_options": [
+
+          ],
+          "name": ":id",
+          "type": "string",
+          "valid_options": [
+
+          ]
+        }
+      ]
+    },
+    "SEARCH_QUICKSTARTS": {
+      "href": "https://openshift.redhat.com:8118/api/v1/quickstarts.json",
+      "method": "GET",
+      "optional_params": [
+
+      ],
+      "rel": "Search quickstarts",
+      "required_params": [
+        {
+          "description": "The search term to use for the quickstart",
+          "invalid_options": [
+
+          ],
+          "name": "search",
+          "type": "string",
+          "valid_options": [
+
+          ]
+        }
+      ]
+    }
+  },
+  "messages": [
+
+  ],
+  "status": "ok",
+  "supported_api_versions": [
+    1.0,
+    1.1,
+    1.2,
+    1.3,
+    1.4,
+    1.5,
+    1.6
+  ],
+  "type": "links",
+  "version": "1.6"
+}</pre></body></html>
