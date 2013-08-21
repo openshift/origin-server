@@ -10,7 +10,7 @@
 
 Summary:       M-Collective agent file for openshift-origin-msg-node-mcollective
 Name:          openshift-origin-msg-node-mcollective
-Version: 1.13.7
+Version: 1.13.8
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -51,6 +51,11 @@ cp -p facts/update_yaml.rb %{buildroot}/usr/libexec/mcollective/
 %attr(0700,-,-) %config(noreplace) /etc/cron.minutely/openshift-facts
 
 %changelog
+* Wed Aug 21 2013 Adam Miller <admiller@redhat.com> 1.13.8-1
+- fix bug 999144 - check gear_file against uid map (rchopra@redhat.com)
+- Bug 998794 - Allow blank value for a user environment variable
+  (rpenta@redhat.com)
+
 * Tue Aug 20 2013 Adam Miller <admiller@redhat.com> 1.13.7-1
 - Merge pull request #3418 from lnader/master
   (dmcphers+openshiftbot@redhat.com)
