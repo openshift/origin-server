@@ -9,7 +9,7 @@
 
 Summary:       OpenShift Origin Management Console
 Name:          rubygem-%{gem_name}
-Version: 1.13.5
+Version: 1.13.6
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -153,6 +153,13 @@ cp -a ./%{gem_dir}/* %{buildroot}%{gem_dir}/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Wed Aug 21 2013 Adam Miller <admiller@redhat.com> 1.13.6-1
+- Merge pull request #3437 from smarterclayton/alias_overzealous_messaging
+  (dmcphers+openshiftbot@redhat.com)
+- Review comments (ccoleman@redhat.com)
+- Aliases are writing too many flashes when errors are present
+  (ccoleman@redhat.com)
+
 * Tue Aug 20 2013 Adam Miller <admiller@redhat.com> 1.13.5-1
 - Merge pull request #3415 from tdawson/tdawson/mirrorfixes/2013-08
   (dmcphers+openshiftbot@redhat.com)
