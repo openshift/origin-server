@@ -1,0 +1,22 @@
+%td{:style => "vertical-align: top; font-weight: bold; color: red; padding-right: 5px; padding-bottom: 10px;"}
+  .badge.badge-important
+    = "!"
+%td{:style => "vertical-align: top; padding-bottom: 10px;"}
+
+  - case size
+  - when :short  # just the basic facts about the suggestion
+    %div{:style => "font-size: 14.5px; line-height: 17px;"}
+      Error. Error bad.
+      &= suggestion.error.to_s
+
+  - when :full  # the full monty
+    %div{:style => "font-size: 14.5px; line-height: 17px;"}
+      There was an error while generating suggestions. This is either a system failure
+      such as being unable to contact MongoDB or ActiveMQ, or a coding error.
+    %div{:style => "font-size: 14.5px; line-height: 17px;"}
+      The specific error was:
+      &= suggestion.error.to_s
+    %div{:style => "font-size: 14.5px; line-height: 17px;"}
+      The stack trace for the error is:
+      %pre
+        &= suggestion.stack.map(&:to_s).join("\n")

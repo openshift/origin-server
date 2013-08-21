@@ -1,0 +1,10 @@
+%section
+  %h3
+    Suggestions
+  %table{:style => "vertical-align: top;"}
+    %tbody
+      - @suggestions.each do |suggestion|
+        - partial = suggestion_partial_for suggestion
+        - url = suggestions_path id: suggestion.id 
+        %tr.short{ suggestion_url: url }
+          = render partial: partial, locals: {suggestion: suggestion, size: :short}

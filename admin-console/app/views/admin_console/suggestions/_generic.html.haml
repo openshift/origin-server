@@ -1,0 +1,21 @@
+%td{:style => "vertical-align: top; font-weight: bold; color: red; padding-right: 5px; padding-bottom: 10px;"}
+  .badge.badge-important
+    = "!"
+%td{:style => "vertical-align: top; padding-bottom: 10px;"}
+
+  - case size
+  - when :short  # just the basic facts about the suggestion
+    %div{:style => "font-size: 14.5px; line-height: 17px;"}
+      Generic suggestion of type
+      &= suggestion.class
+
+  - when :full  # the full monty
+    %div{:style => "font-size: 14.5px; line-height: 17px;"}
+      There was suggestion of type
+      &= suggestion.class
+      which doesn't have a display method. Please add a view for this type of suggestion.
+    %div{:style => "font-size: 14.5px; line-height: 17px;"}
+      The suggestion contains the following values:
+      - require 'pp'
+      %pre
+        = suggestion.pretty_inspect

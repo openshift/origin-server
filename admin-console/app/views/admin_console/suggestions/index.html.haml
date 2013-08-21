@@ -1,0 +1,18 @@
+.suggestions
+  %h1
+    Suggestions
+  - if @suggestions.empty?
+    %em
+      Perhaps a nice cup of coffee?
+  - else
+    %table{:style => "vertical-align: top;"}
+      %tbody
+        - @suggestions.each do |suggestion|
+          - partial = suggestion_partial_for suggestion
+          - url = suggestions_path id: suggestion.id 
+          -# TODO use javascript to toggle between short or full display
+          -# TODO also, scroll to and make full-size the page suggestion id
+          %tr.short{style: 'display: none;', suggestion_url: url }
+            = render partial: partial, locals: {suggestion: suggestion, size: :short}
+          %tr.full{ suggestion_url: url }
+            = render partial: partial, locals: {suggestion: suggestion, size: :full}

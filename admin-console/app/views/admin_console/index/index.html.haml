@@ -10,6 +10,15 @@
     %h1
       System Overview
     .row
-      - @summary_for_profile.each_with_index do |profile, index|
+      - if @suggestions.size <= 3 # inline them with the profiles 
         .span6
-          = render :partial => 'profile', :locals => {:profile => profile[1]}
+          = render :partial => 'suggestions' if !@suggestions.empty?
+        - @summary_for_profile.each_with_index do |profile, index|
+          .span6{:class => index == 1 ? "clear" : ""}
+            = render :partial => 'profile', :locals => {:profile => profile[1]}
+      - else # too many suggestions, use the right column
+        .span7
+          - @summary_for_profile.each_with_index do |profile, index|
+            = render :partial => 'profile', :locals => {:profile => profile[1]}
+        .span5
+          = render :partial => 'suggestions'

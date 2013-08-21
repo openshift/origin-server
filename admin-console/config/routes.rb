@@ -11,6 +11,7 @@ AdminConsole::Engine.routes.draw do
     resources :profiles, :only => [:show, :index], :id => id_regex
     get "profiles/:id/nodes", to: "profiles#show_nodes", :id => id_regex, :as => "profile_nodes"
   end
+  resources :suggestions, :only => [:index], :id => /\d+/
 end
 # integrate admin-console routes into the broker routes.
 Rails.application.routes.draw do
