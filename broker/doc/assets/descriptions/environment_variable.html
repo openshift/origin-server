@@ -1,0 +1,9 @@
+This resource provides the mean for adding user-defined environment variables set in an application deployment scope. Basically the user will be able to set environment variables during app creation, cartridge addition or even on existing applications. Environment variables set by the user will be persistent and replicated through all gears of the app, including new gears added in scaling events for example.
+<br />
+Think for example usernames and passwords, url's for SMTP hosts, API client id's and authorization tokens, etc. You don't want to set for example an access token for the Instagram API in config files in your git repo, specially if your app is open source. So if your app interacts with the Instagram API you could set the access token values on environment variables (and make your app read it from env vars).
+
+<table border=1>
+<tr><td>Name</td><td>Description</td></tr>
+<tr><td>name</td><td>Name of the environment variable</td></tr>
+<tr><td>value</td><td>Value of the environment variable</td></tr>
+</table>

@@ -1,0 +1,274 @@
+<html><body><pre>{
+  "api_version": 1.6,
+  "data": [
+    {
+      "creation_time": "2013-08-14T08:46:39Z",
+      "links": {
+        "GET": {
+          "href": "https://openshift.redhat.com/broker/rest/domains/mydomainx",
+          "method": "GET",
+          "optional_params": [
+
+          ],
+          "rel": "Get domain",
+          "required_params": [
+
+          ]
+        },
+        "ADD_APPLICATION": {
+          "href": "https://openshift.redhat.com/broker/rest/domains/mydomainx/applications",
+          "method": "POST",
+          "optional_params": [
+            {
+              "default_value": null,
+              "description": "Array of one or more cartridge names",
+              "name": "cartridges",
+              "type": "array",
+              "valid_options": [
+                "nodejs-0.6",
+                "python-2.6",
+                "python-2.7",
+                "python-3.3",
+                "zend-5.6",
+                "ruby-1.9",
+                "ruby-1.8",
+                "jenkins-1.4",
+                "jbossews-2.0",
+                "jbossews-1.0",
+                "mock-0.1",
+                "mock-0.2",
+                "perl-5.10",
+                "php-5.3",
+                "jbosseap-6.0",
+                "diy-0.1",
+                "jbossas-7"
+              ]
+            },
+            {
+              "default_value": false,
+              "description": "Mark application as scalable",
+              "name": "scale",
+              "type": "boolean",
+              "valid_options": [
+                true,
+                false
+              ]
+            },
+            {
+              "default_value": "small",
+              "description": "The size of the gear",
+              "name": "gear_profile",
+              "type": "string",
+              "valid_options": [
+                "small"
+              ]
+            },
+            {
+              "default_value": "",
+              "description": "A URL to a Git source code repository that will be the basis for this application.",
+              "name": "initial_git_url",
+              "type": "string",
+              "valid_options": [
+                "*",
+                "empty"
+              ]
+            },
+            {
+              "default_value": null,
+              "description": "A URL to a downloadable cartridge. You may specify an multiple urls via {'cartridges' : [{'url':'http://...'}, ...]}",
+              "name": "cartridges[][url]",
+              "type": "string",
+              "valid_options": [
+
+              ]
+            }
+          ],
+          "rel": "Create new application",
+          "required_params": [
+            {
+              "description": "Name of the application",
+              "invalid_options": [
+                "amentra",
+                "aop",
+                "apiviz",
+                "arquillian",
+                "blacktie",
+                "boxgrinder",
+                "byteman",
+                "cirras",
+                "cloud",
+                "cloudforms",
+                "cygwin",
+                "davcache",
+                "dogtag",
+                "drools",
+                "drools",
+                "ejb3",
+                "errai",
+                "esb",
+                "fedora",
+                "freeipa",
+                "gatein",
+                "git",
+                "gfs",
+                "gravel",
+                "guvnor",
+                "hibernate",
+                "hornetq",
+                "iiop",
+                "infinispan",
+                "ironjacamar",
+                "javassist",
+                "jbcaa",
+                "jbcd",
+                "jboss",
+                "jbpm",
+                "jdcom",
+                "jgroups",
+                "jmx",
+                "jopr",
+                "jrunit",
+                "jsfunit",
+                "kosmos",
+                "liberation",
+                "makara",
+                "mass",
+                "maven",
+                "metajizer",
+                "metamatrix",
+                "mobicents",
+                "mod_cluster",
+                "modeshape",
+                "mugshot",
+                "mysql",
+                "netty",
+                "openshift",
+                "osgi",
+                "overlord",
+                "ovirt",
+                "penrose",
+                "picketbox",
+                "picketlink",
+                "portletbridge",
+                "portletswap",
+                "posse",
+                "pressgang",
+                "qumranet",
+                "railo",
+                "redhat",
+                "resteasy",
+                "rhca",
+                "rhcds",
+                "rhce",
+                "rhcsa",
+                "rhcss",
+                "rhct",
+                "rhcva",
+                "rhel",
+                "rhev",
+                "rhq",
+                "rhx",
+                "richfaces",
+                "riftsaw",
+                "savara",
+                "scribble",
+                "seam",
+                "shadowman",
+                "shotoku",
+                "shrinkwrap",
+                "snowdrop",
+                "solidice",
+                "spacewalk",
+                "spice",
+                "steamcannon",
+                "stormgrind",
+                "switchyard",
+                "tattletale",
+                "teiid",
+                "tohu",
+                "torquebox",
+                "weld",
+                "wise",
+                "xnio"
+              ],
+              "name": "name",
+              "type": "string",
+              "valid_options": [
+
+              ]
+            }
+          ]
+        },
+        "LIST_APPLICATIONS": {
+          "href": "https://openshift.redhat.com/broker/rest/domains/mydomainx/applications",
+          "method": "GET",
+          "optional_params": [
+
+          ],
+          "rel": "List applications for a domain",
+          "required_params": [
+
+          ]
+        },
+        "UPDATE": {
+          "href": "https://openshift.redhat.com/broker/rest/domains/mydomainx",
+          "method": "PUT",
+          "optional_params": [
+
+          ],
+          "rel": "Update domain",
+          "required_params": [
+            {
+              "description": "Name of the domain",
+              "invalid_options": [
+
+              ],
+              "name": "name",
+              "type": "string",
+              "valid_options": [
+
+              ]
+            }
+          ]
+        },
+        "DELETE": {
+          "href": "https://openshift.redhat.com/broker/rest/domains/mydomainx",
+          "method": "DELETE",
+          "optional_params": [
+            {
+              "default_value": false,
+              "description": "Force delete domain.  i.e. delete any applications under this domain",
+              "name": "force",
+              "type": "boolean",
+              "valid_options": [
+                true,
+                false
+              ]
+            }
+          ],
+          "rel": "Delete domain",
+          "required_params": [
+
+          ]
+        }
+      },
+      "name": "mydomainx",
+      "suffix": "dev.rhcloud.com"
+    }
+  ],
+  "messages": [
+
+  ],
+  "status": "ok",
+  "supported_api_versions": [
+    1.0,
+    1.1,
+    1.2,
+    1.3,
+    1.4,
+    1.5,
+    1.6
+  ],
+  "type": "domains",
+  "version": "1.6"
+}</pre></body></html>
