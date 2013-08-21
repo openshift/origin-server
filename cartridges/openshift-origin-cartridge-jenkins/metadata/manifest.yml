@@ -1,8 +1,8 @@
 Name: jenkins
 Vendor: Jenkins CI
 Cartridge-Short-Name: JENKINS
-Display-Name: Jenkins Server 1
-Description: "Jenkins is a continuous integration (CI) build server that is deeply integrated into OpenShift. See the Jenkins info page for more."
+Display-Name: Jenkins Server
+Description: "Jenkins is a continuous integration (CI) build server that is deeply integrated into OpenShift. See the Jenkins info page for more. Based on Jenkins 1.509+"
 Version: '1'
 License: MIT license
 License-Url: http://jenkinsci.org/mitlicense
