@@ -1,106 +1,121 @@
+---
 Name: jbossews
 Cartridge-Short-Name: JBOSSEWS
 Cartridge-Vendor: redhat
-Cartridge-Version: '0.0.4'
-Compatible-Versions: ['0.0.2', '0.0.3']
+Cartridge-Version: 0.0.5
+Compatible-Versions:
+- 0.0.2
+- 0.0.3
+- 0.0.4
 Display-Name: Tomcat 7 (JBoss EWS 2.0)
-Description: "JBoss Enterprise Web Server is the enterprise-class Java web container for large-scale lightweight web applications based on Tomcat 7. Build and deploy JSPs and Servlets in the cloud."
+Description: JBoss Enterprise Web Server is the enterprise-class Java web container
+  for large-scale lightweight web applications based on Tomcat 7. Build and deploy
+  JSPs and Servlets in the cloud.
 Version: '2.0'
-Versions: ['2.0', '1.0']
+Versions:
+- '2.0'
+- '1.0'
 License: LGPL
 License-Url: http://www.gnu.org/copyleft/lesser.txt
-Vendor:  jboss.com
+Vendor: jboss.com
 Categories:
-  - service
-  - java
-  - jboss
-  - tomcat
-  - tomcat7
-  - web_framework
+- service
+- java
+- jboss
+- tomcat
+- tomcat7
+- web_framework
 Website: http://www.redhat.com/products/jbossenterprisemiddleware/web-server/
 Help-Topics:
-  "Developer Center": https://www.openshift.com/developers
+  Developer Center: https://www.openshift.com/developers
 Cart-Data:
-  - Key: OPENSHIFT_JBOSSEWS_LOG_DIR
-    Type: environment
-    Description: "Directory to store application log files."
-  - Key: OPENSHIFT_TMP_DIR
-    Type: environment
-    Description: "Directory to store application temporary files."
-  - Key: OPENSHIFT_REPO_DIR
-    Type: environment
-    Description: "Application root directory where application files reside. This directory is reset every time you do a git-push"
-  - Key: OPENSHIFT_JBOSSEWS_HTTP_PORT
-    Type: environment
-    Description: "Internal port to which the web-framework binds to."
-  - Key: OPENSHIFT_JBOSSEWS_IP
-    Type: environment
-    Description: "Internal IP to which the web-framework binds to."
-  - Key: OPENSHIFT_APP_DNS
-    Type: environment
-    Description: "Fully qualified domain name for the application."
-  - Key: OPENSHIFT_APP_NAME
-    Type: environment
-    Description: "Application name"
-  - Key: OPENSHIFT_DATA_DIR
-    Type: environment
-    Description: "Directory to store application data files. Preserved across git-pushes. Not shared across gears."
-  - Key: OPENSHIFT_APP_UUID
-    Type: environment
-    Description: "Unique ID which identified the application. Does not change between gears."
-  - Key: OPENSHIFT_GEAR_UUID
-    Type: environment
-    Description: "Unique ID which identified the gear. This value changes between gears."
+- Key: OPENSHIFT_JBOSSEWS_LOG_DIR
+  Type: environment
+  Description: Directory to store application log files.
+- Key: OPENSHIFT_TMP_DIR
+  Type: environment
+  Description: Directory to store application temporary files.
+- Key: OPENSHIFT_REPO_DIR
+  Type: environment
+  Description: Application root directory where application files reside. This directory
+    is reset every time you do a git-push
+- Key: OPENSHIFT_JBOSSEWS_HTTP_PORT
+  Type: environment
+  Description: Internal port to which the web-framework binds to.
+- Key: OPENSHIFT_JBOSSEWS_IP
+  Type: environment
+  Description: Internal IP to which the web-framework binds to.
+- Key: OPENSHIFT_APP_DNS
+  Type: environment
+  Description: Fully qualified domain name for the application.
+- Key: OPENSHIFT_APP_NAME
+  Type: environment
+  Description: Application name
+- Key: OPENSHIFT_DATA_DIR
+  Type: environment
+  Description: Directory to store application data files. Preserved across git-pushes.
+    Not shared across gears.
+- Key: OPENSHIFT_APP_UUID
+  Type: environment
+  Description: Unique ID which identified the application. Does not change between
+    gears.
+- Key: OPENSHIFT_GEAR_UUID
+  Type: environment
+  Description: Unique ID which identified the gear. This value changes between gears.
 Provides:
-  - "jbossews-2.0"
-  - "jbossews"
-  - "jboss-ews-2.0"
-  - "jboss-ews-2.0.0"
+- jbossews-2.0
+- jbossews
+- jboss-ews-2.0
+- jboss-ews-2.0.0
 Publishes:
   get-internal-uri:
-    Type: "NET_TCP:http"
+    Type: NET_TCP:http
   publish-http-url:
-    Type: "NET_TCP:httpd-proxy-info"
+    Type: NET_TCP:httpd-proxy-info
   publish-gear-endpoint:
-    Type: "NET_TCP:gear-endpoint-info"
+    Type: NET_TCP:gear-endpoint-info
 Subscribes:
   set-env:
-    Type: "ENV:*"
+    Type: ENV:*
     Required: false
   set-jdbc-info:
-    Type: "NET_TCP:jdbc"
+    Type: NET_TCP:jdbc
 Endpoints:
-  - Private-IP-Name:   IP
-    Private-Port-Name: HTTP_PORT
-    Private-Port:      8080
-    Public-Port-Name:  HTTP_PROXY_PORT
-    Mappings:
-      - Frontend:      ""
-        Backend:       ""
-        Options:       { "websocket": 1}
-      - Frontend:      "/health"
-        Backend:       ""
-        Options:       { health: true}
-  - Private-IP-Name:   IP
-    Private-Port-Name: JPDA_PORT
-    Private-Port:      8787
+- Private-IP-Name: IP
+  Private-Port-Name: HTTP_PORT
+  Private-Port: 8080
+  Public-Port-Name: HTTP_PROXY_PORT
+  Mappings:
+  - Frontend: ''
+    Backend: ''
+    Options:
+      websocket: 1
+  - Frontend: /health
+    Backend: ''
+    Options:
+      health: true
+- Private-IP-Name: IP
+  Private-Port-Name: JPDA_PORT
+  Private-Port: 8787
 Additional-Control-Actions:
-    - threaddump
+- threaddump
 Version-Overrides:
   '1.0':
     Display-Name: Tomcat 6 (JBoss EWS 1.0)
-    Description: "JBoss Enterprise Web Server is the enterprise-class Java web container for large-scale lightweight web applications based on Tomcat 6. Build and deploy JSPs and Servlets in the cloud."
+    Description: JBoss Enterprise Web Server is the enterprise-class Java web container
+      for large-scale lightweight web applications based on Tomcat 6. Build and deploy
+      JSPs and Servlets in the cloud.
     Provides:
-      - "jbossews-1.0"
-      - "jbossews"
-      - "jbossews(version) = 1.0.0"
-      - "jbossews(version) >= 1.0"
-      - "jboss-ews-1.0"
-      - "jboss-ews-1.0.0"
+    - jbossews-1.0
+    - jbossews
+    - jbossews(version) = 1.0.0
+    - jbossews(version) >= 1.0
+    - jboss-ews-1.0
+    - jboss-ews-1.0.0
     Categories:
-      - service
-      - java
-      - jboss
-      - tomcat
-      - tomcat6
-      - web_framework
+    - service
+    - java
+    - jboss
+    - tomcat
+    - tomcat6
+    - web_framework
