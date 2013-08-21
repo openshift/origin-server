@@ -155,7 +155,7 @@ begin
     app.group_instances.each do |gi|
       gi.gears.each do |g|
         if g._id.to_s == gear_uuid or g.uuid == gear_uuid
-          if g.sparse_carts and g.sparse_carts.length>0 and gi.gears[0]==g
+          if (g.sparse_carts and g.sparse_carts.length>0) or (gi.gears.length==1 and gi.gears[0]==g)
             puts "Gear #{gear_uuid} hosts sparse components within its group instance. You cannot remove it."
             puts "You can either remove the cartridge or delete the application."
             exit 1
