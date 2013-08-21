@@ -2,7 +2,7 @@
 
 Summary:       Provides JBossEWS2.0 support
 Name:          openshift-origin-cartridge-jbossews
-Version: 0.8.5
+Version: 0.8.6
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -76,6 +76,12 @@ alternatives --set jbossews-2.0 /usr/share/tomcat7
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Wed Aug 21 2013 Adam Miller <admiller@redhat.com> 0.8.6-1
+- Merge pull request #3456 from tdawson/tdawson/fixmirrorfix/2013-08
+  (admiller@redhat.com)
+- change mirror.openshift.com to mirror1.ops.rhcloud.com for aws mirroring
+  (tdawson@redhat.com)
+
 * Wed Aug 21 2013 Adam Miller <admiller@redhat.com> 0.8.5-1
 - Cartridge - Sprint 2.0.32 cartridge version bumps (jhonce@redhat.com)
 
