@@ -2,7 +2,7 @@
 
 Summary:       Mock cartridge for V2 Cartridge SDK
 Name:          openshift-origin-cartridge-mock
-Version: 0.8.3
+Version: 0.8.4
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -38,6 +38,9 @@ test platform functionality. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Wed Aug 21 2013 Adam Miller <admiller@redhat.com> 0.8.4-1
+- Cartridge - Sprint 2.0.32 cartridge version bumps (jhonce@redhat.com)
+
 * Fri Aug 16 2013 Adam Miller <admiller@redhat.com> 0.8.3-1
 - Bug 981148 - missing facter dependency for cartridge installation
   (bleanhar@redhat.com)
