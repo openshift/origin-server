@@ -35,6 +35,7 @@ Options:
 UUID: Unique identifier for the application
 
 USAGE
+  exit(255)
 end
 
 require 'rubygems'
