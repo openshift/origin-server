@@ -18,6 +18,20 @@ Broker::Application.configure do
     end
     conf = OpenShift::Config.new(conf_file)
 
+    convert = lambda do |str|
+      return nil if str.nil? or str.empty?
+      cfg = Hash.new
+      str.split(',').each do |tuple|
+        profile, value, nothing = tuple.split(':').map(&:strip)
+        if value.nil? # no profile: so it's the default
+          cfg[:default] = profile.to_i
+        elsif nothing.nil?
+          cfg[profile] = value.to_i
+        end # else... we ignore it.
+      end
+      cfg
+    end
+
     # parse out the various configuration options
     config.admin_console = {
       mount_uri: conf.get("MOUNT_URI", "/admin-console"),
@@ -26,11 +40,15 @@ Broker::Application.configure do
         mco_timeout: conf.get("STATS_GATHER_TIMEOUT", 0.5).to_f,
         read_file: conf.get("STATS_FROM_FILE", nil),
       },
-      expected_active_pct: conf.get("EXPECTED_ACTIVE_PERCENT", 50).to_i,
+      suggest: {
+        active_gear_pct: convert.call(conf.get "GEAR_EXPECTED_ACTIVE_PERCENT", "50"),
+        gear_up_threshold: convert.call(conf.get "GEAR_UP_THRESHOLD", nil),
+        gear_up_size: convert.call(conf.get "GEAR_UP_SIZE", "200"),
+        gear_down_threshold: convert.call(conf.get "GEAR_DOWN_THRESHOLD", nil),
+      },
       warn: {
         node_active_remaining: conf.get("WARNING_NODE_ACTIVE_REMAINING", 0).to_i,
       },
-      debug_profile_data: conf.get("DEBUG_PROFILE_DATA_FILE", nil),
     }
   end
 end
