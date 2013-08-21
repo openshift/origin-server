@@ -281,7 +281,7 @@ class ApplicationContainerTest < OpenShift::NodeTestCase
     filename = "#{source}/UNIT_TEST"
     gears    = ['unit_test.example.com']
 
-    @container.expects(:user_var_push).with(gears)
+    @container.expects(:user_var_push).with(gears, true)
 
     @container.user_var_add({'UNIT_TEST' => 'true'}, gears)
 
@@ -292,7 +292,8 @@ class ApplicationContainerTest < OpenShift::NodeTestCase
     path  = "/var/lib/openshift/#{@gear_uuid}/.env/user_vars/UNIT_TEST"
     gears = ['unit_test.example.com']
 
-    @container.expects(:user_var_push).with(gears).twice
+    @container.expects(:user_var_push).with(gears, true)
+    @container.expects(:user_var_push).with(gears)
 
     @container.user_var_add({'UNIT_TEST' => 'true'}, gears)
     assert_path_exist path
@@ -317,7 +318,13 @@ class ApplicationContainerTest < OpenShift::NodeTestCase
   def test_bad_user_var()
     env = {'OPENSHIFT_TEST_IDENT'            => 'x:x:x:x',
            'OPENSHIFT_NAMESPACE'             => 'namespace',
-           'OPENSHIFT_PRIMARY_CARTRIDGE_DIR' => 'mine'}
+           'OPENSHIFT_PRIMARY_CARTRIDGE_DIR' => 'mine',
+           'PATH'                            => '/usr/bin',
+           'IFS'                             => '/',
+           'USER'                            => 'none',
+           'SHELL'                           => 'tcsh',
+           'HOSTNAME'                        => 'remotehost',
+           'LOGNAME'                         => '/tmp/log'}
 
     env.each do |key, value|
       rc, msg = @container.user_var_add({key => value})

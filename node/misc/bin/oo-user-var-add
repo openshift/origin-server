@@ -61,7 +61,7 @@ begin
       when '--with-container-uuid'
         container_uuid = arg
       when '--with-variables'
-        arg.split(' ').each { |a| token = a.split('='); variables[token.first] = token.last }
+        arg.split(' ').each { |a| token = a.split('=', 2); variables[token.first] = token.last }
       when '--with-gears'
         gears = arg.split(';')
       when '--help'

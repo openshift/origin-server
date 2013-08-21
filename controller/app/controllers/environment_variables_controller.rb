@@ -29,14 +29,14 @@ class EnvironmentVariablesController < BaseController
   # POST /applications/[app_id]/environment-variables
   def create
     name = params[:name].presence
-    value = params[:value].presence
     user_env_vars = params[:environment_variables].presence
 
     if (user_env_vars.present? && name) or (!user_env_vars.present? && !name)
       return render_error(:unprocessable_entity, "Specify parameters 'name'/'value' or 'environment_variables'", 191)
     end
     if name
-      return render_error(:unprocessable_entity, "Value not specified for environment variable '#{name}'", 190, "value") unless value
+      return render_error(:unprocessable_entity, "Value not specified for environment variable '#{name}'", 190, "value") unless params.has_key?(:value)
+      value = params[:value]
       env_hash = @application.list_user_env_variables([name])
       return render_error(:unprocessable_entity, "Environment name '#{name}' already exists in application", 192) if env_hash[name]
 
@@ -57,9 +57,9 @@ class EnvironmentVariablesController < BaseController
   # PUT /applications/[app_id]/environment-variables/[id]
   def update
     name = params[:id].presence
-    value = params[:value].presence
 
-    return render_error(:unprocessable_entity, "Value not specified for environment variable '#{name}'", 190, "value") unless value
+    return render_error(:unprocessable_entity, "Value not specified for environment variable '#{name}'", 190, "value") unless params.has_key?(:value)
+    value = params[:value]
     env_hash = @application.list_user_env_variables([name])
     return render_error(:unprocessable_entity, "Environment name '#{name}' not found in application", 189) unless env_hash[name]
 
