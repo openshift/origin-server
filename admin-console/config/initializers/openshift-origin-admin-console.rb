@@ -21,8 +21,12 @@ Broker::Application.configure do
     # parse out the various configuration options
     config.admin_console = {
       mount_uri: conf.get("MOUNT_URI", "/admin-console"),
-      node_data_cache_timeout: eval(conf.get("NODE_DATA_CACHE_TIMEOUT", "1.hour")),
-      expected_active_pct: conf.get("EXPECTED_ACTIVE_PERCENT", 100.0).to_f,
+      stats: {
+        cache_timeout: eval(conf.get("STATS_CACHE_TIMEOUT", "1.hour")),
+        mco_timeout: conf.get("STATS_GATHER_TIMEOUT", 0.5).to_f,
+        read_file: conf.get("STATS_FROM_FILE", nil),
+      },
+      expected_active_pct: conf.get("EXPECTED_ACTIVE_PERCENT", 50).to_i,
       warn: {
         node_active_remaining: conf.get("WARNING_NODE_ACTIVE_REMAINING", 0).to_i,
       },

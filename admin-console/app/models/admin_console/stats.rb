@@ -12,22 +12,23 @@ module AdminConsole
       }
     end
 
-    def self.systems_summaries(force_reload = false)
-      Rails.cache.fetch('admin_console_system_statistics', :expires_in => Rails.application.config.admin_console[:node_data_cache_timeout], :force => force_reload) do
-        gather_systems_statistics
+    def self.systems_summaries(force_reload = false, conf = Rails.application.config.admin_console[:stats])
+      Rails.cache.fetch('admin_console_system_statistics',
+                        expires_in: conf[:cache_timeout],
+                        force: force_reload) do
+        gather_systems_statistics(conf)
       end
     end
 
     protected
 
-    def self.gather_systems_statistics
-      stats = Admin::Stats.new
+    # Create system stats via Admin::Stats according to conf.
+    # Time of generation/loading is stored in 'created_at' key.
+    def self.gather_systems_statistics(conf = {})
+      stats = Admin::Stats.new wait: conf[:mco_timeout],
+                          read_file: conf[:read_file]
       stats.gather_statistics
-      results = stats.results.except(:node_entries, :district_entries, :district_summaries, :profile_summaries)
-      # remove hashes with default blocks so we can cache them
-      # See: http://stackoverflow.com/questions/6391855/rails-cache-error-in-rails-3-1-typeerror-cant-dump-hash-with-default-proc
-      stats.deep_clear_default!(results)
-      results
+      stats.results.merge 'created_at' => Time.now
     end
 
   end
