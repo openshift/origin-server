@@ -96,7 +96,7 @@ class AdminStatsTest < ActiveSupport::TestCase
     assert_empty count_for_user, "Expecting no users in fake db"
   end
 
-  test "clearing on clones of the results allows marshaling" do
+  test "results can be marshaled" do
     # first test on something ordinary
     h = Hash.new {|h,k| h[k] = 0}
     assert_raise(TypeError) {Marshal.dump(h)}
@@ -105,10 +105,7 @@ class AdminStatsTest < ActiveSupport::TestCase
 
     # now test on stats we gathered
     @stats.gather_statistics
-    results = @stats.results
-    assert_raise(TypeError) {Marshal.dump(results)}
-    @stats.deep_clear_default!(results)
-    assert_nothing_raised { Marshal.dump(results) }
+    assert_nothing_raised { Marshal.dump(@stats.results) }
   end
 
   test "using HashWithReaders subclasses" do
@@ -189,6 +186,36 @@ class AdminStatsTest < ActiveSupport::TestCase
     @stats.gather_statistics
     assert_not_nil @stats.results[:count_all][:apps],
       "expecting db counting has occurred"
+  end
+
+
+  test "reading results from a file" do
+    # generate fake data sets
+    @stats.gather_statistics
+    r = OpenShift::HashWithReaders.deep_clear_subclasses(@stats.results)
+    file = "/tmp/admin-stats-#{$$}-#{rand(1000000)}"
+    begin
+      File.open(file+".yaml", 'w') {|f| f.write(YAML.dump r.merge('yaml' => 1)) }
+      File.open(file+".json", 'w') {|f| f.write(JSON.dump r.merge('json' => 1)) }
+      # now try reading them back in
+      assert_nothing_raised "reading from yaml" do
+        @stats.set_option read_file: file+".yaml"
+        @stats.gather_statistics
+      end
+      assert @stats.results.has_key?('yaml'), "got yaml results"
+      assert_nothing_raised "reading from json" do
+        @stats.load_from_file(file+".json")
+      end
+      assert @stats.results.has_key?('json'), "got json results"
+      @stats.set_option read_file: nil
+      assert_raise(RuntimeError, "supplying no file") { @stats.load_from_file }
+      assert_raise(RuntimeError, "bad extension") { @stats.load_from_file("foo") }
+      assert_raise(Errno::ENOENT, "no yaml file") { @stats.load_from_file("./foo.yml") }
+      assert_raise(Errno::ENOENT, "no json file") { @stats.load_from_file("./foo.jsn") }
+    ensure
+      File.delete(file+".yaml")
+      File.delete(file+".json")
+    end
   end
 
 end
