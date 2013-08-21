@@ -15,7 +15,7 @@ function apache() {
 
 function restart() {
     update_httpd_passenv $HTTPD_CFG_FILE
-    ensure_httpd_restart_action "$HTTPD_PID_FILE" "$HTTPD_CFG_FILE"
+    ensure_httpd_restart_succeed "$HTTPD_PID_FILE" "$HTTPD_CFG_FILE"
     /usr/sbin/httpd -C "Include $HTTPD_CFG_DIR/*.conf" -f $HTTPD_CFG_FILE -k restart
     return $?
 }
