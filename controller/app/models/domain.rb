@@ -226,7 +226,7 @@ class Domain
             # only run jobs on applications that had changes
             app.with_lock{ |a| a.run_jobs }
           end
-          op.set(:state, :completed)
+          op.set_state(:completed)
 
         when :add_domain_ssh_keys
           ssh_keys = op.arguments["keys_attrs"].map{|k| SystemSshKey.new.to_obj(k)}
