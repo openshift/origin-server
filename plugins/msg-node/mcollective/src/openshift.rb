@@ -375,9 +375,11 @@ module MCollective
       end
 
       def oo_user_var_add(args)
-        variables, gears = {}, []
-        args['--with-variables'].split(' ').each { |a| token = a.split('=', 2); variables[token.first] = token.last } if args['--with-variables']
-        gears = args['--with-gears'].split(';') if args['--with-gears']
+        variables = {}
+        if args['--with-variables']
+          JSON.parse(args['--with-variables']).each {|env| variables[env['name']] = env['value']}
+        end
+        gears = args['--with-gears'] ? args['--with-gears'].split(';') : []
 
         if variables.empty? and gears.empty?
           return -1, "In #{__method__} at least user environment variables or gears must be provided for #{args['--with-app-name']}"
