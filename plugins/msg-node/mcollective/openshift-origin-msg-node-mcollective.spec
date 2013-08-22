@@ -10,7 +10,7 @@
 
 Summary:       M-Collective agent file for openshift-origin-msg-node-mcollective
 Name:          openshift-origin-msg-node-mcollective
-Version: 1.13.8
+Version: 1.13.9
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -51,6 +51,11 @@ cp -p facts/update_yaml.rb %{buildroot}/usr/libexec/mcollective/
 %attr(0700,-,-) %config(noreplace) /etc/cron.minutely/openshift-facts
 
 %changelog
+* Thu Aug 22 2013 Adam Miller <admiller@redhat.com> 1.13.9-1
+- Added environment variable name limitations  - Limit length to 128 bytes.  -
+  Allow letters, digits and underscore but can't begin with digit
+  (rpenta@redhat.com)
+
 * Wed Aug 21 2013 Adam Miller <admiller@redhat.com> 1.13.8-1
 - fix bug 999144 - check gear_file against uid map (rchopra@redhat.com)
 - Bug 998794 - Allow blank value for a user environment variable
