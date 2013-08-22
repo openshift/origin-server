@@ -91,7 +91,7 @@ def process_response(response, resource)
         request = RestClient::Request.new(:method => value["method"], :url => value["href"], :user => @user, :password => @password, :headers => @headers, :payload => payload)
         response = send_request(request)
       end
-      curl_command = "curl -u #{@user}:#{@password} #{value["href"]}"
+      curl_command = "curl -X #{value["method"]} -u #{@user}:#{@password} #{value["href"]}"
       curl_command = curl_command + " #{convert_payload_to_params(payload)}" if payload
       value["curl"] = curl_command
       
