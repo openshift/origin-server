@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.13.9
+Version: 1.13.10
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -84,6 +84,10 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Thu Aug 22 2013 Adam Miller <admiller@redhat.com> 1.13.10-1
+- Environment variables should be protected with :edit permission
+  (ccoleman@redhat.com)
+
 * Thu Aug 22 2013 Adam Miller <admiller@redhat.com> 1.13.9-1
 - Merge pull request #3462 from abhgupta/stage_fix_997008
   (dmcphers+openshiftbot@redhat.com)
