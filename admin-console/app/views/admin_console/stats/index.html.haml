@@ -4,23 +4,25 @@
       create_apps_per_domain_histogram();
       create_gears_per_user_histogram();
     });
-.row.stat
-  .span2
-    .stat-label
-      Applications
-    .stat-number-large
-      = @stats[:application][:total]
-  .span10
-    .stat-label
-      per Domain
-      #apps_per_domain
-.row.stat
-  .span2
-    .stat-label
-      Users
-    .stat-number-large
-      = @stats[:user][:total]
-  .span10
-    .stat-label
-      Gears per User
-    #gears_per_user
+%section
+  .row.stat
+    .span2
+      .stat-label
+        Applications
+      .stat-number-large
+        = @stats[:application][:total]
+    .span10
+      .stat-label
+        per Domain
+        #apps_per_domain
+%section
+  .row.stat
+    .span2
+      .stat-label
+        Users
+      .stat-number-large
+        = @stats[:user][:total]
+    .span10
+      .stat-label
+        Gears per User
+      #gears_per_user
