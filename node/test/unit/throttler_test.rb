@@ -283,6 +283,10 @@ class ThrottlerTest < OpenShift::NodeTestCase
       bad: %w(A B F),
       throttled: %w(C D E F)
     }) do |t|
+      @throttler.instance_eval{
+        @running_apps = mock_apps
+      }
+
       t.expects(:refuse_action).with(:throttle, 'B', "gear is boosted")
       t.expects(:refuse_action).with(:restore, 'D', "still over threshold (1000000)")
       t.expects(:refuse_action).with(:restore, 'E', "unknown utilization")
@@ -315,17 +319,49 @@ class ThrottlerTest < OpenShift::NodeTestCase
           boosted?: false
         },
       },
+      "C" => {}
     }
 
     applied = setup_throttler(mock_apps, {
       bad: %w(A),
       throttled: [],
-      old_bad_gears: {}
-    })
+      old_bad_gears: {"B" => {}, "C" => {}}
+    }) do
+      @prev_old_bad_gears = @throttler.instance_variable_get('@old_bad_gears').keys
+    end
 
     assert applied[:throttle].include?('A'), 'Bad gear not throttled'
     refute applied[:restore].include?('A'),  'Attempted to restore bad gear'
+
+    #assert_equal %w(B), @prev_old_bad_gears
+    #assert_empty @throttler.instance_variable_get('@old_bad_gears').keys
   end
+
+  def test_throttle_remove_missing
+    mock_apps = {
+      "A" => {
+        expects: {
+          boosted?: false
+        },
+      },
+      "B" => {
+      },
+    }
+
+    applied = setup_throttler(mock_apps, {
+      bad: %w(A C),
+      throttled: [],
+      old_bad_gears: {"B" => {}, "C" => {}}
+    }) do
+      @prev_old_bad_gears = @throttler.instance_variable_get('@old_bad_gears').keys
+    end
+
+    assert_equal %w(B C), @prev_old_bad_gears
+    # NOTE: We don't actually expect A to be here because that happens in apply action, which we're mocking here
+    #       This will only show that old values are removed. Apply_action tests check to see that it's set properly.
+    assert_equal %w(B),   @throttler.instance_variable_get('@old_bad_gears').keys
+  end
+
 
   def test_apply_action_failure
     mock_apps = {
@@ -429,7 +465,11 @@ class ThrottlerTest < OpenShift::NodeTestCase
 
       if (e = vals[:expects])
         e.each do |k,v|
-          gear.expects(k).returns(v)
+          if v == :never
+            gear.expects(k).never
+          else
+            gear.expects(k).returns(v)
+          end
         end
       end
       h[uuid] = mg
@@ -465,6 +505,7 @@ class ThrottlerTest < OpenShift::NodeTestCase
       end
 
       @throttler.expects("uuids=").with(mock_apps.keys)
+      @throttler.stubs(:running_apps).returns(mock_apps)
 
       yield @throttler if block_given?
 
