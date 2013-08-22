@@ -3,6 +3,7 @@
     $(function() {
       create_apps_per_domain_histogram();
       create_gears_per_user_histogram();
+      create_domains_per_user_histogram();
     });
 %section
   .row.stat
@@ -26,3 +27,14 @@
       .stat-label
         Gears per User
       #gears_per_user
+%section
+  .row.stat
+    .span2
+      .stat-label
+        Domains
+      .stat-number-large
+        = @stats[:domain][:total]
+    .span10
+      .stat-label
+        Owned Per User
+      #domains_per_user        

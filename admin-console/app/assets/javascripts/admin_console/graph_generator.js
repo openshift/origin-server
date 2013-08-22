@@ -22,6 +22,19 @@ function _finish_gears_per_user_histogram(response) {
   histogram_from_bins(compress_long_tail_bins(response.bins), document.getElementById("gears_per_user"), "Gears", "Users");
 }
 
+function create_domains_per_user_histogram() {
+  jQuery.ajax({
+    url: "/admin-console/stats/domains_per_user",
+    dataType: "json",
+    success: _finish_domains_per_user_histogram
+  });
+}
+
+
+function _finish_domains_per_user_histogram(response) {
+  histogram_from_bins(compress_long_tail_bins(response.bins), document.getElementById("domains_per_user"), "Domains", "Users");
+}
+
 // bins - an array of objects with bin label and count
 // node - the DOM node to generate the graph in
 function histogram_from_bins(bins, node, xlbl, ylbl) {

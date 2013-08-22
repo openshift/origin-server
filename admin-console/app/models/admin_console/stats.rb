@@ -7,6 +7,9 @@ module AdminConsole
         },
         :user => {
           :total => CloudUser.count
+        },
+        :domain => {
+          :total => Domain.count
         }
         #TODO node
       }
