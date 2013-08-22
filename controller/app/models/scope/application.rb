@@ -53,6 +53,8 @@ class Scope::Application < Scope::Parameterized
           :update_alias,
           :ssh_to_gears,
           :destroy_alias,
+          :view_environment_variables,
+          :change_environment_variables,
           #:destroy,
           #:change_members,
         ].include?(permission)
