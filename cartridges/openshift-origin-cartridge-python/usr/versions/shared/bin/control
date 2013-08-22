@@ -114,7 +114,11 @@ function tidy() {
 function build() {
     if `echo $OPENSHIFT_GEAR_DNS | egrep -qe "\.rhcloud\.com"`
     then
-        OPENSHIFT_PYTHON_MIRROR="-i http://mirror1.ops.rhcloud.com/mirror/python/web/simple"
+        m="http://mirror1.ops.rhcloud.com/mirror/python/web/simple"
+        if curl -m 15 -f -s "$m" &>/dev/null
+        then
+            OPENSHIFT_PYTHON_MIRROR="-i $m"
+        fi
     fi
 
     if marker_present 'force_clean_build'; then
