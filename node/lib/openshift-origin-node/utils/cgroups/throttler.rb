@@ -135,8 +135,13 @@ module OpenShift
               end
               # Find any gears over the threshold
               over_usage = with_period.select do |k,v|
-                percent = v[:usage_percent]
-                percent && percent >= usage
+                begin
+                  percent = v[:usage_percent]
+                  percent && percent >= usage
+                rescue
+                  Syslog.log(:info, "Throttler: problem in find for #{k} (#{v[:usage_percent]})")
+                  return false
+                end
               end.keys
               apps.select!{|k,v| over_usage.include?(k) }
             end
