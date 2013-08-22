@@ -16,7 +16,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.13.9
+Version: 1.13.10
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -305,6 +305,12 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Thu Aug 22 2013 Adam Miller <admiller@redhat.com> 1.13.10-1
+- Fix message for bug 999189 (pmorie@gmail.com)
+- Added environment variable name limitations  - Limit length to 128 bytes.  -
+  Allow letters, digits and underscore but can't begin with digit
+  (rpenta@redhat.com)
+
 * Wed Aug 21 2013 Adam Miller <admiller@redhat.com> 1.13.9-1
 - Merge pull request #3449 from pmorie/bugs/999189
   (dmcphers+openshiftbot@redhat.com)
