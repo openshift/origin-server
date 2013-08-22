@@ -76,23 +76,14 @@
 
 .capacity
   - active_warning_threshold = @config[:warn][:node_active_remaining]
+  - if @config[:stats][:cache_timeout] > 0.seconds
+    %small.pull-right.muted
+      = "Data collected #{time_ago_in_words(@stats_created_at)} ago."
+      = link_to params.merge(:reload => true) do
+        %i.icon-refresh{:title => "Refresh now."}  
   %h1
     = image_tag "admin_console/gear-lg.svg", :class => "icon"
     = "#{@profile[:profile].capitalize} gears"
-
-  / ** TODO **
-  / - if recommend_district_create @profile
-  /   .alert.alert-warning.large.text-center{:style => "color: #333; background-color: #FFD24E; margin: 30px 0;"}
-  /     = image_tag "admin_console/icon-warning-sign.png", :style => "margin-right: 20px;"
-  /     = "Fewer than #{total_warning_threshold} gears remaining."
-  /     = link_to "Create district", "javascript:;", :class=> "btn"
-  /     = recommended_action_popover "Create a new district to increase the total gear capacity.", "district cmd goes here", ["popover-recommended-action-district-create"]
-  / - elsif recommend_node_add @profile
-  /   .alert.alert-warning.large.text-center{:style => "color: #333; background-color: #FFD24E; margin: 30px 0;"}
-  /     = image_tag "admin_console/icon-warning-sign.png", :style => "margin-right: 20px;"
-  /     = "Fewer than #{active_warning_threshold} active gears remaining."
-  /     = link_to "Add node", "javascript:;", :class=> "btn"
-  /     = recommended_action_popover "Add a new node to a district to increase the active gear capacity.", "add node to dist cmd goes here", ["popover-recommended-action-add-node"]
 
   .profile.profile-full-page
     %table

@@ -18,11 +18,10 @@
       $("body").bind("touchstart", function(){
         $(".tooltip-handle").tooltip('hide');});
     });
-.hero-unit.hero-unit-inverse
+.hero-unit.welcome.clear
   %h1
-    ="Welcome,"
-  %p
-    = "to the"
+    %span
+      ="Welcome to the"
     = image_tag "admin_console/openshift-logo-horizontal.svg", :class => "brand"
     = "Administration Console"
 %p.lead

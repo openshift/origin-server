@@ -5,20 +5,30 @@ module AdminConsole
     respond_to :json, :xml
     def show
       @id = params[:id]
-      @profile = Profile.find @id
+      reload = params[:reload]
+      stats = AdminConsole::Stats.systems_summaries(reload)
+      @profile = stats[:profile_summaries_hash][@id]
+      @stats_created_at = stats[:created_at]
+
       return page_not_found unless @profile.present?
 
       setup_additional_information_for_show
     end
 
     def index
-      respond_with Profile.all
+      reload = params[:reload]
+      stats = AdminConsole::Stats.systems_summaries(reload)
+      respond_with stats[:profile_summaries_hash]
     end
 
     def show_nodes
       @show_nodes = true
       @id = params[:id]
-      @profile = Profile.find @id
+      reload = params[:reload]
+      stats = AdminConsole::Stats.systems_summaries(reload)
+      @profile = stats[:profile_summaries_hash][@id]
+      @stats_created_at = stats[:created_at]
+
       return page_not_found unless @profile.present?
 
       setup_additional_information_for_show

@@ -1,4 +1,9 @@
 .capacity
+  - if @config[:stats][:cache_timeout] > 0.seconds
+    %small.pull-right.muted
+      = "Data collected #{time_ago_in_words(@stats_created_at)} ago."
+      = link_to params.merge(:reload => true) do
+        %i.icon-refresh{:title => "Refresh now."}
   - if @summary_for_profile.size == 0 # and other cases
     = render :partial => 'welcome'
   - else
