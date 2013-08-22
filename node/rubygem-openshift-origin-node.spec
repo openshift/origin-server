@@ -16,7 +16,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.13.10
+Version: 1.13.11
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -305,6 +305,14 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Thu Aug 22 2013 Adam Miller <admiller@redhat.com> 1.13.11-1
+- Merge pull request #3475 from fotioslindiakos/Bug999837_stg
+  (admiller@redhat.com)
+- Remove any deleted/missing throttled gears from throttler's memory
+  (fotios@redhat.com)
+- Rescue usage percentage calculation if it's an unexpected value type
+  (fotios@redhat.com)
+
 * Thu Aug 22 2013 Adam Miller <admiller@redhat.com> 1.13.10-1
 - Fix message for bug 999189 (pmorie@gmail.com)
 - Added environment variable name limitations  - Limit length to 128 bytes.  -
