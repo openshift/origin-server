@@ -9,22 +9,22 @@ class Member
   # The name of this member, denormalized
   field :n,  :as => :name, type: String
   #
-  # An array of implicit grants, where each grant is an array of uniquely 
+  # An array of implicit grants, where each grant is an array of uniquely
   # distinguishing elements ending with the role granted to the member.
-  # 
+  #
   # e.g.: [
   #   ['domain', :view],
   #   ['team', '345', :admin],
   # ]
   #
   # indicates the current member has an implicit role (denormalized) on this resource
-  # from the domain (singleton) and from a team with id 345.  The team 345 must itself 
+  # from the domain (singleton) and from a team with id 345.  The team 345 must itself
   # be listed as a member of this resource.
   #
   field :f,  :as => :from, type: Array
   # A role for the member on this resource
   field :r,  :as => :role, type: Symbol
-  # When multiple grants are present, this value stores the role assigned to the 
+  # When multiple grants are present, this value stores the role assigned to the
   # member directly on this resource (vs the value of the role inherited by an
   # implicit grant.
   field :e, :as => :explicit_role, type: Symbol
@@ -42,7 +42,7 @@ class Member
   # A membership is explicit if there are no implicit grants, or if an explicit_role
   # has been set.  If there are no implicit grants, the explicit_role value must be
   # equal to the role.
-  # 
+  #
   def explicit_role?
     from.blank? || super
   end
@@ -51,7 +51,7 @@ class Member
   end
 
   #
-  # Given two members, calculate the effective role of the two together.  Use when 
+  # Given two members, calculate the effective role of the two together.  Use when
   # a member already exists for the current resource.
   #
   def merge(other)
@@ -64,15 +64,16 @@ class Member
         self.role = Role.higher_of(other.role, role)
       end
     else
-      self.explicit_role = role if from.blank?      
-      ((self.from ||= []).concat(Array(other.from))).uniq!
+      self.explicit_role = role if from.blank?
+      self.from ||= []
+      self.from.concat(Array(other.from)).uniq!
       self.role = effective_role
     end
     self
   end
 
   #
-  # Remove a specific grant of membership - will return true if the member should be 
+  # Remove a specific grant of membership - will return true if the member should be
   # removed because there is no longer an explicit role or any remaining grants.
   #
   def remove_grant(source=nil)
