@@ -56,10 +56,10 @@
                 %span{:title => cartridge.name}= cartridge.display_name
 
                 %span.flow-block.right
-                  = link_to cartridge_storage(cartridge), application_storage_path(@application), style: 'margin-right: 10px; opacity: 0.4; color: white;'
-                  %span.gear-states{style: 'margin-right: 10px; opacity: 0.4;'}= gear_group_state(group.states)
-
                   - if c == 0
+                    = link_to cartridge_storage(cartridge), application_storage_path(@application), style: 'margin-right: 10px; opacity: 0.4; color: white;'
+                    %span.gear-states{style: 'margin-right: 10px; opacity: 0.4;'}= gear_group_state(group.states)
+
                     %span.gear{:title => gear_group_count_title(group.gears.length)}
                       = group.gears.length
                       %span.gear-icon{'aria-hidden'=>"true", 'data-icon' => "\ue014", style: 'opacity: 0.25'}
@@ -82,9 +82,11 @@
                             %span.gauge-tick.fill> .
                             %span.gauge-tick.fill> .
                             %span.gauge-tick.fill> .
+
                   - else
-                    %span.gear{:title => gear_group_count_title(group.gears.length)}
-                      %span.gear-icon{'aria-hidden'=>"true", 'data-icon' => "\ue014", style: 'opacity: 0.25'}
+                    -#%span.data{:title => , style: 'opacity: 0.25'} Shared
+                    %span.gear{:title => 'This cartridge shares resources with the other cartridges it is grouped with.'}
+                      %span.gear-icon{'aria-hidden'=>"true", 'data-icon' => "\ue014", style: 'opacity: 0.1'}
 
               -#.clearfix
                 %ul.pull-right.unstyled-flat.bits
@@ -110,7 +112,7 @@
               - if cartridge.custom?
                 %p Created from #{link_to cartridge.url, cartridge.url}
 
-              - if cartridge.scales? || cartridge.buildable?
+              - if cartridge.scales? || cartridge.builds?
                 .embedded
                   - if cartridge.scales?
                     .embedded-cart
@@ -124,13 +126,12 @@
                     .embedded-cart
                       =link_to 'See Jenkins Build jobs', @application.build_job_url, :title=> 'Jenkins is currently running builds for your application'
                       =link_to '(configure)', application_building_path(@application), :title => 'Remove or change your Jenkins configuration'
-                  - elsif cartridge.buildable?
-                    .embedded-cart= link_to "Enable Jenkins builds", application_building_path(@application), :title => 'Jenkins helps you run builds, tests, and deployment steps when you push changes to your application.'
 
 
-  %section.gutter{style: 'margin-top: 10px;'}
+  %section.gutter{style: 'margin-top: 30px; position: relative;'}
     - carts = CartridgeType.cached.embedded.clone
     -#%h4 Add additional capabilities to this application
+    %span.font-icon{"aria-hidden" => "true", "data-icon" => "\uee16", style: "font-size: 50px; position: absolute; right: 10px; top: 0; opacity: 0.3;"}
     .row-fluid
       - if @application.cartridges.none?(&:database?)
         .span3
@@ -139,7 +140,7 @@
             - CartridgeType.suggest!(carts, :database?, 3).each do |c|
               %li
                 %span{:'data-icon' => "\uee09"}
-                = link_to c.display_name, application_cartridge_type_path(@application, c)
+                = link_to "Add #{c.display_name}", application_cartridge_type_path(@application, c)
       - unless @application.builds?
         .span5
           %h5 Continuous Integration
@@ -150,7 +151,9 @@
                 %span{:'data-icon' => "\ue023"}
                 = link_to "Enable Jenkins", application_building_path(@application)
             - builders.each do |c|
-              %li= link_to c.display_name, application_cartridge_type_path(@application, c)
+              %li
+                %span{:'data-icon' => "\ue023"}
+                = link_to "Add #{c.display_name}", application_cartridge_type_path(@application, c)
 
       - if (useful = CartridgeType.suggest_useful!(@application, carts)).present?
         .span4
@@ -159,7 +162,7 @@
             - useful.each do |c|
               %li
                 %span{:'data-icon' => "\ue021"}
-                = link_to c.display_name, application_cartridge_type_path(@application, c)
+                = link_to "Add #{c.display_name}", application_cartridge_type_path(@application, c)
 
     %p.larger= link_to "Or, see the entire list of cartridges you can add", application_cartridge_types_path(@application)
 

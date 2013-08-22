@@ -63,7 +63,7 @@ class CartridgeType < RestApi::Base
     name = Rack::Utils.parse_nested_query(uri.query)['name'] if name.blank? && uri.query
     name = File.basename(uri.path) if name.blank? && uri.path.present? && uri.path != '/'
     name.presence || url
-  rescue 
+  rescue
     url
   end
 
@@ -123,7 +123,7 @@ class CartridgeType < RestApi::Base
 
   def name_parts
     @name_parts ||= begin
-      if match = /\A(.+)-(\d+(?:\.\d+)+)\Z/.match(name)
+      if match = /\A(.+)-(\d+(?:\.\d+)*)\Z/.match(name)
         n, v = match.values_at(1,2)
         [n, v.split('.').map(&:to_i)]
       else
