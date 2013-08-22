@@ -35,6 +35,8 @@ class EnvironmentVariablesController < BaseController
       return render_error(:unprocessable_entity, "Specify parameters 'name'/'value' or 'environment_variables'", 191)
     end
     if name
+      match = /\A([a-zA-Z_][\w]*)\z/.match(name)
+      return render_error(:unprocessable_entity, "Name can only contain letters, digits and underscore and can't begin with a digit.", 194, "name") if match.nil?
       return render_error(:unprocessable_entity, "Value not specified for environment variable '#{name}'", 190, "value") unless params.has_key?(:value)
       value = params[:value]
       env_hash = @application.list_user_env_variables([name])
