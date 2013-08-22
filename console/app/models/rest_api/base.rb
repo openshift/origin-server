@@ -854,7 +854,8 @@ module RestApi
         if (response_code_allows_body?(response.code) &&
             (response['Content-Length'].nil? || response['Content-Length'] != "0") &&
             !response.body.nil? && response.body.strip.size > 0)
-          load(prefix_options.merge(self.class.format.decode(response.body)), true)
+          p = prefix_options || {}
+          load(p.merge(self.class.format.decode(response.body)), true)
           load_headers(response) if respond_to?(:load_headers)
           @persisted = true
         end
