@@ -202,7 +202,7 @@ module OpenShift
           extension_version = OpenShift::GearUpgradeExtension.version
 
           if version != extension_version
-            raise "Version mismatch between supplied release version (#{version}) and extension version (#{extension_version}"
+            raise "Version mismatch between supplied release version (#{version}) and extension version (#{extension_version})"
           end
         rescue NameError => e
           raise "Unable to resolve OpenShift::GearUpgradeExtension: #{e.message}"
