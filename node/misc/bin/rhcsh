@@ -48,6 +48,9 @@ done
 source /etc/openshift/node.conf
 
 function welcome {
+    if [ -n "$MOTD_FILE" -a -f "$MOTD_FILE" ]; then
+        cat $MOTD_FILE
+    else
     cat 1>&2 <<EOF
 
     *********************************************************************
@@ -74,6 +77,7 @@ function welcome {
     Type "help" for more info.
 
 EOF
+  fi
 
   # Quota returns nonzero if you are over limit
   quota >/dev/null 2>&1
