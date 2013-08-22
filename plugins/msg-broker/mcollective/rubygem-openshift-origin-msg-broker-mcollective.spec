@@ -9,7 +9,7 @@
 
 Summary:       OpenShift plugin for mcollective service
 Name:          rubygem-%{gem_name}
-Version: 1.13.4
+Version: 1.13.5
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -80,6 +80,11 @@ cp %{buildroot}/%{gem_dir}/gems/%{gem_name}-%{version}/conf/openshift-origin-msg
 %attr(0644,-,-) %ghost /etc/mcollective/client.cfg
 
 %changelog
+* Thu Aug 22 2013 Adam Miller <admiller@redhat.com> 1.13.5-1
+- Added environment variable name limitations  - Limit length to 128 bytes.  -
+  Allow letters, digits and underscore but can't begin with digit
+  (rpenta@redhat.com)
+
 * Tue Aug 20 2013 Adam Miller <admiller@redhat.com> 1.13.4-1
 - Merge pull request #3398 from detiber/bz994445
   (dmcphers+openshiftbot@redhat.com)
