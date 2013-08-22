@@ -1,6 +1,6 @@
 Summary:       Openshift PAM module
 Name:          pam_openshift
-Version: 1.9.2
+Version: 1.10.0
 Release:       1%{?dist}
 Group:         System Environment/Base
 License:       GPLv2
