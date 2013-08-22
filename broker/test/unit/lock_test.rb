@@ -43,11 +43,12 @@ class LockTest < ActiveSupport::TestCase
 
     # check no 2 apps get same user lock
     assert_equal(Lock.lock_application(app1), true)
+    assert_equal(Lock.lock_application(app2), true)
     assert_equal(Lock.lock_user(user, app1), true)
     assert_equal(Lock.lock_user(user, app2), false)
-    assert_equal(Lock.unlock_application(app1), false)
     assert_equal(Lock.unlock_user(user, app1), true)
     assert_equal(Lock.unlock_application(app1), true)
+    assert_equal(Lock.unlock_application(app2), true)
     cur_lock = Lock.find_by(_id: init_lock._id)
     assert_equal(init_lock, cur_lock)
   end
