@@ -33,6 +33,14 @@ module Admin
     # String - name for same district
     attr_accessor :district_name
 
+    require 'digest/md5'
+    # "ID" that should be unique - subclasses should override as needed
+    def id
+      Digest::MD5.hexdigest(self.class.to_s +
+                            self.instance_variables.sort.
+                            map {|v| "#{v}=#{self.instance_variable_get v}" }.join)
+    end
+
     # subclass instances just set attributes given
     def initialize(attrs)
       attrs.each_pair {|attr,value| self.send("#{attr}=", value)}
