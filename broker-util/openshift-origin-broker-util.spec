@@ -6,7 +6,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin broker
 Name:          openshift-origin-broker-util
-Version: 1.13.9
+Version: 1.13.10
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -84,6 +84,9 @@ cp man/*.8 %{buildroot}%{_mandir}/man8/
 %{_mandir}/man8/oo-stats.8.gz
 
 %changelog
+* Fri Aug 23 2013 Adam Miller <admiller@redhat.com> 1.13.10-1
+- Bug 1000193: Use an Hourglass in the gear upgrader (ironcladlou@gmail.com)
+
 * Thu Aug 22 2013 Adam Miller <admiller@redhat.com> 1.13.9-1
 - Bug 999702 - oo-admin-chk: Don't sort usage records based on time, instead
   update app_name based on created_at field (rpenta@redhat.com)
