@@ -37,7 +37,7 @@ class DomainsController < ConsoleController
         end
       end
 
-      redirect_to @referrer || settings_path, :flash => {:success => 'Your domain has been created'}
+      redirect_to @referrer || settings_path, :flash => {:success => "The domain '#{@domain.name}' has been created"}
     else
       render :new
     end
