@@ -40,28 +40,35 @@ def assert_unprocessed_erbs(negate, app)
   end
 end
 
-Given /^the expected version of the ([^ ]+)\-([\d\.]+) cartridge is installed$/ do |cart_name, component_version|
+Given /^the ([\d\.]+) version of the ([^ ]+)\-([\d\.]+) cartridge is installed$/ do |cartridge_version, cart_name, software_version|
   # Try to discover the packaged version of manifest.yml using rpm
   cart_manifest_from_package = %x(/bin/rpm -ql openshift-origin-cartridge-#{cart_name} | /bin/grep 'manifest.yml$').strip
-  # Fall back to semi-hardcoded "where it should be" path
+  # Fall back to current RPM installation path
   if cart_manifest_from_package.empty?
     cart_manifest_from_package = "/usr/libexec/openshift/cartridges/#{cart_name}/metadata/manifest.yml" 
   end
-  manifest_from_package = YAML.load_file(cart_manifest_from_package)
+
+  rpm_manifest = YAML.load_file(cart_manifest_from_package)
 
   cart_repo = OpenShift::Runtime::CartridgeRepository.instance
 
   # This might be useful info - stash it
   @packaged_carts ||= {}
   @packaged_carts[cart_name] ||= {}
-  @packaged_carts[cart_name]['Version'] = manifest_from_package['Version']
-  @packaged_carts[cart_name]['Cartridge-Version'] = manifest_from_package['Cartridge-Version']
+  @packaged_carts[cart_name]['Version'] = rpm_manifest['Version']
+  @packaged_carts[cart_name]['Cartridge-Version'] = rpm_manifest['Cartridge-Version']
 
   # Make sure the package we've found provides the version of the
   # cartridge component we're looking for
-  assert component_version = manifest_from_package['Version']
+  rpm_version = rpm_manifest['Version']
+  rpm_cartridge_version = rpm_manifest['Cartridge-Version']
 
-  assert cart_repo.exist?(cart_name, manifest_from_package['Version'], manifest_from_package['Cartridge-Version']), "expected #{cart_name} version must exist"
+  assert software_version == rpm_version
+  assert cartridge_version == rpm_cartridge_version
+
+  # Ensure that the specified (cart_name, version, cartridge_version) is available and the latest
+  # in the repository
+  assert cart_repo.latest_cartridge_version?(cart_name, rpm_version, rpm_cartridge_version), "(#{cart_name},#{software_version},#{cartridge_version}) must be the latest in the repository"
 end
 
 Given /^a compatible version of the ([^ ]+)\-([\d\.]+) cartridge$/ do |cart_name, component_version|

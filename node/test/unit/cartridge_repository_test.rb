@@ -153,6 +153,27 @@ class CartridgeRepositoryTest < OpenShift::NodeTestCase
     assert_equal 5, cr.count
   end
 
+  def test_latest_cartridge_version
+    paths = ["#{@path}/redhat-crtest/0.0.1/metadata/manifest.yml",
+             "#{@path}/redhat-crtest/0.0.2/metadata/manifest.yml"]
+    populate_manifest(paths)
+
+    cr = OpenShift::Runtime::CartridgeRepository.instance
+    cr.load
+
+    assert cr.exist?('crtest', '0.1', '0.0.2')
+    assert cr.exist?('crtest', '0.2', '0.0.2')
+
+    e = cr.select('crtest', '0.1')
+    refute_nil e
+
+    e = cr.select('crtest', '0.2')
+    refute_nil e
+    assert cr.latest_cartridge_version?('crtest', '0.2', '0.0.2')
+    assert !cr.latest_cartridge_version?('crtest', '0.2', '0.0.1')
+    assert !cr.latest_cartridge_version?('crtest', '0.1', '0.0.3')
+  end
+
   def test_latest_versions
     paths = ["#{@path}/redhat-crtest/0.0.1/metadata/manifest.yml",
              "#{@path}/redhat-crtest/0.0.2/metadata/manifest.yml",
