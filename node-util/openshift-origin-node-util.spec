@@ -6,7 +6,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin node
 Name:          openshift-origin-node-util
-Version: 1.13.8
+Version: 1.13.9
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -143,6 +143,9 @@ cp -p init.d/openshift-gears %{buildroot}%{_initddir}/
 %endif
 
 %changelog
+* Fri Aug 23 2013 Adam Miller <admiller@redhat.com> 1.13.9-1
+- <oo-accept-node> Bug 1000174 - oo-accept-node fixes (jdetiber@redhat.com)
+
 * Wed Aug 21 2013 Adam Miller <admiller@redhat.com> 1.13.8-1
 - Bug 999460 - Trap range error on large, all numeric UUIDs for the test to see
   if the UUID is really a UID. (rmillner@redhat.com)
