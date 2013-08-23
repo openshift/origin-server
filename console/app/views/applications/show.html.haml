@@ -134,7 +134,7 @@
     %span.font-icon{"aria-hidden" => "true", "data-icon" => "\uee16", style: "font-size: 50px; position: absolute; right: 10px; top: 0; opacity: 0.3;"}
     .row-fluid
       - if @application.cartridges.none?(&:database?)
-        .span3
+        .span5
           %h5 Databases
           %ul.unstyled
             - CartridgeType.suggest!(carts, :database?, 3).each do |c|

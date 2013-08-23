@@ -58,18 +58,19 @@
     %p.larger
       Extend your application by adding cartridges
 
-    - carts = CartridgeType.cached.embedded
-    - dbs = carts.select{ |c| c.tags.include?(:database) }.select{ |c| ['mongodb-','mysql-','postgresql-'].any?{ |s| c.name.starts_with?(s) } }
-    - tools = carts.select{ |c| c.tags.include?(:ci_builder) or c.tags.include?(:administration) }.select{ |c| ['jenkins-client-', 'phpmyadmin-'].any?{ |s| c.name.starts_with?(s) } }
+    - carts = CartridgeType.cached.embedded.clone
+    - dbs = CartridgeType.suggest!(carts, :database?, 3)
+    - builders = CartridgeType.suggest!(carts, :builder?)
+
     - if dbs.present?
       %p.larger
-        Databases - 
+        Databases -
         = map_to_sentence(dbs) do |c|
           #{link_to c.display_name, application_cartridge_type_path(@application, c.name)}
-    - if tools.present?
+    - if builders.present?
       %p.larger
-        Tools - 
-        = map_to_sentence(tools) do |c|
+        Tools -
+        = map_to_sentence(builders) do |c|
           #{link_to c.display_name, application_cartridge_type_path(@application, c.name)}
 
     %p.larger= link_to "→ See all cartridges", application_cartridge_types_path(@application)
@@ -78,7 +79,7 @@
   .span12
     -# client
     %h2 Other ways to manage this application
-    
+
   .span6
     %h3 Command-Line
 
