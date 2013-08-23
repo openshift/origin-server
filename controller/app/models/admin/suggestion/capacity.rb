@@ -70,7 +70,14 @@ module Admin
       end
 
       class Add < Capacity
+
+        # adding capacity is generally "important"
+        # removing, not so much.
+        def self.important?; true; end
+        def id; super(:@contents); end
+
         # shared properies of these suggestions
+        attr_accessor :contents # Container for suggestions that roll up into one add
 
         # why add? because available < threshold
         attr_accessor :threshold # configured for the profile
@@ -119,7 +126,7 @@ module Admin
               next if threshold.nil? # don't suggest for this profile
               if summary.effective_available_gears < threshold
                 # profile needs more active capacity
-                suggestions += add_capacity(summary, params)
+                suggestions << add_capacity(summary, params)
               end
             end
             return suggestions
@@ -150,10 +157,14 @@ module Admin
                                ].max
             s[:nodes_needed] = (1.0 * s[:gears_needed] / node_capacity).ceil
 
+            suggestion = Capacity::Add.new(s)
+
             # if no districts, just add undistricted nodes as needed
             if psum.district_count == 1 && psum.district_capacity == 0
               s[:node_quantity] = s[:nodes_needed]
-              return suggestions << Add::Node.new(s)
+              suggestions << Add::Node.new(s)
+              suggestion.contents = suggestions
+              return suggestion
             end
 
             # figure out where we have space in current districts and how much
@@ -171,7 +182,8 @@ module Admin
             # now fill remaining need from existing districts
             suggestions += add_node(s, open_dists, nodes_still_needed)
 
-            return suggestions
+            suggestion.contents = suggestions
+            return suggestion
           end
 
           #
@@ -225,7 +237,7 @@ module Admin
               open_dists.sort_by {|dist| dist.nodes.size}.each do |dist|
                 sug = sug_for_dist[dist.uuid] ||= Add::Node.new(
                   s.merge district_name: dist.name, district_uuid: dist.uuid,
-                          node_quantity: 0)
+                          node_quantity: 0, scope: "district")
                 dist[:space] -= 1
                 sug.node_quantity += 1
                 nodes_needed -= 1
@@ -332,6 +344,7 @@ module Admin
                       d_avail_active -= node_cap
                       compact_district[dsum.uuid] ||= Remove::CompactDistrict.new(
                         profile: dsum.profile,
+                        scope: "district",
                         district_uuid: dsum.uuid,
                         district_name: dsum.name,
                         node_names: [],

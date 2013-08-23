@@ -158,6 +158,8 @@ module Admin
     # Config suggestions: something about the conf parameters missing or wrong
     #
     class Config < Suggestion
+
+      def self.important?; true; end
       #
       # A value is invalid.
       #

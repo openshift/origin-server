@@ -28,22 +28,36 @@ module Admin
     # String - profile affected
     attr_accessor :profile
 
+    # String - scope at which this suggestion applies.
+    # One of: general, profile, district, node
+    attr_accessor :scope
+
     # String - district uuid to modify
     attr_accessor :district_uuid
     # String - name for same district
     attr_accessor :district_name
 
     require 'digest/md5'
-    # "ID" that should be unique - subclasses should override as needed
-    def id
+    # "ID" that should be unique across serialization or regeneration of the
+    # suggestion - subclasses should override as needed,
+    # or just specify instance variable names not to include in the hash.
+    def id(*ignore_vars)
       Digest::MD5.hexdigest(self.class.to_s +
-                            self.instance_variables.sort.
+                            (self.instance_variables - ignore_vars).sort.
                             map {|v| "#{v}=#{self.instance_variable_get v}" }.join)
     end
 
     # subclass instances just set attributes given
     def initialize(attrs)
+      attrs[:scope] ||= "profile" # most common
       attrs.each_pair {|attr,value| self.send("#{attr}=", value)}
+    end
+
+    def self.important?
+      false
+    end
+    def important?
+      self.class.important?
     end
 
     # log using Rails... for now
@@ -109,8 +123,20 @@ module Admin
         add.each {|x| self << x}
         self
       end
+
+      VALID_SCOPES = %w[general profile district]
+      def for_scope(scope, filter = nil)
+        VALID_SCOPES.include?(scope) || raise("invalid scope: #{scope}")
+        c = Container.new + select {|sugg| sugg.scope == scope}
+        return c if filter.nil?
+        case scope
+          when "profile";  c.for_profile(filter)
+          when "district"; c.for_district(filter)
+          else;            c
+        end
+      end
       def for_general
-        Container.new + select {|sugg| sugg.profile.nil?}
+        for_scope("general")
       end
       def for_profile(profile)
         Container.new + select {|sugg| sugg.profile == profile}
@@ -127,6 +153,10 @@ module Admin
       def group_by_class
         inject(Hash.new) {|h,sugg| (h[sugg.class] ||= Container.new) << sugg; h }
       end
+      def important(filter = true)
+        Container.new + select {|sugg| sugg.important? == filter}
+      end
+
     end
 
     ##################################################################
@@ -135,34 +165,51 @@ module Admin
     #
     ##################################################################
 
-    # missing nodes list as that may impact whether to actually take action
+    # Missing nodes list as that may impact whether to actually take action.
+    # Each district with missing nodes gets its own district-scoped suggestion.
+    # These are rolled up into a profile-scope suggestion.
+    # These are rolled up into a single general-scope suggestion.
+    # So, one missing node means three suggestions with different scope.
     class MissingNodes < Suggestion
+
+      def self.important?; true; end
+      def id; super(:@contents); end
 
       # array of names of missing nodes
       attr_accessor :nodes
 
+      # Container of rolled up suggestions underneath this scope.
+      attr_accessor :contents
+
       class Advisor < Suggestion::Advisor
         def self.query(params, stats, current_suggestions)
           suggestions = Container.new
-          all = MissingNodes.new(nodes: [])
+          all = MissingNodes.new(scope: "general", nodes: [], contents: Container.new)
           profile_missing = {}
           district_missing = {}
           stats.profile_summaries_hash.each do |profile, psum|
             psum.districts.each do |dsum|
               next if dsum.missing_nodes.empty?
               profile_missing[profile] ||= MissingNodes.new(profile: profile,
-                                                            nodes: [])
-              district_missing[dsum.uuid] ||= MissingNodes.new( profile: profile,
+                                                            nodes: [],
+                                                            contents: Container.new)
+              district_missing[dsum.uuid] = MissingNodes.new(profile: profile,
+                                                             scope: "district",
                                                              district_uuid: dsum.uuid,
                                                              district_name: dsum.name,
                                                              nodes: [])
+              district_missing[dsum.uuid].nodes = dsum.missing_nodes
               profile_missing[profile].nodes += dsum.missing_nodes
-              district_missing[dsum.uuid].nodes += dsum.missing_nodes
-              all.nodes += dsum.missing_nodes
+              profile_missing[profile].contents << district_missing[dsum.uuid]
+            end
+            if p_miss = profile_missing[profile]
+              all.contents << p_miss
+              all.nodes += p_miss.nodes
             end
           end
-          suggestions << all unless profile_missing.empty?
-          suggestions += profile_missing.values + district_missing.values
+          suggestions << all if !profile_missing.empty?
+          #suggestions += profile_missing.values + district_missing.values
+          suggestions
         end
       end
     end # MissingNodes
