@@ -173,6 +173,11 @@ module OpenShift
             # NOTE: There is a corner case where we won't find non-running throttled applications
             @old_bad_gears ||= find(state: :throttled).first
 
+            # Remove any previously throttled gears that are no longer running
+            @mutex.synchronize do
+              @old_bad_gears.select!{|k,v| running_apps.keys.include?(k) }
+            end
+
             # Restore any gears we have utilization values for that are <= restore_percent
             (restore_gears, @old_bad_gears) = @old_bad_gears.partition do |uuid, gear|
               util.has_key?(uuid) && util[uuid] <= @restore_percent
