@@ -7,10 +7,10 @@ class Scope::Session < Scope::Simple
 
   def authorize_action?(*args)
     true
-  end    
+  end
 
   def limits_access(criteria)
     criteria.options[:visible] = true
     criteria
-  end  
+  end
 end
