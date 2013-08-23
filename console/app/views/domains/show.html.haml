@@ -36,5 +36,4 @@
   
 
 %section
-  %pre
-    = @domain.inspect
+  %pre= PP.pp(@domain.attributes, "")
