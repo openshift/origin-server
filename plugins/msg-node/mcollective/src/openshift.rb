@@ -207,7 +207,7 @@ module MCollective
         begin
           require 'openshift-origin-node/model/upgrade'
 
-          upgrader = OpenShift::Runtime::Upgrader.new(uuid, namespace, version, hostname, ignore_cartridge_version)
+          upgrader = OpenShift::Runtime::Upgrader.new(uuid, namespace, version, hostname, ignore_cartridge_version, OpenShift::Runtime::Utils::Hourglass.new(235))
           result = upgrader.execute
         rescue LoadError => e
           exitcode = 127
