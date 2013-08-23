@@ -1,12 +1,12 @@
-%td{:style => "vertical-align: top; font-weight: bold; color: red; padding-right: 5px; padding-bottom: 10px;"}
-  .badge.badge-important
+%td
+  .label.label-important
     = "!"
-%td{:style => "vertical-align: top; padding-bottom: 10px;"}
-  %div{:style => "font-size: 17.5px; line-height: 22.5px;"}
+%td
+  .lead
     Setup a node
   - case size
   - when :short  # just the basic facts about the suggestion
-    %div{:style => "font-size: 14.5px; line-height: 17px;"}
+    %div
       Please add
       = pluralize(suggestion.node_quantity, "node")
       - if suggestion.district_name
@@ -14,18 +14,18 @@
       & in the "#{suggestion.profile}" profile.
 
   - when :full  # the full monty
-    %div{:style => "font-size: 14.5px; line-height: 17px;"}
+    %div
       Please add #{ pluralize suggestion.node_quantity, "node" }
       - if suggestion.district_name
         & to the "#{suggestion.district_name}" district
       & in the "#{suggestion.profile}" profile.
-    %div{:style => "font-size: 14.5px; line-height: 17px;"}
+    %div
       This profile has only #{ pluralize suggestion.available_gears, "active gear" } available,
       which is below the threshold of #{ pluralize suggestion.threshold, "active gear" } required. 
     - if suggestion.district_name
-      %div{:style => "font-size: 14.5px; line-height: 17px;"}
+      %div
         After creating #{ pluralize suggestion.node_quantity, "node" }
         & with profile "#{suggestion.profile}",
         & please add them to the "#{suggestion.district_name}" district with this command:
-        %pre{:style => "margin-top: 10px;"}
+        %pre
           & $ oo-admin-ctl-district -c add-node -n '#{suggestion.district_name}' -i <node hostname>

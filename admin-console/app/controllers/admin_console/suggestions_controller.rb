@@ -5,6 +5,7 @@ module AdminConsole
     def index
       @suggestions = AdminConsole::Stats.systems_summaries.suggestions
       @config = Rails.application.config.admin_console
+      @expanded = params[:expanded]
     end
   end
 end

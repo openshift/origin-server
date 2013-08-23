@@ -380,3 +380,43 @@
     margin-bottom: 0;
   }
 }
+
+.suggestion {
+  font-size: 14.5px;
+  line-height: 17px;
+
+  &.clickable {
+    cursor: pointer;
+  }
+
+  .lead {
+    font-size: 17.5px;
+    line-height: 22.5px;
+    margin-bottom: 5px;
+  }
+
+  .label {
+    margin-right: 5px;
+    text-align: center;
+    width: 10px;
+  }
+
+  pre {
+    margin-top: 10px;
+  }
+
+  td {
+    vertical-align: top;
+    padding-bottom: 10px;
+  }
+}
+
+.suggestions-full-page {
+  .suggestion {
+    border-top: 1px solid #CCC;
+
+    td {
+      padding: 10px;
+    }
+  }
+}

@@ -11,8 +11,9 @@
       System Overview
     .row
       - if @suggestions.size <= 3 # inline them with the profiles 
-        .span6
-          = render :partial => 'suggestions' if !@suggestions.empty?
+        - if !@suggestions.empty?
+          .span6
+            = render :partial => 'suggestions'
         - @summary_for_profile.each_with_index do |profile, index|
           .span6{:class => index == 1 ? "clear" : ""}
             = render :partial => 'profile', :locals => {:profile => profile[1]}
