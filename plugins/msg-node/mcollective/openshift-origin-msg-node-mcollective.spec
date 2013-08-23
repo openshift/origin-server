@@ -10,7 +10,7 @@
 
 Summary:       M-Collective agent file for openshift-origin-msg-node-mcollective
 Name:          openshift-origin-msg-node-mcollective
-Version: 1.13.9
+Version: 1.13.10
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -51,6 +51,9 @@ cp -p facts/update_yaml.rb %{buildroot}/usr/libexec/mcollective/
 %attr(0700,-,-) %config(noreplace) /etc/cron.minutely/openshift-facts
 
 %changelog
+* Fri Aug 23 2013 Adam Miller <admiller@redhat.com> 1.13.10-1
+- Bug 1000193: Use an Hourglass in the gear upgrader (ironcladlou@gmail.com)
+
 * Thu Aug 22 2013 Adam Miller <admiller@redhat.com> 1.13.9-1
 - Added environment variable name limitations  - Limit length to 128 bytes.  -
   Allow letters, digits and underscore but can't begin with digit
