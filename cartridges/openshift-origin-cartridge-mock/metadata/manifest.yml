@@ -9,7 +9,7 @@ Versions:
 - '0.2'
 License: ASL 2.0
 Vendor: Red Hat
-Cartridge-Version: 0.0.2
+Cartridge-Version: 0.0.1
 Cartridge-Vendor: redhat
 Categories:
 - service
@@ -75,5 +75,3 @@ Version-Overrides:
     Provides:
     - mock-0.2
     - mock
-Compatible-Versions:
-- 0.0.1
