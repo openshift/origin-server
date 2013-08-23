@@ -194,6 +194,71 @@ module OpenShift
         upgrader.incompatible_upgrade(cart_model, current_version, next_manifest, version, target)
       end
 
+      def test_gear_pre_upgrade
+        gear_extension = mock()
+        gear_extension.expects(:pre_upgrade).with(progress)
+        gear_extension.stubs(:respond_to?).with(:pre_upgrade).returns(true)
+        gear_extension.stubs(:nil?).returns(false)
+        upgrader.stubs(:gear_extension).returns(gear_extension)
+        progress.expects(:step).with('pre_upgrade').yields({}, [])
+
+        upgrader.gear_pre_upgrade
+      end
+
+      def test_gear_pre_upgrade_without_gear_extension
+        gear_extension = mock()
+        gear_extension.expects(:pre_upgrade).never
+        gear_extension.stubs(:respond_to?).with(:pre_upgrade).returns(false)
+        gear_extension.stubs(:nil?).returns(false)
+        upgrader.stubs(:gear_extension).returns(gear_extension)
+        progress.expects(:step).with('pre_upgrade').never
+
+        upgrader.gear_pre_upgrade
+      end
+
+      def test_gear_post_upgrade
+        gear_extension = mock()
+        gear_extension.expects(:post_upgrade).with(progress)
+        gear_extension.stubs(:respond_to?).with(:post_upgrade).returns(true)
+        gear_extension.stubs(:nil?).returns(false)
+        upgrader.stubs(:gear_extension).returns(gear_extension)
+        progress.expects(:step).with('post_upgrade').yields({}, [])
+
+        upgrader.gear_post_upgrade
+      end
+
+      def test_gear_post_upgrade_without_gear_extension
+        gear_extension = mock()
+        gear_extension.expects(:post_upgrade).never
+        gear_extension.stubs(:respond_to?).with(:post_upgrade).returns(false)
+        gear_extension.stubs(:nil?).returns(false)
+        upgrader.stubs(:gear_extension).returns(gear_extension)
+        progress.expects(:step).with('post_upgrade').never
+
+        upgrader.gear_post_upgrade
+      end
+
+      def test_gear_map_ident
+        gear_extension = mock()
+        gear_extension.expects(:map_ident).with(progress, 'test')
+        gear_extension.stubs(:respond_to?).with(:map_ident).returns(true)
+        gear_extension.stubs(:nil?).returns(false)
+        upgrader.stubs(:gear_extension).returns(gear_extension)
+
+        upgrader.gear_map_ident('test')
+      end
+
+      def test_gear_map_ident_without_gear_extension
+        OpenShift::Runtime::Manifest.expects(:parse_ident).with('test')
+        gear_extension = mock()
+        gear_extension.expects(:map_ident).never
+        gear_extension.stubs(:respond_to?).with(:map_ident).returns(false)
+        gear_extension.stubs(:nil?).returns(false)
+        upgrader.stubs(:gear_extension).returns(gear_extension)
+
+        upgrader.gear_map_ident('test')
+      end
+
     end
   end
 end
