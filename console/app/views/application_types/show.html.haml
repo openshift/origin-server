@@ -96,7 +96,7 @@
                     - @application.domain_name = current_value
                     = render :partial => 'applications/name', :locals => {:form => f, :application => @application, :can_create => can_create, :domains => domains, :create_domain_url => create_domain_url}
         - else
-          = render :partial => 'applications/name', :locals => {:form => f, :application => @application, :can_create => true, :domains => @user_writeable_domains, :create_domain_url => create_domain_url}
+          = render :partial => 'applications/name', :locals => {:form => f, :application => @application, :can_create => @can_create, :domains => @user_writeable_domains, :create_domain_url => create_domain_url}
         = f.inline_errors_for :name
         = f.inline_errors_for :domain_name
       .controls

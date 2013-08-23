@@ -55,6 +55,7 @@ class ApplicationTypesController < ConsoleController
 
     @user_default_domain = user_default_domain rescue (Domain.new)
     @user_writeable_domains = user_writeable_domains
+    @can_create = current_api_user.max_domains > user_owned_domains.length
 
     @compact = false # @domain.persisted?
 

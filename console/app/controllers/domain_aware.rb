@@ -22,6 +22,10 @@ module DomainAware
     user_domains.select(&:editor?)
   end
 
+  def user_owned_domains
+    user_domains.select(&:owner?)
+  end
+
   def user_default_domain
     @domain ||= user_domains.first.tap do |d|
       raise RestApi::ResourceNotFound.new(Domain.model_name, nil) unless d.present? and d.owner?
