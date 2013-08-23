@@ -16,7 +16,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.13.11
+Version: 1.13.12
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -305,6 +305,12 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Fri Aug 23 2013 Adam Miller <admiller@redhat.com> 1.13.12-1
+- Merge pull request #3488 from detiber/bz1000174-stage
+  (dmcphers+openshiftbot@redhat.com)
+- <oo-accept-node> Bug 1000174 - oo-accept-node fixes (jdetiber@redhat.com)
+- Bug 1000193: Use an Hourglass in the gear upgrader (ironcladlou@gmail.com)
+
 * Thu Aug 22 2013 Adam Miller <admiller@redhat.com> 1.13.11-1
 - Merge pull request #3475 from fotioslindiakos/Bug999837_stg
   (admiller@redhat.com)
