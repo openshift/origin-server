@@ -277,6 +277,10 @@ class CloudUser
     capabilities["max_gears"] = m
   end
 
+  def max_domains
+    OpenShift::ApplicationContainerProxy.max_user_domains(self)
+  end
+
   def allowed_gear_sizes
     capabilities["gear_sizes"]
   end
