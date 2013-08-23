@@ -78,13 +78,6 @@ class GearGroup < RestApi::Base
     end
     groups.delete_if{ |g| g.send(:move_features, groups[0]) }
     groups.sort!{ |a,b| a.cartridges.first <=> b.cartridges.first }
-
-    if groups.first
-      cart = groups.first.cartridges.first
-      cart.git_url = application.git_url
-      cart.ssh_url = application.ssh_url
-      cart.ssh_string = application.ssh_string
-    end
     groups
   end
 

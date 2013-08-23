@@ -58,22 +58,25 @@
     %p.larger
       Extend your application by adding cartridges
 
-    - carts = CartridgeType.cached.embedded.clone
+    - carts = CartridgeType.cached.embedded.clone.sort
     - dbs = CartridgeType.suggest!(carts, :database?, 3)
-    - builders = CartridgeType.suggest!(carts, :builder?)
+    - jenkins, builders = CartridgeType.suggest!(carts, :builder?).partition(&:jenkins_client?)
 
     - if dbs.present?
       %p.larger
         Databases -
         = map_to_sentence(dbs) do |c|
           #{link_to c.display_name, application_cartridge_type_path(@application, c.name)}
-    - if builders.present?
+    - if jenkins.present?
+      %p.larger
+        Tools - #{link_to "Enable Jenkins continuous integration", application_building_path(@application)}
+    - elsif builders.present?
       %p.larger
         Tools -
         = map_to_sentence(builders) do |c|
           #{link_to c.display_name, application_cartridge_type_path(@application, c.name)}
 
-    %p.larger= link_to "→ See all cartridges", application_cartridge_types_path(@application)
+    %p.larger= link_to "Or, see all cartridges", application_cartridge_types_path(@application)
 
 %section.row
   .span12

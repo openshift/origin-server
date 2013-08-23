@@ -45,3 +45,6 @@
 
 - :name: jenkins-1
   :priority: 1
+
+- :name: mock-plugin-0.1
+  :priority: 3

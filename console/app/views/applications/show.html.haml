@@ -112,24 +112,26 @@
               - if cartridge.custom?
                 %p Created from #{link_to cartridge.url, cartridge.url}
 
-              - if cartridge.scales? || cartridge.builds?
+              - if cartridge.scales?
                 .embedded
-                  - if cartridge.scales?
-                    .embedded-cart
-                      - if cartridge.current_scale == 1
-                        = link_to "Scaling with HAProxy x1", application_scaling_path(@application), :title => 'Your web cartridge will automatically scale up when we detect you are receiving more web traffic'
-                      - else
-                        = link_to "Scaled up with HAProxy x#{cartridge.current_scale}",
-                                  application_scaling_path(@application),
-                                  :title => web_cartridge_scale_title(cartridge)
-                  - if cartridge.builds?
-                    .embedded-cart
-                      =link_to 'See Jenkins Build jobs', @application.build_job_url, :title=> 'Jenkins is currently running builds for your application'
+                  .flow
+                    %h3.cartridge-name{title: 'This cartridge is a plugin, and shares resources with the web framework'}
+                      = cartridge.scales_with_type.display_name
+                    .flow-block.right
+                      = link_to web_cartridge_scale_label(cartridge), application_scaling_path(@application), :title => web_cartridge_scale_title(cartridge)
+
+              - if cartridge.builds?
+                .embedded
+                  .flow
+                    %h3.cartridge-name{title: 'This cartridge is a plugin, and shares resources with the web framework'}
+                      = cartridge.builds_with_type.display_name
+                    .flow-block.right
+                      =link_to 'See Jenkins Build jobs', @application.build_job_url, :title => 'Jenkins is currently running builds for your application'
                       =link_to '(configure)', application_building_path(@application), :title => 'Remove or change your Jenkins configuration'
 
 
   %section.gutter{style: 'margin-top: 30px; position: relative;'}
-    - carts = CartridgeType.cached.embedded.clone
+    - carts = CartridgeType.cached.embedded.clone.sort
     -#%h4 Add additional capabilities to this application
     %span.font-icon{"aria-hidden" => "true", "data-icon" => "\uee16", style: "font-size: 50px; position: absolute; right: 10px; top: 0; opacity: 0.3;"}
     .row-fluid
@@ -203,10 +205,7 @@
     %h5 Source Code
     %p.small
       The app code is located in Git at:
-      %input#application_git_url.git-url{:readonly => 'readonly', :value => @application.git_url, :title => 'The code for your application will be available through this Git repository.', :style => 'with: 100%; width: -moz-available;'}
-      - content_for :javascripts do
-        :javascript
-          $('#application_git_url').focus(function() {this.select()});
+      %input#application_git_url.git-url{:readonly => 'readonly', :'data-text-copy' => true, :value => @application.git_url, :title => 'The code for your application will be available through this Git repository.', :style => 'with: 100%; width: -moz-available;'}
     %p.small
       Pass this URL to 'git clone' to copy the repository locally.
 
@@ -217,10 +216,7 @@
         %p
           The command below will open a Secure Shell (SSH) session to your application on most operating systems.  See our #{link_to 'SSH help page', ssh_help_url} for information about connecting with Windows, Mac, and Linux computers.
         %p
-          %input#application_ssh_url.git-url{:readonly => 'readonly', :value => "ssh #{@application.ssh_string}", :title => 'Cut and paste this command into a command shell to access your OpenShift application.'}
-          - content_for :javascripts do
-            :javascript
-              $('#application_ssh_url').focus(function() {this.select()});
+          %input#application_ssh_url.git-url{:readonly => 'readonly', :'data-text-copy' => true, :value => "ssh #{@application.ssh_string}", :title => 'Cut and paste this command into a command shell to access your OpenShift application.'}
 
   - else
     %h5 Source Code
@@ -275,4 +271,9 @@
       return false;
     }).on('submit', 'form', function() {
       $('#restart-container .btn').hide();
+    });
+
+    $('[data-text-copy]').click(function() {
+      $(this).focus().select();
+      $(this).keypress(function(e){ e.preventDefault(); });
     });

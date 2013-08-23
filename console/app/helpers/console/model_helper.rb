@@ -31,6 +31,18 @@ module Console::ModelHelper
     end
   end
 
+  def web_cartridge_scale_label(cartridge)
+    if cartridge.scales_from == cartridge.scales_to
+      "Fixed scaling x#{cartridge.current_scale}"
+    elsif cartridge.current_scale == cartridge.scales_from
+      "At x#{cartridge.current_scale}, max #{cartridge.scales_to}"
+    elsif cartridge.current_scale == cartridge.scales_to
+      "At maximum x#{cartridge.current_scale}, minimum #{cartridge.scales_from}"
+    else
+      "At x#{cartridge.current_scale}, min #{cartridge.scales_to} and max #{cartridge.scales_to}"
+    end
+  end
+
   def application_gear_count(application)
     return 'None' if application.gear_count == 0
     "#{application.gear_count} #{application.gear_profile.to_s.humanize.downcase}"

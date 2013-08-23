@@ -34,7 +34,7 @@ Suggests:
   - phpmyadmin-3
 Provides:
   - mysql-5.1
-  - mysql 
+  - mysql
   - mysql-singleton-master
 Conflicts:
   - postgresql-8.4

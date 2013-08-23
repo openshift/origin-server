@@ -91,6 +91,11 @@ class Cartridge < RestApi::Base
     end
   end
 
+  def scales_with_type
+    return nil unless scales_with.present?
+    @scales_with_type ||= (CartridgeType.cached.find(scales_with) rescue CartridgeType.new(:name => scales_with))
+  end
+
   def has_scale_range?
     scales? && scales_from != scales_to
   end
@@ -118,6 +123,11 @@ class Cartridge < RestApi::Base
   end
   def builds_with(cart, gear_group)
     @builds = BuildRelation.new cart, gear_group.is_a?(String) ? gear_group : gear_group.name
+  end
+
+  def builds_with_type
+    return nil unless builds?
+    builds.with
   end
 
   def grouping

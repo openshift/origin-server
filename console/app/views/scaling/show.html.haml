@@ -9,7 +9,7 @@
       %h2
         = cartridge.display_name
         - if cartridge.scales?
-          %span.pull-right Using #{pluralize(cartridge.current_scale, 'gears')}
+          %span.pull-right Using #{pluralize(cartridge.current_scale, 'gear')}
 
       - if cartridge.scales?
         = semantic_form_for cartridge,
@@ -21,9 +21,9 @@
 
           - if cartridge.tags.include?(:web_framework)
             %p
-              OpenShift is configured to scale this cartridge with 
-              #{link_to 'the web proxy HAProxy', scaling_help_url }. OpenShift 
-              monitors the incoming web traffic to your application and 
+              OpenShift is configured to scale this cartridge with
+              #{link_to 'the web proxy HAProxy', scaling_help_url }. OpenShift
+              monitors the incoming web traffic to your application and
               automatically adds or removes copies of your cartridge
               (each running on their own gears) to serve requests as needed.
 
@@ -33,7 +33,7 @@
             .input-prepend
               %span.add-on Minimum
               = f.input :scales_from, scale_from_options(cartridge, @user.max_gears).merge({:input_html => {:style => 'width: auto', :title => 'Minimum gears'}})
-            and 
+            and
             .input-prepend
               %span.add-on Maximum
               = f.input :scales_to, scale_to_options(cartridge, @user.max_gears).merge({:input_html => {:style => 'width: auto', :title => 'Maximum gears'}})
@@ -53,7 +53,7 @@
           %hr
 
           %p
-            Each scaled gear is created the same way - the normal 
+            Each scaled gear is created the same way - the normal
             post, pre, and deploy hooks are executed.  Each cartridge will have its
             own copy of runtime data, so be sure to use a database if you need to share
             data across your web cartridges.
