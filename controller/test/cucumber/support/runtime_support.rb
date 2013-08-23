@@ -194,7 +194,7 @@ module OpenShift
       $logger.info("Creating new gear #{@uuid} for application #{@app.name}")
       
       if cli
-        `oo-app-create -a #{@app.uuid} -c #{uuid} --with-namespace #{@app.account.domain} --with-app-name #{@app.name}`
+        `oo-devel-node app-create -a #{@app.uuid} -c #{uuid} --with-namespace #{@app.account.domain} --with-app-name #{@app.name}`
       end
 
       # Create the container object for use in the event listener later
@@ -266,7 +266,7 @@ module OpenShift
 
     def initialize(name, gear)
       unless name.match('-')
-        cart_list = JSON.parse(`oo-cartridge-list --porcelain`[15..-1])
+        cart_list = JSON.parse(`oo-devel-node cartridge-list --porcelain`[15..-1])
         cart_list.delete_if{ |c| not c.start_with? name }
         name = cart_list.first
       end
