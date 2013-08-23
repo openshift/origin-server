@@ -31,7 +31,7 @@ if __name__ == '__main__':
    app = imp.load_source('application', 'wsgi/application')
 
    fwtype="wsgiref"
-   for fw in ("gevent", "cherrypy"):
+   for fw in ("gevent", "cherrypy", "flask"):
       try:
          imp.find_module(fw)
          fwtype = fw
@@ -46,8 +46,14 @@ if __name__ == '__main__':
    elif fwtype == "cherrypy":
       from cherrypy import wsgiserver
       server = wsgiserver.CherryPyWSGIServer(
-         (ip, port), app.application, server_name='www.cherrypy.example')
+         (ip, port), app.application, server_name=os.environ['OPENSHIFT_APP_DNS'])
       server.start()
+
+   elif fwtype == "flask":
+      from flask import Flask
+      server = Flask(__name__)
+      server.wsgi_app = app.application
+      server.run(host=ip, port=port)
 
    else:
       from wsgiref.simple_server import make_server
