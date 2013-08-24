@@ -56,7 +56,7 @@ class Gear
   end
 
   def self.gear_sizes_display_string
-    # Ex: (small(default)|jumbo|exlarge|large|medium|micro)
+    # Ex: (small(default)|medium|large)
     out = '('
     Rails.configuration.openshift[:gear_sizes].each_with_index do |gear_size, index|
       out += gear_size
@@ -101,7 +101,7 @@ class Gear
       dns.publish
     ensure
       dns.close
-    end  
+    end
   end
 
   def deregister_dns
