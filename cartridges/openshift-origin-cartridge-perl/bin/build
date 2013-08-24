@@ -14,7 +14,7 @@ MIRROR="--mirror http://search.cpan.org/CPAN"
 
 if [[ "$LINUX_DISTRO" =~ $RED_HAT_DISTRO_NAME* && $OPENSHIFT_GEAR_DNS =~ .*\.rhcloud\.com$ ]]
 then
-  MIRROR="--mirror http://mirror.openshift.com/mirror/perl/CPAN/ $MIRROR"
+  MIRROR="--mirror http://mirror1.ops.rhcloud.com/mirror/perl/CPAN/ $MIRROR"
 fi
 
 if [ -f ${OPENSHIFT_REPO_DIR}deplist.txt ]

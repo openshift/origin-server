@@ -117,7 +117,12 @@ module OpenShift
           load_via_url = directory.nil?
           find_manifests(directory || @path) do |manifest_path|
             logger.debug { "Loading cartridge from #{manifest_path}" }
-            # we check the vendor and cartridge names only when loading via URL
+            
+            if File.size(manifest_path) == 0
+              logger.warn("Skipping load of #{manifest_path} because manifest appears to be corrupted")
+              next
+            end
+
             c = insert(Manifest.new(manifest_path, nil, :file, @path, load_via_url))
             logger.debug { "Loaded cartridge (#{c.name}, #{c.version}, #{c.cartridge_version})" }
           end

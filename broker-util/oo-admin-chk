@@ -178,7 +178,10 @@ def assign_usage_hash(urec, gear_hash, storage_hash, cart_hash, summary, verbose
     hash[gear_id]['num_begin_recs'] = 0
     hash[gear_id]['num_end_recs'] = 0
   end
-  hash[gear_id]['app_name'] = urec['app_name']
+  if hash[gear_id]['created_at'].nil? or (urec['created_at'] > hash[gear_id]['created_at'])
+    hash[gear_id]['app_name'] = urec['app_name']
+    hash[gear_id]['created_at'] = urec['created_at']
+  end
   if urec['event'] == UsageRecord::EVENTS[:end]
     hash[gear_id]['num_end_recs'] += 1
   else
@@ -715,8 +718,8 @@ if level >= 1 and $billing_enabled
   usage_storage_hash = {}
   usage_cart_hash = {}
   # Populate usage hash: Only for un-ended usage records
-  selection = {:fields => ["app_name", "gear_id", "event", "usage_type", "cart_name"],
-               :sort => [["time", 1]], :timeout => false}
+  selection = {:fields => ["app_name", "created_at", "gear_id", "event", "usage_type", "cart_name"],
+               :timeout => false}
   OpenShift::DataStore.find(:usage_records, {}, selection) do |urec|
     assign_usage_hash(urec, usage_gear_hash, usage_storage_hash, usage_cart_hash, summary, verbose)
   end

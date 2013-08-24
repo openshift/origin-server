@@ -140,6 +140,7 @@ module OpenShift
       attr_accessor :login,
                     :app_name,
                     :gear_uuid,
+                    :hostname,
                     :version,
                     :errors,
                     :warnings,
@@ -707,6 +708,7 @@ class Upgrader
 
       if app && gear
         server_identity = gear.server_identity
+        gear_result.hostname = server_identity
 
         Timeout::timeout(420) do
           output = ''

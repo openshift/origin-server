@@ -6,16 +6,20 @@ class EnvironmentVariablesController < BaseController
   # GET /domains/[domain_id]/applications/[application_name]/environment-variables
   # GET /applications/[app_id]/environment-variables
   def index
+    authorize! :view_environment_variables, @application
+
     rest_env_vars = []
     @application.list_user_env_variables.each do |name, value|
       rest_env_vars << get_rest_environment_variable({'name' => name, 'value' => value})
     end
     render_success(:ok, "environment-variables", rest_env_vars, "Listing environment variables for application #{@application.name}")
   end
-  
+
   # GET /domains/[domain_id]/applications/[application_id]/environment-variables/[id]
   # GET /applications/[app_id]/environment-variables/[id]
-  def show   
+  def show
+    authorize! :view_environment_variables, @application
+
     name = params[:id].presence
 
     env_hash = @application.list_user_env_variables([name])
@@ -24,10 +28,12 @@ class EnvironmentVariablesController < BaseController
     render_success(:ok, "environment-variable", get_rest_environment_variable(env_var),
                    "Showing environment variable '#{name}' for application #{@application.name}")
   end
-  
+
   # POST /domains/[domain_id]/applications/[application_id]/environment-variables
   # POST /applications/[app_id]/environment-variables
   def create
+    authorize! :change_environment_variables, @application
+
     name = params[:name].presence
     user_env_vars = params[:environment_variables].presence
 
@@ -35,6 +41,8 @@ class EnvironmentVariablesController < BaseController
       return render_error(:unprocessable_entity, "Specify parameters 'name'/'value' or 'environment_variables'", 191)
     end
     if name
+      match = /\A([a-zA-Z_][\w]*)\z/.match(name)
+      return render_error(:unprocessable_entity, "Name can only contain letters, digits and underscore and can't begin with a digit.", 194, "name") if match.nil?
       return render_error(:unprocessable_entity, "Value not specified for environment variable '#{name}'", 190, "value") unless params.has_key?(:value)
       value = params[:value]
       env_hash = @application.list_user_env_variables([name])
@@ -52,10 +60,12 @@ class EnvironmentVariablesController < BaseController
       return render_success(:created, "environment-variables", rest_env_vars, "Patched environment variables for application #{@application.name}", result)
     end
   end
-  
+
   # PUT /domains/[domain_id]/applications/[application_id]/environment-variables/[id]
   # PUT /applications/[app_id]/environment-variables/[id]
   def update
+    authorize! :change_environment_variables, @application
+
     name = params[:id].presence
 
     return render_error(:unprocessable_entity, "Value not specified for environment variable '#{name}'", 190, "value") unless params.has_key?(:value)
@@ -68,10 +78,12 @@ class EnvironmentVariablesController < BaseController
     rest_env_var = get_rest_environment_variable(env_var)
     render_success(:ok, "environment-variable", rest_env_var, "Updated environment variable '#{name}' in application #{@application.name}", result)
   end
-  
+
   # DELETE /domains/[domain_id]/applications/[application_id]/environment-variables/[id]
   # DELETE /applications/[app_id]/environment-variables/[id]
   def destroy
+    authorize! :change_environment_variables, @application
+
     name = params[:id].presence
 
     result = @application.patch_user_env_variables([{'name' => name}])

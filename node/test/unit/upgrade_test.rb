@@ -41,11 +41,14 @@ module OpenShift
 
         @config.expects(:get).with('GEAR_BASE_DIR').returns('/test')
 
+        @hourglass = mock()
+        @hourglass.stubs(:remaining).returns(420)
+
         @gear_env = mock()
         Utils::Environ.expects(:for_gear).with('/test/123').returns(@gear_env)
-        ApplicationContainer.expects(:from_uuid).with(@uuid).returns(@container)
+        ApplicationContainer.expects(:from_uuid).with(@uuid, @hourglass).returns(@container)
 
-        @upgrader = Upgrader.new(@uuid, @app_uuid, 'namespace', @version, 'hostname', false)
+        @upgrader = Upgrader.new(@uuid, @app_uuid, 'namespace', @version, 'hostname', false, @hourglass)
       end
 
       def test_compatible_success

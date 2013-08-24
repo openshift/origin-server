@@ -56,7 +56,7 @@ class Gear
   end
 
   def self.gear_sizes_display_string
-    # Ex: (small(default)|jumbo|exlarge|large|medium|micro)
+    # Ex: (small(default)|medium|large)
     out = '('
     Rails.configuration.openshift[:gear_sizes].each_with_index do |gear_size, index|
       out += gear_size
@@ -72,14 +72,30 @@ class Gear
 
   def reserve_uid
     @container = OpenShift::ApplicationContainerProxy.find_available(group_instance.gear_size, nil, server_identities)
-    self.set :server_identity, @container.id
-    self.set :uid, @container.reserve_uid
+    reserved_gear_uid = @container.reserve_uid
+
+    failure_message = "Failed to set UID and server_identity for gear #{self.uuid} for application #{self.group_instance.application.name}"
+    
+    updated_gear = update_with_retries(5, failure_message) do |current_app, current_gi, current_gear, gi_index, g_index|
+      Application.where({ "_id" => current_app._id, "group_instances.#{gi_index}._id" => current_gi._id, "group_instances.#{gi_index}.gears.#{g_index}.uuid" => current_gear.uuid }).update({"$set" => { "group_instances.#{gi_index}.gears.#{g_index}.uid" => reserved_gear_uid, "group_instances.#{gi_index}.gears.#{g_index}.server_identity" => @container.id }})
+    end
+
+    # set the server_identity and uid attributes in the gear object in mongoid memory for access by the caller
+    self.server_identity = updated_gear.server_identity
+    self.uid = updated_gear.uid
   end
 
   def unreserve_uid
     get_proxy.unreserve_uid(self.uid) if get_proxy
-    self.set :server_identity, nil
-    self.set :uid, nil
+    
+    failure_message = "Failed to unset UID and server_identity for gear #{self.uuid} for application #{self.group_instance.application.name}"
+    updated_gear = update_with_retries(5, failure_message) do |current_app, current_gi, current_gear, gi_index, g_index|
+      Application.where({ "_id" => current_app._id, "group_instances.#{gi_index}._id" => current_gi._id, "group_instances.#{gi_index}.gears.#{g_index}.uuid" => current_gear.uuid }).update({"$set" => { "group_instances.#{gi_index}.gears.#{g_index}.uid" => nil, "group_instances.#{gi_index}.gears.#{g_index}.server_identity" => nil }})
+    end
+
+    # set the server_identity and uid attributes in the gear object in mongoid memory for access by the caller
+    self.server_identity = updated_gear.server_identity
+    self.uid = updated_gear.uid
   end
 
   def create_gear
@@ -101,7 +117,7 @@ class Gear
       dns.publish
     ensure
       dns.close
-    end  
+    end
   end
 
   def deregister_dns
@@ -277,5 +293,40 @@ class Gear
     identities = self.group_instance.gears.map{|gear| gear.server_identity}
     identities.uniq!
     identities
+  end
+
+  def update_with_retries(num_retries, failure_message, &block)
+    retries = 0
+    success = false
+    current_gear = self
+    current_gi = self.group_instance
+    current_app = self.group_instance.application
+
+    # find the index and do an atomic update
+    gi_index = current_app.group_instances.index(current_gi)
+    g_index = current_gi.gears.index(current_gear)
+    while retries < num_retries
+      retval = block.call(current_app, current_gi, current_gear, gi_index, g_index)
+
+      # the gear needs to be reloaded to find the updated index as well as to return the updated document
+      current_app = Application.find_by("_id" => current_app._id)
+      current_gi = current_app.group_instances.find_by(_id: current_gi._id)
+      gi_index = current_app.group_instances.index(current_gi)
+      current_gear = current_app.group_instances[gi_index].gears.find_by(uuid: current_gear.uuid)
+      g_index = current_app.group_instances[gi_index].gears.index(current_gear)
+      retries += 1
+
+      if retval["updatedExisting"]
+        success = true
+        break
+      end
+    end
+
+    # log the details in case we cannot update the pending_op
+    unless success
+      Rails.logger.error(failure_message)
+    end
+    
+    return current_gear
   end
 end
