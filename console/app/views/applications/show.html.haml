@@ -30,6 +30,9 @@
           - else
             = link_to URI.parse(@application.web_url).hostname, @application.web_url, style: 'color: #ccc'
             = link_to "change", new_application_alias_path(@application), style: 'font-size: 15px'
+      %p
+        Created #{time_ago_in_words(@application.creation_time)} ago in domain
+        #{link_to @application.domain_id, domain_path(@application.domain_id)}
 
 %section#app-specifics
 %section#app-cartridges.span9

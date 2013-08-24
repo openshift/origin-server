@@ -46,7 +46,7 @@ Endpoints:
     Public-Port-Name:  DB_PROXY_PORT
 Version-Overrides:
   '8.4':
-    Display-Name: PostgreSQL Database 8.4
+    Display-Name: PostgreSQL 8.4
     Provides:
       - postgresql-8.4
       - "postgresql"
