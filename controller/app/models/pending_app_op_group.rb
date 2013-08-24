@@ -148,7 +148,7 @@ class PendingAppOpGroup
         if use_parallel_job
           parallel_job_ops.push op
         else
-          op.set(:state, :rolledback)
+          op.set_state(:rolledback)
         end
       end
 
@@ -185,7 +185,7 @@ class PendingAppOpGroup
           Rails.logger.debug "Execute #{op.op_type}"
 
           # set the pending_op state to queued
-          op.set(:state, :queued)
+          op.set_state(:queued)
 
           case op.op_type
           when :create_group_instance
@@ -243,7 +243,7 @@ class PendingAppOpGroup
             begin
               gear.register_dns
             rescue OpenShift::DNSLoginException => e
-              op.set(:state, :rolledback)
+              op.set_state(:rolledback)
               raise
             end
           when :deregister_dns
@@ -354,14 +354,14 @@ class PendingAppOpGroup
           if use_parallel_job 
             parallel_job_ops.push op
           elsif result_io.exitcode != 0
-            op.set(:state, :failed)
+            op.set_state(:failed)
             if result_io.hasUserActionableError
               raise OpenShift::UserException.new("Unable to #{self.op_type.to_s.gsub("_"," ")}", result_io.exitcode, nil, result_io) 
             else
               raise OpenShift::NodeException.new("Unable to #{self.op_type.to_s.gsub("_"," ")}", result_io.exitcode, result_io) 
             end
           else
-            op.set(:state, :completed)
+            op.set_state(:completed)
           end
         end
 
@@ -395,9 +395,9 @@ class PendingAppOpGroup
           end
           parallel_job_ops.each{ |op| 
             if failed_ops.include? op._id.to_s 
-              op.set(:state, :failed) 
+              op.set_state(:failed) 
             else
-              op.set(:state, :completed) 
+              op.set_state(:completed) 
             end
           }
           self.application.save
