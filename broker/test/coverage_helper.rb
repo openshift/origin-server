@@ -31,11 +31,19 @@ SimpleCov.add_filter StringFilter.new("openshift-origin-dns")
 SimpleCov.add_filter StringFilter.new("openshift-origin-auth")
 SimpleCov.add_filter StringFilter.new("openshift-origin-admin-console")
 
+COVERAGE_DIR = 'test/coverage/'
+RESULT_SET = File.join(COVERAGE_DIR, '.resultset.json')
+
+FileUtils.mkpath COVERAGE_DIR
+
 SimpleCov.start 'rails' do
-  coverage_dir 'test/coverage/'
+  coverage_dir COVERAGE_DIR
   command_name ENV["TEST_NAME"] || 'broker tests'
   add_group 'REST API Models', 'app/rest_models'
   add_group 'Validators', 'app/validators'
 
   merge_timeout 10000
 end
+
+FileUtils.touch(RESULT_SET)
+FileUtils.chmod_R(01777, COVERAGE_DIR)

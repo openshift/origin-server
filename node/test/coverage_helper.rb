@@ -25,5 +25,5 @@ SimpleCov.start do
 end
 
 
-FileUtils.touch(File.join(COVERAGE_DIR, '.resultset.json'))
+FileUtils.touch(RESULT_SET)
 FileUtils.chmod_R(01777, COVERAGE_DIR)
