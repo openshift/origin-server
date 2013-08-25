@@ -83,7 +83,7 @@ class CartridgesControllerTest < ActionDispatch::IntegrationTest
     assert cart_count1 > 0
 
   end
-  
+
   test "get cartridge in all versions" do
     request_via_redirect(:get, "/broker/rest/cartridges/redhat-#{PHP_VERSION}", {}, @headers)
     assert_response :ok
