@@ -18,7 +18,7 @@ module Broker
     # Set logs to somewhere more standard
     config.paths['log'] =  ENV['RAILS_LOG_PATH'] ||
                               "/var/log/openshift/broker/#{Rails.env}.log"
-                                     
+
     # Custom directories with classes and modules you want to be autoloadable.
     # config.autoload_paths += %W(#{config.root}/extras)
 
@@ -46,5 +46,8 @@ module Broker
     # Configure sensitive parameters which will be filtered from the log file.
     config.filter_parameters += [:password]
     config.autoload_paths += %W(#{config.root}/lib)
+
+    Mongoid.logger.level = Logger::WARN
+    Moped.logger.level = Logger::WARN
   end
 end
