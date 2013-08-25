@@ -3,8 +3,14 @@
 # incomplete
 
 require 'simplecov'
+
+COVERAGE_DIR = 'test/coverage/'
+RESULT_SET = File.join(COVERAGE_DIR, '.resultset.json')
+
+FileUtils.mkpath COVERAGE_DIR
+
 SimpleCov.start 'rails' do
-  coverage_dir 'test/coverage/'
+  coverage_dir COVERAGE_DIR
   command_name 'Console tests'
 
   # Filters - these files will be ignored.
@@ -25,3 +31,6 @@ SimpleCov.start 'rails' do
   # Note, the #:nocov: coverage exclusion  should only be used on external functions 
   #  that cannot be nondestructively tested in a developer environment.
 end
+
+FileUtils.touch(RESULT_SET)
+FileUtils.chmod_R(01777, COVERAGE_DIR)
