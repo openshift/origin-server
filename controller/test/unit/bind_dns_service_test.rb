@@ -51,7 +51,7 @@ class BindDnsServiceTest < ActiveSupport::TestCase
 
   test "register an application" do
     client = BindDnsService.new @config
-    
+
     testns = "testns3"
     testapp = "testapp3"
     fqdn = "#{testapp}-#{testns}.#{@config[:domain_suffix]}"
@@ -59,7 +59,7 @@ class BindDnsServiceTest < ActiveSupport::TestCase
 
     # add the app
     client.register_application(testapp, testns, nodename)
-    
+
     # now check that it's there
     result = nil
     assert_nothing_raised do
@@ -75,12 +75,12 @@ class BindDnsServiceTest < ActiveSupport::TestCase
 
     # result.answer[0].name.to_s = fqdn
     assert_equal(nodename, result.answer[0].rdata.to_s, "expected FQDN #{nodename}")
-    
+
   end
 
   test "deregister an application" do
     client = BindDnsService.new @config
-    
+
     testns = "testns4"
     testapp = "testapp4"
     fqdn = "#{testapp}-#{testns}.#{@config[:domain_suffix]}"

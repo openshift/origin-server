@@ -1,10 +1,10 @@
 ENV["TEST_NAME"] = "functional_app_events_controller_test"
 require 'test_helper'
 class AppEventsControllerTest < ActionController::TestCase
-  
+
   def setup
     @controller = AppEventsController.new
-    
+
     @random = rand(1000000000)
     @login = "user#{@random}"
     @password = "password"
@@ -13,7 +13,7 @@ class AppEventsControllerTest < ActionController::TestCase
     @user.save
     Lock.create_lock(@user)
     register_user(@login, @password)
-    
+
     @request.env['HTTP_AUTHORIZATION'] = "Basic " + Base64.encode64("#{@login}:#{@password}")
     @request.env['HTTP_ACCEPT'] = "application/json"
     stubber
@@ -24,14 +24,14 @@ class AppEventsControllerTest < ActionController::TestCase
     @app = Application.create_app(@app_name, [PHP_VERSION], @domain, nil, true)
     @app.save
   end
-  
+
   def teardown
     begin
       @user.force_delete
     rescue
     end
   end
-  
+
   test "app events by domain name and app name" do
     server_alias = "as#{@random}"
     post :create, {"event" => "stop", "domain_id" => @domain.namespace, "application_id" => @app.name}
@@ -58,7 +58,7 @@ class AppEventsControllerTest < ActionController::TestCase
     post :create, {"event" => "remove-alias", "alias" => as, "domain_id" => @domain.namespace, "application_id" => @app.name}
     assert_response :success
   end
-  
+
   test "app events by app id" do
     server_alias = "as#{@random}"
     post :create, {"event" => "stop", "application_id" => @app.id}
@@ -85,19 +85,19 @@ class AppEventsControllerTest < ActionController::TestCase
     post :create, {"event" => "remove-alias", "alias" => as, "application_id" => @app.id}
     assert_response :success
   end
-  
+
   test "no app name or domain name" do
     post :create, {"event" => "stop", "application_id" => @app.name}
     assert_response :not_found
     post :create, {"event" => "stop", "domain_id" => @domain.namespace}
     assert_response :not_found
   end
-  
+
   test "no app id" do
     post :create, {"event" => "stop"}
     assert_response :not_found
   end
-  
+
   test "no or wrong alias" do
     post :create, {"event" => "add-alias", "domain_id" => @domain.namespace, "application_id" => @app.name}
     assert_response :unprocessable_entity
@@ -106,12 +106,12 @@ class AppEventsControllerTest < ActionController::TestCase
     post :create, {"event" => "remove-alias", "alias" => "bogus", "domain_id" => @domain.namespace, "application_id" => @app.name}
     assert_response :not_found
   end
-  
+
   test "wrong event type" do
     post :create, {"event" => "bogus", "domain_id" => @domain.namespace, "application_id" => @app.name}
     assert_response :unprocessable_entity
   end
-  
+
   test "thread-dump on a cartridge with threaddump hook" do
     #create an app with threaddump hook i.e. ruby-1.8 or jbossews-2.0
     app_name = "rubyapp#{@random}"
