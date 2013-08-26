@@ -22,6 +22,7 @@ Broker::Application.configure do
         :filter => {"identity" => [], "fact" => [], "agent" => [], "cf_class" => [], "compound" => []},
         :config => conf.get("MCOLLECTIVE_CONFIG", "/etc/mcollective/client.cfg"),
       },
+      :fact_timeout => conf.get("MCOLLECTIVE_FACT_TIMEOUT", "10").to_i,
       :districts => {
         :enabled => conf.get_bool("DISTRICTS_ENABLED", "false"),
         :require_for_app_create => conf.get_bool("DISTRICTS_REQUIRE_FOR_APP_CREATE", "false"),
