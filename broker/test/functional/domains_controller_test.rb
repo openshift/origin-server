@@ -171,8 +171,7 @@ class DomainsControllerTest < ActionController::TestCase
     get :show, {"name" => new_namespace}
     assert_response :success
   end
-  
-    
+
   test "get domain in all version" do
     namespace = "ns#{@random}"
     post :create, {"name" => namespace}
