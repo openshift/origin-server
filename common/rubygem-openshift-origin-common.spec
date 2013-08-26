@@ -42,7 +42,6 @@ BuildRequires: %{?scl:%scl_prefix}ruby(abi) >= %{rubyabi}
 %endif
 BuildRequires: %{?scl:%scl_prefix}rubygems
 BuildRequires: %{?scl:%scl_prefix}rubygems-devel
-BuildRequires: %{?scl:%scl_prefix}rubygem-yard
 BuildArch:     noarch
 Provides:      rubygem(%{gem_name}) = %version
 
@@ -77,7 +76,6 @@ gem install -V \
 %install
 mkdir -p %{buildroot}%{gem_dir}
 cp -a ./%{gem_dir}/* %{buildroot}%{gem_dir}/
-mkdir -p %{buildroot}/%{gem_instdir}/.yardoc
 
 %if 0%{?scl:1}
 mkdir -p %{buildroot}%{_root_sbindir}
@@ -96,7 +94,6 @@ cp bin/man/*.8 %{buildroot}%{_mandir}/man8/
 %dir %{gem_instdir}
 %doc %{gem_instdir}/LICENSE
 %doc %{gem_instdir}/COPYRIGHT
-%doc %{gem_instdir}/.yardoc
 %doc %{gem_instdir}/Gemfile
 %doc %{gem_instdir}/Rakefile
 %doc %{gem_instdir}/README.md
