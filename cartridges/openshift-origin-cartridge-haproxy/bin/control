@@ -121,17 +121,17 @@ function _reload_service() {
 
 function start() {
     _start_haproxy_service
-    isrunning  &&  client_message "HAProxy instance is started"
+    isrunning  &&  echo "HAProxy instance is started"
 }
 
 function stop() {
     _stop_haproxy_service
-    isrunning  ||  client_message "HAProxy instance is stopped"
+    isrunning  ||  echo "HAProxy instance is stopped"
 }
 
 function restart() {
     _restart_haproxy_service
-    isrunning  &&  client_message "Restarted HAProxy instance"
+    isrunning  &&  echo "Restarted HAProxy instance"
 }
 
 function reload() {
@@ -143,7 +143,7 @@ function reload() {
        _start_haproxy_ctld_daemon
     fi
 
-    isrunning  &&  client_message "Reloaded HAProxy instance"
+    isrunning  &&  echo "Reloaded HAProxy instance"
 }
 
 function force-reload() {
@@ -151,7 +151,7 @@ function force-reload() {
         echo "`date`: Conditionally reloading HAProxy service " 1>&2
         _reload_service
         _start_haproxy_ctld_daemon
-        isrunning  &&  client_message "Conditionally reloaded HAProxy"
+        isrunning  &&  echo "Conditionally reloaded HAProxy"
     fi
 }
 
