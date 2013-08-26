@@ -3,14 +3,14 @@ class DomainsController < BaseController
   include RestModelHelper
 
   # Retuns list of domains for the current user
-  # 
+  #
   # URL: /domains
   #
   # Action: GET
   #
   # @param [String] owner The id of an owner to show the domains for.  Special values: 
   #                         @self - returns the current user.
-  # 
+  #
   # @return [RestReply<Array<RestDomain>>] List of domains
   def index
     domains = 
@@ -26,11 +26,11 @@ class DomainsController < BaseController
   end
 
   # Retuns domain for the current user that match the given parameters.
-  # 
+  #
   # URL: /domains/:name
   #
   # Action: GET
-  # 
+  #
   # @param [String] name The name of the domain
   # @return [RestReply<RestDomain>] The requested domain
   def show
@@ -42,13 +42,13 @@ class DomainsController < BaseController
   end
 
   # Create a new domain for the user
-  # 
+  #
   # URL: /domains
   #
   # Action: POST
   #
   # @param [String] name The name for the domain
-  # 
+  #
   # @return [RestReply<RestDomain>] The new domain
   def create
     authorize! :create_domain, current_user
@@ -75,14 +75,14 @@ class DomainsController < BaseController
   end
 
   # Create a new domain for the user
-  # 
+  #
   # URL: /domains/:existing_name
   #
   # Action: PUT
   #
   # @param [String] name The new name for the domain
   # @param [String] existing_name The current name for the domain
-  # 
+  #
   # @return [RestReply<RestDomain>] The updated domain
   def update
     id = params[:existing_name].presence || params[:existing_id].presence
@@ -105,12 +105,12 @@ class DomainsController < BaseController
     return render_error(:unprocessable_entity, "No changes specified to the domain.", 106) unless domain.changed?
 
     domain.save_with_duplicate_check!
-    
+
     render_success(:ok, "domain", get_rest_domain(domain), "Updated domain #{domain.namespace}", domain)
   end
 
   # Delete a domain for the user. Requires that domain be empty unless 'force' parameter is set.
-  # 
+  #
   # URL: /domains/:name
   #
   # Action: DELETE

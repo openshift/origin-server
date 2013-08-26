@@ -5,7 +5,7 @@ class DescriptorsController < BaseController
   before_filter :get_application
   ##
   # Retrieve application descriptor
-  # 
+  #
   # URL: /domains/:domain_id/applications/:application_id/descriptor
   #
   # Action: GET
