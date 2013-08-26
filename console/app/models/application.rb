@@ -66,6 +66,7 @@ class Application < RestApi::Base
   def gear_groups
     @gear_groups ||= GearGroup.find(:all, child_options)
   end
+  attr_writer :gear_groups
   def cartridge_gear_groups
     @cartridge_gear_groups ||= GearGroup.infer(cartridges, self)
   end

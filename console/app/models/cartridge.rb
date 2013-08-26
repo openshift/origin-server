@@ -81,7 +81,7 @@ class Cartridge < RestApi::Base
   end
 
   def scales?
-    @scales.present? || supported_scales_from != supported_scales_to
+    @scales.present? || supported_scales_from != supported_scales_to || supported_scales_from > 1 || scales_from > 1
   end
 
   # deprecated with args

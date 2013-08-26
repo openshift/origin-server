@@ -72,12 +72,12 @@ class GearGroup < RestApi::Base
   def self.infer(cartridges, application)
     groups = cartridges.group_by(&:grouping).map do |a|
       GearGroup.new({
-        :cartridges => a[1].sort!, 
+        :cartridges => a[1].sort!,
         :gear_profile => a[1].first.gear_profile
       }, true)
     end
-    groups.delete_if{ |g| g.send(:move_features, groups[0]) }
     groups.sort!{ |a,b| a.cartridges.first <=> b.cartridges.first }
+    groups.delete_if{ |g| g.send(:move_features, groups[0]) }
     groups
   end
 
@@ -95,6 +95,7 @@ class GearGroup < RestApi::Base
       if self != to && cartridges.empty?
         to.gears.concat(gears)
         gears.clear
+        true
       end
     end
 end

@@ -3,6 +3,21 @@
 
 - breadcrumb_for_application @application
 
+:css
+  .gear-group .gear {
+  }
+  .gear-info .gear-icon {
+    border-left: 1px dotted transparent;
+    border-right: 1px dotted transparent;
+    padding: 0 1px;
+  }
+  .gear-info .gear-icon.from {
+    border-left-color: white;
+  }
+  .gear-info .gear-icon.to {
+    border-right-color: white;
+  }
+
 - content_for :top do
   .grid-wrapper.section-header
     %nav.span12.span-flush-right.application-info
@@ -30,7 +45,7 @@
           - else
             = link_to URI.parse(@application.web_url).hostname, @application.web_url, style: 'color: #ccc'
             = link_to "change", new_application_alias_path(@application), style: 'font-size: 15px'
-      %p
+      %p{style: 'margin-top: -15px; margin-bottom: 10px; opacity: 0.8;'}
         Created #{time_ago_in_words(@application.creation_time)} ago in domain
         #{link_to @application.domain_id, domain_path(@application.domain_id)}
 
@@ -51,86 +66,118 @@
 
   - @gear_groups.each_with_index do |group,g|
     .gear-group
-      - group.cartridges.each_with_index do |cartridge,c|
-        .cartridge-block
-          .cartridge-border
-            .cartridge-inset
-              %h2.flow
-                %span{:title => cartridge.name}= cartridge.display_name
+      - cartridge = group.cartridges.first
+      .cartridge-block
+        .cartridge-border
+          .cartridge-inset
+            %h2.flow
+              %span{:title => cartridge.name}= cartridge.display_name
 
-                %span.flow-block.right
-                  - if c == 0
-                    = link_to cartridge_storage(cartridge), application_storage_path(@application), style: 'margin-right: 10px; opacity: 0.4; color: white;'
-                    %span.gear-states{style: 'margin-right: 10px; opacity: 0.4;'}= gear_group_state(group.states)
+              %span.flow-block.right
+                %span.gear-states{style: 'margin-right: 10px; opacity: 0.4; text-transform: uppercase; font-size: 15px;'}= gear_group_state(group.states)
 
-                    %span.gear{:title => gear_group_count_title(group.gears.length)}
-                      = group.gears.length
-                      %span.gear-icon{'aria-hidden'=>"true", 'data-icon' => "\ue014", style: 'opacity: 0.25'}
-                      - if cartridge.scales?
-                        .gauge-vertical>
-                          - if cartridge.has_scale_range?
-                            - if cartridge.can_scale_up?
-                              %span.gauge-tick.fill>  .
-                              %span.gauge-tick.fill>  .
-                              %span.gauge-tick.fill>  .
-                            - elsif cartridge.can_scale_down?
-                              %span.gauge-tick.empty> .
-                              %span.gauge-tick.empty> .
-                              %span.gauge-tick.fill>  .
-                            - else
-                              %span.gauge-tick.empty> .
-                              %span.gauge-tick.fill>  .
-                              %span.gauge-tick.fill>  .
-                          - else
-                            %span.gauge-tick.fill> .
-                            %span.gauge-tick.fill> .
-                            %span.gauge-tick.fill> .
+                %div.gear{title: gear_group_count_title(group.gears.length), style: 'position: relative; display: inline-block;'}
+                  = group.gears.length
+                  %span.gear-icon{'aria-hidden'=>"true", 'data-icon' => "\ue014", style: 'opacity: 0.25'}
 
-                  - else
-                    -#%span.data{:title => , style: 'opacity: 0.25'} Shared
-                    %span.gear{:title => 'This cartridge shares resources with the other cartridges it is grouped with.'}
-                      %span.gear-icon{'aria-hidden'=>"true", 'data-icon' => "\ue014", style: 'opacity: 0.1'}
+                  %div{style: 'display: inline-block; text-align: left; font-size: 10px; text-transform: uppercase; opacity: 0.5; min-width: 35px; margin-left: 2px; margin-right: 10px; line-height: 10.5px;'}
+                    %div= link_to cartridge_storage(cartridge), application_storage_path(@application), style: 'color: white;'
+                    %div= cartridge.gear_profile
 
-              -#.clearfix
-                %ul.pull-right.unstyled-flat.bits
-                  - if c == 0
-                    %li
-                      %h6 Status
-                      %span.data= gear_group_state(group.states)
-                    %li
-                      %h6 Gears
-                      %span.data{:title => gear_group_count_title(group.gears.length)}
-                        = link_to cartridge_gear_group_count(group), application_scaling_path(@application)
-                    %li
-                      %h6 Storage
-                      %span.data{:style => "text-transform: none"}
-                        = link_to cartridge_storage(cartridge), application_storage_path(@application)
-                  - else
-                    %li
-                      %h6 Gears
-                      %span.data{:title => 'This cartridge shares resources with the other cartridges it is grouped with.'} Shared
+                  -# if cartridge.scales?
+                    .gauge-vertical{style: 'right: 7px'}>
+                      - if cartridge.has_scale_range?
+                        - if cartridge.can_scale_up?
+                          %span.gauge-tick.empty>  .
+                          %span.gauge-tick.fill>  .
+                          %span.gauge-tick.fill>  .
+                        - elsif cartridge.can_scale_down?
+                          %span.gauge-tick.empty> .
+                          %span.gauge-tick.empty> .
+                          %span.gauge-tick.fill>  .
+                        - else
+                          %span.gauge-tick.fill> .
+                          %span.gauge-tick.fill>  .
+                          %span.gauge-tick.fill>  .
+                      - else
+                        %span.gauge-tick.fill> .
+                        %span.gauge-tick.fill> .
+                        %span.gauge-tick.fill> .
 
-                -#%h2{:title => cartridge.name}= cartridge.display_name
+            - if cartridge.scales?
+              .gear-info.flow
+                .flow-block
+                  %p This cartridge runs on #{cartridge.gear_profile} gears. Each gear will have #{link_to cartridge_storage(cartridge)} of disk space.
 
-              - if cartridge.custom?
-                %p Created from #{link_to cartridge.url, cartridge.url}
+                .flow-block.right{style: 'min-width: 10em;'}
+                  - marks = scale_markers(group.gears, cartridge, @capabilities.max_gears, 100)
+                  - marks.in_groups_of(8).each do |g|
+                    %div{style: 'white-space: nowrap'}
+                      - g.each do |i, g, from, to|
+                        - classes = [('from' if from), ('to' if to)].compact.join(' ')
+                        - case g
+                        - when :available
+                          %span.gear-icon{'aria-hidden'=>"true", 'data-icon' => "\ue014", style: 'opacity: 0.4', :class => classes}>
+                        - when :above
+                          %span.gear-icon{'aria-hidden'=>"true", 'data-icon' => "\ue014", style: 'opacity: 0.15', :class => classes}>
+                        - when nil
+                        - else
+                          %span.gear-icon{'aria-hidden'=>"true", 'data-icon' => "\ue014", style: "opacity: 1; #{g.state != :started ? 'color: yellow' : ''}", :title => g.state, :class => classes}>
 
-              - if cartridge.scales?
-                .embedded
-                  .flow
-                    %h3.cartridge-name{title: 'This cartridge is a plugin, and shares resources with the web framework'}
-                      = cartridge.scales_with_type.display_name
-                    .flow-block.right
-                      = link_to web_cartridge_scale_label(cartridge), application_scaling_path(@application), :title => web_cartridge_scale_title(cartridge)
 
-              - if cartridge.builds?
-                .embedded
-                  .flow
-                    %h3.cartridge-name{title: 'This cartridge is a plugin, and shares resources with the web framework'}
-                      = cartridge.builds_with_type.display_name
+            - if cartridge.custom?
+              %p Created from #{link_to cartridge.url, cartridge.url}
+
+            -#.clearfix
+              %ul.pull-right.unstyled-flat.bits
+                - if c == 0
+                  %li
+                    %h6 Status
+                    %span.data= gear_group_state(group.states)
+                  %li
+                    %h6 Gears
+                    %span.data{:title => gear_group_count_title(group.gears.length)}
+                      = link_to cartridge_gear_group_count(group), application_scaling_path(@application)
+                  %li
+                    %h6 Storage
+                    %span.data{:style => "text-transform: none"}
+                      = link_to cartridge_storage(cartridge), application_storage_path(@application)
+                - else
+                  %li
+                    %h6 Gears
+                    %span.data{:title => 'This cartridge shares resources with the other cartridges it is grouped with.'} Shared
+
+            - if scales_with = cartridge.scales_with_type
+              .embedded
+                .flow
+                  %h4.cartridge-name{title: 'This cartridge is a plugin, and shares resources with the web framework'}
+                    = scales_with.display_name
+                  .flow-block.right
+                    = link_to web_cartridge_scale_label(cartridge), application_scaling_path(@application), :title => web_cartridge_scale_title(cartridge)
+
+                - if scales_with.custom?
+                  %p Created from #{link_to scales_with.url, scales_with.url}
+
+            - if builds_with = cartridge.builds_with_type
+              .embedded
+                .flow
+                  %h4.cartridge-name{title: 'This cartridge is a plugin, and shares resources with the web framework'}
+                    = builds_with.display_name
+                  - if builds_with.jenkins_client?
                     .flow-block.right
                       =link_to 'See Jenkins Build jobs', @application.build_job_url, :title => 'Jenkins is currently running builds for your application'
                       =link_to '(configure)', application_building_path(@application), :title => 'Remove or change your Jenkins configuration'
+
+                - if builds_with.custom?
+                  %p Created from #{link_to builds_with.url, builds_with.url}
+
+            - group.cartridges[1..-1].each do |cartridge|
+              .embedded
+                .flow
+                  %h4.cartridge-name{title: 'This cartridge is a plugin, and shares resources with the web framework'}
+                    = cartridge.display_name
+                - if cartridge.custom?
+                  %p Created from #{link_to cartridge.url, cartridge.url}
 
 
   %section.gutter{style: 'margin-top: 30px; position: relative;'}

@@ -1,7 +1,7 @@
 module Console::ModelHelper
   def gear_group_states(states)
     return states[0].to_s.humanize if states.uniq.length == 1
-    "#{states.count{ |s| s == :started }}/#{states.length} started"
+    "#{states.count{ |s| s == :started }} started"
   end
   def gear_group_state(states)
     css_class = if states.all? {|s| s == :started}
@@ -75,6 +75,15 @@ module Console::ModelHelper
     parts.join(' ').strip
   end
 
+  def scaling_max(*args)
+    args.unshift(1)
+    args.select{ |i| i != nil && i != -1 }.max
+  end
+  def scaling_min(*args)
+    args.unshift(1)
+    args.select{ |i| i != nil && i != -1 }.min
+  end
+
   def scale_range(from, to, max, max_choices)
     limit = to == -1 ? max : to
     return if limit > max_choices
@@ -96,7 +105,26 @@ module Console::ModelHelper
     end
   end
 
- def storage_options(min,max)
+  def scale_markers(gears, cartridge, effective_to, visual_max=50)
+    from = cartridge.scales_from
+    to = cartridge.scales_to == -1 ? effective_to : cartridge.scales_to
+    available = cartridge.supported_scales_to == -1 ? effective_to : cartridge.supported_scales_to
+    return if to > visual_max
+    index = 0
+    results = []
+    gears.each do |g|
+      results << [(index += 1), g, index == from, index == to]
+    end
+    ((index+1)..to).each do |i|
+      results << [i, :available, i == from && from, i == to]
+    end
+    ((to+1)..available).each do |i|
+      results << [i, :above, i == from, i == to]
+    end
+    results
+  end
+
+  def storage_options(min,max)
     {:as => :select, :collection => (min..max), :include_blank => false}
   end
 

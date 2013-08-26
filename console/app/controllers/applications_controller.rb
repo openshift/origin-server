@@ -73,72 +73,13 @@ class ApplicationsController < ConsoleController
   [GearGroup, Cartridge, Key, Application] if Rails.env.development?
 
   def index
-    # replace domains with Applications.find :all, :as => current_user
-    # in the future
-    #domain = Domain.find :one, :as => current_user rescue nil
     if params[:test]
       @applications_filter = ApplicationsFilter.new params[:applications_filter]
-      @applications = [
-        Application.new({
-          :name => 'widgetsprod', :app_url => "http://widgetsprod-widgets.rhcloud.com", :uuid => '1', :domain_id => 'widgets', :gear_profile => 'small', :gear_count => 2, 
-          :cartridges => [
-            Cartridge.new(:name => 'php-5.3',   :gear_profile => 'small', :current_scale => 1, :scales_from => 1, :scales_to => 1, :supported_scales_from => 1, :supported_scales_to => -1),
-            Cartridge.new(:name => 'mysql-5.1', :gear_profile => 'small', :current_scale => 1, :scales_from => 1, :scales_to => 1),
-            Cartridge.new(:name => 'haproxy-1.4', :gear_profile => 'small', :current_scale => 1, :scales_from => 1, :scales_to => 1, :colocated_with => ['php-5.3']),
-          ], 
-          :aliases => [Alias.new(:name => 'www.widgets.com'), Alias.new(:name => 'widgets.com')], 
-          :members => [Member.new(:id => '1', :role => 'admin', :name => 'Alice', :owner => true)],
-        }, true),
-        Application.new({
-          :name => 'widgets', :app_url => "http://widgets-widgets.rhcloud.com",:uuid => '2', :domain_id => 'widgets', :gear_profile => 'small', :gear_count => 1, 
-          :cartridges => [
-            Cartridge.new(:name => 'php-5.3',   :gear_profile => 'small', :current_scale => 1, :scales_from => 1, :scales_to => 1, :colocated_with => ['mysql-5.1']),
-            Cartridge.new(:name => 'mysql-5.1', :gear_profile => 'small', :current_scale => 1, :scales_from => 1, :scales_to => 1, :colocated_with => ['php-5.3']),
-          ], 
-          :aliases => [], 
-          :members => [Member.new(:id => '1', :role => 'admin', :name => 'Alice', :owner => true)]
-        }, true),
-        Application.new({
-          :name => 'status', :app_url => "http://status-bobdev.rhcloud.com", :uuid => '3', :domain_id => 'bobdev', :gear_profile => 'small', :gear_count => 1, 
-          :cartridges => [
-            Cartridge.new(:name => 'ruby-1.9',   :gear_profile => 'small', :current_scale => 1, :scales_from => 1, :scales_to => 1, :colocated_with => []),
-          ], 
-          :aliases => [], 
-          :members => [Member.new(:id => '1', :role => 'admin', :name => 'Alice', :owner => true)]
-        }, true),
-        Application.new({
-          :name => 'statusp', :app_url => "http://statusp-bobdev.rhcloud.com",:uuid => '4', :domain_id => 'bobdev', :gear_profile => 'medium', :gear_count => 10, 
-          :cartridges => [
-            Cartridge.new(:name => 'ruby-1.9',   :gear_profile => 'medium', :current_scale => 9, :scales_from => 5, :scales_to => 10, :supported_scales_from => 1, :supported_scales_to => -1, :colocated_with => ['haproxy-1.4']),
-            Cartridge.new(:name => 'haproxy-1.4', :gear_profile => 'small', :current_scale => 1, :scales_from => 1, :scales_to => 1, :colocated_with => ['ruby-1.9']),
-          ], 
-          :aliases => [], 
-          :members => [Member.new(:id => '1', :role => 'admin', :name => 'Alice', :owner => true)]
-        }, true),
-        Application.new({
-          :name => 'prodmybars', :app_url => "http://prodmybars-barco.rhcloud.com", :uuid => '5', :domain_id => 'barco', :gear_profile => 'small', :gear_count => 4, 
-          :cartridges => [
-            Cartridge.new(:name => 'python-2.7',   :gear_profile => 'small', :current_scale => 1, :scales_from => 1, :scales_to => -1, :supported_scales_from => 1, :supported_scales_to => -1, :colocated_with => ['haproxy-1.4']),
-            Cartridge.new(:name => 'mongodb-2.2', :gear_profile => 'large', :current_scale => 3, :scales_from => 3, :scales_to => 3),
-            Cartridge.new(:name => 'haproxy-1.4', :gear_profile => 'small', :current_scale => 1, :scales_from => 1, :scales_to => 1, :colocated_with => ['python-2.7']),
-          ], 
-          :aliases => [Alias.new(:name => 'api.mybars.com')], 
-          :members => [Member.new(:id => '2', :role => 'admin', :name => 'Bob', :owner => true), Member.new(:id => '1', :role => 'edit', :name => 'Alice', :owner => false)]
-        }, true),
-        Application.new({
-          :name => 'jenkins', :app_url => "http://jenkins-bobdev.rhcloud.com", :uuid => '3', :domain_id => 'bobdev', :gear_profile => 'small', :gear_count => 1, 
-          :cartridges => [
-            Cartridge.new(:name => 'jenkins-1.4',   :gear_profile => 'small', :current_scale => 1, :scales_from => 1, :scales_to => 1, :colocated_with => []),
-          ], 
-          :aliases => [], 
-          :members => [Member.new(:id => '1', :role => 'admin', :name => 'Alice', :owner => true)]
-        }, true),
-      ]
+      @applications = Fixtures::Applications.list
       return
     end
 
     user_default_domain rescue nil
-    #return redirect_to application_types_path, :notice => 'Create your first application now!' if @domain.nil? || @domain.applications.empty?
 
     @applications_filter = ApplicationsFilter.new params[:applications_filter]
     @applications = @domain ? @applications_filter.apply(@domain.applications) : []
@@ -228,6 +169,18 @@ class ApplicationsController < ConsoleController
   end
 
   def show
+    @capabilities = user_capabilities
+
+    if params[:test]
+      @capabilities.send(:max_gears=, params[:test_gears].to_i) if params[:test_gears]
+      @application = Fixtures::Applications.send(params[:test])
+      @domain = Domain.new({:name => @application.domain_id}, true)
+      @gear_groups = @application.cartridge_gear_groups
+      @gear_groups_with_state = @application.gear_groups
+      @gear_groups.each{ |g| g.merge_gears(@gear_groups_with_state) }
+      return
+    end
+
     @domain = user_default_domain
     app_id = params[:id].to_s
 
