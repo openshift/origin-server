@@ -1,0 +1,6 @@
+#
+# Infoblox DNS just requires a server host, usename and password
+#
+INFOBLOX_SERVER='unset'
+INFOBLOX_USERNAME='unset'
+INFOBLOX_PASSWORD='unset'
