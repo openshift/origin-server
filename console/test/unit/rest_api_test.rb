@@ -1453,9 +1453,9 @@ class RestApiTest < ActiveSupport::TestCase
     assert_equal [true, 1, 3, 5],
                  [:scales?, :scales_from, :current_scale, :scales_to].map{ |s| php.send(s) }
 
-    assert_equal app.git_url, php.git_url
-    assert_equal app.ssh_url, php.ssh_url
-    assert_equal app.ssh_string, php.ssh_string
+    # assert_equal app.git_url, php.git_url
+    # assert_equal app.ssh_url, php.ssh_url
+    # assert_equal app.ssh_string, php.ssh_string
 
     assert mysql = groups[1].cartridges.first
     assert_equal 'mysql-5.1', mysql.name
