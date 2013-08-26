@@ -47,7 +47,8 @@ opts = GetoptLong.new(
     ["--with-app-uuid",       "-a", GetoptLong::REQUIRED_ARGUMENT],
     ["--with-container-uuid", "-c", GetoptLong::REQUIRED_ARGUMENT],
     ["--with-key",         "-k", GetoptLong::REQUIRED_ARGUMENT],
-    ["--with-value",       "-v", GetoptLong::REQUIRED_ARGUMENT]
+    ["--with-value",       "-v", GetoptLong::REQUIRED_ARGUMENT],
+    ['--help',                '-h', GetoptLong::NO_ARGUMENT]
 )
 
 args = {}
