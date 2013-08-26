@@ -74,10 +74,10 @@ module AdminConsole
     def sort_districts(x, y)
       if (@active_sort == 'total')
         if @active_sort_direction == 'desc'
-          return y[:gears_total_count] <=> x[:gears_total_count]
+          return x[:dist_avail_capacity] <=> y[:dist_avail_capacity]
         end
 
-        return x[:gears_total_count] <=> y[:gears_total_count]
+        return y[:dist_avail_capacity] <=> x[:dist_avail_capacity]
       else
         active_warning_threshold = @config[:warn][:node_active_remaining]
         if @active_sort_direction == 'desc'

@@ -245,7 +245,7 @@
                 - district_usage_pct = (district[:district_capacity] - district[:dist_avail_capacity]) / district[:district_capacity].to_f * 100
                 = progress_bar(district_usage_pct, ["progress-inverse"])
               %td
-                = "#{number_with_delimiter(district[:available_active_gears_with_negatives])}"
+                = "#{number_with_delimiter(district[:dist_avail_capacity])}"
               - is_over_dist = district[:available_active_gears_with_negatives] < active_warning_threshold * district[:nodes].size
               %td.bar
                 .over-under-scale
