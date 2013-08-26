@@ -111,6 +111,11 @@ class AdminSuggestionTest < ActiveSupport::TestCase
     assert_ids_work(sugs)
   end
 
+  test "test instances all deserialize with same ids" do
+    sugs = S::Advisor.subclass_test_instances
+    assert_ids_work(sugs)
+  end
+
   test "params r/w" do
     assert_nil S::Params.new.gear_up_threshold, "empty conf works"
     assert_equal 50, S::Params.new.active_gear_pct(:any), "empty conf active pct"
@@ -173,17 +178,24 @@ class AdminSuggestionTest < ActiveSupport::TestCase
   end
 
   test "Container methods" do
-    c = S::Container.new + [ S.new({scope: "general"}),
-      S.new(profile: 'foo'), S.new(profile: 'foo', district_uuid: 'bar'),
-      S.new(profile: 'foo2'), S.new(profile: 'foo2', district_uuid: 'bar2')]
-    assert_kind_of S::Container, c, "add gives me a Container"
+    c = S::Container.new + [S::Base.new({scope: "general"}),
+      S::Base.new(profile: 'foo'), S::Base.new(profile: 'foo', district_uuid: 'bar')]
+    assert_kind_of S::Container, c, "add an arr gives me a Container"
+    assert_difference ->{ c.size }, 1, "<<ing an element" do
+      c <<  S::Base.new(profile: 'foo2')
+    end
+    assert_difference ->{ c.size }, 1, "+ing an element" do
+      c +=  S::Base.new(profile: 'foo2', district_uuid: 'bar2')
+    end
+    c = (c + nil).compact
+    assert_kind_of S::Container, c, "add with element gives me a Container"
     assert_kind_of S::Container, c.for_general, "select gives me a Container"
     assert_equal 1, c.for_general.size
     assert_equal 2, c.for_profile('foo').size
     assert_equal 1, c.for_district('bar2').size
     assert_equal 3, c.group_by_profile.size, "2 profiles plus nil"
     assert_equal 3, c.group_by_district_uuid.size, "2 districts plus nil"
-    assert c.group_by_class.has_key?(S), "group by class"
+    assert c.group_by_class.has_key?(S::Base), "group by class"
     assert_equal 1, c.group_by_class.size, "group by class - only one"
     assert_ids_work(c)
   end
@@ -494,12 +506,16 @@ class AdminSuggestionTest < ActiveSupport::TestCase
     assert_kind_of C::Remove::CompactDistrict, sugs.first
   end
 
-  test "NONE district doesn't get compaction recommendation" do
+  test "NONE district doesn't get compaction suggestion" do
     no_district_install
     stats = admin_stats_results()
     sugs = S::Advisor.query(active_gear_pct: {default: 1})
     psugs = "\n#{sugs.pretty_inspect}"
     assert_empty sugs, "nothing to suggest"
+  end
+
+  test "NONE district doesn't get add capacity suggestion" do
+    skip
   end
 
   test "missing nodes are missed" do
@@ -518,12 +534,12 @@ class AdminSuggestionTest < ActiveSupport::TestCase
     assert_kind_of S::MissingNodes, all, "general missing nodes\n#{sugs}"
     assert_equal @districts.size * 2, all.nodes.size, "two nodes missing per dist"
     assert_ids_work(sugs = all.contents)
-    prof = sugs.for_profile 'prof1'
+    prof = sugs.for_scope 'profile', 'prof1'
     assert_equal 1, prof.size, "one profile-level per profile"
     assert_equal "profile", prof.first.scope
-    assert_ids_work(sugs = prof.first.contents)
-    assert_equal 2, sugs.size, "district-level per profile"
-    assert_equal 2, sugs.for_scope("district").size
+    assert_equal 4, sugs.for_scope("profile").size, "4 profiles"
+    assert_equal 8, sugs.for_scope("district").size, "2 districts per profile"
+    assert_equal 12, sugs.size, "4 profiles + 2 districts per"
   end
 
   def mismanaged_install
