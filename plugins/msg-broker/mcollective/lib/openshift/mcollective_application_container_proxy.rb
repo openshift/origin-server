@@ -2110,8 +2110,8 @@ module OpenShift
       # NOTES:
       # * calls rpc_get_facts_direct
       #
-      def get_node_details(name_list)
-        rpc_get_facts_direct(name_list)
+      def get_node_details(name_list, mco_options = {})
+        rpc_get_facts_direct(name_list, mco_options)
       end
 
       #
@@ -3084,8 +3084,9 @@ module OpenShift
       # * uses MCollectiveApplicationContainerProxy.rpc_options
       # * uses MCollective::RPC::Client
       #
-      def rpc_get_facts_direct(facts)
+      def rpc_get_facts_direct(facts, mco_options = {})
           options = MCollectiveApplicationContainerProxy.rpc_options
+          options.merge!(mco_options)
 
           rpc_client = MCollectiveApplicationContainerProxy.get_rpc_client('openshift', options)
           begin

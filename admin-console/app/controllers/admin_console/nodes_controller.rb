@@ -6,7 +6,8 @@ module AdminConsole
 
     def show
       @id = params[:id]
-      @node = OpenShift::ApplicationContainerProxy.instance(@id).get_node_details %w[
+      @config = Rails.application.config.admin_console
+      @node = OpenShift::ApplicationContainerProxy.instance(@id).get_node_details(%w[
           gears_usage_pct
           gears_active_usage_pct
           max_active_gears
@@ -22,7 +23,7 @@ module AdminConsole
           district_active
           public_ip
           public_hostname
-        ]
+        ], :timeout => @config[:stats][:mco_timeout])
     end
 
     protected
