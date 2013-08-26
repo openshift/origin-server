@@ -2,6 +2,8 @@ require File.expand_path('../../test_helper', __FILE__)
 
 class ApplicationTypesControllerTest < ActionController::TestCase
 
+  with_clean_cache
+
   setup{ Quickstart.reset! }
 
   test 'should show index with proper title' do
@@ -75,6 +77,134 @@ class ApplicationTypesControllerTest < ActionController::TestCase
       assert_equal true, t.scalable?
     end
   end
+
+
+
+
+
+  def assert_hidden_domain_field(value)
+    assert_response :success
+    assert assigns(:domains)
+    assert input = css_select('input[type=hidden]#application_domain_name').first
+    assert_equal value.to_s, input.attributes["value"].to_s
+  end
+  def assert_text_domain_field(value)
+    assert_response :success
+    assert assigns(:domains)
+    assert input = css_select('input[type=text]#application_domain_name').first
+    assert_equal value.to_s, input.attributes["value"].to_s
+  end
+  def assert_select_domain_field(value)
+    assert_response :success
+    assert assigns(:domains)
+    assert select = css_select('select#application_domain_name').first
+
+    selected = ""
+    if option = css_select('select#application_domain_name option[selected=selected]').first
+      selected = option.attributes["value"]
+    end
+
+    assert_equal value.to_s, selected.to_s
+  end
+
+  def random_application_type_id
+    ApplicationType.all.select{ |t| t.cartridge? }.sample(1).first.id
+  end
+
+
+  test "should show text field for domain with no default" do
+    with_unique_user
+    get :show, :id => random_application_type_id
+    assert_text_domain_field("")
+  end
+
+  test "should show text field for domain with prefilled value" do
+    with_unique_user
+    get :show, {:id => random_application_type_id, :application => {:domain_name => "foo"}}
+    assert_text_domain_field("foo")
+  end
+
+  test "should show select field with no default for domain for shared domains" do
+    with_unique_user
+    Domain.expects(:find).returns([ writeable_domain("shared") ])
+    get :show, :id => random_application_type_id
+    assert_select_domain_field("")
+  end
+
+  test "should show select field with prefilled value for domain for shared domains" do
+    with_unique_user
+    Domain.expects(:find).returns([ writeable_domain("shared") ])
+    get :show, {:id => random_application_type_id, :application => {:domain_name => "shared"}}
+    assert_select_domain_field("shared")
+  end
+
+  test "should show select field with default for domain for owned and shared domains" do
+    with_unique_user
+    Domain.expects(:find).returns([ owned_domain("owned"), writeable_domain("shared") ])
+    get :show, :id => random_application_type_id
+    assert_select_domain_field("owned")
+  end
+
+  test "should show select field with prefilled value for domain for owned and shared domains" do
+    with_unique_user
+    Domain.expects(:find).returns([ owned_domain("owned"), writeable_domain("shared") ])
+    get :show, {:id => random_application_type_id, :application => {:domain_name => "shared"}}
+    assert_select_domain_field("shared")
+  end
+
+  test "should show hidden field for domain with owned domain" do
+    with_unique_user
+    Domain.expects(:find).returns([ owned_domain("owned") ])
+    get :show, {:id => random_application_type_id}
+    assert_hidden_domain_field("owned")
+  end
+
+  test "should show hidden field for domain with shared domain when cant create" do
+    user = with_unique_user
+    Domain.expects(:find).returns([ writeable_domain("shared") ])
+    User.any_instance.expects(:max_domains).returns(0)
+    get :show, {:id => random_application_type_id}
+    assert_hidden_domain_field("shared")
+  end
+
+  def owned_domain(name="owned")
+    Domain.new(
+      :name => name, 
+      :api_identity_id => 'me',
+      :members => [
+        Member.new(:owner => true, :role => 'admin', :id => 'me')
+      ],
+      :as => @controller.current_user
+    )
+  end
+
+  def writeable_domain(name="shared")
+    Domain.new(
+      :name => name, 
+      :api_identity_id => 'me',
+      :members => [
+        Member.new(:owner => true,  :role => 'admin', :id => 'you'),
+        Member.new(:owner => false, :role => 'admin', :id => 'me')
+      ],
+      :as => @controller.current_user
+    )
+  end
+
+  def readable_domain(name="readable")
+    Domain.new(
+      :name => name, 
+      :api_identity_id => 'me',
+      :members => [
+        Member.new(:owner => true,  :role => 'admin', :id => 'you'),
+        Member.new(:owner => false, :role => 'read',  :id => 'me')
+      ],
+      :as => @controller.current_user
+    )
+  end
+
+
+
+
 
   test "should show type page for cartridge" do
     with_unique_user
