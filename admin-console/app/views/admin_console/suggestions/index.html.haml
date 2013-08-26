@@ -1,12 +1,13 @@
 - content_for :javascripts do
   :javascript
     $(function() {
+      var expanded = "#{@expanded}";
+
       $(".suggestion.short").each(function(idx, suggestion){
         if (suggestion.id != expanded + "_short")
           suggestion.style.display = "";
       }).click(expand_suggestion);
 
-      var expanded = "#{@expanded}";
       var expanded_node = document.getElementById(expanded + "_full");
       if (expanded_node) {
         expanded_node.style.display = "";
@@ -14,7 +15,7 @@
       }
 
 
-      $(".suggestion.full").click(collapse_suggestion);
+      $(".suggestion.full .toggle a").click(collapse_suggestion);
 
       function expand_suggestion(e) {
         toggle_suggestion(true, e.currentTarget.getAttribute("suggestion_id"));
@@ -35,29 +36,31 @@
     Suggestions
   - if @suggestions.empty?
     %em
-      Perhaps a nice cup of coffee?
+      There are currently no suggestions.
   - else
+    %noscript
+      :css
+        tr.suggestion.clickable.full {
+          display: inherit !important;
+          cursor: default;
+        }
+
+        tr.suggestion.clickable.full td.toggle a{
+          display: none;
+        }
+
     %table.suggestions-full-page{:style => "vertical-align: top;"}
-      %colgroup
-        %col
-        %col{:style => "width: 100%"}
-        %col
       %tbody
         - @suggestions.each do |suggestion|
           - partial = suggestion_partial_for suggestion
-          - url = suggestions_path id: suggestion.id 
-          -# TODO use javascript to toggle between short or full display
-          -# TODO also, scroll to and make full-size the page suggestion id
-          %tr.short.suggestion.clickable{style: 'display: none;', suggestion_url: url, :id => "#{suggestion.id}_short", :suggestion_id => suggestion.id, :title => "Click to expand" }
+          - url = suggestions_path id: suggestion.id
+          %tr.short.suggestion.clickable{style: 'display: none;', suggestion_url: url, :id => "#{suggestion.id}_short", :suggestion_id => suggestion.id}
             = render partial: partial, locals: {suggestion: suggestion, size: :short}
-            %td
-              %a{:href => "javascript:;"}
+            %td.toggle
+              %a{:href => "javascript:;", :title => "Expand suggestion details" }
                 %i.icon-chevron-down
-          %tr.full.suggestion.clickable{style: 'display: none;', suggestion_url: url, :id => "#{suggestion.id}_full", :suggestion_id => suggestion.id, :title => "Click to collapse"}
+          %tr.full.suggestion{style: 'display: none;', suggestion_url: url, :id => "#{suggestion.id}_full", :suggestion_id => suggestion.id}
             = render partial: partial, locals: {suggestion: suggestion, size: :full}
-            %td
-              %a{:href => "javascript:;"}
+            %td.toggle
+              %a{:href => "javascript:;", :title => "Collapse suggestion details", :suggestion_id => suggestion.id}
                 %i.icon-chevron-up
-          %noscript
-            %tr.full.suggestion{ suggestion_url: url, :id => suggestion.id}
-              = render partial: partial, locals: {suggestion: suggestion, size: :full}

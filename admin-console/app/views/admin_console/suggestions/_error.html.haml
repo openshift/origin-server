@@ -1,21 +1,25 @@
 %td
   .label.label-important
     = "!"
-%td
+%td.suggestion-body
   - case size
   - when :short  # just the basic facts about the suggestion
+    .lead
+      Error occurred while generating suggestions
     %div
-      Error. Error bad.
-      &= suggestion.error.to_s
+      = "#{suggestion.error.to_s[0...80]}..."
 
   - when :full  # the full monty
-    %div
-      There was an error while generating suggestions. This is either a system failure
-      such as being unable to contact MongoDB or ActiveMQ, or a coding error.
-    %div
-      The specific error was:
-      &= suggestion.error.to_s
-    %div
+    .lead
+      Error occurred while generating suggestions  
+    %p
+      There was an error while generating suggestions. This may be a system failure
+      such as being unable to contact MongoDB or ActiveMQ.
+    %p
+      The details of the error are:
+    %pre.pre-scrollable
+      = suggestion.error.inspect
+    %p
       The stack trace for the error is:
-      %pre
+      %pre.pre-scrollable
         &= suggestion.stack.map(&:to_s).join("\n")
