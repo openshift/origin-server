@@ -6,7 +6,7 @@ export STOPTIMEOUT=20
 HAPROXY_CART="haproxy-1.4"
 export HAPROXY_PID="${OPENSHIFT_HAPROXY_DIR}/run/haproxy.pid"
 
-if ! [ $# -eq 1 ]
+if ! [ $# -gt 0 ]
 then
     echo "Usage: \$0 [start|restart|stop|status|deploy]"
     exit 1
@@ -165,6 +165,52 @@ function status() {
     fi
 }
 
+# Get the application domain from the app dns
+function get-app-domain() {
+    dnsparts=(${OPENSHIFT_APP_DNS//./ })
+    appdomain=(${dnsparts[0]//-/ })
+    domain=${appdomain[1]}
+    echo $domain
+}
+
+# Disable the specified backend server from the proxy so that no traffic
+# is routed to it.
+function disable-server() {
+    shift
+
+    for gear in $@; do
+        echo "Disabling server $1"
+        if [ "${gear}" == "${OPENSHIFT_GEAR_UUID}" ]; then
+            gearid="local-gear"
+        else
+            domain=$(get-app-domain)
+            gearid="gear-${gear}-${domain}"
+        fi
+        set +e
+        echo "disable server express/$gearid" | socat stdio $OPENSHIFT_HAPROXY_DIR/run/stats
+        set -e
+    done
+}
+
+# Enable the specified backend server in the proxy configuration, so
+# that traffic is routed through it.
+function enable-server() {
+    shift
+
+    for gear in $@; do
+        echo "Enabling server $gear"
+        if [ "${gear}" == "${OPENSHIFT_GEAR_UUID}" ]; then
+            gearid="local-gear"
+        else
+            domain=$(get-app-domain)
+            gearid="gear-${gear}-${domain}"
+        fi
+        set +e
+        echo "enable server express/$gearid" | socat stdio $OPENSHIFT_HAPROXY_DIR/run/stats
+        set -e
+    done
+}
+
 #
 # main():
 #
@@ -178,10 +224,12 @@ done
 
 # And then on the haproxy and haproxy_ctld.
 case "$1" in
-    start)        start         ;;
-    stop)         stop          ;;
-    restart)      restart       ;;
-    reload)       reload        ;;
-    force-reload) force-reload  ;;
-    status)       status        ;;
+    start)          start               ;;
+    stop)           stop                ;;
+    restart)        restart             ;;
+    reload)         reload              ;;
+    force-reload)   force-reload        ;;
+    status)         status              ;;
+    disable-server) disable-server "$@" ;;
+    enable-server)  enable-server  "$@" ;;
 esac

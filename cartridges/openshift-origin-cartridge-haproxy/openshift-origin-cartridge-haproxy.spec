@@ -15,6 +15,7 @@ Source0:       http://mirror.openshift.com/pub/openshift-origin/source/%{name}/%
 Requires:      rubygem(openshift-origin-node)
 Requires:      openshift-origin-node-util
 Requires:      haproxy
+Requires:      socat
 Requires:      %{?scl:%scl_prefix}rubygem-daemons
 Requires:      %{?scl:%scl_prefix}rubygem-rest-client
 
