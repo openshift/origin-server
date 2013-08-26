@@ -245,19 +245,19 @@
                 - district_usage_pct = (district[:district_capacity] - district[:dist_avail_capacity]) / district[:district_capacity].to_f * 100
                 = progress_bar(district_usage_pct, ["progress-inverse"])
               %td
-                = "#{number_with_delimiter(district[:dist_avail_capacity])}"
-              - is_over_dist = district[:effective_available_gears] < active_warning_threshold
+                = "#{number_with_delimiter(district[:available_active_gears_with_negatives])}"
+              - is_over_dist = district[:available_active_gears_with_negatives] < active_warning_threshold * district[:nodes].size
               %td.bar
                 .over-under-scale
                   .line
                   - opacity = (0.8 / district[:nodes].size) + 0.2
                   - district[:nodes].each do |node|
                     - is_over = node[:max_active_gears] - node[:gears_active_count] < active_warning_threshold
-                    - log_percent = log_scale_percentage(active_warning_threshold, node[:max_active_gears] - node[:gears_active_count], :log_base => 90, :max_pct => 50)
+                    - log_percent = log_scale_percentage(active_warning_threshold, node[:max_active_gears] - node[:gears_active_count], :log_base => 45, :max_pct => 50)
                     .bar{:class => is_over ? 'bar-over' : 'bar-under', :style => "width: #{log_percent}%; opacity: #{opacity};"}
                   .center-point
               %td
                 %strong{:class => is_over_dist ? 'text-error' : 'text-success'}
-                  = "#{is_over_dist ? '+' : '-'} #{(active_warning_threshold - district[:available_active_gears_with_negatives]).abs}"
+                  = "#{is_over_dist ? '+' : '-'} #{(active_warning_threshold * district[:nodes].size - district[:available_active_gears_with_negatives]).abs}"
               %td
                 = link_to pluralize(district[:nodes].size, 'node'), profile_nodes_path(:id => @profile[:profile], :district => district[:uuid])

@@ -79,11 +79,11 @@ module AdminConsole
 
         return x[:gears_total_count] <=> y[:gears_total_count]
       else
+        active_warning_threshold = @config[:warn][:node_active_remaining]
         if @active_sort_direction == 'desc'
-          return x[:available_active_gears_with_negatives] <=> y[:available_active_gears_with_negatives]
+          return (active_warning_threshold * y[:nodes].size - y[:available_active_gears_with_negatives]) <=> (active_warning_threshold * x[:nodes].size - x[:available_active_gears_with_negatives])
         end
-
-        y[:available_active_gears_with_negatives] <=> x[:available_active_gears_with_negatives]
+        (active_warning_threshold * x[:nodes].size - x[:available_active_gears_with_negatives]) <=> (active_warning_threshold * y[:nodes].size - y[:available_active_gears_with_negatives])
       end
     end
   end
