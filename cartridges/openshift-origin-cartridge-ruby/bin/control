@@ -135,7 +135,7 @@ function post-deploy() {
 
 function threaddump() {
   # Handle scaled (non-head) gears
-  if [ "$OPENSHIFT_GEAR_UUID" != "$OPENSHIFT_APP_UUID" ]
+  if [ "$OPENSHIFT_GEAR_DNS" != "$OPENSHIFT_APP_DNS" ]
   then
       if [ -t 0 ]
       then
