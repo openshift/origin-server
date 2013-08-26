@@ -7,7 +7,8 @@
     .lead
       Error occurred while generating suggestions
     %div
-      = "#{suggestion.error.to_s[0...80]}..."
+      There was an error while generating suggestions. This may be a system failure
+      such as being unable to contact MongoDB or ActiveMQ.
 
   - when :full  # the full monty
     .lead

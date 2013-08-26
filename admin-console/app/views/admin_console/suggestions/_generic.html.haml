@@ -4,16 +4,23 @@
 %td.suggestion-body
   - case size
   - when :short  # just the basic facts about the suggestion
-    %div
-      Generic suggestion of type
+    %p.lead
+      Generic suggestion
       &= suggestion.class
-
-  - when :full  # the full monty
     %div
-      There was suggestion of type
+      There was a suggestion of type
       &= suggestion.class
       which doesn't have a display method. Please add a view for this type of suggestion.
-    %div
+
+  - when :full  # the full monty
+    %p.lead
+      Generic suggestion
+      &= suggestion.class  
+    %p
+      There was a suggestion of type
+      &= suggestion.class
+      which doesn't have a display method. Please add a view for this type of suggestion.
+    %p
       The suggestion contains the following values:
       - require 'pp'
       %pre
