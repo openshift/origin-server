@@ -13,20 +13,23 @@ options = {
 }
 
 optparse = OptionParser.new { |opts|
-  opts.banner = "\nUsage: generate-rest-docs [options]"
+  opts.banner = "\nUsage: generate-rest-docs [options]" +
+                "\nExample: generate-rest-docs -v 1.6"
 
-  opts.on("-v", "--version", "API Version") do |v|
+  opts.on("-v", "--version", "API Version. Not required. Defaults to latest.") do |v|
     options[:version] = v
   end
-  opts.on("-u", "--username", "Username to use for generating docs") do |u|
-    options[:username] = u
-  end
-  opts.on("-p", "--password", "Password for username") do |p|
-    options[:password] = p
-  end
-  opts.on("-s", "--server", "Server to use for generating docs") do |s|
-    options[:server] = s
-  end
+
+#  opts.on("-s", "--server", "Server to use for generating docs. Not required. Defaults to localhost)") do |s|
+#    options[:server] = s
+#  end
+#  opts.on("-u", "--username", "Username to use for generating docs. Only required if using server that requires authentication)") do |u|
+#    options[:username] = u
+#  end
+#  opts.on("-p", "--password", "Password for username (Not required unless using server other than localhost)") do |p|
+#    options[:password] = p
+#  end
+
   opts.on('-h','--help', 'Print usage') { puts opts; exit 0 }
 }
 
@@ -34,7 +37,7 @@ def send_request(request)
   begin
     response = request.execute
   rescue RestClient::ExceptionWithResponse => e
-    process_error_response(e.response)
+    process_error_response(request, e.response)
   end
 end
 
@@ -63,7 +66,7 @@ def process_response(response, resource)
         payload = get_payload(new_resource, value)
         request = RestClient::Request.new(:method => value["method"], :url => value["href"], :user => @user, :password => @password, :headers => @headers, :payload => payload)   
         response = process_resource(request, new_resource)  
-        puts "Added............#{new_resource}.........."
+        #puts "Added............#{new_resource}.........."
       elsif key == "GET" 
         request = RestClient::Request.new(:method => value["method"], :url => value["href"], :user => @user, :password => @password, :headers => @headers, :payload => payload)
         response = send_request(request)
@@ -72,14 +75,20 @@ def process_response(response, resource)
         payload = get_payload(resource, value)
         request = RestClient::Request.new(:method => value["method"], :url => value["href"], :user => @user, :password => @password, :headers => @headers, :payload => payload)
         response = send_request(request)
-        puts "Updated............#{resource}.........."
+        #puts "Updated............#{resource}.........."
       elsif key == "DELETE" 
         puts "Deleting............#{resource}.........."
-        request = RestClient::Request.new(:method => value["method"], :url => value["href"], :user => @user, :password => @password, :headers => @headers, :payload => payload)
-        response = send_request(request)
-        puts "Deleted............#{resource}.........."
+        #special case for renamed domains
+        if resource == "DOMAIN"
+          request = RestClient::Request.new(:method => value["method"], :url => value["href"] + "X", :user => @user, :password => @password, :headers => @headers, :payload => payload)
+          response = send_request(request)
+        else
+          request = RestClient::Request.new(:method => value["method"], :url => value["href"], :user => @user, :password => @password, :headers => @headers, :payload => payload)
+          response = send_request(request)
+        end
+        #puts "Deleted............#{resource}.........."
       elsif key.include? "GET_" 
-        new_resource = key.gsub("GET_", "")
+        new_resource = key.gsub("GET_", "")[0..-1]
         request = RestClient::Request.new(:method => value["method"], :url => value["href"], :user => @user, :password => @password, :headers => @headers, :payload => payload)
         response = process_resource(request, new_resource)
       elsif key.include? "SHOW_" or key.include? "QUICKSTART" or key.include? "SET_UNSET_ENVIRONMENT_VARIABLES"
@@ -119,9 +128,10 @@ def process_response(response, resource)
     end if links
 end
 
-def process_error_response(response)
+def process_error_response(request, response)
   messages = Array.new
   begin 
+    puts "Encountered an error trying to #{request.method} #{request.url}"
     result = JSON.parse(response)
     messages = result['messages']
     puts "#{messages}"
@@ -167,7 +177,7 @@ def get_payload(resource, link)
       payload[param["name"]] = rand(0..10) if param["type"].downcase == "integer"
       payload[param["name"]] = false if param["type"].downcase == "boolean"
     end
-    puts "REQUIRED: #{param["name"]}=#{payload[param["name"]]}"
+    #puts "REQUIRED: #{param["name"]}=#{payload[param["name"]]}"
   end
   
   optional_params = link["optional_params"]
@@ -196,7 +206,7 @@ def get_payload(resource, link)
     elsif param["valid_options"] and !param["valid_options"].empty?
       payload[param["name"]] = param["valid_options"][0]
     end
-    puts "OPTIONAL: #{param["name"]}=#{payload[param["name"]]}"
+    #puts "OPTIONAL: #{param["name"]}=#{payload[param["name"]]}"
   end
   return payload
 end
@@ -237,7 +247,10 @@ if __FILE__ == $0
   @password = options[:password]
   @version = options[:version]
   
-  #add private cert capability
+  #add user
+  request = RestClient::Request.new(:method => :get, :url => "https://#{options[:server]}/broker/rest/user", :user => @user, :password => @password, :headers => @headers)
+  response = send_request(request)
+  #add private cert capability and additional storage capability
   system("oo-admin-ctl-user -l #{@user} --allowprivatesslcertificates true --setmaxtrackedstorage 20") if options[:server]=="localhost"
   if options[:version]
     @headers = {:accept => "application/json; version=#{@version}"}
