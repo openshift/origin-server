@@ -198,7 +198,7 @@ class ApplicationsController < ConsoleController
     user_default_domain
     @application = @domain.find_application params[:id]
     @wizard = params[:wizard].present?
-    
+
     if !sshkey_uploaded? && !params[:ssh]
       @noflash = true; flash.keep
       @key = Key.new

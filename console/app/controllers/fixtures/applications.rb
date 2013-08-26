@@ -56,7 +56,8 @@ module Fixtures
         :creation_time => 1.hour.ago,
         :cartridges => [
           Cartridge.new(:name => 'python-2.7',  :scales_with => 'haproxy-1.4', :gear_profile => 'small', :current_scale => 2, :scales_from => 2, :scales_to => 10, :supported_scales_from => 1, :supported_scales_to => -1, :collocated_with => ['python-2.7', 'jenkins-client-1', 'haproxy-1.4']),
-          Cartridge.new(:name => 'mongodb-2.2', :gear_profile => 'large', :current_scale => 3, :scales_from => 3, :scales_to => 3),
+          Cartridge.new(:name => 'mongodb-2.2', :gear_profile => 'large', :current_scale => 3, :scales_from => 3, :scales_to => 3, :supported_scales_from => 3, :supported_scales_to => -1),
+          Cartridge.new(:name => 'scalable-1.0', :gear_profile => 'medium', :current_scale => 2, :scales_from => 1, :scales_to => 3, :supported_scales_to => 5),
           Cartridge.new(:name => 'haproxy-1.4', :gear_profile => 'small', :current_scale => 1, :scales_from => 1, :scales_to => 1, :collocated_with => ['python-2.7', 'jenkins-client-1', 'haproxy-1.4']),
           Cartridge.new(:name => 'jenkins-client-1', :gear_profile => 'small', :current_scale => 1, :scales_from => 1, :scales_to => 1, :collocated_with => ['python-2.7', 'jenkins-client-1', 'haproxy-1.4']),
         ],
@@ -78,6 +79,14 @@ module Fixtures
             ],
             :cartridges => [
               Cartridge.new({:name => 'mongodb-2.2'}, true),
+            ],
+          }, true),
+          GearGroup.new({:id => '3', :gear_profile => 'medium', :gears => [
+              Gear.new(:id => 'g6', :state => 'started'),
+              Gear.new(:id => 'g7', :state => 'started'),
+            ],
+            :cartridges => [
+              Cartridge.new({:name => 'scalable-1.0'}, true),
             ],
           }, true),
         ],

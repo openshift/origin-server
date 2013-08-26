@@ -616,7 +616,7 @@ $cartridgeBorderWidth: 10px;
     h2 { 
       //text-overflow: ellipsis; 
       //overflow: hidden; 
-      white-space: nowrap;
+      //white-space: nowrap;
     }
 
     /* &.warning { border-left: 2px dashed red; }*/
@@ -750,24 +750,6 @@ $cartridgeBorderWidth: 10px;
     }
   }
 }
-
-/* Arbitrarily chosen 
-@media (max-width: 600px) {
-  #app-cartridges .cartridge-block .bits {
-    margin-left: 0;
-    li {
-      display: block;
-      float: none;
-      border: 0;
-      text-align: right;
-      min-height: 0;
-      h6 {
-        display: inline;
-      }
-    }
-  }
-}
-*/
 
 @media (max-width: 767px) {
   .section-console .base {

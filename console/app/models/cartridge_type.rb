@@ -95,6 +95,9 @@ class CartridgeType < RestApi::Base
   def jenkins_client?
     builder? && name_prefix == 'jenkins-client'
   end
+  def haproxy_balancer?
+    tags.include?(:web_proxy) && name_prefix == 'haproxy'
+  end
 
   def conflicts
     @conflicts || []

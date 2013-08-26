@@ -28,7 +28,7 @@ class Cartridge < RestApi::Base
   has_one    :help_topics, :class_name => as_indifferent_hash
   has_one    :links, :class_name => as_indifferent_hash
 
-  delegate :display_name, :tags, :priority, :database?, :web_framework?, :builder?, :jenkins_client?, :to => :cartridge_type, :allow_nil => false
+  delegate :display_name, :tags, :priority, :database?, :web_framework?, :builder?, :jenkins_client?, :haproxy_balancer?, :to => :cartridge_type, :allow_nil => false
 
   def custom?
     url.present?
@@ -81,7 +81,7 @@ class Cartridge < RestApi::Base
   end
 
   def scales?
-    @scales.present? || supported_scales_from != supported_scales_to || supported_scales_from > 1 || scales_from > 1
+    @scales.present? || supported_scales_from != supported_scales_to
   end
 
   # deprecated with args
@@ -100,8 +100,16 @@ class Cartridge < RestApi::Base
     scales? && scales_from != scales_to
   end
 
-  def can_scale_up?
-    scales_to == -1 || current_scale < scales_to
+  def effective_supported_scales_to(max=Float::INFINITY)
+    supported_scales_to == -1 ? max : [supported_scales_to, max].min
+  end
+
+  def effective_scales_to(max=Float::INFINITY)
+    scales_to == -1 ? max : [scales_to, max].min
+  end
+
+  def can_scale_up?(max=Float::INFINITY)
+    current_scale < effective_scales_to(effective_supported_scales_to(max))
   end
 
   def can_scale_down?
@@ -152,6 +160,10 @@ class Cartridge::ScaleRelation
   end
 
   Null = new(nil,nil,1)
+
+  def blank?
+    @with.blank?
+  end
 end
 
 class Cartridge::BuildRelation

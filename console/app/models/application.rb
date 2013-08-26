@@ -138,7 +138,7 @@ class Application < RestApi::Base
   end
 
   def scale_status_url
-    "#{web_url}haproxy-status/"
+    URI.join(web_url, "/haproxy-status/").to_s
   end
 
   def builds?
