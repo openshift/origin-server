@@ -53,6 +53,7 @@ module OpenShift
           FileUtils.mkdir_p(full_path)
           FileUtils.mkdir_p(PathUtils.join(full_path, "repo"))
           FileUtils.mkdir_p(PathUtils.join(full_path, "dependencies"))
+          FileUtils.mkdir_p(PathUtils.join(full_path, "build-dependencies"))
           FileUtils.chmod_R(0o0750, full_path, :verbose => @debug)
           set_rw_permission_R(full_path)
 

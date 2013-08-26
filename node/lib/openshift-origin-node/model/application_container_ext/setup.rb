@@ -111,8 +111,9 @@ module OpenShift
           FileUtils.mkdir_p(PathUtils.join(gearappdir, "runtime"), :verbose => @debug)
 
           add_env_var("DEPENDENCIES_DIR", PathUtils.join(gearappdir, "runtime", "dependencies") + "/", true)
+          add_env_var("BUILD_DEPENDENCIES_DIR", PathUtils.join(gearappdir, "runtime", "build-dependencies") + "/", true)
 
-          add_env_var("REPO_DIR", PathUtils.join(gearappdir, "runtime", "repo") + "/", true) {|v|
+          add_env_var("REPO_DIR", PathUtils.join(gearappdir, "runtime", "repo") + "/", true) do |v|
             # don't create the actual dir, since it's now a symlink
             #FileUtils.mkdir_p(v, :verbose => @debug)
             FileUtils.cd gearappdir do |d|
@@ -122,7 +123,7 @@ module OpenShift
             FileUtils.cd PathUtils.join(gearappdir, "runtime") do |d|
               FileUtils.ln_s("../data", "data", :verbose => @debug)
             end
-          }
+          end
 
           add_env_var("TMP_DIR", "/tmp/", true)
           add_env_var("TMP_DIR", "/tmp/", false)

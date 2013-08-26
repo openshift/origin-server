@@ -27,7 +27,9 @@ mkdir -p ${OPENSHIFT_DEPENDENCIES_DIR}webapps
 ln -sf ${OPENSHIFT_DEPENDENCIES_DIR}webapps webapps
 
 mkdir -p ${OPENSHIFT_JBOSSEWS_DIR}/{run,tmp,conf,logs}
-mkdir -p ${OPENSHIFT_HOMEDIR}/.m2
+
+mkdir -p ${OPENSHIFT_BUILD_DEPENDENCIES_DIR}/.m2
+ln -sf ${OPENSHIFT_BUILD_DEPENDENCIES_DIR}/.m2 ${OPENSHIFT_HOMEDIR}/.m2
 
 # Set up the config directory in the user repository template
 cp ${OPENSHIFT_JBOSSEWS_DIR}/versions/{shared,${version}}/configuration/* ${OPENSHIFT_JBOSSEWS_DIR}/template/.openshift/config

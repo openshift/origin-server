@@ -3,7 +3,7 @@ alias rsync="rsync --exclude-from='${OPENSHIFT_PYTHON_DIR}/metadata/rsync.exclud
 upstream_ssh="<%= ENV['OPENSHIFT_GEAR_UUID'] %>@<%= ENV['OPENSHIFT_APP_NAME'] %>-${OPENSHIFT_NAMESPACE}.<%= ENV['OPENSHIFT_CLOUD_DOMAIN'] %>"
 
 # Sync any libraries
-rsync $upstream_ssh:'${OPENSHIFT_PYTHON_DIR}virtenv/venv/' ${OPENSHIFT_PYTHON_DIR}virtenv/venv/
+rsync $upstream_ssh:'${OPENSHIFT_DEPENDENCIES_DIR}' ${OPENSHIFT_DEPENDENCIES_DIR}
 
 # Build/update libs and run user pre_build and build
 gear build

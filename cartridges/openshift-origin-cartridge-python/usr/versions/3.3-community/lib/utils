@@ -76,7 +76,7 @@ function make_virtualenv_relocatable() {
       sed --follow-symlinks -i "s;#\!$vdir/venv/bin/;#\!/usr/bin/env ;" "$zf"
    done
 
-   symlinks -r -c -s . >/dev/null
+   # symlinks -r -c -s . >/dev/null
 
    popd > /dev/null
 

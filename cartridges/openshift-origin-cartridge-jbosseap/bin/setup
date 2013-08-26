@@ -6,7 +6,9 @@ case "$1" in
 esac
 
 # Create additional directories required by JBOSSEAP
-mkdir -p ${OPENSHIFT_HOMEDIR}/.m2
+mkdir -p ${OPENSHIFT_BUILD_DEPENDENCIES_DIR}/.m2
+ln -sf ${OPENSHIFT_BUILD_DEPENDENCIES_DIR}/.m2 ${OPENSHIFT_HOMEDIR}/.m2
+
 mkdir -p ${OPENSHIFT_JBOSSEAP_DIR}/{bin,template,standalone/tmp,standalone/configuration,standalone/log,standalone/data}
 
 mkdir -p ${OPENSHIFT_DEPENDENCIES_DIR}deployments

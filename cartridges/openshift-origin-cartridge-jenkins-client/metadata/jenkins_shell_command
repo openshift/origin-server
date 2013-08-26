@@ -2,6 +2,9 @@ alias rsync="rsync --delete-after -az -e '$GIT_SSH'"
 
 upstream_ssh="UPSTREAM_SSH"
 
+rsync $upstream_ssh:'$OPENSHIFT_BUILD_DEPENDENCIES_DIR' $OPENSHIFT_BUILD_DEPENDENCIES_DIR
+rsync $upstream_ssh:'$OPENSHIFT_DEPENDENCIES_DIR' $OPENSHIFT_DEPENDENCIES_DIR
+
 # Build/update libs and run user pre_build and build
 gear build
 
@@ -16,7 +19,8 @@ deployment_dir=`$GIT_SSH $upstream_ssh 'gear create_deployment_dir'`
 
 # Push content back to application
 rsync $WORKSPACE/ $upstream_ssh:app-deployments/$deployment_dir/repo/
-rsync $OPENSHIFT_HOMEDIR/app-root/runtime/dependencies/ $upstream_ssh:app-deployments/$deployment_dir/dependencies/
+rsync $OPENSHIFT_BUILD_DEPENDENCIES_DIR $upstream_ssh:'$OPENSHIFT_BUILD_DEPENDENCIES_DIR' 
+rsync $OPENSHIFT_DEPENDENCIES_DIR $upstream_ssh:'$OPENSHIFT_DEPENDENCIES_DIR'
 
 # Configure / start app
 $GIT_SSH $upstream_ssh "gear remotedeploy --deployment-datetime $deployment_dir"
