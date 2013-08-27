@@ -21,6 +21,6 @@ popd > /dev/null
 touch "$OPENSHIFT_HOMEDIR"/.npmrc
 mkdir "$OPENSHIFT_HOMEDIR"/.npm
 mkdir "$OPENSHIFT_HOMEDIR"/.node-gyp
-chown $OPENSHIFT_APP_UUID.$OPENSHIFT_APP_UUID -R "$OPENSHIFT_HOMEDIR"/.npm "$OPENSHIFT_HOMEDIR"/.npmrc  \
+chown `id -u $OPENSHIFT_GEAR_UUID` -R "$OPENSHIFT_HOMEDIR"/.npm "$OPENSHIFT_HOMEDIR"/.npmrc  \
                             "$OPENSHIFT_HOMEDIR"/.node-gyp
 npm config set tmp $OPENSHIFT_TMP_DIR
