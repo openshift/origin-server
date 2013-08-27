@@ -191,7 +191,6 @@ class ApplicationsController < ConsoleController
       return
     end
 
-    @domain = user_default_domain
     app_id = params[:id].to_s
 
     async{ @application = Application.find(app_id, :as => current_user, :params => {:include => :cartridges}) }
