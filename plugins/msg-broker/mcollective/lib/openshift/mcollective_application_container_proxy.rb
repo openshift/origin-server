@@ -3013,6 +3013,7 @@ module OpenShift
         result = nil
         options = custom_rpc_opts ? custom_rpc_opts : MCollectiveApplicationContainerProxy.rpc_options
         options[:filter]['fact'] = options[:filter]['fact'] + additional_filters if additional_filters
+        options[:timeout] = Rails.configuration.msg_broker[:fact_timeout]
 
         Rails.logger.debug("DEBUG: rpc_get_fact: fact=#{fact}")
         rpc_exec('rpcutil', servers, force_rediscovery, options) do |client|
@@ -3048,6 +3049,7 @@ module OpenShift
       #
       def rpc_get_fact_direct(fact)
           options = MCollectiveApplicationContainerProxy.rpc_options
+          options[:timeout] = Rails.configuration.msg_broker[:fact_timeout]
 
           rpc_client = MCollectiveApplicationContainerProxy.get_rpc_client('rpcutil', options)
           begin
@@ -3084,6 +3086,7 @@ module OpenShift
       #
       def rpc_get_facts_direct(facts)
           options = MCollectiveApplicationContainerProxy.rpc_options
+          options[:timeout] = Rails.configuration.msg_broker[:fact_timeout]
 
           rpc_client = MCollectiveApplicationContainerProxy.get_rpc_client('openshift', options)
           begin
@@ -3117,8 +3120,11 @@ module OpenShift
       # * uses MCollective::RPC::Client
       #
       def self.rpc_get_facts_for_all_nodes(fact_list)
+        options = MCollectiveApplicationContainerProxy.rpc_options
+        options[:timeout] = Rails.configuration.msg_broker[:fact_timeout]
+
         node_fact_map = {}
-        rpc_exec('openshift', nil, true) do |client|
+        rpc_exec('openshift', nil, true, options) do |client|
           client.get_facts(:facts => fact_list) do |response|
             if response[:body][:statuscode] == 0
               fact_map = response[:body][:data][:output]

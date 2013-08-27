@@ -331,7 +331,7 @@ The OpenShift REST API attempts to return standard HTTP status codes, with the m
             "maven",
             "metaji...<a target="_new" href="api-response-apientrypoint-1-6.html">click to see full response including links</a></pre>
 <h5>Example using curl command</h5>
-<pre class="terminal">curl -u first.last@mycompany.com:password https://openshift.redhat.com/broker/rest/api </pre>
+<pre class="terminal">curl -X GET -u first.last@mycompany.com:password https://openshift.redhat.com/broker/rest/api </pre>
 <a NAME='user'></a>
 <h2>User</h2>
 This resource provides information that allow a client to manage OpenShift user account information.
@@ -374,8 +374,8 @@ The table below further describes each available capability for the user.
       "max_storage_per_gear": 20
     },
     "consumed_gears": 0,
-    "created_at": "2013-08-20T17:32:22Z",
-    "id": "5213a826e499b22f15000001",
+    "created_at": "2013-08-27T00:51:15Z",
+    "id": "521bf803656c674541000001",
     "login": "first.last@mycompany.com",
     "max_gears": 3,
     "plan_id": "free",
@@ -399,7 +399,7 @@ The table below further describes each available capability for the user.
   "version": "1.6"
 }...<a target="_new" href="user-response-getuserinformation-1-6.html">click to see full response including links</a></pre>
 <h5>Example using curl command</h5>
-<pre class="terminal">curl -u first.last@mycompany.com:password https://openshift.redhat.com/broker/rest/user</pre>
+<pre class="terminal">curl -X GET -u first.last@mycompany.com:password https://openshift.redhat.com/broker/rest/user</pre>
 <a NAME='key'></a>
 <h2>Key</h2>
 This resource provides information that allows a client to view and manage SSH keys.
@@ -418,7 +418,7 @@ The table below describes each parameter associated with SSH keys.
 <table border=1>
 <tr><td>Name</td><td>Description</td><td>Required</td> <td>Valid Options</td><td>Default Value</td></tr>
 <tr><td>name</td><td>Name of the key</td><td>Yes</td><td></td><td>N/A</td></tr>
-<tr><td>type</td><td>Type of Key<br/><b>Note: Valid options may be different on your actual implementation of OpenShift.</b></td><td>Yes</td><td>ssh-rsa,ssh-dss,ssh-rsa-cert-v01@openssh.com,ssh-dss-cert-v01@openssh.com,ssh-rsa-cert-v00@openssh.com,ssh-dss-cert-v00@openssh.com</td><td>N/A</td></tr>
+<tr><td>type</td><td>Type of Key<br/><b>Note: Valid options may be different on your actual implementation of OpenShift.</b></td><td>Yes</td><td>ssh-rsa, ssh-dss, ssh-rsa-cert-v01@openssh.com, ssh-dss-cert-v01@openssh.com, ssh-rsa-cert-v00@openssh.com, ssh-dss-cert-v00@openssh.com</td><td>N/A</td></tr>
 <tr><td>content</td><td>The key portion of an rsa key (excluding ssh-rsa and comment)</td><td>Yes</td><td></td><td>N/A</td></tr>
 </table>
 <h5>Request</h5>
@@ -457,7 +457,7 @@ The table below describes each parameter associated with SSH keys.
   "version": "1.6"
 }...<a target="_new" href="key-response-addnewsshkey-1-6.html">click to see full response including links</a></pre>
 <h5>Example using curl command</h5>
-<pre class="terminal">curl -u first.last@mycompany.com:password https://openshift.redhat.com/broker/rest/user/keys  --data-urlencode name=mykey  --data-urlencode type=ssh-rsa  --data-urlencode content=AAAAB3NzaC1yc2EAAAADAQABAAABAQDBJHobjmzxy8cv9A1xw9X5TlnQd0bW/19FwOC0c6jPNu9ZbtWQcAE0xfODl7ZqVPPU2qAFOh4rbL3gL2UzTyA+NwERyDrH7tMXAoXPT2L6sqExl0xxuEvb/lXUfLquMq+BMOFxxqCEg8X7GavHN72FMUHwweNybE7C82So+OFSWqFoctiWMNdNsKW4lvBd/jkIudGdRdK+/PzV75TW1LcpfsBrFOJZbd5WzDJEPNdMqOH68YDExD82VtzeJm0HEavhMY9HtxIDEmjIhtfedzCGZLe+6OxReuatw6M+n1sFxT9liprZ6NIANvbnYZKGT50hYfnIi/hZOTCvqYNS97O3 </pre>
+<pre class="terminal">curl -X POST -u first.last@mycompany.com:password https://openshift.redhat.com/broker/rest/user/keys  --data-urlencode name=mykey  --data-urlencode type=ssh-rsa  --data-urlencode content=AAAAB3NzaC1yc2EAAAADAQABAAABAQDBJHobjmzxy8cv9A1xw9X5TlnQd0bW/19FwOC0c6jPNu9ZbtWQcAE0xfODl7ZqVPPU2qAFOh4rbL3gL2UzTyA+NwERyDrH7tMXAoXPT2L6sqExl0xxuEvb/lXUfLquMq+BMOFxxqCEg8X7GavHN72FMUHwweNybE7C82So+OFSWqFoctiWMNdNsKW4lvBd/jkIudGdRdK+/PzV75TW1LcpfsBrFOJZbd5WzDJEPNdMqOH68YDExD82VtzeJm0HEavhMY9HtxIDEmjIhtfedzCGZLe+6OxReuatw6M+n1sFxT9liprZ6NIANvbnYZKGT50hYfnIi/hZOTCvqYNS97O3 </pre>
 <h4>List ssh keys</h4>
 <code>GET /broker/rest/user/keys</code>
 <h5>Response</h5>
@@ -488,7 +488,7 @@ The table below describes each parameter associated with SSH keys.
   "version": "1.6"
 }...<a target="_new" href="key-response-listsshkeys-1-6.html">click to see full response including links</a></pre>
 <h5>Example using curl command</h5>
-<pre class="terminal">curl -u first.last@mycompany.com:password https://openshift.redhat.com/broker/rest/user/keys </pre>
+<pre class="terminal">curl -X GET -u first.last@mycompany.com:password https://openshift.redhat.com/broker/rest/user/keys </pre>
 <h4>Get ssh key</h4>
 <code>GET /broker/rest/user/keys/:name</code>
 <h5>Response</h5>
@@ -521,13 +521,13 @@ The table below describes each parameter associated with SSH keys.
   "version": "1.6"
 }...<a target="_new" href="key-response-getsshkey-1-6.html">click to see full response including links</a></pre>
 <h5>Example using curl command</h5>
-<pre class="terminal">curl -u first.last@mycompany.com:password https://openshift.redhat.com/broker/rest/user/keys/mykey</pre>
+<pre class="terminal">curl -X GET -u first.last@mycompany.com:password https://openshift.redhat.com/broker/rest/user/keys/mykey</pre>
 <h4>Update ssh key</h4>
 <code>PUT /broker/rest/user/keys/:name</code>
 <h5>Request Parameters</h5>
 <table border=1>
 <tr><td>Name</td><td>Description</td><td>Required</td> <td>Valid Options</td><td>Default Value</td></tr>
-<tr><td>type</td><td>Type of Key<br/><b>Note: Valid options may be different on your actual implementation of OpenShift.</b></td><td>Yes</td><td>ssh-rsa,ssh-dss,ssh-rsa-cert-v01@openssh.com,ssh-dss-cert-v01@openssh.com,ssh-rsa-cert-v00@openssh.com,ssh-dss-cert-v00@openssh.com</td><td>N/A</td></tr>
+<tr><td>type</td><td>Type of Key<br/><b>Note: Valid options may be different on your actual implementation of OpenShift.</b></td><td>Yes</td><td>ssh-rsa, ssh-dss, ssh-rsa-cert-v01@openssh.com, ssh-dss-cert-v01@openssh.com, ssh-rsa-cert-v00@openssh.com, ssh-dss-cert-v00@openssh.com</td><td>N/A</td></tr>
 <tr><td>content</td><td>The key portion of an rsa key (excluding ssh key type and comment)</td><td>Yes</td><td></td><td>N/A</td></tr>
 </table>
 <h5>Request</h5>
@@ -565,7 +565,7 @@ The table below describes each parameter associated with SSH keys.
   "version": "1.6"
 }...<a target="_new" href="key-response-updatesshkey-1-6.html">click to see full response including links</a></pre>
 <h5>Example using curl command</h5>
-<pre class="terminal">curl -u first.last@mycompany.com:password https://openshift.redhat.com/broker/rest/user/keys/mykey  --data-urlencode type=ssh-rsa  --data-urlencode content=AAAAB3NzaC1yc2EAAAADAQABAAABAQDBJHobjmzxy8cv9A1xw9X5TlnQd0bW/19FwOC0c6jPNu9ZbtWQcAE0xfODl7ZqVPPU2qAFOh4rbL3gL2UzTyA+NwERyDrH7tMXAoXPT2L6sqExl0xxuEvb/lXUfLquMq+BMOFxxqCEg8X7GavHN72FMUHwweNybE7C82So+OFSWqFoctiWMNdNsKW4lvBd/jkIudGdRdK+/PzV75TW1LcpfsBrFOJZbd5WzDJEPNdMqOH68YDExD82VtzeJm0HEavhMY9HtxIDEmjIhtfedzCGZLe+6OxReuatw6M+n1sFxT9liprZ6NIANvbnYZKGT50hYfnIi/hZOTCvqYNS97O3 </pre>
+<pre class="terminal">curl -X PUT -u first.last@mycompany.com:password https://openshift.redhat.com/broker/rest/user/keys/mykey  --data-urlencode type=ssh-rsa  --data-urlencode content=AAAAB3NzaC1yc2EAAAADAQABAAABAQDBJHobjmzxy8cv9A1xw9X5TlnQd0bW/19FwOC0c6jPNu9ZbtWQcAE0xfODl7ZqVPPU2qAFOh4rbL3gL2UzTyA+NwERyDrH7tMXAoXPT2L6sqExl0xxuEvb/lXUfLquMq+BMOFxxqCEg8X7GavHN72FMUHwweNybE7C82So+OFSWqFoctiWMNdNsKW4lvBd/jkIudGdRdK+/PzV75TW1LcpfsBrFOJZbd5WzDJEPNdMqOH68YDExD82VtzeJm0HEavhMY9HtxIDEmjIhtfedzCGZLe+6OxReuatw6M+n1sFxT9liprZ6NIANvbnYZKGT50hYfnIi/hZOTCvqYNS97O3 </pre>
 <h4>Delete ssh key</h4>
 <code>DELETE /broker/rest/user/keys/:name</code>
 <h5>Response</h5>
@@ -594,7 +594,7 @@ The table below describes each parameter associated with SSH keys.
   "version": "1.6"
 }...<a target="_new" href="key-response-deletesshkey-1-6.html">click to see full response including links</a></pre>
 <h5>Example using curl command</h5>
-<pre class="terminal">curl -u first.last@mycompany.com:password https://openshift.redhat.com/broker/rest/user/keys/mykey</pre>
+<pre class="terminal">curl -X DELETE -u first.last@mycompany.com:password https://openshift.redhat.com/broker/rest/user/keys/mykey</pre>
 <a NAME='authorization'></a>
 <h2>Authorization</h2>
 This chapter provides information on API resources to add, view, and manage authorization tokens. An authorization token is a secret value that allows access to an OpenShift account without having to supply login information each time. An authorization token can also be used to grant another user access to your account. Authorization tokens use scopes to determine the type of access a user is granted and what they can do with that token; for example full access versus limited access.
@@ -650,16 +650,16 @@ The table below describes the available scope options that determine the type of
   "version": "1.6"
 }...<a target="_new" href="authorization-response-listauthorizations-1-6.html">click to see full response including links</a></pre>
 <h5>Example using curl command</h5>
-<pre class="terminal">curl -u first.last@mycompany.com:password https://openshift.redhat.com/broker/rest/user/authorizations </pre>
+<pre class="terminal">curl -X GET -u first.last@mycompany.com:password https://openshift.redhat.com/broker/rest/user/authorizations </pre>
 <h4>Add new authorization</h4>
 <code>POST /broker/rest/user/authorizations</code>
 <h5>Request Parameters</h5>
 <table border=1>
 <tr><td>Name</td><td>Description</td><td>Required</td> <td>Valid Options</td><td>Default Value</td></tr>
-<tr><td>scope</td><td>Select one or more scopes that this authorization will grant access to:<br/><br/>*  session<br/>   Grants a client the authority to perform all API actions against your account. Valid for 1 day.<br/>*  read<br/>   Allows the client to access resources you own without making changes. Does not allow access to view authorization tokens. Valid for about 1 month.<br/>*  userinfo<br/>   Allows a client to view your login name, unique id, and your user capabilities. Valid for about 1 month.<br/>*  domain/:id/view<br/>   Grant read-only access to a single domain. Valid for about 1 month.<br/>*  domain/:id/edit<br/>   Grant edit access to a single domain and all its applications. Valid for about 1 month.<br/>*  domain/:id/admin<br/>   Grant full administrative access to a single domain and all its applications. Valid for about 1 month.<br/>*  application/:id/view<br/>   Grant read-only access to a single application. Valid for about 1 month.<br/>*  application/:id/edit<br/>   Grant edit access to a single application. Valid for about 1 month.<br/>*  application/:id/admin<br/>   Grant full administrative access to a single application. Valid for about 1 month.<br/><b>Note: Valid options may be different on your actual implementation of OpenShift.</b></td><td>No</td><td>session,read,userinfo,domain/:id/view,domain/:id/edit,domain/:id/admin,application/:id/view,application/:id/edit,application/:id/admin</td><td>userinfo</td></tr>
+<tr><td>scope</td><td>Select one or more scopes that this authorization will grant access to:<br/><br/>*  session<br/>   Grants a client the authority to perform all API actions against your account. Valid for 1 day.<br/>*  read<br/>   Allows the client to access resources you own without making changes. Does not allow access to view authorization tokens. Valid for about 1 month.<br/>*  userinfo<br/>   Allows a client to view your login name, unique id, and your user capabilities. Valid for about 1 month.<br/>*  domain/:id/view<br/>   Grant read-only access to a single domain. Valid for about 1 month.<br/>*  domain/:id/edit<br/>   Grant edit access to a single domain and all its applications. Valid for about 1 month.<br/>*  domain/:id/admin<br/>   Grant full administrative access to a single domain and all its applications. Valid for about 1 month.<br/>*  application/:id/view<br/>   Grant read-only access to a single application. Valid for about 1 month.<br/>*  application/:id/edit<br/>   Grant edit access to a single application. Valid for about 1 month.<br/>*  application/:id/admin<br/>   Grant full administrative access to a single application. Valid for about 1 month.<br/><b>Note: Valid options may be different on your actual implementation of OpenShift.</b></td><td>No</td><td>session, read, userinfo, domain/:id/view, domain/:id/edit, domain/:id/admin, application/:id/view, application/:id/edit, application/:id/admin</td><td>userinfo</td></tr>
 <tr><td>note</td><td>A description to remind you what this authorization is for.</td><td>No</td><td></td><td></td></tr>
 <tr><td>expires_in</td><td>The number of seconds before this authorization expires. Out of range values will be set to the maximum allowed time.</td><td>No</td><td></td><td>-1</td></tr>
-<tr><td>reuse</td><td>Attempt to locate and reuse an authorization that matches the scope and note and has not yet expired.</td><td>No</td><td>true,false</td><td>false</td></tr>
+<tr><td>reuse</td><td>Attempt to locate and reuse an authorization that matches the scope and note and has not yet expired.</td><td>No</td><td>true, false</td><td>false</td></tr>
 </table>
 <h5>Request</h5>
 <pre>{
@@ -672,14 +672,14 @@ The table below describes the available scope options that determine the type of
 <pre>{
   "api_version": 1.6,
   "data": {
-    "created_at": "2013-08-21T02:02:10Z",
+    "created_at": "2013-08-27T00:55:20Z",
     "expires_in": 2592000,
     "expires_in_seconds": 2592000,
-    "id": "52141fa2e499b2229e00009b",
+    "id": "521bf8f8656c67454100009d",
     "identity": "first.last@mycompany.com",
     "note": "This is my UPDATED note to myself",
     "scopes": "userinfo",
-    "token": "6c85ff7f619a964e260ee6def3fc5829128dbba3f8bc11a5d89178e0d6e7a163"
+    "token": "e8b028f2579c069ac033e5c162dfaf73302a3e51c1e69925e60bdb959e9b8bcf"
   },
   "messages": [
     {
@@ -703,21 +703,21 @@ The table below describes the available scope options that determine the type of
   "version": "1.6"
 }...<a target="_new" href="authorization-response-addnewauthorization-1-6.html">click to see full response including links</a></pre>
 <h5>Example using curl command</h5>
-<pre class="terminal">curl -u first.last@mycompany.com:password https://openshift.redhat.com/broker/rest/user/authorizations  --data-urlencode scope=userinfo  --data-urlencode note=This is my UPDATED note to myself  --data-urlencode expires_in=-1  --data-urlencode reuse=false </pre>
+<pre class="terminal">curl -X POST -u first.last@mycompany.com:password https://openshift.redhat.com/broker/rest/user/authorizations  --data-urlencode scope=userinfo  --data-urlencode note=This is my UPDATED note to myself  --data-urlencode expires_in=-1  --data-urlencode reuse=false </pre>
 <h4>Get authorization</h4>
 <code>GET /broker/rest/user/authorizations/:id</code>
 <h5>Response</h5>
 <pre>{
   "api_version": 1.6,
   "data": {
-    "created_at": "2013-08-21T02:02:10Z",
+    "created_at": "2013-08-27T00:55:20Z",
     "expires_in": 2592000,
     "expires_in_seconds": 2592000,
-    "id": "52141fa2e499b2229e00009b",
+    "id": "521bf8f8656c67454100009d",
     "identity": "first.last@mycompany.com",
     "note": "This is my UPDATED note to myself",
     "scopes": "userinfo",
-    "token": "6c85ff7f619a964e260ee6def3fc5829128dbba3f8bc11a5d89178e0d6e7a163"
+    "token": "e8b028f2579c069ac033e5c162dfaf73302a3e51c1e69925e60bdb959e9b8bcf"
   },
   "messages": [
     {
@@ -741,7 +741,7 @@ The table below describes the available scope options that determine the type of
   "version": "1.6"
 }...<a target="_new" href="authorization-response-getauthorization-1-6.html">click to see full response including links</a></pre>
 <h5>Example using curl command</h5>
-<pre class="terminal">curl -u first.last@mycompany.com:password https://openshift.redhat.com/broker/rest/user/authorizations/52141fa2e499b2229e00009b</pre>
+<pre class="terminal">curl -X GET -u first.last@mycompany.com:password https://openshift.redhat.com/broker/rest/user/authorizations/521bf8f8656c67454100009d</pre>
 <h4>Update authorization</h4>
 <code>PUT /broker/rest/user/authorizations/:id</code>
 <h5>Request Parameters</h5>
@@ -757,14 +757,14 @@ The table below describes the available scope options that determine the type of
 <pre>{
   "api_version": 1.6,
   "data": {
-    "created_at": "2013-08-21T02:02:10Z",
+    "created_at": "2013-08-27T00:55:20Z",
     "expires_in": 2592000,
     "expires_in_seconds": 2592000,
-    "id": "52141fa2e499b2229e00009b",
+    "id": "521bf8f8656c67454100009d",
     "identity": "first.last@mycompany.com",
     "note": "This is a note to myself",
     "scopes": "userinfo",
-    "token": "6c85ff7f619a964e260ee6def3fc5829128dbba3f8bc11a5d89178e0d6e7a163"
+    "token": "e8b028f2579c069ac033e5c162dfaf73302a3e51c1e69925e60bdb959e9b8bcf"
   },
   "messages": [
     {
@@ -788,7 +788,7 @@ The table below describes the available scope options that determine the type of
   "version": "1.6"
 }...<a target="_new" href="authorization-response-updateauthorization-1-6.html">click to see full response including links</a></pre>
 <h5>Example using curl command</h5>
-<pre class="terminal">curl -u first.last@mycompany.com:password https://openshift.redhat.com/broker/rest/user/authorizations/52141fa2e499b2229e00009b  --data-urlencode note=This is a note to myself </pre>
+<pre class="terminal">curl -X PUT -u first.last@mycompany.com:password https://openshift.redhat.com/broker/rest/user/authorizations/521bf8f8656c67454100009d  --data-urlencode note=This is a note to myself </pre>
 <h4>Delete authorization</h4>
 <code>DELETE /broker/rest/user/authorizations/:id</code>
 <h5>Response</h5>
@@ -800,7 +800,7 @@ The table below describes the available scope options that determine the type of
       "exit_code": 0,
       "field": null,
       "severity": "info",
-      "text": "Authorization 52141fa2e499b2229e00009b is revoked."
+      "text": "Authorization 521bf8f8656c67454100009d is revoked."
     }
   ],
   "status": "ok",
@@ -817,7 +817,7 @@ The table below describes the available scope options that determine the type of
   "version": "1.6"
 }...<a target="_new" href="authorization-response-deleteauthorization-1-6.html">click to see full response including links</a></pre>
 <h5>Example using curl command</h5>
-<pre class="terminal">curl -u first.last@mycompany.com:password https://openshift.redhat.com/broker/rest/user/authorizations/52141fa2e499b2229e00009b</pre>
+<pre class="terminal">curl -X DELETE -u first.last@mycompany.com:password https://openshift.redhat.com/broker/rest/user/authorizations/521bf8f8656c67454100009d</pre>
 <a NAME='domain'></a>
 <h2>Domain</h2>
 This chapter provides information on API resources to add, update, and manage OpenShift user domains. A domain must be created before an OpenShift application can be created. Domain names on OpenShift are non-strict, meaning there is no preceding period, and form part of the application name. Therefore, the syntax for the application name is ApplicationName–DomainName.DomainSuffix. Each username can only support a single domain, but multiple applications can be created within a domain.
@@ -848,7 +848,7 @@ The table below describes each parameter associated with an OpenShift domain.
     "allowed_gear_sizes": [
       "small"
     ],
-    "creation_time": "2013-08-21T01:58:41Z",
+    "creation_time": "2013-08-27T00:51:35Z",
     "members": [
       {
         "explicit_role": null,
@@ -858,7 +858,7 @@ The table below describes each parameter associated with an OpenShift domain.
             "role": "admin"
           }
         ],
-        "id": "5213a826e499b22f15000001",
+        "id": "521bf803656c674541000001",
         "name": "first.last@mycompany.com",
         "owner": true,
         "role": "admin",
@@ -890,89 +890,39 @@ The table below describes each parameter associated with an OpenShift domain.
   "version": "1.6"
 }...<a target="_new" href="domain-response-createnewdomain-1-6.html">click to see full response including links</a></pre>
 <h5>Example using curl command</h5>
-<pre class="terminal">curl -u first.last@mycompany.com:password https://openshift.redhat.com/broker/rest/domains  --data-urlencode name=mydomain </pre>
+<pre class="terminal">curl -X POST -u first.last@mycompany.com:password https://openshift.redhat.com/broker/rest/domains  --data-urlencode name=mydomain </pre>
 <h4>List all domains you have access to</h4>
 <code>GET /broker/rest/domains</code>
 <h5>Response</h5>
 <pre>{
   "api_version": 1.6,
   "data": [
-    {
-      "allowed_gear_sizes": [
-        "small"
-      ],
-      "creation_time": "2013-08-21T01:58:41Z",
-      "links": {
-        "GET": {
-          "href": "https://openshift.redhat.com/broker/rest/domains/mydomainx",
-          "method": "GET",
-          "optional_params": [
 
-          ],
-          "rel": "Get domain",
-          "required_params": [
+  ],
+  "messages": [
 
-          ]
-        },
-        "ADD_APPLICATION": {
-          "href": "https://openshift.redhat.com/broker/rest/domains/mydomainx/applications",
-          "method": "POST",
-          "optional_params": [
-            {
-              "default_value": null,
-              "description": "Array of one or more cartridge names",
-              "name": "cartridges",
-              "type": "array",
-              "valid_options": [
-                "nodejs-0.6",
-                "python-3.3",
-                "python-2.7",
-                "python-2.6",
-                "zend-5.6",
-                "ruby-1.9",
-                "ruby-1.8",
-                "jenkins-1",
-                "jbossews-2.0",
-                "jbossews-1.0",
-                "mock-0.2",
-                "mock-0.1",
-                "perl-5.10",
-                "php-5.3",
-                "jbosseap-6",
-                "diy-0.1",
-                "jbossas-7"
-              ]
-            },
-            {
-              "default_value": false,
-              "description": "Mark application as scalable",
-              "name": "scale",
-              "type": "boolean",
-              "valid_options": [
-                true,
-                false
-              ]
-            },
-            {
-              "default_value": "small",
-              "description": "The size of the gear",
-              "name": "gear_size",
-              "type": "string",
-              "valid_options": [
-                "small"
-              ]
-            },
-            {
-              "default_value": null,
-              "description": "A URL to a Git source code repository that will be t...<a target="_new" href="domain-response-listalldomainsyouhaveaccessto-1-6.html">click to see full response including links</a></pre>
+  ],
+  "status": "ok",
+  "supported_api_versions": [
+    1.0,
+    1.1,
+    1.2,
+    1.3,
+    1.4,
+    1.5,
+    1.6
+  ],
+  "type": "domains",
+  "version": "1.6"
+}...<a target="_new" href="domain-response-listalldomainsyouhaveaccessto-1-6.html">click to see full response including links</a></pre>
 <h5>Example using curl command</h5>
-<pre class="terminal">curl -u first.last@mycompany.com:password https://openshift.redhat.com/broker/rest/domains </pre>
+<pre class="terminal">curl -X GET -u first.last@mycompany.com:password https://openshift.redhat.com/broker/rest/domains </pre>
 <h4>List domains</h4>
 <code>GET /broker/rest/domains</code>
 <h5>Request Parameters</h5>
 <table border=1>
 <tr><td>Name</td><td>Description</td><td>Required</td> <td>Valid Options</td><td>Default Value</td></tr>
-<tr><td>owner</td><td>Return only the domains owned by the specified user id or identity.  Use @self to refer to the current user.</td><td>Yes</td><td>@self,*</td><td>N/A</td></tr>
+<tr><td>owner</td><td>Return only the domains owned by the specified user id or identity.  Use @self to refer to the current user.</td><td>Yes</td><td>@self, *</td><td>N/A</td></tr>
 </table>
 <h5>Request</h5>
 <pre>{
@@ -982,76 +932,26 @@ The table below describes each parameter associated with an OpenShift domain.
 <pre>{
   "api_version": 1.6,
   "data": [
-    {
-      "allowed_gear_sizes": [
-        "small"
-      ],
-      "creation_time": "2013-08-21T01:58:41Z",
-      "links": {
-        "GET": {
-          "href": "https://openshift.redhat.com/broker/rest/domains/mydomainx",
-          "method": "GET",
-          "optional_params": [
 
-          ],
-          "rel": "Get domain",
-          "required_params": [
+  ],
+  "messages": [
 
-          ]
-        },
-        "ADD_APPLICATION": {
-          "href": "https://openshift.redhat.com/broker/rest/domains/mydomainx/applications",
-          "method": "POST",
-          "optional_params": [
-            {
-              "default_value": null,
-              "description": "Array of one or more cartridge names",
-              "name": "cartridges",
-              "type": "array",
-              "valid_options": [
-                "nodejs-0.6",
-                "python-3.3",
-                "python-2.7",
-                "python-2.6",
-                "zend-5.6",
-                "ruby-1.9",
-                "ruby-1.8",
-                "jenkins-1",
-                "jbossews-2.0",
-                "jbossews-1.0",
-                "mock-0.2",
-                "mock-0.1",
-                "perl-5.10",
-                "php-5.3",
-                "jbosseap-6",
-                "diy-0.1",
-                "jbossas-7"
-              ]
-            },
-            {
-              "default_value": false,
-              "description": "Mark application as scalable",
-              "name": "scale",
-              "type": "boolean",
-              "valid_options": [
-                true,
-                false
-              ]
-            },
-            {
-              "default_value": "small",
-              "description": "The size of the gear",
-              "name": "gear_size",
-              "type": "string",
-              "valid_options": [
-                "small"
-              ]
-            },
-            {
-              "default_value": null,
-              "description": "A URL to a Git source code repository that will be t...<a target="_new" href="domain-response-listdomains-1-6.html">click to see full response including links</a></pre>
+  ],
+  "status": "ok",
+  "supported_api_versions": [
+    1.0,
+    1.1,
+    1.2,
+    1.3,
+    1.4,
+    1.5,
+    1.6
+  ],
+  "type": "domains",
+  "version": "1.6"
+}...<a target="_new" href="domain-response-listdomains-1-6.html">click to see full response including links</a></pre>
 <h5>Example using curl command</h5>
-<pre class="terminal">curl -u first.last@mycompany.com:password https://openshift.redhat.com/broker/rest/domains  --data-urlencode owner=@self </pre>
+<pre class="terminal">curl -X GET -u first.last@mycompany.com:password https://openshift.redhat.com/broker/rest/domains  --data-urlencode owner=@self </pre>
 <h4>Get domain</h4>
 <code>GET /broker/rest/domains/:name</code>
 <h5>Response</h5>
@@ -1061,7 +961,7 @@ The table below describes each parameter associated with an OpenShift domain.
     "allowed_gear_sizes": [
       "small"
     ],
-    "creation_time": "2013-08-21T01:58:41Z",
+    "creation_time": "2013-08-27T00:51:35Z",
     "members": [
       {
         "explicit_role": null,
@@ -1071,7 +971,7 @@ The table below describes each parameter associated with an OpenShift domain.
             "role": "admin"
           }
         ],
-        "id": "5213a826e499b22f15000001",
+        "id": "521bf803656c674541000001",
         "name": "first.last@mycompany.com",
         "owner": true,
         "role": "admin",
@@ -1103,7 +1003,7 @@ The table below describes each parameter associated with an OpenShift domain.
   "version": "1.6"
 }...<a target="_new" href="domain-response-getdomain-1-6.html">click to see full response including links</a></pre>
 <h5>Example using curl command</h5>
-<pre class="terminal">curl -u first.last@mycompany.com:password https://openshift.redhat.com/broker/rest/domains/mydomain</pre>
+<pre class="terminal">curl -X GET -u first.last@mycompany.com:password https://openshift.redhat.com/broker/rest/domains/mydomain</pre>
 <h4>Update domain</h4>
 <code>PUT /broker/rest/domains/:name</code>
 <h5>Request Parameters</h5>
@@ -1123,7 +1023,7 @@ The table below describes each parameter associated with an OpenShift domain.
     "allowed_gear_sizes": [
       "small"
     ],
-    "creation_time": "2013-08-21T01:58:41Z",
+    "creation_time": "2013-08-27T00:51:35Z",
     "members": [
       {
         "explicit_role": null,
@@ -1133,7 +1033,7 @@ The table below describes each parameter associated with an OpenShift domain.
             "role": "admin"
           }
         ],
-        "id": "5213a826e499b22f15000001",
+        "id": "521bf803656c674541000001",
         "name": "first.last@mycompany.com",
         "owner": true,
         "role": "admin",
@@ -1165,16 +1065,41 @@ The table below describes each parameter associated with an OpenShift domain.
   "version": "1.6"
 }...<a target="_new" href="domain-response-updatedomain-1-6.html">click to see full response including links</a></pre>
 <h5>Example using curl command</h5>
-<pre class="terminal">curl -u first.last@mycompany.com:password https://openshift.redhat.com/broker/rest/domains/mydomain  --data-urlencode name=mydomainX </pre>
+<pre class="terminal">curl -X PUT -u first.last@mycompany.com:password https://openshift.redhat.com/broker/rest/domains/mydomain  --data-urlencode name=mydomainX </pre>
 <h4>Delete domain</h4>
 <code>DELETE /broker/rest/domains/:name</code>
 <h5>Request Parameters</h5>
 <table border=1>
 <tr><td>Name</td><td>Description</td><td>Required</td> <td>Valid Options</td><td>Default Value</td></tr>
-<tr><td>force</td><td>Force delete domain.  i.e. delete any applications under this domain</td><td>No</td><td>true,false</td><td>false</td></tr>
+<tr><td>force</td><td>Force delete domain.  i.e. delete any applications under this domain</td><td>No</td><td>true, false</td><td>false</td></tr>
 </table>
+<h5>Response</h5>
+<pre>{
+  "api_version": 1.6,
+  "data": null,
+  "messages": [
+    {
+      "exit_code": 0,
+      "field": null,
+      "severity": "info",
+      "text": "Domain mydomainx deleted."
+    }
+  ],
+  "status": "ok",
+  "supported_api_versions": [
+    1.0,
+    1.1,
+    1.2,
+    1.3,
+    1.4,
+    1.5,
+    1.6
+  ],
+  "type": null,
+  "version": "1.6"
+}...<a target="_new" href="domain-response-deletedomain-1-6.html">click to see full response including links</a></pre>
 <h5>Example using curl command</h5>
-<pre class="terminal">curl -u first.last@mycompany.com:password https://openshift.redhat.com/broker/rest/domains/mydomain</pre>
+<pre class="terminal">curl -X DELETE -u first.last@mycompany.com:password https://openshift.redhat.com/broker/rest/domains/mydomain</pre>
 <a NAME='member'></a>
 <h2>Member</h2>
 TODO: Describe members here
@@ -1192,7 +1117,7 @@ TODO: Describe members here
           "role": "admin"
         }
       ],
-      "id": "5213a826e499b22f15000001",
+      "id": "521bf803656c674541000001",
       "name": "first.last@mycompany.com",
       "owner": true,
       "role": "admin",
@@ -1221,13 +1146,13 @@ TODO: Describe members here
   "version": "1.6"
 }...<a target="_new" href="member-response-listmembersofthisdomain-1-6.html">click to see full response including links</a></pre>
 <h5>Example using curl command</h5>
-<pre class="terminal">curl -u first.last@mycompany.com:password https://openshift.redhat.com/broker/rest/domains/mydomain/members </pre>
+<pre class="terminal">curl -X GET -u first.last@mycompany.com:password https://openshift.redhat.com/broker/rest/domains/mydomain/members </pre>
 <h4>Add one or more members to this domain</h4>
 <code>POST /broker/rest/domains/:name/members</code>
 <h5>Request Parameters</h5>
 <table border=1>
 <tr><td>Name</td><td>Description</td><td>Required</td> <td>Valid Options</td><td>Default Value</td></tr>
-<tr><td>role</td><td>The role the user should have on the domain</td><td>Yes</td><td>view,edit,admin</td><td>N/A</td></tr>
+<tr><td>role</td><td>The role the user should have on the domain</td><td>Yes</td><td>view, edit, admin</td><td>N/A</td></tr>
 <tr><td>id</td><td>Unique identifier of the user</td><td>No</td><td></td><td></td></tr>
 <tr><td>login</td><td>The user's login attribute</td><td>No</td><td></td><td></td></tr>
 </table>
@@ -1237,7 +1162,7 @@ TODO: Describe members here
   "login": "team.member@mycompany.com"
 }</pre>
 <h5>Example using curl command</h5>
-<pre class="terminal">curl -u first.last@mycompany.com:password https://openshift.redhat.com/broker/rest/domains/mydomain/members  --data-urlencode role=view  --data-urlencode login=team.member@mycompany.com </pre>
+<pre class="terminal">curl -X POST -u first.last@mycompany.com:password https://openshift.redhat.com/broker/rest/domains/mydomain/members  --data-urlencode role=view  --data-urlencode login=team.member@mycompany.com </pre>
 <h4>List members of this application</h4>
 <code>GET /broker/rest/applications/:id/members</code>
 <h5>Response</h5>
@@ -1252,7 +1177,7 @@ TODO: Describe members here
           "role": "admin"
         }
       ],
-      "id": "5213a826e499b22f15000001",
+      "id": "521bf803656c674541000001",
       "name": "first.last@mycompany.com",
       "owner": true,
       "role": "admin",
@@ -1281,7 +1206,7 @@ TODO: Describe members here
   "version": "1.6"
 }...<a target="_new" href="member-response-listmembersofthisapplication-1-6.html">click to see full response including links</a></pre>
 <h5>Example using curl command</h5>
-<pre class="terminal">curl -u first.last@mycompany.com:password https://openshift.redhat.com/broker/rest/applications/534253991015616165707776/members </pre>
+<pre class="terminal">curl -X GET -u first.last@mycompany.com:password https://openshift.redhat.com/broker/rest/applications/521bf818656c67309c000001/members </pre>
 <a NAME='application'></a>
 <h2>Application</h2>
 This resource provides information that allow a client to create and manage OpenShift applications. OpenShift supports a number of application frameworks, such as PHP, JBoss, and Ruby.
@@ -1336,17 +1261,17 @@ The table below describes each parameter associated with an OpenShift applicatio
   "version": "1.6"
 }...<a target="_new" href="application-response-listapplication-1-6.html">click to see full response including links</a></pre>
 <h5>Example using curl command</h5>
-<pre class="terminal">curl -u first.last@mycompany.com:password https://openshift.redhat.com/broker/rest/applications </pre>
+<pre class="terminal">curl -X GET -u first.last@mycompany.com:password https://openshift.redhat.com/broker/rest/applications </pre>
 <h4>Create new application</h4>
 <code>POST /broker/rest/domains/:name/applications</code>
 <h5>Request Parameters</h5>
 <table border=1>
 <tr><td>Name</td><td>Description</td><td>Required</td> <td>Valid Options</td><td>Default Value</td></tr>
 <tr><td>name</td><td>Name of the application</td><td>Yes</td><td></td><td>N/A</td></tr>
-<tr><td>cartridges</td><td>Array of one or more cartridge names<br/><b>Note: Valid options may be different on your actual implementation of OpenShift.</b></td><td>No</td><td>nodejs-0.6,python-3.3,python-2.7,python-2.6,zend-5.6,ruby-1.9,ruby-1.8,jenkins-1,jbossews-2.0,jbossews-1.0,mock-0.2,mock-0.1,perl-5.10,php-5.3,jbosseap-6,diy-0.1,jbossas-7</td><td></td></tr>
-<tr><td>scale</td><td>Mark application as scalable</td><td>No</td><td>true,false</td><td>false</td></tr>
+<tr><td>cartridges</td><td>Array of one or more cartridge names<br/><b>Note: Valid options may be different on your actual implementation of OpenShift.</b></td><td>No</td><td>nodejs-0.6, python-3.3, python-2.7, python-2.6, zend-5.6, ruby-1.9, ruby-1.8, jenkins-1, jbossews-2.0, jbossews-1.0, mock-0.2, mock-0.1, perl-5.10, php-5.3, jbosseap-6, diy-0.1, jbossas-7</td><td></td></tr>
+<tr><td>scale</td><td>Mark application as scalable</td><td>No</td><td>true, false</td><td>false</td></tr>
 <tr><td>gear_size</td><td>The size of the gear</td><td>No</td><td>small</td><td>small</td></tr>
-<tr><td>initial_git_url</td><td>A URL to a Git source code repository that will be the basis for this application.</td><td>No</td><td>,empty</td><td></td></tr>
+<tr><td>initial_git_url</td><td>A URL to a Git source code repository that will be the basis for this application.</td><td>No</td><td>, empty</td><td></td></tr>
 <tr><td>cartridges[][url]</td><td>A URL to a downloadable cartridge. You may specify an multiple urls via {'cartridges' : [{'url':'http://...'}, ...]}</td><td>No</td><td></td><td></td></tr>
 <tr><td>environment_variables</td><td>Add or Update application environment variables, e.g.:[{'name':'FOO', 'value':'123'}, {'name':'BAR', 'value':'abc'}]</td><td>No</td><td></td><td></td></tr>
 </table>
@@ -1369,7 +1294,7 @@ The table below describes each parameter associated with an OpenShift applicatio
     "build_job_url": null,
     "building_app": null,
     "building_with": null,
-    "creation_time": "2013-08-21T01:58:41Z",
+    "creation_time": "2013-08-27T00:51:36Z",
     "domain_id": "mydomain",
     "embedded": {
       "haproxy-1.4": {
@@ -1378,9 +1303,9 @@ The table below describes each parameter associated with an OpenShift applicatio
     "framework": "ruby-1.9",
     "gear_count": 1,
     "gear_profile": "small",
-    "git_url": "ssh://534253991015616165707776@myapplication-mydomain.dev.rhcloud.com/~/git/myapplication.git/",
+    "git_url": "ssh://521bf818656c67309c000001@myapplication-mydomain.dev.rhcloud.com/~/git/myapplication.git/",
     "health_check_path": "health",
-    "id": "534253991015616165707776",
+    "id": "521bf818656c67309c000001",
     "initial_git_url": null,
     "members": [
       {
@@ -1391,7 +1316,7 @@ The table below describes each parameter associated with an OpenShift applicatio
             "role": "admin"
           }
         ],
-        "id": "5213a826e499b22f15000001",
+        "id": "521bf803656c674541000001",
         "name": "first.last@mycompany.com",
         "owner": true,
         "role": "admin",
@@ -1400,7 +1325,7 @@ The table below describes each parameter associated with an OpenShift applicatio
     ],
     "name": "myapplication",
     "scalable": true,
-    "ssh_url": "ssh://534253991015616165707776@myapplication-mydomain.dev.rhcloud.com"
+    "ssh_url": "ssh://521bf818656c67309c000001@myapplication-mydomain.dev.rhcloud.com"
   },
   "messages": [
     {
@@ -1408,12 +1333,6 @@ The table below describes each parameter associated with an OpenShift applicatio
       "field": null,
       "severity": "info",
       "text": "Application myapplication was created."
-    },
-    {
-      "exit_code": 0,
-      "field": null,
-      "severity": "warning",
-      "text": "HAProxy instance is started\n"
     }
   ],
   "status": "created",
@@ -1430,7 +1349,7 @@ The table below describes each parameter associated with an OpenShift applicatio
   "version": "1.6"
 }...<a target="_new" href="application-response-createnewapplication-1-6.html">click to see full response including links</a></pre>
 <h5>Example using curl command</h5>
-<pre class="terminal">curl -u first.last@mycompany.com:password https://openshift.redhat.com/broker/rest/domains/mydomain/applications  --data-urlencode name=myapplication  --data-urlencode cartridges=ruby-1.9  --data-urlencode scale=true  --data-urlencode gear_size=small  --data-urlencode initial_git_url= </pre>
+<pre class="terminal">curl -X POST -u first.last@mycompany.com:password https://openshift.redhat.com/broker/rest/domains/mydomain/applications  --data-urlencode name=myapplication  --data-urlencode cartridges=ruby-1.9  --data-urlencode scale=true  --data-urlencode gear_size=small  --data-urlencode initial_git_url= </pre>
 <h4>List applications for a domain</h4>
 <code>GET /broker/rest/domains/:name/applications</code>
 <h5>Response</h5>
@@ -1461,7 +1380,7 @@ The table below describes each parameter associated with an OpenShift applicatio
   "version": "1.6"
 }...<a target="_new" href="application-response-listapplicationsforadomain-1-6.html">click to see full response including links</a></pre>
 <h5>Example using curl command</h5>
-<pre class="terminal">curl -u first.last@mycompany.com:password https://openshift.redhat.com/broker/rest/domains/mydomain/applications </pre>
+<pre class="terminal">curl -X GET -u first.last@mycompany.com:password https://openshift.redhat.com/broker/rest/domains/mydomain/applications </pre>
 <h4>Get application</h4>
 <code>GET /broker/rest/applications/:id</code>
 <h5>Response</h5>
@@ -1475,7 +1394,7 @@ The table below describes each parameter associated with an OpenShift applicatio
     "build_job_url": null,
     "building_app": null,
     "building_with": null,
-    "creation_time": "2013-08-21T01:58:41Z",
+    "creation_time": "2013-08-27T00:51:36Z",
     "domain_id": "mydomain",
     "embedded": {
       "haproxy-1.4": {
@@ -1484,9 +1403,9 @@ The table below describes each parameter associated with an OpenShift applicatio
     "framework": "ruby-1.9",
     "gear_count": 1,
     "gear_profile": "small",
-    "git_url": "ssh://534253991015616165707776@myapplication-mydomain.dev.rhcloud.com/~/git/myapplication.git/",
+    "git_url": "ssh://521bf818656c67309c000001@myapplication-mydomain.dev.rhcloud.com/~/git/myapplication.git/",
     "health_check_path": "health",
-    "id": "534253991015616165707776",
+    "id": "521bf818656c67309c000001",
     "initial_git_url": null,
     "members": [
       {
@@ -1497,7 +1416,7 @@ The table below describes each parameter associated with an OpenShift applicatio
             "role": "admin"
           }
         ],
-        "id": "5213a826e499b22f15000001",
+        "id": "521bf803656c674541000001",
         "name": "first.last@mycompany.com",
         "owner": true,
         "role": "admin",
@@ -1506,7 +1425,7 @@ The table below describes each parameter associated with an OpenShift applicatio
     ],
     "name": "myapplication",
     "scalable": true,
-    "ssh_url": "ssh://534253991015616165707776@myapplication-mydomain.dev.rhcloud.com"
+    "ssh_url": "ssh://521bf818656c67309c000001@myapplication-mydomain.dev.rhcloud.com"
   },
   "messages": [
     {
@@ -1530,7 +1449,7 @@ The table below describes each parameter associated with an OpenShift applicatio
   "version": "1.6"
 }...<a target="_new" href="application-response-getapplication-1-6.html">click to see full response including links</a></pre>
 <h5>Example using curl command</h5>
-<pre class="terminal">curl -u first.last@mycompany.com:password https://openshift.redhat.com/broker/rest/applications/534253991015616165707776</pre>
+<pre class="terminal">curl -X GET -u first.last@mycompany.com:password https://openshift.redhat.com/broker/rest/applications/521bf818656c67309c000001</pre>
 <h4>Start application</h4>
 <code>POST /broker/rest/applications/:id/events</code>
 <h5>Request Parameters</h5>
@@ -1553,7 +1472,7 @@ The table below describes each parameter associated with an OpenShift applicatio
     "build_job_url": null,
     "building_app": null,
     "building_with": null,
-    "creation_time": "2013-08-21T01:58:41Z",
+    "creation_time": "2013-08-27T00:51:36Z",
     "domain_id": "mydomain",
     "embedded": {
       "haproxy-1.4": {
@@ -1562,9 +1481,9 @@ The table below describes each parameter associated with an OpenShift applicatio
     "framework": "ruby-1.9",
     "gear_count": 1,
     "gear_profile": "small",
-    "git_url": "ssh://534253991015616165707776@myapplication-mydomain.dev.rhcloud.com/~/git/myapplication.git/",
+    "git_url": "ssh://521bf818656c67309c000001@myapplication-mydomain.dev.rhcloud.com/~/git/myapplication.git/",
     "health_check_path": "health",
-    "id": "534253991015616165707776",
+    "id": "521bf818656c67309c000001",
     "initial_git_url": null,
     "members": [
       {
@@ -1575,7 +1494,7 @@ The table below describes each parameter associated with an OpenShift applicatio
             "role": "admin"
           }
         ],
-        "id": "5213a826e499b22f15000001",
+        "id": "521bf803656c674541000001",
         "name": "first.last@mycompany.com",
         "owner": true,
         "role": "admin",
@@ -1584,7 +1503,7 @@ The table below describes each parameter associated with an OpenShift applicatio
     ],
     "name": "myapplication",
     "scalable": true,
-    "ssh_url": "ssh://534253991015616165707776@myapplication-mydomain.dev.rhcloud.com"
+    "ssh_url": "ssh://521bf818656c67309c000001@myapplication-mydomain.dev.rhcloud.com"
   },
   "messages": [
     {
@@ -1592,12 +1511,6 @@ The table below describes each parameter associated with an OpenShift applicatio
       "field": null,
       "severity": "info",
       "text": "Application myapplication has started"
-    },
-    {
-      "exit_code": 0,
-      "field": null,
-      "severity": "warning",
-      "text": "HAProxy instance is started\n"
     }
   ],
   "status": "ok",
@@ -1614,7 +1527,7 @@ The table below describes each parameter associated with an OpenShift applicatio
   "version": "1.6"
 }...<a target="_new" href="application-response-startapplication-1-6.html">click to see full response including links</a></pre>
 <h5>Example using curl command</h5>
-<pre class="terminal">curl -u first.last@mycompany.com:password https://openshift.redhat.com/broker/rest/applications/534253991015616165707776/events  --data-urlencode event=start </pre>
+<pre class="terminal">curl -X POST -u first.last@mycompany.com:password https://openshift.redhat.com/broker/rest/applications/521bf818656c67309c000001/events  --data-urlencode event=start </pre>
 <h4>Stop application</h4>
 <code>POST /broker/rest/applications/:id/events</code>
 <h5>Request Parameters</h5>
@@ -1637,7 +1550,7 @@ The table below describes each parameter associated with an OpenShift applicatio
     "build_job_url": null,
     "building_app": null,
     "building_with": null,
-    "creation_time": "2013-08-21T01:58:41Z",
+    "creation_time": "2013-08-27T00:51:36Z",
     "domain_id": "mydomain",
     "embedded": {
       "haproxy-1.4": {
@@ -1646,9 +1559,9 @@ The table below describes each parameter associated with an OpenShift applicatio
     "framework": "ruby-1.9",
     "gear_count": 1,
     "gear_profile": "small",
-    "git_url": "ssh://534253991015616165707776@myapplication-mydomain.dev.rhcloud.com/~/git/myapplication.git/",
+    "git_url": "ssh://521bf818656c67309c000001@myapplication-mydomain.dev.rhcloud.com/~/git/myapplication.git/",
     "health_check_path": "health",
-    "id": "534253991015616165707776",
+    "id": "521bf818656c67309c000001",
     "initial_git_url": null,
     "members": [
       {
@@ -1659,7 +1572,7 @@ The table below describes each parameter associated with an OpenShift applicatio
             "role": "admin"
           }
         ],
-        "id": "5213a826e499b22f15000001",
+        "id": "521bf803656c674541000001",
         "name": "first.last@mycompany.com",
         "owner": true,
         "role": "admin",
@@ -1668,7 +1581,7 @@ The table below describes each parameter associated with an OpenShift applicatio
     ],
     "name": "myapplication",
     "scalable": true,
-    "ssh_url": "ssh://534253991015616165707776@myapplication-mydomain.dev.rhcloud.com"
+    "ssh_url": "ssh://521bf818656c67309c000001@myapplication-mydomain.dev.rhcloud.com"
   },
   "messages": [
     {
@@ -1676,12 +1589,6 @@ The table below describes each parameter associated with an OpenShift applicatio
       "field": null,
       "severity": "info",
       "text": "Application myapplication has stopped"
-    },
-    {
-      "exit_code": 0,
-      "field": null,
-      "severity": "warning",
-      "text": "HAProxy instance is stopped\n"
     }
   ],
   "status": "ok",
@@ -1698,7 +1605,7 @@ The table below describes each parameter associated with an OpenShift applicatio
   "version": "1.6"
 }...<a target="_new" href="application-response-stopapplication-1-6.html">click to see full response including links</a></pre>
 <h5>Example using curl command</h5>
-<pre class="terminal">curl -u first.last@mycompany.com:password https://openshift.redhat.com/broker/rest/applications/534253991015616165707776/events  --data-urlencode event=stop </pre>
+<pre class="terminal">curl -X POST -u first.last@mycompany.com:password https://openshift.redhat.com/broker/rest/applications/521bf818656c67309c000001/events  --data-urlencode event=stop </pre>
 <h4>Force stop application</h4>
 <code>POST /broker/rest/applications/:id/events</code>
 <h5>Request Parameters</h5>
@@ -1721,7 +1628,7 @@ The table below describes each parameter associated with an OpenShift applicatio
     "build_job_url": null,
     "building_app": null,
     "building_with": null,
-    "creation_time": "2013-08-21T01:58:41Z",
+    "creation_time": "2013-08-27T00:51:36Z",
     "domain_id": "mydomain",
     "embedded": {
       "haproxy-1.4": {
@@ -1730,9 +1637,9 @@ The table below describes each parameter associated with an OpenShift applicatio
     "framework": "ruby-1.9",
     "gear_count": 1,
     "gear_profile": "small",
-    "git_url": "ssh://534253991015616165707776@myapplication-mydomain.dev.rhcloud.com/~/git/myapplication.git/",
+    "git_url": "ssh://521bf818656c67309c000001@myapplication-mydomain.dev.rhcloud.com/~/git/myapplication.git/",
     "health_check_path": "health",
-    "id": "534253991015616165707776",
+    "id": "521bf818656c67309c000001",
     "initial_git_url": null,
     "members": [
       {
@@ -1743,7 +1650,7 @@ The table below describes each parameter associated with an OpenShift applicatio
             "role": "admin"
           }
         ],
-        "id": "5213a826e499b22f15000001",
+        "id": "521bf803656c674541000001",
         "name": "first.last@mycompany.com",
         "owner": true,
         "role": "admin",
@@ -1752,7 +1659,7 @@ The table below describes each parameter associated with an OpenShift applicatio
     ],
     "name": "myapplication",
     "scalable": true,
-    "ssh_url": "ssh://534253991015616165707776@myapplication-mydomain.dev.rhcloud.com"
+    "ssh_url": "ssh://521bf818656c67309c000001@myapplication-mydomain.dev.rhcloud.com"
   },
   "messages": [
     {
@@ -1776,7 +1683,7 @@ The table below describes each parameter associated with an OpenShift applicatio
   "version": "1.6"
 }...<a target="_new" href="application-response-forcestopapplication-1-6.html">click to see full response including links</a></pre>
 <h5>Example using curl command</h5>
-<pre class="terminal">curl -u first.last@mycompany.com:password https://openshift.redhat.com/broker/rest/applications/534253991015616165707776/events  --data-urlencode event=force-stop </pre>
+<pre class="terminal">curl -X POST -u first.last@mycompany.com:password https://openshift.redhat.com/broker/rest/applications/521bf818656c67309c000001/events  --data-urlencode event=force-stop </pre>
 <h4>Restart application</h4>
 <code>POST /broker/rest/applications/:id/events</code>
 <h5>Request Parameters</h5>
@@ -1799,7 +1706,7 @@ The table below describes each parameter associated with an OpenShift applicatio
     "build_job_url": null,
     "building_app": null,
     "building_with": null,
-    "creation_time": "2013-08-21T01:58:41Z",
+    "creation_time": "2013-08-27T00:51:36Z",
     "domain_id": "mydomain",
     "embedded": {
       "haproxy-1.4": {
@@ -1808,9 +1715,9 @@ The table below describes each parameter associated with an OpenShift applicatio
     "framework": "ruby-1.9",
     "gear_count": 1,
     "gear_profile": "small",
-    "git_url": "ssh://534253991015616165707776@myapplication-mydomain.dev.rhcloud.com/~/git/myapplication.git/",
+    "git_url": "ssh://521bf818656c67309c000001@myapplication-mydomain.dev.rhcloud.com/~/git/myapplication.git/",
     "health_check_path": "health",
-    "id": "534253991015616165707776",
+    "id": "521bf818656c67309c000001",
     "initial_git_url": null,
     "members": [
       {
@@ -1821,7 +1728,7 @@ The table below describes each parameter associated with an OpenShift applicatio
             "role": "admin"
           }
         ],
-        "id": "5213a826e499b22f15000001",
+        "id": "521bf803656c674541000001",
         "name": "first.last@mycompany.com",
         "owner": true,
         "role": "admin",
@@ -1830,7 +1737,7 @@ The table below describes each parameter associated with an OpenShift applicatio
     ],
     "name": "myapplication",
     "scalable": true,
-    "ssh_url": "ssh://534253991015616165707776@myapplication-mydomain.dev.rhcloud.com"
+    "ssh_url": "ssh://521bf818656c67309c000001@myapplication-mydomain.dev.rhcloud.com"
   },
   "messages": [
     {
@@ -1838,12 +1745,6 @@ The table below describes each parameter associated with an OpenShift applicatio
       "field": null,
       "severity": "info",
       "text": "Application myapplication has restarted"
-    },
-    {
-      "exit_code": 0,
-      "field": null,
-      "severity": "warning",
-      "text": "Restarted HAProxy instance\n"
     }
   ],
   "status": "ok",
@@ -1860,7 +1761,7 @@ The table below describes each parameter associated with an OpenShift applicatio
   "version": "1.6"
 }...<a target="_new" href="application-response-restartapplication-1-6.html">click to see full response including links</a></pre>
 <h5>Example using curl command</h5>
-<pre class="terminal">curl -u first.last@mycompany.com:password https://openshift.redhat.com/broker/rest/applications/534253991015616165707776/events  --data-urlencode event=restart </pre>
+<pre class="terminal">curl -X POST -u first.last@mycompany.com:password https://openshift.redhat.com/broker/rest/applications/521bf818656c67309c000001/events  --data-urlencode event=restart </pre>
 <h4>Scale up application</h4>
 <code>POST /broker/rest/applications/:id/events</code>
 <h5>Request Parameters</h5>
@@ -1883,7 +1784,7 @@ The table below describes each parameter associated with an OpenShift applicatio
     "build_job_url": null,
     "building_app": null,
     "building_with": null,
-    "creation_time": "2013-08-21T01:58:41Z",
+    "creation_time": "2013-08-27T00:51:36Z",
     "domain_id": "mydomain",
     "embedded": {
       "haproxy-1.4": {
@@ -1892,9 +1793,9 @@ The table below describes each parameter associated with an OpenShift applicatio
     "framework": "ruby-1.9",
     "gear_count": 2,
     "gear_profile": "small",
-    "git_url": "ssh://534253991015616165707776@myapplication-mydomain.dev.rhcloud.com/~/git/myapplication.git/",
+    "git_url": "ssh://521bf818656c67309c000001@myapplication-mydomain.dev.rhcloud.com/~/git/myapplication.git/",
     "health_check_path": "health",
-    "id": "534253991015616165707776",
+    "id": "521bf818656c67309c000001",
     "initial_git_url": null,
     "members": [
       {
@@ -1905,7 +1806,7 @@ The table below describes each parameter associated with an OpenShift applicatio
             "role": "admin"
           }
         ],
-        "id": "5213a826e499b22f15000001",
+        "id": "521bf803656c674541000001",
         "name": "first.last@mycompany.com",
         "owner": true,
         "role": "admin",
@@ -1914,7 +1815,7 @@ The table below describes each parameter associated with an OpenShift applicatio
     ],
     "name": "myapplication",
     "scalable": true,
-    "ssh_url": "ssh://534253991015616165707776@myapplication-mydomain.dev.rhcloud.com"
+    "ssh_url": "ssh://521bf818656c67309c000001@myapplication-mydomain.dev.rhcloud.com"
   },
   "messages": [
     {
@@ -1938,7 +1839,7 @@ The table below describes each parameter associated with an OpenShift applicatio
   "version": "1.6"
 }...<a target="_new" href="application-response-scaleupapplication-1-6.html">click to see full response including links</a></pre>
 <h5>Example using curl command</h5>
-<pre class="terminal">curl -u first.last@mycompany.com:password https://openshift.redhat.com/broker/rest/applications/534253991015616165707776/events  --data-urlencode event=scale-up </pre>
+<pre class="terminal">curl -X POST -u first.last@mycompany.com:password https://openshift.redhat.com/broker/rest/applications/521bf818656c67309c000001/events  --data-urlencode event=scale-up </pre>
 <h4>Scale down application</h4>
 <code>POST /broker/rest/applications/:id/events</code>
 <h5>Request Parameters</h5>
@@ -1961,7 +1862,7 @@ The table below describes each parameter associated with an OpenShift applicatio
     "build_job_url": null,
     "building_app": null,
     "building_with": null,
-    "creation_time": "2013-08-21T01:58:41Z",
+    "creation_time": "2013-08-27T00:51:36Z",
     "domain_id": "mydomain",
     "embedded": {
       "haproxy-1.4": {
@@ -1970,9 +1871,9 @@ The table below describes each parameter associated with an OpenShift applicatio
     "framework": "ruby-1.9",
     "gear_count": 1,
     "gear_profile": "small",
-    "git_url": "ssh://534253991015616165707776@myapplication-mydomain.dev.rhcloud.com/~/git/myapplication.git/",
+    "git_url": "ssh://521bf818656c67309c000001@myapplication-mydomain.dev.rhcloud.com/~/git/myapplication.git/",
     "health_check_path": "health",
-    "id": "534253991015616165707776",
+    "id": "521bf818656c67309c000001",
     "initial_git_url": null,
     "members": [
       {
@@ -1983,7 +1884,7 @@ The table below describes each parameter associated with an OpenShift applicatio
             "role": "admin"
           }
         ],
-        "id": "5213a826e499b22f15000001",
+        "id": "521bf803656c674541000001",
         "name": "first.last@mycompany.com",
         "owner": true,
         "role": "admin",
@@ -1992,7 +1893,7 @@ The table below describes each parameter associated with an OpenShift applicatio
     ],
     "name": "myapplication",
     "scalable": true,
-    "ssh_url": "ssh://534253991015616165707776@myapplication-mydomain.dev.rhcloud.com"
+    "ssh_url": "ssh://521bf818656c67309c000001@myapplication-mydomain.dev.rhcloud.com"
   },
   "messages": [
     {
@@ -2016,7 +1917,7 @@ The table below describes each parameter associated with an OpenShift applicatio
   "version": "1.6"
 }...<a target="_new" href="application-response-scaledownapplication-1-6.html">click to see full response including links</a></pre>
 <h5>Example using curl command</h5>
-<pre class="terminal">curl -u first.last@mycompany.com:password https://openshift.redhat.com/broker/rest/applications/534253991015616165707776/events  --data-urlencode event=scale-down </pre>
+<pre class="terminal">curl -X POST -u first.last@mycompany.com:password https://openshift.redhat.com/broker/rest/applications/521bf818656c67309c000001/events  --data-urlencode event=scale-down </pre>
 <h4>Tidy the application framework</h4>
 <code>POST /broker/rest/applications/:id/events</code>
 <h5>Request Parameters</h5>
@@ -2039,7 +1940,7 @@ The table below describes each parameter associated with an OpenShift applicatio
     "build_job_url": null,
     "building_app": null,
     "building_with": null,
-    "creation_time": "2013-08-21T01:58:41Z",
+    "creation_time": "2013-08-27T00:51:36Z",
     "domain_id": "mydomain",
     "embedded": {
       "haproxy-1.4": {
@@ -2048,9 +1949,9 @@ The table below describes each parameter associated with an OpenShift applicatio
     "framework": "ruby-1.9",
     "gear_count": 1,
     "gear_profile": "small",
-    "git_url": "ssh://534253991015616165707776@myapplication-mydomain.dev.rhcloud.com/~/git/myapplication.git/",
+    "git_url": "ssh://521bf818656c67309c000001@myapplication-mydomain.dev.rhcloud.com/~/git/myapplication.git/",
     "health_check_path": "health",
-    "id": "534253991015616165707776",
+    "id": "521bf818656c67309c000001",
     "initial_git_url": null,
     "members": [
       {
@@ -2061,7 +1962,7 @@ The table below describes each parameter associated with an OpenShift applicatio
             "role": "admin"
           }
         ],
-        "id": "5213a826e499b22f15000001",
+        "id": "521bf803656c674541000001",
         "name": "first.last@mycompany.com",
         "owner": true,
         "role": "admin",
@@ -2070,7 +1971,7 @@ The table below describes each parameter associated with an OpenShift applicatio
     ],
     "name": "myapplication",
     "scalable": true,
-    "ssh_url": "ssh://534253991015616165707776@myapplication-mydomain.dev.rhcloud.com"
+    "ssh_url": "ssh://521bf818656c67309c000001@myapplication-mydomain.dev.rhcloud.com"
   },
   "messages": [
     {
@@ -2094,7 +1995,7 @@ The table below describes each parameter associated with an OpenShift applicatio
   "version": "1.6"
 }...<a target="_new" href="application-response-tidytheapplicationframework-1-6.html">click to see full response including links</a></pre>
 <h5>Example using curl command</h5>
-<pre class="terminal">curl -u first.last@mycompany.com:password https://openshift.redhat.com/broker/rest/applications/534253991015616165707776/events  --data-urlencode event=tidy </pre>
+<pre class="terminal">curl -X POST -u first.last@mycompany.com:password https://openshift.redhat.com/broker/rest/applications/521bf818656c67309c000001/events  --data-urlencode event=tidy </pre>
 <h4>Reload the application</h4>
 <code>POST /broker/rest/applications/:id/events</code>
 <h5>Request Parameters</h5>
@@ -2117,7 +2018,7 @@ The table below describes each parameter associated with an OpenShift applicatio
     "build_job_url": null,
     "building_app": null,
     "building_with": null,
-    "creation_time": "2013-08-21T01:58:41Z",
+    "creation_time": "2013-08-27T00:51:36Z",
     "domain_id": "mydomain",
     "embedded": {
       "haproxy-1.4": {
@@ -2126,9 +2027,9 @@ The table below describes each parameter associated with an OpenShift applicatio
     "framework": "ruby-1.9",
     "gear_count": 1,
     "gear_profile": "small",
-    "git_url": "ssh://534253991015616165707776@myapplication-mydomain.dev.rhcloud.com/~/git/myapplication.git/",
+    "git_url": "ssh://521bf818656c67309c000001@myapplication-mydomain.dev.rhcloud.com/~/git/myapplication.git/",
     "health_check_path": "health",
-    "id": "534253991015616165707776",
+    "id": "521bf818656c67309c000001",
     "initial_git_url": null,
     "members": [
       {
@@ -2139,7 +2040,7 @@ The table below describes each parameter associated with an OpenShift applicatio
             "role": "admin"
           }
         ],
-        "id": "5213a826e499b22f15000001",
+        "id": "521bf803656c674541000001",
         "name": "first.last@mycompany.com",
         "owner": true,
         "role": "admin",
@@ -2148,7 +2049,7 @@ The table below describes each parameter associated with an OpenShift applicatio
     ],
     "name": "myapplication",
     "scalable": true,
-    "ssh_url": "ssh://534253991015616165707776@myapplication-mydomain.dev.rhcloud.com"
+    "ssh_url": "ssh://521bf818656c67309c000001@myapplication-mydomain.dev.rhcloud.com"
   },
   "messages": [
     {
@@ -2156,12 +2057,6 @@ The table below describes each parameter associated with an OpenShift applicatio
       "field": null,
       "severity": "info",
       "text": "Application myapplication called reload"
-    },
-    {
-      "exit_code": 0,
-      "field": null,
-      "severity": "warning",
-      "text": "Reloaded HAProxy instance\n"
     }
   ],
   "status": "ok",
@@ -2178,7 +2073,7 @@ The table below describes each parameter associated with an OpenShift applicatio
   "version": "1.6"
 }...<a target="_new" href="application-response-reloadtheapplication-1-6.html">click to see full response including links</a></pre>
 <h5>Example using curl command</h5>
-<pre class="terminal">curl -u first.last@mycompany.com:password https://openshift.redhat.com/broker/rest/applications/534253991015616165707776/events  --data-urlencode event=reload </pre>
+<pre class="terminal">curl -X POST -u first.last@mycompany.com:password https://openshift.redhat.com/broker/rest/applications/521bf818656c67309c000001/events  --data-urlencode event=reload </pre>
 <h4>Trigger thread dump</h4>
 <code>POST /broker/rest/applications/:id/events</code>
 <h5>Request Parameters</h5>
@@ -2201,7 +2096,7 @@ The table below describes each parameter associated with an OpenShift applicatio
     "build_job_url": null,
     "building_app": null,
     "building_with": null,
-    "creation_time": "2013-08-21T01:58:41Z",
+    "creation_time": "2013-08-27T00:51:36Z",
     "domain_id": "mydomain",
     "embedded": {
       "haproxy-1.4": {
@@ -2210,9 +2105,9 @@ The table below describes each parameter associated with an OpenShift applicatio
     "framework": "ruby-1.9",
     "gear_count": 1,
     "gear_profile": "small",
-    "git_url": "ssh://534253991015616165707776@myapplication-mydomain.dev.rhcloud.com/~/git/myapplication.git/",
+    "git_url": "ssh://521bf818656c67309c000001@myapplication-mydomain.dev.rhcloud.com/~/git/myapplication.git/",
     "health_check_path": "health",
-    "id": "534253991015616165707776",
+    "id": "521bf818656c67309c000001",
     "initial_git_url": null,
     "members": [
       {
@@ -2223,7 +2118,7 @@ The table below describes each parameter associated with an OpenShift applicatio
             "role": "admin"
           }
         ],
-        "id": "5213a826e499b22f15000001",
+        "id": "521bf803656c674541000001",
         "name": "first.last@mycompany.com",
         "owner": true,
         "role": "admin",
@@ -2232,7 +2127,7 @@ The table below describes each parameter associated with an OpenShift applicatio
     ],
     "name": "myapplication",
     "scalable": true,
-    "ssh_url": "ssh://534253991015616165707776@myapplication-mydomain.dev.rhcloud.com"
+    "ssh_url": "ssh://521bf818656c67309c000001@myapplication-mydomain.dev.rhcloud.com"
   },
   "messages": [
     {
@@ -2245,7 +2140,7 @@ The table below describes each parameter associated with an OpenShift applicatio
       "exit_code": 0,
       "field": null,
       "severity": "result",
-      "text": "Success\nThe thread dump file will be available via: rhc tail myapplication -f /var/lib/openshift/534253991015616165707776/ruby//logs//error_log-20130821-* -o '-n 250'\n"
+      "text": "Success\nThe thread dump file will be available via: rhc tail myapplication -f /var/lib/openshift/521bf818656c67309c000001/ruby//logs//error_log-20130827-* -o '-n 250'\n"
     }
   ],
   "status": "ok",
@@ -2262,11 +2157,11 @@ The table below describes each parameter associated with an OpenShift applicatio
   "version": "1.6"
 }...<a target="_new" href="application-response-triggerthreaddump-1-6.html">click to see full response including links</a></pre>
 <h5>Example using curl command</h5>
-<pre class="terminal">curl -u first.last@mycompany.com:password https://openshift.redhat.com/broker/rest/applications/534253991015616165707776/events  --data-urlencode event=thread-dump </pre>
+<pre class="terminal">curl -X POST -u first.last@mycompany.com:password https://openshift.redhat.com/broker/rest/applications/521bf818656c67309c000001/events  --data-urlencode event=thread-dump </pre>
 <h4>Resolve dns</h4>
 <code>GET /broker/rest/applications/:id/dns_resolvable</code>
 <h5>Example using curl command</h5>
-<pre class="terminal">curl -u first.last@mycompany.com:password https://openshift.redhat.com/broker/rest/applications/534253991015616165707776/dns_resolvable </pre>
+<pre class="terminal">curl -X GET -u first.last@mycompany.com:password https://openshift.redhat.com/broker/rest/applications/521bf818656c67309c000001/dns_resolvable </pre>
 <h4>Delete application</h4>
 <code>DELETE /broker/rest/applications/:id</code>
 <h5>Response</h5>
@@ -2278,7 +2173,7 @@ The table below describes each parameter associated with an OpenShift applicatio
       "exit_code": 0,
       "field": null,
       "severity": "info",
-      "text": "Application 534253991015616165707776 is deleted."
+      "text": "Application 521bf818656c67309c000001 is deleted."
     }
   ],
   "status": "ok",
@@ -2295,7 +2190,7 @@ The table below describes each parameter associated with an OpenShift applicatio
   "version": "1.6"
 }...<a target="_new" href="application-response-deleteapplication-1-6.html">click to see full response including links</a></pre>
 <h5>Example using curl command</h5>
-<pre class="terminal">curl -u first.last@mycompany.com:password https://openshift.redhat.com/broker/rest/applications/534253991015616165707776</pre>
+<pre class="terminal">curl -X DELETE -u first.last@mycompany.com:password https://openshift.redhat.com/broker/rest/applications/521bf818656c67309c000001</pre>
 <a NAME='cartridge'></a>
 <h2>Cartridge</h2>
 This chapter provides information on API resources that allow a client to manage OpenShift cartridges. Cartridges are the components of an OpenShift application, and include databases, build systems, and management capabilities. Adding a cartridge to an application provides the desired capability without requiring you to administer or update the included feature. T here are two types of cartridges available with OpenShift: standalone and embedded.
@@ -2398,7 +2293,7 @@ The table below describes each parameter associated with only embedded cartridge
     {
       "current_scale": 0,
       "description": "Web based MySQL admin tool. Requires the MySQL cartridge to be installed first.",
-      "display_name": "phpMyAdmin 3",
+      "display_name": "phpMyAdmin 3.4",
       "help_topics": {
       },
       "license": "GPLv2",
@@ -2419,16 +2314,16 @@ The table below describes each parameter associated with only embedded cartridge
       "website": "http://www.phpmyadmin.net/"
     },
     {
-      "current_scal...<a target="_new" href="cartridge-response-listcartridges-1-6.html">click to see full response including links</a></pre>
+      "current_sc...<a target="_new" href="cartridge-response-listcartridges-1-6.html">click to see full response including links</a></pre>
 <h5>Example using curl command</h5>
-<pre class="terminal">curl -u first.last@mycompany.com:password https://openshift.redhat.com/broker/rest/cartridges </pre>
+<pre class="terminal">curl -X GET -u first.last@mycompany.com:password https://openshift.redhat.com/broker/rest/cartridges </pre>
 <h4>Add embedded cartridge</h4>
 <code>POST /broker/rest/applications/:id/cartridges</code>
 <h5>Request Parameters</h5>
 <table border=1>
 <tr><td>Name</td><td>Description</td><td>Required</td> <td>Valid Options</td><td>Default Value</td></tr>
-<tr><td>name</td><td>Name of the cartridge, e.g. mongodb-2.2<br/><b>Note: Valid options may be different on your actual implementation of OpenShift.</b></td><td>Yes</td><td>mock-plugin-0.1,cron-1.4,phpmyadmin-3,rockmongo-1.1,switchyard-0,metrics-0.1,10gen-mms-agent-0.1,mysql-5.1,haproxy-1.4,postgresql-9.2,postgresql-8.4,mongodb-2.2,jenkins-client-1</td><td>N/A</td></tr>
-<tr><td>colocate_with</td><td>The component to colocate with</td><td>No</td><td>ruby-1.9,haproxy-1.4</td><td></td></tr>
+<tr><td>name</td><td>Name of the cartridge, e.g. mongodb-2.2<br/><b>Note: Valid options may be different on your actual implementation of OpenShift.</b></td><td>Yes</td><td>mock-plugin-0.1, cron-1.4, phpmyadmin-3, rockmongo-1.1, switchyard-0, metrics-0.1, 10gen-mms-agent-0.1, mysql-5.1, haproxy-1.4, postgresql-9.2, postgresql-8.4, mongodb-2.2, jenkins-client-1</td><td>N/A</td></tr>
+<tr><td>colocate_with</td><td>The component to colocate with</td><td>No</td><td>ruby-1.9, haproxy-1.4</td><td></td></tr>
 <tr><td>scales_from</td><td>Minimum number of gears to run the component on.</td><td>No</td><td></td><td></td></tr>
 <tr><td>scales_to</td><td>Maximum number of gears to run the component on.</td><td>No</td><td></td><td></td></tr>
 <tr><td>additional_storage</td><td>Additional GB of space to request on all gears running this component.</td><td>No</td><td></td><td></td></tr>
@@ -2464,13 +2359,13 @@ The table below describes each parameter associated with only embedded cartridge
         "name": "username",
         "type": "cart_data",
         "description": "Root user on mysql database",
-        "value": "adminthGnHLU"
+        "value": "adminzZu3vRW"
       },
       {
         "name": "password",
         "type": "cart_data",
         "description": "Password for root user on mysql database",
-        "value": "dPFjWLrUjfxC"
+        "value": "xE61v_vw6Vqh"
       },
       {
         "name": "database_name",
@@ -2523,7 +2418,7 @@ The table below describes each parameter associated with only embedded cartridge
       "severity": "result",
       "text": "MySQL 5.1 database adde...<a target="_new" href="cartridge-response-addembeddedcartridge-1-6.html">click to see full response including links</a></pre>
 <h5>Example using curl command</h5>
-<pre class="terminal">curl -u first.last@mycompany.com:password https://openshift.redhat.com/broker/rest/applications/534253991015616165707776/cartridges  --data-urlencode name=mysql-5.1  --data-urlencode colocate_with=ruby-1.9 </pre>
+<pre class="terminal">curl -X POST -u first.last@mycompany.com:password https://openshift.redhat.com/broker/rest/applications/521bf818656c67309c000001/cartridges  --data-urlencode name=mysql-5.1  --data-urlencode colocate_with=ruby-1.9 </pre>
 <h4>List embedded cartridges</h4>
 <code>GET /broker/rest/applications/:id/cartridges</code>
 <h5>Response</h5>
@@ -2546,7 +2441,7 @@ The table below describes each parameter associated with only embedded cartridge
       "license_url": "http://www.ruby-lang.org/en/about/license.txt",
       "links": {
         "GET": {
-          "href": "https://openshift.redhat.com/broker/rest/applications/534253991015616165707776/cartridges/ruby-1.9",
+          "href": "https://openshift.redhat.com/broker/rest/applications/521bf818656c67309c000001/cartridges/ruby-1.9",
           "method": "GET",
           "optional_params": [
 
@@ -2557,7 +2452,7 @@ The table below describes each parameter associated with only embedded cartridge
           ]
         },
         "UPDATE": {
-          "href": "https://openshift.redhat.com/broker/rest/applications/534253991015616165707776/cartridges/ruby-1.9",
+          "href": "https://openshift.redhat.com/broker/rest/applications/521bf818656c67309c000001/cartridges/ruby-1.9",
           "method": "PUT",
           "optional_params": [
             {
@@ -2593,7 +2488,7 @@ The table below describes each parameter associated with only embedded cartridge
 
    ...<a target="_new" href="cartridge-response-listembeddedcartridges-1-6.html">click to see full response including links</a></pre>
 <h5>Example using curl command</h5>
-<pre class="terminal">curl -u first.last@mycompany.com:password https://openshift.redhat.com/broker/rest/applications/534253991015616165707776/cartridges </pre>
+<pre class="terminal">curl -X GET -u first.last@mycompany.com:password https://openshift.redhat.com/broker/rest/applications/521bf818656c67309c000001/cartridges </pre>
 <h4>Get cartridge</h4>
 <code>GET /broker/rest/applications/:id/cartridges/:name</code>
 <h5>Response</h5>
@@ -2620,13 +2515,13 @@ The table below describes each parameter associated with only embedded cartridge
         "name": "username",
         "type": "cart_data",
         "description": "Root user on mysql database",
-        "value": "adminthGnHLU"
+        "value": "adminzZu3vRW"
       },
       {
         "name": "password",
         "type": "cart_data",
         "description": "Password for root user on mysql database",
-        "value": "dPFjWLrUjfxC"
+        "value": "xE61v_vw6Vqh"
       },
       {
         "name": "database_name",
@@ -2682,7 +2577,7 @@ The table below describes each parameter associated with only embedded cartridge
   "version": "1.6"
 }...<a target="_new" href="cartridge-response-getcartridge-1-6.html">click to see full response including links</a></pre>
 <h5>Example using curl command</h5>
-<pre class="terminal">curl -u first.last@mycompany.com:password https://openshift.redhat.com/broker/rest/applications/534253991015616165707776/cartridges/mysql-5.1</pre>
+<pre class="terminal">curl -X GET -u first.last@mycompany.com:password https://openshift.redhat.com/broker/rest/applications/521bf818656c67309c000001/cartridges/mysql-5.1</pre>
 <h4>Update cartridge configuration</h4>
 <code>PUT /broker/rest/applications/:id/cartridges/:name</code>
 <h5>Request Parameters</h5>
@@ -2720,13 +2615,13 @@ The table below describes each parameter associated with only embedded cartridge
         "name": "username",
         "type": "cart_data",
         "description": "Root user on mysql database",
-        "value": "adminthGnHLU"
+        "value": "adminzZu3vRW"
       },
       {
         "name": "password",
         "type": "cart_data",
         "description": "Password for root user on mysql database",
-        "value": "dPFjWLrUjfxC"
+        "value": "xE61v_vw6Vqh"
       },
       {
         "name": "database_name",
@@ -2782,7 +2677,7 @@ The table below describes each parameter associated with only embedded cartridge
   "version": "1.6"
 }...<a target="_new" href="cartridge-response-updatecartridgeconfiguration-1-6.html">click to see full response including links</a></pre>
 <h5>Example using curl command</h5>
-<pre class="terminal">curl -u first.last@mycompany.com:password https://openshift.redhat.com/broker/rest/applications/534253991015616165707776/cartridges/mysql-5.1  --data-urlencode additional_gear_storage=10 </pre>
+<pre class="terminal">curl -X PUT -u first.last@mycompany.com:password https://openshift.redhat.com/broker/rest/applications/521bf818656c67309c000001/cartridges/mysql-5.1  --data-urlencode additional_gear_storage=10 </pre>
 <h4>Start cartridge</h4>
 <code>POST /broker/rest/applications/:id/cartridges/:name/events</code>
 <h5>Request Parameters</h5>
@@ -2805,15 +2700,15 @@ The table below describes each parameter associated with only embedded cartridge
     "build_job_url": null,
     "building_app": null,
     "building_with": null,
-    "creation_time": "2013-08-21T01:58:41Z",
+    "creation_time": "2013-08-27T00:51:36Z",
     "domain_id": "mydomain",
     "embedded": {
       "haproxy-1.4": {
       },
       "mysql-5.1": {
         "connection_url": "mysql://$OPENSHIFT_MYSQL_DB_HOST:$OPENSHIFT_MYSQL_DB_PORT/",
-        "username": "adminthGnHLU",
-        "password": "dPFjWLrUjfxC",
+        "username": "adminzZu3vRW",
+        "password": "xE61v_vw6Vqh",
         "database_name": "myapplication",
         "info": "Connection URL: mysql://$OPENSHIFT_MYSQL_DB_HOST:$OPENSHIFT_MYSQL_DB_PORT/"
       }
@@ -2821,9 +2716,9 @@ The table below describes each parameter associated with only embedded cartridge
     "framework": "ruby-1.9",
     "gear_count": 1,
     "gear_profile": "small",
-    "git_url": "ssh://534253991015616165707776@myapplication-mydomain.dev.rhcloud.com/~/git/myapplication.git/",
+    "git_url": "ssh://521bf818656c67309c000001@myapplication-mydomain.dev.rhcloud.com/~/git/myapplication.git/",
     "health_check_path": "health",
-    "id": "534253991015616165707776",
+    "id": "521bf818656c67309c000001",
     "initial_git_url": null,
     "members": [
       {
@@ -2834,7 +2729,7 @@ The table below describes each parameter associated with only embedded cartridge
             "role": "admin"
           }
         ],
-        "id": "5213a826e499b22f15000001",
+        "id": "521bf803656c674541000001",
         "name": "first.last@mycompany.com",
         "owner": true,
         "role": "admin",
@@ -2843,7 +2738,7 @@ The table below describes each parameter associated with only embedded cartridge
     ],
     "name": "myapplication",
     "scalable": true,
-    "ssh_url": "ssh://534253991015616165707776@myapplication-mydomain.dev.rhcloud.com"
+    "ssh_url": "ssh://521bf818656c67309c000001@myapplication-mydomain.dev.rhcloud.com"
   },
   "messages": [
     {
@@ -2867,7 +2762,7 @@ The table below describes each parameter associated with only embedded cartridge
   "version": "1.6"
 }...<a target="_new" href="cartridge-response-startcartridge-1-6.html">click to see full response including links</a></pre>
 <h5>Example using curl command</h5>
-<pre class="terminal">curl -u first.last@mycompany.com:password https://openshift.redhat.com/broker/rest/applications/534253991015616165707776/cartridges/mysql-5.1/events  --data-urlencode event=start </pre>
+<pre class="terminal">curl -X POST -u first.last@mycompany.com:password https://openshift.redhat.com/broker/rest/applications/521bf818656c67309c000001/cartridges/mysql-5.1/events  --data-urlencode event=start </pre>
 <h4>Stop cartridge</h4>
 <code>POST /broker/rest/applications/:id/cartridges/:name/events</code>
 <h5>Request Parameters</h5>
@@ -2890,15 +2785,15 @@ The table below describes each parameter associated with only embedded cartridge
     "build_job_url": null,
     "building_app": null,
     "building_with": null,
-    "creation_time": "2013-08-21T01:58:41Z",
+    "creation_time": "2013-08-27T00:51:36Z",
     "domain_id": "mydomain",
     "embedded": {
       "haproxy-1.4": {
       },
       "mysql-5.1": {
         "connection_url": "mysql://$OPENSHIFT_MYSQL_DB_HOST:$OPENSHIFT_MYSQL_DB_PORT/",
-        "username": "adminthGnHLU",
-        "password": "dPFjWLrUjfxC",
+        "username": "adminzZu3vRW",
+        "password": "xE61v_vw6Vqh",
         "database_name": "myapplication",
         "info": "Connection URL: mysql://$OPENSHIFT_MYSQL_DB_HOST:$OPENSHIFT_MYSQL_DB_PORT/"
       }
@@ -2906,9 +2801,9 @@ The table below describes each parameter associated with only embedded cartridge
     "framework": "ruby-1.9",
     "gear_count": 1,
     "gear_profile": "small",
-    "git_url": "ssh://534253991015616165707776@myapplication-mydomain.dev.rhcloud.com/~/git/myapplication.git/",
+    "git_url": "ssh://521bf818656c67309c000001@myapplication-mydomain.dev.rhcloud.com/~/git/myapplication.git/",
     "health_check_path": "health",
-    "id": "534253991015616165707776",
+    "id": "521bf818656c67309c000001",
     "initial_git_url": null,
     "members": [
       {
@@ -2919,7 +2814,7 @@ The table below describes each parameter associated with only embedded cartridge
             "role": "admin"
           }
         ],
-        "id": "5213a826e499b22f15000001",
+        "id": "521bf803656c674541000001",
         "name": "first.last@mycompany.com",
         "owner": true,
         "role": "admin",
@@ -2928,7 +2823,7 @@ The table below describes each parameter associated with only embedded cartridge
     ],
     "name": "myapplication",
     "scalable": true,
-    "ssh_url": "ssh://534253991015616165707776@myapplication-mydomain.dev.rhcloud.com"
+    "ssh_url": "ssh://521bf818656c67309c000001@myapplication-mydomain.dev.rhcloud.com"
   },
   "messages": [
     {
@@ -2952,7 +2847,7 @@ The table below describes each parameter associated with only embedded cartridge
   "version": "1.6"
 }...<a target="_new" href="cartridge-response-stopcartridge-1-6.html">click to see full response including links</a></pre>
 <h5>Example using curl command</h5>
-<pre class="terminal">curl -u first.last@mycompany.com:password https://openshift.redhat.com/broker/rest/applications/534253991015616165707776/cartridges/mysql-5.1/events  --data-urlencode event=stop </pre>
+<pre class="terminal">curl -X POST -u first.last@mycompany.com:password https://openshift.redhat.com/broker/rest/applications/521bf818656c67309c000001/cartridges/mysql-5.1/events  --data-urlencode event=stop </pre>
 <h4>Restart cartridge</h4>
 <code>POST /broker/rest/applications/:id/cartridges/:name/events</code>
 <h5>Request Parameters</h5>
@@ -2975,15 +2870,15 @@ The table below describes each parameter associated with only embedded cartridge
     "build_job_url": null,
     "building_app": null,
     "building_with": null,
-    "creation_time": "2013-08-21T01:58:41Z",
+    "creation_time": "2013-08-27T00:51:36Z",
     "domain_id": "mydomain",
     "embedded": {
       "haproxy-1.4": {
       },
       "mysql-5.1": {
         "connection_url": "mysql://$OPENSHIFT_MYSQL_DB_HOST:$OPENSHIFT_MYSQL_DB_PORT/",
-        "username": "adminthGnHLU",
-        "password": "dPFjWLrUjfxC",
+        "username": "adminzZu3vRW",
+        "password": "xE61v_vw6Vqh",
         "database_name": "myapplication",
         "info": "Connection URL: mysql://$OPENSHIFT_MYSQL_DB_HOST:$OPENSHIFT_MYSQL_DB_PORT/"
       }
@@ -2991,9 +2886,9 @@ The table below describes each parameter associated with only embedded cartridge
     "framework": "ruby-1.9",
     "gear_count": 1,
     "gear_profile": "small",
-    "git_url": "ssh://534253991015616165707776@myapplication-mydomain.dev.rhcloud.com/~/git/myapplication.git/",
+    "git_url": "ssh://521bf818656c67309c000001@myapplication-mydomain.dev.rhcloud.com/~/git/myapplication.git/",
     "health_check_path": "health",
-    "id": "534253991015616165707776",
+    "id": "521bf818656c67309c000001",
     "initial_git_url": null,
     "members": [
       {
@@ -3004,7 +2899,7 @@ The table below describes each parameter associated with only embedded cartridge
             "role": "admin"
           }
         ],
-        "id": "5213a826e499b22f15000001",
+        "id": "521bf803656c674541000001",
         "name": "first.last@mycompany.com",
         "owner": true,
         "role": "admin",
@@ -3013,7 +2908,7 @@ The table below describes each parameter associated with only embedded cartridge
     ],
     "name": "myapplication",
     "scalable": true,
-    "ssh_url": "ssh://534253991015616165707776@myapplication-mydomain.dev.rhcloud.com"
+    "ssh_url": "ssh://521bf818656c67309c000001@myapplication-mydomain.dev.rhcloud.com"
   },
   "messages": [
     {
@@ -3037,7 +2932,7 @@ The table below describes each parameter associated with only embedded cartridge
   "version": "1.6"
 }...<a target="_new" href="cartridge-response-restartcartridge-1-6.html">click to see full response including links</a></pre>
 <h5>Example using curl command</h5>
-<pre class="terminal">curl -u first.last@mycompany.com:password https://openshift.redhat.com/broker/rest/applications/534253991015616165707776/cartridges/mysql-5.1/events  --data-urlencode event=restart </pre>
+<pre class="terminal">curl -X POST -u first.last@mycompany.com:password https://openshift.redhat.com/broker/rest/applications/521bf818656c67309c000001/cartridges/mysql-5.1/events  --data-urlencode event=restart </pre>
 <h4>Reload cartridge</h4>
 <code>POST /broker/rest/applications/:id/cartridges/:name/events</code>
 <h5>Request Parameters</h5>
@@ -3060,15 +2955,15 @@ The table below describes each parameter associated with only embedded cartridge
     "build_job_url": null,
     "building_app": null,
     "building_with": null,
-    "creation_time": "2013-08-21T01:58:41Z",
+    "creation_time": "2013-08-27T00:51:36Z",
     "domain_id": "mydomain",
     "embedded": {
       "haproxy-1.4": {
       },
       "mysql-5.1": {
         "connection_url": "mysql://$OPENSHIFT_MYSQL_DB_HOST:$OPENSHIFT_MYSQL_DB_PORT/",
-        "username": "adminthGnHLU",
-        "password": "dPFjWLrUjfxC",
+        "username": "adminzZu3vRW",
+        "password": "xE61v_vw6Vqh",
         "database_name": "myapplication",
         "info": "Connection URL: mysql://$OPENSHIFT_MYSQL_DB_HOST:$OPENSHIFT_MYSQL_DB_PORT/"
       }
@@ -3076,9 +2971,9 @@ The table below describes each parameter associated with only embedded cartridge
     "framework": "ruby-1.9",
     "gear_count": 1,
     "gear_profile": "small",
-    "git_url": "ssh://534253991015616165707776@myapplication-mydomain.dev.rhcloud.com/~/git/myapplication.git/",
+    "git_url": "ssh://521bf818656c67309c000001@myapplication-mydomain.dev.rhcloud.com/~/git/myapplication.git/",
     "health_check_path": "health",
-    "id": "534253991015616165707776",
+    "id": "521bf818656c67309c000001",
     "initial_git_url": null,
     "members": [
       {
@@ -3089,7 +2984,7 @@ The table below describes each parameter associated with only embedded cartridge
             "role": "admin"
           }
         ],
-        "id": "5213a826e499b22f15000001",
+        "id": "521bf803656c674541000001",
         "name": "first.last@mycompany.com",
         "owner": true,
         "role": "admin",
@@ -3098,7 +2993,7 @@ The table below describes each parameter associated with only embedded cartridge
     ],
     "name": "myapplication",
     "scalable": true,
-    "ssh_url": "ssh://534253991015616165707776@myapplication-mydomain.dev.rhcloud.com"
+    "ssh_url": "ssh://521bf818656c67309c000001@myapplication-mydomain.dev.rhcloud.com"
   },
   "messages": [
     {
@@ -3122,7 +3017,7 @@ The table below describes each parameter associated with only embedded cartridge
   "version": "1.6"
 }...<a target="_new" href="cartridge-response-reloadcartridge-1-6.html">click to see full response including links</a></pre>
 <h5>Example using curl command</h5>
-<pre class="terminal">curl -u first.last@mycompany.com:password https://openshift.redhat.com/broker/rest/applications/534253991015616165707776/cartridges/mysql-5.1/events  --data-urlencode event=reload </pre>
+<pre class="terminal">curl -X POST -u first.last@mycompany.com:password https://openshift.redhat.com/broker/rest/applications/521bf818656c67309c000001/cartridges/mysql-5.1/events  --data-urlencode event=reload </pre>
 <h4>Delete cartridge</h4>
 <code>DELETE /broker/rest/applications/:id/cartridges/:name</code>
 <h5>Response</h5>
@@ -3151,7 +3046,7 @@ The table below describes each parameter associated with only embedded cartridge
   "version": "1.6"
 }...<a target="_new" href="cartridge-response-deletecartridge-1-6.html">click to see full response including links</a></pre>
 <h5>Example using curl command</h5>
-<pre class="terminal">curl -u first.last@mycompany.com:password https://openshift.redhat.com/broker/rest/applications/534253991015616165707776/cartridges/mysql-5.1</pre>
+<pre class="terminal">curl -X DELETE -u first.last@mycompany.com:password https://openshift.redhat.com/broker/rest/applications/521bf818656c67309c000001/cartridges/mysql-5.1</pre>
 <a NAME='alias'></a>
 <h2>Alias</h2>
 This chapter provides information on API resources that allow a client to manage application aliases and SSL certificates for OpenShift applications.
@@ -3186,7 +3081,7 @@ The table below describes each parameter associated with an OpenShift applicatio
 <pre>{
   "api_version": 1.6,
   "data": {
-    "certificate_added_at": "2013-08-20T00:00:00Z",
+    "certificate_added_at": "2013-08-26T00:00:00Z",
     "has_private_ssl_certificate": true,
     "id": "myalias"
   },
@@ -3212,7 +3107,7 @@ The table below describes each parameter associated with an OpenShift applicatio
   "version": "1.6"
 }...<a target="_new" href="alias-response-createnewalias-1-6.html">click to see full response including links</a></pre>
 <h5>Example using curl command</h5>
-<pre class="terminal">curl -u first.last@mycompany.com:password https://openshift.redhat.com/broker/rest/applications/534253991015616165707776/aliases  --data-urlencode id=myalias  --data-urlencode ssl_certificate=-----BEGIN CERTIFICATE-----
+<pre class="terminal">curl -X POST -u first.last@mycompany.com:password https://openshift.redhat.com/broker/rest/applications/521bf818656c67309c000001/aliases  --data-urlencode id=myalias  --data-urlencode ssl_certificate=-----BEGIN CERTIFICATE-----
 MIIDoDCCAogCCQDzF8AJCHnrbjANBgkqhkiG9w0BAQUFADCBkTELMAkGA1UEBhMC
 VVMxCzAJBgNVBAgMAkNBMRIwEAYDVQQHDAlTdW5ueXZhbGUxDzANBgNVBAoMBnJl
 ZGhhdDESMBAGA1UECwwJb3BlbnNoaWZ0MRIwEAYDVQQDDAlvcGVuc2hpZnQxKDAm
@@ -3290,14 +3185,14 @@ weZkdJnbrIadcvLOHOzkKC9m+rxFTC9VoN1dwK2zwYvUXfa1VJA=
   "version": "1.6"
 }...<a target="_new" href="alias-response-listapplicationaliases-1-6.html">click to see full response including links</a></pre>
 <h5>Example using curl command</h5>
-<pre class="terminal">curl -u first.last@mycompany.com:password https://openshift.redhat.com/broker/rest/applications/534253991015616165707776/aliases </pre>
+<pre class="terminal">curl -X GET -u first.last@mycompany.com:password https://openshift.redhat.com/broker/rest/applications/521bf818656c67309c000001/aliases </pre>
 <h4>Get alias</h4>
 <code>GET /broker/rest/applications/:id/aliases/:id</code>
 <h5>Response</h5>
 <pre>{
   "api_version": 1.6,
   "data": {
-    "certificate_added_at": "2013-08-20T00:00:00Z",
+    "certificate_added_at": "2013-08-26T00:00:00Z",
     "has_private_ssl_certificate": true,
     "id": "myalias"
   },
@@ -3323,7 +3218,7 @@ weZkdJnbrIadcvLOHOzkKC9m+rxFTC9VoN1dwK2zwYvUXfa1VJA=
   "version": "1.6"
 }...<a target="_new" href="alias-response-getalias-1-6.html">click to see full response including links</a></pre>
 <h5>Example using curl command</h5>
-<pre class="terminal">curl -u first.last@mycompany.com:password https://openshift.redhat.com/broker/rest/applications/534253991015616165707776/aliases/myalias</pre>
+<pre class="terminal">curl -X GET -u first.last@mycompany.com:password https://openshift.redhat.com/broker/rest/applications/521bf818656c67309c000001/aliases/myalias</pre>
 <h4>Update alias</h4>
 <code>PUT /broker/rest/applications/:id/aliases/:id</code>
 <h5>Request Parameters</h5>
@@ -3343,7 +3238,7 @@ weZkdJnbrIadcvLOHOzkKC9m+rxFTC9VoN1dwK2zwYvUXfa1VJA=
 <pre>{
   "api_version": 1.6,
   "data": {
-    "certificate_added_at": "2013-08-20T00:00:00Z",
+    "certificate_added_at": "2013-08-26T00:00:00Z",
     "has_private_ssl_certificate": true,
     "id": "myalias"
   },
@@ -3369,7 +3264,7 @@ weZkdJnbrIadcvLOHOzkKC9m+rxFTC9VoN1dwK2zwYvUXfa1VJA=
   "version": "1.6"
 }...<a target="_new" href="alias-response-updatealias-1-6.html">click to see full response including links</a></pre>
 <h5>Example using curl command</h5>
-<pre class="terminal">curl -u first.last@mycompany.com:password https://openshift.redhat.com/broker/rest/applications/534253991015616165707776/aliases/myalias  --data-urlencode ssl_certificate=-----BEGIN CERTIFICATE-----
+<pre class="terminal">curl -X PUT -u first.last@mycompany.com:password https://openshift.redhat.com/broker/rest/applications/521bf818656c67309c000001/aliases/myalias  --data-urlencode ssl_certificate=-----BEGIN CERTIFICATE-----
 MIIDoDCCAogCCQDzF8AJCHnrbjANBgkqhkiG9w0BAQUFADCBkTELMAkGA1UEBhMC
 VVMxCzAJBgNVBAgMAkNBMRIwEAYDVQQHDAlTdW5ueXZhbGUxDzANBgNVBAoMBnJl
 ZGhhdDESMBAGA1UECwwJb3BlbnNoaWZ0MRIwEAYDVQQDDAlvcGVuc2hpZnQxKDAm
@@ -3445,7 +3340,7 @@ weZkdJnbrIadcvLOHOzkKC9m+rxFTC9VoN1dwK2zwYvUXfa1VJA=
   "version": "1.6"
 }...<a target="_new" href="alias-response-deletealias-1-6.html">click to see full response including links</a></pre>
 <h5>Example using curl command</h5>
-<pre class="terminal">curl -u first.last@mycompany.com:password https://openshift.redhat.com/broker/rest/applications/534253991015616165707776/aliases/myalias</pre>
+<pre class="terminal">curl -X DELETE -u first.last@mycompany.com:password https://openshift.redhat.com/broker/rest/applications/521bf818656c67309c000001/aliases/myalias</pre>
 <a NAME='environment_variable'></a>
 <h2>Environment variable</h2>
 This resource provides the mean for adding user-defined environment variables set in an application deployment scope. Basically the user will be able to set environment variables during app creation, cartridge addition or even on existing applications. Environment variables set by the user will be persistent and replicated through all gears of the app, including new gears added in scaling events for example.
@@ -3499,7 +3394,7 @@ Think for example usernames and passwords, url's for SMTP hosts, API client id's
   "version": "1.6"
 }...<a target="_new" href="environment_variable-response-addanenvironmentvariable-1-6.html">click to see full response including links</a></pre>
 <h5>Example using curl command</h5>
-<pre class="terminal">curl -u first.last@mycompany.com:password https://openshift.redhat.com/broker/rest/applications/534253991015616165707776/environment-variables  --data-urlencode name=FOO  --data-urlencode value=bar </pre>
+<pre class="terminal">curl -X POST -u first.last@mycompany.com:password https://openshift.redhat.com/broker/rest/applications/521bf818656c67309c000001/environment-variables  --data-urlencode name=FOO  --data-urlencode value=bar </pre>
 <h4>List all environment variables</h4>
 <code>GET /broker/rest/applications/:id/environment-variables</code>
 <h5>Response</h5>
@@ -3530,7 +3425,7 @@ Think for example usernames and passwords, url's for SMTP hosts, API client id's
   "version": "1.6"
 }...<a target="_new" href="environment_variable-response-listallenvironmentvariables-1-6.html">click to see full response including links</a></pre>
 <h5>Example using curl command</h5>
-<pre class="terminal">curl -u first.last@mycompany.com:password https://openshift.redhat.com/broker/rest/applications/534253991015616165707776/environment-variables </pre>
+<pre class="terminal">curl -X GET -u first.last@mycompany.com:password https://openshift.redhat.com/broker/rest/applications/521bf818656c67309c000001/environment-variables </pre>
 <h4>Get environment variable</h4>
 <code>GET /broker/rest/applications/:id/environment-variables/FOO</code>
 <h5>Response</h5>
@@ -3562,7 +3457,7 @@ Think for example usernames and passwords, url's for SMTP hosts, API client id's
   "version": "1.6"
 }...<a target="_new" href="environment_variable-response-getenvironmentvariable-1-6.html">click to see full response including links</a></pre>
 <h5>Example using curl command</h5>
-<pre class="terminal">curl -u first.last@mycompany.com:password https://openshift.redhat.com/broker/rest/applications/534253991015616165707776/environment-variables/FOO</pre>
+<pre class="terminal">curl -X GET -u first.last@mycompany.com:password https://openshift.redhat.com/broker/rest/applications/521bf818656c67309c000001/environment-variables/FOO</pre>
 <h4>Update environment variable</h4>
 <code>PUT /broker/rest/applications/:id/environment-variables/FOO</code>
 <h5>Request Parameters</h5>
@@ -3603,7 +3498,7 @@ Think for example usernames and passwords, url's for SMTP hosts, API client id's
   "version": "1.6"
 }...<a target="_new" href="environment_variable-response-updateenvironmentvariable-1-6.html">click to see full response including links</a></pre>
 <h5>Example using curl command</h5>
-<pre class="terminal">curl -u first.last@mycompany.com:password https://openshift.redhat.com/broker/rest/applications/534253991015616165707776/environment-variables/FOO  --data-urlencode value=Xbar </pre>
+<pre class="terminal">curl -X PUT -u first.last@mycompany.com:password https://openshift.redhat.com/broker/rest/applications/521bf818656c67309c000001/environment-variables/FOO  --data-urlencode value=Xbar </pre>
 <h4>Delete environment variable</h4>
 <code>DELETE /broker/rest/applications/:id/environment-variables/FOO</code>
 <h5>Response</h5>
@@ -3632,7 +3527,7 @@ Think for example usernames and passwords, url's for SMTP hosts, API client id's
   "version": "1.6"
 }...<a target="_new" href="environment_variable-response-deleteenvironmentvariable-1-6.html">click to see full response including links</a></pre>
 <h5>Example using curl command</h5>
-<pre class="terminal">curl -u first.last@mycompany.com:password https://openshift.redhat.com/broker/rest/applications/534253991015616165707776/environment-variables/FOO</pre>
+<pre class="terminal">curl -X DELETE -u first.last@mycompany.com:password https://openshift.redhat.com/broker/rest/applications/521bf818656c67309c000001/environment-variables/FOO</pre>
 <a NAME='gear_group'></a>
 <h2>Gear group</h2>
 Describes an set of gears which run the same cartridges and share scaling limits.  All cartridges in the gear group scale together.
@@ -3668,14 +3563,14 @@ Describes an set of gears which run the same cartridges and share scaling limits
       "gear_profile": "small",
       "gears": [
         {
-          "id": "534253991015616165707776",
+          "id": "521bf818656c67309c000001",
           "state": "started",
-          "ssh_url": "ssh://534253991015616165707776@myapplication-mydomain.dev.rhcloud.com",
+          "ssh_url": "ssh://521bf818656c67309c000001@myapplication-mydomain.dev.rhcloud.com",
           "port_interfaces": [
             {
-              "_id": "52141ee0e499b2229e000026",
+              "_id": "521bf82b656c674541000028",
               "cartridge_name": "ruby-1.9",
-              "external_address": "54.242.62.127",
+              "external_address": "54.243.5.227",
               "external_port": "35536",
               "internal_address": "127.0.250.129",
               "internal_port": "8080"
@@ -3683,8 +3578,8 @@ Describes an set of gears which run the same cartridges and share scaling limits
           ]
         }
       ],
-      "id": "52141ed1e499b2229e000013",
-      "name": "52141ed1e499b2229e000013",
+      "id": "521bf818656c674541000015",
+      "name": "521bf818656c674541000015",
       "scales_from": 1,
       "scales_to": -1
     }
@@ -3711,7 +3606,7 @@ Describes an set of gears which run the same cartridges and share scaling limits
   "version": "1.6"
 }...<a target="_new" href="gear_group-response-getapplicationgeargroups-1-6.html">click to see full response including links</a></pre>
 <h5>Example using curl command</h5>
-<pre class="terminal">curl -u first.last@mycompany.com:password https://openshift.redhat.com/broker/rest/applications/534253991015616165707776/gear_groups</pre>
+<pre class="terminal">curl -X GET -u first.last@mycompany.com:password https://openshift.redhat.com/broker/rest/applications/521bf818656c67309c000001/gear_groups</pre>
 <a NAME='descriptor'></a>
 <h2>Descriptor</h2>
 The descriptor contains all the metadata necessary to describe the application.
@@ -3743,5 +3638,5 @@ The descriptor contains all the metadata necessary to describe the application.
   "version": "1.6"
 }...<a target="_new" href="descriptor-response-getapplicationdescriptor-1-6.html">click to see full response including links</a></pre>
 <h5>Example using curl command</h5>
-<pre class="terminal">curl -u first.last@mycompany.com:password https://openshift.redhat.com/broker/rest/applications/534253991015616165707776/descriptor</pre>
+<pre class="terminal">curl -X GET -u first.last@mycompany.com:password https://openshift.redhat.com/broker/rest/applications/521bf818656c67309c000001/descriptor</pre>
 </body></section></html>
