@@ -68,11 +68,12 @@ module OpenShift
         raise "#{gear_extension_path} exists and failed to load" unless @@gear_extension_present
       end
 
-      attr_reader :uuid, :namespace, :version, :hostname, :ignore_cartridge_version,
+      attr_reader :uuid, :application_uuid, :namespace, :version, :hostname, :ignore_cartridge_version,
                   :gear_home, :gear_env, :progress, :container, :gear_extension, :config, :hourglass
 
-      def initialize(uuid, namespace, version, hostname, ignore_cartridge_version, hourglass = nil)
+      def initialize(uuid, application_uuid, namespace, version, hostname, ignore_cartridge_version, hourglass = nil)
         @uuid = uuid
+        @application_uuid = application_uuid
         @namespace = namespace
         @version = version
         @hostname = hostname
@@ -213,7 +214,7 @@ module OpenShift
         end
 
         begin
-          @gear_extension = OpenShift::GearUpgradeExtension.new(uuid, gear_home, container)
+          @gear_extension = OpenShift::GearUpgradeExtension.new(self)
         rescue Exception => e
           raise "Unable to instantiate gear upgrade extension: #{e.message}\n#{e.backtrace}"
         end
@@ -645,8 +646,8 @@ module OpenShift
             state  = OpenShift::Runtime::Utils::ApplicationState.new(container)
             cart_model = OpenShift::Runtime::V2UpgradeCartridgeModel.new(config, container, state, hourglass)
 
-            # only validate via http query on the head gear
-            if cart_model.primary_cartridge && (container.uuid == container.application_uuid)
+            # only validate via http query one of the primary gears (has a git repo)
+            if cart_model.primary_cartridge && cart_model.has_repository?
               env = OpenShift::Runtime::Utils::Environ.for_gear(gear_home)
 
               dns = env['OPENSHIFT_GEAR_DNS']

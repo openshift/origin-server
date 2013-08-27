@@ -420,7 +420,15 @@ action "upgrade", :description => "upgrade a gear" do
         :validation     => '^[a-zA-Z0-9]+$',
         :optional       => false,
         :maxlength      => 32
-        
+
+    input :app_uuid,
+        :prompt         => "Application uuid",
+        :description    => "Application uuid",
+        :type           => :string,
+        :validation     => '^[a-zA-Z0-9]+$',
+        :optional       => false,
+        :maxlength      => 32
+                
     input :namespace,
         :prompt         => "Namespace",
         :description    => "Namespace",

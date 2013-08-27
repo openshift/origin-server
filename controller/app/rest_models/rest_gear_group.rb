@@ -72,7 +72,7 @@ class RestGearGroup < OpenShift::Model
     self.name         = self.id
     self.gear_profile = group_instance.gear_size
     self.gears        = group_instance.gears.map{ |gear|
-      { :id => gear.uuid, 
+      { :id => gear.uuid,
         :state => gear_states[gear.uuid] || 'unknown',
         :ssh_url => "ssh://#{app.ssh_uri(gear.app_dns ? nil: gear.uuid)}",
         :port_interfaces => gear.port_interfaces
@@ -89,7 +89,7 @@ class RestGearGroup < OpenShift::Model
       end
 
       component_instance.component_properties.merge({
-        :name => cart.name, 
+        :name => cart.name,
         :display_name => cart.display_name,
         :tags => cart.categories
       })
