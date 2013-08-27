@@ -76,6 +76,18 @@ if args["--help"]
   usage
 end
 
+def ensure_required_option_in(args, option)
+  return unless args[option].nil?
+  $stderr.puts "ERROR: Missing required #{option} argument"
+  usage
+end
+
+ensure_required_option_in args, '--with-app-name'
+ensure_required_option_in args, '--with-namespace'
+ensure_required_option_in args, '--with-container-uuid'
+ensure_required_option_in args, '--with-app-uuid'
+
+
 require 'openshift-origin-node'
 
 app_uuid = args['--with-app-uuid']
