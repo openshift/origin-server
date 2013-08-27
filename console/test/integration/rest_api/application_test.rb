@@ -26,7 +26,8 @@ class RestApiApplicationTest < ActiveSupport::TestCase
     setup_domain
 
     app = Application.new :as => @user
-    assert_raise(ActiveResource::MissingPrefixParam) { app.save }
+    assert !app.save
+    assert app.errors[:domain_name].present?, app.errors.inspect
 
     app.domain = @domain
 
@@ -118,7 +119,7 @@ class RestApiApplicationTest < ActiveSupport::TestCase
     m = response_messages(RestApi::ResourceNotFound){ Alias.new({:id => 'notfound', :application => app}, true).destroy }
     assert_messages 1, /alias/i, /notfound/i, m
 
-    m = response_messages(RestApi::ResourceNotFound){ app.post(:events, {:event => 'remove-alias', :alias => 'notfound'}) }
+    m = response_messages(RestApi::ResourceNotFound){ app.post(:events, nil, {:event => 'remove-alias', :alias => 'notfound'}.to_json) }
     assert_messages 1, /alias/i, /notfound/i, m
 
     m = response_messages(RestApi::ResourceNotFound){ GearGroup.find('_bad_id_', opts) }
@@ -146,7 +147,7 @@ class RestApiApplicationTest < ActiveSupport::TestCase
 
     assert_create_app({:include => :cartridges, :initial_git_url => 'https://github.com/openshift/nodejs-example.git', :cartridges => ['nodejs-0.6']}, "Set initial git URL") do |app|
       assert_equal ['nodejs-0.6'], app.cartridges.map(&:name)
-      loaded_app = Application.find(app.name, :params => {:domain_id => @domain.id}, :as => @user)
+      loaded_app = Application.find(app.id, :as => @user)
       assert_equal "https://github.com/openshift/nodejs-example.git", loaded_app.initial_git_url
     end
   end
@@ -158,7 +159,7 @@ class RestApiApplicationTest < ActiveSupport::TestCase
     assert_create_app({:include => :cartridges, :initial_git_url => 'empty', :cartridges => ['nodejs-0.6']}, "Set initial git URL") do |app|
       assert_equal ['nodejs-0.6'], app.cartridges.map(&:name), "node-js was not an installed cartridge"
       assert app.messages.any?{ |m| m.to_s =~ /An empty Git repository has been created for your application/ }, "None of the app creation messages described the empty repo: #{app.messages.inspect}"
-      loaded_app = Application.find(app.name, :params => {:domain_id => @domain.id}, :as => @user)
+      loaded_app = Application.find(app.id, :as => @user)
       assert loaded_app.initial_git_url.blank?
     end
   end
@@ -169,7 +170,7 @@ class RestApiApplicationTest < ActiveSupport::TestCase
 
     assert_create_app({:include => :cartridges, :initial_git_url => 'git@github.com:openshift/nodejs-example.git#68e54e71e76dac92aa53e46e912cc8c03fa02c12', :cartridges => ['nodejs-0.6']}, "Set initial git URL") do |app|
       assert_equal ['nodejs-0.6'], app.cartridges.map(&:name)
-      loaded_app = Application.find(app.name, :params => {:domain_id => @domain.id}, :as => @user)
+      loaded_app = Application.find(app.id, :as => @user)
       assert_equal "git@github.com:openshift/nodejs-example.git#68e54e71e76dac92aa53e46e912cc8c03fa02c12", loaded_app.initial_git_url
     end
   end

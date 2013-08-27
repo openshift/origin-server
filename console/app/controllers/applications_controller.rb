@@ -79,18 +79,17 @@ class ApplicationsController < ConsoleController
       return
     end
 
-    user_default_domain rescue nil
-
+    @applications = Application.find :all, :as => current_user
     @applications_filter = ApplicationsFilter.new params[:applications_filter]
-    @applications = @domain ? @applications_filter.apply(@domain.applications) : []
+    @applications = @applications_filter.apply(@applications)
+
     if @applications.empty? && @applications_filter.blank?
       render :first_steps
     end
   end
 
   def destroy
-    @domain = Domain.find :one, :as => current_user
-    @application = @domain.find_application params[:id]
+    @application = Application.find(params[:id], :as => current_user)
     if @application.destroy
       redirect_to applications_path, :flash => {:success => "The application '#{@application.name}' has been deleted"}
     else
@@ -99,9 +98,7 @@ class ApplicationsController < ConsoleController
   end
 
   def delete
-    #@domain = Domain.find :one, :as => current_user
-    user_default_domain
-    @application = @domain.find_application params[:id]
+    @application = Application.find(params[:id], :as => current_user)
 
     @referer = application_path(@application)
   end
@@ -125,6 +122,7 @@ class ApplicationsController < ConsoleController
     @capabilities = user_capabilities :refresh => true
 
     @application = (@application_type >> Application.new(:as => current_user)).assign_attributes(app_params)
+    @application.domain_name = domain_name
 
     unless @unlock_cartridges
       begin
@@ -137,26 +135,38 @@ class ApplicationsController < ConsoleController
       @disabled = @missing_cartridges.present? || @cartridges.blank?
     end
 
-    flash.now[:error] = "You have no free gears.  You'll need to scale down or delete another application first." unless @capabilities.gears_free?
+    @user_default_domain = user_default_domain rescue nil
+    @user_writeable_domains = user_writeable_domains
 
+    flash.now[:error] = "You have no free gears.  You'll need to scale down or delete another application first." unless @capabilities.gears_free?
     # opened bug 789763 to track simplifying this block - with domain_name submission we would
     # only need to check that domain_name is set (which it should be by the show form)
-    @domain = Domain.find :first, :as => current_user
-    unless @domain
-      @domain = Domain.create :name => domain_name, :as => current_user
-      unless @domain.persisted?
-        logger.debug "Unable to create domain, #{@domain.errors.to_hash.inspect}"
-        @application.valid? # set any errors on the application object
-        #FIXME: Ideally this should be inferred via associations between @domain and @application
-        @domain.errors.values.flatten.uniq.each {|e| @application.errors.add(:domain_name, e) }
+    if (valid = @application.valid?) # set any errors on the application object
+      begin
+        @domain = Domain.find domain_name, :as => current_user
+        if @domain.editor?
+          @application.domain = @domain
+        else
+          @application.errors.add(:domain_name, "You cannot create applications in the '#{domain_name}' namespace")
+          valid = false
+        end
+      rescue RestApi::ResourceNotFound
+        @domain = Domain.create :name => domain_name, :as => current_user
+        if @domain.persisted?
+          @application.domain = @domain
+        else
+          logger.debug "Unable to create domain, #{@domain.errors.to_hash.inspect}"
+          #FIXME: Ideally this should be inferred via associations between @domain and @application
+          @domain.errors.values.flatten.uniq.each {|e| @application.errors.add(:domain_name, e) }
 
-        return render 'application_types/show'
+          return render 'application_types/show'
+        end
       end
     end
-    @application.domain = @domain
+
 
     begin
-      if @application.save
+      if valid and @application.save
         messages = @application.remote_results
         redirect_to get_started_application_path(@application, :wizard => true), :flash => {:info_pre => messages}
       else
@@ -184,8 +194,8 @@ class ApplicationsController < ConsoleController
     @domain = user_default_domain
     app_id = params[:id].to_s
 
-    async{ @application = Application.find(app_id, :as => current_user, :params => {:include => :cartridges, :domain_id => @domain.id}) }
-    async{ @gear_groups_with_state = GearGroup.all(:as => current_user, :params => {:application_name => app_id, :domain_id => @domain.id}) }
+    async{ @application = Application.find(app_id, :as => current_user, :params => {:include => :cartridges}) }
+    async{ @gear_groups_with_state = GearGroup.all(:as => current_user, :params => {:application_id => app_id}) }
     async{ sshkey_uploaded? }
 
     join!(30)
@@ -195,8 +205,7 @@ class ApplicationsController < ConsoleController
   end
 
   def get_started
-    user_default_domain
-    @application = @domain.find_application params[:id]
+    @application = Application.find(params[:id], :as => current_user)
     @wizard = params[:wizard].present?
 
     if !sshkey_uploaded? && !params[:ssh]
@@ -207,8 +216,7 @@ class ApplicationsController < ConsoleController
   end
 
   def upload_key
-    user_default_domain
-    @application = @domain.find_application params[:id]
+    @application = Application.find(params[:id], :as => current_user)
     @noflash = true; flash.keep
     @wizard = params[:wizard].present?
 

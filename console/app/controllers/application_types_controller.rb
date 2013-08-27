@@ -53,7 +53,9 @@ class ApplicationTypesController < ConsoleController
     @advanced = to_boolean(params[:advanced])
     @unlock_cartridges = to_boolean(params[:unlock])
 
-    user_default_domain rescue (@domain = Domain.new)
+    @user_default_domain = user_default_domain rescue (Domain.new)
+    @user_writeable_domains = user_writeable_domains
+    @can_create = current_api_user.max_domains > user_owned_domains.length
 
     @compact = false # @domain.persisted?
 
@@ -65,7 +67,7 @@ class ApplicationTypesController < ConsoleController
 
     @application = (@application_type >> Application.new(:as => current_user)).assign_attributes(app_params)
     @application.gear_profile = @capabilities.gear_sizes.first unless @capabilities.gear_sizes.include?(@application.gear_profile)
-    @application.domain_name = app_params[:domain_name].presence || app_params[:domain_id].presence
+    @application.domain_name = app_params[:domain_name] || app_params[:domain_id] || @user_default_domain.name
 
     unless @unlock_cartridges
       begin

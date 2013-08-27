@@ -1,4 +1,6 @@
 = semantic_form_for domain, :url => domains_path, :simple => true do |f|
+  %input{:type => "hidden", :name => "then", :value => @referrer }
+  %input{:type => "hidden", :name => "domain_param", :value => params[:domain_param] }
   = f.semantic_errors :alias => {:name => :id}, :except => :name
   .control-group.control-group-important{:class => domain.errors[:name].present? || domain.errors[:namespace].present? ? 'error' : '', :id => "domain_name_group", :data => domain.errors[:name].present? || domain.errors[:namespace].present? ? {:"server-error" => 'server-error'} : {}}
     .controls.first
@@ -9,6 +11,6 @@
         %span.add-on>= ".#{RestApi.application_domain_suffix}"
       = f.semantic_errors :name, :alias => {:name => :id}, :class => [:unstyled, :errors, 'help-block']
   = f.buttons do
-    = link_to "Cancel", settings_path, :class => 'btn'
+    = link_to "Cancel", @referrer || settings_path, :class => 'btn'
     = f.commit_button :label => domain.persisted? ? 'Save' : 'Create'
     = f.loading

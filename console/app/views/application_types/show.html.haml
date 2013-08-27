@@ -7,6 +7,7 @@
   #new_application.collapse-help .help-block { white-space: nowrap; opacity: 0.5; margin-top: 0; }
   #new_application.collapse-help .help-block:hover { opacity: 1; cursor: pointer; }
 
+- new_domain_redirect_path = application_type_path(@application_type.id, @application_type.to_params)
 - advanced_path = application_type_path(@application_type.id, @application_type.to_params.merge(:advanced => true))
 - focus = params[:focus]
 
@@ -79,7 +80,23 @@
     = control_group(e.has_key?(:name) || e.has_key?(:domain_name), :important => true) do
       %h3.control-label Public URL
       .controls.first
-        = render :partial => 'applications/name', :locals => {:form => f, :application => @application}
+        - here = application_type_path(@application_type.id, params)
+        - create_domain_url = new_domain_path({:then => here, :domain_param => 'application[domain_name]'})
+        - if params[:test]
+          - mine = [Domain.new(:name => 'me1'), Domain.new(:name => 'me2')]
+          - shared = [Domain.new(:name => 'shared1'), Domain.new(:name => 'shared2')]
+          - [false, true].each do |can_create|
+            - [[], [mine.first], mine].each do |my_domains|
+              - [[], [shared.first], shared].each do |shared_domains|
+                - default_domain = my_domains.first
+                - domains = my_domains + shared_domains
+                - ([nil] + [my_domains.first, shared_domains.first, Domain.new(:name => 'x')].compact.map(&:name)).each do |current_value|
+                  %div= "mine=#{my_domains.length}, shared=#{shared_domains.length}, can_create=#{can_create}, current_value=#{current_value.inspect}"
+                  %div
+                    - @application.domain_name = current_value
+                    = render :partial => 'applications/name', :locals => {:form => f, :application => @application, :can_create => can_create, :domains => domains, :create_domain_url => create_domain_url}
+        - else
+          = render :partial => 'applications/name', :locals => {:form => f, :application => @application, :can_create => @can_create, :domains => @user_writeable_domains, :create_domain_url => create_domain_url}
         = f.inline_errors_for :name
         = f.inline_errors_for :domain_name
       .controls
@@ -102,7 +119,7 @@
                 (branch '#{@application_type.initial_git_branch}')
             - else
               Default 
-            %small= link_to "Change", advanced_path, :data => {:submit_form => true, :focus => 'initial_git_url'}
+            %small= link_to "Change", advanced_path, :data => {:submit_advanced => true, :focus => 'initial_git_url'}
         = f.inline_errors_for :initial_git_url
         = f.inline_errors_for :initial_git_branch
 
@@ -126,7 +143,7 @@
           - else
             %h3
               = gear_sizes.first.to_s.titleize
-              %small= link_to 'Change', advanced_path, :data => {:submit_form => true, :focus => 'gear_profile'}
+              %small= link_to 'Change', advanced_path, :data => {:submit_advanced => true, :focus => 'gear_profile'}
             = f.hidden_field :gear_profile
 
         - else
@@ -185,7 +202,7 @@
           - else
             %h3{:title => "Scaling your web cartridge will allocate an extra gear for the load balancer"}
               = scale_options[@application.scale? ? 1 : 0][0]
-              %small= link_to 'Change', advanced_path, :data => {:submit_form => true, :focus => 'scale'}
+              %small= link_to 'Change', advanced_path, :data => {:submit_advanced => true, :focus => 'scale'}
         - else
           %h3
             %span.text-warning{:title => scale_reason}= scale_options[0][0]
@@ -221,21 +238,36 @@
 - content_for :javascripts do
   :javascript
     $(function() {
-      $('a[data-submit-form]').click(function() {
-        var fields = $(this).closest('form').serializeArray();
+      var applicationTypeUrl = function(form, advanced, focus) {
+        var fields = form.serializeArray();
 
         // Remove special fields
+        var removeFields = advanced ? ['utf8', 'authenticity_token', 'advanced'] : ['utf8', 'authenticity_token'];
         fields = $.grep(fields, function(field) {
-          return ['utf8', 'authenticity_token', 'advanced'].indexOf(field.name) == -1;
+          return removeFields.indexOf(field.name) == -1;
         });
 
         // Explicitly set advanced
-        fields.push({name: 'advanced', value: 'true'});
+        if (advanced)
+          fields.push({name: 'advanced', value: advanced});
 
         // Set focus target
-        fields.push({name: 'focus', value: $(this).data('focus')});
+        if (focus)
+          fields.push({name: 'focus', value: focus});
 
-        window.location.href = "#{application_type_path(@application_type.id)}" + '?' + $.param(fields);
+        return "#{application_type_path(@application_type.id)}" + '?' + $.param(fields);
+      };
+
+      $('a[data-submit-domain]').click(function(){
+        var thenUrl = applicationTypeUrl($(this).closest('form'));
+        var url = "#{new_domain_path}" + '?domain_param=application[domain_name]&then=' + encodeURIComponent(thenUrl);
+        window.location.href = url;
+        return false;
+      });
+
+      $('a[data-submit-advanced]').click(function() {
+        var url = applicationTypeUrl($(this).closest('form'), 'true', $(this).data('focus'));
+        window.location.href = url;
         return false;
       });
     });

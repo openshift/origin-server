@@ -1,18 +1,39 @@
 %h1= "Domain #{@domain.name}"
 
-%section
-  %h2 Applications
-  - @domain.applications.each do |application|
-    %h3.name= application.name
-    = link_to "Manage #{application.name}", application_path(application)
-    |
-    = link_to application.web_url, application.web_url
+.row
+  .span6
+    %section
+      %h2 Applications
+      - @domain.applications.each do |application|
+        %h3.name= application.name
+        = link_to "Manage #{application.name}", application_path(application)
+        |
+        = link_to application.web_url, application.web_url
+  .span6
+    %section
+      %h2 Members
+      
+      %table
+        %tr
+          %th Owner
+          %td= @domain.members.find(&:owner).name
+
+        - Role.role_options_descending.each do |role|
+          - members = @domain.members.select {|m| m.role == role.id }.sort
+          - if members.present?
+            %tr
+              %th= role.category
+              %td
+                - members.each do |member|
+                  %div= member.name
+
+    %section
+      = semantic_form_for (new_member=Member.new), :url => url_for(:controller => :domain_members, :action => :add), :html => {:method => :post} do |f|
+        = f.inputs :inline => true do
+          = f.input :id, :input_html => {:placeholder => 'User ID/Login', :title => 'User ID/Login'}
+          = f.input :role, :as => :select, :collection => Role.role_options_ascending, :include_blank => 'Role:', :input_html => {:title => 'Role'}
+          = f.commit_button 'Add member', :button_html => {:style => 'vertical-align: top', :class => 'btn btn-small'}
+  
 
 %section
-  %h2 Members
-  - @domain.members.each do |member|
-    %p= "#{member['name']} (owner: #{!!member['owner']}, role: #{member['role']}, from: #{member['from']})"
-
-%section
-  %pre
-    = @domain.inspect
+  %pre= PP.pp(@domain.attributes, "")

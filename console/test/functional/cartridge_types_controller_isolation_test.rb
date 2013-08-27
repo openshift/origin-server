@@ -11,7 +11,7 @@ class CartridgeTypesIsolationControllerTest < ActionController::TestCase
     {:id => 'test'}
   end
   def app(with_carts=false)
-    {:name => 'test', :framework => 'php-5.3'}.tap do |o|
+    {:id => 'testid', :name => 'test', :domain_id => 'test', :framework => 'php-5.3'}.tap do |o|
       o[:cartridges] = [{:name => 'php-5.3'}] if with_carts
     end
   end
@@ -20,9 +20,9 @@ class CartridgeTypesIsolationControllerTest < ActionController::TestCase
     Rails.cache.clear # cart metadata is mocked
     allow_http_mock
     ActiveResource::HttpMock.respond_to({},true) do |mock|
-      mock.get '/broker/rest/domains.json', json_header, [domain].to_json
-      mock.get '/broker/rest/domain/test/application/test.json', json_header, app.to_json
-      mock.get '/broker/rest/domain/test/application/test.json?include=cartridges', json_header, app(true).to_json
+      mock.get '/broker/rest/domain/test.json', json_header, domain.to_json
+      mock.get '/broker/rest/application/testid.json', json_header, app.to_json
+      mock.get '/broker/rest/application/testid.json?include=cartridges', json_header, app(true).to_json
       mock.get '/broker/rest/cartridges.json', anonymous_json_header, [{:name => 'fake-cart-1', :type => :embedded}].to_json
       mock.get '/broker/rest/environment.json', anonymous_json_header, {:download_cartridges_enabled => true}.to_json
     end
@@ -31,13 +31,12 @@ class CartridgeTypesIsolationControllerTest < ActionController::TestCase
 
   test "should list a new server cart with no metadata" do
     mock_app
-    get :index, :application_id => 'test'
+    get :index, :application_id => 'testid-testname'
     assert_response :success
 
     assert a = assigns(:application)
     assert_equal app[:name], a.name
-    assert d = assigns(:domain)
-    assert_equal domain[:id], d.id
+    assert_equal domain[:id], a.domain_id
 
     assert types = assigns(:installed)
     assert_equal 0, types.length
@@ -56,13 +55,12 @@ class CartridgeTypesIsolationControllerTest < ActionController::TestCase
 
   test "should not show a new server cart with no metadata" do
     mock_app
-    get :show, :application_id => 'test', :id => 'fake_cart_1'
+    get :show, :application_id => 'testid-testname', :id => 'fake_cart_1'
     assert_response :success
 
     assert a = assigns(:application)
     assert_equal app[:name], a.name
-    assert d = assigns(:domain)
-    assert_equal domain[:id], d.id
+    assert_equal domain[:id], a.domain_id
 
     assert_nil assigns(:cartridge_type)
     assert_not_found_page(/Cartridge Type 'fake_cart_1' does not exist/)
@@ -70,13 +68,12 @@ class CartridgeTypesIsolationControllerTest < ActionController::TestCase
 
   test "should show a new server cart with no metadata" do
     mock_app
-    get :show, :application_id => 'test', :id => 'fake-cart-1'
+    get :show, :application_id => 'testid-testname', :id => 'fake-cart-1'
     assert_response :success
 
     assert a = assigns(:application)
     assert_equal app[:name], a.name
-    assert d = assigns(:domain)
-    assert_equal domain[:id], d.id
+    assert_equal domain[:id], a.domain_id
 
     assert cart = assigns(:cartridge_type)
     assert_equal 'fake-cart-1', cart.name

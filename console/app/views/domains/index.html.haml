@@ -2,5 +2,5 @@
 - @domains.each do |domain|
   %section
     %h2= domain.name
-    %pre= domain.inspect
+    %pre= PP.pp(domain.attributes, "")
     = link_to "View domain details for #{domain.name}", domain_path(domain.name)

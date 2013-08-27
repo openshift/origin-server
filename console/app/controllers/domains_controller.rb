@@ -9,14 +9,35 @@ class DomainsController < ConsoleController
 
   def new
     @domain = Domain.new
+    @referrer = valid_referrer(params[:then] || params[:redirectUrl] || request.referrer)
   end
 
   def create
     @domain = Domain.new params[:domain]
     @domain.as = current_user
 
+    @referrer = valid_referrer(params[:then] || params[:redirectUrl])
+
     if @domain.save
-      redirect_to settings_path, :flash => {:success => 'Your domain has been created'}
+      if @referrer.present? and params[:domain_param].present?
+        begin
+          puts "@referrer = #{@referrer}"
+          u = URI(@referrer)
+          puts "u = #{u.inspect}"
+          q = Rack::Utils.parse_query u.query
+          puts "q = #{q.inspect}"
+          q[params[:domain_param]] = @domain.name
+          puts "q = #{u.inspect}"
+          u.query = q.to_query
+          puts "u = #{u.inspect}"
+          @referrer = u.to_s
+          puts "@referrer = #{@referrer}"
+        rescue Exception => e
+          Rails.logger.debug "Error replacing domain param: #{e}\n#{e.backtrace.join("\n  ")}"
+        end
+      end
+
+      redirect_to @referrer || settings_path, :flash => {:success => "The domain '#{@domain.name}' has been created"}
     else
       render :new
     end

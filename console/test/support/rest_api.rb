@@ -192,7 +192,7 @@ class ActiveSupport::TestCase
   DOWNLOADED_CART_NAME = 'openshift-downloadable-mock-0.1'
 
   def with_app
-    use_app(:readable_app) { Application.new({:name => "normal", :cartridge => 'ruby-1.8', :as => new_named_user('user_with_normal_app')}) }
+    use_app(:readable_app) { Application.new({:id => "normalid", :name => "normal", :cartridge => 'ruby-1.8', :as => new_named_user('user_with_normal_app')}) }
   end
 
   def with_downloaded_app
@@ -224,7 +224,7 @@ class ActiveSupport::TestCase
   end
 
   def anonymous_json_header(is_post=false, nolinks=true)
-    mime = "application/json#{nolinks ? ';nolinks' : ''};version=1.4"
+    mime = "application/json#{nolinks ? ';nolinks' : ''};version=1.6"
     (is_post ? {'Content-Type' => mime} : {}).merge('Accept' => mime, 'User-Agent' => Console.config.api[:user_agent])
   end
 end

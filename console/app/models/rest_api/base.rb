@@ -218,17 +218,33 @@ module RestApi
       end
     end
 
-    def initialize(attributes = {}, persisted=false)
+    def child_prefix_options
+      {}
+    end
+
+    def initialize(attributes = {}, persisted=false, prefix_options=nil)
       @as = attributes.delete :as
       @attributes     = HashWithSimpleIndifferentAccess.new
-      @prefix_options = {}
+      @prefix_options = prefix_options || split_options(attributes).first
       @persisted = persisted
       load(attributes)
     end
 
+    def attribute_load_order_sort
+      lambda do |key|
+        if schema and schema.has_key?(key)
+          [-1, key.to_s]
+        elsif reflections and reflections.has_key?(key.to_sym)
+          [1,  key.to_s]
+        else
+          [0,  key.to_s]
+        end
+      end
+    end
+
     def load(attributes, remove_root=false)
       raise ArgumentError, "expected an attributes Hash, got #{attributes.inspect}" unless attributes.is_a?(Hash)
-      self.prefix_options, attributes = split_options(attributes)
+      #self.prefix_options, attributes = split_options(attributes)
 
       # Clear calculated messages
       self.messages = nil
@@ -241,7 +257,10 @@ module RestApi
         value = attributes.delete(from)
         send("#{to}=", value) unless value.nil?
       end
-      attributes.each do |key, value|
+
+      attributes.keys.sort_by(&attribute_load_order_sort).each do |key|
+        value = attributes[key]
+
         if !known.include? key.to_s and !calculated.include? key and self.class.method_defined?("#{key}=")
           send("#{key}=", value)
         else
@@ -253,7 +272,11 @@ module RestApi
                     value.map do |attrs|
                       if attrs.is_a?(Hash)
                         attrs[:as] = as if resource.method_defined? :as=
-                        resource.new(attrs)
+                        if resource < RestApi::Base
+                          resource.new(attrs, persisted?, child_prefix_options)
+                        else
+                          resource.new(attrs)
+                        end
                       else
                         attrs
                       end
@@ -267,7 +290,11 @@ module RestApi
               when Hash
                 if resource = find_or_create_resource_for(key)
                   value[:as] = as if resource.method_defined? :as=
-                  resource.new(value)
+                  if resource < RestApi::Base
+                    resource.new(value, persisted?, child_prefix_options)
+                  else
+                    resource.new(value)
+                  end
                 else
                   value
                 end
@@ -651,7 +678,8 @@ module RestApi
     # aware
     #
     def reload
-      self.load(prefix_options.merge(self.class.find(to_param, :params => prefix_options, :as => as).attributes))
+      p = prefix_options || {}
+      self.load(p.merge(self.class.find(to_param, :params => p, :as => as).attributes))
     end
 
     #
@@ -826,7 +854,8 @@ module RestApi
         if (response_code_allows_body?(response.code) &&
             (response['Content-Length'].nil? || response['Content-Length'] != "0") &&
             !response.body.nil? && response.body.strip.size > 0)
-          load(prefix_options.merge(self.class.format.decode(response.body)), true)
+          p = prefix_options || {}
+          load(p.merge(self.class.format.decode(response.body)), true)
           load_headers(response) if respond_to?(:load_headers)
           @persisted = true
         end

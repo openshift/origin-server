@@ -1,9 +1,7 @@
 class CartridgeTypesController < ConsoleController
 
   def index
-    user_default_domain
-
-    @application = @domain.find_application(params[:application_id], :params => {:include => :cartridges})
+    @application = Application.find(params[:application_id], :params => {:include => :cartridges}, :as => current_user)
     installed_carts = @application.cartridges
 
     types = CartridgeType.cached.embedded
@@ -21,11 +19,10 @@ class CartridgeTypesController < ConsoleController
   end
 
   def show
-    @domain = user_default_domain
     name = params[:id].presence
     url = params[:url].presence
 
-    @application = @domain.find_application params[:application_id]
+    @application = Application.find(params[:application_id], :as => current_user)
     @cartridge_type = url ? CartridgeType.for_url(url) : CartridgeType.cached.find(name)
     @cartridge = Cartridge.new :as => current_user
   end
