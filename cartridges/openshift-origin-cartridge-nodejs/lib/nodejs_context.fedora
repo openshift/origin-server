@@ -1,0 +1,16 @@
+# Do not include this into the util file...
+# RHEL, Fedora18 and Fedora19 will overwrite this file to support invoking their NodeJS versions
+
+# Fedora OpenShift Online supported versions
+
+function nodejs_context {
+  case "$OPENSHIFT_NODEJS_VERSION" in
+    0.10) eval $1 ;;
+  esac
+}
+
+function update-configuration {
+  case "$1" in
+    0.10) set-configuration $1 native ;;
+  esac
+}
