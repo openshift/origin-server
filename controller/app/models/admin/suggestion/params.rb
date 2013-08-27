@@ -15,7 +15,7 @@
 #++
 
 module Admin
-  class Suggestion
+  module Suggestion
     # Class for Suggestion parameters
     #
     # dual purposes:
@@ -23,8 +23,9 @@ module Admin
     # - logic to retrieve values per profile, referring to defaults as needed
     #
     class Params
-      include Logger
+      require 'admin/suggestion/advisor'
       extend Logger
+      include Logger
 
       def initialize(attrs = {})
         @attrs = {}
@@ -131,6 +132,15 @@ module Admin
         return suggestions
       end
 
+      def self.test_instances
+        profile = Advisor.test_profile
+        Container.new +
+          Config::FixVal.new(name: :active_gear_pct, value: ["bogus"].inspect) +
+          Config::FixVal.new(profile: profile, name: :gear_up_threshold,
+                             value: (-1).inspect) +
+          Config::FixGearDown.new(profile: profile, up: 1000, down: 1200, size: 500)
+      end
+
       private
 
       #
@@ -153,54 +163,5 @@ module Admin
         p.nil? || p.respond_to?(:to_i) && p.to_i > 0 && p.to_i <= 100
       end
     end # Params
-
-    #
-    # Config suggestions: something about the conf parameters missing or wrong
-    #
-    class Config < Suggestion
-      #
-      # A value is invalid.
-      #
-      class FixVal <  Config
-        # attrs -
-        #   profile: string or :default or nil
-
-        #   :gear_up_threshold, :gear_down_threshold, or :active_gear_pct
-        attr_accessor :name
-
-        #   string representation of offending value
-        attr_accessor :value
-      end
-
-      #
-      # :gear_down_threshold too low compared to :gear_up_threshold
-      # (this would lead to competing scale up/down suggestions)
-      #
-      class FixGearDown < Config
-        # attrs -
-        #   profile: string or :default or nil
-
-        #   up: integer threshold
-        attr_accessor :up
-
-        #   down: integer threshold
-        attr_accessor :down
-
-        #   size: integer number of gears
-        #   - down should be at least this much larger than up
-        attr_accessor :size
-      end
-
-      #
-      # Value not supplied - suggest doing that
-      #
-      class SupplyValue < Config
-        # attrs -
-        #   profile: string or nil
-
-        #   :gear_up_threshold, :gear_down_threshold, or :active_gear_pct
-        attr_accessor :name
-      end
-    end # Config
   end
 end

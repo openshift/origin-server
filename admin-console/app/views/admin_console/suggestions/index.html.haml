@@ -32,6 +32,11 @@
     });
 
 .suggestions
+  - if @config[:stats][:cache_timeout] > 0.seconds
+    %small.pull-right.muted
+      = "Data collected #{time_ago_in_words(@stats_created_at)} ago."
+      = link_to params.merge(:reload => true) do
+        %i.icon-refresh{:title => "Refresh now."}
   %h1
     Suggestions
   - if @suggestions.empty?

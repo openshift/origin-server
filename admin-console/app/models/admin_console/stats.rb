@@ -16,11 +16,9 @@ module AdminConsole
     end
 
     # in the case where we get Admin:: classes from the cache before
-    # they have actually been defined... ensure their namespaces load. Ugh.
-    ::Admin::Stats
-    ::Admin::Suggestion
-    ::Admin::Suggestion::Params
-    ::Admin::Suggestion::Capacity
+    # they have actually been defined... ensure their namespaces load.
+    require 'admin/stats'
+    require 'admin/suggestion/advisor'
 
     def self.systems_summaries(force_reload = false, conf = Rails.application.config.admin_console)
       Rails.cache.fetch('admin_console_system_statistics',

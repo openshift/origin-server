@@ -73,22 +73,47 @@ class AdminSuggestionTest < ActiveSupport::TestCase
   def assert_ids_work(container)
     seen = Set.new
     container.each do |sug|
-      assert !seen.include?(sug.id), "Suggestion id should be unique\n#{sug.id}"
+      assert !seen.include?(sug.id), "Suggestion id should be unique\n#{sug}"
       assert_equal sug.id, Marshal.load(Marshal.dump sug).id,
-        "need ids stable across serialization"
+        "need ids stable across serialization\n#{sug}"
       seen.add sug.id
     end
   end
 
-  test "instantiating leaf subclasses" do
-    assert_nothing_raised do
-      S::Container.new
-      S::Config::FixVal.new(profile: "small", name: :gear_up_threshold, value: -2 )
-      S::Config::FixGearDown.new(profile: "small", up: 100, down: 90 )
-      C::Add::Node.new(profile: "small", threshold: 100,
-                       district_uuid: "uuid", active_gear_pct: 90)
-      C::Add::District.new(profile: "small", threshold: 100, active_gear_pct: 90)
-    end
+  test "instantiating and filtering leaf subclasses" do
+    sugs = S::Container.new
+    sugs << S::Config::FixVal.new(profile: "small", scope: "profile",
+                                  name: :gear_up_threshold, value: -2 )
+    sugs << S::Config::FixGearDown.new(profile: "small", scope: "profile",
+                                       up: 100, down: 90 )
+    add1 = C::Add::Node.new(profile: "small", scope: "district", threshold: 100,
+                            district_uuid: "uuid", active_gear_pct: 90)
+    add2 = C::Add::District.new(profile: "notsmall", scope: "profile",
+                                threshold: 100, active_gear_pct: 90)
+    add = C::Add.new(profile: "small", scope: "profile",
+                     threshold: 100, active_gear_pct: 90,
+                     contents: S::Container.new + [add1, add2])
+    rm = C::Remove::Node.new(profile: "small", threshold: 100)
+    rm2 = C::Remove::CompactDistrict.new(profile: "bogus", district_uuid: "whatever",
+                                         scope: "district", active_gear_pct: 10)
+    sugs += [ add, add1, add2, rm, rm2 ]
+
+    assert_raises(RuntimeError, "invalid scope foo") { sugs.for_scope("foo") }
+    assert_equal 0, sugs.for_scope("general").size, "no general suggestions"
+    assert_equal 5, sugs.for_scope("profile").size, "profile suggestions"
+    assert_equal 4, sugs.for_scope("profile", "small").size, "small profile suggestions"
+    assert_equal 2, sugs.for_scope("district").size, "district suggestions"
+    assert_equal 1, sugs.for_scope("district","whatever").size, "specific district sugs"
+    assert add.important?, "Adding capacity is important"
+    refute rm.important?, "Removing capacity is important"
+    assert_equal 5, sugs.important.size, "important suggestions"
+    assert_equal 2, sugs.important(false).size, "non-important suggestions"
+    assert_ids_work(sugs)
+  end
+
+  test "test instances all deserialize with same ids" do
+    sugs = S::Advisor.subclass_test_instances
+    assert_ids_work(sugs)
   end
 
   test "params r/w" do
@@ -153,17 +178,24 @@ class AdminSuggestionTest < ActiveSupport::TestCase
   end
 
   test "Container methods" do
-    c = S::Container.new + [ S.new({}),
-      S.new(profile: 'foo'), S.new(profile: 'foo', district_uuid: 'bar'),
-      S.new(profile: 'foo2'), S.new(profile: 'foo2', district_uuid: 'bar2')]
-    assert_kind_of S::Container, c, "add gives me a Container"
+    c = S::Container.new + [S::Base.new({scope: "general"}),
+      S::Base.new(profile: 'foo'), S::Base.new(profile: 'foo', district_uuid: 'bar')]
+    assert_kind_of S::Container, c, "add an arr gives me a Container"
+    assert_difference ->{ c.size }, 1, "<<ing an element" do
+      c <<  S::Base.new(profile: 'foo2')
+    end
+    assert_difference ->{ c.size }, 1, "+ing an element" do
+      c +=  S::Base.new(profile: 'foo2', district_uuid: 'bar2')
+    end
+    c = (c + nil).compact
+    assert_kind_of S::Container, c, "add with element gives me a Container"
     assert_kind_of S::Container, c.for_general, "select gives me a Container"
     assert_equal 1, c.for_general.size
     assert_equal 2, c.for_profile('foo').size
     assert_equal 1, c.for_district('bar2').size
     assert_equal 3, c.group_by_profile.size, "2 profiles plus nil"
     assert_equal 3, c.group_by_district_uuid.size, "2 districts plus nil"
-    assert c.group_by_class.has_key?(S), "group by class"
+    assert c.group_by_class.has_key?(S::Base), "group by class"
     assert_equal 1, c.group_by_class.size, "group by class - only one"
     assert_ids_work(c)
   end
@@ -345,9 +377,15 @@ class AdminSuggestionTest < ActiveSupport::TestCase
     psugs = sugs.pretty_inspect
     refute sugs.any? {|s| s.is_a? S::Error}, "errors running suggestions:\n#{psugs}"
     refute sugs.any? {|s| s.is_a? S::Config}, "configuration suggestions:\n#{psugs}"
-    assert_equal 2, sugs.for_profile('prof1').size,
-      "should suggest adding nodes for profile 'prof1'\n#{psugs}"
-    assert_equal 1, sugs.for_district(open['uuid']).size,
+    assert_equal 1, sugs.for_profile('prof1').size,
+      "should suggest adding capacity for profile 'prof1'\n#{psugs}"
+    assert_kind_of C::Add, sugs.for_profile('prof1').first
+    nodes = sugs.for_profile('prof1').first.contents
+    assert_equal 2, nodes.size,
+      "should suggest adding nodes in two districts for profile 'prof1'\n#{psugs}"
+    assert_kind_of C::Add::Node, nodes.first
+    assert_equal "district", nodes.first.scope
+    assert_equal 1, nodes.for_district(open['uuid']).size,
       "should suggest adding a node for the district with capacity in 'prof1'\n#{psugs}"
     assert_ids_work(sugs)
 
@@ -360,9 +398,12 @@ class AdminSuggestionTest < ActiveSupport::TestCase
     sugs = C::Add::Advisor.query(params, stats, nil)
     psugs = sugs.pretty_inspect
     refute sugs.any? {|s| s.is_a? S::Error}, "errors running suggestions:\n#{psugs}"
-    assert_equal 3, sugs.for_profile('prof1').size,
-      "should suggest adding nodes for profile 'prof1'\n#{psugs}"
-    sugdist = sugs.select {|s| s.district_uuid.nil?}
+    assert_equal 1, sugs.for_profile('prof1').size,
+      "should suggest adding capacity for profile 'prof1'\n#{psugs}"
+    adds = sugs.for_profile('prof1').first.contents
+    assert_equal 3, adds.size,
+      "should suggest adding nodes in districts (one new) for profile 'prof1'\n#{psugs}"
+    sugdist = adds.select {|s| s.district_uuid.nil?}
     assert_equal 1, sugdist.size, "suggest new districts in 'prof1'\n#{psugs}"
     assert_kind_of C::Add::District, sugdist.first,
       "suggest new districts in 'prof1'\n#{psugs}"
@@ -375,7 +416,11 @@ class AdminSuggestionTest < ActiveSupport::TestCase
     #puts stats.profile_summaries
     #write_fake_dataset 'no-districts.yaml'
     sugs = S::Advisor.query(gear_up_threshold: { default: 4000 })
+    assert_ids_work(sugs)
     assert_equal 1, sugs.size, "one suggestion\n#{sugs}"
+    assert_kind_of C::Add, sugs.first, "suggest adding capacity\n#{sugs}"
+    sugs = sugs.first.contents
+    assert_equal 1, sugs.size, "one rolled up suggestion\n#{sugs}"
     assert_kind_of C::Add::Node, sugs.first, "suggest adding nodes\n#{sugs}"
     assert_nil sugs.first.district_uuid, "add undistricted nodes\n#{sugs}"
     assert_ids_work(sugs)
@@ -461,12 +506,16 @@ class AdminSuggestionTest < ActiveSupport::TestCase
     assert_kind_of C::Remove::CompactDistrict, sugs.first
   end
 
-  test "NONE district doesn't get compaction recommendation" do
+  test "NONE district doesn't get compaction suggestion" do
     no_district_install
     stats = admin_stats_results()
     sugs = S::Advisor.query(active_gear_pct: {default: 1})
     psugs = "\n#{sugs.pretty_inspect}"
     assert_empty sugs, "nothing to suggest"
+  end
+
+  test "NONE district doesn't get add capacity suggestion" do
+    skip
   end
 
   test "missing nodes are missed" do
@@ -478,10 +527,19 @@ class AdminSuggestionTest < ActiveSupport::TestCase
                                   'active' => true}
     end
     sugs = S::Advisor.query(S::Params.new, admin_stats_results())
-    assert_equal 1, sugs.for_general.size, "one overall list of missing nodes"
-    assert_equal 3, sugs.for_profile('prof1').size, "self, plus 2 districts per profile"
-    assert @districts.all? {|dist| sugs.for_district(dist['uuid']).size == 1 }
+    assert_equal 1, sugs.for_general.size, "one overall list of missing nodes\n#{sugs}"
     assert_ids_work(sugs)
+
+    all = sugs.for_general.first
+    assert_kind_of S::MissingNodes, all, "general missing nodes\n#{sugs}"
+    assert_equal @districts.size * 2, all.nodes.size, "two nodes missing per dist"
+    assert_ids_work(sugs = all.contents)
+    prof = sugs.for_scope 'profile', 'prof1'
+    assert_equal 1, prof.size, "one profile-level per profile"
+    assert_equal "profile", prof.first.scope
+    assert_equal 4, sugs.for_scope("profile").size, "4 profiles"
+    assert_equal 8, sugs.for_scope("district").size, "2 districts per profile"
+    assert_equal 12, sugs.size, "4 profiles + 2 districts per"
   end
 
   def mismanaged_install
