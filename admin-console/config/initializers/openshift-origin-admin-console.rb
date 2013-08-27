@@ -26,8 +26,8 @@ Broker::Application.configure do
         if value.nil? # no profile: so it's the default
           cfg[:default] = profile.to_i
         elsif nothing.nil?
-          cfg[profile] = value.to_i
-        end # else... we ignore it.
+          cfg[profile] = value.downcase == "none" ? nil : value.to_i
+        end # else... we ignore it because there shouldn't be three.
       end
       cfg
     end
