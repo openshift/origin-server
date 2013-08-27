@@ -137,8 +137,8 @@
               .stat-number-large
                 = @profile[:nodes_count]
           %td.bars
-            - active_gears = @profile[:gears_active_count]
-            - total_active_gears = @profile[:gears_active_count] + @profile[:available_active_gears_with_negatives]
+            - active_gears = @profile.gears_active_count
+            - total_active_gears = active_gears + @profile.effective_available_gears
             - active_pct = (active_gears.to_f / total_active_gears.to_f) * 100
             - active_warn_pct = threshold_pct(active_warning_threshold, total_active_gears)
             .pull-left

@@ -78,8 +78,8 @@
             .hover-action.hidden-mobile
               = link_to "Details...", profile_nodes_path(:id => profile_name)
         %td
-          - active_gears = profile[:gears_active_count]
-          - total_active_gears = profile[:gears_active_count] + profile[:available_active_gears_with_negatives]
+          - active_gears = profile.gears_active_count
+          - total_active_gears = active_gears + profile.effective_available_gears
           - active_pct = (active_gears.to_f / total_active_gears.to_f) * 100
           - active_warn_pct = threshold_pct(active_warning_threshold, total_active_gears)
           = sample_tooltip sample, "active_gears", ["pull-left"] do
