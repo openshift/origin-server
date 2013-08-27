@@ -90,7 +90,8 @@ module Admin
             klass.respond_to?(:test_instances) ? c += klass.test_instances : c
         end
         e = StandardError.new("test error")
-        sugs += Suggestion::Error.new(error: e, stack: caller)
+        sugs += Suggestion::Base.new(scope: "general", profile: test_profile)
+        sugs += Suggestion::Error.new(scope: "general", error: e, stack: caller)
         sugs += Params.test_instances
         Container.new +  # sort by one from each class first.
           sugs.group_by_class.values.inject([]) do |c,arr|

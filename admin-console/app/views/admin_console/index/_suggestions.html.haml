@@ -14,7 +14,7 @@
     %tbody
       - @suggestions.each do |suggestion|
         - partial = suggestion_partial_for suggestion
-        - url = suggestions_path expanded: suggestion.id 
+        - url = suggestions_path expanded: suggestion.id, tsugs: params[:tsugs]
         %tr.short.suggestion.clickable{ suggestion_url: url }
           %td
             - if suggestion.important?
