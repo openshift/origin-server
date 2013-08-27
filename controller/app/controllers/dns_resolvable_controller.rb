@@ -19,7 +19,7 @@ class DnsResolvableController < BaseController
     rescue Exception => e
       return render_error(:not_found, "Could not resolve DNS #{name}: #{e.message}", 170, "DNS_RESOLVABLE")
     end
-    
+
     dns = Dnsruby::Resolver.new(:nameserver => nameservers[rand(nameservers.length)]) if nameservers
     begin
       dns.query(name, Dnsruby::Types.A)
