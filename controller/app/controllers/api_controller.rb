@@ -35,7 +35,7 @@ class ApiController < BaseController
       "SHOW_APPLICATION_BY_DOMAIN"  => Link.new("Retrieve an application by its name and domain", "GET", URI::join(get_url, "domain/:domain_name/application/:name"), [
         Param.new(":domain_name", "string", "Unique name of the domain", nil, []),
         Param.new(":name", "string", "Name of the application", nil, []),
-      ]),      
+      ]),
       "LIST_CARTRIDGES" => Link.new("List cartridges", "GET", URI::join(get_url, "cartridges")),
     }
 
@@ -45,8 +45,7 @@ class ApiController < BaseController
         Param.new(":id", "string", "Unique identifier of the application", nil, [])
       ])
     }) if requested_api_version >= 1.5
-      
-    
+
     links.merge!({
       "LIST_AUTHORIZATIONS" => Link.new("List authorizations", "GET", URI::join(get_url, "user/authorizations")),
       "SHOW_AUTHORIZATION"  => Link.new("Retrieve authorization :id", "GET", URI::join(get_url, "user/authorization/:id"), [

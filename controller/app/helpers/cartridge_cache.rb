@@ -2,7 +2,7 @@
 # to the Node to retrieve cartridge information.
 class CartridgeCache
   include CacheHelper
-  
+
   # Returns an Array of Cartridge objects
   def self.cartridges
     CacheHelper.get_cached("all_cartridges", :expires_in => 21600.seconds) do
@@ -29,7 +29,7 @@ class CartridgeCache
       find_cartridge_by_category(cart_type, app).map{ |cart| cart.name }
     end
   end
-  
+
   def self.find_cartridge_by_category(cat, app=nil)
     global_carts = CacheHelper.get_cached("cartridges_by_cat_#{cat}", :expires_in => 1.day) {cartridges.select{|cart| cart.categories.include?(cat) }}
     if app
@@ -48,47 +48,41 @@ class CartridgeCache
   #   Name of feature to look for.
 
   def self.find_cartridge(requested_feature, app=nil)
-  
+
     app.downloaded_cartridges.values.each do |cart|
       return cart if cart.features.include?(requested_feature)
       return cart if cart.name == requested_feature
     end if app
-    
+
     matching_carts = CacheHelper.get_cached("carts_by_feature_#{requested_feature}", :expires_in => 1.day) { self.find_all_cartridges(requested_feature) }
-    
+
     return nil if matching_carts.empty?
-    
+
     return matching_carts[0] if matching_carts.length == 1
-    
+
     #if any is by redhat return that one
     cart = matching_carts.find { |c| c.cartridge_vendor == "redhat"}
     return cart if cart
-    
+
     #if there are more than one match and none by redhat raise an exception
     choices = []
     matching_carts.each do |cart|
       choices << "#{cart.cartridge_vendor}-#{cart.name}-#{cart.version}"
     end
-    
+
     raise OpenShift::UserException.new("More that one cartridge was found matching #{requested_feature}.  Please select one of #{choices.to_s}")
-    
+
   end
-  
+
   def self.find_all_cartridges(requested_feature)
-    
+
     carts = self.cartridges
-
-
-
-
-
-
 
     cartname_hash = {}
     cartname_version_hash = {}
     vendor_cartname_hash = {}
     vendor_cartname_version_hash = {}
-    
+
     carts.each { |c|
       cartname = c.original_name
       cartname_hash[cartname] = [] if !cartname_hash[cartname]
@@ -113,9 +107,9 @@ class CartridgeCache
     return cartname_version_hash[requested_feature] if cartname_version_hash[requested_feature]
     return vendor_cartname_hash[requested_feature] if vendor_cartname_hash[requested_feature]
     return vendor_cartname_version_hash[requested_feature] if vendor_cartname_version_hash[requested_feature]
-    
+
     matching_carts = []
-    
+
     carts.each do |cart|
       matching_carts << cart if cart.features.include?(requested_feature) 
     end
@@ -130,7 +124,7 @@ class CartridgeCache
     max_redirs = (Rails.application.config.downloaded_cartridges[:max_download_redirects] rescue 2) || 2
     rate_limit = (Rails.application.config.downloaded_cartridges[:max_download_rate] rescue "100k") || "100k" 
     manifest = ""
-    
+
     uri_obj = URI.parse(url)
     if uri_obj.kind_of? URI::HTTP or uri_obj.kind_of? URI::FTP
       rout,wout = IO.pipe
@@ -188,7 +182,7 @@ class CartridgeCache
       # cloaking it as a UserException until Manifest starts raising subclasses of OOException 
       raise OpenShift::UserException.new(iee.message, 109)
     end
-       
+
     chash
   end
 
@@ -198,7 +192,7 @@ class CartridgeCache
     urls.each do |url|
        manifest_str = download_from_url(url)
        validate_yaml(url, manifest_str)
-       
+
        # TODO: check versions and create multiple of them
        self.foreach_cart_version(manifest_str) do |chash,name,version,vendored_name|
          # do a trial parsing of the chash(v1 manifest) so that we do not store a manifest that will not get through elaborate later on
@@ -212,5 +206,5 @@ class CartridgeCache
     end
     return cmap
   end
-  
+
 end

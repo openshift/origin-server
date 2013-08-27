@@ -7,14 +7,14 @@ class AliasController < BaseController
     rest_aliases = @application.aliases.map{ |a| get_rest_alias(a) }
     render_success(:ok, "aliases", rest_aliases, "Listing aliases for application #{@application.name} under domain #{@application.domain_namespace}")
   end
-  
-  def show   
+
+  def show
     id = params[:id].downcase if params[:id].presence
 
     al1as = @application.aliases.find_by(fqdn: id)
     render_success(:ok, "alias", get_rest_alias(al1as), "Showing alias #{id} for application #{@application.name} under domain #{@application.domain_namespace}")
   end
-  
+
 
   def create
     authorize! :create_alias, @application
@@ -23,7 +23,7 @@ class AliasController < BaseController
     ssl_certificate = params[:ssl_certificate].presence
     private_key = params[:private_key].presence
     pass_phrase = params[:pass_phrase].presence
-    
+
     server_alias = server_alias.downcase if server_alias
 
     if ssl_certificate and @application.capabilities["private_ssl_certificates"] != true
@@ -34,7 +34,7 @@ class AliasController < BaseController
     rest_alias = get_rest_alias(@application.aliases.find_by(fqdn: server_alias))
     render_success(:created, "alias", rest_alias, "Added #{server_alias} to application #{@application.name}", result)
   end
-  
+
   def update
     authorize! :update_alias, @application
 
@@ -42,17 +42,17 @@ class AliasController < BaseController
     ssl_certificate = params[:ssl_certificate].presence
     private_key = params[:private_key].presence
     pass_phrase = params[:pass_phrase].presence
-    
+
     if ssl_certificate and @application.capabilities["private_ssl_certificates"] != true
       return render_error(:forbidden, "User is not authorized to add private SSL certificates", 175)
     end
-    
+
     result = @application.update_alias(server_alias, ssl_certificate, private_key, pass_phrase)
     al1as = @application.aliases.find_by(fqdn: server_alias)
     rest_alias = get_rest_alias(al1as)
     render_success(:ok, "alias", rest_alias, "Updated #{server_alias} to application #{@application.name}", result)
   end
-  
+
   def destroy
     authorize! :destroy_alias, @application
 
