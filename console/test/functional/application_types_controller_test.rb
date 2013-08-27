@@ -155,8 +155,10 @@ class ApplicationTypesControllerTest < ActionController::TestCase
   test "should show hidden field for domain with owned domain" do
     with_unique_user
     Domain.expects(:find).returns([ owned_domain("owned") ])
+    User.any_instance.expects(:max_domains).returns(2)
     get :show, {:id => random_application_type_id}
     assert_hidden_domain_field("owned")
+    assert css_select("a.create_domain").present?
   end
 
   test "should show hidden field for domain with shared domain when cant create" do
@@ -165,6 +167,7 @@ class ApplicationTypesControllerTest < ActionController::TestCase
     User.any_instance.expects(:max_domains).returns(0)
     get :show, {:id => random_application_type_id}
     assert_hidden_domain_field("shared")
+    assert_equal [], css_select("a.create_domain")
   end
 
   def owned_domain(name="owned")
