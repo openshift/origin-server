@@ -306,7 +306,9 @@ class Upgrader
               upgrade_result.gear_count += node.gears_length
               puts "#####################################################"
               puts "Remaining node queue:"
-              puts node_queue.pretty_inspect
+              node_queue.each do |q|
+                q.server_identity
+              end
               puts "#####################################################"
             end
           end
@@ -654,7 +656,7 @@ class Upgrader
 
         # if not, throw a warning and move on
         unless user && Application.find_by_user(user, gear.app_name)
-          gear_result[:warnings] << "App '#{gear.app_name}' no longer found in datastore with uuid '#{gear.gear_uuid}'.  Ignoring..." 
+          gear_result.warnings << "App '#{gear.app_name}' no longer found in datastore with uuid '#{gear.gear_uuid}'.  Ignoring..." 
           append_to_file(results_file, gear_result.to_json)
           break
         end
