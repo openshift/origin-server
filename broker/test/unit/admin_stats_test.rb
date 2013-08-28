@@ -1,9 +1,12 @@
 require 'unit/helpers/admin_stats_helper'
+require 'admin/stats/results'
+
 
 class AdminStatsTest < ActiveSupport::TestCase
+  S = Admin::Stats # shortcut
   def setup
     super
-    @stats = Admin::Stats.new
+    @stats = Admin::Stats::Maker.new
     @dist_uuid = "1234"
     @node_details = faux_node_entry("test", @dist_uuid, "true").merge({
       max_active_gears: 10,
@@ -100,7 +103,7 @@ class AdminStatsTest < ActiveSupport::TestCase
     # first test on something ordinary
     h = Hash.new {|h,k| h[k] = 0}
     assert_raise(TypeError) {Marshal.dump(h)}
-    @stats.deep_clear_default!(h)
+    S::HashWithReaders.deep_clear_default! h
     assert_nothing_raised {Marshal.dump(h)}
 
     # now test on stats we gathered
@@ -111,31 +114,31 @@ class AdminStatsTest < ActiveSupport::TestCase
   test "using HashWithReaders subclasses" do
     @stats.gather_statistics
     r = @stats.results
-    assert_kind_of Admin::Stats::Results, r, "should be a subclass: #{r.class}"
-    assert_raises(OpenShift::HashWithReaders::NoSuchKey) {r.no_such_key}
-    assert_kind_of Admin::Stats::ProfileSummary, r.profile_summaries.first
-    assert_kind_of Admin::Stats::DistrictSummary, r.district_summaries.first
-    assert_kind_of Admin::Stats::DistrictEntry, r.district_entries_hash.first[1]
-    assert_kind_of Admin::Stats::NodeEntry, r.node_entries_hash.first[1]
+    assert_kind_of S::Results, r, "should be a subclass: #{r.class}"
+    assert_raises(S::HashWithReaders::NoSuchKey) {r.no_such_key}
+    assert_kind_of S::ProfileSummary, r.profile_summaries.first
+    assert_kind_of S::DistrictSummary, r.district_summaries.first
+    assert_kind_of S::DistrictEntry, r.district_entries_hash.first[1]
+    assert_kind_of S::NodeEntry, r.node_entries_hash.first[1]
 
     # need to be able to convert back to non-subclass hashes for YAML dump
-    r = OpenShift::HashWithReaders.deep_clear_subclasses(r)
-    refute_kind_of OpenShift::HashWithReaders, r, "should be a hash: #{r.class}"
-    refute_kind_of OpenShift::HashWithReaders, r['profile_summaries'].first
-    refute_kind_of OpenShift::HashWithReaders, r['district_summaries'].first
-    refute_kind_of OpenShift::HashWithReaders, r['district_entries_hash'].first[1]
-    refute_kind_of OpenShift::HashWithReaders, r['node_entries_hash'].first[1]
+    r = S::HashWithReaders.deep_clear_subclasses(r)
+    refute_kind_of S::HashWithReaders, r, "should be a hash: #{r.class}"
+    refute_kind_of S::HashWithReaders, r['profile_summaries'].first
+    refute_kind_of S::HashWithReaders, r['district_summaries'].first
+    refute_kind_of S::HashWithReaders, r['district_entries_hash'].first[1]
+    refute_kind_of S::HashWithReaders, r['node_entries_hash'].first[1]
     deduped = r['profile_summaries'].first
     assert_same deduped, r['profile_summaries_hash'][deduped['profile']],
       "instances in the results in multiple places should not have different copies"
 
     # need to be able to convert back to HashWithReader from plain hash dump
-    r = OpenShift::HashWithReaders.deep_convert_hashes(r)
-    assert_kind_of OpenShift::HashWithReaders, r, "should be converted: #{r.class}"
-    assert_kind_of OpenShift::HashWithReaders, r[:profile_summaries].first
-    assert_kind_of OpenShift::HashWithReaders, r[:district_summaries].first
-    assert_kind_of OpenShift::HashWithReaders, r[:district_entries_hash].first[1]
-    assert_kind_of OpenShift::HashWithReaders, r[:node_entries_hash].first[1]
+    r = S::HashWithReaders.deep_convert_hashes(r)
+    assert_kind_of S::HashWithReaders, r, "should be converted: #{r.class}"
+    assert_kind_of S::HashWithReaders, r[:profile_summaries].first
+    assert_kind_of S::HashWithReaders, r[:district_summaries].first
+    assert_kind_of S::HashWithReaders, r[:district_entries_hash].first[1]
+    assert_kind_of S::HashWithReaders, r[:node_entries_hash].first[1]
     deduped = r.profile_summaries.first
     assert_same deduped, r.profile_summaries_hash[deduped.profile],
       "instances in the results in multiple places should not have different copies"
@@ -192,7 +195,7 @@ class AdminStatsTest < ActiveSupport::TestCase
   test "reading results from a file" do
     # generate fake data sets
     @stats.gather_statistics
-    r = OpenShift::HashWithReaders.deep_clear_subclasses(@stats.results)
+    r = S::HashWithReaders.deep_clear_subclasses(@stats.results)
     file = "/tmp/admin-stats-#{$$}-#{rand(1000000)}"
     begin
       File.open(file+".yaml", 'w') {|f| f.write(YAML.dump r.merge('yaml' => 1)) }

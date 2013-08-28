@@ -41,7 +41,7 @@ class AdminStatsDbTest < ActionController::TestCase
     # Add other apps with problematic data to test
 
     # run some stats assuming the created app(s)
-    stats = Admin::Stats.new
+    stats = Admin::Stats::Maker.new
     c = {}
     assert_nothing_raised { c[:all], c[:profile], c[:user] = stats.get_db_stats }
     assert c[:all][:apps] >= 1, "number of apps should be at least what we created"

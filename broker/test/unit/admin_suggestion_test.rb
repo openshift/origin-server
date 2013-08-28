@@ -66,7 +66,7 @@ class AdminSuggestionTest < ActiveSupport::TestCase
     # shifts out from underneath this code, so this veers
     # somewhat in the direction of integration testing.
     admin_stats_stubber(@nodes_hash, faux_db_with(@districts))
-    stats = Admin::Stats.new(opts)
+    stats = Admin::Stats::Maker.new(opts)
     stats.gather_statistics
     stats.results
   end

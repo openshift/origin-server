@@ -17,8 +17,8 @@ module AdminConsole
 
     # in the case where we get Admin:: classes from the cache before
     # they have actually been defined... ensure their namespaces load.
-    Admin::Stats
-    Admin::Suggestion::Advisor
+    require 'admin/stats/results'
+    require 'admin/suggestion/types'
 
     def self.systems_summaries(force_reload = false, conf = Rails.application.config.admin_console)
       Rails.cache.fetch('admin_console_system_statistics',
@@ -36,8 +36,8 @@ module AdminConsole
     def self.gather_systems_statistics(config = {})
       # gather the stats as requested
       stats_conf = config[:stats] || {}
-      stats = Admin::Stats.new wait: stats_conf[:mco_timeout],
-                          read_file: stats_conf[:read_file] ||config[:debug_profile_data]
+      stats = Admin::Stats::Maker.new wait: stats_conf[:mco_timeout],
+                         read_file: stats_conf[:read_file] || config[:debug_profile_data]
       stats.gather_statistics
       results = stats.results
       # generate suggestions based on the stats and bundle into results hash.

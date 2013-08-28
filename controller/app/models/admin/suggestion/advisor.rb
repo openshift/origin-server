@@ -61,7 +61,7 @@ module Admin
           suggestions += p.validate
 
           unless stats
-            stats = Admin::Stats.new( wait: p.mcollective_timeout )
+            stats = Admin::Stats::Maker.new( wait: p.mcollective_timeout )
             stats.gather_statistics
             stats = stats.results
           end

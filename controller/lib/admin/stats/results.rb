@@ -14,14 +14,14 @@
 # limitations under the License.
 #++
 
-module OpenShift
+module Admin; module Stats
   # Helper hash subclass with three purposes:
   # 1. Give a type to the objects returned, rather than just being Hashes.
   # 2. Provide attribute readers that fail if the key is missing,
   #    to help detect mistakes faster.
   # 3. Simplify serialization by making all keys strings, not symbols, but
   #    still allowing key access by symbol.
-  class HashWithReaders < Hash
+  class HashWithReaders < ::Hash
     class NoSuchKey < StandardError; end
 
     # Keys switched from symbols to strings -
@@ -51,6 +51,23 @@ module OpenShift
     def to_s; "#{self.class} #{super}"; end
     def inspect; "#{self.class} #{super}"; end
     def pretty_inspect; "#{self.class} #{super}"; end
+
+    module CleanResults
+      # remove Hash default blocks for serialization (changes original!)
+      # See: http://stackoverflow.com/questions/6391855/rails-cache-error-in-rails-3-1-typeerror-cant-dump-hash-with-default-proc
+      def deep_clear_default!(obj = self)
+        if obj.is_a? Hash
+          obj.default = nil if obj.default_proc
+          obj.each {|k,v| deep_clear_default!(v)}
+        elsif obj.is_a? Array
+          obj.each {|v| deep_clear_default!(v)}
+        end
+        obj
+      end
+    end
+    # want those as class or instance methods
+    include CleanResults
+    extend CleanResults
 
     # Convert Hash subclasses into plain hashes for YAML/XML dump.
     # Assumptions:
@@ -85,5 +102,12 @@ module OpenShift
       end
     end
   end
-end
+
+  class DistrictSummary < HashWithReaders; end
+  class ProfileSummary < HashWithReaders; end
+  class DistrictEntry < HashWithReaders; end
+  class NodeEntry < HashWithReaders; end
+  class DbSummary < HashWithReaders; end
+  class Results < HashWithReaders; end
+end; end # module Admin::Stats
 
