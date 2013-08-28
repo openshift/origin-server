@@ -41,8 +41,8 @@ class LastAccessUpdater
   end
 
   # Read a property from app's environment files
-  def read_app_property(app_uuid, property)
-    file_path = "#{@app_root_dir}/#{app_uuid}/.env/#{property}"
+  def read_app_property(gear_uuid, property)
+    file_path = "#{@app_root_dir}/#{gear_uuid}/.env/#{property}"
     begin
       File.open(file_path) do |file|
         file.each_line do |line|
@@ -60,10 +60,10 @@ class LastAccessUpdater
     end
   end
 
-  def read_app_data(app_uuid)
-    val = read_app_property(app_uuid, 'OPENSHIFT_GEAR_DNS')
+  def read_app_data(gear_uuid)
+    val = read_app_property(gear_uuid, 'OPENSHIFT_GEAR_DNS')
     if val
-      @all_apps_info[val.downcase] = app_uuid
+      @all_apps_info[val.downcase] = gear_uuid
     end
   end
 
@@ -81,8 +81,8 @@ class LastAccessUpdater
   end
 
   def print_apps_data
-    @all_apps_info.each do |app_dns, app_uuid|
-      puts "#{app_dns} - #{app_uuid}"
+    @all_apps_info.each do |app_dns, gear_uuid|
+      puts "#{app_dns} - #{gear_uuid}"
     end
   end
 
@@ -102,14 +102,14 @@ class LastAccessUpdater
           hostname = parts[0].strip
           # puts "#{hostname}-->#{timestamp}"
           # Virtual host is same as app dns
-          app_uuid = @all_apps_info[hostname]
-          if app_uuid
+          gear_uuid = @all_apps_info[hostname]
+          if gear_uuid
             # This structure of operations is optimized for getting an
-            # extremely large number of app_uuids only once and just a few
+            # extremely large number of gear_uuids only once and just a few
             # twice.
-            if not (@last_access_data.has_key?(app_uuid) and
-                    ( DateTime.strptime(timestamp, "%d/%b/%Y:%H:%M:%S %Z") <= DateTime.strptime(@last_access_data[app_uuid], "%d/%b/%Y:%H:%M:%S %Z")))
-              @last_access_data[app_uuid] = timestamp
+            if not (@last_access_data.has_key?(gear_uuid) and
+                    ( DateTime.strptime(timestamp, "%d/%b/%Y:%H:%M:%S %Z") <= DateTime.strptime(@last_access_data[gear_uuid], "%d/%b/%Y:%H:%M:%S %Z")))
+              @last_access_data[gear_uuid] = timestamp
             end
           end
         end

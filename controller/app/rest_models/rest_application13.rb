@@ -15,7 +15,7 @@ class RestApplication13 < OpenShift::Model
 
     self.name = app.name
     self.creation_time = app.created_at
-    self.uuid = app.uuid
+    self.uuid = app._id
     self.aliases = []
     app.aliases.each do |a|
       self.aliases << a.fqdn

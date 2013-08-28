@@ -88,7 +88,7 @@ class RestApplication15 < OpenShift::Model
 
     self.name = app.name
     self.creation_time = app.created_at
-    self.uuid = app.uuid
+    self.uuid = app._id
     self.aliases = []
     app.aliases.each do |a|
       self.aliases << RestAlias.new(app, a, url, nolinks)
@@ -127,7 +127,7 @@ class RestApplication15 < OpenShift::Model
           self.embedded[cart.name] = component_instance.component_properties
 
           # if the component has a connection_url property, add it as "info" for backward compatibility
-          # make sure it is a hash, because copy-pasting the app document in mongo (using rockmongo UI) can convert hashes into arrays 
+          # make sure it is a hash, because copy-pasting the app document in mongo (using rockmongo UI) can convert hashes into arrays
           if component_instance.component_properties.is_a?(Hash) and component_instance.component_properties.has_key?("connection_url")
             self.embedded[cart.name]["info"] = "Connection URL: #{component_instance.component_properties['connection_url']}"
           end
@@ -201,10 +201,10 @@ class RestApplication15 < OpenShift::Model
         ),
         "LIST_CARTRIDGES" => Link.new("List embedded cartridges", "GET", URI::join(url, "domains/#{@domain_id}/applications/#{@name}/cartridges")),
         "DNS_RESOLVABLE" => Link.new("Resolve DNS", "GET", URI::join(url, "domains/#{@domain_id}/applications/#{@name}/dns_resolvable")),
-        "ADD_ALIAS" => Link.new("Create new alias", "POST", URI::join(url, "domains/#{@domain_id}/applications/#{@name}/aliases"), 
-          [Param.new("id", "string", "Alias for application")], 
-          [OptionalParam.new("ssl_certificate", "string", "Content of SSL Certificate"), 
-            OptionalParam.new("private_key", "string", "Private key for the certificate.  Required if adding a certificate"), 
+        "ADD_ALIAS" => Link.new("Create new alias", "POST", URI::join(url, "domains/#{@domain_id}/applications/#{@name}/aliases"),
+          [Param.new("id", "string", "Alias for application")],
+          [OptionalParam.new("ssl_certificate", "string", "Content of SSL Certificate"),
+            OptionalParam.new("private_key", "string", "Private key for the certificate.  Required if adding a certificate"),
             OptionalParam.new("pass_phrase", "string", "Optional passphrase for the private key")]),
         "LIST_ALIASES" => Link.new("List application aliases", "GET", URI::join(url, "domains/#{@domain_id}/applications/#{@name}/aliases")),
         "LIST_MEMBERS" => Link.new("List members of this application", "GET", URI::join(url, "domains/#{@domain_id}/applications/#{@name}/members")),

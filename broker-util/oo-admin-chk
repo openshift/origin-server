@@ -79,7 +79,7 @@ def datastore_has_gear?(gear_uuid, app_uuid=nil, false_positive_response=true)
     # specifying the app_uuid first, if present
     # this makes better use of the indexes and performance is better 
     if app_uuid
-      query = { "uuid" => app_uuid }
+      query = { "_id" => app_uuid }
     else
       query = {}
     end

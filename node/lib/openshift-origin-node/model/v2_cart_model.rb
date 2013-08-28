@@ -1370,6 +1370,10 @@ module OpenShift
         end
       end
 
+      def has_repository?
+        ApplicationRepository.new(@container).exists?
+      end
+
       private
       ## special methods that are handled especially by the platform
       def publish_gear_endpoint
