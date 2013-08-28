@@ -1,10 +1,11 @@
 require 'unit/helpers/admin_stats_helper'
 require 'pp'
 require 'yaml'
+require 'admin/suggestion/types'
 
 class AdminSuggestionTest < ActiveSupport::TestCase
 
-  # define shortcuts for class constants in these tests
+  # define shortcuts for namespace constants in these tests
   S = Admin::Suggestion
   C = S::Capacity
 

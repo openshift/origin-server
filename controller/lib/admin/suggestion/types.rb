@@ -15,11 +15,12 @@
 #++
 
 #
-# Suggestion::Base and subclasses define attributes specific to the
+# Admin::Suggestion::Base and subclasses define attributes specific to the
 # particular type of suggestion being made.
 #
 module Admin
   module Suggestion
+    class Types; end # just so the file name matches something...
     class Base
 
       # Actual suggestions are just value objects to be consumed by callers
@@ -227,5 +228,52 @@ module Admin
       end
     end # Config
 
+    class Container < ::Array
+      def +(add)  # need to return a Container - default morphs to Array
+        if add.is_a? Array
+          add.each {|x| self << x}
+        else # adding an element, don't make me think about += vs <<
+          self << add
+        end
+        self
+      end
+      def compact  # need to return a Container - default morphs to Array
+        Container.new + super
+      end
+
+      VALID_SCOPES = %w[general profile district]
+      def for_scope(scope, filter = nil)
+        VALID_SCOPES.include?(scope) || raise("invalid scope: #{scope}")
+        c = Container.new + select {|sugg| sugg.scope == scope}
+        return c if filter.nil?
+        case scope
+          when "profile";  c.for_profile(filter)
+          when "district"; c.for_district(filter)
+          else;            c
+        end
+      end
+      def for_general
+        for_scope("general")
+      end
+      def for_profile(profile)
+        Container.new + select {|sugg| sugg.profile == profile}
+      end
+      def for_district(uuid)
+        Container.new + select {|sugg| sugg.district_uuid == uuid}
+      end
+      def group_by_profile
+        inject(Hash.new) {|h,sugg| (h[sugg.profile] ||= Container.new) << sugg; h }
+      end
+      def group_by_district_uuid
+        inject(Hash.new) {|h,sugg| (h[sugg.district_uuid] ||= Container.new) << sugg; h }
+      end
+      def group_by_class
+        inject(Hash.new) {|h,sugg| (h[sugg.class] ||= Container.new) << sugg; h }
+      end
+      def important(filter = true)
+        Container.new + select {|sugg| sugg.important? == filter}
+      end
+
+    end
   end
 end

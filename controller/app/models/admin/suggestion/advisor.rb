@@ -32,12 +32,17 @@ module Admin
       def log_error(msg); Rails.logger.error(msg); end
     end
 
-    # Advisors are a parallel class heirarchy for generating suggestions.
+    # Advisors are a class heirarchy for generating suggestions.
     # This class executes .query(Params, Results, current_suggestions) on all
     # of its subclasses, expecting each to return a Container with any new
     # suggestions.
-    class Advisor # sub-namespace but not sub-class
+    class Advisor
       extend Logger
+      include Logger
+
+      # ensure known advisors are loaded
+      #Admin::Suggestion::Params
+      Admin::Suggestion::Capacity
 
       # Expected parameter:
       #   Params or hash of parameters for constructing Params
@@ -46,9 +51,6 @@ module Admin
       # Validates parameters and executes .query(Params, Results, current_suggestions)
       # on all subclasses (which must override this method)
       def self.query(p = nil, stats = nil)
-        # ensure these are loaded appropriately - cannot rely on Rails
-        require 'admin/suggestion/params'
-        require 'admin/suggestion/capacity'
         # if params are badly specified, let exceptions blow up
         p = Params.new(p || {}) if !p.is_a? Params
 
@@ -84,8 +86,6 @@ module Admin
       # have all descendants generate representative test instances
       # for display/test purposes.
       def self.subclass_test_instances
-        require 'admin/suggestion/params'
-        require 'admin/suggestion/capacity'
         sugs = self.descendants.inject(Container.new) do |c,klass|
             klass.respond_to?(:test_instances) ? c += klass.test_instances : c
         end

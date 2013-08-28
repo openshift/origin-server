@@ -14,6 +14,7 @@
 # limitations under the License.
 #++
 
+require 'admin/suggestion/types'
 module Admin
   module Suggestion
     # Class for Suggestion parameters
@@ -23,9 +24,9 @@ module Admin
     # - logic to retrieve values per profile, referring to defaults as needed
     #
     class Params
-      require 'admin/suggestion/advisor'
-      extend Logger
-      include Logger
+      Admin::Suggestion::Advisor # ensure it's loaded
+      extend Suggestion::Logger # defined in that :)
+      include Suggestion::Logger
 
       def initialize(attrs = {})
         @attrs = {}
