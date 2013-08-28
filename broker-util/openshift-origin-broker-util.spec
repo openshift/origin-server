@@ -6,7 +6,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin broker
 Name:          openshift-origin-broker-util
-Version: 1.13.10
+Version: 1.13.11
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -84,6 +84,9 @@ cp man/*.8 %{buildroot}%{_mandir}/man8/
 %{_mandir}/man8/oo-stats.8.gz
 
 %changelog
+* Wed Aug 28 2013 Adam Miller <admiller@redhat.com> 1.13.11-1
+- Upgrade fix for warning handling (ironcladlou@gmail.com)
+
 * Fri Aug 23 2013 Adam Miller <admiller@redhat.com> 1.13.10-1
 - Bug 1000193: Use an Hourglass in the gear upgrader (ironcladlou@gmail.com)
 
