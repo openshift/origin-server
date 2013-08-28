@@ -17,13 +17,29 @@ The OpenShift Origin RPMs can be available from:
 
 NOTE: For OpenShift Origin broker/nodes to be configured properly you will need the host to be configured with a DNS resolvable hostname and static IP Address.
 
-== Installing Puppet
+== Puppet Setup
 
-NOTE: For RHEL systems you will need to include the http://fedoraproject.org/wiki/EPEL[EPEL repository] to install puppet. To do so install the latest http://download.fedoraproject.org/pub/epel/6/i386/repoview/epel-release.html[epel-release package].
+=== Enterprise Prerequisites
+
+NOTE: For Enterprise Linux systems you will need some extra repositories to install the necessary version of puppet. This is unnecessary for Fedora 19 systems.
+
+* http://fedoraproject.org/wiki/EPEL[EPEL repository] - install the latest http://download.fedoraproject.org/pub/epel/6/i386/repoview/epel-release.html[epel-release package].
 
 ----
 yum install -y --nogpgcheck ${url_of_the_latest_epel-release_rpm}
 ----
+
+* http://docs.puppetlabs.com/guides/puppetlabs_package_repositories.html[PuppetLabs enterprise repository] - install the latest http://yum.puppetlabs.com/el/6/products/i386/[puppetlabs-release package].
+
+----
+yum install -y --nogpgcheck ${url_of_the_latest_puppet-release_rpm}
+----
+
+* "Optional" repository - enable depending on your source:
+** yum-config-manager --enable rhel-6-server-optional-rpms
+** Under RHN classic, enable the rhel-x86_64-server-optional-6 channel
+
+=== Install Puppet
 
 Run the following to install puppet and facter
 
@@ -140,7 +156,18 @@ Execute the puppet script:
 puppet apply --verbose configure_origin.pp
 ----
 
-== Configuring seperate hosts for broker/node
+Assuming everything runs cleanly, installation is complete. Otherwise, you can resolve the errors shown (warnings can often be ignored)
+and re-run puppet until it runs cleanly.
+
+If you have not already arranged for the DNS resolution of this host, you can now use the oo-register-dns tool to do so:
+
+----
+oo-register-dns --with-node-hostname broker --with-node-ip <broker IP> --domain example.com 
+----
+
+Assuming everything runs cleanly, reboot the system for all settings and services to go into effect.
+
+== Configuring separate hosts for broker/node
 
 === Broker host
 
@@ -208,6 +235,8 @@ Execute the puppet script:
 puppet apply --verbose configure_origin.pp
 ----
 
+As with the all-in-one host, ensure DNS resolves this host and puppet runs cleanly, then reboot.
+
 === Node host
 
 In this configuration, the host will run only the node.
@@ -274,3 +303,6 @@ Execute the puppet script:
 ----
 puppet apply --verbose configure_origin.pp
 ----
+
+As with the all-in-one host, ensure DNS resolves this host and puppet runs cleanly, then reboot.
+
