@@ -25,7 +25,7 @@
 
       - apps.each do |application|
         .grid-wrapper.tile-click
-          .span12.application-info{ :class => application.owner? ? 'application-owned' : nil }
+          .span12.application{ :class => application.owner? ? 'application-owned' : nil }
             %h2.flow
               - if application.aliases.present?
                 = link_to application_path(application), :class => 'tile-target flow-block' do

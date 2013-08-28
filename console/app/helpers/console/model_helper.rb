@@ -1,4 +1,38 @@
 module Console::ModelHelper
+
+  def cartridge_info(cartridge, application)
+    case
+    when cartridge.jenkins_client?
+      [
+        link_to('See Jenkins Build jobs', application.build_job_url, :title => 'Jenkins is currently running builds for your application'),
+        link_to('(configure)', application_building_path(application), :title => 'Remove or change your Jenkins configuration'),
+      ].join(' ').html_safe
+    when cartridge.haproxy_balancer?
+      link_to "See HAProxy status page", application.scale_status_url
+    when cartridge.database?
+      name, _ = cartridge.data(:database_name)
+      if name
+        user, _ = cartridge.data(:username)
+        password, _ = cartridge.data(:password)
+        content_tag(:span,
+          if user && password
+            (@info_id ||= 0)
+            link_id = "db_link_#{@info_id += 1}"
+            span_id = "db_link_#{@info_id += 1}"
+            "Database: <strong>#{h name}</strong> (user <strong>#{h user}</strong>, <a href=\"javascript:;\" id=\"#{link_id}\" data-unhide=\"##{span_id}\" data-hide-parent=\"##{link_id}\">show password</a><span id=\"#{span_id}\" class=\"hidden\">password <strong>#{h password}</strong></span>)".html_safe
+          else
+            "Database: <strong>#{name}</strong>"
+          end
+        )
+      end
+    else
+      url, name = cartridge.data(:connection_url)
+      if url
+        link_to name, url, :target => '_blank'
+      end
+    end
+  end
+
   def gear_group_states(states)
     return states[0].to_s.humanize if states.uniq.length == 1
     "#{states.count{ |s| s == :started }}/#{states.length} started"
@@ -71,7 +105,7 @@ module Console::ModelHelper
     if multiplier > 1
       parts << "#{multiplier} x"
     end
-    parts << "%s GB storage" % quota
+    parts << "%s GB" % quota
     parts.join(' ').strip
   end
 

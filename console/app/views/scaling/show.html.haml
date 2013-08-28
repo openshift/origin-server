@@ -7,6 +7,7 @@
   - @cartridges.each do |cartridge|
     .gear-group.tile
       %h2
+        %a{name: cartridge.name}
         = cartridge.display_name
         - if cartridge.scales?
           %span.pull-right Using #{pluralize(cartridge.current_scale, 'gear')}

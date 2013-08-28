@@ -142,6 +142,12 @@ class Cartridge < RestApi::Base
     @grouping ||= [name].concat(collocated_with).uniq.sort
   end
 
+  def data(name, default=nil)
+    if prop = properties.find{ |p| p['type'] == 'cart_data' && p['name'] == name.to_s }
+      [prop['value'].presence || default, prop['description']]
+    end
+  end
+
   def <=>(other)
     return 0 if name == other.name
     cartridge_type <=> other.cartridge_type

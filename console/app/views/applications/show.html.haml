@@ -56,51 +56,68 @@
     border-color: white transparent transparent white;
     left: 0;
   }
-  .cartridge-inset h6 {
-    line-height: 15px;
+  .flow-block > ul.inline {
+    display: inline-block;
+    white-space: nowrap;
+    margin-bottom: 0;
   }
-  .cartridge-inset .data {
-    font-size: 12px;
-    line-height: 15px;
+  .flow-block > ul.inline > li > div {
+    white-space: normal;
+  }
+  .flow-block > ul.inline > li {
+    line-height: 120%;
+    font-size: 50%;
     text-transform: uppercase;
   }
-  .cartridge-inset ul.inline > li {
+  .top {
     vertical-align: top;
+  }
+
+  .flow-block > ul.inline > li > h6 {
+    font-size: 100%;
+    line-height: 120%;
   }
 
 
 - content_for :top do
   .grid-wrapper.section-header
-    %nav.span12.span-flush-right.application-info
-      %ul.pull-right.unstyled-flat.bits
-        %li
-          %h6 Gears
-          %span.data #{@application.gear_count} total
+    %nav.span12.span-flush-right.application
+      %h1.flow
+        - if @application.aliases.length > 1
+          .name= @application.name
+          = link_to @application.aliases.first.name, URI::HTTP.new('http', nil, 'www.foo.com', nil, nil, nil, nil, nil, nil).to_s, :class => 'url url-alias'
+          = link_to pluralize(@application.aliases.length - 1, 'alias'), application_path(@application), :class => 'url-alter'
+        - elsif @application.aliases.present?
+          .name= @application.name
+          = link_to @application.aliases.first.name, URI::HTTP.new('http', nil, 'www.foo.com', nil, nil, nil, nil, nil, nil).to_s, :class => 'url url-alias'
+          = link_to 'change', application_path(@application), :class => 'url-alter'
+        - else
+          = link_to @application.web_url, :class => 'url-default' do
+            %span.name>= @application.name
+            %span.url>= URI.parse(@application.web_url).hostname.gsub(/\A#{Regexp.escape(@application.name)}/, '')
+          = link_to "change", new_application_alias_path(@application), :class => 'url-alter'
 
-        %li#restart-container.popover-restart
-          = link_to application_restart_path(@application), { :id => 'restart-link', 'data-html' => 'true', 'data-placement' => 'bottom', :class => 'block btn-console-header', :title => 'Restart Application'} do
-            %span.font-icon.font-icon-size-34.font-icon-grey{:alt => 'Restart', :title =>"Restart application", "aria-hidden" => "true", "data-icon" => "\ue020"}
-          #restart-popover.hide
-            = render 'restarts/form'
+        .flow-block.right
+          %ul.inline.left
+            %li
+              %h6 Status
+              %div.data= gear_group_states(@gear_groups.map(&:states).flatten(1))
+            %li
+              %h6 Gears
+              %div.data #{@application.gear_count} #{@application.gear_profile}
 
-      %h1.name
-        = @application.name
-        .url{style: 'opacity: 1.0; font-size: 26px; display: inline;'}
-          = '/'
-          - if @application.aliases.length > 1
-            = link_to @application.aliases.first.name, URI::HTTP.new('http', nil, 'www.foo.com', nil, nil, nil, nil, nil, nil).to_s, style: 'color: #ccc'
-            = link_to pluralize(@application.aliases.length - 1, 'alias'), application_path(@application), style: 'font-size: 15px'
-          - elsif @application.aliases.present?
-            = link_to @application.aliases.first.name, URI::HTTP.new('http', nil, 'www.foo.com', nil, nil, nil, nil, nil, nil).to_s, style: 'color: #ccc'
-            = link_to 'change', application_path(@application), style: 'font-size: 15px'
-          - else
-            = link_to URI.parse(@application.web_url).hostname, @application.web_url, style: 'color: #ccc'
-            = link_to "change", new_application_alias_path(@application), style: 'font-size: 15px'
+            %li#restart-container.popover-restart
+              = link_to application_restart_path(@application), { :id => 'restart-link', 'data-html' => 'true', 'data-placement' => 'bottom', :class => 'block btn-console-header', :title => 'Restart Application'} do
+                %span.font-icon.font-icon-size-34.font-icon-grey{:alt => 'Restart', :title =>"Restart application", "aria-hidden" => "true", "data-icon" => "\ue020"}
+              #restart-popover.hide
+                = render 'restarts/form'
+
       %p{style: 'margin-top: -10px; margin-bottom: 10px; opacity: 0.8;'}
         Created #{time_ago_in_words(@application.creation_time)} ago in domain
         #{link_to @application.domain_id, domain_path(@application.domain_id)}
 
-%section#app-specifics
+%section{style: 'margin-bottom: 20px;'}
+
 %section#app-cartridges.span9
   %header.clearfix.header-bar
     %h3
@@ -121,174 +138,147 @@
 
   - @gear_groups.each_with_index do |group,g|
     .gear-group
-      - cartridge = group.cartridges.first
-      .cartridge-block
-        .cartridge-border
-          .cartridge-inset
-            %h2.flow
-              %div.flow-block{:title => cartridge.name}= cartridge.display_name
+      - group.cartridges.each_with_index do |cartridge, i|
+        - primary = i == 0
+        .cartridge-block{:class => ('cartridge-embedded' if !primary)}
+          .cartridge-border
+            .cartridge-inset
+              - if primary
+                %h2.flow
+                  .flow-block{:title => cartridge.name}= cartridge.display_name
 
-              %div.flow-block.right>
-                %ul.inline.left{style: 'margin-bottom: 0; display: inline-block; white-space: nowrap;'}
-                  %li
-                    %h6 Status
-                    - states = group.states.group_by(&:to_s)
-                    - if states.length == 1
-                      %div.data= states.first[0]
-                    - else
-                      - states.each do |status, at|
-                        %div.data= "#{at.length} #{status}"
+                  .flow-block.right>
+                    %ul.inline.left
+                      - if cartridge.scales?
+                        %li.top
+                          %h6 Scales
+                          %div.data
+                            - from = cartridge.scales_from
+                            - to = cartridge.effective_scales_to(max_gears)
+                            = link_to application_scaling_path(@application, :anchor => cartridge.name) do
+                              - if from == to
+                                Set to #{from}
+                              - else
+                                #{cartridge.scales_from} - #{cartridge.effective_scales_to(max_gears)}
 
-                  - if cartridge.scales?
-                    %li
-                      %h6 Scales
-                      %div.data
-                        - from = cartridge.scales_from
-                        - to = cartridge.effective_scales_to(max_gears)
-                        = link_to application_scaling_path(@application) do
-                          - if from == to
-                            Set to #{from}
-                          - else
-                            #{cartridge.scales_from} - #{cartridge.effective_scales_to(max_gears)}
-
-                  %li
-                    %h6 Gears
-                    %div.data{:title => gear_group_count_title(group.gears.length)}
-                      = link_to cartridge_gear_group_count(group), application_scaling_path(@application)
-                    %div.data
-                      = link_to cartridge_storage(cartridge), application_storage_path(@application)
-
-
-                -#%div.gear{title: gear_group_count_title(group.gears.length), style: 'position: relative; display: inline-block;'}>
-                  - group.gears.each_with_index do |g, i|
-                    - if cartridge.scales_from == (i+1) && cartridge.scales_to != cartridge.scales_from
-                      %span.gear-icon{'aria-hidden'=>"true", 'data-icon' => "\ue014", style: "opacity: 1; #{g.state != :started ? 'color: yellow' : ''}; margin-left: 3px", :title => g.state, :class => 'gear-min'}>
-                        %span.gear-icon-text> min #{i+1}
-                    - else
-                      %span.gear-icon{'aria-hidden'=>"true", 'data-icon' => "\ue014", style: "opacity: 1; #{g.state != :started ? 'color: yellow' : ''}; margin-left: 3px", :title => g.state}>
-
-                  - if cartridge.can_scale_up?(max_gears)
-                    %span.gear-gap{style: 'opacity: 0.4; margin-left: 3px; '}> ➜
-                    %span.gear-icon.gear-max{'aria-hidden'=>"true", 'data-icon' => "\ue014", style: 'opacity: 0.6; margin-left: 3px'}>
-                      %span.gear-icon-text>max #{cartridge.effective_scales_to(max_gears)}
-
-                  - elsif can_scale_up
-                    %span.gear-gap{style: 'visibility: hidden; margin-left: 3px; '}> ➜
-                    %span.gear-icon.gear-max{'aria-hidden'=>"true", 'data-icon' => "\ue014", style: 'visibility: hidden; margin-left: 3px'}>
-
-                -#%div.gear{style: 'position: relative; display: inline-block;'}>
-                  %div{style: 'display: inline-block; text-align: center; font-size: 10px; line-height: 10.5px; text-transform: uppercase; opacity: 0.5; min-width: 35px; margin-left: 2px; margin-right: 2px;'}
-                    %div= link_to cartridge_storage(cartridge), application_storage_path(@application), style: 'color: white;'
-                    %div= cartridge.gear_profile
-
-                  %div{style: 'display: none; text-align: right; font-size: 10px; line-height: 10.5px; text-transform: uppercase; opacity: 0.5; position: absolute; right: 0; bottom: -12px;'}
-
-                  - states = group.gears.group_by(&:state)
-                  - extra = states.slice!(:started, :idle, :stopped)
-                  - if extra.present?
-                    %span.gear-count
-                      - c = extra.inject(0){ |i, (k,v)| i += v.length; i }
-                      - if c > 1
-                        %span.gear-count-text>
-                          = c
-                      %span.font-icon-block>
-                        %span.font-icon.gear-icon{'aria-hidden'=>"true", 'data-icon' => "\ue015", style: "opacity: 1;", :class => ''}>
-                        %span.font-icon.gear-icon{'aria-hidden'=>"true", 'data-icon' => "\ue016", style: "opacity: 1; color: orange;", :class => ''}>
-
-                  - if (c = states[:idle]) && c.present?
-                    %span.gear-count
-                      - if (c = c.length) > 1
-                        %span.gear-count-text>
-                          = c
-                      %span.font-icon-block>
-                        %span.font-icon.gear-icon{'aria-hidden'=>"true", 'data-icon' => "\ue015", style: "opacity: 1;", :class => ''}>
-                        %span.font-icon.gear-icon{'aria-hidden'=>"true", 'data-icon' => "\ue016", style: "opacity: 1; color: lightblue;", :class => ''}>
-
-                  - if (c = states[:stopped]) && c.present?
-                    %span.gear-count>
-                      - if (c = c.length) > 1
-                        %span.gear-count-text>
-                          = c
-                      %span.font-icon-block>
-                        %span.font-icon.gear-icon{'aria-hidden'=>"true", 'data-icon' => "\ue015", style: "opacity: 1;", :class => ''}>
-                        %span.font-icon.gear-icon{'aria-hidden'=>"true", 'data-icon' => "\ue016", style: "opacity: 1; color: red;", :class => ''}>
-
-                  - if (c = states[:started]) && c.present?
-                    %span.gear-count>
-                      - if (c = c.length) > 1
-                        %span.gear-count-text>
-                          = c
-                      %span.gear-icon{'aria-hidden'=>"true", 'data-icon' => "\ue014", style: "opacity: 1;", :class => ''}>
-
-                  - max = cartridge.effective_scales_to(max_gears)
-                  - if (c = max - cartridge.current_scale) > 0
-                    %span.gear-count>
-                      - if c > 1
-                        %span.gear-count-text>
-                          = c
-                      %span.gear-icon{'aria-hidden'=>"true", 'data-icon' => "\ue014", style: "opacity: 0.4;", :class => ''}>
-
-                  - if cartridge.scales?
-                    .gauge-vertical{style: 'right: -4px'}>
-                      - if cartridge.has_scale_range?
-                        - if cartridge.can_scale_up?
-                          %span.gauge-tick.empty>  .
-                          %span.gauge-tick.fill>  .
-                          %span.gauge-tick.fill>  .
-                        - elsif cartridge.can_scale_down?
-                          %span.gauge-tick.empty> .
-                          %span.gauge-tick.empty> .
-                          %span.gauge-tick.fill>  .
+                      %li.top
+                        %h6 Status
+                        - states = group.states.group_by(&:to_s)
+                        - if states.length == 1
+                          %div.data= states.first[0]
                         - else
-                          %span.gauge-tick.fill> .
-                          %span.gauge-tick.fill>  .
-                          %span.gauge-tick.fill>  .
-                      - else
-                        %span.gauge-tick.fill> .
-                        %span.gauge-tick.fill> .
-                        %span.gauge-tick.fill> .
+                          - states.each do |status, at|
+                            %div.data= "#{at.length} #{status}"
 
-            - if cartridge.custom?
-              %p Created from #{link_to cartridge.url, cartridge.url}
+                      %li.top
+                        %h6 Gears
+                        %div.data
+                          = link_to cartridge_gear_group_count(group), application_scaling_path(@application, :anchor => cartridge.name), :title => gear_group_count_title(group.gears.length)
+                          &ndash;
+                          = link_to cartridge_storage(cartridge), application_storage_path(@application, :anchor => cartridge.name), :title => "Each gear is allocated disk space.  Click to change."
 
-      - if scales_with = cartridge.scales_with_type
-        .cartridge.cartridge-block.cartridge-embedded
-          .cartridge-border
-            .cartridge-inset
-              .flow
-                %h4.cartridge-name{title: 'This cartridge is a plugin, and shares resources with the web framework'}
-                  = scales_with.display_name
-                - if scales_with.haproxy_balancer?
-                  .flow-block.right
-                    = link_to "See HAProxy status page", @application.scale_status_url, :title => web_cartridge_scale_title(cartridge)
 
-              - if scales_with.custom?
-                %p Created from #{link_to scales_with.url, scales_with.url}
+                    -#%div.gear{title: gear_group_count_title(group.gears.length), style: 'position: relative; display: inline-block;'}>
+                      - group.gears.each_with_index do |g, i|
+                        - if cartridge.scales_from == (i+1) && cartridge.scales_to != cartridge.scales_from
+                          %span.gear-icon{'aria-hidden'=>"true", 'data-icon' => "\ue014", style: "opacity: 1; #{g.state != :started ? 'color: yellow' : ''}; margin-left: 3px", :title => g.state, :class => 'gear-min'}>
+                            %span.gear-icon-text> min #{i+1}
+                        - else
+                          %span.gear-icon{'aria-hidden'=>"true", 'data-icon' => "\ue014", style: "opacity: 1; #{g.state != :started ? 'color: yellow' : ''}; margin-left: 3px", :title => g.state}>
 
-      - if builds_with = cartridge.builds_with_type
-        .cartridge.cartridge-block.cartridge-embedded
-          .cartridge-border
-            .cartridge-inset
-              .flow
-                %h4.cartridge-name{title: 'This cartridge is a plugin, and shares resources with the web framework'}
-                  = builds_with.display_name
-                - if builds_with.jenkins_client?
-                  .flow-block.right
-                    =link_to 'See Jenkins Build jobs', @application.build_job_url, :title => 'Jenkins is currently running builds for your application'
-                    =link_to '(configure)', application_building_path(@application), :title => 'Remove or change your Jenkins configuration'
+                      - if cartridge.can_scale_up?(max_gears)
+                        %span.gear-gap{style: 'opacity: 0.4; margin-left: 3px; '}> ➜
+                        %span.gear-icon.gear-max{'aria-hidden'=>"true", 'data-icon' => "\ue014", style: 'opacity: 0.6; margin-left: 3px'}>
+                          %span.gear-icon-text>max #{cartridge.effective_scales_to(max_gears)}
 
-                - if builds_with.custom?
-                  %p Created from #{link_to builds_with.url, builds_with.url}
+                      - elsif can_scale_up
+                        %span.gear-gap{style: 'visibility: hidden; margin-left: 3px; '}> ➜
+                        %span.gear-icon.gear-max{'aria-hidden'=>"true", 'data-icon' => "\ue014", style: 'visibility: hidden; margin-left: 3px'}>
 
-      - group.cartridges[1..-1].each do |cartridge|
-        .cartridge.cartridge-block.cartridge-embedded
-          .cartridge-border
-            .cartridge-inset
-              .flow
-                %h4.cartridge-name{title: 'This cartridge is a plugin, and shares resources with the web framework'}
-                  = cartridge.display_name
+                    -#%div.gear{style: 'position: relative; display: inline-block;'}>
+                      %div{style: 'display: inline-block; text-align: center; font-size: 10px; line-height: 10.5px; text-transform: uppercase; opacity: 0.5; min-width: 35px; margin-left: 2px; margin-right: 2px;'}
+                        %div= link_to cartridge_storage(cartridge), application_storage_path(@application), style: 'color: white;'
+                        %div= cartridge.gear_profile
+
+                      %div{style: 'display: none; text-align: right; font-size: 10px; line-height: 10.5px; text-transform: uppercase; opacity: 0.5; position: absolute; right: 0; bottom: -12px;'}
+
+                      - states = group.gears.group_by(&:state)
+                      - extra = states.slice!(:started, :idle, :stopped)
+                      - if extra.present?
+                        %span.gear-count
+                          - c = extra.inject(0){ |i, (k,v)| i += v.length; i }
+                          - if c > 1
+                            %span.gear-count-text>
+                              = c
+                          %span.font-icon-block>
+                            %span.font-icon.gear-icon{'aria-hidden'=>"true", 'data-icon' => "\ue015", style: "opacity: 1;", :class => ''}>
+                            %span.font-icon.gear-icon{'aria-hidden'=>"true", 'data-icon' => "\ue016", style: "opacity: 1; color: orange;", :class => ''}>
+
+                      - if (c = states[:idle]) && c.present?
+                        %span.gear-count
+                          - if (c = c.length) > 1
+                            %span.gear-count-text>
+                              = c
+                          %span.font-icon-block>
+                            %span.font-icon.gear-icon{'aria-hidden'=>"true", 'data-icon' => "\ue015", style: "opacity: 1;", :class => ''}>
+                            %span.font-icon.gear-icon{'aria-hidden'=>"true", 'data-icon' => "\ue016", style: "opacity: 1; color: lightblue;", :class => ''}>
+
+                      - if (c = states[:stopped]) && c.present?
+                        %span.gear-count>
+                          - if (c = c.length) > 1
+                            %span.gear-count-text>
+                              = c
+                          %span.font-icon-block>
+                            %span.font-icon.gear-icon{'aria-hidden'=>"true", 'data-icon' => "\ue015", style: "opacity: 1;", :class => ''}>
+                            %span.font-icon.gear-icon{'aria-hidden'=>"true", 'data-icon' => "\ue016", style: "opacity: 1; color: red;", :class => ''}>
+
+                      - if (c = states[:started]) && c.present?
+                        %span.gear-count>
+                          - if (c = c.length) > 1
+                            %span.gear-count-text>
+                              = c
+                          %span.gear-icon{'aria-hidden'=>"true", 'data-icon' => "\ue014", style: "opacity: 1;", :class => ''}>
+
+                      - max = cartridge.effective_scales_to(max_gears)
+                      - if (c = max - cartridge.current_scale) > 0
+                        %span.gear-count>
+                          - if c > 1
+                            %span.gear-count-text>
+                              = c
+                          %span.gear-icon{'aria-hidden'=>"true", 'data-icon' => "\ue014", style: "opacity: 0.4;", :class => ''}>
+
+                      - if cartridge.scales?
+                        .gauge-vertical{style: 'right: -4px'}>
+                          - if cartridge.has_scale_range?
+                            - if cartridge.can_scale_up?
+                              %span.gauge-tick.empty>  .
+                              %span.gauge-tick.fill>  .
+                              %span.gauge-tick.fill>  .
+                            - elsif cartridge.can_scale_down?
+                              %span.gauge-tick.empty> .
+                              %span.gauge-tick.empty> .
+                              %span.gauge-tick.fill>  .
+                            - else
+                              %span.gauge-tick.fill> .
+                              %span.gauge-tick.fill>  .
+                              %span.gauge-tick.fill>  .
+                          - else
+                            %span.gauge-tick.fill> .
+                            %span.gauge-tick.fill> .
+                            %span.gauge-tick.fill> .
+
+              - else
+                .flow
+                  %h4.cartridge-name{title: 'This cartridge is a plugin, and shares resources with the web framework'}
+                    = cartridge.display_name
+                  - if info = cartridge_info(cartridge, @application)
+                    .flow-block.right= info
+
               - if cartridge.custom?
                 %p Created from #{link_to cartridge.url, cartridge.url}
+
+              - if primary && (info = cartridge_info(cartridge, @application))
+                %p= info
 
 
   %section.gutter{style: 'margin-top: 30px; position: relative;'}
@@ -329,7 +319,7 @@
 
     %p.larger= link_to "Or, see the entire list of cartridges you can add", application_cartridge_types_path(@application)
 
-%aside#app-unique-info.span3
+%aside.sidebar-dark.span3
   -#%section#aliases.sidebar
     %header.clearfix.header-bar
       %h5
@@ -364,9 +354,7 @@
   #source-code
   - if @has_keys
     %h5 Source Code
-    %p.small
-      The app code is located in Git at:
-      %input#application_git_url.git-url{:readonly => 'readonly', :'data-text-copy' => true, :value => @application.git_url, :title => 'The code for your application will be available through this Git repository.', :style => 'with: 100%; width: -moz-available;'}
+    %input#application_git_url.git-url{:readonly => 'readonly', :'data-text-copy' => true, :value => @application.git_url, :title => 'The code for your application will be available through this Git repository.', :style => 'with: 100%; width: -moz-available;'}
     %p.small
       Pass this URL to 'git clone' to copy the repository locally.
 
@@ -382,7 +370,7 @@
   - else
     %h5 Source Code
     %p.small
-      You must #{link_to "add an SSH public key to your account", new_key_path(@application)}
+      You must #{link_to "add an SSH public key to your account", new_key_path}
       before you can upload code or remotely access your application.
 
     %h5 Remote Access

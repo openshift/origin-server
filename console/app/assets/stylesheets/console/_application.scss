@@ -1,8 +1,8 @@
 /***********************************************************
-* Application standard layouts 
+* Application standard layouts
 */
 
-.application-info {
+.application {
 	position: relative;
 
   a:hover, a:active {
@@ -10,24 +10,39 @@
     opacity: 1;
     text-decoration: none;
   }
-	
+
   &.warning {
   	border-left: 2px dashed #bb161c;
 	}
-	
+
+  > h1 {
+    font-size: $h1FontSize * 0.8;
+    line-height: $baseLineHeight * 1.75;
+    margin-bottom: $baseLineHeight / 3.5;
+
+    .url {
+    }
+    .url-alias {
+      font-size: $h2FontSize;
+    }
+    .url-default {
+      > .name {
+        color: white;
+        margin-right: 0;
+      }
+      > .url {
+      }
+    }
+    .url-alter {
+      font-size: $h5FontSize;
+    }
+  }
+
   .name {
     display: inline-block;
     margin-bottom: 5px;
     vertical-align: middle;
     margin-right: 5px;
-  }
-
-  > .url {
-    display: inline-block;
-    vertical-align: text-bottom;
-    white-space: nowrap;
-    vertical-align: middle;
-    font-size: $smallFontSize;
   }
 
   .cartridges { margin-top: -10px; }
@@ -41,15 +56,11 @@
     }
   }
 
-  .url {
-    opacity: 0.4;
-  }
-
   .flow-block {
     a:visited, a:link {
       color: inherit;
     }
-    
+
     > .gear { 
       display: inline-block;
       margin-right: 30px;
@@ -100,18 +111,14 @@
   }
 }
 
-.cartridge-block h2 {
-  margin-bottom: 0;
-}
-
-.section-header > .application-info {
+.section-header > .application {
 
   > .url {
     line-height: 36px; // chosen to match h1
     font-size: $largeFontSize;
   }
 
-  // move these under .application-info
+  // move these under .application
 	.emblem {	
     img {
       vertical-align: middle;
@@ -128,7 +135,7 @@
 	}
 }
 
-.tile-dark .application-info {
+.tile-dark .application {
   left: -5px;
   margin-right: -10px;
   padding-top: 15px;
@@ -150,7 +157,7 @@
 }
 
 @media (max-width: 480px) {
-  .application-info {
+  .application {
     > .url,
     > .name {
       text-overflow: ellipsis;
@@ -163,11 +170,11 @@
 
 
 @media (min-width: 480px) and (max-width: 767px) {
-  .section-header > .application-info {
+  .section-header > .application {
     margin-right: 0;
     left: 0;
   }
-  .application-info {
+  .application {
     > .url,
     > .name {
       text-overflow: ellipsis;
@@ -182,7 +189,7 @@
 }
 
 @media (min-width: 768px) and (max-width: 979px) {
-  .application-info {
+  .application {
     > .url,
     > .name {
       text-overflow: ellipsis;
@@ -194,7 +201,7 @@
 }
 
 @media (min-width: 980px) and (max-width: 1199px) {
-  .console.index .application-info {
+  .console.index .application {
     > .url,
     > .name {
       text-overflow: ellipsis;
@@ -207,7 +214,7 @@
 
 
 @media (min-width: 1200px) {
-  .console.index .application-info {
+  .console.index .application {
     > .url,
     > .name {
       text-overflow: ellipsis;
@@ -283,3 +290,171 @@
   }  
 }
 
+
+$cartridgeBorderWidth: 10px;
+
+#app-cartridges {
+  header {
+    padding-left: $gridGutterWidth;
+
+    h3 {
+      margin: 4px 0;
+    }
+
+    .btn-add-cart {
+      display: inline-block;
+      padding: 9px 8px 8px 20px;
+      position: relative;
+      width: 130px;
+      color: #9a9b9c;
+      text-decoration: none;
+      font-size: $tinyFontSize;
+      text-transform: uppercase;
+      font-family: $headerFontFamily;
+      border-left: 2px solid transparent;
+
+      span.sprite {
+        background-position: 10px -50px;
+        background-color: #1d1d1d;
+        width: 35px;
+        height: 35px;
+        position: absolute;
+        right: 0;
+        top: 0;
+      }
+
+      &:hover {
+        color: #fff;
+        background: #1c1c1c;
+        border-color: black;
+        span {
+          background-color: #b1e5f2;
+          background-position:-26px -50px;
+        }
+      }
+    }
+  }
+
+  .gear-group {
+    margin-top: 5px;
+    margin-bottom: 15px;
+    border-bottom: 3px solid #2a2a2a;
+  }
+
+  .cartridge-block {
+    border-top: 3px solid #2a2a2a;
+
+    .cartridge-border {
+      background: image-url('cartridge-edge.gif') repeat-y;
+      padding-left: 10px;
+    }
+
+    .cartridge-inset {
+      background-color: #1d1d1d;
+      border: 1px solid #101010;
+      border-width: 2px 0;
+      padding: 15px ($gridGutterWidth - $cartridgeBorderWidth);
+    }
+
+    h2, h3, h4 {
+      margin-bottom: 0;
+      //text-overflow: ellipsis;
+      //overflow: hidden;
+      //white-space: nowrap;
+    }
+
+    p {
+      margin-top: $baseLineHeight*0.25;
+      margin-bottom: 0;
+    }
+
+    /* &.warning { border-left: 2px dashed red; }*/
+    .warning {
+      color: #EB0011;
+    }
+
+    input {
+      border: 1px dotted #444;
+      @include border-radius(0);
+      color: #BABBBC;
+      background-color: inherit;
+      //@include font-family-monospace();
+      cursor: inherit;
+      @include box-sizing(border-box);
+      width: 100%;
+      height: 28px; // border-box height
+      //width: -moz-available;
+    }
+  }
+
+  .cartridge-block.cartridge-embedded .cartridge-inset {
+    padding-top: 10px;
+    padding-bottom: 10px;
+  }
+}
+
+
+@media (max-width: 480px) {
+  .embedded .view-cart-details {
+    position: inherit;
+    }
+
+  #app-cartridges {
+    @include expand_for_phone(false);
+    header {
+      padding-left: $gridGutterWidthPhone;
+    }
+    .cartridge-block .cartridge-inset {
+      padding-left: $gridGutterWidthPhone - $cartridgeBorderWidth;
+      padding-right: $gridGutterWidthPhone - $cartridgeBorderWidth;
+    }
+  }
+}
+
+@media (max-width: 767px) {
+  #app-cartridges {
+    header {
+      padding-left: $gridGutterWidthTablet;
+    }
+    .cartridge-block .cartridge-inset {
+      padding-left: $gridGutterWidthTablet - $cartridgeBorderWidth;
+      padding-right: $gridGutterWidthTablet - $cartridgeBorderWidth;
+    }
+  }
+}
+
+@media (min-width: 768px) and (max-width: 979px) {
+}
+
+@media (min-width: 980px) and (max-width: 1199px) {
+  #app-cartridges {
+    header {
+      padding-left: $gridGutterWidth;
+    }
+    .cartridge-block .cartridge-inset {
+      padding-left: $gridGutterWidth - $cartridgeBorderWidth;
+      padding-right: $gridGutterWidth - $cartridgeBorderWidth;
+    }
+  }
+
+}
+
+@media (min-width: 1200px) {
+}
+@media (max-width: 979px) {
+}
+@media (min-width: 980px) {
+}
+
+
+.cartridge_type.installed,
+.cartridge_type.inactive,
+.section-console-light .cartridge_type.installed > h3,
+.section-console-light .cartridge_type.inactive > h3 {
+  color: #888;
+}
+.cartridge_type.inactive,
+.cartridge_type.installed {
+  background-color: rgba(255, 255, 255, 0.05);
+  cursor: default;
+}
