@@ -23,6 +23,9 @@ class AppEventsControllerTest < ActionController::TestCase
     @app_name = "app#{@random}"
     @app = Application.create_app(@app_name, [PHP_VERSION], @domain, nil, true)
     @app.save
+    d1 = Deployment.new(id: 1, description: "This is my first deployment", git_branch: "mybranch", state: "past")
+    d2 = Deployment.new(id: 2, description: "This is my second deployment", git_commit_id: "d975cbfd5c398610326c97f3988a52b208036eef", state: "active")
+    @app.update_deployments([d1,d2])
   end
 
   def teardown
@@ -57,6 +60,8 @@ class AppEventsControllerTest < ActionController::TestCase
     assert_response :success
     post :create, {"event" => "remove-alias", "alias" => as, "domain_id" => @domain.namespace, "application_id" => @app.name}
     assert_response :success
+    post :create, {"event" => "roll-back", "deployment_id" => 1, "domain_id" => @domain.namespace, "application_id" => @app.name}
+    assert_response :success
   end
 
   test "app events by app id" do
@@ -83,6 +88,8 @@ class AppEventsControllerTest < ActionController::TestCase
     post :create, {"event" => "add-alias", "alias" => as, "application_id" => @app.id}
     assert_response :success
     post :create, {"event" => "remove-alias", "alias" => as, "application_id" => @app.id}
+    assert_response :success
+    post :create, {"event" => "roll-back", "deployment_id" => 1, "application_id" => @app.id}
     assert_response :success
   end
 

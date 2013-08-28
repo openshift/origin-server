@@ -53,6 +53,8 @@ end
 # @!attribute [r] aliases
 #   @return [Array<String>] Array of DNS aliases registered with this application.
 #     @see {Application#add_alias} and {Application#remove_alias}
+# @!attribute [r] deployments
+#   @return [Array<Deployment>] Array of deployment for this application
 class Application
   include Mongoid::Document
   include Mongoid::Timestamps
@@ -100,6 +102,7 @@ class Application
   embeds_many :group_instances, class_name: GroupInstance.name
   embeds_many :app_ssh_keys, class_name: ApplicationSshKey.name
   embeds_many :aliases, class_name: Alias.name
+  embeds_many :deployments, class_name: Deployment.name
 
   has_members through: :domain, default_role: :admin
 
@@ -2819,6 +2822,34 @@ class Application
       if not [OpenSSL::PKey::RSA, OpenSSL::PKey::DSA].include?(priv_key_clean.class)
         raise OpenShift::UserException.new("Key must be RSA or DSA for Apache mod_ssl",172, "private_key")
       end
+    end
+  end
+  
+  def add_deployment(deployment)
+    result_io = ResultIO.new
+    Application.run_in_application_lock(self) do
+      #TODO call node instead of saving to Mongo
+      deployment.id = rand(100)
+      self.deployments.push(deployment)
+    end
+    return result_io, deployment.id
+  end
+  
+  def roll_back(deployment_id)
+    result_io = ResultIO.new
+    Application.run_in_application_lock(self) do
+    #TODO call node 
+    end
+    return result_io
+  end
+  
+  def refresh_deployments()
+    #TODO call node to get the latest deployments
+  end
+  
+  def update_deployments(deployments)
+    Application.run_in_application_lock(self) do
+      self.deployments = deployments
     end
   end
 end

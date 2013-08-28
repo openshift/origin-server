@@ -55,6 +55,7 @@ Rails.application.routes.draw do
           resources :aliases, :only => [:index, :show, :create, :update, :destroy], :controller => :alias, :id => id_with_format
           resources :members, :only => :index, :controller => :application_members, :id => id_with_format
           resources :environment_variables, :only => [:index, :show, :create, :update, :destroy], :id => id_with_format, :path => 'environment-variables'
+          resources :deployments, :only => [:index, :show, :create], :controller => :deployments, :constraints => :id => id_with_format
         end
       end
     end
