@@ -6,7 +6,7 @@
 
 Summary:       Provides HA Proxy
 Name:          openshift-origin-cartridge-haproxy
-Version: 0.9.0
+Version: 0.9.1
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -45,6 +45,11 @@ HAProxy cartridge for OpenShift. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Thu Aug 29 2013 Adam Miller <admiller@redhat.com> 0.9.1-1
+- Bug 1000727 - HAProxy using CLIENT_MESSAGE for status messages
+  (jhonce@redhat.com)
+- bump_minor_versions for sprint 33 (admiller@redhat.com)
+
 * Wed Aug 21 2013 Adam Miller <admiller@redhat.com> 0.8.6-1
 - Cartridge - Sprint 2.0.32 cartridge version bumps (jhonce@redhat.com)
 
