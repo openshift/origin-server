@@ -7,7 +7,7 @@
 
 Summary:       Routing proxy for OpenShift Origin Node
 Name:          openshift-origin-node-proxy
-Version: 1.12.0
+Version: 1.12.1
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -121,6 +121,9 @@ fi
 %doc README
 
 %changelog
+* Thu Aug 29 2013 Adam Miller <admiller@redhat.com> 1.12.1-1
+- bump_minor_versions for sprint 33 (admiller@redhat.com)
+
 * Mon Aug 19 2013 Adam Miller <admiller@redhat.com> 1.11.3-1
 - Add X-Forwarded-Host and Port header to the proxied connection.
   (rmillner@redhat.com)
