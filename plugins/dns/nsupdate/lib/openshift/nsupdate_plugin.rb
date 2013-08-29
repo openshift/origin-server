@@ -125,10 +125,13 @@ module OpenShift
       # If the config gave a TSIG key, use it
       keystring = @keyname ? "key #{@keyalgorithm}:#{@keyname} #{keyvalue}" : "gsstsig"
 
+      zonestring = @zone ? "zone #{@zone}" : ""
+
       # compose the nsupdate add command
       cmd += %{nsupdate <<EOF
 #{keystring}
 server #{@server} #{@port}
+#{zonestring}
 update add #{fqdn} 60 CNAME #{value}
 send
 quit
@@ -155,10 +158,13 @@ EOF
       # If the config gave a TSIG key, use it
       keystring = @keyname ? "key #{@keyname} #{keyvalue}" : "gsstsig"
 
+      zonestring = @zone ? "zone #{@zone}" : ""
+
       # compose the nsupdate add command
       cmd += %{nsupdate <<EOF
 #{keystring}
 server #{@server} #{@port}
+#{zonestring}
 update delete #{fqdn}
 send
 quit

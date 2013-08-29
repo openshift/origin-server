@@ -1,10 +1,10 @@
 ENV["TEST_NAME"] = "functional_alias_controller_test"
 require 'test_helper'
 class AliasControllerTest < ActionController::TestCase
-  
+
   def setup
     @controller = AliasController.new
-   
+
     @random = rand(1000000000)
     @login = "user#{@random}"
     @password = 'password'
@@ -13,7 +13,7 @@ class AliasControllerTest < ActionController::TestCase
     @user.save
     Lock.create_lock(@user)
     register_user(@login, @password)
-    
+
     @request.env['HTTP_AUTHORIZATION'] = "Basic " + Base64.encode64("#{@login}:#{@password}")
     @request.env['HTTP_ACCEPT'] = "application/json"
     stubber
@@ -25,14 +25,14 @@ class AliasControllerTest < ActionController::TestCase
     @app.save
     set_certificate_data
   end
-  
+
   def teardown
     begin
       @user.force_delete
     rescue
     end
   end
-  
+
   test "alias create show list update and destroy" do
     server_alias = "as.#{@random}"
     post :create, {"id" => server_alias, "domain_id" => @domain.namespace, "application_id" => @app.name}
@@ -46,7 +46,7 @@ class AliasControllerTest < ActionController::TestCase
     delete :destroy , {"id" => server_alias, "domain_id" => @domain.namespace, "application_id" => @app.name}
     assert_response :ok
   end
-  
+
   test "alias create show list update and destroy by app id" do
     server_alias = "as.#{@random}"
     post :create, {"id" => server_alias, "application_id" => @app.id}
@@ -60,7 +60,7 @@ class AliasControllerTest < ActionController::TestCase
     delete :destroy , {"id" => server_alias, "application_id" => @app.id}
     assert_response :ok
   end
-  
+
   test "no or non-existent app name" do
     server_alias = "as.#{@random}"
     get :show, {"id" => server_alias, "domain_id" => @domain.namespace}
@@ -69,7 +69,7 @@ class AliasControllerTest < ActionController::TestCase
     assert_response :not_found
     delete :destroy , {"id" => server_alias, "domain_id" => @domain.namespace}
     assert_response :not_found
-    
+
     get :show, {"id" => server_alias, "domain_id" => @domain.namespace, "application_id" => "bogus"}
     assert_response :not_found
     put :update, {"id" => server_alias, "domain_id" => @domain.namespace, "application_id" => "bogus"}
@@ -77,7 +77,7 @@ class AliasControllerTest < ActionController::TestCase
     delete :destroy , {"id" => server_alias, "domain_id" => @domain.namespace, "application_id" => "bogus"}
     assert_response :not_found
   end
-  
+
   test "no or non-existent app id" do
     server_alias = "as.#{@random}"
     get :show, {"id" => server_alias}
@@ -86,7 +86,7 @@ class AliasControllerTest < ActionController::TestCase
     assert_response :not_found
     delete :destroy , {"id" => server_alias}
     assert_response :not_found
-    
+
     get :show, {"id" => server_alias, "application_id" => "bogus"}
     assert_response :not_found
     put :update, {"id" => server_alias, "application_id" => "bogus"}
@@ -94,7 +94,7 @@ class AliasControllerTest < ActionController::TestCase
     delete :destroy , {"id" => server_alias, "application_id" => "bogus"}
     assert_response :not_found
   end
-  
+
   test "no or non-existent domain id" do
     server_alias = "as.#{@random}"
     post :create, {"id" => server_alias, "application_id" => @app.name}
@@ -107,7 +107,7 @@ class AliasControllerTest < ActionController::TestCase
     assert_response :not_found
     delete :destroy , {"id" => server_alias, "application_id" => @app.name}
     assert_response :not_found
-    
+
     post :create, {"id" => server_alias, "application_id" => @app.name, "domain_id" => "bogus"}
     assert_response :not_found
     get :show, {"id" => server_alias, "application_id" => @app.name, "domain_id" => "bogus"}
@@ -119,7 +119,7 @@ class AliasControllerTest < ActionController::TestCase
     delete :destroy , {"id" => server_alias, "application_id" => @app.name, "domain_id" => "bogus"}
     assert_response :not_found
   end
-  
+
   test "no or non-existent alias id using domain and app name" do
     post :create, {"domain_id" => @domain.namespace, "application_id" => @app.name}
     assert_response :unprocessable_entity
@@ -129,7 +129,7 @@ class AliasControllerTest < ActionController::TestCase
     assert_response :not_found
     delete :destroy , {"domain_id" => @domain.namespace, "application_id" => @app.name}
     assert_response :not_found
-    
+
     get :show, {"domain_id" => @domain.namespace, "application_id" => @app.name, "id" => "bogus"}
     assert_response :not_found
     put :update, {"domain_id" => @domain.namespace, "application_id" => @app.name, "id" => "bogus"}
@@ -137,7 +137,7 @@ class AliasControllerTest < ActionController::TestCase
     delete :destroy , {"domain_id" => @domain.namespace, "application_id" => @app.name, "id" => "bogus"}
     assert_response :not_found
   end
-  
+
   test "no or non-existent alias id using app id" do
     post :create, {"application_id" => @app.id}
     assert_response :unprocessable_entity
@@ -147,7 +147,7 @@ class AliasControllerTest < ActionController::TestCase
     assert_response :not_found
     delete :destroy , {"application_id" => @app.id}
     assert_response :not_found
-    
+
     get :show, {"application_id" => @app.id, "id" => "bogus"}
     assert_response :not_found
     put :update, {"application_id" => @app.id, "id" => "bogus"}
@@ -155,7 +155,7 @@ class AliasControllerTest < ActionController::TestCase
     delete :destroy , {"application_id" => @app.id, "id" => "bogus"}
     assert_response :not_found
   end
-  
+
   test "no private key" do
     server_alias = "as.#{@random}"
     post :create, {"id" => server_alias, "domain_id" => @domain.namespace, "application_id" => @app.name, 
@@ -165,7 +165,7 @@ class AliasControllerTest < ActionController::TestCase
       "ssl_certificate" => @ssl_certificate}
     assert_response :unprocessable_entity
   end
-  
+
   test "no user capability by domain and app name" do
     @user.capabilities["private_ssl_certificates"] = false
     @user.save!
@@ -174,15 +174,15 @@ class AliasControllerTest < ActionController::TestCase
     post :create, {"id" => server_alias, "domain_id" => @domain.namespace, "application_id" => @app.name, 
       "ssl_certificate" => @ssl_certificate, "private_key" => @private_key, "pass_phrase" => @pass_phrase}
     assert_response :forbidden
-    
+
     post :create, {"id" => server_alias, "domain_id" => @domain.namespace, "application_id" => @app.name}
     assert_response :created
-    
+
     put :update, {"id" => server_alias, "domain_id" => @domain.namespace, "application_id" => @app.name, 
       "ssl_certificate" => @ssl_certificate, "private_key" => @private_key, "pass_phrase" => @pass_phrase}
     assert_response :forbidden
   end
-  
+
   test "no user capability by app id" do
     @user.capabilities["private_ssl_certificates"] = false
     @user.save
@@ -190,15 +190,15 @@ class AliasControllerTest < ActionController::TestCase
     post :create, {"id" => server_alias, "application_id" => @app.id, 
       "ssl_certificate" => @ssl_certificate, "private_key" => @private_key, "pass_phrase" => @pass_phrase}
     assert_response :forbidden
-    
+
     post :create, {"id" => server_alias, "application_id" => @app.id}
     assert_response :created
-    
+
     put :update, {"id" => server_alias, "application_id" => @app.id, 
       "ssl_certificate" => @ssl_certificate, "private_key" => @private_key, "pass_phrase" => @pass_phrase}
     assert_response :forbidden
   end
-  
+
   test "get alias in all versions" do
     server_alias = "as.#{@random}"
     post :create, {"id" => server_alias, "domain_id" => @domain.namespace, "application_id" => @app.name}
@@ -211,7 +211,7 @@ class AliasControllerTest < ActionController::TestCase
       assert_response :ok, "Getting alias for version #{version} failed"
     end
   end
-  
+
     def set_certificate_data
   @ssl_certificate = "-----BEGIN CERTIFICATE-----
 MIIDoDCCAogCCQDzF8AJCHnrbjANBgkqhkiG9w0BAQUFADCBkTELMAkGA1UEBhMC
@@ -291,5 +291,5 @@ av6o/wufvVqGc81SPDmEMsEasXgeMyL7MTsShh26yFzrDoGN2djn5uT+f8Y1WdFN
 xJFFvCG76BmKcC1VJCbRByY7Ju3kpDEX6sYkmDytrZsVHK/iW5MM6A==
 -----END RSA PRIVATE KEY-----"
   end
-  
+
 end

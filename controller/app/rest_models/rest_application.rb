@@ -88,7 +88,7 @@ class RestApplication < OpenShift::Model
 
     self.name = app.name
     self.creation_time = app.created_at
-    self.id = app.uuid
+    self.id = app._id
     self.aliases = []
     app.aliases.each do |a|
       self.aliases << RestAlias.new(app, a, url, nolinks)

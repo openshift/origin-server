@@ -114,7 +114,11 @@ function tidy() {
 function build() {
     if `echo $OPENSHIFT_GEAR_DNS | egrep -qe "\.rhcloud\.com"`
     then
-        OPENSHIFT_PYTHON_MIRROR="-i http://mirror.openshift.com/mirror/python/web/simple"
+        m="http://mirror1.ops.rhcloud.com/mirror/python/web/simple"
+        if curl -m 15 -f -s "$m" &>/dev/null
+        then
+            OPENSHIFT_PYTHON_MIRROR="-i $m"
+        fi
     fi
 
     if marker_present 'force_clean_build'; then
@@ -125,6 +129,11 @@ function build() {
     if [ ! -f $VIRTUAL_ENV/bin/python ]; then
       echo "Recreating virtenv" 1>&2
       create-virtenv
+    fi
+
+    if [ -f ${OPENSHIFT_REPO_DIR}/requirements.txt ]
+    then
+        ( cd $VIRTUAL_ENV; pip install -r ${OPENSHIFT_REPO_DIR}/requirements.txt $OPENSHIFT_PYTHON_MIRROR )
     fi
 
     if [ -f ${OPENSHIFT_REPO_DIR}/setup.py ]

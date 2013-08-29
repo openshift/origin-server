@@ -1,6 +1,6 @@
 module CacheHelper
   # Helper method to maintain cached informtaion
-  # 
+  #
   # == Parameters:
   # key::
   #   Cache key

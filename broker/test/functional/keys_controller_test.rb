@@ -1,10 +1,10 @@
 ENV["TEST_NAME"] = "functional_keys_controller_test"
 require 'test_helper'
 class KeysControllerTest < ActionController::TestCase
-  
+
   def setup
     @controller = KeysController.new
-    
+
     @random = rand(1000000000)
     @login = "user#{@random}"
     @password = "password"
@@ -13,20 +13,20 @@ class KeysControllerTest < ActionController::TestCase
     @user.save
     Lock.create_lock(@user)
     register_user(@login, @password)
-    
+
     @request.env['HTTP_AUTHORIZATION'] = "Basic " + Base64.encode64("#{@login}:#{@password}")
     @request.env['HTTP_ACCEPT'] = "application/json"
     stubber
 
   end
-  
+
   def teardown
     begin
       @user.force_delete
     rescue
     end
   end
-  
+
   test "key create show list update and destroy" do
     key_name = "key#{@random}"
     post :create, {"name" => key_name, "type" => "ssh-rsa", "content" => "ABCD1234"}
@@ -41,7 +41,7 @@ class KeysControllerTest < ActionController::TestCase
     delete :destroy , {"id" => key_name}
     assert_response :ok
   end
-  
+
   test "no key id or bad id" do
     post :create, {"type" => "ssh-rsa", "content" => "ABCD1234"}
     assert_response :unprocessable_entity
@@ -54,7 +54,7 @@ class KeysControllerTest < ActionController::TestCase
     delete :destroy , {}
     assert_response :not_found
   end
-  
+
   test "duplicate key" do
     key_name = "key#{@random}"
     post :create, {"name" => key_name, "type" => "ssh-rsa", "content" => "ABCD1234"}
@@ -66,7 +66,7 @@ class KeysControllerTest < ActionController::TestCase
     post :create, {"name" => "abcd", "type" => "ssh-rsa", "content" => "ABCD1234"}
     assert_response :conflict
   end
-  
+
   test "invalid inputs" do
     key_name = "key#{@random}"
     post :create, {"name" => key_name, "type" => "ssh-rsa"}
@@ -88,7 +88,7 @@ class KeysControllerTest < ActionController::TestCase
     post :create, {"name" => key_name + ".json", "type" => "ssh-rsa", "content" => "ABCD1234"}
     assert_response :unprocessable_entity
   end
-  
+
   test "get keys in all versions" do
     key_name = "key#{@random}"
     post :create, {"name" => key_name, "type" => "ssh-rsa", "content" => "ABCD1234"}

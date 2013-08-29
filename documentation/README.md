@@ -20,21 +20,27 @@ Note that you may see the following error:
 
     Processing index.txt
     asciidoctor: WARNING: line N: include file not found: /path/to/origin-server/documentation/_pep_list.adoc
-	
+
 If you are not working with the `openshift-pep` repository, you can ignore this.
 
-### build_peps ###
-When the documentation is deployed to [openshift.github.io](http://openshift.github.io/documentation/), this build environment collects and builds the PEPs from the [openshift-pep](https://github.com/openshift/openshift-pep) repository for publication as well.
+### build_all ###
+When the documentation is deployed to [openshift.github.io](http://openshift.github.io/documentation/), this build command:
+
+* Copies in the [REST API docs](https://github.com/openshift/origin-server/tree/master/broker/doc/html/16)
+* Collects and builds the PEPs from the [openshift-pep](https://github.com/openshift/openshift-pep) repository.
 
 To make this work in your local build environment, first ensure that you have cloned the openshift-pep repository into the same directory as your clone of the origin-server repository. Then you can run:
 
-    bundle exec rake build_peps
+    bundle exec rake build_all
 
 This task does the following:
 
+* Copies the REST API documents to `documentation/rest_api/`
 * Converts the Markdown-based PEPs to HTML via AsciiDoc and writes the generated HTML to the documentation directory.
 * Creates a listing of those files in an AsciiDoc "partial" called `_pep_list.adoc`.
 * Calls the regular `build` task to generate the rest of the doc set and include the PEP list in the documentation home page. 
+
+You can also trigger just the REST API work and just the PEP work using `bundle exec rake build_rest` and `bundle exec rake build_peps`, respectively.
 
 ### clean ###
 If you want to quickly clean up all of the generated HTML files, run:

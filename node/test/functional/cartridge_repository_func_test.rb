@@ -144,6 +144,34 @@ module OpenShift
       assert(!File.directory?(bin_path), "Unexpected directory found: #{bin_path}")
     end
 
+    def test_load_zero_length_manifest
+      cr = ::OpenShift::Runtime::CartridgeRepository.instance
+      cr.clear
+      cr.install(@source_dir)
+
+      cr.select(@name, '0.3')
+      cr.select(@name, '0.2')
+      cr.select(@name, '0.1')
+
+      manifest_path = @repo_dir + '/1.2/metadata/manifest.yml'
+      File.truncate(manifest_path, 0)  # YAML.load does not like zero-size files and will return 'false'
+
+      cr.clear()
+      cr.load()
+
+      assert_raise(KeyError) do
+        cr.select(@name, '0.3')
+      end
+
+      assert_raise(KeyError) do
+        cr.select(@name, '0.2')
+      end
+
+      assert_raise(KeyError) do
+        cr.select(@name, '0.1')
+      end
+    end
+
     def test_instantiate_cartridge_git
       cuckoo_repo, cuckoo_source = build_cuckoo_home()
 

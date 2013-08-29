@@ -93,7 +93,7 @@ V1_DIRECTORIES=%w(ruby-1.8 ruby-1.9 nodejs-0.6
                   jbosseap-6.0 jbossews-1.0 jbossews-2.0 jbossas-7
                   php-5.3 python-2.6 python-2.7 python-3.3 10gen-mms-agent-0.1
                   metrics-0.1 jenkins-1.4 jenkins-client-1.4 perl-5.10 zend-5.6
-                  mysql-5.1 postgresql-8.4 mongodb-2.2 rockmongo-1.1 phpmyadmin-3.4
+                  mysql-5.1 postgresql-8.4 mongodb-2.2 rockmongo-1.1 phpmyadmin-4
                   diy-0.1 haproxy-1.4 cron-1.4)
 
 $SEBOOL_LIST="SEBOOL_LIST"
@@ -135,10 +135,12 @@ def user_fail(uuid, msg)
   rescue ArgumentError
   end
 
+  # Testing if we were fed a uid instead of a uuid.
   if pw_ent.nil?
     begin
       pw_ent = Etc.getpwuid(uuid.to_i)
     rescue ArgumentError
+    rescue RangeError
     end
   end
 
@@ -395,25 +397,28 @@ end
 
 
 #
-# Check tc config
+# Check gear processes belong to cgroups
 #
 def check_cgroup_procs
     verbose("checking cgroups processes")
 
     ### Gather current procs running ###
-    min_uid = $CONF.get('GEAR_MIN_UID')
-    max_uid = $CONF.get('GEAR_MAX_UID')
+    min_uid = $CONF.get('GEAR_MIN_UID').to_i
+    max_uid = $CONF.get('GEAR_MAX_UID').to_i
+    uid_range = (min_uid..max_uid)
 
-    all_user_procs = %x[/bin/ps -e -o uid,pid | /bin/egrep "^\s+[0-9]{4}"].split("\n")
-    ps_procs = Hash.new(Array.new)
+    # Need to collect 3 and 4 digit uids since a non-district host could have a 3 digit uid
+    all_user_procs = %x[/bin/ps -e -o uid,pid | /bin/egrep "^\s+[0-9]{3,4}"].split("\n")
+    ps_procs = Hash.new{|hash, key| hash[key] = Array.new}
     all_user_procs.each do |line|
         uid,pid = line.split[0,2]
+        uid = uid.to_i
 
-        if (min_uid..max_uid).include?(uid)
+        if uid_range.include?(uid)
             passwd_lines = $USERS.select { |u| u.uid == uid }
 
-          if passwd_lines.empty?
-                user_fail(uid, "Process #{pid} is owned by a gear that's no longer on the system, uid: #{uid}")
+            if passwd_lines.empty?
+                do_fail("Process #{pid} is owned by a gear that's no longer on the system, uid: #{uid}")
                 next
             end
 
@@ -424,29 +429,32 @@ def check_cgroup_procs
     end
 
     ### Gather cgroup procs ###
-    cgroup_procs = {}
+    cgroup_procs = Hash.new{|hash, key| hash[key] = Hash.new{|hash, key| hash[key] = Array.new}}
 
     # Support mounting cgroup controllers under /cgroup/all or 
     # /cgroup/<controller>
-    Dir.glob("/cgroup/{all,memory}/openshift/*/cgroup.procs").each do |file|
+    Dir.glob("/cgroup/*/openshift/*/cgroup.procs").each do |file|
+        controller = file.split("/")[2]
         uuid = file.split("/")[4]
         lines = []
         IO.foreach(file).each { |line| lines << line.strip }
-        cgroup_procs[uuid] = lines
+        cgroup_procs[controller][uuid] = lines
     end
 
     ### Compare ###
     ps_procs.each do |uuid,procs|
-        missing = procs - cgroup_procs[uuid]
-        if missing.length > 0
-            missing.each do |pid|
-                proc_data = %x[/bin/ps -p #{pid} -o uid,pid,ppid,etime,cmd].split("\n")
+        cgroup_procs.each do |controller,controller_procs|
+            missing = procs - controller_procs[uuid]
+            if missing.length > 0
+                missing.each do |pid|
+                    proc_data = %x[/bin/ps -p #{pid} -o uid,pid,ppid,etime,cmd].split("\n")
 
-                # ensure the process is still running and not defunct before failing
-                # this fixes both the transient process and the defunct process
-                # detection problems
-                if proc_data.size > 1 && !proc_data.last.strip.end_with?('<defunct>')
-                    user_fail(uuid, "#{uuid} has a process missing from cgroups:  #{pid}")
+                    # ensure the process is still running and not defunct before failing
+                    # this fixes both the transient process and the defunct process
+                    # detection problems
+                    if proc_data.size > 1 && !proc_data.last.strip.end_with?('<defunct>')
+                        user_fail(uuid, "#{uuid} has a process missing from cgroups: #{pid} cgroups controller: #{controller}")
+                    end
                 end
             end
         end
@@ -717,7 +725,6 @@ end
 
 def check_upgrades
   verbose("running upgrade checks")
-  copy_all_users = $USERS.dup
 
   Dir.foreach($GEAR_BASE_DIR) do |entry|
     next if entry[0,1] == "."

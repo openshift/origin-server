@@ -140,6 +140,7 @@ module OpenShift
       attr_accessor :login,
                     :app_name,
                     :gear_uuid,
+                    :hostname,
                     :version,
                     :errors,
                     :warnings,
@@ -305,7 +306,9 @@ class Upgrader
               upgrade_result.gear_count += node.gears_length
               puts "#####################################################"
               puts "Remaining node queue:"
-              puts node_queue.pretty_inspect
+              node_queue.each do |q|
+                q.server_identity
+              end
               puts "#####################################################"
             end
           end
@@ -653,7 +656,7 @@ class Upgrader
 
         # if not, throw a warning and move on
         unless user && Application.find_by_user(user, gear.app_name)
-          gear_result[:warnings] << "App '#{gear.app_name}' no longer found in datastore with uuid '#{gear.gear_uuid}'.  Ignoring..." 
+          gear_result.warnings << "App '#{gear.app_name}' no longer found in datastore with uuid '#{gear.gear_uuid}'.  Ignoring..." 
           append_to_file(results_file, gear_result.to_json)
           break
         end
@@ -707,6 +710,7 @@ class Upgrader
 
       if app && gear
         server_identity = gear.server_identity
+        gear_result.hostname = server_identity
 
         Timeout::timeout(420) do
           output = ''
@@ -718,6 +722,7 @@ class Upgrader
           OpenShift::MCollectiveApplicationContainerProxy.rpc_exec('openshift', server_identity) do |client|
             client.upgrade(:uuid => gear_uuid,
                            :namespace => app.domain.namespace,
+                           :app_uuid => app.uuid,
                            :version => version,
                            :ignore_cartridge_version => ignore_cartridge_version.to_s) do |response|
               exit_code = response[:body][:data][:exitcode]

@@ -9,7 +9,7 @@
 
 Summary:       OpenShift Origin Management Console
 Name:          rubygem-%{gem_name}
-Version: 1.13.6
+Version: 1.14.0
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -21,7 +21,6 @@ Requires:      ruby(release)
 Requires:      %{?scl:%scl_prefix}ruby(abi) >= %{rubyabi}
 %endif
 Requires:      %{?scl:%scl_prefix}rubygems
-%if 0%{?fedora}%{?rhel} <= 6
 Requires:      %{?scl:%scl_prefix}rubygem(rails)
 Requires:      %{?scl:%scl_prefix}rubygem(compass-rails)
 Requires:      %{?scl:%scl_prefix}rubygem(rdiscount)
@@ -44,8 +43,11 @@ Requires:      %{?scl:%scl_prefix}rubygem(minitest)
 Requires:      %{?scl:%scl_prefix}rubygem(rspec-core)
 Requires:      %{?scl:%scl_prefix}rubygem(sass-twitter-bootstrap)
 
+%if 0%{?fedora}%{?rhel} <= 6
 BuildRequires: %{?scl:%scl_prefix}build
 BuildRequires: scl-utils-build
+%endif
+
 BuildRequires: %{?scl:%scl_prefix}rubygem(coffee-rails)
 BuildRequires: %{?scl:%scl_prefix}rubygem(sass-rails)
 BuildRequires: %{?scl:%scl_prefix}rubygem(jquery-rails)
@@ -69,7 +71,6 @@ BuildRequires: %{?scl:%scl_prefix}rubygem(minitest)
 BuildRequires: %{?scl:%scl_prefix}rubygem(rspec-core)
 BuildRequires: %{?scl:%scl_prefix}rubygem(sass-twitter-bootstrap)
 
-%endif
 BuildRequires: %{?scl:%scl_prefix}rubygems-devel
 %if 0%{?fedora} >= 19
 BuildRequires: ruby(release)

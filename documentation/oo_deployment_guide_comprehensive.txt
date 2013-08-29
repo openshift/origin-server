@@ -974,7 +974,7 @@ plugin.psk = unset
 
 connector = activemq
 plugin.activemq.pool.size = 1
-plugin.activemq.pool.1.host = localhost
+plugin.activemq.pool.1.host = broker.example.com
 plugin.activemq.pool.1.port = 61613
 plugin.activemq.pool.1.user = mcollective
 plugin.activemq.pool.1.password = marionette
@@ -997,7 +997,7 @@ plugin.psk = unset
 
 connector = activemq
 plugin.activemq.pool.size = 1
-plugin.activemq.pool.1.host = localhost
+plugin.activemq.pool.1.host = broker.example.com
 plugin.activemq.pool.1.port = 61613
 plugin.activemq.pool.1.user = mcollective
 plugin.activemq.pool.1.password = marionette
@@ -1861,7 +1861,7 @@ plugin.psk = unset
 
 connector = activemq
 plugin.activemq.pool.size = 1
-plugin.activemq.pool.1.host = localhost
+plugin.activemq.pool.1.host = broker.example.com
 plugin.activemq.pool.1.port = 61613
 plugin.activemq.pool.1.user = mcollective
 plugin.activemq.pool.1.password = marionette
@@ -1891,7 +1891,7 @@ plugin.psk = unset
 
 connector = activemq
 plugin.activemq.pool.size = 1
-plugin.activemq.pool.1.host = localhost
+plugin.activemq.pool.1.host = broker.example.com
 plugin.activemq.pool.1.port = 61613
 plugin.activemq.pool.1.user = mcollective
 plugin.activemq.pool.1.password = marionette

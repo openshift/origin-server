@@ -117,7 +117,12 @@ module OpenShift
           load_via_url = directory.nil?
           find_manifests(directory || @path) do |manifest_path|
             logger.debug { "Loading cartridge from #{manifest_path}" }
-            # we check the vendor and cartridge names only when loading via URL
+            
+            if File.size(manifest_path) == 0
+              logger.warn("Skipping load of #{manifest_path} because manifest appears to be corrupted")
+              next
+            end
+
             c = insert(Manifest.new(manifest_path, nil, :file, @path, load_via_url))
             logger.debug { "Loaded cartridge (#{c.name}, #{c.version}, #{c.cartridge_version})" }
           end
@@ -261,7 +266,7 @@ module OpenShift
 
         slice = @index[cartridge_name]
 
-        if latest_version?(slice[version], cartridge_version)
+        if latest_in_slice?(slice[version], cartridge_version)
           recompute_cartridge_version = true
         end
 
@@ -281,7 +286,7 @@ module OpenShift
         end
 
         if @index.key?(cartridge_name) && recompute_cartridge_version
-          latest_cartridge_version = latest_version(slice[version])
+          latest_cartridge_version = latest_in_slice(slice[version])
 
           if latest_cartridge_version
             logger.debug("Resetting default for (#{cartridge_name}, #{version}) to #{latest_cartridge_version}")
@@ -315,18 +320,29 @@ module OpenShift
       #
       # Determine whether the latest version present in the index slice is the latest one
       #
-      def latest_version?(index_slice, version)
-        latest_version(index_slice) == version
+      def latest_in_slice?(index_slice, version)
+        latest_in_slice(index_slice) == version
       end
 
       #
       # Determine the latest version present in a slice of the index
       #
-      def latest_version(index_slice)
+      def latest_in_slice(index_slice)
         real_versions = index_slice.keys
         real_versions.delete_if { |v| v == '_' }
 
         Manifest.sort_versions(real_versions).last
+      end
+
+      #
+      # Determine whether the given cartridge version is the latest for (cartridge_name, version)
+      #
+      def latest_cartridge_version?(cartridge_name, version, cartridge_version)
+        if !exist?(cartridge_name, version, cartridge_version)
+          return false
+        end
+
+        return latest_in_slice?(@index[cartridge_name][version], cartridge_version)
       end
 
       # :call-seq:

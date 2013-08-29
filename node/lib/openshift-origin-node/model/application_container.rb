@@ -501,7 +501,7 @@ module OpenShift
       #
       def report_build_analytics
         broker_addr = @config.get('BROKER_HOST')
-        url         = "https://#{broker_addr}/broker/nurture"
+        url         = "https://#{broker_addr}/broker/analytics"
 
         payload = {
           "json_data" => {

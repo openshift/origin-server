@@ -31,7 +31,9 @@ link:oo_cartridge_guide.html[Cartridge Guide] +
 link:oo_troubleshooting_guide.html[Troubleshooting Guide]
 
 a|link:oo_cartridge_developers_guide.html[Cartridge Developers Guide] +
-link:oo_user_guide.html[User Guide]
+link:oo_user_guide.html[User Guide] +
+link:rest_api/rest-api-1-6.html[Broker REST API]
+
 |===
 
 include::_pep_list.adoc[]

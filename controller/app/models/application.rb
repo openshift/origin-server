@@ -75,7 +75,7 @@ class Application
 
   field :name, type: String
   field :canonical_name, type: String
-  field :uuid, type: String, default: ""
+  #field :uuid, type: String, default: ""
   field :domain_requires, type: Array, default: []
   field :group_overrides, type: Array, default: []
   embeds_many :pending_op_groups, class_name: PendingAppOpGroup.name
@@ -293,11 +293,15 @@ class Application
   def initialize(attrs = nil, options = nil)
     super
     @downloaded_cartridges = {}
-    self.uuid = self._id.to_s if self.uuid=="" or self.uuid.nil?
     self.app_ssh_keys = []
     #self.pending_op_groups = []
     self.analytics = {} if self.analytics.nil?
     self.save
+  end
+
+  def uuid
+    Rails.logger.error "DEPRECATED: Access to Application#uuid has been removed\n  #{caller.join("\n  ")}"
+    _id.to_s
   end
 
   ##
@@ -971,7 +975,7 @@ class Application
         (server_alias =~ /^\d+\.\d+\.\d+\.\d+$/) or
         (server_alias =~ /\A[\S]+(\.(json|xml|yml|yaml|html|xhtml))\z/) or
         (not server_alias.match(/\A[a-z0-9]+([\.]?[\-a-z0-9]+)+\z/))
-      raise OpenShift::UserException.new("Invalid Server Alias '#{server_alias}' specified", 105, "id")
+      raise OpenShift::UserException.new("The specified alias is not allowed: '#{server_alias}'", 105, "id")
     end
     validate_certificate(ssl_certificate, private_key, pass_phrase)
 
@@ -2736,6 +2740,8 @@ class Application
         end
         raise OpenShift::UserException.new("Invalid environment variable name #{name}: specified multiple times", 188, "environment_variables") if keys[name]
         keys[name] = true
+        match = /\A([a-zA-Z_][\w]*)\z/.match(name)
+        raise OpenShift::UserException.new("Name can only contain letters, digits and underscore and can't begin with a digit.", 194, "name") if match.nil?
       end
       if no_delete
         set_vars, unset_vars = sanitize_user_env_variables(user_env_vars)

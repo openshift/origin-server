@@ -5,8 +5,8 @@ class RestAlias < OpenShift::Model
     self.id = al1as.fqdn
     self.has_private_ssl_certificate = al1as["has_private_ssl_certificate"]
     self.certificate_added_at = al1as["certificate_added_at"]
-    app_id = app.uuid
-    unless nolinks      
+    app_id = app._id
+    unless nolinks
       self.links = {
         "GET" => Link.new("Get alias", "GET", URI::join(url, "applications/#{app_id}/aliases/#{self.id}")),
         "UPDATE" => Link.new("Update alias", "PUT", URI::join(url, "applications/#{app_id}/aliases/#{self.id}"),

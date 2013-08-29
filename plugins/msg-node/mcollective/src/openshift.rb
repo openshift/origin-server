@@ -144,10 +144,14 @@ module MCollective
         watermark = @@config.get('QUOTA_WARNING_PERCENT', '90.0').to_f
 
         usage = (quota[:blocks_used] / quota[:blocks_limit].to_f) * 100.0
-        buffer << "\nCLIENT_MESSAGE: Warning gear #{uuid} is using #{usage} of disk quota\n" if watermark < usage
+        if watermark < usage
+          buffer << "\nCLIENT_MESSAGE: Warning gear #{uuid} is using %3.1f%% of disk quota\n" % usage
+        end
 
         usage = (quota[:inodes_used] / quota[:inodes_limit].to_f) * 100.0
-        buffer << "\nCLIENT_MESSAGE: Warning gear #{uuid} is using #{usage} of inodes allowed\n" if watermark < usage
+        if watermark < usage
+          buffer << "\nCLIENT_MESSAGE: Warning gear #{uuid} is using %3.1f%% of inodes allowed\n" % usage
+        end
       rescue Exception => e
         # do nothing
       end
@@ -193,9 +197,11 @@ module MCollective
       def upgrade_action
         Log.instance.info("upgrade_action call / action=#{request.action}, agent=#{request.agent}, data=#{request.data.pretty_inspect}")
         validate :uuid, /^[a-zA-Z0-9]+$/
+        validate :app_uuid, /^[a-zA-Z0-9]+$/
         validate :version, /^.+$/
         validate :namespace, /^.+$/
         uuid = request[:uuid]
+        application_uuid = request[:app_uuid]
         namespace = request[:namespace]
         version = request[:version]
         ignore_cartridge_version = request[:ignore_cartridge_version] == 'true' ? true : false
@@ -207,7 +213,7 @@ module MCollective
         begin
           require 'openshift-origin-node/model/upgrade'
 
-          upgrader = OpenShift::Runtime::Upgrader.new(uuid, namespace, version, hostname, ignore_cartridge_version)
+          upgrader = OpenShift::Runtime::Upgrader.new(uuid, application_uuid, namespace, version, hostname, ignore_cartridge_version, OpenShift::Runtime::Utils::Hourglass.new(235))
           result = upgrader.execute
         rescue LoadError => e
           exitcode = 127
@@ -375,9 +381,11 @@ module MCollective
       end
 
       def oo_user_var_add(args)
-        variables, gears = {}, []
-        args['--with-variables'].split(' ').each { |a| token = a.split('=', 2); variables[token.first] = token.last } if args['--with-variables']
-        gears = args['--with-gears'].split(';') if args['--with-gears']
+        variables = {}
+        if args['--with-variables']
+          JSON.parse(args['--with-variables']).each {|env| variables[env['name']] = env['value']}
+        end
+        gears = args['--with-gears'] ? args['--with-gears'].split(';') : []
 
         if variables.empty? and gears.empty?
           return -1, "In #{__method__} at least user environment variables or gears must be provided for #{args['--with-app-name']}"

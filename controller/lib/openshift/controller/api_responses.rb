@@ -61,24 +61,29 @@ module OpenShift
           case ex
           when Mongoid::Errors::Validations
             status = :unprocessable_entity
-            field_map = 
+            field_map =
               case ex.document
               when Domain then requested_api_version <= 1.5 ? {"namespace" => "id"} : {"namespace" => "name"}
               end
             messages = get_error_messages(ex.document, field_map || {})
             return render_error(:unprocessable_entity, nil, nil, nil, nil, messages)
 
+          when Mongoid::Errors::InvalidFind
+            status = :not_found
+            message = "No resource was requested."
+            internal_error = false
+
           when Mongoid::Errors::DocumentNotFound
             status = :not_found
             model = ex.klass
 
-            target = 
+            target =
               if    ComponentInstance >= model then target = 'Cartridge'
               elsif GroupInstance     >= model then target = 'Gear group'
               else  model.to_s.underscore.humanize
               end
 
-            message = 
+            message =
               if ex.unmatched.length > 1
                 "The #{target.pluralize.downcase} with ids #{ex.unmatched.map{ |id| "'#{id}'"}.join(', ')} were not found."
               elsif ex.unmatched.length == 1
@@ -98,7 +103,7 @@ module OpenShift
                   "The requested #{target.downcase} was not found."
                 end
               end
-            error_code = 
+            error_code =
               if    Cartridge         >= model then 129
               elsif ComponentInstance >= model then 129
               elsif SshKey            >= model then 118

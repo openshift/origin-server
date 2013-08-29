@@ -135,8 +135,13 @@ module OpenShift
               end
               # Find any gears over the threshold
               over_usage = with_period.select do |k,v|
-                percent = v[:usage_percent]
-                percent && percent >= usage
+                begin
+                  percent = v[:usage_percent]
+                  percent && percent >= usage
+                rescue
+                  Syslog.log(:info, "Throttler: problem in find for #{k} (#{v[:usage_percent]})")
+                  return false
+                end
               end.keys
               apps.select!{|k,v| over_usage.include?(k) }
             end
@@ -167,6 +172,11 @@ module OpenShift
             # If this is our first run, make sure we find any previously throttled gears
             # NOTE: There is a corner case where we won't find non-running throttled applications
             @old_bad_gears ||= find(state: :throttled).first
+
+            # Remove any previously throttled gears that are no longer running
+            @mutex.synchronize do
+              @old_bad_gears.select!{|k,v| running_apps.keys.include?(k) }
+            end
 
             # Restore any gears we have utilization values for that are <= restore_percent
             (restore_gears, @old_bad_gears) = @old_bad_gears.partition do |uuid, gear|

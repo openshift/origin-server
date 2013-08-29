@@ -122,7 +122,7 @@ class Lock
       end
 
       app_id = application._id.to_s
-      query = {:user_id => user_id, :locked => false, "app_ids.#{app_id}" => { "$exists" => true }}
+      query = {:user_id => user_id, "app_ids.#{app_id}" => { "$exists" => true }}
       updates = {"$unset"=> {"app_ids.#{app_id}" => ""}}
       lock = Lock.where(query).find_and_modify(updates, new: true)
       return (not lock.nil?)
