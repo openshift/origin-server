@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/openshift/cartridges/php
 
 Name:          openshift-origin-cartridge-php
-Version: 0.9.0
+Version: 0.9.1
 Release:       1%{?dist}
 Summary:       Php cartridge
 Group:         Development/Languages
@@ -76,6 +76,9 @@ rm %{buildroot}%{cartridgedir}/metadata/manifest.yml.*
 
 
 %changelog
+* Thu Aug 29 2013 Adam Miller <admiller@redhat.com> 0.9.1-1
+- bump_minor_versions for sprint 33 (admiller@redhat.com)
+
 * Wed Aug 21 2013 Adam Miller <admiller@redhat.com> 0.8.7-1
 - Merge pull request #3455 from jwhonce/latest_cartridge_versions
   (dmcphers+openshiftbot@redhat.com)
