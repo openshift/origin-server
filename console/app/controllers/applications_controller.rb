@@ -137,6 +137,7 @@ class ApplicationsController < ConsoleController
 
     @user_default_domain = user_default_domain rescue nil
     @user_writeable_domains = user_writeable_domains
+    @can_create = current_api_user.max_domains > user_owned_domains.length
 
     flash.now[:error] = "You have no free gears.  You'll need to scale down or delete another application first." unless @capabilities.gears_free?
     # opened bug 789763 to track simplifying this block - with domain_name submission we would
