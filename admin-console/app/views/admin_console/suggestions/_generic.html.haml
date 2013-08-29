@@ -1,3 +1,4 @@
+- show_sug = suggestion.class.to_s.sub('Admin::Suggestion::', '') 
 .lead
   &= show_sug
 - case size
@@ -11,7 +12,9 @@
   %p
     A suggestion of unexpected type
     &= show_sug
-    was generated. This may be a suggestion type that is under development.
+    was generated. Only raw details are available.
+  %p
+    This may be a suggestion type that is under development.
     If so, developers should also add a view mapping and partial for this type.
   %p
     The suggestion contains the following raw values:

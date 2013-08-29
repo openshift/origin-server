@@ -221,7 +221,8 @@ module Admin
             districts = (1..10).map {|n| { district_uuid: "district_#{n}_uuid",
                                            district_name: "district_#{n}" } }
             # very simple add suggestion: no districts, just add nodes
-            suggestions << C::Add.new(s.merge contents: C::Add::Node.new(s))
+            suggestions << no_dist = C::Add.new(s.merge(contents: Container.new))
+            no_dist.contents << C::Add::Node.new(s)
 
             # now just add nodes to one existing district
             s[:profile] = self.test_profile + "1"
@@ -361,7 +362,7 @@ module Admin
                         node_target: 6,
                         excess_gears: 200,
                       )
-            suggestions << Remove::CompactDistrict.new(
+            suggestions << C::Remove::CompactDistrict.new(
                         profile: self.test_profile,
                         scope: "district",
                         district_uuid: "test_district_uuid",
