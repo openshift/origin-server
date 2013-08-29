@@ -14,63 +14,66 @@
 # limitations under the License.
 #++
 
+require 'admin/suggestion/types'
+
 module Admin
   module Suggestion
-    module Capacity
-      MAX_DISTRICT_GEARS = 6000 # today's hard limit
+    class Advisor
+      module Capacity
+        C = Admin::Suggestion::Capacity # shortcut constant
+        MAX_DISTRICT_GEARS = 6000 # today's hard limit
 
-      module Util # to be extended into advisors as needed
-        # Nodes in a profile can theoretically have different sizes.
-        # For the current implementation, we just look at the nodes in the
-        # profile now and assume the largest max_active_gears is
-        # representative of the profile. If there are no nodes, arbitrarily
-        # return 100.
-        #
-        def node_capacity_in_profile(psummary)
-          psummary.districts.
-            inject([]) {|nodes,dist| nodes += dist.nodes}.
-            map {|node| node.max_active_gears}.max || 100
-        end
-
-        # If a district or profile has a significant number of gears,
-        # check whether its actual active gear percent is lower than expected,
-        # and adjust if so to keep from putting too many nodes in it.
-        #
-        def adjusted_active_pct(summary, node_capacity, active_gear_pct)
-          if summary.gears_total_count > node_capacity # sample size large enough
-            est_active_pct = [1, summary.gears_active_pct.floor].max
-            # always estimate low so as not to overfill districts
-            active_gear_pct = [active_gear_pct, est_active_pct].min
+        module Util # to be extended into advisors as needed
+          # Nodes in a profile can theoretically have different sizes.
+          # For the current implementation, we just look at the nodes in the
+          # profile now and assume the largest max_active_gears is
+          # representative of the profile. If there are no nodes, arbitrarily
+          # return 100.
+          #
+          def node_capacity_in_profile(psummary)
+            psummary.districts.
+              inject([]) {|nodes,dist| nodes += dist.nodes}.
+              map {|node| node.max_active_gears}.max || 100
           end
-          active_gear_pct
+
+          # If a district or profile has a significant number of gears,
+          # check whether its actual active gear percent is lower than expected,
+          # and adjust if so to keep from putting too many nodes in it.
+          #
+          def adjusted_active_pct(summary, node_capacity, active_gear_pct)
+            if summary.gears_total_count > node_capacity # sample size large enough
+              est_active_pct = [1, summary.gears_active_pct.floor].max
+              # always estimate low so as not to overfill districts
+              active_gear_pct = [active_gear_pct, est_active_pct].min
+            end
+            active_gear_pct
+          end
+
+          # Suggest the number of nodes a district should have.
+          # Lower active_gear_pct means we expect more total gears on each node,
+          # so fewer nodes should be created in the district.
+          #
+          def suggested_nodes_per_district(node_capacity, active_gear_pct)
+            # note that integer division gets us the floor value
+            max = MAX_DISTRICT_GEARS * active_gear_pct / (100 * node_capacity)
+            max = 2 if max < 2 # should always at least have 2 to enable balancing
+            max
+          end
+
+          # Decide how many nodes an existing district can add, given how
+          # big nodes are and the expected percentage of gears that stay active.
+          #
+          def nodes_district_can_accept(dsum, node_capacity, active_gear_pct)
+            # If a district is already idling more than expected, project using
+            # its actual active_gear_pct
+            active_gear_pct = adjusted_active_pct(dsum, node_capacity, active_gear_pct)
+            max_nodes = suggested_nodes_per_district(node_capacity, active_gear_pct)
+            return max_nodes if dsum.nodes.empty?
+            return [0, max_nodes - dsum.nodes.size].max # avoid negative :)
+          end
         end
 
-        # Suggest the number of nodes a district should have.
-        # Lower active_gear_pct means we expect more total gears on each node,
-        # so fewer nodes should be created in the district.
-        #
-        def suggested_nodes_per_district(node_capacity, active_gear_pct)
-          # note that integer division gets us the floor value
-          max = MAX_DISTRICT_GEARS * active_gear_pct / (100 * node_capacity)
-          max = 2 if max < 2 # should always at least have 2 to enable balancing
-          max
-        end
-
-        # Decide how many nodes an existing district can add, given how
-        # big nodes are and the expected percentage of gears that stay active.
-        #
-        def nodes_district_can_accept(dsum, node_capacity, active_gear_pct)
-          # If a district is already idling more than expected, project using
-          # its actual active_gear_pct
-          active_gear_pct = adjusted_active_pct(dsum, node_capacity, active_gear_pct)
-          max_nodes = suggested_nodes_per_district(node_capacity, active_gear_pct)
-          return max_nodes if dsum.nodes.empty?
-          return [0, max_nodes - dsum.nodes.size].max # avoid negative :)
-        end
-      end
-
-      class Add < Suggestion::Base
-        class Advisor < Suggestion::Advisor
+        class Add < Suggestion::Advisor
           extend Capacity::Util
           #
           # decide if a profile needs more capacity based on params
@@ -113,12 +116,12 @@ module Admin
                                ].max
             s[:nodes_needed] = (1.0 * s[:gears_needed] / node_capacity).ceil
 
-            suggestion = Capacity::Add.new(s)
+            suggestion = C::Add.new(s)
 
             # if no districts, just add undistricted nodes as needed
             if psum.district_count == 1 && psum.district_capacity == 0
               s[:node_quantity] = s[:nodes_needed]
-              suggestions << Add::Node.new(s)
+              suggestions << C::Add::Node.new(s)
               suggestion.contents = suggestions
               return suggestion
             end
@@ -172,7 +175,7 @@ module Admin
             d_quantity += 1 until d_quantity * nodes_per >=
                                   s[:nodes_needed] - s[:nodes_creatable]
             # Finally, create the suggestion for that.
-            return Add::District.new(
+            return C::Add::District.new(
               s.merge( district_quantity: d_quantity,
                        nodes_per_district: nodes_per,
                        node_quantity: nodes_per * d_quantity,
@@ -191,7 +194,7 @@ module Admin
               # add one in each existing district until we have enough.
               # start with the ones with the fewest nodes.
               open_dists.sort_by {|dist| dist.nodes.size}.each do |dist|
-                sug = sug_for_dist[dist.uuid] ||= Add::Node.new(
+                sug = sug_for_dist[dist.uuid] ||= C::Add::Node.new(
                   s.merge district_name: dist.name, district_uuid: dist.uuid,
                           node_quantity: 0, scope: "district")
                 dist[:space] -= 1
@@ -218,21 +221,21 @@ module Admin
             districts = (1..10).map {|n| { district_uuid: "district_#{n}_uuid",
                                            district_name: "district_#{n}" } }
             # very simple add suggestion: no districts, just add nodes
-            suggestions << Add.new(s.merge contents: Add::Node.new(s))
+            suggestions << C::Add.new(s.merge contents: C::Add::Node.new(s))
 
             # now just add nodes to one existing district
             s[:profile] = self.test_profile + "1"
-            suggestions << one_dist = Add.new(s.merge(contents: Container.new))
-            one_dist.contents << Add::Node.new(s.merge(districts.shift).
+            suggestions << one_dist = C::Add.new(s.merge(contents: Container.new))
+            one_dist.contents << C::Add::Node.new(s.merge(districts.shift).
                           merge(scope: "district", nodes_creatable: 4))
 
             # now add nodes and districts
             s[:profile] = self.test_profile + "2"
             s[:nodes_needed] = 6
-            suggestions << multi_add = Add.new(s.merge(contents: Container.new))
-            2.times { multi_add.contents << Add::Node.new(s.merge(districts.shift).
+            suggestions << multi_add = C::Add.new(s.merge(contents: Container.new))
+            2.times { multi_add.contents << C::Add::Node.new(s.merge(districts.shift).
                          merge(node_quantity: 1, scope: "district", nodes_creatable: 1))}
-            multi_add.contents << Add::District.new(
+            multi_add.contents << C::Add::District.new(
               s.merge( district_quantity: 2,
                        nodes_per_district: 2,
                        node_quantity: 4,
@@ -240,12 +243,10 @@ module Admin
               ))
             return suggestions
           end
-        end # Capacity::Add::Advisor
-      end # Add
+        end # A:S:Advisor::Capacity::Add
 
-      # too much capacity, recommend removing at least one node
-      class Remove < Suggestion::Base
-        class Advisor < Suggestion::Advisor
+        # too much capacity, recommend removing at least one node
+        class Remove < Suggestion::Advisor
           extend Capacity::Util
           def self.query(params, stats, current_suggestions)
 
@@ -299,7 +300,7 @@ module Admin
                       found_one = true
                       c_excess_gears -= node_cap
                       d_avail_active -= node_cap
-                      compact_district[dsum.uuid] ||= Remove::CompactDistrict.new(
+                      compact_district[dsum.uuid] ||= C::Remove::CompactDistrict.new(
                         profile: dsum.profile,
                         scope: "district",
                         district_uuid: dsum.uuid,
@@ -328,7 +329,7 @@ module Admin
             return [] unless down && avail > down
             # TODO: pick out specific nodes that would be best to remove
             gears_to_rm = avail - down
-            rm = Remove::Node.new(
+            rm = C::Remove::Node.new(
                         profile: psum.profile,
                         available_gears: avail,
                         threshold: down,
@@ -342,14 +343,14 @@ module Admin
 
           def self.test_instances
             suggestions = Container.new
-            suggestions << Remove::Node.new(
+            suggestions << C::Remove::Node.new(
                         profile: self.test_profile,
                         available_gears: 1000,
                         threshold: 900,
                         max_active_gears: 50,
                         nodes_to_remove: 2,
                    )
-            suggestions << Remove::CompactDistrict.new(
+            suggestions << C::Remove::CompactDistrict.new(
                         profile: self.test_profile,
                         scope: "district",
                         district_uuid: "test_district_uuid",
@@ -376,7 +377,7 @@ module Admin
 
         end # A:S:C:R:Advisor
 
-      end # A:S:C:Remove
-    end # A:S:Capacity
+      end # A:S:A:Capacity
+    end # A:S:Advisor
   end
 end

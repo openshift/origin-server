@@ -7,7 +7,8 @@ class AdminSuggestionTest < ActiveSupport::TestCase
 
   # define shortcuts for namespace constants in these tests
   S = Admin::Suggestion
-  C = S::Capacity
+  SC = S::Capacity
+  AC = S::Advisor::Capacity
 
   def setup
     super
@@ -87,16 +88,16 @@ class AdminSuggestionTest < ActiveSupport::TestCase
                                   name: :gear_up_threshold, value: -2 )
     sugs << S::Config::FixGearDown.new(profile: "small", scope: "profile",
                                        up: 100, down: 90 )
-    add1 = C::Add::Node.new(profile: "small", scope: "district", threshold: 100,
-                            district_uuid: "uuid", active_gear_pct: 90)
-    add2 = C::Add::District.new(profile: "notsmall", scope: "profile",
-                                threshold: 100, active_gear_pct: 90)
-    add = C::Add.new(profile: "small", scope: "profile",
-                     threshold: 100, active_gear_pct: 90,
-                     contents: S::Container.new + [add1, add2])
-    rm = C::Remove::Node.new(profile: "small", threshold: 100)
-    rm2 = C::Remove::CompactDistrict.new(profile: "bogus", district_uuid: "whatever",
-                                         scope: "district", active_gear_pct: 10)
+    add1 = SC::Add::Node.new(profile: "small", scope: "district", threshold: 100,
+                             district_uuid: "uuid", active_gear_pct: 90)
+    add2 = SC::Add::District.new(profile: "notsmall", scope: "profile",
+                                 threshold: 100, active_gear_pct: 90)
+    add = SC::Add.new(profile: "small", scope: "profile",
+                      threshold: 100, active_gear_pct: 90,
+                      contents: S::Container.new + [add1, add2])
+    rm = SC::Remove::Node.new(profile: "small", threshold: 100)
+    rm2 = SC::Remove::CompactDistrict.new(profile: "bogus", district_uuid: "whatever",
+                                          scope: "district", active_gear_pct: 10)
     sugs += [ add, add1, add2, rm, rm2 ]
 
     assert_raises(RuntimeError, "invalid scope foo") { sugs.for_scope("foo") }
@@ -226,7 +227,7 @@ class AdminSuggestionTest < ActiveSupport::TestCase
     #write_fake_dataset("boring-2x4.yaml")
   end
 
-  test "Capacity::Add::Advisor calculation steps" do
+  test "Capacity::Add Advisor calculation steps" do
     @params = { active_gear_pct: { default: 50 },
                 gear_up_threshold: { default: 100 },
                 gear_up_size: { default: 100 } }
@@ -277,7 +278,7 @@ class AdminSuggestionTest < ActiveSupport::TestCase
     #puts "District summary: #{d_empty_sum}"
 
     # test the individual calculation steps
-    add = C::Add::Advisor
+    add = AC::Add
 
     assert_equal 200, add.node_capacity_in_profile(psums[profile]),
       "large nodes should dominate capacity"
@@ -336,7 +337,7 @@ class AdminSuggestionTest < ActiveSupport::TestCase
           nodes_creatable: 3,
         }
     assert_not_nil (dist_sug = add.add_district(s)), "should get a suggestion"
-    assert_kind_of C::Add::District, dist_sug, "should get a district suggestion"
+    assert_kind_of SC::Add::District, dist_sug, "should get a district suggestion"
     assert_equal 1, dist_sug.district_quantity, "suggest one district"
     assert_equal 4, dist_sug.node_quantity, "suggest district with 4 nodes"
     assert_equal 4, dist_sug.nodes_per_district, "suggest district with 4 nodes"
@@ -374,17 +375,17 @@ class AdminSuggestionTest < ActiveSupport::TestCase
       active_gear_pct: { default: 100 }, # nothing ever idles
       gear_up_threshold: { 'prof1' => 401 }, # 400 = 8 nodes * 50 available gears each
     )
-    sugs = C::Add::Advisor.query(params, stats, nil)
+    sugs = AC::Add.query(params, stats, nil)
     psugs = sugs.pretty_inspect
     refute sugs.any? {|s| s.is_a? S::Error}, "errors running suggestions:\n#{psugs}"
     refute sugs.any? {|s| s.is_a? S::Config}, "configuration suggestions:\n#{psugs}"
     assert_equal 1, sugs.for_profile('prof1').size,
       "should suggest adding capacity for profile 'prof1'\n#{psugs}"
-    assert_kind_of C::Add, sugs.for_profile('prof1').first
+    assert_kind_of SC::Add, sugs.for_profile('prof1').first
     nodes = sugs.for_profile('prof1').first.contents
     assert_equal 2, nodes.size,
       "should suggest adding nodes in two districts for profile 'prof1'\n#{psugs}"
-    assert_kind_of C::Add::Node, nodes.first
+    assert_kind_of SC::Add::Node, nodes.first
     assert_equal "district", nodes.first.scope
     assert_equal 1, nodes.for_district(open['uuid']).size,
       "should suggest adding a node for the district with capacity in 'prof1'\n#{psugs}"
@@ -396,7 +397,7 @@ class AdminSuggestionTest < ActiveSupport::TestCase
       active_gear_pct: { default: 10 }, # 6 nodes per district
       gear_up_threshold: { 'prof1' => 4000 }, # 400 = 8 nodes * 50 available gears each
     })
-    sugs = C::Add::Advisor.query(params, stats, nil)
+    sugs = AC::Add.query(params, stats, nil)
     psugs = sugs.pretty_inspect
     refute sugs.any? {|s| s.is_a? S::Error}, "errors running suggestions:\n#{psugs}"
     assert_equal 1, sugs.for_profile('prof1').size,
@@ -406,7 +407,7 @@ class AdminSuggestionTest < ActiveSupport::TestCase
       "should suggest adding nodes in districts (one new) for profile 'prof1'\n#{psugs}"
     sugdist = adds.select {|s| s.district_uuid.nil?}
     assert_equal 1, sugdist.size, "suggest new districts in 'prof1'\n#{psugs}"
-    assert_kind_of C::Add::District, sugdist.first,
+    assert_kind_of SC::Add::District, sugdist.first,
       "suggest new districts in 'prof1'\n#{psugs}"
     assert_ids_work(sugs)
   end
@@ -419,10 +420,10 @@ class AdminSuggestionTest < ActiveSupport::TestCase
     sugs = S::Advisor.query(gear_up_threshold: { default: 4000 })
     assert_ids_work(sugs)
     assert_equal 1, sugs.size, "one suggestion\n#{sugs}"
-    assert_kind_of C::Add, sugs.first, "suggest adding capacity\n#{sugs}"
+    assert_kind_of SC::Add, sugs.first, "suggest adding capacity\n#{sugs}"
     sugs = sugs.first.contents
     assert_equal 1, sugs.size, "one rolled up suggestion\n#{sugs}"
-    assert_kind_of C::Add::Node, sugs.first, "suggest adding nodes\n#{sugs}"
+    assert_kind_of SC::Add::Node, sugs.first, "suggest adding nodes\n#{sugs}"
     assert_nil sugs.first.district_uuid, "add undistricted nodes\n#{sugs}"
     assert_ids_work(sugs)
   end
@@ -480,31 +481,31 @@ class AdminSuggestionTest < ActiveSupport::TestCase
     #puts stats.profile_summaries
     #write_fake_dataset 'mismanaged-install.yaml'
     # this should result in compacting some districts
-    sugs = C::Remove::Advisor.compact_districts(S::Params.new, stats)
+    sugs = AC::Remove.compact_districts(S::Params.new, stats)
     assert_ids_work(sugs)
     psugs = "\n#{sugs.pretty_inspect}"
     assert_equal 1, sugs.size, "should get compacting suggestion#{psugs}"
     sug = sugs.last
-    assert_kind_of C::Remove::CompactDistrict, sug, "suggest compacting district#{psugs}"
+    assert_kind_of SC::Remove::CompactDistrict, sug, "suggest compacting district#{psugs}"
     assert_equal 3, sug.node_target, "node_target #{psugs}"
     assert_equal 250, sug.excess_gears, "excess gears#{psugs}" # 500 active - 250 dist
     assert_equal 4, sug.node_names.size, "remove nodes#{psugs}" # 4 * 75 > 250
     assert_includes sug.node_names, inactive_node, "inactive was removed"
 
     params = S::Params.new(gear_down_threshold: { "too_empty" => 200 })
-    sugs = C::Remove::Advisor.remove_nodes_from_profile(params,
+    sugs = AC::Remove.remove_nodes_from_profile(params,
                                               stats.profile_summaries_hash["too_empty"])
     assert_ids_work(sugs)
     psugs = "\n#{sugs.pretty_inspect}"
     #puts stats.profile_summaries_hash["too_empty"].pretty_inspect
     #puts psugs
     assert_equal 1, sugs.size, "should get removal suggestions #{psugs}"
-    assert_kind_of C::Remove::Node, sugs.last, "suggest node removal #{psugs}"
+    assert_kind_of SC::Remove::Node, sugs.last, "suggest node removal #{psugs}"
 
     sugs = S::Advisor.query(params)
     assert_ids_work(sugs)
     assert_equal 1, sugs.size, "should get compacting but no removal suggestion#{psugs}"
-    assert_kind_of C::Remove::CompactDistrict, sugs.first
+    assert_kind_of SC::Remove::CompactDistrict, sugs.first
   end
 
   test "NONE district doesn't get compaction suggestion" do

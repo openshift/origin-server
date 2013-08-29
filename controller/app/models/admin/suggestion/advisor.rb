@@ -40,10 +40,6 @@ module Admin
       extend Logger
       include Logger
 
-      # ensure known advisors are loaded
-      #Admin::Suggestion::Params
-      Admin::Suggestion::Capacity
-
       # Expected parameter:
       #   Params or hash of parameters for constructing Params
       # Returns:
@@ -67,9 +63,9 @@ module Admin
           end
 
           # run .query on subclass tree starting with these
-          klasses = [ MissingNodes::Advisor,
-                      Capacity::Add::Advisor,
-                      Capacity::Remove::Advisor ] + self.descendants
+          klasses = [ Advisor::MissingNodes,
+                      Advisor::Capacity::Add,
+                      Advisor::Capacity::Remove] + self.descendants
           klasses.uniq.each do |klass|
             begin
               suggestions += klass.query(p, stats, suggestions)
@@ -101,25 +97,22 @@ module Admin
       def self.test_profile
         Rails.application.config.openshift[:gear_sizes].first
       end
-    end
 
-    class MissingNodes < Suggestion::Base
-      class Advisor < Suggestion::Advisor
+      class MissingNodes < Suggestion::Advisor
+        MN = Admin::Suggestion::MissingNodes # not to be confused with the Advisor
         def self.query(params, stats, current_suggestions)
           suggestions = Container.new
-          all = MissingNodes.new(nodes: [], contents: Container.new, scope: "general")
+          all = MN.new(nodes: [], scope: "general", contents: Container.new)
           profile_missing = {}
           district_missing = {}
           stats.profile_summaries_hash.each do |profile, psum|
             psum.districts.each do |dsum|
               next if dsum.missing_nodes.empty?
-              profile_missing[profile] ||= MissingNodes.new(profile: profile,
-                                                            nodes: [])
-              district_missing[dsum.uuid] = MissingNodes.new(profile: profile,
-                                                             scope: "district",
-                                                             district_uuid: dsum.uuid,
-                                                             district_name: dsum.name,
-                                                             nodes: [])
+              profile_missing[profile] ||= MN.new(profile: profile, nodes: [])
+              district_missing[dsum.uuid] = MN.new(profile: profile, nodes: [],
+                                                   scope: "district",
+                                                   district_uuid: dsum.uuid,
+                                                   district_name: dsum.name)
               profile_missing[profile].nodes += dsum.missing_nodes
               district_missing[dsum.uuid].nodes += dsum.missing_nodes
               all.nodes += dsum.missing_nodes
@@ -136,28 +129,30 @@ module Admin
           # simple - one node missing
           profile = self.test_profile
           nodes = [ "missing.example.com" ]
-          all1 = MissingNodes.new(contents: Container.new, scope:"general", nodes: nodes)
-          all1.contents << MissingNodes.new(profile: profile, nodes: nodes.clone)
-          all1.contents << MissingNodes.new(scope: "district", nodes: nodes.clone,
-                                            district_uuid: "test_dist_uuid",
-                                            district_name: "test_dist")
+          all1 = MN.new(contents: Container.new, scope:"general", nodes: nodes)
+          all1.contents << MN.new(profile: profile, nodes: nodes.clone)
+          all1.contents << MN.new(scope: "district", nodes: nodes.clone,
+                                  district_uuid: "test_dist_uuid",
+                                  district_name: "test_dist")
           # more complicated - several nodes missing across profiles and districts
           nodes = (1..3).map {|n| "missing#{n}.example.com" }
-          all2 = MissingNodes.new(contents: all1.contents.clone, scope:"general",
+          all2 = MN.new(contents: all1.contents.clone, scope:"general",
                                   nodes: all1.nodes + nodes)
           profile = self.test_profile + "2"
-          all2.contents << MissingNodes.new(profile: profile, nodes: nodes.clone)
-          all2.contents << MissingNodes.new(scope: "district",
-                                            nodes: [nodes[0]],
-                                            district_uuid: "test_dist_uuid1",
-                                            district_name: "test_dist1")
-          all2.contents << MissingNodes.new(scope: "district",
-                                            nodes: [nodes[1], nodes[2]],
-                                            district_uuid: "test_dist_uuid2",
-                                            district_name: "test_dist2")
+          all2.contents << MN.new(profile: profile, nodes: nodes.clone)
+          all2.contents << MN.new(scope: "district", nodes: [nodes[0]],
+                                  district_uuid: "test_dist_uuid1",
+                                  district_name: "test_dist1")
+          all2.contents << MN.new(scope: "district", nodes: [nodes[1], nodes[2]],
+                                  district_uuid: "test_dist_uuid2",
+                                  district_name: "test_dist2")
           Container.new + [all1, all2]
         end
-      end # Advisor
-    end # MissingNodes
-  end
-end
+
+      end # MissingNodes
+    end # Advisor
+  end # Suggestion
+end # Admin
+
+# ensure known advisor subclasses are loaded at runtime by adding on here:
+Admin::Suggestion::Advisor::Capacity
