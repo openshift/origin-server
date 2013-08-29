@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Common
 Name:          rubygem-%{gem_name}
-Version: 1.14.0
+Version: 1.14.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -117,6 +117,13 @@ cp bin/man/*.8 %{buildroot}%{_mandir}/man8/
 %doc %{gem_docdir}
 
 %changelog
+* Thu Aug 29 2013 Adam Miller <admiller@redhat.com> 1.14.1-1
+- Merge pull request #3104 from Miciah/rubygem-openshift-origin-common-drop-
+  rubygem-yard-dependency (dmcphers+openshiftbot@redhat.com)
+- Handle .resultset.json (dmcphers@redhat.com)
+- Drop spurious yard dependency from common pkg (miciah.masters@gmail.com)
+- bump_minor_versions for sprint 33 (admiller@redhat.com)
+
 * Tue Aug 20 2013 Adam Miller <admiller@redhat.com> 1.13.5-1
 - Merge pull request #3435 from
   smarterclayton/bug_997848_capabilities_not_shown_via_api
