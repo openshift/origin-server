@@ -2,7 +2,7 @@
 
 Summary:       Provides embedded switchyard support
 Name:          openshift-origin-cartridge-switchyard
-Version: 0.7.0
+Version: 0.7.1
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -50,6 +50,9 @@ alternatives --set switchyard-0.6 /usr/share/switchyard
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Thu Aug 29 2013 Adam Miller <admiller@redhat.com> 0.7.1-1
+- bump_minor_versions for sprint 33 (admiller@redhat.com)
+
 * Wed Aug 21 2013 Adam Miller <admiller@redhat.com> 0.6.4-1
 - Merge pull request #3455 from jwhonce/latest_cartridge_versions
   (dmcphers+openshiftbot@redhat.com)
