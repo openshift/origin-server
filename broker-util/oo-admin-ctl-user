@@ -483,6 +483,7 @@ caps = user.capabilities
 
 # print out the user's current settings
 puts "User #{user.login}:"
+puts "                            plan: #{user.plan_id}"
 puts "                  consumed gears: #{user.consumed_gears}"
 puts "                       max gears: #{caps['max_gears']}"
 puts "    max tracked storage per gear: #{caps['max_tracked_addtl_storage_per_gear'] || 0}"
