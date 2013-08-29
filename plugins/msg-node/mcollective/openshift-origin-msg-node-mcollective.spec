@@ -10,7 +10,7 @@
 
 Summary:       M-Collective agent file for openshift-origin-msg-node-mcollective
 Name:          openshift-origin-msg-node-mcollective
-Version: 1.14.0
+Version: 1.14.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -51,6 +51,22 @@ cp -p facts/update_yaml.rb %{buildroot}/usr/libexec/mcollective/
 %attr(0700,-,-) %config(noreplace) /etc/cron.minutely/openshift-facts
 
 %changelog
+* Thu Aug 29 2013 Adam Miller <admiller@redhat.com> 1.14.1-1
+- Merge remote-tracking branch 'origin/master' into propagate_app_id_to_gears
+  (ccoleman@redhat.com)
+- Merge pull request #3486 from jwhonce/bug/1000580
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1000580 - Reduce quota precision (jhonce@redhat.com)
+- Bug 1000193: Use an Hourglass in the gear upgrader (ironcladlou@gmail.com)
+- bump_minor_versions for sprint 33 (admiller@redhat.com)
+- Merge pull request #3452 from pravisankar/dev/ravi/bug998905
+  (dmcphers+openshiftbot@redhat.com)
+- Added environment variable name limitations  - Limit length to 128 bytes.  -
+  Allow letters, digits and underscore but can't begin with digit
+  (rpenta@redhat.com)
+- Switch OPENSHIFT_APP_UUID to equal the Mongo application '_id' field
+  (ccoleman@redhat.com)
+
 * Wed Aug 21 2013 Adam Miller <admiller@redhat.com> 1.13.8-1
 - fix bug 999144 - check gear_file against uid map (rchopra@redhat.com)
 - Bug 998794 - Allow blank value for a user environment variable
