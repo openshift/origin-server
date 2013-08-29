@@ -48,10 +48,15 @@ def execute
     $stderr.puts("#{e.message}\n#{e.stdout}\n#{e.stderr}\n")
     $stderr.puts(e.backtrace.join("\n")) if $trace
     exit! e.rc
-  rescue OpenShift::Runtime::FrontendHttpServerException => e
+  rescue OpenShift::Runtime::FrontendHttpServerException,
+      ::OpenShift::Runtime::UserCreationException => e
     $stderr.puts(e.message)
     $stderr.puts(e.backtrace.join("\n")) if $trace
     exit! 129
+  rescue ::OpenShift::Runtime::GearCreationException => e
+    $stderr.puts(e.message)
+    $stderr.puts(e.backtrace.join("\n"))
+    exit! 146
   rescue Exception => e
     $stderr.puts(e.message)
     $stderr.puts(e.backtrace.join("\n")) if $trace
@@ -145,7 +150,7 @@ command :'app-create' do |c|
   c.action do |args, options|
     options.default with_container_name: options.with_app_name
 
-    if options.with_container_uuid && !options.with_container_uuid.empty?
+    if options.with_container_uuid && options.with_namespace && options.with_app_name && options.with_app_uuid
       container = OpenShift::Runtime::ApplicationContainer.new(
           options.with_app_uuid,
           options.with_container_uuid,
