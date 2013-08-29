@@ -361,6 +361,9 @@ git archive --format=tar <%= @deployment_ref %> | (cd <%= @target_dir %> && tar 
   name = OpenShift System User
 [gc]
   auto = 100
+[pack]
+  windowMemory = 10m
+  packSizeLimit = 20m
 }
 
       GIT_GET_SHA1 = %Q{
