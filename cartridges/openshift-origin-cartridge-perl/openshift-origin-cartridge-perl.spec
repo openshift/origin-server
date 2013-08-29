@@ -1,7 +1,7 @@
 %global cartridgedir %{_libexecdir}/openshift/cartridges/perl
 
 Name:          openshift-origin-cartridge-perl
-Version: 0.9.0
+Version: 0.9.1
 Release:       1%{?dist}
 Summary:       Perl cartridge
 Group:         Development/Languages
@@ -72,6 +72,10 @@ rm %{buildroot}%{cartridgedir}/metadata/manifest.yml.*
 
 
 %changelog
+* Thu Aug 29 2013 Adam Miller <admiller@redhat.com> 0.9.1-1
+- Bug 1001713 - Set PERL_VERSION number in setup (jhonce@redhat.com)
+- bump_minor_versions for sprint 33 (admiller@redhat.com)
+
 * Wed Aug 21 2013 Adam Miller <admiller@redhat.com> 0.8.7-1
 - Merge pull request #3456 from tdawson/tdawson/fixmirrorfix/2013-08
   (admiller@redhat.com)
