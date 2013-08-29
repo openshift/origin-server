@@ -35,7 +35,9 @@ function stop() {
 }
 
 function restart() {
-    stop
+    if _are_cronjobs_enabled; then
+        stop
+    fi
     start
 }
 
