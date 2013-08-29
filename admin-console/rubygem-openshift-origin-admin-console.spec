@@ -9,7 +9,7 @@
 
 Summary:       OpenShift plugin adding an administrative console to the broker
 Name:          rubygem-%{gem_name}
-Version: 0.2.0
+Version: 0.2.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -129,6 +129,13 @@ cp %{buildroot}/%{gem_dir}/gems/%{gem_name}-%{version}/conf/openshift-origin-adm
 %defattr(-,root,apache,-)
 
 %changelog
+* Thu Aug 29 2013 Adam Miller <admiller@redhat.com> 0.2.1-1
+- Merge remote-tracking branch 'origin/master' into propagate_app_id_to_gears
+  (ccoleman@redhat.com)
+- bump_minor_versions for sprint 33 (admiller@redhat.com)
+- Switch OPENSHIFT_APP_UUID to equal the Mongo application '_id' field
+  (ccoleman@redhat.com)
+
 * Tue Aug 20 2013 Adam Miller <admiller@redhat.com> 0.1.2-1
 - fix old mirror url (tdawson@redhat.com)
 
