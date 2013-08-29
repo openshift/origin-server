@@ -40,7 +40,7 @@ module OpenShift
       DEFAULT_PAM_LIMITS       = { 'nproc' => 100 }
 
       DEFAULT_NODE_PROFILE         = 'small'
-      DEFUALT_QUOTA_BLOCKS         = '1048576'
+      DEFAULT_QUOTA_BLOCKS         = '1048576'
       DEFAULT_QUOTA_FILES          = '40000'
       DEFAULT_NO_OVERCOMMIT_ACTIVE = false
       DEFAULT_MAX_ACTIVE_GEARS     = 0
@@ -345,7 +345,7 @@ module OpenShift
 
         resource = resource_limits
         res['node_profile'] = resource.get('node_profile', DEFAULT_NODE_PROFILE)
-        res['quota_blocks'] = resource.get('quota_blocks', DEFUALT_QUOTA_BLOCKS)
+        res['quota_blocks'] = resource.get('quota_blocks', DEFAULT_QUOTA_BLOCKS)
         res['quota_files'] = resource.get('quota_files', DEFAULT_QUOTA_FILES)
         res['no_overcommit_active'] = resource.get_bool('no_overcommit_active', DEFAULT_NO_OVERCOMMIT_ACTIVE)
 

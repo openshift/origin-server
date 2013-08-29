@@ -88,13 +88,15 @@ class NodeTest < OpenShift::NodeTestCase
     ]
 
     scenarios.each do |scenario|
-      @config.stubs(:get).with("GEAR_BASE_DIR", anything()).returns('/var/lib/openshift')
-      @config.stubs(:get).with("node_profile", anything()).returns(scenario[:node_profile])
-      @config.stubs(:get).with("quota_blocks", anything()).returns(scenario[:quota_blocks])
-      @config.stubs(:get).with("quota_files", anything()).returns(scenario[:quota_files])
-      @config.stubs(:get).with("max_active_gears", anything()).returns(scenario[:max_active_gears])
-      @config.stubs(:get).with("max_active_apps", anything()).returns(scenario[:max_active_apps])
-      @config.stubs(:get_bool).with("no_overcommit_active", anything()).returns(scenario[:no_overcommit_active])
+      @config.stubs(:get).with("GEAR_BASE_DIR", anything).returns('/var/lib/openshift')
+      @config.stubs(:get).with("node_profile", anything).returns(scenario[:node_profile])
+      @config.stubs(:get).with("quota_blocks", anything).returns(scenario[:quota_blocks])
+      @config.stubs(:get).with("quota_files", anything).returns(scenario[:quota_files])
+      @config.stubs(:get).with("max_active_gears", anything).returns(scenario[:max_active_gears])
+      @config.stubs(:get).with("max_active_apps", anything).returns(scenario[:max_active_apps])
+      @config.stubs(:get_bool).with("no_overcommit_active", anything).returns(scenario[:no_overcommit_active])
+      OpenShift::Runtime::Node.stubs(:resource_limits).returns(@config)
+
       OpenShift::Runtime::Utils::SELinux.stubs(:set_mcs_label).returns nil
 
       appuids = (501...(501+ (scenario[:max_active_gears].nil? ? scenario[:max_active_apps].to_i : scenario[:max_active_gears].to_i)))
@@ -258,7 +260,6 @@ class NodeTest < OpenShift::NodeTestCase
       end
 
       node_utilization = OpenShift::Runtime::Node.node_utilization
-      print node_utilization.pretty_inspect # DEBUG
       assert_equal apps.count, node_utilization['gears_total_count']
       assert_equal 0, node_utilization['gears_started_count'] # 1/2 idled, 1/2 stopped
       assert_equal apps.count/2, node_utilization['git_repos_count']
