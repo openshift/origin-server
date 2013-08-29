@@ -32,7 +32,7 @@ Cart-Data:
   Type: cart_data
   Description: MariaDB connection URL
 Suggests:
-- phpmyadmin-3
+- phpmyadmin-4
 Provides:
 - mariadb-5.5
 - mariadb

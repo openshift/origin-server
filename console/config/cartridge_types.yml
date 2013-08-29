@@ -6,10 +6,10 @@
 
 - :categories: 
   - :administration
-  :display_name: phpMyAdmin 3
+  :display_name: phpMyAdmin 4
   :requires:
   - mysql-5.1
-  :name: phpmyadmin-3
+  :name: phpmyadmin-4
 
 - :name: cron-1.4
   :priority: 2
