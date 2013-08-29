@@ -10,7 +10,7 @@
 
 Summary:       OpenShift plugin for LibVirt-LXC based containers
 Name:          rubygem-%{gem_name}
-Version:       0.0.0
+Version:       0.0.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -95,4 +95,7 @@ cp %{buildroot}/%{gem_instdir}/conf/container-libvirt.conf %{buildroot}/etc/open
 %config(noreplace) /etc/openshift/container-libvirt.conf
 
 %changelog
+* Thu Aug 29 2013 Krishna Raman <kraman@gmail.com> 0.0.1-1
+- new package built with tito
+
 
