@@ -315,6 +315,9 @@ git archive --format=tar HEAD | (cd <%= @target_dir %> && tar --warning=no-times
   name = OpenShift System User
 [gc]
   auto = 100
+[pack]
+  windowMemory = 10m
+  packSizeLimit = 20m
 }
 
       PRE_RECEIVE = %q{
