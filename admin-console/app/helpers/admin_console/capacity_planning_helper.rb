@@ -1,7 +1,8 @@
 module AdminConsole
   module CapacityPlanningHelper
     def capacity_overview_sample_profile
-      profile = {
+
+      profile = Admin::Stats::HashWithReaders.new.merge({
         :profile => "small",
         :district_count => 24,
         :nodes_count => 72,
@@ -9,15 +10,16 @@ module AdminConsole
         :district_capacity => 144000,
         :gears_total_count => 61920,
         :gears_active_count => 5961,
-        :available_active_gears_with_negatives => 519
-      }
+        :available_active_gears_with_negatives => 519,
+        :effective_available_gears => 519
+      })
       prng = Random.new(11123)
       24.times do |ind|
         nodes = []
         3.times do |ind|
           nodes << {:max_active_gears => 90, :gears_active_usage_pct => prng.rand * 110}
         end
-        profile[:districts] << {:name => ind.to_s, :dist_usage_pct => prng.rand * 100, :nodes => nodes}
+        profile.districts << {:name => ind.to_s, :dist_usage_pct => prng.rand * 100, :nodes => nodes}
       end
       profile
     end

@@ -28,7 +28,7 @@ module AdminConsole
         xklass.to_s <=> yklass.to_s
       when x.important? && !y.important?
         -1
-      when !x.important? && y.important
+      when !x.important? && y.important?
         1
       else
         xklass = x.is_a?(Class) ? x : x.class
