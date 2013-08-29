@@ -10,8 +10,8 @@ URL:           https://www.openshift.com
 Source0:       http://mirror.openshift.com/pub/openshift-origin/source/%{name}/%{name}-%{version}.tar.gz
 Requires:      rubygem(openshift-origin-node)
 Requires:      openshift-origin-node-util
-Requires:      phpMyAdmin >= 3.4
-Requires:      phpMyAdmin < 3.6
+BuildRequires: phpMyAdmin >= 3.4
+BuildRequires: phpMyAdmin < 3.6
 %if 0%{?fedora}%{?rhel} <= 6
 Requires:      httpd < 2.4
 %endif
@@ -31,6 +31,10 @@ Provides phpMyAdmin cartridge support. (Cartridge Format V2)
 
 %build
 %__rm %{name}.spec
+# make local copy of phpMyAdmin
+cp -r %{_datadir}/phpMyAdmin ./usr/
+# change the phpMyAdmin config directory
+sed "s|define('CONFIG_DIR', '.*');|define('CONFIG_DIR', getenv('OPENSHIFT_PHPMYADMIN_DIR').'/phpMyAdmin/');|g" -i ./usr/phpMyAdmin/libraries/vendor_config.php
 
 %install
 %__mkdir -p %{buildroot}%{cartridgedir}
