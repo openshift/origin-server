@@ -2293,12 +2293,12 @@ The table below describes each parameter associated with only embedded cartridge
     {
       "current_scale": 0,
       "description": "Web based MySQL admin tool. Requires the MySQL cartridge to be installed first.",
-      "display_name": "phpMyAdmin 3.4",
+      "display_name": "phpMyAdmin 4",
       "help_topics": {
       },
       "license": "GPLv2",
       "license_url": "",
-      "name": "phpmyadmin-3",
+      "name": "phpmyadmin-4",
       "scales_from": 1,
       "scales_to": 1,
       "supported_scales_from": 1,
@@ -2322,7 +2322,9 @@ The table below describes each parameter associated with only embedded cartridge
 <h5>Request Parameters</h5>
 <table border=1>
 <tr><td>Name</td><td>Description</td><td>Required</td> <td>Valid Options</td><td>Default Value</td></tr>
-<tr><td>name</td><td>Name of the cartridge, e.g. mongodb-2.2<br/><b>Note: Valid options may be different on your actual implementation of OpenShift.</b></td><td>Yes</td><td>mock-plugin-0.1, cron-1.4, phpmyadmin-3, rockmongo-1.1, switchyard-0, metrics-0.1, 10gen-mms-agent-0.1, mysql-5.1, haproxy-1.4, postgresql-9.2, postgresql-8.4, mongodb-2.2, jenkins-client-1</td><td>N/A</td></tr>
+<tr><td>name</td><td>Name of the cartridge, e.g. mongodb-2.2<br/><b>Note: Valid
+      options may be different on your actual implementation of
+OpenShift.</b></td><td>Yes</td><td>mock-plugin-0.1, cron-1.4, phpmyadmin-4, rockmongo-1.1, switchyard-0, metrics-0.1, 10gen-mms-agent-0.1, mysql-5.1, haproxy-1.4, postgresql-9.2, postgresql-8.4, mongodb-2.2, jenkins-client-1</td><td>N/A</td></tr>
 <tr><td>colocate_with</td><td>The component to colocate with</td><td>No</td><td>ruby-1.9, haproxy-1.4</td><td></td></tr>
 <tr><td>scales_from</td><td>Minimum number of gears to run the component on.</td><td>No</td><td></td><td></td></tr>
 <tr><td>scales_to</td><td>Maximum number of gears to run the component on.</td><td>No</td><td></td><td></td></tr>
