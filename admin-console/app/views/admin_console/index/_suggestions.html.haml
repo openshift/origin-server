@@ -16,4 +16,12 @@
         - partial = suggestion_partial_for suggestion
         - url = suggestions_path expanded: suggestion.id 
         %tr.short.suggestion.clickable{ suggestion_url: url }
-          = render partial: partial, locals: {suggestion: suggestion, size: :short}
+          %td
+            - if suggestion.important?
+              .label.label-important
+                = "!"
+            - else
+              .label.label-info
+                = "?"
+          %td.suggestion-body       
+            = render partial: partial, locals: {suggestion: suggestion, size: :short}

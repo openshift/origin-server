@@ -360,6 +360,17 @@ module Admin
                         node_target: 6,
                         excess_gears: 200,
                       )
+            suggestions << Remove::CompactDistrict.new(
+                        profile: self.test_profile,
+                        scope: "district",
+                        district_uuid: "test_district_uuid",
+                        district_name: "test_district",
+                        node_names: ["remove.example.com"],
+                        max_active_gears: 100,
+                        active_gear_pct: 10,
+                        node_target: 6,
+                        excess_gears: 200,
+                      )
             suggestions
           end
 

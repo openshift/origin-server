@@ -1,0 +1,28 @@
+.lead
+  = "Add capacity for gear size #{suggestion.profile}"
+- case size
+- when :short
+  %div
+    = "Gear size #{suggestion.profile} is #{pluralize(suggestion.gears_needed, 'gear')} under the active gear threshold of #{suggestion.threshold}."
+- when :full
+  %p
+    = "Gear size #{suggestion.profile} is #{pluralize(suggestion.gears_needed, 'gear')} under the active gear threshold of #{suggestion.threshold}."
+  %p
+    = "Create #{pluralize(suggestion.node_quantity, 'node')} to increase the active gear capacity to the threshold.  The number of nodes needed is based on the estimated maximum active gears of #{suggestion.max_active_gears} on nodes in this profile."
+    - suggestion.contents.each do |subsuggest|
+      - klass = subsuggest.is_a?(Class) ? subsuggest : subsuggest.class
+      - if klass.to_s == "Admin::Suggestion::Capacity::Add::Node"
+        - if subsuggest.district_name.present?
+          %p
+            = "Add #{subsuggest.node_quantity == suggestion.node_quantity ? 'all' : subsuggest.node_quantity} of the nodes to district #{subsuggest.district_name}."
+            %pre
+              = "oo-admin-ctl-district -c add-node -u #{subsuggest.district_uuid} -i <server_identity>"
+
+      - elsif klass.to_s == "Admin::Suggestion::Capacity::Add::District"
+        %p
+          = "Create #{pluralize(subsuggest.district_quantity, 'new district')}"
+          %pre
+            = "oo-admin-ctl-district -c create -p #{subsuggest.profile} -n <name>"
+          = "Then add #{subsuggest.nodes_per_district} of the nodes to each district."
+          %pre
+            = "oo-admin-ctl-district -c add-node -u <district_uuid> -i <server_identity>"

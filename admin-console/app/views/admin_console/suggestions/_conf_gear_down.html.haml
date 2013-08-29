@@ -1,0 +1,16 @@
+.lead
+  Gear down threshold needs adjustment
+- case size
+- when :short
+  %div
+    The config variable GEAR_DOWN_THRESHOLD conflicts with other config values.
+- when :full
+  %p
+    The config variable GEAR_DOWN_THRESHOLD conflicts with other config values.
+  %p
+    = "The GEAR_DOWN_THRESHOLD (#{suggestion.down}) is within the GEAR_UP_SIZE (#{suggestion.size}) of the GEAR_UP_THRESHOLD (#{suggestion.up})."
+    This will cause the add and remove capacity suggestions to trigger each other when they are resolved.
+  %p
+    Adjust your configuration in
+    %pre
+      = File.join(OpenShift::Config::PLUGINS_DIR, "openshift-origin-admin-console.conf")

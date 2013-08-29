@@ -60,12 +60,28 @@
           - partial = suggestion_partial_for suggestion
           - url = suggestions_path id: suggestion.id
           %tr.short.suggestion.clickable{style: 'display: none;', suggestion_url: url, :id => "#{suggestion.id}_short", :suggestion_id => suggestion.id}
-            = render partial: partial, locals: {suggestion: suggestion, size: :short}
+            %td
+              - if suggestion.important?
+                .label.label-important
+                  = "!"
+              - else
+                .label.label-info
+                  = "?"
+            %td.suggestion-body          
+              = render partial: partial, locals: {suggestion: suggestion, size: :short}
             %td.toggle
               %a{:href => "javascript:;", :title => "Expand suggestion details" }
                 %i.icon-chevron-down
           %tr.full.suggestion{style: 'display: none;', suggestion_url: url, :id => "#{suggestion.id}_full", :suggestion_id => suggestion.id}
-            = render partial: partial, locals: {suggestion: suggestion, size: :full}
+            %td
+              - if suggestion.important?
+                .label.label-important
+                  = "!"
+              - else
+                .label.label-info
+                  = "?"
+            %td.suggestion-body          
+              = render partial: partial, locals: {suggestion: suggestion, size: :full}
             %td.toggle
               %a{:href => "javascript:;", :title => "Collapse suggestion details", :suggestion_id => suggestion.id}
                 %i.icon-chevron-up

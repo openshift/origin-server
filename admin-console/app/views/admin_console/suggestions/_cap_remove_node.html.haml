@@ -1,0 +1,12 @@
+.lead
+  = "Excess capacity in gear size #{suggestion.profile}"
+- case size
+- when :short
+  %div
+    = "Remove #{pluralize(suggestion.nodes_to_remove, 'node')} to remove the excess capacity."
+
+- when :full
+  %p
+    = "Remove #{pluralize(suggestion.nodes_to_remove, 'node')} to remove the excess capacity."
+  %p
+    = "You currently have #{pluralize(suggestion.available_gears, 'active gear')} available.  This is over the configured GEAR_DOWN_THRESHOLD of #{suggestion.threshold}.  The maximum number of active gears for nodes in this gear size is #{suggestion.max_active_gears}, so removing #{pluralize(suggestion.nodes_to_remove, 'node')} will bring the available active gears below the threshold."
