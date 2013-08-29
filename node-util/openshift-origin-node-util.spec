@@ -6,7 +6,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin node
 Name:          openshift-origin-node-util
-Version: 1.14.0
+Version: 1.14.1
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -143,6 +143,22 @@ cp -p init.d/openshift-gears %{buildroot}%{_initddir}/
 %endif
 
 %changelog
+* Thu Aug 29 2013 Adam Miller <admiller@redhat.com> 1.14.1-1
+- Updated cartridges and scripts for phpmyadmin-4 (mfojtik@redhat.com)
+- Merge remote-tracking branch 'origin/master' into propagate_app_id_to_gears
+  (ccoleman@redhat.com)
+- nurture -> analytics (dmcphers@redhat.com)
+- Merge remote-tracking branch 'origin/master' into propagate_app_id_to_gears
+  (ccoleman@redhat.com)
+- <oo-accept-node> Bug 1000174 - oo-accept-node fixes (jdetiber@redhat.com)
+- Merge pull request #3428 from mfojtik/bugzilla/998337
+  (dmcphers+openshiftbot@redhat.com)
+- bump_minor_versions for sprint 33 (admiller@redhat.com)
+- Switch OPENSHIFT_APP_UUID to equal the Mongo application '_id' field
+  (ccoleman@redhat.com)
+- Bug 998337 - Fixed 'untitled' string in some oo commands man pages
+  (mfojtik@redhat.com)
+
 * Wed Aug 21 2013 Adam Miller <admiller@redhat.com> 1.13.8-1
 - Bug 999460 - Trap range error on large, all numeric UUIDs for the test to see
   if the UUID is really a UID. (rmillner@redhat.com)
