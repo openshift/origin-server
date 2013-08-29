@@ -1,7 +1,7 @@
 %global cartridgedir %{_libexecdir}/openshift/cartridges/python
 
 Name:          openshift-origin-cartridge-python
-Version: 0.9.0
+Version: 0.9.1
 Release:       1%{?dist}
 Summary:       Python cartridge
 Group:         Development/Languages
@@ -114,6 +114,14 @@ Python cartridge for OpenShift. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Thu Aug 29 2013 Adam Miller <admiller@redhat.com> 0.9.1-1
+- Add support for Flask and requirements.txt (rmillner@redhat.com)
+- Merge pull request #3460 from rmillner/BZ999400
+  (dmcphers+openshiftbot@redhat.com)
+- bump_minor_versions for sprint 33 (admiller@redhat.com)
+- Bug 999400 - test the mirror to see if its up, if not then use external.
+  (rmillner@redhat.com)
+
 * Wed Aug 21 2013 Adam Miller <admiller@redhat.com> 0.8.8-1
 - Merge pull request #3456 from tdawson/tdawson/fixmirrorfix/2013-08
   (admiller@redhat.com)
