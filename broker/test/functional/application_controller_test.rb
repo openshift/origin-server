@@ -66,6 +66,12 @@ class ApplicationControllerTest < ActionController::TestCase
     assert_response :ok
   end
 
+  test "list applications in a non-lowercased domain" do
+    Domain.find_or_create_by(namespace: "abcD", owner: @user)
+    get :index, :domain_id => 'abcD'
+    assert_response :success
+  end
+
   test "attempt to create without create_application permission" do
     @app_name = "app#{@random}"
     scopes = Scope::Scopes.new
