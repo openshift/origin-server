@@ -71,8 +71,8 @@ Feature: applications
     @rhel-only
     Scenarios: RHEL scenarios
       | format | php_version | phpmyadmin_version | database  |
-      | JSON   |     5.3     |        3           | mysql-5.1 |
-      | XML    |     5.3     |        3           | mysql-5.1 |
+      | JSON   |     5.3     |        4           | mysql-5.1 |
+      | XML    |     5.3     |        4           | mysql-5.1 |
 
     @fedora-19-only
     Scenarios: Fedora 19 scenarios
@@ -94,8 +94,8 @@ Feature: applications
     @rhel-only
     Scenarios: RHEL scenarios
       | format | php_version | phpmyadmin_version | database  | ruby_version |
-      | JSON   |     5.3     |        3           | mysql-5.1 |      1.9     |
-      | XML    |     5.3     |        3           | mysql-5.1 |      1.9     |
+      | JSON   |     5.3     |        4           | mysql-5.1 |      1.9     |
+      | XML    |     5.3     |        4           | mysql-5.1 |      1.9     |
 
     @fedora-19-only
     Scenarios: Fedora 19 scenarios
