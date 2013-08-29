@@ -34,6 +34,9 @@ begin
   when "restart"
     tc.restart
 
+  when "reload"
+    tc.restart
+
   when "startuser"
     tc.startuser(ARGV[1])
 
