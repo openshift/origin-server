@@ -8,7 +8,7 @@
   %p
     = "Gear size #{suggestion.profile} is #{pluralize(suggestion.gears_needed, 'gear')} under the active gear threshold of #{suggestion.threshold}."
   %p
-    = "Create #{pluralize(suggestion.node_quantity, 'node')} to increase the active gear capacity to the threshold.  The number of nodes needed is based on the estimated maximum active gears of #{suggestion.max_active_gears} on nodes in this profile."
+    = "Create #{pluralize(suggestion.nodes_needed, 'node')} to increase the active gear capacity to the threshold.  The number of nodes needed is based on the estimated maximum active gears of #{suggestion.max_active_gears} on nodes in this profile."
     - suggestion.contents.each do |subsuggest|
       - klass = subsuggest.is_a?(Class) ? subsuggest : subsuggest.class
       - if klass.to_s == "Admin::Suggestion::Capacity::Add::Node"
