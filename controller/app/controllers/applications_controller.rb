@@ -64,7 +64,7 @@ class ApplicationsController < BaseController
         end
       else
         features << c
-      end  
+      end
     end
 
     user_env_vars = params[:environment_variables].presence
