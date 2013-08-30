@@ -37,13 +37,6 @@ class FrontendProxyTest < OpenShift::NodeTestCase
     @config.stubs(:get).with("UID_BEGIN").returns(@uid_begin.to_s)
   end
 
-  # Ensure that the wrapped UID is calculated properly
-  def test_wrap_uid
-    proxy = OpenShift::Runtime::FrontendProxyServer.new
-
-    assert_equal @wrap_uid, proxy.wrap_uid
-  end
-
   # Simple test to validate the port range computation given
   # a certain UID.
   def test_port_range
