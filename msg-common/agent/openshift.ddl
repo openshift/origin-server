@@ -83,6 +83,7 @@ action "cartridge_do", :description => "run a cartridge action" do
                               user-var-remove
                               user-var-list
                               unsubscribe
+                              update-cluster
                               ),
         :optional       => false,
         :maxlength      => 64

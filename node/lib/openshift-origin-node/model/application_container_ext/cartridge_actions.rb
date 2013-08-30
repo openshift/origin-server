@@ -123,6 +123,11 @@ module OpenShift
 
           output = ''
 
+          # TODO this is a quick fix because the PUBLIC_IP from the node config
+          # isn't the one we want - the port proxy binds to the 10.x IPs, not
+          # to the public EC2 IP addresses
+          ip_address = `facter ipaddress`.chomp
+
           env  = ::OpenShift::Runtime::Utils::Environ::for_gear(@container_dir)
           # TODO: better error handling
           cart.public_endpoints.each do |endpoint|
@@ -794,6 +799,66 @@ module OpenShift
           buffer << out
           buffer << @cartridge_model.do_control("status", cart_name)
           buffer
+        end
+
+        def update_cluster(cluster)
+          # currently there's no easy way to only target web proxy gears from the broker
+          # via mcollective, so this is a temporary workaround
+          return unless @cartridge_model.web_proxy
+
+          gear_env = ::OpenShift::Runtime::Utils::Environ::for_gear(container_dir)
+          gear_registry = ::OpenShift::Runtime::GearRegistry.new(self)
+
+          registry_updates = {}
+
+          cloud_domain = @config.get("CLOUD_DOMAIN")
+          set_proxy_input = []
+          cluster.split(' ').each do |line|
+            gear_uuid, gear_name, namespace, private_ip, proxy_port = line.split(',')
+            gear_dns = "#{gear_name}-#{namespace}.#{cloud_domain}"
+            set_proxy_input << "#{gear_dns}|#{private_ip}:#{proxy_port}"
+
+            # add the entry to the temp hash of registry updates
+            registry_updates[gear_uuid] = ::OpenShift::Runtime::GearRegistry::Entry.new(uuid: gear_uuid,
+                                                                                   namespace: namespace,
+                                                                                   dns: gear_dns,
+                                                                                   private_ip: private_ip,
+                                                                                   proxy_port: proxy_port)
+          end
+
+          # registry_updates now contains what should be the full gear registry and it should
+          # replace the existing file on disk
+
+          # update the gear registry
+          # returns a list of new gears added with this update
+          new_gears = gear_registry.update(registry_updates)
+
+          # exclude the current gear - no need to do any work on it
+          new_gears.delete_if { |k,v| k.uuid == self.uuid }
+
+          unless new_gears.empty?
+            # convert the new gears to the format uuid@ip
+            new_gears.map! { |e| "#{e.uuid}@#{e.private_ip}" }
+
+            # sync from this gear (load balancer) to all new gears
+            # copy app-deployments and make all the new gears look just like it (i.e., use --delete)
+            new_gears.each do |gear|
+              out, err, rc = run_in_container_context("rsync -axvz --delete --rsh=/usr/bin/oo-ssh app-deployments/ #{gear}:app-deployments/",
+                                                      env: gear_env,
+                                                      chdir: container_dir,
+                                                      expected_exitstatus: 0)
+            end
+
+            # activate the current deployment on all the new gears
+            deployment_id = read_deployment_metadata(current_deployment_datetime, 'id').chomp
+            # since the gears are new, set init to true and hot_deploy to false
+            activate_many(gears: new_gears, deployment_id: deployment_id, init: true, hot_deploy: false)
+
+            # TODO disable local gear like in set-registry script
+          end
+
+          args = set_proxy_input.join(' ')
+          @cartridge_model.do_control('update-cluster', @cartridge_model.web_proxy, args: args)
         end
       end
     end

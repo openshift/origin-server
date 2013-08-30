@@ -37,6 +37,14 @@ module OpenShift
         def to_s
           "#{@uuid},#{@namespace},#{@dns},#{@private_ip},#{@proxy_port}"
         end
+
+        def ==(other)
+          uuid == other.uuid and
+          namespace == other.namespace and
+          dns == other.dns and
+          private_ip == other.private_ip and
+          proxy_port == other.proxy_port
+        end
       end
 
       # Creates gear_registry.{lock,txt} if they don't exist and sets the perms appropriately and

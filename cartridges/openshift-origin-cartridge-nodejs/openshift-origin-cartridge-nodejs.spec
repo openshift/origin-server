@@ -79,7 +79,6 @@ Provides Node.js support to OpenShift. (Cartridge Format V2)
 %files
 %dir %{cartridgedir}
 %attr(0755,-,-) %{cartridgedir}/bin/
-%attr(0755,-,-) %{cartridgedir}/hooks/
 %{cartridgedir}
 %doc %{cartridgedir}/README.md
 %doc %{cartridgedir}/COPYRIGHT

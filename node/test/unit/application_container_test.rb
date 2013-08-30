@@ -394,4 +394,66 @@ class ApplicationContainerTest < OpenShift::NodeTestCase
     @container.cartridge_model.expects(:unsubscribe).with('mock-0.1', 'pub-cart')
     @container.unsubscribe('mock-0.1', 'pub-cart')
   end
+
+  def test_update_cluster_no_web_proxy
+    @container.cartridge_model.expects(:web_proxy).returns(nil)
+    ::OpenShift::Runtime::Utils::Environ::expects(:for_gear).never
+    ::OpenShift::Runtime::GearRegistry.expects(:new).never
+    @config.expects(:get).never
+    ::OpenShift::Runtime::GearRegistry::Entry.expects(:new).never
+    @container.expects(:run_in_container_context).never
+    @container.expects(:current_deployment_datetime).never
+    @container.expects(:read_deployment_metadata).never
+    @container.expects(:activate_many).never
+    @container.cartridge_model.expects(:do_control).never
+
+    @container.update_cluster("")
+  end
+
+  def test_update_cluster_add_gears
+    web_proxy = mock()
+    @container.cartridge_model.expects(:web_proxy).twice.returns(web_proxy)
+
+    gear_env = {'a' => 'b'}
+    ::OpenShift::Runtime::Utils::Environ::expects(:for_gear).with(@container.container_dir).returns(gear_env)
+
+    gear_registry = mock()
+    ::OpenShift::Runtime::GearRegistry.expects(:new).with(@container).returns(gear_registry)
+
+    @config.expects(:get).with('CLOUD_DOMAIN').returns('example.com')
+    uuids = [@container.uuid, @container.uuid.to_i + 1, @container.uuid.to_i + 2].map(&:to_s)
+    registry_updates = {}
+    uuids.each do |uuid|
+      registry_updates[uuid] = ::OpenShift::Runtime::GearRegistry::Entry.new(uuid: uuid,
+                                                                             namespace: "namespace#{uuid}",
+                                                                             dns: "name#{uuid}-namespace#{uuid}.example.com",
+                                                                             private_ip: "ip#{uuid}",
+                                                                             proxy_port: "port#{uuid}")
+    end
+
+    new_entries = registry_updates.reject { |uuid, entry| uuid == @container.uuid }.values
+    gear_registry.expects(:update).with(registry_updates).returns(new_entries)
+
+    new_entries.each do |new_entry|
+      @container.expects(:run_in_container_context).with("rsync -axvz --delete --rsh=/usr/bin/oo-ssh app-deployments/ #{new_entry.uuid}@#{new_entry.private_ip}:app-deployments/",
+                                                        env: gear_env,
+                                                        chdir: @container.container_dir,
+                                                        expected_exitstatus: 0)
+    end
+    current_deployment_datetime = '2013-08-16_13-36-36.880'
+    @container.expects(:current_deployment_datetime).returns(current_deployment_datetime)
+
+    deployment_id = 'abcd1234'
+    @container.expects(:read_deployment_metadata).with(current_deployment_datetime, 'id').returns(deployment_id)
+
+    @container.expects(:activate_many).with(gears: new_entries.map { |e| "#{e.uuid}@#{e.private_ip}" },
+                                            deployment_id: deployment_id,
+                                            init: true,
+                                            hot_deploy: false)
+
+    do_control_args = uuids.map { |uuid| "name#{uuid}-namespace#{uuid}.example.com|ip#{uuid}:port#{uuid}" }.join(' ')
+    @container.cartridge_model.expects(:do_control).with('update-cluster', web_proxy, args: do_control_args)
+
+    @container.update_cluster(uuids.map { |uuid| "#{uuid},name#{uuid},namespace#{uuid},ip#{uuid},port#{uuid}"}.join(' '))
+  end
 end

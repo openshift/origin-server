@@ -211,6 +211,11 @@ function enable-server() {
     done
 }
 
+function update-cluster() {
+    shift
+    ${OPENSHIFT_HAPROXY_DIR}/usr/bin/update-cluster "$@"
+}
+
 #
 # main():
 #
@@ -232,4 +237,5 @@ case "$1" in
     status)         status              ;;
     disable-server) disable-server "$@" ;;
     enable-server)  enable-server  "$@" ;;
+    update-cluster) update-cluster "$@" ;;
 esac

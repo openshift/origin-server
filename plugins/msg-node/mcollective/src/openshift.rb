@@ -918,6 +918,12 @@ module MCollective
         end
       end
 
+      def oo_update_cluster(args)
+        with_container_from_args(args) do |container|
+          container.update_cluster(args['--cluster'])
+        end
+      end
+
       #
       # Set the district for a node
       #

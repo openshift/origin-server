@@ -1131,7 +1131,12 @@ module OpenShift
 
           command = []
           command << hooks[:pre] unless hooks[:pre].empty?
-          command << "#{control} #{action}" if File.executable? control
+          if File.executable? control
+            if options[:args]
+              args = Shellwords::shellescape(options[:args])
+            end
+            command << "#{control} #{action} #{args}"
+          end
           command << hooks[:post] unless hooks[:post].empty?
 
           unless command.empty?
@@ -1398,131 +1403,6 @@ module OpenShift
 
       private
       ## special methods that are handled especially by the platform
-      def publish_gear_endpoint(cartridge, args)
-        begin
-          # TODO:
-          # There is some concern about how well-behaved Facter is
-          # when it is require'd.
-          # Instead, we use run_in_container_context here to avoid it altogether.
-          # For the long-term, then, figure out a way to reliably
-          # determine the IP address from Ruby.
-          out, err, status = @container.run_in_container_context('facter ipaddress',
-              env:                 cartridge_env,
-              chdir:               @container.container_dir,
-              timeout:             @hourglass.remaining,
-              expected_exitstatus: 0)
-          private_ip       = out.chomp
-        rescue
-          require 'socket'
-          addrinfo     = Socket.getaddrinfo(Socket.gethostname, 80) # 80 is arbitrary
-          private_addr = addrinfo.select { |info|
-            info[3] !~ /^127/
-          }.first
-          private_ip   = private_addr[3]
-        end
-
-        env = ::OpenShift::Runtime::Utils::Environ::for_gear(@container.container_dir)
-
-        output = "#{env['OPENSHIFT_GEAR_UUID']},#{private_ip},#{env['OPENSHIFT_GEAR_DNS']},#{env['OPENSHIFT_LOAD_BALANCER_PORT']}"
-        logger.debug output
-        output
-      end
-
-      # Receives input from publish_gear_endpoint
-      def set_gear_endpoints(cartridge, args)
-        env = ::OpenShift::Runtime::Utils::Environ::for_gear(@container.container_dir)
-        gear_registry = ::OpenShift::Runtime::GearRegistry.new(@container)
-
-        registry_updates = {}
-
-        # args has the following format:
-        # gear_name namespace gear_uuid output_from_publishers...
-
-        # ignore the first 3 args and convert output_from_publishers to what we need
-        _, _, _, *real_args = args.split
-        for arg in real_args
-          # each arg looks something like this:
-          #
-          # \\'816247190463844743905280\\'\\=\\'816247190463844743905280,10.36.103.2,a-agoldste.dev.rhcloud.com,35536\\'
-          #
-          # the format is:
-          #
-          # gear_uuid=gear_uuid,private_ip,gear_dns,proxy_port
-          #
-          # the arg comes after being run through Shellwords::shellescape, so the 2 gsubs below
-          # remove \ and ' from the string - hopefully this is sufficient
-          _, rest = arg.gsub(/\\/, '').gsub(/'/, '').split('=')
-          uuid, private_ip, dns, proxy_port = rest.split(',')
-
-          # add the entry to the temp hash of registry updates
-          registry_updates[uuid] = ::OpenShift::Runtime::GearRegistry::Entry.new(uuid: uuid,
-                                                                                 namespace: @container.namespace,
-                                                                                 dns: dns,
-                                                                                 private_ip: private_ip,
-                                                                                 proxy_port: proxy_port)
-        end
-
-        # registry_updates now contains what should be the full gear registry and it should
-        # replace the existing file on disk
-
-        gear_env = ::OpenShift::Runtime::Utils::Environ::for_gear(@container.container_dir)
-
-        # update the gear registry
-        # returns a list of new gears added with this update
-        new_gears = gear_registry.update(registry_updates)
-
-        # exclude the current gear - no need to do any work on it
-        new_gears.delete_if { |k,v| k.uuid == @container.uuid }
-
-        # convert the new gears to the format uuid@gear_dns
-        new_gears.map! { |e| "#{e.uuid}@#{e.dns}" }
-
-        # sync from this gear (load balancer) to all new gears
-        # copy app-deployments and make all the new gears look just like it (i.e., use --delete)
-        new_gears.each do |gear|
-          out, err, rc = @container.run_in_container_context("rsync -axvz --delete --rsh=/usr/bin/oo-ssh app-deployments/ #{gear}:app-deployments/",
-                                                             env: gear_env,
-                                                             chdir: @container.container_dir,
-                                                             expected_exitstatus: 0)
-        end
-
-        # activate the current deployment on all the new gears
-        deployment_id = @container.read_deployment_metadata(@container.current_deployment_datetime, 'id').chomp
-        # since the gears are new, set init to true and hot_deploy to false
-        @container.activate_many(gears: new_gears, deployment_id: deployment_id, init: true, hot_deploy: false)
-
-        # TODO disable local gear like in set-registry script
-      end
-
-      def publish_http_url(cartridge, args)
-        begin
-          # TODO:
-          # There is some concern about how well-behaved Facter is
-          # when it is require'd.
-          # Instead, we use run_in_container_context here to avoid it altogether.
-          # For the long-term, then, figure out a way to reliably
-          # determine the IP address from Ruby.
-          out, err, status = @container.run_in_container_context('facter ipaddress',
-                                                                 env:                 cartridge_env,
-                                                                 chdir:               @container.container_dir,
-                                                                 timeout:             @hourglass.remaining,
-                                                                 expected_exitstatus: 0)
-          private_ip       = out.chomp
-        rescue
-          require 'socket'
-          addrinfo     = Socket.getaddrinfo(Socket.gethostname, 80) # 80 is arbitrary
-          private_addr = addrinfo.select { |info|
-            info[3] !~ /^127/
-          }.first
-          private_ip   = private_addr[3]
-        end
-
-        env = ::OpenShift::Runtime::Utils::Environ::for_gear(@container.container_dir)
-
-        output = "#{env['OPENSHIFT_GEAR_DNS']}|#{private_ip}:#{env['OPENSHIFT_LOAD_BALANCER_PORT']}"
-        logger.debug output
-        output
-      end
 
       def empty_repository?
         ApplicationRepository.new(@container).empty?

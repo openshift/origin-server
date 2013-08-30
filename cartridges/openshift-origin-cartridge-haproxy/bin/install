@@ -1,4 +1,0 @@
-#!/bin/bash -eu
-
-#touch ${OPENSHIFT_HAPROXY_DIR}/conf/gear-registry.db
-#touch ${OPENSHIFT_HAPROXY_DIR}/conf/gear-registry.db.lock

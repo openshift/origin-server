@@ -24,10 +24,6 @@ Cart-Data:
   Type: environment
   Description: An example environment variable using ERB processing
 Publishes:
-  publish-http-url:
-    Type: NET_TCP:httpd-proxy-info
-  publish-gear-endpoint:
-    Type: NET_TCP:gear-endpoint-info
 Subscribes:
   set-env:
     Type: ENV:*

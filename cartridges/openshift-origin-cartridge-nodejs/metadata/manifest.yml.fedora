@@ -63,10 +63,6 @@ Scaling:
 Publishes:
   get-doc-root:
     Type: FILESYSTEM:doc-root
-  publish-http-url:
-    Type: NET_TCP:httpd-proxy-info
-  publish-gear-endpoint:
-    Type: NET_TCP:gear-endpoint-info
 Subscribes:
   set-env:
     Type: ENV:*

@@ -26,7 +26,7 @@ do
 done
 
 
-[ $# -gt 3 ] || print_help
+#[ $# -gt 3 ] || print_help
 
 exitcode=0
 
@@ -37,9 +37,8 @@ haproxy_cfg=$OPENSHIFT_HAPROXY_DIR/conf/haproxy.cfg
 # Establish locking file descriptor
 exec 200>${haproxy_cfg}.lock
 
-# Remove the first 3 args and process all the remaining args of the form k=v.
 # The values are the gear endpoints.
-kvargs=$(echo "${@:4}" | tr -d "\n" )
+kvargs=$@
 for arg in $kvargs; do
     zinfo=$(echo "$arg" | cut -f 2 -d '=' | tr -d "'")
     zarr=(${zinfo//|/ })

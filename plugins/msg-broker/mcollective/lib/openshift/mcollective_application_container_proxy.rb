@@ -1653,6 +1653,30 @@ module OpenShift
         job
       end
 
+      def build_update_cluster_args(cluster, args)
+        cluster_args = []
+        cluster.each do |gear|
+          # uuid, name, namespace, private ip, proxy port
+          first_port_interface = gear.port_interfaces[0]
+          cluster_args << "#{gear.uuid},#{gear.name},#{gear.group_instance.application.domain_namespace},#{first_port_interface.external_address},#{first_port_interface.external_port}"
+        end
+        args['--cluster'] = cluster_args.join(' ')
+        args
+      end
+
+      def update_cluster(gear, cluster)
+        args = build_base_gear_args(gear)
+        args = build_update_cluster_args(cluster, args)
+        result = execute_direct(@@C_CONTROLLER, 'update-cluster', args)
+        parse_result(result)
+      end
+
+      def get_update_cluster_job(gear, cluster)
+        args = build_base_gear_args(gear)
+        args = build_update_cluster_args(cluster, args)
+        RemoteJob.new(@@C_CONTROLLER, 'update-cluster', args)
+      end
+
       #
       # Re-start a gear after migration
       #

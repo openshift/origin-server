@@ -1145,6 +1145,43 @@ class Application
     end
   end
 
+  def update_cluster
+    web_framework_gears = []
+    web_proxy_gears = []
+
+    # get the lists of web proxy gears and web framework gears
+    component_instances.each do |ci|
+      web_proxy_gears = ci.group_instance.gears.clone if ci.is_web_proxy?
+      web_framework_gears = ci.group_instance.gears if ci.is_web_framework?
+    end
+
+    return if web_proxy_gears.empty?
+
+    # we don't want to have all the proxies down at the same time, so do the
+    # first one by itself, wait for it to finish, and then do the rest in
+    # parallel
+    first_proxy = web_proxy_gears.shift
+    first_proxy.update_cluster(web_framework_gears)
+
+    unless web_proxy_gears.empty?
+      handle = RemoteJob.create_parallel_job
+
+      web_proxy_gears.each do |gear|
+        job = gear.get_update_cluster_job(web_framework_gears)
+        RemoteJob.add_parallel_job(handle, "", gear, job)
+      end
+
+      RemoteJob.execute_parallel_jobs(handle)
+
+      RemoteJob.get_parallel_run_results(handle) do |tag, gear_id, output, status|
+        if status != 0
+          Rails.logger.error "Update cluster failed:: tag: #{tag}, gear_id: #{gear_id},"\
+                             "output: #{output}, status: #{status}"
+        end
+      end
+    end
+  end
+
   def run_connection_hooks
     Application.run_in_application_lock(self) do
       #op_group = PendingAppOpGroup.new(op_type: :execute_connections)
@@ -1382,7 +1419,7 @@ class Application
         op_group.execute(result_io)
         op_group.unreserve_gears(op_group.num_gears_removed, self)
         op_group.delete
-        
+
         self.reload unless op_group.class == DeleteAppOpGroup
       end
       true
@@ -2041,6 +2078,14 @@ class Application
     end
 
     unless pending_ops.empty? or ((pending_ops.length == 1) and (pending_ops[0].class == SetGroupOverridesOp))
+
+      #TODO danmcp
+      if scalable
+        all_ops_ids = pending_ops.map{ |op| op._id.to_s }
+        update_cluster_op = PendingAppOp.new(op_type: :update_cluster, prereq: all_ops_ids)
+        pending_ops.push update_cluster_op
+      end
+
       execute_connection_op = nil
       all_ops_ids = pending_ops.map{ |op| op._id.to_s }
       #execute_connection_op = PendingAppOp.new(op_type: :execute_connections, prereq: all_ops_ids)

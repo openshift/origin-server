@@ -56,10 +56,6 @@ Cart-Data:
   Type: environment
   Description: Unique ID which identified the gear. This value changes between gears.
 Publishes:
-  publish-http-url:
-    Type: NET_TCP:httpd-proxy-info
-  publish-gear-endpoint:
-    Type: NET_TCP:gear-endpoint-info
 Subscribes:
   set-env:
     Type: ENV:*

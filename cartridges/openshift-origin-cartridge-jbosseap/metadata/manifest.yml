@@ -61,10 +61,6 @@ Provides:
 - jbosseap-standalone
 - jboss-eap6-standalone
 Publishes:
-  publish-http-url:
-    Type: NET_TCP:httpd-proxy-info
-  publish-gear-endpoint:
-    Type: NET_TCP:gear-endpoint-info
   publish-jboss-cluster:
     Type: NET_TCP:jbosseap-cluster-info
   publish-jboss-remoting:

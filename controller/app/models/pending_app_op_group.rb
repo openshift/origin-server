@@ -66,7 +66,7 @@ class PendingAppOpGroup
 
           # set the pending_op state to queued
           op.set_state(:queued)
-          
+
           if op.isParallelExecutable()
             op.addParallelExecuteJob(handle)
             parallel_job_ops.push op
