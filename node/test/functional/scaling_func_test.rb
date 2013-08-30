@@ -64,7 +64,11 @@ class ScalingFuncTest < OpenShift::NodeBareTestCase
 
   def teardown
     unless ENV['PRESERVE']
-      @created_app_ids.each do |id|
+      response = RestClient.get("#{@url_base}/domains/#{@namespace}/applications", accept: :json)
+      response = JSON.parse(response)
+
+      response['data'].each do |app_data|
+        id = app_data['id']
         OpenShift::Runtime::NodeLogger.logger.info("Deleting application id #{id}")
         RestClient.delete("#{@url_base}/applications/#{id}")
       end
@@ -102,11 +106,51 @@ class ScalingFuncTest < OpenShift::NodeBareTestCase
   #   basic_build_test(%w(php-5.3 jenkins-client-1), false)
   # end
 
-  def test_php_scaled_jenkins
-    up_gears
+  # def test_php_scaled_jenkins
+  #   up_gears
+  #   create_jenkins
+  #   basic_build_test(%w(php-5.3 jenkins-client-1))
+  # end
+
+
+  # def test_jbossas_scaled
+  #   basic_build_test(%w(jbossas-7))
+  # end
+
+  # def test_jbossas_unscaled
+  #   basic_build_test(%w(jbossas-7), false)
+  # end
+
+  def test_jbossas_unscaled_jenkins
     create_jenkins
-    basic_build_test(%w(php-5.3 jenkins-client-1))
+    basic_build_test(%w(jbossas-7 jenkins-client-1), false)
   end
+
+  # def test_jbossas_scaled_jenkins
+  #   up_gears
+  #   create_jenkins
+  #   basic_build_test(%w(jbossas-7 jenkins-client-1))
+  # end
+
+  # def test_jbosseap_scaled
+  #   basic_build_test(%w(jbosseap-6))
+  # end
+
+  # def test_jbosseap_unscaled
+  #   basic_build_test(%w(jbosseap-6), false)
+  # end
+
+  # def test_jbosseap_unscaled_jenkins
+  #   create_jenkins
+  #   basic_build_test(%w(jbosseap-6 jenkins-client-1), false)
+  # end
+
+  # def test_jbosseap_scaled_jenkins
+  #   up_gears
+  #   create_jenkins
+  #   basic_build_test(%w(jbosseap-6 jenkins-client-1))
+  # end
+
 
   def create_jenkins
     app_name = "jenkins#{random_string}"
@@ -264,7 +308,7 @@ END
 
   def assert_scales_to(app_name, cartridge, count)
     OpenShift::Runtime::NodeLogger.logger.info("Scaling to #{count}")
-    response = RestClient.put("#{@url_base}/domains/#{@namespace}/applications/#{app_name}/cartridges/#{cartridge}", {scales_from: count}, accept: :json)
+    response = RestClient.put("#{@url_base}/domains/#{@namespace}/applications/#{app_name}/cartridges/#{cartridge}", {scales_from: count}, {accept: :json, timeout: 60})
     response = JSON.parse(response)
     assert_equal count, response['data']['current_scale']
   end  

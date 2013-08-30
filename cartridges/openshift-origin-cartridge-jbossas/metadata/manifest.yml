@@ -87,6 +87,8 @@ Endpoints:
   Public-Port-Name: HTTP_PROXY_PORT
   WebSocket-Port-Name: WEBSOCKET_PORT
   WebSocket-Port: 8676
+  Options:
+    primary: true
   Mappings:
   - Frontend: ''
     Backend: ''
