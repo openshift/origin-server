@@ -16,7 +16,7 @@
     - groups.each_pair do |domain_id, apps|
       - if groups.length > 1
         .grid-wrapper
-          .span12.domain{:style => 'padding: 2px 10px; margin-bottom: 8px;'}
+          %h4.span12.domain{:style => 'padding-bottom: 5px; margin-bottom: 8px; margin-top: 20px; border-bottom: 4px solid #222;'}
             Domain
             = link_to domain_id, domain_path(domain_id)
             - if apps.first.owner?
@@ -32,8 +32,6 @@
                   = application.name
                   = '-'
                   %span.alias= application.aliases.first.name
-                  -# if application.aliases.length > 1
-                    %span{:title => "Also aliased to #{application.aliases[1..-1].map(&:name).to_sentence}"} ...
               - else
                 = link_to application.name, application_path(application), :class => 'tile-target'
 

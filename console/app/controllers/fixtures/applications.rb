@@ -3,7 +3,7 @@ module Fixtures
     def self.list
       [
         Application.new({
-          :name => 'widgetsprod', :app_url => "http://widgetsprod-widgets.rhcloud.com", :uuid => '1', :domain_id => 'widgets', :gear_profile => 'small', :gear_count => 2, 
+          :name => 'widgetsprod', :app_url => "http://widgetsprod-widgets.rhcloud.com", :id => '1', :domain_id => 'widgets', :gear_profile => 'small', :gear_count => 2, 
           :cartridges => [
             Cartridge.new(:name => 'php-5.3',   :gear_profile => 'small', :current_scale => 1, :scales_from => 1, :scales_to => 1, :supported_scales_from => 1, :supported_scales_to => -1),
             Cartridge.new(:name => 'mysql-5.1', :gear_profile => 'small', :current_scale => 1, :scales_from => 1, :scales_to => 1),
@@ -13,7 +13,7 @@ module Fixtures
           :members => [Member.new(:id => '1', :role => 'admin', :name => 'Alice', :owner => true)],
         }, true),
         Application.new({
-          :name => 'widgets', :app_url => "http://widgets-widgets.rhcloud.com",:uuid => '2', :domain_id => 'widgets', :gear_profile => 'small', :gear_count => 1, 
+          :name => 'widgets', :app_url => "http://widgets-widgets.rhcloud.com",:id => '2', :domain_id => 'widgets', :gear_profile => 'small', :gear_count => 1, 
           :cartridges => [
             Cartridge.new(:name => 'php-5.3',   :gear_profile => 'small', :current_scale => 1, :scales_from => 1, :scales_to => 1, :colocated_with => ['mysql-5.1']),
             Cartridge.new(:name => 'mysql-5.1', :gear_profile => 'small', :current_scale => 1, :scales_from => 1, :scales_to => 1, :colocated_with => ['php-5.3']),
@@ -22,7 +22,7 @@ module Fixtures
           :members => [Member.new(:id => '1', :role => 'admin', :name => 'Alice', :owner => true)]
         }, true),
         Application.new({
-          :name => 'status', :app_url => "http://status-bobdev.rhcloud.com", :uuid => '3', :domain_id => 'bobdev', :gear_profile => 'small', :gear_count => 1, 
+          :name => 'status', :app_url => "http://status-bobdev.rhcloud.com", :id => '3', :domain_id => 'bobdev', :gear_profile => 'small', :gear_count => 1, 
           :cartridges => [
             Cartridge.new(:name => 'ruby-1.9',   :gear_profile => 'small', :current_scale => 1, :scales_from => 1, :scales_to => 1, :colocated_with => []),
           ], 
@@ -30,7 +30,7 @@ module Fixtures
           :members => [Member.new(:id => '1', :role => 'admin', :name => 'Alice', :owner => true)]
         }, true),
         Application.new({
-          :name => 'statusp', :app_url => "http://statusp-bobdev.rhcloud.com",:uuid => '4', :domain_id => 'bobdev', :gear_profile => 'medium', :gear_count => 10, 
+          :name => 'statusp', :app_url => "http://statusp-bobdev.rhcloud.com",:id => '4', :domain_id => 'bobdev', :gear_profile => 'medium', :gear_count => 10, 
           :cartridges => [
             Cartridge.new(:name => 'ruby-1.9',   :gear_profile => 'medium', :current_scale => 9, :scales_from => 5, :scales_to => 10, :supported_scales_from => 1, :supported_scales_to => -1, :colocated_with => ['haproxy-1.4']),
             Cartridge.new(:name => 'haproxy-1.4', :gear_profile => 'small', :current_scale => 1, :scales_from => 1, :scales_to => 1, :colocated_with => ['ruby-1.9']),
@@ -40,7 +40,7 @@ module Fixtures
         }, true),
         medium_scale,
         Application.new({
-          :name => 'jenkins', :app_url => "http://jenkins-bobdev.rhcloud.com", :uuid => '3', :domain_id => 'bobdev', :gear_profile => 'small', :gear_count => 1, 
+          :name => 'jenkins', :app_url => "http://jenkins-bobdev.rhcloud.com", :id => '3', :domain_id => 'bobdev', :gear_profile => 'small', :gear_count => 1, 
           :cartridges => [
             Cartridge.new(:name => 'jenkins-1.4',   :gear_profile => 'small', :current_scale => 1, :scales_from => 1, :scales_to => 1, :colocated_with => []),
           ], 
@@ -52,7 +52,7 @@ module Fixtures
 
     def self.medium_scale
       Application.new({
-        :name => 'prodmybars', :app_url => "http://prodmybars-barco.rhcloud.com", :uuid => '5', :domain_id => 'barco', :gear_profile => 'small', :gear_count => 4, 
+        :name => 'prodmybars', :app_url => "http://prodmybars-barco.rhcloud.com", :id => '5', :domain_id => 'barco', :gear_profile => 'small', :gear_count => 4, 
         :creation_time => 1.hour.ago,
         :cartridges => [
           Cartridge.new(:name => 'python-2.7',  :scales_with => 'haproxy-1.4', :gear_profile => 'small', :current_scale => 2, :scales_from => 2, :scales_to => 10, :supported_scales_from => 1, :supported_scales_to => -1, :collocated_with => ['python-2.7', 'jenkins-client-1', 'haproxy-1.4']),
