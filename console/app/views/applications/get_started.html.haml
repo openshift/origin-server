@@ -42,60 +42,27 @@
           git push
 
     %p 
-      When you push changes the OpenShift server will report back its status on deploying your code. 
+      When you push changes the OpenShift server will report back its status on deploying your code.
       The server will run any of your configured
       = link_to "deploy hooks", deploy_hook_user_guide_topic_url
       and then restart the application.
 
   .span5
-    -# application url
-    %h2 Public Web URL
-    %p.well.application-url.larger
-      = link_to @application.web_url, @application.web_url, :target => '_blank'
-
-    -# cartridges
-    %h2 Add a Database or Service
-    %p.larger
-      Extend your application by adding cartridges
-
-    - carts = CartridgeType.cached.embedded.clone.sort
-    - dbs = CartridgeType.suggest!(carts, :database?, 3)
-    - jenkins, builders = CartridgeType.suggest!(carts, :builder?).partition(&:jenkins_client?)
-
-    - if dbs.present?
-      %p.larger
-        Databases -
-        = map_to_sentence(dbs) do |c|
-          #{link_to c.display_name, application_cartridge_type_path(@application, c.name)}
-    - if jenkins.present?
-      %p.larger
-        Tools - #{link_to "Enable Jenkins continuous integration", application_building_path(@application)}
-    - elsif builders.present?
-      %p.larger
-        Tools -
-        = map_to_sentence(builders) do |c|
-          #{link_to c.display_name, application_cartridge_type_path(@application, c.name)}
-
-    %p.larger= link_to "Or, see all cartridges", application_cartridge_types_path(@application)
-
-%section.row
-  .span12
     -# client
-    %h2 Other ways to manage this application
+    %h2 Manage your app
+    %p The console is convenient, but if you need deeper control try our other client tools
 
-  .span6
     %h3 Command-Line
 
     %p
-      Most of the capabilities of OpenShift are exposed through our command line tool, 
+      All of the capabilities of OpenShift are exposed through our command line tool,
       %strong rhc.
       #{link_to "Follow these steps to install the client", client_tools_install_help_url}
       on Linux, Mac OS X, or Windows.
     %p
-      After installing the command line tool read more 
+      After installing the RHC read more 
       #{link_to "on how to manage your application from the command line in our User Guide", user_guide_url }.
 
-  .span6
     %h3 JBoss Developer Studio
 
     %p

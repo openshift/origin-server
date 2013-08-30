@@ -228,5 +228,7 @@ class ApplicationsController < ConsoleController
     else
       render :upload_key
     end
+  rescue Key::DuplicateName
+    redirect_to get_started_application_path(@application, :ssh => 'no', :wizard => @wizard)
   end
 end

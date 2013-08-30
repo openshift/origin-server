@@ -48,3 +48,45 @@
     margin-left: 0;
   }
 }
+
+// Custom grid equivalent for flow
+.flow {
+  display: table;
+  width: 100%;
+
+  > .flow-block {
+    display: table-cell;
+  }
+}
+
+@media (max-width: 767px) {
+  .flow > .flow-block {
+    display: block;
+    &.right {
+      text-align: left !important;
+      margin-top: 5px;
+    }
+  }
+}
+
+.flow-block > ul.inline {
+  display: inline-block;
+  white-space: nowrap;
+  margin-bottom: 0;
+}
+.flow-block > ul.inline > li > div {
+  white-space: normal;
+}
+.flow-block > ul.inline > li {
+  line-height: 120%;
+  font-size: 50%;
+  text-transform: uppercase;
+}
+.top {
+  vertical-align: top;
+}
+
+.flow-block > ul.inline > li > h6 {
+  font-size: 100%;
+  line-height: 120%;
+}

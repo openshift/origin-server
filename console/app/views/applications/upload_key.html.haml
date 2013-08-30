@@ -4,25 +4,27 @@
 - if @wizard
   = app_wizard_steps_create 2, :completed => true
 
-%h1.invisible Add a Public Key
+%h1.invisible Configure your SSH keys
 
 %section
-  %p.lead Will you be changing the code of this application?
+  %h2.center Will you be changing the code of this application?
 
 %section.row.row-position
-  .span7
-    %h2 Yes, add a public key
+  .span6
+    %h3.center Yes, help me get started
 
     %p
-      Before you can upload and download code, you need to upload a <strong>SSH public key</strong>
-      to identify you to our servers. If this is your first time creating an SSH key
-      #{link_to "read more about SSH keys and remote access", ssh_keys_help_path}.
-
-    %p
-      OpenShift uses the #{link_to "Git version control system", git_homepage_url} to manage the code of your application.
+      OpenShift uses the #{link_to "Git version control system", git_homepage_url, :target => '_blank'} for your source code, and grants you access to it via
+      the Secure Shell (SSH) protocol.  In order to upload and download code to your application you need
+      to give us your #{link_to "public SSH key", ssh_keys_help_path, :target => '_blank'}.
 
     = render :partial => 'keys/simple_form', :locals => { :key => @key, :input_class => 'span6', :to => upload_key_application_path(@application, :wizard => @wizard) }
 
-  .span5.center
-    %h2= link_to "No, continue", get_started_application_path(@application, :ssh => 'no', :wizard => @wizard)
-    %p.larger I'll set a key later
+    %p
+      Note: You can also #{link_to "install the RHC command line tool", client_tools_install_help_url} and run <code>rhc setup</code> to generate and upload your key automatically.
+
+  .span5.center.offset1
+    %h3= link_to "No, continue", application_path(@application)
+    %p Show me the app overview page
+
+    %p Or, #{link_to "visit my app in the browser", @application.web_url, :target => '_blank'}

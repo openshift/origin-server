@@ -135,23 +135,3 @@
 
   }
 }
-
-
-.flow {
-  display: table;
-  width: 100%;
-
-  > .flow-block {
-    display: table-cell;
-  }
-}
-
-@media (max-width: 767px) {
-  .flow > .flow-block {
-    display: block;
-    &.right {
-      text-align: left !important;
-      margin-top: 5px;
-    }
-  }
-}
