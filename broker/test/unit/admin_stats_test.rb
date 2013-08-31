@@ -1,9 +1,12 @@
 require 'unit/helpers/admin_stats_helper'
+require 'admin/stats/results'
+
 
 class AdminStatsTest < ActiveSupport::TestCase
+  S = Admin::Stats # shortcut
   def setup
     super
-    @stats = Admin::Stats.new
+    @stats = Admin::Stats::Maker.new
     @dist_uuid = "1234"
     @node_details = faux_node_entry("test", @dist_uuid, "true").merge({
       max_active_gears: 10,
@@ -96,49 +99,46 @@ class AdminStatsTest < ActiveSupport::TestCase
     assert_empty count_for_user, "Expecting no users in fake db"
   end
 
-  test "clearing on clones of the results allows marshaling" do
+  test "results can be marshaled" do
     # first test on something ordinary
     h = Hash.new {|h,k| h[k] = 0}
     assert_raise(TypeError) {Marshal.dump(h)}
-    @stats.deep_clear_default!(h)
+    S::HashWithReaders.deep_clear_default! h
     assert_nothing_raised {Marshal.dump(h)}
 
     # now test on stats we gathered
     @stats.gather_statistics
-    results = @stats.results
-    assert_raise(TypeError) {Marshal.dump(results)}
-    @stats.deep_clear_default!(results)
-    assert_nothing_raised { Marshal.dump(results) }
+    assert_nothing_raised { Marshal.dump(@stats.results) }
   end
 
   test "using HashWithReaders subclasses" do
     @stats.gather_statistics
     r = @stats.results
-    assert_kind_of Admin::Stats::Results, r, "should be a subclass: #{r.class}"
-    assert_raises(OpenShift::HashWithReaders::NoSuchKey) {r.no_such_key}
-    assert_kind_of Admin::Stats::ProfileSummary, r.profile_summaries.first
-    assert_kind_of Admin::Stats::DistrictSummary, r.district_summaries.first
-    assert_kind_of Admin::Stats::DistrictEntry, r.district_entries_hash.first[1]
-    assert_kind_of Admin::Stats::NodeEntry, r.node_entries_hash.first[1]
+    assert_kind_of S::Results, r, "should be a subclass: #{r.class}"
+    assert_raises(S::HashWithReaders::NoSuchKey) {r.no_such_key}
+    assert_kind_of S::ProfileSummary, r.profile_summaries.first
+    assert_kind_of S::DistrictSummary, r.district_summaries.first
+    assert_kind_of S::DistrictEntry, r.district_entries_hash.first[1]
+    assert_kind_of S::NodeEntry, r.node_entries_hash.first[1]
 
     # need to be able to convert back to non-subclass hashes for YAML dump
-    r = OpenShift::HashWithReaders.deep_clear_subclasses(r)
-    refute_kind_of OpenShift::HashWithReaders, r, "should be a hash: #{r.class}"
-    refute_kind_of OpenShift::HashWithReaders, r['profile_summaries'].first
-    refute_kind_of OpenShift::HashWithReaders, r['district_summaries'].first
-    refute_kind_of OpenShift::HashWithReaders, r['district_entries_hash'].first[1]
-    refute_kind_of OpenShift::HashWithReaders, r['node_entries_hash'].first[1]
+    r = S::HashWithReaders.deep_clear_subclasses(r)
+    refute_kind_of S::HashWithReaders, r, "should be a hash: #{r.class}"
+    refute_kind_of S::HashWithReaders, r['profile_summaries'].first
+    refute_kind_of S::HashWithReaders, r['district_summaries'].first
+    refute_kind_of S::HashWithReaders, r['district_entries_hash'].first[1]
+    refute_kind_of S::HashWithReaders, r['node_entries_hash'].first[1]
     deduped = r['profile_summaries'].first
     assert_same deduped, r['profile_summaries_hash'][deduped['profile']],
       "instances in the results in multiple places should not have different copies"
 
     # need to be able to convert back to HashWithReader from plain hash dump
-    r = OpenShift::HashWithReaders.deep_convert_hashes(r)
-    assert_kind_of OpenShift::HashWithReaders, r, "should be converted: #{r.class}"
-    assert_kind_of OpenShift::HashWithReaders, r[:profile_summaries].first
-    assert_kind_of OpenShift::HashWithReaders, r[:district_summaries].first
-    assert_kind_of OpenShift::HashWithReaders, r[:district_entries_hash].first[1]
-    assert_kind_of OpenShift::HashWithReaders, r[:node_entries_hash].first[1]
+    r = S::HashWithReaders.deep_convert_hashes(r)
+    assert_kind_of S::HashWithReaders, r, "should be converted: #{r.class}"
+    assert_kind_of S::HashWithReaders, r[:profile_summaries].first
+    assert_kind_of S::HashWithReaders, r[:district_summaries].first
+    assert_kind_of S::HashWithReaders, r[:district_entries_hash].first[1]
+    assert_kind_of S::HashWithReaders, r[:node_entries_hash].first[1]
     deduped = r.profile_summaries.first
     assert_same deduped, r.profile_summaries_hash[deduped.profile],
       "instances in the results in multiple places should not have different copies"
@@ -189,6 +189,36 @@ class AdminStatsTest < ActiveSupport::TestCase
     @stats.gather_statistics
     assert_not_nil @stats.results[:count_all][:apps],
       "expecting db counting has occurred"
+  end
+
+
+  test "reading results from a file" do
+    # generate fake data sets
+    @stats.gather_statistics
+    r = S::HashWithReaders.deep_clear_subclasses(@stats.results)
+    file = "/tmp/admin-stats-#{$$}-#{rand(1000000)}"
+    begin
+      File.open(file+".yaml", 'w') {|f| f.write(YAML.dump r.merge('yaml' => 1)) }
+      File.open(file+".json", 'w') {|f| f.write(JSON.dump r.merge('json' => 1)) }
+      # now try reading them back in
+      assert_nothing_raised "reading from yaml" do
+        @stats.set_option read_file: file+".yaml"
+        @stats.gather_statistics
+      end
+      assert @stats.results.has_key?('yaml'), "got yaml results"
+      assert_nothing_raised "reading from json" do
+        @stats.load_from_file(file+".json")
+      end
+      assert @stats.results.has_key?('json'), "got json results"
+      @stats.set_option read_file: nil
+      assert_raise(RuntimeError, "supplying no file") { @stats.load_from_file }
+      assert_raise(RuntimeError, "bad extension") { @stats.load_from_file("foo") }
+      assert_raise(Errno::ENOENT, "no yaml file") { @stats.load_from_file("./foo.yml") }
+      assert_raise(Errno::ENOENT, "no json file") { @stats.load_from_file("./foo.jsn") }
+    ensure
+      File.delete(file+".yaml")
+      File.delete(file+".json")
+    end
   end
 
 end
