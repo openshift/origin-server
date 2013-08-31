@@ -230,6 +230,10 @@ modified if necessary.
       
       #If using with GDM, or have users with UID 500 or greater, add to this list
       #os_unmanaged_users         => ['gdm'],
+
+      #If using the stable version instead of the nightly
+      #install_repo               => 'release',
+      #dependencies_repo          => 'release',
     }
 ----
 
@@ -299,6 +303,10 @@ values should be modified.
       
       #If using with GDM, or have users with UID 500 or greater, add to this list
       #os_unmanaged_users         => ['gdm'],
+
+      #If using the stable version instead of the nightly
+      #install_repo               => 'release',
+      #dependencies_repo          => 'release',
     }
 ----
 
