@@ -2,11 +2,5 @@
 # scl <action> <collection1>...<collectionN> <command> doesn't handle multiple params for command.
 # If it did we would use:  exec scl enable ruby193 "$@"
 
-
-cmd=""
-for x in "$@"
-do
-  cmd="$cmd $(printf '%q' "$x")"
-done
-
-exec scl enable ruby193 "$cmd"
+COMMAND="$(printf "%q " "$@")"
+exec scl enable ruby193 "$COMMAND"
