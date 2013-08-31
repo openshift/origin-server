@@ -4,7 +4,7 @@
     "name":"CakePHP",
     "website":"http://cakephp.org/",
     "initial_git_url":"git://github.com/openshift/cakephp-example.git",
-    "cartridges":["php-5.4","mysql-5.1"],
+    "cartridges":["php-5","mysql-5.1"],
     "summary":"CakePHP is a rapid development framework for PHP which uses commonly known design patterns like Active Record, Association Data Mapping, Front Controller and MVC.",
     "tags":["php","cakephp","framework"],
     "admin_tags":[]
@@ -36,7 +36,7 @@
     "name":"Drupal",
     "website":"http://drupal.org/",
     "initial_git_url":"git://github.com/openshift/drupal-example.git",
-    "cartridges":["php-5.4","mysql-5.1"],
+    "cartridges":["php-5","mysql-5.1"],
     "summary":"An open source content management platform written in PHP powering millions of websites and applications. It is built, used, and supported by an active and diverse community of people around the world. Administrator user name and password are written to $OPENSHIFT_DATA_DIR/CREDENTIALS.",
     "tags":["php","drupal","wiki","framework","instant_app"],
     "admin_tags":[]
@@ -80,7 +80,7 @@
     "name":"WordPress",
     "website":"http://wordpress.org",
     "initial_git_url":"git://github.com/openshift/wordpress-example.git",
-    "cartridges":["php-5.4","mysql-5.1"],
+    "cartridges":["php-5","mysql-5.1"],
     "summary":"A semantic personal publishing platform written in PHP with a MySQL back end, focusing on aesthetics, web standards, and usability. Administrator user name and password are written to $OPENSHIFT_DATA_DIR/CREDENTIALS.",
     "tags":["php","wordpress","blog","framework","instant_app"],
     "admin_tags":[]
