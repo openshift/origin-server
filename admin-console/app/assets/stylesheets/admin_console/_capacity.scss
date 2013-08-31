@@ -1,29 +1,454 @@
 .capacity {
-  .profile {
-    border-top: solid 1px #333;
-    padding: 0 10px 10px;
+  .pull-right + h1 {
+    display: inline-block;
+  }
 
-    &:hover {
-      background-color: #eee;
-      cursor: pointer;
+  .table th {
+    text-transform: uppercase;
+    font-size: 12px;
+    font-weight: normal;
+  }
+
+  .alert .btn {
+    margin-left: 20px;
+  }
+
+  .hover-action {
+    visibility: hidden;
+  }
+
+  .profile {
+    padding: 0 0 30px;
+    margin-right: 20px;
+
+    > h3 {
+      margin-bottom: 0;
+      border-bottom: 1px solid #CCC;
+    }
+
+    > table {
+      width: 100%;
+      td:first-child {
+        vertical-align: top;
+      }
+
+      td {
+        padding: 10px;
+      }
+
+      td:last-child {
+        width: 100%;
+      }
+
+      tr.active {
+        border: none;
+
+        td:first-child {
+          border-left: 5px solid #999;
+        }
+
+        &:hover {
+          border: none;
+          background: none;
+          cursor: default;
+        }
+      }
+
+      tr.collapsed {
+        opacity: 0.63;
+
+        .progress {
+          margin-top: 5px;
+        }
+        
+        .pull-left, .pull-right {
+          .stat-label, .stat-number {
+            display: none;
+          }
+        }
+
+        td:first-child {
+          border-left: 5px solid rgba(255, 0, 0, .0);
+        }
+
+        &:hover {
+          background: none;
+          opacity: 1;
+          border: 1px solid #EEE;
+
+          td:first-child {
+            border-left: 5px solid #EEE;
+          }
+        }
+      }
+    }
+
+    .districts {
+      padding-top: 10px;
+      border-top: 1px solid rgba(255, 0, 0, .0);
+      border-left: 1px solid rgba(255, 0, 0, .0);
+      border-right: 1px solid rgba(255, 0, 0, .0);
+
+      &:hover {
+        background: none repeat scroll 0 0 #F9F9F9;
+        border: 1px solid #CCCCCC;
+        cursor: pointer;
+
+        .hover-action {
+          visibility: visible;
+        }
+      }
+    }
+
+    .nodes {
+      padding-top: 10px;
+      border: 1px solid rgba(255, 0, 0, .0);
+
+      &:hover {
+        background: none repeat scroll 0 0 #F9F9F9;
+        border: 1px solid #CCCCCC;
+        cursor: pointer;
+
+        .hover-action {
+          visibility: visible;
+        }
+      }
+    }
+
+    .nodes-only {
+      border: 1px solid rgba(255, 0, 0, .0);
+
+      &:hover {
+        background: none repeat scroll 0 0 #F9F9F9;
+        border: 1px solid #CCC;
+        cursor: pointer;
+
+        .hover-action {
+          visibility: visible;
+        }
+      }
+
+      .districts, .nodes {
+        border: none;
+      }
+    }
+
+    .progress {
+      clear: both;
+      margin-bottom: 0;
+    }
+
+    &.profile-full-page {
+      padding: 0 0 10px;
+
+      + form {
+        padding-top: 17px;
+
+        select {
+          vertical-align: baseline;
+
+          optgroup:last-child {
+            border-top: 1px solid #CCC;
+          }
+        }
+      }
+
+      td.bars {
+        width: 100%;
+      }
+
+      .nodes-only {
+        border: none;
+
+        &:hover {
+          background: none;
+          border: none;
+          cursor: default;
+        }
+      }
+    }
+
+    &.sample {
+      border: dashed 1px #999;
+      padding: 5px 5px 0;
+
+      .districts:hover {
+        background: none;
+        border: 1px solid rgba(255, 0, 0, 0);
+        cursor: default;
+      }
+
+      .nodes:hover {
+        background: none;
+        border: 1px solid rgba(255, 0, 0, 0);
+        cursor: default;
+      }
+    }
+  }
+
+  .node td.bar {
+    width: 100%;
+  }
+
+  .district td.bar {
+    width: 30%;
+  }
+
+  .node:hover {
+    cursor: pointer;
+  }
+
+  .district {
+    margin-bottom: 40px;
+    .stat-table {
+      td, th {
+        vertical-align: top;
+      }
+      .stat-usage.small {
+        font-size: 13px;
+        color: #777;
+      }
     }
   }
   .stat-table {
-    td {
+    td, th {
       white-space: nowrap;
       padding-right: 10px;
-    }
-    .stat-name {
-      font-weight: bold;
-      text-align: right;
+      padding-bottom: 5px;
+      text-align: left;
+      font-weight: normal;
+      vertical-align: top;
     }
 
     .stat-progress {
       width: 100%;
+    }
 
-      .progress {
-        margin-bottom: 0;
+    .larger {
+      .stat-progress {
+        .progress {
+          height: 25px;
+
+          .bar {
+            height: 25px
+          }
+        }
+      }
+
+      .stat-name {
+        font-size: 20px;
+      }
+
+      .stat-usage {
+        font-size: 17px
       }
     }
+  }
+}
+
+@media (max-width: 767px) {
+  .capacity {
+    .profile {
+      margin-right: 0;
+    }
+
+    .table.node-list {
+      /* Based on http://css-tricks.com/responsive-data-tables/ */
+      /* Force table to not be like tables anymore */
+      table, thead, tbody, th, td, tr { 
+        display: block; 
+      }
+      
+      /* Hide table headers (but not display: none;, for accessibility) */
+      thead tr { 
+        position: absolute;
+        top: -9999px;
+        left: -9999px;
+      }
+      
+      tr { border-top: 1px solid #ddd; }
+      
+      td { 
+        /* Behave  like a "row" */
+        border: none;
+        position: relative;
+        overflow: hidden;
+        padding-bottom: 0;
+
+        &:nth-of-type(2) {
+          .progress {
+            margin-bottom: 0;
+          }
+        }
+
+        &:nth-of-type(3) {
+          padding-top: 0;
+          text-align: right;
+          font-size: 13px;
+          color: #777;
+
+          &:after {
+            content: "active gears";
+          }
+        }
+      }
+    }
+
+    .stat-table {
+      width: 100%;
+
+      /* Based on http://css-tricks.com/responsive-data-tables/ */
+      /* Force table to not be like tables anymore */
+      table, thead, tbody, tr { 
+        display: block; 
+      }
+      
+      /* Hide table headers (but not display: none;, for accessibility) */
+      thead tr { 
+        position: absolute;
+        top: -9999px;
+        left: -9999px;
+      }
+
+      td { 
+        position: relative;
+        overflow: hidden;
+        padding-bottom: 0;
+
+        &:nth-of-type(1) {
+          .progress {
+            margin-bottom: 0;
+          }
+        }
+
+        &:nth-of-type(2) {
+          display: block;
+          padding-top: 0;
+          text-align: right;
+          font-size: 13px;
+          color: #777;
+        }
+      }
+    }
+  }
+}
+
+@media (min-width: 768px) and (max-width: 979px) {
+  .capacity {
+    .stat-label {
+      font-size: 10px;
+      line-height: 11px;
+    }
+
+    .stat-number {
+      font-size: 20px;
+    }
+
+    .stat-number-large {
+      font-size: 33px;
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .capacity {
+    .stat-label {
+      font-size: 10px;
+      line-height: 11px;
+
+      > br.hidden {
+        display: block;
+      }
+    }
+
+    .stat-number {
+      font-size: 20px;
+    }
+
+    .stat-number-large {
+      font-size: 33px;
+    }
+  }
+}
+
+.district, .node {
+  .progress {
+    margin-bottom: 0;
+  }
+
+  h4 {
+    margin-bottom: 0;
+  }
+}
+
+.suggestion {
+  font-size: 14.5px;
+  line-height: 17px;
+
+  &.clickable {
+    cursor: pointer;
+  }
+
+  .lead {
+    font-size: 17.5px;
+    line-height: 19px;
+    margin-bottom: 5px;
+  }
+
+  .label {
+    margin-right: 5px;
+    text-align: center;
+    width: 10px;
+  }
+
+  p {
+    font-size: 14.5px;
+    line-height: 17px;
+  }
+
+  pre {
+    margin-top: 10px;
+  }
+
+  td {
+    vertical-align: top;
+    padding-bottom: 10px;
+
+    &.suggestion-body {
+      width: 100%;
+    }
+  }
+}
+
+.suggestions-full-page {
+  .suggestion {
+    border-top: 1px solid #CCC;
+
+    td {
+      padding: 10px;
+    }
+  }
+}
+
+.suggestions-overview .suggestion {
+  border-top: 1px solid rgba(255, 0, 0, .0);
+  border-left: 1px solid rgba(255, 0, 0, .0);
+  border-right: 1px solid rgba(255, 0, 0, .0);
+
+  td {
+    padding-top: 5px;
+
+    &:first-child {
+      padding-left: 5px;
+    }
+
+    &:last-child {
+      padding-right: 5px;
+    }
+  }
+
+  &:hover {
+    border: 1px solid #CCC;
+    background: none repeat scroll 0 0 #F9F9F9;
   }
 }

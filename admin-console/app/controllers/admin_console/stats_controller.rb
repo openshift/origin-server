@@ -15,6 +15,8 @@ module AdminConsole
         respond_with CloudUserStats.gears_per_user_binning
       when "apps_per_domain"
         respond_with ApplicationStats.apps_per_domain_binning
+      when "domains_per_user"
+        respond_with DomainStats.domains_per_user_binning        
       else
         #TODO respond with 404
       end
