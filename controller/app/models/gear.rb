@@ -109,6 +109,12 @@ class Gear
     app.process_commands(result_io, nil, self)
     result_io
   end
+ 
+  def publish_routing_info
+    self.port_interfaces.each { |pi|
+        pi.publish_endpoint(self.group_instance.application)
+    }
+  end
 
   def register_dns
     dns = OpenShift::DnsService.instance
