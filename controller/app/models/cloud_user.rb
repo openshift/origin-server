@@ -217,6 +217,7 @@ class CloudUser
 
   def default_capabilities
     {
+      "ha" => false,
       "subaccounts" => false,
       "gear_sizes" => Rails.application.config.openshift[:default_gear_capabilities],
       "max_gears" => Rails.application.config.openshift[:default_max_gears],
@@ -267,6 +268,10 @@ class CloudUser
       @capability_proxy = nil if caps != @capability_proxy
       @capability_proxy ||= CapabilityProxy.new(caps, inherited_capabilities)
     end
+  end
+
+  def ha
+    return capabilities["ha"] || false
   end
 
   def max_gears
