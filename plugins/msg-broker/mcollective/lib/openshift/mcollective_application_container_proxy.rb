@@ -2527,6 +2527,8 @@ module OpenShift
           result.debugIO << "Command return code: " + result.exitcode.to_s
           if result.hasUserActionableError
             raise OpenShift::UserException.new(result.errorIO.string, result.exitcode, nil, result)
+          elsif result.exitcode == 146
+            raise OpenShift::NodeException.new("Gear creation failed (chosen node capacity exceeded).", 146, result)
           else
             raise OpenShift::NodeException.new("Node execution failure (invalid exit code from node).", 143, result)
           end
