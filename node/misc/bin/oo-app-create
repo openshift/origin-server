@@ -118,6 +118,10 @@ rescue ::OpenShift::Runtime::UserCreationException => e
   $stderr.puts(e.message)
   $stderr.puts(e.backtrace)
   exit 129
+rescue ::OpenShift::Runtime::GearCreationException => e
+  $stderr.puts(e.message)
+  $stderr.puts(e.backtrace)
+  exit 146
 rescue Exception => e
   $stderr.puts(e.message)
   $stderr.puts(e.backtrace)
