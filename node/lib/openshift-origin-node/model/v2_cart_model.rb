@@ -668,7 +668,11 @@ module OpenShift
           rescue ::OpenShift::Runtime::Utils::ShellExecutionException => e
             logger.info("Failed to render ERB #{file}: #{e.stderr}")
           else
-            File.delete(file)
+            begin
+              File.delete(file)
+            rescue Errno:ENOENT
+              # already gone for some reason; ignore it
+            end
           end
         end
         nil
