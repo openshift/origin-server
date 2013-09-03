@@ -1,7 +1,7 @@
 %global cartridgedir %{_libexecdir}/openshift/cartridges/python
 
 Name:          openshift-origin-cartridge-python
-Version: 0.8.8
+Version: 0.8.9
 Release:       1%{?dist}
 Summary:       Python cartridge
 Group:         Development/Languages
@@ -114,6 +114,10 @@ Python cartridge for OpenShift. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Tue Sep 03 2013 Adam Miller <admiller@redhat.com> 0.8.9-1
+- Status was failing at the curl command on stopped gears due to the -e
+  (rmillner@redhat.com)
+
 * Wed Aug 21 2013 Adam Miller <admiller@redhat.com> 0.8.8-1
 - Merge pull request #3456 from tdawson/tdawson/fixmirrorfix/2013-08
   (admiller@redhat.com)
