@@ -322,15 +322,15 @@ module OpenShift
 
             prepare(options)
 
+            # activate the local gear
+            activate(options)
+
             # if we have children, activate them
             if @cartridge_model.web_proxy
               distribute(options)
 
               activate_many(options)
             end
-
-            # activate the local gear
-            activate(options)
           end
 
           report_build_analytics
@@ -558,12 +558,31 @@ module OpenShift
             hot_deploy_option = (options[:hot_deploy] == true) ? '--hot-deploy' : '--no-hot-deploy'
             init_option = (options[:init] == true) ? ' --init' : ''
 
-            buffer << "Activating gear #{gear_uuid}, deployment id: #{options[:deployment_id]}, #{hot_deploy_option},#{init_option}\n"
+            @cartridge_model.do_control('disable-server',
+                                        @cartridge_model.web_proxy,
+                                        args: gear_uuid,
+                                        pre_action_hooks_enabled:  false,
+                                        post_action_hooks_enabled: false,
+                                        out:                       options[:out],
+                                        err:                       options[:err])
+
+            out = "Activating gear #{gear_uuid}, deployment id: #{options[:deployment_id]}, #{hot_deploy_option},#{init_option}\n"
+            buffer << out
+            options[:out].puts(out) if options[:out]
 
             out, err, rc = run_in_container_context("/usr/bin/oo-ssh #{gear} gear activate #{options[:deployment_id]} #{hot_deploy_option}#{init_option}",
                                                     env: gear_env,
                                                     expected_exitstatus: 0)
             buffer << out
+            options[:out].puts(out) if options[:out]
+
+            @cartridge_model.do_control('enable-server',
+                                        @cartridge_model.web_proxy,
+                                        args: gear_uuid,
+                                        pre_action_hooks_enabled:  false,
+                                        post_action_hooks_enabled: false,
+                                        out:                       options[:out],
+                                        err:                       options[:err])
           end
 
           buffer
@@ -663,6 +682,16 @@ module OpenShift
           write_deployment_metadata(deployment_datetime, 'state', 'DEPLOYED')
           clean_up_deployments_before(deployment_datetime)
 
+          if @cartridge_model.web_proxy
+            @cartridge_model.do_control('enable-server',
+                                        @cartridge_model.web_proxy,
+                                        args: self.uuid,
+                                        pre_action_hooks_enabled:  false,
+                                        post_action_hooks_enabled: false,
+                                        out:                       options[:out],
+                                        err:                       options[:err])
+          end
+
           buffer
         end
 
@@ -687,12 +716,31 @@ module OpenShift
             # splitting by @ and taking the first element gets the gear's uuid
             gear_uuid = gear.split('@')[0]
 
-            buffer << "Rolling back gear #{gear_uuid}\n"
+            @cartridge_model.do_control('disable-server',
+                                        @cartridge_model.web_proxy,
+                                        args: gear_uuid,
+                                        pre_action_hooks_enabled:  false,
+                                        post_action_hooks_enabled: false,
+                                        out:                       options[:out],
+                                        err:                       options[:err])
+
+            out = "Rolling back gear #{gear_uuid}\n"
+            buffer << out
+            options[:out].puts(out) if options[:out]
 
             out, err, rc = run_in_container_context("/usr/bin/oo-ssh #{gear} gear rollback",
                                                     env: gear_env,
                                                     expected_exitstatus: 0)
             buffer << out
+            options[:out].puts(out) if options[:out]
+
+            @cartridge_model.do_control('enable-server',
+                                        @cartridge_model.web_proxy,
+                                        args: gear_uuid,
+                                        pre_action_hooks_enabled:  false,
+                                        post_action_hooks_enabled: false,
+                                        out:                       options[:out],
+                                        err:                       options[:err])
           end
 
           buffer
@@ -714,7 +762,10 @@ module OpenShift
           # get a list of all entries in app-deployments excluding 'by-id' and the current deployment dir
           deployments = Dir["#{deployments_dir}/*"].entries.reject {|e| ['by-id', current_deployment].include?(File.basename(e))}.sort.reverse
 
-          buffer << "Looking up previous deployment\n"
+          out = "Looking up previous deployment\n"
+          buffer << out
+          options[:out].puts(out) if options[:out]
+
           # make sure we get the latest 'deployed' dir prior to the current one
           previous_deployment = nil
           deployments.each do |d|
@@ -734,13 +785,19 @@ module OpenShift
             end
 
             # delete current deployment
-            buffer << "Deleting current deployment\n"
+            out = "Deleting current deployment\n"
+            buffer << out
+            options[:out].puts(out) if options[:out]
+
             delete_deployment(current_deployment)
 
             deployment_id = read_deployment_metadata(File.basename(previous_deployment), 'id').chomp
 
             # activate
-            buffer << "Rolling back to deployment ID #{deployment_id}\n"
+            out = "Rolling back to deployment ID #{deployment_id}\n"
+            buffer << out
+            options[:out].puts(out) if options[:out]
+
             buffer << activate(options.merge(deployment_id: deployment_id))
           else
             raise 'No prior deployments exist - unable to roll back'

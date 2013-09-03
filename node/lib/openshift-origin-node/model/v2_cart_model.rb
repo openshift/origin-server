@@ -15,6 +15,7 @@
 #++
 
 require 'rubygems'
+require 'shellwords'
 require 'openshift-origin-node/model/application_repository'
 require 'openshift-origin-node/model/cartridge_repository'
 require 'openshift-origin-common/models/manifest'
@@ -1025,7 +1026,7 @@ module OpenShift
           vstr = v.split("\n").map { |p| p + ";" }.join(' ')
           new_args.push "'#{k}'='#{vstr}'"
         end
-        (args[0, 2] << Shellwords::shellescape(new_args.join(' '))).join(' ')
+        (args[0, 2] << ::Shellwords::shellescape(new_args.join(' '))).join(' ')
       end
 
       # :call-seq:

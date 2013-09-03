@@ -228,7 +228,7 @@ command :prepare do |c|
     do_command(c, options) do
       # pass force_clean_build:true so we don't move/copy dependencies from any prior deployment
       deployment_datetime = @container.create_deployment_dir(force_clean_build: true)
-      puts @container.prepare(out: $stdout, err: $stderr, deployment_datetime: deployment_datetime, file: args[0])
+      @container.prepare(out: $stdout, err: $stderr, deployment_datetime: deployment_datetime, file: args[0])
     end
   end
 end
@@ -240,7 +240,7 @@ command :distribute do |c|
   c.action do |args, options|
     # TODO make sure there is a deployment id arg
     do_command(c, options) do
-      puts @container.distribute(out: $stdout, err: $stderr, deployment_id: args[0])
+      @container.distribute(out: $stdout, err: $stderr, deployment_id: args[0])
     end
   end
 end
@@ -260,8 +260,8 @@ command :activate do |c|
       else
         hot_deploy_enabled = options.hot_deploy
       end
-      puts @container.activate(out: $stdout, err: $stderr, deployment_id: args[0], hot_deploy: hot_deploy_enabled, init: options.init)
-      puts @container.activate_many(out: $stdout, err: $stderr, deployment_id: args[0], hot_deploy: hot_deploy_enabled, init: options.init)
+      @container.activate(out: $stdout, err: $stderr, deployment_id: args[0], hot_deploy: hot_deploy_enabled, init: options.init)
+      @container.activate_many(out: $stdout, err: $stderr, deployment_id: args[0], hot_deploy: hot_deploy_enabled, init: options.init)
     end
   end
 end
@@ -272,8 +272,8 @@ command :rollback do |c|
   c.description = "Roll back to the previous deployment"
   c.action do |args, options|
     do_command(c, options) do
-      puts @container.rollback(out: $stdout, err: $stderr)
-      puts @container.rollback_many(out: $stdout, err: $stderr)
+      @container.rollback(out: $stdout, err: $stderr)
+      @container.rollback_many(out: $stdout, err: $stderr)
     end
   end
 end

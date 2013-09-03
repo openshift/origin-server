@@ -405,7 +405,17 @@ module OpenShift
       # Sets the application state to +STOPPED+ and stops the gear. Gear stop implementation
       # is model specific, but +options+ is provided to the implementation.
       def stop_gear(options={})
-        buffer = @cartridge_model.stop_gear(options)
+        buffer = ''
+        if @cartridge_model.web_proxy
+          @cartridge_model.do_control('disable-server',
+                                      @cartridge_model.web_proxy,
+                                      args: self.uuid,
+                                      pre_action_hooks_enabled:  false,
+                                      post_action_hooks_enabled: false,
+                                      out:                       options[:out],
+                                      err:                       options[:err])
+        end
+        buffer << @cartridge_model.stop_gear(options)
         unless buffer.empty?
           buffer.chomp!
           buffer << "\n"
