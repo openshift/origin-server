@@ -114,6 +114,7 @@ class PendingAppOpGroup
         when :register_dns
           gear = get_gear_for_rollback(op)
           gear.deregister_dns
+        when :register_routing_dns
         when :set_group_overrides
           application.group_overrides=op.saved_values["group_overrides"]
           application.save
@@ -248,6 +249,14 @@ class PendingAppOpGroup
             end
           when :deregister_dns
             gear.deregister_dns
+          when :register_routing_dns
+            application.register_routing_dns
+            application.ha = true
+            application.save
+          when :deregister_routing_dns
+            application.deregister_routing_dns
+          when :publish_routing_info
+            gear.publish_routing_info
           when :destroy_gear
             result_io.append gear.destroy_gear(true)
           when :start_component

@@ -68,6 +68,10 @@ class AppEventsController < BaseController
       authorize! :destroy_alias, @application
       r = @application.remove_alias(server_alias)
       msg = "Application #{@application.name} has removed alias"
+    when "make-ha"
+      authorize! :make_ha, @application
+      r = @application.make_ha
+      msg = "Application #{@application.name} is now ha"
     when "scale-up"
       authorize! :scale_cartridge, @application
       web_framework_component_instance = @application.component_instances.select{ |c| CartridgeCache.find_cartridge(c.cartridge_name,@application).categories.include?("web_framework") }.first

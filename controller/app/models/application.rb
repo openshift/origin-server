@@ -92,6 +92,7 @@ class Application
   field :component_configure_order, type: Array, default: []
   field :default_gear_size, type: String
   field :scalable, type: Boolean, default: false
+  field :ha, type: Boolean, default: false
   field :init_git_url, type: String, default: ""
   field :analytics, type: Hash, default: {}
   embeds_many :component_instances, class_name: ComponentInstance.name
@@ -687,6 +688,49 @@ class Application
   end
 
   ##
+  # Update the application's group overrides such that a scalable application becomes HA
+  # This broadly means setting the 'min' of web_proxy sparse cart to 2
+  def make_ha
+    raise OpenShift::UserException.new("This feature ('High Availability') is currently disabled. Enable it in OpenShift's config options.") if not Rails.configuration.openshift[:allow_ha_applications]
+    raise OpenShift::UserException.new("'High Availability' is not an allowed feature for the account ('#{self.domain.owner.login}')") if not self.domain.owner.ha
+    raise OpenShift::UserException.new("Only scalable applications can be made 'HA'") if not self.scalable
+    raise OpenShift::UserException.new("Application is already HA") if self.ha
+
+    component_instance = self.component_instances.select { |ci| 
+      cats = CartridgeCache.find_cartridge(ci.cartridge_name, self).categories
+      cats.include? "web_proxy"
+    }.first
+    # set the web_proxy's min to 2 
+    self.update_component_limits(component_instance, 2, nil, nil)
+
+    # and the web_frameworks' min to 2 as well so that the app stays HA
+    web_ci = self.component_instances.select { |ci| 
+      cats = CartridgeCache.find_cartridge(ci.cartridge_name, self).categories
+      cats.include? "web_framework"
+    }.first
+    if web_ci.min < 2
+      scale_up_needed = web_ci.group_instance.gears.length>1 
+      self.update_component_limits(web_ci, 2, nil, nil)
+      if scale_up_needed
+        self.scale_by(component_instance.group_instance._id, 1)
+      end
+    end
+
+    # Make ha's remaining tasks -
+    #   resend routing endpoints to routing plugin
+    #   register ha dns
+    #   set ha flag
+    Application.run_in_application_lock(self) do
+      pending_op = PendingAppOpGroup.new(op_type: :make_ha, args: {}, created_at: Time.new, user_agent: self.user_agent)
+      pending_op_groups.push pending_op
+      self.save
+      result_io = ResultIO.new
+      self.run_jobs(result_io)
+      result_io
+    end
+  end
+
+  ##
   # Create and add group overrides to update scaling and filesystem limits for a the {GroupInstance} hosting a {ComponentInstance}
   # @param component_instance [ComponentInstance] The component instance to use when creating the override definition
   # @param scale_from [Integer] Minimum scale for the component
@@ -1205,6 +1249,27 @@ class Application
     gears_endpoint
   end
 
+  def deregister_routing_dns
+    dns = OpenShift::DnsService.instance
+    begin
+      dns.deregister_application("ha-#{self.name}", self.domain.namespace)
+      dns.publish
+    ensure
+      dns.close
+    end
+  end
+
+  def register_routing_dns
+    target_hostname = Rails.configuration.openshift[:router_hostname]
+    dns = OpenShift::DnsService.instance
+    begin
+      dns.register_application("ha-#{self.name}", self.domain.namespace, target_hostname)
+      dns.publish
+    ensure
+      dns.close
+    end
+  end
+
   # Processes directives returned by component hooks to add/remove domain ssh keys, app ssh keys, env variables, broker keys etc
   # @note {#run_jobs} must be called in order to perform the updates
   #
@@ -1239,11 +1304,15 @@ class Application
         pending_op = PendingAppOpGroup.new(op_type: :remove_broker_auth_key, args: { }, user_agent: self.user_agent)
         Application.where(_id: self._id).update_all({ "$push" => { pending_op_groups: pending_op.serializable_hash_with_timestamp } })
       when "NOTIFY_ENDPOINT_CREATE"
-        gear.port_interfaces.push(PortInterface.create_port_interface(gear, component_id, *command_item[:args])) if gear and component_id
-        OpenShift::RoutingService.notify_create_public_endpoint self, *command_item[:args]
+        if gear and component_id
+          pi = PortInterface.create_port_interface(gear, component_id, *command_item[:args]) 
+	  gear.port_interfaces.push(pi)
+          pi.publish_endpoint(self) if self.ha
+        end
+        # OpenShift::RoutingService.notify_create_public_endpoint self, *command_item[:args]
       when "NOTIFY_ENDPOINT_DELETE"
         PortInterface.remove_port_interface(gear, component_id, *command_item[:args]) if gear and component_id
-        OpenShift::RoutingService.notify_delete_public_endpoint self, *command_item[:args]
+        OpenShift::RoutingService.notify_delete_public_endpoint self, *command_item[:args] if self.ha
       end
     end
 
@@ -1313,12 +1382,43 @@ class Application
             group_overrides = (self.group_overrides || []) + (op_group.args["group_overrides"] || [])
             ops, add_gear_count, rm_gear_count = update_requirements(features, group_overrides)
             try_reserve_gears(add_gear_count, rm_gear_count, op_group, ops)
+          when :make_ha
+            self.group_instances.each { |gi|
+              gi.gears.each { |gear|
+	        op_group.pending_ops.push PendingAppOp.new(op_type: :publish_routing_info, args: {"group_instance_id" => gi._id.to_s, "gear_id" => gear._id.to_s} )
+              }
+            }
+            op_group.pending_ops.push PendingAppOp.new(op_type: :register_routing_dns, args: { })
           when :update_component_limits
             updated_overrides = (self.group_overrides || []).deep_dup
-            found = updated_overrides.find {|go| go["components"].include? op_group.args["comp_spec"] }
-            group_override = found || {"components" => [op_group.args["comp_spec"]]}
-            group_override["min_gears"] = op_group.args["min"] unless op_group.args["min"].nil?
-            group_override["max_gears"] = op_group.args["max"] unless op_group.args["max"].nil?
+            ci = self.component_instances.find_by(cartridge_name: op_group.args["comp_spec"]["cart"], component_name: op_group.args["comp_spec"]["comp"])
+	    found = updated_overrides.find {|go| 
+	      go["components"].find { |go_comp_spec| ci.cartridge_name==go_comp_spec["cart"] and ci.component_name==go_comp_spec["comp"] }
+	    }
+            if ci.is_sparse?
+              if found
+                updated_overrides.each { |go|
+                  go["components"].each { |go_comp_spec| 
+                    if go_comp_spec["cart"]==ci.cartridge_name and go_comp_spec["comp"]==ci.component_name
+                      go_comp_spec["min_gears"] = op_group.args["min"] unless op_group.args["min"].nil? 
+                      go_comp_spec["max_gears"] = op_group.args["max"] unless op_group.args["max"].nil?
+                      go_comp_spec["multiplier"] = op_group.args["multiplier"] unless op_group.args["multiplier"].nil?
+                    end
+                  }
+                }
+                group_override = found
+              else
+                new_comp_spec = { "cart"=> ci.cartridge_name, "comp" => ci.component_name }
+                new_comp_spec["min_gears"] = op_group.args["min"] unless op_group.args["min"].nil? 
+                new_comp_spec["max_gears"] = op_group.args["max"] unless op_group.args["max"].nil?
+                new_comp_spec["multiplier"] = op_group.args["multiplier"] unless op_group.args["multiplier"].nil?
+                group_override = {"components" => [new_comp_spec]}
+              end
+            else
+              group_override = found || {"components" => [op_group.args["comp_spec"]]}
+              group_override["min_gears"] = op_group.args["min"] unless op_group.args["min"].nil?
+              group_override["max_gears"] = op_group.args["max"] unless op_group.args["max"].nil?
+            end
             group_override["additional_filesystem_gb"] = op_group.args["additional_filesystem_gb"] unless op_group.args["additional_filesystem_gb"].nil?
             updated_overrides.push(group_override) unless found
             features = self.requires
@@ -1341,7 +1441,7 @@ class Application
             self.group_instances.each do |group_instance|
               if group_instance.gears.where(app_dns: true).count > 0
                 gear = group_instance.gears.find_by(app_dns: true)
-                op_group.pending_ops.push PendingAppOp.new(op_type: :add_alias, args: {"group_instance_id" => group_instance.id.to_s, "gear_id" => gear.id.to_s, "fqdn" => op_group.args["fqdn"]} )
+                op_group.pending_ops.push PendingAppOp.new(op_type: :add_alias, args: {"group_instance_id" => group_instance._id.to_s, "gear_id" => gear.id.to_s, "fqdn" => op_group.args["fqdn"]} )
                 break
               end
             end
@@ -1349,7 +1449,7 @@ class Application
             self.group_instances.each do |group_instance|
               if group_instance.gears.where(app_dns: true).count > 0
                 gear = group_instance.gears.find_by(app_dns: true)
-                op_group.pending_ops.push PendingAppOp.new(op_type: :remove_alias, args: {"group_instance_id" => group_instance.id.to_s, "gear_id" => gear.id.to_s, "fqdn" => op_group.args["fqdn"]} )
+                op_group.pending_ops.push PendingAppOp.new(op_type: :remove_alias, args: {"group_instance_id" => group_instance._id.to_s, "gear_id" => gear.id.to_s, "fqdn" => op_group.args["fqdn"]} )
                 break
               end
             end
@@ -1357,7 +1457,7 @@ class Application
             self.group_instances.each do |group_instance|
               if group_instance.gears.where(app_dns: true).count > 0
                 gear = group_instance.gears.find_by(app_dns: true)
-                op_group.pending_ops.push PendingAppOp.new(op_type: :add_ssl_cert, args: {"group_instance_id" => group_instance.id.to_s, "gear_id" => gear.id.to_s,
+                op_group.pending_ops.push PendingAppOp.new(op_type: :add_ssl_cert, args: {"group_instance_id" => group_instance._id.to_s, "gear_id" => gear.id.to_s,
                   "fqdn" => op_group.args["fqdn"], "ssl_certificate" => op_group.args["ssl_certificate"], "private_key" => op_group.args["private_key"], "pass_phrase" => op_group.args["pass_phrase"] } )
                 break
               end
@@ -1366,7 +1466,7 @@ class Application
             self.group_instances.each do |group_instance|
               if group_instance.gears.where(app_dns: true).count > 0
                 gear = group_instance.gears.find_by(app_dns: true)
-                op_group.pending_ops.push PendingAppOp.new(op_type: :remove_ssl_cert, args: {"group_instance_id" => group_instance.id.to_s, "gear_id" => gear.id.to_s, "fqdn" => op_group.args["fqdn"]} )
+                op_group.pending_ops.push PendingAppOp.new(op_type: :remove_ssl_cert, args: {"group_instance_id" => group_instance._id.to_s, "gear_id" => gear.id.to_s, "fqdn" => op_group.args["fqdn"]} )
                 break
               end
             end
@@ -1466,8 +1566,8 @@ class Application
     group_overrides = (group_overrides + gen_non_scalable_app_overrides(features)).uniq unless self.scalable
 
     connections, new_group_instances, cleaned_group_overrides = elaborate(features, group_overrides)
-    current_group_instance = self.group_instances.map { |gi| gi.to_hash }
-    changes, moves = compute_diffs(current_group_instance, new_group_instances)
+    current_group_instances = self.group_instances.map { |gi| gi.to_hash }
+    changes, moves = compute_diffs(current_group_instances, new_group_instances)
 
     calculate_ops(changes, moves, connections, cleaned_group_overrides, init_git_url, user_env_vars)
   end
@@ -1709,6 +1809,7 @@ class Application
           gear = scaled_gears.find { |g| g.sparse_carts.empty? }
         end
         if gear.nil? 
+          # this may mean that some sparse_component's min limit is being violated
           gear = scaled_gears.last
         end
         gears << gear
@@ -2273,6 +2374,11 @@ class Application
         next if component.size == 0
         component = component.first
 
+        # add sparse cart's special overrides to the cleaned_override
+        component["min_gears"] = comp_spec["min_gears"] if comp_spec["min_gears"]
+        component["max_gears"] = comp_spec["max_gears"] if comp_spec["max_gears"]
+        component["multiplier"] = comp_spec["multiplier"] if comp_spec["multiplier"]
+
         cleaned_override["components"] << component
         component
       end
@@ -2304,6 +2410,31 @@ class Application
     return [processed_group_overrides, processed_group_overrides]
   end
 
+  def merge_comp_specs(first, second)
+    return_specs = []
+    first.each { |comp_spec|
+      new_spec = { "cart" => comp_spec["cart"], "comp" => comp_spec["comp"] }
+      new_spec["min_gears"] = comp_spec["min_gears"] if comp_spec.has_key?("min_gears")
+      new_spec["max_gears"] = comp_spec["max_gears"] if comp_spec.has_key?("max_gears")
+      new_spec["multiplier"] = comp_spec["multiplier"] if comp_spec.has_key?("multiplier")
+      return_specs << new_spec
+    }
+    second.each { |comp_spec|
+      found = return_specs.find { |rs| rs["comp"]==comp_spec["comp"] and rs["cart"]==comp_spec["cart"] }
+      if found
+        found["min_gears"] = [found["min_gears"]||1, comp_spec["min_gears"]||1].max if found["min_gears"] or comp_spec["min_gears"]
+        found["multiplier"] = [found["multiplier"]||1, comp_spec["multiplier"]||1].max if found["multiplier"] or comp_spec["multiplier"]
+      else
+        new_spec = { "cart" => comp_spec["cart"], "comp" => comp_spec["comp"] }
+        new_spec["min_gears"] = comp_spec["min_gears"] if comp_spec.has_key?("min_gears")
+        new_spec["max_gears"] = comp_spec["max_gears"] if comp_spec.has_key?("max_gears")
+        new_spec["multiplier"] = comp_spec["multiplier"] if comp_spec.has_key?("multiplier")
+        return_specs << new_spec
+      end
+    }
+    return_specs
+  end
+
   def merge_group_overrides(first, second)
     return_go = { }
 
@@ -2317,9 +2448,9 @@ class Application
       end
     end
     if first_has_web_framework
-      return_go["components"] = (first["components"] + second["components"]).uniq
+      return_go["components"] = merge_comp_specs(first["components"], second["components"]) #(first["components"] + second["components"]).uniq
     else
-      return_go["components"] = (second["components"] + first["components"]).uniq
+      return_go["components"] = merge_comp_specs(second["components"], first["components"]) #(second["components"] + first["components"]).uniq
     end
     return_go["min_gears"] = [first["min_gears"]||1, second["min_gears"]||1].max if first["min_gears"] or second["min_gears"]
     return_go["additional_filesystem_gb"] = [first["additional_filesystem_gb"]||0, second["additional_filesystem_gb"]||0].max if first["additional_filesystem_gb"] or second["additional_filesystem_gb"]
@@ -2476,7 +2607,7 @@ class Application
     processed_overrides, cleaned_overrides = process_group_overrides(comp_specs, overrides)
     group_instances = processed_overrides.map{ |go|
       group_instance = {}
-      group_instance[:component_instances] = go["components"]
+      group_instance[:component_instances] = go["components"].map { |go_comp_spec| { "cart"=>go_comp_spec['cart'], "comp"=>go_comp_spec['comp'] } }
       group_instance[:scale] = {}
       group_instance[:scale][:min] = ( go["min_gears"] || 1 )
       group_instance[:scale][:max] = ( go["max_gears"] || -1 )
