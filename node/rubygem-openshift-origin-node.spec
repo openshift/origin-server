@@ -16,7 +16,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.13.12
+Version: 1.13.13
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -305,6 +305,10 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Tue Sep 03 2013 Adam Miller <admiller@redhat.com> 1.13.13-1
+- Bug 1003969: Don't raise if processed ERBs no longer exist to delete
+  (ironcladlou@gmail.com)
+
 * Fri Aug 23 2013 Adam Miller <admiller@redhat.com> 1.13.12-1
 - Merge pull request #3488 from detiber/bz1000174-stage
   (dmcphers+openshiftbot@redhat.com)
