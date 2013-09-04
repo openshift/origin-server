@@ -112,7 +112,7 @@ class Gear
  
   def publish_routing_info
     self.port_interfaces.each { |pi|
-        pi.publish_endpoint(self.group_instance.application)
+      pi.publish_endpoint(self.group_instance.application)
     }
   end
 
@@ -150,12 +150,18 @@ class Gear
   # Exit codes:
   #   success = 0
   # @raise [OpenShift::NodeException] on failure
-  def add_component(component, init_git_url=nil)
-    result_io = get_proxy.add_component(self, component, init_git_url)
-    component.process_properties(result_io)
-    app.process_commands(result_io, component._id, self)
-    raise OpenShift::NodeException.new("Unable to add component #{component.cartridge_name}::#{component.component_name}", result_io.exitcode, result_io) if result_io.exitcode != 0
-    self.sparse_carts << component._id if component.is_sparse?
+  def add_component(component, init_git_url=nil, skip_node_ops=false)
+    result_io = ResultIO.new
+    unless skip_node_ops
+      result_io = get_proxy.add_component(self, component, init_git_url)
+      component.process_properties(result_io)
+      app.process_commands(result_io, component._id, self)
+      raise OpenShift::NodeException.new("Unable to add component #{component.cartridge_name}::#{component.component_name}", result_io.exitcode, result_io) if result_io.exitcode != 0
+    end
+    if component.is_sparse?
+      self.sparse_carts << component._id
+      self.save!
+    end
     result_io
   end
 
@@ -187,10 +193,16 @@ class Gear
   # Exit codes:
   #   success = 0
   # @raise [OpenShift::NodeException] on failure
-  def remove_component(component)
-    result_io = get_proxy.remove_component(self, component)
-    app.process_commands(result_io, component._id, self)
-    self.sparse_carts.delete(component._id) if component.is_sparse?
+  def remove_component(component, skip_node_ops=false)
+    result_io = ResultIO.new
+    unless skip_node_ops
+      result_io = get_proxy.remove_component(self, component)
+      app.process_commands(result_io, component._id, self)
+    end
+    if component.is_sparse?
+      self.sparse_carts.delete(component._id)
+      self.save!
+    end
     result_io
   end
 
