@@ -39,6 +39,8 @@ class ScalingFuncTest < OpenShift::NodeBareTestCase
   }
 
   def setup
+    @framework_cartridge = ENV['CART_TO_TEST'] || 'mock-0.1'
+    OpenShift::Runtime::NodeLogger.logger.info("Using framework cartridge: #{@framework_cartridge}")
     @tmp_dir = "/var/tmp-tests/#{Time.now.to_i}"
     FileUtils.mkdir_p(@tmp_dir)
 
@@ -80,77 +82,24 @@ class ScalingFuncTest < OpenShift::NodeBareTestCase
     end
   end
 
-  # def test_ruby_scaled
-  #   basic_build_test(%w(ruby-1.9))
-  # end
-
-  # def test_ruby_unscaled
-  #   basic_build_test(%w(ruby-1.9), false)
-  # end
-
-  # def test_ruby_unscaled_jenkins
-  #   create_jenkins
-  #   basic_build_test(%w(ruby-1.9 jenkins-client-1), false)
-  # end
-
-  # def test_php_scaled
-  #   basic_build_test(%w(php-5.3))
-  # end
-
-  # def test_php_unscaled
-  #   basic_build_test(%w(php-5.3), false)
-  # end
-
-  # def test_php_unscaled_jenkins
-  #   create_jenkins
-  #   basic_build_test(%w(php-5.3 jenkins-client-1), false)
-  # end
-
-  # def test_php_scaled_jenkins
-  #   up_gears
-  #   create_jenkins
-  #   basic_build_test(%w(php-5.3 jenkins-client-1))
-  # end
-
-
-  # def test_jbossas_scaled
-  #   basic_build_test(%w(jbossas-7))
-  # end
-
-  # def test_jbossas_unscaled
-  #   basic_build_test(%w(jbossas-7), false)
-  # end
-
-  # def test_jbossas_unscaled_jenkins
-  #   create_jenkins
-  #   basic_build_test(%w(jbossas-7 jenkins-client-1), false)
-  # end
-
-  def test_jbossas_scaled_jenkins
-    up_gears
-    create_jenkins
-    basic_build_test(%w(jbossas-7 jenkins-client-1))
+  def test_scaled
+    basic_build_test(%W(#{@framework_cartridge}))
   end
 
-  # def test_jbosseap_scaled
-  #   basic_build_test(%w(jbosseap-6))
-  # end
+  def test_unscaled
+    basic_build_test(%W(#{@framework_cartridge}), false)
+  end
 
-  # def test_jbosseap_unscaled
-  #   basic_build_test(%w(jbosseap-6), false)
-  # end
+  def test_unscaled_jenkins
+    create_jenkins
+    basic_build_test(%W(#{@framework_cartridge} jenkins-client-1), false)
+  end
 
-  # def test_jbosseap_unscaled_jenkins
-  #   create_jenkins
-  #   basic_build_test(%w(jbosseap-6 jenkins-client-1), false)
-  # end
-
-  # def test_jbosseap_scaled_jenkins
-  #   up_gears
-  #   create_jenkins
-  #   basic_build_test(%w(jbosseap-6 jenkins-client-1))
-  # end
-
+  def test_scaled_jenkins
+    up_gears
+    create_jenkins
+    basic_build_test(%W(#{@framework_cartridge} jenkins-client-1))
+  end
 
   def create_jenkins
     app_name = "jenkins#{random_string}"
