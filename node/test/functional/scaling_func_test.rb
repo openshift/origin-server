@@ -35,18 +35,20 @@ class ScalingFuncTest < OpenShift::NodeBareTestCase
     'python-2.6'   => 'wsgi/application',
     'python-2.7'   => 'wsgi/application',
     'python-3.3'   => 'wsgi/application',
-    'perl-5.10'    => 'perl/perl/index.pl'
+    'perl-5.10'    => 'perl/perl/index.pl',
+    'mock-0.1'     => 'index.html',
   }
 
   def setup
-    @framework_cartridge = ENV['CART_TO_TEST'] || 'mock-0.1'
-    OpenShift::Runtime::NodeLogger.logger.info("Using framework cartridge: #{@framework_cartridge}")
     @tmp_dir = "/var/tmp-tests/#{Time.now.to_i}"
     FileUtils.mkdir_p(@tmp_dir)
 
     log_config = mock()
     log_config.stubs(:get).with("PLATFORM_LOG_CLASS").returns("StdoutLogger")
     ::OpenShift::Runtime::NodeLogger.stubs(:load_config).returns(log_config)
+
+    @framework_cartridge = ENV['CART_TO_TEST'] || 'mock-0.1'
+    OpenShift::Runtime::NodeLogger.logger.info("Using framework cartridge: #{@framework_cartridge}")
 
     @created_domain_names = []
     @created_app_ids = []
@@ -82,37 +84,29 @@ class ScalingFuncTest < OpenShift::NodeBareTestCase
     end
   end
 
-  def test_scaled
-    basic_build_test(%W(#{@framework_cartridge}))
-  end
-
   def test_unscaled
-    basic_build_test(%W(#{@framework_cartridge}), false)
+    basic_build_test([ @framework_cartridge ], false)
   end
 
   def test_unscaled_jenkins
     create_jenkins
-    basic_build_test(%W(#{@framework_cartridge} jenkins-client-1), false)
+    basic_build_test([@framework_cartridge, 'jenkins-client-1'], false)
+  end
+
+  def test_scaled
+    basic_build_test([ @framework_cartridge ])
   end
 
   def test_scaled_jenkins
     up_gears
     create_jenkins
-    basic_build_test(%W(#{@framework_cartridge} jenkins-client-1))
+    basic_build_test([@framework_cartridge, 'jenkins-client-1'])
   end
 
   def create_jenkins
     app_name = "jenkins#{random_string}"
     create_application(app_name, %w(jenkins-1), false)
   end
-
-  # def test_basic_ruby_18_scaling
-  #   basic_build_test(%w(ruby-1.8))
-  # end
-
-  # def test_basic_php_scaling
-  #   basic_build_test(%w(php-5.3))
-  # end
 
   def basic_build_test(cartridges, scaling = true)
     app_name = "app#{random_string}"

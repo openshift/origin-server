@@ -18,6 +18,7 @@ module OpenShift
           deployment_datetime = latest_deployment_datetime
           # this is necessary so certain cartridge install scripts function properly
           update_dependencies_symlink(deployment_datetime)
+          update_build_dependencies_symlink(deployment_datetime)
 
           @cartridge_model.configure(cart_name, template_git_url, manifest)
         end
@@ -395,6 +396,7 @@ module OpenShift
           if options[:deployment_datetime]
             overrides['OPENSHIFT_REPO_DIR'] = PathUtils.join(@container_dir, 'app-deployments', options[:deployment_datetime], 'repo') + "/"
             update_dependencies_symlink(options[:deployment_datetime])
+            update_build_dependencies_symlink(options[:deployment_datetime])
           end
 
 

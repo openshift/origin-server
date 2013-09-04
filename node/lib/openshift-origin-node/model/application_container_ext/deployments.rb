@@ -23,6 +23,9 @@ module OpenShift
           out, err, rc = run_in_container_context("set -x; shopt -s dotglob; /bin/mv app-root/runtime/dependencies/* app-deployments/#{deployment_datetime}/dependencies",
                                                   chdir: @container_dir)
           # rc may be nonzero if the current dependencies dir is empty
+
+          out, err, rc = run_in_container_context("set -x; shopt -s dotglob; /bin/mv app-root/runtime/build-dependencies/* app-deployments/#{deployment_datetime}/build-dependencies",
+                                                  chdir: @container_dir)
         end
 
         def copy_dependencies(deployment_datetime)
@@ -32,6 +35,11 @@ module OpenShift
           out, err, rc = run_in_container_context("/bin/cp -a app-root/runtime/dependencies/. app-deployments/#{deployment_datetime}/dependencies",
                                                   chdir: @container_dir,
                                                   expected_exitstatus: 0)
+
+          out, err, rc = run_in_container_context("/bin/cp -a app-root/runtime/build-dependencies/. app-deployments/#{deployment_datetime}/build-dependencies",
+                                                  chdir: @container_dir,
+                                                  expected_exitstatus: 0)
+
         end
 
         def current_deployment_datetime
@@ -126,6 +134,15 @@ module OpenShift
             FileUtils.rm_f('dependencies')
             FileUtils.ln_s("../../app-deployments/#{deployment_datetime}/dependencies", 'dependencies')
             PathUtils.oo_lchown(uid, gid, "dependencies")
+          end
+        end
+
+        def update_build_dependencies_symlink(deployment_datetime)
+          runtime = PathUtils.join(@container_dir, 'app-root', 'runtime')
+          FileUtils.cd(runtime) do |d|
+            FileUtils.rm_f('build-dependencies')
+            FileUtils.ln_s("../../app-deployments/#{deployment_datetime}/build-dependencies", 'build-dependencies')
+            PathUtils.oo_lchown(uid, gid, "build-dependencies")
           end
         end
 
