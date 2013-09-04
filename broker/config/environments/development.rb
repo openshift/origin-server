@@ -1,10 +1,6 @@
 Broker::Application.configure do
   # Settings specified here will take precedence over those in config/application.rb
 
-  # The test environment is used exclusively to run your application's
-  # test suite.  You never need to work with it otherwise.  Remember that
-  # your test database is "scratch space" for the test suite and is wiped
-  # and recreated between test runs.  Don't rely on the data there!
   config.cache_classes = ENV['BROKER_SOURCE'] ? false : true
   config.reload_plugins = ENV['BROKER_SOURCE'] ? true : false
 
@@ -20,7 +16,7 @@ Broker::Application.configure do
   # Raise exceptions instead of rendering exception templates
   config.action_dispatch.show_exceptions = true
 
-  # Disable request forgery protection in test environment
+  # Disable request forgery protection
   config.action_controller.allow_forgery_protection    = false
 
   # Tell Action Mailer not to deliver emails to the real world.
@@ -35,6 +31,14 @@ Broker::Application.configure do
 
   # Print deprecation notices to the stderr
   config.active_support.deprecation = :stderr
+
+  # Do not compress assets
+  config.assets.compress = false
+
+  # Expands the lines which load the assets
+  config.assets.debug = true
+  config.assets.logger = false
+
 
   ############################################
   # OpenShift Configuration Below this point #
@@ -105,18 +109,4 @@ Broker::Application.configure do
     :max_cart_size => conf.get("MAX_CART_SIZE", "20480").to_i,
     :max_download_time => conf.get("MAX_DOWNLOAD_TIME", "10").to_i
   }
-
-  # Enable the asset pipeline
-  config.assets.enabled = true
-
-  # Version of your assets, change this if you want to expire all your assets
-  config.assets.version = '1.0'
-
-  # Do not compress assets
-  config.assets.compress = false
-
-  # Expands the lines which load the assets
-  config.assets.debug = true
-  config.assets.logger = false
-
 end
