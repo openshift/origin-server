@@ -957,11 +957,11 @@ OpenShift creates an archive during `snapshot` as follows:
 2.  OpenShift invokes `control pre-snapshot` for each installed cartridge in the gear. Cartridges may control their serialization in the snapshot by implementing this control action in conjunction with exclusions (example: cartridge authors want to snapshot/restore to/from a database dump instead of a database file).
 3.  OpenShift builds a list of exclusions by reading the `snapshot_exclusions` list from the `metadata/managed_files.yml` file for each cartridge in the gear.
 4.  OpenShift creates an archive in tar.gz format and writes it to STDOUT for consumption by the client tools. The following exclusions are used in addition to the list created from cartridges:
-5.  Gear user `.tmp`, `.ssh`, `.sandbox`
-6.  Application state file (`app-root/runtime/.state`)
-7.  Bash history file (`$OPENSHIFT_DATA_DIR/.bash_history`)
-8.  OpenShift invokes `control post-snapshot` for each installed cartridge in the gear.
-9.  OpenShift starts the application by invoking `gear start`.
+*  Gear user `.tmp`, `.ssh`, `.sandbox`
+*  Application state file (`app-root/runtime/.state`)
+*  Bash history file (`$OPENSHIFT_DATA_DIR/.bash_history`)
+5.  OpenShift invokes `control post-snapshot` for each installed cartridge in the gear.
+6.  OpenShift starts the application by invoking `gear start`.
 
 === Understanding OpenShift Behavior: Restore
 OpenShift restores an application from an archive as follows:
