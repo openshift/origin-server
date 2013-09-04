@@ -895,7 +895,6 @@ module RestApi
       end
 
       def method_missing(method_symbol, *arguments) #:nodoc:
-        #puts "in method missing of RestApi::Base #{method_symbol}"
         method_name = method_symbol.to_s
 
         if method_name =~ /(=|\?)$/
@@ -910,7 +909,7 @@ module RestApi
         else
           return attributes[method_name] if attributes.include?(method_name)
           # not set right now but we know about it
-          return nil if known_attributes.include?(method_name)
+          return nil if known_attributes.include?(method_name) || reflections.has_key?(method_symbol)
           super
         end
       end

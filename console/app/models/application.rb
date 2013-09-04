@@ -142,6 +142,12 @@ class Application < RestApi::Base
     app_url
   end
 
+  def web_uri(scheme=nil)
+    uri = URI.parse(app_url)
+    uri.scheme = scheme
+    uri
+  end
+
   #FIXME would prefer this come from REST API
   def ssh_url
     uri = URI.parse(git_url)
@@ -167,10 +173,22 @@ class Application < RestApi::Base
     @attributes[:embedded]
   end
 
-
-
   def scales?
     scale
+  end
+
+  def gear_ranges(account_max=Float::INFINITY)
+    cartridge_gear_groups.inject({}) do |h, group|
+      profile = (h[group.gear_profile] ||= [0, 0])
+      count, max = 0, 0
+      group.cartridges.each do |cart|
+        count = [cart.current_scale, count].max
+        max = [cart.will_scale_to(account_max), max].max
+      end
+      profile[0] += count
+      profile[1] = [profile[1] + max, account_max].max
+      h
+    end.map{ |k, (v, v2)| [k, v, v2] }.sort_by{ |a| [a[1], a[2], a[0]] }.reverse
   end
 
   def scale_status_url

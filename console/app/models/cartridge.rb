@@ -100,6 +100,10 @@ class Cartridge < RestApi::Base
     scales? && scales_from != scales_to
   end
 
+  def will_scale_to(account_max=Float::INFINITY)
+    effective_scales_to(effective_supported_scales_to(account_max))
+  end
+
   def effective_supported_scales_to(max=Float::INFINITY)
     supported_scales_to == -1 ? max : [supported_scales_to, max].min
   end
@@ -109,7 +113,7 @@ class Cartridge < RestApi::Base
   end
 
   def can_scale_up?(max=Float::INFINITY)
-    current_scale < effective_scales_to(effective_supported_scales_to(max))
+    current_scale < will_scale_to(max)
   end
 
   def can_scale_down?
@@ -143,7 +147,7 @@ class Cartridge < RestApi::Base
   end
 
   def data(name, default=nil)
-    if prop = properties.find{ |p| p['type'] == 'cart_data' && p['name'] == name.to_s }
+    if prop = (properties || []).find{ |p| p['type'] == 'cart_data' && p['name'] == name.to_s }
       [prop['value'].presence || default, prop['description']]
     end
   end

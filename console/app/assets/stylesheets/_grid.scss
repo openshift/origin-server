@@ -53,33 +53,32 @@
 .flow {
   display: table;
   width: 100%;
+  //table-layout: fixed;
 
   > .flow-block {
     display: table-cell;
+
+    > ul.inline {
+      display: inline-block;
+      white-space: nowrap;
+      margin-bottom: 0;
+
+      > li {
+        line-height: 120%;
+        font-size: 50%;
+        text-transform: uppercase;
+
+        > h6 {
+          font-size: 100%;
+          line-height: 120%;
+        }
+        > div {
+          white-space: normal;
+        }
+      }
+    }
   }
 }
 
 @media (max-width: 767px) {
-}
-
-.flow-block > ul.inline {
-  display: inline-block;
-  white-space: nowrap;
-  margin-bottom: 0;
-}
-.flow-block > ul.inline > li > div {
-  white-space: normal;
-}
-.flow-block > ul.inline > li {
-  line-height: 120%;
-  font-size: 50%;
-  text-transform: uppercase;
-}
-.top {
-  vertical-align: top;
-}
-
-.flow-block > ul.inline > li > h6 {
-  font-size: 100%;
-  line-height: 120%;
 }

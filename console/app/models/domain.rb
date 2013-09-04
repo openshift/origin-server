@@ -5,7 +5,11 @@ class Domain < RestApi::Base
   schema do
     string :id
     string :suffix
+    integer :application_count
   end
+
+  has_many :allowed_gear_sizes, :class_name => String
+  has_one :gear_counts, :class_name => as_indifferent_hash
 
   on_exit_code(158, :on_invalid => (Domain::UserAlreadyHasDomain = Class.new(ActiveResource::ResourceInvalid)))
   on_exit_code(103, :on_invalid => (Domain::AlreadyExists = Class.new(ActiveResource::ResourceInvalid)))

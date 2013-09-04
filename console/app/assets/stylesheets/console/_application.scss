@@ -8,6 +8,16 @@
     line-height: $baseLineHeight * 1.75;
     margin-bottom: $baseLineHeight / 3.5;
   }
+
+  .application {
+    .flow > .flow-block.right {
+      white-space: nowrap;
+    }
+  }
+
+  .application + .domain {
+    margin-top: 20px;
+  }
 }
 
 .application {
@@ -76,7 +86,7 @@
       position: relative;
     }
     > .url { 
-      margin-right: 30px;
+      margin-right: 10px;
       position: relative;
       > .url-icon {
         position: relative;

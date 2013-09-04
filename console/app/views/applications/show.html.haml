@@ -57,6 +57,8 @@
     left: 0;
   }
 
+- max_gears = @capabilities.max_gears
+
 - content_for :top do
   .grid-wrapper.section-header
     %nav.span12.span-flush-right.application
@@ -64,11 +66,11 @@
         - if @application.aliases.length > 1
           .name= @application.name
           = link_to @application.aliases.first.name, URI::HTTP.new('http', nil, 'www.foo.com', nil, nil, nil, nil, nil, nil).to_s, :class => 'url url-alias'
-          = link_to pluralize(@application.aliases.length - 1, 'alias'), application_path(@application), :class => 'url-alter'
+          = link_to "\u2026 #{pluralize(@application.aliases.length - 1, ' other alias')}", application_aliases_path(@application), :class => 'url-alter'
         - elsif @application.aliases.present?
           .name= @application.name
           = link_to @application.aliases.first.name, URI::HTTP.new('http', nil, 'www.foo.com', nil, nil, nil, nil, nil, nil).to_s, :class => 'url url-alias'
-          = link_to 'change', application_path(@application), :class => 'url-alter'
+          = link_to "\u2026 change alias", application_aliases_path(@application), :class => 'url-alter'
         - else
           = link_to @application.web_url, :class => 'url-default' do
             %span.name>= @application.name
@@ -82,7 +84,9 @@
               %div.data= gear_group_states(@gear_groups.map(&:states).flatten(1))
             %li
               %h6 Gears
-              %div.data #{@application.gear_count} #{@application.gear_profile}
+              %ul.unstyled.data
+                - @application.gear_ranges(max_gears).each do |(profile, count, max)|
+                  %li #{count} #{profile}
 
             %li#restart-container.popover-restart
               = link_to application_restart_path(@application), { :id => 'restart-link', 'data-html' => 'true', 'data-placement' => 'bottom', :class => 'block btn-console-header', :title => 'Restart Application'} do
@@ -110,7 +114,6 @@
           Add Cartridge
           %span.sprite
 
-  - max_gears = @capabilities.max_gears
   - can_scale_up = @application.cartridges.any?{ |c| c.can_scale_up?(max_gears) }
   - visual_limit = 6
 
@@ -152,7 +155,7 @@
                         %h6 Gears
                         %div.data
                           = link_to cartridge_gear_group_count(group), application_scaling_path(@application, :anchor => cartridge.name), :title => gear_group_count_title(group.gears.length)
-                          &ndash;
+                          %span.gear-icon{'aria-hidden'=>"true", 'data-icon' => "\ue014", style: "opacity: 0.4;"}
                           = link_to cartridge_storage(cartridge), application_storage_path(@application, :anchor => cartridge.name), :title => "Each gear is allocated disk space.  Click to change."
 
 

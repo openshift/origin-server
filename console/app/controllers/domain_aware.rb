@@ -5,7 +5,7 @@ module DomainAware
     around_filter DomainSessionSweeper
   end
 
-  # trigger synchronous module load 
+  # trigger synchronous module load
   [Domain, Member] if Rails.env.development?
 
   def domains_cache_key
@@ -14,7 +14,7 @@ module DomainAware
 
   def user_domains
     @domains ||= Rails.cache.fetch(domains_cache_key, :expires_in => 5.minutes) do
-      Domain.find(:all, :as => current_user)
+      Domain.find(:all, :as => current_user, :params => {:include => :application_info})
     end
   end
 

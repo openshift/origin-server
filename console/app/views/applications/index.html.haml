@@ -14,9 +14,6 @@
               %h6 Gears Used
               %div.data #{@capabilities.consumed_gears} of #{@capabilities.max_gears}
             %li
-              %h6 Gear Sizes
-              %div.data #{@capabilities.gear_sizes.join(", ")}
-            %li
               %h6 Plan
               %div.data #{link_to @capabilities.plan_id, account_path}
 
@@ -24,24 +21,28 @@
   %header
     %h3.invisible Application list
 
+  %section{style: 'margin-bottom: 20px;'}
+
   .row
     .span8
       .tile-dark
         - groups = @applications.group_by{ |a| a.domain_id }
         - groups.each_pair do |domain_id, apps|
-          - if groups.length > 1
-            %h4.domain{:style => 'padding-bottom: 5px; margin-bottom: 8px; margin-top: 20px; border-bottom: 4px solid #222;'}
+          %h4.domain{:style => 'padding-bottom: 5px; margin-bottom: 8px; border-bottom: 4px solid #222;'}
+            - if groups.length == 1
+              Applications in domain 
+            - else
               Domain
-              = link_to domain_id, domain_path(domain_id)
-              - if apps.first.owner?
-              - elsif owner = apps.first.members.find(&:owner)
-                (#{owner.name})
+            = link_to domain_id, domain_path(domain_id)
+            - if apps.first.owner?
+            - elsif owner = apps.first.members.find(&:owner)
+              (#{owner.name})
 
           - apps.each do |application|
             .tile-click.application{ :class => application.owner? ? 'application-owned' : nil }
               %h2.flow
                 - if application.aliases.present?
-                  = link_to application_path(application), :class => 'tile-target flow-block' do
+                  = link_to application_path(application), :class => 'tile-target flow-block name' do
                     = application.name
                     = '-'
                     %span.alias= application.aliases.first.name
@@ -85,42 +86,57 @@
             %i.icon-add
 
     .span4
-      %h5{style: 'margin-top: 15px;'} Try it out
+      %h5 You may want to...
 
-      %ul
-        - if @has_key
+      %ul.unstyled.application-suggestions
+        - unless @has_key
           %li
-            Install and run <code>rhc</code> to:
+            #{link_to "Set a SSH key", new_key_path} to
             %ul
-              %li Access your source code
-              %li SSH to your application
-              %li Access logs and thread-dumps
-              %li Port-forward your app
-              %li Take a snapshot of your app
-        - else
-          %li
-            #{link_to "Setting a SSH key", new_key_path} lets you:
-            %ul
-              %li Access your source code
-              %li SSH to your application
-              %li Access logs and thread-dumps
-              %li Port-forward your app
-              %li Take a snapshot of your app
+              %li
+                %a{href: 'javascript:;', title: 'Set your first key', 'data-content' => "<p>OpenShift uses the Secure Shell protocol to protect direct access to your application.  In order to upload or download source code from Git or to remotely access the gears in your app, you'll need to create and upload a public SSH key.</p>"} Access source code or SSH to your gears
 
         - if @applications.length < 3 && @applications.none?{ |a| a.cartridges.any?(&:database?) }
-          %li Add a database like MySQL to your application
+          %li
+            %a{href: 'javascript:;', title: 'Add a Database', 'data-content' => '<p>OpenShift supports several database types, and you can always create your own downloadable cartridge for your favorite type.</p><p>Click on your application name and then choose a database to add below the list of cartridges.</p>'} Add a database to an app
 
-        - if @user_owned_domains.length < @capabilities.max_domains
+        - if empty_domains = @user_owned_domains.select{ |d| d.application_count == 0 }.presence
+          %li
+            Use an empty domain:
+            = map_to_sentence(empty_domains) do |d|
+              = link_to d.name, domain_path(d)
+          %li #{link_to "See all domains", domains_path}
+
+        - elsif @user_owned_domains.length < @capabilities.max_domains
           %li #{link_to "Create", new_domain_path} another domain
+          %li #{link_to "See all domains", domains_path}
+
+        - else
+          %li #{link_to "See all domains", domains_path}
 
         - if @applications.map{ |a| a.members.length }.max < 2
-          %li Add a collaborator to your applications
+          %li
+            %a{href: 'javascript:;', title: 'Membership', 'data-content' => '<p>You can give a collaborator access to your domains and applications.  Adding someone as an editor on a domain gives them the ability to create or update your applications.</p><p>To add a collaborator, click on a domain name and then enter the login of another OpenShift member.</p>'} Add a collaborator
 
         - if @applications.all?{ |a| a.aliases.blank? }
-          %li Set a custom domain name for your application
+          %li
+            %a{href: 'javascript:;', title: 'Customize your URL', 'data-content' => "<p>OpenShift gives you a public domain for each of your applications.  If you have your own domain name, you can set it as an <strong>alias</strong> on your application.</p><p>Click on your application name and select the 'change' link next to the application URL at the top of the overview page.</p>"} Use your own domain name
 
         - if @applications.none?(&:scales?)
-          %li Create a scalable application
+          %li
+            %a{href: 'javascript:;', title: 'Scale with traffic', 'data-content' => "<p>Scalable applications can run multiple copies of your web code in parallel on different servers.  This allows you to handle more web traffic, and to react to changing levels of demand.</p><p>To create a scalable app, choose an application type to create and change the 'Scaling' option on the 'Create Application' page.</p>"} Create a scalable application
+
+        - if @has_key
+          %li
+            The <code>rhc</code> command line lets you:
+            %ul
+              %li
+                %a{href: 'javascript:;', title: 'Watching logs', 'data-content' => "<p><p>From the command line, run <code>rhc tail &lt;app_name&gt;</code> to view your logs in realtime.</p>"} Access logs
+              %li
+                %a{href: 'javascript:;', title: 'Backup and Restore', 'data-content' => "<p>Each application can be backed up by using the snapshot command - run <code>rhc save-snapshot &lt;app_name&gt;</code> to download a tar file containing your code, databases, and other relevant data.  Use <code>rhc restore-snapshot</code> to restore the state of an app.</p><p>Note that snapshot will stop your application as it runs.</p>"} Save and restore backups
+              %li
+                %a{href: 'javascript:;', title: 'Forwarding ports', 'data-content' => "<p>From the command line, run <code>rhc port-forward</code> to access databases or internal ports directly.</p>"} Connect directly to internal services
+
 
 
 -# FIXME: Refactor me into an unobtrusive javascript function
@@ -130,4 +146,9 @@
       if ((t = $(evt.target)) && t.is('a')) { return }
       a = $('h2 > a', this)[0];
       window.location = a.href
+    });
+    var popups = '.application-suggestions [data-content]'
+    $(popups).popover({placement:'left', html: true, trigger: 'manual'}).click(function(e) {
+      $(popups).not(this).popover('hide');
+      $(this).popover('toggle', e);
     });
