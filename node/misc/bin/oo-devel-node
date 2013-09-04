@@ -392,7 +392,7 @@ command :'ssl-cert-add' do |c|
   c.action do |args, options|
     if options.with_alias_name && options.with_ssl_cert && options.with_priv_key
       cert = IO.read(options.with_ssl_cert)
-      key  = IO.read(options.witn_ssl_key)
+      key  = IO.read(options.with_priv_key)
 
       frontend = new_frontend(options.with_container_uuid, c)
       execute {
