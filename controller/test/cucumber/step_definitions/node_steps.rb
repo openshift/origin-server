@@ -9,10 +9,10 @@ require 'dnsruby'
 
 # Controller cartridge command paths
 $cartridge_root = '/usr/libexec/openshift/cartridges'
-$controller_config_path = "oo-app-create"
+$controller_config_path = "oo-devel-node app-create"
 $controller_config_format = "#{$controller_config_path} -c '%s' -a '%s' --with-namespace '%s' --with-app-name '%s'"
-$controller_deconfig_path = "oo-app-destroy"
-$controller_deconfig_format = "#{$controller_deconfig_path} -c '%s' -a '%s' --with-namespace '%s' --with-app-name '%s'"
+$controller_deconfig_path = "oo-devel-node app-destroy"
+$controller_deconfig_format = "#{$controller_deconfig_path} -c '%s'"
 $home_root = "/var/lib/openshift"
 
 # --------------------------------------------------------------------------
@@ -113,10 +113,7 @@ end
 When /^I delete the guest account$/ do
   # call /usr/libexec/openshift/cartridges  @table.hashes.each do |row|
   
-  command = $controller_deconfig_format % [@account['accountname'],
-                                           @account['accountname'],
-                                           @account['namespace'],
-                                           @account['appnames'][0]]
+  command = $controller_deconfig_format % [@account['accountname']]
   runcon(command, $selinux_user, $selinux_role, $selinux_type)
 
 end
