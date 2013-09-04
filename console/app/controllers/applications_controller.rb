@@ -76,16 +76,17 @@ class ApplicationsController < ConsoleController
     if params[:test]
       @applications_filter = ApplicationsFilter.new params[:applications_filter]
       @applications = Fixtures::Applications.list
-      return
+    else
+      @applications = Application.find :all, :as => current_user
+      @applications_filter = ApplicationsFilter.new params[:applications_filter]
+      @applications = @applications_filter.apply(@applications)
     end
 
-    @applications = Application.find :all, :as => current_user
-    @applications_filter = ApplicationsFilter.new params[:applications_filter]
-    @applications = @applications_filter.apply(@applications)
+    render :first_steps and return if @applications.empty? && @applications_filter.blank?
 
-    if @applications.empty? && @applications_filter.blank?
-      render :first_steps
-    end
+    @has_key = sshkey_uploaded?
+    @user_owned_domains = user_owned_domains
+    @capabilities = user_capabilities
   end
 
   def destroy

@@ -5,71 +5,123 @@
 
 - content_for :top do
   .grid-wrapper.section-header
-    %nav.span12.span-flush-right
-      %h1 Applications
+    %nav.span12.span-flush-right.applications
+      %h1.flow
+        Applications
+        .flow-block.right
+          %ul.inline.center
+            %li
+              %h6 Gears Used
+              %div.data #{@capabilities.consumed_gears} of #{@capabilities.max_gears}
+            %li
+              %h6 Gear Sizes
+              %div.data #{@capabilities.gear_sizes.join(", ")}
+            %li
+              %h6 Plan
+              %div.data #{link_to @capabilities.plan_id, account_path}
 
 %section#app-list.span12
   %header
     %h3.invisible Application list
-  .row.tile-dark
-    - groups = @applications.group_by{ |a| a.domain_id }
-    - groups.each_pair do |domain_id, apps|
-      - if groups.length > 1
-        .grid-wrapper
-          %h4.span12.domain{:style => 'padding-bottom: 5px; margin-bottom: 8px; margin-top: 20px; border-bottom: 4px solid #222;'}
-            Domain
-            = link_to domain_id, domain_path(domain_id)
-            - if apps.first.owner?
-            - elsif owner = apps.first.members.find(&:owner)
-              (#{owner.name})
 
-      - apps.each do |application|
-        .grid-wrapper.tile-click
-          .span12.application{ :class => application.owner? ? 'application-owned' : nil }
-            %h2.flow
-              - if application.aliases.present?
-                = link_to application_path(application), :class => 'tile-target flow-block' do
-                  = application.name
-                  = '-'
-                  %span.alias= application.aliases.first.name
-              - else
-                = link_to application.name, application_path(application), :class => 'tile-target'
+  .row
+    .span8
+      .tile-dark
+        - groups = @applications.group_by{ |a| a.domain_id }
+        - groups.each_pair do |domain_id, apps|
+          - if groups.length > 1
+            %h4.domain{:style => 'padding-bottom: 5px; margin-bottom: 8px; margin-top: 20px; border-bottom: 4px solid #222;'}
+              Domain
+              = link_to domain_id, domain_path(domain_id)
+              - if apps.first.owner?
+              - elsif owner = apps.first.members.find(&:owner)
+                (#{owner.name})
 
-              %span.flow-block.right
-                %span.gear{:title => application_gear_count(application)}
-                  = application.gear_count
-                  %span.gear-icon{'aria-hidden'=>"true", 'data-icon' => "\ue014"}
-                  - if (scales = application.cartridges.select(&:scales?)) and scales.present?
-                    .gauge-vertical>
-                      - if scales.any?(&:has_scale_range?)
-                        - if scales.none?(&:can_scale_up?)
-                          %span.gauge-tick.fill>  .
-                          %span.gauge-tick.fill>  .
-                          %span.gauge-tick.fill>  .
-                        - elsif scales.none?(&:can_scale_down?)
-                          %span.gauge-tick.empty> .
-                          %span.gauge-tick.empty> .
-                          %span.gauge-tick.fill>  .
+          - apps.each do |application|
+            .tile-click.application{ :class => application.owner? ? 'application-owned' : nil }
+              %h2.flow
+                - if application.aliases.present?
+                  = link_to application_path(application), :class => 'tile-target flow-block' do
+                    = application.name
+                    = '-'
+                    %span.alias= application.aliases.first.name
+                - else
+                  = link_to application.name, application_path(application), :class => 'tile-target'
+
+                %span.flow-block.right
+                  %span.gear{:title => application_gear_count(application)}
+                    = application.gear_count
+                    %span.gear-icon{'aria-hidden'=>"true", 'data-icon' => "\ue014"}
+                    - if (scales = application.cartridges.select(&:scales?)) and scales.present?
+                      .gauge-vertical>
+                        - if scales.any?(&:has_scale_range?)
+                          - if scales.none?(&:can_scale_up?)
+                            %span.gauge-tick.fill>  .
+                            %span.gauge-tick.fill>  .
+                            %span.gauge-tick.fill>  .
+                          - elsif scales.none?(&:can_scale_down?)
+                            %span.gauge-tick.empty> .
+                            %span.gauge-tick.empty> .
+                            %span.gauge-tick.fill>  .
+                          - else
+                            %span.gauge-tick.empty> .
+                            %span.gauge-tick.fill>  .
+                            %span.gauge-tick.fill>  .
                         - else
-                          %span.gauge-tick.empty> .
-                          %span.gauge-tick.fill>  .
-                          %span.gauge-tick.fill>  .
-                      - else
-                        %span.gauge-tick.fill> .
-                        %span.gauge-tick.fill> .
-                        %span.gauge-tick.fill> .
+                          %span.gauge-tick.fill> .
+                          %span.gauge-tick.fill> .
+                          %span.gauge-tick.fill> .
 
-                = link_to application.web_url, :target => '_blank', :class => 'url', :title => "Go to the application's web page" do
-                  %span.url-icon{'aria-hidden'=>"true", 'data-icon' => "\ue002"} 
-                %span.tile-arrow{"aria-hidden" => "true", "data-icon" => "\ue007"}
+                  = link_to application.web_url, :target => '_blank', :class => 'url', :title => "Go to the application's web page" do
+                    %span.url-icon{'aria-hidden'=>"true", 'data-icon' => "\ue002"} 
+                  %span.tile-arrow{"aria-hidden" => "true", "data-icon" => "\ue007"}
 
-            .cartridges= application.cartridges.map(&:display_name).join(', ')
+              .cartridges= application.cartridges.map(&:display_name).join(', ')
 
-  .btn-toolbar.base
-    = link_to application_types_path, :class => 'btn btn-primary btn-large' do
-      Add
-      %strong Application
-      %i.icon-add
+        .btn-toolbar.base
+          = link_to application_types_path, :class => 'btn btn-primary btn-large' do
+            Add
+            %strong Application
+            %i.icon-add
+
+    .span4
+      %h5{style: 'margin-top: 15px;'} Try it out
+
+      %ul
+        - if @has_key
+          %li
+            Install and run <code>rhc</code> to:
+            %ul
+              %li Access your source code
+              %li SSH to your application
+              %li Access logs and thread-dumps
+              %li Port-forward your app
+              %li Take a snapshot of your app
+        - else
+          %li
+            #{link_to "Setting a SSH key", new_key_path} lets you:
+            %ul
+              %li Access your source code
+              %li SSH to your application
+              %li Access logs and thread-dumps
+              %li Port-forward your app
+              %li Take a snapshot of your app
+
+        - if @applications.length < 3 && @applications.none?{ |a| a.cartridges.any?(&:database?) }
+          %li Add a database like MySQL to your application
+
+        - if @user_owned_domains.length < @capabilities.max_domains
+          %li #{link_to "Create", new_domain_path} another domain
+
+        - if @applications.map{ |a| a.members.length }.max < 2
+          %li Add a collaborator to your applications
+
+        - if @applications.all?{ |a| a.aliases.blank? }
+          %li Set a custom domain name for your application
+
+        - if @applications.none?(&:scales?)
+          %li Create a scalable application
+
 
 -# FIXME: Refactor me into an unobtrusive javascript function
 - content_for :javascripts do

@@ -2,6 +2,14 @@
 * Application standard layouts
 */
 
+.applications {
+  > h1 {
+    font-size: $h1FontSize * 0.8;
+    line-height: $baseLineHeight * 1.75;
+    margin-bottom: $baseLineHeight / 3.5;
+  }
+}
+
 .application {
 	position: relative;
 

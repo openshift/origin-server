@@ -53,17 +53,17 @@ class ApplicationTypesController < ConsoleController
     @advanced = to_boolean(params[:advanced])
     @unlock_cartridges = to_boolean(params[:unlock])
 
+    @capabilities = user_capabilities :refresh => true
+
     @user_default_domain = user_default_domain rescue (Domain.new)
     @user_writeable_domains = user_writeable_domains
-    @can_create = current_api_user.max_domains > user_owned_domains.length
+    @can_create = @capabilities.max_domains > user_owned_domains.length
 
     @compact = false # @domain.persisted?
 
     @application_type = params[:id] == 'custom' ?
       ApplicationType.custom(app_type_params) :
       ApplicationType.find(params[:id])
-
-    @capabilities = user_capabilities :refresh => true
 
     @application = (@application_type >> Application.new(:as => current_user)).assign_attributes(app_params)
     @application.gear_profile = @capabilities.gear_sizes.first unless @capabilities.gear_sizes.include?(@application.gear_profile)
