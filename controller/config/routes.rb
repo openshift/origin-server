@@ -2,7 +2,6 @@ Rails.application.routes.draw do
   id_with_format = OpenShift::Controller::Routing::ID_WITH_FORMAT
 
   scope "/broker/rest" do
-
     #
     # Singular member routes
     #

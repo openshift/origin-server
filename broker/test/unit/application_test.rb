@@ -15,7 +15,7 @@ class ApplicationsTest < ActionDispatch::IntegrationTest #ActiveSupport::TestCas
     stubber
   end
 
-  test "create and destroy embedded application" do
+  test "create and destroy application" do
     @appname = "test"
     app = Application.create_app(@appname, [PHP_VERSION, MYSQL_VERSION], @domain)
     app = Application.find_by(canonical_name: @appname.downcase, domain_id: @domain._id) rescue nil
@@ -23,7 +23,7 @@ class ApplicationsTest < ActionDispatch::IntegrationTest #ActiveSupport::TestCas
     app.destroy_app
   end
 
-  test "create and destroy embedded scalable application" do
+  test "create and destroy scalable application" do
     @appname = "test"
     app = Application.create_app(@appname, [PHP_VERSION, MYSQL_VERSION], @domain, nil, true)
     app = Application.find_by(canonical_name: @appname.downcase, domain_id: @domain._id) rescue nil

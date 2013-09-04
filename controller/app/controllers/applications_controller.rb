@@ -143,6 +143,52 @@ class ApplicationsController < BaseController
   end
 
   ##
+  # Update an application
+  #
+  # URL: /domains/:domain_id/applications/:id
+  #
+  # Action: PUT
+  # @param [Boolean] auto_deploy Boolean indicating whether auto deploy is enabled (Default: true)
+  # @param [String] deployment_branch The HEAD of the branch to deploy from by default (Default: master)
+  # @param [Integer] keep_deployments The number of deployments to keep around including the active one (Default: 1)
+  # @param [String] deployment_type The deployment type (binary|git) (Default: git)
+  #
+  # @return [RestReply<RestApplication>] Application object
+  def update
+    auto_deploy = get_bool(params[:auto_deploy]) if params[:auto_deploy].presence
+    deployment_branch = params[:deployment_branch] if params[:deployment_branch].presence
+    keep_deployments = params[:keep_deployments].to_i if params[:keep_deployments].presence
+    deployment_type = params[:deployment_type].downcase if params[:deployment_type].presence
+
+    authorize! :update_application, @application
+
+    return render_error(:unprocessable_entity, "Invalid deployment type: #{deployment_type}. Acceptable values are: #{Application::DEPLOYMENT_TYPES.join(", ")}",
+                        1, "deployment_type") if deployment_type and !Application::DEPLOYMENT_TYPES.include?(deployment_type)
+
+    return render_error(:unprocessable_entity, "Invalid number of deployments to keep: #{params[:keep_deployments]}. Keep deployments must be greater than 0.",
+                        1, "keep_deployments") if keep_deployments and keep_deployments < 1
+
+    return render_error(:unprocessable_entity, "Invalid deployment_branch: #{deployment_branch}. Deployment branches are limited to 256 characters",
+                        1, "deployment_branch") if deployment_branch and deployment_branch.length > 256
+
+    begin
+      @application.config['auto_deploy'] = auto_deploy if auto_deploy
+      @application.config['deployment_branch'] = deployment_branch if deployment_branch
+      @application.config['keep_deployments'] = keep_deployments if keep_deployments
+      @application.config['deployment_type'] = deployment_type if deployment_type
+      result = @application.update_configuration()
+    rescue OpenShift::ApplicationValidationException => e
+      messages = get_error_messages(e.app)
+      return render_error(:unprocessable_entity, nil, nil, nil, nil, messages)
+    end
+
+    include_cartridges = (params[:include] == "cartridges")
+
+    app = get_rest_application(@application, include_cartridges)
+    render_success(:ok, "application", app, "Application #{@application.name} was updated.", result)
+  end
+
+  ##
   # Delete an application
   #
   # URL: /domains/:domain_id/applications/:id

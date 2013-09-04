@@ -353,6 +353,21 @@ module MCollective
         end
       end
 
+      def oo_update_configuration(args)
+        config  = args['--with-config']
+        auto_deploy = config['auto_deploy']
+        deployment_branch = config['deployment_branch']
+        keep_deployments = config['keep_deployments']
+        deployment_type = config['deployment_type']
+
+        with_container_from_args(args) do |container|
+          container.set_auto_deploy(auto_deploy)
+          container.set_deployment_branch(deployment_branch)
+          container.set_keep_deployments(keep_deployments)
+          container.set_deployment_type(deployment_type)
+        end
+      end
+
       def oo_authorized_ssh_key_add(args)
         ssh_key  = args['--with-ssh-key']
         key_type = args['--with-ssh-key-type']

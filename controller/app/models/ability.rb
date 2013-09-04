@@ -74,7 +74,8 @@ module Ability
            :ssh_to_gears,
            :destroy_alias,
            :view_environment_variables,
-           :change_environment_variables
+           :change_environment_variables,
+           :update_application
         Role.in?(:edit, role)
 
       when :change_members,

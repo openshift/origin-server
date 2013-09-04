@@ -200,6 +200,23 @@ module OpenShift
           out
         end
 
+        def set_keep_deployments(keep_deployments)
+          add_env_var('KEEP_DEPLOYMENTS', keep_deployments, true)
+          #TODO Clean up any deployments over the limit
+        end
+
+        def set_deployment_branch(deployment_branch)
+          add_env_var('DEPLOYMENT_BRANCH', deployment_branch, true)
+        end
+
+        def set_auto_deploy(auto_deploy)
+          add_env_var('AUTO_DEPLOY', auto_deploy, true)
+        end
+
+        def set_deployment_type(deployment_type)
+          add_env_var('DEPLOYMENT_TYPE', deployment_type, true)
+        end
+
         def list_deployments
           current = current_deployment_datetime
 

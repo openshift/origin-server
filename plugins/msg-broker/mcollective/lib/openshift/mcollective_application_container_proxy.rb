@@ -1398,7 +1398,6 @@ module OpenShift
       # INPUTS:
       # * gear: a Gear object
       # * key: an environment variable name
-      # * value: and environment variable value
       #
       # RETURNS:
       # * a RemoteJob object
@@ -1434,6 +1433,26 @@ module OpenShift
         args['--with-ssh-key-type'] = key_type if key_type
         args['--with-ssh-key-comment'] = comment if comment
         job = RemoteJob.new('openshift-origin-node', 'authorized-ssh-key-add', args)
+        job
+      end
+
+      #
+      # Create a job to update gear configuration
+      #
+      # INPUTS:
+      # * gear: a Gear object
+      # * config: a Hash of config to update
+      #
+      # RETURNS:
+      # * a RemoteJob object
+      #
+      # NOTES:
+      # * uses RemoteJob
+      #
+      def get_update_configuration_job(gear, config)
+        args = build_base_gear_args(gear)
+        args['--with-config'] = config
+        job = RemoteJob.new('openshift-origin-node', 'update-configuration', args)
         job
       end
 
