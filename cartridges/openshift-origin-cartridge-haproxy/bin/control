@@ -165,7 +165,37 @@ function status() {
     fi
 }
 
-# Get the application domain from the app dns
+# Disable the specified backend server in the proxy configuration, so
+# that it remains disabled on restart.
+function disable-server-in-config() {
+    haproxy_cfg=$OPENSHIFT_HAPROXY_DIR/conf/haproxy.cfg
+    if grep $1 $haproxy_cfg | grep -v disabled &> /dev/null; then
+        (
+        flock 200
+        cp -f "$haproxy_cfg" /tmp/haproxy.cfg.$$
+        sed -i "/$1/ s#\$# disabled#g" /tmp/haproxy.cfg.$$
+        cat /tmp/haproxy.cfg.$$ > "$haproxy_cfg"
+        rm -f /tmp/haproxy.cfg.$$
+        ) 200>${haproxy_cfg}.lock
+    fi
+}
+
+# Enable the specified backend server in the proxy configuration, so
+# that it remains disabled on restart.
+function enable-server-in-config() {
+    haproxy_cfg=$OPENSHIFT_HAPROXY_DIR/conf/haproxy.cfg
+    if grep $1 $haproxy_cfg | grep disabled &> /dev/null; then
+        (
+        flock 200
+        cp -f "$haproxy_cfg" /tmp/haproxy.cfg.$$
+        sed -i "/$1/ s#disabled\$##g" /tmp/haproxy.cfg.$$
+        cat /tmp/haproxy.cfg.$$ > "$haproxy_cfg"
+        rm -f /tmp/haproxy.cfg.$$
+        ) 200>${haproxy_cfg}.lock
+    fi
+}
+
+# Get the application domain from the app dns.
 function get-app-domain() {
     dnsparts=(${OPENSHIFT_APP_DNS//./ })
     appdomain=(${dnsparts[0]//-/ })
@@ -178,35 +208,59 @@ function get-app-domain() {
 function disable-server() {
     shift
 
+    local persist="no"
+    if [ "$1" == "persist" ]; then
+        shift
+        persist="yes"
+    fi
+
     for gear in $@; do
         echo "Disabling server $1"
         if [ "${gear}" == "${OPENSHIFT_GEAR_UUID}" ]; then
             gearid="local-gear"
+        elif [ "${gear}" == "${OPENSHIFT_APP_UUID}" ]; then
+            domain=$(get-app-domain)
+            gearid="gear-${OPENSHIFT_APP_NAME}-${domain}"
         else
             domain=$(get-app-domain)
             gearid="gear-${gear}-${domain}"
         fi
         set +e
-        echo "disable server express/$gearid" | socat stdio $OPENSHIFT_HAPROXY_DIR/run/stats > /dev/null
+        echo "disable server express/$gearid" | socat stdio $OPENSHIFT_HAPROXY_DIR/run/stats
+        if [ "$persist" == "yes" ]; then
+            disable-server-in-config $gearid
+        fi
         set -e
     done
 }
 
 # Enable the specified backend server in the proxy configuration, so
-# that traffic is routed through it.
+# that traffic is routed to it.
 function enable-server() {
     shift
+
+    local persist="no"
+    if [ "$1" == "persist" ]; then
+        shift
+        persist="yes"
+    fi
 
     for gear in $@; do
         echo "Enabling server $gear"
         if [ "${gear}" == "${OPENSHIFT_GEAR_UUID}" ]; then
             gearid="local-gear"
+        elif [ "${gear}" == "${OPENSHIFT_APP_UUID}" ]; then
+            domain=$(get-app-domain)
+            gearid="gear-${OPENSHIFT_APP_NAME}-${domain}"
         else
             domain=$(get-app-domain)
             gearid="gear-${gear}-${domain}"
         fi
         set +e
-        echo "enable server express/$gearid" | socat stdio $OPENSHIFT_HAPROXY_DIR/run/stats > /dev/null
+        echo "enable server express/$gearid" | socat stdio $OPENSHIFT_HAPROXY_DIR/run/stats
+        if [ "$persist" == "yes" ]; then
+            enable-server-in-config $gearid
+        fi
         set -e
     done
 }
