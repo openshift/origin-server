@@ -32,6 +32,36 @@ class ComponentInstance
     get_component.is_sparse?
   end
 
+  def min
+    min = get_group_overriding_value('min_gears')
+    return (min.nil? ? get_component.scaling.min : min)
+  end
+
+  def get_group_overriding_value(key)
+    self.application.group_overrides.each { |go|
+      go['components'].each { |comp_spec|
+        if comp_spec['cart']==self.cartridge_name and comp_spec['comp']==self.component_name
+          if comp_spec.has_key?(key)
+            return comp_spec[key] 
+          elsif not is_sparse?
+            return go[key]
+          end
+        end
+      }
+    }
+    return nil
+  end
+
+  def multiplier
+    mul = get_group_overriding_value('multiplier')
+    return (mul.nil? ? get_component.scaling.multiplier : mul)
+  end
+
+  def max
+    max = get_group_overriding_value('max_gears')
+    return (max.nil? ? get_component.scaling.max : max)
+  end
+
   def is_plugin?
     cart = CartridgeCache.find_cartridge(cartridge_name, self.application)
     cart.is_plugin?

@@ -9,7 +9,7 @@
 
 Summary:       OpenShift Origin Management Console
 Name:          rubygem-%{gem_name}
-Version: 1.14.0
+Version: 1.14.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -154,6 +154,13 @@ cp -a ./%{gem_dir}/* %{buildroot}%{gem_dir}/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Thu Aug 29 2013 Adam Miller <admiller@redhat.com> 1.14.1-1
+- Updated cartridges and scripts for phpmyadmin-4 (mfojtik@redhat.com)
+- Handle .resultset.json (dmcphers@redhat.com)
+- Fixing console RPM spec to install ruby dependencies on Fedora 19
+  (kraman@gmail.com)
+- bump_minor_versions for sprint 33 (admiller@redhat.com)
+
 * Wed Aug 21 2013 Adam Miller <admiller@redhat.com> 1.13.6-1
 - Merge pull request #3437 from smarterclayton/alias_overzealous_messaging
   (dmcphers+openshiftbot@redhat.com)

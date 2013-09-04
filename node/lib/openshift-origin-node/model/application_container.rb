@@ -48,6 +48,9 @@ module OpenShift
     class UserDeletionException < Exception
     end
 
+    class GearCreationException < Exception
+    end
+
     # == Application Container
     class ApplicationContainer
       include ActiveModel::Observing
@@ -170,11 +173,28 @@ module OpenShift
           uuid_lock.fcntl(Fcntl::F_SETFD, Fcntl::FD_CLOEXEC)
           uuid_lock.flock(File::LOCK_EX)
 
-          @container_plugin = Containerization::Plugin.new(self)
-          @container_plugin.create
+          resource = OpenShift::Runtime::Node.resource_limits
+          no_overcommit_active = resource.get_bool('no_overcommit_active', false)
+          overcommit_lock_file = "/var/lock/oo-create.overcommit"
+          File.open(overcommit_lock_file, File::RDWR|File::CREAT|File::TRUNC, 0o0600) do | overcommit_lock |
+            overcommit_lock.fcntl(Fcntl::F_SETFD, Fcntl::FD_CLOEXEC)
 
-          output = generate_ssh_key
+            if no_overcommit_active
+              overcommit_lock.flock(File::LOCK_EX)
 
+              nu = OpenShift::Runtime::Node.node_utilization
+              if (nu['gears_active_usage_pct'] >= 100)
+                raise GearCreationException.new("ERROR: Node capacity exceeded, unable to create container #{@uuid}")
+              end
+            end
+
+            @container_plugin = Containerization::Plugin.new(self)
+            @container_plugin.create
+
+            overcommit_lock.flock(File::LOCK_UN) if no_overcommit_active
+
+            output = generate_ssh_key
+          end
           if @config.get("CREATE_APP_SYMLINKS").to_i == 1
             unobfuscated = PathUtils.join(File.dirname(@container_dir),"#{@container_name}-#{@namespace}")
             if not File.exists? unobfuscated

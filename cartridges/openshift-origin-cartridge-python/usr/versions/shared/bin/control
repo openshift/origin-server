@@ -1,4 +1,4 @@
-#!/bin/bash -e
+#!/bin/bash
 
 source $OPENSHIFT_CARTRIDGE_SDK_BASH
 source "${OPENSHIFT_PYTHON_DIR}/usr/versions/${OPENSHIFT_PYTHON_VERSION}/lib/create-virtenv"
@@ -82,13 +82,12 @@ function restart() {
 }
 
 function status() {
+    res=0
     if [ -f "$OPENSHIFT_REPO_DIR/app.py" ]
     then
-        output=$(curl -m 30 http://$OPENSHIFT_PYTHON_IP:$OPENSHIFT_PYTHON_PORT/ &> /dev/null)
-        res=$?
+        output=$(curl -s -m 30 http://$OPENSHIFT_PYTHON_IP:$OPENSHIFT_PYTHON_PORT/ &> /dev/null) || res=1
     else
-        output=$(curl -m 30 http://$OPENSHIFT_PYTHON_IP:$OPENSHIFT_PYTHON_PORT/server-status?auto 2>&1 )
-        res=$?
+        output=$(curl -s -m 30 http://$OPENSHIFT_PYTHON_IP:$OPENSHIFT_PYTHON_PORT/server-status?auto 2>&1 ) || res=1
     fi
     if [ $res -eq 0 ]
     then

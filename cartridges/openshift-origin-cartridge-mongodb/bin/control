@@ -58,6 +58,11 @@ function start() {
     then
         echo "Starting MongoDB cartridge"
         _start_mongod  "$1"
+
+        if ! isrunning; then
+          client_error "Failed to start MongoDB"
+          exit 1
+        fi
     else
         echo "MongoDB already running"
     fi

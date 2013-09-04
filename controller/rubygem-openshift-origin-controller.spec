@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.14.0
+Version: 1.14.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -84,6 +84,48 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Thu Aug 29 2013 Adam Miller <admiller@redhat.com> 1.14.1-1
+- Bug 1002685 - Downcase domain names when fetching applications by domain
+  (ccoleman@redhat.com)
+- cleanup (dmcphers@redhat.com)
+- Merge pull request #3399 from smarterclayton/propagate_app_id_to_gears
+  (dmcphers+openshiftbot@redhat.com)
+- Merge remote-tracking branch 'origin/master' into propagate_app_id_to_gears
+  (ccoleman@redhat.com)
+- cleanup (dmcphers@redhat.com)
+- cleanup (dmcphers@redhat.com)
+- Fix env var subscription tests (pmorie@gmail.com)
+- Merge remote-tracking branch 'origin/master' into propagate_app_id_to_gears
+  (ccoleman@redhat.com)
+- Merge pull request #3485 from pmorie/dev/upgrades
+  (dmcphers+openshiftbot@redhat.com)
+- Make dependency on 0.0.1 version of mock explicit for upgrade tests
+  (pmorie@gmail.com)
+- cleanup (dmcphers@redhat.com)
+- Merge remote-tracking branch 'origin/master' into propagate_app_id_to_gears
+  (ccoleman@redhat.com)
+- Merge pull request #3446 from abhgupta/abhgupta-scheduler
+  (dmcphers+openshiftbot@redhat.com)
+- cleanup (dmcphers@redhat.com)
+- Fix test cases (ccoleman@redhat.com)
+- Merge pull request #3477 from
+  smarterclayton/protect_environment_vars_with_edit
+  (dmcphers+openshiftbot@redhat.com)
+- Environment variables should be protected with :edit permission
+  (ccoleman@redhat.com)
+- Mongoid 3.1 does not return the Array that was stored on the model
+  (ccoleman@redhat.com)
+- Fix for bug 997008 (abhgupta@redhat.com)
+- bump_minor_versions for sprint 33 (admiller@redhat.com)
+- Merge pull request #3452 from pravisankar/dev/ravi/bug998905
+  (dmcphers+openshiftbot@redhat.com)
+- Added environment variable name limitations  - Limit length to 128 bytes.  -
+  Allow letters, digits and underscore but can't begin with digit
+  (rpenta@redhat.com)
+- Switch OPENSHIFT_APP_UUID to equal the Mongo application '_id' field
+  (ccoleman@redhat.com)
+- Changes for doing atomic updates on embedded documents (abhgupta@redhat.com)
+
 * Wed Aug 21 2013 Adam Miller <admiller@redhat.com> 1.13.8-1
 - Merge pull request #3451 from
   smarterclayton/bug_997567_alias_error_message_vague

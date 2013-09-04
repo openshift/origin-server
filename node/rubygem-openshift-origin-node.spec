@@ -16,7 +16,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.14.0
+Version: 1.14.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -305,6 +305,62 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Thu Aug 29 2013 Adam Miller <admiller@redhat.com> 1.14.1-1
+- misc: remove duplicate import in oo-trap-user (mmahut@redhat.com)
+- Merge remote-tracking branch 'origin/master' into propagate_app_id_to_gears
+  (ccoleman@redhat.com)
+- Bug 999859 - Check required arguments for oo-app-create command
+  (mfojtik@redhat.com)
+- Merge remote-tracking branch 'origin/master' into propagate_app_id_to_gears
+  (ccoleman@redhat.com)
+- Merge pull request #3485 from pmorie/dev/upgrades
+  (dmcphers+openshiftbot@redhat.com)
+- Make dependency on 0.0.1 version of mock explicit for upgrade tests
+  (pmorie@gmail.com)
+- Bug 988662 - Add --help to list of arguments for oo-env-var-* commands
+  (mfojtik@redhat.com)
+- nurture -> analytics (dmcphers@redhat.com)
+- Handle .resultset.json (dmcphers@redhat.com)
+- Merge remote-tracking branch 'origin/master' into propagate_app_id_to_gears
+  (ccoleman@redhat.com)
+- Fixing openshift-tc service definition (kraman@gmail.com)
+- Merge pull request #3483 from detiber/bz1000174
+  (dmcphers+openshiftbot@redhat.com)
+- <oo-accept-node> Bug 1000174 - oo-accept-node fixes (jdetiber@redhat.com)
+- Merge pull request #3481 from ironcladlou/bz/1000193
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1000193: Use an Hourglass in the gear upgrader (ironcladlou@gmail.com)
+- Fix test cases (ccoleman@redhat.com)
+- Merge pull request #3464 from mfojtik/bugzilla/999883
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 999883 - Print command name in usage instead of '$0' (mfojtik@redhat.com)
+- Merge pull request #3474 from fotioslindiakos/Bug999837
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3470 from fotioslindiakos/Bug998704
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3432 from mfojtik/bugzilla/983605
+  (dmcphers+openshiftbot@redhat.com)
+- Remove any deleted/missing throttled gears from throttler's memory
+  (fotios@redhat.com)
+- Rescue usage percentage calculation if it's an unexpected value type
+  (fotios@redhat.com)
+- Add test for zero-length manifest in cartridge repo (pmorie@gmail.com)
+- Bug 983605 - Allow to administrator to change the default 'rhc ssh' motd
+  (mfojtik@redhat.com)
+- Fix message for bug 999189 (pmorie@gmail.com)
+- Merge pull request #3458 from pmorie/bugs/999679
+  (dmcphers+openshiftbot@redhat.com)
+- bump_minor_versions for sprint 33 (admiller@redhat.com)
+- Merge pull request #3452 from pravisankar/dev/ravi/bug998905
+  (dmcphers+openshiftbot@redhat.com)
+- Added environment variable name limitations  - Limit length to 128 bytes.  -
+  Allow letters, digits and underscore but can't begin with digit
+  (rpenta@redhat.com)
+- Fix bug 999679: skip corrupted manifests during cartridge installation
+  (pmorie@gmail.com)
+- Switch OPENSHIFT_APP_UUID to equal the Mongo application '_id' field
+  (ccoleman@redhat.com)
+
 * Wed Aug 21 2013 Adam Miller <admiller@redhat.com> 1.13.9-1
 - Merge pull request #3449 from pmorie/bugs/999189
   (dmcphers+openshiftbot@redhat.com)

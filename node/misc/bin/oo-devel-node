@@ -1,0 +1,750 @@
+#!/usr/bin/env oo-ruby
+#--
+# Copyright 2013 Red Hat, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#++
+
+# When adding an new command to the broker/node API you should add that command below
+
+require 'rubygems'
+require 'etc'
+require 'openshift-origin-node/utils/node_logger'
+require 'openshift-origin-node'
+
+require 'commander/import'
+
+# Don't buffer output to the client
+STDOUT.sync = true
+STDERR.sync = true
+
+$name = File.basename __FILE__
+
+program :name, $name
+program :version, '1.0.0'
+program :description, %q(Commands to emulate the Node's MCO agent)
+program :help, 'Note #1', 'This command should be run as root'
+
+unless 'root' == Etc.getpwuid(Process::uid).name
+  $stderr.puts("Must be run as root\n Use #{$name} --help to obtain help")
+  exit! 1
+end
+
+def execute
+  begin
+    yield
+  rescue OpenShift::Runtime::Utils::ShellExecutionException,
+      OpenShift::Runtime::FrontendHttpServerExecException => e
+    $stderr.puts("#{e.message}\n#{e.stdout}\n#{e.stderr}\n")
+    $stderr.puts(e.backtrace.join("\n")) if $trace
+    exit! e.rc
+  rescue OpenShift::Runtime::FrontendHttpServerException,
+      ::OpenShift::Runtime::UserCreationException => e
+    $stderr.puts(e.message)
+    $stderr.puts(e.backtrace.join("\n")) if $trace
+    exit! 129
+  rescue ::OpenShift::Runtime::GearCreationException => e
+    $stderr.puts(e.message)
+    $stderr.puts(e.backtrace.join("\n"))
+    exit! 146
+  rescue Exception => e
+    $stderr.puts(e.message)
+    $stderr.puts(e.backtrace.join("\n")) if $trace
+    exit! 2
+  end
+end
+
+def new_container(uuid, c)
+  Etc.getpwnam(uuid)
+  OpenShift::Runtime::ApplicationContainer.from_uuid(uuid)
+rescue
+  $stderr.puts("\n--with-container-uuid is missing or not a legal gear id: #{uuid}\n\n")
+  usage(c.syntax)
+end
+
+
+def new_frontend(uuid, c)
+  OpenShift::Runtime::FrontendHttpServer.new(new_container(uuid, c))
+end
+
+def usage(message)
+  $stderr.puts "Usage: #{message}"
+  exit! 3
+end
+
+global_option('-c', '--with-container-uuid UUID', 'Unique identifier for the gear')
+global_option('-t', '--trace', 'Enable stack traces when reporting errors and additional diagnostic output') { $trace = true }
+
+command :'add-alias' do |c|
+  c.syntax      = "#{$name} #{c.name} --with-container-uuid UUID --with-alias-name ALIAS"
+  c.description = 'Add a frontend httpd alias for a gear'
+
+  c.option '-a', '--with-alias-name ALIAS', 'Alias to add for the gear'
+  c.action do |args, options|
+    if options.with_alias_name
+      frontend = new_frontend(options.with_container_uuid, c)
+      execute { frontend.add_alias(alias_name) }
+    else
+      usage(c.syntax)
+    end
+  end
+end
+
+command :'remove-alias' do |c|
+  c.syntax      = "#{$name} #{c.name} --with-container-uuid UUID --with-alias-name ALIAS"
+  c.description = 'Remove a frontend httpd alias for a gear'
+
+  c.option '-a', '--with-alias-name ALIAS', 'Alias to remove for the gear'
+  c.action do |args, options|
+    if options.with_alias_name && !options.with_alias_name.empty?
+      frontend = new_frontend(options.with_container_uuid, c)
+      execute { frontend.remove_alias(alias_name) }
+    else
+      usage(c.syntax)
+    end
+  end
+end
+
+command :aliases do |c|
+  c.syntax      = "#{$name} #{c.name} --with-container-uuid UUID [--porcelain]"
+  c.description = 'List the SSL certificates'
+
+  c.option '-q', '--porcelain', 'format output as JSON'
+  c.action do |args, options|
+    frontend = new_frontend(options.with_container_uuid, c)
+    execute {
+      server_aliases = frontend.aliases
+
+      if $porcelain
+        $stdout.puts server_aliases.to_json
+      else
+        $stdout.puts server_aliases.join("\n")
+      end
+    }
+  end
+end
+
+command :'app-create' do |c|
+  c.syntax      = %Q(#{$name} #{c.name} --with-namespace NAMESPACE --with-app-uuid UUID \\
+     --with-app-name NAME --with-container-uuid UUID \\
+     --with-uid UID [--with-container-name NAME] [--with-quota-blocks BLOCKS] [--with-quota-files FILES])
+  c.description = 'Create a gear without using the Broker'
+
+  c.option '-s', '--with-namespace NAMESPACE', 'Namespace of the application'
+  c.option '-A', '--with-app-name NAME', 'Name of the application'
+  c.option '-a', '--with-app-uuid UUID', 'Unique application identifier'
+  c.option '-C', '--with-container-name NAME', 'Name of the gear (defaults to app name)'
+  c.option '-i', '--with-uid UID', Integer, 'User ID to use in /etc/passwd'
+  c.option '-b', '--with-quota-blocks BLOCKS', Integer, 'Number of blocks to allow'
+  c.option '-f', '--with-quota-files FILES', Integer, 'Number of files to allow'
+  c.action do |args, options|
+    options.default with_container_name: options.with_app_name
+
+    if options.with_container_uuid && options.with_namespace && options.with_app_name && options.with_app_uuid
+      container = OpenShift::Runtime::ApplicationContainer.new(
+          options.with_app_uuid,
+          options.with_container_uuid,
+          options.with_uid,
+          options.with_app_name,
+          options.with_container_name,
+          options.with_namespace,
+          options.with_quota_blocks,
+          options.with_quota_files
+      )
+      execute { container.create }
+    else
+      usage(c.syntax)
+    end
+  end
+end
+
+command :'app-destroy' do |c|
+  c.syntax      = "#{$name} #{c.name} --with-container-uuid UUID"
+  c.description = 'Destroy gear without using the Broker'
+
+  c.option '--skip-hooks', 'Skip running pre and post hooks for cartridge destroy'
+  c.action do |args, options|
+    container = new_container(options.with_container_uuid, c)
+    execute { container.destroy(options.skip_hooks) }
+  end
+end
+
+
+command :'app-state-show' do |c|
+  c.syntax      = "#{$name} #{c.name} --with-container-uuid UUID"
+  c.description = 'Show application state'
+
+  c.action do |args, options|
+    container = new_container(options.with_container_uuid, c)
+    execute { $stdout.puts container.state.value }
+  end
+end
+
+command :'authorized-ssh-key-add' do |c|
+  c.syntax      = "#{$name} #{c.name} --with-container-uuid UUID \\
+     --with-ssh-key KEY --with-ssh-key-type TYPE --with-ssh-key-comment COMMENT"
+  c.description = 'Adds an authorized ssh key to the application'
+
+  c.option '-k', '--with-ssh-key KEY', 'User provided ssh for application'
+  c.option '-T', '--with-ssh-key-type TYPE', 'User provided ssh type'
+  c.option '-m', '--with-ssh-key-comment COMMENT', 'User provided ssh comment'
+  c.action do |args, options|
+    if  options.with_ssh_key && options.with_ssh_key_type && options.with_ssh_key_comment
+      container = new_container(options.with_container_uuid, c)
+      execute {
+        container.add_ssh_key(options.with_ssh_key,
+                              options.with_ssh_key_type,
+                              options.with_ssh_key_comment)
+      }
+    else
+      usage(c.syntax)
+    end
+  end
+end
+
+command :'authorized-ssh-key-remove' do |c|
+  c.syntax      = "#{$name} #{c.name} --with-container-uuid UUID \\
+     --with-ssh-key KEY --with-ssh-key-comment COMMENT"
+  c.description = 'Removes an authorized ssh key from the application'
+
+  c.option '-k', '--with-ssh-key KEY', 'User provided ssh for application'
+  c.option '-m', '--with-ssh-key-comment COMMENT', 'User provided ssh comment'
+  c.action do |args, options|
+    if  options.with_ssh_key && options.with_ssh_key_comment
+      container = new_container(options.with_container_uuid, c)
+      execute { container.remove_ssh_key(options.with_ssh_key, options.with_ssh_key_comment) }
+    else
+      usage(c.syntax)
+    end
+  end
+end
+
+command :'broker-auth-key-add' do |c|
+  c.syntax      = "#{$name} #{c.name} --with-container-uuid UUID \\
+     --with-iv INITIALIZATION_VECTOR --with-token TOKEN"
+  c.description = 'Adds broker auth key to the application'
+
+  c.option '--with-iv', 'Initialization vector to add'
+  c.option '--with-token', 'Token to add'
+  c.action do |args, options|
+    if options.with_iv && options.with_token
+      container = new_container(options.with_container_uuid, c)
+      execute { container.add_broker_auth(options.with_iv, options.with_token) }
+    else
+      usage(c.syntax)
+    end
+  end
+end
+
+command :'broker-auth-key-remove' do |c|
+  c.syntax      = "#{$name} #{c.name} --with-container-uuid UUID"
+  c.description = 'Remove broker auth key from the application'
+
+  c.action do |args, options|
+    container = new_container(options.with_container_uuid, c)
+    execute { container.remove_broker_auth() }
+  end
+end
+
+command :'cartridge-list' do |c|
+  c.syntax      = "#{$name} #{c.name} [--with-descriptors] [--porcelain]"
+  c.description = 'Lists all cartridges installed on the node'
+
+  c.option '-d', '--with-descriptors', 'Format return as descriptors'
+  c.option '-q', '--porcelain', 'format output as JSON'
+  c.action do |args, options|
+    execute {
+      $stdout.puts OpenShift::Runtime::Node.get_cartridge_list(options.with_descriptors,
+                                                               options.porcelain,
+                                                               options.trace)
+    }
+  end
+end
+
+command :'connector-execute' do |c|
+  c.syntax      = "#{$name} #{c.name} --with-container-uuid UUID --cartridge-name NAME \\
+     --publishing-cartridge-name NAME --hook-name NAME --connection-type TYPE --input-args ARGS"
+  c.description = 'Need better documentation'
+
+  c.option '-N', '--cartridge-name NAME', 'Unique identifier for the cartridge that the component belongs to'
+  c.option '--publishing-cartridge-name NAME', ''
+  c.option '--hook-name NAME', 'Name of the connector to be executed'
+  c.option '-T', '--connection-type TYPE', ''
+  c.option '--input-args ARGS', 'k1=v1\nk2=v2\n'
+
+  c.action do |args, options|
+    container = new_container(options.with_container_uuid, c)
+    execute {
+      container.connector_execute(options.cartridge_name,
+                                  options.publishing_cartridge_name,
+                                  options.connection_type,
+                                  options.hook_name,
+                                  options.input_args)
+    }
+  end
+end
+
+command :'get-quota' do |c|
+  c.syntax      = "#{$name} #{c.name} --with-container-uuid UUID"
+  c.description = 'Gets the quota for a gear'
+
+  c.action do |args, options|
+    execute {
+      if options.with_container_uuid
+        quota = OpenShift::Runtime::Node.get_quota(options.with_container_uuid)
+
+        $stdout.puts <<EOT
+Quota information for uuid: #{options.with_container_uuid}
+Filesystem:            #{quota[:device]}
+Blocks used:           #{quota[:blocks_used]}
+Soft limit for blocks: #{quota[:blocks_quota]}
+Hard limit for blocks: #{quota[:blocks_limit]}
+Inodes used:           #{quota[:inodes_used]}
+Soft limit for inodes: #{quota[:inodes_quota]}
+Hard limit for inodes: #{quota[:inodes_limit]}
+EOT
+      else
+        usage(c.syntax)
+      end
+    }
+  end
+end
+
+command :'env-var-add' do |c|
+  c.syntax      = "#{$name} #{c.name} --with-container-uuid UUID --with-key KEY --with-value VALUE"
+  c.description = 'Adds an environment variable to the application'
+
+  c.option '-k', '--with-key KEY', 'The environment variable key'
+  c.option '-o', '--with-value VALUE', 'The environment variable value'
+  c.action do |args, options|
+    if options.with_key && options.with_value
+      container = new_container(options.with_container_uuid, c)
+      execute { container.add_env_var(options.with_key, options.with_value) }
+    else
+      usage(c.syntax)
+    end
+  end
+end
+
+command :'env-var-remove' do |c|
+  c.syntax      = "#{$name} #{c.name} --with-container-uuid UUID"
+  c.description = 'Remove an environment variable from the application'
+
+  c.option '-k', '--with-key KEY', 'The environment variable key'
+  c.action do |args, options|
+    if options.with_key
+      container = new_container(options.with_container_uuid, c)
+      execute { container.remove_env_var(options.with_key) }
+    else
+      usage(c.syntax)
+    end
+  end
+end
+
+command :'force-stop' do |c|
+  c.syntax      = "#{$name} #{c.name} --with-container-uuid UUID"
+  c.description = 'Stop all cartridges in gear'
+
+  c.action do |args, options|
+    container = new_container(options.with_container_uuid, c)
+    execute { container.force_stop }
+  end
+end
+
+command :'set-quota' do |c|
+  c.syntax      = "#{$name} #{c.name} --with-container-uuid UUID {--blocks BLOCKS | --inodes FILES}"
+  c.description = 'Sets the quota for a gear'
+
+  c.option '-b', '--blocks BLOCKS', 'Sets the block quota for a gear'
+  c.option '-f', '--inodes FILES', 'Sets the file quota for a gear'
+  c.action do |args, options|
+    if options.with_container_uuid && (options.blocks || options.inodes)
+      execute {
+        OpenShift::Runtime::Node.set_quota(options.with_container_uuid,
+                                           options.blocks,
+                                           options.inodes)
+      }
+    else
+      usage(c.syntax)
+    end
+  end
+end
+
+command :'ssl-cert-add' do |c|
+  c.syntax      = "#{$name} #{c.name} --with-container-uuid UUID --with-ssl-cert CERT \\
+     --with-priv-key KEY --with-alias-name ALIAS [--with-passphrase PHRASE]"
+  c.description = 'Add a SSL certificate/private key for an alias(custom domain) to a gear'
+
+  c.option '-K', '--with-ssl-cert CERT', 'SSL certificate file to add to the gear'
+  c.option '-k', '--with-priv-key KEY', 'Private key file for the SSL certificate'
+  c.option '-a', '--with-alias-name ALIAS', 'Alias for which cert/key are added'
+  c.option '-p', '--with-passphrase PHRASE', 'Optional passphrase for the private key'
+  c.action do |args, options|
+    if options.with_alias_name && options.with_ssl_cert && options.with_priv_key
+      cert = IO.read(options.with_ssl_cert)
+      key  = IO.read(options.witn_ssl_key)
+
+      frontend = new_frontend(options.with_container_uuid, c)
+      execute {
+        frontend.add_ssl_cert(cert, key, options.with_alias_name, options.with_passphrase)
+      }
+    else
+      usage(c.syntax)
+    end
+  end
+end
+
+command :'ssl-cert-remove' do |c|
+  c.syntax      = "#{$name} #{c.name} --with-container-uuid UUID --with-alias-name ALIAS"
+  c.description = 'Remove SSL certificate/private key associated with an alias in a gear'
+
+  c.option '-a', '--with-alias-name ALIAS', 'Alias for which cert/key are added'
+  c.action do |args, options|
+    if options.with_alias_name
+      frontend = new_frontend(options.with_container_uuid, c)
+      execute { frontend.remove_ssl_cert(options.with_alias_name) }
+    else
+      usage(c.syntax)
+    end
+  end
+end
+
+command :'ssl-certs' do |c|
+  c.syntax      = "#{$name} #{c.name} --with-container-uuid UUID [--porcelain]"
+  c.description = 'List the SSL certificates'
+
+  c.option '-q', '--porcelain', 'format output as JSON'
+  c.action do |args, options|
+    frontend = new_frontend(options.with_container_uuid, c)
+    execute {
+      certs = frontend.ssl_certs
+      if options.porcelain
+        $stdout.puts certs.to_json
+      else
+        certs.each do |c, k, a|
+          $stdout.puts "Alias: #{a}\n#{c}\n#{k}"
+        end
+      end
+    }
+  end
+end
+
+command :'user-var-add' do |c|
+  c.syntax      = %Q(#{$name} #{c.name} --with-container-uuid UUID \\
+     --with-variables '[{"name":"NAME1", "value":"VALUE1"}, ...]' [--with-gears 'GEAR1;...'])
+  c.description = 'Adds a set of user environment variables to the application'
+
+  c.option '-o', %Q(--with-variables JSON), 'JSON hash of variables to set'
+  c.option '-g', %Q(--with-gears GEARS), 'secondary gears to be updated with user variables'
+  c.action do |args, options|
+    if options.with_variables
+      container = new_container(options.with_container_uuid, c)
+
+      options.with_gears     = options.with_gears ? options.with_gears.split(';') : []
+      options.with_variables = JSON.parse(options.with_variables).each_with_object({}) { |env, memo|
+        memo[env['name']] = env['value']
+      }
+
+      execute {
+        rc, msg = container.user_var_add(options.with_variables, options.with_gears)
+        if 0 == rc
+          $stdout.puts msg
+        else
+          $stderr.puts msg
+        end
+      }
+    else
+      usage(c.syntax)
+    end
+  end
+end
+
+
+command :'user-var-list' do |c|
+  c.syntax      = %Q(#{$name} #{c.name} --with-container-uuid UUID [--with-keys 'KEY1 KEY2 ...'])
+  c.description = 'List the user environment variables of an application, maybe be filtered given a list of keys'
+
+  c.option '-k', %Q(--with-keys KEYS), 'Optional list of keys to filter output'
+  c.action do |args, options|
+    container = new_container(options.with_container_uuid, c)
+    execute {
+      options.with_keys = options.with_keys.split(' ') if options.with_keys
+      variables = container.user_var_list(options.with_keys)
+      variables.each_pair { |k, v| $stdout.puts "#{k}=#{v}" }
+    }
+  end
+end
+
+command :'user-var-remove' do |c|
+  c.syntax      = %Q(#{$name} #{c.name} --with-container-uuid UUID --with-keys 'KEY1 KEY2 ...' \\
+     [--with-gears 'GEAR1;...'])
+  c.description = 'Remove a set of user environment variables of an application'
+
+  c.option '-k', %Q(--with-keys KEYS), 'Set of user environment variables to remove from application'
+  c.option '-g', %Q(--with-gears GEARS), 'secondary gears to be updated with user variables'
+  c.action do |args, options|
+    if options.with_keys
+      container = new_container(options.with_container_uuid, c)
+      execute {
+        options.with_keys  = options.with_keys.split(' ')
+        options.with_gears = options.with_gears ? options.with_gears.split(';') : []
+
+        container.user_var_remove(options.with_keys, options.with_gears)
+      }
+    else
+      usage(c.syntax)
+    end
+  end
+end
+
+command :'frontend-backup' do |c|
+  c.syntax      = %Q(#{$name} #{c.name} --with-container-uuid UUID)
+  c.description = 'Extract a backup of the frontend httpd configuration'
+
+  c.action do |args, options|
+    frontend = new_frontend(options.with_container_uuid, c)
+    execute { $stdout.puts(frontend.to_hash.to_json) }
+  end
+end
+
+command :'frontend-check-idle' do |c|
+  c.syntax      = %Q(#{$name} #{c.name} --with-container-uuid UUID)
+  c.description = 'Return 0 (true) if an app is idle and 1 (false) if an app is not idle'
+
+  c.action do |args, options|
+    frontend = new_frontend(options.with_container_uuid, c)
+    execute {
+      exit!(1) unless frontend.idle?
+      exit!(0)
+    }
+  end
+end
+
+command :'frontend-connect' do |c|
+  c.syntax      = %Q(#{$name} #{c.name} --with-container-uuid UUID --path PATH \\
+     --target TARGET [--websocket] [--gone] [--forbidden] [--noproxy] \\
+     [--health] [--redirect] [--file] [--tohttps] [--target-update])
+  c.description = 'Add a frontend connection'
+
+  c.option '--path PATH', 'Path component to route, "" means route entire app space'
+  c.option '--target TARGET', 'Route target (IP:port/path)'
+  c.option '--websocket', 'Enable web sockets on this route'
+  c.option '--gone', 'Return 410 GONE on this route'
+  c.option '--forbidden', 'Return 403 FORBIDDEN on this route'
+  c.option '--noproxy', 'Do not proxy this route'
+  c.option '--health', 'Return the health check'
+  c.option '--redirect', 'Redirect route instead of proxy'
+  c.option '--file', 'Target is a file to send'
+  c.option '--tohttps', 'Issue a 302 REDIRECT to https'
+  c.option '--target-update', 'Update the target but preserve existing options'
+  c.action do |args, options|
+    options.default path: '', target: ''
+
+    opts = {}
+    opts['websocket']     = options.websocket
+    opts['gone']          = options.gone
+    opts['forbidden']     = options.forbidden
+    opts['noproxy']       = options.noproxy
+    opts['health']        = options.health
+    opts['redirect']      = options.redirect
+    opts['file']          = options.file
+    opts['tohttps']       = options.tohttps
+    opts['target-update'] = options.target_update
+
+    frontend = new_frontend(options.with_container_uuid, c)
+    execute { frontend.connect(options.path, options.target, opts) }
+  end
+end
+
+command :'frontend-connections' do |c|
+  c.syntax      = %Q(#{$name} #{c.name} --with-container-uuid UUID [--porcelain])
+  c.description = 'List the frontend connections'
+
+  c.option '-q', '--porcelain', 'format output as JSON'
+  c.action do |args, options|
+    frontend = new_frontend(options.with_container_uuid, c)
+    execute {
+      if $porcelain
+        $stdout.puts frontend.connections.to_json
+      else
+        frontend.connections.each do |path, target, options|
+          $stderr.write "--path \"#{path}\" --target \"#{target}\""
+          options.each do |opt, val|
+            $stderr.write " --option \"#{opt}=#{val}\""
+          end
+          $stderr.write "\n"
+        end
+      end
+    }
+  end
+end
+
+command :'frontend-create' do |c|
+  c.syntax      = %Q(#{$name} #{c.name} --with-container-uuid UUID)
+  c.description = 'Create the front-end connection for a gear'
+
+  c.action do |args, options|
+    frontend = new_frontend(options.with_container_uuid, c)
+    execute { frontend.create }
+  end
+end
+
+command :'frontend-destroy' do |c|
+  c.syntax      = %Q(#{$name} #{c.name} --with-container-uuid UUID)
+  c.description = 'Destroy the front-end connection for a gear'
+
+  c.action do |args, options|
+    frontend = new_frontend(options.with_container_uuid, c)
+    execute { frontend.destroy }
+  end
+end
+
+command :'frontend-disconnect' do |c|
+  c.syntax      = %Q(#{$name} #{c.name} --with-container-uuid UUID --path PATH)
+  c.description = 'Add a frontend connection'
+
+  c.option '--path PATH', 'Path component to route, "" means route entire app space'
+  c.action do |args, options|
+    options.default path: ''
+
+    frontend = new_frontend(options.with_container_uuid, c)
+    execute { frontend.connect(options.path) }
+  end
+end
+
+command :'frontend-get-sts' do |c|
+  c.syntax      = %Q(#{$name} #{c.name} --with-container-uuid UUID [--porcelain])
+  c.description = 'Return 0 (true) if gear has sts and 1 (false) if gear does not have sts'
+
+  c.option '-q', '--porcelain', 'format output as JSON'
+  c.action do |args, options|
+    frontend = new_frontend(options.with_container_uuid, c)
+
+    execute {
+      max_age = frontend.get_sts
+      if max_age.nil?
+        exit!(1)
+      elsif options.porcelain
+        $stdout.puts max_age.to_json
+      else
+        $stdout.puts max_age.to_s
+      end
+      exit!(0)
+    }
+  end
+end
+
+command :'frontend-idle' do |c|
+  c.syntax      = %Q(#{$name} #{c.name} --with-container-uuid UUID)
+  c.description = 'Idle gear in Frontend Http configuration'
+
+  c.action do |args, options|
+    frontend = new_frontend(options.with_container_uuid, c)
+    execute { frontend.idle }
+  end
+end
+
+command :'frontend-no-sts' do |c|
+  c.syntax      = %Q(#{$name} #{c.name} --with-container-uuid UUID)
+  c.description = 'Return 0 (true) if an app is idle and 1 (false) if an app is not idle'
+
+  c.action do |args, options|
+    frontend = new_frontend(options.with_container_uuid, c)
+    execute { frontend.no_sts }
+  end
+end
+
+command :'frontend-restore' do |c|
+  c.syntax      = %Q(#{$name} #{c.name} --with-container-uuid UUID [--file FILE])
+  c.description = 'Restore configuration from frontend-backup file'
+
+  c.option '--file FILE', 'File containing backup (stdin if not specified)'
+  c.action do |args, options|
+    blob = if options.file.nil? || options.file.empty? || '-' == options.file
+             $stdin.read
+           else
+             IO.read(options.file)
+           end
+
+    frontend = new_frontend(options.with_container_uuid, c)
+    execute { frontend.json_create({'data' => JSON.parse(blob)}) }
+  end
+end
+
+command :'frontend-sts' do |c|
+  c.syntax      = %Q(#{$name} #{c.name} --with-container-uuid UUID --with-max-age AGE)
+  c.description = 'Set life span of the STS header in seconds'
+
+  c.option '--with-max-age AGE', Integer, 'Life span of the STS header'
+  c.action do |args, options|
+    if options.with_max_age
+      frontend = new_frontend(options.with_container_uuid, c)
+      execute { frontend.sts(options.with_max_age) }
+    else
+      $stderr.puts c.syntax
+    end
+  end
+end
+
+command :'frontend-to-json' do |c|
+  c.syntax      = %Q(#{$name} #{c.name} --with-container-uuid UUID)
+  c.description = 'Print JSON representation of Frontend Http'
+
+  c.action do |args, options|
+    frontend = new_frontend(options.with_container_uuid, c)
+    execute { $stdout.puts(frontend.to_json) }
+  end
+end
+
+command :'frontend-unidle' do |c|
+  c.syntax      = %Q(#{$name} #{c.name} --with-container-uuid UUID)
+  c.description = 'Unidle gear in Frontend Http configuration'
+
+  c.action do |args, options|
+    frontend = new_frontend(options.with_container_uuid, c)
+    execute { frontend.unidle }
+  end
+end
+
+command :'create-endpoints' do |c|
+  c.syntax      = %Q(#{$name} #{c.name} --with-container-uuid UUID --cartridge-name CARTRIDGE)
+  c.description = 'Creates endpoints for a cartridge within a gear'
+
+  c.option '-N', '--cartridge-name CARTRIDGE', 'Name of the cartridge within the gear'
+  c.action do |args, options|
+    if options.cartridge_name
+      container = new_container(options.with_container_uuid, c)
+      execute { container.create_public_endpoints(options.cartridge_name) }
+    else
+      $stderr.puts c.syntax
+    end
+  end
+end
+alias_command :'expose-port', :'create-endpoints'
+
+
+command :'delete-endpoints' do |c|
+  c.syntax      = %Q(#{$name} #{c.name} --with-container-uuid UUID --cartridge-name CARTRIDGE)
+  c.description = 'Deletes endpoints for a cartridge within a gear'
+
+  c.option '-N', '--cartridge-name CARTRIDGE', 'Name of the cartridge within the gear'
+  c.action do |args, options|
+    if options.cartridge_name
+      container = new_container(options.with_container_uuid, c)
+      execute { container.delete_public_endpoints(options.cartridge_name) }
+    else
+      $stderr.puts c.syntax
+    end
+  end
+end
+alias_command :'conceal-port', :'delete-endpoints'

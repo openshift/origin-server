@@ -60,10 +60,15 @@ function client_out() {
     local IFS_BAK=$IFS
 IFS="
 "
-    for line in $output
-    do
-        echo "$type: $line"
-    done
+    if [ -z "$output" ]
+    then
+      echo "$type: "
+    else
+      for line in $output
+      do
+          echo "$type: $line"
+      done
+    fi
     IFS=$IFS_BAK
 }
 
