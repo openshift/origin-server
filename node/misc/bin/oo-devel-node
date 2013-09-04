@@ -618,7 +618,7 @@ command :'frontend-disconnect' do |c|
     options.default path: ''
 
     frontend = new_frontend(options.with_container_uuid, c)
-    execute { frontend.connect(options.path) }
+    execute { frontend.disconnect(options.path) }
   end
 end
 
