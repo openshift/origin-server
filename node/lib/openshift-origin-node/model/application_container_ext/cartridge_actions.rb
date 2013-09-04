@@ -465,7 +465,11 @@ module OpenShift
           buffer = ''
 
           # call prepare hook
-          buffer << @cartridge_model.do_action_hook('prepare', env, options)
+          out = @cartridge_model.do_action_hook('prepare', env, options)
+          unless out.nil? or out.empty?
+            buffer << out
+            options[:out].puts(out) if options[:out]
+          end
 
           deployment_id = calculate_deployment_id(deployment_datetime)
 
@@ -479,8 +483,13 @@ module OpenShift
 
           write_deployment_metadata(deployment_datetime, 'id', deployment_id)
 
-          buffer << "Prepared deployment artifacts in #{deployment_dir}\n"
-          buffer << "Deployment id is #{deployment_id}"
+          out = "Prepared deployment artifacts in #{deployment_dir}\n"
+          buffer << out
+          options[:out].puts(out) if options[:out]
+
+          out = "Deployment id is #{deployment_id}"
+          buffer << out
+          options[:out].puts(out) if options[:out]
 
           buffer
         end
@@ -755,52 +764,60 @@ module OpenShift
         #
         def rollback(options={})
           buffer = ''
-          deployments_dir = PathUtils.join(@container_dir, 'app-deployments')
+          rollback_to = nil
 
-          current_deployment = latest_deployment_datetime
+          if options[:deployment_id]
+            deployment_datetime = get_deployment_datetime_for_deployment_id(options[:deployment_id])
+            unless deployment_datetime.nil?
+              deployment_state = read_deployment_metadata(deployment_datetime, 'state') || ''
+              rollback_to = options[:deployment_id] if deployment_state.chomp == 'DEPLOYED'
+            end
+          else
+            deployments_dir = PathUtils.join(@container_dir, 'app-deployments')
 
-          # get a list of all entries in app-deployments excluding 'by-id' and the current deployment dir
-          deployments = Dir["#{deployments_dir}/*"].entries.reject {|e| ['by-id', current_deployment].include?(File.basename(e))}.sort.reverse
+            current_deployment = current_deployment_datetime
 
-          out = "Looking up previous deployment\n"
-          buffer << out
-          options[:out].puts(out) if options[:out]
+            # get a list of all entries in app-deployments excluding 'by-id'
+            deployments = Dir["#{deployments_dir}/*"].entries.reject {|e| File.basename(e) == 'by-id'}.sort.reverse
 
-          # make sure we get the latest 'deployed' dir prior to the current one
-          previous_deployment = nil
-          deployments.each do |d|
-            deployment_state = read_deployment_metadata(File.basename(d), 'state') || ''
-            if deployment_state.chomp == 'DEPLOYED'
-              previous_deployment = d
-              break
+            out = "Looking up previous deployment\n"
+            buffer << out
+            options[:out].puts(out) if options[:out]
+
+            # make sure we get the latest 'deployed' dir prior to the current one
+            rollback_to = nil
+            found_current = false
+            deployments.each do |d|
+              candidate = File.basename(d)
+              unless found_current
+                found_current = true if candidate == current_deployment
+              else
+                deployment_state = read_deployment_metadata(candidate, 'state') || ''
+                if deployment_state.chomp == 'DEPLOYED'
+                  rollback_to = read_deployment_metadata(candidate, 'id').chomp
+                  break
+                end
+              end
             end
           end
 
-          if previous_deployment
-            if state.value == State::STARTED
-              buffer << "Stopping gear\n"
-              output = stop_gear(options.merge(exclude_web_proxy: true))
-              buffer << output
-              options[:out].puts(output) if options[:out]
-            end
-
-            # delete current deployment
-            out = "Deleting current deployment\n"
-            buffer << out
-            options[:out].puts(out) if options[:out]
-
-            delete_deployment(current_deployment)
-
-            deployment_id = read_deployment_metadata(File.basename(previous_deployment), 'id').chomp
-
+          if rollback_to
             # activate
-            out = "Rolling back to deployment ID #{deployment_id}\n"
+            out = "Rolling back to deployment ID #{rollback_to}\n"
             buffer << out
             options[:out].puts(out) if options[:out]
 
-            buffer << activate(options.merge(deployment_id: deployment_id))
+            buffer << activate(options.merge(deployment_id: rollback_to))
           else
-            raise 'No prior deployments exist - unable to roll back'
+            if options[:deployment_id]
+              if deployment_exists?(options[:deployment_id])
+                raise "Deployment ID '#{options[:deployment_id]}' was never deployed - unable to roll back"
+              else
+                raise "Deployment ID '#{options[:deployment_id]}' does not exist"
+              end
+            else
+              raise 'No prior deployments exist - unable to roll back'
+            end
           end
 
           buffer

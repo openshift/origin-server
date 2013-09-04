@@ -14,6 +14,10 @@ module OpenShift
           File.basename(latest)
         end
 
+        def deployment_exists?(deployment_id)
+          File.exist?(PathUtils.join(@container_dir, 'app-deployments', 'by-id', deployment_id))
+        end
+
         def move_dependencies(deployment_datetime)
           # move the dependencies from the previous deployment to the one we're about to build
           out, err, rc = run_in_container_context("set -x; shopt -s dotglob; /bin/mv app-root/runtime/dependencies/* app-deployments/#{deployment_datetime}/dependencies",
@@ -99,6 +103,8 @@ module OpenShift
         end
 
         def get_deployment_datetime_for_deployment_id(deployment_id)
+          return nil unless deployment_exists?(deployment_id)
+
           # read the symlink - will be something like ../2013-07-24_16-41-55
           deployment_dir_link = File.readlink(PathUtils.join(@container_dir, 'app-deployments', 'by-id', deployment_id))
           # return just the date/time portion
