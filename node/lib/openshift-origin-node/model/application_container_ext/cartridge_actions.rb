@@ -362,9 +362,15 @@ module OpenShift
 
           prepare(options)
 
-          distribute(options)
-
+          # activate the local gear
           activate(options)
+
+          # if we have children, activate them
+          if @cartridge_model.web_proxy
+            distribute(options)
+
+            activate_many(options)
+          end
         end
 
         #

@@ -374,6 +374,7 @@ command :stop do |c|
   
   c.option "--cart CART", "The cart to stop"
   c.option "--conditional", "Skip the gear stop if the hot deploy marker is present in the application Git repo"
+  c.option "--exclude-web-proxy", "Skip stopping the web proxy, if it exists"
 
   c.description = "Stop the gear/cart"
   c.action do |args, options|
@@ -385,7 +386,8 @@ command :stop do |c|
           puts "Skipping gear stop due to presence of hot deploy marker"
         else
           puts "Stopping gear..."
-          @container.stop_gear(out: $stdout, err: $stderr)
+
+          @container.stop_gear(exclude_web_proxy: !!options.exclude_web_proxy, out: $stdout, err: $stderr)
         end
       end
     end

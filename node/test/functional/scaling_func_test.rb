@@ -121,16 +121,16 @@ class ScalingFuncTest < OpenShift::NodeBareTestCase
   #   basic_build_test(%w(jbossas-7), false)
   # end
 
-  def test_jbossas_unscaled_jenkins
-    create_jenkins
-    basic_build_test(%w(jbossas-7 jenkins-client-1), false)
-  end
-
-  # def test_jbossas_scaled_jenkins
-  #   up_gears
+  # def test_jbossas_unscaled_jenkins
   #   create_jenkins
-  #   basic_build_test(%w(jbossas-7 jenkins-client-1))
+  #   basic_build_test(%w(jbossas-7 jenkins-client-1), false)
   # end
+
+  def test_jbossas_scaled_jenkins
+    up_gears
+    create_jenkins
+    basic_build_test(%w(jbossas-7 jenkins-client-1))
+  end
 
   # def test_jbosseap_scaled
   #   basic_build_test(%w(jbosseap-6))
