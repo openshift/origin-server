@@ -428,6 +428,28 @@ class AdminSuggestionTest < ActiveSupport::TestCase
     assert_ids_work(sugs)
   end
 
+  test "NONE district doesn't get add capacity suggestion" do
+    boring_install_2x4per
+    @conf[:gear_sizes].each do |profile|
+      # add an undistricted node to each profile
+      @nodes_hash["undistricted-#{profile}.example.com"] =
+        faux_node_entry(profile, "NONE", "false").merge({
+          max_active_gears: 100,
+          gears_active_count: 50,
+        })
+    end
+    # try to get a suggestion for more capacity spread across districts
+    params = S::Params.new(
+      active_gear_pct: { default: 100 }, # nothing ever idles
+      gear_up_threshold: { default: 1000 }, # want to gear up
+      gear_up_size: { default: 1000 }, # want a lot of nodes
+    )
+    AC::Add.query(params, admin_stats_results(), nil).each do |add|
+      assert add.contents.none? {|s| s.district_uuid && s.district_uuid =~ /^NONE/},
+                                add.pretty_inspect
+    end
+  end
+
   def write_fake_dataset(file)
     file = File.join(File.dirname(__FILE__), '..', 'data', file)
     File.open(file, 'w') {|f| f.write(YAML.dump admin_stats_results()) }
@@ -514,10 +536,6 @@ class AdminSuggestionTest < ActiveSupport::TestCase
     sugs = S::Advisor.query(active_gear_pct: {default: 1})
     psugs = "\n#{sugs.pretty_inspect}"
     assert_empty sugs, "nothing to suggest"
-  end
-
-  test "NONE district doesn't get add capacity suggestion" do
-    skip
   end
 
   test "missing nodes are missed" do

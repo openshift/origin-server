@@ -152,8 +152,12 @@ module Admin
           #
           def self.districts_with_space(dists, node_capacity, active_gear_pct)
             dists.select do |d|
-              d[:space] = nodes_district_can_accept(d, node_capacity, active_gear_pct)
-              d.space > 0 && d.missing_nodes.size == 0 # exclude if missing nodes
+              if d.uuid =~ /^NONE/ # exclude faux districts
+                false
+              else
+                d[:space] = nodes_district_can_accept(d, node_capacity, active_gear_pct)
+                d.space > 0 && d.missing_nodes.size == 0 # exclude if missing nodes
+              end
             end
           end
 
