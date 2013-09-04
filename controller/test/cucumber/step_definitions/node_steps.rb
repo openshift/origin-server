@@ -59,7 +59,8 @@ Given /^a new gear with namespace "([^\"]*)" and app name "([^\"]*)"$/ do |names
   }
 
   command = $controller_config_format % [acctname, acctname, namespace, name]
-  runcon(command, $selinux_user, $selinux_role, $selinux_type)
+  rc = runcon(command, $selinux_user, $selinux_role, $selinux_type)
+  assert_equal(0, rc, "#{command} failed with #{rc}")
 
   # get and store the account UID's by name
   @account['uid'] = Etc.getpwnam(acctname).uid
