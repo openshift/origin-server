@@ -85,20 +85,18 @@
             %strong Application
             %i.icon-add
 
-    .span4
+    .span4.application-suggestions
       %h5 You may want to...
 
-      %ul.unstyled.application-suggestions
+      %ul.unstyled
         - unless @has_key
           %li
             #{link_to "Set a SSH key", new_key_path} to
             %ul
               %li
-                %a{href: 'javascript:;', title: 'Set your first key', 'data-content' => "<p>OpenShift uses the Secure Shell protocol to protect direct access to your application.  In order to upload or download source code from Git or to remotely access the gears in your app, you'll need to create and upload a public SSH key.</p>"} Access source code or SSH to your gears
-
-        - if @applications.length < 3 && @applications.none?{ |a| a.cartridges.any?(&:database?) }
-          %li
-            %a{href: 'javascript:;', title: 'Add a Database', 'data-content' => '<p>OpenShift supports several database types, and you can always create your own downloadable cartridge for your favorite type.</p><p>Click on your application name and then choose a database to add below the list of cartridges.</p>'} Add a database to an app
+                %span{'data-icon' => "\uee02"}
+                %a{href: 'javascript:;', title: 'Set your first key', 'data-content' => "<p>OpenShift uses the Secure Shell protocol to protect direct access to your application.  In order to upload or download source code from Git or to remotely access the gears in your app, you'll need to create and upload a public SSH key.</p>"} 
+                  Access source code or SSH to your gears
 
         - if empty_domains = @user_owned_domains.select{ |d| d.application_count == 0 }.presence
           %li
@@ -114,30 +112,48 @@
         - else
           %li #{link_to "See all domains", domains_path}
 
+
+        - if @applications.length < 3 && @applications.none?{ |a| a.cartridges.any?(&:database?) }
+          %li
+            %span{'data-icon' => "\uee02"}
+            %a{href: 'javascript:;', title: 'Add a Database', 'data-content' => "<p>OpenShift supports several database types out of the box (MySQL, PostgreSQL, and MongoDB).</p><p>Click on your application, and at the bottom of the list of cartridges on the next page you'll see databases you can add.</p>"} 
+              Add a database to an app
+
         - if @applications.map{ |a| a.members.length }.max < 2
           %li
-            %a{href: 'javascript:;', title: 'Membership', 'data-content' => '<p>You can give a collaborator access to your domains and applications.  Adding someone as an editor on a domain gives them the ability to create or update your applications.</p><p>To add a collaborator, click on a domain name and then enter the login of another OpenShift member.</p>'} Add a collaborator
+            %span{'data-icon' => "\uee02"}
+            %a{href: 'javascript:;', title: 'Membership', 'data-content' => '<p>You can give a collaborator access to your domains and applications.  Adding someone as an editor on a domain gives them the ability to create or update your applications.</p><p>To add a collaborator, click on a domain name and then enter the login of another OpenShift member.</p>'} 
+              Add a collaborator 
 
         - if @applications.all?{ |a| a.aliases.blank? }
           %li
-            %a{href: 'javascript:;', title: 'Customize your URL', 'data-content' => "<p>OpenShift gives you a public domain for each of your applications.  If you have your own domain name, you can set it as an <strong>alias</strong> on your application.</p><p>Click on your application name and select the 'change' link next to the application URL at the top of the overview page.</p>"} Use your own domain name
+            %span{'data-icon' => "\uee02"}
+            %a{href: 'javascript:;', title: 'Customize your URL', 'data-content' => "<p>OpenShift gives you a public domain for each of your applications.  If you have your own domain name, you can set it as an <strong>alias</strong> on your application.</p><p>Click on your application name and select the 'change' link next to the application URL at the top of the overview page.</p>"} 
+              Use your own domain name
+
 
         - if @applications.none?(&:scales?)
           %li
-            %a{href: 'javascript:;', title: 'Scale with traffic', 'data-content' => "<p>Scalable applications can run multiple copies of your web code in parallel on different servers.  This allows you to handle more web traffic, and to react to changing levels of demand.</p><p>To create a scalable app, choose an application type to create and change the 'Scaling' option on the 'Create Application' page.</p>"} Create a scalable application
+            %span{'data-icon' => "\uee02"}
+            %a{href: 'javascript:;', title: 'Scale with traffic', 'data-content' => "<p>Scalable applications can run multiple copies of your web code in parallel on different servers.  This allows you to handle more web traffic, and to react to changing levels of demand.</p><p>To create a scalable app, choose an application type to create and change the 'Scaling' option on the 'Create Application' page.</p>"} 
+              Create a scalable application
 
-        - if @has_key
+      - if @has_key
+        %h5 From the command line
+        The <code>rhc</code> client lets you:
+        %ul.unstyled
           %li
-            The <code>rhc</code> command line lets you:
-            %ul
-              %li
-                %a{href: 'javascript:;', title: 'Watching logs', 'data-content' => "<p><p>From the command line, run <code>rhc tail &lt;app_name&gt;</code> to view your logs in realtime.</p>"} Access logs
-              %li
-                %a{href: 'javascript:;', title: 'Backup and Restore', 'data-content' => "<p>Each application can be backed up by using the snapshot command - run <code>rhc save-snapshot &lt;app_name&gt;</code> to download a tar file containing your code, databases, and other relevant data.  Use <code>rhc restore-snapshot</code> to restore the state of an app.</p><p>Note that snapshot will stop your application as it runs.</p>"} Save and restore backups
-              %li
-                %a{href: 'javascript:;', title: 'Forwarding ports', 'data-content' => "<p>From the command line, run <code>rhc port-forward</code> to access databases or internal ports directly.</p>"} Connect directly to internal services
-
-
+            %span{'data-icon' => "\uee02"}
+            %a{href: 'javascript:;', title: 'Watching logs', 'data-content' => "<p>From the command line, run <code>rhc tail &lt;app_name&gt;</code> to view your logs in realtime.</p>"} 
+              Access logs
+          %li
+            %span{'data-icon' => "\uee02"}
+            %a{href: 'javascript:;', title: 'Backup and Restore', 'data-content' => "<p>Each application can be backed up by using the snapshot command - run <code>rhc save-snapshot &lt;app_name&gt;</code> to download a tar file containing your code, databases, and other relevant data.  Use <code>rhc restore-snapshot</code> to restore the state of an app.</p><p>Note that snapshot will stop your application as it runs.</p>"} 
+              Save and restore backups
+          %li
+            %span{'data-icon' => "\uee02"}
+            %a{href: 'javascript:;', title: 'Forwarding ports', 'data-content' => "<p>From the command line, run <code>rhc port-forward</code> to access databases or internal ports directly.</p>"} 
+              Connect directly to internal services
 
 -# FIXME: Refactor me into an unobtrusive javascript function
 - content_for :javascripts do
