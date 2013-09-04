@@ -41,7 +41,7 @@ Broker::Application.configure do
         read_file: conf.get("STATS_FROM_FILE", nil),
       },
       suggest: {
-        active_gear_pct: convert.call(conf.get "GEAR_EXPECTED_ACTIVE_PERCENT", "50"),
+        active_gear_pct: convert.call(conf.get "GEAR_EXPECTED_ACTIVE_PERCENT", "5"),
         gear_up_threshold: convert.call(conf.get "GEAR_UP_THRESHOLD", nil),
         gear_up_size: convert.call(conf.get "GEAR_UP_SIZE", "200"),
         gear_down_threshold: convert.call(conf.get "GEAR_DOWN_THRESHOLD", nil),
