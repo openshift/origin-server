@@ -40,6 +40,9 @@ unless 'root' == Etc.getpwuid(Process::uid).name
   exit! 1
 end
 
+global_option('-c', '--with-container-uuid UUID', 'Unique identifier for the gear')
+global_option('-t', '--trace', 'Enable stack traces when reporting errors and additional diagnostic output') { $trace = true }
+
 def execute
   begin
     yield
@@ -77,13 +80,11 @@ def new_frontend(uuid, c)
   OpenShift::Runtime::FrontendHttpServer.new(new_container(uuid, c))
 end
 
-def usage(message)
+def usage(message, details = nil)
+  $stderr.puts details + "\n\n" if details
   $stderr.puts "Usage: #{message}"
   exit! 3
 end
-
-global_option('-c', '--with-container-uuid UUID', 'Unique identifier for the gear')
-global_option('-t', '--trace', 'Enable stack traces when reporting errors and additional diagnostic output') { $trace = true }
 
 command :'add-alias' do |c|
   c.syntax      = "#{$name} #{c.name} --with-container-uuid UUID --with-alias-name ALIAS"
@@ -135,9 +136,9 @@ command :aliases do |c|
 end
 
 command :'app-create' do |c|
-  c.syntax      = %Q(#{$name} #{c.name} --with-namespace NAMESPACE --with-app-uuid UUID \\
-     --with-app-name NAME --with-container-uuid UUID \\
-     --with-uid UID [--with-container-name NAME] [--with-quota-blocks BLOCKS] [--with-quota-files FILES])
+  c.syntax      = %Q(#{$name} #{c.name} --with-container-uuid UUID --with-namespace NAMESPACE \\
+     --with-app-uuid UUID --with-app-name NAME [--with-uid UID] [--with-container-name NAME] \\
+     [--with-quota-blocks BLOCKS] [--with-quota-files FILES])
   c.description = 'Create a gear without using the Broker'
 
   c.option '-s', '--with-namespace NAMESPACE', 'Namespace of the application'
@@ -150,21 +151,22 @@ command :'app-create' do |c|
   c.action do |args, options|
     options.default with_container_name: options.with_app_name
 
-    if options.with_container_uuid && options.with_namespace && options.with_app_name && options.with_app_uuid
-      container = OpenShift::Runtime::ApplicationContainer.new(
-          options.with_app_uuid,
-          options.with_container_uuid,
-          options.with_uid,
-          options.with_app_name,
-          options.with_container_name,
-          options.with_namespace,
-          options.with_quota_blocks,
-          options.with_quota_files
-      )
-      execute { container.create }
-    else
-      usage(c.syntax)
-    end
+    usage(c.syntax, "Missing --with-namespace NAMESPACE") unless options.with_namespace
+    usage(c.syntax, "Missing --with-app-name NAME") unless options.with_app_name
+    usage(c.syntax, "Missing --with-app-uuid UUID") unless options.with_app_uuid
+    usage(c.syntax, "Missing --with-container-uuid UUID") unless options.with_container_uuid
+
+    container = OpenShift::Runtime::ApplicationContainer.new(
+        options.with_app_uuid,
+        options.with_container_uuid,
+        options.with_uid,
+        options.with_app_name,
+        options.with_container_name,
+        options.with_namespace,
+        options.with_quota_blocks,
+        options.with_quota_files
+    )
+    execute { container.create }
   end
 end
 

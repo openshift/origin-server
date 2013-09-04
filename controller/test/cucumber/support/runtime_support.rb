@@ -194,7 +194,10 @@ module OpenShift
       $logger.info("Creating new gear #{@uuid} for application #{@app.name}")
       
       if cli
-        `oo-devel-node app-create -a #{@app.uuid} -c #{uuid} --with-namespace #{@app.account.domain} --with-app-name #{@app.name}`
+        command = %Q(oo-devel-node app-create -c #{uuid} -a #{@app.uuid} --with-namespace #{@app.account.domain} --with-app-name #{@app.name})
+        $logger.info(%Q(Running #{command}))
+        results = %x[#{command}]
+        assert_equal(0, $?.exitstatus, %Q(#{command}\n #{results}))
       end
 
       # Create the container object for use in the event listener later
