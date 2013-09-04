@@ -455,6 +455,22 @@ class AdminSuggestionTest < ActiveSupport::TestCase
     File.open(file, 'w') {|f| f.write(YAML.dump admin_stats_results()) }
   end
 
+  test "bug 1004297 add:district is wrapped" do
+    boring_install_2x4per
+    # try to get a suggestion for more capacity with only new districts
+    params = S::Params.new(
+      active_gear_pct: { default: 1}, # only ever want 1 node per dist
+      gear_up_threshold: { default: 1000 }, # want to gear up
+      gear_up_size: { default: 1000 }, # want a lot of nodes
+    )
+    AC::Add.query(params, admin_stats_results(), nil).each do |add|
+      assert_kind_of SC::Add, add
+      refute_kind_of SC::Add::District, add, "should be wrapped:\n#{add.pretty_inspect}"
+      assert add.contents.all? {|s| s.is_a? SC::Add::District },
+                                "should add districts:\n#{add.pretty_inspect}"
+    end
+  end
+
   def boring_install_2x4per
     # for each profile stub 2 districts w/ 4 nodes each
     # district uuids are like "prof1-d1" and "prof1-d2"

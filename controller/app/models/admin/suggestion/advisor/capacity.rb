@@ -134,8 +134,8 @@ module Admin
             # if existing districts lack the space, create new district(s)
             nodes_still_needed = s[:nodes_needed]
             if s[:nodes_creatable] < s[:nodes_needed]
-              suggestions << (suggestion = add_district(s))
-              nodes_still_needed -= suggestion.node_quantity
+              suggestions << (dsug = add_district(s))
+              nodes_still_needed -= dsug.node_quantity
             end
 
             # now fill remaining need from existing districts
