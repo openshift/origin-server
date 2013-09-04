@@ -56,7 +56,7 @@ module Admin
           def suggested_nodes_per_district(node_capacity, active_gear_pct)
             # note that integer division gets us the floor value
             max = MAX_DISTRICT_GEARS * active_gear_pct / (100 * node_capacity)
-            max = 2 if max < 2 # should always at least have 2 to enable balancing
+            max = 1 if max < 1 # should always at least have 1
             max
           end
 
@@ -172,7 +172,7 @@ module Admin
                                                         s[:active_gear_pct])
             nodes_per = target_nodes / 2 # only add half of target to begin with,
             nodes_per = [s[:nodes_needed], nodes_per].min # but not more than we need,
-            nodes_per = [2, nodes_per].max #... and at least 2
+            nodes_per = [1, nodes_per].max #... and at least 1
 
             # Then, decide how many districts of that size to suggest.
             d_quantity = 0

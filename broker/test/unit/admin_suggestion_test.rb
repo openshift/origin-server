@@ -287,8 +287,8 @@ class AdminSuggestionTest < ActiveSupport::TestCase
       "based on existing nodes and active pct, suggested nodes per district"
     assert_equal 3,  add.suggested_nodes_per_district(200, 10),
       "based on existing nodes and active pct, suggested nodes per district"
-    assert_equal 2,  add.suggested_nodes_per_district(100, 1),
-      "never fewer than 2 nodes in a district"
+    assert_equal 1,  add.suggested_nodes_per_district(100, 1),
+      "never fewer than 1 node in a district"
 
     assert_equal 50,  add.adjusted_active_pct(d2sum, 200, 100),
       "district with overly idle nodes gets adjusted"
@@ -309,7 +309,7 @@ class AdminSuggestionTest < ActiveSupport::TestCase
     open_dists = add.districts_with_space(dsums.values, 200, 100)
     assert_equal 3, open_dists.size,
       "all districts have space except the one with missing node"
-    assert_equal 2, add.districts_with_space(dsums.values, 200, 5).size,
+    assert_equal 2, add.districts_with_space(dsums.values, 200, 7).size,
       "districts with < 2 nodes have space"
 
     open_dists = add.districts_with_space(dsums.values, 200, 100)
@@ -346,12 +346,12 @@ class AdminSuggestionTest < ActiveSupport::TestCase
     assert_not_nil (dist_sug = add.add_district(s)), "should get a suggestion"
     assert_equal 1, dist_sug.district_quantity, "suggest one district"
     assert_equal 3, dist_sug.node_quantity, "suggest district with 6/2=3 nodes"
-    s[:active_gear_pct] = 5
+    s[:active_gear_pct] = 7
     s[:nodes_needed] = 6
-    assert_equal 3, add.suggested_nodes_per_district(100, 5), "lower district target"
+    assert_equal 4, add.suggested_nodes_per_district(100, 7), "lower district target"
     assert_not_nil (dist_sug = add.add_district(s)), "should get a suggestion"
     assert_equal 2, dist_sug.district_quantity, "suggest multiple districts"
-    assert_equal 2, dist_sug.nodes_per_district, "suggest district with 3/2=2 nodes"
+    assert_equal 2, dist_sug.nodes_per_district, "suggest district with 4/2=2 nodes"
     assert_equal 4, dist_sug.node_quantity, "suggest 2 districts with 2 nodes"
   end
 
