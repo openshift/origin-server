@@ -40,7 +40,7 @@ module OpenShift
             begin
               ::OpenShift::Runtime::Utils::oo_spawn("/usr/sbin/oo-httpd-singular #{async_opt} graceful", :expected_exitstatus=> 0)
             rescue ::OpenShift::Runtime::Utils::ShellExecutionException => e
-              NodeLogger.error("ERROR: failure from oo-httpd-singular(#{e.rc}): #{@container_uuid}: stdout: #{e.stdout} stderr:#{e.stderr}")
+              NodeLogger.logger.error("ERROR: failure from oo-httpd-singular(#{e.rc}): #{@container_uuid}: stdout: #{e.stdout} stderr:#{e.stderr}")
             end
           end
 
@@ -298,7 +298,11 @@ module OpenShift
           class GearDBPlugin < PluginBaseClass
             def create
               GearDB.open(GearDB::WRCREAT) do |d|
-                d.store(@container_uuid, {'fqdn' => @fqdn})
+                d.store(@container_uuid, {
+                          'fqdn' => @fqdn,
+                          'container_name' => @container_name,
+                          'namespace' => @namespace
+                        })
               end
             end
 
@@ -326,18 +330,18 @@ module OpenShift
               Enumerator.new do |yielder|
                 GearDB.open(GearDB::READER) do |d|
                   d.each do |uuid, config|
-                    c = self.new(config["container_uuid"], config["fqdn"], config["container_name"], config["namespace"])
+                    c = self.new(uuid, config["fqdn"], config["container_name"], config["namespace"])
                     yielder.yield(c)
                   end
                 end
               end
             end
 
-            class GearDB < ::OpenShift::Runtime::Frontend::Http::Plugins::ApacheDBJSON
-              self.MAPNAME = "geardb"
-              self.LOCK = $OpenShift_GearDB_Lock
-            end
+          end
 
+          class GearDB < ::OpenShift::Runtime::Frontend::Http::Plugins::ApacheDBJSON
+            self.MAPNAME = "geardb"
+            self.LOCK = $OpenShift_GearDB_Lock
           end
 
         end

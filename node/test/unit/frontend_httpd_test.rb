@@ -101,17 +101,17 @@ class FrontendHttpServerModelTest < OpenShift::NodeTestCase
 
   def test_connect
     @frontend.expects(:call_plugins).with(:connect, *@connections)
-    @frontend.connect(*(@connections.flatten))
+    @frontend.connect(*(@connections.flatten(1)))
   end
 
   def test_connections
-    @frontend.expects(:call_plugins).with(:connections).returns([@connections, @connections, @connections].flatten)
+    @frontend.expects(:call_plugins).with(:connections).returns([@connections, @connections, @connections].flatten(1))
     assert_equal @connections, @frontend.connections
   end
 
   def test_disconnect
     @frontend.expects(:call_plugins).with(:disconnect, *@connection_paths)
-    @frontend.connect(*@connection_paths)
+    @frontend.disconnect(*@connection_paths)
   end
 
 
@@ -168,7 +168,7 @@ class FrontendHttpServerModelTest < OpenShift::NodeTestCase
 
   def test_aliases_nil?
     @frontend.expects(:call_plugins).with(:aliases).returns([])
-    assert_equal nil, @frontend.aliases
+    assert_equal [], @frontend.aliases
   end
 
   def test_add_alias

@@ -40,9 +40,9 @@ module OpenShift
               @config = ::OpenShift::Config.new
               @basedir = @config.get("OPENSHIFT_HTTP_CONF_DIR")
 
-              @template_https = TEMPLATE_HTTPS
-
               super(container_uuid, fqdn, container_name, namespace)
+
+              @template_https = TEMPLATE_HTTPS
             end
 
             def destroy
@@ -69,25 +69,8 @@ module OpenShift
             end
 
             def connect(*elements)
-              working_elements = []
-
-              elements.each do |path, uri, options|
-                if options["target_update"]
-                  ApacheDBNodes.open(ApacheDBNodes::READER) do |d|
-                    begin
-                      old_conn = d.fetch(@fqdn + path.to_s)
-                      options = decode_connection(path.to_s, old_conn)[2]
-                    rescue KeyError
-                      raise PluginException.new("The target_update option specified but no old configuration: #{path}",
-                                                @container_uuid, @fqdn)
-                    end
-                  end
-                end
-                working_elements << [path, uri, options]
-              end
-
               ApacheDBNodes.open(ApacheDBNodes::WRCREAT) do |d|
-                working_elements.each do |path, uri, options|
+                elements.each do |path, uri, options|
                   if options["gone"]
                     map_dest = "GONE"
                   elsif options["forbidden"]
@@ -256,18 +239,18 @@ module OpenShift
 
                 FileUtils.mkdir_p(alias_conf_dir_path)
 
-                File.open(ssl_certificate_file, File::RDWR | File::CREAT | File::TRUNC) do |f|
+                File.open(ssl_certificate_file, File::RDWR | File::CREAT | File::TRUNC, 0644) do |f|
                   f.puts(ssl_cert)
                   f.fsync
                 end
 
-                File.open(ssl_key_file, File::RDWR | File::CREAT | File::TRUNC) do |f|
+                File.open(ssl_key_file, File::RDWR | File::CREAT | File::TRUNC, 0644) do |f|
                   f.write(priv_key)
                   f.fsync
                 end
 
                 alias_conf_file_path = PathUtils.join(@basedir, "#{alias_token}.conf")
-                File.open(alias_conf_file_path, File::RDWR | File::CREAT | File::TRUNC) do |f|
+                File.open(alias_conf_file_path, File::RDWR | File::CREAT | File::TRUNC, 0644) do |f|
                   server_name = server_alias
                   f.write(ERB.new(File.read(@template_https)).result(binding))
                   f.write("\n")
@@ -299,28 +282,29 @@ module OpenShift
                 end
               end
             end
-              
-            class ApacheDBNodes < ::OpenShift::Runtime::Frontend::Http::Plugins::ApacheDB
-              self.MAPNAME = "nodes"
-              self.LOCK = $OpenShift_ApacheDBNodes_Lock
-            end
-
-            class ApacheDBAliases < ::OpenShift::Runtime::Frontend::Http::Plugins::ApacheDB
-              self.MAPNAME = "aliases"
-              self.LOCK = $OpenShift_ApacheDBAliases_Lock
-            end
-
-            class ApacheDBIdler < ::OpenShift::Runtime::Frontend::Http::Plugins::ApacheDB
-              self.MAPNAME = "idler"
-              self.LOCK = $OpenShift_ApacheDBIdler_Lock
-            end
-
-            class ApacheDBSTS < ::OpenShift::Runtime::Frontend::Http::Plugins::ApacheDB
-              self.MAPNAME = "sts"
-              self.LOCK = $OpenShift_ApacheDBSTS_Lock
-            end
 
           end
+
+          class ApacheDBNodes < ::OpenShift::Runtime::Frontend::Http::Plugins::ApacheDB
+            self.MAPNAME = "nodes"
+            self.LOCK = $OpenShift_ApacheDBNodes_Lock
+          end
+
+          class ApacheDBAliases < ::OpenShift::Runtime::Frontend::Http::Plugins::ApacheDB
+            self.MAPNAME = "aliases"
+            self.LOCK = $OpenShift_ApacheDBAliases_Lock
+          end
+
+          class ApacheDBIdler < ::OpenShift::Runtime::Frontend::Http::Plugins::ApacheDB
+            self.MAPNAME = "idler"
+            self.LOCK = $OpenShift_ApacheDBIdler_Lock
+          end
+
+          class ApacheDBSTS < ::OpenShift::Runtime::Frontend::Http::Plugins::ApacheDB
+            self.MAPNAME = "sts"
+            self.LOCK = $OpenShift_ApacheDBSTS_Lock
+          end
+
         end
       end
     end

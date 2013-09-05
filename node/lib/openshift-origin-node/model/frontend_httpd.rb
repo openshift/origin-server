@@ -298,6 +298,27 @@ module OpenShift
       def connect(*elements)
         elems = elements.flatten.enum_for(:each_slice, 3).map { |path, uri, options| [path, uri, options] }
 
+        paths_to_update = {}
+        elems.each do |path, uri, options|
+          if options["target_update"]
+            paths_to_update[path]=uri
+          end
+        end
+
+        if not paths_to_update.empty?
+          connections.each do |path, uri, options|
+            if paths_to_update.include?(path)
+              elems.delete_if { |a, b, c| a == path }
+              elems << [ path, paths_to_update[path], options ]
+              paths_to_update.delete(path)
+            end
+          end
+        end
+
+        paths_to_update.each do |path, uri|
+          raise FrontendHttpServerException.new("The target_update option specified but no old configuration: #{path}", @container_uuid, @fqdn)
+        end
+
         call_plugins(:connect, *elems)
       end
 
@@ -307,7 +328,7 @@ module OpenShift
         conset = Hash.new { |h,k| h[k]={} }
 
         call_plugins(:connections).each do |path, uri, options|
-          conset[[path, uri]].merge(options)
+          conset[[path, uri]].merge!(options)
         end
 
         conset.map { |k,v| [ k, v ].flatten }
@@ -536,7 +557,7 @@ module OpenShift
           rescue ::OpenShift::Runtime::Frontend::Http::Plugins::PluginExecException => e
             raise FrontendHttpServerExecException.new(e.message.gsub(": #{@container_uuid}",'').gsub(": #{@fqdn}",''), @container_uuid, @fqdn, e.rc, e.stdout, e.stderr)
           end
-        }.flatten.select { |res| not res.nil? }.uniq
+        }.flatten(1).select { |res| not res.nil? }.uniq
       end
 
       # Private: Validate the server name

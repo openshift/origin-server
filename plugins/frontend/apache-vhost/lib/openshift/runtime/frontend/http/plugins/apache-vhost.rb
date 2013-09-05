@@ -45,13 +45,13 @@ module OpenShift
               @config = ::OpenShift::Config.new
               @basedir = @config.get("OPENSHIFT_HTTP_CONF_DIR")
 
+              super(container_uuid, fqdn, container_name, namespace)
+
               @token = "#{@container_uuid}_#{@namespace}_#{@container_name}"
               @app_path = File.join(@basedir, token)
 
               @template_http  = TEMPLATE_HTTP
               @template_https = TEMPLATE_HTTPS
-
-              super(container_uuid, fqdn, container_name, namespace)
             end
 
 
@@ -59,8 +59,15 @@ module OpenShift
               @app_path + ".conf"
             end
 
-            def element_path_prefix
-              "555555_element-"
+            def element_path(path)
+              if path == "*"
+                tpath = "*"
+                order = "5*"
+              else
+                tpath = path.gsub('/','_').gsub(' ','_')
+                order = 599999 - [99999, path.length].min
+              end
+              File.join(@app_path,"#{order}_element-#{tpath}.conf")
             end
 
             def parse_connection(element_file)
@@ -73,11 +80,6 @@ module OpenShift
                 end
               end
               [ path, uri, options ]
-            end
-
-            def element_path(path)
-              tpath = path.gsub('/','_')
-              File.join(@app_path,"#{element_path_prefix}#{tpath}")
             end
 
             def create
@@ -95,7 +97,7 @@ module OpenShift
 
                 # The base config won't exist until the first connection is created
                 if not File.exists?(conf_path)
-                  File.open(conf_path, File::RDWR | File::CREAT | File::TRUNC) do |f|
+                  File.open(conf_path, File::RDWR | File::CREAT | File::TRUNC, 0644) do |f|
                     server_name = @fqdn
                     include_path = @app_path
                     ssl_certificate_file = '/etc/pki/tls/certs/localhost.crt'
@@ -110,26 +112,11 @@ module OpenShift
 
                 # Process target_update option by loading the old values
                 elements.each do |path, uri, options|
-                  if options["target_update"]
-                    begin
-                      options = parse_connection(element_path(path))[2]
-                    rescue Errno::EONENT
-                      raise PluginException.new("The target_update option specified but no old configuration: #{path}",
-                                                @container_uuid, @fqdn)
-                    rescue JSON::ParserError, NoMethodError
-                      raise PluginException.new("The target_update option specified but old config could not be parsed: #{path}",
-                                                @container_uuid, @fqdn)
-                    end
-                  end
-
-                  File.open(element_path(path), File::RDWR | File::CREAT | File::TRUNC) do |f|
+                  File.open(element_path(path), File::RDWR | File::CREAT | File::TRUNC, 0644) do |f|
                     f.write("# ELEMENT: ")
                     f.write([path, uri, options].to_json)
                     f.write("\n")
                     
-                    path="/#{path}" unless path.start_with?("/")
-                    uri="/#{uri}" unless uri.start_with?("/")
-
                     if options["gone"]
                       f.puts("RewriteRule ^#{path}(/.*)?$ - [NS,G]")
                     elsif options["forbidden"]
@@ -147,7 +134,22 @@ module OpenShift
                       f.puts("RewriteRule ^#{path}(/.*)?$ https://%{HTTP_HOST}$1 [R,NS,L]")
                     else
                       f.puts("RewriteRule ^#{path}(/.*)?$ http://#{uri}$1 [P,NS]")
-                      f.puts("ProxyPassReverse #{path} http://#{uri}")
+
+                      if path.empty?
+                        tpath = "/"
+                      else
+                        tpath = path
+                      end
+
+                      if uri.empty?
+                        turi = "127.0.0.1:80"
+                      elsif uri.end_with?("/")
+                        turi = uri
+                      else
+                        turi = uri + "/"
+                      end
+
+                      f.puts("ProxyPassReverse #{tpath} http://#{turi}")
                     end
 
                     f.fsync
@@ -158,7 +160,7 @@ module OpenShift
 
             def connections
               Dir.glob(element_path('*')).map do |p|
-                parse_connections(p)
+                parse_connection(p)
               end
             end
 
@@ -182,7 +184,7 @@ module OpenShift
 
             def idle
               with_lock_and_reload do
-                File.open(idle_path, File::RDWR | File::CREAT | File::TRUNC ) do |f|
+                File.open(idle_path, File::RDWR | File::CREAT | File::TRUNC, 0644 ) do |f|
                   f.puts("RewriteRule ^/(.*)$ /var/www/html/restorer.php/#{@container_uuid}/$1 [NS,L]")
                 end
               end
@@ -201,7 +203,7 @@ module OpenShift
 
 
 
-            def sts_path_prefix(max_age)
+            def sts_path_prefix
               "000001_sts_header-"
             end
 
@@ -214,7 +216,7 @@ module OpenShift
                 Dir.glob(sts_path('*')).each do |p|
                   FileUtils.rm_f(p)
                 end              
-                File.open(sts_path(max_age), File::RDWR | File::CREAT | File::TRUNC ) do |f|
+                File.open(sts_path(max_age), File::RDWR | File::CREAT | File::TRUNC, 0644 ) do |f|
                   f.puts("Header set Strict-Transport-Security \"max-age=#{max_age.to_i}\"")
                   f.puts("RewriteCond %{HTTPS} =off")
                   f.puts("RewriteRule ^(.*)$ https://%{HTTP_HOST}$1 [R,NS,L]")
@@ -255,7 +257,7 @@ module OpenShift
 
             def add_alias(server_alias)
               with_lock_and_reload do
-                File.open(alias_path(server_alias), File::RDWR | File::CREAT | File::TRUNC ) do |f|
+                File.open(alias_path(server_alias), File::RDWR | File::CREAT | File::TRUNC, 0644 ) do |f|
                   f.puts("ServerAlias #{server_alias}")
                   f.fsync
                 end
@@ -272,10 +274,11 @@ module OpenShift
 
 
             def ssl_conf_path(server_alias)
-              File.join(@basedir, server_alias + ".conf")
+              @token = "#{@container_uuid}_#{@namespace}_0alias_#{server_alias}"
+              File.join(@basedir, token + ".conf")
             end
 
-            def ssl_certiticate_path(server_alias)
+            def ssl_certificate_path(server_alias)
               File.join(@app_path, server_alias + ".crt")
             end
 
@@ -287,7 +290,7 @@ module OpenShift
             def ssl_certs
               aliases.map { |server_alias|
                 begin
-                  ssl_cert = File.read(ssl_certiticate_path(server_alias))
+                  ssl_cert = File.read(ssl_certificate_path(server_alias))
                   priv_key = File.read(ssl_key_path(server_alias))
                 rescue Errno::ENOENT
                 end
@@ -307,20 +310,20 @@ module OpenShift
                 ssl_certificate_file = ssl_certificate_path(server_alias)
                 ssl_key_file = ssl_key_path(server_alias)
 
-                file.open(ssl_certificate_file, File::RDWR | File::CREAT | File::TRUNC) do |f|
+                File.open(ssl_certificate_file, File::RDWR | File::CREAT | File::TRUNC, 0644) do |f|
                   f.write(ssl_cert)
                   f.fsync
                 end
 
-                file.open(ssl_key_file, File::RDWR | File::CREAT | File::TRUNC) do |f|
+                File.open(ssl_key_file, File::RDWR | File::CREAT | File::TRUNC, 0644) do |f|
                   f.write(priv_key)
                   f.fsync
                 end
 
-                File.open(ssl_conf_path, File::RDWR | File::CREAT | File::TRUNC) do |f|
+                File.open(ssl_conf_path(server_alias), File::RDWR | File::CREAT | File::TRUNC, 0644) do |f|
                   server_name = server_alias
                   include_path = @app_path
-                  f.write(ERB.new(File.read(@template_https)).result)
+                  f.write(ERB.new(File.read(@template_https)).result(binding))
                   f.write("\n")
                   f.fsync
                 end
@@ -329,7 +332,7 @@ module OpenShift
 
             def remove_ssl_cert_impl(server_alias)
               FileUtils.rm_f(ssl_conf_path(server_alias))
-              FileUtils.rm_f(ssl_certiticate_path(server_alias))
+              FileUtils.rm_f(ssl_certificate_path(server_alias))
               FileUtils.rm_f(ssl_key_path(server_alias))
             end
 

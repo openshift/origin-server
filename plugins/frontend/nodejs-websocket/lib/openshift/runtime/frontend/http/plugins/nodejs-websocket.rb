@@ -69,6 +69,10 @@ module OpenShift
                   }
 
                   d.store(@fqdn, routes_ent)
+
+                  d.select { |k, v| v["alias"] == @fqdn }.each do |k, v|
+                    v.merge!(routes_ent)
+                  end
                 end
               end
             end
@@ -128,7 +132,15 @@ module OpenShift
 
             def add_alias(name)
               NodeJSDBRoutes.open(NodeJSDBRoutes::WRCREAT) do |d|
-                d.store(name, { "alias" => @fqdn })
+                begin
+                  routes_ent = d.fetch(@fqdn)
+                  if not routes_ent.nil?
+                    alias_ent = routes_ent.clone
+                    alias_ent["alias"] = @fqdn
+                    d.store(name, alias_ent)
+                  end
+                rescue KeyError
+                end
               end
             end
 
@@ -138,28 +150,27 @@ module OpenShift
               end
             end
 
-            class NodeJSDB < ::OpenShift::Runtime::Frontend::Http::Plugins::ApacheDBJSON
-              def callout
-                childpidfile = "/var/run/openshift-node-web-proxy.pid"
-                begin
-                  cpid = File.read(childpidfile).to_i
-                  if cpid != 0
-                    Process.kill("HUP", cpid)
-                  end
-                rescue Errno::ENOENT
-                  # No child PID file
-                rescue Errno::ESRCH
-                  # No such process
+          end
+
+          class NodeJSDB < ::OpenShift::Runtime::Frontend::Http::Plugins::ApacheDBJSON
+            def callout
+              childpidfile = "/var/run/openshift-node-web-proxy.pid"
+              begin
+                cpid = File.read(childpidfile).to_i
+                if cpid != 0
+                  Process.kill("HUP", cpid)
                 end
+              rescue Errno::ENOENT
+                # No child PID file
+              rescue Errno::ESRCH
+                # No such process
               end
-
             end
+          end
 
-            class NodeJSDBRoutes < NodeJSDB
-              self.MAPNAME = "routes"
-              self.LOCK = $OpenShift_NodeJSDBRoutes_Lock
-            end
-
+          class NodeJSDBRoutes < NodeJSDB
+            self.MAPNAME = "routes"
+            self.LOCK = $OpenShift_NodeJSDBRoutes_Lock
           end
 
         end
