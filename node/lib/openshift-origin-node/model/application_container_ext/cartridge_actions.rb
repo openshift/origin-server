@@ -558,10 +558,16 @@ module OpenShift
         #   :gears         : an Array of FQDNs to activate (required)
         #
         def activate_many(options={})
+          gear_env = ::OpenShift::Runtime::Utils::Environ.for_gear(@container_dir)
+
+          # only activate if we're the currently elected proxy
+          # TODO the way we determine this needs to change so gears other than
+          # the initial proxy gear can be elected
+          return if gear_env['OPENSHIFT_APP_DNS'] != gear_env['OPENSHIFT_GEAR_DNS']
+
           gears = options[:gears] || child_gear_ssh_urls
           return if gears.empty?
 
-          gear_env = ::OpenShift::Runtime::Utils::Environ.for_gear(@container_dir)
           buffer = ''
 
           #TODO this really should be parallelized
@@ -719,10 +725,16 @@ module OpenShift
         #   :gears         : an Array of FQDNs to activate (required)
         #
         def rollback_many(options={})
+          gear_env = ::OpenShift::Runtime::Utils::Environ.for_gear(@container_dir)
+
+          # only rollback if we're the currently elected proxy
+          # TODO the way we determine this needs to change so gears other than
+          # the initial proxy gear can be elected
+          return if gear_env['OPENSHIFT_APP_DNS'] != gear_env['OPENSHIFT_GEAR_DNS']
+
           gears = options[:gears] || child_gear_ssh_urls
           return if gears.empty?
 
-          gear_env = ::OpenShift::Runtime::Utils::Environ.for_gear(@container_dir)
           buffer = ''
 
           #TODO this really should be parallelized
@@ -913,28 +925,31 @@ module OpenShift
           # returns a list of new gears added with this update
           new_gears = gear_registry.update(registry_updates)
 
-          # exclude the current gear - no need to do any work on it
-          new_gears.delete_if { |k,v| k.uuid == self.uuid }
+          # only rsync and activate if we're the currently elected proxy
+          # TODO the way we determine this needs to change so gears other than
+          # the initial proxy gear can be elected
+          if gear_env['OPENSHIFT_APP_DNS'] == gear_env['OPENSHIFT_GEAR_DNS']
+            # exclude the current gear - no need to do any work on it
+            new_gears.delete_if { |k,v| k.uuid == self.uuid }
 
-          unless new_gears.empty?
-            # convert the new gears to the format uuid@ip
-            new_gears.map! { |e| "#{e.uuid}@#{e.private_ip}" }
+            unless new_gears.empty?
+              # convert the new gears to the format uuid@ip
+              new_gears.map! { |e| "#{e.uuid}@#{e.private_ip}" }
 
-            # sync from this gear (load balancer) to all new gears
-            # copy app-deployments and make all the new gears look just like it (i.e., use --delete)
-            new_gears.each do |gear|
-              out, err, rc = run_in_container_context("rsync -axvz --delete --rsh=/usr/bin/oo-ssh app-deployments/ #{gear}:app-deployments/",
-                                                      env: gear_env,
-                                                      chdir: container_dir,
-                                                      expected_exitstatus: 0)
+              # sync from this gear (load balancer) to all new gears
+              # copy app-deployments and make all the new gears look just like it (i.e., use --delete)
+              new_gears.each do |gear|
+                out, err, rc = run_in_container_context("rsync -axvz --delete --rsh=/usr/bin/oo-ssh app-deployments/ #{gear}:app-deployments/",
+                                                        env: gear_env,
+                                                        chdir: container_dir,
+                                                        expected_exitstatus: 0)
+              end
+
+              # activate the current deployment on all the new gears
+              deployment_id = read_deployment_metadata(current_deployment_datetime, 'id').chomp
+              # since the gears are new, set init to true and hot_deploy to false
+              activate_many(gears: new_gears, deployment_id: deployment_id, init: true, hot_deploy: false)
             end
-
-            # activate the current deployment on all the new gears
-            deployment_id = read_deployment_metadata(current_deployment_datetime, 'id').chomp
-            # since the gears are new, set init to true and hot_deploy to false
-            activate_many(gears: new_gears, deployment_id: deployment_id, init: true, hot_deploy: false)
-
-            # TODO disable local gear like in set-registry script
           end
 
           args = set_proxy_input.join(' ')
