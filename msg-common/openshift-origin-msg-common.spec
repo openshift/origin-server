@@ -13,7 +13,7 @@ Release:       1%{?dist}
 License:       ASL 2.0
 URL:           http://www.openshift.com
 Source0:       http://mirror.openshift.com/pub/openshift-origin/source/%{name}/%{name}-%{version}.tar.gz
-Requires:      %{?scl:%scl_prefix}mcollective-common
+Requires:      %{?scl:%scl_prefix}mcollective-common >= 2.2.3
 BuildArch:     noarch
 
 %description
@@ -27,19 +27,11 @@ for OpenShift broker and node
 
 %install
 mkdir -p %{buildroot}%{mco_root}agent
-mkdir -p %{buildroot}%{mco_root}validator
 cp -p agent/* %{buildroot}%{mco_root}agent/
 chmod 644 %{buildroot}%{mco_root}agent/*
-%if 0%{?fedora}%{?rhel} < 19
-cp -p validator/* %{buildroot}%{mco_root}validator/
-chmod 644 %{buildroot}%{mco_root}validator/*
-%endif
 
 %files
 %{mco_root}agent/*
-%if 0%{?fedora}%{?rhel} < 19
-%{mco_root}validator/*
-%endif
 
 %changelog
 * Thu Aug 29 2013 Adam Miller <admiller@redhat.com> 1.14.1-1
