@@ -230,7 +230,7 @@ module OpenShift
         #
         def get_log_args
           args = {}
-          args["APP_UUID"] = @application.uuid if @application
+          args["APP_UUID"] = @application._id.to_s if @application
           args["DOMAIN"] = (@application.domain_namespace if @application) || (@domain.namespace if @domain)
           args
         end
