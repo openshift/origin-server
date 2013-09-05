@@ -1,6 +1,6 @@
 # RHEL has 0.6 and 0.10. but 0.10 has a prefix for SCL
 # Fedora 18 and 19 has 0.10 as the default
-%if 0%{?rhel}
+%if 0%{?fedora}%{?rhel} <= 6
   %global scl nodejs010
   %global scl_prefix nodejs010-
 %endif
@@ -20,9 +20,10 @@ Requires:      facter
 Requires:      rubygem(openshift-origin-node)
 Requires:      openshift-origin-node-util
 
-%if 0%{?rhel} <= 6
-
+%if 0%{?fedora}%{?rhel} <= 6
 Requires:      %{scl}
+%endif
+
 Requires:      %{?scl:%scl_prefix}npm
 Requires:      %{?scl:%scl_prefix}nodejs-pg
 Requires:      %{?scl:%scl_prefix}nodejs-options
@@ -34,7 +35,6 @@ Requires:      %{?scl:%scl_prefix}nodejs-connect
 Requires:      %{?scl:%scl_prefix}nodejs-mongodb
 Requires:      %{?scl:%scl_prefix}nodejs-mysql
 Requires:      %{?scl:%scl_prefix}nodejs-node-static
-%endif
 
 Requires:      nodejs
 Requires:      nodejs-async
@@ -46,10 +46,6 @@ Requires:      nodejs-node-static
 Requires:      nodejs-pg
 Requires:      nodejs-supervisor
 Requires:      nodejs-options
-
-%if 0%{?fedora} >= 19
-Requires:      npm
-%endif
 
 Obsoletes: openshift-origin-cartridge-nodejs-0.6
 
