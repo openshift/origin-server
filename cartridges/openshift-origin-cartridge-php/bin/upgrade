@@ -7,3 +7,7 @@ next=$3
 if [[ $curr =~ 0.0.[1-3] ]]; then
   pear -c "$OPENSHIFT_HOMEDIR"/.pearrc config-get bin_dir > "$OPENSHIFT_PHP_DIR/env/OPENSHIFT_PHP_PATH_ELEMENT"
 fi
+
+if [[ $curr =~ 0.0.4 ]]; then
+  mkdir -p $OPENSHIFT_HOMEDIR/.drush
+fi
