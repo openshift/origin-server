@@ -226,7 +226,7 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
     assert_equal "update-configuration|pre-build|build", output
   end
 
-  def test_remote_deploy_success
+  def test_remote_deploy_nonscaled
     primary = mock()
     @cartridge_model.expects(:primary_cartridge).returns(primary)
 
@@ -240,7 +240,37 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
 
     deployment_datetime = "now"
 
-    [:prepare, :distribute, :activate].each do |method|
+    [:prepare, :activate].each do |method|
+      @container.expects(method).with(out: $stdout, err: $stderr, deployment_datetime: deployment_datetime)
+    end
+
+    @cartridge_model.expects(:web_proxy).returns(nil)
+
+    @container.remote_deploy(out: $stdout, err: $stderr, deployment_datetime: deployment_datetime)
+  end
+
+  def test_remote_deploy_scaled
+    primary = mock()
+    @cartridge_model.expects(:primary_cartridge).returns(primary)
+
+    @cartridge_model.expects(:do_control).with('update-configuration',
+                                               primary,
+                                               pre_action_hooks_enabled:  false,
+                                               post_action_hooks_enabled: false,
+                                               out:                       $stdout,
+                                               err:                       $stderr)
+                                          .returns('')
+
+    deployment_datetime = "now"
+
+    [:prepare, :activate].each do |method|
+      @container.expects(method).with(out: $stdout, err: $stderr, deployment_datetime: deployment_datetime)
+    end
+
+    web_proxy = mock()
+    @cartridge_model.expects(:web_proxy).returns(mock)
+
+    [:distribute, :activate_many].each do |method|
       @container.expects(method).with(out: $stdout, err: $stderr, deployment_datetime: deployment_datetime)
     end
 
@@ -611,9 +641,20 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
     assert_equal "rsync1 from 1234@localhost\nrsync2 from 1234@localhost\nrsync1 from 2345@localhost\nrsync2 from 2345@localhost\n", output
   end
 
+  def test_activate_many_app_dns_different_from_gear_dns
+    gear_env = {'OPENSHIFT_APP_DNS' => 'app-ns.example.com', 'OPENSHIFT_GEAR_DNS' => '123-ns.example.com'}
+    OpenShift::Runtime::Utils::Environ.expects(:for_gear).with(@container.container_dir).returns(gear_env)
+    @container.expects(:child_gear_ssh_urls).never
+    @cartridge_model.expects(:web_proxy).never
+    @container.expects(:run_in_container_context).never
+    @container.activate_many()
+  end
+
   def test_activate_many_no_child_gears
+    gear_env = {'OPENSHIFT_APP_DNS' => 'app-ns.example.com', 'OPENSHIFT_GEAR_DNS' => 'app-ns.example.com'}
+    OpenShift::Runtime::Utils::Environ.expects(:for_gear).with(@container.container_dir).returns(gear_env)
     @container.expects(:child_gear_ssh_urls).returns([])
-    OpenShift::Runtime::Utils::Environ.expects(:for_gear).never
+    @cartridge_model.expects(:web_proxy).never
     @container.expects(:run_in_container_context).never
     @container.activate_many()
   end
@@ -624,14 +665,35 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
     gears = %w(1234@localhost 2345@localhost)
     @container.expects(:child_gear_ssh_urls).returns(gears)
 
-    gear_env = {'key' => 'value'}
+    gear_env = {'OPENSHIFT_APP_DNS' => 'app-ns.example.com', 'OPENSHIFT_GEAR_DNS' => 'app-ns.example.com'}
     OpenShift::Runtime::Utils::Environ.expects(:for_gear).with(@container.container_dir).returns(gear_env)
 
+    web_proxy = mock()
+    @cartridge_model.expects(:web_proxy).returns(web_proxy)
+
     gears.each do |g|
+      gear_uuid = g.split('@')[0]
+
+      @cartridge_model.expects(:do_control).with('disable-server',
+                                                 web_proxy,
+                                                 args: gear_uuid,
+                                                 pre_action_hooks_enabled:  false,
+                                                 post_action_hooks_enabled: false,
+                                                 out:                       nil,
+                                                 err:                       nil)
+
       @container.expects(:run_in_container_context).with("/usr/bin/oo-ssh #{g} gear activate #{deployment_id} --no-hot-deploy",
                                                          env: gear_env,
                                                          expected_exitstatus: 0)
                                                    .returns("out from #{g}\n")
+
+      @cartridge_model.expects(:do_control).with('enable-server',
+                                                 web_proxy,
+                                                 args: gear_uuid,
+                                                 pre_action_hooks_enabled:  false,
+                                                 post_action_hooks_enabled: false,
+                                                 out:                       nil,
+                                                 err:                       nil)
     end
 
     output = @container.activate_many(deployment_id: deployment_id)
@@ -645,14 +707,35 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
     gears = %w(1234@localhost 2345@localhost)
     @container.expects(:child_gear_ssh_urls).never
 
-    gear_env = {'key' => 'value'}
+    gear_env = {'OPENSHIFT_APP_DNS' => 'app-ns.example.com', 'OPENSHIFT_GEAR_DNS' => 'app-ns.example.com'}
     OpenShift::Runtime::Utils::Environ.expects(:for_gear).with(@container.container_dir).returns(gear_env)
 
+    web_proxy = mock()
+    @cartridge_model.expects(:web_proxy).returns(web_proxy)
+
     gears.each do |g|
+      gear_uuid = g.split('@')[0]
+
+      @cartridge_model.expects(:do_control).with('disable-server',
+                                                 web_proxy,
+                                                 args: gear_uuid,
+                                                 pre_action_hooks_enabled:  false,
+                                                 post_action_hooks_enabled: false,
+                                                 out:                       nil,
+                                                 err:                       nil)
+
       @container.expects(:run_in_container_context).with("/usr/bin/oo-ssh #{g} gear activate #{deployment_id} --no-hot-deploy",
                                                          env: gear_env,
                                                          expected_exitstatus: 0)
                                                    .returns("out from #{g}\n")
+
+      @cartridge_model.expects(:do_control).with('enable-server',
+                                                 web_proxy,
+                                                 args: gear_uuid,
+                                                 pre_action_hooks_enabled:  false,
+                                                 post_action_hooks_enabled: false,
+                                                 out:                       nil,
+                                                 err:                       nil)
     end
 
     output = @container.activate_many(gears: gears, deployment_id: deployment_id)
@@ -666,14 +749,35 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
     gears = %w(1234@localhost 2345@localhost)
     @container.expects(:child_gear_ssh_urls).never
 
-    gear_env = {'key' => 'value'}
+    gear_env = {'OPENSHIFT_APP_DNS' => 'app-ns.example.com', 'OPENSHIFT_GEAR_DNS' => 'app-ns.example.com'}
     OpenShift::Runtime::Utils::Environ.expects(:for_gear).with(@container.container_dir).returns(gear_env)
 
+    web_proxy = mock()
+    @cartridge_model.expects(:web_proxy).returns(web_proxy)
+
     gears.each do |g|
+      gear_uuid = g.split('@')[0]
+
+      @cartridge_model.expects(:do_control).with('disable-server',
+                                                 web_proxy,
+                                                 args: gear_uuid,
+                                                 pre_action_hooks_enabled:  false,
+                                                 post_action_hooks_enabled: false,
+                                                 out:                       nil,
+                                                 err:                       nil)
+
       @container.expects(:run_in_container_context).with("/usr/bin/oo-ssh #{g} gear activate #{deployment_id} --hot-deploy",
                                                          env: gear_env,
                                                          expected_exitstatus: 0)
                                                    .returns("out from #{g}\n")
+
+      @cartridge_model.expects(:do_control).with('enable-server',
+                                                 web_proxy,
+                                                 args: gear_uuid,
+                                                 pre_action_hooks_enabled:  false,
+                                                 post_action_hooks_enabled: false,
+                                                 out:                       nil,
+                                                 err:                       nil)
     end
 
     output = @container.activate_many(gears: gears, deployment_id: deployment_id, hot_deploy: true)
@@ -687,14 +791,35 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
     gears = %w(1234@localhost 2345@localhost)
     @container.expects(:child_gear_ssh_urls).never
 
-    gear_env = {'key' => 'value'}
+    gear_env = {'OPENSHIFT_APP_DNS' => 'app-ns.example.com', 'OPENSHIFT_GEAR_DNS' => 'app-ns.example.com'}
     OpenShift::Runtime::Utils::Environ.expects(:for_gear).with(@container.container_dir).returns(gear_env)
 
+    web_proxy = mock()
+    @cartridge_model.expects(:web_proxy).returns(web_proxy)
+
     gears.each do |g|
+      gear_uuid = g.split('@')[0]
+
+      @cartridge_model.expects(:do_control).with('disable-server',
+                                                 web_proxy,
+                                                 args: gear_uuid,
+                                                 pre_action_hooks_enabled:  false,
+                                                 post_action_hooks_enabled: false,
+                                                 out:                       nil,
+                                                 err:                       nil)
+
       @container.expects(:run_in_container_context).with("/usr/bin/oo-ssh #{g} gear activate #{deployment_id} --no-hot-deploy --init",
                                                          env: gear_env,
                                                          expected_exitstatus: 0)
                                                    .returns("out from #{g}\n")
+
+      @cartridge_model.expects(:do_control).with('enable-server',
+                                                 web_proxy,
+                                                 args: gear_uuid,
+                                                 pre_action_hooks_enabled:  false,
+                                                 post_action_hooks_enabled: false,
+                                                 out:                       nil,
+                                                 err:                       nil)
     end
 
     output = @container.activate_many(gears: gears, deployment_id: deployment_id, init: true)
@@ -702,7 +827,11 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
     assert_equal "Activating gear 1234, deployment id: abcd1234, --no-hot-deploy, --init\nout from 1234@localhost\nActivating gear 2345, deployment id: abcd1234, --no-hot-deploy, --init\nout from 2345@localhost\n", output
   end
 
-  def test_activate_stops_started_gear
+  # options
+  # gear_started
+  # init
+  # scalable
+  def do_activate_test(options)
     deployment_id = 'abcd1234'
     deployment_datetime = 'now'
     deployment_dir = File.join(@container.container_dir, 'app-deployments', deployment_datetime)
@@ -713,12 +842,20 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
     gear_env = {'key' => 'value'}
     OpenShift::Runtime::Utils::Environ.expects(:for_gear).with(@container.container_dir).returns(gear_env)
 
-    @container.state.expects(:value).returns(::OpenShift::Runtime::State::STARTED)
-    @container.expects(:stop_gear).with(activate_options.merge(exclude_web_proxy: true)).returns("stop\n")
+    stop_output = ''
+    if options[:gear_started]
+      @container.state.expects(:value).returns(::OpenShift::Runtime::State::STARTED)
+      @container.expects(:stop_gear).with(activate_options.merge(exclude_web_proxy: true)).returns("stop\n")
+      stop_output = "stop\n"
+    else
+      @container.state.expects(:value).returns(::OpenShift::Runtime::State::STOPPED)
+      @container.expects(:stop_gear).never
+    end
+
     @container.expects(:update_repo_symlink).with(deployment_datetime)
     @container.expects(:update_dependencies_symlink).with(deployment_datetime)
     primary_cartridge = mock()
-    @cartridge_model.expects(:primary_cartridge).times(3).returns(primary_cartridge)
+    @cartridge_model.expects(:primary_cartridge).at_least(3).returns(primary_cartridge)
     @cartridge_model.expects(:do_control).with('update-configuration',
                                                primary_cartridge,
                                                pre_action_hooks_enabled: false,
@@ -760,160 +897,71 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
                                                err:nil)
                                          .returns("post-deploy\n")
 
+    if options[:init]
+      activate_options.merge!(init: true)
+      primary_cartridge_directory = 'primarycartdir'
+      primary_cartridge.expects(:directory).returns(primary_cartridge_directory)
+      primary_cart_env_dir = File.join(@container.container_dir, primary_cartridge_directory, 'env')
+      primary_cart_env = {'OPENSHIFT_XYZ_IDENT' => 'redhat:mock:0.1:0.1'}
+      ::OpenShift::Runtime::Utils::Environ.expects(:load).with(primary_cart_env_dir).returns(primary_cart_env)
+
+      @cartridge_model.expects(:post_install).with(primary_cartridge,
+                                                   '0.1',
+                                                   out: nil,
+                                                   err: nil)
+    else
+      primary_cartridge.expects(:directory).never
+      ::OpenShift::Runtime::Utils::Environ.expects(:load).never
+      @cartridge_model.expects(:post_install).never
+    end
+
     @container.expects(:write_deployment_metadata).with(deployment_datetime, 'state', 'DEPLOYED')
     @container.expects(:clean_up_deployments_before).with(deployment_datetime)
 
+    web_proxy = options[:scalable] ? mock() : nil
+    @cartridge_model.expects(:web_proxy).returns(web_proxy)
+    enable_server_expectation = @cartridge_model.expects(:do_control).with('enable-server',
+                                                                           web_proxy,
+                                                                           args: @container.uuid,
+                                                                           pre_action_hooks_enabled:  false,
+                                                                           post_action_hooks_enabled: false,
+                                                                           out:                       options[:out],
+                                                                           err:                       options[:err])
+    enable_server_expectation.never unless web_proxy
+
     output = @container.activate(activate_options)
 
-    assert_equal "stop\nStarting application ApplicationContainerTestCase\nstart secondary\ndeploy\nstart primary\npost-deploy\n", output
+    assert_equal "#{stop_output}Starting application ApplicationContainerTestCase\nstart secondary\ndeploy\nstart primary\npost-deploy\n", output
+  end
+
+  def test_activate_stops_started_gear
+    do_activate_test(gear_started: true)
   end
 
   def test_activate_doesnt_call_stop_if_already_stopped
-    deployment_id = 'abcd1234'
-    deployment_datetime = 'now'
-    deployment_dir = File.join(@container.container_dir, 'app-deployments', deployment_datetime)
-    activate_options = {deployment_id: deployment_id}
-
-    @container.expects(:get_deployment_datetime_for_deployment_id).with(deployment_id).returns(deployment_datetime)
-
-    gear_env = {'key' => 'value'}
-    OpenShift::Runtime::Utils::Environ.expects(:for_gear).with(@container.container_dir).returns(gear_env)
-
-    @container.state.expects(:value).returns(::OpenShift::Runtime::State::STOPPED)
-    @container.expects(:stop_gear).never
-    @container.expects(:update_repo_symlink).with(deployment_datetime)
-    @container.expects(:update_dependencies_symlink).with(deployment_datetime)
-    primary_cartridge = mock()
-    @cartridge_model.expects(:primary_cartridge).times(3).returns(primary_cartridge)
-    @cartridge_model.expects(:do_control).with('update-configuration',
-                                               primary_cartridge,
-                                               pre_action_hooks_enabled: false,
-                                               post_action_hooks_enabled: false,
-                                               out: nil,
-                                               err: nil)
-
-    @container.expects(:start_gear).with(secondary_only: true,
-                                         user_initiated: true,
-                                         exclude_web_proxy: true,
-                                         hot_deploy: nil,
-                                         out: nil,
-                                         err: nil)
-                                   .returns("start secondary\n")
-
-    @container.state.expects(:value=).with(::OpenShift::Runtime::State::DEPLOYING)
-
-    @cartridge_model.expects(:do_control).with('deploy',
-                                               primary_cartridge,
-                                               pre_action_hooks_enabled: false,
-                                               prefix_action_hooks: false,
-                                               out: nil,
-                                               err:nil)
-                                         .returns("deploy\n")
-
-    @container.expects(:start_gear).with(primary_only: true,
-                                         user_initiated: true,
-                                         exclude_web_proxy: true,
-                                         hot_deploy: nil,
-                                         out: nil,
-                                         err: nil)
-                                   .returns("start primary\n")
-
-    @cartridge_model.expects(:do_control).with('post-deploy',
-                                               primary_cartridge,
-                                               pre_action_hooks_enabled: false,
-                                               prefix_action_hooks: false,
-                                               out: nil,
-                                               err:nil)
-                                         .returns("post-deploy\n")
-
-    @container.expects(:write_deployment_metadata).with(deployment_datetime, 'state', 'DEPLOYED')
-    @container.expects(:clean_up_deployments_before).with(deployment_datetime)
-
-    output = @container.activate(activate_options)
-
-    assert_equal "Starting application ApplicationContainerTestCase\nstart secondary\ndeploy\nstart primary\npost-deploy\n", output
+    do_activate_test(gear_started: false)
   end
 
   def test_activate_with_init_option
-    deployment_id = 'abcd1234'
-    deployment_datetime = 'now'
-    deployment_dir = File.join(@container.container_dir, 'app-deployments', deployment_datetime)
-    activate_options = {deployment_id: deployment_id, init: true}
+    do_activate_test(init: true)
+  end
 
-    @container.expects(:get_deployment_datetime_for_deployment_id).with(deployment_id).returns(deployment_datetime)
+  def test_activate_enables_local_gear_if_scalable
+    do_activate_test(scalable: true)
+  end
 
-    gear_env = {'key' => 'value'}
+  def test_rollback_many_app_dns_different_from_gear_dns
+    gear_env = {'OPENSHIFT_APP_DNS' => 'app-ns.example.com', 'OPENSHIFT_GEAR_DNS' => '123-ns.example.com'}
     OpenShift::Runtime::Utils::Environ.expects(:for_gear).with(@container.container_dir).returns(gear_env)
-
-    @container.state.expects(:value).returns(::OpenShift::Runtime::State::STARTED)
-    @container.expects(:stop_gear).with(activate_options.merge(exclude_web_proxy: true)).returns("stop\n")
-    @container.expects(:update_repo_symlink).with(deployment_datetime)
-    @container.expects(:update_dependencies_symlink).with(deployment_datetime)
-    primary_cartridge = mock()
-    @cartridge_model.expects(:primary_cartridge).times(5).returns(primary_cartridge)
-    @cartridge_model.expects(:do_control).with('update-configuration',
-                                               primary_cartridge,
-                                               pre_action_hooks_enabled: false,
-                                               post_action_hooks_enabled: false,
-                                               out: nil,
-                                               err: nil)
-
-    @container.expects(:start_gear).with(secondary_only: true,
-                                         user_initiated: true,
-                                         exclude_web_proxy: true,
-                                         hot_deploy: nil,
-                                         out: nil,
-                                         err: nil)
-                                   .returns("start secondary\n")
-
-    @container.state.expects(:value=).with(::OpenShift::Runtime::State::DEPLOYING)
-
-    @cartridge_model.expects(:do_control).with('deploy',
-                                               primary_cartridge,
-                                               pre_action_hooks_enabled: false,
-                                               prefix_action_hooks: false,
-                                               out: nil,
-                                               err:nil)
-                                         .returns("deploy\n")
-
-    @container.expects(:start_gear).with(primary_only: true,
-                                         user_initiated: true,
-                                         exclude_web_proxy: true,
-                                         hot_deploy: nil,
-                                         out: nil,
-                                         err: nil)
-                                   .returns("start primary\n")
-
-    @cartridge_model.expects(:do_control).with('post-deploy',
-                                               primary_cartridge,
-                                               pre_action_hooks_enabled: false,
-                                               prefix_action_hooks: false,
-                                               out: nil,
-                                               err:nil)
-                                         .returns("post-deploy\n")
-
-    primary_cartridge_directory = 'primarycartdir'
-    primary_cartridge.expects(:directory).returns(primary_cartridge_directory)
-    primary_cart_env_dir = File.join(@container.container_dir, primary_cartridge_directory, 'env')
-    primary_cart_env = {'OPENSHIFT_XYZ_IDENT' => 'redhat:mock:0.1:0.1'}
-    ::OpenShift::Runtime::Utils::Environ.expects(:load).with(primary_cart_env_dir).returns(primary_cart_env)
-
-    @cartridge_model.expects(:post_install).with(primary_cartridge,
-                                                 '0.1',
-                                                 out: nil,
-                                                 err: nil)
-
-    @container.expects(:write_deployment_metadata).with(deployment_datetime, 'state', 'DEPLOYED')
-    @container.expects(:clean_up_deployments_before).with(deployment_datetime)
-
-    output = @container.activate(activate_options)
-
-    assert_equal "stop\nStarting application ApplicationContainerTestCase\nstart secondary\ndeploy\nstart primary\npost-deploy\n", output
+    @container.expects(:child_gear_ssh_urls).never
+    @container.expects(:run_in_container_context).never
+    @container.rollback_many()
   end
 
   def test_rollback_many_no_child_gears
+    gear_env = {'OPENSHIFT_APP_DNS' => 'app-ns.example.com', 'OPENSHIFT_GEAR_DNS' => 'app-ns.example.com'}
+    OpenShift::Runtime::Utils::Environ.expects(:for_gear).with(@container.container_dir).returns(gear_env)
     @container.expects(:child_gear_ssh_urls).returns([])
-    OpenShift::Runtime::Utils::Environ.expects(:for_gear).never
     @container.expects(:run_in_container_context).never
     @container.rollback_many()
   end
@@ -922,14 +970,35 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
     gears = %w(1234@localhost 2345@localhost)
     @container.expects(:child_gear_ssh_urls).returns(gears)
 
-    gear_env = {'key' => 'value'}
+    gear_env = {'OPENSHIFT_APP_DNS' => 'app-ns.example.com', 'OPENSHIFT_GEAR_DNS' => 'app-ns.example.com'}
     OpenShift::Runtime::Utils::Environ.expects(:for_gear).with(@container.container_dir).returns(gear_env)
 
+    web_proxy = mock()
+    @cartridge_model.expects(:web_proxy).returns(web_proxy)
+
     gears.each do |g|
+      gear_uuid = g.split('@')[0]
+
+      @cartridge_model.expects(:do_control).with('disable-server',
+                                                 web_proxy,
+                                                 args: gear_uuid,
+                                                 pre_action_hooks_enabled:  false,
+                                                 post_action_hooks_enabled: false,
+                                                 out:                       nil,
+                                                 err:                       nil)
+
       @container.expects(:run_in_container_context).with("/usr/bin/oo-ssh #{g} gear rollback",
                                                          env: gear_env,
                                                          expected_exitstatus: 0)
                                                    .returns("out from #{g}\n")
+
+      @cartridge_model.expects(:do_control).with('enable-server',
+                                                 web_proxy,
+                                                 args: gear_uuid,
+                                                 pre_action_hooks_enabled:  false,
+                                                 post_action_hooks_enabled: false,
+                                                 out:                       nil,
+                                                 err:                       nil)
     end
 
     output = @container.rollback_many()
@@ -941,14 +1010,35 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
     gears = %w(1234@localhost 2345@localhost)
     @container.expects(:child_gear_ssh_urls).never
 
-    gear_env = {'key' => 'value'}
+    gear_env = {'OPENSHIFT_APP_DNS' => 'app-ns.example.com', 'OPENSHIFT_GEAR_DNS' => 'app-ns.example.com'}
     OpenShift::Runtime::Utils::Environ.expects(:for_gear).with(@container.container_dir).returns(gear_env)
 
+    web_proxy = mock()
+    @cartridge_model.expects(:web_proxy).returns(web_proxy)
+
     gears.each do |g|
+      gear_uuid = g.split('@')[0]
+
+      @cartridge_model.expects(:do_control).with('disable-server',
+                                                 web_proxy,
+                                                 args: gear_uuid,
+                                                 pre_action_hooks_enabled:  false,
+                                                 post_action_hooks_enabled: false,
+                                                 out:                       nil,
+                                                 err:                       nil)
+
       @container.expects(:run_in_container_context).with("/usr/bin/oo-ssh #{g} gear rollback",
                                                          env: gear_env,
                                                          expected_exitstatus: 0)
                                                    .returns("out from #{g}\n")
+
+      @cartridge_model.expects(:do_control).with('enable-server',
+                                                 web_proxy,
+                                                 args: gear_uuid,
+                                                 pre_action_hooks_enabled:  false,
+                                                 post_action_hooks_enabled: false,
+                                                 out:                       nil,
+                                                 err:                       nil)
     end
 
     output = @container.rollback_many(gears: gears)
