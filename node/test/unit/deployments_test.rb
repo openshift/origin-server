@@ -98,11 +98,18 @@ class DeploymentsTest < OpenShift::NodeTestCase
     @container.expects(:run_in_container_context).with("set -x; shopt -s dotglob; /bin/mv app-root/runtime/dependencies/* app-deployments/2013-08-16_13-36-36.880/dependencies",
                                                      chdir: @container.container_dir)
 
+    @container.expects(:run_in_container_context).with("set -x; shopt -s dotglob; /bin/mv app-root/runtime/build-dependencies/* app-deployments/2013-08-16_13-36-36.880/build-dependencies",
+                                                     chdir: @container.container_dir)
+
     @container.move_dependencies('2013-08-16_13-36-36.880')
   end
 
   def test_copy_dependencies
     @container.expects(:run_in_container_context).with("/bin/cp -a app-root/runtime/dependencies/. app-deployments/2013-08-16_13-36-36.880/dependencies",
+                                                     chdir: @container.container_dir,
+                                                     expected_exitstatus: 0)
+
+    @container.expects(:run_in_container_context).with("/bin/cp -a app-root/runtime/build-dependencies/. app-deployments/2013-08-16_13-36-36.880/build-dependencies",
                                                      chdir: @container.container_dir,
                                                      expected_exitstatus: 0)
 
