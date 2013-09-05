@@ -40,8 +40,7 @@ class RestDomain10 < OpenShift::Model
           [OptionalParam.new("cartridge", "string", "framework-type", carts),
           OptionalParam.new("scale", "boolean", "Mark application as scalable", [true, false], false),
           OptionalParam.new("initial_git_url", "string", "A URL to a Git source code repository that will be the basis for this application.", ['*', OpenShift::Git::EMPTY_CLONE_SPEC]),
-          OptionalParam.new("gear_profile", "string", "The size of the gear", valid_sizes, valid_sizes[0]),
-          OptionalParam.new("environment_variables", "array", "Add or Update application environment variables, e.g.:[{'name':'FOO', 'value':'123'}, {'name':'BAR', 'value':'abc'}]")
+          OptionalParam.new("gear_profile", "string", "The size of the gear", valid_sizes, valid_sizes[0])
         ]),
         "UPDATE" => Link.new("Update domain", "PUT", URI::join(url, "domains/#{id}"),[
           Param.new("id", "string", "Name of the domain")
