@@ -2,7 +2,7 @@
 
 Summary:       Provides JBossEWS2.0 support
 Name:          openshift-origin-cartridge-jbossews
-Version: 0.9.1
+Version: 0.9.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -76,6 +76,10 @@ alternatives --set jbossews-2.0 /usr/share/tomcat7
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Thu Sep 05 2013 Adam Miller <admiller@redhat.com> 0.9.2-1
+- Bug 1004008: Use symlink test rather than -e before call to rm
+  (ironcladlou@gmail.com)
+
 * Thu Aug 29 2013 Adam Miller <admiller@redhat.com> 0.9.1-1
 - bump_minor_versions for sprint 33 (admiller@redhat.com)
 
