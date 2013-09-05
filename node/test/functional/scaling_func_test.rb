@@ -205,7 +205,7 @@ class ScalingFuncTest < OpenShift::NodeBareTestCase
 
   def add_ssh_key(app_id, app_name)
     ssh_key = IO.read(File.expand_path('~/.ssh/id_rsa.pub')).chomp.split[1]
-    `oo-authorized-ssh-key-add -a #{app_id} -c #{app_id} -s #{ssh_key} -t ssh-rsa -m default`
+    `oo-devel-node authorized-ssh-key-add -c #{app_id} -k #{ssh_key} -T ssh-rsa -m default`
     File.open(File.expand_path('~/.ssh/config'), 'a', 0o0600) do |f|
       f.write <<END
 Host #{app_name}-#{@namespace}.dev.rhcloud.com
