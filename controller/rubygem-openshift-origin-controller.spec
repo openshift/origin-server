@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.14.1
+Version: 1.14.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -84,6 +84,21 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Thu Sep 05 2013 Adam Miller <admiller@redhat.com> 1.14.2-1
+- Merge pull request #3538 from pmorie/dev/fix_tests
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3548 from jwhonce/wip/oo-devel-node
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3543 from fotioslindiakos/nodejs
+  (dmcphers+openshiftbot@redhat.com)
+- SCL support for nodejs (fotios@redhat.com)
+- Node Platform - Fix cucumber tests (jhonce@redhat.com)
+- WIP Node Platform - oo-devel-node: clean up oo-* scripts that emulate mco
+  calls (jhonce@redhat.com)
+- Fix platform upgrade tests (pmorie@gmail.com)
+- enable ha feature (rchopra@redhat.com)
+- fixing test cases for phpmyadmin-4 (dmcphers@redhat.com)
+
 * Thu Aug 29 2013 Adam Miller <admiller@redhat.com> 1.14.1-1
 - Bug 1002685 - Downcase domain names when fetching applications by domain
   (ccoleman@redhat.com)
