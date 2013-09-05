@@ -301,7 +301,6 @@ class Application
   end
 
   def uuid
-    Rails.logger.error "DEPRECATED: Access to Application#uuid has been removed\n  #{caller.join("\n  ")}"
     _id.to_s
   end
 
