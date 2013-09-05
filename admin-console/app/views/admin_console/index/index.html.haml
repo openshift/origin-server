@@ -4,20 +4,20 @@
       = "Data collected #{time_ago_in_words(@stats_created_at)} ago."
       = link_to params.merge(:reload => true) do
         %i.icon-refresh{:title => "Refresh now."}
-  - if @summary_for_profile.size == 0 # and other cases
+  - if @summary_for_profile.size == 0 # no profiles to show
     = render :partial => 'welcome'
   - else
     %h1
       System Overview
     .row
-      - if @suggestions.size <= 4 # inline them with the profiles 
+      - if @suggestions.size <= 4 # inline suggestions with the profiles 
         - @summary_for_profile.each_with_index do |profile, index|
-          - if !@suggestions.empty? && index == 1
-            .span6.suggestions-overview
-              = render :partial => 'suggestions'
           .span6{:class => !@suggestions.empty? && index == 1 ? "clear" : ""}
             = render :partial => 'profile', :locals => {:profile => profile[1]}
-      - else # too many suggestions, use the right column
+          - if !@suggestions.empty? && index == 0
+            .span6.suggestions-overview
+              = render :partial => 'suggestions'
+      - else # too many suggestions, put them in the right column
         .span7
           - @summary_for_profile.each_with_index do |profile, index|
             = render :partial => 'profile', :locals => {:profile => profile[1]}
