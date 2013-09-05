@@ -200,7 +200,8 @@ module Admin
               open_dists.sort_by {|dist| dist.nodes.size}.each do |dist|
                 sug = sug_for_dist[dist.uuid] ||= C::Add::Node.new(
                   s.merge district_name: dist.name, district_uuid: dist.uuid,
-                          node_quantity: 0, scope: "district")
+                          node_quantity: 0, scope: "district",
+                          nodes_creatable: dist[:space])
                 dist[:space] -= 1
                 sug.node_quantity += 1
                 nodes_needed -= 1

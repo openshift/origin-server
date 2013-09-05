@@ -136,7 +136,7 @@ module Admin
           attr_accessor :district_quantity
           # we estimate each district can handle this many nodes:
           attr_accessor :district_nodes_target
-          # ...but start out each with this many nodes (about half)
+          # ...but start out each with this many nodes
           attr_accessor :nodes_per_district
         end
       end # Add
@@ -154,6 +154,7 @@ module Admin
           attr_accessor :threshold        # gear_down_threshold for profile
           attr_accessor :max_active_gears # guess for node capacity in profile
           attr_accessor :nodes_to_remove  # nodes of that size to remove
+          #attr_accessor :nodes_creatable (inherited) new nodes same district could hold
         end
 
         # district maxed out - suggest repurposing/removing most idle node(s)
