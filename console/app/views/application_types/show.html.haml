@@ -54,6 +54,7 @@
           %p.help-block
             - case @application_type.support_type
             - when :openshift
+              %span.icon-star-empty{"aria-hidden" => "true"}
               %span.label-support.label-support-openshift{:title => 'Updated and maintained by the OpenShift team'} OpenShift maintained
             - when :partner
               %span.label-support.label-support-openshift{:title => 'Updated and maintained by a partner'} Partner created

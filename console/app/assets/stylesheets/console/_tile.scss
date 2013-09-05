@@ -2,7 +2,7 @@
   padding: 15px 25px; 
   margin-bottom: 20px; 
   background-color: #222;
-  color: #b0b0b0;
+  color: $consoleTextColorDefault;
   
   h2 {
     @include clearfix();
@@ -17,7 +17,6 @@
   }
 
   > h3 > a { 
-    color: #dadada; 
     text-decoration: none; 
   }
 
@@ -52,7 +51,6 @@
     background-color: #151515;
 
     h3 {
-      color: #f0f0f0;
     }
   }
 
@@ -76,10 +74,10 @@
   }
 }
 
-.tile-dark {
+.tile-light {
 
   .tile {
-    background: #131313;
+    background: #f8f8f8;
   }
   
   .tile-featured h3 {
@@ -95,7 +93,8 @@
     }
 
     &:hover  {
-      background: #000;
+      background: #fff;
+      @include box-shadow(0 0 1.5px #888);
       
       .font-icon-block {
         opacity: 1;
@@ -125,7 +124,7 @@
   }
 }
 
-.section-body .tile-dark > .tile-click {
+.section-body .tile-light > .tile-click {
   margin-left: 5px;
   > div {
     margin-right: -5px;
