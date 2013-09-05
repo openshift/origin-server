@@ -38,9 +38,9 @@ module Capabilities
     #
     def self.from(obj)
       if obj.is_a? Array
-        version = obj.shift
+        version = obj.first
         raise "Mismatched serialized version" if version != -serialize_version
-        new(*obj)
+        new(*obj[1..-1])
       elsif obj.respond_to? :[]
         new(*attrs.map{ |s| obj[s] || obj[s.to_s] })
       else
@@ -49,7 +49,7 @@ module Capabilities
     end
 
     def self.serialize_version
-      -1
+      1
     end
     def serialize_version
       self.class.serialize_version
@@ -70,7 +70,7 @@ module Capabilities
       self.class.attrs.map{ |s| send(s) }.map!{ |v| v == UnlimitedGears ? nil : v }
     end
     def to_session
-      to_a.unshift(self.serialize_version)
+      to_a.unshift(-self.serialize_version)
     end
 
     def gear_sizes

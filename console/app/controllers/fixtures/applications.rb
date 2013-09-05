@@ -50,6 +50,33 @@ module Fixtures
       ]
     end
 
+    def self.list_domains
+      [
+        Domain.new({
+          :name => 'widgets', 
+          :application_count => 2,
+          :gear_counts => {:small => 1, :medium => 2},
+          :members => [Member.new(:id => '1', :role => 'admin', :name => 'Alice', :owner => true)],
+        }),
+        Domain.new({
+          :name => 'bobdev', 
+          :application_count => 3,
+          :gear_counts => {:small => 10, :medium => 3, :large => 2},
+          :members => [Member.new(:id => '1', :role => 'admin', :name => 'Alice', :owner => true)],
+        }),
+        Domain.new({
+          :name => 'foo', 
+          :application_count => 0,
+          :members => [Member.new(:id => '2', :role => 'admin', :name => 'Alice', :owner => true)],
+        }),
+        Domain.new({
+          :name => 'barco', 
+          :application_count => 0,
+          :members => [Member.new(:id => '2', :role => 'admin', :name => 'Bob', :owner => true), Member.new(:id => '1', :role => 'edit', :name => 'Alice', :owner => false)]
+        }),        
+      ]
+    end
+
     def self.medium_scale
       Application.new({
         :name => 'prodmybars', :app_url => "http://prodmybars-barco.rhcloud.com", :id => '5', :domain_id => 'barco', :gear_profile => 'small', :gear_count => 4, 

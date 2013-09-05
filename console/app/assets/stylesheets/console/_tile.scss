@@ -86,13 +86,14 @@
     margin-right: 20px;
   }
 
+  .tile-target:link,
+  .tile-target:visited {
+    color: white;
+  }
+
   > .tile-click {
     position: relative;
     margin-bottom: 3px;
-
-    .tile-target {
-      color:#c0c0c0;
-    }
 
     &:hover  {
       background: #000;
@@ -101,15 +102,9 @@
         opacity: 1;
       }
       .tile-target {
-        color: #f0f0f0;
+        text-decoration: underline;
+        color: #6DB3C7;
       }
-      .tile-arrow {
-        color: $buttonBlueHover;
-        visibility: visible;
-      }
-    }
-    .tile-arrow {
-      visibility: hidden;
     }
     .font-icon-block {
       position: absolute;
@@ -132,6 +127,5 @@
 @media (max-width: 767px) {
   .section-body .row > .tile-click {
     @include expand_for_phone();
-
   }
 }

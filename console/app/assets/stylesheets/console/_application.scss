@@ -18,15 +18,19 @@
   .application + .domain {
     margin-top: 20px;
   }
+
+  .domain {
+    padding-bottom: 5px; 
+    margin-bottom: 8px; 
+    border-bottom: 4px solid #222;
+  }  
 }
 
 .application {
 	position: relative;
 
   a:hover, a:active {
-    color: white;
     opacity: 1;
-    text-decoration: none;
   }
 
   &.warning {

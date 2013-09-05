@@ -74,18 +74,21 @@ class ApplicationsController < ConsoleController
 
   def index
     if params[:test]
-      @applications_filter = ApplicationsFilter.new params[:applications_filter]
       @applications = Fixtures::Applications.list
+      @domains = Fixtures::Applications.list_domains
+      (@applications + @domains).each{ |d| d.send(:api_identity_id=, '2') }
     else
-      @applications = Application.find :all, :as => current_user
-      @applications_filter = ApplicationsFilter.new params[:applications_filter]
-      @applications = @applications_filter.apply(@applications)
+      async{ @applications = Application.find :all, :as => current_user, :params => {:include => :cartridges} }
+      async{ @domains = user_domains }
+      join(10)
     end
 
-    render :first_steps and return if @applications.empty? && @applications_filter.blank?
+    render :first_steps and return if @applications.blank?
 
     @has_key = sshkey_uploaded?
     @user_owned_domains = user_owned_domains
+    @empty_owned_domains = @user_owned_domains.select{ |d| d.application_count == 0 }
+    @empty_unowned_domains = @domains.select{ |d| !d.owner? && d.application_count == 0 }
     @capabilities = user_capabilities
   end
 
