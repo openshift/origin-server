@@ -175,12 +175,11 @@ class DeploymentFuncTest < OpenShift::NodeTestCase
     @container.configure('mock-0.1')
     @container.post_configure('mock-0.1')
     @container.build(deployment_datetime: datetime)
-    @container.prepare(deployment_datetime: datetime)
-
-    expected_deployment_id = '84ada878'
+    output = @container.prepare(deployment_datetime: datetime)
+    deployment_id = output[-8..-1]
 
     # make sure the by-id symlink was created
-    by_id_link_file = File.join(@container.container_dir, 'app-deployments', 'by-id', expected_deployment_id)
+    by_id_link_file = File.join(@container.container_dir, 'app-deployments', 'by-id', deployment_id)
     assert_path_exist(by_id_link_file)
 
     # make sure the by-id symlink points to the right datetime
@@ -188,7 +187,7 @@ class DeploymentFuncTest < OpenShift::NodeTestCase
     assert_equal datetime, File.basename(by_id_link)
 
     # TODO may be better to just validate that it's an 8 character string
-    assert_equal '84ada878', @container.read_deployment_metadata(datetime, 'id').chomp
+    assert_equal deployment_id, @container.read_deployment_metadata(datetime, 'id').chomp
   end
 
   def test_prepare_action_hook
