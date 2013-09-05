@@ -7,8 +7,8 @@ shopt -s dotglob
 cp -r $OPENSHIFT_PYTHON_DIR/usr/versions/$version/template/* $OPENSHIFT_PYTHON_DIR/template
 
 # Create additional directories required by PYTHON and httpd
-rm -f $OPENSHIFT_PYTHON_DIR/modules ; ln -s /usr/lib64/httpd/modules $OPENSHIFT_PYTHON_DIR
-rm -f $OPENSHIFT_PYTHON_DIR/etc/magic ; ln -s /etc/httpd/conf/magic $OPENSHIFT_PYTHON_DIR/etc/magic
+ln -sf /usr/lib64/httpd/modules $OPENSHIFT_PYTHON_DIR
+ln -sf /etc/httpd/conf/magic $OPENSHIFT_PYTHON_DIR/etc/magic
 
 # Create the virtenv symlink
 pushd $OPENSHIFT_PYTHON_DIR > /dev/null
