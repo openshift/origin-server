@@ -658,7 +658,7 @@ end
 
 command :'frontend-no-sts' do |c|
   c.syntax      = %Q(#{$name} #{c.name} --with-container-uuid UUID)
-  c.description = 'Return 0 (true) if an app is idle and 1 (false) if an app is not idle'
+  c.description = 'Remove STS header from Frontend Httpd for gear'
 
   c.action do |args, options|
     frontend = new_frontend(options.with_container_uuid, c)
