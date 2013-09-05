@@ -16,7 +16,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.14.1
+Version: 1.14.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -305,6 +305,39 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Thu Sep 05 2013 Adam Miller <admiller@redhat.com> 1.14.2-1
+- Merge pull request #3548 from jwhonce/wip/oo-devel-node
+  (dmcphers+openshiftbot@redhat.com)
+- Node Platform - Fix cucumber tests (jhonce@redhat.com)
+- Merge pull request #3545 from mfojtik/bugzilla/1004216
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1004216 - Fixed typo in frontend-disconnect (oo-devel-node)
+  (mfojtik@redhat.com)
+- Bug 1004292 - Fix typo in oo-devel-node command (mfojtik@redhat.com)
+- Merge pull request #3541 from jwhonce/wip/oo-devel-node
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3528 from rmillner/wrap_port_allocation
+  (dmcphers+openshiftbot@redhat.com)
+- Node Platform - Remove files deprecated by oo-devel-node (jhonce@redhat.com)
+- WIP Node Platform - oo-devel-node: clean up oo-* scripts that emulate mco
+  calls (jhonce@redhat.com)
+- Wrap the port range indefinitely. (rmillner@redhat.com)
+- Merge pull request #3535 from ironcladlou/bz/1003969
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1003969: Don't raise if processed ERBs no longer exist to delete
+  (ironcladlou@gmail.com)
+- Merge pull request #3311 from detiber/runtime_card_213
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1002269 - empty client messages are dropped, should be new line
+  (jforrest@redhat.com)
+- Merge pull request #3521 from kraman/master
+  (dmcphers+openshiftbot@redhat.com)
+- Fix up unit test to prevent test pollution, fix variable name typo
+  (jdetiber@redhat.com)
+- <runtime> Card origin_runtime_213: realtime node_utilization checks
+  (jdetiber@redhat.com)
+- Adding reload as an action to restart openshift-tc (kraman@gmail.com)
+
 * Thu Aug 29 2013 Adam Miller <admiller@redhat.com> 1.14.1-1
 - misc: remove duplicate import in oo-trap-user (mmahut@redhat.com)
 - Merge remote-tracking branch 'origin/master' into propagate_app_id_to_gears
