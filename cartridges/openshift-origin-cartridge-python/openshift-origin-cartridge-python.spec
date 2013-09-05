@@ -1,7 +1,7 @@
 %global cartridgedir %{_libexecdir}/openshift/cartridges/python
 
 Name:          openshift-origin-cartridge-python
-Version: 0.9.1
+Version: 0.9.2
 Release:       1%{?dist}
 Summary:       Python cartridge
 Group:         Development/Languages
@@ -114,6 +114,14 @@ Python cartridge for OpenShift. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Thu Sep 05 2013 Adam Miller <admiller@redhat.com> 0.9.2-1
+- The "-e" is causing regressions, was not in the original script and is not
+  needed by the script itself. (rmillner@redhat.com)
+- Bug 1000978 - Make curl more silent when fetching status of python cartridge
+  (mfojtik@redhat.com)
+- Status was failing at the curl command on stopped gears due to the -e
+  (rmillner@redhat.com)
+
 * Thu Aug 29 2013 Adam Miller <admiller@redhat.com> 0.9.1-1
 - Add support for Flask and requirements.txt (rmillner@redhat.com)
 - Merge pull request #3460 from rmillner/BZ999400
