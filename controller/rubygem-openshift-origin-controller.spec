@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.14.2
+Version: 1.14.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -84,6 +84,13 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Fri Sep 06 2013 Adam Miller <admiller@redhat.com> 1.14.3-1
+- Merge pull request #3558 from pravisankar/dev/ravi/env-var-fix
+  (dmcphers+openshiftbot@redhat.com)
+- Remove environment variables support from REST 1.0 api version
+  (rpenta@redhat.com)
+- Using _id instead of uuid for application (abhgupta@redhat.com)
+
 * Thu Sep 05 2013 Adam Miller <admiller@redhat.com> 1.14.2-1
 - Merge pull request #3538 from pmorie/dev/fix_tests
   (dmcphers+openshiftbot@redhat.com)
