@@ -7,7 +7,7 @@ class UpdateAppConfigOpGroup < PendingAppOpGroup
 
   def elaborate(app)
     prereqs = {}
-    unless (add_keys_attrs.nil? and remove_keys_attrs.nil? and add_env_vars.nil? and remove_env_vars.nil?)
+    unless (add_keys_attrs.nil? and remove_keys_attrs.nil? and add_env_vars.nil? remove_env_vars.nil?)
       app.group_instances.each do |group_instance|
         group_instance_id = group_instance._id.to_s
         group_instance.gears.each do |gear|
