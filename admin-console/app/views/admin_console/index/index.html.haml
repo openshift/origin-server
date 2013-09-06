@@ -1,9 +1,10 @@
 .capacity
-  - if @config[:stats][:cache_timeout] > 0.seconds
+  - if @cache_timeout > 0.seconds
     %small.pull-right.muted
-      = "Data collected #{time_ago_in_words(@stats_created_at)} ago."
-      = link_to params.merge(:reload => true) do
-        %i.icon-refresh{:title => "Refresh now."}
+      %form{:action => reload_path, :method => "post"}
+        = "Data collected #{time_ago_in_words(@stats_created_at)} ago."
+        %button.btn.btn-mini{:type => "submit", :title => "Refresh now."}
+          %i.icon-refresh
   - if @summary_for_profile.size == 0 # no profiles to show
     = render :partial => 'welcome'
   - else

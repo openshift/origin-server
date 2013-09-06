@@ -1,12 +1,3 @@
-- content_for :javascripts do
-  :javascript
-    $(function() {
-      $('.suggestion').click(function() {
-        if ($(this).attr('suggestion_url'))
-          window.location.href = $(this).attr('suggestion_url');
-      });
-    });
-
 %section
   %h3
     Suggestions
@@ -25,3 +16,12 @@
                 = "?"
           %td.suggestion-body       
             = render partial: partial, locals: {suggestion: suggestion, size: :short}
+
+- content_for :javascripts do
+  :javascript
+    $(function() {
+      $('.suggestion').click(function() {
+        if ($(this).attr('suggestion_url'))
+          window.location.href = $(this).attr('suggestion_url');
+      });
+    });

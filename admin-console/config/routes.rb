@@ -1,6 +1,7 @@
 AdminConsole::Engine.routes.draw do
   id_regex = /[^\/]+/
   root :to => "index#index", :via => :get, :as => :admin_console
+  post "reload", to: "index#reload"
   get "search", to: "search#index"
   resources :stats, :only => [:index, :show]
   resources :users, :only => [:show], :id => id_regex

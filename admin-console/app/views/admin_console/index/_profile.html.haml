@@ -1,17 +1,3 @@
-- content_for :javascripts do
-  :javascript
-    $(function() {
-      $('.districts').click(function() {
-        if ($(this).attr('profile_url'))
-          window.location.href = $(this).attr('profile_url');
-      });
-
-      $('.nodes').click(function() {
-        if ($(this).attr('profile_url'))
-          window.location.href = $(this).attr('profile_url');
-      });
-    });
-- active_warning_threshold = @config[:warn][:node_active_remaining]
 - test = profile.nil?
 - undistricted_nodes_exist = profile[:districts].any? {|district| district[:name] == "(NONE)"}
 - show_districts = Rails.configuration.msg_broker[:districts][:enabled] && (profile[:districts].size > 1 || !undistricted_nodes_exist)
@@ -84,7 +70,7 @@
             - active_pct = 0.0
           - else
             - active_pct = (active_gears.to_f / total_active_gears.to_f) * 100
-          - active_warn_pct = threshold_pct(active_warning_threshold, total_active_gears)
+          - active_warn_pct = threshold_pct(@active_warning_threshold, total_active_gears)
           = sample_tooltip sample, "active_gears", ["pull-left"] do
             .stat-label
               active 
@@ -105,7 +91,7 @@
             .bar
               - profile[:districts].each do |district|
                 - district[:nodes].each do |node|
-                  - node_active_warn_pct = threshold_pct(active_warning_threshold, node[:max_active_gears])
+                  - node_active_warn_pct = threshold_pct(@active_warning_threshold, node[:max_active_gears])
                   - tickmark_class = node[:gears_active_usage_pct] < node_active_warn_pct ? 'tickmark-success' : node[:gears_active_usage_pct] < 100 ? 'tickmark-warning' : 'tickmark-danger';
                   .node.tickmark{:class => tickmark_class, :style => "left: #{[100, node[:gears_active_usage_pct] / 110 * 100].min}%;"}
             .end-point-left
@@ -114,3 +100,16 @@
               = "usage by node"
             .end-point-right
               = "> 110%"
+- content_for :javascripts do
+  :javascript
+    $(function() {
+      $('.districts').click(function() {
+        if ($(this).attr('profile_url'))
+          window.location.href = $(this).attr('profile_url');
+      });
+
+      $('.nodes').click(function() {
+        if ($(this).attr('profile_url'))
+          window.location.href = $(this).attr('profile_url');
+      });
+    });

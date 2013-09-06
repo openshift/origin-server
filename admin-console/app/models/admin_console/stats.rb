@@ -1,3 +1,8 @@
+# in the case where we get Admin:: classes from the cache before
+# they have actually been defined... ensure their namespaces load.
+require 'admin/stats/results'
+require 'admin/suggestion/types'
+
 module AdminConsole
   class Stats
     def self.collect
@@ -15,17 +20,16 @@ module AdminConsole
       }
     end
 
-    # in the case where we get Admin:: classes from the cache before
-    # they have actually been defined... ensure their namespaces load.
-    require 'admin/stats/results'
-    require 'admin/suggestion/types'
-
     def self.systems_summaries(force_reload = false, conf = Rails.application.config.admin_console)
       Rails.cache.fetch('admin_console_system_statistics',
                         expires_in: conf[:stats][:cache_timeout],
                         force: force_reload) do
         gather_systems_statistics(conf)
       end
+    end
+
+    def self.clear
+      Rails.cache.delete('admin_console_system_statistics')
     end
 
     protected

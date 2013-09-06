@@ -1,40 +1,25 @@
-require_dependency "admin_console/application_controller"
-
 module AdminConsole
   class IndexController < ApplicationController
     def index
-      reload = params[:reload]
-      @stats = AdminConsole::Stats.systems_summaries(reload)
+      @stats = AdminConsole::Stats.systems_summaries
       @stats_created_at = @stats.created_at
       @suggestions = @stats.suggestions
       if (!Rails.env.production?) && n = params[:tsugs]
         @suggestions = Admin::Suggestion::Advisor.subclass_test_instances.
                        slice(0, n.to_i).compact
       end
-      @suggestions.sort! { |x, y| sort_suggestions(x, y)}
+      @suggestions.sort_by!{ |s| [s.important? ? 0 : 1, s.is_a?(Class) ? s.to_s : s.class.to_s] }
 
       @config = Rails.application.config.admin_console
+      @cache_timeout = @config[:stats][:cache_timeout]
+      @active_warning_threshold = @config[:warn][:node_active_remaining]
 
       @summary_for_profile = @stats.profile_summaries_hash
     end
 
-    protected
-
-    def sort_suggestions(x, y)
-      case
-      when x.important? && y.important?
-        xklass = x.is_a?(Class) ? x : x.class
-        yklass = y.is_a?(Class) ? x : y.class
-        xklass.to_s <=> yklass.to_s
-      when x.important? && !y.important?
-        -1
-      when !x.important? && y.important?
-        1
-      else
-        xklass = x.is_a?(Class) ? x : x.class
-        yklass = y.is_a?(Class) ? x : y.class
-        xklass.to_s <=> yklass.to_s
-      end
+    def reload
+      AdminConsole::Stats.clear
+      redirect_to params[:then] || admin_console_path
     end
   end
 end
