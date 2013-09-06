@@ -1,7 +1,7 @@
 %global cartridgedir %{_libexecdir}/openshift/cartridges/python
 
 Name:          openshift-origin-cartridge-python
-Version: 0.9.2
+Version: 0.9.3
 Release:       1%{?dist}
 Summary:       Python cartridge
 Group:         Development/Languages
@@ -114,6 +114,13 @@ Python cartridge for OpenShift. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Fri Sep 06 2013 Adam Miller <admiller@redhat.com> 0.9.3-1
+- Merge pull request #3555 from rmillner/BZ1004886
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1004515 - PYTHON_EGG_CACHE is passed in from the environment and does not
+  need to hardcode. (rmillner@redhat.com)
+- Fix bug 1004899: remove legacy subscribes from manifests (pmorie@gmail.com)
+
 * Thu Sep 05 2013 Adam Miller <admiller@redhat.com> 0.9.2-1
 - The "-e" is causing regressions, was not in the original script and is not
   needed by the script itself. (rmillner@redhat.com)
