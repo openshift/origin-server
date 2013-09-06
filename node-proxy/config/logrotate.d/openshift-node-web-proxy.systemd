@@ -1,0 +1,14 @@
+/var/log/node-web-proxy/*log {
+    daily
+    missingok
+    notifempty
+    compress
+    nocreate
+    maxage 30
+    size 20M
+    rotate 5
+    sharedscripts
+    postrotate
+        systemctl restart openshift-node-web-proxy.service > /dev/null 2>/dev/null || true
+    endscript
+}
