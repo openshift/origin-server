@@ -9,7 +9,7 @@
 
 Summary:       OpenShift Apache Virtual Hosts frontend plugin
 Name:          rubygem-%{gem_name}
-Version: 0.1.1
+Version: 0.1.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -110,6 +110,10 @@ mv httpd/frontend-vhost-http-template.erb %{buildroot}/etc/httpd/conf.d/
 /etc/openshift/node-plugins.d/
 
 %changelog
+* Fri Sep 06 2013 Rob Millner <rmillner@redhat.com> 0.1.2-1
+- Break out FrontendHttpServer class into plugin modules.
+- Migration tool and fixes.
+
 * Thu Aug 08 2013 Adam Miller <admiller@redhat.com> 0.2.1-1
 - bump_minor_versions for sprint 32 (admiller@redhat.com)
 
