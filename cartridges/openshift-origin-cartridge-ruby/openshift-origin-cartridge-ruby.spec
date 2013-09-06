@@ -6,7 +6,7 @@
 %global cartridgedir %{_libexecdir}/openshift/cartridges/ruby
 
 Name:          openshift-origin-cartridge-ruby
-Version: 0.9.1
+Version: 0.9.2
 Release:       1%{?dist}
 Summary:       Ruby cartridge
 Group:         Development/Languages
@@ -183,6 +183,9 @@ Ruby cartridge for OpenShift. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Fri Sep 06 2013 Adam Miller <admiller@redhat.com> 0.9.2-1
+- Fix bug 1004899: remove legacy subscribes from manifests (pmorie@gmail.com)
+
 * Thu Aug 29 2013 Adam Miller <admiller@redhat.com> 0.9.1-1
 - Merge remote-tracking branch 'origin/master' into propagate_app_id_to_gears
   (ccoleman@redhat.com)
