@@ -48,10 +48,15 @@ module OpenShift
       @@resource_limits_cache = nil
 
       def self.resource_limits
-        if not @@resource_limits_cache
-          @@resource_limits_cache = OpenShift::Config.new('/etc/openshift/resource_limits.conf')
+        unless @@resource_limits_cache
+          limits = '/etc/openshift/resource_limits.conf'
+          if File.readable? limits
+            @@resource_limits_cache = OpenShift::Config.new(limits)
+          else
+            return nil
+          end
         end
-        @@resource_limits_cache
+        return @@resource_limits_cache
       end
 
       def self.get_cartridge_list(list_descriptors = false, porcelain = false, oo_debug = false)
@@ -344,6 +349,8 @@ module OpenShift
         res = Hash.new(nil)
 
         resource = resource_limits
+        return res unless resource
+
         res['node_profile'] = resource.get('node_profile', DEFAULT_NODE_PROFILE)
         res['quota_blocks'] = resource.get('quota_blocks', DEFAULT_QUOTA_BLOCKS)
         res['quota_files'] = resource.get('quota_files', DEFAULT_QUOTA_FILES)
