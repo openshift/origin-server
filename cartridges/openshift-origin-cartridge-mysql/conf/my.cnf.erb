@@ -1,3 +1,10 @@
+# WARNING: Changes to this file will be lost on every restart/upgrade.  Configurable values can be set with environment variables through rhc env set...
+#
+# Ex: rhc env set OPENSHIFT_MYSQL_LOWER_CASE_TABLE_NAMES=1 -a myapp && rhc cartridge restart -c mysql-5.1 -a myapp
+#
+# Configurable Values:
+# lower_case_table_names -> OPENSHIFT_MYSQL_LOWER_CASE_TABLE_NAMES
+
 [mysqld]
 datadir=<%= ENV['OPENSHIFT_MYSQL_DIR'] %>/data/
 socket=<%= ENV['OPENSHIFT_MYSQL_DB_SOCKET'] %>
@@ -7,11 +14,12 @@ symbolic-links=0
 key_buffer_size = 16K
 max_allowed_packet = 200M
 table_open_cache = 4
-sort_buffer_size = 64K
+sort_buffer_size = 128K
 read_buffer_size = 256K
 read_rnd_buffer_size = 256K
 net_buffer_length = 2K
 thread_stack = 256K
+lower_case_table_names = <%= ENV['OPENSHIFT_MYSQL_LOWER_CASE_TABLE_NAMES'] ? ENV['OPENSHIFT_MYSQL_LOWER_CASE_TABLE_NAMES'] : "0" %>
 
 
 #INNODB
