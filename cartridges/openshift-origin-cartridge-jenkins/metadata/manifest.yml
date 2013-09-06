@@ -55,10 +55,10 @@ Cart-Data:
   Description: URL for the jenkins server
 - Key: JENKINS_USERNAME
   Type: environment
-  Description: Admin user on jenkins server
+  Description: User on jenkins server for automated builds
 - Key: JENKINS_PASSWORD
   Type: environment
-  Description: Admin user's password for jenkins server
+  Description: Automated build user's password for jenkins server
 Provides:
 - jenkins-1
 - jenkins
