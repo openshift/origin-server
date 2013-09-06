@@ -12,17 +12,10 @@
 class PendingAppOp
   include Mongoid::Document
   embedded_in :pending_app_op_group, class_name: PendingAppOpGroup.name
-  field :op_type,           type: Symbol
   field :state,             type: Symbol,   default: :init
-  field :args,              type: Hash
   field :prereq,            type: Array
   field :retry_count,       type: Integer,  default: 0
   field :retry_rollback_op, type: Moped::BSON::ObjectId
-  field :saved_values,      type: Hash, default: {}
-
-  def args
-    self.attributes["args"] || {}
-  end
 
   def prereq
     self.attributes["prereq"] || []
@@ -48,6 +41,29 @@ class PendingAppOp
     parent_op.child_completed(application) unless parent_op_id.nil?
   end
 
+  # this method needs to be implemented by the subclass
+  def execute()
+    Rails.logger.debug "Execution not implemented: #{self.class.to_s}"
+  end
+
+  # this method needs to be implemented by the subclass
+  def rollback()
+    Rails.logger.debug "Rollback not implemented: #{self.class.to_s}"
+  end
+
+  def isParallelExecutable()
+    return false
+  end
+
+  def addParallelExecuteJob(handle)
+    Rails.logger.debug "Parallel execute not implemented: #{self.class.to_s}"
+  end
+  
+  def addParallelRollbackJob(handle)
+    Rails.logger.debug "Parallel rollback not implemented: #{self.class.to_s}"
+  end
+  
+  
   # the new_state needs to be a symbol
   def set_state(new_state)
     failure_message = "Failed to set pending_op #{self._id.to_s} state to #{new_state.to_s} for application #{self.pending_app_op_group.application.name}"
@@ -95,4 +111,25 @@ class PendingAppOp
     
     return current_op
   end
+
+  def get_group_instance()
+    pending_app_op_group.application.group_instances.find(group_instance_id) 
+  end
+
+  def get_gear()
+    group_instance = get_group_instance()
+    group_instance.gears.find(gear_id)
+  end
+
+  def get_component_instance()
+    component_instance = nil
+    group_instance = get_group_instance()
+    if comp_spec
+      comp_name = comp_spec["comp"]
+      cart_name = comp_spec["cart"]
+      component_instance = pending_app_op_group.application.component_instances.find_by(cartridge_name: cart_name, component_name: comp_name, group_instance_id: group_instance._id)
+    end
+    component_instance
+  end
+
 end
