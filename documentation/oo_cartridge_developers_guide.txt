@@ -892,13 +892,44 @@ Subscriptions to events published by other carts are defined via the `manifest.y
 [source,yaml]
 Subscribes:   <event name>     Type: "<event type>"   ...
 
-When a cartridge publish event is fired, the subscription entries in the `Subscribes` section whose `Type` matches that of the publish event will be processed. For each matching subscription event, OpenShift will attempt to execute a script named `hooks/<event name>`:
+When a cartridge publish event is fired, the subscription entries in the `Subscribes` section whose `Type` matches that of the publish event will be processed. Subscriptions which have a `Type` that starts with `ENV:` are processed differently, as described below. For each matching subscription event, OpenShift will attempt to execute a script named `hooks/<event name>`:
 
 ----
 hooks/<event name> <gear name> <namespace> <gear uuid> <publish output>
 ----
 
 The format of the `<publish output>` input to the subscription script is defined by the implementation of the publisher script, and so the cartridge subscription script must have an awareness of the output format of the matching publish script.
+
+==== ENV: Subscription Type
+Subscription types that start with `ENV:` have special designation as environment variable subscriptions. For these subscriptions the event hook script `hooks/<event name>` is optional. If this script is not present or present but not executable, a specialized built-in event hook is used.
+
+The built-in event hook imports environment variables from any matching `Publishes` sections of other cartridges added to the application in question. A typical example where this is useful would be setting up connection credentials in a web cartridge for a database add-on cartridge.
+
+There are two forms of this subscription type: the wildcard type, which is usually what you want to use, and the targeted type.
+
+===== Wildcard ENV:* Subscription Type
+It's often useful to pull in environment variables from all add-on cartridges within an application, particularly for web cartridges. For these instances, the `ENV:*` subscription type is provided. When a cartridge with this this subscription type is added to an application, all other cartridges in the application are scanned for `ENV:` type event publications. These are then processed automatically as detailed above.
+
+The convention for adding the `ENV:*` subscription to a cartridge manifest is as follows:
+
+[source,yaml]
+Subscribes:  set-env:    Type: ENV:*    Required: false
+
+===== Targeted ENV: Subscription Type
+
+In most cases, it is appropriate to use the special wildcard subscription type format described above. For the small remainder of cases, there is the targeted `ENV:` subscription form. This allows a cartridge author to control specifically which published environment variable event types a cartridge will use to pull in environment variables.
+
+A targeted `ENV:` subscription takes the same format as a normal subscription event, with a particular event type specified as in the following example:
+
+Suppose the fictitious "AwesomeSQL" cartridge publishes environment variables with the following manifest entry:
+
+[source,yaml]
+Publishes:   publish-awesomesql-connection-info:     Type: "ENV:NET_TCP:db:awesomesql"
+
+The cooresponding subscription event would be written thus:
+
+[source,yaml]
+Subscribes:   set-awesomesql-connection-info:     Type: "ENV:NET_TCP:db:awesomesql"
 
 === Cartridge Event Example
 Consider a simple example of a PHP cartridge which can react when MySQL is added to an application, so that it can set environment variables on the gear to be able to connect to the newly added MySQL cartridge on a different gear.
