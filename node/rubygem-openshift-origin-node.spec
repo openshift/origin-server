@@ -16,7 +16,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.14.2
+Version: 1.14.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -305,6 +305,14 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Fri Sep 06 2013 Adam Miller <admiller@redhat.com> 1.14.3-1
+- Bug 1005244 - Remove unused INSTANCE_ID setting from node.conf
+  (bleanhar@redhat.com)
+- Merge pull request #3561 from jwhonce/bug/1004644
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1004886 - set memory.move_charge_at_immigrate (rmillner@redhat.com)
+- Bug 1004644 - Description of frontend-no-sts is wrong (jhonce@redhat.com)
+
 * Thu Sep 05 2013 Adam Miller <admiller@redhat.com> 1.14.2-1
 - Merge pull request #3548 from jwhonce/wip/oo-devel-node
   (dmcphers+openshiftbot@redhat.com)
