@@ -35,7 +35,7 @@ class ScalingFuncTest < OpenShift::NodeBareTestCase
     'python-2.6'   => 'wsgi/application',
     'python-2.7'   => 'wsgi/application',
     'python-3.3'   => 'wsgi/application',
-    'perl-5.10'    => 'perl/perl/index.pl',
+    'perl-5.10'    => 'perl/index.pl',
     'mock-0.1'     => 'index.html',
   }
 
