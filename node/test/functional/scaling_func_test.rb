@@ -85,7 +85,7 @@ class ScalingFuncTest < OpenShift::NodeBareTestCase
   end
 
   def test_unscaled
-    basic_build_test([ @framework_cartridge ], false)
+    basic_build_test([@framework_cartridge], false)
   end
 
   def test_unscaled_jenkins
@@ -94,7 +94,7 @@ class ScalingFuncTest < OpenShift::NodeBareTestCase
   end
 
   def test_scaled
-    basic_build_test([ @framework_cartridge ])
+    basic_build_test([@framework_cartridge])
   end
 
   def test_scaled_jenkins
@@ -194,7 +194,9 @@ class ScalingFuncTest < OpenShift::NodeBareTestCase
 
   def create_application(app_name, cartridges, scaling = true)
     OpenShift::Runtime::NodeLogger.logger.info("Creating app #{app_name} with cartridges: #{cartridges} with scaling: #{scaling}")
-    response = RestClient.post("#{@url_base}/domains/#{@namespace}/applications", {name: app_name, cartridges: cartridges, scale: scaling}, accept: :json)
+    # timeout is so high because creating a scalable python-3.3 app takes around 2.5 minutes
+    # TODO: capture cart-specific timeouts / initial titles
+    response = RestClient.post("#{@url_base}/domains/#{@namespace}/applications", {name: app_name, cartridges: cartridges, scale: scaling}, {accept: :json, timeout: 240})
     response = JSON.parse(response)
     app_id = response['data']['id']
     @created_app_ids << app_id
@@ -233,19 +235,43 @@ END
   end
 
   def assert_http_title_for_entry(entry, expected)
-    OpenShift::Runtime::NodeLogger.logger.info("Checking http://#{entry.dns}:#{entry.proxy_port}/ for title '#{expected}'")
-    content = Net::HTTP.get(entry.dns, '/', entry.proxy_port)
-    content =~ /<title>(.+)<\/title>/
-    title = $~[1]
-    assert_equal expected, title
+    url = "http://#{entry.dns}:#{entry.proxy_port}/"
+    assert_http_title(url, expected)
   end
 
   def assert_http_title_for_app(app_name, namespace, expected)
     url = "http://#{app_name}-#{@namespace}.dev.rhcloud.com"
+    assert_http_title(url, expected)
+  end
+
+  def assert_http_title(url, expected)
     OpenShift::Runtime::NodeLogger.logger.info("Checking http://#{url}/ for title '#{expected}'")
-    content = Net::HTTP.get(URI.parse(url))
-    content =~ /<title>(.+)<\/title>/
-    title = $~[1]
+    uri = URI.parse(url)
+
+    tries = 1
+    title = ''
+
+    while tries < 3
+      tries += 1
+      content = ''
+
+      begin
+        content = Net::HTTP.get(uri)
+      rescue SocketError => e
+        OpenShift::Runtime::NodeLogger.logger.info("DNS lookup failure; retrying #{url}")
+        next
+      end
+
+      content =~ /<title>(.+)<\/title>/
+      title = $~[1]
+
+      if title =~ /^503|404 / && tries < 3
+        OpenShift::Runtime::NodeLogger.logger.info("Retrying #{url}")
+      end
+
+      break
+    end
+
     assert_equal expected, title
   end
 

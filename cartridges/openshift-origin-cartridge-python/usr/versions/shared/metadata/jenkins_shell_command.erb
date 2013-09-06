@@ -14,7 +14,7 @@ gear build
 # Deploy new build
 
 # Stop app
-$GIT_SSH $upstream_ssh 'gear stop --conditional'
+$GIT_SSH $upstream_ssh 'gear stop --conditional --exclude-web-proxy'
 
 deployment_dir=`$GIT_SSH $upstream_ssh 'gear create_deployment_dir'`
 
