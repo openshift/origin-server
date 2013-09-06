@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.13.11
+Version: 1.13.12
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -84,6 +84,10 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Fri Sep 06 2013 Adam Miller <admiller@redhat.com> 1.13.12-1
+- Remove environment variables support from REST 1.0 api version
+  (rpenta@redhat.com)
+
 * Tue Sep 03 2013 Adam Miller <admiller@redhat.com> 1.13.11-1
 - Bug 1002685 - Downcase domain names when fetching applications by domain
   (ccoleman@redhat.com)
