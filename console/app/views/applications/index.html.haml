@@ -38,6 +38,9 @@
                   = link_to application.name, application_path(application), :class => 'tile-target'
 
                 %span.flow-block.right
+                  = link_to application.web_url, :target => '_blank', :class => 'url', :title => "Go to the application's web page" do
+                    %span.url-icon{'aria-hidden'=>"true", 'data-icon' => "\ue002"} 
+
                   %span.gear{:title => application_gear_count(application)}
                     = application.gear_count
                     %span.gear-icon{'aria-hidden'=>"true", 'data-icon' => "\ue014"}
@@ -60,9 +63,6 @@
                           %span.gauge-tick.fill> .
                           %span.gauge-tick.fill> .
                           %span.gauge-tick.fill> .
-
-                  = link_to application.web_url, :target => '_blank', :class => 'url', :title => "Go to the application's web page" do
-                    %span.url-icon{'aria-hidden'=>"true", 'data-icon' => "\ue002"} 
 
               .cartridges= application.cartridges.map(&:display_name).join(', ')
 

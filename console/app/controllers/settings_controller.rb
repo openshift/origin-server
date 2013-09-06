@@ -12,6 +12,8 @@ class SettingsController < ConsoleController
 
     join!(30)
 
+    update_sshkey_uploaded(@keys)
+
     if not @domain
       flash.now[:info] = "You need to set a namespace before you can create applications"
     elsif @keys.blank?

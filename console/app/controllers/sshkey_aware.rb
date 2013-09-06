@@ -18,6 +18,10 @@ module SshkeyAware
 
     @has_keys
   end
+  def update_sshkey_uploaded(keys)
+    @has_keys = keys.present?
+    session[:has_sshkey] = @has_keys
+  end
 end
 RestApi::Base.observers << SshkeySessionSweeper
 SshkeySessionSweeper.instance

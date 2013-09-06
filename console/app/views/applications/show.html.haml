@@ -108,11 +108,6 @@
       = link_to application_cartridge_types_path(@application) do
         %span.header-btn-title add cartridge
         %span.font-icon{"aria-hidden" => "true", "data-icon" => "\uee16"}
-    -#%h3.pull-left Cartridges
-      .pull-right
-        = link_to application_cartridge_types_path(@application), :class => 'btn-add-cart' do
-          Add Cartridge
-          %span.sprite
 
   - can_scale_up = @application.cartridges.any?{ |c| c.can_scale_up?(max_gears) }
   - visual_limit = 6
@@ -250,7 +245,7 @@
 
               - else
                 .flow
-                  %h4.cartridge-name{title: 'This cartridge is a plugin, and shares resources with the web framework'}
+                  %h4.flow-block.cartridge-name{title: 'This cartridge is a plugin, and shares resources with the web framework'}
                     = cartridge.display_name
                   - if info = cartridge_info(cartridge, @application)
                     .flow-block.right= info
@@ -263,22 +258,23 @@
 
 
   %section.gutter{style: 'margin-top: 30px; position: relative;'}
-    - carts = CartridgeType.cached.embedded.clone.sort
-    -#%h4 Add additional capabilities to this application
-    %span.font-icon{"aria-hidden" => "true", "data-icon" => "\uee16", style: "font-size: 50px; position: absolute; right: 10px; top: 0; opacity: 0.3;"}
+    - carts = CartridgeType.cached.embedded.select{ |c| !@application.cartridges.include?(c) }.sort
+    - databases = CartridgeType.suggest!(carts, :database?, 3).presence if @application.cartridges.none?(&:database?)
+    - jenkins, builders = CartridgeType.suggest!(carts, :builder?).partition(&:jenkins_client?) unless @application.builds?
+    - useful = CartridgeType.suggest_useful!(@application, carts).presence
+
     .row-fluid
-      - if @application.cartridges.none?(&:database?)
+      - if databases
         .span5
           %h5 Databases
           %ul.unstyled
-            - CartridgeType.suggest!(carts, :database?, 3).each do |c|
+            - databases.each do |c|
               %li
                 %span{:'data-icon' => "\uee09"}
                 = link_to "Add #{c.display_name}", application_cartridge_type_path(@application, c)
-      - unless @application.builds?
+      - if jenkins.present? or builders.present?
         .span5
           %h5 Continuous Integration
-          - jenkins, builders = CartridgeType.suggest!(carts, :builder?).partition(&:jenkins_client?)
           %ul.unstyled
             - if jenkins.present?
               %li
@@ -289,7 +285,7 @@
                 %span{:'data-icon' => "\ue023"}
                 = link_to "Add #{c.display_name}", application_cartridge_type_path(@application, c)
 
-      - if (useful = CartridgeType.suggest_useful!(@application, carts)).present?
+      - if useful
         .span4
           %h5 Tools and Support
           %ul.unstyled
@@ -298,7 +294,11 @@
                 %span{:'data-icon' => "\ue021"}
                 = link_to "Add #{c.display_name}", application_cartridge_type_path(@application, c)
 
-    %p.larger= link_to "Or, see the entire list of cartridges you can add", application_cartridge_types_path(@application)
+    - if databases or jenkins.present? or builders.present? or useful
+      %p.larger= link_to "Or, see the entire list of cartridges you can add", application_cartridge_types_path(@application)
+      %span.font-icon.hidden-phone{"aria-hidden" => "true", "data-icon" => "\uee16", style: "font-size: 50px; position: absolute; right: 10px; top: 0; opacity: 0.3;"}
+    - else
+      %p.larger= link_to "Show other cartridges you can add to this application", application_cartridge_types_path(@application)    
 
 %aside.sidebar-dark.span3
   -#%section#aliases.sidebar

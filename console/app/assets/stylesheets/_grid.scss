@@ -81,4 +81,12 @@
 }
 
 @media (max-width: 767px) {
+  .flow > .flow-block {
+    display: inline-block;
+    float: left;
+
+    &.right {
+      float: right;
+    }
+  }
 }
