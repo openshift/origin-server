@@ -4,7 +4,7 @@
 
 Summary:       Provides JBossAS7 support
 Name:          openshift-origin-cartridge-jbossas
-Version: 1.7.1
+Version: 1.7.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -104,6 +104,11 @@ fi
 
 
 %changelog
+* Fri Sep 06 2013 Adam Miller <admiller@redhat.com> 1.7.2-1
+- Bug 1004927: Don't override JAVA_HOME in standalone.conf
+  (ironcladlou@gmail.com)
+- Fix bug 1004899: remove legacy subscribes from manifests (pmorie@gmail.com)
+
 * Thu Aug 29 2013 Adam Miller <admiller@redhat.com> 1.7.1-1
 - bump_minor_versions for sprint 33 (admiller@redhat.com)
 
