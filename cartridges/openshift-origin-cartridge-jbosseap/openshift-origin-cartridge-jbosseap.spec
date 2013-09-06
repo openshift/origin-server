@@ -4,7 +4,7 @@
 
 Summary:       Provides JBossEAP6.0 support
 Name:          openshift-origin-cartridge-jbosseap
-Version: 2.8.1
+Version: 2.8.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -86,6 +86,11 @@ cp -p %{cartridgedir}/versions/shared/modules/postgresql_module.xml /etc/alterna
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Fri Sep 06 2013 Adam Miller <admiller@redhat.com> 2.8.2-1
+- Bug 1004927: Don't override JAVA_HOME in standalone.conf
+  (ironcladlou@gmail.com)
+- Fix bug 1004899: remove legacy subscribes from manifests (pmorie@gmail.com)
+
 * Thu Aug 29 2013 Adam Miller <admiller@redhat.com> 2.8.1-1
 - bump_minor_versions for sprint 33 (admiller@redhat.com)
 
