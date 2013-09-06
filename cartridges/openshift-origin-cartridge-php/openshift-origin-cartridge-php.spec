@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/openshift/cartridges/php
 
 Name:          openshift-origin-cartridge-php
-Version: 0.9.1
+Version: 0.9.2
 Release:       1%{?dist}
 Summary:       Php cartridge
 Group:         Development/Languages
@@ -76,6 +76,12 @@ rm %{buildroot}%{cartridgedir}/metadata/manifest.yml.*
 
 
 %changelog
+* Fri Sep 06 2013 Adam Miller <admiller@redhat.com> 0.9.2-1
+- Merge pull request #3554 from pmorie/bugs/1004899
+  (dmcphers+openshiftbot@redhat.com)
+- Fix bug 1004899: remove legacy subscribes from manifests (pmorie@gmail.com)
+- Create a writable directory for Drush settings (vvitek@redhat.com)
+
 * Thu Aug 29 2013 Adam Miller <admiller@redhat.com> 0.9.1-1
 - bump_minor_versions for sprint 33 (admiller@redhat.com)
 
