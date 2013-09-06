@@ -22,7 +22,7 @@
         .row-console
           - if content_for? :full_layout
             .row.row-flush-right
-              .grid-wrapper.banner-ribbon
+              .grid-wrapper
                 .span12.span-flush-right
                   - if content_for? :breadcrumbs
                     %nav
@@ -35,7 +35,7 @@
 
           - else
             .row.row-flush-right
-              .grid-wrapper.banner-ribbon
+              .grid-wrapper
                 .span12.span-flush-right
                   - if content_for? :breadcrumbs
                     %nav

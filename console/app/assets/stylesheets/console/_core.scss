@@ -181,24 +181,12 @@ ol.wizard li a {
 
 
 .section-console {
-  padding-top: 25px;
-  padding-bottom: 60px;
+  padding-top: 50px;
+  padding-bottom: 50px;
 }
 
 .section-console {
-  background-color: #1f1f1f;
   @include console_background;
-}
-
-.ie9 .section-console {
-  background-color: #1f1f1f;
-  @include console_background_ie9;
-}
-@media (max-width: 767px) {
-  .ie9 .section-console {
-    background-color: #1f1f1f;
-    background-image: none;
-  }
 }
 
 figure {
@@ -225,7 +213,7 @@ figure {
 }
 
 #footer-nav {
-  background: #070707;
+  background: #fff;
 }
 
 .row-console > .row {
@@ -343,9 +331,15 @@ aside .header-bar {
   margin-bottom: $baseLineHeight; 	
 }
 
+@media (max-width: 979px) {
+  .section-console {
+    padding-bottom: 40px;
+    padding-top: 40px;
+  }
+}
+
 @media (max-width: 767px) {
   .section-console {
-    background: #010101;
     padding-bottom: 0;
     padding-top: 0;
   }
@@ -874,8 +868,6 @@ $cartridgeBorderWidth: 10px;
 }
 
 @media (min-width: 1200px) {
-}
-@media (max-width: 979px) {
 }
 @media (min-width: 980px) {
 }

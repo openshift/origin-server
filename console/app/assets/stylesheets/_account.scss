@@ -9,6 +9,10 @@ $noiseImage: image-url('noise.png') !default;
 // Nav
 // ----------------------------------
 
+.navbar.centered .brand a:hover:after {
+  display: none;
+}
+
 .navbar.centered .brand > a > .brand-image:hover,
 .navbar.centered .brand > a:hover > .brand-text,
 .navbar.centered .brand > a:hover > .brand-image {
@@ -16,10 +20,11 @@ $noiseImage: image-url('noise.png') !default;
 }
 .navbar.centered .brand > a > .brand-image {
   background: image-url("logo-wide-white.png") no-repeat scroll left center transparent;
-  transition: none;
+  background-size: auto;
   width: 44px;
   height: 42px;
   margin-bottom: 0;
+  margin-top: -3px;
 }
 .navbar.centered {
     background: transparent;
@@ -45,9 +50,13 @@ $noiseImage: image-url('noise.png') !default;
     text-transform: uppercase;
     word-wrap: normal;
     text-shadow: none;
+    float: none;
 }
 .navbar.centered .brand > a {
-    height: 50px;
+  color: white;
+  display: inline-block;
+  height: 50px;
+  text-decoration: none;
 }
 /*.navbar.centered .brand > a {
     height: 42px;
@@ -238,15 +247,6 @@ body.simple {
   }
   .form-actions {
     background: none;
-  }
-  footer {
-    position: absolute;
-    bottom: 0;
-    height: auto;
-    width: 100%;
-    #footer-nav {
-      display: none;
-    }
   }
 }
 
