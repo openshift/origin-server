@@ -18,6 +18,7 @@ require_relative '../test_helper'
 require 'socket'
 require 'net/http'
 require 'fileutils'
+require 'restclient/request'
 
 class ScalingFuncTest < OpenShift::NodeBareTestCase
   DEFAULT_TITLE = "Welcome to OpenShift"
@@ -196,7 +197,7 @@ class ScalingFuncTest < OpenShift::NodeBareTestCase
     OpenShift::Runtime::NodeLogger.logger.info("Creating app #{app_name} with cartridges: #{cartridges} with scaling: #{scaling}")
     # timeout is so high because creating a scalable python-3.3 app takes around 2.5 minutes
     # TODO: capture cart-specific timeouts / initial titles
-    response = RestClient.post("#{@url_base}/domains/#{@namespace}/applications", {name: app_name, cartridges: cartridges, scale: scaling}, {accept: :json, timeout: 240})
+    response = RestClient::Request.execute(method: :post, url: "#{@url_base}/domains/#{@namespace}/applications", payload: {name: app_name, cartridges: cartridges, scale: scaling}, headers: {accept: :json}, timeout: 180)
     response = JSON.parse(response)
     app_id = response['data']['id']
     @created_app_ids << app_id
@@ -277,7 +278,7 @@ END
 
   def assert_scales_to(app_name, cartridge, count)
     OpenShift::Runtime::NodeLogger.logger.info("Scaling to #{count}")
-    response = RestClient.put("#{@url_base}/domains/#{@namespace}/applications/#{app_name}/cartridges/#{cartridge}", {scales_from: count}, {accept: :json, timeout: 60})
+    response = RestClient::Request.execute(method: :put, url: "#{@url_base}/domains/#{@namespace}/applications/#{app_name}/cartridges/#{cartridge}", payload: {scales_from: count}, headers: {accept: :json}, timeout: 180)
     response = JSON.parse(response)
     assert_equal count, response['data']['current_scale']
   end  
