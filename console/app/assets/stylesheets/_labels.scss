@@ -5,6 +5,7 @@
 .label {
   padding: 0 6px;
   font-size: $baseFontSize * .75;
+  border: 1px solid transparent;
   font-weight: bold;
   color: white;
   text-shadow: 0 0 1px rgba(255, 255, 255, 0.25);

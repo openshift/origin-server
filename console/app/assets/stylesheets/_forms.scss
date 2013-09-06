@@ -482,7 +482,7 @@ textarea:focus:required:valid {
     //text-shadow: 0 1px 0 $white;
     background-color: $inputDisabledBackground;
     border: 1px solid $inputDisabledBorder;
-    color: $grayLight;
+    //color: $grayLight;
   }
   .add-on,
   .btn {
@@ -677,7 +677,6 @@ legend + .control-group {
   .control-label {
     float: left;
     width: $horizontalComponentOffset - 20;
-    padding-top: 5px;
     text-align: right;
   }
   // Move over all input controls and content
@@ -755,25 +754,22 @@ textarea[readonly] {
 // ---------------------------
 .form-important {
   .control-group { margin-bottom: 14px; }
-  .controls { margin-left: 140px; }
 
   input.expand { width: auto; max-width: -moz-available; }
   input.narrow { width: 140px; }
 
   .controls > h3 { 
-    margin-top: 5px; margin-bottom: 0; color: $consoleHeaderColor; 
+    margin-bottom: 0;
 
     > small { margin-left: 10px; vertical-align: middle; display: inline-block; }
     > select { margin-top: -5px; }
   }
 
-  .control-label { margin-left: 15px; width: 120px; text-align: left; color: #949494; }
+  .control-label { margin-left: 15px; text-align: left; color: #666; }
   .error > .control-label { color: $errorBackground; }
 
-  .help-block { color: #949494; max-width: 500px; -moz-transition: 0.2s; overflow: hidden; text-overflow: ellipsis; }
+  .help-block { max-width: 500px; -moz-transition: 0.2s; overflow: hidden; text-overflow: ellipsis; }
   .alert { max-width: 500px; }
-
-  .form-actions { padding-left: 140px; }
 
   h3 .font-icon {margin-left: 25px}
 }
