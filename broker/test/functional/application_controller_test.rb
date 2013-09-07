@@ -46,10 +46,20 @@ class ApplicationControllerTest < ActionController::TestCase
                   "domain_id" => @domain.namespace,
                   "auto_deploy" => false,
                   "keep_deployments" => 2,
-                  "deployment_type" => 'git',
+                  "deployment_type" => 'binary',
                   "deployment_branch" => 'stage'
                  }
     assert_response :success
+    
+    get :show, {"id" => @app_name, "domain_id" => @domain.namespace}
+    assert_response :success
+    assert json = JSON.parse(response.body)
+    #TODO uncomment once save to mongo is fixed
+    #assert_equal json['data']['auto_deploy'], false 
+    #assert_equal json['data']['keep_deployments'], 2
+    #assert_equal json['data']['deployment_type'], 'binary'
+    #assert_equal json['data']['deployment_branch'], 'stage'
+    
 
     delete :destroy, {"id" => @app_name, "domain_id" => @domain.namespace}
     assert_response :ok
@@ -202,6 +212,17 @@ class ApplicationControllerTest < ActionController::TestCase
     @app_name = "app#{@random}"
     post :create, {"name" => @app_name, "cartridge" => PHP_VERSION, "domain_id" => @domain.namespace}
     assert_response :created
+    
+    put :update, {"id" => @app_name,
+                  "domain_id" => @domain.namespace
+                 }
+    assert_response :unprocessable_entity
+    
+    put :update, {"id" => @app_name,
+                  "domain_id" => @domain.namespace,
+                  "auto_deploy" => 'blah'
+                 }
+    assert_response :unprocessable_entity
 
     put :update, {"id" => @app_name,
                   "domain_id" => @domain.namespace,

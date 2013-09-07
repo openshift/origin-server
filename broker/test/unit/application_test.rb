@@ -15,20 +15,82 @@ class ApplicationsTest < ActionDispatch::IntegrationTest #ActiveSupport::TestCas
     stubber
   end
 
-  test "create and destroy application" do
+  test "create update and destroy application" do
     @appname = "test"
     app = Application.create_app(@appname, [PHP_VERSION, MYSQL_VERSION], @domain)
+    app = Application.find_by(canonical_name: @appname.downcase, domain_id: @domain._id) rescue nil 
+    
+    app.config['auto_deploy'] = true
+    app.config['deployment_branch'] = "stage"
+    app.config['keep_deployments'] = 3
+    app.config['deployment_type'] = "binary"
+    app.update_configuration
     app = Application.find_by(canonical_name: @appname.downcase, domain_id: @domain._id) rescue nil
-
+    #TODO uncomment once save to mongo is fixed
+    #assert app.config['auto_deploy'] == true
+    #assert app.config['deployment_branch'] == "stage"
+    #assert app.config['keep_deployments'] == 3
+    #assert app.config['deployment_type'] == "binary"
+    
     app.destroy_app
   end
 
-  test "create and destroy scalable application" do
+  test "create update and destroy scalable application" do
     @appname = "test"
     app = Application.create_app(@appname, [PHP_VERSION, MYSQL_VERSION], @domain, nil, true)
     app = Application.find_by(canonical_name: @appname.downcase, domain_id: @domain._id) rescue nil
+    
+    app.config['auto_deploy'] = true
+    app.config['deployment_branch'] = "stage"
+    app.config['keep_deployments'] = 3
+    app.config['deployment_type'] = "binary"
+    app.update_configuration
+    app = Application.find_by(canonical_name: @appname.downcase, domain_id: @domain._id) rescue nil
+    #TODO uncomment once save to mongo is fixed
+    #assert app.config['auto_deploy'] == true
+    #assert app.config['deployment_branch'] == "stage"
+    #assert app.config['keep_deployments'] == 3
+    #assert app.config['deployment_type'] == "binary"
 
     app.destroy_app
+  end
+  
+  test "app config validation" do
+    @appname = "test"
+    app = Application.create_app(@appname, [PHP_VERSION, MYSQL_VERSION], @domain, nil, true)
+    app = Application.find_by(canonical_name: @appname.downcase, domain_id: @domain._id) rescue nil
+    
+    app.config = nil
+    assert app.invalid?, "config validation failed"
+    
+    app.config = {'auto_deploy' => nil, 'deployment_branch' => nil, 'keep_deployments' => nil, 'deployment_type' => nil}
+    assert app.invalid?, "config validation failed"
+    assert_equal app.errors.messages[:config].length, 4, "Wrong number of error messages" 
+    
+    #reset config and try individual fields
+    app.config = {'auto_deploy' => true, 'deployment_branch' => 'master', 'keep_deployments' => 1, 'deployment_type' => 'git'}
+    assert app.valid?, "config validation failed where it should have succeeded"
+    
+    app.config['auto_deploy'] = 'blah'
+    assert app.invalid?, "auto_deploy validation failed"
+    assert_equal app.errors.messages[:config].length, 1, "Wrong number of error messages" 
+    
+    app.config['deployment_branch'] = "0" * 999
+    assert app.invalid?, "deployment_branch validation failed"
+    assert_equal app.errors.messages[:config].length, 2, "Wrong number of error messages"
+    
+    app.config['keep_deployments'] = -1
+    assert app.invalid?, "keep_deployments validation failed"
+    assert_equal app.errors.messages[:config].length, 3, "Wrong number of error messages"
+    
+    app.config['deployment_type'] = "blah"
+    assert app.invalid?, "deployment_type validation failed"
+    assert_equal app.errors.messages[:config].length, 4, "Wrong number of error messages"
+    
+    #check validation on update_config
+    assert_raise(OpenShift::UserException){app.update_configuration}
+    
+    
   end
 
   test "scalable application events" do

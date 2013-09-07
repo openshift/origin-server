@@ -244,6 +244,12 @@ class RestApplication < OpenShift::Model
           Param.new("deployment_id", "string", "The deployment ID to roll-back the application"),
         ]),
         "LIST_DEPLOYMENT" => Link.new("List all deployments", "GET", URI::join(url, "applications/#{@id}/deployments")),
+        "UPDATE" => Link.new("Update application", "PUT", URI::join(url, "applications/#{@id}"), nil, [
+          OptionalParam.new("auto_deploy", "boolean", "Indicates if OpenShift should build and deploy automatically whenever the user executes git push", [true, false]),
+          OptionalParam.new("deployment_type", "string", "Indicates whether the app is setup for binary or git based deployments", ['git', 'binary']),
+          OptionalParam.new("deployment_branch", "string", "Indicates which branch should trigger an automatic deployment, if automatic deployment is enabled."),
+          OptionalParam.new("keep_deployments", "integer", "Indicates how many total deployments to preserve. Must be greater than 0"),
+        ]),
         "DELETE" => Link.new("Delete application", "DELETE", URI::join(url, "application/#{@id}"))
       }
     end

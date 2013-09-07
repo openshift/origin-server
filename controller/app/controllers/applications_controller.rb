@@ -155,12 +155,15 @@ class ApplicationsController < BaseController
   #
   # @return [RestReply<RestApplication>] Application object
   def update
-    auto_deploy = get_bool(params[:auto_deploy]) if params[:auto_deploy].presence
+    auto_deploy = get_bool(params[:auto_deploy]) if !params[:auto_deploy].nil?
     deployment_branch = params[:deployment_branch] if params[:deployment_branch].presence
     keep_deployments = params[:keep_deployments].to_i if params[:keep_deployments].presence
     deployment_type = params[:deployment_type].downcase if params[:deployment_type].presence
 
     authorize! :update_application, @application
+    
+    return render_error(:unprocessable_entity, "You must specify at least one of the following for an update: auto_deploy, deployment_branch, keep_deployments and/or deployment_type",
+                        1, nil) if deployment_branch.nil? and auto_deploy.nil? and keep_deployments.nil? and deployment_type.nil?
 
     return render_error(:unprocessable_entity, "Invalid deployment type: #{deployment_type}. Acceptable values are: #{Application::DEPLOYMENT_TYPES.join(", ")}",
                         1, "deployment_type") if deployment_type and !Application::DEPLOYMENT_TYPES.include?(deployment_type)
@@ -172,7 +175,7 @@ class ApplicationsController < BaseController
                         1, "deployment_branch") if deployment_branch and deployment_branch.length > 256
 
     begin
-      @application.config['auto_deploy'] = auto_deploy if auto_deploy
+      @application.config['auto_deploy'] = auto_deploy if !auto_deploy.nil? #do explicit nil checking in case auto_deploy=false
       @application.config['deployment_branch'] = deployment_branch if deployment_branch
       @application.config['keep_deployments'] = keep_deployments if keep_deployments
       @application.config['deployment_type'] = deployment_type if deployment_type
@@ -183,7 +186,6 @@ class ApplicationsController < BaseController
     end
 
     include_cartridges = (params[:include] == "cartridges")
-
     app = get_rest_application(@application, include_cartridges)
     render_success(:ok, "application", app, "Application #{@application.name} was updated.", result)
   end

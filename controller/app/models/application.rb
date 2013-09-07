@@ -372,6 +372,13 @@ class Application
   # Updates the configuration of the application.
   # @return [ResultIO] Output from cartridges
   def update_configuration(parent_op=nil)
+    if self.invalid?
+      messages = []
+      self.errors.messages[:config].each do |error|
+        messages.push(error[:message]) if error[:message]
+      end
+      raise OpenShift::UserException.new("Invalid application configuration: #{messages}", 1)
+    end
     Application.run_in_application_lock(self) do
       op_group = PendingAppOpGroup.new(op_type: :update_configuration,  args: {"config" => self.config})
       self.pending_op_groups.push op_group
