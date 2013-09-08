@@ -274,7 +274,7 @@ module OpenShift
               expected_entries = Dir.glob(PathUtils.join(@container.container_dir, '*'))
 
               output << cartridge_action(cartridge, 'setup', software_version, true)
-              process_erb_templates(c)
+              output << process_erb_templates(c)
               output << cartridge_action(cartridge, 'install', software_version)
 
               actual_entries  = Dir.glob(PathUtils.join(@container.container_dir, '*'))
@@ -605,12 +605,26 @@ module OpenShift
       #
       # Search cartridge for any remaining <code>erb</code> files render them
       def process_erb_templates(cartridge)
+        buffer = ''
+
         directory = PathUtils.join(@container.container_dir, cartridge.name)
         logger.info "Processing ERB templates for #{cartridge.name}"
 
         env  = ::OpenShift::Runtime::Utils::Environ.for_gear(@container.container_dir, directory)
         erbs = @container.processed_templates(cartridge).map { |x| PathUtils.join(@container.container_dir, x) }
+        erbs.delete_if do |erb_file|
+          reject = !File.exists?(erb_file)
+
+          if reject
+            buffer << "CLIENT_ERROR: File declared in processed_templates does not exist and will not be rendered: #{erb_file}"
+          end
+
+          reject
+        end
+
         render_erbs(env, erbs)
+
+        buffer
       end
 
       #  cartridge_action(cartridge, action, software_version, render_erbs) -> buffer
