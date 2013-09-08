@@ -161,7 +161,7 @@ class ApplicationsController < BaseController
     deployment_type = params[:deployment_type].downcase if params[:deployment_type].presence
 
     authorize! :update_application, @application
-    
+
     return render_error(:unprocessable_entity, "You must specify at least one of the following for an update: auto_deploy, deployment_branch, keep_deployments and/or deployment_type",
                         1, nil) if deployment_branch.nil? and auto_deploy.nil? and keep_deployments.nil? and deployment_type.nil?
 
@@ -175,7 +175,7 @@ class ApplicationsController < BaseController
                         1, "deployment_branch") if deployment_branch and deployment_branch.length > 256
 
     begin
-      @application.config['auto_deploy'] = auto_deploy if !auto_deploy.nil? #do explicit nil checking in case auto_deploy=false
+      @application.config['auto_deploy'] = auto_deploy if !auto_deploy.nil?
       @application.config['deployment_branch'] = deployment_branch if deployment_branch
       @application.config['keep_deployments'] = keep_deployments if keep_deployments
       @application.config['deployment_type'] = deployment_type if deployment_type

@@ -35,7 +35,7 @@ class Deployment
   self.field :git_commit_id, type: String
   self.field :git_tag, type: String
   self.field :artifact_url, type: String
-  
+
   #TODO define possible values?
   DEPLOYMENT_STATES =[:active, :past, :prepared]
 
@@ -43,13 +43,13 @@ class Deployment
   validates :description, presence: {message: "Description is required and cannot be blank."}, length: {maximum: 250}, :allow_blank => false
   validates :git_commit_id, :allow_blank => true, length: {is: 40}
   validate  :validate_deployment
-  
+
   def validate_deployment
     if self.git_branch.nil? and self.git_commit_id.nil? and self.git_tag.nil? and self.artifact_url.nil?
       self.errors[:base] << "At least one of the following information has to be provided to create a new deployment: git_branch, git_commit_id, git_tag or artifact_url"
     end
     if (self.git_branch or self.git_commit_id or self.git_tag) and self.artifact_url
-      self.errors[:base] << "You can either use an aritifcat URL or git.  You can not use both."
+      self.errors[:base] << "You can either use an aritifact URL or git.  You can not use both."
     end
   end
   #TODO add error codes for deployment to li/misc/docs/ERROR_CODES.txt

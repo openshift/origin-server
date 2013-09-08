@@ -38,14 +38,14 @@ class DeploymentsControllerTest < ActionController::TestCase
     assert_response :created
     assert json = JSON.parse(response.body)
     assert id =  json['data']['id']
-    
+
     #get :show, {"id" => id, "application_id" => @app.uuid}
     #assert_response :success
-    
+
     get :index , {"application_id" => @app.uuid}
     assert_response :success
   end
-  
+
   test "update deployments" do
     deployments = []
     for i in 1..5
