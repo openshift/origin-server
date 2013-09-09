@@ -123,7 +123,8 @@ module OpenShift
       end
 
       # If the config gave a TSIG key, use it
-      keystring = @keyname ? "key #{@keyalgorithm}:#{@keyname} #{keyvalue}" : "gsstsig"
+      keystring = @keyname ? "key #{@keyalgorithm}:#{@keyname} #{keyvalue}" :
+                  @krb_principal ?  "gsstsig" : ""
 
       zonestring = @zone ? "zone #{@zone}" : ""
 
@@ -156,7 +157,8 @@ EOF
       end
 
       # If the config gave a TSIG key, use it
-      keystring = @keyname ? "key #{@keyname} #{keyvalue}" : "gsstsig"
+      keystring = @keyname ? "key #{@keyname} #{keyvalue}" :
+                  @krb_principal ?  "gsstsig" : ""
 
       zonestring = @zone ? "zone #{@zone}" : ""
 
