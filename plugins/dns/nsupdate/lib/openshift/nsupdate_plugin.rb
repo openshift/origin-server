@@ -213,10 +213,6 @@ EOF
       fqdn = "#{app_name}-#{namespace}.#{@domain_suffix}"
 
       cmd = del_cmd(fqdn)
-      # authenticate if credentials have been given
-      if @krb_principal
-        cmd = "kinit -kt #{@krb_keytab} #{@krb_principal} &&" + cmd
-      end
 
       success = system cmd
       if not success
