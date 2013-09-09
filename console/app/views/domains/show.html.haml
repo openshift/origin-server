@@ -12,27 +12,11 @@
   .span6
     %section
       %h2 Members
-      
-      %table
-        %tr
-          %th Owner
-          %td= @domain.members.find(&:owner).name
+      = render :partial => 'members/members', :locals => {:domain => @domain, :members => @domain.members, :editable => @domain.admin?}
 
-        - Role.role_options_descending.each do |role|
-          - members = @domain.members.select {|m| m.role == role.id }.sort
-          - if members.present?
-            %tr
-              %th= role.category
-              %td
-                - members.each do |member|
-                  %div= member.name
-
-    %section
-      = semantic_form_for (new_member=Member.new), :url => url_for(:controller => :domain_members, :action => :add), :html => {:method => :post} do |f|
-        = f.inputs :inline => true do
-          = f.input :id, :input_html => {:placeholder => 'User ID/Login', :title => 'User ID/Login'}
-          = f.input :role, :as => :select, :collection => Role.role_options_ascending, :include_blank => 'Role:', :input_html => {:title => 'Role'}
-          = f.commit_button 'Add member', :button_html => {:style => 'vertical-align: top', :class => 'btn btn-small'}
+    - if @domain.admin?
+      %section
+        = render :partial => 'members/new_member', :locals => {:domain => @domain}
   
 
 %section

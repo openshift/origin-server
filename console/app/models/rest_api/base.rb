@@ -577,12 +577,16 @@ module RestApi
     class Message < Struct.new(:exit_code, :field, :severity, :text)
       def self.from_array(messages)
         Array(messages).map do |m|
-          Message.new(
-            m['exit_code'].to_i,
-            m['field'],
-            m['severity'],
-            m['text']
-          ) if m['text'].present?
+          if m.is_a? Message
+            m
+          elsif m['text'].present?
+            Message.new(
+              m['exit_code'].to_i,
+              m['field'],
+              m['severity'],
+              m['text']
+            ) 
+          end
         end.compact
       end
 
@@ -606,6 +610,19 @@ module RestApi
       else
         attributes.delete(:messages)
       end
+    end
+
+    def extract_messages(response)
+      results = RestApi::Base.format.decode(response.body)
+      if results.is_a? Hash
+        results['messages'] || []
+      elsif results.is_a? Array
+        results.first['messages'] || []
+      else
+        []
+      end
+    rescue
+      []
     end
 
     #FIXME may be refactored
@@ -663,7 +680,18 @@ module RestApi
       raise ResourceNotFound.new(self.class.model_name, id, e.response)
     end
 
-    [:post, :delete, :put, :patch].each do |sym|
+    #
+    # Define patch method
+    #
+    def patch(custom_method_name, options = {}, body = '')
+      begin
+        connection.patch(custom_method_element_url(custom_method_name, options), body, self.class.headers)
+      rescue ActiveResource::ResourceNotFound => e
+        raise ResourceNotFound.new(self.class.model_name, id, e.response)
+      end
+    end
+
+    [:post, :delete, :put].each do |sym|
       define_method sym do |*args|
         begin
           super *args

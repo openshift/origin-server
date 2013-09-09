@@ -28,4 +28,13 @@ class Role < RestApi::Base
       Role.new(:id => 'view',  :name => 'View' )
     ]
   end
+
+  def self.role_descriptions_descending
+    [
+      ['Can administer','admin'],
+      ['Can edit','edit'],
+      ['Can view','view'],
+      ['Remove', 'none']
+    ]
+  end
 end
