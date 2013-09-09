@@ -16,7 +16,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.14.3
+Version: 1.14.4
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -305,6 +305,14 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Mon Sep 09 2013 Adam Miller <admiller@redhat.com> 1.14.4-1
+- Fix bug 1004910: provide warning when processed_templates declares a non-
+  existent file (pmorie@gmail.com)
+- Merge pull request #3580 from jwhonce/bug/1005364
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1005364 - Restore gear user usage of facter (jhonce@redhat.com)
+- Bug 1004510 - Remove welcome HEREDOC from rhcsh (jhonce@redhat.com)
+
 * Fri Sep 06 2013 Adam Miller <admiller@redhat.com> 1.14.3-1
 - Bug 1005244 - Remove unused INSTANCE_ID setting from node.conf
   (bleanhar@redhat.com)
