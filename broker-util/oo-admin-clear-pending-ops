@@ -199,7 +199,7 @@ if uuid.nil?
     end
   }
 else
-  Application.find(uuid).lt("pending_op_groups.created_at" => $t).each { |a| clean_app(a) }
+  Application.where("uuid" => uuid).lt("pending_op_groups.created_at" => $t).each { |a| clean_app(a) }
 end
 
 puts "#{$count} applications were cleaned up. #{$user_count} users were cleaned up. #{$domain_count} domains were cleaned up."
