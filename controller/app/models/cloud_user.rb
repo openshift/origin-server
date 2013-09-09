@@ -369,7 +369,7 @@ class CloudUser
         op = self.pending_ops.find_by(_id: op_id)
 
         op.close_op
-        op.delete if op.completed?
+        op.delete
       end
       true
     rescue Exception => ex

@@ -1,5 +1,4 @@
 class ApplicationTypesController < ConsoleController
-
   include Console::ModelHelper
 
   def index
@@ -83,5 +82,22 @@ class ApplicationTypesController < ConsoleController
     flash.now[:error] = "There are not enough free gears available to create a new application. You will either need to scale down or delete existing applications to free up resources." unless @capabilities.gears_free?
 
     user_default_domain rescue nil
+  end
+
+  def estimate
+    app_params = params[:application] || params
+    app_type_params = params[:application_type] || app_params
+
+    scales = to_boolean(app_params[:scale])
+    application_type = params[:id] == 'custom' ?
+      ApplicationType.custom(app_type_params) :
+      ApplicationType.find(params[:id])
+    cartridges = to_boolean(params[:unlock]) ? {} : (application_type.matching_cartridges.first rescue {})
+    capabilities = user_capabilities
+    application = (application_type >> Application.new(:as => current_user)).assign_attributes(app_params)
+
+    render :inline => gear_increase_indicator(cartridges, scales, application.gear_profile, false, capabilities)
+  rescue => e
+    render :inline => e.message, :status => 500
   end
 end

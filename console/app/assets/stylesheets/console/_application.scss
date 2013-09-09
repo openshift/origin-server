@@ -265,6 +265,15 @@
   }
 }
 
+.indicator-gear-increase {
+  border: 1px dotted #999;
+  border-radius: 2px 2px 2px 2px;
+  display: inline-block;
+  font-weight: bold;
+  padding: 3px 6px;
+  cursor: default;
+}
+
 #new_application {
   .application_type {
     margin-bottom: 0;

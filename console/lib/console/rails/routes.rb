@@ -23,21 +23,23 @@ module ActionDispatch::Routing
         match 'applications/:application_id/aliases/:id' => 'aliases#show', :application_id => id_regex, :id => id_regex, :via => :get, :as => 'legacy_application_alias'
 
         # Application specific resources
-        resources :application_types, :only => [:show, :index], :id => id_regex, :singular_resource => true
+        resources :application_types, :only => [:show, :index], :id => id_regex, :singular_resource => true do
+          get :estimate, on: :member
+        end
         resources :applications, :id => id_regex, :singular_resource => true do
           resources :cartridges, :only => [:show, :create, :index], :id => id_regex, :singular_resource => true
           resources :aliases, :only => [:index, :edit, :create, :new, :destroy, :update], :id => id_regex, :singular_resource => true do
-            get :delete
+            get :delete, on: :member
           end
           resources :cartridge_types, :only => [:show, :index], :id => id_regex, :singular_resource => true
           resource :restart, :only => [:show, :update], :id => id_regex
 
-          resource :building, :controller => :building, :id => id_regex, :only => [:show, :new, :destroy, :create] do
-            get :delete
+          resource :building, :controller => :building, :only => [:show, :new, :destroy, :create] do
+            get :delete, on: :member
           end
 
           resource :scaling, :controller => :scaling, :only => [:show, :new] do
-            get :delete
+            get :delete, on: :member
             resources :cartridges, :controller => :scaling, :only => :update, :id => id_regex, :singular_resource => true, :format => false #, :format => /json|csv|xml|yaml/
           end
 

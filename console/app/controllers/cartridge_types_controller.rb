@@ -22,6 +22,7 @@ class CartridgeTypesController < ConsoleController
     name = params[:id].presence
     url = params[:url].presence
 
+    @capabilities = user_capabilities
     @application = Application.find(params[:application_id], :as => current_user)
     @cartridge_type = url ? CartridgeType.for_url(url) : CartridgeType.cached.find(name)
     @cartridge = Cartridge.new :as => current_user

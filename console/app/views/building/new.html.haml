@@ -54,4 +54,8 @@
     = f.buttons do
       = link_to "Back", application_path(@application), :class => 'btn'
       = f.commit_button("Add Jenkins")
+      - unless @jenkins_server.persisted?
+        %span#gear_increase
+          = gear_increase_indicator(nil, false, nil, false, @capabilities)
+
       = f.loading

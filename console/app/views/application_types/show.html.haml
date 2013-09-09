@@ -224,6 +224,8 @@
   = f.buttons do
     = link_to "Back", application_types_path, :class => 'btn'
     = f.commit_button :button_html => { :disabled => @disabled } 
+    %span#gear_increase
+      = gear_increase_indicator(@cartridges, @application.scales?, @application.gear_profile, false, @capabilities)
     = f.loading
 
 - if @compact
@@ -269,6 +271,16 @@
         var url = applicationTypeUrl($(this).closest('form'), 'true', $(this).data('focus'));
         window.location.href = url;
         return false;
+      });
+
+      var estimateUrl = function(form) {
+        var fields = $.grep(form.serializeArray(), function(field) {
+          return ['application[scale]', 'application[cartridges][]', 'application_type[cartridges][]', 'application[gear_profile]', 'unlock'].indexOf(field.name) != -1;
+        });
+        return "#{estimate_application_type_path(@application_type.id)}" + '?' + $.param(fields);      
+      }
+      $('#application_scale, #application_gear_profile').change(function() {
+        $("#gear_increase").load(estimateUrl($(this).closest('form')));
       });
     });
     $(function() {

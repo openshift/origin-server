@@ -83,6 +83,12 @@ class CartridgeType < RestApi::Base
     @attributes[:tags] = tags
   end
 
+  def service?
+    tags.include?(:service)
+  end
+  def plugin?
+    tags.include?(:plugin)
+  end
   def database?
     tags.include?(:database)
   end

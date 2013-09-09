@@ -1,5 +1,5 @@
 class UserSessionSweeper < ActiveModel::Observer
-  observe User, Application, Domain
+  observe User, Application, Domain, Cartridge
 
   def self.before(controller)
     self.user_changes = false

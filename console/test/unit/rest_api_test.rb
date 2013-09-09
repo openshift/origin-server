@@ -1156,21 +1156,22 @@ class RestApiTest < ActiveSupport::TestCase
   class CacheableRestApi < RestApi::Base
     include RestApi::Cacheable
 
-    @count = 0
     def self.find_single(*args)
-      #puts "find_single: #{caller.join("\n  ")}"
-      @count += 1
+      CacheableRestApi.increment
     end
     cache_method :find_single, lambda{ |id, *args| [CacheableRestApi.name, :item, id] }
 
     def self.find_every(*args)
-      #puts "find_every: #{caller.join("\n  ")}"
-      @count += 1
+      CacheableRestApi.increment
     end
     cache_method :find_every, [CacheableRestApi.name, :find_every]
 
     def self.count
-      @count
+      @count ||= 0
+    end
+    def self.increment
+      (@count ||= 0)
+      @count += 1
     end
   end
 
@@ -1187,7 +1188,7 @@ class RestApiTest < ActiveSupport::TestCase
     assert !CacheableRestApi.equal?(cached)
     assert cached < CacheableRestApi
     assert_equal CacheableRestApi.name, cached.name
-    assert_equal [:find_every, :find_single], cached.send(:cache_options)[:caches].keys.map(&:to_s).sort.map(&:to_sym)
+    assert_equal [:find_every, :find_single], cached.send(:caches).keys.map(&:to_s).sort.map(&:to_sym)
 
     assert_same cached, cached.cached
 
@@ -1213,9 +1214,9 @@ class RestApiTest < ActiveSupport::TestCase
   end
 
   def test_cacheable_key_for
-    assert_equal [CacheableRestApi.name, :item, 1], CacheableRestApi.send(:cache_key_for, :find_single, 1)
-    assert_equal [CacheableRestApi.name, :item, 2], CacheableRestApi.send(:cache_key_for, :find_single, 2)
-    assert_equal [CacheableRestApi.name, :find_every], CacheableRestApi.send(:cache_key_for, :find_every)
+    assert_equal [CacheableRestApi.name, :item, 1], CacheableRestApi.cached.send(:cache_key_for, :find_single, 1)
+    assert_equal [CacheableRestApi.name, :item, 2], CacheableRestApi.cached.send(:cache_key_for, :find_single, 2)
+    assert_equal [CacheableRestApi.name, :find_every], CacheableRestApi.cached.send(:cache_key_for, :find_every)
   end
 
   def test_cartridge_type_find_invalid
@@ -1316,7 +1317,7 @@ class RestApiTest < ActiveSupport::TestCase
     end
 
     Rails.cache.clear
-    key = CartridgeType.send(:cache_key_for, :find_every)
+    key = CartridgeType.cached.send(:cache_key_for, :find_every)
     assert_nil Rails.cache.read(key)
 
     types = CartridgeType.embedded
@@ -1707,7 +1708,7 @@ class RestApiTest < ActiveSupport::TestCase
     end
     types = CartridgeType.cached.all
     assert types.length > 0
-    assert Rails.cache.read(CartridgeType.send(:cache_key_for, :find_every))
+    assert Rails.cache.read(CartridgeType.cached.send(:cache_key_for, :find_every))
     types
   end
 
