@@ -1,0 +1,74 @@
+.hero-unit.welcome.clear
+  %h1
+    %span
+      ="Welcome to the"
+    = image_tag "admin_console/openshift-logo-horizontal.svg", :class => "brand"
+    = "Administration Console"
+%p.lead
+  The OpenShift Admin Console gives you fast access to users, apps, gears, and nodes.
+.row
+  .span6
+    %section
+      %h3
+        What should I do first?
+      Create at least one district for each gear profile. Then, create at least one node per gear profile, and add it to a district.  
+    %section
+      %h3
+        What can I expect to see?
+      %p
+        There are no nodes configured in this deployment yet.  Once your system has nodes configured, you will see an overview of the capacity for each gear size, similar to the one shown below.  Hover over the elements of the overview to see explanations.
+    %section
+      %h5
+        %em
+          Sample overview
+      = render :partial => 'profile', :locals => {:profile => capacity_overview_sample_profile, :sample => true}
+  .span5.offset1
+    %section
+      %h3
+        Terminology
+      %dl
+        %dt
+          Gear Profile (size)
+        %dd
+          Specifies the parameters provided by the node host, where a single node host can only host a single gear profile.        
+        %dt
+          District
+        %dd
+          A set of nodes, and the resource definitions they must share in order to enable transparent migration of gears between hosts.
+        %dt
+          Node
+        %dd
+          Host that runs user applications in contained environments called gears.
+        %dt
+          Gear
+        %dd
+          Secure container where cartridges are deployed. Gears are isolated from each other through Linux namespacing and SELinux protection. Each gear is given a fair allocation of CPU, memory, disk, and network bandwidth using Linux control groups.
+        %dt
+          Application
+        %dd
+          An OpenShift application is code, plus an environment and shared config, with one or more cartridges providing the languages and services that the user's app needs.
+        %dt
+          Cartridge
+        %dd
+          Self-contained bit of the application stack like a web server or database that simplifies server maintenance and configuration.
+
+- content_for :javascripts do
+  :javascript
+    $(function() {
+      $(".tooltip-handle").tooltip({
+        placement: tooltip_placement
+      });
+
+      $(".tooltip-handle").bind("touchstart", function(e){
+        $(".tooltip-handle").tooltip('hide');
+        $(this).tooltip('show');
+        e.stopPropagation();
+      }).focus(function(e){
+        $(this).tooltip('show');
+      }).blur(function(e){
+        $(this).tooltip('hide');
+      });
+
+      $("body").bind("touchstart", function(){
+        $(".tooltip-handle").tooltip('hide');});
+    });

@@ -1,0 +1,114 @@
+- undistricted_nodes_exist = profile[:districts].any? {|district| district[:name] == "(NONE)"}
+- show_districts = Rails.configuration.msg_broker[:districts][:enabled] && (profile[:districts].size > 1 || !undistricted_nodes_exist)
+- profile_name = profile[:profile]
+- sample = false if !defined? sample
+.profile{:class => sample ? 'sample' : ''}
+  %h3
+    = "#{profile_name.capitalize} gears"
+  %table{:class => show_districts ? nil : "nodes-only"}
+    %tbody
+      %tr.districts{:profile_url => sample ? nil : (show_districts ? profile_path(:id => profile_name) : profile_nodes_path(:id => profile_name))}
+        %td
+          - if show_districts
+            = sample_tooltip sample, "district_count" do
+              .stat-label
+                districts
+              .stat-number-large
+                = undistricted_nodes_exist ? profile[:district_count] - 1 : profile[:district_count]
+            - unless sample
+              .hover-action.hidden-mobile
+                = link_to "Details...", profile_path(:id => profile_name)
+          - else
+            .stat-label
+              nodes
+            .stat-number-large
+              = profile[:nodes_count]
+        %td
+          - gears_total_count = profile[:gears_total_count]
+          - district_capacity = profile[:district_capacity]
+          - district_capacity = district_capacity == 0 ? 6000 : district_capacity
+          - uuid_usage_pct = (gears_total_count.to_f / district_capacity.to_f) * 100
+          = sample_tooltip sample, "total_gears", ["pull-left"] do
+            .stat-label
+              gears
+            .stat-number
+              = number_with_delimiter(gears_total_count)
+          = sample_tooltip sample, "max_total_gears", ["pull-right", "text-right", "muted"] do
+            .stat-label
+              max gears
+            .stat-number
+              = number_with_delimiter(district_capacity)
+          = sample_tooltip sample, "total_progress", ["progress-tooltip-wrapper"] do
+            = progress_bar(uuid_usage_pct, ["progress-inverse"])
+          - if show_districts
+            = sample_tooltip(sample, "total_heat_map", ["heat-map-line"]) do
+              .bar
+                - profile[:districts].each do |district|
+                  .district.tickmark{:style => "left: #{[0, district[:dist_usage_pct]].max}%;"}
+              .end-point-left
+                = "0%"
+              .label-center
+                = "usage by district"
+              .end-point-right
+                = "100%"
+      %tr.nodes{:profile_url => sample ? nil : profile_nodes_path(:id => profile_name)}
+        %td
+          - if show_districts
+            = sample_tooltip sample, "node_count" do
+              .stat-label
+                nodes
+              .stat-number-large
+                = profile[:nodes_count]
+          - unless sample
+            .hover-action.hidden-mobile
+              = link_to "Details...", profile_nodes_path(:id => profile_name)
+        %td
+          - active_gears = profile.gears_active_count
+          - total_active_gears = active_gears + profile.effective_available_gears
+          - if total_active_gears == 0 # avoid NaN below
+            - active_pct = 0.0
+          - else
+            - active_pct = (active_gears.to_f / total_active_gears.to_f) * 100
+          - active_warn_pct = threshold_pct(@active_warning_threshold, total_active_gears)
+          = sample_tooltip sample, "active_gears", ["pull-left"] do
+            .stat-label
+              active 
+              %br.hidden
+              gears
+            .stat-number
+              = number_with_delimiter(active_gears)
+          = sample_tooltip sample, "max_active_gears", ["pull-right", "text-right", "muted"] do
+            .stat-label
+              max active
+              %br.hidden
+              gears
+            .stat-number
+              = number_with_delimiter(total_active_gears)
+          = sample_tooltip sample, "active_progress", ["progress-tooltip-wrapper"] do
+            = progress_bar_with_thresholds(active_pct, active_warn_pct, Float::INFINITY)
+          = sample_tooltip(sample, "active_heat_map", ["heat-map-line"]) do
+            .bar
+              - profile[:districts].each do |district|
+                - district[:nodes].each do |node|
+                  - node_active_warn_pct = threshold_pct(@active_warning_threshold, node[:max_active_gears])
+                  - tickmark_class = node[:gears_active_usage_pct] < node_active_warn_pct ? 'tickmark-success' : node[:gears_active_usage_pct] < 100 ? 'tickmark-warning' : 'tickmark-danger';
+                  .node.tickmark{:class => tickmark_class, :style => "left: #{[100, node[:gears_active_usage_pct] / 110 * 100].min}%;"}
+            .end-point-left
+              = "0%"
+            .label-center
+              = "usage by node"
+            .end-point-right
+              = "> 110%"
+- content_for :javascripts do
+  :javascript
+    $(function() {
+      $('.districts').click(function() {
+        if ($(this).attr('profile_url'))
+          window.location.href = $(this).attr('profile_url');
+      });
+
+      $('.nodes').click(function() {
+        if ($(this).attr('profile_url'))
+          window.location.href = $(this).attr('profile_url');
+      });
+    });

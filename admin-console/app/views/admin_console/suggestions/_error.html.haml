@@ -1,0 +1,20 @@
+.lead
+  Error occurred while generating suggestions
+- case size
+- when :short
+  %div
+    There was an error while generating suggestions. This may be a system failure
+    such as being unable to contact MongoDB or ActiveMQ.
+
+- when :full
+  %p
+    There was an error while generating suggestions. This may be a system failure
+    such as being unable to contact MongoDB or ActiveMQ.
+  %p
+    The details of the error are:
+  %pre.pre-scrollable
+    = suggestion.error.inspect
+  %p
+    The stack trace for the error is:
+    %pre.pre-scrollable
+      &= suggestion.stack.map(&:to_s).join("\n")

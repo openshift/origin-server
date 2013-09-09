@@ -1,36 +1,265 @@
 .capacity
+  - if @cache_timeout > 0.seconds
+    %small.pull-right.muted
+      %form{:action => reload_path(:then => url_for(:params => request.query_parameters)), :method => "post"}
+        = "Data collected #{time_ago_in_words(@stats_created_at)} ago."
+        %button.btn.btn-mini.btn-icon{:type => "submit", :title => "Refresh now."}
+          %i.icon-refresh    
   %h1
-    = @profile[:profile]
-  %table.stat-table
-    %tbody
-      %tr
-        %td.stat-name
-          Gears
-        - gears_total_count = @profile[:gears_total_count]
-        - district_capacity = @profile[:district_capacity]
-        - district_capacity = district_capacity == 0 ? 6000 : district_capacity
-        - uuid_usage_pct = (gears_total_count.to_f / district_capacity.to_f) * 100
-        %td.stat-usage
-          = "#{gears_total_count} of #{district_capacity}"
-        %td.stat-progress
-          .progress
-            .bar{ :style => "width: " + uuid_usage_pct.to_s + "%;"}
-      %tr
-        %td.stat-name
-          Active Gears
-        - active_gears = @profile[:gears_active_count]
-        - total_active_gears = @profile[:gears_active_count] + @profile[:available_active_gears]
-        - active_pct = (active_gears.to_f / total_active_gears.to_f) * 100
-        %td.stat-usage
-          = "#{active_gears} of #{total_active_gears}"
-        %td.stat-progress
-          .progress
-            .bar{ :style => "width: " + active_pct.to_s + "%;"}
-  %hr
-  - @profile[:districts][0][:nodes].each do |node|
-    .tile.span2
-      = "Id: #{node[:id]}"
-      %div
-        Gear usage:
-        .usage
-          = "#{node[:gears_active_usage_pct]}%"
+    = image_tag "admin_console/gear-lg.svg", :class => "icon"
+    = "#{@profile[:profile].capitalize} gears"
+
+  .profile.profile-full-page
+    %table
+      %tbody
+        %tr.districts{:class => @show_nodes ? (@districts_exist ? 'collapsed' : 'nodes-only') : 'active' , 
+                      :profile_url => !@show_nodes || !@districts_exist ? nil : profile_path(:id => @profile[:profile])}
+          %td.text-center
+            - if @districts_exist
+              .stat-label
+                districts
+              .stat-number-large
+                = @undistricted_nodes_exist ? @profile[:district_count] - 1 : @profile[:district_count]
+            - else
+              .stat-label
+                nodes
+              .stat-number-large
+                = @profile[:nodes_count]
+          %td.bars
+            - gears_total_count = @profile[:gears_total_count]
+            - district_capacity = @profile[:district_capacity]
+            - district_capacity = district_capacity == 0 ? 6000 : district_capacity
+            - uuid_usage_pct = (gears_total_count.to_f / district_capacity.to_f) * 100
+            .pull-left
+              .stat-label
+                gears
+              .stat-number
+                = number_with_delimiter(gears_total_count)
+            .pull-right.muted.text-right
+              .stat-label
+                max gears
+              .stat-number
+                = number_with_delimiter(district_capacity)
+            = progress_bar(uuid_usage_pct, ["progress-inverse"])
+            - if @districts_exist
+              .heat-map-line
+                .bar
+                  - @profile[:districts].each do |district|
+                    .tickmark{:style => "left: #{[0, district[:dist_usage_pct]].max}%;"}
+                .end-point-left
+                  = "0%"
+                .label-center
+                  = "usage by district"
+                .end-point-right
+                  = "100%"
+        %tr.nodes{:class => @show_nodes ? (@districts_exist ? 'active' : 'nodes-only') : 'collapsed',
+                  :profile_url => @show_nodes || !@districts_exist ? nil : profile_nodes_path(:id => @profile[:profile])}
+          %td.text-center
+            - if @districts_exist
+              .stat-label
+                nodes
+              .stat-number-large
+                = @profile[:nodes_count]
+          %td.bars
+            - active_gears = @profile.gears_active_count
+            - total_active_gears = active_gears + @profile.effective_available_gears
+            - if total_active_gears == 0 # avoid NaN below
+              - active_pct = 0.0
+            - else
+              - active_pct = (active_gears.to_f / total_active_gears.to_f) * 100
+            - active_warn_pct = threshold_pct(@active_warning_threshold, total_active_gears)
+            .pull-left
+              .stat-label
+                active gears
+              .stat-number
+                = number_with_delimiter(active_gears)
+            .pull-right.muted.text-right
+              .stat-label
+                max active gears
+              .stat-number
+                = number_with_delimiter(total_active_gears)
+            = progress_bar_with_thresholds(active_pct, active_warn_pct, Float::INFINITY)
+            .heat-map-line
+              .bar
+                - @profile[:districts].each do |district|
+                  - district[:nodes].each do |node|
+                    - node_active_warn_pct = threshold_pct(@active_warning_threshold, node[:max_active_gears])
+                    - tickmark_class = node[:gears_active_usage_pct] < node_active_warn_pct ? 'tickmark-success' : node[:gears_active_usage_pct] < 100 ? 'tickmark-warning' : 'tickmark-danger';                    
+                    .tickmark{:class => tickmark_class, :style => "left: #{[100, node[:gears_active_usage_pct] / 110 * 100].min}%;"}
+              .end-point-left
+                = "0%"
+              .label-center
+                = "usage by node"
+              .label-point-right{:style => "right: #{100 - (100.to_f / 110 * 100)}%"}
+                = "100%"
+              .end-point-right.hidden-phone
+                = "> 110%"
+  -if @show_nodes
+    - if @districts_exist
+      %form.form-inline{:action => profile_path(:id => @profile[:profile])}
+        %label{:for => "node_district_scope"}
+          = "Show:"
+        %select#node_district_scope{:name => "district"}
+          - grouped_options = [[nil, [["all nodes", ""], ["nodes not in a district", "NONE"]]]]
+          - district_options = []
+          - districts_by_name = @profile[:districts].sort{ |x, y| x[:name] <=> y[:name]}
+          - districts_by_name.each do |district|
+            - district_options << [district[:name], district[:uuid]] unless district[:uuid] == "NONE profile=#{@profile[:profile]}"
+          - grouped_options << [nil, district_options]
+          = grouped_options_for_select(grouped_options, @district_uuid_filter)
+        %noscript
+          %input{:type => "hidden", :name => "nodes", :value => "true"}
+          = submit_tag 'View', :class => 'btn', :name => nil
+    %table.table.node-list
+      %thead
+        %tr
+          %th
+            Node
+          %th
+            - new_sort_dir = @active_sort_direction == 'asc' ? 'desc' : 'asc'
+            = link_to profile_nodes_path(:id => @profile[:profile], :sk => "active", :so => new_sort_dir, :district => @district_uuid_filter), :class => 'sort', :base_url => profile_nodes_path(:id => @profile[:profile]) do
+              Active Gears
+              - if @active_sort == 'active'
+                %i{:class => @active_sort_direction == 'asc' ? 'icon-chevron-up' : 'icon-chevron-down'}
+          %th
+      %tbody
+        - nodes_visible = false
+        - @nodes.each do |node|
+          - nodes_visible |= @district_uuid_filter.blank? || @district_uuid_filter == node[:district_uuid]
+          %tr.node{:district_uuid => node[:district_uuid], 
+                    :node_url => node_path(:id => node[:id]), 
+                    :style => "display: #{(@district_uuid_filter.blank? || @district_uuid_filter == node[:district_uuid]) ? '' : 'none'};"}
+            %td.nowrap
+              = "#{node[:name]}"
+            %td.bar
+              - active_warn_pct = threshold_pct(@active_warning_threshold, node[:max_active_gears])
+              = progress_bar_with_thresholds(node[:gears_active_usage_pct] / 110 * 100, active_warn_pct / 110 * 100, 100.to_f / 110 * 100)
+            %td.nowrap
+              = "#{node[:gears_active_usage_pct].round(0)}% (#{number_with_delimiter(node[:gears_active_count])})"
+        %tr.no_nodes{:style => nodes_visible ? "display: none;" : nil}
+          %td{:colspan => 2}
+            %em
+              = "There are no nodes to display."
+  - else
+    %table.table
+      %thead
+        %tr
+          %th
+            District
+          %th
+            - new_sort_dir = @active_sort != 'total' || @active_sort_direction == 'asc' ? 'desc' : 'asc'
+            = link_to profile_path(:id => @profile[:profile], :sk => "total", :so => new_sort_dir) do
+              Total Gears Remaining (max 6000)
+              - if @active_sort == 'total'
+                %i{:class => @active_sort_direction == 'asc' ? 'icon-chevron-up' : 'icon-chevron-down'}
+          %th
+          %th
+            - new_sort_dir = @active_sort != 'active' || @active_sort_direction == 'asc' ? 'desc' : 'asc'
+            = link_to profile_path(:id => @profile[:profile], :sk => "active", :so => new_sort_dir) do
+              Active Gears (under / over target)
+              - if @active_sort == 'active'
+                %i{:class => @active_sort_direction == 'asc' ? 'icon-chevron-up' : 'icon-chevron-down'}          
+          %th
+          %th
+      %tbody
+        - @districts.each do |district|
+          - unless district[:name] == "(NONE)"
+            %tr.district
+              %td
+                = district[:name]
+              %td.bar
+                - district_usage_pct = (district[:district_capacity] - district[:dist_avail_capacity]) / district[:district_capacity].to_f * 100
+                = progress_bar(district_usage_pct, ["progress-inverse"])
+              %td
+                = "#{number_with_delimiter(district[:dist_avail_capacity])}"
+              - is_over_dist = district[:available_active_gears_with_negatives] < @active_warning_threshold * district[:nodes].size
+              %td.bar
+                .over-under-scale
+                  .line
+                  - opacity = (0.8 / district[:nodes].size) + 0.2
+                  - district[:nodes].each do |node|
+                    - is_over = node[:max_active_gears] - node[:gears_active_count] < @active_warning_threshold
+                    - log_percent = log_scale_percentage(@active_warning_threshold, node[:max_active_gears] - node[:gears_active_count], :log_base => 45, :max_pct => 50)
+                    .bar{:class => is_over ? 'bar-over' : 'bar-under', :style => "width: #{log_percent}%; opacity: #{opacity};"}
+                  .center-point
+              %td
+                %strong{:class => is_over_dist ? 'text-error' : 'text-success'}
+                  = "#{is_over_dist ? '+' : '-'} #{(@active_warning_threshold * district[:nodes].size - district[:available_active_gears_with_negatives]).abs}"
+              %td
+                = link_to pluralize(district[:nodes].size, 'node'), profile_nodes_path(:id => @profile[:profile], :district => district[:uuid])
+
+- content_for :javascripts do
+  :javascript
+    $(function() {
+      $('.districts').click(function() {
+        if ($(this).attr('profile_url'))
+          window.location.href = $(this).attr('profile_url');
+      });
+
+      $('.nodes').click(function() {
+        if($(this).attr('profile_url'))
+          window.location.href = $(this).attr('profile_url');
+      });
+
+      $('.node').click(function() {
+        if($(this).attr('node_url'))
+          window.location.href = $(this).attr('node_url');
+      });      
+    });
+
+- if @show_nodes && @districts_exist
+  - content_for :javascripts do
+    :javascript
+      $(function() {
+        var filter_nodes_by_district = function(district_uuid, on_pop) {
+          var nodes_visible = false;
+          var nodes = $(".node").each(function(idx, node) {
+            var visible = $(this).attr("district_uuid") == district_uuid || district_uuid == "";
+            nodes_visible |= visible;
+            node.style.display = visible ? "" : "none";
+          });
+
+          $(".no_nodes").each(function(idx, no_nodes_row) {
+            no_nodes_row.style.display = nodes_visible ? "none" : "";
+          });
+        };
+
+        if (history && history.pushState) {
+          window.onpopstate = function(event) {
+            var district_uuid = event.state ? event.state.district : getURLParameter("district");
+            if (!district_uuid)
+              district_uuid = "";
+            filter_nodes_by_district(district_uuid);
+            $("#node_district_scope").val(district_uuid);
+          };
+        }
+
+        $('#node_district_scope').change(function() {
+          var district_uuid = $(this).val();
+          filter_nodes_by_district(district_uuid);
+
+          if (history && history.pushState) {
+            var sk = '#{params[:sk]}';
+            var so = '#{params[:so]}';
+            var query = writeQueryParams({district: district_uuid, sk: sk, so: so});
+            // An empty query won't alter the URL on a pushState
+            if (query.length == 0)
+              query = "?";
+            history.pushState({district: district_uuid}, "", query);
+
+            $(".sort").each(function(){
+              var currUrl = $(this).attr('href');
+              var baseUrl = $(this).attr('base_url');
+              var sk = getURLParameter('sk', currUrl);
+              var so = getURLParameter('so', currUrl);
+              $(this).attr('href', baseUrl + writeQueryParams({district: district_uuid, sk: sk, so: so}));
+            });
+          }
+        });
+
+        $('#node_district_scope').keyup(function(e) {
+          // Only trigger on up / down arrow keys
+          if (e.which == 40 || e.which == 38)
+            $(this).trigger("change");
+        });
+      });

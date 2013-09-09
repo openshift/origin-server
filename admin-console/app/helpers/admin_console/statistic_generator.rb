@@ -4,7 +4,6 @@ module AdminConsole
 
     module ClassMethods
       def binning_from_mongo_aggregate(mongo_response, bin_size = 1, bin_max = 100)
-        #TODO
         bins_map = {}
         final_bins = []
         mongo_response.each do |mongo_bin| 

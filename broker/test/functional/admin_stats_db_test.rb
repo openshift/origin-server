@@ -40,19 +40,22 @@ class AdminStatsDbTest < ActionController::TestCase
     assert_response :created
     # Add other apps with problematic data to test
 
-    # run some stats assuming the created app(s)
-    stats = Admin::Stats.new
-    c = {}
-    assert_nothing_raised { c[:all], c[:profile], c[:user] = stats.get_db_stats }
-    assert c[:all][:apps] >= 1, "number of apps should be at least what we created"
-    assert c[:all][:users_with_num_apps][1] >= 1,
-      "number of users with our user's number of apps should be at least 1"
-    assert c[:all][:cartridges_short]['php'] >= 1,
-      "number of php carts should be at least what we created"
-    assert c[:user].has_key?(@login), "our user should be in the results"
+    begin
+      # run some stats assuming the created app(s)
+      stats = Admin::Stats::Maker.new
+      c = {}
+      assert_nothing_raised { c[:all], c[:profile], c[:user] = stats.get_db_stats }
+      assert c[:all][:apps] >= 1, "number of apps should be at least what we created"
+      assert c[:all][:users_with_num_apps][1] >= 1,
+        "number of users with our user's number of apps should be at least 1"
+      assert c[:all][:cartridges_short]['php'] >= 1,
+        "number of php carts should be at least what we created"
+      assert c[:user].has_key?(@login), "our user should be in the results"
 
-    # delete any apps created
-    delete :destroy , {"id" => php_app, "domain_id" => @domain.namespace}
-    assert_response :ok
+    ensure
+      # delete any apps created
+      delete :destroy , {"id" => php_app, "domain_id" => @domain.namespace}
+      assert_response :ok
+    end
   end
 end

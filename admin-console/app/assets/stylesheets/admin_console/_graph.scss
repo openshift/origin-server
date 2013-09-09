@@ -1,11 +1,21 @@
 .histogram {
-  width: 520px;
+  width: 522px;
 
   .histogram-bars {
     display: inline-block;
-    background-color: #eee;
+    border-left: 1px solid #CCC;
+    border-right: 1px solid #CCC;
     height: 200px;
+    position: relative;
   }
+
+  .histogram-line {
+    border-bottom: 1px solid #CCCCCC;
+    position: absolute;
+    width: 100%;
+    z-index: -1;
+  }
+
 
   .histogram-force-height {
     display: inline-block;
@@ -13,7 +23,7 @@
   }
 
   .histogram-bar {
-    background-color: #333;
+    background-color: #43A043;
     display: inline-block;
     margin: 0 2px;
     width: 50px;
@@ -48,7 +58,9 @@
 
   .histogram-y-label {
     transform: rotate(270deg) translate(-200px, 0px);
+    -webkit-transform: rotate(270deg) translate(-200px, 0px);
     transform-origin: 0 0;
+    -webkit-transform-origin: 0 0;
     width: 200px;
     position: absolute;
     white-space: nowrap;
@@ -66,7 +78,7 @@
 
 @media (max-width: 640px) {
   .histogram {
-    width: 385px;
+    width: 387px;
 
     .histogram-bar {
       width: 35px;
@@ -77,12 +89,23 @@
       vertical-align: top;
       line-height: 13px;
     }
+
+    .histogram-x-label {
+      margin-top: 5px;
+    }
+
+    .histogram-x-axis .histogram-label {
+      text-align: left;
+      @include rotate(45deg);
+      white-space: nowrap;
+      margin-top: 2px;
+    }    
   }
 }
 
 @media (max-width: 480px) {
   .histogram {
-    width: 250px;
+    width: 252px;
 
     .histogram-bar {
       width: 20px;
@@ -90,6 +113,130 @@
 
     .histogram-label {
       width: 20px;
+    }
+  }
+}
+
+/* Heat map - single dimension (horizontal) */
+.heat-map-line {
+  width: 100%;
+  overflow: hidden;
+  height: 34px;
+  position: relative;
+  margin: 5px 0 10px;
+
+  .bar {
+    @include box-sizing(border-box);
+    border: 1px solid #CCCCCC;
+    display: inline-block;
+    height: 10px;
+    overflow: hidden;
+    width: 100%;
+
+    .tickmark {
+      background: darken(#0D90D1, 15%);
+      height: 8px;
+      opacity: 0.2;
+      position: absolute;
+      width: 2%;
+    }
+
+    .tickmark-success {
+      background: #43A043;
+    }
+
+    .tickmark-warning {
+      background: $orange;
+    }
+
+    .tickmark-danger {
+      background: #DD514B;
+    }
+  }
+
+  .end-point-left {
+    border-left: 1px solid #CCCCCC;
+    font-size: 11px;
+    line-height: 14px;
+    padding-left: 2px;
+    position: absolute;
+    left: 0;
+    top: 16px;
+  }
+
+  .end-point-right {
+    border-right: 1px solid #CCCCCC;
+    font-size: 11px;
+    right: 0;
+    line-height: 14px;
+    padding-right: 2px;
+    position: absolute;
+    top: 16px;
+  }
+
+  .label-center {
+    font-size: 11px;
+    line-height: 14px;
+    margin-top: -5px;
+    text-align: center;
+  }
+
+
+  .label-point, .label-point-right {
+    font-size: 11px;
+    line-height: 14px;
+    position: absolute;
+    top: 16px;
+  }
+
+  .label-point {
+    border-left: 1px solid #CCCCCC;
+    padding-left: 2px;
+  }
+
+  .label-point-right {
+    border-right: 1px solid #CCCCCC;
+    padding-right: 2px;
+  }  
+}
+
+/* Over / under horizontal bar graph */
+.over-under-scale {
+  position: relative;
+  height: 22px;
+
+  .line {
+    position: absolute;
+    top: 10px;
+    height: 2px;
+    width: 100%;
+    background: #AAA;
+  }
+
+  .center-point {
+    width: 2px;
+    background: #555;
+    height: 22px;
+    position: absolute;
+    left: 50%;
+  }
+
+  .bar {
+    @include border-radius($inputBorderRadius 0 0 $inputBorderRadius);
+    position: absolute;
+    height: 18px;
+    background: #5DB95D;
+    top: 2px;
+
+    &.bar-under {
+      right: 50%;
+      @include border-radius($inputBorderRadius 0 0 $inputBorderRadius);
+    }
+
+    &.bar-over {
+      left: 50%;
+      @include border-radius(0 $inputBorderRadius $inputBorderRadius 0);
+      background: #DD514B;
     }
   }
 }
