@@ -56,7 +56,7 @@ module OpenShift
 
 
             def conf_path
-              @app_path + ".conf"
+              File.join(@basedir, "#{@container_uuid}_#{@namespace}_9_#{@container_name}.conf")
             end
 
             def element_path(path)
@@ -274,7 +274,7 @@ module OpenShift
 
 
             def ssl_conf_path(server_alias)
-              @token = "#{@container_uuid}_#{@namespace}_0alias_#{server_alias}"
+              @token = "#{@container_uuid}_#{@namespace}_0_#{server_alias}"
               File.join(@basedir, token + ".conf")
             end
 
