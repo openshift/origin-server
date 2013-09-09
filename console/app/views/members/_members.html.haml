@@ -1,0 +1,27 @@
+:css
+  table.members td, table.members th { vertical-align: middle; padding-left: 10px; padding-right: 10px; }
+
+=# semantic_form_for (domain), :url => domain_members_path(domain), :html => {:method => :put} do |f|
+= form_tag domain_members_path(domain), :method => :put do
+  %table.table.table-condensed.table-bordered.members{:style => "width:auto"}
+    %tr
+      %th User
+      %th Role
+    %tr
+      %td= members.find(&:owner).name
+      %td Owner
+
+    - members.reject(&:owner).sort.each do |member|
+      %tr
+        %td
+          = member.name
+        %td
+          - if editable
+            = hidden_field_tag('members[][id]', member.id)
+            = select_tag('members[][role]', options_for_select(Role.role_descriptions_descending, {:selected => member.role}))
+          - else
+            = member.role.humanize
+
+  - if editable && members.reject(&:owner).present?
+    .form-actions
+      = submit_tag "Update members", :class => 'btn btn-primary'

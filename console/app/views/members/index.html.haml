@@ -1,0 +1,12 @@
+- domain = @membership
+%h1 #{domain.name}
+= breadcrumb_for_domain(domain, 'Members')
+
+%h2 Members
+%section
+  = render :partial => 'members', :locals => {:domain => domain, :members => @members, :editable => domain.admin?}
+
+- if domain.admin?
+  %h2 Add a new member
+  %section
+    = render :partial => 'new_member', :locals => {:domain => domain, :member => @member}

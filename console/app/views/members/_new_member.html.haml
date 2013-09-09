@@ -1,0 +1,6 @@
+= semantic_form_for (member = member || Member.new), :url => domain_members_path(domain), :html => {:method => :post} do |f|
+  = f.semantic_errors
+  = f.inputs :inline => true do
+    = f.input :login, :input_html => {:placeholder => 'User Login', :title => 'User Login'}
+    = f.input :role, :as => :select, :collection => Role.role_options_ascending, :include_blank => 'Role:', :input_html => {:title => 'Role'}
+    = f.commit_button 'Add member', :button_html => {:style => 'vertical-align: top', :class => 'btn btn-small'}

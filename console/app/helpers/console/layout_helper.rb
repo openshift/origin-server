@@ -201,6 +201,13 @@ module Console::LayoutHelper
     ] + args
   end
 
+  def breadcrumb_for_domain(domain, *args)
+    breadcrumbs_for_each [
+      link_to('Domains', :domains, :action => :index),
+      link_to(domain.name, domain),
+    ] + args
+  end
+
   def breadcrumb_for_create_application(*args)
     breadcrumbs_for_each [
       link_to('Create an application', application_types_path), 

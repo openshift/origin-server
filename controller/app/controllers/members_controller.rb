@@ -8,7 +8,8 @@ class MembersController < BaseController
     authorize! :change_members, membership
 
     ids, logins, remove = {}, {}, []
-    (params[:members] || [params[:member]].compact.presence || [params.slice(:id, :login, :role)]).compact.each do |m| 
+    members_params = (params[:members] || [params[:member]].compact.presence || [params.slice(:id, :login, :role)]).compact
+    members_params.each do |m| 
       return render_error(:unprocessable_entity, "You must provide a member with an id and role.") unless m.is_a? Hash
       if m[:role] == "none"
         return render_error(:unprocessable_entity, "You must provide an id for each member with role 'none'.") unless m[:id]
@@ -26,18 +27,40 @@ class MembersController < BaseController
       end
     end
 
-    new_members = Array(CloudUser.accessible(current_user).with_ids_or_logins(ids.keys, logins.keys).find_by).map do |u| 
-      m = u.as_member
-      m.role = ids[u._id] || logins[u.login]
-      m
+    if ids.present? or logins.present?
+      new_members = CloudUser.accessible(current_user).with_ids_or_logins(ids.keys, logins.keys).each.to_a.map do |u| 
+        m = u.as_member
+        m.role = ids[u._id.to_s] || logins[u.login.to_s]
+        m
+      end
+    else
+      new_members = []
     end
-    return render_error(:unprocessable_entity, "You must provide at least a single member.") if new_members.blank?
+
+    if remove.blank? and new_members.blank?
+      return render_error(:not_found, "The specified user was not found.") if members_params.count == 1
+      return render_error(:unprocessable_entity, "You must provide at least a single member.")
+    end
+
+    count_remove = remove.count
+    count_update = (membership.member_ids & new_members.map(&:id)).count
+    count_add    = new_members.count - count_update
 
     membership.remove_members(remove) if remove.present?
-    membership.add_members(new_members)
+    membership.add_members(new_members) if new_members.present?
 
     if save_membership(membership)
-      render_success(:ok, "members", members.map{ |m| get_rest_member(m) }, "Added #{pluralize(new_members.length, 'member')}.")
+      msg = [
+        ("added #{pluralize(count_add,      'member')}" if count_add > 0),
+        ("updated #{pluralize(count_update, 'member')}" if count_update > 0),
+        ("removed #{pluralize(count_remove, 'member')}" if count_remove > 0)
+      ].compact.join(", ").humanize + '.'
+
+      if (count_add + count_update == 1) and (count_remove == 0) and (member = members.select {|m| m._id == new_members.first._id }.first)
+        render_success(:ok, "member", get_rest_member(member), msg)
+      else
+        render_success(:ok, "members", members.map{ |m| get_rest_member(m) }, msg)
+      end
     else
       render_error(:unprocessable_entity, "The members could not be added due to validation errors.", nil, nil, nil, new_members.map{ |m| get_error_messages(m) }.flatten)
     end

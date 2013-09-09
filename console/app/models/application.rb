@@ -216,12 +216,6 @@ class Application < RestApi::Base
   end
 
   protected
-    def extract_messages(response)
-      RestApi::Base.format.decode(response.body)['messages'] || []
-    rescue
-      []
-    end
-
     def child_prefix_options
       {:application_id => id}
     end
