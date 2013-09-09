@@ -2,7 +2,7 @@ require 'test_helper'
 
 # Make sure it's loaded - prevent mysterious test failures where Rails
 # tries to find something in a sub-namespace first.
-Admin::Stats
+Admin::Stats::Maker
 
 # produces a node facts entry for a node like mcollective
 def faux_node_entry(profile=nil, district_uuid=nil, active=nil)

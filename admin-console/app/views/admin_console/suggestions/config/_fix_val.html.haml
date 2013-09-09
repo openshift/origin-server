@@ -1,0 +1,14 @@
+.lead
+  Invalid configuration value
+  &= suggestion.profile ? "for gear profile #{suggestion.profile}" : ""
+- case size
+- when :short
+  %div
+    & The config variable "#{suggestion.name}" has an unexpected value of #{suggestion.value}.
+- when :full
+  %p
+    & The config variable "#{suggestion.name}" has an unexpected value of #{suggestion.value}.
+  %p
+    An invalid admin console configuration may affect suggestions for capacity planning.  Adjust your configuration in:
+    %pre
+      = File.join(OpenShift::Config::PLUGINS_DIR, "openshift-origin-admin-console.conf")

@@ -1,30 +1,21 @@
-#--
-# Copyright 2013 Red Hat, Inc.
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#    http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-#++
 
 require 'time'
+require 'openshift/data_store'
+require 'admin/stats/results'
 
-class Admin::Stats
+class Admin::Stats::Maker
 
   def initialize(options = nil)
     @options = options || {}
     @time = {}
   end
 
-  # Currently only option is :db_stats which table scans the DB and is kind of expensive
   # e.g. set_option :db_stats => true
+  # Current options:
+  #   :db_stats - table scans the DB and is kind of expensive
+  #   :read_file - read results from a file instead of generating
+  #   :wait - time (in seconds, can be float) to wait for all of
+  #           the nodes to respond to MCollective.
   def set_option(options)
     @options.merge! options
   end
@@ -39,6 +30,7 @@ class Admin::Stats
 
   # gather all statistics and analyze
   def gather_statistics
+    return self.load_from_file if @options[:read_file]
     rpc_opts = Rails.configuration.msg_broker[:rpc_options]
     prev_timeout = rpc_opts[:disctimeout]
     rpc_opts[:disctimeout] = @options[:wait] || prev_timeout
@@ -67,9 +59,28 @@ class Admin::Stats
     return @time
   end
 
+  # alternative to gather_statistics - "gathers" from a file instead
+  def load_from_file(file = nil)
+    case file ||= @options[:read_file]
+    when nil
+      raise "No file given"
+    when /(yaml|yml)$/
+      unless (@file_results = YAML.load_file file).is_a? Admin::Stats::HashWithReaders
+        @file_results = Admin::Stats::HashWithReaders.deep_convert_hashes(@file_results)
+      end
+    when /(json|jsn|js)$/
+      @file_results = JSON.parse( IO.read(file) )
+      @file_results = Admin::Stats::HashWithReaders.deep_convert_hashes(@file_results)
+    else
+      raise "Don't know how to load file '#{file}'\n" +
+            "Please use a file with .yaml or .json extension."
+    end
+    return @file_results[:timings_msecs] || {}
+  end
+
   # Bundle up the statistics results in a hash
   def results
-    r = Results.new.merge({
+    @file_results || Admin::Stats::Results.new.merge({
       'timings_msecs' => @time,                             #timing hash
       'node_entries' => @entry_for_node.values,             #array of node hashes from mcollective
       'node_entries_hash' => @entry_for_node,               #hash of identity => node hashes from mcollective
@@ -86,23 +97,8 @@ class Admin::Stats
       'db_count_for_profile' => @count_for_profile,
       # if db counts were gathered, array of users with app/gear counts
       'db_count_per_user' => @count_for_user ? @count_for_user.values : nil,
-    })
+    }).deep_clear_default!
   end
-
-  # want these as class or instance methods
-  module CleanResults
-    # remove Hash default blocks for serialization (changes original!)
-    def deep_clear_default!(obj)
-      if obj.is_a? Hash
-        obj.default = nil
-        obj.each {|k,v| deep_clear_default!(v)}
-      elsif obj.is_a? Array
-        obj.each {|v| deep_clear_default!(v)}
-      end
-    end
-  end
-  include CleanResults
-  extend CleanResults
 
   # get the node statistics by querying the facts on every node
   def get_node_entries
@@ -140,7 +136,7 @@ class Admin::Stats
       gears_usage_pct gears_active_usage_pct
     ]
     OpenShift::ApplicationContainerProxy.get_details_for_all(detail_names).each do |host,details|
-      node = NodeEntry.new
+      node = Admin::Stats::NodeEntry.new
       details.stringify_keys!
       # convert from strings to relevant values if needed
       %w{node_profile district_uuid}.each {|key| node[key] = details[key]}
@@ -185,7 +181,7 @@ class Admin::Stats
 
     fields = %w[uuid name gear_size server_identities max_capacity available_capacity available_uids]
     with_each_record(:districts, {}, {:fields => fields }) do |dist|
-      entry_for_district[dist['uuid'].to_s] = DistrictEntry.new.merge({
+      entry_for_district[dist['uuid'].to_s] = Admin::Stats::DistrictEntry.new.merge({
         'profile'             => dist['gear_size'],
         'name'                => dist['name'],
         'uuid'                => dist['uuid'].to_s,
@@ -261,12 +257,12 @@ class Admin::Stats
        nodes_count nodes_active gears_started_count nodes_inactive gears_idle_count
        gears_stopped_count gears_deploying_count gears_unknown_count gears_total_count
        gears_active_count avg_active_usage_pct
-       available_active_gears effective_available_gears
+       available_active_gears available_active_gears_with_negatives effective_available_gears
     ].collect {|key| [key, 0]}]
 
     # may need a unique "NONE" district per profile for nodes that are not in a district
     none_district = Hash.new do |h,profile|
-      h[profile] = DistrictSummary.new.merge({
+      h[profile] = Admin::Stats::DistrictSummary.new.merge({
         'name'    => "(NONE)",
         'uuid'    => "NONE profile=#{profile}",
         'profile' => profile,
@@ -281,7 +277,8 @@ class Admin::Stats
     # hash to store the summaries per district
     summary_for_district = {}
     entry_for_district.each do |uuid,dist|
-      summary_for_district[uuid] = DistrictSummary.new.merge(dist).merge(starter_stats).
+      summary_for_district[uuid] = Admin::Stats::DistrictSummary.new.
+        merge(dist).merge(starter_stats).
         merge('missing_nodes' => dist['nodes'].clone, 'nodes' => [])
     end
 
@@ -300,6 +297,7 @@ class Admin::Stats
       # active gears can actually get higher than max; count that as 0 available, not negative
       available = [0, node['max_active_gears'] - node['gears_active_count']].max
       sum['available_active_gears'] += available
+      sum['available_active_gears_with_negatives'] += node['max_active_gears'] - node['gears_active_count']
       sum['effective_available_gears'] += available if node['district_active'] ||
                                                       node['district_uuid'] == "NONE"
       sum['avg_active_usage_pct'] += node['gears_active_usage_pct']
@@ -374,9 +372,9 @@ class Admin::Stats
     #
 
     # these values will accumulate as we go
-    starter_stats = ProfileSummary[ %w[
+    starter_stats = Admin::Stats::ProfileSummary[ %w[
        nodes_count nodes_active nodes_inactive gears_active_count gears_idle_count
-       gears_stopped_count gears_unknown_count gears_total_count available_active_gears
+       gears_stopped_count gears_unknown_count gears_total_count available_active_gears available_active_gears_with_negatives
        effective_available_gears avg_active_usage_pct district_capacity
        dist_avail_capacity dist_avail_uids avg_dist_usage_pct
     ].collect {|key| [key, 0]}]
@@ -391,8 +389,8 @@ class Admin::Stats
       sum = summary_for_profile[dist['profile']]
       sum['districts'] << dist
       %w[ gears_active_count gears_idle_count gears_stopped_count gears_unknown_count
-        gears_total_count available_active_gears effective_available_gears nodes_count
-        nodes_active nodes_inactive missing_nodes district_capacity
+        gears_total_count available_active_gears available_active_gears_with_negatives effective_available_gears
+        nodes_count nodes_active nodes_inactive missing_nodes district_capacity
         dist_avail_capacity dist_avail_uids
       ].each {|key| sum[key] += dist[key]}
       sum['avg_active_usage_pct'] += dist['avg_active_usage_pct'] * dist['nodes_count']
@@ -423,7 +421,7 @@ class Admin::Stats
   # get statistics from the DB about users/apps/gears/cartridges
   def get_db_stats
     # initialize the things we will count for the entire installation
-    count_all = DbSummary.new.merge({
+    count_all = Admin::Stats::DbSummary.new.merge({
         'apps' => 0,
         'gears' => 0,
         'cartridges' => Hash.new {|h,k| h[k] = 0},
@@ -576,12 +574,5 @@ class Admin::Stats
       end
   end
 
-  require 'openshift/hash_with_readers'
-  class DistrictSummary < OpenShift::HashWithReaders; end
-  class ProfileSummary < OpenShift::HashWithReaders; end
-  class DistrictEntry < OpenShift::HashWithReaders; end
-  class NodeEntry < OpenShift::HashWithReaders; end
-  class DbSummary < OpenShift::HashWithReaders; end
-  class Results < OpenShift::HashWithReaders; end
-end #class Admin::Stats
+end #class Admin::Stats::Maker
 

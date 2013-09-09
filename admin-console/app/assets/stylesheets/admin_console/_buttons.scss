@@ -1,3 +1,9 @@
 .btn [class^="icon-"], [class*=" icon-"] {
   vertical-align: middle;
 }
+
+.btn-mini.btn-icon {
+  line-height: 13px;
+  padding: 2px;
+  vertical-align: text-bottom;
+}
