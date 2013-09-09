@@ -2,7 +2,7 @@
 
 Summary:       Provides JBossEWS2.0 support
 Name:          openshift-origin-cartridge-jbossews
-Version: 0.9.2
+Version: 0.9.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -76,6 +76,10 @@ alternatives --set jbossews-2.0 /usr/share/tomcat7
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Mon Sep 09 2013 Adam Miller <admiller@redhat.com> 0.9.3-1
+- Bug 1005281 - Removing unneeded EAP dependency from EWS pom template
+  (bleanhar@redhat.com)
+
 * Thu Sep 05 2013 Adam Miller <admiller@redhat.com> 0.9.2-1
 - Bug 1004008: Use symlink test rather than -e before call to rm
   (ironcladlou@gmail.com)
