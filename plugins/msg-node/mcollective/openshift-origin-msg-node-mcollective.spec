@@ -10,7 +10,7 @@
 
 Summary:       M-Collective agent file for openshift-origin-msg-node-mcollective
 Name:          openshift-origin-msg-node-mcollective
-Version: 1.14.2
+Version: 1.14.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -51,6 +51,9 @@ cp -p facts/update_yaml.rb %{buildroot}/usr/libexec/mcollective/
 %attr(0700,-,-) %config(noreplace) /etc/cron.minutely/openshift-facts
 
 %changelog
+* Mon Sep 09 2013 Adam Miller <admiller@redhat.com> 1.14.3-1
+- Allow for the mcollective node agent to be extended (jforrest@redhat.com)
+
 * Thu Sep 05 2013 Adam Miller <admiller@redhat.com> 1.14.2-1
 - Merge pull request #3311 from detiber/runtime_card_213
   (dmcphers+openshiftbot@redhat.com)
