@@ -58,7 +58,9 @@
 
   .histogram-y-label {
     transform: rotate(270deg) translate(-200px, 0px);
+    -webkit-transform: rotate(270deg) translate(-200px, 0px);
     transform-origin: 0 0;
+    -webkit-transform-origin: 0 0;
     width: 200px;
     position: absolute;
     white-space: nowrap;
@@ -87,6 +89,17 @@
       vertical-align: top;
       line-height: 13px;
     }
+
+    .histogram-x-label {
+      margin-top: 5px;
+    }
+
+    .histogram-x-axis .histogram-label {
+      text-align: left;
+      @include rotate(45deg);
+      white-space: nowrap;
+      margin-top: 2px;
+    }    
   }
 }
 
