@@ -847,25 +847,20 @@ module OpenShift
       # * gear: a Gear object
       # * hot_deploy: indicates whether this is a hot deploy
       # * force_clean_build: indicates whether this should be a clean build
-      # * branch: the branch to deploy
-      # * git_commit_id: the commit to deploy
-      # * git_tag: the tag to deploy
+      # * ref: the ref to deploy
       # * artifact_url: the url of the artifacts to deploy
       #
       # RETURNS
       # ResultIO: the result of running post-configure on the cartridge
       #
-      def deploy(gear, hot_deploy=false, force_clean_build=false, branch=nil, git_commit_id=nil, git_tag=nil, artifact_url=nil)
+      def deploy(gear, hot_deploy=false, force_clean_build=false, ref=nil, artifact_url=nil)
         result_io = ResultIO.new
 
         args = build_base_gear_args(gear)
 
         args['--with-hot-deploy'] = hot_deploy
         args['--with-force-clean-build'] = force_clean_build
-        args['--with-branch'] = branch
-        args['--with-git-commit-id'] = git_commit_id
-        args['--with-git-tag'] = git_tag
-        args['--with-artifact-url'] = artifact_url
+        args['--with-ref'] = ref
 
         result_io = run_cartridge_command(@@C_CONTROLLER, gear, "deploy", args)
         return result_io

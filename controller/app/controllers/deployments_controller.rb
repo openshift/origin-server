@@ -32,12 +32,10 @@ class DeploymentsController < BaseController
     description = params[:description].presence
     hot_deploy = params[:hot_deploy].presence || false
     force_clean_build = params[:force_clean_build].presence || false
-    git_branch = params[:git_branch].presence
-    git_commit_id = params[:git_commit_id].presence
-    git_tag = params[:git_tag].presence
+    ref = params[:ref].presence
     artifact_url = params[:artifact_url].presence
 
-    deployment = Deployment.new(description: description, hot_deply: hot_deploy, force_clean_build: force_clean_build, git_branch: git_branch, git_commit_id: git_commit_id, git_tag: git_tag, artifact_url: artifact_url)
+    deployment = Deployment.new(description: description, hot_deply: hot_deploy, force_clean_build: force_clean_build, ref: ref, artifact_url: artifact_url)
     if deployment.invalid?
       messages = get_error_messages(deployment)
       return render_error(:unprocessable_entity, nil, nil, nil, nil, messages)
@@ -59,9 +57,7 @@ class DeploymentsController < BaseController
                                  state: d["state"],
                             created_at: d["created_at"],
                            description: d["description"],
-                            git_branch: d["git_branch"],
-                         git_commit_id: d["git_commit_id"],
-                               git_tag: d["git_tag"],
+                                   ref: d["ref"],
                           artifact_url: d["artifcat_url"],
                             hot_deploy: d["hot_deploy"],
                      force_clean_build: d["force_clean_build"]))

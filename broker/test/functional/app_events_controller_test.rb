@@ -23,8 +23,8 @@ class AppEventsControllerTest < ActionController::TestCase
     @app_name = "app#{@random}"
     @app = Application.create_app(@app_name, [PHP_VERSION], @domain, nil, true)
     @app.save
-    d1 = Deployment.new(id: 1, description: "This is my first deployment", git_branch: "mybranch", state: "past")
-    d2 = Deployment.new(id: 2, description: "This is my second deployment", git_commit_id: "d975cbfd5c398610326c97f3988a52b208036eef", state: "active")
+    d1 = Deployment.new(id: 1, description: "This is my first deployment", ref: "mybranch", state: "past")
+    d2 = Deployment.new(id: 2, description: "This is my second deployment", ref: "d975cbfd5c398610326c97f3988a52b208036eef", state: "active")
     @app.update_deployments([d1,d2])
   end
 

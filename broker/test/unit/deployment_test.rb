@@ -30,28 +30,28 @@ class DeploymentTest < ActiveSupport::TestCase
 
   test "create and get deployment" do
 
-    d = Deployment.new(id: 1, git_branch: "mybranch", description: "This is new deployment using git_branch")
+    d = Deployment.new(id: 1, ref: "mybranch", description: "This is new deployment using ref")
     @app.deploy(d)
     assert(@app.deployments.length == 1)
 
-    d = @app.deployments.find_by(git_branch: "mybranch")
-    assert_equal("mybranch", d.git_branch)
+    d = @app.deployments.find_by(ref: "mybranch")
+    assert_equal("mybranch", d.ref)
 
-    d = Deployment.new(id: 2, git_tag: "mytag", description: "This is new deployment using git_tag")
+    d = Deployment.new(id: 2, ref: "mytag", description: "This is new deployment using ref")
     @app.deploy(d)
     assert(@app.deployments.length == 2)
 
-    d = @app.deployments.find_by(git_tag: "mytag")
-    assert_equal("mytag", d.git_tag)
+    d = @app.deployments.find_by(ref: "mytag")
+    assert_equal("mytag", d.ref)
 
-    d = Deployment.new(id: 3, git_commit_id: "d975cbfd5c398610326c97f3988a52b208036eef", description: "This is new deployment using git_tag")
+    d = Deployment.new(id: 3, ref: "d975cbfd5c398610326c97f3988a52b208036eef", description: "This is new deployment using ref")
     @app.deploy(d)
     assert(@app.deployments.length == 3)
 
-    d = @app.deployments.find_by(git_commit_id: "d975cbfd5c398610326c97f3988a52b208036eef")
-    assert_equal("d975cbfd5c398610326c97f3988a52b208036eef", d.git_commit_id)
+    d = @app.deployments.find_by(ref: "d975cbfd5c398610326c97f3988a52b208036eef")
+    assert_equal("d975cbfd5c398610326c97f3988a52b208036eef", d.ref)
 
-    d = Deployment.new(id: 4, artifact_url: "myurl", description: "This is new deployment using git_tag")
+    d = Deployment.new(id: 4, artifact_url: "myurl", description: "This is new deployment using ref")
     @app.deploy(d)
     assert(@app.deployments.length == 4)
 
@@ -62,28 +62,24 @@ class DeploymentTest < ActiveSupport::TestCase
 
   test "create deployment with bad inputs" do
 
-    # no deployment info
-    assert Deployment.new(description: "This is new deployment using git_branch").invalid?
-
     # conflicting deployment info
-    assert Deployment.new(description: "This is new deployment using git_branch", git_branch: "mybranch", artifact_url: "myurl").invalid?
+    assert Deployment.new(description: "This is new deployment using ref", ref: "mybranch", artifact_url: "myurl").invalid?
 
     # no description
-    assert Deployment.new(git_branch: "mybranch").invalid?
+    assert Deployment.new(ref: "mybranch").invalid?
 
     # too long description
-    assert Deployment.new(description: "0" * 999, git_branch: "mybranch").invalid?
+    assert Deployment.new(description: "0" * 999, ref: "mybranch").invalid?
 
     # git commit id length
-    assert Deployment.new(description: "This is new deployment using git_branch", git_commit_id: "0" * 39).invalid?
-    assert Deployment.new(description: "This is new deployment using git_branch", git_commit_id: "0" * 41).invalid?
+    assert Deployment.new(description: "This is new deployment using ref", ref: "0" * 257).invalid?
 
   end
 
   test "create batch update deployments" do
     deployments = []
     for i in 1..5
-      deployments.push(Deployment.new(id: i, description: "This is #{i} deployment", git_tag: "tag_#{i}"))
+      deployments.push(Deployment.new(id: i, description: "This is #{i} deployment", ref: "tag_#{i}"))
     end
     @app.update_deployments(deployments)
     assert_equal(5, @app.deployments.length)

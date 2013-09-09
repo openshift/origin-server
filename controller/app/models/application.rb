@@ -1440,11 +1440,11 @@ class Application
       while self.pending_op_groups.count > 0
         op_group = self.pending_op_groups.first
         self.user_agent = op_group.user_agent
+
         op_group.elaborate(self) if op_group.pending_ops.count == 0
         op_group.execute(result_io)
         op_group.unreserve_gears(op_group.num_gears_removed, self)
         op_group.delete
-
         self.reload unless op_group.class == DeleteAppOpGroup
       end
       true
@@ -2898,7 +2898,7 @@ class Application
   def deploy(deployment)
     result_io = ResultIO.new
     Application.run_in_application_lock(self) do
-      op_group = PendingAppOpGroup.new(op_type: :deploy,  args: {:hot_deploy => deployment.hot_deploy, :force_clean_build => deployment.force_clean_build, :branch => deployment.git_branch, :git_commit_id => deployment.git_commit_id, :git_tag => deployment.git_tag, :artifact_url => deployment.artifact_url})
+      op_group = PendingAppOpGroup.new(op_type: :deploy,  args: {:hot_deploy => deployment.hot_deploy, :force_clean_build => deployment.force_clean_build, :ref => deployment.ref, :artifact_url => deployment.artifact_url})
       self.pending_op_groups.push op_group
       self.run_jobs(result_io)
 

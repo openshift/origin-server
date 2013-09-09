@@ -371,10 +371,7 @@ module MCollective
       def oo_deploy(args)
         hot_deploy = args['--with-hot-deploy']
         force_clean_build = args['--with-force-clean-build']
-        branch = args['--with-branch']
-        git_commit_id = args['--with-git-commit-id']
-        git_tag = args['--with-git-tag']
-        artifact_url = args['--with-artifact-url']
+        ref = args['--with-ref']
 
         #TODO
         container.deploy

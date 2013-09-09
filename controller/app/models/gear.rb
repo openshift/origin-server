@@ -192,12 +192,8 @@ class Gear
   #   Indicates whether this is a hot deploy
   # force_clean_build::
   #   Indicates whether this should be a clean build
-  # branch::
-  #   The branch to deploy
-  # git_commit_id::
-  #   The commit to deploy
-  # git_tag::
-  #   The tag to deploy
+  # ref::
+  #   The ref to deploy
   # artifact_url::
   #   The url of the artifacts to deploy
   # == Returns:
@@ -205,8 +201,8 @@ class Gear
   # Exit codes:
   #   success = 0
   # @raise [OpenShift::NodeException] on failure
-  def deploy(hot_deploy=false, force_clean_build=false, branch=nil, git_commit_id=nil, git_tag=nil, artifact_url=nil)
-    result_io = get_proxy.deploy(self, hot_deploy, force_clean_build, branch, git_commit_id, git_tag, artifact_url)
+  def deploy(hot_deploy=false, force_clean_build=false, ref=nil, artifact_url=nil)
+    result_io = get_proxy.deploy(self, hot_deploy, force_clean_build, ref, artifact_url)
     app.process_commands(result_io, nil, self)
     raise OpenShift::NodeException.new("Unable to deploy #{app.name}", result_io.exitcode, result_io) if result_io.exitcode != 0
     result_io

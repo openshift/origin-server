@@ -230,16 +230,14 @@ class RestApplication < OpenShift::Model
           Param.new("value", "string", "Value of the environment variable")
         ]),
         "LIST_ENVIRONMENT_VARIABLES" => Link.new("List all environment variables", "GET", URI::join(url, "application/#{@id}/environment-variables")),
-        "ADD_DEPLOYMENT" => Link.new("Add a new deployment", "POST", URI::join(url, "applications/#{@id}/deployments"), [
+        "DEPLOY" => Link.new("Deploy the application", "POST", URI::join(url, "applications/#{@id}/deployments"), [
           Param.new("description", "string", "Description of deployment")],[
-          OptionalParam.new("git_branch", "string", "Git branch", nil, "master"),
-          OptionalParam.new("git_commit_id", "string", "Git commit ID"),
-          OptionalParam.new("git_tag", "string", "Git tag"),
+          OptionalParam.new("ref", "string", "Git ref (tag, branch, commit id)", nil, "master"),
           OptionalParam.new("artifact_url", "string", "URL where the deployment artifact can be downloaded from", nil, "Latest"),
         ]),
         "UPDATE_DEPLOYMENTS" => Link.new("Update deployments", "POST", URI::join(url, "applications/#{@id}/deployments"), [
           Param.new("deployments", "array", "An Array of deployments")]),
-        "ROLL_BACK" => Link.new("Roll-back application to a previous deployment", "POST", URI::join(url, "applications/#{@id}/events"), [
+        "ROLLBACK" => Link.new("Roll-back application to a previous deployment", "POST", URI::join(url, "applications/#{@id}/events"), [
           Param.new("event", "string", "event", "roll-back"),
           Param.new("deployment_id", "string", "The deployment ID to roll-back the application"),
         ]),
