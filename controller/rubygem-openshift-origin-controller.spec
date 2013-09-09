@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.14.3
+Version: 1.14.4
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -84,6 +84,9 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Mon Sep 09 2013 Adam Miller <admiller@redhat.com> 1.14.4-1
+- Use EXTERNAL_ETH_DEV if its set in node.conf. (rmillner@redhat.com)
+
 * Fri Sep 06 2013 Adam Miller <admiller@redhat.com> 1.14.3-1
 - Merge pull request #3558 from pravisankar/dev/ravi/env-var-fix
   (dmcphers+openshiftbot@redhat.com)
