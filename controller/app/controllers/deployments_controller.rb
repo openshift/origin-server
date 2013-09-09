@@ -42,7 +42,7 @@ class DeploymentsController < BaseController
       messages = get_error_messages(deployment)
       return render_error(:unprocessable_entity, nil, nil, nil, nil, messages)
     else
-       result, id = @application.add_deployment(deployment)
+       result, id = @application.deploy(deployment)
        rest_deployment = get_rest_deployment(@application.deployments.find_by(id: id))
        render_success(:created, "deployment", rest_deployment, "Added #{deployment.id} to application #{@application.name}", result)
     end

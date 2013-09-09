@@ -105,7 +105,7 @@ class AppEventsController < BaseController
     when 'roll-back'
       #TODO implement change_deployment or use change_state
       #authorize! :change_deployment, @application
-      r = @application.roll_back(deployment_id)
+      r = @application.rollback(deployment_id)
       msg = "Application #{@application.name} has been rolled back"
     else
       return render_error(:unprocessable_entity, "Invalid application event '#{event}' specified",
@@ -114,8 +114,8 @@ class AppEventsController < BaseController
 
     @application.reload
     app = get_rest_application(@application)
-    
-    if !r.errorIO.string.empty?     
+
+    if !r.errorIO.string.empty?
       return render_error(r.hasUserActionableError ? :unprocessable_entity : :internal_server_error, "Error occured while processing event '#{event}':#{r.errorIO.string.chomp}",
                           r.exitcode)
     end

@@ -368,6 +368,25 @@ module MCollective
         end
       end
 
+      def oo_deploy(args)
+        hot_deploy = args['--with-hot-deploy']
+        force_clean_build = args['--with-force-clean-build']
+        branch = args['--with-branch']
+        git_commit_id = args['--with-git-commit-id']
+        git_tag = args['--with-git-tag']
+        artifact_url = args['--with-artifact-url']
+
+        #TODO
+        container.deploy
+      end
+
+      def oo_deploy(args)
+        deployment_id  = args['--with-deployment-id']
+
+        #TODO
+        container.rollback
+      end
+
       def oo_authorized_ssh_key_add(args)
         ssh_key  = args['--with-ssh-key']
         key_type = args['--with-ssh-key-type']

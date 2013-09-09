@@ -76,7 +76,7 @@ class Gear
     reserved_gear_uid = @container.reserve_uid
 
     failure_message = "Failed to set UID and server_identity for gear #{self.uuid} for application #{self.group_instance.application.name}"
-    
+
     updated_gear = update_with_retries(5, failure_message) do |current_app, current_gi, current_gear, gi_index, g_index|
       Application.where({ "_id" => current_app._id, "group_instances.#{gi_index}._id" => current_gi._id, "group_instances.#{gi_index}.gears.#{g_index}.uuid" => current_gear.uuid }).update({"$set" => { "group_instances.#{gi_index}.gears.#{g_index}.uid" => reserved_gear_uid, "group_instances.#{gi_index}.gears.#{g_index}.server_identity" => @container.id }})
     end
@@ -88,7 +88,6 @@ class Gear
 
   def unreserve_uid
     get_proxy.unreserve_uid(self.uid) if get_proxy
-  
     failure_message = "Failed to unset UID and server_identity for gear #{self.uuid} for application #{self.group_instance.application.name}"
     updated_gear = update_with_retries(5, failure_message) do |current_app, current_gi, current_gear, gi_index, g_index|
       Application.where({ "_id" => current_app._id, "group_instances.#{gi_index}._id" => current_gi._id, "group_instances.#{gi_index}.gears.#{g_index}.uuid" => current_gear.uuid }).update({"$set" => { "group_instances.#{gi_index}.gears.#{g_index}.uid" => nil, "group_instances.#{gi_index}.gears.#{g_index}.server_identity" => nil }})
@@ -110,7 +109,7 @@ class Gear
     app.process_commands(result_io, nil, self)
     result_io
   end
- 
+
   def publish_routing_info
     self.port_interfaces.each { |pi|
       pi.publish_endpoint(self.group_instance.application)
@@ -181,6 +180,49 @@ class Gear
     component.process_properties(result_io)
     app.process_commands(result_io, component._id, self)
     raise OpenShift::NodeException.new("Unable to post-configure component #{component.cartridge_name}::#{component.component_name}", result_io.exitcode, result_io) if result_io.exitcode != 0
+    result_io
+  end
+
+  # Performs the deploy steps for this gear.
+  #
+  # == Parameters:
+  # gear::
+  #   A {Gear} object
+  # hot_deploy::
+  #   Indicates whether this is a hot deploy
+  # force_clean_build::
+  #   Indicates whether this should be a clean build
+  # branch::
+  #   The branch to deploy
+  # git_commit_id::
+  #   The commit to deploy
+  # git_tag::
+  #   The tag to deploy
+  # artifact_url::
+  #   The url of the artifacts to deploy
+  # == Returns:
+  # A {ResultIO} object with with output or error messages from the Node.
+  # Exit codes:
+  #   success = 0
+  # @raise [OpenShift::NodeException] on failure
+  def deploy(hot_deploy=false, force_clean_build=false, branch=nil, git_commit_id=nil, git_tag=nil, artifact_url=nil)
+    result_io = get_proxy.deploy(self, hot_deploy, force_clean_build, branch, git_commit_id, git_tag, artifact_url)
+    app.process_commands(result_io, nil, self)
+    raise OpenShift::NodeException.new("Unable to deploy #{app.name}", result_io.exitcode, result_io) if result_io.exitcode != 0
+    result_io
+  end
+
+  # Performs the rollback steps for this gear.
+  #
+  # == Returns:
+  # A {ResultIO} object with with output or error messages from the Node.
+  # Exit codes:
+  #   success = 0
+  # @raise [OpenShift::NodeException] on failure
+  def rollback(deployment_id)
+    result_io = get_proxy.rollback(self, deployment_id)
+    app.process_commands(result_io, nil, self)
+    raise OpenShift::NodeException.new("Unable to rollback #{app.name} to #{deployment_id}", result_io.exitcode, result_io) if result_io.exitcode != 0
     result_io
   end
 
