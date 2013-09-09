@@ -4,7 +4,7 @@
 
 Summary:       Provides JBossEAP6.0 support
 Name:          openshift-origin-cartridge-jbosseap
-Version: 2.8.2
+Version: 2.8.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -86,6 +86,12 @@ cp -p %{cartridgedir}/versions/shared/modules/postgresql_module.xml /etc/alterna
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Mon Sep 09 2013 Adam Miller <admiller@redhat.com> 2.8.3-1
+- Merge pull request #3569 from brenton/BZ1005281
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1005281 - EAP cartridge maps to specific EAP release
+  (bleanhar@redhat.com)
+
 * Fri Sep 06 2013 Adam Miller <admiller@redhat.com> 2.8.2-1
 - Bug 1004927: Don't override JAVA_HOME in standalone.conf
   (ironcladlou@gmail.com)
