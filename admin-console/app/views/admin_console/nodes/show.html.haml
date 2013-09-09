@@ -53,7 +53,7 @@
         %th
           = "Active:"
         %td
-          = "#{@node[:gears_active_usage_pct]}% (#{@node[:gears_active_count]} active of #{@node[:max_active_gears]} max active)"
+          = "#{@node[:gears_active_usage_pct].to_f.round(2)}% (#{@node[:gears_active_count]} active of #{@node[:max_active_gears]} max active)"
       %tr
         %th
           = "Started:"

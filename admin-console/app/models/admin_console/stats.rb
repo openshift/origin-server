@@ -1,3 +1,8 @@
+# in the case where we get Admin:: classes from the cache before
+# they have actually been defined... ensure their namespaces load.
+require 'admin/stats/results'
+require 'admin/suggestion/types'
+
 module AdminConsole
   class Stats
     def self.collect
@@ -7,28 +12,42 @@ module AdminConsole
         },
         :user => {
           :total => CloudUser.count
+        },
+        :domain => {
+          :total => Domain.count
         }
         #TODO node
       }
     end
 
-     def self.systems_summaries(force_reload = false)
-       (force_reload ? nil : Rails.cache.read('admin_console_system_statistics')) || gather_systems_statistics
-     end
+    def self.systems_summaries(force_reload = false, conf = Rails.application.config.admin_console)
+      Rails.cache.fetch('admin_console_system_statistics',
+                        expires_in: conf[:stats][:cache_timeout],
+                        force: force_reload) do
+        gather_systems_statistics(conf)
+      end
+    end
 
-     protected
+    def self.clear
+      Rails.cache.delete('admin_console_system_statistics')
+    end
 
-     def self.gather_systems_statistics
-      stats = Admin::Stats.new
+    protected
+
+    # Create system stats via Admin::Stats according to conf.
+    # Also generate Admin::Suggestions with 'suggestions' key.
+    # Time of generation/loading is stored in 'created_at' key.
+    def self.gather_systems_statistics(config = {})
+      # gather the stats as requested
+      stats_conf = config[:stats] || {}
+      stats = Admin::Stats::Maker.new wait: stats_conf[:mco_timeout],
+                         read_file: stats_conf[:read_file] || config[:debug_profile_data]
       stats.gather_statistics
-      results = stats.results.except(:node_entries, :district_entries, :district_summaries, :profile_summaries)
-      # remove hashes with default blocks so we can cache them
-      # See: http://stackoverflow.com/questions/6391855/rails-cache-error-in-rails-3-1-typeerror-cant-dump-hash-with-default-proc
-      stats.deep_clear_default!(results)
-      Rails.cache.write('admin_console_system_statistics', results.clone, {:expires_in => 1.hour})
-      # TODO: make cache expiration configurable
-      results
-     end
+      results = stats.results
+      # generate suggestions based on the stats and bundle into results hash.
+      suggestions = Admin::Suggestion::Advisor.query(config[:suggest], results)
+      results.merge 'created_at' => Time.now, 'suggestions' => suggestions
+    end
 
   end
 end

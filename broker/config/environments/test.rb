@@ -35,6 +35,14 @@ Broker::Application.configure do
 
   config.log_level = :debug
 
+  # Do not compress assets
+  config.assets.compress = false
+
+  # Expands the lines which load the assets
+  config.assets.debug = true
+  config.assets.logger = false
+
+
   ############################################
   # OpenShift Configuration Below this point #
   ############################################
@@ -99,4 +107,5 @@ Broker::Application.configure do
     :max_cart_size => conf.get("MAX_CART_SIZE", "20480").to_i,
     :max_download_time => conf.get("MAX_DOWNLOAD_TIME", "10").to_i
   }
+
 end

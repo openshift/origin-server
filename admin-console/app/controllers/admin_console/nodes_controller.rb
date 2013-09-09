@@ -1,5 +1,3 @@
-require_dependency "admin_console/application_controller"
-
 module AdminConsole
   class NodesController < ApplicationController
     rescue_from OpenShift::NodeException, :with => :page_not_found
