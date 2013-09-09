@@ -364,8 +364,10 @@ class CloudUser
         self.reload
         op = self.pending_ops.find_by(_id: op_id)
 
+        # FIXME: We are assuming that the op is complete at this point.
+        # Need to use on_applications and completed_applications to figure out completion 
         op.close_op
-        op.delete if op.completed?
+        op.delete
       end
       true
     rescue Exception => ex
