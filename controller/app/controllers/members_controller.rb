@@ -8,7 +8,8 @@ class MembersController < BaseController
     authorize! :change_members, membership
 
     ids, logins, remove = {}, {}, []
-    (params[:members] || [params[:member]].compact.presence || [params.slice(:id, :login, :role)]).compact.each do |m| 
+    members_params = (params[:members] || [params[:member]].compact.presence || [params.slice(:id, :login, :role)]).compact
+    members_params.each do |m| 
       return render_error(:unprocessable_entity, "You must provide a member with an id and role.") unless m.is_a? Hash
       if m[:role] == "none"
         return render_error(:unprocessable_entity, "You must provide an id for each member with role 'none'.") unless m[:id]
@@ -36,7 +37,10 @@ class MembersController < BaseController
       new_members = []
     end
 
-    return render_error(:unprocessable_entity, "You must provide at least a single member.") if new_members.blank? and remove.blank?
+    if remove.blank? and new_members.blank?
+      return render_error(:not_found, "The specified user was not found.") if members_params.count == 1
+      return render_error(:unprocessable_entity, "You must provide at least a single member.")
+    end
 
     count_remove = remove.count
     count_update = (membership.member_ids & new_members.map(&:id)).count
