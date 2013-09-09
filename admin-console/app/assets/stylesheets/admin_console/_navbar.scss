@@ -16,6 +16,12 @@
       border-top-color: #929292;
       background: rgba(255, 255, 255, 0.15);
     }
+
+    > li > a:hover {
+      background-image: linear-gradient(to bottom, #666666, #555555);
+      background-repeat: repeat-x;
+      border-top-color: #949699;
+    }
   }
 
 }

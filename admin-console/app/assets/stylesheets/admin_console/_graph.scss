@@ -126,9 +126,10 @@
   margin: 5px 0 10px;
 
   .bar {
-    display: inline-block;
+    @include box-sizing(border-box);
     border: 1px solid #CCCCCC;
-    height: 8px;
+    display: inline-block;
+    height: 10px;
     overflow: hidden;
     width: 100%;
 

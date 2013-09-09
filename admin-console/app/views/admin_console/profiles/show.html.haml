@@ -3,7 +3,7 @@
     %small.pull-right.muted
       %form{:action => reload_path(:then => url_for(:params => request.query_parameters)), :method => "post"}
         = "Data collected #{time_ago_in_words(@stats_created_at)} ago."
-        %button.btn.btn-mini{:type => "submit", :title => "Refresh now."}
+        %button.btn.btn-mini.btn-icon{:type => "submit", :title => "Refresh now."}
           %i.icon-refresh    
   %h1
     = image_tag "admin_console/gear-lg.svg", :class => "icon"

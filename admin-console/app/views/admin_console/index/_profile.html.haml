@@ -1,4 +1,3 @@
-- test = profile.nil?
 - undistricted_nodes_exist = profile[:districts].any? {|district| district[:name] == "(NONE)"}
 - show_districts = Rails.configuration.msg_broker[:districts][:enabled] && (profile[:districts].size > 1 || !undistricted_nodes_exist)
 - profile_name = profile[:profile]
