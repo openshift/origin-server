@@ -1020,7 +1020,6 @@ for the appropriate `Rack` process, and sending `ABRT` signal to it. As explaine
 [NOTE]
 ====
 * The `Rack` process may not exist if the application has just started and has not been accessed.
-* Scaled applications are not supported by the `threaddump` command.
 ====
 
 === Markers
