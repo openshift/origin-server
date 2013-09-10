@@ -25,6 +25,7 @@
   @include border-radius(0);
   @include background-clip(padding-box);
   p, ul, ol {
+    line-height: $baseLineHeight;
     //margin-bottom: 0;
     margin-bottom: $baseLineHeight / 1.5;
   }
@@ -33,9 +34,6 @@
     margin: 0;
   }
 }
-
-
-
 
 .popover {
   position: absolute;
@@ -62,7 +60,6 @@
   }
 }
 
-
 .popover-restart .popover.bottom {
   margin-left: -75px;
 }
@@ -70,6 +67,3 @@
 .popover-restart .popover.bottom .arrow {
   margin-left: 70px;
 }
-
-
-

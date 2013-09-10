@@ -2,7 +2,7 @@ class ScalingController < ConsoleController
 
   def show
     @application = Application.find(params[:application_id], :as => current_user)
-    @cartridges = @application.cartridges
+    @cartridges = @application.cartridges.sort
     @user = User.find :one, :as => current_user
     redirect_to new_application_scaling_path(@application) unless @application.scales?
   end
@@ -19,7 +19,7 @@ class ScalingController < ConsoleController
   def update
     @user = User.find :one, :as => current_user
     @application = Application.find(params[:application_id], :as => current_user)
-    @cartridges = @application.cartridges
+    @cartridges = @application.cartridges.sort
     @cartridge = @cartridges.find{ |c| c.name == params[:id] } or raise RestApi::ResourceNotFound.new(Cartridge.model_name, params[:id])
 
     range = [params[:cartridge][:scales_from].to_i, params[:cartridge][:scales_to].to_i]
