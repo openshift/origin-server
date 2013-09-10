@@ -94,7 +94,7 @@ command :'add-alias' do |c|
   c.action do |args, options|
     if options.with_alias_name
       frontend = new_frontend(options.with_container_uuid, c)
-      execute { frontend.add_alias(alias_name) }
+      execute { frontend.add_alias(options.with_alias_name) }
     else
       usage(c.syntax)
     end
@@ -109,7 +109,7 @@ command :'remove-alias' do |c|
   c.action do |args, options|
     if options.with_alias_name && !options.with_alias_name.empty?
       frontend = new_frontend(options.with_container_uuid, c)
-      execute { frontend.remove_alias(alias_name) }
+      execute { frontend.remove_alias(options.with_alias_name) }
     else
       usage(c.syntax)
     end
