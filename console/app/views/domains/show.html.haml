@@ -17,7 +17,10 @@
     - if @domain.admin?
       %section
         = render :partial => 'members/new_member', :locals => {:domain => @domain}
-  
 
+    - unless @domain.owner?
+      %section
+        = render :partial => 'members/leave_domain', :locals => {:domain => @domain}
+  
 %section
   %pre= PP.pp(@domain.attributes, "")

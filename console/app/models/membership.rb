@@ -5,8 +5,12 @@ module Membership
     attributes[:members] || []
   end
 
+  def me
+    @me ||= members.find{ |m| m.id == api_identity_id } if api_identity_id
+  end
+
   def owner?
-    members.find{ |m| m.id == api_identity_id && m.owner? } if api_identity_id
+    me && me.owner?
   end
 
   def admin?
@@ -22,7 +26,22 @@ module Membership
   end
 
   def has_role?(*roles)
-    roles.present? and api_identity_id.present? and members.find{ |m| m.id == api_identity_id && roles.include?(m.role) }
+    roles.present? and me and roles.include?(me.role)
+  end
+
+  def leave
+    self.errors.clear
+    self.messages.clear
+    response = delete(:'members/self', nil)
+    self.messages = extract_messages(response)
+    response.is_a? Net::HTTPSuccess
+  rescue ActiveResource::ConnectionError => e
+    if e.respond_to? :response
+      set_remote_errors(e.response, true)
+    else
+      self.messages = [RestApi::Base::Message.new(0, nil, 'error', $!.to_s)]
+    end
+    false
   end
 
   # FIXME Refactor this method into a patch_child_collection operation on RestApi::Base

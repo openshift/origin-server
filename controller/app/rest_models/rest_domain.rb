@@ -57,6 +57,7 @@ class RestDomain < OpenShift::Model
           [OptionalParam.new("id", "string", "Unique identifier of the user"),
           OptionalParam.new("login", "string", "The user's login attribute")]
         ),
+        "LEAVE" => Link.new("Remove yourself as a member of the domain", "DELETE", URI::join(url, "domains/#{name}/members/self")),
         "UPDATE" => Link.new("Update domain", "PUT", URI::join(url, "domains/#{name}"),
           [Param.new("name", "string", "Name of the domain")],
           [OptionalParam.new("allowed_gear_sizes", "array", "Array of zero or more gear sizes allowed on this domain")],

@@ -68,18 +68,7 @@ class MembersController < BaseController
 
   def destroy
     authorize! :change_members, membership
-
-    membership.remove_members(params[:id])
-
-    if save_membership(membership)
-      if m = members.detect{ |m| m._id === params[:id] }
-        render_success(:ok, "member", get_rest_member(m), nil, nil, Message.new(:info, "The member #{m.name} is no longer directly granted a role.", 132))
-      else
-        render_success(:no_content, nil, nil, "Removed member.")
-      end
-    else
-      render_error(:unprocessable_entity, "The member could not be removed due to an error.", nil, nil, nil, get_error_messages(membership))
-    end
+    remove_member(params[:id])
   end
 
   def destroy_all
@@ -114,9 +103,27 @@ class MembersController < BaseController
     end
   end
 
+  def leave
+    authorize! :leave, membership
+    remove_member(current_user._id)
+  end
+
   protected
     def membership
       raise "Must be implemented to return the resource under access control"
+    end
+
+    def remove_member(id)
+      membership.remove_members(id)
+      if save_membership(membership)
+        if m = members.detect{ |m| m._id === id }
+          render_success(:ok, "member", get_rest_member(m), "The member #{m.name} is no longer directly granted a role.")
+        else
+          render_success(:no_content, nil, nil, "Removed member.")
+        end
+      else
+        render_error(:unprocessable_entity, "The member could not be removed due to an error.", nil, nil, nil, get_error_messages(membership))
+      end
     end
 
     #

@@ -1,44 +1,53 @@
 class MembersController < ConsoleController
   def index
-    @membership = membership
-    @members = @membership.members
+    @domain = get_domain
+    @members = @domain.members
+  end
+
+  def create
+    @member = new_member(params[:member])
+    if @member.save
+      flash[:success] = @member.messages.first.presence || "Added member to domain"
+      redirect_to :action => :index
+    else
+      @domain = get_domain
+      @members = @domain.members
+      render :index
+    end
   end
 
   def update
-    new_members = Array(params[:members]).map {|m| new_member(m) }
+    @domain = get_domain
+    new_members = Array(params[:members] || params[:member] || params.slice(:id, :login, :role)).map {|m| new_member(m) }
     if new_members.present?
-      if membership.update_members(new_members)
-        flash[:success] = membership.messages.first.presence || "Updated members"
+      if @domain.update_members(new_members)
+        flash[:success] = @domain.messages.first.presence || "Updated members"
       else
-        flash[:error] = membership.messages.first.presence || "Could not update members"
+        flash[:error] = @domain.messages.first.presence || "Could not update members"
       end
     end
     redirect_to :action => :index
   end
 
-  def create
-    @member = new_member(params[:member])
-    # TODO: handle access control error
-    # TODO: handle user already a member with higher permission
-    # TODO: handle user already a member with higher permission via a group
-    if @member.save
-      flash[:success] = @member.messages.first.presence || "Added member to domain"
-      redirect_to :action => :index
+  def leave
+    @domain = get_domain
+    if @domain.leave
+      flash[:success] = "Successfully left the domain '#{@domain.name}'"
+      redirect_to console_path
     else
-      @membership = membership
-      @members = @membership.members
-      render :index
+      flash[:error] = @domain.messages.first.presence || "Could not leave the domain '#{@domain.name}'"
+      redirect_to :action => :index
     end
   end
 
   protected
-    def membership
-      @membership ||= Domain.find(params[:domain_id], :as => current_user)
+    def get_domain
+      @domain ||= Domain.find(params[:domain_id], :as => current_user)
     end
 
     def new_member(params={})
-      member = Member.new(params)
-      member.domain = membership
+      member = Domain::Member.new(params)
+      member.domain = get_domain
       member
     end
 

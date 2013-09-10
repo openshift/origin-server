@@ -76,7 +76,7 @@ class Application < RestApi::Base
   has_many :gear_groups
   has_one  :embedded, :class_name => as_indifferent_hash
 
-  has_members :as => Domain::Member
+  has_members :as => Application::Member
 
   attr_accessible :name, :scale, :gear_profile, :cartridges, :cartridge_names, :initial_git_url, :initial_git_branch
 

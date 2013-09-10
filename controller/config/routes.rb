@@ -38,6 +38,7 @@ Rails.application.routes.draw do
       resources :members, :only => [:index, :create, :update, :destroy], :controller => :domain_members, :constraints => { :id => id_with_format }, :singular_resource => true
       match 'members' => 'domain_members#create', :via => :patch
       match 'members' => 'domain_members#destroy_all', :via => :delete
+      match 'members/self' => 'domain_members#leave', :via => :delete
       resources :applications, :controller => :applications, :only => [:index, :show, :create, :destroy], :constraints => { :id => id_with_format }, :singular_resource => true do
         resource :descriptor, :only => :show
         resources :gear_groups, :constraints => { :id => id_with_format }, :only => [:index, :show], :singular_resource => true

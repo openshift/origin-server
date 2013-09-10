@@ -1,7 +1,7 @@
 :css
+  table.members { margin-bottom: 10px; }
   table.members td, table.members th { vertical-align: middle; padding-left: 10px; padding-right: 10px; }
 
-=# semantic_form_for (domain), :url => domain_members_path(domain), :html => {:method => :put} do |f|
 = form_tag domain_members_path(domain), :method => :put do
   %table.table.table-condensed.table-bordered.members{:style => "width:auto"}
     %tr
