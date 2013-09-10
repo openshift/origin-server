@@ -88,6 +88,8 @@ class DomainsControllerTest < ActionController::TestCase
     assert_response :unprocessable_entity
     #try name that exists
     namespace = "ns#{@random}"
+
+    OpenShift::ApplicationContainerProxy.stubs(:max_user_domains).returns(2)
     post :create, {"name" => namespace}
     assert_response :created
     post :create, {"name" => namespace}

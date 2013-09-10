@@ -15,7 +15,7 @@ module OpenShift
     end
 
     def self.max_user_domains_impl(user)
-      [user.max_gears || 1, Rails.configuration.openshift[:max_domains_per_user]].max
+      [user.max_gears || 1, Rails.configuration.openshift[:max_domains_per_user]].min
     end
 
     def self.provider=(provider_class)
