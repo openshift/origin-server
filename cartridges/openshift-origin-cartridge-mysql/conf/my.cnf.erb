@@ -4,6 +4,7 @@
 #
 # Configurable Values:
 # lower_case_table_names -> OPENSHIFT_MYSQL_LOWER_CASE_TABLE_NAMES
+# default-storage-engine -> OPENSHIFT_MYSQL_DEFAULT_STORAGE_ENGINE
 
 [mysqld]
 datadir=<%= ENV['OPENSHIFT_MYSQL_DIR'] %>/data/
@@ -19,17 +20,18 @@ read_buffer_size = 256K
 read_rnd_buffer_size = 256K
 net_buffer_length = 2K
 thread_stack = 256K
-lower_case_table_names = <%= ENV['OPENSHIFT_MYSQL_LOWER_CASE_TABLE_NAMES'] ? ENV['OPENSHIFT_MYSQL_LOWER_CASE_TABLE_NAMES'] : "0" %>
+lower_case_table_names = <%= ENV['OPENSHIFT_MYSQL_LOWER_CASE_TABLE_NAMES'] ? ENV['OPENSHIFT_MYSQL_LOWER_CASE_TABLE_NAMES'] : '0' %>
 
+<%= ENV['OPENSHIFT_MYSQL_DEFAULT_STORAGE_ENGINE'] ? "default-storage-engine = #{ENV['OPENSHIFT_MYSQL_DEFAULT_STORAGE_ENGINE']}" : '' %>
 
 #INNODB
 # You can set .._buffer_pool_size up to 50 - 80 %
 # of RAM but beware of setting memory usage too high
-innodb_buffer_pool_size = 16M
+innodb_buffer_pool_size = <%= ENV['OPENSHIFT_APP_DNS'] == ENV['OPENSHIFT_GEAR_DNS'] ? 16 : 96 %>M
 innodb_additional_mem_pool_size = 2M
 # Set .._log_file_size to 25 % of buffer pool size
-innodb_log_file_size = 5M
-innodb_log_buffer_size = 8M
+innodb_log_file_size = <%= ENV['OPENSHIFT_APP_DNS'] == ENV['OPENSHIFT_GEAR_DNS'] ? 8 : 24 %>M
+innodb_log_buffer_size = <%= ENV['OPENSHIFT_APP_DNS'] == ENV['OPENSHIFT_GEAR_DNS'] ? 8 : 24 %>M
 innodb_flush_log_at_trx_commit = 1
 innodb_lock_wait_timeout = 50
 
