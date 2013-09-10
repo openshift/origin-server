@@ -2,7 +2,7 @@
 
 Summary:       Embedded cron support for OpenShift
 Name:          openshift-origin-cartridge-cron
-Version: 1.12.1
+Version: 1.12.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -37,6 +37,10 @@ Cron cartridge for openshift. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Tue Sep 10 2013 Adam Miller <admiller@redhat.com> 1.12.2-1
+- Bug 1005305 - The cron cartridge should support scaled applications
+  (bleanhar@redhat.com)
+
 * Thu Aug 29 2013 Adam Miller <admiller@redhat.com> 1.12.1-1
 - openshift-origin-cartridge-cron: stop the cartridge only if started during a
   restart (mmahut@redhat.com)
