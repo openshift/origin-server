@@ -46,6 +46,18 @@ module MCollective
 
         Log.instance.info(
             "#{@@cartridge_repository.count} cartridge(s) installed in #{@@cartridge_repository.path}")
+
+        begin
+          if path = @@config.get('AGENT_EXTENSION')
+            require path
+            include ::Openshift::AgentExtension
+            agent_startup
+          end        
+        rescue Exception => e
+          Log.instance.error e.message
+          Log.instance.error e.backtrace.inspect
+        end
+
         true
       end
 

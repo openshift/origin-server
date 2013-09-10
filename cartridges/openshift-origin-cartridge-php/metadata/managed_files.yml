@@ -1,6 +1,7 @@
 ---
 locked_files:
 - ~/.pearrc
+- ~/.drush/
 - bin/
 - bin/*
 - configuration/

@@ -1,0 +1,61 @@
+.lead
+  & Compact district #{suggestion.district_name}
+- case size
+- when :short  # just the basic facts about the suggestion
+  %div
+    - if suggestion.node_names.size == 1
+      & Remove node #{suggestion.node_names[0]} to compact the district.
+    - else
+      & Remove #{pluralize(suggestion.node_names.size, 'node')} to compact the district.
+
+- when :full  # the full monty
+  %p
+    - if suggestion.node_names.size == 1
+      & Remove node #{suggestion.node_names[0]} to compact the district.
+    - else
+      & Remove #{pluralize(suggestion.node_names.size, 'node')} to compact the district.
+  %p
+    -# With a capacity of #{suggestion.max_active_gears} active gears per node and an active gear percentage of #{suggestion.active_gear_pct}%, the target number of nodes in this district is #{suggestion.node_target}.
+    Currently the district has available capacity for #{suggestion.excess_gears} active gears that cannot be created due to the limit on the total number of gears. This means that capacity is idle and can be reclaimed.
+  - if suggestion.node_names.size > 1
+    %p
+      Remove the following nodes from the district:
+      %ul
+        - suggestion.node_names.each do |node|
+          %li
+            &= node
+      These nodes have been selected to remove because they have the fewest gears or are already deactivated in the district.
+    %p
+      To remove nodes from the district:
+      %ol
+        %li
+          Deactive all of the nodes. For each node:
+          %pre
+            &= "oo-admin-ctl-district -c deactivate-node -u #{suggestion.district_uuid} -i <server_identity>"
+        %li
+          Move all of the gears on those nodes elsewhere in the district. For each gear:
+          %pre
+            &= "oo-admin-move --gear_uuid <gear_uuid>"
+        %li
+          Remove the nodes from the district. For each node:
+          %pre
+            &= "oo-admin-ctl-district -c remove-node -u #{suggestion.district_uuid} -i <server_identity>"
+      These nodes can now be repurposed or decommissioned.
+  - else
+    %p
+      This node has been selected to remove because it has the fewest gears or is already deactivated in the district.
+      To remove the node from the district:
+      %ol
+        %li
+          Deactive the node
+          %pre
+            &= "oo-admin-ctl-district -c deactivate-node -u #{suggestion.district_uuid} -i #{suggestion.node_names[0]}"
+        %li
+          Move all of the gears on the node to another node in the district. For each gear:
+          %pre
+            &= "oo-admin-move --gear_uuid <gear_uuid>"
+        %li
+          Remove the node from the district
+          %pre
+            &= "oo-admin-ctl-district -c remove-node -u #{suggestion.district_uuid} -i #{suggestion.node_names[0]}"
+      This node can now be repurposed or decommissioned.

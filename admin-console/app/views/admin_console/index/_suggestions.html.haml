@@ -1,0 +1,27 @@
+%section
+  %h3
+    Suggestions
+  %table{:style => "vertical-align: top;"}
+    %tbody
+      - @suggestions.each do |suggestion|
+        - partial = suggestion_partial_for suggestion
+        - url = suggestions_path expanded: suggestion.id, tsugs: params[:tsugs]
+        %tr.short.suggestion.clickable{ suggestion_url: url }
+          %td
+            - if suggestion.important?
+              .label.label-important
+                = "!"
+            - else
+              .label.label-info
+                = "?"
+          %td.suggestion-body       
+            = render partial: partial, locals: {suggestion: suggestion, size: :short}
+
+- content_for :javascripts do
+  :javascript
+    $(function() {
+      $('.suggestion').click(function() {
+        if ($(this).attr('suggestion_url'))
+          window.location.href = $(this).attr('suggestion_url');
+      });
+    });

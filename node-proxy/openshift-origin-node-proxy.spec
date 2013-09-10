@@ -7,7 +7,7 @@
 
 Summary:       Routing proxy for OpenShift Origin Node
 Name:          openshift-origin-node-proxy
-Version: 1.12.1
+Version: 1.12.2
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -41,43 +41,47 @@ mkdir -p %{buildroot}%{_var}/run
 
 %if %{with_systemd}
 mkdir -p %{buildroot}%{_unitdir}
-install -D -m 644 scripts/systemd/openshift-node-web-proxy.service %{buildroot}%{_unitdir}
-install -D -m 644 scripts/systemd/openshift-node-web-proxy.env %{buildroot}%{_sysconfdir}/sysconfig/openshift-node-web-proxy
+install -D -p -m 644 scripts/systemd/openshift-node-web-proxy.service %{buildroot}%{_unitdir}
+install -D -p -m 644 scripts/systemd/openshift-node-web-proxy.env %{buildroot}%{_sysconfdir}/sysconfig/openshift-node-web-proxy
 %else
 mkdir -p %{buildroot}%{_initddir}
-install -D -m 755 scripts/init.d/openshift-node-web-proxy %{buildroot}%{_initddir}
+install -D -p -m 755 scripts/init.d/openshift-node-web-proxy %{buildroot}%{_initddir}
 %endif
 
 mkdir -p %{buildroot}%{_bindir}
-install -m 755 scripts/bin/node-find-proxy-route-files %{buildroot}%{_bindir}
+install -p -m 755 scripts/bin/node-find-proxy-route-files %{buildroot}%{_bindir}
 
 mkdir -p %{buildroot}%{_sysconfdir}/openshift
-install -D -m 640 config/web-proxy-config.json  %{buildroot}%{_sysconfdir}/openshift
+install -D -p -m 640 config/web-proxy-config.json  %{buildroot}%{_sysconfdir}/openshift
 
 mkdir -p %{buildroot}%{_sysconfdir}/logrotate.d
-install -D -m 644 config/logrotate.d/openshift-node-web-proxy %{buildroot}%{_sysconfdir}/logrotate.d
+%if %{with_systemd}
+install -D -p -m 644 config/logrotate.d/openshift-node-web-proxy.systemd %{buildroot}%{_sysconfdir}/logrotate.d/%{name}
+%else
+install -D -p -m 644 config/logrotate.d/openshift-node-web-proxy.service %{buildroot}%{_sysconfdir}/logrotate.d/%{name}
+%endif
 
 mkdir -p %{buildroot}%{webproxymoduledir}
-install -D -m 644 index.js %{buildroot}%{webproxymoduledir}
-install -D -m 644 README   %{buildroot}%{webproxymoduledir}
+install -D -p -m 644 index.js %{buildroot}%{webproxymoduledir}
+install -D -p -m 644 README   %{buildroot}%{webproxymoduledir}
 
 mkdir -p %{buildroot}%{webproxymoduledir}/lib
-install -D -m 644 lib/node-proxy.js %{buildroot}%{webproxymoduledir}/lib
+install -D -p -m 644 lib/node-proxy.js %{buildroot}%{webproxymoduledir}/lib
 
 mkdir -p %{buildroot}%{webproxymoduledir}/lib/logger
-install -D -m 644 lib/logger/* %{buildroot}%{webproxymoduledir}/lib/logger
+install -D -p -m 644 lib/logger/* %{buildroot}%{webproxymoduledir}/lib/logger
 
 mkdir -p %{buildroot}%{webproxymoduledir}/lib/proxy
-install -D -m 644 lib/proxy/* %{buildroot}%{webproxymoduledir}/lib/proxy
+install -D -p -m 644 lib/proxy/* %{buildroot}%{webproxymoduledir}/lib/proxy
 
 mkdir -p %{buildroot}%{webproxymoduledir}/lib/utils
-install -D -m 644 lib/utils/* %{buildroot}%{webproxymoduledir}/lib/utils
+install -D -p -m 644 lib/utils/* %{buildroot}%{webproxymoduledir}/lib/utils
 
 mkdir -p %{buildroot}%{webproxymoduledir}/lib/plugins
-install -D -m 644 lib/plugins/* %{buildroot}%{webproxymoduledir}/lib/plugins
+install -D -p -m 644 lib/plugins/* %{buildroot}%{webproxymoduledir}/lib/plugins
 
 mkdir -p %{buildroot}%{webproxymoduledir}/bin
-install -D -m 644 bin/*  %{buildroot}%{webproxymoduledir}/bin
+install -D -p -m 644 bin/*  %{buildroot}%{webproxymoduledir}/bin
 
 mkdir -p %{buildroot}%{_var}/log/node-web-proxy
 if [ ! -f %{buildroot}%{_var}/log/node-web-proxy/supervisor.log ]; then
@@ -111,7 +115,7 @@ fi
 %endif
 %attr(0755,-,-) %{_bindir}/node-find-proxy-route-files
 %attr(0640,-,-) %{_sysconfdir}/openshift/web-proxy-config.json
-%attr(0644,-,-) %{_sysconfdir}/logrotate.d/openshift-node-web-proxy
+%attr(0644,-,-) %{_sysconfdir}/logrotate.d/%{name}
 %ghost %attr(0660,root,root) %{_var}/log/node-web-proxy/supervisor.log
 %dir %attr(0700,apache,apache) %{_var}/log/node-web-proxy
 %dir %attr(0755,-,-) %{webproxymoduledir}
@@ -121,6 +125,9 @@ fi
 %doc README
 
 %changelog
+* Mon Sep 09 2013 Adam Miller <admiller@redhat.com> 1.12.2-1
+- wrong license file was copied in (tdawson@redhat.com)
+
 * Thu Aug 29 2013 Adam Miller <admiller@redhat.com> 1.12.1-1
 - bump_minor_versions for sprint 33 (admiller@redhat.com)
 

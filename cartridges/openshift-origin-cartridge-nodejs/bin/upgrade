@@ -1,0 +1,14 @@
+#!/bin/bash
+
+source $OPENSHIFT_CARTRIDGE_SDK_BASH
+source "${OPENSHIFT_NODEJS_DIR}/lib/util"
+source "${OPENSHIFT_NODEJS_DIR}/lib/nodejs_context"
+
+nodejs_version="$1"
+old_cart_version="$2"
+new_cart_version="$3"
+
+if [[ $old_cart_version =~ 0.0.[0-4] ]]; then
+  echo "$nodejs_version" > $OPENSHIFT_NODEJS_DIR/env/OPENSHIFT_NODEJS_VERSION
+  update-configuration $nodejs_version
+fi

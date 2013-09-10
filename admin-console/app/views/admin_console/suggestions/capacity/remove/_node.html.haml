@@ -1,0 +1,14 @@
+.lead
+  & Excess capacity in gear profile #{suggestion.profile}
+- case size
+- when :short
+  %div
+    Remove #{pluralize(suggestion.nodes_to_remove, 'node')} to reclaim excess capacity.
+
+- when :full
+  %p
+    Remove #{pluralize(suggestion.nodes_to_remove, 'node')} to reclaim excess capacity.
+  %p
+    You currently have #{pluralize(suggestion.available_gears, 'active gear')} available, which exceeds the configured GEAR_DOWN_THRESHOLD of #{suggestion.threshold}.  The maximum number of active gears for nodes in this gear profile is #{suggestion.max_active_gears}, so removing #{pluralize(suggestion.nodes_to_remove, 'node')} will bring the available active gears below the threshold.
+  %p
+    At this time, specifying which #{"node".pluralize(suggestion.nodes_to_remove)} to remove is difficult to automate robustly. Generally, it is a good idea to remove nodes that are not districted, nodes that are deactivated in their districts, and nodes that have the fewest gears to move.

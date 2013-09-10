@@ -1,0 +1,91 @@
+.suggestions
+  - if @cache_timeout > 0.seconds
+    %small.pull-right.muted
+      %form{:action => reload_path(:then => url_for), :method => "post"}
+        = "Data collected #{time_ago_in_words(@stats_created_at)} ago."
+        %button.btn.btn-mini.btn-icon{:type => "submit", :title => "Refresh now."}
+          %i.icon-refresh    
+  %h1
+    Suggestions
+  - if @suggestions.empty?
+    %em
+      There are currently no suggestions.
+  - else
+    %noscript
+      :css
+        tr.suggestion.clickable.full {
+          display: inherit !important;
+          cursor: default;
+        }
+
+        tr.suggestion.clickable.full td.toggle a{
+          display: none;
+        }
+
+    %table.suggestions-full-page{:style => "vertical-align: top;"}
+      %tbody
+        - @suggestions.each do |suggestion|
+          - partial = suggestion_partial_for suggestion
+          - url = suggestions_path id: suggestion.id
+          %tr.short.suggestion.clickable{style: 'display: none;', suggestion_url: url, :id => "#{suggestion.id}_short", :suggestion_id => suggestion.id}
+            %td
+              - if suggestion.important?
+                .label.label-important
+                  = "!"
+              - else
+                .label.label-info
+                  = "?"
+            %td.suggestion-body          
+              = render partial: partial, locals: {suggestion: suggestion, size: :short}
+            %td.toggle
+              %a{:href => "javascript:;", :title => "Expand suggestion details" }
+                %i.icon-chevron-down
+          %tr.full.suggestion{style: 'display: none;', suggestion_url: url, :id => "#{suggestion.id}_full", :suggestion_id => suggestion.id}
+            %td
+              - if suggestion.important?
+                .label.label-important
+                  = "!"
+              - else
+                .label.label-info
+                  = "?"
+            %td.suggestion-body          
+              = render partial: partial, locals: {suggestion: suggestion, size: :full}
+              -  if Rails.env.development? && params[:raw]
+                - partial = suggestion_partial_for Admin::Suggestion::Base # generic
+                = render partial: partial, locals: {suggestion: suggestion, size: :full}
+            %td.toggle
+              %a{:href => "javascript:;", :title => "Collapse suggestion details", :suggestion_id => suggestion.id}
+                %i.icon-chevron-up
+
+- content_for :javascripts do
+  :javascript
+    $(function() {
+      var expanded = "#{@expanded}";
+
+      $(".suggestion.short").each(function(idx, suggestion){
+        if (suggestion.id != expanded + "_short")
+          suggestion.style.display = "";
+      }).click(expand_suggestion);
+
+      var expanded_node = document.getElementById(expanded + "_full");
+      if (expanded_node) {
+        expanded_node.style.display = "";
+        expanded_node.scrollIntoView( true );
+      }
+
+
+      $(".suggestion.full .toggle a").click(collapse_suggestion);
+
+      function expand_suggestion(e) {
+        toggle_suggestion(true, e.currentTarget.getAttribute("suggestion_id"));
+      }
+
+      function collapse_suggestion(e) {
+        toggle_suggestion(false, e.currentTarget.getAttribute("suggestion_id"));
+      }
+
+      function toggle_suggestion(expand, suggestion_id) {
+        document.getElementById(suggestion_id + "_full").style.display = expand ? "" : "none";
+        document.getElementById(suggestion_id + "_short").style.display = expand ? "none" : "";
+      }
+    });

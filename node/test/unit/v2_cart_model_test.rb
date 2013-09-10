@@ -149,6 +149,46 @@ module OpenShift
       end
     end
 
+    def test_process_erb_templates_success
+      cartridge = mock()
+      cartridge.stubs(:name).returns('cartridge')
+
+      @container.stubs(:container_dir).returns("/foo")
+      env = mock()
+
+      Runtime::Utils::Environ.expects(:for_gear).with(@container.container_dir, '/foo/cartridge').returns(env)
+      @container.expects(:processed_templates).with(cartridge).returns(%w(a b c))
+      File.expects(:exists?).with('/foo/a').returns(true)
+      File.expects(:exists?).with('/foo/b').returns(true)
+      File.expects(:exists?).with('/foo/c').returns(true)
+
+      @model.expects(:render_erbs).with(env, %w(/foo/a /foo/b /foo/c))
+
+      result = @model.process_erb_templates(cartridge)
+
+      assert_equal '', result
+    end
+
+    def test_process_erb_templates_file_dne
+      cartridge = mock()
+      cartridge.stubs(:name).returns('cartridge')
+
+      @container.stubs(:container_dir).returns("/foo")
+      env = mock()
+
+      Runtime::Utils::Environ.expects(:for_gear).with(@container.container_dir, '/foo/cartridge').returns(env)
+      @container.expects(:processed_templates).with(cartridge).returns(%w(a b c))
+      File.expects(:exists?).with('/foo/a').returns(true)
+      File.expects(:exists?).with('/foo/b').returns(true)
+      File.expects(:exists?).with('/foo/c').returns(false)
+
+      @model.expects(:render_erbs).with(env, %w(/foo/a /foo/b))
+
+      result = @model.process_erb_templates(cartridge)
+
+      assert_match /CLIENT_ERROR/, result
+    end
+
     def test_private_endpoint_create
       ip1 = "127.0.250.1"
       ip2 = "127.0.250.2"

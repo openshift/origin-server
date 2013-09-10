@@ -2,47 +2,74 @@
 # Utility functions for use in the cartridge scripts.
 
 function wait_for_stop {
-        pid=$1
-    for i in {1..300}
-    do
-        if `ps --pid $pid > /dev/null 2>&1`
-        then
-            # only print every second
-            [ $((100 % 10)) -eq 0 ] && echo "Waiting for stop to finish"
-            sleep .1
-        else
-            break
-        fi
-    done
+  pid=$1
+  for i in {1..300}
+  do
+    if `ps --pid $pid > /dev/null 2>&1`
+    then
+      # only print every second
+      [ $((100 % 10)) -eq 0 ] && echo "Waiting for stop to finish"
+      sleep .1
+    else
+      break
+    fi
+  done
+}
+
+function set-configuration {
+  version="$1"
+  type="${2:-native}"
+  scl_string="${3}"
+
+  case "$type" in
+    scl)
+      local node_bin=$(echo -n "${OPENSHIFT_HOMEDIR}/.node_modules/.bin")
+      local scl_bin=$(dirname $(scl enable $scl_string "which node"))
+
+      echo "${node_bin}:${scl_bin}" >$OPENSHIFT_NODEJS_DIR/env/OPENSHIFT_NODEJS_PATH_ELEMENT
+
+      local ld_path=$(LD_LIBRARY_PATH="" scl enable $scl_string "printenv LD_LIBRARY_PATH")
+      path_append $LD_LIBRARY_PATH $ld_path >$OPENSHIFT_NODEJS_DIR/env/LD_LIBRARY_PATH
+
+      local man_path=$(MANPATH="" scl enable $scl_string "printenv MANPATH")
+      path_append $MANPATH $man_path >$OPENSHIFT_NODEJS_DIR/env/MANPATH
+      ;;
+    native)
+      rm -f $OPENSHIFT_NODEJS_DIR/env/{LD_LIBRARY_PATH,MANPATH}
+      echo -n "${OPENSHIFT_HOMEDIR}/.node_modules/.bin" > $OPENSHIFT_NODEJS_DIR/env/OPENSHIFT_NODEJS_PATH_ELEMENT
+      ;;
+  esac
 }
 
 function parse_args {
-    while :
-    do
-        case $1 in
-            -h | --help | -\?)
-                echo "usage: $0 [--version[=]<value>]"
-                exit 0
-                ;;
-            -v | --version)
-                version=$2     # You might want to check if you really got VERSION
-                shift 2
-                ;;
-            --version=*)
-                version=${1#*=}        # Delete everything up till "="
-                shift
-                ;;
-            --) # End of all options
-                shift
-                break
-                ;;
-            -*)
-                echo "WARN: Unknown option... Exiting: $1" >&2
-                exit 1
-                ;;
-            *)  # no more options. Stop while loop
-                break
-                ;;
-        esac
-    done
+  while :
+  do
+    case $1 in
+      -h | --help | -\?)
+        echo "usage: $0 [--version[=]<value>]"
+        exit 0
+        ;;
+      -v | --version)
+        version=$2     # You might want to check if you really got VERSION
+        shift 2
+        ;;
+      --version=*)
+        version=${1#*=}        # Delete everything up till "="
+        shift
+        ;;
+      --) # End of all options
+        shift
+        break
+        ;;
+      -*)
+        echo "WARN: Unknown option... Exiting: $1" >&2
+        exit 1
+        ;;
+      *)  # no more options. Stop while loop
+        break
+        ;;
+    esac
+  done
 }
+
+# vim: ft=sh

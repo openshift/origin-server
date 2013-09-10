@@ -4,7 +4,7 @@
 
 Summary:       Provides JBossEAP6.0 support
 Name:          openshift-origin-cartridge-jbosseap
-Version: 2.8.1
+Version: 2.8.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -75,6 +75,11 @@ mkdir -p /etc/alternatives/jbosseap-6/modules/org/postgresql/jdbc/main
 ln -fs /usr/share/java/postgresql-jdbc3.jar /etc/alternatives/jbosseap-6/modules/org/postgresql/jdbc/main
 cp -p %{cartridgedir}/versions/shared/modules/postgresql_module.xml /etc/alternatives/jbosseap-6/modules/org/postgresql/jdbc/main/module.xml
 
+# Do the same for the mysql connector.
+mkdir -p /etc/alternatives/jbosseap-6/modules/com/mysql/jdbc/main
+ln -fs /usr/share/java/mysql-connector-java.jar /etc/alternatives/jbosseap-6/modules/com/mysql/jdbc/main
+cp -p %{cartridgedir}/versions/shared/modules/mysql_module.xml /etc/alternatives/jbosseap-6/modules/com/mysql/jdbc/main/module.xml
+
 %files
 %dir %{cartridgedir}
 %attr(0755,-,-) %{cartridgedir}/bin/
@@ -86,6 +91,17 @@ cp -p %{cartridgedir}/versions/shared/modules/postgresql_module.xml /etc/alterna
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Mon Sep 09 2013 Adam Miller <admiller@redhat.com> 2.8.3-1
+- Merge pull request #3569 from brenton/BZ1005281
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1005281 - EAP cartridge maps to specific EAP release
+  (bleanhar@redhat.com)
+
+* Fri Sep 06 2013 Adam Miller <admiller@redhat.com> 2.8.2-1
+- Bug 1004927: Don't override JAVA_HOME in standalone.conf
+  (ironcladlou@gmail.com)
+- Fix bug 1004899: remove legacy subscribes from manifests (pmorie@gmail.com)
+
 * Thu Aug 29 2013 Adam Miller <admiller@redhat.com> 2.8.1-1
 - bump_minor_versions for sprint 33 (admiller@redhat.com)
 

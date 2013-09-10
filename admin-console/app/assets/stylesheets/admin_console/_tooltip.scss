@@ -1,0 +1,19 @@
+.tooltip {
+  font-size: 14px;
+
+  &.in {
+    @include opacity(85);
+  }
+}
+
+.tooltip-inner {
+  max-width: 250px;
+  padding: 10px;
+  text-align: left;
+}
+
+.progress-tooltip-wrapper {
+  height: 18px;
+  clear: both;
+  margin-bottom: 0;
+}

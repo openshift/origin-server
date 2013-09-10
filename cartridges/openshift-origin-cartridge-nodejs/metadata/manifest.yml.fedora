@@ -10,10 +10,8 @@ License: MIT License
 License-Url: https://raw.github.com/joyent/node/v0.10/LICENSE
 Vendor: www.nodejs.org
 Website: http://www.nodejs.org/
-Cartridge-Version: 0.0.4
-Compatible-Versions:
-- 0.0.2
-- 0.0.3
+Cartridge-Version: 0.0.5
+Compatible-Versions: []
 Cartridge-Vendor: redhat
 Categories:
 - service
@@ -33,10 +31,10 @@ Cart-Data:
   Type: environment
   Description: Application root directory where application files reside. This directory
     is reset every time you do a git-push
-- Key: OPENSHIFT_INTERNAL_PORT
+- Key: OPENSHIFT_NODEJS_PORT
   Type: environment
   Description: Internal port to which the web-framework binds to.
-- Key: OPENSHIFT_INTERNAL_IP
+- Key: OPENSHIFT_NODEJS_IP
   Type: environment
   Description: Internal IP to which the web-framework binds to.
 - Key: OPENSHIFT_APP_DNS
@@ -73,6 +71,12 @@ Subscribes:
   set-env:
     Type: ENV:*
     Required: false
+  set-mysql-connection-info:
+    Type: NET_TCP:db:mysql
+    Required: false
+  set-postgres-connection-info:
+    Type: NET_TCP:db:postgres
+    Required: false
 Endpoints:
 - Private-IP-Name: IP
   Private-Port-Name: PORT
@@ -87,4 +91,3 @@ Endpoints:
     Backend: ''
     Options:
       health: true
-Install-Build-Required: false

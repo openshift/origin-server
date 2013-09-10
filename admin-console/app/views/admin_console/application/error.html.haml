@@ -1,0 +1,13 @@
+:css
+  h1 span {
+    font-size: 16px;
+    color: #888;
+    color: rgb(136, 136, 136);
+    text-shadow: none;
+  }
+
+- content_for :page_title, @message || "An error occurred"
+
+%h1= @message || "We appear to be having technical difficulties"
+
+%p You can try <a href="javascript:window.location.reload();">refreshing the page</a>, if the problem is temporary.

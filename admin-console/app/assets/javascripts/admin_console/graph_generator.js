@@ -22,6 +22,19 @@ function _finish_gears_per_user_histogram(response) {
   histogram_from_bins(compress_long_tail_bins(response.bins), document.getElementById("gears_per_user"), "Gears", "Users");
 }
 
+function create_domains_per_user_histogram() {
+  jQuery.ajax({
+    url: "/admin-console/stats/domains_per_user",
+    dataType: "json",
+    success: _finish_domains_per_user_histogram
+  });
+}
+
+
+function _finish_domains_per_user_histogram(response) {
+  histogram_from_bins(compress_long_tail_bins(response.bins), document.getElementById("domains_per_user"), "Domains", "Users");
+}
+
 // bins - an array of objects with bin label and count
 // node - the DOM node to generate the graph in
 function histogram_from_bins(bins, node, xlbl, ylbl) {
@@ -29,6 +42,8 @@ function histogram_from_bins(bins, node, xlbl, ylbl) {
   var total = 0;
   for (var i = 0; i < bins.length; i++)
     total += bins[i].count;
+  //make the total evenly divisble by ten for whole number marker lines
+  total += 10 - total % 10
   var div = document.createElement("div");
     div.className = "histogram";
     var ylabel = document.createElement("div");
@@ -41,7 +56,7 @@ function histogram_from_bins(bins, node, xlbl, ylbl) {
         yaxis.className = "histogram-y-axis";
       for (var i = 10; i <= 100; i+=10) {
         var pct = 100-i;
-        var value = (total * pct) / 100;
+        var value = Math.round((total * pct) / 100);
         var lbl = document.createElement("span");
           lbl.className = "histogram-label";
           lbl.appendChild(document.createTextNode(value));
@@ -69,6 +84,12 @@ function histogram_from_bins(bins, node, xlbl, ylbl) {
           lbl.appendChild(document.createTextNode(bin.bin));
         xaxis.appendChild(lbl);
       }
+      for (var i = 0; i <= 100; i+=10) {
+        var line = document.createElement("div");
+          line.className = "histogram-line";
+          line.style.top = i + "%";
+        bars.appendChild(line);
+      }      
       var xlable = document.createElement("div");
         xlable.className = "histogram-x-label";
         xlable.appendChild(document.createTextNode(xlbl));
@@ -116,10 +137,3 @@ function compress_long_tail_bins(bins) {
 
   return new_bins;
 }
-
-$(document).ready(function () {
-  if (typeof LOAD_STATS_GRAPHS != "undefined" && LOAD_STATS_GRAPHS) {
-    create_apps_per_domain_histogram();
-    create_gears_per_user_histogram();
-  }
-});

@@ -1,33 +1,26 @@
 .capacity
-  %h1
-    Capacity
-  - @summary_for_profile.each do |profile,profile_data|
-    .profile{:onclick => "javascript:window.location.href = '" + profile_path(:id => profile) + "';"}
-      %h3
-        = profile
-      - profile_data
-      %table.stat-table
-        %tbody
-          %tr
-            %td.stat-name
-              Gears
-            - gears_total_count = profile_data[:gears_total_count]
-            - district_capacity = profile_data[:district_capacity]
-            - district_capacity = district_capacity == 0 ? 6000 : district_capacity
-            - uuid_usage_pct = (gears_total_count.to_f / district_capacity.to_f) * 100
-            %td.stat-usage
-              = "#{gears_total_count} of #{district_capacity}"
-            %td.stat-progress
-              .progress
-                .bar{ :style => "width: " + uuid_usage_pct.to_s + "%;"}
-          %tr
-            %td.stat-name
-              Active Gears
-            - active_gears = profile_data[:gears_active_count]
-            - total_active_gears = profile_data[:gears_active_count] + profile_data[:available_active_gears]
-            - active_pct = (active_gears.to_f / total_active_gears.to_f) * 100
-            %td.stat-usage
-              = "#{active_gears} of #{total_active_gears}"
-            %td.stat-progress
-              .progress
-                .bar{ :style => "width: " + active_pct.to_s + "%;"}
+  - if @cache_timeout > 0.seconds
+    %small.pull-right.muted
+      %form{:action => reload_path, :method => "post"}
+        = "Data collected #{time_ago_in_words(@stats_created_at)} ago."
+        %button.btn.btn-mini.btn-icon{:type => "submit", :title => "Refresh now."}
+          %i.icon-refresh
+  - if @summary_for_profile.size == 0 # no profiles to show
+    = render :partial => 'welcome'
+  - else
+    %h1
+      System Overview
+    .row
+      - if @suggestions.size <= 4 # inline suggestions with the profiles 
+        - @summary_for_profile.each_with_index do |profile, index|
+          .span6{:class => !@suggestions.empty? && index == 1 ? "clear" : ""}
+            = render :partial => 'profile', :locals => {:profile => profile[1]}
+          - if !@suggestions.empty? && index == 0
+            .span6.suggestions-overview
+              = render :partial => 'suggestions'
+      - else # too many suggestions, put them in the right column
+        .span7
+          - @summary_for_profile.each_with_index do |profile, index|
+            = render :partial => 'profile', :locals => {:profile => profile[1]}
+        .span5.suggestions-overview
+          = render :partial => 'suggestions'

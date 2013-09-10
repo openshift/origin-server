@@ -344,9 +344,9 @@ module OpenShift
       'expected'
     end
 
-    def initialize(uuid, gear_home, container)
-      @uuid = uuid
-      @gear_home = gear_home
+    def initialize(upgrader)
+      @uuid = upgrader.uuid
+      @gear_home = upgrader.gear_home
     end
 
     def pre_upgrade(progress)
@@ -385,9 +385,9 @@ module OpenShift
       'expected'
     end
 
-    def initialize(uuid, gear_home, container)
-      @uuid = uuid
-      @gear_home = gear_home
+    def initialize(upgrader)
+      @uuid = upgrader.uuid
+      @gear_home = upgrader.gear_home
     end
 
     def pre_upgrade(progress)

@@ -2,7 +2,7 @@
 
 Summary:       phpMyAdmin support for OpenShift
 Name:          openshift-origin-cartridge-phpmyadmin
-Version: 1.14.1
+Version: 1.14.2
 Release:       1%{?dist}
 Group:         Applications/Internet
 License:       ASL 2.0
@@ -10,16 +10,8 @@ URL:           https://www.openshift.com
 Source0:       http://mirror.openshift.com/pub/openshift-origin/source/%{name}/%{name}-%{version}.tar.gz
 Requires:      rubygem(openshift-origin-node)
 Requires:      openshift-origin-node-util
-%if 0%{?fedora}%{?rhel} <= 6
-Requires:      httpd < 2.4
-Requires:      phpMyAdmin >= 4.0
-%endif
-%if 0%{?fedora} >= 19
-Requires:      httpd > 2.3
-Requires:      httpd < 2.5
-Requires:      phpMyAdmin < 3.6
-Requires:      phpMyAdmin >= 3.4
-%endif
+Requires:      phpMyAdmin < 5.0
+Requires:      httpd
 BuildArch:     noarch
 
 Obsoletes: openshift-origin-cartridge-phpmyadmin-3.4
@@ -59,6 +51,9 @@ ln -sf %{cartridgedir}/versions/shared/phpMyAdmin/config.inc.php %{_sysconfdir}/
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Mon Sep 09 2013 Adam Miller <admiller@redhat.com> 1.14.2-1
+- simplify phpmyadmin requires (dmcphers@redhat.com)
+
 * Thu Aug 29 2013 Adam Miller <admiller@redhat.com> 1.14.1-1
 - Card origin_runtime_228 - Update PHP My Admin cartridge (mfojtik@redhat.com)
 - bump_minor_versions for sprint 33 (admiller@redhat.com)

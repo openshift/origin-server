@@ -1,19 +1,20 @@
 ---
 Name: nodejs
 Cartridge-Short-Name: NODEJS
-Display-Name: Node.js 0.6
+Display-Name: Node.js 0.10
 Description: Node.js is a platform built on Chrome's JavaScript runtime for easily
   building fast, scalable network applications. Node.js is perfect for data-intensive
   real-time applications that run across distributed devices.
-Version: '0.6'
+Version: '0.10'
+Versions:
+- '0.10'
+- '0.6'
 License: MIT License
-License-Url: https://raw.github.com/joyent/node/v0.6/LICENSE
+License-Url: https://raw.github.com/joyent/node/v0.10/LICENSE
 Vendor: www.nodejs.org
 Website: http://www.nodejs.org/
-Cartridge-Version: 0.0.4
-Compatible-Versions:
-- 0.0.2
-- 0.0.3
+Cartridge-Version: 0.0.5
+Compatible-Versions: []
 Cartridge-Vendor: redhat
 Categories:
 - service
@@ -57,7 +58,7 @@ Cart-Data:
   Type: environment
   Description: Unique ID which identified the gear. This value changes between gears.
 Provides:
-- nodejs-0.6
+- nodejs-0.10
 - nodejs
 Scaling:
   Min: 1
@@ -93,3 +94,12 @@ Endpoints:
     Backend: ''
     Options:
       health: true
+Install-Build-Required: false
+Version-Overrides:
+  '0.6':
+    Display-Name: Node.js 0.6
+    Provides:
+      - nodejs-0.6
+      - nodejs
+    License-Url: https://raw.github.com/joyent/node/v0.6/LICENSE
+    Install-Build-Required: false

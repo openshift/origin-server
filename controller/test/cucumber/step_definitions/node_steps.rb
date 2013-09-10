@@ -59,7 +59,8 @@ Given /^a new gear with namespace "([^\"]*)" and app name "([^\"]*)"$/ do |names
   }
 
   command = $controller_config_format % [acctname, acctname, namespace, name]
-  runcon(command, $selinux_user, $selinux_role, $selinux_type)
+  rc = runcon(command, $selinux_user, $selinux_role, $selinux_type)
+  assert_equal(0, rc, "#{command} failed with #{rc}")
 
   # get and store the account UID's by name
   @account['uid'] = Etc.getpwnam(acctname).uid
@@ -325,8 +326,10 @@ end
 
 Then /^a traffic control entry should( not)? exist$/ do |negate|
   acctname = @account['accountname']
-  tc_format = 'tc -s class show dev eth0 classid 1:%s'
-  tc_command = tc_format % (netclass @account['uid'])
+  netdev = `source /etc/openshift/node.conf; echo $EXTERNAL_ETH_DEV 2>/dev/null`.chomp
+  netdev = "eth0" if netdev.empty?
+  tc_format = 'tc -s class show dev %s classid 1:%s'
+  tc_command = tc_format % [netdev, (netclass @account['uid'])]
   result = `#{tc_command}`
   if negate
     result.should be == ""

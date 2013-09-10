@@ -7,7 +7,8 @@ require "rails/test_unit/railtie"
 
 # If you have a Gemfile, require the gems listed there, including any gems
 # you've limited to :test, :development, or :production.
-Bundler.require(*Rails.groups(:default, :assets => %w(development test))) if defined?(Bundler) 
+Bundler.require(:default, :assets, Rails.env) if defined?(Bundler)
+
 
 module Broker
   class Application < Rails::Application
@@ -49,5 +50,12 @@ module Broker
 
     Mongoid.logger.level = Logger::WARN
     Moped.logger.level = Logger::WARN
+
+    # Enable the asset pipeline in all environments
+    config.assets.enabled = true
+
+    # Version of your assets, change this if you want to expire all your assets
+    config.assets.version = '1.0'
+
   end
 end

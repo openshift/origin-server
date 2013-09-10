@@ -1,7 +1,7 @@
 %global cartridgedir %{_libexecdir}/openshift/cartridges/python
 
 Name:          openshift-origin-cartridge-python
-Version: 0.9.1
+Version: 0.9.3
 Release:       1%{?dist}
 Summary:       Python cartridge
 Group:         Development/Languages
@@ -29,6 +29,7 @@ Requires:      mod_wsgi >= 3.4
 Requires:      mod_wsgi < 3.5
 Requires:      httpd > 2.3
 Requires:      httpd < 2.5
+Requires:      symlinks
 %endif
 
 Requires:      MySQL-python
@@ -114,6 +115,21 @@ Python cartridge for OpenShift. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Fri Sep 06 2013 Adam Miller <admiller@redhat.com> 0.9.3-1
+- Merge pull request #3555 from rmillner/BZ1004886
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1004515 - PYTHON_EGG_CACHE is passed in from the environment and does not
+  need to hardcode. (rmillner@redhat.com)
+- Fix bug 1004899: remove legacy subscribes from manifests (pmorie@gmail.com)
+
+* Thu Sep 05 2013 Adam Miller <admiller@redhat.com> 0.9.2-1
+- The "-e" is causing regressions, was not in the original script and is not
+  needed by the script itself. (rmillner@redhat.com)
+- Bug 1000978 - Make curl more silent when fetching status of python cartridge
+  (mfojtik@redhat.com)
+- Status was failing at the curl command on stopped gears due to the -e
+  (rmillner@redhat.com)
+
 * Thu Aug 29 2013 Adam Miller <admiller@redhat.com> 0.9.1-1
 - Add support for Flask and requirements.txt (rmillner@redhat.com)
 - Merge pull request #3460 from rmillner/BZ999400

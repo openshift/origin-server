@@ -1,7 +1,7 @@
 %global cartridgedir %{_libexecdir}/openshift/cartridges/perl
 
 Name:          openshift-origin-cartridge-perl
-Version: 0.9.1
+Version: 0.9.2
 Release:       1%{?dist}
 Summary:       Perl cartridge
 Group:         Development/Languages
@@ -72,6 +72,9 @@ rm %{buildroot}%{cartridgedir}/metadata/manifest.yml.*
 
 
 %changelog
+* Fri Sep 06 2013 Adam Miller <admiller@redhat.com> 0.9.2-1
+- Fix bug 1004899: remove legacy subscribes from manifests (pmorie@gmail.com)
+
 * Thu Aug 29 2013 Adam Miller <admiller@redhat.com> 0.9.1-1
 - Bug 1001713 - Set PERL_VERSION number in setup (jhonce@redhat.com)
 - bump_minor_versions for sprint 33 (admiller@redhat.com)

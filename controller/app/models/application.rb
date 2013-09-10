@@ -301,7 +301,6 @@ class Application
   end
 
   def uuid
-    Rails.logger.error "DEPRECATED: Access to Application#uuid has been removed\n  #{caller.join("\n  ")}"
     _id.to_s
   end
 
@@ -700,6 +699,7 @@ class Application
       cats = CartridgeCache.find_cartridge(ci.cartridge_name, self).categories
       cats.include? "web_proxy"
     }.first
+    raise OpenShift::UserException.new("Cannot make the application HA because the web cartridge's max gear limit is '1'") if component_instance.group_instance.max==1
     # set the web_proxy's min to 2 
     self.update_component_limits(component_instance, 2, nil, nil)
 
@@ -744,6 +744,7 @@ class Application
       raise OpenShift::UserException.new("You are not allowed to request additional gear storage", 164) if max_storage == 0
       raise OpenShift::UserException.new("You have requested more additional gear storage than you are allowed (max: #{max_storage} GB)", 166) if additional_filesystem_gb > max_storage
     end
+    raise OpenShift::UserException.new("Cannot set the max gear limit to '1' if the application is HA (highly available)") if self.ha and scale_to==1
     Application.run_in_application_lock(self) do
       pending_op = PendingAppOpGroup.new(op_type: :update_component_limits, args: {"comp_spec" => component_instance.to_hash, "min"=>scale_from, "max"=>scale_to, "additional_filesystem_gb"=>additional_filesystem_gb}, created_at: Time.new, user_agent: self.user_agent)
       pending_op_groups.push pending_op

@@ -35,6 +35,8 @@ yum install -y --nogpgcheck ${url_of_the_latest_epel-release_rpm}
 yum install -y --nogpgcheck ${url_of_the_latest_puppet-release_rpm}
 ----
 
+* Add `exclude=*mcollective*` to the puppet entry in the file `/etc/yum.repos.d/puppetlabs.repo`
+
 * "Optional" repository - enable depending on your source:
 ** yum-config-manager --enable rhel-6-server-optional-rpms
 ** Under RHN classic, enable the rhel-x86_64-server-optional-6 channel
@@ -147,6 +149,10 @@ Furthermore, TSIG key that we generated above should be inserted.
       
       #If using with GDM, or have users with UID 500 or greater, add to this list
       #os_unmanaged_users         => ['gdm'],
+
+      #If using the stable version instead of the nightly
+      #install_repo               => 'release',
+      #dependencies_repo          => 'release',
     }
 ----
 
@@ -226,6 +232,10 @@ modified if necessary.
       
       #If using with GDM, or have users with UID 500 or greater, add to this list
       #os_unmanaged_users         => ['gdm'],
+
+      #If using the stable version instead of the nightly
+      #install_repo               => 'release',
+      #dependencies_repo          => 'release',
     }
 ----
 
@@ -295,6 +305,10 @@ values should be modified.
       
       #If using with GDM, or have users with UID 500 or greater, add to this list
       #os_unmanaged_users         => ['gdm'],
+
+      #If using the stable version instead of the nightly
+      #install_repo               => 'release',
+      #dependencies_repo          => 'release',
     }
 ----
 

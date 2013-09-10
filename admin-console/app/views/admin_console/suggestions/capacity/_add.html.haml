@@ -1,0 +1,39 @@
+.lead
+  & Add capacity for #{suggestion.profile} gear profile
+- case size
+- when :short
+  %div
+    & Gear profile #{suggestion.profile}
+    has capacity for #{pluralize(suggestion.available_gears, 'active gear')}, which is below the threshold of #{suggestion.threshold}.
+- when :full
+  %p
+    & Gear profile #{suggestion.profile}
+    has capacity for #{pluralize(suggestion.available_gears, 'active gear')}, which is below the threshold of #{suggestion.threshold}.
+  %p
+    Create #{pluralize(suggestion.nodes_needed, 'node')} with profile
+    &= suggestion.profile
+    to increase the active gear capacity. This suggestion is based on:
+    %ul
+      %li
+        #{pluralize suggestion.gears_needed, 'gears'} needed to both reach the threshold and meet the configured GEAR_UP_SIZE of this profile.
+      %li
+        The estimated maximum active gears of #{suggestion.max_active_gears} for nodes in this profile.
+    - suggestion.contents.each do |subsuggest|
+      - if subsuggest.is_a? Admin::Suggestion::Capacity::Add::Node
+        - if subsuggest.district_name.present?
+          %p
+            Add #{subsuggest.node_quantity == suggestion.node_quantity ? 'all nodes' : pluralize(subsuggest.node_quantity, 'node')}
+            & to district #{subsuggest.district_name},
+            which according to an active gear percent of #{subsuggest.active_gear_pct}%
+            has room for #{pluralize subsuggest.nodes_creatable, 'more node'}.
+            %pre
+              & oo-admin-ctl-district -c add-node -n '#{subsuggest.district_name}' -i &lt;server_identity&gt;
+
+      - elsif subsuggest.is_a? Admin::Suggestion::Capacity::Add::District
+        %p
+          Create #{pluralize(subsuggest.district_quantity, 'new district')}.
+          %pre
+            & oo-admin-ctl-district -c create -p '#{subsuggest.profile}' -n &lt;name&gt;
+          Then add #{pluralize subsuggest.nodes_per_district, 'node'} to each new district.
+          %pre
+            & oo-admin-ctl-district -c add-node -n '&lt;district_name&gt;' -i &lt;server_identity&gt;
