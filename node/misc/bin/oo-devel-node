@@ -40,7 +40,7 @@ unless 'root' == Etc.getpwuid(Process::uid).name
   exit! 1
 end
 
-global_option('-c', '--with-container-uuid UUID', 'Unique identifier for the gear')
+global_option('-c', '--with-container-uuid UUID', 'Unique identifier for the gear, if provided must be first argument')
 global_option('-t', '--trace', 'Enable stack traces when reporting errors and additional diagnostic output') { $trace = true }
 
 def execute
