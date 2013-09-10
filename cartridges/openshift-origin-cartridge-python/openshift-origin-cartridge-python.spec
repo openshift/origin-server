@@ -29,6 +29,7 @@ Requires:      mod_wsgi >= 3.4
 Requires:      mod_wsgi < 3.5
 Requires:      httpd > 2.3
 Requires:      httpd < 2.5
+Requires:      symlinks
 %endif
 
 Requires:      MySQL-python
