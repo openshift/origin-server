@@ -372,16 +372,15 @@ module MCollective
         hot_deploy = args['--with-hot-deploy']
         force_clean_build = args['--with-force-clean-build']
         ref = args['--with-ref']
+        artifact_url = args['--with-artifact-url']
 
-        #TODO
-        container.deploy
+        container.deploy(hot_deploy: hot_deploy, force_clean_build: force_clean_build, ref: ref, artifact_url: artifact_url)
       end
 
-      def oo_deploy(args)
+      def oo_rollback(args)
         deployment_id  = args['--with-deployment-id']
 
-        #TODO
-        container.rollback
+        container.rollback(deployment_id: deployment_id)
       end
 
       def oo_authorized_ssh_key_add(args)

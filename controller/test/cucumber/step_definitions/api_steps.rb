@@ -100,25 +100,25 @@ Given /^a new user, create a ([^ ]+) application using ([^ ]+) format and verify
     Then the response should be "201"
     When I send a POST request to "/domains/api<random>/applications" with the following:"name=app&cartridge=#{cart_name}"
     Then the response should be "201"
-    
+
     When I send a GET request to "/domains/api<random>/applications/app/gear_groups"
     Then the response should be a "gear-group/gears/gear" with attributes "state=started"
-    
+
     When I send a POST request to "/domains/api<random>/applications/app/events" with the following:"event=stop"
     Then the response should be "200"
     When I send a GET request to "/domains/api<random>/applications/app/gear_groups"
     Then the response should be a "gear-group/gears/gear" with attributes "state=stopped"
-    
+
     When I send a POST request to "/domains/api<random>/applications/app/events" with the following:"event=start"
     Then the response should be "200"
     When I send a GET request to "/domains/api<random>/applications/app/gear_groups"
     Then the response should be a "gear-group/gears/gear" with attributes "state=started"
-    
+
     When I send a POST request to "/domains/api<random>/applications/app/events" with the following:"event=restart"
     Then the response should be "200"
     When I send a GET request to "/domains/api<random>/applications/app/gear_groups"
     Then the response should be a "gear-group/gears/gear" with attributes "state=started"
-    
+
     When I send a DELETE request to "/domains/api<random>/applications/app"
     Then the response should be "200"
   }
@@ -128,7 +128,7 @@ Given /^a new user$/ do
   @random = rand(99999999)
   @username = "rest-test-#{@random}"
   @password = "xyz123"
-  
+
   register_user(@username, @password) if $registration_required
 
 #TODO authenticate user

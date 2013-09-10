@@ -290,8 +290,8 @@ module OpenShift
         #   :out        : an IO to which any stdout should be written (default: nil)
         #   :err        : an IO to which any stderr should be written (default: nil)
         #   :hot_deploy : a boolean to toggle hot deploy for the operation (default: false)
-        #   :branch     : the git branch to use
-        #   :force_clean_build    : if true, don't copy the previous deployment's dependencies to the new one (default: false)
+        #   :ref     : the git ref to use
+        #   :force_clean_build : if true, don't copy the previous deployment's dependencies to the new one (default: false)
         #
         def post_receive(options={})
           builder_cartridge = @cartridge_model.builder_cartridge
@@ -317,7 +317,7 @@ module OpenShift
             end
 
             repo_dir = PathUtils.join(@container_dir, 'app-deployments', options[:deployment_datetime], 'repo')
-            ApplicationRepository.new(self).archive(repo_dir, options[:branch] || 'master')
+            ApplicationRepository.new(self).archive(repo_dir, options[:ref] || 'master')
 
             build(options)
 
@@ -777,6 +777,28 @@ module OpenShift
           end
 
           buffer
+        end
+
+        #
+        # Deploys the app
+        #
+        # options: hash
+        #   :hot_deploy    : indicates whether to hot deploy
+        #   :force_clean_build : indicates whether to force clean build
+        #   :ref           : the ref to deploy
+        #   :artifact_url  : the artifact to download and deploy
+        #   :out           : an IO to which any stdout should be written (default: nil)
+        #   :err           : an IO to which any stderr should be written (default: nil)
+        #
+        def deploy(options={})
+          hot_deploy = options[:hot_deploy]
+          force_clean_build = options[:force_clean_build]
+          ref = options[:ref]
+          artifact_url = options[:artifact_url]
+          out = options[:out]
+          err = options[:err]
+          pre_receive(out: out, err: err, hot_deploy: hot_deploy)
+          post_receive(out: out, err: err, hot_deploy: hot_deploy, force_clean_build: force_clean_build, ref: ref)
         end
 
         #

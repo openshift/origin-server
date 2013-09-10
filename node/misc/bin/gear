@@ -188,7 +188,7 @@ command :postreceive do |c|
 
           next unless branch_to_deploy == ref_name
 
-          found_deployment_branch = true        
+          found_deployment_branch = true
           break
         end
 
@@ -318,14 +318,13 @@ command :deploy do |c|
   c.description = "Run the deploy steps"
   c.action do |args, options|
     do_command(c, options) do
-      # determine the branch to deploy, in order of priority:
+      # determine the ref to deploy, in order of priority:
       # - args[0], which would mean the user did "gear deploy mybranch"
       # - if $OPENSHIFT_DEPLOYMENT_BRANCH is set, use that
       # - fallback to master
-      branch_to_deploy = args[0] || ENV['OPENSHIFT_DEPLOYMENT_BRANCH'] || 'master'
+      ref_to_deploy = args[0] || ENV['OPENSHIFT_DEPLOYMENT_BRANCH'] || 'master'
 
-      @container.pre_receive(out: $stdout, err: $stderr, hot_deploy: file_committed?(HOT_DEPLOY_MARKER))
-      @container.post_receive(out: $stdout, err: $stderr, hot_deploy: file_committed?(HOT_DEPLOY_MARKER), branch: branch_to_deploy)
+      @container.deploy(hot_deploy: file_committed?(HOT_DEPLOY_MARKER), force_clean_build: false, ref: ref_to_deploy, out: $stdout, err: $stderr)
     end
   end
 end
@@ -353,7 +352,7 @@ end
 
 command :start do |c|
   c.syntax = "#{name} start"
-  
+
   c.option "--cart CART", "The cart to start"
 
   c.description = "Start the gear/cart"
@@ -371,7 +370,7 @@ end
 
 command :stop do |c|
   c.syntax = "#{name} stop"
-  
+
   c.option "--cart CART", "The cart to stop"
   c.option "--conditional", "Skip the gear stop if the hot deploy marker is present in the application Git repo"
   c.option "--exclude-web-proxy", "Skip stopping the web proxy, if it exists"
@@ -396,7 +395,7 @@ end
 
 command :restart do |c|
   c.syntax = "#{name} restart"
-  
+
   c.option "--cart CART", "The cart to restart"
 
   c.description = "Restart a cart"
@@ -412,7 +411,7 @@ end
 
 command :reload do |c|
   c.syntax = "#{name} reload"
-  
+
   c.option "--cart CART", "The cart to reload"
 
   c.description = "Reload a cart"
@@ -426,7 +425,7 @@ end
 
 command :status do |c|
   c.syntax = "#{name} status"
-  
+
   c.option "--cart CART", "The cart to get the status for"
 
   c.description = "Get the status for a cart"

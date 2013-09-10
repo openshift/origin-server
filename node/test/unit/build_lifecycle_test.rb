@@ -278,6 +278,13 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
     @container.remote_deploy(out: $stdout, err: $stderr, deployment_datetime: deployment_datetime)
   end
 
+  def test_deploy
+    @container.expects(:pre_receive).with(out: $stdout, err: $stderr, hot_deploy: true).returns(nil)
+    @container.expects(:post_receive).with(out: $stdout, err: $stderr, hot_deploy: true, force_clean_build: false, ref: nil).returns(nil)
+
+    @container.deploy(out: $stdout, err: $stderr, hot_deploy: true, force_clean_build: false)
+  end
+
   def test_configure_defaults
     cart_name = 'mock-0.1'
     latest_deployment_datetime = "now"
