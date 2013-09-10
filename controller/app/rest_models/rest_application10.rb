@@ -81,6 +81,10 @@ class RestApplication10 < OpenShift::Model
     self.embedded = {}
     app.requires(true).each do |feature|
       cart = CartridgeCache.find_cartridge(feature, app)
+
+      # raise an exception in case the application cartridge is not found
+      raise OpenShift::OOException.new("The application '#{app.name}' requires '#{feature}' but a matching cartridge could not be found") if cart.nil?
+
       if cart.categories.include? "web_framework"
         self.framework = cart.name
       else
