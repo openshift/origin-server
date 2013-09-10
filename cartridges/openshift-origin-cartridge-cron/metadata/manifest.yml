@@ -17,6 +17,7 @@ Compatible-Versions:
 Cartridge-Vendor: redhat
 Categories:
 - embedded
+- plugin
 Help-Topics:
   Getting Started Guide: https://www.openshift.com/blogs/getting-started-with-cron-jobs-on-openshift
 Provides:
@@ -34,4 +35,8 @@ Subscribes:
     Type: STRING:job
 Scaling:
   Min: 1
-  Max: 1
+  Max: -1
+Group-Overrides:
+- components:
+  - cron-1.4
+  - web_framework
