@@ -9,7 +9,7 @@
 
 Summary:       OpenShift plugin adding an administrative console to the broker
 Name:          rubygem-%{gem_name}
-Version: 0.2.1
+Version: 0.2.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -129,6 +129,19 @@ cp %{buildroot}/%{gem_dir}/gems/%{gem_name}-%{version}/conf/openshift-origin-adm
 %defattr(-,root,apache,-)
 
 %changelog
+* Tue Sep 10 2013 Adam Miller <admiller@redhat.com> 0.2.2-1
+- Admin console design feedback css tweaks (jforrest@redhat.com)
+- Bug 1005733 - admin console stats y-label mis-aligned and mobile res x-labels
+  wrap badly (jforrest@redhat.com)
+- <capacity planning> review comments (jforrest@redhat.com)
+- <admin console> edge case on suggestion display (lmeyer@redhat.com)
+- <admin-console> tweaks to views (lmeyer@redhat.com)
+- <admin console> lower default active%% to 5 (lmeyer@redhat.com)
+- Bug 1004160 - admin console stats graphs fail to load with arg error
+  (jforrest@redhat.com)
+- <admin console> capacity planning (jforrest@redhat.com)
+- <admin stats> refactor and mods for admin console (lmeyer@redhat.com)
+
 * Thu Aug 29 2013 Adam Miller <admiller@redhat.com> 0.2.1-1
 - Merge remote-tracking branch 'origin/master' into propagate_app_id_to_gears
   (ccoleman@redhat.com)
