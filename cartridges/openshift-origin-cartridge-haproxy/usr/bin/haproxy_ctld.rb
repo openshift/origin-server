@@ -186,7 +186,7 @@ class Haproxy
           raise ShouldRetry, e.to_s
         end
 
-        @gear_count = self.stats['express'].count - 3
+        @gear_count = self.stats['express'].count - 2
         @gear_up_pct = 90.0
         if @gear_count > 1
           # Pick a percentage for removing gears which is a moderate amount below the threshold where the gear would scale back up.

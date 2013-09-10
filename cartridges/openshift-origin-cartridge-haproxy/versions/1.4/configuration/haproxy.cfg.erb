@@ -63,4 +63,3 @@ listen express <%= "#{ENV['OPENSHIFT_HAPROXY_IP']}:#{ENV['OPENSHIFT_HAPROXY_PORT
     cookie GEAR insert indirect nocache
     option httpchk GET /
     balance leastconn
-    server  filler <%= "#{ENV['OPENSHIFT_HAPROXY_STATUS_IP']}:#{ENV['OPENSHIFT_HAPROXY_STATUS_PORT']}" %> backup

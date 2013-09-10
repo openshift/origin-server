@@ -1,0 +1,3 @@
+#!/bin/bash -eu
+
+sed -i '/server\s*filler/d' $OPENSHIFT_HAPROXY_DIR/conf/haproxy.cfg
