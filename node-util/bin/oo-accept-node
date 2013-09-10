@@ -447,7 +447,7 @@ def check_cgroup_procs
             missing = procs - controller_procs[uuid]
             if missing.length > 0
                 missing.each do |pid|
-                    proc_data = %x[/bin/ps -p #{pid} -o uid,pid,ppid,etime,cmd].split("\n")
+                    proc_data = %x[/bin/ps -p #{pid} -o uid,pid,ppid,etime,cmd].encode({:invalid=>:replace, :undef=>:replace, :replace=>''}).split("\n")
 
                     # ensure the process is still running and not defunct before failing
                     # this fixes both the transient process and the defunct process
