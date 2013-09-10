@@ -121,6 +121,21 @@ For RHEL systems you will need to include the http://fedoraproject.org/wiki/EPEL
 yum install -y --nogpgcheck ${url_of_the_latest_epel-release_rpm}
 ----
 
+Update the EPEL repository definition to exclude mcollective and nodejs packages as these are provided in the origin dependencies.
+
+./etc/yum.repos.d/epel.repo
+----
+[epel]
+name=Extra Packages for Enterprise Linux 6 - $basearch
+#baseurl=http://download.fedoraproject.org/pub/epel/6/$basearch
+mirrorlist=https://mirrors.fedoraproject.org/metalink?repo=epel-6&arch=$basearch
+exclude=*passenger* nodejs*
+failovermethod=priority
+enabled=1
+gpgcheck=1
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-EPEL-6
+----
+
 === Updates and NTP
 The hosts should be running the latest Fedora packages, and should be configured to use NTP for clock synchronization.
 
