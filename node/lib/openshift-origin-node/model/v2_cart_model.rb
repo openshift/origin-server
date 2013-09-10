@@ -1268,13 +1268,17 @@ module OpenShift
         end
 
         buffer = ''
-        each_cartridge do |cartridge|
-          next if options[:primary_only] and cartridge.name != primary_cartridge.name
-          next if options[:secondary_only] and cartridge.name == primary_cartridge.name
+        if options[:primary_only] || options[:secondary_only]
+          each_cartridge do |cartridge|
+            next if options[:primary_only] and cartridge.name != primary_cartridge.name
+            next if options[:secondary_only] and cartridge.name == primary_cartridge.name
 
-          buffer << start_cartridge('start', cartridge, options)
+            buffer << start_cartridge('start', cartridge, options)
+          end
+        else
+          buffer << start_gear(options.merge({secondary_only: true}))
+          buffer << start_gear(options.merge({primary_only: true}))
         end
-
         buffer
       end
 
