@@ -19,9 +19,10 @@
   - elsif type.website
     %p.help-block= link_to type.website, type.website
 
-  %p.help-block
+  %p
     - case type.support_type
     - when :openshift
+      %span.icon-star-empty{"aria-hidden" => "true"}
       %span.label-support.label-support-openshift{:title => 'Updated and maintained by the OpenShift team'} OpenShift maintained
     - when :partner
       %span.label-support.label-support-openshift{:title => 'Updated and maintained by a partner'} Partner created

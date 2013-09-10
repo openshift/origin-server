@@ -1,19 +1,24 @@
 /******************************************************
 * Customizations
 */
-
+.dropdown {
+  display: inline-block; 
+}
+.dropdown.open .dropdown-toggle {
+  background-color: #E7E7E7;
+  color: inherit;
+}
 .dropdown-menu {
-	background-color: #333;
-  background-color:rgba(60, 60, 60, 0.9);
-  @include box-shadow(0 0 1px rgba(255, 255, 255, 0.25) inset);
-  @include border-radius($radius: 0 0 3px 3px);
+  @include box-shadow(0 5px 5px rgba(0, 0, 0, 0.2));
+  border: 0;
+  @include border-radius(0);
 
   a {
-    color: #cacbcc;
   }
   > li > a:hover {
     border-radius: 0px;
-    background-color: #5a5b5c;
+    color: $linkColorBlue;
+    background-color: $highlightBlue;
   }
 
   hr {

@@ -72,7 +72,7 @@ function status() {
 
 
 function get_main_script_from_package_json() {
-    node <<NODE_EOF
+    nodejs_context "node" <<NODE_EOF
 try {
   var zmain = require('$OPENSHIFT_REPO_DIR/package.json').main;
   if (typeof zmain === 'undefined') {
@@ -91,7 +91,7 @@ NODE_EOF
 
 function start() {
     echo "Starting NodeJS cartridge"
- 
+
     envf="$OPENSHIFT_NODEJS_DIR/configuration/node.env"
     logf="$OPENSHIFT_NODEJS_LOG_DIR/node.log"
 
@@ -127,13 +127,13 @@ function start() {
     fi
 
     if marker_present "hot_deploy"; then
-        nohup supervisor -e 'node|js|coffee' -- $script_n_opts  >> $logf 2>&1 &
+        nodejs_context "nohup supervisor -e 'node|js|coffee' -- $script_n_opts  >> $logf 2>&1 &"
     else
-        nohup $executor_cmdline >> $logf 2>&1 &
+        nodejs_context "nohup $executor_cmdline >> $logf 2>&1 &"
     fi
 
     ret=$?
-    npid=$!
+    npid=$(pgrep -x node -u $(id -u))
     popd > /dev/null
     if [ $ret -eq 0 ]; then
         echo "$npid" > "$OPENSHIFT_NODEJS_PID_DIR/node.pid"
@@ -227,7 +227,7 @@ function build() {
     fi
 
     #  Newer versions of Node set tmp to $HOME/tmp, which is not available
-    npm config set tmp $OPENSHIFT_TMP_DIR
+    nodejs_context "npm config set tmp $OPENSHIFT_TMP_DIR"
 
     if [ -f "${OPENSHIFT_REPO_DIR}"/deplist.txt ]; then
         mods=$(perl -ne 'print if /^\s*[^#\s]/' "${OPENSHIFT_REPO_DIR}"/deplist.txt)
@@ -236,9 +236,9 @@ function build() {
             echo "Checking npm module: $m"
             echo
             if is_node_module_installed "$m"; then
-                (cd "${OPENSHIFT_NODEJS_DIR}"; npm update "$m")
+                (cd "${OPENSHIFT_NODEJS_DIR}"; nodejs_context "npm update '$m'")
             else
-                (cd "${OPENSHIFT_NODEJS_DIR}"; npm install "$m")
+                (cd "${OPENSHIFT_NODEJS_DIR}"; nodejs_context "npm install '$m'")
             fi
         done
     fi
@@ -251,7 +251,7 @@ function build() {
     unset GIT_WORK_TREE
 
     if [ -f "${OPENSHIFT_REPO_DIR}"/package.json ]; then
-        (cd "${OPENSHIFT_REPO_DIR}"; npm install -d)
+        (cd "${OPENSHIFT_REPO_DIR}"; nodejs_context "npm install -d")
     fi
 
 }
@@ -320,6 +320,8 @@ fi
 
 # Source utility functions.
 source $OPENSHIFT_CARTRIDGE_SDK_BASH
+source "${OPENSHIFT_NODEJS_DIR}/lib/util"
+source "${OPENSHIFT_NODEJS_DIR}/lib/nodejs_context"
 
 # Handle commands.
 case "$1" in

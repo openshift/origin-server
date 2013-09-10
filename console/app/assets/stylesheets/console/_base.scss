@@ -19,17 +19,17 @@ Color palette
 */
 
 html {
-  background: #000;
+  background: white;
 }
 
 body {
 		font-weight: normal;
 		min-height: 100%;
 		position: relative;
-		background-color: #000;
+		background-color: white; 
     }
     
-a:link,a:visited,a:hover,a:active {color:#6DB3C7;}
+a:link,a:visited,a:hover,a:active {color:$linkColorBlue;}
 a:hover,a:active {text-decoration: underline;}
 a:focus {
     outline: thin dotted currentColor;
@@ -52,8 +52,6 @@ dl {
     }
   }
 }
-
-h1,h2,h3,h4,h5,h6 {color: $consoleHeaderColor;}
 
 
 // Tables
@@ -99,7 +97,7 @@ h1,h2,h3,h4,h5,h6 {color: $consoleHeaderColor;}
 
 // Forms
 // ----------------------------------------
-
+/*
 input,
 select, 
 textarea,
@@ -143,6 +141,8 @@ textarea::-webkit-input-placeholder {
     //background-color: $grayLighter;
   }
 }
+*/
+
 
 label {color: inherit;}
 legend {color: $consoleHeaderColor;}

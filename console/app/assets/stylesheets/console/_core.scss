@@ -33,7 +33,6 @@ pre.cli {
     }
 }
 
-
 .section-console label {
   color: #cfcfcf;
   }
@@ -52,7 +51,7 @@ pre.cli {
 }
 
 .text-warning {
-    color: #EED99D;
+    color: #e70;
 }
 .block {
   display: block;
@@ -119,8 +118,7 @@ ol.wizard li span {
     vertical-align: baseline;
   }
   ol.wizard li span i {
-    border: 4px solid #505050;
-    background: #222;
+    border: 4px solid $openshiftBorderGray;
     border-radius: 30px;
     font-style: normal;
     height: 33px;
@@ -132,7 +130,7 @@ ol.wizard li span {
     width: 33px;
     font-weight: bold;
     }
-ol.wizard li.active {
+ol.wizard li.active span i, ol.wizard li.active span {
   color: #EB0011;
   }
 ol.wizard li a {
@@ -218,22 +216,20 @@ figure {
 
 .row-console > .row {
   background: #000;
-  color: #babbbc;
+  color: $consoleTextColorDefault;
 }
 
 .section-console-light .row-console > .row {
-  background: none repeat scroll 0 0 #292929;
-   color: #dadada;
+  background: transparent;
    min-height: 400px;
 
 	.divide, legend {
-		border-bottom: 2px solid #555;
 		margin-bottom: 0;
 		font-family: $headerFontFamily;
 	}
 	
 	.divide {
-  	margin-bottom: $baseLineHeight;
+  	margin-bottom: $baseLineHeight / 3;
 	}
 }
 
@@ -343,7 +339,7 @@ aside .header-bar {
     padding-bottom: 0;
     padding-top: 0;
   }
-  .section-console-light { background: #292929; }
+  .section-console-light { background: #fff; }
 
   .section-header {
     margin-left: 0;

@@ -52,7 +52,7 @@
 }
 
 // Active state
-.btn:active {
+.btn:active, .dropdown.open .dropdown-toggle:active {
   background-image: none;
   background-color: #ececec;
   outline: 0;

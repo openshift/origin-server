@@ -434,7 +434,7 @@ end
 When /^the application is made publicly accessible$/ do
   ssh_key = IO.read($test_pub_key).chomp.split[1]
   run "echo \"127.0.0.1 #{@app.name}-#{@account.domain}.#{$cloud_domain} # Added by cucumber\" >> /etc/hosts"
-  run "oo-authorized-ssh-key-add -a #{@gear.uuid} -c #{@gear.uuid} -s #{ssh_key} -t ssh-rsa -m default"
+  run "oo-devel-node authorized-ssh-key-add -c #{@gear.uuid} -k #{ssh_key} -T ssh-rsa -m default"
   run "echo -e \"Host #{@app.name}-#{@account.domain}.#{$cloud_domain}\n\tStrictHostKeyChecking no\n\" >> ~/.ssh/config"
 end
 

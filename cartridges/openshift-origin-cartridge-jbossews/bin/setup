@@ -35,7 +35,7 @@ ln -sf ${SYSTEM_JBOSSEWS_DIR}/bin/commons-daemon.jar ${OPENSHIFT_JBOSSEWS_DIR}/b
 ln -sf ${SYSTEM_JBOSSEWS_DIR}/bin/tomcat-juli.jar ${OPENSHIFT_JBOSSEWS_DIR}/bin/tomcat-juli.jar
 
 # Need to remove link: -f gets confused as this is a link to a link
-[ -e ${OPENSHIFT_JBOSSEWS_DIR}/lib ] && rm ${OPENSHIFT_JBOSSEWS_DIR}/lib
+[ -h ${OPENSHIFT_JBOSSEWS_DIR}/lib ] && rm ${OPENSHIFT_JBOSSEWS_DIR}/lib
 ln -sf ${SYSTEM_JBOSSEWS_DIR}/lib ${OPENSHIFT_JBOSSEWS_DIR}/lib
 
 # Link the user-controlled configurations to the Tomcat conf directory

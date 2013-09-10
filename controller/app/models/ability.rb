@@ -62,6 +62,7 @@ module Ability
 
       when :change_state,
            :change_cartridge_state,
+           :make_ha,
            :scale_cartridge,
            :view_code_details,
            :change_gear_quota,

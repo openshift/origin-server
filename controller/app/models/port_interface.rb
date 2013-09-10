@@ -40,4 +40,8 @@ class PortInterface
     pi = gear.port_interfaces.find_by(external_port: public_port)
     gear.port_interfaces.delete(pi)
   end
+
+  def publish_endpoint(app)
+    OpenShift::RoutingService.notify_create_public_endpoint(app, self.cartridge_name, self.external_address, self.external_port, self.internal_address, self.internal_port)
+  end
 end

@@ -288,6 +288,10 @@ module MCollective
           Log.instance.info e.message
           Log.instance.info e.backtrace
           return 129, e.message
+        rescue OpenShift::Runtime::GearCreationException => e
+          Log.instance.info e.message
+          Log.instance.info e.backtrace
+          return 146, e.message
         rescue Exception => e
           Log.instance.info e.message
           Log.instance.info e.backtrace
