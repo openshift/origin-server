@@ -581,8 +581,29 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
     @cartridge_model.expects(:web_proxy).returns(1)
     gear_registry = mock()
     ::OpenShift::Runtime::GearRegistry.expects(:new).with(@container).returns(gear_registry)
-    gear_registry.expects(:ssh_urls).returns(%w(5503@localhost 5504@localhost))
-    assert_equal ['5504@localhost'], @container.child_gear_ssh_urls
+    
+    self_entry = mock()
+    
+    other_entry = mock()
+    other_entry.expects(:proxy_ip).returns('localhost')
+    
+    other_entry2 = mock()
+    other_entry2.expects(:proxy_ip).returns('localhost')
+    
+    entries = {
+      :web => {
+        @container.uuid => self_entry,
+        '5504' => other_entry,
+        '5505' => other_entry2
+      }
+    }
+    
+    gear_registry.expects(:entries).returns(entries)
+    
+    urls = @container.child_gear_ssh_urls
+    assert_equal 2, urls.size
+    assert_includes urls, '5504@localhost'
+    assert_includes urls, '5505@localhost'
   end
 
   def test_distribute_no_child_gears
@@ -604,13 +625,13 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
     gear_env = {'key' => 'value'}
     OpenShift::Runtime::Utils::Environ.expects(:for_gear).with(@container.container_dir).returns(gear_env)
     gears.each do |g|
-      @container.expects(:run_in_container_context).with("rsync -axvz --rsh=/usr/bin/oo-ssh ./ #{g}:app-deployments/#{deployment_datetime}/",
+      @container.expects(:run_in_container_context).with("rsync -avz --rsh=/usr/bin/oo-ssh ./ #{g}:app-deployments/#{deployment_datetime}/",
                                                          env: gear_env,
                                                          chdir: deployment_dir,
                                                          expected_exitstatus: 0)
                                                    .returns("rsync1 from #{g}\n")
 
-      @container.expects(:run_in_container_context).with("rsync -axvz --rsh=/usr/bin/oo-ssh #{deployment_id} #{g}:app-deployments/by-id/#{deployment_id}",
+      @container.expects(:run_in_container_context).with("rsync -avz --rsh=/usr/bin/oo-ssh #{deployment_id} #{g}:app-deployments/by-id/#{deployment_id}",
                                                          env: gear_env,
                                                          chdir: File.join(@container.container_dir, 'app-deployments', 'by-id'),
                                                          expected_exitstatus: 0)
@@ -633,13 +654,13 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
     gear_env = {'key' => 'value'}
     OpenShift::Runtime::Utils::Environ.expects(:for_gear).with(@container.container_dir).returns(gear_env)
     gears.each do |g|
-      @container.expects(:run_in_container_context).with("rsync -axvz --rsh=/usr/bin/oo-ssh ./ #{g}:app-deployments/#{deployment_datetime}/",
+      @container.expects(:run_in_container_context).with("rsync -avz --rsh=/usr/bin/oo-ssh ./ #{g}:app-deployments/#{deployment_datetime}/",
                                                          env: gear_env,
                                                          chdir: deployment_dir,
                                                          expected_exitstatus: 0)
                                                    .returns("rsync1 from #{g}\n")
 
-      @container.expects(:run_in_container_context).with("rsync -axvz --rsh=/usr/bin/oo-ssh #{deployment_id} #{g}:app-deployments/by-id/#{deployment_id}",
+      @container.expects(:run_in_container_context).with("rsync -avz --rsh=/usr/bin/oo-ssh #{deployment_id} #{g}:app-deployments/by-id/#{deployment_id}",
                                                          env: gear_env,
                                                          chdir: File.join(@container.container_dir, 'app-deployments', 'by-id'),
                                                          expected_exitstatus: 0)

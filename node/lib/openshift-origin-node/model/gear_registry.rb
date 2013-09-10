@@ -14,7 +14,10 @@
 # limitations under the License.
 #++
 
+require 'json'
 require 'openshift-origin-node/utils/node_logger'
+require 'active_support/hash_with_indifferent_access'
+require 'active_support/core_ext/hash'
 
 module OpenShift
   module Runtime
@@ -23,36 +26,27 @@ module OpenShift
 
       # Represents an individual entry in the gear registry
       class Entry
-        attr_reader :uuid, :namespace, :dns, :private_ip, :proxy_port
+        attr_reader :uuid, :namespace, :dns, :proxy_ip, :proxy_port
 
         def initialize(options)
           @uuid = options[:uuid]
           @namespace = options[:namespace]
           @dns = options[:dns]
-          @private_ip = options[:private_ip]
+          @proxy_ip = options[:proxy_ip]
           @proxy_port = options[:proxy_port]
         end
 
-        # Used when writing to the gear registry file
-        def to_s
-          "#{@uuid},#{@namespace},#{@dns},#{@private_ip},#{@proxy_port}"
-        end
-
-        def ==(other)
-          uuid == other.uuid and
-          namespace == other.namespace and
-          dns == other.dns and
-          private_ip == other.private_ip and
-          proxy_port == other.proxy_port
+        def as_json(options={})
+          {namespace: @namespace, dns: @dns, proxy_ip: @proxy_ip, proxy_port: @proxy_port}
         end
       end
 
-      # Creates gear_registry.{lock,txt} if they don't exist and sets the perms appropriately and
+      # Creates gear_registry.{lock,json} if they don't exist and sets the perms appropriately and
       # loads the gear registry from disk
       def initialize(container)
         @container = container
 
-        @registry_file = PathUtils.join(@container.container_dir, 'gear_registry.txt')
+        @registry_file = PathUtils.join(@container.container_dir, 'gear_registry.json')
         unless File.exist?(@registry_file)
           File.new(@registry_file, "w", 0o0644)
           @container.set_rw_permission(@registry_file)
@@ -71,37 +65,51 @@ module OpenShift
       #
       # Changes to the copy will NOT be reflected in the GearRegistry itself
       def entries
-        @gear_registry.dup
+        Marshal.load(Marshal.dump(@gear_registry))
       end
 
-      # Updates gear_registry.txt to contain only those values specified by the entries param
-      #
-      # Returns an Array of just the Entry instances that are newly added
-      def update(entries)
-        new_gears = entries.values.select { |entry| not @gear_registry.keys.include?(entry.uuid) }
-
-        @gear_registry = entries
-        save
-        new_gears
+      def clear
+        @gear_registry = {}
       end
 
-      # Returns an array of all the gears' SSH URLs
-      def ssh_urls
-        @gear_registry.values.map { |e| "#{e.uuid}@#{e.dns}" }
+      def add(options)
+        # make sure all required fields are passed in
+        %w(type uuid namespace dns proxy_ip proxy_port).map(&:to_sym).each { |s| raise "#{s} is required" if options[s].nil?}
+
+        # add entry to registry by type
+        type = options[:type].to_sym
+        @gear_registry[type] ||= {}
+        @gear_registry[type][options[:uuid]] = Entry.new(options)
       end
 
       # Reads the gear registry from disk
+      #
+      # The gear registry is stored in JSON and has the following format:
+      #
+      # {
+      #  "web": {
+      #    "522916bf6d909865c8000313": {
+      #      "namespace": "foo",
+      #      "dns": "myapp-foo.example.com",
+      #      "proxy_ip": "52.1.2.3",
+      #      "proxy_port": 35561
+      #    },
+      #    ...
+      #  },
+      #  "proxy": {
+      #    ...
+      #  }
+      # }
       def load
-        @gear_registry = {}
+        clear
+
         with_lock do
           File.open(@registry_file, "r") do |f|
-            while line = f.gets
-              uuid, namespace, dns, private_ip, proxy_port = line.chomp.split(',')
-              @gear_registry[uuid] = Entry.new(uuid: uuid,
-                                               namespace: namespace,
-                                               dns: dns,
-                                               private_ip: private_ip,
-                                               proxy_port: proxy_port)
+            raw_json = HashWithIndifferentAccess.new(JSON.load(f))
+            raw_json.each_pair do |type, entries|
+              entries.each_pair do |uuid, entry|
+                add(entry.merge({type: type.to_sym, uuid: uuid}))
+              end
             end
           end
         end
@@ -110,12 +118,12 @@ module OpenShift
       # Writes the gear registry to disk
       def save
         with_lock do
-          File.open(@registry_file, "w") do |f|
-            @gear_registry.values.each do |entry|
-              f.puts "#{entry}\n"
-            end
-          end
+          File.open(@registry_file, "w") { |f| f.write JSON.dump(self) }
         end
+      end
+
+      def as_json(options={})
+        @gear_registry.as_json(options)
       end
 
       private

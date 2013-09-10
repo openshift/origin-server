@@ -1718,27 +1718,41 @@ module OpenShift
         job
       end
 
-      def build_update_cluster_args(cluster, args)
+      def build_update_cluster_args(proxy_gears, cluster, args)
+        proxy_args = []
+        proxy_gears.each do |gear|
+          # TODO would prefer to have a way to get the IP address of the proxy gear
+          # instead of relying on an exposed public endpoint from the web cartridge
+          proxy_ip = gear.port_interfaces[0].external_address
+          proxy_args << "#{gear.uuid},#{gear.name},#{gear.group_instance.application.domain_namespace},#{proxy_ip}"
+        end
+
+        args['--proxies'] = proxy_args.join(' ')
+
         cluster_args = []
         cluster.each do |gear|
-          # uuid, name, namespace, private ip, proxy port
+          # TODO eventually support multiple ports
           first_port_interface = gear.port_interfaces[0]
+
+          # uuid, name, namespace, private ip, proxy port
           cluster_args << "#{gear.uuid},#{gear.name},#{gear.group_instance.application.domain_namespace},#{first_port_interface.external_address},#{first_port_interface.external_port}"
         end
+
         args['--cluster'] = cluster_args.join(' ')
+
         args
       end
 
-      def update_cluster(gear, cluster)
+      def update_cluster(gear, proxy_gears, cluster)
         args = build_base_gear_args(gear)
-        args = build_update_cluster_args(cluster, args)
+        args = build_update_cluster_args(proxy_gears, cluster, args)
         result = execute_direct(@@C_CONTROLLER, 'update-cluster', args)
         parse_result(result)
       end
 
-      def get_update_cluster_job(gear, cluster)
+      def get_update_cluster_job(gear, proxy_gears, cluster)
         args = build_base_gear_args(gear)
-        args = build_update_cluster_args(cluster, args)
+        args = build_update_cluster_args(proxy_gears, cluster, args)
         RemoteJob.new(@@C_CONTROLLER, 'update-cluster', args)
       end
 

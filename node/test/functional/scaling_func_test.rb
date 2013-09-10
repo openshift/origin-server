@@ -122,26 +122,43 @@ class ScalingFuncTest < OpenShift::NodeBareTestCase
       gear_registry = OpenShift::Runtime::GearRegistry.new(app_container)
       entries = gear_registry.entries
       OpenShift::Runtime::NodeLogger.logger.info("Gear registry contents: #{entries}")
-      assert_equal 1, entries.size
-      entry = entries.values[0]
-
+      assert_equal 2, entries.keys.size
+      
+      web_entries = entries[:web]
+      assert_equal 1, web_entries.keys.size
+      assert_equal app_id, web_entries.keys[0]
+      
+      entry = web_entries[app_id]
       assert_equal app_id, entry.uuid
       assert_equal @namespace, entry.namespace
       assert_equal "#{app_name}-#{@namespace}.dev.rhcloud.com", entry.dns
-      assert_equal local_ip, entry.private_ip
+      assert_equal local_ip, entry.proxy_ip
       assert_equal IO.read(File.join(app_container.container_dir, '.env', 'OPENSHIFT_LOAD_BALANCER_PORT')).chomp, entry.proxy_port
 
       assert_http_title_for_entry entry, DEFAULT_TITLE
+
+      proxy_entries = entries[:proxy]
+      assert_equal 1, proxy_entries.keys.size
+      assert_equal app_id, proxy_entries.keys[0]
+      entry = proxy_entries[app_id]
+      assert_equal app_id, entry.uuid
+      assert_equal @namespace, entry.namespace
+      assert_equal "#{app_name}-#{@namespace}.dev.rhcloud.com", entry.dns
+      assert_equal local_ip, entry.proxy_ip
+      assert_equal 0, entry.proxy_port.to_i
+
 
       # scale up to 2
       assert_scales_to app_name, framework, 2
 
       gear_registry.load
       entries = gear_registry.entries
-      assert_equal 2, entries.size
+      assert_equal 2, entries.keys.size
+      web_entries = entries[:web]
+      assert_equal 2, web_entries.keys.size
 
       # make sure the http content is good
-      entries.values.each do |entry| 
+      web_entries.values.each do |entry| 
         OpenShift::Runtime::NodeLogger.logger.info("Checking title for #{entry}")
         assert_http_title_for_entry entry, DEFAULT_TITLE
       end
@@ -165,24 +182,24 @@ class ScalingFuncTest < OpenShift::NodeBareTestCase
 
     if scaling
       # make sure the http content is updated
-      entries.values.each { |entry| assert_http_title_for_entry entry, CHANGED_TITLE }
+      web_entries.values.each { |entry| assert_http_title_for_entry entry, CHANGED_TITLE }
 
       # scale up to 3
       assert_scales_to app_name, framework, 3
 
       gear_registry.load
       entries = gear_registry.entries
-      assert_equal 3, entries.size
+      assert_equal 3, entries[:web].size
 
       # make sure the http content is good
-      entries.values.each { |entry| assert_http_title_for_entry entry, CHANGED_TITLE }
+      entries[:web].values.each { |entry| assert_http_title_for_entry entry, CHANGED_TITLE }
 
       # rollback
       OpenShift::Runtime::NodeLogger.logger.info("Rolling back")
       OpenShift::Runtime::NodeLogger.logger.info `ssh -o 'StrictHostKeyChecking=no' #{app_id}@localhost gear rollback`
 
       # make sure the http content is rolled back
-      entries.values.each { |entry| assert_http_title_for_entry entry, DEFAULT_TITLE }
+      entries[:web].values.each { |entry| assert_http_title_for_entry entry, DEFAULT_TITLE }
     else
       assert_http_title_for_app app_name, @namespace, CHANGED_TITLE
 

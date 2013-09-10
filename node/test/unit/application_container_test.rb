@@ -407,35 +407,101 @@ class ApplicationContainerTest < OpenShift::NodeTestCase
     @container.expects(:activate_many).never
     @container.cartridge_model.expects(:do_control).never
 
-    @container.update_cluster("")
+    @container.update_cluster("", "")
   end
 
   def test_update_cluster_add_gears
     web_proxy = mock()
     @container.cartridge_model.expects(:web_proxy).twice.returns(web_proxy)
 
-    gear_env = {'a' => 'b'}
+    gear_env = {'OPENSHIFT_APP_DNS' => 'foo-bar.example.com', 'OPENSHIFT_GEAR_DNS' => 'foo-bar.example.com'}
     ::OpenShift::Runtime::Utils::Environ::expects(:for_gear).with(@container.container_dir).returns(gear_env)
 
     gear_registry = mock()
     ::OpenShift::Runtime::GearRegistry.expects(:new).with(@container).returns(gear_registry)
 
+    uuid1 = @container.uuid
+    gear1 = {
+      uuid: uuid1,
+      namespace: 'bar',
+      dns: 'foo-bar.example.com',
+      proxy_ip: '10.0.0.1',
+      proxy_port: 35561
+    }
+    web_entry1 = ::OpenShift::Runtime::GearRegistry::Entry.new(gear1)
+    proxy_entry1 = ::OpenShift::Runtime::GearRegistry::Entry.new(gear1.merge(proxy_port: 0))
+
+    uuid2 = (@container.uuid.to_i + 1).to_s
+    gear2 = {
+      uuid: uuid2,
+      namespace: 'bar',
+      dns: "#{uuid2}-bar.example.com",
+      proxy_ip: '10.0.0.1',
+      proxy_port: 35566
+    }
+    web_entry2 = ::OpenShift::Runtime::GearRegistry::Entry.new(gear2)
+    proxy_entry2 = ::OpenShift::Runtime::GearRegistry::Entry.new(gear2.merge(proxy_port: 0))
+
+    uuid3 = (@container.uuid.to_i + 2).to_s
+    gear3 = {
+      uuid: uuid3,
+      namespace: 'bar',
+      dns: "#{uuid3}-bar.example.com",
+      proxy_ip: '10.0.0.1',
+      proxy_port: 35571
+    }
+    web_entry3 = ::OpenShift::Runtime::GearRegistry::Entry.new(gear3)
+    proxy_entry3 = ::OpenShift::Runtime::GearRegistry::Entry.new(gear3.merge(proxy_port: 0))
+
+    old_entries = {
+      :web => {
+        uuid1 => web_entry1
+      },
+      :proxy => {
+        uuid1 => proxy_entry1
+      }
+    }
+
+    updated_entries = {
+      :web => {
+        uuid1 => web_entry1,
+        uuid2 => web_entry2,
+        uuid3 => web_entry3
+      },
+      :proxy => {
+        uuid1 => proxy_entry1,
+        uuid3 => proxy_entry3
+      }
+    }
+    gear_registry.expects(:entries).twice.returns(old_entries, updated_entries)
+    gear_registry.expects(:clear)
+
     @config.expects(:get).with('CLOUD_DOMAIN').returns('example.com')
-    uuids = [@container.uuid, @container.uuid.to_i + 1, @container.uuid.to_i + 2].map(&:to_s)
-    registry_updates = {}
-    uuids.each do |uuid|
-      registry_updates[uuid] = ::OpenShift::Runtime::GearRegistry::Entry.new(uuid: uuid,
-                                                                             namespace: "namespace#{uuid}",
-                                                                             dns: "name#{uuid}-namespace#{uuid}.example.com",
-                                                                             private_ip: "ip#{uuid}",
-                                                                             proxy_port: "port#{uuid}")
+    web_uuids = [uuid1, uuid2, uuid3]
+
+    web_uuids.each do |uuid|
+      gear_registry.expects(:add).with(type: :web,
+                                       uuid: uuid,
+                                       namespace: "namespace#{uuid}",
+                                       dns: "name#{uuid}-namespace#{uuid}.example.com",
+                                       proxy_ip: "ip#{uuid}",
+                                       proxy_port: "port#{uuid}")
     end
 
-    new_entries = registry_updates.reject { |uuid, entry| uuid == @container.uuid }.values
-    gear_registry.expects(:update).with(registry_updates).returns(new_entries)
+    proxy_uuids = [uuid1, uuid3]
+    proxy_uuids.each do |uuid|
+      gear_registry.expects(:add).with(type: :proxy,
+                                       uuid: uuid,
+                                       namespace: "namespace#{uuid}",
+                                       dns: "name#{uuid}-namespace#{uuid}.example.com",
+                                       proxy_ip: "ip#{uuid}",
+                                       proxy_port: 0)
+    end
 
-    new_entries.each do |new_entry|
-      @container.expects(:run_in_container_context).with("rsync -axvz --delete --rsh=/usr/bin/oo-ssh app-deployments/ #{new_entry.uuid}@#{new_entry.private_ip}:app-deployments/",
+    gear_registry.expects(:save)
+
+    [web_entry2, web_entry3].each do |new_entry|
+      @container.expects(:run_in_container_context).with("rsync -avz --delete --rsh=/usr/bin/oo-ssh app-deployments/ #{new_entry.uuid}@#{new_entry.proxy_ip}:app-deployments/",
                                                         env: gear_env,
                                                         chdir: @container.container_dir,
                                                         expected_exitstatus: 0)
@@ -446,14 +512,22 @@ class ApplicationContainerTest < OpenShift::NodeTestCase
     deployment_id = 'abcd1234'
     @container.expects(:read_deployment_metadata).with(current_deployment_datetime, 'id').returns(deployment_id)
 
-    @container.expects(:activate_many).with(gears: new_entries.map { |e| "#{e.uuid}@#{e.private_ip}" },
+    @container.expects(:activate_many).with(gears: [web_entry2, web_entry3].map { |e| "#{e.uuid}@#{e.proxy_ip}" },
                                             deployment_id: deployment_id,
                                             init: true,
                                             hot_deploy: false)
 
-    do_control_args = uuids.map { |uuid| "name#{uuid}-namespace#{uuid}.example.com|ip#{uuid}:port#{uuid}" }.join(' ')
+    @container.expects(:run_in_container_context).with("rsync -avz --delete --exclude hooks --rsh=/usr/bin/oo-ssh git/#{@app_name}.git/ #{proxy_entry3.uuid}@#{proxy_entry3.proxy_ip}:git/#{@app_name}.git/",
+                                                        env: gear_env,
+                                                        chdir: @container.container_dir,
+                                                        expected_exitstatus: 0)
+
+    do_control_args = web_uuids.map { |uuid| "name#{uuid}-namespace#{uuid}.example.com|ip#{uuid}:port#{uuid}" }.join(' ')
     @container.cartridge_model.expects(:do_control).with('update-cluster', web_proxy, args: do_control_args)
 
-    @container.update_cluster(uuids.map { |uuid| "#{uuid},name#{uuid},namespace#{uuid},ip#{uuid},port#{uuid}"}.join(' '))
+    proxy_arg = proxy_uuids.map { |uuid| "#{uuid},name#{uuid},namespace#{uuid},ip#{uuid}"}.join(' ')
+    cluster_arg = web_uuids.map { |uuid| "#{uuid},name#{uuid},namespace#{uuid},ip#{uuid},port#{uuid}"}.join(' ')
+    
+    @container.update_cluster(proxy_arg, cluster_arg)
   end
 end

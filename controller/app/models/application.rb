@@ -1176,27 +1176,36 @@ class Application
     web_proxy_gears = []
 
     # get the lists of web proxy gears and web framework gears
+    # TODO find a better way to do this
     component_instances.each do |ci|
-      web_proxy_gears = ci.group_instance.gears.clone if ci.is_web_proxy?
-      web_framework_gears = ci.group_instance.gears if ci.is_web_framework?
+      web_framework_gears << ci.group_instance.gears if ci.is_web_framework?
+      ci.group_instance.gears.each do |gear|
+        web_proxy_gears << gear unless gear.sparse_carts.empty?
+      end
     end
 
+    web_proxy_gears = web_proxy_gears.flatten.uniq
     return if web_proxy_gears.empty?
+
+    web_framework_gears = web_framework_gears.flatten.uniq
 
     # we don't want to have all the proxies down at the same time, so do the
     # first one by itself, wait for it to finish, and then do the rest in
     # parallel
-    first_proxy = web_proxy_gears.shift
-    first_proxy.update_cluster(web_framework_gears)
+    first_proxy = web_proxy_gears.first
+    first_proxy.update_cluster(web_proxy_gears, web_framework_gears)
 
-    unless web_proxy_gears.empty?
+    if web_proxy_gears.size > 1
+      # do the rest
       handle = RemoteJob.create_parallel_job
 
-      web_proxy_gears.each do |gear|
-        job = gear.get_update_cluster_job(web_framework_gears)
+      web_proxy_gears[1..-1].each do |gear|
+        job = gear.get_update_cluster_job(web_proxy_gears, web_framework_gears)
         RemoteJob.add_parallel_job(handle, "", gear, job)
       end
 
+      # TODO consider doing multiple batches of jobs in parallel, instead of 1 big
+      # parallel job
       RemoteJob.execute_parallel_jobs(handle)
 
       RemoteJob.get_parallel_run_results(handle) do |tag, gear_id, output, status|
