@@ -1,7 +1,7 @@
 %global cartridgedir %{_libexecdir}/openshift/cartridges/python
 
 Name:          openshift-origin-cartridge-python
-Version: 0.9.3
+Version: 0.9.4
 Release:       1%{?dist}
 Summary:       Python cartridge
 Group:         Development/Languages
@@ -115,6 +115,9 @@ Python cartridge for OpenShift. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Tue Sep 10 2013 Adam Miller <admiller@redhat.com> 0.9.4-1
+- Add symlinks requirement for python cart on Fedora 19 (kraman@gmail.com)
+
 * Fri Sep 06 2013 Adam Miller <admiller@redhat.com> 0.9.3-1
 - Merge pull request #3555 from rmillner/BZ1004886
   (dmcphers+openshiftbot@redhat.com)
