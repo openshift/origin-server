@@ -35,6 +35,8 @@ yum install -y --nogpgcheck ${url_of_the_latest_epel-release_rpm}
 yum install -y --nogpgcheck ${url_of_the_latest_puppet-release_rpm}
 ----
 
+* Add `exclude=*mcollective*` to the puppet entry in the file `/etc/yum.repos.d/puppetlabs.repo`
+
 * "Optional" repository - enable depending on your source:
 ** yum-config-manager --enable rhel-6-server-optional-rpms
 ** Under RHN classic, enable the rhel-x86_64-server-optional-6 channel
