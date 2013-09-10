@@ -8,6 +8,7 @@
 %global rubyabi 1.9.1
 %global appdir %{_var}/lib/openshift
 %global apprundir %{_var}/run/openshift
+%global openshift_lib %{_usr}/lib/openshift
 %if 0%{?fedora} >= 18
     %global httxt2dbm /usr/bin/httxt2dbm
 %else
@@ -144,10 +145,10 @@ mv %{buildroot}%{gem_instdir}/misc/libexec/lib/quota_attrs.sh %{buildroot}/usr/l
 mv %{buildroot}%{gem_instdir}/misc/libexec/lib/archive_git_submodules.sh %{buildroot}/usr/libexec/openshift/lib
 
 # Install the cartridge SDK files and environment variables for each
-mkdir -p %{buildroot}/usr/lib/openshift/cartridge_sdk
-mv %{buildroot}%{gem_instdir}/misc/usr/lib/cartridge_sdk/* %{buildroot}/usr/lib/openshift/cartridge_sdk
-echo '/usr/lib/openshift/cartridge_sdk/bash/sdk' > %{buildroot}/etc/openshift/env/OPENSHIFT_CARTRIDGE_SDK_BASH
-echo '/usr/lib/openshift/cartridge_sdk/ruby/sdk.rb' > %{buildroot}/etc/openshift/env/OPENSHIFT_CARTRIDGE_SDK_RUBY
+mkdir -p %{buildroot}%{openshift_lib}/cartridge_sdk
+mv %{buildroot}%{gem_instdir}/misc/usr/lib/cartridge_sdk/* %{buildroot}%{openshift_lib}/cartridge_sdk
+echo '%{openshift_lib}/cartridge_sdk/bash/sdk' > %{buildroot}/etc/openshift/env/OPENSHIFT_CARTRIDGE_SDK_BASH
+echo '%{openshift_lib}/cartridge_sdk/ruby/sdk.rb' > %{buildroot}/etc/openshift/env/OPENSHIFT_CARTRIDGE_SDK_RUBY
 
 #move the shell binaries into proper location
 mv %{buildroot}%{gem_instdir}/misc/bin/* %{buildroot}/usr/bin/
@@ -161,7 +162,7 @@ mv %{buildroot}%{gem_instdir}/misc/etc/openshift-run.conf %{buildroot}/etc/tmpfi
 mkdir -p %{buildroot}%{apprundir}
 
 # place an example file.  It _must_ be placed in the gem_docdir because of how
-# the %doc directive works and how we're using it in the files section.
+# the doc directive works and how we're using it in the files section.
 mv %{buildroot}%{gem_instdir}/misc/doc/cgconfig.conf %{buildroot}%{gem_docdir}/cgconfig.conf
 
 %if 0%{?fedora} >= 18
@@ -195,16 +196,16 @@ mkdir -p %{buildroot}/etc/cron.hourly
 mkdir -p %{buildroot}/etc/cron.daily
 mkdir -p %{buildroot}/etc/cron.weekly
 mkdir -p %{buildroot}/etc/cron.monthly
-mkdir -p %{buildroot}/usr/lib/openshift/node/jobs
+mkdir -p %{buildroot}%{openshift_lib}/node/jobs
 
-mv %{buildroot}%{gem_instdir}/jobs/* %{buildroot}/usr/lib/openshift/node/jobs/
-ln -s /usr/lib/openshift/node/jobs/1minutely %{buildroot}/etc/cron.d/
-ln -s /usr/lib/openshift/node/jobs/openshift-origin-cron-minutely %{buildroot}/etc/cron.minutely/
-ln -s /usr/lib/openshift/node/jobs/openshift-origin-cron-hourly %{buildroot}/etc/cron.hourly/
-ln -s /usr/lib/openshift/node/jobs/openshift-origin-cron-daily %{buildroot}/etc/cron.daily/
-ln -s /usr/lib/openshift/node/jobs/openshift-origin-cron-weekly %{buildroot}/etc/cron.weekly/
-ln -s /usr/lib/openshift/node/jobs/openshift-origin-cron-monthly %{buildroot}/etc/cron.monthly/
-ln -s /usr/lib/openshift/node/jobs/openshift-origin-stale-lockfiles %{buildroot}/etc/cron.daily/
+mv %{buildroot}%{gem_instdir}/jobs/* %{buildroot}%{openshift_lib}/node/jobs/
+ln -s %{openshift_lib}/node/jobs/1minutely %{buildroot}/etc/cron.d/
+ln -s %{openshift_lib}/node/jobs/openshift-origin-cron-minutely %{buildroot}/etc/cron.minutely/
+ln -s %{openshift_lib}/node/jobs/openshift-origin-cron-hourly %{buildroot}/etc/cron.hourly/
+ln -s %{openshift_lib}/node/jobs/openshift-origin-cron-daily %{buildroot}/etc/cron.daily/
+ln -s %{openshift_lib}/node/jobs/openshift-origin-cron-weekly %{buildroot}/etc/cron.weekly/
+ln -s %{openshift_lib}/node/jobs/openshift-origin-cron-monthly %{buildroot}/etc/cron.monthly/
+ln -s %{openshift_lib}/node/jobs/openshift-origin-stale-lockfiles %{buildroot}/etc/cron.daily/
 
 %post
 /bin/rm -f /etc/openshift/env/*.rpmnew
@@ -249,11 +250,11 @@ fi
 %attr(0755,-,-) /usr/bin/*
 /usr/libexec/openshift/lib/quota_attrs.sh
 /usr/libexec/openshift/lib/archive_git_submodules.sh
-%attr(0755,-,-) /usr/lib/openshift/cartridge_sdk
-%attr(0755,-,-) /usr/lib/openshift/cartridge_sdk/bash
-%attr(0744,-,-) /usr/lib/openshift/cartridge_sdk/bash/*
-%attr(0755,-,-) /usr/lib/openshift/cartridge_sdk/ruby
-%attr(0744,-,-) /usr/lib/openshift/cartridge_sdk/ruby/*
+%attr(0755,-,-) %{openshift_lib}/cartridge_sdk
+%attr(0755,-,-) %{openshift_lib}/cartridge_sdk/bash
+%attr(0744,-,-) %{openshift_lib}/cartridge_sdk/bash/*
+%attr(0755,-,-) %{openshift_lib}/cartridge_sdk/ruby
+%attr(0744,-,-) %{openshift_lib}/cartridge_sdk/ruby/*
 %dir /etc/openshift
 %config(noreplace) /etc/openshift/node.conf
 %config(noreplace) /etc/openshift/env/*
@@ -277,7 +278,7 @@ fi
 %dir %attr(0750,-,-) %{appdir}/.tc_user_dir
 
 %if 0%{?fedora}%{?rhel} <= 6
-%attr(0755,-,-)	/etc/rc.d/init.d/openshift-tc
+%attr(0755,-,-) /etc/rc.d/init.d/openshift-tc
 %else
 %attr(0750,-,-) /etc/systemd/system/openshift-tc.service
 %endif
@@ -287,14 +288,14 @@ fi
 %endif
 # upstart files
 %attr(0755,-,-) %{_var}/run/openshift
-%dir %attr(0755,-,-) /usr/lib/openshift/node/jobs
-%config(noreplace) %attr(0644,-,-) /usr/lib/openshift/node/jobs/1minutely
-%attr(0755,-,-) /usr/lib/openshift/node/jobs/openshift-origin-cron-minutely
-%attr(0755,-,-) /usr/lib/openshift/node/jobs/openshift-origin-cron-hourly
-%attr(0755,-,-) /usr/lib/openshift/node/jobs/openshift-origin-cron-daily
-%attr(0755,-,-) /usr/lib/openshift/node/jobs/openshift-origin-cron-weekly
-%attr(0755,-,-) /usr/lib/openshift/node/jobs/openshift-origin-cron-monthly
-%attr(0755,-,-) /usr/lib/openshift/node/jobs/openshift-origin-stale-lockfiles
+%dir %attr(0755,-,-) %{openshift_lib}/node/jobs
+%config(noreplace) %attr(0644,-,-) %{openshift_lib}/node/jobs/1minutely
+%attr(0755,-,-) %{openshift_lib}/node/jobs/openshift-origin-cron-minutely
+%attr(0755,-,-) %{openshift_lib}/node/jobs/openshift-origin-cron-hourly
+%attr(0755,-,-) %{openshift_lib}/node/jobs/openshift-origin-cron-daily
+%attr(0755,-,-) %{openshift_lib}/node/jobs/openshift-origin-cron-weekly
+%attr(0755,-,-) %{openshift_lib}/node/jobs/openshift-origin-cron-monthly
+%attr(0755,-,-) %{openshift_lib}/node/jobs/openshift-origin-stale-lockfiles
 %dir /etc/cron.minutely
 %config(noreplace) %attr(0644,-,-) /etc/cron.d/1minutely
 %attr(0755,-,-) /etc/cron.minutely/openshift-origin-cron-minutely
