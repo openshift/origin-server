@@ -220,8 +220,12 @@ figure {
 }
 
 .section-console-light .row-console > .row {
-  background: transparent;
-   min-height: 400px;
+  background: #fafafa;
+  -moz-box-shadow: 0 0 3px rgba(0,0,0,0.09);
+  -webkit-box-shadow: 0 0 3px rgba(0,0,0,0.09);
+  box-shadow: 0 0 3px rgba(0,0,0,0.09);
+  color: #333;
+  min-height: 400px;
 
 	.divide, legend {
 		margin-bottom: 0;
@@ -874,7 +878,6 @@ $cartridgeBorderWidth: 10px;
   	padding-left:8px;
   	padding-right:0;
     border-radius: 3px;
-    &:focus + .search {background-color: $grayLighter;}
   }
   > .search {
     position: absolute;

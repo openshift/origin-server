@@ -28,16 +28,9 @@ body {
 		position: relative;
 		background-color: white; 
     }
-    
-a:link,a:visited,a:hover,a:active {color:$linkColorBlue;}
-a:hover,a:active {text-decoration: underline;}
-a:focus {
-    outline: thin dotted currentColor;
-    outline-offset: 0;
-}
-a:focus:active {
-    outline: none;
-}
+
+a:hover { color: $linkColorBlueHover; }
+
 dl {
   dt {
     font-size: $baseFontSize + 1;
