@@ -6,6 +6,7 @@ require 'getoptlong'
 require 'stringio'
 require 'set'
 require 'json'
+require 'thread'
 require 'thor'
 
 module OpenShift
@@ -277,69 +278,66 @@ class Upgrader
       puts "#####################################################"
     end
 
+    # build a work queue that ensures active gears are processed across all
+    # nodes prior to any inactive gears being upgraded
+    work_queue = Queue.new
+    node_queue.each {|node| work_queue << { node: node, active_only: true }}
+    
     node_threads = []
-    mutex = Mutex.new
-    starting_nodes = node_queue.shift(max_threads)
-    starting_nodes.each_with_index do |node, index|
-      server_identity = node.server_identity
-      upgrade_result.gear_counts[index] = node.gears_length
-      upgrade_result.gear_count += node.gears_length
+    completed_node_count = 0
+
+    # consume the work across the max number of threads
+    max_threads.times do |thread_num|
       node_threads << Thread.new do
-        # perform the node upgrade
-        begin
-          upgrade_node(server_identity)
-        rescue => e
-          puts e.message
-          puts e.backtrace.join("\n")
-        end
-
-        upgrade_result.incomplete_node_queue << node if node_has_remaining_work?(server_identity)
-
-        # get the next available node to process
-        while !node_queue.empty? do
-          server_identity = nil
-          mutex.synchronize do
-            unless node_queue.empty?
-              node = node_queue.delete_at(0)
-              server_identity = node.server_identity
-              upgrade_result.gear_counts[index] += node.gears_length
-              upgrade_result.gear_count += node.gears_length
-              puts "#####################################################"
-              puts "Remaining node queue:"
-              node_queue.each do |q|
-                q.server_identity
-              end
-              puts "#####################################################"
-            end
+        while completed_node_count != node_queue.length
+          begin
+            work = work_queue.pop(true)
+          rescue ThreadError => e
+            # wait for more work
+            sleep 1
+            next
           end
-          # perform the node upgrade
-          if server_identity
-            begin
-              upgrade_node(server_identity)
-            rescue => e
-              puts e.message
-              puts e.backtrace
-            end
 
-            upgrade_result.incomplete_node_queue << node if node_has_remaining_work?(server_identity)
+          node = work[:node]
+          active_only = work[:active_only]
+
+          upgrade_result.gear_counts[thread_num] = node.gears_length
+          upgrade_result.gear_count += node.gears_length
+
+          # perform the node upgrade
+          begin
+            upgrade_node(node.server_identity, active_only)
+          rescue Exception => e
+            puts e.message
+            puts e.backtrace.join("\n")
+          end
+
+          # queue the remaining (inactive) work for the node if we
+          # already did a pass at just the active gears
+          if active_only && File.exists?(gear_queue_path(node.server_identity))
+            work_queue << { node: node, active_only: false }
+          else
+            completed_node_count += 1
+            puts "#{completed_node_count} of #{node_queue.length} nodes completed"
           end
         end
       end
     end
 
     # wait for all the threads to finish
-    node_threads.each do |t|
-      t.join
-    end
+    node_threads.each {|t| t.join}
 
     # rewrite the node queue with any leftover work
+    node_queue.each do |node|
+      upgrade_result.incomplete_node_queue << node if node_has_remaining_work?(node.server_identity)
+    end
+
     puts "Writing updated node queue to #{node_queue_path}"
-    incomplete_node_queue = upgrade_result.incomplete_node_queue + node_queue
 
     timestamp = Time.now.strftime("%Y-%m-%d-%H%M%S")
     FileUtils.mv(node_queue_path, "#{node_queue_path}-#{timestamp}")
     FileUtils.touch node_queue_path
-    incomplete_node_queue.each do |node|
+    upgrade_result.incomplete_node_queue.each do |node|
       append_to_file(node_queue_path, node.to_json)
     end
 
@@ -563,7 +561,7 @@ class Upgrader
   # The upgrade logic will continue or retry failures depending on the presence of the appropriate
   # gear queue files, and will do nothing if there are no queues to process.
   #
-  def upgrade_node(server_identity)
+  def upgrade_node(server_identity, active_only)
     raise "No server identity specified" unless server_identity
 
     gear_queue_file = gear_queue_path(server_identity)
@@ -592,7 +590,7 @@ class Upgrader
 
     # fork the call to +upgrade_node_from_gear_queue_file+ (TODO: revisit this later; the
     # fork is apparently used to work around long-forgotten MCollective threading issues)
-    upgrade_node_cmd = "#{__FILE__} upgrade-from-file --upgrade-file '#{gear_queue_file}'"
+    upgrade_node_cmd = "#{__FILE__} upgrade-from-file --upgrade-file '#{gear_queue_file}' --active-only #{active_only}"
     execute_script(upgrade_node_cmd)
   end
 
@@ -613,12 +611,13 @@ class Upgrader
   # This method returns nothing; callers must inspect the result file contents for
   # upgrade details.
   #
-  def upgrade_node_from_gear_queue_file(file)
-    while true
-      queue_entry_json = File.open(file, &:gets)
-      break if queue_entry_json.nil? || queue_entry_json.empty?
+  def upgrade_node_from_gear_queue_file(file, active_only = false)
+    File.open(file, 'r').each_line do |queue_entry_json|
+      next if queue_entry_json.nil? || queue_entry_json.empty?
 
       gear = OpenShift::Upgrader::GearQueueEntry.from_json(queue_entry_json)
+
+      next if active_only && !gear.active
 
       log_file = log_file_path(gear.server_identity)
       results_file = results_file_path(gear.server_identity)
@@ -665,8 +664,19 @@ class Upgrader
         sleep 4
       end
 
-      # the gear has been processed; delete the entry from the file
-      `sed -i '1,1d' #{file}`
+      # The gear has been processed; delete the entry from the file. Inefficient, but
+      # it only happens between upgrades which are measured in minutes, and the last
+      # non-skipped gear should be near the head of the file anyway. Consider using
+      # a database rather than a flat file at a later time.
+      gear_line = 1
+      File.open(file, 'r').each_line do |line|
+        gear_to_delete = OpenShift::Upgrader::GearQueueEntry.from_json(line)
+        if gear_to_delete.gear_uuid == gear.gear_uuid
+          `sed -i '#{gear_line},#{gear_line}d' #{file}`
+          break
+        end
+        gear_line += 1
+      end
     end
 
     # double-check to ensure all lines were processed, and remove
@@ -972,9 +982,10 @@ class UpgraderCli < Thor
 
   desc "upgrade-from-file", "Upgrades gears from a gear queue file"
   method_option :upgrade_file, :type => :string, :required => true, :desc => "The gear queue file to upgrade from"
+  method_option :active_only, :type => :boolean, :default => false, :desc => "Skip inactive gears when processing the file"
   def upgrade_from_file
     with_upgrader do |upgrader|
-      upgrader.upgrade_node_from_gear_queue_file(options.upgrade_file)
+      upgrader.upgrade_node_from_gear_queue_file(options.upgrade_file, options.active_only?)
     end
   end
 
