@@ -90,78 +90,67 @@ input[type="radio"], input[type="checkbox"],input[type="image"] {
 
 
 ol.wizard {
-  margin: 0 0 15px 5px;
+  border-bottom: 1px solid #eaeaea;
+  color: #aaa;
   display: block;
-  }
-ol.wizard li {
-   background-position: 0 -84px;
-  background-repeat: no-repeat;
-  display: inline-block;
-  font-size: $largeFontSize;
-  line-height: 25px;
-  list-style-position: inside;
-  list-style-type: none;
-  margin: 0 50px 10px 0;
-  padding: 10px 0 10px 45px;
-
-  &:last-child {
-    margin-right:0;
+  float: left;
+  margin: 0 0 25px 0;
+  padding: 0;
+  width: 100%;
+  li {
+    display: inline-block;
+    font-size: $baseFontSize;
+    line-height: 25px;
+    list-style-position: inside;
+    list-style-type: none;
+    margin: 0 35px 25px 0;
+    padding: 6px 0 0 45px;
+    &:last-child {
+      margin-right: 0;
+    }
+    &.active {
+      span {
+        color: #000;
+        i {
+          border-color: #aaa;
+        }
+      }
+    }
+    span {
+      height: 40px;
+      position: relative;
+      vertical-align: baseline;
+      a {
+        color: inherit;
+      }
+      i {
+        border: 4px solid #e5e5e5;
+        border-radius: 30px;
+        font-style: normal;
+        font-weight: bold;
+        height: 25px;
+        left: -44px;
+        line-height: 25px;
+        position: absolute;
+        text-align: center;
+        top: -9px;
+        width: 25px;
+      }
+    }
   }
 }
-ol.wizard li span {
-  height: 40px;
-    position: relative;
-    vertical-align: baseline;
-  }
-  ol.wizard li span i {
-    border: 4px solid $openshiftBorderGray;
-    border-radius: 30px;
-    font-style: normal;
-    height: 33px;
-    left: -51px;
-    line-height: 33px;
-    position: absolute;
-    text-align: center;
-    top: -13px;
-    width: 33px;
-    font-weight: bold;
-    }
-ol.wizard li.active span i, ol.wizard li.active span {
-  color: #EB0011;
-  }
-ol.wizard li a {
-  color: inherit;
-  }
 
 @media (max-width: 767px) {
   ol.wizard {
-    display:block;
-    margin: 0 0 15px;
-
+    padding-bottom: 10px;
     li {
-      background-position: 0 -84;
-      background-repeat: no-repeat;
-      display: inline-block;
-      font-size: inherit;
-      line-height: 25px;
-      list-style-position: inside;
-      list-style-type: none;
-      margin: 0;
-      padding:0 30px 10px 25px;
-
+      margin-bottom: 10px;
+      padding-left: 0;
+      padding-top: 0;
       span i {
-        background:none;
-        border:none;
-        font-style:normal;
-        font-weight:bold;
-        height:35px;
-        left:-20px;
-        line-height:32px;
-        position:absolute;
-        text-align:center;
-        top:center;
-        width: 8px;
-        top: -8px;
+        border: none;
+        margin-right: 8px;
+        position: static;
       }
     }
   }
@@ -169,7 +158,7 @@ ol.wizard li a {
 
 @media (max-width: 480px) {
   ol.wizard li {
-    display:block;
+    display: block;
   }
 }
 
@@ -339,7 +328,12 @@ aside .header-bar {
     padding-bottom: 0;
     padding-top: 0;
   }
-  .section-console-light { background: #fff; }
+  .section-console-light { 
+    background: #fcfcfc;
+    .row-console > .row {
+      @include box-shadow(none);
+    }
+  }
 
   .section-header {
     margin-left: 0;
