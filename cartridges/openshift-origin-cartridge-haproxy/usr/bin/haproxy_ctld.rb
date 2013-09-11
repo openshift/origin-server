@@ -332,7 +332,7 @@ class Haproxy
               self.print_gear_stats if debug
           end
         else
-          @@log.debug("Skipping check_capacity for #{FLAP_PROTECTION_TIME_SECONDS - lsets}s due to a previous failed scale operation") if debug
+          @log.debug("Skipping check_capacity for #{FLAP_PROTECTION_TIME_SECONDS - lsets}s due to a previous failed scale operation") if debug
         end
     end
 
@@ -352,7 +352,7 @@ class Haproxy
           min = scale_hash["scale_min"].to_i
           max = scale_hash["scale_max"].to_i
         rescue Exception => e
-          @@log.error("Unable to get gear's min/max scaling limits because of #{e.message}")
+          @log.error("Unable to get gear's min/max scaling limits because of #{e.message}")
         end
       end
       return min, max

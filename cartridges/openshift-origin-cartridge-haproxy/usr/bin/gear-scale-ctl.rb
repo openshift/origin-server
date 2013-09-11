@@ -6,35 +6,37 @@ require 'openshift-origin-node'
 require 'pp'
 require 'json'
 
-#$create_url='curl -k -X POST -H "Accept: application/xml" --user "%s:%s" https://%s/broker/rest/domains/%s/applications'
-#$scale_url="#{$create_url}/%s/events"
-
 $base_url='https://%s/broker/rest'
 $create_url='/domains/%s/applications'
 $scale_url='/domains/%s/applications/%s/events'
 $cartridges_url='/cartridges'
 $domain_url='/domains'
 
-class Gear_scale_ctl
+class GearScaleCtl
+
+  attr_accessor :opts, :action
+
   def initialize(action, opts)
-    if action ==  'gear-scale-ctl.rb'
+    if action == 'gear-scale-ctl.rb'
       $stderr.puts 'Call gear-scale-ctl via an alias: add-gear, remove-gear'
-      exit 2
+      exit 255
     end
 
     if not ['add-gear', 'remove-gear'].include? action
-      usage opts
+      usage
     end
 
     @action = action
     @opts = opts
+  end
 
+  def execute
     base_url = "#{$base_url % opts["server"]}#{$scale_url % [opts['namespace'], opts['app']]}"
     params = {
         'broker_auth_key' => File.read("/var/lib/openshift/#{opts['uuid']}/.auth/token"),
         'broker_auth_iv' => File.read("/var/lib/openshift/#{opts['uuid']}/.auth/iv")
     }
-    return if not check_scalability(params, action, opts)
+    exit 1 if not check_scalability(params, action, opts)
 
     params['event'] = 'add-gear' == action ?  'scale-up' : 'scale-down'
 
@@ -44,25 +46,25 @@ class Gear_scale_ctl
         )
 
     begin
-      response = request.execute()
+      response = request.execute
       if 300 <= response.code
         raise response
       end
     rescue RestClient::UnprocessableEntity => e
       if action == "add-gear"
-        puts "Already at the maximum number of gears allowed for either the app or your account."
+        $stderr.puts "Already at the maximum number of gears allowed for either the app or your account."
       elsif action == "remove-gear"
-        puts "Already at the minimum number of gears required for this application."
+        $stderr.puts "Already at the minimum number of gears required for this application."
       else
-        puts "The #{action} request could not be processed."
+        $stderr.puts "The #{action} request could not be processed."
       end
-      return false
+      exit 1
     rescue RestClient::ExceptionWithResponse => e
       $stderr.puts "The #{action} request failed with http_code: #{e.http_code}"
-      return false
+      exit 1
     rescue RestClient::Exception => e
-      $stderr.puts "The #{action} request failed with the following exception: #{e.to_s}"
-      return false
+      $stderr.puts "The #{action} request failed with the following exception: #{e.message}"
+      exit 1
     end
   end
 
@@ -127,7 +129,7 @@ class Gear_scale_ctl
     gear_registry_db=File.join(haproxy_conf_dir, "gear-registry.db")
     current_gear_count = `wc -l #{gear_registry_db}`
 
-    # adding 1 for local gear, which is not listed in the gear-registry.db  
+    # adding 1 for local gear, which is not listed in the gear-registry.db
     current_gear_count = 1 + current_gear_count.split(' ')[0].to_i
     if action=='add-gear' and current_gear_count == max
       $stderr.puts "Cannot add gear because max limit '#{max}' reached."
@@ -142,7 +144,7 @@ class Gear_scale_ctl
   def load_env(opts)
     env = {}
     # Load environment variables into a hash
-    
+
     Dir["/var/lib/openshift/#{opts['uuid']}/.env/*"].each { | f |
       next if File.directory?(f)
       contents = nil
@@ -168,10 +170,10 @@ Remove gear from application:
   -a|--app         application name  Name for your application (alphanumeric - max <rest call?> chars) (required)
   -u|--uuid        application uuid  UUID for your application (required)
   -n|--namespace   namespace    Namespace for your application(s) (alphanumeric - max <rest call?> chars) (required)
-  -h|--host        libra server host running broker
+  -h|--host        OpenShift server host running broker
 
 USAGE
-  exit! 255
+  exit 255
 end
 
 config = OpenShift::Config.new
@@ -204,6 +206,5 @@ rescue Exception => e
   usage
 end
 
-o = Gear_scale_ctl.new(File.basename($0), opts)
-
-exit 0
+gsc = GearScaleCtl.new(File.basename($0), opts)
+gsc.execute
