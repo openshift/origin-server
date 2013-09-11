@@ -4,6 +4,7 @@ source $OPENSHIFT_CARTRIDGE_SDK_BASH
 source "${OPENSHIFT_PYTHON_DIR}/usr/versions/${OPENSHIFT_PYTHON_VERSION}/lib/create-virtenv"
 
 HTTPD_CFG_FILE=$OPENSHIFT_PYTHON_DIR/etc/conf/httpd_nolog.conf
+HTTPD_PASSENV_FILE=$OPENSHIFT_PYTHON_DIR/etc/conf.d/passenv.conf
 HTTPD_PID_FILE=$OPENSHIFT_PYTHON_DIR/run/httpd.pid
 
 # For backwards compatibility
@@ -17,7 +18,7 @@ function start_app() {
 }
 
 function start_apache() {
-    update_httpd_passenv $HTTPD_CFG_FILE
+    write_httpd_passenv $HTTPD_PASSENV_FILE
     ensure_valid_httpd_process "$HTTPD_PID_FILE" "$HTTPD_CFG_FILE"
     /usr/sbin/httpd -C "Include $OPENSHIFT_PYTHON_DIR/etc/conf.d/*.conf" -f $HTTPD_CFG_FILE -k start
 }
@@ -75,7 +76,7 @@ function restart() {
         start
     else
         stop_app
-        update_httpd_passenv $HTTPD_CFG_FILE
+        write_httpd_passenv $HTTPD_PASSENV_FILE
         ensure_httpd_restart_succeed "$HTTPD_PID_FILE" "$HTTPD_CFG_FILE"
         /usr/sbin/httpd -C "Include $OPENSHIFT_PYTHON_DIR/etc/conf.d/*.conf" -f $HTTPD_CFG_FILE -k restart
     fi

@@ -1,3 +1,6 @@
 #!/bin/bash -e
 
+# Create/truncate Apache PassEnv configuration file
+echo > $OPENSHIFT_PHPMYADMIN_DIR/conf.d/passenv.conf
+
 mkdir -p $OPENSHIFT_PHPMYADMIN_DIR/{logs,run,sessions,tmp,conf,conf.d}
