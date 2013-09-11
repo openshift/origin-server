@@ -17,7 +17,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.14.5
+Version: 1.14.6
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -306,6 +306,9 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Wed Sep 11 2013 Adam Miller <admiller@redhat.com> 1.14.6-1
+- Bug 1000764 - Enforce cartridge start order (jhonce@redhat.com)
+
 * Tue Sep 10 2013 Adam Miller <admiller@redhat.com> 1.14.5-1
 - Bug 1006236 - Update description (jhonce@redhat.com)
 - Merge pull request #3596 from mfojtik/bugzilla/1006207
