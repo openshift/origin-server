@@ -219,31 +219,38 @@ module MCollective
         ignore_cartridge_version = request[:ignore_cartridge_version] == 'true' ? true : false
         hostname = Facter.value(:hostname)
 
-        output = ''
+        error_message = nil
         exitcode = 0
 
         begin
           require 'openshift-origin-node/model/upgrade'
-
           upgrader = OpenShift::Runtime::Upgrader.new(uuid, application_uuid, namespace, version, hostname, ignore_cartridge_version, OpenShift::Runtime::Utils::Hourglass.new(235))
-          result = upgrader.execute
-        rescue LoadError => e
-          exitcode = 127
-          output += "upgrade not supported. #{e.message}\n"
-        rescue OpenShift::Runtime::Utils::ShellExecutionException => e
-          exitcode = 1
-          output += "Gear failed to upgrade: #{e.message}\n#{e.stdout}\n#{e.stderr}"
         rescue Exception => e
           exitcode = 1
-          output += "Gear failed to upgrade with exception: #{e.message}\n#{e.backtrace}\n"
+          error_message = "Failed to instantiate the upgrader; this is typically due to the gear being corrupt or missing its UNIX account.\n"\
+                          "Exception: #{e.message}\n#{e.backtrace.join("\n")}"
+        else
+          begin
+            result = upgrader.execute
+          rescue LoadError => e
+            exitcode = 127
+            error_message = "Upgrade not supported: #{e.message}"
+          rescue OpenShift::Runtime::Utils::ShellExecutionException => e
+            exitcode = 2
+            error_message = "Gear failed to upgrade due to an unhandled shell execution: #{e.message}\n#{e.backtrace.join("\n")}\n"\
+                            "Stdout: #{e.stdout}\nStderr: #{e.stderr}"
+          rescue Exception => e
+            exitcode = 3
+            error_message = "Gear failed to upgrade due to an unhandled internal exception: #{e.message}\n#{e.backtrace.join("\n")}"
+          end
         end
 
-        Log.instance.info("upgrade_action (#{exitcode})\n------\n#{output}\n------)")
+        Log.instance.info("upgrade_action (#{exitcode})\n------\n#{error_message}\n------)")
 
-        reply[:output] = output
+        reply[:output] = error_message
         reply[:exitcode] = exitcode
-        reply[:upgrade_result_json] = JSON.dump(result)
-        reply.fail! "upgrade_action failed #{exitcode}.  Output #{output}" unless exitcode == 0
+        reply[:upgrade_result_json] = JSON.dump(result) if result
+        reply.fail! "upgrade_action failed with exit code #{exitcode}. Output: #{error_message}" unless exitcode == 0
       end
 
       #

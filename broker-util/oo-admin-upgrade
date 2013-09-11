@@ -238,7 +238,8 @@ class Upgrader
 
     upgrade_result = OpenShift::Upgrader::ClusterUpgradeResult.new
 
-    start_time = (Time.now.to_f * 1000).to_i
+    start_time = current_time
+    upgrade_result.times["start"] = start_time
 
     # only rebuild the queues and meta if none exists
     if File.exists?(cluster_metadata_path)
@@ -341,7 +342,7 @@ class Upgrader
       append_to_file(node_queue_path, node.to_json)
     end
 
-    upgrade_result.times["total"] = (Time.now.to_f * 1000).to_i - start_time
+    upgrade_result.times["total"] = current_time - start_time
 
     # print a report
     puts build_text_summary(upgrade_result)
@@ -391,12 +392,12 @@ class Upgrader
     metadata = OpenShift::Upgrader::ClusterMetadata.new
 
     puts "Getting all active gears..."
-    gather_active_gears_start_time = (Time.now.to_f * 1000).to_i
+    gather_active_gears_start_time = current_time
     active_gears_map = OpenShift::ApplicationContainerProxy.get_all_active_gears
-    metadata.times["gather_active_gears_total_time"] = (Time.now.to_f * 1000).to_i - gather_active_gears_start_time
+    metadata.times["gather_active_gears_total_time"] = current_time - gather_active_gears_start_time
 
     puts "Getting all logins..."
-    gather_users_start_time = (Time.now.to_f * 1000).to_i
+    gather_users_start_time = current_time
     query = {"group_instances.gears.0" => {"$exists" => true}}
     options = {:fields => [ "uuid",
                 "domain_id",
@@ -455,7 +456,7 @@ class Upgrader
       end
     end
 
-    metadata.times["gather_users_total_time"] = (Time.now.to_f * 1000).to_i - gather_users_start_time
+    metadata.times["gather_users_total_time"] = current_time - gather_users_start_time
 
     position = upgrade_position - 1
     if num_upgraders > 1
@@ -702,7 +703,7 @@ class Upgrader
       version: version
     })
 
-    total_upgrade_gear_start_time = (Time.now.to_f * 1000).to_i
+    total_upgrade_gear_start_time = current_time
 
     begin
       user = nil
@@ -722,51 +723,51 @@ class Upgrader
         server_identity = gear.server_identity
         gear_result.hostname = server_identity
 
+        remote_result_json = nil
+        remote_output = nil
+        response_processed = false
+
+        upgrade_on_node_start_time = current_time
+
         Timeout::timeout(420) do
-          output = ''
-          exit_code = 1
-          remote_result_json = nil
-
-          upgrade_on_node_start_time = (Time.now.to_f * 1000).to_i
-
           OpenShift::MCollectiveApplicationContainerProxy.rpc_exec('openshift', server_identity) do |client|
             client.upgrade(:uuid => gear_uuid,
                            :namespace => app.domain.namespace,
                            :app_uuid => app.uuid,
                            :version => version,
                            :ignore_cartridge_version => ignore_cartridge_version.to_s) do |response|
-              exit_code = response[:body][:data][:exitcode]
               remote_result_json = response[:body][:data][:upgrade_result_json]
+              remote_output = response[:body][:data][:output]
+              response_processed = true
             end
           end
+        end
 
-          gear_result.remote_upgrade_result = JSON.load(remote_result_json) if remote_result_json
-          gear_result.remote_exit_code = exit_code
+        if response_processed
+          if remote_result_json.nil?
+            gear_result.errors << "No upgrade result JSON was returned in the upgrade response. The outcome of the upgrade request is unknown. "\
+                                  "The following output was returned: #{remote_output}"
+          else
+            gear_result.remote_upgrade_result = JSON.load(remote_result_json)
 
-          if gear_result.remote_upgrade_result
             unless gear_result.remote_upgrade_result['upgrade_complete']
               gear_result.errors << "Gear upgrade result is marked incomplete"
             end
-          else
-            gear_result.errors << "Gear upgrade response absent from MCollective reply"
           end
-
-          upgrade_on_node_time = (Time.now.to_f * 1000).to_i - upgrade_on_node_start_time
-
-          gear_result.times["time_upgrade_on_node_measured_from_broker"] = upgrade_on_node_time
-
-          if exit_code != 0
-            raise "Remote upgrade returned nonzero exit code: #{exit_code}"
-          end
+        else
+          gear_result.errors << "The MCollective upgrade execution didn't explicitly fail, but the response handler was not invoked. "\
+                                "The outcome of the upgrade request is unknown."
         end
+
+        gear_result.times["time_upgrade_on_node_measured_from_broker"] = current_time - upgrade_on_node_start_time
       end
     rescue Timeout::Error => e
-      gear_result.errors << "Remote upgrade timed out"
-    rescue => e
-      gear_result.errors << "Upgrade failed: #{e.message}\n#{e.backtrace.join("\n")}"
+      gear_result.errors << "Timed out waiting on a response from the MCollective upgrade call"
+    rescue Exception => e
+      gear_result.errors << "Upgrade failed with an unhandled exception: #{e.message}\n#{e.backtrace.join("\n")}"
     end
 
-    total_upgrade_gear_time = (Time.now.to_f * 1000).to_i - total_upgrade_gear_start_time
+    total_upgrade_gear_time = current_time - total_upgrade_gear_start_time
     gear_result.times["time_total_upgrade_gear_measured_from_broker"] = total_upgrade_gear_start_time
 
     gear_result
@@ -929,6 +930,10 @@ class Upgrader
       end
     end
     return output, exitcode
+  end
+
+  def current_time
+    (Time.now.to_f * 1000).to_i
   end
 end
 

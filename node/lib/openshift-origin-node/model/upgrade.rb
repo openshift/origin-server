@@ -142,6 +142,7 @@ module OpenShift
 
         begin
           start_time = timestamp
+          result[:times][:start_time] = start_time
           restart_time = 0
 
           progress.log "Beginning #{version} upgrade for #{uuid}"
