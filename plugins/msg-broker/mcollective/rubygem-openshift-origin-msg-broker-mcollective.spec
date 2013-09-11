@@ -23,7 +23,7 @@ Requires:      %{?scl:%scl_prefix}ruby(abi) >= %{rubyabi}
 Requires:      %{?scl:%scl_prefix}rubygems
 Requires:      %{?scl:%scl_prefix}rubygem(json)
 Requires:      rubygem(openshift-origin-common)
-Requires:      mcollective-client
+Requires:      %{?scl:%scl_prefix}mcollective-client
 Requires:      selinux-policy-targeted
 Requires:      policycoreutils-python
 Requires:      openshift-origin-msg-common
@@ -65,6 +65,10 @@ cp -a ./%{gem_dir}/* %{buildroot}%{gem_dir}/
 
 mkdir -p %{buildroot}/etc/openshift/plugins.d
 cp %{buildroot}/%{gem_dir}/gems/%{gem_name}-%{version}/conf/openshift-origin-msg-broker-mcollective.conf.example %{buildroot}/etc/openshift/plugins.d/openshift-origin-msg-broker-mcollective.conf.example
+
+%if 0%{?scl_build} > 0
+sed -e -i "s|\(/etc/mcollective/client.cfg\)|/opt/rh/ruby193/root/\1|" /etc/openshift/plugins.d/openshift-origin-msg-broker-mcollective.conf.example
+%endif
 
 %files
 %dir %{gem_instdir}

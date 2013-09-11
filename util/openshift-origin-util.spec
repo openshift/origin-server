@@ -34,6 +34,7 @@ chmod 0755 %{buildroot}%{_bindir}/*
 %{_bindir}/oo-ruby
 %{_bindir}/oo-erb
 %{_bindir}/oo-exec-ruby
+%{_bindir}/oo-mco
 
 
 %changelog

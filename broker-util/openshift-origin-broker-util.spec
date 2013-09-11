@@ -23,7 +23,7 @@ Requires:      mongodb
 # For oo-register-dns
 Requires:      bind-utils
 # For oo-admin-broker-auth
-Requires:      mcollective-client
+Requires:      %{?scl:%scl_prefix}mcollective-client
 BuildArch:     noarch
 
 %description
