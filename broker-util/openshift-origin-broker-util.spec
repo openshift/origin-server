@@ -6,7 +6,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin broker
 Name:          openshift-origin-broker-util
-Version: 1.14.3
+Version: 1.14.4
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -84,6 +84,17 @@ cp man/*.8 %{buildroot}%{_mandir}/man8/
 %{_mandir}/man8/oo-stats.8.gz
 
 %changelog
+* Wed Sep 11 2013 Adam Miller <admiller@redhat.com> 1.14.4-1
+- Merge pull request #3613 from abhgupta/abhgupta-scheduler
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3610 from ironcladlou/bz/1001855
+  (dmcphers+openshiftbot@redhat.com)
+- Fix for bug 1005007 and bug 1006526 (abhgupta@redhat.com)
+- Merge pull request #3604 from abhgupta/abhgupta-scheduler
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1001855: Process all active gears before inactive (ironcladlou@gmail.com)
+- Fix for bug 1006223 (abhgupta@redhat.com)
+
 * Tue Sep 10 2013 Adam Miller <admiller@redhat.com> 1.14.3-1
 - Merge pull request #3583 from jwforres/admin_console_capacity_planning-fork
   (dmcphers+openshiftbot@redhat.com)
