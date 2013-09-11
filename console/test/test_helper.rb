@@ -7,7 +7,7 @@ unless defined? Rails.application
   require 'minitest/autorun'
   require "rails/test_help"
   require 'webmock/minitest'
-  WebMock.enable!
+  WebMock.disable!
 end
 
 Rails.backtrace_cleaner.remove_silencers!

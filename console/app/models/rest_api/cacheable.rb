@@ -41,8 +41,7 @@ module RestApi
       private
         def define_subclass
           parent = self
-
-          Class.new(self) do
+          parent.parent.const_set("#{parent.name.demodulize}Cached", Class.new(self) do
             #FIXME: prone to breaks, needs to be cleaner
             self.element_name = parent.element_name
             @caches = parent.caches
@@ -93,9 +92,8 @@ module RestApi
                 end
               end
             end
-          end
+          end)
         end
-
     end
   end
 end

@@ -229,7 +229,7 @@ class ApplicationTypesControllerTest < ActionController::TestCase
   test "should handle invalid quickstart page" do
     with_unique_user
     type = Quickstart.new(:id => 'test', :name => '', :cartridges => '[{')
-    Quickstart.expects(:find).returns(type)
+    Quickstart.cached.expects(:find).returns(type)
     type = ApplicationType.from_quickstart(type)
     get :show, :id => 'quickstart!test'
     assert_standard_show_type(type)
@@ -350,7 +350,8 @@ class ApplicationTypesControllerTest < ActionController::TestCase
     get :show, :id => type.id
 
     # compare the session cache with expected values
-    assert_equal [user.max_gears, user.consumed_gears, user.gear_sizes], Array(session[:caps]).first(3)
+    assert_equal [user.max_domains, user.max_gears, user.consumed_gears, user.gear_sizes], Array(session[:caps])[1..4]
+    assert_equal user.max_domains, assigns(:capabilities).max_domains
     assert_equal user.gear_sizes, assigns(:capabilities).gear_sizes
     assert_equal user.max_gears, assigns(:capabilities).max_gears
     assert_equal user.consumed_gears, assigns(:capabilities).consumed_gears
@@ -364,13 +365,14 @@ class ApplicationTypesControllerTest < ActionController::TestCase
     type = types[0]
 
     # seed the cache with values that will never be returned by the broker.
-    session[:caps] = ['test_value','test_value',['test_value','test_value'], 'test_value']
+    session[:caps] = [-1, 'test_value', 'test_value','test_value',['test_value','test_value'], 'test_value']
 
     # make the request
     get :show, :id => type.id
 
     # confirm that the assigned values match our cached values
-    assert_equal [user.max_gears, user.consumed_gears, user.gear_sizes], Array(session[:caps]).first(3)
+    assert_equal [user.max_domains, user.max_gears, user.consumed_gears, user.gear_sizes], Array(session[:caps])[1..4]
+    assert_equal user.max_domains, assigns(:capabilities).max_domains
     assert_equal user.max_gears, assigns(:capabilities).max_gears
     assert_equal user.consumed_gears, assigns(:capabilities).consumed_gears
     assert_equal user.gear_sizes, assigns(:capabilities).gear_sizes

@@ -7,6 +7,9 @@ class CartridgeTypesIsolationControllerTest < ActionController::TestCase
 
   setup :with_unique_user
 
+  def user
+    {:max_gears => 16, :consumed_gears => 4}
+  end
   def domain
     {:id => 'test'}
   end
@@ -20,6 +23,7 @@ class CartridgeTypesIsolationControllerTest < ActionController::TestCase
     Rails.cache.clear # cart metadata is mocked
     allow_http_mock
     ActiveResource::HttpMock.respond_to({},true) do |mock|
+      mock.get '/broker/rest/user.json', json_header, user.to_json
       mock.get '/broker/rest/domain/test.json', json_header, domain.to_json
       mock.get '/broker/rest/application/testid.json', json_header, app.to_json
       mock.get '/broker/rest/application/testid.json?include=cartridges', json_header, app(true).to_json

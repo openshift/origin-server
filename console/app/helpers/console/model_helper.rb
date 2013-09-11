@@ -194,7 +194,7 @@ module Console::ModelHelper
           "+#{min}"
         end),
         "<span data-icon=\"\ue014\" aria-hidden=\"true\"> </span>",
-        ("<span class=\"label label-premium\">$</span>" if cost),
+        ("<span class=\"label label-premium\">#{user_currency_symbol}</span>" if cost),
       ].compact.join(' ').html_safe, 
       :class => 'indicator-gear-increase',
       :title => title,

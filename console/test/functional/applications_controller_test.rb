@@ -14,6 +14,7 @@ class ApplicationsControllerTest < ActionController::TestCase
 
   test 'index does not look up domains' do
     with_unique_domain
+    ApplicationsController.any_instance.expects(:user_domains).returns([])
     Domain.expects(:find).never
     get :index
   end
@@ -207,36 +208,13 @@ class ApplicationsControllerTest < ActionController::TestCase
     assert_select 'h2 > a', /#{app.name}/
   end
 
-  test "should filter application list with name" do
-    app = with_app
-
-    # get a filtered version of the list
-    get(:index, :applications_filter => {:name => app.name})
-    apps = assigns(:applications)
-    assert apps
-    assert_equal apps.length, 1
-    assert_equal apps[0].name, app.name
-    assert_response :success
-  end
-
-  test "should not filter application list with other name" do
-    app = with_app
-
-    # get a filtered version of the list
-    get(:index, :applications_filter => {:name => 'not'})
-    apps = assigns(:applications)
-    assert apps
-    assert_equal apps.length, 0
-    assert_response :success
-  end
-
   test "should retrieve application details" do
     get :show, :id => with_app.to_param
     assert_response :success
     assert app = assigns(:application)
     assert_equal with_app.name, app.name
     assert groups = assigns(:gear_groups)
-    assert_equal 1, groups.length
+    assert_equal 1, groups.length, groups.inspect
     assert (groups[0].cartridges.map(&:name) - with_app.cartridges.map(&:name)).empty?
     assert groups[0].cartridges[0].display_name
     #assert domain = assigns(:domain)
@@ -301,14 +279,14 @@ class ApplicationsControllerTest < ActionController::TestCase
     with_rescue_from{ get :show, :id => 'idontexist' }
     assert_response :success
     assert_select 'h1', /Application 'idontexist' does not exist/
-    assert_select 'a', "Application #{with_app.name}"
+    #assert_select 'a', "Application #{with_app.name}" # has not established a domain
   end
 
   test "should result in a not found when retrieving a domain that does not exist" do
     with_unique_user
     with_rescue_from{ get :show, :id => 'idontexist' }
     assert_response :success
-    assert_select 'h1', /Domain does not exist/
+    assert_select 'h1', /Application 'idontexist' does not exist/
   end
 
   test "should result in a not found when retrieving an application that does not exist" do
