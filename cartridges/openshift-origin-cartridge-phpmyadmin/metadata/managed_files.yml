@@ -3,8 +3,12 @@ locked_files:
 - bin/
 - bin/*
 - metadata/
-- conf.d/
-- conf.d/*
+- conf/
+- conf/*
+- conf.d/disabled_pages.conf
+- conf.d/openshift.conf
+- conf.d/php.conf
+- conf.d/phpMyAdmin.conf
 - phpMyAdmin/
 - phpMyAdmin/*
 - env/
