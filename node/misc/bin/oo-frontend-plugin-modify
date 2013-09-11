@@ -31,7 +31,7 @@ Those steps are:
 #{$0} --save > file
 #{$0} --delete
 remove/install packages as needed
-modify customized httpd configuration as needed
+modify customized httpd configuration as needed and restart
 edit /etc/openshift/node.conf
 service mcollective restart
 #{$0} --rebuild
