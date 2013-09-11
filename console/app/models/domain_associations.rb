@@ -2,7 +2,6 @@ module DomainAssociations
 
   def self.when_belongs_to(klass, options)
     klass.class_eval do
-
       def self.prefix(p)
         check_prefix_options(p)
         p = HashWithIndifferentAccess.new(p)

@@ -1,16 +1,16 @@
 class Member < RestApi::Base
+  singular_resource
+
   schema do
     string :id, :login, :name, :role, :type
     boolean :owner
-  end  
-
-  belongs_to :domain
+  end
 
   has_many :from, :class_name => as_indifferent_hash
 
   def valid?
     valid = super
-    
+
     if id.blank? and login.blank? and errors[:id].blank? and errors[:login].blank?
       errors.add(:login, 'Login is required')
       valid = false
