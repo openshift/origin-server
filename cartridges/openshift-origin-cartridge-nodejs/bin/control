@@ -3,20 +3,29 @@
 STOPTIMEOUT=10
 FMT="%a %b %d %Y %H:%M:%S GMT%z (%Z)"
 
+# This is the full path for supervisor in it's SCL context
 supervisor_exe(){
   nodejs_context "which supervisor"
 }
 
-supervisor_pid(){
-  pgrep -f "^node $(supervisor_exe)\s" -u $(id -u)
+# All PIDs running node (including supervisor)
+# Need to combine double slashes in case our PATH contains them
+node_pids(){
+  pgrep -fl '^node\s' -u $(id -u) | replace '//' '/'
 }
 
-node_pid(){
-  # Get all node proceses
-  node_pgrep=$(pgrep -fl '^node\s' -u $(id -u))
-  # Print only pids node containing supervisor exec
+# Only PIDs with node running supervisor
+supervisor_pid(){
+  pids=$(node_pids)
   sup_exe=$(supervisor_exe)
-  echo "${node_pgrep}" | awk "!/${sup_exe//\//\/}/ {print \$1}"
+  echo "${pids}" | awk "/${sup_exe//\//\/}/ {print \$1}"
+}
+
+# Only node PIDs without supervisor
+node_pid(){
+  pids=$(node_pids)
+  sup_exe=$(supervisor_exe)
+  echo "${pids}" | awk "!/${sup_exe//\//\/}/ {print \$1}"
 }
 
 function check_hot_deploy_marker() {
@@ -144,8 +153,8 @@ function stop() {
     echo "Stopping NodeJS cartridge"
     if [ -f $OPENSHIFT_NODEJS_PID_DIR/supervisor.pid ]; then
       s_pid=$( cat $OPENSHIFT_NODEJS_PID_DIR/supervisor.pid 2> /dev/null )
-      if [ "${s_pid}" -ne $(supervisor_pid) ]; then
-        error "Warning: Application '$OPENSHIFT_APP_NAME' supervisor PID does not match '\$OPENSHIFT_NODEJS_PID_DIR/supervisor.pid'.  Use force-stop to kill." 70
+      if [ "${s_pid}" != "$(supervisor_pid)" ]; then
+        error "Warning: Application '$OPENSHIFT_APP_NAME' supervisor PID does not match '\$OPENSHIFT_NODEJS_PID_DIR/supervisor.pid'.  Use force-stop to kill." 141
       else
         logf="$OPENSHIFT_NODEJS_LOG_DIR/node.log"
         echo "`date +"$FMT"`: Stopping application '$OPENSHIFT_APP_NAME' ..." >> $logf
@@ -170,13 +179,12 @@ function stop() {
       fi
     else
       if -n "$(supervisor_pid)"; then
-        error "Warning: Application '$OPENSHIFT_APP_NAME' supervisor exists without a pid file.  Use force-stop to kill." 70
+        error "Warning: Application '$OPENSHIFT_APP_NAME' supervisor exists without a pid file.  Use force-stop to kill." 141
       elif -n "$(node_pid)"; then
-        error "Warning: Application '$OPENSHIFT_APP_NAME' Node server exists without a pid file.  Use force-stop to kill." 70
+        error "Warning: Application '$OPENSHIFT_APP_NAME' Node server exists without a pid file.  Use force-stop to kill." 141
       fi
     fi
 }  #  End of function stop.
-
 
 function restart() {
     stop
@@ -263,7 +271,7 @@ function is_supervisor_running() {
     [ -n "$nodepid" ]  ||  return 1
 
     #  Is the pid a supervisor process.
-    if [[ $(ps --no-heading -ocmd -p $nodepid) =~ $(supervisor_exe) ]]; then
+    if [[ $(ps --no-heading -ocmd -p $nodepid | replace '//' '/') =~ $(supervisor_exe) ]]; then
        #  Yes, the app server is a supervisor process.
        return 0
     fi
