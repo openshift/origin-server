@@ -29,7 +29,6 @@ Requires:      mod_wsgi >= 3.4
 Requires:      mod_wsgi < 3.5
 Requires:      httpd > 2.3
 Requires:      httpd < 2.5
-Requires:      symlinks
 %endif
 
 Requires:      MySQL-python
@@ -55,6 +54,7 @@ Requires:      freetype-devel
 Requires:      atlas-devel
 Requires:      lapack-devel
 Requires:      redhat-lsb-core
+Requires:      symlinks
 
 Obsoletes: openshift-origin-cartridge-community-python-2.7
 Obsoletes: openshift-origin-cartridge-community-python-3.3
