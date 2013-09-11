@@ -16,7 +16,10 @@ for dir in etc; do
     cp -Lr $OPENSHIFT_RUBY_DIR/versions/$version/$dir/* $OPENSHIFT_RUBY_DIR/$dir 
 done
 
- if [ $version == '1.9' ]; then
+# Create/truncate Apache PassEnv configuration file
+echo > $OPENSHIFT_RUBY_DIR/etc/conf.d/passenv.conf
+
+if [ $version == '1.9' ]; then
     # Cleanup from version 0.0.1
     [ -f $OPENSHIFT_RUBY_DIR/env/OPENSHIFT_RUBY_PATH_ELEMENT ] && rm -f $OPENSHIFT_RUBY_DIR/env/OPENSHIFT_RUBY_PATH_ELEMENT
     [ -f $OPENSHIFT_RUBY_DIR/env/LD_LIBRARY_PATH ] && rm -f $OPENSHIFT_RUBY_DIR/env/LD_LIBRARY_PATH

@@ -394,7 +394,7 @@ function path_remove {
 function update_httpd_passenv {
   [ -f $1 ] || (client_error "HTTP Configuration for PassEnv failed: $1 missing" && return)
 
-  updated=/tmp/$(basename $1).updated
+  updated=$(mktemp)
   ( sed <$1 -e '/^PassEnv /d'
     for key in $(env |cut -d= -f1)
     do
@@ -404,8 +404,26 @@ function update_httpd_passenv {
       fi
     done ) >$updated
 
-  [ -s $updated ] || (client_error "HTTP Configuration for PassEnv failed: update corrupted $1, using old configuration" && return)
-  mv $updated $1
+  if [ -s $updated ]
+  then
+    cat $updated >$1
+  else
+    client_error "HTTP Configuration for PassEnv failed: update corrupted for $1, using old configuration"
+  fi
+  rm -f $updated
+}
+
+# Write the PassEnv directives into the httpd configuration file
+#
+# $1 full path to PassEnv.conf file
+function write_httpd_passenv {
+  ( for key in $(env |cut -d= -f1)
+    do
+      if [[ $key =~ ^[A-Z].* ]]
+      then
+        echo PassEnv $key
+      fi
+    done ) >$1
 }
 
 # Sync repo to the other gears of this app
