@@ -34,7 +34,7 @@ remove/install packages as needed
 modify customized httpd configuration as needed
 edit /etc/openshift/node.conf
 service mcollective restart
-#{$0} --restore < file
+#{$0} --rebuild
 
 
 To save the http frontend configuration to a file:
@@ -43,7 +43,10 @@ To save the http frontend configuration to a file:
 To delete the existing http frontend configurations:
 #{$0} --delete
 
-To rebuild the http frontend configuration from a file:
+To rebuild the http frontend configuration from configured gears:
+#{$0} --rebuild
+
+To reload the http frontend configuration from a file:
 #{$0} --restore < file
 
 == List of additional arguments
@@ -63,6 +66,7 @@ opts = GetoptLong.new(
     ["--delete",                    GetoptLong::NO_ARGUMENT],
     ["--confirm",                   GetoptLong::NO_ARGUMENT],
     ["--restore",                   GetoptLong::NO_ARGUMENT],
+    ["--rebuild",                   GetoptLong::NO_ARGUMENT],
     ["--debug",               "-d", GetoptLong::NO_ARGUMENT],
     ["--help",                "-h", GetoptLong::NO_ARGUMENT]
 )
@@ -81,6 +85,8 @@ begin
       mode = 'delete'
     when '--restore'
       mode = 'restore'
+    when '--rebuild'
+      mode = 'rebuild'
     when '--confirm'
       confirmed = true
     when '--debug'
@@ -95,18 +101,53 @@ end
 
 begin
   case mode
+
   when 'save'
     frontends = ::OpenShift::Runtime::FrontendHttpServer.all.to_a
     $stderr.puts("Backing up #{frontends.length} frontends.")
     $stdout.puts(JSON.pretty_generate(frontends))
+
   when 'delete'
     if confirmed or agree('Delete all web frontend configuration? (yes/no)')
       ::OpenShift::Runtime::FrontendHttpServer.all.each do |f|
         f.destroy
       end
     end
+
   when 'restore'
     JSON.load($stdin.read)
+
+  when 'rebuild'
+    if confirmed or agree('Rebuild all web frontend configurations? (yes/no)')
+      ::OpenShift::Runtime::ApplicationContainer.all.each do |container|
+        final_carts = []
+        container.cartridge_model.each_cartridge do |cart|
+          if cart.web_proxy?
+            final_carts << cart
+          else
+            begin
+              container.cartridge_model.connect_frontend(cart)
+            rescue Exception => e
+              $stderr.puts("ERROR: Failed to rebuild frontend for gear: #{container.name} cart: #{cart.name}")
+              $stderr.puts("ERROR: #{e.message}")
+              $stderr.puts(e.backtrace) if $oo_debug
+            end
+          end
+        end
+
+        final_carts.each do |cart|
+          begin
+            container.cartridge_model.connect_frontend(cart)
+          rescue Exception => e
+            $stderr.puts("ERROR: Failed to rebuild frontend for gear: #{container.name} cart: #{cart.name}")
+            $stderr.puts("ERROR: #{e.message}")
+            $stderr.puts(e.backtrace) if $oo_debug
+          end
+        end
+
+      end
+    end
+
   else
     usage
   end
