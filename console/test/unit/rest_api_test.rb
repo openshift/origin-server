@@ -1446,7 +1446,7 @@ class RestApiTest < ActiveSupport::TestCase
     app = Application.new({:id => 'appid', :name => 'appname', :domain_id => 'domainid', :git_url => 'http://localhost', :ssh_url => 'ssh://a@foo.com', :as => @user}, true)
     assert groups = app.cartridge_gear_groups
     assert_equal 2, groups.length
-    assert_equal 1, groups.first.cartridges.length
+    assert_equal 2, groups.first.cartridges.length
     assert_equal 1, groups[1].cartridges.length
 
     assert php = groups.first.cartridges.first
@@ -1498,30 +1498,6 @@ class RestApiTest < ActiveSupport::TestCase
     assert c.buildable?
     t.tags.clear
     assert !c.buildable?
-  end
-
-  def test_gear_group_move_features
-    mock_types
-
-    gear1 = Gear.new :id => 1, :state => 'started'
-    cart_build = Cartridge.new :name => 'jenkins-client-1'
-    cart_web = Cartridge.new :name => 'php-5.3'
-    group1 = GearGroup.new({:name => 'group1', :gears => [gear1], :cartridges => [cart_build]}, :as => @user)
-
-    group2 = GearGroup.new(:cartridges => [cart_web])
-
-    assert !group1.send(:move_features, group1)
-
-    assert group1.send(:move_features, group2)
-    assert group1.gears.empty?
-    assert group1.cartridges.empty?
-    assert_equal 1, group2.gears.length
-    assert group2.cartridges[0].builds?
-    assert group2.cartridges[0].builds
-    assert_equal cart_build, group2.cartridges[0].builds.with
-    assert_equal group1.name, group2.cartridges[0].builds.on
-
-    assert group1.send(:move_features, group2) # nothing is moved, but group1 is still empty and should be purged
   end
 
   def a_quickstart(additional_tags=[])

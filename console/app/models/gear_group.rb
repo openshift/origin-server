@@ -77,27 +77,6 @@ class GearGroup < RestApi::Base
       }, true)
     end
     groups.sort!{ |a,b| a.cartridges.first <=> b.cartridges.first }
-    groups.delete_if{ |g| g.send(:move_features, groups[0]) }
     groups
   end
-
-  protected
-    #
-    # Return true if the group is now empty
-    #
-    def move_features(to)
-=begin
-      cartridges.delete_if do |c|
-        if c.tags.include?(:ci_builder) and not c.tags.include?(:web_framework)
-          to.cartridges.select{ |d| d.tags.include?(:web_framework) }.each{ |d| d.builds_with(c, self) }.present?
-        end
-      end
-      cartridges.delete_if{ |c| cartridges.any?{ |other| other != c && other.scales_with == c.name } }
-=end
-      if self != to && cartridges.empty?
-        to.gears.concat(gears)
-        gears.clear
-        true
-      end
-    end
 end

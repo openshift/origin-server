@@ -30,7 +30,8 @@ class CapabilityAwareTest < ActiveSupport::TestCase
   test 'user capabilities handles defaults' do
     User.expects(:find).returns(User.new(:capabilities => {}))
     assert cap = obj.user_capabilities
-    assert_equal session_defaults(nil,0,[], nil), obj.session[:caps]
+    assert_equal session_defaults(-1, 1, nil, 0, [], nil), obj.session[:caps]
+    assert_equal 1, cap.max_domains
     assert_equal Capabilities::UnlimitedGears, cap.max_gears
     assert_equal 0, cap.consumed_gears
     assert cap.gears_free?
@@ -39,9 +40,10 @@ class CapabilityAwareTest < ActiveSupport::TestCase
   end
 
   test 'user capabilities handles API 1.1 settings' do
-    User.expects(:find).returns(User.new(:max_gears => 3, :consumed_gears => 1, :plan_id => 'foo', :capabilities => {:gear_sizes => ['small','medium']}))
+    User.expects(:find).returns(User.new(:max_gears => 3, :consumed_gears => 1, :max_domains => 2, :plan_id => 'foo', :capabilities => {:gear_sizes => ['small','medium']}))
     assert cap = obj.user_capabilities
-    assert_equal session_defaults(3,1,[:small,:medium], 'foo'), obj.session[:caps]
+    assert_equal session_defaults(-1, 2, 3, 1, [:small,:medium], 'foo'), obj.session[:caps]
+    assert_equal 2, cap.max_domains
     assert_equal 3, cap.max_gears
     assert_equal 1, cap.consumed_gears
     assert_equal 'foo', cap.plan_id
@@ -51,10 +53,18 @@ class CapabilityAwareTest < ActiveSupport::TestCase
   end
 
   test 'user capabilities deserializes session' do
-    obj.session[:caps] = [nil, 0, ['small']]
+    obj.session[:caps] = [-1, 10, nil, 0, ['small']]
     assert cap = obj.user_capabilities
+    assert_equal 10, cap.max_domains
     assert_equal Capabilities::UnlimitedGears, cap.max_gears
     assert_equal 0, cap.consumed_gears
     assert_equal [:small], cap.gear_sizes
+  end
+
+  test 'user capabilities ignores invalid versions' do
+    User.expects(:find).returns(User.new(:capabilities => {:gear_sizes => ['small','medium']}))
+    obj.session[:caps] = [-2, nil, nil, 0, ['small']]
+    assert cap = obj.user_capabilities
+    assert_equal [:small, :medium], cap.gear_sizes
   end
 end

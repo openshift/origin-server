@@ -4,6 +4,9 @@ class BuildingControllerTest < ActionController::TestCase
 
   uses_http_mock
 
+  def user
+    {:id => 'test', :consumed_gears => 3, :max_gears => 16}
+  end
   def domain
     {:id => 'test'}
   end
@@ -32,7 +35,7 @@ class BuildingControllerTest < ActionController::TestCase
         {:name => 'jenkins-1', :tags => ['ci']},
       ].to_json
 
-      #mock.get '/broker/rest/domains.json', json_header, [domain].to_json
+      mock.get '/broker/rest/user.json', json_header, user.to_json
       mock.get '/broker/rest/domain/test.json', json_header, domain.to_json
 
       mock.get '/broker/rest/domain/test/application/test.json', json_header, app.to_json

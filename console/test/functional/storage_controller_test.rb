@@ -64,7 +64,7 @@ class StorageControllerTest < ActionController::TestCase
     ].each do |values|
       val = values[:value]
       values[:carts].map(&:cartridges).flatten.each do |cart|
-        assert_equal val, cart.additional_gear_storage
+        assert_equal val, cart.additional_gear_storage, "Cartridge #{cart.name} has incorrect additional_gear_storage"
       end
     end
   end
