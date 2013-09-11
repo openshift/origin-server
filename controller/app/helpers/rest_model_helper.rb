@@ -22,7 +22,7 @@ module RestModelHelper
     else
       RestDomain.new(domain, get_url, nolinks)
     end
-  end  
+  end
 
   def get_rest_application(application, include_cartridges=false, applications=nil)
     if requested_api_version == 1.0
@@ -64,7 +64,7 @@ module RestModelHelper
     messages = application.component_status(component_instance) if include_status_messages
 
     additional_storage = 0
-    group_override = group_overrides.nil? ? nil : group_overrides.select{ |go| go["components"].include? component_instance.to_hash }.first 
+    group_override = group_overrides.nil? ? nil : group_overrides.select{ |go| go["components"].any?{ |c| c['cart'] == component_instance.cartridge_name && c['comp'] == component_instance.component_name } }.first
     additional_storage = group_override["additional_filesystem_gb"] if !group_override.nil? and group_override.has_key?("additional_filesystem_gb")
 
     scale = {min: group_instance.min, max: group_instance.max, gear_size: group_instance.gear_size, additional_storage: additional_storage, current: group_instance.gears.count}
