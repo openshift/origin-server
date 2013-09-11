@@ -13,7 +13,7 @@ License: MIT License
 License-Url: https://raw.github.com/joyent/node/v0.10/LICENSE
 Vendor: www.nodejs.org
 Website: http://www.nodejs.org/
-Cartridge-Version: 0.0.5
+Cartridge-Version: 0.0.6
 Compatible-Versions: []
 Cartridge-Vendor: redhat
 Categories:
@@ -99,7 +99,7 @@ Version-Overrides:
   '0.6':
     Display-Name: Node.js 0.6
     Provides:
-      - nodejs-0.6
-      - nodejs
+    - nodejs-0.6
+    - nodejs
     License-Url: https://raw.github.com/joyent/node/v0.6/LICENSE
     Install-Build-Required: false
