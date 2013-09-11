@@ -60,7 +60,7 @@ class AppEventsControllerTest < ActionController::TestCase
     assert_response :success
     post :create, {"event" => "remove-alias", "alias" => as, "domain_id" => @domain.namespace, "application_id" => @app.name}
     assert_response :success
-    post :create, {"event" => "roll-back", "deployment_id" => 1, "domain_id" => @domain.namespace, "application_id" => @app.name}
+    post :create, {"event" => "rollback", "deployment_id" => 1, "domain_id" => @domain.namespace, "application_id" => @app.name}
     assert_response :success
   end
 
@@ -89,7 +89,7 @@ class AppEventsControllerTest < ActionController::TestCase
     assert_response :success
     post :create, {"event" => "remove-alias", "alias" => as, "application_id" => @app.id}
     assert_response :success
-    post :create, {"event" => "roll-back", "deployment_id" => 1, "application_id" => @app.id}
+    post :create, {"event" => "rollback", "deployment_id" => 1, "application_id" => @app.id}
     assert_response :success
   end
 

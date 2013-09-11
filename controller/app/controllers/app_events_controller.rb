@@ -25,7 +25,7 @@ class AppEventsController < BaseController
   #   * tidy: Trigger garbage collection and cleanup of logs, git revisions
   #   * reload: Restart all application cartridges
   # @param [String] alias DNS alias for the application. Only applicable to add-alias and remove-alias events
-  # 
+  #
   # @return [RestReply<RestApplication>] Application object on which the event operates and messages returned for the event.
   def create
     event = params[:event].presence
@@ -35,14 +35,14 @@ class AppEventsController < BaseController
     return render_error(:unprocessable_entity, "Alias must be specified for adding or removing application alias.", 126,
                         "alias") if ['add-alias', 'remove-alias'].include?(event) && (server_alias.nil? or server_alias.to_s.empty?)
     return render_error(:unprocessable_entity, "Reached gear limit of #{@cloud_user.max_gears}", 104) if (event == 'scale-up') && (@cloud_user.consumed_gears >= @cloud_user.max_gears)
-    
-    return render_error(:unprocessable_entity, "Deployment ID must be provided for roll-back.", 126,
-                        "alias") if event == "roll-back" && (deployment_id.nil? or deployment_id.to_s.empty?)
-                        
+
+    return render_error(:unprocessable_entity, "Deployment ID must be provided for rollback.", 126,
+                        "alias") if event == "rollback" && (deployment_id.nil? or deployment_id.to_s.empty?)
+
     if @application.quarantined && ['scale-up', 'scale-down'].include?(event)
-      return render_upgrade_in_progress            
+      return render_upgrade_in_progress
     end
-      
+
     msg = "Sent #{event} to application #{@application.name}"
 
     case event
@@ -102,7 +102,7 @@ class AppEventsController < BaseController
       authorize! :change_cartridge_state, @application
       r = @application.reload_config
       msg = "Application #{@application.name} called reload"
-    when 'roll-back'
+    when 'rollback'
       #TODO implement change_deployment or use change_state
       #authorize! :change_deployment, @application
       r = @application.rollback(deployment_id)

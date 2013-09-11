@@ -17,7 +17,7 @@ class DeploymentsController < BaseController
     Rails.logger.error "Getting deployemt #{id}"
 
     deployment = @application.deployments.find_by(id: id)
-    Rails.logger.error "Got deployemt #{deployment.inspect}"
+    Rails.logger.error "Got deployment #{deployment.inspect}"
     render_success(:ok, "deployment", get_rest_deployment(deployment), "Showing deployment #{id} for application #{@application.name} under domain #{@application.domain_namespace}")
   end
 
