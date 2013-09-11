@@ -1,0 +1,76 @@
+---
+Name: mock-ssl
+Cartridge-Short-Name: MOCK_SSL
+Display-Name: Mock SSL Cartridge 0.1
+Description: A mock-ssl cartridge for development use only.
+Version: '0.1'
+Versions:
+- '0.1'
+License: ASL 2.0
+Vendor: Red Hat
+Cartridge-Version: 0.0.1
+Cartridge-Vendor: redhat
+Categories:
+- service
+- mock-ssl
+- web_framework
+Provides:
+- mock-ssl-0.1
+- mock-ssl
+Cart-Data:
+- Key: OPENSHIFT_MOCK_SSL_EXAMPLE
+  Type: environment
+  Description: An example environment variable using ERB processing
+Publishes:
+  publish-http-url:
+    Type: NET_TCP:httpd-proxy-info
+  publish-gear-endpoint:
+    Type: NET_TCP:gear-endpoint-info
+Subscribes:
+  set-env:
+    Type: ENV:*
+    Required: false
+Endpoints:
+- Private-IP-Name: EXAMPLE_IP1
+  Private-Port-Name: EXAMPLE_PORT1
+  Private-Port: 8080
+  Public-Port-Name: EXAMPLE_PUBLIC_PORT1
+  Mappings:
+  - Frontend: ''
+    Backend: ''
+    Options:
+      ssl_to_gear: true
+      websocket: true
+  - Frontend: /front1a
+    Backend: /back1a
+  - Frontend: /health
+    Backend: ''
+    Options:
+      health: true
+  Options:
+    ssl_to_gear: true
+- Private-IP-Name: EXAMPLE_IP1
+  Private-Port-Name: EXAMPLE_PORT2
+  Private-Port: 8081
+  Public-Port-Name: EXAMPLE_PUBLIC_PORT2
+- Private-IP-Name: EXAMPLE_IP1
+  Private-Port-Name: EXAMPLE_PORT3
+  Private-Port: 8082
+  Public-Port-Name: EXAMPLE_PUBLIC_PORT3
+- Private-IP-Name: EXAMPLE_IP2
+  Private-Port-Name: EXAMPLE_PORT4
+  Private-Port: 9090
+- Private-IP-Name: SSL_IP
+  Private-Port-Name: SSL_PORT
+  Private-Port: 8123
+  Public-Port-Name: SSL_PROXY_PORT
+  Mappings:
+  - Frontend: /secure
+    Backend: ''
+  Options:
+    ssl_to_gear: true
+Scaling:
+  Min: 1
+  Max: -1
+Install-Build-Required: false
+

@@ -1,0 +1,10 @@
+---
+locked_files:
+- env/
+- env/*
+- mock_cart_locked_file
+- ~/.mock-ssl_gear_locked_file
+- ~/app-root/data/mock-ssl_gear_data_locked_file
+- ~/invalid_mock-ssl_locked_file
+processed_templates:
+- '**/*.erb'

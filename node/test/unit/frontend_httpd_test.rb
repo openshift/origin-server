@@ -239,7 +239,8 @@ class FrontendHttpServerModelTest < OpenShift::NodeTestCase
                     ["/noproxy", "", { "noproxy" => 1 }],
                     ["/redirect", "/dest", { "redirect" => 1 }],
                     ["/file", "/dest.html", { "file" => 1 }],
-                    ["/tohttps", "/dest", { "tohttps" => 1 }] ]
+                    ["/tohttps", "/dest", { "tohttps" => 1 }],
+                    ["/ssl_to_gear", "/dest", { "ssl_to_gear" => 1}]]
 
     frontend = OpenShift::Runtime::FrontendHttpServer.new(OpenShift::Runtime::ApplicationContainer.from_uuid(@container_uuid))
     frontend.create
@@ -257,6 +258,7 @@ class FrontendHttpServerModelTest < OpenShift::NodeTestCase
     assert_equal "REDIRECT:/dest", @apache_db_nodes[@fqdn +"/redirect"]
     assert_equal "FILE:/dest.html", @apache_db_nodes[@fqdn +"/file"]
     assert_equal "TOHTTPS:/dest", @apache_db_nodes[@fqdn +"/tohttps"]
+    assert_equal "SSL_TO_GEAR:/dest", @apache_db_nodes[@fqdn +"/ssl_to_gear"]
 
     assert_equal ["#{@ip}:#{@port}"], @nodejs_db_routes[@fqdn]["endpoints"]
     assert_equal 1, @nodejs_db_routes[@fqdn]["limits"]["connections"]
@@ -268,7 +270,7 @@ class FrontendHttpServerModelTest < OpenShift::NodeTestCase
 
     @apache_db_nodes.delete("unrelated")
 
-    frontend.disconnect("", "/nosocket", "/gone", "/forbidden", "/noproxy", "/redirect", "/file", "/tohttps")
+    frontend.disconnect("", "/nosocket", "/gone", "/forbidden", "/noproxy", "/redirect", "/file", "/tohttps", "/ssl_to_gear")
     assert @apache_db_nodes.empty?
     assert @nodejs_db_routes.empty?
   end

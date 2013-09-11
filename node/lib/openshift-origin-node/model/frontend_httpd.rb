@@ -354,6 +354,8 @@ module OpenShift
               map_dest = "REDIRECT:#{uri}"
             elsif options["file"]
               map_dest = "FILE:#{uri}"
+            elsif options["ssl_to_gear"]
+              map_dest = "SSL_TO_GEAR:#{uri}"
             elsif options["tohttps"]
               map_dest = "TOHTTPS:#{uri}"
             else
@@ -426,7 +428,7 @@ module OpenShift
 
         if connection =~ /^(GONE|FORBIDDEN|NOPROXY|HEALTH)$/
           entry[2][$~[1].downcase] = 1
-        elsif connection =~ /^(REDIRECT|FILE|TOHTTPS):(.*)$/
+        elsif connection =~ /^(REDIRECT|FILE|TOHTTPS|SSL_TO_GEAR):(.*)$/
           entry[2][$~[1].downcase] = 1
           entry[1] = $~[2]
         else

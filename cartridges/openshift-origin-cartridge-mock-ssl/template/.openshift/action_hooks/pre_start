@@ -1,0 +1,7 @@
+#!/bin/bash -eu
+# Simple web server for testing
+
+MOCK_SSL_STATE=$OPENSHIFT_DATA_DIR/.mock_ssl_cartridge_state
+
+touch $MOCK_SSL_STATE/action_hook_pre_start
+
