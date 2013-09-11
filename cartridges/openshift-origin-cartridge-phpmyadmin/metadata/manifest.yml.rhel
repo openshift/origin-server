@@ -42,3 +42,4 @@ Endpoints:
   Mappings:
   - Frontend: /phpmyadmin
     Backend: /phpmyadmin
+Compatible-Versions: []
