@@ -6,7 +6,7 @@
 
 Summary:       Provides HA Proxy
 Name:          openshift-origin-cartridge-haproxy
-Version: 0.9.1
+Version: 0.9.2
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -45,6 +45,14 @@ HAProxy cartridge for OpenShift. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Wed Sep 11 2013 Adam Miller <admiller@redhat.com> 0.9.2-1
+- Bug 1006085 (dmcphers@redhat.com)
+- Merge pull request #3611 from danmcp/master
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1006085 (dmcphers@redhat.com)
+- Bug 985024: Remove haproxy status page as the backup page.
+  (mrunalp@gmail.com)
+
 * Thu Aug 29 2013 Adam Miller <admiller@redhat.com> 0.9.1-1
 - Bug 1000727 - HAProxy using CLIENT_MESSAGE for status messages
   (jhonce@redhat.com)
