@@ -71,8 +71,14 @@ body.simple {
       background: #222;
       color: #DADADA;
       padding: 40px 60px 20px;
-      a:link {
-        color: #6DB3C7;
+      a:link, a:visited, a:hover, a:active {
+        color: #b7d3f1;
+      }
+      .btn:link, .btn:visited, .btn:hover {
+        color: rgba(47, 47, 47, 0.9);
+      }
+      .btn:hover {
+        color: #000;
       }
       .btn:active {
         color: #222;
@@ -144,6 +150,10 @@ body.simple {
 
 h2 + ul, h3 + ul, h4 + ul {
   margin-top: 9px;
+}
+
+html {
+  background: #000;
 }
 
 .label-hide label {
