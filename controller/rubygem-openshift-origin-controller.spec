@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.14.5
+Version: 1.14.6
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -84,6 +84,14 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Wed Sep 11 2013 Adam Miller <admiller@redhat.com> 1.14.6-1
+- fix bz1006645 (rchopra@redhat.com)
+- Fix for bug 1005007 and bug 1006526 (abhgupta@redhat.com)
+- Merge pull request #3582 from kraman/test_case_fixes
+  (dmcphers+openshiftbot@redhat.com)
+- Fixing code to allow admin to restrict # of domains to be less than # of
+  gears allocated to a user. (kraman@gmail.com)
+
 * Tue Sep 10 2013 Adam Miller <admiller@redhat.com> 1.14.5-1
 - Merge pull request #3592 from abhgupta/abhgupta-scheduler
   (dmcphers+openshiftbot@redhat.com)
