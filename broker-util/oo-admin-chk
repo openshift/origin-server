@@ -112,7 +112,7 @@ end
 
 def get_user_info(user, level=0)
   user_ssh_keys = {}
-  user["ssh_keys"].each { |k| user_ssh_keys[Digest::MD5.hexdigest(k["content"])] = k["name"] } if user["ssh_keys"]
+  user["ssh_keys"].each { |k| user_ssh_keys[Digest::MD5.hexdigest(k["content"])] = k["name"] if k["content"] } if user["ssh_keys"]
   user_info = {"consumed_gears" => user["consumed_gears"], "domains" => {}, "login" => user["login"], "ssh_keys" => user_ssh_keys,
                "max_untracked_addtl_storage_per_gear" => user["capabilities"]["max_untracked_addtl_storage_per_gear"],
                "plan_id" => user["plan_id"], "plan_state" => user["plan_state"], "usage_account_id" => user["usage_account_id"],
@@ -244,7 +244,7 @@ if level >= 1
     domain_hash[domain["_id"].to_s] = owner_id
     domain_namespace_hash[domain["_id"].to_s] = domain['canonical_namespace']
     system_ssh_keys = {}
-    domain["system_ssh_keys"].each { |k| system_ssh_keys[Digest::MD5.hexdigest(k["content"])] = k["name"] } if domain["system_ssh_keys"]
+    domain["system_ssh_keys"].each { |k| system_ssh_keys[Digest::MD5.hexdigest(k["content"])] = k["name"] if k["content"] } if domain["system_ssh_keys"]
 
     if !user_hash[owner_id]
       OpenShift::DataStore.find(:cloud_users, {"_id" => domain["owner_id"]}, user_selection_primary) do |user|
@@ -293,7 +293,7 @@ OpenShift::DataStore.find(:applications, app_query, app_selection) do |app|
   creation_time = app['created_at']
   domain_id = app['domain_id'].to_s
   app_ssh_keys = {}
-  app['app_ssh_keys'].each { |k| app_ssh_keys[Digest::MD5.hexdigest(k["content"])] = k["name"] } if app['app_ssh_keys']
+  app['app_ssh_keys'].each { |k| app_ssh_keys[Digest::MD5.hexdigest(k["content"])] = k["name"] if k["content"] } if app['app_ssh_keys']
 
   if level >= 1
     owner_id = domain_hash[domain_id]
