@@ -13,14 +13,6 @@
   border: 0;
   @include border-radius(0);
 
-  a {
-  }
-  > li > a:hover {
-    border-radius: 0px;
-    color: $linkColorBlue;
-    background-color: $highlightBlue;
-  }
-
   hr {
     margin: 9px 0;
   }

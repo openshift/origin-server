@@ -35,13 +35,11 @@
 
           - else
             .row.row-flush-right
-              .grid-wrapper
-                .span12.span-flush-right
-                  - if content_for? :breadcrumbs
+              - if content_for? :breadcrumbs
+                .grid-wrapper
+                  .span12.span-flush-right
                     %nav
                       = yield :breadcrumbs
-                  - else
-                    &nbsp;
               = yield :top
               .column-content.grid-wrapper
                 .span12

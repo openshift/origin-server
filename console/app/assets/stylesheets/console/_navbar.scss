@@ -13,6 +13,9 @@
         @include brand_image_ie;
       }
     }
+    .brand-text {
+      display: none;
+    }
   }
   .btn-navbar {
     background: none;

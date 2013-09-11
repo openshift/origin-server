@@ -41,7 +41,7 @@
   color: #000;
   border-color: rgba(0,0,0,0.15) rgba(0,0,0,0.35) rgba(0,0,0,0.5);
   text-decoration: none;
-  @include box-shadow(0 1px 2px rgba(0,0,0,.25));
+  @include box-shadow(0 1px 2px rgba(0,0,0,.15));
 }
 
 // Focus state for keyboard and accessibility
@@ -162,8 +162,7 @@ input[type="button"] {
 
 .btn-primary:hover,
 .btn-success:hover,
-.btn-info:hover,
-.btn-primary:hover {
+.btn-info:hover {
 	color: #000;
 	text-shadow: 0 1px 0 rgba(255,255,255,0.6);
 }
@@ -195,7 +194,6 @@ input[type="submit"].btn-primary:active,
 .btn-primary.disabled,
 .btn-primary[disabled] { 
   background-color: #c1daf4;
-  box-shadow: none;
 }
 // Warning appears are orange
 .btn-warning {

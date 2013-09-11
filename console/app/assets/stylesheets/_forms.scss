@@ -72,7 +72,6 @@ input,
   margin-bottom: 9px;
   font-size: floor($baseFontSize);
   line-height: $baseLineHeight;
-  min-height: $baseLineHeight;
   color: $grayDark;
   @include border-radius(3px);
 }
@@ -91,7 +90,10 @@ textarea {
 // Everything else
 select,
 textarea,
-input,
+input[type="file"],
+input[type="image"],
+input[type="password"],
+input[type="text"],
 .uneditable-input {
   background-color: $inputBackground;
   border: 1px solid $inputBorder;
@@ -462,7 +464,6 @@ textarea:focus:required:valid {
     *margin-left: 0;
     font-size: $baseFontSize;
     vertical-align: top;
-    border-left: 0;
     @include border-radius(0 $inputBorderRadius $inputBorderRadius 0);
     // Make input on top when focused so blue border and shadow always show
     &:focus {
@@ -479,10 +480,8 @@ textarea:focus:required:valid {
     font-weight: normal;
     line-height: $baseLineHeight;
     text-align: center;
-    //text-shadow: 0 1px 0 $white;
-    background-color: $inputDisabledBackground;
-    border: 1px solid $inputDisabledBorder;
-    color: $grayLight;
+    background-color: $inputAddOnBackground;
+    border: 1px solid $inputBorder;
   }
   .add-on,
   .btn {
@@ -525,7 +524,6 @@ textarea:focus:required:valid {
   select,
   .uneditable-input {
     @include border-radius(0);
-    border-right: 0;
   }
   .add-on:first-child,
   .btn:first-child {
@@ -761,7 +759,7 @@ textarea[readonly] {
   input.narrow { width: 140px; }
 
   .controls > h3 { 
-    margin-top: 5px; margin-bottom: 0; color: $consoleHeaderColor; 
+    margin-top: 5px; margin-bottom: 0;
 
     > small { margin-left: 10px; vertical-align: middle; display: inline-block; }
     > select { margin-top: -5px; }
