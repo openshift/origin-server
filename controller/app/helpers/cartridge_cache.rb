@@ -52,6 +52,7 @@ class CartridgeCache
     app.downloaded_cartridges.values.each do |cart|
       return cart if cart.features.include?(requested_feature)
       return cart if cart.name == requested_feature
+      return cart if cart.original_name == requested_feature
     end if app
 
     matching_carts = CacheHelper.get_cached("carts_by_feature_#{requested_feature}", :expires_in => 1.day) { self.find_all_cartridges(requested_feature) }
