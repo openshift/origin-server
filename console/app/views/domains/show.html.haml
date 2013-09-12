@@ -1,4 +1,21 @@
-%h1= "Domain #{@domain.name}"
+:css
+  span.flow-block > span {margin-right: 15px; font-size: 90%; opacity: .75;}
+
+%h1.flow
+  = "Domain #{@domain.name}"
+
+  %span.flow-block.right
+    %span{:title => 'Applications'}
+      = @domain.application_count
+      %span{"aria-hidden" => "true", "data-icon" => "\ue033"}
+    %span{:title => 'Gears'}
+      = @domain.gear_counts.values.sum
+      %span{"aria-hidden" => "true", "data-icon" => "\ue014"}
+    %span{:title => 'Members'}
+      = @domain.members.count
+      %span{"aria-hidden" => "true", "data-icon" => "\uee08"}
+
+= breadcrumb_for_domain(@domain)
 
 .row
   .span6

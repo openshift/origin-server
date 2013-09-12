@@ -1,10 +1,12 @@
 class DomainsController < ConsoleController
   def index
-    @domains = Domain.find(:all, :as => current_user) rescue redirect_to(new_domain_path)
+    @domains = Domain.find(:all, :params => {:include => :application_info}, :as => current_user) rescue redirect_to(new_domain_path)
+    @capabilities = user_capabilities :refresh => true
+    @can_create = @capabilities.max_domains > user_owned_domains.length
   end
 
   def show
-    @domain = Domain.find(params[:id].to_s, :as => current_user)
+    @domain = Domain.find(params[:id].to_s, :params => {:include => :application_info}, :as => current_user)
   end
 
   def new
