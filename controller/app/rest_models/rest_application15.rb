@@ -227,8 +227,20 @@ class RestApplication15 < OpenShift::Model
           OptionalParam.new("value", "string", "Value of the environment variable"),
           OptionalParam.new("environment_variables", "array", "Add/Update/Delete application environment variables, e.g. Add/Update: [{'name':'FOO', 'value':'123'}, {'name':'BAR', 'value':'abc'}], Delete: [{'name':'FOO'}, {'name':'BAR'}]")
         ]),
-        "LIST_ENVIRONMENT_VARIABLES" => Link.new("List all environment variables", "GET", URI::join(url, "domain/#{@domain_id}/application/#{@name}/environment-variables"))
-        "UPDATE" => Link.new("Update application", "PUT", URI::join(url, "applications/#{@id}"), nil, [
+        "LIST_ENVIRONMENT_VARIABLES" => Link.new("List all environment variables", "GET", URI::join(url, "domain/#{@domain_id}/application/#{@name}/environment-variables")),
+        "DEPLOY" => Link.new("Deploy the application", "POST", URI::join(url, "domains/#{@domain_id}/applications/#{@name}/deployments"), [
+          Param.new("description", "string", "Description of deployment")],[
+          OptionalParam.new("ref", "string", "Git ref (tag, branch, commit id)", nil, "master"),
+          OptionalParam.new("artifact_url", "string", "URL where the deployment artifact can be downloaded from", nil, "Latest"),
+        ]),
+        "UPDATE_DEPLOYMENTS" => Link.new("Update deployments", "POST", URI::join(url, "domains/#{@domain_id}/applications/#{@name}/deployments"), [
+          Param.new("deployments", "array", "An Array of deployments")]),
+        "ROLLBACK" => Link.new("Roll-back application to a previous deployment", "POST", URI::join(url, "domains/#{@domain_id}/applications/#{@name}/events"), [
+          Param.new("event", "string", "event", "rollback"),
+          Param.new("deployment_id", "string", "The deployment ID to rollback the application"),
+        ]),
+        "LIST_DEPLOYMENT" => Link.new("List all deployments", "GET", URI::join(url, "domains/#{@domain_id}/applications/#{@name}/deployments")),
+        "UPDATE" => Link.new("Update application", "PUT", URI::join(url, "domains/#{@domain_id}/applications/#{@name}"), nil, [
           OptionalParam.new("auto_deploy", "boolean", "Indicates if OpenShift should build and deploy automatically whenever the user executes git push", [true, false]),
           OptionalParam.new("deployment_type", "string", "Indicates whether the app is setup for binary or git based deployments", ['git', 'binary']),
           OptionalParam.new("deployment_branch", "string", "Indicates which branch should trigger an automatic deployment, if automatic deployment is enabled."),
