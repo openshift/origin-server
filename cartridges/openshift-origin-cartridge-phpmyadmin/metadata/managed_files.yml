@@ -5,6 +5,7 @@ locked_files:
 - metadata/
 - conf/
 - conf/*
+- conf.d/
 - conf.d/disabled_pages.conf
 - conf.d/openshift.conf
 - conf.d/php.conf
