@@ -80,7 +80,7 @@ end
 
 def get_mongo_session
   config = Mongoid::Config.sessions["default"]
-  session = Moped::Session.new(config["hosts"])
+  session = Moped::Session.new(config["hosts"], config["options"])
   session.use config["database"]
   session.login(config["username"], config["password"])
   session
