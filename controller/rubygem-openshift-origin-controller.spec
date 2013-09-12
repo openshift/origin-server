@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.14.6
+Version: 1.14.7
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -84,6 +84,12 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Thu Sep 12 2013 Adam Miller <admiller@redhat.com> 1.14.7-1
+- Merge pull request #3621 from smarterclayton/storage_rest_response_broken
+  (dmcphers+openshiftbot@redhat.com)
+- Sparse group_instance support broke rest api response for carts
+  (ccoleman@redhat.com)
+
 * Wed Sep 11 2013 Adam Miller <admiller@redhat.com> 1.14.6-1
 - fix bz1006645 (rchopra@redhat.com)
 - Fix for bug 1005007 and bug 1006526 (abhgupta@redhat.com)
