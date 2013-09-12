@@ -4,7 +4,7 @@
 
 Summary:       Provides JBossAS7 support
 Name:          openshift-origin-cartridge-jbossas
-Version: 1.7.2
+Version: 1.7.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -104,6 +104,9 @@ fi
 
 
 %changelog
+* Thu Sep 12 2013 Adam Miller <admiller@redhat.com> 1.7.3-1
+- Cartridge version bumps for 2.0.33 (ironcladlou@gmail.com)
+
 * Fri Sep 06 2013 Adam Miller <admiller@redhat.com> 1.7.2-1
 - Bug 1004927: Don't override JAVA_HOME in standalone.conf
   (ironcladlou@gmail.com)
