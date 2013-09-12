@@ -59,7 +59,7 @@ def latest_status(old_rev, new_rev, filename)
     commits.each do |commit|
       # extract an array [status, filename] from the commit
       object = `git show --pretty="format:" --name-status --diff-filter=[AD] #{commit} -- #{filename}`.chomp.strip.split("\t")
-      
+
       if object.length > 0
         latest = object[0]
         break
@@ -201,7 +201,8 @@ command :postreceive do |c|
                                   err: $stderr,
                                   hot_deploy: file_committed?(HOT_DEPLOY_MARKER),
                                   branch: branch_to_deploy,
-                                  force_clean_build: file_committed?(FORCE_CLEAN_BUILD_MARKER))
+                                  force_clean_build: file_committed?(FORCE_CLEAN_BUILD_MARKER),
+                                  report_deployments: true)
         end
       end
     end
@@ -324,7 +325,7 @@ command :deploy do |c|
       # - fallback to master
       ref_to_deploy = args[0] || ENV['OPENSHIFT_DEPLOYMENT_BRANCH'] || 'master'
 
-      @container.deploy(hot_deploy: file_committed?(HOT_DEPLOY_MARKER), force_clean_build: false, ref: ref_to_deploy, out: $stdout, err: $stderr)
+      @container.deploy(hot_deploy: file_committed?(HOT_DEPLOY_MARKER), force_clean_build: false, ref: ref_to_deploy, out: $stdout, err: $stderr, report_deployments: true)
     end
   end
 end

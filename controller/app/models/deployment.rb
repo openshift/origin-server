@@ -6,12 +6,10 @@
 #   @return [String] The state of deployment. i.e. active..
 # @!attribute [r] created_at
 #   @return [Date] Timestamp of when the deployment was created
-# @!attribute [r] Description
-#   @return [String] Description of deployment
 # @!attribute [r] hot_deploy
-#   @return [Boolean] 
+#   @return [Boolean]
 # @!attribute [r] force_clean_build
-#   @return [Boolean] 
+#   @return [Boolean]
 # @!attribute [r] ref
 #   @return [String] The git ref to be used for this deployment
 # @!attribute [r] artifact_url
@@ -21,10 +19,9 @@ class Deployment
   include Mongoid::Document
   embedded_in :application
 
-  self.field :id, type: String
+  self.field :deployment_id, type: String
   self.field :created_at,type: Date
   self.field :state, type: String, default: "active"
-  self.field :description, type: String
   self.field :hot_deploy, type: Boolean, default: false
   self.field :force_clean_build, type: Boolean, default: false
   self.field :ref, type: String
@@ -34,7 +31,6 @@ class Deployment
   DEPLOYMENT_STATES =[:active, :past, :prepared]
 
   validates :state, :inclusion => { :in => DEPLOYMENT_STATES.map { |s| s.to_s }, :message => "%{value} is not a valid state. Valid states are #{DEPLOYMENT_STATES.join(", ")}." }
-  validates :description, presence: {message: "Description is required and cannot be blank."}, length: {maximum: 250}, :allow_blank => false
   validates :ref, :allow_blank => true, length: {maximum: 256}
   validate  :validate_deployment
 
@@ -52,7 +48,7 @@ class Deployment
   # @return [Hash]
   def to_hash
     {
-      "id" => id, "created_at" => created_at, "state" => state, "description" => description, "hot_deploy" => hot_deploy,
+      "deployment_id" => deployment_id, "created_at" => created_at, "state" => state, "hot_deploy" => hot_deploy,
       "force_clean_build" => force_clean_build, "ref" => ref, "artifact_url" => artifact_url
       }
   end

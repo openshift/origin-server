@@ -264,12 +264,12 @@ module OpenShift
           # of these criteria, and we do not have a way to explicitly check the first two
           # criteria.  However, it should be considered a TODO to add more explicit checks.
           if cartridge.web_proxy?
-            # The BROKER_AUTH_KEY_ADD token does not use any arguments.  It tells the broker
-            # to enable this gear to make REST API calls on behalf of the user who owns this gear.
-            output << "BROKER_AUTH_KEY_ADD: \n"
-
             ::OpenShift::Runtime::GearRegistry.new(@container)
           end
+
+          # The BROKER_AUTH_KEY_ADD token does not use any arguments.  It tells the broker
+          # to enable this gear to make REST API calls on behalf of the user who owns this gear.
+          output << "BROKER_AUTH_KEY_ADD: \n"
 
           create_private_endpoints(cartridge)
 

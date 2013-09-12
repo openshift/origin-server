@@ -13,12 +13,12 @@ class DeploymentsController < BaseController
 
   def show
     Rails.logger.error "ALL #{@application.deployments}"
-    id = params[:id].presence
-    Rails.logger.error "Getting deployemt #{id}"
+    deployment_id = params[:id].presence
+    Rails.logger.error "Getting deployment #{deployment_id}"
 
-    deployment = @application.deployments.find_by(id: id)
+    deployment = @application.deployments.find_by(deployment_id: deployment_id)
     Rails.logger.error "Got deployment #{deployment.inspect}"
-    render_success(:ok, "deployment", get_rest_deployment(deployment), "Showing deployment #{id} for application #{@application.name} under domain #{@application.domain_namespace}")
+    render_success(:ok, "deployment", get_rest_deployment(deployment), "Showing deployment #{deployment_id} for application #{@application.name} under domain #{@application.domain_namespace}")
   end
 
 
@@ -29,20 +29,19 @@ class DeploymentsController < BaseController
     #TODO implement :create_deployment
     #authorize! :create_deployment, @application
 
-    description = params[:description].presence
     hot_deploy = params[:hot_deploy].presence || false
     force_clean_build = params[:force_clean_build].presence || false
     ref = params[:ref].presence
     artifact_url = params[:artifact_url].presence
 
-    deployment = Deployment.new(description: description, hot_deply: hot_deploy, force_clean_build: force_clean_build, ref: ref, artifact_url: artifact_url)
+    deployment = Deployment.new(hot_deply: hot_deploy, force_clean_build: force_clean_build, ref: ref, artifact_url: artifact_url)
     if deployment.invalid?
       messages = get_error_messages(deployment)
       return render_error(:unprocessable_entity, nil, nil, nil, nil, messages)
     else
-       result, id = @application.deploy(deployment)
-       rest_deployment = get_rest_deployment(@application.deployments.find_by(id: id))
-       render_success(:created, "deployment", rest_deployment, "Added #{deployment.id} to application #{@application.name}", result)
+      result, deployment_id = @application.deploy(deployment)
+      rest_deployment = get_rest_deployment(@application.deployments.find_by(deployment_id: deployment_id))
+      render_success(:created, "deployment", rest_deployment, "Added #{deployment.deployment_id} to application #{@application.name}", result)
     end
   end
 
@@ -53,10 +52,9 @@ class DeploymentsController < BaseController
     if deployments
       deploys = []
       deployments.each do |d|
-        deploys.push(Deployment.new(id: d["id"],
+        deploys.push(Deployment.new(deployment_id: d["id"],
                                  state: d["state"],
-                            created_at: d["created_at"],
-                           description: d["description"],
+                            created_at: d["created_at"],  #TODO:  Need to figure out the transfer format here.  time_in_millis is probably best
                                    ref: d["ref"],
                           artifact_url: d["artifcat_url"],
                             hot_deploy: d["hot_deploy"],

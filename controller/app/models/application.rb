@@ -185,7 +185,7 @@ class Application
   # @param scalable [Boolean] Indicates if the application should be scalable or host all cartridges on a single gear.
   #    If set to true, a "web_proxy" cartridge is automatically added to perform load-balancing for the web tier
   # @param result_io [ResultIO, #output] Object to log all messages and cartridge output
-  # @param group_overrides [Array] List of overrides to specify gear sizes, scaling limits, component colocation etc.
+  # @param group_overrides [Array] List of overrides to specify gear sizes, scaling limits, component collocation etc.
   # @param init_git_url [String] URL to git repository to retrieve application code
   # @param user_agent [String] user agent string of browser used for this rest API request
   # @return [Application] Application object
@@ -2912,11 +2912,11 @@ class Application
       self.run_jobs(result_io)
 
       #TODO Get values from the result
-      deployment.id = rand(100)
+      deployment.deployment_id = rand(100)
       self.deployments.push(deployment)
       result_io
     end
-    return result_io, deployment.id
+    return result_io, deployment.deployment_id
   end
 
   def rollback(deployment_id)

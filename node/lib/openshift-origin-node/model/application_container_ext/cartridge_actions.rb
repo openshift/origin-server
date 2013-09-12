@@ -294,6 +294,7 @@ module OpenShift
         #   :hot_deploy : a boolean to toggle hot deploy for the operation (default: false)
         #   :ref     : the git ref to use
         #   :force_clean_build : if true, don't copy the previous deployment's dependencies to the new one (default: false)
+        #   :report_deployments : a boolean to toggle hot deploy for the operation (default: false)
         #
         def post_receive(options={})
           builder_cartridge = @cartridge_model.builder_cartridge
@@ -334,6 +335,11 @@ module OpenShift
 
               activate_many(options)
             end
+          end
+
+          if options[:report_deployments]
+            gear_env = ::OpenShift::Runtime::Utils::Environ.for_gear(@container_dir)
+            report_deployments(gear_env)
           end
 
           report_build_analytics
@@ -789,6 +795,7 @@ module OpenShift
         #   :force_clean_build : indicates whether to force clean build
         #   :ref           : the ref to deploy
         #   :artifact_url  : the artifact to download and deploy
+        #   :report_deployments  : report the deployments back to the broker
         #   :out           : an IO to which any stdout should be written (default: nil)
         #   :err           : an IO to which any stderr should be written (default: nil)
         #
@@ -799,14 +806,17 @@ module OpenShift
           artifact_url = options[:artifact_url]
           out = options[:out]
           err = options[:err]
+          report_deployments = options[:report_deployments]
           pre_receive(out: out, err: err, hot_deploy: hot_deploy)
-          post_receive(out: out, err: err, hot_deploy: hot_deploy, force_clean_build: force_clean_build, ref: ref)
+          post_receive(out: out, err: err, hot_deploy: hot_deploy, force_clean_build: force_clean_build, ref: ref, report_deployments: report_deployments)
         end
 
         #
         # Rolls back to the previous deployment
         #
         # options: hash
+        #   :deployment_id : the deployment to roll back to
+        #   :report_deployments  : report the deployments back to the broker
         #   :out           : an IO to which any stdout should be written (default: nil)
         #   :err           : an IO to which any stderr should be written (default: nil)
         #

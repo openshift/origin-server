@@ -34,10 +34,10 @@ class DeploymentsControllerTest < ActionController::TestCase
 
   test "deployment create show list update and destroy" do
 
-    post :create, {"description" => "This is a new deployment", "ref" => "mybranch", "application_id" => @app.uuid}
+    post :create, {"ref" => "mybranch", "application_id" => @app.uuid}
     assert_response :created
     assert json = JSON.parse(response.body)
-    assert id =  json['data']['id']
+    assert id = json['data']['id']
 
     #get :show, {"id" => id, "application_id" => @app.uuid}
     #assert_response :success
@@ -49,7 +49,7 @@ class DeploymentsControllerTest < ActionController::TestCase
   test "update deployments" do
     deployments = []
     for i in 1..5
-      deployments.push({:id => i, :description => "This is #{i} deployment", :ref => "tag_#{i}"})
+      deployments.push({:id => i, :ref => "tag_#{i}"})
     end
     post :create, {"deployments" => deployments, "application_id" => @app.uuid}
     assert_response :success
@@ -61,8 +61,6 @@ class DeploymentsControllerTest < ActionController::TestCase
   end
 
   test "no or non-existent deployment" do
-    post :create, {"application_id" => @app.id}
-    assert_response :unprocessable_entity
     get :show, {"application_id" => @app.id}
     assert_response :not_found
     get :show, {"application_id" => @app.id, "id" => "bogus"}

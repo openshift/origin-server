@@ -169,7 +169,6 @@ module OpenShift
             deployment_state = read_deployment_metadata(deployment_datetime, 'state') || ''
             delete_deployment(File.basename(d)) unless deployment_state.chomp == 'DEPLOYED'
           end
-          #
 
           # remove so we stay under to_keep
           all = all_deployments
