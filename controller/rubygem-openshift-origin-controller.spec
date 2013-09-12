@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.14.7
+Version: 1.14.8
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -84,6 +84,12 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Thu Sep 12 2013 Adam Miller <admiller@redhat.com> 1.14.8-1
+- Merge pull request #3631 from rajatchopra/master
+  (dmcphers+openshiftbot@redhat.com)
+- fix bz1003014 - find_cartridge should search for 'Name' as well
+  (rchopra@redhat.com)
+
 * Thu Sep 12 2013 Adam Miller <admiller@redhat.com> 1.14.7-1
 - Merge pull request #3621 from smarterclayton/storage_rest_response_broken
   (dmcphers+openshiftbot@redhat.com)
