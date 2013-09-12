@@ -116,6 +116,9 @@ class RestApiMembershipTest < ActiveSupport::TestCase
     assert !d.update_members([Member.new(:id => fourth_user.id, :role => 'edit')])
     assert Array(d.errors[:base]).any?{ |s| s =~ /You are not permitted to perform .*change_members.*domain/ }, d.errors.full_messages.join(' ')
 
+    # an editor can't delete members
+    assert_raises(ActiveResource::ForbiddenAccess){ d_second.delete(:members) }
+
     # third user can view the domain but cannot do anything
     assert d = Domain.find(@domain.id, :as => third_user)
     d_third = d
@@ -123,8 +126,14 @@ class RestApiMembershipTest < ActiveSupport::TestCase
     assert !d.admin?
     assert !d.editor?
     assert  d.readonly?
+
+    # a viewer can't delete members
+    assert_raises(ActiveResource::ForbiddenAccess){ d_third.delete(:members) }
     assert_raises(ActiveResource::ForbiddenAccess){ d.destroy }
+
+    # a viewer can't change the domain
     assert_raises(ActiveResource::ResourceInvalid){ d.name = "#{d.id}_"; d.save! }
+    d.reload
 
     # can give the owner an explicit role
     assert owner = d_other.members.find(&:owner)
@@ -142,7 +151,12 @@ class RestApiMembershipTest < ActiveSupport::TestCase
     assert_nil m.explicit_role
     assert_equal 'admin', m.role
 
-    # a second remove is a no-op
+    # a second remove is the same - the user no longer has an explicit role still
     assert owner.destroy
+    assert owner.has_exit_code?(132)
+
+    # remove all members
+    assert @domain.reload.delete(:members)
+    assert_equal [@user.login], @domain.reload.members.map(&:name)
   end
 end
