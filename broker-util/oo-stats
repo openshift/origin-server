@@ -306,7 +306,7 @@ class OOStats
     hashes.each do |hash|
       hash.each {|key,value| cols[key] = true if [String, Symbol, Integer, Fixnum].include? value.class}
     end
-    cols = cols.keys.sort # if you wanted a specific order you wouldn't be here
+    cols = cols.keys.sort_by(&:to_s) # if you wanted a specific order you wouldn't be here
     # OK let's make an exception to bring a few identifier columns to the front
     [:name, :profile, :node_profile, :login].each {|col| cols.include?(col) and cols = [col] + (cols - [col])}
     return cols
