@@ -38,7 +38,7 @@ class ScalingFuncTest < OpenShift::NodeBareTestCase
     'python-3.3'   => 'wsgi/application',
     'ruby-1.8'     => 'config.ru',
     'ruby-1.9'     => 'config.ru',
-    'zend-5.6'     => 'php/index.php'
+    'zend-5.6'     => 'php/index.php',
   }
 
   def setup
@@ -96,10 +96,18 @@ class ScalingFuncTest < OpenShift::NodeBareTestCase
   end
 
   def test_scaled
+    if @framework_cartridge == 'zend-5.6'
+      return
+    end
+
     basic_build_test([@framework_cartridge])
   end
 
   def test_scaled_jenkins
+    if @framework_cartridge == 'zend-5.6'
+      return
+    end
+
     up_gears
     create_jenkins
     basic_build_test([@framework_cartridge, 'jenkins-client-1'])
