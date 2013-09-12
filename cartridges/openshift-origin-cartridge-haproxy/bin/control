@@ -226,7 +226,7 @@ function disable-server() {
             gearid="gear-${gear}-${domain}"
         fi
         set +e
-        echo "disable server express/$gearid" | socat stdio $OPENSHIFT_HAPROXY_DIR/run/stats
+        echo "disable server express/$gearid" | socat stdio $OPENSHIFT_HAPROXY_DIR/run/stats > /dev/null
         if [ "$persist" == "yes" ]; then
             disable-server-in-config $gearid
         fi
@@ -257,7 +257,7 @@ function enable-server() {
             gearid="gear-${gear}-${domain}"
         fi
         set +e
-        echo "enable server express/$gearid" | socat stdio $OPENSHIFT_HAPROXY_DIR/run/stats
+        echo "enable server express/$gearid" | socat stdio $OPENSHIFT_HAPROXY_DIR/run/stats > /dev/null
         if [ "$persist" == "yes" ]; then
             enable-server-in-config $gearid
         fi
