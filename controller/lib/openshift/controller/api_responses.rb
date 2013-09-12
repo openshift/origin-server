@@ -193,8 +193,9 @@ module OpenShift
           log_args = get_log_args.merge(extra_log_args)
 
           if extra_messages.present?
-            reply.messages.concat(messages)
-            log_action(action_log_tag, status, true, message, log_args, messages.map(&:text).join(', '))
+            extra_messages = Array(extra_messages)
+            reply.messages.concat(extra_messages)
+            log_action(action_log_tag, status, true, message, log_args, extra_messages.map(&:text).join(', '))
           else
             log_action(action_log_tag, status, true, message, log_args)
           end

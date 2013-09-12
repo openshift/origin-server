@@ -73,7 +73,7 @@ class MembersController < BaseController
 
     if save_membership(membership)
       if m = members.detect{ |m| m._id === params[:id] }
-        render_success(:ok, "member", get_rest_member(m), "The member #{m.name} is no longer directly granted a role.")
+        render_success(:ok, "member", get_rest_member(m), nil, nil, Message.new(:info, "The member #{m.name} is no longer directly granted a role.", 132))
       else
         render_success(:no_content, nil, nil, "Removed member.")
       end

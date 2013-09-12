@@ -10,12 +10,13 @@
 # @!attribute [r] field
 #   @return [String] (Optional) field that this message applies to. Usually for validation failures.
 class Message < OpenShift::Model
-  attr_accessor :severity, :text, :exit_code, :field
+  attr_accessor :severity, :text, :exit_code, :field, :index
 
-  def initialize(severity=:info, text=nil, exit_code=0, field=nil)
+  def initialize(severity=:info, text=nil, exit_code=0, field=nil, index=nil)
     self.severity = severity
     self.text = text
     self.exit_code = exit_code
     self.field = field
+    self.index = index
   end
 end

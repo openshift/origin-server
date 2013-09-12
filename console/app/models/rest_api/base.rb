@@ -395,7 +395,9 @@ module RestApi
     end
 
     def destroy
-      super
+      response = connection.delete(element_path, self.class.headers)
+      set_remote_errors(response, true) if response.code != 204
+      true
     rescue ActiveResource::ResourceNotFound => e
       raise ResourceNotFound.new(self.class.model_name, id, e.response)
     end

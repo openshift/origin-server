@@ -135,8 +135,9 @@ class RestApiMembershipTest < ActiveSupport::TestCase
     assert_equal 'admin', m.role
 
     # another admin cannot delete the owner, only remove an explicit role
-    assert owner = d_other.members.find(&:owner)
+    assert owner = d_other.reload.members.find(&:owner)
     assert owner.destroy
+    assert owner.has_exit_code?(132)
     assert m = d_other.reload.members.find(&:owner)
     assert_nil m.explicit_role
     assert_equal 'admin', m.role
