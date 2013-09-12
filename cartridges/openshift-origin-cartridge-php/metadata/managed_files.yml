@@ -4,17 +4,21 @@ locked_files:
 - ~/.drush/
 - bin/
 - bin/*
+- conf/
+- conf/*
 - configuration/
 - configuration/etc/
-- configuration/etc/php.ini
+- configuration/etc/conf/
+- configuration/etc/conf/*
 - configuration/etc/conf.d/
-- configuration/etc/conf.d/*
+- configuration/etc/conf.d/openshift.conf
+- configuration/etc/conf.d/php.conf
+- configuration/etc/php.ini
 - metadata/
 - metadata/*
 - env/
 - env/*
 - hooks/
 - hooks/*
-- conf/
 processed_templates:
 - '**/*.erb'

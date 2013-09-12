@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.14.4
+Version: 1.14.6
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -84,6 +84,32 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Wed Sep 11 2013 Adam Miller <admiller@redhat.com> 1.14.6-1
+- fix bz1006645 (rchopra@redhat.com)
+- Fix for bug 1005007 and bug 1006526 (abhgupta@redhat.com)
+- Merge pull request #3582 from kraman/test_case_fixes
+  (dmcphers+openshiftbot@redhat.com)
+- Fixing code to allow admin to restrict # of domains to be less than # of
+  gears allocated to a user. (kraman@gmail.com)
+
+* Tue Sep 10 2013 Adam Miller <admiller@redhat.com> 1.14.5-1
+- Merge pull request #3592 from abhgupta/abhgupta-scheduler
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3589 from rajatchopra/master
+  (dmcphers+openshiftbot@redhat.com)
+- Fix for bug 1005631 (abhgupta@redhat.com)
+- Merge pull request #3583 from jwforres/admin_console_capacity_planning-fork
+  (dmcphers+openshiftbot@redhat.com)
+- fix enable_ha with respect to max gear limits of web cart + config fixes
+  (rchopra@redhat.com)
+- <admin libs> remove licenses, minor format (lmeyer@redhat.com)
+- <admin suggestions> fix bug 1004671 (lmeyer@redhat.com)
+- <admin suggestions> allow 1-node districts (lmeyer@redhat.com)
+- <admin suggestions> fix bug 1004297 (lmeyer@redhat.com)
+- <admin suggestions> fix bug 1004157 (lmeyer@redhat.com)
+- <admin suggestions> library to suggest admin changes (lmeyer@redhat.com)
+- <admin stats> refactor and mods for admin console (lmeyer@redhat.com)
+
 * Mon Sep 09 2013 Adam Miller <admiller@redhat.com> 1.14.4-1
 - Use EXTERNAL_ETH_DEV if its set in node.conf. (rmillner@redhat.com)
 

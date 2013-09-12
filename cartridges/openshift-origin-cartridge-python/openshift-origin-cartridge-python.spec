@@ -1,7 +1,7 @@
 %global cartridgedir %{_libexecdir}/openshift/cartridges/python
 
 Name:          openshift-origin-cartridge-python
-Version: 0.9.3
+Version: 0.9.5
 Release:       1%{?dist}
 Summary:       Python cartridge
 Group:         Development/Languages
@@ -29,7 +29,6 @@ Requires:      mod_wsgi >= 3.4
 Requires:      mod_wsgi < 3.5
 Requires:      httpd > 2.3
 Requires:      httpd < 2.5
-Requires:      symlinks
 %endif
 
 Requires:      MySQL-python
@@ -55,6 +54,7 @@ Requires:      freetype-devel
 Requires:      atlas-devel
 Requires:      lapack-devel
 Requires:      redhat-lsb-core
+Requires:      symlinks
 
 Obsoletes: openshift-origin-cartridge-community-python-2.7
 Obsoletes: openshift-origin-cartridge-community-python-3.3
@@ -115,6 +115,17 @@ Python cartridge for OpenShift. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Wed Sep 11 2013 Adam Miller <admiller@redhat.com> 0.9.5-1
+- Merge pull request #3614 from kraman/test_case_fixes
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3609 from rmillner/BZ1006183
+  (dmcphers+openshiftbot@redhat.com)
+- Python needs symlinks dependency on both F19 and RHEL (kraman@gmail.com)
+- Bug 1006183 - Do builds from the REPO dir instead. (rmillner@redhat.com)
+
+* Tue Sep 10 2013 Adam Miller <admiller@redhat.com> 0.9.4-1
+- Add symlinks requirement for python cart on Fedora 19 (kraman@gmail.com)
+
 * Fri Sep 06 2013 Adam Miller <admiller@redhat.com> 0.9.3-1
 - Merge pull request #3555 from rmillner/BZ1004886
   (dmcphers+openshiftbot@redhat.com)

@@ -382,6 +382,10 @@ function _websocketHandler(proxy_server, ws) {
     zheaders.headers.Cookie = upgrade_req.headers.cookie;
   }
 
+  if (upgrade_req.headers["sec-websocket-protocol"]) {
+    zheaders.headers["Sec-Websocket-Protocol"] = upgrade_req.headers["sec-websocket-protocol"];
+  }
+
   /*  Create a proxy websocket request we need to send.  */
   var proxy_ws = new WebSocket('ws://' + ws_endpoint + upg_requri, zheaders);
 

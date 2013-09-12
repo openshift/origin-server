@@ -699,7 +699,7 @@ class Application
       cats = CartridgeCache.find_cartridge(ci.cartridge_name, self).categories
       cats.include? "web_proxy"
     }.first
-    raise OpenShift::UserException.new("Cannot make the application HA because the web cartridge's max gear limit is '1'") if component_instance.group_instance.max==1
+    raise OpenShift::UserException.new("Cannot make the application HA because the web cartridge's max gear limit is '1'") if component_instance.group_instance.get_group_override('max_gears')==1
     # set the web_proxy's min to 2 
     self.update_component_limits(component_instance, 2, nil, nil)
 

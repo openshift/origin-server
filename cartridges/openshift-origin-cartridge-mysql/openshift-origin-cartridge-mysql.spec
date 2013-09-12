@@ -2,7 +2,7 @@
 
 Summary:       Provides embedded mysql support
 Name:          openshift-origin-cartridge-mysql
-Version: 0.8.2
+Version: 0.8.3
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -40,6 +40,13 @@ Provides mysql cartridge support to OpenShift. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Tue Sep 10 2013 Adam Miller <admiller@redhat.com> 0.8.3-1
+- Merge pull request #3599 from danmcp/master
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 1002894 (dmcphers@redhat.com)
+- Bug 1002893 - Added mysql-connector-java dependency to mysql cartridge
+  (mfojtik@redhat.com)
+
 * Fri Sep 06 2013 Adam Miller <admiller@redhat.com> 0.8.2-1
 - Bug 1000167 (dmcphers@redhat.com)
 

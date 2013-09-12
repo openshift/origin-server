@@ -5,11 +5,12 @@ source "${OPENSHIFT_RUBY_DIR}/lib/util"
 source "${OPENSHIFT_RUBY_DIR}/lib/ruby_context"
 
 HTTPD_CFG_FILE=$OPENSHIFT_RUBY_DIR/etc/conf/httpd_nolog.conf
+HTTPD_PASSENV_FILE=$OPENSHIFT_RUBY_DIR/etc/conf.d/passenv.conf
 HTTPD_PID_FILE=$OPENSHIFT_RUBY_DIR/run/httpd.pid
 
 function start() {
     echo "Starting Ruby cartridge"
-    update_httpd_passenv $HTTPD_CFG_FILE
+    write_httpd_passenv $HTTPD_PASSENV_FILE
     ensure_valid_httpd_process "$HTTPD_PID_FILE" "$HTTPD_CFG_FILE"
     ruby_context "/usr/sbin/httpd -C 'Include $OPENSHIFT_RUBY_DIR/etc/conf.d/*.conf' -f $HTTPD_CFG_FILE -k start"
 }
@@ -26,7 +27,7 @@ function stop() {
 
 function restart() {
     echo "${1}ing Ruby cart"
-    update_httpd_passenv $HTTPD_CFG_FILE
+    write_httpd_passenv $HTTPD_PASSENV_FILE
     touch $OPENSHIFT_REPO_DIR/tmp/restart.txt
     ensure_httpd_restart_succeed "$HTTPD_PID_FILE" "$HTTPD_CFG_FILE"
     ruby_context "/usr/sbin/httpd -C 'Include $OPENSHIFT_RUBY_DIR/etc/conf.d/*.conf' -f $HTTPD_CFG_FILE -k restart"
