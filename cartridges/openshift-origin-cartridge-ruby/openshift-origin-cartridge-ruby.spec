@@ -6,7 +6,7 @@
 %global cartridgedir %{_libexecdir}/openshift/cartridges/ruby
 
 Name:          openshift-origin-cartridge-ruby
-Version: 0.9.2
+Version: 0.9.3
 Release:       1%{?dist}
 Summary:       Ruby cartridge
 Group:         Development/Languages
@@ -183,6 +183,12 @@ Ruby cartridge for OpenShift. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Thu Sep 12 2013 Adam Miller <admiller@redhat.com> 0.9.3-1
+- Merge pull request #3620 from ironcladlou/dev/cart-version-bumps
+  (dmcphers+openshiftbot@redhat.com)
+- Cartridge version bumps for 2.0.33 (ironcladlou@gmail.com)
+- Fix Apache PassEnv config files (vvitek@redhat.com)
+
 * Fri Sep 06 2013 Adam Miller <admiller@redhat.com> 0.9.2-1
 - Fix bug 1004899: remove legacy subscribes from manifests (pmorie@gmail.com)
 
