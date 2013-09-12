@@ -4,7 +4,7 @@
 
 Summary:       Provides JBossEAP6.0 support
 Name:          openshift-origin-cartridge-jbosseap
-Version: 2.8.4
+Version: 2.8.5
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -91,6 +91,11 @@ cp -p %{cartridgedir}/versions/shared/modules/mysql_module.xml /etc/alternatives
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Thu Sep 12 2013 Adam Miller <admiller@redhat.com> 2.8.5-1
+- Bug 1002893 - Added .jdbc to the mysql module name in JBossEAP
+  (mfojtik@redhat.com)
+- Cartridge version bumps for 2.0.33 (ironcladlou@gmail.com)
+
 * Tue Sep 10 2013 Adam Miller <admiller@redhat.com> 2.8.4-1
 - Merge pull request #3595 from mfojtik/bugzilla/1002893
   (dmcphers+openshiftbot@redhat.com)
