@@ -281,6 +281,17 @@ command :rollback do |c|
   end
 end
 
+command :archive_deployment do |c|
+  c.syntax = "#{name} archive-deployment"
+
+  c.option "--deployment-id ID", "Deployment ID to roll back to"
+
+  c.description = "Archive the current deployment"
+  c.action do |args, options|
+    @container.archive options.deployment_id
+  end
+end
+
 command :create_deployment_dir do |c|
   c.syntax = "#{name} create_deployment_dir"
   c.description = "Create a deployment directory and force a clean build. Should only be used by CI builders"

@@ -160,7 +160,7 @@ if __name__ == '__main__':
         allargs = ['-c', str]
     if basecmd in ('snapshot',):
         # This gets called with "snapshot"
-        allargs = ['oo-snapshot']
+        allargs = ['oo-snapshot']        
     if basecmd in ('restore',):
         # This gets called with "restore <INCLUDE_GIT>"
         include_git = False

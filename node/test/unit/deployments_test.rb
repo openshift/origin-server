@@ -377,7 +377,7 @@ class DeploymentsTest < OpenShift::NodeTestCase
   end
 
   # make sure it doesn't delete any deployments if we're under the limit
-  def test_clean_up_deployments_before_keep_defined
+  def test_clean_up_deployments_under_keep_limit
     %w(3 4).each do |keep|
       gear_env = {'OPENSHIFT_KEEP_DEPLOYMENTS' => keep}
       ::OpenShift::Runtime::Utils::Environ.stubs(:for_gear).returns(gear_env)
@@ -398,13 +398,32 @@ class DeploymentsTest < OpenShift::NodeTestCase
   def test_archive
     current = time_to_s(Time.now)
     @container.expects(:current_deployment_datetime).returns(current)
-    deployment_dir = File.join(@container.container_dir, 'app-deployments', current)
-    @container.expects(:run_in_container_context).with("tar zcf - --exclude metadata .",
-                                                       chdir: deployment_dir,
-                                                       expected_exitstatus: 0)
+    deployment_dir = PathUtils.join(@container.container_dir, 'app-deployments', current)
+    @container.expects(:run_in_container_context).with("tar zcf - --exclude metadata .", 
+                                                       has_entries(
+                                                         chdir: deployment_dir,
+                                                         expected_exitstatus: 0,
+                                                         out: anything(),
+                                                         err: anything()))
                                                  .returns("foo")
 
     output = @container.archive
+
+    assert_equal 'foo', output
+  end
+
+  def test_archive_param
+    current = time_to_s(Time.now)
+    deployment_dir = PathUtils.join(@container.container_dir, 'app-deployments', current)
+    @container.expects(:run_in_container_context).with("tar zcf - --exclude metadata .", 
+                                                       has_entries(
+                                                         chdir: deployment_dir,
+                                                         expected_exitstatus: 0,
+                                                         out: anything(),
+                                                         err: anything()))
+                                                 .returns("foo")
+
+    output = @container.archive(current)
 
     assert_equal 'foo', output
   end
