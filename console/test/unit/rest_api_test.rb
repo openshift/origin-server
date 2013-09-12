@@ -68,15 +68,15 @@ class RestApiTest < ActiveSupport::TestCase
   end
 
   def test_translate_api_error
-    (errors = mock).expects(:add).once.with(:base, 'test')
+    (errors = mock).expects(:add).once.with('base', 'test')
     RestApi::Base.translate_api_error(errors, nil, nil, 'test')
     (errors = mock).expects(:add).once.with(:test, 'test')
     RestApi::Base.translate_api_error(errors, nil, :test, 'test')
-    (errors = mock).expects(:add).once.with(:test, 'test')
-    RestApi::Base.translate_api_error(errors, nil, 'test', 'test')
-    (errors = mock).expects(:add).once.with(:test, I18n.t('116', :scope => [:rest_api, :errors]))
+    (errors = mock).expects(:add).once.with('test', 'other')
+    RestApi::Base.translate_api_error(errors, nil, 'test', 'other')
+    (errors = mock).expects(:add).once.with('test', I18n.t('116', :scope => [:rest_api, :errors]))
     RestApi::Base.translate_api_error(errors, '116', 'test', 'test')
-    (errors = mock).expects(:add).once.with(:base, I18n.t('116', :scope => [:rest_api, :errors]))
+    (errors = mock).expects(:add).once.with('base', I18n.t('116', :scope => [:rest_api, :errors]))
     RestApi::Base.translate_api_error(errors, '116', nil, nil)
   end
 

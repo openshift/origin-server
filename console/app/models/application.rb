@@ -2,6 +2,13 @@
 # The REST API model object representing an application instance.
 #
 class Application < RestApi::Base
+  include Membership
+
+  class Member < ::Member
+    belongs_to :application
+  end
+
+
   schema do
     string :name, :creation_time
     string :id, :domain_id
@@ -69,7 +76,7 @@ class Application < RestApi::Base
   has_many :gear_groups
   has_one  :embedded, :class_name => as_indifferent_hash
 
-  include Membership
+  has_members :as => Domain::Member
 
   attr_accessible :name, :scale, :gear_profile, :cartridges, :cartridge_names, :initial_git_url, :initial_git_branch
 
