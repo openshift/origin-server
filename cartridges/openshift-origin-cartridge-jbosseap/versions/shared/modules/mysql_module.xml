@@ -1,4 +1,4 @@
-<module xmlns="urn:jboss:module:1.0" name="com.mysql">
+<module xmlns="urn:jboss:module:1.0" name="com.mysql.jdbc">
   <resources>
     <resource-root path="mysql-connector-java.jar"/>
   </resources>
