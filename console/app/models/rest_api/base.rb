@@ -598,7 +598,7 @@ module RestApi
     def self.messages_for(response)
       Message.from_array(format.decode(response.body)['messages']) rescue []
     end
-    
+
     def messages
       @messages ||= (Message.from_array(attributes[:messages]) rescue [])
     end
@@ -653,11 +653,11 @@ module RestApi
           end
         end
         message = I18n.t(code, :scope => [:rest_api, :errors], :default => text.to_s)
-        field = (field && field.respond_to?(:to_sym) ? field : 'base').to_sym
+        field = field.presence || 'base'
         errors.add(field, message) unless message.blank?
 
         codes = errors.instance_variable_get(:@codes)
-        codes = errors.instance_variable_set(:@codes, {}) unless codes
+        codes = errors.instance_variable_set(:@codes, HashWithSimpleIndifferentAccess.new) unless codes
         (codes[field] ||= []).push(code)
       end
       def exception_for_code(code, type=nil)

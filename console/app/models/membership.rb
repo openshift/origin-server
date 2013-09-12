@@ -18,21 +18,22 @@ module Membership
   end
 
   def readonly?
-    has_role?('read')
+    has_role?('view')
   end
 
   def has_role?(*roles)
     roles.present? and api_identity_id.present? and members.find{ |m| m.id == api_identity_id && roles.include?(m.role) }
   end
 
+  # FIXME Refactor this method into a patch_child_collection operation on RestApi::Base
   def update_members(members)
     self.errors.clear
     self.messages.clear
     body = {
       :members => members.map do |m|
         {
-          :id => m.id,
-          :login => m.login,
+          :id => (m.id if m.respond_to? :id),
+          :login => (m.login if m.respond_to? :login),
           :role => m.role
         }
       end
@@ -46,6 +47,7 @@ module Membership
     else
       m = self.class.member_resource.new(resource, true, p)
       m.as = as
+      self.members.delete_if{ |o| o == m }
       self.members << m
     end
     true
