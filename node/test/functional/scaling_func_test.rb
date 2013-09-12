@@ -25,19 +25,20 @@ class ScalingFuncTest < OpenShift::NodeBareTestCase
   CHANGED_TITLE = "Test1"
 
   CART_TO_INDEX = {
-    'ruby-1.8'     => 'config.ru',
-    'ruby-1.9'     => 'config.ru',
-    'php-5.3'      => 'php/index.php',
-    'nodejs-0.6'   => 'index.html',
     'jbossas-7'    => 'src/main/webapp/index.html',
     'jbosseap-6'   => 'src/main/webapp/index.html',
     'jbossews-1.0' => 'src/main/webapp/index.html',
     'jbossews-2.0' => 'src/main/webapp/index.html',
+    'mock-0.1'     => 'index.html',
+    'nodejs-0.6'   => 'index.html',
+    'perl-5.10'    => 'perl/index.pl',
+    'php-5.3'      => 'php/index.php',
     'python-2.6'   => 'wsgi/application',
     'python-2.7'   => 'wsgi/application',
     'python-3.3'   => 'wsgi/application',
-    'perl-5.10'    => 'perl/index.pl',
-    'mock-0.1'     => 'index.html',
+    'ruby-1.8'     => 'config.ru',
+    'ruby-1.9'     => 'config.ru',
+    'zend-5.6'     => 'php/index.php'
   }
 
   def setup
