@@ -3,11 +3,8 @@
   .domains .owner { padding-bottom: 5px; margin-bottom: 8px; border-bottom: 4px solid #222; }  
   .domain + .owner { margin-top: 20px; }
 
-
-
 - content_for :full_layout, true
 - content_for :dark_layout, true
-
 - content_for :top do
   .grid-wrapper.section-header
     %nav.span12.span-flush-right.applications
@@ -56,6 +53,7 @@
   :javascript
     jQuery('.tile-click').click(function(evt) {
       if ((t = $(evt.target)) && t.is('a')) { return }
-      a = $('h2 > a', this)[0];
-      window.location = a.href
+      a = $('a.tile-target', this)[0];
+      if (a)
+        window.location = a.href;
     });
