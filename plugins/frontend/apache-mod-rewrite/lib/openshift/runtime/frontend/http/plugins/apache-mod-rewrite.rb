@@ -34,7 +34,7 @@ module OpenShift
 
           class ApacheModRewrite < PluginBaseClass
 
-            TEMPLATE_HTTPS = "/etc/httpd/conf.d/frontend-vhost-https-template.erb"
+            TEMPLATE_HTTPS = "frontend-vhost-https-template.erb"
 
             def initialize(container_uuid, fqdn, container_name, namespace)
               @config = ::OpenShift::Config.new
@@ -42,7 +42,7 @@ module OpenShift
 
               super(container_uuid, fqdn, container_name, namespace)
 
-              @template_https = TEMPLATE_HTTPS
+              @template_https = File.join(@basedir, TEMPLATE_HTTPS)
             end
 
             def destroy
@@ -207,8 +207,8 @@ module OpenShift
                 priv_key_file_path = PathUtils.join(alias_conf_dir_path, a + ".key")
 
                 begin
-                  ssl_cert = File.read(ssl_cert_file_path)
-                  priv_key = File.read(priv_key_file_path)
+                  ssl_cert = File.read(ssl_cert_file_path).chomp
+                  priv_key = File.read(priv_key_file_path).chomp
                 rescue
                   ssl_cert = nil
                   priv_key = nil
@@ -245,15 +245,14 @@ module OpenShift
                 end
 
                 File.open(ssl_key_file, File::RDWR | File::CREAT | File::TRUNC, 0644) do |f|
-                  f.write(priv_key)
+                  f.puts(priv_key)
                   f.fsync
                 end
 
                 alias_conf_file_path = PathUtils.join(@basedir, "#{alias_token}.conf")
                 File.open(alias_conf_file_path, File::RDWR | File::CREAT | File::TRUNC, 0644) do |f|
                   server_name = server_alias
-                  f.write(ERB.new(File.read(@template_https)).result(binding))
-                  f.write("\n")
+                  f.puts(ERB.new(File.read(@template_https)).result(binding))
                   f.fsync
                 end
 

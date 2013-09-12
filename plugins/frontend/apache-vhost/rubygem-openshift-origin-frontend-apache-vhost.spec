@@ -91,11 +91,11 @@ cp %{buildroot}/%{gem_instdir}/conf/openshift-origin-frontend-apache-vhost.conf.
 
 
 
-mkdir -p %{buildroot}/etc/httpd/conf.d/
+mkdir -p %{buildroot}/etc/httpd/conf.d/openshift
 mv httpd/000001_openshift_origin_node.conf %{buildroot}/etc/httpd/conf.d/
 mv httpd/000001_openshift_origin_node_servername.conf %{buildroot}/etc/httpd/conf.d/
-mv httpd/frontend-vhost-https-template.erb %{buildroot}/etc/httpd/conf.d/
-mv httpd/frontend-vhost-http-template.erb %{buildroot}/etc/httpd/conf.d/
+mv httpd/frontend-vhost-https-template.erb %{buildroot}/etc/httpd/conf.d/openshift/
+mv httpd/frontend-vhost-http-template.erb %{buildroot}/etc/httpd/conf.d/openshift/
 
 
 %files
@@ -105,8 +105,8 @@ mv httpd/frontend-vhost-http-template.erb %{buildroot}/etc/httpd/conf.d/
 %{gem_cache}
 %config(noreplace) /etc/httpd/conf.d/000001_openshift_origin_node.conf
 %config(noreplace) /etc/httpd/conf.d/000001_openshift_origin_node_servername.conf
-%config(noreplace) /etc/httpd/conf.d/frontend-vhost-http-template.erb
-%config(noreplace) /etc/httpd/conf.d/frontend-vhost-https-template.erb
+%config(noreplace) /etc/httpd/conf.d/openshift/frontend-vhost-http-template.erb
+%config(noreplace) /etc/httpd/conf.d/openshift/frontend-vhost-https-template.erb
 /etc/openshift/node-plugins.d/
 
 %changelog

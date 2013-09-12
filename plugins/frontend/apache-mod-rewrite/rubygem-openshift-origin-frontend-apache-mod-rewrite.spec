@@ -107,11 +107,12 @@ done
   sed -i 's/^#LogLevel/LogLevel/g' httpd/openshift_route.include
 %endif
 
-mkdir -p %{buildroot}/etc/httpd/conf.d/
+mkdir -p %{buildroot}/etc/httpd/conf.d
 mv httpd/000001_openshift_origin_node.conf %{buildroot}/etc/httpd/conf.d/
 mv httpd/000001_openshift_origin_node_servername.conf %{buildroot}/etc/httpd/conf.d/
 mv httpd/openshift_route.include %{buildroot}/etc/httpd/conf.d/
-mv httpd/frontend-vhost-https-template.erb %{buildroot}/etc/httpd/conf.d/
+
+mv httpd/frontend-vhost-https-template.erb %{buildroot}%{appdir}/.httpd.d/frontend-vhost-https-template.erb
 
 %files
 %doc %{gem_docdir}
@@ -121,7 +122,7 @@ mv httpd/frontend-vhost-https-template.erb %{buildroot}/etc/httpd/conf.d/
 %config(noreplace) /etc/httpd/conf.d/000001_openshift_origin_node.conf
 %config(noreplace) /etc/httpd/conf.d/000001_openshift_origin_node_servername.conf
 %config(noreplace) /etc/httpd/conf.d/openshift_route.include
-%config(noreplace) /etc/httpd/conf.d/frontend-vhost-https-template.erb
+%attr(0644,root,root)   %config(noreplace) %{appdir}/.httpd.d/frontend-vhost-https-template.erb
 %attr(0640,root,apache) %config(noreplace) %{appdir}/.httpd.d/nodes.txt
 %attr(0640,root,apache) %config(noreplace) %{appdir}/.httpd.d/aliases.txt
 %attr(0640,root,apache) %config(noreplace) %{appdir}/.httpd.d/idler.txt

@@ -33,8 +33,8 @@ module OpenShift
 
           class ApacheVirtualHosts < PluginBaseClass
 
-            TEMPLATE_HTTP  = "/etc/httpd/conf.d/frontend-vhost-http-template.erb"
-            TEMPLATE_HTTPS = "/etc/httpd/conf.d/frontend-vhost-https-template.erb"
+            TEMPLATE_HTTP  = "frontend-vhost-http-template.erb"
+            TEMPLATE_HTTPS = "frontend-vhost-https-template.erb"
 
             LOCK = $OpenShift_ApacheVirtualHosts_Lock
             LOCKFILE = "/var/run/openshift/apache-vhost.lock"
@@ -50,8 +50,8 @@ module OpenShift
               @token = "#{@container_uuid}_#{@namespace}_#{@container_name}"
               @app_path = File.join(@basedir, token)
 
-              @template_http  = TEMPLATE_HTTP
-              @template_https = TEMPLATE_HTTPS
+              @template_http  = File.join(@basedir, TEMPLATE_HTTP)
+              @template_https = File.join(@basedir, TEMPLATE_HTTPS)
             end
 
 
@@ -167,19 +167,15 @@ module OpenShift
             def disconnect(*paths)
               with_lock_and_reload do
                 paths.flatten.each do |p|
-                  FileUtils.rm_f(element_path(path))
+                  FileUtils.rm_f(element_path(p))
                 end
               end
             end
 
 
 
-            def idle_path_prefix
-              "000000_idler"
-            end
-
             def idle_path
-              File.join(@app_path, "#{idle_path_prefix}.conf")
+              File.join(@app_path, "000000_idler.conf")
             end
 
             def idle
@@ -202,21 +198,14 @@ module OpenShift
 
 
 
-
-            def sts_path_prefix
-              "000001_sts_header-"
-            end
-
-            def sts_path(max_age)
-              File.join(@app_path, "#{sts_path_prefix}#{max_age}.conf")
+            def sts_path
+              File.join(@app_path, "000001_sts_header.conf")
             end
 
             def sts(max_age=15768000)
               with_lock_and_reload do
-                Dir.glob(sts_path('*')).each do |p|
-                  FileUtils.rm_f(p)
-                end              
-                File.open(sts_path(max_age), File::RDWR | File::CREAT | File::TRUNC, 0644 ) do |f|
+                File.open(sts_path, File::RDWR | File::CREAT | File::TRUNC, 0644 ) do |f|
+                  f.puts("# MAX_AGE: #{max_age.to_i}")
                   f.puts("Header set Strict-Transport-Security \"max-age=#{max_age.to_i}\"")
                   f.puts("RewriteCond %{HTTPS} =off")
                   f.puts("RewriteRule ^(.*)$ https://%{HTTP_HOST}$1 [R,NS,L]")
@@ -226,15 +215,18 @@ module OpenShift
 
             def no_sts
               with_lock_and_reload do
-                Dir.glob(sts_path('*')).each do |p|
-                  FileUtils.rm_f(p)
-                end
+                FileUtils.rm_f(sts_path)
               end
             end
 
             def get_sts
-              Dir.glob(sts_path('*')).each do |f|
-                return File.basename(f,".conf").gsub(sts_path_prefix,'')
+              begin
+                File.read(sts_path).each_line do |l|
+                  if l=~/^# MAX_AGE: (\d+)$/
+                    return $~[1].to_i
+                  end
+                end
+              rescue Errno::ENOENT
               end
               nil
             end

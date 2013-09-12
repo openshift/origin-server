@@ -313,17 +313,20 @@ module OpenShift
             def self.lookup_by_uuid(container_uuid)
               GearDB.open(GearDB::READER) do |d|
                 config = d[container_uuid]
-                c = self.new(config["container_uuid"], config["fqdn"], config["container_name"], config["namespace"])
-                return c
+                if config
+                  return self.new(container_uuid, config["fqdn"], config["container_name"], config["namespace"])
+                end
               end
+              nil
             end
 
             def self.lookup_by_fqdn(fqdn)
               GearDB.open(GearDB::READER) do |d|
                 d.select { |k,v| v["fqdn"] == fqdn }.each do |k,v|
-                  return self.new(v["container_uuid"], v["fqdn"], v["container_name"], v["namespace"])
+                  return self.new(k, v["fqdn"], v["container_name"], v["namespace"])
                 end
               end
+              nil
             end
 
             def self.all
