@@ -17,7 +17,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.14.6
+Version: 1.14.7
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -306,6 +306,14 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Thu Sep 12 2013 Adam Miller <admiller@redhat.com> 1.14.7-1
+- Merge pull request #3552 from VojtechVitek/passenv
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3617 from ironcladlou/dev/upgrade-stability
+  (dmcphers+openshiftbot@redhat.com)
+- Fix Apache PassEnv config files (vvitek@redhat.com)
+- Improve upgrade MCollective response handling (ironcladlou@gmail.com)
+
 * Wed Sep 11 2013 Adam Miller <admiller@redhat.com> 1.14.6-1
 - Bug 1000764 - Enforce cartridge start order (jhonce@redhat.com)
 
