@@ -284,7 +284,7 @@ end
 command :archive_deployment do |c|
   c.syntax = "#{name} archive-deployment"
 
-  c.option "--deployment-id ID", "Deployment ID to roll back to"
+  c.option "--deployment-id ID", "Deployment ID to archive"
 
   c.description = "Archive the current deployment"
   c.action do |args, options|
