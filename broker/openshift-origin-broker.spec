@@ -16,7 +16,7 @@
 
 Summary:       OpenShift Origin broker components
 Name:          openshift-origin-broker
-Version:       1.15.0
+Version:       1.15.1
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -281,6 +281,191 @@ chcon -R -t httpd_var_run_t %{brokerdir}/httpd/run
 /sbin/restorecon -R -v /var/run
 
 %changelog
+* Fri Sep 13 2013 Troy Dawson <tdawson@redhat.com> 1.15.1-1
+- Fixing test case to allow multiple domains before checking for duplicate
+  namespace (kraman@gmail.com)
+- Merge pull request #3589 from rajatchopra/master
+  (dmcphers+openshiftbot@redhat.com)
+- fix enable_ha with respect to max gear limits of web cart + config fixes
+  (rchopra@redhat.com)
+- <broker> compile assets in all envs (lmeyer@redhat.com)
+- <admin suggestions> allow 1-node districts (lmeyer@redhat.com)
+- <admin suggestions> fix bug 1004297 (lmeyer@redhat.com)
+- <admin suggestions> fix bug 1004157 (lmeyer@redhat.com)
+- <admin console> capacity planning (jforrest@redhat.com)
+- <admin suggestions> library to suggest admin changes (lmeyer@redhat.com)
+- <admin stats> refactor and mods for admin console (lmeyer@redhat.com)
+- Remove environment variables support from REST 1.0 api version
+  (rpenta@redhat.com)
+- enable ha feature (rchopra@redhat.com)
+- Fix Origin quickstarts. (steven.merrill@gmail.com)
+- Bug 1002685 - Downcase domain names when fetching applications by domain
+  (ccoleman@redhat.com)
+- cleanup (dmcphers@redhat.com)
+- Updated broker/docs for the phpmyadmin-4 (mfojtik@redhat.com)
+- Updated docs after bug fixes (lnader@redhat.com)
+- Bug 999826 and 999892 (lnader@redhat.com)
+- Bug 999891 (lnader@redhat.com)
+- Set mongoid logging to warn (dmcphers@redhat.com)
+- cleanup (dmcphers@redhat.com)
+- Handle .resultset.json (dmcphers@redhat.com)
+- Fix for bug 997008 (abhgupta@redhat.com)
+- origin_broker_77 (lnader@redhat.com)
+- Merge pull request #3435 from
+  smarterclayton/bug_997848_capabilities_not_shown_via_api
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3378 from Miciah/delete-references-to-obsolete-
+  MONGO_REPLICA_SETS (dmcphers+openshiftbot@redhat.com)
+- Bug 997848 - Inherited capabilities not in REST API (ccoleman@redhat.com)
+- Bug 986300 - Pulling in a few cleanup commits from Fedora
+  (bleanhar@redhat.com)
+- Merge pull request #3413 from sosiouxme/admin-stats-fixes
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3410 from pravisankar/dev/ravi/card86
+  (dmcphers+openshiftbot@redhat.com)
+- <Admin::Stats> use only strings for hash keys (lmeyer@redhat.com)
+- <Admin::Stats> exclude inactive nodes from eff avail gears
+  (lmeyer@redhat.com)
+- Added User environment variables support in broker (rpenta@redhat.com)
+- Fix for bug 995034 (abhgupta@redhat.com)
+- Merge pull request #3382 from smarterclayton/builder_scope_incorrect
+  (dmcphers+openshiftbot@redhat.com)
+- additional version changes (dmcphers@redhat.com)
+- Merge pull request #3369 from lnader/improve_test_coverage
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3387 from
+  smarterclayton/bug_997831_domain_scope_not_in_config
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3370 from
+  smarterclayton/bug_997246_prohibit_blank_domains
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 997831 - Domain scope not in Rails config (ccoleman@redhat.com)
+- Fix builder scope by introducing a domain builder scope (ccoleman@redhat.com)
+- Merge pull request #3376 from brenton/BZ986300_BZ981148
+  (dmcphers+openshiftbot@redhat.com)
+- Broker AUTH_KEY config variables don't match style (ccoleman@redhat.com)
+- Merge pull request #3358 from sosiouxme/oo-stats-mods
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3368 from smarterclayton/find_by_user_broken_on_app
+  (dmcphers+openshiftbot@redhat.com)
+- Remove references to deprecated MONGO_REPLICA_SETS (miciah.masters@gmail.com)
+- Bug 986300 - Remove the unused Broker configuration directory
+  (bleanhar@redhat.com)
+- <Admin::Stats tests> work around test problems (lmeyer@redhat.com)
+- <oo-stats> ability to read results from file; more (lmeyer@redhat.com)
+- <Admin::Stats> refactor classes and tests (lmeyer@redhat.com)
+- Bug 997246 - Prohibit blank domains (ccoleman@redhat.com)
+- improve test coverage on rest models (lnader@redhat.com)
+- Unable to scale up or snapshot an app (ccoleman@redhat.com)
+- <broker> Fix problem with plugin loading from source (lmeyer@redhat.com)
+- Merge pull request #3322 from smarterclayton/origin_ui_73_membership_model
+  (dmcphers+openshiftbot@redhat.com)
+- <broker> improve Gemfile loading + bug 993250 (lmeyer@redhat.com)
+- Default to test mode membership off (ccoleman@redhat.com)
+- Default to membership off in development mode (ccoleman@redhat.com)
+- Review comments (ccoleman@redhat.com)
+- Review - add comment to test (ccoleman@redhat.com)
+- Bug 995371 - Direct parameters to members were ignored (ccoleman@redhat.com)
+- Ensure only users with ssh access are added with keys (ccoleman@redhat.com)
+- * Implement a membership model for OpenShift that allows an efficient query
+  of user access based on each resource. * Implement scope limitations that
+  correspond to specific permissions * Expose membership info via the REST API
+  (disableable via config) * Allow multiple domains per user, controlled via a
+  configuration flag * Support additional information per domain
+  (application_count and gear_counts) to improve usability * Let domains
+  support the allowed_gear_sizes option, which limits the gear sizes available
+  to apps in that domain * Simplify domain update interactions - redundant
+  validation removed, and behavior of responses differs slightly. * Implement
+  migration script to enable data (ccoleman@redhat.com)
+- Bug 992464 - Authorization token needs to raise when checking eventual
+  consistency (ccoleman@redhat.com)
+- Merge pull request #3272 from lnader/master
+  (dmcphers+openshiftbot@redhat.com)
+- <admin/stats> functional test to cover db scan method (lmeyer@redhat.com)
+- <admin/stats> add unit tests, fix a bug (lmeyer@redhat.com)
+- added more tests to improve coverage (lnader@redhat.com)
+- Merge pull request #3227 from kraman/docs (dmcphers+openshiftbot@redhat.com)
+- Adding missing activemq config templates Fixing console spec to require gems
+  Additional fixes to comprehensive deployment guide (kraman@gmail.com)
+- Fix for bug 989650 (abhgupta@redhat.com)
+- Merge pull request #3229 from rajatchopra/master
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3233 from jwforres/admin_console_testcase_coverage
+  (dmcphers+openshiftbot@redhat.com)
+- fix in scope for scaling issues (rchopra@redhat.com)
+- Admin console test framework and initial functional tests
+  (jforrest@redhat.com)
+- Bug 956859 (dmcphers@redhat.com)
+- Merge pull request #3210 from
+  jwforres/admin_console_testcase_coverage_exclusion
+  (dmcphers+openshiftbot@redhat.com)
+- Exclude admin console from test coverage for now (jforrest@redhat.com)
+- Merge remote-tracking branch 'origin/master' into changes_for_membership
+  (ccoleman@redhat.com)
+- Adding missing rubygem requires to broker, console and admin-console packages
+  (kraman@gmail.com)
+- <admin-console> broker proxy RPP change + filling in README
+  (lmeyer@redhat.com)
+- Merge remote-tracking branch 'origin/master' into changes_for_membership
+  (ccoleman@redhat.com)
+- <broker> Add mocking for Cartridge.categories in unit test
+  (jolamb@redhat.com)
+- <application.rb> Add feature to carts to handle wildcard ENV variable
+  subscriptions (jolamb@redhat.com)
+- origin_broker_25 (lnader@redhat.com)
+- Simplify capabilities to be more model like, and support clean proxying of
+  inherited properties (ccoleman@redhat.com)
+- Support running broker tests directly Force scopes to use checked ids and
+  avoid symbolizing arbitrary strings Use .present? instead of .count > 0 (for
+  performance) Handle ValidationExceptions globally (ccoleman@redhat.com)
+- Bug 985656 - minor improvement for consistency in broker and console spec
+  files (bleanhar@redhat.com)
+- Admin console framework (jforrest@redhat.com)
+- Merge pull request #3111 from pravisankar/dev/ravi/bug983038
+  (dmcphers+openshiftbot@redhat.com)
+- Remove ecdsa ssh key type from supported list. Rationale: Due to patent
+  concerns, ECC support is not bundled in fedora/rhel(needed for ecdsa key
+  generation).            So even if someone has a valid ecdsa keys, sshd
+  server on our node won't be able to authenticate the user.
+  (rpenta@redhat.com)
+- <broker> make parallel passenger baseuri change in SCL conf file
+  (lmeyer@redhat.com)
+- <broker> fix tests against broker base URI change (lmeyer@redhat.com)
+- <broker> re-base the broker URI from /broker => / (lmeyer@redhat.com)
+- Merge pull request #3083 from smarterclayton/strong_consistency_is_default
+  (dmcphers+openshiftbot@redhat.com)
+- Authorization test case was wrong (ccoleman@redhat.com)
+- Bug 973796 - PassengerPreStart points at root which logs errors
+  (bleanhar@redhat.com)
+- Strong consistency is the default for mongoid (ccoleman@redhat.com)
+- Merge pull request #3044 from brenton/BZ973796
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 973796 - PassengerPreStart points at root which logs errors
+  (bleanhar@redhat.com)
+- Changing error message to make it more clear (abhgupta@redhat.com)
+- Handling cleanup of failed pending op using rollbacks (abhgupta@redhat.com)
+- Remove Online specific references: -Remove hard-coded cart name references.
+  -Remove login validations from CloudUser model, login validation must be done
+  by authentication plugin. -Remove 'medium' gear size references -All 'small'
+  gear size references must be from configuration files. -Remove stale
+  application_observer.rb and its references -Remove stale 'abstract' cart
+  references -Remove duplicate code from rest controllers -Move all
+  get_rest_{user,domain,app,cart} methods in RestModelHelper module. -Cleanup
+  unnecessary TODO/FIXME comments in broker. (rpenta@redhat.com)
+- Merge pull request #2927 from smarterclayton/bug_970257_support_git_at_urls
+  (dmcphers+openshiftbot@redhat.com)
+- Avoid harmless but annoying deprecation warning (asari.ruby@gmail.com)
+- Merge pull request #2946 from maxamillion/dev/maxamillion/enable_rhcl
+  (dmcphers+openshiftbot@redhat.com)
+- Tests pass fully (add initial_git_url for earlier api versions).  Control
+  what values of URI get persisted to DB (passwords and userinfo from clone
+  specs should not be) (ccoleman@redhat.com)
+- Broker source mode should reload classes, only load plugins in
+  broker_plugins.rb (ccoleman@redhat.com)
+- enable rhscl repos - add wrapper (admiller@redhat.com)
+- bz969696 - download cart settings (rchopra@redhat.com)
+- First pass at removing v1 cartridges (dmcphers@redhat.com)
+
 * Fri Sep 13 2013 Troy Dawson <tdawson@redhat.com> 1.15.1-0
 - Bump up version to 1.15
 
