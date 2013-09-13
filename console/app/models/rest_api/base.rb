@@ -394,11 +394,10 @@ module RestApi
       end
     end
 
-    def destroy
-      notify_observers(:before_destroy)
+    # Overrides ActiveResource::Base#destroy
+    def destroy_without_notifications
       response = connection.delete(element_path, self.class.headers)
       set_remote_errors(response, true) if response.code != 204
-      notify_observers(:after_destroy)
       true
     rescue ActiveResource::ResourceNotFound => e
       raise ResourceNotFound.new(self.class.model_name, id, e.response)

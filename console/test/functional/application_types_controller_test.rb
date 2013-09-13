@@ -78,10 +78,6 @@ class ApplicationTypesControllerTest < ActionController::TestCase
     end
   end
 
-
-
-
-
   def assert_hidden_domain_field(value)
     assert_response :success
     assert assigns(:domains)
@@ -205,10 +201,6 @@ class ApplicationTypesControllerTest < ActionController::TestCase
     )
   end
 
-
-
-
-
   test "should show type page for cartridge" do
     with_unique_user
     type = ApplicationType.all.select{ |t| t.cartridge? }.sample(1).first
@@ -243,6 +235,7 @@ class ApplicationTypesControllerTest < ActionController::TestCase
     assert_select 'h3 > span.text-warning', 'None'
     assert_select '.btn-primary[disabled=disabled]'
     assert_select "input[name='application[initial_git_url]']", 0
+    assert_select ".indicator-gear-increase", "+0"
   end
 
   test "should render custom single cart type" do
@@ -252,6 +245,7 @@ class ApplicationTypesControllerTest < ActionController::TestCase
     assert_select 'h3', 'Ruby 1.9'
     assert_select 'h3', 'From Scratch'
     assert_select "input[name='application[cartridges][]'][value=ruby-1.9]"
+    assert_select ".indicator-gear-increase", "+1"
   end
 
   test "should render custom single cart type with url" do
@@ -262,6 +256,7 @@ class ApplicationTypesControllerTest < ActionController::TestCase
     assert_select 'h3 > a', 'custom_cart'
     assert_select '.text-warning', /Downloaded cartridges do not receive updates automatically/
     assert_select "input[type=hidden][name='application[cartridges][][url]'][value=http://foo.bar#custom_cart]"
+    assert_select ".indicator-gear-increase", "+1"
   end
 
   test "should render custom single cart type with url unlocked" do
@@ -271,6 +266,7 @@ class ApplicationTypesControllerTest < ActionController::TestCase
     assert_select 'h3', 'From Scratch'
     assert_select '.text-warning', /Downloaded cartridges do not receive updates automatically/
     assert_select "input[type=text][name='application_type[cartridges]'][value=http://foo.bar#custom_cart]"
+    assert_select ".indicator-gear-increase", "+1-?"
   end
 
   test "should render custom cart type with a choice" do
@@ -279,6 +275,7 @@ class ApplicationTypesControllerTest < ActionController::TestCase
     assert_response :success
     assert_select "select[name='application[cartridges][]'] > option", 'Ruby 1.9'
     assert_select "select[name='application[cartridges][]'] > option", 'Ruby 1.8'
+    assert_select ".indicator-gear-increase", "+1"
   end
 
   test "should render custom multiple carts" do
