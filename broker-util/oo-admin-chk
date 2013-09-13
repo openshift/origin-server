@@ -191,6 +191,9 @@ def assign_usage_hash(urec, gear_hash, storage_hash, cart_hash, summary, verbose
     hash[gear_id]['cart_name'] = [] unless hash[gear_id]['cart_name']
     hash[gear_id]['cart_name'] << urec['cart_name']
   end
+  if urec['addtl_fs_gb']
+    hash[gear_id]['addtl_fs_gb'] = urec['addtl_fs_gb']
+  end
 end
 
 def process_usage_hash(gear_hash, storage_hash, cart_hash)
@@ -373,7 +376,7 @@ OpenShift::DataStore.find(:applications, app_query, app_selection) do |app|
       gid = gi['_id'].to_s
       gi_hash[gid] = {}
       gi_hash[gid]['premium_carts'] = []
-      gi_hash[gid]['addtl_fs_gb'] = false
+      gi_hash[gid]['addtl_fs_gb'] = 0
     end
     # Get premium carts for the group instance
     premium_carts = get_premium_carts
@@ -398,7 +401,7 @@ OpenShift::DataStore.find(:applications, app_query, app_selection) do |app|
           if ci['cartridge_name'] == go_components['cart']
             gid = ci['group_instance_id'].to_s
             gi_hash[gid] = {} unless gi_hash[gid]
-            gi_hash[gid]['addtl_fs_gb'] = true
+            gi_hash[gid]['addtl_fs_gb'] = go['additional_filesystem_gb']
             found = true
             break
           end
@@ -718,7 +721,7 @@ if level >= 1 and $billing_enabled
   usage_storage_hash = {}
   usage_cart_hash = {}
   # Populate usage hash: Only for un-ended usage records
-  selection = {:fields => ["app_name", "created_at", "gear_id", "event", "usage_type", "cart_name"],
+  selection = {:fields => ["app_name", "created_at", "gear_id", "event", "usage_type", "cart_name", "addtl_fs_gb"],
                :timeout => false}
   OpenShift::DataStore.find(:usage_records, {}, selection) do |urec|
     assign_usage_hash(urec, usage_gear_hash, usage_storage_hash, usage_cart_hash, summary, verbose)
@@ -769,10 +772,13 @@ if level >= 1 and $billing_enabled
 
   # Find applications with additional storage but not in usage_records and viceversa.
   app_storage_hash = {}
-  gear_id_hash.each { |gear_id, gear_info| app_storage_hash[gear_id] = gear_info if gear_info[2] }
+  gear_id_hash.each { |gear_id, gear_info| app_storage_hash[gear_id] = gear_info if gear_info[2]!=0 }
   app_storage_gear_ids = app_storage_hash.keys
   usage_storage_gear_ids = usage_storage_hash.keys
   missing_storage_gear_ids = (usage_storage_gear_ids - app_storage_gear_ids) + (app_storage_gear_ids - usage_storage_gear_ids)
+  (app_storage_gear_ids & usage_storage_gear_ids).each do |gear_id|
+    missing_storage_gear_ids << gear_id if app_storage_hash[gear_id][2] != usage_storage_hash[gear_id]['addtl_fs_gb']
+  end
   puts "Checking gears with additional storage in applications collection but not in usage_records and viceversa: " + ((missing_storage_gear_ids.length > 0) ? "FAIL" : "OK") if verbose
 
   missing_storage_gear_ids.each do |gear_id|
@@ -784,7 +790,7 @@ if level >= 1 and $billing_enabled
     end
     query['group_instances.gears._id'] = Moped::BSON::ObjectId(gear_id)
     app = Application.where(query).first
-    app_storage_exists = false
+    app_storage = 0
     group_inst = nil
     app.group_instances.each do |gi|
       gi.gears.each do |gear|
@@ -795,30 +801,33 @@ if level >= 1 and $billing_enabled
       end
       break if group_inst
     end if app
-    app_storage_exists = true if group_inst and (group_inst.addtl_fs_gb != 0)
+    app_storage = group_inst.addtl_fs_gb if group_inst and (group_inst.addtl_fs_gb != 0)
 
     query = {'gear_id' => BSON::ObjectId(gear_id), 'usage_type' => UsageRecord::USAGE_TYPES[:addtl_fs_gb]}
-    selection = {:fields => ["event"], :timeout => false}
-    num_end_events = num_begin_events = 0
+    selection = {:fields => ["event", "addtl_fs_gb"], :timeout => false}
+    num_end_events = num_begin_events = addtl_fs_gb = 0
     OpenShift::DataStore.find(:usage_records, query, selection) do |urec|
       next if !UsageRecord::EVENTS.values.include?(urec['event'])
       if urec['event'] == UsageRecord::EVENTS[:end]
         num_end_events += 1
       else
+        addtl_fs_gb = urec['addtl_fs_gb']
         num_begin_events += 1
       end
     end
-    usage_storage_exists = (num_begin_events > num_end_events)
+    usage_storage = (num_begin_events > num_end_events)
 
-    if app_storage_exists and usage_storage_exists
+    if usage_storage and (app_storage > 0) and (app_storage == addtl_fs_gb)
       # Ignore, false alarm
       puts "OK" if verbose
     else
       puts "FAIL" if verbose
-      if app_storage_exists
-        summary << "Found addtl storage for gear Id '#{gear_id}' but could not find corresponding usage record."
-      else
+      if app_storage == 0
         summary << "Found usage record for addtl storage with gear Id '#{gear_id}' but could not find corresponding gear with addtl storage in the application."
+      elsif !usage_storage
+        summary << "Found addtl storage for gear Id '#{gear_id}' but could not find corresponding usage record."
+      else # app_storage != addtl_fs_gb
+        summary << "Found addtl storage mismatch for gear Id '#{gear_id}', #{addtl_fs_gb} in usage record vs #{app_storage} for corresponding gear in the application."
       end
     end
   end
