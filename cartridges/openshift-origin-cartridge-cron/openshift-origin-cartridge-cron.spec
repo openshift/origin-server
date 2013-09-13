@@ -2,7 +2,7 @@
 
 Summary:       Embedded cron support for OpenShift
 Name:          openshift-origin-cartridge-cron
-Version: 1.13.0
+Version:       1.15.0
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
