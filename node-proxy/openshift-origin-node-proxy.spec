@@ -7,7 +7,7 @@
 
 Summary:       Routing proxy for OpenShift Origin Node
 Name:          openshift-origin-node-proxy
-Version:       1.15.0
+Version:       1.15.1
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -125,6 +125,9 @@ fi
 %doc README
 
 %changelog
+* Fri Sep 13 2013 Troy Dawson <tdawson@redhat.com> 1.15.1-1
+- bump_minor_versions for sprint 34 (admiller@redhat.com)
+
 * Wed Sep 11 2013 Adam Miller <admiller@redhat.com> 1.12.3-1
 - Add support for passing through Sec-Websocket-Protocol header.
   (mrunalp@gmail.com)
