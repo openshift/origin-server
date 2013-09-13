@@ -59,6 +59,10 @@
 
 - max_gears = @capabilities.max_gears
 
+:css
+  .restart .popover.bottom {margin-left: -75px;}
+  .restart .popover.bottom .arrow {margin-left: 70px;}
+
 - content_for :top do
   .grid-wrapper.section-header
     %nav.span12.span-flush-right.application
@@ -92,10 +96,10 @@
           %span{style: 'font-weight: bold;'}= @application.gear_count
           %span.gear-icon{'aria-hidden'=>"true", 'data-icon' => "\ue014", style: 'opacity: 0.4;'}
 
-          %span#restart-container.popover-restart{style: 'position: relative; display: inline-block; white-space: normal; text-align: left;'}
-            = link_to application_restart_path(@application), { :id => 'restart-link', 'data-html' => 'true', 'data-placement' => 'bottom', :class => 'btn-console-header', :title => 'Restart Application'} do
+          %span.restart.confirm-container{style: 'position: relative; display: inline-block; white-space: normal; text-align: left;'}
+            = link_to application_restart_path(@application), { 'data-placement' => 'bottom', :class => 'confirm-link btn-console-header', :title => 'Restart Application'} do
               %span.font-icon.font-icon-grey{:alt => 'Restart', :title =>"Restart application", "aria-hidden" => "true", "data-icon" => "\ue020"}
-            #restart-popover.hide
+            .confirm-popover.hide
               = render 'restarts/form'
 
       %p{style: 'margin-top: -10px; margin-bottom: 10px; opacity: 0.8;'}
@@ -392,21 +396,6 @@
 
 - content_for :javascripts do
   :javascript
-    $('#restart-link').popover({
-      content: function() { return $('#restart-popover').html(); }
-    }).click(function() {
-      $('#restart-link').toggleClass('highlight');
-      $('#restart-container').activateForms();
-      return false;
-    });
-
-    $('#restart-container').on('click', '.restart-cancel', function() {
-      $('#restart-link').removeClass('highlight').popover('hide');
-      return false;
-    }).on('submit', 'form', function() {
-      $('#restart-container .btn').hide();
-    });
-
     $('[data-text-copy]').click(function() {
       $(this).focus().select();
       $(this).keypress(function(e){ e.preventDefault(); });

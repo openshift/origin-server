@@ -1,23 +1,45 @@
-%h1= "Domain #{@domain.name}"
+:css
+  span.flow-block > span {margin: 0 10px; font-size: 18px; font-weight: normal; text-transform: uppercase; opacity: .75;}
 
-.row
-  .span6
-    %section
+  .leave .popover { width: 300px; }
+  .leave .popover-inner, .leave .popover-content { width: auto; }
+
+- content_for :full_layout, true
+- content_for :dark_layout, true
+- content_for :top do
+  .grid-wrapper.section-header
+    %nav.span12.span-flush-right.applications
+      %h1.flow
+        = "Domain #{@domain.name}"
+
+        %span.flow-block.right
+          %span{:title => 'Applications'}= pluralize(@domain.application_count, 'application')
+          %span{:title => 'Gears'}= pluralize(@domain.gear_counts.values.sum, 'gear')
+          %span{:title => 'Members'}= pluralize(@domain.members.count, 'member')
+
+= breadcrumb_for_domain(@domain)
+
+%section#app-list.span12
+  %section{style: 'margin-bottom: 20px; padding-bottom:'}
+
+  .row{style: 'margin-bottom: 20px; padding-bottom:'}
+    .span8
       %h2 Applications
       - @domain.applications.each do |application|
-        %h3.name= application.name
-        = link_to "Manage #{application.name}", application_path(application)
-        |
-        = link_to application.web_url, application.web_url
-  .span6
-    %section
-      %h2 Members
-      = render :partial => 'members/members', :locals => {:domain => @domain, :members => @domain.members, :editable => @domain.admin?}
+        = render :partial => 'applications/application2', :locals => {:application => application}
 
-    - if @domain.admin?
+    .span4
       %section
-        = render :partial => 'members/new_member', :locals => {:domain => @domain}
-  
+        %h2 Members
+        = render :partial => 'members/members', :locals => {:domain => @domain, :members => @domain.members, :editable => @domain.admin?}
 
-%section
-  %pre= PP.pp(@domain.attributes, "")
+      - if @domain.admin?
+        %section
+          = render :partial => 'members/new_member', :locals => {:domain => @domain, :member => @member}
+
+      - unless @domain.owner?
+        %section
+          %span.leave.confirm-container
+            = link_to "Leave Domain", domain_leave_path(@domain), { :class => 'btn btn-small confirm-link', :title => 'Leave Domain', 'data-placement' => 'bottom'}
+            .confirm-popover.hide
+              = render :partial => 'members/leave_domain_form', :locals => {:domain => @domain}

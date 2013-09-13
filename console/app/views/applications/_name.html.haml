@@ -21,7 +21,7 @@
 
     - if can_create and create_domain_url
       %p.help-block
-        %span= "You can also #{link_to "create a new namespace", create_domain_url, {:class => 'create_domain', :data => {:submit_domain => true}}}.".html_safe
+        %span= "You can also #{link_to "create a new domain", create_domain_url, {:class => 'create_domain', :data => {:submit_domain => true}}}.".html_safe
 
   - elsif domains.present?
     -# Select
@@ -34,7 +34,7 @@
 
     - if can_create and create_domain_url
       %p.help-block
-        %span= "You can also #{link_to "create a new namespace", create_domain_url, {:class => 'create_domain', :data => {:submit_domain => true}}}.".html_safe
+        %span= "You can also #{link_to "create a new domain", create_domain_url, {:class => 'create_domain', :data => {:submit_domain => true}}}.".html_safe
 
   - elsif can_create
     -# Text
@@ -46,7 +46,7 @@
     %span.add-on>= ".#{RestApi.application_domain_suffix}"
 
     %p.help-block
-      %span.text-warning.wrap Because this is your first application, you need to provide a namespace under which your applications will be grouped
+      %span.text-warning.wrap Because this is your first application, you need to provide a domain under which your applications will be grouped
   - else
     -# Error
-    %span.add-on> Error, can't create namespace
+    %span.add-on> Error, can't create domain

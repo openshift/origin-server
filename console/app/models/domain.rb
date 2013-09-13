@@ -6,6 +6,7 @@ class Domain < RestApi::Base
 
   class Member < ::Member
     belongs_to :domain
+    self.schema = ::Member.schema
   end
 
   schema do

@@ -27,44 +27,7 @@
               (#{owner.name})
 
           - apps.each do |application|
-            .tile-click.application{ :class => application.owner? ? 'application-owned' : nil }
-              %h2.flow
-                - if application.aliases.present?
-                  = link_to application_path(application), :class => 'tile-target flow-block name' do
-                    = application.name
-                    = '-'
-                    %span.alias= application.aliases.first.name
-                - else
-                  = link_to application.name, application_path(application), :class => 'tile-target'
-
-                %span.flow-block.right
-                  = link_to application.web_url, :target => '_blank', :class => 'url', :title => "Go to the application's web page" do
-                    %span.url-icon{'aria-hidden'=>"true", 'data-icon' => "\ue002"} 
-
-                  %span.gear{:title => application_gear_count(application)}
-                    = application.gear_count
-                    %span.gear-icon{'aria-hidden'=>"true", 'data-icon' => "\ue014"}
-                    - if (scales = application.cartridges.select(&:scales?)) and scales.present?
-                      .gauge-vertical>
-                        - if scales.any?(&:has_scale_range?)
-                          - if scales.none?(&:can_scale_up?)
-                            %span.gauge-tick.fill>  .
-                            %span.gauge-tick.fill>  .
-                            %span.gauge-tick.fill>  .
-                          - elsif scales.none?(&:can_scale_down?)
-                            %span.gauge-tick.empty> .
-                            %span.gauge-tick.empty> .
-                            %span.gauge-tick.fill>  .
-                          - else
-                            %span.gauge-tick.empty> .
-                            %span.gauge-tick.fill>  .
-                            %span.gauge-tick.fill>  .
-                        - else
-                          %span.gauge-tick.fill> .
-                          %span.gauge-tick.fill> .
-                          %span.gauge-tick.fill> .
-
-              .cartridges= application.cartridges.map(&:display_name).join(', ')
+            = render :partial => 'application2', :locals => {:application => application}
 
         .btn-toolbar.base
           = link_to application_types_path, :class => 'btn btn-primary btn-large' do
@@ -150,11 +113,6 @@
 -# FIXME: Refactor me into an unobtrusive javascript function
 - content_for :javascripts do
   :javascript
-    jQuery('.tile-click').click(function(evt) {
-      if ((t = $(evt.target)) && t.is('a')) { return }
-      a = $('h2 > a', this)[0];
-      window.location = a.href
-    });
     var popups = '.application-suggestions [data-content]'
     $(popups).popover({placement:'left', html: true, trigger: 'manual'}).click(function(e) {
       $(popups).not(this).popover('hide');
