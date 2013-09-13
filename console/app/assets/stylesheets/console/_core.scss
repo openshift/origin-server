@@ -68,13 +68,12 @@ input[type="radio"], input[type="checkbox"],input[type="image"] {
 */
 
 .platform {
-  background-color: $grayMedium; /* for use with disabled input[type=file] so button text can be visible */
-  min-height: 20px;
+  background: #f4f4f4;
+  border-left: 1px solid #f0f0f0;
+  border-top: 1px solid #f0f0f0;
+  @include box-shadow(1px 1px 2px rgba(0,0,0,.1));  min-height: 20px;
   padding: 19px;
   margin: 20px 0;
-  border: 1px solid $openshiftAlmostBlack;
-  border: 1px solid rgba(0,0,0,.5);
-  @include border-radius(4px);
   blockquote {
     border-color: #ddd;
     border-color: rgba(0,0,0,.15);
