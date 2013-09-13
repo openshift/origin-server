@@ -16,7 +16,7 @@
 
 Summary:       OpenShift Origin broker components
 Name:          openshift-origin-broker
-Version:       1.10.2
+Version:       1.15.0
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -281,6 +281,9 @@ chcon -R -t httpd_var_run_t %{brokerdir}/httpd/run
 /sbin/restorecon -R -v /var/run
 
 %changelog
+* Fri Sep 13 2013 Troy Dawson <tdawson@redhat.com> 1.15.1-0
+- Bump up version to 1.15
+
 * Tue Jun 11 2013 Troy Dawson <tdawson@redhat.com> 1.10.2-1
 - <broker.conf> default to usage db tracking on (lmeyer@redhat.com)
 - Print warning instead of failing tests if there is an unknown auth plugin
