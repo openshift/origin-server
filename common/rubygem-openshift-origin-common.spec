@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Common
 Name:          rubygem-%{gem_name}
-Version: 1.14.1
+Version:       1.15.0
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -117,6 +117,9 @@ cp bin/man/*.8 %{buildroot}%{_mandir}/man8/
 %doc %{gem_docdir}
 
 %changelog
+* Fri Sep 13 2013 Troy Dawson <tdawson@redhat.com> 1.15.1-0
+- Bump up version to 1.15
+
 * Thu Aug 29 2013 Adam Miller <admiller@redhat.com> 1.14.1-1
 - Merge pull request #3104 from Miciah/rubygem-openshift-origin-common-drop-
   rubygem-yard-dependency (dmcphers+openshiftbot@redhat.com)
