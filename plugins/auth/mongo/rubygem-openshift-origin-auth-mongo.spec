@@ -9,7 +9,7 @@
 
 Summary:       OpenShift plugin for mongo auth service
 Name:          rubygem-%{gem_name}
-Version:       1.15.0
+Version:       1.15.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -99,6 +99,14 @@ cp %{buildroot}/%{gem_instdir}/conf/openshift-origin-auth-mongo.conf.example %{b
 %doc %{gem_docdir}
 
 %changelog
+* Fri Sep 13 2013 Troy Dawson <tdawson@redhat.com> 1.15.1-1
+- Bump up version (tdawson@redhat.com)
+- <broker> re-base the broker URI from /broker => / (lmeyer@redhat.com)
+- Make set_log_tag lazy, so that all controllers have a default behavior Allow
+  controllers to override log tag on their class, not on the instance Make
+  allowances for legacy behavior (ccoleman@redhat.com)
+- Avoid harmless but annoying deprecation warning (asari.ruby@gmail.com)
+
 * Tue Jun 11 2013 Troy Dawson <tdawson@redhat.com> 1.10.2-1
 - General REST API clean up - centralizing log tags and getting common objects
   (lnader@redhat.com)
