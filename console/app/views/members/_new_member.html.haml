@@ -1,4 +1,4 @@
-= semantic_form_for (member = member || Member.new), :url => domain_members_path(domain), :html => {:method => :post} do |f|
+= semantic_form_for (member = member || Domain::Member.new), :url => domain_members_path(domain), :html => {:method => :post} do |f|
   = f.semantic_errors
   = f.inputs :inline => true do
     = f.input :login, :input_html => {:placeholder => 'User Login', :title => 'User Login'}

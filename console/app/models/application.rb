@@ -6,6 +6,7 @@ class Application < RestApi::Base
 
   class Member < ::Member
     belongs_to :application
+    self.schema = ::Member.schema
   end
 
 

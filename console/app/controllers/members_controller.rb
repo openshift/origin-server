@@ -5,7 +5,7 @@ class MembersController < ConsoleController
   end
 
   def create
-    @member = new_member(params[:member])
+    @member = new_member(params[:domain_member])
     if @member.save
       flash[:success] = @member.messages.first.presence || "Added member to domain"
       redirect_to :action => :index
@@ -42,7 +42,7 @@ class MembersController < ConsoleController
 
   protected
     def get_domain
-      @domain ||= Domain.find(params[:domain_id], :as => current_user)
+      @domain ||= Domain.find(params[:domain_id], :params => {:include => :application_info}, :as => current_user)
     end
 
     def new_member(params={})
