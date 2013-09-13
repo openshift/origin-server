@@ -81,6 +81,10 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
     @container.expects(:create_deployment_dir).returns(deployment_datetime)
 
     repository.expects(:archive).with(PathUtils.join(@container.container_dir, 'app-deployments', deployment_datetime, 'repo'), 'master')
+    git_sha1 = 'abcd1234'
+    repository.expects(:get_sha1).with('master').returns(git_sha1)
+    @container.expects(:write_deployment_metadata).with(deployment_datetime, 'git_sha1', git_sha1)
+    @container.expects(:write_deployment_metadata).with(deployment_datetime, 'git_ref', 'master')
 
     @container.expects(:build).with(out: $stdout, err: $stderr, deployment_datetime: deployment_datetime)
     @container.expects(:prepare).with(out: $stdout, err: $stderr, deployment_datetime: deployment_datetime)
@@ -115,6 +119,10 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
     @container.expects(:create_deployment_dir).returns(deployment_datetime)
 
     repository.expects(:archive).with(PathUtils.join(@container.container_dir, 'app-deployments', deployment_datetime, 'repo'), 'master')
+    git_sha1 = 'abcd1234'
+    repository.expects(:get_sha1).with('master').returns(git_sha1)
+    @container.expects(:write_deployment_metadata).with(deployment_datetime, 'git_sha1', git_sha1)
+    @container.expects(:write_deployment_metadata).with(deployment_datetime, 'git_ref', 'master')
 
     @container.expects(:build).with(out: $stdout, err: $stderr, deployment_datetime: deployment_datetime)
     @container.expects(:prepare).with(out: $stdout, err: $stderr, deployment_datetime: deployment_datetime)
@@ -150,6 +158,10 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
     @container.expects(:create_deployment_dir).never
 
     repository.expects(:archive).with(PathUtils.join(@container.container_dir, 'app-deployments', deployment_datetime, 'repo'), 'master')
+    git_sha1 = 'abcd1234'
+    repository.expects(:get_sha1).with('master').returns(git_sha1)
+    @container.expects(:write_deployment_metadata).with(deployment_datetime, 'git_sha1', git_sha1)
+    @container.expects(:write_deployment_metadata).with(deployment_datetime, 'git_ref', 'master')
 
     @container.expects(:build).with(out: $stdout, err: $stderr, deployment_datetime: deployment_datetime, hot_deploy: true)
     @container.expects(:prepare).with(out: $stdout, err: $stderr, deployment_datetime: deployment_datetime, hot_deploy: true)
@@ -324,6 +336,12 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
     @container.expects(:prepare).with(deployment_datetime: latest_deployment_datetime)
     @container.expects(:update_repo_symlink).with(latest_deployment_datetime)
     @container.expects(:write_deployment_metadata).with(latest_deployment_datetime, 'state', 'DEPLOYED')
+    git_sha1 = 'abcd1234'
+    repository = mock()
+    ::OpenShift::Runtime::ApplicationRepository.expects(:new).with(@container).returns(repository)
+    repository.expects(:get_sha1).with('master').returns(git_sha1)
+    @container.expects(:write_deployment_metadata).with(latest_deployment_datetime, 'git_sha1', git_sha1)
+    @container.expects(:write_deployment_metadata).with(latest_deployment_datetime, 'git_ref', 'master')
     @container.expects(:set_rw_permission_R).with(File.join(@container.container_dir, 'app-deployments'))
     @container.expects(:reset_permission_R).with(File.join(@container.container_dir, 'app-deployments'))
     @cartridge_model.expects(:post_configure).with(cart_name)
@@ -346,6 +364,11 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
     @container.expects(:prepare).with(deployment_datetime: latest_deployment_datetime)
     @container.expects(:update_repo_symlink).with(latest_deployment_datetime)
     @container.expects(:write_deployment_metadata).with(latest_deployment_datetime, 'state', 'DEPLOYED')
+    repository = mock()
+    ::OpenShift::Runtime::ApplicationRepository.expects(:new).with(@container).returns(repository)
+    repository.expects(:get_sha1).with('master').returns('')
+    @container.expects(:write_deployment_metadata).with(latest_deployment_datetime, 'git_sha1', '').never
+    @container.expects(:write_deployment_metadata).with(latest_deployment_datetime, 'git_ref', 'master').never
     @container.expects(:set_rw_permission_R).with(File.join(@container.container_dir, 'app-deployments'))
     @container.expects(:reset_permission_R).with(File.join(@container.container_dir, 'app-deployments'))
     @cartridge_model.expects(:post_configure).with(cart_name)

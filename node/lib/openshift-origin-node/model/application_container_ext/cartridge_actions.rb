@@ -78,6 +78,13 @@ module OpenShift
 
               write_deployment_metadata(deployment_datetime, 'state', 'DEPLOYED')
 
+              application_repository = ApplicationRepository.new(self)
+              git_sha1 = application_repository.get_sha1('master')
+              if git_sha1 != ''
+                write_deployment_metadata(deployment_datetime, 'git_sha1', git_sha1)
+                write_deployment_metadata(deployment_datetime, 'git_ref', 'master')
+              end
+
               deployments_dir = PathUtils.join(@container_dir, 'app-deployments')
               set_rw_permission_R(deployments_dir)
               reset_permission_R(deployments_dir)
@@ -320,7 +327,12 @@ module OpenShift
             end
 
             repo_dir = PathUtils.join(@container_dir, 'app-deployments', options[:deployment_datetime], 'repo')
-            ApplicationRepository.new(self).archive(repo_dir, options[:ref] || 'master')
+            application_repository = ApplicationRepository.new(self)
+            git_ref = options[:ref] || 'master'
+            application_repository.archive(repo_dir, git_ref)
+            git_sha1 = application_repository.get_sha1(git_ref)
+            write_deployment_metadata(options[:deployment_datetime], 'git_sha1', git_sha1)
+            write_deployment_metadata(options[:deployment_datetime], 'git_ref', git_ref)
 
             build(options)
 

@@ -202,6 +202,20 @@ module OpenShift
         @container.run_in_container_context("/bin/rm -rf #{cache} &")
       end
 
+      def get_sha1(ref)
+        @deployment_ref = ref
+
+        out, _, rc = @container.run_in_container_context(ERB.new(GIT_GET_SHA1).result(binding),
+                                                        chdir: @path)
+
+        if 0 == rc
+          out.chomp
+        else
+          # if the repo is empty (no commits) or the ref is invalid, the rc will be nonzero
+          ''
+        end
+      end
+
       def destroy
         FileUtils.rm_r(@path) if File.exist? @path
       end
@@ -317,6 +331,11 @@ git archive --format=tar <%= @deployment_ref %> | (cd <%= @target_dir %> && tar 
   name = OpenShift System User
 [gc]
   auto = 100
+}
+
+      GIT_GET_SHA1 = %Q{
+set -xe;
+git rev-parse --short <%= @deployment_ref %>
 }
 
       PRE_RECEIVE = %q{
