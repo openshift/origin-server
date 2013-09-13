@@ -113,11 +113,6 @@
 -# FIXME: Refactor me into an unobtrusive javascript function
 - content_for :javascripts do
   :javascript
-    jQuery('.tile-click').click(function(evt) {
-      if ((t = $(evt.target)) && t.is('a')) { return }
-      a = $('h2 > a', this)[0];
-      window.location = a.href
-    });
     var popups = '.application-suggestions [data-content]'
     $(popups).popover({placement:'left', html: true, trigger: 'manual'}).click(function(e) {
       $(popups).not(this).popover('hide');

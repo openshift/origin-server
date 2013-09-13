@@ -1,6 +1,9 @@
 :css
   span.flow-block > span {margin: 0 10px; font-size: 18px; font-weight: normal; text-transform: uppercase; opacity: .75;}
 
+  .leave .popover { width: 300px; }
+  .leave .popover-inner, .leave .popover-content { width: auto; }
+
 - content_for :full_layout, true
 - content_for :dark_layout, true
 - content_for :top do
@@ -36,14 +39,7 @@
 
       - unless @domain.owner?
         %section
-          = render :partial => 'members/leave_domain_button', :locals => {:domain => @domain}
-
--# FIXME: Refactor me into an unobtrusive javascript function
-- content_for :javascripts do
-  :javascript
-    jQuery('.tile-click').click(function(evt) {
-      if ((t = $(evt.target)) && t.is('a')) { return }
-      a = $('a.tile-target', this)[0];
-      if (a)
-        window.location = a.href;
-    });
+          %span.leave.confirm-container
+            = link_to "Leave Domain", domain_leave_path(@domain), { :class => 'btn btn-small confirm-link', :title => 'Leave Domain', 'data-placement' => 'bottom'}
+            .confirm-popover.hide
+              = render :partial => 'members/leave_domain_form', :locals => {:domain => @domain}

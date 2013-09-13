@@ -7,6 +7,6 @@
       '#{@application.name}'?
 
   = f.buttons do
-    = link_to 'Cancel', application_path(@application), :class => 'btn restart-cancel'
+    = link_to 'Cancel', application_path(@application), :class => 'btn cancel'
     = f.commit_button 'Restart'
     = f.loading
