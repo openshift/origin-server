@@ -9,7 +9,7 @@
 
 Summary:       OpenShift Origin Management Console
 Name:          rubygem-%{gem_name}
-Version:       1.15.0
+Version:       1.15.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -154,6 +154,9 @@ cp -a ./%{gem_dir}/* %{buildroot}%{gem_dir}/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Fri Sep 13 2013 Troy Dawson <tdawson@redhat.com> 1.15.1-1
+- Bump up version (tdawson@redhat.com)
+
 * Thu Aug 29 2013 Adam Miller <admiller@redhat.com> 1.14.1-1
 - Updated cartridges and scripts for phpmyadmin-4 (mfojtik@redhat.com)
 - Handle .resultset.json (dmcphers@redhat.com)
