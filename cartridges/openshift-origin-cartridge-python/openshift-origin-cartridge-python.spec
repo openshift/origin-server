@@ -1,7 +1,7 @@
 %global cartridgedir %{_libexecdir}/openshift/cartridges/python
 
 Name:          openshift-origin-cartridge-python
-Version: 0.9.6
+Version: 0.9.7
 Release:       1%{?dist}
 Summary:       Python cartridge
 Group:         Development/Languages
@@ -115,6 +115,10 @@ Python cartridge for OpenShift. (Cartridge Format V2)
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Fri Sep 13 2013 Adam Miller <admiller@redhat.com> 0.9.7-1
+- Bug 1007730 - Mark ruby and python cartridges non-compatible
+  (mfojtik@redhat.com)
+
 * Thu Sep 12 2013 Adam Miller <admiller@redhat.com> 0.9.6-1
 - Merge pull request #3620 from ironcladlou/dev/cart-version-bumps
   (dmcphers+openshiftbot@redhat.com)
