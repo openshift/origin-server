@@ -23,6 +23,21 @@ class AliasesControllerTest < ActionController::TestCase
     use_app(:ssl_app) { Application.new({:name => "sslapp", :cartridge => 'ruby-1.9', :as => new_named_user("user_with_certificate_capabilities@test.com")}) }
   end
 
+  test "should redirect from index when aliases are empty" do
+    get :index, :application_id => with_app
+    assert_redirected_to new_application_alias_path(with_app)
+  end
+
+  test "should render aliases for an app" do
+    Alias.new(:id => "www.#{@domain.id}.com", :application => with_app).save!
+    get :index, :application_id => with_app
+    assert_response :success
+    assert assigns(:application)
+    assert_select 'h1', /Aliases for/
+    with_app.aliases.each{ |a| assert_select 'td > a', a.name }
+    assert_select 'td .icon-unlock', 1
+  end
+
   test "should show alias creation form" do
     get :new, :application_id => with_app
     assert_response :success

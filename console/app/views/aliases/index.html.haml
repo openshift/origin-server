@@ -22,7 +22,7 @@
     %tbody
       - web_uri = @application.web_uri('http')
       %tr
-        %td              
+        %td
           %span.icon-lock{'aria-hidden' => true, :title => 'Uses the .rhcloud.com SSL certificate', style: 'opacity: 0.5'}
         %td= web_uri.hostname
         %td{colspan: 2} 
@@ -43,7 +43,7 @@
             = link_to edit_application_alias_path(@application, a.name) do
               edit
           %td
-            = link_to application_alias_delete_path(@application, a.name) do
+            = link_to delete_application_alias_path(@application, a.name) do
               delete
           %td
             = link_to a.web_uri(a.has_private_ssl_certificate? ? 'https' : 'http').to_s, title: "Go to the application's web page", target: "_blank", class: 'url' do

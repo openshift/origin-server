@@ -223,6 +223,43 @@ class ApplicationsControllerTest < ActionController::TestCase
     assert !assigns(:has_keys)
 
     assert_select 'h1', /#{with_app.name}/
+    assert_select 'h1', /#{with_app.domain_id}/
+    assert_select 'h1 a.url-alter', /\bchange\b/
+    with_app.cartridges.map(&:display_name).each do |name|
+      assert_select 'h2', /#{name}/
+    end
+  end
+
+  test "should retrieve application details with one alias" do
+    Application.any_instance.stubs(:aliases).returns([
+      Alias.new({:id => "www.#{with_app.domain_id}.com", :application => with_app},true),
+    ]);
+
+    get :show, :id => with_app.to_param
+    assert_response :success
+
+    assert_select 'h1', /#{with_app.name}/
+    assert css_select('h1') !=~ /#{with_app.domain_id}/
+    assert_select 'h1 a', with_app.aliases.first.name
+    assert_select 'h1 a.url-alter', /\bchange alias\b/
+    with_app.cartridges.map(&:display_name).each do |name|
+      assert_select 'h2', /#{name}/
+    end
+  end
+
+  test "should retrieve application details with two aliases" do
+    Application.any_instance.stubs(:aliases).returns([
+      Alias.new({:id => "www.#{with_app.domain_id}.com", :application => with_app},true),
+      Alias.new({:id => "www.#{with_app.domain_id}-2.com", :application => with_app},true),
+    ]);
+
+    get :show, :id => with_app.to_param
+    assert_response :success
+
+    assert_select 'h1', /#{with_app.name}/
+    assert css_select('h1') !=~ /#{with_app.domain_id}/
+    assert_select 'h1 a', with_app.aliases.first.name
+    assert_select 'h1 a.url-alter', / 1 other alias\b/
     with_app.cartridges.map(&:display_name).each do |name|
       assert_select 'h2', /#{name}/
     end
