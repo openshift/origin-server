@@ -1,0 +1,29 @@
+%span#leave-container{style: 'position: relative; display: inline-block; white-space: normal; text-align: left;'}
+  = link_to "Leave Domain", domain_leave_path(domain), { :id => 'leave-link', :class => 'btn btn-small', :title => 'Leave Domain'}
+  #leave-popover.hide
+    = render :partial => 'members/leave_domain_form', :locals => {:domain => domain}
+
+:css
+  #leave-container .popover { width: 300px; }
+  #leave-container .popover-inner, #leave-container .popover-content { width: auto; }
+
+- content_for :javascripts do
+  :javascript
+    jQuery(function($){
+
+      $('#leave-link').click(function() {
+        return false;
+      }).popover({
+        html: true,
+        placement: 'bottom',
+        content: function() {
+          return $('#leave-popover').html();
+        }
+      });
+
+      $('#leave-container').on('click', '.cancel', function() {
+        $('#leave-link').popover('hide');
+        return false;
+      });
+
+    });

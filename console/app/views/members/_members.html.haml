@@ -1,7 +1,12 @@
 :css
-  table.members { margin-bottom: 10px; }
+  table.members { 
+    margin-bottom: 10px;
+  }
   table.members td, table.members th { vertical-align: middle; padding-left: 10px; padding-right: 10px; }
-  table.members select { margin-bottom: 0; }
+  table.members select { 
+    margin-bottom: 0;
+    width: 100%;
+  }
 
   table.members a.remove-member {
     color: inherit;
@@ -24,29 +29,33 @@
   :javascript
     $(function(){
       $('a.remove-member').click(function(){
-        $(this).hide().parent().find('select').val('none');
+        $(this).css({visibility:'hidden'}).closest('tr').hide().find('select').val('none');
       });
     });
 
 
 = form_tag domain_members_path(domain), :method => :put do
-  %table.table.table-condensed.members{:style => "width:auto"}
+  %table.table.table-condensed.members
     %tr
       %td= members.find(&:owner).name
       %td Owner
+      - if editable
+        %td
 
     - members.reject(&:owner).sort.each do |member|
       %tr
         %td
           = member.name
-        %td
-          - if editable
+        - if editable
+          %td
             = hidden_field_tag('members[][id]', member.id)
             = select_tag('members[][role]', options_for_select(Role.role_descriptions_descending, {:selected => member.role}))
+          %td
             = link_to('&times;'.html_safe, 'javascript:;', :class => 'remove-member')
-          - else
+        - else
+          %td
             = member.role.humanize
 
   - if editable && members.reject(&:owner).present?
     .form-actions
-      = submit_tag "Update members", :class => 'btn btn-small'
+      = submit_tag "Save changes", :class => 'btn btn-small'

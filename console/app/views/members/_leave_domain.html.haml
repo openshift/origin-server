@@ -1,5 +1,0 @@
-= form_tag domain_leave_path(domain), :method => :post do
-  = hidden_field_tag(:id, @domain.me.id)
-  = hidden_field_tag(:role, :none)
-  .form-actions
-    = submit_tag "Leave Domain", :class => 'btn btn-danger'

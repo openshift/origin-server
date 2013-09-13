@@ -36,7 +36,7 @@
 
       - unless @domain.owner?
         %section
-          = render :partial => 'members/leave_domain', :locals => {:domain => @domain}
+          = render :partial => 'members/leave_domain_button', :locals => {:domain => @domain}
 
 -# FIXME: Refactor me into an unobtrusive javascript function
 - content_for :javascripts do

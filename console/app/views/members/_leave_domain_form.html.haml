@@ -1,0 +1,13 @@
+= form_tag domain_leave_path(domain), :method => :post do
+  %p
+    Once you remove yourself as a member of this domain, you will no longer have access to any of the domain's applications in the management console.
+  %p
+    Confirm leaving the domain
+    %strong
+      '#{@domain.name}'?
+
+  = hidden_field_tag(:id, domain.me.id)
+  = hidden_field_tag(:role, :none)
+  .form-actions
+    = link_to 'Cancel', domain_path(domain), :class => 'btn cancel'
+    = submit_tag "Leave Domain", :class => 'btn btn-danger'

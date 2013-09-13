@@ -26,12 +26,14 @@ class MembersController < ConsoleController
 
   def leave
     @domain = get_domain
-    if @domain.leave
-      flash[:success] = "Successfully left the domain '#{@domain.name}'"
-      redirect_to console_path
-    else
-      flash[:error] = @domain.messages.first.presence || "Could not leave the domain '#{@domain.name}'"
-      redirect_to domain_path(@domain)
+    if request.post?
+      if @domain.leave
+        flash[:success] = "You are no longer a member of the domain '#{@domain.name}'"
+        redirect_to console_path
+      else
+        flash[:error] = @domain.messages.first.presence || "Could not leave the domain '#{@domain.name}'"
+        redirect_to domain_path(@domain)
+      end
     end
   end
 
