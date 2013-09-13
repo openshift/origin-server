@@ -86,10 +86,8 @@ ol.wizard {
   border-bottom: 1px solid #eaeaea;
   color: #aaa;
   display: block;
-  float: left;
   margin: 0 0 25px 0;
   padding: 0;
-  width: 100%;
   li {
     display: inline-block;
     font-size: $baseFontSize;
@@ -206,35 +204,29 @@ figure {
 
 
 .header-bar {
-  display: table;
-  width: 100%;
   @include box-sizing(border-box);
   height: 34px;
   position: relative;
-  background: $grayDark;
   h3,h4,h5 {
     display:table-cell;
     vertical-align:middle;
     margin: 0;
   }
   .header-btn {
-    display:table-cell;
     vertical-align:middle;
     text-align:right;
     position: absolute;
     right: 0;
+    top: 0;
     width: 50%;
     height: 100%;
     .header-btn-title {
-      display: table-cell;
-      vertical-align: middle;
       text-align: right;
       padding-right: 20px;
       font-family: $headerFontFamily;
       border-right: 1px solid rgba(255, 255, 255, 0.075);
     }
     a {
-      color: #9A9B9C;
       vertical-align:middle;
       display: table;
       height: 100%;
@@ -242,23 +234,9 @@ figure {
       font-size: $tinyFontSize;
       text-transform: uppercase;
       &:hover {
-        text-decoration: none;
-        color: $linkTextDarkBackground;
         .font-icon {
-          background: $buttonBlueHover;
-          color: $grayDarker;
           @include icon-text-shadow(rgba(255, 255, 255, 0.75));
         }
-      }
-      .font-icon {
-        display: table-cell;
-        vertical-align: middle;
-        text-align: center;
-        font-size: $tinyFontSize;
-        height: 100%;
-        width: 34px;
-        border-left: 1px solid rgba(0, 0, 0, 0.3);
-        background: $grayDarker;
       }
     }
   }
@@ -286,7 +264,7 @@ aside .header-bar {
 
 
 .sidebar {
-  border-bottom: 1px dotted $grayMedium;
+  border-bottom: 1px dotted #ccc;
   margin-bottom: $baseLineHeight; 	
 }
 
@@ -467,8 +445,6 @@ a.cap-link {
   border: 1px solid transparent;
   opacity: .75;
   &:hover, &.highlight {
-    //border-color: rgba(0,0,0,0.1);
-    background: rgba(0,0,0,0.2);
     opacity: 1;
   }
   &:active {
@@ -479,7 +455,7 @@ a.cap-link {
 .unstyled-flat.bits {
   margin: 0 0 10px 0;
   li {
-    border-left: 1px dotted #444;
+    border-left: 1px dotted #ccc;
     padding: 0 8px;
     min-height: 37px;
     font-weight: normal;
@@ -498,8 +474,6 @@ $cartridgeBorderWidth: 10px;
 
 #app-cartridges {
   header {
-    padding-left: $gridGutterWidth;
-
     h3 {
       margin: 4px 0;
     }
@@ -541,22 +515,8 @@ $cartridgeBorderWidth: 10px;
   .gear-group {
     margin-top: 5px;
     margin-bottom: 15px;
-    border-bottom: 3px solid #2a2a2a;
   }
   .cartridge-block {
-    border-top: 3px solid #2a2a2a;
-
-    .cartridge-border {
-      background: image-url('cartridge-edge.gif') repeat-y;
-      padding-left: 10px;
-    }
-
-    .cartridge-inset {
-      background-color: #1d1d1d;
-      border: 1px solid #101010;
-      border-width: 2px 0;
-      padding: 15px ($gridGutterWidth - $cartridgeBorderWidth);
-    }
 
     h2 { 
       text-overflow: ellipsis; 
@@ -570,9 +530,7 @@ $cartridgeBorderWidth: 10px;
     }
 
     .embedded {
-      background: #131313;
       margin-top: 15px;
-      padding: 10px 20px;
       overflow: hidden;
       position: relative;
       
@@ -604,15 +562,12 @@ $cartridgeBorderWidth: 10px;
       }
 
       .embedded-cart {
-        border: 1px solid #6b6b6b;
-        background: #242424;
+        border: 1px solid #ccc;
         float: left;
         margin-right: 15px;
         line-height: 35px;
         //FIXME: embedded-cart should be more flexible
         padding: 0 10px;
-        //width: 35px;
-        //height: 35px;
       }
     }
 
@@ -643,11 +598,10 @@ $cartridgeBorderWidth: 10px;
 }
 
 .section-console h6 {
-  color: #9a9b9c;
+  color: #777;
   font-weight: normal;
   }
 .section-console .bits .data {
-  color: #eaebec;
   text-transform: uppercase;
   font-size: $h6FontSize
   }
@@ -660,7 +614,7 @@ $cartridgeBorderWidth: 10px;
   }
 .cartridge_type.inactive,
 .cartridge_type.installed {
-  background-color: rgba(255, 255, 255, 0.05);
+  background-color: rgba(255, 255, 255, 0.15);
   cursor: default;
   }
 
@@ -683,9 +637,6 @@ $cartridgeBorderWidth: 10px;
 
   #app-cartridges {
     @include expand_for_phone(false);
-    header {
-      padding-left: $gridGutterWidthPhone;
-    }
     .cartridge-block .cartridge-inset {
       padding-left: $gridGutterWidthPhone - $cartridgeBorderWidth;
       padding-right: $gridGutterWidthPhone - $cartridgeBorderWidth;
@@ -772,9 +723,6 @@ $cartridgeBorderWidth: 10px;
   }
 
   #app-cartridges {
-    header {
-      padding-left: $gridGutterWidthTablet;
-    }
     .cartridge-block .cartridge-inset {
       padding-left: $gridGutterWidthTablet - $cartridgeBorderWidth;
       padding-right: $gridGutterWidthTablet - $cartridgeBorderWidth;
@@ -804,9 +752,6 @@ $cartridgeBorderWidth: 10px;
     margin: 0 -23px;
   }
   #app-cartridges {
-    header {
-      padding-left: $gridGutterWidth;
-    }
     .cartridge-block .cartridge-inset {
       padding-left: $gridGutterWidth - $cartridgeBorderWidth;
       padding-right: $gridGutterWidth - $cartridgeBorderWidth;

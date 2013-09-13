@@ -6,28 +6,29 @@
 - content_for :top do
   .grid-wrapper.section-header
     %nav.span12.span-flush-right.application-info
-      %ul.pull-right.unstyled-flat.bits
-        %li
-          %h6 Gears
-          %span.data #{@application.gear_count} total
+      .tile
+        %ul.pull-right.unstyled-flat.bits
+          %li
+            %h6 Gears
+            %span.data #{@application.gear_count} total
 
-        %li#restart-container.popover-restart
-          = link_to application_restart_path(@application), { :id => 'restart-link', 'data-html' => 'true', 'data-placement' => 'bottom', :class => 'block btn-console-header', :title => 'Restart Application'} do
-            %span.font-icon.font-icon-size-34.font-icon-grey{:alt => 'Restart', :title =>"Restart application", "aria-hidden" => "true", "data-icon" => "\ue020"}
-          #restart-popover.hide
-            = render 'restarts/form'
+          %li#restart-container.popover-restart
+            = link_to application_restart_path(@application), { :id => 'restart-link', 'data-html' => 'true', 'data-placement' => 'bottom', :class => 'block btn-console-header', :title => 'Restart Application'} do
+              %span.font-icon.font-icon-size-34.font-icon-grey{:alt => 'Restart', :title =>"Restart application", "aria-hidden" => "true", "data-icon" => "\ue020"}
+            #restart-popover.hide
+              = render 'restarts/form'
 
-      %h1.name= @application.name
-      .url
-        %strong @
-        = link_to @application.web_url, @application.web_url
+        %h1.name= @application.name
+        .url
+          %strong @
+          = link_to @application.web_url, @application.web_url
 
 %section#app-specifics
 %section#app-cartridges.span9
   %header.clearfix.header-bar
     %h3
       Cartridges
-    .header-btn
+    -#.header-btn
       = link_to application_cartridge_types_path(@application) do
         %span.header-btn-title add cartridge
         %span.font-icon{"aria-hidden" => "true", "data-icon" => "\uee16"}
@@ -42,7 +43,7 @@
       - group.cartridges.each_with_index do |cartridge,c|
         .cartridge-block
           .cartridge-border
-            .cartridge-inset
+            .cartridge-inset.tile
               .clearfix
                 %ul.pull-right.unstyled-flat.bits
                   - if c == 0
@@ -126,7 +127,7 @@
       .header-btn
         = link_to new_application_alias_path(@application) do
           %span.header-btn-title add alias
-          %span.font-icon{"aria-hidden" => "true", "data-icon" => "\uee16"}
+          -#%span.font-icon{"aria-hidden" => "true", "data-icon" => "\uee16"}
           
     %ul.unstyled
       - if @application.aliases.empty?

@@ -106,6 +106,9 @@ body.simple {
   }
   .section-account {
     @include account_background;
+    + iframe {
+      display: none;
+    }
   }
 }
 

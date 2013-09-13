@@ -85,7 +85,7 @@
   margin-left: -$arrowWidth;
   border-left: $arrowWidth solid transparent;
   border-right: $arrowWidth solid transparent;
-  border-top: $arrowWidth solid $subtleTextDarkBackground;
+  border-top: $arrowWidth solid $popoverColor;
 }
 @mixin popoverArrow-left($arrowWidth: 5px) {
   top: 50%;
@@ -93,7 +93,7 @@
   margin-top: -$arrowWidth;
   border-top: $arrowWidth solid transparent;
   border-bottom: $arrowWidth solid transparent;
-  border-left: $arrowWidth solid $subtleTextDarkBackground;
+  border-left: $arrowWidth solid $popoverColor;
 }
 @mixin popoverArrow-bottom($arrowWidth: 5px) {
   top: -5px;
@@ -101,7 +101,7 @@
   margin-left: -$arrowWidth;
   border-left: $arrowWidth solid transparent;
   border-right: $arrowWidth solid transparent;
-  border-bottom: $arrowWidth solid $subtleTextDarkBackground;
+  border-bottom: $arrowWidth solid $popoverColor;
 }
 @mixin popoverArrow-right($arrowWidth: 5px) {
   top: 50%;
@@ -109,7 +109,7 @@
   margin-top: -$arrowWidth;
   border-top: $arrowWidth solid transparent;
   border-bottom: $arrowWidth solid transparent;
-  border-right: $arrowWidth solid $subtleTextDarkBackground;
+  border-right: $arrowWidth solid $popoverColor;
 }
 
 @mixin tab-focus() {

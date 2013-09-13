@@ -53,7 +53,7 @@
         %small= link_to '(show all)', application_types_path
     .row
       - in_columns_of(2, types).each do |types|
-        .span6.tile-light
+        .span6
           = render :partial => 'application_type', :collection => types, :locals => {:excluded_tags => []}
 
   - else

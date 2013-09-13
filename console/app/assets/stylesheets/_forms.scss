@@ -734,9 +734,9 @@ input[readonly],
 select[readonly],
 textarea[readonly] {
   cursor: inherit;
-  color: #BABBBC !important;
+  color: #666 !important;
   background-color: inherit !important;
-  border: 1px dotted #444444 !important;
+  border: 1px dotted #ccc !important;
   border-radius: 0 0 0 0 !important;
 }
 .input-copyable {

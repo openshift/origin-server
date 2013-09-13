@@ -17,12 +17,15 @@
     margin-right: 5px;
   }
 
-  > .url {
+  .tile > .url {
     display: inline-block;
     vertical-align: text-bottom;
     white-space: nowrap;
     vertical-align: middle;
     font-size: $smallFontSize;
+    a {
+      color: #333;
+    }
   }
 
 	.gear-numbers {
