@@ -1,5 +1,5 @@
 :css
-  span.flow-block > span {margin-right: 15px; font-size: 90%; opacity: .75;}
+  span.flow-block > span {margin: 0 10px; font-size: 18px; font-weight: normal; text-transform: uppercase; opacity: .75;}
 
 - content_for :full_layout, true
 - content_for :dark_layout, true
@@ -10,15 +10,9 @@
         = "Domain #{@domain.name}"
 
         %span.flow-block.right
-          %span{:title => 'Applications'}
-            = @domain.application_count
-            %span{"aria-hidden" => "true", "data-icon" => "\ue033"}
-          %span{:title => 'Gears'}
-            = @domain.gear_counts.values.sum
-            %span{"aria-hidden" => "true", "data-icon" => "\ue014"}
-          %span{:title => 'Members'}
-            = @domain.members.count
-            %span{"aria-hidden" => "true", "data-icon" => "\uee08"}
+          %span{:title => 'Applications'}= pluralize(@domain.application_count, 'application')
+          %span{:title => 'Gears'}= pluralize(@domain.gear_counts.values.sum, 'gear')
+          %span{:title => 'Members'}= pluralize(@domain.members.count, 'member')
 
 = breadcrumb_for_domain(@domain)
 
@@ -38,7 +32,7 @@
 
       - if @domain.admin?
         %section
-          = render :partial => 'members/new_member', :locals => {:domain => @domain}
+          = render :partial => 'members/new_member', :locals => {:domain => @domain, :member => @member}
 
       - unless @domain.owner?
         %section

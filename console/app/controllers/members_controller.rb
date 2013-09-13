@@ -1,18 +1,13 @@
 class MembersController < ConsoleController
-  def index
-    @domain = get_domain
-    @members = @domain.members
-  end
 
   def create
     @member = new_member(params[:domain_member])
     if @member.save
       flash[:success] = @member.messages.first.presence || "Added member to domain"
-      redirect_to :action => :index
+      redirect_to domain_path(get_domain)
     else
       @domain = get_domain
-      @members = @domain.members
-      render :index
+      render :template => 'domains/show'
     end
   end
 
@@ -26,7 +21,7 @@ class MembersController < ConsoleController
         flash[:error] = @domain.messages.first.presence || "Could not update members"
       end
     end
-    redirect_to :action => :index
+    redirect_to domain_path(@domain)
   end
 
   def leave
@@ -36,7 +31,7 @@ class MembersController < ConsoleController
       redirect_to console_path
     else
       flash[:error] = @domain.messages.first.presence || "Could not leave the domain '#{@domain.name}'"
-      redirect_to :action => :index
+      redirect_to domain_path(@domain)
     end
   end
 
