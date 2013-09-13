@@ -14,15 +14,14 @@
 %section#app-list.span7
   %header
     %h3.invisible Application list
-  .row.tile-light
+  .tile-light
     - @applications.each do |application|
-      .grid-wrapper.tile-click
-        .span7.application-info
+      .tile.tile-click
+        .application-info
           %h2.name= link_to application.name, application_path(application), :class => 'tile-target'
           .url
             %strong @
             = link_to application.web_url, application.web_url
-          %span.tile-arrow.font-icon{"aria-hidden" => "true", "data-icon" => "\ue007"}
 
   .btn-toolbar.base.right
     = link_to application_types_path, :class => 'btn btn-primary btn-large' do

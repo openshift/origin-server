@@ -50,15 +50,13 @@ body.simple {
   }
   .frame {
     max-width: 768px;
-    margin: 0 auto;
+    margin: 0 auto 30px;
     &.announcement {
       background-color: #aaa;
-      margin: 30px auto;
       padding: 25px 35px;
       color: #303030;
       &.outage {
-        background-color:#FFD24E;
-        margin-bottom: 0;
+        background-color: #FFD24E;
       }
       a, h4 {
         color: inherit;
@@ -243,7 +241,6 @@ html {
     }
     .frame.primary,
     .frame.announcement {
-      margin: 0 -20px 30px;
       padding: 20px;
     }
   }

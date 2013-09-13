@@ -174,27 +174,8 @@ figure {
   background-repeat: no-repeat;
   }
 
-.section-header {
-  background: #262626;
-  border-bottom: 3px solid #2f2f2f;
-  margin: 5px 0 3px 5px;
-  padding: 15px 0 3px;
-  position: relative;
-
-  > nav {
-    position: relative;
-    left: -5px;
-    margin-right: -10px;
-    }
-}
-
 #footer-nav {
   background: #fff;
-}
-
-.row-console > .row {
-  background: #000;
-  color: $consoleTextColorDefault;
 }
 
 .section-console-light .row-console > .row {
@@ -337,13 +318,6 @@ aside .header-bar {
   }
 }
 
-.digest-bg {
-  background-color: #212121;
-  border-bottom: 3px solid #2a2a2a;
-  margin: 0 -35px;
-  padding: 20px 25px;
-}
-
 #app-list, #account-digest {
  margin-top: 0;
  color: #babbbc;
@@ -372,12 +346,6 @@ aside .header-bar {
     background-color:transparent;
   }
 
-}
-
-#app-list {
-  .btn-toolbar {
-    margin-right: 10px;
-  }
 }
 
 .line-item-title {
@@ -664,9 +632,6 @@ $cartridgeBorderWidth: 10px;
 }
 
 #secondary {
-  a {
-  color: inherit;
-  }
   h5 {
     margin: 0 0 3px 0;
   }
