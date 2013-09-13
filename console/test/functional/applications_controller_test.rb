@@ -201,11 +201,13 @@ class ApplicationsControllerTest < ActionController::TestCase
     # get full version of the list
     get(:index)
     apps = assigns(:applications)
+    caps = assigns(:capabilities)
     assert apps
     assert apps.length > 0
     assert apps.any?{ |a| a.name == app.name }
     assert_response :success
     assert_select 'h2 > a', /#{app.name}/
+    assert_select 'h1 > .right', /#{caps.consumed_gears}\sof #{caps.max_gears}/m
   end
 
   test "should retrieve application details" do

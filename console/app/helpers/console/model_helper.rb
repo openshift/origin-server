@@ -217,16 +217,19 @@ module Console::ModelHelper
       cartridges.each_pair do |_, carts|
         any = false
         all = true
-        carts.each do |cart| 
+        variable = false
+        carts.each do |cart|
           if cart.service? || cart.web_framework?
             any = true
+          elsif cart.custom?
+            variable = any = true
           else
             all = false
             break if any
           end
         end
         max += 1 if any
-        min += 1 if all
+        min += 1 if all && !variable
       end
     else
       min = 1
