@@ -303,7 +303,6 @@ class Upgrader
           active_only = work[:active_only]
 
           upgrade_result.gear_counts[thread_num] = node.gears_length
-          upgrade_result.gear_count += node.gears_length
 
           # perform the node upgrade
           begin
@@ -319,6 +318,7 @@ class Upgrader
             work_queue << { node: node, active_only: false }
           else
             completed_node_count += 1
+            upgrade_result.gear_count += node.gears_length
             puts "#{completed_node_count} of #{node_queue.length} nodes completed"
           end
         end
