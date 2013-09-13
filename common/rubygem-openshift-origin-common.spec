@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Common
 Name:          rubygem-%{gem_name}
-Version:       1.15.0
+Version:       1.15.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -117,6 +117,9 @@ cp bin/man/*.8 %{buildroot}%{_mandir}/man8/
 %doc %{gem_docdir}
 
 %changelog
+* Fri Sep 13 2013 Troy Dawson <tdawson@redhat.com> 1.15.1-1
+- Bump up version (tdawson@redhat.com)
+
 * Fri Sep 13 2013 Troy Dawson <tdawson@redhat.com> 1.15.1-0
 - Bump up version to 1.15
 
