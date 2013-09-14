@@ -169,7 +169,7 @@ class DistrictTest < ActiveSupport::TestCase
     orig_d = get_district_obj
     orig_d.save!
     begin
-      hostname = `mco ping | xargs | cut -d' ' -f1`
+      hostname = `oo-mco ping | xargs | cut -d' ' -f1`
       hostname.chomp!
       orig_d.add_node(hostname)
       new_d = District.find_by(uuid: orig_d.uuid)

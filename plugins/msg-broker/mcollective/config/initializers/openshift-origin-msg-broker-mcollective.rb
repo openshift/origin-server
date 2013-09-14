@@ -13,6 +13,9 @@ Broker::Application.configure do
     end
     conf = OpenShift::Config.new(conf_file)
 
+    %x[/bin/rpm -q ruby193-mcollective &>/dev/null]
+    scl_root = $?.exitstatus == 0 ? "/opt/rh/ruby193/root" : ""
+
     config.msg_broker = {
       :rpc_options => {
         :disctimeout => conf.get("MCOLLECTIVE_DISCTIMEOUT", 5).to_i,
@@ -20,7 +23,7 @@ Broker::Application.configure do
         :verbose => conf.get_bool("MCOLLECTIVE_VERBOSE", "false"),
         :progress_bar => conf.get_bool("MCOLLECTIVE_PROGRESS_BAR", false),
         :filter => {"identity" => [], "fact" => [], "agent" => [], "cf_class" => [], "compound" => []},
-        :config => conf.get("MCOLLECTIVE_CONFIG", "/etc/mcollective/client.cfg"),
+        :config => conf.get("MCOLLECTIVE_CONFIG", "#{scl_root}/etc/mcollective/client.cfg"),
       },
       :fact_timeout => conf.get("MCOLLECTIVE_FACT_TIMEOUT", 10).to_i,
       :districts => {

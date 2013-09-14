@@ -189,6 +189,7 @@ class OODiag
     @project_is = {}
     # It's OpenShift Enterprise if there are any el6op RPMs on the system.
     @project_is[:enterprise] = @rpms.values.select {|rpm| rpm[:release].include? 'el6op'}.length > 0
+    @scl_prefix = @project_is[:enterprise] ? "ruby193-" : ""
     # It's OpenShift Online if certain RPMs are present
     @project_is[:online] = @rpms['rhc-common'] && true
     # It's OpenShift Origin otherwise...
@@ -247,8 +248,8 @@ class OODiag
     geos-debuginfo geos-devel geos-python geos-ruby haproxy haproxy-debuginfo
     jboss-eap6-index jboss-eap6-modules jenkins jenkins-plugin-openshift js
     js-debuginfo js-devel libev libev-debuginfo libev-devel libev-source
-    libmcrypt libmcrypt-debuginfo libmcrypt-devel libmongodb mcollective
-    mcollective-client mcollective-common mod_bw mod_bw-debuginfo mod_passenger
+    libmcrypt libmcrypt-debuginfo libmcrypt-devel libmongodb ruby193-mcollective
+    ruby193-mcollective-client ruby193-mcollective-common mod_bw mod_bw-debuginfo mod_passenger
     mongodb mongodb-debuginfo mongodb-devel mongodb-server openshift-console
     openshift-origin-console openshift-origin-broker openshift-origin-broker-util
     openshift-origin-cartridge-cron
@@ -546,7 +547,7 @@ class OODiag
       if a_profile_for.empty?
         do_fail <<-NONE
           No node hosts found. Please install some,
-          or ensure the existing ones respond to 'mco ping'.
+          or ensure the existing ones respond to 'oo-mco ping'.
           OpenShift cannot host gears without at least one node host responding.
         NONE
         skip_test
@@ -722,7 +723,7 @@ class OODiag
       broker error_log: this problem indicates mcollective client logging is failing:
         #{out}
       Please fix this issue with the following commands:
-        # chown apache:root /var/log/mcollective-client.log
+        # chown apache:root /var/log/#{@scl_prefix}-mcollective-client.log
         # service openshift-broker restart
     FIXLOG
     #
@@ -847,9 +848,9 @@ class OODiag
     #
     # create a tmp file with all of the unique log statements after most recent mcollective start
     tmpfile = Tempfile.new("oodiag-mco-#{$$}").path
-    system %Q! sed -n 'H; /INFO.*The Marionette Collective.*started logging/h; ${g;p;}' /var/log/mcollective.log | sed 's|^\w, \[[^]]*\]||' | sort -u > #{tmpfile} !
+    system %Q! sed -n 'H; /INFO.*The Marionette Collective.*started logging/h; ${g;p;}' /var/log/#{@scl_prefix}mcollective.log | sed 's|^\w, \[[^]]*\]||' | sort -u > #{tmpfile} !
     # if no restart seen, just use the whole thing
-    system %Q! sort -u /var/log/mcollective.log > #{tmpfile} ! unless File.exists? tmpfile
+    system %Q! sort -u /var/log/#{@scl_prefix}mcollective.log > #{tmpfile} ! unless File.exists? tmpfile
     return unless File.exists? tmpfile
     #
     # Look for the mco timeout warning
@@ -909,8 +910,10 @@ class OODiag
       warn_without += %w{ntpd}
     end
     if @is_node
-      fail_without += %w{httpd network sshd openshift-port-proxy openshift-gears mcollective
+      fail_without += %w{httpd network sshd openshift-port-proxy openshift-gears
                         cgconfig cgred crond openshift-node-web-proxy}
+      scl_prefix = @project_is[:enterprise] ? "ruby193-" : ""
+      fail_without << @scl_prefix + "mcollective"
 
       warn_without += %w{ntpd oddjobd messagebus}
     end
@@ -1062,7 +1065,8 @@ class OODiag
     # One bug would express when commands were run through oo-spawn/shellExec.
     # Under certain circumstances they would not have the dominating MCS label
     # (s0-s0:c0.c1023) and not be able to affect gears.
-    context = `ps -o label= $(pgrep -f ruby[[:space:]]/usr/sbin/mcollectived)`.chomp.split ":"
+    scl_root = @project_is[:enterprise] ? "/opt/rh/ruby193/root" : ""
+    context = `ps -o label= $(pgrep -f ruby[[:space:]]#{scl_root}/usr/sbin/mcollectived)`.chomp.split ":"
     context.shift
     context = context.join ":"
     expected = "system_r:openshift_initrc_t:s0-s0:c0.c1023"
@@ -1070,7 +1074,7 @@ class OODiag
       do_fail <<-CONTEXT
       Mcollectived is not running in the expected SELinux context, which
       may result in node execution failures. Please check that the correct
-      context is set on /usr/sbin/mcollectived and that the correct SELinux
+      context is set on #{scl_root}/usr/sbin/mcollectived and that the correct SELinux
       policies are loaded.
         Expected: #{expected}
         Found: #{context}
@@ -1082,7 +1086,7 @@ class OODiag
   def test_mcollective_bad_facts
     skip_test unless @is_broker
     #Grep for a NaN of max active gears from mcollective
-    max_active_gears = `mco facts max_active_gears | grep -i NaN`
+    max_active_gears = `oo-mco facts max_active_gears | grep -i NaN`
     #If not empty, then there is a problem
     if(!max_active_gears.empty?)
       do_fail <<-NAN
