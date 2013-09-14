@@ -103,6 +103,7 @@ class Application
   has_members through: :domain, default_role: :admin
 
   index({'group_instances.gears.uuid' => 1}, {:unique => true, :sparse => true})
+  index({'created_at' => 1})
   index({'domain_id' => 1})
   create_indexes
 
