@@ -15,7 +15,7 @@
 
 Summary:       OpenShift ApacheDB frontend plugin
 Name:          rubygem-%{gem_name}
-Version: 0.1.3
+Version: 0.1.4
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -101,6 +101,9 @@ echo '{}' > "%{buildroot}%{appdir}/.httpd.d/geardb.json"
 /etc/openshift/node-plugins.d/
 
 %changelog
+* Sat Sep 14 2013 Rob Millner <rmillner@redhat.com> 0.1.4-1
+- Functional tests for the frontend plugins. (rmillner@redhat.com)
+
 * Fri Sep 06 2013 Rob Millner <rmillner@redhat.com> 0.1.3-1
 - Break out FrontendHttpServer class into plugin modules.
 - Migration tool and fixes.
