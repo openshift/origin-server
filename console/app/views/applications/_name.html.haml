@@ -7,7 +7,7 @@
     :autofocus => (params[:focus].blank?),
     :size => nil, 
     :placeholder => 'Application name', 
-    :class => "application_name span3 #{'error' if application.errors.include? :name}"
+    :class => "application_name #{'error' if application.errors.include? :name}"
 
   -# If the user has a domain, use it, otherwise prompt them for that field
   - if @domain and @domain.persisted?
@@ -22,7 +22,7 @@
       :value => "#{application.domain_name}", 
       :placeholder => 'Namespace', 
       :size => nil, 
-      :class => "domain_name span3 #{'error' if application.errors.include? :domain_name}"
+      :class => "domain_name #{'error' if application.errors.include? :domain_name}"
     %span.add-on>= ".#{RestApi.application_domain_suffix}"
 
 - unless @domain and @domain.persisted?

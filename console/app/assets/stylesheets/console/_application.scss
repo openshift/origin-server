@@ -198,9 +198,12 @@
     .input-prepend input, .input-append input,
     .input-prepend input, .input-append input {
       display: block;
+      margin: 0 -1px;
+      padding-left: 0;
+      padding-right: 0;
       text-align: center;
-      width: 100%;
       vertical-align: bottom;
+      width: 100%;
     }
   }  
 }
