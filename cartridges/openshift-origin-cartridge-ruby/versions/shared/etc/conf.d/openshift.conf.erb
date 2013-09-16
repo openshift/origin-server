@@ -22,6 +22,12 @@ PassengerUser <%= ENV['OPENSHIFT_GEAR_UUID'] %>
 PassengerPreStart http://<%= ENV['OPENSHIFT_RUBY_IP'] %>:<%= ENV['OPENSHIFT_RUBY_PORT'] %>/
 PassengerSpawnIPAddress <%= ENV['OPENSHIFT_RUBY_IP'] %>
 PassengerUseGlobalQueue off
+
+# These must be passed on this place to make sure we set the right Rails/Rack
+# environment
+PassEnv RAILS_ENV
+PassEnv RACK_ENV
+
 <Directory <%= ENV['OPENSHIFT_REPO_DIR'] %>/public/>
     AllowOverride All
     Options -Multiviews
