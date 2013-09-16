@@ -113,7 +113,10 @@ module OpenShift
           raise ArgumentError.new("error loading #{plugin_gem}: #{e.message}")
         end
       end
-      @@plugins = ::OpenShift::Runtime::Frontend::Http::Plugins::plugins
+
+      def self.plugins
+        ::OpenShift::Runtime::Frontend::Http::Plugins::plugins
+      end
 
       attr_reader :container_uuid
       attr_reader :fqdn
@@ -126,7 +129,7 @@ module OpenShift
 
           # Avoid deadlocks by listing the gears first
           gearlist = []
-          @@plugins.each do |pl|
+          self.plugins.each do |pl|
             begin
               pl.all.each do |obj|
                 gearlist << obj.container_uuid
@@ -158,7 +161,7 @@ module OpenShift
         @namespace = container.namespace
 
         if (container.name.to_s == "") or (container.namespace.to_s == "")
-          @@plugins.each do |pl|
+          self.class.plugins.each do |pl|
             begin
               entry = pl.lookup_by_uuid(@container_uuid)
               @fqdn = entry["fqdn"]
@@ -178,7 +181,7 @@ module OpenShift
           raise FrontendHttpServerException.new("Could not determine gear information for:", @container_uuid)
         end
 
-        @plugins = @@plugins.map { |pl| pl.new(@container_uuid, @fqdn, @container_name, @namespace) }
+        @plugins = self.class.plugins.map { |pl| pl.new(@container_uuid, @fqdn, @container_name, @namespace) }
       end
 
       # Public: Initialize a new configuration for this gear

@@ -22,13 +22,6 @@ require 'fileutils'
 
 class FrontendHttpServerModelTest < OpenShift::NodeTestCase
 
-  class FauxApacheDB < Hash
-    READER = 1
-    WRITER = 1
-    WRCREAT = 1
-    NEWDB = 1
-  end
-
   def setup
     @container_uuid = '0123456789abcdef'
     @container_name = 'frontendtest'
