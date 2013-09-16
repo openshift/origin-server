@@ -1783,10 +1783,14 @@ module OpenShift
           raise OpenShift::UserException.new("Error moving app.  Cannot change node profile for *scalable* app.", 1)
         end
 
-        # get the state of all cartridges
-        quota_blocks = nil
-        quota_files = nil
-        idle, leave_stopped, quota_blocks, quota_files = get_app_status(app)
+        # get the application state
+        idle, leave_stopped = get_app_status(app)
+        
+        # get the quota blocks and files from the gear
+        gear_quota = get_quota(gear)
+        quota_blocks = Integer(gear_quota[3])
+        quota_files = Integer(gear_quota[6])
+        
         gi = gear.group_instance
         gi.all_component_instances.each do |cinst|
           next if cinst.is_sparse? and (not gear.sparse_carts.include? cinst._id) and (not gear.host_singletons)
@@ -2026,7 +2030,7 @@ module OpenShift
       # app: an Application object
       #
       # RETURN:
-      # * Array: [idle, leave_stopped, quota_file, quota_blocks]
+      # * Array: [idle, leave_stopped]
       #
       # NOTES:
       # * calls get_cart_status
@@ -2044,7 +2048,8 @@ module OpenShift
 
         component_instances = app.get_components_for_feature(web_framework)
         gear = component_instances.first.group_instance.gears.first
-        get_cart_status(gear, component_instances.first)
+        idle, leave_stopped, quota_blocks, quota_files = get_cart_status(gear, component_instances.first)
+        return idle, leave_stopped
       end
 
       #
