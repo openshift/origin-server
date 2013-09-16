@@ -601,7 +601,7 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
   end
 
   def test_child_gear_ssh_urls_web_proxy
-    @cartridge_model.expects(:web_proxy).returns(1)
+    @cartridge_model.expects(:web_proxy).times(2).returns(1)
     gear_registry = mock()
     ::OpenShift::Runtime::GearRegistry.expects(:new).with(@container).returns(gear_registry)
 
@@ -661,9 +661,7 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
                                                    .returns("rsync2 from #{g}\n")
     end
 
-    output = @container.distribute(deployment_id: deployment_id)
-
-    assert_equal "rsync1 from 1234@localhost\nrsync2 from 1234@localhost\nrsync1 from 2345@localhost\nrsync2 from 2345@localhost\n", output
+    @container.distribute(deployment_id: deployment_id)
   end
 
   def test_distribute_uses_specified_gears
@@ -690,9 +688,7 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
                                                    .returns("rsync2 from #{g}\n")
     end
 
-    output = @container.distribute(gears: gears, deployment_id: deployment_id)
-
-    assert_equal "rsync1 from 1234@localhost\nrsync2 from 1234@localhost\nrsync1 from 2345@localhost\nrsync2 from 2345@localhost\n", output
+    @container.distribute(gears: gears, deployment_id: deployment_id)
   end
 
   def test_activate_many_app_dns_different_from_gear_dns
@@ -728,31 +724,23 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
     gears.each do |g|
       gear_uuid = g.split('@')[0]
 
-      @cartridge_model.expects(:do_control).with('disable-server',
-                                                 web_proxy,
-                                                 args: gear_uuid,
-                                                 pre_action_hooks_enabled:  false,
-                                                 post_action_hooks_enabled: false,
-                                                 out:                       nil,
-                                                 err:                       nil)
+      @container.expects(:parallel_update_proxy_status)
+                .with(action: :disable, gear_uuid: gear_uuid, persist: false)
+                .returns(%W(disable-1-#{gear_uuid} disable-2-#{gear_uuid}))
 
       @container.expects(:run_in_container_context).with("/usr/bin/oo-ssh #{g} gear activate #{deployment_id} --no-hot-deploy",
                                                          env: gear_env,
                                                          expected_exitstatus: 0)
                                                    .returns("out from #{g}\n")
 
-      @cartridge_model.expects(:do_control).with('enable-server',
-                                                 web_proxy,
-                                                 args: gear_uuid,
-                                                 pre_action_hooks_enabled:  false,
-                                                 post_action_hooks_enabled: false,
-                                                 out:                       nil,
-                                                 err:                       nil)
+      @container.expects(:parallel_update_proxy_status)
+                .with(action: :enable, gear_uuid: gear_uuid, persist: false)
+                .returns(%W(enable-1-#{gear_uuid} enable-2-#{gear_uuid}))
     end
 
     output = @container.activate_many(deployment_id: deployment_id)
 
-    assert_equal "Activating gear 1234, deployment id: abcd1234, --no-hot-deploy,\nout from 1234@localhost\nActivating gear 2345, deployment id: abcd1234, --no-hot-deploy,\nout from 2345@localhost\n", output
+    assert_equal "disable-1-1234\ndisable-2-1234\nActivating gear 1234, deployment id: abcd1234, --no-hot-deploy,\nout from 1234@localhost\nenable-1-1234\nenable-2-1234\ndisable-1-2345\ndisable-2-2345\nActivating gear 2345, deployment id: abcd1234, --no-hot-deploy,\nout from 2345@localhost\nenable-1-2345\nenable-2-2345\n", output
   end
 
   def test_activate_many_uses_specified_gears
@@ -770,31 +758,23 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
     gears.each do |g|
       gear_uuid = g.split('@')[0]
 
-      @cartridge_model.expects(:do_control).with('disable-server',
-                                                 web_proxy,
-                                                 args: gear_uuid,
-                                                 pre_action_hooks_enabled:  false,
-                                                 post_action_hooks_enabled: false,
-                                                 out:                       nil,
-                                                 err:                       nil)
+      @container.expects(:parallel_update_proxy_status)
+                .with(action: :disable, gear_uuid: gear_uuid, persist: false)
+                .returns(%W(disable-1-#{gear_uuid} disable-2-#{gear_uuid}))
 
       @container.expects(:run_in_container_context).with("/usr/bin/oo-ssh #{g} gear activate #{deployment_id} --no-hot-deploy",
                                                          env: gear_env,
                                                          expected_exitstatus: 0)
                                                    .returns("out from #{g}\n")
 
-      @cartridge_model.expects(:do_control).with('enable-server',
-                                                 web_proxy,
-                                                 args: gear_uuid,
-                                                 pre_action_hooks_enabled:  false,
-                                                 post_action_hooks_enabled: false,
-                                                 out:                       nil,
-                                                 err:                       nil)
+      @container.expects(:parallel_update_proxy_status)
+                .with(action: :enable, gear_uuid: gear_uuid, persist: false)
+                .returns(%W(enable-1-#{gear_uuid} enable-2-#{gear_uuid}))
     end
 
     output = @container.activate_many(gears: gears, deployment_id: deployment_id)
 
-    assert_equal "Activating gear 1234, deployment id: abcd1234, --no-hot-deploy,\nout from 1234@localhost\nActivating gear 2345, deployment id: abcd1234, --no-hot-deploy,\nout from 2345@localhost\n", output
+    assert_equal "disable-1-1234\ndisable-2-1234\nActivating gear 1234, deployment id: abcd1234, --no-hot-deploy,\nout from 1234@localhost\nenable-1-1234\nenable-2-1234\ndisable-1-2345\ndisable-2-2345\nActivating gear 2345, deployment id: abcd1234, --no-hot-deploy,\nout from 2345@localhost\nenable-1-2345\nenable-2-2345\n", output
   end
 
   def test_activate_many_hot_deploy
@@ -812,31 +792,23 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
     gears.each do |g|
       gear_uuid = g.split('@')[0]
 
-      @cartridge_model.expects(:do_control).with('disable-server',
-                                                 web_proxy,
-                                                 args: gear_uuid,
-                                                 pre_action_hooks_enabled:  false,
-                                                 post_action_hooks_enabled: false,
-                                                 out:                       nil,
-                                                 err:                       nil)
+      @container.expects(:parallel_update_proxy_status)
+                .with(action: :disable, gear_uuid: gear_uuid, persist: false)
+                .returns(%W(disable-1-#{gear_uuid} disable-2-#{gear_uuid}))
 
       @container.expects(:run_in_container_context).with("/usr/bin/oo-ssh #{g} gear activate #{deployment_id} --hot-deploy",
                                                          env: gear_env,
                                                          expected_exitstatus: 0)
                                                    .returns("out from #{g}\n")
 
-      @cartridge_model.expects(:do_control).with('enable-server',
-                                                 web_proxy,
-                                                 args: gear_uuid,
-                                                 pre_action_hooks_enabled:  false,
-                                                 post_action_hooks_enabled: false,
-                                                 out:                       nil,
-                                                 err:                       nil)
+      @container.expects(:parallel_update_proxy_status)
+                .with(action: :enable, gear_uuid: gear_uuid, persist: false)
+                .returns(%W(enable-1-#{gear_uuid} enable-2-#{gear_uuid}))
     end
 
     output = @container.activate_many(gears: gears, deployment_id: deployment_id, hot_deploy: true)
 
-    assert_equal "Activating gear 1234, deployment id: abcd1234, --hot-deploy,\nout from 1234@localhost\nActivating gear 2345, deployment id: abcd1234, --hot-deploy,\nout from 2345@localhost\n", output
+    assert_equal "disable-1-1234\ndisable-2-1234\nActivating gear 1234, deployment id: abcd1234, --hot-deploy,\nout from 1234@localhost\nenable-1-1234\nenable-2-1234\ndisable-1-2345\ndisable-2-2345\nActivating gear 2345, deployment id: abcd1234, --hot-deploy,\nout from 2345@localhost\nenable-1-2345\nenable-2-2345\n", output
   end
 
   def test_activate_many_init
@@ -854,31 +826,23 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
     gears.each do |g|
       gear_uuid = g.split('@')[0]
 
-      @cartridge_model.expects(:do_control).with('disable-server',
-                                                 web_proxy,
-                                                 args: gear_uuid,
-                                                 pre_action_hooks_enabled:  false,
-                                                 post_action_hooks_enabled: false,
-                                                 out:                       nil,
-                                                 err:                       nil)
+      @container.expects(:parallel_update_proxy_status)
+                .with(action: :disable, gear_uuid: gear_uuid, persist: false)
+                .returns(%W(disable-1-#{gear_uuid} disable-2-#{gear_uuid}))
 
       @container.expects(:run_in_container_context).with("/usr/bin/oo-ssh #{g} gear activate #{deployment_id} --no-hot-deploy --init",
                                                          env: gear_env,
                                                          expected_exitstatus: 0)
                                                    .returns("out from #{g}\n")
 
-      @cartridge_model.expects(:do_control).with('enable-server',
-                                                 web_proxy,
-                                                 args: gear_uuid,
-                                                 pre_action_hooks_enabled:  false,
-                                                 post_action_hooks_enabled: false,
-                                                 out:                       nil,
-                                                 err:                       nil)
+      @container.expects(:parallel_update_proxy_status)
+                .with(action: :enable, gear_uuid: gear_uuid, persist: false)
+                .returns(%W(enable-1-#{gear_uuid} enable-2-#{gear_uuid}))
     end
 
     output = @container.activate_many(gears: gears, deployment_id: deployment_id, init: true)
 
-    assert_equal "Activating gear 1234, deployment id: abcd1234, --no-hot-deploy, --init\nout from 1234@localhost\nActivating gear 2345, deployment id: abcd1234, --no-hot-deploy, --init\nout from 2345@localhost\n", output
+    assert_equal "disable-1-1234\ndisable-2-1234\nActivating gear 1234, deployment id: abcd1234, --no-hot-deploy, --init\nout from 1234@localhost\nenable-1-1234\nenable-2-1234\ndisable-1-2345\ndisable-2-2345\nActivating gear 2345, deployment id: abcd1234, --no-hot-deploy, --init\nout from 2345@localhost\nenable-1-2345\nenable-2-2345\n", output
   end
 
   # options
@@ -974,13 +938,10 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
 
     web_proxy = options[:scalable] ? mock() : nil
     @cartridge_model.expects(:web_proxy).returns(web_proxy)
-    enable_server_expectation = @cartridge_model.expects(:do_control).with('enable-server',
-                                                                           web_proxy,
-                                                                           args: @container.uuid,
-                                                                           pre_action_hooks_enabled:  false,
-                                                                           post_action_hooks_enabled: false,
-                                                                           out:                       options[:out],
-                                                                           err:                       options[:err])
+    enable_server_expectation = @container.expects(:parallel_update_proxy_status).with(cartridge: web_proxy,
+                                                                                       action: :enable,
+                                                                                       gear_uuid: @container.uuid,
+                                                                                       persist: false)
     enable_server_expectation.never unless web_proxy
 
     output = @container.activate(activate_options)
@@ -1033,26 +994,14 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
     gears.each do |g|
       gear_uuid = g.split('@')[0]
 
-      @cartridge_model.expects(:do_control).with('disable-server',
-                                                 web_proxy,
-                                                 args: gear_uuid,
-                                                 pre_action_hooks_enabled:  false,
-                                                 post_action_hooks_enabled: false,
-                                                 out:                       nil,
-                                                 err:                       nil)
+      @container.expects(:parallel_update_proxy_status).with(action: :disable, gear_uuid: gear_uuid, persist: false)
 
       @container.expects(:run_in_container_context).with("/usr/bin/oo-ssh #{g} gear rollback",
                                                          env: gear_env,
                                                          expected_exitstatus: 0)
                                                    .returns("out from #{g}\n")
 
-      @cartridge_model.expects(:do_control).with('enable-server',
-                                                 web_proxy,
-                                                 args: gear_uuid,
-                                                 pre_action_hooks_enabled:  false,
-                                                 post_action_hooks_enabled: false,
-                                                 out:                       nil,
-                                                 err:                       nil)
+      @container.expects(:parallel_update_proxy_status).with(action: :enable, gear_uuid: gear_uuid, persist: false)
     end
 
     output = @container.rollback_many()
@@ -1061,11 +1010,11 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
   end
 
   def test_rollback_many_uses_specified_gears
-    gears = %w(1234@localhost 2345@localhost)
-    @container.expects(:child_gear_ssh_urls).never
-
     gear_env = {'OPENSHIFT_APP_DNS' => 'app-ns.example.com', 'OPENSHIFT_GEAR_DNS' => 'app-ns.example.com'}
     OpenShift::Runtime::Utils::Environ.expects(:for_gear).with(@container.container_dir).returns(gear_env)
+
+    gears = %w(1234@localhost 2345@localhost)
+    @container.expects(:child_gear_ssh_urls).never
 
     web_proxy = mock()
     @cartridge_model.expects(:web_proxy).returns(web_proxy)
@@ -1073,26 +1022,14 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
     gears.each do |g|
       gear_uuid = g.split('@')[0]
 
-      @cartridge_model.expects(:do_control).with('disable-server',
-                                                 web_proxy,
-                                                 args: gear_uuid,
-                                                 pre_action_hooks_enabled:  false,
-                                                 post_action_hooks_enabled: false,
-                                                 out:                       nil,
-                                                 err:                       nil)
+      @container.expects(:parallel_update_proxy_status).with(action: :disable, gear_uuid: gear_uuid, persist: false)
 
       @container.expects(:run_in_container_context).with("/usr/bin/oo-ssh #{g} gear rollback",
                                                          env: gear_env,
                                                          expected_exitstatus: 0)
                                                    .returns("out from #{g}\n")
 
-      @cartridge_model.expects(:do_control).with('enable-server',
-                                                 web_proxy,
-                                                 args: gear_uuid,
-                                                 pre_action_hooks_enabled:  false,
-                                                 post_action_hooks_enabled: false,
-                                                 out:                       nil,
-                                                 err:                       nil)
+      @container.expects(:parallel_update_proxy_status).with(action: :enable, gear_uuid: gear_uuid, persist: false)
     end
 
     output = @container.rollback_many(gears: gears)

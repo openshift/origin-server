@@ -25,6 +25,7 @@ Gem::Specification.new do |s|
   s.add_dependency("parseconfig", ">= 0.5.2")
   s.add_dependency("openshift-origin-common")
   s.add_dependency("safe_yaml")
+  s.add_dependency("parallel")
 
   s.add_development_dependency('rspec', "1.1.12")
   s.add_development_dependency('mocha', "0.9.8")

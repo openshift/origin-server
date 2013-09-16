@@ -412,7 +412,7 @@ class ApplicationContainerTest < OpenShift::NodeTestCase
 
   def test_update_cluster_add_gears
     web_proxy = mock()
-    @container.cartridge_model.expects(:web_proxy).twice.returns(web_proxy)
+    @container.cartridge_model.expects(:web_proxy).times(3).returns(web_proxy)
 
     gear_env = {'OPENSHIFT_APP_DNS' => 'foo-bar.example.com', 'OPENSHIFT_GEAR_DNS' => 'foo-bar.example.com'}
     ::OpenShift::Runtime::Utils::Environ::expects(:for_gear).with(@container.container_dir).returns(gear_env)

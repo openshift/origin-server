@@ -41,6 +41,7 @@ require 'json'
 require 'rest-client'
 require 'openshift-origin-node/utils/managed_files'
 require 'timeout'
+require 'parallel'
 
 module OpenShift
   module Runtime
@@ -406,14 +407,9 @@ module OpenShift
       # is model specific, but +options+ is provided to the implementation.
       def stop_gear(options={})
         buffer = ''
-        if @cartridge_model.web_proxy
-          @cartridge_model.do_control('disable-server',
-                                      @cartridge_model.web_proxy,
-                                      args: self.uuid,
-                                      pre_action_hooks_enabled:  false,
-                                      post_action_hooks_enabled: false,
-                                      out:                       options[:out],
-                                      err:                       options[:err])
+        if proxy_cartridge = @cartridge_model.web_proxy
+          disable_output = parallel_update_proxy_status(cartridge: proxy_cartridge, action: :disable, gear_uuid: self.uuid, persist: false)
+          disable_output.each { |out| buffer << out }
         end
         buffer << @cartridge_model.stop_gear(options)
         unless buffer.empty?
@@ -718,6 +714,14 @@ module OpenShift
 
       def addresses_bound?(addresses, hourglass)
         @container_plugin.addresses_bound?(addresses, hourglass)
+      end
+
+      def gear_registry
+        if @gear_registry.nil? and @cartridge_model.web_proxy
+          @gear_registry = ::OpenShift::Runtime::GearRegistry.new(self)
+        end
+
+        @gear_registry
       end
 
       protected
