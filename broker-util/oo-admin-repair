@@ -175,7 +175,7 @@ domain_hash = {}
 gear_uid_hash = {}
 district_hash = {}
 gear_sshkey_hash = {}
-error_ssh_keys_app_uuids = []
+error_ssh_keys_app_ids = []
 error_consumed_gears_user_ids = []
 error_unreserved_district_uid_map = {}
 error_unused_district_uid_map = {}
@@ -184,7 +184,6 @@ puts "Started at: #{Time.now}"
 start_time = (Time.now.to_f * 1000).to_i
 app_query = {"group_instances.gears.0" => {"$exists" => true}}
 app_selection = {:fields => ["name",
-                             "uuid",
                              "created_at",
                              "domain_id",
                              "group_instances.gears.uuid",
@@ -252,7 +251,7 @@ OpenShift::DataStore.find(:applications, app_query, app_selection) do |app|
     app['group_instances'].each do |gi|
       gi['gears'].each do |gear|
         gear_count += 1
-        datastore_hash[gear['uuid'].to_s] = [login, creation_time, gear['server_identity'], app["uuid"], app_ssh_keys ]
+        datastore_hash[gear['uuid'].to_s] = [login, creation_time, gear['server_identity'], app["_id"].to_s, app_ssh_keys ]
 
         if fix_district_uids and Rails.configuration.msg_broker[:districts][:enabled]
           # record all used uid values for each node to match later with the district
@@ -313,7 +312,7 @@ if fix_ssh_keys
     login = gear_info[0]
     creation_time = gear_info[1]
     server_identity = gear_info[2]
-    app_uuid = gear_info[3]
+    app_id = gear_info[3]
     db_sshkeys = gear_info[4]
 
     print "Checking ssh keys for gear: #{gear_uuid}...\t" if verbose
@@ -342,8 +341,8 @@ if fix_ssh_keys
             summary << "Gear '#{gear_uuid}' has key with name '#{db_sshkeys[key]}' in mongo but not on the node."
           end
         
-          # record the app uuid for fixing later
-          error_ssh_keys_app_uuids << app_uuid
+          # record the app _id for fixing later
+          error_ssh_keys_app_ids << app_id
         end
       elsif verbose
         puts "OK"
@@ -424,13 +423,13 @@ if fix_district_uids and Rails.configuration.msg_broker[:districts][:enabled]
 end
 
 
-error_ssh_keys_app_uuids.uniq!
+error_ssh_keys_app_ids.uniq!
 error_consumed_gears_user_ids.uniq!
 
 puts no_error ? "Success" : "Check failed.\n#{summary.join("\n")}"
 
 puts "" unless no_error
-puts "Total #{error_ssh_keys_app_uuids.length} applications have ssh key mismatches." if error_ssh_keys_app_uuids.length > 0
+puts "Total #{error_ssh_keys_app_ids.length} applications have ssh key mismatches." if error_ssh_keys_app_ids.length > 0
 puts "Total #{error_consumed_gears_user_ids.length} users have consumed gear mismatches." if error_consumed_gears_user_ids.length > 0
 
 unless error_unreserved_district_uid_map.empty? 
@@ -451,22 +450,22 @@ puts "" unless no_error
 # check if we need to fix the ssh key mismatches
 fixed_app_count = 0
 failed_app_count = 0
-unless fix_ssh_keys.nil? or report_only or error_ssh_keys_app_uuids.length == 0
+unless fix_ssh_keys.nil? or report_only or error_ssh_keys_app_ids.length == 0
   puts "Fixing ssh key inconsistencies for all affected applications:"
-  error_ssh_keys_app_uuids.each do |uuid|
+  error_ssh_keys_app_ids.each do |app_id|
     begin
-      print "Fixing ssh keys for application: #{uuid}...\t" if verbose
-      app = Application.find(uuid)
+      print "Fixing ssh keys for application: #{app_id}...\t" if verbose
+      app = Application.find(app_id)
       app.fix_gear_ssh_keys()
       puts "OK" if verbose
       fixed_app_count += 1
     rescue Mongoid::Errors::DocumentNotFound
       puts "OK" if verbose
-      puts "Application '#{uuid}' not found in the database"
+      puts "Application '#{app_id}' not found in the database"
       fixed_app_count += 1
     rescue Exception => ex
       puts "FAIL" if verbose
-      puts "Failed to fix ssh key mismatches for application '#{uuid}': #{ex.message}"
+      puts "Failed to fix ssh key mismatches for application '#{app_id}': #{ex.message}"
       failed_app_count += 1
     end
   end
