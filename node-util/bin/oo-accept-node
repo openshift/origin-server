@@ -86,8 +86,12 @@ $LIMITS_CONF_DIR="/etc/security/limits.d"
 DEFAULT_SEBOOL_LIST="httpd_can_network_connect:on allow_polyinstantiation:on"
 DEFAULT_PACKAGES="rubygem-openshift-origin-node openshift-origin-node-util \
     rubygem-openshift-origin-common selinux-policy selinux-policy-targeted"
-DEFAULT_SERVICES="mcollective cgconfig cgred httpd openshift-port-proxy oddjobd"
-DEFAULT_SERVICE_CONTEXTS="mcollective='unconfined_u:system_r:openshift_initrc_t:s0-s0:c0.c1023' oddjobd='system_u:system_r:oddjob_t:s0-s0:c0.c1023'"
+
+%x[/bin/rpm -q ruby193-mcollective &>/dev/null]
+scl_prefix = $?.exitstatus == 0 ? "ruby193-" : ""
+
+DEFAULT_SERVICES="#{scl_prefix}mcollective cgconfig cgred httpd openshift-port-proxy oddjobd"
+DEFAULT_SERVICE_CONTEXTS="#{scl_prefix}mcollective='unconfined_u:system_r:openshift_initrc_t:s0-s0:c0.c1023' oddjobd='system_u:system_r:oddjob_t:s0-s0:c0.c1023'"
 DEFAULT_MINSEM=512
 V1_DIRECTORIES=%w(ruby-1.8 ruby-1.9 nodejs-0.6
                   jbosseap-6.0 jbossews-1.0 jbossews-2.0 jbossas-7
@@ -356,7 +360,7 @@ end
 
 def check_service_contexts
     offset = 0
-    while m = /(\w+)\=[\'\"]?(\w+):(\w+):(\w+):([\w\-\:\.\,]+)[\'\"]?/.match($SERVICE_CONTEXTS[offset..-1])
+    while m = /([-\w]+)\=[\'\"]?(\w+):(\w+):(\w+):([\w\-\:\.\,]+)[\'\"]?/.match($SERVICE_CONTEXTS[offset..-1])
       offset += m.end(0)
       service = m[1]
       serole = m[3]
@@ -554,7 +558,10 @@ def check_user_cgroups(username)
 end
 
 def check_system_httpd_configs
+  return unless $CONF.get('OPENSHIFT_FRONTEND_HTTP_PLUGINS').split(',').include?('openshift-origin-frontend-apache-mod-rewrite')
+  return unless $CONF.get('OPENSHIFT_FRONTEND_HTTP_PLUGINS').split(',').include?('openshift-origin-frontend-nodejs-websocket')
   verbose("checking system httpd configs")
+
   ['aliases.db', 'idler.db', 'nodes.db', 'sts.db'].each do |db|
     begin
       File.open(File.join($CONF.get('OPENSHIFT_HTTP_CONF_DIR'), db))

@@ -9,7 +9,7 @@
 
 Summary:       OpenShift plugin for mcollective service
 Name:          rubygem-%{gem_name}
-Version: 1.14.2
+Version: 1.15.0
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -23,7 +23,7 @@ Requires:      %{?scl:%scl_prefix}ruby(abi) >= %{rubyabi}
 Requires:      %{?scl:%scl_prefix}rubygems
 Requires:      %{?scl:%scl_prefix}rubygem(json)
 Requires:      rubygem(openshift-origin-common)
-Requires:      mcollective-client
+Requires:      %{?scl:%scl_prefix}mcollective-client
 Requires:      selinux-policy-targeted
 Requires:      policycoreutils-python
 Requires:      openshift-origin-msg-common
@@ -66,6 +66,10 @@ cp -a ./%{gem_dir}/* %{buildroot}%{gem_dir}/
 mkdir -p %{buildroot}/etc/openshift/plugins.d
 cp %{buildroot}/%{gem_dir}/gems/%{gem_name}-%{version}/conf/openshift-origin-msg-broker-mcollective.conf.example %{buildroot}/etc/openshift/plugins.d/openshift-origin-msg-broker-mcollective.conf.example
 
+%if 0%{?scl_build} > 0
+sed -e -i "s|\(/etc/mcollective/client.cfg\)|/opt/rh/ruby193/root/\1|" /etc/openshift/plugins.d/openshift-origin-msg-broker-mcollective.conf.example
+%endif
+
 %files
 %dir %{gem_instdir}
 %dir %{gem_dir}
@@ -80,6 +84,9 @@ cp %{buildroot}/%{gem_dir}/gems/%{gem_name}-%{version}/conf/openshift-origin-msg
 %attr(0644,-,-) %ghost /etc/mcollective/client.cfg
 
 %changelog
+* Thu Sep 12 2013 Adam Miller <admiller@redhat.com> 1.14.3-1
+- Bug 1007085 (dmcphers@redhat.com)
+
 * Thu Sep 05 2013 Adam Miller <admiller@redhat.com> 1.14.2-1
 - Merge pull request #3311 from detiber/runtime_card_213
   (dmcphers+openshiftbot@redhat.com)

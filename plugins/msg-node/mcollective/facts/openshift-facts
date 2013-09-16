@@ -1,2 +1,8 @@
 #!/bin/bash
-oo-exec-ruby /usr/libexec/mcollective/update_yaml.rb /etc/mcollective/facts.yaml &> /dev/null
+rpm -q ruby193-mcollective &> /dev/null
+if [ $? -eq 0 ]; then
+  YAML="/opt/rh/ruby193/root/etc/mcollective/facts.yaml"
+else
+  YAML="/etc/mcollective/facts.yaml"
+fi
+oo-exec-ruby /usr/libexec/mcollective/update_yaml.rb $YAML &> /dev/null

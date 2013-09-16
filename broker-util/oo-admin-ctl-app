@@ -131,6 +131,8 @@ begin
         gi.gears.each { |g| 
           g.deregister_dns rescue nil
           g.destroy_gear rescue nil 
+          UsageRecord.track_usage(user._id, app.name, g._id, UsageRecord::EVENTS[:end], UsageRecord::USAGE_TYPES[:gear_usage],
+                                        g.group_instance.gear_size, nil, nil) rescue nil
         } if gi.gears
       } if app.group_instances
       app.delete

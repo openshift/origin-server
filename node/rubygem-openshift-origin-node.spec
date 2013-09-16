@@ -9,15 +9,10 @@
 %global appdir %{_var}/lib/openshift
 %global apprundir %{_var}/run/openshift
 %global openshift_lib %{_usr}/lib/openshift
-%if 0%{?fedora} >= 18
-    %global httxt2dbm /usr/bin/httxt2dbm
-%else
-    %global httxt2dbm /usr/sbin/httxt2dbm
-%endif
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.14.6
+Version: 1.15.0
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -46,7 +41,6 @@ Requires:      %{?scl:%scl_prefix}ruby(selinux)
 Requires:      cronie
 Requires:      crontabs
 Requires:      git
-Requires:      httpd
 Requires:      libcgroup-pam
 Requires:      libselinux-python
 Requires:      iproute
@@ -62,12 +56,6 @@ Requires:      rubygem(openshift-origin-common)
 Requires:      libcgroup
 %else
 Requires:      libcgroup-tools
-%endif
-%if 0%{?fedora} >= 18
-Requires:      httpd-tools
-BuildRequires: httpd-tools
-%else
-BuildRequires: httpd
 %endif
 %if 0%{?fedora}%{?rhel} <= 6
 BuildRequires: %{?scl:%scl_prefix}build
@@ -114,25 +102,7 @@ cp -a ./%{gem_dir}/* %{buildroot}%{gem_dir}/
 
 mkdir -p %{buildroot}/usr/bin
 mkdir -p %{buildroot}/usr/sbin
-mkdir -p %{buildroot}/etc/httpd/conf.d
-mkdir -p %{buildroot}%{appdir}/.httpd.d
 mkdir -p %{buildroot}%{appdir}/.tc_user_dir
-ln -sf %{appdir}/.httpd.d %{buildroot}/etc/httpd/conf.d/openshift
-
-# Create empty route database files
-for map in nodes aliases idler sts
-do
-    mapf="%{buildroot}%{appdir}/.httpd.d/${map}"
-    touch "${mapf}.txt"
-    %{httxt2dbm} -f DB -i "${mapf}.txt" -o "${mapf}.db"
-done
-
-for map in routes geardb
-do
-    mapf="%{buildroot}%{appdir}/.httpd.d/${map}"
-    echo '{}' > "${mapf}.json"
-done
-
 
 # Move the gem configs to the standard filesystem location
 mkdir -p %{buildroot}/etc/openshift
@@ -164,17 +134,6 @@ mkdir -p %{buildroot}%{apprundir}
 # place an example file.  It _must_ be placed in the gem_docdir because of how
 # the doc directive works and how we're using it in the files section.
 mv %{buildroot}%{gem_instdir}/misc/doc/cgconfig.conf %{buildroot}%{gem_docdir}/cgconfig.conf
-
-%if 0%{?fedora} >= 18
-  #patch for apache 2.4
-  sed -i 's/include /IncludeOptional /g' httpd/000001_openshift_origin_node.conf
-  sed -i 's/^RewriteLog/#RewriteLog/g' httpd/openshift_route.include
-  sed -i 's/^RewriteLogLevel/#RewriteLogLevel/g' httpd/openshift_route.include
-  sed -i 's/^#LogLevel/LogLevel/g' httpd/openshift_route.include
-%endif
-mv httpd/000001_openshift_origin_node.conf %{buildroot}/etc/httpd/conf.d/
-mv httpd/000001_openshift_origin_node_servername.conf %{buildroot}/etc/httpd/conf.d/
-mv httpd/openshift_route.include %{buildroot}/etc/httpd/conf.d/
 
 %if 0%{?fedora}%{?rhel} <= 6
 mkdir -p %{buildroot}/etc/rc.d/init.d/
@@ -259,22 +218,7 @@ fi
 %config(noreplace) /etc/openshift/node.conf
 %config(noreplace) /etc/openshift/env/*
 %attr(0640,-,-) %config(noreplace) /etc/openshift/resource_limits.conf
-%attr(0750,-,-) /etc/httpd/conf.d/openshift
-%config(noreplace) /etc/httpd/conf.d/000001_openshift_origin_node.conf
-%config(noreplace) /etc/httpd/conf.d/000001_openshift_origin_node_servername.conf
-%config(noreplace) /etc/httpd/conf.d/openshift_route.include
 %dir %attr(0755,-,-) %{appdir}
-%dir %attr(0750,root,apache) %{appdir}/.httpd.d
-%attr(0640,root,apache) %config(noreplace) %{appdir}/.httpd.d/routes.json
-%attr(0640,root,apache) %config(noreplace) %{appdir}/.httpd.d/geardb.json
-%attr(0640,root,apache) %config(noreplace) %{appdir}/.httpd.d/nodes.txt
-%attr(0640,root,apache) %config(noreplace) %{appdir}/.httpd.d/aliases.txt
-%attr(0640,root,apache) %config(noreplace) %{appdir}/.httpd.d/idler.txt
-%attr(0640,root,apache) %config(noreplace) %{appdir}/.httpd.d/sts.txt
-%attr(0750,root,apache) %config(noreplace) %{appdir}/.httpd.d/nodes.db
-%attr(0750,root,apache) %config(noreplace) %{appdir}/.httpd.d/aliases.db
-%attr(0750,root,apache) %config(noreplace) %{appdir}/.httpd.d/idler.db
-%attr(0750,root,apache) %config(noreplace) %{appdir}/.httpd.d/sts.db
 %dir %attr(0750,-,-) %{appdir}/.tc_user_dir
 
 %if 0%{?fedora}%{?rhel} <= 6
@@ -306,6 +250,14 @@ fi
 %attr(0755,-,-) /etc/cron.daily/openshift-origin-stale-lockfiles
 
 %changelog
+* Thu Sep 12 2013 Adam Miller <admiller@redhat.com> 1.14.7-1
+- Merge pull request #3552 from VojtechVitek/passenv
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #3617 from ironcladlou/dev/upgrade-stability
+  (dmcphers+openshiftbot@redhat.com)
+- Fix Apache PassEnv config files (vvitek@redhat.com)
+- Improve upgrade MCollective response handling (ironcladlou@gmail.com)
+
 * Wed Sep 11 2013 Adam Miller <admiller@redhat.com> 1.14.6-1
 - Bug 1000764 - Enforce cartridge start order (jhonce@redhat.com)
 

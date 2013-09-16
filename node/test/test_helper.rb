@@ -16,9 +16,11 @@
 
 require_relative 'coverage_helper'
 
+require 'rubygems'
 require 'test/unit'
 require 'mocha/setup'
 require 'logger'
+require 'securerandom'
 
 require_relative '../lib/openshift-origin-node'
 require_relative '../lib/openshift-origin-node/utils/logger/stdout_logger'
@@ -82,5 +84,117 @@ module OpenShift
     def change_cartridge_vendor_of(manifest, vendor = 'redhat2')
       manifest << "Cartridge-Vendor: #{vendor}"
     end
+  end
+
+  class FrontendHttpPluginTestCase < NodeBareTestCase
+
+    # Classes inheriting FrontendHttpPluginTestCase should do the following:
+    #  1. Instantiate their class in setup and assign to @plugin
+    #  2. Set @elements, @aliases, @ssl_certs
+    #  3. Add @config variables
+    #  4. Use the exercise_* routines to drive functional tests
+
+    def before_setup
+      @container_uuid = SecureRandom.uuid.gsub('-', '')
+      @container_name = "test" + SecureRandom.uuid.gsub('-', '')[0,8]
+      @domain = "example.com"
+      @namespace = "testspace"
+
+      @fqdn = "#{@container_name}-#{@namespace}.#{@domain}"
+
+      @config = mock('OpenShift::Config')
+      @config.stubs(:get).returns(nil)
+      OpenShift::Config.stubs(:new).returns(@config)
+
+      super
+    end
+
+    # Is the plugin available to the FrontendHttpServer module
+    def exercise_plugin_is_available
+      assert (not @plugin.nil?), "Plugin was not initialized"
+
+      assert ::OpenShift::Runtime::Frontend::Http::Plugins.plugins.include?(@plugin.class), "Plugins should include #{@plugin.class}"
+    end
+
+    def exercise_connections_api
+      yield(:pre_set) if block_given?
+      @plugin.connect(*@elements)
+      yield(:set) if block_given?
+
+      assert_equal @elements.sort, @plugin.connections.sort, "Connections should return the same as input"
+
+      yield(:pre_unset) if block_given?
+      @plugin.disconnect(*(@elements.map { |a,b,c| a }))
+      yield(:unset) if block_given?
+
+      assert_equal [], @plugin.connections, "Connections should be empty"
+    end
+
+    def exercise_aliases_api
+      yield(:pre_set) if block_given?
+      @aliases.each do |server_alias|
+        @plugin.add_alias(server_alias)
+      end
+      yield(:set) if block_given?
+
+      assert_equal @aliases.sort, @plugin.aliases.sort, "Aliases should be set to #{@aliases}"
+
+      yield(:pre_unset) if block_given?
+      @aliases.each do |server_alias|
+        @plugin.remove_alias(server_alias)
+      end
+      yield(:unset) if block_given?
+
+      assert_equal [], @plugin.aliases, "Aliases should be empty"
+    end
+
+    def exercise_ssl_api
+      yield(:pre_set) if block_given?
+      @ssl_certs.each do |ssl_cert, ssl_key, server_alias|
+        @plugin.add_alias(server_alias)
+        @plugin.add_ssl_cert(ssl_cert, ssl_key, server_alias)
+      end
+      yield(:set) if block_given?
+
+      assert_equal @ssl_certs.sort, @plugin.ssl_certs.sort, "SSL certs should be set to #{@ssl_certs}"
+
+      yield(:pre_unset) if block_given?
+      @ssl_certs.each do |ssl_cert, ssl_key, server_alias|
+        @plugin.remove_ssl_cert(server_alias)
+        @plugin.remove_alias(server_alias)
+      end
+      yield(:unset) if block_given?
+
+      assert_equal [], @plugin.ssl_certs, "SSL certs should be empty"
+    end
+
+    def exercise_idle_api
+      yield(:pre_set) if block_given?
+      @plugin.idle
+      yield(:set) if block_given?
+
+      assert @plugin.idle?, "Idle should be set"
+
+      yield(:pre_unset) if block_given?
+      @plugin.unidle
+      yield(:unset) if block_given?
+
+      assert (not @plugin.idle?), "Idle should not be set"
+    end
+
+    def exercise_sts_api
+      yield(:pre_set) if block_given?
+      @plugin.sts
+      yield(:set) if block_given?
+
+      assert @plugin.get_sts, "STS should be set"
+
+      yield(:pre_unset) if block_given?
+      @plugin.no_sts
+      yield(:unset) if block_given?
+
+      assert (not @plugin.get_sts), "STS should not be set"
+    end
+
   end
 end

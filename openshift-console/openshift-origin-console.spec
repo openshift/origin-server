@@ -15,7 +15,7 @@
 
 Summary:       The OpenShift Management Console
 Name:          openshift-origin-console
-Version:       1.10.2
+Version:       1.15.1
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -260,6 +260,25 @@ _EOF
 /sbin/fixfiles -R %{?scl:%scl_prefix}mod_passenger restore
 /sbin/restorecon -R -v /var/run
 %changelog
+* Fri Sep 13 2013 Troy Dawson <tdawson@redhat.com> 1.15.1-1
+- Bump up version (tdawson@redhat.com)
+- Fixing gem version requirement on sass-twitter-bootstrap (kraman@gmail.com)
+- Revert "Update Gemfile". Pushed to wrong branch. (kraman@gmail.com)
+- Update Gemfile (kraman@gmail.com)
+- Fix origin console rhel build, add -p flag to mkdir (jforrest@redhat.com)
+- Adding missing activemq config templates Fixing console spec to require gems
+  Additional fixes to comprehensive deployment guide (kraman@gmail.com)
+- Fixing comprehensive doc to include latest changes in broker/node setup.
+  Fixing openshift-origin-auth-remote-user-* for Apache 2.2 and 2.4 Fixing
+  openshift-origin-console.spec to include missing gems (kraman@gmail.com)
+- Bug 985656 - minor improvement for consistency in broker and console spec
+  files (bleanhar@redhat.com)
+- Merge pull request #2946 from maxamillion/dev/maxamillion/enable_rhcl
+  (dmcphers+openshiftbot@redhat.com)
+- enable rhscl repos - add wrapper (admiller@redhat.com)
+- KrbLocalUserMapping enables conversion to local users.
+  (jpazdziora@redhat.com)
+
 * Tue Jun 11 2013 Troy Dawson <tdawson@redhat.com> 1.10.2-1
 - Bump up version (tdawson@redhat.com)
 - Added psych dependency to openshift-console if psych has been split into a

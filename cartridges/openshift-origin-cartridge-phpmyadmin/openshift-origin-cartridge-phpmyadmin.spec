@@ -2,7 +2,7 @@
 
 Summary:       phpMyAdmin support for OpenShift
 Name:          openshift-origin-cartridge-phpmyadmin
-Version: 1.14.2
+Version: 1.15.0
 Release:       1%{?dist}
 Group:         Applications/Internet
 License:       ASL 2.0
@@ -51,6 +51,17 @@ ln -sf %{cartridgedir}/versions/shared/phpMyAdmin/config.inc.php %{_sysconfdir}/
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Thu Sep 12 2013 Adam Miller <admiller@redhat.com> 1.14.4-1
+- Merge pull request #3629 from VojtechVitek/phpmyadmin_lock
+  (dmcphers+openshiftbot@redhat.com)
+- fix phpmyadmin locking mechanism (vvitek@redhat.com)
+
+* Thu Sep 12 2013 Adam Miller <admiller@redhat.com> 1.14.3-1
+- Merge pull request #3620 from ironcladlou/dev/cart-version-bumps
+  (dmcphers+openshiftbot@redhat.com)
+- Cartridge version bumps for 2.0.33 (ironcladlou@gmail.com)
+- Fix Apache PassEnv config files (vvitek@redhat.com)
+
 * Mon Sep 09 2013 Adam Miller <admiller@redhat.com> 1.14.2-1
 - simplify phpmyadmin requires (dmcphers@redhat.com)
 

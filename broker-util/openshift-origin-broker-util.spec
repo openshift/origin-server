@@ -6,7 +6,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin broker
 Name:          openshift-origin-broker-util
-Version: 1.14.4
+Version: 1.15.0
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -23,7 +23,7 @@ Requires:      mongodb
 # For oo-register-dns
 Requires:      bind-utils
 # For oo-admin-broker-auth
-Requires:      mcollective-client
+Requires:      %{?scl:%scl_prefix}mcollective-client
 BuildArch:     noarch
 
 %description
@@ -84,6 +84,13 @@ cp man/*.8 %{buildroot}%{_mandir}/man8/
 %{_mandir}/man8/oo-stats.8.gz
 
 %changelog
+* Thu Sep 12 2013 Adam Miller <admiller@redhat.com> 1.14.5-1
+- <oo-admin-ctl-usage> Bug 990451, use Mongo config options for Moped session
+  https://bugzilla.redhat.com/show_bug.cgi?id=990451 (jolamb@redhat.com)
+- Merge pull request #3617 from ironcladlou/dev/upgrade-stability
+  (dmcphers+openshiftbot@redhat.com)
+- Improve upgrade MCollective response handling (ironcladlou@gmail.com)
+
 * Wed Sep 11 2013 Adam Miller <admiller@redhat.com> 1.14.4-1
 - Merge pull request #3613 from abhgupta/abhgupta-scheduler
   (dmcphers+openshiftbot@redhat.com)
