@@ -37,13 +37,7 @@ def clean_cart_repo
     end
   end
 
-  if restart_mcollectived
-    if File.exists?("/etc/fedora-release")
-      %x(service mcollective restart)
-    else
-      %x(service ruby193-mcollective restart)
-    end
-  end
+  %x(service ruby193-mcollective restart) if restart_mcollectived
 
   sleep 5
 
