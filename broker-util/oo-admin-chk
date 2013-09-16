@@ -73,13 +73,13 @@ level = args["--level"].to_i || 0
 verbose = args["--verbose"]
 usage if args["--help"]
 
-def datastore_has_gear?(gear_uuid, app_uuid=nil, false_positive_response=true)
+def datastore_has_gear?(gear_uuid, app_id=nil, false_positive_response=true)
   $false_positive_check_cnt += 1
   if $false_positive_check_cnt < FALSE_POSITIVE_CHECK_LIMIT
-    # specifying the app_uuid first, if present
+    # specifying the app_id first, if present
     # this makes better use of the indexes and performance is better 
-    if app_uuid
-      query = { "_id" => app_uuid }
+    if app_id
+      query = { "_id" => app_id }
     else
       query = {}
     end
@@ -278,7 +278,7 @@ if level >= 1 and $districts_enabled
   end
 end
 
-app_selection = {:fields => ["name", "uuid", "created_at", "domain_id", "group_instances.gears._id",
+app_selection = {:fields => ["name", "created_at", "domain_id", "group_instances.gears._id",
                              "group_instances.gears.uuid", "group_instances.gears.uid", "group_instances.gears.server_identity",
                              "group_instances._id", "component_instances._id", "component_instances.cartridge_name",
                              "component_instances.group_instance_id", "app_ssh_keys.name", "app_ssh_keys.content",
@@ -356,7 +356,7 @@ OpenShift::DataStore.find(:applications, app_query, app_selection) do |app|
   app['group_instances'].each do |gi|
     gi['gears'].each do |gear|
       gear_count += 1
-      datastore_hash[gear['uuid'].to_s] = [login, creation_time, gear['uid'], gear['server_identity'], app["uuid"], app_ssh_keys ]
+      datastore_hash[gear['uuid'].to_s] = [login, creation_time, gear['uid'], gear['server_identity'], app["_id"].to_s, app_ssh_keys ]
 
       if level >= 1 and $districts_enabled
         # record all used uid values for each node to match later with the district
@@ -471,19 +471,19 @@ datastore_hash.each do |gear_uuid, gear_info|
   login = gear_info[0]
   creation_time = gear_info[1]
   server_identity = gear_info[3]
-  app_uuid = gear_info[4]
+  app_id = gear_info[4]
   db_sshkeys = gear_info[5]
   print "#{gear_uuid} : #{gear_uuid.class}...\t" if verbose
   if (current_time - creation_time) > 600
     if not node_hash.has_key? gear_uuid
       if gear_sender_hash.has_key? server_identity
-        if datastore_has_gear?(gear_uuid, app_uuid, false)
+        if datastore_has_gear?(gear_uuid, app_id, false)
           puts "FAIL" if verbose
           summary << "Gear #{gear_uuid} does not exist on any node"
         elsif verbose
           puts "OK"
         end
-      elsif datastore_has_gear?(gear_uuid, app_uuid, false)
+      elsif datastore_has_gear?(gear_uuid, app_id, false)
         non_responding_nodes[server_identity] = 0 unless non_responding_nodes.has_key? server_identity
         non_responding_nodes[server_identity] += 1
         puts "FAIL" if verbose
