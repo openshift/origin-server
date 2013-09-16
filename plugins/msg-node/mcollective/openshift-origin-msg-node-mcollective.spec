@@ -3,9 +3,11 @@
     %global scl_prefix ruby193-
     %global vendor_ruby /opt/rh/%{scl}/root/usr/share/ruby/vendor_ruby/
     %global mco_agent_root /opt/rh/%{scl}/root/usr/libexec/mcollective/mcollective/agent/
+    %global update_yaml_root /opt/rh/ruby193/root/usr/libexec/mcollective/
 %else
     %global vendor_ruby /usr/share/ruby/vendor_ruby/
     %global mco_agent_root /usr/libexec/mcollective/mcollective/agent/
+    %global update_yaml_root /usr/libexec/mcollective/
 %endif
 
 Summary:       M-Collective agent file for openshift-origin-msg-node-mcollective
@@ -20,7 +22,7 @@ Requires:      %{?scl:%scl_prefix}rubygems
 Requires:      %{?scl:%scl_prefix}rubygem-open4
 Requires:      %{?scl:%scl_prefix}rubygem-json
 Requires:      rubygem-openshift-origin-node
-Requires:      mcollective
+Requires:      %{?scl:%scl_prefix}mcollective
 Requires:      %{?scl:%scl_prefix}facter
 Requires:      openshift-origin-msg-common
 BuildArch:     noarch
@@ -42,12 +44,12 @@ mkdir -p %{buildroot}/usr/libexec/mcollective
 cp -p src/openshift.rb %{buildroot}%{mco_agent_root}
 cp -p facts/openshift_facts.rb %{buildroot}%{vendor_ruby}facter/
 cp -p facts/openshift-facts %{buildroot}/etc/cron.minutely/
-cp -p facts/update_yaml.rb %{buildroot}/usr/libexec/mcollective/
+cp -p facts/update_yaml.rb %{buildroot}%{update_yaml_root}
 
 %files
 %{mco_agent_root}openshift.rb
 %{vendor_ruby}facter/openshift_facts.rb
-%attr(0700,-,-) /usr/libexec/mcollective/update_yaml.rb
+%attr(0700,-,-) %{update_yaml_root}/update_yaml.rb
 %attr(0700,-,-) %config(noreplace) /etc/cron.minutely/openshift-facts
 
 %changelog

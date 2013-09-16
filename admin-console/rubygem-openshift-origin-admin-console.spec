@@ -36,7 +36,7 @@ Requires:      %{?scl:%scl_prefix}rubygem-uglifier
 Requires:      %{?scl:%scl_prefix}rubygem-therubyracer
 Requires:      rubygem-openshift-origin-common
 Requires:      rubygem-openshift-origin-controller
-Requires:      mcollective-client
+Requires:      %{?scl:%scl_prefix}mcollective-client
 Requires:      openshift-origin-broker
 %if 0%{?fedora}%{?rhel} <= 6
 BuildRequires: %{?scl:%scl_prefix}build
