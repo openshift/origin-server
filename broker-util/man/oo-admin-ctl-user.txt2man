@@ -9,7 +9,7 @@ SYNOPSIS
   [--listsubaccounts] [--addsubaccount subaccount_login]
   [--removesubaccount subaccount_login] [--allowsubaccounts true|false]
   [--addgearsize gear_size] [--removegearsize gear_size]
-  [--inheritgearsizes true|false]
+  [--inheritgearsizes true|false] [--allowha true|false]
   [--allowprivatesslcertificates true|false]
 
 DESCRIPTION
@@ -57,6 +57,9 @@ OPTIONS
     Allow or Diasllow inheritance of login user gearsizes capability to
     subaccounts.
     
+  --allowha (true|false)
+    Add or Remove High Availability capability for this login user account.
+
   --allowprivatesslcertificates true|false  
     Add / Remove the capability to add private SSL certificates.
 
