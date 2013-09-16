@@ -527,14 +527,23 @@ module RestApi
         [(m['exit_code'].to_i rescue m['exit_code']),
           m['field'],
           m['text'],
+          (Integer(m['index']) if m['index'] rescue nil),
         ]
       end rescue []
     end
 
-    def load_remote_errors(remote_errors, save_cache=false, optional=false)
+    def load_remote_errors(remote_errors, save_cache=false, optional=false, indexed_items=nil, index_field=nil)
       begin
-        self.class.remote_errors_for(remote_errors.response).each do |m|
-          self.class.translate_api_error(errors, *m)
+        self.class.remote_errors_for(remote_errors.response).each do |(code, field, text, index)|
+          e = errors
+          if index
+            if indexed_items && item = indexed_items[index]
+              e = item.errors
+            else
+              field = index_attr
+            end
+          end
+          self.class.translate_api_error(e, code, field, text)
         end
         Rails.logger.debug "  Found errors on the response object: #{errors.to_hash.inspect}"
         duplicate_errors
@@ -645,8 +654,8 @@ module RestApi
       def on_exit_code(code, handles=nil, &block)
         (@exit_code_conditions ||= {})[code] = handles || block
       end
-      def translate_api_error(errors, code, field, text)
-        Rails.logger.debug "  Server error: :#{field} \##{code}: #{text}"
+      def translate_api_error(errors, code, field, text, index=nil)
+        Rails.logger.debug "  Server error: :#{field} \##{code}: #{text} #{index}"
         if @exit_code_conditions
           handler = @exit_code_conditions[code]
           handler = handler[:raise] if Hash === handler

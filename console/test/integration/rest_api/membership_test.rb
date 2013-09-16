@@ -44,17 +44,21 @@ class RestApiMembershipTest < ActiveSupport::TestCase
   def test_server_rejects_invalid_members
     setup_domain
 
-    assert !@domain.update_members([Member.new(:id => other_user.id)])
-    assert Array(@domain.errors[:base]).any?{ |s| s =~ /You must provide a role for each member/ }, @domain.errors.full_messages.join(' ')
+    assert !@domain.update_members([m = Member.new(:id => other_user.id)])
+    assert Array(m.errors[:role]).any?{ |s| s =~ /You must provide a role for each member/ }, m.errors.full_messages.join(' ')
+    assert Array(@domain.errors[:members]).any?{ |s| s == 'The domain members could not be updated.' }, @domain.errors.full_messages.join(' ')
 
-    assert !@domain.update_members([Member.new(:id => 'unknown/unknown', :role => 'admin')])
-    assert Array(@domain.errors[:base]).any?{ |s| s =~ /The specified user was not found/ }, @domain.errors.full_messages.join(' ')
+    assert !@domain.update_members([m = Member.new(:id => 'unknown/unknown', :role => 'admin')])
+    assert Array(m.errors[:id]).any?{ |s| s =~ /There is no account with identifier unknown\/unknown/ }, m.errors.full_messages.join(' ')
+    assert Array(@domain.errors[:members]).any?{ |s| s == 'The domain members could not be updated.' }, @domain.errors.full_messages.join(' ')
 
-    assert !@domain.update_members([Member.new(:login => '', :role => 'admin')])
-    assert Array(@domain.errors[:base]).any?{ |s| s =~ /Each member must have an id or a login/ }, @domain.errors.full_messages.join(' ')
+    assert !@domain.update_members([m = Member.new(:login => '', :role => 'admin')])
+    assert Array(m.errors[:base]).any?{ |s| s =~ /Each member being changed must have an id or a login/ }, m.errors.full_messages.join(' ')
+    assert Array(@domain.errors[:members]).any?{ |s| s == 'The domain members could not be updated.' }, @domain.errors.full_messages.join(' ')
 
-    assert !@domain.update_members([Member.new(:role => 'admin')])
-    assert Array(@domain.errors[:base]).any?{ |s| s =~ /Each member must have an id or a login/ }, @domain.errors.full_messages.join(' ')
+    assert !@domain.update_members([m = Member.new(:role => 'admin')])
+    assert Array(m.errors[:base]).any?{ |s| s =~ /Each member being changed must have an id or a login/ }, m.errors.full_messages.join(' ')
+    assert Array(@domain.errors[:members]).any?{ |s| s == 'The domain members could not be updated.' }, @domain.errors.full_messages.join(' ')
   end
 
   def test_add_and_remove_domain_members
@@ -79,10 +83,11 @@ class RestApiMembershipTest < ActiveSupport::TestCase
     assert_equal other_user.login, m.name
 
     # Only removal by id is currently supported
-    assert !@domain.update_members([Member.new(:login => other_user.login, :role => 'none')])
-    assert Array(@domain.errors[:base]).any?{ |s| s =~ /You must provide an id for each member with role \'none\'/ }, @domain.errors.full_messages.join(' ')
+    assert @domain.update_members([Member.new(:login => other_user.login, :role => 'none')])
+    assert_equal [@user.login].sort, @domain.reload.members.map(&:name).sort
 
     # Destroy by login and PATCH
+    assert @domain.update_members([Member.new(:login => other_user.login, :role => 'edit')])
     assert @domain.update_members([Member.new(:id => other_user.id, :role => 'none')]), @domain.errors.full_messages.join(' ')
     assert_equal [@user.login], @domain.reload.members.map(&:name)
   end

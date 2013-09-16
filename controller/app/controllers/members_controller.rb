@@ -17,7 +17,7 @@ class MembersController < BaseController
     members_params.each_with_index do |m, i|
       errors << Message.new(:error, "You must provide a member with an id and role.", 1, nil, i) and next unless m.is_a? Hash
       role = Role.for(m[:role]) || (m[:role] == 'none' and :none)
-      errors << Message.new(:error, "You must provide a role for each member - you can add or update (with #{Role.all.map{ |s| "'#{s}'" }.join(', ')}) or remove (with 'none').", 1, nil, i) and next unless role
+      errors << Message.new(:error, "You must provide a role for each member - you can add or update (with #{Role.all.map{ |s| "'#{s}'" }.join(', ')}) or remove (with 'none').", 1, :role, i) and next unless role
       if m[:id].present?
         ids[m[:id].to_s] = [role, i]
       elsif m[:login].present?
@@ -129,7 +129,7 @@ class MembersController < BaseController
       membership.remove_members(id)
       if save_membership(membership)
         if m = members.detect{ |m| m._id === id }
-          render_success(:ok, "member", get_rest_member(m), "The member #{m.name} is no longer directly granted a role.")
+          render_success(:ok, "member", get_rest_member(m), nil, nil, Message.new(:info, "The member #{m.name} is no longer directly granted a role.", 132))
         else
           render_success(:no_content, nil, nil, "Removed member.")
         end
@@ -192,13 +192,13 @@ class MembersController < BaseController
 
     def missing_user_logins(errors, users, map)
       (map.keys - users.map(&:login)).each do |login|
-        errors << Message.new(:error, "There is no account with login #{login}.", 1, :login, map[login].last)
+        errors << Message.new(:error, "There is no account with login #{login}.", 132, :login, map[login].last)
       end
     end
 
     def missing_user_ids(errors, users, map)
       (map.keys - users.map{ |u| u._id.to_s }).each do |id|
-        errors << Message.new(:error, "There is no account with identifier #{id}.", 1, :id, map[id].last)
+        errors << Message.new(:error, "There is no account with identifier #{id}.", 132, :id, map[id].last)
       end
     end
 
