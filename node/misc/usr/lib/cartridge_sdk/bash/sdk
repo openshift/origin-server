@@ -148,24 +148,6 @@ function set_env_var {
   echo "$val" >"${target}/${var}"
 }
 
-# Generate a random string from /dev/urandom
-# Arguments:
-#  - Desired length (optional)
-#  - Possible character space (optional)
-#  - Patterns to omit (optional)
-function random_string {
-  local DEFAULT_SPACE="a-zA-Z0-9"
-  local DEFAULT_LEN=12
-
-  local len=${1-$DEFAULT_LEN}
-  local space=${2-"${DEFAULT_SPACE}"}
-  local omit=${3-""}
-
-  local rnd=$(head -n 50 /dev/urandom | tr -dc $space | fold -w $len)
-  [ -n "${omit}" ] && rnd=$(echo "${rnd}" | grep -v "${omit}")
-  echo $(echo "${rnd}" | head -n1)
-}
-
 # Pad a string with random characters
 # Arguments:
 #  - String to pad
@@ -209,6 +191,18 @@ function generate_username {
   local DEFAULT_CHAR="a-np-zA-NP-Z1-9" #Alphanumeric except o,O,0
 
   echo $(pad_string ${1-$DEFAULT_USERNAME} ${2-$DEFAULT_LEN} ${3-$DEFAULT_CHAR})
+}
+
+function web_gears {
+  oo-gear-registry web
+}
+
+function proxy_gears {
+  oo-gear-registry proxy
+}
+
+function all_gears {
+  oo-gear-registry all
 }
 
 # wait up to 30 seconds for given process to stop
@@ -549,6 +543,7 @@ function sync_gear_repos {
   return $exc
 }
 
+
 # Returns 1 if we have a web_proxy cartridge installed
 function has_web_proxy() {
     has_web_proxy_cart=0
@@ -560,6 +555,7 @@ function has_web_proxy() {
     done
     return 1
 }
+
 
 # Wrapper for the OpenShift Ruby SDK
 #
@@ -577,4 +573,23 @@ function primary_cartridge_private_ip_name() {
 
 function primary_cartridge_private_port_name() {
   ruby_sdk 'primary_cartridge_manifest["Endpoints"][0]["Private-Port-Name"]'
+
+
+# Generate a random string from /dev/urandom
+# Arguments:
+#  - Desired length (optional)
+#  - Possible character space (optional)
+#  - Patterns to omit (optional)
+function random_string {
+  local DEFAULT_SPACE="a-zA-Z0-9"
+  local DEFAULT_LEN=12
+
+  local len=${1-$DEFAULT_LEN}
+  local space=${2-"${DEFAULT_SPACE}"}
+  local omit=${3-""}
+
+  local rnd=$(head -n 50 /dev/urandom | tr -dc $space | fold -w $len)
+  [ -n "${omit}" ] && rnd=$(echo "${rnd}" | grep -v "${omit}")
+  echo $(echo "${rnd}" | head -n1)
+
 }

@@ -23,81 +23,6 @@ class HAProxyAttr
     end
 end
 
-class HAProxyUtils
-    @@log = Logger.new("#{ENV['OPENSHIFT_HAPROXY_LOG_DIR']}/validate_config.log")
-    def self.parse_gear_registry_info(ginfo)
-        uuid, namespace, gear_dns, private_ip, proxy_port = ginfo.split(",")
-        return [gear_dns, uuid, private_ip]
-    end
-
-    def self.get_gear_ipaddress(gdns, ipaddr)
-        gip = ipaddr
-        begin
-            gip = IPSocket.getaddress(gdns)
-        rescue Exception => ex
-            @@log.error("Unable to get gear's IP address for #{gdns}: #{ex.message} - using default #{ipaddr}")
-        end
-        return gip
-    end
-
-    def self.repair_configuration(gdns, uuid, oldipaddr, newipaddr, debug=nil)
-      return false  if oldipaddr == newipaddr  # Don't do unneccessary work.
-
-      @@log.debug("GEAR_INFO - repair: Repairing gear registry - #{gdns} now resolves to #{newipaddr} (was #{oldipaddr}) ...") if debug
-      File.open(GEAR_REGISTRY_DB+".lock", "w") do |lockfile|
-        lockfile.flock(File::LOCK_EX)
-        cfgdata = File.readlines(GEAR_REGISTRY_DB)
-        # uuid, namespace, gear dns, private ip, proxy port
-        cfgdata.map! {|line| line.gsub(/^#{uuid},([^,]+),([^,]+),[^,]+,(.+)$/, "#{uuid},\\1,\\2,#{newipaddr},\\3") }
-        File.open(GEAR_REGISTRY_DB, "w") {|file| file.puts cfgdata }
-        lockfile.flock(File::LOCK_UN)
-      end
-      @@log.info("GEAR_INFO - repair: Repaired gear registry - #{gdns} now resolves to #{newipaddr} (was #{oldipaddr})")
-
-      gear_name = gdns.split(".")[0]
-      @@log.debug("GEAR_INFO - validate: Repairing haproxy config - #{gdns} now resolves to #{newipaddr} (was #{oldipaddr}) ...") if debug
-      File.open(HAPROXY_CONFIG+".lock", 'w') do |lockfile|
-        lockfile.flock(File::LOCK_EX)
-        hacfgdata = File.readlines(HAPROXY_CONFIG)
-        hacfgdata.map! {|line| line.gsub(/\s*server\s*gear-#{gear_name}\s*[0-9.]+:/, "    server gear-#{gear_name} #{newipaddr}:") }
-        File.open(HAPROXY_CONFIG, "w") {|file| file.puts hacfgdata }
-        lockfile.flock(File::LOCK_UN)
-      end
-      @@log.info("GEAR_INFO - repair: Repaired haproxy config - #{gdns} now resolves to #{newipaddr} (was #{oldipaddr})")
-
-      return true
-    end
-
-    def self.validate_configuration(debug=nil)
-        repaired = false
-        cfg=File.open(GEAR_REGISTRY_DB).read
-        cfg.gsub!(/\r\n?/, "\n")
-        cfg.each_line do |line|
-            gentry = line.delete("\n")
-            gdns, uuid, ipaddr = HAProxyUtils.parse_gear_registry_info(gentry)
-            gearip = HAProxyUtils.get_gear_ipaddress(gdns, ipaddr)
-
-            @@log.debug("GEAR_INFO - validate: Verifying gear #{gdns} resolves to #{ipaddr} for uuid=#{uuid} ... ") if debug
-            if ipaddr != gearip
-                @@log.info("GEAR_INFO - validate: Repairing configuration to use IP address #{gearip} for gear #{gdns} ...")
-                repaired ||= HAProxyUtils.repair_configuration(gdns, uuid, ipaddr, gearip)
-            end
-        end
-
-        if repaired
-          gear_registry.update(new_registry)
-            @@log.info("GEAR_INFO - validate: Configuration was modified, reloading haproxy")
-            ENV["CARTRIDGE_TYPE"] = "haproxy-1.4"
-            cpid = fork do
-              exec "#{ENV['OPENSHIFT_HAPROXY_DIR']}/bin/control reload"
-            end
-            Process.waitpid cpid
-            # Expect restart to terminate this process during the wait.
-            # But reap zombies if not.
-        end
-    end
-end
-
 class Haproxy
     MAX_SESSIONS_PER_GEAR = 16.0
 
@@ -440,8 +365,4 @@ while true
       # Already logged when the exception was generated
     end
     sleep @check_interval
-    if (Time.now - last_cfg_check_time).to_i > CONFIG_VALIDATION_CHECK_INTERVAL
-        last_cfg_check_time = Time.now
-        HAProxyUtils.validate_configuration()
-    end
 end

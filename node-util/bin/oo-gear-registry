@@ -1,0 +1,66 @@
+#!/usr/bin/env oo-ruby
+#--
+# Copyright 2013 Red Hat, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#++
+
+require 'rubygems'
+require 'openshift-origin-node/model/application_container'
+require 'openshift-origin-node/model/gear_registry'
+
+require 'commander/import'
+
+name="#{__FILE__}"
+
+program :name, "OpenShift Gear Registry Access"
+program :version, "1.0.0"
+program :description, "Access utility for gear registry"
+
+STDOUT.sync = true
+STDERR.sync = true
+
+OpenShift::Runtime::NodeLogger.disable
+
+@container = OpenShift::Runtime::ApplicationContainer.from_uuid(ENV['OPENSHIFT_GEAR_UUID'])
+@gear_registry = OpenShift::Runtime::GearRegistry.new(@container)
+
+command :read do |c|
+  c.syntax = "#{name} read [options]"
+  c.description = "Read gears of a given type"
+  c.option '--type STRING'
+  c.action do |args, options|
+    type = options.type
+
+    if !%w(web proxy all).include?(type)
+      $stderr.puts "type must be one of web,proxy,all"
+      exit! 3
+    end
+
+    if type != 'all'
+        gears = @gear_registry.entries[type.to_sym]
+    else
+        gears = @gear_registry.entries[:web]
+        gears.push@gear_registry.entries[:proxy]
+    end
+
+    gears.each_value do |gear|
+      puts "#{gear.uuid},#{gear.namespace},#{gear.dns},#{gear.proxy_hostname},#{gear.proxy_port}"
+    end
+  end
+end
+
+default_command :read
+alias_command :web, :read, "--type", "web"
+alias_command :proxy, :read, "--type", "proxy"
+alias_command :all, :read, "--type", "all"

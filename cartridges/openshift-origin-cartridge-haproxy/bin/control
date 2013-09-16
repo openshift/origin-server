@@ -27,12 +27,9 @@ function isrunning() {
 
 function ping_server_gears() {
     #  Ping the server gears and wake 'em up on startup.
-    gear_registry=$OPENSHIFT_HOMEDIR/gear_registry.txt
-    if [ -f $gear_registry ]; then
-      for geardns in $(cut -f 3 -d ',' "$gear_registry"); do
+    for geardns in $(web_gears | cut -f 3 -d ','); do
           [ -z "$geardns" ]  ||  curl "http://$geardns/" > /dev/null 2>&1  ||  :
-      done
-    fi
+    done
 }
 
 function wait_to_start() {
