@@ -552,8 +552,8 @@ function has_web_proxy() {
     for manifest in ${HOME}/*/metadata/manifest.yml; do
         check_for_web_proxy=$(awk '/:$/ {section=$1} /^- web_proxy/ {if (section == "Categories:") print 1}' $manifest)
         if  [ "$check_for_web_proxy" == "1" ]; then
-            return 0
+            bash_web_proxy_cart=1
         fi
     done
-    return 1
+    echo -n "${has_web_proxy_cart}"
 }
