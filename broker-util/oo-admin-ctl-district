@@ -5,7 +5,7 @@ require 'getoptlong'
 require 'pp'
 require "/var/www/openshift/broker/config/environment"
 
-CTL_DISTRICT_COMMANDS = "(add-node|remove-node|deactivate-node|activate-node|add-capacity|remove-capacity|create|destroy)"
+CTL_DISTRICT_COMMANDS = "(add-node|remove-node|deactivate-node|activate-node|add-capacity|remove-capacity|create|destroy|publish-uids)"
 
 def usage
   puts <<USAGE
@@ -89,7 +89,7 @@ if node_profile && !Gear::valid_gear_size?(node_profile)
   exit 1
 end
   
-if command && !(command =~ /\A(add-node|remove-node|deactivate-node|activate-node|add-capacity|remove-capacity|create|destroy)\z/)
+if command && !(command =~ /\A(add-node|remove-node|deactivate-node|activate-node|add-capacity|remove-capacity|create|destroy|publish-uids)\z/)
   puts "Command must be one of: #{CTL_DISTRICT_COMMANDS}"
   exit 255
 end
@@ -114,7 +114,7 @@ if uuid || name
     puts "--size is required with command: #{command}"
     exit 1
   end
-elsif command
+elsif command && (command != 'publish-uids')
   if command != 'create'
     puts "--uuid or --name is required with command: #{command}"
   else
@@ -144,6 +144,19 @@ begin
   when "remove-capacity"
     district.remove_capacity(size)
     reply.resultIO << "Success!"
+  when "publish-uids"
+    districts = district ? [district] : District.find_all
+
+    reply.resultIO << "No districts created yet.  Use 'oo-admin-ctl-district -c create' to create one." if districts.empty?
+    districts.each do |district|
+      if district.server_identities.empty?
+        reply.resultIO << "District: #{district.name} does not have any server identities, skipping.\n"
+      else
+        reply.resultIO << "Publishing district UIDs for district: #{district.name} (#{district.uuid})\n"
+        OpenShift::ApplicationContainerProxy.set_district_uid_limits("#{district.uuid}", district.first_uid, district.max_uid)
+        reply.resultIO << "District: #{district.name} done\n"
+      end
+    end
   when "create"
     default_gear_size = Rails.application.config.openshift[:default_gear_size]
     puts "node_profile not specified.  Using default: #{default_gear_size}" unless node_profile
@@ -189,7 +202,7 @@ WARNING
       end
     end
   end
-  if (uuid || name) && command && command != 'destroy'
+  if (uuid || name) && command && command != 'destroy' && command != 'publish-uids'
     district = get_district(uuid, name)
     append_district(district, reply.resultIO)
   end

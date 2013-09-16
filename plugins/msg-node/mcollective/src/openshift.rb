@@ -925,14 +925,23 @@ module MCollective
         validate :uuid, /^[a-zA-Z0-9]+$/
         uuid = request[:uuid].to_s if request[:uuid]
         active = request[:active]
+        first_uid = request[:first_uid]
+        max_uid = request[:max_uid]
 
         begin
-          district_home = '/var/lib/openshift/.settings'
-          FileUtils.mkdir_p(district_home)
+          File.open('/var/lock/oo-district-info', File::RDWR|File::CREAT|File::TRUNC, 0600) do |lock|
+            lock.fcntl(Fcntl::F_SETFD, Fcntl::FD_CLOEXEC)
+            lock.flock(File::LOCK_EX)
 
-          File.open(File.join(district_home, 'district.info'), 'w') { |f|
-            f.write("#Do not modify manually!\nuuid='#{uuid}'\nactive='#{active}'\n")
-          }
+            district_home = '/var/lib/openshift/.settings'
+            FileUtils.mkdir_p(district_home)
+
+            File.open(File.join(district_home, 'district.info'), 'w') { |f|
+              f.write("#Do not modify manually!\nuuid='#{uuid}'\nactive='#{active}'\nfirst_uid=#{first_uid}\nmax_uid=#{max_uid}")
+            }
+
+            lock.flock(File::LOCK_UN)
+          end
 
           Facter.add(:district_uuid) do
             setcode { uuid }
@@ -940,8 +949,14 @@ module MCollective
           Facter.add(:district_active) do
             setcode { active }
           end
+          Facter.add(:district_first_uid) do
+            setcode { first_uid }
+          end
+          Facter.add(:district_max_uid) do
+            setcode { max_uid }
+          end
 
-          reply[:output]   = "created/updated district #{uuid} with active = #{active}"
+          reply[:output]   = "created/updated district #{uuid} with active = #{active}, first_uid = #{first_uid}, max_uid = #{max_uid}"
           reply[:exitcode] = 0
         rescue Exception => e
           report_exception e
@@ -951,6 +966,54 @@ module MCollective
         end
 
         Log.instance.info("set_district (#{reply[:exitcode]})\n------\n#{reply[:output]}\n------)")
+      end
+
+      #
+      # Set the district uid_limits for a node
+      #
+      def set_district_uid_limits_action
+        Log.instance.info("set_district_uid_limits call / action: #{request.action}, agent=#{request.agent}, data=#{request.data.pretty_inspect}")
+        first_uid = request[:first_uid]
+        max_uid = request[:max_uid]
+
+        begin
+          File.open('/var/lock/oo-district-info', File::RDWR|File::CREAT|File::TRUNC, 0600) do |lock|
+            lock.fcntl(Fcntl::F_SETFD, Fcntl::FD_CLOEXEC)
+            lock.flock(File::LOCK_EX)
+
+            district_home = '/var/lib/openshift/.settings'
+
+            text = File.read(File.join(district_home, 'district.info'))
+
+            new_first_uid = "first_uid=#{first_uid}"
+            result = text.gsub!(/first_uid=\d+/, new_first_uid)
+            text << "#{new_first_uid}\n" if result.nil?
+
+            new_max_uid = "max_uid=#{max_uid}"
+            result = text.gsub!(/max_uid=\d+/, new_max_uid)
+            text << "#{new_max_uid}\n" if result.nil?
+
+            File.open(File.join(district_home, 'district.info'), "w") {|f| f.puts text}
+
+            lock.flock(File::LOCK_UN)
+          end
+
+          Facter.add(:district_first_uid) do
+            setcode { first_uid }
+          end
+          Facter.add(:district_max_uid) do
+            setcode { max_uid }
+          end
+
+          reply[:output]   = "updated district uid limits with first_uid = #{first_uid}, max_uid = #{max_uid}"
+          reply[:exitcode] = 0
+        rescue Exception => e
+          reply[:output]   = e.message
+          reply[:exitcode] = 255
+          reply.fail! "set_district_uid_limits failed #{reply[:exitcode]}.  Output #{reply[:output]}"
+        end
+
+        Log.instance.info("set_district_uid_limits (#{reply[:exitcode]})\n------\n#{reply[:output]}\n------)")
       end
 
       #
