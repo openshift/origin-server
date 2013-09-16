@@ -137,14 +137,19 @@ function start() {
 
     nodejs_context "nohup supervisor -e 'node|js|coffee' -- $script_n_opts  >> $logf 2>&1 &"
 
-    ret=$?
-    spid=$(supervisor_pid)
+    retries=3
+    while [ $retries -gt 0 ]; do
+      spid=$(supervisor_pid)
+      [ -n "${spid}" ] && break
+      sleep 1
+      let retries=${retries}-1
+    done
+
     popd > /dev/null
-    if [ $ret -eq 0 ]; then
+    if [ -n "${spid}" ]; then
         echo "$spid" > "$OPENSHIFT_NODEJS_PID_DIR/supervisor.pid"
     else
-        echo "Application '$OPENSHIFT_APP_NAME' failed to start - $ret" 1>&2
-        exit $ret
+        error "Application '$OPENSHIFT_APP_NAME' failed to start" 1>&2 1
     fi
 }  #  End of function  start.
 
@@ -174,13 +179,17 @@ function stop() {
           pkill -f "$(supervisor_exe)" 2>&1 || :
         fi
 
-        echo "`date +"$FMT"`: Stopped Node application '$OPENSHIFT_APP_NAME'" >> $logf
-        rm -f $OPENSHIFT_NODEJS_PID_DIR/supervisor.pid
+        if is_supervisor_running ; then
+          error "Warning: Application '$OPENSHIFT_APP_NAME' unable to stop. Use force-stop to kill." 141
+        else
+          echo "`date +"$FMT"`: Stopped Node application '$OPENSHIFT_APP_NAME'" >> $logf
+          rm -f $OPENSHIFT_NODEJS_PID_DIR/supervisor.pid
+        fi
       fi
     else
-      if -n "$(supervisor_pid)"; then
+      if [ -n "$(supervisor_pid)" ]; then
         error "Warning: Application '$OPENSHIFT_APP_NAME' supervisor exists without a pid file.  Use force-stop to kill." 141
-      elif -n "$(node_pid)"; then
+      elif [ -n "$(node_pid)" ]; then
         error "Warning: Application '$OPENSHIFT_APP_NAME' Node server exists without a pid file.  Use force-stop to kill." 141
       fi
     fi
