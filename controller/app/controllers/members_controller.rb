@@ -7,62 +7,74 @@ class MembersController < BaseController
   def create
     authorize! :change_members, membership
 
-    ids, logins, remove = {}, {}, []
+    errors = []
+    warnings = []
+    singular = params[:members].nil?
+    ids, logins = {}, {}
+
+    # Find input members
     members_params = (params[:members] || [params[:member]].compact.presence || [params.slice(:id, :login, :role)]).compact
-    members_params.each do |m| 
-      return render_error(:unprocessable_entity, "You must provide a member with an id and role.") unless m.is_a? Hash
-      if m[:role] == "none"
-        return render_error(:unprocessable_entity, "You must provide an id for each member with role 'none'.") unless m[:id]
-        remove << m[:id].to_s
-        next
-      end
-      role = Role.for(m[:role])
-      return render_error(:unprocessable_entity, "You must provide a role for each member out of #{Role.all.join(', ')}.") unless role
+    members_params.each_with_index do |m, i|
+      errors << Message.new(:error, "You must provide a member with an id and role.", 1, nil, i) and next unless m.is_a? Hash
+      role = Role.for(m[:role]) || (m[:role] == 'none' and :none)
+      errors << Message.new(:error, "You must provide a role for each member - you can add or update (with #{Role.all.map{ |s| "'#{s}'" }.join(', ')}) or remove (with 'none').", 1, nil, i) and next unless role
       if m[:id].present?
-        ids[m[:id].to_s] = role
+        ids[m[:id].to_s] = [role, i]
       elsif m[:login].present?
-        logins[m[:login].to_s] = role
+        logins[m[:login].to_s] = [role, i]
       else
-        return render_error(:unprocessable_entity, "Each member must have an id or a login.")
+        errors << Message.new(:error, "Each member being changed must have an id or a login.", 1, nil, i)
       end
     end
+    if errors.present?
+      return render_error(:bad_request, errors.first.text, nil, nil, nil, errors.first) if singular
+      return render_error(:bad_request, "The provided members are not valid.", nil, nil, nil, errors)
+    end
+    return render_error(:unprocessable_entity, "You must provide at least a single member that exists.") unless ids.present? || logins.present?
 
-    if ids.present? or logins.present?
-      new_members = CloudUser.accessible(current_user).with_ids_or_logins(ids.keys, logins.keys).each.to_a.map do |u| 
-        m = u.as_member
-        m.role = ids[u._id.to_s] || logins[u.login.to_s]
-        m
-      end
-    else
-      new_members = []
+    # Perform lookups of users by login and create members for new roles
+    new_members = changed_members_for(ids, logins, errors)
+    remove = removed_ids(ids, logins, errors)
+    if errors.present?
+      return render_error(:not_found, errors.first.text, nil, nil, nil, [errors.first]) if singular
+      return render_error(:not_found, "Not all provided members exist.", nil, nil, nil, errors)
     end
 
-    if remove.blank? and new_members.blank?
-      return render_error(:not_found, "The specified user was not found.") if members_params.count == 1
-      return render_error(:unprocessable_entity, "You must provide at least a single member.")
+    # Warn about partial inputs
+    invalid_members = []
+    remove.delete_if do |id, pretty|
+      unless membership.member_ids.detect{ |m| m === id }
+        invalid_members << pretty
+      end
+    end
+    if invalid_members.present?
+      msg = "#{invalid_members.to_sentence} #{invalid_members.length > 1 ? "are not members" : "is not a member"} and cannot be removed."
+      return render_error(:bad_request, msg) if singular
+      warnings << Message.new(:warning, msg, 1, nil)
     end
 
     count_remove = remove.count
     count_update = (membership.member_ids & new_members.map(&:id)).count
     count_add    = new_members.count - count_update
 
-    membership.remove_members(remove) if remove.present?
-    membership.add_members(new_members) if new_members.present?
+    membership.remove_members(remove.keys)
+    membership.add_members(new_members)
 
     if save_membership(membership)
       msg = [
         ("added #{pluralize(count_add,      'member')}" if count_add > 0),
         ("updated #{pluralize(count_update, 'member')}" if count_update > 0),
-        ("removed #{pluralize(count_remove, 'member')}" if count_remove > 0)
+        ("removed #{pluralize(count_remove, 'member')}" if count_remove > 0),
+        ("ignored #{pluralize(invalid_members.length, 'missing member')} (#{invalid_members.join(', ')})" if invalid_members.present?),
       ].compact.join(", ").humanize + '.'
 
-      if (count_add + count_update == 1) and (count_remove == 0) and (member = members.select {|m| m._id == new_members.first._id }.first)
-        render_success(:ok, "member", get_rest_member(member), msg)
+      if (count_add + count_update == 1) and (count_remove == 0) and (member = members.detect{|m| m._id == new_members.first._id })
+        render_success(:ok, "member", get_rest_member(member), msg, nil, warnings)
       else
-        render_success(:ok, "members", members.map{ |m| get_rest_member(m) }, msg)
+        render_success(:ok, "members", members.map{ |m| get_rest_member(m) }, msg, nil, warnings)
       end
     else
-      render_error(:unprocessable_entity, "The members could not be added due to validation errors.", nil, nil, nil, new_members.map{ |m| get_error_messages(m) }.flatten)
+      render_error(:unprocessable_entity, "The members could not be added due to validation errors.", nil, nil, nil, get_error_messages(new_members))
     end
   end
 
@@ -150,5 +162,45 @@ class MembersController < BaseController
     end
 
   private
+    def changed_members_for(ids, logins, errors)
+      if ids.present? or logins.present?
+        ids = ids.select{ |id, (role, _)| role != :none }
+        logins = logins.select{ |id, (role, _)| role != :none }
+        users = CloudUser.accessible(current_user).with_ids_or_logins(ids.keys, logins.keys).each.to_a
+        missing_user_logins(errors, users, logins)
+        missing_user_ids(errors, users, ids)
+        users.map do |u|
+          m = u.as_member
+          m.role = (ids[u._id.to_s] || logins[u.login.to_s])[0]
+          m
+        end
+      else
+        []
+      end
+    end
+
+    def removed_ids(ids, logins, errors)
+      ids = ids.inject({}){ |h, (id, (role, _))| h[id] = id if role == :none; h }
+      logins = logins.select{ |id, (role, _)| role == :none }
+      if logins.present?
+        users = CloudUser.accessible(current_user).with_ids_or_logins(nil, logins.keys).each.to_a
+        missing_user_logins(errors, users, logins)
+        ids.merge!(users.inject({}){ |h, u| h[u._id.to_s] = u.login; h })
+      end
+      ids
+    end
+
+    def missing_user_logins(errors, users, map)
+      (map.keys - users.map(&:login)).each do |login|
+        errors << Message.new(:error, "There is no account with login #{login}.", 1, :login, map[login].last)
+      end
+    end
+
+    def missing_user_ids(errors, users, map)
+      (map.keys - users.map{ |u| u._id.to_s }).each do |id|
+        errors << Message.new(:error, "There is no account with identifier #{id}.", 1, :id, map[id].last)
+      end
+    end
+
     include ActionView::Helpers::TextHelper
 end

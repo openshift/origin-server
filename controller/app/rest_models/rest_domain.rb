@@ -35,7 +35,7 @@ class RestDomain < OpenShift::Model
       @gear_counts = domain.gear_counts || {}
     end
 
-    unless nolinks      
+    unless nolinks
       blacklisted_words = OpenShift::ApplicationContainerProxy.get_blacklisted
       carts = CartridgeCache.cartridge_names("web_framework")
 
@@ -52,7 +52,7 @@ class RestDomain < OpenShift::Model
         ].compact),
         "LIST_APPLICATIONS" => Link.new("List applications for a domain", "GET", URI::join(url, "domains/#{name}/applications")),
         "LIST_MEMBERS" => Link.new("List members of this domain", "GET", URI::join(url, "domains/#{name}/members")),
-        "ADD_MEMBER" => Link.new("Add one or more members to this domain", "POST", URI::join(url, "domains/#{name}/members"),
+        "UPDATE_MEMBERS" => Link.new("Add or remove one or more members to this domain.", "PATCH", URI::join(url, "domains/#{name}/members"), 
           [Param.new("role", "string", "The role the user should have on the domain", Role.all)],
           [OptionalParam.new("id", "string", "Unique identifier of the user"),
           OptionalParam.new("login", "string", "The user's login attribute")]
