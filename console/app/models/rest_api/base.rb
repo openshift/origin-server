@@ -966,10 +966,12 @@ module RestApi
 
     def authorization_header(http_method, uri)
       headers = super
-      headers['X-Forwarded-For'] = @as.remote_ip if @as.respond_to? :remote_ip
-      if @as.respond_to? :to_headers
+      if @as.respond_to?(:remote_ip) && (ip = @as.remote_ip.presence)
+        headers['X-Forwarded-For'] = ip
+      end
+      if @as.respond_to?(:to_headers)
         headers.merge!(@as.to_headers)
-      elsif @as.respond_to? :ticket and @as.ticket
+      elsif @as.respond_to?(:ticket) and @as.ticket
         (headers['Cookie'] ||= '') << "rh_sso=#{@as.ticket}"
       end
       headers
