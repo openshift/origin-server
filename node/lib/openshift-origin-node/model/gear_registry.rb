@@ -26,18 +26,18 @@ module OpenShift
 
       # Represents an individual entry in the gear registry
       class Entry
-        attr_reader :uuid, :namespace, :dns, :proxy_ip, :proxy_port
+        attr_reader :uuid, :namespace, :dns, :proxy_hostname, :proxy_port
 
         def initialize(options)
           @uuid = options[:uuid]
           @namespace = options[:namespace]
           @dns = options[:dns]
-          @proxy_ip = options[:proxy_ip]
+          @proxy_hostname = options[:proxy_hostname]
           @proxy_port = options[:proxy_port]
         end
 
         def as_json(options={})
-          {namespace: @namespace, dns: @dns, proxy_ip: @proxy_ip, proxy_port: @proxy_port}
+          {namespace: @namespace, dns: @dns, proxy_hostname: @proxy_hostname, proxy_port: @proxy_port}
         end
       end
 
@@ -74,7 +74,7 @@ module OpenShift
 
       def add(options)
         # make sure all required fields are passed in
-        %w(type uuid namespace dns proxy_ip proxy_port).map(&:to_sym).each { |s| raise "#{s} is required" if options[s].nil?}
+        %w(type uuid namespace dns proxy_hostname proxy_port).map(&:to_sym).each { |s| raise "#{s} is required" if options[s].nil?}
 
         # add entry to registry by type
         type = options[:type].to_sym
@@ -91,7 +91,7 @@ module OpenShift
       #    "522916bf6d909865c8000313": {
       #      "namespace": "foo",
       #      "dns": "myapp-foo.example.com",
-      #      "proxy_ip": "52.1.2.3",
+      #      "proxy_hostname": "node1.example.com",
       #      "proxy_port": 35561
       #    },
       #    ...

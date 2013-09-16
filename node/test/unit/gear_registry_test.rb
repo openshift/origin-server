@@ -33,13 +33,13 @@ class GearRegistryTest < OpenShift::NodeTestCase
     "uuid1": {
       "namespace": "namespace1",
       "dns": "dns1",
-      "proxy_ip": "proxy_ip1",
+      "proxy_hostname": "proxy_host1",
       "proxy_port": 35561
     },
     "uuid2": {
       "namespace": "namespace2",
       "dns": "dns2",
-      "proxy_ip": "proxy_ip2",
+      "proxy_hostname": "proxy_host2",
       "proxy_port": 35562
     }
   },
@@ -47,13 +47,13 @@ class GearRegistryTest < OpenShift::NodeTestCase
     "uuid3": {
       "namespace": "namespace3",
       "dns": "dns3",
-      "proxy_ip": "proxy_ip3",
+      "proxy_hostname": "proxy_host3",
       "proxy_port": 35563
     },
     "uuid4": {
       "namespace": "namespace4",
       "dns": "dns4",
-      "proxy_ip": "proxy_ip4",
+      "proxy_hostname": "proxy_host4",
       "proxy_port": 35564
     }
   }
@@ -78,7 +78,7 @@ EOF
       uuid: "uuid#{suffix}",
       namespace: "namespace#{suffix}",
       dns: "dns#{suffix}",
-      proxy_ip: "proxy_ip#{suffix}",
+      proxy_hostname: "proxy_host#{suffix}",
       proxy_port: "3556#{suffix}".to_i
     }
   end
@@ -92,7 +92,7 @@ EOF
     a.uuid == b.uuid and
     a.namespace == b.namespace and
     a.dns == b.dns and
-    a.proxy_ip == b.proxy_ip and
+    a.proxy_hostname == b.proxy_hostname and
     a.proxy_port == b.proxy_port
   end
 
@@ -106,14 +106,14 @@ EOF
     assert_equal 'uuid1', entry.uuid
     assert_equal 'namespace1', entry.namespace
     assert_equal 'dns1', entry.dns
-    assert_equal 'proxy_ip1', entry.proxy_ip
+    assert_equal 'proxy_host1', entry.proxy_hostname
     assert_equal 35561, entry.proxy_port
   end
 
   def test_entry_to_json
     entry = create_entry("1")
 
-    assert_equal '{"namespace":"namespace1","dns":"dns1","proxy_ip":"proxy_ip1","proxy_port":35561}', entry.to_json
+    assert_equal '{"namespace":"namespace1","dns":"dns1","proxy_hostname":"proxy_host1","proxy_port":35561}', entry.to_json
   end
 
   def test_gear_registry_initialize_creates_files

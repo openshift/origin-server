@@ -608,10 +608,10 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
     self_entry = mock()
 
     other_entry = mock()
-    other_entry.expects(:proxy_ip).returns('localhost')
+    other_entry.expects(:proxy_hostname).returns('localhost')
 
     other_entry2 = mock()
-    other_entry2.expects(:proxy_ip).returns('localhost')
+    other_entry2.expects(:proxy_hostname).returns('localhost')
 
     entries = {
       :web => {

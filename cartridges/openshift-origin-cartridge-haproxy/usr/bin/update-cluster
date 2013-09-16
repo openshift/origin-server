@@ -50,8 +50,9 @@ for arg in $kvargs; do
     # Ensure endpoint is valid.
     [ -z "$ep" ]  &&  continue
 
-    # And of the form: $ipv4-address:$port-number
-    if [[ ! $ep =~ ^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}:[0-9]{4,5} ]]; then
+    # And of the form: $valid-dns-entry:$port-number
+    # (valid-dns-entry regex portion from http://stackoverflow.com/a/3824105/305572)
+    if [[ ! $ep =~ ^([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])(\.([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]{0,61}[a-zA-Z0-9]))*:[0-9]{4,5}$ ]]; then
        # write/log error, set exit code but continue/process remaining entries.
        echo "${@:1:3} - Invalid endpoint '$ep' passed in input - $zinfo" 1>&2
        exitcode=22

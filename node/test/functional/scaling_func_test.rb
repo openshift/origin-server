@@ -132,16 +132,17 @@ class ScalingFuncTest < OpenShift::NodeBareTestCase
       entries = gear_registry.entries
       OpenShift::Runtime::NodeLogger.logger.info("Gear registry contents: #{entries}")
       assert_equal 2, entries.keys.size
-      
+
       web_entries = entries[:web]
       assert_equal 1, web_entries.keys.size
       assert_equal app_id, web_entries.keys[0]
-      
+
       entry = web_entries[app_id]
       assert_equal app_id, entry.uuid
       assert_equal @namespace, entry.namespace
       assert_equal "#{app_name}-#{@namespace}.dev.rhcloud.com", entry.dns
-      assert_equal local_ip, entry.proxy_ip
+      local_hostname = `facter public_hostname`.chomp
+      assert_equal local_hostname, entry.proxy_hostname
       assert_equal IO.read(File.join(app_container.container_dir, '.env', 'OPENSHIFT_LOAD_BALANCER_PORT')).chomp, entry.proxy_port
 
       assert_http_title_for_entry entry, DEFAULT_TITLE
@@ -153,7 +154,7 @@ class ScalingFuncTest < OpenShift::NodeBareTestCase
       assert_equal app_id, entry.uuid
       assert_equal @namespace, entry.namespace
       assert_equal "#{app_name}-#{@namespace}.dev.rhcloud.com", entry.dns
-      assert_equal local_ip, entry.proxy_ip
+      assert_equal local_hostname, entry.proxy_hostname
       assert_equal 0, entry.proxy_port.to_i
 
 
@@ -251,14 +252,6 @@ END
     # Make sure this is an Array in case we pass a range
     charspace = ("1".."9").to_a
     (0...len).map{ charspace[rand(charspace.length)] }.join
-  end
-
-  def local_ip
-    addrinfo     = Socket.getaddrinfo(Socket.gethostname, 80) # 80 is arbitrary
-    private_addr = addrinfo.select { |info|
-      info[3] !~ /^127/
-    }.first
-    private_ip   = private_addr[3]
   end
 
   def assert_http_title_for_entry(entry, expected)

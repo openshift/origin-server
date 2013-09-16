@@ -1721,10 +1721,7 @@ module OpenShift
       def build_update_cluster_args(proxy_gears, cluster, args)
         proxy_args = []
         proxy_gears.each do |gear|
-          # TODO would prefer to have a way to get the IP address of the proxy gear
-          # instead of relying on an exposed public endpoint from the web cartridge
-          proxy_ip = gear.port_interfaces[0].external_address
-          proxy_args << "#{gear.uuid},#{gear.name},#{gear.group_instance.application.domain_namespace},#{proxy_ip}"
+          proxy_args << "#{gear.uuid},#{gear.name},#{gear.group_instance.application.domain_namespace},#{gear.public_hostname}"
         end
 
         args['--proxies'] = proxy_args.join(' ')
@@ -1734,8 +1731,8 @@ module OpenShift
           # TODO eventually support multiple ports
           first_port_interface = gear.port_interfaces[0]
 
-          # uuid, name, namespace, private ip, proxy port
-          cluster_args << "#{gear.uuid},#{gear.name},#{gear.group_instance.application.domain_namespace},#{first_port_interface.external_address},#{first_port_interface.external_port}"
+          # uuid, name, namespace, proxy_hostname, proxy port
+          cluster_args << "#{gear.uuid},#{gear.name},#{gear.group_instance.application.domain_namespace},#{gear.public_hostname},#{first_port_interface.external_port}"
         end
 
         args['--cluster'] = cluster_args.join(' ')
