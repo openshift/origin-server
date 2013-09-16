@@ -754,7 +754,6 @@ textarea[readonly] {
 // ---------------------------
 .form-important {
   .control-group { margin-bottom: 14px; }
-  .controls { margin-left: 140px; }
 
   input.expand { width: auto; max-width: -moz-available; }
   input.narrow { width: 140px; }
@@ -766,13 +765,11 @@ textarea[readonly] {
     > select { margin-top: -5px; }
   }
 
-  .control-label { margin-left: 15px; width: 120px; text-align: left; color: #949494; }
+  .control-label { margin-left: 15px; text-align: left; color: #666; }
   .error > .control-label { color: $errorBackground; }
 
   .help-block { color: #949494; max-width: 500px; -moz-transition: 0.2s; overflow: hidden; text-overflow: ellipsis; font-size: $smallFontSize;}
   .alert { max-width: 500px; }
-
-  .form-actions { padding-left: 140px; }
 
   h3 .font-icon {margin-left: 25px}
 }
