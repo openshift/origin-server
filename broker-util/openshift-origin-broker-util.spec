@@ -6,7 +6,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin broker
 Name:          openshift-origin-broker-util
-Version: 1.14.6
+Version: 1.14.7
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -84,6 +84,9 @@ cp man/*.8 %{buildroot}%{_mandir}/man8/
 %{_mandir}/man8/oo-stats.8.gz
 
 %changelog
+* Mon Sep 16 2013 Dan McPherson <dmcphers@redhat.com> 1.14.7-1
+- Fix for bug 1007582 and bug 1008517 (abhgupta@redhat.com)
+
 * Fri Sep 13 2013 Adam Miller <admiller@redhat.com> 1.14.6-1
 - Bug 1007711: Fix upgraded gear count reporting (ironcladlou@gmail.com)
 
