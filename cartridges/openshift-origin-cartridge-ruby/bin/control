@@ -73,6 +73,13 @@ function build() {
     echo "Building Ruby cartridge"
     update-configuration $OPENSHIFT_RUBY_VERSION
 
+    if ruby_in_development_mode; then
+      if ! gemfile_modified; then
+        echo "Skipping 'bundle install' because development mode is enabled..."
+        return 0
+      fi
+    fi
+
     USED_BUNDLER=false
     if [ -d $OPENSHIFT_RUBY_DIR/tmp/.bundle ]
     then

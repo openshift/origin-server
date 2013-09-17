@@ -7,6 +7,30 @@ function ruby_in_development_mode {
   return 1
 }
 
+function gemfile_modified {
+
+  local bundler_md5_file="${OPENSHIFT_RUBY_DIR}tmp/.bundler_md5sum"
+
+  [ ! -f "${OPENSHIFT_REPO_DIR}Gemfile" ] && return 1
+
+  if [ ! -f "${bundler_md5_file}" ]; then
+    md5sum "${OPENSHIFT_REPO_DIR}Gemfile" > "${bundler_md5_file}"
+    return 1
+  else
+
+    pushd $OPENSHIFT_REPO_DIR 1>/dev/null
+    md5sum --status --check "${bundler_md5_file}"
+    success=$?
+    popd 1>/dev/null
+
+    if success; then
+      return 0
+    else
+      return 1
+    fi
+  fi
+}
+
 function wait_for_stop {
         pid=$1
     for i in {1..300}
