@@ -1,9 +1,11 @@
 .label-tags {
   a.label {
-    color: #666;
+    color: $openshiftLinkGray;
     background-color: transparent;
     text-decoration: none;
-    margin-right: 5px;
+    margin-right: 10px;
+    margin-top: -5px;
+    margin-left: -6px;
     text-shadow: none;
     &:hover {
       color: #111;
@@ -14,9 +16,7 @@
 
 .tile {
   background: #fefefe;
-  border-left: 1px solid #f0f0f0;
-  border-top: 1px solid #f0f0f0;
-  @include box-shadow(1px 1px 2px rgba(0,0,0,.1));
+  @include box-shadow(0 1px 2px rgba(0,0,0,.1));
   color: $consoleTextColorDefault;
   padding: 15px 25px; 
   margin-bottom: 20px; 
@@ -53,7 +53,7 @@
   }
   &:hover {
     background: #fff !important;
-    @include box-shadow(1px 1px 2px rgba(0,0,0,.2));
+    @include box-shadow(0 1px 2px rgba(0,0,0,.35));
     .application-info > h2, > h3 {
       > a {
         color: #ea0011;
@@ -66,17 +66,19 @@
   .font-icon-block {
     position: absolute;
     right: 25px;
-    top: 20px;
-    font-size: 16px; 
-    color: #777;
+    top: 37%;
+    font-size: $largeFontSize; 
+    color: #666;
     opacity: .3;
+  }
+  &.tile-featured .font-icon-block {
+    top: 20px;
   }
 }
 
 .tile-compact {
   padding-right: 35px;
   h3 {
-    display: inline-block;
     margin-right: 10px;
     margin-bottom: 0;
   }

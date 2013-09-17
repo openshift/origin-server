@@ -780,7 +780,7 @@ textarea[readonly] {
     > select { margin-top: -5px; }
   }
 
-  .control-label { margin-left: 15px; width: 120px; text-align: left; color: #949494; }
+  .control-label { margin-left: 15px; text-align: left; color: #666; }
   .error > .control-label { color: $errorBackground; }
 
   .help-block { color: #949494; max-width: 500px; -moz-transition: 0.2s; overflow: hidden; text-overflow: ellipsis; font-size: $smallFontSize;}

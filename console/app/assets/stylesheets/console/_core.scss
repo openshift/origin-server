@@ -172,6 +172,10 @@ figure {
   background: #fff;
 }
 
+.row-console > .row {
+  color: $consoleTextColorDefault;
+}
+/*
 .section-console-light .row-console > .row {
   background: #fcfcfc;
   -moz-box-shadow: 0 0 3px rgba(0,0,0,0.09);
@@ -179,15 +183,16 @@ figure {
   box-shadow: 0 0 3px rgba(0,0,0,0.09);
   color: #333;
   min-height: 400px;
+}
+*/
 
-	.divide, legend {
-		margin-bottom: 0;
-		font-family: $headerFontFamily;
-	}
-	
-	.divide {
-  	margin-bottom: $baseLineHeight / 3;
-	}
+.divide, legend {
+  margin-bottom: 0;
+  font-family: $headerFontFamily;
+}
+  
+.divide {
+  margin-bottom: $baseLineHeight / 3;
 }
 
 .row > .column-content {
@@ -276,12 +281,12 @@ aside .header-bar {
     padding-bottom: 0;
     padding-top: 0;
   }
-  .section-console-light { 
+  /*.section-console-light { 
     background: #fcfcfc;
     .row-console > .row {
       @include box-shadow(none);
     }
-  }
+  }*/
 
   .section-header {
     margin-left: 0;
@@ -604,8 +609,10 @@ $cartridgeBorderWidth: 10px;
 
 .cartridge_type.installed,
 .cartridge_type.inactive,
-.section-console-light .cartridge_type.installed > h3,
-.section-console-light .cartridge_type.inactive > h3 {
+.cartridge_type.installed > h3,
+.cartridge_type.inactive > h3
+/*.section-console-light .cartridge_type.installed > h3,
+.section-console-light .cartridge_type.inactive > h3 */ {
   color: #888;
   }
 .cartridge_type.inactive,
