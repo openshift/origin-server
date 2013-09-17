@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version: 1.14.8
+Version: 1.14.9
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -84,6 +84,10 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Mon Sep 16 2013 Dan McPherson <dmcphers@redhat.com> 1.14.9-1
+- Handle categories not used (dmcphers@redhat.com)
+- fix configure order calculation - bz1008609 (rchopra@redhat.com)
+
 * Thu Sep 12 2013 Adam Miller <admiller@redhat.com> 1.14.8-1
 - Merge pull request #3631 from rajatchopra/master
   (dmcphers+openshiftbot@redhat.com)
