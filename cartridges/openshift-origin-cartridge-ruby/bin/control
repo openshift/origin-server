@@ -9,6 +9,12 @@ HTTPD_PASSENV_FILE=$OPENSHIFT_RUBY_DIR/etc/conf.d/passenv.conf
 HTTPD_PID_FILE=$OPENSHIFT_RUBY_DIR/run/httpd.pid
 
 function start() {
+    if process_running 'httpd', $HTTPD_PID_FILE; then
+      if ruby_in_development_mode; then
+        echo "Ruby cartridge in development mode, skipping start..."
+        return 0
+      fi
+    fi
     echo "Starting Ruby cartridge"
     write_httpd_passenv $HTTPD_PASSENV_FILE
     ensure_valid_httpd_process "$HTTPD_PID_FILE" "$HTTPD_CFG_FILE"
@@ -16,6 +22,10 @@ function start() {
 }
 
 function stop() {
+    if ruby_in_development_mode; then
+      echo "Ruby cartridge in development mode, skipping stop..."
+      return 0
+    fi
     echo "Stopping Ruby cartridge"
     ensure_valid_httpd_process "$HTTPD_PID_FILE" "$HTTPD_CFG_FILE"
     if [ -f "$HTTPD_PID_FILE" ]; then
