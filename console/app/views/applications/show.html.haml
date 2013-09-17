@@ -91,7 +91,7 @@
           - if single_state
             %span.application-state{style: 'opacity: 0.5;', :class => all_started ? '' : 'text-warning'}= states.first.to_s.humanize
           - else
-            %span.application-state.text-warning #{states.count{ |s| s == :started }} started &ndash;
+            %span.application-state.text-warning #{states.count{ |s| s == :started }} started /
 
           %span{style: 'font-weight: bold;'}= @application.gear_count
           %span.gear-icon{'aria-hidden'=>"true", 'data-icon' => "\ue014", style: 'opacity: 0.4;'}
@@ -304,9 +304,8 @@
 
     - if databases or jenkins.present? or builders.present? or useful
       %p.larger= link_to "Or, see the entire list of cartridges you can add", application_cartridge_types_path(@application)
-      %span.font-icon.hidden-phone{"aria-hidden" => "true", "data-icon" => "\uee16", style: "font-size: 50px; position: absolute; right: 10px; top: 0; opacity: 0.3;"}
     - else
-      %p.larger= link_to "Show other cartridges you can add to this application", application_cartridge_types_path(@application)    
+      %p.larger= link_to "Show other cartridges you can add to this application", application_cartridge_types_path(@application)
 
 %aside.sidebar-dark.span3
   -#%section#aliases.sidebar
