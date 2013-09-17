@@ -34,7 +34,7 @@ remove/install packages as needed
 modify customized httpd configuration as needed and restart
 edit /etc/openshift/node.conf
 service mcollective restart
-#{$0} --rebuild
+#{$0} --restore < file
 
 
 To save the http frontend configuration to a file:
@@ -43,11 +43,12 @@ To save the http frontend configuration to a file:
 To delete the existing http frontend configurations:
 #{$0} --delete
 
-To rebuild the http frontend configuration from configured gears:
-#{$0} --rebuild
-
 To reload the http frontend configuration from a file:
 #{$0} --restore < file
+
+To rebuild the http frontend configuration from configured gears (does
+not rebuild aliases or idler state):
+#{$0} --rebuild
 
 == List of additional arguments
      --confirm                          Do not ask before a dangerous operation

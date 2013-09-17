@@ -127,17 +127,14 @@ applications will be unreachable during this operation.
 A complete, and tested backup of the node is recommended prior to
 starting.
 
-The frontend configuration should be backed up first.  The backup is
-not normally used; however, it may be useful in the event that the
-final rebuild step fails.
+The frontend configuration must be backed up first.  The backup is
+used to restore the complete state of the frontend at the end of the
+operation.
 
     oo-frontend-plugin-modify --save > file
 
 
-The frontend configuration must be wiped out.  This must happen
-*BEFORE* any package changes or configuration changes are done in
-order to use the modules that manage the existing configuration in
-order to clean it up.
+The frontend configuration must be wiped out.
 
     oo-frontend-plugin-modify --delete
 
@@ -164,5 +161,4 @@ Change the value of `OPENSHIFT_FRONTEND_HTTP_PLUGINS` in
 Finally, rebuild the working http frontend configuration from the
 current set of installed gears.
 
-    oo-frontend-plugin-modify --rebuild
-
+    oo-frontend-plugin-modify --restore < file
