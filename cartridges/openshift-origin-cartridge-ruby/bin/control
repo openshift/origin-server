@@ -111,6 +111,10 @@ function build() {
 }
 
 function deploy() {
+  if ruby_in_development_mode; then
+    echo "The 'rake assets:precompile' is disabled when Ruby is in development mode."
+    return 0
+  fi
   pushd ${OPENSHIFT_REPO_DIR} > /dev/null
   if [ -f Gemfile ]
   then
