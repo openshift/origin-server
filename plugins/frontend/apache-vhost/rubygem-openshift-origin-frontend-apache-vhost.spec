@@ -9,7 +9,7 @@
 
 Summary:       OpenShift Apache Virtual Hosts frontend plugin
 Name:          rubygem-%{gem_name}
-Version: 0.1.3
+Version: 0.1.4
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -110,6 +110,9 @@ mv httpd/frontend-vhost-http-template.erb %{buildroot}/etc/httpd/conf.d/openshif
 /etc/openshift/node-plugins.d/
 
 %changelog
+* Tue Sep 17 2013 Adam Miller <admiller@redhat.com> 0.1.4-1
+- fixing tito tags
+
 * Sat Sep 14 2013 Rob Millner <rmillner@redhat.com> 0.1.3-1
 - Functional tests for the frontend plugins. (rmillner@redhat.com)
 - Ensure ordering between the alias and base config file. (rmillner@redhat.com)
