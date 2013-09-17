@@ -88,7 +88,7 @@ class MembersController < BaseController
 
     ids, logins = [], []
     (params[:members].presence || [params[:member].presence] || []).compact.each do |m| 
-      if m.is_a?(Hash) 
+      if m.is_a?(Hash)
         if m[:id].present?
           ids << m[:id].to_s
         elsif m[:login].present?
