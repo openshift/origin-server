@@ -2,28 +2,78 @@
 # Utility functions for use in the cartridge scripts.
 
 function ruby_in_development_mode {
-  [ "$RAILS_ENV" == "development" ] && return 0
-  [ "$RACK_ENV" == "development" ] && return 0
-  return 1
+  if [ "$RAILS_ENV" == "development" ]; then
+    return 0
+  elif [ "$OPENSHIFT_RUBY_ENV" == "development" ]; then
+    return 0
+  else
+    return 1
+  fi
 }
 
-function gemfile_modified {
+# When in development mode, the 'bundler install' is skipped
+# until developer touch the Gemfile/Gemfile.lock files, to
+# speed up deployment.
+#
+function update_gemfile_sum {
 
-  local bundler_md5_file="${OPENSHIFT_RUBY_DIR}tmp/.bundler_md5sum"
+  local gemfile_md5_file="${OPENSHIFT_RUBY_DIR}tmp/.gemfile_md5sum"
+
+  pushd $OPENSHIFT_REPO_DIR 1>/dev/null
+  if [ -f Gemfile.lock ]; then
+    md5sum Gemfile Gemfile.lock > "${gemfile_md5_file}"
+  else
+    md5sum Gemfile > "${gemfile_md5_file}"
+  fi
+  popd 1>/dev/null
+}
+
+function update_rails_env {
+  if [ ! -z "${OPENSHIFT_RUBY_ENV}" ]; then
+    echo $OPENSHIFT_RUBY_ENV > "${OPENSHIFT_RUBY_DIR}tmp/rails_env"
+  else
+    echo $RAILS_ENV > "${OPENSHIFT_RUBY_DIR}tmp/rails_env"
+  fi
+}
+
+# Apache is in development mode when the RAILS_ENV is set to the development.
+#
+function httpd_in_development_mode {
+  if ruby_in_development_mode; then
+    if [ ! -f "${OPENSHIFT_RUBY_DIR}tmp/rails_env" ]; then
+      current_rails_env="production"
+    else
+      current_rails_env=$(cat "${OPENSHIFT_RUBY_DIR}tmp/rails_env")
+    fi
+    if [ "$current_rails_env" == "production" ]; then
+      update_rails_env
+      return 1
+    fi
+  else
+    update_rails_env
+    return 0
+  fi
+}
+
+function gemfile_is_modified {
+
+  local gemfile_md5_file="${OPENSHIFT_RUBY_DIR}tmp/.gemfile_md5sum"
 
   [ ! -f "${OPENSHIFT_REPO_DIR}Gemfile" ] && return 1
+  [ ! -f "${OPENSHIFT_REPO_DIR}Gemfile.lock" ] && return 1
 
-  if [ ! -f "${bundler_md5_file}" ]; then
-    md5sum "${OPENSHIFT_REPO_DIR}Gemfile" > "${bundler_md5_file}"
+  if [ ! -f "${gemfile_md5_file}" ]; then
+    update_gemfile_sum
     return 1
   else
-
     pushd $OPENSHIFT_REPO_DIR 1>/dev/null
-    md5sum --status --check "${bundler_md5_file}"
+    md5sum --status --check "${gemfile_md5_file}"
     success=$?
     popd 1>/dev/null
 
-    if success; then
+    # md5sum returns '1' when the Gemfile(.lock) was modified
+    #
+    if [ "$success" == "1" ]; then
       return 0
     else
       return 1
