@@ -2673,7 +2673,11 @@ class Application
 
     # enforce system order of components (web_framework first etc)
     system_order = []
-    ['web_framework','service','plugin'].each { |c| categories[c].each { |ci| system_order << ci if ci and not system_order.include?(ci) } }
+    ['web_framework','service','plugin'].each { |c|
+      if categories[c]
+        categories[c].each { |ci| system_order << ci if ci and not system_order.include?(ci) }
+      end
+    }
     configure_order.add_component_order(system_order)
 
     #calculate configure order using tsort
@@ -2729,7 +2733,11 @@ class Application
 
     # enforce system order of components (web_framework first etc)
     system_order = []
-    ['web_framework','service','plugin'].each { |c| categories[c].each { |ci| system_order << ci if ci and not system_order.include?(ci) } }
+    ['web_framework','service','plugin'].each { |c|
+      if categories[c]
+        categories[c].each { |ci| system_order << ci if ci and not system_order.include?(ci) }
+      end
+    }
     start_order.add_component_order(system_order)
     stop_order.add_component_order(system_order.dup)
 
