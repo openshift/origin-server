@@ -2670,9 +2670,22 @@ class Application
       configure_order.add_component_order(comp_spec[:prof].configure_order.map{|c| categories[c]}.flatten)
     end
 
+    # enforce system order of components (web_framework first etc)
+    system_order = []
+    ['web_framework','service','plugin'].each { |c|
+      if categories[c]
+        categories[c].each { |ci| system_order << ci if ci and not system_order.include?(ci) }
+      end
+    }
+    configure_order.add_component_order(system_order)
+
     #calculate configure order using tsort
     if self.component_configure_order.empty?
-      computed_configure_order = configure_order.tsort
+      begin
+        computed_configure_order = configure_order.tsort
+      rescue Exception=>e
+        raise OpenShift::UserException.new("Conflict in calculating configure order. Cartridges should adhere to system's order ('web_framework','service','plugin').", 109)
+      end
     else
       computed_configure_order = self.component_configure_order.map{|c| categories[c]}.flatten
     end
@@ -2717,16 +2730,34 @@ class Application
       stop_order.add_component_order(comp_spec[:prof].stop_order.map{|c| categories[c]}.flatten)
     end
 
+    # enforce system order of components (web_framework first etc)
+    system_order = []
+    ['web_framework','service','plugin'].each { |c|
+      if categories[c]
+        categories[c].each { |ci| system_order << ci if ci and not system_order.include?(ci) }
+      end
+    }
+    start_order.add_component_order(system_order)
+    stop_order.add_component_order(system_order.dup)
+
     #calculate start order using tsort
     if self.component_start_order.empty?
-      computed_start_order = start_order.tsort
+      begin
+        computed_start_order = start_order.tsort
+      rescue Exception=>e
+        raise OpenShift::UserException.new("Conflict in calculating start order. Cartridges should adhere to system's order ('web_framework','service','plugin').", 109)
+      end
     else
       computed_start_order = self.component_start_order.map{|c| categories[c]}.flatten
     end
 
     #calculate stop order using tsort
     if self.component_stop_order.empty?
-      computed_stop_order = stop_order.tsort
+      begin
+        computed_stop_order = stop_order.tsort
+      rescue Exception=>e
+        raise OpenShift::UserException.new("Conflict in calculating start order. Cartridges should adhere to system's order ('web_framework','service','plugin').", 109)
+      end
     else
       computed_stop_order = self.component_stop_order.map{|c| categories[c]}.flatten
     end
