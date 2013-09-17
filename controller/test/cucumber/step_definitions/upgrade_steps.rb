@@ -227,7 +227,11 @@ def assert_successful_install(next_version, current_manifest)
 
   assert_equal next_version, observed_latest_version
 
-  %x(service mcollective restart)
+  %x(service ruby193-mcollective restart)
+
+  mcol_output = `oo-admin-cartridge --list | grep -e "mock,.*#{current_manifest.version}"`
+
+  assert_equal 0, $?, "Couldn't find new cartridge in oo-admin-cartridge output: #{mcol_output}"
 
   sleep 5
 end

@@ -37,7 +37,7 @@ def clean_cart_repo
     end
   end
 
-  %x(service mcollective restart) if restart_mcollectived
+  %x(service ruby193-mcollective restart) if restart_mcollectived
 
   sleep 5
 
