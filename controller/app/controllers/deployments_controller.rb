@@ -12,12 +12,10 @@ class DeploymentsController < BaseController
   end
 
   def show
-    Rails.logger.error "ALL #{@application.deployments}"
     deployment_id = params[:id].presence
-    Rails.logger.error "Getting deployment #{deployment_id}"
 
-    deployment = @application.deployments.find_by(deployment_id: deployment_id)
-    Rails.logger.error "Got deployment #{deployment.inspect}"
+    deployment = @application.deployments.find {|d| d['deployment_id'] == deployment_id }
+    return render_error(:not_found, "Could not find deployment #{deployment_id} for application #{@application.name}", nil, "SHOW_DEPLOYMENT") if deployment.nil?
     render_success(:ok, "deployment", get_rest_deployment(deployment), "Showing deployment #{deployment_id} for application #{@application.name} under domain #{@application.domain_namespace}")
   end
 

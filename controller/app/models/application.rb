@@ -2915,7 +2915,11 @@ class Application
     return result_io
   end
 
-  def rollback(deployment_id)
+  def rollback(deployment_id=nil)
+    if deployment_id.nil? and self.deployments.length > 0
+      deployment_id =  self.deployments[self.deployments.length - 2].deployment_id
+    end
+    raise OpenShift::UserException.new("There are no previous deployments to roll-back to", 126, "deployment_id") if deployment_id.nil?
     result_io = ResultIO.new
     Application.run_in_application_lock(self) do
       op_group = PendingAppOpGroup.new(op_type: :rollback,  args: {:deployment_id => deployment_id})

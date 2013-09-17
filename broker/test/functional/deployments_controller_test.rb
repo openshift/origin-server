@@ -32,15 +32,17 @@ class DeploymentsControllerTest < ActionController::TestCase
     end
   end
 
-  test "deployment create show list update and destroy" do
+  test "deployment create show list" do
     Application.any_instance.stubs(:deployments).returns([Deployment.new(ref: "mybranch", deployment_id: "1")])
     post :create, {"ref" => "mybranch", "application_id" => @app.uuid}
     assert_response :created
     assert json = JSON.parse(response.body)
     assert id = json['data']['id']
 
-    #get :show, {"id" => id, "application_id" => @app.uuid}
-    #assert_response :success
+    get :show, {"id" => id, "application_id" => @app.uuid}
+    assert_response :success
+    assert json = JSON.parse(response.body)
+    assert_equal id, json['data']['id'] 
 
     get :index , {"application_id" => @app.uuid}
     assert_response :success
@@ -49,7 +51,7 @@ class DeploymentsControllerTest < ActionController::TestCase
   test "update deployments" do
     deployments = []
     for i in 1..5
-      deployments.push({:id => i, :ref => "tag_#{i}"})
+      deployments.push({:id => i.to_s, :ref => "tag_#{i}"})
     end
     post :create, {"deployments" => deployments, "application_id" => @app.uuid}
     assert_response :success
@@ -57,7 +59,7 @@ class DeploymentsControllerTest < ActionController::TestCase
     assert_response :success
     assert json = JSON.parse(response.body)
     assert data = json['data']
-    #assert_equal(5, data.length)
+    assert_equal(5, data.length)
   end
 
   test "no or non-existent deployment" do

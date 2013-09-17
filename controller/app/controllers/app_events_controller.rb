@@ -36,9 +36,6 @@ class AppEventsController < BaseController
                         "alias") if ['add-alias', 'remove-alias'].include?(event) && (server_alias.nil? or server_alias.to_s.empty?)
     return render_error(:unprocessable_entity, "Reached gear limit of #{@cloud_user.max_gears}", 104) if (event == 'scale-up') && (@cloud_user.consumed_gears >= @cloud_user.max_gears)
 
-    return render_error(:unprocessable_entity, "Deployment ID must be provided for rollback.", 126,
-                        "alias") if event == "rollback" && (deployment_id.nil? or deployment_id.to_s.empty?)
-
     if @application.quarantined && ['scale-up', 'scale-down'].include?(event)
       return render_upgrade_in_progress
     end
@@ -103,6 +100,11 @@ class AppEventsController < BaseController
       r = @application.reload_config
       msg = "Application #{@application.name} called reload"
     when 'rollback'
+      if deployment_id.nil? and @application.deployments.length > 0
+        deployment_id =  @application.deployments[@application.deployments.length -2].deployment_id
+      end
+      return render_error(:unprocessable_entity, "There are no previous deployments to roll-back to", 126,
+                        "deployment_id") if deployment_id.nil? or deployment_id.to_s.empty?
       #TODO implement change_deployment or use change_state
       #authorize! :change_deployment, @application
       r = @application.rollback(deployment_id)

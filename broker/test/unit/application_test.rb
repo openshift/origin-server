@@ -26,11 +26,11 @@ class ApplicationsTest < ActionDispatch::IntegrationTest #ActiveSupport::TestCas
     app.config['deployment_type'] = "binary"
     app.update_configuration
     app = Application.find_by(canonical_name: @appname.downcase, domain_id: @domain._id) rescue nil
-    #TODO uncomment once save to mongo is fixed
-    #assert app.config['auto_deploy'] == true
-    #assert app.config['deployment_branch'] == "stage"
-    #assert app.config['keep_deployments'] == 3
-    #assert app.config['deployment_type'] == "binary"
+
+    assert app.config['auto_deploy'] == true
+    assert app.config['deployment_branch'] == "stage"
+    assert app.config['keep_deployments'] == 3
+    assert app.config['deployment_type'] == "binary"
     
     app.destroy_app
   end
@@ -46,11 +46,12 @@ class ApplicationsTest < ActionDispatch::IntegrationTest #ActiveSupport::TestCas
     app.config['deployment_type'] = "binary"
     app.update_configuration
     app = Application.find_by(canonical_name: @appname.downcase, domain_id: @domain._id) rescue nil
-    #TODO uncomment once save to mongo is fixed
-    #assert app.config['auto_deploy'] == true
+
+    assert app.config['auto_deploy'] == true
+    puts app.config['deployment_branch']
     #assert app.config['deployment_branch'] == "stage"
-    #assert app.config['keep_deployments'] == 3
-    #assert app.config['deployment_type'] == "binary"
+    assert app.config['keep_deployments'] == 3
+    assert app.config['deployment_type'] == "binary"
 
     app.destroy_app
   end

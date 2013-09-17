@@ -55,10 +55,10 @@ class ApplicationControllerTest < ActionController::TestCase
     assert_response :success
     assert json = JSON.parse(response.body)
     #TODO uncomment once save to mongo is fixed
-    #assert_equal json['data']['auto_deploy'], false 
-    #assert_equal json['data']['keep_deployments'], 2
-    #assert_equal json['data']['deployment_type'], 'binary'
-    #assert_equal json['data']['deployment_branch'], 'stage'
+    assert_equal json['data']['auto_deploy'], false 
+    assert_equal json['data']['keep_deployments'], 2
+    assert_equal json['data']['deployment_type'], 'binary'
+    assert_equal json['data']['deployment_branch'], 'stage'
     
 
     delete :destroy, {"id" => @app_name, "domain_id" => @domain.namespace}
