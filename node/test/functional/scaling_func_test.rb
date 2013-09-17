@@ -265,7 +265,7 @@ END
   end
 
   def assert_http_title(url, expected)
-    OpenShift::Runtime::NodeLogger.logger.info("Checking http://#{url}/ for title '#{expected}'")
+    OpenShift::Runtime::NodeLogger.logger.info("Checking http://#{url} for title '#{expected}'")
     uri = URI.parse(url)
 
     tries = 1

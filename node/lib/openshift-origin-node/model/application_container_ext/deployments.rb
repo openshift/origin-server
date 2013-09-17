@@ -2,6 +2,11 @@ module OpenShift
   module Runtime
     module ApplicationContainerExt
       module Deployments
+        # Returns the number of deployments to keep as configured in the given env
+        def deployments_to_keep(env)
+          (env['OPENSHIFT_KEEP_DEPLOYMENTS'] || 1).to_i
+        end
+
         # Returns all the date/time based deployment directories (full paths), sorted in ascending order
         def all_deployments
           deployments_dir = PathUtils.join(@container_dir, 'app-deployments')
@@ -71,7 +76,7 @@ module OpenShift
 
           unless options[:force_clean_build] or current_deployment_datetime.nil?
             gear_env = ::OpenShift::Runtime::Utils::Environ.for_gear(@container_dir)
-            to_keep = (gear_env['OPENSHIFT_KEEP_DEPLOYMENTS'] || 1).to_i
+            to_keep = deployments_to_keep(gear_env)
 
             if to_keep == 1
               move_dependencies(deployment_datetime)
@@ -109,6 +114,17 @@ module OpenShift
             file.write "#{data}\n"
           }
         end
+
+        def link_deployment_id(deployment_datetime, deployment_id)
+          FileUtils.cd(PathUtils.join(@container_dir, 'app-deployments', 'by-id')) do
+            FileUtils.ln_s(PathUtils.join('..', deployment_datetime), deployment_id)
+          end
+        end
+
+        def unlink_deployment_id(deployment_id)
+          FileUtils.unlink(PathUtils.join(@container_dir, 'app-deployments', 'by-id', deployment_id))
+        end
+
 
         def get_deployment_datetime_for_deployment_id(deployment_id)
           return nil unless deployment_exists?(deployment_id)
@@ -158,7 +174,7 @@ module OpenShift
         # - where the # of total deployments > OPENSHIFT_KEEP_DEPLOYMENTS
         def clean_up_deployments_before(deployment_datetime)
           gear_env = ::OpenShift::Runtime::Utils::Environ.for_gear(@container_dir)
-          to_keep = (gear_env['OPENSHIFT_KEEP_DEPLOYMENTS'] || 1).to_i
+          to_keep = deployments_to_keep(gear_env)
           deleted = 0
 
           # remove all deployments prior to the specified one that were never deployed
@@ -189,7 +205,7 @@ module OpenShift
           end
         end
 
-        def archive(deployment_datetime=nil)
+        def archive(deployment_datetime = nil)
           deployment_datetime ||= current_deployment_datetime
           deployment_dir = PathUtils.join(@container_dir, 'app-deployments', deployment_datetime)
           command = "tar zcf - --exclude metadata ."

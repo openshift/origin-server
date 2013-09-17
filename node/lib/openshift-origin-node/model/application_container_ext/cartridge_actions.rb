@@ -422,32 +422,48 @@ module OpenShift
             update_build_dependencies_symlink(options[:deployment_datetime])
           end
 
-
           buffer = ''
 
-          buffer << @cartridge_model.do_control('update-configuration',
-                                                @cartridge_model.primary_cartridge,
-                                                pre_action_hooks_enabled:  false,
-              post_action_hooks_enabled: false,
-              env_overrides:             overrides,
-              out:                       options[:out],
-              err:                       options[:err])
+          env = ::OpenShift::Runtime::Utils::Environ.for_gear(@container_dir)
+          deployments_to_keep = deployments_to_keep(env)
 
-          buffer << @cartridge_model.do_control('pre-build',
-                                                @cartridge_model.primary_cartridge,
-                                                pre_action_hooks_enabled: false,
-              prefix_action_hooks:      false,
-              env_overrides:            overrides,
-              out:                      options[:out],
-              err:                      options[:err])
+          begin
+            buffer << @cartridge_model.do_control('update-configuration',
+                                                  @cartridge_model.primary_cartridge,
+                                                  pre_action_hooks_enabled:  false,
+                post_action_hooks_enabled: false,
+                env_overrides:             overrides,
+                out:                       options[:out],
+                err:                       options[:err])
 
-          buffer << @cartridge_model.do_control('build',
-                                                @cartridge_model.primary_cartridge,
-                                                pre_action_hooks_enabled: false,
-              prefix_action_hooks:      false,
-              env_overrides:            overrides,
-              out:                      options[:out],
-              err:                      options[:err])
+            buffer << @cartridge_model.do_control('pre-build',
+                                                  @cartridge_model.primary_cartridge,
+                                                  pre_action_hooks_enabled: false,
+                prefix_action_hooks:      false,
+                env_overrides:            overrides,
+                out:                      options[:out],
+                err:                      options[:err])
+
+            buffer << @cartridge_model.do_control('build',
+                                                  @cartridge_model.primary_cartridge,
+                                                  pre_action_hooks_enabled: false,
+                prefix_action_hooks:      false,
+                env_overrides:            overrides,
+                out:                      options[:out],
+                err:                      options[:err])
+          rescue ::OpenShift::Runtime::Utils::ShellExecutionException => e
+            buffer << "Encountered a failure during build: #{e.message}"
+            buffer << "Backtrace: #{e.backtrace.join("\n")}"
+
+            if deployments_to_keep > 1
+              buffer << "Restarting application"
+              buffer << start_gear(user_initiated:     true,
+                                   hot_deploy:         options[:hot_deploy],
+                                   exclude_web_proxy:  true,
+                                   out:                options[:out],
+                                   err:                options[:err])
+            end
+          end
 
           buffer
         end
@@ -493,24 +509,27 @@ module OpenShift
           end
 
           deployment_id = calculate_deployment_id(deployment_datetime)
+          link_deployment_id(deployment_datetime, deployment_id)
 
-          # this is needed so the distribute and activate steps down the line can work
-          options[:deployment_id] = deployment_id
+          begin
+            write_deployment_metadata(deployment_datetime, 'id', deployment_id)
+            # this is needed so the distribute and activate steps down the line can work
+            options[:deployment_id] = deployment_id
 
-          # create symlink so it's easier to find later by id
-          FileUtils.cd(PathUtils.join(@container_dir, 'app-deployments', 'by-id')) do
-            FileUtils.ln_s(PathUtils.join('..', deployment_datetime), deployment_id)
+            out = "Prepared deployment artifacts in #{deployment_dir}\n"
+
+            buffer << out
+            options[:out].puts(out) if options[:out]
+
+            out = "Deployment id is #{deployment_id}"
+            buffer << out
+            options[:out].puts(out) if options[:out]
+          rescue IOError => e
+            out = "Error preparing deployment #{deployment_id}; "
+            buffer << out
+            options[:out].puts(out) if options[:out]
+            unlink_deployment_id(deployment_id)
           end
-
-          write_deployment_metadata(deployment_datetime, 'id', deployment_id)
-
-          out = "Prepared deployment artifacts in #{deployment_dir}\n"
-          buffer << out
-          options[:out].puts(out) if options[:out]
-
-          out = "Deployment id is #{deployment_id}"
-          buffer << out
-          options[:out].puts(out) if options[:out]
 
           buffer
         end
@@ -528,29 +547,38 @@ module OpenShift
 
           deployment_id = options[:deployment_id]
           deployment_datetime = get_deployment_datetime_for_deployment_id(deployment_id)
-
           deployment_dir = PathUtils.join(@container_dir, 'app-deployments', deployment_datetime)
 
           gear_env = ::OpenShift::Runtime::Utils::Environ.for_gear(@container_dir)
 
           Parallel.map(gears, :in_threads => MAX_THREADS) do |gear|
-            # since the gear will look like 51e96b5e4f43c070fc000001@s1-agoldste.dev.rhcloud.com
-            # splitting by @ and taking the first element gets the gear's uuid
-            # no need to distribute to self
-            gear_uuid = gear.split('@')[0]
-
-            out, err, rc = run_in_container_context("rsync -avz --rsh=/usr/bin/oo-ssh ./ #{gear}:app-deployments/#{deployment_datetime}/",
-                                                    env: gear_env,
-                                                    chdir: deployment_dir,
-                                                    expected_exitstatus: 0)
-
-            # create by-id symlink
-            out, err, rc = run_in_container_context("rsync -avz --rsh=/usr/bin/oo-ssh #{deployment_id} #{gear}:app-deployments/by-id/#{deployment_id}",
-                                                    env: gear_env,
-                                                    chdir: PathUtils.join(@container_dir, 'app-deployments', 'by-id'),
-                                                    expected_exitstatus: 0)
-
+            distribute_to_gear(gear, gear_env, deployment_dir, deployment_datetime, deployment_id)
           end
+        end
+
+        def distribute_to_gear(gear, gear_env, deployment_dir, deployment_datetime, deployment_id)
+          3.times do
+            begin
+              attempt_distribute_to_gear(gear, gear_env, deployment_dir, deployment_datetime, deployment_id)
+            rescue ::OpenShift::Runtime::Utils::ShellExecutionException => e
+              next
+            end
+
+            break
+          end
+        end
+
+        def attempt_distribute_to_gear(gear, gear_env, deployment_dir, deployment_datetime, deployment_id)
+          out, err, rc = run_in_container_context("rsync -avz --rsh=/usr/bin/oo-ssh ./ #{gear}:app-deployments/#{deployment_datetime}/",
+                                                  env: gear_env,
+                                                  chdir: deployment_dir,
+                                                  expected_exitstatus: 0)
+
+          # create by-id symlink
+          out, err, rc = run_in_container_context("rsync -avz --rsh=/usr/bin/oo-ssh #{deployment_id} #{gear}:app-deployments/by-id/#{deployment_id}",
+                                                  env: gear_env,
+                                                  chdir: PathUtils.join(@container_dir, 'app-deployments', 'by-id'),
+                                                  expected_exitstatus: 0)
         end
 
         # For a given ratio and number of items, calculate the appropriate batch
