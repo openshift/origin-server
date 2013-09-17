@@ -1,6 +1,12 @@
 #!/bin/bash
 # Utility functions for use in the cartridge scripts.
 
+function ruby_in_development_mode {
+  [ "$RAILS_ENV" == "development" ] && return 0
+  [ "$RACK_ENV" == "development" ] && return 0
+  return 1
+}
+
 function wait_for_stop {
         pid=$1
     for i in {1..300}
