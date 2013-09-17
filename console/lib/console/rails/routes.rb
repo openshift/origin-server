@@ -56,7 +56,7 @@ module ActionDispatch::Routing
         resource :settings, :only => :show
 
         resources :domains, :id => id_regex, :only => [:new, :create, :edit, :update, :index, :show], :singular_resource => true do
-          resources :members, :id => id_regex, :only => [:create]
+          resources :members, :only => [:index]
           match 'members' => 'members#update', :via => :put
           match 'leave' => 'members#leave', :via => [:get, :post]
         end

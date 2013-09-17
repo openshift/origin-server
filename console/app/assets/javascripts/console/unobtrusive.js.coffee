@@ -34,3 +34,25 @@ $ ->
       $container.find('.popover .btn').hide()
     )
   )
+
+  $forms = $('form.warn-dirty')
+  if $forms.length
+    dirty = ->
+      $(this).closest('form').addClass('dirty').find('.btn-primary-when-dirty').addClass('btn-primary')
+    clear = ->
+      $(this).closest('form').removeClass('dirty')
+    cancel = ->
+      $(this).closest('form').removeClass('dirty').find('.btn-primary-when-dirty').removeClass('btn-primary')
+
+    $forms.filter('.dirty').each(dirty)
+    $forms.find('input, select, textarea').change(dirty)
+    $forms.find('input, textarea').on('input', dirty)
+    
+    $forms.submit(clear)
+
+    $forms.find('.cancel').click(cancel)
+    $forms.on('reset', cancel)
+
+    $(window).on 'beforeunload', ->
+      if $('form.warn-dirty.dirty').length
+        return "You may lose unsaved changes. Are you sure you want to leave this page?"

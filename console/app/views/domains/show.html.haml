@@ -11,6 +11,9 @@
     %nav.span12.span-flush-right.applications
       %h1.flow
         = "Domain #{@domain.name}"
+        - if @domain.can_rename?
+          = surround '(',')' do
+            = link_to 'edit name', edit_domain_path(@domain)
 
         %span.flow-block.right
           %span{:title => 'Applications'}= pluralize(@domain.application_count, 'application')
@@ -30,12 +33,28 @@
 
     .span4
       %section
-        %h2 Members
-        = render :partial => 'members/members', :locals => {:domain => @domain, :members => @domain.members, :editable => @domain.admin?}
+        %h5 Settings
 
-      - if @domain.admin?
-        %section
-          = render :partial => 'members/new_member', :locals => {:domain => @domain, :member => @member}
+        %h6 Allowed gear sizes
+        - if @domain.owner?
+          - field = 'domain[allowed_gear_sizes][]'
+          = semantic_form_for @domain do |f|
+            -# Ensure we send an empty value if all checkboxes are unchecked
+            = hidden_field_tag(field, '')
+            - @capabilities.gear_sizes.each do |size|
+              %label.checkbox{:for => "#{field}_#{size}"}
+                = check_box_tag field, size, @domain.allowed_gear_sizes.include?(size), :id => "#{field}_#{size}"
+                = "#{size.to_s.humanize} gears"
+            = f.buttons do
+              = f.commit_button :label => 'Save', :button_html => {:class => 'btn btn-small'}
+              = f.loading
+        - else
+          - @domain.allowed_gear_sizes.each do |size|
+            %div= "#{size.to_s.humanize} gears"
+
+      %section
+        %h5 Members
+        = render :partial => 'members/members_form', :locals => {:domain => @domain, :members => @domain.members, :new_members => @new_members, :editable => @domain.admin?, :editing => @new_members.present?}
 
       - unless @domain.owner?
         %section

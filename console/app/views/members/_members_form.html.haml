@@ -1,0 +1,188 @@
+:css
+  tr.borderless td ,
+  .members table tr:first-of-type td,
+  .members.editing table tr.read-only:first-of-type + tr td {
+    border-top: none !important;
+  }
+
+  .members table { 
+    margin-bottom: 0px;
+    table-layout: fixed;
+  }
+  .members table td {
+    vertical-align: middle;
+  }
+  .members table td.member {
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .members table input {
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+  }
+  .members table select { 
+    margin-bottom: 0;
+    width: 100%;
+  }
+
+  .members table a.remove-member,
+  .members table a.remove-new-member {
+    font-size: 20px;
+    font-weight: bold;
+    height: 20px;
+  }
+
+  .members table .form-actions a {
+    font-size: 14px;
+  }
+
+  .members aside { margin-top: 20px }
+
+  .members tr.error-row td   { padding-top: 0px; }
+  .members tr.error-row td p { margin-top: 0; }
+  .members tr.template {display: none !important; }
+
+  .members .edit-only { display: none; }
+  .members.editing .edit-only { display: block; }
+  .members.editing tr.edit-only { display: table-row; }
+  .members.editing .read-only { display: none; }
+
+
+%noscript
+  :css
+    a.remove-member, a.remove-new-member, a.add-member, .script-only { display: none !important; }
+    .members .edit-only { display: block; }
+    .members tr.edit-only { display: table-row; }
+    .members .read-only { display: none; }
+
+
+- if editable
+  - content_for :javascripts do
+    :javascript
+      $(function(){
+        $('.members').find('select').change(function() {
+          var $this = $(this);
+          var $tr = $this.closest('tr');
+          $tr.css({opacity: ($this.val() == 'none') ? ".4":"1"});
+        }).on('keypress', function(){
+          var $this = $(this);
+          var was = $this.val();
+          setTimeout(function(){
+            if (was != $this.val()) {
+              $this.trigger('change');
+            }
+          }, 1);
+        });
+
+        $('a.remove-member').click(function() {
+          $(this).closest('tr').find('select').val('none').trigger('change');
+        });
+
+        $('a.remove-new-member').click(function() {
+          var $tr = $(this).closest('tr');
+          $tr.next('tr.error').remove();
+          $tr.remove();
+        });
+
+        $('a.add-member').click(function() {
+          var $template = $('.members tr.template');
+          $template.clone(true).removeClass('template').insertBefore($template).find('input').focus();
+        });
+
+        $('.members a.edit-members').click(function() {
+          var $members = $(this).closest('.members').addClass('editing');
+          setTimeout(function() {
+            $members.find('input[type=text]:visible').first().focus();
+          }, 1);
+        });
+      });
+
+
+= form_tag domain_members_path(domain), :method => :put, :class => "members warn-dirty #{'editing' if editing} #{'dirty' if new_members.present?}" do
+  %table.table.table-condensed
+    %colgroup
+      %col
+      %col{:width => "45%"}
+      - if editable
+        %col.script-only{:width => "30"}
+
+    - if members.count <= 1
+      %tr.read-only
+        %td{:colspan => 3}
+          You are the only member of this domain.
+    - else
+      %tr
+        - owner = members.find(&:owner)
+        %td.member{:title => owner.name}
+          = owner.name
+        %td Owner
+        - if editable
+          %td.script-only
+
+    - members.reject(&:owner).sort.each do |member|
+      %tr
+        %td.nowrap.member{:title => member.name}
+          = member.name
+        - if editable
+          %td.nowrap
+            .edit-only
+              -# Always start with a common field to make param hashes group correctly
+              = hidden_field_tag('members[][x]', 0)
+              = hidden_field_tag('members[][id]', member.id)
+              = select_tag('members[][role]', options_for_select(Role.role_descriptions(true), {:selected => member.role}))
+            .read-only
+              = Role.description_for(member.role)
+          %td.script-only
+            .edit-only
+              = link_to('&times;'.html_safe, 'javascript:;', :class => 'remove-member btn btn-mini')
+        - else
+          %td
+            = Role.description_for(member.role)
+
+    - if editable
+      - new_members = new_members || []
+      - new_members << Domain::Member.new(:role => :edit) if new_members.blank? and members.count == 1
+      - new_members << (template = Domain::Member.new(:role => :edit))
+      - new_members.each do |new_member|
+        - error = (new_member.errors[:login] || []).first
+        %tr.edit-only.control-group{:class => "#{'error' if error} #{'template' if new_member.equal?(template)}"}
+          %td
+            -# Always start with a common field to make param hashes group correctly
+            = hidden_field_tag('members[][x]', 0)
+            = text_field_tag('members[][login]', new_member.login, {:placeholder => 'User Login', :title => 'User Login', :style => "width: 100%;", :autocomplete => 'off', :class => ('error' if error)})
+          %td
+            = select_tag('members[][role]', options_for_select(Role.role_descriptions(false), new_member.role))
+          %td.script-only
+            = link_to('&times;'.html_safe, 'javascript:;', :class => 'remove-new-member btn btn-mini')
+        - if error
+          %tr.edit-only.control-group.error.error-row.borderless
+            %td{:colspan => 3}
+              %p.help-block= error
+
+      %tr.borderless
+        %td{:colspan => 3}
+          .form-actions.edit-only
+            = link_to('Add another member...', 'javascript:;', :class => 'add-member')
+          .form-actions.read-only.script-only
+            = link_to (members.count > 1 ? "Edit members..." : "Add members..."), "javascript:;", :class => 'edit-members'
+
+  - if editable
+    .form-actions.edit-only
+      = link_to "Cancel", domain_path(@domain), :class => 'btn btn-small cancel script-only'
+      = submit_tag "Save", :class => 'btn btn-primary-when-dirty btn-small'
+
+    %aside
+      %h6 What can members do?
+      %ul
+        %li
+          %strong View:
+          Give members read-only access to the domain and its applications.
+
+        %li
+          %strong Edit:
+          Let members add, edit, control and delete applications in the domain.
+
+        %li
+          %strong Administer:
+          Allow members to do anything the domain owner can do, except change allowed gear sizes and the domain name.

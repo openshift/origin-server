@@ -82,6 +82,7 @@
       .controls.first
         - here = application_type_path(@application_type.id, params)
         - create_domain_url = new_domain_path({:then => here, :domain_param => 'application[domain_name]'})
+        -# TODO JTL: Remove
         - if params[:test]
           - mine = [Domain.new(:name => 'me1'), Domain.new(:name => 'me2')]
           - shared = [Domain.new(:name => 'shared1'), Domain.new(:name => 'shared2')]

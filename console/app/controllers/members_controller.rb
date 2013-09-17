@@ -1,24 +1,26 @@
 class MembersController < ConsoleController
 
-  def create
-    @member = new_member(params[:domain_member])
-    if @member.save
-      flash[:success] = @member.messages.first.presence || "Added member to domain"
-      redirect_to domain_path(get_domain)
-    else
-      @domain = get_domain
-      render :template => 'domains/show'
-    end
+  def index
+    redirect_to domain_path(params[:domain_id])
   end
 
   def update
     @domain = get_domain
-    new_members = Array(params[:members] || params[:member] || params.slice(:id, :login, :role)).map {|m| new_member(m) }
-    if new_members.present?
-      if @domain.update_members(new_members)
+
+    # Support :members, :member, or loose params
+    members = Array(params[:members] || params[:member] || params.slice(:id, :login, :role)).map {|m| new_member(m) }
+
+    # Ignore new member rows without a login specified
+    members = members.select {|m| m.login.present? || m.id.present? }
+
+    if members.present?
+      if @domain.update_members(members)
         flash[:success] = @domain.messages.first.presence || "Updated members"
       else
-        flash[:error] = @domain.messages.first.presence || "Could not update members"
+        flash.now[:error] = "Could not update members."
+        @capabilities = user_capabilities
+        @new_members = members.select {|m| m.login.present? and m.id.blank? }
+        render :template => 'domains/show' and return
       end
     end
     redirect_to domain_path(@domain)
