@@ -229,6 +229,28 @@ module OpenShift
             "#{deployment_datetime} - #{deployment_id} - #{deployment_state}#{active_text}"
           end.join("\n")
         end
+
+        def determine_extract_command(filename)
+          if filename =~ /\.tar\.gz$/i or filename =~ /\.tar$/i
+            "/bin/tar xf #{filename}"
+          elsif filename =~ /\.zip$/i
+            "/usr/bin/unzip -q #{filename}"
+          else
+            raise "Unable to determine file type for '#{filename}' - unable to deploy"
+          end
+        end
+
+        def extract_deployment_archive(env, file, destination)
+          raise "Specified file '#{file}' does not exist." unless File.exist?(file)
+
+          extract_command = determine_extract_command(file)
+
+          # explode file
+          out, err, rc = run_in_container_context(extract_command,
+                                                  env: env,
+                                                  chdir: destination,
+                                                  expected_exitstatus: 0)
+        end
       end
     end
   end

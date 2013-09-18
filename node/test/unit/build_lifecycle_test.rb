@@ -534,7 +534,7 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
                                                    {deployment_datetime: deployment_datetime})
                                              .returns("output from prepare hook\n")
 
-    deployment_id = 'abcd1234'  
+    deployment_id = 'abcd1234'
     @container.expects(:calculate_deployment_id).with(deployment_datetime).returns(deployment_id)
 
     FileUtils.expects(:cd).with(File.join(@container.container_dir, 'app-deployments', 'by-id')).yields
@@ -548,28 +548,23 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
     assert_equal "output from prepare hook\nPrepared deployment artifacts in #{File.join(@container.container_dir, 'app-deployments', deployment_datetime)}\nDeployment id is #{deployment_id}", output
   end
 
-  def test_prepare_with_valid_file
+  def test_prepare_with_file
     deployment_datetime = 'now'
-    filename = 'test.tar.gz'
-    file_path = File.join(@container.container_dir, 'app-archives', filename)
-    prepare_options = {deployment_datetime: deployment_datetime, file: filename}
+    file_path = '/tmp/test.tar.gz'
+    prepare_options = {deployment_datetime: deployment_datetime, file: file_path}
 
-    gear_env = {}
+    gear_env = {'a' => 'b'}
     OpenShift::Runtime::Utils::Environ.expects(:for_gear).with(@container.container_dir).returns(gear_env)
 
-    File.expects(:exist?).with(file_path).returns(true)
-    @container.expects(:run_in_container_context).with("tar xf #{file_path}",
-                                                       env: gear_env,
-                                                       chdir: File.join(@container.container_dir, 'app-deployments', deployment_datetime),
-                                                       expected_exitstatus: 0)
+    @container.expects(:extract_deployment_archive).with(gear_env, file_path)
 
-    gear_env_with_repo_dir_override = {'OPENSHIFT_REPO_DIR' => File.join(@container.container_dir, 'app-deployments', deployment_datetime, 'repo')}
+    gear_env_with_repo_dir_override = gear_env.merge({'OPENSHIFT_REPO_DIR' => File.join(@container.container_dir, 'app-deployments', deployment_datetime, 'repo')})
     @cartridge_model.expects(:do_action_hook).with('prepare',
                                                    gear_env_with_repo_dir_override,
                                                    prepare_options)
                                              .returns("output from prepare hook\n")
 
-    deployment_id = 'abcd1234'  
+    deployment_id = 'abcd1234'
     @container.expects(:calculate_deployment_id).with(deployment_datetime).returns(deployment_id)
 
     FileUtils.expects(:cd).with(File.join(@container.container_dir, 'app-deployments', 'by-id')).yields
@@ -580,19 +575,6 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
 
     assert_equal deployment_id, prepare_options[:deployment_id]
     assert_equal "output from prepare hook\nPrepared deployment artifacts in #{File.join(@container.container_dir, 'app-deployments', deployment_datetime)}\nDeployment id is #{deployment_id}", output
-  end
-
-  def test_prepare_with_missing_file
-    deployment_datetime = 'now'
-    filename = 'test.tar.gz'
-
-    gear_env = {}
-    OpenShift::Runtime::Utils::Environ.expects(:for_gear).with(@container.container_dir).returns(gear_env)
-
-    File.expects(:exist?).with(File.join(@container.container_dir, 'app-archives', filename)).returns(false)
-
-    prepare_options = {deployment_datetime: deployment_datetime, file: filename}
-    assert_raises(RuntimeError, 'TODO') { @container.prepare(prepare_options) }
   end
 
   def test_child_gear_ssh_urls_no_web_proxy
@@ -1092,5 +1074,41 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
     @container.expects(:activate).with(rollback_options).returns("activate output\n")
     output = @container.rollback(rollback_options)
     assert_equal "Rolling back to deployment ID a1b2c3d4\nactivate output\n", output
+  end
+
+  def test_update_proxy_status_missing_action
+    options = {}
+    err = assert_raises(RuntimeError) { @container.update_proxy_status(options) }
+    assert_equal "action must either be :enable or :disable", err.message
+  end
+
+  def test_update_proxy_status_invalid_action
+    options = {action: :foo}
+    err = assert_raises(RuntimeError) { @container.update_proxy_status(options) }
+    assert_equal "action must either be :enable or :disable", err.message
+  end
+
+  def test_update_proxy_status_missing_gear_uuid
+    options = {action: :enable}
+    err = assert_raises(RuntimeError) { @container.update_proxy_status(options) }
+    assert_equal "gear_uuid is required", err.message
+  end
+
+  def test_update_proxy_status_no_web_proxy
+    options = {action: :enable, gear_uuid: 'uuid'}
+    @cartridge_model.expects(:web_proxy).returns(nil)
+    err = assert_raises(RuntimeError) { @container.update_proxy_status(options) }
+    assert_equal "Unable to update proxy status - no proxy cartridge found", err.message
+  end
+
+  def test_update_proxy_status_uses_specified_cartridge
+    options = {action: :enable, gear_uuid: 'uuid', cartridge: 'my_proxy'}
+    @cartridge_model.expects(:web_proxy).never
+    @cartridge_model.expects(:do_control).with('enable-server',
+                                               'my_proxy',
+                                               args: 'uuid',
+                                               pre_action_hooks_enabled: false,
+                                               post_action_hooks_enabled: false)
+    @container.update_proxy_status(options)
   end
 end

@@ -480,17 +480,7 @@ module OpenShift
           env['OPENSHIFT_REPO_DIR'] = "#{deployment_dir}/repo"
 
           if options[:file]
-            file = PathUtils.join(@container_dir, 'app-archives', options[:file])
-            if !File.exist?(file)
-              raise "Specified file '#{file}' does not exist."
-            end
-
-            # explode file
-            # TODO support things other than tar.gz
-            out, err, rc = run_in_container_context("tar xf #{file}",
-                                                    env: env,
-                                                    chdir: deployment_dir,
-                                                    expected_exitstatus: 0)
+            extract_deployment_archive(env, options[:file])
           end
 
           buffer = ''
@@ -1069,7 +1059,7 @@ module OpenShift
           raise "gear_uuid is required" if gear_uuid.nil?
 
           cartridge = options[:cartridge] || @cartridge_model.web_proxy
-          raise "Unable to update this gear's proxy status - no proxy cartridge found" if cartridge.nil?
+          raise "Unable to update proxy status - no proxy cartridge found" if cartridge.nil?
 
           persist = options[:persist]
           control = "#{action.to_s}-server"
@@ -1102,7 +1092,7 @@ module OpenShift
           raise "gear_uuid is required" if gear_uuid.nil?
 
           cartridge = options[:cartridge] || @cartridge_model.web_proxy
-          raise "Unable to update this gear's proxy status - no proxy cartridge found" if cartridge.nil?
+          raise "Unable to update proxy status - no proxy cartridge found" if cartridge.nil?
 
           persist = options[:persist]
 

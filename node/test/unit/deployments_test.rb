@@ -448,4 +448,58 @@ class DeploymentsTest < OpenShift::NodeTestCase
 EOF
     assert_equal expected.chomp, output
   end
+
+  def test_determine_extract_command_tar_gz
+    %w(/tmp/foo.tar.gz /tmp/foo.tAr.Gz /tmp/FOO.TAR.GZ).each do |filename|
+      assert_equal "/bin/tar xf #{filename}", @container.determine_extract_command(filename)
+    end
+  end
+
+  def test_determine_extract_command_tar
+    filename = '/tmp/foo.tar'
+    assert_equal "/bin/tar xf #{filename}", @container.determine_extract_command(filename)
+  end
+
+  def test_determine_extract_command_zip
+    filename = '/tmp/foo.zip'
+    assert_equal "/usr/bin/unzip -q #{filename}", @container.determine_extract_command(filename)
+  end
+
+  def test_determine_extract_command_invalid
+    filename = '/tmp/foo.bar'
+    err = assert_raises(RuntimeError) { @container.determine_extract_command(filename)}
+    assert_equal "Unable to determine file type for '#{filename}' - unable to deploy", err.message
+  end
+
+  def test_extract_deployment_archive_valid_file
+    file_path = '/tmp/foo.tar.gz'
+
+    File.expects(:exist?).with(file_path).returns(true)
+
+    @container.expects(:determine_extract_command).with(file_path).returns('extract')
+
+    gear_env = {'a' => 'b'}
+    destination = '/bar'
+
+    @container.expects(:run_in_container_context).with('extract',
+                                                       env: gear_env,
+                                                       chdir: destination,
+                                                       expected_exitstatus: 0)
+
+    @container.extract_deployment_archive(gear_env, file_path, destination)
+  end
+
+  def test_extract_deployment_archive_invalid_file
+    file_path = '/tmp/foo.tar.gz'
+    gear_env = {'a' => 'b'}
+    destination = '/bar'
+
+    File.expects(:exist?).with(file_path).returns(false)
+
+    @container.expects(:determine_extract_command).never
+    @container.expects(:run_in_container_context).never
+
+    err = assert_raises(RuntimeError) { @container.extract_deployment_archive(gear_env, file_path, destination) }
+    assert_equal "Specified file '#{file_path}' does not exist.", err.message
+  end
 end

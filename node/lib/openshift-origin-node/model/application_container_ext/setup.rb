@@ -81,12 +81,6 @@ module OpenShift
           # create initial deployment directory
           create_deployment_dir
 
-          archives_dir = PathUtils.join(homedir, "app-archives") + "/"
-          add_env_var("ARCHIVES_DIR", archives_dir, true) {|v|
-            FileUtils.mkdir_p(v, :verbose => @debug)
-            set_rw_permission(archives_dir)
-          }
-
           add_env_var("HISTFILE", PathUtils.join(data_dir, ".bash_history"))
           profile = PathUtils.join(data_dir, ".bash_profile")
           File.open(profile, File::WRONLY|File::TRUNC|File::CREAT, 0600) {|file|
