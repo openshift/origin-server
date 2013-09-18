@@ -107,7 +107,15 @@ module OpenShift
             add_env_var(endpoint.public_port_name, public_port)
 
             config = ::OpenShift::Config.new
-            output << "NOTIFY_ENDPOINT_CREATE: #{endpoint.public_port_name} #{config.get('PUBLIC_IP')} #{public_port} #{private_ip} #{endpoint.private_port}\n" 
+            if true   # FIXME : remove the old formatting as soon as broker is ready to consume the new format
+              output << "NOTIFY_ENDPOINT_CREATE: #{endpoint.public_port_name} #{config.get('PUBLIC_IP')} #{public_port} #{private_ip} #{endpoint.private_port}\n" 
+            elsif cart.web_proxy?
+              output << "NOTIFY_ENDPOINT_CREATE: #{config.get('PUBLIC_IP')} #{public_port} #{private_ip} #{endpoint.private_port} #{@cartridge_model.primary_cartridge.public_endpoints.first.protocols} load_balancer\n" 
+            elsif cart.web_framework?
+              output << "NOTIFY_ENDPOINT_CREATE: #{config.get('PUBLIC_IP')} #{public_port} #{private_ip} #{endpoint.private_port} #{endpoint.protocols} web_framework\n" 
+            else
+              output << "NOTIFY_ENDPOINT_CREATE: #{config.get('PUBLIC_IP')} #{public_port} #{private_ip} #{endpoint.private_port} #{endpoint.protocols}\n" 
+            end
 
             logger.info("Created public endpoint for cart #{cart.name} in gear #{@uuid}: "\
           "[#{endpoint.public_port_name}=#{public_port}]")
