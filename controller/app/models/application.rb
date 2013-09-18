@@ -371,7 +371,7 @@ class Application
   ##
   # Updates the configuration of the application.
   # @return [ResultIO] Output from cartridges
-  def update_configuration(parent_op=nil)
+  def update_configuration
     if self.invalid?
       messages = []
       self.errors.messages[:config].each do |error|
@@ -382,6 +382,7 @@ class Application
     Application.run_in_application_lock(self) do
       op_group = PendingAppOpGroup.new(op_type: :update_configuration,  args: {"config" => self.config})
       self.pending_op_groups.push op_group
+      self.save
       result_io = ResultIO.new
       self.run_jobs(result_io)
       result_io

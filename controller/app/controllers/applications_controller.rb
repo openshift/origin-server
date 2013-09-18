@@ -179,7 +179,7 @@ class ApplicationsController < BaseController
       @application.config['deployment_branch'] = deployment_branch if deployment_branch
       @application.config['keep_deployments'] = keep_deployments if keep_deployments
       @application.config['deployment_type'] = deployment_type if deployment_type
-      result = @application.update_configuration()
+      result = @application.update_configuration
     rescue OpenShift::ApplicationValidationException => e
       messages = get_error_messages(e.app)
       return render_error(:unprocessable_entity, nil, nil, nil, nil, messages)
