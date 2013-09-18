@@ -22,10 +22,8 @@ class PendingDomainOps
 
   embedded_in :domain, class_name: Domain.name
 
-  field :op_type,   type: Symbol
-  field :arguments, type: Hash
   field :parent_op_id, type: Moped::BSON::ObjectId
-  field :state,    type: Symbol
+  field :state, type: Symbol, :default => :init
   has_and_belongs_to_many :on_apps, class_name: Application.name, inverse_of: nil
   has_and_belongs_to_many :completed_apps, class_name: Application.name, inverse_of: nil
   field :on_completion_method, type: Symbol
@@ -114,6 +112,8 @@ class PendingDomainOps
     if self.updated_at.nil?
       s_hash["updated_at"] = t
     end
+    # need to set the _type attribute for MongoId to instantiate the appropriate class 
+    s_hash["_type"] = self.class.to_s unless s_hash["_type"]
     s_hash
   end
 end

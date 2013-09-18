@@ -269,17 +269,17 @@ class Gear
     return @container
   end
 
-  def update_configuration(args, remote_job_handle, tag="")
-    add_keys = args["add_keys_attrs"]
-    remove_keys = args["remove_keys_attrs"]
-    add_envs = args["add_env_vars"]
-    remove_envs = args["remove_env_vars"]
+  def update_configuration(op, remote_job_handle, tag="")
+    add_keys = op.add_keys_attrs
+    remove_keys = op.remove_keys_attrs
+    add_envs = op.add_env_vars
+    remove_envs = op.remove_env_vars
 
-    add_keys.each     { |ssh_key| RemoteJob.add_parallel_job(remote_job_handle, tag, self, get_proxy.get_add_authorized_ssh_key_job(self, ssh_key["content"], ssh_key["type"], ssh_key["name"])) } unless add_keys.nil?      
-    remove_keys.each  { |ssh_key| RemoteJob.add_parallel_job(remote_job_handle, tag, self, get_proxy.get_remove_authorized_ssh_key_job(self, ssh_key["content"], ssh_key["name"])) } unless remove_keys.nil?                 
+    add_keys.each     { |ssh_key| RemoteJob.add_parallel_job(remote_job_handle, tag, self, get_proxy.get_add_authorized_ssh_key_job(self, ssh_key["content"], ssh_key["type"], ssh_key["name"])) } if add_keys.present?      
+    remove_keys.each  { |ssh_key| RemoteJob.add_parallel_job(remote_job_handle, tag, self, get_proxy.get_remove_authorized_ssh_key_job(self, ssh_key["content"], ssh_key["name"])) } if remove_keys.present?
 
-    add_envs.each     {|env|      RemoteJob.add_parallel_job(remote_job_handle, tag, self, get_proxy.get_env_var_add_job(self, env["key"],env["value"]))} unless add_envs.nil?                                                   
-    remove_envs.each  {|env|      RemoteJob.add_parallel_job(remote_job_handle, tag, self, get_proxy.get_env_var_remove_job(self, env["key"]))} unless remove_envs.nil?
+    add_envs.each     {|env|      RemoteJob.add_parallel_job(remote_job_handle, tag, self, get_proxy.get_env_var_add_job(self, env["key"],env["value"]))} if add_envs.present?
+    remove_envs.each  {|env|      RemoteJob.add_parallel_job(remote_job_handle, tag, self, get_proxy.get_env_var_remove_job(self, env["key"]))} if remove_envs.present?
   end
 
   # Convenience method to get the {Application}

@@ -8,4 +8,17 @@ class SystemSshKey < SshKey
   include Mongoid::Document
   field :component_id, type: Moped::BSON::ObjectId
   embedded_in :domain, class_name: Domain.name
+
+  def to_obj(args={})
+    super
+    self.component_id = args["component_id"] if args["component_id"]
+    self
+  end
+
+  # This method should be implemented in the subclasses, if required
+  def to_key_hash()
+    key_hash = super
+    key_hash["component_id"] = self.component_id
+    key_hash
+  end
 end
