@@ -33,7 +33,7 @@ class DeploymentsControllerTest < ActionController::TestCase
   end
 
   test "deployment create show list update and destroy" do
-
+    Application.any_instance.stubs(:deployments).returns([Deployment.new(ref: "mybranch", deployment_id: "1")])
     post :create, {"ref" => "mybranch", "application_id" => @app.uuid}
     assert_response :created
     assert json = JSON.parse(response.body)

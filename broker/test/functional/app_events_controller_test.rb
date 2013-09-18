@@ -25,7 +25,7 @@ class AppEventsControllerTest < ActionController::TestCase
     @app.save
     d1 = Deployment.new(id: 1, description: "This is my first deployment", ref: "mybranch", state: "past")
     d2 = Deployment.new(id: 2, description: "This is my second deployment", ref: "d975cbfd5c398610326c97f3988a52b208036eef", state: "active")
-    @app.update_deployments([d1,d2])
+    @app.deployments = [d1,d2]
   end
 
   def teardown

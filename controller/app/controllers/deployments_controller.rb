@@ -40,7 +40,6 @@ class DeploymentsController < BaseController
       return render_error(:unprocessable_entity, nil, nil, nil, nil, messages)
     else
       result = @application.deploy(deployment)
-      @application.reload()
       rest_deployment = get_rest_deployment(@application.deployments.last)
       render_success(:created, "deployment", rest_deployment, "Added #{deployment.deployment_id} to application #{@application.name}", result)
     end
