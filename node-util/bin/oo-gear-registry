@@ -48,14 +48,16 @@ command :read do |c|
     end
 
     if type != 'all'
-        gears = @gear_registry.entries[type.to_sym]
+      gears = @gear_registry.entries[type.to_sym]
     else
-        gears = @gear_registry.entries[:web]
-        gears.push@gear_registry.entries[:proxy]
+      gears = @gear_registry.entries[:web]
+      gears.push(@gear_registry.entries[:proxy])
     end
 
-    gears.each_value do |gear|
-      puts "#{gear.uuid},#{gear.namespace},#{gear.dns},#{gear.proxy_hostname},#{gear.proxy_port}"
+    if gears
+      gears.each_value do |gear|
+        puts "#{gear.uuid},#{gear.namespace},#{gear.dns},#{gear.proxy_hostname},#{gear.proxy_port}"
+      end
     end
   end
 end

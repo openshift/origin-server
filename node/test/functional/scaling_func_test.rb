@@ -169,7 +169,7 @@ class ScalingFuncTest < OpenShift::NodeBareTestCase
 
       # make sure the http content is good
       web_entries.values.each do |entry| 
-        OpenShift::Runtime::NodeLogger.logger.info("Checking title for #{entry}")
+        OpenShift::Runtime::NodeLogger.logger.info("Checking title for #{entry.as_json}")
         assert_http_title_for_entry entry, DEFAULT_TITLE
       end
     else
@@ -265,7 +265,7 @@ END
   end
 
   def assert_http_title(url, expected)
-    OpenShift::Runtime::NodeLogger.logger.info("Checking http://#{url} for title '#{expected}'")
+    OpenShift::Runtime::NodeLogger.logger.info("Checking #{url} for title '#{expected}'")
     uri = URI.parse(url)
 
     tries = 1

@@ -408,8 +408,15 @@ module OpenShift
       def stop_gear(options={})
         buffer = ''
         if proxy_cartridge = @cartridge_model.web_proxy
-          disable_output = parallel_update_proxy_status(cartridge: proxy_cartridge, action: :disable, gear_uuid: self.uuid, persist: false)
-          disable_output.each { |out| buffer << out }
+          unless options[:hot_deploy] == true
+            result = update_proxy_status(cartridge: proxy_cartridge,
+                                         action: :disable,
+                                         gear_uuid: self.uuid,
+                                         persist: false)
+            result[:proxy_results].each do |proxy_gear_uuid, result|
+              buffer << result[:messages].join("\n")
+            end
+          end
         end
         buffer << @cartridge_model.stop_gear(options)
         unless buffer.empty?

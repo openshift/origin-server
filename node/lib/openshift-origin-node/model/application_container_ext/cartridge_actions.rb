@@ -1,3 +1,7 @@
+require 'json'
+require 'active_support/hash_with_indifferent_access'
+require 'active_support/core_ext/hash'
+
 module OpenShift
   module Runtime
     module ApplicationContainerExt
@@ -348,13 +352,13 @@ module OpenShift
             prepare(options)
 
             # activate the local gear
-            activate(options)
+            activate_gear(options)
 
             # if we have children, activate them
             if proxy_cart
               distribute(options)
 
-              activate_many(options)
+              activate(options)
             end
           end
 
@@ -393,13 +397,13 @@ module OpenShift
           prepare(options)
 
           # activate the local gear
-          activate(options)
+          activate_gear(options)
 
           # if we have children, activate them
           if @cartridge_model.web_proxy
             distribute(options)
 
-            activate_many(options)
+            activate(options)
           end
         end
 
@@ -550,13 +554,13 @@ module OpenShift
           raise ArgumentError.new("deployment_id must be supplied") unless deployment_id
 
           gears = options[:gears] || child_gear_ssh_urls
-          return { status: :success, gear_results: {}} if gears.empty?
+          result = { status: :success, gear_results: {}}
+
+          return result if gears.empty?
 
           deployment_datetime = get_deployment_datetime_for_deployment_id(deployment_id)
           deployment_dir = PathUtils.join(@container_dir, 'app-deployments', deployment_datetime)
           gear_env = ::OpenShift::Runtime::Utils::Environ.for_gear(@container_dir)
-
-          result = { status: :success, gear_results: {}}
 
           gear_results = Parallel.map(gears, :in_threads => MAX_THREADS) do |gear|
             gear_uuid = gear.split('@')[0]
@@ -630,20 +634,20 @@ module OpenShift
         #   :err           : an IO to which any stderr should be written (default: nil)
         #   :gears         : an Array of FQDNs to activate (required)
         #
-        def activate_many(options={})
-          gear_env = ::OpenShift::Runtime::Utils::Environ.for_gear(@container_dir)
+        def activate(options={})
+          deployment_id = options[:deployment_id]
+          raise ArgumentError.new("deployment_id must be supplied") unless deployment_id
+
+          result = { status: :success, gear_results: {}}
 
           # only activate if we're the currently elected proxy
           # TODO the way we determine this needs to change so gears other than
           # the initial proxy gear can be elected
-          return if gear_env['OPENSHIFT_APP_DNS'] != gear_env['OPENSHIFT_GEAR_DNS']
+          gear_env = ::OpenShift::Runtime::Utils::Environ.for_gear(@container_dir)
+          return result if gear_env['OPENSHIFT_APP_DNS'] != gear_env['OPENSHIFT_GEAR_DNS']
 
           gears = options[:gears] || child_gear_ssh_urls
-          return if gears.empty?
-
-          buffer = ''
-
-          web_proxy_cart = @cartridge_model.web_proxy
+          return result if gears.empty?
 
           # TODO should we make PARALLEL_CONCURRENCY_RATIO configurable
           # TODO should we make MAX_THREADS configurable?
@@ -652,34 +656,81 @@ module OpenShift
           batch_size = calculate_batch_size(gears.size, PARALLEL_CONCURRENCY_RATIO)
           threads = [batch_size, MAX_THREADS].min
 
-          parallel_output = Parallel.map(gears, :in_threads => threads) do |gear|
-            local_output = ''
+          gear_results = Parallel.map(gears, :in_threads => threads) do |gear|
+            activate_remote_gear(gear, gear_env, options)
+          end
 
-            # since the gear will look like 51e96b5e4f43c070fc000001@s1-agoldste.dev.rhcloud.com
-            # splitting by @ and taking the first element gets the gear's uuid
-            gear_uuid = gear.split('@')[0]
+          gear_results.each do |gear_result|
+            result[:gear_results][gear_result[:gear_uuid]] = gear_result
 
-            hot_deploy_option = (options[:hot_deploy] == true) ? '--hot-deploy' : '--no-hot-deploy'
-            init_option = (options[:init] == true) ? ' --init' : ''
+            if gear_result[:status] == :failure
+              result[:status] = :failure
+            end
+          end
 
-            local_output << parallel_update_proxy_status(action: :disable, gear_uuid: gear_uuid, persist: false).join("\n") << "\n"
+          result_msg = "Activation result for gears #{gears}: #{result}"
+          if options[:out]
+            options[:out] << result_msg
+          else
+            logger.info(result_msg)
+          end
 
-            local_output << "Activating gear #{gear_uuid}, deployment id: #{options[:deployment_id]}, #{hot_deploy_option},#{init_option}\n"
+          result
+        end
 
+        def activate_remote_gear(gear, gear_env, options={})
+          # TODO: refactor to hashes for gear info
+          gear_uuid = gear.split('@')[0]
+
+          result = {
+            status: :failure,
+            gear_uuid: gear_uuid,
+            messages: [],
+            errors: [],
+            disable_proxy_results: {},
+            enable_proxy_results: {}
+          }
+
+          hot_deploy_option = (options[:hot_deploy] == true) ? '--hot-deploy' : '--no-hot-deploy'
+          init_option = (options[:init] == true) ? ' --init' : ''
+
+          unless options[:hot_deploy] == true
+            result[:messages] << "Disabling gear in proxies"
+            proxy_result = update_proxy_status(action: :disable, gear_uuid: gear_uuid, persist: false)
+            result[:disable_proxy_results] = proxy_result
+
+            if proxy_result[:status] == :failure
+              result[:errors] << "Disabling gear in proxies failed"
+              return result
+            end
+          end
+
+          # call activate_gear on the remote gear
+          result[:messages] << "Activating gear #{gear_uuid}, deployment id: #{options[:deployment_id]}, #{hot_deploy_option},#{init_option}\n"
+
+          begin
             out, err, rc = run_in_container_context("/usr/bin/oo-ssh #{gear} gear activate #{options[:deployment_id]} #{hot_deploy_option}#{init_option}",
                                                     env: gear_env,
                                                     expected_exitstatus: 0)
-            local_output << out
-
-            local_output << parallel_update_proxy_status(action: :enable, gear_uuid: gear_uuid, persist: false).join("\n") << "\n"
+            result[:messages] << out
+          rescue ::OpenShift::Runtime::Utils::ShellExecutionException => e
+            result[:errors] << "Gear activation failed"
+            return result
           end
 
-          parallel_output.each do |o|
-            buffer << o
-            options[:out].puts(o) if options[:out]
+          unless options[:hot_deploy] == true
+            result[:messages] << "Enabling gear in proxies"
+            proxy_result = update_proxy_status(action: :enable, gear_uuid: gear_uuid, persist: false)
+            result[:enable_proxy_results] = proxy_result
+
+            if proxy_result[:status] == :failure
+              result[:errors] << "Enabling gear in proxies failed"
+            else
+              result[:status] = :success
+            end
           end
 
-          buffer
+          result
         end
 
         #
@@ -691,7 +742,7 @@ module OpenShift
         #   :out           : an IO to which any stdout should be written (default: nil)
         #   :err           : an IO to which any stderr should be written (default: nil)
         #
-        def activate(options={})
+        def activate_gear(options={})
           deployment_id = options[:deployment_id]
           deployment_datetime = get_deployment_datetime_for_deployment_id(deployment_id)
 
@@ -777,7 +828,9 @@ module OpenShift
           clean_up_deployments_before(deployment_datetime)
 
           if web_proxy_cart = @cartridge_model.web_proxy
-            parallel_update_proxy_status(cartridge: web_proxy_cart, action: :enable, gear_uuid: self.uuid, persist: false)
+            unless options[:hot_deploy] == true
+              update_proxy_status(cartridge: web_proxy_cart, action: :enable, gear_uuid: self.uuid, persist: false)
+            end
           end
 
           buffer
@@ -812,7 +865,7 @@ module OpenShift
             # splitting by @ and taking the first element gets the gear's uuid
             gear_uuid = gear.split('@')[0]
 
-            parallel_update_proxy_status(action: :disable, gear_uuid: gear_uuid, persist: false)
+            update_proxy_status(action: :disable, gear_uuid: gear_uuid, persist: false)
 
             out = "Rolling back gear #{gear_uuid}\n"
             buffer << out
@@ -824,7 +877,7 @@ module OpenShift
             buffer << out
             options[:out].puts(out) if options[:out]
 
-            parallel_update_proxy_status(action: :enable, gear_uuid: gear_uuid, persist: false)
+            update_proxy_status(action: :enable, gear_uuid: gear_uuid, persist: false)
           end
 
           buffer
@@ -908,7 +961,7 @@ module OpenShift
             buffer << out
             options[:out].puts(out) if options[:out]
 
-            buffer << activate(options.merge(deployment_id: rollback_to))
+            buffer << activate_gear(options.merge(deployment_id: rollback_to))
           else
             if options[:deployment_id]
               if deployment_exists?(options[:deployment_id])
@@ -1087,7 +1140,7 @@ module OpenShift
                 # of in batches
 
                 # since the gears are new, set init to true and hot_deploy to false
-                activate_many(gears: ssh_urls, deployment_id: deployment_id, init: true, hot_deploy: false)
+                activate(gears: ssh_urls, deployment_id: deployment_id, init: true, hot_deploy: false)
               end
 
               old_proxy_gears = old_registry[:proxy]
@@ -1126,15 +1179,15 @@ module OpenShift
         # @param persist a boolean indicating if the change should be persisted to the configuration file on disk
         #
         # Returns the output of updating the web proxy
-        def update_proxy_status(options)
+        def update_proxy_status_for_gear(options)
           action = options[:action]
-          raise "action must either be :enable or :disable" unless [:enable, :disable].include?(action)
+          raise ArgumentError.new("action must either be :enable or :disable") unless [:enable, :disable].include?(action)
 
           gear_uuid = options[:gear_uuid]
-          raise "gear_uuid is required" if gear_uuid.nil?
+          raise ArgumentError.new("gear_uuid is required") if gear_uuid.nil?
 
           cartridge = options[:cartridge] || @cartridge_model.web_proxy
-          raise "Unable to update proxy status - no proxy cartridge found" if cartridge.nil?
+          raise ArgumentError.new("Unable to update proxy status - no proxy cartridge found") if cartridge.nil?
 
           persist = options[:persist]
           control = "#{action.to_s}-server"
@@ -1150,6 +1203,79 @@ module OpenShift
                                       post_action_hooks_enabled: false)
         end
 
+        def update_proxy_status_for_remote_gear(args)
+          current_gear = args[:current_gear]
+          proxy_gear = args[:proxy_gear]
+          target_gear = args[:target_gear]
+          cartridge = args[:cartridge]
+          action = args[:action]
+          persist = args[:persist]
+
+          if current_gear == proxy_gear
+            # self, no need to ssh
+            return update_proxy_status_for_local_gear(cartridge: cartridge, action: action, proxy_gear: proxy_gear, target_gear: target_gear, persist: persist)
+          end
+
+          direction = if :enable == action
+            'in'
+          else
+            'out'
+          end
+
+          persist_option = if persist
+            '--persist'
+          else
+            ''
+          end
+
+          url = "#{entry.uuid}@#{entry.proxy_hostname}"
+
+          command = "/usr/bin/oo-ssh #{url} gear rotate-#{direction} --gear #{target_gear} #{persist_option} --cart #{cartridge.name}-#{cartridge.version}"
+          
+          begin
+            out, err, rc = run_in_container_context(command,
+                                                    env: gear_env,
+                                                    expected_exitstatus: 0)
+            result = HashWithIndifferentAccess.new(JSON.load(out))
+          rescue Exception => e
+            result = {
+              status: :failure,
+              proxy_gear_uuid: proxy_gear,
+              messages: [],
+              errors: ["An exception occured updating the proxy status: #{e.message}\n#{e.backtrace.join("\n")}"]
+            }
+          end
+
+          result
+        end
+
+        def update_proxy_status_for_local_gear(args)
+          cartridge = args[:cartridge]
+          action = args[:action]
+          proxy_gear = args[:proxy_gear]
+          target_gear = args[:target_gear]
+          persist = args[:persist]
+
+          begin
+            output = update_proxy_status_for_gear(cartridge: cartridge, action: action, gear_uuid: target_gear, persist: persist)
+            result = {
+              status: :success,
+              proxy_gear_uuid: proxy_gear,
+              messages: [],
+              errors: []
+            }
+          rescue Exception => e
+            result = {
+              status: :failure,
+              proxy_gear_uuid: proxy_gear,
+              messages: [],
+              errors: ["An exception occured updating the proxy status: #{e.message}\n#{e.backtrace.join("\n")}"]
+            }
+          end
+
+          result
+        end
+
         # Enables/disables the selected gear in the current gear's web proxy.
         #
         # If the current gear is the 'master' gear, also updates all other web proxies.
@@ -1158,58 +1284,69 @@ module OpenShift
         # @param gear_uuid the web gear to enable/disable
         # @param persist a boolean indicating if the change should be persisted to the configuration file on disk
         #
-        # Returns an Array of Strings, each String being the output of updating a single web proxy
-        def parallel_update_proxy_status(options)
+        # Returns a result hash in the form:
+        #
+        #  {
+        #    status: :success, # or :failure
+        #    target_gear_uuid: #{gear_uuid}
+        #    proxy_results: {
+        #      #{proxy_gear_uuid}: {
+        #        proxy_gear_uuid: #{proxy_gear_uuid},
+        #        status: :success, # or :failure,
+        #        messages: [], # strings
+        #        errors: [] # strings
+        #      }, ...
+        #    }
+        #  }
+        #  
+        def update_proxy_status(options)
           action = options[:action]
-          raise "action must either be :enable or :disable" unless [:enable, :disable].include?(action)
+          raise ArgumentError.new("action must either be :enable or :disable") unless [:enable, :disable].include?(action)
 
           gear_uuid = options[:gear_uuid]
-          raise "gear_uuid is required" if gear_uuid.nil?
+          raise ArgumentError.new("gear_uuid is required") if gear_uuid.nil?
 
           cartridge = options[:cartridge] || @cartridge_model.web_proxy
-          raise "Unable to update proxy status - no proxy cartridge found" if cartridge.nil?
+          raise ArgumentError.new("Unable to update proxy status - no proxy cartridge found") if cartridge.nil?
 
           persist = options[:persist]
 
           gear_env = ::OpenShift::Runtime::Utils::Environ.for_gear(@container_dir)
 
+          result = {
+            status: :success, # or :failure
+            target_gear_uuid: gear_uuid,
+            proxy_results: {},
+          }
+
           if gear_env['OPENSHIFT_APP_DNS'] != gear_env['OPENSHIFT_GEAR_DNS']
-            # just update ourselves
-            [update_proxy_status(cartridge: cartridge, action: action, gear_uuid: gear_uuid, persist: persist)]
+            result = update_proxy_status_for_local_gear(cartridge: cartridge, action: action, proxy_gear: self.uuid, target_gear: gear_uuid, persist: persist)
           else
             # only update the other proxies if we're the currently elected proxy
             # TODO the way we determine this needs to change so gears other than
             # the initial proxy gear can be elected
-
             proxy_entries = gear_registry.entries[:proxy].values
 
-            direction = if :enable == action
-              'in'
-            else
-              'out'
+            parallel_results = Parallel.map(proxy_entries, :in_threads => MAX_THREADS) do |entry|
+              update_proxy_status_for_remote_gear(current_gear: self.uuid,
+                                                  proxy_gear: entry.uuid,
+                                                  target_gear: gear_uuid,
+                                                  cartridge: cartridge,
+                                                  action: action,
+                                                  persist: persist)
             end
 
-            persist_option = if persist
-              '--persist'
-            else
-              ''
-            end
+            parallel_results.each do |parallel_result|
+              proxy_gear_uuid = parallel_result[:proxy_gear_uuid]
+              result[:proxy_results][proxy_gear_uuid] = parallel_result
 
-            disable_output = Parallel.map(proxy_entries, :in_threads => MAX_THREADS) do |entry|
-              if entry.uuid == self.uuid
-                # self, no need to ssh
-                update_proxy_status(cartridge: cartridge, action: action, gear_uuid: gear_uuid, persist: persist)
-              else
-                url = "#{entry.uuid}@#{entry.proxy_hostname}"
-
-                command = "/usr/bin/oo-ssh #{url} gear rotate-#{direction} --gear #{gear_uuid} #{persist_option} --cart #{cartridge.name}-#{cartridge.version}"
-                out, err, rc = run_in_container_context(command,
-                                                        env: gear_env,
-                                                        expected_exitstatus: 0)
-                out
+              if parallel_result[:status] == :failure
+                result[:status] = :failure
               end
             end
           end
+
+          result
         end
       end
     end

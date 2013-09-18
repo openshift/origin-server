@@ -916,25 +916,51 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
     assert_equal :failure, result[:status]
   end
 
-  def test_activate_many_app_dns_different_from_gear_dns
+  def test_activate_not_elected_proxy
     gear_env = {'OPENSHIFT_APP_DNS' => 'app-ns.example.com', 'OPENSHIFT_GEAR_DNS' => '123-ns.example.com'}
+
     OpenShift::Runtime::Utils::Environ.expects(:for_gear).with(@container.container_dir).returns(gear_env)
     @container.expects(:child_gear_ssh_urls).never
-    @cartridge_model.expects(:web_proxy).never
     @container.expects(:run_in_container_context).never
-    @container.activate_many()
+
+    result = @container.activate(deployment_id: "123")
+
+    assert_equal :success, result[:status]
+    assert_equal 0, result[:gear_results].size
   end
 
-  def test_activate_many_no_child_gears
+  def test_activate_no_child_gears
     gear_env = {'OPENSHIFT_APP_DNS' => 'app-ns.example.com', 'OPENSHIFT_GEAR_DNS' => 'app-ns.example.com'}
+
     OpenShift::Runtime::Utils::Environ.expects(:for_gear).with(@container.container_dir).returns(gear_env)
     @container.expects(:child_gear_ssh_urls).returns([])
-    @cartridge_model.expects(:web_proxy).never
     @container.expects(:run_in_container_context).never
-    @container.activate_many()
+
+    result = @container.activate(deployment_id: "123")
+
+    assert_equal :success, result[:status]
+    assert_equal 0, result[:gear_results].size
   end
 
-  def test_activate_many_defaults_to_child_gears
+  def test_activate_success
+    deployment_id = 'abcd1234'
+
+    gear_env = {'OPENSHIFT_APP_DNS' => 'app-ns.example.com', 'OPENSHIFT_GEAR_DNS' => 'app-ns.example.com'}
+    OpenShift::Runtime::Utils::Environ.expects(:for_gear).with(@container.container_dir).returns(gear_env)
+
+    gears = %w(1234@localhost 2345@localhost)
+    @container.expects(:child_gear_ssh_urls).returns(gears)
+
+    @container.expects(:activate_remote_gear).with('1234@localhost', gear_env, has_key(:deployment_id)).returns(status: :success, errors: [], messages: [])
+    @container.expects(:activate_remote_gear).with('2345@localhost', gear_env, has_key(:deployment_id)).returns(status: :success, errors: [], messages: [])
+    
+    result = @container.activate(deployment_id: deployment_id)
+
+    assert_equal :success, result[:status]
+    assert_equal 2, result[:gear_results].size
+  end
+
+  def test_activate_failure
     deployment_id = 'abcd1234'
 
     gears = %w(1234@localhost 2345@localhost)
@@ -946,128 +972,163 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
     web_proxy = mock()
     @cartridge_model.expects(:web_proxy).returns(web_proxy)
 
-    gears.each do |g|
-      gear_uuid = g.split('@')[0]
+    @container.expects(:activate_remote_gear).with('1234@localhost', gear_env, has_key(:deployment_id)).returns(status: :success, errors: [], messages: [])
+    @container.expects(:activate_remote_gear).with('2345@localhost', gear_env, has_key(:deployment_id)).returns(status: :success, errors: [], messages: [])
 
-      @container.expects(:parallel_update_proxy_status)
-                .with(action: :disable, gear_uuid: gear_uuid, persist: false)
-                .returns(%W(disable-1-#{gear_uuid} disable-2-#{gear_uuid}))
+    result = @container.activate(deployment_id: deployment_id)
 
-      @container.expects(:run_in_container_context).with("/usr/bin/oo-ssh #{g} gear activate #{deployment_id} --no-hot-deploy",
-                                                         env: gear_env,
-                                                         expected_exitstatus: 0)
-                                                   .returns("out from #{g}\n")
-
-      @container.expects(:parallel_update_proxy_status)
-                .with(action: :enable, gear_uuid: gear_uuid, persist: false)
-                .returns(%W(enable-1-#{gear_uuid} enable-2-#{gear_uuid}))
-    end
-
-    output = @container.activate_many(deployment_id: deployment_id)
-
-    assert_equal "disable-1-1234\ndisable-2-1234\nActivating gear 1234, deployment id: abcd1234, --no-hot-deploy,\nout from 1234@localhost\nenable-1-1234\nenable-2-1234\ndisable-1-2345\ndisable-2-2345\nActivating gear 2345, deployment id: abcd1234, --no-hot-deploy,\nout from 2345@localhost\nenable-1-2345\nenable-2-2345\n", output
+    assert_equal :failure, result[:status]
+    assert_equal 2, result[:gear_results].size
   end
 
-  def test_activate_many_uses_specified_gears
+  def test_activate_remote_gear_success
     deployment_id = 'abcd1234'
+    g = "1234@localhost"
+    gear_uuid = "1234"
+    gear_env = {}
+    options = { deployment_id: deployment_id }
 
-    gears = %w(1234@localhost 2345@localhost)
-    @container.expects(:child_gear_ssh_urls).never
+    @container.expects(:parallel_update_proxy_status)
+              .with(action: :disable, gear_uuid: gear_uuid, persist: false)
+              .returns(status: :success, messages: [], errors: [])
 
-    gear_env = {'OPENSHIFT_APP_DNS' => 'app-ns.example.com', 'OPENSHIFT_GEAR_DNS' => 'app-ns.example.com'}
-    OpenShift::Runtime::Utils::Environ.expects(:for_gear).with(@container.container_dir).returns(gear_env)
+    @container.expects(:run_in_container_context).with("/usr/bin/oo-ssh #{g} gear activate #{deployment_id} --no-hot-deploy",
+                                                       env: gear_env,
+                                                       expected_exitstatus: 0)
+                                                 .returns('out')
 
-    web_proxy = mock()
-    @cartridge_model.expects(:web_proxy).returns(web_proxy)
+    @container.expects(:parallel_update_proxy_status)
+              .with(action: :enable, gear_uuid: gear_uuid, persist: false)
+              .returns(status: :success, messages: [], errors: [])
 
-    gears.each do |g|
-      gear_uuid = g.split('@')[0]
+    result = @container.activate_remote_gear(g, gear_env, options)
 
-      @container.expects(:parallel_update_proxy_status)
-                .with(action: :disable, gear_uuid: gear_uuid, persist: false)
-                .returns(%W(disable-1-#{gear_uuid} disable-2-#{gear_uuid}))
-
-      @container.expects(:run_in_container_context).with("/usr/bin/oo-ssh #{g} gear activate #{deployment_id} --no-hot-deploy",
-                                                         env: gear_env,
-                                                         expected_exitstatus: 0)
-                                                   .returns("out from #{g}\n")
-
-      @container.expects(:parallel_update_proxy_status)
-                .with(action: :enable, gear_uuid: gear_uuid, persist: false)
-                .returns(%W(enable-1-#{gear_uuid} enable-2-#{gear_uuid}))
-    end
-
-    output = @container.activate_many(gears: gears, deployment_id: deployment_id)
-
-    assert_equal "disable-1-1234\ndisable-2-1234\nActivating gear 1234, deployment id: abcd1234, --no-hot-deploy,\nout from 1234@localhost\nenable-1-1234\nenable-2-1234\ndisable-1-2345\ndisable-2-2345\nActivating gear 2345, deployment id: abcd1234, --no-hot-deploy,\nout from 2345@localhost\nenable-1-2345\nenable-2-2345\n", output
+    assert_equal :success, result[:status]
   end
 
-  def test_activate_many_hot_deploy
+  def test_activate_remote_gear_proxy_disable_fails
     deployment_id = 'abcd1234'
+    g = "1234@localhost"
+    gear_uuid = "1234"
+    gear_env = {}
+    options = { deployment_id: deployment_id }
 
-    gears = %w(1234@localhost 2345@localhost)
-    @container.expects(:child_gear_ssh_urls).never
+    @container.expects(:parallel_update_proxy_status)
+              .with(action: :disable, gear_uuid: gear_uuid, persist: false)
+              .returns(status: :failure, messages: [], errors: [])
 
-    gear_env = {'OPENSHIFT_APP_DNS' => 'app-ns.example.com', 'OPENSHIFT_GEAR_DNS' => 'app-ns.example.com'}
-    OpenShift::Runtime::Utils::Environ.expects(:for_gear).with(@container.container_dir).returns(gear_env)
+    @container.expects(:run_in_container_context).with("/usr/bin/oo-ssh #{g} gear activate #{deployment_id} --no-hot-deploy",
+                                                       env: gear_env,
+                                                       expected_exitstatus: 0)
+                                                 .never
 
-    web_proxy = mock()
-    @cartridge_model.expects(:web_proxy).returns(web_proxy)
+    @container.expects(:parallel_update_proxy_status)
+              .with(action: :enable, gear_uuid: gear_uuid, persist: false)
+              .never
 
-    gears.each do |g|
-      gear_uuid = g.split('@')[0]
+    result = @container.activate_remote_gear(g, gear_env, options)
 
-      @container.expects(:parallel_update_proxy_status)
-                .with(action: :disable, gear_uuid: gear_uuid, persist: false)
-                .returns(%W(disable-1-#{gear_uuid} disable-2-#{gear_uuid}))
-
-      @container.expects(:run_in_container_context).with("/usr/bin/oo-ssh #{g} gear activate #{deployment_id} --hot-deploy",
-                                                         env: gear_env,
-                                                         expected_exitstatus: 0)
-                                                   .returns("out from #{g}\n")
-
-      @container.expects(:parallel_update_proxy_status)
-                .with(action: :enable, gear_uuid: gear_uuid, persist: false)
-                .returns(%W(enable-1-#{gear_uuid} enable-2-#{gear_uuid}))
-    end
-
-    output = @container.activate_many(gears: gears, deployment_id: deployment_id, hot_deploy: true)
-
-    assert_equal "disable-1-1234\ndisable-2-1234\nActivating gear 1234, deployment id: abcd1234, --hot-deploy,\nout from 1234@localhost\nenable-1-1234\nenable-2-1234\ndisable-1-2345\ndisable-2-2345\nActivating gear 2345, deployment id: abcd1234, --hot-deploy,\nout from 2345@localhost\nenable-1-2345\nenable-2-2345\n", output
+    assert_equal :failure, result[:status]
   end
 
-  def test_activate_many_init
+  def test_activate_remote_gear_activation_fails
     deployment_id = 'abcd1234'
+    g = "1234@localhost"
+    gear_uuid = "1234"
+    gear_env = {}
+    options = { deployment_id: deployment_id }
 
-    gears = %w(1234@localhost 2345@localhost)
-    @container.expects(:child_gear_ssh_urls).never
+    @container.expects(:parallel_update_proxy_status)
+              .with(action: :disable, gear_uuid: gear_uuid, persist: false)
+              .returns(status: :success, messages: [], errors: [])
 
-    gear_env = {'OPENSHIFT_APP_DNS' => 'app-ns.example.com', 'OPENSHIFT_GEAR_DNS' => 'app-ns.example.com'}
-    OpenShift::Runtime::Utils::Environ.expects(:for_gear).with(@container.container_dir).returns(gear_env)
+    @container.expects(:run_in_container_context).with("/usr/bin/oo-ssh #{g} gear activate #{deployment_id} --no-hot-deploy",
+                                                       env: gear_env,
+                                                       expected_exitstatus: 0)
+                                                 .raises(::OpenShift::Runtime::Utils::ShellExecutionException.new('msg'))
 
-    web_proxy = mock()
-    @cartridge_model.expects(:web_proxy).returns(web_proxy)
+    @container.expects(:parallel_update_proxy_status)
+              .with(action: :enable, gear_uuid: gear_uuid, persist: false)
+              .never
 
-    gears.each do |g|
-      gear_uuid = g.split('@')[0]
+    result = @container.activate_remote_gear(g, gear_env, options)
 
-      @container.expects(:parallel_update_proxy_status)
-                .with(action: :disable, gear_uuid: gear_uuid, persist: false)
-                .returns(%W(disable-1-#{gear_uuid} disable-2-#{gear_uuid}))
+    assert_equal :failure, result[:status]
+  end
 
-      @container.expects(:run_in_container_context).with("/usr/bin/oo-ssh #{g} gear activate #{deployment_id} --no-hot-deploy --init",
-                                                         env: gear_env,
-                                                         expected_exitstatus: 0)
-                                                   .returns("out from #{g}\n")
+  def test_activate_remote_gear_proxy_enable_fails
+    deployment_id = 'abcd1234'
+    g = "1234@localhost"
+    gear_uuid = "1234"
+    gear_env = {}
+    options = { deployment_id: deployment_id }
 
-      @container.expects(:parallel_update_proxy_status)
-                .with(action: :enable, gear_uuid: gear_uuid, persist: false)
-                .returns(%W(enable-1-#{gear_uuid} enable-2-#{gear_uuid}))
-    end
+    @container.expects(:parallel_update_proxy_status)
+              .with(action: :disable, gear_uuid: gear_uuid, persist: false)
+              .returns(status: :success, messages: [], errors: [])
 
-    output = @container.activate_many(gears: gears, deployment_id: deployment_id, init: true)
+    @container.expects(:run_in_container_context).with("/usr/bin/oo-ssh #{g} gear activate #{deployment_id} --no-hot-deploy",
+                                                       env: gear_env,
+                                                       expected_exitstatus: 0)
+                                                 .returns('out')
 
-    assert_equal "disable-1-1234\ndisable-2-1234\nActivating gear 1234, deployment id: abcd1234, --no-hot-deploy, --init\nout from 1234@localhost\nenable-1-1234\nenable-2-1234\ndisable-1-2345\ndisable-2-2345\nActivating gear 2345, deployment id: abcd1234, --no-hot-deploy, --init\nout from 2345@localhost\nenable-1-2345\nenable-2-2345\n", output
+    @container.expects(:parallel_update_proxy_status)
+              .with(action: :enable, gear_uuid: gear_uuid, persist: false)
+              .returns(status: :failure, messages: [], errors: [])
+
+    result = @container.activate_remote_gear(g, gear_env, options)
+
+    assert_equal :failure, result[:status]
+  end
+
+  def test_activate_remote_gear_hot_deploy
+    deployment_id = 'abcd1234'
+    g = "1234@localhost"
+    gear_uuid = "1234"
+    gear_env = {}
+    options = { deployment_id: deployment_id, hot_deploy: true }
+
+    @container.expects(:parallel_update_proxy_status)
+              .with(action: :disable, gear_uuid: gear_uuid, persist: false)
+              .returns(status: :success, messages: [], errors: [])
+
+    @container.expects(:run_in_container_context).with("/usr/bin/oo-ssh #{g} gear activate #{deployment_id} --hot-deploy",
+                                                       env: gear_env,
+                                                       expected_exitstatus: 0)
+                                                 .returns('out')
+
+    @container.expects(:parallel_update_proxy_status)
+              .with(action: :enable, gear_uuid: gear_uuid, persist: false)
+              .returns(status: :success, messages: [], errors: [])
+
+    result = @container.activate_remote_gear(g, gear_env, options)
+
+    assert_equal :success, result[:status]
+  end
+
+  def test_activate_remote_gear_init
+    deployment_id = 'abcd1234'
+    g = "1234@localhost"
+    gear_uuid = "1234"
+    gear_env = {}
+    options = { deployment_id: deployment_id, init: true }
+
+    @container.expects(:parallel_update_proxy_status)
+              .with(action: :disable, gear_uuid: gear_uuid, persist: false)
+              .returns(status: :success, messages: [], errors: [])
+
+    @container.expects(:run_in_container_context).with("/usr/bin/oo-ssh #{g} gear activate #{deployment_id} --no-hot-deploy --init",
+                                                       env: gear_env,
+                                                       expected_exitstatus: 0)
+                                                 .returns('out')
+
+    @container.expects(:parallel_update_proxy_status)
+              .with(action: :enable, gear_uuid: gear_uuid, persist: false)
+              .returns(status: :success, messages: [], errors: [])
+
+    result = @container.activate_remote_gear(g, gear_env, options)
+
+    assert_equal :success, result[:status]
   end
 
   # options
@@ -1174,148 +1235,148 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
     assert_equal "#{stop_output}Starting application ApplicationContainerTestCase\nstart secondary\ndeploy\nstart primary\npost-deploy\n", output
   end
 
-  def test_activate_stops_started_gear
-    do_activate_test(gear_started: true)
-  end
+  # def test_activate_stops_started_gear
+  #   do_activate_test(gear_started: true)
+  # end
 
-  def test_activate_doesnt_call_stop_if_already_stopped
-    do_activate_test(gear_started: false)
-  end
+  # def test_activate_doesnt_call_stop_if_already_stopped
+  #   do_activate_test(gear_started: false)
+  # end
 
-  def test_activate_with_init_option
-    do_activate_test(init: true)
-  end
+  # def test_activate_with_init_option
+  #   do_activate_test(init: true)
+  # end
 
-  def test_activate_enables_local_gear_if_scalable
-    do_activate_test(scalable: true)
-  end
+  # def test_activate_enables_local_gear_if_scalable
+  #   do_activate_test(scalable: true)
+  # end
 
-  def test_rollback_many_app_dns_different_from_gear_dns
-    gear_env = {'OPENSHIFT_APP_DNS' => 'app-ns.example.com', 'OPENSHIFT_GEAR_DNS' => '123-ns.example.com'}
-    OpenShift::Runtime::Utils::Environ.expects(:for_gear).with(@container.container_dir).returns(gear_env)
-    @container.expects(:child_gear_ssh_urls).never
-    @container.expects(:run_in_container_context).never
-    @container.rollback_many()
-  end
+  # def test_rollback_many_app_dns_different_from_gear_dns
+  #   gear_env = {'OPENSHIFT_APP_DNS' => 'app-ns.example.com', 'OPENSHIFT_GEAR_DNS' => '123-ns.example.com'}
+  #   OpenShift::Runtime::Utils::Environ.expects(:for_gear).with(@container.container_dir).returns(gear_env)
+  #   @container.expects(:child_gear_ssh_urls).never
+  #   @container.expects(:run_in_container_context).never
+  #   @container.rollback_many()
+  # end
 
-  def test_rollback_many_no_child_gears
-    gear_env = {'OPENSHIFT_APP_DNS' => 'app-ns.example.com', 'OPENSHIFT_GEAR_DNS' => 'app-ns.example.com'}
-    OpenShift::Runtime::Utils::Environ.expects(:for_gear).with(@container.container_dir).returns(gear_env)
-    @container.expects(:child_gear_ssh_urls).returns([])
-    @container.expects(:run_in_container_context).never
-    @container.rollback_many()
-  end
+  # def test_rollback_many_no_child_gears
+  #   gear_env = {'OPENSHIFT_APP_DNS' => 'app-ns.example.com', 'OPENSHIFT_GEAR_DNS' => 'app-ns.example.com'}
+  #   OpenShift::Runtime::Utils::Environ.expects(:for_gear).with(@container.container_dir).returns(gear_env)
+  #   @container.expects(:child_gear_ssh_urls).returns([])
+  #   @container.expects(:run_in_container_context).never
+  #   @container.rollback_many()
+  # end
 
-  def test_rollback_many_defaults_to_child_gears
-    gears = %w(1234@localhost 2345@localhost)
-    @container.expects(:child_gear_ssh_urls).returns(gears)
+  # def test_rollback_many_defaults_to_child_gears
+  #   gears = %w(1234@localhost 2345@localhost)
+  #   @container.expects(:child_gear_ssh_urls).returns(gears)
 
-    gear_env = {'OPENSHIFT_APP_DNS' => 'app-ns.example.com', 'OPENSHIFT_GEAR_DNS' => 'app-ns.example.com'}
-    OpenShift::Runtime::Utils::Environ.expects(:for_gear).with(@container.container_dir).returns(gear_env)
+  #   gear_env = {'OPENSHIFT_APP_DNS' => 'app-ns.example.com', 'OPENSHIFT_GEAR_DNS' => 'app-ns.example.com'}
+  #   OpenShift::Runtime::Utils::Environ.expects(:for_gear).with(@container.container_dir).returns(gear_env)
 
-    web_proxy = mock()
-    @cartridge_model.expects(:web_proxy).returns(web_proxy)
+  #   web_proxy = mock()
+  #   @cartridge_model.expects(:web_proxy).returns(web_proxy)
 
-    gears.each do |g|
-      gear_uuid = g.split('@')[0]
+  #   gears.each do |g|
+  #     gear_uuid = g.split('@')[0]
 
-      @container.expects(:parallel_update_proxy_status).with(action: :disable, gear_uuid: gear_uuid, persist: false)
+  #     @container.expects(:parallel_update_proxy_status).with(action: :disable, gear_uuid: gear_uuid, persist: false)
 
-      @container.expects(:run_in_container_context).with("/usr/bin/oo-ssh #{g} gear rollback",
-                                                         env: gear_env,
-                                                         expected_exitstatus: 0)
-                                                   .returns("out from #{g}\n")
+  #     @container.expects(:run_in_container_context).with("/usr/bin/oo-ssh #{g} gear rollback",
+  #                                                        env: gear_env,
+  #                                                        expected_exitstatus: 0)
+  #                                                  .returns("out from #{g}\n")
 
-      @container.expects(:parallel_update_proxy_status).with(action: :enable, gear_uuid: gear_uuid, persist: false)
-    end
+  #     @container.expects(:parallel_update_proxy_status).with(action: :enable, gear_uuid: gear_uuid, persist: false)
+  #   end
 
-    output = @container.rollback_many()
+  #   output = @container.rollback_many()
 
-    assert_equal "Rolling back gear 1234\nout from 1234@localhost\nRolling back gear 2345\nout from 2345@localhost\n", output
-  end
+  #   assert_equal "Rolling back gear 1234\nout from 1234@localhost\nRolling back gear 2345\nout from 2345@localhost\n", output
+  # end
 
-  def test_rollback_many_uses_specified_gears
-    gear_env = {'OPENSHIFT_APP_DNS' => 'app-ns.example.com', 'OPENSHIFT_GEAR_DNS' => 'app-ns.example.com'}
-    OpenShift::Runtime::Utils::Environ.expects(:for_gear).with(@container.container_dir).returns(gear_env)
+  # def test_rollback_many_uses_specified_gears
+  #   gear_env = {'OPENSHIFT_APP_DNS' => 'app-ns.example.com', 'OPENSHIFT_GEAR_DNS' => 'app-ns.example.com'}
+  #   OpenShift::Runtime::Utils::Environ.expects(:for_gear).with(@container.container_dir).returns(gear_env)
 
-    gears = %w(1234@localhost 2345@localhost)
-    @container.expects(:child_gear_ssh_urls).never
+  #   gears = %w(1234@localhost 2345@localhost)
+  #   @container.expects(:child_gear_ssh_urls).never
 
-    web_proxy = mock()
-    @cartridge_model.expects(:web_proxy).returns(web_proxy)
+  #   web_proxy = mock()
+  #   @cartridge_model.expects(:web_proxy).returns(web_proxy)
 
-    gears.each do |g|
-      gear_uuid = g.split('@')[0]
+  #   gears.each do |g|
+  #     gear_uuid = g.split('@')[0]
 
-      @container.expects(:parallel_update_proxy_status).with(action: :disable, gear_uuid: gear_uuid, persist: false)
+  #     @container.expects(:parallel_update_proxy_status).with(action: :disable, gear_uuid: gear_uuid, persist: false)
 
-      @container.expects(:run_in_container_context).with("/usr/bin/oo-ssh #{g} gear rollback",
-                                                         env: gear_env,
-                                                         expected_exitstatus: 0)
-                                                   .returns("out from #{g}\n")
+  #     @container.expects(:run_in_container_context).with("/usr/bin/oo-ssh #{g} gear rollback",
+  #                                                        env: gear_env,
+  #                                                        expected_exitstatus: 0)
+  #                                                  .returns("out from #{g}\n")
 
-      @container.expects(:parallel_update_proxy_status).with(action: :enable, gear_uuid: gear_uuid, persist: false)
-    end
+  #     @container.expects(:parallel_update_proxy_status).with(action: :enable, gear_uuid: gear_uuid, persist: false)
+  #   end
 
-    output = @container.rollback_many(gears: gears)
+  #   output = @container.rollback_many(gears: gears)
 
-    assert_equal "Rolling back gear 1234\nout from 1234@localhost\nRolling back gear 2345\nout from 2345@localhost\n", output
-  end
+  #   assert_equal "Rolling back gear 1234\nout from 1234@localhost\nRolling back gear 2345\nout from 2345@localhost\n", output
+  # end
 
-  def test_rollback_default
-    deployment_id = 'abcd1234'
-    deployment_datetime1 = '2013-08-16_13-36-36.880' # deployed
-    deployment_datetime2 = '2013-08-16_14-36-36.880' # never deployed
-    deployment_datetime3 = '2013-08-16_15-36-36.881' # active
-    deployment_datetime4 = '2013-08-17_15-36-36.881' # deployed at some point, but not currently active
-    deployments_dir = File.join(@container.container_dir, 'app-deployments')
-    rollback_options = {'a' => 'b'}
+  # def test_rollback_default
+  #   deployment_id = 'abcd1234'
+  #   deployment_datetime1 = '2013-08-16_13-36-36.880' # deployed
+  #   deployment_datetime2 = '2013-08-16_14-36-36.880' # never deployed
+  #   deployment_datetime3 = '2013-08-16_15-36-36.881' # active
+  #   deployment_datetime4 = '2013-08-17_15-36-36.881' # deployed at some point, but not currently active
+  #   deployments_dir = File.join(@container.container_dir, 'app-deployments')
+  #   rollback_options = {'a' => 'b'}
 
-    @container.expects(:current_deployment_datetime).returns(deployment_datetime3)
-    Dir.expects(:[]).with("#{deployments_dir}/*").returns([deployment_datetime2, deployment_datetime3, deployment_datetime1, 'by-id', deployment_datetime4])
-    @container.expects(:read_deployment_metadata).with(deployment_datetime2, 'state').returns(nil)
-    @container.expects(:read_deployment_metadata).with(deployment_datetime1, 'state').returns("DEPLOYED\n")
+  #   @container.expects(:current_deployment_datetime).returns(deployment_datetime3)
+  #   Dir.expects(:[]).with("#{deployments_dir}/*").returns([deployment_datetime2, deployment_datetime3, deployment_datetime1, 'by-id', deployment_datetime4])
+  #   @container.expects(:read_deployment_metadata).with(deployment_datetime2, 'state').returns(nil)
+  #   @container.expects(:read_deployment_metadata).with(deployment_datetime1, 'state').returns("DEPLOYED\n")
 
-    @container.expects(:read_deployment_metadata).with(deployment_datetime1, 'id').returns("a1b2c3d4\n")
-    @container.expects(:activate).with(rollback_options.merge(deployment_id: 'a1b2c3d4')).returns("activate output\n")
+  #   @container.expects(:read_deployment_metadata).with(deployment_datetime1, 'id').returns("a1b2c3d4\n")
+  #   @container.expects(:activate).with(rollback_options.merge(deployment_id: 'a1b2c3d4')).returns("activate output\n")
 
-    output = @container.rollback(rollback_options)
-    assert_equal "Looking up previous deployment\nRolling back to deployment ID a1b2c3d4\nactivate output\n", output
-  end
+  #   output = @container.rollback(rollback_options)
+  #   assert_equal "Looking up previous deployment\nRolling back to deployment ID a1b2c3d4\nactivate output\n", output
+  # end
 
-  def test_rollback_raises_when_no_previous_deployment_exists
-    deployment_datetime = '2013-08-16_15-36-36.881'
-    @container.expects(:current_deployment_datetime).returns(deployment_datetime)
-    deployments_dir = File.join(@container.container_dir, 'app-deployments')
-    Dir.expects(:[]).with("#{deployments_dir}/*").returns([deployment_datetime, 'by-id'])
+  # def test_rollback_raises_when_no_previous_deployment_exists
+  #   deployment_datetime = '2013-08-16_15-36-36.881'
+  #   @container.expects(:current_deployment_datetime).returns(deployment_datetime)
+  #   deployments_dir = File.join(@container.container_dir, 'app-deployments')
+  #   Dir.expects(:[]).with("#{deployments_dir}/*").returns([deployment_datetime, 'by-id'])
 
-    assert_raises(RuntimeError, 'No prior deployments exist - unable to roll back') { @container.rollback }
-  end
+  #   assert_raises(RuntimeError, 'No prior deployments exist - unable to roll back') { @container.rollback }
+  # end
 
-  def test_rollback_raises_when_specified_deployment_does_not_exist
-    deployment_id = 'abc'
-    @container.expects(:get_deployment_datetime_for_deployment_id).with(deployment_id).returns(nil)
-    assert_raises(RuntimeError, "Deployment ID '#{deployment_id}' does not exist") { @container.rollback(deployment_id: deployment_id) }
-  end
+  # def test_rollback_raises_when_specified_deployment_does_not_exist
+  #   deployment_id = 'abc'
+  #   @container.expects(:get_deployment_datetime_for_deployment_id).with(deployment_id).returns(nil)
+  #   assert_raises(RuntimeError, "Deployment ID '#{deployment_id}' does not exist") { @container.rollback(deployment_id: deployment_id) }
+  # end
 
-  def test_rollback_raises_when_specified_deployment_was_never_deployed
-    deployment_datetime = '2013-08-16_15-36-36.881'
-    deployment_id = 'a1b2c3d4'
+  # def test_rollback_raises_when_specified_deployment_was_never_deployed
+  #   deployment_datetime = '2013-08-16_15-36-36.881'
+  #   deployment_id = 'a1b2c3d4'
 
-    @container.expects(:get_deployment_datetime_for_deployment_id).with(deployment_id).returns(deployment_datetime)
-    @container.expects(:read_deployment_metadata).with(deployment_datetime, 'state').returns(nil)
-    assert_raises(RuntimeError, "Deployment ID '#{deployment_id}' was never deployed - unable to roll back") { @container.rollback(deployment_id: deployment_id) }
-  end
+  #   @container.expects(:get_deployment_datetime_for_deployment_id).with(deployment_id).returns(deployment_datetime)
+  #   @container.expects(:read_deployment_metadata).with(deployment_datetime, 'state').returns(nil)
+  #   assert_raises(RuntimeError, "Deployment ID '#{deployment_id}' was never deployed - unable to roll back") { @container.rollback(deployment_id: deployment_id) }
+  # end
 
-  def test_rollback_for_specified_deployment_id
-    deployment_datetime = '2013-08-16_15-36-36.881'
-    deployment_id = 'a1b2c3d4'
-    rollback_options = {'a' => 'b', :deployment_id => deployment_id}
+  # def test_rollback_for_specified_deployment_id
+  #   deployment_datetime = '2013-08-16_15-36-36.881'
+  #   deployment_id = 'a1b2c3d4'
+  #   rollback_options = {'a' => 'b', :deployment_id => deployment_id}
 
-    @container.expects(:get_deployment_datetime_for_deployment_id).with(deployment_id).returns(deployment_datetime)
-    @container.expects(:read_deployment_metadata).with(deployment_datetime, 'state').returns("DEPLOYED\n")
-    @container.expects(:activate).with(rollback_options).returns("activate output\n")
-    output = @container.rollback(rollback_options)
-    assert_equal "Rolling back to deployment ID a1b2c3d4\nactivate output\n", output
-  end
+  #   @container.expects(:get_deployment_datetime_for_deployment_id).with(deployment_id).returns(deployment_datetime)
+  #   @container.expects(:read_deployment_metadata).with(deployment_datetime, 'state').returns("DEPLOYED\n")
+  #   @container.expects(:activate).with(rollback_options).returns("activate output\n")
+  #   output = @container.rollback(rollback_options)
+  #   assert_equal "Rolling back to deployment ID a1b2c3d4\nactivate output\n", output
+  # end
 end
