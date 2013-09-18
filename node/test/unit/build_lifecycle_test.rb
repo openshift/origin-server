@@ -556,7 +556,8 @@ class BuildLifecycleTest < OpenShift::NodeTestCase
     gear_env = {'a' => 'b'}
     OpenShift::Runtime::Utils::Environ.expects(:for_gear).with(@container.container_dir).returns(gear_env)
 
-    @container.expects(:extract_deployment_archive).with(gear_env, file_path)
+    destination = File.join(@container.container_dir, 'app-deployments', deployment_datetime)
+    @container.expects(:extract_deployment_archive).with(gear_env, file_path, destination)
 
     gear_env_with_repo_dir_override = gear_env.merge({'OPENSHIFT_REPO_DIR' => File.join(@container.container_dir, 'app-deployments', deployment_datetime, 'repo')})
     @cartridge_model.expects(:do_action_hook).with('prepare',

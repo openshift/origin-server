@@ -480,7 +480,7 @@ module OpenShift
           env['OPENSHIFT_REPO_DIR'] = "#{deployment_dir}/repo"
 
           if options[:file]
-            extract_deployment_archive(env, options[:file])
+            extract_deployment_archive(env, options[:file], deployment_dir)
           end
 
           buffer = ''
