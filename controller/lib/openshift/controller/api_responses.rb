@@ -119,7 +119,7 @@ module OpenShift
           when OpenShift::UserException
             status = :unprocessable_entity
             internal_error = false
-
+            
           when OpenShift::AccessDeniedException
             status = :forbidden
             internal_error = false
@@ -146,7 +146,7 @@ module OpenShift
             message ||= ""
             message += "Unable to complete the requested operation due to: #{ex.message}. If the problem persists please contact Red Hat support. \nReference ID: #{request.uuid}"
 
-          when OpenShift::NodeException
+          when OpenShift::NodeException, OpenShift::OOException
             status = :internal_server_error
             message = ""
             if ex.resultIO
