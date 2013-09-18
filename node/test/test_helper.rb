@@ -121,7 +121,10 @@ module OpenShift
 
     def exercise_connections_api
       yield(:pre_set) if block_given?
-      @plugin.connect(*@elements)
+      urls = @plugin.connect(*@elements)
+      if defined?(@reported_urls)
+        assert_equal @reported_urls.sort, urls.sort
+      end
       yield(:set) if block_given?
 
       assert_equal @elements.sort, @plugin.connections.sort, "Connections should return the same as input"

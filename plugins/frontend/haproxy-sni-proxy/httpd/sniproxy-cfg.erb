@@ -1,0 +1,32 @@
+#
+# OpenShift SNI Proxy configuration (haproxy)
+#
+
+#---------------------------------------------------------------------
+# Global settings
+#---------------------------------------------------------------------
+global
+        log 127.0.0.1 local2
+        maxconn       30000
+        user          <%= haproxy_user %>
+        group         <%= haproxy_user %>
+
+        stats socket  <%= haproxy_run_path %>/openshift-origin-frontend-haproxy-sni-proxy-stats
+
+#---------------------------------------------------------------------
+# common defaults that all the 'listen' and 'backend' sections will
+# use if not designated in their block
+#---------------------------------------------------------------------
+defaults
+        mode            tcp
+        log             global
+        option          tcplog
+        option          logasap
+        retries         3
+        timeout queue   1m
+        timeout connect 10s
+        timeout client  10m
+        timeout server  10m
+        timeout check   10s
+        maxconn         3000
+

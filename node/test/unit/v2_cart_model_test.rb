@@ -88,6 +88,7 @@ module OpenShift
             Private-Port-Name: EXAMPLE_PORT1
             Private-Port:      8080
             Public-Port-Name:  EXAMPLE_PUBLIC_PORT1
+            Protocols:         ["http", "https", "ws", "wss"]
             Mappings:
               - Frontend:      "/front1a"
                 Backend:       "/back1a"
@@ -100,6 +101,7 @@ module OpenShift
             Private-Port-Name: EXAMPLE_PORT2
             Private-Port:      8081
             Public-Port-Name:  EXAMPLE_PUBLIC_PORT2
+            Protocols:         ["http"]
             Mappings:
               - Frontend:      "/front2"
                 Backend:       "/back2"
@@ -109,6 +111,7 @@ module OpenShift
             Private-Port-Name: EXAMPLE_PORT3
             Private-Port:      8082
             Public-Port-Name:  EXAMPLE_PUBLIC_PORT3
+            Protocols:         ["http"]
             Mappings:
               - Frontend:      "/front3"
                 Backend:       "/back3"
@@ -117,6 +120,7 @@ module OpenShift
             Private-Port-Name: EXAMPLE_PORT4
             Private-Port:      9090
             Public-Port-Name:  EXAMPLE_PUBLIC_PORT4
+            Protocols:         ["http"]
             Mappings:
               - Frontend:      "/front4"
                 Backend:       "/back4"
@@ -405,11 +409,11 @@ module OpenShift
       frontend = mock('Runtime::FrontendHttpServer')
       Runtime::FrontendHttpServer.stubs(:new).returns(frontend)
 
-      frontend.expects(:connect).with("/front1a", "127.0.0.1:8080/back1a", {"websocket" => true, "tohttps" => true})
-      frontend.expects(:connect).with("/front1b", "127.0.0.1:8080/back1b", {"noproxy" => true})
-      frontend.expects(:connect).with("/front2", "127.0.0.1:8081/back2", {"file" => true})
-      frontend.expects(:connect).with("/front3", "127.0.0.1:8082/back3", {})
-      frontend.expects(:connect).with("/front4", "127.0.0.2:9090/back4", {})
+      frontend.expects(:connect).with("/front1a", "127.0.0.1:8080/back1a", {"websocket" => true, "tohttps" => true, "protocols" => ['http', 'https', 'ws', 'wss']})
+      frontend.expects(:connect).with("/front1b", "127.0.0.1:8080/back1b", {"noproxy" => true, "protocols" => ['http', 'https', 'ws', 'wss']})
+      frontend.expects(:connect).with("/front2", "127.0.0.1:8081/back2", {"file" => true, "protocols" => ['http']})
+      frontend.expects(:connect).with("/front3", "127.0.0.1:8082/back3", {"protocols" => ['http']})
+      frontend.expects(:connect).with("/front4", "127.0.0.2:9090/back4", {"protocols" => ['http']})
 
       @model.connect_frontend(@mock_cartridge)
     end
@@ -436,6 +440,7 @@ module OpenShift
         e.stubs(:websocket_port).returns(nil)
         e.stubs(:private_ip_name).returns("private_ip")
         e.stubs(:private_port).returns(8080)
+        e.stubs(:protocols).returns(["http"])
         e.stubs(:mappings).returns([mawk {|m|
           m.stubs(:frontend).returns("")
           m.stubs(:backend).returns("/backend")
@@ -450,6 +455,7 @@ module OpenShift
         e.stubs(:websocket_port).returns(nil)
         e.stubs(:private_ip_name).returns("proxy_private_ip")
         e.stubs(:private_port).returns(8080)
+        e.stubs(:protocols).returns(["http"])
         e.stubs(:mappings).returns([mawk {|m|
           m.stubs(:frontend).returns("")
           m.stubs(:backend).returns("/backend")
@@ -481,6 +487,7 @@ module OpenShift
         e.stubs(:websocket_port).returns(nil)
         e.stubs(:private_ip_name).returns("private_ip")
         e.stubs(:private_port).returns(8080)
+        e.stubs(:protocols).returns(["http"])
         e.stubs(:mappings).returns([mawk {|m|
           m.stubs(:frontend).returns("")
           m.stubs(:backend).returns("/backend")
@@ -496,6 +503,7 @@ module OpenShift
         e.stubs(:websocket_port).returns(nil)
         e.stubs(:private_ip_name).returns("embedded_private_ip")
         e.stubs(:private_port).returns(8080)
+        e.stubs(:protocols).returns(["http"])
         e.stubs(:mappings).returns([mawk {|m|
           m.stubs(:frontend).returns("")
           m.stubs(:backend).returns("/backend")

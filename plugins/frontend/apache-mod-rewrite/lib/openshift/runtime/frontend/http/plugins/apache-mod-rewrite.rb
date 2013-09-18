@@ -69,8 +69,16 @@ module OpenShift
             end
 
             def connect(*elements)
+              reported_urls = []
               ApacheDBNodes.open(ApacheDBNodes::WRCREAT) do |d|
                 elements.each do |path, uri, options|
+
+                  next if options["protocols"] and ["http", "https"].select { |proto| options["protocols"].include?(proto) }.empty?
+
+                  if options["protocols"] and options["protocols"].include?("https") and not options["protocols"].include?("http")
+                    options["ssl_to_gear"]=1
+                  end
+
                   if options["gone"]
                     map_dest = "GONE"
                   elsif options["forbidden"]
@@ -94,12 +102,14 @@ module OpenShift
                   d.store(@fqdn + path.to_s, map_dest)
                 end
               end
-
+              reported_urls
             end
 
 
             def decode_connection(path, connection)
               entry = [ path, "", {} ]
+
+              entry[2]["protocols"]=[ "http" ]
 
               if connection =~ /^(GONE|FORBIDDEN|NOPROXY|HEALTH)$/
                 entry[2][$~[1].downcase] = 1
@@ -109,6 +119,11 @@ module OpenShift
               else
                 entry[1] = connection
               end
+
+              if entry[2]["ssl_to_gear"]
+                entry[2]["protocols"] << "https"
+              end
+
               entry
             end
 

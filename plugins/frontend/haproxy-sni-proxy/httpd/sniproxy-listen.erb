@@ -1,0 +1,10 @@
+
+listen sniproxy-<%= port %>
+       mode         tcp
+       bind         <%= bind_ip %>:<%= port %>
+       log          global
+       option       ssl-hello-chk
+
+       tcp-request  inspect-delay 5s
+       tcp-request  content accept if { req_ssl_hello_type 1 }
+

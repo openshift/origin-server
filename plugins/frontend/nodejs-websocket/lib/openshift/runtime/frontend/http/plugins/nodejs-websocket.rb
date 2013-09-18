@@ -38,11 +38,15 @@ module OpenShift
             end
 
             def connect(*elements)
+              reported_urls = []
               NodeJSDBRoutes.open(NodeJSDBRoutes::WRCREAT) do |d|
                 elements.each do |path, uri, options|
 
                   next unless path == ""
-                  next unless options["websocket"]
+
+                  if not options["websocket"]
+                    next if options["protocols"] and ["ws"].select { |proto| options["protocols"].include?(proto) }.empty?
+                  end
 
                   conn = options["connections"]
                   if conn.nil?
@@ -75,6 +79,7 @@ module OpenShift
                   end
                 end
               end
+              reported_urls
             end
 
 
@@ -88,6 +93,7 @@ module OpenShift
                     options={}
                     options.merge!(routes_ent["limits"])
                     options["websocket"]=1
+                    options["protocols"]=[ "ws" ]
                     return [ [ path, uri, options ] ]
                   end
                 end

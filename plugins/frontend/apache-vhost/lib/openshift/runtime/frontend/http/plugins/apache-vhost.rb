@@ -79,6 +79,14 @@ module OpenShift
                   end
                 end
               end
+
+              if not options["protocols"]
+                options["protocols"] = [ "http" ]
+                if options["ssl_to_gear"]
+                  options["protocols"] << "https"
+                end
+              end
+
               [ path, uri, options ]
             end
 
@@ -93,6 +101,7 @@ module OpenShift
             end
 
             def connect(*elements)
+              reported_urls=[]
               with_lock_and_reload do
 
                 # The base config won't exist until the first connection is created
@@ -112,6 +121,13 @@ module OpenShift
 
                 # Process target_update option by loading the old values
                 elements.each do |path, uri, options|
+
+                  next if options["protocols"] and ["http", "https"].select { |proto| options["protocols"].include?(proto) }.empty?
+
+                  if options["protocols"] and options["protocols"].include?("https") and not options["protocols"].include?("http")
+                    options["ssl_to_gear"]=1
+                  end
+
                   File.open(element_path(path), File::RDWR | File::CREAT | File::TRUNC, 0644) do |f|
                     f.write("# ELEMENT: ")
                     f.write([path, uri, options].to_json)
@@ -168,6 +184,7 @@ module OpenShift
                   end
                 end
               end
+              reported_urls
             end
 
             def connections

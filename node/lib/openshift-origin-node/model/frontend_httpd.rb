@@ -316,7 +316,13 @@ module OpenShift
         conset = Hash.new { |h,k| h[k]={} }
 
         call_plugins(:connections).each do |path, uri, options|
-          conset[[path, uri]].merge!(options)
+          conset[[path, uri]].merge!(options) do |key, oldval, newval|
+            if key == "protocols"
+              [ oldval, newval ].flatten.uniq.sort
+            else
+              newval
+            end
+          end
         end
 
         conset.map { |k,v| [ k, v ].flatten }

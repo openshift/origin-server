@@ -290,7 +290,7 @@ module OpenShift
             validate_cartridge(cartridge)
           end
 
-          connect_frontend(cartridge)
+          output << connect_frontend(cartridge)
         end
 
         logger.info "configure output: #{Runtime::Utils.sanitize_credentials(output)}"
@@ -907,6 +907,7 @@ module OpenShift
         gear_env       = ::OpenShift::Runtime::Utils::Environ.for_gear(@container.container_dir)
         web_proxy_cart = web_proxy
 
+        output = ""
         begin
           # TODO: exception handling
           cartridge.endpoints.each do |endpoint|
@@ -917,6 +918,11 @@ module OpenShift
 
               if endpoint.websocket_port
                 options["websocket_port"] = endpoint.websocket_port
+              end
+
+              begin
+                options["protocols"]=endpoint.protocols
+              rescue NoMethodError
               end
 
               # Make sure that the mapping does not collide with the default web_proxy mapping
@@ -938,13 +944,20 @@ module OpenShift
               end
               logger.info("Connecting frontend mapping for #{@container.uuid}/#{cartridge.name}: "\
                       "[#{mapping.frontend}] => [#{backend_uri}] with options: #{mapping.options}")
-              frontend.connect(mapping.frontend, backend_uri, options)
+              reported_urls = frontend.connect(mapping.frontend, backend_uri, options)
+              if reported_urls
+                reported_urls.each do |url|
+                  # This is a short-term solution until the direct broker call to expose mappings is available.
+                  output << "CLIENT_RESULT: Cartridge #{cartridge.name} exposed URL #{url}"
+                end
+              end
             end
           end
         rescue Exception => e
           logger.warn("V2CartModel#connect_frontend: #{e.message}\n#{e.backtrace.join("\n")}")
           raise
         end
+        output
       end
 
       # Run code block against each cartridge in gear

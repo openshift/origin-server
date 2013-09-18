@@ -15,6 +15,7 @@
 #++
 
 require 'rubygems'
+require 'active_support/core_ext/class/attribute'
 require 'openshift-origin-node/model/frontend/http/plugins/frontend_http_base'
 require 'openshift-origin-node/utils/shell_exec'
 require 'openshift-origin-node/utils/node_logger'
