@@ -10,7 +10,7 @@ module OpenShift
 
         # Returns the most recent date/time based deployment directory name
         def latest_deployment_datetime
-          latest = all_deployments.reverse[0]
+          latest = all_deployments[-1]
           File.basename(latest)
         end
 
@@ -199,6 +199,17 @@ module OpenShift
                                                   out: $stdout,
                                                   err: $stderr)
           out
+        end
+
+        def calc_deployments
+          deployments = []
+          all_deployments.each do |d|
+            deployment_datetime = File.basename(d)
+            deployment_state = (read_deployment_metadata(deployment_datetime, 'state') || 'NOT DEPLOYED').chomp
+            deployment_id = (read_deployment_metadata(deployment_datetime, 'id') || '').chomp
+            deployments.push({:id => deployment_id, :ref => "TODO", :state => deployment_state, :created_at => deployment_datetime})
+          end
+          deployments
         end
 
         def set_keep_deployments(keep_deployments)

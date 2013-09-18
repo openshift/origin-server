@@ -102,11 +102,12 @@ module MCollective
         output                     = ''
 
         # Do the action execution
-        exitcode, output           = execute_action(action, args)
+        exitcode, output, addtl_params = execute_action(action, args)
         report_quota(output, args['--with-container-uuid']) if args['--with-container-uuid']
 
-        reply[:exitcode] = exitcode
-        reply[:output]   = output
+        reply[:exitcode]     = exitcode
+        reply[:output]       = output
+        reply[:addtl_params] = addtl_params
 
         if exitcode == 0
           Log.instance.info("cartridge_do_action reply (#{exitcode}):\n------\n#{cleanpwd(output)}\n------)")
@@ -125,6 +126,7 @@ module MCollective
 
         exitcode = 0
         output   = ""
+        addtl_params = nil
 
         if not self.respond_to?(action_method)
           exitcode = 127
@@ -135,13 +137,13 @@ module MCollective
             OpenShift::Runtime::NodeLogger.context[:request_id]    = request_id if request_id
             OpenShift::Runtime::NodeLogger.context[:action_method] = action_method if action_method
 
-            exitcode, output = self.send(action_method.to_sym, args)
+            exitcode, output, addtl_params = self.send(action_method.to_sym, args)
           rescue => e
             report_exception e
             Log.instance.error("Unhandled action execution exception for action [#{action}]: #{e.message}")
             Log.instance.error(e.backtrace)
             exitcode = 127
-            output   = "An internal exception occured processing action #{action}: #{e.message}"
+            output   = "An internal exception occurred processing action #{action}: #{e.message}"
           ensure
             OpenShift::Runtime::NodeLogger.context.delete(:request_id)
             OpenShift::Runtime::NodeLogger.context.delete(:action_method)
@@ -149,7 +151,7 @@ module MCollective
           Log.instance.info("Finished executing action [#{action}] (#{exitcode})")
         end
 
-        return exitcode, output
+        return exitcode, output, addtl_params
       end
 
       # report approaching quota overage.
@@ -191,7 +193,7 @@ module MCollective
             action    = job[:action]
             args      = job[:args]
 
-            exitcode, output = execute_action(action, args)
+            exitcode, output, addtl_params = execute_action(action, args)
             if args['--with-container-uuid'] && ! quota_reported
               report_quota(output, args['--with-container-uuid'])
               quota_reported = true
@@ -199,6 +201,7 @@ module MCollective
 
             parallel_job[:result_exit_code] = exitcode
             parallel_job[:result_stdout]    = output
+            parallel_job[:result_addtl_params] = addtl_params
         end
 
         Log.instance.info("execute_parallel_action call - #{joblist}")
@@ -376,10 +379,12 @@ module MCollective
         artifact_url = args['--with-artifact-url']
         out = StringIO.new
         err = StringIO.new
+        addtl_params = {}
 
         begin
           with_container_from_args(args) do |container|
             container.deploy(hot_deploy: hot_deploy, force_clean_build: force_clean_build, ref: ref, artifact_url: artifact_url, out: out, err: err)
+            addtl_params[:deployments] = container.calc_deployments
           end
         rescue Exception => e
           Log.instance.info e.message
@@ -389,7 +394,7 @@ module MCollective
           output = ''
           output << out.string
           output << err.string
-          return 0, output
+          return 0, output, addtl_params
         end
       end
 
@@ -401,6 +406,7 @@ module MCollective
         begin
           with_container_from_args(args) do |container|
             container.rollback(deployment_id: deployment_id, out: out, err: err)
+            addtl_params[:deployments] = container.calc_deployments
           end
         rescue Exception => e
           Log.instance.info e.message

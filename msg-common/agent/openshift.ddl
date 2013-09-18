@@ -108,6 +108,10 @@ action "cartridge_do", :description => "run a cartridge action" do
     output :exitcode,
            :description => "Exit code",
            :display_as => "Exit Code"
+
+    output :addtl_params,
+           :description => "Additional Params",
+           :display_as => "Additional Params"
 end
 
 action "get_facts", :description => "get a specific list of facts" do

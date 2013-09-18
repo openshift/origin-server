@@ -2910,13 +2910,8 @@ class Application
       op_group = PendingAppOpGroup.new(op_type: :deploy,  args: {:hot_deploy => deployment.hot_deploy, :force_clean_build => deployment.force_clean_build, :ref => deployment.ref, :artifact_url => deployment.artifact_url})
       self.pending_op_groups.push op_group
       self.run_jobs(result_io)
-
-      #TODO Get values from the result
-      deployment.deployment_id = rand(100)
-      self.deployments.push(deployment)
-      result_io
     end
-    return result_io, deployment.deployment_id
+    return result_io
   end
 
   def rollback(deployment_id)
@@ -2933,9 +2928,19 @@ class Application
     #TODO call node to get the latest deployments
   end
 
-  def update_deployments(deployments)
-    Application.run_in_application_lock(self) do
-      self.deployments = deployments
+  def update_deployments_from_result(result_io)
+    if result_io.deployments
+      deploys = []
+      deployments.each do |d|
+        deploys.push(Deployment.new(deployment_id: d[:id],
+                                            state: d[:state],
+                                       created_at: d[:created_at],  #TODO:  Need to figure out the transfer format here.  time_in_millis is probably best
+                                              ref: d[:ref],
+                                     artifact_url: d[:artifact_url],
+                                       hot_deploy: d[:hot_deploy],
+                                force_clean_build: d[:force_clean_build]))
+      end
+      self.deployments = deploys
     end
   end
 end

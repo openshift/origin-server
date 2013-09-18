@@ -203,7 +203,8 @@ class Gear
   # @raise [OpenShift::NodeException] on failure
   def deploy(hot_deploy=false, force_clean_build=false, ref=nil, artifact_url=nil)
     result_io = get_proxy.deploy(self, hot_deploy, force_clean_build, ref, artifact_url)
-    app.process_commands(result_io, nil, self)
+    app.update_deployments_from_result(result_io)
+    #app.process_commands(result_io, nil, self)
     raise OpenShift::NodeException.new("Unable to deploy #{app.name}", result_io.exitcode, result_io) if result_io.exitcode != 0
     result_io
   end
@@ -217,7 +218,8 @@ class Gear
   # @raise [OpenShift::NodeException] on failure
   def rollback(deployment_id)
     result_io = get_proxy.rollback(self, deployment_id)
-    app.process_commands(result_io, nil, self)
+    app.update_deployments_from_result(result_io)
+    #app.process_commands(result_io, nil, self)
     raise OpenShift::NodeException.new("Unable to rollback #{app.name} to #{deployment_id}", result_io.exitcode, result_io) if result_io.exitcode != 0
     result_io
   end

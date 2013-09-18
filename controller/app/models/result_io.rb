@@ -1,5 +1,5 @@
 class ResultIO
-  attr_accessor :debugIO, :resultIO, :messageIO, :errorIO, :appInfoIO, :exitcode, :data, :cart_commands, :properties, :hasUserActionableError
+  attr_accessor :debugIO, :resultIO, :messageIO, :errorIO, :appInfoIO, :exitcode, :data, :cart_commands, :properties, :hasUserActionableError, :deployments
 
   def initialize(exitcode=nil, output=nil, gear_id=nil)
     @debugIO = StringIO.new

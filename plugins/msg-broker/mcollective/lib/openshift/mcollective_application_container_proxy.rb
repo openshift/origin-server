@@ -2675,9 +2675,13 @@ module OpenShift
 
         mcoll_result = mcoll_reply[0]
         output = nil
+        addtl_params = nil
         if (mcoll_result && (defined? mcoll_result.results) && !mcoll_result.results[:data].nil?)
           output = mcoll_result.results[:data][:output]
           result.exitcode = mcoll_result.results[:data][:exitcode]
+          if mcoll_result.results[:data][:addtl_params]
+            result.deployments = mcoll_result.results[:data][:addtl_params][:deployments]
+          end
         else
           server_identity = app ? MCollectiveApplicationContainerProxy.find_gear(gear.uuid) : nil
           if server_identity && @id != server_identity
