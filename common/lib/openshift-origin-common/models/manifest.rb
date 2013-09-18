@@ -68,19 +68,19 @@ module OpenShift
       # Class to support Manifest +Endpoint+ elements
       class Endpoint
         attr_accessor :private_ip_name, :private_port_name, :private_port, :public_port_name,
-                      :websocket_port_name, :websocket_port, :mappings, :options
+                      :websocket_port_name, :websocket_port, :mappings, :protocols, :options
 
         class Mapping
           attr_accessor :frontend, :backend, :options
         end
 
         # :call-seq:
-        #   Endpoint.parse(short_name, manifest) -> [Endpoint]
+        #   Endpoint.parse(short_name, manifest, categories) -> [Endpoint]
         #
         # Parse +Endpoint+ element and instantiate Endpoint objects to hold information
         #
         #   Endpoint.parse('PHP', manifest)  #=> [Endpoint]
-        def self.parse(short_name, manifest)
+        def self.parse(short_name, manifest, categories)
           return [] unless manifest['Endpoints']
 
           tag       = short_name.upcase
@@ -101,6 +101,14 @@ module OpenShift
               endpoint.websocket_port_name = build_name(tag, entry['WebSocket-Port-Name'])
               endpoint.websocket_port      = entry['WebSocket-Port'].to_i if entry['WebSocket-Port']
               endpoint.options             = entry['Options']
+
+              if entry['Protocols']
+                endpoint.protocols = entry['Protocols']
+              elsif categories.include?('web_framework')
+                endpoint.protocols = ['http', 'ws']
+              else
+                endpoint.protocols = ['tcp']
+              end
 
               if entry['Mappings'].respond_to?(:each)
                 endpoint.mappings = entry['Mappings'].each_with_object([]) do |mapping_entry, mapping_memo|
@@ -285,7 +293,7 @@ module OpenShift
           @repository_path     = PathUtils.join(repository_base_path, repository_directory, @cartridge_version)
         end
 
-        @endpoints = Endpoint.parse(@short_name, @manifest)
+        @endpoints = Endpoint.parse(@short_name, @manifest, @categories)
       end
 
       ## obtain all software versions covered in this manifest
@@ -304,6 +312,8 @@ module OpenShift
       def deployable?
         @is_deployable
       end
+
+      alias_method :web_framework?, :deployable?
 
       # For now, these are synonyms
       alias :buildable? :deployable?
