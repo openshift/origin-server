@@ -12,6 +12,8 @@ locked_files:
 - configuration/etc/conf.d/
 - configuration/etc/conf.d/php.conf
 - configuration/etc/php.ini
+- configuration/etc/php.d/
+- configuration/etc/php.d/locked-*
 - metadata/
 - metadata/*
 - env/

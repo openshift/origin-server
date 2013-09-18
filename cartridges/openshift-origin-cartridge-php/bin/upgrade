@@ -29,6 +29,10 @@ then
     ln -s ~/.env/OPENSHIFT_LOG_DIR ${OPENSHIFT_PHP_DIR}/env/OPENSHIFT_PHP_LOG_DIR
 fi
 
-if [[ $curr = 0.0.12 ]]; then
+if [[ $curr == 0.0.12 ]]; then
     erb ${OPENSHIFT_PHP_DIR}versions/shared/configuration/etc/php.ini.erb > ${OPENSHIFT_PHP_DIR}configuration/etc/php.ini
+fi
+
+if [[ $curr == 0.0.13 ]]; then
+    echo "${OPENSHIFT_PHP_DIR}configuration/etc/php.d" > ${OPENSHIFT_PHP_DIR}env/PHP_INI_SCAN_DIR
 fi
